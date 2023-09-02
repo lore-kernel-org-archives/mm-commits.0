@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1416C001DB
-	for <mm-commits@archiver.kernel.org>; Sat,  2 Sep 2023 22:17:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 851AAC83F2C
+	for <mm-commits@archiver.kernel.org>; Sat,  2 Sep 2023 22:17:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235018AbjIBWRx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 2 Sep 2023 18:17:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50426 "EHLO
+        id S235020AbjIBWRz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 2 Sep 2023 18:17:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50442 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234992AbjIBWRx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 2 Sep 2023 18:17:53 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 68B06CE0
-        for <mm-commits@vger.kernel.org>; Sat,  2 Sep 2023 15:17:50 -0700 (PDT)
+        with ESMTP id S234992AbjIBWRz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 2 Sep 2023 18:17:55 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9F09CE0
+        for <mm-commits@vger.kernel.org>; Sat,  2 Sep 2023 15:17:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 7BD20CE0159
-        for <mm-commits@vger.kernel.org>; Sat,  2 Sep 2023 22:17:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5AC1C433C7;
-        Sat,  2 Sep 2023 22:17:46 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 451A5B808C7
+        for <mm-commits@vger.kernel.org>; Sat,  2 Sep 2023 22:17:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C709EC433C8;
+        Sat,  2 Sep 2023 22:17:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1693693066;
-        bh=CkAAmEdAw8yy8XbnWYJb9hzIcCZyF+0f0QQNhYH7DmQ=;
+        s=korg; t=1693693068;
+        bh=s/9prw2KkZ8aVDPKPmKf37J2Ulh6HpaT6JeGO0zF+r4=;
         h=Date:To:From:Subject:From;
-        b=X2FRGEU4qTKsnKHM8XsYaEcz7BS/iMTbrzFZLP5ghD+6PK9AOi6z+8Y+SyQWLuYDN
-         M/w/3C1ww+oYslfEfUsIzgHlayN7+ezVaqOSMNld9DRpB94Pk0tYYpgv8M9nvUcvfC
-         zA7eUGw9qi4z3lAotatWRsFtYnmP2rkMI8R1w+C4=
-Date:   Sat, 02 Sep 2023 15:17:45 -0700
+        b=2nnrR+XMcLvIhvhbT/EVwP7bZAyTWek482eKe6XVjdEnOGZKuuCoOcpioQZLcjRSQ
+         VYkXGTInDVYdRNJNovTTDsR4uuJ+25Z6lTQLM92SdjX7YuqHS5iMbYNTawQytn53OI
+         fiXf7vmxsZp5OdhC3HWZr584XIhdgeVN0idDZ5pE=
+Date:   Sat, 02 Sep 2023 15:17:48 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        wangkefeng.wang@huawei.com, naoya.horiguchi@nec.com,
-        linmiaohe@huawei.com, akpm@linux-foundation.org
+        naoya.horiguchi@nec.com, linmiaohe@huawei.com,
+        anshuman.khandual@arm.com, jiaqiyan@google.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory-failure-add-pageoffline-check.patch removed from -mm tree
-Message-Id: <20230902221746.C5AC1C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hwpoison-rename-hwp_walk-to-hwpoison_walk.patch removed from -mm tree
+Message-Id: <20230902221748.C709EC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,55 +44,122 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: memory-failure: add PageOffline() check
+     Subject: mm/hwpoison: rename hwp_walk* to hwpoison_walk*
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-add-pageoffline-check.patch
+     mm-hwpoison-rename-hwp_walk-to-hwpoison_walk.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: memory-failure: add PageOffline() check
-Date: Thu, 27 Jul 2023 19:56:43 +0800
+From: Jiaqi Yan <jiaqiyan@google.com>
+Subject: mm/hwpoison: rename hwp_walk* to hwpoison_walk*
+Date: Thu, 13 Jul 2023 23:55:53 +0000
 
-Memory failure is not interested in logically offlined pages.  Skip this
-type of page.
+In the discussion of "Improve hugetlbfs read on HWPOISON hugepages" [1],
+Matthew Wilcox suggests hwp is a bad abbreviation of hwpoison, as hwp is
+already used as "an acronym by acpi, intel_pstate, some clock drivers, an
+ethernet driver, and a scsi driver"[1].
 
-Link: https://lkml.kernel.org/r/20230727115643.639741-5-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+So rename hwp_walk and hwp_walk_ops to hwpoison_walk and
+hwpoison_walk_ops respectively.
+
+raw_hwp_(page|list), *_raw_hwp, and raw_hwp_unreliable flag are other
+major appearances of "hwp".  However, given the "raw" hint in the name, it
+is easy to differentiate them from other "hwp" acronyms.  Since renaming
+them is not as straightforward as renaming hwp_walk*, they are not covered
+by this commit.
+
+[1] https://lore.kernel.org/lkml/20230707201904.953262-5-jiaqiyan@google.com/T/#me6fecb8ce1ad4d5769199c9e162a44bc88f7bdec
+
+Link: https://lkml.kernel.org/r/20230713235553.4121855-1-jiaqiyan@google.com
+Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/memory-failure.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-add-pageoffline-check
+--- a/mm/memory-failure.c~mm-hwpoison-rename-hwp_walk-to-hwpoison_walk
 +++ a/mm/memory-failure.c
-@@ -1562,7 +1562,7 @@ static bool hwpoison_user_mappings(struc
- 	 * Here we are interested only in user-mapped pages, so skip any
- 	 * other types of pages.
- 	 */
--	if (PageReserved(p) || PageSlab(p) || PageTable(p))
-+	if (PageReserved(p) || PageSlab(p) || PageTable(p) || PageOffline(p))
- 		return true;
- 	if (!(PageLRU(hpage) || PageHuge(p)))
- 		return true;
-@@ -2533,7 +2533,8 @@ int unpoison_memory(unsigned long pfn)
- 		goto unlock_mutex;
- 	}
+@@ -717,7 +717,7 @@ static void collect_procs(struct page *p
+ 		collect_procs_file(page, tokill, force_early);
+ }
  
--	if (folio_test_slab(folio) || PageTable(&folio->page) || folio_test_reserved(folio))
-+	if (folio_test_slab(folio) || PageTable(&folio->page) ||
-+	    folio_test_reserved(folio) || PageOffline(&folio->page))
- 		goto unlock_mutex;
+-struct hwp_walk {
++struct hwpoison_walk {
+ 	struct to_kill tk;
+ 	unsigned long pfn;
+ 	int flags;
+@@ -752,7 +752,7 @@ static int check_hwpoisoned_entry(pte_t
  
- 	/*
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ static int check_hwpoisoned_pmd_entry(pmd_t *pmdp, unsigned long addr,
+-				      struct hwp_walk *hwp)
++				      struct hwpoison_walk *hwp)
+ {
+ 	pmd_t pmd = *pmdp;
+ 	unsigned long pfn;
+@@ -770,7 +770,7 @@ static int check_hwpoisoned_pmd_entry(pm
+ }
+ #else
+ static int check_hwpoisoned_pmd_entry(pmd_t *pmdp, unsigned long addr,
+-				      struct hwp_walk *hwp)
++				      struct hwpoison_walk *hwp)
+ {
+ 	return 0;
+ }
+@@ -779,7 +779,7 @@ static int check_hwpoisoned_pmd_entry(pm
+ static int hwpoison_pte_range(pmd_t *pmdp, unsigned long addr,
+ 			      unsigned long end, struct mm_walk *walk)
+ {
+-	struct hwp_walk *hwp = walk->private;
++	struct hwpoison_walk *hwp = walk->private;
+ 	int ret = 0;
+ 	pte_t *ptep, *mapped_pte;
+ 	spinlock_t *ptl;
+@@ -813,7 +813,7 @@ static int hwpoison_hugetlb_range(pte_t
+ 			    unsigned long addr, unsigned long end,
+ 			    struct mm_walk *walk)
+ {
+-	struct hwp_walk *hwp = walk->private;
++	struct hwpoison_walk *hwp = walk->private;
+ 	pte_t pte = huge_ptep_get(ptep);
+ 	struct hstate *h = hstate_vma(walk->vma);
+ 
+@@ -824,7 +824,7 @@ static int hwpoison_hugetlb_range(pte_t
+ #define hwpoison_hugetlb_range	NULL
+ #endif
+ 
+-static const struct mm_walk_ops hwp_walk_ops = {
++static const struct mm_walk_ops hwpoison_walk_ops = {
+ 	.pmd_entry = hwpoison_pte_range,
+ 	.hugetlb_entry = hwpoison_hugetlb_range,
+ 	.walk_lock = PGWALK_RDLOCK,
+@@ -847,7 +847,7 @@ static int kill_accessing_process(struct
+ 				  int flags)
+ {
+ 	int ret;
+-	struct hwp_walk priv = {
++	struct hwpoison_walk priv = {
+ 		.pfn = pfn,
+ 	};
+ 	priv.tk.tsk = p;
+@@ -856,7 +856,7 @@ static int kill_accessing_process(struct
+ 		return -EFAULT;
+ 
+ 	mmap_read_lock(p->mm);
+-	ret = walk_page_range(p->mm, 0, TASK_SIZE, &hwp_walk_ops,
++	ret = walk_page_range(p->mm, 0, TASK_SIZE, &hwpoison_walk_ops,
+ 			      (void *)&priv);
+ 	if (ret == 1 && priv.tk.addr)
+ 		kill_proc(&priv.tk, pfn, flags);
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from jiaqiyan@google.com are
 
 
