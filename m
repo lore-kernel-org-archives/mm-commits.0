@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA452C83F2C
-	for <mm-commits@archiver.kernel.org>; Sun,  3 Sep 2023 02:25:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 785BFC83F2D
+	for <mm-commits@archiver.kernel.org>; Sun,  3 Sep 2023 23:37:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229810AbjICCZr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 2 Sep 2023 22:25:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60644 "EHLO
+        id S235176AbjICXh4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 3 Sep 2023 19:37:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60784 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235548AbjICCZq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 2 Sep 2023 22:25:46 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 166D4CCA
-        for <mm-commits@vger.kernel.org>; Sat,  2 Sep 2023 19:25:43 -0700 (PDT)
+        with ESMTP id S229653AbjICXhz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Sep 2023 19:37:55 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF729AF
+        for <mm-commits@vger.kernel.org>; Sun,  3 Sep 2023 16:37:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id DD55EB80A7C
-        for <mm-commits@vger.kernel.org>; Sun,  3 Sep 2023 02:25:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 936A8C433C7;
-        Sun,  3 Sep 2023 02:25:40 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id D259ACE094F
+        for <mm-commits@vger.kernel.org>; Sun,  3 Sep 2023 23:37:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED56BC433C8;
+        Sun,  3 Sep 2023 23:37:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1693707940;
-        bh=2QDR+Q++/MUQcRD0+nL/6s2mWHm3HpK9ciHw3s0hI5k=;
+        s=korg; t=1693784268;
+        bh=ri1jgIuwraKhSuFm4XhatOfsZ/J7ef6KGbt9p5bhjHs=;
         h=Date:To:From:Subject:From;
-        b=GQ/WuwoREJLQFk1k/J4Qk8/j6cY2FJp2qCnQf5SG5X4LrpSbZLkP7hNGoH0Iy4pn5
-         st2fCJZveJB6uDsPkTO9uiV+ePcOh608uAcm0Kx9wW/m+2SND78BE9akp0F1ZWM9F+
-         DaYpwhoX5e3l+iKa2yDsQoAh5P9v/eYsSTsPUwsM=
-Date:   Sat, 02 Sep 2023 19:25:39 -0700
-To:     mm-commits@vger.kernel.org, muchun.song@linux.dev,
-        mike.kravetz@oracle.com, mel@csn.ul.ie, lee.schermerhorn@hp.com,
-        andi@firstfloor.org, xueshi.hu@smartx.com,
+        b=Fs1a6ijLh1xHTw4Bhxa7XBjZNjNba/Yg87Ywk2LNYqTH7d5Jdnv2zTF8JdKrhtMpq
+         V6CFuqHxsA6RG7wxH4cvYOdYc46vIKBM2jETKMybdgTHKJnDjZR7l1SPI6b8pWKSY4
+         n/QKvr4PZ6DWw7fdn5SygC2K0vIH2NMz8ta5cMSs=
+Date:   Sun, 03 Sep 2023 16:37:45 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, mcgrof@kernel.org,
+        jack@suse.cz, djwong@kernel.org, ruansy.fnst@fujitsu.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugeltb-fix-nodes-huge-page-allocation-when-there-are-surplus-pages.patch added to mm-unstable branch
-Message-Id: <20230903022540.936A8C433C7@smtp.kernel.org>
+Subject: + mm-pmem-xfs-introduce-mf_mem_pre_remove-for-unbind.patch added to mm-unstable branch
+Message-Id: <20230903233747.ED56BC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugeltb: fix nodes huge page allocation when there are surplus pages
+     Subject: mm, pmem, xfs: introduce MF_MEM_PRE_REMOVE for unbind
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugeltb-fix-nodes-huge-page-allocation-when-there-are-surplus-pages.patch
+     mm-pmem-xfs-introduce-mf_mem_pre_remove-for-unbind.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugeltb-fix-nodes-huge-page-allocation-when-there-are-surplus-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pmem-xfs-introduce-mf_mem_pre_remove-for-unbind.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,81 +66,322 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Xueshi Hu <xueshi.hu@smartx.com>
-Subject: mm/hugeltb: fix nodes huge page allocation when there are surplus pages
-Date: Tue, 29 Aug 2023 11:33:43 +0800
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Subject: mm, pmem, xfs: introduce MF_MEM_PRE_REMOVE for unbind
+Date: Mon, 28 Aug 2023 14:57:44 +0800
 
-In set_nr_huge_pages(), local variable "count" is used to record
-persistent_huge_pages(), but when it cames to nodes huge page allocation,
-the semantics changes to nr_huge_pages.  When there exists surplus huge
-pages and using the interface under
-/sys/devices/system/node/node*/hugepages to change huge page pool size,
-this difference can result in the allocation of an unexpected number of
-huge pages.
+Now, if we suddenly remove a PMEM device(by calling unbind) which
+contains FSDAX while programs are still accessing data in this device,
+e.g.:
+```
+ $FSSTRESS_PROG -d $SCRATCH_MNT -n 99999 -p 4 &
+ # $FSX_PROG -N 1000000 -o 8192 -l 500000 $SCRATCH_MNT/t001 &
+ echo "pfn1.1" > /sys/bus/nd/drivers/nd_pmem/unbind
+```
+it could come into an unacceptable state:
+  1. device has gone but mount point still exists, and umount will fail
+       with "target is busy"
+  2. programs will hang and cannot be killed
+  3. may crash with NULL pointer dereference
 
-Steps to reproduce the bug:
+To fix this, we introduce a MF_MEM_PRE_REMOVE flag to let it know that we
+are going to remove the whole device, and make sure all related processes
+could be notified so that they could end up gracefully.
 
-Starting with:
+This patch is inspired by Dan's "mm, dax, pmem: Introduce
+dev_pagemap_failure()"[1].  With the help of dax_holder and
+->notify_failure() mechanism, the pmem driver is able to ask filesystem
+on it to unmap all files in use, and notify processes who are using
+those files.
 
-				  Node 0          Node 1    Total
-	HugePages_Total             0.00            0.00     0.00
-	HugePages_Free              0.00            0.00     0.00
-	HugePages_Surp              0.00            0.00     0.00
+Call trace:
+trigger unbind
+ -> unbind_store()
+  -> ... (skip)
+   -> devres_release_all()
+    -> kill_dax()
+     -> dax_holder_notify_failure(dax_dev, 0, U64_MAX, MF_MEM_PRE_REMOVE)
+      -> xfs_dax_notify_failure()
+      `-> freeze_super()             // freeze (kernel call)
+      `-> do xfs rmap
+      ` -> mf_dax_kill_procs()
+      `  -> collect_procs_fsdax()    // all associated processes
+      `  -> unmap_and_kill()
+      ` -> invalidate_inode_pages2_range() // drop file's cache
+      `-> thaw_super()               // thaw (both kernel & user call)
 
-create 100 huge pages in Node 0 and consume it, then set Node 0 's
-nr_hugepages to 0.
+Introduce MF_MEM_PRE_REMOVE to let filesystem know this is a remove
+event.  Use the exclusive freeze/thaw[2] to lock the filesystem to prevent
+new dax mapping from being created.  Do not shutdown filesystem directly
+if configuration is not supported, or if failure range includes metadata
+area.  Make sure all files and processes(not only the current progress)
+are handled correctly.  Also drop the cache of associated files before
+pmem is removed.
 
-yields:
+[1]: https://lore.kernel.org/linux-mm/161604050314.1463742.14151665140035795571.stgit@dwillia2-desk3.amr.corp.intel.com/
+[2]: https://lore.kernel.org/linux-xfs/169116275623.3187159.16862410128731457358.stg-ugh@frogsfrogsfrogs/
 
-				  Node 0          Node 1    Total
-	HugePages_Total           200.00            0.00   200.00
-	HugePages_Free              0.00            0.00     0.00
-	HugePages_Surp            200.00            0.00   200.00
-
-write 100 to Node 1's nr_hugepages
-
-		echo 100 > /sys/devices/system/node/node1/\
-	hugepages/hugepages-2048kB/nr_hugepages
-
-gets:
-
-				  Node 0          Node 1    Total
-	HugePages_Total           200.00          400.00   600.00
-	HugePages_Free              0.00          400.00   400.00
-	HugePages_Surp            200.00            0.00   200.00
-
-Kernel is expected to create only 100 huge pages and it gives 200.
-
-Link: https://lkml.kernel.org/r/20230829033343.467779-1-xueshi.hu@smartx.com
-Fixes: 9a30523066cd ("hugetlb: add per node hstate attributes")
-Signed-off-by: Xueshi Hu <xueshi.hu@smartx.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Muchun Song <muchun.song@linux.dev>
+Link: https://lkml.kernel.org/r/20230828065744.1446462-1-ruansy.fnst@fujitsu.com
+Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Reviewed-by: Darrick J. Wong <djwong@kernel.org>
+Cc: Darrick J. Wong <djwong@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/dax/super.c         |    3 -
+ fs/xfs/xfs_notify_failure.c |   99 +++++++++++++++++++++++++++++++---
+ include/linux/mm.h          |    1 
+ mm/memory-failure.c         |   17 ++++-
+ 4 files changed, 109 insertions(+), 11 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugeltb-fix-nodes-huge-page-allocation-when-there-are-surplus-pages
-+++ a/mm/hugetlb.c
-@@ -3457,7 +3457,9 @@ static int set_max_huge_pages(struct hst
- 	if (nid != NUMA_NO_NODE) {
- 		unsigned long old_count = count;
+--- a/drivers/dax/super.c~mm-pmem-xfs-introduce-mf_mem_pre_remove-for-unbind
++++ a/drivers/dax/super.c
+@@ -326,7 +326,8 @@ void kill_dax(struct dax_device *dax_dev
+ 		return;
  
--		count += h->nr_huge_pages - h->nr_huge_pages_node[nid];
-+		count += persistent_huge_pages(h) -
-+			 (h->nr_huge_pages_node[nid] -
-+			  h->surplus_huge_pages_node[nid]);
- 		/*
- 		 * User may have specified a large count value which caused the
- 		 * above calculation to overflow.  In this case, they wanted
+ 	if (dax_dev->holder_data != NULL)
+-		dax_holder_notify_failure(dax_dev, 0, U64_MAX, 0);
++		dax_holder_notify_failure(dax_dev, 0, U64_MAX,
++				MF_MEM_PRE_REMOVE);
+ 
+ 	clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
+ 	synchronize_srcu(&dax_srcu);
+--- a/fs/xfs/xfs_notify_failure.c~mm-pmem-xfs-introduce-mf_mem_pre_remove-for-unbind
++++ a/fs/xfs/xfs_notify_failure.c
+@@ -22,6 +22,7 @@
+ 
+ #include <linux/mm.h>
+ #include <linux/dax.h>
++#include <linux/fs.h>
+ 
+ struct xfs_failure_info {
+ 	xfs_agblock_t		startblock;
+@@ -73,10 +74,16 @@ xfs_dax_failure_fn(
+ 	struct xfs_mount		*mp = cur->bc_mp;
+ 	struct xfs_inode		*ip;
+ 	struct xfs_failure_info		*notify = data;
++	struct address_space		*mapping;
++	pgoff_t				pgoff;
++	unsigned long			pgcnt;
+ 	int				error = 0;
+ 
+ 	if (XFS_RMAP_NON_INODE_OWNER(rec->rm_owner) ||
+ 	    (rec->rm_flags & (XFS_RMAP_ATTR_FORK | XFS_RMAP_BMBT_BLOCK))) {
++		/* Continue the query because this isn't a failure. */
++		if (notify->mf_flags & MF_MEM_PRE_REMOVE)
++			return 0;
+ 		notify->want_shutdown = true;
+ 		return 0;
+ 	}
+@@ -92,15 +99,61 @@ xfs_dax_failure_fn(
+ 		return 0;
+ 	}
+ 
+-	error = mf_dax_kill_procs(VFS_I(ip)->i_mapping,
+-				  xfs_failure_pgoff(mp, rec, notify),
+-				  xfs_failure_pgcnt(mp, rec, notify),
+-				  notify->mf_flags);
++	mapping = VFS_I(ip)->i_mapping;
++	pgoff = xfs_failure_pgoff(mp, rec, notify);
++	pgcnt = xfs_failure_pgcnt(mp, rec, notify);
++
++	/* Continue the rmap query if the inode isn't a dax file. */
++	if (dax_mapping(mapping))
++		error = mf_dax_kill_procs(mapping, pgoff, pgcnt,
++					  notify->mf_flags);
++
++	/* Invalidate the cache in dax pages. */
++	if (notify->mf_flags & MF_MEM_PRE_REMOVE)
++		invalidate_inode_pages2_range(mapping, pgoff,
++					      pgoff + pgcnt - 1);
++
+ 	xfs_irele(ip);
+ 	return error;
+ }
+ 
+ static int
++xfs_dax_notify_failure_freeze(
++	struct xfs_mount	*mp)
++{
++	struct super_block	*sb = mp->m_super;
++	int			error;
++
++	error = freeze_super(sb, FREEZE_HOLDER_KERNEL);
++	if (error)
++		xfs_emerg(mp, "already frozen by kernel, err=%d", error);
++
++	return error;
++}
++
++static void
++xfs_dax_notify_failure_thaw(
++	struct xfs_mount	*mp,
++	bool			kernel_frozen)
++{
++	struct super_block	*sb = mp->m_super;
++	int			error;
++
++	if (kernel_frozen) {
++		error = thaw_super(sb, FREEZE_HOLDER_KERNEL);
++		if (error)
++			xfs_emerg(mp, "still frozen after notify failure, err=%d",
++				error);
++	}
++
++	/*
++	 * Also thaw userspace call anyway because the device is about to be
++	 * removed immediately.
++	 */
++	thaw_super(sb, FREEZE_HOLDER_USERSPACE);
++}
++
++static int
+ xfs_dax_notify_ddev_failure(
+ 	struct xfs_mount	*mp,
+ 	xfs_daddr_t		daddr,
+@@ -112,15 +165,29 @@ xfs_dax_notify_ddev_failure(
+ 	struct xfs_btree_cur	*cur = NULL;
+ 	struct xfs_buf		*agf_bp = NULL;
+ 	int			error = 0;
++	bool			kernel_frozen = false;
+ 	xfs_fsblock_t		fsbno = XFS_DADDR_TO_FSB(mp, daddr);
+ 	xfs_agnumber_t		agno = XFS_FSB_TO_AGNO(mp, fsbno);
+ 	xfs_fsblock_t		end_fsbno = XFS_DADDR_TO_FSB(mp,
+ 							     daddr + bblen - 1);
+ 	xfs_agnumber_t		end_agno = XFS_FSB_TO_AGNO(mp, end_fsbno);
+ 
++	if (mf_flags & MF_MEM_PRE_REMOVE) {
++		xfs_info(mp, "Device is about to be removed!");
++		/*
++		 * Freeze fs to prevent new mappings from being created.
++		 * - Keep going on if others already hold the kernel forzen.
++		 * - Keep going on if other errors too because this device is
++		 *   starting to fail.
++		 * - If kernel frozen state is hold successfully here, thaw it
++		 *   here as well at the end.
++		 */
++		kernel_frozen = xfs_dax_notify_failure_freeze(mp) == 0;
++	}
++
+ 	error = xfs_trans_alloc_empty(mp, &tp);
+ 	if (error)
+-		return error;
++		goto out;
+ 
+ 	for (; agno <= end_agno; agno++) {
+ 		struct xfs_rmap_irec	ri_low = { };
+@@ -165,11 +232,23 @@ xfs_dax_notify_ddev_failure(
+ 	}
+ 
+ 	xfs_trans_cancel(tp);
++
++	/*
++	 * Determine how to shutdown the filesystem according to the
++	 * error code and flags.
++	 */
+ 	if (error || notify.want_shutdown) {
+ 		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
+ 		if (!error)
+ 			error = -EFSCORRUPTED;
+-	}
++	} else if (mf_flags & MF_MEM_PRE_REMOVE)
++		xfs_force_shutdown(mp, SHUTDOWN_FORCE_UMOUNT);
++
++out:
++	/* Thaw the fs if it is frozen before. */
++	if (mf_flags & MF_MEM_PRE_REMOVE)
++		xfs_dax_notify_failure_thaw(mp, kernel_frozen);
++
+ 	return error;
+ }
+ 
+@@ -197,6 +276,8 @@ xfs_dax_notify_failure(
+ 
+ 	if (mp->m_logdev_targp && mp->m_logdev_targp->bt_daxdev == dax_dev &&
+ 	    mp->m_logdev_targp != mp->m_ddev_targp) {
++		if (mf_flags & MF_MEM_PRE_REMOVE)
++			return 0;
+ 		xfs_err(mp, "ondisk log corrupt, shutting down fs!");
+ 		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
+ 		return -EFSCORRUPTED;
+@@ -210,6 +291,12 @@ xfs_dax_notify_failure(
+ 	ddev_start = mp->m_ddev_targp->bt_dax_part_off;
+ 	ddev_end = ddev_start + bdev_nr_bytes(mp->m_ddev_targp->bt_bdev) - 1;
+ 
++	/* Notify failure on the whole device. */
++	if (offset == 0 && len == U64_MAX) {
++		offset = ddev_start;
++		len = bdev_nr_bytes(mp->m_ddev_targp->bt_bdev);
++	}
++
+ 	/* Ignore the range out of filesystem area */
+ 	if (offset + len - 1 < ddev_start)
+ 		return -ENXIO;
+--- a/include/linux/mm.h~mm-pmem-xfs-introduce-mf_mem_pre_remove-for-unbind
++++ a/include/linux/mm.h
+@@ -3782,6 +3782,7 @@ enum mf_flags {
+ 	MF_UNPOISON = 1 << 4,
+ 	MF_SW_SIMULATED = 1 << 5,
+ 	MF_NO_RETRY = 1 << 6,
++	MF_MEM_PRE_REMOVE = 1 << 7,
+ };
+ int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
+ 		      unsigned long count, int mf_flags);
+--- a/mm/memory-failure.c~mm-pmem-xfs-introduce-mf_mem_pre_remove-for-unbind
++++ a/mm/memory-failure.c
+@@ -679,7 +679,7 @@ static void add_to_kill_fsdax(struct tas
+  */
+ static void collect_procs_fsdax(struct page *page,
+ 		struct address_space *mapping, pgoff_t pgoff,
+-		struct list_head *to_kill)
++		struct list_head *to_kill, bool pre_remove)
+ {
+ 	struct vm_area_struct *vma;
+ 	struct task_struct *tsk;
+@@ -687,8 +687,15 @@ static void collect_procs_fsdax(struct p
+ 	i_mmap_lock_read(mapping);
+ 	read_lock(&tasklist_lock);
+ 	for_each_process(tsk) {
+-		struct task_struct *t = task_early_kill(tsk, true);
++		struct task_struct *t = tsk;
+ 
++		/*
++		 * Search for all tasks while MF_MEM_PRE_REMOVE is set, because
++		 * the current may not be the one accessing the fsdax page.
++		 * Otherwise, search for the current task.
++		 */
++		if (!pre_remove)
++			t = task_early_kill(tsk, true);
+ 		if (!t)
+ 			continue;
+ 		vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
+@@ -1792,6 +1799,7 @@ int mf_dax_kill_procs(struct address_spa
+ 	dax_entry_t cookie;
+ 	struct page *page;
+ 	size_t end = index + count;
++	bool pre_remove = mf_flags & MF_MEM_PRE_REMOVE;
+ 
+ 	mf_flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
+ 
+@@ -1803,9 +1811,10 @@ int mf_dax_kill_procs(struct address_spa
+ 		if (!page)
+ 			goto unlock;
+ 
+-		SetPageHWPoison(page);
++		if (!pre_remove)
++			SetPageHWPoison(page);
+ 
+-		collect_procs_fsdax(page, mapping, index, &to_kill);
++		collect_procs_fsdax(page, mapping, index, &to_kill, pre_remove);
+ 		unmap_and_kill(&to_kill, page_to_pfn(page), mapping,
+ 				index, mf_flags);
+ unlock:
 _
 
-Patches currently in -mm which might be from xueshi.hu@smartx.com are
+Patches currently in -mm which might be from ruansy.fnst@fujitsu.com are
 
-mm-hugeltb-fix-nodes-huge-page-allocation-when-there-are-surplus-pages.patch
+mm-pmem-xfs-introduce-mf_mem_pre_remove-for-unbind.patch
 
