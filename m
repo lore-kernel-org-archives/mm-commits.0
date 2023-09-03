@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C32DDC71153
-	for <mm-commits@archiver.kernel.org>; Sun,  3 Sep 2023 23:51:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33413C83F2C
+	for <mm-commits@archiver.kernel.org>; Sun,  3 Sep 2023 23:58:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241270AbjICXvF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 3 Sep 2023 19:51:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44218 "EHLO
+        id S241294AbjICX6V (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 3 Sep 2023 19:58:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51366 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241341AbjICXvE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Sep 2023 19:51:04 -0400
+        with ESMTP id S237477AbjICX6U (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Sep 2023 19:58:20 -0400
 Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 037F6101
-        for <mm-commits@vger.kernel.org>; Sun,  3 Sep 2023 16:51:01 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 13F36C4
+        for <mm-commits@vger.kernel.org>; Sun,  3 Sep 2023 16:58:17 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 5D0E0CE094F
-        for <mm-commits@vger.kernel.org>; Sun,  3 Sep 2023 23:50:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7A9EC433C7;
-        Sun,  3 Sep 2023 23:50:57 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 69D8ECE0AC0
+        for <mm-commits@vger.kernel.org>; Sun,  3 Sep 2023 23:58:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DD58C433C8;
+        Sun,  3 Sep 2023 23:58:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1693785057;
-        bh=nwbj7UxtRKFUC+TtIrrFoqqzsWrin6Bknz0PyClRluY=;
+        s=korg; t=1693785493;
+        bh=MiIXHQiHawhZS4z3CNOUPlwyKhokoYlBLR7TFbY+ud0=;
         h=Date:To:From:Subject:From;
-        b=F/JGnqs/cmaPFHtCyJRD5UXLBn99pPmJrI3HaQwULwDC2wa8Pd1domaGQJJRyg3hO
-         GYQlKVn4BOMCPeDyl17zF4RM+hJIJbK8g0G4Xzri9IDNTV1TyY0P3aWl5duuQaEvwW
-         WT4nZI0FQM00uqv6s27vMjISM6BZe9lOi1prhUNw=
-Date:   Sun, 03 Sep 2023 16:50:55 -0700
-To:     mm-commits@vger.kernel.org, ebiederm@xmission.com, oleg@redhat.com,
-        akpm@linux-foundation.org
+        b=c/Cyt3aIfyO1GojeuL3kF1kWR7uIwzQAK7ME1a+5ITtWuV5ztf2DocHeJN1+JBS7f
+         +YboTU9PM3O9gtmCtpx6yIj5SxN7oFfXm6/8+GwCIb0hgFWhJVH0dlCPbmQ3LmE+Nz
+         9q4USmARfC677GpCb1WA8GWbfCW4xpVOKn/JWs0Y=
+Date:   Sun, 03 Sep 2023 16:58:11 -0700
+To:     mm-commits@vger.kernel.org, zhaoyang.huang@unisoc.com,
+        david@redhat.com, vernhao@tencent.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kill-task_struct-thread_group.patch added to mm-nonmm-unstable branch
-Message-Id: <20230903235057.A7A9EC433C7@smtp.kernel.org>
+Subject: + mm-vmscan-use-folio_migratetype-instead-of-get_pageblock_migratetype.patch added to mm-unstable branch
+Message-Id: <20230903235813.6DD58C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kill task_struct->thread_group
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kill-task_struct-thread_group.patch
+     Subject: mm/vmscan: use folio_migratetype() instead of get_pageblock_migratetype()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-vmscan-use-folio_migratetype-instead-of-get_pageblock_migratetype.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kill-task_struct-thread_group.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-use-folio_migratetype-instead-of-get_pageblock_migratetype.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,77 +65,37 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: kill task_struct->thread_group
-Date: Sat, 26 Aug 2023 13:14:09 +0200
+From: Vern Hao <vernhao@tencent.com>
+Subject: mm/vmscan: use folio_migratetype() instead of get_pageblock_migratetype()
+Date: Fri, 25 Aug 2023 15:57:34 +0800
 
-The last user was removed by the previous patch.
+In skip_cma(), we can use folio_migratetype() to replace
+get_pageblock_migratetype().
 
-Link: https://lkml.kernel.org/r/20230826111409.GA23243@redhat.com
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
+Link: https://lkml.kernel.org/r/20230825075735.52436-1-user@VERNHAO-MC1
+Signed-off-by: Vern Hao <vernhao@tencent.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    1 -
- init/init_task.c      |    1 -
- kernel/exit.c         |    1 -
- kernel/fork.c         |    3 ---
- 4 files changed, 6 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/sched.h~kill-task_struct-thread_group
-+++ a/include/linux/sched.h
-@@ -997,7 +997,6 @@ struct task_struct {
- 	/* PID/PID hash table linkage. */
- 	struct pid			*thread_pid;
- 	struct hlist_node		pid_links[PIDTYPE_MAX];
--	struct list_head		thread_group;
- 	struct list_head		thread_node;
- 
- 	struct completion		*vfork_done;
---- a/init/init_task.c~kill-task_struct-thread_group
-+++ a/init/init_task.c
-@@ -132,7 +132,6 @@ struct task_struct init_task
- 	.pi_lock	= __RAW_SPIN_LOCK_UNLOCKED(init_task.pi_lock),
- 	.timer_slack_ns = 50000, /* 50 usec default slack */
- 	.thread_pid	= &init_struct_pid,
--	.thread_group	= LIST_HEAD_INIT(init_task.thread_group),
- 	.thread_node	= LIST_HEAD_INIT(init_signals.thread_head),
- #ifdef CONFIG_AUDIT
- 	.loginuid	= INVALID_UID,
---- a/kernel/exit.c~kill-task_struct-thread_group
-+++ a/kernel/exit.c
-@@ -133,7 +133,6 @@ static void __unhash_process(struct task
- 		list_del_init(&p->sibling);
- 		__this_cpu_dec(process_counts);
- 	}
--	list_del_rcu(&p->thread_group);
- 	list_del_rcu(&p->thread_node);
+--- a/mm/vmscan.c~mm-vmscan-use-folio_migratetype-instead-of-get_pageblock_migratetype
++++ a/mm/vmscan.c
+@@ -2284,7 +2284,7 @@ static bool skip_cma(struct folio *folio
+ {
+ 	return !current_is_kswapd() &&
+ 			gfp_migratetype(sc->gfp_mask) != MIGRATE_MOVABLE &&
+-			get_pageblock_migratetype(&folio->page) == MIGRATE_CMA;
++			folio_migratetype(folio) == MIGRATE_CMA;
  }
- 
---- a/kernel/fork.c~kill-task_struct-thread_group
-+++ a/kernel/fork.c
-@@ -2575,7 +2575,6 @@ __latent_entropy struct task_struct *cop
- 	p->dirty_paused_when = 0;
- 
- 	p->pdeath_signal = 0;
--	INIT_LIST_HEAD(&p->thread_group);
- 	p->task_works = NULL;
- 	clear_posix_cputimers_work(p);
- 
-@@ -2703,8 +2702,6 @@ __latent_entropy struct task_struct *cop
- 			atomic_inc(&current->signal->live);
- 			refcount_inc(&current->signal->sigcnt);
- 			task_join_group_stop(p);
--			list_add_tail_rcu(&p->thread_group,
--					  &p->group_leader->thread_group);
- 			list_add_tail_rcu(&p->thread_node,
- 					  &p->signal->thread_head);
- 		}
+ #else
+ static bool skip_cma(struct folio *folio, struct scan_control *sc)
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from vernhao@tencent.com are
 
-change-thread_group_empty-to-use-task_struct-thread_node.patch
-kill-task_struct-thread_group.patch
+mm-vmscan-use-folio_migratetype-instead-of-get_pageblock_migratetype.patch
 
