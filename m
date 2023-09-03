@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F6ACC001DB
-	for <mm-commits@archiver.kernel.org>; Sun,  3 Sep 2023 01:36:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34E07C83F2C
+	for <mm-commits@archiver.kernel.org>; Sun,  3 Sep 2023 01:36:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235425AbjICBgV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 2 Sep 2023 21:36:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55130 "EHLO
+        id S235426AbjICBg7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 2 Sep 2023 21:36:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40620 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235422AbjICBgV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 2 Sep 2023 21:36:21 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 237DC120
-        for <mm-commits@vger.kernel.org>; Sat,  2 Sep 2023 18:36:18 -0700 (PDT)
+        with ESMTP id S235422AbjICBg6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 2 Sep 2023 21:36:58 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0115C120
+        for <mm-commits@vger.kernel.org>; Sat,  2 Sep 2023 18:36:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 4F5ABCE0947
-        for <mm-commits@vger.kernel.org>; Sun,  3 Sep 2023 01:36:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93F58C433C8;
-        Sun,  3 Sep 2023 01:36:14 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7CB7060BB7
+        for <mm-commits@vger.kernel.org>; Sun,  3 Sep 2023 01:36:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE974C433C8;
+        Sun,  3 Sep 2023 01:36:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1693704974;
-        bh=p7PS6eRz2XZ6e4xGDNt7Wbl9R8mkoTmUetPsIw62nRY=;
+        s=korg; t=1693705014;
+        bh=zCvtsiQq4f40uMwgRyDJ4SN3Ui8KFiUqtsm92/V2awI=;
         h=Date:To:From:Subject:From;
-        b=0lPztBOvjmTouOAeItwPFVvid9QNi4VK7vTWdxNMNmb1W0p7zX4ggC1AJTVzHUOuD
-         owMitybEQPUXDEP8ic2uD6raMfTZNn8K66w3vjBrD9tkLdRGbMz4P3e6dmy31KIhb0
-         ieJb/shY+Wi3Qf6gcIFoGFeJ9SuVrIEvABmyTVwI=
-Date:   Sat, 02 Sep 2023 18:36:13 -0700
-To:     mm-commits@vger.kernel.org, bgeffon@google.com,
-        anthony.yznaga@oracle.com, akpm@linux-foundation.org
+        b=V2sQUmDiMk3dSBcKONwcshZev5z5dg6Z+xlKnldN2IJH1w1n61DiJ6/k8msKfT15C
+         Pt/EpzrP1sbWAe3bTglPePail0Dzkr543UZIJwAImImEGiQcGAIL+by6xgrxr8QAAW
+         NtFFWYk0r2kR7Ya2r7Hoqc+QgP0WKOR5pgIUnSWk=
+Date:   Sat, 02 Sep 2023 18:36:54 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        Liam.Howlett@oracle.com, anthony.yznaga@oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mremap-fix-unaccount-of-memory-on-vma_merge-failure.patch added to mm-unstable branch
-Message-Id: <20230903013614.93F58C433C8@smtp.kernel.org>
+Subject: + mm-fix-unaccount-of-memory-on-vma_link-failure.patch added to mm-unstable branch
+Message-Id: <20230903013654.CE974C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mremap: fix unaccount of memory on vma_merge() failure
+     Subject: mm: fix unaccount of memory on vma_link() failure
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mremap-fix-unaccount-of-memory-on-vma_merge-failure.patch
+     mm-fix-unaccount-of-memory-on-vma_link-failure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-fix-unaccount-of-memory-on-vma_merge-failure.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-unaccount-of-memory-on-vma_link-failure.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,51 +67,39 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Anthony Yznaga <anthony.yznaga@oracle.com>
-Subject: mm/mremap: fix unaccount of memory on vma_merge() failure
-Date: Tue, 29 Aug 2023 17:45:49 -0700
+Subject: mm: fix unaccount of memory on vma_link() failure
+Date: Tue, 29 Aug 2023 17:43:24 -0700
 
-Fix mremap so that only accounted memory is unaccounted if the mapping is
-expandable but vma_merge() fails.
+Fix insert_vm_struct() so that only accounted memory is unaccounted if
+vma_link() fails.
 
-Link: https://lkml.kernel.org/r/20230830004549.16131-1-anthony.yznaga@oracle.com
-Fixes: fdbef6149135 ("mm/mremap: don't account pages in vma_to_resize()")
+Link: https://lkml.kernel.org/r/20230830004324.16101-1-anthony.yznaga@oracle.com
+Fixes: d4af56c5c7c6 ("mm: start tracking VMAs with maple tree")
 Signed-off-by: Anthony Yznaga <anthony.yznaga@oracle.com>
-Acked-by: Brian Geffon <bgeffon@google.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/mmap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/mremap.c~mm-mremap-fix-unaccount-of-memory-on-vma_merge-failure
-+++ a/mm/mremap.c
-@@ -1037,12 +1037,14 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 			pgoff_t extension_pgoff = vma->vm_pgoff +
- 				((extension_start - vma->vm_start) >> PAGE_SHIFT);
- 			VMA_ITERATOR(vmi, mm, extension_start);
-+			long charged = 0;
+--- a/mm/mmap.c~mm-fix-unaccount-of-memory-on-vma_link-failure
++++ a/mm/mmap.c
+@@ -3278,7 +3278,8 @@ int insert_vm_struct(struct mm_struct *m
+ 	}
  
- 			if (vma->vm_flags & VM_ACCOUNT) {
- 				if (security_vm_enough_memory_mm(mm, pages)) {
- 					ret = -ENOMEM;
- 					goto out;
- 				}
-+				charged = pages;
- 			}
+ 	if (vma_link(mm, vma)) {
+-		vm_unacct_memory(charged);
++		if (vma->vm_flags & VM_ACCOUNT)
++			vm_unacct_memory(charged);
+ 		return -ENOMEM;
+ 	}
  
- 			/*
-@@ -1058,7 +1060,7 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 				vma->vm_file, extension_pgoff, vma_policy(vma),
- 				vma->vm_userfaultfd_ctx, anon_vma_name(vma));
- 			if (!vma) {
--				vm_unacct_memory(pages);
-+				vm_unacct_memory(charged);
- 				ret = -ENOMEM;
- 				goto out;
- 			}
 _
 
 Patches currently in -mm which might be from anthony.yznaga@oracle.com are
 
 mm-mremap-fix-unaccount-of-memory-on-vma_merge-failure.patch
+mm-fix-unaccount-of-memory-on-vma_link-failure.patch
 
