@@ -2,102 +2,162 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 415E8C001DB
-	for <mm-commits@archiver.kernel.org>; Sun,  3 Sep 2023 00:21:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A08C8C83F2C
+	for <mm-commits@archiver.kernel.org>; Sun,  3 Sep 2023 01:30:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235348AbjICAVo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 2 Sep 2023 20:21:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57606 "EHLO
+        id S233169AbjICBat (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 2 Sep 2023 21:30:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46852 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235314AbjICAVo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 2 Sep 2023 20:21:44 -0400
-Received: from mail-yw1-x1131.google.com (mail-yw1-x1131.google.com [IPv6:2607:f8b0:4864:20::1131])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1757CDD
-        for <mm-commits@vger.kernel.org>; Sat,  2 Sep 2023 17:21:39 -0700 (PDT)
-Received: by mail-yw1-x1131.google.com with SMTP id 00721157ae682-58fae4a5285so2590447b3.0
-        for <mm-commits@vger.kernel.org>; Sat, 02 Sep 2023 17:21:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1693700498; x=1694305298; darn=vger.kernel.org;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=IvbM2/1gKFrSJJRvB5gBe+id3FplScF5CRiZcA3oVU8=;
-        b=yGZl74ZtnufbIVRwP3e65h1Z+XvIO9QOB18OAkiwrI4MLYF8sk46/2TVFZ+uSE2UFu
-         mFdKo7S8hnNqirWVElll+PLo4qbpiXx5Qu12UOpntpbwA42LxJFnpHvwf85vugPwNdcE
-         bIkI4TswjN/3Zg5pGdHVNp3FethXepr0CY706orSWQ1AbS4ycuLLX8rg/0OxfwyKEi7k
-         Mn4umVGJ4fPZcOsa590Mcphh9z4zqPuFUqwjydJCl8yvPG2fUvNcvs6FHf5c4bvoUJws
-         wwVEPU/kLT/Bdg5F7kUwbftPzyv24MOHDwKz1PbzkvAOGecD4M7mxY6Ahxkq9XHNuJ38
-         cuFg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1693700498; x=1694305298;
-        h=mime-version:references:message-id:in-reply-to:subject:cc:to:from
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=IvbM2/1gKFrSJJRvB5gBe+id3FplScF5CRiZcA3oVU8=;
-        b=MK2cdd//HN7yqCbzLtPzt4m4M5XVLVwG4Rng/985yMdSwHLfPUxT7VEID6tSYXqpDj
-         Y3OhS6R+g4KlOYpudpQiyQIl7oYUkz5UYqm+GVuGQTGhXRClaD5N84BiWVhIXGADUqhN
-         UCjsMGIv2iCI4TO3M6jY8bp/Jxy2x1JxvW+sL6iN/ja4fxYsmcd2Jvz5j3eQFV40OPFe
-         vKPBwidcqCSOv3Ru2En/jQW5PtQpvOaGVnOTTGZoza1ZsAaFuTnG3X8SyP/TCXuoQq3v
-         fEEdq7U9RnJYGS4ed7s84YmwYDFinjA+0KfyCZCkdfVp6sLh/GdMYrhKzVjD+E70AO2i
-         /PrA==
-X-Gm-Message-State: AOJu0YxyxctgmpFvK4i9I9alYGOrsFJUCL+R8h3YnVAaKH/pIjrDteuw
-        2tJpsOMBPcRdGsg3pR4b5pJ1pg==
-X-Google-Smtp-Source: AGHT+IFUXqDyrmnWSmiHTV5D4+jIyrzxgURlAYJNPTrgGiqAb6sEkk3LEFOqAocL8G/xqZ+QqnpN5w==
-X-Received: by 2002:a0d:f206:0:b0:576:ffe3:b95 with SMTP id b6-20020a0df206000000b00576ffe30b95mr6112692ywf.40.1693700498346;
-        Sat, 02 Sep 2023 17:21:38 -0700 (PDT)
-Received: from ripple.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
-        by smtp.gmail.com with ESMTPSA id ce10-20020a05690c098a00b00598d67585d7sm933746ywb.117.2023.09.02.17.21.37
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 02 Sep 2023 17:21:37 -0700 (PDT)
-Date:   Sat, 2 Sep 2023 17:21:28 -0700 (PDT)
-From:   Hugh Dickins <hughd@google.com>
-X-X-Sender: hugh@ripple.attlocal.net
-To:     Andrew Morton <akpm@linux-foundation.org>
-cc:     mm-commits@vger.kernel.org, mikhail.v.gavrilov@gmail.com,
-        dave.hansen@linux.intel.com, bagasdotme@gmail.com, hughd@google.com
-Subject: Re: + mm-pagewalk-fix-bootstopping-regression-from-extra-pte_unmap.patch
- added to mm-hotfixes-unstable branch
-In-Reply-To: <20230902222558.78D3FC433C7@smtp.kernel.org>
-Message-ID: <56c3a296-79f2-ef65-7a3d-cfc4aa78df1f@google.com>
-References: <20230902222558.78D3FC433C7@smtp.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+        with ESMTP id S231735AbjICBas (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 2 Sep 2023 21:30:48 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5916BF0
+        for <mm-commits@vger.kernel.org>; Sat,  2 Sep 2023 18:30:45 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E1A3E60BB7
+        for <mm-commits@vger.kernel.org>; Sun,  3 Sep 2023 01:30:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A1E0C433C7;
+        Sun,  3 Sep 2023 01:30:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1693704644;
+        bh=t1j5Ur4J97ObaGgHjMQDFflwoZKKbNqGdMtyf6Dp9JU=;
+        h=Date:To:From:Subject:From;
+        b=YUh9BhtNoxQGdMZ74ZxwUChZ3XZqmGMhSRrsW1n8v0FwNUFO5oWMvfn1QIlzUdZZd
+         9U2CWnwz0809iFastAKO+L+JcQMycgbmDlcYR0tMnxNuaOHPzblOTx2J/Pt47oMzDk
+         QvNzc+/k5VcQh29QzSVLD6oJdIQAPvkxSO0bZh+0=
+Date:   Sat, 02 Sep 2023 18:30:43 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        thunder.leizhen@huaweicloud.com, paulmck@kernel.org,
+        joel@joelfernandes.org, hch@infradead.org,
+        qiang.zhang1211@gmail.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + rcu-dump-vmalloc-memory-info-safely.patch added to mm-unstable branch
+Message-Id: <20230903013044.3A1E0C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Sat, 2 Sep 2023, Andrew Morton wrote:
-> 
-> The patch titled
->      Subject: mm/pagewalk: fix bootstopping regression from extra pte_unmap()
-> has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
->      mm-pagewalk-fix-bootstopping-regression-from-extra-pte_unmap.patch
-> 
-> This patch will shortly appear at
->      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-fix-bootstopping-regression-from-extra-pte_unmap.patch
-> 
-> This patch will later appear in the mm-hotfixes-unstable branch at
->     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> 
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
-> 
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-> 
-> The -mm tree is included into linux-next via the mm-everything
-> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> and is updated there every 2-3 working days
-> 
-> ------------------------------------------------------
-> From: Hugh Dickins <hughd@google.com>
-> Subject: mm/pagewalk: fix bootstopping regression from extra pte_unmap()
-> Date: Sat, 2 Sep 2023 08:29:30 -0700 (PDT)
 
-Thanks, Andrew, but it is already
-ee40d543e97d23d3392d8fb1ec9972eb4e9c7611
-in Linus's tree - I'm sure we all felt it was best rushed in.
-(Or maybe you want to keep a copy in mm.git until that's rebased, okay.)
+The patch titled
+     Subject: rcu: dump vmalloc memory info safely
+has been added to the -mm mm-unstable branch.  Its filename is
+     rcu-dump-vmalloc-memory-info-safely.patch
 
-Hugh
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rcu-dump-vmalloc-memory-info-safely.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Zqiang <qiang.zhang1211@gmail.com>
+Subject: rcu: dump vmalloc memory info safely
+Date: Wed, 30 Aug 2023 11:04:00 +0000
+
+Currently, for double invoke call_rcu(), will dump rcu_head objects memory
+info, if the objects is not allocated from the slab allocator, the
+vmalloc_dump_obj() will be invoke and the vmap_area_lock spinlock need to
+be held, since the call_rcu() can be invoked in interrupt context,
+therefore, there is a possibility of spinlock deadlock scenarios.
+
+And in Preempt-RT kernel, the rcutorture test also trigger the following
+lockdep warning:
+
+BUG: sleeping function called from invalid context at kernel/locking/spinlock_rt.c:48
+in_atomic(): 1, irqs_disabled(): 1, non_block: 0, pid: 1, name: swapper/0
+preempt_count: 1, expected: 0
+RCU nest depth: 1, expected: 1
+3 locks held by swapper/0/1:
+ #0: ffffffffb534ee80 (fullstop_mutex){+.+.}-{4:4}, at: torture_init_begin+0x24/0xa0
+ #1: ffffffffb5307940 (rcu_read_lock){....}-{1:3}, at: rcu_torture_init+0x1ec7/0x2370
+ #2: ffffffffb536af40 (vmap_area_lock){+.+.}-{3:3}, at: find_vmap_area+0x1f/0x70
+irq event stamp: 565512
+hardirqs last  enabled at (565511): [<ffffffffb379b138>] __call_rcu_common+0x218/0x940
+hardirqs last disabled at (565512): [<ffffffffb5804262>] rcu_torture_init+0x20b2/0x2370
+softirqs last  enabled at (399112): [<ffffffffb36b2586>] __local_bh_enable_ip+0x126/0x170
+softirqs last disabled at (399106): [<ffffffffb43fef59>] inet_register_protosw+0x9/0x1d0
+Preemption disabled at:
+[<ffffffffb58040c3>] rcu_torture_init+0x1f13/0x2370
+CPU: 0 PID: 1 Comm: swapper/0 Tainted: G        W          6.5.0-rc4-rt2-yocto-preempt-rt+ #15
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.16.2-0-gea1b7a073390-prebuilt.qemu.org 04/01/2014
+Call Trace:
+ <TASK>
+ dump_stack_lvl+0x68/0xb0
+ dump_stack+0x14/0x20
+ __might_resched+0x1aa/0x280
+ ? __pfx_rcu_torture_err_cb+0x10/0x10
+ rt_spin_lock+0x53/0x130
+ ? find_vmap_area+0x1f/0x70
+ find_vmap_area+0x1f/0x70
+ vmalloc_dump_obj+0x20/0x60
+ mem_dump_obj+0x22/0x90
+ __call_rcu_common+0x5bf/0x940
+ ? debug_smp_processor_id+0x1b/0x30
+ call_rcu_hurry+0x14/0x20
+ rcu_torture_init+0x1f82/0x2370
+ ? __pfx_rcu_torture_leak_cb+0x10/0x10
+ ? __pfx_rcu_torture_leak_cb+0x10/0x10
+ ? __pfx_rcu_torture_init+0x10/0x10
+ do_one_initcall+0x6c/0x300
+ ? debug_smp_processor_id+0x1b/0x30
+ kernel_init_freeable+0x2b9/0x540
+ ? __pfx_kernel_init+0x10/0x10
+ kernel_init+0x1f/0x150
+ ret_from_fork+0x40/0x50
+ ? __pfx_kernel_init+0x10/0x10
+ ret_from_fork_asm+0x1b/0x30
+ </TASK>
+
+The previous patch fixes this by using the deadlock-safe best-effort
+version of find_vm_area. However, in case of failure print the fact that
+the pointer was a vmalloc pointer so that we print at least something.
+
+Link: https://lkml.kernel.org/r/20230830110402.386898-2-joel@joelfernandes.org
+Signed-off-by: Zqiang <qiang.zhang1211@gmail.com>
+Signed-off-by: Joel Fernandes (Google) <joel@joelfernandes.org>
+Reported-by: Zhen Lei <thunder.leizhen@huaweicloud.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/util.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+--- a/mm/util.c~rcu-dump-vmalloc-memory-info-safely
++++ a/mm/util.c
+@@ -1065,7 +1065,9 @@ void mem_dump_obj(void *object)
+ 	if (vmalloc_dump_obj(object))
+ 		return;
+ 
+-	if (virt_addr_valid(object))
++	if (is_vmalloc_addr(object))
++		type = "vmalloc memory";
++	else if (virt_addr_valid(object))
+ 		type = "non-slab/vmalloc memory";
+ 	else if (object == NULL)
+ 		type = "NULL pointer";
+_
+
+Patches currently in -mm which might be from qiang.zhang1211@gmail.com are
+
+rcu-dump-vmalloc-memory-info-safely.patch
+
