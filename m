@@ -2,243 +2,146 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BC57C83F2C
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Sep 2023 00:06:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A946CC83F2C
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Sep 2023 06:57:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348919AbjIDAGC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 3 Sep 2023 20:06:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33336 "EHLO
+        id S229579AbjIDG5W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 4 Sep 2023 02:57:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51614 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231361AbjIDAGC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Sep 2023 20:06:02 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44EB1C4
-        for <mm-commits@vger.kernel.org>; Sun,  3 Sep 2023 17:05:58 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        with ESMTP id S1343862AbjIDG5W (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Sep 2023 02:57:22 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E323D11A
+        for <mm-commits@vger.kernel.org>; Sun,  3 Sep 2023 23:56:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1693810591;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=Iui/cMfKR07aMfbs/NJj6/2nOIWm7enhjwyf6JBnFyo=;
+        b=V7HByigT3SEoRzu8WpW+KAdLAzRXuknkVhnmWsATwBVONQZzv7VliYvcXetJ8QTGr5Gj79
+        7zszHoilgV5Ko9B3g66GTEgf0PvwfFMEaAQbifAOAeO4TYO/iNZ5/qhfg8fQh2opP9Swdr
+        Ti6e08+SDPvI/VOTXEGvO7tMDskO47I=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-622-yZWLb8KoP0S3b9Fr9KvwsQ-1; Mon, 04 Sep 2023 02:56:30 -0400
+X-MC-Unique: yZWLb8KoP0S3b9Fr9KvwsQ-1
+Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.rdu2.redhat.com [10.11.54.2])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D522860BC9
-        for <mm-commits@vger.kernel.org>; Mon,  4 Sep 2023 00:05:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E6B8C433C7;
-        Mon,  4 Sep 2023 00:05:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1693785957;
-        bh=0VjrBl8+Muu9W4f2F6X2FC7lmnUrQfNWf9lxpi5qZhg=;
-        h=Date:To:From:Subject:From;
-        b=Nco9XFUiRbKAXBtbz6wTlXSes8niQRb1L3KcR1mnIN+qLOIhIKqHB7Lf3nzBem2MO
-         dteBGO1Qqdjgq6A4fyErIY85j2toJArciV3y54b2/J7u/m2cubpucUTQEuuQ0y1IJc
-         PxA7KlFC2vPVpJWM2yqBBNHJo47lwZHnIp3DrLJA=
-Date:   Sun, 03 Sep 2023 17:05:54 -0700
-To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        dan.j.williams@intel.com, willy@infradead.org,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-dax-lock-unlock-page-to-lock-unlock-folio.patch added to mm-unstable branch
-Message-Id: <20230904000557.1E6B8C433C7@smtp.kernel.org>
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 957018008A4;
+        Mon,  4 Sep 2023 06:56:29 +0000 (UTC)
+Received: from dhcp-27-174.brq.redhat.com (unknown [10.45.225.54])
+        by smtp.corp.redhat.com (Postfix) with SMTP id C1856400D277;
+        Mon,  4 Sep 2023 06:56:28 +0000 (UTC)
+Received: by dhcp-27-174.brq.redhat.com (nbSMTP-1.00) for uid 1000
+        oleg@redhat.com; Mon,  4 Sep 2023 08:55:39 +0200 (CEST)
+Date:   Mon, 4 Sep 2023 08:55:38 +0200
+From:   Oleg Nesterov <oleg@redhat.com>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, ebiederm@xmission.com
+Subject: Re: + kill-task_struct-thread_group.patch added to mm-nonmm-unstable
+ branch
+Message-ID: <20230904065538.GA6149@redhat.com>
+References: <20230903235057.A7A9EC433C7@smtp.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230903235057.A7A9EC433C7@smtp.kernel.org>
+User-Agent: Mutt/1.5.24 (2015-08-30)
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.2
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+Hi Andrew,
 
-The patch titled
-     Subject: mm: convert DAX lock/unlock page to lock/unlock folio
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-convert-dax-lock-unlock-page-to-lock-unlock-folio.patch
+> From: Oleg Nesterov <oleg@redhat.com>
+> Subject: kill task_struct->thread_group
+> Date: Sat, 26 Aug 2023 13:14:09 +0200
+>
+> The last user was removed by the previous patch.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-dax-lock-unlock-page-to-lock-unlock-folio.patch
+No, no ;)
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+this series depends on 2 previous patches, see
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+	https://lore.kernel.org/all/20230824143112.GA31208@redhat.com/
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+sorry for confusion,
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+Oleg.
 
-------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: convert DAX lock/unlock page to lock/unlock folio
-Date: Wed, 23 Aug 2023 00:13:14 +0100
 
-The one caller of DAX lock/unlock page already calls compound_head(), so
-use page_folio() instead, then use a folio throughout the DAX code to
-remove uses of page->mapping and page->index.
-
-Link: https://lkml.kernel.org/r/20230822231314.349200-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- fs/dax.c            |   24 ++++++++++++------------
- include/linux/dax.h |   10 +++++-----
- mm/memory-failure.c |   19 +++++++------------
- 3 files changed, 24 insertions(+), 29 deletions(-)
-
---- a/fs/dax.c~mm-convert-dax-lock-unlock-page-to-lock-unlock-folio
-+++ a/fs/dax.c
-@@ -412,23 +412,23 @@ static struct page *dax_busy_page(void *
- 	return NULL;
- }
- 
--/*
-- * dax_lock_page - Lock the DAX entry corresponding to a page
-- * @page: The page whose entry we want to lock
-+/**
-+ * dax_lock_folio - Lock the DAX entry corresponding to a folio
-+ * @folio: The folio whose entry we want to lock
-  *
-  * Context: Process context.
-- * Return: A cookie to pass to dax_unlock_page() or 0 if the entry could
-+ * Return: A cookie to pass to dax_unlock_folio() or 0 if the entry could
-  * not be locked.
-  */
--dax_entry_t dax_lock_page(struct page *page)
-+dax_entry_t dax_lock_folio(struct folio *folio)
- {
- 	XA_STATE(xas, NULL, 0);
- 	void *entry;
- 
--	/* Ensure page->mapping isn't freed while we look at it */
-+	/* Ensure folio->mapping isn't freed while we look at it */
- 	rcu_read_lock();
- 	for (;;) {
--		struct address_space *mapping = READ_ONCE(page->mapping);
-+		struct address_space *mapping = READ_ONCE(folio->mapping);
- 
- 		entry = NULL;
- 		if (!mapping || !dax_mapping(mapping))
-@@ -447,11 +447,11 @@ dax_entry_t dax_lock_page(struct page *p
- 
- 		xas.xa = &mapping->i_pages;
- 		xas_lock_irq(&xas);
--		if (mapping != page->mapping) {
-+		if (mapping != folio->mapping) {
- 			xas_unlock_irq(&xas);
- 			continue;
- 		}
--		xas_set(&xas, page->index);
-+		xas_set(&xas, folio->index);
- 		entry = xas_load(&xas);
- 		if (dax_is_locked(entry)) {
- 			rcu_read_unlock();
-@@ -467,10 +467,10 @@ dax_entry_t dax_lock_page(struct page *p
- 	return (dax_entry_t)entry;
- }
- 
--void dax_unlock_page(struct page *page, dax_entry_t cookie)
-+void dax_unlock_folio(struct folio *folio, dax_entry_t cookie)
- {
--	struct address_space *mapping = page->mapping;
--	XA_STATE(xas, &mapping->i_pages, page->index);
-+	struct address_space *mapping = folio->mapping;
-+	XA_STATE(xas, &mapping->i_pages, folio->index);
- 
- 	if (S_ISCHR(mapping->host->i_mode))
- 		return;
---- a/include/linux/dax.h~mm-convert-dax-lock-unlock-page-to-lock-unlock-folio
-+++ a/include/linux/dax.h
-@@ -159,8 +159,8 @@ int dax_writeback_mapping_range(struct a
- 
- struct page *dax_layout_busy_page(struct address_space *mapping);
- struct page *dax_layout_busy_page_range(struct address_space *mapping, loff_t start, loff_t end);
--dax_entry_t dax_lock_page(struct page *page);
--void dax_unlock_page(struct page *page, dax_entry_t cookie);
-+dax_entry_t dax_lock_folio(struct folio *folio);
-+void dax_unlock_folio(struct folio *folio, dax_entry_t cookie);
- dax_entry_t dax_lock_mapping_entry(struct address_space *mapping,
- 		unsigned long index, struct page **page);
- void dax_unlock_mapping_entry(struct address_space *mapping,
-@@ -182,14 +182,14 @@ static inline int dax_writeback_mapping_
- 	return -EOPNOTSUPP;
- }
- 
--static inline dax_entry_t dax_lock_page(struct page *page)
-+static inline dax_entry_t dax_lock_folio(struct folio *folio)
- {
--	if (IS_DAX(page->mapping->host))
-+	if (IS_DAX(folio->mapping->host))
- 		return ~0UL;
- 	return 0;
- }
- 
--static inline void dax_unlock_page(struct page *page, dax_entry_t cookie)
-+static inline void dax_unlock_folio(struct folio *folio, dax_entry_t cookie)
- {
- }
- 
---- a/mm/memory-failure.c~mm-convert-dax-lock-unlock-page-to-lock-unlock-folio
-+++ a/mm/memory-failure.c
-@@ -1724,28 +1724,23 @@ static int mf_generic_kill_procs(unsigne
- 		struct dev_pagemap *pgmap)
- {
- 	struct page *page = pfn_to_page(pfn);
-+	struct folio *folio = page_folio(page);
- 	LIST_HEAD(to_kill);
- 	dax_entry_t cookie;
- 	int rc = 0;
- 
- 	/*
--	 * Pages instantiated by device-dax (not filesystem-dax)
--	 * may be compound pages.
--	 */
--	page = compound_head(page);
--
--	/*
- 	 * Prevent the inode from being freed while we are interrogating
- 	 * the address_space, typically this would be handled by
- 	 * lock_page(), but dax pages do not use the page lock. This
- 	 * also prevents changes to the mapping of this pfn until
- 	 * poison signaling is complete.
- 	 */
--	cookie = dax_lock_page(page);
-+	cookie = dax_lock_folio(folio);
- 	if (!cookie)
- 		return -EBUSY;
- 
--	if (hwpoison_filter(page)) {
-+	if (hwpoison_filter(&folio->page)) {
- 		rc = -EOPNOTSUPP;
- 		goto unlock;
- 	}
-@@ -1767,7 +1762,7 @@ static int mf_generic_kill_procs(unsigne
- 	 * Use this flag as an indication that the dax page has been
- 	 * remapped UC to prevent speculative consumption of poison.
- 	 */
--	SetPageHWPoison(page);
-+	SetPageHWPoison(&folio->page);
- 
- 	/*
- 	 * Unlike System-RAM there is no possibility to swap in a
-@@ -1776,11 +1771,11 @@ static int mf_generic_kill_procs(unsigne
- 	 * SIGBUS (i.e. MF_MUST_KILL)
- 	 */
- 	flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
--	collect_procs(page, &to_kill, true);
-+	collect_procs(&folio->page, &to_kill, true);
- 
--	unmap_and_kill(&to_kill, pfn, page->mapping, page->index, flags);
-+	unmap_and_kill(&to_kill, pfn, folio->mapping, folio->index, flags);
- unlock:
--	dax_unlock_page(page, cookie);
-+	dax_unlock_folio(folio, cookie);
- 	return rc;
- }
- 
-_
-
-Patches currently in -mm which might be from willy@infradead.org are
-
-mm-convert-dax-lock-unlock-page-to-lock-unlock-folio.patch
+> Link: https://lkml.kernel.org/r/20230826111409.GA23243@redhat.com
+> Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+> Cc: Eric W. Biederman <ebiederm@xmission.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  include/linux/sched.h |    1 -
+>  init/init_task.c      |    1 -
+>  kernel/exit.c         |    1 -
+>  kernel/fork.c         |    3 ---
+>  4 files changed, 6 deletions(-)
+> 
+> --- a/include/linux/sched.h~kill-task_struct-thread_group
+> +++ a/include/linux/sched.h
+> @@ -997,7 +997,6 @@ struct task_struct {
+>  	/* PID/PID hash table linkage. */
+>  	struct pid			*thread_pid;
+>  	struct hlist_node		pid_links[PIDTYPE_MAX];
+> -	struct list_head		thread_group;
+>  	struct list_head		thread_node;
+>  
+>  	struct completion		*vfork_done;
+> --- a/init/init_task.c~kill-task_struct-thread_group
+> +++ a/init/init_task.c
+> @@ -132,7 +132,6 @@ struct task_struct init_task
+>  	.pi_lock	= __RAW_SPIN_LOCK_UNLOCKED(init_task.pi_lock),
+>  	.timer_slack_ns = 50000, /* 50 usec default slack */
+>  	.thread_pid	= &init_struct_pid,
+> -	.thread_group	= LIST_HEAD_INIT(init_task.thread_group),
+>  	.thread_node	= LIST_HEAD_INIT(init_signals.thread_head),
+>  #ifdef CONFIG_AUDIT
+>  	.loginuid	= INVALID_UID,
+> --- a/kernel/exit.c~kill-task_struct-thread_group
+> +++ a/kernel/exit.c
+> @@ -133,7 +133,6 @@ static void __unhash_process(struct task
+>  		list_del_init(&p->sibling);
+>  		__this_cpu_dec(process_counts);
+>  	}
+> -	list_del_rcu(&p->thread_group);
+>  	list_del_rcu(&p->thread_node);
+>  }
+>  
+> --- a/kernel/fork.c~kill-task_struct-thread_group
+> +++ a/kernel/fork.c
+> @@ -2575,7 +2575,6 @@ __latent_entropy struct task_struct *cop
+>  	p->dirty_paused_when = 0;
+>  
+>  	p->pdeath_signal = 0;
+> -	INIT_LIST_HEAD(&p->thread_group);
+>  	p->task_works = NULL;
+>  	clear_posix_cputimers_work(p);
+>  
+> @@ -2703,8 +2702,6 @@ __latent_entropy struct task_struct *cop
+>  			atomic_inc(&current->signal->live);
+>  			refcount_inc(&current->signal->sigcnt);
+>  			task_join_group_stop(p);
+> -			list_add_tail_rcu(&p->thread_group,
+> -					  &p->group_leader->thread_group);
+>  			list_add_tail_rcu(&p->thread_node,
+>  					  &p->signal->thread_head);
+>  		}
+> _
+> 
+> Patches currently in -mm which might be from oleg@redhat.com are
+> 
+> change-thread_group_empty-to-use-task_struct-thread_node.patch
+> kill-task_struct-thread_group.patch
+> 
 
