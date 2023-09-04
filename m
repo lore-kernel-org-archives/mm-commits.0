@@ -2,42 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97734C83F3E
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Sep 2023 19:54:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 945CBC71153
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Sep 2023 19:54:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235847AbjIDTyW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 4 Sep 2023 15:54:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46326 "EHLO
+        id S235883AbjIDTy1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 4 Sep 2023 15:54:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54262 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235897AbjIDTyU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Sep 2023 15:54:20 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1ED911BE
-        for <mm-commits@vger.kernel.org>; Mon,  4 Sep 2023 12:54:17 -0700 (PDT)
+        with ESMTP id S235876AbjIDTyX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Sep 2023 15:54:23 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04B479E
+        for <mm-commits@vger.kernel.org>; Mon,  4 Sep 2023 12:54:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 79D43CE0EA6
-        for <mm-commits@vger.kernel.org>; Mon,  4 Sep 2023 19:54:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCDCDC433C7;
-        Mon,  4 Sep 2023 19:54:13 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id AC4DEB80EF3
+        for <mm-commits@vger.kernel.org>; Mon,  4 Sep 2023 19:54:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 651FCC433C8;
+        Mon,  4 Sep 2023 19:54:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1693857253;
-        bh=jQBzyzO3bWT4Kozay+C9CZdnjQJ7WtBYyNCanDGl2No=;
+        s=korg; t=1693857257;
+        bh=dPzSjftnILmB5Q/Q/qnbD6hlj+RCD3pleTAz3Noi8OU=;
         h=Date:To:From:Subject:From;
-        b=VynfaEAgCK8CKMF1oaj5KNYiqNQChmkSNK8KahsTanoVtfBRb7iI+edggGG+kMfrr
-         QyAiKahjC+0+GBRGUsWbQ6TM76Iale2GBpPpsXKJR1zyhb1JzXYqP66C8abc6r3TyQ
-         d7nCAWgQiCyBaCxx9h4CeCG+L9CBvVZMRIiUhG8c=
-Date:   Mon, 04 Sep 2023 12:54:13 -0700
+        b=UtFmu3ZmPhYipC6bnIRf5MjI32HIhmaQy3UwDzh4fTKUWurapiMXC5oEv0Zfq+0Qr
+         Og0zJ1uMEHIEcy2bk2Fsxx6A8X46PR5mSHup2pEk9pHXcGYOaGLnjmY/w1wjKRj+jJ
+         4Yb11WVRKMvrtna6WitP5sb0PPK6Hv1jHOclGAGo=
+Date:   Mon, 04 Sep 2023 12:54:16 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         paulmck@kernel.org, oleksiy.avramchenko@sony.com,
         lstoakes@gmail.com, Liam.Howlett@oracle.com,
         joel@joelfernandes.org, hch@lst.de, david@fromorbit.com,
         bhe@redhat.com, urezki@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-support-multiple-nodes-in-vmallocinfo.patch added to mm-unstable branch
-Message-Id: <20230904195413.BCDCDC433C7@smtp.kernel.org>
+Subject: + mm-vmalloc-set-nr_nodes-node_size-based-on-cpu-cores.patch added to mm-unstable branch
+Message-Id: <20230904195417.651FCC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmalloc: support multiple nodes in vmallocinfo
+     Subject: mm: vmalloc: set nr_nodes/node_size based on CPU-cores
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-support-multiple-nodes-in-vmallocinfo.patch
+     mm-vmalloc-set-nr_nodes-node_size-based-on-cpu-cores.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-support-multiple-nodes-in-vmallocinfo.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-set-nr_nodes-node_size-based-on-cpu-cores.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,14 +69,85 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm: vmalloc: support multiple nodes in vmallocinfo
-Date: Tue, 29 Aug 2023 10:11:41 +0200
+Subject: mm: vmalloc: set nr_nodes/node_size based on CPU-cores
+Date: Tue, 29 Aug 2023 10:11:42 +0200
 
-Allocated areas are spread among nodes, it implies that the scanning has
-to be performed individually of each node in order to dump all existing
-VAs.
+The density ratio is set to 2, i.e.  two users per one node.  For example
+if there are 6 cores in a system the "nr_nodes" is 3.
 
-Link: https://lkml.kernel.org/r/20230829081142.3619-9-urezki@gmail.com
+The "node_size" also depends on number of physical cores.  A
+high-threshold limit is hard-coded and set to SZ_4M.
+
+For 32-bit, single/dual core systems an access to a global vmap heap is
+not balanced.  Such small systems do not suffer from lock contentions due
+to limitation of CPU-cores.
+
+Test on AMD Ryzen Threadripper 3970X 32-Core Processor: sudo
+./test_vmalloc.sh run_test_mask=127 nr_threads=64
+
+<default perf>
+ 94.17%     0.90%  [kernel]    [k] _raw_spin_lock
+ 93.27%    93.05%  [kernel]    [k] native_queued_spin_lock_slowpath
+ 74.69%     0.25%  [kernel]    [k] __vmalloc_node_range
+ 72.64%     0.01%  [kernel]    [k] __get_vm_area_node
+ 72.04%     0.89%  [kernel]    [k] alloc_vmap_area
+ 42.17%     0.00%  [kernel]    [k] vmalloc
+ 32.53%     0.00%  [kernel]    [k] __vmalloc_node
+ 24.91%     0.25%  [kernel]    [k] vfree
+ 24.32%     0.01%  [kernel]    [k] remove_vm_area
+ 22.63%     0.21%  [kernel]    [k] find_unlink_vmap_area
+ 15.51%     0.00%  [unknown]   [k] 0xffffffffc09a74ac
+ 14.35%     0.00%  [kernel]    [k] ret_from_fork_asm
+ 14.35%     0.00%  [kernel]    [k] ret_from_fork
+ 14.35%     0.00%  [kernel]    [k] kthread
+<default perf>
+   vs
+<patch-series perf>
+ 74.32%     2.42%  [kernel]    [k] __vmalloc_node_range
+ 69.58%     0.01%  [kernel]    [k] vmalloc
+ 54.21%     1.17%  [kernel]    [k] __alloc_pages_bulk
+ 48.13%    47.91%  [kernel]    [k] clear_page_orig
+ 43.60%     0.01%  [unknown]   [k] 0xffffffffc082f16f
+ 32.06%     0.00%  [kernel]    [k] ret_from_fork_asm
+ 32.06%     0.00%  [kernel]    [k] ret_from_fork
+ 32.06%     0.00%  [kernel]    [k] kthread
+ 31.30%     0.00%  [unknown]   [k] 0xffffffffc082f889
+ 22.98%     4.16%  [kernel]    [k] vfree
+ 14.36%     0.28%  [kernel]    [k] __get_vm_area_node
+ 13.43%     3.35%  [kernel]    [k] alloc_vmap_area
+ 10.86%     0.04%  [kernel]    [k] remove_vm_area
+  8.89%     2.75%  [kernel]    [k] _raw_spin_lock
+  7.19%     0.00%  [unknown]   [k] 0xffffffffc082fba3
+  6.65%     1.37%  [kernel]    [k] free_unref_page
+  6.13%     6.11%  [kernel]    [k] native_queued_spin_lock_slowpath
+<patch-series perf>
+
+confirms that a native_queued_spin_lock_slowpath bottle-neck
+can be considered as negligible for the patch-series version.
+
+The throughput is ~15x higher:
+
+urezki@pc638:~$ time sudo ./test_vmalloc.sh run_test_mask=127 nr_threads=64
+Run the test with following parameters: run_test_mask=127 nr_threads=64
+Done.
+Check the kernel ring buffer to see the summary.
+
+real    24m3.305s
+user    0m0.361s
+sys     0m0.013s
+urezki@pc638:~$
+
+urezki@pc638:~$ time sudo ./test_vmalloc.sh run_test_mask=127 nr_threads=64
+Run the test with following parameters: run_test_mask=127 nr_threads=64
+Done.
+Check the kernel ring buffer to see the summary.
+
+real    1m28.382s
+user    0m0.014s
+sys     0m0.026s
+urezki@pc638:~$
+
+Link: https://lkml.kernel.org/r/20230829081142.3619-10-urezki@gmail.com
 Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Christoph Hellwig <hch@lst.de>
@@ -90,174 +161,63 @@ Cc: Paul E. McKenney <paulmck@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |  120 +++++++++++++++++++------------------------------
- 1 file changed, 47 insertions(+), 73 deletions(-)
+ mm/vmalloc.c |   26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
---- a/mm/vmalloc.c~mm-vmalloc-support-multiple-nodes-in-vmallocinfo
+--- a/mm/vmalloc.c~mm-vmalloc-set-nr_nodes-node_size-based-on-cpu-cores
 +++ a/mm/vmalloc.c
-@@ -4658,30 +4658,6 @@ bool vmalloc_dump_obj(void *object)
- #endif
+@@ -796,6 +796,9 @@ struct vmap_node {
+ 	atomic_t fill_in_progress;
+ };
  
- #ifdef CONFIG_PROC_FS
--static void *s_start(struct seq_file *m, loff_t *pos)
--{
--	struct vmap_node *vn = addr_to_node(0);
--
--	mutex_lock(&vmap_purge_lock);
--	spin_lock(&vn->busy.lock);
--
--	return seq_list_start(&vn->busy.head, *pos);
--}
--
--static void *s_next(struct seq_file *m, void *p, loff_t *pos)
--{
--	struct vmap_node *vn = addr_to_node(0);
--	return seq_list_next(p, &vn->busy.head, pos);
--}
--
--static void s_stop(struct seq_file *m, void *p)
--{
--	struct vmap_node *vn = addr_to_node(0);
--
--	spin_unlock(&vn->busy.lock);
--	mutex_unlock(&vmap_purge_lock);
--}
--
- static void show_numa_info(struct seq_file *m, struct vm_struct *v)
- {
- 	if (IS_ENABLED(CONFIG_NUMA)) {
-@@ -4725,84 +4701,82 @@ static void show_purge_info(struct seq_f
++#define MAX_NODES U8_MAX
++#define MAX_NODE_SIZE SZ_4M
++
+ static struct vmap_node *nodes, snode;
+ static __read_mostly unsigned int nr_nodes = 1;
+ static __read_mostly unsigned int node_size = 1;
+@@ -4825,11 +4828,24 @@ static void vmap_init_free_space(void)
  	}
  }
  
--static int s_show(struct seq_file *m, void *p)
-+static int vmalloc_info_show(struct seq_file *m, void *p)
++static unsigned int calculate_nr_nodes(void)
++{
++	unsigned int nr_cpus;
++
++	nr_cpus = num_present_cpus();
++	if (nr_cpus <= 1)
++		nr_cpus = num_possible_cpus();
++
++	/* Density factor. Two users per a node. */
++	return clamp_t(unsigned int, nr_cpus >> 1, 1, MAX_NODES);
++}
++
+ static void vmap_init_nodes(void)
  {
  	struct vmap_node *vn;
- 	struct vmap_area *va;
- 	struct vm_struct *v;
-+	int i;
+ 	int i;
  
--	vn = addr_to_node(0);
--	va = list_entry(p, struct vmap_area, list);
-+	for (i = 0; i < nr_nodes; i++) {
-+		vn = &nodes[i];
++	nr_nodes = calculate_nr_nodes();
+ 	nodes = &snode;
  
--	if (!va->vm) {
--		if (va->flags & VMAP_RAM)
--			seq_printf(m, "0x%pK-0x%pK %7ld vm_map_ram\n",
--				(void *)va->va_start, (void *)va->va_end,
--				va->va_end - va->va_start);
-+		spin_lock(&vn->busy.lock);
-+		list_for_each_entry(va, &vn->busy.head, list) {
-+			if (!va->vm) {
-+				if (va->flags & VMAP_RAM)
-+					seq_printf(m, "0x%pK-0x%pK %7ld vm_map_ram\n",
-+						(void *)va->va_start, (void *)va->va_end,
-+						va->va_end - va->va_start);
- 
--		goto final;
--	}
-+				continue;
-+			}
- 
--	v = va->vm;
-+			v = va->vm;
- 
--	seq_printf(m, "0x%pK-0x%pK %7ld",
--		v->addr, v->addr + v->size, v->size);
-+			seq_printf(m, "0x%pK-0x%pK %7ld",
-+				v->addr, v->addr + v->size, v->size);
- 
--	if (v->caller)
--		seq_printf(m, " %pS", v->caller);
-+			if (v->caller)
-+				seq_printf(m, " %pS", v->caller);
- 
--	if (v->nr_pages)
--		seq_printf(m, " pages=%d", v->nr_pages);
-+			if (v->nr_pages)
-+				seq_printf(m, " pages=%d", v->nr_pages);
- 
--	if (v->phys_addr)
--		seq_printf(m, " phys=%pa", &v->phys_addr);
-+			if (v->phys_addr)
-+				seq_printf(m, " phys=%pa", &v->phys_addr);
- 
--	if (v->flags & VM_IOREMAP)
--		seq_puts(m, " ioremap");
-+			if (v->flags & VM_IOREMAP)
-+				seq_puts(m, " ioremap");
- 
--	if (v->flags & VM_ALLOC)
--		seq_puts(m, " vmalloc");
-+			if (v->flags & VM_ALLOC)
-+				seq_puts(m, " vmalloc");
- 
--	if (v->flags & VM_MAP)
--		seq_puts(m, " vmap");
-+			if (v->flags & VM_MAP)
-+				seq_puts(m, " vmap");
- 
--	if (v->flags & VM_USERMAP)
--		seq_puts(m, " user");
-+			if (v->flags & VM_USERMAP)
-+				seq_puts(m, " user");
- 
--	if (v->flags & VM_DMA_COHERENT)
--		seq_puts(m, " dma-coherent");
-+			if (v->flags & VM_DMA_COHERENT)
-+				seq_puts(m, " dma-coherent");
- 
--	if (is_vmalloc_addr(v->pages))
--		seq_puts(m, " vpages");
-+			if (is_vmalloc_addr(v->pages))
-+				seq_puts(m, " vpages");
- 
--	show_numa_info(m, v);
--	seq_putc(m, '\n');
-+			show_numa_info(m, v);
-+			seq_putc(m, '\n');
-+		}
-+		spin_unlock(&vn->busy.lock);
-+	}
- 
- 	/*
- 	 * As a final step, dump "unpurged" areas.
- 	 */
--final:
--	if (list_is_last(&va->list, &vn->busy.head))
--		show_purge_info(m);
--
-+	show_purge_info(m);
- 	return 0;
+ 	if (nr_nodes > 1) {
+@@ -4852,6 +4868,16 @@ static void vmap_init_nodes(void)
+ 		INIT_LIST_HEAD(&vn->free.head);
+ 		spin_lock_init(&vn->free.lock);
+ 	}
++
++	/*
++	 * Scale a node size to number of CPUs. Each power of two
++	 * value doubles a node size. A high-threshold limit is set
++	 * to 4M.
++	 */
++#if BITS_PER_LONG == 64
++	if (nr_nodes > 1)
++		node_size = min(SZ_64K << fls(num_possible_cpus()), SZ_4M);
++#endif
  }
  
--static const struct seq_operations vmalloc_op = {
--	.start = s_start,
--	.next = s_next,
--	.stop = s_stop,
--	.show = s_show,
--};
--
- static int __init proc_vmalloc_init(void)
- {
-+	void *priv_data = NULL;
-+
- 	if (IS_ENABLED(CONFIG_NUMA))
--		proc_create_seq_private("vmallocinfo", 0400, NULL,
--				&vmalloc_op,
--				nr_node_ids * sizeof(unsigned int), NULL);
--	else
--		proc_create_seq("vmallocinfo", 0400, NULL, &vmalloc_op);
-+		priv_data = kmalloc(nr_node_ids * sizeof(unsigned int), GFP_KERNEL);
-+
-+	proc_create_single_data("vmallocinfo",
-+		0400, NULL, vmalloc_info_show, priv_data);
-+
- 	return 0;
- }
- module_init(proc_vmalloc_init);
+ void __init vmalloc_init(void)
 _
 
 Patches currently in -mm which might be from urezki@gmail.com are
