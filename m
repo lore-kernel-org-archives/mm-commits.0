@@ -2,146 +2,166 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A946CC83F2C
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Sep 2023 06:57:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 734E0C83F3E
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Sep 2023 18:59:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229579AbjIDG5W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 4 Sep 2023 02:57:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51614 "EHLO
+        id S229945AbjIDS7e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 4 Sep 2023 14:59:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32846 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343862AbjIDG5W (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Sep 2023 02:57:22 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E323D11A
-        for <mm-commits@vger.kernel.org>; Sun,  3 Sep 2023 23:56:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1693810591;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=Iui/cMfKR07aMfbs/NJj6/2nOIWm7enhjwyf6JBnFyo=;
-        b=V7HByigT3SEoRzu8WpW+KAdLAzRXuknkVhnmWsATwBVONQZzv7VliYvcXetJ8QTGr5Gj79
-        7zszHoilgV5Ko9B3g66GTEgf0PvwfFMEaAQbifAOAeO4TYO/iNZ5/qhfg8fQh2opP9Swdr
-        Ti6e08+SDPvI/VOTXEGvO7tMDskO47I=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-622-yZWLb8KoP0S3b9Fr9KvwsQ-1; Mon, 04 Sep 2023 02:56:30 -0400
-X-MC-Unique: yZWLb8KoP0S3b9Fr9KvwsQ-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.rdu2.redhat.com [10.11.54.2])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        with ESMTP id S237745AbjIDS7d (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Sep 2023 14:59:33 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC348127
+        for <mm-commits@vger.kernel.org>; Mon,  4 Sep 2023 11:59:29 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 957018008A4;
-        Mon,  4 Sep 2023 06:56:29 +0000 (UTC)
-Received: from dhcp-27-174.brq.redhat.com (unknown [10.45.225.54])
-        by smtp.corp.redhat.com (Postfix) with SMTP id C1856400D277;
-        Mon,  4 Sep 2023 06:56:28 +0000 (UTC)
-Received: by dhcp-27-174.brq.redhat.com (nbSMTP-1.00) for uid 1000
-        oleg@redhat.com; Mon,  4 Sep 2023 08:55:39 +0200 (CEST)
-Date:   Mon, 4 Sep 2023 08:55:38 +0200
-From:   Oleg Nesterov <oleg@redhat.com>
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, ebiederm@xmission.com
-Subject: Re: + kill-task_struct-thread_group.patch added to mm-nonmm-unstable
- branch
-Message-ID: <20230904065538.GA6149@redhat.com>
-References: <20230903235057.A7A9EC433C7@smtp.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230903235057.A7A9EC433C7@smtp.kernel.org>
-User-Agent: Mutt/1.5.24 (2015-08-30)
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.2
+        by ams.source.kernel.org (Postfix) with ESMTPS id 924C7B80EF6
+        for <mm-commits@vger.kernel.org>; Mon,  4 Sep 2023 18:59:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41C38C433C7;
+        Mon,  4 Sep 2023 18:59:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1693853967;
+        bh=U/1lkhRTV23p/qATHmU1aKGKu7KXmnmWL5t2ehCvx3I=;
+        h=Date:To:From:Subject:From;
+        b=hp2QNxEYzXGWN6ylW/2xyYbBMsjFgsxHfQJdxAtjCVKw19Caucn/exeRqUF0Euuzb
+         cQ2bfd91lfrjp7Se7kD43L2I9NcbkDoS74nkDUQTGZK8fI79yh5fxJvMY3ju1hj9V8
+         kT63K6NA2r9ZymIfdHk9cWtSlqpcPltIKf8u4Bo4=
+Date:   Mon, 04 Sep 2023 11:59:26 -0700
+To:     mm-commits@vger.kernel.org, peterz@infradead.org,
+        ebiederm@xmission.com, oleg@redhat.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + introduce-__next_thread-fix-next_tid-vs-exec-race.patch added to mm-nonmm-unstable branch
+Message-Id: <20230904185927.41C38C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Hi Andrew,
 
-> From: Oleg Nesterov <oleg@redhat.com>
-> Subject: kill task_struct->thread_group
-> Date: Sat, 26 Aug 2023 13:14:09 +0200
->
-> The last user was removed by the previous patch.
+The patch titled
+     Subject: introduce __next_thread(), fix next_tid() vs exec() race
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     introduce-__next_thread-fix-next_tid-vs-exec-race.patch
 
-No, no ;)
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/introduce-__next_thread-fix-next_tid-vs-exec-race.patch
 
-this series depends on 2 previous patches, see
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-	https://lore.kernel.org/all/20230824143112.GA31208@redhat.com/
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-sorry for confusion,
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-Oleg.
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: introduce __next_thread(), fix next_tid() vs exec() race
+Date: Thu, 24 Aug 2023 16:31:42 +0200
+
+Patch series "introduce __next_thread(), change next_thread()".
+
+After commit dce8f8ed1de1 ("document while_each_thread(), change
+first_tid() to use for_each_thread()") + this series
+
+1. We have only one lockless user of next_thread(), task_group_seq_get_next().
+   I think it should be changed too.
+
+2. We have only one user of task_struct->thread_group, thread_group_empty().
+   The next patches will change thread_group_empty() and kill ->thread_group.
 
 
-> Link: https://lkml.kernel.org/r/20230826111409.GA23243@redhat.com
-> Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-> Cc: Eric W. Biederman <ebiederm@xmission.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  include/linux/sched.h |    1 -
->  init/init_task.c      |    1 -
->  kernel/exit.c         |    1 -
->  kernel/fork.c         |    3 ---
->  4 files changed, 6 deletions(-)
-> 
-> --- a/include/linux/sched.h~kill-task_struct-thread_group
-> +++ a/include/linux/sched.h
-> @@ -997,7 +997,6 @@ struct task_struct {
->  	/* PID/PID hash table linkage. */
->  	struct pid			*thread_pid;
->  	struct hlist_node		pid_links[PIDTYPE_MAX];
-> -	struct list_head		thread_group;
->  	struct list_head		thread_node;
->  
->  	struct completion		*vfork_done;
-> --- a/init/init_task.c~kill-task_struct-thread_group
-> +++ a/init/init_task.c
-> @@ -132,7 +132,6 @@ struct task_struct init_task
->  	.pi_lock	= __RAW_SPIN_LOCK_UNLOCKED(init_task.pi_lock),
->  	.timer_slack_ns = 50000, /* 50 usec default slack */
->  	.thread_pid	= &init_struct_pid,
-> -	.thread_group	= LIST_HEAD_INIT(init_task.thread_group),
->  	.thread_node	= LIST_HEAD_INIT(init_signals.thread_head),
->  #ifdef CONFIG_AUDIT
->  	.loginuid	= INVALID_UID,
-> --- a/kernel/exit.c~kill-task_struct-thread_group
-> +++ a/kernel/exit.c
-> @@ -133,7 +133,6 @@ static void __unhash_process(struct task
->  		list_del_init(&p->sibling);
->  		__this_cpu_dec(process_counts);
->  	}
-> -	list_del_rcu(&p->thread_group);
->  	list_del_rcu(&p->thread_node);
->  }
->  
-> --- a/kernel/fork.c~kill-task_struct-thread_group
-> +++ a/kernel/fork.c
-> @@ -2575,7 +2575,6 @@ __latent_entropy struct task_struct *cop
->  	p->dirty_paused_when = 0;
->  
->  	p->pdeath_signal = 0;
-> -	INIT_LIST_HEAD(&p->thread_group);
->  	p->task_works = NULL;
->  	clear_posix_cputimers_work(p);
->  
-> @@ -2703,8 +2702,6 @@ __latent_entropy struct task_struct *cop
->  			atomic_inc(&current->signal->live);
->  			refcount_inc(&current->signal->sigcnt);
->  			task_join_group_stop(p);
-> -			list_add_tail_rcu(&p->thread_group,
-> -					  &p->group_leader->thread_group);
->  			list_add_tail_rcu(&p->thread_node,
->  					  &p->signal->thread_head);
->  		}
-> _
-> 
-> Patches currently in -mm which might be from oleg@redhat.com are
-> 
-> change-thread_group_empty-to-use-task_struct-thread_node.patch
-> kill-task_struct-thread_group.patch
-> 
+This patch (of 2):
+
+next_tid(start) does:
+
+	rcu_read_lock();
+	if (pid_alive(start)) {
+		pos = next_thread(start);
+		if (thread_group_leader(pos))
+			pos = NULL;
+		else
+			get_task_struct(pos);
+
+it should return pos = NULL when next_thread() wraps to the 1st thread
+in the thread group, group leader, and the thread_group_leader() check
+tries to detect this case.
+
+But this can race with exec. To simplify, suppose we have a main thread
+M and a single sub-thread T, next_tid(T) should return NULL.
+
+Now suppose that T execs. If next_tid(T) is called after T changes the
+leadership and before it does release_task() which removes the old leader
+from list, then next_thread() returns M and thread_group_leader(M) = F.
+
+Lockless use of next_thread() should be avoided. After this change only
+task_group_seq_get_next() does this, and I believe it should be changed
+as well.
+
+Link: https://lkml.kernel.org/r/20230824143112.GA31208@redhat.com
+Link: https://lkml.kernel.org/r/20230824143142.GA31222@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/proc/base.c               |    6 ++----
+ include/linux/sched/signal.h |   11 +++++++++++
+ 2 files changed, 13 insertions(+), 4 deletions(-)
+
+--- a/fs/proc/base.c~introduce-__next_thread-fix-next_tid-vs-exec-race
++++ a/fs/proc/base.c
+@@ -3839,10 +3839,8 @@ static struct task_struct *next_tid(stru
+ 	struct task_struct *pos = NULL;
+ 	rcu_read_lock();
+ 	if (pid_alive(start)) {
+-		pos = next_thread(start);
+-		if (thread_group_leader(pos))
+-			pos = NULL;
+-		else
++		pos = __next_thread(start);
++		if (pos)
+ 			get_task_struct(pos);
+ 	}
+ 	rcu_read_unlock();
+--- a/include/linux/sched/signal.h~introduce-__next_thread-fix-next_tid-vs-exec-race
++++ a/include/linux/sched/signal.h
+@@ -715,6 +715,17 @@ bool same_thread_group(struct task_struc
+ 	return p1->signal == p2->signal;
+ }
+ 
++/*
++ * returns NULL if p is the last thread in the thread group
++ */
++static inline struct task_struct *__next_thread(struct task_struct *p)
++{
++	return list_next_or_null_rcu(&p->signal->thread_head,
++					&p->thread_node,
++					struct task_struct,
++					thread_node);
++}
++
+ static inline struct task_struct *next_thread(const struct task_struct *p)
+ {
+ 	return list_entry_rcu(p->thread_group.next,
+_
+
+Patches currently in -mm which might be from oleg@redhat.com are
+
+introduce-__next_thread-fix-next_tid-vs-exec-race.patch
+change-next_thread-to-use-__next_thread-group_leader.patch
+change-thread_group_empty-to-use-task_struct-thread_node.patch
+kill-task_struct-thread_group.patch
+__kill_pgrp_info-simplify-the-calculation-of-return-value.patch
 
