@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33413C83F2C
-	for <mm-commits@archiver.kernel.org>; Sun,  3 Sep 2023 23:58:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE389C83F2C
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Sep 2023 00:02:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241294AbjICX6V (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 3 Sep 2023 19:58:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51366 "EHLO
+        id S1349595AbjIDACe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 3 Sep 2023 20:02:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56024 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237477AbjICX6U (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Sep 2023 19:58:20 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 13F36C4
-        for <mm-commits@vger.kernel.org>; Sun,  3 Sep 2023 16:58:17 -0700 (PDT)
+        with ESMTP id S231361AbjIDACd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 3 Sep 2023 20:02:33 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27B0E102
+        for <mm-commits@vger.kernel.org>; Sun,  3 Sep 2023 17:02:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 69D8ECE0AC0
-        for <mm-commits@vger.kernel.org>; Sun,  3 Sep 2023 23:58:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DD58C433C8;
-        Sun,  3 Sep 2023 23:58:13 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C6C62B80C9D
+        for <mm-commits@vger.kernel.org>; Mon,  4 Sep 2023 00:02:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DBB7C433C9;
+        Mon,  4 Sep 2023 00:02:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1693785493;
-        bh=MiIXHQiHawhZS4z3CNOUPlwyKhokoYlBLR7TFbY+ud0=;
+        s=korg; t=1693785746;
+        bh=vreLUnZKoDKu+q+8cTyVwoO6Vzg2qCX6e0HkUM2D+eU=;
         h=Date:To:From:Subject:From;
-        b=c/Cyt3aIfyO1GojeuL3kF1kWR7uIwzQAK7ME1a+5ITtWuV5ztf2DocHeJN1+JBS7f
-         +YboTU9PM3O9gtmCtpx6yIj5SxN7oFfXm6/8+GwCIb0hgFWhJVH0dlCPbmQ3LmE+Nz
-         9q4USmARfC677GpCb1WA8GWbfCW4xpVOKn/JWs0Y=
-Date:   Sun, 03 Sep 2023 16:58:11 -0700
-To:     mm-commits@vger.kernel.org, zhaoyang.huang@unisoc.com,
-        david@redhat.com, vernhao@tencent.com, akpm@linux-foundation.org
+        b=z4S7X4rpu/MatXdYRl7Gmnya6e2hfM1tL9XeboEwNG5oRp+/c5D25OC7GIEf+hU8g
+         +evqP1d/g6DfgD97Kg/um8EFhykcM0YwvUTnuyD8bch6bcYcBXcoNfs8t6gI54kh6T
+         VmoI4VlChg01cEXLCa1yYU3eW0akBzVV9p/bnXro=
+Date:   Sun, 03 Sep 2023 17:02:24 -0700
+To:     mm-commits@vger.kernel.org, ebiederm@xmission.com,
+        David.Laight@ACULAB.COM, oleg@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-use-folio_migratetype-instead-of-get_pageblock_migratetype.patch added to mm-unstable branch
-Message-Id: <20230903235813.6DD58C433C8@smtp.kernel.org>
+Subject: + __kill_pgrp_info-simplify-the-calculation-of-return-value.patch added to mm-nonmm-unstable branch
+Message-Id: <20230904000226.7DBB7C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: use folio_migratetype() instead of get_pageblock_migratetype()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-use-folio_migratetype-instead-of-get_pageblock_migratetype.patch
+     Subject: __kill_pgrp_info: simplify the calculation of return value
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     __kill_pgrp_info-simplify-the-calculation-of-return-value.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-use-folio_migratetype-instead-of-get_pageblock_migratetype.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/__kill_pgrp_info-simplify-the-calculation-of-return-value.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -65,37 +65,58 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Vern Hao <vernhao@tencent.com>
-Subject: mm/vmscan: use folio_migratetype() instead of get_pageblock_migratetype()
-Date: Fri, 25 Aug 2023 15:57:34 +0800
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: __kill_pgrp_info: simplify the calculation of return value
+Date: Wed, 23 Aug 2023 19:14:55 +0200
 
-In skip_cma(), we can use folio_migratetype() to replace
-get_pageblock_migratetype().
+No need to calculate/check the "success" variable, we can kill it and update
+retval in the main loop unless it is zero.
 
-Link: https://lkml.kernel.org/r/20230825075735.52436-1-user@VERNHAO-MC1
-Signed-off-by: Vern Hao <vernhao@tencent.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
+Link: https://lkml.kernel.org/r/20230823171455.GA12188@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Suggested-by: David Laight <David.Laight@ACULAB.COM>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/signal.c |   17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-use-folio_migratetype-instead-of-get_pageblock_migratetype
-+++ a/mm/vmscan.c
-@@ -2284,7 +2284,7 @@ static bool skip_cma(struct folio *folio
+--- a/kernel/signal.c~__kill_pgrp_info-simplify-the-calculation-of-return-value
++++ a/kernel/signal.c
+@@ -1471,16 +1471,21 @@ int group_send_sig_info(int sig, struct
+ int __kill_pgrp_info(int sig, struct kernel_siginfo *info, struct pid *pgrp)
  {
- 	return !current_is_kswapd() &&
- 			gfp_migratetype(sc->gfp_mask) != MIGRATE_MOVABLE &&
--			get_pageblock_migratetype(&folio->page) == MIGRATE_CMA;
-+			folio_migratetype(folio) == MIGRATE_CMA;
+ 	struct task_struct *p = NULL;
+-	int retval, success;
++	int ret = -ESRCH;
+ 
+-	success = 0;
+-	retval = -ESRCH;
+ 	do_each_pid_task(pgrp, PIDTYPE_PGID, p) {
+ 		int err = group_send_sig_info(sig, info, p, PIDTYPE_PGID);
+-		success |= !err;
+-		retval = err;
++		/*
++		 * If group_send_sig_info() succeeds at least once ret
++		 * becomes 0 and after that the code below has no effect.
++		 * Otherwise we return the last err or -ESRCH if this
++		 * process group is empty.
++		 */
++		if (ret)
++			ret = err;
+ 	} while_each_pid_task(pgrp, PIDTYPE_PGID, p);
+-	return success ? 0 : retval;
++
++	return ret;
  }
- #else
- static bool skip_cma(struct folio *folio, struct scan_control *sc)
+ 
+ int kill_pid_info(int sig, struct kernel_siginfo *info, struct pid *pid)
 _
 
-Patches currently in -mm which might be from vernhao@tencent.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-mm-vmscan-use-folio_migratetype-instead-of-get_pageblock_migratetype.patch
+change-thread_group_empty-to-use-task_struct-thread_node.patch
+kill-task_struct-thread_group.patch
+__kill_pgrp_info-simplify-the-calculation-of-return-value.patch
 
