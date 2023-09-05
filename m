@@ -2,35 +2,37 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4668C83F3E
-	for <mm-commits@archiver.kernel.org>; Tue,  5 Sep 2023 19:07:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B77DBCA100A
+	for <mm-commits@archiver.kernel.org>; Tue,  5 Sep 2023 20:08:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241435AbjIETHf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Sep 2023 15:07:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50896 "EHLO
+        id S237882AbjIEUIk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Sep 2023 16:08:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45562 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241606AbjIETHd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2023 15:07:33 -0400
+        with ESMTP id S232910AbjIEUIj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2023 16:08:39 -0400
+X-Greylist: delayed 3696 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 05 Sep 2023 13:08:36 PDT
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5065ED2
-        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 12:07:00 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87517C433CB;
-        Tue,  5 Sep 2023 18:12:23 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 95D89CC;
+        Tue,  5 Sep 2023 13:08:36 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 324E8C43395;
+        Tue,  5 Sep 2023 18:12:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1693937543;
-        bh=AMmdb8WYy5iFFz+K3UngehN03CxqT6pTWwOOxq+4RRc=;
+        s=korg; t=1693937542;
+        bh=Cyge68y4cOxdgZX5nOi6xxJiDLYqCX3/U9yRL+loHu4=;
         h=Date:To:From:Subject:From;
-        b=ygQPqaxgmC+M67Vi6JteO92CfysWo2Q5Zh5jvfEjoy47kNkPes4Woy4Jo8VPGOBTs
-         DRzvovx4pdQeA2bmMu3HOUUFObcFclqtIXtbEbhcx5vs+Fa8QyshmXnc/RSLVwgQbe
-         FjgXMe0/d5KfQiDB0KIl8CZZX9sN/Kcb9Yn5FGg8=
-Date:   Tue, 05 Sep 2023 11:12:22 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        wangkefeng.wang@huawei.com, paulmck@kernel.org,
-        naoya.horiguchi@nec.com, linmiaohe@huawei.com,
-        tongtiangen@huawei.com, akpm@linux-foundation.org
+        b=crveIJDcgJdn0DLGGB27lvI8GuOW1yuLRi7ziEetgfx0wjJR/zl4/cmk1wSIHPtr1
+         +zMfK353wbezWeJATf/kbXKRYuTOPxMcXbY3r3XAxse3Hwkn0+t6KH33zcwoaPvEKu
+         7sERAk1EcrFJbno9aNqtJV/YHUEB4Wudyo31mWT4=
+Date:   Tue, 05 Sep 2023 11:12:21 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        shuah@kernel.org, keescook@chromium.org, jeffxu@google.com,
+        dverkamp@chromium.org, dtometzki@fedoraproject.org,
+        cyphar@cyphar.com, brauner@kernel.org, akpm@linux-foundation.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-memory-failure-use-rcu-lock-instead-of-tasklist_lock-when-collect_procs.patch removed from -mm tree
-Message-Id: <20230905181223.87517C433CB@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] revert-memfd-improve-userspace-warnings-for-missing-exec-related-flags.patch removed from -mm tree
+Message-Id: <20230905181222.324E8C43395@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,197 +40,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: memory-failure: use rcu lock instead of tasklist_lock when collect_procs()
+     Subject: revert "memfd: improve userspace warnings for missing exec-related flags".
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-use-rcu-lock-instead-of-tasklist_lock-when-collect_procs.patch
+     revert-memfd-improve-userspace-warnings-for-missing-exec-related-flags.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Tong Tiangen <tongtiangen@huawei.com>
-Subject: mm: memory-failure: use rcu lock instead of tasklist_lock when collect_procs()
-Date: Mon, 28 Aug 2023 10:25:27 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: revert "memfd: improve userspace warnings for missing exec-related flags".
+Date: Sat Sep  2 03:59:31 PM PDT 2023
 
-We found a softlock issue in our test, analyzed the logs, and found that
-the relevant CPU call trace as follows:
+This warning is telling userspace developers to pass MFD_EXEC and
+MFD_NOEXEC_SEAL to memfd_create().  Commit 434ed3350f57 ("memfd: improve
+userspace warnings for missing exec-related flags") made the warning more
+frequent and visible in the hope that this would accelerate the fixing of
+errant userspace.
 
-CPU0:
-  _do_fork
-    -> copy_process()
-      -> write_lock_irq(&tasklist_lock)  //Disable irq,waiting for
-      					 //tasklist_lock
+But the overall effect is to generate far too much dmesg noise.
 
-CPU1:
-  wp_page_copy()
-    ->pte_offset_map_lock()
-      -> spin_lock(&page->ptl);        //Hold page->ptl
-    -> ptep_clear_flush()
-      -> flush_tlb_others() ...
-        -> smp_call_function_many()
-          -> arch_send_call_function_ipi_mask()
-            -> csd_lock_wait()         //Waiting for other CPUs respond
-	                               //IPI
-
-CPU2:
-  collect_procs_anon()
-    -> read_lock(&tasklist_lock)       //Hold tasklist_lock
-      ->for_each_process(tsk)
-        -> page_mapped_in_vma()
-          -> page_vma_mapped_walk()
-	    -> map_pte()
-              ->spin_lock(&page->ptl)  //Waiting for page->ptl
-
-We can see that CPU1 waiting for CPU0 respond IPI，CPU0 waiting for CPU2
-unlock tasklist_lock, CPU2 waiting for CPU1 unlock page->ptl. As a result,
-softlockup is triggered.
-
-For collect_procs_anon(), what we're doing is task list iteration, during
-the iteration, with the help of call_rcu(), the task_struct object is freed
-only after one or more grace periods elapse. the logic as follows:
-
-release_task()
-  -> __exit_signal()
-    -> __unhash_process()
-      -> list_del_rcu()
-
-  -> put_task_struct_rcu_user()
-    -> call_rcu(&task->rcu, delayed_put_task_struct)
-
-delayed_put_task_struct()
-  -> put_task_struct()
-  -> if (refcount_sub_and_test())
-     	__put_task_struct()
-          -> free_task()
-
-Therefore, under the protection of the rcu lock, we can safely use
-get_task_struct() to ensure a safe reference to task_struct during the
-iteration.
-
-By removing the use of tasklist_lock in task list iteration, we can break
-the softlock chain above.
-
-The same logic can also be applied to:
- - collect_procs_file()
- - collect_procs_fsdax()
- - collect_procs_ksm()
-
-Link: https://lkml.kernel.org/r/20230828022527.241693-1-tongtiangen@huawei.com
-Signed-off-by: Tong Tiangen <tongtiangen@huawei.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Paul E. McKenney <paulmck@kernel.org>
+Fixes: 434ed3350f57 ("memfd: improve userspace warnings for missing exec-related flags")
+Reported-by: Damian Tometzki <dtometzki@fedoraproject.org>
+Closes: https://lkml.kernel.org/r/ZPFzCSIgZ4QuHsSC@fedora.fritz.box
+Cc: Aleksa Sarai <cyphar@cyphar.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Daniel Verkamp <dverkamp@chromium.org>
+Cc: Jeff Xu <jeffxu@google.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c        |    3 ---
- mm/ksm.c            |    4 ++--
- mm/memory-failure.c |   16 ++++++++--------
- 3 files changed, 10 insertions(+), 13 deletions(-)
+ mm/memfd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/filemap.c~mm-memory-failure-use-rcu-lock-instead-of-tasklist_lock-when-collect_procs
-+++ a/mm/filemap.c
-@@ -121,9 +121,6 @@
-  *    bdi.wb->list_lock		(zap_pte_range->set_page_dirty)
-  *    ->inode->i_lock		(zap_pte_range->set_page_dirty)
-  *    ->private_lock		(zap_pte_range->block_dirty_folio)
-- *
-- * ->i_mmap_rwsem
-- *   ->tasklist_lock            (memory_failure, collect_procs_ao)
-  */
+--- a/mm/memfd.c~revert-memfd-improve-userspace-warnings-for-missing-exec-related-flags
++++ a/mm/memfd.c
+@@ -316,7 +316,7 @@ SYSCALL_DEFINE2(memfd_create,
+ 		return -EINVAL;
  
- static void page_cache_delete(struct address_space *mapping,
---- a/mm/ksm.c~mm-memory-failure-use-rcu-lock-instead-of-tasklist_lock-when-collect_procs
-+++ a/mm/ksm.c
-@@ -2925,7 +2925,7 @@ void collect_procs_ksm(struct page *page
- 		struct anon_vma *av = rmap_item->anon_vma;
- 
- 		anon_vma_lock_read(av);
--		read_lock(&tasklist_lock);
-+		rcu_read_lock();
- 		for_each_process(tsk) {
- 			struct anon_vma_chain *vmac;
- 			unsigned long addr;
-@@ -2944,7 +2944,7 @@ void collect_procs_ksm(struct page *page
- 				}
- 			}
- 		}
--		read_unlock(&tasklist_lock);
-+		rcu_read_unlock();
- 		anon_vma_unlock_read(av);
+ 	if (!(flags & (MFD_EXEC | MFD_NOEXEC_SEAL))) {
+-		pr_info_ratelimited(
++		pr_warn_once(
+ 			"%s[%d]: memfd_create() called without MFD_EXEC or MFD_NOEXEC_SEAL set\n",
+ 			current->comm, task_pid_nr(current));
  	}
- }
---- a/mm/memory-failure.c~mm-memory-failure-use-rcu-lock-instead-of-tasklist_lock-when-collect_procs
-+++ a/mm/memory-failure.c
-@@ -547,8 +547,8 @@ static void kill_procs(struct list_head
-  * on behalf of the thread group. Return task_struct of the (first found)
-  * dedicated thread if found, and return NULL otherwise.
-  *
-- * We already hold read_lock(&tasklist_lock) in the caller, so we don't
-- * have to call rcu_read_lock/unlock() in this function.
-+ * We already hold rcu lock in the caller, so we don't have to call
-+ * rcu_read_lock/unlock() in this function.
-  */
- static struct task_struct *find_early_kill_thread(struct task_struct *tsk)
- {
-@@ -609,7 +609,7 @@ static void collect_procs_anon(struct pa
- 		return;
- 
- 	pgoff = page_to_pgoff(page);
--	read_lock(&tasklist_lock);
-+	rcu_read_lock();
- 	for_each_process(tsk) {
- 		struct anon_vma_chain *vmac;
- 		struct task_struct *t = task_early_kill(tsk, force_early);
-@@ -626,7 +626,7 @@ static void collect_procs_anon(struct pa
- 			add_to_kill_anon_file(t, page, vma, to_kill);
- 		}
- 	}
--	read_unlock(&tasklist_lock);
-+	rcu_read_unlock();
- 	anon_vma_unlock_read(av);
- }
- 
-@@ -642,7 +642,7 @@ static void collect_procs_file(struct pa
- 	pgoff_t pgoff;
- 
- 	i_mmap_lock_read(mapping);
--	read_lock(&tasklist_lock);
-+	rcu_read_lock();
- 	pgoff = page_to_pgoff(page);
- 	for_each_process(tsk) {
- 		struct task_struct *t = task_early_kill(tsk, force_early);
-@@ -662,7 +662,7 @@ static void collect_procs_file(struct pa
- 				add_to_kill_anon_file(t, page, vma, to_kill);
- 		}
- 	}
--	read_unlock(&tasklist_lock);
-+	rcu_read_unlock();
- 	i_mmap_unlock_read(mapping);
- }
- 
-@@ -685,7 +685,7 @@ static void collect_procs_fsdax(struct p
- 	struct task_struct *tsk;
- 
- 	i_mmap_lock_read(mapping);
--	read_lock(&tasklist_lock);
-+	rcu_read_lock();
- 	for_each_process(tsk) {
- 		struct task_struct *t = task_early_kill(tsk, true);
- 
-@@ -696,7 +696,7 @@ static void collect_procs_fsdax(struct p
- 				add_to_kill_fsdax(t, page, vma, to_kill, pgoff);
- 		}
- 	}
--	read_unlock(&tasklist_lock);
-+	rcu_read_unlock();
- 	i_mmap_unlock_read(mapping);
- }
- #endif /* CONFIG_FS_DAX */
 _
 
-Patches currently in -mm which might be from tongtiangen@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
 
