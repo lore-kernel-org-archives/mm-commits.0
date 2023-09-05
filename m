@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AF08CA0FF3
-	for <mm-commits@archiver.kernel.org>; Tue,  5 Sep 2023 16:35:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77E3BC83F2C
+	for <mm-commits@archiver.kernel.org>; Tue,  5 Sep 2023 16:35:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229532AbjIEQfO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Sep 2023 12:35:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48882 "EHLO
+        id S235157AbjIEQfP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Sep 2023 12:35:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55206 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243037AbjIEQLH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2023 12:11:07 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E61D4C12
-        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 09:04:11 -0700 (PDT)
+        with ESMTP id S242883AbjIEQLD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2023 12:11:03 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D2D5049F6
+        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 09:04:02 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id DFEC4B8128D
-        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 16:02:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EE15C433C7;
-        Tue,  5 Sep 2023 16:02:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id F249960A55
+        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 16:02:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A8E1C433C8;
+        Tue,  5 Sep 2023 16:02:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1693929756;
-        bh=DHVbieGa0C9ts0DK43EkKyp9w63vxDgXOlEXaYS9DdM=;
+        s=korg; t=1693929771;
+        bh=RajWu48m3QWoN46rDHz7nnJaE7YACS2ePL6P/8QJtwo=;
         h=Date:To:From:Subject:From;
-        b=mJdwFA2KQ6oh1DD6RjD/8hvMch/DZ5nmUBc1BFAsOP6LCsJHGi8DHqHDhe5ZTEIcP
-         jilbzUKg9Jl0fZzg47S2CxgUwf/B2RQkvJcDb1BfTp5ZOkiQMlJs7o5UUdAlDvA/iZ
-         gh1B03rDmRT0WgzghfIYs0snpvz7HkTd8sUbLoEI=
-Date:   Tue, 05 Sep 2023 09:02:35 -0700
+        b=YTHa0p3smYfY3whChOWG8z4Da65pXsOKiToFJXkbtltJnR20Bt1dCWKTTXtYQEGdB
+         oMSZh3Qt4H9VqaZjoXwKSKEhzqcnRdQ71Ms1GdukC5tKi6AMOBYXdHuxdIoFl9yX4n
+         CYn81uIwggUj06zqavJzxDlFzfzooMffhp8PbBdA=
+Date:   Tue, 05 Sep 2023 09:02:50 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
         torvalds@linux-foundation.org, surenb@google.com, shuah@kernel.org,
         paulmck@kernel.org, mhocko@suse.com, lstoakes@gmail.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
         kirill@shutemov.name, kaleshsingh@google.com,
         joel@joelfernandes.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mremap-optimize-the-start-addresses-in-move_page_tables.patch added to mm-unstable branch
-Message-Id: <20230905160236.7EE15C433C7@smtp.kernel.org>
+Subject: + selftests-mm-add-a-test-for-remapping-to-area-immediately-after-existing-mapping.patch added to mm-unstable branch
+Message-Id: <20230905160251.4A8E1C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mremap: optimize the start addresses in move_page_tables()
+     Subject: selftests: mm: add a test for remapping to area immediately after existing mapping
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mremap-optimize-the-start-addresses-in-move_page_tables.patch
+     selftests-mm-add-a-test-for-remapping-to-area-immediately-after-existing-mapping.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-optimize-the-start-addresses-in-move_page_tables.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-a-test-for-remapping-to-area-immediately-after-existing-mapping.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,70 +70,53 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Joel Fernandes (Google)" <joel@joelfernandes.org>
-Subject: mm/mremap: optimize the start addresses in move_page_tables()
-Date: Sun, 3 Sep 2023 15:13:22 +0000
+Subject: selftests: mm: add a test for remapping to area immediately after existing mapping
+Date: Sun, 3 Sep 2023 15:13:26 +0000
 
-Patch series "Optimize mremap during mutual alignment within PMD", v6.
+This patch adds support for verifying that we correctly handle the
+situation where something is already mapped before the destination of the remap.
 
-This patchset optimizes the start addresses in move_page_tables() and
-tests the changes.  It addresses a warning [1] that occurs due to a
-downward, overlapping move on a mutually-aligned offset within a PMD
-during exec.  By initiating the copy process at the PMD level when such
-alignment is present, we can prevent this warning and speed up the copying
-process at the same time.  Linus Torvalds suggested this idea.  Check the
-individual patches for more details.  [1]
-https://lore.kernel.org/all/ZB2GTBD%2FLWTrkOiO@dhcp22.suse.cz/
+Any realignment of destination address and PMD-copy will destroy that
+existing mapping. In such cases, we need to avoid doing the optimization.
 
+To test this, we map an area called the preamble before the remap
+region. Then we verify after the mremap operation that this region did not get
+corrupted.
 
-This patch (of 7):
+Putting some prints in the kernel, I verified that we optimize
+correctly in different situations:
 
-Recently, we see reports [1] of a warning that triggers due to
-move_page_tables() doing a downward and overlapping move on a
-mutually-aligned offset within a PMD.  By mutual alignment, I mean the
-source and destination addresses of the mremap are at the same offset
-within a PMD.
+Optimize when there is alignment and no previous mapping (this is tested
+by previous patch).
+<prints>
+can_align_down(old_vma->vm_start=2900000, old_addr=2900000, mask=-2097152): 0
+can_align_down(new_vma->vm_start=2f00000, new_addr=2f00000, mask=-2097152): 0
+=== Starting move_page_tables ===
+Doing PUD move for 2800000 -> 2e00000 of extent=200000 <-- Optimization
+Doing PUD move for 2a00000 -> 3000000 of extent=200000
+Doing PUD move for 2c00000 -> 3200000 of extent=200000
+</prints>
 
-This mutual alignment along with the fact that the move is downward is
-sufficient to cause a warning related to having an allocated PMD that does
-not have PTEs in it.
+Don't optimize when there is alignment but there is previous mapping
+(this is tested by this patch).
+Notice that can_align_down() returns 1 for the destination mapping
+as we detected there is something there.
+<prints>
+can_align_down(old_vma->vm_start=2900000, old_addr=2900000, mask=-2097152): 0
+can_align_down(new_vma->vm_start=5700000, new_addr=5700000, mask=-2097152): 1
+=== Starting move_page_tables ===
+Doing move_ptes for 2900000 -> 5700000 of extent=100000 <-- Unoptimized
+Doing PUD move for 2a00000 -> 5800000 of extent=200000
+Doing PUD move for 2c00000 -> 5a00000 of extent=200000
+</prints>
 
-This warning will only trigger when there is mutual alignment in the move
-operation.  A solution, as suggested by Linus Torvalds [2], is to initiate
-the copy process at the PMD level whenever such alignment is present. 
-Implementing this approach will not only prevent the warning from being
-triggered, but it will also optimize the operation as this method should
-enhance the speed of the copy process whenever there's a possibility to
-start copying at the PMD level.
-
-Some more points:
-a. The optimization can be done only when both the source and
-destination of the mremap do not have anything mapped below it up to a
-PMD boundary. I add support to detect that.
-
-b. #1 is not a problem for the call to move_page_tables() from exec.c as
-nothing is expected to be mapped below the source. However, for
-non-overlapping mutually aligned moves as triggered by mremap(2), I
-added support for checking such cases.
-
-c. I currently only optimize for PMD moves, in the future I/we can build
-on this work and do PUD moves as well if there is a need for this. But I
-want to take it one step at a time.
-
-d. We need to be careful about mremap of ranges within the VMA itself.
-For this purpose, I added checks to determine if the address after
-alignment falls within its VMA itself.
-
-[1] https://lore.kernel.org/all/ZB2GTBD%2FLWTrkOiO@dhcp22.suse.cz/
-[2] https://lore.kernel.org/all/CAHk-=whd7msp8reJPfeGNyt0LiySMT0egExx3TVZSX3Ok6X=9g@mail.gmail.com/
-
-Link: https://lkml.kernel.org/r/20230903151328.2981432-1-joel@joelfernandes.org
-Link: https://lkml.kernel.org/r/20230903151328.2981432-2-joel@joelfernandes.org
+Link: https://lkml.kernel.org/r/20230903151328.2981432-6-joel@joelfernandes.org
 Signed-off-by: Joel Fernandes (Google) <joel@joelfernandes.org>
 Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Kalesh Singh <kaleshsingh@google.com>
 Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Lokesh Gidra <lokeshgidra@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Paul E. McKenney <paulmck@kernel.org>
@@ -143,94 +126,145 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |   62 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 62 insertions(+)
+ tools/testing/selftests/mm/mremap_test.c |   57 +++++++++++++++++++--
+ 1 file changed, 52 insertions(+), 5 deletions(-)
 
---- a/mm/mremap.c~mm-mremap-optimize-the-start-addresses-in-move_page_tables
-+++ a/mm/mremap.c
-@@ -489,6 +489,53 @@ static bool move_pgt_entry(enum pgt_entr
- 	return moved;
+--- a/tools/testing/selftests/mm/mremap_test.c~selftests-mm-add-a-test-for-remapping-to-area-immediately-after-existing-mapping
++++ a/tools/testing/selftests/mm/mremap_test.c
+@@ -29,6 +29,7 @@ struct config {
+ 	unsigned long long dest_alignment;
+ 	unsigned long long region_size;
+ 	int overlapping;
++	int dest_preamble_size;
+ };
+ 
+ struct test {
+@@ -283,7 +284,7 @@ error:
+ static long long remap_region(struct config c, unsigned int threshold_mb,
+ 			      char pattern_seed)
+ {
+-	void *addr, *src_addr, *dest_addr;
++	void *addr, *src_addr, *dest_addr, *dest_preamble_addr;
+ 	unsigned long long i;
+ 	struct timespec t_start = {0, 0}, t_end = {0, 0};
+ 	long long  start_ns, end_ns, align_mask, ret, offset;
+@@ -300,7 +301,7 @@ static long long remap_region(struct con
+ 		goto out;
+ 	}
+ 
+-	/* Set byte pattern */
++	/* Set byte pattern for source block. */
+ 	srand(pattern_seed);
+ 	for (i = 0; i < threshold; i++)
+ 		memset((char *) src_addr + i, (char) rand(), 1);
+@@ -312,6 +313,9 @@ static long long remap_region(struct con
+ 	addr = (void *) (((unsigned long long) src_addr + c.region_size
+ 			  + offset) & align_mask);
+ 
++	/* Remap after the destination block preamble. */
++	addr += c.dest_preamble_size;
++
+ 	/* See comment in get_source_mapping() */
+ 	if (!((unsigned long long) addr & c.dest_alignment))
+ 		addr = (void *) ((unsigned long long) addr | c.dest_alignment);
+@@ -327,6 +331,24 @@ static long long remap_region(struct con
+ 		addr += c.dest_alignment;
+ 	}
+ 
++	if (c.dest_preamble_size) {
++		dest_preamble_addr = mmap((void *) addr - c.dest_preamble_size, c.dest_preamble_size,
++					  PROT_READ | PROT_WRITE,
++					  MAP_FIXED_NOREPLACE | MAP_ANONYMOUS | MAP_SHARED,
++							-1, 0);
++		if (dest_preamble_addr == MAP_FAILED) {
++			ksft_print_msg("Failed to map dest preamble region: %s\n",
++					strerror(errno));
++			ret = -1;
++			goto clean_up_src;
++		}
++
++		/* Set byte pattern for the dest preamble block. */
++		srand(pattern_seed);
++		for (i = 0; i < c.dest_preamble_size; i++)
++			memset((char *) dest_preamble_addr + i, (char) rand(), 1);
++	}
++
+ 	clock_gettime(CLOCK_MONOTONIC, &t_start);
+ 	dest_addr = mremap(src_addr, c.region_size, c.region_size,
+ 					  MREMAP_MAYMOVE|MREMAP_FIXED, (char *) addr);
+@@ -335,7 +357,7 @@ static long long remap_region(struct con
+ 	if (dest_addr == MAP_FAILED) {
+ 		ksft_print_msg("mremap failed: %s\n", strerror(errno));
+ 		ret = -1;
+-		goto clean_up_src;
++		goto clean_up_dest_preamble;
+ 	}
+ 
+ 	/* Verify byte pattern after remapping */
+@@ -353,6 +375,23 @@ static long long remap_region(struct con
+ 		}
+ 	}
+ 
++	/* Verify the dest preamble byte pattern after remapping */
++	if (c.dest_preamble_size) {
++		srand(pattern_seed);
++		for (i = 0; i < c.dest_preamble_size; i++) {
++			char c = (char) rand();
++
++			if (((char *) dest_preamble_addr)[i] != c) {
++				ksft_print_msg("Preamble data after remap doesn't match at offset %d\n",
++					       i);
++				ksft_print_msg("Expected: %#x\t Got: %#x\n", c & 0xff,
++					       ((char *) dest_preamble_addr)[i] & 0xff);
++				ret = -1;
++				goto clean_up_dest;
++			}
++		}
++	}
++
+ 	start_ns = t_start.tv_sec * NS_PER_SEC + t_start.tv_nsec;
+ 	end_ns = t_end.tv_sec * NS_PER_SEC + t_end.tv_nsec;
+ 	ret = end_ns - start_ns;
+@@ -365,6 +404,9 @@ static long long remap_region(struct con
+  */
+ clean_up_dest:
+ 	munmap(dest_addr, c.region_size);
++clean_up_dest_preamble:
++	if (c.dest_preamble_size && dest_preamble_addr)
++		munmap(dest_preamble_addr, c.dest_preamble_size);
+ clean_up_src:
+ 	munmap(src_addr, c.region_size);
+ out:
+@@ -440,7 +482,7 @@ static int parse_args(int argc, char **a
+ 	return 0;
  }
  
-+/*
-+ * A helper to check if a previous mapping exists. Required for
-+ * move_page_tables() and realign_addr() to determine if a previous mapping
-+ * exists before we can do realignment optimizations.
-+ */
-+static bool can_align_down(struct vm_area_struct *vma, unsigned long addr_to_align,
-+			       unsigned long mask)
-+{
-+	unsigned long addr_masked = addr_to_align & mask;
-+
-+	/*
-+	 * If @addr_to_align of either source or destination is not the beginning
-+	 * of the corresponding VMA, we can't align down or we will destroy part
-+	 * of the current mapping.
-+	 */
-+	if (vma->vm_start != addr_to_align)
-+		return false;
-+
-+	/*
-+	 * Make sure the realignment doesn't cause the address to fall on an
-+	 * existing mapping.
-+	 */
-+	return find_vma_intersection(vma->vm_mm, addr_masked, vma->vm_start) == NULL;
-+}
-+
-+/* Opportunistically realign to specified boundary for faster copy. */
-+static void try_realign_addr(unsigned long *old_addr, struct vm_area_struct *old_vma,
-+			     unsigned long *new_addr, struct vm_area_struct *new_vma,
-+			     unsigned long mask)
-+{
-+	/* Skip if the addresses are already aligned. */
-+	if ((*old_addr & ~mask) == 0)
-+		return;
-+
-+	/* Only realign if the new and old addresses are mutually aligned. */
-+	if ((*old_addr & ~mask) != (*new_addr & ~mask))
-+		return;
-+
-+	/* Ensure realignment doesn't cause overlap with existing mappings. */
-+	if (!can_align_down(old_vma, *old_addr, mask) ||
-+	    !can_align_down(new_vma, *new_addr, mask))
-+		return;
-+
-+	*old_addr = *old_addr & mask;
-+	*new_addr = *new_addr & mask;
-+}
-+
- unsigned long move_page_tables(struct vm_area_struct *vma,
- 		unsigned long old_addr, struct vm_area_struct *new_vma,
- 		unsigned long new_addr, unsigned long len,
-@@ -508,6 +555,14 @@ unsigned long move_page_tables(struct vm
- 		return move_hugetlb_page_tables(vma, new_vma, old_addr,
- 						new_addr, len);
+-#define MAX_TEST 14
++#define MAX_TEST 15
+ #define MAX_PERF_TEST 3
+ int main(int argc, char **argv)
+ {
+@@ -449,7 +491,7 @@ int main(int argc, char **argv)
+ 	unsigned int threshold_mb = VALIDATION_DEFAULT_THRESHOLD;
+ 	unsigned int pattern_seed;
+ 	int num_expand_tests = 2;
+-	struct test test_cases[MAX_TEST];
++	struct test test_cases[MAX_TEST] = {};
+ 	struct test perf_test_cases[MAX_PERF_TEST];
+ 	int page_size;
+ 	time_t t;
+@@ -510,6 +552,11 @@ int main(int argc, char **argv)
+ 	test_cases[13] = MAKE_TEST(_1MB, _1MB, _5MB, NON_OVERLAPPING, EXPECT_SUCCESS,
+ 				  "5MB mremap - Source 1MB-aligned, Destination 1MB-aligned");
  
-+	/*
-+	 * If possible, realign addresses to PMD boundary for faster copy.
-+	 * Only realign if the mremap copying hits a PMD boundary.
-+	 */
-+	if ((vma != new_vma)
-+		&& (len >= PMD_SIZE - (old_addr & ~PMD_MASK)))
-+		try_realign_addr(&old_addr, vma, &new_addr, new_vma, PMD_MASK);
++	/* Src and Dest addr 1MB aligned. 5MB mremap. */
++	test_cases[14] = MAKE_TEST(_1MB, _1MB, _5MB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				  "5MB mremap - Source 1MB-aligned, Dest 1MB-aligned with 40MB Preamble");
++	test_cases[14].config.dest_preamble_size = 10 * _4MB;
 +
- 	flush_cache_range(vma, old_addr, old_end);
- 	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma->vm_mm,
- 				old_addr, old_end);
-@@ -577,6 +632,13 @@ again:
- 
- 	mmu_notifier_invalidate_range_end(&range);
- 
-+	/*
-+	 * Prevent negative return values when {old,new}_addr was realigned
-+	 * but we broke out of the above loop for the first PMD itself.
-+	 */
-+	if (len + old_addr < old_end)
-+		return 0;
-+
- 	return len + old_addr - old_end;	/* how much done */
- }
- 
+ 	perf_test_cases[0] =  MAKE_TEST(page_size, page_size, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
+ 					"1GB mremap - Source PTE-aligned, Destination PTE-aligned");
+ 	/*
 _
 
 Patches currently in -mm which might be from joel@joelfernandes.org are
