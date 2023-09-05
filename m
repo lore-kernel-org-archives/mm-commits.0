@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 768DCC83F3E
-	for <mm-commits@archiver.kernel.org>; Tue,  5 Sep 2023 18:02:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 635FBC83F3E
+	for <mm-commits@archiver.kernel.org>; Tue,  5 Sep 2023 18:06:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233732AbjIESCO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Sep 2023 14:02:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49808 "EHLO
+        id S236671AbjIESGl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Sep 2023 14:06:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48292 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231941AbjIESCN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2023 14:02:13 -0400
+        with ESMTP id S239893AbjIESG3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2023 14:06:29 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FBBB4C2D;
-        Tue,  5 Sep 2023 11:01:40 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 89EEE8B7BD;
+        Tue,  5 Sep 2023 10:16:06 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6534160BBD;
-        Tue,  5 Sep 2023 17:14:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B86DCC433C9;
-        Tue,  5 Sep 2023 17:14:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 721E160A7C;
+        Tue,  5 Sep 2023 17:14:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAC5AC433C9;
+        Tue,  5 Sep 2023 17:14:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1693934092;
-        bh=88ESnMi5OGM3fC2Q8pfhu7vwtQJFuTQnkMgYdQEMf6E=;
+        s=korg; t=1693934088;
+        bh=g46WQTgnVD+NKavsDzWNsF7gxzaaE1uUSpJuae89Y0M=;
         h=Date:To:From:Subject:From;
-        b=E2lkVELZL/l217PH5yXY2YhiPG7unmHW/YVHL50KeBGp2fgLI6+Gb5BNYBGUxvh8K
-         aKkmlQrenly6RTD97rFmgKEyBUzTcq4+G1mi/ZREBcqJfEVoz29XFUbL/zOnmbmC0U
-         NOL2tf64yZjjXNg6Z5/K4f79xeLYUEpSTDbLqIK4=
-Date:   Tue, 05 Sep 2023 10:14:52 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, urezki@gmail.com,
-        thunder.leizhen@huaweicloud.com, stable@vger.kernel.org,
-        paulmck@kernel.org, joel@joelfernandes.org,
-        qiang.zhang1211@gmail.com, akpm@linux-foundation.org
+        b=HiVETZkePPf9KUZK9m/U+sTvMpnB/zeWYg66aSSQiZeff5mwuNruZMSF+CNEmfrU3
+         VT98Pn05WwrF12bcb/y1Glq+eukaoH6rB5HZJHMT9u72sS7fMnmuZWwYxzAKQjWB7s
+         rlYjGYVMeH1RWF7B8uuu0CiOZTWDizD2W+lKuqgw=
+Date:   Tue, 05 Sep 2023 10:14:47 -0700
+To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
+        stable@vger.kernel.org, songmuchun@bytedance.com,
+        shakeelb@google.com, roman.gushchin@linux.dev, nphamcs@gmail.com,
+        mhocko@suse.com, hannes@cmpxchg.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] rcu-dump-vmalloc-memory-info-safely.patch removed from -mm tree
-Message-Id: <20230905171452.B86DCC433C9@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] memcontrol-ensure-memcg-acquired-by-id-is-properly-set-up.patch removed from -mm tree
+Message-Id: <20230905171448.BAC5AC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,106 +44,142 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: rcu: dump vmalloc memory info safely
+     Subject: memcontrol: ensure memcg acquired by id is properly set up
 has been removed from the -mm tree.  Its filename was
-     rcu-dump-vmalloc-memory-info-safely.patch
+     memcontrol-ensure-memcg-acquired-by-id-is-properly-set-up.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zqiang <qiang.zhang1211@gmail.com>
-Subject: rcu: dump vmalloc memory info safely
-Date: Mon, 4 Sep 2023 18:08:05 +0000
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: memcontrol: ensure memcg acquired by id is properly set up
+Date: Wed, 23 Aug 2023 15:54:30 -0700
 
-Currently, for double invoke call_rcu(), will dump rcu_head objects memory
-info, if the objects is not allocated from the slab allocator, the
-vmalloc_dump_obj() will be invoke and the vmap_area_lock spinlock need to
-be held, since the call_rcu() can be invoked in interrupt context,
-therefore, there is a possibility of spinlock deadlock scenarios.
+In the eviction recency check, we attempt to retrieve the memcg to which
+the folio belonged when it was evicted, by the memcg id stored in the
+shadow entry.  However, there is a chance that the retrieved memcg is not
+the original memcg that has been killed, but a new one which happens to
+have the same id.
 
-And in Preempt-RT kernel, the rcutorture test also trigger the following
-lockdep warning:
+This is a somewhat unfortunate, but acceptable and rare inaccuracy in the
+heuristics.  However, if we retrieve this new memcg between its allocation
+and when it is properly attached to the memcg hierarchy, we could run into
+the following NULL pointer exception during the memcg hierarchy traversal
+done in mem_cgroup_get_nr_swap_pages():
 
-BUG: sleeping function called from invalid context at kernel/locking/spinlock_rt.c:48
-in_atomic(): 1, irqs_disabled(): 1, non_block: 0, pid: 1, name: swapper/0
-preempt_count: 1, expected: 0
-RCU nest depth: 1, expected: 1
-3 locks held by swapper/0/1:
- #0: ffffffffb534ee80 (fullstop_mutex){+.+.}-{4:4}, at: torture_init_begin+0x24/0xa0
- #1: ffffffffb5307940 (rcu_read_lock){....}-{1:3}, at: rcu_torture_init+0x1ec7/0x2370
- #2: ffffffffb536af40 (vmap_area_lock){+.+.}-{3:3}, at: find_vmap_area+0x1f/0x70
-irq event stamp: 565512
-hardirqs last  enabled at (565511): [<ffffffffb379b138>] __call_rcu_common+0x218/0x940
-hardirqs last disabled at (565512): [<ffffffffb5804262>] rcu_torture_init+0x20b2/0x2370
-softirqs last  enabled at (399112): [<ffffffffb36b2586>] __local_bh_enable_ip+0x126/0x170
-softirqs last disabled at (399106): [<ffffffffb43fef59>] inet_register_protosw+0x9/0x1d0
-Preemption disabled at:
-[<ffffffffb58040c3>] rcu_torture_init+0x1f13/0x2370
-CPU: 0 PID: 1 Comm: swapper/0 Tainted: G        W          6.5.0-rc4-rt2-yocto-preempt-rt+ #15
-Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.16.2-0-gea1b7a073390-prebuilt.qemu.org 04/01/2014
-Call Trace:
- <TASK>
- dump_stack_lvl+0x68/0xb0
- dump_stack+0x14/0x20
- __might_resched+0x1aa/0x280
- ? __pfx_rcu_torture_err_cb+0x10/0x10
- rt_spin_lock+0x53/0x130
- ? find_vmap_area+0x1f/0x70
- find_vmap_area+0x1f/0x70
- vmalloc_dump_obj+0x20/0x60
- mem_dump_obj+0x22/0x90
- __call_rcu_common+0x5bf/0x940
- ? debug_smp_processor_id+0x1b/0x30
- call_rcu_hurry+0x14/0x20
- rcu_torture_init+0x1f82/0x2370
- ? __pfx_rcu_torture_leak_cb+0x10/0x10
- ? __pfx_rcu_torture_leak_cb+0x10/0x10
- ? __pfx_rcu_torture_init+0x10/0x10
- do_one_initcall+0x6c/0x300
- ? debug_smp_processor_id+0x1b/0x30
- kernel_init_freeable+0x2b9/0x540
- ? __pfx_kernel_init+0x10/0x10
- kernel_init+0x1f/0x150
- ret_from_fork+0x40/0x50
- ? __pfx_kernel_init+0x10/0x10
- ret_from_fork_asm+0x1b/0x30
- </TASK>
+[ 155757.793456] BUG: kernel NULL pointer dereference, address: 00000000000000c0
+[ 155757.807568] #PF: supervisor read access in kernel mode
+[ 155757.818024] #PF: error_code(0x0000) - not-present page
+[ 155757.828482] PGD 401f77067 P4D 401f77067 PUD 401f76067 PMD 0
+[ 155757.839985] Oops: 0000 [#1] SMP
+[ 155757.887870] RIP: 0010:mem_cgroup_get_nr_swap_pages+0x3d/0xb0
+[ 155757.899377] Code: 29 19 4a 02 48 39 f9 74 63 48 8b 97 c0 00 00 00 48 8b b7 58 02 00 00 48 2b b7 c0 01 00 00 48 39 f0 48 0f 4d c6 48 39 d1 74 42 <48> 8b b2 c0 00 00 00 48 8b ba 58 02 00 00 48 2b ba c0 01 00 00 48
+[ 155757.937125] RSP: 0018:ffffc9002ecdfbc8 EFLAGS: 00010286
+[ 155757.947755] RAX: 00000000003a3b1c RBX: 000007ffffffffff RCX: ffff888280183000
+[ 155757.962202] RDX: 0000000000000000 RSI: 0007ffffffffffff RDI: ffff888bbc2d1000
+[ 155757.976648] RBP: 0000000000000001 R08: 000000000000000b R09: ffff888ad9cedba0
+[ 155757.991094] R10: ffffea0039c07900 R11: 0000000000000010 R12: ffff888b23a7b000
+[ 155758.005540] R13: 0000000000000000 R14: ffff888bbc2d1000 R15: 000007ffffc71354
+[ 155758.019991] FS:  00007f6234c68640(0000) GS:ffff88903f9c0000(0000) knlGS:0000000000000000
+[ 155758.036356] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[ 155758.048023] CR2: 00000000000000c0 CR3: 0000000a83eb8004 CR4: 00000000007706e0
+[ 155758.062473] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[ 155758.076924] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[ 155758.091376] PKRU: 55555554
+[ 155758.096957] Call Trace:
+[ 155758.102016]  <TASK>
+[ 155758.106502]  ? __die+0x78/0xc0
+[ 155758.112793]  ? page_fault_oops+0x286/0x380
+[ 155758.121175]  ? exc_page_fault+0x5d/0x110
+[ 155758.129209]  ? asm_exc_page_fault+0x22/0x30
+[ 155758.137763]  ? mem_cgroup_get_nr_swap_pages+0x3d/0xb0
+[ 155758.148060]  workingset_test_recent+0xda/0x1b0
+[ 155758.157133]  workingset_refault+0xca/0x1e0
+[ 155758.165508]  filemap_add_folio+0x4d/0x70
+[ 155758.173538]  page_cache_ra_unbounded+0xed/0x190
+[ 155758.182919]  page_cache_sync_ra+0xd6/0x1e0
+[ 155758.191738]  filemap_read+0x68d/0xdf0
+[ 155758.199495]  ? mlx5e_napi_poll+0x123/0x940
+[ 155758.207981]  ? __napi_schedule+0x55/0x90
+[ 155758.216095]  __x64_sys_pread64+0x1d6/0x2c0
+[ 155758.224601]  do_syscall_64+0x3d/0x80
+[ 155758.232058]  entry_SYSCALL_64_after_hwframe+0x46/0xb0
+[ 155758.242473] RIP: 0033:0x7f62c29153b5
+[ 155758.249938] Code: e8 48 89 75 f0 89 7d f8 48 89 4d e0 e8 b4 e6 f7 ff 41 89 c0 4c 8b 55 e0 48 8b 55 e8 48 8b 75 f0 8b 7d f8 b8 11 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 33 44 89 c7 48 89 45 f8 e8 e7 e6 f7 ff 48 8b
+[ 155758.288005] RSP: 002b:00007f6234c5ffd0 EFLAGS: 00000293 ORIG_RAX: 0000000000000011
+[ 155758.303474] RAX: ffffffffffffffda RBX: 00007f628c4e70c0 RCX: 00007f62c29153b5
+[ 155758.318075] RDX: 000000000003c041 RSI: 00007f61d2986000 RDI: 0000000000000076
+[ 155758.332678] RBP: 00007f6234c5fff0 R08: 0000000000000000 R09: 0000000064d5230c
+[ 155758.347452] R10: 000000000027d450 R11: 0000000000000293 R12: 000000000003c041
+[ 155758.362044] R13: 00007f61d2986000 R14: 00007f629e11b060 R15: 000000000027d450
+[ 155758.376661]  </TASK>
 
-The previous patch fixes this by using the deadlock-safe best-effort
-version of find_vm_area.  However, in case of failure print the fact that
-the pointer was a vmalloc pointer so that we print at least something.
+This patch fixes the issue by moving the memcg's id publication from the
+alloc stage to online stage, ensuring that any memcg acquired via id must
+be connected to the memcg tree.
 
-Link: https://lkml.kernel.org/r/20230904180806.1002832-2-joel@joelfernandes.org
-Fixes: 98f180837a89 ("mm: Make mem_dump_obj() handle vmalloc() memory")
-Signed-off-by: Zqiang <qiang.zhang1211@gmail.com>
-Signed-off-by: Joel Fernandes (Google) <joel@joelfernandes.org>
-Reported-by: Zhen Lei <thunder.leizhen@huaweicloud.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Link: https://lkml.kernel.org/r/20230823225430.166925-1-nphamcs@gmail.com
+Fixes: f78dfc7b77d5 ("workingset: fix confusion around eviction vs refault container")
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Co-developed-by: Nhat Pham <nphamcs@gmail.com>
+Signed-off-by: Nhat Pham <nphamcs@gmail.com>
+Acked-by: Shakeel Butt <shakeelb@google.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |   22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
 
---- a/mm/util.c~rcu-dump-vmalloc-memory-info-safely
-+++ a/mm/util.c
-@@ -1068,7 +1068,9 @@ void mem_dump_obj(void *object)
- 	if (vmalloc_dump_obj(object))
- 		return;
+--- a/mm/memcontrol.c~memcontrol-ensure-memcg-acquired-by-id-is-properly-set-up
++++ a/mm/memcontrol.c
+@@ -5326,7 +5326,6 @@ static struct mem_cgroup *mem_cgroup_all
+ 	INIT_LIST_HEAD(&memcg->deferred_split_queue.split_queue);
+ 	memcg->deferred_split_queue.split_queue_len = 0;
+ #endif
+-	idr_replace(&mem_cgroup_idr, memcg, memcg->id.id);
+ 	lru_gen_init_memcg(memcg);
+ 	return memcg;
+ fail:
+@@ -5398,14 +5397,27 @@ static int mem_cgroup_css_online(struct
+ 	if (alloc_shrinker_info(memcg))
+ 		goto offline_kmem;
  
--	if (virt_addr_valid(object))
-+	if (is_vmalloc_addr(object))
-+		type = "vmalloc memory";
-+	else if (virt_addr_valid(object))
- 		type = "non-slab/vmalloc memory";
- 	else if (object == NULL)
- 		type = "NULL pointer";
+-	/* Online state pins memcg ID, memcg ID pins CSS */
+-	refcount_set(&memcg->id.ref, 1);
+-	css_get(css);
+-
+ 	if (unlikely(mem_cgroup_is_root(memcg)))
+ 		queue_delayed_work(system_unbound_wq, &stats_flush_dwork,
+ 				   FLUSH_TIME);
+ 	lru_gen_online_memcg(memcg);
++
++	/* Online state pins memcg ID, memcg ID pins CSS */
++	refcount_set(&memcg->id.ref, 1);
++	css_get(css);
++
++	/*
++	 * Ensure mem_cgroup_from_id() works once we're fully online.
++	 *
++	 * We could do this earlier and require callers to filter with
++	 * css_tryget_online(). But right now there are no users that
++	 * need earlier access, and the workingset code relies on the
++	 * cgroup tree linkage (mem_cgroup_get_nr_swap_pages()). So
++	 * publish it here at the end of onlining. This matches the
++	 * regular ID destruction during offlining.
++	 */
++	idr_replace(&mem_cgroup_idr, memcg, memcg->id.id);
++
+ 	return 0;
+ offline_kmem:
+ 	memcg_offline_kmem(memcg);
 _
 
-Patches currently in -mm which might be from qiang.zhang1211@gmail.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 
