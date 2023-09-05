@@ -2,94 +2,93 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B77DBCA100A
-	for <mm-commits@archiver.kernel.org>; Tue,  5 Sep 2023 20:08:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A68ECA100D
+	for <mm-commits@archiver.kernel.org>; Tue,  5 Sep 2023 20:08:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237882AbjIEUIk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Sep 2023 16:08:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45562 "EHLO
+        id S242699AbjIEUIp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Sep 2023 16:08:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45630 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232910AbjIEUIj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2023 16:08:39 -0400
-X-Greylist: delayed 3696 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 05 Sep 2023 13:08:36 PDT
+        with ESMTP id S242583AbjIEUIl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2023 16:08:41 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 95D89CC;
-        Tue,  5 Sep 2023 13:08:36 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 324E8C43395;
-        Tue,  5 Sep 2023 18:12:22 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC855127
+        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 13:08:37 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67FA3C433B7;
+        Tue,  5 Sep 2023 18:56:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1693937542;
-        bh=Cyge68y4cOxdgZX5nOi6xxJiDLYqCX3/U9yRL+loHu4=;
-        h=Date:To:From:Subject:From;
-        b=crveIJDcgJdn0DLGGB27lvI8GuOW1yuLRi7ziEetgfx0wjJR/zl4/cmk1wSIHPtr1
-         +zMfK353wbezWeJATf/kbXKRYuTOPxMcXbY3r3XAxse3Hwkn0+t6KH33zcwoaPvEKu
-         7sERAk1EcrFJbno9aNqtJV/YHUEB4Wudyo31mWT4=
-Date:   Tue, 05 Sep 2023 11:12:21 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        shuah@kernel.org, keescook@chromium.org, jeffxu@google.com,
-        dverkamp@chromium.org, dtometzki@fedoraproject.org,
-        cyphar@cyphar.com, brauner@kernel.org, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
+        s=korg; t=1693940180;
+        bh=9MKGXTwg319KKNK+UWnEwTq0UUK4qUJ8SLJdxwTvxio=;
+        h=Date:From:To:Cc:Subject:From;
+        b=Euf1RUjGSZIC49ti3z4Oh3+6zDdRadLfxrigMmp4JlTz2ncloKciRk3Tp4UUMZx3Q
+         34PD2KP63GjfD2ZNdQj7tXTqIIWTg+0e70cNmT1jfl2O4Oax2grctDjezWSAro1uH+
+         Pa9J9UKaoCOCwPKj/+GzxChAB6MQP85+xBtyTcGo=
+Date:   Tue, 5 Sep 2023 11:56:19 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] revert-memfd-improve-userspace-warnings-for-missing-exec-related-flags.patch removed from -mm tree
-Message-Id: <20230905181222.324E8C43395@smtp.kernel.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.6-rc1
+Message-Id: <20230905115619.0df37e92cd7384252d1aa4ee@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: revert "memfd: improve userspace warnings for missing exec-related flags".
-has been removed from the -mm tree.  Its filename was
-     revert-memfd-improve-userspace-warnings-for-missing-exec-related-flags.patch
+Linus, please merge this batch of hotfixes, thanks.
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "memfd: improve userspace warnings for missing exec-related flags".
-Date: Sat Sep  2 03:59:31 PM PDT 2023
+The following changes since commit 3f86ed6ec0b390c033eae7f9c487a3fea268e027:
 
-This warning is telling userspace developers to pass MFD_EXEC and
-MFD_NOEXEC_SEAL to memfd_create().  Commit 434ed3350f57 ("memfd: improve
-userspace warnings for missing exec-related flags") made the warning more
-frequent and visible in the hope that this would accelerate the fixing of
-errant userspace.
+  Merge tag 'arc-6.6-rc1' of git://git.kernel.org/pub/scm/linux/kernel/git/vgupta/arc (2023-09-04 15:38:24 -0700)
 
-But the overall effect is to generate far too much dmesg noise.
+are available in the Git repository at:
 
-Fixes: 434ed3350f57 ("memfd: improve userspace warnings for missing exec-related flags")
-Reported-by: Damian Tometzki <dtometzki@fedoraproject.org>
-Closes: https://lkml.kernel.org/r/ZPFzCSIgZ4QuHsSC@fedora.fritz.box
-Cc: Aleksa Sarai <cyphar@cyphar.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Daniel Verkamp <dverkamp@chromium.org>
-Cc: Jeff Xu <jeffxu@google.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-09-05-11-51
 
- mm/memfd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+for you to fetch changes up to f4b4f3ec1a310c3de9797271a9c06b7499470d69:
 
---- a/mm/memfd.c~revert-memfd-improve-userspace-warnings-for-missing-exec-related-flags
-+++ a/mm/memfd.c
-@@ -316,7 +316,7 @@ SYSCALL_DEFINE2(memfd_create,
- 		return -EINVAL;
- 
- 	if (!(flags & (MFD_EXEC | MFD_NOEXEC_SEAL))) {
--		pr_info_ratelimited(
-+		pr_warn_once(
- 			"%s[%d]: memfd_create() called without MFD_EXEC or MFD_NOEXEC_SEAL set\n",
- 			current->comm, task_pid_nr(current));
- 	}
-_
+  sparc64: add missing initialization of folio in tlb_batch_add() (2023-09-05 11:11:52 -0700)
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+----------------------------------------------------------------
+Seven hotfixes.  Four are cc:stable and the remainder pertain to issues
+which were introduced in the current merge window.
 
-mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
+----------------------------------------------------------------
+Andrew Morton (1):
+      revert "memfd: improve userspace warnings for missing exec-related flags".
+
+Joel Fernandes (Google) (1):
+      mm/vmalloc: add a safer version of find_vm_area() for debug
+
+Johannes Weiner (1):
+      memcontrol: ensure memcg acquired by id is properly set up
+
+Mike Rapoport (IBM) (1):
+      sparc64: add missing initialization of folio in tlb_batch_add()
+
+Tong Tiangen (1):
+      mm: memory-failure: use rcu lock instead of tasklist_lock when collect_procs()
+
+Xie XiuQi (1):
+      tools/mm: fix undefined reference to pthread_once
+
+Zqiang (1):
+      rcu: dump vmalloc memory info safely
+
+ arch/sparc/mm/tlb.c |  1 +
+ mm/filemap.c        |  3 ---
+ mm/ksm.c            |  4 ++--
+ mm/memcontrol.c     | 22 +++++++++++++++++-----
+ mm/memfd.c          |  2 +-
+ mm/memory-failure.c | 16 ++++++++--------
+ mm/util.c           |  4 +++-
+ mm/vmalloc.c        | 26 ++++++++++++++++++++++----
+ tools/mm/Makefile   |  4 ++--
+ 9 files changed, 56 insertions(+), 26 deletions(-)
 
