@@ -2,46 +2,43 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B542AC83F3E
-	for <mm-commits@archiver.kernel.org>; Tue,  5 Sep 2023 18:19:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8159ACA0FFA
+	for <mm-commits@archiver.kernel.org>; Tue,  5 Sep 2023 18:21:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241314AbjIESTI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Sep 2023 14:19:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33714 "EHLO
+        id S229676AbjIESVk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Sep 2023 14:21:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60078 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235256AbjIESSv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2023 14:18:51 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 99731CE
-        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 11:17:45 -0700 (PDT)
+        with ESMTP id S230410AbjIESVj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2023 14:21:39 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 731A91707
+        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 11:21:03 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 7F68ECE1263
-        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 16:17:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 958D5C433C7;
-        Tue,  5 Sep 2023 16:17:03 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 2CA2CCE11D9
+        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 16:02:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4AB77C433C8;
+        Tue,  5 Sep 2023 16:02:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1693930623;
-        bh=JedMWBTlqe/ZWi+F7vV3Qwy5NXg4qKG6ghbkGo9O3b0=;
+        s=korg; t=1693929760;
+        bh=wPvbNd5dVYQVArPS3It4HCNoeQDBKSBI/bnTei4NMkU=;
         h=Date:To:From:Subject:From;
-        b=ule10/RE25/c2+cbvs+GIVNhH6P2+Ghn1AozP65eP1wInbQcx1KDZsEs6sWo2WF+t
-         w2CIVZROJ7odsineVn0oFLJh1z2H5TFUltJrwyEDKuXzfkt9xIGB5uzW7AiAZCZ1gY
-         Gv42pnz177bGzAroV0JPjBdtWJh+he8+1rJqxznI=
-Date:   Tue, 05 Sep 2023 09:17:02 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        uma.shankar@intel.com, prime.zeng@hisilicon.com,
-        martin.petersen@oracle.com, luojiaxing@huawei.com,
-        john.g.garry@oracle.com, jejb@linux.ibm.com,
-        himanshu.madhani@cavium.com, gregkh@linuxfoundation.org,
-        felipe.balbi@linux.intel.com, damien.lemoal@opensource.wdc.com,
-        chenxiang66@hisilicon.com, anshuman.gupta@intel.com,
-        animesh.manna@intel.com, andriy.shevchenko@linux.intel.com,
-        yangxingui@huawei.com, akpm@linux-foundation.org
+        b=Ulh1gqqYcp6hBIrpZMXuCC7QI0Q0Dwru7lILI6dk2JxOGcwZmQkdypWIqInQIxrAP
+         SPWzvp35j/M+kYSSaYeFvurFQmOcpTLuG4IxN1bjP9VsepAMp1gMSmdq0B5PdoGJOJ
+         20cKAFLDlkdM14/0p5sC/W02PenrZay3ypdY6tJw=
+Date:   Tue, 05 Sep 2023 09:02:39 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
+        torvalds@linux-foundation.org, surenb@google.com, shuah@kernel.org,
+        paulmck@kernel.org, mhocko@suse.com, lstoakes@gmail.com,
+        lokeshgidra@google.com, Liam.Howlett@oracle.com,
+        kirill@shutemov.name, kaleshsingh@google.com,
+        joel@joelfernandes.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + seq_file-add-helper-macro-to-define-attribute-for-rw-file.patch added to mm-nonmm-unstable branch
-Message-Id: <20230905161703.958D5C433C7@smtp.kernel.org>
+Subject: + mm-mremap-allow-moves-within-the-same-vma-for-stack-moves.patch added to mm-unstable branch
+Message-Id: <20230905160240.4AB77C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -49,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: seq_file: add helper macro to define attribute for rw file
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     seq_file-add-helper-macro-to-define-attribute-for-rw-file.patch
+     Subject: mm/mremap: allow moves within the same VMA for stack moves
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-mremap-allow-moves-within-the-same-vma-for-stack-moves.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/seq_file-add-helper-macro-to-define-attribute-for-rw-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-allow-moves-within-the-same-vma-for-stack-moves.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -72,82 +69,168 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Xingui Yang <yangxingui@huawei.com>
-Subject: seq_file: add helper macro to define attribute for rw file
-Date: Tue, 5 Sep 2023 02:48:33 +0000
+From: "Joel Fernandes (Google)" <joel@joelfernandes.org>
+Subject: mm/mremap: allow moves within the same VMA for stack moves
+Date: Sun, 3 Sep 2023 15:13:23 +0000
 
-Patch series "Add helper macro DEFINE_SHOW_STORE_ATTRIBUTE() at
-seq_file.c", v6.
+For the stack move happening in shift_arg_pages(), the move is happening
+within the same VMA which spans the old and new ranges.
 
-We already own DEFINE_SHOW_ATTRIBUTE() helper macro for defining attribute
-for read-only file, but we found many of drivers also want a helper macro
-for read-write file too.
+In case the aligned address happens to fall within that VMA, allow such
+moves and don't abort the mremap alignment optimization.
 
-So we add this helper macro to reduce duplicated code.
+In the regular non-stack mremap case, we cannot allow any such moves as
+will end up destroying some part of the mapping (either the source of the
+move, or part of the existing mapping).  So just avoid it for stack moves.
 
-
-This patch (of 3):
-
-We already own DEFINE_SHOW_ATTRIBUTE() helper macro for defining attribute
-for read-only file, but many of drivers want a helper macro for read-write
-file too.
-
-So we add DEFINE_SHOW_STORE_ATTRIBUTE() helper to reduce duplicated code.
-
-Link: https://lkml.kernel.org/r/20230905024835.43219-1-yangxingui@huawei.com
-Link: https://lkml.kernel.org/r/20230905024835.43219-2-yangxingui@huawei.com
-Signed-off-by: Luo Jiaxing <luojiaxing@huawei.com>
-Co-developed-by: Xingui Yang <yangxingui@huawei.com>
-Signed-off-by: Xingui Yang <yangxingui@huawei.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Animesh Manna <animesh.manna@intel.com>
-Cc: Anshuman Gupta <anshuman.gupta@intel.com>
-Cc: Damien Le Moal <damien.lemoal@opensource.wdc.com>
-Cc: Felipe Balbi <felipe.balbi@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Himanshu Madhani <himanshu.madhani@cavium.com>
-Cc: James Bottomley <jejb@linux.ibm.com>
-Cc: John Garry <john.g.garry@oracle.com>
-Cc: Martin K. Petersen <martin.petersen@oracle.com>
-Cc: Uma Shankar <uma.shankar@intel.com>
-Cc: Xiang Chen <chenxiang66@hisilicon.com>
-Cc: Zeng Tao <prime.zeng@hisilicon.com>
+Link: https://lkml.kernel.org/r/20230903151328.2981432-3-joel@joelfernandes.org
+Signed-off-by: Joel Fernandes (Google) <joel@joelfernandes.org>
+Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/seq_file.h |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ fs/exec.c          |    2 +-
+ include/linux/mm.h |    2 +-
+ mm/mremap.c        |   33 +++++++++++++++++++--------------
+ 3 files changed, 21 insertions(+), 16 deletions(-)
 
---- a/include/linux/seq_file.h~seq_file-add-helper-macro-to-define-attribute-for-rw-file
-+++ a/include/linux/seq_file.h
-@@ -207,6 +207,21 @@ static const struct file_operations __na
- 	.release	= single_release,				\
+--- a/fs/exec.c~mm-mremap-allow-moves-within-the-same-vma-for-stack-moves
++++ a/fs/exec.c
+@@ -713,7 +713,7 @@ static int shift_arg_pages(struct vm_are
+ 	 * process cleanup to remove whatever mess we made.
+ 	 */
+ 	if (length != move_page_tables(vma, old_start,
+-				       vma, new_start, length, false))
++				       vma, new_start, length, false, true))
+ 		return -ENOMEM;
+ 
+ 	lru_add_drain();
+--- a/include/linux/mm.h~mm-mremap-allow-moves-within-the-same-vma-for-stack-moves
++++ a/include/linux/mm.h
+@@ -2480,7 +2480,7 @@ int get_cmdline(struct task_struct *task
+ extern unsigned long move_page_tables(struct vm_area_struct *vma,
+ 		unsigned long old_addr, struct vm_area_struct *new_vma,
+ 		unsigned long new_addr, unsigned long len,
+-		bool need_rmap_locks);
++		bool need_rmap_locks, bool for_stack);
+ 
+ /*
+  * Flags used by change_protection().  For now we make it a bitmap so
+--- a/mm/mremap.c~mm-mremap-allow-moves-within-the-same-vma-for-stack-moves
++++ a/mm/mremap.c
+@@ -490,12 +490,13 @@ static bool move_pgt_entry(enum pgt_entr
  }
  
-+#define DEFINE_SHOW_STORE_ATTRIBUTE(__name)				\
-+static int __name ## _open(struct inode *inode, struct file *file)	\
-+{									\
-+	return single_open(file, __name ## _show, inode->i_private);	\
-+}									\
-+									\
-+static const struct file_operations __name ## _fops = {			\
-+	.owner		= THIS_MODULE,					\
-+	.open		= __name ## _open,				\
-+	.read		= seq_read,					\
-+	.write		= __name ## _write,				\
-+	.llseek		= seq_lseek,					\
-+	.release	= single_release,				\
-+}
+ /*
+- * A helper to check if a previous mapping exists. Required for
+- * move_page_tables() and realign_addr() to determine if a previous mapping
+- * exists before we can do realignment optimizations.
++ * A helper to check if aligning down is OK. The aligned address should fall
++ * on *no mapping*. For the stack moving down, that's a special move within
++ * the VMA that is created to span the source and destination of the move,
++ * so we make an exception for it.
+  */
+ static bool can_align_down(struct vm_area_struct *vma, unsigned long addr_to_align,
+-			       unsigned long mask)
++			    unsigned long mask, bool for_stack)
+ {
+ 	unsigned long addr_masked = addr_to_align & mask;
+ 
+@@ -504,9 +505,13 @@ static bool can_align_down(struct vm_are
+ 	 * of the corresponding VMA, we can't align down or we will destroy part
+ 	 * of the current mapping.
+ 	 */
+-	if (vma->vm_start != addr_to_align)
++	if (!for_stack && vma->vm_start != addr_to_align)
+ 		return false;
+ 
++	/* In the stack case we explicitly permit in-VMA alignment. */
++	if (for_stack && addr_masked >= vma->vm_start)
++		return true;
 +
- #define DEFINE_PROC_SHOW_ATTRIBUTE(__name)				\
- static int __name ## _open(struct inode *inode, struct file *file)	\
- {									\
+ 	/*
+ 	 * Make sure the realignment doesn't cause the address to fall on an
+ 	 * existing mapping.
+@@ -517,7 +522,7 @@ static bool can_align_down(struct vm_are
+ /* Opportunistically realign to specified boundary for faster copy. */
+ static void try_realign_addr(unsigned long *old_addr, struct vm_area_struct *old_vma,
+ 			     unsigned long *new_addr, struct vm_area_struct *new_vma,
+-			     unsigned long mask)
++			     unsigned long mask, bool for_stack)
+ {
+ 	/* Skip if the addresses are already aligned. */
+ 	if ((*old_addr & ~mask) == 0)
+@@ -528,8 +533,8 @@ static void try_realign_addr(unsigned lo
+ 		return;
+ 
+ 	/* Ensure realignment doesn't cause overlap with existing mappings. */
+-	if (!can_align_down(old_vma, *old_addr, mask) ||
+-	    !can_align_down(new_vma, *new_addr, mask))
++	if (!can_align_down(old_vma, *old_addr, mask, for_stack) ||
++	    !can_align_down(new_vma, *new_addr, mask, for_stack))
+ 		return;
+ 
+ 	*old_addr = *old_addr & mask;
+@@ -539,7 +544,7 @@ static void try_realign_addr(unsigned lo
+ unsigned long move_page_tables(struct vm_area_struct *vma,
+ 		unsigned long old_addr, struct vm_area_struct *new_vma,
+ 		unsigned long new_addr, unsigned long len,
+-		bool need_rmap_locks)
++		bool need_rmap_locks, bool for_stack)
+ {
+ 	unsigned long extent, old_end;
+ 	struct mmu_notifier_range range;
+@@ -559,9 +564,9 @@ unsigned long move_page_tables(struct vm
+ 	 * If possible, realign addresses to PMD boundary for faster copy.
+ 	 * Only realign if the mremap copying hits a PMD boundary.
+ 	 */
+-	if ((vma != new_vma)
+-		&& (len >= PMD_SIZE - (old_addr & ~PMD_MASK)))
+-		try_realign_addr(&old_addr, vma, &new_addr, new_vma, PMD_MASK);
++	if (len >= PMD_SIZE - (old_addr & ~PMD_MASK))
++		try_realign_addr(&old_addr, vma, &new_addr, new_vma, PMD_MASK,
++				 for_stack);
+ 
+ 	flush_cache_range(vma, old_addr, old_end);
+ 	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma->vm_mm,
+@@ -708,7 +713,7 @@ static unsigned long move_vma(struct vm_
+ 	}
+ 
+ 	moved_len = move_page_tables(vma, old_addr, new_vma, new_addr, old_len,
+-				     need_rmap_locks);
++				     need_rmap_locks, false);
+ 	if (moved_len < old_len) {
+ 		err = -ENOMEM;
+ 	} else if (vma->vm_ops && vma->vm_ops->mremap) {
+@@ -722,7 +727,7 @@ static unsigned long move_vma(struct vm_
+ 		 * and then proceed to unmap new area instead of old.
+ 		 */
+ 		move_page_tables(new_vma, new_addr, vma, old_addr, moved_len,
+-				 true);
++				 true, false);
+ 		vma = new_vma;
+ 		old_len = new_len;
+ 		old_addr = new_addr;
 _
 
-Patches currently in -mm which might be from yangxingui@huawei.com are
+Patches currently in -mm which might be from joel@joelfernandes.org are
 
-seq_file-add-helper-macro-to-define-attribute-for-rw-file.patch
-scsi-hisi_sas-use-define_show_store_attribute-helper-for-debugfs.patch
-scsi-qla2xxx-use-define_show_store_attribute-helper-for-debugfs.patch
+mm-vmalloc-add-a-safer-version-of-find_vm_area-for-debug.patch
+mm-mremap-optimize-the-start-addresses-in-move_page_tables.patch
+mm-mremap-allow-moves-within-the-same-vma-for-stack-moves.patch
+selftests-mm-fix-failure-case-when-new-remap-region-was-not-found.patch
+selftests-mm-add-a-test-for-mutually-aligned-moves-pmd-size.patch
+selftests-mm-add-a-test-for-remapping-to-area-immediately-after-existing-mapping.patch
+selftests-mm-add-a-test-for-remapping-within-a-range.patch
+selftests-mm-add-a-test-for-moving-from-an-offset-from-start-of-mapping.patch
 
