@@ -2,43 +2,46 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77E3BC83F2C
-	for <mm-commits@archiver.kernel.org>; Tue,  5 Sep 2023 16:35:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8EBFC83F3E
+	for <mm-commits@archiver.kernel.org>; Tue,  5 Sep 2023 16:35:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235157AbjIEQfP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Sep 2023 12:35:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55206 "EHLO
+        id S234359AbjIEQfS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Sep 2023 12:35:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50646 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242883AbjIEQLD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2023 12:11:03 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D2D5049F6
-        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 09:04:02 -0700 (PDT)
+        with ESMTP id S1349309AbjIEQVn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2023 12:21:43 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C5501FD0
+        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 09:18:30 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F249960A55
-        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 16:02:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A8E1C433C8;
-        Tue,  5 Sep 2023 16:02:51 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E2D6CB8125E
+        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 16:17:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91892C433C7;
+        Tue,  5 Sep 2023 16:17:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1693929771;
-        bh=RajWu48m3QWoN46rDHz7nnJaE7YACS2ePL6P/8QJtwo=;
+        s=korg; t=1693930626;
+        bh=FARSS660gglU8dGY0DjsYptxsCw1yfXV8gUuoHa8kno=;
         h=Date:To:From:Subject:From;
-        b=YTHa0p3smYfY3whChOWG8z4Da65pXsOKiToFJXkbtltJnR20Bt1dCWKTTXtYQEGdB
-         oMSZh3Qt4H9VqaZjoXwKSKEhzqcnRdQ71Ms1GdukC5tKi6AMOBYXdHuxdIoFl9yX4n
-         CYn81uIwggUj06zqavJzxDlFzfzooMffhp8PbBdA=
-Date:   Tue, 05 Sep 2023 09:02:50 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
-        torvalds@linux-foundation.org, surenb@google.com, shuah@kernel.org,
-        paulmck@kernel.org, mhocko@suse.com, lstoakes@gmail.com,
-        lokeshgidra@google.com, Liam.Howlett@oracle.com,
-        kirill@shutemov.name, kaleshsingh@google.com,
-        joel@joelfernandes.org, akpm@linux-foundation.org
+        b=t7NpnHPGbgmiJLbBJZoDfx8B4t9o5jiLQnhvEGUB3ozdfTB5kNkDsgt8GoDxuDfP4
+         efCxTMFTLk+4WmdQ5jeJ5cJHtId1B2redOo2YQKX2C/pLOm2nTF0LZWSFjpBqnQRzp
+         ox59sGnEW3DK5ReVfnsojkHdUS+kZCA6jE3UaVwU=
+Date:   Tue, 05 Sep 2023 09:17:05 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        uma.shankar@intel.com, prime.zeng@hisilicon.com,
+        martin.petersen@oracle.com, luojiaxing@huawei.com,
+        john.g.garry@oracle.com, jejb@linux.ibm.com,
+        himanshu.madhani@cavium.com, gregkh@linuxfoundation.org,
+        felipe.balbi@linux.intel.com, damien.lemoal@opensource.wdc.com,
+        chenxiang66@hisilicon.com, anshuman.gupta@intel.com,
+        animesh.manna@intel.com, andriy.shevchenko@linux.intel.com,
+        yangxingui@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-a-test-for-remapping-to-area-immediately-after-existing-mapping.patch added to mm-unstable branch
-Message-Id: <20230905160251.4A8E1C433C8@smtp.kernel.org>
+Subject: + scsi-hisi_sas-use-define_show_store_attribute-helper-for-debugfs.patch added to mm-nonmm-unstable branch
+Message-Id: <20230905161706.91892C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: mm: add a test for remapping to area immediately after existing mapping
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-add-a-test-for-remapping-to-area-immediately-after-existing-mapping.patch
+     Subject: scsi: hisi_sas: use DEFINE_SHOW_STORE_ATTRIBUTE() helper for debugfs
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     scsi-hisi_sas-use-define_show_store_attribute-helper-for-debugfs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-a-test-for-remapping-to-area-immediately-after-existing-mapping.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scsi-hisi_sas-use-define_show_store_attribute-helper-for-debugfs.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -69,212 +72,244 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Joel Fernandes (Google)" <joel@joelfernandes.org>
-Subject: selftests: mm: add a test for remapping to area immediately after existing mapping
-Date: Sun, 3 Sep 2023 15:13:26 +0000
+From: Xingui Yang <yangxingui@huawei.com>
+Subject: scsi: hisi_sas: use DEFINE_SHOW_STORE_ATTRIBUTE() helper for debugfs
+Date: Tue, 5 Sep 2023 02:48:34 +0000
 
-This patch adds support for verifying that we correctly handle the
-situation where something is already mapped before the destination of the remap.
+Use DEFINE_SHOW_STORE_ATTRIBUTE() helper for read-write file to reduce some
+duplicated code.
 
-Any realignment of destination address and PMD-copy will destroy that
-existing mapping. In such cases, we need to avoid doing the optimization.
-
-To test this, we map an area called the preamble before the remap
-region. Then we verify after the mremap operation that this region did not get
-corrupted.
-
-Putting some prints in the kernel, I verified that we optimize
-correctly in different situations:
-
-Optimize when there is alignment and no previous mapping (this is tested
-by previous patch).
-<prints>
-can_align_down(old_vma->vm_start=2900000, old_addr=2900000, mask=-2097152): 0
-can_align_down(new_vma->vm_start=2f00000, new_addr=2f00000, mask=-2097152): 0
-=== Starting move_page_tables ===
-Doing PUD move for 2800000 -> 2e00000 of extent=200000 <-- Optimization
-Doing PUD move for 2a00000 -> 3000000 of extent=200000
-Doing PUD move for 2c00000 -> 3200000 of extent=200000
-</prints>
-
-Don't optimize when there is alignment but there is previous mapping
-(this is tested by this patch).
-Notice that can_align_down() returns 1 for the destination mapping
-as we detected there is something there.
-<prints>
-can_align_down(old_vma->vm_start=2900000, old_addr=2900000, mask=-2097152): 0
-can_align_down(new_vma->vm_start=5700000, new_addr=5700000, mask=-2097152): 1
-=== Starting move_page_tables ===
-Doing move_ptes for 2900000 -> 5700000 of extent=100000 <-- Unoptimized
-Doing PUD move for 2a00000 -> 5800000 of extent=200000
-Doing PUD move for 2c00000 -> 5a00000 of extent=200000
-</prints>
-
-Link: https://lkml.kernel.org/r/20230903151328.2981432-6-joel@joelfernandes.org
-Signed-off-by: Joel Fernandes (Google) <joel@joelfernandes.org>
-Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20230905024835.43219-3-yangxingui@huawei.com
+Signed-off-by: Luo Jiaxing <luojiaxing@huawei.com>
+Co-developed-by: Xingui Yang <yangxingui@huawei.com>
+Signed-off-by: Xingui Yang <yangxingui@huawei.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Animesh Manna <animesh.manna@intel.com>
+Cc: Anshuman Gupta <anshuman.gupta@intel.com>
+Cc: Damien Le Moal <damien.lemoal@opensource.wdc.com>
+Cc: Felipe Balbi <felipe.balbi@linux.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Himanshu Madhani <himanshu.madhani@cavium.com>
+Cc: James Bottomley <jejb@linux.ibm.com>
+Cc: John Garry <john.g.garry@oracle.com>
+Cc: Martin K. Petersen <martin.petersen@oracle.com>
+Cc: Uma Shankar <uma.shankar@intel.com>
+Cc: Xiang Chen <chenxiang66@hisilicon.com>
+Cc: Zeng Tao <prime.zeng@hisilicon.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mremap_test.c |   57 +++++++++++++++++++--
- 1 file changed, 52 insertions(+), 5 deletions(-)
+ drivers/scsi/hisi_sas/hisi_sas_v3_hw.c |  137 +----------------------
+ 1 file changed, 9 insertions(+), 128 deletions(-)
 
---- a/tools/testing/selftests/mm/mremap_test.c~selftests-mm-add-a-test-for-remapping-to-area-immediately-after-existing-mapping
-+++ a/tools/testing/selftests/mm/mremap_test.c
-@@ -29,6 +29,7 @@ struct config {
- 	unsigned long long dest_alignment;
- 	unsigned long long region_size;
- 	int overlapping;
-+	int dest_preamble_size;
- };
+--- a/drivers/scsi/hisi_sas/hisi_sas_v3_hw.c~scsi-hisi_sas-use-define_show_store_attribute-helper-for-debugfs
++++ a/drivers/scsi/hisi_sas/hisi_sas_v3_hw.c
+@@ -3990,22 +3990,7 @@ static ssize_t debugfs_bist_linkrate_v3_
  
- struct test {
-@@ -283,7 +284,7 @@ error:
- static long long remap_region(struct config c, unsigned int threshold_mb,
- 			      char pattern_seed)
- {
--	void *addr, *src_addr, *dest_addr;
-+	void *addr, *src_addr, *dest_addr, *dest_preamble_addr;
- 	unsigned long long i;
- 	struct timespec t_start = {0, 0}, t_end = {0, 0};
- 	long long  start_ns, end_ns, align_mask, ret, offset;
-@@ -300,7 +301,7 @@ static long long remap_region(struct con
- 		goto out;
- 	}
+ 	return count;
+ }
+-
+-static int debugfs_bist_linkrate_v3_hw_open(struct inode *inode,
+-					    struct file *filp)
+-{
+-	return single_open(filp, debugfs_bist_linkrate_v3_hw_show,
+-			   inode->i_private);
+-}
+-
+-static const struct file_operations debugfs_bist_linkrate_v3_hw_fops = {
+-	.open = debugfs_bist_linkrate_v3_hw_open,
+-	.read = seq_read,
+-	.write = debugfs_bist_linkrate_v3_hw_write,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-	.owner = THIS_MODULE,
+-};
++DEFINE_SHOW_STORE_ATTRIBUTE(debugfs_bist_linkrate_v3_hw);
  
--	/* Set byte pattern */
-+	/* Set byte pattern for source block. */
- 	srand(pattern_seed);
- 	for (i = 0; i < threshold; i++)
- 		memset((char *) src_addr + i, (char) rand(), 1);
-@@ -312,6 +313,9 @@ static long long remap_region(struct con
- 	addr = (void *) (((unsigned long long) src_addr + c.region_size
- 			  + offset) & align_mask);
+ static const struct {
+ 	int		value;
+@@ -4080,22 +4065,7 @@ static ssize_t debugfs_bist_code_mode_v3
  
-+	/* Remap after the destination block preamble. */
-+	addr += c.dest_preamble_size;
-+
- 	/* See comment in get_source_mapping() */
- 	if (!((unsigned long long) addr & c.dest_alignment))
- 		addr = (void *) ((unsigned long long) addr | c.dest_alignment);
-@@ -327,6 +331,24 @@ static long long remap_region(struct con
- 		addr += c.dest_alignment;
- 	}
+ 	return count;
+ }
+-
+-static int debugfs_bist_code_mode_v3_hw_open(struct inode *inode,
+-					     struct file *filp)
+-{
+-	return single_open(filp, debugfs_bist_code_mode_v3_hw_show,
+-			   inode->i_private);
+-}
+-
+-static const struct file_operations debugfs_bist_code_mode_v3_hw_fops = {
+-	.open = debugfs_bist_code_mode_v3_hw_open,
+-	.read = seq_read,
+-	.write = debugfs_bist_code_mode_v3_hw_write,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-	.owner = THIS_MODULE,
+-};
++DEFINE_SHOW_STORE_ATTRIBUTE(debugfs_bist_code_mode_v3_hw);
  
-+	if (c.dest_preamble_size) {
-+		dest_preamble_addr = mmap((void *) addr - c.dest_preamble_size, c.dest_preamble_size,
-+					  PROT_READ | PROT_WRITE,
-+					  MAP_FIXED_NOREPLACE | MAP_ANONYMOUS | MAP_SHARED,
-+							-1, 0);
-+		if (dest_preamble_addr == MAP_FAILED) {
-+			ksft_print_msg("Failed to map dest preamble region: %s\n",
-+					strerror(errno));
-+			ret = -1;
-+			goto clean_up_src;
-+		}
-+
-+		/* Set byte pattern for the dest preamble block. */
-+		srand(pattern_seed);
-+		for (i = 0; i < c.dest_preamble_size; i++)
-+			memset((char *) dest_preamble_addr + i, (char) rand(), 1);
-+	}
-+
- 	clock_gettime(CLOCK_MONOTONIC, &t_start);
- 	dest_addr = mremap(src_addr, c.region_size, c.region_size,
- 					  MREMAP_MAYMOVE|MREMAP_FIXED, (char *) addr);
-@@ -335,7 +357,7 @@ static long long remap_region(struct con
- 	if (dest_addr == MAP_FAILED) {
- 		ksft_print_msg("mremap failed: %s\n", strerror(errno));
- 		ret = -1;
--		goto clean_up_src;
-+		goto clean_up_dest_preamble;
- 	}
+ static ssize_t debugfs_bist_phy_v3_hw_write(struct file *filp,
+ 					    const char __user *buf,
+@@ -4129,22 +4099,7 @@ static int debugfs_bist_phy_v3_hw_show(s
  
- 	/* Verify byte pattern after remapping */
-@@ -353,6 +375,23 @@ static long long remap_region(struct con
- 		}
- 	}
- 
-+	/* Verify the dest preamble byte pattern after remapping */
-+	if (c.dest_preamble_size) {
-+		srand(pattern_seed);
-+		for (i = 0; i < c.dest_preamble_size; i++) {
-+			char c = (char) rand();
-+
-+			if (((char *) dest_preamble_addr)[i] != c) {
-+				ksft_print_msg("Preamble data after remap doesn't match at offset %d\n",
-+					       i);
-+				ksft_print_msg("Expected: %#x\t Got: %#x\n", c & 0xff,
-+					       ((char *) dest_preamble_addr)[i] & 0xff);
-+				ret = -1;
-+				goto clean_up_dest;
-+			}
-+		}
-+	}
-+
- 	start_ns = t_start.tv_sec * NS_PER_SEC + t_start.tv_nsec;
- 	end_ns = t_end.tv_sec * NS_PER_SEC + t_end.tv_nsec;
- 	ret = end_ns - start_ns;
-@@ -365,6 +404,9 @@ static long long remap_region(struct con
-  */
- clean_up_dest:
- 	munmap(dest_addr, c.region_size);
-+clean_up_dest_preamble:
-+	if (c.dest_preamble_size && dest_preamble_addr)
-+		munmap(dest_preamble_addr, c.dest_preamble_size);
- clean_up_src:
- 	munmap(src_addr, c.region_size);
- out:
-@@ -440,7 +482,7 @@ static int parse_args(int argc, char **a
  	return 0;
  }
+-
+-static int debugfs_bist_phy_v3_hw_open(struct inode *inode,
+-				       struct file *filp)
+-{
+-	return single_open(filp, debugfs_bist_phy_v3_hw_show,
+-			   inode->i_private);
+-}
+-
+-static const struct file_operations debugfs_bist_phy_v3_hw_fops = {
+-	.open = debugfs_bist_phy_v3_hw_open,
+-	.read = seq_read,
+-	.write = debugfs_bist_phy_v3_hw_write,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-	.owner = THIS_MODULE,
+-};
++DEFINE_SHOW_STORE_ATTRIBUTE(debugfs_bist_phy_v3_hw);
  
--#define MAX_TEST 14
-+#define MAX_TEST 15
- #define MAX_PERF_TEST 3
- int main(int argc, char **argv)
- {
-@@ -449,7 +491,7 @@ int main(int argc, char **argv)
- 	unsigned int threshold_mb = VALIDATION_DEFAULT_THRESHOLD;
- 	unsigned int pattern_seed;
- 	int num_expand_tests = 2;
--	struct test test_cases[MAX_TEST];
-+	struct test test_cases[MAX_TEST] = {};
- 	struct test perf_test_cases[MAX_PERF_TEST];
- 	int page_size;
- 	time_t t;
-@@ -510,6 +552,11 @@ int main(int argc, char **argv)
- 	test_cases[13] = MAKE_TEST(_1MB, _1MB, _5MB, NON_OVERLAPPING, EXPECT_SUCCESS,
- 				  "5MB mremap - Source 1MB-aligned, Destination 1MB-aligned");
+ static ssize_t debugfs_bist_cnt_v3_hw_write(struct file *filp,
+ 					const char __user *buf,
+@@ -4177,22 +4132,7 @@ static int debugfs_bist_cnt_v3_hw_show(s
  
-+	/* Src and Dest addr 1MB aligned. 5MB mremap. */
-+	test_cases[14] = MAKE_TEST(_1MB, _1MB, _5MB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				  "5MB mremap - Source 1MB-aligned, Dest 1MB-aligned with 40MB Preamble");
-+	test_cases[14].config.dest_preamble_size = 10 * _4MB;
-+
- 	perf_test_cases[0] =  MAKE_TEST(page_size, page_size, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
- 					"1GB mremap - Source PTE-aligned, Destination PTE-aligned");
- 	/*
+ 	return 0;
+ }
+-
+-static int debugfs_bist_cnt_v3_hw_open(struct inode *inode,
+-					  struct file *filp)
+-{
+-	return single_open(filp, debugfs_bist_cnt_v3_hw_show,
+-			   inode->i_private);
+-}
+-
+-static const struct file_operations debugfs_bist_cnt_v3_hw_ops = {
+-	.open = debugfs_bist_cnt_v3_hw_open,
+-	.read = seq_read,
+-	.write = debugfs_bist_cnt_v3_hw_write,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-	.owner = THIS_MODULE,
+-};
++DEFINE_SHOW_STORE_ATTRIBUTE(debugfs_bist_cnt_v3_hw);
+ 
+ static const struct {
+ 	int		value;
+@@ -4256,22 +4196,7 @@ static ssize_t debugfs_bist_mode_v3_hw_w
+ 
+ 	return count;
+ }
+-
+-static int debugfs_bist_mode_v3_hw_open(struct inode *inode,
+-					struct file *filp)
+-{
+-	return single_open(filp, debugfs_bist_mode_v3_hw_show,
+-			   inode->i_private);
+-}
+-
+-static const struct file_operations debugfs_bist_mode_v3_hw_fops = {
+-	.open = debugfs_bist_mode_v3_hw_open,
+-	.read = seq_read,
+-	.write = debugfs_bist_mode_v3_hw_write,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-	.owner = THIS_MODULE,
+-};
++DEFINE_SHOW_STORE_ATTRIBUTE(debugfs_bist_mode_v3_hw);
+ 
+ static ssize_t debugfs_bist_enable_v3_hw_write(struct file *filp,
+ 					       const char __user *buf,
+@@ -4309,22 +4234,7 @@ static int debugfs_bist_enable_v3_hw_sho
+ 
+ 	return 0;
+ }
+-
+-static int debugfs_bist_enable_v3_hw_open(struct inode *inode,
+-					  struct file *filp)
+-{
+-	return single_open(filp, debugfs_bist_enable_v3_hw_show,
+-			   inode->i_private);
+-}
+-
+-static const struct file_operations debugfs_bist_enable_v3_hw_fops = {
+-	.open = debugfs_bist_enable_v3_hw_open,
+-	.read = seq_read,
+-	.write = debugfs_bist_enable_v3_hw_write,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-	.owner = THIS_MODULE,
+-};
++DEFINE_SHOW_STORE_ATTRIBUTE(debugfs_bist_enable_v3_hw);
+ 
+ static const struct {
+ 	char *name;
+@@ -4362,21 +4272,7 @@ static int debugfs_v3_hw_show(struct seq
+ 
+ 	return 0;
+ }
+-
+-static int debugfs_v3_hw_open(struct inode *inode, struct file *filp)
+-{
+-	return single_open(filp, debugfs_v3_hw_show,
+-			   inode->i_private);
+-}
+-
+-static const struct file_operations debugfs_v3_hw_fops = {
+-	.open = debugfs_v3_hw_open,
+-	.read = seq_read,
+-	.write = debugfs_v3_hw_write,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-	.owner = THIS_MODULE,
+-};
++DEFINE_SHOW_STORE_ATTRIBUTE(debugfs_v3_hw);
+ 
+ static ssize_t debugfs_phy_down_cnt_v3_hw_write(struct file *filp,
+ 						const char __user *buf,
+@@ -4407,22 +4303,7 @@ static int debugfs_phy_down_cnt_v3_hw_sh
+ 
+ 	return 0;
+ }
+-
+-static int debugfs_phy_down_cnt_v3_hw_open(struct inode *inode,
+-					   struct file *filp)
+-{
+-	return single_open(filp, debugfs_phy_down_cnt_v3_hw_show,
+-			   inode->i_private);
+-}
+-
+-static const struct file_operations debugfs_phy_down_cnt_v3_hw_fops = {
+-	.open = debugfs_phy_down_cnt_v3_hw_open,
+-	.read = seq_read,
+-	.write = debugfs_phy_down_cnt_v3_hw_write,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-	.owner = THIS_MODULE,
+-};
++DEFINE_SHOW_STORE_ATTRIBUTE(debugfs_phy_down_cnt_v3_hw);
+ 
+ enum fifo_dump_mode_v3_hw {
+ 	FIFO_DUMP_FORVER =		(1U << 0),
+@@ -4832,7 +4713,7 @@ static void debugfs_bist_init_v3_hw(stru
+ 			    hisi_hba, &debugfs_bist_phy_v3_hw_fops);
+ 
+ 	debugfs_create_file("cnt", 0600, hisi_hba->debugfs_bist_dentry,
+-			    hisi_hba, &debugfs_bist_cnt_v3_hw_ops);
++			    hisi_hba, &debugfs_bist_cnt_v3_hw_fops);
+ 
+ 	debugfs_create_file("loopback_mode", 0600,
+ 			    hisi_hba->debugfs_bist_dentry,
 _
 
-Patches currently in -mm which might be from joel@joelfernandes.org are
+Patches currently in -mm which might be from yangxingui@huawei.com are
 
-mm-vmalloc-add-a-safer-version-of-find_vm_area-for-debug.patch
-mm-mremap-optimize-the-start-addresses-in-move_page_tables.patch
-mm-mremap-allow-moves-within-the-same-vma-for-stack-moves.patch
-selftests-mm-fix-failure-case-when-new-remap-region-was-not-found.patch
-selftests-mm-add-a-test-for-mutually-aligned-moves-pmd-size.patch
-selftests-mm-add-a-test-for-remapping-to-area-immediately-after-existing-mapping.patch
-selftests-mm-add-a-test-for-remapping-within-a-range.patch
-selftests-mm-add-a-test-for-moving-from-an-offset-from-start-of-mapping.patch
+seq_file-add-helper-macro-to-define-attribute-for-rw-file.patch
+scsi-hisi_sas-use-define_show_store_attribute-helper-for-debugfs.patch
+scsi-qla2xxx-use-define_show_store_attribute-helper-for-debugfs.patch
 
