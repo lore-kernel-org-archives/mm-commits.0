@@ -2,40 +2,43 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3E39C83F2C
-	for <mm-commits@archiver.kernel.org>; Tue,  5 Sep 2023 16:35:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EDFCCA0FFB
+	for <mm-commits@archiver.kernel.org>; Tue,  5 Sep 2023 16:35:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244073AbjIEQfE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Sep 2023 12:35:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60880 "EHLO
+        id S229460AbjIEQfN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Sep 2023 12:35:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55106 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1354932AbjIEP4k (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2023 11:56:40 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3BC6912A
-        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 08:56:37 -0700 (PDT)
+        with ESMTP id S242911AbjIEQLD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2023 12:11:03 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51F8049FA
+        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 09:04:04 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C05E1603F3
-        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 15:56:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A115C433C8;
-        Tue,  5 Sep 2023 15:56:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7969660A50
+        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 16:02:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBCBAC433C7;
+        Tue,  5 Sep 2023 16:02:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1693929396;
-        bh=t15RS/1Imo2jqmtMt3ijJJKVH2ZcB0plPjBs0MfW2b4=;
+        s=korg; t=1693929774;
+        bh=cGsibz7lEjhc5ffsV4wz5X7YCYIQyrpF7tlkxjNqNTI=;
         h=Date:To:From:Subject:From;
-        b=lETdNeWBTmJAu6jz3C4p+Hhkvfr/Ke8g7jJuEK8lSuWOeubgRQvBA8rZtUsDj3CyG
-         HCQL/aZ7XYD8bpr1JItggWUXIhQwV/R9ZNjBTSTTRp4h2VSQ1JfhE6TtBvcyGds26/
-         N+5LZNNQyQTfsuIdtsreyX9f10A1DwbWoWgZx6b8=
-Date:   Tue, 05 Sep 2023 08:56:35 -0700
-To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
-        songmuchun@bytedance.com, mike.kravetz@oracle.com,
-        yuancan@huawei.com, akpm@linux-foundation.org
+        b=bZ4SIZ8OlqwuU4mLa7MrRsWgEiCe0RtAc+9zLOYgHJbvyj7ng5emItGex9CFJGmOt
+         SNSXYkslAeOVXiEeclwRKdpjDfqVVlb2HsjuOqFY9fp/ObW8MvurgulKsslMTv0XZX
+         sMu9yKAh9zNs9ttreq5uS1I7+j6AFtWIktDz3uxs=
+Date:   Tue, 05 Sep 2023 09:02:54 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
+        torvalds@linux-foundation.org, surenb@google.com, shuah@kernel.org,
+        paulmck@kernel.org, mhocko@suse.com, lstoakes@gmail.com,
+        lokeshgidra@google.com, Liam.Howlett@oracle.com,
+        kirill@shutemov.name, kaleshsingh@google.com,
+        joel@joelfernandes.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb_vmemmap-fix-hugetlb-page-number-decrease-failed-on-movable-nodes.patch added to mm-unstable branch
-Message-Id: <20230905155636.2A115C433C8@smtp.kernel.org>
+Subject: + selftests-mm-add-a-test-for-remapping-within-a-range.patch added to mm-unstable branch
+Message-Id: <20230905160254.CBCBAC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +46,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb_vmemmap: fix hugetlb page number decrease failed on movable nodes
+     Subject: selftests: mm: add a test for remapping within a range
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb_vmemmap-fix-hugetlb-page-number-decrease-failed-on-movable-nodes.patch
+     selftests-mm-add-a-test-for-remapping-within-a-range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-fix-hugetlb-page-number-decrease-failed-on-movable-nodes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-a-test-for-remapping-within-a-range.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,78 +69,163 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yuan Can <yuancan@huawei.com>
-Subject: mm: hugetlb_vmemmap: fix hugetlb page number decrease failed on movable nodes
-Date: Tue, 5 Sep 2023 20:45:03 +0800
+From: "Joel Fernandes (Google)" <joel@joelfernandes.org>
+Subject: selftests: mm: add a test for remapping within a range
+Date: Sun, 3 Sep 2023 15:13:27 +0000
 
-The decreasing of hugetlb pages number failed with the following message
-given:
+Move a block of memory within a memory range.  Any alignment optimization
+on the source address may cause corruption.  Verify using kselftest that
+it works.  I have also verified with tracing that such optimization does
+not happen due to this check in can_align_down():
 
- sh: page allocation failure: order:0, mode:0x204cc0(GFP_KERNEL|__GFP_RETRY_MAYFAIL|__GFP_THISNODE)
- CPU: 1 PID: 112 Comm: sh Not tainted 6.5.0-rc7-... #45
- Hardware name: linux,dummy-virt (DT)
- Call trace:
-  dump_backtrace.part.6+0x84/0xe4
-  show_stack+0x18/0x24
-  dump_stack_lvl+0x48/0x60
-  dump_stack+0x18/0x24
-  warn_alloc+0x100/0x1bc
-  __alloc_pages_slowpath.constprop.107+0xa40/0xad8
-  __alloc_pages+0x244/0x2d0
-  hugetlb_vmemmap_restore+0x104/0x1e4
-  __update_and_free_hugetlb_folio+0x44/0x1f4
-  update_and_free_hugetlb_folio+0x20/0x68
-  update_and_free_pages_bulk+0x4c/0xac
-  set_max_huge_pages+0x198/0x334
-  nr_hugepages_store_common+0x118/0x178
-  nr_hugepages_store+0x18/0x24
-  kobj_attr_store+0x18/0x2c
-  sysfs_kf_write+0x40/0x54
-  kernfs_fop_write_iter+0x164/0x1dc
-  vfs_write+0x3a8/0x460
-  ksys_write+0x6c/0x100
-  __arm64_sys_write+0x1c/0x28
-  invoke_syscall+0x44/0x100
-  el0_svc_common.constprop.1+0x6c/0xe4
-  do_el0_svc+0x38/0x94
-  el0_svc+0x28/0x74
-  el0t_64_sync_handler+0xa0/0xc4
-  el0t_64_sync+0x174/0x178
- Mem-Info:
-  ...
+if (!for_stack && vma->vm_start != addr_to_align)
+	return false;
 
-The reason is that the hugetlb pages being released are allocated from
-movable nodes, and with hugetlb_optimize_vmemmap enabled, vmemmap pages
-need to be allocated from the same node during the hugetlb pages
-releasing. With GFP_KERNEL and __GFP_THISNODE set, allocating from movable
-node is always failed. Fix this problem by removing __GFP_THISNODE.
-
-Link: https://lkml.kernel.org/r/20230905124503.24899-1-yuancan@huawei.com
-Fixes: ad2fa3717b74 ("mm: hugetlb: alloc the vmemmap pages associated with each HugeTLB page")
-Signed-off-by: Yuan Can <yuancan@huawei.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Link: https://lkml.kernel.org/r/20230903151328.2981432-7-joel@joelfernandes.org
+Signed-off-by: Joel Fernandes (Google) <joel@joelfernandes.org>
+Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_vmemmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/mremap_test.c |   79 ++++++++++++++++++++-
+ 1 file changed, 78 insertions(+), 1 deletion(-)
 
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-fix-hugetlb-page-number-decrease-failed-on-movable-nodes
-+++ a/mm/hugetlb_vmemmap.c
-@@ -381,7 +381,7 @@ static int vmemmap_remap_free(unsigned l
- static int alloc_vmemmap_page_list(unsigned long start, unsigned long end,
- 				   struct list_head *list)
- {
--	gfp_t gfp_mask = GFP_KERNEL | __GFP_RETRY_MAYFAIL | __GFP_THISNODE;
-+	gfp_t gfp_mask = GFP_KERNEL | __GFP_RETRY_MAYFAIL;
- 	unsigned long nr_pages = (end - start) >> PAGE_SHIFT;
- 	int nid = page_to_nid((struct page *)start);
- 	struct page *page, *next;
+--- a/tools/testing/selftests/mm/mremap_test.c~selftests-mm-add-a-test-for-remapping-within-a-range
++++ a/tools/testing/selftests/mm/mremap_test.c
+@@ -23,6 +23,7 @@
+ #define VALIDATION_NO_THRESHOLD 0	/* Verify the entire region */
+ 
+ #define MIN(X, Y) ((X) < (Y) ? (X) : (Y))
++#define SIZE_MB(m) ((size_t)m * (1024 * 1024))
+ 
+ struct config {
+ 	unsigned long long src_alignment;
+@@ -227,6 +228,79 @@ out:
+ }
+ 
+ /*
++ * Verify that an mremap within a range does not cause corruption
++ * of unrelated part of range.
++ *
++ * Consider the following range which is 2MB aligned and is
++ * a part of a larger 20MB range which is not shown. Each
++ * character is 256KB below making the source and destination
++ * 2MB each. The lower case letters are moved (s to d) and the
++ * upper case letters are not moved. The below test verifies
++ * that the upper case S letters are not corrupted by the
++ * adjacent mremap.
++ *
++ * |DDDDddddSSSSssss|
++ */
++static void mremap_move_within_range(char pattern_seed)
++{
++	char *test_name = "mremap mremap move within range";
++	void *src, *dest;
++	int i, success = 1;
++
++	size_t size = SIZE_MB(20);
++	void *ptr = mmap(NULL, size, PROT_READ | PROT_WRITE,
++			 MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++	if (ptr == MAP_FAILED) {
++		perror("mmap");
++		success = 0;
++		goto out;
++	}
++	memset(ptr, 0, size);
++
++	src = ptr + SIZE_MB(6);
++	src = (void *)((unsigned long)src & ~(SIZE_MB(2) - 1));
++
++	/* Set byte pattern for source block. */
++	srand(pattern_seed);
++	for (i = 0; i < SIZE_MB(2); i++) {
++		((char *)src)[i] = (char) rand();
++	}
++
++	dest = src - SIZE_MB(2);
++
++	void *new_ptr = mremap(src + SIZE_MB(1), SIZE_MB(1), SIZE_MB(1),
++						   MREMAP_MAYMOVE | MREMAP_FIXED, dest + SIZE_MB(1));
++	if (new_ptr == MAP_FAILED) {
++		perror("mremap");
++		success = 0;
++		goto out;
++	}
++
++	/* Verify byte pattern after remapping */
++	srand(pattern_seed);
++	for (i = 0; i < SIZE_MB(1); i++) {
++		char c = (char) rand();
++
++		if (((char *)src)[i] != c) {
++			ksft_print_msg("Data at src at %d got corrupted due to unrelated mremap\n",
++				       i);
++			ksft_print_msg("Expected: %#x\t Got: %#x\n", c & 0xff,
++					((char *) src)[i] & 0xff);
++			success = 0;
++		}
++	}
++
++out:
++	if (munmap(ptr, size) == -1)
++		perror("munmap");
++
++	if (success)
++		ksft_test_result_pass("%s\n", test_name);
++	else
++		ksft_test_result_fail("%s\n", test_name);
++}
++
++/*
+  * Returns the start address of the mapping on success, else returns
+  * NULL on failure.
+  */
+@@ -491,6 +565,7 @@ int main(int argc, char **argv)
+ 	unsigned int threshold_mb = VALIDATION_DEFAULT_THRESHOLD;
+ 	unsigned int pattern_seed;
+ 	int num_expand_tests = 2;
++	int num_misc_tests = 1;
+ 	struct test test_cases[MAX_TEST] = {};
+ 	struct test perf_test_cases[MAX_PERF_TEST];
+ 	int page_size;
+@@ -572,7 +647,7 @@ int main(int argc, char **argv)
+ 				(threshold_mb * _1MB >= _1GB);
+ 
+ 	ksft_set_plan(ARRAY_SIZE(test_cases) + (run_perf_tests ?
+-		      ARRAY_SIZE(perf_test_cases) : 0) + num_expand_tests);
++		      ARRAY_SIZE(perf_test_cases) : 0) + num_expand_tests + num_misc_tests);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(test_cases); i++)
+ 		run_mremap_test_case(test_cases[i], &failures, threshold_mb,
+@@ -590,6 +665,8 @@ int main(int argc, char **argv)
+ 
+ 	fclose(maps_fp);
+ 
++	mremap_move_within_range(pattern_seed);
++
+ 	if (run_perf_tests) {
+ 		ksft_print_msg("\n%s\n",
+ 		 "mremap HAVE_MOVE_PMD/PUD optimization time comparison for 1GB region:");
 _
 
-Patches currently in -mm which might be from yuancan@huawei.com are
+Patches currently in -mm which might be from joel@joelfernandes.org are
 
-mm-hugetlb_vmemmap-fix-hugetlb-page-number-decrease-failed-on-movable-nodes.patch
+mm-vmalloc-add-a-safer-version-of-find_vm_area-for-debug.patch
+mm-mremap-optimize-the-start-addresses-in-move_page_tables.patch
+mm-mremap-allow-moves-within-the-same-vma-for-stack-moves.patch
+selftests-mm-fix-failure-case-when-new-remap-region-was-not-found.patch
+selftests-mm-add-a-test-for-mutually-aligned-moves-pmd-size.patch
+selftests-mm-add-a-test-for-remapping-to-area-immediately-after-existing-mapping.patch
+selftests-mm-add-a-test-for-remapping-within-a-range.patch
+selftests-mm-add-a-test-for-moving-from-an-offset-from-start-of-mapping.patch
 
