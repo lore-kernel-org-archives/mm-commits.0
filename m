@@ -2,93 +2,81 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A68ECA100D
-	for <mm-commits@archiver.kernel.org>; Tue,  5 Sep 2023 20:08:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0A91CA100D
+	for <mm-commits@archiver.kernel.org>; Tue,  5 Sep 2023 20:08:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242699AbjIEUIp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Sep 2023 16:08:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45630 "EHLO
+        id S240961AbjIEUIs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Sep 2023 16:08:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41282 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242583AbjIEUIl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2023 16:08:41 -0400
+        with ESMTP id S242809AbjIEUIr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2023 16:08:47 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC855127
-        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 13:08:37 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67FA3C433B7;
-        Tue,  5 Sep 2023 18:56:20 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0EC9A198
+        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 13:08:40 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4924C43397;
+        Tue,  5 Sep 2023 18:12:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1693940180;
-        bh=9MKGXTwg319KKNK+UWnEwTq0UUK4qUJ8SLJdxwTvxio=;
-        h=Date:From:To:Cc:Subject:From;
-        b=Euf1RUjGSZIC49ti3z4Oh3+6zDdRadLfxrigMmp4JlTz2ncloKciRk3Tp4UUMZx3Q
-         34PD2KP63GjfD2ZNdQj7tXTqIIWTg+0e70cNmT1jfl2O4Oax2grctDjezWSAro1uH+
-         Pa9J9UKaoCOCwPKj/+GzxChAB6MQP85+xBtyTcGo=
-Date:   Tue, 5 Sep 2023 11:56:19 -0700
+        s=korg; t=1693937544;
+        bh=lpB3AGbZ1FzP9ZE0sKACac9y0g4hr0H6QZziMPUjQKk=;
+        h=Date:To:From:Subject:From;
+        b=VGdb2ZQ4+vRWz6/BcSBAL8GQd6qK8xUx4KLlcxL3LE1WyA5kAFvzk7eiyelMjJd8p
+         SBNahn30jEPkTPDQCaEvb78TBXtvoAVUIxT6RlXZ80EWhSm3JKbgZ5/62jFcaldYCh
+         U2Vbydgie/5GNvf7fMmKEm+UXj4q6Q29JxzbPzZM=
+Date:   Tue, 05 Sep 2023 11:12:24 -0700
+To:     mm-commits@vger.kernel.org, linux@roeck-us.net, rppt@kernel.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.6-rc1
-Message-Id: <20230905115619.0df37e92cd7384252d1aa4ee@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Subject: [merged mm-hotfixes-stable] sparc64-add-missing-initialization-of-folio-in-tlb_batch_add.patch removed from -mm tree
+Message-Id: <20230905181224.C4924C43397@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-Linus, please merge this batch of hotfixes, thanks.
+The quilt patch titled
+     Subject: sparc64: add missing initialization of folio in tlb_batch_add()
+has been removed from the -mm tree.  Its filename was
+     sparc64-add-missing-initialization-of-folio-in-tlb_batch_add.patch
 
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-The following changes since commit 3f86ed6ec0b390c033eae7f9c487a3fea268e027:
+------------------------------------------------------
+From: "Mike Rapoport (IBM)" <rppt@kernel.org>
+Subject: sparc64: add missing initialization of folio in tlb_batch_add()
+Date: Mon, 4 Sep 2023 20:37:59 +0300
 
-  Merge tag 'arc-6.6-rc1' of git://git.kernel.org/pub/scm/linux/kernel/git/vgupta/arc (2023-09-04 15:38:24 -0700)
+Commit 1a10a44dfc1d ("sparc64: implement the new page table range API")
+missed initialization of folio variable in tlb_batch_add() which causes
+boot tests to crash.
 
-are available in the Git repository at:
+Add missing initialization.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-09-05-11-51
+Link: https://lkml.kernel.org/r/20230904174350.GF3223@kernel.org
+Fixes: 1a10a44dfc1d ("sparc64: implement the new page table range API")
+Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Reported-by: Guenter Roeck <linux@roeck-us.net>
+Tested-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-for you to fetch changes up to f4b4f3ec1a310c3de9797271a9c06b7499470d69:
+ arch/sparc/mm/tlb.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-  sparc64: add missing initialization of folio in tlb_batch_add() (2023-09-05 11:11:52 -0700)
+--- a/arch/sparc/mm/tlb.c~sparc64-add-missing-initialization-of-folio-in-tlb_batch_add
++++ a/arch/sparc/mm/tlb.c
+@@ -128,6 +128,7 @@ void tlb_batch_add(struct mm_struct *mm,
+ 			goto no_cache_flush;
+ 
+ 		/* A real file page? */
++		folio = page_folio(page);
+ 		mapping = folio_flush_mapping(folio);
+ 		if (!mapping)
+ 			goto no_cache_flush;
+_
 
-----------------------------------------------------------------
-Seven hotfixes.  Four are cc:stable and the remainder pertain to issues
-which were introduced in the current merge window.
+Patches currently in -mm which might be from rppt@kernel.org are
 
-----------------------------------------------------------------
-Andrew Morton (1):
-      revert "memfd: improve userspace warnings for missing exec-related flags".
-
-Joel Fernandes (Google) (1):
-      mm/vmalloc: add a safer version of find_vm_area() for debug
-
-Johannes Weiner (1):
-      memcontrol: ensure memcg acquired by id is properly set up
-
-Mike Rapoport (IBM) (1):
-      sparc64: add missing initialization of folio in tlb_batch_add()
-
-Tong Tiangen (1):
-      mm: memory-failure: use rcu lock instead of tasklist_lock when collect_procs()
-
-Xie XiuQi (1):
-      tools/mm: fix undefined reference to pthread_once
-
-Zqiang (1):
-      rcu: dump vmalloc memory info safely
-
- arch/sparc/mm/tlb.c |  1 +
- mm/filemap.c        |  3 ---
- mm/ksm.c            |  4 ++--
- mm/memcontrol.c     | 22 +++++++++++++++++-----
- mm/memfd.c          |  2 +-
- mm/memory-failure.c | 16 ++++++++--------
- mm/util.c           |  4 +++-
- mm/vmalloc.c        | 26 ++++++++++++++++++++++----
- tools/mm/Makefile   |  4 ++--
- 9 files changed, 56 insertions(+), 26 deletions(-)
 
