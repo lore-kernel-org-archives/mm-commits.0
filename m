@@ -2,43 +2,40 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92F52C83F3E
-	for <mm-commits@archiver.kernel.org>; Tue,  5 Sep 2023 16:35:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3E39C83F2C
+	for <mm-commits@archiver.kernel.org>; Tue,  5 Sep 2023 16:35:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229448AbjIEQfJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Sep 2023 12:35:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53482 "EHLO
+        id S244073AbjIEQfE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Sep 2023 12:35:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60880 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344385AbjIEQOL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2023 12:14:11 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2CDFC2116
-        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 09:13:28 -0700 (PDT)
+        with ESMTP id S1354932AbjIEP4k (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2023 11:56:40 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3BC6912A
+        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 08:56:37 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AEA3E60A2A
-        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 16:02:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D293C433C8;
-        Tue,  5 Sep 2023 16:02:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C05E1603F3
+        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 15:56:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A115C433C8;
+        Tue,  5 Sep 2023 15:56:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1693929768;
-        bh=0v6EXMRvGGOnbvx6NdjJpE2zzUtQJQMIcXnGcUUfBek=;
+        s=korg; t=1693929396;
+        bh=t15RS/1Imo2jqmtMt3ijJJKVH2ZcB0plPjBs0MfW2b4=;
         h=Date:To:From:Subject:From;
-        b=HpAPzDao1EsXfyzbaxL8QZqW4ELmqkAU3hhJccry86nHhGQuT0FoZ2r6Rpsv16Rhp
-         ghf+5SpQ/u6ZRg7UgE05l1SbcbRHi2lwKP0fgR8QA+Xo6XvF7CM6jKY2bARxXHQZm2
-         GlbAGTT4ysi99yhCPgY59KKXoxvxQ6FS/OnXH5Qc=
-Date:   Tue, 05 Sep 2023 09:02:47 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
-        torvalds@linux-foundation.org, surenb@google.com, shuah@kernel.org,
-        paulmck@kernel.org, mhocko@suse.com, lstoakes@gmail.com,
-        lokeshgidra@google.com, Liam.Howlett@oracle.com,
-        kirill@shutemov.name, kaleshsingh@google.com,
-        joel@joelfernandes.org, akpm@linux-foundation.org
+        b=lETdNeWBTmJAu6jz3C4p+Hhkvfr/Ke8g7jJuEK8lSuWOeubgRQvBA8rZtUsDj3CyG
+         HCQL/aZ7XYD8bpr1JItggWUXIhQwV/R9ZNjBTSTTRp4h2VSQ1JfhE6TtBvcyGds26/
+         N+5LZNNQyQTfsuIdtsreyX9f10A1DwbWoWgZx6b8=
+Date:   Tue, 05 Sep 2023 08:56:35 -0700
+To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
+        songmuchun@bytedance.com, mike.kravetz@oracle.com,
+        yuancan@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-a-test-for-mutually-aligned-moves-pmd-size.patch added to mm-unstable branch
-Message-Id: <20230905160248.0D293C433C8@smtp.kernel.org>
+Subject: + mm-hugetlb_vmemmap-fix-hugetlb-page-number-decrease-failed-on-movable-nodes.patch added to mm-unstable branch
+Message-Id: <20230905155636.2A115C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: mm: add a test for mutually aligned moves > PMD size
+     Subject: mm: hugetlb_vmemmap: fix hugetlb page number decrease failed on movable nodes
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-add-a-test-for-mutually-aligned-moves-pmd-size.patch
+     mm-hugetlb_vmemmap-fix-hugetlb-page-number-decrease-failed-on-movable-nodes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-a-test-for-mutually-aligned-moves-pmd-size.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-fix-hugetlb-page-number-decrease-failed-on-movable-nodes.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,89 +66,78 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Joel Fernandes (Google)" <joel@joelfernandes.org>
-Subject: selftests: mm: add a test for mutually aligned moves > PMD size
-Date: Sun, 3 Sep 2023 15:13:25 +0000
+From: Yuan Can <yuancan@huawei.com>
+Subject: mm: hugetlb_vmemmap: fix hugetlb page number decrease failed on movable nodes
+Date: Tue, 5 Sep 2023 20:45:03 +0800
 
-This patch adds a test case to check if a PMD-alignment optimization
-successfully happens.
+The decreasing of hugetlb pages number failed with the following message
+given:
 
-I add support to make sure there is some room before the source mapping,
-otherwise the optimization to trigger PMD-aligned move will be disabled as
-the kernel will detect that a mapping before the source exists and such
-optimization becomes impossible.
+ sh: page allocation failure: order:0, mode:0x204cc0(GFP_KERNEL|__GFP_RETRY_MAYFAIL|__GFP_THISNODE)
+ CPU: 1 PID: 112 Comm: sh Not tainted 6.5.0-rc7-... #45
+ Hardware name: linux,dummy-virt (DT)
+ Call trace:
+  dump_backtrace.part.6+0x84/0xe4
+  show_stack+0x18/0x24
+  dump_stack_lvl+0x48/0x60
+  dump_stack+0x18/0x24
+  warn_alloc+0x100/0x1bc
+  __alloc_pages_slowpath.constprop.107+0xa40/0xad8
+  __alloc_pages+0x244/0x2d0
+  hugetlb_vmemmap_restore+0x104/0x1e4
+  __update_and_free_hugetlb_folio+0x44/0x1f4
+  update_and_free_hugetlb_folio+0x20/0x68
+  update_and_free_pages_bulk+0x4c/0xac
+  set_max_huge_pages+0x198/0x334
+  nr_hugepages_store_common+0x118/0x178
+  nr_hugepages_store+0x18/0x24
+  kobj_attr_store+0x18/0x2c
+  sysfs_kf_write+0x40/0x54
+  kernfs_fop_write_iter+0x164/0x1dc
+  vfs_write+0x3a8/0x460
+  ksys_write+0x6c/0x100
+  __arm64_sys_write+0x1c/0x28
+  invoke_syscall+0x44/0x100
+  el0_svc_common.constprop.1+0x6c/0xe4
+  do_el0_svc+0x38/0x94
+  el0_svc+0x28/0x74
+  el0t_64_sync_handler+0xa0/0xc4
+  el0t_64_sync+0x174/0x178
+ Mem-Info:
+  ...
 
-Link: https://lkml.kernel.org/r/20230903151328.2981432-5-joel@joelfernandes.org
-Signed-off-by: Joel Fernandes (Google) <joel@joelfernandes.org>
-Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+The reason is that the hugetlb pages being released are allocated from
+movable nodes, and with hugetlb_optimize_vmemmap enabled, vmemmap pages
+need to be allocated from the same node during the hugetlb pages
+releasing. With GFP_KERNEL and __GFP_THISNODE set, allocating from movable
+node is always failed. Fix this problem by removing __GFP_THISNODE.
+
+Link: https://lkml.kernel.org/r/20230905124503.24899-1-yuancan@huawei.com
+Fixes: ad2fa3717b74 ("mm: hugetlb: alloc the vmemmap pages associated with each HugeTLB page")
+Signed-off-by: Yuan Can <yuancan@huawei.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mremap_test.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ mm/hugetlb_vmemmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/mremap_test.c~selftests-mm-add-a-test-for-mutually-aligned-moves-pmd-size
-+++ a/tools/testing/selftests/mm/mremap_test.c
-@@ -44,6 +44,7 @@ enum {
- 	_1MB = 1ULL << 20,
- 	_2MB = 2ULL << 20,
- 	_4MB = 4ULL << 20,
-+	_5MB = 5ULL << 20,
- 	_1GB = 1ULL << 30,
- 	_2GB = 2ULL << 30,
- 	PMD = _2MB,
-@@ -235,6 +236,11 @@ static void *get_source_mapping(struct c
- 	unsigned long long mmap_min_addr;
- 
- 	mmap_min_addr = get_mmap_min_addr();
-+	/*
-+	 * For some tests, we need to not have any mappings below the
-+	 * source mapping. Add some headroom to mmap_min_addr for this.
-+	 */
-+	mmap_min_addr += 10 * _4MB;
- 
- retry:
- 	addr += c.src_alignment;
-@@ -434,7 +440,7 @@ static int parse_args(int argc, char **a
- 	return 0;
- }
- 
--#define MAX_TEST 13
-+#define MAX_TEST 14
- #define MAX_PERF_TEST 3
- int main(int argc, char **argv)
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-fix-hugetlb-page-number-decrease-failed-on-movable-nodes
++++ a/mm/hugetlb_vmemmap.c
+@@ -381,7 +381,7 @@ static int vmemmap_remap_free(unsigned l
+ static int alloc_vmemmap_page_list(unsigned long start, unsigned long end,
+ 				   struct list_head *list)
  {
-@@ -500,6 +506,10 @@ int main(int argc, char **argv)
- 	test_cases[12] = MAKE_TEST(PUD, PUD, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
- 				   "2GB mremap - Source PUD-aligned, Destination PUD-aligned");
- 
-+	/* Src and Dest addr 1MB aligned. 5MB mremap. */
-+	test_cases[13] = MAKE_TEST(_1MB, _1MB, _5MB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				  "5MB mremap - Source 1MB-aligned, Destination 1MB-aligned");
-+
- 	perf_test_cases[0] =  MAKE_TEST(page_size, page_size, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
- 					"1GB mremap - Source PTE-aligned, Destination PTE-aligned");
- 	/*
+-	gfp_t gfp_mask = GFP_KERNEL | __GFP_RETRY_MAYFAIL | __GFP_THISNODE;
++	gfp_t gfp_mask = GFP_KERNEL | __GFP_RETRY_MAYFAIL;
+ 	unsigned long nr_pages = (end - start) >> PAGE_SHIFT;
+ 	int nid = page_to_nid((struct page *)start);
+ 	struct page *page, *next;
 _
 
-Patches currently in -mm which might be from joel@joelfernandes.org are
+Patches currently in -mm which might be from yuancan@huawei.com are
 
-mm-vmalloc-add-a-safer-version-of-find_vm_area-for-debug.patch
-mm-mremap-optimize-the-start-addresses-in-move_page_tables.patch
-mm-mremap-allow-moves-within-the-same-vma-for-stack-moves.patch
-selftests-mm-fix-failure-case-when-new-remap-region-was-not-found.patch
-selftests-mm-add-a-test-for-mutually-aligned-moves-pmd-size.patch
-selftests-mm-add-a-test-for-remapping-to-area-immediately-after-existing-mapping.patch
-selftests-mm-add-a-test-for-remapping-within-a-range.patch
-selftests-mm-add-a-test-for-moving-from-an-offset-from-start-of-mapping.patch
+mm-hugetlb_vmemmap-fix-hugetlb-page-number-decrease-failed-on-movable-nodes.patch
 
