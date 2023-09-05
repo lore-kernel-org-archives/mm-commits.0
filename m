@@ -2,102 +2,156 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E70FC83F2C
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Sep 2023 23:46:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92F52C83F3E
+	for <mm-commits@archiver.kernel.org>; Tue,  5 Sep 2023 16:35:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233221AbjIDXqg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 4 Sep 2023 19:46:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36164 "EHLO
+        id S229448AbjIEQfJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Sep 2023 12:35:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53482 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230416AbjIDXqg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Sep 2023 19:46:36 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 095B2CC5
-        for <mm-commits@vger.kernel.org>; Mon,  4 Sep 2023 16:46:33 -0700 (PDT)
+        with ESMTP id S1344385AbjIEQOL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2023 12:14:11 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2CDFC2116
+        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 09:13:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id AE84BB80D1A
-        for <mm-commits@vger.kernel.org>; Mon,  4 Sep 2023 23:46:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 505B5C433C8;
-        Mon,  4 Sep 2023 23:46:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AEA3E60A2A
+        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 16:02:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D293C433C8;
+        Tue,  5 Sep 2023 16:02:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1693871190;
-        bh=EckpInGuRyWyPghAmaubaxYqo1ni1WOG/Ll0zHykoi0=;
+        s=korg; t=1693929768;
+        bh=0v6EXMRvGGOnbvx6NdjJpE2zzUtQJQMIcXnGcUUfBek=;
         h=Date:To:From:Subject:From;
-        b=uvmMLD/m+RxYSNPhp3VWCWHfJgmmqO0mjTSxrXjkjxPvyDaSNOIdlnq3MLTX+6G52
-         sfad62ph2i1i6LvQs2xPXm75mcXkH1+M44BAYSWgWAZpje64H3vojVgsuBbBGSGMZ+
-         sZVN9nmzGMA6C0mIj1KMhykNsZiGY6eEq7xCPb0I=
-Date:   Mon, 04 Sep 2023 16:46:29 -0700
-To:     mm-commits@vger.kernel.org, mikhail.v.gavrilov@gmail.com,
-        dave.hansen@linux.intel.com, bagasdotme@gmail.com,
-        hughd@google.com, akpm@linux-foundation.org
+        b=HpAPzDao1EsXfyzbaxL8QZqW4ELmqkAU3hhJccry86nHhGQuT0FoZ2r6Rpsv16Rhp
+         ghf+5SpQ/u6ZRg7UgE05l1SbcbRHi2lwKP0fgR8QA+Xo6XvF7CM6jKY2bARxXHQZm2
+         GlbAGTT4ysi99yhCPgY59KKXoxvxQ6FS/OnXH5Qc=
+Date:   Tue, 05 Sep 2023 09:02:47 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
+        torvalds@linux-foundation.org, surenb@google.com, shuah@kernel.org,
+        paulmck@kernel.org, mhocko@suse.com, lstoakes@gmail.com,
+        lokeshgidra@google.com, Liam.Howlett@oracle.com,
+        kirill@shutemov.name, kaleshsingh@google.com,
+        joel@joelfernandes.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-pagewalk-fix-bootstopping-regression-from-extra-pte_unmap.patch removed from -mm tree
-Message-Id: <20230904234630.505B5C433C8@smtp.kernel.org>
+Subject: + selftests-mm-add-a-test-for-mutually-aligned-moves-pmd-size.patch added to mm-unstable branch
+Message-Id: <20230905160248.0D293C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm/pagewalk: fix bootstopping regression from extra pte_unmap()
-has been removed from the -mm tree.  Its filename was
-     mm-pagewalk-fix-bootstopping-regression-from-extra-pte_unmap.patch
+The patch titled
+     Subject: selftests: mm: add a test for mutually aligned moves > PMD size
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-mm-add-a-test-for-mutually-aligned-moves-pmd-size.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-a-test-for-mutually-aligned-moves-pmd-size.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm/pagewalk: fix bootstopping regression from extra pte_unmap()
-Date: Sat, 2 Sep 2023 08:29:30 -0700 (PDT)
+From: "Joel Fernandes (Google)" <joel@joelfernandes.org>
+Subject: selftests: mm: add a test for mutually aligned moves > PMD size
+Date: Sun, 3 Sep 2023 15:13:25 +0000
 
-Mikhail reports early-6.6-based Fedora Rawhide not booting: "rcu_preempt
-detected expedited stalls", minutes wait, and then hung_task splat while
-kworker trying to synchronize_rcu_expedited().  Nothing logged to disk.
+This patch adds a test case to check if a PMD-alignment optimization
+successfully happens.
 
-He bisected to my 6.6 a349d72fd9ef ("mm/pgtable: add rcu_read_lock() and
-rcu_read_unlock()s"): but the one to blame is my 6.5 commit to fix the
-espfix "bad pmd" warnings when booting x86_64 with CONFIG_EFI_PGT_DUMP=y.
+I add support to make sure there is some room before the source mapping,
+otherwise the optimization to trigger PMD-aligned move will be disabled as
+the kernel will detect that a mapping before the source exists and such
+optimization becomes impossible.
 
-Gaah, that added an "addr >= TASK_SIZE" check to avoid pte_offset_map(),
-but failed to add the equivalent check when choosing to pte_unmap().
-
-It's not a problem on 6.5 (for different reasons, it's harmless on both
-64-bit and 32-bit), but becomes a bootstopper on 6.6 with the unbalanced
-rcu_read_unlock() - RCU has a WARN_ON_ONCE for that, but it would have
-scrolled off Mikhail's console too quickly.
-
-Link: https://lkml.kernel.org/r/8321a347-4a38-526c-97fb-5999ceaf6dd@google.com
-Fixes: 8b1cb4a2e819 ("mm/pagewalk: fix EFI_PGT_DUMP of espfix area")
-Fixes: a349d72fd9ef ("mm/pgtable: add rcu_read_lock() and rcu_read_unlock()s")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reported-by: Mikhail Gavrilov <mikhail.v.gavrilov@gmail.com>
-Closes: https://lore.kernel.org/linux-mm/CABXGCsNi8Tiv5zUPNXr6UJw6qV1VdaBEfGqEAMkkXE3QPvZuAQ@mail.gmail.com/
-Tested-by: Mikhail Gavrilov <mikhail.v.gavrilov@gmail.com>
-Cc: Bagas Sanjaya <bagasdotme@gmail.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Link: https://lkml.kernel.org/r/20230903151328.2981432-5-joel@joelfernandes.org
+Signed-off-by: Joel Fernandes (Google) <joel@joelfernandes.org>
+Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pagewalk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/mremap_test.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
---- a/mm/pagewalk.c~mm-pagewalk-fix-bootstopping-regression-from-extra-pte_unmap
-+++ a/mm/pagewalk.c
-@@ -58,7 +58,7 @@ static int walk_pte_range(pmd_t *pmd, un
- 			pte = pte_offset_map(pmd, addr);
- 		if (pte) {
- 			err = walk_pte_range_inner(pte, addr, end, walk);
--			if (walk->mm != &init_mm)
-+			if (walk->mm != &init_mm && addr < TASK_SIZE)
- 				pte_unmap(pte);
- 		}
- 	} else {
+--- a/tools/testing/selftests/mm/mremap_test.c~selftests-mm-add-a-test-for-mutually-aligned-moves-pmd-size
++++ a/tools/testing/selftests/mm/mremap_test.c
+@@ -44,6 +44,7 @@ enum {
+ 	_1MB = 1ULL << 20,
+ 	_2MB = 2ULL << 20,
+ 	_4MB = 4ULL << 20,
++	_5MB = 5ULL << 20,
+ 	_1GB = 1ULL << 30,
+ 	_2GB = 2ULL << 30,
+ 	PMD = _2MB,
+@@ -235,6 +236,11 @@ static void *get_source_mapping(struct c
+ 	unsigned long long mmap_min_addr;
+ 
+ 	mmap_min_addr = get_mmap_min_addr();
++	/*
++	 * For some tests, we need to not have any mappings below the
++	 * source mapping. Add some headroom to mmap_min_addr for this.
++	 */
++	mmap_min_addr += 10 * _4MB;
+ 
+ retry:
+ 	addr += c.src_alignment;
+@@ -434,7 +440,7 @@ static int parse_args(int argc, char **a
+ 	return 0;
+ }
+ 
+-#define MAX_TEST 13
++#define MAX_TEST 14
+ #define MAX_PERF_TEST 3
+ int main(int argc, char **argv)
+ {
+@@ -500,6 +506,10 @@ int main(int argc, char **argv)
+ 	test_cases[12] = MAKE_TEST(PUD, PUD, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
+ 				   "2GB mremap - Source PUD-aligned, Destination PUD-aligned");
+ 
++	/* Src and Dest addr 1MB aligned. 5MB mremap. */
++	test_cases[13] = MAKE_TEST(_1MB, _1MB, _5MB, NON_OVERLAPPING, EXPECT_SUCCESS,
++				  "5MB mremap - Source 1MB-aligned, Destination 1MB-aligned");
++
+ 	perf_test_cases[0] =  MAKE_TEST(page_size, page_size, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
+ 					"1GB mremap - Source PTE-aligned, Destination PTE-aligned");
+ 	/*
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from joel@joelfernandes.org are
 
+mm-vmalloc-add-a-safer-version-of-find_vm_area-for-debug.patch
+mm-mremap-optimize-the-start-addresses-in-move_page_tables.patch
+mm-mremap-allow-moves-within-the-same-vma-for-stack-moves.patch
+selftests-mm-fix-failure-case-when-new-remap-region-was-not-found.patch
+selftests-mm-add-a-test-for-mutually-aligned-moves-pmd-size.patch
+selftests-mm-add-a-test-for-remapping-to-area-immediately-after-existing-mapping.patch
+selftests-mm-add-a-test-for-remapping-within-a-range.patch
+selftests-mm-add-a-test-for-moving-from-an-offset-from-start-of-mapping.patch
 
