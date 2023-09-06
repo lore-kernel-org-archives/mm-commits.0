@@ -2,221 +2,156 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32609CA100A
-	for <mm-commits@archiver.kernel.org>; Tue,  5 Sep 2023 20:16:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03DFEEE14D0
+	for <mm-commits@archiver.kernel.org>; Wed,  6 Sep 2023 19:14:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240027AbjIEUQG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Sep 2023 16:16:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37348 "EHLO
+        id S244030AbjIFTOL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 6 Sep 2023 15:14:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40426 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238129AbjIEUQF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Sep 2023 16:16:05 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D3CC1A4
-        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 13:15:39 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id E8FF2CE1269
-        for <mm-commits@vger.kernel.org>; Tue,  5 Sep 2023 16:17:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23105C433C9;
-        Tue,  5 Sep 2023 16:17:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1693930630;
-        bh=yjAcVQroI+xCNyQyh60li5iG25oVPpFj/7+FTaw/YPA=;
-        h=Date:To:From:Subject:From;
-        b=I3yKJI89UIn7EzfK4lSieLIwyIbCGuLGa91QN7synuiwGvvEA0L4uFobeRgm/vHWD
-         krxAjym1pv0rfUoTtKlM4i2MZyFc8GKbDgmjY+FPPAcsU/tlRXImZrn82NjCbA+IbP
-         XhC6SGNCLaTDFaKKeOkwbPhHl46z6Uv97EpI52oU=
-Date:   Tue, 05 Sep 2023 09:17:09 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        uma.shankar@intel.com, prime.zeng@hisilicon.com,
-        martin.petersen@oracle.com, luojiaxing@huawei.com,
-        john.g.garry@oracle.com, jejb@linux.ibm.com,
-        himanshu.madhani@cavium.com, gregkh@linuxfoundation.org,
-        felipe.balbi@linux.intel.com, damien.lemoal@opensource.wdc.com,
-        chenxiang66@hisilicon.com, anshuman.gupta@intel.com,
-        animesh.manna@intel.com, andriy.shevchenko@linux.intel.com,
-        yangxingui@huawei.com, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + scsi-qla2xxx-use-define_show_store_attribute-helper-for-debugfs.patch added to mm-nonmm-unstable branch
-Message-Id: <20230905161710.23105C433C9@smtp.kernel.org>
+        with ESMTP id S242790AbjIFTOK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Sep 2023 15:14:10 -0400
+Received: from mail-pj1-x102a.google.com (mail-pj1-x102a.google.com [IPv6:2607:f8b0:4864:20::102a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6500C185;
+        Wed,  6 Sep 2023 12:14:06 -0700 (PDT)
+Received: by mail-pj1-x102a.google.com with SMTP id 98e67ed59e1d1-26f57f02442so140971a91.0;
+        Wed, 06 Sep 2023 12:14:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1694027645; x=1694632445; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=RD1cBDwzQS7RHR7A8DsRWlW49ZPHUgxJFs6IoxvXlZM=;
+        b=TzHwJq/BpbfDN4qmB+VXqRPbSG3ZEMs97aTWDSAFJj4K+BUOYOkh16VQPuU0xm0AjX
+         6QJbnxKYRF13892E4Ly1eqnrrAz1YlLufDTEtLnOmYwB3CrXR1lnAx4+uN4FrAPk9q1A
+         GK2Fa0P1YsudfEJ7NUv7lP+29k1hmKPO8x4pqC7izM84EiNJi9JZqoIJIblbvjeEmOT2
+         L7WQRsAX2WHlqY3OSJKyWeHjiTu2ZJp9zNUFKqbSPsv/44CmA6Vdo6CTxZSlmqoo+4Wn
+         Ee0pbwS4L8C0u5L9b8JNMc5nxQwj0DhoiIp+893tiV8uS+51tgtghRO4RuOOo9dH1zXq
+         IXqw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1694027645; x=1694632445;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=RD1cBDwzQS7RHR7A8DsRWlW49ZPHUgxJFs6IoxvXlZM=;
+        b=QOHRUo/EVogNKM2uuAmxZwSSzLvWQR1Pf0SotHB5qA2oTW3en0y5neFkpqNkak68ay
+         dcFJ/jRS+IbgJx29vUqk0V5pDkc/OuMqZdfrtQnkhzpFLIwmN8OzTcV2I1eZDWcqsS0q
+         30GF775HUsYbFQcSCBwNhx77xtZFr2h3g4zJN8CZ2a/oE/qfPBV02F6paeondR3zxFy3
+         QcN+AvD7J7qMlb/FxGOnn4aFRxSo6+gY/74D/TOe0DV8bJopmKUVJPbTNTBTooNl+GBI
+         d5E2LQudHu6AGG+6Pw4QIQAeZp4wb9vNe7RGQnVssh7+aychjuhLq738UEvyb6gjRW2J
+         4rFQ==
+X-Gm-Message-State: AOJu0YylcrS/2Nn8MyG8Oht7dOUoq/L21s03C6sfJnnbDVvgtWx3dEvd
+        0q8aktowf1GVCtyJpG80cex2ciJZ78EwCqQufV2WehVM
+X-Google-Smtp-Source: AGHT+IG+XGUeEHNmXhMlyzE5FZt9081fD0ungmbnMpKKY7l1v+6U0cj0QS2dgx/SqNJPkjEEBIOvf9QmRKdbh6Af1XU=
+X-Received: by 2002:a17:90b:3c6:b0:268:38f5:86ac with SMTP id
+ go6-20020a17090b03c600b0026838f586acmr13283165pjb.24.1694027645546; Wed, 06
+ Sep 2023 12:14:05 -0700 (PDT)
+MIME-Version: 1.0
+References: <20230905171451.4A04DC433C7@smtp.kernel.org>
+In-Reply-To: <20230905171451.4A04DC433C7@smtp.kernel.org>
+From:   Lorenzo Stoakes <lstoakes@gmail.com>
+Date:   Wed, 6 Sep 2023 20:13:54 +0100
+Message-ID: <CAA5enKZDKA9=gHJL1J=UVGFiB_LLBuR_4XHTasHauaFjeORHCQ@mail.gmail.com>
+Subject: Re: [merged mm-hotfixes-stable] mm-vmalloc-add-a-safer-version-of-find_vm_area-for-debug.patch
+ removed from -mm tree
+To:     linux-kernel@vger.kernel.org
+Cc:     mm-commits@vger.kernel.org, willy@infradead.org, urezki@gmail.com,
+        thunder.leizhen@huaweicloud.com, stable@vger.kernel.org,
+        qiang.zhang1211@gmail.com, paulmck@kernel.org,
+        joel@joelfernandes.org, akpm@linux-foundation.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Wed, 6 Sept 2023 at 16:09, Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+>
+> The quilt patch titled
+>      Subject: mm/vmalloc: add a safer version of find_vm_area() for debug
+> has been removed from the -mm tree.  Its filename was
+>      mm-vmalloc-add-a-safer-version-of-find_vm_area-for-debug.patch
+>
+> This patch was dropped because it was merged into the mm-hotfixes-stable branch
+> of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-The patch titled
-     Subject: scsi: qla2xxx: use DEFINE_SHOW_STORE_ATTRIBUTE() helper for debugfs
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scsi-qla2xxx-use-define_show_store_attribute-helper-for-debugfs.patch
+Hmm, I had outstanding review on this :/ I guess I will have to send a
+follow up patch to address those concerns...
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scsi-qla2xxx-use-define_show_store_attribute-helper-for-debugfs.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+>
+> ------------------------------------------------------
+> From: "Joel Fernandes (Google)" <joel@joelfernandes.org>
+> Subject: mm/vmalloc: add a safer version of find_vm_area() for debug
+> Date: Mon, 4 Sep 2023 18:08:04 +0000
+>
+> It is unsafe to dump vmalloc area information when trying to do so from
+> some contexts.  Add a safer trylock version of the same function to do a
+> best-effort VMA finding and use it from vmalloc_dump_obj().
+>
+> [applied test robot feedback on unused function fix.]
+> [applied Uladzislau feedback on locking.]
+> Link: https://lkml.kernel.org/r/20230904180806.1002832-1-joel@joelfernandes.org
+> Fixes: 98f180837a89 ("mm: Make mem_dump_obj() handle vmalloc() memory")
+> Signed-off-by: Joel Fernandes (Google) <joel@joelfernandes.org>
+> Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+> Reported-by: Zhen Lei <thunder.leizhen@huaweicloud.com>
+> Cc: Paul E. McKenney <paulmck@kernel.org>
+> Cc: Zqiang <qiang.zhang1211@gmail.com>
+> Cc: <stable@vger.kernel.org>
+> Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+>
+>  mm/vmalloc.c |   26 ++++++++++++++++++++++----
+>  1 file changed, 22 insertions(+), 4 deletions(-)
+>
+> --- a/mm/vmalloc.c~mm-vmalloc-add-a-safer-version-of-find_vm_area-for-debug
+> +++ a/mm/vmalloc.c
+> @@ -4278,14 +4278,32 @@ void pcpu_free_vm_areas(struct vm_struct
+>  #ifdef CONFIG_PRINTK
+>  bool vmalloc_dump_obj(void *object)
+>  {
+> -       struct vm_struct *vm;
+>         void *objp = (void *)PAGE_ALIGN((unsigned long)object);
+> +       const void *caller;
+> +       struct vm_struct *vm;
+> +       struct vmap_area *va;
+> +       unsigned long addr;
+> +       unsigned int nr_pages;
+> +
+> +       if (!spin_trylock(&vmap_area_lock))
+> +               return false;
+> +       va = __find_vmap_area((unsigned long)objp, &vmap_area_root);
+> +       if (!va) {
+> +               spin_unlock(&vmap_area_lock);
+> +               return false;
+> +       }
+>
+> -       vm = find_vm_area(objp);
+> -       if (!vm)
+> +       vm = va->vm;
+> +       if (!vm) {
+> +               spin_unlock(&vmap_area_lock);
+>                 return false;
+> +       }
+> +       addr = (unsigned long)vm->addr;
+> +       caller = vm->caller;
+> +       nr_pages = vm->nr_pages;
+> +       spin_unlock(&vmap_area_lock);
+>         pr_cont(" %u-page vmalloc region starting at %#lx allocated at %pS\n",
+> -               vm->nr_pages, (unsigned long)vm->addr, vm->caller);
+> +               nr_pages, addr, caller);
+>         return true;
+>  }
+>  #endif
+> _
+>
+> Patches currently in -mm which might be from joel@joelfernandes.org are
+>
+>
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Xingui Yang <yangxingui@huawei.com>
-Subject: scsi: qla2xxx: use DEFINE_SHOW_STORE_ATTRIBUTE() helper for debugfs
-Date: Tue, 5 Sep 2023 02:48:35 +0000
-
-Use DEFINE_SHOW_STORE_ATTRIBUTE() helper for read-write file to reduce some
-duplicated code.
-
-Link: https://lkml.kernel.org/r/20230905024835.43219-4-yangxingui@huawei.com
-Signed-off-by: Luo Jiaxing <luojiaxing@huawei.com>
-Co-developed-by: Xingui Yang <yangxingui@huawei.com>
-Signed-off-by: Xingui Yang <yangxingui@huawei.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Animesh Manna <animesh.manna@intel.com>
-Cc: Anshuman Gupta <anshuman.gupta@intel.com>
-Cc: Damien Le Moal <damien.lemoal@opensource.wdc.com>
-Cc: Felipe Balbi <felipe.balbi@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Himanshu Madhani <himanshu.madhani@cavium.com>
-Cc: James Bottomley <jejb@linux.ibm.com>
-Cc: John Garry <john.g.garry@oracle.com>
-Cc: Martin K. Petersen <martin.petersen@oracle.com>
-Cc: Uma Shankar <uma.shankar@intel.com>
-Cc: Xiang Chen <chenxiang66@hisilicon.com>
-Cc: Zeng Tao <prime.zeng@hisilicon.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/scsi/qla2xxx/qla_dfs.c |   61 ++++---------------------------
- 1 file changed, 8 insertions(+), 53 deletions(-)
-
---- a/drivers/scsi/qla2xxx/qla_dfs.c~scsi-qla2xxx-use-define_show_store_attribute-helper-for-debugfs
-+++ a/drivers/scsi/qla2xxx/qla_dfs.c
-@@ -518,51 +518,22 @@ qla_dfs_naqp_show(struct seq_file *s, vo
-  *
-  * Example for creating "TEST" sysfs file:
-  * 1. struct qla_hw_data { ... struct dentry *dfs_TEST; }
-- * 2. QLA_DFS_SETUP_RD(TEST, scsi_qla_host_t);
-+ * 2. QLA_DFS_SETUP_RD(TEST);
-  * 3. In qla2x00_dfs_setup():
-  * QLA_DFS_CREATE_FILE(ha, TEST, 0600, ha->dfs_dir, vha);
-  * 4. In qla2x00_dfs_remove():
-  * QLA_DFS_REMOVE_FILE(ha, TEST);
-  */
--#define QLA_DFS_SETUP_RD(_name, _ctx_struct)				\
--static int								\
--qla_dfs_##_name##_open(struct inode *inode, struct file *file)		\
--{									\
--	_ctx_struct *__ctx = inode->i_private;				\
--									\
--	return single_open(file, qla_dfs_##_name##_show, __ctx);	\
--}									\
--									\
--static const struct file_operations qla_dfs_##_name##_ops = {		\
--	.open           = qla_dfs_##_name##_open,			\
--	.read           = seq_read,					\
--	.llseek         = seq_lseek,					\
--	.release        = single_release,				\
--};
--
--#define QLA_DFS_SETUP_RW(_name, _ctx_struct)				\
--static int								\
--qla_dfs_##_name##_open(struct inode *inode, struct file *file)		\
--{									\
--	_ctx_struct *__ctx = inode->i_private;				\
--									\
--	return single_open(file, qla_dfs_##_name##_show, __ctx);	\
--}									\
--									\
--static const struct file_operations qla_dfs_##_name##_ops = {		\
--	.open           = qla_dfs_##_name##_open,			\
--	.read           = seq_read,					\
--	.llseek         = seq_lseek,					\
--	.release        = single_release,				\
--	.write		= qla_dfs_##_name##_write,			\
--};
-+#define QLA_DFS_SETUP_RD(_name)	DEFINE_SHOW_ATTRIBUTE(qla_dfs_##_name)
-+
-+#define QLA_DFS_SETUP_RW(_name)	DEFINE_SHOW_STORE_ATTRIBUTE(qla_dfs_##_name)
- 
- #define QLA_DFS_ROOT_CREATE_FILE(_name, _perm, _ctx)			\
- 	do {								\
- 		if (!qla_dfs_##_name)					\
- 			qla_dfs_##_name = debugfs_create_file(#_name,	\
- 					_perm, qla2x00_dfs_root, _ctx,	\
--					&qla_dfs_##_name##_ops);	\
-+					&qla_dfs_##_name##_fops);	\
- 	} while (0)
- 
- #define QLA_DFS_ROOT_REMOVE_FILE(_name)					\
-@@ -577,7 +548,7 @@ static const struct file_operations qla_
- 	do {								\
- 		(_struct)->dfs_##_name = debugfs_create_file(#_name,	\
- 					_perm, _parent, _ctx,		\
--					&qla_dfs_##_name##_ops)		\
-+					&qla_dfs_##_name##_fops)	\
- 	} while (0)
- 
- #define QLA_DFS_REMOVE_FILE(_struct, _name)				\
-@@ -588,14 +559,6 @@ static const struct file_operations qla_
- 		}							\
- 	} while (0)
- 
--static int
--qla_dfs_naqp_open(struct inode *inode, struct file *file)
--{
--	struct scsi_qla_host *vha = inode->i_private;
--
--	return single_open(file, qla_dfs_naqp_show, vha);
--}
--
- static ssize_t
- qla_dfs_naqp_write(struct file *file, const char __user *buffer,
-     size_t count, loff_t *pos)
-@@ -643,15 +606,7 @@ out_free:
- 	kfree(buf);
- 	return rc;
- }
--
--static const struct file_operations dfs_naqp_ops = {
--	.open		= qla_dfs_naqp_open,
--	.read		= seq_read,
--	.llseek		= seq_lseek,
--	.release	= single_release,
--	.write		= qla_dfs_naqp_write,
--};
--
-+QLA_DFS_SETUP_RW(naqp);
- 
- int
- qla2x00_dfs_setup(scsi_qla_host_t *vha)
-@@ -697,7 +652,7 @@ create_nodes:
- 
- 	if (IS_QLA27XX(ha) || IS_QLA83XX(ha) || IS_QLA28XX(ha)) {
- 		ha->tgt.dfs_naqp = debugfs_create_file("naqp",
--		    0400, ha->dfs_dir, vha, &dfs_naqp_ops);
-+		    0400, ha->dfs_dir, vha, &qla_dfs_naqp_fops);
- 		if (!ha->tgt.dfs_naqp) {
- 			ql_log(ql_log_warn, vha, 0xd011,
- 			       "Unable to create debugFS naqp node.\n");
-_
-
-Patches currently in -mm which might be from yangxingui@huawei.com are
-
-seq_file-add-helper-macro-to-define-attribute-for-rw-file.patch
-scsi-hisi_sas-use-define_show_store_attribute-helper-for-debugfs.patch
-scsi-qla2xxx-use-define_show_store_attribute-helper-for-debugfs.patch
-
+--
+Lorenzo Stoakes
+https://ljs.io
