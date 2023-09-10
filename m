@@ -2,34 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF9C3EE49A4
-	for <mm-commits@archiver.kernel.org>; Sun, 10 Sep 2023 19:46:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC755EE49A4
+	for <mm-commits@archiver.kernel.org>; Sun, 10 Sep 2023 20:40:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229637AbjIJTq3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 10 Sep 2023 15:46:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39394 "EHLO
+        id S230108AbjIJUkr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 10 Sep 2023 16:40:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48204 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233074AbjIJTq3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 10 Sep 2023 15:46:29 -0400
+        with ESMTP id S229605AbjIJUkr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 10 Sep 2023 16:40:47 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9F9212D
-        for <mm-commits@vger.kernel.org>; Sun, 10 Sep 2023 12:46:24 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FCC1C433C7;
-        Sun, 10 Sep 2023 19:46:24 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5DC2E13D
+        for <mm-commits@vger.kernel.org>; Sun, 10 Sep 2023 13:40:42 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D183AC433C8;
+        Sun, 10 Sep 2023 20:40:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694375184;
-        bh=3VufXR64259wQXrRbsR0dY1V50Q00dI1yjXM2JFB5qY=;
+        s=korg; t=1694378441;
+        bh=ewIlwdpMAKE4i/cqrqxZjSd+BdKkDhuYQHovkluNpM4=;
         h=Date:To:From:Subject:From;
-        b=h9XwZAbNEJvUFweuOo9w7jX1qanxw7gChiKRUv59h+Dv3Y3kFboRtefCU8JLi36/5
-         269ZMyPyxoypNcopHBDCSaUPduGLf8KSF1cQF3wi22C1t04hOTCN3mRwamQnH8fDC9
-         /aNLJrEAeYnSWksYvX2UQ2XaDq8FwhIH2dwkSgTo=
-Date:   Sun, 10 Sep 2023 12:46:23 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        naoya.horiguchi@nec.com, dan.j.williams@intel.com,
-        jane.chu@oracle.com, akpm@linux-foundation.org
+        b=yYeO5r3JUNym4kBNZ/ktrrwahvsC8yGOfAT+r6ChhVO93BzHiVkkWkMu8TwQ/wgKm
+         vyTQ7Zv3+v+rv0BXmAX/x/qrcBT1IOnPZSvXUk5KQv32houLw6kdeti/kN+E/63ziT
+         03JGrutG4qAgMYUqzJoqwBehsYgkqEohIvkrMPJU=
+Date:   Sun, 10 Sep 2023 13:40:41 -0700
+To:     mm-commits@vger.kernel.org, agruenba@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-dax-lock-unlock-page-to-lock-unlock-folio-fix.patch added to mm-unstable branch
-Message-Id: <20230910194624.5FCC1C433C7@smtp.kernel.org>
+Subject: + kthread-add-kthread_stop_put.patch added to mm-nonmm-unstable branch
+Message-Id: <20230910204041.D183AC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,14 +36,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-convert-dax-lock-unlock-page-to-lock-unlock-folio-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-convert-dax-lock-unlock-page-to-lock-unlock-folio-fix.patch
+     Subject: kthread: add kthread_stop_put
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kthread-add-kthread_stop_put.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-dax-lock-unlock-page-to-lock-unlock-folio-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kthread-add-kthread_stop_put.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -60,51 +59,294 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jane Chu <jane.chu@oracle.com>
-Subject: mm-convert-dax-lock-unlock-page-to-lock-unlock-folio-fix
-Date: Fri, 8 Sep 2023 16:23:36 -0600
+From: Andreas Gruenbacher <agruenba@redhat.com>
+Subject: kthread: add kthread_stop_put
+Date: Fri, 8 Sep 2023 01:40:48 +0200
 
-add comment to mf_generic_kill_procss(), simplify
-mf_generic_kill_procs:folio initialization.
+Add a kthread_stop_put() helper that stops a thread and puts its task
+struct.  Use it to replace the various instances of kthread_stop()
+followed by put_task_struct().
 
-Link: https://lkml.kernel.org/r/20230908222336.186313-1-jane.chu@oracle.com
-Signed-off-by: Jane Chu <jane.chu@oracle.com>
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Remove the kthread_stop_put() macro in usbip that is similar but doesn't
+return the result of kthread_stop().
+
+Link: https://lkml.kernel.org/r/20230907234048.2499820-1-agruenba@redhat.com
+Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ drivers/accel/ivpu/ivpu_job.c              |    3 --
+ drivers/dma-buf/st-dma-fence-chain.c       |   12 +++------
+ drivers/dma-buf/st-dma-fence.c             |    4 ---
+ drivers/gpu/drm/i915/gt/selftest_migrate.c |    4 ---
+ drivers/net/xen-netback/interface.c        |    3 --
+ drivers/usb/usbip/usbip_common.h           |    6 ----
+ fs/gfs2/ops_fstype.c                       |    9 ++-----
+ include/linux/kthread.h                    |    1 
+ kernel/irq/manage.c                        |   15 +++--------
+ kernel/kthread.c                           |   24 +++++++++++++++++++
+ kernel/smpboot.c                           |    3 --
+ mm/damon/core.c                            |    3 --
+ net/core/pktgen.c                          |    3 --
+ 13 files changed, 44 insertions(+), 46 deletions(-)
 
---- a/mm/memory-failure.c~mm-convert-dax-lock-unlock-page-to-lock-unlock-folio-fix
-+++ a/mm/memory-failure.c
-@@ -1720,11 +1720,19 @@ static void unmap_and_kill(struct list_h
- 	kill_procs(to_kill, flags & MF_MUST_KILL, false, pfn, flags);
- }
+--- a/drivers/accel/ivpu/ivpu_job.c~kthread-add-kthread_stop_put
++++ a/drivers/accel/ivpu/ivpu_job.c
+@@ -618,6 +618,5 @@ int ivpu_job_done_thread_init(struct ivp
  
-+/*
-+ * Only dev_pagemap pages get here, such as fsdax when the filesystem
-+ * either do not claim or fails to claim a hwpoison event, or devdax.
-+ * The fsdax pages are initialized per base page, and the devdax pages
-+ * could be initialized either as base pages, or as compound pages with
-+ * vmemmap optimization enabled. Devdax is simplistic in its dealing with
-+ * hwpoison, such that, if a subpage of a compound page is poisoned,
-+ * simply mark the compound head page is by far sufficient.
-+ */
- static int mf_generic_kill_procs(unsigned long long pfn, int flags,
- 		struct dev_pagemap *pgmap)
+ void ivpu_job_done_thread_fini(struct ivpu_device *vdev)
  {
--	struct page *page = pfn_to_page(pfn);
--	struct folio *folio = page_folio(page);
-+	struct folio *folio = pfn_folio(pfn);
- 	LIST_HEAD(to_kill);
- 	dax_entry_t cookie;
- 	int rc = 0;
+-	kthread_stop(vdev->job_done_thread);
+-	put_task_struct(vdev->job_done_thread);
++	kthread_stop_put(vdev->job_done_thread);
+ }
+--- a/drivers/dma-buf/st-dma-fence.c~kthread-add-kthread_stop_put
++++ a/drivers/dma-buf/st-dma-fence.c
+@@ -548,11 +548,9 @@ static int race_signal_callback(void *ar
+ 		for (i = 0; i < ARRAY_SIZE(t); i++) {
+ 			int err;
+ 
+-			err = kthread_stop(t[i].task);
++			err = kthread_stop_put(t[i].task);
+ 			if (err && !ret)
+ 				ret = err;
+-
+-			put_task_struct(t[i].task);
+ 		}
+ 	}
+ 
+--- a/drivers/dma-buf/st-dma-fence-chain.c~kthread-add-kthread_stop_put
++++ a/drivers/dma-buf/st-dma-fence-chain.c
+@@ -476,10 +476,9 @@ static int find_race(void *arg)
+ 	for (i = 0; i < ncpus; i++) {
+ 		int ret;
+ 
+-		ret = kthread_stop(threads[i]);
++		ret = kthread_stop_put(threads[i]);
+ 		if (ret && !err)
+ 			err = ret;
+-		put_task_struct(threads[i]);
+ 	}
+ 	kfree(threads);
+ 
+@@ -591,8 +590,7 @@ static int wait_forward(void *arg)
+ 	for (i = 0; i < fc.chain_length; i++)
+ 		dma_fence_signal(fc.fences[i]);
+ 
+-	err = kthread_stop(tsk);
+-	put_task_struct(tsk);
++	err = kthread_stop_put(tsk);
+ 
+ err:
+ 	fence_chains_fini(&fc);
+@@ -621,8 +619,7 @@ static int wait_backward(void *arg)
+ 	for (i = fc.chain_length; i--; )
+ 		dma_fence_signal(fc.fences[i]);
+ 
+-	err = kthread_stop(tsk);
+-	put_task_struct(tsk);
++	err = kthread_stop_put(tsk);
+ 
+ err:
+ 	fence_chains_fini(&fc);
+@@ -669,8 +666,7 @@ static int wait_random(void *arg)
+ 	for (i = 0; i < fc.chain_length; i++)
+ 		dma_fence_signal(fc.fences[i]);
+ 
+-	err = kthread_stop(tsk);
+-	put_task_struct(tsk);
++	err = kthread_stop_put(tsk);
+ 
+ err:
+ 	fence_chains_fini(&fc);
+--- a/drivers/gpu/drm/i915/gt/selftest_migrate.c~kthread-add-kthread_stop_put
++++ a/drivers/gpu/drm/i915/gt/selftest_migrate.c
+@@ -719,11 +719,9 @@ static int threaded_migrate(struct intel
+ 		if (IS_ERR_OR_NULL(tsk))
+ 			continue;
+ 
+-		status = kthread_stop(tsk);
++		status = kthread_stop_put(tsk);
+ 		if (status && !err)
+ 			err = status;
+-
+-		put_task_struct(tsk);
+ 	}
+ 
+ 	kfree(thread);
+--- a/drivers/net/xen-netback/interface.c~kthread-add-kthread_stop_put
++++ a/drivers/net/xen-netback/interface.c
+@@ -672,8 +672,7 @@ err:
+ static void xenvif_disconnect_queue(struct xenvif_queue *queue)
+ {
+ 	if (queue->task) {
+-		kthread_stop(queue->task);
+-		put_task_struct(queue->task);
++		kthread_stop_put(queue->task);
+ 		queue->task = NULL;
+ 	}
+ 
+--- a/drivers/usb/usbip/usbip_common.h~kthread-add-kthread_stop_put
++++ a/drivers/usb/usbip/usbip_common.h
+@@ -298,12 +298,6 @@ struct usbip_device {
+ 	__k;								   \
+ })
+ 
+-#define kthread_stop_put(k)		\
+-	do {				\
+-		kthread_stop(k);	\
+-		put_task_struct(k);	\
+-	} while (0)
+-
+ /* usbip_common.c */
+ void usbip_dump_urb(struct urb *purb);
+ void usbip_dump_header(struct usbip_header *pdu);
+--- a/fs/gfs2/ops_fstype.c~kthread-add-kthread_stop_put
++++ a/fs/gfs2/ops_fstype.c
+@@ -1126,8 +1126,7 @@ static int init_threads(struct gfs2_sbd
+ 	return 0;
+ 
+ fail:
+-	kthread_stop(sdp->sd_logd_process);
+-	put_task_struct(sdp->sd_logd_process);
++	kthread_stop_put(sdp->sd_logd_process);
+ 	sdp->sd_logd_process = NULL;
+ 	return error;
+ }
+@@ -1135,13 +1134,11 @@ fail:
+ void gfs2_destroy_threads(struct gfs2_sbd *sdp)
+ {
+ 	if (sdp->sd_logd_process) {
+-		kthread_stop(sdp->sd_logd_process);
+-		put_task_struct(sdp->sd_logd_process);
++		kthread_stop_put(sdp->sd_logd_process);
+ 		sdp->sd_logd_process = NULL;
+ 	}
+ 	if (sdp->sd_quotad_process) {
+-		kthread_stop(sdp->sd_quotad_process);
+-		put_task_struct(sdp->sd_quotad_process);
++		kthread_stop_put(sdp->sd_quotad_process);
+ 		sdp->sd_quotad_process = NULL;
+ 	}
+ }
+--- a/include/linux/kthread.h~kthread-add-kthread_stop_put
++++ a/include/linux/kthread.h
+@@ -86,6 +86,7 @@ void free_kthread_struct(struct task_str
+ void kthread_bind(struct task_struct *k, unsigned int cpu);
+ void kthread_bind_mask(struct task_struct *k, const struct cpumask *mask);
+ int kthread_stop(struct task_struct *k);
++int kthread_stop_put(struct task_struct *k);
+ bool kthread_should_stop(void);
+ bool kthread_should_park(void);
+ bool kthread_should_stop_or_park(void);
+--- a/kernel/irq/manage.c~kthread-add-kthread_stop_put
++++ a/kernel/irq/manage.c
+@@ -1852,15 +1852,13 @@ out_thread:
+ 		struct task_struct *t = new->thread;
+ 
+ 		new->thread = NULL;
+-		kthread_stop(t);
+-		put_task_struct(t);
++		kthread_stop_put(t);
+ 	}
+ 	if (new->secondary && new->secondary->thread) {
+ 		struct task_struct *t = new->secondary->thread;
+ 
+ 		new->secondary->thread = NULL;
+-		kthread_stop(t);
+-		put_task_struct(t);
++		kthread_stop_put(t);
+ 	}
+ out_mput:
+ 	module_put(desc->owner);
+@@ -1971,12 +1969,9 @@ static struct irqaction *__free_irq(stru
+ 	 * the same bit to a newly requested action.
+ 	 */
+ 	if (action->thread) {
+-		kthread_stop(action->thread);
+-		put_task_struct(action->thread);
+-		if (action->secondary && action->secondary->thread) {
+-			kthread_stop(action->secondary->thread);
+-			put_task_struct(action->secondary->thread);
+-		}
++		kthread_stop_put(action->thread);
++		if (action->secondary && action->secondary->thread)
++			kthread_stop_put(action->secondary->thread);
+ 	}
+ 
+ 	/* Last action releases resources */
+--- a/kernel/kthread.c~kthread-add-kthread_stop_put
++++ a/kernel/kthread.c
+@@ -715,6 +715,30 @@ int kthread_stop(struct task_struct *k)
+ }
+ EXPORT_SYMBOL(kthread_stop);
+ 
++/**
++ * kthread_stop_put - stop a thread and put its task struct
++ *
++ * Stops a kthread and put its task_struct.  This is meant for callers
++ * that are holding an extra reference on the task struct, for example:
++ *
++ *   t = kthread_create(...);
++ *   if (!IS_ERR(t)) {
++ *     get_task_struct(t);
++ *     wake_up_process(t);
++ *   }
++ *
++ * Returns the result of kthread_stop().
++ */
++int kthread_stop_put(struct task_struct *k)
++{
++	int ret;
++
++	ret = kthread_stop(k);
++	put_task_struct(k);
++	return ret;
++}
++EXPORT_SYMBOL(kthread_stop_put);
++
+ int kthreadd(void *unused)
+ {
+ 	struct task_struct *tsk = current;
+--- a/kernel/smpboot.c~kthread-add-kthread_stop_put
++++ a/kernel/smpboot.c
+@@ -272,8 +272,7 @@ static void smpboot_destroy_threads(stru
+ 		struct task_struct *tsk = *per_cpu_ptr(ht->store, cpu);
+ 
+ 		if (tsk) {
+-			kthread_stop(tsk);
+-			put_task_struct(tsk);
++			kthread_stop_put(tsk);
+ 			*per_cpu_ptr(ht->store, cpu) = NULL;
+ 		}
+ 	}
+--- a/mm/damon/core.c~kthread-add-kthread_stop_put
++++ a/mm/damon/core.c
+@@ -699,8 +699,7 @@ static int __damon_stop(struct damon_ctx
+ 	if (tsk) {
+ 		get_task_struct(tsk);
+ 		mutex_unlock(&ctx->kdamond_lock);
+-		kthread_stop(tsk);
+-		put_task_struct(tsk);
++		kthread_stop_put(tsk);
+ 		return 0;
+ 	}
+ 	mutex_unlock(&ctx->kdamond_lock);
+--- a/net/core/pktgen.c~kthread-add-kthread_stop_put
++++ a/net/core/pktgen.c
+@@ -3982,8 +3982,7 @@ static void __net_exit pg_net_exit(struc
+ 	list_for_each_safe(q, n, &list) {
+ 		t = list_entry(q, struct pktgen_thread, th_list);
+ 		list_del(&t->th_list);
+-		kthread_stop(t->tsk);
+-		put_task_struct(t->tsk);
++		kthread_stop_put(t->tsk);
+ 		kfree(t);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from jane.chu@oracle.com are
+Patches currently in -mm which might be from agruenba@redhat.com are
 
-mm-convert-dax-lock-unlock-page-to-lock-unlock-folio-fix.patch
+kthread-add-kthread_stop_put.patch
 
