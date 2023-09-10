@@ -2,33 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC755EE49A4
-	for <mm-commits@archiver.kernel.org>; Sun, 10 Sep 2023 20:40:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5032BEE49A4
+	for <mm-commits@archiver.kernel.org>; Sun, 10 Sep 2023 20:44:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230108AbjIJUkr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 10 Sep 2023 16:40:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48204 "EHLO
+        id S231929AbjIJUoc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 10 Sep 2023 16:44:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56616 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229605AbjIJUkr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 10 Sep 2023 16:40:47 -0400
+        with ESMTP id S229605AbjIJUob (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 10 Sep 2023 16:44:31 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5DC2E13D
-        for <mm-commits@vger.kernel.org>; Sun, 10 Sep 2023 13:40:42 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D183AC433C8;
-        Sun, 10 Sep 2023 20:40:41 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A15CA188
+        for <mm-commits@vger.kernel.org>; Sun, 10 Sep 2023 13:44:27 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30CB2C433CA;
+        Sun, 10 Sep 2023 20:44:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694378441;
-        bh=ewIlwdpMAKE4i/cqrqxZjSd+BdKkDhuYQHovkluNpM4=;
+        s=korg; t=1694378667;
+        bh=dDkdJWGGiy//RR7AWWVhpLf78066+abk18LBiZ3RRqk=;
         h=Date:To:From:Subject:From;
-        b=yYeO5r3JUNym4kBNZ/ktrrwahvsC8yGOfAT+r6ChhVO93BzHiVkkWkMu8TwQ/wgKm
-         vyTQ7Zv3+v+rv0BXmAX/x/qrcBT1IOnPZSvXUk5KQv32houLw6kdeti/kN+E/63ziT
-         03JGrutG4qAgMYUqzJoqwBehsYgkqEohIvkrMPJU=
-Date:   Sun, 10 Sep 2023 13:40:41 -0700
-To:     mm-commits@vger.kernel.org, agruenba@redhat.com,
-        akpm@linux-foundation.org
+        b=YBNg0geiUrQ553YBXFVOfQ8ODAgKaShN4ztmgp8h0GX6cKKuqPMhu/MGlxicV7ai1
+         4fvxUst31h0RAe3GfDa2pZJYx1j10md4vkaSZG2Ej7LrfIYaYx1TwRrJ7j7Xo9HzLw
+         Nv7q0kmj4dw4EZn34F8k5vsHc/UXC9ROAadRZYsA=
+Date:   Sun, 10 Sep 2023 13:44:26 -0700
+To:     mm-commits@vger.kernel.org, wsa+renesas@sang-engineering.com,
+        loic.poulain@linaro.org, justin.he@arm.com, brauner@kernel.org,
+        axboe@kernel.dk, jianyong.wu@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kthread-add-kthread_stop_put.patch added to mm-nonmm-unstable branch
-Message-Id: <20230910204041.D183AC433C8@smtp.kernel.org>
+Subject: + init-mount-print-pretty-name-of-root-device-when-panics.patch added to mm-nonmm-unstable branch
+Message-Id: <20230910204427.30CB2C433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kthread: add kthread_stop_put
+     Subject: init/mount: print pretty name of root device when panicing
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kthread-add-kthread_stop_put.patch
+     init-mount-print-pretty-name-of-root-device-when-panics.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kthread-add-kthread_stop_put.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/init-mount-print-pretty-name-of-root-device-when-panics.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,294 +60,55 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andreas Gruenbacher <agruenba@redhat.com>
-Subject: kthread: add kthread_stop_put
-Date: Fri, 8 Sep 2023 01:40:48 +0200
+From: Jianyong Wu <jianyong.wu@arm.com>
+Subject: init/mount: print pretty name of root device when panicing
+Date: Thu, 7 Sep 2023 09:10:25 +0000
 
-Add a kthread_stop_put() helper that stops a thread and puts its task
-struct.  Use it to replace the various instances of kthread_stop()
-followed by put_task_struct().
+Given a wrong root device, current log may not give the pretty name
+which is useful to locate root cause.
 
-Remove the kthread_stop_put() macro in usbip that is similar but doesn't
-return the result of kthread_stop().
+For example, there are 2 blk devs in a VM, /dev/vda which has 2 partitials
+/dev/vda1 and /dev/vda2 and /dev/vdb which is blank.  /dev/vda2 is the
+right root dev.  When set "root=/dev/vdb", we get error log:
 
-Link: https://lkml.kernel.org/r/20230907234048.2499820-1-agruenba@redhat.com
-Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
+[    0.635575] Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block(254,16)
+
+It's not straightforward to find out the root cause as there is lack of
+the root devive name therefore hard for people to get those info from the
+device number, in the example, (254,16).
+
+It is more comprehensive way to hint the root cause if pretty name is
+given here, like:
+
+[    0.559887] Kernel panic - not syncing: VFS: Unable to mount root fs on "/dev/vdb" or unknown-block(254,16)
+
+Link: https://lkml.kernel.org/r/20230907091025.3436878-1-jianyong.wu@arm.com
+Signed-off-by: Jianyong Wu <jianyong.wu@arm.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Justin He <justin.he@arm.com>
+Cc: Loic Poulain <loic.poulain@linaro.org>
+Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/accel/ivpu/ivpu_job.c              |    3 --
- drivers/dma-buf/st-dma-fence-chain.c       |   12 +++------
- drivers/dma-buf/st-dma-fence.c             |    4 ---
- drivers/gpu/drm/i915/gt/selftest_migrate.c |    4 ---
- drivers/net/xen-netback/interface.c        |    3 --
- drivers/usb/usbip/usbip_common.h           |    6 ----
- fs/gfs2/ops_fstype.c                       |    9 ++-----
- include/linux/kthread.h                    |    1 
- kernel/irq/manage.c                        |   15 +++--------
- kernel/kthread.c                           |   24 +++++++++++++++++++
- kernel/smpboot.c                           |    3 --
- mm/damon/core.c                            |    3 --
- net/core/pktgen.c                          |    3 --
- 13 files changed, 44 insertions(+), 46 deletions(-)
+ init/do_mounts.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/accel/ivpu/ivpu_job.c~kthread-add-kthread_stop_put
-+++ a/drivers/accel/ivpu/ivpu_job.c
-@@ -618,6 +618,5 @@ int ivpu_job_done_thread_init(struct ivp
- 
- void ivpu_job_done_thread_fini(struct ivpu_device *vdev)
- {
--	kthread_stop(vdev->job_done_thread);
--	put_task_struct(vdev->job_done_thread);
-+	kthread_stop_put(vdev->job_done_thread);
+--- a/init/do_mounts.c~init-mount-print-pretty-name-of-root-device-when-panics
++++ a/init/do_mounts.c
+@@ -244,7 +244,7 @@ retry:
+ 	for (i = 0, p = fs_names; i < num_fs; i++, p += strlen(p)+1)
+ 		printk(" %s", p);
+ 	printk("\n");
+-	panic("VFS: Unable to mount root fs on %s", b);
++	panic("VFS: Unable to mount root fs on \"%s\" or %s", pretty_name, b);
+ out:
+ 	put_page(page);
  }
---- a/drivers/dma-buf/st-dma-fence.c~kthread-add-kthread_stop_put
-+++ a/drivers/dma-buf/st-dma-fence.c
-@@ -548,11 +548,9 @@ static int race_signal_callback(void *ar
- 		for (i = 0; i < ARRAY_SIZE(t); i++) {
- 			int err;
- 
--			err = kthread_stop(t[i].task);
-+			err = kthread_stop_put(t[i].task);
- 			if (err && !ret)
- 				ret = err;
--
--			put_task_struct(t[i].task);
- 		}
- 	}
- 
---- a/drivers/dma-buf/st-dma-fence-chain.c~kthread-add-kthread_stop_put
-+++ a/drivers/dma-buf/st-dma-fence-chain.c
-@@ -476,10 +476,9 @@ static int find_race(void *arg)
- 	for (i = 0; i < ncpus; i++) {
- 		int ret;
- 
--		ret = kthread_stop(threads[i]);
-+		ret = kthread_stop_put(threads[i]);
- 		if (ret && !err)
- 			err = ret;
--		put_task_struct(threads[i]);
- 	}
- 	kfree(threads);
- 
-@@ -591,8 +590,7 @@ static int wait_forward(void *arg)
- 	for (i = 0; i < fc.chain_length; i++)
- 		dma_fence_signal(fc.fences[i]);
- 
--	err = kthread_stop(tsk);
--	put_task_struct(tsk);
-+	err = kthread_stop_put(tsk);
- 
- err:
- 	fence_chains_fini(&fc);
-@@ -621,8 +619,7 @@ static int wait_backward(void *arg)
- 	for (i = fc.chain_length; i--; )
- 		dma_fence_signal(fc.fences[i]);
- 
--	err = kthread_stop(tsk);
--	put_task_struct(tsk);
-+	err = kthread_stop_put(tsk);
- 
- err:
- 	fence_chains_fini(&fc);
-@@ -669,8 +666,7 @@ static int wait_random(void *arg)
- 	for (i = 0; i < fc.chain_length; i++)
- 		dma_fence_signal(fc.fences[i]);
- 
--	err = kthread_stop(tsk);
--	put_task_struct(tsk);
-+	err = kthread_stop_put(tsk);
- 
- err:
- 	fence_chains_fini(&fc);
---- a/drivers/gpu/drm/i915/gt/selftest_migrate.c~kthread-add-kthread_stop_put
-+++ a/drivers/gpu/drm/i915/gt/selftest_migrate.c
-@@ -719,11 +719,9 @@ static int threaded_migrate(struct intel
- 		if (IS_ERR_OR_NULL(tsk))
- 			continue;
- 
--		status = kthread_stop(tsk);
-+		status = kthread_stop_put(tsk);
- 		if (status && !err)
- 			err = status;
--
--		put_task_struct(tsk);
- 	}
- 
- 	kfree(thread);
---- a/drivers/net/xen-netback/interface.c~kthread-add-kthread_stop_put
-+++ a/drivers/net/xen-netback/interface.c
-@@ -672,8 +672,7 @@ err:
- static void xenvif_disconnect_queue(struct xenvif_queue *queue)
- {
- 	if (queue->task) {
--		kthread_stop(queue->task);
--		put_task_struct(queue->task);
-+		kthread_stop_put(queue->task);
- 		queue->task = NULL;
- 	}
- 
---- a/drivers/usb/usbip/usbip_common.h~kthread-add-kthread_stop_put
-+++ a/drivers/usb/usbip/usbip_common.h
-@@ -298,12 +298,6 @@ struct usbip_device {
- 	__k;								   \
- })
- 
--#define kthread_stop_put(k)		\
--	do {				\
--		kthread_stop(k);	\
--		put_task_struct(k);	\
--	} while (0)
--
- /* usbip_common.c */
- void usbip_dump_urb(struct urb *purb);
- void usbip_dump_header(struct usbip_header *pdu);
---- a/fs/gfs2/ops_fstype.c~kthread-add-kthread_stop_put
-+++ a/fs/gfs2/ops_fstype.c
-@@ -1126,8 +1126,7 @@ static int init_threads(struct gfs2_sbd
- 	return 0;
- 
- fail:
--	kthread_stop(sdp->sd_logd_process);
--	put_task_struct(sdp->sd_logd_process);
-+	kthread_stop_put(sdp->sd_logd_process);
- 	sdp->sd_logd_process = NULL;
- 	return error;
- }
-@@ -1135,13 +1134,11 @@ fail:
- void gfs2_destroy_threads(struct gfs2_sbd *sdp)
- {
- 	if (sdp->sd_logd_process) {
--		kthread_stop(sdp->sd_logd_process);
--		put_task_struct(sdp->sd_logd_process);
-+		kthread_stop_put(sdp->sd_logd_process);
- 		sdp->sd_logd_process = NULL;
- 	}
- 	if (sdp->sd_quotad_process) {
--		kthread_stop(sdp->sd_quotad_process);
--		put_task_struct(sdp->sd_quotad_process);
-+		kthread_stop_put(sdp->sd_quotad_process);
- 		sdp->sd_quotad_process = NULL;
- 	}
- }
---- a/include/linux/kthread.h~kthread-add-kthread_stop_put
-+++ a/include/linux/kthread.h
-@@ -86,6 +86,7 @@ void free_kthread_struct(struct task_str
- void kthread_bind(struct task_struct *k, unsigned int cpu);
- void kthread_bind_mask(struct task_struct *k, const struct cpumask *mask);
- int kthread_stop(struct task_struct *k);
-+int kthread_stop_put(struct task_struct *k);
- bool kthread_should_stop(void);
- bool kthread_should_park(void);
- bool kthread_should_stop_or_park(void);
---- a/kernel/irq/manage.c~kthread-add-kthread_stop_put
-+++ a/kernel/irq/manage.c
-@@ -1852,15 +1852,13 @@ out_thread:
- 		struct task_struct *t = new->thread;
- 
- 		new->thread = NULL;
--		kthread_stop(t);
--		put_task_struct(t);
-+		kthread_stop_put(t);
- 	}
- 	if (new->secondary && new->secondary->thread) {
- 		struct task_struct *t = new->secondary->thread;
- 
- 		new->secondary->thread = NULL;
--		kthread_stop(t);
--		put_task_struct(t);
-+		kthread_stop_put(t);
- 	}
- out_mput:
- 	module_put(desc->owner);
-@@ -1971,12 +1969,9 @@ static struct irqaction *__free_irq(stru
- 	 * the same bit to a newly requested action.
- 	 */
- 	if (action->thread) {
--		kthread_stop(action->thread);
--		put_task_struct(action->thread);
--		if (action->secondary && action->secondary->thread) {
--			kthread_stop(action->secondary->thread);
--			put_task_struct(action->secondary->thread);
--		}
-+		kthread_stop_put(action->thread);
-+		if (action->secondary && action->secondary->thread)
-+			kthread_stop_put(action->secondary->thread);
- 	}
- 
- 	/* Last action releases resources */
---- a/kernel/kthread.c~kthread-add-kthread_stop_put
-+++ a/kernel/kthread.c
-@@ -715,6 +715,30 @@ int kthread_stop(struct task_struct *k)
- }
- EXPORT_SYMBOL(kthread_stop);
- 
-+/**
-+ * kthread_stop_put - stop a thread and put its task struct
-+ *
-+ * Stops a kthread and put its task_struct.  This is meant for callers
-+ * that are holding an extra reference on the task struct, for example:
-+ *
-+ *   t = kthread_create(...);
-+ *   if (!IS_ERR(t)) {
-+ *     get_task_struct(t);
-+ *     wake_up_process(t);
-+ *   }
-+ *
-+ * Returns the result of kthread_stop().
-+ */
-+int kthread_stop_put(struct task_struct *k)
-+{
-+	int ret;
-+
-+	ret = kthread_stop(k);
-+	put_task_struct(k);
-+	return ret;
-+}
-+EXPORT_SYMBOL(kthread_stop_put);
-+
- int kthreadd(void *unused)
- {
- 	struct task_struct *tsk = current;
---- a/kernel/smpboot.c~kthread-add-kthread_stop_put
-+++ a/kernel/smpboot.c
-@@ -272,8 +272,7 @@ static void smpboot_destroy_threads(stru
- 		struct task_struct *tsk = *per_cpu_ptr(ht->store, cpu);
- 
- 		if (tsk) {
--			kthread_stop(tsk);
--			put_task_struct(tsk);
-+			kthread_stop_put(tsk);
- 			*per_cpu_ptr(ht->store, cpu) = NULL;
- 		}
- 	}
---- a/mm/damon/core.c~kthread-add-kthread_stop_put
-+++ a/mm/damon/core.c
-@@ -699,8 +699,7 @@ static int __damon_stop(struct damon_ctx
- 	if (tsk) {
- 		get_task_struct(tsk);
- 		mutex_unlock(&ctx->kdamond_lock);
--		kthread_stop(tsk);
--		put_task_struct(tsk);
-+		kthread_stop_put(tsk);
- 		return 0;
- 	}
- 	mutex_unlock(&ctx->kdamond_lock);
---- a/net/core/pktgen.c~kthread-add-kthread_stop_put
-+++ a/net/core/pktgen.c
-@@ -3982,8 +3982,7 @@ static void __net_exit pg_net_exit(struc
- 	list_for_each_safe(q, n, &list) {
- 		t = list_entry(q, struct pktgen_thread, th_list);
- 		list_del(&t->th_list);
--		kthread_stop(t->tsk);
--		put_task_struct(t->tsk);
-+		kthread_stop_put(t->tsk);
- 		kfree(t);
- 	}
- 
 _
 
-Patches currently in -mm which might be from agruenba@redhat.com are
+Patches currently in -mm which might be from jianyong.wu@arm.com are
 
-kthread-add-kthread_stop_put.patch
+init-mount-print-pretty-name-of-root-device-when-panics.patch
 
