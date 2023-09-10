@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8E21C71153
-	for <mm-commits@archiver.kernel.org>; Sun, 10 Sep 2023 19:21:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0310EE49A4
+	for <mm-commits@archiver.kernel.org>; Sun, 10 Sep 2023 19:21:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230262AbjIJTVi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 10 Sep 2023 15:21:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42998 "EHLO
+        id S231769AbjIJTVm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 10 Sep 2023 15:21:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43006 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229559AbjIJTVh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 10 Sep 2023 15:21:37 -0400
+        with ESMTP id S229559AbjIJTVl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 10 Sep 2023 15:21:41 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D0DEE184
-        for <mm-commits@vger.kernel.org>; Sun, 10 Sep 2023 12:21:33 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65B5AC433C8;
-        Sun, 10 Sep 2023 19:21:33 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA345184
+        for <mm-commits@vger.kernel.org>; Sun, 10 Sep 2023 12:21:36 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47C47C433C8;
+        Sun, 10 Sep 2023 19:21:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694373693;
-        bh=03NmbFmzpj3NQKOGGWZtr111HXfvot88gPHfKuE0QSw=;
+        s=korg; t=1694373696;
+        bh=oFqoqbt7XcgoI/Q+MNTOGBWNp6O7mWXQvJFEdwsdthU=;
         h=Date:To:From:Subject:From;
-        b=B5GpdN5MeTFGRl94iP6ZdMnV32ATzDzXf8Rf5ti9GZsYu0J9fkmMvZP+Vk5EVN9yO
-         DthkbMasj2cySLhOPYNMf9LTnoT+NECZ0y9G5bB5PH1l4GvKt5dUfSPTfWh+Qj8HsL
-         +AL38jzJ42gc/03vw4SUYZp09mCQntP12lcUpWIw=
-Date:   Sun, 10 Sep 2023 12:21:32 -0700
+        b=Lxld5Dtq9OTHrxY7BsrrXtVLbvnj4d8z00Tu+J5A8GtQNaDNVPEdc/YVVA64mUofR
+         hvwOc0LI/d+MrdwQ9sD4Do1nItzDxtaaQWvMpHqwJhMuEaeOLl4kuVy7v82zg1lfYu
+         dvteUOTX4VCj8lnyWy+eyfFD6h8YZ7YEWle5hbdc=
+Date:   Sun, 10 Sep 2023 12:21:35 -0700
 To:     mm-commits@vger.kernel.org, ebiederm@xmission.com, oleg@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + getrusage-use-__for_each_thread.patch added to mm-nonmm-unstable branch
-Message-Id: <20230910192133.65B5AC433C8@smtp.kernel.org>
+Subject: + taskstats-fill_stats_for_tgid-use-for_each_thread.patch added to mm-nonmm-unstable branch
+Message-Id: <20230910192136.47C47C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: getrusage: use __for_each_thread()
+     Subject: taskstats: fill_stats_for_tgid: use for_each_thread()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     getrusage-use-__for_each_thread.patch
+     taskstats-fill_stats_for_tgid-use-for_each_thread.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/getrusage-use-__for_each_thread.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/taskstats-fill_stats_for_tgid-use-for_each_thread.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,37 +60,49 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: getrusage: use __for_each_thread()
-Date: Sat, 9 Sep 2023 19:26:29 +0200
+Subject: taskstats: fill_stats_for_tgid: use for_each_thread()
+Date: Sat, 9 Sep 2023 23:49:51 +0200
 
 do/while_each_thread should be avoided when possible.
 
-Plus this change allows to avoid lock_task_sighand(), we can use rcu
-and/or sig->stats_lock instead.
+Plus I _think_ this change allows to avoid lock_task_sighand() but I am
+not sure, I forgot everything about taskstats.  In any case, this code
+does not look right in that the same thread can be accounted twice:
+taskstats_exit() can account the exiting thread in signal->stats and drop
+->siglock but this thread is still on the thread-group list, so
+lock_task_sighand() can't help.
 
-Link: https://lkml.kernel.org/r/20230909172629.GA20454@redhat.com
+Link: https://lkml.kernel.org/r/20230909214951.GA24274@redhat.com
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ kernel/taskstats.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/kernel/sys.c~getrusage-use-__for_each_thread
-+++ a/kernel/sys.c
-@@ -1830,10 +1830,8 @@ void getrusage(struct task_struct *p, in
- 		r->ru_oublock += sig->oublock;
- 		if (maxrss < sig->maxrss)
- 			maxrss = sig->maxrss;
--		t = p;
--		do {
-+		__for_each_thread(sig, t)
- 			accumulate_thread_rusage(t, r);
--		} while_each_thread(p, t);
- 		break;
+--- a/kernel/taskstats.c~taskstats-fill_stats_for_tgid-use-for_each_thread
++++ a/kernel/taskstats.c
+@@ -233,9 +233,8 @@ static int fill_stats_for_tgid(pid_t tgi
+ 	else
+ 		memset(stats, 0, sizeof(*stats));
  
- 	default:
+-	tsk = first;
+ 	start_time = ktime_get_ns();
+-	do {
++	for_each_thread(first, tsk) {
+ 		if (tsk->exit_state)
+ 			continue;
+ 		/*
+@@ -258,7 +257,7 @@ static int fill_stats_for_tgid(pid_t tgi
+ 
+ 		stats->nvcsw += tsk->nvcsw;
+ 		stats->nivcsw += tsk->nivcsw;
+-	} while_each_thread(first, tsk);
++	}
+ 
+ 	unlock_task_sighand(first, &flags);
+ 	rc = 0;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
