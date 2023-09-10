@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C851EC71153
-	for <mm-commits@archiver.kernel.org>; Sun, 10 Sep 2023 20:48:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0416C71153
+	for <mm-commits@archiver.kernel.org>; Sun, 10 Sep 2023 20:48:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232356AbjIJUsD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 10 Sep 2023 16:48:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34604 "EHLO
+        id S232624AbjIJUsG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 10 Sep 2023 16:48:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34614 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229605AbjIJUsD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 10 Sep 2023 16:48:03 -0400
+        with ESMTP id S229605AbjIJUsG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 10 Sep 2023 16:48:06 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4AC59188
-        for <mm-commits@vger.kernel.org>; Sun, 10 Sep 2023 13:47:59 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3CA9C433C8;
-        Sun, 10 Sep 2023 20:47:58 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 163B9188
+        for <mm-commits@vger.kernel.org>; Sun, 10 Sep 2023 13:48:02 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4298C433C7;
+        Sun, 10 Sep 2023 20:48:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694378878;
-        bh=Fryb0JP/IWJJYhZw7CGIYAoViz0yvkC980lR0HtgzmY=;
+        s=korg; t=1694378881;
+        bh=ZEsPjwMw9BAA0tLaTsSX72gNGONfQMAYoxaS16AWAfE=;
         h=Date:To:From:Subject:From;
-        b=s3ztvPTeNaygOECIfE9gC0Hwr6gmutLrj1b7t5u4qVLpqYQILEflU3jHXkURZRMtP
-         LV4pBOvWhZDauY2ungClaD5+9i1eztLO5BhJJy/nUMDGo0kVPpB1AY1Sm4xl1QJ66C
-         FCvOWvNBVBFD1m4VUZLf4dPKwSpiKNEWLYpGE+h4=
-Date:   Sun, 10 Sep 2023 13:47:58 -0700
+        b=1kIidDSShdzDzOibUF+PvRPkFuScVmyorAnWaily8B4CdPBisaTvoCrkjlOr8shd4
+         MPb/FfnFdVGLFytwlBXRpdn2FFAHsjHpus7dAqIwaIQKPlChWizZrYKP58l+uFit2A
+         xleb+SkV59/8KufgjcNkzvIB/6yLQb2gdoZJPG4g=
+Date:   Sun, 10 Sep 2023 13:48:01 -0700
 To:     mm-commits@vger.kernel.org, rostedt@goodmis.org, corbet@lwn.net,
         sj@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-design-explicitly-introduce-nr_accesses.patch added to mm-unstable branch
-Message-Id: <20230910204758.D3CA9C433C8@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-explain-the-format-of-damon_aggregate-tracepoint.patch added to mm-unstable branch
+Message-Id: <20230910204801.A4298C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Docs/mm/damon/design: explicitly introduce ``nr_accesses``
+     Subject: Docs/admin-guide/mm/damon/usage: explain the format of damon_aggregate tracepoint
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-mm-damon-design-explicitly-introduce-nr_accesses.patch
+     docs-admin-guide-mm-damon-usage-explain-the-format-of-damon_aggregate-tracepoint.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-explicitly-introduce-nr_accesses.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-explain-the-format-of-damon_aggregate-tracepoint.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,39 +60,67 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: explicitly introduce ``nr_accesses``
-Date: Thu, 7 Sep 2023 02:29:22 +0000
+Subject: Docs/admin-guide/mm/damon/usage: explain the format of damon_aggregate tracepoint
+Date: Thu, 7 Sep 2023 02:29:23 +0000
 
-The design document is explaining about the access tracking mechanism
-and the access rate counter (nr_accesses), but not directly mentions the
-name.  Add a sentence for making it clear.
+The example of the section for damon_aggregated tracepoint is not
+explaining how the output looks like, and how it can be interpreted.
+Add it.
 
-Link: https://lkml.kernel.org/r/20230907022929.91361-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20230907022929.91361-6-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ Documentation/admin-guide/mm/damon/usage.rst |   14 ++++++++++++++
+ Documentation/mm/damon/design.rst            |    4 ++++
+ 2 files changed, 18 insertions(+)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-explicitly-introduce-nr_accesses
-+++ a/Documentation/mm/damon/design.rst
-@@ -163,9 +163,10 @@ assumption (pages in a region have the s
- one page in the region is required to be checked.  Thus, for each ``sampling
- interval``, DAMON randomly picks one page in each region, waits for one
- ``sampling interval``, checks whether the page is accessed meanwhile, and
--increases the access frequency of the region if so.  Therefore, the monitoring
--overhead is controllable by setting the number of regions.  DAMON allows users
--to set the minimum and the maximum number of regions for the trade-off.
-+increases the access frequency counter of the region if so.  The counter is
-+called ``nr_regions`` of the region.  Therefore, the monitoring overhead is
-+controllable by setting the number of regions.  DAMON allows users to set the
-+minimum and the maximum number of regions for the trade-off.
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-explain-the-format-of-damon_aggregate-tracepoint
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -513,6 +513,20 @@ results using tracepoint supporting tool
+     # kill 9 $(pidof perf)
+     # echo off > monitor_on
+     # perf script
++    kdamond.0 46568 [027] 79357.842179: damon:damon_aggregated: target_id=0 nr_regions=11 122509119488-135708762112: 0 864
++    [...]
++
++Each line of the perf script output represents each monitoring region.  The
++first five fields are as usual other tracepoint outputs.  The sixth field
++(``target_id=X``) shows the ide of the monitoring target of the region.  The
++seventh field (``nr_regions=X``) shows the total number of monitoring regions
++for the target.  The eighth field (``X-Y:``) shows the start (``X``) and end
++(``Y``) addresses of the region in bytes.  The ninth field (``X``) shows the
++``nr_accesses`` of the region (refer to
++:ref:`design <damon_design_region_based_sampling>` for more details of the
++counter).  Finally the tenth field (``X``) shows the ``age`` of the region
++(refer to :ref:`design <damon_design_age_tracking>` for more details of the
++counter).
  
- This scheme, however, cannot preserve the quality of the output if the
- assumption is not guaranteed.
+ .. _debugfs_interface:
+ 
+--- a/Documentation/mm/damon/design.rst~docs-admin-guide-mm-damon-usage-explain-the-format-of-damon_aggregate-tracepoint
++++ a/Documentation/mm/damon/design.rst
+@@ -154,6 +154,8 @@ The monitoring overhead of this mechanis
+ size of the target workload grows.
+ 
+ 
++.. _damon_design_region_based_sampling:
++
+ Region Based Sampling
+ ~~~~~~~~~~~~~~~~~~~~~
+ 
+@@ -191,6 +193,8 @@ In this way, DAMON provides its best-eff
+ keeping the bounds users set for their trade-off.
+ 
+ 
++.. _damon_design_age_tracking:
++
+ Age Tracking
+ ~~~~~~~~~~~~
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
