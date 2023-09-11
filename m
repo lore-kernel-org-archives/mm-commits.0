@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 866DCCA0ECD
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56CEACA0EC6
 	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238648AbjIKWV4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:21:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38856 "EHLO
+        id S238976AbjIKWWA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:22:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43888 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244489AbjIKUia (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:38:30 -0400
+        with ESMTP id S244570AbjIKUlP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:41:15 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5753A127
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:38:24 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA3E5C433C7;
-        Mon, 11 Sep 2023 20:38:23 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 64D3A1AD
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:41:08 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5179C433CA;
+        Mon, 11 Sep 2023 20:41:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464704;
-        bh=M7F03bbp/f2teRvdSKGxKs286TJrp4dcEPcQ0EOv4WI=;
+        s=korg; t=1694464868;
+        bh=9z+Eqy1CGvVOG1PvEK7+vsGnHM3GGZDlZoPptI0NsOQ=;
         h=Date:To:From:Subject:From;
-        b=D9JS6qLPEugqaoDZ8WZK7XvjVT9EGi8x/ui4GaUT0dfzMbjyJXCt5fLUoU6J/rhDM
-         rPNAgdVRO+9HDS51+rJmmGooJgaNT/MOlpzuLEzZ9WMHBQqWtd8PG9WgPiYVQWDTlK
-         976DkWw+aDLTvASR8JuBcW19fd5E4chArpyGpay4=
-Date:   Mon, 11 Sep 2023 13:38:23 -0700
+        b=BO93hDnOXWiH+IR0IJKnzcN6FoLdmw9w0yff0JCn21GJAZ0ILX+bvyKTGd2Dgp99+
+         k96gaWtpln847b0o6A+7HM0kz0xsGC2Dza+tKiJ1OJvGSXl1gJPyqvgkX8ow14AV7M
+         jGP95HSZIh2YIZDZUnWWqMtps3rcvQcWI+KGqt5I=
+Date:   Mon, 11 Sep 2023 13:41:07 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + rcu-dynamically-allocate-the-rcu-lazy-shrinker.patch added to mm-unstable branch
-Message-Id: <20230911203823.DA3E5C433C7@smtp.kernel.org>
+Subject: + mm-shrinker-convert-shrinker_rwsem-to-mutex.patch added to mm-unstable branch
+Message-Id: <20230911204107.D5179C433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rcu: dynamically allocate the rcu-lazy shrinker
+     Subject: mm: shrinker: convert shrinker_rwsem to mutex
 has been added to the -mm mm-unstable branch.  Its filename is
-     rcu-dynamically-allocate-the-rcu-lazy-shrinker.patch
+     mm-shrinker-convert-shrinker_rwsem-to-mutex.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rcu-dynamically-allocate-the-rcu-lazy-shrinker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinker-convert-shrinker_rwsem-to-mutex.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,14 +87,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: rcu: dynamically allocate the rcu-lazy shrinker
-Date: Mon, 11 Sep 2023 17:44:14 +0800
+Subject: mm: shrinker: convert shrinker_rwsem to mutex
+Date: Mon, 11 Sep 2023 17:44:44 +0800
 
-Use new APIs to dynamically allocate the rcu-lazy shrinker.
+Now there are no readers of shrinker_rwsem, so we can simply replace it
+with mutex lock.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-16-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-46-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Joel Fernandes (Google) <joel@joelfernandes.org>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -133,6 +133,7 @@ Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Wang <jasowang@redhat.com>
 Cc: Jeff Layton <jlayton@kernel.org>
 Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
+Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
 Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
 Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: Juergen Gross <jgross@suse.com>
@@ -171,51 +172,222 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rcu/tree_nocb.h |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ drivers/md/dm-cache-metadata.c |    2 +-
+ fs/super.c                     |    2 +-
+ mm/shrinker.c                  |   28 ++++++++++++++--------------
+ mm/shrinker_debug.c            |   14 +++++++-------
+ 4 files changed, 23 insertions(+), 23 deletions(-)
 
---- a/kernel/rcu/tree_nocb.h~rcu-dynamically-allocate-the-rcu-lazy-shrinker
-+++ a/kernel/rcu/tree_nocb.h
-@@ -1396,13 +1396,6 @@ lazy_rcu_shrink_scan(struct shrinker *sh
+--- a/drivers/md/dm-cache-metadata.c~mm-shrinker-convert-shrinker_rwsem-to-mutex
++++ a/drivers/md/dm-cache-metadata.c
+@@ -1828,7 +1828,7 @@ int dm_cache_metadata_abort(struct dm_ca
+ 	 * Replacement block manager (new_bm) is created and old_bm destroyed outside of
+ 	 * cmd root_lock to avoid ABBA deadlock that would result (due to life-cycle of
+ 	 * shrinker associated with the block manager's bufio client vs cmd root_lock).
+-	 * - must take shrinker_rwsem without holding cmd->root_lock
++	 * - must take shrinker_mutex without holding cmd->root_lock
+ 	 */
+ 	new_bm = dm_block_manager_create(cmd->bdev, DM_CACHE_METADATA_BLOCK_SIZE << SECTOR_SHIFT,
+ 					 CACHE_MAX_CONCURRENT_LOCKS);
+--- a/fs/super.c~mm-shrinker-convert-shrinker_rwsem-to-mutex
++++ a/fs/super.c
+@@ -178,7 +178,7 @@ static void super_wake(struct super_bloc
+  * One thing we have to be careful of with a per-sb shrinker is that we don't
+  * drop the last active reference to the superblock from within the shrinker.
+  * If that happens we could trigger unregistering the shrinker from within the
+- * shrinker path and that leads to deadlock on the shrinker_rwsem. Hence we
++ * shrinker path and that leads to deadlock on the shrinker_mutex. Hence we
+  * take a passive reference to the superblock to avoid this from occurring.
+  */
+ static unsigned long super_cache_scan(struct shrinker *shrink,
+--- a/mm/shrinker.c~mm-shrinker-convert-shrinker_rwsem-to-mutex
++++ a/mm/shrinker.c
+@@ -8,7 +8,7 @@
+ #include "internal.h"
  
- 	return count ? count : SHRINK_STOP;
+ LIST_HEAD(shrinker_list);
+-DECLARE_RWSEM(shrinker_rwsem);
++DEFINE_MUTEX(shrinker_mutex);
+ 
+ #ifdef CONFIG_MEMCG
+ static int shrinker_nr_max;
+@@ -80,7 +80,7 @@ int alloc_shrinker_info(struct mem_cgrou
+ 	int nid, ret = 0;
+ 	int array_size = 0;
+ 
+-	down_write(&shrinker_rwsem);
++	mutex_lock(&shrinker_mutex);
+ 	array_size = shrinker_unit_size(shrinker_nr_max);
+ 	for_each_node(nid) {
+ 		info = kvzalloc_node(sizeof(*info) + array_size, GFP_KERNEL, nid);
+@@ -91,7 +91,7 @@ int alloc_shrinker_info(struct mem_cgrou
+ 			goto err;
+ 		rcu_assign_pointer(memcg->nodeinfo[nid]->shrinker_info, info);
+ 	}
+-	up_write(&shrinker_rwsem);
++	mutex_unlock(&shrinker_mutex);
+ 
+ 	return ret;
+ 
+@@ -104,7 +104,7 @@ static struct shrinker_info *shrinker_in
+ 						     int nid)
+ {
+ 	return rcu_dereference_protected(memcg->nodeinfo[nid]->shrinker_info,
+-					 lockdep_is_held(&shrinker_rwsem));
++					 lockdep_is_held(&shrinker_mutex));
  }
--
--static struct shrinker lazy_rcu_shrinker = {
--	.count_objects = lazy_rcu_shrink_count,
--	.scan_objects = lazy_rcu_shrink_scan,
--	.batch = 0,
--	.seeks = DEFAULT_SEEKS,
--};
- #endif // #ifdef CONFIG_RCU_LAZY
  
- void __init rcu_init_nohz(void)
-@@ -1410,6 +1403,7 @@ void __init rcu_init_nohz(void)
- 	int cpu;
- 	struct rcu_data *rdp;
- 	const struct cpumask *cpumask = NULL;
-+	struct shrinker * __maybe_unused lazy_rcu_shrinker;
+ static int expand_one_shrinker_info(struct mem_cgroup *memcg, int new_size,
+@@ -154,7 +154,7 @@ static int expand_shrinker_info(int new_
+ 	if (!root_mem_cgroup)
+ 		goto out;
  
- #if defined(CONFIG_NO_HZ_FULL)
- 	if (tick_nohz_full_running && !cpumask_empty(tick_nohz_full_mask))
-@@ -1436,8 +1430,15 @@ void __init rcu_init_nohz(void)
+-	lockdep_assert_held(&shrinker_rwsem);
++	lockdep_assert_held(&shrinker_mutex);
+ 
+ 	new_size = shrinker_unit_size(new_nr_max);
+ 	old_size = shrinker_unit_size(shrinker_nr_max);
+@@ -217,7 +217,7 @@ static int shrinker_memcg_alloc(struct s
+ 	if (mem_cgroup_disabled())
+ 		return -ENOSYS;
+ 
+-	down_write(&shrinker_rwsem);
++	mutex_lock(&shrinker_mutex);
+ 	id = idr_alloc(&shrinker_idr, shrinker, 0, 0, GFP_KERNEL);
+ 	if (id < 0)
+ 		goto unlock;
+@@ -231,7 +231,7 @@ static int shrinker_memcg_alloc(struct s
+ 	shrinker->id = id;
+ 	ret = 0;
+ unlock:
+-	up_write(&shrinker_rwsem);
++	mutex_unlock(&shrinker_mutex);
+ 	return ret;
+ }
+ 
+@@ -241,7 +241,7 @@ static void shrinker_memcg_remove(struct
+ 
+ 	BUG_ON(id < 0);
+ 
+-	lockdep_assert_held(&shrinker_rwsem);
++	lockdep_assert_held(&shrinker_mutex);
+ 
+ 	idr_remove(&shrinker_idr, id);
+ }
+@@ -292,7 +292,7 @@ void reparent_shrinker_deferred(struct m
+ 		parent = root_mem_cgroup;
+ 
+ 	/* Prevent from concurrent shrinker_info expand */
+-	down_write(&shrinker_rwsem);
++	mutex_lock(&shrinker_mutex);
+ 	for_each_node(nid) {
+ 		child_info = shrinker_info_protected(memcg, nid);
+ 		parent_info = shrinker_info_protected(parent, nid);
+@@ -305,7 +305,7 @@ void reparent_shrinker_deferred(struct m
+ 			}
+ 		}
+ 	}
+-	up_write(&shrinker_rwsem);
++	mutex_unlock(&shrinker_mutex);
+ }
+ #else
+ static int shrinker_memcg_alloc(struct shrinker *shrinker)
+@@ -735,11 +735,11 @@ void shrinker_register(struct shrinker *
  		return;
+ 	}
  
- #ifdef CONFIG_RCU_LAZY
--	if (register_shrinker(&lazy_rcu_shrinker, "rcu-lazy"))
--		pr_err("Failed to register lazy_rcu shrinker!\n");
-+	lazy_rcu_shrinker = shrinker_alloc(0, "rcu-lazy");
-+	if (!lazy_rcu_shrinker) {
-+		pr_err("Failed to allocate lazy_rcu shrinker!\n");
-+	} else {
-+		lazy_rcu_shrinker->count_objects = lazy_rcu_shrink_count;
-+		lazy_rcu_shrinker->scan_objects = lazy_rcu_shrink_scan;
-+
-+		shrinker_register(lazy_rcu_shrinker);
-+	}
- #endif // #ifdef CONFIG_RCU_LAZY
+-	down_write(&shrinker_rwsem);
++	mutex_lock(&shrinker_mutex);
+ 	list_add_tail_rcu(&shrinker->list, &shrinker_list);
+ 	shrinker->flags |= SHRINKER_REGISTERED;
+ 	shrinker_debugfs_add(shrinker);
+-	up_write(&shrinker_rwsem);
++	mutex_unlock(&shrinker_mutex);
  
- 	if (!cpumask_subset(rcu_nocb_mask, cpu_possible_mask)) {
+ 	init_completion(&shrinker->done);
+ 	/*
+@@ -779,7 +779,7 @@ void shrinker_free(struct shrinker *shri
+ 		wait_for_completion(&shrinker->done);
+ 	}
+ 
+-	down_write(&shrinker_rwsem);
++	mutex_lock(&shrinker_mutex);
+ 	if (shrinker->flags & SHRINKER_REGISTERED) {
+ 		/*
+ 		 * Now we can safely remove it from the shrinker_list and then
+@@ -794,7 +794,7 @@ void shrinker_free(struct shrinker *shri
+ 
+ 	if (shrinker->flags & SHRINKER_MEMCG_AWARE)
+ 		shrinker_memcg_remove(shrinker);
+-	up_write(&shrinker_rwsem);
++	mutex_unlock(&shrinker_mutex);
+ 
+ 	if (debugfs_entry)
+ 		shrinker_debugfs_remove(debugfs_entry, debugfs_id);
+--- a/mm/shrinker_debug.c~mm-shrinker-convert-shrinker_rwsem-to-mutex
++++ a/mm/shrinker_debug.c
+@@ -9,7 +9,7 @@
+ #include "internal.h"
+ 
+ /* defined in vmscan.c */
+-extern struct rw_semaphore shrinker_rwsem;
++extern struct mutex shrinker_mutex;
+ extern struct list_head shrinker_list;
+ 
+ static DEFINE_IDA(shrinker_debugfs_ida);
+@@ -165,7 +165,7 @@ int shrinker_debugfs_add(struct shrinker
+ 	char buf[128];
+ 	int id;
+ 
+-	lockdep_assert_held(&shrinker_rwsem);
++	lockdep_assert_held(&shrinker_mutex);
+ 
+ 	/* debugfs isn't initialized yet, add debugfs entries later. */
+ 	if (!shrinker_debugfs_root)
+@@ -222,7 +222,7 @@ int shrinker_debugfs_rename(struct shrin
+ 	if (!new)
+ 		return -ENOMEM;
+ 
+-	down_write(&shrinker_rwsem);
++	mutex_lock(&shrinker_mutex);
+ 
+ 	old = shrinker->name;
+ 	shrinker->name = new;
+@@ -240,7 +240,7 @@ int shrinker_debugfs_rename(struct shrin
+ 			shrinker->debugfs_entry = entry;
+ 	}
+ 
+-	up_write(&shrinker_rwsem);
++	mutex_unlock(&shrinker_mutex);
+ 
+ 	kfree_const(old);
+ 
+@@ -253,7 +253,7 @@ struct dentry *shrinker_debugfs_detach(s
+ {
+ 	struct dentry *entry = shrinker->debugfs_entry;
+ 
+-	lockdep_assert_held(&shrinker_rwsem);
++	lockdep_assert_held(&shrinker_mutex);
+ 
+ 	shrinker_debugfs_name_free(shrinker);
+ 
+@@ -281,14 +281,14 @@ static int __init shrinker_debugfs_init(
+ 	shrinker_debugfs_root = dentry;
+ 
+ 	/* Create debugfs entries for shrinkers registered at boot */
+-	down_write(&shrinker_rwsem);
++	mutex_lock(&shrinker_mutex);
+ 	list_for_each_entry(shrinker, &shrinker_list, list)
+ 		if (!shrinker->debugfs_entry) {
+ 			ret = shrinker_debugfs_add(shrinker);
+ 			if (ret)
+ 				break;
+ 		}
+-	up_write(&shrinker_rwsem);
++	mutex_unlock(&shrinker_mutex);
+ 
+ 	return ret;
+ }
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
