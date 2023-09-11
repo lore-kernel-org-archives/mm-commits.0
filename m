@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67737CA0EC9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 866DCCA0ECD
 	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238698AbjIKWV5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:21:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57026 "EHLO
+        id S238648AbjIKWV4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:21:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38856 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244456AbjIKUhG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:37:06 -0400
+        with ESMTP id S244489AbjIKUia (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:38:30 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A39F1A7
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:37:00 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EB4EC433C7;
-        Mon, 11 Sep 2023 20:37:00 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5753A127
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:38:24 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA3E5C433C7;
+        Mon, 11 Sep 2023 20:38:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464620;
-        bh=qhCXcpPnbADoXDUah2a1wHAhDsjvL4925ka3GWndpT4=;
+        s=korg; t=1694464704;
+        bh=M7F03bbp/f2teRvdSKGxKs286TJrp4dcEPcQ0EOv4WI=;
         h=Date:To:From:Subject:From;
-        b=ciZrFpSHR5jNxyFJj2Bh6UHKBJ12NnQYZEFIovP7tqLm9DEvXDteP40dEkeJfsvwp
-         nG2+BdJjzXsAhqf6LVyy7Qwidd8lLWOrhVPxY4FCSl0mMdXUmr4ef5awu/cdUmX84e
-         RXn+wwUGl0/s6KTclT4Q8wjJNqogSNfnHmCsMDlg=
-Date:   Mon, 11 Sep 2023 13:36:59 -0700
+        b=D9JS6qLPEugqaoDZ8WZK7XvjVT9EGi8x/ui4GaUT0dfzMbjyJXCt5fLUoU6J/rhDM
+         rPNAgdVRO+9HDS51+rJmmGooJgaNT/MOlpzuLEzZ9WMHBQqWtd8PG9WgPiYVQWDTlK
+         976DkWw+aDLTvASR8JuBcW19fd5E4chArpyGpay4=
+Date:   Mon, 11 Sep 2023 13:38:23 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shrinker-remove-redundant-shrinker_rwsem-in-debugfs-operations.patch added to mm-unstable branch
-Message-Id: <20230911203700.1EB4EC433C7@smtp.kernel.org>
+Subject: + rcu-dynamically-allocate-the-rcu-lazy-shrinker.patch added to mm-unstable branch
+Message-Id: <20230911203823.DA3E5C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: shrinker: remove redundant shrinker_rwsem in debugfs operations
+     Subject: rcu: dynamically allocate the rcu-lazy shrinker
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shrinker-remove-redundant-shrinker_rwsem-in-debugfs-operations.patch
+     rcu-dynamically-allocate-the-rcu-lazy-shrinker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinker-remove-redundant-shrinker_rwsem-in-debugfs-operations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rcu-dynamically-allocate-the-rcu-lazy-shrinker.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,33 +87,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: shrinker: remove redundant shrinker_rwsem in debugfs operations
-Date: Mon, 11 Sep 2023 17:25:16 +0800
+Subject: rcu: dynamically allocate the rcu-lazy shrinker
+Date: Mon, 11 Sep 2023 17:44:14 +0800
 
-debugfs_remove_recursive() will wait for debugfs_file_put() to return, so
-the shrinker will not be freed when doing debugfs operations (such as
-shrinker_debugfs_count_show() and shrinker_debugfs_scan_write()), so there
-is no need to hold shrinker_rwsem during debugfs operations.
+Use new APIs to dynamically allocate the rcu-lazy shrinker.
 
-Link: https://lkml.kernel.org/r/20230911092517.64141-4-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-16-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Christian König <christian.koenig@amd.com>
-Cc: Chuck Lever <cel@kernel.org>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Darrick J. Wong <djwong@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Joel Fernandes <joel@joelfernandes.org>
-Cc: Kirill Tkhai <tkhai@ya.ru>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Steven Price <steven.price@arm.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Joel Fernandes (Google) <joel@joelfernandes.org>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -128,14 +109,22 @@ Cc: Carlos Llamas <cmllamas@google.com>
 Cc: Chandan Babu R <chandan.babu@oracle.com>
 Cc: Chao Yu <chao@kernel.org>
 Cc: Chris Mason <clm@fb.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Christian Koenig <christian.koenig@amd.com>
+Cc: Chuck Lever <cel@kernel.org>
 Cc: Coly Li <colyli@suse.de>
 Cc: Dai Ngo <Dai.Ngo@oracle.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Airlie <airlied@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Sterba <dsterba@suse.com>
 Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
 Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Huang Rui <ray.huang@amd.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
@@ -148,93 +137,85 @@ Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
 Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: Juergen Gross <jgross@suse.com>
 Cc: Kent Overstreet <kent.overstreet@gmail.com>
+Cc: Kirill Tkhai <tkhai@ya.ru>
 Cc: Marijn Suijten <marijn.suijten@somainline.org>
 Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Nadav Amit <namit@vmware.com>
 Cc: Neil Brown <neilb@suse.de>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
 Cc: Olga Kornievskaia <kolga@netapp.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Richard Weinberger <richard@nod.at>
 Cc: Rob Clark <robdclark@gmail.com>
 Cc: Rob Herring <robh@kernel.org>
 Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Sean Paul <sean@poorly.run>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Song Liu <song@kernel.org>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
+Cc: Steven Price <steven.price@arm.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Cc: Tom Talpey <tom@talpey.com>
 Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
 Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shrinker_debug.c |   16 +---------------
- 1 file changed, 1 insertion(+), 15 deletions(-)
+ kernel/rcu/tree_nocb.h |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
---- a/mm/shrinker_debug.c~mm-shrinker-remove-redundant-shrinker_rwsem-in-debugfs-operations
-+++ a/mm/shrinker_debug.c
-@@ -51,17 +51,12 @@ static int shrinker_debugfs_count_show(s
- 	struct mem_cgroup *memcg;
- 	unsigned long total;
- 	bool memcg_aware;
--	int ret, nid;
-+	int ret = 0, nid;
+--- a/kernel/rcu/tree_nocb.h~rcu-dynamically-allocate-the-rcu-lazy-shrinker
++++ a/kernel/rcu/tree_nocb.h
+@@ -1396,13 +1396,6 @@ lazy_rcu_shrink_scan(struct shrinker *sh
  
- 	count_per_node = kcalloc(nr_node_ids, sizeof(unsigned long), GFP_KERNEL);
- 	if (!count_per_node)
- 		return -ENOMEM;
- 
--	ret = down_read_killable(&shrinker_rwsem);
--	if (ret) {
--		kfree(count_per_node);
--		return ret;
--	}
- 	rcu_read_lock();
- 
- 	memcg_aware = shrinker->flags & SHRINKER_MEMCG_AWARE;
-@@ -94,7 +89,6 @@ static int shrinker_debugfs_count_show(s
- 	} while ((memcg = mem_cgroup_iter(NULL, memcg, NULL)) != NULL);
- 
- 	rcu_read_unlock();
--	up_read(&shrinker_rwsem);
- 
- 	kfree(count_per_node);
- 	return ret;
-@@ -119,7 +113,6 @@ static ssize_t shrinker_debugfs_scan_wri
- 	struct mem_cgroup *memcg = NULL;
- 	int nid;
- 	char kbuf[72];
--	ssize_t ret;
- 
- 	read_len = size < (sizeof(kbuf) - 1) ? size : (sizeof(kbuf) - 1);
- 	if (copy_from_user(kbuf, buf, read_len))
-@@ -148,12 +141,6 @@ static ssize_t shrinker_debugfs_scan_wri
- 		return -EINVAL;
- 	}
- 
--	ret = down_read_killable(&shrinker_rwsem);
--	if (ret) {
--		mem_cgroup_put(memcg);
--		return ret;
--	}
+ 	return count ? count : SHRINK_STOP;
+ }
 -
- 	sc.nid = nid;
- 	sc.memcg = memcg;
- 	sc.nr_to_scan = nr_to_scan;
-@@ -161,7 +148,6 @@ static ssize_t shrinker_debugfs_scan_wri
+-static struct shrinker lazy_rcu_shrinker = {
+-	.count_objects = lazy_rcu_shrink_count,
+-	.scan_objects = lazy_rcu_shrink_scan,
+-	.batch = 0,
+-	.seeks = DEFAULT_SEEKS,
+-};
+ #endif // #ifdef CONFIG_RCU_LAZY
  
- 	shrinker->scan_objects(shrinker, &sc);
+ void __init rcu_init_nohz(void)
+@@ -1410,6 +1403,7 @@ void __init rcu_init_nohz(void)
+ 	int cpu;
+ 	struct rcu_data *rdp;
+ 	const struct cpumask *cpumask = NULL;
++	struct shrinker * __maybe_unused lazy_rcu_shrinker;
  
--	up_read(&shrinker_rwsem);
- 	mem_cgroup_put(memcg);
+ #if defined(CONFIG_NO_HZ_FULL)
+ 	if (tick_nohz_full_running && !cpumask_empty(tick_nohz_full_mask))
+@@ -1436,8 +1430,15 @@ void __init rcu_init_nohz(void)
+ 		return;
  
- 	return size;
+ #ifdef CONFIG_RCU_LAZY
+-	if (register_shrinker(&lazy_rcu_shrinker, "rcu-lazy"))
+-		pr_err("Failed to register lazy_rcu shrinker!\n");
++	lazy_rcu_shrinker = shrinker_alloc(0, "rcu-lazy");
++	if (!lazy_rcu_shrinker) {
++		pr_err("Failed to allocate lazy_rcu shrinker!\n");
++	} else {
++		lazy_rcu_shrinker->count_objects = lazy_rcu_shrink_count;
++		lazy_rcu_shrinker->scan_objects = lazy_rcu_shrink_scan;
++
++		shrinker_register(lazy_rcu_shrinker);
++	}
+ #endif // #ifdef CONFIG_RCU_LAZY
+ 
+ 	if (!cpumask_subset(rcu_nocb_mask, cpu_possible_mask)) {
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
