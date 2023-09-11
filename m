@@ -2,60 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DAE0CA0EC8
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83B8CCA0ECE
 	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:25:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240221AbjIKWXP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:23:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32990 "EHLO
+        id S236830AbjIKWXW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:23:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60754 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244530AbjIKUkD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:40:03 -0400
+        with ESMTP id S243933AbjIKS1V (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 14:27:21 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 620D5127
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:39:58 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA399C433C7;
-        Mon, 11 Sep 2023 20:39:57 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E18C31A7
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 11:27:16 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F0A5C433C8;
+        Mon, 11 Sep 2023 18:27:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464798;
-        bh=g8TkIXwY75Jvz3ELDN1M1riiXhiuKjehR2pT3EBz1Ms=;
+        s=korg; t=1694456836;
+        bh=31Q/pRuYNsaTexQg+TKd/MH7dyQoa+FBMBDfMplRaEA=;
         h=Date:To:From:Subject:From;
-        b=Dib0NhKa9MQ20as8iebfrDAXEcAhR+w11/xvnsNkgTQGBUPmaOMtIYrXHtLbZLSTf
-         42CBv2VqGetyzrbctUn0aoJANwtx1TBLDtFZgA3Y06vIXDGZjANkVhRUWPaQ9YPK0x
-         oiD3uW+TTllv6DKJrfCYt0u4b12idGE68cI9VaDY=
-Date:   Mon, 11 Sep 2023 13:39:57 -0700
-To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
-        viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
-        tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
-        tom@talpey.com, tomeu.vizoso@collabora.com, tkhai@ya.ru,
-        tglx@linutronix.de, steven.price@arm.com, sstabellini@kernel.org,
-        songmuchun@bytedance.com, song@kernel.org, snitzer@kernel.org,
-        senozhatsky@chromium.org, sean@poorly.run, rpeterso@redhat.com,
-        roman.gushchin@linux.dev, rodrigo.vivi@intel.com, robh@kernel.org,
-        robdclark@gmail.com, richard@nod.at, ray.huang@amd.com,
-        quic_abhinavk@quicinc.com, paulmck@kernel.org,
-        oleksandr_tyshchenko@epam.com, neilb@suse.de, namit@vmware.com,
-        muchun.song@linux.dev, mst@redhat.com, mingo@redhat.com,
-        minchan@kernel.org, marijn.suijten@somainline.org,
-        kolga@netapp.com, kent.overstreet@gmail.com, josef@toxicpanda.com,
-        joonas.lahtinen@linux.intel.com, joel@joelfernandes.org,
-        jlayton@kernel.org, jgross@suse.com, jefflexu@linux.alibaba.com,
-        jasowang@redhat.com, jani.nikula@linux.intel.com,
-        jaegeuk@kernel.org, jack@suse.cz, huyue2@coolpad.com,
-        hsiangkao@linux.alibaba.com, gregkh@linuxfoundation.org,
-        dsterba@suse.com, dmitry.baryshkov@linaro.org, djwong@kernel.org,
-        david@redhat.com, david@fromorbit.com, dave.hansen@linux.intel.com,
-        daniel.vetter@ffwll.ch, daniel@ffwll.ch, Dai.Ngo@oracle.com,
-        colyli@suse.de, cmllamas@google.com, clm@fb.com,
-        chuck.lever@oracle.com, christian.koenig@amd.com, chao@kernel.org,
-        chandan.babu@oracle.com, cel@kernel.org, brauner@kernel.org,
-        bp@alien8.de, arnd@arndb.de, anna@kernel.org,
-        alyssa.rosenzweig@collabora.com, airlied@gmail.com,
-        agruenba@redhat.com, agk@redhat.com, adilger.kernel@dilger.ca,
-        zhengqi.arch@bytedance.com, akpm@linux-foundation.org
+        b=XveLk0OgoWFk6SMiON0JMTNVisFMF5qFF5XiH2FbRrN1/plgHWrmww58oKUk75W1l
+         mOTdK5A0hqhSJOt8vzMZDZXULHl9zdTNtngXeN/ilM6LYXe2jT7hmuUCAgkaiP11r7
+         HPDOe7/o8/au0+JvcE9yysZ0urXNHcGUKk8IcFQc=
+Date:   Mon, 11 Sep 2023 11:27:15 -0700
+To:     mm-commits@vger.kernel.org, shuah@kernel.org,
+        keescook@chromium.org, jeffxu@google.com, dverkamp@chromium.org,
+        dtometzki@fedoraproject.org, brauner@kernel.org, cyphar@cyphar.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nfsd-dynamically-allocate-the-nfsd-client-shrinker.patch added to mm-unstable branch
-Message-Id: <20230911203957.EA399C433C7@smtp.kernel.org>
+Subject: + memfd-drop-warning-for-missing-exec-related-flags.patch added to mm-unstable branch
+Message-Id: <20230911182716.6F0A5C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +38,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nfsd: dynamically allocate the nfsd-client shrinker
+     Subject: memfd: drop warning for missing exec-related flags
 has been added to the -mm mm-unstable branch.  Its filename is
-     nfsd-dynamically-allocate-the-nfsd-client-shrinker.patch
+     memfd-drop-warning-for-missing-exec-related-flags.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nfsd-dynamically-allocate-the-nfsd-client-shrinker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memfd-drop-warning-for-missing-exec-related-flags.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -86,205 +61,60 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: nfsd: dynamically allocate the nfsd-client shrinker
-Date: Mon, 11 Sep 2023 17:44:31 +0800
+From: Aleksa Sarai <cyphar@cyphar.com>
+Subject: memfd: drop warning for missing exec-related flags
+Date: Tue, 12 Sep 2023 01:17:20 +1000
 
-In preparation for implementing lockless slab shrink, use new APIs to
-dynamically allocate the nfsd-client shrinker, so that it can be freed
-asynchronously via RCU. Then it doesn't need to wait for RCU read-side
-critical section when releasing the struct nfsd_net.
+Commit 434ed3350f57 ("memfd: improve userspace warnings for missing
+exec-related flags") attempted to make these warnings more useful (so
+they would work as an incentive to get users to switch to specifying
+these flags -- as intended by the original MFD_NOEXEC_SEAL patchset).
+Unfortunately, it turns out that even INFO-level logging is too extreme
+to enable by default and alternative solutions to the spam issue (such
+as doing more extreme rate-limiting per-task) are either too ugly or
+overkill for something as simple as emitting a log as a developer aid.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-33-zhengqi.arch@bytedance.com
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Acked-by: Chuck Lever <chuck.lever@oracle.com>
-Acked-by: Jeff Layton <jlayton@kernel.org>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Olga Kornievskaia <kolga@netapp.com>
-Cc: Dai Ngo <Dai.Ngo@oracle.com>
-Cc: Tom Talpey <tom@talpey.com>
-Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
-Cc: Alasdair Kergon <agk@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Alyssa Rosenzweig <alyssa.rosenzweig@collabora.com>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Andreas Gruenbacher <agruenba@redhat.com>
-Cc: Anna Schumaker <anna@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Bob Peterson <rpeterso@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Carlos Llamas <cmllamas@google.com>
-Cc: Chandan Babu R <chandan.babu@oracle.com>
-Cc: Chao Yu <chao@kernel.org>
-Cc: Chris Mason <clm@fb.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Christian Koenig <christian.koenig@amd.com>
-Cc: Chuck Lever <cel@kernel.org>
-Cc: Coly Li <colyli@suse.de>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Airlie <airlied@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Sterba <dsterba@suse.com>
-Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
-Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Huang Rui <ray.huang@amd.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jaegeuk Kim <jaegeuk@kernel.org>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
-Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
-Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Kent Overstreet <kent.overstreet@gmail.com>
-Cc: Kirill Tkhai <tkhai@ya.ru>
-Cc: Marijn Suijten <marijn.suijten@somainline.org>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Mike Snitzer <snitzer@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Nadav Amit <namit@vmware.com>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Rob Clark <robdclark@gmail.com>
-Cc: Rob Herring <robh@kernel.org>
-Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Sean Paul <sean@poorly.run>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Song Liu <song@kernel.org>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
-Cc: Steven Price <steven.price@arm.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
-Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
-Cc: Yue Hu <huyue2@coolpad.com>
+Given that the flags are new and there is no harm to not specifying them
+(after all, we maintain backwards compatibility) we can just drop the
+warnings for now until some time in the future when most programs have
+migrated and distributions start using vm.memfd_noexec=1 (where failing
+to pass the flag would result in unexpected errors for programs that use
+executable memfds).
+
+Link: https://lkml.kernel.org/r/20230912-memfd-reduce-spam-v2-1-7d92a4964b6a@cyphar.com
+Fixes: 434ed3350f57 ("memfd: improve userspace warnings for missing exec-related flags")
+Fixes: 2562d67b1bdf ("revert "memfd: improve userspace warnings for missing exec-related flags".")
+Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
+Reported-by: Damian Tometzki <dtometzki@fedoraproject.org>
+Reviewed-by: Christian Brauner <brauner@kernel.org>
+Cc: Daniel Verkamp <dverkamp@chromium.org>
+Cc: Jeff Xu <jeffxu@google.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/netns.h     |    2 +-
- fs/nfsd/nfs4state.c |   19 +++++++++++--------
- 2 files changed, 12 insertions(+), 9 deletions(-)
+ mm/memfd.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/fs/nfsd/netns.h~nfsd-dynamically-allocate-the-nfsd-client-shrinker
-+++ a/fs/nfsd/netns.h
-@@ -195,7 +195,7 @@ struct nfsd_net {
- 	int			nfs4_max_clients;
+--- a/mm/memfd.c~memfd-drop-warning-for-missing-exec-related-flags
++++ a/mm/memfd.c
+@@ -315,12 +315,6 @@ SYSCALL_DEFINE2(memfd_create,
+ 	if ((flags & MFD_EXEC) && (flags & MFD_NOEXEC_SEAL))
+ 		return -EINVAL;
  
- 	atomic_t		nfsd_courtesy_clients;
--	struct shrinker		nfsd_client_shrinker;
-+	struct shrinker		*nfsd_client_shrinker;
- 	struct work_struct	nfsd_shrinker_work;
- };
- 
---- a/fs/nfsd/nfs4state.c~nfsd-dynamically-allocate-the-nfsd-client-shrinker
-+++ a/fs/nfsd/nfs4state.c
-@@ -4400,8 +4400,7 @@ static unsigned long
- nfsd4_state_shrinker_count(struct shrinker *shrink, struct shrink_control *sc)
- {
- 	int count;
--	struct nfsd_net *nn = container_of(shrink,
--			struct nfsd_net, nfsd_client_shrinker);
-+	struct nfsd_net *nn = shrink->private_data;
- 
- 	count = atomic_read(&nn->nfsd_courtesy_clients);
- 	if (!count)
-@@ -8149,12 +8148,16 @@ static int nfs4_state_create_net(struct
- 	INIT_WORK(&nn->nfsd_shrinker_work, nfsd4_state_shrinker_worker);
- 	get_net(net);
- 
--	nn->nfsd_client_shrinker.scan_objects = nfsd4_state_shrinker_scan;
--	nn->nfsd_client_shrinker.count_objects = nfsd4_state_shrinker_count;
--	nn->nfsd_client_shrinker.seeks = DEFAULT_SEEKS;
+-	if (!(flags & (MFD_EXEC | MFD_NOEXEC_SEAL))) {
+-		pr_warn_once(
+-			"%s[%d]: memfd_create() called without MFD_EXEC or MFD_NOEXEC_SEAL set\n",
+-			current->comm, task_pid_nr(current));
+-	}
 -
--	if (register_shrinker(&nn->nfsd_client_shrinker, "nfsd-client"))
-+	nn->nfsd_client_shrinker = shrinker_alloc(0, "nfsd-client");
-+	if (!nn->nfsd_client_shrinker)
- 		goto err_shrinker;
-+
-+	nn->nfsd_client_shrinker->scan_objects = nfsd4_state_shrinker_scan;
-+	nn->nfsd_client_shrinker->count_objects = nfsd4_state_shrinker_count;
-+	nn->nfsd_client_shrinker->private_data = nn;
-+
-+	shrinker_register(nn->nfsd_client_shrinker);
-+
- 	return 0;
- 
- err_shrinker:
-@@ -8252,7 +8255,7 @@ nfs4_state_shutdown_net(struct net *net)
- 	struct list_head *pos, *next, reaplist;
- 	struct nfsd_net *nn = net_generic(net, nfsd_net_id);
- 
--	unregister_shrinker(&nn->nfsd_client_shrinker);
-+	shrinker_free(nn->nfsd_client_shrinker);
- 	cancel_work(&nn->nfsd_shrinker_work);
- 	cancel_delayed_work_sync(&nn->laundromat_work);
- 	locks_end_grace(&nn->nfsd4_manager);
+ 	error = check_sysctl_memfd_noexec(&flags);
+ 	if (error < 0)
+ 		return error;
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from cyphar@cyphar.com are
 
-mm-move-some-shrinker-related-function-declarations-to-mm-internalh.patch
-mm-vmscan-move-shrinker-related-code-into-a-separate-file.patch
-mm-shrinker-remove-redundant-shrinker_rwsem-in-debugfs-operations.patch
-drm-ttm-introduce-pool_shrink_rwsem.patch
-mm-shrinker-add-infrastructure-for-dynamically-allocating-shrinker.patch
-kvm-mmu-dynamically-allocate-the-x86-mmu-shrinker.patch
-binder-dynamically-allocate-the-android-binder-shrinker.patch
-drm-ttm-dynamically-allocate-the-drm-ttm_pool-shrinker.patch
-xenbus-backend-dynamically-allocate-the-xen-backend-shrinker.patch
-erofs-dynamically-allocate-the-erofs-shrinker.patch
-f2fs-dynamically-allocate-the-f2fs-shrinker.patch
-gfs2-dynamically-allocate-the-gfs2-glock-shrinker.patch
-gfs2-dynamically-allocate-the-gfs2-qd-shrinker.patch
-nfsv42-dynamically-allocate-the-nfs-xattr-shrinkers.patch
-nfs-dynamically-allocate-the-nfs-acl-shrinker.patch
-nfsd-dynamically-allocate-the-nfsd-filecache-shrinker.patch
-quota-dynamically-allocate-the-dquota-cache-shrinker.patch
-ubifs-dynamically-allocate-the-ubifs-slab-shrinker.patch
-rcu-dynamically-allocate-the-rcu-lazy-shrinker.patch
-rcu-dynamically-allocate-the-rcu-kfree-shrinker.patch
-mm-thp-dynamically-allocate-the-thp-related-shrinkers.patch
-sunrpc-dynamically-allocate-the-sunrpc_cred-shrinker.patch
-mm-workingset-dynamically-allocate-the-mm-shadow-shrinker.patch
-drm-i915-dynamically-allocate-the-i915_gem_mm-shrinker.patch
-drm-msm-dynamically-allocate-the-drm-msm_gem-shrinker.patch
-drm-panfrost-dynamically-allocate-the-drm-panfrost-shrinker.patch
-dm-dynamically-allocate-the-dm-bufio-shrinker.patch
-dm-zoned-dynamically-allocate-the-dm-zoned-meta-shrinker.patch
-md-raid5-dynamically-allocate-the-md-raid5-shrinker.patch
-bcache-dynamically-allocate-the-md-bcache-shrinker.patch
-vmw_balloon-dynamically-allocate-the-vmw-balloon-shrinker.patch
-virtio_balloon-dynamically-allocate-the-virtio-balloon-shrinker.patch
-mbcache-dynamically-allocate-the-mbcache-shrinker.patch
-ext4-dynamically-allocate-the-ext4-es-shrinker.patch
-jbd2ext4-dynamically-allocate-the-jbd2-journal-shrinker.patch
-nfsd-dynamically-allocate-the-nfsd-client-shrinker.patch
-nfsd-dynamically-allocate-the-nfsd-reply-shrinker.patch
-xfs-dynamically-allocate-the-xfs-buf-shrinker.patch
-xfs-dynamically-allocate-the-xfs-inodegc-shrinker.patch
-xfs-dynamically-allocate-the-xfs-qm-shrinker.patch
-zsmalloc-dynamically-allocate-the-mm-zspool-shrinker.patch
-fs-super-dynamically-allocate-the-s_shrink.patch
-mm-shrinker-remove-old-apis.patch
-mm-shrinker-add-a-secondary-array-for-shrinker_info-map-nr_deferred.patch
-mm-shrinker-rename-preallocunregister_memcg_shrinker-to-shrinker_memcg_allocremove.patch
-mm-shrinker-make-global-slab-shrink-lockless.patch
-mm-shrinker-make-memcg-slab-shrink-lockless.patch
-mm-shrinker-hold-write-lock-to-reparent-shrinker-nr_deferred.patch
-mm-shrinker-convert-shrinker_rwsem-to-mutex.patch
+memfd-drop-warning-for-missing-exec-related-flags.patch
 
