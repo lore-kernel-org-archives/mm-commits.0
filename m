@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2590BCA0EC3
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35238CA0EC7
 	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238480AbjIKWVw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:21:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46350 "EHLO
+        id S238278AbjIKWVv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:21:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35924 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244465AbjIKUhY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:37:24 -0400
+        with ESMTP id S244522AbjIKUjf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:39:35 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84A98127
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:37:19 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 133C2C433C7;
-        Mon, 11 Sep 2023 20:37:19 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1008A127
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:39:30 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 950A8C433C7;
+        Mon, 11 Sep 2023 20:39:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464639;
-        bh=2660QnCUoUX0XrVECVVlLgoKgmRZ8I4ad7+jJOt3PIY=;
+        s=korg; t=1694464769;
+        bh=28KZ1T2mS/7IoxZYdI4W/NwXuR7tgTnIlikA4Qxd/jI=;
         h=Date:To:From:Subject:From;
-        b=GYWLzySRZEgCaOh2P4zYD7BdhcvAvf6sz/27kdsfcGO4rVVTuHEwka5F6DCwo+wwx
-         nBGAa1WIRCedDd9V7J9sEcizEgoxsxLa92CInCnJK6zrIf+7065yLyG6z4ENKoA5LR
-         a4o2BYyUiVcLtW0UGYB9iKbNuhbn0Ii/aOAfSvhs=
-Date:   Mon, 11 Sep 2023 13:37:18 -0700
+        b=rJf2eqicSdK8N7/PTc+XUDTw6OEZ3FiGIYPSsclem0tMQyVP2Vr+DRd4TMB0bCyZ6
+         iat0WiyaTdgvakMAFLKsGtDDd777nvWCuXjfv6yevGCB3Ylzmn8iHNbfERsUP2y4kx
+         /E9bJYcRZOXCCTw2C+y76jFQAZBz4lviwTnElKWY=
+Date:   Mon, 11 Sep 2023 13:39:28 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + binder-dynamically-allocate-the-android-binder-shrinker.patch added to mm-unstable branch
-Message-Id: <20230911203719.133C2C433C7@smtp.kernel.org>
+Subject: + vmw_balloon-dynamically-allocate-the-vmw-balloon-shrinker.patch added to mm-unstable branch
+Message-Id: <20230911203929.950A8C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: binder: dynamically allocate the android-binder shrinker
+     Subject: vmw_balloon: dynamically allocate the vmw-balloon shrinker
 has been added to the -mm mm-unstable branch.  Its filename is
-     binder-dynamically-allocate-the-android-binder-shrinker.patch
+     vmw_balloon-dynamically-allocate-the-vmw-balloon-shrinker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/binder-dynamically-allocate-the-android-binder-shrinker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/vmw_balloon-dynamically-allocate-the-vmw-balloon-shrinker.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,15 +87,22 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: binder: dynamically allocate the android-binder shrinker
-Date: Mon, 11 Sep 2023 17:44:02 +0800
+Subject: vmw_balloon: dynamically allocate the vmw-balloon shrinker
+Date: Mon, 11 Sep 2023 17:44:26 +0800
 
-Use new APIs to dynamically allocate the android-binder shrinker.
+In preparation for implementing lockless slab shrink, use new APIs to
+dynamically allocate the vmw-balloon shrinker, so that it can be freed
+asynchronously via RCU. Then it doesn't need to wait for RCU read-side
+critical section when releasing the struct vmballoon.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-4-zhengqi.arch@bytedance.com
+And we can simply exit vmballoon_init() when registering the shrinker
+fails. So the shrinker_registered indication is redundant, just remove it.
+
+Link: https://lkml.kernel.org/r/20230911094444.68966-28-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Carlos Llamas <cmllamas@google.com>
+Acked-by: Nadav Amit <namit@vmware.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
@@ -104,9 +111,9 @@ Cc: Alyssa Rosenzweig <alyssa.rosenzweig@collabora.com>
 Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Cc: Anna Schumaker <anna@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Bob Peterson <rpeterso@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
+Cc: Carlos Llamas <cmllamas@google.com>
 Cc: Chandan Babu R <chandan.babu@oracle.com>
 Cc: Chao Yu <chao@kernel.org>
 Cc: Chris Mason <clm@fb.com>
@@ -144,7 +151,6 @@ Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nadav Amit <namit@vmware.com>
 Cc: Neil Brown <neilb@suse.de>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
 Cc: Olga Kornievskaia <kolga@netapp.com>
@@ -171,61 +177,88 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/android/binder_alloc.c |   30 ++++++++++++++++++------------
- 1 file changed, 18 insertions(+), 12 deletions(-)
+ drivers/misc/vmw_balloon.c |   38 +++++++++++------------------------
+ 1 file changed, 12 insertions(+), 26 deletions(-)
 
---- a/drivers/android/binder_alloc.c~binder-dynamically-allocate-the-android-binder-shrinker
-+++ a/drivers/android/binder_alloc.c
-@@ -1053,11 +1053,7 @@ binder_shrink_scan(struct shrinker *shri
- 			    NULL, sc->nr_to_scan);
+--- a/drivers/misc/vmw_balloon.c~vmw_balloon-dynamically-allocate-the-vmw-balloon-shrinker
++++ a/drivers/misc/vmw_balloon.c
+@@ -380,16 +380,7 @@ struct vmballoon {
+ 	/**
+ 	 * @shrinker: shrinker interface that is used to avoid over-inflation.
+ 	 */
+-	struct shrinker shrinker;
+-
+-	/**
+-	 * @shrinker_registered: whether the shrinker was registered.
+-	 *
+-	 * The shrinker interface does not handle gracefully the removal of
+-	 * shrinker that was not registered before. This indication allows to
+-	 * simplify the unregistration process.
+-	 */
+-	bool shrinker_registered;
++	struct shrinker *shrinker;
+ };
+ 
+ static struct vmballoon balloon;
+@@ -1568,29 +1559,27 @@ static unsigned long vmballoon_shrinker_
+ 
+ static void vmballoon_unregister_shrinker(struct vmballoon *b)
+ {
+-	if (b->shrinker_registered)
+-		unregister_shrinker(&b->shrinker);
+-	b->shrinker_registered = false;
++	shrinker_free(b->shrinker);
++	b->shrinker = NULL;
  }
  
--static struct shrinker binder_shrinker = {
--	.count_objects = binder_shrink_count,
--	.scan_objects = binder_shrink_scan,
--	.seeks = DEFAULT_SEEKS,
--};
-+static struct shrinker *binder_shrinker;
- 
- /**
-  * binder_alloc_init() - called by binder_open() for per-proc initialization
-@@ -1077,19 +1073,29 @@ void binder_alloc_init(struct binder_all
- 
- int binder_alloc_shrinker_init(void)
+ static int vmballoon_register_shrinker(struct vmballoon *b)
  {
--	int ret = list_lru_init(&binder_alloc_lru);
-+	int ret;
+-	int r;
+-
+ 	/* Do nothing if the shrinker is not enabled */
+ 	if (!vmwballoon_shrinker_enable)
+ 		return 0;
  
--	if (ret == 0) {
--		ret = register_shrinker(&binder_shrinker, "android-binder");
--		if (ret)
--			list_lru_destroy(&binder_alloc_lru);
-+	ret = list_lru_init(&binder_alloc_lru);
-+	if (ret)
-+		return ret;
-+
-+	binder_shrinker = shrinker_alloc(0, "android-binder");
-+	if (!binder_shrinker) {
-+		list_lru_destroy(&binder_alloc_lru);
+-	b->shrinker.scan_objects = vmballoon_shrinker_scan;
+-	b->shrinker.count_objects = vmballoon_shrinker_count;
+-	b->shrinker.seeks = DEFAULT_SEEKS;
++	b->shrinker = shrinker_alloc(0, "vmw-balloon");
++	if (!b->shrinker)
 +		return -ENOMEM;
- 	}
--	return ret;
-+
-+	binder_shrinker->count_objects = binder_shrink_count;
-+	binder_shrinker->scan_objects = binder_shrink_scan;
-+
-+	shrinker_register(binder_shrinker);
-+
+ 
+-	r = register_shrinker(&b->shrinker, "vmw-balloon");
++	b->shrinker->scan_objects = vmballoon_shrinker_scan;
++	b->shrinker->count_objects = vmballoon_shrinker_count;
++	b->shrinker->private_data = b;
+ 
+-	if (r == 0)
+-		b->shrinker_registered = true;
++	shrinker_register(b->shrinker);
+ 
+-	return r;
 +	return 0;
  }
  
- void binder_alloc_shrinker_exit(void)
- {
--	unregister_shrinker(&binder_shrinker);
-+	shrinker_free(binder_shrinker);
- 	list_lru_destroy(&binder_alloc_lru);
+ /*
+@@ -1883,7 +1872,7 @@ static int __init vmballoon_init(void)
+ 
+ 	error = vmballoon_register_shrinker(&balloon);
+ 	if (error)
+-		goto fail;
++		return error;
+ 
+ 	/*
+ 	 * Initialization of compaction must be done after the call to
+@@ -1905,9 +1894,6 @@ static int __init vmballoon_init(void)
+ 	vmballoon_debugfs_init(&balloon);
+ 
+ 	return 0;
+-fail:
+-	vmballoon_unregister_shrinker(&balloon);
+-	return error;
  }
  
+ /*
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
