@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53113CA0EC8
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:25:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87717CA0ECB
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:25:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239659AbjIKWWy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:22:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54538 "EHLO
+        id S241252AbjIKWW7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:22:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34432 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244535AbjIKUkT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:40:19 -0400
+        with ESMTP id S244514AbjIKUjZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:39:25 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F489127
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:40:14 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1003DC433C8;
-        Mon, 11 Sep 2023 20:40:14 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB7A8127
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:39:19 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48B32C433C8;
+        Mon, 11 Sep 2023 20:39:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464814;
-        bh=OuibBkfb7o4FVexOCFORFLBFA7mwYEeMnR499zTdQSc=;
+        s=korg; t=1694464759;
+        bh=ybrVzFrGpMFJiC+TQgvLGICeeBKeRI8itM6VZqtEowA=;
         h=Date:To:From:Subject:From;
-        b=bWVVfKiDGUJ0VtDdyYepEA3y3l6uMA9Phbtek4VJ8080Zm1kOAYbBfyjliw8Xvjev
-         JDbOVh1KeMBnnPzIjhKd1Kzp42RUCWBle2s4v94XPiVrXFQGUiqOTDO4Z1pG/7EWDq
-         XW/266KJEMjNc34a2R/7si0hirsIqUykojau8DU0=
-Date:   Mon, 11 Sep 2023 13:40:13 -0700
+        b=LJj9QcmusSUCP1TMlXmIR5NL6ZZG2CO4wlzCMj/Ci+iOUKJQ8LSw74zGXe2wOmlOe
+         e8zTly36hseVTRa4Cv2qstsVDUFszWh27MoGTlBo4j6RIon9AGluvb2y0fIh/ewZQk
+         2AOzXQdq3MDxXYhScfS7u+VAKLPoAQWO8xKRFB5Y=
+Date:   Mon, 11 Sep 2023 13:39:18 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + xfs-dynamically-allocate-the-xfs-qm-shrinker.patch added to mm-unstable branch
-Message-Id: <20230911204014.1003DC433C8@smtp.kernel.org>
+Subject: + md-raid5-dynamically-allocate-the-md-raid5-shrinker.patch added to mm-unstable branch
+Message-Id: <20230911203919.48B32C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xfs: dynamically allocate the xfs-qm shrinker
+     Subject: md/raid5: dynamically allocate the md-raid5 shrinker
 has been added to the -mm mm-unstable branch.  Its filename is
-     xfs-dynamically-allocate-the-xfs-qm-shrinker.patch
+     md-raid5-dynamically-allocate-the-md-raid5-shrinker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xfs-dynamically-allocate-the-xfs-qm-shrinker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/md-raid5-dynamically-allocate-the-md-raid5-shrinker.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,19 +87,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: xfs: dynamically allocate the xfs-qm shrinker
-Date: Mon, 11 Sep 2023 17:44:35 +0800
+Subject: md/raid5: dynamically allocate the md-raid5 shrinker
+Date: Mon, 11 Sep 2023 17:44:24 +0800
 
 In preparation for implementing lockless slab shrink, use new APIs to
-dynamically allocate the xfs-qm shrinker, so that it can be freed
+dynamically allocate the md-raid5 shrinker, so that it can be freed
 asynchronously via RCU. Then it doesn't need to wait for RCU read-side
-critical section when releasing the struct xfs_quotainfo.
+critical section when releasing the struct r5conf.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-37-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-26-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Chandan Babu R <chandan.babu@oracle.com>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
+Reviewed-by: Song Liu <song@kernel.org>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -111,6 +110,7 @@ Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Bob Peterson <rpeterso@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Carlos Llamas <cmllamas@google.com>
+Cc: Chandan Babu R <chandan.babu@oracle.com>
 Cc: Chao Yu <chao@kernel.org>
 Cc: Chris Mason <clm@fb.com>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -120,6 +120,7 @@ Cc: Coly Li <colyli@suse.de>
 Cc: Dai Ngo <Dai.Ngo@oracle.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Airlie <airlied@gmail.com>
@@ -159,7 +160,6 @@ Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Sean Paul <sean@poorly.run>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Song Liu <song@kernel.org>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Steven Price <steven.price@arm.com>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
@@ -174,79 +174,81 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_qm.c |   27 ++++++++++++++-------------
- fs/xfs/xfs_qm.h |    2 +-
- 2 files changed, 15 insertions(+), 14 deletions(-)
+ drivers/md/raid5.c |   26 +++++++++++++++-----------
+ drivers/md/raid5.h |    2 +-
+ 2 files changed, 16 insertions(+), 12 deletions(-)
 
---- a/fs/xfs/xfs_qm.c~xfs-dynamically-allocate-the-xfs-qm-shrinker
-+++ a/fs/xfs/xfs_qm.c
-@@ -504,8 +504,7 @@ xfs_qm_shrink_scan(
- 	struct shrinker		*shrink,
- 	struct shrink_control	*sc)
+--- a/drivers/md/raid5.c~md-raid5-dynamically-allocate-the-md-raid5-shrinker
++++ a/drivers/md/raid5.c
+@@ -7401,7 +7401,7 @@ static void free_conf(struct r5conf *con
+ 
+ 	log_exit(conf);
+ 
+-	unregister_shrinker(&conf->shrinker);
++	shrinker_free(conf->shrinker);
+ 	free_thread_groups(conf);
+ 	shrink_stripes(conf);
+ 	raid5_free_percpu(conf);
+@@ -7449,7 +7449,7 @@ static int raid5_alloc_percpu(struct r5c
+ static unsigned long raid5_cache_scan(struct shrinker *shrink,
+ 				      struct shrink_control *sc)
  {
--	struct xfs_quotainfo	*qi = container_of(shrink,
--					struct xfs_quotainfo, qi_shrinker);
-+	struct xfs_quotainfo	*qi = shrink->private_data;
- 	struct xfs_qm_isolate	isol;
- 	unsigned long		freed;
- 	int			error;
-@@ -539,8 +538,7 @@ xfs_qm_shrink_count(
- 	struct shrinker		*shrink,
- 	struct shrink_control	*sc)
+-	struct r5conf *conf = container_of(shrink, struct r5conf, shrinker);
++	struct r5conf *conf = shrink->private_data;
+ 	unsigned long ret = SHRINK_STOP;
+ 
+ 	if (mutex_trylock(&conf->cache_size_mutex)) {
+@@ -7470,7 +7470,7 @@ static unsigned long raid5_cache_scan(st
+ static unsigned long raid5_cache_count(struct shrinker *shrink,
+ 				       struct shrink_control *sc)
  {
--	struct xfs_quotainfo	*qi = container_of(shrink,
--					struct xfs_quotainfo, qi_shrinker);
-+	struct xfs_quotainfo	*qi = shrink->private_data;
+-	struct r5conf *conf = container_of(shrink, struct r5conf, shrinker);
++	struct r5conf *conf = shrink->private_data;
  
- 	return list_lru_shrink_count(&qi->qi_lru, sc);
- }
-@@ -680,15 +678,18 @@ xfs_qm_init_quotainfo(
- 	if (XFS_IS_PQUOTA_ON(mp))
- 		xfs_qm_set_defquota(mp, XFS_DQTYPE_PROJ, qinf);
+ 	if (conf->max_nr_stripes < conf->min_nr_stripes)
+ 		/* unlikely, but not impossible */
+@@ -7705,18 +7705,22 @@ static struct r5conf *setup_conf(struct
+ 	 * it reduces the queue depth and so can hurt throughput.
+ 	 * So set it rather large, scaled by number of devices.
+ 	 */
+-	conf->shrinker.seeks = DEFAULT_SEEKS * conf->raid_disks * 4;
+-	conf->shrinker.scan_objects = raid5_cache_scan;
+-	conf->shrinker.count_objects = raid5_cache_count;
+-	conf->shrinker.batch = 128;
+-	conf->shrinker.flags = 0;
+-	ret = register_shrinker(&conf->shrinker, "md-raid5:%s", mdname(mddev));
+-	if (ret) {
+-		pr_warn("md/raid:%s: couldn't register shrinker.\n",
++	conf->shrinker = shrinker_alloc(0, "md-raid5:%s", mdname(mddev));
++	if (!conf->shrinker) {
++		ret = -ENOMEM;
++		pr_warn("md/raid:%s: couldn't allocate shrinker.\n",
+ 			mdname(mddev));
+ 		goto abort;
+ 	}
  
--	qinf->qi_shrinker.count_objects = xfs_qm_shrink_count;
--	qinf->qi_shrinker.scan_objects = xfs_qm_shrink_scan;
--	qinf->qi_shrinker.seeks = DEFAULT_SEEKS;
--	qinf->qi_shrinker.flags = SHRINKER_NUMA_AWARE;
--
--	error = register_shrinker(&qinf->qi_shrinker, "xfs-qm:%s",
--				  mp->m_super->s_id);
--	if (error)
-+	qinf->qi_shrinker = shrinker_alloc(SHRINKER_NUMA_AWARE, "xfs-qm:%s",
-+					   mp->m_super->s_id);
-+	if (!qinf->qi_shrinker) {
-+		error = -ENOMEM;
- 		goto out_free_inos;
-+	}
++	conf->shrinker->seeks = DEFAULT_SEEKS * conf->raid_disks * 4;
++	conf->shrinker->scan_objects = raid5_cache_scan;
++	conf->shrinker->count_objects = raid5_cache_count;
++	conf->shrinker->batch = 128;
++	conf->shrinker->private_data = conf;
 +
-+	qinf->qi_shrinker->count_objects = xfs_qm_shrink_count;
-+	qinf->qi_shrinker->scan_objects = xfs_qm_shrink_scan;
-+	qinf->qi_shrinker->private_data = qinf;
++	shrinker_register(conf->shrinker);
 +
-+	shrinker_register(qinf->qi_shrinker);
- 
- 	return 0;
- 
-@@ -718,7 +719,7 @@ xfs_qm_destroy_quotainfo(
- 	qi = mp->m_quotainfo;
- 	ASSERT(qi != NULL);
- 
--	unregister_shrinker(&qi->qi_shrinker);
-+	shrinker_free(qi->qi_shrinker);
- 	list_lru_destroy(&qi->qi_lru);
- 	xfs_qm_destroy_quotainos(qi);
- 	mutex_destroy(&qi->qi_tree_lock);
---- a/fs/xfs/xfs_qm.h~xfs-dynamically-allocate-the-xfs-qm-shrinker
-+++ a/fs/xfs/xfs_qm.h
-@@ -63,7 +63,7 @@ struct xfs_quotainfo {
- 	struct xfs_def_quota	qi_usr_default;
- 	struct xfs_def_quota	qi_grp_default;
- 	struct xfs_def_quota	qi_prj_default;
--	struct shrinker		qi_shrinker;
-+	struct shrinker		*qi_shrinker;
- 
- 	/* Minimum and maximum quota expiration timestamp values. */
- 	time64_t		qi_expiry_min;
+ 	sprintf(pers_name, "raid%d", mddev->new_level);
+ 	rcu_assign_pointer(conf->thread,
+ 			   md_register_thread(raid5d, mddev, pers_name));
+--- a/drivers/md/raid5.h~md-raid5-dynamically-allocate-the-md-raid5-shrinker
++++ a/drivers/md/raid5.h
+@@ -670,7 +670,7 @@ struct r5conf {
+ 	wait_queue_head_t	wait_for_stripe;
+ 	wait_queue_head_t	wait_for_overlap;
+ 	unsigned long		cache_state;
+-	struct shrinker		shrinker;
++	struct shrinker		*shrinker;
+ 	int			pool_size; /* number of disks in stripeheads in pool */
+ 	spinlock_t		device_lock;
+ 	struct disk_info	*disks;
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
