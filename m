@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6091FCA0EC3
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:25:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DAE0CA0EC8
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:25:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241422AbjIKWXM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:23:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51992 "EHLO
+        id S240221AbjIKWXP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:23:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32990 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244513AbjIKUjT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:39:19 -0400
+        with ESMTP id S244530AbjIKUkD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:40:03 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2ED5E127
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:39:14 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4723C433C8;
-        Mon, 11 Sep 2023 20:39:13 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 620D5127
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:39:58 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA399C433C7;
+        Mon, 11 Sep 2023 20:39:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464753;
-        bh=Oj8grswxaoe48cvtfCbL0ILzSEznFbQLzamXnM7A71Q=;
+        s=korg; t=1694464798;
+        bh=g8TkIXwY75Jvz3ELDN1M1riiXhiuKjehR2pT3EBz1Ms=;
         h=Date:To:From:Subject:From;
-        b=aiE9qlNGtoxel+0C4ExO9otq+4YBYztP0XMAKYlqX+127BBGNDX/0gdjEoUCbfY6L
-         CIoorx0P2BFLnPmvwKn+cGEtZQitsHeqgBPZJACmw6iNcNi6Z/Jgh6s42v97UZkXCY
-         4i0AwMT+skttcHOpcVbEEmifvP2fXTcsPjhiZ4aU=
-Date:   Mon, 11 Sep 2023 13:39:12 -0700
+        b=Dib0NhKa9MQ20as8iebfrDAXEcAhR+w11/xvnsNkgTQGBUPmaOMtIYrXHtLbZLSTf
+         42CBv2VqGetyzrbctUn0aoJANwtx1TBLDtFZgA3Y06vIXDGZjANkVhRUWPaQ9YPK0x
+         oiD3uW+TTllv6DKJrfCYt0u4b12idGE68cI9VaDY=
+Date:   Mon, 11 Sep 2023 13:39:57 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -47,15 +47,15 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         david@redhat.com, david@fromorbit.com, dave.hansen@linux.intel.com,
         daniel.vetter@ffwll.ch, daniel@ffwll.ch, Dai.Ngo@oracle.com,
         colyli@suse.de, cmllamas@google.com, clm@fb.com,
-        christian.koenig@amd.com, chao@kernel.org, chandan.babu@oracle.com,
-        cel@kernel.org, brauner@kernel.org, bp@alien8.de, arnd@arndb.de,
-        anna@kernel.org, alyssa.rosenzweig@collabora.com,
-        airlied@gmail.com, agruenba@redhat.com, agk@redhat.com,
-        adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
-        akpm@linux-foundation.org
+        chuck.lever@oracle.com, christian.koenig@amd.com, chao@kernel.org,
+        chandan.babu@oracle.com, cel@kernel.org, brauner@kernel.org,
+        bp@alien8.de, arnd@arndb.de, anna@kernel.org,
+        alyssa.rosenzweig@collabora.com, airlied@gmail.com,
+        agruenba@redhat.com, agk@redhat.com, adilger.kernel@dilger.ca,
+        zhengqi.arch@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + dm-zoned-dynamically-allocate-the-dm-zoned-meta-shrinker.patch added to mm-unstable branch
-Message-Id: <20230911203913.A4723C433C8@smtp.kernel.org>
+Subject: + nfsd-dynamically-allocate-the-nfsd-client-shrinker.patch added to mm-unstable branch
+Message-Id: <20230911203957.EA399C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dm zoned: dynamically allocate the dm-zoned-meta shrinker
+     Subject: nfsd: dynamically allocate the nfsd-client shrinker
 has been added to the -mm mm-unstable branch.  Its filename is
-     dm-zoned-dynamically-allocate-the-dm-zoned-meta-shrinker.patch
+     nfsd-dynamically-allocate-the-nfsd-client-shrinker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dm-zoned-dynamically-allocate-the-dm-zoned-meta-shrinker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nfsd-dynamically-allocate-the-nfsd-client-shrinker.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,20 +87,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: dm zoned: dynamically allocate the dm-zoned-meta shrinker
-Date: Mon, 11 Sep 2023 17:44:23 +0800
+Subject: nfsd: dynamically allocate the nfsd-client shrinker
+Date: Mon, 11 Sep 2023 17:44:31 +0800
 
 In preparation for implementing lockless slab shrink, use new APIs to
-dynamically allocate the dm-zoned-meta shrinker, so that it can be freed
+dynamically allocate the nfsd-client shrinker, so that it can be freed
 asynchronously via RCU. Then it doesn't need to wait for RCU read-side
-critical section when releasing the struct dmz_metadata.
+critical section when releasing the struct nfsd_net.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-25-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-33-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Alasdair Kergon <agk@redhat.com>
-Cc: Mike Snitzer <snitzer@kernel.org>
+Acked-by: Chuck Lever <chuck.lever@oracle.com>
+Acked-by: Jeff Layton <jlayton@kernel.org>
+Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Olga Kornievskaia <kolga@netapp.com>
+Cc: Dai Ngo <Dai.Ngo@oracle.com>
+Cc: Tom Talpey <tom@talpey.com>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
+Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alyssa Rosenzweig <alyssa.rosenzweig@collabora.com>
 Cc: Andreas Dilger <adilger.kernel@dilger.ca>
@@ -117,7 +121,6 @@ Cc: Christian Brauner <brauner@kernel.org>
 Cc: Christian Koenig <christian.koenig@amd.com>
 Cc: Chuck Lever <cel@kernel.org>
 Cc: Coly Li <colyli@suse.de>
-Cc: Dai Ngo <Dai.Ngo@oracle.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
@@ -135,7 +138,6 @@ Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Wang <jasowang@redhat.com>
-Cc: Jeff Layton <jlayton@kernel.org>
 Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
 Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
 Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
@@ -145,12 +147,13 @@ Cc: Kent Overstreet <kent.overstreet@gmail.com>
 Cc: Kirill Tkhai <tkhai@ya.ru>
 Cc: Marijn Suijten <marijn.suijten@somainline.org>
 Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Nadav Amit <namit@vmware.com>
 Cc: Neil Brown <neilb@suse.de>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
-Cc: Olga Kornievskaia <kolga@netapp.com>
 Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Richard Weinberger <richard@nod.at>
 Cc: Rob Clark <robdclark@gmail.com>
@@ -165,7 +168,6 @@ Cc: Steven Price <steven.price@arm.com>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: Tom Talpey <tom@talpey.com>
 Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -174,79 +176,64 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-zoned-metadata.c |   28 ++++++++++++++++------------
- 1 file changed, 16 insertions(+), 12 deletions(-)
+ fs/nfsd/netns.h     |    2 +-
+ fs/nfsd/nfs4state.c |   19 +++++++++++--------
+ 2 files changed, 12 insertions(+), 9 deletions(-)
 
---- a/drivers/md/dm-zoned-metadata.c~dm-zoned-dynamically-allocate-the-dm-zoned-meta-shrinker
-+++ a/drivers/md/dm-zoned-metadata.c
-@@ -187,7 +187,7 @@ struct dmz_metadata {
- 	struct rb_root		mblk_rbtree;
- 	struct list_head	mblk_lru_list;
- 	struct list_head	mblk_dirty_list;
--	struct shrinker		mblk_shrinker;
-+	struct shrinker		*mblk_shrinker;
+--- a/fs/nfsd/netns.h~nfsd-dynamically-allocate-the-nfsd-client-shrinker
++++ a/fs/nfsd/netns.h
+@@ -195,7 +195,7 @@ struct nfsd_net {
+ 	int			nfs4_max_clients;
  
- 	/* Zone allocation management */
- 	struct mutex		map_lock;
-@@ -615,7 +615,7 @@ static unsigned long dmz_shrink_mblock_c
- static unsigned long dmz_mblock_shrinker_count(struct shrinker *shrink,
- 					       struct shrink_control *sc)
+ 	atomic_t		nfsd_courtesy_clients;
+-	struct shrinker		nfsd_client_shrinker;
++	struct shrinker		*nfsd_client_shrinker;
+ 	struct work_struct	nfsd_shrinker_work;
+ };
+ 
+--- a/fs/nfsd/nfs4state.c~nfsd-dynamically-allocate-the-nfsd-client-shrinker
++++ a/fs/nfsd/nfs4state.c
+@@ -4400,8 +4400,7 @@ static unsigned long
+ nfsd4_state_shrinker_count(struct shrinker *shrink, struct shrink_control *sc)
  {
--	struct dmz_metadata *zmd = container_of(shrink, struct dmz_metadata, mblk_shrinker);
-+	struct dmz_metadata *zmd = shrink->private_data;
+ 	int count;
+-	struct nfsd_net *nn = container_of(shrink,
+-			struct nfsd_net, nfsd_client_shrinker);
++	struct nfsd_net *nn = shrink->private_data;
  
- 	return atomic_read(&zmd->nr_mblks);
- }
-@@ -626,7 +626,7 @@ static unsigned long dmz_mblock_shrinker
- static unsigned long dmz_mblock_shrinker_scan(struct shrinker *shrink,
- 					      struct shrink_control *sc)
- {
--	struct dmz_metadata *zmd = container_of(shrink, struct dmz_metadata, mblk_shrinker);
-+	struct dmz_metadata *zmd = shrink->private_data;
- 	unsigned long count;
+ 	count = atomic_read(&nn->nfsd_courtesy_clients);
+ 	if (!count)
+@@ -8149,12 +8148,16 @@ static int nfs4_state_create_net(struct
+ 	INIT_WORK(&nn->nfsd_shrinker_work, nfsd4_state_shrinker_worker);
+ 	get_net(net);
  
- 	spin_lock(&zmd->mblk_lock);
-@@ -2936,19 +2936,23 @@ int dmz_ctr_metadata(struct dmz_dev *dev
- 	 */
- 	zmd->min_nr_mblks = 2 + zmd->nr_map_blocks + zmd->zone_nr_bitmap_blocks * 16;
- 	zmd->max_nr_mblks = zmd->min_nr_mblks + 512;
--	zmd->mblk_shrinker.count_objects = dmz_mblock_shrinker_count;
--	zmd->mblk_shrinker.scan_objects = dmz_mblock_shrinker_scan;
--	zmd->mblk_shrinker.seeks = DEFAULT_SEEKS;
- 
- 	/* Metadata cache shrinker */
--	ret = register_shrinker(&zmd->mblk_shrinker, "dm-zoned-meta:(%u:%u)",
--				MAJOR(dev->bdev->bd_dev),
--				MINOR(dev->bdev->bd_dev));
--	if (ret) {
--		dmz_zmd_err(zmd, "Register metadata cache shrinker failed");
-+	zmd->mblk_shrinker = shrinker_alloc(0,  "dm-zoned-meta:(%u:%u)",
-+					    MAJOR(dev->bdev->bd_dev),
-+					    MINOR(dev->bdev->bd_dev));
-+	if (!zmd->mblk_shrinker) {
-+		ret = -ENOMEM;
-+		dmz_zmd_err(zmd, "Allocate metadata cache shrinker failed");
- 		goto err;
- 	}
- 
-+	zmd->mblk_shrinker->count_objects = dmz_mblock_shrinker_count;
-+	zmd->mblk_shrinker->scan_objects = dmz_mblock_shrinker_scan;
-+	zmd->mblk_shrinker->private_data = zmd;
+-	nn->nfsd_client_shrinker.scan_objects = nfsd4_state_shrinker_scan;
+-	nn->nfsd_client_shrinker.count_objects = nfsd4_state_shrinker_count;
+-	nn->nfsd_client_shrinker.seeks = DEFAULT_SEEKS;
+-
+-	if (register_shrinker(&nn->nfsd_client_shrinker, "nfsd-client"))
++	nn->nfsd_client_shrinker = shrinker_alloc(0, "nfsd-client");
++	if (!nn->nfsd_client_shrinker)
+ 		goto err_shrinker;
 +
-+	shrinker_register(zmd->mblk_shrinker);
++	nn->nfsd_client_shrinker->scan_objects = nfsd4_state_shrinker_scan;
++	nn->nfsd_client_shrinker->count_objects = nfsd4_state_shrinker_count;
++	nn->nfsd_client_shrinker->private_data = nn;
 +
- 	dmz_zmd_info(zmd, "DM-Zoned metadata version %d", zmd->sb_version);
- 	for (i = 0; i < zmd->nr_devs; i++)
- 		dmz_print_dev(zmd, i);
-@@ -2995,7 +2999,7 @@ err:
-  */
- void dmz_dtr_metadata(struct dmz_metadata *zmd)
- {
--	unregister_shrinker(&zmd->mblk_shrinker);
-+	shrinker_free(zmd->mblk_shrinker);
- 	dmz_cleanup_metadata(zmd);
- 	kfree(zmd);
- }
++	shrinker_register(nn->nfsd_client_shrinker);
++
+ 	return 0;
+ 
+ err_shrinker:
+@@ -8252,7 +8255,7 @@ nfs4_state_shutdown_net(struct net *net)
+ 	struct list_head *pos, *next, reaplist;
+ 	struct nfsd_net *nn = net_generic(net, nfsd_net_id);
+ 
+-	unregister_shrinker(&nn->nfsd_client_shrinker);
++	shrinker_free(nn->nfsd_client_shrinker);
+ 	cancel_work(&nn->nfsd_shrinker_work);
+ 	cancel_delayed_work_sync(&nn->laundromat_work);
+ 	locks_end_grace(&nn->nfsd4_manager);
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
