@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31EEDCA0ED0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CFCDBCA0EC8
 	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:26:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237709AbjIKWY0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:24:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41860 "EHLO
+        id S243677AbjIKWYb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:24:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54524 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244470AbjIKUhk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:37:40 -0400
+        with ESMTP id S244534AbjIKUkQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:40:16 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A89D01A7
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:37:35 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21C5CC433C7;
-        Mon, 11 Sep 2023 20:37:35 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51D7F1A7
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:40:10 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4F8EC433C7;
+        Mon, 11 Sep 2023 20:40:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464655;
-        bh=H86/noxkAq7L/BKvFxVG4XQVmTpHCeKaYowoAkUyvUY=;
+        s=korg; t=1694464809;
+        bh=6Ok0lxJd3pZf5mAfJB4d1Zzy7mbj/L108bM9qrlpO0g=;
         h=Date:To:From:Subject:From;
-        b=bI72yzDdroDv7tkmTq1TTNEBxWwyuiuouMh/zYXjICluvkeIOUtBpn5Civ9FLUcIl
-         cWDkivUssfaefxuze1rut7sRZJGJsJKUzh81HZKKLiDdI4C5Ee4KQ2jofcpMlKVArH
-         mbitQ5TaNVW18en+2Q6wcuLnsr4Vv3ElhnhvgP5Y=
-Date:   Mon, 11 Sep 2023 13:37:34 -0700
+        b=y+9rUMh+eBPpwLCxSn9Lz89XZNu8TyXQOkNzDdhKeq9NHUuNnLa2HkZ3AWiMV9/8H
+         co/CKEoVqsrvwUoB0ogLttTN4gD4BwUJjCrWNQ3JDvzTLLc4+QjoHmVr9VY1D4/65Y
+         q/Rk6vkXqGVu8bQ9ThM2AL0OeDmNLC9EK4slLS5k=
+Date:   Mon, 11 Sep 2023 13:40:09 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + erofs-dynamically-allocate-the-erofs-shrinker.patch added to mm-unstable branch
-Message-Id: <20230911203735.21C5CC433C7@smtp.kernel.org>
+Subject: + xfs-dynamically-allocate-the-xfs-inodegc-shrinker.patch added to mm-unstable branch
+Message-Id: <20230911204009.D4F8EC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: erofs: dynamically allocate the erofs-shrinker
+     Subject: xfs: dynamically allocate the xfs-inodegc shrinker
 has been added to the -mm mm-unstable branch.  Its filename is
-     erofs-dynamically-allocate-the-erofs-shrinker.patch
+     xfs-dynamically-allocate-the-xfs-inodegc-shrinker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/erofs-dynamically-allocate-the-erofs-shrinker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xfs-dynamically-allocate-the-xfs-inodegc-shrinker.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,18 +87,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: erofs: dynamically allocate the erofs-shrinker
-Date: Mon, 11 Sep 2023 17:44:05 +0800
+Subject: xfs: dynamically allocate the xfs-inodegc shrinker
+Date: Mon, 11 Sep 2023 17:44:34 +0800
 
-Use new APIs to dynamically allocate the erofs-shrinker.
+In preparation for implementing lockless slab shrink, use new APIs to
+dynamically allocate the xfs-inodegc shrinker, so that it can be freed
+asynchronously via RCU. Then it doesn't need to wait for RCU read-side
+critical section when releasing the struct xfs_mount.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-7-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-36-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Chao Yu <chao@kernel.org>
-Reviewed-by: Gao Xiang <hsiangkao@linux.alibaba.com>
-Cc: Yue Hu <huyue2@coolpad.com>
-Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
+Cc: Chandan Babu R <chandan.babu@oracle.com>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -110,7 +111,7 @@ Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Bob Peterson <rpeterso@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Carlos Llamas <cmllamas@google.com>
-Cc: Chandan Babu R <chandan.babu@oracle.com>
+Cc: Chao Yu <chao@kernel.org>
 Cc: Chris Mason <clm@fb.com>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: Christian Koenig <christian.koenig@amd.com>
@@ -119,13 +120,13 @@ Cc: Coly Li <colyli@suse.de>
 Cc: Dai Ngo <Dai.Ngo@oracle.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Airlie <airlied@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Sterba <dsterba@suse.com>
 Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
+Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Huang Rui <ray.huang@amd.com>
 Cc: Ingo Molnar <mingo@redhat.com>
@@ -134,6 +135,7 @@ Cc: Jani Nikula <jani.nikula@linux.intel.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Wang <jasowang@redhat.com>
 Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
 Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
 Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
 Cc: Josef Bacik <josef@toxicpanda.com>
@@ -168,46 +170,95 @@ Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
+Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/erofs/utils.c |   19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ fs/xfs/xfs_icache.c |   26 +++++++++++++++-----------
+ fs/xfs/xfs_mount.c  |    4 ++--
+ fs/xfs/xfs_mount.h  |    2 +-
+ 3 files changed, 18 insertions(+), 14 deletions(-)
 
---- a/fs/erofs/utils.c~erofs-dynamically-allocate-the-erofs-shrinker
-+++ a/fs/erofs/utils.c
-@@ -270,19 +270,24 @@ static unsigned long erofs_shrink_scan(s
- 	return freed;
- }
- 
--static struct shrinker erofs_shrinker_info = {
--	.scan_objects = erofs_shrink_scan,
--	.count_objects = erofs_shrink_count,
--	.seeks = DEFAULT_SEEKS,
--};
-+static struct shrinker *erofs_shrinker_info;
- 
- int __init erofs_init_shrinker(void)
+--- a/fs/xfs/xfs_icache.c~xfs-dynamically-allocate-the-xfs-inodegc-shrinker
++++ a/fs/xfs/xfs_icache.c
+@@ -2187,8 +2187,7 @@ xfs_inodegc_shrinker_count(
+ 	struct shrinker		*shrink,
+ 	struct shrink_control	*sc)
  {
--	return register_shrinker(&erofs_shrinker_info, "erofs-shrinker");
-+	erofs_shrinker_info = shrinker_alloc(0, "erofs-shrinker");
-+	if (!erofs_shrinker_info)
+-	struct xfs_mount	*mp = container_of(shrink, struct xfs_mount,
+-						   m_inodegc_shrinker);
++	struct xfs_mount	*mp = shrink->private_data;
+ 	struct xfs_inodegc	*gc;
+ 	int			cpu;
+ 
+@@ -2209,8 +2208,7 @@ xfs_inodegc_shrinker_scan(
+ 	struct shrinker		*shrink,
+ 	struct shrink_control	*sc)
+ {
+-	struct xfs_mount	*mp = container_of(shrink, struct xfs_mount,
+-						   m_inodegc_shrinker);
++	struct xfs_mount	*mp = shrink->private_data;
+ 	struct xfs_inodegc	*gc;
+ 	int			cpu;
+ 	bool			no_items = true;
+@@ -2246,13 +2244,19 @@ int
+ xfs_inodegc_register_shrinker(
+ 	struct xfs_mount	*mp)
+ {
+-	struct shrinker		*shrink = &mp->m_inodegc_shrinker;
++	mp->m_inodegc_shrinker = shrinker_alloc(SHRINKER_NONSLAB,
++						"xfs-inodegc:%s",
++						mp->m_super->s_id);
++	if (!mp->m_inodegc_shrinker)
 +		return -ENOMEM;
 +
-+	erofs_shrinker_info->count_objects = erofs_shrink_count;
-+	erofs_shrinker_info->scan_objects = erofs_shrink_scan;
-+
-+	shrinker_register(erofs_shrinker_info);
-+
++	mp->m_inodegc_shrinker->count_objects = xfs_inodegc_shrinker_count;
++	mp->m_inodegc_shrinker->scan_objects = xfs_inodegc_shrinker_scan;
++	mp->m_inodegc_shrinker->seeks = 0;
++	mp->m_inodegc_shrinker->batch = XFS_INODEGC_SHRINKER_BATCH;
++	mp->m_inodegc_shrinker->private_data = mp;
+ 
+-	shrink->count_objects = xfs_inodegc_shrinker_count;
+-	shrink->scan_objects = xfs_inodegc_shrinker_scan;
+-	shrink->seeks = 0;
+-	shrink->flags = SHRINKER_NONSLAB;
+-	shrink->batch = XFS_INODEGC_SHRINKER_BATCH;
++	shrinker_register(mp->m_inodegc_shrinker);
+ 
+-	return register_shrinker(shrink, "xfs-inodegc:%s", mp->m_super->s_id);
 +	return 0;
  }
+--- a/fs/xfs/xfs_mount.c~xfs-dynamically-allocate-the-xfs-inodegc-shrinker
++++ a/fs/xfs/xfs_mount.c
+@@ -1021,7 +1021,7 @@ xfs_mountfs(
+  out_log_dealloc:
+ 	xfs_log_mount_cancel(mp);
+  out_inodegc_shrinker:
+-	unregister_shrinker(&mp->m_inodegc_shrinker);
++	shrinker_free(mp->m_inodegc_shrinker);
+  out_fail_wait:
+ 	if (mp->m_logdev_targp && mp->m_logdev_targp != mp->m_ddev_targp)
+ 		xfs_buftarg_drain(mp->m_logdev_targp);
+@@ -1104,7 +1104,7 @@ xfs_unmountfs(
+ #if defined(DEBUG)
+ 	xfs_errortag_clearall(mp);
+ #endif
+-	unregister_shrinker(&mp->m_inodegc_shrinker);
++	shrinker_free(mp->m_inodegc_shrinker);
+ 	xfs_free_perag(mp);
  
- void erofs_exit_shrinker(void)
- {
--	unregister_shrinker(&erofs_shrinker_info);
-+	shrinker_free(erofs_shrinker_info);
- }
- #endif	/* !CONFIG_EROFS_FS_ZIP */
+ 	xfs_errortag_del(mp);
+--- a/fs/xfs/xfs_mount.h~xfs-dynamically-allocate-the-xfs-inodegc-shrinker
++++ a/fs/xfs/xfs_mount.h
+@@ -221,7 +221,7 @@ typedef struct xfs_mount {
+ 	atomic_t		m_agirotor;	/* last ag dir inode alloced */
+ 
+ 	/* Memory shrinker to throttle and reprioritize inodegc */
+-	struct shrinker		m_inodegc_shrinker;
++	struct shrinker		*m_inodegc_shrinker;
+ 	/*
+ 	 * Workqueue item so that we can coalesce multiple inode flush attempts
+ 	 * into a single flush.
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
