@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B264CA0EDD
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DECC2CA0ECB
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239467AbjIKWWK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:22:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38846 "EHLO
+        id S239731AbjIKWWN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:22:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46352 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244486AbjIKUiY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:38:24 -0400
+        with ESMTP id S244466AbjIKUha (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:37:30 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7BA08127
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:38:18 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F9F7C433C7;
-        Mon, 11 Sep 2023 20:38:18 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80BE21A7
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:37:25 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E3C5C433C7;
+        Mon, 11 Sep 2023 20:37:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464698;
-        bh=AckqRHZle53IhzgCy3DF+wIBrVAU+ENLtOI0FJ+OKiQ=;
+        s=korg; t=1694464645;
+        bh=LWMpZQW7aduFztyYCH8LbOM8FjGLC5fCA86Y7OQK/5s=;
         h=Date:To:From:Subject:From;
-        b=q/AGU0TS7id3lEdhKZW7VZTdjvwfy4tQo82NHf7qIxDR6OpoitjXE6NT1sYxvKNEw
-         QhBIncoX2e5GwIqMFeP/hU9CcTrabHDVmfUiDikETJ47tGakD0zmdFB46dMogUAN8M
-         hTtu47SQPncRyyYj4XjWxsX+pBZnNF75NlfW4+D8=
-Date:   Mon, 11 Sep 2023 13:38:17 -0700
+        b=ZsNOL/blKqI+QK8NidqVfOrTmjdPjGyTyfop9TZkR7/VIKBvwLei+MPrSlWN+bxcG
+         aFd/mrJpYnZmTh1Ebl13ljLQKx7Rl84EtGOsgbhI3D1q+nIkYyU8WPiQ/XBpXBdLTG
+         Yq+vU503B4yps1yP+bd9Lf86EwV1GoqFc9OSt4Js=
+Date:   Mon, 11 Sep 2023 13:37:24 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ubifs-dynamically-allocate-the-ubifs-slab-shrinker.patch added to mm-unstable branch
-Message-Id: <20230911203818.0F9F7C433C7@smtp.kernel.org>
+Subject: + drm-ttm-dynamically-allocate-the-drm-ttm_pool-shrinker.patch added to mm-unstable branch
+Message-Id: <20230911203725.0E3C5C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ubifs: dynamically allocate the ubifs-slab shrinker
+     Subject: drm/ttm: dynamically allocate the drm-ttm_pool shrinker
 has been added to the -mm mm-unstable branch.  Its filename is
-     ubifs-dynamically-allocate-the-ubifs-slab-shrinker.patch
+     drm-ttm-dynamically-allocate-the-drm-ttm_pool-shrinker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ubifs-dynamically-allocate-the-ubifs-slab-shrinker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-ttm-dynamically-allocate-the-drm-ttm_pool-shrinker.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,15 +87,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: ubifs: dynamically allocate the ubifs-slab shrinker
-Date: Mon, 11 Sep 2023 17:44:13 +0800
+Subject: drm/ttm: dynamically allocate the drm-ttm_pool shrinker
+Date: Mon, 11 Sep 2023 17:44:03 +0800
 
-Use new APIs to dynamically allocate the ubifs-slab shrinker.
+Use new APIs to dynamically allocate the drm-ttm_pool shrinker.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-15-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-5-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Richard Weinberger <richard@nod.at>
+Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Christian Koenig <christian.koenig@amd.com>
+Cc: Huang Rui <ray.huang@amd.com>
+Cc: David Airlie <airlied@gmail.com>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -111,22 +114,18 @@ Cc: Chandan Babu R <chandan.babu@oracle.com>
 Cc: Chao Yu <chao@kernel.org>
 Cc: Chris Mason <clm@fb.com>
 Cc: Christian Brauner <brauner@kernel.org>
-Cc: Christian Koenig <christian.koenig@amd.com>
 Cc: Chuck Lever <cel@kernel.org>
 Cc: Coly Li <colyli@suse.de>
 Cc: Dai Ngo <Dai.Ngo@oracle.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Airlie <airlied@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Sterba <dsterba@suse.com>
 Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
 Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Huang Rui <ray.huang@amd.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
@@ -150,6 +149,7 @@ Cc: Neil Brown <neilb@suse.de>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
 Cc: Olga Kornievskaia <kolga@netapp.com>
 Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Richard Weinberger <richard@nod.at>
 Cc: Rob Clark <robdclark@gmail.com>
 Cc: Rob Herring <robh@kernel.org>
 Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
@@ -171,69 +171,61 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ubifs/super.c |   21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ drivers/gpu/drm/ttm/ttm_pool.c |   23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
---- a/fs/ubifs/super.c~ubifs-dynamically-allocate-the-ubifs-slab-shrinker
-+++ a/fs/ubifs/super.c
-@@ -54,11 +54,7 @@ module_param_cb(default_version, &ubifs_
- static struct kmem_cache *ubifs_inode_slab;
+--- a/drivers/gpu/drm/ttm/ttm_pool.c~drm-ttm-dynamically-allocate-the-drm-ttm_pool-shrinker
++++ a/drivers/gpu/drm/ttm/ttm_pool.c
+@@ -73,7 +73,7 @@ static struct ttm_pool_type global_dma32
  
- /* UBIFS TNC shrinker description */
--static struct shrinker ubifs_shrinker_info = {
--	.scan_objects = ubifs_shrink_scan,
--	.count_objects = ubifs_shrink_count,
--	.seeks = DEFAULT_SEEKS,
--};
-+static struct shrinker *ubifs_shrinker_info;
+ static spinlock_t shrinker_lock;
+ static struct list_head shrinker_list;
+-static struct shrinker mm_shrinker;
++static struct shrinker *mm_shrinker;
+ static DECLARE_RWSEM(pool_shrink_rwsem);
+ 
+ /* Allocate pages of size 1 << order with the given gfp_flags */
+@@ -749,8 +749,8 @@ static int ttm_pool_debugfs_shrink_show(
+ 	struct shrink_control sc = { .gfp_mask = GFP_NOFS };
+ 
+ 	fs_reclaim_acquire(GFP_KERNEL);
+-	seq_printf(m, "%lu/%lu\n", ttm_pool_shrinker_count(&mm_shrinker, &sc),
+-		   ttm_pool_shrinker_scan(&mm_shrinker, &sc));
++	seq_printf(m, "%lu/%lu\n", ttm_pool_shrinker_count(mm_shrinker, &sc),
++		   ttm_pool_shrinker_scan(mm_shrinker, &sc));
+ 	fs_reclaim_release(GFP_KERNEL);
+ 
+ 	return 0;
+@@ -794,10 +794,17 @@ int ttm_pool_mgr_init(unsigned long num_
+ 			    &ttm_pool_debugfs_shrink_fops);
+ #endif
+ 
+-	mm_shrinker.count_objects = ttm_pool_shrinker_count;
+-	mm_shrinker.scan_objects = ttm_pool_shrinker_scan;
+-	mm_shrinker.seeks = 1;
+-	return register_shrinker(&mm_shrinker, "drm-ttm_pool");
++	mm_shrinker = shrinker_alloc(0, "drm-ttm_pool");
++	if (!mm_shrinker)
++		return -ENOMEM;
++
++	mm_shrinker->count_objects = ttm_pool_shrinker_count;
++	mm_shrinker->scan_objects = ttm_pool_shrinker_scan;
++	mm_shrinker->seeks = 1;
++
++	shrinker_register(mm_shrinker);
++
++	return 0;
+ }
  
  /**
-  * validate_inode - validate inode.
-@@ -2373,7 +2369,7 @@ static void inode_slab_ctor(void *obj)
+@@ -817,6 +824,6 @@ void ttm_pool_mgr_fini(void)
+ 		ttm_pool_type_fini(&global_dma32_uncached[i]);
+ 	}
  
- static int __init ubifs_init(void)
- {
--	int err;
-+	int err = -ENOMEM;
- 
- 	BUILD_BUG_ON(sizeof(struct ubifs_ch) != 24);
- 
-@@ -2439,10 +2435,15 @@ static int __init ubifs_init(void)
- 	if (!ubifs_inode_slab)
- 		return -ENOMEM;
- 
--	err = register_shrinker(&ubifs_shrinker_info, "ubifs-slab");
--	if (err)
-+	ubifs_shrinker_info = shrinker_alloc(0, "ubifs-slab");
-+	if (!ubifs_shrinker_info)
- 		goto out_slab;
- 
-+	ubifs_shrinker_info->count_objects = ubifs_shrink_count;
-+	ubifs_shrinker_info->scan_objects = ubifs_shrink_scan;
-+
-+	shrinker_register(ubifs_shrinker_info);
-+
- 	err = ubifs_compressors_init();
- 	if (err)
- 		goto out_shrinker;
-@@ -2467,7 +2468,7 @@ out_dbg:
- 	dbg_debugfs_exit();
- 	ubifs_compressors_exit();
- out_shrinker:
--	unregister_shrinker(&ubifs_shrinker_info);
-+	shrinker_free(ubifs_shrinker_info);
- out_slab:
- 	kmem_cache_destroy(ubifs_inode_slab);
- 	return err;
-@@ -2483,7 +2484,7 @@ static void __exit ubifs_exit(void)
- 	dbg_debugfs_exit();
- 	ubifs_sysfs_exit();
- 	ubifs_compressors_exit();
--	unregister_shrinker(&ubifs_shrinker_info);
-+	shrinker_free(ubifs_shrinker_info);
- 
- 	/*
- 	 * Make sure all delayed rcu free inodes are flushed before we
+-	unregister_shrinker(&mm_shrinker);
++	shrinker_free(mm_shrinker);
+ 	WARN_ON(!list_empty(&shrinker_list));
+ }
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
