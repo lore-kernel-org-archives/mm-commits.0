@@ -2,60 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95B84CA0ECB
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:25:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D4C2CA0EC6
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:25:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236959AbjIKWWo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:22:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36252 "EHLO
+        id S237681AbjIKWWv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:22:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53510 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244485AbjIKUiS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:38:18 -0400
+        with ESMTP id S244025AbjIKSrJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 14:47:09 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C248127
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:38:13 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3639C433C7;
-        Mon, 11 Sep 2023 20:38:12 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49DAE1AD
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 11:47:04 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C79A4C433C8;
+        Mon, 11 Sep 2023 18:47:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464692;
-        bh=IygVCOUmEebKU+wYjkwOQTvyKeFELtkxfGVvYKuWpag=;
+        s=korg; t=1694458023;
+        bh=tKu5a9Vpc19RX++0VPswaemAuAvIFwBKG88ilWQ4P7w=;
         h=Date:To:From:Subject:From;
-        b=UMRuw4u4ZyeAF4AZPjsguz5YGESSRRqk0ve9crC/au1YE3dviDa0/abeZZOmoDzj7
-         oYit+JU/OvAbrYtmIbMQ8FeAAYZ3FEcyxS995rp8vwyx6ibWfB2U8adgi2z9KLKWPM
-         iYUdtdD23QPS5T8NnT1aDOaQpmzePM9wZ4mg7CmM=
-Date:   Mon, 11 Sep 2023 13:38:12 -0700
-To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
-        viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
-        tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
-        tom@talpey.com, tomeu.vizoso@collabora.com, tkhai@ya.ru,
-        tglx@linutronix.de, steven.price@arm.com, sstabellini@kernel.org,
-        songmuchun@bytedance.com, song@kernel.org, snitzer@kernel.org,
-        senozhatsky@chromium.org, sean@poorly.run, rpeterso@redhat.com,
-        roman.gushchin@linux.dev, rodrigo.vivi@intel.com, robh@kernel.org,
-        robdclark@gmail.com, richard@nod.at, ray.huang@amd.com,
-        quic_abhinavk@quicinc.com, paulmck@kernel.org,
-        oleksandr_tyshchenko@epam.com, neilb@suse.de, namit@vmware.com,
-        muchun.song@linux.dev, mst@redhat.com, mingo@redhat.com,
-        minchan@kernel.org, marijn.suijten@somainline.org,
-        kolga@netapp.com, kent.overstreet@gmail.com, josef@toxicpanda.com,
-        joonas.lahtinen@linux.intel.com, joel@joelfernandes.org,
-        jlayton@kernel.org, jgross@suse.com, jefflexu@linux.alibaba.com,
-        jasowang@redhat.com, jani.nikula@linux.intel.com,
-        jaegeuk@kernel.org, jack@suse.cz, huyue2@coolpad.com,
-        hsiangkao@linux.alibaba.com, gregkh@linuxfoundation.org,
-        dsterba@suse.com, dmitry.baryshkov@linaro.org, djwong@kernel.org,
-        david@redhat.com, david@fromorbit.com, dave.hansen@linux.intel.com,
-        daniel.vetter@ffwll.ch, daniel@ffwll.ch, Dai.Ngo@oracle.com,
-        colyli@suse.de, cmllamas@google.com, clm@fb.com,
-        christian.koenig@amd.com, chao@kernel.org, chandan.babu@oracle.com,
-        cel@kernel.org, brauner@kernel.org, bp@alien8.de, arnd@arndb.de,
-        anna@kernel.org, alyssa.rosenzweig@collabora.com,
-        airlied@gmail.com, agruenba@redhat.com, agk@redhat.com,
-        adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
-        akpm@linux-foundation.org
+        b=xSHzqdlc2d4Udno5bFeNs9p1oPfJtLWa5oDVTP7BFRLgK+TNvzYo5kfF7oxG1hgwn
+         obRBwycWY+lCsHV/YVTCxTI6o3galqUOltLSxnQ0d3W23VIjHyRShud9ZE8NoBrm4Y
+         Lfqs4sOcSX46K7FSrfl4KlRPVPal5TXgSD4pFO6Q=
+Date:   Mon, 11 Sep 2023 11:47:03 -0700
+To:     mm-commits@vger.kernel.org, vgoyal@redhat.com, vbabka@suse.cz,
+        thomas.lendacky@amd.com, rppt@linux.ibm.com, lstoakes@gmail.com,
+        kirill.shutemov@linux.intel.com, dyoung@redhat.com,
+        dave.hansen@intel.com, bp@alien8.de, bhe@redhat.com,
+        ardb@kernel.org, adrian.hunter@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + quota-dynamically-allocate-the-dquota-cache-shrinker.patch added to mm-unstable branch
-Message-Id: <20230911203812.B3639C433C7@smtp.kernel.org>
+Subject: + efi-unaccepted-do-not-let-proc-vmcore-try-to-access-unaccepted-memory.patch added to mm-unstable branch
+Message-Id: <20230911184703.C79A4C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +39,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: quota: dynamically allocate the dquota-cache shrinker
+     Subject: efi/unaccepted: do not let /proc/vmcore try to access unaccepted memory
 has been added to the -mm mm-unstable branch.  Its filename is
-     quota-dynamically-allocate-the-dquota-cache-shrinker.patch
+     efi-unaccepted-do-not-let-proc-vmcore-try-to-access-unaccepted-memory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/quota-dynamically-allocate-the-dquota-cache-shrinker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/efi-unaccepted-do-not-let-proc-vmcore-try-to-access-unaccepted-memory.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -86,185 +62,104 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: quota: dynamically allocate the dquota-cache shrinker
-Date: Mon, 11 Sep 2023 17:44:12 +0800
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: efi/unaccepted: do not let /proc/vmcore try to access unaccepted memory
+Date: Mon, 11 Sep 2023 14:21:13 +0300
 
-Use new APIs to dynamically allocate the dquota-cache shrinker.
+Patch series "Do not try to access unaccepted memory", v2.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-14-zhengqi.arch@bytedance.com
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Jan Kara <jack@suse.cz>
-Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
-Cc: Alasdair Kergon <agk@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Alyssa Rosenzweig <alyssa.rosenzweig@collabora.com>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Andreas Gruenbacher <agruenba@redhat.com>
-Cc: Anna Schumaker <anna@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Bob Peterson <rpeterso@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Carlos Llamas <cmllamas@google.com>
-Cc: Chandan Babu R <chandan.babu@oracle.com>
-Cc: Chao Yu <chao@kernel.org>
-Cc: Chris Mason <clm@fb.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Christian Koenig <christian.koenig@amd.com>
-Cc: Chuck Lever <cel@kernel.org>
-Cc: Coly Li <colyli@suse.de>
-Cc: Dai Ngo <Dai.Ngo@oracle.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Airlie <airlied@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Sterba <dsterba@suse.com>
-Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
-Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Huang Rui <ray.huang@amd.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jaegeuk Kim <jaegeuk@kernel.org>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
-Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
-Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Kent Overstreet <kent.overstreet@gmail.com>
-Cc: Kirill Tkhai <tkhai@ya.ru>
-Cc: Marijn Suijten <marijn.suijten@somainline.org>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Mike Snitzer <snitzer@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nadav Amit <namit@vmware.com>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
-Cc: Olga Kornievskaia <kolga@netapp.com>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Rob Clark <robdclark@gmail.com>
-Cc: Rob Herring <robh@kernel.org>
-Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Sean Paul <sean@poorly.run>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Song Liu <song@kernel.org>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
-Cc: Steven Price <steven.price@arm.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: Tom Talpey <tom@talpey.com>
-Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
-Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
+Support for unaccepted memory was added recently, refer commit
+dcdfdd40fa82 ("mm: Add support for unaccepted memory"), whereby
+a virtual machine may need to accept memory before it can be used.
+
+Plug a few gaps where RAM is exposed without checking if it is
+unaccepted memory.
+
+
+This patch (of 2):
+
+Support for unaccepted memory was added recently, refer commit
+dcdfdd40fa82 ("mm: Add support for unaccepted memory"), whereby a virtual
+machine may need to accept memory before it can be used.
+
+Do not let /proc/vmcore try to access unaccepted memory because it can
+cause the guest to fail.
+
+For /proc/vmcore, which is read-only, this means a read or mmap of
+unaccepted memory will return zeros.
+
+Link: https://lkml.kernel.org/r/20230911112114.91323-1-adrian.hunter@intel.com
+Link: https://lkml.kernel.org/r/20230911112114.91323-2-adrian.hunter@intel.com
+Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Tom Lendacky <thomas.lendacky@amd.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
-Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/quota/dquot.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ drivers/firmware/efi/unaccepted_memory.c |   20 ++++++++++++++++++++
+ include/linux/mm.h                       |    7 +++++++
+ 2 files changed, 27 insertions(+)
 
---- a/fs/quota/dquot.c~quota-dynamically-allocate-the-dquota-cache-shrinker
-+++ a/fs/quota/dquot.c
-@@ -791,12 +791,6 @@ dqcache_shrink_count(struct shrinker *sh
- 	percpu_counter_read_positive(&dqstats.counter[DQST_FREE_DQUOTS]));
+--- a/drivers/firmware/efi/unaccepted_memory.c~efi-unaccepted-do-not-let-proc-vmcore-try-to-access-unaccepted-memory
++++ a/drivers/firmware/efi/unaccepted_memory.c
+@@ -3,6 +3,7 @@
+ #include <linux/efi.h>
+ #include <linux/memblock.h>
+ #include <linux/spinlock.h>
++#include <linux/crash_dump.h>
+ #include <asm/unaccepted_memory.h>
+ 
+ /* Protects unaccepted memory bitmap */
+@@ -145,3 +146,22 @@ bool range_contains_unaccepted_memory(ph
+ 
+ 	return ret;
  }
- 
--static struct shrinker dqcache_shrinker = {
--	.count_objects = dqcache_shrink_count,
--	.scan_objects = dqcache_shrink_scan,
--	.seeks = DEFAULT_SEEKS,
--};
--
- /*
-  * Safely release dquot and put reference to dquot.
-  */
-@@ -2956,6 +2950,7 @@ static int __init dquot_init(void)
- {
- 	int i, ret;
- 	unsigned long nr_hash, order;
-+	struct shrinker *dqcache_shrinker;
- 
- 	printk(KERN_NOTICE "VFS: Disk quotas %s\n", __DQUOT_VERSION__);
- 
-@@ -2990,8 +2985,14 @@ static int __init dquot_init(void)
- 	pr_info("VFS: Dquot-cache hash table entries: %ld (order %ld,"
- 		" %ld bytes)\n", nr_hash, order, (PAGE_SIZE << order));
- 
--	if (register_shrinker(&dqcache_shrinker, "dquota-cache"))
--		panic("Cannot register dquot shrinker");
-+	dqcache_shrinker = shrinker_alloc(0, "dquota-cache");
-+	if (!dqcache_shrinker)
-+		panic("Cannot allocate dquot shrinker");
 +
-+	dqcache_shrinker->count_objects = dqcache_shrink_count;
-+	dqcache_shrinker->scan_objects = dqcache_shrink_scan;
++#ifdef CONFIG_PROC_VMCORE
++static bool unaccepted_memory_vmcore_pfn_is_ram(struct vmcore_cb *cb,
++						unsigned long pfn)
++{
++	return !pfn_is_unaccepted_memory(pfn);
++}
 +
-+	shrinker_register(dqcache_shrinker);
++static struct vmcore_cb vmcore_cb = {
++	.pfn_is_ram = unaccepted_memory_vmcore_pfn_is_ram,
++};
++
++static int __init unaccepted_memory_init_kdump(void)
++{
++	register_vmcore_cb(&vmcore_cb);
++	return 0;
++}
++core_initcall(unaccepted_memory_init_kdump);
++#endif /* CONFIG_PROC_VMCORE */
+--- a/include/linux/mm.h~efi-unaccepted-do-not-let-proc-vmcore-try-to-access-unaccepted-memory
++++ a/include/linux/mm.h
+@@ -4055,4 +4055,11 @@ static inline void accept_memory(phys_ad
  
- 	return 0;
- }
+ #endif
+ 
++static inline bool pfn_is_unaccepted_memory(unsigned long pfn)
++{
++	phys_addr_t paddr = pfn << PAGE_SHIFT;
++
++	return range_contains_unaccepted_memory(paddr, paddr + PAGE_SIZE);
++}
++
+ #endif /* _LINUX_MM_H */
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from adrian.hunter@intel.com are
 
-mm-move-some-shrinker-related-function-declarations-to-mm-internalh.patch
-mm-vmscan-move-shrinker-related-code-into-a-separate-file.patch
-mm-shrinker-remove-redundant-shrinker_rwsem-in-debugfs-operations.patch
-drm-ttm-introduce-pool_shrink_rwsem.patch
-mm-shrinker-add-infrastructure-for-dynamically-allocating-shrinker.patch
-kvm-mmu-dynamically-allocate-the-x86-mmu-shrinker.patch
-binder-dynamically-allocate-the-android-binder-shrinker.patch
-drm-ttm-dynamically-allocate-the-drm-ttm_pool-shrinker.patch
-xenbus-backend-dynamically-allocate-the-xen-backend-shrinker.patch
-erofs-dynamically-allocate-the-erofs-shrinker.patch
-f2fs-dynamically-allocate-the-f2fs-shrinker.patch
-gfs2-dynamically-allocate-the-gfs2-glock-shrinker.patch
-gfs2-dynamically-allocate-the-gfs2-qd-shrinker.patch
-nfsv42-dynamically-allocate-the-nfs-xattr-shrinkers.patch
-nfs-dynamically-allocate-the-nfs-acl-shrinker.patch
-nfsd-dynamically-allocate-the-nfsd-filecache-shrinker.patch
-quota-dynamically-allocate-the-dquota-cache-shrinker.patch
-ubifs-dynamically-allocate-the-ubifs-slab-shrinker.patch
-rcu-dynamically-allocate-the-rcu-lazy-shrinker.patch
-rcu-dynamically-allocate-the-rcu-kfree-shrinker.patch
-mm-thp-dynamically-allocate-the-thp-related-shrinkers.patch
-sunrpc-dynamically-allocate-the-sunrpc_cred-shrinker.patch
-mm-workingset-dynamically-allocate-the-mm-shadow-shrinker.patch
-drm-i915-dynamically-allocate-the-i915_gem_mm-shrinker.patch
-drm-msm-dynamically-allocate-the-drm-msm_gem-shrinker.patch
-drm-panfrost-dynamically-allocate-the-drm-panfrost-shrinker.patch
-dm-dynamically-allocate-the-dm-bufio-shrinker.patch
-dm-zoned-dynamically-allocate-the-dm-zoned-meta-shrinker.patch
-md-raid5-dynamically-allocate-the-md-raid5-shrinker.patch
-bcache-dynamically-allocate-the-md-bcache-shrinker.patch
-vmw_balloon-dynamically-allocate-the-vmw-balloon-shrinker.patch
-virtio_balloon-dynamically-allocate-the-virtio-balloon-shrinker.patch
-mbcache-dynamically-allocate-the-mbcache-shrinker.patch
-ext4-dynamically-allocate-the-ext4-es-shrinker.patch
-jbd2ext4-dynamically-allocate-the-jbd2-journal-shrinker.patch
-nfsd-dynamically-allocate-the-nfsd-client-shrinker.patch
-nfsd-dynamically-allocate-the-nfsd-reply-shrinker.patch
-xfs-dynamically-allocate-the-xfs-buf-shrinker.patch
-xfs-dynamically-allocate-the-xfs-inodegc-shrinker.patch
-xfs-dynamically-allocate-the-xfs-qm-shrinker.patch
-zsmalloc-dynamically-allocate-the-mm-zspool-shrinker.patch
-fs-super-dynamically-allocate-the-s_shrink.patch
-mm-shrinker-remove-old-apis.patch
-mm-shrinker-add-a-secondary-array-for-shrinker_info-map-nr_deferred.patch
-mm-shrinker-rename-preallocunregister_memcg_shrinker-to-shrinker_memcg_allocremove.patch
-mm-shrinker-make-global-slab-shrink-lockless.patch
-mm-shrinker-make-memcg-slab-shrink-lockless.patch
-mm-shrinker-hold-write-lock-to-reparent-shrinker-nr_deferred.patch
-mm-shrinker-convert-shrinker_rwsem-to-mutex.patch
+efi-unaccepted-do-not-let-proc-vmcore-try-to-access-unaccepted-memory.patch
+proc-kcore-do-not-try-to-access-unaccepted-memory.patch
 
