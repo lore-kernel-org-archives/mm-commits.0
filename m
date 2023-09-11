@@ -2,60 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CFCDBCA0EC8
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:26:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8FE9CA0EC6
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:26:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243677AbjIKWYb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:24:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54524 "EHLO
+        id S243680AbjIKWYd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:24:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57308 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244534AbjIKUkQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:40:16 -0400
+        with ESMTP id S244026AbjIKSrM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 14:47:12 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51D7F1A7
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:40:10 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4F8EC433C7;
-        Mon, 11 Sep 2023 20:40:09 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF5531AD
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 11:47:07 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68394C433C7;
+        Mon, 11 Sep 2023 18:47:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464809;
-        bh=6Ok0lxJd3pZf5mAfJB4d1Zzy7mbj/L108bM9qrlpO0g=;
+        s=korg; t=1694458027;
+        bh=83KGh+brEQMXl+MO1UmOVvuQ8DrtMmMQsoCxIpAtIL8=;
         h=Date:To:From:Subject:From;
-        b=y+9rUMh+eBPpwLCxSn9Lz89XZNu8TyXQOkNzDdhKeq9NHUuNnLa2HkZ3AWiMV9/8H
-         co/CKEoVqsrvwUoB0ogLttTN4gD4BwUJjCrWNQ3JDvzTLLc4+QjoHmVr9VY1D4/65Y
-         q/Rk6vkXqGVu8bQ9ThM2AL0OeDmNLC9EK4slLS5k=
-Date:   Mon, 11 Sep 2023 13:40:09 -0700
-To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
-        viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
-        tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
-        tom@talpey.com, tomeu.vizoso@collabora.com, tkhai@ya.ru,
-        tglx@linutronix.de, steven.price@arm.com, sstabellini@kernel.org,
-        songmuchun@bytedance.com, song@kernel.org, snitzer@kernel.org,
-        senozhatsky@chromium.org, sean@poorly.run, rpeterso@redhat.com,
-        roman.gushchin@linux.dev, rodrigo.vivi@intel.com, robh@kernel.org,
-        robdclark@gmail.com, richard@nod.at, ray.huang@amd.com,
-        quic_abhinavk@quicinc.com, paulmck@kernel.org,
-        oleksandr_tyshchenko@epam.com, neilb@suse.de, namit@vmware.com,
-        muchun.song@linux.dev, mst@redhat.com, mingo@redhat.com,
-        minchan@kernel.org, marijn.suijten@somainline.org,
-        kolga@netapp.com, kent.overstreet@gmail.com, josef@toxicpanda.com,
-        joonas.lahtinen@linux.intel.com, joel@joelfernandes.org,
-        jlayton@kernel.org, jgross@suse.com, jefflexu@linux.alibaba.com,
-        jasowang@redhat.com, jani.nikula@linux.intel.com,
-        jaegeuk@kernel.org, jack@suse.cz, huyue2@coolpad.com,
-        hsiangkao@linux.alibaba.com, gregkh@linuxfoundation.org,
-        dsterba@suse.com, dmitry.baryshkov@linaro.org, djwong@kernel.org,
-        david@redhat.com, david@fromorbit.com, dave.hansen@linux.intel.com,
-        daniel.vetter@ffwll.ch, daniel@ffwll.ch, Dai.Ngo@oracle.com,
-        colyli@suse.de, cmllamas@google.com, clm@fb.com,
-        christian.koenig@amd.com, chao@kernel.org, chandan.babu@oracle.com,
-        cel@kernel.org, brauner@kernel.org, bp@alien8.de, arnd@arndb.de,
-        anna@kernel.org, alyssa.rosenzweig@collabora.com,
-        airlied@gmail.com, agruenba@redhat.com, agk@redhat.com,
-        adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
-        akpm@linux-foundation.org
+        b=aZLzTMY7V9idM+lcPf/D2ZtiJ/nRiJvd4AldatDS1yKeFiKj2+aWUTJt53/83r1ga
+         A9UU9GIes5/iezKiCA5QUcZJNTEKxLE/qAxVhtVyB6aY+iFkc2nmCBy1uf++lrCnOf
+         KZGk5Pops9wydBnRIH4r9SqDQTlxIFmTYsBcxrRM=
+Date:   Mon, 11 Sep 2023 11:47:06 -0700
+To:     mm-commits@vger.kernel.org, vgoyal@redhat.com, vbabka@suse.cz,
+        thomas.lendacky@amd.com, rppt@linux.ibm.com, lstoakes@gmail.com,
+        kirill.shutemov@linux.intel.com, dyoung@redhat.com,
+        dave.hansen@intel.com, bp@alien8.de, bhe@redhat.com,
+        ardb@kernel.org, adrian.hunter@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + xfs-dynamically-allocate-the-xfs-inodegc-shrinker.patch added to mm-unstable branch
-Message-Id: <20230911204009.D4F8EC433C7@smtp.kernel.org>
+Subject: + proc-kcore-do-not-try-to-access-unaccepted-memory.patch added to mm-unstable branch
+Message-Id: <20230911184707.68394C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +39,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xfs: dynamically allocate the xfs-inodegc shrinker
+     Subject: proc/kcore: do not try to access unaccepted memory
 has been added to the -mm mm-unstable branch.  Its filename is
-     xfs-dynamically-allocate-the-xfs-inodegc-shrinker.patch
+     proc-kcore-do-not-try-to-access-unaccepted-memory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xfs-dynamically-allocate-the-xfs-inodegc-shrinker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-kcore-do-not-try-to-access-unaccepted-memory.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -86,230 +62,55 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: xfs: dynamically allocate the xfs-inodegc shrinker
-Date: Mon, 11 Sep 2023 17:44:34 +0800
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: proc/kcore: do not try to access unaccepted memory
+Date: Mon, 11 Sep 2023 14:21:14 +0300
 
-In preparation for implementing lockless slab shrink, use new APIs to
-dynamically allocate the xfs-inodegc shrinker, so that it can be freed
-asynchronously via RCU. Then it doesn't need to wait for RCU read-side
-critical section when releasing the struct xfs_mount.
+Support for unaccepted memory was added recently, refer commit
+dcdfdd40fa82 ("mm: Add support for unaccepted memory"), whereby a virtual
+machine may need to accept memory before it can be used.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-36-zhengqi.arch@bytedance.com
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Chandan Babu R <chandan.babu@oracle.com>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
-Cc: Alasdair Kergon <agk@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Alyssa Rosenzweig <alyssa.rosenzweig@collabora.com>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Andreas Gruenbacher <agruenba@redhat.com>
-Cc: Anna Schumaker <anna@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Bob Peterson <rpeterso@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Carlos Llamas <cmllamas@google.com>
-Cc: Chao Yu <chao@kernel.org>
-Cc: Chris Mason <clm@fb.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Christian Koenig <christian.koenig@amd.com>
-Cc: Chuck Lever <cel@kernel.org>
-Cc: Coly Li <colyli@suse.de>
-Cc: Dai Ngo <Dai.Ngo@oracle.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Airlie <airlied@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Sterba <dsterba@suse.com>
-Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
-Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Huang Rui <ray.huang@amd.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jaegeuk Kim <jaegeuk@kernel.org>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
-Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
-Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Kent Overstreet <kent.overstreet@gmail.com>
-Cc: Kirill Tkhai <tkhai@ya.ru>
-Cc: Marijn Suijten <marijn.suijten@somainline.org>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Mike Snitzer <snitzer@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nadav Amit <namit@vmware.com>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
-Cc: Olga Kornievskaia <kolga@netapp.com>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Rob Clark <robdclark@gmail.com>
-Cc: Rob Herring <robh@kernel.org>
-Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Sean Paul <sean@poorly.run>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Song Liu <song@kernel.org>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
-Cc: Steven Price <steven.price@arm.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: Tom Talpey <tom@talpey.com>
-Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
-Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
+Do not try to access unaccepted memory because it can cause the guest to
+fail.
+
+For /proc/kcore, which is read-only and does not support mmap, this means a
+read of unaccepted memory will return zeros.
+
+Link: https://lkml.kernel.org/r/20230911112114.91323-3-adrian.hunter@intel.com
+Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Tom Lendacky <thomas.lendacky@amd.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
-Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_icache.c |   26 +++++++++++++++-----------
- fs/xfs/xfs_mount.c  |    4 ++--
- fs/xfs/xfs_mount.h  |    2 +-
- 3 files changed, 18 insertions(+), 14 deletions(-)
+ fs/proc/kcore.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/fs/xfs/xfs_icache.c~xfs-dynamically-allocate-the-xfs-inodegc-shrinker
-+++ a/fs/xfs/xfs_icache.c
-@@ -2187,8 +2187,7 @@ xfs_inodegc_shrinker_count(
- 	struct shrinker		*shrink,
- 	struct shrink_control	*sc)
- {
--	struct xfs_mount	*mp = container_of(shrink, struct xfs_mount,
--						   m_inodegc_shrinker);
-+	struct xfs_mount	*mp = shrink->private_data;
- 	struct xfs_inodegc	*gc;
- 	int			cpu;
- 
-@@ -2209,8 +2208,7 @@ xfs_inodegc_shrinker_scan(
- 	struct shrinker		*shrink,
- 	struct shrink_control	*sc)
- {
--	struct xfs_mount	*mp = container_of(shrink, struct xfs_mount,
--						   m_inodegc_shrinker);
-+	struct xfs_mount	*mp = shrink->private_data;
- 	struct xfs_inodegc	*gc;
- 	int			cpu;
- 	bool			no_items = true;
-@@ -2246,13 +2244,19 @@ int
- xfs_inodegc_register_shrinker(
- 	struct xfs_mount	*mp)
- {
--	struct shrinker		*shrink = &mp->m_inodegc_shrinker;
-+	mp->m_inodegc_shrinker = shrinker_alloc(SHRINKER_NONSLAB,
-+						"xfs-inodegc:%s",
-+						mp->m_super->s_id);
-+	if (!mp->m_inodegc_shrinker)
-+		return -ENOMEM;
-+
-+	mp->m_inodegc_shrinker->count_objects = xfs_inodegc_shrinker_count;
-+	mp->m_inodegc_shrinker->scan_objects = xfs_inodegc_shrinker_scan;
-+	mp->m_inodegc_shrinker->seeks = 0;
-+	mp->m_inodegc_shrinker->batch = XFS_INODEGC_SHRINKER_BATCH;
-+	mp->m_inodegc_shrinker->private_data = mp;
- 
--	shrink->count_objects = xfs_inodegc_shrinker_count;
--	shrink->scan_objects = xfs_inodegc_shrinker_scan;
--	shrink->seeks = 0;
--	shrink->flags = SHRINKER_NONSLAB;
--	shrink->batch = XFS_INODEGC_SHRINKER_BATCH;
-+	shrinker_register(mp->m_inodegc_shrinker);
- 
--	return register_shrinker(shrink, "xfs-inodegc:%s", mp->m_super->s_id);
-+	return 0;
- }
---- a/fs/xfs/xfs_mount.c~xfs-dynamically-allocate-the-xfs-inodegc-shrinker
-+++ a/fs/xfs/xfs_mount.c
-@@ -1021,7 +1021,7 @@ xfs_mountfs(
-  out_log_dealloc:
- 	xfs_log_mount_cancel(mp);
-  out_inodegc_shrinker:
--	unregister_shrinker(&mp->m_inodegc_shrinker);
-+	shrinker_free(mp->m_inodegc_shrinker);
-  out_fail_wait:
- 	if (mp->m_logdev_targp && mp->m_logdev_targp != mp->m_ddev_targp)
- 		xfs_buftarg_drain(mp->m_logdev_targp);
-@@ -1104,7 +1104,7 @@ xfs_unmountfs(
- #if defined(DEBUG)
- 	xfs_errortag_clearall(mp);
- #endif
--	unregister_shrinker(&mp->m_inodegc_shrinker);
-+	shrinker_free(mp->m_inodegc_shrinker);
- 	xfs_free_perag(mp);
- 
- 	xfs_errortag_del(mp);
---- a/fs/xfs/xfs_mount.h~xfs-dynamically-allocate-the-xfs-inodegc-shrinker
-+++ a/fs/xfs/xfs_mount.h
-@@ -221,7 +221,7 @@ typedef struct xfs_mount {
- 	atomic_t		m_agirotor;	/* last ag dir inode alloced */
- 
- 	/* Memory shrinker to throttle and reprioritize inodegc */
--	struct shrinker		m_inodegc_shrinker;
-+	struct shrinker		*m_inodegc_shrinker;
- 	/*
- 	 * Workqueue item so that we can coalesce multiple inode flush attempts
- 	 * into a single flush.
+--- a/fs/proc/kcore.c~proc-kcore-do-not-try-to-access-unaccepted-memory
++++ a/fs/proc/kcore.c
+@@ -546,7 +546,8 @@ static ssize_t read_kcore_iter(struct ki
+ 			 * and explicitly excluded physical ranges.
+ 			 */
+ 			if (!page || PageOffline(page) ||
+-			    is_page_hwpoison(page) || !pfn_is_ram(pfn)) {
++			    is_page_hwpoison(page) || !pfn_is_ram(pfn) ||
++			    pfn_is_unaccepted_memory(pfn)) {
+ 				if (iov_iter_zero(tsz, iter) != tsz) {
+ 					ret = -EFAULT;
+ 					goto out;
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from adrian.hunter@intel.com are
 
-mm-move-some-shrinker-related-function-declarations-to-mm-internalh.patch
-mm-vmscan-move-shrinker-related-code-into-a-separate-file.patch
-mm-shrinker-remove-redundant-shrinker_rwsem-in-debugfs-operations.patch
-drm-ttm-introduce-pool_shrink_rwsem.patch
-mm-shrinker-add-infrastructure-for-dynamically-allocating-shrinker.patch
-kvm-mmu-dynamically-allocate-the-x86-mmu-shrinker.patch
-binder-dynamically-allocate-the-android-binder-shrinker.patch
-drm-ttm-dynamically-allocate-the-drm-ttm_pool-shrinker.patch
-xenbus-backend-dynamically-allocate-the-xen-backend-shrinker.patch
-erofs-dynamically-allocate-the-erofs-shrinker.patch
-f2fs-dynamically-allocate-the-f2fs-shrinker.patch
-gfs2-dynamically-allocate-the-gfs2-glock-shrinker.patch
-gfs2-dynamically-allocate-the-gfs2-qd-shrinker.patch
-nfsv42-dynamically-allocate-the-nfs-xattr-shrinkers.patch
-nfs-dynamically-allocate-the-nfs-acl-shrinker.patch
-nfsd-dynamically-allocate-the-nfsd-filecache-shrinker.patch
-quota-dynamically-allocate-the-dquota-cache-shrinker.patch
-ubifs-dynamically-allocate-the-ubifs-slab-shrinker.patch
-rcu-dynamically-allocate-the-rcu-lazy-shrinker.patch
-rcu-dynamically-allocate-the-rcu-kfree-shrinker.patch
-mm-thp-dynamically-allocate-the-thp-related-shrinkers.patch
-sunrpc-dynamically-allocate-the-sunrpc_cred-shrinker.patch
-mm-workingset-dynamically-allocate-the-mm-shadow-shrinker.patch
-drm-i915-dynamically-allocate-the-i915_gem_mm-shrinker.patch
-drm-msm-dynamically-allocate-the-drm-msm_gem-shrinker.patch
-drm-panfrost-dynamically-allocate-the-drm-panfrost-shrinker.patch
-dm-dynamically-allocate-the-dm-bufio-shrinker.patch
-dm-zoned-dynamically-allocate-the-dm-zoned-meta-shrinker.patch
-md-raid5-dynamically-allocate-the-md-raid5-shrinker.patch
-bcache-dynamically-allocate-the-md-bcache-shrinker.patch
-vmw_balloon-dynamically-allocate-the-vmw-balloon-shrinker.patch
-virtio_balloon-dynamically-allocate-the-virtio-balloon-shrinker.patch
-mbcache-dynamically-allocate-the-mbcache-shrinker.patch
-ext4-dynamically-allocate-the-ext4-es-shrinker.patch
-jbd2ext4-dynamically-allocate-the-jbd2-journal-shrinker.patch
-nfsd-dynamically-allocate-the-nfsd-client-shrinker.patch
-nfsd-dynamically-allocate-the-nfsd-reply-shrinker.patch
-xfs-dynamically-allocate-the-xfs-buf-shrinker.patch
-xfs-dynamically-allocate-the-xfs-inodegc-shrinker.patch
-xfs-dynamically-allocate-the-xfs-qm-shrinker.patch
-zsmalloc-dynamically-allocate-the-mm-zspool-shrinker.patch
-fs-super-dynamically-allocate-the-s_shrink.patch
-mm-shrinker-remove-old-apis.patch
-mm-shrinker-add-a-secondary-array-for-shrinker_info-map-nr_deferred.patch
-mm-shrinker-rename-preallocunregister_memcg_shrinker-to-shrinker_memcg_allocremove.patch
-mm-shrinker-make-global-slab-shrink-lockless.patch
-mm-shrinker-make-memcg-slab-shrink-lockless.patch
-mm-shrinker-hold-write-lock-to-reparent-shrinker-nr_deferred.patch
-mm-shrinker-convert-shrinker_rwsem-to-mutex.patch
+efi-unaccepted-do-not-let-proc-vmcore-try-to-access-unaccepted-memory.patch
+proc-kcore-do-not-try-to-access-unaccepted-memory.patch
 
