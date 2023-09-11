@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FE7FCA0EC8
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FF46CA0ECB
 	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237146AbjIKWVp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:21:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38142 "EHLO
+        id S237813AbjIKWVr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:21:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45642 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244527AbjIKUjv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:39:51 -0400
+        with ESMTP id S244495AbjIKUiu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:38:50 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C7281A7
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:39:46 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3BC3C433C8;
-        Mon, 11 Sep 2023 20:39:45 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D2081A7
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:38:45 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC069C433C7;
+        Mon, 11 Sep 2023 20:38:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464786;
-        bh=ojk9JSL4IFvnpL6k/oY2HaCDJ8+ZN39UXP/iqWRwsSk=;
+        s=korg; t=1694464725;
+        bh=LbnfC1eFQzYZBU/8fkBD7jOyk/5OgZVHj/Q8gyNmJsE=;
         h=Date:To:From:Subject:From;
-        b=WooihCeadNU1ycSQQQEYElDWeSowgU3l5ykdb/tYuvMUs75lcQ0jzujBchZGMqbwF
-         eVrtDU0TTe+bbTEik7zCGYrCWiyD8M2COa4Gxd9DtxSa0JG7IKBS6ESrpnVsF0E3vU
-         YmoG09q/9VYHyybZFslF7IUR6CC1bQDnEcRH6gqw=
-Date:   Mon, 11 Sep 2023 13:39:45 -0700
+        b=j2+Ggmt5PZtTdgzyTaPddjye4aLo72DzBlWIeB5gm2PXE506E4EXm9IVt48IuV4lu
+         Vm9b9kSvTH9cz6vXG4RKeJcxlzHqpndqWPhEYCTs+MyL3XQCgjgv9kloE7C3UO2WBs
+         SPAYyZKQfAAdEcoLQZr/gRF6KyZ8HHCXWKO1Az60=
+Date:   Mon, 11 Sep 2023 13:38:44 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ext4-dynamically-allocate-the-ext4-es-shrinker.patch added to mm-unstable branch
-Message-Id: <20230911203945.E3BC3C433C8@smtp.kernel.org>
+Subject: + mm-workingset-dynamically-allocate-the-mm-shadow-shrinker.patch added to mm-unstable branch
+Message-Id: <20230911203844.DC069C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ext4: dynamically allocate the ext4-es shrinker
+     Subject: mm: workingset: dynamically allocate the mm-shadow shrinker
 has been added to the -mm mm-unstable branch.  Its filename is
-     ext4-dynamically-allocate-the-ext4-es-shrinker.patch
+     mm-workingset-dynamically-allocate-the-mm-shadow-shrinker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ext4-dynamically-allocate-the-ext4-es-shrinker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-workingset-dynamically-allocate-the-mm-shadow-shrinker.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,23 +87,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: ext4: dynamically allocate the ext4-es shrinker
-Date: Mon, 11 Sep 2023 17:44:29 +0800
+Subject: mm: workingset: dynamically allocate the mm-shadow shrinker
+Date: Mon, 11 Sep 2023 17:44:18 +0800
 
-In preparation for implementing lockless slab shrink, use new APIs to
-dynamically allocate the ext4-es shrinker, so that it can be freed
-asynchronously via RCU. Then it doesn't need to wait for RCU read-side
-critical section when releasing the struct ext4_sb_info.
+Use new APIs to dynamically allocate the mm-shadow shrinker.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-31-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-20-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alyssa Rosenzweig <alyssa.rosenzweig@collabora.com>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Cc: Anna Schumaker <anna@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -148,6 +143,7 @@ Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Nadav Amit <namit@vmware.com>
 Cc: Neil Brown <neilb@suse.de>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
@@ -163,6 +159,7 @@ Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Song Liu <song@kernel.org>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Steven Price <steven.price@arm.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Cc: Tom Talpey <tom@talpey.com>
@@ -174,75 +171,69 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/ext4.h           |    2 +-
- fs/ext4/extents_status.c |   23 +++++++++++++----------
- 2 files changed, 14 insertions(+), 11 deletions(-)
+ mm/workingset.c |   29 ++++++++++++++++-------------
+ 1 file changed, 16 insertions(+), 13 deletions(-)
 
---- a/fs/ext4/ext4.h~ext4-dynamically-allocate-the-ext4-es-shrinker
-+++ a/fs/ext4/ext4.h
-@@ -1653,7 +1653,7 @@ struct ext4_sb_info {
- 	__u32 s_csum_seed;
- 
- 	/* Reclaim extents from extent status tree */
--	struct shrinker s_es_shrinker;
-+	struct shrinker *s_es_shrinker;
- 	struct list_head s_es_list;	/* List of inodes with reclaimable extents */
- 	long s_es_nr_inode;
- 	struct ext4_es_stats s_es_stats;
---- a/fs/ext4/extents_status.c~ext4-dynamically-allocate-the-ext4-es-shrinker
-+++ a/fs/ext4/extents_status.c
-@@ -1606,7 +1606,7 @@ static unsigned long ext4_es_count(struc
- 	unsigned long nr;
- 	struct ext4_sb_info *sbi;
- 
--	sbi = container_of(shrink, struct ext4_sb_info, s_es_shrinker);
-+	sbi = shrink->private_data;
- 	nr = percpu_counter_read_positive(&sbi->s_es_stats.es_stats_shk_cnt);
- 	trace_ext4_es_shrink_count(sbi->s_sb, sc->nr_to_scan, nr);
- 	return nr;
-@@ -1615,8 +1615,7 @@ static unsigned long ext4_es_count(struc
- static unsigned long ext4_es_scan(struct shrinker *shrink,
- 				  struct shrink_control *sc)
- {
--	struct ext4_sb_info *sbi = container_of(shrink,
--					struct ext4_sb_info, s_es_shrinker);
-+	struct ext4_sb_info *sbi = shrink->private_data;
- 	int nr_to_scan = sc->nr_to_scan;
- 	int ret, nr_shrunk;
- 
-@@ -1700,13 +1699,17 @@ int ext4_es_register_shrinker(struct ext
- 	if (err)
- 		goto err3;
- 
--	sbi->s_es_shrinker.scan_objects = ext4_es_scan;
--	sbi->s_es_shrinker.count_objects = ext4_es_count;
--	sbi->s_es_shrinker.seeks = DEFAULT_SEEKS;
--	err = register_shrinker(&sbi->s_es_shrinker, "ext4-es:%s",
--				sbi->s_sb->s_id);
--	if (err)
-+	sbi->s_es_shrinker = shrinker_alloc(0, "ext4-es:%s", sbi->s_sb->s_id);
-+	if (!sbi->s_es_shrinker) {
-+		err = -ENOMEM;
- 		goto err4;
-+	}
-+
-+	sbi->s_es_shrinker->scan_objects = ext4_es_scan;
-+	sbi->s_es_shrinker->count_objects = ext4_es_count;
-+	sbi->s_es_shrinker->private_data = sbi;
-+
-+	shrinker_register(sbi->s_es_shrinker);
- 
- 	return 0;
- err4:
-@@ -1726,7 +1729,7 @@ void ext4_es_unregister_shrinker(struct
- 	percpu_counter_destroy(&sbi->s_es_stats.es_stats_cache_misses);
- 	percpu_counter_destroy(&sbi->s_es_stats.es_stats_all_cnt);
- 	percpu_counter_destroy(&sbi->s_es_stats.es_stats_shk_cnt);
--	unregister_shrinker(&sbi->s_es_shrinker);
-+	shrinker_free(sbi->s_es_shrinker);
+--- a/mm/workingset.c~mm-workingset-dynamically-allocate-the-mm-shadow-shrinker
++++ a/mm/workingset.c
+@@ -763,13 +763,6 @@ static unsigned long scan_shadow_nodes(s
+ 					NULL);
  }
  
+-static struct shrinker workingset_shadow_shrinker = {
+-	.count_objects = count_shadow_nodes,
+-	.scan_objects = scan_shadow_nodes,
+-	.seeks = 0, /* ->count reports only fully expendable nodes */
+-	.flags = SHRINKER_NUMA_AWARE | SHRINKER_MEMCG_AWARE,
+-};
+-
  /*
+  * Our list_lru->lock is IRQ-safe as it nests inside the IRQ-safe
+  * i_pages lock.
+@@ -778,9 +771,10 @@ static struct lock_class_key shadow_node
+ 
+ static int __init workingset_init(void)
+ {
++	struct shrinker *workingset_shadow_shrinker;
+ 	unsigned int timestamp_bits;
+ 	unsigned int max_order;
+-	int ret;
++	int ret = -ENOMEM;
+ 
+ 	BUILD_BUG_ON(BITS_PER_LONG < EVICTION_SHIFT);
+ 	/*
+@@ -797,17 +791,26 @@ static int __init workingset_init(void)
+ 	pr_info("workingset: timestamp_bits=%d max_order=%d bucket_order=%u\n",
+ 	       timestamp_bits, max_order, bucket_order);
+ 
+-	ret = prealloc_shrinker(&workingset_shadow_shrinker, "mm-shadow");
+-	if (ret)
++	workingset_shadow_shrinker = shrinker_alloc(SHRINKER_NUMA_AWARE |
++						    SHRINKER_MEMCG_AWARE,
++						    "mm-shadow");
++	if (!workingset_shadow_shrinker)
+ 		goto err;
++
+ 	ret = __list_lru_init(&shadow_nodes, true, &shadow_nodes_key,
+-			      &workingset_shadow_shrinker);
++			      workingset_shadow_shrinker);
+ 	if (ret)
+ 		goto err_list_lru;
+-	register_shrinker_prepared(&workingset_shadow_shrinker);
++
++	workingset_shadow_shrinker->count_objects = count_shadow_nodes;
++	workingset_shadow_shrinker->scan_objects = scan_shadow_nodes;
++	/* ->count reports only fully expendable nodes */
++	workingset_shadow_shrinker->seeks = 0;
++
++	shrinker_register(workingset_shadow_shrinker);
+ 	return 0;
+ err_list_lru:
+-	free_prealloced_shrinker(&workingset_shadow_shrinker);
++	shrinker_free(workingset_shadow_shrinker);
+ err:
+ 	return ret;
+ }
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
