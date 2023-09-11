@@ -2,33 +2,60 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAAEFCA0ED0
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DD6DCA0EC6
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235862AbjIKWVm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:21:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36618 "EHLO
+        id S236518AbjIKWVn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:21:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53294 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243959AbjIKSdd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 14:33:33 -0400
+        with ESMTP id S244539AbjIKUkb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:40:31 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C39B1A2
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 11:33:28 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04C32C433C8;
-        Mon, 11 Sep 2023 18:33:27 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3512127
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:40:25 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 633FFC433C7;
+        Mon, 11 Sep 2023 20:40:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694457208;
-        bh=lGWw0PzFYqIwY5Nd1nzbTgwmWhvTri7Vukxwh/54lOc=;
+        s=korg; t=1694464825;
+        bh=dz3wReZkQ1a4P3YVO2rVa6LTXVGfEowsmM5hM4Hc3Hs=;
         h=Date:To:From:Subject:From;
-        b=zW3xKUo0t+OZhbgykTDkAmjcO5Ewy0veDXak/MYlKkqk8D0upxjZUkoRm2MB6VdU3
-         uNr20HqSXDuen9wM7J8fOkXlEBxgxcb25/vv/0Pkvw41n7966pp6lv01qI6Q68Nk9N
-         Zzv2ROV7S0gch7/t+hYLpsK5bzUXMOh8Y0u+rWv0=
-Date:   Mon, 11 Sep 2023 11:33:27 -0700
-To:     mm-commits@vger.kernel.org, elver@google.com, dvyukov@google.com,
-        glider@google.com, akpm@linux-foundation.org
+        b=U7OW4YPjqc6pHKaj8gXilF1Pf5fHtaug0m/0WVM8a1+aIIpCEBgdqQtfVA1DVr9MD
+         yhtMIEtapnCtJBygpEEoBu9jo8MA2g2QxcAi8W0UIuWyGTFmqozTd3zhuQMppIU4dm
+         B01erzQUJ1ULtvcAnKvN9wPm0E/NPSvj4+wNfEqo=
+Date:   Mon, 11 Sep 2023 13:40:24 -0700
+To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
+        viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
+        tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
+        tom@talpey.com, tomeu.vizoso@collabora.com, tkhai@ya.ru,
+        tglx@linutronix.de, steven.price@arm.com, sstabellini@kernel.org,
+        songmuchun@bytedance.com, song@kernel.org, snitzer@kernel.org,
+        senozhatsky@chromium.org, sean@poorly.run, rpeterso@redhat.com,
+        roman.gushchin@linux.dev, rodrigo.vivi@intel.com, robh@kernel.org,
+        robdclark@gmail.com, richard@nod.at, ray.huang@amd.com,
+        quic_abhinavk@quicinc.com, paulmck@kernel.org,
+        oleksandr_tyshchenko@epam.com, neilb@suse.de, namit@vmware.com,
+        muchun.song@linux.dev, mst@redhat.com, mingo@redhat.com,
+        minchan@kernel.org, marijn.suijten@somainline.org,
+        kolga@netapp.com, kent.overstreet@gmail.com, josef@toxicpanda.com,
+        joonas.lahtinen@linux.intel.com, joel@joelfernandes.org,
+        jlayton@kernel.org, jgross@suse.com, jefflexu@linux.alibaba.com,
+        jasowang@redhat.com, jani.nikula@linux.intel.com,
+        jaegeuk@kernel.org, jack@suse.cz, huyue2@coolpad.com,
+        hsiangkao@linux.alibaba.com, gregkh@linuxfoundation.org,
+        dsterba@suse.com, dmitry.baryshkov@linaro.org, djwong@kernel.org,
+        david@redhat.com, david@fromorbit.com, dave.hansen@linux.intel.com,
+        daniel.vetter@ffwll.ch, daniel@ffwll.ch, Dai.Ngo@oracle.com,
+        colyli@suse.de, cmllamas@google.com, clm@fb.com,
+        christian.koenig@amd.com, chao@kernel.org, chandan.babu@oracle.com,
+        cel@kernel.org, brauner@kernel.org, bp@alien8.de, arnd@arndb.de,
+        anna@kernel.org, alyssa.rosenzweig@collabora.com,
+        airlied@gmail.com, agruenba@redhat.com, agk@redhat.com,
+        adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-simplify-kmsan_internal_memmove_metadata.patch added to mm-unstable branch
-Message-Id: <20230911183328.04C32C433C8@smtp.kernel.org>
+Subject: + fs-super-dynamically-allocate-the-s_shrink.patch added to mm-unstable branch
+Message-Id: <20230911204025.633FFC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmsan: simplify kmsan_internal_memmove_metadata()
+     Subject: fs: super: dynamically allocate the s_shrink
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-simplify-kmsan_internal_memmove_metadata.patch
+     fs-super-dynamically-allocate-the-s_shrink.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-simplify-kmsan_internal_memmove_metadata.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-super-dynamically-allocate-the-s_shrink.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,250 +86,289 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: kmsan: simplify kmsan_internal_memmove_metadata()
-Date: Mon, 11 Sep 2023 16:56:59 +0200
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: fs: super: dynamically allocate the s_shrink
+Date: Mon, 11 Sep 2023 17:44:37 +0800
 
-kmsan_internal_memmove_metadata() is the function that implements copying
-metadata every time memcpy()/memmove() is called.  Because shadow memory
-stores 1 byte per each byte of kernel memory, copying the shadow is
-trivial and can be done by a single memmove() call.
+In preparation for implementing lockless slab shrink, use new APIs to
+dynamically allocate the s_shrink, so that it can be freed asynchronously
+via RCU. Then it doesn't need to wait for RCU read-side critical section
+when releasing the struct super_block.
 
-Origins, on the other hand, are stored as 4-byte values corresponding to
-every aligned 4 bytes of kernel memory.  Therefore, if either the source
-or the destination of kmsan_internal_memmove_metadata() is unaligned, the
-number of origin slots corresponding to the source or destination may
-differ:
-
-  1) memcpy(0xffff888080a00000, 0xffff888080900000, 4)
-     copies 1 origin slot into 1 origin slot:
-
-     src (0xffff888080900000): xxxx
-     src origins:              o111
-     dst (0xffff888080a00000): xxxx
-     dst origins:              o111
-
-  2) memcpy(0xffff888080a00001, 0xffff888080900000, 4)
-     copies 1 origin slot into 2 origin slots:
-
-     src (0xffff888080900000): xxxx
-     src origins:              o111
-     dst (0xffff888080a00000): .xxx x...
-     dst origins:              o111 o111
-
-  3) memcpy(0xffff888080a00000, 0xffff888080900001, 4)
-     copies 2 origin slots into 1 origin slot:
-
-     src (0xffff888080900000): .xxx x...
-     src origins:              o111 o222
-     dst (0xffff888080a00000): xxxx
-     dst origins:              o111
-                           (or o222)
-
-Previously, kmsan_internal_memmove_metadata() tried to solve this problem
-by copying min(src_slots, dst_slots) as is and cloning the missing slot on
-one of the ends, if needed.
-
-This was error-prone even in the simple cases where 4 bytes were copied,
-and did not account for situations where the total number of nonzero
-origin slots could have increased by more than one after copying:
-
-  memcpy(0xffff888080a00000, 0xffff888080900002, 8)
-
-  src (0xffff888080900002): ..xx .... xx..
-  src origins:              o111 0000 o222
-  dst (0xffff888080a00000): xx.. ..xx
-                            o111 0000
-                        (or 0000 o222)
-
-The new implementation simply copies the shadow byte by byte, and updates
-the corresponding origin slot, if the shadow byte is nonzero.  This
-approach can handle complex cases with mixed initialized and uninitialized
-bytes.  Similarly to KMSAN inline instrumentation, latter writes to bytes
-sharing the same origin slots take precedence.
-
-Link: https://lkml.kernel.org/r/20230911145702.2663753-1-glider@google.com
-Fixes: f80be4571b19 ("kmsan: add KMSAN runtime core")
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Acked-by: Marco Elver <elver@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Link: https://lkml.kernel.org/r/20230911094444.68966-39-zhengqi.arch@bytedance.com
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Chris Mason <clm@fb.com>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: David Sterba <dsterba@suse.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
+Cc: Alasdair Kergon <agk@redhat.com>
+Cc: Alyssa Rosenzweig <alyssa.rosenzweig@collabora.com>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Andreas Gruenbacher <agruenba@redhat.com>
+Cc: Anna Schumaker <anna@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Bob Peterson <rpeterso@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Carlos Llamas <cmllamas@google.com>
+Cc: Chandan Babu R <chandan.babu@oracle.com>
+Cc: Chao Yu <chao@kernel.org>
+Cc: Christian Koenig <christian.koenig@amd.com>
+Cc: Chuck Lever <cel@kernel.org>
+Cc: Coly Li <colyli@suse.de>
+Cc: Dai Ngo <Dai.Ngo@oracle.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Airlie <airlied@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
+Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Huang Rui <ray.huang@amd.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
+Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
+Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Kent Overstreet <kent.overstreet@gmail.com>
+Cc: Kirill Tkhai <tkhai@ya.ru>
+Cc: Marijn Suijten <marijn.suijten@somainline.org>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Mike Snitzer <snitzer@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nadav Amit <namit@vmware.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
+Cc: Olga Kornievskaia <kolga@netapp.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Rob Clark <robdclark@gmail.com>
+Cc: Rob Herring <robh@kernel.org>
+Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Sean Paul <sean@poorly.run>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Song Liu <song@kernel.org>
+Cc: Stefano Stabellini <sstabellini@kernel.org>
+Cc: Steven Price <steven.price@arm.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: Tom Talpey <tom@talpey.com>
+Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
+Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
+Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/core.c |  127 +++++++++++-----------------------------------
- 1 file changed, 31 insertions(+), 96 deletions(-)
+ fs/btrfs/super.c   |    2 +-
+ fs/kernfs/mount.c  |    2 +-
+ fs/proc/root.c     |    2 +-
+ fs/super.c         |   33 ++++++++++++++++++---------------
+ include/linux/fs.h |    2 +-
+ 5 files changed, 22 insertions(+), 19 deletions(-)
 
---- a/mm/kmsan/core.c~kmsan-simplify-kmsan_internal_memmove_metadata
-+++ a/mm/kmsan/core.c
-@@ -83,131 +83,66 @@ depot_stack_handle_t kmsan_save_stack_wi
- /* Copy the metadata following the memmove() behavior. */
- void kmsan_internal_memmove_metadata(void *dst, void *src, size_t n)
- {
-+	depot_stack_handle_t prev_old_origin = 0, prev_new_origin = 0;
-+	int i, iter, step, src_off, dst_off, oiter_src, oiter_dst;
- 	depot_stack_handle_t old_origin = 0, new_origin = 0;
--	int src_slots, dst_slots, i, iter, step, skip_bits;
- 	depot_stack_handle_t *origin_src, *origin_dst;
--	void *shadow_src, *shadow_dst;
--	u32 *align_shadow_src, shadow;
-+	u8 *shadow_src, *shadow_dst;
-+	u32 *align_shadow_dst;
- 	bool backwards;
+--- a/fs/btrfs/super.c~fs-super-dynamically-allocate-the-s_shrink
++++ a/fs/btrfs/super.c
+@@ -1519,7 +1519,7 @@ static struct dentry *btrfs_mount_root(s
+ 			error = -EBUSY;
+ 	} else {
+ 		snprintf(s->s_id, sizeof(s->s_id), "%pg", bdev);
+-		shrinker_debugfs_rename(&s->s_shrink, "sb-%s:%s", fs_type->name,
++		shrinker_debugfs_rename(s->s_shrink, "sb-%s:%s", fs_type->name,
+ 					s->s_id);
+ 		btrfs_sb(s)->bdev_holder = fs_type;
+ 		error = btrfs_fill_super(s, fs_devices, data);
+--- a/fs/kernfs/mount.c~fs-super-dynamically-allocate-the-s_shrink
++++ a/fs/kernfs/mount.c
+@@ -265,7 +265,7 @@ static int kernfs_fill_super(struct supe
+ 	sb->s_time_gran = 1;
  
- 	shadow_dst = kmsan_get_metadata(dst, KMSAN_META_SHADOW);
- 	if (!shadow_dst)
- 		return;
- 	KMSAN_WARN_ON(!kmsan_metadata_is_contiguous(dst, n));
-+	align_shadow_dst =
-+		(u32 *)ALIGN_DOWN((u64)shadow_dst, KMSAN_ORIGIN_SIZE);
+ 	/* sysfs dentries and inodes don't require IO to create */
+-	sb->s_shrink.seeks = 0;
++	sb->s_shrink->seeks = 0;
  
- 	shadow_src = kmsan_get_metadata(src, KMSAN_META_SHADOW);
- 	if (!shadow_src) {
--		/*
--		 * @src is untracked: zero out destination shadow, ignore the
--		 * origins, we're done.
--		 */
--		__memset(shadow_dst, 0, n);
-+		/* @src is untracked: mark @dst as initialized. */
-+		kmsan_internal_unpoison_memory(dst, n, /*checked*/ false);
- 		return;
- 	}
- 	KMSAN_WARN_ON(!kmsan_metadata_is_contiguous(src, n));
+ 	/* get root inode, initialize and unlock it */
+ 	down_read(&kf_root->kernfs_rwsem);
+--- a/fs/proc/root.c~fs-super-dynamically-allocate-the-s_shrink
++++ a/fs/proc/root.c
+@@ -188,7 +188,7 @@ static int proc_fill_super(struct super_
+ 	s->s_stack_depth = FILESYSTEM_MAX_STACK_DEPTH;
  
--	__memmove(shadow_dst, shadow_src, n);
--
- 	origin_dst = kmsan_get_metadata(dst, KMSAN_META_ORIGIN);
- 	origin_src = kmsan_get_metadata(src, KMSAN_META_ORIGIN);
- 	KMSAN_WARN_ON(!origin_dst || !origin_src);
--	src_slots = (ALIGN((u64)src + n, KMSAN_ORIGIN_SIZE) -
--		     ALIGN_DOWN((u64)src, KMSAN_ORIGIN_SIZE)) /
--		    KMSAN_ORIGIN_SIZE;
--	dst_slots = (ALIGN((u64)dst + n, KMSAN_ORIGIN_SIZE) -
--		     ALIGN_DOWN((u64)dst, KMSAN_ORIGIN_SIZE)) /
--		    KMSAN_ORIGIN_SIZE;
--	KMSAN_WARN_ON((src_slots < 1) || (dst_slots < 1));
--	KMSAN_WARN_ON((src_slots - dst_slots > 1) ||
--		      (dst_slots - src_slots < -1));
+ 	/* procfs dentries and inodes don't require IO to create */
+-	s->s_shrink.seeks = 0;
++	s->s_shrink->seeks = 0;
  
- 	backwards = dst > src;
--	i = backwards ? min(src_slots, dst_slots) - 1 : 0;
--	iter = backwards ? -1 : 1;
--
--	align_shadow_src =
--		(u32 *)ALIGN_DOWN((u64)shadow_src, KMSAN_ORIGIN_SIZE);
--	for (step = 0; step < min(src_slots, dst_slots); step++, i += iter) {
--		KMSAN_WARN_ON(i < 0);
--		shadow = align_shadow_src[i];
--		if (i == 0) {
--			/*
--			 * If @src isn't aligned on KMSAN_ORIGIN_SIZE, don't
--			 * look at the first @src % KMSAN_ORIGIN_SIZE bytes
--			 * of the first shadow slot.
--			 */
--			skip_bits = ((u64)src % KMSAN_ORIGIN_SIZE) * 8;
--			shadow = (shadow >> skip_bits) << skip_bits;
-+	step = backwards ? -1 : 1;
-+	iter = backwards ? n - 1 : 0;
-+	src_off = (u64)src % KMSAN_ORIGIN_SIZE;
-+	dst_off = (u64)dst % KMSAN_ORIGIN_SIZE;
-+
-+	/* Copy shadow bytes one by one, updating the origins if necessary. */
-+	for (i = 0; i < n; i++, iter += step) {
-+		oiter_src = (iter + src_off) / KMSAN_ORIGIN_SIZE;
-+		oiter_dst = (iter + dst_off) / KMSAN_ORIGIN_SIZE;
-+		if (!shadow_src[iter]) {
-+			shadow_dst[iter] = 0;
-+			if (!align_shadow_dst[oiter_dst])
-+				origin_dst[oiter_dst] = 0;
-+			continue;
- 		}
--		if (i == src_slots - 1) {
--			/*
--			 * If @src + n isn't aligned on
--			 * KMSAN_ORIGIN_SIZE, don't look at the last
--			 * (@src + n) % KMSAN_ORIGIN_SIZE bytes of the
--			 * last shadow slot.
--			 */
--			skip_bits = (((u64)src + n) % KMSAN_ORIGIN_SIZE) * 8;
--			shadow = (shadow << skip_bits) >> skip_bits;
--		}
--		/*
--		 * Overwrite the origin only if the corresponding
--		 * shadow is nonempty.
--		 */
--		if (origin_src[i] && (origin_src[i] != old_origin) && shadow) {
--			old_origin = origin_src[i];
--			new_origin = kmsan_internal_chain_origin(old_origin);
-+		shadow_dst[iter] = shadow_src[iter];
-+		old_origin = origin_src[oiter_src];
-+		if (old_origin == prev_old_origin)
-+			new_origin = prev_new_origin;
-+		else {
- 			/*
- 			 * kmsan_internal_chain_origin() may return
- 			 * NULL, but we don't want to lose the previous
- 			 * origin value.
- 			 */
-+			new_origin = kmsan_internal_chain_origin(old_origin);
- 			if (!new_origin)
- 				new_origin = old_origin;
- 		}
--		if (shadow)
--			origin_dst[i] = new_origin;
--		else
--			origin_dst[i] = 0;
--	}
--	/*
--	 * If dst_slots is greater than src_slots (i.e.
--	 * dst_slots == src_slots + 1), there is an extra origin slot at the
--	 * beginning or end of the destination buffer, for which we take the
--	 * origin from the previous slot.
--	 * This is only done if the part of the source shadow corresponding to
--	 * slot is non-zero.
--	 *
--	 * E.g. if we copy 8 aligned bytes that are marked as uninitialized
--	 * and have origins o111 and o222, to an unaligned buffer with offset 1,
--	 * these two origins are copied to three origin slots, so one of then
--	 * needs to be duplicated, depending on the copy direction (@backwards)
--	 *
--	 *   src shadow: |uuuu|uuuu|....|
--	 *   src origin: |o111|o222|....|
--	 *
--	 * backwards = 0:
--	 *   dst shadow: |.uuu|uuuu|u...|
--	 *   dst origin: |....|o111|o222| - fill the empty slot with o111
--	 * backwards = 1:
--	 *   dst shadow: |.uuu|uuuu|u...|
--	 *   dst origin: |o111|o222|....| - fill the empty slot with o222
--	 */
--	if (src_slots < dst_slots) {
--		if (backwards) {
--			shadow = align_shadow_src[src_slots - 1];
--			skip_bits = (((u64)dst + n) % KMSAN_ORIGIN_SIZE) * 8;
--			shadow = (shadow << skip_bits) >> skip_bits;
--			if (shadow)
--				/* src_slots > 0, therefore dst_slots is at least 2 */
--				origin_dst[dst_slots - 1] =
--					origin_dst[dst_slots - 2];
--		} else {
--			shadow = align_shadow_src[0];
--			skip_bits = ((u64)dst % KMSAN_ORIGIN_SIZE) * 8;
--			shadow = (shadow >> skip_bits) << skip_bits;
--			if (shadow)
--				origin_dst[0] = origin_dst[1];
--		}
-+		origin_dst[oiter_dst] = new_origin;
-+		prev_new_origin = new_origin;
-+		prev_old_origin = old_origin;
- 	}
+ 	pde_get(&proc_root);
+ 	root_inode = proc_get_inode(s, &proc_root);
+--- a/fs/super.c~fs-super-dynamically-allocate-the-s_shrink
++++ a/fs/super.c
+@@ -191,7 +191,7 @@ static unsigned long super_cache_scan(st
+ 	long	dentries;
+ 	long	inodes;
+ 
+-	sb = container_of(shrink, struct super_block, s_shrink);
++	sb = shrink->private_data;
+ 
+ 	/*
+ 	 * Deadlock avoidance.  We may hold various FS locks, and we don't want
+@@ -244,7 +244,7 @@ static unsigned long super_cache_count(s
+ 	struct super_block *sb;
+ 	long	total_objects = 0;
+ 
+-	sb = container_of(shrink, struct super_block, s_shrink);
++	sb = shrink->private_data;
+ 
+ 	/*
+ 	 * We don't call super_trylock_shared() here as it is a scalability
+@@ -306,7 +306,7 @@ static void destroy_unused_super(struct
+ 	security_sb_free(s);
+ 	put_user_ns(s->s_user_ns);
+ 	kfree(s->s_subtype);
+-	free_prealloced_shrinker(&s->s_shrink);
++	shrinker_free(s->s_shrink);
+ 	/* no delays needed */
+ 	destroy_super_work(&s->destroy_work);
  }
+@@ -383,16 +383,19 @@ static struct super_block *alloc_super(s
+ 	s->s_time_min = TIME64_MIN;
+ 	s->s_time_max = TIME64_MAX;
  
+-	s->s_shrink.seeks = DEFAULT_SEEKS;
+-	s->s_shrink.scan_objects = super_cache_scan;
+-	s->s_shrink.count_objects = super_cache_count;
+-	s->s_shrink.batch = 1024;
+-	s->s_shrink.flags = SHRINKER_NUMA_AWARE | SHRINKER_MEMCG_AWARE;
+-	if (prealloc_shrinker(&s->s_shrink, "sb-%s", type->name))
++	s->s_shrink = shrinker_alloc(SHRINKER_NUMA_AWARE | SHRINKER_MEMCG_AWARE,
++				     "sb-%s", type->name);
++	if (!s->s_shrink)
+ 		goto fail;
+-	if (list_lru_init_memcg(&s->s_dentry_lru, &s->s_shrink))
++
++	s->s_shrink->scan_objects = super_cache_scan;
++	s->s_shrink->count_objects = super_cache_count;
++	s->s_shrink->batch = 1024;
++	s->s_shrink->private_data = s;
++
++	if (list_lru_init_memcg(&s->s_dentry_lru, s->s_shrink))
+ 		goto fail;
+-	if (list_lru_init_memcg(&s->s_inode_lru, &s->s_shrink))
++	if (list_lru_init_memcg(&s->s_inode_lru, s->s_shrink))
+ 		goto fail;
+ 	return s;
+ 
+@@ -477,7 +480,7 @@ void deactivate_locked_super(struct supe
+ {
+ 	struct file_system_type *fs = s->s_type;
+ 	if (atomic_dec_and_test(&s->s_active)) {
+-		unregister_shrinker(&s->s_shrink);
++		shrinker_free(s->s_shrink);
+ 		fs->kill_sb(s);
+ 
+ 		kill_super_notify(s);
+@@ -818,7 +821,7 @@ retry:
+ 	hlist_add_head(&s->s_instances, &s->s_type->fs_supers);
+ 	spin_unlock(&sb_lock);
+ 	get_filesystem(s->s_type);
+-	register_shrinker_prepared(&s->s_shrink);
++	shrinker_register(s->s_shrink);
+ 	return s;
+ 
+ share_extant_sb:
+@@ -901,7 +904,7 @@ retry:
+ 	hlist_add_head(&s->s_instances, &type->fs_supers);
+ 	spin_unlock(&sb_lock);
+ 	get_filesystem(type);
+-	register_shrinker_prepared(&s->s_shrink);
++	shrinker_register(s->s_shrink);
+ 	return s;
+ }
+ EXPORT_SYMBOL(sget);
+@@ -1522,7 +1525,7 @@ int setup_bdev_super(struct super_block
+ 	mutex_unlock(&bdev->bd_fsfreeze_mutex);
+ 
+ 	snprintf(sb->s_id, sizeof(sb->s_id), "%pg", bdev);
+-	shrinker_debugfs_rename(&sb->s_shrink, "sb-%s:%s", sb->s_type->name,
++	shrinker_debugfs_rename(sb->s_shrink, "sb-%s:%s", sb->s_type->name,
+ 				sb->s_id);
+ 	sb_set_blocksize(sb, block_size(bdev));
+ 	return 0;
+--- a/include/linux/fs.h~fs-super-dynamically-allocate-the-s_shrink
++++ a/include/linux/fs.h
+@@ -1265,7 +1265,7 @@ struct super_block {
+ 
+ 	const struct dentry_operations *s_d_op; /* default d_op for dentries */
+ 
+-	struct shrinker s_shrink;	/* per-sb shrinker handle */
++	struct shrinker *s_shrink;	/* per-sb shrinker handle */
+ 
+ 	/* Number of inodes with nlink == 0 but still referenced */
+ 	atomic_long_t s_remove_count;
 _
 
-Patches currently in -mm which might be from glider@google.com are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
-kmsan-simplify-kmsan_internal_memmove_metadata.patch
-kmsan-prevent-optimizations-in-memcpy-tests.patch
-kmsan-merge-test_memcpy_aligned_to_unaligned2-together.patch
-kmsan-introduce-test_memcpy_initialized_gap.patch
+mm-move-some-shrinker-related-function-declarations-to-mm-internalh.patch
+mm-vmscan-move-shrinker-related-code-into-a-separate-file.patch
+mm-shrinker-remove-redundant-shrinker_rwsem-in-debugfs-operations.patch
+drm-ttm-introduce-pool_shrink_rwsem.patch
+mm-shrinker-add-infrastructure-for-dynamically-allocating-shrinker.patch
+kvm-mmu-dynamically-allocate-the-x86-mmu-shrinker.patch
+binder-dynamically-allocate-the-android-binder-shrinker.patch
+drm-ttm-dynamically-allocate-the-drm-ttm_pool-shrinker.patch
+xenbus-backend-dynamically-allocate-the-xen-backend-shrinker.patch
+erofs-dynamically-allocate-the-erofs-shrinker.patch
+f2fs-dynamically-allocate-the-f2fs-shrinker.patch
+gfs2-dynamically-allocate-the-gfs2-glock-shrinker.patch
+gfs2-dynamically-allocate-the-gfs2-qd-shrinker.patch
+nfsv42-dynamically-allocate-the-nfs-xattr-shrinkers.patch
+nfs-dynamically-allocate-the-nfs-acl-shrinker.patch
+nfsd-dynamically-allocate-the-nfsd-filecache-shrinker.patch
+quota-dynamically-allocate-the-dquota-cache-shrinker.patch
+ubifs-dynamically-allocate-the-ubifs-slab-shrinker.patch
+rcu-dynamically-allocate-the-rcu-lazy-shrinker.patch
+rcu-dynamically-allocate-the-rcu-kfree-shrinker.patch
+mm-thp-dynamically-allocate-the-thp-related-shrinkers.patch
+sunrpc-dynamically-allocate-the-sunrpc_cred-shrinker.patch
+mm-workingset-dynamically-allocate-the-mm-shadow-shrinker.patch
+drm-i915-dynamically-allocate-the-i915_gem_mm-shrinker.patch
+drm-msm-dynamically-allocate-the-drm-msm_gem-shrinker.patch
+drm-panfrost-dynamically-allocate-the-drm-panfrost-shrinker.patch
+dm-dynamically-allocate-the-dm-bufio-shrinker.patch
+dm-zoned-dynamically-allocate-the-dm-zoned-meta-shrinker.patch
+md-raid5-dynamically-allocate-the-md-raid5-shrinker.patch
+bcache-dynamically-allocate-the-md-bcache-shrinker.patch
+vmw_balloon-dynamically-allocate-the-vmw-balloon-shrinker.patch
+virtio_balloon-dynamically-allocate-the-virtio-balloon-shrinker.patch
+mbcache-dynamically-allocate-the-mbcache-shrinker.patch
+ext4-dynamically-allocate-the-ext4-es-shrinker.patch
+jbd2ext4-dynamically-allocate-the-jbd2-journal-shrinker.patch
+nfsd-dynamically-allocate-the-nfsd-client-shrinker.patch
+nfsd-dynamically-allocate-the-nfsd-reply-shrinker.patch
+xfs-dynamically-allocate-the-xfs-buf-shrinker.patch
+xfs-dynamically-allocate-the-xfs-inodegc-shrinker.patch
+xfs-dynamically-allocate-the-xfs-qm-shrinker.patch
+zsmalloc-dynamically-allocate-the-mm-zspool-shrinker.patch
+fs-super-dynamically-allocate-the-s_shrink.patch
+mm-shrinker-remove-old-apis.patch
+mm-shrinker-add-a-secondary-array-for-shrinker_info-map-nr_deferred.patch
+mm-shrinker-rename-preallocunregister_memcg_shrinker-to-shrinker_memcg_allocremove.patch
+mm-shrinker-make-global-slab-shrink-lockless.patch
+mm-shrinker-make-memcg-slab-shrink-lockless.patch
+mm-shrinker-hold-write-lock-to-reparent-shrinker-nr_deferred.patch
+mm-shrinker-convert-shrinker_rwsem-to-mutex.patch
 
