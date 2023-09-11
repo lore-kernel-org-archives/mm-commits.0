@@ -2,34 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6827ACA0ECE
-	for <mm-commits@archiver.kernel.org>; Tue, 12 Sep 2023 03:17:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CFA8CA0ECF
+	for <mm-commits@archiver.kernel.org>; Tue, 12 Sep 2023 03:19:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242577AbjILDRy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 23:17:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54442 "EHLO
+        id S234214AbjILDTy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 23:19:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42456 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242232AbjILDRh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 23:17:37 -0400
+        with ESMTP id S242324AbjILDLX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 23:11:23 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD9B413C8DF;
-        Mon, 11 Sep 2023 19:02:25 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B7B0C433CD;
-        Mon, 11 Sep 2023 21:00:53 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 483531058AD
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 19:07:26 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13F68C43395;
+        Mon, 11 Sep 2023 21:01:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694466053;
-        bh=ZsH1kV3lAUPP8ykkzVUlLE2mYT6JMcgSoplaVtsK1W8=;
+        s=korg; t=1694466083;
+        bh=5HhQ8rrGzauRyTPaGlUY3C6sHOdgtnSwMLt6OIreP6w=;
         h=Date:To:From:Subject:From;
-        b=q/9TcJPIm+cCSBtbfGfQniXDFl561K9HEEgvQhOeunCtWykkaTWzfjczP86wYeE9K
-         j1wu8KaPAKvLmgb9mhfQIom0SlgSbSHmraP/2WdRBNsKBpuJ02iHS9TQA0qrRqSr7w
-         BoURePMNDXXhXCw/9F7v0CB/ouO/BWSPAgTIQYCs=
-Date:   Mon, 11 Sep 2023 14:00:52 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, stable@vger.kernel.org,
-        joe.liu@mediatek.com, hannes@cmpxchg.org,
-        mgorman@techsingularity.net, akpm@linux-foundation.org
+        b=wwtNH6ZOpGiYvZ3heluUCR3M3Q/94IretwdLDQp8NFMjNyN+RoCY90PaK7RGhpGW2
+         JWAhAtl9qakIkkSsI4WFp3KsvPQmE8EUiMSZBdTz8/0r5blzdligiUzpSJP1XQDH6Y
+         P0Ep+jIIm6nnmnESo3twxr6lf9xIDw1AIr3bL85g=
+Date:   Mon, 11 Sep 2023 14:01:22 -0700
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
+        wangkefeng.wang@huawei.com, vbabka@suse.cz,
+        mgorman@techsingularity.net, linmiaohe@huawei.com,
+        hannes@cmpxchg.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-free-pages-to-correct-buddy-list-after-pcp-lock-contention.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230911210053.8B7B0C433CD@smtp.kernel.org>
+Subject: + mm-page_alloc-fix-up-block-types-when-merging-compatible-blocks.patch added to mm-unstable branch
+Message-Id: <20230911210123.13F68C43395@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,14 +38,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_alloc: free pages to correct buddy list after PCP lock contention
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-page_alloc-free-pages-to-correct-buddy-list-after-pcp-lock-contention.patch
+     Subject: mm: page_alloc: fix up block types when merging compatible blocks
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-page_alloc-fix-up-block-types-when-merging-compatible-blocks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-free-pages-to-correct-buddy-list-after-pcp-lock-contention.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-fix-up-block-types-when-merging-compatible-blocks.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -60,54 +61,65 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm: page_alloc: free pages to correct buddy list after PCP lock contention
-Date: Tue, 5 Sep 2023 10:09:22 +0100
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: page_alloc: fix up block types when merging compatible blocks
+Date: Mon, 11 Sep 2023 15:41:43 -0400
 
-Commit 4b23a68f9536 ("mm/page_alloc: protect PCP lists with a spinlock")
-returns pages to the buddy list on PCP lock contention. However, for
-migratetypes that are not MIGRATE_PCPTYPES, the migratetype may have
-been clobbered already for pages that are not being isolated. In
-practice, this means that CMA pages may be returned to the wrong
-buddy list. While this might be harmless in some cases as it is
-MIGRATE_MOVABLE, the pageblock could be reassigned in rmqueue_fallback
-and prevent a future CMA allocation. Lookup the PCP migratetype
-against unconditionally if the PCP lock is contended.
+The buddy allocator coalesces compatible blocks during freeing, but it
+doesn't update the types of the subblocks to match.  When an allocation
+later breaks the chunk down again, its pieces will be put on freelists of
+the wrong type.  This encourages incompatible page mixing (ask for one
+type, get another), and thus long-term fragmentation.
 
-[lecopzer.chen@mediatek.com: CMA-specific fix]
-Link: https://lkml.kernel.org/r/20230905090922.zy7srh33rg5c3zao@techsingularity.net
-Fixes: 4b23a68f9536 ("mm/page_alloc: protect PCP lists with a spinlock")
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Reported-by: Joe Liu <joe.liu@mediatek.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>
+Update the subblocks when merging a larger chunk, such that a later
+expand() will maintain freelist type hygiene.
+
+Link: https://lkml.kernel.org/r/20230911195023.247694-3-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-free-pages-to-correct-buddy-list-after-pcp-lock-contention
+--- a/mm/page_alloc.c~mm-page_alloc-fix-up-block-types-when-merging-compatible-blocks
 +++ a/mm/page_alloc.c
-@@ -2428,7 +2428,13 @@ void free_unref_page(struct page *page,
- 		free_unref_page_commit(zone, pcp, page, migratetype, order);
- 		pcp_spin_unlock(pcp);
- 	} else {
--		free_one_page(zone, page, pfn, order, migratetype, FPI_NONE);
-+		/*
-+		 * The page migratetype may have been clobbered for types
-+		 * (type >= MIGRATE_PCPTYPES && !is_migrate_isolate) so
-+		 * must be rechecked.
-+		 */
-+		free_one_page(zone, page, pfn, order,
-+			      get_pcppage_migratetype(page), FPI_NONE);
- 	}
- 	pcp_trylock_finish(UP_flags);
- }
+@@ -783,10 +783,17 @@ static inline void __free_one_page(struc
+ 			 */
+ 			int buddy_mt = get_pfnblock_migratetype(buddy, buddy_pfn);
+ 
+-			if (migratetype != buddy_mt
+-					&& (!migratetype_is_mergeable(migratetype) ||
+-						!migratetype_is_mergeable(buddy_mt)))
+-				goto done_merging;
++			if (migratetype != buddy_mt) {
++				if (!migratetype_is_mergeable(migratetype) ||
++				    !migratetype_is_mergeable(buddy_mt))
++					goto done_merging;
++				/*
++				 * Match buddy type. This ensures that
++				 * an expand() down the line puts the
++				 * sub-blocks on the right freelists.
++				 */
++				set_pageblock_migratetype(buddy, migratetype);
++			}
+ 		}
+ 
+ 		/*
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-page_alloc-free-pages-to-correct-buddy-list-after-pcp-lock-contention.patch
+mm-page_alloc-fix-cma-and-highatomic-landing-on-the-wrong-buddy-list.patch
+mm-page_alloc-remove-pcppage-migratetype-caching.patch
+mm-page_alloc-fix-up-block-types-when-merging-compatible-blocks.patch
+mm-page_alloc-move-free-pages-when-converting-block-during-isolation.patch
+mm-page_alloc-fix-move_freepages_block-range-error.patch
+mm-page_alloc-fix-freelist-movement-during-block-conversion.patch
+mm-page_alloc-consolidate-free-page-accounting.patch
 
