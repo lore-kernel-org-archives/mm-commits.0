@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02FC3CA0ECF
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:26:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75AEECA0ED4
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:26:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237500AbjIKWYB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:24:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51056 "EHLO
+        id S243076AbjIKWYG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:24:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47936 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244451AbjIKUgx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:36:53 -0400
+        with ESMTP id S244477AbjIKUhv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:37:51 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79E0D127
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:36:47 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00833C433CA;
-        Mon, 11 Sep 2023 20:36:47 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 284AB127
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:37:46 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B26EFC433C8;
+        Mon, 11 Sep 2023 20:37:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464607;
-        bh=b2wIq9B03U5bvMydFk8tl7wDzpSwA5uw1GuiqT5g8+0=;
+        s=korg; t=1694464665;
+        bh=5ABvc22gCmSDD7lrTDTwulEfzy3dBLmrcbqY4WwqeRY=;
         h=Date:To:From:Subject:From;
-        b=sw+uWIB/rriG2AtYCK5EPob5I4p4CE6U5UmPC5SpEeVnmN4mcnCXxfKLKKsC/5e5J
-         8wcWheRWtv41OjXf3CNbKQ7Xsln3eegoK83xG6GyLlzepWiCDNZJMpOXvAkPujSM90
-         aR/tiNfYvQ5eRTckmjYemZD9uDuuiPwrEUZYqrFk=
-Date:   Mon, 11 Sep 2023 13:36:46 -0700
+        b=Mx397u13GfcgRfmS4HoSzxqnl/RjEn0GY5tDo3HOb+LrIVCENAkgN4tvgf0/yPS8q
+         zRd7jmjpJI0Jvq4r49j7YbQJTImL+vIcR60cyh5Q7yJXme2JuEK4RFWNF0lMsjNY+4
+         mbHdvK/hGZFjXq1zlv4yOAZxevF0qWsx5YEbUnbA=
+Date:   Mon, 11 Sep 2023 13:37:45 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-move-some-shrinker-related-function-declarations-to-mm-internalh.patch added to mm-unstable branch
-Message-Id: <20230911203647.00833C433CA@smtp.kernel.org>
+Subject: + gfs2-dynamically-allocate-the-gfs2-glock-shrinker.patch added to mm-unstable branch
+Message-Id: <20230911203745.B26EFC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move some shrinker-related function declarations to mm/internal.h
+     Subject: gfs2: dynamically allocate the gfs2-glock shrinker
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-move-some-shrinker-related-function-declarations-to-mm-internalh.patch
+     gfs2-dynamically-allocate-the-gfs2-glock-shrinker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-some-shrinker-related-function-declarations-to-mm-internalh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/gfs2-dynamically-allocate-the-gfs2-glock-shrinker.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,65 +87,44 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: move some shrinker-related function declarations to mm/internal.h
-Date: Mon, 11 Sep 2023 17:25:14 +0800
+Subject: gfs2: dynamically allocate the gfs2-glock shrinker
+Date: Mon, 11 Sep 2023 17:44:07 +0800
 
-Patch series "cleanups for lockless slab shrink", v4.
+Use new APIs to dynamically allocate the gfs2-glock shrinker.
 
-This series is some cleanups for lockless slab shrink.
-
-
-This patch (of 4):
-
-The following functions are only used inside the mm subsystem, so it's
-better to move their declarations to the mm/internal.h file.
-
-1. shrinker_debugfs_add()
-2. shrinker_debugfs_detach()
-3. shrinker_debugfs_remove()
-
-Link: https://lkml.kernel.org/r/20230911092517.64141-1-zhengqi.arch@bytedance.com
-Link: https://lkml.kernel.org/r/20230911092517.64141-2-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-9-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Christian König <christian.koenig@amd.com>
-Cc: Chuck Lever <cel@kernel.org>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Darrick J. Wong <djwong@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Joel Fernandes <joel@joelfernandes.org>
-Cc: Kirill Tkhai <tkhai@ya.ru>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Steven Price <steven.price@arm.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Bob Peterson <rpeterso@redhat.com>
+Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alyssa Rosenzweig <alyssa.rosenzweig@collabora.com>
 Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Cc: Anna Schumaker <anna@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Bob Peterson <rpeterso@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Carlos Llamas <cmllamas@google.com>
 Cc: Chandan Babu R <chandan.babu@oracle.com>
 Cc: Chao Yu <chao@kernel.org>
 Cc: Chris Mason <clm@fb.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Christian Koenig <christian.koenig@amd.com>
+Cc: Chuck Lever <cel@kernel.org>
 Cc: Coly Li <colyli@suse.de>
 Cc: Dai Ngo <Dai.Ngo@oracle.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Airlie <airlied@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Sterba <dsterba@suse.com>
 Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
 Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Huang Rui <ray.huang@amd.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
@@ -154,10 +133,12 @@ Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Wang <jasowang@redhat.com>
 Cc: Jeff Layton <jlayton@kernel.org>
 Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
+Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
 Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
 Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: Juergen Gross <jgross@suse.com>
 Cc: Kent Overstreet <kent.overstreet@gmail.com>
+Cc: Kirill Tkhai <tkhai@ya.ru>
 Cc: Marijn Suijten <marijn.suijten@somainline.org>
 Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
@@ -167,103 +148,78 @@ Cc: Nadav Amit <namit@vmware.com>
 Cc: Neil Brown <neilb@suse.de>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
 Cc: Olga Kornievskaia <kolga@netapp.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Richard Weinberger <richard@nod.at>
 Cc: Rob Clark <robdclark@gmail.com>
 Cc: Rob Herring <robh@kernel.org>
 Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Sean Paul <sean@poorly.run>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Song Liu <song@kernel.org>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
+Cc: Steven Price <steven.price@arm.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Cc: Tom Talpey <tom@talpey.com>
 Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
 Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shrinker.h |   19 -------------------
- mm/internal.h            |   26 ++++++++++++++++++++++++++
- mm/shrinker_debug.c      |    2 ++
- 3 files changed, 28 insertions(+), 19 deletions(-)
+ fs/gfs2/glock.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
---- a/include/linux/shrinker.h~mm-move-some-shrinker-related-function-declarations-to-mm-internalh
-+++ a/include/linux/shrinker.h
-@@ -106,28 +106,9 @@ extern void free_prealloced_shrinker(str
- extern void synchronize_shrinkers(void);
+--- a/fs/gfs2/glock.c~gfs2-dynamically-allocate-the-gfs2-glock-shrinker
++++ a/fs/gfs2/glock.c
+@@ -2039,11 +2039,7 @@ static unsigned long gfs2_glock_shrink_c
+ 	return vfs_pressure_ratio(atomic_read(&lru_count));
+ }
  
- #ifdef CONFIG_SHRINKER_DEBUG
--extern int shrinker_debugfs_add(struct shrinker *shrinker);
--extern struct dentry *shrinker_debugfs_detach(struct shrinker *shrinker,
--					      int *debugfs_id);
--extern void shrinker_debugfs_remove(struct dentry *debugfs_entry,
--				    int debugfs_id);
- extern int __printf(2, 3) shrinker_debugfs_rename(struct shrinker *shrinker,
- 						  const char *fmt, ...);
- #else /* CONFIG_SHRINKER_DEBUG */
--static inline int shrinker_debugfs_add(struct shrinker *shrinker)
--{
--	return 0;
--}
--static inline struct dentry *shrinker_debugfs_detach(struct shrinker *shrinker,
--						     int *debugfs_id)
--{
--	*debugfs_id = -1;
--	return NULL;
--}
--static inline void shrinker_debugfs_remove(struct dentry *debugfs_entry,
--					   int debugfs_id)
--{
--}
- static inline __printf(2, 3)
- int shrinker_debugfs_rename(struct shrinker *shrinker, const char *fmt, ...)
+-static struct shrinker glock_shrinker = {
+-	.seeks = DEFAULT_SEEKS,
+-	.count_objects = gfs2_glock_shrink_count,
+-	.scan_objects = gfs2_glock_shrink_scan,
+-};
++static struct shrinker *glock_shrinker;
+ 
+ /**
+  * glock_hash_walk - Call a function for glock in a hash bucket
+@@ -2463,13 +2459,18 @@ int __init gfs2_glock_init(void)
+ 		return -ENOMEM;
+ 	}
+ 
+-	ret = register_shrinker(&glock_shrinker, "gfs2-glock");
+-	if (ret) {
++	glock_shrinker = shrinker_alloc(0, "gfs2-glock");
++	if (!glock_shrinker) {
+ 		destroy_workqueue(glock_workqueue);
+ 		rhashtable_destroy(&gl_hash_table);
+-		return ret;
++		return -ENOMEM;
+ 	}
+ 
++	glock_shrinker->count_objects = gfs2_glock_shrink_count;
++	glock_shrinker->scan_objects = gfs2_glock_shrink_scan;
++
++	shrinker_register(glock_shrinker);
++
+ 	for (i = 0; i < GLOCK_WAIT_TABLE_SIZE; i++)
+ 		init_waitqueue_head(glock_wait_table + i);
+ 
+@@ -2478,7 +2479,7 @@ int __init gfs2_glock_init(void)
+ 
+ void gfs2_glock_exit(void)
  {
---- a/mm/internal.h~mm-move-some-shrinker-related-function-declarations-to-mm-internalh
-+++ a/mm/internal.h
-@@ -1155,4 +1155,30 @@ struct vma_prepare {
- 	struct vm_area_struct *remove;
- 	struct vm_area_struct *remove2;
- };
-+
-+/* shrinker related functions */
-+
-+#ifdef CONFIG_SHRINKER_DEBUG
-+extern int shrinker_debugfs_add(struct shrinker *shrinker);
-+extern struct dentry *shrinker_debugfs_detach(struct shrinker *shrinker,
-+					      int *debugfs_id);
-+extern void shrinker_debugfs_remove(struct dentry *debugfs_entry,
-+				    int debugfs_id);
-+#else /* CONFIG_SHRINKER_DEBUG */
-+static inline int shrinker_debugfs_add(struct shrinker *shrinker)
-+{
-+	return 0;
-+}
-+static inline struct dentry *shrinker_debugfs_detach(struct shrinker *shrinker,
-+						     int *debugfs_id)
-+{
-+	*debugfs_id = -1;
-+	return NULL;
-+}
-+static inline void shrinker_debugfs_remove(struct dentry *debugfs_entry,
-+					   int debugfs_id)
-+{
-+}
-+#endif /* CONFIG_SHRINKER_DEBUG */
-+
- #endif	/* __MM_INTERNAL_H */
---- a/mm/shrinker_debug.c~mm-move-some-shrinker-related-function-declarations-to-mm-internalh
-+++ a/mm/shrinker_debug.c
-@@ -6,6 +6,8 @@
- #include <linux/shrinker.h>
- #include <linux/memcontrol.h>
- 
-+#include "internal.h"
-+
- /* defined in vmscan.c */
- extern struct rw_semaphore shrinker_rwsem;
- extern struct list_head shrinker_list;
+-	unregister_shrinker(&glock_shrinker);
++	shrinker_free(glock_shrinker);
+ 	rhashtable_destroy(&gl_hash_table);
+ 	destroy_workqueue(glock_workqueue);
+ }
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
