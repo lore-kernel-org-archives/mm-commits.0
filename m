@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7067ACA0EC9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A72C5CA0EC6
 	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:25:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241828AbjIKWXd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:23:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44788 "EHLO
+        id S241894AbjIKWXh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:23:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44552 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244490AbjIKUid (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:38:33 -0400
+        with ESMTP id S244508AbjIKUjJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:39:09 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3207127
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:38:28 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63D6AC433C7;
-        Mon, 11 Sep 2023 20:38:28 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C37A0127
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:39:02 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45996C433C8;
+        Mon, 11 Sep 2023 20:39:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464708;
-        bh=ojnpqjjKburPHo7zTiCP8jzuNlZqUlJ87UtEg0NTaio=;
+        s=korg; t=1694464742;
+        bh=4Ew6mB2MI0FIbJTb1jMr0nah4NDh3yf2djPVcB8vyzo=;
         h=Date:To:From:Subject:From;
-        b=qVQrH7DghpABrDsbp2t+mE+Ree8M20u/DGlhuNdYxBuhbJUv5DGjIIK9gxG72JQuo
-         OyzCEeJ1e1rLd+8oWkaGImFCPcYLfBrE5kPBMdJsDQBzyapsG7nUp0IeJBtSXoakUW
-         AjJGYzoaJz39L0S6jqdmAnKeNkSwcbovsVPiW2Uk=
-Date:   Mon, 11 Sep 2023 13:38:27 -0700
+        b=pyy38geL++QEAQ9FIdjNTDgi6twTRmDeiKKQRpm/EViz4BsqhCUBSfEr1yZx9GGEy
+         I2rz7He8cy8QUY/77i09F7GghLGKbdNcFyzNsT8ug8zRHZtp42xVOy4grZlMxgE2SQ
+         qJ+QsvLTcrZCMiKqr+xJ0OwmrJ3z5PljKRLa+ANw=
+Date:   Mon, 11 Sep 2023 13:39:01 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + rcu-dynamically-allocate-the-rcu-kfree-shrinker.patch added to mm-unstable branch
-Message-Id: <20230911203828.63D6AC433C7@smtp.kernel.org>
+Subject: + drm-panfrost-dynamically-allocate-the-drm-panfrost-shrinker.patch added to mm-unstable branch
+Message-Id: <20230911203902.45996C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rcu: dynamically allocate the rcu-kfree shrinker
+     Subject: drm/panfrost: dynamically allocate the drm-panfrost shrinker
 has been added to the -mm mm-unstable branch.  Its filename is
-     rcu-dynamically-allocate-the-rcu-kfree-shrinker.patch
+     drm-panfrost-dynamically-allocate-the-drm-panfrost-shrinker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rcu-dynamically-allocate-the-rcu-kfree-shrinker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-panfrost-dynamically-allocate-the-drm-panfrost-shrinker.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,19 +87,25 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: rcu: dynamically allocate the rcu-kfree shrinker
-Date: Mon, 11 Sep 2023 17:44:15 +0800
+Subject: drm/panfrost: dynamically allocate the drm-panfrost shrinker
+Date: Mon, 11 Sep 2023 17:44:21 +0800
 
-Use new APIs to dynamically allocate the rcu-kfree shrinker.
+In preparation for implementing lockless slab shrink, use new APIs to
+dynamically allocate the drm-panfrost shrinker, so that it can be freed
+asynchronously via RCU. Then it doesn't need to wait for RCU read-side
+critical section when releasing the struct panfrost_device.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-17-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-23-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Joel Fernandes (Google) <joel@joelfernandes.org>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Steven Price <steven.price@arm.com>
+Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Rob Herring <robh@kernel.org>
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: Alyssa Rosenzweig <alyssa.rosenzweig@collabora.com>
+Cc: David Airlie <airlied@gmail.com>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Alyssa Rosenzweig <alyssa.rosenzweig@collabora.com>
 Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Cc: Anna Schumaker <anna@kernel.org>
@@ -116,11 +122,9 @@ Cc: Chuck Lever <cel@kernel.org>
 Cc: Coly Li <colyli@suse.de>
 Cc: Dai Ngo <Dai.Ngo@oracle.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Airlie <airlied@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Sterba <dsterba@suse.com>
 Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
@@ -134,6 +138,7 @@ Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Wang <jasowang@redhat.com>
 Cc: Jeff Layton <jlayton@kernel.org>
 Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
+Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
 Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
 Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: Juergen Gross <jgross@suse.com>
@@ -144,6 +149,7 @@ Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Nadav Amit <namit@vmware.com>
 Cc: Neil Brown <neilb@suse.de>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
@@ -151,17 +157,14 @@ Cc: Olga Kornievskaia <kolga@netapp.com>
 Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Richard Weinberger <richard@nod.at>
 Cc: Rob Clark <robdclark@gmail.com>
-Cc: Rob Herring <robh@kernel.org>
 Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Sean Paul <sean@poorly.run>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Song Liu <song@kernel.org>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
-Cc: Steven Price <steven.price@arm.com>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Cc: Tom Talpey <tom@talpey.com>
 Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
@@ -171,53 +174,111 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rcu/tree.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ drivers/gpu/drm/panfrost/panfrost_device.h       |    2 
+ drivers/gpu/drm/panfrost/panfrost_drv.c          |    6 ++
+ drivers/gpu/drm/panfrost/panfrost_gem.h          |    2 
+ drivers/gpu/drm/panfrost/panfrost_gem_shrinker.c |   29 +++++++------
+ 4 files changed, 24 insertions(+), 15 deletions(-)
 
---- a/kernel/rcu/tree.c~rcu-dynamically-allocate-the-rcu-kfree-shrinker
-+++ a/kernel/rcu/tree.c
-@@ -3449,13 +3449,6 @@ kfree_rcu_shrink_scan(struct shrinker *s
- 	return freed == 0 ? SHRINK_STOP : freed;
+--- a/drivers/gpu/drm/panfrost/panfrost_device.h~drm-panfrost-dynamically-allocate-the-drm-panfrost-shrinker
++++ a/drivers/gpu/drm/panfrost/panfrost_device.h
+@@ -118,7 +118,7 @@ struct panfrost_device {
+ 
+ 	struct mutex shrinker_lock;
+ 	struct list_head shrinker_list;
+-	struct shrinker shrinker;
++	struct shrinker *shrinker;
+ 
+ 	struct panfrost_devfreq pfdevfreq;
+ };
+--- a/drivers/gpu/drm/panfrost/panfrost_drv.c~drm-panfrost-dynamically-allocate-the-drm-panfrost-shrinker
++++ a/drivers/gpu/drm/panfrost/panfrost_drv.c
+@@ -601,10 +601,14 @@ static int panfrost_probe(struct platfor
+ 	if (err < 0)
+ 		goto err_out1;
+ 
+-	panfrost_gem_shrinker_init(ddev);
++	err = panfrost_gem_shrinker_init(ddev);
++	if (err)
++		goto err_out2;
+ 
+ 	return 0;
+ 
++err_out2:
++	drm_dev_unregister(ddev);
+ err_out1:
+ 	pm_runtime_disable(pfdev->dev);
+ 	panfrost_device_fini(pfdev);
+--- a/drivers/gpu/drm/panfrost/panfrost_gem.h~drm-panfrost-dynamically-allocate-the-drm-panfrost-shrinker
++++ a/drivers/gpu/drm/panfrost/panfrost_gem.h
+@@ -81,7 +81,7 @@ panfrost_gem_mapping_get(struct panfrost
+ void panfrost_gem_mapping_put(struct panfrost_gem_mapping *mapping);
+ void panfrost_gem_teardown_mappings_locked(struct panfrost_gem_object *bo);
+ 
+-void panfrost_gem_shrinker_init(struct drm_device *dev);
++int panfrost_gem_shrinker_init(struct drm_device *dev);
+ void panfrost_gem_shrinker_cleanup(struct drm_device *dev);
+ 
+ #endif /* __PANFROST_GEM_H__ */
+--- a/drivers/gpu/drm/panfrost/panfrost_gem_shrinker.c~drm-panfrost-dynamically-allocate-the-drm-panfrost-shrinker
++++ a/drivers/gpu/drm/panfrost/panfrost_gem_shrinker.c
+@@ -18,8 +18,7 @@
+ static unsigned long
+ panfrost_gem_shrinker_count(struct shrinker *shrinker, struct shrink_control *sc)
+ {
+-	struct panfrost_device *pfdev =
+-		container_of(shrinker, struct panfrost_device, shrinker);
++	struct panfrost_device *pfdev = shrinker->private_data;
+ 	struct drm_gem_shmem_object *shmem;
+ 	unsigned long count = 0;
+ 
+@@ -65,8 +64,7 @@ unlock_mappings:
+ static unsigned long
+ panfrost_gem_shrinker_scan(struct shrinker *shrinker, struct shrink_control *sc)
+ {
+-	struct panfrost_device *pfdev =
+-		container_of(shrinker, struct panfrost_device, shrinker);
++	struct panfrost_device *pfdev = shrinker->private_data;
+ 	struct drm_gem_shmem_object *shmem, *tmp;
+ 	unsigned long freed = 0;
+ 
+@@ -97,13 +95,21 @@ panfrost_gem_shrinker_scan(struct shrink
+  *
+  * This function registers and sets up the panfrost shrinker.
+  */
+-void panfrost_gem_shrinker_init(struct drm_device *dev)
++int panfrost_gem_shrinker_init(struct drm_device *dev)
+ {
+ 	struct panfrost_device *pfdev = dev->dev_private;
+-	pfdev->shrinker.count_objects = panfrost_gem_shrinker_count;
+-	pfdev->shrinker.scan_objects = panfrost_gem_shrinker_scan;
+-	pfdev->shrinker.seeks = DEFAULT_SEEKS;
+-	WARN_ON(register_shrinker(&pfdev->shrinker, "drm-panfrost"));
++
++	pfdev->shrinker = shrinker_alloc(0, "drm-panfrost");
++	if (!pfdev->shrinker)
++		return -ENOMEM;
++
++	pfdev->shrinker->count_objects = panfrost_gem_shrinker_count;
++	pfdev->shrinker->scan_objects = panfrost_gem_shrinker_scan;
++	pfdev->shrinker->private_data = pfdev;
++
++	shrinker_register(pfdev->shrinker);
++
++	return 0;
  }
  
--static struct shrinker kfree_rcu_shrinker = {
--	.count_objects = kfree_rcu_shrink_count,
--	.scan_objects = kfree_rcu_shrink_scan,
--	.batch = 0,
--	.seeks = DEFAULT_SEEKS,
--};
--
- void __init kfree_rcu_scheduler_running(void)
+ /**
+@@ -116,7 +122,6 @@ void panfrost_gem_shrinker_cleanup(struc
  {
- 	int cpu;
-@@ -4931,6 +4924,7 @@ static void __init kfree_rcu_batch_init(
- {
- 	int cpu;
- 	int i, j;
-+	struct shrinker *kfree_rcu_shrinker;
+ 	struct panfrost_device *pfdev = dev->dev_private;
  
- 	/* Clamp it to [0:100] seconds interval. */
- 	if (rcu_delay_page_cache_fill_msec < 0 ||
-@@ -4962,8 +4956,17 @@ static void __init kfree_rcu_batch_init(
- 		INIT_DELAYED_WORK(&krcp->page_cache_work, fill_page_cache_func);
- 		krcp->initialized = true;
- 	}
--	if (register_shrinker(&kfree_rcu_shrinker, "rcu-kfree"))
--		pr_err("Failed to register kfree_rcu() shrinker!\n");
-+
-+	kfree_rcu_shrinker = shrinker_alloc(0, "rcu-kfree");
-+	if (!kfree_rcu_shrinker) {
-+		pr_err("Failed to allocate kfree_rcu() shrinker!\n");
-+		return;
-+	}
-+
-+	kfree_rcu_shrinker->count_objects = kfree_rcu_shrink_count;
-+	kfree_rcu_shrinker->scan_objects = kfree_rcu_shrink_scan;
-+
-+	shrinker_register(kfree_rcu_shrinker);
+-	if (pfdev->shrinker.nr_deferred) {
+-		unregister_shrinker(&pfdev->shrinker);
+-	}
++	if (pfdev->shrinker)
++		shrinker_free(pfdev->shrinker);
  }
- 
- void __init rcu_init(void)
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
