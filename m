@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E36DCA0EC3
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:25:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1939CA0EC7
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:26:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242183AbjIKWXr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:23:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47922 "EHLO
+        id S241962AbjIKWXx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:23:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41214 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244476AbjIKUhp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:37:45 -0400
+        with ESMTP id S244563AbjIKUlD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:41:03 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A738C1A7
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:37:40 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EBBFC433C9;
-        Mon, 11 Sep 2023 20:37:40 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 804BC127
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:40:57 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FFFBC433C8;
+        Mon, 11 Sep 2023 20:40:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464660;
-        bh=50TWu6sLUXswrxCGjd35O/3r9IzwY5tEerBx8xnwTW0=;
+        s=korg; t=1694464857;
+        bh=pVkc1Umk0EEpOQg+GQ4J3k133KcxaQPW51otEgxuA+A=;
         h=Date:To:From:Subject:From;
-        b=PQ3rAdKZDiMuZ3xAOVWT8fnqlsFVM30KiRpzFSiJNj9QNv+cthWoari5sMI/rcLJ7
-         XP8liwI/seaaSgFtXrVSsNS8OQPbBUI6fUkDmMWBBcDd7u6vrL9qLbL/AJVFUNhx0y
-         kghnk1YKKVA6HCi5D7Emh+dAFklE+iwtLc9CW5A4=
-Date:   Mon, 11 Sep 2023 13:37:39 -0700
+        b=GCyO6ZZQJwkGoit+0YjEncbzWet/aQrFeRLf6/8plxWF2hcOfD7jw5yNl+dVKfO5l
+         I5X7KnQGCjKwIXg5o0eIMdYvQ+T4rTAtL3C8bjxXknXbBHYIkrp+LSfyEU3T3i2jOk
+         8Y3WpzC78itont+mvbxAwRhon31rf4DSD5cwWu2c=
+Date:   Mon, 11 Sep 2023 13:40:56 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + f2fs-dynamically-allocate-the-f2fs-shrinker.patch added to mm-unstable branch
-Message-Id: <20230911203740.3EBBFC433C9@smtp.kernel.org>
+Subject: + mm-shrinker-make-memcg-slab-shrink-lockless.patch added to mm-unstable branch
+Message-Id: <20230911204057.0FFFBC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: f2fs: dynamically allocate the f2fs-shrinker
+     Subject: mm: shrinker: make memcg slab shrink lockless
 has been added to the -mm mm-unstable branch.  Its filename is
-     f2fs-dynamically-allocate-the-f2fs-shrinker.patch
+     mm-shrinker-make-memcg-slab-shrink-lockless.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/f2fs-dynamically-allocate-the-f2fs-shrinker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinker-make-memcg-slab-shrink-lockless.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,16 +87,99 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: f2fs: dynamically allocate the f2fs-shrinker
-Date: Mon, 11 Sep 2023 17:44:06 +0800
+Subject: mm: shrinker: make memcg slab shrink lockless
+Date: Mon, 11 Sep 2023 17:44:42 +0800
 
-Use new APIs to dynamically allocate the f2fs-shrinker.
+Like global slab shrink, this commit also uses refcount+RCU method to make
+memcg slab shrink lockless.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-8-zhengqi.arch@bytedance.com
+Use the following script to do slab shrink stress test:
+
+```
+
+DIR="/root/shrinker/memcg/mnt"
+
+do_create()
+{
+    mkdir -p /sys/fs/cgroup/memory/test
+    echo 4G > /sys/fs/cgroup/memory/test/memory.limit_in_bytes
+    for i in `seq 0 $1`;
+    do
+        mkdir -p /sys/fs/cgroup/memory/test/$i;
+        echo $$ > /sys/fs/cgroup/memory/test/$i/cgroup.procs;
+        mkdir -p $DIR/$i;
+    done
+}
+
+do_mount()
+{
+    for i in `seq $1 $2`;
+    do
+        mount -t tmpfs $i $DIR/$i;
+    done
+}
+
+do_touch()
+{
+    for i in `seq $1 $2`;
+    do
+        echo $$ > /sys/fs/cgroup/memory/test/$i/cgroup.procs;
+        dd if=/dev/zero of=$DIR/$i/file$i bs=1M count=1 &
+    done
+}
+
+case "$1" in
+  touch)
+    do_touch $2 $3
+    ;;
+  test)
+    do_create 4000
+    do_mount 0 4000
+    do_touch 0 3000
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+```
+
+Save the above script, then run test and touch commands. Then we can use
+the following perf command to view hotspots:
+
+perf top -U -F 999
+
+1) Before applying this patchset:
+
+  33.15%  [kernel]          [k] down_read_trylock
+  25.38%  [kernel]          [k] shrink_slab
+  21.75%  [kernel]          [k] up_read
+   4.45%  [kernel]          [k] _find_next_bit
+   2.27%  [kernel]          [k] do_shrink_slab
+   1.80%  [kernel]          [k] intel_idle_irq
+   1.79%  [kernel]          [k] shrink_lruvec
+   0.67%  [kernel]          [k] xas_descend
+   0.41%  [kernel]          [k] mem_cgroup_iter
+   0.40%  [kernel]          [k] shrink_node
+   0.38%  [kernel]          [k] list_lru_count_one
+
+2) After applying this patchset:
+
+  64.56%  [kernel]          [k] shrink_slab
+  12.18%  [kernel]          [k] do_shrink_slab
+   3.30%  [kernel]          [k] __rcu_read_unlock
+   2.61%  [kernel]          [k] shrink_lruvec
+   2.49%  [kernel]          [k] __rcu_read_lock
+   1.93%  [kernel]          [k] intel_idle_irq
+   0.89%  [kernel]          [k] shrink_node
+   0.81%  [kernel]          [k] mem_cgroup_iter
+   0.77%  [kernel]          [k] mem_cgroup_calculate_protection
+   0.66%  [kernel]          [k] list_lru_count_one
+
+We can see that the first perf hotspot becomes shrink_slab, which is what
+we expect.
+
+Link: https://lkml.kernel.org/r/20230911094444.68966-44-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Chao Yu <chao@kernel.org>
-Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -109,6 +192,7 @@ Cc: Bob Peterson <rpeterso@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Carlos Llamas <cmllamas@google.com>
 Cc: Chandan Babu R <chandan.babu@oracle.com>
+Cc: Chao Yu <chao@kernel.org>
 Cc: Chris Mason <clm@fb.com>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: Christian Koenig <christian.koenig@amd.com>
@@ -128,6 +212,7 @@ Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Huang Rui <ray.huang@amd.com>
 Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Wang <jasowang@redhat.com>
@@ -144,6 +229,7 @@ Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Nadav Amit <namit@vmware.com>
 Cc: Neil Brown <neilb@suse.de>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
@@ -171,70 +257,155 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/f2fs/super.c |   31 +++++++++++++++++++++++--------
- 1 file changed, 23 insertions(+), 8 deletions(-)
+ mm/shrinker.c |   85 +++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 66 insertions(+), 19 deletions(-)
 
---- a/fs/f2fs/super.c~f2fs-dynamically-allocate-the-f2fs-shrinker
-+++ a/fs/f2fs/super.c
-@@ -83,11 +83,26 @@ void f2fs_build_fault_attr(struct f2fs_s
- #endif
+--- a/mm/shrinker.c~mm-shrinker-make-memcg-slab-shrink-lockless
++++ a/mm/shrinker.c
+@@ -218,7 +218,6 @@ static int shrinker_memcg_alloc(struct s
+ 		return -ENOSYS;
  
- /* f2fs-wide shrinker description */
--static struct shrinker f2fs_shrinker_info = {
--	.scan_objects = f2fs_shrink_scan,
--	.count_objects = f2fs_shrink_count,
--	.seeks = DEFAULT_SEEKS,
--};
-+static struct shrinker *f2fs_shrinker_info;
-+
-+static int __init f2fs_init_shrinker(void)
-+{
-+	f2fs_shrinker_info = shrinker_alloc(0, "f2fs-shrinker");
-+	if (!f2fs_shrinker_info)
-+		return -ENOMEM;
-+
-+	f2fs_shrinker_info->count_objects = f2fs_shrink_count;
-+	f2fs_shrinker_info->scan_objects = f2fs_shrink_scan;
-+
-+	shrinker_register(f2fs_shrinker_info);
-+
-+	return 0;
-+}
-+
-+static void f2fs_exit_shrinker(void)
-+{
-+	shrinker_free(f2fs_shrinker_info);
-+}
+ 	down_write(&shrinker_rwsem);
+-	/* This may call shrinker, so it must use down_read_trylock() */
+ 	id = idr_alloc(&shrinker_idr, shrinker, 0, 0, GFP_KERNEL);
+ 	if (id < 0)
+ 		goto unlock;
+@@ -252,10 +251,15 @@ static long xchg_nr_deferred_memcg(int n
+ {
+ 	struct shrinker_info *info;
+ 	struct shrinker_info_unit *unit;
++	long nr_deferred;
  
- enum {
- 	Opt_gc_background,
-@@ -4944,7 +4959,7 @@ static int __init init_f2fs_fs(void)
- 	err = f2fs_init_sysfs();
- 	if (err)
- 		goto free_garbage_collection_cache;
--	err = register_shrinker(&f2fs_shrinker_info, "f2fs-shrinker");
-+	err = f2fs_init_shrinker();
- 	if (err)
- 		goto free_sysfs;
- 	err = register_filesystem(&f2fs_fs_type);
-@@ -4989,7 +5004,7 @@ free_root_stats:
- 	f2fs_destroy_root_stats();
- 	unregister_filesystem(&f2fs_fs_type);
- free_shrinker:
--	unregister_shrinker(&f2fs_shrinker_info);
-+	f2fs_exit_shrinker();
- free_sysfs:
- 	f2fs_exit_sysfs();
- free_garbage_collection_cache:
-@@ -5021,7 +5036,7 @@ static void __exit exit_f2fs_fs(void)
- 	f2fs_destroy_post_read_processing();
- 	f2fs_destroy_root_stats();
- 	unregister_filesystem(&f2fs_fs_type);
--	unregister_shrinker(&f2fs_shrinker_info);
-+	f2fs_exit_shrinker();
- 	f2fs_exit_sysfs();
- 	f2fs_destroy_garbage_collection_cache();
- 	f2fs_destroy_extent_cache();
+-	info = shrinker_info_protected(memcg, nid);
++	rcu_read_lock();
++	info = rcu_dereference(memcg->nodeinfo[nid]->shrinker_info);
+ 	unit = info->unit[shrinker_id_to_index(shrinker->id)];
+-	return atomic_long_xchg(&unit->nr_deferred[shrinker_id_to_offset(shrinker->id)], 0);
++	nr_deferred = atomic_long_xchg(&unit->nr_deferred[shrinker_id_to_offset(shrinker->id)], 0);
++	rcu_read_unlock();
++
++	return nr_deferred;
+ }
+ 
+ static long add_nr_deferred_memcg(long nr, int nid, struct shrinker *shrinker,
+@@ -263,10 +267,16 @@ static long add_nr_deferred_memcg(long n
+ {
+ 	struct shrinker_info *info;
+ 	struct shrinker_info_unit *unit;
++	long nr_deferred;
+ 
+-	info = shrinker_info_protected(memcg, nid);
++	rcu_read_lock();
++	info = rcu_dereference(memcg->nodeinfo[nid]->shrinker_info);
+ 	unit = info->unit[shrinker_id_to_index(shrinker->id)];
+-	return atomic_long_add_return(nr, &unit->nr_deferred[shrinker_id_to_offset(shrinker->id)]);
++	nr_deferred =
++		atomic_long_add_return(nr, &unit->nr_deferred[shrinker_id_to_offset(shrinker->id)]);
++	rcu_read_unlock();
++
++	return nr_deferred;
+ }
+ 
+ void reparent_shrinker_deferred(struct mem_cgroup *memcg)
+@@ -463,18 +473,54 @@ static unsigned long shrink_slab_memcg(g
+ 	if (!mem_cgroup_online(memcg))
+ 		return 0;
+ 
+-	if (!down_read_trylock(&shrinker_rwsem))
+-		return 0;
+-
+-	info = shrinker_info_protected(memcg, nid);
++	/*
++	 * lockless algorithm of memcg shrink.
++	 *
++	 * The shrinker_info may be freed asynchronously via RCU in the
++	 * expand_one_shrinker_info(), so the rcu_read_lock() needs to be used
++	 * to ensure the existence of the shrinker_info.
++	 *
++	 * The shrinker_info_unit is never freed unless its corresponding memcg
++	 * is destroyed. Here we already hold the refcount of memcg, so the
++	 * memcg will not be destroyed, and of course shrinker_info_unit will
++	 * not be freed.
++	 *
++	 * So in the memcg shrink:
++	 *  step 1: use rcu_read_lock() to guarantee existence of the
++	 *          shrinker_info.
++	 *  step 2: after getting shrinker_info_unit we can safely release the
++	 *          RCU lock.
++	 *  step 3: traverse the bitmap and calculate shrinker_id
++	 *  step 4: use rcu_read_lock() to guarantee existence of the shrinker.
++	 *  step 5: use shrinker_id to find the shrinker, then use
++	 *          shrinker_try_get() to guarantee existence of the shrinker,
++	 *          then we can release the RCU lock to do do_shrink_slab() that
++	 *          may sleep.
++	 *  step 6: do shrinker_put() paired with step 5 to put the refcount,
++	 *          if the refcount reaches 0, then wake up the waiter in
++	 *          shrinker_free() by calling complete().
++	 *          Note: here is different from the global shrink, we don't
++	 *                need to acquire the RCU lock to guarantee existence of
++	 *                the shrinker, because we don't need to use this
++	 *                shrinker to traverse the next shrinker in the bitmap.
++	 *  step 7: we have already exited the read-side of rcu critical section
++	 *          before calling do_shrink_slab(), the shrinker_info may be
++	 *          released in expand_one_shrinker_info(), so go back to step 1
++	 *          to reacquire the shrinker_info.
++	 */
++again:
++	rcu_read_lock();
++	info = rcu_dereference(memcg->nodeinfo[nid]->shrinker_info);
+ 	if (unlikely(!info))
+ 		goto unlock;
+ 
+-	for (; index < shrinker_id_to_index(info->map_nr_max); index++) {
++	if (index < shrinker_id_to_index(info->map_nr_max)) {
+ 		struct shrinker_info_unit *unit;
+ 
+ 		unit = info->unit[index];
+ 
++		rcu_read_unlock();
++
+ 		for_each_set_bit(offset, unit->map, SHRINKER_UNIT_BITS) {
+ 			struct shrink_control sc = {
+ 				.gfp_mask = gfp_mask,
+@@ -484,12 +530,14 @@ static unsigned long shrink_slab_memcg(g
+ 			struct shrinker *shrinker;
+ 			int shrinker_id = calc_shrinker_id(index, offset);
+ 
++			rcu_read_lock();
+ 			shrinker = idr_find(&shrinker_idr, shrinker_id);
+-			if (unlikely(!shrinker || !(shrinker->flags & SHRINKER_REGISTERED))) {
+-				if (!shrinker)
+-					clear_bit(offset, unit->map);
++			if (unlikely(!shrinker || !shrinker_try_get(shrinker))) {
++				clear_bit(offset, unit->map);
++				rcu_read_unlock();
+ 				continue;
+ 			}
++			rcu_read_unlock();
+ 
+ 			/* Call non-slab shrinkers even though kmem is disabled */
+ 			if (!memcg_kmem_online() &&
+@@ -522,15 +570,14 @@ static unsigned long shrink_slab_memcg(g
+ 					set_shrinker_bit(memcg, nid, shrinker_id);
+ 			}
+ 			freed += ret;
+-
+-			if (rwsem_is_contended(&shrinker_rwsem)) {
+-				freed = freed ? : 1;
+-				goto unlock;
+-			}
++			shrinker_put(shrinker);
+ 		}
++
++		index++;
++		goto again;
+ 	}
+ unlock:
+-	up_read(&shrinker_rwsem);
++	rcu_read_unlock();
+ 	return freed;
+ }
+ #else /* !CONFIG_MEMCG */
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
