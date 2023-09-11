@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DECC2CA0ECB
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C550CA0ECF
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239731AbjIKWWN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:22:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46352 "EHLO
+        id S240454AbjIKWWP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:22:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59244 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244466AbjIKUha (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:37:30 -0400
+        with ESMTP id S244559AbjIKUkt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:40:49 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80BE21A7
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:37:25 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E3C5C433C7;
-        Mon, 11 Sep 2023 20:37:25 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5AD29127
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:40:44 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D33B0C433C7;
+        Mon, 11 Sep 2023 20:40:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464645;
-        bh=LWMpZQW7aduFztyYCH8LbOM8FjGLC5fCA86Y7OQK/5s=;
+        s=korg; t=1694464844;
+        bh=N0gjEyWew32v+EoUmT0OJElPRSZ0ENuCIo0HZJa2i0A=;
         h=Date:To:From:Subject:From;
-        b=ZsNOL/blKqI+QK8NidqVfOrTmjdPjGyTyfop9TZkR7/VIKBvwLei+MPrSlWN+bxcG
-         aFd/mrJpYnZmTh1Ebl13ljLQKx7Rl84EtGOsgbhI3D1q+nIkYyU8WPiQ/XBpXBdLTG
-         Yq+vU503B4yps1yP+bd9Lf86EwV1GoqFc9OSt4Js=
-Date:   Mon, 11 Sep 2023 13:37:24 -0700
+        b=H9bsTUxPPt8y8ojqZeClE5QmojBYkCPGYvf5C0iTxacUfmZ1zOJEIz173yn83tlRJ
+         HaQCQpvi/ALoTmAV7zOfPvp/pLNq1AoYsAVzH6B51NLt6XGlCvGngwFg/5LabhqM0L
+         XHIUSSK3Zzwrlz3Fcvt411LH6s9P8QHTHJOPcrK8=
+Date:   Mon, 11 Sep 2023 13:40:43 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + drm-ttm-dynamically-allocate-the-drm-ttm_pool-shrinker.patch added to mm-unstable branch
-Message-Id: <20230911203725.0E3C5C433C7@smtp.kernel.org>
+Subject: + mm-shrinker-rename-preallocunregister_memcg_shrinker-to-shrinker_memcg_allocremove.patch added to mm-unstable branch
+Message-Id: <20230911204043.D33B0C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drm/ttm: dynamically allocate the drm-ttm_pool shrinker
+     Subject: mm: shrinker: rename {prealloc|unregister}_memcg_shrinker() to shrinker_memcg_{alloc|remove}()
 has been added to the -mm mm-unstable branch.  Its filename is
-     drm-ttm-dynamically-allocate-the-drm-ttm_pool-shrinker.patch
+     mm-shrinker-rename-preallocunregister_memcg_shrinker-to-shrinker_memcg_allocremove.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-ttm-dynamically-allocate-the-drm-ttm_pool-shrinker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinker-rename-preallocunregister_memcg_shrinker-to-shrinker_memcg_allocremove.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,18 +87,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: drm/ttm: dynamically allocate the drm-ttm_pool shrinker
-Date: Mon, 11 Sep 2023 17:44:03 +0800
+Subject: mm: shrinker: rename {prealloc|unregister}_memcg_shrinker() to shrinker_memcg_{alloc|remove}()
+Date: Mon, 11 Sep 2023 17:44:40 +0800
 
-Use new APIs to dynamically allocate the drm-ttm_pool shrinker.
+With the new shrinker APIs, there is no action such as prealloc, so rename
+{prealloc|unregister}_memcg_shrinker() to shrinker_memcg_{alloc|remove}(),
+which corresponds to the idr_{alloc|remove}() inside the function.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-5-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-42-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Christian Koenig <christian.koenig@amd.com>
-Cc: Huang Rui <ray.huang@amd.com>
-Cc: David Airlie <airlied@gmail.com>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -114,18 +111,22 @@ Cc: Chandan Babu R <chandan.babu@oracle.com>
 Cc: Chao Yu <chao@kernel.org>
 Cc: Chris Mason <clm@fb.com>
 Cc: Christian Brauner <brauner@kernel.org>
+Cc: Christian Koenig <christian.koenig@amd.com>
 Cc: Chuck Lever <cel@kernel.org>
 Cc: Coly Li <colyli@suse.de>
 Cc: Dai Ngo <Dai.Ngo@oracle.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Airlie <airlied@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Sterba <dsterba@suse.com>
 Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
 Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Huang Rui <ray.huang@amd.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
@@ -144,6 +145,7 @@ Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Nadav Amit <namit@vmware.com>
 Cc: Neil Brown <neilb@suse.de>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
@@ -171,61 +173,62 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/ttm/ttm_pool.c |   23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
+ mm/shrinker.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/drivers/gpu/drm/ttm/ttm_pool.c~drm-ttm-dynamically-allocate-the-drm-ttm_pool-shrinker
-+++ a/drivers/gpu/drm/ttm/ttm_pool.c
-@@ -73,7 +73,7 @@ static struct ttm_pool_type global_dma32
+--- a/mm/shrinker.c~mm-shrinker-rename-preallocunregister_memcg_shrinker-to-shrinker_memcg_allocremove
++++ a/mm/shrinker.c
+@@ -209,7 +209,7 @@ void set_shrinker_bit(struct mem_cgroup
  
- static spinlock_t shrinker_lock;
- static struct list_head shrinker_list;
--static struct shrinker mm_shrinker;
-+static struct shrinker *mm_shrinker;
- static DECLARE_RWSEM(pool_shrink_rwsem);
+ static DEFINE_IDR(shrinker_idr);
  
- /* Allocate pages of size 1 << order with the given gfp_flags */
-@@ -749,8 +749,8 @@ static int ttm_pool_debugfs_shrink_show(
- 	struct shrink_control sc = { .gfp_mask = GFP_NOFS };
+-static int prealloc_memcg_shrinker(struct shrinker *shrinker)
++static int shrinker_memcg_alloc(struct shrinker *shrinker)
+ {
+ 	int id, ret = -ENOMEM;
  
- 	fs_reclaim_acquire(GFP_KERNEL);
--	seq_printf(m, "%lu/%lu\n", ttm_pool_shrinker_count(&mm_shrinker, &sc),
--		   ttm_pool_shrinker_scan(&mm_shrinker, &sc));
-+	seq_printf(m, "%lu/%lu\n", ttm_pool_shrinker_count(mm_shrinker, &sc),
-+		   ttm_pool_shrinker_scan(mm_shrinker, &sc));
- 	fs_reclaim_release(GFP_KERNEL);
- 
- 	return 0;
-@@ -794,10 +794,17 @@ int ttm_pool_mgr_init(unsigned long num_
- 			    &ttm_pool_debugfs_shrink_fops);
- #endif
- 
--	mm_shrinker.count_objects = ttm_pool_shrinker_count;
--	mm_shrinker.scan_objects = ttm_pool_shrinker_scan;
--	mm_shrinker.seeks = 1;
--	return register_shrinker(&mm_shrinker, "drm-ttm_pool");
-+	mm_shrinker = shrinker_alloc(0, "drm-ttm_pool");
-+	if (!mm_shrinker)
-+		return -ENOMEM;
-+
-+	mm_shrinker->count_objects = ttm_pool_shrinker_count;
-+	mm_shrinker->scan_objects = ttm_pool_shrinker_scan;
-+	mm_shrinker->seeks = 1;
-+
-+	shrinker_register(mm_shrinker);
-+
-+	return 0;
+@@ -235,7 +235,7 @@ unlock:
+ 	return ret;
  }
  
- /**
-@@ -817,6 +824,6 @@ void ttm_pool_mgr_fini(void)
- 		ttm_pool_type_fini(&global_dma32_uncached[i]);
+-static void unregister_memcg_shrinker(struct shrinker *shrinker)
++static void shrinker_memcg_remove(struct shrinker *shrinker)
+ {
+ 	int id = shrinker->id;
+ 
+@@ -297,12 +297,12 @@ void reparent_shrinker_deferred(struct m
+ 	up_read(&shrinker_rwsem);
+ }
+ #else
+-static int prealloc_memcg_shrinker(struct shrinker *shrinker)
++static int shrinker_memcg_alloc(struct shrinker *shrinker)
+ {
+ 	return -ENOSYS;
+ }
+ 
+-static void unregister_memcg_shrinker(struct shrinker *shrinker)
++static void shrinker_memcg_remove(struct shrinker *shrinker)
+ {
+ }
+ 
+@@ -628,7 +628,7 @@ struct shrinker *shrinker_alloc(unsigned
+ 	shrinker->seeks = DEFAULT_SEEKS;
+ 
+ 	if (flags & SHRINKER_MEMCG_AWARE) {
+-		err = prealloc_memcg_shrinker(shrinker);
++		err = shrinker_memcg_alloc(shrinker);
+ 		if (err == -ENOSYS)
+ 			shrinker->flags &= ~SHRINKER_MEMCG_AWARE;
+ 		else if (err == 0)
+@@ -696,7 +696,7 @@ void shrinker_free(struct shrinker *shri
  	}
  
--	unregister_shrinker(&mm_shrinker);
-+	shrinker_free(mm_shrinker);
- 	WARN_ON(!list_empty(&shrinker_list));
- }
+ 	if (shrinker->flags & SHRINKER_MEMCG_AWARE)
+-		unregister_memcg_shrinker(shrinker);
++		shrinker_memcg_remove(shrinker);
+ 	up_write(&shrinker_rwsem);
+ 
+ 	if (debugfs_entry)
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
