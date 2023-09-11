@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8BB7CA0EC3
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:25:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E36DCA0EC3
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:25:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242055AbjIKWXq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:23:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34436 "EHLO
+        id S242183AbjIKWXr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:23:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47922 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244517AbjIKUjb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:39:31 -0400
+        with ESMTP id S244476AbjIKUhp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:37:45 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A8B8D127
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:39:25 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 322AFC433C8;
-        Mon, 11 Sep 2023 20:39:25 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A738C1A7
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:37:40 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EBBFC433C9;
+        Mon, 11 Sep 2023 20:37:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464765;
-        bh=qZ4dX2958stDEkuJPU/sA2RkK/Im6b+k0PUek18IN9s=;
+        s=korg; t=1694464660;
+        bh=50TWu6sLUXswrxCGjd35O/3r9IzwY5tEerBx8xnwTW0=;
         h=Date:To:From:Subject:From;
-        b=HGsS/tbuwwcaq1bWwwJcEk2JOL3hMPcyjMIOYeldFS8reBBuslgWgJRwXDl27tuhp
-         CEEhkQyNVfxSw3AoogNJ4lOY3F+1FMWLs6uxFVUS/b2OkJhb8V1jpVv5X4wLd47uFx
-         34pRjxuaGKHbzQMhsheCwqFEXJm8jTBRXr4+ze+U=
-Date:   Mon, 11 Sep 2023 13:39:24 -0700
+        b=PQ3rAdKZDiMuZ3xAOVWT8fnqlsFVM30KiRpzFSiJNj9QNv+cthWoari5sMI/rcLJ7
+         XP8liwI/seaaSgFtXrVSsNS8OQPbBUI6fUkDmMWBBcDd7u6vrL9qLbL/AJVFUNhx0y
+         kghnk1YKKVA6HCi5D7Emh+dAFklE+iwtLc9CW5A4=
+Date:   Mon, 11 Sep 2023 13:37:39 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + bcache-dynamically-allocate-the-md-bcache-shrinker.patch added to mm-unstable branch
-Message-Id: <20230911203925.322AFC433C8@smtp.kernel.org>
+Subject: + f2fs-dynamically-allocate-the-f2fs-shrinker.patch added to mm-unstable branch
+Message-Id: <20230911203740.3EBBFC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bcache: dynamically allocate the md-bcache shrinker
+     Subject: f2fs: dynamically allocate the f2fs-shrinker
 has been added to the -mm mm-unstable branch.  Its filename is
-     bcache-dynamically-allocate-the-md-bcache-shrinker.patch
+     f2fs-dynamically-allocate-the-f2fs-shrinker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bcache-dynamically-allocate-the-md-bcache-shrinker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/f2fs-dynamically-allocate-the-f2fs-shrinker.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,18 +87,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: bcache: dynamically allocate the md-bcache shrinker
-Date: Mon, 11 Sep 2023 17:44:25 +0800
+Subject: f2fs: dynamically allocate the f2fs-shrinker
+Date: Mon, 11 Sep 2023 17:44:06 +0800
 
-In preparation for implementing lockless slab shrink, use new APIs to
-dynamically allocate the md-bcache shrinker, so that it can be freed
-asynchronously via RCU. Then it doesn't need to wait for RCU read-side
-critical section when releasing the struct cache_set.
+Use new APIs to dynamically allocate the f2fs-shrinker.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-27-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-8-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Coly Li <colyli@suse.de>
-Cc: Kent Overstreet <kent.overstreet@gmail.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Chao Yu <chao@kernel.org>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -111,11 +109,11 @@ Cc: Bob Peterson <rpeterso@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Carlos Llamas <cmllamas@google.com>
 Cc: Chandan Babu R <chandan.babu@oracle.com>
-Cc: Chao Yu <chao@kernel.org>
 Cc: Chris Mason <clm@fb.com>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: Christian Koenig <christian.koenig@amd.com>
 Cc: Chuck Lever <cel@kernel.org>
+Cc: Coly Li <colyli@suse.de>
 Cc: Dai Ngo <Dai.Ngo@oracle.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
@@ -130,7 +128,6 @@ Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Huang Rui <ray.huang@amd.com>
 Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Wang <jasowang@redhat.com>
@@ -140,13 +137,13 @@ Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
 Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
 Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: Juergen Gross <jgross@suse.com>
+Cc: Kent Overstreet <kent.overstreet@gmail.com>
 Cc: Kirill Tkhai <tkhai@ya.ru>
 Cc: Marijn Suijten <marijn.suijten@somainline.org>
 Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Nadav Amit <namit@vmware.com>
 Cc: Neil Brown <neilb@suse.de>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
@@ -174,93 +171,70 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/bcache/bcache.h |    2 +-
- drivers/md/bcache/btree.c  |   29 +++++++++++++++++------------
- drivers/md/bcache/sysfs.c  |    3 ++-
- 3 files changed, 20 insertions(+), 14 deletions(-)
+ fs/f2fs/super.c |   31 +++++++++++++++++++++++--------
+ 1 file changed, 23 insertions(+), 8 deletions(-)
 
---- a/drivers/md/bcache/bcache.h~bcache-dynamically-allocate-the-md-bcache-shrinker
-+++ a/drivers/md/bcache/bcache.h
-@@ -541,7 +541,7 @@ struct cache_set {
- 	struct bio_set		bio_split;
- 
- 	/* For the btree cache */
--	struct shrinker		shrink;
-+	struct shrinker		*shrink;
- 
- 	/* For the btree cache and anything allocation related */
- 	struct mutex		bucket_lock;
---- a/drivers/md/bcache/btree.c~bcache-dynamically-allocate-the-md-bcache-shrinker
-+++ a/drivers/md/bcache/btree.c
-@@ -667,7 +667,7 @@ out_unlock:
- static unsigned long bch_mca_scan(struct shrinker *shrink,
- 				  struct shrink_control *sc)
- {
--	struct cache_set *c = container_of(shrink, struct cache_set, shrink);
-+	struct cache_set *c = shrink->private_data;
- 	struct btree *b, *t;
- 	unsigned long i, nr = sc->nr_to_scan;
- 	unsigned long freed = 0;
-@@ -734,7 +734,7 @@ out:
- static unsigned long bch_mca_count(struct shrinker *shrink,
- 				   struct shrink_control *sc)
- {
--	struct cache_set *c = container_of(shrink, struct cache_set, shrink);
-+	struct cache_set *c = shrink->private_data;
- 
- 	if (c->shrinker_disabled)
- 		return 0;
-@@ -752,8 +752,8 @@ void bch_btree_cache_free(struct cache_s
- 
- 	closure_init_stack(&cl);
- 
--	if (c->shrink.list.next)
--		unregister_shrinker(&c->shrink);
-+	if (c->shrink)
-+		shrinker_free(c->shrink);
- 
- 	mutex_lock(&c->bucket_lock);
- 
-@@ -828,14 +828,19 @@ int bch_btree_cache_alloc(struct cache_s
- 		c->verify_data = NULL;
+--- a/fs/f2fs/super.c~f2fs-dynamically-allocate-the-f2fs-shrinker
++++ a/fs/f2fs/super.c
+@@ -83,11 +83,26 @@ void f2fs_build_fault_attr(struct f2fs_s
  #endif
  
--	c->shrink.count_objects = bch_mca_count;
--	c->shrink.scan_objects = bch_mca_scan;
--	c->shrink.seeks = 4;
--	c->shrink.batch = c->btree_pages * 2;
--
--	if (register_shrinker(&c->shrink, "md-bcache:%pU", c->set_uuid))
--		pr_warn("bcache: %s: could not register shrinker\n",
--				__func__);
-+	c->shrink = shrinker_alloc(0, "md-bcache:%pU", c->set_uuid);
-+	if (!c->shrink) {
-+		pr_warn("bcache: %s: could not allocate shrinker\n", __func__);
-+		return 0;
-+	}
+ /* f2fs-wide shrinker description */
+-static struct shrinker f2fs_shrinker_info = {
+-	.scan_objects = f2fs_shrink_scan,
+-	.count_objects = f2fs_shrink_count,
+-	.seeks = DEFAULT_SEEKS,
+-};
++static struct shrinker *f2fs_shrinker_info;
 +
-+	c->shrink->count_objects = bch_mca_count;
-+	c->shrink->scan_objects = bch_mca_scan;
-+	c->shrink->seeks = 4;
-+	c->shrink->batch = c->btree_pages * 2;
-+	c->shrink->private_data = c;
++static int __init f2fs_init_shrinker(void)
++{
++	f2fs_shrinker_info = shrinker_alloc(0, "f2fs-shrinker");
++	if (!f2fs_shrinker_info)
++		return -ENOMEM;
 +
-+	shrinker_register(c->shrink);
++	f2fs_shrinker_info->count_objects = f2fs_shrink_count;
++	f2fs_shrinker_info->scan_objects = f2fs_shrink_scan;
++
++	shrinker_register(f2fs_shrinker_info);
++
++	return 0;
++}
++
++static void f2fs_exit_shrinker(void)
++{
++	shrinker_free(f2fs_shrinker_info);
++}
  
- 	return 0;
- }
---- a/drivers/md/bcache/sysfs.c~bcache-dynamically-allocate-the-md-bcache-shrinker
-+++ a/drivers/md/bcache/sysfs.c
-@@ -866,7 +866,8 @@ STORE(__bch_cache_set)
- 
- 		sc.gfp_mask = GFP_KERNEL;
- 		sc.nr_to_scan = strtoul_or_return(buf);
--		c->shrink.scan_objects(&c->shrink, &sc);
-+		if (c->shrink)
-+			c->shrink->scan_objects(c->shrink, &sc);
- 	}
- 
- 	sysfs_strtoul_clamp(congested_read_threshold_us,
+ enum {
+ 	Opt_gc_background,
+@@ -4944,7 +4959,7 @@ static int __init init_f2fs_fs(void)
+ 	err = f2fs_init_sysfs();
+ 	if (err)
+ 		goto free_garbage_collection_cache;
+-	err = register_shrinker(&f2fs_shrinker_info, "f2fs-shrinker");
++	err = f2fs_init_shrinker();
+ 	if (err)
+ 		goto free_sysfs;
+ 	err = register_filesystem(&f2fs_fs_type);
+@@ -4989,7 +5004,7 @@ free_root_stats:
+ 	f2fs_destroy_root_stats();
+ 	unregister_filesystem(&f2fs_fs_type);
+ free_shrinker:
+-	unregister_shrinker(&f2fs_shrinker_info);
++	f2fs_exit_shrinker();
+ free_sysfs:
+ 	f2fs_exit_sysfs();
+ free_garbage_collection_cache:
+@@ -5021,7 +5036,7 @@ static void __exit exit_f2fs_fs(void)
+ 	f2fs_destroy_post_read_processing();
+ 	f2fs_destroy_root_stats();
+ 	unregister_filesystem(&f2fs_fs_type);
+-	unregister_shrinker(&f2fs_shrinker_info);
++	f2fs_exit_shrinker();
+ 	f2fs_exit_sysfs();
+ 	f2fs_destroy_garbage_collection_cache();
+ 	f2fs_destroy_extent_cache();
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
