@@ -2,370 +2,324 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA312CA0ED7
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D49E1CA0ED8
 	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239259AbjIKWWF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:22:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46620 "EHLO
+        id S239047AbjIKWWE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:22:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57036 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236735AbjIKLS3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 07:18:29 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 54742CE5
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 04:17:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1694431055;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=kLYWjYvFwv4/s+HtYDIjsdK1LYTgvhIhfGvJ4mVWT5Q=;
-        b=CabwgJG/zw2FnXMacVpv7K7ypJM20SBFs54se3i60AstDepnXL8DNghhW2uwrHMYQmonuj
-        9hpqksFeaf3wqIhzEghqftEp2nXqEvc75jL8rcLifg4D6zoeJDwf5Z0GPjrFHboQU9fmjD
-        QJTaYLDE+a//x2gBwfh7ICd9wtSeg6A=
-Received: from mimecast-mx02.redhat.com (mx-ext.redhat.com [66.187.233.73])
- by relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-60-iP-LBR5kODm1LSeCIuktlA-1; Mon, 11 Sep 2023 07:17:32 -0400
-X-MC-Unique: iP-LBR5kODm1LSeCIuktlA-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.rdu2.redhat.com [10.11.54.6])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id D8B643803902;
-        Mon, 11 Sep 2023 11:17:31 +0000 (UTC)
-Received: from pasta.redhat.com (unknown [10.45.226.29])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id D42E42156701;
-        Mon, 11 Sep 2023 11:17:30 +0000 (UTC)
-From:   Andreas Gruenbacher <agruenba@redhat.com>
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Andreas Gruenbacher <agruenba@redhat.com>,
-        mm-commits@vger.kernel.org,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v2] kthread: Add kthread_stop_put
-Date:   Mon, 11 Sep 2023 13:17:30 +0200
-Message-Id: <20230911111730.2565537-1-agruenba@redhat.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.6
+        with ESMTP id S244460AbjIKUhL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:37:11 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C50C3127
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:37:05 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34CD1C433C8;
+        Mon, 11 Sep 2023 20:37:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1694464625;
+        bh=tPjwJmIEROUD1XJ6RbtcFmuK6kRFsmG+YUWxRB8Vi2o=;
+        h=Date:To:From:Subject:From;
+        b=l8CDXM72qzylyE4i/w30/Wlfz8igXf0+XyhNHI5kOjJJsQETnE9VTG5bo2YntGXdH
+         bZaeWoMZlzuPrOxSSx78Quga2w+cLD8cqIzk0dSteDtIuawLiqGalDvKiKX8oNdP8w
+         RiE+DPoxh3RQWVYGgX6S/3F+cYfeJq/izEGljzhw=
+Date:   Mon, 11 Sep 2023 13:37:04 -0700
+To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
+        viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
+        tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
+        tom@talpey.com, tomeu.vizoso@collabora.com, tkhai@ya.ru,
+        tglx@linutronix.de, steven.price@arm.com, sstabellini@kernel.org,
+        songmuchun@bytedance.com, song@kernel.org, snitzer@kernel.org,
+        senozhatsky@chromium.org, sean@poorly.run, rpeterso@redhat.com,
+        roman.gushchin@linux.dev, rodrigo.vivi@intel.com, robh@kernel.org,
+        robdclark@gmail.com, richard@nod.at, ray.huang@amd.com,
+        quic_abhinavk@quicinc.com, paulmck@kernel.org,
+        oleksandr_tyshchenko@epam.com, neilb@suse.de, namit@vmware.com,
+        muchun.song@linux.dev, mst@redhat.com, mingo@redhat.com,
+        minchan@kernel.org, marijn.suijten@somainline.org,
+        kolga@netapp.com, kent.overstreet@gmail.com, josef@toxicpanda.com,
+        joonas.lahtinen@linux.intel.com, joel@joelfernandes.org,
+        jlayton@kernel.org, jgross@suse.com, jefflexu@linux.alibaba.com,
+        jasowang@redhat.com, jani.nikula@linux.intel.com,
+        jaegeuk@kernel.org, jack@suse.cz, huyue2@coolpad.com,
+        hsiangkao@linux.alibaba.com, gregkh@linuxfoundation.org,
+        dsterba@suse.com, dmitry.baryshkov@linaro.org, djwong@kernel.org,
+        david@redhat.com, david@fromorbit.com, dave.hansen@linux.intel.com,
+        daniel.vetter@ffwll.ch, daniel@ffwll.ch, Dai.Ngo@oracle.com,
+        colyli@suse.de, cmllamas@google.com, clm@fb.com,
+        christian.koenig@amd.com, chao@kernel.org, chandan.babu@oracle.com,
+        cel@kernel.org, brauner@kernel.org, bp@alien8.de, arnd@arndb.de,
+        anna@kernel.org, alyssa.rosenzweig@collabora.com,
+        airlied@gmail.com, agruenba@redhat.com, agk@redhat.com,
+        adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + drm-ttm-introduce-pool_shrink_rwsem.patch added to mm-unstable branch
+Message-Id: <20230911203705.34CD1C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Hi Andrew,
 
-thanks for picking this up.  The kernel test robot has since told me
-that it's uhappy about the kerneldoc comment I've added for
-kthread_stio_put().
+The patch titled
+     Subject: drm/ttm: introduce pool_shrink_rwsem
+has been added to the -mm mm-unstable branch.  Its filename is
+     drm-ttm-introduce-pool_shrink_rwsem.patch
 
-So here's an updated version that has the comment fixed, rebased against
-the latest for-next kernel.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-ttm-introduce-pool_shrink_rwsem.patch
 
-https://lore.kernel.org/oe-kbuild-all/202309081653.IMl41FhS-lkp@intel.com/
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Thanks,
-Andreas
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
---
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-Add a kthread_stop_put() helper that stops a thread and puts its task
-struct.  Use it to replace the various instances of kthread_stop()
-followed by put_task_struct().
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
-Remove the kthread_stop_put() macro in usbip that is similar but
-doesn't return the result of kthread_stop().
+------------------------------------------------------
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: drm/ttm: introduce pool_shrink_rwsem
+Date: Mon, 11 Sep 2023 17:25:17 +0800
 
-Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
+Currently, synchronize_shrinkers() is only used by TTM pool.  It only
+requires that no shrinkers run in parallel.
+
+After we use RCU+refcount method to implement the lockless slab shrink, we
+can not use shrinker_rwsem or synchronize_rcu() to guarantee that all
+shrinker invocations have seen an update before freeing memory.
+
+So we introduce a new pool_shrink_rwsem to implement a private
+ttm_pool_synchronize_shrinkers(), so as to achieve the same purpose.
+
+Link: https://lkml.kernel.org/r/20230911092517.64141-5-zhengqi.arch@bytedance.com
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Christian König <christian.koenig@amd.com>
+Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Chuck Lever <cel@kernel.org>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Darrick J. Wong <djwong@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Kirill Tkhai <tkhai@ya.ru>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Steven Price <steven.price@arm.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
+Cc: Alasdair Kergon <agk@redhat.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Alyssa Rosenzweig <alyssa.rosenzweig@collabora.com>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Andreas Gruenbacher <agruenba@redhat.com>
+Cc: Anna Schumaker <anna@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Bob Peterson <rpeterso@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Carlos Llamas <cmllamas@google.com>
+Cc: Chandan Babu R <chandan.babu@oracle.com>
+Cc: Chao Yu <chao@kernel.org>
+Cc: Chris Mason <clm@fb.com>
+Cc: Coly Li <colyli@suse.de>
+Cc: Dai Ngo <Dai.Ngo@oracle.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Airlie <airlied@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Sterba <dsterba@suse.com>
+Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
+Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
+Cc: Huang Rui <ray.huang@amd.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
+Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Kent Overstreet <kent.overstreet@gmail.com>
+Cc: Marijn Suijten <marijn.suijten@somainline.org>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Mike Snitzer <snitzer@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nadav Amit <namit@vmware.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
+Cc: Olga Kornievskaia <kolga@netapp.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Rob Clark <robdclark@gmail.com>
+Cc: Rob Herring <robh@kernel.org>
+Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: Sean Paul <sean@poorly.run>
+Cc: Song Liu <song@kernel.org>
+Cc: Stefano Stabellini <sstabellini@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: Tom Talpey <tom@talpey.com>
+Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
+Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
+Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
+Cc: Yue Hu <huyue2@coolpad.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
- drivers/accel/ivpu/ivpu_job.c              |  3 +--
- drivers/dma-buf/st-dma-fence-chain.c       | 12 ++++--------
- drivers/dma-buf/st-dma-fence.c             |  4 +---
- drivers/gpu/drm/i915/gt/selftest_migrate.c |  4 +---
- drivers/net/xen-netback/interface.c        |  3 +--
- drivers/usb/usbip/usbip_common.h           |  6 ------
- fs/gfs2/ops_fstype.c                       |  9 +++------
- include/linux/kthread.h                    |  1 +
- kernel/irq/manage.c                        | 15 +++++----------
- kernel/kthread.c                           | 17 +++++++++++++++++
- kernel/smpboot.c                           |  3 +--
- mm/damon/core.c                            |  3 +--
- net/core/pktgen.c                          |  3 +--
- 13 files changed, 37 insertions(+), 46 deletions(-)
 
-diff --git a/drivers/accel/ivpu/ivpu_job.c b/drivers/accel/ivpu/ivpu_job.c
-index de9e69f70af7..76f468c9f761 100644
---- a/drivers/accel/ivpu/ivpu_job.c
-+++ b/drivers/accel/ivpu/ivpu_job.c
-@@ -618,6 +618,5 @@ int ivpu_job_done_thread_init(struct ivpu_device *vdev)
+ drivers/gpu/drm/ttm/ttm_pool.c |   17 ++++++++++++++++-
+ include/linux/shrinker.h       |    1 -
+ mm/shrinker.c                  |   15 ---------------
+ 3 files changed, 16 insertions(+), 17 deletions(-)
+
+--- a/drivers/gpu/drm/ttm/ttm_pool.c~drm-ttm-introduce-pool_shrink_rwsem
++++ a/drivers/gpu/drm/ttm/ttm_pool.c
+@@ -74,6 +74,7 @@ static struct ttm_pool_type global_dma32
+ static spinlock_t shrinker_lock;
+ static struct list_head shrinker_list;
+ static struct shrinker mm_shrinker;
++static DECLARE_RWSEM(pool_shrink_rwsem);
  
- void ivpu_job_done_thread_fini(struct ivpu_device *vdev)
- {
--	kthread_stop(vdev->job_done_thread);
--	put_task_struct(vdev->job_done_thread);
-+	kthread_stop_put(vdev->job_done_thread);
+ /* Allocate pages of size 1 << order with the given gfp_flags */
+ static struct page *ttm_pool_alloc_page(struct ttm_pool *pool, gfp_t gfp_flags,
+@@ -317,6 +318,7 @@ static unsigned int ttm_pool_shrink(void
+ 	unsigned int num_pages;
+ 	struct page *p;
+ 
++	down_read(&pool_shrink_rwsem);
+ 	spin_lock(&shrinker_lock);
+ 	pt = list_first_entry(&shrinker_list, typeof(*pt), shrinker_list);
+ 	list_move_tail(&pt->shrinker_list, &shrinker_list);
+@@ -329,6 +331,7 @@ static unsigned int ttm_pool_shrink(void
+ 	} else {
+ 		num_pages = 0;
+ 	}
++	up_read(&pool_shrink_rwsem);
+ 
+ 	return num_pages;
  }
-diff --git a/drivers/dma-buf/st-dma-fence-chain.c b/drivers/dma-buf/st-dma-fence-chain.c
-index c0979c8049b5..9c2a0c082a76 100644
---- a/drivers/dma-buf/st-dma-fence-chain.c
-+++ b/drivers/dma-buf/st-dma-fence-chain.c
-@@ -476,10 +476,9 @@ static int find_race(void *arg)
- 	for (i = 0; i < ncpus; i++) {
- 		int ret;
+@@ -573,6 +576,18 @@ void ttm_pool_init(struct ttm_pool *pool
+ EXPORT_SYMBOL(ttm_pool_init);
  
--		ret = kthread_stop(threads[i]);
-+		ret = kthread_stop_put(threads[i]);
- 		if (ret && !err)
- 			err = ret;
--		put_task_struct(threads[i]);
- 	}
- 	kfree(threads);
- 
-@@ -591,8 +590,7 @@ static int wait_forward(void *arg)
- 	for (i = 0; i < fc.chain_length; i++)
- 		dma_fence_signal(fc.fences[i]);
- 
--	err = kthread_stop(tsk);
--	put_task_struct(tsk);
-+	err = kthread_stop_put(tsk);
- 
- err:
- 	fence_chains_fini(&fc);
-@@ -621,8 +619,7 @@ static int wait_backward(void *arg)
- 	for (i = fc.chain_length; i--; )
- 		dma_fence_signal(fc.fences[i]);
- 
--	err = kthread_stop(tsk);
--	put_task_struct(tsk);
-+	err = kthread_stop_put(tsk);
- 
- err:
- 	fence_chains_fini(&fc);
-@@ -669,8 +666,7 @@ static int wait_random(void *arg)
- 	for (i = 0; i < fc.chain_length; i++)
- 		dma_fence_signal(fc.fences[i]);
- 
--	err = kthread_stop(tsk);
--	put_task_struct(tsk);
-+	err = kthread_stop_put(tsk);
- 
- err:
- 	fence_chains_fini(&fc);
-diff --git a/drivers/dma-buf/st-dma-fence.c b/drivers/dma-buf/st-dma-fence.c
-index fb6e0a6ae2c9..b7c6f7ea9e0c 100644
---- a/drivers/dma-buf/st-dma-fence.c
-+++ b/drivers/dma-buf/st-dma-fence.c
-@@ -548,11 +548,9 @@ static int race_signal_callback(void *arg)
- 		for (i = 0; i < ARRAY_SIZE(t); i++) {
- 			int err;
- 
--			err = kthread_stop(t[i].task);
-+			err = kthread_stop_put(t[i].task);
- 			if (err && !ret)
- 				ret = err;
--
--			put_task_struct(t[i].task);
- 		}
- 	}
- 
-diff --git a/drivers/gpu/drm/i915/gt/selftest_migrate.c b/drivers/gpu/drm/i915/gt/selftest_migrate.c
-index 3def5ca72dec..0fb07f073baa 100644
---- a/drivers/gpu/drm/i915/gt/selftest_migrate.c
-+++ b/drivers/gpu/drm/i915/gt/selftest_migrate.c
-@@ -719,11 +719,9 @@ static int threaded_migrate(struct intel_migrate *migrate,
- 		if (IS_ERR_OR_NULL(tsk))
- 			continue;
- 
--		status = kthread_stop(tsk);
-+		status = kthread_stop_put(tsk);
- 		if (status && !err)
- 			err = status;
--
--		put_task_struct(tsk);
- 	}
- 
- 	kfree(thread);
-diff --git a/drivers/net/xen-netback/interface.c b/drivers/net/xen-netback/interface.c
-index f3f2c07423a6..33c8143619f0 100644
---- a/drivers/net/xen-netback/interface.c
-+++ b/drivers/net/xen-netback/interface.c
-@@ -672,8 +672,7 @@ int xenvif_connect_ctrl(struct xenvif *vif, grant_ref_t ring_ref,
- static void xenvif_disconnect_queue(struct xenvif_queue *queue)
- {
- 	if (queue->task) {
--		kthread_stop(queue->task);
--		put_task_struct(queue->task);
-+		kthread_stop_put(queue->task);
- 		queue->task = NULL;
- 	}
- 
-diff --git a/drivers/usb/usbip/usbip_common.h b/drivers/usb/usbip/usbip_common.h
-index d8cbd2dfc2c2..282efca64a01 100644
---- a/drivers/usb/usbip/usbip_common.h
-+++ b/drivers/usb/usbip/usbip_common.h
-@@ -298,12 +298,6 @@ struct usbip_device {
- 	__k;								   \
- })
- 
--#define kthread_stop_put(k)		\
--	do {				\
--		kthread_stop(k);	\
--		put_task_struct(k);	\
--	} while (0)
--
- /* usbip_common.c */
- void usbip_dump_urb(struct urb *purb);
- void usbip_dump_header(struct usbip_header *pdu);
-diff --git a/fs/gfs2/ops_fstype.c b/fs/gfs2/ops_fstype.c
-index 33ca04733e93..ecf789b7168c 100644
---- a/fs/gfs2/ops_fstype.c
-+++ b/fs/gfs2/ops_fstype.c
-@@ -1126,8 +1126,7 @@ static int init_threads(struct gfs2_sbd *sdp)
- 	return 0;
- 
- fail:
--	kthread_stop(sdp->sd_logd_process);
--	put_task_struct(sdp->sd_logd_process);
-+	kthread_stop_put(sdp->sd_logd_process);
- 	sdp->sd_logd_process = NULL;
- 	return error;
- }
-@@ -1135,13 +1134,11 @@ static int init_threads(struct gfs2_sbd *sdp)
- void gfs2_destroy_threads(struct gfs2_sbd *sdp)
- {
- 	if (sdp->sd_logd_process) {
--		kthread_stop(sdp->sd_logd_process);
--		put_task_struct(sdp->sd_logd_process);
-+		kthread_stop_put(sdp->sd_logd_process);
- 		sdp->sd_logd_process = NULL;
- 	}
- 	if (sdp->sd_quotad_process) {
--		kthread_stop(sdp->sd_quotad_process);
--		put_task_struct(sdp->sd_quotad_process);
-+		kthread_stop_put(sdp->sd_quotad_process);
- 		sdp->sd_quotad_process = NULL;
- 	}
- }
-diff --git a/include/linux/kthread.h b/include/linux/kthread.h
-index 2c30ade43bc8..b11f53c1ba2e 100644
---- a/include/linux/kthread.h
-+++ b/include/linux/kthread.h
-@@ -86,6 +86,7 @@ void free_kthread_struct(struct task_struct *k);
- void kthread_bind(struct task_struct *k, unsigned int cpu);
- void kthread_bind_mask(struct task_struct *k, const struct cpumask *mask);
- int kthread_stop(struct task_struct *k);
-+int kthread_stop_put(struct task_struct *k);
- bool kthread_should_stop(void);
- bool kthread_should_park(void);
- bool kthread_should_stop_or_park(void);
-diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
-index d309ba84e08a..1782f90cd8c6 100644
---- a/kernel/irq/manage.c
-+++ b/kernel/irq/manage.c
-@@ -1852,15 +1852,13 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
- 		struct task_struct *t = new->thread;
- 
- 		new->thread = NULL;
--		kthread_stop(t);
--		put_task_struct(t);
-+		kthread_stop_put(t);
- 	}
- 	if (new->secondary && new->secondary->thread) {
- 		struct task_struct *t = new->secondary->thread;
- 
- 		new->secondary->thread = NULL;
--		kthread_stop(t);
--		put_task_struct(t);
-+		kthread_stop_put(t);
- 	}
- out_mput:
- 	module_put(desc->owner);
-@@ -1971,12 +1969,9 @@ static struct irqaction *__free_irq(struct irq_desc *desc, void *dev_id)
- 	 * the same bit to a newly requested action.
- 	 */
- 	if (action->thread) {
--		kthread_stop(action->thread);
--		put_task_struct(action->thread);
--		if (action->secondary && action->secondary->thread) {
--			kthread_stop(action->secondary->thread);
--			put_task_struct(action->secondary->thread);
--		}
-+		kthread_stop_put(action->thread);
-+		if (action->secondary && action->secondary->thread)
-+			kthread_stop_put(action->secondary->thread);
- 	}
- 
- 	/* Last action releases resources */
-diff --git a/kernel/kthread.c b/kernel/kthread.c
-index c46128ec0c0a..c4453181daf9 100644
---- a/kernel/kthread.c
-+++ b/kernel/kthread.c
-@@ -715,6 +715,23 @@ int kthread_stop(struct task_struct *k)
- }
- EXPORT_SYMBOL(kthread_stop);
- 
-+/**
-+ * kthread_stop_put - stop a thread and put its task struct
+ /**
++ * ttm_pool_synchronize_shrinkers - Wait for all running shrinkers to complete.
 + *
-+ * Stops a thread created by kthread_create() and put its task_struct.
-+ * Only use when holding an extra task struct reference obtained by
-+ * calling get_task_struct().
++ * This is useful to guarantee that all shrinker invocations have seen an
++ * update, before freeing memory, similar to rcu.
 + */
-+int kthread_stop_put(struct task_struct *k)
++static void ttm_pool_synchronize_shrinkers(void)
 +{
-+	int ret;
-+
-+	ret = kthread_stop(k);
-+	put_task_struct(k);
-+	return ret;
++	down_write(&pool_shrink_rwsem);
++	up_write(&pool_shrink_rwsem);
 +}
-+EXPORT_SYMBOL(kthread_stop_put);
 +
- int kthreadd(void *unused)
- {
- 	struct task_struct *tsk = current;
-diff --git a/kernel/smpboot.c b/kernel/smpboot.c
-index f47d8f375946..1992b62e980b 100644
---- a/kernel/smpboot.c
-+++ b/kernel/smpboot.c
-@@ -272,8 +272,7 @@ static void smpboot_destroy_threads(struct smp_hotplug_thread *ht)
- 		struct task_struct *tsk = *per_cpu_ptr(ht->store, cpu);
++/**
+  * ttm_pool_fini - Cleanup a pool
+  *
+  * @pool: the pool to clean up
+@@ -593,7 +608,7 @@ void ttm_pool_fini(struct ttm_pool *pool
+ 	/* We removed the pool types from the LRU, but we need to also make sure
+ 	 * that no shrinker is concurrently freeing pages from the pool.
+ 	 */
+-	synchronize_shrinkers();
++	ttm_pool_synchronize_shrinkers();
+ }
+ EXPORT_SYMBOL(ttm_pool_fini);
  
- 		if (tsk) {
--			kthread_stop(tsk);
--			put_task_struct(tsk);
-+			kthread_stop_put(tsk);
- 			*per_cpu_ptr(ht->store, cpu) = NULL;
- 		}
- 	}
-diff --git a/mm/damon/core.c b/mm/damon/core.c
-index bcd2bd9d6c10..2f54f153d7f5 100644
---- a/mm/damon/core.c
-+++ b/mm/damon/core.c
-@@ -699,8 +699,7 @@ static int __damon_stop(struct damon_ctx *ctx)
- 	if (tsk) {
- 		get_task_struct(tsk);
- 		mutex_unlock(&ctx->kdamond_lock);
--		kthread_stop(tsk);
--		put_task_struct(tsk);
-+		kthread_stop_put(tsk);
- 		return 0;
- 	}
- 	mutex_unlock(&ctx->kdamond_lock);
-diff --git a/net/core/pktgen.c b/net/core/pktgen.c
-index f56b8d697014..826250a0f5b1 100644
---- a/net/core/pktgen.c
-+++ b/net/core/pktgen.c
-@@ -3982,8 +3982,7 @@ static void __net_exit pg_net_exit(struct net *net)
- 	list_for_each_safe(q, n, &list) {
- 		t = list_entry(q, struct pktgen_thread, th_list);
- 		list_del(&t->th_list);
--		kthread_stop(t->tsk);
--		put_task_struct(t->tsk);
-+		kthread_stop_put(t->tsk);
- 		kfree(t);
- 	}
+--- a/include/linux/shrinker.h~drm-ttm-introduce-pool_shrink_rwsem
++++ a/include/linux/shrinker.h
+@@ -103,7 +103,6 @@ extern int __printf(2, 3) register_shrin
+ 					    const char *fmt, ...);
+ extern void unregister_shrinker(struct shrinker *shrinker);
+ extern void free_prealloced_shrinker(struct shrinker *shrinker);
+-extern void synchronize_shrinkers(void);
  
--- 
-2.40.1
+ #ifdef CONFIG_SHRINKER_DEBUG
+ extern int __printf(2, 3) shrinker_debugfs_rename(struct shrinker *shrinker,
+--- a/mm/shrinker.c~drm-ttm-introduce-pool_shrink_rwsem
++++ a/mm/shrinker.c
+@@ -692,18 +692,3 @@ void unregister_shrinker(struct shrinker
+ 	shrinker->nr_deferred = NULL;
+ }
+ EXPORT_SYMBOL(unregister_shrinker);
+-
+-/**
+- * synchronize_shrinkers - Wait for all running shrinkers to complete.
+- *
+- * This is equivalent to calling unregister_shrink() and register_shrinker(),
+- * but atomically and with less overhead. This is useful to guarantee that all
+- * shrinker invocations have seen an update, before freeing memory, similar to
+- * rcu.
+- */
+-void synchronize_shrinkers(void)
+-{
+-	down_write(&shrinker_rwsem);
+-	up_write(&shrinker_rwsem);
+-}
+-EXPORT_SYMBOL(synchronize_shrinkers);
+_
+
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+
+mm-move-some-shrinker-related-function-declarations-to-mm-internalh.patch
+mm-vmscan-move-shrinker-related-code-into-a-separate-file.patch
+mm-shrinker-remove-redundant-shrinker_rwsem-in-debugfs-operations.patch
+drm-ttm-introduce-pool_shrink_rwsem.patch
+mm-shrinker-add-infrastructure-for-dynamically-allocating-shrinker.patch
+kvm-mmu-dynamically-allocate-the-x86-mmu-shrinker.patch
+binder-dynamically-allocate-the-android-binder-shrinker.patch
+drm-ttm-dynamically-allocate-the-drm-ttm_pool-shrinker.patch
+xenbus-backend-dynamically-allocate-the-xen-backend-shrinker.patch
+erofs-dynamically-allocate-the-erofs-shrinker.patch
+f2fs-dynamically-allocate-the-f2fs-shrinker.patch
+gfs2-dynamically-allocate-the-gfs2-glock-shrinker.patch
+gfs2-dynamically-allocate-the-gfs2-qd-shrinker.patch
+nfsv42-dynamically-allocate-the-nfs-xattr-shrinkers.patch
+nfs-dynamically-allocate-the-nfs-acl-shrinker.patch
+nfsd-dynamically-allocate-the-nfsd-filecache-shrinker.patch
+quota-dynamically-allocate-the-dquota-cache-shrinker.patch
+ubifs-dynamically-allocate-the-ubifs-slab-shrinker.patch
+rcu-dynamically-allocate-the-rcu-lazy-shrinker.patch
+rcu-dynamically-allocate-the-rcu-kfree-shrinker.patch
+mm-thp-dynamically-allocate-the-thp-related-shrinkers.patch
+sunrpc-dynamically-allocate-the-sunrpc_cred-shrinker.patch
+mm-workingset-dynamically-allocate-the-mm-shadow-shrinker.patch
+drm-i915-dynamically-allocate-the-i915_gem_mm-shrinker.patch
+drm-msm-dynamically-allocate-the-drm-msm_gem-shrinker.patch
+drm-panfrost-dynamically-allocate-the-drm-panfrost-shrinker.patch
+dm-dynamically-allocate-the-dm-bufio-shrinker.patch
+dm-zoned-dynamically-allocate-the-dm-zoned-meta-shrinker.patch
+md-raid5-dynamically-allocate-the-md-raid5-shrinker.patch
+bcache-dynamically-allocate-the-md-bcache-shrinker.patch
+vmw_balloon-dynamically-allocate-the-vmw-balloon-shrinker.patch
+virtio_balloon-dynamically-allocate-the-virtio-balloon-shrinker.patch
+mbcache-dynamically-allocate-the-mbcache-shrinker.patch
+ext4-dynamically-allocate-the-ext4-es-shrinker.patch
+jbd2ext4-dynamically-allocate-the-jbd2-journal-shrinker.patch
+nfsd-dynamically-allocate-the-nfsd-client-shrinker.patch
+nfsd-dynamically-allocate-the-nfsd-reply-shrinker.patch
+xfs-dynamically-allocate-the-xfs-buf-shrinker.patch
+xfs-dynamically-allocate-the-xfs-inodegc-shrinker.patch
+xfs-dynamically-allocate-the-xfs-qm-shrinker.patch
+zsmalloc-dynamically-allocate-the-mm-zspool-shrinker.patch
+fs-super-dynamically-allocate-the-s_shrink.patch
+mm-shrinker-remove-old-apis.patch
+mm-shrinker-add-a-secondary-array-for-shrinker_info-map-nr_deferred.patch
+mm-shrinker-rename-preallocunregister_memcg_shrinker-to-shrinker_memcg_allocremove.patch
+mm-shrinker-make-global-slab-shrink-lockless.patch
+mm-shrinker-make-memcg-slab-shrink-lockless.patch
+mm-shrinker-hold-write-lock-to-reparent-shrinker-nr_deferred.patch
+mm-shrinker-convert-shrinker_rwsem-to-mutex.patch
 
