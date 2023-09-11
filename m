@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8328CA0EC3
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FA8ACA0EC7
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236225AbjIKWVn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:21:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53292 "EHLO
+        id S237333AbjIKWVq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:21:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33000 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244536AbjIKUkZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:40:25 -0400
+        with ESMTP id S244531AbjIKUkJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:40:09 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3AE6D127
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:40:20 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0F47C433C7;
-        Mon, 11 Sep 2023 20:40:19 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D5E9127
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:40:04 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 936F8C433C7;
+        Mon, 11 Sep 2023 20:40:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464819;
-        bh=ztz/cmg7pAMqJcqy3M22oQVIIv3eO2ZuDV02SMdYRw8=;
+        s=korg; t=1694464803;
+        bh=7IL4KXHrv1oqM+3y7yBSHkD8c2qitmj9hjnRbv26Ucg=;
         h=Date:To:From:Subject:From;
-        b=qtD0XDr0Qgf+xGd70mGXjxki4+BFEldVx0C1i3a5NVF5y3ITmD92ZlU/3/SjVFRyN
-         Y0t7vKfVNfpoWbk7RDgkcYgyjqt3Jss/y6UQVBaIAZT7q7pQBipe9Z4oduX2TjmW8A
-         N1Cnzbv3HPtVOMMGTcVt5f5e1XqJbA1cpelV+bTQ=
-Date:   Mon, 11 Sep 2023 13:40:19 -0700
+        b=NHNDIWUr6F2NF6ngx3K8rTHNMBGstlp6snGLjqL+8oZHM/53ZIt2SR3An32mPM+Wk
+         47v3b43ZWg174YbZk4PFW4fSwectqfrH1B6byo4Rr021iQ4qaH0C62rz0ZVWfESkot
+         Kr3sKAhkBBjC6L1t64syjGyiCwwzd6dRwoeZXV+A=
+Date:   Mon, 11 Sep 2023 13:40:02 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -47,15 +47,15 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         david@redhat.com, david@fromorbit.com, dave.hansen@linux.intel.com,
         daniel.vetter@ffwll.ch, daniel@ffwll.ch, Dai.Ngo@oracle.com,
         colyli@suse.de, cmllamas@google.com, clm@fb.com,
-        christian.koenig@amd.com, chao@kernel.org, chandan.babu@oracle.com,
-        cel@kernel.org, brauner@kernel.org, bp@alien8.de, arnd@arndb.de,
-        anna@kernel.org, alyssa.rosenzweig@collabora.com,
-        airlied@gmail.com, agruenba@redhat.com, agk@redhat.com,
-        adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
-        akpm@linux-foundation.org
+        chuck.lever@oracle.com, christian.koenig@amd.com, chao@kernel.org,
+        chandan.babu@oracle.com, cel@kernel.org, brauner@kernel.org,
+        bp@alien8.de, arnd@arndb.de, anna@kernel.org,
+        alyssa.rosenzweig@collabora.com, airlied@gmail.com,
+        agruenba@redhat.com, agk@redhat.com, adilger.kernel@dilger.ca,
+        zhengqi.arch@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zsmalloc-dynamically-allocate-the-mm-zspool-shrinker.patch added to mm-unstable branch
-Message-Id: <20230911204019.C0F47C433C7@smtp.kernel.org>
+Subject: + nfsd-dynamically-allocate-the-nfsd-reply-shrinker.patch added to mm-unstable branch
+Message-Id: <20230911204003.936F8C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: dynamically allocate the mm-zspool shrinker
+     Subject: nfsd: dynamically allocate the nfsd-reply shrinker
 has been added to the -mm mm-unstable branch.  Its filename is
-     zsmalloc-dynamically-allocate-the-mm-zspool-shrinker.patch
+     nfsd-dynamically-allocate-the-nfsd-reply-shrinker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-dynamically-allocate-the-mm-zspool-shrinker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nfsd-dynamically-allocate-the-nfsd-reply-shrinker.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,19 +87,22 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: zsmalloc: dynamically allocate the mm-zspool shrinker
-Date: Mon, 11 Sep 2023 17:44:36 +0800
+Subject: nfsd: dynamically allocate the nfsd-reply shrinker
+Date: Mon, 11 Sep 2023 17:44:32 +0800
 
 In preparation for implementing lockless slab shrink, use new APIs to
-dynamically allocate the mm-zspool shrinker, so that it can be freed
+dynamically allocate the nfsd-reply shrinker, so that it can be freed
 asynchronously via RCU. Then it doesn't need to wait for RCU read-side
-critical section when releasing the struct zs_pool.
+critical section when releasing the struct nfsd_net.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-38-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-34-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Minchan Kim <minchan@kernel.org>
+Acked-by: Chuck Lever <chuck.lever@oracle.com>
+Acked-by: Jeff Layton <jlayton@kernel.org>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Olga Kornievskaia <kolga@netapp.com>
+Cc: Dai Ngo <Dai.Ngo@oracle.com>
+Cc: Tom Talpey <tom@talpey.com>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -118,7 +121,6 @@ Cc: Christian Brauner <brauner@kernel.org>
 Cc: Christian Koenig <christian.koenig@amd.com>
 Cc: Chuck Lever <cel@kernel.org>
 Cc: Coly Li <colyli@suse.de>
-Cc: Dai Ngo <Dai.Ngo@oracle.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
@@ -136,7 +138,6 @@ Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Wang <jasowang@redhat.com>
-Cc: Jeff Layton <jlayton@kernel.org>
 Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
 Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
 Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
@@ -147,11 +148,11 @@ Cc: Kirill Tkhai <tkhai@ya.ru>
 Cc: Marijn Suijten <marijn.suijten@somainline.org>
 Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Nadav Amit <namit@vmware.com>
-Cc: Neil Brown <neilb@suse.de>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
-Cc: Olga Kornievskaia <kolga@netapp.com>
 Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Richard Weinberger <richard@nod.at>
 Cc: Rob Clark <robdclark@gmail.com>
@@ -159,13 +160,13 @@ Cc: Rob Herring <robh@kernel.org>
 Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Sean Paul <sean@poorly.run>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Song Liu <song@kernel.org>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Steven Price <steven.price@arm.com>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: Tom Talpey <tom@talpey.com>
 Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -174,71 +175,100 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   27 +++++++++++++++------------
- 1 file changed, 15 insertions(+), 12 deletions(-)
+ fs/nfsd/netns.h    |    2 +-
+ fs/nfsd/nfscache.c |   31 ++++++++++++++++---------------
+ 2 files changed, 17 insertions(+), 16 deletions(-)
 
---- a/mm/zsmalloc.c~zsmalloc-dynamically-allocate-the-mm-zspool-shrinker
-+++ a/mm/zsmalloc.c
-@@ -229,7 +229,7 @@ struct zs_pool {
- 	struct zs_pool_stats stats;
+--- a/fs/nfsd/netns.h~nfsd-dynamically-allocate-the-nfsd-reply-shrinker
++++ a/fs/nfsd/netns.h
+@@ -177,7 +177,7 @@ struct nfsd_net {
+ 	/* size of cache when we saw the longest hash chain */
+ 	unsigned int             longest_chain_cachesize;
  
- 	/* Compact classes */
--	struct shrinker shrinker;
-+	struct shrinker *shrinker;
+-	struct shrinker		nfsd_reply_cache_shrinker;
++	struct shrinker		*nfsd_reply_cache_shrinker;
  
- #ifdef CONFIG_ZSMALLOC_STAT
- 	struct dentry *stat_dentry;
-@@ -2086,8 +2086,7 @@ static unsigned long zs_shrinker_scan(st
- 		struct shrink_control *sc)
+ 	/* tracking server-to-server copy mounts */
+ 	spinlock_t              nfsd_ssc_lock;
+--- a/fs/nfsd/nfscache.c~nfsd-dynamically-allocate-the-nfsd-reply-shrinker
++++ a/fs/nfsd/nfscache.c
+@@ -201,26 +201,29 @@ int nfsd_reply_cache_init(struct nfsd_ne
  {
- 	unsigned long pages_freed;
--	struct zs_pool *pool = container_of(shrinker, struct zs_pool,
--			shrinker);
-+	struct zs_pool *pool = shrinker->private_data;
+ 	unsigned int hashsize;
+ 	unsigned int i;
+-	int status = 0;
  
- 	/*
- 	 * Compact classes and calculate compaction delta.
-@@ -2105,8 +2104,7 @@ static unsigned long zs_shrinker_count(s
- 	int i;
- 	struct size_class *class;
- 	unsigned long pages_to_free = 0;
--	struct zs_pool *pool = container_of(shrinker, struct zs_pool,
--			shrinker);
-+	struct zs_pool *pool = shrinker->private_data;
+ 	nn->max_drc_entries = nfsd_cache_size_limit();
+ 	atomic_set(&nn->num_drc_entries, 0);
+ 	hashsize = nfsd_hashsize(nn->max_drc_entries);
+ 	nn->maskbits = ilog2(hashsize);
  
- 	for (i = ZS_SIZE_CLASSES - 1; i >= 0; i--) {
- 		class = pool->size_class[i];
-@@ -2121,18 +2119,23 @@ static unsigned long zs_shrinker_count(s
- 
- static void zs_unregister_shrinker(struct zs_pool *pool)
- {
--	unregister_shrinker(&pool->shrinker);
-+	shrinker_free(pool->shrinker);
- }
- 
- static int zs_register_shrinker(struct zs_pool *pool)
- {
--	pool->shrinker.scan_objects = zs_shrinker_scan;
--	pool->shrinker.count_objects = zs_shrinker_count;
--	pool->shrinker.batch = 0;
--	pool->shrinker.seeks = DEFAULT_SEEKS;
-+	pool->shrinker = shrinker_alloc(0, "mm-zspool:%s", pool->name);
-+	if (!pool->shrinker)
+-	nn->nfsd_reply_cache_shrinker.scan_objects = nfsd_reply_cache_scan;
+-	nn->nfsd_reply_cache_shrinker.count_objects = nfsd_reply_cache_count;
+-	nn->nfsd_reply_cache_shrinker.seeks = 1;
+-	status = register_shrinker(&nn->nfsd_reply_cache_shrinker,
+-				   "nfsd-reply:%s", nn->nfsd_name);
+-	if (status)
+-		return status;
+-
+ 	nn->drc_hashtbl = kvzalloc(array_size(hashsize,
+ 				sizeof(*nn->drc_hashtbl)), GFP_KERNEL);
+ 	if (!nn->drc_hashtbl)
 +		return -ENOMEM;
 +
-+	pool->shrinker->scan_objects = zs_shrinker_scan;
-+	pool->shrinker->count_objects = zs_shrinker_count;
-+	pool->shrinker->batch = 0;
-+	pool->shrinker->private_data = pool;
++	nn->nfsd_reply_cache_shrinker = shrinker_alloc(0, "nfsd-reply:%s",
++						       nn->nfsd_name);
++	if (!nn->nfsd_reply_cache_shrinker)
+ 		goto out_shrinker;
  
--	return register_shrinker(&pool->shrinker, "mm-zspool:%s",
--				 pool->name);
-+	shrinker_register(pool->shrinker);
++	nn->nfsd_reply_cache_shrinker->scan_objects = nfsd_reply_cache_scan;
++	nn->nfsd_reply_cache_shrinker->count_objects = nfsd_reply_cache_count;
++	nn->nfsd_reply_cache_shrinker->seeks = 1;
++	nn->nfsd_reply_cache_shrinker->private_data = nn;
 +
-+	return 0;
- }
++	shrinker_register(nn->nfsd_reply_cache_shrinker);
++
+ 	for (i = 0; i < hashsize; i++) {
+ 		INIT_LIST_HEAD(&nn->drc_hashtbl[i].lru_head);
+ 		spin_lock_init(&nn->drc_hashtbl[i].cache_lock);
+@@ -229,7 +232,7 @@ int nfsd_reply_cache_init(struct nfsd_ne
  
- static int calculate_zspage_chain_size(int class_size)
+ 	return 0;
+ out_shrinker:
+-	unregister_shrinker(&nn->nfsd_reply_cache_shrinker);
++	kvfree(nn->drc_hashtbl);
+ 	printk(KERN_ERR "nfsd: failed to allocate reply cache\n");
+ 	return -ENOMEM;
+ }
+@@ -239,7 +242,7 @@ void nfsd_reply_cache_shutdown(struct nf
+ 	struct nfsd_cacherep *rp;
+ 	unsigned int i;
+ 
+-	unregister_shrinker(&nn->nfsd_reply_cache_shrinker);
++	shrinker_free(nn->nfsd_reply_cache_shrinker);
+ 
+ 	for (i = 0; i < nn->drc_hashsize; i++) {
+ 		struct list_head *head = &nn->drc_hashtbl[i].lru_head;
+@@ -323,8 +326,7 @@ nfsd_prune_bucket_locked(struct nfsd_net
+ static unsigned long
+ nfsd_reply_cache_count(struct shrinker *shrink, struct shrink_control *sc)
+ {
+-	struct nfsd_net *nn = container_of(shrink,
+-				struct nfsd_net, nfsd_reply_cache_shrinker);
++	struct nfsd_net *nn = shrink->private_data;
+ 
+ 	return atomic_read(&nn->num_drc_entries);
+ }
+@@ -343,8 +345,7 @@ nfsd_reply_cache_count(struct shrinker *
+ static unsigned long
+ nfsd_reply_cache_scan(struct shrinker *shrink, struct shrink_control *sc)
+ {
+-	struct nfsd_net *nn = container_of(shrink,
+-				struct nfsd_net, nfsd_reply_cache_shrinker);
++	struct nfsd_net *nn = shrink->private_data;
+ 	unsigned long freed = 0;
+ 	LIST_HEAD(dispose);
+ 	unsigned int i;
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
