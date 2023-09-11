@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75AEECA0ED4
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:26:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AA92CA0EDA
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:26:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243076AbjIKWYG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:24:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47936 "EHLO
+        id S240232AbjIKWY2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:24:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41226 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244477AbjIKUhv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:37:51 -0400
+        with ESMTP id S244565AbjIKUlI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:41:08 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 284AB127
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:37:46 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B26EFC433C8;
-        Mon, 11 Sep 2023 20:37:45 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43EC7101
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:41:03 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7557FC433C7;
+        Mon, 11 Sep 2023 20:41:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464665;
-        bh=5ABvc22gCmSDD7lrTDTwulEfzy3dBLmrcbqY4WwqeRY=;
+        s=korg; t=1694464862;
+        bh=Rc8EK4gIN1gxhcnqr4d+/Pqrb1QYdYt2Sz7LLO0rVUw=;
         h=Date:To:From:Subject:From;
-        b=Mx397u13GfcgRfmS4HoSzxqnl/RjEn0GY5tDo3HOb+LrIVCENAkgN4tvgf0/yPS8q
-         zRd7jmjpJI0Jvq4r49j7YbQJTImL+vIcR60cyh5Q7yJXme2JuEK4RFWNF0lMsjNY+4
-         mbHdvK/hGZFjXq1zlv4yOAZxevF0qWsx5YEbUnbA=
-Date:   Mon, 11 Sep 2023 13:37:45 -0700
+        b=0VEJVZXymgbDCtlXYJHuGgHb5wJjHUPSBJf/l5kmD5U9T691rG0BN9d4YIyDCA1fq
+         yBdm/bpBb6sbeu0nfpQz8X3cnRMLW6sQoRer6LW65/Yx+jELVwqGGdnFtrXqhv9PRc
+         BrF66bOJOZM+nAfkCEFcP/jjv+smh/Q0FrEwufuw=
+Date:   Mon, 11 Sep 2023 13:41:01 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + gfs2-dynamically-allocate-the-gfs2-glock-shrinker.patch added to mm-unstable branch
-Message-Id: <20230911203745.B26EFC433C8@smtp.kernel.org>
+Subject: + mm-shrinker-hold-write-lock-to-reparent-shrinker-nr_deferred.patch added to mm-unstable branch
+Message-Id: <20230911204102.7557FC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: gfs2: dynamically allocate the gfs2-glock shrinker
+     Subject: mm: shrinker: hold write lock to reparent shrinker nr_deferred
 has been added to the -mm mm-unstable branch.  Its filename is
-     gfs2-dynamically-allocate-the-gfs2-glock-shrinker.patch
+     mm-shrinker-hold-write-lock-to-reparent-shrinker-nr_deferred.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/gfs2-dynamically-allocate-the-gfs2-glock-shrinker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinker-hold-write-lock-to-reparent-shrinker-nr_deferred.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,23 +87,27 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: gfs2: dynamically allocate the gfs2-glock shrinker
-Date: Mon, 11 Sep 2023 17:44:07 +0800
+Subject: mm: shrinker: hold write lock to reparent shrinker nr_deferred
+Date: Mon, 11 Sep 2023 17:44:43 +0800
 
-Use new APIs to dynamically allocate the gfs2-glock shrinker.
+For now, reparent_shrinker_deferred() is the only holder of read lock of
+shrinker_rwsem. And it already holds the global cgroup_mutex, so it will
+not be called in parallel.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-9-zhengqi.arch@bytedance.com
+Therefore, in order to convert shrinker_rwsem to shrinker_mutex later,
+here we change to hold the write lock of shrinker_rwsem to reparent.
+
+Link: https://lkml.kernel.org/r/20230911094444.68966-45-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Bob Peterson <rpeterso@redhat.com>
-Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alyssa Rosenzweig <alyssa.rosenzweig@collabora.com>
 Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Cc: Anna Schumaker <anna@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Bob Peterson <rpeterso@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Carlos Llamas <cmllamas@google.com>
 Cc: Chandan Babu R <chandan.babu@oracle.com>
@@ -144,6 +148,7 @@ Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Nadav Amit <namit@vmware.com>
 Cc: Neil Brown <neilb@suse.de>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
@@ -171,55 +176,29 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/glock.c |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ mm/shrinker.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/gfs2/glock.c~gfs2-dynamically-allocate-the-gfs2-glock-shrinker
-+++ a/fs/gfs2/glock.c
-@@ -2039,11 +2039,7 @@ static unsigned long gfs2_glock_shrink_c
- 	return vfs_pressure_ratio(atomic_read(&lru_count));
- }
+--- a/mm/shrinker.c~mm-shrinker-hold-write-lock-to-reparent-shrinker-nr_deferred
++++ a/mm/shrinker.c
+@@ -292,7 +292,7 @@ void reparent_shrinker_deferred(struct m
+ 		parent = root_mem_cgroup;
  
--static struct shrinker glock_shrinker = {
--	.seeks = DEFAULT_SEEKS,
--	.count_objects = gfs2_glock_shrink_count,
--	.scan_objects = gfs2_glock_shrink_scan,
--};
-+static struct shrinker *glock_shrinker;
- 
- /**
-  * glock_hash_walk - Call a function for glock in a hash bucket
-@@ -2463,13 +2459,18 @@ int __init gfs2_glock_init(void)
- 		return -ENOMEM;
+ 	/* Prevent from concurrent shrinker_info expand */
+-	down_read(&shrinker_rwsem);
++	down_write(&shrinker_rwsem);
+ 	for_each_node(nid) {
+ 		child_info = shrinker_info_protected(memcg, nid);
+ 		parent_info = shrinker_info_protected(parent, nid);
+@@ -305,7 +305,7 @@ void reparent_shrinker_deferred(struct m
+ 			}
+ 		}
  	}
- 
--	ret = register_shrinker(&glock_shrinker, "gfs2-glock");
--	if (ret) {
-+	glock_shrinker = shrinker_alloc(0, "gfs2-glock");
-+	if (!glock_shrinker) {
- 		destroy_workqueue(glock_workqueue);
- 		rhashtable_destroy(&gl_hash_table);
--		return ret;
-+		return -ENOMEM;
- 	}
- 
-+	glock_shrinker->count_objects = gfs2_glock_shrink_count;
-+	glock_shrinker->scan_objects = gfs2_glock_shrink_scan;
-+
-+	shrinker_register(glock_shrinker);
-+
- 	for (i = 0; i < GLOCK_WAIT_TABLE_SIZE; i++)
- 		init_waitqueue_head(glock_wait_table + i);
- 
-@@ -2478,7 +2479,7 @@ int __init gfs2_glock_init(void)
- 
- void gfs2_glock_exit(void)
- {
--	unregister_shrinker(&glock_shrinker);
-+	shrinker_free(glock_shrinker);
- 	rhashtable_destroy(&gl_hash_table);
- 	destroy_workqueue(glock_workqueue);
+-	up_read(&shrinker_rwsem);
++	up_write(&shrinker_rwsem);
  }
+ #else
+ static int shrinker_memcg_alloc(struct shrinker *shrinker)
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
