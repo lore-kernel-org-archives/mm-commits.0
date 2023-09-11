@@ -2,160 +2,370 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 093EFCA0EDA
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA312CA0ED7
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239302AbjIKWWG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:22:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36642 "EHLO
+        id S239259AbjIKWWF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:22:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46620 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243964AbjIKSdl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 14:33:41 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E1A71A2
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 11:33:37 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB7ECC433C7;
-        Mon, 11 Sep 2023 18:33:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694457216;
-        bh=rYh0f2OjPGtDw2sQY19vFdGgcnk+gGi26KxkDIGWxN8=;
-        h=Date:To:From:Subject:From;
-        b=rpa/Jq0WzVZKM2aoCj6DIOHpE0+Azsua0nMVkFMw1FiX2nVIihW+6y9NsjNtVxXYG
-         eBcFYaBLhvQSUt94WwBdJ42rB2Ox8W7KWxKyDcDNdKUQ651dvRkfcIhGY9LgpA+u4D
-         19FYasKVbEKLPpy5H7xs0Gke02Mie+1Ew/OkAKIM=
-Date:   Mon, 11 Sep 2023 11:33:35 -0700
-To:     mm-commits@vger.kernel.org, elver@google.com, dvyukov@google.com,
-        glider@google.com, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-introduce-test_memcpy_initialized_gap.patch added to mm-unstable branch
-Message-Id: <20230911183336.AB7ECC433C7@smtp.kernel.org>
+        with ESMTP id S236735AbjIKLS3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 07:18:29 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 54742CE5
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 04:17:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1694431055;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=kLYWjYvFwv4/s+HtYDIjsdK1LYTgvhIhfGvJ4mVWT5Q=;
+        b=CabwgJG/zw2FnXMacVpv7K7ypJM20SBFs54se3i60AstDepnXL8DNghhW2uwrHMYQmonuj
+        9hpqksFeaf3wqIhzEghqftEp2nXqEvc75jL8rcLifg4D6zoeJDwf5Z0GPjrFHboQU9fmjD
+        QJTaYLDE+a//x2gBwfh7ICd9wtSeg6A=
+Received: from mimecast-mx02.redhat.com (mx-ext.redhat.com [66.187.233.73])
+ by relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-60-iP-LBR5kODm1LSeCIuktlA-1; Mon, 11 Sep 2023 07:17:32 -0400
+X-MC-Unique: iP-LBR5kODm1LSeCIuktlA-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.rdu2.redhat.com [10.11.54.6])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id D8B643803902;
+        Mon, 11 Sep 2023 11:17:31 +0000 (UTC)
+Received: from pasta.redhat.com (unknown [10.45.226.29])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id D42E42156701;
+        Mon, 11 Sep 2023 11:17:30 +0000 (UTC)
+From:   Andreas Gruenbacher <agruenba@redhat.com>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Andreas Gruenbacher <agruenba@redhat.com>,
+        mm-commits@vger.kernel.org,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v2] kthread: Add kthread_stop_put
+Date:   Mon, 11 Sep 2023 13:17:30 +0200
+Message-Id: <20230911111730.2565537-1-agruenba@redhat.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.6
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+Hi Andrew,
 
-The patch titled
-     Subject: kmsan: introduce test_memcpy_initialized_gap()
-has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-introduce-test_memcpy_initialized_gap.patch
+thanks for picking this up.  The kernel test robot has since told me
+that it's uhappy about the kerneldoc comment I've added for
+kthread_stio_put().
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-introduce-test_memcpy_initialized_gap.patch
+So here's an updated version that has the comment fixed, rebased against
+the latest for-next kernel.
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+https://lore.kernel.org/oe-kbuild-all/202309081653.IMl41FhS-lkp@intel.com/
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Thanks,
+Andreas
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+--
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+Add a kthread_stop_put() helper that stops a thread and puts its task
+struct.  Use it to replace the various instances of kthread_stop()
+followed by put_task_struct().
 
-------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: kmsan: introduce test_memcpy_initialized_gap()
-Date: Mon, 11 Sep 2023 16:57:02 +0200
+Remove the kthread_stop_put() macro in usbip that is similar but
+doesn't return the result of kthread_stop().
 
-Add a regression test for the special case where memcpy() previously
-failed to correctly set the origins: if upon memcpy() four aligned
-initialized bytes with a zero origin value ended up split between two
-aligned four-byte chunks, one of those chunks could've received the zero
-origin value even despite it contained uninitialized bytes from other
-writes.
-
-Link: https://lkml.kernel.org/r/20230911145702.2663753-4-glider@google.com
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Suggested-by: Marco Elver <elver@google.com>
-Acked-by: Marco Elver <elver@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
 ---
+ drivers/accel/ivpu/ivpu_job.c              |  3 +--
+ drivers/dma-buf/st-dma-fence-chain.c       | 12 ++++--------
+ drivers/dma-buf/st-dma-fence.c             |  4 +---
+ drivers/gpu/drm/i915/gt/selftest_migrate.c |  4 +---
+ drivers/net/xen-netback/interface.c        |  3 +--
+ drivers/usb/usbip/usbip_common.h           |  6 ------
+ fs/gfs2/ops_fstype.c                       |  9 +++------
+ include/linux/kthread.h                    |  1 +
+ kernel/irq/manage.c                        | 15 +++++----------
+ kernel/kthread.c                           | 17 +++++++++++++++++
+ kernel/smpboot.c                           |  3 +--
+ mm/damon/core.c                            |  3 +--
+ net/core/pktgen.c                          |  3 +--
+ 13 files changed, 37 insertions(+), 46 deletions(-)
 
- mm/kmsan/kmsan_test.c |   53 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 53 insertions(+)
-
---- a/mm/kmsan/kmsan_test.c~kmsan-introduce-test_memcpy_initialized_gap
-+++ a/mm/kmsan/kmsan_test.c
-@@ -486,6 +486,58 @@ static void test_memcpy_aligned_to_unali
- 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
- }
+diff --git a/drivers/accel/ivpu/ivpu_job.c b/drivers/accel/ivpu/ivpu_job.c
+index de9e69f70af7..76f468c9f761 100644
+--- a/drivers/accel/ivpu/ivpu_job.c
++++ b/drivers/accel/ivpu/ivpu_job.c
+@@ -618,6 +618,5 @@ int ivpu_job_done_thread_init(struct ivpu_device *vdev)
  
-+/*
-+ * Test case: ensure that origin slots do not accidentally get overwritten with
-+ * zeroes during memcpy().
+ void ivpu_job_done_thread_fini(struct ivpu_device *vdev)
+ {
+-	kthread_stop(vdev->job_done_thread);
+-	put_task_struct(vdev->job_done_thread);
++	kthread_stop_put(vdev->job_done_thread);
+ }
+diff --git a/drivers/dma-buf/st-dma-fence-chain.c b/drivers/dma-buf/st-dma-fence-chain.c
+index c0979c8049b5..9c2a0c082a76 100644
+--- a/drivers/dma-buf/st-dma-fence-chain.c
++++ b/drivers/dma-buf/st-dma-fence-chain.c
+@@ -476,10 +476,9 @@ static int find_race(void *arg)
+ 	for (i = 0; i < ncpus; i++) {
+ 		int ret;
+ 
+-		ret = kthread_stop(threads[i]);
++		ret = kthread_stop_put(threads[i]);
+ 		if (ret && !err)
+ 			err = ret;
+-		put_task_struct(threads[i]);
+ 	}
+ 	kfree(threads);
+ 
+@@ -591,8 +590,7 @@ static int wait_forward(void *arg)
+ 	for (i = 0; i < fc.chain_length; i++)
+ 		dma_fence_signal(fc.fences[i]);
+ 
+-	err = kthread_stop(tsk);
+-	put_task_struct(tsk);
++	err = kthread_stop_put(tsk);
+ 
+ err:
+ 	fence_chains_fini(&fc);
+@@ -621,8 +619,7 @@ static int wait_backward(void *arg)
+ 	for (i = fc.chain_length; i--; )
+ 		dma_fence_signal(fc.fences[i]);
+ 
+-	err = kthread_stop(tsk);
+-	put_task_struct(tsk);
++	err = kthread_stop_put(tsk);
+ 
+ err:
+ 	fence_chains_fini(&fc);
+@@ -669,8 +666,7 @@ static int wait_random(void *arg)
+ 	for (i = 0; i < fc.chain_length; i++)
+ 		dma_fence_signal(fc.fences[i]);
+ 
+-	err = kthread_stop(tsk);
+-	put_task_struct(tsk);
++	err = kthread_stop_put(tsk);
+ 
+ err:
+ 	fence_chains_fini(&fc);
+diff --git a/drivers/dma-buf/st-dma-fence.c b/drivers/dma-buf/st-dma-fence.c
+index fb6e0a6ae2c9..b7c6f7ea9e0c 100644
+--- a/drivers/dma-buf/st-dma-fence.c
++++ b/drivers/dma-buf/st-dma-fence.c
+@@ -548,11 +548,9 @@ static int race_signal_callback(void *arg)
+ 		for (i = 0; i < ARRAY_SIZE(t); i++) {
+ 			int err;
+ 
+-			err = kthread_stop(t[i].task);
++			err = kthread_stop_put(t[i].task);
+ 			if (err && !ret)
+ 				ret = err;
+-
+-			put_task_struct(t[i].task);
+ 		}
+ 	}
+ 
+diff --git a/drivers/gpu/drm/i915/gt/selftest_migrate.c b/drivers/gpu/drm/i915/gt/selftest_migrate.c
+index 3def5ca72dec..0fb07f073baa 100644
+--- a/drivers/gpu/drm/i915/gt/selftest_migrate.c
++++ b/drivers/gpu/drm/i915/gt/selftest_migrate.c
+@@ -719,11 +719,9 @@ static int threaded_migrate(struct intel_migrate *migrate,
+ 		if (IS_ERR_OR_NULL(tsk))
+ 			continue;
+ 
+-		status = kthread_stop(tsk);
++		status = kthread_stop_put(tsk);
+ 		if (status && !err)
+ 			err = status;
+-
+-		put_task_struct(tsk);
+ 	}
+ 
+ 	kfree(thread);
+diff --git a/drivers/net/xen-netback/interface.c b/drivers/net/xen-netback/interface.c
+index f3f2c07423a6..33c8143619f0 100644
+--- a/drivers/net/xen-netback/interface.c
++++ b/drivers/net/xen-netback/interface.c
+@@ -672,8 +672,7 @@ int xenvif_connect_ctrl(struct xenvif *vif, grant_ref_t ring_ref,
+ static void xenvif_disconnect_queue(struct xenvif_queue *queue)
+ {
+ 	if (queue->task) {
+-		kthread_stop(queue->task);
+-		put_task_struct(queue->task);
++		kthread_stop_put(queue->task);
+ 		queue->task = NULL;
+ 	}
+ 
+diff --git a/drivers/usb/usbip/usbip_common.h b/drivers/usb/usbip/usbip_common.h
+index d8cbd2dfc2c2..282efca64a01 100644
+--- a/drivers/usb/usbip/usbip_common.h
++++ b/drivers/usb/usbip/usbip_common.h
+@@ -298,12 +298,6 @@ struct usbip_device {
+ 	__k;								   \
+ })
+ 
+-#define kthread_stop_put(k)		\
+-	do {				\
+-		kthread_stop(k);	\
+-		put_task_struct(k);	\
+-	} while (0)
+-
+ /* usbip_common.c */
+ void usbip_dump_urb(struct urb *purb);
+ void usbip_dump_header(struct usbip_header *pdu);
+diff --git a/fs/gfs2/ops_fstype.c b/fs/gfs2/ops_fstype.c
+index 33ca04733e93..ecf789b7168c 100644
+--- a/fs/gfs2/ops_fstype.c
++++ b/fs/gfs2/ops_fstype.c
+@@ -1126,8 +1126,7 @@ static int init_threads(struct gfs2_sbd *sdp)
+ 	return 0;
+ 
+ fail:
+-	kthread_stop(sdp->sd_logd_process);
+-	put_task_struct(sdp->sd_logd_process);
++	kthread_stop_put(sdp->sd_logd_process);
+ 	sdp->sd_logd_process = NULL;
+ 	return error;
+ }
+@@ -1135,13 +1134,11 @@ static int init_threads(struct gfs2_sbd *sdp)
+ void gfs2_destroy_threads(struct gfs2_sbd *sdp)
+ {
+ 	if (sdp->sd_logd_process) {
+-		kthread_stop(sdp->sd_logd_process);
+-		put_task_struct(sdp->sd_logd_process);
++		kthread_stop_put(sdp->sd_logd_process);
+ 		sdp->sd_logd_process = NULL;
+ 	}
+ 	if (sdp->sd_quotad_process) {
+-		kthread_stop(sdp->sd_quotad_process);
+-		put_task_struct(sdp->sd_quotad_process);
++		kthread_stop_put(sdp->sd_quotad_process);
+ 		sdp->sd_quotad_process = NULL;
+ 	}
+ }
+diff --git a/include/linux/kthread.h b/include/linux/kthread.h
+index 2c30ade43bc8..b11f53c1ba2e 100644
+--- a/include/linux/kthread.h
++++ b/include/linux/kthread.h
+@@ -86,6 +86,7 @@ void free_kthread_struct(struct task_struct *k);
+ void kthread_bind(struct task_struct *k, unsigned int cpu);
+ void kthread_bind_mask(struct task_struct *k, const struct cpumask *mask);
+ int kthread_stop(struct task_struct *k);
++int kthread_stop_put(struct task_struct *k);
+ bool kthread_should_stop(void);
+ bool kthread_should_park(void);
+ bool kthread_should_stop_or_park(void);
+diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
+index d309ba84e08a..1782f90cd8c6 100644
+--- a/kernel/irq/manage.c
++++ b/kernel/irq/manage.c
+@@ -1852,15 +1852,13 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
+ 		struct task_struct *t = new->thread;
+ 
+ 		new->thread = NULL;
+-		kthread_stop(t);
+-		put_task_struct(t);
++		kthread_stop_put(t);
+ 	}
+ 	if (new->secondary && new->secondary->thread) {
+ 		struct task_struct *t = new->secondary->thread;
+ 
+ 		new->secondary->thread = NULL;
+-		kthread_stop(t);
+-		put_task_struct(t);
++		kthread_stop_put(t);
+ 	}
+ out_mput:
+ 	module_put(desc->owner);
+@@ -1971,12 +1969,9 @@ static struct irqaction *__free_irq(struct irq_desc *desc, void *dev_id)
+ 	 * the same bit to a newly requested action.
+ 	 */
+ 	if (action->thread) {
+-		kthread_stop(action->thread);
+-		put_task_struct(action->thread);
+-		if (action->secondary && action->secondary->thread) {
+-			kthread_stop(action->secondary->thread);
+-			put_task_struct(action->secondary->thread);
+-		}
++		kthread_stop_put(action->thread);
++		if (action->secondary && action->secondary->thread)
++			kthread_stop_put(action->secondary->thread);
+ 	}
+ 
+ 	/* Last action releases resources */
+diff --git a/kernel/kthread.c b/kernel/kthread.c
+index c46128ec0c0a..c4453181daf9 100644
+--- a/kernel/kthread.c
++++ b/kernel/kthread.c
+@@ -715,6 +715,23 @@ int kthread_stop(struct task_struct *k)
+ }
+ EXPORT_SYMBOL(kthread_stop);
+ 
++/**
++ * kthread_stop_put - stop a thread and put its task struct
 + *
-+ * Previously, when copying memory from an aligned buffer to an unaligned one,
-+ * if there were zero origins corresponding to zero shadow values in the source
-+ * buffer, they could have ended up being copied to nonzero shadow values in the
-+ * destination buffer:
-+ *
-+ *  memcpy(0xffff888080a00000, 0xffff888080900002, 8)
-+ *
-+ *  src (0xffff888080900002): ..xx .... xx..
-+ *  src origins:              o111 0000 o222
-+ *  dst (0xffff888080a00000): xx.. ..xx
-+ *  dst origins:              o111 0000
-+ *                        (or 0000 o222)
-+ *
-+ * (here . stands for an initialized byte, and x for an uninitialized one.
-+ *
-+ * Ensure that this does not happen anymore, and for both destination bytes
-+ * the origin is nonzero (i.e. KMSAN reports an error).
++ * Stops a thread created by kthread_create() and put its task_struct.
++ * Only use when holding an extra task struct reference obtained by
++ * calling get_task_struct().
 + */
-+static void test_memcpy_initialized_gap(struct kunit *test)
++int kthread_stop_put(struct task_struct *k)
 +{
-+	EXPECTATION_UNINIT_VALUE_FN(expect, "test_memcpy_initialized_gap");
-+	volatile char uninit_src[12];
-+	volatile char dst[8] = { 0 };
++	int ret;
 +
-+	kunit_info(
-+		test,
-+		"unaligned 4-byte initialized value gets a nonzero origin after memcpy() - (2 UMR reports)\n");
-+
-+	uninit_src[0] = 42;
-+	uninit_src[1] = 42;
-+	uninit_src[4] = 42;
-+	uninit_src[5] = 42;
-+	uninit_src[6] = 42;
-+	uninit_src[7] = 42;
-+	uninit_src[10] = 42;
-+	uninit_src[11] = 42;
-+	memcpy_noinline((void *)&dst[0], (void *)&uninit_src[2], 8);
-+
-+	kmsan_check_memory((void *)&dst[0], 4);
-+	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
-+	report_reset();
-+	kmsan_check_memory((void *)&dst[2], 4);
-+	KUNIT_EXPECT_FALSE(test, report_matches(&expect));
-+	report_reset();
-+	kmsan_check_memory((void *)&dst[4], 4);
-+	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
++	ret = kthread_stop(k);
++	put_task_struct(k);
++	return ret;
 +}
++EXPORT_SYMBOL(kthread_stop_put);
 +
- /* Generate test cases for memset16(), memset32(), memset64(). */
- #define DEFINE_TEST_MEMSETXX(size)                                          \
- 	static void test_memset##size(struct kunit *test)                   \
-@@ -579,6 +631,7 @@ static struct kunit_case kmsan_test_case
- 	KUNIT_CASE(test_init_memcpy),
- 	KUNIT_CASE(test_memcpy_aligned_to_aligned),
- 	KUNIT_CASE(test_memcpy_aligned_to_unaligned),
-+	KUNIT_CASE(test_memcpy_initialized_gap),
- 	KUNIT_CASE(test_memset16),
- 	KUNIT_CASE(test_memset32),
- 	KUNIT_CASE(test_memset64),
-_
-
-Patches currently in -mm which might be from glider@google.com are
-
-kmsan-simplify-kmsan_internal_memmove_metadata.patch
-kmsan-prevent-optimizations-in-memcpy-tests.patch
-kmsan-merge-test_memcpy_aligned_to_unaligned2-together.patch
-kmsan-introduce-test_memcpy_initialized_gap.patch
+ int kthreadd(void *unused)
+ {
+ 	struct task_struct *tsk = current;
+diff --git a/kernel/smpboot.c b/kernel/smpboot.c
+index f47d8f375946..1992b62e980b 100644
+--- a/kernel/smpboot.c
++++ b/kernel/smpboot.c
+@@ -272,8 +272,7 @@ static void smpboot_destroy_threads(struct smp_hotplug_thread *ht)
+ 		struct task_struct *tsk = *per_cpu_ptr(ht->store, cpu);
+ 
+ 		if (tsk) {
+-			kthread_stop(tsk);
+-			put_task_struct(tsk);
++			kthread_stop_put(tsk);
+ 			*per_cpu_ptr(ht->store, cpu) = NULL;
+ 		}
+ 	}
+diff --git a/mm/damon/core.c b/mm/damon/core.c
+index bcd2bd9d6c10..2f54f153d7f5 100644
+--- a/mm/damon/core.c
++++ b/mm/damon/core.c
+@@ -699,8 +699,7 @@ static int __damon_stop(struct damon_ctx *ctx)
+ 	if (tsk) {
+ 		get_task_struct(tsk);
+ 		mutex_unlock(&ctx->kdamond_lock);
+-		kthread_stop(tsk);
+-		put_task_struct(tsk);
++		kthread_stop_put(tsk);
+ 		return 0;
+ 	}
+ 	mutex_unlock(&ctx->kdamond_lock);
+diff --git a/net/core/pktgen.c b/net/core/pktgen.c
+index f56b8d697014..826250a0f5b1 100644
+--- a/net/core/pktgen.c
++++ b/net/core/pktgen.c
+@@ -3982,8 +3982,7 @@ static void __net_exit pg_net_exit(struct net *net)
+ 	list_for_each_safe(q, n, &list) {
+ 		t = list_entry(q, struct pktgen_thread, th_list);
+ 		list_del(&t->th_list);
+-		kthread_stop(t->tsk);
+-		put_task_struct(t->tsk);
++		kthread_stop_put(t->tsk);
+ 		kfree(t);
+ 	}
+ 
+-- 
+2.40.1
 
