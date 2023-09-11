@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE1BCCA0EC3
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B264CA0EDD
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236958AbjIKWWJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:22:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41846 "EHLO
+        id S239467AbjIKWWK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:22:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38846 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244467AbjIKUhe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:37:34 -0400
+        with ESMTP id S244486AbjIKUiY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:38:24 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DDAAB1A7
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:37:29 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D93CC433C7;
-        Mon, 11 Sep 2023 20:37:29 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7BA08127
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:38:18 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F9F7C433C7;
+        Mon, 11 Sep 2023 20:38:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464649;
-        bh=xECJeDhxuf/iYEoysE1PuHnJQUStzvoOn65XEAZ5IeQ=;
+        s=korg; t=1694464698;
+        bh=AckqRHZle53IhzgCy3DF+wIBrVAU+ENLtOI0FJ+OKiQ=;
         h=Date:To:From:Subject:From;
-        b=Jq98b4HvjOc7Yh+rnwi1GE+ggCh2Kch8zlBV7QCEKQvQ450mNIxPn0V+LAhGR2RPh
-         PpQ/rWvxhYfsY9aD4T/Ygz8KnctSff75DlULonmSrvWAY8/gfL1sEl9OTG7gGMgZiC
-         ygTnL7CgYmlxS5kLywzTRPup0/IiFlAWpI0LDuW4=
-Date:   Mon, 11 Sep 2023 13:37:28 -0700
+        b=q/AGU0TS7id3lEdhKZW7VZTdjvwfy4tQo82NHf7qIxDR6OpoitjXE6NT1sYxvKNEw
+         QhBIncoX2e5GwIqMFeP/hU9CcTrabHDVmfUiDikETJ47tGakD0zmdFB46dMogUAN8M
+         hTtu47SQPncRyyYj4XjWxsX+pBZnNF75NlfW4+D8=
+Date:   Mon, 11 Sep 2023 13:38:17 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + xenbus-backend-dynamically-allocate-the-xen-backend-shrinker.patch added to mm-unstable branch
-Message-Id: <20230911203729.6D93CC433C7@smtp.kernel.org>
+Subject: + ubifs-dynamically-allocate-the-ubifs-slab-shrinker.patch added to mm-unstable branch
+Message-Id: <20230911203818.0F9F7C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xenbus/backend: dynamically allocate the xen-backend shrinker
+     Subject: ubifs: dynamically allocate the ubifs-slab shrinker
 has been added to the -mm mm-unstable branch.  Its filename is
-     xenbus-backend-dynamically-allocate-the-xen-backend-shrinker.patch
+     ubifs-dynamically-allocate-the-ubifs-slab-shrinker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xenbus-backend-dynamically-allocate-the-xen-backend-shrinker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ubifs-dynamically-allocate-the-ubifs-slab-shrinker.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,17 +87,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: xenbus/backend: dynamically allocate the xen-backend shrinker
-Date: Mon, 11 Sep 2023 17:44:04 +0800
+Subject: ubifs: dynamically allocate the ubifs-slab shrinker
+Date: Mon, 11 Sep 2023 17:44:13 +0800
 
-Use new APIs to dynamically allocate the xen-backend shrinker.
+Use new APIs to dynamically allocate the ubifs-slab shrinker.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-6-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-15-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Juergen Gross <jgross@suse.com>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
-Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
+Cc: Richard Weinberger <richard@nod.at>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -139,6 +137,7 @@ Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
 Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
 Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
 Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Juergen Gross <jgross@suse.com>
 Cc: Kent Overstreet <kent.overstreet@gmail.com>
 Cc: Kirill Tkhai <tkhai@ya.ru>
 Cc: Marijn Suijten <marijn.suijten@somainline.org>
@@ -148,9 +147,9 @@ Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Nadav Amit <namit@vmware.com>
 Cc: Neil Brown <neilb@suse.de>
+Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
 Cc: Olga Kornievskaia <kolga@netapp.com>
 Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Richard Weinberger <richard@nod.at>
 Cc: Rob Clark <robdclark@gmail.com>
 Cc: Rob Herring <robh@kernel.org>
 Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
@@ -158,6 +157,7 @@ Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Sean Paul <sean@poorly.run>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Song Liu <song@kernel.org>
+Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Steven Price <steven.price@arm.com>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -171,44 +171,69 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/xen/xenbus/xenbus_probe_backend.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ fs/ubifs/super.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
---- a/drivers/xen/xenbus/xenbus_probe_backend.c~xenbus-backend-dynamically-allocate-the-xen-backend-shrinker
-+++ a/drivers/xen/xenbus/xenbus_probe_backend.c
-@@ -284,13 +284,9 @@ static unsigned long backend_shrink_memo
- 	return 0;
- }
+--- a/fs/ubifs/super.c~ubifs-dynamically-allocate-the-ubifs-slab-shrinker
++++ a/fs/ubifs/super.c
+@@ -54,11 +54,7 @@ module_param_cb(default_version, &ubifs_
+ static struct kmem_cache *ubifs_inode_slab;
  
--static struct shrinker backend_memory_shrinker = {
--	.count_objects = backend_shrink_memory_count,
+ /* UBIFS TNC shrinker description */
+-static struct shrinker ubifs_shrinker_info = {
+-	.scan_objects = ubifs_shrink_scan,
+-	.count_objects = ubifs_shrink_count,
 -	.seeks = DEFAULT_SEEKS,
 -};
--
- static int __init xenbus_probe_backend_init(void)
++static struct shrinker *ubifs_shrinker_info;
+ 
+ /**
+  * validate_inode - validate inode.
+@@ -2373,7 +2369,7 @@ static void inode_slab_ctor(void *obj)
+ 
+ static int __init ubifs_init(void)
  {
-+	struct shrinker *backend_memory_shrinker;
- 	static struct notifier_block xenstore_notifier = {
- 		.notifier_call = backend_probe_and_watch
- 	};
-@@ -305,8 +301,15 @@ static int __init xenbus_probe_backend_i
+-	int err;
++	int err = -ENOMEM;
  
- 	register_xenstore_notifier(&xenstore_notifier);
+ 	BUILD_BUG_ON(sizeof(struct ubifs_ch) != 24);
  
--	if (register_shrinker(&backend_memory_shrinker, "xen-backend"))
--		pr_warn("shrinker registration failed\n");
-+	backend_memory_shrinker = shrinker_alloc(0, "xen-backend");
-+	if (!backend_memory_shrinker) {
-+		pr_warn("shrinker allocation failed\n");
-+		return 0;
-+	}
+@@ -2439,10 +2435,15 @@ static int __init ubifs_init(void)
+ 	if (!ubifs_inode_slab)
+ 		return -ENOMEM;
+ 
+-	err = register_shrinker(&ubifs_shrinker_info, "ubifs-slab");
+-	if (err)
++	ubifs_shrinker_info = shrinker_alloc(0, "ubifs-slab");
++	if (!ubifs_shrinker_info)
+ 		goto out_slab;
+ 
++	ubifs_shrinker_info->count_objects = ubifs_shrink_count;
++	ubifs_shrinker_info->scan_objects = ubifs_shrink_scan;
 +
-+	backend_memory_shrinker->count_objects = backend_shrink_memory_count;
++	shrinker_register(ubifs_shrinker_info);
 +
-+	shrinker_register(backend_memory_shrinker);
+ 	err = ubifs_compressors_init();
+ 	if (err)
+ 		goto out_shrinker;
+@@ -2467,7 +2468,7 @@ out_dbg:
+ 	dbg_debugfs_exit();
+ 	ubifs_compressors_exit();
+ out_shrinker:
+-	unregister_shrinker(&ubifs_shrinker_info);
++	shrinker_free(ubifs_shrinker_info);
+ out_slab:
+ 	kmem_cache_destroy(ubifs_inode_slab);
+ 	return err;
+@@ -2483,7 +2484,7 @@ static void __exit ubifs_exit(void)
+ 	dbg_debugfs_exit();
+ 	ubifs_sysfs_exit();
+ 	ubifs_compressors_exit();
+-	unregister_shrinker(&ubifs_shrinker_info);
++	shrinker_free(ubifs_shrinker_info);
  
- 	return 0;
- }
+ 	/*
+ 	 * Make sure all delayed rcu free inodes are flushed before we
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
