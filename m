@@ -2,96 +2,137 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B9A6CA0EC8
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:25:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7C24CA0EC3
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:25:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239457AbjIKWW6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:22:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57720 "EHLO
+        id S241293AbjIKWXB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:23:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56424 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244013AbjIKSlX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 14:41:23 -0400
+        with ESMTP id S243929AbjIKS0B (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 14:26:01 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD64C1AB
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 11:41:18 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62153C433C7;
-        Mon, 11 Sep 2023 18:41:18 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A65A110
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 11:25:57 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED7D7C433C7;
+        Mon, 11 Sep 2023 18:25:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694457678;
-        bh=1KzxMkO7EpMaWlodoQgvMjcwhT/vYo6Y1O3c63HEPxQ=;
+        s=korg; t=1694456757;
+        bh=Ucgmt2LfXJHKEAp3qm8vW4y+SKIjcB+QcvLw9fIF5N0=;
         h=Date:To:From:Subject:From;
-        b=dcuRaHHqiUVb8YCszO+u0f99KcdBK09CG0eCOaUntyvwANcRZ43JmaDePWDL6wNVo
-         z3YVkdf/GbcwRkzIocqZ4cNYJkWi3tizXxHV8EwKGruWXB+7GCGfAUNwscfuTEbPWn
-         uSc/li2GxEb+HIyEFk3N+/+quN5fOx1jm/77Lqm0=
-Date:   Mon, 11 Sep 2023 11:41:17 -0700
-To:     mm-commits@vger.kernel.org, wsa+renesas@sang-engineering.com,
-        loic.poulain@linaro.org, justin.he@arm.com, brauner@kernel.org,
-        axboe@kernel.dk, jianyong.wu@arm.com, akpm@linux-foundation.org
+        b=SSl72FggsxDvBMfxP+AYJnCPeB7Xz4OemWOjMf43S7EK9YumMNEI21WFD+3zWhwEX
+         DaW+QVDTJYgvmx8j03AFfxOeZxfQle5Q2/4mmYOKGSpFKY76LEK6XA/LeRkCp+1B2p
+         +zAapb5D/sfFAqZCNPJGqltk/b9cIul0EtScykyM=
+Date:   Mon, 11 Sep 2023 11:25:56 -0700
+To:     mm-commits@vger.kernel.org, herve.codina@bootlin.com,
+        andriy.shevchenko@linux.intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] init-mount-print-pretty-name-of-root-device-when-panics.patch removed from -mm tree
-Message-Id: <20230911184118.62153C433C7@smtp.kernel.org>
+Subject: + minmax-deduplicate-__unconst_integer_typeof.patch added to mm-nonmm-unstable branch
+Message-Id: <20230911182556.ED7D7C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: init/mount: print pretty name of root device when panicing
-has been removed from the -mm tree.  Its filename was
-     init-mount-print-pretty-name-of-root-device-when-panics.patch
+The patch titled
+     Subject: minmax: deduplicate __unconst_integer_typeof()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     minmax-deduplicate-__unconst_integer_typeof.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/minmax-deduplicate-__unconst_integer_typeof.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jianyong Wu <jianyong.wu@arm.com>
-Subject: init/mount: print pretty name of root device when panicing
-Date: Thu, 7 Sep 2023 09:10:25 +0000
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: minmax: deduplicate __unconst_integer_typeof()
+Date: Mon, 11 Sep 2023 18:49:13 +0300
 
-Given a wrong root device, current log may not give the pretty name
-which is useful to locate root cause.
+It appears that compiler_types.h already have an implementation of the
+__unconst_integer_typeof() called __unqual_scalar_typeof().  Use it
+instead of the copy.
 
-For example, there are 2 blk devs in a VM, /dev/vda which has 2 partitials
-/dev/vda1 and /dev/vda2 and /dev/vdb which is blank.  /dev/vda2 is the
-right root dev.  When set "root=/dev/vdb", we get error log:
-
-[    0.635575] Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block(254,16)
-
-It's not straightforward to find out the root cause as there is lack of
-the root devive name therefore hard for people to get those info from the
-device number, in the example, (254,16).
-
-It is more comprehensive way to hint the root cause if pretty name is
-given here, like:
-
-[    0.559887] Kernel panic - not syncing: VFS: Unable to mount root fs on "/dev/vdb" or unknown-block(254,16)
-
-Link: https://lkml.kernel.org/r/20230907091025.3436878-1-jianyong.wu@arm.com
-Signed-off-by: Jianyong Wu <jianyong.wu@arm.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Justin He <justin.he@arm.com>
-Cc: Loic Poulain <loic.poulain@linaro.org>
-Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Link: https://lkml.kernel.org/r/20230911154913.4176033-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Acked-by: Herve Codina <herve.codina@bootlin.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/do_mounts.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/minmax.h |   26 +++-----------------------
+ 1 file changed, 3 insertions(+), 23 deletions(-)
 
---- a/init/do_mounts.c~init-mount-print-pretty-name-of-root-device-when-panics
-+++ a/init/do_mounts.c
-@@ -244,7 +244,7 @@ retry:
- 	for (i = 0, p = fs_names; i < num_fs; i++, p += strlen(p)+1)
- 		printk(" %s", p);
- 	printk("\n");
--	panic("VFS: Unable to mount root fs on %s", b);
-+	panic("VFS: Unable to mount root fs on \"%s\" or %s", pretty_name, b);
- out:
- 	put_page(page);
- }
+--- a/include/linux/minmax.h~minmax-deduplicate-__unconst_integer_typeof
++++ a/include/linux/minmax.h
+@@ -2,6 +2,7 @@
+ #ifndef _LINUX_MINMAX_H
+ #define _LINUX_MINMAX_H
+ 
++#include <linux/compiler_types.h>
+ #include <linux/const.h>
+ #include <linux/types.h>
+ 
+@@ -135,27 +136,6 @@
+ #define max_t(type, x, y)	__careful_cmp((type)(x), (type)(y), >)
+ 
+ /*
+- * Remove a const qualifier from integer types
+- * _Generic(foo, type-name: association, ..., default: association) performs a
+- * comparison against the foo type (not the qualified type).
+- * Do not use the const keyword in the type-name as it will not match the
+- * unqualified type of foo.
+- */
+-#define __unconst_integer_type_cases(type)	\
+-	unsigned type:  (unsigned type)0,	\
+-	signed type:    (signed type)0
+-
+-#define __unconst_integer_typeof(x) typeof(			\
+-	_Generic((x),						\
+-		char: (char)0,					\
+-		__unconst_integer_type_cases(char),		\
+-		__unconst_integer_type_cases(short),		\
+-		__unconst_integer_type_cases(int),		\
+-		__unconst_integer_type_cases(long),		\
+-		__unconst_integer_type_cases(long long),	\
+-		default: (x)))
+-
+-/*
+  * Do not check the array parameter using __must_be_array().
+  * In the following legit use-case where the "array" passed is a simple pointer,
+  * __must_be_array() will return a failure.
+@@ -169,13 +149,13 @@
+  * 'int *buff' and 'int buff[N]' types.
+  *
+  * The array can be an array of const items.
+- * typeof() keeps the const qualifier. Use __unconst_integer_typeof() in order
++ * typeof() keeps the const qualifier. Use __unqual_scalar_typeof() in order
+  * to discard the const qualifier for the __element variable.
+  */
+ #define __minmax_array(op, array, len) ({				\
+ 	typeof(&(array)[0]) __array = (array);				\
+ 	typeof(len) __len = (len);					\
+-	__unconst_integer_typeof(__array[0]) __element = __array[--__len]; \
++	__unqual_scalar_typeof(__array[0]) __element = __array[--__len];\
+ 	while (__len--)							\
+ 		__element = op(__element, __array[__len]);		\
+ 	__element; })
 _
 
-Patches currently in -mm which might be from jianyong.wu@arm.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
+minmax-deduplicate-__unconst_integer_typeof.patch
 
