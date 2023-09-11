@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 441A8CA0EC8
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67737CA0EC9
 	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238614AbjIKWVy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:21:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44790 "EHLO
+        id S238698AbjIKWV5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:21:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57026 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244491AbjIKUik (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:38:40 -0400
+        with ESMTP id S244456AbjIKUhG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:37:06 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D0A9127
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:38:34 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32169C433C7;
-        Mon, 11 Sep 2023 20:38:34 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A39F1A7
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:37:00 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EB4EC433C7;
+        Mon, 11 Sep 2023 20:37:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464714;
-        bh=CXZKA/84GT9pJ3aEYxwlaohyB94XdG6J8su1PCWqvTk=;
+        s=korg; t=1694464620;
+        bh=qhCXcpPnbADoXDUah2a1wHAhDsjvL4925ka3GWndpT4=;
         h=Date:To:From:Subject:From;
-        b=nDyprxNRhr1wMCyKUSGwM5w4jJQMb7sTlsMXnzOkDDLvr9frxENcHOgoBPmfxHpSk
-         P9BHGHFLmM600AaLNemjy1ch/OOqss5c9oQnYJWlIiEvLlXwcfGShBeti6Zob4jVGS
-         KdtiVy7KCM8+MeKnZ6zVn3WHkE3Oaa0W7dUc0gfQ=
-Date:   Mon, 11 Sep 2023 13:38:33 -0700
+        b=ciZrFpSHR5jNxyFJj2Bh6UHKBJ12NnQYZEFIovP7tqLm9DEvXDteP40dEkeJfsvwp
+         nG2+BdJjzXsAhqf6LVyy7Qwidd8lLWOrhVPxY4FCSl0mMdXUmr4ef5awu/cdUmX84e
+         RXn+wwUGl0/s6KTclT4Q8wjJNqogSNfnHmCsMDlg=
+Date:   Mon, 11 Sep 2023 13:36:59 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-thp-dynamically-allocate-the-thp-related-shrinkers.patch added to mm-unstable branch
-Message-Id: <20230911203834.32169C433C7@smtp.kernel.org>
+Subject: + mm-shrinker-remove-redundant-shrinker_rwsem-in-debugfs-operations.patch added to mm-unstable branch
+Message-Id: <20230911203700.1EB4EC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: thp: dynamically allocate the thp-related shrinkers
+     Subject: mm: shrinker: remove redundant shrinker_rwsem in debugfs operations
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-thp-dynamically-allocate-the-thp-related-shrinkers.patch
+     mm-shrinker-remove-redundant-shrinker_rwsem-in-debugfs-operations.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-thp-dynamically-allocate-the-thp-related-shrinkers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinker-remove-redundant-shrinker_rwsem-in-debugfs-operations.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,14 +87,33 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: thp: dynamically allocate the thp-related shrinkers
-Date: Mon, 11 Sep 2023 17:44:16 +0800
+Subject: mm: shrinker: remove redundant shrinker_rwsem in debugfs operations
+Date: Mon, 11 Sep 2023 17:25:16 +0800
 
-Use new APIs to dynamically allocate the thp-zero and thp-deferred_split
-shrinkers.
+debugfs_remove_recursive() will wait for debugfs_file_put() to return, so
+the shrinker will not be freed when doing debugfs operations (such as
+shrinker_debugfs_count_show() and shrinker_debugfs_scan_write()), so there
+is no need to hold shrinker_rwsem during debugfs operations.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-18-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911092517.64141-4-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Christian König <christian.koenig@amd.com>
+Cc: Chuck Lever <cel@kernel.org>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Darrick J. Wong <djwong@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Kirill Tkhai <tkhai@ya.ru>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Steven Price <steven.price@arm.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -109,22 +128,14 @@ Cc: Carlos Llamas <cmllamas@google.com>
 Cc: Chandan Babu R <chandan.babu@oracle.com>
 Cc: Chao Yu <chao@kernel.org>
 Cc: Chris Mason <clm@fb.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Christian Koenig <christian.koenig@amd.com>
-Cc: Chuck Lever <cel@kernel.org>
 Cc: Coly Li <colyli@suse.de>
 Cc: Dai Ngo <Dai.Ngo@oracle.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Airlie <airlied@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Sterba <dsterba@suse.com>
 Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
 Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Huang Rui <ray.huang@amd.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
@@ -133,167 +144,97 @@ Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Wang <jasowang@redhat.com>
 Cc: Jeff Layton <jlayton@kernel.org>
 Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
-Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
 Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
 Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: Juergen Gross <jgross@suse.com>
 Cc: Kent Overstreet <kent.overstreet@gmail.com>
-Cc: Kirill Tkhai <tkhai@ya.ru>
 Cc: Marijn Suijten <marijn.suijten@somainline.org>
 Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Nadav Amit <namit@vmware.com>
 Cc: Neil Brown <neilb@suse.de>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
 Cc: Olga Kornievskaia <kolga@netapp.com>
-Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Richard Weinberger <richard@nod.at>
 Cc: Rob Clark <robdclark@gmail.com>
 Cc: Rob Herring <robh@kernel.org>
 Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Sean Paul <sean@poorly.run>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Song Liu <song@kernel.org>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
-Cc: Steven Price <steven.price@arm.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Cc: Tom Talpey <tom@talpey.com>
 Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
 Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   67 ++++++++++++++++++++++++++++-----------------
- 1 file changed, 43 insertions(+), 24 deletions(-)
+ mm/shrinker_debug.c |   16 +---------------
+ 1 file changed, 1 insertion(+), 15 deletions(-)
 
---- a/mm/huge_memory.c~mm-thp-dynamically-allocate-the-thp-related-shrinkers
-+++ a/mm/huge_memory.c
-@@ -65,7 +65,11 @@ unsigned long transparent_hugepage_flags
- 	(1<<TRANSPARENT_HUGEPAGE_DEFRAG_KHUGEPAGED_FLAG)|
- 	(1<<TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG);
+--- a/mm/shrinker_debug.c~mm-shrinker-remove-redundant-shrinker_rwsem-in-debugfs-operations
++++ a/mm/shrinker_debug.c
+@@ -51,17 +51,12 @@ static int shrinker_debugfs_count_show(s
+ 	struct mem_cgroup *memcg;
+ 	unsigned long total;
+ 	bool memcg_aware;
+-	int ret, nid;
++	int ret = 0, nid;
  
--static struct shrinker deferred_split_shrinker;
-+static struct shrinker *deferred_split_shrinker;
-+static unsigned long deferred_split_count(struct shrinker *shrink,
-+					  struct shrink_control *sc);
-+static unsigned long deferred_split_scan(struct shrinker *shrink,
-+					 struct shrink_control *sc);
+ 	count_per_node = kcalloc(nr_node_ids, sizeof(unsigned long), GFP_KERNEL);
+ 	if (!count_per_node)
+ 		return -ENOMEM;
  
- static atomic_t huge_zero_refcount;
- struct page *huge_zero_page __read_mostly;
-@@ -229,11 +233,7 @@ static unsigned long shrink_huge_zero_pa
- 	return 0;
- }
+-	ret = down_read_killable(&shrinker_rwsem);
+-	if (ret) {
+-		kfree(count_per_node);
+-		return ret;
+-	}
+ 	rcu_read_lock();
  
--static struct shrinker huge_zero_page_shrinker = {
--	.count_objects = shrink_huge_zero_page_count,
--	.scan_objects = shrink_huge_zero_page_scan,
--	.seeks = DEFAULT_SEEKS,
--};
-+static struct shrinker *huge_zero_page_shrinker;
+ 	memcg_aware = shrinker->flags & SHRINKER_MEMCG_AWARE;
+@@ -94,7 +89,6 @@ static int shrinker_debugfs_count_show(s
+ 	} while ((memcg = mem_cgroup_iter(NULL, memcg, NULL)) != NULL);
  
- #ifdef CONFIG_SYSFS
- static ssize_t enabled_show(struct kobject *kobj,
-@@ -454,6 +454,38 @@ static inline void hugepage_exit_sysfs(s
- }
- #endif /* CONFIG_SYSFS */
+ 	rcu_read_unlock();
+-	up_read(&shrinker_rwsem);
  
-+static int __init thp_shrinker_init(void)
-+{
-+	huge_zero_page_shrinker = shrinker_alloc(0, "thp-zero");
-+	if (!huge_zero_page_shrinker)
-+		return -ENOMEM;
-+
-+	deferred_split_shrinker = shrinker_alloc(SHRINKER_NUMA_AWARE |
-+						 SHRINKER_MEMCG_AWARE |
-+						 SHRINKER_NONSLAB,
-+						 "thp-deferred_split");
-+	if (!deferred_split_shrinker) {
-+		shrinker_free(huge_zero_page_shrinker);
-+		return -ENOMEM;
-+	}
-+
-+	huge_zero_page_shrinker->count_objects = shrink_huge_zero_page_count;
-+	huge_zero_page_shrinker->scan_objects = shrink_huge_zero_page_scan;
-+	shrinker_register(huge_zero_page_shrinker);
-+
-+	deferred_split_shrinker->count_objects = deferred_split_count;
-+	deferred_split_shrinker->scan_objects = deferred_split_scan;
-+	shrinker_register(deferred_split_shrinker);
-+
-+	return 0;
-+}
-+
-+static void __init thp_shrinker_exit(void)
-+{
-+	shrinker_free(huge_zero_page_shrinker);
-+	shrinker_free(deferred_split_shrinker);
-+}
-+
- static int __init hugepage_init(void)
- {
- 	int err;
-@@ -482,12 +514,9 @@ static int __init hugepage_init(void)
- 	if (err)
- 		goto err_slab;
+ 	kfree(count_per_node);
+ 	return ret;
+@@ -119,7 +113,6 @@ static ssize_t shrinker_debugfs_scan_wri
+ 	struct mem_cgroup *memcg = NULL;
+ 	int nid;
+ 	char kbuf[72];
+-	ssize_t ret;
  
--	err = register_shrinker(&huge_zero_page_shrinker, "thp-zero");
--	if (err)
--		goto err_hzp_shrinker;
--	err = register_shrinker(&deferred_split_shrinker, "thp-deferred_split");
-+	err = thp_shrinker_init();
- 	if (err)
--		goto err_split_shrinker;
-+		goto err_shrinker;
- 
- 	/*
- 	 * By default disable transparent hugepages on smaller systems,
-@@ -505,10 +534,8 @@ static int __init hugepage_init(void)
- 
- 	return 0;
- err_khugepaged:
--	unregister_shrinker(&deferred_split_shrinker);
--err_split_shrinker:
--	unregister_shrinker(&huge_zero_page_shrinker);
--err_hzp_shrinker:
-+	thp_shrinker_exit();
-+err_shrinker:
- 	khugepaged_destroy();
- err_slab:
- 	hugepage_exit_sysfs(hugepage_kobj);
-@@ -2828,7 +2855,7 @@ void deferred_split_folio(struct folio *
- #ifdef CONFIG_MEMCG
- 		if (memcg)
- 			set_shrinker_bit(memcg, folio_nid(folio),
--					 deferred_split_shrinker.id);
-+					 deferred_split_shrinker->id);
- #endif
+ 	read_len = size < (sizeof(kbuf) - 1) ? size : (sizeof(kbuf) - 1);
+ 	if (copy_from_user(kbuf, buf, read_len))
+@@ -148,12 +141,6 @@ static ssize_t shrinker_debugfs_scan_wri
+ 		return -EINVAL;
  	}
- 	spin_unlock_irqrestore(&ds_queue->split_queue_lock, flags);
-@@ -2902,14 +2929,6 @@ next:
- 	return split;
- }
  
--static struct shrinker deferred_split_shrinker = {
--	.count_objects = deferred_split_count,
--	.scan_objects = deferred_split_scan,
--	.seeks = DEFAULT_SEEKS,
--	.flags = SHRINKER_NUMA_AWARE | SHRINKER_MEMCG_AWARE |
--		 SHRINKER_NONSLAB,
--};
+-	ret = down_read_killable(&shrinker_rwsem);
+-	if (ret) {
+-		mem_cgroup_put(memcg);
+-		return ret;
+-	}
 -
- #ifdef CONFIG_DEBUG_FS
- static void split_huge_pages_all(void)
- {
+ 	sc.nid = nid;
+ 	sc.memcg = memcg;
+ 	sc.nr_to_scan = nr_to_scan;
+@@ -161,7 +148,6 @@ static ssize_t shrinker_debugfs_scan_wri
+ 
+ 	shrinker->scan_objects(shrinker, &sc);
+ 
+-	up_read(&shrinker_rwsem);
+ 	mem_cgroup_put(memcg);
+ 
+ 	return size;
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
