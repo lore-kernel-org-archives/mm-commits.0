@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2D24CA0EC3
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:25:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95B84CA0ECB
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:25:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241180AbjIKWWh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:22:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44550 "EHLO
+        id S236959AbjIKWWo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:22:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36252 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244507AbjIKUjC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:39:02 -0400
+        with ESMTP id S244485AbjIKUiS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:38:18 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B45B127
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:38:57 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4439C433C7;
-        Mon, 11 Sep 2023 20:38:56 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C248127
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:38:13 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3639C433C7;
+        Mon, 11 Sep 2023 20:38:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464736;
-        bh=dPYctn2z/bSq2p4cIEgblZly4io+ZJUSfuXZhLhLTcQ=;
+        s=korg; t=1694464692;
+        bh=IygVCOUmEebKU+wYjkwOQTvyKeFELtkxfGVvYKuWpag=;
         h=Date:To:From:Subject:From;
-        b=wx+ftzDOi0WhF6Z/YAKWR+AYudAuPdOnocdmWsQxEAUYIEg9i1Ox+K4YIG/7PIa2v
-         Gz2Nvx8PAop9DdNYDxt95s1TTybbCrXIQX8Z4HAx6ueNdE2uBuHMNVLyttXCElBPrS
-         fDpXaifp9f2WR8zs7f5MmGalrZUHMRMsx6CzQ1I4=
-Date:   Mon, 11 Sep 2023 13:38:56 -0700
+        b=UMRuw4u4ZyeAF4AZPjsguz5YGESSRRqk0ve9crC/au1YE3dviDa0/abeZZOmoDzj7
+         oYit+JU/OvAbrYtmIbMQ8FeAAYZ3FEcyxS995rp8vwyx6ibWfB2U8adgi2z9KLKWPM
+         iYUdtdD23QPS5T8NnT1aDOaQpmzePM9wZ4mg7CmM=
+Date:   Mon, 11 Sep 2023 13:38:12 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + drm-msm-dynamically-allocate-the-drm-msm_gem-shrinker.patch added to mm-unstable branch
-Message-Id: <20230911203856.B4439C433C7@smtp.kernel.org>
+Subject: + quota-dynamically-allocate-the-dquota-cache-shrinker.patch added to mm-unstable branch
+Message-Id: <20230911203812.B3639C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drm/msm: dynamically allocate the drm-msm_gem shrinker
+     Subject: quota: dynamically allocate the dquota-cache shrinker
 has been added to the -mm mm-unstable branch.  Its filename is
-     drm-msm-dynamically-allocate-the-drm-msm_gem-shrinker.patch
+     quota-dynamically-allocate-the-dquota-cache-shrinker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-msm-dynamically-allocate-the-drm-msm_gem-shrinker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/quota-dynamically-allocate-the-dquota-cache-shrinker.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,24 +87,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: drm/msm: dynamically allocate the drm-msm_gem shrinker
-Date: Mon, 11 Sep 2023 17:44:20 +0800
+Subject: quota: dynamically allocate the dquota-cache shrinker
+Date: Mon, 11 Sep 2023 17:44:12 +0800
 
-In preparation for implementing lockless slab shrink, use new APIs to
-dynamically allocate the drm-msm_gem shrinker, so that it can be freed
-asynchronously via RCU. Then it doesn't need to wait for RCU read-side
-critical section when releasing the struct msm_drm_private.
+Use new APIs to dynamically allocate the dquota-cache shrinker.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-22-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-14-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Rob Clark <robdclark@gmail.com>
+Acked-by: Jan Kara <jack@suse.cz>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
-Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
-Cc: Sean Paul <sean@poorly.run>
-Cc: Marijn Suijten <marijn.suijten@somainline.org>
-Cc: David Airlie <airlied@gmail.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alyssa Rosenzweig <alyssa.rosenzweig@collabora.com>
@@ -124,18 +116,20 @@ Cc: Chuck Lever <cel@kernel.org>
 Cc: Coly Li <colyli@suse.de>
 Cc: Dai Ngo <Dai.Ngo@oracle.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Airlie <airlied@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Sterba <dsterba@suse.com>
+Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
 Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Huang Rui <ray.huang@amd.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Wang <jasowang@redhat.com>
 Cc: Jeff Layton <jlayton@kernel.org>
 Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
@@ -145,6 +139,7 @@ Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: Juergen Gross <jgross@suse.com>
 Cc: Kent Overstreet <kent.overstreet@gmail.com>
 Cc: Kirill Tkhai <tkhai@ya.ru>
+Cc: Marijn Suijten <marijn.suijten@somainline.org>
 Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -155,9 +150,11 @@ Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
 Cc: Olga Kornievskaia <kolga@netapp.com>
 Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Richard Weinberger <richard@nod.at>
+Cc: Rob Clark <robdclark@gmail.com>
 Cc: Rob Herring <robh@kernel.org>
 Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Sean Paul <sean@poorly.run>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Song Liu <song@kernel.org>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
@@ -174,120 +171,48 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/msm/msm_drv.c          |    4 ++
- drivers/gpu/drm/msm/msm_drv.h          |    4 +-
- drivers/gpu/drm/msm/msm_gem_shrinker.c |   33 +++++++++++++----------
- 3 files changed, 25 insertions(+), 16 deletions(-)
+ fs/quota/dquot.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
---- a/drivers/gpu/drm/msm/msm_drv.c~drm-msm-dynamically-allocate-the-drm-msm_gem-shrinker
-+++ a/drivers/gpu/drm/msm/msm_drv.c
-@@ -462,7 +462,9 @@ static int msm_drm_init(struct device *d
- 	if (ret)
- 		goto err_msm_uninit;
- 
--	msm_gem_shrinker_init(ddev);
-+	ret = msm_gem_shrinker_init(ddev);
-+	if (ret)
-+		goto err_msm_uninit;
- 
- 	if (priv->kms_init) {
- 		ret = priv->kms_init(ddev);
---- a/drivers/gpu/drm/msm/msm_drv.h~drm-msm-dynamically-allocate-the-drm-msm_gem-shrinker
-+++ a/drivers/gpu/drm/msm/msm_drv.h
-@@ -221,7 +221,7 @@ struct msm_drm_private {
- 	} vram;
- 
- 	struct notifier_block vmap_notifier;
--	struct shrinker shrinker;
-+	struct shrinker *shrinker;
- 
- 	struct drm_atomic_state *pm_state;
- 
-@@ -283,7 +283,7 @@ int msm_ioctl_gem_submit(struct drm_devi
- unsigned long msm_gem_shrinker_shrink(struct drm_device *dev, unsigned long nr_to_scan);
- #endif
- 
--void msm_gem_shrinker_init(struct drm_device *dev);
-+int msm_gem_shrinker_init(struct drm_device *dev);
- void msm_gem_shrinker_cleanup(struct drm_device *dev);
- 
- struct sg_table *msm_gem_prime_get_sg_table(struct drm_gem_object *obj);
---- a/drivers/gpu/drm/msm/msm_gem_shrinker.c~drm-msm-dynamically-allocate-the-drm-msm_gem-shrinker
-+++ a/drivers/gpu/drm/msm/msm_gem_shrinker.c
-@@ -34,8 +34,7 @@ static bool can_block(struct shrink_cont
- static unsigned long
- msm_gem_shrinker_count(struct shrinker *shrinker, struct shrink_control *sc)
- {
--	struct msm_drm_private *priv =
--		container_of(shrinker, struct msm_drm_private, shrinker);
-+	struct msm_drm_private *priv = shrinker->private_data;
- 	unsigned count = priv->lru.dontneed.count;
- 
- 	if (can_swap())
-@@ -100,8 +99,7 @@ active_evict(struct drm_gem_object *obj)
- static unsigned long
- msm_gem_shrinker_scan(struct shrinker *shrinker, struct shrink_control *sc)
- {
--	struct msm_drm_private *priv =
--		container_of(shrinker, struct msm_drm_private, shrinker);
-+	struct msm_drm_private *priv = shrinker->private_data;
- 	struct {
- 		struct drm_gem_lru *lru;
- 		bool (*shrink)(struct drm_gem_object *obj);
-@@ -148,10 +146,11 @@ msm_gem_shrinker_shrink(struct drm_devic
- 	struct shrink_control sc = {
- 		.nr_to_scan = nr_to_scan,
- 	};
--	int ret;
-+	unsigned long ret = SHRINK_STOP;
- 
- 	fs_reclaim_acquire(GFP_KERNEL);
--	ret = msm_gem_shrinker_scan(&priv->shrinker, &sc);
-+	if (priv->shrinker)
-+		ret = msm_gem_shrinker_scan(priv->shrinker, &sc);
- 	fs_reclaim_release(GFP_KERNEL);
- 
- 	return ret;
-@@ -210,16 +209,24 @@ msm_gem_shrinker_vmap(struct notifier_bl
-  *
-  * This function registers and sets up the msm shrinker.
-  */
--void msm_gem_shrinker_init(struct drm_device *dev)
-+int msm_gem_shrinker_init(struct drm_device *dev)
- {
- 	struct msm_drm_private *priv = dev->dev_private;
--	priv->shrinker.count_objects = msm_gem_shrinker_count;
--	priv->shrinker.scan_objects = msm_gem_shrinker_scan;
--	priv->shrinker.seeks = DEFAULT_SEEKS;
--	WARN_ON(register_shrinker(&priv->shrinker, "drm-msm_gem"));
-+
-+	priv->shrinker = shrinker_alloc(0, "drm-msm_gem");
-+	if (!priv->shrinker)
-+		return -ENOMEM;
-+
-+	priv->shrinker->count_objects = msm_gem_shrinker_count;
-+	priv->shrinker->scan_objects = msm_gem_shrinker_scan;
-+	priv->shrinker->private_data = priv;
-+
-+	shrinker_register(priv->shrinker);
- 
- 	priv->vmap_notifier.notifier_call = msm_gem_shrinker_vmap;
- 	WARN_ON(register_vmap_purge_notifier(&priv->vmap_notifier));
-+
-+	return 0;
+--- a/fs/quota/dquot.c~quota-dynamically-allocate-the-dquota-cache-shrinker
++++ a/fs/quota/dquot.c
+@@ -791,12 +791,6 @@ dqcache_shrink_count(struct shrinker *sh
+ 	percpu_counter_read_positive(&dqstats.counter[DQST_FREE_DQUOTS]));
  }
  
- /**
-@@ -232,8 +239,8 @@ void msm_gem_shrinker_cleanup(struct drm
+-static struct shrinker dqcache_shrinker = {
+-	.count_objects = dqcache_shrink_count,
+-	.scan_objects = dqcache_shrink_scan,
+-	.seeks = DEFAULT_SEEKS,
+-};
+-
+ /*
+  * Safely release dquot and put reference to dquot.
+  */
+@@ -2956,6 +2950,7 @@ static int __init dquot_init(void)
  {
- 	struct msm_drm_private *priv = dev->dev_private;
+ 	int i, ret;
+ 	unsigned long nr_hash, order;
++	struct shrinker *dqcache_shrinker;
  
--	if (priv->shrinker.nr_deferred) {
-+	if (priv->shrinker) {
- 		WARN_ON(unregister_vmap_purge_notifier(&priv->vmap_notifier));
--		unregister_shrinker(&priv->shrinker);
-+		shrinker_free(priv->shrinker);
- 	}
+ 	printk(KERN_NOTICE "VFS: Disk quotas %s\n", __DQUOT_VERSION__);
+ 
+@@ -2990,8 +2985,14 @@ static int __init dquot_init(void)
+ 	pr_info("VFS: Dquot-cache hash table entries: %ld (order %ld,"
+ 		" %ld bytes)\n", nr_hash, order, (PAGE_SIZE << order));
+ 
+-	if (register_shrinker(&dqcache_shrinker, "dquota-cache"))
+-		panic("Cannot register dquot shrinker");
++	dqcache_shrinker = shrinker_alloc(0, "dquota-cache");
++	if (!dqcache_shrinker)
++		panic("Cannot allocate dquot shrinker");
++
++	dqcache_shrinker->count_objects = dqcache_shrink_count;
++	dqcache_shrinker->scan_objects = dqcache_shrink_scan;
++
++	shrinker_register(dqcache_shrinker);
+ 
+ 	return 0;
  }
 _
 
