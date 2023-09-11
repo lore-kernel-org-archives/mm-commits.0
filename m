@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 285D3CA0ED4
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B06BFCA0EC3
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236947AbjIKWWX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:22:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54516 "EHLO
+        id S240657AbjIKWW1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:22:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51980 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244532AbjIKUkM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:40:12 -0400
+        with ESMTP id S244511AbjIKUjN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:39:13 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F31E127
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:40:07 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2AAFC433C8;
-        Mon, 11 Sep 2023 20:40:06 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7FE02127
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:39:08 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1512FC433C7;
+        Mon, 11 Sep 2023 20:39:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464806;
-        bh=fk05SIYhWtnuK8l4eYx5jErxRqEbgdr5AzNCbVTfLWY=;
+        s=korg; t=1694464748;
+        bh=r9xyVX6hqEtFaFJtckGjFk8tzLAvEDjoXv7R9QOtTto=;
         h=Date:To:From:Subject:From;
-        b=eKQiYaOUyQEWmcTx0gilhCPLCU8IGnb596bioP2ihdtggsBOzfde2tCmvG+aSRIGt
-         lEZMQ6IvmLiil3vJA88CYyczzGQ/CYyYaydeAySl1u0s7JXnBY/JyOsU7LqfO33DnM
-         JXmib4iHPFO69OIc6D6++0CJ4jroQ9MdMqssy4tk=
-Date:   Mon, 11 Sep 2023 13:40:06 -0700
+        b=qc8ErAI7EQ5fczv3drT8Y9vW4MN1etGts+zj3O2PbNkVcD3yoBPsvzSCduoNltHVr
+         2i3Vdr3uw+qqyFr2E0tKW5XisHT7vbhmYLK7t1YTSzIOraxIUgu9Py49MJp9XIlv9a
+         4yKrVu+m8luW3mHjEzQcr3sG3L8ohy10CjDXloWE=
+Date:   Mon, 11 Sep 2023 13:39:07 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + xfs-dynamically-allocate-the-xfs-buf-shrinker.patch added to mm-unstable branch
-Message-Id: <20230911204006.D2AAFC433C8@smtp.kernel.org>
+Subject: + dm-dynamically-allocate-the-dm-bufio-shrinker.patch added to mm-unstable branch
+Message-Id: <20230911203908.1512FC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xfs: dynamically allocate the xfs-buf shrinker
+     Subject: dm: dynamically allocate the dm-bufio shrinker
 has been added to the -mm mm-unstable branch.  Its filename is
-     xfs-dynamically-allocate-the-xfs-buf-shrinker.patch
+     dm-dynamically-allocate-the-dm-bufio-shrinker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xfs-dynamically-allocate-the-xfs-buf-shrinker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dm-dynamically-allocate-the-dm-bufio-shrinker.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,21 +87,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: xfs: dynamically allocate the xfs-buf shrinker
-Date: Mon, 11 Sep 2023 17:44:33 +0800
+Subject: dm: dynamically allocate the dm-bufio shrinker
+Date: Mon, 11 Sep 2023 17:44:22 +0800
 
 In preparation for implementing lockless slab shrink, use new APIs to
-dynamically allocate the xfs-buf shrinker, so that it can be freed
+dynamically allocate the dm-bufio shrinker, so that it can be freed
 asynchronously via RCU. Then it doesn't need to wait for RCU read-side
-critical section when releasing the struct xfs_buftarg.
+critical section when releasing the struct dm_bufio_client.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-35-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-24-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Chandan Babu R <chandan.babu@oracle.com>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
+Cc: Mike Snitzer <snitzer@kernel.org>
+Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alyssa Rosenzweig <alyssa.rosenzweig@collabora.com>
 Cc: Andreas Dilger <adilger.kernel@dilger.ca>
@@ -111,6 +110,7 @@ Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Bob Peterson <rpeterso@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Carlos Llamas <cmllamas@google.com>
+Cc: Chandan Babu R <chandan.babu@oracle.com>
 Cc: Chao Yu <chao@kernel.org>
 Cc: Chris Mason <clm@fb.com>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -120,6 +120,7 @@ Cc: Coly Li <colyli@suse.de>
 Cc: Dai Ngo <Dai.Ngo@oracle.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Airlie <airlied@gmail.com>
@@ -144,7 +145,6 @@ Cc: Kent Overstreet <kent.overstreet@gmail.com>
 Cc: Kirill Tkhai <tkhai@ya.ru>
 Cc: Marijn Suijten <marijn.suijten@somainline.org>
 Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Nadav Amit <namit@vmware.com>
@@ -174,76 +174,75 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_buf.c |   24 +++++++++++++-----------
- fs/xfs/xfs_buf.h |    2 +-
- 2 files changed, 14 insertions(+), 12 deletions(-)
+ drivers/md/dm-bufio.c |   28 +++++++++++++++++-----------
+ 1 file changed, 17 insertions(+), 11 deletions(-)
 
---- a/fs/xfs/xfs_buf.c~xfs-dynamically-allocate-the-xfs-buf-shrinker
-+++ a/fs/xfs/xfs_buf.c
-@@ -1913,8 +1913,7 @@ xfs_buftarg_shrink_scan(
- 	struct shrinker		*shrink,
- 	struct shrink_control	*sc)
+--- a/drivers/md/dm-bufio.c~dm-dynamically-allocate-the-dm-bufio-shrinker
++++ a/drivers/md/dm-bufio.c
+@@ -963,7 +963,7 @@ struct dm_bufio_client {
+ 
+ 	sector_t start;
+ 
+-	struct shrinker shrinker;
++	struct shrinker *shrinker;
+ 	struct work_struct shrink_work;
+ 	atomic_long_t need_shrink;
+ 
+@@ -2368,7 +2368,7 @@ static unsigned long dm_bufio_shrink_sca
  {
--	struct xfs_buftarg	*btp = container_of(shrink,
--					struct xfs_buftarg, bt_shrinker);
-+	struct xfs_buftarg	*btp = shrink->private_data;
- 	LIST_HEAD(dispose);
- 	unsigned long		freed;
+ 	struct dm_bufio_client *c;
  
-@@ -1936,8 +1935,7 @@ xfs_buftarg_shrink_count(
- 	struct shrinker		*shrink,
- 	struct shrink_control	*sc)
+-	c = container_of(shrink, struct dm_bufio_client, shrinker);
++	c = shrink->private_data;
+ 	atomic_long_add(sc->nr_to_scan, &c->need_shrink);
+ 	queue_work(dm_bufio_wq, &c->shrink_work);
+ 
+@@ -2377,7 +2377,7 @@ static unsigned long dm_bufio_shrink_sca
+ 
+ static unsigned long dm_bufio_shrink_count(struct shrinker *shrink, struct shrink_control *sc)
  {
--	struct xfs_buftarg	*btp = container_of(shrink,
--					struct xfs_buftarg, bt_shrinker);
-+	struct xfs_buftarg	*btp = shrink->private_data;
- 	return list_lru_shrink_count(&btp->bt_lru, sc);
- }
+-	struct dm_bufio_client *c = container_of(shrink, struct dm_bufio_client, shrinker);
++	struct dm_bufio_client *c = shrink->private_data;
+ 	unsigned long count = cache_total(&c->cache);
+ 	unsigned long retain_target = get_retain_buffers(c);
+ 	unsigned long queued_for_cleanup = atomic_long_read(&c->need_shrink);
+@@ -2490,14 +2490,20 @@ struct dm_bufio_client *dm_bufio_client_
+ 	INIT_WORK(&c->shrink_work, shrink_work);
+ 	atomic_long_set(&c->need_shrink, 0);
  
-@@ -1947,7 +1945,7 @@ xfs_free_buftarg(
- {
- 	struct block_device	*bdev = btp->bt_bdev;
- 
--	unregister_shrinker(&btp->bt_shrinker);
-+	shrinker_free(btp->bt_shrinker);
- 	ASSERT(percpu_counter_sum(&btp->bt_io_count) == 0);
- 	percpu_counter_destroy(&btp->bt_io_count);
- 	list_lru_destroy(&btp->bt_lru);
-@@ -2031,13 +2029,17 @@ xfs_alloc_buftarg(
- 	if (percpu_counter_init(&btp->bt_io_count, 0, GFP_KERNEL))
- 		goto error_lru;
- 
--	btp->bt_shrinker.count_objects = xfs_buftarg_shrink_count;
--	btp->bt_shrinker.scan_objects = xfs_buftarg_shrink_scan;
--	btp->bt_shrinker.seeks = DEFAULT_SEEKS;
--	btp->bt_shrinker.flags = SHRINKER_NUMA_AWARE;
--	if (register_shrinker(&btp->bt_shrinker, "xfs-buf:%s",
--			      mp->m_super->s_id))
-+	btp->bt_shrinker = shrinker_alloc(SHRINKER_NUMA_AWARE, "xfs-buf:%s",
-+					  mp->m_super->s_id);
-+	if (!btp->bt_shrinker)
- 		goto error_pcpu;
+-	c->shrinker.count_objects = dm_bufio_shrink_count;
+-	c->shrinker.scan_objects = dm_bufio_shrink_scan;
+-	c->shrinker.seeks = 1;
+-	c->shrinker.batch = 0;
+-	r = register_shrinker(&c->shrinker, "dm-bufio:(%u:%u)",
+-			      MAJOR(bdev->bd_dev), MINOR(bdev->bd_dev));
+-	if (r)
++	c->shrinker = shrinker_alloc(0, "dm-bufio:(%u:%u)",
++				     MAJOR(bdev->bd_dev), MINOR(bdev->bd_dev));
++	if (!c->shrinker) {
++		r = -ENOMEM;
+ 		goto bad;
++	}
 +
-+	btp->bt_shrinker->count_objects = xfs_buftarg_shrink_count;
-+	btp->bt_shrinker->scan_objects = xfs_buftarg_shrink_scan;
-+	btp->bt_shrinker->private_data = btp;
++	c->shrinker->count_objects = dm_bufio_shrink_count;
++	c->shrinker->scan_objects = dm_bufio_shrink_scan;
++	c->shrinker->seeks = 1;
++	c->shrinker->batch = 0;
++	c->shrinker->private_data = c;
 +
-+	shrinker_register(btp->bt_shrinker);
-+
- 	return btp;
++	shrinker_register(c->shrinker);
  
- error_pcpu:
---- a/fs/xfs/xfs_buf.h~xfs-dynamically-allocate-the-xfs-buf-shrinker
-+++ a/fs/xfs/xfs_buf.h
-@@ -108,7 +108,7 @@ typedef struct xfs_buftarg {
- 	size_t			bt_logical_sectormask;
+ 	mutex_lock(&dm_bufio_clients_lock);
+ 	dm_bufio_client_count++;
+@@ -2537,7 +2543,7 @@ void dm_bufio_client_destroy(struct dm_b
  
- 	/* LRU control structures */
--	struct shrinker		bt_shrinker;
-+	struct shrinker		*bt_shrinker;
- 	struct list_lru		bt_lru;
+ 	drop_buffers(c);
  
- 	struct percpu_counter	bt_io_count;
+-	unregister_shrinker(&c->shrinker);
++	shrinker_free(c->shrinker);
+ 	flush_work(&c->shrink_work);
+ 
+ 	mutex_lock(&dm_bufio_clients_lock);
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
