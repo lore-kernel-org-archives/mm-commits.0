@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF1E3CA0ED3
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 285D3CA0ED4
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240614AbjIKWWT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:22:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39762 "EHLO
+        id S236947AbjIKWWX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:22:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54516 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244504AbjIKUi4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:38:56 -0400
+        with ESMTP id S244532AbjIKUkM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:40:12 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11E09127
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:38:51 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B974C433CD;
-        Mon, 11 Sep 2023 20:38:50 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F31E127
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:40:07 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2AAFC433C8;
+        Mon, 11 Sep 2023 20:40:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464730;
-        bh=TRGpCzu5S3MWWv2G5fqmDyu34aIaZJQzBTISSgsJUS0=;
+        s=korg; t=1694464806;
+        bh=fk05SIYhWtnuK8l4eYx5jErxRqEbgdr5AzNCbVTfLWY=;
         h=Date:To:From:Subject:From;
-        b=ANen53FI2yjoYeygSTypUlrcLRrBVgNLAKVLPndf2lbQ6GafeWd7JGuNLdIy8Sy6P
-         f7Sli/gzKgKTt+u7oF4cmjPorDDStnDAEC8b+YkzEBWAYpI1kqiekT+lCIu7gSz9Ui
-         7QW89936/xaHmhVU4svVjoMA0jvX5LGwJ425OZUE=
-Date:   Mon, 11 Sep 2023 13:38:49 -0700
+        b=eKQiYaOUyQEWmcTx0gilhCPLCU8IGnb596bioP2ihdtggsBOzfde2tCmvG+aSRIGt
+         lEZMQ6IvmLiil3vJA88CYyczzGQ/CYyYaydeAySl1u0s7JXnBY/JyOsU7LqfO33DnM
+         JXmib4iHPFO69OIc6D6++0CJ4jroQ9MdMqssy4tk=
+Date:   Mon, 11 Sep 2023 13:40:06 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + drm-i915-dynamically-allocate-the-i915_gem_mm-shrinker.patch added to mm-unstable branch
-Message-Id: <20230911203850.9B974C433CD@smtp.kernel.org>
+Subject: + xfs-dynamically-allocate-the-xfs-buf-shrinker.patch added to mm-unstable branch
+Message-Id: <20230911204006.D2AAFC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drm/i915: dynamically allocate the i915_gem_mm shrinker
+     Subject: xfs: dynamically allocate the xfs-buf shrinker
 has been added to the -mm mm-unstable branch.  Its filename is
-     drm-i915-dynamically-allocate-the-i915_gem_mm-shrinker.patch
+     xfs-dynamically-allocate-the-xfs-buf-shrinker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-i915-dynamically-allocate-the-i915_gem_mm-shrinker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xfs-dynamically-allocate-the-xfs-buf-shrinker.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,23 +87,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: drm/i915: dynamically allocate the i915_gem_mm shrinker
-Date: Mon, 11 Sep 2023 17:44:19 +0800
+Subject: xfs: dynamically allocate the xfs-buf shrinker
+Date: Mon, 11 Sep 2023 17:44:33 +0800
 
 In preparation for implementing lockless slab shrink, use new APIs to
-dynamically allocate the i915_gem_mm shrinker, so that it can be freed
+dynamically allocate the xfs-buf shrinker, so that it can be freed
 asynchronously via RCU. Then it doesn't need to wait for RCU read-side
-critical section when releasing the struct drm_i915_private.
+critical section when releasing the struct xfs_buftarg.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-21-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-35-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
-Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
-Cc: David Airlie <airlied@gmail.com>
+Cc: Chandan Babu R <chandan.babu@oracle.com>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -115,7 +111,6 @@ Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Bob Peterson <rpeterso@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Carlos Llamas <cmllamas@google.com>
-Cc: Chandan Babu R <chandan.babu@oracle.com>
 Cc: Chao Yu <chao@kernel.org>
 Cc: Chris Mason <clm@fb.com>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -124,9 +119,10 @@ Cc: Chuck Lever <cel@kernel.org>
 Cc: Coly Li <colyli@suse.de>
 Cc: Dai Ngo <Dai.Ngo@oracle.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Airlie <airlied@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Sterba <dsterba@suse.com>
 Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
@@ -135,11 +131,13 @@ Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Huang Rui <ray.huang@amd.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Wang <jasowang@redhat.com>
 Cc: Jeff Layton <jlayton@kernel.org>
 Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
 Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
+Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
 Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: Juergen Gross <jgross@suse.com>
 Cc: Kent Overstreet <kent.overstreet@gmail.com>
@@ -157,6 +155,7 @@ Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Richard Weinberger <richard@nod.at>
 Cc: Rob Clark <robdclark@gmail.com>
 Cc: Rob Herring <robh@kernel.org>
+Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Sean Paul <sean@poorly.run>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
@@ -168,93 +167,83 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Cc: Tom Talpey <tom@talpey.com>
 Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
+Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
 Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/gem/i915_gem_shrinker.c |   29 +++++++++--------
- drivers/gpu/drm/i915/i915_drv.h              |    2 -
- 2 files changed, 17 insertions(+), 14 deletions(-)
+ fs/xfs/xfs_buf.c |   24 +++++++++++++-----------
+ fs/xfs/xfs_buf.h |    2 +-
+ 2 files changed, 14 insertions(+), 12 deletions(-)
 
---- a/drivers/gpu/drm/i915/gem/i915_gem_shrinker.c~drm-i915-dynamically-allocate-the-i915_gem_mm-shrinker
-+++ a/drivers/gpu/drm/i915/gem/i915_gem_shrinker.c
-@@ -284,8 +284,7 @@ unsigned long i915_gem_shrink_all(struct
- static unsigned long
- i915_gem_shrinker_count(struct shrinker *shrinker, struct shrink_control *sc)
+--- a/fs/xfs/xfs_buf.c~xfs-dynamically-allocate-the-xfs-buf-shrinker
++++ a/fs/xfs/xfs_buf.c
+@@ -1913,8 +1913,7 @@ xfs_buftarg_shrink_scan(
+ 	struct shrinker		*shrink,
+ 	struct shrink_control	*sc)
  {
--	struct drm_i915_private *i915 =
--		container_of(shrinker, struct drm_i915_private, mm.shrinker);
-+	struct drm_i915_private *i915 = shrinker->private_data;
- 	unsigned long num_objects;
- 	unsigned long count;
+-	struct xfs_buftarg	*btp = container_of(shrink,
+-					struct xfs_buftarg, bt_shrinker);
++	struct xfs_buftarg	*btp = shrink->private_data;
+ 	LIST_HEAD(dispose);
+ 	unsigned long		freed;
  
-@@ -302,8 +301,8 @@ i915_gem_shrinker_count(struct shrinker
- 	if (num_objects) {
- 		unsigned long avg = 2 * count / num_objects;
- 
--		i915->mm.shrinker.batch =
--			max((i915->mm.shrinker.batch + avg) >> 1,
-+		i915->mm.shrinker->batch =
-+			max((i915->mm.shrinker->batch + avg) >> 1,
- 			    128ul /* default SHRINK_BATCH */);
- 	}
- 
-@@ -313,8 +312,7 @@ i915_gem_shrinker_count(struct shrinker
- static unsigned long
- i915_gem_shrinker_scan(struct shrinker *shrinker, struct shrink_control *sc)
+@@ -1936,8 +1935,7 @@ xfs_buftarg_shrink_count(
+ 	struct shrinker		*shrink,
+ 	struct shrink_control	*sc)
  {
--	struct drm_i915_private *i915 =
--		container_of(shrinker, struct drm_i915_private, mm.shrinker);
-+	struct drm_i915_private *i915 = shrinker->private_data;
- 	unsigned long freed;
- 
- 	sc->nr_scanned = 0;
-@@ -422,12 +420,17 @@ i915_gem_shrinker_vmap(struct notifier_b
- 
- void i915_gem_driver_register__shrinker(struct drm_i915_private *i915)
- {
--	i915->mm.shrinker.scan_objects = i915_gem_shrinker_scan;
--	i915->mm.shrinker.count_objects = i915_gem_shrinker_count;
--	i915->mm.shrinker.seeks = DEFAULT_SEEKS;
--	i915->mm.shrinker.batch = 4096;
--	drm_WARN_ON(&i915->drm, register_shrinker(&i915->mm.shrinker,
--						  "drm-i915_gem"));
-+	i915->mm.shrinker = shrinker_alloc(0, "drm-i915_gem");
-+	if (!i915->mm.shrinker) {
-+		drm_WARN_ON(&i915->drm, 1);
-+	} else {
-+		i915->mm.shrinker->scan_objects = i915_gem_shrinker_scan;
-+		i915->mm.shrinker->count_objects = i915_gem_shrinker_count;
-+		i915->mm.shrinker->batch = 4096;
-+		i915->mm.shrinker->private_data = i915;
-+
-+		shrinker_register(i915->mm.shrinker);
-+	}
- 
- 	i915->mm.oom_notifier.notifier_call = i915_gem_shrinker_oom;
- 	drm_WARN_ON(&i915->drm, register_oom_notifier(&i915->mm.oom_notifier));
-@@ -443,7 +446,7 @@ void i915_gem_driver_unregister__shrinke
- 		    unregister_vmap_purge_notifier(&i915->mm.vmap_notifier));
- 	drm_WARN_ON(&i915->drm,
- 		    unregister_oom_notifier(&i915->mm.oom_notifier));
--	unregister_shrinker(&i915->mm.shrinker);
-+	shrinker_free(i915->mm.shrinker);
+-	struct xfs_buftarg	*btp = container_of(shrink,
+-					struct xfs_buftarg, bt_shrinker);
++	struct xfs_buftarg	*btp = shrink->private_data;
+ 	return list_lru_shrink_count(&btp->bt_lru, sc);
  }
  
- void i915_gem_shrinker_taints_mutex(struct drm_i915_private *i915,
---- a/drivers/gpu/drm/i915/i915_drv.h~drm-i915-dynamically-allocate-the-i915_gem_mm-shrinker
-+++ a/drivers/gpu/drm/i915/i915_drv.h
-@@ -163,7 +163,7 @@ struct i915_gem_mm {
+@@ -1947,7 +1945,7 @@ xfs_free_buftarg(
+ {
+ 	struct block_device	*bdev = btp->bt_bdev;
  
- 	struct notifier_block oom_notifier;
- 	struct notifier_block vmap_notifier;
--	struct shrinker shrinker;
-+	struct shrinker *shrinker;
+-	unregister_shrinker(&btp->bt_shrinker);
++	shrinker_free(btp->bt_shrinker);
+ 	ASSERT(percpu_counter_sum(&btp->bt_io_count) == 0);
+ 	percpu_counter_destroy(&btp->bt_io_count);
+ 	list_lru_destroy(&btp->bt_lru);
+@@ -2031,13 +2029,17 @@ xfs_alloc_buftarg(
+ 	if (percpu_counter_init(&btp->bt_io_count, 0, GFP_KERNEL))
+ 		goto error_lru;
  
- #ifdef CONFIG_MMU_NOTIFIER
- 	/**
+-	btp->bt_shrinker.count_objects = xfs_buftarg_shrink_count;
+-	btp->bt_shrinker.scan_objects = xfs_buftarg_shrink_scan;
+-	btp->bt_shrinker.seeks = DEFAULT_SEEKS;
+-	btp->bt_shrinker.flags = SHRINKER_NUMA_AWARE;
+-	if (register_shrinker(&btp->bt_shrinker, "xfs-buf:%s",
+-			      mp->m_super->s_id))
++	btp->bt_shrinker = shrinker_alloc(SHRINKER_NUMA_AWARE, "xfs-buf:%s",
++					  mp->m_super->s_id);
++	if (!btp->bt_shrinker)
+ 		goto error_pcpu;
++
++	btp->bt_shrinker->count_objects = xfs_buftarg_shrink_count;
++	btp->bt_shrinker->scan_objects = xfs_buftarg_shrink_scan;
++	btp->bt_shrinker->private_data = btp;
++
++	shrinker_register(btp->bt_shrinker);
++
+ 	return btp;
+ 
+ error_pcpu:
+--- a/fs/xfs/xfs_buf.h~xfs-dynamically-allocate-the-xfs-buf-shrinker
++++ a/fs/xfs/xfs_buf.h
+@@ -108,7 +108,7 @@ typedef struct xfs_buftarg {
+ 	size_t			bt_logical_sectormask;
+ 
+ 	/* LRU control structures */
+-	struct shrinker		bt_shrinker;
++	struct shrinker		*bt_shrinker;
+ 	struct list_lru		bt_lru;
+ 
+ 	struct percpu_counter	bt_io_count;
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
