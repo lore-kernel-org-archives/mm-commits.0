@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AA92CA0EDA
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31EEDCA0ED0
 	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:26:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240232AbjIKWY2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:24:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41226 "EHLO
+        id S237709AbjIKWY0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:24:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41860 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244565AbjIKUlI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:41:08 -0400
+        with ESMTP id S244470AbjIKUhk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:37:40 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43EC7101
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:41:03 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7557FC433C7;
-        Mon, 11 Sep 2023 20:41:02 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A89D01A7
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:37:35 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21C5CC433C7;
+        Mon, 11 Sep 2023 20:37:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464862;
-        bh=Rc8EK4gIN1gxhcnqr4d+/Pqrb1QYdYt2Sz7LLO0rVUw=;
+        s=korg; t=1694464655;
+        bh=H86/noxkAq7L/BKvFxVG4XQVmTpHCeKaYowoAkUyvUY=;
         h=Date:To:From:Subject:From;
-        b=0VEJVZXymgbDCtlXYJHuGgHb5wJjHUPSBJf/l5kmD5U9T691rG0BN9d4YIyDCA1fq
-         yBdm/bpBb6sbeu0nfpQz8X3cnRMLW6sQoRer6LW65/Yx+jELVwqGGdnFtrXqhv9PRc
-         BrF66bOJOZM+nAfkCEFcP/jjv+smh/Q0FrEwufuw=
-Date:   Mon, 11 Sep 2023 13:41:01 -0700
+        b=bI72yzDdroDv7tkmTq1TTNEBxWwyuiuouMh/zYXjICluvkeIOUtBpn5Civ9FLUcIl
+         cWDkivUssfaefxuze1rut7sRZJGJsJKUzh81HZKKLiDdI4C5Ee4KQ2jofcpMlKVArH
+         mbitQ5TaNVW18en+2Q6wcuLnsr4Vv3ElhnhvgP5Y=
+Date:   Mon, 11 Sep 2023 13:37:34 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shrinker-hold-write-lock-to-reparent-shrinker-nr_deferred.patch added to mm-unstable branch
-Message-Id: <20230911204102.7557FC433C7@smtp.kernel.org>
+Subject: + erofs-dynamically-allocate-the-erofs-shrinker.patch added to mm-unstable branch
+Message-Id: <20230911203735.21C5CC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: shrinker: hold write lock to reparent shrinker nr_deferred
+     Subject: erofs: dynamically allocate the erofs-shrinker
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shrinker-hold-write-lock-to-reparent-shrinker-nr_deferred.patch
+     erofs-dynamically-allocate-the-erofs-shrinker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinker-hold-write-lock-to-reparent-shrinker-nr_deferred.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/erofs-dynamically-allocate-the-erofs-shrinker.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,18 +87,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: shrinker: hold write lock to reparent shrinker nr_deferred
-Date: Mon, 11 Sep 2023 17:44:43 +0800
+Subject: erofs: dynamically allocate the erofs-shrinker
+Date: Mon, 11 Sep 2023 17:44:05 +0800
 
-For now, reparent_shrinker_deferred() is the only holder of read lock of
-shrinker_rwsem. And it already holds the global cgroup_mutex, so it will
-not be called in parallel.
+Use new APIs to dynamically allocate the erofs-shrinker.
 
-Therefore, in order to convert shrinker_rwsem to shrinker_mutex later,
-here we change to hold the write lock of shrinker_rwsem to reparent.
-
-Link: https://lkml.kernel.org/r/20230911094444.68966-45-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-7-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Chao Yu <chao@kernel.org>
+Reviewed-by: Gao Xiang <hsiangkao@linux.alibaba.com>
+Cc: Yue Hu <huyue2@coolpad.com>
+Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -111,7 +111,6 @@ Cc: Bob Peterson <rpeterso@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Carlos Llamas <cmllamas@google.com>
 Cc: Chandan Babu R <chandan.babu@oracle.com>
-Cc: Chao Yu <chao@kernel.org>
 Cc: Chris Mason <clm@fb.com>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: Christian Koenig <christian.koenig@amd.com>
@@ -127,7 +126,6 @@ Cc: David Airlie <airlied@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Sterba <dsterba@suse.com>
 Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
-Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Huang Rui <ray.huang@amd.com>
 Cc: Ingo Molnar <mingo@redhat.com>
@@ -136,7 +134,6 @@ Cc: Jani Nikula <jani.nikula@linux.intel.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Wang <jasowang@redhat.com>
 Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
 Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
 Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
 Cc: Josef Bacik <josef@toxicpanda.com>
@@ -148,7 +145,6 @@ Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Nadav Amit <namit@vmware.com>
 Cc: Neil Brown <neilb@suse.de>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
@@ -172,33 +168,46 @@ Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
-Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shrinker.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/erofs/utils.c |   19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
---- a/mm/shrinker.c~mm-shrinker-hold-write-lock-to-reparent-shrinker-nr_deferred
-+++ a/mm/shrinker.c
-@@ -292,7 +292,7 @@ void reparent_shrinker_deferred(struct m
- 		parent = root_mem_cgroup;
- 
- 	/* Prevent from concurrent shrinker_info expand */
--	down_read(&shrinker_rwsem);
-+	down_write(&shrinker_rwsem);
- 	for_each_node(nid) {
- 		child_info = shrinker_info_protected(memcg, nid);
- 		parent_info = shrinker_info_protected(parent, nid);
-@@ -305,7 +305,7 @@ void reparent_shrinker_deferred(struct m
- 			}
- 		}
- 	}
--	up_read(&shrinker_rwsem);
-+	up_write(&shrinker_rwsem);
+--- a/fs/erofs/utils.c~erofs-dynamically-allocate-the-erofs-shrinker
++++ a/fs/erofs/utils.c
+@@ -270,19 +270,24 @@ static unsigned long erofs_shrink_scan(s
+ 	return freed;
  }
- #else
- static int shrinker_memcg_alloc(struct shrinker *shrinker)
+ 
+-static struct shrinker erofs_shrinker_info = {
+-	.scan_objects = erofs_shrink_scan,
+-	.count_objects = erofs_shrink_count,
+-	.seeks = DEFAULT_SEEKS,
+-};
++static struct shrinker *erofs_shrinker_info;
+ 
+ int __init erofs_init_shrinker(void)
+ {
+-	return register_shrinker(&erofs_shrinker_info, "erofs-shrinker");
++	erofs_shrinker_info = shrinker_alloc(0, "erofs-shrinker");
++	if (!erofs_shrinker_info)
++		return -ENOMEM;
++
++	erofs_shrinker_info->count_objects = erofs_shrink_count;
++	erofs_shrinker_info->scan_objects = erofs_shrink_scan;
++
++	shrinker_register(erofs_shrinker_info);
++
++	return 0;
+ }
+ 
+ void erofs_exit_shrinker(void)
+ {
+-	unregister_shrinker(&erofs_shrinker_info);
++	shrinker_free(erofs_shrinker_info);
+ }
+ #endif	/* !CONFIG_EROFS_FS_ZIP */
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
