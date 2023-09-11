@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C078DCA0EC8
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:26:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5556CCA0ECD
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:26:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242285AbjIKWXu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:23:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35920 "EHLO
+        id S242467AbjIKWXy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:23:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59234 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244462AbjIKUhQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:37:16 -0400
+        with ESMTP id S244558AbjIKUko (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:40:44 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1FBC71A7
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:37:10 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99837C433C8;
-        Mon, 11 Sep 2023 20:37:09 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B41A127
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:40:37 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2378DC433C7;
+        Mon, 11 Sep 2023 20:40:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464629;
-        bh=iOlp+iWk/dve/Mn6Ks6FbZV2QXNSKvfd9+D9sgRYDhg=;
+        s=korg; t=1694464837;
+        bh=huFatbBZK9AyREBe/B8if4e1Qn6o3/HsSV0YyEVRLQc=;
         h=Date:To:From:Subject:From;
-        b=C9RJ0u6vndXb9+PKB3MCDSN7M9Nor9fykxCGKcCjRQWljsy+/NDB09kLNpkUfp7Jb
-         GP5r+iS2riglaoQkQKYgzhuHlBlgmYykwXBUdiW+OEDgdga9ivPNUkFNouN+Tug503
-         4+evxvIfYiqT+goENqKgsHaztZsJUvh59BygskuM=
-Date:   Mon, 11 Sep 2023 13:37:09 -0700
+        b=yVh+uQN2bf/ZKZP6KNOcC93U+CFr4aPQvcLDTBNGjPDi5b82PSbiWgueYnp2doIlC
+         TS9O6tk6eGr1Vu/Z9oAvIvcpSZKcDJFR3Y5dmHNseMfErfPVFrjx2xjFp7Ag5k9zvv
+         vE5JK4rgK5SA30xw1aq+IOrAL/fgkVy4X0UIz6Do=
+Date:   Mon, 11 Sep 2023 13:40:36 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shrinker-add-infrastructure-for-dynamically-allocating-shrinker.patch added to mm-unstable branch
-Message-Id: <20230911203709.99837C433C8@smtp.kernel.org>
+Subject: + mm-shrinker-add-a-secondary-array-for-shrinker_info-map-nr_deferred.patch added to mm-unstable branch
+Message-Id: <20230911204037.2378DC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: shrinker: add infrastructure for dynamically allocating shrinker
+     Subject: mm: shrinker: add a secondary array for shrinker_info::{map, nr_deferred}
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shrinker-add-infrastructure-for-dynamically-allocating-shrinker.patch
+     mm-shrinker-add-a-secondary-array-for-shrinker_info-map-nr_deferred.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinker-add-infrastructure-for-dynamically-allocating-shrinker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinker-add-a-secondary-array-for-shrinker_info-map-nr_deferred.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,289 +87,59 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: shrinker: add infrastructure for dynamically allocating shrinker
-Date: Mon, 11 Sep 2023 17:44:00 +0800
+Subject: mm: shrinker: add a secondary array for shrinker_info::{map, nr_deferred}
+Date: Mon, 11 Sep 2023 17:44:39 +0800
 
-Patch series "use refcount+RCU method to implement lockless slab shrink",
-v6.
+Currently, we maintain two linear arrays per node per memcg, which are
+shrinker_info::map and shrinker_info::nr_deferred. And we need to resize
+them when the shrinker_nr_max is exceeded, that is, allocate a new array,
+and then copy the old array to the new array, and finally free the old
+array by RCU.
 
-1. Background
-=============
+For shrinker_info::map, we do set_bit() under the RCU lock, so we may set
+the value into the old map which is about to be freed. This may cause the
+value set to be lost. The current solution is not to copy the old map when
+resizing, but to set all the corresponding bits in the new map to 1. This
+solves the data loss problem, but bring the overhead of more pointless
+loops while doing memcg slab shrink.
 
-We used to implement the lockless slab shrink with SRCU [1], but then kernel
-test robot reported -88.8% regression in stress-ng.ramfs.ops_per_sec test
-case [2], so we reverted it [3].
+For shrinker_info::nr_deferred, we will only modify it under the read lock
+of shrinker_rwsem, so it will not run concurrently with the resizing. But
+after we make memcg slab shrink lockless, there will be the same data loss
+problem as shrinker_info::map, and we can't work around it like the map.
 
-This patch series aims to re-implement the lockless slab shrink using the
-refcount+RCU method proposed by Dave Chinner [4].
+For such resizable arrays, the most straightforward idea is to change it
+to xarray, like we did for list_lru [1]. We need to do xa_store() in the
+list_lru_add()-->set_shrinker_bit(), but this will cause memory
+allocation, and the list_lru_add() doesn't accept failure. A possible
+solution is to pre-allocate, but the location of pre-allocation is not
+well determined (such as deferred_split_shrinker case).
 
-[1]. https://lore.kernel.org/lkml/20230313112819.38938-1-zhengqi.arch@bytedance.com/
-[2]. https://lore.kernel.org/lkml/202305230837.db2c233f-yujie.liu@intel.com/
-[3]. https://lore.kernel.org/all/20230609081518.3039120-1-qi.zheng@linux.dev/
-[4]. https://lore.kernel.org/lkml/ZIJhou1d55d4H1s0@dread.disaster.area/
+Therefore, this commit chooses to introduce the following secondary array
+for shrinker_info::{map, nr_deferred}:
 
-2. Implementation
-=================
++---------------+--------+--------+-----+
+| shrinker_info | unit 0 | unit 1 | ... | (secondary array)
++---------------+--------+--------+-----+
+                     |
+                     v
+                +---------------+-----+
+                | nr_deferred[] | map | (leaf array)
+                +---------------+-----+
+                (shrinker_info_unit)
 
-Currently, the shrinker instances can be divided into the following three types:
+The leaf array is never freed unless the memcg is destroyed. The secondary
+array will be resized every time the shrinker id exceeds shrinker_nr_max.
+So the shrinker_info_unit can be indexed from both the old and the new
+shrinker_info->unit[x]. Then even if we get the old secondary array under
+the RCU lock, the found map and nr_deferred are also true, so the updated
+nr_deferred and map will not be lost.
 
-a) global shrinker instance statically defined in the kernel, such as
-   workingset_shadow_shrinker.
+[1]. https://lore.kernel.org/all/20220228122126.37293-13-songmuchun@bytedance.com/
 
-b) global shrinker instance statically defined in the kernel modules, such as
-   mmu_shrinker in x86.
-
-c) shrinker instance embedded in other structures.
-
-For case a, the memory of shrinker instance is never freed. For case b, the
-memory of shrinker instance will be freed after synchronize_rcu() when the
-module is unloaded. For case c, the memory of shrinker instance will be freed
-along with the structure it is embedded in.
-
-In preparation for implementing lockless slab shrink, we need to dynamically
-allocate those shrinker instances in case c, then the memory can be dynamically
-freed alone by calling kfree_rcu().
-
-This patchset adds the following new APIs for dynamically allocating shrinker,
-and add a private_data field to struct shrinker to record and get the original
-embedded structure.
-
-1. shrinker_alloc()
-2. shrinker_register()
-3. shrinker_free()
-
-In order to simplify shrinker-related APIs and make shrinker more independent of
-other kernel mechanisms, this patchset uses the above APIs to convert all
-shrinkers (including case a and b) to dynamically allocated, and then remove all
-existing APIs. This will also have another advantage mentioned by Dave Chinner:
-
-```
-The other advantage of this is that it will break all the existing out of tree
-code and third party modules using the old API and will no longer work with a
-kernel using lockless slab shrinkers. They need to break (both at the source and
-binary levels) to stop bad things from happening due to using uncoverted
-shrinkers in the new setup.
-```
-
-Then we free the shrinker by calling call_rcu(), and use rcu_read_{lock,unlock}()
-to ensure that the shrinker instance is valid. And the shrinker::refcount
-mechanism ensures that the shrinker instance will not be run again after
-unregistration. So the structure that records the pointer of shrinker instance
-can be safely freed without waiting for the RCU read-side critical section.
-
-In this way, while we implement the lockless slab shrink, we don't need to be
-blocked in unregister_shrinker() to wait RCU read-side critical section.
-
-PATCH 1: introduce new APIs
-PATCH 2~38: convert all shrinnkers to use new APIs
-PATCH 39: remove old APIs
-PATCH 40~41: some cleanups and preparations
-PATCH 42-43: implement the lockless slab shrink
-PATCH 44~45: convert shrinker_rwsem to mutex
-
-3. Testing
-==========
-
-3.1 slab shrink stress test
----------------------------
-
-We can reproduce the down_read_trylock() hotspot through the following script:
-
-```
-
-DIR="/root/shrinker/memcg/mnt"
-
-do_create()
-{
-    mkdir -p /sys/fs/cgroup/memory/test
-    echo 4G > /sys/fs/cgroup/memory/test/memory.limit_in_bytes
-    for i in `seq 0 $1`;
-    do
-        mkdir -p /sys/fs/cgroup/memory/test/$i;
-        echo $$ > /sys/fs/cgroup/memory/test/$i/cgroup.procs;
-        mkdir -p $DIR/$i;
-    done
-}
-
-do_mount()
-{
-    for i in `seq $1 $2`;
-    do
-        mount -t tmpfs $i $DIR/$i;
-    done
-}
-
-do_touch()
-{
-    for i in `seq $1 $2`;
-    do
-        echo $$ > /sys/fs/cgroup/memory/test/$i/cgroup.procs;
-        dd if=/dev/zero of=$DIR/$i/file$i bs=1M count=1 &
-    done
-}
-
-case "$1" in
-  touch)
-    do_touch $2 $3
-    ;;
-  test)
-    do_create 4000
-    do_mount 0 4000
-    do_touch 0 3000
-    ;;
-  *)
-    exit 1
-    ;;
-esac
-```
-
-Save the above script, then run test and touch commands. Then we can use the
-following perf command to view hotspots:
-
-perf top -U -F 999
-
-1) Before applying this patchset:
-
-  33.15%  [kernel]          [k] down_read_trylock
-  25.38%  [kernel]          [k] shrink_slab
-  21.75%  [kernel]          [k] up_read
-   4.45%  [kernel]          [k] _find_next_bit
-   2.27%  [kernel]          [k] do_shrink_slab
-   1.80%  [kernel]          [k] intel_idle_irq
-   1.79%  [kernel]          [k] shrink_lruvec
-   0.67%  [kernel]          [k] xas_descend
-   0.41%  [kernel]          [k] mem_cgroup_iter
-   0.40%  [kernel]          [k] shrink_node
-   0.38%  [kernel]          [k] list_lru_count_one
-
-2) After applying this patchset:
-
-  64.56%  [kernel]          [k] shrink_slab
-  12.18%  [kernel]          [k] do_shrink_slab
-   3.30%  [kernel]          [k] __rcu_read_unlock
-   2.61%  [kernel]          [k] shrink_lruvec
-   2.49%  [kernel]          [k] __rcu_read_lock
-   1.93%  [kernel]          [k] intel_idle_irq
-   0.89%  [kernel]          [k] shrink_node
-   0.81%  [kernel]          [k] mem_cgroup_iter
-   0.77%  [kernel]          [k] mem_cgroup_calculate_protection
-   0.66%  [kernel]          [k] list_lru_count_one
-
-We can see that the first perf hotspot becomes shrink_slab, which is what we
-expect.
-
-3.2 registration and unregistration stress test
------------------------------------------------
-
-Run the command below to test:
-
-stress-ng --timeout 60 --times --verify --metrics-brief --ramfs 9 &
-
-1) Before applying this patchset:
-
-setting to a 60 second run per stressor
-dispatching hogs: 9 ramfs
-stressor       bogo ops real time  usr time  sys time   bogo ops/s     bogo ops/s
-                          (secs)    (secs)    (secs)   (real time) (usr+sys time)
-ramfs            473062     60.00      8.00    279.13      7884.12        1647.59
-for a 60.01s run time:
-   1440.34s available CPU time
-      7.99s user time   (  0.55%)
-    279.13s system time ( 19.38%)
-    287.12s total time  ( 19.93%)
-load average: 7.12 2.99 1.15
-successful run completed in 60.01s (1 min, 0.01 secs)
-
-2) After applying this patchset:
-
-setting to a 60 second run per stressor
-dispatching hogs: 9 ramfs
-stressor       bogo ops real time  usr time  sys time   bogo ops/s     bogo ops/s
-                          (secs)    (secs)    (secs)   (real time) (usr+sys time)
-ramfs            477165     60.00      8.13    281.34      7952.55        1648.40
-for a 60.01s run time:
-   1440.33s available CPU time
-      8.12s user time   (  0.56%)
-    281.34s system time ( 19.53%)
-    289.46s total time  ( 20.10%)
-load average: 6.98 3.03 1.19
-successful run completed in 60.01s (1 min, 0.01 secs)
-
-We can see that the ops/s has hardly changed.
-
-
-This patch (of 45):
-
-Currently, the shrinker instances can be divided into the following three
-types:
-
-a) global shrinker instance statically defined in the kernel, such as
-   workingset_shadow_shrinker.
-
-b) global shrinker instance statically defined in the kernel modules, such
-   as mmu_shrinker in x86.
-
-c) shrinker instance embedded in other structures.
-
-For case a, the memory of shrinker instance is never freed. For case b,
-the memory of shrinker instance will be freed after synchronize_rcu() when
-the module is unloaded. For case c, the memory of shrinker instance will
-be freed along with the structure it is embedded in.
-
-In preparation for implementing lockless slab shrink, we need to
-dynamically allocate those shrinker instances in case c, then the memory
-can be dynamically freed alone by calling kfree_rcu().
-
-So this commit adds the following new APIs for dynamically allocating
-shrinker, and add a private_data field to struct shrinker to record and
-get the original embedded structure.
-
-1. shrinker_alloc()
-
-Used to allocate shrinker instance itself and related memory, it will
-return a pointer to the shrinker instance on success and NULL on failure.
-
-2. shrinker_register()
-
-Used to register the shrinker instance, which is same as the current
-register_shrinker_prepared().
-
-3. shrinker_free()
-
-Used to unregister (if needed) and free the shrinker instance.
-
-In order to simplify shrinker-related APIs and make shrinker more
-independent of other kernel mechanisms, subsequent submissions will use
-the above API to convert all shrinkers (including case a and b) to
-dynamically allocated, and then remove all existing APIs.
-
-This will also have another advantage mentioned by Dave Chinner:
-
-```
-The other advantage of this is that it will break all the existing
-out of tree code and third party modules using the old API and will
-no longer work with a kernel using lockless slab shrinkers. They
-need to break (both at the source and binary levels) to stop bad
-things from happening due to using unconverted shrinkers in the new
-setup.
-```
-
-Link: https://lkml.kernel.org/r/20230911094444.68966-1-zhengqi.arch@bytedance.com
-Link: https://lkml.kernel.org/r/20230911094444.68966-2-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-41-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Chuck Lever <cel@kernel.org>
-Cc: Darrick J. Wong <djwong@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Kirill Tkhai <tkhai@ya.ru>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Steven Price <steven.price@arm.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -384,17 +154,22 @@ Cc: Carlos Llamas <cmllamas@google.com>
 Cc: Chandan Babu R <chandan.babu@oracle.com>
 Cc: Chao Yu <chao@kernel.org>
 Cc: Chris Mason <clm@fb.com>
+Cc: Christian Brauner <brauner@kernel.org>
 Cc: Christian Koenig <christian.koenig@amd.com>
+Cc: Chuck Lever <cel@kernel.org>
 Cc: Coly Li <colyli@suse.de>
 Cc: Dai Ngo <Dai.Ngo@oracle.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Airlie <airlied@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Sterba <dsterba@suse.com>
 Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
 Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Huang Rui <ray.huang@amd.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
@@ -408,232 +183,490 @@ Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
 Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: Juergen Gross <jgross@suse.com>
 Cc: Kent Overstreet <kent.overstreet@gmail.com>
+Cc: Kirill Tkhai <tkhai@ya.ru>
 Cc: Marijn Suijten <marijn.suijten@somainline.org>
 Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Nadav Amit <namit@vmware.com>
 Cc: Neil Brown <neilb@suse.de>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
 Cc: Olga Kornievskaia <kolga@netapp.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Richard Weinberger <richard@nod.at>
 Cc: Rob Clark <robdclark@gmail.com>
 Cc: Rob Herring <robh@kernel.org>
 Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Sean Paul <sean@poorly.run>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Song Liu <song@kernel.org>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
+Cc: Steven Price <steven.price@arm.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Cc: Tom Talpey <tom@talpey.com>
 Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
 Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shrinker.h |    7 ++
- mm/internal.h            |   11 +++
- mm/shrinker.c            |  102 +++++++++++++++++++++++++++++++++++++
- mm/shrinker_debug.c      |   17 +++++-
- 4 files changed, 135 insertions(+), 2 deletions(-)
+ include/linux/memcontrol.h |   12 -
+ include/linux/shrinker.h   |   17 ++
+ mm/shrinker.c              |  251 +++++++++++++++++++++--------------
+ 3 files changed, 172 insertions(+), 108 deletions(-)
 
---- a/include/linux/shrinker.h~mm-shrinker-add-infrastructure-for-dynamically-allocating-shrinker
+--- a/include/linux/memcontrol.h~mm-shrinker-add-a-secondary-array-for-shrinker_info-map-nr_deferred
++++ a/include/linux/memcontrol.h
+@@ -21,6 +21,7 @@
+ #include <linux/vmstat.h>
+ #include <linux/writeback.h>
+ #include <linux/page-flags.h>
++#include <linux/shrinker.h>
+ 
+ struct mem_cgroup;
+ struct obj_cgroup;
+@@ -88,17 +89,6 @@ struct mem_cgroup_reclaim_iter {
+ 	unsigned int generation;
+ };
+ 
+-/*
+- * Bitmap and deferred work of shrinker::id corresponding to memcg-aware
+- * shrinkers, which have elements charged to this memcg.
+- */
+-struct shrinker_info {
+-	struct rcu_head rcu;
+-	atomic_long_t *nr_deferred;
+-	unsigned long *map;
+-	int map_nr_max;
+-};
+-
+ struct lruvec_stats_percpu {
+ 	/* Local (CPU and cgroup) state */
+ 	long state[NR_VM_NODE_STAT_ITEMS];
+--- a/include/linux/shrinker.h~mm-shrinker-add-a-secondary-array-for-shrinker_info-map-nr_deferred
 +++ a/include/linux/shrinker.h
-@@ -70,6 +70,8 @@ struct shrinker {
- 	int seeks;	/* seeks to recreate an obj */
- 	unsigned flags;
+@@ -5,6 +5,23 @@
+ #include <linux/atomic.h>
+ #include <linux/types.h>
  
-+	void *private_data;
++#define SHRINKER_UNIT_BITS	BITS_PER_LONG
 +
- 	/* These are for internal use */
- 	struct list_head list;
- #ifdef CONFIG_MEMCG
-@@ -95,6 +97,11 @@ struct shrinker {
-  * non-MEMCG_AWARE shrinker should not have this flag set.
-  */
- #define SHRINKER_NONSLAB	(1 << 3)
-+#define SHRINKER_ALLOCATED	(1 << 4)
++/*
++ * Bitmap and deferred work of shrinker::id corresponding to memcg-aware
++ * shrinkers, which have elements charged to the memcg.
++ */
++struct shrinker_info_unit {
++	atomic_long_t nr_deferred[SHRINKER_UNIT_BITS];
++	DECLARE_BITMAP(map, SHRINKER_UNIT_BITS);
++};
 +
-+struct shrinker *shrinker_alloc(unsigned int flags, const char *fmt, ...);
-+void shrinker_register(struct shrinker *shrinker);
-+void shrinker_free(struct shrinker *shrinker);
- 
- extern int __printf(2, 3) prealloc_shrinker(struct shrinker *shrinker,
- 					    const char *fmt, ...);
---- a/mm/internal.h~mm-shrinker-add-infrastructure-for-dynamically-allocating-shrinker
-+++ a/mm/internal.h
-@@ -1162,6 +1162,9 @@ unsigned long shrink_slab(gfp_t gfp_mask
- 
- #ifdef CONFIG_SHRINKER_DEBUG
- extern int shrinker_debugfs_add(struct shrinker *shrinker);
-+extern int shrinker_debugfs_name_alloc(struct shrinker *shrinker,
-+				       const char *fmt, va_list ap);
-+extern void shrinker_debugfs_name_free(struct shrinker *shrinker);
- extern struct dentry *shrinker_debugfs_detach(struct shrinker *shrinker,
- 					      int *debugfs_id);
- extern void shrinker_debugfs_remove(struct dentry *debugfs_entry,
-@@ -1171,6 +1174,14 @@ static inline int shrinker_debugfs_add(s
- {
- 	return 0;
- }
-+static inline int shrinker_debugfs_name_alloc(struct shrinker *shrinker,
-+					      const char *fmt, va_list ap)
-+{
-+	return 0;
-+}
-+static inline void shrinker_debugfs_name_free(struct shrinker *shrinker)
-+{
-+}
- static inline struct dentry *shrinker_debugfs_detach(struct shrinker *shrinker,
- 						     int *debugfs_id)
- {
---- a/mm/shrinker.c~mm-shrinker-add-infrastructure-for-dynamically-allocating-shrinker
-+++ a/mm/shrinker.c
-@@ -550,6 +550,108 @@ out:
- 	return freed;
- }
- 
-+struct shrinker *shrinker_alloc(unsigned int flags, const char *fmt, ...)
-+{
-+	struct shrinker *shrinker;
-+	unsigned int size;
-+	va_list ap;
-+	int err;
-+
-+	shrinker = kzalloc(sizeof(struct shrinker), GFP_KERNEL);
-+	if (!shrinker)
-+		return NULL;
-+
-+	va_start(ap, fmt);
-+	err = shrinker_debugfs_name_alloc(shrinker, fmt, ap);
-+	va_end(ap);
-+	if (err)
-+		goto err_name;
-+
-+	shrinker->flags = flags | SHRINKER_ALLOCATED;
-+	shrinker->seeks = DEFAULT_SEEKS;
-+
-+	if (flags & SHRINKER_MEMCG_AWARE) {
-+		err = prealloc_memcg_shrinker(shrinker);
-+		if (err == -ENOSYS)
-+			shrinker->flags &= ~SHRINKER_MEMCG_AWARE;
-+		else if (err == 0)
-+			goto done;
-+		else
-+			goto err_flags;
-+	}
-+
-+	/*
-+	 * The nr_deferred is available on per memcg level for memcg aware
-+	 * shrinkers, so only allocate nr_deferred in the following cases:
-+	 *  - non memcg aware shrinkers
-+	 *  - !CONFIG_MEMCG
-+	 *  - memcg is disabled by kernel command line
-+	 */
-+	size = sizeof(*shrinker->nr_deferred);
-+	if (flags & SHRINKER_NUMA_AWARE)
-+		size *= nr_node_ids;
-+
-+	shrinker->nr_deferred = kzalloc(size, GFP_KERNEL);
-+	if (!shrinker->nr_deferred)
-+		goto err_flags;
-+
-+done:
-+	return shrinker;
-+
-+err_flags:
-+	shrinker_debugfs_name_free(shrinker);
-+err_name:
-+	kfree(shrinker);
-+	return NULL;
-+}
-+EXPORT_SYMBOL_GPL(shrinker_alloc);
-+
-+void shrinker_register(struct shrinker *shrinker)
-+{
-+	if (unlikely(!(shrinker->flags & SHRINKER_ALLOCATED))) {
-+		pr_warn("Must use shrinker_alloc() to dynamically allocate the shrinker");
-+		return;
-+	}
-+
-+	down_write(&shrinker_rwsem);
-+	list_add_tail(&shrinker->list, &shrinker_list);
-+	shrinker->flags |= SHRINKER_REGISTERED;
-+	shrinker_debugfs_add(shrinker);
-+	up_write(&shrinker_rwsem);
-+}
-+EXPORT_SYMBOL_GPL(shrinker_register);
-+
-+void shrinker_free(struct shrinker *shrinker)
-+{
-+	struct dentry *debugfs_entry = NULL;
-+	int debugfs_id;
-+
-+	if (!shrinker)
-+		return;
-+
-+	down_write(&shrinker_rwsem);
-+	if (shrinker->flags & SHRINKER_REGISTERED) {
-+		list_del(&shrinker->list);
-+		debugfs_entry = shrinker_debugfs_detach(shrinker, &debugfs_id);
-+		shrinker->flags &= ~SHRINKER_REGISTERED;
-+	} else {
-+		shrinker_debugfs_name_free(shrinker);
-+	}
-+
-+	if (shrinker->flags & SHRINKER_MEMCG_AWARE)
-+		unregister_memcg_shrinker(shrinker);
-+	up_write(&shrinker_rwsem);
-+
-+	if (debugfs_entry)
-+		shrinker_debugfs_remove(debugfs_entry, debugfs_id);
-+
-+	kfree(shrinker->nr_deferred);
-+	shrinker->nr_deferred = NULL;
-+
-+	kfree(shrinker);
-+}
-+EXPORT_SYMBOL_GPL(shrinker_free);
++struct shrinker_info {
++	struct rcu_head rcu;
++	int map_nr_max;
++	struct shrinker_info_unit *unit[];
++};
 +
  /*
-  * Add a shrinker callback to be called from the vm.
-  */
---- a/mm/shrinker_debug.c~mm-shrinker-add-infrastructure-for-dynamically-allocating-shrinker
-+++ a/mm/shrinker_debug.c
-@@ -193,6 +193,20 @@ int shrinker_debugfs_add(struct shrinker
- 	return 0;
+  * This struct is used to pass information from page reclaim to the shrinkers.
+  * We consolidate the values for easier extension later.
+--- a/mm/shrinker.c~mm-shrinker-add-a-secondary-array-for-shrinker_info-map-nr_deferred
++++ a/mm/shrinker.c
+@@ -12,15 +12,50 @@ DECLARE_RWSEM(shrinker_rwsem);
+ #ifdef CONFIG_MEMCG
+ static int shrinker_nr_max;
+ 
+-/* The shrinker_info is expanded in a batch of BITS_PER_LONG */
+-static inline int shrinker_map_size(int nr_items)
++static inline int shrinker_unit_size(int nr_items)
+ {
+-	return (DIV_ROUND_UP(nr_items, BITS_PER_LONG) * sizeof(unsigned long));
++	return (DIV_ROUND_UP(nr_items, SHRINKER_UNIT_BITS) * sizeof(struct shrinker_info_unit *));
  }
  
-+int shrinker_debugfs_name_alloc(struct shrinker *shrinker, const char *fmt,
-+				va_list ap)
-+{
-+	shrinker->name = kvasprintf_const(GFP_KERNEL, fmt, ap);
-+
-+	return shrinker->name ? 0 : -ENOMEM;
-+}
-+
-+void shrinker_debugfs_name_free(struct shrinker *shrinker)
-+{
-+	kfree_const(shrinker->name);
-+	shrinker->name = NULL;
-+}
-+
- int shrinker_debugfs_rename(struct shrinker *shrinker, const char *fmt, ...)
+-static inline int shrinker_defer_size(int nr_items)
++static inline void shrinker_unit_free(struct shrinker_info *info, int start)
  {
- 	struct dentry *entry;
-@@ -241,8 +255,7 @@ struct dentry *shrinker_debugfs_detach(s
+-	return (round_up(nr_items, BITS_PER_LONG) * sizeof(atomic_long_t));
++	struct shrinker_info_unit **unit;
++	int nr, i;
++
++	if (!info)
++		return;
++
++	unit = info->unit;
++	nr = DIV_ROUND_UP(info->map_nr_max, SHRINKER_UNIT_BITS);
++
++	for (i = start; i < nr; i++) {
++		if (!unit[i])
++			break;
++
++		kfree(unit[i]);
++		unit[i] = NULL;
++	}
++}
++
++static inline int shrinker_unit_alloc(struct shrinker_info *new,
++				       struct shrinker_info *old, int nid)
++{
++	struct shrinker_info_unit *unit;
++	int nr = DIV_ROUND_UP(new->map_nr_max, SHRINKER_UNIT_BITS);
++	int start = old ? DIV_ROUND_UP(old->map_nr_max, SHRINKER_UNIT_BITS) : 0;
++	int i;
++
++	for (i = start; i < nr; i++) {
++		unit = kzalloc_node(sizeof(*unit), GFP_KERNEL, nid);
++		if (!unit) {
++			shrinker_unit_free(new, start);
++			return -ENOMEM;
++		}
++
++		new->unit[i] = unit;
++	}
++
++	return 0;
+ }
+ 
+ void free_shrinker_info(struct mem_cgroup *memcg)
+@@ -32,6 +67,7 @@ void free_shrinker_info(struct mem_cgrou
+ 	for_each_node(nid) {
+ 		pn = memcg->nodeinfo[nid];
+ 		info = rcu_dereference_protected(pn->shrinker_info, true);
++		shrinker_unit_free(info, 0);
+ 		kvfree(info);
+ 		rcu_assign_pointer(pn->shrinker_info, NULL);
+ 	}
+@@ -40,28 +76,27 @@ void free_shrinker_info(struct mem_cgrou
+ int alloc_shrinker_info(struct mem_cgroup *memcg)
+ {
+ 	struct shrinker_info *info;
+-	int nid, size, ret = 0;
+-	int map_size, defer_size = 0;
++	int nid, ret = 0;
++	int array_size = 0;
+ 
+ 	down_write(&shrinker_rwsem);
+-	map_size = shrinker_map_size(shrinker_nr_max);
+-	defer_size = shrinker_defer_size(shrinker_nr_max);
+-	size = map_size + defer_size;
++	array_size = shrinker_unit_size(shrinker_nr_max);
+ 	for_each_node(nid) {
+-		info = kvzalloc_node(sizeof(*info) + size, GFP_KERNEL, nid);
+-		if (!info) {
+-			free_shrinker_info(memcg);
+-			ret = -ENOMEM;
+-			break;
+-		}
+-		info->nr_deferred = (atomic_long_t *)(info + 1);
+-		info->map = (void *)info->nr_deferred + defer_size;
++		info = kvzalloc_node(sizeof(*info) + array_size, GFP_KERNEL, nid);
++		if (!info)
++			goto err;
+ 		info->map_nr_max = shrinker_nr_max;
++		if (shrinker_unit_alloc(info, NULL, nid))
++			goto err;
+ 		rcu_assign_pointer(memcg->nodeinfo[nid]->shrinker_info, info);
+ 	}
+ 	up_write(&shrinker_rwsem);
+ 
+ 	return ret;
++
++err:
++	free_shrinker_info(memcg);
++	return -ENOMEM;
+ }
+ 
+ static struct shrinker_info *shrinker_info_protected(struct mem_cgroup *memcg,
+@@ -71,15 +106,12 @@ static struct shrinker_info *shrinker_in
+ 					 lockdep_is_held(&shrinker_rwsem));
+ }
+ 
+-static int expand_one_shrinker_info(struct mem_cgroup *memcg,
+-				    int map_size, int defer_size,
+-				    int old_map_size, int old_defer_size,
+-				    int new_nr_max)
++static int expand_one_shrinker_info(struct mem_cgroup *memcg, int new_size,
++				    int old_size, int new_nr_max)
+ {
+ 	struct shrinker_info *new, *old;
+ 	struct mem_cgroup_per_node *pn;
+ 	int nid;
+-	int size = map_size + defer_size;
+ 
+ 	for_each_node(nid) {
+ 		pn = memcg->nodeinfo[nid];
+@@ -92,21 +124,17 @@ static int expand_one_shrinker_info(stru
+ 		if (new_nr_max <= old->map_nr_max)
+ 			continue;
+ 
+-		new = kvmalloc_node(sizeof(*new) + size, GFP_KERNEL, nid);
++		new = kvmalloc_node(sizeof(*new) + new_size, GFP_KERNEL, nid);
+ 		if (!new)
+ 			return -ENOMEM;
+ 
+-		new->nr_deferred = (atomic_long_t *)(new + 1);
+-		new->map = (void *)new->nr_deferred + defer_size;
+ 		new->map_nr_max = new_nr_max;
+ 
+-		/* map: set all old bits, clear all new bits */
+-		memset(new->map, (int)0xff, old_map_size);
+-		memset((void *)new->map + old_map_size, 0, map_size - old_map_size);
+-		/* nr_deferred: copy old values, clear all new values */
+-		memcpy(new->nr_deferred, old->nr_deferred, old_defer_size);
+-		memset((void *)new->nr_deferred + old_defer_size, 0,
+-		       defer_size - old_defer_size);
++		memcpy(new->unit, old->unit, old_size);
++		if (shrinker_unit_alloc(new, old, nid)) {
++			kvfree(new);
++			return -ENOMEM;
++		}
+ 
+ 		rcu_assign_pointer(pn->shrinker_info, new);
+ 		kvfree_rcu(old, rcu);
+@@ -118,9 +146,8 @@ static int expand_one_shrinker_info(stru
+ static int expand_shrinker_info(int new_id)
+ {
+ 	int ret = 0;
+-	int new_nr_max = round_up(new_id + 1, BITS_PER_LONG);
+-	int map_size, defer_size = 0;
+-	int old_map_size, old_defer_size = 0;
++	int new_nr_max = round_up(new_id + 1, SHRINKER_UNIT_BITS);
++	int new_size, old_size = 0;
+ 	struct mem_cgroup *memcg;
+ 
+ 	if (!root_mem_cgroup)
+@@ -128,15 +155,12 @@ static int expand_shrinker_info(int new_
  
  	lockdep_assert_held(&shrinker_rwsem);
  
--	kfree_const(shrinker->name);
--	shrinker->name = NULL;
-+	shrinker_debugfs_name_free(shrinker);
+-	map_size = shrinker_map_size(new_nr_max);
+-	defer_size = shrinker_defer_size(new_nr_max);
+-	old_map_size = shrinker_map_size(shrinker_nr_max);
+-	old_defer_size = shrinker_defer_size(shrinker_nr_max);
++	new_size = shrinker_unit_size(new_nr_max);
++	old_size = shrinker_unit_size(shrinker_nr_max);
  
- 	*debugfs_id = entry ? shrinker->debugfs_id : -1;
- 	shrinker->debugfs_entry = NULL;
+ 	memcg = mem_cgroup_iter(NULL, NULL, NULL);
+ 	do {
+-		ret = expand_one_shrinker_info(memcg, map_size, defer_size,
+-					       old_map_size, old_defer_size,
++		ret = expand_one_shrinker_info(memcg, new_size, old_size,
+ 					       new_nr_max);
+ 		if (ret) {
+ 			mem_cgroup_iter_break(NULL, memcg);
+@@ -150,17 +174,34 @@ out:
+ 	return ret;
+ }
+ 
++static inline int shrinker_id_to_index(int shrinker_id)
++{
++	return shrinker_id / SHRINKER_UNIT_BITS;
++}
++
++static inline int shrinker_id_to_offset(int shrinker_id)
++{
++	return shrinker_id % SHRINKER_UNIT_BITS;
++}
++
++static inline int calc_shrinker_id(int index, int offset)
++{
++	return index * SHRINKER_UNIT_BITS + offset;
++}
++
+ void set_shrinker_bit(struct mem_cgroup *memcg, int nid, int shrinker_id)
+ {
+ 	if (shrinker_id >= 0 && memcg && !mem_cgroup_is_root(memcg)) {
+ 		struct shrinker_info *info;
++		struct shrinker_info_unit *unit;
+ 
+ 		rcu_read_lock();
+ 		info = rcu_dereference(memcg->nodeinfo[nid]->shrinker_info);
++		unit = info->unit[shrinker_id_to_index(shrinker_id)];
+ 		if (!WARN_ON_ONCE(shrinker_id >= info->map_nr_max)) {
+ 			/* Pairs with smp mb in shrink_slab() */
+ 			smp_mb__before_atomic();
+-			set_bit(shrinker_id, info->map);
++			set_bit(shrinker_id_to_offset(shrinker_id), unit->map);
+ 		}
+ 		rcu_read_unlock();
+ 	}
+@@ -209,26 +250,31 @@ static long xchg_nr_deferred_memcg(int n
+ 				   struct mem_cgroup *memcg)
+ {
+ 	struct shrinker_info *info;
++	struct shrinker_info_unit *unit;
+ 
+ 	info = shrinker_info_protected(memcg, nid);
+-	return atomic_long_xchg(&info->nr_deferred[shrinker->id], 0);
++	unit = info->unit[shrinker_id_to_index(shrinker->id)];
++	return atomic_long_xchg(&unit->nr_deferred[shrinker_id_to_offset(shrinker->id)], 0);
+ }
+ 
+ static long add_nr_deferred_memcg(long nr, int nid, struct shrinker *shrinker,
+ 				  struct mem_cgroup *memcg)
+ {
+ 	struct shrinker_info *info;
++	struct shrinker_info_unit *unit;
+ 
+ 	info = shrinker_info_protected(memcg, nid);
+-	return atomic_long_add_return(nr, &info->nr_deferred[shrinker->id]);
++	unit = info->unit[shrinker_id_to_index(shrinker->id)];
++	return atomic_long_add_return(nr, &unit->nr_deferred[shrinker_id_to_offset(shrinker->id)]);
+ }
+ 
+ void reparent_shrinker_deferred(struct mem_cgroup *memcg)
+ {
+-	int i, nid;
++	int nid, index, offset;
+ 	long nr;
+ 	struct mem_cgroup *parent;
+ 	struct shrinker_info *child_info, *parent_info;
++	struct shrinker_info_unit *child_unit, *parent_unit;
+ 
+ 	parent = parent_mem_cgroup(memcg);
+ 	if (!parent)
+@@ -239,9 +285,13 @@ void reparent_shrinker_deferred(struct m
+ 	for_each_node(nid) {
+ 		child_info = shrinker_info_protected(memcg, nid);
+ 		parent_info = shrinker_info_protected(parent, nid);
+-		for (i = 0; i < child_info->map_nr_max; i++) {
+-			nr = atomic_long_read(&child_info->nr_deferred[i]);
+-			atomic_long_add(nr, &parent_info->nr_deferred[i]);
++		for (index = 0; index < shrinker_id_to_index(child_info->map_nr_max); index++) {
++			child_unit = child_info->unit[index];
++			parent_unit = parent_info->unit[index];
++			for (offset = 0; offset < SHRINKER_UNIT_BITS; offset++) {
++				nr = atomic_long_read(&child_unit->nr_deferred[offset]);
++				atomic_long_add(nr, &parent_unit->nr_deferred[offset]);
++			}
+ 		}
+ 	}
+ 	up_read(&shrinker_rwsem);
+@@ -407,7 +457,7 @@ static unsigned long shrink_slab_memcg(g
+ {
+ 	struct shrinker_info *info;
+ 	unsigned long ret, freed = 0;
+-	int i;
++	int offset, index = 0;
+ 
+ 	if (!mem_cgroup_online(memcg))
+ 		return 0;
+@@ -419,56 +469,63 @@ static unsigned long shrink_slab_memcg(g
+ 	if (unlikely(!info))
+ 		goto unlock;
+ 
+-	for_each_set_bit(i, info->map, info->map_nr_max) {
+-		struct shrink_control sc = {
+-			.gfp_mask = gfp_mask,
+-			.nid = nid,
+-			.memcg = memcg,
+-		};
+-		struct shrinker *shrinker;
+-
+-		shrinker = idr_find(&shrinker_idr, i);
+-		if (unlikely(!shrinker || !(shrinker->flags & SHRINKER_REGISTERED))) {
+-			if (!shrinker)
+-				clear_bit(i, info->map);
+-			continue;
+-		}
++	for (; index < shrinker_id_to_index(info->map_nr_max); index++) {
++		struct shrinker_info_unit *unit;
+ 
+-		/* Call non-slab shrinkers even though kmem is disabled */
+-		if (!memcg_kmem_online() &&
+-		    !(shrinker->flags & SHRINKER_NONSLAB))
+-			continue;
++		unit = info->unit[index];
+ 
+-		ret = do_shrink_slab(&sc, shrinker, priority);
+-		if (ret == SHRINK_EMPTY) {
+-			clear_bit(i, info->map);
+-			/*
+-			 * After the shrinker reported that it had no objects to
+-			 * free, but before we cleared the corresponding bit in
+-			 * the memcg shrinker map, a new object might have been
+-			 * added. To make sure, we have the bit set in this
+-			 * case, we invoke the shrinker one more time and reset
+-			 * the bit if it reports that it is not empty anymore.
+-			 * The memory barrier here pairs with the barrier in
+-			 * set_shrinker_bit():
+-			 *
+-			 * list_lru_add()     shrink_slab_memcg()
+-			 *   list_add_tail()    clear_bit()
+-			 *   <MB>               <MB>
+-			 *   set_bit()          do_shrink_slab()
+-			 */
+-			smp_mb__after_atomic();
+-			ret = do_shrink_slab(&sc, shrinker, priority);
+-			if (ret == SHRINK_EMPTY)
+-				ret = 0;
+-			else
+-				set_shrinker_bit(memcg, nid, i);
+-		}
+-		freed += ret;
++		for_each_set_bit(offset, unit->map, SHRINKER_UNIT_BITS) {
++			struct shrink_control sc = {
++				.gfp_mask = gfp_mask,
++				.nid = nid,
++				.memcg = memcg,
++			};
++			struct shrinker *shrinker;
++			int shrinker_id = calc_shrinker_id(index, offset);
++
++			shrinker = idr_find(&shrinker_idr, shrinker_id);
++			if (unlikely(!shrinker || !(shrinker->flags & SHRINKER_REGISTERED))) {
++				if (!shrinker)
++					clear_bit(offset, unit->map);
++				continue;
++			}
++
++			/* Call non-slab shrinkers even though kmem is disabled */
++			if (!memcg_kmem_online() &&
++			    !(shrinker->flags & SHRINKER_NONSLAB))
++				continue;
+ 
+-		if (rwsem_is_contended(&shrinker_rwsem)) {
+-			freed = freed ? : 1;
+-			break;
++			ret = do_shrink_slab(&sc, shrinker, priority);
++			if (ret == SHRINK_EMPTY) {
++				clear_bit(offset, unit->map);
++				/*
++				 * After the shrinker reported that it had no objects to
++				 * free, but before we cleared the corresponding bit in
++				 * the memcg shrinker map, a new object might have been
++				 * added. To make sure, we have the bit set in this
++				 * case, we invoke the shrinker one more time and reset
++				 * the bit if it reports that it is not empty anymore.
++				 * The memory barrier here pairs with the barrier in
++				 * set_shrinker_bit():
++				 *
++				 * list_lru_add()     shrink_slab_memcg()
++				 *   list_add_tail()    clear_bit()
++				 *   <MB>               <MB>
++				 *   set_bit()          do_shrink_slab()
++				 */
++				smp_mb__after_atomic();
++				ret = do_shrink_slab(&sc, shrinker, priority);
++				if (ret == SHRINK_EMPTY)
++					ret = 0;
++				else
++					set_shrinker_bit(memcg, nid, shrinker_id);
++			}
++			freed += ret;
++
++			if (rwsem_is_contended(&shrinker_rwsem)) {
++				freed = freed ? : 1;
++				goto unlock;
++			}
+ 		}
+ 	}
+ unlock:
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
