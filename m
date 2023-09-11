@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79071CA0ECD
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:26:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87A6ACA0ED6
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:26:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243127AbjIKWYK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:24:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38138 "EHLO
+        id S238478AbjIKWYT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:24:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35926 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244524AbjIKUjr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:39:47 -0400
+        with ESMTP id S244523AbjIKUjl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:39:41 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D88BC127
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:39:40 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6796BC433C7;
-        Mon, 11 Sep 2023 20:39:40 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CCDEA127
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:39:35 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6366AC433C8;
+        Mon, 11 Sep 2023 20:39:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464780;
-        bh=V+bbXacb4pRFWqVx2mR+uvYisKaDK6WEO/tZSgdLQ2I=;
+        s=korg; t=1694464775;
+        bh=6A1Sf3KEkg9OKsRbWbYIw6uEiZPtStF7WZjRoNd4j24=;
         h=Date:To:From:Subject:From;
-        b=Tekcg+xDWGxXMzEXZhhBUZ2r10P37uAZDACVDsbNeRROxd/lP+1DLhQY+kMKLSL8E
-         y3ZaF1QNFaQN9guGfrOlWQ7C9j6O5u7QWG7ACekCzlJIJR+09sevDzQB6hCejORavv
-         jYKlMZIhcADZfyE+qudkS4eMxTlS/fElZsjvnVTo=
-Date:   Mon, 11 Sep 2023 13:39:39 -0700
+        b=aLdvj2DiY3Ys14r/bNsdZnMG1s7QTZYdQopaTNCYWlsgb7NjHIZMO4XiR0gMPB65E
+         5RWE8kUvInEcbvry1rm7HdPKrLz/lS1gPOBqHbqmgxIqvwZwtLqgadzKfv4e4h8DSH
+         HC8BVRI7EqbYPT4GJwHkm1W88MK7foMfq9GnusNQ=
+Date:   Mon, 11 Sep 2023 13:39:34 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mbcache-dynamically-allocate-the-mbcache-shrinker.patch added to mm-unstable branch
-Message-Id: <20230911203940.6796BC433C7@smtp.kernel.org>
+Subject: + virtio_balloon-dynamically-allocate-the-virtio-balloon-shrinker.patch added to mm-unstable branch
+Message-Id: <20230911203935.6366AC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mbcache: dynamically allocate the mbcache shrinker
+     Subject: virtio_balloon: dynamically allocate the virtio-balloon shrinker
 has been added to the -mm mm-unstable branch.  Its filename is
-     mbcache-dynamically-allocate-the-mbcache-shrinker.patch
+     virtio_balloon-dynamically-allocate-the-virtio-balloon-shrinker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mbcache-dynamically-allocate-the-mbcache-shrinker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/virtio_balloon-dynamically-allocate-the-virtio-balloon-shrinker.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,21 +87,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mbcache: dynamically allocate the mbcache shrinker
-Date: Mon, 11 Sep 2023 17:44:28 +0800
+Subject: virtio_balloon: dynamically allocate the virtio-balloon shrinker
+Date: Mon, 11 Sep 2023 17:44:27 +0800
 
 In preparation for implementing lockless slab shrink, use new APIs to
-dynamically allocate the mbcache shrinker, so that it can be freed
+dynamically allocate the virtio-balloon shrinker, so that it can be freed
 asynchronously via RCU. Then it doesn't need to wait for RCU read-side
-critical section when releasing the struct mb_cache.
+critical section when releasing the struct virtio_balloon.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-30-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-29-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alyssa Rosenzweig <alyssa.rosenzweig@collabora.com>
 Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
@@ -113,6 +116,7 @@ Cc: Carlos Llamas <cmllamas@google.com>
 Cc: Chandan Babu R <chandan.babu@oracle.com>
 Cc: Chao Yu <chao@kernel.org>
 Cc: Chris Mason <clm@fb.com>
+Cc: Christian Brauner <brauner@kernel.org>
 Cc: Christian Koenig <christian.koenig@amd.com>
 Cc: Chuck Lever <cel@kernel.org>
 Cc: Coly Li <colyli@suse.de>
@@ -123,7 +127,6 @@ Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Airlie <airlied@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: David Sterba <dsterba@suse.com>
 Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
 Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
@@ -133,7 +136,6 @@ Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
 Cc: Jan Kara <jack@suse.cz>
-Cc: Jason Wang <jasowang@redhat.com>
 Cc: Jeff Layton <jlayton@kernel.org>
 Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
 Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
@@ -143,7 +145,6 @@ Cc: Juergen Gross <jgross@suse.com>
 Cc: Kent Overstreet <kent.overstreet@gmail.com>
 Cc: Kirill Tkhai <tkhai@ya.ru>
 Cc: Marijn Suijten <marijn.suijten@somainline.org>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
@@ -169,78 +170,72 @@ Cc: Tom Talpey <tom@talpey.com>
 Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
 Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mbcache.c |   22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+ drivers/virtio/virtio_balloon.c |   24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
---- a/fs/mbcache.c~mbcache-dynamically-allocate-the-mbcache-shrinker
-+++ a/fs/mbcache.c
-@@ -37,7 +37,7 @@ struct mb_cache {
- 	struct list_head	c_list;
- 	/* Number of entries in cache */
- 	unsigned long		c_entry_count;
--	struct shrinker		c_shrink;
-+	struct shrinker		*c_shrink;
- 	/* Work for shrinking when the cache has too many entries */
- 	struct work_struct	c_shrink_work;
- };
-@@ -293,8 +293,7 @@ EXPORT_SYMBOL(mb_cache_entry_touch);
- static unsigned long mb_cache_count(struct shrinker *shrink,
- 				    struct shrink_control *sc)
- {
--	struct mb_cache *cache = container_of(shrink, struct mb_cache,
--					      c_shrink);
-+	struct mb_cache *cache = shrink->private_data;
+--- a/drivers/virtio/virtio_balloon.c~virtio_balloon-dynamically-allocate-the-virtio-balloon-shrinker
++++ a/drivers/virtio/virtio_balloon.c
+@@ -111,7 +111,7 @@ struct virtio_balloon {
+ 	struct virtio_balloon_stat stats[VIRTIO_BALLOON_S_NR];
  
- 	return cache->c_entry_count;
+ 	/* Shrinker to return free pages - VIRTIO_BALLOON_F_FREE_PAGE_HINT */
+-	struct shrinker shrinker;
++	struct shrinker *shrinker;
+ 
+ 	/* OOM notifier to deflate on OOM - VIRTIO_BALLOON_F_DEFLATE_ON_OOM */
+ 	struct notifier_block oom_nb;
+@@ -816,8 +816,7 @@ static unsigned long shrink_free_pages(s
+ static unsigned long virtio_balloon_shrinker_scan(struct shrinker *shrinker,
+ 						  struct shrink_control *sc)
+ {
+-	struct virtio_balloon *vb = container_of(shrinker,
+-					struct virtio_balloon, shrinker);
++	struct virtio_balloon *vb = shrinker->private_data;
+ 
+ 	return shrink_free_pages(vb, sc->nr_to_scan);
  }
-@@ -333,8 +332,7 @@ static unsigned long mb_cache_shrink(str
- static unsigned long mb_cache_scan(struct shrinker *shrink,
- 				   struct shrink_control *sc)
+@@ -825,8 +824,7 @@ static unsigned long virtio_balloon_shri
+ static unsigned long virtio_balloon_shrinker_count(struct shrinker *shrinker,
+ 						   struct shrink_control *sc)
  {
--	struct mb_cache *cache = container_of(shrink, struct mb_cache,
--					      c_shrink);
-+	struct mb_cache *cache = shrink->private_data;
- 	return mb_cache_shrink(cache, sc->nr_to_scan);
+-	struct virtio_balloon *vb = container_of(shrinker,
+-					struct virtio_balloon, shrinker);
++	struct virtio_balloon *vb = shrinker->private_data;
+ 
+ 	return vb->num_free_page_blocks * VIRTIO_BALLOON_HINT_BLOCK_PAGES;
+ }
+@@ -847,16 +845,22 @@ static int virtio_balloon_oom_notify(str
+ 
+ static void virtio_balloon_unregister_shrinker(struct virtio_balloon *vb)
+ {
+-	unregister_shrinker(&vb->shrinker);
++	shrinker_free(vb->shrinker);
  }
  
-@@ -377,15 +375,19 @@ struct mb_cache *mb_cache_create(int buc
- 	for (i = 0; i < bucket_count; i++)
- 		INIT_HLIST_BL_HEAD(&cache->c_hash[i]);
- 
--	cache->c_shrink.count_objects = mb_cache_count;
--	cache->c_shrink.scan_objects = mb_cache_scan;
--	cache->c_shrink.seeks = DEFAULT_SEEKS;
--	if (register_shrinker(&cache->c_shrink, "mbcache-shrinker")) {
-+	cache->c_shrink = shrinker_alloc(0, "mbcache-shrinker");
-+	if (!cache->c_shrink) {
- 		kfree(cache->c_hash);
- 		kfree(cache);
- 		goto err_out;
- 	}
- 
-+	cache->c_shrink->count_objects = mb_cache_count;
-+	cache->c_shrink->scan_objects = mb_cache_scan;
-+	cache->c_shrink->private_data = cache;
-+
-+	shrinker_register(cache->c_shrink);
-+
- 	INIT_WORK(&cache->c_shrink_work, mb_cache_shrink_worker);
- 
- 	return cache;
-@@ -406,7 +408,7 @@ void mb_cache_destroy(struct mb_cache *c
+ static int virtio_balloon_register_shrinker(struct virtio_balloon *vb)
  {
- 	struct mb_cache_entry *entry, *next;
+-	vb->shrinker.scan_objects = virtio_balloon_shrinker_scan;
+-	vb->shrinker.count_objects = virtio_balloon_shrinker_count;
+-	vb->shrinker.seeks = DEFAULT_SEEKS;
++	vb->shrinker = shrinker_alloc(0, "virtio-balloon");
++	if (!vb->shrinker)
++		return -ENOMEM;
++
++	vb->shrinker->scan_objects = virtio_balloon_shrinker_scan;
++	vb->shrinker->count_objects = virtio_balloon_shrinker_count;
++	vb->shrinker->private_data = vb;
  
--	unregister_shrinker(&cache->c_shrink);
-+	shrinker_free(cache->c_shrink);
+-	return register_shrinker(&vb->shrinker, "virtio-balloon");
++	shrinker_register(vb->shrinker);
++
++	return 0;
+ }
  
- 	/*
- 	 * We don't bother with any locking. Cache must not be used at this
+ static int virtballoon_probe(struct virtio_device *vdev)
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
