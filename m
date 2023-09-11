@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41559CA0EC9
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2590BCA0EC3
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238174AbjIKWVt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:21:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36564 "EHLO
+        id S238480AbjIKWVw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:21:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46350 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244529AbjIKUj5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:39:57 -0400
+        with ESMTP id S244465AbjIKUhY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:37:24 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 83442127
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:39:52 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13FC5C433C8;
-        Mon, 11 Sep 2023 20:39:52 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84A98127
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:37:19 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 133C2C433C7;
+        Mon, 11 Sep 2023 20:37:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464792;
-        bh=BwJ6bru962ObHFM7jiWIWb7MG4pCgt5A3ON3ZH4KLMo=;
+        s=korg; t=1694464639;
+        bh=2660QnCUoUX0XrVECVVlLgoKgmRZ8I4ad7+jJOt3PIY=;
         h=Date:To:From:Subject:From;
-        b=N6SbqC6BWJdKpVzRmpAhT4AvaFLCppwW7V+M55Vf7Shj4iuj9X7sUIw0cxWCGmotm
-         nS4CzVvTvLx2agAoXe14ccj7eZeRuhbdwjZD9JKR1rHUjSeQXTNWf8AqscMwNq6qGp
-         2Ggr/gpYtby8fdseAXIQ3ZuvbBQ/7B7DQsYZkyOY=
-Date:   Mon, 11 Sep 2023 13:39:51 -0700
+        b=GYWLzySRZEgCaOh2P4zYD7BdhcvAvf6sz/27kdsfcGO4rVVTuHEwka5F6DCwo+wwx
+         nBGAa1WIRCedDd9V7J9sEcizEgoxsxLa92CInCnJK6zrIf+7065yLyG6z4ENKoA5LR
+         a4o2BYyUiVcLtW0UGYB9iKbNuhbn0Ii/aOAfSvhs=
+Date:   Mon, 11 Sep 2023 13:37:18 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + jbd2ext4-dynamically-allocate-the-jbd2-journal-shrinker.patch added to mm-unstable branch
-Message-Id: <20230911203952.13FC5C433C8@smtp.kernel.org>
+Subject: + binder-dynamically-allocate-the-android-binder-shrinker.patch added to mm-unstable branch
+Message-Id: <20230911203719.133C2C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: jbd2,ext4: dynamically allocate the jbd2-journal shrinker
+     Subject: binder: dynamically allocate the android-binder shrinker
 has been added to the -mm mm-unstable branch.  Its filename is
-     jbd2ext4-dynamically-allocate-the-jbd2-journal-shrinker.patch
+     binder-dynamically-allocate-the-android-binder-shrinker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/jbd2ext4-dynamically-allocate-the-jbd2-journal-shrinker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/binder-dynamically-allocate-the-android-binder-shrinker.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,19 +87,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: jbd2,ext4: dynamically allocate the jbd2-journal shrinker
-Date: Mon, 11 Sep 2023 17:44:30 +0800
+Subject: binder: dynamically allocate the android-binder shrinker
+Date: Mon, 11 Sep 2023 17:44:02 +0800
 
-In preparation for implementing lockless slab shrink, use new APIs to
-dynamically allocate the jbd2-journal shrinker, so that it can be freed
-asynchronously via RCU. Then it doesn't need to wait for RCU read-side
-critical section when releasing the struct journal_s.
+Use new APIs to dynamically allocate the android-binder shrinker.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-32-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-4-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Jan Kara <jack@suse.cz>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
+Acked-by: Carlos Llamas <cmllamas@google.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -110,7 +107,6 @@ Cc: Anna Schumaker <anna@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Bob Peterson <rpeterso@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
-Cc: Carlos Llamas <cmllamas@google.com>
 Cc: Chandan Babu R <chandan.babu@oracle.com>
 Cc: Chao Yu <chao@kernel.org>
 Cc: Chris Mason <clm@fb.com>
@@ -129,11 +125,11 @@ Cc: David Hildenbrand <david@redhat.com>
 Cc: David Sterba <dsterba@suse.com>
 Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
 Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Huang Rui <ray.huang@amd.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Wang <jasowang@redhat.com>
 Cc: Jeff Layton <jlayton@kernel.org>
 Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
@@ -163,6 +159,7 @@ Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Song Liu <song@kernel.org>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Steven Price <steven.price@arm.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Cc: Tom Talpey <tom@talpey.com>
@@ -174,82 +171,61 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd2/journal.c    |   29 ++++++++++++++++++-----------
- include/linux/jbd2.h |    2 +-
- 2 files changed, 19 insertions(+), 12 deletions(-)
+ drivers/android/binder_alloc.c |   30 ++++++++++++++++++------------
+ 1 file changed, 18 insertions(+), 12 deletions(-)
 
---- a/fs/jbd2/journal.c~jbd2ext4-dynamically-allocate-the-jbd2-journal-shrinker
-+++ a/fs/jbd2/journal.c
-@@ -1290,7 +1290,7 @@ static int jbd2_min_tag_size(void)
- static unsigned long jbd2_journal_shrink_scan(struct shrinker *shrink,
- 					      struct shrink_control *sc)
+--- a/drivers/android/binder_alloc.c~binder-dynamically-allocate-the-android-binder-shrinker
++++ a/drivers/android/binder_alloc.c
+@@ -1053,11 +1053,7 @@ binder_shrink_scan(struct shrinker *shri
+ 			    NULL, sc->nr_to_scan);
+ }
+ 
+-static struct shrinker binder_shrinker = {
+-	.count_objects = binder_shrink_count,
+-	.scan_objects = binder_shrink_scan,
+-	.seeks = DEFAULT_SEEKS,
+-};
++static struct shrinker *binder_shrinker;
+ 
+ /**
+  * binder_alloc_init() - called by binder_open() for per-proc initialization
+@@ -1077,19 +1073,29 @@ void binder_alloc_init(struct binder_all
+ 
+ int binder_alloc_shrinker_init(void)
  {
--	journal_t *journal = container_of(shrink, journal_t, j_shrinker);
-+	journal_t *journal = shrink->private_data;
- 	unsigned long nr_to_scan = sc->nr_to_scan;
- 	unsigned long nr_shrunk;
- 	unsigned long count;
-@@ -1316,7 +1316,7 @@ static unsigned long jbd2_journal_shrink
- static unsigned long jbd2_journal_shrink_count(struct shrinker *shrink,
- 					       struct shrink_control *sc)
+-	int ret = list_lru_init(&binder_alloc_lru);
++	int ret;
+ 
+-	if (ret == 0) {
+-		ret = register_shrinker(&binder_shrinker, "android-binder");
+-		if (ret)
+-			list_lru_destroy(&binder_alloc_lru);
++	ret = list_lru_init(&binder_alloc_lru);
++	if (ret)
++		return ret;
++
++	binder_shrinker = shrinker_alloc(0, "android-binder");
++	if (!binder_shrinker) {
++		list_lru_destroy(&binder_alloc_lru);
++		return -ENOMEM;
+ 	}
+-	return ret;
++
++	binder_shrinker->count_objects = binder_shrink_count;
++	binder_shrinker->scan_objects = binder_shrink_scan;
++
++	shrinker_register(binder_shrinker);
++
++	return 0;
+ }
+ 
+ void binder_alloc_shrinker_exit(void)
  {
--	journal_t *journal = container_of(shrink, journal_t, j_shrinker);
-+	journal_t *journal = shrink->private_data;
- 	unsigned long count;
+-	unregister_shrinker(&binder_shrinker);
++	shrinker_free(binder_shrinker);
+ 	list_lru_destroy(&binder_alloc_lru);
+ }
  
- 	count = percpu_counter_read_positive(&journal->j_checkpoint_jh_count);
-@@ -1588,14 +1588,21 @@ static journal_t *journal_init_common(st
- 		goto err_cleanup;
- 
- 	journal->j_shrink_transaction = NULL;
--	journal->j_shrinker.scan_objects = jbd2_journal_shrink_scan;
--	journal->j_shrinker.count_objects = jbd2_journal_shrink_count;
--	journal->j_shrinker.seeks = DEFAULT_SEEKS;
--	journal->j_shrinker.batch = journal->j_max_transaction_buffers;
--	err = register_shrinker(&journal->j_shrinker, "jbd2-journal:(%u:%u)",
--				MAJOR(bdev->bd_dev), MINOR(bdev->bd_dev));
--	if (err)
-+
-+	journal->j_shrinker = shrinker_alloc(0, "jbd2-journal:(%u:%u)",
-+					     MAJOR(bdev->bd_dev),
-+					     MINOR(bdev->bd_dev));
-+	if (!journal->j_shrinker) {
-+		err = -ENOMEM;
- 		goto err_cleanup;
-+	}
-+
-+	journal->j_shrinker->scan_objects = jbd2_journal_shrink_scan;
-+	journal->j_shrinker->count_objects = jbd2_journal_shrink_count;
-+	journal->j_shrinker->batch = journal->j_max_transaction_buffers;
-+	journal->j_shrinker->private_data = journal;
-+
-+	shrinker_register(journal->j_shrinker);
- 
- 	return journal;
- 
-@@ -2170,9 +2177,9 @@ int jbd2_journal_destroy(journal_t *jour
- 		brelse(journal->j_sb_buffer);
- 	}
- 
--	if (journal->j_shrinker.flags & SHRINKER_REGISTERED) {
-+	if (journal->j_shrinker) {
- 		percpu_counter_destroy(&journal->j_checkpoint_jh_count);
--		unregister_shrinker(&journal->j_shrinker);
-+		shrinker_free(journal->j_shrinker);
- 	}
- 	if (journal->j_proc_entry)
- 		jbd2_stats_proc_exit(journal);
---- a/include/linux/jbd2.h~jbd2ext4-dynamically-allocate-the-jbd2-journal-shrinker
-+++ a/include/linux/jbd2.h
-@@ -886,7 +886,7 @@ struct journal_s
- 	 * Journal head shrinker, reclaim buffer's journal head which
- 	 * has been written back.
- 	 */
--	struct shrinker		j_shrinker;
-+	struct shrinker		*j_shrinker;
- 
- 	/**
- 	 * @j_checkpoint_jh_count:
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
