@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C550CA0ECF
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF1E3CA0ED3
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240454AbjIKWWP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:22:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59244 "EHLO
+        id S240614AbjIKWWT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:22:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39762 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244559AbjIKUkt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:40:49 -0400
+        with ESMTP id S244504AbjIKUi4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:38:56 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5AD29127
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:40:44 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D33B0C433C7;
-        Mon, 11 Sep 2023 20:40:43 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11E09127
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:38:51 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B974C433CD;
+        Mon, 11 Sep 2023 20:38:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464844;
-        bh=N0gjEyWew32v+EoUmT0OJElPRSZ0ENuCIo0HZJa2i0A=;
+        s=korg; t=1694464730;
+        bh=TRGpCzu5S3MWWv2G5fqmDyu34aIaZJQzBTISSgsJUS0=;
         h=Date:To:From:Subject:From;
-        b=H9bsTUxPPt8y8ojqZeClE5QmojBYkCPGYvf5C0iTxacUfmZ1zOJEIz173yn83tlRJ
-         HaQCQpvi/ALoTmAV7zOfPvp/pLNq1AoYsAVzH6B51NLt6XGlCvGngwFg/5LabhqM0L
-         XHIUSSK3Zzwrlz3Fcvt411LH6s9P8QHTHJOPcrK8=
-Date:   Mon, 11 Sep 2023 13:40:43 -0700
+        b=ANen53FI2yjoYeygSTypUlrcLRrBVgNLAKVLPndf2lbQ6GafeWd7JGuNLdIy8Sy6P
+         f7Sli/gzKgKTt+u7oF4cmjPorDDStnDAEC8b+YkzEBWAYpI1kqiekT+lCIu7gSz9Ui
+         7QW89936/xaHmhVU4svVjoMA0jvX5LGwJ425OZUE=
+Date:   Mon, 11 Sep 2023 13:38:49 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shrinker-rename-preallocunregister_memcg_shrinker-to-shrinker_memcg_allocremove.patch added to mm-unstable branch
-Message-Id: <20230911204043.D33B0C433C7@smtp.kernel.org>
+Subject: + drm-i915-dynamically-allocate-the-i915_gem_mm-shrinker.patch added to mm-unstable branch
+Message-Id: <20230911203850.9B974C433CD@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: shrinker: rename {prealloc|unregister}_memcg_shrinker() to shrinker_memcg_{alloc|remove}()
+     Subject: drm/i915: dynamically allocate the i915_gem_mm shrinker
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-shrinker-rename-preallocunregister_memcg_shrinker-to-shrinker_memcg_allocremove.patch
+     drm-i915-dynamically-allocate-the-i915_gem_mm-shrinker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinker-rename-preallocunregister_memcg_shrinker-to-shrinker_memcg_allocremove.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-i915-dynamically-allocate-the-i915_gem_mm-shrinker.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,15 +87,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: shrinker: rename {prealloc|unregister}_memcg_shrinker() to shrinker_memcg_{alloc|remove}()
-Date: Mon, 11 Sep 2023 17:44:40 +0800
+Subject: drm/i915: dynamically allocate the i915_gem_mm shrinker
+Date: Mon, 11 Sep 2023 17:44:19 +0800
 
-With the new shrinker APIs, there is no action such as prealloc, so rename
-{prealloc|unregister}_memcg_shrinker() to shrinker_memcg_{alloc|remove}(),
-which corresponds to the idr_{alloc|remove}() inside the function.
+In preparation for implementing lockless slab shrink, use new APIs to
+dynamically allocate the i915_gem_mm shrinker, so that it can be freed
+asynchronously via RCU. Then it doesn't need to wait for RCU read-side
+critical section when releasing the struct drm_i915_private.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-42-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-21-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
+Cc: David Airlie <airlied@gmail.com>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -116,11 +124,9 @@ Cc: Chuck Lever <cel@kernel.org>
 Cc: Coly Li <colyli@suse.de>
 Cc: Dai Ngo <Dai.Ngo@oracle.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Airlie <airlied@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Sterba <dsterba@suse.com>
 Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
@@ -129,13 +135,11 @@ Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Huang Rui <ray.huang@amd.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Wang <jasowang@redhat.com>
 Cc: Jeff Layton <jlayton@kernel.org>
 Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
 Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
-Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
 Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: Juergen Gross <jgross@suse.com>
 Cc: Kent Overstreet <kent.overstreet@gmail.com>
@@ -145,7 +149,6 @@ Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Nadav Amit <namit@vmware.com>
 Cc: Neil Brown <neilb@suse.de>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
@@ -154,7 +157,6 @@ Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Richard Weinberger <richard@nod.at>
 Cc: Rob Clark <robdclark@gmail.com>
 Cc: Rob Herring <robh@kernel.org>
-Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Sean Paul <sean@poorly.run>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
@@ -166,69 +168,93 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Cc: Tom Talpey <tom@talpey.com>
 Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
-Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
 Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shrinker.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/gpu/drm/i915/gem/i915_gem_shrinker.c |   29 +++++++++--------
+ drivers/gpu/drm/i915/i915_drv.h              |    2 -
+ 2 files changed, 17 insertions(+), 14 deletions(-)
 
---- a/mm/shrinker.c~mm-shrinker-rename-preallocunregister_memcg_shrinker-to-shrinker_memcg_allocremove
-+++ a/mm/shrinker.c
-@@ -209,7 +209,7 @@ void set_shrinker_bit(struct mem_cgroup
- 
- static DEFINE_IDR(shrinker_idr);
- 
--static int prealloc_memcg_shrinker(struct shrinker *shrinker)
-+static int shrinker_memcg_alloc(struct shrinker *shrinker)
+--- a/drivers/gpu/drm/i915/gem/i915_gem_shrinker.c~drm-i915-dynamically-allocate-the-i915_gem_mm-shrinker
++++ a/drivers/gpu/drm/i915/gem/i915_gem_shrinker.c
+@@ -284,8 +284,7 @@ unsigned long i915_gem_shrink_all(struct
+ static unsigned long
+ i915_gem_shrinker_count(struct shrinker *shrinker, struct shrink_control *sc)
  {
- 	int id, ret = -ENOMEM;
+-	struct drm_i915_private *i915 =
+-		container_of(shrinker, struct drm_i915_private, mm.shrinker);
++	struct drm_i915_private *i915 = shrinker->private_data;
+ 	unsigned long num_objects;
+ 	unsigned long count;
  
-@@ -235,7 +235,7 @@ unlock:
- 	return ret;
- }
+@@ -302,8 +301,8 @@ i915_gem_shrinker_count(struct shrinker
+ 	if (num_objects) {
+ 		unsigned long avg = 2 * count / num_objects;
  
--static void unregister_memcg_shrinker(struct shrinker *shrinker)
-+static void shrinker_memcg_remove(struct shrinker *shrinker)
- {
- 	int id = shrinker->id;
- 
-@@ -297,12 +297,12 @@ void reparent_shrinker_deferred(struct m
- 	up_read(&shrinker_rwsem);
- }
- #else
--static int prealloc_memcg_shrinker(struct shrinker *shrinker)
-+static int shrinker_memcg_alloc(struct shrinker *shrinker)
- {
- 	return -ENOSYS;
- }
- 
--static void unregister_memcg_shrinker(struct shrinker *shrinker)
-+static void shrinker_memcg_remove(struct shrinker *shrinker)
- {
- }
- 
-@@ -628,7 +628,7 @@ struct shrinker *shrinker_alloc(unsigned
- 	shrinker->seeks = DEFAULT_SEEKS;
- 
- 	if (flags & SHRINKER_MEMCG_AWARE) {
--		err = prealloc_memcg_shrinker(shrinker);
-+		err = shrinker_memcg_alloc(shrinker);
- 		if (err == -ENOSYS)
- 			shrinker->flags &= ~SHRINKER_MEMCG_AWARE;
- 		else if (err == 0)
-@@ -696,7 +696,7 @@ void shrinker_free(struct shrinker *shri
+-		i915->mm.shrinker.batch =
+-			max((i915->mm.shrinker.batch + avg) >> 1,
++		i915->mm.shrinker->batch =
++			max((i915->mm.shrinker->batch + avg) >> 1,
+ 			    128ul /* default SHRINK_BATCH */);
  	}
  
- 	if (shrinker->flags & SHRINKER_MEMCG_AWARE)
--		unregister_memcg_shrinker(shrinker);
-+		shrinker_memcg_remove(shrinker);
- 	up_write(&shrinker_rwsem);
+@@ -313,8 +312,7 @@ i915_gem_shrinker_count(struct shrinker
+ static unsigned long
+ i915_gem_shrinker_scan(struct shrinker *shrinker, struct shrink_control *sc)
+ {
+-	struct drm_i915_private *i915 =
+-		container_of(shrinker, struct drm_i915_private, mm.shrinker);
++	struct drm_i915_private *i915 = shrinker->private_data;
+ 	unsigned long freed;
  
- 	if (debugfs_entry)
+ 	sc->nr_scanned = 0;
+@@ -422,12 +420,17 @@ i915_gem_shrinker_vmap(struct notifier_b
+ 
+ void i915_gem_driver_register__shrinker(struct drm_i915_private *i915)
+ {
+-	i915->mm.shrinker.scan_objects = i915_gem_shrinker_scan;
+-	i915->mm.shrinker.count_objects = i915_gem_shrinker_count;
+-	i915->mm.shrinker.seeks = DEFAULT_SEEKS;
+-	i915->mm.shrinker.batch = 4096;
+-	drm_WARN_ON(&i915->drm, register_shrinker(&i915->mm.shrinker,
+-						  "drm-i915_gem"));
++	i915->mm.shrinker = shrinker_alloc(0, "drm-i915_gem");
++	if (!i915->mm.shrinker) {
++		drm_WARN_ON(&i915->drm, 1);
++	} else {
++		i915->mm.shrinker->scan_objects = i915_gem_shrinker_scan;
++		i915->mm.shrinker->count_objects = i915_gem_shrinker_count;
++		i915->mm.shrinker->batch = 4096;
++		i915->mm.shrinker->private_data = i915;
++
++		shrinker_register(i915->mm.shrinker);
++	}
+ 
+ 	i915->mm.oom_notifier.notifier_call = i915_gem_shrinker_oom;
+ 	drm_WARN_ON(&i915->drm, register_oom_notifier(&i915->mm.oom_notifier));
+@@ -443,7 +446,7 @@ void i915_gem_driver_unregister__shrinke
+ 		    unregister_vmap_purge_notifier(&i915->mm.vmap_notifier));
+ 	drm_WARN_ON(&i915->drm,
+ 		    unregister_oom_notifier(&i915->mm.oom_notifier));
+-	unregister_shrinker(&i915->mm.shrinker);
++	shrinker_free(i915->mm.shrinker);
+ }
+ 
+ void i915_gem_shrinker_taints_mutex(struct drm_i915_private *i915,
+--- a/drivers/gpu/drm/i915/i915_drv.h~drm-i915-dynamically-allocate-the-i915_gem_mm-shrinker
++++ a/drivers/gpu/drm/i915/i915_drv.h
+@@ -163,7 +163,7 @@ struct i915_gem_mm {
+ 
+ 	struct notifier_block oom_notifier;
+ 	struct notifier_block vmap_notifier;
+-	struct shrinker shrinker;
++	struct shrinker *shrinker;
+ 
+ #ifdef CONFIG_MMU_NOTIFIER
+ 	/**
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
