@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FF46CA0ECB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41559CA0EC9
 	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237813AbjIKWVr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:21:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45642 "EHLO
+        id S238174AbjIKWVt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:21:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36564 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244495AbjIKUiu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:38:50 -0400
+        with ESMTP id S244529AbjIKUj5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:39:57 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D2081A7
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:38:45 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC069C433C7;
-        Mon, 11 Sep 2023 20:38:44 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 83442127
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:39:52 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13FC5C433C8;
+        Mon, 11 Sep 2023 20:39:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464725;
-        bh=LbnfC1eFQzYZBU/8fkBD7jOyk/5OgZVHj/Q8gyNmJsE=;
+        s=korg; t=1694464792;
+        bh=BwJ6bru962ObHFM7jiWIWb7MG4pCgt5A3ON3ZH4KLMo=;
         h=Date:To:From:Subject:From;
-        b=j2+Ggmt5PZtTdgzyTaPddjye4aLo72DzBlWIeB5gm2PXE506E4EXm9IVt48IuV4lu
-         Vm9b9kSvTH9cz6vXG4RKeJcxlzHqpndqWPhEYCTs+MyL3XQCgjgv9kloE7C3UO2WBs
-         SPAYyZKQfAAdEcoLQZr/gRF6KyZ8HHCXWKO1Az60=
-Date:   Mon, 11 Sep 2023 13:38:44 -0700
+        b=N6SbqC6BWJdKpVzRmpAhT4AvaFLCppwW7V+M55Vf7Shj4iuj9X7sUIw0cxWCGmotm
+         nS4CzVvTvLx2agAoXe14ccj7eZeRuhbdwjZD9JKR1rHUjSeQXTNWf8AqscMwNq6qGp
+         2Ggr/gpYtby8fdseAXIQ3ZuvbBQ/7B7DQsYZkyOY=
+Date:   Mon, 11 Sep 2023 13:39:51 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-workingset-dynamically-allocate-the-mm-shadow-shrinker.patch added to mm-unstable branch
-Message-Id: <20230911203844.DC069C433C7@smtp.kernel.org>
+Subject: + jbd2ext4-dynamically-allocate-the-jbd2-journal-shrinker.patch added to mm-unstable branch
+Message-Id: <20230911203952.13FC5C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: workingset: dynamically allocate the mm-shadow shrinker
+     Subject: jbd2,ext4: dynamically allocate the jbd2-journal shrinker
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-workingset-dynamically-allocate-the-mm-shadow-shrinker.patch
+     jbd2ext4-dynamically-allocate-the-jbd2-journal-shrinker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-workingset-dynamically-allocate-the-mm-shadow-shrinker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/jbd2ext4-dynamically-allocate-the-jbd2-journal-shrinker.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,13 +87,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: workingset: dynamically allocate the mm-shadow shrinker
-Date: Mon, 11 Sep 2023 17:44:18 +0800
+Subject: jbd2,ext4: dynamically allocate the jbd2-journal shrinker
+Date: Mon, 11 Sep 2023 17:44:30 +0800
 
-Use new APIs to dynamically allocate the mm-shadow shrinker.
+In preparation for implementing lockless slab shrink, use new APIs to
+dynamically allocate the jbd2-journal shrinker, so that it can be freed
+asynchronously via RCU. Then it doesn't need to wait for RCU read-side
+critical section when releasing the struct journal_s.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-20-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-32-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Jan Kara <jack@suse.cz>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -128,7 +134,6 @@ Cc: Huang Rui <ray.huang@amd.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Wang <jasowang@redhat.com>
 Cc: Jeff Layton <jlayton@kernel.org>
 Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
@@ -143,7 +148,6 @@ Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Nadav Amit <namit@vmware.com>
 Cc: Neil Brown <neilb@suse.de>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
@@ -159,7 +163,6 @@ Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Song Liu <song@kernel.org>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Steven Price <steven.price@arm.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Cc: Tom Talpey <tom@talpey.com>
@@ -171,69 +174,82 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/workingset.c |   29 ++++++++++++++++-------------
- 1 file changed, 16 insertions(+), 13 deletions(-)
+ fs/jbd2/journal.c    |   29 ++++++++++++++++++-----------
+ include/linux/jbd2.h |    2 +-
+ 2 files changed, 19 insertions(+), 12 deletions(-)
 
---- a/mm/workingset.c~mm-workingset-dynamically-allocate-the-mm-shadow-shrinker
-+++ a/mm/workingset.c
-@@ -763,13 +763,6 @@ static unsigned long scan_shadow_nodes(s
- 					NULL);
- }
- 
--static struct shrinker workingset_shadow_shrinker = {
--	.count_objects = count_shadow_nodes,
--	.scan_objects = scan_shadow_nodes,
--	.seeks = 0, /* ->count reports only fully expendable nodes */
--	.flags = SHRINKER_NUMA_AWARE | SHRINKER_MEMCG_AWARE,
--};
--
- /*
-  * Our list_lru->lock is IRQ-safe as it nests inside the IRQ-safe
-  * i_pages lock.
-@@ -778,9 +771,10 @@ static struct lock_class_key shadow_node
- 
- static int __init workingset_init(void)
+--- a/fs/jbd2/journal.c~jbd2ext4-dynamically-allocate-the-jbd2-journal-shrinker
++++ a/fs/jbd2/journal.c
+@@ -1290,7 +1290,7 @@ static int jbd2_min_tag_size(void)
+ static unsigned long jbd2_journal_shrink_scan(struct shrinker *shrink,
+ 					      struct shrink_control *sc)
  {
-+	struct shrinker *workingset_shadow_shrinker;
- 	unsigned int timestamp_bits;
- 	unsigned int max_order;
--	int ret;
-+	int ret = -ENOMEM;
+-	journal_t *journal = container_of(shrink, journal_t, j_shrinker);
++	journal_t *journal = shrink->private_data;
+ 	unsigned long nr_to_scan = sc->nr_to_scan;
+ 	unsigned long nr_shrunk;
+ 	unsigned long count;
+@@ -1316,7 +1316,7 @@ static unsigned long jbd2_journal_shrink
+ static unsigned long jbd2_journal_shrink_count(struct shrinker *shrink,
+ 					       struct shrink_control *sc)
+ {
+-	journal_t *journal = container_of(shrink, journal_t, j_shrinker);
++	journal_t *journal = shrink->private_data;
+ 	unsigned long count;
  
- 	BUILD_BUG_ON(BITS_PER_LONG < EVICTION_SHIFT);
- 	/*
-@@ -797,17 +791,26 @@ static int __init workingset_init(void)
- 	pr_info("workingset: timestamp_bits=%d max_order=%d bucket_order=%u\n",
- 	       timestamp_bits, max_order, bucket_order);
+ 	count = percpu_counter_read_positive(&journal->j_checkpoint_jh_count);
+@@ -1588,14 +1588,21 @@ static journal_t *journal_init_common(st
+ 		goto err_cleanup;
  
--	ret = prealloc_shrinker(&workingset_shadow_shrinker, "mm-shadow");
--	if (ret)
-+	workingset_shadow_shrinker = shrinker_alloc(SHRINKER_NUMA_AWARE |
-+						    SHRINKER_MEMCG_AWARE,
-+						    "mm-shadow");
-+	if (!workingset_shadow_shrinker)
- 		goto err;
+ 	journal->j_shrink_transaction = NULL;
+-	journal->j_shrinker.scan_objects = jbd2_journal_shrink_scan;
+-	journal->j_shrinker.count_objects = jbd2_journal_shrink_count;
+-	journal->j_shrinker.seeks = DEFAULT_SEEKS;
+-	journal->j_shrinker.batch = journal->j_max_transaction_buffers;
+-	err = register_shrinker(&journal->j_shrinker, "jbd2-journal:(%u:%u)",
+-				MAJOR(bdev->bd_dev), MINOR(bdev->bd_dev));
+-	if (err)
 +
- 	ret = __list_lru_init(&shadow_nodes, true, &shadow_nodes_key,
--			      &workingset_shadow_shrinker);
-+			      workingset_shadow_shrinker);
- 	if (ret)
- 		goto err_list_lru;
--	register_shrinker_prepared(&workingset_shadow_shrinker);
++	journal->j_shrinker = shrinker_alloc(0, "jbd2-journal:(%u:%u)",
++					     MAJOR(bdev->bd_dev),
++					     MINOR(bdev->bd_dev));
++	if (!journal->j_shrinker) {
++		err = -ENOMEM;
+ 		goto err_cleanup;
++	}
 +
-+	workingset_shadow_shrinker->count_objects = count_shadow_nodes;
-+	workingset_shadow_shrinker->scan_objects = scan_shadow_nodes;
-+	/* ->count reports only fully expendable nodes */
-+	workingset_shadow_shrinker->seeks = 0;
++	journal->j_shrinker->scan_objects = jbd2_journal_shrink_scan;
++	journal->j_shrinker->count_objects = jbd2_journal_shrink_count;
++	journal->j_shrinker->batch = journal->j_max_transaction_buffers;
++	journal->j_shrinker->private_data = journal;
 +
-+	shrinker_register(workingset_shadow_shrinker);
- 	return 0;
- err_list_lru:
--	free_prealloced_shrinker(&workingset_shadow_shrinker);
-+	shrinker_free(workingset_shadow_shrinker);
- err:
- 	return ret;
- }
++	shrinker_register(journal->j_shrinker);
+ 
+ 	return journal;
+ 
+@@ -2170,9 +2177,9 @@ int jbd2_journal_destroy(journal_t *jour
+ 		brelse(journal->j_sb_buffer);
+ 	}
+ 
+-	if (journal->j_shrinker.flags & SHRINKER_REGISTERED) {
++	if (journal->j_shrinker) {
+ 		percpu_counter_destroy(&journal->j_checkpoint_jh_count);
+-		unregister_shrinker(&journal->j_shrinker);
++		shrinker_free(journal->j_shrinker);
+ 	}
+ 	if (journal->j_proc_entry)
+ 		jbd2_stats_proc_exit(journal);
+--- a/include/linux/jbd2.h~jbd2ext4-dynamically-allocate-the-jbd2-journal-shrinker
++++ a/include/linux/jbd2.h
+@@ -886,7 +886,7 @@ struct journal_s
+ 	 * Journal head shrinker, reclaim buffer's journal head which
+ 	 * has been written back.
+ 	 */
+-	struct shrinker		j_shrinker;
++	struct shrinker		*j_shrinker;
+ 
+ 	/**
+ 	 * @j_checkpoint_jh_count:
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
