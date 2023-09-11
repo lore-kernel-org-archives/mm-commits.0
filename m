@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73F60CA0EC3
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:25:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88218CA0EC7
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:25:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237175AbjIKWXF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Sep 2023 18:23:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47342 "EHLO
+        id S241368AbjIKWXH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Sep 2023 18:23:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36236 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244479AbjIKUiC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:38:02 -0400
+        with ESMTP id S244484AbjIKUiN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:38:13 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D441127
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:37:57 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBAB3C433C8;
-        Mon, 11 Sep 2023 20:37:56 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84E3E127
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:38:07 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CAF3C433C7;
+        Mon, 11 Sep 2023 20:38:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464677;
-        bh=hD+bW68LQbiB8Uifn8X+cLFaGyx0PflecYfdHO5dba0=;
+        s=korg; t=1694464687;
+        bh=+Lmo3PthuvdqYb8Co/+3UuzHcZoNwgsaF1ov/HPFFik=;
         h=Date:To:From:Subject:From;
-        b=cC0aRPpGpOSA5Wrqg9Pet+oGjg5wBpDsPz/0pNRmFpV8q8ua5qBWwd3MyWaCRgl9a
-         g1Qh2d5eDp9PiEcfN9d5bdpm01f6vQ1mz7SPeHCL186GjUo76BUZTMHewr8B42vtnl
-         jAHP1X7GhRbqJ9InyrKo7bDIMQisKPaag2XTQlsI=
-Date:   Mon, 11 Sep 2023 13:37:55 -0700
+        b=f0/2IWCmZ0GQ58i7zji02Ou11XFyHl+FoyajYbWIzfXlq80NVwATK91qI3tYCbXPN
+         MbWulWiSRqFnACKcTQjLEFtSeg5C39riysPqwvCayOtOrogtAOtMFr9PHl2xWFk9Cl
+         vUwJgI8kjifhuV749GcJp+n/L0+INGpyosc0Kmf8=
+Date:   Mon, 11 Sep 2023 13:38:06 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nfsv42-dynamically-allocate-the-nfs-xattr-shrinkers.patch added to mm-unstable branch
-Message-Id: <20230911203756.CBAB3C433C8@smtp.kernel.org>
+Subject: + nfsd-dynamically-allocate-the-nfsd-filecache-shrinker.patch added to mm-unstable branch
+Message-Id: <20230911203807.0CAF3C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: NFSv4.2: dynamically allocate the nfs-xattr shrinkers
+     Subject: nfsd: dynamically allocate the nfsd-filecache shrinker
 has been added to the -mm mm-unstable branch.  Its filename is
-     nfsv42-dynamically-allocate-the-nfs-xattr-shrinkers.patch
+     nfsd-dynamically-allocate-the-nfsd-filecache-shrinker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nfsv42-dynamically-allocate-the-nfs-xattr-shrinkers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nfsd-dynamically-allocate-the-nfsd-filecache-shrinker.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,22 +87,26 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: NFSv4.2: dynamically allocate the nfs-xattr shrinkers
-Date: Mon, 11 Sep 2023 17:44:09 +0800
+Subject: nfsd: dynamically allocate the nfsd-filecache shrinker
+Date: Mon, 11 Sep 2023 17:44:11 +0800
 
-Use new APIs to dynamically allocate the nfs-xattr shrinkers.
+Use new APIs to dynamically allocate the nfsd-filecache shrinker.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-11-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-13-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
-Cc: Anna Schumaker <anna@kernel.org>
+Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Olga Kornievskaia <kolga@netapp.com>
+Cc: Dai Ngo <Dai.Ngo@oracle.com>
+Cc: Tom Talpey <tom@talpey.com>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alyssa Rosenzweig <alyssa.rosenzweig@collabora.com>
 Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
+Cc: Anna Schumaker <anna@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Bob Peterson <rpeterso@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
@@ -114,7 +118,6 @@ Cc: Christian Brauner <brauner@kernel.org>
 Cc: Christian Koenig <christian.koenig@amd.com>
 Cc: Chuck Lever <cel@kernel.org>
 Cc: Coly Li <colyli@suse.de>
-Cc: Dai Ngo <Dai.Ngo@oracle.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
@@ -132,7 +135,6 @@ Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Wang <jasowang@redhat.com>
-Cc: Jeff Layton <jlayton@kernel.org>
 Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
 Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
 Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
@@ -146,9 +148,7 @@ Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Nadav Amit <namit@vmware.com>
-Cc: Neil Brown <neilb@suse.de>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
-Cc: Olga Kornievskaia <kolga@netapp.com>
 Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Richard Weinberger <richard@nod.at>
 Cc: Rob Clark <robdclark@gmail.com>
@@ -163,7 +163,7 @@ Cc: Steven Price <steven.price@arm.com>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: Tom Talpey <tom@talpey.com>
+Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
@@ -171,167 +171,65 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/nfs42xattr.c |   87 +++++++++++++++++++++---------------------
- 1 file changed, 44 insertions(+), 43 deletions(-)
+ fs/nfsd/filecache.c |   23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
---- a/fs/nfs/nfs42xattr.c~nfsv42-dynamically-allocate-the-nfs-xattr-shrinkers
-+++ a/fs/nfs/nfs42xattr.c
-@@ -796,28 +796,9 @@ static unsigned long nfs4_xattr_cache_sc
- static unsigned long nfs4_xattr_entry_scan(struct shrinker *shrink,
- 					   struct shrink_control *sc);
- 
--static struct shrinker nfs4_xattr_cache_shrinker = {
--	.count_objects	= nfs4_xattr_cache_count,
--	.scan_objects	= nfs4_xattr_cache_scan,
--	.seeks		= DEFAULT_SEEKS,
--	.flags		= SHRINKER_MEMCG_AWARE,
--};
--
--static struct shrinker nfs4_xattr_entry_shrinker = {
--	.count_objects	= nfs4_xattr_entry_count,
--	.scan_objects	= nfs4_xattr_entry_scan,
--	.seeks		= DEFAULT_SEEKS,
--	.batch		= 512,
--	.flags		= SHRINKER_MEMCG_AWARE,
--};
--
--static struct shrinker nfs4_xattr_large_entry_shrinker = {
--	.count_objects	= nfs4_xattr_entry_count,
--	.scan_objects	= nfs4_xattr_entry_scan,
--	.seeks		= 1,
--	.batch		= 512,
--	.flags		= SHRINKER_MEMCG_AWARE,
--};
-+static struct shrinker *nfs4_xattr_cache_shrinker;
-+static struct shrinker *nfs4_xattr_entry_shrinker;
-+static struct shrinker *nfs4_xattr_large_entry_shrinker;
- 
- static enum lru_status
- cache_lru_isolate(struct list_head *item,
-@@ -943,7 +924,7 @@ nfs4_xattr_entry_scan(struct shrinker *s
- 	struct nfs4_xattr_entry *entry;
- 	struct list_lru *lru;
- 
--	lru = (shrink == &nfs4_xattr_large_entry_shrinker) ?
-+	lru = (shrink == nfs4_xattr_large_entry_shrinker) ?
- 	    &nfs4_xattr_large_entry_lru : &nfs4_xattr_entry_lru;
- 
- 	freed = list_lru_shrink_walk(lru, sc, entry_lru_isolate, &dispose);
-@@ -971,7 +952,7 @@ nfs4_xattr_entry_count(struct shrinker *
- 	unsigned long count;
- 	struct list_lru *lru;
- 
--	lru = (shrink == &nfs4_xattr_large_entry_shrinker) ?
-+	lru = (shrink == nfs4_xattr_large_entry_shrinker) ?
- 	    &nfs4_xattr_large_entry_lru : &nfs4_xattr_entry_lru;
- 
- 	count = list_lru_shrink_count(lru, sc);
-@@ -991,18 +972,34 @@ static void nfs4_xattr_cache_init_once(v
- 	INIT_LIST_HEAD(&cache->dispose);
- }
- 
--static int nfs4_xattr_shrinker_init(struct shrinker *shrinker,
--				    struct list_lru *lru, const char *name)
-+typedef unsigned long (*count_objects_cb)(struct shrinker *s,
-+					  struct shrink_control *sc);
-+typedef unsigned long (*scan_objects_cb)(struct shrinker *s,
-+					 struct shrink_control *sc);
-+
-+static int __init nfs4_xattr_shrinker_init(struct shrinker **shrinker,
-+					   struct list_lru *lru, const char *name,
-+					   count_objects_cb count,
-+					   scan_objects_cb scan, long batch, int seeks)
- {
--	int ret = 0;
-+	int ret;
- 
--	ret = register_shrinker(shrinker, name);
--	if (ret)
-+	*shrinker = shrinker_alloc(SHRINKER_MEMCG_AWARE, name);
-+	if (!*shrinker)
-+		return -ENOMEM;
-+
-+	ret = list_lru_init_memcg(lru, *shrinker);
-+	if (ret) {
-+		shrinker_free(*shrinker);
- 		return ret;
-+	}
- 
--	ret = list_lru_init_memcg(lru, shrinker);
--	if (ret)
--		unregister_shrinker(shrinker);
-+	(*shrinker)->count_objects = count;
-+	(*shrinker)->scan_objects = scan;
-+	(*shrinker)->batch = batch;
-+	(*shrinker)->seeks = seeks;
-+
-+	shrinker_register(*shrinker);
- 
+--- a/fs/nfsd/filecache.c~nfsd-dynamically-allocate-the-nfsd-filecache-shrinker
++++ a/fs/nfsd/filecache.c
+@@ -521,11 +521,7 @@ nfsd_file_lru_scan(struct shrinker *s, s
  	return ret;
  }
-@@ -1010,7 +1007,7 @@ static int nfs4_xattr_shrinker_init(stru
- static void nfs4_xattr_shrinker_destroy(struct shrinker *shrinker,
- 					struct list_lru *lru)
- {
--	unregister_shrinker(shrinker);
-+	shrinker_free(shrinker);
- 	list_lru_destroy(lru);
- }
  
-@@ -1026,27 +1023,31 @@ int __init nfs4_xattr_cache_init(void)
- 		return -ENOMEM;
+-static struct shrinker	nfsd_file_shrinker = {
+-	.scan_objects = nfsd_file_lru_scan,
+-	.count_objects = nfsd_file_lru_count,
+-	.seeks = 1,
+-};
++static struct shrinker *nfsd_file_shrinker;
  
- 	ret = nfs4_xattr_shrinker_init(&nfs4_xattr_cache_shrinker,
--				       &nfs4_xattr_cache_lru,
--				       "nfs-xattr_cache");
-+				       &nfs4_xattr_cache_lru, "nfs-xattr_cache",
-+				       nfs4_xattr_cache_count,
-+				       nfs4_xattr_cache_scan, 0, DEFAULT_SEEKS);
- 	if (ret)
- 		goto out1;
+ /**
+  * nfsd_file_cond_queue - conditionally unhash and queue a nfsd_file
+@@ -746,12 +742,19 @@ nfsd_file_cache_init(void)
+ 		goto out_err;
+ 	}
  
- 	ret = nfs4_xattr_shrinker_init(&nfs4_xattr_entry_shrinker,
--				       &nfs4_xattr_entry_lru,
--				       "nfs-xattr_entry");
-+				       &nfs4_xattr_entry_lru, "nfs-xattr_entry",
-+				       nfs4_xattr_entry_count,
-+				       nfs4_xattr_entry_scan, 512, DEFAULT_SEEKS);
- 	if (ret)
- 		goto out2;
+-	ret = register_shrinker(&nfsd_file_shrinker, "nfsd-filecache");
+-	if (ret) {
+-		pr_err("nfsd: failed to register nfsd_file_shrinker: %d\n", ret);
++	nfsd_file_shrinker = shrinker_alloc(0, "nfsd-filecache");
++	if (!nfsd_file_shrinker) {
++		ret = -ENOMEM;
++		pr_err("nfsd: failed to allocate nfsd_file_shrinker\n");
+ 		goto out_lru;
+ 	}
  
- 	ret = nfs4_xattr_shrinker_init(&nfs4_xattr_large_entry_shrinker,
- 				       &nfs4_xattr_large_entry_lru,
--				       "nfs-xattr_large_entry");
-+				       "nfs-xattr_large_entry",
-+				       nfs4_xattr_entry_count,
-+				       nfs4_xattr_entry_scan, 512, 1);
- 	if (!ret)
- 		return 0;
++	nfsd_file_shrinker->count_objects = nfsd_file_lru_count;
++	nfsd_file_shrinker->scan_objects = nfsd_file_lru_scan;
++	nfsd_file_shrinker->seeks = 1;
++
++	shrinker_register(nfsd_file_shrinker);
++
+ 	ret = lease_register_notifier(&nfsd_file_lease_notifier);
+ 	if (ret) {
+ 		pr_err("nfsd: unable to register lease notifier: %d\n", ret);
+@@ -774,7 +777,7 @@ out:
+ out_notifier:
+ 	lease_unregister_notifier(&nfsd_file_lease_notifier);
+ out_shrinker:
+-	unregister_shrinker(&nfsd_file_shrinker);
++	shrinker_free(nfsd_file_shrinker);
+ out_lru:
+ 	list_lru_destroy(&nfsd_file_lru);
+ out_err:
+@@ -891,7 +894,7 @@ nfsd_file_cache_shutdown(void)
+ 		return;
  
--	nfs4_xattr_shrinker_destroy(&nfs4_xattr_entry_shrinker,
-+	nfs4_xattr_shrinker_destroy(nfs4_xattr_entry_shrinker,
- 				    &nfs4_xattr_entry_lru);
- out2:
--	nfs4_xattr_shrinker_destroy(&nfs4_xattr_cache_shrinker,
-+	nfs4_xattr_shrinker_destroy(nfs4_xattr_cache_shrinker,
- 				    &nfs4_xattr_cache_lru);
- out1:
- 	kmem_cache_destroy(nfs4_xattr_cache_cachep);
-@@ -1056,11 +1057,11 @@ out1:
- 
- void nfs4_xattr_cache_exit(void)
- {
--	nfs4_xattr_shrinker_destroy(&nfs4_xattr_large_entry_shrinker,
-+	nfs4_xattr_shrinker_destroy(nfs4_xattr_large_entry_shrinker,
- 				    &nfs4_xattr_large_entry_lru);
--	nfs4_xattr_shrinker_destroy(&nfs4_xattr_entry_shrinker,
-+	nfs4_xattr_shrinker_destroy(nfs4_xattr_entry_shrinker,
- 				    &nfs4_xattr_entry_lru);
--	nfs4_xattr_shrinker_destroy(&nfs4_xattr_cache_shrinker,
-+	nfs4_xattr_shrinker_destroy(nfs4_xattr_cache_shrinker,
- 				    &nfs4_xattr_cache_lru);
- 	kmem_cache_destroy(nfs4_xattr_cache_cachep);
- }
+ 	lease_unregister_notifier(&nfsd_file_lease_notifier);
+-	unregister_shrinker(&nfsd_file_shrinker);
++	shrinker_free(nfsd_file_shrinker);
+ 	/*
+ 	 * make sure all callers of nfsd_file_lru_cb are done before
+ 	 * calling nfsd_file_cache_purge
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
