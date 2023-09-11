@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DD6DCA0EC6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8328CA0EC3
 	for <mm-commits@archiver.kernel.org>; Mon, 11 Sep 2023 22:24:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236518AbjIKWVn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S236225AbjIKWVn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 11 Sep 2023 18:21:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53294 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53292 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244539AbjIKUkb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:40:31 -0400
+        with ESMTP id S244536AbjIKUkZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 11 Sep 2023 16:40:25 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3512127
-        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:40:25 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 633FFC433C7;
-        Mon, 11 Sep 2023 20:40:25 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3AE6D127
+        for <mm-commits@vger.kernel.org>; Mon, 11 Sep 2023 13:40:20 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0F47C433C7;
+        Mon, 11 Sep 2023 20:40:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694464825;
-        bh=dz3wReZkQ1a4P3YVO2rVa6LTXVGfEowsmM5hM4Hc3Hs=;
+        s=korg; t=1694464819;
+        bh=ztz/cmg7pAMqJcqy3M22oQVIIv3eO2ZuDV02SMdYRw8=;
         h=Date:To:From:Subject:From;
-        b=U7OW4YPjqc6pHKaj8gXilF1Pf5fHtaug0m/0WVM8a1+aIIpCEBgdqQtfVA1DVr9MD
-         yhtMIEtapnCtJBygpEEoBu9jo8MA2g2QxcAi8W0UIuWyGTFmqozTd3zhuQMppIU4dm
-         B01erzQUJ1ULtvcAnKvN9wPm0E/NPSvj4+wNfEqo=
-Date:   Mon, 11 Sep 2023 13:40:24 -0700
+        b=qtD0XDr0Qgf+xGd70mGXjxki4+BFEldVx0C1i3a5NVF5y3ITmD92ZlU/3/SjVFRyN
+         Y0t7vKfVNfpoWbk7RDgkcYgyjqt3Jss/y6UQVBaIAZT7q7pQBipe9Z4oduX2TjmW8A
+         N1Cnzbv3HPtVOMMGTcVt5f5e1XqJbA1cpelV+bTQ=
+Date:   Mon, 11 Sep 2023 13:40:19 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-super-dynamically-allocate-the-s_shrink.patch added to mm-unstable branch
-Message-Id: <20230911204025.633FFC433C7@smtp.kernel.org>
+Subject: + zsmalloc-dynamically-allocate-the-mm-zspool-shrinker.patch added to mm-unstable branch
+Message-Id: <20230911204019.C0F47C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,12 +63,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: super: dynamically allocate the s_shrink
+     Subject: zsmalloc: dynamically allocate the mm-zspool shrinker
 has been added to the -mm mm-unstable branch.  Its filename is
-     fs-super-dynamically-allocate-the-s_shrink.patch
+     zsmalloc-dynamically-allocate-the-mm-zspool-shrinker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-super-dynamically-allocate-the-s_shrink.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-dynamically-allocate-the-mm-zspool-shrinker.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -87,24 +87,22 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: fs: super: dynamically allocate the s_shrink
-Date: Mon, 11 Sep 2023 17:44:37 +0800
+Subject: zsmalloc: dynamically allocate the mm-zspool shrinker
+Date: Mon, 11 Sep 2023 17:44:36 +0800
 
 In preparation for implementing lockless slab shrink, use new APIs to
-dynamically allocate the s_shrink, so that it can be freed asynchronously
-via RCU. Then it doesn't need to wait for RCU read-side critical section
-when releasing the struct super_block.
+dynamically allocate the mm-zspool shrinker, so that it can be freed
+asynchronously via RCU. Then it doesn't need to wait for RCU read-side
+critical section when releasing the struct zs_pool.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-39-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-38-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Chris Mason <clm@fb.com>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: David Sterba <dsterba@suse.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alyssa Rosenzweig <alyssa.rosenzweig@collabora.com>
 Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
@@ -115,6 +113,8 @@ Cc: Borislav Petkov <bp@alien8.de>
 Cc: Carlos Llamas <cmllamas@google.com>
 Cc: Chandan Babu R <chandan.babu@oracle.com>
 Cc: Chao Yu <chao@kernel.org>
+Cc: Chris Mason <clm@fb.com>
+Cc: Christian Brauner <brauner@kernel.org>
 Cc: Christian Koenig <christian.koenig@amd.com>
 Cc: Chuck Lever <cel@kernel.org>
 Cc: Coly Li <colyli@suse.de>
@@ -126,6 +126,7 @@ Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Airlie <airlied@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: David Sterba <dsterba@suse.com>
 Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
 Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -139,13 +140,13 @@ Cc: Jeff Layton <jlayton@kernel.org>
 Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
 Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
 Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: Juergen Gross <jgross@suse.com>
 Cc: Kent Overstreet <kent.overstreet@gmail.com>
 Cc: Kirill Tkhai <tkhai@ya.ru>
 Cc: Marijn Suijten <marijn.suijten@somainline.org>
 Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Nadav Amit <namit@vmware.com>
 Cc: Neil Brown <neilb@suse.de>
@@ -158,7 +159,6 @@ Cc: Rob Herring <robh@kernel.org>
 Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Sean Paul <sean@poorly.run>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Song Liu <song@kernel.org>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Steven Price <steven.price@arm.com>
@@ -174,150 +174,71 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/super.c   |    2 +-
- fs/kernfs/mount.c  |    2 +-
- fs/proc/root.c     |    2 +-
- fs/super.c         |   33 ++++++++++++++++++---------------
- include/linux/fs.h |    2 +-
- 5 files changed, 22 insertions(+), 19 deletions(-)
+ mm/zsmalloc.c |   27 +++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
 
---- a/fs/btrfs/super.c~fs-super-dynamically-allocate-the-s_shrink
-+++ a/fs/btrfs/super.c
-@@ -1519,7 +1519,7 @@ static struct dentry *btrfs_mount_root(s
- 			error = -EBUSY;
- 	} else {
- 		snprintf(s->s_id, sizeof(s->s_id), "%pg", bdev);
--		shrinker_debugfs_rename(&s->s_shrink, "sb-%s:%s", fs_type->name,
-+		shrinker_debugfs_rename(s->s_shrink, "sb-%s:%s", fs_type->name,
- 					s->s_id);
- 		btrfs_sb(s)->bdev_holder = fs_type;
- 		error = btrfs_fill_super(s, fs_devices, data);
---- a/fs/kernfs/mount.c~fs-super-dynamically-allocate-the-s_shrink
-+++ a/fs/kernfs/mount.c
-@@ -265,7 +265,7 @@ static int kernfs_fill_super(struct supe
- 	sb->s_time_gran = 1;
+--- a/mm/zsmalloc.c~zsmalloc-dynamically-allocate-the-mm-zspool-shrinker
++++ a/mm/zsmalloc.c
+@@ -229,7 +229,7 @@ struct zs_pool {
+ 	struct zs_pool_stats stats;
  
- 	/* sysfs dentries and inodes don't require IO to create */
--	sb->s_shrink.seeks = 0;
-+	sb->s_shrink->seeks = 0;
+ 	/* Compact classes */
+-	struct shrinker shrinker;
++	struct shrinker *shrinker;
  
- 	/* get root inode, initialize and unlock it */
- 	down_read(&kf_root->kernfs_rwsem);
---- a/fs/proc/root.c~fs-super-dynamically-allocate-the-s_shrink
-+++ a/fs/proc/root.c
-@@ -188,7 +188,7 @@ static int proc_fill_super(struct super_
- 	s->s_stack_depth = FILESYSTEM_MAX_STACK_DEPTH;
- 
- 	/* procfs dentries and inodes don't require IO to create */
--	s->s_shrink.seeks = 0;
-+	s->s_shrink->seeks = 0;
- 
- 	pde_get(&proc_root);
- 	root_inode = proc_get_inode(s, &proc_root);
---- a/fs/super.c~fs-super-dynamically-allocate-the-s_shrink
-+++ a/fs/super.c
-@@ -191,7 +191,7 @@ static unsigned long super_cache_scan(st
- 	long	dentries;
- 	long	inodes;
- 
--	sb = container_of(shrink, struct super_block, s_shrink);
-+	sb = shrink->private_data;
- 
- 	/*
- 	 * Deadlock avoidance.  We may hold various FS locks, and we don't want
-@@ -244,7 +244,7 @@ static unsigned long super_cache_count(s
- 	struct super_block *sb;
- 	long	total_objects = 0;
- 
--	sb = container_of(shrink, struct super_block, s_shrink);
-+	sb = shrink->private_data;
- 
- 	/*
- 	 * We don't call super_trylock_shared() here as it is a scalability
-@@ -306,7 +306,7 @@ static void destroy_unused_super(struct
- 	security_sb_free(s);
- 	put_user_ns(s->s_user_ns);
- 	kfree(s->s_subtype);
--	free_prealloced_shrinker(&s->s_shrink);
-+	shrinker_free(s->s_shrink);
- 	/* no delays needed */
- 	destroy_super_work(&s->destroy_work);
- }
-@@ -383,16 +383,19 @@ static struct super_block *alloc_super(s
- 	s->s_time_min = TIME64_MIN;
- 	s->s_time_max = TIME64_MAX;
- 
--	s->s_shrink.seeks = DEFAULT_SEEKS;
--	s->s_shrink.scan_objects = super_cache_scan;
--	s->s_shrink.count_objects = super_cache_count;
--	s->s_shrink.batch = 1024;
--	s->s_shrink.flags = SHRINKER_NUMA_AWARE | SHRINKER_MEMCG_AWARE;
--	if (prealloc_shrinker(&s->s_shrink, "sb-%s", type->name))
-+	s->s_shrink = shrinker_alloc(SHRINKER_NUMA_AWARE | SHRINKER_MEMCG_AWARE,
-+				     "sb-%s", type->name);
-+	if (!s->s_shrink)
- 		goto fail;
--	if (list_lru_init_memcg(&s->s_dentry_lru, &s->s_shrink))
-+
-+	s->s_shrink->scan_objects = super_cache_scan;
-+	s->s_shrink->count_objects = super_cache_count;
-+	s->s_shrink->batch = 1024;
-+	s->s_shrink->private_data = s;
-+
-+	if (list_lru_init_memcg(&s->s_dentry_lru, s->s_shrink))
- 		goto fail;
--	if (list_lru_init_memcg(&s->s_inode_lru, &s->s_shrink))
-+	if (list_lru_init_memcg(&s->s_inode_lru, s->s_shrink))
- 		goto fail;
- 	return s;
- 
-@@ -477,7 +480,7 @@ void deactivate_locked_super(struct supe
+ #ifdef CONFIG_ZSMALLOC_STAT
+ 	struct dentry *stat_dentry;
+@@ -2086,8 +2086,7 @@ static unsigned long zs_shrinker_scan(st
+ 		struct shrink_control *sc)
  {
- 	struct file_system_type *fs = s->s_type;
- 	if (atomic_dec_and_test(&s->s_active)) {
--		unregister_shrinker(&s->s_shrink);
-+		shrinker_free(s->s_shrink);
- 		fs->kill_sb(s);
+ 	unsigned long pages_freed;
+-	struct zs_pool *pool = container_of(shrinker, struct zs_pool,
+-			shrinker);
++	struct zs_pool *pool = shrinker->private_data;
  
- 		kill_super_notify(s);
-@@ -818,7 +821,7 @@ retry:
- 	hlist_add_head(&s->s_instances, &s->s_type->fs_supers);
- 	spin_unlock(&sb_lock);
- 	get_filesystem(s->s_type);
--	register_shrinker_prepared(&s->s_shrink);
-+	shrinker_register(s->s_shrink);
- 	return s;
+ 	/*
+ 	 * Compact classes and calculate compaction delta.
+@@ -2105,8 +2104,7 @@ static unsigned long zs_shrinker_count(s
+ 	int i;
+ 	struct size_class *class;
+ 	unsigned long pages_to_free = 0;
+-	struct zs_pool *pool = container_of(shrinker, struct zs_pool,
+-			shrinker);
++	struct zs_pool *pool = shrinker->private_data;
  
- share_extant_sb:
-@@ -901,7 +904,7 @@ retry:
- 	hlist_add_head(&s->s_instances, &type->fs_supers);
- 	spin_unlock(&sb_lock);
- 	get_filesystem(type);
--	register_shrinker_prepared(&s->s_shrink);
-+	shrinker_register(s->s_shrink);
- 	return s;
+ 	for (i = ZS_SIZE_CLASSES - 1; i >= 0; i--) {
+ 		class = pool->size_class[i];
+@@ -2121,18 +2119,23 @@ static unsigned long zs_shrinker_count(s
+ 
+ static void zs_unregister_shrinker(struct zs_pool *pool)
+ {
+-	unregister_shrinker(&pool->shrinker);
++	shrinker_free(pool->shrinker);
  }
- EXPORT_SYMBOL(sget);
-@@ -1522,7 +1525,7 @@ int setup_bdev_super(struct super_block
- 	mutex_unlock(&bdev->bd_fsfreeze_mutex);
  
- 	snprintf(sb->s_id, sizeof(sb->s_id), "%pg", bdev);
--	shrinker_debugfs_rename(&sb->s_shrink, "sb-%s:%s", sb->s_type->name,
-+	shrinker_debugfs_rename(sb->s_shrink, "sb-%s:%s", sb->s_type->name,
- 				sb->s_id);
- 	sb_set_blocksize(sb, block_size(bdev));
- 	return 0;
---- a/include/linux/fs.h~fs-super-dynamically-allocate-the-s_shrink
-+++ a/include/linux/fs.h
-@@ -1265,7 +1265,7 @@ struct super_block {
+ static int zs_register_shrinker(struct zs_pool *pool)
+ {
+-	pool->shrinker.scan_objects = zs_shrinker_scan;
+-	pool->shrinker.count_objects = zs_shrinker_count;
+-	pool->shrinker.batch = 0;
+-	pool->shrinker.seeks = DEFAULT_SEEKS;
++	pool->shrinker = shrinker_alloc(0, "mm-zspool:%s", pool->name);
++	if (!pool->shrinker)
++		return -ENOMEM;
++
++	pool->shrinker->scan_objects = zs_shrinker_scan;
++	pool->shrinker->count_objects = zs_shrinker_count;
++	pool->shrinker->batch = 0;
++	pool->shrinker->private_data = pool;
  
- 	const struct dentry_operations *s_d_op; /* default d_op for dentries */
+-	return register_shrinker(&pool->shrinker, "mm-zspool:%s",
+-				 pool->name);
++	shrinker_register(pool->shrinker);
++
++	return 0;
+ }
  
--	struct shrinker s_shrink;	/* per-sb shrinker handle */
-+	struct shrinker *s_shrink;	/* per-sb shrinker handle */
- 
- 	/* Number of inodes with nlink == 0 but still referenced */
- 	atomic_long_t s_remove_count;
+ static int calculate_zspage_chain_size(int class_size)
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
