@@ -2,34 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B730FCA0EF2
-	for <mm-commits@archiver.kernel.org>; Tue, 12 Sep 2023 16:03:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6137CA0EF2
+	for <mm-commits@archiver.kernel.org>; Tue, 12 Sep 2023 16:04:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234679AbjILQDx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 12 Sep 2023 12:03:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48788 "EHLO
+        id S236142AbjILQEc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 12 Sep 2023 12:04:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40342 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236553AbjILQDv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Sep 2023 12:03:51 -0400
+        with ESMTP id S235340AbjILQEb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Sep 2023 12:04:31 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10C4010DE;
-        Tue, 12 Sep 2023 09:03:48 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A7F5C433C8;
-        Tue, 12 Sep 2023 16:03:47 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0805110DE
+        for <mm-commits@vger.kernel.org>; Tue, 12 Sep 2023 09:04:28 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 967BFC433C8;
+        Tue, 12 Sep 2023 16:04:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694534627;
-        bh=VzSoZhmYBhOaBNJVP86CnDQOkDzEeT9MaFeI9sABK7o=;
+        s=korg; t=1694534667;
+        bh=jzn3QrWbUN2/y6ClZJ5F+vaR36oIRW1GGd3SRuhPSEI=;
         h=Date:To:From:Subject:From;
-        b=D4FKpnnmSJOLW+ukQrgmtfvlP/JunPmF+Y2JwQ0Y4U/jJVYz+35oh52+3P7sKwJ/C
-         tddRd3PIB00pOX0WNo8/vRFVnqDw4MmRKuRFsWoEVmt4erCTzX5st8fPXoSyWw+ZcD
-         9LaXIFmwybMRHApptQ7wzId4/kxsI6tvKsMD/ong=
-Date:   Tue, 12 Sep 2023 09:03:46 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, stable@vger.kernel.org,
-        joe.liu@mediatek.com, hannes@cmpxchg.org,
-        mgorman@techsingularity.net, akpm@linux-foundation.org
+        b=jR8UCIc+YVNya6zg5YM6tz1AuqH5RqgAU1Cmllzwuk2VY1q0MJLV+8kKbQR87YLzL
+         sK4qKVwzOzNVEcYaPLOMB6a5g6cEudTA//aK7m3WbgXf3bT4TIs8AVuqfc27/P2rES
+         Yr4F+kSWiw0MyFFnm8YnEg2lbRwrLqTW3wfOEDME=
+Date:   Tue, 12 Sep 2023 09:04:26 -0700
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
+        wangkefeng.wang@huawei.com, vbabka@suse.cz,
+        mgorman@techsingularity.net, linmiaohe@huawei.com,
+        hannes@cmpxchg.org, akpm@linux-foundation.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [alternative-merged] mm-page_alloc-free-pages-to-correct-buddy-list-after-pcp-lock-contention.patch removed from -mm tree
-Message-Id: <20230912160347.9A7F5C433C8@smtp.kernel.org>
+Subject: [obsolete] mm-page_alloc-remove-pcppage-migratetype-caching-fix.patch removed from -mm tree
+Message-Id: <20230912160427.967BFC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,60 +39,45 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: page_alloc: free pages to correct buddy list after PCP lock contention
+     Subject: mm-page_alloc-remove-pcppage-migratetype-caching-fix
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-free-pages-to-correct-buddy-list-after-pcp-lock-contention.patch
+     mm-page_alloc-remove-pcppage-migratetype-caching-fix.patch
 
-This patch was dropped because an alternative patch was or shall be merged
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm: page_alloc: free pages to correct buddy list after PCP lock contention
-Date: Tue, 5 Sep 2023 10:09:22 +0100
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-page_alloc-remove-pcppage-migratetype-caching-fix
+Date: Mon Sep 11 02:40:43 PM PDT 2023
 
-Commit 4b23a68f9536 ("mm/page_alloc: protect PCP lists with a spinlock")
-returns pages to the buddy list on PCP lock contention. However, for
-migratetypes that are not MIGRATE_PCPTYPES, the migratetype may have
-been clobbered already for pages that are not being isolated. In
-practice, this means that CMA pages may be returned to the wrong
-buddy list. While this might be harmless in some cases as it is
-MIGRATE_MOVABLE, the pageblock could be reassigned in rmqueue_fallback
-and prevent a future CMA allocation. Lookup the PCP migratetype
-against unconditionally if the PCP lock is contended.
+fix free_unref_page()
 
-[lecopzer.chen@mediatek.com: CMA-specific fix]
-Link: https://lkml.kernel.org/r/20230905090922.zy7srh33rg5c3zao@techsingularity.net
-Fixes: 4b23a68f9536 ("mm/page_alloc: protect PCP lists with a spinlock")
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Reported-by: Joe Liu <joe.liu@mediatek.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-free-pages-to-correct-buddy-list-after-pcp-lock-contention
+--- a/mm/page_alloc.c~mm-page_alloc-remove-pcppage-migratetype-caching-fix
 +++ a/mm/page_alloc.c
-@@ -2428,7 +2428,13 @@ void free_unref_page(struct page *page,
- 		free_unref_page_commit(zone, pcp, page, migratetype, order);
- 		pcp_spin_unlock(pcp);
- 	} else {
--		free_one_page(zone, page, pfn, order, migratetype, FPI_NONE);
-+		/*
-+		 * The page migratetype may have been clobbered for types
-+		 * (type >= MIGRATE_PCPTYPES && !is_migrate_isolate) so
-+		 * must be rechecked.
-+		 */
-+		free_one_page(zone, page, pfn, order,
-+			      get_pcppage_migratetype(page), FPI_NONE);
+@@ -2429,7 +2429,7 @@ void free_unref_page(struct page *page,
+ 		 * must be rechecked.
+ 		 */
+ 		free_one_page(zone, page, pfn, order,
+-			      get_pcppage_migratetype(page), FPI_NONE);
++			      get_pfnblock_migratetype(page, pfn), FPI_NONE);
  	}
  	pcp_trylock_finish(UP_flags);
  }
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
 
