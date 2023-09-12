@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6FFBEE3F06
-	for <mm-commits@archiver.kernel.org>; Tue, 12 Sep 2023 17:25:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C602EE3F05
+	for <mm-commits@archiver.kernel.org>; Tue, 12 Sep 2023 17:25:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232115AbjILRZX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 12 Sep 2023 13:25:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48818 "EHLO
+        id S233691AbjILRZ3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 12 Sep 2023 13:25:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48824 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233691AbjILRZX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Sep 2023 13:25:23 -0400
+        with ESMTP id S234306AbjILRZ2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Sep 2023 13:25:28 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C540910D9
-        for <mm-commits@vger.kernel.org>; Tue, 12 Sep 2023 10:25:19 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58809C433C8;
-        Tue, 12 Sep 2023 17:25:19 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36F7010E9
+        for <mm-commits@vger.kernel.org>; Tue, 12 Sep 2023 10:25:24 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDC4CC433C7;
+        Tue, 12 Sep 2023 17:25:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694539519;
-        bh=xva4cjaRtVApGJp3A7Nb6OqWp7YkSa0WOeWZKZd4roA=;
+        s=korg; t=1694539523;
+        bh=9z7EGdhqjmcYtOIxzbc1r/EeClt1QGu13W79DrzveAE=;
         h=Date:To:From:Subject:From;
-        b=RsYDzERes88+ruupB3rWUYIeIfr9F9rRVevzTwedNWaTY75pmRnRh7SJ4aEwR2yiU
-         5bUbsGtv1sukOshVuliyXZJv1YwfMnwDbLSJr331mY9+A2rqzUgheGyPeJOx7MKfaa
-         clpUxIntlspEw+97gJAEgAR3W/iPj9EQ5IHFamco=
-Date:   Tue, 12 Sep 2023 10:25:18 -0700
+        b=CS0Zd3Hz4inS1kCmctolAgqUEChEgIGwT+5my1L3kj6nR5UqNCnmijZb2oS963vM2
+         86KEH+Z3i8k6276cqyoF6SUcSmeuORmAwG5+l82XdZ5bZhsUrbXnFmXyLkJmdmCgHM
+         HnAk+1lovBkEt+1zhPiHRSyjam4Aa57b9lwkFttQ=
+Date:   Tue, 12 Sep 2023 10:25:23 -0700
 To:     mm-commits@vger.kernel.org, weixugc@google.com,
         shy828301@gmail.com, rafael.j.wysocki@intel.com, mhocko@kernel.org,
         Jonathan.Cameron@huawei.com, hannes@cmpxchg.org, dave@stgolabs.net,
@@ -32,8 +32,8 @@ To:     mm-commits@vger.kernel.org, weixugc@google.com,
         aneesh.kumar@linux.ibm.com, ying.huang@intel.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + acpi-hmat-calculate-abstract-distance-with-hmat.patch added to mm-unstable branch
-Message-Id: <20230912172519.58809C433C8@smtp.kernel.org>
+Subject: + dax-kmem-calculate-abstract-distance-with-general-interface.patch added to mm-unstable branch
+Message-Id: <20230912172523.BDC4CC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: acpi, hmat: calculate abstract distance with HMAT
+     Subject: dax, kmem: calculate abstract distance with general interface
 has been added to the -mm mm-unstable branch.  Its filename is
-     acpi-hmat-calculate-abstract-distance-with-hmat.patch
+     dax-kmem-calculate-abstract-distance-with-general-interface.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/acpi-hmat-calculate-abstract-distance-with-hmat.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dax-kmem-calculate-abstract-distance-with-general-interface.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,25 +65,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: acpi, hmat: calculate abstract distance with HMAT
-Date: Tue, 12 Sep 2023 16:21:00 +0800
+Subject: dax, kmem: calculate abstract distance with general interface
+Date: Tue, 12 Sep 2023 16:21:01 +0800
 
-A memory tiering abstract distance calculation algorithm based on ACPI
-HMAT is implemented.  The basic idea is as follows.
+Previously, a fixed abstract distance MEMTIER_DEFAULT_DAX_ADISTANCE is
+used for slow memory type in kmem driver.  This limits the usage of kmem
+driver, for example, it cannot be used for HBM (high bandwidth memory).
 
-The performance attributes of system default DRAM nodes are recorded as
-the base line.  Whose abstract distance is MEMTIER_ADISTANCE_DRAM.  Then,
-the ratio of the abstract distance of a memory node (target) to
-MEMTIER_ADISTANCE_DRAM is scaled based on the ratio of the performance
-attributes of the node to that of the default DRAM nodes.
+So, we use the general abstract distance calculation mechanism in kmem
+drivers to get more accurate abstract distance on systems with proper
+support.  The original MEMTIER_DEFAULT_DAX_ADISTANCE is used as fallback
+only.
 
-The functions to record the read/write latency/bandwidth of the default
-DRAM nodes and calculate abstract distance according to read/write
-latency/bandwidth ratio will be used by CXL CDAT (Coherent Device
-Attribute Table) and other memory device drivers.  So, they are put in
-memory-tiers.c.
+Now, multiple memory types may be managed by kmem.  These memory types are
+put into the "kmem_memory_types" list and protected by
+kmem_memory_type_lock.
 
-Link: https://lkml.kernel.org/r/20230912082101.342002-4-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20230912082101.342002-5-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
 Tested-by: Bharata B Rao <bharata@amd.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
@@ -101,278 +99,160 @@ Cc: Rafael J Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/numa/hmat.c     |   62 +++++++++++++++++++
- include/linux/memory-tiers.h |   18 +++++
- mm/memory-tiers.c            |  103 ++++++++++++++++++++++++++++++++-
- 3 files changed, 181 insertions(+), 2 deletions(-)
+ drivers/dax/kmem.c           |   62 ++++++++++++++++++++++++++-------
+ include/linux/memory-tiers.h |    2 +
+ mm/memory-tiers.c            |    2 -
+ 3 files changed, 52 insertions(+), 14 deletions(-)
 
---- a/drivers/acpi/numa/hmat.c~acpi-hmat-calculate-abstract-distance-with-hmat
-+++ a/drivers/acpi/numa/hmat.c
-@@ -24,6 +24,7 @@
- #include <linux/node.h>
- #include <linux/sysfs.h>
- #include <linux/dax.h>
-+#include <linux/memory-tiers.h>
- 
- static u8 hmat_revision;
- static int hmat_disable __initdata;
-@@ -759,6 +760,61 @@ static int hmat_callback(struct notifier
- 	return NOTIFY_OK;
- }
- 
-+static int hmat_set_default_dram_perf(void)
-+{
-+	int rc;
-+	int nid, pxm;
-+	struct memory_target *target;
-+	struct node_hmem_attrs *attrs;
-+
-+	if (!default_dram_type)
-+		return -EIO;
-+
-+	for_each_node_mask(nid, default_dram_type->nodes) {
-+		pxm = node_to_pxm(nid);
-+		target = find_mem_target(pxm);
-+		if (!target)
-+			continue;
-+		attrs = &target->hmem_attrs[1];
-+		rc = mt_set_default_dram_perf(nid, attrs, "ACPI HMAT");
-+		if (rc)
-+			return rc;
-+	}
-+
-+	return 0;
-+}
-+
-+static int hmat_calculate_adistance(struct notifier_block *self,
-+				    unsigned long nid, void *data)
-+{
-+	static DECLARE_BITMAP(p_nodes, MAX_NUMNODES);
-+	struct memory_target *target;
-+	struct node_hmem_attrs *perf;
-+	int *adist = data;
-+	int pxm;
-+
-+	pxm = node_to_pxm(nid);
-+	target = find_mem_target(pxm);
-+	if (!target)
-+		return NOTIFY_OK;
-+
-+	mutex_lock(&target_lock);
-+	hmat_update_target_attrs(target, p_nodes, 1);
-+	mutex_unlock(&target_lock);
-+
-+	perf = &target->hmem_attrs[1];
-+
-+	if (mt_perf_to_adistance(perf, adist))
-+		return NOTIFY_OK;
-+
-+	return NOTIFY_STOP;
-+}
-+
-+static struct notifier_block hmat_adist_nb __meminitdata = {
-+	.notifier_call = hmat_calculate_adistance,
-+	.priority = 100,
-+};
-+
- static __init void hmat_free_structures(void)
- {
- 	struct memory_target *target, *tnext;
-@@ -801,6 +857,7 @@ static __init int hmat_init(void)
- 	struct acpi_table_header *tbl;
- 	enum acpi_hmat_type i;
- 	acpi_status status;
-+	int usage;
- 
- 	if (srat_disabled() || hmat_disable)
- 		return 0;
-@@ -841,7 +898,10 @@ static __init int hmat_init(void)
- 	hmat_register_targets();
- 
- 	/* Keep the table and structures if the notifier may use them */
--	if (!hotplug_memory_notifier(hmat_callback, HMAT_CALLBACK_PRI))
-+	usage = !hotplug_memory_notifier(hmat_callback, HMAT_CALLBACK_PRI);
-+	if (!hmat_set_default_dram_perf())
-+		usage += !register_mt_adistance_algorithm(&hmat_adist_nb);
-+	if (usage)
- 		return 0;
- out_put:
- 	hmat_free_structures();
---- a/include/linux/memory-tiers.h~acpi-hmat-calculate-abstract-distance-with-hmat
-+++ a/include/linux/memory-tiers.h
-@@ -31,8 +31,11 @@ struct memory_dev_type {
- 	struct kref kref;
+--- a/drivers/dax/kmem.c~dax-kmem-calculate-abstract-distance-with-general-interface
++++ a/drivers/dax/kmem.c
+@@ -49,14 +49,52 @@ struct dax_kmem_data {
+ 	struct resource *res[];
  };
  
-+struct node_hmem_attrs;
+-static struct memory_dev_type *dax_slowmem_type;
++static DEFINE_MUTEX(kmem_memory_type_lock);
++static LIST_HEAD(kmem_memory_types);
 +
- #ifdef CONFIG_NUMA
- extern bool numa_demotion_enabled;
-+extern struct memory_dev_type *default_dram_type;
- struct memory_dev_type *alloc_memory_type(int adistance);
- void put_memory_type(struct memory_dev_type *memtype);
- void init_node_memory_type(int node, struct memory_dev_type *default_type);
-@@ -40,6 +43,9 @@ void clear_node_memory_type(int node, st
- int register_mt_adistance_algorithm(struct notifier_block *nb);
- int unregister_mt_adistance_algorithm(struct notifier_block *nb);
- int mt_calc_adistance(int node, int *adist);
-+int mt_set_default_dram_perf(int nid, struct node_hmem_attrs *perf,
-+			     const char *source);
-+int mt_perf_to_adistance(struct node_hmem_attrs *perf, int *adist);
- #ifdef CONFIG_MIGRATION
- int next_demotion_node(int node);
- void node_get_allowed_targets(pg_data_t *pgdat, nodemask_t *targets);
-@@ -64,6 +70,7 @@ static inline bool node_is_toptier(int n
++static struct memory_dev_type *kmem_find_alloc_memory_type(int adist)
++{
++	bool found = false;
++	struct memory_dev_type *mtype;
++
++	mutex_lock(&kmem_memory_type_lock);
++	list_for_each_entry(mtype, &kmem_memory_types, list) {
++		if (mtype->adistance == adist) {
++			found = true;
++			break;
++		}
++	}
++	if (!found) {
++		mtype = alloc_memory_type(adist);
++		if (!IS_ERR(mtype))
++			list_add(&mtype->list, &kmem_memory_types);
++	}
++	mutex_unlock(&kmem_memory_type_lock);
++
++	return mtype;
++}
++
++static void kmem_put_memory_types(void)
++{
++	struct memory_dev_type *mtype, *mtn;
++
++	mutex_lock(&kmem_memory_type_lock);
++	list_for_each_entry_safe(mtype, mtn, &kmem_memory_types, list) {
++		list_del(&mtype->list);
++		put_memory_type(mtype);
++	}
++	mutex_unlock(&kmem_memory_type_lock);
++}
++
+ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+ {
+ 	struct device *dev = &dev_dax->dev;
+ 	unsigned long total_len = 0;
+ 	struct dax_kmem_data *data;
++	struct memory_dev_type *mtype;
+ 	int i, rc, mapped = 0;
+ 	int numa_node;
++	int adist = MEMTIER_DEFAULT_DAX_ADISTANCE;
+ 
+ 	/*
+ 	 * Ensure good NUMA information for the persistent memory.
+@@ -71,6 +109,11 @@ static int dev_dax_kmem_probe(struct dev
+ 		return -EINVAL;
+ 	}
+ 
++	mt_calc_adistance(numa_node, &adist);
++	mtype = kmem_find_alloc_memory_type(adist);
++	if (IS_ERR(mtype))
++		return PTR_ERR(mtype);
++
+ 	for (i = 0; i < dev_dax->nr_range; i++) {
+ 		struct range range;
+ 
+@@ -88,7 +131,7 @@ static int dev_dax_kmem_probe(struct dev
+ 		return -EINVAL;
+ 	}
+ 
+-	init_node_memory_type(numa_node, dax_slowmem_type);
++	init_node_memory_type(numa_node, mtype);
+ 
+ 	rc = -ENOMEM;
+ 	data = kzalloc(struct_size(data, res, dev_dax->nr_range), GFP_KERNEL);
+@@ -167,7 +210,7 @@ err_reg_mgid:
+ err_res_name:
+ 	kfree(data);
+ err_dax_kmem_data:
+-	clear_node_memory_type(numa_node, dax_slowmem_type);
++	clear_node_memory_type(numa_node, mtype);
+ 	return rc;
+ }
+ 
+@@ -219,7 +262,7 @@ static void dev_dax_kmem_remove(struct d
+ 		 * for that. This implies this reference will be around
+ 		 * till next reboot.
+ 		 */
+-		clear_node_memory_type(node, dax_slowmem_type);
++		clear_node_memory_type(node, NULL);
+ 	}
+ }
  #else
+@@ -251,12 +294,6 @@ static int __init dax_kmem_init(void)
+ 	if (!kmem_name)
+ 		return -ENOMEM;
  
- #define numa_demotion_enabled	false
-+#define default_dram_type	NULL
- /*
-  * CONFIG_NUMA implementation returns non NULL error.
-  */
-@@ -116,5 +123,16 @@ static inline int mt_calc_adistance(int
- {
- 	return NOTIFY_DONE;
+-	dax_slowmem_type = alloc_memory_type(MEMTIER_DEFAULT_DAX_ADISTANCE);
+-	if (IS_ERR(dax_slowmem_type)) {
+-		rc = PTR_ERR(dax_slowmem_type);
+-		goto err_dax_slowmem_type;
+-	}
+-
+ 	rc = dax_driver_register(&device_dax_kmem_driver);
+ 	if (rc)
+ 		goto error_dax_driver;
+@@ -264,8 +301,7 @@ static int __init dax_kmem_init(void)
+ 	return rc;
+ 
+ error_dax_driver:
+-	put_memory_type(dax_slowmem_type);
+-err_dax_slowmem_type:
++	kmem_put_memory_types();
+ 	kfree_const(kmem_name);
+ 	return rc;
  }
-+
-+static inline int mt_set_default_dram_perf(int nid, struct node_hmem_attrs *perf,
-+					   const char *source)
-+{
-+	return -EIO;
-+}
-+
-+static inline int mt_perf_to_adistance(struct node_hmem_attrs *perf, int *adist)
-+{
-+	return -EIO;
-+}
- #endif	/* CONFIG_NUMA */
- #endif  /* _LINUX_MEMORY_TIERS_H */
---- a/mm/memory-tiers.c~acpi-hmat-calculate-abstract-distance-with-hmat
+@@ -275,7 +311,7 @@ static void __exit dax_kmem_exit(void)
+ 	dax_driver_unregister(&device_dax_kmem_driver);
+ 	if (!any_hotremove_failed)
+ 		kfree_const(kmem_name);
+-	put_memory_type(dax_slowmem_type);
++	kmem_put_memory_types();
+ }
+ 
+ MODULE_AUTHOR("Intel Corporation");
+--- a/include/linux/memory-tiers.h~dax-kmem-calculate-abstract-distance-with-general-interface
++++ a/include/linux/memory-tiers.h
+@@ -24,6 +24,8 @@ struct memory_tier;
+ struct memory_dev_type {
+ 	/* list of memory types that are part of same tier as this type */
+ 	struct list_head tier_sibling;
++	/* list of memory types that are managed by one driver */
++	struct list_head list;
+ 	/* abstract distance for this specific memory type */
+ 	int adistance;
+ 	/* Nodes of same abstract distance */
+--- a/mm/memory-tiers.c~dax-kmem-calculate-abstract-distance-with-general-interface
 +++ a/mm/memory-tiers.c
-@@ -37,7 +37,7 @@ struct node_memory_type_map {
- static DEFINE_MUTEX(memory_tier_lock);
- static LIST_HEAD(memory_tiers);
- static struct node_memory_type_map node_memory_types[MAX_NUMNODES];
--static struct memory_dev_type *default_dram_type;
-+struct memory_dev_type *default_dram_type;
- 
- static struct bus_type memory_tier_subsys = {
- 	.name = "memory_tiering",
-@@ -108,6 +108,11 @@ static struct demotion_nodes *node_demot
- 
- static BLOCKING_NOTIFIER_HEAD(mt_adistance_algorithms);
- 
-+static bool default_dram_perf_error;
-+static struct node_hmem_attrs default_dram_perf;
-+static int default_dram_perf_ref_nid = NUMA_NO_NODE;
-+static const char *default_dram_perf_ref_source;
-+
- static inline struct memory_tier *to_memory_tier(struct device *device)
+@@ -586,7 +586,7 @@ EXPORT_SYMBOL_GPL(init_node_memory_type)
+ void clear_node_memory_type(int node, struct memory_dev_type *memtype)
  {
- 	return container_of(device, struct memory_tier, dev);
-@@ -595,6 +600,102 @@ void clear_node_memory_type(int node, st
- }
- EXPORT_SYMBOL_GPL(clear_node_memory_type);
- 
-+static void dump_hmem_attrs(struct node_hmem_attrs *attrs, const char *prefix)
-+{
-+	pr_info(
-+"%sread_latency: %u, write_latency: %u, read_bandwidth: %u, write_bandwidth: %u\n",
-+		prefix, attrs->read_latency, attrs->write_latency,
-+		attrs->read_bandwidth, attrs->write_bandwidth);
-+}
-+
-+int mt_set_default_dram_perf(int nid, struct node_hmem_attrs *perf,
-+			     const char *source)
-+{
-+	int rc = 0;
-+
-+	mutex_lock(&memory_tier_lock);
-+	if (default_dram_perf_error) {
-+		rc = -EIO;
-+		goto out;
-+	}
-+
-+	if (perf->read_latency + perf->write_latency == 0 ||
-+	    perf->read_bandwidth + perf->write_bandwidth == 0) {
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+
-+	if (default_dram_perf_ref_nid == NUMA_NO_NODE) {
-+		default_dram_perf = *perf;
-+		default_dram_perf_ref_nid = nid;
-+		default_dram_perf_ref_source = kstrdup(source, GFP_KERNEL);
-+		goto out;
-+	}
-+
-+	/*
-+	 * The performance of all default DRAM nodes is expected to be
-+	 * same (that is, the variation is less than 10%).  And it
-+	 * will be used as base to calculate the abstract distance of
-+	 * other memory nodes.
-+	 */
-+	if (abs(perf->read_latency - default_dram_perf.read_latency) * 10 >
-+	    default_dram_perf.read_latency ||
-+	    abs(perf->write_latency - default_dram_perf.write_latency) * 10 >
-+	    default_dram_perf.write_latency ||
-+	    abs(perf->read_bandwidth - default_dram_perf.read_bandwidth) * 10 >
-+	    default_dram_perf.read_bandwidth ||
-+	    abs(perf->write_bandwidth - default_dram_perf.write_bandwidth) * 10 >
-+	    default_dram_perf.write_bandwidth) {
-+		pr_info(
-+"memory-tiers: the performance of DRAM node %d mismatches that of the reference\n"
-+"DRAM node %d.\n", nid, default_dram_perf_ref_nid);
-+		pr_info("  performance of reference DRAM node %d:\n",
-+			default_dram_perf_ref_nid);
-+		dump_hmem_attrs(&default_dram_perf, "    ");
-+		pr_info("  performance of DRAM node %d:\n", nid);
-+		dump_hmem_attrs(perf, "    ");
-+		pr_info(
-+"  disable default DRAM node performance based abstract distance algorithm.\n");
-+		default_dram_perf_error = true;
-+		rc = -EINVAL;
-+	}
-+
-+out:
-+	mutex_unlock(&memory_tier_lock);
-+	return rc;
-+}
-+
-+int mt_perf_to_adistance(struct node_hmem_attrs *perf, int *adist)
-+{
-+	if (default_dram_perf_error)
-+		return -EIO;
-+
-+	if (default_dram_perf_ref_nid == NUMA_NO_NODE)
-+		return -ENOENT;
-+
-+	if (perf->read_latency + perf->write_latency == 0 ||
-+	    perf->read_bandwidth + perf->write_bandwidth == 0)
-+		return -EINVAL;
-+
-+	mutex_lock(&memory_tier_lock);
-+	/*
-+	 * The abstract distance of a memory node is in direct proportion to
-+	 * its memory latency (read + write) and inversely proportional to its
-+	 * memory bandwidth (read + write).  The abstract distance, memory
-+	 * latency, and memory bandwidth of the default DRAM nodes are used as
-+	 * the base.
-+	 */
-+	*adist = MEMTIER_ADISTANCE_DRAM *
-+		(perf->read_latency + perf->write_latency) /
-+		(default_dram_perf.read_latency + default_dram_perf.write_latency) *
-+		(default_dram_perf.read_bandwidth + default_dram_perf.write_bandwidth) /
-+		(perf->read_bandwidth + perf->write_bandwidth);
-+	mutex_unlock(&memory_tier_lock);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(mt_perf_to_adistance);
-+
- /**
-  * register_mt_adistance_algorithm() - Register memory tiering abstract distance algorithm
-  * @nb: The notifier block which describe the algorithm
+ 	mutex_lock(&memory_tier_lock);
+-	if (node_memory_types[node].memtype == memtype)
++	if (node_memory_types[node].memtype == memtype || !memtype)
+ 		node_memory_types[node].map_count--;
+ 	/*
+ 	 * If we umapped all the attached devices to this node,
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
