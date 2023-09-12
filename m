@@ -2,33 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04C68EE3F06
-	for <mm-commits@archiver.kernel.org>; Tue, 12 Sep 2023 17:37:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED46EEE3F08
+	for <mm-commits@archiver.kernel.org>; Tue, 12 Sep 2023 17:42:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235837AbjILRhc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 12 Sep 2023 13:37:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45884 "EHLO
+        id S231989AbjILRmX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 12 Sep 2023 13:42:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47862 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230099AbjILRhc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Sep 2023 13:37:32 -0400
+        with ESMTP id S230142AbjILRmW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Sep 2023 13:42:22 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8349910E9
-        for <mm-commits@vger.kernel.org>; Tue, 12 Sep 2023 10:37:28 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20A03C433C9;
-        Tue, 12 Sep 2023 17:37:28 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFF04C1
+        for <mm-commits@vger.kernel.org>; Tue, 12 Sep 2023 10:42:18 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 844FCC433C8;
+        Tue, 12 Sep 2023 17:42:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694540248;
-        bh=g5GcYyKfcBHHdUGGEYnQUMYqmiu/lA0XrIHZCZRn1GE=;
+        s=korg; t=1694540538;
+        bh=dz3tpTNAfrOaXe4VdfFT+k2VPoDM2oIU2TCdeFWEAGI=;
         h=Date:To:From:Subject:From;
-        b=1nxdIoMev2lUDZnVIE/iA5aX0F1kcdc9hfPnlyF77yN25KWAL5OrCdV2VCaKzKoi8
-         Kqv4e46z276qn4ICOmHWIqdTK8HFjHg4LKEiDPajrX6yEwOwhsxyikTnd2LJtbh3QD
-         0tXS10dNXt7RMK/s6m8WhGnghoxxLRis+QO/+42s=
-Date:   Tue, 12 Sep 2023 10:37:27 -0700
-To:     mm-commits@vger.kernel.org, rdunlap@infradead.org,
+        b=mHI6ZKjEotiWpelDOn6me149dur5GEpEeODGXCrA8YOZ4reXDuop6805gqszxoUk1
+         MvpFywmSPu1lYz0Mw0xnJtqsx5kP2UTS9pUsobdD+Nq8UN9iea48vIPgRHPep/umIo
+         08mhxyQRakLEwl2ZVRG+1X2YvU6+HnVtxZV6IyPE=
+Date:   Tue, 12 Sep 2023 10:42:17 -0700
+To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
+        agruenba@redhat.com, akpm@linux-foundation.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + argv_split-fix-kernel-doc-warnings.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230912173728.20A03C433C9@smtp.kernel.org>
+Subject: + kthread-add-kthread_stop_put-v2-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20230912174218.844FCC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,14 +37,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: argv_split: fix kernel-doc warnings
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     argv_split-fix-kernel-doc-warnings.patch
+     Subject: kthread-add-kthread_stop_put-v2-fix
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kthread-add-kthread_stop_put-v2-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/argv_split-fix-kernel-doc-warnings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kthread-add-kthread_stop_put-v2-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,47 +60,37 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: argv_split: fix kernel-doc warnings
-Date: Mon, 11 Sep 2023 23:08:38 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kthread-add-kthread_stop_put-v2-fix
+Date: Tue Sep 12 10:41:17 AM PDT 2023
 
-Use proper kernel-doc notation to prevent build warnings:
+document kthread_stop_put()'s argument
 
-lib/argv_split.c:36: warning: Function parameter or member 'argv' not described in 'argv_free'
-lib/argv_split.c:61: warning: No description found for return value of 'argv_split'
+Cc: Andreas Gruenbacher <agruenba@redhat.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Closes: https://lkml.kernel.org/r/20230912152030.34e9ac3d@canb.auug.org.au
 
-Link: https://lkml.kernel.org/r/20230912060838.3794-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/argv_split.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/kthread.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/lib/argv_split.c~argv_split-fix-kernel-doc-warnings
-+++ a/lib/argv_split.c
-@@ -28,7 +28,7 @@ static int count_argc(const char *str)
+--- a/kernel/kthread.c~kthread-add-kthread_stop_put-v2-fix
++++ a/kernel/kthread.c
+@@ -717,6 +717,7 @@ EXPORT_SYMBOL(kthread_stop);
  
  /**
-  * argv_free - free an argv
-- * @argv - the argument vector to be freed
-+ * @argv: the argument vector to be freed
+  * kthread_stop_put - stop a thread and put its task struct
++ * @k: thread created by kthread_create().
   *
-  * Frees an argv and the strings it points to.
-  */
-@@ -46,7 +46,7 @@ EXPORT_SYMBOL(argv_free);
-  * @str: the string to be split
-  * @argcp: returned argument count
-  *
-- * Returns an array of pointers to strings which are split out from
-+ * Returns: an array of pointers to strings which are split out from
-  * @str.  This is performed by strictly splitting on white-space; no
-  * quote processing is performed.  Multiple whitespace characters are
-  * considered to be a single argument separator.  The returned array
+  * Stops a thread created by kthread_create() and put its task_struct.
+  * Only use when holding an extra task struct reference obtained by
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-scatterlist-add-missing-function-params-to-kernel-doc.patch
-argv_split-fix-kernel-doc-warnings.patch
+mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
+revert-scripts-gdb-symbols-add-specific-ko-module-load-command.patch
+kthread-add-kthread_stop_put-v2-fix.patch
 
