@@ -2,82 +2,73 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6137CA0EF2
-	for <mm-commits@archiver.kernel.org>; Tue, 12 Sep 2023 16:04:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D616CA0EEB
+	for <mm-commits@archiver.kernel.org>; Tue, 12 Sep 2023 16:10:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236142AbjILQEc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 12 Sep 2023 12:04:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40342 "EHLO
+        id S235021AbjILQKU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 12 Sep 2023 12:10:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43064 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235340AbjILQEb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Sep 2023 12:04:31 -0400
+        with ESMTP id S236583AbjILQKC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Sep 2023 12:10:02 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0805110DE
-        for <mm-commits@vger.kernel.org>; Tue, 12 Sep 2023 09:04:28 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 967BFC433C8;
-        Tue, 12 Sep 2023 16:04:27 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3E781724;
+        Tue, 12 Sep 2023 09:09:40 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C07E2C433C7;
+        Tue, 12 Sep 2023 16:09:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694534667;
-        bh=jzn3QrWbUN2/y6ClZJ5F+vaR36oIRW1GGd3SRuhPSEI=;
-        h=Date:To:From:Subject:From;
-        b=jR8UCIc+YVNya6zg5YM6tz1AuqH5RqgAU1Cmllzwuk2VY1q0MJLV+8kKbQR87YLzL
-         sK4qKVwzOzNVEcYaPLOMB6a5g6cEudTA//aK7m3WbgXf3bT4TIs8AVuqfc27/P2rES
-         Yr4F+kSWiw0MyFFnm8YnEg2lbRwrLqTW3wfOEDME=
-Date:   Tue, 12 Sep 2023 09:04:26 -0700
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
-        wangkefeng.wang@huawei.com, vbabka@suse.cz,
-        mgorman@techsingularity.net, linmiaohe@huawei.com,
-        hannes@cmpxchg.org, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
+        s=korg; t=1694534980;
+        bh=CAIk6vw8OzZDI1FJyC0jmDb7nYJBnyOGVfJahRMQpqg=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=yGB7U0b1v2ErUF8JDn1fHFE6Q3RjpCbynDbDZzaZXoorqFIyJXCbLpPeqhZ9Q/uMV
+         iT8kq2iYuAwcM2IxYIkfsnJbSNcaHUHdL3aRtz1UXXetip33MBMe6ox3P/ZJ04dJEZ
+         t6e/Zcw2AL4LZ2iGtc7DkYepmaLn8LZJ/mBi1Cw4=
+Date:   Tue, 12 Sep 2023 09:09:38 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] mm-page_alloc-remove-pcppage-migratetype-caching-fix.patch removed from -mm tree
-Message-Id: <20230912160427.967BFC433C8@smtp.kernel.org>
+To:     Johannes Weiner <hannes@cmpxchg.org>
+Cc:     mm-commits@vger.kernel.org, vbabka@suse.cz, stable@vger.kernel.org,
+        joe.liu@mediatek.com, mgorman@techsingularity.net
+Subject: Re: +
+ mm-page_alloc-free-pages-to-correct-buddy-list-after-pcp-lock-contention.patch
+ added to mm-hotfixes-unstable branch
+Message-Id: <20230912090938.c5314956fe385241bf567a9e@linux-foundation.org>
+In-Reply-To: <20230912135029.GA249952@cmpxchg.org>
+References: <20230911210053.8B7B0C433CD@smtp.kernel.org>
+        <20230912135029.GA249952@cmpxchg.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Tue, 12 Sep 2023 09:50:29 -0400 Johannes Weiner <hannes@cmpxchg.org> wrote:
 
-The quilt patch titled
-     Subject: mm-page_alloc-remove-pcppage-migratetype-caching-fix
-has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-remove-pcppage-migratetype-caching-fix.patch
+> > Cc: Johannes Weiner <hannes@cmpxchg.org>
+> > Cc: <stable@vger.kernel.org>
+> > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> 
+> This patch is superseded by the following patch you picked up:
+> mm-page_alloc-fix-cma-and-highatomic-landing-on-the-wrong-buddy-list.patch
 
-This patch was dropped because it is obsolete
+OK.
 
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_alloc-remove-pcppage-migratetype-caching-fix
-Date: Mon Sep 11 02:40:43 PM PDT 2023
+> If you drop this patch here, you can also drop the fixlet to
+> free_unref_page(). The branch in there should look like this:
+> 
+> 	if (pcp)
+> 		free_unref_page_commit(..., pcpmigratetype, ...);
+> 	else
+> 		free_one_page(..., migratetype, ...);
 
-fix free_unref_page()
+Well kinda.  It's actually
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/mm/page_alloc.c~mm-page_alloc-remove-pcppage-migratetype-caching-fix
-+++ a/mm/page_alloc.c
-@@ -2429,7 +2429,7 @@ void free_unref_page(struct page *page,
- 		 * must be rechecked.
- 		 */
- 		free_one_page(zone, page, pfn, order,
--			      get_pcppage_migratetype(page), FPI_NONE);
-+			      get_pfnblock_migratetype(page, pfn), FPI_NONE);
- 	}
- 	pcp_trylock_finish(UP_flags);
- }
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
+	if (pcp) {
+		free_unref_page_commit(zone, pcp, page, migratetype, order);
+		pcp_spin_unlock(pcp);
+	} else {
+		free_one_page(zone, page, pfn, order, migratetype, FPI_NONE);
+	}
 
