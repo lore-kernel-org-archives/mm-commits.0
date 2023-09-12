@@ -2,143 +2,106 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49771CA0EF1
-	for <mm-commits@archiver.kernel.org>; Tue, 12 Sep 2023 16:24:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0881BCA0ED2
+	for <mm-commits@archiver.kernel.org>; Tue, 12 Sep 2023 16:56:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232848AbjILQYJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 12 Sep 2023 12:24:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49606 "EHLO
+        id S237233AbjILQ4f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 12 Sep 2023 12:56:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56186 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236718AbjILQYH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Sep 2023 12:24:07 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 30E9210EB
-        for <mm-commits@vger.kernel.org>; Tue, 12 Sep 2023 09:24:04 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5585C433C8;
-        Tue, 12 Sep 2023 16:24:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694535843;
-        bh=wX9LaYSvQS7jxybgIbZjEZcTYlruHdIUL2BXedh8xmY=;
-        h=Date:To:From:Subject:From;
-        b=j/Y5JreMGCdJFwqbfudta0ap7yKKULJbWEWjZZIONS4FzPBNZru0mDO6GNereHiYb
-         ch+tnT6MXSHvRpUO++k51HDWX/WlSZOvpcNdr+ze+31wS+uQacTqBFoNI02fe1p89y
-         BNik3KAPRD1gxSEaPitnAdb0EFqwY1wHv4hS1VSU=
-Date:   Tue, 12 Sep 2023 09:24:03 -0700
-To:     mm-commits@vger.kernel.org, qun-wei.lin@mediatek.com,
-        matthias.bgg@gmail.com, Kuan-Ying.Lee@mediatek.com,
-        kbingham@kernel.org, johannes@sipsolutions.net,
-        jan.kiszka@siemens.com, chinwen.chang@mediatek.com,
-        angelogioacchino.delregno@collabora.com, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-scripts-gdb-symbols-add-specific-ko-module-load-command.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230912162403.B5585C433C8@smtp.kernel.org>
+        with ESMTP id S237284AbjILQ4b (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Sep 2023 12:56:31 -0400
+Received: from mail-qv1-xf2b.google.com (mail-qv1-xf2b.google.com [IPv6:2607:f8b0:4864:20::f2b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F0061720
+        for <mm-commits@vger.kernel.org>; Tue, 12 Sep 2023 09:56:27 -0700 (PDT)
+Received: by mail-qv1-xf2b.google.com with SMTP id 6a1803df08f44-64f457c97a3so37218216d6.2
+        for <mm-commits@vger.kernel.org>; Tue, 12 Sep 2023 09:56:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=cmpxchg-org.20230601.gappssmtp.com; s=20230601; t=1694537786; x=1695142586; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=OP6Q6o8FGbGvxndyeGmyIjIYrMnEOeORNz+Auf2DNjQ=;
+        b=xMB72i0HPPa1AClqLdk1eJJK3Dox5eVZ648/239CPt7K0/bk+LvpQG2P2oTGp6PgNv
+         p7Z0sgHn/GSCIsPSl150eTIPC/AhV6TVkAHnsbZSVETqD9kFJ7BhnWrm+VVNEtsGMeY8
+         lA69QKTzWFhNKJHHxGUbxkY4ydXMBZz+tNDZiBOC2oRymEPQDrpHjHwXlQoItrFxei44
+         j7Y+vX0ZlWOhFgrtYPkQuYztA8nFW7jdjNrUGQgPU7fWuk0hi+hhvlHieMu3J32TnOaa
+         crRrH8uhmvU3TlsQpziBl5y/gTGRUhiy1dUlAaJjVT+dFKb+/Vd6V45o1ZO7m5pFB6Gy
+         9L1A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1694537786; x=1695142586;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=OP6Q6o8FGbGvxndyeGmyIjIYrMnEOeORNz+Auf2DNjQ=;
+        b=Gy+Ei4YkAEywbN29sAFHIZUfiD9t14u8AIT3gO66QgOVvgoewDRFJqPoHGN61tknDR
+         kD29ZO6cZ11UgEDve8y3XYTDUywAAPu1iI4J6ILC5MnU/sQWle+zEGnkUFjD5/KtLwCn
+         aRv5go/APNbXK7hwx+pEPdVaew7IwzlNgh5NORJd6NueaQh8bnViNdlAwx7Z49IKU6K7
+         7HvafGC8mh4MN91fayQRp4ZAYQfsRSSs6lPNMOD571FGb7rUZlD2G+9zOcIlCruG1hI6
+         AxsGYpnuh8wDll8nqwX3ZPzKxC6f1BYprEGjdMiSxYBM4lNP6a6d1dV5w6EhyWzid4Xi
+         AkbA==
+X-Gm-Message-State: AOJu0Yypc43SDcek2iF+fqlIupOr/USp3WMDFjd3Eje2XgiebDORDjS8
+        f/m+VPpBU8V3a//cYcNBtg80Jw/jf23H61GOtpk=
+X-Google-Smtp-Source: AGHT+IFCTVb0dQm+Pn/TCEePMFW6SPUMKrQ8EOrnbaMDqjwB7NtyfGs6jUNyj7yY/RSCDFlOBBiYZQ==
+X-Received: by 2002:a0c:e14b:0:b0:637:ad25:9070 with SMTP id c11-20020a0ce14b000000b00637ad259070mr4160221qvl.53.1694537786512;
+        Tue, 12 Sep 2023 09:56:26 -0700 (PDT)
+Received: from localhost (2603-7000-0c01-2716-3012-16a2-6bc2-2937.res6.spectrum.com. [2603:7000:c01:2716:3012:16a2:6bc2:2937])
+        by smtp.gmail.com with ESMTPSA id r6-20020a0ce286000000b0064f732aa45csm3772064qvl.133.2023.09.12.09.56.25
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 12 Sep 2023 09:56:26 -0700 (PDT)
+Date:   Tue, 12 Sep 2023 12:56:25 -0400
+From:   Johannes Weiner <hannes@cmpxchg.org>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, vbabka@suse.cz, stable@vger.kernel.org,
+        joe.liu@mediatek.com, mgorman@techsingularity.net
+Subject: Re: +
+ mm-page_alloc-free-pages-to-correct-buddy-list-after-pcp-lock-contention.patch
+ added to mm-hotfixes-unstable branch
+Message-ID: <20230912165625.GA34089@cmpxchg.org>
+References: <20230911210053.8B7B0C433CD@smtp.kernel.org>
+ <20230912135029.GA249952@cmpxchg.org>
+ <20230912090938.c5314956fe385241bf567a9e@linux-foundation.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230912090938.c5314956fe385241bf567a9e@linux-foundation.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Tue, Sep 12, 2023 at 09:09:38AM -0700, Andrew Morton wrote:
+> On Tue, 12 Sep 2023 09:50:29 -0400 Johannes Weiner <hannes@cmpxchg.org> wrote:
+> 
+> > > Cc: Johannes Weiner <hannes@cmpxchg.org>
+> > > Cc: <stable@vger.kernel.org>
+> > > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> > 
+> > This patch is superseded by the following patch you picked up:
+> > mm-page_alloc-fix-cma-and-highatomic-landing-on-the-wrong-buddy-list.patch
+> 
+> OK.
+> 
+> > If you drop this patch here, you can also drop the fixlet to
+> > free_unref_page(). The branch in there should look like this:
+> > 
+> > 	if (pcp)
+> > 		free_unref_page_commit(..., pcpmigratetype, ...);
+> > 	else
+> > 		free_one_page(..., migratetype, ...);
+> 
+> Well kinda.  It's actually
+> 
+> 	if (pcp) {
+> 		free_unref_page_commit(zone, pcp, page, migratetype, order);
 
-The patch titled
-     Subject: revert "scripts/gdb/symbols: add specific ko module load command"
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     revert-scripts-gdb-symbols-add-specific-ko-module-load-command.patch
+							^^ pcpmigratetype
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-scripts-gdb-symbols-add-specific-ko-module-load-command.patch
+is what I was trying to highlight.
 
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+But yes, the pcp_spin_unlock() is needed too!
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "scripts/gdb/symbols: add specific ko module load command"
-Date: Tue Sep 12 09:19:10 AM PDT 2023
-
-Revert 11f956538c07 ("scripts/gdb/symbols: add specific ko module load
-command") due to breakage identified by Johannes Berg in [1].
-
-Fixes: 11f956538c07 ("scripts/gdb/symbols: add specific ko module load command")
-Reported-by: Johannes Berg <johannes@sipsolutions.net>
-Closes: https://lkml.kernel.org/r/c44b748307a074d0c250002cdcfe209b8cce93c9.camel@sipsolutions.net [1]
-Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
-Cc: Chinwen Chang <chinwen.chang@mediatek.com>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Kieran Bingham <kbingham@kernel.org>
-Cc: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Qun-Wei Lin <qun-wei.lin@mediatek.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- scripts/gdb/linux/symbols.py |   23 ++---------------------
- 1 file changed, 2 insertions(+), 21 deletions(-)
-
---- a/scripts/gdb/linux/symbols.py~revert-scripts-gdb-symbols-add-specific-ko-module-load-command
-+++ a/scripts/gdb/linux/symbols.py
-@@ -111,12 +111,11 @@ lx-symbols command."""
-         return "{textaddr} {sections}".format(
-             textaddr=textaddr, sections="".join(args))
- 
--    def load_module_symbols(self, module, module_file=None):
-+    def load_module_symbols(self, module):
-         module_name = module['name'].string()
-         module_addr = str(module['mem'][constants.LX_MOD_TEXT]['base']).split()[0]
- 
--        if not module_file:
--            module_file = self._get_module_file(module_name)
-+        module_file = self._get_module_file(module_name)
-         if not module_file and not self.module_files_updated:
-             self._update_module_files()
-             module_file = self._get_module_file(module_name)
-@@ -139,19 +138,6 @@ lx-symbols command."""
-         else:
-             gdb.write("no module object found for '{0}'\n".format(module_name))
- 
--    def load_ko_symbols(self, mod_path):
--        self.loaded_modules = []
--        module_list = modules.module_list()
--
--        for module in module_list:
--            module_name = module['name'].string()
--            module_pattern = ".*/{0}\.ko(?:.debug)?$".format(
--                module_name.replace("_", r"[_\-]"))
--            if re.match(module_pattern, mod_path) and os.path.exists(mod_path):
--                self.load_module_symbols(module, mod_path)
--                return
--        raise gdb.GdbError("%s is not a valid .ko\n" % mod_path)
--
-     def load_all_symbols(self):
-         gdb.write("loading vmlinux\n")
- 
-@@ -190,11 +176,6 @@ lx-symbols command."""
-         self.module_files = []
-         self.module_files_updated = False
- 
--        argv = gdb.string_to_argv(arg)
--        if len(argv) == 1:
--            self.load_ko_symbols(argv[0])
--            return
--
-         self.load_all_symbols()
- 
-         if hasattr(gdb, 'Breakpoint'):
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
-revert-scripts-gdb-symbols-add-specific-ko-module-load-command.patch
-
+> 		pcp_spin_unlock(pcp);
+> 	} else {
+> 		free_one_page(zone, page, pfn, order, migratetype, FPI_NONE);
+> 	}
+> 
