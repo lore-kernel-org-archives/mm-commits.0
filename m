@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C681EE020B
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Sep 2023 19:28:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA606EE0207
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Sep 2023 19:28:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232414AbjIMT2j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Sep 2023 15:28:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41492 "EHLO
+        id S232416AbjIMT2n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Sep 2023 15:28:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41532 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232406AbjIMT2i (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2023 15:28:38 -0400
+        with ESMTP id S232403AbjIMT2m (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2023 15:28:42 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0CA0AB7
-        for <mm-commits@vger.kernel.org>; Wed, 13 Sep 2023 12:28:35 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96278C433CB;
-        Wed, 13 Sep 2023 19:28:34 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF4A819AD
+        for <mm-commits@vger.kernel.org>; Wed, 13 Sep 2023 12:28:37 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7653DC433CA;
+        Wed, 13 Sep 2023 19:28:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694633314;
-        bh=TGM9UQzyoTiSokGIJ0ksY7iG2+sOaPa6vrkhU23YRvU=;
+        s=korg; t=1694633317;
+        bh=mnvvFRt5YblOs6Ii7/27kWBnsI/Nv9cf6g9YQJqQQ48=;
         h=Date:To:From:Subject:From;
-        b=DbIsHzVz7Uk3C3y2bQlRupF7VN4P0o7hCCcv2nd7aUdIy8wC8CpmYmcnXzxwa6Esx
-         mH4oZ+GMOpeOJsZe7ms/I32VDvHSA91zxt5cDnM34+jtu+og33t/Ek0C09A2xOSMr8
-         v+ExGw6IDJFCX8Dx5LR2NrRFkQPBH+su56fffUzk=
-Date:   Wed, 13 Sep 2023 12:28:34 -0700
+        b=s1np3RNu9nsgjI2zawrS1us/DDQ/zDYH8AceaxdjwPDKkMxQm2X8Q78UBXZWkCLXz
+         L57t90so58I3y2UFQ2WwZhTEtXWLjaEMmn2snaW0j4zwc/cbcq62nY6SQakRQjPtmv
+         VUahpUB1Z3i/AX885h6+ogqks82xgoX5raKl4quE=
+Date:   Wed, 13 Sep 2023 12:28:36 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, osalvador@suse.de,
         glider@google.com, eugenis@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@gmail.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-stackdepot-drop-valid-bit-from-handles.patch added to mm-unstable branch
-Message-Id: <20230913192834.96278C433CB@smtp.kernel.org>
+Subject: + lib-stackdepot-add-depot_fetch_stack-helper.patch added to mm-unstable branch
+Message-Id: <20230913192837.7653DC433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,12 +38,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/stackdepot: drop valid bit from handles
+     Subject: lib/stackdepot: add depot_fetch_stack helper
 has been added to the -mm mm-unstable branch.  Its filename is
-     lib-stackdepot-drop-valid-bit-from-handles.patch
+     lib-stackdepot-add-depot_fetch_stack-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-drop-valid-bit-from-handles.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-add-depot_fetch_stack-helper.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,12 +62,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: lib/stackdepot: drop valid bit from handles
-Date: Wed, 13 Sep 2023 19:14:28 +0200
+Subject: lib/stackdepot: add depot_fetch_stack helper
+Date: Wed, 13 Sep 2023 19:14:29 +0200
 
-Stack depot doesn't use the valid bit in handles in any way, so drop it.
+Add a helper depot_fetch_stack function that fetches the pointer to a
+stack record.
 
-Link: https://lkml.kernel.org/r/5cbb8235fe6418f970fd0012450defdce598abcf.1694625260.git.andreyknvl@google.com
+With this change, all static depot_* functions now operate on stack pools
+and the exported stack_depot_* functions operate on the hash table.
+
+Link: https://lkml.kernel.org/r/74e0a28a38b05f27f3a4b54d5fa93213672fcd30.1694625260.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
@@ -79,43 +83,84 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/stackdepot.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ lib/stackdepot.c |   45 ++++++++++++++++++++++++++++-----------------
+ 1 file changed, 28 insertions(+), 17 deletions(-)
 
---- a/lib/stackdepot.c~lib-stackdepot-drop-valid-bit-from-handles
+--- a/lib/stackdepot.c~lib-stackdepot-add-depot_fetch_stack-helper
 +++ a/lib/stackdepot.c
-@@ -32,13 +32,12 @@
- 
- #define DEPOT_HANDLE_BITS (sizeof(depot_stack_handle_t) * 8)
- 
--#define DEPOT_VALID_BITS 1
- #define DEPOT_POOL_ORDER 2 /* Pool size order, 4 pages */
- #define DEPOT_POOL_SIZE (1LL << (PAGE_SHIFT + DEPOT_POOL_ORDER))
- #define DEPOT_STACK_ALIGN 4
- #define DEPOT_OFFSET_BITS (DEPOT_POOL_ORDER + PAGE_SHIFT - DEPOT_STACK_ALIGN)
--#define DEPOT_POOL_INDEX_BITS (DEPOT_HANDLE_BITS - DEPOT_VALID_BITS - \
--			       DEPOT_OFFSET_BITS - STACK_DEPOT_EXTRA_BITS)
-+#define DEPOT_POOL_INDEX_BITS (DEPOT_HANDLE_BITS - DEPOT_OFFSET_BITS - \
-+			       STACK_DEPOT_EXTRA_BITS)
- #define DEPOT_POOLS_CAP 8192
- #define DEPOT_MAX_POOLS \
- 	(((1LL << (DEPOT_POOL_INDEX_BITS)) < DEPOT_POOLS_CAP) ? \
-@@ -50,7 +49,6 @@ union handle_parts {
- 	struct {
- 		u32 pool_index	: DEPOT_POOL_INDEX_BITS;
- 		u32 offset	: DEPOT_OFFSET_BITS;
--		u32 valid	: DEPOT_VALID_BITS;
- 		u32 extra	: STACK_DEPOT_EXTRA_BITS;
- 	};
- };
-@@ -303,7 +301,6 @@ depot_alloc_stack(unsigned long *entries
- 	stack->size = size;
- 	stack->handle.pool_index = pool_index;
- 	stack->handle.offset = pool_offset >> DEPOT_STACK_ALIGN;
--	stack->handle.valid = 1;
+@@ -304,6 +304,7 @@ depot_alloc_stack(unsigned long *entries
  	stack->handle.extra = 0;
  	memcpy(stack->entries, entries, flex_array_size(stack, entries, size));
  	pool_offset += required_size;
++
+ 	/*
+ 	 * Let KMSAN know the stored stack record is initialized. This shall
+ 	 * prevent false positive reports if instrumented code accesses it.
+@@ -313,6 +314,32 @@ depot_alloc_stack(unsigned long *entries
+ 	return stack;
+ }
+ 
++static struct stack_record *depot_fetch_stack(depot_stack_handle_t handle)
++{
++	union handle_parts parts = { .handle = handle };
++	/*
++	 * READ_ONCE pairs with potential concurrent write in
++	 * depot_alloc_stack().
++	 */
++	int pool_index_cached = READ_ONCE(pool_index);
++	void *pool;
++	size_t offset = parts.offset << DEPOT_STACK_ALIGN;
++	struct stack_record *stack;
++
++	if (parts.pool_index > pool_index_cached) {
++		WARN(1, "pool index %d out of bounds (%d) for stack id %08x\n",
++		     parts.pool_index, pool_index_cached, handle);
++		return NULL;
++	}
++
++	pool = stack_pools[parts.pool_index];
++	if (!pool)
++		return NULL;
++
++	stack = pool + offset;
++	return stack;
++}
++
+ /* Calculates the hash for a stack. */
+ static inline u32 hash_stack(unsigned long *entries, unsigned int size)
+ {
+@@ -456,14 +483,6 @@ EXPORT_SYMBOL_GPL(stack_depot_save);
+ unsigned int stack_depot_fetch(depot_stack_handle_t handle,
+ 			       unsigned long **entries)
+ {
+-	union handle_parts parts = { .handle = handle };
+-	/*
+-	 * READ_ONCE pairs with potential concurrent write in
+-	 * depot_alloc_stack.
+-	 */
+-	int pool_index_cached = READ_ONCE(pool_index);
+-	void *pool;
+-	size_t offset = parts.offset << DEPOT_STACK_ALIGN;
+ 	struct stack_record *stack;
+ 
+ 	*entries = NULL;
+@@ -476,15 +495,7 @@ unsigned int stack_depot_fetch(depot_sta
+ 	if (!handle || stack_depot_disabled)
+ 		return 0;
+ 
+-	if (parts.pool_index > pool_index_cached) {
+-		WARN(1, "pool index %d out of bounds (%d) for stack id %08x\n",
+-			parts.pool_index, pool_index_cached, handle);
+-		return 0;
+-	}
+-	pool = stack_pools[parts.pool_index];
+-	if (!pool)
+-		return 0;
+-	stack = pool + offset;
++	stack = depot_fetch_stack(handle);
+ 
+ 	*entries = stack->entries;
+ 	return stack->size;
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
