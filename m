@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1105BEE020A
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Sep 2023 19:28:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18054EE020A
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Sep 2023 19:28:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232399AbjIMT2d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Sep 2023 15:28:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41416 "EHLO
+        id S232400AbjIMT2j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Sep 2023 15:28:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41454 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232400AbjIMT2d (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2023 15:28:33 -0400
+        with ESMTP id S232414AbjIMT2g (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2023 15:28:36 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 20E101999
-        for <mm-commits@vger.kernel.org>; Wed, 13 Sep 2023 12:28:29 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9666C433C8;
-        Wed, 13 Sep 2023 19:28:28 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03DEA19A0
+        for <mm-commits@vger.kernel.org>; Wed, 13 Sep 2023 12:28:32 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DEEAC433C9;
+        Wed, 13 Sep 2023 19:28:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694633308;
-        bh=ZAIB92OgE2GTXY38NWRvFiSK1hfVtIvBfiYs8mX6BKU=;
+        s=korg; t=1694633311;
+        bh=LG3gk9n0Ze8clBYt/zYo7F001nbB3L54d78h8/OG+IE=;
         h=Date:To:From:Subject:From;
-        b=zG8svbZBTJlAeEEofSeFlA04pGyw2kg+6FvVyH7JFalr7rccGyhkewTVngFGtPrWP
-         hwFShtx1LkKYmIGUq6XN16Hcy0OnY2knne5pPRgSsEzNahKrjhogo3jKEyvo1N4FNP
-         89swwUZyn0/JWPfW2ULsSvLkfn2yKl69sCMMjFBM=
-Date:   Wed, 13 Sep 2023 12:28:28 -0700
+        b=fT3vjp31tZDKsP+Ml6MAb8jrKHIf3RckcLXT13hKHFz3Fn10ap4B/o5/qeZ34H7qi
+         F6D9tyRIUQHqxwblzFwTtuwiBA8kfyPOBbADc0S0pqbta2+34YIbRVzRq69gr4oYRX
+         VN7b1fKl85KoCyguCcw/9SnRePt27utLQqYfPamI=
+Date:   Wed, 13 Sep 2023 12:28:31 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, osalvador@suse.de,
         glider@google.com, eugenis@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@gmail.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-stackdepot-check-disabled-flag-when-fetching.patch added to mm-unstable branch
-Message-Id: <20230913192828.A9666C433C8@smtp.kernel.org>
+Subject: + lib-stackdepot-simplify-__stack_depot_save.patch added to mm-unstable branch
+Message-Id: <20230913192831.8DEEAC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,12 +38,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/stackdepot: check disabled flag when fetching
+     Subject: lib/stackdepot: simplify __stack_depot_save
 has been added to the -mm mm-unstable branch.  Its filename is
-     lib-stackdepot-check-disabled-flag-when-fetching.patch
+     lib-stackdepot-simplify-__stack_depot_save.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-check-disabled-flag-when-fetching.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-simplify-__stack_depot_save.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,83 +62,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: lib/stackdepot: check disabled flag when fetching
-Date: Wed, 13 Sep 2023 19:14:26 +0200
+Subject: lib/stackdepot: simplify __stack_depot_save
+Date: Wed, 13 Sep 2023 19:14:27 +0200
 
-Patch series "stackdepot: allow evicting stack traces", v2.
+The retval local variable in __stack_depot_save has the union type
+handle_parts, but the function never uses anything but the union's handle
+field.
 
-Currently, the stack depot grows indefinitely until it reaches its
-capacity.  Once that happens, the stack depot stops saving new stack
-traces.
+Define retval simply as depot_stack_handle_t to simplify the code.
 
-This creates a problem for using the stack depot for in-field testing
-and in production.
-
-For such uses, an ideal stack trace storage should:
-
-1. Allow saving fresh stack traces on systems with a large uptime while
-   limiting the amount of memory used to store the traces;
-2. Have a low performance impact.
-
-Implementing #1 in the stack depot is impossible with the current
-keep-forever approach.  This series targets to address that.  Issue #2 is
-left to be addressed in a future series.
-
-This series changes the stack depot implementation to allow evicting
-unneeded stack traces from the stack depot.  The users of the stack depot
-can do that via new stack_depot_save_flags(STACK_DEPOT_FLAG_GET) and
-stack_depot_put APIs.
-
-Internal changes to the stack depot code include:
-
-1. Storing stack traces in fixed-frame-sized slots; the slot size is
-   controlled via CONFIG_STACKDEPOT_MAX_FRAMES (vs precisely-sized
-   slots in the current implementation);
-2. Keeping available slots in a freelist (vs keeping an offset to the next
-   free slot);
-3. Using a read/write lock for synchronization (vs a lock-free approach
-   combined with a spinlock).
-
-This series also integrates the eviction functionality in the tag-based
-KASAN modes.
-
-Despite wasting some space on rounding up the size of each stack record,
-with CONFIG_STACKDEPOT_MAX_FRAMES=32, the tag-based KASAN modes end up
-consuming ~5% less memory in stack depot during boot (with the default
-stack ring size of 32k entries).  The reason for this is the eviction of
-irrelevant stack traces from the stack depot, which frees up space for
-other stack traces.
-
-For other tools that heavily rely on the stack depot, like Generic KASAN
-and KMSAN, this change leads to the stack depot capacity being reached
-sooner than before.  However, as these tools are mainly used in fuzzing
-scenarios where the kernel is frequently rebooted, this outcome should be
-acceptable.
-
-There is no measurable boot time performance impact of these changes for
-KASAN on x86-64.  I haven't done any tests for arm64 modes (the stack
-depot without performance optimizations is not suitable for intended use
-of those anyway), but I expect a similar result.  Obtaining and copying
-stack trace frames when saving them into stack depot is what takes the
-most time.
-
-This series does not yet provide a way to configure the maximum size of
-the stack depot externally (e.g.  via a command-line parameter).  This
-will be added in a separate series, possibly together with the performance
-improvement changes.
-
-
-This patch (of 19):
-
-Do not try fetching a stack trace from the stack depot if the
-stack_depot_disabled flag is enabled.
-
-Link: https://lkml.kernel.org/r/cover.1694625260.git.andreyknvl@google.com
-Link: https://lkml.kernel.org/r/66bf1f0ad22d2c49ef500893340c71355b71d092.1694625260.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/3336cf19b8e53ed5449550a085cff9bddec4c873.1694625260.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Marco Elver <elver@google.com>
@@ -147,20 +83,41 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/stackdepot.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/stackdepot.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/lib/stackdepot.c~lib-stackdepot-check-disabled-flag-when-fetching
+--- a/lib/stackdepot.c~lib-stackdepot-simplify-__stack_depot_save
 +++ a/lib/stackdepot.c
-@@ -477,7 +477,7 @@ unsigned int stack_depot_fetch(depot_sta
- 	 */
- 	kmsan_unpoison_memory(entries, sizeof(*entries));
+@@ -360,7 +360,7 @@ depot_stack_handle_t __stack_depot_save(
+ 					gfp_t alloc_flags, bool can_alloc)
+ {
+ 	struct stack_record *found = NULL, **bucket;
+-	union handle_parts retval = { .handle = 0 };
++	depot_stack_handle_t handle = 0;
+ 	struct page *page = NULL;
+ 	void *prealloc = NULL;
+ 	unsigned long flags;
+@@ -377,7 +377,7 @@ depot_stack_handle_t __stack_depot_save(
+ 	nr_entries = filter_irq_stacks(entries, nr_entries);
  
--	if (!handle)
-+	if (!handle || stack_depot_disabled)
- 		return 0;
+ 	if (unlikely(nr_entries == 0) || stack_depot_disabled)
+-		goto fast_exit;
++		return 0;
  
- 	if (parts.pool_index > pool_index_cached) {
+ 	hash = hash_stack(entries, nr_entries);
+ 	bucket = &stack_table[hash & stack_hash_mask];
+@@ -443,9 +443,8 @@ exit:
+ 		free_pages((unsigned long)prealloc, DEPOT_POOL_ORDER);
+ 	}
+ 	if (found)
+-		retval.handle = found->handle.handle;
+-fast_exit:
+-	return retval.handle;
++		handle = found->handle.handle;
++	return handle;
+ }
+ EXPORT_SYMBOL_GPL(__stack_depot_save);
+ 
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
