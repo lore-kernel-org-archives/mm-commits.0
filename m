@@ -2,37 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B225EE020C
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Sep 2023 20:14:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3081EE020C
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Sep 2023 20:16:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232679AbjIMUOO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Sep 2023 16:14:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46834 "EHLO
+        id S230451AbjIMUQd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Sep 2023 16:16:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39330 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232711AbjIMUNy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2023 16:13:54 -0400
+        with ESMTP id S229527AbjIMUQc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2023 16:16:32 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C09701BE6
-        for <mm-commits@vger.kernel.org>; Wed, 13 Sep 2023 13:13:43 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 414DFC433C7;
-        Wed, 13 Sep 2023 20:13:43 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F25351BC6
+        for <mm-commits@vger.kernel.org>; Wed, 13 Sep 2023 13:16:28 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B25AC433C7;
+        Wed, 13 Sep 2023 20:16:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694636023;
-        bh=GtUWXuTtFH7RNLQ+8fbiMPB0frJdIhC5UGKnKtaGVZo=;
+        s=korg; t=1694636188;
+        bh=aEC+pIQT3WpLaiJ3+E4u0DfSDG30Y4pbkmOs401q8i8=;
         h=Date:To:From:Subject:From;
-        b=CH4k2ZqL26b43u2XBRDdWWm4eP+oECphPDrqfoR/L+jLEudYhVI069ICkLo6X4eoy
-         6zTKLLlGymLdHTfUJrViiBdFY4SFpAmR61uWavaxymC/uO47FQdXIQDtDy+uyEFylp
-         y4z6g/4hY5mt54DsD2QS5UQKaL5vIcfSnNoNhXbA=
-Date:   Wed, 13 Sep 2023 13:13:42 -0700
-To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
-        keescook@chromium.org, junxiao.bi@oracle.com,
-        joseph.qi@linux.alibaba.com, jlbec@evilplan.org,
-        jlayton@kernel.org, jack@suse.cz, ghe@suse.com, gechangwei@live.cn,
-        dchinner@redhat.com, brauner@kernel.org, azeemshaikh38@gmail.com,
-        akpm@linux-foundation.org
+        b=ilP0v17vnfhCPPj4KqRyG8c0pm4tkyVDS4joQlJ7PIxAAvFXFVVePrKjO5B5hxA+e
+         Og2H6sJ4/MPFSu1o6KiaPPwCJYvIz1W2Be2lPOEHYfwxA3MeSGVXoaRas7tVWbaclF
+         dMzMoozoAhbbhRKVww1IdGgUfiWNVIL56N9VuO8I=
+Date:   Wed, 13 Sep 2023 13:16:27 -0700
+To:     mm-commits@vger.kernel.org, rostedt@goodmis.org, corbet@lwn.net,
+        sj@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-ocfs2-replace-strlcpy-with-sysfs_emit.patch added to mm-nonmm-unstable branch
-Message-Id: <20230913201343.414DFC433C7@smtp.kernel.org>
+Subject: + mm-damon-core-add-a-tracepoint-for-damos-apply-target-regions.patch added to mm-unstable branch
+Message-Id: <20230913201628.8B25AC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,14 +36,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: ocfs2: replace strlcpy with sysfs_emit
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fs-ocfs2-replace-strlcpy-with-sysfs_emit.patch
+     Subject: mm/damon/core: add a tracepoint for damos apply target regions
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-damon-core-add-a-tracepoint-for-damos-apply-target-regions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-ocfs2-replace-strlcpy-with-sysfs_emit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-add-a-tracepoint-for-damos-apply-target-regions.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -63,58 +59,174 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Azeem Shaikh <azeemshaikh38@gmail.com>
-Subject: fs: ocfs2: replace strlcpy with sysfs_emit
-Date: Thu, 31 Aug 2023 19:38:27 +0000
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: add a tracepoint for damos apply target regions
+Date: Wed, 13 Sep 2023 02:20:49 +0000
 
-strlcpy() reads the entire source buffer first.  This read may exceed the
-destination size limit.  This is both inefficient and can lead to linear
-read overflows if a source string is not NUL-terminated [1].  In an effort
-to remove strlcpy() completely [2], replace strlcpy() here with
-sysfs_emit().
+Patch series "mm/damon: add a tracepoint for damos apply target regions",
+v2.
 
-Direct replacement is safe here since its ok for `kernel_param_ops.get()`
-to return -errno [3].
+DAMON provides damon_aggregated tracepoint to let users record full
+monitoring results.  Sometimes, users need to record monitoring results of
+specific pattern.  DAMOS tried regions directory of DAMON sysfs interface
+allows it, but the interface is mainly designed for snapshots and
+therefore would be inefficient for such recording.  Implement yet another
+tracepoint for efficient support of the usecase.
 
-[1] https://www.kernel.org/doc/html/latest/process/deprecated.html#strlcpy
-[2] https://github.com/KSPP/linux/issues/89
-[3] https://elixir.bootlin.com/linux/v6.5/source/include/linux/moduleparam.h#L52
 
-Link: https://lkml.kernel.org/r/20230831193827.1528867-1-azeemshaikh38@gmail.com
-Signed-off-by: Azeem Shaikh <azeemshaikh38@gmail.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+This patch (of 2):
+
+DAMON provides damon_aggregated tracepoint, which exposes details of each
+region and its access monitoring results.  It is useful for getting whole
+monitoring results, e.g., for recording purposes.
+
+For investigations of DAMOS, DAMON Sysfs interface provides DAMOS
+statistics and tried_regions directory.  But, those provides only
+statistics and snapshots.  If the scheme is frequently applied and if the
+user needs to know every detail of DAMOS behavior, the snapshot-based
+interface could be insufficient and expensive.
+
+As a last resort, userspace users need to record the all monitoring
+results via damon_aggregated tracepoint and simulate how DAMOS would
+worked.  It is unnecessarily complicated.  DAMON kernel API users,
+meanwhile, can do that easily via before_damos_apply() callback field of
+'struct damon_callback', though.
+
+Add a tracepoint that will be called just after before_damos_apply()
+callback for more convenient investigations of DAMOS.  The tracepoint
+exposes all details about each regions, similar to damon_aggregated
+tracepoint.
+
+Please note that DAMOS is currently not only for memory management but
+also for query-like efficient monitoring results retrievals (when 'stat'
+action is used).  Until now, only statistics or snapshots were supported. 
+Addition of this tracepoint allows efficient full recording of DAMOS-based
+filtered monitoring results.
+
+Link: https://lkml.kernel.org/r/20230913022050.2109-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20230913022050.2109-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlmfs/dlmfs.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/trace/events/damon.h |   39 +++++++++++++++++++++++++++++++++
+ mm/damon/core.c              |   32 ++++++++++++++++++++++++++-
+ 2 files changed, 70 insertions(+), 1 deletion(-)
 
---- a/fs/ocfs2/dlmfs/dlmfs.c~fs-ocfs2-replace-strlcpy-with-sysfs_emit
-+++ a/fs/ocfs2/dlmfs/dlmfs.c
-@@ -80,8 +80,7 @@ static int param_set_dlmfs_capabilities(
- static int param_get_dlmfs_capabilities(char *buffer,
- 					const struct kernel_param *kp)
- {
--	return strlcpy(buffer, DLMFS_CAPABILITIES,
--		       strlen(DLMFS_CAPABILITIES) + 1);
-+	return sysfs_emit(buffer, DLMFS_CAPABILITIES);
- }
- module_param_call(capabilities, param_set_dlmfs_capabilities,
- 		  param_get_dlmfs_capabilities, NULL, 0444);
+--- a/include/trace/events/damon.h~mm-damon-core-add-a-tracepoint-for-damos-apply-target-regions
++++ a/include/trace/events/damon.h
+@@ -9,6 +9,45 @@
+ #include <linux/types.h>
+ #include <linux/tracepoint.h>
+ 
++TRACE_EVENT_CONDITION(damos_before_apply,
++
++	TP_PROTO(unsigned int context_idx, unsigned int scheme_idx,
++		unsigned int target_idx, struct damon_region *r,
++		unsigned int nr_regions, bool do_trace),
++
++	TP_ARGS(context_idx, target_idx, scheme_idx, r, nr_regions, do_trace),
++
++	TP_CONDITION(do_trace),
++
++	TP_STRUCT__entry(
++		__field(unsigned int, context_idx)
++		__field(unsigned int, scheme_idx)
++		__field(unsigned long, target_idx)
++		__field(unsigned long, start)
++		__field(unsigned long, end)
++		__field(unsigned int, nr_accesses)
++		__field(unsigned int, age)
++		__field(unsigned int, nr_regions)
++	),
++
++	TP_fast_assign(
++		__entry->context_idx = context_idx;
++		__entry->scheme_idx = scheme_idx;
++		__entry->target_idx = target_idx;
++		__entry->start = r->ar.start;
++		__entry->end = r->ar.end;
++		__entry->nr_accesses = r->nr_accesses;
++		__entry->age = r->age;
++		__entry->nr_regions = nr_regions;
++	),
++
++	TP_printk("ctx_idx=%u scheme_idx=%u target_idx=%lu nr_regions=%u %lu-%lu: %u %u",
++			__entry->context_idx, __entry->scheme_idx,
++			__entry->target_idx, __entry->nr_regions,
++			__entry->start, __entry->end,
++			__entry->nr_accesses, __entry->age)
++);
++
+ TRACE_EVENT(damon_aggregated,
+ 
+ 	TP_PROTO(unsigned int target_id, struct damon_region *r,
+--- a/mm/damon/core.c~mm-damon-core-add-a-tracepoint-for-damos-apply-target-regions
++++ a/mm/damon/core.c
+@@ -950,6 +950,33 @@ static void damos_apply_scheme(struct da
+ 	struct timespec64 begin, end;
+ 	unsigned long sz_applied = 0;
+ 	int err = 0;
++	/*
++	 * We plan to support multiple context per kdamond, as DAMON sysfs
++	 * implies with 'nr_contexts' file.  Nevertheless, only single context
++	 * per kdamond is supported for now.  So, we can simply use '0' context
++	 * index here.
++	 */
++	unsigned int cidx = 0;
++	struct damos *siter;		/* schemes iterator */
++	unsigned int sidx = 0;
++	struct damon_target *titer;	/* targets iterator */
++	unsigned int tidx = 0;
++	bool do_trace = false;
++
++	/* get indices for trace_damos_before_apply() */
++	if (trace_damos_before_apply_enabled()) {
++		damon_for_each_scheme(siter, c) {
++			if (siter == s)
++				break;
++			sidx++;
++		}
++		damon_for_each_target(titer, c) {
++			if (titer == t)
++				break;
++			tidx++;
++		}
++		do_trace = true;
++	}
+ 
+ 	if (c->ops.apply_scheme) {
+ 		if (quota->esz && quota->charged_sz + sz > quota->esz) {
+@@ -964,8 +991,11 @@ static void damos_apply_scheme(struct da
+ 		ktime_get_coarse_ts64(&begin);
+ 		if (c->callback.before_damos_apply)
+ 			err = c->callback.before_damos_apply(c, t, r, s);
+-		if (!err)
++		if (!err) {
++			trace_damos_before_apply(cidx, sidx, tidx, r,
++					damon_nr_regions(t), do_trace);
+ 			sz_applied = c->ops.apply_scheme(c, t, r, s);
++		}
+ 		ktime_get_coarse_ts64(&end);
+ 		quota->total_charged_ns += timespec64_to_ns(&end) -
+ 			timespec64_to_ns(&begin);
 _
 
-Patches currently in -mm which might be from azeemshaikh38@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-fs-ocfs2-replace-strlcpy-with-sysfs_emit.patch
+docs-admin-guide-mm-damon-usage-fixup-missed-ref-keyword.patch
+docs-admin-guide-mm-damon-usage-place-debugfs-usage-at-the-bottom.patch
+docs-admin-guide-mm-damon-usage-move-debugfs-intro-to-the-bottom-of-the-section.patch
+docs-mm-damon-design-explicitly-introduce-nr_accesses.patch
+docs-admin-guide-mm-damon-usage-explain-the-format-of-damon_aggregate-tracepoint.patch
+docs-mm-damon-design-add-a-section-for-kdamond-and-damon-context.patch
+docs-admin-guide-mm-damon-usage-link-design-doc-for-details-of-kdamond-and-context.patch
+mm-damon-core-fix-a-comment-about-damon_set_attrs-call-timings.patch
+mm-damon-core-add-more-comments-for-nr_accesses.patch
+mm-damon-core-remove-duplicated-comment-for-watermarks-based-deactivation.patch
+mm-damon-core-remove-struct-target-parameter-from-damon_aggregated-tracepoint.patch
+mm-damon-core-add-a-tracepoint-for-damos-apply-target-regions.patch
+docs-admin-guide-mm-damon-usage-document-damos_before_apply-tracepoint.patch
 
