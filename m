@@ -2,35 +2,37 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CF55EE0207
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Sep 2023 20:04:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B225EE020C
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Sep 2023 20:14:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232003AbjIMUEz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Sep 2023 16:04:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49816 "EHLO
+        id S232679AbjIMUOO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Sep 2023 16:14:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46834 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232087AbjIMUEx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2023 16:04:53 -0400
+        with ESMTP id S232711AbjIMUNy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2023 16:13:54 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54D751BCA
-        for <mm-commits@vger.kernel.org>; Wed, 13 Sep 2023 13:04:49 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E42C7C433C7;
-        Wed, 13 Sep 2023 20:04:48 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C09701BE6
+        for <mm-commits@vger.kernel.org>; Wed, 13 Sep 2023 13:13:43 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 414DFC433C7;
+        Wed, 13 Sep 2023 20:13:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694635489;
-        bh=eXZRY4uhbSxxFhiuAAnajdAwrbnJtYfrzSQHcdv6SlM=;
+        s=korg; t=1694636023;
+        bh=GtUWXuTtFH7RNLQ+8fbiMPB0frJdIhC5UGKnKtaGVZo=;
         h=Date:To:From:Subject:From;
-        b=nSc10WWBH0Ek5G7XO2Y6iWNC5rnHfKgpt8RL1IN16gO9fsr0MvlCKhoR4V9C8d7Ce
-         sCQSVk/yOCM1BYwUd5J+IiSWBPpucgODqEKmPHkxRLL+D/2XfueHT2xdRYR7vMSp2X
-         Vs2c+ooY1OLmevZjC9Rt8R4XW9WCLVZbmJOV9i4U=
-Date:   Wed, 13 Sep 2023 13:04:48 -0700
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
-        willy@infradead.org, mike.kravetz@oracle.com, hughd@google.com,
-        david@redhat.com, wangkefeng.wang@huawei.com,
+        b=CH4k2ZqL26b43u2XBRDdWWm4eP+oECphPDrqfoR/L+jLEudYhVI069ICkLo6X4eoy
+         6zTKLLlGymLdHTfUJrViiBdFY4SFpAmR61uWavaxymC/uO47FQdXIQDtDy+uyEFylp
+         y4z6g/4hY5mt54DsD2QS5UQKaL5vIcfSnNoNhXbA=
+Date:   Wed, 13 Sep 2023 13:13:42 -0700
+To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
+        keescook@chromium.org, junxiao.bi@oracle.com,
+        joseph.qi@linux.alibaba.com, jlbec@evilplan.org,
+        jlayton@kernel.org, jack@suse.cz, ghe@suse.com, gechangwei@live.cn,
+        dchinner@redhat.com, brauner@kernel.org, azeemshaikh38@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate-remove-isolated-variable-in-add_page_for_migration.patch added to mm-unstable branch
-Message-Id: <20230913200448.E42C7C433C7@smtp.kernel.org>
+Subject: + fs-ocfs2-replace-strlcpy-with-sysfs_emit.patch added to mm-nonmm-unstable branch
+Message-Id: <20230913201343.414DFC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: migrate: remove isolated variable in add_page_for_migration()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-migrate-remove-isolated-variable-in-add_page_for_migration.patch
+     Subject: fs: ocfs2: replace strlcpy with sysfs_emit
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     fs-ocfs2-replace-strlcpy-with-sysfs_emit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-remove-isolated-variable-in-add_page_for_migration.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-ocfs2-replace-strlcpy-with-sysfs_emit.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -61,69 +63,58 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: migrate: remove isolated variable in add_page_for_migration()
-Date: Wed, 13 Sep 2023 17:51:31 +0800
+From: Azeem Shaikh <azeemshaikh38@gmail.com>
+Subject: fs: ocfs2: replace strlcpy with sysfs_emit
+Date: Thu, 31 Aug 2023 19:38:27 +0000
 
-Directly check the return of isolate_hugetlb() and folio_isolate_lru() to
-remove isolated variable, also setup err = -EBUSY in advance before
-isolation, and update err only when successfully queued for migration,
-which could help us to unify and simplify code a bit.
+strlcpy() reads the entire source buffer first.  This read may exceed the
+destination size limit.  This is both inefficient and can lead to linear
+read overflows if a source string is not NUL-terminated [1].  In an effort
+to remove strlcpy() completely [2], replace strlcpy() here with
+sysfs_emit().
 
-Link: https://lkml.kernel.org/r/20230913095131.2426871-9-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Direct replacement is safe here since its ok for `kernel_param_ops.get()`
+to return -errno [3].
+
+[1] https://www.kernel.org/doc/html/latest/process/deprecated.html#strlcpy
+[2] https://github.com/KSPP/linux/issues/89
+[3] https://elixir.bootlin.com/linux/v6.5/source/include/linux/moduleparam.h#L52
+
+Link: https://lkml.kernel.org/r/20230831193827.1528867-1-azeemshaikh38@gmail.com
+Signed-off-by: Azeem Shaikh <azeemshaikh38@gmail.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ fs/ocfs2/dlmfs/dlmfs.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-remove-isolated-variable-in-add_page_for_migration
-+++ a/mm/migrate.c
-@@ -2059,7 +2059,6 @@ static int add_page_for_migration(struct
- 	struct page *page;
- 	struct folio *folio;
- 	int err;
--	bool isolated;
- 
- 	mmap_read_lock(mm);
- 	addr = (unsigned long)untagged_addr_remote(mm, p);
-@@ -2092,15 +2091,13 @@ static int add_page_for_migration(struct
- 	if (page_mapcount(page) > 1 && !migrate_all)
- 		goto out_putfolio;
- 
-+	err = -EBUSY;
- 	if (folio_test_hugetlb(folio)) {
--		isolated = isolate_hugetlb(folio, pagelist);
--		err = isolated ? 1 : -EBUSY;
-+		if (isolate_hugetlb(folio, pagelist))
-+			err = 1;
- 	} else {
--		isolated = folio_isolate_lru(folio);
--		if (!isolated) {
--			err = -EBUSY;
-+		if (!folio_isolate_lru(folio))
- 			goto out_putfolio;
--		}
- 
- 		err = 1;
- 		list_add_tail(&folio->lru, pagelist);
+--- a/fs/ocfs2/dlmfs/dlmfs.c~fs-ocfs2-replace-strlcpy-with-sysfs_emit
++++ a/fs/ocfs2/dlmfs/dlmfs.c
+@@ -80,8 +80,7 @@ static int param_set_dlmfs_capabilities(
+ static int param_get_dlmfs_capabilities(char *buffer,
+ 					const struct kernel_param *kp)
+ {
+-	return strlcpy(buffer, DLMFS_CAPABILITIES,
+-		       strlen(DLMFS_CAPABILITIES) + 1);
++	return sysfs_emit(buffer, DLMFS_CAPABILITIES);
+ }
+ module_param_call(capabilities, param_set_dlmfs_capabilities,
+ 		  param_get_dlmfs_capabilities, NULL, 0444);
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from azeemshaikh38@gmail.com are
 
-mm-migrate-remove-pagetranshuge-check-in-numamigrate_isolate_page.patch
-mm-migrate-remove-thp-mapcount-check-in-numamigrate_isolate_page.patch
-mm-migrate-convert-numamigrate_isolate_page-to-numamigrate_isolate_folio.patch
-mm-migrate-convert-migrate_misplaced_page-to-migrate_misplaced_folio.patch
-mm-migrate-use-__folio_test_movable.patch
-mm-migrate-use-a-folio-in-add_page_for_migration.patch
-mm-migrate-remove-pagehead-check-for-hugetlb-in-add_page_for_migration.patch
-mm-migrate-remove-isolated-variable-in-add_page_for_migration.patch
+fs-ocfs2-replace-strlcpy-with-sysfs_emit.patch
 
