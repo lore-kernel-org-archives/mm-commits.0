@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3081EE020C
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Sep 2023 20:16:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37AADEE020D
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Sep 2023 20:16:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230451AbjIMUQd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Sep 2023 16:16:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39330 "EHLO
+        id S231603AbjIMUQg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Sep 2023 16:16:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39356 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229527AbjIMUQc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2023 16:16:32 -0400
+        with ESMTP id S231328AbjIMUQg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2023 16:16:36 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F25351BC6
-        for <mm-commits@vger.kernel.org>; Wed, 13 Sep 2023 13:16:28 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B25AC433C7;
-        Wed, 13 Sep 2023 20:16:28 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2ECF91BC6
+        for <mm-commits@vger.kernel.org>; Wed, 13 Sep 2023 13:16:32 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCD25C433C7;
+        Wed, 13 Sep 2023 20:16:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694636188;
-        bh=aEC+pIQT3WpLaiJ3+E4u0DfSDG30Y4pbkmOs401q8i8=;
+        s=korg; t=1694636191;
+        bh=ddrWdhjQ3cMR83F5x491boIyzc8GiLvg2h10hECsOFI=;
         h=Date:To:From:Subject:From;
-        b=ilP0v17vnfhCPPj4KqRyG8c0pm4tkyVDS4joQlJ7PIxAAvFXFVVePrKjO5B5hxA+e
-         Og2H6sJ4/MPFSu1o6KiaPPwCJYvIz1W2Be2lPOEHYfwxA3MeSGVXoaRas7tVWbaclF
-         dMzMoozoAhbbhRKVww1IdGgUfiWNVIL56N9VuO8I=
-Date:   Wed, 13 Sep 2023 13:16:27 -0700
+        b=ifE8+WEIFeCOgaSZo5swDYarScrYzWmQLGAC5nnxZDOWS+0/odGop0QUfOjvTqPTy
+         YPIjHRhhK2M8GWiVE5cjXMuJkQqLoYZuzgdzFmoRbYCbg35vjUM9PkHLtiyYORBR2w
+         AfiRvk4jX+y0wkBg/r/yBPD8asTUBiccmzg2xj+A=
+Date:   Wed, 13 Sep 2023 13:16:31 -0700
 To:     mm-commits@vger.kernel.org, rostedt@goodmis.org, corbet@lwn.net,
         sj@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-add-a-tracepoint-for-damos-apply-target-regions.patch added to mm-unstable branch
-Message-Id: <20230913201628.8B25AC433C7@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-document-damos_before_apply-tracepoint.patch added to mm-unstable branch
+Message-Id: <20230913201631.BCD25C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/core: add a tracepoint for damos apply target regions
+     Subject: Docs/admin-guide/mm/damon/usage: document damos_before_apply tracepoint
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-core-add-a-tracepoint-for-damos-apply-target-regions.patch
+     docs-admin-guide-mm-damon-usage-document-damos_before_apply-tracepoint.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-add-a-tracepoint-for-damos-apply-target-regions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-document-damos_before_apply-tracepoint.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,158 +60,76 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: add a tracepoint for damos apply target regions
-Date: Wed, 13 Sep 2023 02:20:49 +0000
+Subject: Docs/admin-guide/mm/damon/usage: document damos_before_apply tracepoint
+Date: Wed, 13 Sep 2023 02:20:50 +0000
 
-Patch series "mm/damon: add a tracepoint for damos apply target regions",
-v2.
+Document damos_before_apply tracepoint on the usage document.
 
-DAMON provides damon_aggregated tracepoint to let users record full
-monitoring results.  Sometimes, users need to record monitoring results of
-specific pattern.  DAMOS tried regions directory of DAMON sysfs interface
-allows it, but the interface is mainly designed for snapshots and
-therefore would be inefficient for such recording.  Implement yet another
-tracepoint for efficient support of the usecase.
-
-
-This patch (of 2):
-
-DAMON provides damon_aggregated tracepoint, which exposes details of each
-region and its access monitoring results.  It is useful for getting whole
-monitoring results, e.g., for recording purposes.
-
-For investigations of DAMOS, DAMON Sysfs interface provides DAMOS
-statistics and tried_regions directory.  But, those provides only
-statistics and snapshots.  If the scheme is frequently applied and if the
-user needs to know every detail of DAMOS behavior, the snapshot-based
-interface could be insufficient and expensive.
-
-As a last resort, userspace users need to record the all monitoring
-results via damon_aggregated tracepoint and simulate how DAMOS would
-worked.  It is unnecessarily complicated.  DAMON kernel API users,
-meanwhile, can do that easily via before_damos_apply() callback field of
-'struct damon_callback', though.
-
-Add a tracepoint that will be called just after before_damos_apply()
-callback for more convenient investigations of DAMOS.  The tracepoint
-exposes all details about each regions, similar to damon_aggregated
-tracepoint.
-
-Please note that DAMOS is currently not only for memory management but
-also for query-like efficient monitoring results retrievals (when 'stat'
-action is used).  Until now, only statistics or snapshots were supported. 
-Addition of this tracepoint allows efficient full recording of DAMOS-based
-filtered monitoring results.
-
-Link: https://lkml.kernel.org/r/20230913022050.2109-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20230913022050.2109-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20230913022050.2109-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/damon.h |   39 +++++++++++++++++++++++++++++++++
- mm/damon/core.c              |   32 ++++++++++++++++++++++++++-
- 2 files changed, 70 insertions(+), 1 deletion(-)
+ Documentation/admin-guide/mm/damon/usage.rst |   37 +++++++++++++----
+ 1 file changed, 30 insertions(+), 7 deletions(-)
 
---- a/include/trace/events/damon.h~mm-damon-core-add-a-tracepoint-for-damos-apply-target-regions
-+++ a/include/trace/events/damon.h
-@@ -9,6 +9,45 @@
- #include <linux/types.h>
- #include <linux/tracepoint.h>
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-damos_before_apply-tracepoint
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -496,15 +496,24 @@ the files as above.  Above is only for a
  
-+TRACE_EVENT_CONDITION(damos_before_apply,
-+
-+	TP_PROTO(unsigned int context_idx, unsigned int scheme_idx,
-+		unsigned int target_idx, struct damon_region *r,
-+		unsigned int nr_regions, bool do_trace),
-+
-+	TP_ARGS(context_idx, target_idx, scheme_idx, r, nr_regions, do_trace),
-+
-+	TP_CONDITION(do_trace),
-+
-+	TP_STRUCT__entry(
-+		__field(unsigned int, context_idx)
-+		__field(unsigned int, scheme_idx)
-+		__field(unsigned long, target_idx)
-+		__field(unsigned long, start)
-+		__field(unsigned long, end)
-+		__field(unsigned int, nr_accesses)
-+		__field(unsigned int, age)
-+		__field(unsigned int, nr_regions)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->context_idx = context_idx;
-+		__entry->scheme_idx = scheme_idx;
-+		__entry->target_idx = target_idx;
-+		__entry->start = r->ar.start;
-+		__entry->end = r->ar.end;
-+		__entry->nr_accesses = r->nr_accesses;
-+		__entry->age = r->age;
-+		__entry->nr_regions = nr_regions;
-+	),
-+
-+	TP_printk("ctx_idx=%u scheme_idx=%u target_idx=%lu nr_regions=%u %lu-%lu: %u %u",
-+			__entry->context_idx, __entry->scheme_idx,
-+			__entry->target_idx, __entry->nr_regions,
-+			__entry->start, __entry->end,
-+			__entry->nr_accesses, __entry->age)
-+);
-+
- TRACE_EVENT(damon_aggregated,
+ .. _tracepoint:
  
- 	TP_PROTO(unsigned int target_id, struct damon_region *r,
---- a/mm/damon/core.c~mm-damon-core-add-a-tracepoint-for-damos-apply-target-regions
-+++ a/mm/damon/core.c
-@@ -950,6 +950,33 @@ static void damos_apply_scheme(struct da
- 	struct timespec64 begin, end;
- 	unsigned long sz_applied = 0;
- 	int err = 0;
-+	/*
-+	 * We plan to support multiple context per kdamond, as DAMON sysfs
-+	 * implies with 'nr_contexts' file.  Nevertheless, only single context
-+	 * per kdamond is supported for now.  So, we can simply use '0' context
-+	 * index here.
-+	 */
-+	unsigned int cidx = 0;
-+	struct damos *siter;		/* schemes iterator */
-+	unsigned int sidx = 0;
-+	struct damon_target *titer;	/* targets iterator */
-+	unsigned int tidx = 0;
-+	bool do_trace = false;
-+
-+	/* get indices for trace_damos_before_apply() */
-+	if (trace_damos_before_apply_enabled()) {
-+		damon_for_each_scheme(siter, c) {
-+			if (siter == s)
-+				break;
-+			sidx++;
-+		}
-+		damon_for_each_target(titer, c) {
-+			if (titer == t)
-+				break;
-+			tidx++;
-+		}
-+		do_trace = true;
-+	}
+-Tracepoint for Monitoring Results
+-=================================
++Tracepoints for Monitoring Results
++==================================
  
- 	if (c->ops.apply_scheme) {
- 		if (quota->esz && quota->charged_sz + sz > quota->esz) {
-@@ -964,8 +991,11 @@ static void damos_apply_scheme(struct da
- 		ktime_get_coarse_ts64(&begin);
- 		if (c->callback.before_damos_apply)
- 			err = c->callback.before_damos_apply(c, t, r, s);
--		if (!err)
-+		if (!err) {
-+			trace_damos_before_apply(cidx, sidx, tidx, r,
-+					damon_nr_regions(t), do_trace);
- 			sz_applied = c->ops.apply_scheme(c, t, r, s);
-+		}
- 		ktime_get_coarse_ts64(&end);
- 		quota->total_charged_ns += timespec64_to_ns(&end) -
- 			timespec64_to_ns(&begin);
+ Users can get the monitoring results via the :ref:`tried_regions
+-<sysfs_schemes_tried_regions>` or a tracepoint, ``damon:damon_aggregated``.
+-While the tried regions directory is useful for getting a snapshot, the
+-tracepoint is useful for getting a full record of the results.  While the
+-monitoring is turned on, you could record the tracepoint events and show
+-results using tracepoint supporting tools like ``perf``.  For example::
++<sysfs_schemes_tried_regions>`.  The interface is useful for getting a
++snapshot, but it could be inefficient for fully recording all the monitoring
++results.  For the purpose, two trace points, namely ``damon:damon_aggregated``
++and ``damon:damos_before_apply``, are provided.  ``damon:damon_aggregated``
++provides the whole monitoring results, while ``damon:damos_before_apply``
++provides the monitoring results for regions that each DAMON-based Operation
++Scheme (:ref:`DAMOS <damon_design_damos>`) is gonna be applied.  Hence,
++``damon:damos_before_apply`` is more useful for recording internal behavior of
++DAMOS, or DAMOS target access
++:ref:`pattern <damon_design_damos_access_pattern>` based query-like efficient
++monitoring results recording.
++
++While the monitoring is turned on, you could record the tracepoint events and
++show results using tracepoint supporting tools like ``perf``.  For example::
+ 
+     # echo on > monitor_on
+     # perf record -e damon:damon_aggregated &
+@@ -527,6 +536,20 @@ counter).  Finally the tenth field (``X`
+ (refer to :ref:`design <damon_design_age_tracking>` for more details of the
+ counter).
+ 
++If the event was ``damon:damos_beofre_apply``, the ``perf script`` output would
++be somewhat like below::
++
++    kdamond.0 47293 [000] 80801.060214: damon:damos_before_apply: ctx_idx=0 scheme_idx=0 target_idx=0 nr_regions=11 121932607488-135128711168: 0 136
++    [...]
++
++Each line of the output represents each monitoring region that each DAMON-based
++Operation Scheme was about to be applied at the traced time.  The first five
++fields are as usual.  It shows the index of the DAMON context (``ctx_idx=X``)
++of the scheme in the list of the contexts of the context's kdamond, the index
++of the scheme (``scheme_idx=X``) in the list of the schemes of the context, in
++addition to the output of ``damon_aggregated`` tracepoint.
++
++
+ .. _debugfs_interface:
+ 
+ debugfs Interface (DEPRECATED!)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
