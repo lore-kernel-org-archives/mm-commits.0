@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51F2AEE0207
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Sep 2023 19:29:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ECB0DEE020C
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Sep 2023 19:29:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231980AbjIMT3c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Sep 2023 15:29:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33394 "EHLO
+        id S232498AbjIMT3d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Sep 2023 15:29:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39880 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232492AbjIMT3R (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2023 15:29:17 -0400
+        with ESMTP id S232500AbjIMT3X (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2023 15:29:23 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B8C861998
-        for <mm-commits@vger.kernel.org>; Wed, 13 Sep 2023 12:29:13 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53D2AC433C8;
-        Wed, 13 Sep 2023 19:29:13 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 74EAAB7
+        for <mm-commits@vger.kernel.org>; Wed, 13 Sep 2023 12:29:19 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D63AC433C8;
+        Wed, 13 Sep 2023 19:29:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694633353;
-        bh=7T7UMrgm8bqEL/S9ExnNWyXr7s/KPScBFqtWM8ZS4IM=;
+        s=korg; t=1694633359;
+        bh=rH5qtFXrUqI/f22Vq00zvf68/Eg8IEWAmTFXpOGKKFQ=;
         h=Date:To:From:Subject:From;
-        b=OHgHSXQH/SzcyS4Q7UZt4TcHJS1yvCADFHR0MjCjvfuP1Qvc/vpJyV+fdrDLPeiXz
-         dMMeuPzFK7+Nd8YrgISCY17jiX1o2UrpAOUEZTk+0ZjD5bzznjyoPTIVGgaUQv6RGf
-         XETVvuBWxIqYfk7SmmxTxgLvK+xTBqofTomGdbQ0=
-Date:   Wed, 13 Sep 2023 12:29:12 -0700
+        b=d3ZBxQyCrOrOjWKwX70Bt50By7/5UTPbUgvpELAJv62j0kiDPiLauooVfBqJEf089
+         5sqsHVRgZaWrWA8gyAqUL855bncdJiXgNeIyx4nwxqaVy9KvtJZak9xmit58ACd6xb
+         xL+cz6CWnM8GV+aSqrDQDLFRf6YRXJ3QtsiV9qGc=
+Date:   Wed, 13 Sep 2023 12:29:18 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, osalvador@suse.de,
         glider@google.com, eugenis@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@gmail.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-remove-atomic-accesses-to-stack-ring-entries.patch added to mm-unstable branch
-Message-Id: <20230913192913.53D2AC433C8@smtp.kernel.org>
+Subject: + kasan-use-stack_depot_put-for-tag-based-modes.patch added to mm-unstable branch
+Message-Id: <20230913192919.0D63AC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,12 +38,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: remove atomic accesses to stack ring entries
+     Subject: kasan: use stack_depot_put for tag-based modes
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-remove-atomic-accesses-to-stack-ring-entries.patch
+     kasan-use-stack_depot_put-for-tag-based-modes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-remove-atomic-accesses-to-stack-ring-entries.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-use-stack_depot_put-for-tag-based-modes.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,19 +62,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: remove atomic accesses to stack ring entries
-Date: Wed, 13 Sep 2023 19:14:42 +0200
+Subject: kasan: use stack_depot_put for tag-based modes
+Date: Wed, 13 Sep 2023 19:14:44 +0200
 
-Remove the atomic accesses to entry fields in save_stack_info and
-kasan_complete_mode_report_info for tag-based KASAN modes.
+Make tag-based KASAN modes to evict stack traces from the stack depot once
+they are evicted from the stack ring.
 
-These atomics are not required, as the read/write lock prevents the
-entries from being read (in kasan_complete_mode_report_info) while being
-written (in save_stack_info) and the try_cmpxchg prevents the same entry
-from being rewritten (in save_stack_info) in the unlikely case of wrapping
-during writing.
+Internally, pass STACK_DEPOT_FLAG_GET to stack_depot_save_flags (via
+kasan_save_stack) to increment the refcount when saving a new entry to
+stack ring and call stack_depot_put when removing an entry from stack
+ring.
 
-Link: https://lkml.kernel.org/r/556085476eb7d2e3703d62dc2fa920931aadf459.1694625260.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/6e2367e7693aa107f05c649abe06180fff847bb4.1694625260.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
@@ -86,90 +85,57 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report_tags.c |   25 +++++++------------------
- mm/kasan/tags.c        |   13 +++++--------
- 2 files changed, 12 insertions(+), 26 deletions(-)
+ mm/kasan/report_tags.c |    1 +
+ mm/kasan/tags.c        |   10 ++++++++--
+ 2 files changed, 9 insertions(+), 2 deletions(-)
 
---- a/mm/kasan/report_tags.c~kasan-remove-atomic-accesses-to-stack-ring-entries
+--- a/mm/kasan/report_tags.c~kasan-use-stack_depot_put-for-tag-based-modes
 +++ a/mm/kasan/report_tags.c
-@@ -31,10 +31,6 @@ void kasan_complete_mode_report_info(str
+@@ -7,6 +7,7 @@
+ #include <linux/atomic.h>
+ 
+ #include "kasan.h"
++#include "../slab.h"
+ 
+ extern struct kasan_stack_ring stack_ring;
+ 
+--- a/mm/kasan/tags.c~kasan-use-stack_depot_put-for-tag-based-modes
++++ a/mm/kasan/tags.c
+@@ -97,12 +97,13 @@ static void save_stack_info(struct kmem_
+ 			gfp_t gfp_flags, bool is_free)
+ {
  	unsigned long flags;
+-	depot_stack_handle_t stack;
++	depot_stack_handle_t stack, old_stack;
  	u64 pos;
  	struct kasan_stack_ring_entry *entry;
--	void *ptr;
--	u32 pid;
--	depot_stack_handle_t stack;
--	bool is_free;
- 	bool alloc_found = false, free_found = false;
+ 	void *old_ptr;
  
- 	if ((!info->cache || !info->object) && !info->bug_type) {
-@@ -61,18 +57,11 @@ void kasan_complete_mode_report_info(str
+-	stack = kasan_save_stack(gfp_flags, STACK_DEPOT_FLAG_CAN_ALLOC);
++	stack = kasan_save_stack(gfp_flags,
++			STACK_DEPOT_FLAG_CAN_ALLOC | STACK_DEPOT_FLAG_GET);
  
- 		entry = &stack_ring.entries[i % stack_ring.size];
- 
--		/* Paired with smp_store_release() in save_stack_info(). */
--		ptr = (void *)smp_load_acquire(&entry->ptr);
--
--		if (kasan_reset_tag(ptr) != info->object ||
--		    get_tag(ptr) != get_tag(info->access_addr))
-+		if (kasan_reset_tag(entry->ptr) != info->object ||
-+		    get_tag(entry->ptr) != get_tag(info->access_addr))
- 			continue;
- 
--		pid = READ_ONCE(entry->pid);
--		stack = READ_ONCE(entry->stack);
--		is_free = READ_ONCE(entry->is_free);
--
--		if (is_free) {
-+		if (entry->is_free) {
- 			/*
- 			 * Second free of the same object.
- 			 * Give up on trying to find the alloc entry.
-@@ -80,8 +69,8 @@ void kasan_complete_mode_report_info(str
- 			if (free_found)
- 				break;
- 
--			info->free_track.pid = pid;
--			info->free_track.stack = stack;
-+			info->free_track.pid = entry->pid;
-+			info->free_track.stack = entry->stack;
- 			free_found = true;
- 
- 			/*
-@@ -95,8 +84,8 @@ void kasan_complete_mode_report_info(str
- 			if (alloc_found)
- 				break;
- 
--			info->alloc_track.pid = pid;
--			info->alloc_track.stack = stack;
-+			info->alloc_track.pid = entry->pid;
-+			info->alloc_track.stack = entry->stack;
- 			alloc_found = true;
- 
- 			/*
---- a/mm/kasan/tags.c~kasan-remove-atomic-accesses-to-stack-ring-entries
-+++ a/mm/kasan/tags.c
-@@ -121,15 +121,12 @@ next:
+ 	/*
+ 	 * Prevent save_stack_info() from modifying stack ring
+@@ -121,6 +122,8 @@ next:
  	if (!try_cmpxchg(&entry->ptr, &old_ptr, STACK_RING_BUSY_PTR))
  		goto next; /* Busy slot. */
  
--	WRITE_ONCE(entry->size, cache->object_size);
--	WRITE_ONCE(entry->pid, current->pid);
--	WRITE_ONCE(entry->stack, stack);
--	WRITE_ONCE(entry->is_free, is_free);
-+	entry->size = cache->object_size;
-+	entry->pid = current->pid;
-+	entry->stack = stack;
-+	entry->is_free = is_free;
- 
--	/*
--	 * Paired with smp_load_acquire() in kasan_complete_mode_report_info().
--	 */
--	smp_store_release(&entry->ptr, (s64)object);
-+	entry->ptr = object;
++	old_stack = entry->stack;
++
+ 	entry->size = cache->object_size;
+ 	entry->pid = current->pid;
+ 	entry->stack = stack;
+@@ -129,6 +132,9 @@ next:
+ 	entry->ptr = object;
  
  	read_unlock_irqrestore(&stack_ring.lock, flags);
++
++	if (old_stack)
++		stack_depot_put(old_stack);
  }
+ 
+ void kasan_save_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
