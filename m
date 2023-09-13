@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB762EE020B
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Sep 2023 19:29:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DF94EE020A
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Sep 2023 19:29:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232445AbjIMT3X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Sep 2023 15:29:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33328 "EHLO
+        id S232547AbjIMT3a (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Sep 2023 15:29:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33358 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232387AbjIMT3N (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2023 15:29:13 -0400
+        with ESMTP id S232434AbjIMT3P (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2023 15:29:15 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 355941999
-        for <mm-commits@vger.kernel.org>; Wed, 13 Sep 2023 12:29:09 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8B8CC433C7;
-        Wed, 13 Sep 2023 19:29:08 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C86519AE
+        for <mm-commits@vger.kernel.org>; Wed, 13 Sep 2023 12:29:11 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF0A1C433C9;
+        Wed, 13 Sep 2023 19:29:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694633348;
-        bh=DZJ5S/E01Ap+bFLN4y5zWJAdunloNPTleEvssg5R2+s=;
+        s=korg; t=1694633351;
+        bh=Mml8li1dELP7Daqna//35JSO63aogDg+5o9frM1JQlo=;
         h=Date:To:From:Subject:From;
-        b=w1kn89KvMK0VnUHIcFeEXLRLdJrFpVY5BQxmnxm478gXtQiJTtIrhwb1HlO9W8jZh
-         AMcmGD3W8xbg8jc1NoZzO7dBBlyNQ3NmkgjdqVtFLXgMZVDVbS2egHnsPRtxRz/Fuj
-         MJbORRHpfG3mgq1gRPdIAbA+uLcxBCNs0Ij0hUlg=
-Date:   Wed, 13 Sep 2023 12:29:08 -0700
+        b=2C6TI/zjTneOx2fyPGk3LEc4935o81PNOOXwIMay+VKDc7s/L+Ta5zdG3iz28lj9J
+         BD3/ifHIZvTNW2s2M+TsnsgbZufGP3iLHy6lItognGE48WNWBNjGqjJ7PRpfNAlrL7
+         H2BLLx33oV+Gwo7FTVYmMOx9WvMdnJPaug7hSgtE=
+Date:   Wed, 13 Sep 2023 12:29:10 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, osalvador@suse.de,
         glider@google.com, eugenis@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@gmail.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-stackdepot-add-refcount-for-records.patch added to mm-unstable branch
-Message-Id: <20230913192908.C8B8CC433C7@smtp.kernel.org>
+Subject: + lib-stackdepot-allow-users-to-evict-stack-traces.patch added to mm-unstable branch
+Message-Id: <20230913192910.EF0A1C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,12 +38,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/stackdepot: add refcount for records
+     Subject: lib/stackdepot: allow users to evict stack traces
 has been added to the -mm mm-unstable branch.  Its filename is
-     lib-stackdepot-add-refcount-for-records.patch
+     lib-stackdepot-allow-users-to-evict-stack-traces.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-add-refcount-for-records.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-allow-users-to-evict-stack-traces.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,25 +62,23 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: lib/stackdepot: add refcount for records
-Date: Wed, 13 Sep 2023 19:14:40 +0200
+Subject: lib/stackdepot: allow users to evict stack traces
+Date: Wed, 13 Sep 2023 19:14:41 +0200
 
-Add a reference counter for how many times a stack records has been added
-to stack depot.
+Add stack_depot_put, a function that decrements the reference counter on a
+stack record and removes it from the stack depot once the counter reaches
+0.
 
-Add a new STACK_DEPOT_FLAG_GET flag to stack_depot_save_flags that
-instructs the stack depot to increment the refcount.
+Internally, when removing a stack record, the function unlinks it from the
+hash table bucket and returns to the freelist.
 
-Do not yet decrement the refcount; this is implemented in one of the
-following patches.
+With this change, the users of stack depot can call stack_depot_put when
+keeping a stack trace in the stack depot is not needed anymore.  This
+allows avoiding polluting the stack depot with irrelevant stack traces and
+thus have more space to store the relevant ones before the stack depot
+reaches its capacity.
 
-Do not yet enable any users to use the flag to avoid overflowing the
-refcount.
-
-This is preparatory patch for implementing the eviction of stack records
-from the stack depot.
-
-Link: https://lkml.kernel.org/r/c15b94412d146957c8be423c8dc1d3b66f659709.1694625260.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/1a3ea1e6b82f95eea644875756e12daba6c4cc7f.1694625260.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
@@ -92,100 +90,91 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/stackdepot.h |   13 ++++++++++---
- lib/stackdepot.c           |   12 ++++++++++--
- 2 files changed, 20 insertions(+), 5 deletions(-)
+ include/linux/stackdepot.h |   14 ++++++++++++++
+ lib/stackdepot.c           |   35 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 49 insertions(+)
 
---- a/include/linux/stackdepot.h~lib-stackdepot-add-refcount-for-records
+--- a/include/linux/stackdepot.h~lib-stackdepot-allow-users-to-evict-stack-traces
 +++ a/include/linux/stackdepot.h
-@@ -39,8 +39,9 @@ typedef u32 depot_flags_t;
-  * to its declaration for more details.
-  */
- #define STACK_DEPOT_FLAG_CAN_ALLOC	((depot_flags_t)0x0001)
-+#define STACK_DEPOT_FLAG_GET		((depot_flags_t)0x0002)
- 
--#define STACK_DEPOT_FLAGS_NUM	1
-+#define STACK_DEPOT_FLAGS_NUM	2
- #define STACK_DEPOT_FLAGS_MASK	((depot_flags_t)((1 << STACK_DEPOT_FLAGS_NUM) - 1))
- 
- /*
-@@ -94,6 +95,9 @@ static inline int stack_depot_early_init
-  * flags of @alloc_flags). Otherwise, stack depot avoids any allocations and
-  * fails if no space is left to store the stack trace.
+@@ -97,6 +97,8 @@ static inline int stack_depot_early_init
   *
-+ * If STACK_DEPOT_FLAG_GET is set in @depot_flags, stack depot will increment
-+ * the refcount on the saved stack trace if it already exists in stack depot.
-+ *
+  * If STACK_DEPOT_FLAG_GET is set in @depot_flags, stack depot will increment
+  * the refcount on the saved stack trace if it already exists in stack depot.
++ * Users of this flag must also call stack_depot_put() when keeping the stack
++ * trace is no longer required to avoid overflowing the refcount.
+  *
   * If the provided stack trace comes from the interrupt context, only the part
   * up to the interrupt entry is saved.
-  *
-@@ -116,8 +120,11 @@ depot_stack_handle_t stack_depot_save_fl
-  * @nr_entries:		Number of frames in the stack
-  * @alloc_flags:	Allocation GFP flags
-  *
-- * Context: Contexts where allocations via alloc_pages() are allowed.
-- *          See stack_depot_save_flags() for more details.
-+ * Does not increment the refcount on the saved stack trace; see
-+ * stack_depot_save_flags() for more details.
+@@ -163,6 +165,18 @@ int stack_depot_snprint(depot_stack_hand
+ 		       int spaces);
+ 
+ /**
++ * stack_depot_put - Drop a reference to a stack trace from stack depot
 + *
-+ * Context: Contexts where allocations via alloc_pages() are allowed;
-+ *          see stack_depot_save_flags() for more details.
++ * @handle:	Stack depot handle returned from stack_depot_save()
++ *
++ * The stack trace is evicted from stack depot once all references to it have
++ * been dropped (once the number of stack_depot_evict() calls matches the
++ * number of stack_depot_save_flags() calls with STACK_DEPOT_FLAG_GET set for
++ * this stack trace).
++ */
++void stack_depot_put(depot_stack_handle_t handle);
++
++/**
+  * stack_depot_set_extra_bits - Set extra bits in a stack depot handle
   *
-  * Return: Handle of the stack trace stored in depot, 0 on failure
-  */
---- a/lib/stackdepot.c~lib-stackdepot-add-refcount-for-records
+  * @handle:	Stack depot handle returned from stack_depot_save()
+--- a/lib/stackdepot.c~lib-stackdepot-allow-users-to-evict-stack-traces
 +++ a/lib/stackdepot.c
-@@ -23,6 +23,7 @@
- #include <linux/mutex.h>
- #include <linux/percpu.h>
- #include <linux/printk.h>
-+#include <linux/refcount.h>
- #include <linux/slab.h>
- #include <linux/spinlock.h>
- #include <linux/stacktrace.h>
-@@ -60,6 +61,7 @@ struct stack_record {
- 	u32 hash;			/* Hash in hash table */
- 	u32 size;			/* Number of stored frames */
- 	union handle_parts handle;
-+	refcount_t count;
- 	unsigned long entries[CONFIG_STACKDEPOT_MAX_FRAMES];	/* Frames */
- };
+@@ -398,6 +398,14 @@ static struct stack_record *depot_fetch_
+ 	return stack;
+ }
  
-@@ -361,6 +363,7 @@ depot_alloc_stack(unsigned long *entries
- 	stack->hash = hash;
- 	stack->size = size;
- 	/* stack->handle is already filled in by depot_init_pool. */
-+	refcount_set(&stack->count, 1);
- 	memcpy(stack->entries, entries, flex_array_size(stack, entries, size));
++/* Links stack into the freelist. */
++static void depot_free_stack(struct stack_record *stack)
++{
++	lockdep_assert_held_write(&pool_rwlock);
++
++	list_add(&stack->list, &free_stacks);
++}
++
+ /* Calculates the hash for a stack. */
+ static inline u32 hash_stack(unsigned long *entries, unsigned int size)
+ {
+@@ -580,6 +588,33 @@ unsigned int stack_depot_fetch(depot_sta
+ }
+ EXPORT_SYMBOL_GPL(stack_depot_fetch);
  
- 	/*
-@@ -477,6 +480,8 @@ depot_stack_handle_t stack_depot_save_fl
- 	/* Fast path: look the stack trace up without full locking. */
- 	found = find_stack(bucket, entries, nr_entries, hash);
- 	if (found) {
-+		if (depot_flags & STACK_DEPOT_FLAG_GET)
-+			refcount_inc(&found->count);
- 		read_unlock_irqrestore(&pool_rwlock, flags);
- 		goto exit;
- 	}
-@@ -516,12 +521,15 @@ depot_stack_handle_t stack_depot_save_fl
- 			list_add(&new->list, bucket);
- 			found = new;
- 		}
--	} else if (prealloc) {
-+	} else {
-+		if (depot_flags & STACK_DEPOT_FLAG_GET)
-+			refcount_inc(&found->count);
- 		/*
- 		 * Stack depot already contains this stack trace, but let's
- 		 * keep the preallocated memory for future.
- 		 */
--		depot_keep_new_pool(&prealloc);
-+		if (prealloc)
-+			depot_keep_new_pool(&prealloc);
- 	}
- 
- 	write_unlock_irqrestore(&pool_rwlock, flags);
++void stack_depot_put(depot_stack_handle_t handle)
++{
++	struct stack_record *stack;
++	unsigned long flags;
++
++	if (!handle || stack_depot_disabled)
++		return;
++
++	write_lock_irqsave(&pool_rwlock, flags);
++
++	stack = depot_fetch_stack(handle);
++	if (WARN_ON(!stack))
++		goto out;
++
++	if (refcount_dec_and_test(&stack->count)) {
++		/* Unlink stack from the hash table. */
++		list_del(&stack->list);
++
++		/* Free stack. */
++		depot_free_stack(stack);
++	}
++
++out:
++	write_unlock_irqrestore(&pool_rwlock, flags);
++}
++EXPORT_SYMBOL_GPL(stack_depot_put);
++
+ void stack_depot_print(depot_stack_handle_t stack)
+ {
+ 	unsigned long *entries;
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
