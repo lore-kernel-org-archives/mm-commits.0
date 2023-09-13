@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44BFCEE020A
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Sep 2023 19:29:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 423CAEE0207
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Sep 2023 19:29:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232475AbjIMT3S (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Sep 2023 15:29:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33428 "EHLO
+        id S232480AbjIMT3W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Sep 2023 15:29:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39880 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232524AbjIMT3I (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2023 15:29:08 -0400
+        with ESMTP id S232479AbjIMT3K (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2023 15:29:10 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A5921BE6
-        for <mm-commits@vger.kernel.org>; Wed, 13 Sep 2023 12:29:04 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C83D5C433C7;
-        Wed, 13 Sep 2023 19:29:03 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33C5E1BD4
+        for <mm-commits@vger.kernel.org>; Wed, 13 Sep 2023 12:29:06 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C293CC433C9;
+        Wed, 13 Sep 2023 19:29:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694633343;
-        bh=rlLJjOLZaF54yYakLZVUi2c/2DBa/NxhirlV203LvO4=;
+        s=korg; t=1694633345;
+        bh=mx9aeyxrQfTE+xIYqXQdQabPIWY2HRfrcj69VY+NAlM=;
         h=Date:To:From:Subject:From;
-        b=lFZZvugdST+yELxtyM7BqUIeKqgd+gj6xD+vT8/swRV2pgMF+dPhF9PzlE+SGMPLZ
-         V95nCnttt/u4jnWcn5gSsCC+9IyugWElWssCPB6T0FE7vS6ILSF+K88R8v3+Tbk4zg
-         GbuPBzuOy9SJpfOMzer0n5Z3RH203Wa+9v7AfkWA=
-Date:   Wed, 13 Sep 2023 12:29:03 -0700
+        b=RAClJH2Apd6NeVCoZwcYge2yzoxsAtb/2VGcAEJcjeo1MtoyWOapBrEMAaC3vpKhl
+         gw5J22TRKFMQiaY4weJk/XnZCNy7UyCVFeSxNfiWQksBnN8FxLFWasaIL2WwrPZPNJ
+         Yy9H8piSFHXwo4lPtS+GIui6uXJbF7hPtFYmnjpw=
+Date:   Wed, 13 Sep 2023 12:29:05 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, osalvador@suse.de,
         glider@google.com, eugenis@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@gmail.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-use-stack_depot_save-instead-of-__stack_depot_save.patch added to mm-unstable branch
-Message-Id: <20230913192903.C83D5C433C7@smtp.kernel.org>
+Subject: + lib-stackdepot-kasan-add-flags-to-__stack_depot_save-and-rename.patch added to mm-unstable branch
+Message-Id: <20230913192905.C293CC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,12 +38,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmsan: use stack_depot_save instead of __stack_depot_save
+     Subject: lib/stackdepot, kasan: add flags to __stack_depot_save and rename
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-use-stack_depot_save-instead-of-__stack_depot_save.patch
+     lib-stackdepot-kasan-add-flags-to-__stack_depot_save-and-rename.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-use-stack_depot_save-instead-of-__stack_depot_save.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-kasan-add-flags-to-__stack_depot_save-and-rename.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,13 +62,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kmsan: use stack_depot_save instead of __stack_depot_save
-Date: Wed, 13 Sep 2023 19:14:38 +0200
+Subject: lib/stackdepot, kasan: add flags to __stack_depot_save and rename
+Date: Wed, 13 Sep 2023 19:14:39 +0200
 
-Make KMSAN use stack_depot_save instead of __stack_depot_save, as it
-always passes true to __stack_depot_save as the last argument.
+Change the bool can_alloc argument of __stack_depot_save to a u32 argument
+that accepts a set of flags.
 
-Link: https://lkml.kernel.org/r/7f6b58fda637238ffc0c240e7fd3b3a6673d9d91.1694625260.git.andreyknvl@google.com
+The following patch will add another flag to stack_depot_save_flags
+besides the existing STACK_DEPOT_FLAG_CAN_ALLOC.
+
+Also rename the function to stack_depot_save_flags, as __stack_depot_save
+is a cryptic name,
+
+Link: https://lkml.kernel.org/r/2a161c99c47a45f8e9f7a21a732c60f0cd674a66.1694625260.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
@@ -80,34 +86,238 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/core.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ include/linux/stackdepot.h |   36 ++++++++++++++++++++++++-----------
+ lib/stackdepot.c           |   16 ++++++++++-----
+ mm/kasan/common.c          |    7 +++---
+ mm/kasan/generic.c         |    9 ++++----
+ mm/kasan/kasan.h           |    2 -
+ mm/kasan/tags.c            |    3 +-
+ 6 files changed, 48 insertions(+), 25 deletions(-)
 
---- a/mm/kmsan/core.c~kmsan-use-stack_depot_save-instead-of-__stack_depot_save
-+++ a/mm/kmsan/core.c
-@@ -76,7 +76,7 @@ depot_stack_handle_t kmsan_save_stack_wi
- 	/* Don't sleep. */
- 	flags &= ~(__GFP_DIRECT_RECLAIM | __GFP_KSWAPD_RECLAIM);
+--- a/include/linux/stackdepot.h~lib-stackdepot-kasan-add-flags-to-__stack_depot_save-and-rename
++++ a/include/linux/stackdepot.h
+@@ -32,6 +32,17 @@ typedef u32 depot_stack_handle_t;
+  */
+ #define STACK_DEPOT_EXTRA_BITS 5
  
--	handle = __stack_depot_save(entries, nr_entries, flags, true);
-+	handle = stack_depot_save(entries, nr_entries, flags);
- 	return stack_depot_set_extra_bits(handle, extra);
++typedef u32 depot_flags_t;
++
++/*
++ * Flags that can be passed to stack_depot_save_flags(); see the comment next
++ * to its declaration for more details.
++ */
++#define STACK_DEPOT_FLAG_CAN_ALLOC	((depot_flags_t)0x0001)
++
++#define STACK_DEPOT_FLAGS_NUM	1
++#define STACK_DEPOT_FLAGS_MASK	((depot_flags_t)((1 << STACK_DEPOT_FLAGS_NUM) - 1))
++
+ /*
+  * Using stack depot requires its initialization, which can be done in 3 ways:
+  *
+@@ -69,31 +80,34 @@ static inline int stack_depot_early_init
+ #endif
+ 
+ /**
+- * __stack_depot_save - Save a stack trace to stack depot
++ * stack_depot_save_flags - Save a stack trace to stack depot
+  *
+  * @entries:		Pointer to the stack trace
+  * @nr_entries:		Number of frames in the stack
+  * @alloc_flags:	Allocation GFP flags
+- * @can_alloc:		Allocate stack pools (increased chance of failure if false)
++ * @depot_flags:	Stack depot flags
++ *
++ * Saves a stack trace from @entries array of size @nr_entries.
+  *
+- * Saves a stack trace from @entries array of size @nr_entries. If @can_alloc is
+- * %true, stack depot can replenish the stack pools in case no space is left
+- * (allocates using GFP flags of @alloc_flags). If @can_alloc is %false, avoids
+- * any allocations and fails if no space is left to store the stack trace.
++ * If STACK_DEPOT_FLAG_CAN_ALLOC is set in @depot_flags, stack depot can
++ * replenish the stack pools in case no space is left (allocates using GFP
++ * flags of @alloc_flags). Otherwise, stack depot avoids any allocations and
++ * fails if no space is left to store the stack trace.
+  *
+  * If the provided stack trace comes from the interrupt context, only the part
+  * up to the interrupt entry is saved.
+  *
+- * Context: Any context, but setting @can_alloc to %false is required if
++ * Context: Any context, but setting STACK_DEPOT_FLAG_CAN_ALLOC is required if
+  *          alloc_pages() cannot be used from the current context. Currently
+  *          this is the case for contexts where neither %GFP_ATOMIC nor
+  *          %GFP_NOWAIT can be used (NMI, raw_spin_lock).
+  *
+  * Return: Handle of the stack struct stored in depot, 0 on failure
+  */
+-depot_stack_handle_t __stack_depot_save(unsigned long *entries,
+-					unsigned int nr_entries,
+-					gfp_t gfp_flags, bool can_alloc);
++depot_stack_handle_t stack_depot_save_flags(unsigned long *entries,
++					    unsigned int nr_entries,
++					    gfp_t gfp_flags,
++					    depot_flags_t depot_flags);
+ 
+ /**
+  * stack_depot_save - Save a stack trace to stack depot
+@@ -103,7 +117,7 @@ depot_stack_handle_t __stack_depot_save(
+  * @alloc_flags:	Allocation GFP flags
+  *
+  * Context: Contexts where allocations via alloc_pages() are allowed.
+- *          See __stack_depot_save() for more details.
++ *          See stack_depot_save_flags() for more details.
+  *
+  * Return: Handle of the stack trace stored in depot, 0 on failure
+  */
+--- a/lib/stackdepot.c~lib-stackdepot-kasan-add-flags-to-__stack_depot_save-and-rename
++++ a/lib/stackdepot.c
+@@ -438,19 +438,24 @@ static inline struct stack_record *find_
+ 	return NULL;
  }
  
-@@ -185,11 +185,10 @@ depot_stack_handle_t kmsan_internal_chai
+-depot_stack_handle_t __stack_depot_save(unsigned long *entries,
+-					unsigned int nr_entries,
+-					gfp_t alloc_flags, bool can_alloc)
++depot_stack_handle_t stack_depot_save_flags(unsigned long *entries,
++					    unsigned int nr_entries,
++					    gfp_t alloc_flags,
++					    depot_flags_t depot_flags)
+ {
+ 	struct list_head *bucket;
+ 	struct stack_record *found = NULL;
+ 	depot_stack_handle_t handle = 0;
+ 	struct page *page = NULL;
+ 	void *prealloc = NULL;
++	bool can_alloc = depot_flags & STACK_DEPOT_FLAG_CAN_ALLOC;
+ 	bool need_alloc = false;
+ 	unsigned long flags;
+ 	u32 hash;
+ 
++	if (depot_flags & ~STACK_DEPOT_FLAGS_MASK)
++		return 0;
++
  	/*
- 	 * @entries is a local var in non-instrumented code, so KMSAN does not
- 	 * know it is initialized. Explicitly unpoison it to avoid false
--	 * positives when __stack_depot_save() passes it to instrumented code.
-+	 * positives when stack_depot_save() passes it to instrumented code.
- 	 */
- 	kmsan_internal_unpoison_memory(entries, sizeof(entries), false);
--	handle = __stack_depot_save(entries, ARRAY_SIZE(entries), __GFP_HIGH,
--				    true);
-+	handle = stack_depot_save(entries, ARRAY_SIZE(entries), __GFP_HIGH);
- 	return stack_depot_set_extra_bits(handle, extra_bits);
+ 	 * If this stack trace is from an interrupt, including anything before
+ 	 * interrupt entry usually leads to unbounded stack depot growth.
+@@ -529,13 +534,14 @@ exit:
+ 		handle = found->handle.handle;
+ 	return handle;
+ }
+-EXPORT_SYMBOL_GPL(__stack_depot_save);
++EXPORT_SYMBOL_GPL(stack_depot_save_flags);
+ 
+ depot_stack_handle_t stack_depot_save(unsigned long *entries,
+ 				      unsigned int nr_entries,
+ 				      gfp_t alloc_flags)
+ {
+-	return __stack_depot_save(entries, nr_entries, alloc_flags, true);
++	return stack_depot_save_flags(entries, nr_entries, alloc_flags,
++				      STACK_DEPOT_FLAG_CAN_ALLOC);
+ }
+ EXPORT_SYMBOL_GPL(stack_depot_save);
+ 
+--- a/mm/kasan/common.c~lib-stackdepot-kasan-add-flags-to-__stack_depot_save-and-rename
++++ a/mm/kasan/common.c
+@@ -22,6 +22,7 @@
+ #include <linux/sched.h>
+ #include <linux/sched/task_stack.h>
+ #include <linux/slab.h>
++#include <linux/stackdepot.h>
+ #include <linux/stacktrace.h>
+ #include <linux/string.h>
+ #include <linux/types.h>
+@@ -37,19 +38,19 @@ struct slab *kasan_addr_to_slab(const vo
+ 	return NULL;
  }
  
+-depot_stack_handle_t kasan_save_stack(gfp_t flags, bool can_alloc)
++depot_stack_handle_t kasan_save_stack(gfp_t flags, depot_flags_t depot_flags)
+ {
+ 	unsigned long entries[KASAN_STACK_DEPTH];
+ 	unsigned int nr_entries;
+ 
+ 	nr_entries = stack_trace_save(entries, ARRAY_SIZE(entries), 0);
+-	return __stack_depot_save(entries, nr_entries, flags, can_alloc);
++	return stack_depot_save_flags(entries, nr_entries, flags, depot_flags);
+ }
+ 
+ void kasan_set_track(struct kasan_track *track, gfp_t flags)
+ {
+ 	track->pid = current->pid;
+-	track->stack = kasan_save_stack(flags, true);
++	track->stack = kasan_save_stack(flags, STACK_DEPOT_FLAG_CAN_ALLOC);
+ }
+ 
+ #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
+--- a/mm/kasan/generic.c~lib-stackdepot-kasan-add-flags-to-__stack_depot_save-and-rename
++++ a/mm/kasan/generic.c
+@@ -25,6 +25,7 @@
+ #include <linux/sched.h>
+ #include <linux/sched/task_stack.h>
+ #include <linux/slab.h>
++#include <linux/stackdepot.h>
+ #include <linux/stacktrace.h>
+ #include <linux/string.h>
+ #include <linux/types.h>
+@@ -472,7 +473,7 @@ size_t kasan_metadata_size(struct kmem_c
+ 			sizeof(struct kasan_free_meta) : 0);
+ }
+ 
+-static void __kasan_record_aux_stack(void *addr, bool can_alloc)
++static void __kasan_record_aux_stack(void *addr, depot_flags_t depot_flags)
+ {
+ 	struct slab *slab = kasan_addr_to_slab(addr);
+ 	struct kmem_cache *cache;
+@@ -489,17 +490,17 @@ static void __kasan_record_aux_stack(voi
+ 		return;
+ 
+ 	alloc_meta->aux_stack[1] = alloc_meta->aux_stack[0];
+-	alloc_meta->aux_stack[0] = kasan_save_stack(0, can_alloc);
++	alloc_meta->aux_stack[0] = kasan_save_stack(0, depot_flags);
+ }
+ 
+ void kasan_record_aux_stack(void *addr)
+ {
+-	return __kasan_record_aux_stack(addr, true);
++	return __kasan_record_aux_stack(addr, STACK_DEPOT_FLAG_CAN_ALLOC);
+ }
+ 
+ void kasan_record_aux_stack_noalloc(void *addr)
+ {
+-	return __kasan_record_aux_stack(addr, false);
++	return __kasan_record_aux_stack(addr, 0);
+ }
+ 
+ void kasan_save_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
+--- a/mm/kasan/kasan.h~lib-stackdepot-kasan-add-flags-to-__stack_depot_save-and-rename
++++ a/mm/kasan/kasan.h
+@@ -370,7 +370,7 @@ static inline void kasan_init_cache_meta
+ static inline void kasan_init_object_meta(struct kmem_cache *cache, const void *object) { }
+ #endif
+ 
+-depot_stack_handle_t kasan_save_stack(gfp_t flags, bool can_alloc);
++depot_stack_handle_t kasan_save_stack(gfp_t flags, depot_flags_t depot_flags);
+ void kasan_set_track(struct kasan_track *track, gfp_t flags);
+ void kasan_save_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags);
+ void kasan_save_free_info(struct kmem_cache *cache, void *object);
+--- a/mm/kasan/tags.c~lib-stackdepot-kasan-add-flags-to-__stack_depot_save-and-rename
++++ a/mm/kasan/tags.c
+@@ -13,6 +13,7 @@
+ #include <linux/memblock.h>
+ #include <linux/memory.h>
+ #include <linux/mm.h>
++#include <linux/stackdepot.h>
+ #include <linux/static_key.h>
+ #include <linux/string.h>
+ #include <linux/types.h>
+@@ -101,7 +102,7 @@ static void save_stack_info(struct kmem_
+ 	struct kasan_stack_ring_entry *entry;
+ 	void *old_ptr;
+ 
+-	stack = kasan_save_stack(gfp_flags, true);
++	stack = kasan_save_stack(gfp_flags, STACK_DEPOT_FLAG_CAN_ALLOC);
+ 
+ 	/*
+ 	 * Prevent save_stack_info() from modifying stack ring
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
