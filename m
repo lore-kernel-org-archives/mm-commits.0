@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84C68EE020F
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Sep 2023 19:28:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73A21EE020A
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Sep 2023 19:28:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232447AbjIMT2s (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Sep 2023 15:28:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37808 "EHLO
+        id S231603AbjIMT2x (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Sep 2023 15:28:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37846 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232437AbjIMT2s (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2023 15:28:48 -0400
+        with ESMTP id S230413AbjIMT2v (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 13 Sep 2023 15:28:51 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 449EAB7
-        for <mm-commits@vger.kernel.org>; Wed, 13 Sep 2023 12:28:44 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D261BC433C7;
-        Wed, 13 Sep 2023 19:28:43 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 436451BC8
+        for <mm-commits@vger.kernel.org>; Wed, 13 Sep 2023 12:28:47 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC4D1C433C9;
+        Wed, 13 Sep 2023 19:28:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694633323;
-        bh=mOjeC8bCodBBOhfTw0vPNF+sIFSmXyNtsl6yo1aIwS4=;
+        s=korg; t=1694633326;
+        bh=iheIY+SwCj1andxCm0CEvZN89gofFejd3EAtZqopKqw=;
         h=Date:To:From:Subject:From;
-        b=VsatUaN6q4ByIVXiCz4naM7b/CCDRtu7IZbKzaCFFGgu+0aoopBwa8IiW4olsEr5m
-         g2C4QWoK04Ne1TkXU3HuEqpiT7LnmPEdZh9X8DWsyYxzfs5UHMupXnf9I9bujhTKHk
-         VTBSq8jUoCJimhYgbZigabl01JKUSHdZxSVqo6z8=
-Date:   Wed, 13 Sep 2023 12:28:43 -0700
+        b=XZaEUhcz6AaZGMwYZsVMXLtHujx2YfpkDaJJiOdDYpL4tSucUXr0Gi3MXbk5fl5M/
+         66p2guWw/qcrj46nLH6S6EP+rnK1yNhwN+9ZmJNUn1ZGIdadPhc4Ck8fkKfLhpfiI0
+         cM/s9LEXYPHXPYsi0IXkX0vHr0uPtXx9C4IwLcFw=
+Date:   Wed, 13 Sep 2023 12:28:46 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, osalvador@suse.de,
         glider@google.com, eugenis@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@gmail.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-stackdepot-fix-and-clean-up-atomic-annotations.patch added to mm-unstable branch
-Message-Id: <20230913192843.D261BC433C7@smtp.kernel.org>
+Subject: + lib-stackdepot-rework-helpers-for-depot_alloc_stack.patch added to mm-unstable branch
+Message-Id: <20230913192846.CC4D1C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,12 +38,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/stackdepot: fix and clean-up atomic annotations
+     Subject: lib/stackdepot: rework helpers for depot_alloc_stack
 has been added to the -mm mm-unstable branch.  Its filename is
-     lib-stackdepot-fix-and-clean-up-atomic-annotations.patch
+     lib-stackdepot-rework-helpers-for-depot_alloc_stack.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-fix-and-clean-up-atomic-annotations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-rework-helpers-for-depot_alloc_stack.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,17 +62,26 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: lib/stackdepot: fix and clean-up atomic annotations
-Date: Wed, 13 Sep 2023 19:14:31 +0200
+Subject: lib/stackdepot: rework helpers for depot_alloc_stack
+Date: Wed, 13 Sep 2023 19:14:32 +0200
 
-Simplify comments accompanying the use of atomic accesses in the stack
-depot code.
+Split code in depot_alloc_stack and depot_init_pool into 3 functions:
 
-Also drop smp_load_acquire from next_pool_required in depot_init_pool, as
-both depot_init_pool and the all smp_store_release's to this variable are
-executed under the stack depot lock.
+1. depot_keep_next_pool that keeps preallocated memory for the next pool
+   if required.
 
-Link: https://lkml.kernel.org/r/e78360a883edac7bc3c6a351c99a6019beacf264.1694625260.git.andreyknvl@google.com
+2. depot_update_pools that moves on to the next pool if there's no space
+   left in the current pool, uses preallocated memory for the new current
+   pool if required, and calls depot_keep_next_pool otherwise.
+
+3. depot_alloc_stack that calls depot_update_pools and then allocates
+   a stack record as before.
+
+This makes it somewhat easier to follow the logic of depot_alloc_stack
+and also serves as a preparation for implementing the eviction of stack
+records from the stack depot.
+
+Link: https://lkml.kernel.org/r/bbf482643e882f9f870d80cb35342c61955ea291.1694625260.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
@@ -84,94 +93,160 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/stackdepot.c |   27 ++++++++++++---------------
- 1 file changed, 12 insertions(+), 15 deletions(-)
+ lib/stackdepot.c |   87 +++++++++++++++++++++++++--------------------
+ 1 file changed, 49 insertions(+), 38 deletions(-)
 
---- a/lib/stackdepot.c~lib-stackdepot-fix-and-clean-up-atomic-annotations
+--- a/lib/stackdepot.c~lib-stackdepot-rework-helpers-for-depot_alloc_stack
 +++ a/lib/stackdepot.c
-@@ -225,10 +225,8 @@ static void depot_init_pool(void **preal
+@@ -219,54 +219,43 @@ out_unlock:
+ }
+ EXPORT_SYMBOL_GPL(stack_depot_init);
+ 
+-/* Uses preallocated memory to initialize a new stack depot pool. */
+-static void depot_init_pool(void **prealloc)
++/* Keeps the preallocated memory to be used for the next stack depot pool. */
++static void depot_keep_next_pool(void **prealloc)
+ {
  	/*
- 	 * If the next pool is already initialized or the maximum number of
+-	 * If the next pool is already initialized or the maximum number of
++	 * If the next pool is already saved or the maximum number of
  	 * pools is reached, do not use the preallocated memory.
--	 * smp_load_acquire() here pairs with smp_store_release() below and
--	 * in depot_alloc_stack().
  	 */
--	if (!smp_load_acquire(&next_pool_required))
-+	if (!next_pool_required)
+ 	if (!next_pool_required)
  		return;
  
- 	/* Check if the current pool is not yet allocated. */
-@@ -249,8 +247,8 @@ static void depot_init_pool(void **preal
- 		 * At this point, either the next pool is initialized or the
- 		 * maximum number of pools is reached. In either case, take
- 		 * note that initializing another pool is not required.
--		 * This smp_store_release pairs with smp_load_acquire() above
--		 * and in stack_depot_save().
-+		 * smp_store_release pairs with smp_load_acquire in
-+		 * stack_depot_save.
- 		 */
- 		smp_store_release(&next_pool_required, 0);
+-	/* Check if the current pool is not yet allocated. */
+-	if (stack_pools[pool_index] == NULL) {
+-		/* Use the preallocated memory for the current pool. */
+-		stack_pools[pool_index] = *prealloc;
++	/*
++	 * Use the preallocated memory for the next pool
++	 * as long as we do not exceed the maximum number of pools.
++	 */
++	if (pool_index + 1 < DEPOT_MAX_POOLS) {
++		stack_pools[pool_index + 1] = *prealloc;
+ 		*prealloc = NULL;
+-	} else {
+-		/*
+-		 * Otherwise, use the preallocated memory for the next pool
+-		 * as long as we do not exceed the maximum number of pools.
+-		 */
+-		if (pool_index + 1 < DEPOT_MAX_POOLS) {
+-			stack_pools[pool_index + 1] = *prealloc;
+-			*prealloc = NULL;
+-		}
+-		/*
+-		 * At this point, either the next pool is initialized or the
+-		 * maximum number of pools is reached. In either case, take
+-		 * note that initializing another pool is not required.
+-		 * smp_store_release pairs with smp_load_acquire in
+-		 * stack_depot_save.
+-		 */
+-		smp_store_release(&next_pool_required, 0);
  	}
-@@ -274,15 +272,15 @@ depot_alloc_stack(unsigned long *entries
++
++	/*
++	 * At this point, either the next pool is kept or the maximum
++	 * number of pools is reached. In either case, take note that
++	 * keeping another pool is not required.
++	 * smp_store_release pairs with smp_load_acquire in stack_depot_save.
++	 */
++	smp_store_release(&next_pool_required, 0);
+ }
+ 
+-/* Allocates a new stack in a stack depot pool. */
+-static struct stack_record *
+-depot_alloc_stack(unsigned long *entries, int size, u32 hash, void **prealloc)
++/* Updates refences to the current and the next stack depot pools. */
++static bool depot_update_pools(size_t required_size, void **prealloc)
+ {
+-	struct stack_record *stack;
+-	size_t required_size = DEPOT_STACK_RECORD_SIZE;
+-
+ 	/* Check if there is not enough space in the current pool. */
+ 	if (unlikely(pool_offset + required_size > DEPOT_POOL_SIZE)) {
+ 		/* Bail out if we reached the pool limit. */
+ 		if (unlikely(pool_index + 1 >= DEPOT_MAX_POOLS)) {
+ 			WARN_ONCE(1, "Stack depot reached limit capacity");
+-			return NULL;
++			return false;
+ 		}
+ 
  		/*
- 		 * Move on to the next pool.
- 		 * WRITE_ONCE pairs with potential concurrent read in
--		 * stack_depot_fetch().
-+		 * stack_depot_fetch.
+@@ -276,9 +265,10 @@ depot_alloc_stack(unsigned long *entries
  		 */
  		WRITE_ONCE(pool_index, pool_index + 1);
  		pool_offset = 0;
++
  		/*
  		 * If the maximum number of pools is not reached, take note
- 		 * that the next pool needs to initialized.
--		 * smp_store_release() here pairs with smp_load_acquire() in
--		 * stack_depot_save() and depot_init_pool().
-+		 * smp_store_release pairs with smp_load_acquire in
-+		 * stack_depot_save.
+-		 * that the next pool needs to initialized.
++		 * that the next pool needs to be initialized.
+ 		 * smp_store_release pairs with smp_load_acquire in
+ 		 * stack_depot_save.
  		 */
- 		if (pool_index + 1 < DEPOT_MAX_POOLS)
+@@ -286,9 +276,30 @@ depot_alloc_stack(unsigned long *entries
  			smp_store_release(&next_pool_required, 1);
-@@ -324,7 +322,7 @@ static struct stack_record *depot_fetch_
+ 	}
+ 
+-	/* Assign the preallocated memory to a pool if required. */
++	/* Check if the current pool is not yet allocated. */
++	if (*prealloc && stack_pools[pool_index] == NULL) {
++		/* Use the preallocated memory for the current pool. */
++		stack_pools[pool_index] = *prealloc;
++		*prealloc = NULL;
++		return true;
++	}
++
++	/* Otherwise, try using the preallocated memory for the next pool. */
+ 	if (*prealloc)
+-		depot_init_pool(prealloc);
++		depot_keep_next_pool(prealloc);
++	return true;
++}
++
++/* Allocates a new stack in a stack depot pool. */
++static struct stack_record *
++depot_alloc_stack(unsigned long *entries, int size, u32 hash, void **prealloc)
++{
++	struct stack_record *stack;
++	size_t required_size = DEPOT_STACK_RECORD_SIZE;
++
++	/* Update current and next pools if required and possible. */
++	if (!depot_update_pools(required_size, prealloc))
++		return NULL;
+ 
+ 	/* Check if we have a pool to save the stack trace. */
+ 	if (stack_pools[pool_index] == NULL)
+@@ -322,7 +333,7 @@ static struct stack_record *depot_fetch_
  	union handle_parts parts = { .handle = handle };
  	/*
  	 * READ_ONCE pairs with potential concurrent write in
--	 * depot_alloc_stack().
-+	 * depot_alloc_stack.
+-	 * depot_alloc_stack.
++	 * depot_update_pools.
  	 */
  	int pool_index_cached = READ_ONCE(pool_index);
  	void *pool;
-@@ -413,8 +411,7 @@ depot_stack_handle_t __stack_depot_save(
- 
- 	/*
- 	 * Fast path: look the stack trace up without locking.
--	 * The smp_load_acquire() here pairs with smp_store_release() to
--	 * |bucket| below.
-+	 * smp_load_acquire pairs with smp_store_release to |bucket| below.
- 	 */
- 	found = find_stack(smp_load_acquire(bucket), entries, nr_entries, hash);
- 	if (found)
-@@ -424,8 +421,8 @@ depot_stack_handle_t __stack_depot_save(
+@@ -421,8 +432,8 @@ depot_stack_handle_t __stack_depot_save(
  	 * Check if another stack pool needs to be initialized. If so, allocate
  	 * the memory now - we won't be able to do that under the lock.
  	 *
--	 * The smp_load_acquire() here pairs with smp_store_release() to
--	 * |next_pool_inited| in depot_alloc_stack() and depot_init_pool().
-+	 * smp_load_acquire pairs with smp_store_release in depot_alloc_stack
-+	 * and depot_init_pool.
+-	 * smp_load_acquire pairs with smp_store_release in depot_alloc_stack
+-	 * and depot_init_pool.
++	 * smp_load_acquire pairs with smp_store_release in depot_update_pools
++	 * and depot_keep_next_pool.
  	 */
  	if (unlikely(can_alloc && smp_load_acquire(&next_pool_required))) {
  		/*
-@@ -451,8 +448,8 @@ depot_stack_handle_t __stack_depot_save(
- 		if (new) {
- 			new->next = *bucket;
- 			/*
--			 * This smp_store_release() pairs with
--			 * smp_load_acquire() from |bucket| above.
-+			 * smp_store_release pairs with smp_load_acquire
-+			 * from |bucket| above.
- 			 */
- 			smp_store_release(bucket, new);
- 			found = new;
+@@ -459,7 +470,7 @@ depot_stack_handle_t __stack_depot_save(
+ 		 * Stack depot already contains this stack trace, but let's
+ 		 * keep the preallocated memory for the future.
+ 		 */
+-		depot_init_pool(&prealloc);
++		depot_keep_next_pool(&prealloc);
+ 	}
+ 
+ 	raw_spin_unlock_irqrestore(&pool_lock, flags);
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
