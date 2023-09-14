@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B6AEEEAA63
-	for <mm-commits@archiver.kernel.org>; Thu, 14 Sep 2023 18:51:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7894BEEAA66
+	for <mm-commits@archiver.kernel.org>; Thu, 14 Sep 2023 18:51:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241683AbjINSvj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 14 Sep 2023 14:51:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52222 "EHLO
+        id S241578AbjINSvi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 14 Sep 2023 14:51:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52600 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242205AbjINSvV (ORCPT
+        with ESMTP id S242197AbjINSvV (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Sep 2023 14:51:21 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B1CBB59DF
-        for <mm-commits@vger.kernel.org>; Thu, 14 Sep 2023 11:47:15 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D5A0C433C8;
-        Thu, 14 Sep 2023 18:47:15 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07C0A58D5
+        for <mm-commits@vger.kernel.org>; Thu, 14 Sep 2023 11:47:13 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93A5CC433C8;
+        Thu, 14 Sep 2023 18:47:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694717235;
-        bh=bhTlBRJfFHiMv+EWA/DaWnIN8ImwcwGMNLBbXH6XAMk=;
+        s=korg; t=1694717232;
+        bh=AmYHeZzJPn61Eqy2gxfV+8lvz69S1qSJTs/2LEBJaBs=;
         h=Date:To:From:Subject:From;
-        b=HIVtvuYYpkckfJk8RXi+tI1hZ1xAIvC7IRQUJRZl6yuhqjObV9hhFNJWSDQcecsnS
-         pmrIGD2Tyg/01EeidqsUlVlaGeWEm7lBo4MptQQIKA3lUN5SDJeBMODCJoN0J9gZ2W
-         d+5joRKmW9KohrjoG6WvIRRUXXFtSp9sQtSy2pUU=
-Date:   Thu, 14 Sep 2023 11:47:14 -0700
+        b=k+7vKrsdCciBBT9VgjQJlovqeuN3saUlIsKG4g978xLu0L1EUUd1VPrf0H3PO94B6
+         KxT2Mx+ung7AXxliiD5Wc/meKgJ+349ZA30W/nVq6MVfFx/Tu9i2oPvMt5OjNrpLJy
+         IMqBQQQ7YWqjA+qFMDmcCkp1epSp4KBKbkIuz/1c=
+Date:   Thu, 14 Sep 2023 11:47:12 -0700
 To:     mm-commits@vger.kernel.org, thunder.leizhen@huawei.com,
         chenjiahao16@huawei.com, catalin.marinas@arm.com, bhe@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-kdump-use-generic-interface-to-simplify-crashkernel-reservation-code.patch added to mm-nonmm-unstable branch
-Message-Id: <20230914184715.4D5A0C433C8@smtp.kernel.org>
+Subject: + crash_core-add-generic-function-to-do-reservation.patch added to mm-nonmm-unstable branch
+Message-Id: <20230914184712.93A5CC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: kdump: use generic interface to simplify crashkernel reservation code
+     Subject: crash_core: add generic function to do reservation
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     x86-kdump-use-generic-interface-to-simplify-crashkernel-reservation-code.patch
+     crash_core-add-generic-function-to-do-reservation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kdump-use-generic-interface-to-simplify-crashkernel-reservation-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash_core-add-generic-function-to-do-reservation.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -61,31 +61,22 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: x86: kdump: use generic interface to simplify crashkernel reservation code
-Date: Thu, 14 Sep 2023 11:31:39 +0800
+Subject: crash_core: add generic function to do reservation
+Date: Thu, 14 Sep 2023 11:31:37 +0800
 
-With the help of newly changed function parse_crashkernel() and generic
-reserve_crashkernel_generic(), crashkernel reservation can be simplified
-by steps:
+In architecture like x86_64, arm64 and riscv, they have vast virtual
+address space and usually have huge physical memory RAM.  Their
+crashkernel reservation doesn't have to be limited under 4G RAM, but can
+be extended to the whole physical memory via crashkernel=,high support.
 
-1) Add a new header file <asm/crash_core.h>, and define CRASH_ALIGN,
-   CRASH_ADDR_LOW_MAX, CRASH_ADDR_HIGH_MAX and
-   DEFAULT_CRASH_KERNEL_LOW_SIZE in <asm/crash_core.h>;
+Now add function reserve_crashkernel_generic() to reserve crashkernel
+memory if users specify any case of kernel pamameters, like
+crashkernel=xM[@offset] or crashkernel=,high|low.
 
-2) Add arch_reserve_crashkernel() to call parse_crashkernel() and
-   reserve_crashkernel_generic(), and do the ARCH specific work if
-   needed.
+This is preparation to simplify code of crashkernel=,high support in
+architecutures.
 
-3) Add ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION Kconfig in
-   arch/x86/Kconfig.
-
-When adding DEFAULT_CRASH_KERNEL_LOW_SIZE, add crash_low_size_default() to
-calculate crashkernel low memory because x86_64 has special requirement.
-
-The old reserve_crashkernel_low() and reserve_crashkernel() can be
-removed.
-
-Link: https://lkml.kernel.org/r/20230914033142.676708-7-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20230914033142.676708-5-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Chen Jiahao <chenjiahao16@huawei.com>
@@ -93,238 +84,177 @@ Cc: Zhen Lei <thunder.leizhen@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig                  |    3 
- arch/x86/include/asm/crash_core.h |   34 ++++++
- arch/x86/kernel/setup.c           |  144 ++--------------------------
- 3 files changed, 52 insertions(+), 129 deletions(-)
+ include/linux/crash_core.h |   28 +++++++++
+ kernel/crash_core.c        |  107 ++++++++++++++++++++++++++++++++++-
+ 2 files changed, 134 insertions(+), 1 deletion(-)
 
---- /dev/null
-+++ a/arch/x86/include/asm/crash_core.h
-@@ -0,0 +1,34 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _X86_CRASH_CORE_H
-+#define _X86_CRASH_CORE_H
-+
-+/* 16M alignment for crash kernel regions */
-+#define CRASH_ALIGN             SZ_16M
-+
-+/*
-+ * Keep the crash kernel below this limit.
-+ *
-+ * Earlier 32-bits kernels would limit the kernel to the low 512 MB range
-+ * due to mapping restrictions.
-+ *
-+ * 64-bit kdump kernels need to be restricted to be under 64 TB, which is
-+ * the upper limit of system RAM in 4-level paging mode. Since the kdump
-+ * jump could be from 5-level paging to 4-level paging, the jump will fail if
-+ * the kernel is put above 64 TB, and during the 1st kernel bootup there's
-+ * no good way to detect the paging mode of the target kernel which will be
-+ * loaded for dumping.
-+ */
-+
-+#ifdef CONFIG_X86_32
-+# define CRASH_ADDR_LOW_MAX     SZ_512M
-+# define CRASH_ADDR_HIGH_MAX    SZ_512M
-+#else
-+# define CRASH_ADDR_LOW_MAX     SZ_4G
-+# define CRASH_ADDR_HIGH_MAX    SZ_64T
+--- a/include/linux/crash_core.h~crash_core-add-generic-function-to-do-reservation
++++ a/include/linux/crash_core.h
+@@ -93,6 +93,34 @@ int parse_crashkernel_high(char *cmdline
+ int parse_crashkernel_low(char *cmdline, unsigned long long system_ram,
+ 		unsigned long long *crash_size, unsigned long long *crash_base);
+ 
++#ifdef CONFIG_ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION
++#ifndef DEFAULT_CRASH_KERNEL_LOW_SIZE
++#define DEFAULT_CRASH_KERNEL_LOW_SIZE	(128UL << 20)
++#endif
++#ifndef CRASH_ALIGN
++#define CRASH_ALIGN			SZ_2M
++#endif
++#ifndef CRASH_ADDR_LOW_MAX
++#define CRASH_ADDR_LOW_MAX		SZ_4G
++#endif
++#ifndef CRASH_ADDR_HIGH_MAX
++#define CRASH_ADDR_HIGH_MAX		memblock_end_of_DRAM()
 +#endif
 +
-+# define DEFAULT_CRASH_KERNEL_LOW_SIZE crash_low_size_default()
++void __init reserve_crashkernel_generic(char *cmdline,
++		unsigned long long crash_size,
++		unsigned long long crash_base,
++		unsigned long long crash_low_size,
++		bool high);
++#else
++static inline void __init reserve_crashkernel_generic(char *cmdline,
++		unsigned long long crash_size,
++		unsigned long long crash_base,
++		unsigned long long crash_low_size,
++		bool high)
++{}
++#endif
 +
-+extern unsigned long crash_low_size_default(void);
-+
-+#endif /* _X86_CRASH_CORE_H */
---- a/arch/x86/Kconfig~x86-kdump-use-generic-interface-to-simplify-crashkernel-reservation-code
-+++ a/arch/x86/Kconfig
-@@ -2062,6 +2062,9 @@ config ARCH_SUPPORTS_CRASH_DUMP
- config ARCH_SUPPORTS_CRASH_HOTPLUG
- 	def_bool y
+ /* Alignment required for elf header segment */
+ #define ELF_CORE_HEADER_ALIGN   4096
  
-+config ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION
-+	def_bool CRASH_CORE
-+
- config PHYSICAL_START
- 	hex "Physical address where the kernel is loaded" if (EXPERT || CRASH_DUMP)
- 	default "0x1000000"
---- a/arch/x86/kernel/setup.c~x86-kdump-use-generic-interface-to-simplify-crashkernel-reservation-code
-+++ a/arch/x86/kernel/setup.c
-@@ -473,152 +473,38 @@ static void __init memblock_x86_reserve_
- /*
-  * --------- Crashkernel reservation ------------------------------
+--- a/kernel/crash_core.c~crash_core-add-generic-function-to-do-reservation
++++ a/kernel/crash_core.c
+@@ -5,7 +5,6 @@
   */
--
--/* 16M alignment for crash kernel regions */
--#define CRASH_ALIGN		SZ_16M
--
--/*
-- * Keep the crash kernel below this limit.
-- *
-- * Earlier 32-bits kernels would limit the kernel to the low 512 MB range
-- * due to mapping restrictions.
-- *
-- * 64-bit kdump kernels need to be restricted to be under 64 TB, which is
-- * the upper limit of system RAM in 4-level paging mode. Since the kdump
-- * jump could be from 5-level paging to 4-level paging, the jump will fail if
-- * the kernel is put above 64 TB, and during the 1st kernel bootup there's
-- * no good way to detect the paging mode of the target kernel which will be
-- * loaded for dumping.
-- */
--#ifdef CONFIG_X86_32
--# define CRASH_ADDR_LOW_MAX	SZ_512M
--# define CRASH_ADDR_HIGH_MAX	SZ_512M
--#else
--# define CRASH_ADDR_LOW_MAX	SZ_4G
--# define CRASH_ADDR_HIGH_MAX	SZ_64T
--#endif
--
--static int __init reserve_crashkernel_low(void)
-+unsigned long crash_low_size_default(void)
- {
- #ifdef CONFIG_X86_64
--	unsigned long long base, low_base = 0, low_size = 0;
--	unsigned long low_mem_limit;
--	int ret;
--
--	low_mem_limit = min(memblock_phys_mem_size(), CRASH_ADDR_LOW_MAX);
--
--	/* crashkernel=Y,low */
--	ret = parse_crashkernel_low(boot_command_line, low_mem_limit, &low_size, &base);
--	if (ret) {
--		/*
--		 * two parts from kernel/dma/swiotlb.c:
--		 * -swiotlb size: user-specified with swiotlb= or default.
--		 *
--		 * -swiotlb overflow buffer: now hardcoded to 32k. We round it
--		 * to 8M for other buffers that may need to stay low too. Also
--		 * make sure we allocate enough extra low memory so that we
--		 * don't run out of DMA buffers for 32-bit devices.
--		 */
--		low_size = max(swiotlb_size_or_default() + (8UL << 20), 256UL << 20);
--	} else {
--		/* passed with crashkernel=0,low ? */
--		if (!low_size)
--			return 0;
--	}
--
--	low_base = memblock_phys_alloc_range(low_size, CRASH_ALIGN, 0, CRASH_ADDR_LOW_MAX);
--	if (!low_base) {
--		pr_err("Cannot reserve %ldMB crashkernel low memory, please try smaller size.\n",
--		       (unsigned long)(low_size >> 20));
--		return -ENOMEM;
--	}
--
--	pr_info("Reserving %ldMB of low memory at %ldMB for crashkernel (low RAM limit: %ldMB)\n",
--		(unsigned long)(low_size >> 20),
--		(unsigned long)(low_base >> 20),
--		(unsigned long)(low_mem_limit >> 20));
--
--	crashk_low_res.start = low_base;
--	crashk_low_res.end   = low_base + low_size - 1;
--	insert_resource(&iomem_resource, &crashk_low_res);
--#endif
-+	return max(swiotlb_size_or_default() + (8UL << 20), 256UL << 20);
-+#else
- 	return 0;
+ 
+ #include <linux/buildid.h>
+-#include <linux/crash_core.h>
+ #include <linux/init.h>
+ #include <linux/utsname.h>
+ #include <linux/vmalloc.h>
+@@ -13,6 +12,9 @@
+ #include <linux/kexec.h>
+ #include <linux/memory.h>
+ #include <linux/cpuhotplug.h>
++#include <linux/memblock.h>
++#include <linux/kexec.h>
++#include <linux/kmemleak.h>
+ 
+ #include <asm/page.h>
+ #include <asm/sections.h>
+@@ -360,6 +362,109 @@ static int __init parse_crashkernel_dumm
+ }
+ early_param("crashkernel", parse_crashkernel_dummy);
+ 
++#ifdef CONFIG_ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION
++static int __init reserve_crashkernel_low(unsigned long long low_size)
++{
++#ifdef CONFIG_64BIT
++	unsigned long long low_base;
++
++	low_base = memblock_phys_alloc_range(low_size, CRASH_ALIGN, 0, CRASH_ADDR_LOW_MAX);
++	if (!low_base) {
++		pr_err("cannot allocate crashkernel low memory (size:0x%llx).\n", low_size);
++		return -ENOMEM;
++	}
++
++	pr_info("crashkernel low memory reserved: 0x%08llx - 0x%08llx (%lld MB)\n",
++		low_base, low_base + low_size, low_size >> 20);
++
++	crashk_low_res.start = low_base;
++	crashk_low_res.end   = low_base + low_size - 1;
++	insert_resource(&iomem_resource, &crashk_low_res);
 +#endif
- }
- 
--static void __init reserve_crashkernel(void)
-+static void __init arch_reserve_crashkernel(void)
- {
--	unsigned long long crash_size, crash_base, total_mem;
-+	unsigned long long crash_base, crash_size, low_size = 0;
-+	char *cmdline = boot_command_line;
- 	bool high = false;
- 	int ret;
- 
- 	if (!IS_ENABLED(CONFIG_KEXEC_CORE))
- 		return;
- 
--	total_mem = memblock_phys_mem_size();
--
--	/* crashkernel=XM */
--	ret = parse_crashkernel(boot_command_line, total_mem,
--				&crash_size, &crash_base, NULL, NULL);
--	if (ret != 0 || crash_size <= 0) {
--		/* crashkernel=X,high */
--		ret = parse_crashkernel_high(boot_command_line, total_mem,
--					     &crash_size, &crash_base);
--		if (ret != 0 || crash_size <= 0)
--			return;
--		high = true;
--	}
-+	ret = parse_crashkernel(cmdline, memblock_phys_mem_size(),
-+				&crash_size, &crash_base,
-+				&low_size, &high);
-+	if (ret)
++	return 0;
++}
++
++void __init reserve_crashkernel_generic(char *cmdline,
++			     unsigned long long crash_size,
++			     unsigned long long crash_base,
++			     unsigned long long crash_low_size,
++			     bool high)
++{
++	unsigned long long search_end = CRASH_ADDR_LOW_MAX, search_base = 0;
++	bool fixed_base = false;
++
++	/* User specifies base address explicitly. */
++	if (crash_base) {
++		fixed_base = true;
++		search_base = crash_base;
++		search_end = crash_base + crash_size;
++	} else if (high) {
++		search_base = CRASH_ADDR_LOW_MAX;
++		search_end = CRASH_ADDR_HIGH_MAX;
++	}
++
++retry:
++	crash_base = memblock_phys_alloc_range(crash_size, CRASH_ALIGN,
++					       search_base, search_end);
++	if (!crash_base) {
++		/*
++		 * For crashkernel=size[KMG]@offset[KMG], print out failure
++		 * message if can't reserve the specified region.
++		 */
++		if (fixed_base) {
++			pr_warn("crashkernel reservation failed - memory is in use.\n");
++			return;
++		}
++
++		/*
++		 * For crashkernel=size[KMG], if the first attempt was for
++		 * low memory, fall back to high memory, the minimum required
++		 * low memory will be reserved later.
++		 */
++		if (!high && search_end == CRASH_ADDR_LOW_MAX) {
++			search_end = CRASH_ADDR_HIGH_MAX;
++			search_base = CRASH_ADDR_LOW_MAX;
++			crash_low_size = DEFAULT_CRASH_KERNEL_LOW_SIZE;
++			goto retry;
++		}
++
++		/*
++		 * For crashkernel=size[KMG],high, if the first attempt was
++		 * for high memory, fall back to low memory.
++		 */
++		if (high && search_end == CRASH_ADDR_HIGH_MAX) {
++			search_end = CRASH_ADDR_LOW_MAX;
++			search_base = 0;
++			goto retry;
++		}
++		pr_warn("cannot allocate crashkernel (size:0x%llx)\n",
++			crash_size);
 +		return;
- 
- 	if (xen_pv_domain()) {
- 		pr_info("Ignoring crashkernel for a Xen PV domain\n");
- 		return;
- 	}
- 
--	/* 0 means: find the address automatically */
--	if (!crash_base) {
--		/*
--		 * Set CRASH_ADDR_LOW_MAX upper bound for crash memory,
--		 * crashkernel=x,high reserves memory over 4G, also allocates
--		 * 256M extra low memory for DMA buffers and swiotlb.
--		 * But the extra memory is not required for all machines.
--		 * So try low memory first and fall back to high memory
--		 * unless "crashkernel=size[KMG],high" is specified.
--		 */
--		if (!high)
--			crash_base = memblock_phys_alloc_range(crash_size,
--						CRASH_ALIGN, CRASH_ALIGN,
--						CRASH_ADDR_LOW_MAX);
--		if (!crash_base)
--			crash_base = memblock_phys_alloc_range(crash_size,
--						CRASH_ALIGN, CRASH_ALIGN,
--						CRASH_ADDR_HIGH_MAX);
--		if (!crash_base) {
--			pr_info("crashkernel reservation failed - No suitable area found.\n");
--			return;
--		}
--	} else {
--		unsigned long long start;
--
--		start = memblock_phys_alloc_range(crash_size, SZ_1M, crash_base,
--						  crash_base + crash_size);
--		if (start != crash_base) {
--			pr_info("crashkernel reservation failed - memory is in use.\n");
--			return;
--		}
--	}
--
--	if (crash_base >= (1ULL << 32) && reserve_crashkernel_low()) {
--		memblock_phys_free(crash_base, crash_size);
--		return;
--	}
--
--	pr_info("Reserving %ldMB of memory at %ldMB for crashkernel (System RAM: %ldMB)\n",
--		(unsigned long)(crash_size >> 20),
--		(unsigned long)(crash_base >> 20),
--		(unsigned long)(total_mem >> 20));
--
--	crashk_res.start = crash_base;
--	crashk_res.end   = crash_base + crash_size - 1;
--	insert_resource(&iomem_resource, &crashk_res);
-+	reserve_crashkernel_generic(cmdline, crash_size, crash_base,
-+				    low_size, high);
- }
- 
- static struct resource standard_io_resources[] = {
-@@ -1232,7 +1118,7 @@ void __init setup_arch(char **cmdline_p)
- 	 * Reserve memory for crash kernel after SRAT is parsed so that it
- 	 * won't consume hotpluggable memory.
- 	 */
--	reserve_crashkernel();
-+	arch_reserve_crashkernel();
- 
- 	memblock_find_dma_reserve();
- 
++	}
++
++	if ((crash_base > CRASH_ADDR_LOW_MAX) &&
++	     crash_low_size && reserve_crashkernel_low(crash_low_size)) {
++		memblock_phys_free(crash_base, crash_size);
++		return;
++	}
++
++	pr_info("crashkernel reserved: 0x%016llx - 0x%016llx (%lld MB)\n",
++		crash_base, crash_base + crash_size, crash_size >> 20);
++
++	/*
++	 * The crashkernel memory will be removed from the kernel linear
++	 * map. Inform kmemleak so that it won't try to access it.
++	 */
++	kmemleak_ignore_phys(crash_base);
++	if (crashk_low_res.end)
++		kmemleak_ignore_phys(crashk_low_res.start);
++
++	crashk_res.start = crash_base;
++	crashk_res.end = crash_base + crash_size - 1;
++	insert_resource(&iomem_resource, &crashk_res);
++}
++#endif
++
+ int crash_prepare_elf64_headers(struct crash_mem *mem, int need_kernel_map,
+ 			  void **addr, unsigned long *sz)
+ {
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
