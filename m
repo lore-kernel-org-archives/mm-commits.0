@@ -2,33 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 977BDEEAA52
-	for <mm-commits@archiver.kernel.org>; Thu, 14 Sep 2023 16:06:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CFB00EEAA5D
+	for <mm-commits@archiver.kernel.org>; Thu, 14 Sep 2023 17:54:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241828AbjINQHC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 14 Sep 2023 12:07:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57962 "EHLO
+        id S240272AbjINRyk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 14 Sep 2023 13:54:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51130 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241654AbjINQGu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Sep 2023 12:06:50 -0400
+        with ESMTP id S240156AbjINRyk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Sep 2023 13:54:40 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 738C71FF3
-        for <mm-commits@vger.kernel.org>; Thu, 14 Sep 2023 09:06:45 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E264C433CA;
-        Thu, 14 Sep 2023 16:06:45 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E98961FFC;
+        Thu, 14 Sep 2023 10:54:35 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CD9EC433C7;
+        Thu, 14 Sep 2023 17:54:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694707605;
-        bh=T1YtBv5/GIRgA3g2ZCeaY1v1fb2W9qixUHgAXP1poUs=;
+        s=korg; t=1694714075;
+        bh=qFhpympcQHHwMSoiqk14nfbiylaVNarOrRLkXMGr2dM=;
         h=Date:To:From:Subject:From;
-        b=C0vJ82KCqe275WHd8TnK3G6OlPgyYjPpDZzipL/2Bg1zwYA5o3WvGwpfgDMqv8vzm
-         TCG5rbakkcvOMq5ulm6ZgTm4HYOXq7IC7GOkPxJFK3dldSrMwLUffh0jhnD4eF/60I
-         lImfRIZl+HQlSHyaXc0SmvAU0NfgOdhVpLDAIFn0=
-Date:   Thu, 14 Sep 2023 09:06:44 -0700
-To:     mm-commits@vger.kernel.org, teawater@antgroup.com,
-        willy@infradead.org, akpm@linux-foundation.org
+        b=LzkNy0KLy8LS3TEFRVy8ZYIk1c+46bWpqu5g1JnT/H7TZx6/9SN5p1SEinsE8A62G
+         AwoKhmse7fGc0aMuPPgJQWi0pM5MgObCpLoMDtGVeY8/0PjsGQauLZJJKnfO8lPWFf
+         F/PQ4SCDf64Z2VLvagcdzGIKNcsEWyWy3rpWhkvo=
+Date:   Thu, 14 Sep 2023 10:54:34 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        oleg@redhat.com, giulio.benetti@benettiengineering.com,
+        gerg@uclinux.org, ben.wolsieffer@hefring.com,
+        Ben.Wolsieffer@hefring.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + buffer-remove-__getblk_gfp.patch added to mm-unstable branch
-Message-Id: <20230914160645.0E264C433CA@smtp.kernel.org>
+Subject: + proc-nommu-proc-pid-maps-release-mmap-read-lock.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230914175435.6CD9EC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,14 +38,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: buffer: remove __getblk_gfp()
-has been added to the -mm mm-unstable branch.  Its filename is
-     buffer-remove-__getblk_gfp.patch
+     Subject: proc: nommu: /proc/<pid>/maps: release mmap read lock
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     proc-nommu-proc-pid-maps-release-mmap-read-lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buffer-remove-__getblk_gfp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-nommu-proc-pid-maps-release-mmap-read-lock.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,103 +61,93 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: buffer: remove __getblk_gfp()
-Date: Thu, 14 Sep 2023 16:00:11 +0100
+From: Ben Wolsieffer <Ben.Wolsieffer@hefring.com>
+Subject: proc: nommu: /proc/<pid>/maps: release mmap read lock
+Date: Thu, 14 Sep 2023 12:30:20 -0400
 
-Inline it into __bread_gfp().
+On NOMMU, when running "cat /proc/1/maps" twice the second run hangs.
 
-Link: https://lkml.kernel.org/r/20230914150011.843330-9-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Hui Zhu <teawater@antgroup.com>
+The no-MMU implementation of /proc/<pid>/map doesn't normally release the
+mmap read lock, because it uses !IS_ERR_OR_NULL(_vml) to determine whether
+to release the lock.  Since _vml is NULL when the end of the mappings is
+reached, the lock is not released.
+
+This code was incorrectly adapted from the MMU implementation, which at
+the time released the lock in m_next() before returning the last entry.
+
+The MMU implementation has diverged further from the no-MMU version since
+then, so this patch brings their locking and error handling into sync,
+fixing the bug and hopefully avoiding similar issues in the future.
+
+Link: https://lkml.kernel.org/r/20230914163019.4050530-2-ben.wolsieffer@hefring.com
+Fixes: 47fecca15c09 ("fs/proc/task_nommu.c: don't use priv->task->mm")
+Signed-off-by: Ben Wolsieffer <ben.wolsieffer@hefring.com>
+Cc: Giulio Benetti <giulio.benetti@benettiengineering.com>
+Cc: Greg Ungerer <gerg@uclinux.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c                 |   36 ++++++++++------------------------
- include/linux/buffer_head.h |    2 -
- 2 files changed, 11 insertions(+), 27 deletions(-)
+ fs/proc/task_nommu.c |   27 +++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
 
---- a/fs/buffer.c~buffer-remove-__getblk_gfp
-+++ a/fs/buffer.c
-@@ -1420,9 +1420,6 @@ EXPORT_SYMBOL(__find_get_block);
-  * @size: The size of buffer_heads for this @bdev.
-  * @gfp: The memory allocation flags to use.
-  *
-- * In contrast to __getblk_gfp(), the @gfp flags must be all of the flags;
-- * they are not augmented with the mapping's GFP flags.
-- *
-  * Return: The buffer head, or NULL if memory could not be allocated.
-  */
- struct buffer_head *bdev_getblk(struct block_device *bdev, sector_t block,
-@@ -1439,27 +1436,6 @@ struct buffer_head *bdev_getblk(struct b
- EXPORT_SYMBOL(bdev_getblk);
+--- a/fs/proc/task_nommu.c~proc-nommu-proc-pid-maps-release-mmap-read-lock
++++ a/fs/proc/task_nommu.c
+@@ -192,11 +192,16 @@ static void *m_start(struct seq_file *m,
+ 		return ERR_PTR(-ESRCH);
  
- /*
-- * __getblk_gfp() will locate (and, if necessary, create) the buffer_head
-- * which corresponds to the passed block_device, block and size. The
-- * returned buffer has its reference count incremented.
-- */
--struct buffer_head *
--__getblk_gfp(struct block_device *bdev, sector_t block,
--	     unsigned size, gfp_t gfp)
--{
--	gfp |= mapping_gfp_constraint(bdev->bd_inode->i_mapping, ~__GFP_FS);
--
--	/*
--	 * Prefer looping in the allocator rather than here, at least that
--	 * code knows what it's doing.
--	 */
--	gfp |= __GFP_NOFAIL;
--
--	return bdev_getblk(bdev, block, size, gfp);
--}
--EXPORT_SYMBOL(__getblk_gfp);
--
--/*
-  * Do async read-ahead on a buffer..
-  */
- void __breadahead(struct block_device *bdev, sector_t block, unsigned size)
-@@ -1490,7 +1466,17 @@ struct buffer_head *
- __bread_gfp(struct block_device *bdev, sector_t block,
- 		   unsigned size, gfp_t gfp)
+ 	mm = priv->mm;
+-	if (!mm || !mmget_not_zero(mm))
++	if (!mm || !mmget_not_zero(mm)) {
++		put_task_struct(priv->task);
++		priv->task = NULL;
+ 		return NULL;
++	}
+ 
+ 	if (mmap_read_lock_killable(mm)) {
+ 		mmput(mm);
++		put_task_struct(priv->task);
++		priv->task = NULL;
+ 		return ERR_PTR(-EINTR);
+ 	}
+ 
+@@ -205,23 +210,21 @@ static void *m_start(struct seq_file *m,
+ 	if (vma)
+ 		return vma;
+ 
+-	mmap_read_unlock(mm);
+-	mmput(mm);
+ 	return NULL;
+ }
+ 
+-static void m_stop(struct seq_file *m, void *_vml)
++static void m_stop(struct seq_file *m, void *v)
  {
--	struct buffer_head *bh = __getblk_gfp(bdev, block, size, gfp);
-+	struct buffer_head *bh;
-+
-+	gfp |= mapping_gfp_constraint(bdev->bd_inode->i_mapping, ~__GFP_FS);
-+
-+	/*
-+	 * Prefer looping in the allocator rather than here, at least that
-+	 * code knows what it's doing.
-+	 */
-+	gfp |= __GFP_NOFAIL;
-+
-+	bh = bdev_getblk(bdev, block, size, gfp);
+ 	struct proc_maps_private *priv = m->private;
++	struct mm_struct *mm = priv->mm;
  
- 	if (likely(bh) && !buffer_uptodate(bh))
- 		bh = __bread_slow(bh);
---- a/include/linux/buffer_head.h~buffer-remove-__getblk_gfp
-+++ a/include/linux/buffer_head.h
-@@ -226,8 +226,6 @@ struct buffer_head *__find_get_block(str
- 			unsigned size);
- struct buffer_head *bdev_getblk(struct block_device *bdev, sector_t block,
- 		unsigned size, gfp_t gfp);
--struct buffer_head *__getblk_gfp(struct block_device *bdev, sector_t block,
--				  unsigned size, gfp_t gfp);
- void __brelse(struct buffer_head *);
- void __bforget(struct buffer_head *);
- void __breadahead(struct block_device *, sector_t block, unsigned int size);
+-	if (!IS_ERR_OR_NULL(_vml)) {
+-		mmap_read_unlock(priv->mm);
+-		mmput(priv->mm);
+-	}
+-	if (priv->task) {
+-		put_task_struct(priv->task);
+-		priv->task = NULL;
+-	}
++	if (!priv->task)
++		return;
++
++	mmap_read_unlock(mm);
++	mmput(mm);
++	put_task_struct(priv->task);
++	priv->task = NULL;
+ }
+ 
+ static void *m_next(struct seq_file *m, void *_p, loff_t *pos)
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from Ben.Wolsieffer@hefring.com are
 
-mm-convert-dax-lock-unlock-page-to-lock-unlock-folio.patch
-buffer-pass-gfp-flags-to-folio_alloc_buffers.patch
-buffer-hoist-gfp-flags-from-grow_dev_page-to-__getblk_gfp.patch
-ext4-use-bdev_getblk-to-avoid-memory-reclaim-in-readahead-path.patch
-buffer-use-bdev_getblk-to-avoid-memory-reclaim-in-readahead-path.patch
-buffer-convert-getblk_unmovable-and-__getblk-to-use-bdev_getblk.patch
-buffer-convert-sb_getblk-to-call-__getblk.patch
-ext4-call-bdev_getblk-from-sb_getblk_gfp.patch
-buffer-remove-__getblk_gfp.patch
+proc-nommu-proc-pid-maps-release-mmap-read-lock.patch
 
