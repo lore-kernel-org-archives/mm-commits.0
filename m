@@ -2,140 +2,142 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 625D9EEAA62
-	for <mm-commits@archiver.kernel.org>; Thu, 14 Sep 2023 19:08:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FD68EEAA6E
+	for <mm-commits@archiver.kernel.org>; Thu, 14 Sep 2023 19:59:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237837AbjINTIS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 14 Sep 2023 15:08:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44470 "EHLO
+        id S229643AbjINT7x (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 14 Sep 2023 15:59:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35932 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230502AbjINTIS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Sep 2023 15:08:18 -0400
+        with ESMTP id S229603AbjINT7x (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 14 Sep 2023 15:59:53 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09D5A1FC7
-        for <mm-commits@vger.kernel.org>; Thu, 14 Sep 2023 12:08:14 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D165C433C7;
-        Thu, 14 Sep 2023 19:08:13 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 686AD26B8
+        for <mm-commits@vger.kernel.org>; Thu, 14 Sep 2023 12:59:49 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBA2DC433C8;
+        Thu, 14 Sep 2023 19:59:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694718493;
-        bh=hjJdbsZLcnE0kWHUCT/4/t2HUSgetHkYkmuRAoyyp4I=;
+        s=korg; t=1694721589;
+        bh=aIoUGbQiobDGbvpCwvlxldFwo4vQOhnHQihZS3SmdI8=;
         h=Date:To:From:Subject:From;
-        b=e7X9MmoI/aHzgHXZEnND67rDufNO1NG7S3by1Q8QAuib78c81xypUsfVrTQku30Zy
-         zkqnIGx8fl+p4r4uSPcwVkXj2TUl9ELrq0vN3C4fWMow2oGtH5iTQDfnz6MiQN0P72
-         xVlrc86lbp1y0cpeHO3GBveQwBd/L06RepaQt/vg=
-Date:   Thu, 14 Sep 2023 12:08:13 -0700
-To:     mm-commits@vger.kernel.org, gustavoars@kernel.org, joe@perches.com,
-        akpm@linux-foundation.org
+        b=RxfEVu/APkW4f22Lb3zsp8nJ5bJ6g6Iqi2dfeaPqSjf1drzwClmfK8SF7H1ni9Y+d
+         tuZ5G8CDmst0GLRkjsBBrb6QdoPlMpDDjPpw4dgsJVTllOqxdvi1/2kCU7c1v1mqyx
+         EMyJPVpEJ+hmqmi4cDf5+ACQfZFyi4LeuaoycJtg=
+Date:   Thu, 14 Sep 2023 12:59:48 -0700
+To:     mm-commits@vger.kernel.org, lukas.bulwahn@gmail.com,
+        gustavoars@kernel.org, dwaipayanray1@gmail.com, apw@canonical.com,
+        joe@perches.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + checkpatch-add-a-couple-new-alloc-functions-to-alloc-with-multiplies-check.patch added to mm-nonmm-unstable branch
-Message-Id: <20230914190813.9D165C433C7@smtp.kernel.org>
+Subject: [to-be-updated] checkpatch-simplify-creating-search-strings.patch removed from -mm tree
+Message-Id: <20230914195948.EBA2DC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: checkpatch: add a couple new alloc functions to alloc with multiplies check
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     checkpatch-add-a-couple-new-alloc-functions-to-alloc-with-multiplies-check.patch
+The quilt patch titled
+     Subject: checkpatch: simplify creating search strings
+has been removed from the -mm tree.  Its filename was
+     checkpatch-simplify-creating-search-strings.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-add-a-couple-new-alloc-functions-to-alloc-with-multiplies-check.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add a couple new alloc functions to alloc with multiplies check
-Date: Wed, 13 Sep 2023 18:41:47 -0700
+Subject: checkpatch: simplify creating search strings
+Date: Wed, 13 Sep 2023 13:37:51 -0700
 
-vmalloc() and vzalloc() functions have now 2-factor multiplication
-argument forms vmalloc_array() and vcalloc(), correspondingly.
+Patch series "checkpatch: refactor and add new alloc w/ multiply tests".
 
-Add alloc-with-multiplies checks for these new functions.
+Original alloc function patch by Gustavo Silva.
 
-Simplify the original codes repeated else to use a hash.
 
-Link: https://github.com/KSPP/linux/issues/342
-Link: https://lkml.kernel.org/r/edb667e19211652a32ef6069159bb85dbc3bcdff.1694636817.git.joe@perches.com
-Original-patch-by: Gustavo A. R. Silva <gustavoars@kernel.org>
-Co-developed-by: Gustavo A. R. Silva <gustavoars@kernel.org>
-Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
-  Link: https://lore.kernel.org/lkml/ZQCaO+tYycDxVLy7@work/
+This patch (of 2):
+
+Use join and map instead of loops.
+
+Link: https://lkml.kernel.org/r/cover.1694636817.git.joe@perches.com
+Link: https://lkml.kernel.org/r/ef2ab1a00367e201879d9bff44a2e7e936b87a7e.1694636817.git.joe@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com> (maintainer:CHECKPATCH)
+Cc: Dwaipayan Ray <dwaipayanray1@gmail.com> (reviewer:CHECKPATCH)
+Cc: Gustavo A. R. Silva <gustavoars@kernel.org>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   21 ++++++++++++++-------
- 1 file changed, 14 insertions(+), 7 deletions(-)
+ scripts/checkpatch.pl |   34 +++++++---------------------------
+ 1 file changed, 7 insertions(+), 27 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-add-a-couple-new-alloc-functions-to-alloc-with-multiplies-check
+--- a/scripts/checkpatch.pl~checkpatch-simplify-creating-search-strings
 +++ a/scripts/checkpatch.pl
-@@ -834,6 +834,16 @@ our %deprecated_apis = (
- #Create a search pattern for all these strings to speed up a loop below
- our $deprecated_apis_search = '(?:' . join('|', keys %deprecated_apis) . ')';
+@@ -625,18 +625,8 @@ our $signature_tags = qr{(?xi:
+ our @link_tags = qw(Link Closes);
  
-+our %alloc_with_multiply_apis = (
-+	"kmalloc"		=> "kmalloc_array",
-+	"kvmalloc"		=> "kvmalloc_array",
-+	"vmalloc"		=> "vmalloc_array",
-+	"kvzalloc"		=> "kvcalloc",
-+	"kzalloc"		=> "kcalloc",
-+	"vzalloc"		=> "vcalloc",
-+);
-+our $alloc_with_multiply_search = '(?:' . join('|', keys %alloc_with_multiply_apis) . ')';
+ #Create a search and print patterns for all these strings to be used directly below
+-our $link_tags_search = "";
+-our $link_tags_print = "";
+-foreach my $entry (@link_tags) {
+-	if ($link_tags_search ne "") {
+-		$link_tags_search .= '|';
+-		$link_tags_print .= ' or ';
+-	}
+-	$entry .= ':';
+-	$link_tags_search .= $entry;
+-	$link_tags_print .= "'$entry'";
+-}
+-$link_tags_search = "(?:${link_tags_search})";
++our $link_tags_search = '(?:' . join('|', @link_tags) . ')';
++our $link_tags_print = "'" . join("' or '", @link_tags) . "'";
+ 
+ our $tracing_logging_tags = qr{(?xi:
+ 	[=-]*> |
+@@ -819,15 +809,10 @@ our @mode_permission_funcs = (
+ 	["__ATTR", 2],
+ );
+ 
+-my $word_pattern = '\b[A-Z]?[a-z]{2,}\b';
+-
+ #Create a search pattern for all these functions to speed up a loop below
+-our $mode_perms_search = "";
+-foreach my $entry (@mode_permission_funcs) {
+-	$mode_perms_search .= '|' if ($mode_perms_search ne "");
+-	$mode_perms_search .= $entry->[0];
+-}
+-$mode_perms_search = "(?:${mode_perms_search})";
++our $mode_perms_search = '(?:' . join('|', map{$_->[0]} @mode_permission_funcs) . ')';
 +
++my $word_pattern = '\b[A-Z]?[a-z]{2,}\b';
+ 
+ our %deprecated_apis = (
+ 	"synchronize_rcu_bh"			=> "synchronize_rcu",
+@@ -847,12 +832,7 @@ our %deprecated_apis = (
+ );
+ 
+ #Create a search pattern for all these strings to speed up a loop below
+-our $deprecated_apis_search = "";
+-foreach my $entry (keys %deprecated_apis) {
+-	$deprecated_apis_search .= '|' if ($deprecated_apis_search ne "");
+-	$deprecated_apis_search .= $entry;
+-}
+-$deprecated_apis_search = "(?:${deprecated_apis_search})";
++our $deprecated_apis_search = '(?:' . join('|', keys %deprecated_apis) . ')';
+ 
  our $mode_perms_world_writable = qr{
  	S_IWUGO		|
- 	S_IWOTH		|
-@@ -7187,17 +7197,14 @@ sub process {
- 			    "Prefer $3(sizeof(*$1)...) over $3($4...)\n" . $herecurr);
- 		}
- 
--# check for (kv|k)[mz]alloc with multiplies that could be kmalloc_array/kvmalloc_array/kvcalloc/kcalloc
-+# check for various allocs with multiplies that should use safer functions
- 		if ($perl_version_ok &&
- 		    defined $stat &&
--		    $stat =~ /^\+\s*($Lval)\s*\=\s*(?:$balanced_parens)?\s*((?:kv|k)[mz]alloc)\s*\(\s*($FuncArg)\s*\*\s*($FuncArg)\s*,/) {
-+		    $stat =~ /^\+\s*($Lval)\s*\=\s*(?:$balanced_parens)?\s*($alloc_with_multiply_search)\s*\(\s*($FuncArg)\s*\*\s*($FuncArg)/) {
- 			my $oldfunc = $3;
-+			my $newfunc = $alloc_with_multiply_apis{$oldfunc};
- 			my $a1 = $4;
- 			my $a2 = $10;
--			my $newfunc = "kmalloc_array";
--			$newfunc = "kvmalloc_array" if ($oldfunc eq "kvmalloc");
--			$newfunc = "kvcalloc" if ($oldfunc eq "kvzalloc");
--			$newfunc = "kcalloc" if ($oldfunc eq "kzalloc");
- 			my $r1 = $a1;
- 			my $r2 = $a2;
- 			if ($a1 =~ /^sizeof\s*\S/) {
-@@ -7213,7 +7220,7 @@ sub process {
- 					 "Prefer $newfunc over $oldfunc with multiply\n" . $herectx) &&
- 				    $cnt == 1 &&
- 				    $fix) {
--					$fixed[$fixlinenr] =~ s/\b($Lval)\s*\=\s*(?:$balanced_parens)?\s*((?:kv|k)[mz]alloc)\s*\(\s*($FuncArg)\s*\*\s*($FuncArg)/$1 . ' = ' . "$newfunc(" . trim($r1) . ', ' . trim($r2)/e;
-+					$fixed[$fixlinenr] =~ s/\b($Lval)\s*\=\s*(?:$balanced_parens)?\s*($oldfunc)\s*\(\s*($FuncArg)\s*\*\s*($FuncArg)/$1 . ' = ' . "$newfunc(" . trim($r1) . ', ' . trim($r2)/e;
- 				}
- 			}
- 		}
+@@ -887,7 +867,7 @@ foreach my $entry (keys %mode_permission
+ 	$mode_perms_string_search .= '|' if ($mode_perms_string_search ne "");
+ 	$mode_perms_string_search .= $entry;
+ }
+-our $single_mode_perms_string_search = "(?:${mode_perms_string_search})";
++our $single_mode_perms_string_search = '(?:' . join('|', keys %mode_permission_string_types) . ')';
+ our $multi_mode_perms_string_search = qr{
+ 	${single_mode_perms_string_search}
+ 	(?:\s*\|\s*${single_mode_perms_string_search})*
 _
 
 Patches currently in -mm which might be from joe@perches.com are
 
-checkpatch-simplify-creating-search-strings.patch
 checkpatch-add-a-couple-new-alloc-functions-to-alloc-with-multiplies-check.patch
 
