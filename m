@@ -2,33 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B7C6CD37AD
-	for <mm-commits@archiver.kernel.org>; Fri, 15 Sep 2023 22:55:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 561A6CD37AF
+	for <mm-commits@archiver.kernel.org>; Fri, 15 Sep 2023 23:28:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231819AbjIOWzZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 15 Sep 2023 18:55:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54766 "EHLO
+        id S231442AbjIOX1k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 15 Sep 2023 19:27:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46500 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237995AbjIOWzV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Sep 2023 18:55:21 -0400
+        with ESMTP id S238122AbjIOX1e (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Sep 2023 19:27:34 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0B9283
-        for <mm-commits@vger.kernel.org>; Fri, 15 Sep 2023 15:55:15 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C3B4C433C7;
-        Fri, 15 Sep 2023 22:55:15 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC8771FDE
+        for <mm-commits@vger.kernel.org>; Fri, 15 Sep 2023 16:27:24 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BA4FC433C8;
+        Fri, 15 Sep 2023 23:27:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694818515;
-        bh=9V2EP/s+urKTRDkpZktEMhXgrUf5dSF3riBGcTwtRwI=;
+        s=korg; t=1694820444;
+        bh=B/BOKQD2rVN6JkSpDFlAlHXhjo9dbtwdJ5ZZiYrQ0o4=;
         h=Date:To:From:Subject:From;
-        b=mNRtFzpi2lYyYb9UKc5njYu0B7ZfXmbwT1oIEuJPdeAk3t33i0mmLci9dRsWK4Sev
-         UoeGqB/d6ksG9+C8E4zCkvlZdWphTdlJVQfmhmoGXCgk4ZA5ob3HhLaALV8AGFbVRr
-         S4p6V7chtge/KUrXq15mm5eFQRH5CH9CbfVtQGqQ=
-Date:   Fri, 15 Sep 2023 15:55:14 -0700
-To:     mm-commits@vger.kernel.org, usama.arif@bytedance.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=IVFnWyCgvNa9hGlaP9E0b0u/Bj/s09HxL9vRwrgvYXZYn4xOtsDDJcGGdkPmQ9Tki
+         OUZXdcmGtzMhsXalEjyAEnHq0hFNIppfloC7uugqdUInVDKPKA/njvNOz9wmeatX6O
+         +m3YokYs9YMSPd0wNId16TLhb60gMnbBptIXJnMs=
+Date:   Fri, 15 Sep 2023 16:27:23 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        sidhartha.kumar@oracle.com, rientjes@google.com, osalvador@suse.de,
+        naoya.horiguchi@linux.dev, mike.kravetz@oracle.com,
+        mhocko@suse.com, linmiaohe@huawei.com, jthoughton@google.com,
+        joao.m.martins@oracle.com, duanxiongchun@bytedance.com,
+        david@redhat.com, anshuman.khandual@arm.com, willy@infradead.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo-fix.patch added to mm-unstable branch
-Message-Id: <20230915225515.5C3B4C433C7@smtp.kernel.org>
+Subject: + hugetlb-remove-a-few-calls-to-page_folio.patch added to mm-unstable branch
+Message-Id: <20230915232724.0BA4FC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo-fix
+     Subject: hugetlb: remove a few calls to page_folio()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo-fix.patch
+     hugetlb-remove-a-few-calls-to-page_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-remove-a-few-calls-to-page_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,79 +64,116 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo-fix
-Date: Fri Sep 15 03:52:55 PM PDT 2023
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: hugetlb: remove a few calls to page_folio()
+Date: Fri, 15 Sep 2023 15:15:36 -0700
 
-make it nicer for 80 cols
+Anything found on a linked list threaded through ->lru is guaranteed to be
+a folio as the compound_head found in a tail page overlaps the ->lru
+member of struct page.  So we can pull folios directly off these lists no
+matter whether pages or folios were added to the list.
 
-Cc: Usama Arif <usama.arif@bytedance.com>
+Link: https://lkml.kernel.org/r/20230915221548.552084-4-mike.kravetz@oracle.com
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ mm/hugetlb.c |   26 +++++++++++---------------
+ 1 file changed, 11 insertions(+), 15 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo-fix
+--- a/mm/hugetlb.c~hugetlb-remove-a-few-calls-to-page_folio
 +++ a/mm/hugetlb.c
-@@ -3151,7 +3151,8 @@ found:
+@@ -1829,11 +1829,9 @@ static void update_and_free_hugetlb_foli
  
- 	/*
- 	 * Only initialize the head struct page in memmap_init_reserved_pages,
--	 * rest of the struct pages will be initialized by the HugeTLB subsystem itself.
-+	 * rest of the struct pages will be initialized by the HugeTLB
-+	 * subsystem itself.
- 	 * The head struct page is used to get folio information by the HugeTLB
- 	 * subsystem like zone id and node id.
- 	 */
-@@ -3166,8 +3167,8 @@ found:
- 
- /* Initialize [start_page:end_page_number] tail struct pages of a hugepage */
- static void __init hugetlb_folio_init_tail_vmemmap(struct folio *folio,
--						    unsigned long start_page_number,
--						    unsigned long end_page_number)
-+					unsigned long start_page_number,
-+					unsigned long end_page_number)
+ static void update_and_free_pages_bulk(struct hstate *h, struct list_head *list)
  {
- 	enum zone_type zone = zone_idx(folio_zone(folio));
- 	int nid = folio_nid(folio);
-@@ -3185,8 +3186,9 @@ static void __init hugetlb_folio_init_ta
+-	struct page *page, *t_page;
+-	struct folio *folio;
++	struct folio *folio, *t_folio;
+ 
+-	list_for_each_entry_safe(page, t_page, list, lru) {
+-		folio = page_folio(page);
++	list_for_each_entry_safe(folio, t_folio, list, lru) {
+ 		update_and_free_hugetlb_folio(h, folio, false);
+ 		cond_resched();
  	}
+@@ -2208,8 +2206,7 @@ static struct page *remove_pool_huge_pag
+ 						 bool acct_surplus)
+ {
+ 	int nr_nodes, node;
+-	struct page *page = NULL;
+-	struct folio *folio;
++	struct folio *folio = NULL;
+ 
+ 	lockdep_assert_held(&hugetlb_lock);
+ 	for_each_node_mask_to_free(h, nr_nodes, node, nodes_allowed) {
+@@ -2219,15 +2216,14 @@ static struct page *remove_pool_huge_pag
+ 		 */
+ 		if ((!acct_surplus || h->surplus_huge_pages_node[node]) &&
+ 		    !list_empty(&h->hugepage_freelists[node])) {
+-			page = list_entry(h->hugepage_freelists[node].next,
+-					  struct page, lru);
+-			folio = page_folio(page);
++			folio = list_entry(h->hugepage_freelists[node].next,
++					  struct folio, lru);
+ 			remove_hugetlb_folio(h, folio, acct_surplus);
+ 			break;
+ 		}
+ 	}
+ 
+-	return page;
++	return &folio->page;
  }
  
--static void __init hugetlb_folio_init_vmemmap(struct folio *folio, struct hstate *h,
--					       unsigned long nr_pages)
-+static void __init hugetlb_folio_init_vmemmap(struct folio *folio,
-+					      struct hstate *h,
-+					      unsigned long nr_pages)
- {
- 	int ret;
+ /*
+@@ -3392,15 +3388,15 @@ static void try_to_free_low(struct hstat
+ 	 * Collect pages to be freed on a list, and free after dropping lock
+ 	 */
+ 	for_each_node_mask(i, *nodes_allowed) {
+-		struct page *page, *next;
++		struct folio *folio, *next;
+ 		struct list_head *freel = &h->hugepage_freelists[i];
+-		list_for_each_entry_safe(page, next, freel, lru) {
++		list_for_each_entry_safe(folio, next, freel, lru) {
+ 			if (count >= h->nr_huge_pages)
+ 				goto out;
+-			if (PageHighMem(page))
++			if (folio_test_highmem(folio))
+ 				continue;
+-			remove_hugetlb_folio(h, page_folio(page), false);
+-			list_add(&page->lru, &page_list);
++			remove_hugetlb_folio(h, folio, false);
++			list_add(&folio->lru, &page_list);
+ 		}
+ 	}
  
-@@ -3216,12 +3218,14 @@ static void __init gather_bootmem_preall
- 		VM_BUG_ON(!hstate_is_gigantic(h));
- 		WARN_ON(folio_ref_count(folio) != 1);
- 
--		hugetlb_folio_init_vmemmap(folio, h, HUGETLB_VMEMMAP_RESERVE_PAGES);
-+		hugetlb_folio_init_vmemmap(folio, h,
-+					   HUGETLB_VMEMMAP_RESERVE_PAGES);
- 		prep_new_hugetlb_folio(h, folio, folio_nid(folio));
- 		/* If HVO fails, initialize all tail struct pages */
- 		if (!HPageVmemmapOptimized(&folio->page))
--			hugetlb_folio_init_tail_vmemmap(folio, HUGETLB_VMEMMAP_RESERVE_PAGES,
--							pages_per_huge_page(h));
-+			hugetlb_folio_init_tail_vmemmap(folio,
-+						HUGETLB_VMEMMAP_RESERVE_PAGES,
-+						pages_per_huge_page(h));
- 		free_huge_folio(folio); /* add to the hugepage allocator */
- 
- 		/*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
-revert-scripts-gdb-symbols-add-specific-ko-module-load-command.patch
-mm-memcg-add-thp-swap-out-info-for-anonymous-reclaim-fix.patch
-mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo-fix.patch
-kthread-add-kthread_stop_put-v2-fix.patch
+mm-convert-dax-lock-unlock-page-to-lock-unlock-folio.patch
+buffer-pass-gfp-flags-to-folio_alloc_buffers.patch
+buffer-hoist-gfp-flags-from-grow_dev_page-to-__getblk_gfp.patch
+ext4-use-bdev_getblk-to-avoid-memory-reclaim-in-readahead-path.patch
+buffer-use-bdev_getblk-to-avoid-memory-reclaim-in-readahead-path.patch
+buffer-convert-getblk_unmovable-and-__getblk-to-use-bdev_getblk.patch
+buffer-convert-sb_getblk-to-call-__getblk.patch
+ext4-call-bdev_getblk-from-sb_getblk_gfp.patch
+buffer-remove-__getblk_gfp.patch
+hugetlb-use-a-folio-in-free_hpage_workfn.patch
+hugetlb-remove-a-few-calls-to-page_folio.patch
+hugetlb-convert-remove_pool_huge_page-to-remove_pool_hugetlb_folio.patch
 
