@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75F1FCD37AA
-	for <mm-commits@archiver.kernel.org>; Fri, 15 Sep 2023 22:50:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 793F4CD37AD
+	for <mm-commits@archiver.kernel.org>; Fri, 15 Sep 2023 22:50:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237487AbjIOWtd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 15 Sep 2023 18:49:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58330 "EHLO
+        id S231444AbjIOWuF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 15 Sep 2023 18:50:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58020 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238199AbjIOWta (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Sep 2023 18:49:30 -0400
+        with ESMTP id S238186AbjIOWuC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Sep 2023 18:50:02 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4E4235AE
-        for <mm-commits@vger.kernel.org>; Fri, 15 Sep 2023 15:47:40 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E8ABC433CB;
-        Fri, 15 Sep 2023 22:47:40 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E7602120
+        for <mm-commits@vger.kernel.org>; Fri, 15 Sep 2023 15:48:25 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A30D7C433CC;
+        Fri, 15 Sep 2023 22:47:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694818060;
-        bh=o1eMEvWaUzFLTZVMPEuNwMpxRWzUiqj2YlWkYoyr/L8=;
+        s=korg; t=1694818062;
+        bh=Cr71bcLr36EgqnBrJ6jcKZ2ot1LEys2mxRROBKU5+YQ=;
         h=Date:To:From:Subject:From;
-        b=aly/iOwzadyHnBu0TsGiFUe8GzRUt/4SsqCSQpVUwgsDDLefJcM9MicjnJ/Gj7ELN
-         um0PsHiK46omnYWy36nA/DpkkKAAFjr3pzLXkRK63f3INVT8BevDUnqWcUjH1eYHhg
-         qaXZoe1Gdc7RmkwLwT6szpu1/4JAR0zwM4jwAGkU=
-Date:   Fri, 15 Sep 2023 15:47:39 -0700
+        b=f0XGbdFLIh26I8zAwl5xIa3qYqe7l0lLYIrxpaOUdUfLcG6bvIe/h80KuergwPSuk
+         1msmUMXfQQUbuHJyBIIpE/cjxZmJNdh0l4XccxiOIN+vyR8K0i3NzzrUqXZxUMRP6a
+         ttlVJXs8jj/3UlNDMCuOkmhBJnLK7Lyly4+S8WDQ=
+Date:   Fri, 15 Sep 2023 15:47:42 -0700
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         rppt@kernel.org, punit.agrawal@bytedance.com,
         mike.kravetz@oracle.com, fam.zheng@bytedance.com,
         usama.arif@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + memblock-introduce-memblock_rsrv_noinit-flag.patch added to mm-unstable branch
-Message-Id: <20230915224740.5E8ABC433CB@smtp.kernel.org>
+Subject: + mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo.patch added to mm-unstable branch
+Message-Id: <20230915224742.A30D7C433CC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,12 +38,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memblock: introduce MEMBLOCK_RSRV_NOINIT flag
+     Subject: mm: hugetlb: skip initialization of gigantic tail struct pages if freed by HVO
 has been added to the -mm mm-unstable branch.  Its filename is
-     memblock-introduce-memblock_rsrv_noinit-flag.patch
+     mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memblock-introduce-memblock_rsrv_noinit-flag.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,118 +62,197 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Usama Arif <usama.arif@bytedance.com>
-Subject: memblock: introduce MEMBLOCK_RSRV_NOINIT flag
-Date: Wed, 13 Sep 2023 11:54:00 +0100
+Subject: mm: hugetlb: skip initialization of gigantic tail struct pages if freed by HVO
+Date: Wed, 13 Sep 2023 11:54:01 +0100
 
-For reserved memory regions marked with this flag, reserve_bootmem_region
-is not called during memmap_init_reserved_pages.  This can be used to
-avoid struct page initialization for regions which won't need them, for
-e.g.  hugepages with Hugepage Vmemmap Optimization enabled.
+The new boot flow when it comes to initialization of gigantic pages is as
+follows:
 
-Link: https://lkml.kernel.org/r/20230913105401.519709-4-usama.arif@bytedance.com
+- At boot time, for a gigantic page during __alloc_bootmem_hugepage, the
+  region after the first struct page is marked as noinit.
+
+- This results in only the first struct page to be initialized in
+  reserve_bootmem_region.  As the tail struct pages are not initialized at
+  this point, there can be a significant saving in boot time if HVO
+  succeeds later on.
+
+- Later on in the boot, the head page is prepped and the first
+  HUGETLB_VMEMMAP_RESERVE_SIZE / sizeof(struct page) - 1 tail struct pages
+  are initialized.
+
+- HVO is attempted.  If it is not successful, then the rest of the tail
+  struct pages are initialized.  If it is successful, no more tail struct
+  pages need to be initialized saving significant boot time.
+
+The WARN_ON for increased ref count in gather_bootmem_prealloc was changed
+to a VM_BUG_ON.  This is OK as there should be no speculative references
+this early in boot process.  The VM_BUG_ON's are there just in case such
+code is introduced.
+
+Link: https://lkml.kernel.org/r/20230913105401.519709-5-usama.arif@bytedance.com
 Signed-off-by: Usama Arif <usama.arif@bytedance.com>
-Acked-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Fam Zheng <fam.zheng@bytedance.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Punit Agrawal <punit.agrawal@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    9 +++++++++
- mm/memblock.c            |   33 ++++++++++++++++++++++++++++-----
- 2 files changed, 37 insertions(+), 5 deletions(-)
+ mm/hugetlb.c         |   63 +++++++++++++++++++++++++++++++++++------
+ mm/hugetlb_vmemmap.c |    2 -
+ mm/hugetlb_vmemmap.h |    9 +++--
+ mm/internal.h        |    3 +
+ mm/mm_init.c         |    2 -
+ 5 files changed, 64 insertions(+), 15 deletions(-)
 
---- a/include/linux/memblock.h~memblock-introduce-memblock_rsrv_noinit-flag
-+++ a/include/linux/memblock.h
-@@ -40,6 +40,8 @@ extern unsigned long long max_possible_p
-  * via a driver, and never indicated in the firmware-provided memory map as
-  * system RAM. This corresponds to IORESOURCE_SYSRAM_DRIVER_MANAGED in the
-  * kernel resource tree.
-+ * @MEMBLOCK_RSRV_NOINIT: memory region for which struct pages are
-+ * not initialized (only for reserved regions).
+--- a/mm/hugetlb.c~mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo
++++ a/mm/hugetlb.c
+@@ -3148,6 +3148,15 @@ int __alloc_bootmem_huge_page(struct hst
+ 	}
+ 
+ found:
++
++	/*
++	 * Only initialize the head struct page in memmap_init_reserved_pages,
++	 * rest of the struct pages will be initialized by the HugeTLB subsystem itself.
++	 * The head struct page is used to get folio information by the HugeTLB
++	 * subsystem like zone id and node id.
++	 */
++	memblock_reserved_mark_noinit(virt_to_phys((void *)m + PAGE_SIZE),
++		huge_page_size(h) - PAGE_SIZE);
+ 	/* Put them into a private list first because mem_map is not up yet */
+ 	INIT_LIST_HEAD(&m->list);
+ 	list_add(&m->list, &huge_boot_pages);
+@@ -3155,6 +3164,42 @@ found:
+ 	return 1;
+ }
+ 
++/* Initialize [start_page:end_page_number] tail struct pages of a hugepage */
++static void __init hugetlb_folio_init_tail_vmemmap(struct folio *folio,
++						    unsigned long start_page_number,
++						    unsigned long end_page_number)
++{
++	enum zone_type zone = zone_idx(folio_zone(folio));
++	int nid = folio_nid(folio);
++	unsigned long head_pfn = folio_pfn(folio);
++	unsigned long pfn, end_pfn = head_pfn + end_page_number;
++	int ret;
++
++	for (pfn = head_pfn + start_page_number; pfn < end_pfn; pfn++) {
++		struct page *page = pfn_to_page(pfn);
++
++		__init_single_page(page, pfn, zone, nid);
++		prep_compound_tail((struct page *)folio, pfn - head_pfn);
++		ret = page_ref_freeze(page, 1);
++		VM_BUG_ON(!ret);
++	}
++}
++
++static void __init hugetlb_folio_init_vmemmap(struct folio *folio, struct hstate *h,
++					       unsigned long nr_pages)
++{
++	int ret;
++
++	/* Prepare folio head */
++	__folio_clear_reserved(folio);
++	__folio_set_head(folio);
++	ret = page_ref_freeze(&folio->page, 1);
++	VM_BUG_ON(!ret);
++	/* Initialize the necessary tail struct pages */
++	hugetlb_folio_init_tail_vmemmap(folio, 1, nr_pages);
++	prep_compound_head((struct page *)folio, huge_page_order(h));
++}
++
+ /*
+  * Put bootmem huge pages into the standard lists after mem_map is up.
+  * Note: This only applies to gigantic (order > MAX_ORDER) pages.
+@@ -3165,19 +3210,19 @@ static void __init gather_bootmem_preall
+ 
+ 	list_for_each_entry(m, &huge_boot_pages, list) {
+ 		struct page *page = virt_to_page(m);
+-		struct folio *folio = page_folio(page);
++		struct folio *folio = (void *)page;
+ 		struct hstate *h = m->hstate;
+ 
+ 		VM_BUG_ON(!hstate_is_gigantic(h));
+ 		WARN_ON(folio_ref_count(folio) != 1);
+-		if (prep_compound_gigantic_folio(folio, huge_page_order(h))) {
+-			WARN_ON(folio_test_reserved(folio));
+-			prep_new_hugetlb_folio(h, folio, folio_nid(folio));
+-			free_huge_folio(folio); /* add to the hugepage allocator */
+-		} else {
+-			/* VERY unlikely inflated ref count on a tail page */
+-			free_gigantic_folio(folio, huge_page_order(h));
+-		}
++
++		hugetlb_folio_init_vmemmap(folio, h, HUGETLB_VMEMMAP_RESERVE_PAGES);
++		prep_new_hugetlb_folio(h, folio, folio_nid(folio));
++		/* If HVO fails, initialize all tail struct pages */
++		if (!HPageVmemmapOptimized(&folio->page))
++			hugetlb_folio_init_tail_vmemmap(folio, HUGETLB_VMEMMAP_RESERVE_PAGES,
++							pages_per_huge_page(h));
++		free_huge_folio(folio); /* add to the hugepage allocator */
+ 
+ 		/*
+ 		 * We need to restore the 'stolen' pages to totalram_pages
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo
++++ a/mm/hugetlb_vmemmap.c
+@@ -588,7 +588,7 @@ static int __init hugetlb_vmemmap_init(v
+ 	const struct hstate *h;
+ 
+ 	/* HUGETLB_VMEMMAP_RESERVE_SIZE should cover all used struct pages */
+-	BUILD_BUG_ON(__NR_USED_SUBPAGE * sizeof(struct page) > HUGETLB_VMEMMAP_RESERVE_SIZE);
++	BUILD_BUG_ON(__NR_USED_SUBPAGE > HUGETLB_VMEMMAP_RESERVE_PAGES);
+ 
+ 	for_each_hstate(h) {
+ 		if (hugetlb_vmemmap_optimizable(h)) {
+--- a/mm/hugetlb_vmemmap.h~mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo
++++ a/mm/hugetlb_vmemmap.h
+@@ -10,15 +10,16 @@
+ #define _LINUX_HUGETLB_VMEMMAP_H
+ #include <linux/hugetlb.h>
+ 
+-#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+-int hugetlb_vmemmap_restore(const struct hstate *h, struct page *head);
+-void hugetlb_vmemmap_optimize(const struct hstate *h, struct page *head);
+-
+ /*
+  * Reserve one vmemmap page, all vmemmap addresses are mapped to it. See
+  * Documentation/vm/vmemmap_dedup.rst.
   */
- enum memblock_flags {
- 	MEMBLOCK_NONE		= 0x0,	/* No special request */
-@@ -47,6 +49,7 @@ enum memblock_flags {
- 	MEMBLOCK_MIRROR		= 0x2,	/* mirrored region */
- 	MEMBLOCK_NOMAP		= 0x4,	/* don't add to kernel direct mapping */
- 	MEMBLOCK_DRIVER_MANAGED = 0x8,	/* always detected via a driver */
-+	MEMBLOCK_RSRV_NOINIT	= 0x10,	/* don't initialize struct pages */
+ #define HUGETLB_VMEMMAP_RESERVE_SIZE	PAGE_SIZE
++#define HUGETLB_VMEMMAP_RESERVE_PAGES	(HUGETLB_VMEMMAP_RESERVE_SIZE / sizeof(struct page))
++
++#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
++int hugetlb_vmemmap_restore(const struct hstate *h, struct page *head);
++void hugetlb_vmemmap_optimize(const struct hstate *h, struct page *head);
+ 
+ static inline unsigned int hugetlb_vmemmap_size(const struct hstate *h)
+ {
+--- a/mm/internal.h~mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo
++++ a/mm/internal.h
+@@ -1151,6 +1151,9 @@ struct vma_prepare {
+ 	struct vm_area_struct *remove2;
  };
  
- /**
-@@ -125,6 +128,7 @@ int memblock_clear_hotplug(phys_addr_t b
- int memblock_mark_mirror(phys_addr_t base, phys_addr_t size);
- int memblock_mark_nomap(phys_addr_t base, phys_addr_t size);
- int memblock_clear_nomap(phys_addr_t base, phys_addr_t size);
-+int memblock_reserved_mark_noinit(phys_addr_t base, phys_addr_t size);
- 
- void memblock_free_all(void);
- void memblock_free(void *ptr, size_t size);
-@@ -259,6 +263,11 @@ static inline bool memblock_is_nomap(str
- 	return m->flags & MEMBLOCK_NOMAP;
++void __meminit __init_single_page(struct page *page, unsigned long pfn,
++				unsigned long zone, int nid);
++
+ /* shrinker related functions */
+ unsigned long shrink_slab(gfp_t gfp_mask, int nid, struct mem_cgroup *memcg,
+ 			  int priority);
+--- a/mm/mm_init.c~mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo
++++ a/mm/mm_init.c
+@@ -555,7 +555,7 @@ out:
+ 	node_states[N_MEMORY] = saved_node_state;
  }
  
-+static inline bool memblock_is_reserved_noinit(struct memblock_region *m)
-+{
-+	return m->flags & MEMBLOCK_RSRV_NOINIT;
-+}
-+
- static inline bool memblock_is_driver_managed(struct memblock_region *m)
+-static void __meminit __init_single_page(struct page *page, unsigned long pfn,
++void __meminit __init_single_page(struct page *page, unsigned long pfn,
+ 				unsigned long zone, int nid)
  {
- 	return m->flags & MEMBLOCK_DRIVER_MANAGED;
---- a/mm/memblock.c~memblock-introduce-memblock_rsrv_noinit-flag
-+++ a/mm/memblock.c
-@@ -996,6 +996,24 @@ int __init_memblock memblock_clear_nomap
- 	return memblock_setclr_flag(&memblock.memory, base, size, 0, MEMBLOCK_NOMAP);
- }
- 
-+/**
-+ * memblock_reserved_mark_noinit - Mark a reserved memory region with flag
-+ * MEMBLOCK_RSRV_NOINIT which results in the struct pages not being initialized
-+ * for this region.
-+ * @base: the base phys addr of the region
-+ * @size: the size of the region
-+ *
-+ * struct pages will not be initialized for reserved memory regions marked with
-+ * %MEMBLOCK_RSRV_NOINIT.
-+ *
-+ * Return: 0 on success, -errno on failure.
-+ */
-+int __init_memblock memblock_reserved_mark_noinit(phys_addr_t base, phys_addr_t size)
-+{
-+	return memblock_setclr_flag(&memblock.reserved, base, size, 1,
-+				    MEMBLOCK_RSRV_NOINIT);
-+}
-+
- static bool should_skip_region(struct memblock_type *type,
- 			       struct memblock_region *m,
- 			       int nid, int flags)
-@@ -2112,13 +2130,18 @@ static void __init memmap_init_reserved_
- 		memblock_set_node(start, end, &memblock.reserved, nid);
- 	}
- 
--	/* initialize struct pages for the reserved regions */
-+	/*
-+	 * initialize struct pages for reserved regions that don't have
-+	 * the MEMBLOCK_RSRV_NOINIT flag set
-+	 */
- 	for_each_reserved_mem_region(region) {
--		nid = memblock_get_region_node(region);
--		start = region->base;
--		end = start + region->size;
-+		if (!memblock_is_reserved_noinit(region)) {
-+			nid = memblock_get_region_node(region);
-+			start = region->base;
-+			end = start + region->size;
- 
--		reserve_bootmem_region(start, end, nid);
-+			reserve_bootmem_region(start, end, nid);
-+		}
- 	}
- }
- 
+ 	mm_zero_struct_page(page);
 _
 
 Patches currently in -mm which might be from usama.arif@bytedance.com are
