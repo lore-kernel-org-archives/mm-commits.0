@@ -2,33 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 006A4EED61A
-	for <mm-commits@archiver.kernel.org>; Fri, 15 Sep 2023 16:37:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 885D6CD37AE
+	for <mm-commits@archiver.kernel.org>; Fri, 15 Sep 2023 22:50:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234753AbjIOQhP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 15 Sep 2023 12:37:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57844 "EHLO
+        id S231819AbjIOWtd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 15 Sep 2023 18:49:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58274 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231349AbjIOQgr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Sep 2023 12:36:47 -0400
+        with ESMTP id S238191AbjIOWt1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Sep 2023 18:49:27 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53FFAAC
-        for <mm-commits@vger.kernel.org>; Fri, 15 Sep 2023 09:36:41 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4A2AC433C8;
-        Fri, 15 Sep 2023 16:36:40 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 17E9C35A2
+        for <mm-commits@vger.kernel.org>; Fri, 15 Sep 2023 15:47:39 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98217C433C7;
+        Fri, 15 Sep 2023 22:47:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694795801;
-        bh=bcIVuzl74v0vK88NxX6rn3yVon7+j1Q6qBfqIehqlVQ=;
+        s=korg; t=1694818058;
+        bh=8L0kML7wLah4oRbmTxMjIqc4BY56jOP+6ZR0KhbbyeQ=;
         h=Date:To:From:Subject:From;
-        b=hzAO6gKA5Bfx7VkvIN+5STsbEMLadnfi0rQivzN4Jq1Gl2cMaePLPY7PUBdn7F104
-         y33ZuIXhSRtwJ0Puvzkqet4hCmK7wKnM36G5KMDUs+WhrXNg5VJwQIZrcdQtalYaPy
-         ZFTAI4zcFjn/Pyt4EsYLYTFireZGfwejPVvB60Nc=
-Date:   Fri, 15 Sep 2023 09:36:40 -0700
-To:     mm-commits@vger.kernel.org, brendanhiggins@google.com,
-        sj@kernel.org, akpm@linux-foundation.org
+        b=YyCjOFxw4wRj24VTxZczVe9JMksV0xo98TyoCv0/BwhC6O5DbTsXgosZQ0EUgalED
+         nr2PqNI6Sw0sd4euPiW2Zy+DC/eZ04jeztIs2B9/ppvYE3znSKwb9/dM1hx+MTr83a
+         pwhG2/S2dU8q5V9DN+Y88dbphvBGijIWZeWHNs/A=
+Date:   Fri, 15 Sep 2023 15:47:38 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        rppt@kernel.org, punit.agrawal@bytedance.com,
+        mike.kravetz@oracle.com, fam.zheng@bytedance.com,
+        usama.arif@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-use-pseudo-moving-sum-for-nr_accesses_bp.patch added to mm-unstable branch
-Message-Id: <20230915163640.D4A2AC433C8@smtp.kernel.org>
+Subject: + memblock-pass-memblock_type-to-memblock_setclr_flag.patch added to mm-unstable branch
+Message-Id: <20230915224738.98217C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +38,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/core: use pseudo-moving sum for nr_accesses_bp
+     Subject: memblock: pass memblock_type to memblock_setclr_flag
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-core-use-pseudo-moving-sum-for-nr_accesses_bp.patch
+     memblock-pass-memblock_type-to-memblock_setclr_flag.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-use-pseudo-moving-sum-for-nr_accesses_bp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memblock-pass-memblock_type-to-memblock_setclr_flag.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,199 +61,93 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: use pseudo-moving sum for nr_accesses_bp
-Date: Fri, 15 Sep 2023 02:52:49 +0000
+From: Usama Arif <usama.arif@bytedance.com>
+Subject: memblock: pass memblock_type to memblock_setclr_flag
+Date: Wed, 13 Sep 2023 11:53:59 +0100
 
-Let nr_accesses_bp be calculated as a pseudo-moving sum that updated for
-every sampling interval, using damon_moving_sum().  This is assumed to be
-useful for cases that the aggregation interval is set quite huge, but the
-monivoting results need to be collected earlier than next aggregation
-interval is passed.
+This allows setting flags to both memblock types and is in preparation for
+setting flags (for e.g.  to not initialize struct pages) on reserved
+memory region.
 
-Link: https://lkml.kernel.org/r/20230915025251.72816-7-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Brendan Higgins <brendanhiggins@google.com>
+Link: https://lkml.kernel.org/r/20230913105401.519709-3-usama.arif@bytedance.com
+Signed-off-by: Usama Arif <usama.arif@bytedance.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Fam Zheng <fam.zheng@bytedance.com>
+Cc: Punit Agrawal <punit.agrawal@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |   12 +++++++++---
- mm/damon/core.c       |   16 +++++++++++++++-
- mm/damon/paddr.c      |    9 +++++----
- mm/damon/vaddr.c      |   12 +++++++-----
- 4 files changed, 36 insertions(+), 13 deletions(-)
+ mm/memblock.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-core-use-pseudo-moving-sum-for-nr_accesses_bp
-+++ a/include/linux/damon.h
-@@ -40,7 +40,8 @@ struct damon_addr_range {
-  * @ar:			The address range of the region.
-  * @sampling_addr:	Address of the sample for the next access check.
-  * @nr_accesses:	Access frequency of this region.
-- * @nr_accesses_bp:	@nr_accesses in basis point (0.01%).
-+ * @nr_accesses_bp:	@nr_accesses in basis point (0.01%) that updated for
-+ *			each sampling interval.
-  * @list:		List head for siblings.
-  * @age:		Age of this region.
+--- a/mm/memblock.c~memblock-pass-memblock_type-to-memblock_setclr_flag
++++ a/mm/memblock.c
+@@ -901,10 +901,9 @@ int __init_memblock memblock_physmem_add
   *
-@@ -51,7 +52,11 @@ struct damon_addr_range {
-  * damon_update_region_access_rate().
-  *
-  * @nr_accesses_bp is another representation of @nr_accesses in basis point
-- * (1 in 10,000) that updated every aggregation interval.
-+ * (1 in 10,000) that updated for every &damon_attrs->sample_interval in a
-+ * manner similar to moving sum.  By the algorithm, this value becomes
-+ * @nr_accesses * 10000 for every &struct damon_attrs->aggr_interval.  This can
-+ * be used when the aggregation interval is too huge and therefore cannot wait
-+ * for it before getting the access monitoring results.
-  *
-  * @age is initially zero, increased for each aggregation interval, and reset
-  * to zero again if the access frequency is significantly changed.  If two
-@@ -629,7 +634,8 @@ int damon_set_regions(struct damon_targe
- 		unsigned int nr_ranges);
- unsigned int damon_moving_sum(unsigned int mvsum, unsigned int nomvsum,
- 		unsigned int len_window, unsigned int new_value);
--void damon_update_region_access_rate(struct damon_region *r, bool accessed);
-+void damon_update_region_access_rate(struct damon_region *r, bool accessed,
-+		struct damon_attrs *attrs);
- 
- struct damos_filter *damos_new_filter(enum damos_filter_type type,
- 		bool matching);
---- a/mm/damon/core.c~mm-damon-core-use-pseudo-moving-sum-for-nr_accesses_bp
-+++ a/mm/damon/core.c
-@@ -1599,14 +1599,28 @@ unsigned int damon_moving_sum(unsigned i
-  * damon_update_region_access_rate() - Update the access rate of a region.
-  * @r:		The DAMON region to update for its access check result.
-  * @accessed:	Whether the region has accessed during last sampling interval.
-+ * @attrs:	The damon_attrs of the DAMON context.
-  *
-  * Update the access rate of a region with the region's last sampling interval
-  * access check result.
-  *
-  * Usually this will be called by &damon_operations->check_accesses callback.
+  * Return: 0 on success, -errno on failure.
   */
--void damon_update_region_access_rate(struct damon_region *r, bool accessed)
-+void damon_update_region_access_rate(struct damon_region *r, bool accessed,
-+		struct damon_attrs *attrs)
+-static int __init_memblock memblock_setclr_flag(phys_addr_t base,
+-				phys_addr_t size, int set, int flag)
++static int __init_memblock memblock_setclr_flag(struct memblock_type *type,
++				phys_addr_t base, phys_addr_t size, int set, int flag)
  {
-+	unsigned int len_window = 1;
-+
-+	/*
-+	 * sample_interval can be zero, but cannot be larger than
-+	 * aggr_interval, owing to validation of damon_set_attrs().
-+	 */
-+	if (attrs->sample_interval)
-+		len_window = attrs->aggr_interval / attrs->sample_interval;
-+	r->nr_accesses_bp = damon_moving_sum(r->nr_accesses_bp,
-+			r->last_nr_accesses * 10000, len_window,
-+			accessed ? 10000 : 0);
-+
- 	if (accessed)
- 		r->nr_accesses++;
- }
---- a/mm/damon/paddr.c~mm-damon-core-use-pseudo-moving-sum-for-nr_accesses_bp
-+++ a/mm/damon/paddr.c
-@@ -148,7 +148,8 @@ out:
- 	return accessed;
- }
+-	struct memblock_type *type = &memblock.memory;
+ 	int i, ret, start_rgn, end_rgn;
  
--static void __damon_pa_check_access(struct damon_region *r)
-+static void __damon_pa_check_access(struct damon_region *r,
-+		struct damon_attrs *attrs)
- {
- 	static unsigned long last_addr;
- 	static unsigned long last_folio_sz = PAGE_SIZE;
-@@ -157,12 +158,12 @@ static void __damon_pa_check_access(stru
- 	/* If the region is in the last checked page, reuse the result */
- 	if (ALIGN_DOWN(last_addr, last_folio_sz) ==
- 				ALIGN_DOWN(r->sampling_addr, last_folio_sz)) {
--		damon_update_region_access_rate(r, last_accessed);
-+		damon_update_region_access_rate(r, last_accessed, attrs);
- 		return;
- 	}
- 
- 	last_accessed = damon_pa_young(r->sampling_addr, &last_folio_sz);
--	damon_update_region_access_rate(r, last_accessed);
-+	damon_update_region_access_rate(r, last_accessed, attrs);
- 
- 	last_addr = r->sampling_addr;
- }
-@@ -175,7 +176,7 @@ static unsigned int damon_pa_check_acces
- 
- 	damon_for_each_target(t, ctx) {
- 		damon_for_each_region(r, t) {
--			__damon_pa_check_access(r);
-+			__damon_pa_check_access(r, &ctx->attrs);
- 			max_nr_accesses = max(r->nr_accesses, max_nr_accesses);
- 		}
- 	}
---- a/mm/damon/vaddr.c~mm-damon-core-use-pseudo-moving-sum-for-nr_accesses_bp
-+++ a/mm/damon/vaddr.c
-@@ -557,26 +557,27 @@ static bool damon_va_young(struct mm_str
-  * r	the region to be checked
+ 	ret = memblock_isolate_range(type, base, size, &start_rgn, &end_rgn);
+@@ -933,7 +932,7 @@ static int __init_memblock memblock_setc
   */
- static void __damon_va_check_access(struct mm_struct *mm,
--				struct damon_region *r, bool same_target)
-+				struct damon_region *r, bool same_target,
-+				struct damon_attrs *attrs)
+ int __init_memblock memblock_mark_hotplug(phys_addr_t base, phys_addr_t size)
  {
- 	static unsigned long last_addr;
- 	static unsigned long last_folio_sz = PAGE_SIZE;
- 	static bool last_accessed;
- 
- 	if (!mm) {
--		damon_update_region_access_rate(r, false);
-+		damon_update_region_access_rate(r, false, attrs);
- 		return;
- 	}
- 
- 	/* If the region is in the last checked page, reuse the result */
- 	if (same_target && (ALIGN_DOWN(last_addr, last_folio_sz) ==
- 				ALIGN_DOWN(r->sampling_addr, last_folio_sz))) {
--		damon_update_region_access_rate(r, last_accessed);
-+		damon_update_region_access_rate(r, last_accessed, attrs);
- 		return;
- 	}
- 
- 	last_accessed = damon_va_young(mm, r->sampling_addr, &last_folio_sz);
--	damon_update_region_access_rate(r, last_accessed);
-+	damon_update_region_access_rate(r, last_accessed, attrs);
- 
- 	last_addr = r->sampling_addr;
+-	return memblock_setclr_flag(base, size, 1, MEMBLOCK_HOTPLUG);
++	return memblock_setclr_flag(&memblock.memory, base, size, 1, MEMBLOCK_HOTPLUG);
  }
-@@ -593,7 +594,8 @@ static unsigned int damon_va_check_acces
- 		mm = damon_get_mm(t);
- 		same_target = false;
- 		damon_for_each_region(r, t) {
--			__damon_va_check_access(mm, r, same_target);
-+			__damon_va_check_access(mm, r, same_target,
-+					&ctx->attrs);
- 			max_nr_accesses = max(r->nr_accesses, max_nr_accesses);
- 			same_target = true;
- 		}
+ 
+ /**
+@@ -945,7 +944,7 @@ int __init_memblock memblock_mark_hotplu
+  */
+ int __init_memblock memblock_clear_hotplug(phys_addr_t base, phys_addr_t size)
+ {
+-	return memblock_setclr_flag(base, size, 0, MEMBLOCK_HOTPLUG);
++	return memblock_setclr_flag(&memblock.memory, base, size, 0, MEMBLOCK_HOTPLUG);
+ }
+ 
+ /**
+@@ -962,7 +961,7 @@ int __init_memblock memblock_mark_mirror
+ 
+ 	system_has_some_mirror = true;
+ 
+-	return memblock_setclr_flag(base, size, 1, MEMBLOCK_MIRROR);
++	return memblock_setclr_flag(&memblock.memory, base, size, 1, MEMBLOCK_MIRROR);
+ }
+ 
+ /**
+@@ -982,7 +981,7 @@ int __init_memblock memblock_mark_mirror
+  */
+ int __init_memblock memblock_mark_nomap(phys_addr_t base, phys_addr_t size)
+ {
+-	return memblock_setclr_flag(base, size, 1, MEMBLOCK_NOMAP);
++	return memblock_setclr_flag(&memblock.memory, base, size, 1, MEMBLOCK_NOMAP);
+ }
+ 
+ /**
+@@ -994,7 +993,7 @@ int __init_memblock memblock_mark_nomap(
+  */
+ int __init_memblock memblock_clear_nomap(phys_addr_t base, phys_addr_t size)
+ {
+-	return memblock_setclr_flag(base, size, 0, MEMBLOCK_NOMAP);
++	return memblock_setclr_flag(&memblock.memory, base, size, 0, MEMBLOCK_NOMAP);
+ }
+ 
+ static bool should_skip_region(struct memblock_type *type,
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from usama.arif@bytedance.com are
 
-docs-admin-guide-mm-damon-usage-fixup-missed-ref-keyword.patch
-docs-admin-guide-mm-damon-usage-place-debugfs-usage-at-the-bottom.patch
-docs-admin-guide-mm-damon-usage-move-debugfs-intro-to-the-bottom-of-the-section.patch
-docs-mm-damon-design-explicitly-introduce-nr_accesses.patch
-docs-admin-guide-mm-damon-usage-explain-the-format-of-damon_aggregate-tracepoint.patch
-docs-mm-damon-design-add-a-section-for-kdamond-and-damon-context.patch
-docs-admin-guide-mm-damon-usage-link-design-doc-for-details-of-kdamond-and-context.patch
-mm-damon-core-fix-a-comment-about-damon_set_attrs-call-timings.patch
-mm-damon-core-add-more-comments-for-nr_accesses.patch
-mm-damon-core-remove-duplicated-comment-for-watermarks-based-deactivation.patch
-mm-damon-core-remove-struct-target-parameter-from-damon_aggregated-tracepoint.patch
-mm-damon-core-add-a-tracepoint-for-damos-apply-target-regions.patch
-docs-admin-guide-mm-damon-usage-document-damos_before_apply-tracepoint.patch
-mm-damon-core-use-number-of-passed-access-sampling-as-a-timer.patch
-mm-damon-core-define-and-use-a-dedicated-function-for-region-access-rate-update.patch
-mm-damon-vaddr-call-damon_update_region_access_rate-always.patch
-mm-damon-core-implement-a-pseudo-moving-sum-function.patch
-mm-damon-core-test-add-a-unit-test-for-damon_moving_sum.patch
-mm-damon-core-introduce-nr_accesses_bp.patch
-mm-damon-core-use-pseudo-moving-sum-for-nr_accesses_bp.patch
-mm-damon-core-skip-updating-nr_accesses_bp-for-each-aggregation-interval.patch
-mm-damon-core-mark-damon_moving_sum-as-a-static-function.patch
+mm-hugetlb_vmemmap-use-nid-of-the-head-page-to-reallocate-it.patch
+memblock-pass-memblock_type-to-memblock_setclr_flag.patch
+memblock-introduce-memblock_rsrv_noinit-flag.patch
+mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo.patch
 
