@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72B37C46CA1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6953CD37B1
 	for <mm-commits@archiver.kernel.org>; Fri, 15 Sep 2023 23:28:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237831AbjIOX2M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 15 Sep 2023 19:28:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46566 "EHLO
+        id S233859AbjIOX2P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 15 Sep 2023 19:28:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49996 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238141AbjIOX1j (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Sep 2023 19:27:39 -0400
+        with ESMTP id S237488AbjIOX1s (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Sep 2023 19:27:48 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 668852121
-        for <mm-commits@vger.kernel.org>; Fri, 15 Sep 2023 16:27:32 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04B1DC433C8;
-        Fri, 15 Sep 2023 23:27:31 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 433731FDE
+        for <mm-commits@vger.kernel.org>; Fri, 15 Sep 2023 16:27:43 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2DFBC433CA;
+        Fri, 15 Sep 2023 23:27:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694820452;
-        bh=ULuEUI/4DC8OXS/d8dcIaI91/sc+3Ly8F6jTGHEw1Pk=;
+        s=korg; t=1694820462;
+        bh=EobELYb2fokRDw+vajr0EMs/UBP1ikR+Re0twwqRYl0=;
         h=Date:To:From:Subject:From;
-        b=oqFdOFIM4FbEaxdquN/qSc4dbFBz6d8TcyZUccqwhC3YdrMtQc19Ud8uTxSIXt1c7
-         /UZsfrdkbQMPGT0ZE3UcK+rmWQspk0xQiBTwojuxTOQvQMbYjAZyZuCnsiWZkRauii
-         dElCFb9D8pGR4sneSHeXdl5lAWtr3qO7Pyir95t0=
-Date:   Fri, 15 Sep 2023 16:27:31 -0700
+        b=huz2Iay8jhslJ7FeohHOTV2xwfO3v0j1SfovZ2+ySlIRqTTiIespyfRTVqGLxUzQV
+         wB3z5g+cK08ndINSvW9rwN2VQB1mO2euW3PRr4e0nCRDGHkXEmYisDEkvDdJ0g22mC
+         4+hQVYhuSKVCqfEEp8WwOxKbRUP+BhA/mlH+QJhQ=
+Date:   Fri, 15 Sep 2023 16:27:42 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         songmuchun@bytedance.com, sidhartha.kumar@oracle.com,
         rientjes@google.com, osalvador@suse.de, naoya.horiguchi@linux.dev,
@@ -32,8 +32,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         david@redhat.com, anshuman.khandual@arm.com,
         mike.kravetz@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-perform-vmemmap-optimization-on-a-list-of-pages.patch added to mm-unstable branch
-Message-Id: <20230915232732.04B1DC433C8@smtp.kernel.org>
+Subject: + hugetlb-batch-tlb-flushes-when-restoring-vmemmap.patch added to mm-unstable branch
+Message-Id: <20230915232742.D2DFBC433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: perform vmemmap optimization on a list of pages
+     Subject: hugetlb: batch TLB flushes when restoring vmemmap
 has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-perform-vmemmap-optimization-on-a-list-of-pages.patch
+     hugetlb-batch-tlb-flushes-when-restoring-vmemmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-perform-vmemmap-optimization-on-a-list-of-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-batch-tlb-flushes-when-restoring-vmemmap.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,28 +65,27 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: perform vmemmap optimization on a list of pages
-Date: Fri, 15 Sep 2023 15:15:40 -0700
+Subject: hugetlb: batch TLB flushes when restoring vmemmap
+Date: Fri, 15 Sep 2023 15:15:45 -0700
 
-When adding hugetlb pages to the pool, we first create a list of the
-allocated pages before adding to the pool.  Pass this list of pages to a
-new routine hugetlb_vmemmap_optimize_folios() for vmemmap optimization.
+Update the internal hugetlb restore vmemmap code path such that TLB
+flushing can be batched.  Use the existing mechanism of passing the
+VMEMMAP_REMAP_NO_TLB_FLUSH flag to indicate flushing should not be
+performed for individual pages.  The routine
+hugetlb_vmemmap_restore_folios is the only user of this new mechanism, and
+it will perform a global flush after all vmemmap is restored.
 
-We also modify the routine vmemmap_should_optimize() to check for pages
-that are already optimized.  There are code paths that might request
-vmemmap optimization twice and we want to make sure this is not attempted.
-
-Link: https://lkml.kernel.org/r/20230915221548.552084-8-mike.kravetz@oracle.com
+Link: https://lkml.kernel.org/r/20230915221548.552084-13-mike.kravetz@oracle.com
+Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: James Houghton <jthoughton@google.com>
-Cc: Joao Martins <joao.m.martins@oracle.com>
 Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
@@ -94,73 +93,102 @@ Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c         |    5 +++++
- mm/hugetlb_vmemmap.c |   11 +++++++++++
- mm/hugetlb_vmemmap.h |    5 +++++
- 3 files changed, 21 insertions(+)
+ mm/hugetlb_vmemmap.c |   39 ++++++++++++++++++++++++---------------
+ 1 file changed, 24 insertions(+), 15 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-perform-vmemmap-optimization-on-a-list-of-pages
-+++ a/mm/hugetlb.c
-@@ -2249,6 +2249,11 @@ static void prep_and_add_allocated_folio
- 	struct folio *folio, *tmp_f;
- 
- 	/*
-+	 * Send list for bulk vmemmap optimization processing
-+	 */
-+	hugetlb_vmemmap_optimize_folios(h, folio_list);
-+
-+	/*
- 	 * Add all new pool pages to free lists in one lock cycle
- 	 */
- 	spin_lock_irq(&hugetlb_lock);
---- a/mm/hugetlb_vmemmap.c~hugetlb-perform-vmemmap-optimization-on-a-list-of-pages
+--- a/mm/hugetlb_vmemmap.c~hugetlb-batch-tlb-flushes-when-restoring-vmemmap
 +++ a/mm/hugetlb_vmemmap.c
-@@ -483,6 +483,9 @@ int hugetlb_vmemmap_restore(const struct
- /* Return true iff a HugeTLB whose vmemmap should and can be optimized. */
- static bool vmemmap_should_optimize(const struct hstate *h, const struct page *head)
+@@ -460,18 +460,19 @@ out:
+  * @end:	end address of the vmemmap virtual address range that we want to
+  *		remap.
+  * @reuse:	reuse address.
++ * @flags:	modify behavior for bulk operations
+  *
+  * Return: %0 on success, negative error code otherwise.
+  */
+ static int vmemmap_remap_alloc(unsigned long start, unsigned long end,
+-			       unsigned long reuse)
++			       unsigned long reuse, unsigned long flags)
  {
-+	if (HPageVmemmapOptimized((struct page *)head))
-+		return false;
-+
- 	if (!READ_ONCE(vmemmap_optimize_enabled))
- 		return false;
+ 	LIST_HEAD(vmemmap_pages);
+ 	struct vmemmap_remap_walk walk = {
+ 		.remap_pte	= vmemmap_restore_pte,
+ 		.reuse_addr	= reuse,
+ 		.vmemmap_pages	= &vmemmap_pages,
+-		.flags		= 0,
++		.flags		= flags,
+ 	};
  
-@@ -572,6 +575,14 @@ void hugetlb_vmemmap_optimize(const stru
- 		SetHPageVmemmapOptimized(head);
+ 	/* See the comment in the vmemmap_remap_free(). */
+@@ -493,17 +494,7 @@ EXPORT_SYMBOL(hugetlb_optimize_vmemmap_k
+ static bool vmemmap_optimize_enabled = IS_ENABLED(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP_DEFAULT_ON);
+ core_param(hugetlb_free_vmemmap, vmemmap_optimize_enabled, bool, 0);
+ 
+-/**
+- * hugetlb_vmemmap_restore - restore previously optimized (by
+- *			     hugetlb_vmemmap_optimize()) vmemmap pages which
+- *			     will be reallocated and remapped.
+- * @h:		struct hstate.
+- * @head:	the head page whose vmemmap pages will be restored.
+- *
+- * Return: %0 if @head's vmemmap pages have been reallocated and remapped,
+- * negative error code otherwise.
+- */
+-int hugetlb_vmemmap_restore(const struct hstate *h, struct page *head)
++static int __hugetlb_vmemmap_restore(const struct hstate *h, struct page *head, unsigned long flags)
+ {
+ 	int ret;
+ 	unsigned long vmemmap_start = (unsigned long)head, vmemmap_end;
+@@ -524,7 +515,7 @@ int hugetlb_vmemmap_restore(const struct
+ 	 * When a HugeTLB page is freed to the buddy allocator, previously
+ 	 * discarded vmemmap pages must be allocated and remapping.
+ 	 */
+-	ret = vmemmap_remap_alloc(vmemmap_start, vmemmap_end, vmemmap_reuse);
++	ret = vmemmap_remap_alloc(vmemmap_start, vmemmap_end, vmemmap_reuse, flags);
+ 	if (!ret) {
+ 		ClearHPageVmemmapOptimized(head);
+ 		static_branch_dec(&hugetlb_optimize_vmemmap_key);
+@@ -534,6 +525,21 @@ int hugetlb_vmemmap_restore(const struct
  }
  
-+void hugetlb_vmemmap_optimize_folios(struct hstate *h, struct list_head *folio_list)
+ /**
++ * hugetlb_vmemmap_restore - restore previously optimized (by
++ *				hugetlb_vmemmap_optimize()) vmemmap pages which
++ *				will be reallocated and remapped.
++ * @h:		struct hstate.
++ * @head:	the head page whose vmemmap pages will be restored.
++ *
++ * Return: %0 if @head's vmemmap pages have been reallocated and remapped,
++ * negative error code otherwise.
++ */
++int hugetlb_vmemmap_restore(const struct hstate *h, struct page *head)
 +{
-+	struct folio *folio;
-+
-+	list_for_each_entry(folio, folio_list, lru)
-+		hugetlb_vmemmap_optimize(h, &folio->page);
++	return __hugetlb_vmemmap_restore(h, head, 0);
 +}
 +
- static struct ctl_table hugetlb_vmemmap_sysctls[] = {
- 	{
- 		.procname	= "hugetlb_optimize_vmemmap",
---- a/mm/hugetlb_vmemmap.h~hugetlb-perform-vmemmap-optimization-on-a-list-of-pages
-+++ a/mm/hugetlb_vmemmap.h
-@@ -20,6 +20,7 @@
- #ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
- int hugetlb_vmemmap_restore(const struct hstate *h, struct page *head);
- void hugetlb_vmemmap_optimize(const struct hstate *h, struct page *head);
-+void hugetlb_vmemmap_optimize_folios(struct hstate *h, struct list_head *folio_list);
++/**
+  * hugetlb_vmemmap_restore_folios - restore vmemmap for every folio on the list.
+  * @h:		struct hstate.
+  * @folio_list:	list of folios.
+@@ -557,7 +563,8 @@ int hugetlb_vmemmap_restore_folios(const
+ 	num_restored = 0;
+ 	list_for_each_entry(folio, folio_list, lru) {
+ 		if (folio_test_hugetlb_vmemmap_optimized(folio)) {
+-			t_ret = hugetlb_vmemmap_restore(h, &folio->page);
++			t_ret = __hugetlb_vmemmap_restore(h, &folio->page,
++						VMEMMAP_REMAP_NO_TLB_FLUSH);
+ 			if (t_ret)
+ 				ret = t_ret;
+ 			else
+@@ -565,6 +572,8 @@ int hugetlb_vmemmap_restore_folios(const
+ 		}
+ 	}
  
- static inline unsigned int hugetlb_vmemmap_size(const struct hstate *h)
- {
-@@ -48,6 +49,10 @@ static inline void hugetlb_vmemmap_optim
- {
- }
- 
-+static inline void hugetlb_vmemmap_optimize_folios(struct hstate *h, struct list_head *folio_list)
-+{
-+}
++	flush_tlb_all();
 +
- static inline unsigned int hugetlb_vmemmap_optimizable_size(const struct hstate *h)
- {
- 	return 0;
+ 	if (*restored)
+ 		*restored = num_restored;
+ 	return ret;
 _
 
 Patches currently in -mm which might be from mike.kravetz@oracle.com are
