@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 793F4CD37AD
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87662C46CA1
 	for <mm-commits@archiver.kernel.org>; Fri, 15 Sep 2023 22:50:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231444AbjIOWuF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S238199AbjIOWuF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 15 Sep 2023 18:50:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58020 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35990 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238186AbjIOWuC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Sep 2023 18:50:02 -0400
+        with ESMTP id S237780AbjIOWtd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Sep 2023 18:49:33 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E7602120
-        for <mm-commits@vger.kernel.org>; Fri, 15 Sep 2023 15:48:25 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A30D7C433CC;
-        Fri, 15 Sep 2023 22:47:42 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4976130D7
+        for <mm-commits@vger.kernel.org>; Fri, 15 Sep 2023 15:47:37 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3687C433CA;
+        Fri, 15 Sep 2023 22:47:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694818062;
-        bh=Cr71bcLr36EgqnBrJ6jcKZ2ot1LEys2mxRROBKU5+YQ=;
+        s=korg; t=1694818056;
+        bh=IX3vYnYvJ6OpUPQWJsKLFH5KMe8MVTK9IE+D/raZOz8=;
         h=Date:To:From:Subject:From;
-        b=f0XGbdFLIh26I8zAwl5xIa3qYqe7l0lLYIrxpaOUdUfLcG6bvIe/h80KuergwPSuk
-         1msmUMXfQQUbuHJyBIIpE/cjxZmJNdh0l4XccxiOIN+vyR8K0i3NzzrUqXZxUMRP6a
-         ttlVJXs8jj/3UlNDMCuOkmhBJnLK7Lyly4+S8WDQ=
-Date:   Fri, 15 Sep 2023 15:47:42 -0700
+        b=r6W+oXEoVjWGAVbTqRfXYTptM8tdfehADzPkGywbFu9BMOiUU8DbgQZUpOzvG6d7L
+         +SVyMBHVNUeKtQdAeasdFs1vOey11+muIq7TCsL0qOmc3rcgbc/yNuVG6ZYIqGieGt
+         uL0pXaQaaLXSD+LPJX6mLugEzRsgSZF9EmzZ7bvM=
+Date:   Fri, 15 Sep 2023 15:47:36 -0700
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         rppt@kernel.org, punit.agrawal@bytedance.com,
         mike.kravetz@oracle.com, fam.zheng@bytedance.com,
         usama.arif@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo.patch added to mm-unstable branch
-Message-Id: <20230915224742.A30D7C433CC@smtp.kernel.org>
+Subject: + mm-hugetlb_vmemmap-use-nid-of-the-head-page-to-reallocate-it.patch added to mm-unstable branch
+Message-Id: <20230915224736.C3687C433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,12 +38,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: skip initialization of gigantic tail struct pages if freed by HVO
+     Subject: mm: hugetlb_vmemmap: use nid of the head page to reallocate it
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo.patch
+     mm-hugetlb_vmemmap-use-nid-of-the-head-page-to-reallocate-it.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-use-nid-of-the-head-page-to-reallocate-it.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,34 +62,39 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Usama Arif <usama.arif@bytedance.com>
-Subject: mm: hugetlb: skip initialization of gigantic tail struct pages if freed by HVO
-Date: Wed, 13 Sep 2023 11:54:01 +0100
+Subject: mm: hugetlb_vmemmap: use nid of the head page to reallocate it
+Date: Wed, 13 Sep 2023 11:53:58 +0100
 
-The new boot flow when it comes to initialization of gigantic pages is as
-follows:
+Patch series "mm: hugetlb: Skip initialization of gigantic tail struct
+pages if freed by HVO", v5.
 
-- At boot time, for a gigantic page during __alloc_bootmem_hugepage, the
-  region after the first struct page is marked as noinit.
+This series moves the boot time initialization of tail struct pages of a
+gigantic page to later on in the boot.  Only the
+HUGETLB_VMEMMAP_RESERVE_SIZE / sizeof(struct page) - 1 tail struct pages
+are initialized at the start.  If HVO is successful, then no more tail
+struct pages need to be initialized.  For a 1G hugepage, this series avoid
+initialization of 262144 - 63 = 262081 struct pages per hugepage.
 
-- This results in only the first struct page to be initialized in
-  reserve_bootmem_region.  As the tail struct pages are not initialized at
-  this point, there can be a significant saving in boot time if HVO
-  succeeds later on.
+When tested on a 512G system (allocating 500 1G hugepages), the kexec-boot
+times with DEFERRED_STRUCT_PAGE_INIT enabled are:
 
-- Later on in the boot, the head page is prepped and the first
-  HUGETLB_VMEMMAP_RESERVE_SIZE / sizeof(struct page) - 1 tail struct pages
-  are initialized.
+- with patches, HVO enabled: 1.32 seconds
+- with patches, HVO disabled: 2.15 seconds
+- without patches, HVO enabled: 3.90  seconds
+- without patches, HVO disabled: 3.58 seconds
 
-- HVO is attempted.  If it is not successful, then the rest of the tail
-  struct pages are initialized.  If it is successful, no more tail struct
-  pages need to be initialized saving significant boot time.
+This represents an approximately 70% reduction in boot time and will
+significantly reduce server downtime when using a large number of gigantic
+pages.
 
-The WARN_ON for increased ref count in gather_bootmem_prealloc was changed
-to a VM_BUG_ON.  This is OK as there should be no speculative references
-this early in boot process.  The VM_BUG_ON's are there just in case such
-code is introduced.
 
-Link: https://lkml.kernel.org/r/20230913105401.519709-5-usama.arif@bytedance.com
+This patch (of 4):
+
+If tail page prep and initialization is skipped, then the "start" page
+will not contain the correct nid.  Use the nid from first vmemap page.
+
+Link: https://lkml.kernel.org/r/20230913105401.519709-1-usama.arif@bytedance.com
+Link: https://lkml.kernel.org/r/20230913105401.519709-2-usama.arif@bytedance.com
 Signed-off-by: Usama Arif <usama.arif@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
@@ -99,160 +104,20 @@ Cc: Punit Agrawal <punit.agrawal@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c         |   63 +++++++++++++++++++++++++++++++++++------
- mm/hugetlb_vmemmap.c |    2 -
- mm/hugetlb_vmemmap.h |    9 +++--
- mm/internal.h        |    3 +
- mm/mm_init.c         |    2 -
- 5 files changed, 64 insertions(+), 15 deletions(-)
+ mm/hugetlb_vmemmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo
-+++ a/mm/hugetlb.c
-@@ -3148,6 +3148,15 @@ int __alloc_bootmem_huge_page(struct hst
- 	}
- 
- found:
-+
-+	/*
-+	 * Only initialize the head struct page in memmap_init_reserved_pages,
-+	 * rest of the struct pages will be initialized by the HugeTLB subsystem itself.
-+	 * The head struct page is used to get folio information by the HugeTLB
-+	 * subsystem like zone id and node id.
-+	 */
-+	memblock_reserved_mark_noinit(virt_to_phys((void *)m + PAGE_SIZE),
-+		huge_page_size(h) - PAGE_SIZE);
- 	/* Put them into a private list first because mem_map is not up yet */
- 	INIT_LIST_HEAD(&m->list);
- 	list_add(&m->list, &huge_boot_pages);
-@@ -3155,6 +3164,42 @@ found:
- 	return 1;
- }
- 
-+/* Initialize [start_page:end_page_number] tail struct pages of a hugepage */
-+static void __init hugetlb_folio_init_tail_vmemmap(struct folio *folio,
-+						    unsigned long start_page_number,
-+						    unsigned long end_page_number)
-+{
-+	enum zone_type zone = zone_idx(folio_zone(folio));
-+	int nid = folio_nid(folio);
-+	unsigned long head_pfn = folio_pfn(folio);
-+	unsigned long pfn, end_pfn = head_pfn + end_page_number;
-+	int ret;
-+
-+	for (pfn = head_pfn + start_page_number; pfn < end_pfn; pfn++) {
-+		struct page *page = pfn_to_page(pfn);
-+
-+		__init_single_page(page, pfn, zone, nid);
-+		prep_compound_tail((struct page *)folio, pfn - head_pfn);
-+		ret = page_ref_freeze(page, 1);
-+		VM_BUG_ON(!ret);
-+	}
-+}
-+
-+static void __init hugetlb_folio_init_vmemmap(struct folio *folio, struct hstate *h,
-+					       unsigned long nr_pages)
-+{
-+	int ret;
-+
-+	/* Prepare folio head */
-+	__folio_clear_reserved(folio);
-+	__folio_set_head(folio);
-+	ret = page_ref_freeze(&folio->page, 1);
-+	VM_BUG_ON(!ret);
-+	/* Initialize the necessary tail struct pages */
-+	hugetlb_folio_init_tail_vmemmap(folio, 1, nr_pages);
-+	prep_compound_head((struct page *)folio, huge_page_order(h));
-+}
-+
- /*
-  * Put bootmem huge pages into the standard lists after mem_map is up.
-  * Note: This only applies to gigantic (order > MAX_ORDER) pages.
-@@ -3165,19 +3210,19 @@ static void __init gather_bootmem_preall
- 
- 	list_for_each_entry(m, &huge_boot_pages, list) {
- 		struct page *page = virt_to_page(m);
--		struct folio *folio = page_folio(page);
-+		struct folio *folio = (void *)page;
- 		struct hstate *h = m->hstate;
- 
- 		VM_BUG_ON(!hstate_is_gigantic(h));
- 		WARN_ON(folio_ref_count(folio) != 1);
--		if (prep_compound_gigantic_folio(folio, huge_page_order(h))) {
--			WARN_ON(folio_test_reserved(folio));
--			prep_new_hugetlb_folio(h, folio, folio_nid(folio));
--			free_huge_folio(folio); /* add to the hugepage allocator */
--		} else {
--			/* VERY unlikely inflated ref count on a tail page */
--			free_gigantic_folio(folio, huge_page_order(h));
--		}
-+
-+		hugetlb_folio_init_vmemmap(folio, h, HUGETLB_VMEMMAP_RESERVE_PAGES);
-+		prep_new_hugetlb_folio(h, folio, folio_nid(folio));
-+		/* If HVO fails, initialize all tail struct pages */
-+		if (!HPageVmemmapOptimized(&folio->page))
-+			hugetlb_folio_init_tail_vmemmap(folio, HUGETLB_VMEMMAP_RESERVE_PAGES,
-+							pages_per_huge_page(h));
-+		free_huge_folio(folio); /* add to the hugepage allocator */
- 
- 		/*
- 		 * We need to restore the 'stolen' pages to totalram_pages
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-use-nid-of-the-head-page-to-reallocate-it
 +++ a/mm/hugetlb_vmemmap.c
-@@ -588,7 +588,7 @@ static int __init hugetlb_vmemmap_init(v
- 	const struct hstate *h;
+@@ -319,7 +319,7 @@ static int vmemmap_remap_free(unsigned l
+ 		.reuse_addr	= reuse,
+ 		.vmemmap_pages	= &vmemmap_pages,
+ 	};
+-	int nid = page_to_nid((struct page *)start);
++	int nid = page_to_nid((struct page *)reuse);
+ 	gfp_t gfp_mask = GFP_KERNEL | __GFP_NORETRY | __GFP_NOWARN;
  
- 	/* HUGETLB_VMEMMAP_RESERVE_SIZE should cover all used struct pages */
--	BUILD_BUG_ON(__NR_USED_SUBPAGE * sizeof(struct page) > HUGETLB_VMEMMAP_RESERVE_SIZE);
-+	BUILD_BUG_ON(__NR_USED_SUBPAGE > HUGETLB_VMEMMAP_RESERVE_PAGES);
- 
- 	for_each_hstate(h) {
- 		if (hugetlb_vmemmap_optimizable(h)) {
---- a/mm/hugetlb_vmemmap.h~mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo
-+++ a/mm/hugetlb_vmemmap.h
-@@ -10,15 +10,16 @@
- #define _LINUX_HUGETLB_VMEMMAP_H
- #include <linux/hugetlb.h>
- 
--#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
--int hugetlb_vmemmap_restore(const struct hstate *h, struct page *head);
--void hugetlb_vmemmap_optimize(const struct hstate *h, struct page *head);
--
- /*
-  * Reserve one vmemmap page, all vmemmap addresses are mapped to it. See
-  * Documentation/vm/vmemmap_dedup.rst.
-  */
- #define HUGETLB_VMEMMAP_RESERVE_SIZE	PAGE_SIZE
-+#define HUGETLB_VMEMMAP_RESERVE_PAGES	(HUGETLB_VMEMMAP_RESERVE_SIZE / sizeof(struct page))
-+
-+#ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
-+int hugetlb_vmemmap_restore(const struct hstate *h, struct page *head);
-+void hugetlb_vmemmap_optimize(const struct hstate *h, struct page *head);
- 
- static inline unsigned int hugetlb_vmemmap_size(const struct hstate *h)
- {
---- a/mm/internal.h~mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo
-+++ a/mm/internal.h
-@@ -1151,6 +1151,9 @@ struct vma_prepare {
- 	struct vm_area_struct *remove2;
- };
- 
-+void __meminit __init_single_page(struct page *page, unsigned long pfn,
-+				unsigned long zone, int nid);
-+
- /* shrinker related functions */
- unsigned long shrink_slab(gfp_t gfp_mask, int nid, struct mem_cgroup *memcg,
- 			  int priority);
---- a/mm/mm_init.c~mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo
-+++ a/mm/mm_init.c
-@@ -555,7 +555,7 @@ out:
- 	node_states[N_MEMORY] = saved_node_state;
- }
- 
--static void __meminit __init_single_page(struct page *page, unsigned long pfn,
-+void __meminit __init_single_page(struct page *page, unsigned long pfn,
- 				unsigned long zone, int nid)
- {
- 	mm_zero_struct_page(page);
+ 	/*
 _
 
 Patches currently in -mm which might be from usama.arif@bytedance.com are
