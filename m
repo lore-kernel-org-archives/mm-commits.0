@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 561A6CD37AF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 777ACCD37B0
 	for <mm-commits@archiver.kernel.org>; Fri, 15 Sep 2023 23:28:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231442AbjIOX1k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S233697AbjIOX1k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 15 Sep 2023 19:27:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46500 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46508 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238122AbjIOX1e (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Sep 2023 19:27:34 -0400
+        with ESMTP id S238126AbjIOX1g (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Sep 2023 19:27:36 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC8771FDE
-        for <mm-commits@vger.kernel.org>; Fri, 15 Sep 2023 16:27:24 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BA4FC433C8;
-        Fri, 15 Sep 2023 23:27:23 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 582CE2701
+        for <mm-commits@vger.kernel.org>; Fri, 15 Sep 2023 16:27:26 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7776C433C9;
+        Fri, 15 Sep 2023 23:27:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694820444;
-        bh=B/BOKQD2rVN6JkSpDFlAlHXhjo9dbtwdJ5ZZiYrQ0o4=;
+        s=korg; t=1694820446;
+        bh=ApgHgTzJXNaiBCJoW9TnqaASHmQ3PDvt3qSJWgLXpak=;
         h=Date:To:From:Subject:From;
-        b=IVFnWyCgvNa9hGlaP9E0b0u/Bj/s09HxL9vRwrgvYXZYn4xOtsDDJcGGdkPmQ9Tki
-         OUZXdcmGtzMhsXalEjyAEnHq0hFNIppfloC7uugqdUInVDKPKA/njvNOz9wmeatX6O
-         +m3YokYs9YMSPd0wNId16TLhb60gMnbBptIXJnMs=
-Date:   Fri, 15 Sep 2023 16:27:23 -0700
+        b=UDSdxvcri+UfuMdlvRiPBr3r1WzOIrzegioBTOsSg2mkba33gm+1ulxuTT0+EX40F
+         m3tkqKBrbcnceN/5V3I3+YHUVTOY+sWvTU3/IeAgulhBejSonM5KTYb4ML0scDRIPf
+         R22pT3sXlYGMMfGEJSB2u4goLZO3Qu+/DbeSaeo8=
+Date:   Fri, 15 Sep 2023 16:27:25 -0700
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         sidhartha.kumar@oracle.com, rientjes@google.com, osalvador@suse.de,
         naoya.horiguchi@linux.dev, mike.kravetz@oracle.com,
@@ -32,8 +32,8 @@ To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         david@redhat.com, anshuman.khandual@arm.com, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-remove-a-few-calls-to-page_folio.patch added to mm-unstable branch
-Message-Id: <20230915232724.0BA4FC433C8@smtp.kernel.org>
+Subject: + hugetlb-convert-remove_pool_huge_page-to-remove_pool_hugetlb_folio.patch added to mm-unstable branch
+Message-Id: <20230915232725.E7776C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: remove a few calls to page_folio()
+     Subject: hugetlb: convert remove_pool_huge_page() to remove_pool_hugetlb_folio()
 has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-remove-a-few-calls-to-page_folio.patch
+     hugetlb-convert-remove_pool_huge_page-to-remove_pool_hugetlb_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-remove-a-few-calls-to-page_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-convert-remove_pool_huge_page-to-remove_pool_hugetlb_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,18 +65,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: hugetlb: remove a few calls to page_folio()
-Date: Fri, 15 Sep 2023 15:15:36 -0700
+Subject: hugetlb: convert remove_pool_huge_page() to remove_pool_hugetlb_folio()
+Date: Fri, 15 Sep 2023 15:15:37 -0700
 
-Anything found on a linked list threaded through ->lru is guaranteed to be
-a folio as the compound_head found in a tail page overlaps the ->lru
-member of struct page.  So we can pull folios directly off these lists no
-matter whether pages or folios were added to the list.
+Convert the callers to expect a folio and remove the unnecesary conversion
+back to a struct page.
 
-Link: https://lkml.kernel.org/r/20230915221548.552084-4-mike.kravetz@oracle.com
+Link: https://lkml.kernel.org/r/20230915221548.552084-5-mike.kravetz@oracle.com
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -85,81 +82,103 @@ Cc: James Houghton <jthoughton@google.com>
 Cc: Joao Martins <joao.m.martins@oracle.com>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   26 +++++++++++---------------
- 1 file changed, 11 insertions(+), 15 deletions(-)
+ mm/hugetlb.c |   29 +++++++++++++++--------------
+ 1 file changed, 15 insertions(+), 14 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-remove-a-few-calls-to-page_folio
+--- a/mm/hugetlb.c~hugetlb-convert-remove_pool_huge_page-to-remove_pool_hugetlb_folio
 +++ a/mm/hugetlb.c
-@@ -1829,11 +1829,9 @@ static void update_and_free_hugetlb_foli
- 
- static void update_and_free_pages_bulk(struct hstate *h, struct list_head *list)
- {
--	struct page *page, *t_page;
--	struct folio *folio;
-+	struct folio *folio, *t_folio;
- 
--	list_for_each_entry_safe(page, t_page, list, lru) {
--		folio = page_folio(page);
-+	list_for_each_entry_safe(folio, t_folio, list, lru) {
- 		update_and_free_hugetlb_folio(h, folio, false);
- 		cond_resched();
- 	}
-@@ -2208,8 +2206,7 @@ static struct page *remove_pool_huge_pag
- 						 bool acct_surplus)
- {
- 	int nr_nodes, node;
--	struct page *page = NULL;
--	struct folio *folio;
-+	struct folio *folio = NULL;
- 
- 	lockdep_assert_held(&hugetlb_lock);
- 	for_each_node_mask_to_free(h, nr_nodes, node, nodes_allowed) {
-@@ -2219,15 +2216,14 @@ static struct page *remove_pool_huge_pag
- 		 */
- 		if ((!acct_surplus || h->surplus_huge_pages_node[node]) &&
- 		    !list_empty(&h->hugepage_freelists[node])) {
--			page = list_entry(h->hugepage_freelists[node].next,
--					  struct page, lru);
--			folio = page_folio(page);
-+			folio = list_entry(h->hugepage_freelists[node].next,
-+					  struct folio, lru);
- 			remove_hugetlb_folio(h, folio, acct_surplus);
- 			break;
- 		}
- 	}
- 
--	return page;
-+	return &folio->page;
+@@ -1439,7 +1439,7 @@ static int hstate_next_node_to_alloc(str
  }
  
  /*
-@@ -3392,15 +3388,15 @@ static void try_to_free_low(struct hstat
- 	 * Collect pages to be freed on a list, and free after dropping lock
- 	 */
- 	for_each_node_mask(i, *nodes_allowed) {
--		struct page *page, *next;
-+		struct folio *folio, *next;
- 		struct list_head *freel = &h->hugepage_freelists[i];
--		list_for_each_entry_safe(page, next, freel, lru) {
-+		list_for_each_entry_safe(folio, next, freel, lru) {
- 			if (count >= h->nr_huge_pages)
- 				goto out;
--			if (PageHighMem(page))
-+			if (folio_test_highmem(folio))
- 				continue;
--			remove_hugetlb_folio(h, page_folio(page), false);
--			list_add(&page->lru, &page_list);
-+			remove_hugetlb_folio(h, folio, false);
-+			list_add(&folio->lru, &page_list);
+- * helper for remove_pool_huge_page() - return the previously saved
++ * helper for remove_pool_hugetlb_folio() - return the previously saved
+  * node ["this node"] from which to free a huge page.  Advance the
+  * next node id whether or not we find a free huge page to free so
+  * that the next attempt to free addresses the next node.
+@@ -2201,9 +2201,8 @@ static int alloc_pool_huge_page(struct h
+  * an additional call to free the page to low level allocators.
+  * Called with hugetlb_lock locked.
+  */
+-static struct page *remove_pool_huge_page(struct hstate *h,
+-						nodemask_t *nodes_allowed,
+-						 bool acct_surplus)
++static struct folio *remove_pool_hugetlb_folio(struct hstate *h,
++		nodemask_t *nodes_allowed, bool acct_surplus)
+ {
+ 	int nr_nodes, node;
+ 	struct folio *folio = NULL;
+@@ -2223,7 +2222,7 @@ static struct page *remove_pool_huge_pag
  		}
  	}
  
+-	return &folio->page;
++	return folio;
+ }
+ 
+ /*
+@@ -2577,7 +2576,6 @@ static void return_unused_surplus_pages(
+ 					unsigned long unused_resv_pages)
+ {
+ 	unsigned long nr_pages;
+-	struct page *page;
+ 	LIST_HEAD(page_list);
+ 
+ 	lockdep_assert_held(&hugetlb_lock);
+@@ -2598,15 +2596,17 @@ static void return_unused_surplus_pages(
+ 	 * evenly across all nodes with memory. Iterate across these nodes
+ 	 * until we can no longer free unreserved surplus pages. This occurs
+ 	 * when the nodes with surplus pages have no free pages.
+-	 * remove_pool_huge_page() will balance the freed pages across the
++	 * remove_pool_hugetlb_folio() will balance the freed pages across the
+ 	 * on-line nodes with memory and will handle the hstate accounting.
+ 	 */
+ 	while (nr_pages--) {
+-		page = remove_pool_huge_page(h, &node_states[N_MEMORY], 1);
+-		if (!page)
++		struct folio *folio;
++
++		folio = remove_pool_hugetlb_folio(h, &node_states[N_MEMORY], 1);
++		if (!folio)
+ 			goto out;
+ 
+-		list_add(&page->lru, &page_list);
++		list_add(&folio->lru, &page_list);
+ 	}
+ 
+ out:
+@@ -3450,7 +3450,6 @@ static int set_max_huge_pages(struct hst
+ 			      nodemask_t *nodes_allowed)
+ {
+ 	unsigned long min_count, ret;
+-	struct page *page;
+ 	LIST_HEAD(page_list);
+ 	NODEMASK_ALLOC(nodemask_t, node_alloc_noretry, GFP_KERNEL);
+ 
+@@ -3572,11 +3571,13 @@ static int set_max_huge_pages(struct hst
+ 	 * Collect pages to be removed on list without dropping lock
+ 	 */
+ 	while (min_count < persistent_huge_pages(h)) {
+-		page = remove_pool_huge_page(h, nodes_allowed, 0);
+-		if (!page)
++		struct folio *folio;
++
++		folio = remove_pool_hugetlb_folio(h, nodes_allowed, 0);
++		if (!folio)
+ 			break;
+ 
+-		list_add(&page->lru, &page_list);
++		list_add(&folio->lru, &page_list);
+ 	}
+ 	/* free the pages after dropping lock */
+ 	spin_unlock_irq(&hugetlb_lock);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
