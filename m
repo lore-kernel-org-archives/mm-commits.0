@@ -2,34 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 761D2C2BA1A
-	for <mm-commits@archiver.kernel.org>; Sat, 16 Sep 2023 20:10:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B227C2BA12
+	for <mm-commits@archiver.kernel.org>; Sat, 16 Sep 2023 20:15:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236073AbjIPUJ7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 16 Sep 2023 16:09:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59340 "EHLO
+        id S232530AbjIPUPQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 16 Sep 2023 16:15:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54866 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233681AbjIPUJc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 16 Sep 2023 16:09:32 -0400
+        with ESMTP id S233681AbjIPUPF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 16 Sep 2023 16:15:05 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 677471B5
-        for <mm-commits@vger.kernel.org>; Sat, 16 Sep 2023 13:09:27 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFD35C433C8;
-        Sat, 16 Sep 2023 20:09:26 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1874F1B5
+        for <mm-commits@vger.kernel.org>; Sat, 16 Sep 2023 13:15:00 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D1F1C433C7;
+        Sat, 16 Sep 2023 20:14:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694894967;
-        bh=NPj2abeBmHrNiirNd55zDeQJtQ6iubDAFAu98vGUdEw=;
+        s=korg; t=1694895299;
+        bh=y3LnN7RnTowWaL3xqoMEcglF/1veC3J3MnygFVNPDBI=;
         h=Date:To:From:Subject:From;
-        b=MXTC43ZRBGERVEbsGgPJN7bOggoN6PF3gckFyv/tCU8B/XRap5bW8zjKd87T5sQZ2
-         bCzgm+D8E1E+ems/g6c2IdfQWRuGoomDNDz7mfQ3tjJeUczkkwdqb3mVInhf0j8dKu
-         MwTmfTg9oiVSFmBtutdWxK6uHCWr7ipV3N2OdU8I=
-Date:   Sat, 16 Sep 2023 13:09:26 -0700
-To:     mm-commits@vger.kernel.org, tiwai@suse.de, tglx@linutronix.de,
-        keescook@chromium.org, adobriyan@gmail.com,
-        akpm@linux-foundation.org
+        b=ELRECGKrLJ4/KOakVo9Pq2+I/ZSeWtH42S9RhwJhLq5/bJSoc7UjjyTM7Ocrhwvxv
+         LKUFMat9rzBucsvl7dqrodVCz0arcxSm1JthOFdXs71mIiEcNNLBpA4WjEEqz7sb/u
+         cCfVBvt+iJ3I7Z0lTE6EEPiFu0EVl8GR8hxbc37w=
+Date:   Sat, 16 Sep 2023 13:14:59 -0700
+To:     mm-commits@vger.kernel.org, andriy.shevchenko@linux.intel.com,
+        christophe.jaillet@wanadoo.fr, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + extract-and-use-file_line-macro.patch added to mm-nonmm-unstable branch
-Message-Id: <20230916200926.EFD35C433C8@smtp.kernel.org>
+Subject: + kstrtox-remove-strtobool.patch added to mm-nonmm-unstable branch
+Message-Id: <20230916201459.8D1F1C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: extract and use FILE_LINE macro
+     Subject: kstrtox: remove strtobool()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     extract-and-use-file_line-macro.patch
+     kstrtox-remove-strtobool.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/extract-and-use-file_line-macro.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kstrtox-remove-strtobool.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,111 +59,37 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: extract and use FILE_LINE macro
-Date: Sat, 16 Sep 2023 21:21:31 +0300
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: kstrtox: remove strtobool()
+Date: Sat, 16 Sep 2023 17:50:11 +0200
 
-Extract nifty FILE_LINE useful for printk style debugging:
+The conversion from strtobool() to kstrtobool() is completed.  So
+strtobool() can now be removed.
 
-	printk("%s
-", FILE_LINE);
-
-It should not be used en mass probably because __FILE__ string literals
-can be merged while FILE_LINE's won't. But for debugging it is what
-the doctor ordered.
-
-Don't add leading and trailing underscores, they're painful to type. 
-Trust me, I've tried both versions.
-
-Link: https://lkml.kernel.org/r/ebf12ac4-5a61-4b12-b8b0-1253eb371332@p183
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: https://lkml.kernel.org/r/87e3cc2547df174cd5af1fadbf866be4ef9e8e45.1694878151.git.christophe.jaillet@wanadoo.fr
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fortify-string.h |    2 +-
- include/linux/stringify.h      |    2 ++
- include/linux/timer.h          |    3 +--
- sound/pci/asihpi/hpidebug.h    |    9 ++++-----
- 4 files changed, 8 insertions(+), 8 deletions(-)
+ include/linux/kstrtox.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
---- a/include/linux/fortify-string.h~extract-and-use-file_line-macro
-+++ a/include/linux/fortify-string.h
-@@ -643,7 +643,7 @@ __FORTIFY_INLINE bool fortify_memcpy_chk
- 				     __q_size_field, #op),		\
- 		  #op ": detected field-spanning write (size %zu) of single %s (size %zu)\n", \
- 		  __fortify_size,					\
--		  "field \"" #p "\" at " __FILE__ ":" __stringify(__LINE__), \
-+		  "field \"" #p "\" at " FILE_LINE,			\
- 		  __p_size_field);					\
- 	__underlying_##op(p, q, __fortify_size);			\
- })
---- a/include/linux/stringify.h~extract-and-use-file_line-macro
-+++ a/include/linux/stringify.h
-@@ -9,4 +9,6 @@
- #define __stringify_1(x...)	#x
- #define __stringify(x...)	__stringify_1(x)
+--- a/include/linux/kstrtox.h~kstrtox-remove-strtobool
++++ a/include/linux/kstrtox.h
+@@ -147,9 +147,4 @@ extern long simple_strtol(const char *,c
+ extern unsigned long long simple_strtoull(const char *,char **,unsigned int);
+ extern long long simple_strtoll(const char *,char **,unsigned int);
  
-+#define FILE_LINE	__FILE__ ":" __stringify(__LINE__)
-+
- #endif	/* !__LINUX_STRINGIFY_H */
---- a/include/linux/timer.h~extract-and-use-file_line-macro
-+++ a/include/linux/timer.h
-@@ -77,8 +77,7 @@ struct timer_list {
- 		.entry = { .next = TIMER_ENTRY_STATIC },	\
- 		.function = (_function),			\
- 		.flags = (_flags),				\
--		__TIMER_LOCKDEP_MAP_INITIALIZER(		\
--			__FILE__ ":" __stringify(__LINE__))	\
-+		__TIMER_LOCKDEP_MAP_INITIALIZER(FILE_LINE)	\
- 	}
- 
- #define DEFINE_TIMER(_name, _function)				\
---- a/sound/pci/asihpi/hpidebug.h~extract-and-use-file_line-macro
-+++ a/sound/pci/asihpi/hpidebug.h
-@@ -29,16 +29,15 @@ enum { HPI_DEBUG_LEVEL_ERROR = 0,	/* alw
-    the start of each message, eg see linux kernel hpios.h */
- 
- #ifdef SOURCEFILE_NAME
-+#undef FILE_LINE
- #define FILE_LINE  SOURCEFILE_NAME ":" __stringify(__LINE__) " "
--#else
--#define FILE_LINE  __FILE__ ":" __stringify(__LINE__) " "
- #endif
- 
- #define HPI_DEBUG_ASSERT(expression) \
- 	do { \
- 		if (!(expression)) { \
- 			printk(KERN_ERR  FILE_LINE \
--				"ASSERT " __stringify(expression)); \
-+				" ASSERT " __stringify(expression)); \
- 		} \
- 	} while (0)
- 
-@@ -46,7 +45,7 @@ enum { HPI_DEBUG_LEVEL_ERROR = 0,	/* alw
- 	do { \
- 		if (hpi_debug_level >= HPI_DEBUG_LEVEL_##level) { \
- 			printk(HPI_DEBUG_FLAG_##level \
--			FILE_LINE  __VA_ARGS__); \
-+			FILE_LINE " " __VA_ARGS__); \
- 		} \
- 	} while (0)
- 
-@@ -70,7 +69,7 @@ void hpi_debug_data(u16 *pdata, u32 len)
- 	do { \
- 		if (hpi_debug_level >= HPI_DEBUG_LEVEL_##level) { \
- 			hpi_debug_message(phm, HPI_DEBUG_FLAG_##level \
--				FILE_LINE __stringify(level)); \
-+				FILE_LINE " " __stringify(level)); \
- 		} \
- 	} while (0)
- 
+-static inline int strtobool(const char *s, bool *res)
+-{
+-	return kstrtobool(s, res);
+-}
+-
+ #endif	/* _LINUX_KSTRTOX_H */
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
 
-proc-fix-smaps_rollup-test-after-ksm-changes.patch
-extract-and-use-file_line-macro.patch
+kstrtox-remove-strtobool.patch
 
