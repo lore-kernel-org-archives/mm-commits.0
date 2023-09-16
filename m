@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0FBDCD13CF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B04B6C2BA1B
 	for <mm-commits@archiver.kernel.org>; Sat, 16 Sep 2023 20:19:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239388AbjIPUSe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 16 Sep 2023 16:18:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46150 "EHLO
+        id S236073AbjIPUSc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 16 Sep 2023 16:18:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33498 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239400AbjIPUS0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 16 Sep 2023 16:18:26 -0400
+        with ESMTP id S236879AbjIPUSU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 16 Sep 2023 16:18:20 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E397CD8
-        for <mm-commits@vger.kernel.org>; Sat, 16 Sep 2023 13:18:21 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16626C433CA;
-        Sat, 16 Sep 2023 20:18:21 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4F61CD8
+        for <mm-commits@vger.kernel.org>; Sat, 16 Sep 2023 13:18:14 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A1B0C433C7;
+        Sat, 16 Sep 2023 20:18:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694895501;
-        bh=NPZ2u9+4Zo+WKxIRCZ/Cvy1YPTGNI13IdvSDmYAeWBU=;
+        s=korg; t=1694895494;
+        bh=rR4FEp8yc3UgTdeRVpHSfajwy3Oe0YyKkCs0jfpXhv0=;
         h=Date:To:From:Subject:From;
-        b=U8vLYXI5kGoPpZYFeWpXMb87HhyCBrcFz7GgEjgx1gEf1F2sXGJmKACMYOYMpblJk
-         iHyF2cqnsN/DS6l5NthuL9S+V1hC1meyd1DSWd+fGJSNTXlcHhxky+/nVpcKJczr+1
-         XSCgiMAXdZo5sNS/k+PpqGtRElwFN69CprWIe9WM=
-Date:   Sat, 16 Sep 2023 13:18:20 -0700
+        b=c44ywztjIMPXwIX7AHTEywc3jaBODT8Lus+6mBW5sZw9iSomORVY4vzOlKtuwMgwG
+         RZRyqeTZjWWGA2oqzPoxE3ipe92hMiuSRu1FExqhzsOIqnnLgSfM6omxmRvXlk0ncl
+         gg3488TMpGD8iLz3YIKPUp6wXi0Ib9bB1wplgU+U=
+Date:   Sat, 16 Sep 2023 13:18:13 -0700
 To:     mm-commits@vger.kernel.org, shuah@kernel.org, rostedt@goodmis.org,
         corbet@lwn.net, sj@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-abi-damon-update-for-damos-apply-intervals.patch added to mm-unstable branch
-Message-Id: <20230916201821.16626C433CA@smtp.kernel.org>
+Subject: + docs-mm-damon-design-document-damos-apply-intervals.patch added to mm-unstable branch
+Message-Id: <20230916201814.7A1B0C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Docs/ABI/damon: update for DAMOS apply intervals
+     Subject: Docs/mm/damon/design: document DAMOS apply intervals
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-abi-damon-update-for-damos-apply-intervals.patch
+     docs-mm-damon-design-document-damos-apply-intervals.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-update-for-damos-apply-intervals.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-document-damos-apply-intervals.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,13 +60,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/ABI/damon: update for DAMOS apply intervals
-Date: Sat, 16 Sep 2023 02:09:45 +0000
+Subject: Docs/mm/damon/design: document DAMOS apply intervals
+Date: Sat, 16 Sep 2023 02:09:41 +0000
 
-Update DAMON ABI document for the newly added DAMON sysfs file for DAMOS
-apply intervals (apply_interval_us file).
+Update DAMON design doc to explain about DAMOS apply intervals.
 
-Link: https://lkml.kernel.org/r/20230916020945.47296-10-sj@kernel.org
+Link: https://lkml.kernel.org/r/20230916020945.47296-6-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <shuah@kernel.org>
@@ -74,25 +73,21 @@ Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-damon |    7 +++++++
- 1 file changed, 7 insertions(+)
+ Documentation/mm/damon/design.rst |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-update-for-damos-apply-intervals
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
-@@ -151,6 +151,13 @@ Contact:	SeongJae Park <sj@kernel.org>
- Description:	Writing to and reading from this file sets and gets the action
- 		of the scheme.
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-damos-apply-intervals
++++ a/Documentation/mm/damon/design.rst
+@@ -259,7 +259,8 @@ works, DAMON provides a feature called D
+ Schemes (DAMOS).  It lets users specify their desired schemes at a high
+ level.  For such specifications, DAMON starts monitoring, finds regions having
+ the access pattern of interest, and applies the user-desired operation actions
+-to the regions as soon as found.
++to the regions, for every user-specified time interval called
++``apply_interval``.
  
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/apply_interval_us
-+Date:		Sep 2023
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a value to this file sets the action apply interval of
-+		the scheme in microseconds.  Reading this file returns the
-+		value.
-+
- What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/access_pattern/sz/min
- Date:		Mar 2022
- Contact:	SeongJae Park <sj@kernel.org>
+ 
+ .. _damon_design_damos_action:
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
