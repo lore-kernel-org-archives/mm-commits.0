@@ -2,38 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31657CD37AF
-	for <mm-commits@archiver.kernel.org>; Fri, 15 Sep 2023 23:31:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E73CC2BA12
+	for <mm-commits@archiver.kernel.org>; Sat, 16 Sep 2023 20:08:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231442AbjIOXbY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 15 Sep 2023 19:31:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57512 "EHLO
+        id S232622AbjIPUHs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 16 Sep 2023 16:07:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38474 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230318AbjIOXbR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 15 Sep 2023 19:31:17 -0400
+        with ESMTP id S235240AbjIPUHg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 16 Sep 2023 16:07:36 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 741B71FF5
-        for <mm-commits@vger.kernel.org>; Fri, 15 Sep 2023 16:31:12 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 096ADC433CB;
-        Fri, 15 Sep 2023 23:31:12 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CEDBF1B5
+        for <mm-commits@vger.kernel.org>; Sat, 16 Sep 2023 13:07:31 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CA2AC433C7;
+        Sat, 16 Sep 2023 20:07:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694820672;
-        bh=bDLjxOPJ19FfbCb07PUGEis7ChoXLNhH90FGVKUQBx0=;
+        s=korg; t=1694894851;
+        bh=iScXlv4BM7b6U4DXLgyL660HODARaM5B5fwURayhZqs=;
         h=Date:To:From:Subject:From;
-        b=QPBhdqXO86wiGsD5mv4gdVKhe0VrYTctojagiC4sja1ZeFBD7/pWJJOMTLqTPxMZz
-         KnF+1p+pV9YR4ME7Y1grV8gaGJt+WbDF15mYxWjexKCpxn7QJc7suHGSJauiNNE29z
-         4q7Vs54bWsvtJXbQaNnrv+QiEk98URV6FbAnwkVc=
-Date:   Fri, 15 Sep 2023 16:31:11 -0700
+        b=jAY4GnjMHE9UvQuLFcRk7fe7LkqyfBxC7ujBtFhWQHsT0BFKSgdJF/BQd3v03yGxf
+         EC9c3dUfFFZX9xpe1cT/3d/Dtm1qItalCOWj3qKUElqwlRpXQMe1Db15sJM+Cn7a5Q
+         6VYMzgPntlWdMxIcAxCb4nDpn5vtvQoReEWOZmfI=
+Date:   Sat, 16 Sep 2023 13:07:30 -0700
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        sidhartha.kumar@oracle.com, rientjes@google.com, osalvador@suse.de,
-        naoya.horiguchi@linux.dev, mike.kravetz@oracle.com,
-        mhocko@suse.com, linmiaohe@huawei.com, jthoughton@google.com,
-        joao.m.martins@oracle.com, duanxiongchun@bytedance.com,
-        david@redhat.com, anshuman.khandual@arm.com, willy@infradead.org,
-        akpm@linux-foundation.org
+        sidhartha.kumar@oracle.com, mike.kravetz@oracle.com,
+        willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
 Subject: + hugetlb-use-a-folio-in-free_hpage_workfn.patch added to mm-unstable branch
-Message-Id: <20230915233112.096ADC433CB@smtp.kernel.org>
+Message-Id: <20230916200731.6CA2AC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -66,134 +62,24 @@ and is updated there every 2-3 working days
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Subject: hugetlb: use a folio in free_hpage_workfn()
-Date: Fri, 15 Sep 2023 15:15:35 -0700
+Date: Thu, 24 Aug 2023 15:13:23 +0100
 
-Patch series "Batch hugetlb vmemmap modification operations", v3.
+Patch series "Small hugetlb cleanups", v2.
 
-When hugetlb vmemmap optimization was introduced, the overhead of enabling
-the option was measured as described in commit 426e5c429d16 [1].  The
-summary states that allocating a hugetlb page should be ~2x slower with
-optimization and freeing a hugetlb page should be ~2-3x slower.  Such
-overhead was deemed an acceptable trade off for the memory savings
-obtained by freeing vmemmap pages.
-
-It was recently reported that the overhead associated with enabling
-vmemmap optimization could be as high as 190x for hugetlb page
-allocations.  Yes, 190x!  Some actual numbers from other environments are:
-
-Bare Metal 8 socket Intel(R) Xeon(R) CPU E7-8895
-------------------------------------------------
-Unmodified next-20230824, vm.hugetlb_optimize_vmemmap = 0
-time echo 500000 > .../hugepages-2048kB/nr_hugepages
-real    0m4.119s
-time echo 0 > .../hugepages-2048kB/nr_hugepages
-real    0m4.477s
-
-Unmodified next-20230824, vm.hugetlb_optimize_vmemmap = 1
-time echo 500000 > .../hugepages-2048kB/nr_hugepages
-real    0m28.973s
-time echo 0 > .../hugepages-2048kB/nr_hugepages
-real    0m36.748s
-
-VM with 252 vcpus on host with 2 socket AMD EPYC 7J13 Milan
------------------------------------------------------------
-Unmodified next-20230824, vm.hugetlb_optimize_vmemmap = 0
-time echo 524288 > .../hugepages-2048kB/nr_hugepages
-real    0m2.463s
-time echo 0 > .../hugepages-2048kB/nr_hugepages
-real    0m2.931s
-
-Unmodified next-20230824, vm.hugetlb_optimize_vmemmap = 1
-time echo 524288 > .../hugepages-2048kB/nr_hugepages
-real    2m27.609s
-time echo 0 > .../hugepages-2048kB/nr_hugepages
-real    2m29.924s
-
-In the VM environment, the slowdown of enabling hugetlb vmemmap optimization
-resulted in allocation times being 61x slower.
-
-A quick profile showed that the vast majority of this overhead was due to
-TLB flushing.  Each time we modify the kernel pagetable we need to flush
-the TLB.  For each hugetlb that is optimized, there could be potentially
-two TLB flushes performed.  One for the vmemmap pages associated with the
-hugetlb page, and potentially another one if the vmemmap pages are mapped
-at the PMD level and must be split.  The TLB flushes required for the
-kernel pagetable, result in a broadcast IPI with each CPU having to flush
-a range of pages, or do a global flush if a threshold is exceeded.  So,
-the flush time increases with the number of CPUs.  In addition, in virtual
-environments the broadcast IPI can’t be accelerated by hypervisor
-hardware and leads to traps that need to wakeup/IPI all vCPUs which is
-very expensive.  Because of this the slowdown in virtual environments is
-even worse than bare metal as the number of vCPUS/CPUs is increased.
-
-The following series attempts to reduce amount of time spent in TLB
-flushing.  The idea is to batch the vmemmap modification operations for
-multiple hugetlb pages.  Instead of doing one or two TLB flushes for each
-page, we do two TLB flushes for each batch of pages.  One flush after
-splitting pages mapped at the PMD level, and another after remapping
-vmemmap associated with all hugetlb pages.  Results of such batching are
-as follows:
-
-Bare Metal 8 socket Intel(R) Xeon(R) CPU E7-8895
-------------------------------------------------
-next-20230824 + Batching patches, vm.hugetlb_optimize_vmemmap = 0
-time echo 500000 > .../hugepages-2048kB/nr_hugepages
-real    0m4.719s
-time echo 0 > .../hugepages-2048kB/nr_hugepages
-real    0m4.245s
-
-next-20230824 + Batching patches, vm.hugetlb_optimize_vmemmap = 1
-time echo 500000 > .../hugepages-2048kB/nr_hugepages
-real    0m7.267s
-time echo 0 > .../hugepages-2048kB/nr_hugepages
-real    0m13.199s
-
-VM with 252 vcpus on host with 2 socket AMD EPYC 7J13 Milan
------------------------------------------------------------
-next-20230824 + Batching patches, vm.hugetlb_optimize_vmemmap = 0
-time echo 524288 > .../hugepages-2048kB/nr_hugepages
-real    0m2.715s
-time echo 0 > .../hugepages-2048kB/nr_hugepages
-real    0m3.186s
-
-next-20230824 + Batching patches, vm.hugetlb_optimize_vmemmap = 1
-time echo 524288 > .../hugepages-2048kB/nr_hugepages
-real    0m4.799s
-time echo 0 > .../hugepages-2048kB/nr_hugepages
-real    0m5.273s
-
-With batching, results are back in the 2-3x slowdown range.
-
-This series is based on next-20230913.
-The first 3 patches of the series are modifications currently going into the
-mm tree that modify the same area, or fix BUGs hit easily when exercising
-this series.  They are not directly related to the batching changes.
-Patch 4 (hugetlb: optimize update_and_free_pages_bulk to avoid lock cycles)
-is where batching changes begin.
+Some trivial folio conversions
 
 
-This patch (of 11):
+This patch (of 3):
 
 update_and_free_hugetlb_folio puts the memory on hpage_freelist as a folio
 so we can take it off the list as a folio.
 
-Link: https://lkml.kernel.org/r/20230915221548.552084-1-mike.kravetz@oracle.com
-Link: https://lkml.kernel.org/r/20230915221548.552084-3-mike.kravetz@oracle.com
+Link: https://lkml.kernel.org/r/20230824141325.2704553-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230824141325.2704553-2-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joao Martins <joao.m.martins@oracle.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
-Cc: James Houghton <jthoughton@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
