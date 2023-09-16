@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7175AC46CA1
-	for <mm-commits@archiver.kernel.org>; Sat, 16 Sep 2023 20:08:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 761D2C2BA1A
+	for <mm-commits@archiver.kernel.org>; Sat, 16 Sep 2023 20:10:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235240AbjIPUHs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 16 Sep 2023 16:07:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38490 "EHLO
+        id S236073AbjIPUJ7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 16 Sep 2023 16:09:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59340 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236677AbjIPUHk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 16 Sep 2023 16:07:40 -0400
+        with ESMTP id S233681AbjIPUJc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 16 Sep 2023 16:09:32 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5BD311B5
-        for <mm-commits@vger.kernel.org>; Sat, 16 Sep 2023 13:07:35 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8E5FC433C8;
-        Sat, 16 Sep 2023 20:07:34 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 677471B5
+        for <mm-commits@vger.kernel.org>; Sat, 16 Sep 2023 13:09:27 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFD35C433C8;
+        Sat, 16 Sep 2023 20:09:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694894855;
-        bh=GgNF+rPagjTlvRT2TxdcAdFaS2uuhv/7IvTkaUsdXNg=;
+        s=korg; t=1694894967;
+        bh=NPj2abeBmHrNiirNd55zDeQJtQ6iubDAFAu98vGUdEw=;
         h=Date:To:From:Subject:From;
-        b=uwJRNLz5Vs3ZeYpNaAvHRlOLxWrIOPZxGxHCllUvM28z9Jrxmo1Zr6mz54A5G+Rb+
-         wim3yFKxz3sMG3JF+13wEECgiMpTXFjTkipjcbJczPFZjo6nPHB8f0ZD0XKD6aFtI+
-         8l937PQt2jBWZyQpqqMgofAo0IWTachUuczrE9fc=
-Date:   Sat, 16 Sep 2023 13:07:34 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        sidhartha.kumar@oracle.com, mike.kravetz@oracle.com,
-        willy@infradead.org, akpm@linux-foundation.org
+        b=MXTC43ZRBGERVEbsGgPJN7bOggoN6PF3gckFyv/tCU8B/XRap5bW8zjKd87T5sQZ2
+         bCzgm+D8E1E+ems/g6c2IdfQWRuGoomDNDz7mfQ3tjJeUczkkwdqb3mVInhf0j8dKu
+         MwTmfTg9oiVSFmBtutdWxK6uHCWr7ipV3N2OdU8I=
+Date:   Sat, 16 Sep 2023 13:09:26 -0700
+To:     mm-commits@vger.kernel.org, tiwai@suse.de, tglx@linutronix.de,
+        keescook@chromium.org, adobriyan@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-convert-remove_pool_huge_page-to-remove_pool_hugetlb_folio.patch added to mm-unstable branch
-Message-Id: <20230916200734.E8E5FC433C8@smtp.kernel.org>
+Subject: + extract-and-use-file_line-macro.patch added to mm-nonmm-unstable branch
+Message-Id: <20230916200926.EFD35C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,14 +37,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: convert remove_pool_huge_page() to remove_pool_hugetlb_folio()
-has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-convert-remove_pool_huge_page-to-remove_pool_hugetlb_folio.patch
+     Subject: extract and use FILE_LINE macro
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     extract-and-use-file_line-macro.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-convert-remove_pool_huge_page-to-remove_pool_hugetlb_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/extract-and-use-file_line-macro.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -60,125 +60,111 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: hugetlb: convert remove_pool_huge_page() to remove_pool_hugetlb_folio()
-Date: Thu, 24 Aug 2023 15:13:25 +0100
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: extract and use FILE_LINE macro
+Date: Sat, 16 Sep 2023 21:21:31 +0300
 
-Convert the callers to expect a folio and remove the unnecesary conversion
-back to a struct page.
+Extract nifty FILE_LINE useful for printk style debugging:
 
-Link: https://lkml.kernel.org/r/20230824141325.2704553-4-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+	printk("%s
+", FILE_LINE);
+
+It should not be used en mass probably because __FILE__ string literals
+can be merged while FILE_LINE's won't. But for debugging it is what
+the doctor ordered.
+
+Don't add leading and trailing underscores, they're painful to type. 
+Trust me, I've tried both versions.
+
+Link: https://lkml.kernel.org/r/ebf12ac4-5a61-4b12-b8b0-1253eb371332@p183
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   29 +++++++++++++++--------------
- 1 file changed, 15 insertions(+), 14 deletions(-)
+ include/linux/fortify-string.h |    2 +-
+ include/linux/stringify.h      |    2 ++
+ include/linux/timer.h          |    3 +--
+ sound/pci/asihpi/hpidebug.h    |    9 ++++-----
+ 4 files changed, 8 insertions(+), 8 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-convert-remove_pool_huge_page-to-remove_pool_hugetlb_folio
-+++ a/mm/hugetlb.c
-@@ -1439,7 +1439,7 @@ static int hstate_next_node_to_alloc(str
- }
+--- a/include/linux/fortify-string.h~extract-and-use-file_line-macro
++++ a/include/linux/fortify-string.h
+@@ -643,7 +643,7 @@ __FORTIFY_INLINE bool fortify_memcpy_chk
+ 				     __q_size_field, #op),		\
+ 		  #op ": detected field-spanning write (size %zu) of single %s (size %zu)\n", \
+ 		  __fortify_size,					\
+-		  "field \"" #p "\" at " __FILE__ ":" __stringify(__LINE__), \
++		  "field \"" #p "\" at " FILE_LINE,			\
+ 		  __p_size_field);					\
+ 	__underlying_##op(p, q, __fortify_size);			\
+ })
+--- a/include/linux/stringify.h~extract-and-use-file_line-macro
++++ a/include/linux/stringify.h
+@@ -9,4 +9,6 @@
+ #define __stringify_1(x...)	#x
+ #define __stringify(x...)	__stringify_1(x)
  
- /*
-- * helper for remove_pool_huge_page() - return the previously saved
-+ * helper for remove_pool_hugetlb_folio() - return the previously saved
-  * node ["this node"] from which to free a huge page.  Advance the
-  * next node id whether or not we find a free huge page to free so
-  * that the next attempt to free addresses the next node.
-@@ -2201,9 +2201,8 @@ static int alloc_pool_huge_page(struct h
-  * an additional call to free the page to low level allocators.
-  * Called with hugetlb_lock locked.
-  */
--static struct page *remove_pool_huge_page(struct hstate *h,
--						nodemask_t *nodes_allowed,
--						 bool acct_surplus)
-+static struct folio *remove_pool_hugetlb_folio(struct hstate *h,
-+		nodemask_t *nodes_allowed, bool acct_surplus)
- {
- 	int nr_nodes, node;
- 	struct folio *folio = NULL;
-@@ -2223,7 +2222,7 @@ static struct page *remove_pool_huge_pag
- 		}
- 	}
- 
--	return &folio->page;
-+	return folio;
- }
- 
- /*
-@@ -2577,7 +2576,6 @@ static void return_unused_surplus_pages(
- 					unsigned long unused_resv_pages)
- {
- 	unsigned long nr_pages;
--	struct page *page;
- 	LIST_HEAD(page_list);
- 
- 	lockdep_assert_held(&hugetlb_lock);
-@@ -2598,15 +2596,17 @@ static void return_unused_surplus_pages(
- 	 * evenly across all nodes with memory. Iterate across these nodes
- 	 * until we can no longer free unreserved surplus pages. This occurs
- 	 * when the nodes with surplus pages have no free pages.
--	 * remove_pool_huge_page() will balance the freed pages across the
-+	 * remove_pool_hugetlb_folio() will balance the freed pages across the
- 	 * on-line nodes with memory and will handle the hstate accounting.
- 	 */
- 	while (nr_pages--) {
--		page = remove_pool_huge_page(h, &node_states[N_MEMORY], 1);
--		if (!page)
-+		struct folio *folio;
++#define FILE_LINE	__FILE__ ":" __stringify(__LINE__)
 +
-+		folio = remove_pool_hugetlb_folio(h, &node_states[N_MEMORY], 1);
-+		if (!folio)
- 			goto out;
- 
--		list_add(&page->lru, &page_list);
-+		list_add(&folio->lru, &page_list);
+ #endif	/* !__LINUX_STRINGIFY_H */
+--- a/include/linux/timer.h~extract-and-use-file_line-macro
++++ a/include/linux/timer.h
+@@ -77,8 +77,7 @@ struct timer_list {
+ 		.entry = { .next = TIMER_ENTRY_STATIC },	\
+ 		.function = (_function),			\
+ 		.flags = (_flags),				\
+-		__TIMER_LOCKDEP_MAP_INITIALIZER(		\
+-			__FILE__ ":" __stringify(__LINE__))	\
++		__TIMER_LOCKDEP_MAP_INITIALIZER(FILE_LINE)	\
  	}
  
- out:
-@@ -3451,7 +3451,6 @@ static int set_max_huge_pages(struct hst
- 			      nodemask_t *nodes_allowed)
- {
- 	unsigned long min_count, ret;
--	struct page *page;
- 	LIST_HEAD(page_list);
- 	NODEMASK_ALLOC(nodemask_t, node_alloc_noretry, GFP_KERNEL);
+ #define DEFINE_TIMER(_name, _function)				\
+--- a/sound/pci/asihpi/hpidebug.h~extract-and-use-file_line-macro
++++ a/sound/pci/asihpi/hpidebug.h
+@@ -29,16 +29,15 @@ enum { HPI_DEBUG_LEVEL_ERROR = 0,	/* alw
+    the start of each message, eg see linux kernel hpios.h */
  
-@@ -3573,11 +3572,13 @@ static int set_max_huge_pages(struct hst
- 	 * Collect pages to be removed on list without dropping lock
- 	 */
- 	while (min_count < persistent_huge_pages(h)) {
--		page = remove_pool_huge_page(h, nodes_allowed, 0);
--		if (!page)
-+		struct folio *folio;
-+
-+		folio = remove_pool_hugetlb_folio(h, nodes_allowed, 0);
-+		if (!folio)
- 			break;
+ #ifdef SOURCEFILE_NAME
++#undef FILE_LINE
+ #define FILE_LINE  SOURCEFILE_NAME ":" __stringify(__LINE__) " "
+-#else
+-#define FILE_LINE  __FILE__ ":" __stringify(__LINE__) " "
+ #endif
  
--		list_add(&page->lru, &page_list);
-+		list_add(&folio->lru, &page_list);
- 	}
- 	/* free the pages after dropping lock */
- 	spin_unlock_irq(&hugetlb_lock);
+ #define HPI_DEBUG_ASSERT(expression) \
+ 	do { \
+ 		if (!(expression)) { \
+ 			printk(KERN_ERR  FILE_LINE \
+-				"ASSERT " __stringify(expression)); \
++				" ASSERT " __stringify(expression)); \
+ 		} \
+ 	} while (0)
+ 
+@@ -46,7 +45,7 @@ enum { HPI_DEBUG_LEVEL_ERROR = 0,	/* alw
+ 	do { \
+ 		if (hpi_debug_level >= HPI_DEBUG_LEVEL_##level) { \
+ 			printk(HPI_DEBUG_FLAG_##level \
+-			FILE_LINE  __VA_ARGS__); \
++			FILE_LINE " " __VA_ARGS__); \
+ 		} \
+ 	} while (0)
+ 
+@@ -70,7 +69,7 @@ void hpi_debug_data(u16 *pdata, u32 len)
+ 	do { \
+ 		if (hpi_debug_level >= HPI_DEBUG_LEVEL_##level) { \
+ 			hpi_debug_message(phm, HPI_DEBUG_FLAG_##level \
+-				FILE_LINE __stringify(level)); \
++				FILE_LINE " " __stringify(level)); \
+ 		} \
+ 	} while (0)
+ 
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-mm-convert-dax-lock-unlock-page-to-lock-unlock-folio.patch
-buffer-pass-gfp-flags-to-folio_alloc_buffers.patch
-buffer-hoist-gfp-flags-from-grow_dev_page-to-__getblk_gfp.patch
-ext4-use-bdev_getblk-to-avoid-memory-reclaim-in-readahead-path.patch
-buffer-use-bdev_getblk-to-avoid-memory-reclaim-in-readahead-path.patch
-buffer-convert-getblk_unmovable-and-__getblk-to-use-bdev_getblk.patch
-buffer-convert-sb_getblk-to-call-__getblk.patch
-ext4-call-bdev_getblk-from-sb_getblk_gfp.patch
-buffer-remove-__getblk_gfp.patch
-hugetlb-use-a-folio-in-free_hpage_workfn.patch
-hugetlb-remove-a-few-calls-to-page_folio.patch
-hugetlb-convert-remove_pool_huge_page-to-remove_pool_hugetlb_folio.patch
+proc-fix-smaps_rollup-test-after-ksm-changes.patch
+extract-and-use-file_line-macro.patch
 
