@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99E02C46CA1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CFA4AC2BA2B
 	for <mm-commits@archiver.kernel.org>; Sat, 16 Sep 2023 20:19:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236879AbjIPUSc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 16 Sep 2023 16:18:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33514 "EHLO
+        id S238951AbjIPUSd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 16 Sep 2023 16:18:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46142 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237994AbjIPUSW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 16 Sep 2023 16:18:22 -0400
+        with ESMTP id S239388AbjIPUSZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 16 Sep 2023 16:18:25 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C7DACD8
-        for <mm-commits@vger.kernel.org>; Sat, 16 Sep 2023 13:18:16 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 166A8C433C8;
-        Sat, 16 Sep 2023 20:18:16 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D25AFCD8
+        for <mm-commits@vger.kernel.org>; Sat, 16 Sep 2023 13:18:19 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C904C433C7;
+        Sat, 16 Sep 2023 20:18:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1694895496;
-        bh=tek3r3gofjAPu3kgH93dOzjQSVf+a4SoL2xo8G3+eZc=;
+        s=korg; t=1694895499;
+        bh=sSVwcwMYTj4bTgfK1ifL7bPW/MO9XkT40xSh7V7/Pa0=;
         h=Date:To:From:Subject:From;
-        b=wsLUs6BSG4P4HMHo6qXv6W/37Vl6lN2ToiHn3w6sf70dvkC94C+xGu5s5WWEyC7/K
-         LHfaUVP3KSNWICN0HR1cXK856EHKF8TB2l8Sb9i6ARCNaiLZZ7nD1TiLZnWBfyMCdC
-         nTMpk8P6mBKQQmqpZjuO5wPBiwm0pwToX3q2QNz0=
-Date:   Sat, 16 Sep 2023 13:18:15 -0700
+        b=JzaPandq+tkSH8hxM7NDZ8trno6k1L7ly+RBTzz8M4U8j79yDZ7kSIWiIJr4tX9bJ
+         l03mDejmJn5HUB+UmPCjX2h7CQlmcbhCO/glywijlDI3DXS52rhr94Ll65AOZ8ISbl
+         P1GvvsDCPm4XbpzAWmOC3tfBXacEcGiyjn0TCOuE=
+Date:   Sat, 16 Sep 2023 13:18:18 -0700
 To:     mm-commits@vger.kernel.org, shuah@kernel.org, rostedt@goodmis.org,
         corbet@lwn.net, sj@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-support-damos-apply-interval.patch added to mm-unstable branch
-Message-Id: <20230916201816.166A8C433C8@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-update-for-damos-apply-intervals.patch added to mm-unstable branch
+Message-Id: <20230916201819.6C904C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: support DAMOS apply interval
+     Subject: Docs/admin-guide/mm/damon/usage: update for DAMOS apply intervals
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-schemes-support-damos-apply-interval.patch
+     docs-admin-guide-mm-damon-usage-update-for-damos-apply-intervals.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-support-damos-apply-interval.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-update-for-damos-apply-intervals.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,15 +60,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: support DAMOS apply interval
-Date: Sat, 16 Sep 2023 02:09:42 +0000
+Subject: Docs/admin-guide/mm/damon/usage: update for DAMOS apply intervals
+Date: Sat, 16 Sep 2023 02:09:44 +0000
 
-Update DAMON sysfs interface to support DAMOS apply intervals by adding a
-new file, 'apply_interval_us' in each scheme directory.  Users can set and
-get the interval for each scheme in microseconds by writing to and reading
-from the file.
+Update DAMON usage document's DAMON sysfs interface section for the newly
+added DAMOS apply intervals support (apply_interval_us file).
 
-Link: https://lkml.kernel.org/r/20230916020945.47296-7-sj@kernel.org
+Link: https://lkml.kernel.org/r/20230916020945.47296-9-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <shuah@kernel.org>
@@ -76,107 +74,41 @@ Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |   38 +++++++++++++++++++++++++++++++++----
- 1 file changed, 34 insertions(+), 4 deletions(-)
+ Documentation/admin-guide/mm/damon/usage.rst |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-support-damos-apply-interval
-+++ a/mm/damon/sysfs-schemes.c
-@@ -1121,6 +1121,7 @@ struct damon_sysfs_scheme {
- 	struct kobject kobj;
- 	enum damos_action action;
- 	struct damon_sysfs_access_pattern *access_pattern;
-+	unsigned long apply_interval_us;
- 	struct damon_sysfs_quotas *quotas;
- 	struct damon_sysfs_watermarks *watermarks;
- 	struct damon_sysfs_scheme_filters *filters;
-@@ -1141,7 +1142,7 @@ static const char * const damon_sysfs_da
- };
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-update-for-damos-apply-intervals
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -76,7 +76,7 @@ comma (","). ::
+     │ │ │ │ │ │ │ │ ...
+     │ │ │ │ │ │ ...
+     │ │ │ │ │ schemes/nr_schemes
+-    │ │ │ │ │ │ 0/action
++    │ │ │ │ │ │ 0/action,apply_interval_us
+     │ │ │ │ │ │ │ access_pattern/
+     │ │ │ │ │ │ │ │ sz/min,max
+     │ │ │ │ │ │ │ │ nr_accesses/min,max
+@@ -269,8 +269,8 @@ schemes/<N>/
+ ------------
  
- static struct damon_sysfs_scheme *damon_sysfs_scheme_alloc(
--		enum damos_action action)
-+		enum damos_action action, unsigned long apply_interval_us)
- {
- 	struct damon_sysfs_scheme *scheme = kmalloc(sizeof(*scheme),
- 				GFP_KERNEL);
-@@ -1150,6 +1151,7 @@ static struct damon_sysfs_scheme *damon_
- 		return NULL;
- 	scheme->kobj = (struct kobject){};
- 	scheme->action = action;
-+	scheme->apply_interval_us = apply_interval_us;
- 	return scheme;
- }
+ In each scheme directory, five directories (``access_pattern``, ``quotas``,
+-``watermarks``, ``filters``, ``stats``, and ``tried_regions``) and one file
+-(``action``) exist.
++``watermarks``, ``filters``, ``stats``, and ``tried_regions``) and two files
++(``action`` and ``apply_interval``) exist.
  
-@@ -1353,6 +1355,25 @@ static ssize_t action_store(struct kobje
- 	return -EINVAL;
- }
+ The ``action`` file is for setting and getting the scheme's :ref:`action
+ <damon_design_damos_action>`.  The keywords that can be written to and read
+@@ -296,6 +296,9 @@ Note that support of each action depends
+  - ``stat``: Do nothing but count the statistics.
+    Supported by all operations sets.
  
-+static ssize_t apply_interval_us_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	struct damon_sysfs_scheme *scheme = container_of(kobj,
-+			struct damon_sysfs_scheme, kobj);
++The ``apply_interval_us`` file is for setting and getting the scheme's
++:ref:`apply_interval <damon_design_damos>` in microseconds.
 +
-+	return sysfs_emit(buf, "%lu\n", scheme->apply_interval_us);
-+}
-+
-+static ssize_t apply_interval_us_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
-+{
-+	struct damon_sysfs_scheme *scheme = container_of(kobj,
-+			struct damon_sysfs_scheme, kobj);
-+	int err = kstrtoul(buf, 0, &scheme->apply_interval_us);
-+
-+	return err ? err : count;
-+}
-+
- static void damon_sysfs_scheme_release(struct kobject *kobj)
- {
- 	kfree(container_of(kobj, struct damon_sysfs_scheme, kobj));
-@@ -1361,8 +1382,12 @@ static void damon_sysfs_scheme_release(s
- static struct kobj_attribute damon_sysfs_scheme_action_attr =
- 		__ATTR_RW_MODE(action, 0600);
+ schemes/<N>/access_pattern/
+ ---------------------------
  
-+static struct kobj_attribute damon_sysfs_scheme_apply_interval_us_attr =
-+		__ATTR_RW_MODE(apply_interval_us, 0600);
-+
- static struct attribute *damon_sysfs_scheme_attrs[] = {
- 	&damon_sysfs_scheme_action_attr.attr,
-+	&damon_sysfs_scheme_apply_interval_us_attr.attr,
- 	NULL,
- };
- ATTRIBUTE_GROUPS(damon_sysfs_scheme);
-@@ -1413,7 +1438,11 @@ static int damon_sysfs_schemes_add_dirs(
- 	schemes->schemes_arr = schemes_arr;
- 
- 	for (i = 0; i < nr_schemes; i++) {
--		scheme = damon_sysfs_scheme_alloc(DAMOS_STAT);
-+		/*
-+		 * apply_interval_us as 0 means same to aggregation interval
-+		 * (same to before-apply_interval behavior)
-+		 */
-+		scheme = damon_sysfs_scheme_alloc(DAMOS_STAT, 0);
- 		if (!scheme) {
- 			damon_sysfs_schemes_rm_dirs(schemes);
- 			return -ENOMEM;
-@@ -1610,8 +1639,8 @@ static struct damos *damon_sysfs_mk_sche
- 		.low = sysfs_wmarks->low,
- 	};
- 
--	scheme = damon_new_scheme(&pattern, sysfs_scheme->action, 0, &quota,
--			&wmarks);
-+	scheme = damon_new_scheme(&pattern, sysfs_scheme->action,
-+			sysfs_scheme->apply_interval_us, &quota, &wmarks);
- 	if (!scheme)
- 		return NULL;
- 
-@@ -1641,6 +1670,7 @@ static void damon_sysfs_update_scheme(st
- 	scheme->pattern.max_age_region = access_pattern->age->max;
- 
- 	scheme->action = sysfs_scheme->action;
-+	scheme->apply_interval_us = sysfs_scheme->apply_interval_us;
- 
- 	scheme->quota.ms = sysfs_quotas->ms;
- 	scheme->quota.sz = sysfs_quotas->sz;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
