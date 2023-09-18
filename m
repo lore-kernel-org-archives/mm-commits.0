@@ -2,35 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0FF9CD13D8
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Sep 2023 15:46:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62C28CD13DA
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Sep 2023 16:09:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229632AbjIRPqT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 18 Sep 2023 11:46:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44658 "EHLO
+        id S229890AbjIRQJY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 18 Sep 2023 12:09:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54896 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229767AbjIRPqR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Sep 2023 11:46:17 -0400
+        with ESMTP id S230012AbjIRQJH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Sep 2023 12:09:07 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A7092700
-        for <mm-commits@vger.kernel.org>; Mon, 18 Sep 2023 08:43:41 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 838A3C433CB;
-        Mon, 18 Sep 2023 15:41:04 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7014F5B93
+        for <mm-commits@vger.kernel.org>; Mon, 18 Sep 2023 09:07:32 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6148C116AD;
+        Mon, 18 Sep 2023 15:52:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695051664;
-        bh=PzhbLDeimZ+S5dvX2Q1QAiVb0/mn5fkLtv56CIvPMlg=;
+        s=korg; t=1695052337;
+        bh=kpERd8SxZClF7mPEcdksvbleuySgirE8lst+TbzMLF8=;
         h=Date:To:From:Subject:From;
-        b=dE2A87ITZa9JwPd3lZVoAhvc0CbnGEEhSGgdbY8itF5Y98xTBnW96W+xDzl+w0E+f
-         yTwZ1LH+MDItslIbps2od6U7Ol+GuvsBKaDKLMN8AsG26px0AOlbQLv2OrEUL3CYyB
-         hkuELbJAw7//5Wm+8A4f0uaNO+EWfhobnVvFk/CE=
-Date:   Mon, 18 Sep 2023 08:41:03 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com,
-        yosryahmed@google.com, willy@infradead.org, shy828301@gmail.com,
-        ryan.roberts@arm.com, hughd@google.com, david@redhat.com,
-        fengwei.yin@intel.com, akpm@linux-foundation.org
+        b=z1WIoq7AjqE8s3nYXU5HOPUO1rNQx/Ig3KDz0BpmWmtCJ6Qp79gOSbcXPrP05aZ6o
+         ksdJJKeTiz+BVGOfsQkSEf12Sy/+5yCVbWmI5x4Unxz2XSjR1DmsKbfWYbgxvEHxXf
+         rGpwAt4UpVAGfepcmqeQGCNdrovYQQ9kkGFygT5A=
+Date:   Mon, 18 Sep 2023 08:52:16 -0700
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        tsbogend@alpha.franken.de, tglx@linutronix.de, song@kernel.org,
+        rostedt@goodmis.org, rick.p.edgecombe@intel.com,
+        puranjay12@gmail.com, palmer@dabbelt.com,
+        naveen.n.rao@linux.ibm.com, nadav.amit@gmail.com,
+        mpe@ellerman.id.au, mcgrof@kernel.org, mark.rutland@arm.com,
+        linux@armlinux.org.uk, kent.overstreet@linux.dev,
+        hca@linux.ibm.com, dinguyen@kernel.org, deller@gmx.de,
+        davem@davemloft.net, christophe.leroy@csgroup.eu,
+        chenhuacai@kernel.org, catalin.marinas@arm.com, bjorn@kernel.org,
+        rppt@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mlock-update-mlock_pte_range-to-handle-large-folio.patch added to mm-unstable branch
-Message-Id: <20230918154104.838A3C433CB@smtp.kernel.org>
+Subject: + riscv-extend-execmem_params-for-generated-code-allocations.patch added to mm-unstable branch
+Message-Id: <20230918155216.D6148C116AD@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: mlock: update mlock_pte_range to handle large folio
+     Subject: riscv: extend execmem_params for generated code allocations
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mlock-update-mlock_pte_range-to-handle-large-folio.patch
+     riscv-extend-execmem_params-for-generated-code-allocations.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mlock-update-mlock_pte_range-to-handle-large-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-extend-execmem_params-for-generated-code-allocations.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -61,147 +68,151 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yin Fengwei <fengwei.yin@intel.com>
-Subject: mm: mlock: update mlock_pte_range to handle large folio
-Date: Mon, 18 Sep 2023 15:33:18 +0800
+From: "Mike Rapoport (IBM)" <rppt@kernel.org>
+Subject: riscv: extend execmem_params for generated code allocations
+Date: Mon, 18 Sep 2023 10:29:50 +0300
 
-Current kernel only lock base size folio during mlock syscall.
-Add large folio support with following rules:
-  - Only mlock large folio when it's in VM_LOCKED VMA range
-    and fully mapped to page table.
+The memory allocations for kprobes and BPF on RISC-V are not placed in the
+modules area and these custom allocations are implemented with overrides
+of alloc_insn_page() and bpf_jit_alloc_exec().
 
-    fully mapped folio is required as if folio is not fully
-    mapped to a VM_LOCKED VMA, if system is in memory pressure,
-    page reclaim is allowed to pick up this folio, split it
-    and reclaim the pages which are not in VM_LOCKED VMA.
+Slightly reorder execmem_params initialization to support both 32 and 64
+bit variants, define EXECMEM_KPROBES and EXECMEM_BPF ranges in
+riscv::execmem_params and drop overrides of alloc_insn_page() and
+bpf_jit_alloc_exec().
 
-  - munlock will apply to the large folio which is in VMA range
-    or cross the VMA boundary.
-
-    This is required to handle the case that the large folio is
-    mlocked, later the VMA is split in the middle of large folio.
-
-Link: https://lkml.kernel.org/r/20230918073318.1181104-4-fengwei.yin@intel.com
-Signed-off-by: Yin Fengwei <fengwei.yin@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/20230918072955.2507221-9-rppt@kernel.org
+Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Björn Töpel <bjorn@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Dinh Nguyen <dinguyen@kernel.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Puranjay Mohan <puranjay12@gmail.com>
+Cc: Rick Edgecombe <rick.p.edgecombe@intel.com>
+Cc: Russell King (Oracle) <linux@armlinux.org.uk>
+Cc: Song Liu <song@kernel.org>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |   66 +++++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 64 insertions(+), 2 deletions(-)
+ arch/riscv/kernel/module.c         |   21 ++++++++++++++++++++-
+ arch/riscv/kernel/probes/kprobes.c |   10 ----------
+ arch/riscv/net/bpf_jit_core.c      |   13 -------------
+ 3 files changed, 20 insertions(+), 24 deletions(-)
 
---- a/mm/mlock.c~mm-mlock-update-mlock_pte_range-to-handle-large-folio
-+++ a/mm/mlock.c
-@@ -305,6 +305,58 @@ void munlock_folio(struct folio *folio)
- 	local_unlock(&mlock_fbatch.lock);
+--- a/arch/riscv/kernel/module.c~riscv-extend-execmem_params-for-generated-code-allocations
++++ a/arch/riscv/kernel/module.c
+@@ -436,20 +436,39 @@ int apply_relocate_add(Elf_Shdr *sechdrs
+ 	return 0;
  }
  
-+static inline unsigned int folio_mlock_step(struct folio *folio,
-+		pte_t *pte, unsigned long addr, unsigned long end)
-+{
-+	unsigned int count, i, nr = folio_nr_pages(folio);
-+	unsigned long pfn = folio_pfn(folio);
-+	pte_t ptent = ptep_get(pte);
-+
-+	if (!folio_test_large(folio))
-+		return 1;
-+
-+	count = pfn + nr - pte_pfn(ptent);
-+	count = min_t(unsigned int, count, (end - addr) >> PAGE_SHIFT);
-+
-+	for (i = 0; i < count; i++, pte++) {
-+		pte_t entry = ptep_get(pte);
-+
-+		if (!pte_present(entry))
-+			break;
-+		if (pte_pfn(entry) - pfn >= nr)
-+			break;
-+	}
-+
-+	return i;
-+}
-+
-+static inline bool allow_mlock_munlock(struct folio *folio,
-+		struct vm_area_struct *vma, unsigned long start,
-+		unsigned long end, unsigned int step)
-+{
-+	/*
-+	 * For unlock, allow munlock large folio which is partially
-+	 * mapped to VMA. As it's possible that large folio is
-+	 * mlocked and VMA is split later.
-+	 *
-+	 * During memory pressure, such kind of large folio can
-+	 * be split. And the pages are not in VM_LOCKed VMA
-+	 * can be reclaimed.
-+	 */
-+	if (!(vma->vm_flags & VM_LOCKED))
-+		return true;
-+
-+	/* folio not in range [start, end), skip mlock */
-+	if (!folio_within_range(folio, vma, start, end))
-+		return false;
-+
-+	/* folio is not fully mapped, skip mlock */
-+	if (step != folio_nr_pages(folio))
-+		return false;
-+
-+	return true;
-+}
-+
- static int mlock_pte_range(pmd_t *pmd, unsigned long addr,
- 			   unsigned long end, struct mm_walk *walk)
+-#if defined(CONFIG_MMU) && defined(CONFIG_64BIT)
++#ifdef CONFIG_MMU
+ static struct execmem_params execmem_params __ro_after_init = {
+ 	.ranges = {
+ 		[EXECMEM_DEFAULT] = {
+ 			.pgprot = PAGE_KERNEL,
+ 			.alignment = 1,
+ 		},
++		[EXECMEM_KPROBES] = {
++			.pgprot = PAGE_KERNEL_READ_EXEC,
++			.alignment = 1,
++		},
++		[EXECMEM_BPF] = {
++			.pgprot = PAGE_KERNEL,
++			.alignment = 1,
++		},
+ 	},
+ };
  
-@@ -314,6 +366,8 @@ static int mlock_pte_range(pmd_t *pmd, u
- 	pte_t *start_pte, *pte;
- 	pte_t ptent;
- 	struct folio *folio;
-+	unsigned int step = 1;
-+	unsigned long start = addr;
+ struct execmem_params __init *execmem_arch_params(void)
+ {
++#ifdef CONFIG_64BIT
+ 	execmem_params.ranges[EXECMEM_DEFAULT].start = MODULES_VADDR;
+ 	execmem_params.ranges[EXECMEM_DEFAULT].end = MODULES_END;
++#else
++	execmem_params.ranges[EXECMEM_DEFAULT].start = VMALLOC_START;
++	execmem_params.ranges[EXECMEM_DEFAULT].end = VMALLOC_END;
++#endif
++
++	execmem_params.ranges[EXECMEM_KPROBES].start = VMALLOC_START;
++	execmem_params.ranges[EXECMEM_KPROBES].end = VMALLOC_END;
++
++	execmem_params.ranges[EXECMEM_BPF].start = BPF_JIT_REGION_START;
++	execmem_params.ranges[EXECMEM_BPF].end = BPF_JIT_REGION_END;
  
- 	ptl = pmd_trans_huge_lock(pmd, vma);
- 	if (ptl) {
-@@ -334,6 +388,7 @@ static int mlock_pte_range(pmd_t *pmd, u
- 		walk->action = ACTION_AGAIN;
- 		return 0;
- 	}
-+
- 	for (pte = start_pte; addr != end; pte++, addr += PAGE_SIZE) {
- 		ptent = ptep_get(pte);
- 		if (!pte_present(ptent))
-@@ -341,12 +396,19 @@ static int mlock_pte_range(pmd_t *pmd, u
- 		folio = vm_normal_folio(vma, addr, ptent);
- 		if (!folio || folio_is_zone_device(folio))
- 			continue;
--		if (folio_test_large(folio))
--			continue;
-+
-+		step = folio_mlock_step(folio, pte, addr, end);
-+		if (!allow_mlock_munlock(folio, vma, start, end, step))
-+			goto next_entry;
-+
- 		if (vma->vm_flags & VM_LOCKED)
- 			mlock_folio(folio);
- 		else
- 			munlock_folio(folio);
-+
-+next_entry:
-+		pte += step - 1;
-+		addr += (step - 1) << PAGE_SHIFT;
- 	}
- 	pte_unmap(start_pte);
- out:
+ 	return &execmem_params;
+ }
+--- a/arch/riscv/kernel/probes/kprobes.c~riscv-extend-execmem_params-for-generated-code-allocations
++++ a/arch/riscv/kernel/probes/kprobes.c
+@@ -104,16 +104,6 @@ int __kprobes arch_prepare_kprobe(struct
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_MMU
+-void *alloc_insn_page(void)
+-{
+-	return  __vmalloc_node_range(PAGE_SIZE, 1, VMALLOC_START, VMALLOC_END,
+-				     GFP_KERNEL, PAGE_KERNEL_READ_EXEC,
+-				     VM_FLUSH_RESET_PERMS, NUMA_NO_NODE,
+-				     __builtin_return_address(0));
+-}
+-#endif
+-
+ /* install breakpoint in text */
+ void __kprobes arch_arm_kprobe(struct kprobe *p)
+ {
+--- a/arch/riscv/net/bpf_jit_core.c~riscv-extend-execmem_params-for-generated-code-allocations
++++ a/arch/riscv/net/bpf_jit_core.c
+@@ -218,19 +218,6 @@ u64 bpf_jit_alloc_exec_limit(void)
+ 	return BPF_JIT_REGION_SIZE;
+ }
+ 
+-void *bpf_jit_alloc_exec(unsigned long size)
+-{
+-	return __vmalloc_node_range(size, PAGE_SIZE, BPF_JIT_REGION_START,
+-				    BPF_JIT_REGION_END, GFP_KERNEL,
+-				    PAGE_KERNEL, 0, NUMA_NO_NODE,
+-				    __builtin_return_address(0));
+-}
+-
+-void bpf_jit_free_exec(void *addr)
+-{
+-	return vfree(addr);
+-}
+-
+ void *bpf_arch_text_copy(void *dst, void *src, size_t len)
+ {
+ 	int ret;
 _
 
-Patches currently in -mm which might be from fengwei.yin@intel.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-filemap-add-filemap_map_order0_folio-to-handle-order0-folio.patch
-mm-add-functions-folio_in_range-and-folio_within_vma.patch
-mm-handle-large-folio-when-large-folio-in-vm_locked-vma-range.patch
-mm-mlock-update-mlock_pte_range-to-handle-large-folio.patch
+nios2-define-virtual-address-space-for-modules.patch
+mm-introduce-execmem_text_alloc-and-execmem_free.patch
+mm-execmem-arch-convert-simple-overrides-of-module_alloc-to-execmem.patch
+mm-execmem-arch-convert-remaining-overrides-of-module_alloc-to-execmem.patch
+modules-execmem-drop-module_alloc.patch
+mm-execmem-introduce-execmem_data_alloc.patch
+arm64-execmem-extend-execmem_params-for-generated-code-allocations.patch
+riscv-extend-execmem_params-for-generated-code-allocations.patch
+powerpc-extend-execmem_params-for-kprobes-allocations.patch
+arch-make-execmem-setup-available-regardless-of-config_modules.patch
+x86-ftrace-enable-dynamic-ftrace-without-config_modules.patch
+kprobes-remove-dependency-on-config_modules.patch
+bpf-remove-config_bpf_jit-dependency-on-config_modules-of.patch
 
