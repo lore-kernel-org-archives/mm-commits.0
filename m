@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11A8ACD37B0
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Sep 2023 16:09:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08789C46CA1
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Sep 2023 16:09:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230125AbjIRQJY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 18 Sep 2023 12:09:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42774 "EHLO
+        id S229730AbjIRQJ0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 18 Sep 2023 12:09:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42784 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229975AbjIRQJH (ORCPT
+        with ESMTP id S230075AbjIRQJH (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Sep 2023 12:09:07 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 68D1D46A3
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 727DE5B95
         for <mm-commits@vger.kernel.org>; Mon, 18 Sep 2023 09:07:32 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A098C116AB;
-        Mon, 18 Sep 2023 15:52:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D336CC116B0;
+        Mon, 18 Sep 2023 15:52:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695052334;
-        bh=D9ktlfMKZPOhdTMkzc8mSs+sO5qVbVnMbkov+JH7Brk=;
+        s=korg; t=1695052352;
+        bh=E9Ra3F0UHdUwaEbC0ONrdAvsI0AM5xGi3e4+aVePIpI=;
         h=Date:To:From:Subject:From;
-        b=vxN381JSpS8CqZVHmVfE8EoI3QQw23+mdkMWOKA+qhjtRDgwSvvNI5ctceN/jNRGn
-         0DtpDsjIMd6lmmNOJi2d5Ne0F/0MBB7eVG4oMg00XZJVw3qGD1vMARqHuECOOv9Brk
-         91bWj5iKOcaI2Js1gGYQcMUGFXNBnzlLu/c84b2M=
-Date:   Mon, 18 Sep 2023 08:52:13 -0700
+        b=ntyjdLRetz2LgLtZyrDOA23y/XMBXBDb0hc2L9Gjb0KhWc0+gyxYyLeVxWzy7vxcq
+         DbzKuOAMUMZSCta4/xDCCfV8LwSNnDs7TfteS4uvhbl9xuoYH2CZm2oa/j/O4iSsDl
+         n1XaUAwBJ9gM9uoB6Ae0K21S8nV7OOg7kIJ1jyxg=
+Date:   Mon, 18 Sep 2023 08:52:32 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org,
         tsbogend@alpha.franken.de, tglx@linutronix.de, song@kernel.org,
         rostedt@goodmis.org, rick.p.edgecombe@intel.com,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org,
         chenhuacai@kernel.org, catalin.marinas@arm.com, bjorn@kernel.org,
         rppt@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-execmem-extend-execmem_params-for-generated-code-allocations.patch added to mm-unstable branch
-Message-Id: <20230918155214.3A098C116AB@smtp.kernel.org>
+Subject: + kprobes-remove-dependency-on-config_modules.patch added to mm-unstable branch
+Message-Id: <20230918155232.D336CC116B0@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64, execmem: extend execmem_params for generated code allocations
+     Subject: kprobes: remove dependency on CONFIG_MODULES
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-execmem-extend-execmem_params-for-generated-code-allocations.patch
+     kprobes-remove-dependency-on-config_modules.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-execmem-extend-execmem_params-for-generated-code-allocations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kprobes-remove-dependency-on-config_modules.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,17 +69,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: arm64, execmem: extend execmem_params for generated code allocations
-Date: Mon, 18 Sep 2023 10:29:49 +0300
+Subject: kprobes: remove dependency on CONFIG_MODULES
+Date: Mon, 18 Sep 2023 10:29:54 +0300
 
-The memory allocations for kprobes and BPF on arm64 can be placed anywhere
-in vmalloc address space and currently this is implemented with overrides
-of alloc_insn_page() and bpf_jit_alloc_exec() in arm64.
+kprobes depended on CONFIG_MODULES because it has to allocate memory for
+code.
 
-Define EXECMEM_KPROBES and EXECMEM_BPF ranges in arm64::execmem_params and
-drop overrides of alloc_insn_page() and bpf_jit_alloc_exec().
+Since code allocations are now implemented with execmem, kprobes can be
+enabled in non-modular kernels.
 
-Link: https://lkml.kernel.org/r/20230918072955.2507221-8-rppt@kernel.org
+Add #ifdef CONFIG_MODULE guards for the code dealing with kprobes inside
+modules, make CONFIG_KPROBES select CONFIG_EXECMEM and drop the dependency
+of CONFIG_KPROBES on CONFIG_MODULES.
+
+Link: https://lkml.kernel.org/r/20230918072955.2507221-13-rppt@kernel.org
 Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Björn Töpel <bjorn@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -107,76 +110,163 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/module.c         |   13 +++++++++++++
- arch/arm64/kernel/probes/kprobes.c |    7 -------
- arch/arm64/net/bpf_jit_comp.c      |   11 -----------
- 3 files changed, 13 insertions(+), 18 deletions(-)
+ arch/Kconfig                |    2 -
+ kernel/kprobes.c            |   43 +++++++++++++++++++---------------
+ kernel/trace/trace_kprobe.c |   11 ++++++++
+ 3 files changed, 37 insertions(+), 19 deletions(-)
 
---- a/arch/arm64/kernel/module.c~arm64-execmem-extend-execmem_params-for-generated-code-allocations
-+++ a/arch/arm64/kernel/module.c
-@@ -116,6 +116,16 @@ static struct execmem_params execmem_par
- 			.flags = EXECMEM_KASAN_SHADOW,
- 			.alignment = MODULE_ALIGN,
- 		},
-+		[EXECMEM_KPROBES] = {
-+			.start = VMALLOC_START,
-+			.end = VMALLOC_END,
-+			.alignment = 1,
-+		},
-+		[EXECMEM_BPF] = {
-+			.start = VMALLOC_START,
-+			.end = VMALLOC_END,
-+			.alignment = 1,
-+		},
- 	},
- };
+--- a/arch/Kconfig~kprobes-remove-dependency-on-config_modules
++++ a/arch/Kconfig
+@@ -52,9 +52,9 @@ config GENERIC_ENTRY
  
-@@ -140,6 +150,9 @@ struct execmem_params __init *execmem_ar
- 		r->end = module_plt_base + SZ_2G;
+ config KPROBES
+ 	bool "Kprobes"
+-	depends on MODULES
+ 	depends on HAVE_KPROBES
+ 	select KALLSYMS
++	select EXECMEM
+ 	select TASKS_RCU if PREEMPTION
+ 	help
+ 	  Kprobes allows you to trap at almost any kernel address and
+--- a/kernel/kprobes.c~kprobes-remove-dependency-on-config_modules
++++ a/kernel/kprobes.c
+@@ -1580,6 +1580,7 @@ static int check_kprobe_address_safe(str
+ 		goto out;
  	}
  
-+	execmem_params.ranges[EXECMEM_KPROBES].pgprot = PAGE_KERNEL_ROX;
-+	execmem_params.ranges[EXECMEM_BPF].pgprot = PAGE_KERNEL;
++#ifdef CONFIG_MODULES
+ 	/* Check if 'p' is probing a module. */
+ 	*probed_mod = __module_text_address((unsigned long) p->addr);
+ 	if (*probed_mod) {
+@@ -1603,6 +1604,8 @@ static int check_kprobe_address_safe(str
+ 			ret = -ENOENT;
+ 		}
+ 	}
++#endif
 +
- 	return &execmem_params;
- }
- 
---- a/arch/arm64/kernel/probes/kprobes.c~arm64-execmem-extend-execmem_params-for-generated-code-allocations
-+++ a/arch/arm64/kernel/probes/kprobes.c
-@@ -129,13 +129,6 @@ int __kprobes arch_prepare_kprobe(struct
+ out:
+ 	preempt_enable();
+ 	jump_label_unlock();
+@@ -2495,24 +2498,6 @@ int kprobe_add_area_blacklist(unsigned l
  	return 0;
  }
  
--void *alloc_insn_page(void)
+-/* Remove all symbols in given area from kprobe blacklist */
+-static void kprobe_remove_area_blacklist(unsigned long start, unsigned long end)
 -{
--	return __vmalloc_node_range(PAGE_SIZE, 1, VMALLOC_START, VMALLOC_END,
--			GFP_KERNEL, PAGE_KERNEL_ROX, VM_FLUSH_RESET_PERMS,
--			NUMA_NO_NODE, __builtin_return_address(0));
+-	struct kprobe_blacklist_entry *ent, *n;
+-
+-	list_for_each_entry_safe(ent, n, &kprobe_blacklist, list) {
+-		if (ent->start_addr < start || ent->start_addr >= end)
+-			continue;
+-		list_del(&ent->list);
+-		kfree(ent);
+-	}
 -}
 -
- /* arm kprobe: install breakpoint in text */
- void __kprobes arch_arm_kprobe(struct kprobe *p)
+-static void kprobe_remove_ksym_blacklist(unsigned long entry)
+-{
+-	kprobe_remove_area_blacklist(entry, entry + 1);
+-}
+-
+ int __weak arch_kprobe_get_kallsym(unsigned int *symnum, unsigned long *value,
+ 				   char *type, char *sym)
  {
---- a/arch/arm64/net/bpf_jit_comp.c~arm64-execmem-extend-execmem_params-for-generated-code-allocations
-+++ a/arch/arm64/net/bpf_jit_comp.c
-@@ -1687,17 +1687,6 @@ u64 bpf_jit_alloc_exec_limit(void)
- 	return VMALLOC_END - VMALLOC_START;
+@@ -2577,6 +2562,25 @@ static int __init populate_kprobe_blackl
+ 	return ret ? : arch_populate_kprobe_blacklist();
  }
  
--void *bpf_jit_alloc_exec(unsigned long size)
--{
--	/* Memory is intended to be executable, reset the pointer tag. */
--	return kasan_reset_tag(vmalloc(size));
--}
--
--void bpf_jit_free_exec(void *addr)
--{
--	return vfree(addr);
--}
--
- /* Indicate the JIT backend supports mixing bpf2bpf and tailcalls. */
- bool bpf_jit_supports_subprog_tailcalls(void)
++#ifdef CONFIG_MODULES
++/* Remove all symbols in given area from kprobe blacklist */
++static void kprobe_remove_area_blacklist(unsigned long start, unsigned long end)
++{
++	struct kprobe_blacklist_entry *ent, *n;
++
++	list_for_each_entry_safe(ent, n, &kprobe_blacklist, list) {
++		if (ent->start_addr < start || ent->start_addr >= end)
++			continue;
++		list_del(&ent->list);
++		kfree(ent);
++	}
++}
++
++static void kprobe_remove_ksym_blacklist(unsigned long entry)
++{
++	kprobe_remove_area_blacklist(entry, entry + 1);
++}
++
+ static void add_module_kprobe_blacklist(struct module *mod)
  {
+ 	unsigned long start, end;
+@@ -2678,6 +2682,7 @@ static struct notifier_block kprobe_modu
+ 	.notifier_call = kprobes_module_callback,
+ 	.priority = 0
+ };
++#endif
+ 
+ void kprobe_free_init_mem(void)
+ {
+@@ -2737,8 +2742,10 @@ static int __init init_kprobes(void)
+ 	err = arch_init_kprobes();
+ 	if (!err)
+ 		err = register_die_notifier(&kprobe_exceptions_nb);
++#ifdef CONFIG_MODULES
+ 	if (!err)
+ 		err = register_module_notifier(&kprobe_module_nb);
++#endif
+ 
+ 	kprobes_initialized = (err == 0);
+ 	kprobe_sysctls_init();
+--- a/kernel/trace/trace_kprobe.c~kprobes-remove-dependency-on-config_modules
++++ a/kernel/trace/trace_kprobe.c
+@@ -111,6 +111,7 @@ static nokprobe_inline bool trace_kprobe
+ 	return strncmp(module_name(mod), name, len) == 0 && name[len] == ':';
+ }
+ 
++#ifdef CONFIG_MODULES
+ static nokprobe_inline bool trace_kprobe_module_exist(struct trace_kprobe *tk)
+ {
+ 	char *p;
+@@ -129,6 +130,12 @@ static nokprobe_inline bool trace_kprobe
+ 
+ 	return ret;
+ }
++#else
++static inline bool trace_kprobe_module_exist(struct trace_kprobe *tk)
++{
++	return false;
++}
++#endif
+ 
+ static bool trace_kprobe_is_busy(struct dyn_event *ev)
+ {
+@@ -670,6 +677,7 @@ end:
+ 	return ret;
+ }
+ 
++#ifdef CONFIG_MODULES
+ /* Module notifier call back, checking event on the module */
+ static int trace_kprobe_module_callback(struct notifier_block *nb,
+ 				       unsigned long val, void *data)
+@@ -704,6 +712,7 @@ static struct notifier_block trace_kprob
+ 	.notifier_call = trace_kprobe_module_callback,
+ 	.priority = 1	/* Invoked after kprobe module callback */
+ };
++#endif
+ 
+ static int __trace_kprobe_create(int argc, const char *argv[])
+ {
+@@ -1810,8 +1819,10 @@ static __init int init_kprobe_trace_earl
+ 	if (ret)
+ 		return ret;
+ 
++#ifdef CONFIG_MODULES
+ 	if (register_module_notifier(&trace_kprobe_module_nb))
+ 		return -EINVAL;
++#endif
+ 
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
