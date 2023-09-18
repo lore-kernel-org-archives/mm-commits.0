@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03519CD13D2
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Sep 2023 16:10:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39911CD13D2
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Sep 2023 16:19:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230034AbjIRQKD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 18 Sep 2023 12:10:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46466 "EHLO
+        id S230108AbjIRQT3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 18 Sep 2023 12:19:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50742 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230079AbjIRQJO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Sep 2023 12:09:14 -0400
+        with ESMTP id S230118AbjIRQTE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Sep 2023 12:19:04 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11ECD49E1
-        for <mm-commits@vger.kernel.org>; Mon, 18 Sep 2023 09:07:52 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 992D9C116AA;
-        Mon, 18 Sep 2023 15:51:59 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B1BC75BA6
+        for <mm-commits@vger.kernel.org>; Mon, 18 Sep 2023 09:17:32 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F785C116B1;
+        Mon, 18 Sep 2023 15:52:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695052319;
-        bh=4quqBxxXx14cgnar8MDhajbvQYzP6rzJHtRoEtAxVUc=;
+        s=korg; t=1695052355;
+        bh=1zfXy/KQOtOab8NpEbw9ESwJDwcPI/Z84JwFVKUF0F8=;
         h=Date:To:From:Subject:From;
-        b=cRcfLZVOAnPIP9T0YXnN9j9CWcHbgA7dKVqUe4xa4kmBCmcNmercmb9nDCCzSXD5p
-         ro/ZsIvkVNiS7JOrOFYno6h5b78At3+QKaCoLs+Jj8N/1zCVflJs0DhYXpxiu2nZjL
-         m3KJZbWULwQERxbrHNLHQks7u1jykON1LcBDrJpY=
-Date:   Mon, 18 Sep 2023 08:51:59 -0700
+        b=YpkvADubiBzijKS5qizsLMKV7vJ/KyiMqzERe00g5LrNLH+5nDGIvhu/tRwOnzoP3
+         edHsuGoT4yXSywkUEZYgDA+rO8eEn+7GZub2WGUlvrxzk6v6c3FDmLd0ZV4DP2pD5V
+         KIAEW8qYxYWZfFd5KNevOfxBRAPMRTgC4vxpY9ys=
+Date:   Mon, 18 Sep 2023 08:52:35 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org,
         tsbogend@alpha.franken.de, tglx@linutronix.de, song@kernel.org,
         rostedt@goodmis.org, rick.p.edgecombe@intel.com,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org,
         chenhuacai@kernel.org, catalin.marinas@arm.com, bjorn@kernel.org,
         rppt@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-execmem-arch-convert-simple-overrides-of-module_alloc-to-execmem.patch added to mm-unstable branch
-Message-Id: <20230918155159.992D9C116AA@smtp.kernel.org>
+Subject: + bpf-remove-config_bpf_jit-dependency-on-config_modules-of.patch added to mm-unstable branch
+Message-Id: <20230918155235.8F785C116B1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/execmem, arch: convert simple overrides of module_alloc to execmem
+     Subject: bpf: remove CONFIG_BPF_JIT dependency on CONFIG_MODULES of
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-execmem-arch-convert-simple-overrides-of-module_alloc-to-execmem.patch
+     bpf-remove-config_bpf_jit-dependency-on-config_modules-of.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-execmem-arch-convert-simple-overrides-of-module_alloc-to-execmem.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bpf-remove-config_bpf_jit-dependency-on-config_modules-of.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,35 +69,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: mm/execmem, arch: convert simple overrides of module_alloc to execmem
-Date: Mon, 18 Sep 2023 10:29:45 +0300
+Subject: bpf: remove CONFIG_BPF_JIT dependency on CONFIG_MODULES of
+Date: Mon, 18 Sep 2023 10:29:55 +0300
 
-Several architectures override module_alloc() only to define address range
-for code allocations different than VMALLOC address space.
+BPF just-in-time compiler depended on CONFIG_MODULES because it used
+module_alloc() to allocate memory for the generated code.
 
-Provide a generic implementation in execmem that uses the parameters for
-address space ranges, required alignment and page protections provided by
-architectures.
+Since code allocations are now implemented with execmem, drop dependency
+of CONFIG_BPF_JIT on CONFIG_MODULES and make it select CONFIG_EXECMEM.
 
-The architectures must fill execmem_params structure and implement
-execmem_arch_params() that returns a pointer to that structure.  This way
-the execmem initialization won't be called from every architecture, but
-rather from a central place, namely initialization of the core memory
-management.
-
-The execmem provides execmem_text_alloc() API that wraps
-__vmalloc_node_range() with the parameters defined by the architectures. 
-If an architecture does not implement execmem_arch_params(),
-execmem_text_alloc() will fall back to module_alloc().
-
-The name execmem_text_alloc() emphasizes that the allocated memory is for
-executable code, the allocations of the associated data, like data
-sections of a module will use execmem_data_alloc() interface that will be
-added later.
-
-Link: https://lkml.kernel.org/r/20230918072955.2507221-4-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20230918072955.2507221-14-rppt@kernel.org
 Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Björn Töpel <bjorn@kernel.org>
+Suggested-by: Björn Töpel <bjorn@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: David S. Miller <davem@davemloft.net>
@@ -123,418 +106,20 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/loongarch/kernel/module.c |   18 +++++++-
- arch/mips/kernel/module.c      |   19 +++++++-
- arch/nios2/kernel/module.c     |   19 ++++++--
- arch/parisc/kernel/module.c    |   23 +++++++---
- arch/riscv/kernel/module.c     |   20 +++++++--
- arch/sparc/kernel/module.c     |   42 ++++++++-----------
- include/linux/execmem.h        |   44 ++++++++++++++++++++
- mm/execmem.c                   |   66 +++++++++++++++++++++++++++++--
- mm/mm_init.c                   |    2 
- 9 files changed, 202 insertions(+), 51 deletions(-)
+ kernel/bpf/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/loongarch/kernel/module.c~mm-execmem-arch-convert-simple-overrides-of-module_alloc-to-execmem
-+++ a/arch/loongarch/kernel/module.c
-@@ -18,6 +18,7 @@
- #include <linux/ftrace.h>
- #include <linux/string.h>
- #include <linux/kernel.h>
-+#include <linux/execmem.h>
- #include <asm/alternative.h>
- #include <asm/inst.h>
- 
-@@ -469,10 +470,21 @@ int apply_relocate_add(Elf_Shdr *sechdrs
- 	return 0;
- }
- 
--void *module_alloc(unsigned long size)
-+static struct execmem_params execmem_params __ro_after_init = {
-+	.ranges = {
-+		[EXECMEM_DEFAULT] = {
-+			.pgprot = PAGE_KERNEL,
-+			.alignment = 1,
-+		},
-+	},
-+};
-+
-+struct execmem_params __init *execmem_arch_params(void)
- {
--	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
--			GFP_KERNEL, PAGE_KERNEL, 0, NUMA_NO_NODE, __builtin_return_address(0));
-+	execmem_params.ranges[EXECMEM_DEFAULT].start = MODULES_VADDR;
-+	execmem_params.ranges[EXECMEM_DEFAULT].end = MODULES_END;
-+
-+	return &execmem_params;
- }
- 
- static void module_init_ftrace_plt(const Elf_Ehdr *hdr,
---- a/arch/mips/kernel/module.c~mm-execmem-arch-convert-simple-overrides-of-module_alloc-to-execmem
-+++ a/arch/mips/kernel/module.c
-@@ -20,6 +20,7 @@
- #include <linux/kernel.h>
- #include <linux/spinlock.h>
- #include <linux/jump_label.h>
-+#include <linux/execmem.h>
- 
- extern void jump_label_apply_nops(struct module *mod);
- 
-@@ -33,11 +34,21 @@ static LIST_HEAD(dbe_list);
- static DEFINE_SPINLOCK(dbe_lock);
- 
- #ifdef MODULE_START
--void *module_alloc(unsigned long size)
-+static struct execmem_params execmem_params __ro_after_init = {
-+	.ranges = {
-+		[EXECMEM_DEFAULT] = {
-+			.start = MODULE_START,
-+			.end = MODULE_END,
-+			.alignment = 1,
-+		},
-+	},
-+};
-+
-+struct execmem_params __init *execmem_arch_params(void)
- {
--	return __vmalloc_node_range(size, 1, MODULE_START, MODULE_END,
--				GFP_KERNEL, PAGE_KERNEL, 0, NUMA_NO_NODE,
--				__builtin_return_address(0));
-+	execmem_params.ranges[EXECMEM_DEFAULT].pgprot = PAGE_KERNEL;
-+
-+	return &execmem_params;
- }
- #endif
- 
---- a/arch/nios2/kernel/module.c~mm-execmem-arch-convert-simple-overrides-of-module_alloc-to-execmem
-+++ a/arch/nios2/kernel/module.c
-@@ -18,15 +18,24 @@
- #include <linux/fs.h>
- #include <linux/string.h>
- #include <linux/kernel.h>
-+#include <linux/execmem.h>
- 
- #include <asm/cacheflush.h>
- 
--void *module_alloc(unsigned long size)
-+static struct execmem_params execmem_params __ro_after_init = {
-+	.ranges = {
-+		[EXECMEM_DEFAULT] = {
-+			.start = MODULES_VADDR,
-+			.end = MODULES_END,
-+			.pgprot = PAGE_KERNEL_EXEC,
-+			.alignment = 1,
-+		},
-+	},
-+};
-+
-+struct execmem_params __init *execmem_arch_params(void)
- {
--	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
--				    GFP_KERNEL, PAGE_KERNEL_EXEC,
--				    VM_FLUSH_RESET_PERMS, NUMA_NO_NODE,
--				    __builtin_return_address(0));
-+	return &execmem_params;
- }
- 
- int apply_relocate_add(Elf32_Shdr *sechdrs, const char *strtab,
---- a/arch/parisc/kernel/module.c~mm-execmem-arch-convert-simple-overrides-of-module_alloc-to-execmem
-+++ a/arch/parisc/kernel/module.c
-@@ -49,6 +49,7 @@
- #include <linux/bug.h>
- #include <linux/mm.h>
- #include <linux/slab.h>
-+#include <linux/execmem.h>
- 
- #include <asm/unwind.h>
- #include <asm/sections.h>
-@@ -173,15 +174,21 @@ static inline int reassemble_22(int as22
- 		((as22 & 0x0003ff) << 3));
- }
- 
--void *module_alloc(unsigned long size)
-+static struct execmem_params execmem_params __ro_after_init = {
-+	.ranges = {
-+		[EXECMEM_DEFAULT] = {
-+			.pgprot = PAGE_KERNEL_RWX,
-+			.alignment = 1,
-+		},
-+	},
-+};
-+
-+struct execmem_params __init *execmem_arch_params(void)
- {
--	/* using RWX means less protection for modules, but it's
--	 * easier than trying to map the text, data, init_text and
--	 * init_data correctly */
--	return __vmalloc_node_range(size, 1, VMALLOC_START, VMALLOC_END,
--				    GFP_KERNEL,
--				    PAGE_KERNEL_RWX, 0, NUMA_NO_NODE,
--				    __builtin_return_address(0));
-+	execmem_params.ranges[EXECMEM_DEFAULT].start = VMALLOC_START;
-+	execmem_params.ranges[EXECMEM_DEFAULT].end = VMALLOC_END;
-+
-+	return &execmem_params;
- }
- 
- #ifndef CONFIG_64BIT
---- a/arch/riscv/kernel/module.c~mm-execmem-arch-convert-simple-overrides-of-module_alloc-to-execmem
-+++ a/arch/riscv/kernel/module.c
-@@ -11,6 +11,7 @@
- #include <linux/vmalloc.h>
- #include <linux/sizes.h>
- #include <linux/pgtable.h>
-+#include <linux/execmem.h>
- #include <asm/alternative.h>
- #include <asm/sections.h>
- 
-@@ -436,12 +437,21 @@ int apply_relocate_add(Elf_Shdr *sechdrs
- }
- 
- #if defined(CONFIG_MMU) && defined(CONFIG_64BIT)
--void *module_alloc(unsigned long size)
-+static struct execmem_params execmem_params __ro_after_init = {
-+	.ranges = {
-+		[EXECMEM_DEFAULT] = {
-+			.pgprot = PAGE_KERNEL,
-+			.alignment = 1,
-+		},
-+	},
-+};
-+
-+struct execmem_params __init *execmem_arch_params(void)
- {
--	return __vmalloc_node_range(size, 1, MODULES_VADDR,
--				    MODULES_END, GFP_KERNEL,
--				    PAGE_KERNEL, 0, NUMA_NO_NODE,
--				    __builtin_return_address(0));
-+	execmem_params.ranges[EXECMEM_DEFAULT].start = MODULES_VADDR;
-+	execmem_params.ranges[EXECMEM_DEFAULT].end = MODULES_END;
-+
-+	return &execmem_params;
- }
- #endif
- 
---- a/arch/sparc/kernel/module.c~mm-execmem-arch-convert-simple-overrides-of-module_alloc-to-execmem
-+++ a/arch/sparc/kernel/module.c
-@@ -14,6 +14,10 @@
- #include <linux/string.h>
- #include <linux/ctype.h>
- #include <linux/mm.h>
-+#include <linux/execmem.h>
-+#ifdef CONFIG_SPARC64
-+#include <linux/jump_label.h>
-+#endif
- 
- #include <asm/processor.h>
- #include <asm/spitfire.h>
-@@ -21,34 +25,26 @@
- 
- #include "entry.h"
- 
-+static struct execmem_params execmem_params __ro_after_init = {
-+	.ranges = {
-+		[EXECMEM_DEFAULT] = {
- #ifdef CONFIG_SPARC64
--
--#include <linux/jump_label.h>
--
--static void *module_map(unsigned long size)
--{
--	if (PAGE_ALIGN(size) > MODULES_LEN)
--		return NULL;
--	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
--				GFP_KERNEL, PAGE_KERNEL, 0, NUMA_NO_NODE,
--				__builtin_return_address(0));
--}
-+			.start = MODULES_VADDR,
-+			.end = MODULES_END,
- #else
--static void *module_map(unsigned long size)
--{
--	return vmalloc(size);
--}
--#endif /* CONFIG_SPARC64 */
-+			.start = VMALLOC_START,
-+			.end = VMALLOC_END,
-+#endif
-+			.alignment = 1,
-+		},
-+	},
-+};
- 
--void *module_alloc(unsigned long size)
-+struct execmem_params __init *execmem_arch_params(void)
- {
--	void *ret;
--
--	ret = module_map(size);
--	if (ret)
--		memset(ret, 0, size);
-+	execmem_params.ranges[EXECMEM_DEFAULT].pgprot = PAGE_KERNEL;
- 
--	return ret;
-+	return &execmem_params;
- }
- 
- /* Make generic code ignore STT_REGISTER dummy undefined symbols.  */
---- a/include/linux/execmem.h~mm-execmem-arch-convert-simple-overrides-of-module_alloc-to-execmem
-+++ a/include/linux/execmem.h
-@@ -33,6 +33,44 @@ enum execmem_type {
- };
- 
- /**
-+ * struct execmem_range - definition of a memory range suitable for code and
-+ *			  related data allocations
-+ * @start:	address space start
-+ * @end:	address space end (inclusive)
-+ * @pgprot:	permissions for memory in this address space
-+ * @alignment:	alignment required for text allocations
-+ */
-+struct execmem_range {
-+	unsigned long   start;
-+	unsigned long   end;
-+	pgprot_t        pgprot;
-+	unsigned int	alignment;
-+};
-+
-+/**
-+ * struct execmem_params - architecture parameters for code allocations
-+ * @ranges: array of ranges defining architecture specific parameters for
-+ * each type of executable memory allocations
-+ */
-+struct execmem_params {
-+	struct execmem_range	ranges[EXECMEM_TYPE_MAX];
-+};
-+
-+/**
-+ * execmem_arch_params - supply parameters for allocations of executable memory
-+ *
-+ * A hook for architectures to define parameters for allocations of
-+ * executable memory described by struct execmem_params
-+ *
-+ * For architectures that do not implement this method a default set of
-+ * parameters will be used
-+ *
-+ * Return: a structure defining architecture parameters and restrictions
-+ * for allocations of executable memory
-+ */
-+struct execmem_params *execmem_arch_params(void);
-+
-+/**
-  * execmem_text_alloc - allocate executable memory
-  * @type: type of the allocation
-  * @size: how many bytes of memory are required
-@@ -53,4 +91,10 @@ void *execmem_text_alloc(enum execmem_ty
-  */
- void execmem_free(void *ptr);
- 
-+#ifdef CONFIG_EXECMEM
-+void execmem_init(void);
-+#else
-+static inline void execmem_init(void) {}
-+#endif
-+
- #endif /* _LINUX_EXECMEM_ALLOC_H */
---- a/mm/execmem.c~mm-execmem-arch-convert-simple-overrides-of-module_alloc-to-execmem
-+++ a/mm/execmem.c
-@@ -5,14 +5,26 @@
- #include <linux/execmem.h>
- #include <linux/moduleloader.h>
- 
--static void *execmem_alloc(size_t size)
-+static struct execmem_params execmem_params;
-+
-+static void *execmem_alloc(size_t size, struct execmem_range *range)
- {
--	return module_alloc(size);
-+	unsigned long start = range->start;
-+	unsigned long end = range->end;
-+	unsigned int align = range->alignment;
-+	pgprot_t pgprot = range->pgprot;
-+
-+	return __vmalloc_node_range(size, align, start, end,
-+				   GFP_KERNEL, pgprot, VM_FLUSH_RESET_PERMS,
-+				   NUMA_NO_NODE, __builtin_return_address(0));
- }
- 
- void *execmem_text_alloc(enum execmem_type type, size_t size)
- {
--	return execmem_alloc(size);
-+	if (!execmem_params.ranges[type].start)
-+		return module_alloc(size);
-+
-+	return execmem_alloc(size, &execmem_params.ranges[type]);
- }
- 
- void execmem_free(void *ptr)
-@@ -24,3 +36,51 @@ void execmem_free(void *ptr)
- 	WARN_ON(in_interrupt());
- 	vfree(ptr);
- }
-+
-+struct execmem_params * __weak execmem_arch_params(void)
-+{
-+	return NULL;
-+}
-+
-+static bool execmem_validate_params(struct execmem_params *p)
-+{
-+	struct execmem_range *r = &p->ranges[EXECMEM_DEFAULT];
-+
-+	if (!r->alignment || !r->start || !r->end || !pgprot_val(r->pgprot)) {
-+		pr_crit("Invalid parameters for execmem allocator, module loading will fail");
-+		return false;
-+	}
-+
-+	return true;
-+}
-+
-+static void execmem_init_missing(struct execmem_params *p)
-+{
-+	struct execmem_range *default_range = &p->ranges[EXECMEM_DEFAULT];
-+
-+	for (int i = EXECMEM_DEFAULT + 1; i < EXECMEM_TYPE_MAX; i++) {
-+		struct execmem_range *r = &p->ranges[i];
-+
-+		if (!r->start) {
-+			r->pgprot = default_range->pgprot;
-+			r->alignment = default_range->alignment;
-+			r->start = default_range->start;
-+			r->end = default_range->end;
-+		}
-+	}
-+}
-+
-+void __init execmem_init(void)
-+{
-+	struct execmem_params *p = execmem_arch_params();
-+
-+	if (!p)
-+		return;
-+
-+	if (!execmem_validate_params(p))
-+		return;
-+
-+	execmem_init_missing(p);
-+
-+	execmem_params = *p;
-+}
---- a/mm/mm_init.c~mm-execmem-arch-convert-simple-overrides-of-module_alloc-to-execmem
-+++ a/mm/mm_init.c
-@@ -26,6 +26,7 @@
- #include <linux/pgtable.h>
- #include <linux/swap.h>
- #include <linux/cma.h>
-+#include <linux/execmem.h>
- #include "internal.h"
- #include "slab.h"
- #include "shuffle.h"
-@@ -2795,4 +2796,5 @@ void __init mm_core_init(void)
- 	pti_init();
- 	kmsan_init_runtime();
- 	mm_cache_init();
-+	execmem_init();
- }
+--- a/kernel/bpf/Kconfig~bpf-remove-config_bpf_jit-dependency-on-config_modules-of
++++ a/kernel/bpf/Kconfig
+@@ -42,7 +42,7 @@ config BPF_JIT
+ 	bool "Enable BPF Just In Time compiler"
+ 	depends on BPF
+ 	depends on HAVE_CBPF_JIT || HAVE_EBPF_JIT
+-	depends on MODULES
++	select EXECMEM
+ 	help
+ 	  BPF programs are normally handled by a BPF interpreter. This option
+ 	  allows the kernel to generate native code when a program is loaded
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
