@@ -2,35 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40533CD13DF
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Sep 2023 16:09:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AE87C46CA1
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Sep 2023 16:09:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229957AbjIRQKB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 18 Sep 2023 12:10:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46456 "EHLO
+        id S229697AbjIRQKA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 18 Sep 2023 12:10:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39206 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229864AbjIRQJN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Sep 2023 12:09:13 -0400
+        with ESMTP id S230064AbjIRQJO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Sep 2023 12:09:14 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 571C446AB
-        for <mm-commits@vger.kernel.org>; Mon, 18 Sep 2023 09:07:50 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45552C433CD;
-        Mon, 18 Sep 2023 15:41:02 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 95F4549E7
+        for <mm-commits@vger.kernel.org>; Mon, 18 Sep 2023 09:07:51 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F9C7C116AE;
+        Mon, 18 Sep 2023 15:52:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695051662;
-        bh=6dlXqtxLycLeYHaElfx8vfwKg5u3hZPrSnl7+V6+OTI=;
+        s=korg; t=1695052342;
+        bh=y2hgLU/oSYwqTnHXbaPQpA5/hOMA626wUZF9X6Uzo5Y=;
         h=Date:To:From:Subject:From;
-        b=mgQobiHT1kut91LOYQwDN3TQVbg2DTUXjdhm4cqRJXK4QaqHo5U4Qj91Fq3qkdULb
-         guGsp8UTwqHqKjWP06h12ok9/YP23JVFyUz29zhbpD9P2ACoEMbnYooYGsrXfi0L3Y
-         YZtOvrEyuUa6Szr28jEcTU1naoiEeSXF/T5qIOxI=
-Date:   Mon, 18 Sep 2023 08:41:01 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com,
-        yosryahmed@google.com, willy@infradead.org, shy828301@gmail.com,
-        ryan.roberts@arm.com, hughd@google.com, david@redhat.com,
-        fengwei.yin@intel.com, akpm@linux-foundation.org
+        b=s68jOXul5I0TBe5hAY8FXJPXvB+qeQlPPlyuy1L86EyrwzIhvmBc+Wggz75hw0DN0
+         G3aYEkRbd2uY80F6nqQuY8OxUhSCf7l0DsTqctiUXEMjtb29Im3zToXSt1+iTzI/pK
+         9o8pZcdPwU/0UJwlOWFVHvqfT26irG3Kyk5sL1xA=
+Date:   Mon, 18 Sep 2023 08:52:21 -0700
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        tsbogend@alpha.franken.de, tglx@linutronix.de, song@kernel.org,
+        rostedt@goodmis.org, rick.p.edgecombe@intel.com,
+        puranjay12@gmail.com, palmer@dabbelt.com,
+        naveen.n.rao@linux.ibm.com, nadav.amit@gmail.com,
+        mpe@ellerman.id.au, mcgrof@kernel.org, mark.rutland@arm.com,
+        linux@armlinux.org.uk, kent.overstreet@linux.dev,
+        hca@linux.ibm.com, dinguyen@kernel.org, deller@gmx.de,
+        davem@davemloft.net, christophe.leroy@csgroup.eu,
+        chenhuacai@kernel.org, catalin.marinas@arm.com, bjorn@kernel.org,
+        rppt@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-handle-large-folio-when-large-folio-in-vm_locked-vma-range.patch added to mm-unstable branch
-Message-Id: <20230918154102.45552C433CD@smtp.kernel.org>
+Subject: + arch-make-execmem-setup-available-regardless-of-config_modules.patch added to mm-unstable branch
+Message-Id: <20230918155222.0F9C7C116AE@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: handle large folio when large folio in VM_LOCKED VMA range
+     Subject: arch: make execmem setup available regardless of CONFIG_MODULES
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-handle-large-folio-when-large-folio-in-vm_locked-vma-range.patch
+     arch-make-execmem-setup-available-regardless-of-config_modules.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-handle-large-folio-when-large-folio-in-vm_locked-vma-range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch-make-execmem-setup-available-regardless-of-config_modules.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -61,226 +68,1162 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yin Fengwei <fengwei.yin@intel.com>
-Subject: mm: handle large folio when large folio in VM_LOCKED VMA range
-Date: Mon, 18 Sep 2023 15:33:17 +0800
+From: "Mike Rapoport (IBM)" <rppt@kernel.org>
+Subject: arch: make execmem setup available regardless of CONFIG_MODULES
+Date: Mon, 18 Sep 2023 10:29:52 +0300
 
-If large folio is in the range of VM_LOCKED VMA, it should be mlocked to
-avoid being picked by page reclaim.  Which may split the large folio and
-then mlock each pages again.
+execmem does not depend on modules, on the contrary modules use execmem.
 
-Mlock this kind of large folio to prevent them being picked by page
-reclaim.
+To make execmem available when CONFIG_MODULES=n, for instance for kprobes,
+split execmem_params initialization out from arch/kernel/module.c and
+compile it when CONFIG_EXECMEM=y
 
-For the large folio which cross the boundary of VM_LOCKED VMA or not fully
-mapped to VM_LOCKED VMA, we'd better not to mlock it.  So if the system is
-under memory pressure, this kind of large folio will be split and the
-pages ouf of VM_LOCKED VMA can be reclaimed.
-
-Ideally, for large folio, we should mlock it when the large folio is fully
-mapped to VMA and munlock it if any page are unmampped from VMA.  But it's
-not easy to detect whether the large folio is fully mapped to VMA in some
-cases (like add/remove rmap).  So we update mlock_vma_folio() and
-munlock_vma_folio() to mlock/munlock the folio according to vma->vm_flags.
-Let caller to decide whether they should call these two functions.
-
-For add rmap, only mlock normal 4K folio and postpone large folio handling
-to page reclaim phase.  It is possible to reuse page table iterator to
-detect whether folio is fully mapped or not during page reclaim phase. 
-For remove rmap, invoke munlock_vma_folio() to munlock folio unconditionly
-because rmap makes folio not fully mapped to VMA.
-
-Link: https://lkml.kernel.org/r/20230918073318.1181104-3-fengwei.yin@intel.com
-Signed-off-by: Yin Fengwei <fengwei.yin@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/20230918072955.2507221-11-rppt@kernel.org
+Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Björn Töpel <bjorn@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Dinh Nguyen <dinguyen@kernel.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Puranjay Mohan <puranjay12@gmail.com>
+Cc: Rick Edgecombe <rick.p.edgecombe@intel.com>
+Cc: Russell King (Oracle) <linux@armlinux.org.uk>
+Cc: Song Liu <song@kernel.org>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |   23 +++++++++-------
- mm/rmap.c     |   66 ++++++++++++++++++++++++++++++++++++++++--------
- 2 files changed, 68 insertions(+), 21 deletions(-)
+ arch/arm/kernel/module.c       |   38 --------
+ arch/arm/mm/init.c             |   38 ++++++++
+ arch/arm64/kernel/module.c     |  130 ------------------------------
+ arch/arm64/mm/init.c           |  132 +++++++++++++++++++++++++++++++
+ arch/loongarch/kernel/module.c |   18 ----
+ arch/loongarch/mm/init.c       |   20 ++++
+ arch/mips/kernel/module.c      |   19 ----
+ arch/mips/mm/init.c            |   20 ++++
+ arch/parisc/kernel/module.c    |   17 ---
+ arch/parisc/mm/init.c          |   22 ++++-
+ arch/powerpc/kernel/module.c   |   60 --------------
+ arch/powerpc/mm/mem.c          |   62 ++++++++++++++
+ arch/riscv/kernel/module.c     |   39 ---------
+ arch/riscv/mm/init.c           |   39 +++++++++
+ arch/s390/kernel/module.c      |   25 -----
+ arch/s390/mm/init.c            |   28 ++++++
+ arch/sparc/kernel/module.c     |   23 -----
+ arch/sparc/mm/Makefile         |    2 
+ arch/sparc/mm/execmem.c        |   25 +++++
+ arch/x86/kernel/module.c       |   27 ------
+ arch/x86/mm/init.c             |   29 ++++++
+ 21 files changed, 416 insertions(+), 397 deletions(-)
 
---- a/mm/internal.h~mm-handle-large-folio-when-large-folio-in-vm_locked-vma-range
-+++ a/mm/internal.h
-@@ -645,14 +645,10 @@ folio_within_vma(struct folio *folio, st
-  * mlock is usually called at the end of page_add_*_rmap(), munlock at
-  * the end of page_remove_rmap(); but new anon folios are managed by
-  * folio_add_lru_vma() calling mlock_new_folio().
+--- a/arch/arm64/kernel/module.c~arch-make-execmem-setup-available-regardless-of-config_modules
++++ a/arch/arm64/kernel/module.c
+@@ -20,142 +20,12 @@
+ #include <linux/random.h>
+ #include <linux/scs.h>
+ #include <linux/vmalloc.h>
+-#include <linux/execmem.h>
+ 
+ #include <asm/alternative.h>
+ #include <asm/insn.h>
+ #include <asm/scs.h>
+ #include <asm/sections.h>
+ 
+-static u64 module_direct_base __ro_after_init = 0;
+-static u64 module_plt_base __ro_after_init = 0;
+-
+-/*
+- * Choose a random page-aligned base address for a window of 'size' bytes which
+- * entirely contains the interval [start, end - 1].
+- */
+-static u64 __init random_bounding_box(u64 size, u64 start, u64 end)
+-{
+-	u64 max_pgoff, pgoff;
+-
+-	if ((end - start) >= size)
+-		return 0;
+-
+-	max_pgoff = (size - (end - start)) / PAGE_SIZE;
+-	pgoff = get_random_u32_inclusive(0, max_pgoff);
+-
+-	return start - pgoff * PAGE_SIZE;
+-}
+-
+-/*
+- * Modules may directly reference data and text anywhere within the kernel
+- * image and other modules. References using PREL32 relocations have a +/-2G
+- * range, and so we need to ensure that the entire kernel image and all modules
+- * fall within a 2G window such that these are always within range.
 - *
-- * @compound is used to include pmd mappings of THPs, but filter out
-- * pte mappings of THPs, which cannot be consistently counted: a pte
-- * mapping of the THP head cannot be distinguished by the page alone.
-  */
- void mlock_folio(struct folio *folio);
- static inline void mlock_vma_folio(struct folio *folio,
--			struct vm_area_struct *vma, bool compound)
-+				struct vm_area_struct *vma)
- {
- 	/*
- 	 * The VM_SPECIAL check here serves two purposes.
-@@ -662,17 +658,24 @@ static inline void mlock_vma_folio(struc
- 	 *    file->f_op->mmap() is using vm_insert_page(s), when VM_LOCKED may
- 	 *    still be set while VM_SPECIAL bits are added: so ignore it then.
- 	 */
--	if (unlikely((vma->vm_flags & (VM_LOCKED|VM_SPECIAL)) == VM_LOCKED) &&
--	    (compound || !folio_test_large(folio)))
-+	if (unlikely((vma->vm_flags & (VM_LOCKED|VM_SPECIAL)) == VM_LOCKED))
- 		mlock_folio(folio);
- }
+- * Modules may directly branch to functions and code within the kernel text,
+- * and to functions and code within other modules. These branches will use
+- * CALL26/JUMP26 relocations with a +/-128M range. Without PLTs, we must ensure
+- * that the entire kernel text and all module text falls within a 128M window
+- * such that these are always within range. With PLTs, we can expand this to a
+- * 2G window.
+- *
+- * We chose the 128M region to surround the entire kernel image (rather than
+- * just the text) as using the same bounds for the 128M and 2G regions ensures
+- * by construction that we never select a 128M region that is not a subset of
+- * the 2G region. For very large and unusual kernel configurations this means
+- * we may fall back to PLTs where they could have been avoided, but this keeps
+- * the logic significantly simpler.
+- */
+-static int __init module_init_limits(void)
+-{
+-	u64 kernel_end = (u64)_end;
+-	u64 kernel_start = (u64)_text;
+-	u64 kernel_size = kernel_end - kernel_start;
+-
+-	/*
+-	 * The default modules region is placed immediately below the kernel
+-	 * image, and is large enough to use the full 2G relocation range.
+-	 */
+-	BUILD_BUG_ON(KIMAGE_VADDR != MODULES_END);
+-	BUILD_BUG_ON(MODULES_VSIZE < SZ_2G);
+-
+-	if (!kaslr_enabled()) {
+-		if (kernel_size < SZ_128M)
+-			module_direct_base = kernel_end - SZ_128M;
+-		if (kernel_size < SZ_2G)
+-			module_plt_base = kernel_end - SZ_2G;
+-	} else {
+-		u64 min = kernel_start;
+-		u64 max = kernel_end;
+-
+-		if (IS_ENABLED(CONFIG_RANDOMIZE_MODULE_REGION_FULL)) {
+-			pr_info("2G module region forced by RANDOMIZE_MODULE_REGION_FULL\n");
+-		} else {
+-			module_direct_base = random_bounding_box(SZ_128M, min, max);
+-			if (module_direct_base) {
+-				min = module_direct_base;
+-				max = module_direct_base + SZ_128M;
+-			}
+-		}
+-
+-		module_plt_base = random_bounding_box(SZ_2G, min, max);
+-	}
+-
+-	pr_info("%llu pages in range for non-PLT usage",
+-		module_direct_base ? (SZ_128M - kernel_size) / PAGE_SIZE : 0);
+-	pr_info("%llu pages in range for PLT usage",
+-		module_plt_base ? (SZ_2G - kernel_size) / PAGE_SIZE : 0);
+-
+-	return 0;
+-}
+-
+-static struct execmem_params execmem_params __ro_after_init = {
+-	.ranges = {
+-		[EXECMEM_DEFAULT] = {
+-			.flags = EXECMEM_KASAN_SHADOW,
+-			.alignment = MODULE_ALIGN,
+-		},
+-		[EXECMEM_KPROBES] = {
+-			.start = VMALLOC_START,
+-			.end = VMALLOC_END,
+-			.alignment = 1,
+-		},
+-		[EXECMEM_BPF] = {
+-			.start = VMALLOC_START,
+-			.end = VMALLOC_END,
+-			.alignment = 1,
+-		},
+-	},
+-};
+-
+-struct execmem_params __init *execmem_arch_params(void)
+-{
+-	struct execmem_range *r = &execmem_params.ranges[EXECMEM_DEFAULT];
+-
+-	module_init_limits();
+-
+-	r->pgprot = PAGE_KERNEL;
+-
+-	if (module_direct_base) {
+-		r->start = module_direct_base;
+-		r->end = module_direct_base + SZ_128M;
+-
+-		if (module_plt_base) {
+-			r->fallback_start = module_plt_base;
+-			r->fallback_end = module_plt_base + SZ_2G;
+-		}
+-	} else if (module_plt_base) {
+-		r->start = module_plt_base;
+-		r->end = module_plt_base + SZ_2G;
+-	}
+-
+-	execmem_params.ranges[EXECMEM_KPROBES].pgprot = PAGE_KERNEL_ROX;
+-	execmem_params.ranges[EXECMEM_BPF].pgprot = PAGE_KERNEL;
+-
+-	return &execmem_params;
+-}
+-
+ enum aarch64_reloc_op {
+ 	RELOC_OP_NONE,
+ 	RELOC_OP_ABS,
+--- a/arch/arm64/mm/init.c~arch-make-execmem-setup-available-regardless-of-config_modules
++++ a/arch/arm64/mm/init.c
+@@ -31,6 +31,7 @@
+ #include <linux/hugetlb.h>
+ #include <linux/acpi_iort.h>
+ #include <linux/kmemleak.h>
++#include <linux/execmem.h>
  
- void munlock_folio(struct folio *folio);
- static inline void munlock_vma_folio(struct folio *folio,
--			struct vm_area_struct *vma, bool compound)
-+					struct vm_area_struct *vma)
- {
--	if (unlikely(vma->vm_flags & VM_LOCKED) &&
--	    (compound || !folio_test_large(folio)))
-+	/*
-+	 * munlock if the function is called. Ideally, we should only
-+	 * do munlock if any page of folio is unmapped from VMA and
-+	 * cause folio not fully mapped to VMA.
-+	 *
-+	 * But it's not easy to confirm that's the situation. So we
-+	 * always munlock the folio and page reclaim will correct it
-+	 * if it's wrong.
-+	 */
-+	if (unlikely(vma->vm_flags & VM_LOCKED))
- 		munlock_folio(folio);
- }
- 
---- a/mm/rmap.c~mm-handle-large-folio-when-large-folio-in-vm_locked-vma-range
-+++ a/mm/rmap.c
-@@ -798,6 +798,7 @@ struct folio_referenced_arg {
- 	unsigned long vm_flags;
- 	struct mem_cgroup *memcg;
- };
-+
- /*
-  * arg: folio_referenced_arg will be passed
-  */
-@@ -807,17 +808,33 @@ static bool folio_referenced_one(struct
- 	struct folio_referenced_arg *pra = arg;
- 	DEFINE_FOLIO_VMA_WALK(pvmw, folio, vma, address, 0);
- 	int referenced = 0;
-+	unsigned long start = address, ptes = 0;
- 
- 	while (page_vma_mapped_walk(&pvmw)) {
- 		address = pvmw.address;
- 
--		if ((vma->vm_flags & VM_LOCKED) &&
--		    (!folio_test_large(folio) || !pvmw.pte)) {
--			/* Restore the mlock which got missed */
--			mlock_vma_folio(folio, vma, !pvmw.pte);
--			page_vma_mapped_walk_done(&pvmw);
--			pra->vm_flags |= VM_LOCKED;
--			return false; /* To break the loop */
-+		if (vma->vm_flags & VM_LOCKED) {
-+			if (!folio_test_large(folio) || !pvmw.pte) {
-+				/* Restore the mlock which got missed */
-+				mlock_vma_folio(folio, vma);
-+				page_vma_mapped_walk_done(&pvmw);
-+				pra->vm_flags |= VM_LOCKED;
-+				return false; /* To break the loop */
-+			}
-+			/*
-+			 * For large folio fully mapped to VMA, will
-+			 * be handled after the pvmw loop.
-+			 *
-+			 * For large folio cross VMA boundaries, it's
-+			 * expected to be picked  by page reclaim. But
-+			 * should skip reference of pages which are in
-+			 * the range of VM_LOCKED vma. As page reclaim
-+			 * should just count the reference of pages out
-+			 * the range of VM_LOCKED vma.
-+			 */
-+			ptes++;
-+			pra->mapcount--;
-+			continue;
- 		}
- 
- 		if (pvmw.pte) {
-@@ -842,6 +859,23 @@ static bool folio_referenced_one(struct
- 		pra->mapcount--;
+ #include <asm/boot.h>
+ #include <asm/fixmap.h>
+@@ -547,3 +548,134 @@ void dump_mem_limit(void)
+ 		pr_emerg("Memory Limit: none\n");
  	}
- 
-+	if ((vma->vm_flags & VM_LOCKED) &&
-+			folio_test_large(folio) &&
-+			folio_within_vma(folio, vma)) {
-+		unsigned long s_align, e_align;
+ }
 +
-+		s_align = ALIGN_DOWN(start, PMD_SIZE);
-+		e_align = ALIGN_DOWN(start + folio_size(folio) - 1, PMD_SIZE);
++#ifdef CONFIG_EXECMEM
++static u64 module_direct_base __ro_after_init = 0;
++static u64 module_plt_base __ro_after_init = 0;
 +
-+		/* folio doesn't cross page table boundary and fully mapped */
-+		if ((s_align == e_align) && (ptes == folio_nr_pages(folio))) {
-+			/* Restore the mlock which got missed */
-+			mlock_vma_folio(folio, vma);
-+			pra->vm_flags |= VM_LOCKED;
-+			return false; /* To break the loop */
++/*
++ * Choose a random page-aligned base address for a window of 'size' bytes which
++ * entirely contains the interval [start, end - 1].
++ */
++static u64 __init random_bounding_box(u64 size, u64 start, u64 end)
++{
++	u64 max_pgoff, pgoff;
++
++	if ((end - start) >= size)
++		return 0;
++
++	max_pgoff = (size - (end - start)) / PAGE_SIZE;
++	pgoff = get_random_u32_inclusive(0, max_pgoff);
++
++	return start - pgoff * PAGE_SIZE;
++}
++
++/*
++ * Modules may directly reference data and text anywhere within the kernel
++ * image and other modules. References using PREL32 relocations have a +/-2G
++ * range, and so we need to ensure that the entire kernel image and all modules
++ * fall within a 2G window such that these are always within range.
++ *
++ * Modules may directly branch to functions and code within the kernel text,
++ * and to functions and code within other modules. These branches will use
++ * CALL26/JUMP26 relocations with a +/-128M range. Without PLTs, we must ensure
++ * that the entire kernel text and all module text falls within a 128M window
++ * such that these are always within range. With PLTs, we can expand this to a
++ * 2G window.
++ *
++ * We chose the 128M region to surround the entire kernel image (rather than
++ * just the text) as using the same bounds for the 128M and 2G regions ensures
++ * by construction that we never select a 128M region that is not a subset of
++ * the 2G region. For very large and unusual kernel configurations this means
++ * we may fall back to PLTs where they could have been avoided, but this keeps
++ * the logic significantly simpler.
++ */
++static int __init module_init_limits(void)
++{
++	u64 kernel_end = (u64)_end;
++	u64 kernel_start = (u64)_text;
++	u64 kernel_size = kernel_end - kernel_start;
++
++	/*
++	 * The default modules region is placed immediately below the kernel
++	 * image, and is large enough to use the full 2G relocation range.
++	 */
++	BUILD_BUG_ON(KIMAGE_VADDR != MODULES_END);
++	BUILD_BUG_ON(MODULES_VSIZE < SZ_2G);
++
++	if (!kaslr_enabled()) {
++		if (kernel_size < SZ_128M)
++			module_direct_base = kernel_end - SZ_128M;
++		if (kernel_size < SZ_2G)
++			module_plt_base = kernel_end - SZ_2G;
++	} else {
++		u64 min = kernel_start;
++		u64 max = kernel_end;
++
++		if (IS_ENABLED(CONFIG_RANDOMIZE_MODULE_REGION_FULL)) {
++			pr_info("2G module region forced by RANDOMIZE_MODULE_REGION_FULL\n");
++		} else {
++			module_direct_base = random_bounding_box(SZ_128M, min, max);
++			if (module_direct_base) {
++				min = module_direct_base;
++				max = module_direct_base + SZ_128M;
++			}
 +		}
++
++		module_plt_base = random_bounding_box(SZ_2G, min, max);
 +	}
 +
- 	if (referenced)
- 		folio_clear_idle(folio);
- 	if (folio_test_clear_young(folio))
-@@ -1254,7 +1288,14 @@ void page_add_anon_rmap(struct page *pag
- 			  (folio_test_large(folio) && folio_entire_mapcount(folio) > 1)) &&
- 			 PageAnonExclusive(page), folio);
++	pr_info("%llu pages in range for non-PLT usage",
++		module_direct_base ? (SZ_128M - kernel_size) / PAGE_SIZE : 0);
++	pr_info("%llu pages in range for PLT usage",
++		module_plt_base ? (SZ_2G - kernel_size) / PAGE_SIZE : 0);
++
++	return 0;
++}
++
++static struct execmem_params execmem_params __ro_after_init = {
++	.ranges = {
++		[EXECMEM_DEFAULT] = {
++			.flags = EXECMEM_KASAN_SHADOW,
++			.alignment = MODULE_ALIGN,
++		},
++		[EXECMEM_KPROBES] = {
++			.start = VMALLOC_START,
++			.end = VMALLOC_END,
++			.alignment = 1,
++		},
++		[EXECMEM_BPF] = {
++			.start = VMALLOC_START,
++			.end = VMALLOC_END,
++			.alignment = 1,
++		},
++	},
++};
++
++struct execmem_params __init *execmem_arch_params(void)
++{
++	struct execmem_range *r = &execmem_params.ranges[EXECMEM_DEFAULT];
++
++	module_init_limits();
++
++	r->pgprot = PAGE_KERNEL;
++
++	if (module_direct_base) {
++		r->start = module_direct_base;
++		r->end = module_direct_base + SZ_128M;
++
++		if (module_plt_base) {
++			r->fallback_start = module_plt_base;
++			r->fallback_end = module_plt_base + SZ_2G;
++		}
++	} else if (module_plt_base) {
++		r->start = module_plt_base;
++		r->end = module_plt_base + SZ_2G;
++	}
++
++	execmem_params.ranges[EXECMEM_KPROBES].pgprot = PAGE_KERNEL_ROX;
++	execmem_params.ranges[EXECMEM_BPF].pgprot = PAGE_KERNEL;
++
++	return &execmem_params;
++}
++#endif
+--- a/arch/arm/kernel/module.c~arch-make-execmem-setup-available-regardless-of-config_modules
++++ a/arch/arm/kernel/module.c
+@@ -16,50 +16,12 @@
+ #include <linux/fs.h>
+ #include <linux/string.h>
+ #include <linux/gfp.h>
+-#include <linux/execmem.h>
  
--	mlock_vma_folio(folio, vma, compound);
+ #include <asm/sections.h>
+ #include <asm/smp_plat.h>
+ #include <asm/unwind.h>
+ #include <asm/opcodes.h>
+ 
+-#ifdef CONFIG_XIP_KERNEL
+-/*
+- * The XIP kernel text is mapped in the module area for modules and
+- * some other stuff to work without any indirect relocations.
+- * MODULES_VADDR is redefined here and not in asm/memory.h to avoid
+- * recompiling the whole kernel when CONFIG_XIP_KERNEL is turned on/off.
+- */
+-#undef MODULES_VADDR
+-#define MODULES_VADDR	(((unsigned long)_exiprom + ~PMD_MASK) & PMD_MASK)
+-#endif
+-
+-#ifdef CONFIG_MMU
+-static struct execmem_params execmem_params __ro_after_init = {
+-	.ranges = {
+-		[EXECMEM_DEFAULT] = {
+-			.start = MODULES_VADDR,
+-			.end = MODULES_END,
+-			.alignment = 1,
+-		},
+-	},
+-};
+-
+-struct execmem_params __init *execmem_arch_params(void)
+-{
+-	struct execmem_range *r = &execmem_params.ranges[EXECMEM_DEFAULT];
+-
+-	r->pgprot = PAGE_KERNEL_EXEC;
+-
+-	if (IS_ENABLED(CONFIG_ARM_MODULE_PLTS)) {
+-		r->fallback_start = VMALLOC_START;
+-		r->fallback_end = VMALLOC_END;
+-	}
+-
+-	return &execmem_params;
+-}
+-#endif
+-
+ bool module_init_section(const char *name)
+ {
+ 	return strstarts(name, ".init") ||
+--- a/arch/arm/mm/init.c~arch-make-execmem-setup-available-regardless-of-config_modules
++++ a/arch/arm/mm/init.c
+@@ -22,6 +22,7 @@
+ #include <linux/sizes.h>
+ #include <linux/stop_machine.h>
+ #include <linux/swiotlb.h>
++#include <linux/execmem.h>
+ 
+ #include <asm/cp15.h>
+ #include <asm/mach-types.h>
+@@ -486,3 +487,40 @@ void free_initrd_mem(unsigned long start
+ 	free_reserved_area((void *)start, (void *)end, -1, "initrd");
+ }
+ #endif
++
++#ifdef CONFIG_XIP_KERNEL
++/*
++ * The XIP kernel text is mapped in the module area for modules and
++ * some other stuff to work without any indirect relocations.
++ * MODULES_VADDR is redefined here and not in asm/memory.h to avoid
++ * recompiling the whole kernel when CONFIG_XIP_KERNEL is turned on/off.
++ */
++#undef MODULES_VADDR
++#define MODULES_VADDR	(((unsigned long)_exiprom + ~PMD_MASK) & PMD_MASK)
++#endif
++
++#if defined(CONFIG_MMU) && defined(CONFIG_EXECMEM)
++static struct execmem_params execmem_params __ro_after_init = {
++	.ranges = {
++		[EXECMEM_DEFAULT] = {
++			.start = MODULES_VADDR,
++			.end = MODULES_END,
++			.alignment = 1,
++		},
++	},
++};
++
++struct execmem_params __init *execmem_arch_params(void)
++{
++	struct execmem_range *r = &execmem_params.ranges[EXECMEM_DEFAULT];
++
++	r->pgprot = PAGE_KERNEL_EXEC;
++
++	if (IS_ENABLED(CONFIG_ARM_MODULE_PLTS)) {
++		r->fallback_start = VMALLOC_START;
++		r->fallback_end = VMALLOC_END;
++	}
++
++	return &execmem_params;
++}
++#endif
+--- a/arch/loongarch/kernel/module.c~arch-make-execmem-setup-available-regardless-of-config_modules
++++ a/arch/loongarch/kernel/module.c
+@@ -18,7 +18,6 @@
+ #include <linux/ftrace.h>
+ #include <linux/string.h>
+ #include <linux/kernel.h>
+-#include <linux/execmem.h>
+ #include <asm/alternative.h>
+ #include <asm/inst.h>
+ 
+@@ -470,23 +469,6 @@ int apply_relocate_add(Elf_Shdr *sechdrs
+ 	return 0;
+ }
+ 
+-static struct execmem_params execmem_params __ro_after_init = {
+-	.ranges = {
+-		[EXECMEM_DEFAULT] = {
+-			.pgprot = PAGE_KERNEL,
+-			.alignment = 1,
+-		},
+-	},
+-};
+-
+-struct execmem_params __init *execmem_arch_params(void)
+-{
+-	execmem_params.ranges[EXECMEM_DEFAULT].start = MODULES_VADDR;
+-	execmem_params.ranges[EXECMEM_DEFAULT].end = MODULES_END;
+-
+-	return &execmem_params;
+-}
+-
+ static void module_init_ftrace_plt(const Elf_Ehdr *hdr,
+ 				   const Elf_Shdr *sechdrs, struct module *mod)
+ {
+--- a/arch/loongarch/mm/init.c~arch-make-execmem-setup-available-regardless-of-config_modules
++++ a/arch/loongarch/mm/init.c
+@@ -24,6 +24,7 @@
+ #include <linux/gfp.h>
+ #include <linux/hugetlb.h>
+ #include <linux/mmzone.h>
++#include <linux/execmem.h>
+ 
+ #include <asm/asm-offsets.h>
+ #include <asm/bootinfo.h>
+@@ -247,3 +248,22 @@ EXPORT_SYMBOL(invalid_pmd_table);
+ #endif
+ pte_t invalid_pte_table[PTRS_PER_PTE] __page_aligned_bss;
+ EXPORT_SYMBOL(invalid_pte_table);
++
++#ifdef CONFIG_EXECMEM
++static struct execmem_params execmem_params __ro_after_init = {
++	.ranges = {
++		[EXECMEM_DEFAULT] = {
++			.pgprot = PAGE_KERNEL,
++			.alignment = 1,
++		},
++	},
++};
++
++struct execmem_params __init *execmem_arch_params(void)
++{
++	execmem_params.ranges[EXECMEM_DEFAULT].start = MODULES_VADDR;
++	execmem_params.ranges[EXECMEM_DEFAULT].end = MODULES_END;
++
++	return &execmem_params;
++}
++#endif
+--- a/arch/mips/kernel/module.c~arch-make-execmem-setup-available-regardless-of-config_modules
++++ a/arch/mips/kernel/module.c
+@@ -33,25 +33,6 @@ struct mips_hi16 {
+ static LIST_HEAD(dbe_list);
+ static DEFINE_SPINLOCK(dbe_lock);
+ 
+-#ifdef MODULE_START
+-static struct execmem_params execmem_params __ro_after_init = {
+-	.ranges = {
+-		[EXECMEM_DEFAULT] = {
+-			.start = MODULE_START,
+-			.end = MODULE_END,
+-			.alignment = 1,
+-		},
+-	},
+-};
+-
+-struct execmem_params __init *execmem_arch_params(void)
+-{
+-	execmem_params.ranges[EXECMEM_DEFAULT].pgprot = PAGE_KERNEL;
+-
+-	return &execmem_params;
+-}
+-#endif
+-
+ static void apply_r_mips_32(u32 *location, u32 base, Elf_Addr v)
+ {
+ 	*location = base + v;
+--- a/arch/mips/mm/init.c~arch-make-execmem-setup-available-regardless-of-config_modules
++++ a/arch/mips/mm/init.c
+@@ -31,6 +31,7 @@
+ #include <linux/gfp.h>
+ #include <linux/kcore.h>
+ #include <linux/initrd.h>
++#include <linux/execmem.h>
+ 
+ #include <asm/bootinfo.h>
+ #include <asm/cachectl.h>
+@@ -573,3 +574,22 @@ EXPORT_SYMBOL_GPL(invalid_pmd_table);
+ #endif
+ pte_t invalid_pte_table[PTRS_PER_PTE] __page_aligned_bss;
+ EXPORT_SYMBOL(invalid_pte_table);
++
++#if defined(CONFIG_EXECMEM) && defined(MODULE_START)
++static struct execmem_params execmem_params __ro_after_init = {
++	.ranges = {
++		[EXECMEM_DEFAULT] = {
++			.start = MODULE_START,
++			.end = MODULE_END,
++			.alignment = 1,
++		},
++	},
++};
++
++struct execmem_params __init *execmem_arch_params(void)
++{
++	execmem_params.ranges[EXECMEM_DEFAULT].pgprot = PAGE_KERNEL;
++
++	return &execmem_params;
++}
++#endif
+--- a/arch/parisc/kernel/module.c~arch-make-execmem-setup-available-regardless-of-config_modules
++++ a/arch/parisc/kernel/module.c
+@@ -174,23 +174,6 @@ static inline int reassemble_22(int as22
+ 		((as22 & 0x0003ff) << 3));
+ }
+ 
+-static struct execmem_params execmem_params __ro_after_init = {
+-	.ranges = {
+-		[EXECMEM_DEFAULT] = {
+-			.pgprot = PAGE_KERNEL_RWX,
+-			.alignment = 1,
+-		},
+-	},
+-};
+-
+-struct execmem_params __init *execmem_arch_params(void)
+-{
+-	execmem_params.ranges[EXECMEM_DEFAULT].start = VMALLOC_START;
+-	execmem_params.ranges[EXECMEM_DEFAULT].end = VMALLOC_END;
+-
+-	return &execmem_params;
+-}
+-
+ #ifndef CONFIG_64BIT
+ static inline unsigned long count_gots(const Elf_Rela *rela, unsigned long n)
+ {
+--- a/arch/parisc/mm/init.c~arch-make-execmem-setup-available-regardless-of-config_modules
++++ a/arch/parisc/mm/init.c
+@@ -24,6 +24,7 @@
+ #include <linux/nodemask.h>	/* for node_online_map */
+ #include <linux/pagemap.h>	/* for release_pages */
+ #include <linux/compat.h>
++#include <linux/execmem.h>
+ 
+ #include <asm/pgalloc.h>
+ #include <asm/tlb.h>
+@@ -479,7 +480,7 @@ void free_initmem(void)
+ 	/* finally dump all the instructions which were cached, since the
+ 	 * pages are no-longer executable */
+ 	flush_icache_range(init_begin, init_end);
+-	
++
+ 	free_initmem_default(POISON_FREE_INITMEM);
+ 
+ 	/* set up a new led state on systems shipped LED State panel */
+@@ -919,3 +920,22 @@ static const pgprot_t protection_map[16]
+ 	[VM_SHARED | VM_EXEC | VM_WRITE | VM_READ]	= PAGE_RWX
+ };
+ DECLARE_VM_GET_PAGE_PROT
++
++#ifdef CONFIG_EXECMEM
++static struct execmem_params execmem_params __ro_after_init = {
++	.ranges = {
++		[EXECMEM_DEFAULT] = {
++			.pgprot = PAGE_KERNEL_RWX,
++			.alignment = 1,
++		},
++	},
++};
++
++struct execmem_params __init *execmem_arch_params(void)
++{
++	execmem_params.ranges[EXECMEM_DEFAULT].start = VMALLOC_START;
++	execmem_params.ranges[EXECMEM_DEFAULT].end = VMALLOC_END;
++
++	return &execmem_params;
++}
++#endif
+--- a/arch/powerpc/kernel/module.c~arch-make-execmem-setup-available-regardless-of-config_modules
++++ a/arch/powerpc/kernel/module.c
+@@ -10,7 +10,6 @@
+ #include <linux/vmalloc.h>
+ #include <linux/mm.h>
+ #include <linux/bug.h>
+-#include <linux/execmem.h>
+ #include <asm/module.h>
+ #include <linux/uaccess.h>
+ #include <asm/firmware.h>
+@@ -89,62 +88,3 @@ int module_finalize(const Elf_Ehdr *hdr,
+ 
+ 	return 0;
+ }
+-
+-static struct execmem_params execmem_params __ro_after_init = {
+-	.ranges = {
+-		[EXECMEM_DEFAULT] = {
+-			.alignment = 1,
+-		},
+-		[EXECMEM_KPROBES] = {
+-			.alignment = 1,
+-		},
+-		[EXECMEM_MODULE_DATA] = {
+-			.alignment = 1,
+-		},
+-	},
+-};
+-
+-struct execmem_params __init *execmem_arch_params(void)
+-{
+-	pgprot_t prot = strict_module_rwx_enabled() ? PAGE_KERNEL : PAGE_KERNEL_EXEC;
+-	struct execmem_range *range = &execmem_params.ranges[EXECMEM_DEFAULT];
+-
+-	/*
+-	 * BOOK3S_32 and 8xx define MODULES_VADDR for text allocations and
+-	 * allow allocating data in the entire vmalloc space
+-	 */
+-#ifdef MODULES_VADDR
+-	struct execmem_range *data = &execmem_params.ranges[EXECMEM_MODULE_DATA];
+-	unsigned long limit = (unsigned long)_etext - SZ_32M;
+-
+-	/* First try within 32M limit from _etext to avoid branch trampolines */
+-	if (MODULES_VADDR < PAGE_OFFSET && MODULES_END > limit) {
+-		range->start = limit;
+-		range->end = MODULES_END;
+-		range->fallback_start = MODULES_VADDR;
+-		range->fallback_end = MODULES_END;
+-	} else {
+-		range->start = MODULES_VADDR;
+-		range->end = MODULES_END;
+-	}
+-	data->start = VMALLOC_START;
+-	data->end = VMALLOC_END;
+-	data->pgprot = PAGE_KERNEL;
+-	data->alignment = 1;
+-#else
+-	range->start = VMALLOC_START;
+-	range->end = VMALLOC_END;
+-#endif
+-
+-	range->pgprot = prot;
+-
+-	execmem_params.ranges[EXECMEM_KPROBES].start = VMALLOC_START;
+-	execmem_params.ranges[EXECMEM_KPROBES].start = VMALLOC_END;
+-
+-	if (strict_module_rwx_enabled())
+-		execmem_params.ranges[EXECMEM_KPROBES].pgprot = PAGE_KERNEL_ROX;
+-	else
+-		execmem_params.ranges[EXECMEM_KPROBES].pgprot = PAGE_KERNEL_EXEC;
+-
+-	return &execmem_params;
+-}
+--- a/arch/powerpc/mm/mem.c~arch-make-execmem-setup-available-regardless-of-config_modules
++++ a/arch/powerpc/mm/mem.c
+@@ -16,6 +16,7 @@
+ #include <linux/highmem.h>
+ #include <linux/suspend.h>
+ #include <linux/dma-direct.h>
++#include <linux/execmem.h>
+ 
+ #include <asm/swiotlb.h>
+ #include <asm/machdep.h>
+@@ -406,3 +407,64 @@ int devmem_is_allowed(unsigned long pfn)
+  * the EHEA driver. Drop this when drivers/net/ethernet/ibm/ehea is removed.
+  */
+ EXPORT_SYMBOL_GPL(walk_system_ram_range);
++
++#ifdef CONFIG_EXECMEM
++static struct execmem_params execmem_params __ro_after_init = {
++	.ranges = {
++		[EXECMEM_DEFAULT] = {
++			.alignment = 1,
++		},
++		[EXECMEM_KPROBES] = {
++			.alignment = 1,
++		},
++		[EXECMEM_MODULE_DATA] = {
++			.alignment = 1,
++		},
++	},
++};
++
++struct execmem_params __init *execmem_arch_params(void)
++{
++	pgprot_t prot = strict_module_rwx_enabled() ? PAGE_KERNEL : PAGE_KERNEL_EXEC;
++	struct execmem_range *range = &execmem_params.ranges[EXECMEM_DEFAULT];
++
 +	/*
-+	 * For large folio, only mlock it if it's fully mapped to VMA. It's
-+	 * not easy to check whether the large folio is fully mapped to VMA
-+	 * here. Only mlock normal 4K folio and leave page reclaim to handle
-+	 * large folio.
++	 * BOOK3S_32 and 8xx define MODULES_VADDR for text allocations and
++	 * allow allocating data in the entire vmalloc space
 +	 */
-+	if (!folio_test_large(folio))
-+		mlock_vma_folio(folio, vma);
++#ifdef MODULES_VADDR
++	struct execmem_range *data = &execmem_params.ranges[EXECMEM_MODULE_DATA];
++	unsigned long limit = (unsigned long)_etext - SZ_32M;
++
++	/* First try within 32M limit from _etext to avoid branch trampolines */
++	if (MODULES_VADDR < PAGE_OFFSET && MODULES_END > limit) {
++		range->start = limit;
++		range->end = MODULES_END;
++		range->fallback_start = MODULES_VADDR;
++		range->fallback_end = MODULES_END;
++	} else {
++		range->start = MODULES_VADDR;
++		range->end = MODULES_END;
++	}
++	data->start = VMALLOC_START;
++	data->end = VMALLOC_END;
++	data->pgprot = PAGE_KERNEL;
++	data->alignment = 1;
++#else
++	range->start = VMALLOC_START;
++	range->end = VMALLOC_END;
++#endif
++
++	range->pgprot = prot;
++
++	execmem_params.ranges[EXECMEM_KPROBES].start = VMALLOC_START;
++	execmem_params.ranges[EXECMEM_KPROBES].start = VMALLOC_END;
++
++	if (strict_module_rwx_enabled())
++		execmem_params.ranges[EXECMEM_KPROBES].pgprot = PAGE_KERNEL_ROX;
++	else
++		execmem_params.ranges[EXECMEM_KPROBES].pgprot = PAGE_KERNEL_EXEC;
++
++	return &execmem_params;
++}
++#endif
+--- a/arch/riscv/kernel/module.c~arch-make-execmem-setup-available-regardless-of-config_modules
++++ a/arch/riscv/kernel/module.c
+@@ -11,7 +11,6 @@
+ #include <linux/vmalloc.h>
+ #include <linux/sizes.h>
+ #include <linux/pgtable.h>
+-#include <linux/execmem.h>
+ #include <asm/alternative.h>
+ #include <asm/sections.h>
+ 
+@@ -436,44 +435,6 @@ int apply_relocate_add(Elf_Shdr *sechdrs
+ 	return 0;
  }
  
- /**
-@@ -1354,7 +1395,9 @@ void folio_add_file_rmap_range(struct fo
- 	if (nr)
- 		__lruvec_stat_mod_folio(folio, NR_FILE_MAPPED, nr);
+-#ifdef CONFIG_MMU
+-static struct execmem_params execmem_params __ro_after_init = {
+-	.ranges = {
+-		[EXECMEM_DEFAULT] = {
+-			.pgprot = PAGE_KERNEL,
+-			.alignment = 1,
+-		},
+-		[EXECMEM_KPROBES] = {
+-			.pgprot = PAGE_KERNEL_READ_EXEC,
+-			.alignment = 1,
+-		},
+-		[EXECMEM_BPF] = {
+-			.pgprot = PAGE_KERNEL,
+-			.alignment = 1,
+-		},
+-	},
+-};
+-
+-struct execmem_params __init *execmem_arch_params(void)
+-{
+-#ifdef CONFIG_64BIT
+-	execmem_params.ranges[EXECMEM_DEFAULT].start = MODULES_VADDR;
+-	execmem_params.ranges[EXECMEM_DEFAULT].end = MODULES_END;
+-#else
+-	execmem_params.ranges[EXECMEM_DEFAULT].start = VMALLOC_START;
+-	execmem_params.ranges[EXECMEM_DEFAULT].end = VMALLOC_END;
+-#endif
+-
+-	execmem_params.ranges[EXECMEM_KPROBES].start = VMALLOC_START;
+-	execmem_params.ranges[EXECMEM_KPROBES].end = VMALLOC_END;
+-
+-	execmem_params.ranges[EXECMEM_BPF].start = BPF_JIT_REGION_START;
+-	execmem_params.ranges[EXECMEM_BPF].end = BPF_JIT_REGION_END;
+-
+-	return &execmem_params;
+-}
+-#endif
+-
+ int module_finalize(const Elf_Ehdr *hdr,
+ 		    const Elf_Shdr *sechdrs,
+ 		    struct module *me)
+--- a/arch/riscv/mm/init.c~arch-make-execmem-setup-available-regardless-of-config_modules
++++ a/arch/riscv/mm/init.c
+@@ -24,6 +24,7 @@
+ #include <linux/elf.h>
+ #endif
+ #include <linux/kfence.h>
++#include <linux/execmem.h>
  
--	mlock_vma_folio(folio, vma, compound);
-+	/* See comments in page_add_anon_rmap() */
-+	if (!folio_test_large(folio))
-+		mlock_vma_folio(folio, vma);
+ #include <asm/fixmap.h>
+ #include <asm/io.h>
+@@ -1564,3 +1565,41 @@ void __init pgtable_cache_init(void)
+ 		preallocate_pgd_pages_range(MODULES_VADDR, MODULES_END, "bpf/modules");
  }
+ #endif
++
++#if defined(CONFIG_MMU) && defined(CONFIG_EXECMEM)
++static struct execmem_params execmem_params __ro_after_init = {
++	.ranges = {
++		[EXECMEM_DEFAULT] = {
++			.pgprot = PAGE_KERNEL,
++			.alignment = 1,
++		},
++		[EXECMEM_KPROBES] = {
++			.pgprot = PAGE_KERNEL_READ_EXEC,
++			.alignment = 1,
++		},
++		[EXECMEM_BPF] = {
++			.pgprot = PAGE_KERNEL,
++			.alignment = 1,
++		},
++	},
++};
++
++struct execmem_params __init *execmem_arch_params(void)
++{
++#ifdef CONFIG_64BIT
++	execmem_params.ranges[EXECMEM_DEFAULT].start = MODULES_VADDR;
++	execmem_params.ranges[EXECMEM_DEFAULT].end = MODULES_END;
++#else
++	execmem_params.ranges[EXECMEM_DEFAULT].start = VMALLOC_START;
++	execmem_params.ranges[EXECMEM_DEFAULT].end = VMALLOC_END;
++#endif
++
++	execmem_params.ranges[EXECMEM_KPROBES].start = VMALLOC_START;
++	execmem_params.ranges[EXECMEM_KPROBES].end = VMALLOC_END;
++
++	execmem_params.ranges[EXECMEM_BPF].start = BPF_JIT_REGION_START;
++	execmem_params.ranges[EXECMEM_BPF].end = BPF_JIT_REGION_END;
++
++	return &execmem_params;
++}
++#endif
+--- a/arch/s390/kernel/module.c~arch-make-execmem-setup-available-regardless-of-config_modules
++++ a/arch/s390/kernel/module.c
+@@ -37,31 +37,6 @@
  
- /**
-@@ -1465,7 +1508,7 @@ void page_remove_rmap(struct page *page,
- 	 * it's only reliable while mapped.
- 	 */
+ #define PLT_ENTRY_SIZE 22
  
--	munlock_vma_folio(folio, vma, compound);
-+	munlock_vma_folio(folio, vma);
+-static struct execmem_params execmem_params __ro_after_init = {
+-	.ranges = {
+-		[EXECMEM_DEFAULT] = {
+-			.flags = EXECMEM_KASAN_SHADOW,
+-			.alignment = MODULE_ALIGN,
+-			.pgprot = PAGE_KERNEL,
+-		},
+-	},
+-};
+-
+-struct execmem_params __init *execmem_arch_params(void)
+-{
+-	unsigned long module_load_offset = 0;
+-	unsigned long start;
+-
+-	if (kaslr_enabled())
+-		module_load_offset = get_random_u32_inclusive(1, 1024) * PAGE_SIZE;
+-
+-	start = MODULES_VADDR + module_load_offset;
+-	execmem_params.ranges[EXECMEM_DEFAULT].start = start;
+-	execmem_params.ranges[EXECMEM_DEFAULT].end = MODULES_END;
+-
+-	return &execmem_params;
+-}
+-
+ #ifdef CONFIG_FUNCTION_TRACER
+ void module_arch_cleanup(struct module *mod)
+ {
+--- a/arch/s390/mm/init.c~arch-make-execmem-setup-available-regardless-of-config_modules
++++ a/arch/s390/mm/init.c
+@@ -34,6 +34,7 @@
+ #include <linux/percpu.h>
+ #include <asm/processor.h>
+ #include <linux/uaccess.h>
++#include <linux/execmem.h>
+ #include <asm/pgalloc.h>
+ #include <asm/kfence.h>
+ #include <asm/ptdump.h>
+@@ -311,3 +312,30 @@ void arch_remove_memory(u64 start, u64 s
+ 	vmem_remove_mapping(start, size);
  }
+ #endif /* CONFIG_MEMORY_HOTPLUG */
++
++#ifdef CONFIG_EXECMEM
++static struct execmem_params execmem_params __ro_after_init = {
++	.ranges = {
++		[EXECMEM_DEFAULT] = {
++			.flags = EXECMEM_KASAN_SHADOW,
++			.alignment = MODULE_ALIGN,
++			.pgprot = PAGE_KERNEL,
++		},
++	},
++};
++
++struct execmem_params __init *execmem_arch_params(void)
++{
++	unsigned long module_load_offset = 0;
++	unsigned long start;
++
++	if (kaslr_enabled())
++		module_load_offset = get_random_u32_inclusive(1, 1024) * PAGE_SIZE;
++
++	start = MODULES_VADDR + module_load_offset;
++	execmem_params.ranges[EXECMEM_DEFAULT].start = start;
++	execmem_params.ranges[EXECMEM_DEFAULT].end = MODULES_END;
++
++	return &execmem_params;
++}
++#endif
+--- a/arch/sparc/kernel/module.c~arch-make-execmem-setup-available-regardless-of-config_modules
++++ a/arch/sparc/kernel/module.c
+@@ -14,7 +14,6 @@
+ #include <linux/string.h>
+ #include <linux/ctype.h>
+ #include <linux/mm.h>
+-#include <linux/execmem.h>
+ #ifdef CONFIG_SPARC64
+ #include <linux/jump_label.h>
+ #endif
+@@ -25,28 +24,6 @@
  
- /*
-@@ -1526,7 +1569,8 @@ static bool try_to_unmap_one(struct foli
- 		if (!(flags & TTU_IGNORE_MLOCK) &&
- 		    (vma->vm_flags & VM_LOCKED)) {
- 			/* Restore the mlock which got missed */
--			mlock_vma_folio(folio, vma, false);
-+			if (!folio_test_large(folio))
-+				mlock_vma_folio(folio, vma);
- 			page_vma_mapped_walk_done(&pvmw);
- 			ret = false;
- 			break;
+ #include "entry.h"
+ 
+-static struct execmem_params execmem_params __ro_after_init = {
+-	.ranges = {
+-		[EXECMEM_DEFAULT] = {
+-#ifdef CONFIG_SPARC64
+-			.start = MODULES_VADDR,
+-			.end = MODULES_END,
+-#else
+-			.start = VMALLOC_START,
+-			.end = VMALLOC_END,
+-#endif
+-			.alignment = 1,
+-		},
+-	},
+-};
+-
+-struct execmem_params __init *execmem_arch_params(void)
+-{
+-	execmem_params.ranges[EXECMEM_DEFAULT].pgprot = PAGE_KERNEL;
+-
+-	return &execmem_params;
+-}
+-
+ /* Make generic code ignore STT_REGISTER dummy undefined symbols.  */
+ int module_frob_arch_sections(Elf_Ehdr *hdr,
+ 			      Elf_Shdr *sechdrs,
+--- /dev/null
++++ a/arch/sparc/mm/execmem.c
+@@ -0,0 +1,25 @@
++// SPDX-License-Identifier: GPL-2.0
++#include <linux/mm.h>
++#include <linux/execmem.h>
++
++static struct execmem_params execmem_params __ro_after_init = {
++	.ranges = {
++		[EXECMEM_DEFAULT] = {
++#ifdef CONFIG_SPARC64
++			.start = MODULES_VADDR,
++			.end = MODULES_END,
++#else
++			.start = VMALLOC_START,
++			.end = VMALLOC_END,
++#endif
++			.alignment = 1,
++		},
++	},
++};
++
++struct execmem_params __init *execmem_arch_params(void)
++{
++	execmem_params.ranges[EXECMEM_DEFAULT].pgprot = PAGE_KERNEL;
++
++	return &execmem_params;
++}
+--- a/arch/sparc/mm/Makefile~arch-make-execmem-setup-available-regardless-of-config_modules
++++ a/arch/sparc/mm/Makefile
+@@ -15,3 +15,5 @@ obj-$(CONFIG_SPARC32)   += leon_mm.o
+ 
+ # Only used by sparc64
+ obj-$(CONFIG_HUGETLB_PAGE) += hugetlbpage.o
++
++obj-$(CONFIG_EXECMEM) += execmem.o
+--- a/arch/x86/kernel/module.c~arch-make-execmem-setup-available-regardless-of-config_modules
++++ a/arch/x86/kernel/module.c
+@@ -19,7 +19,6 @@
+ #include <linux/jump_label.h>
+ #include <linux/random.h>
+ #include <linux/memory.h>
+-#include <linux/execmem.h>
+ 
+ #include <asm/text-patching.h>
+ #include <asm/page.h>
+@@ -37,32 +36,6 @@ do {							\
+ } while (0)
+ #endif
+ 
+-static struct execmem_params execmem_params __ro_after_init = {
+-	.ranges = {
+-		[EXECMEM_DEFAULT] = {
+-			.flags = EXECMEM_KASAN_SHADOW,
+-			.alignment = MODULE_ALIGN,
+-		},
+-	},
+-};
+-
+-struct execmem_params __init *execmem_arch_params(void)
+-{
+-	unsigned long module_load_offset = 0;
+-	unsigned long start;
+-
+-	if (IS_ENABLED(CONFIG_RANDOMIZE_BASE) && kaslr_enabled())
+-		module_load_offset =
+-			get_random_u32_inclusive(1, 1024) * PAGE_SIZE;
+-
+-	start = MODULES_VADDR + module_load_offset;
+-	execmem_params.ranges[EXECMEM_DEFAULT].start = start;
+-	execmem_params.ranges[EXECMEM_DEFAULT].end = MODULES_END;
+-	execmem_params.ranges[EXECMEM_DEFAULT].pgprot = PAGE_KERNEL;
+-
+-	return &execmem_params;
+-}
+-
+ #ifdef CONFIG_X86_32
+ int apply_relocate(Elf32_Shdr *sechdrs,
+ 		   const char *strtab,
+--- a/arch/x86/mm/init.c~arch-make-execmem-setup-available-regardless-of-config_modules
++++ a/arch/x86/mm/init.c
+@@ -7,6 +7,7 @@
+ #include <linux/swapops.h>
+ #include <linux/kmemleak.h>
+ #include <linux/sched/task.h>
++#include <linux/execmem.h>
+ 
+ #include <asm/set_memory.h>
+ #include <asm/cpu_device_id.h>
+@@ -1099,3 +1100,31 @@ unsigned long arch_max_swapfile_size(voi
+ 	return pages;
+ }
+ #endif
++
++#ifdef CONFIG_EXECMEM
++static struct execmem_params execmem_params __ro_after_init = {
++	.ranges = {
++		[EXECMEM_DEFAULT] = {
++			.flags = EXECMEM_KASAN_SHADOW,
++			.alignment = MODULE_ALIGN,
++		},
++	},
++};
++
++struct execmem_params __init *execmem_arch_params(void)
++{
++	unsigned long module_load_offset = 0;
++	unsigned long start;
++
++	if (IS_ENABLED(CONFIG_RANDOMIZE_BASE) && kaslr_enabled())
++		module_load_offset =
++			get_random_u32_inclusive(1, 1024) * PAGE_SIZE;
++
++	start = MODULES_VADDR + module_load_offset;
++	execmem_params.ranges[EXECMEM_DEFAULT].start = start;
++	execmem_params.ranges[EXECMEM_DEFAULT].end = MODULES_END;
++	execmem_params.ranges[EXECMEM_DEFAULT].pgprot = PAGE_KERNEL;
++
++	return &execmem_params;
++}
++#endif /* CONFIG_EXECMEM */
 _
 
-Patches currently in -mm which might be from fengwei.yin@intel.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-filemap-add-filemap_map_order0_folio-to-handle-order0-folio.patch
-mm-add-functions-folio_in_range-and-folio_within_vma.patch
-mm-handle-large-folio-when-large-folio-in-vm_locked-vma-range.patch
-mm-mlock-update-mlock_pte_range-to-handle-large-folio.patch
+nios2-define-virtual-address-space-for-modules.patch
+mm-introduce-execmem_text_alloc-and-execmem_free.patch
+mm-execmem-arch-convert-simple-overrides-of-module_alloc-to-execmem.patch
+mm-execmem-arch-convert-remaining-overrides-of-module_alloc-to-execmem.patch
+modules-execmem-drop-module_alloc.patch
+mm-execmem-introduce-execmem_data_alloc.patch
+arm64-execmem-extend-execmem_params-for-generated-code-allocations.patch
+riscv-extend-execmem_params-for-generated-code-allocations.patch
+powerpc-extend-execmem_params-for-kprobes-allocations.patch
+arch-make-execmem-setup-available-regardless-of-config_modules.patch
+x86-ftrace-enable-dynamic-ftrace-without-config_modules.patch
+kprobes-remove-dependency-on-config_modules.patch
+bpf-remove-config_bpf_jit-dependency-on-config_modules-of.patch
 
