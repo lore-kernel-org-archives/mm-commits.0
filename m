@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 230E8CD13D2
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Sep 2023 16:09:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11A8ACD37B0
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Sep 2023 16:09:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229948AbjIRQJX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 18 Sep 2023 12:09:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54882 "EHLO
+        id S230125AbjIRQJY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 18 Sep 2023 12:09:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42774 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230001AbjIRQJH (ORCPT
+        with ESMTP id S229975AbjIRQJH (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Sep 2023 12:09:07 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7226B5B94
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 68D1D46A3
         for <mm-commits@vger.kernel.org>; Mon, 18 Sep 2023 09:07:32 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A857C116A8;
-        Mon, 18 Sep 2023 15:52:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A098C116AB;
+        Mon, 18 Sep 2023 15:52:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695052328;
-        bh=wVHS7d1tRF5todHStq3PiNwJh3V65gRrGpEhHKUS/Mg=;
+        s=korg; t=1695052334;
+        bh=D9ktlfMKZPOhdTMkzc8mSs+sO5qVbVnMbkov+JH7Brk=;
         h=Date:To:From:Subject:From;
-        b=o3LnFVKeFVY3hoqR1YUozXxQHkcdPySr2HQ/XM6Sn8gj9E6dK0YMHvOgy/x1LtzQG
-         9znyDFezeuG3XZDJ8X0rCH6DZThQL0bzLZ14zr76XfsGxR5TgF2FYBpzXvC/8vQn/l
-         l0wJmlQkgKgLpGlvCD8kX8Wnj83T1uelPcAVGkgA=
-Date:   Mon, 18 Sep 2023 08:52:07 -0700
+        b=vxN381JSpS8CqZVHmVfE8EoI3QQw23+mdkMWOKA+qhjtRDgwSvvNI5ctceN/jNRGn
+         0DtpDsjIMd6lmmNOJi2d5Ne0F/0MBB7eVG4oMg00XZJVw3qGD1vMARqHuECOOv9Brk
+         91bWj5iKOcaI2Js1gGYQcMUGFXNBnzlLu/c84b2M=
+Date:   Mon, 18 Sep 2023 08:52:13 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org,
         tsbogend@alpha.franken.de, tglx@linutronix.de, song@kernel.org,
         rostedt@goodmis.org, rick.p.edgecombe@intel.com,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org,
         chenhuacai@kernel.org, catalin.marinas@arm.com, bjorn@kernel.org,
         rppt@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + modules-execmem-drop-module_alloc.patch added to mm-unstable branch
-Message-Id: <20230918155208.3A857C116A8@smtp.kernel.org>
+Subject: + arm64-execmem-extend-execmem_params-for-generated-code-allocations.patch added to mm-unstable branch
+Message-Id: <20230918155214.3A098C116AB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: modules, execmem: drop module_alloc
+     Subject: arm64, execmem: extend execmem_params for generated code allocations
 has been added to the -mm mm-unstable branch.  Its filename is
-     modules-execmem-drop-module_alloc.patch
+     arm64-execmem-extend-execmem_params-for-generated-code-allocations.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/modules-execmem-drop-module_alloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-execmem-extend-execmem_params-for-generated-code-allocations.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,18 +69,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: modules, execmem: drop module_alloc
-Date: Mon, 18 Sep 2023 10:29:47 +0300
+Subject: arm64, execmem: extend execmem_params for generated code allocations
+Date: Mon, 18 Sep 2023 10:29:49 +0300
 
-Define default parameters for address range for code allocations using the
-current values in module_alloc() and make execmem_text_alloc() use these
-defaults when an architecture does not supply its specific parameters.
+The memory allocations for kprobes and BPF on arm64 can be placed anywhere
+in vmalloc address space and currently this is implemented with overrides
+of alloc_insn_page() and bpf_jit_alloc_exec() in arm64.
 
-With this, execmem_text_alloc() implements memory allocation in a way
-compatible with module_alloc() and can be used as a replacement for
-module_alloc().
+Define EXECMEM_KPROBES and EXECMEM_BPF ranges in arm64::execmem_params and
+drop overrides of alloc_insn_page() and bpf_jit_alloc_exec().
 
-Link: https://lkml.kernel.org/r/20230918072955.2507221-6-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20230918072955.2507221-8-rppt@kernel.org
 Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Björn Töpel <bjorn@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -108,100 +107,76 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/execmem.h      |    8 ++++++++
- include/linux/moduleloader.h |   12 ------------
- kernel/module/main.c         |    7 -------
- mm/execmem.c                 |   12 ++++++++----
- 4 files changed, 16 insertions(+), 23 deletions(-)
+ arch/arm64/kernel/module.c         |   13 +++++++++++++
+ arch/arm64/kernel/probes/kprobes.c |    7 -------
+ arch/arm64/net/bpf_jit_comp.c      |   11 -----------
+ 3 files changed, 13 insertions(+), 18 deletions(-)
 
---- a/include/linux/execmem.h~modules-execmem-drop-module_alloc
-+++ a/include/linux/execmem.h
-@@ -4,6 +4,14 @@
+--- a/arch/arm64/kernel/module.c~arm64-execmem-extend-execmem_params-for-generated-code-allocations
++++ a/arch/arm64/kernel/module.c
+@@ -116,6 +116,16 @@ static struct execmem_params execmem_par
+ 			.flags = EXECMEM_KASAN_SHADOW,
+ 			.alignment = MODULE_ALIGN,
+ 		},
++		[EXECMEM_KPROBES] = {
++			.start = VMALLOC_START,
++			.end = VMALLOC_END,
++			.alignment = 1,
++		},
++		[EXECMEM_BPF] = {
++			.start = VMALLOC_START,
++			.end = VMALLOC_END,
++			.alignment = 1,
++		},
+ 	},
+ };
  
- #include <linux/types.h>
- 
-+#if (defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)) && \
-+		!defined(CONFIG_KASAN_VMALLOC)
-+#include <linux/kasan.h>
-+#define MODULE_ALIGN (PAGE_SIZE << KASAN_SHADOW_SCALE_SHIFT)
-+#else
-+#define MODULE_ALIGN PAGE_SIZE
-+#endif
-+
- /**
-  * enum execmem_type - types of executable memory ranges
-  *
---- a/include/linux/moduleloader.h~modules-execmem-drop-module_alloc
-+++ a/include/linux/moduleloader.h
-@@ -25,10 +25,6 @@ int module_frob_arch_sections(Elf_Ehdr *
- /* Additional bytes needed by arch in front of individual sections */
- unsigned int arch_mod_section_prepend(struct module *mod, unsigned int section);
- 
--/* Allocator used for allocating struct module, core sections and init
--   sections.  Returns NULL on failure. */
--void *module_alloc(unsigned long size);
--
- /* Determines if the section name is an init section (that is only used during
-  * module loading).
-  */
-@@ -118,12 +114,4 @@ void module_arch_cleanup(struct module *
- /* Any cleanup before freeing mod->module_init */
- void module_arch_freeing_init(struct module *mod);
- 
--#if (defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)) && \
--		!defined(CONFIG_KASAN_VMALLOC)
--#include <linux/kasan.h>
--#define MODULE_ALIGN (PAGE_SIZE << KASAN_SHADOW_SCALE_SHIFT)
--#else
--#define MODULE_ALIGN PAGE_SIZE
--#endif
--
- #endif
---- a/kernel/module/main.c~modules-execmem-drop-module_alloc
-+++ a/kernel/module/main.c
-@@ -1601,13 +1601,6 @@ static void free_modinfo(struct module *
+@@ -140,6 +150,9 @@ struct execmem_params __init *execmem_ar
+ 		r->end = module_plt_base + SZ_2G;
  	}
+ 
++	execmem_params.ranges[EXECMEM_KPROBES].pgprot = PAGE_KERNEL_ROX;
++	execmem_params.ranges[EXECMEM_BPF].pgprot = PAGE_KERNEL;
++
+ 	return &execmem_params;
  }
  
--void * __weak module_alloc(unsigned long size)
+--- a/arch/arm64/kernel/probes/kprobes.c~arm64-execmem-extend-execmem_params-for-generated-code-allocations
++++ a/arch/arm64/kernel/probes/kprobes.c
+@@ -129,13 +129,6 @@ int __kprobes arch_prepare_kprobe(struct
+ 	return 0;
+ }
+ 
+-void *alloc_insn_page(void)
 -{
--	return __vmalloc_node_range(size, 1, VMALLOC_START, VMALLOC_END,
--			GFP_KERNEL, PAGE_KERNEL_EXEC, VM_FLUSH_RESET_PERMS,
+-	return __vmalloc_node_range(PAGE_SIZE, 1, VMALLOC_START, VMALLOC_END,
+-			GFP_KERNEL, PAGE_KERNEL_ROX, VM_FLUSH_RESET_PERMS,
 -			NUMA_NO_NODE, __builtin_return_address(0));
 -}
 -
- bool __weak module_init_section(const char *name)
+ /* arm kprobe: install breakpoint in text */
+ void __kprobes arch_arm_kprobe(struct kprobe *p)
  {
- 	return strstarts(name, ".init");
---- a/mm/execmem.c~modules-execmem-drop-module_alloc
-+++ a/mm/execmem.c
-@@ -55,9 +55,6 @@ static void *execmem_alloc(size_t size,
- 
- void *execmem_text_alloc(enum execmem_type type, size_t size)
- {
--	if (!execmem_params.ranges[type].start)
--		return module_alloc(size);
--
- 	return execmem_alloc(size, &execmem_params.ranges[type]);
+--- a/arch/arm64/net/bpf_jit_comp.c~arm64-execmem-extend-execmem_params-for-generated-code-allocations
++++ a/arch/arm64/net/bpf_jit_comp.c
+@@ -1687,17 +1687,6 @@ u64 bpf_jit_alloc_exec_limit(void)
+ 	return VMALLOC_END - VMALLOC_START;
  }
  
-@@ -111,8 +108,15 @@ void __init execmem_init(void)
+-void *bpf_jit_alloc_exec(unsigned long size)
+-{
+-	/* Memory is intended to be executable, reset the pointer tag. */
+-	return kasan_reset_tag(vmalloc(size));
+-}
+-
+-void bpf_jit_free_exec(void *addr)
+-{
+-	return vfree(addr);
+-}
+-
+ /* Indicate the JIT backend supports mixing bpf2bpf and tailcalls. */
+ bool bpf_jit_supports_subprog_tailcalls(void)
  {
- 	struct execmem_params *p = execmem_arch_params();
- 
--	if (!p)
-+	if (!p) {
-+		p = &execmem_params;
-+		p->ranges[EXECMEM_DEFAULT].start = VMALLOC_START;
-+		p->ranges[EXECMEM_DEFAULT].end = VMALLOC_END;
-+		p->ranges[EXECMEM_DEFAULT].pgprot = PAGE_KERNEL_EXEC;
-+		p->ranges[EXECMEM_DEFAULT].alignment = 1;
-+
- 		return;
-+	}
- 
- 	if (!execmem_validate_params(p))
- 		return;
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
