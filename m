@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE9B4CD37B0
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Sep 2023 15:22:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32466C46CA1
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Sep 2023 15:35:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239726AbjIRPWV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 18 Sep 2023 11:22:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49190 "EHLO
+        id S229611AbjIRPe4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 18 Sep 2023 11:34:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34212 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239739AbjIRPWT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Sep 2023 11:22:19 -0400
+        with ESMTP id S229779AbjIRPeo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Sep 2023 11:34:44 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C4CF3E6C
-        for <mm-commits@vger.kernel.org>; Mon, 18 Sep 2023 08:20:02 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 458B9C32794;
-        Mon, 18 Sep 2023 15:11:36 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E61F1FC2
+        for <mm-commits@vger.kernel.org>; Mon, 18 Sep 2023 08:30:28 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A1F4C32796;
+        Mon, 18 Sep 2023 15:17:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695049896;
-        bh=BblOKfWzj5+DzmyOsuJrmfhRyprp1b1pJA2ziITjOcg=;
+        s=korg; t=1695050249;
+        bh=aZd3gOeZKRhuLQcor9k0Sbl5MuhHKt0JxeYdLqTTIPU=;
         h=Date:To:From:Subject:From;
-        b=fqU1i3Ky1Q+XvpXkNo/oBZqbvqTFdCP2kbZo+uyEl8s9JJ95/I1sfFLKwqgjqLwjL
-         4yhhmtFgoT7+1OYKfieOb8xIp8gV3D/knXnm7xRdiWq+ERjz6K0UQb+pzryllIr4wb
-         tf4GrMI6lAsrbJHRInlcKlOxamik3ewhB6gIM4Es=
-Date:   Mon, 18 Sep 2023 08:11:35 -0700
-To:     mm-commits@vger.kernel.org, sj@kernel.org, feng.tang@intel.com,
-        brendan.higgins@linux.dev, ruanjinjie@huawei.com,
+        b=v6UITojoQelYrGX/kYObQxe1+2O8xqEaIbBIN+z42Ia7PPXryVIpqnzd+xdpYtdpv
+         9pd/imC9SE0RaOzUfMxuOzJe83WbcxtrusZOBbwtcxV3BPdx4T0jw34pdnXvrcyHGm
+         oohiYad9PrPzh4iK1QmcTxepPWloVnziVYXQrNRA=
+Date:   Mon, 18 Sep 2023 08:17:28 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        muchun.song@linux.dev, mike.kravetz@oracle.com, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-test-fix-memory-leak-in-damon_new_ctx.patch added to mm-unstable branch
-Message-Id: <20230918151136.458B9C32794@smtp.kernel.org>
+Subject: + mm-rmap-simplify-pageanonexclusive-sanity-checks-when-adding-anon-rmap-fix.patch added to mm-unstable branch
+Message-Id: <20230918151729.5A1F4C32796@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/core-test: fix memory leak in damon_new_ctx()
+     Subject: mm-rmap-simplify-pageanonexclusive-sanity-checks-when-adding-anon-rmap-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-core-test-fix-memory-leak-in-damon_new_ctx.patch
+     mm-rmap-simplify-pageanonexclusive-sanity-checks-when-adding-anon-rmap-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-test-fix-memory-leak-in-damon_new_ctx.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-simplify-pageanonexclusive-sanity-checks-when-adding-anon-rmap-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,86 +60,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jinjie Ruan <ruanjinjie@huawei.com>
-Subject: mm/damon/core-test: fix memory leak in damon_new_ctx()
-Date: Mon, 18 Sep 2023 20:09:51 +0800
+From: David Hildenbrand <david@redhat.com>
+Subject: mm-rmap-simplify-pageanonexclusive-sanity-checks-when-adding-anon-rmap-fix
+Date: Mon, 18 Sep 2023 11:16:57 +0200
 
-When CONFIG_DAMON_KUNIT_TEST=y and making CONFIG_DEBUG_KMEMLEAK=y and
-CONFIG_DEBUG_KMEMLEAK_AUTO_SCAN=y, the below memory leak is detected.
+While PTE-mapping a THP, we temporarily have an exclusive page of a THP
+mapped by both, a PMD and a PTE at the same time.  Update our check to
+allow for that combination.
 
-The damon_ctx which is allocated by kzalloc() in damon_new_ctx() in
-damon_test_ops_registration() and damon_test_set_attrs() are not freed. 
-So use damon_destroy_ctx() to free it.  After applying this patch, the
-following memory leak is never detected
-
-    unreferenced object 0xffff2b49c6968800 (size 512):
-      comm "kunit_try_catch", pid 350, jiffies 4294895294 (age 557.028s)
-      hex dump (first 32 bytes):
-        88 13 00 00 00 00 00 00 a0 86 01 00 00 00 00 00  ................
-        00 87 93 03 00 00 00 00 0a 00 00 00 00 00 00 00  ................
-      backtrace:
-        [<0000000088e71769>] slab_post_alloc_hook+0xb8/0x368
-        [<0000000073acab3b>] __kmem_cache_alloc_node+0x174/0x290
-        [<00000000b5f89cef>] kmalloc_trace+0x40/0x164
-        [<00000000eb19e83f>] damon_new_ctx+0x28/0xb4
-        [<00000000daf6227b>] damon_test_ops_registration+0x34/0x328
-        [<00000000559c4801>] kunit_try_run_case+0x50/0xac
-        [<000000003932ed49>] kunit_generic_run_threadfn_adapter+0x20/0x2c
-        [<000000003c3e9211>] kthread+0x124/0x130
-        [<0000000028f85bdd>] ret_from_fork+0x10/0x20
-    unreferenced object 0xffff2b49c1a9cc00 (size 512):
-      comm "kunit_try_catch", pid 356, jiffies 4294895306 (age 557.000s)
-      hex dump (first 32 bytes):
-        88 13 00 00 00 00 00 00 a0 86 01 00 00 00 00 00  ................
-        00 00 00 00 00 00 00 00 0a 00 00 00 00 00 00 00  ................
-      backtrace:
-        [<0000000088e71769>] slab_post_alloc_hook+0xb8/0x368
-        [<0000000073acab3b>] __kmem_cache_alloc_node+0x174/0x290
-        [<00000000b5f89cef>] kmalloc_trace+0x40/0x164
-        [<00000000eb19e83f>] damon_new_ctx+0x28/0xb4
-        [<00000000058495c4>] damon_test_set_attrs+0x30/0x1a8
-        [<00000000559c4801>] kunit_try_run_case+0x50/0xac
-        [<000000003932ed49>] kunit_generic_run_threadfn_adapter+0x20/0x2c
-        [<000000003c3e9211>] kthread+0x124/0x130
-        [<0000000028f85bdd>] ret_from_fork+0x10/0x20
-
-Link: https://lkml.kernel.org/r/20230918120951.2230468-3-ruanjinjie@huawei.com
-Fixes: d1836a3b2a9a ("mm/damon/core-test: initialise context before test in damon_test_set_attrs()")
-Fixes: 4f540f5ab4f2 ("mm/damon/core-test: add a kunit test case for ops registration")
-Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
-Reviewed-by: Feng Tang <feng.tang@intel.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Link: https://lkml.kernel.org/r/d8e5a093-2e22-c14b-7e64-6da280398d9f@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reported-by: syzbot+6e4f59235036c3c2e296@syzkaller.appspotmail.com
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core-test.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/rmap.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/damon/core-test.h~mm-damon-core-test-fix-memory-leak-in-damon_new_ctx
-+++ a/mm/damon/core-test.h
-@@ -269,6 +269,8 @@ static void damon_test_ops_registration(
+--- a/mm/rmap.c~mm-rmap-simplify-pageanonexclusive-sanity-checks-when-adding-anon-rmap-fix
++++ a/mm/rmap.c
+@@ -1249,8 +1249,10 @@ void page_add_anon_rmap(struct page *pag
+ 	}
+ 	if (flags & RMAP_EXCLUSIVE)
+ 		SetPageAnonExclusive(page);
+-	VM_WARN_ON_FOLIO(page_mapcount(page) > 1 && PageAnonExclusive(page),
+-			 folio);
++	/* While PTE-mapping a THP we have a PMD and a PTE mapping. */
++	VM_WARN_ON_FOLIO((atomic_read(&page->_mapcount) > 0 ||
++			  (folio_test_large(folio) && folio_entire_mapcount(folio) > 1)) &&
++			 PageAnonExclusive(page), folio);
  
- 	/* Check double-registration failure again */
- 	KUNIT_EXPECT_EQ(test, damon_register_ops(&ops), -EINVAL);
-+
-+	damon_destroy_ctx(c);
+ 	mlock_vma_folio(folio, vma, compound);
  }
- 
- static void damon_test_set_regions(struct kunit *test)
-@@ -346,6 +348,8 @@ static void damon_test_set_attrs(struct
- 	invalid_attrs = valid_attrs;
- 	invalid_attrs.aggr_interval = 4999;
- 	KUNIT_EXPECT_EQ(test, damon_set_attrs(c, &invalid_attrs), -EINVAL);
-+
-+	damon_destroy_ctx(c);
- }
- 
- static void damon_test_moving_sum(struct kunit *test)
 _
 
-Patches currently in -mm which might be from ruanjinjie@huawei.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-damon-core-test-fix-memory-leak-in-damon_new_region.patch
-mm-damon-core-test-fix-memory-leak-in-damon_new_ctx.patch
+mm-rmap-drop-stale-comment-in-page_add_anon_rmap-and-hugepage_add_anon_rmap.patch
+mm-rmap-move-setpageanonexclusive-out-of-__page_set_anon_rmap.patch
+mm-rmap-move-folio_test_anon-check-out-of-__folio_set_anon.patch
+mm-rmap-warn-on-new-pte-mapped-folios-in-page_add_anon_rmap.patch
+mm-rmap-simplify-pageanonexclusive-sanity-checks-when-adding-anon-rmap.patch
+mm-rmap-simplify-pageanonexclusive-sanity-checks-when-adding-anon-rmap-fix.patch
+mm-rmap-pass-folio-to-hugepage_add_anon_rmap.patch
 
