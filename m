@@ -2,42 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8097CD13DD
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Sep 2023 16:09:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40533CD13DF
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Sep 2023 16:09:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230012AbjIRQJ7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 18 Sep 2023 12:09:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59324 "EHLO
+        id S229957AbjIRQKB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 18 Sep 2023 12:10:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46456 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230103AbjIRQJQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Sep 2023 12:09:16 -0400
+        with ESMTP id S229864AbjIRQJN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Sep 2023 12:09:13 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E7E8349F5
-        for <mm-commits@vger.kernel.org>; Mon, 18 Sep 2023 09:08:00 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B4B1C116A9;
-        Mon, 18 Sep 2023 15:52:11 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 571C446AB
+        for <mm-commits@vger.kernel.org>; Mon, 18 Sep 2023 09:07:50 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45552C433CD;
+        Mon, 18 Sep 2023 15:41:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695052331;
-        bh=0nVG/kMWS2HTX8b7O59NZ7IMCg3S/aAleY0aW4rxoww=;
+        s=korg; t=1695051662;
+        bh=6dlXqtxLycLeYHaElfx8vfwKg5u3hZPrSnl7+V6+OTI=;
         h=Date:To:From:Subject:From;
-        b=cypsgUThU+D7arnsRRs4Lm3D7E9BIbaJC63sfNKAYr1NPGDlavanQWDdhMTlwUUUq
-         sd+J/VA37TRO/S3RAmZ0qpabxUrLUF19lLa3s3O9AwWjx1GRQYd9wnuOFVSwJaZZlY
-         wOkLqciH0w1yF+1tU0MrUdCN21iE4I5ekaCXbUJg=
-Date:   Mon, 18 Sep 2023 08:52:10 -0700
-To:     mm-commits@vger.kernel.org, will@kernel.org,
-        tsbogend@alpha.franken.de, tglx@linutronix.de, song@kernel.org,
-        rostedt@goodmis.org, rick.p.edgecombe@intel.com,
-        puranjay12@gmail.com, palmer@dabbelt.com,
-        naveen.n.rao@linux.ibm.com, nadav.amit@gmail.com,
-        mpe@ellerman.id.au, mcgrof@kernel.org, mark.rutland@arm.com,
-        linux@armlinux.org.uk, kent.overstreet@linux.dev,
-        hca@linux.ibm.com, dinguyen@kernel.org, deller@gmx.de,
-        davem@davemloft.net, christophe.leroy@csgroup.eu,
-        chenhuacai@kernel.org, catalin.marinas@arm.com, bjorn@kernel.org,
-        rppt@kernel.org, akpm@linux-foundation.org
+        b=mgQobiHT1kut91LOYQwDN3TQVbg2DTUXjdhm4cqRJXK4QaqHo5U4Qj91Fq3qkdULb
+         guGsp8UTwqHqKjWP06h12ok9/YP23JVFyUz29zhbpD9P2ACoEMbnYooYGsrXfi0L3Y
+         YZtOvrEyuUa6Szr28jEcTU1naoiEeSXF/T5qIOxI=
+Date:   Mon, 18 Sep 2023 08:41:01 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com,
+        yosryahmed@google.com, willy@infradead.org, shy828301@gmail.com,
+        ryan.roberts@arm.com, hughd@google.com, david@redhat.com,
+        fengwei.yin@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-execmem-introduce-execmem_data_alloc.patch added to mm-unstable branch
-Message-Id: <20230918155211.2B4B1C116A9@smtp.kernel.org>
+Subject: + mm-handle-large-folio-when-large-folio-in-vm_locked-vma-range.patch added to mm-unstable branch
+Message-Id: <20230918154102.45552C433CD@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +38,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/execmem: introduce execmem_data_alloc()
+     Subject: mm: handle large folio when large folio in VM_LOCKED VMA range
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-execmem-introduce-execmem_data_alloc.patch
+     mm-handle-large-folio-when-large-folio-in-vm_locked-vma-range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-execmem-introduce-execmem_data_alloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-handle-large-folio-when-large-folio-in-vm_locked-vma-range.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,222 +61,226 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: mm/execmem: introduce execmem_data_alloc()
-Date: Mon, 18 Sep 2023 10:29:48 +0300
+From: Yin Fengwei <fengwei.yin@intel.com>
+Subject: mm: handle large folio when large folio in VM_LOCKED VMA range
+Date: Mon, 18 Sep 2023 15:33:17 +0800
 
-Data related to code allocations, such as module data section, need to
-comply with architecture constraints for its placement and its allocation
-right now was done using execmem_text_alloc().
+If large folio is in the range of VM_LOCKED VMA, it should be mlocked to
+avoid being picked by page reclaim.  Which may split the large folio and
+then mlock each pages again.
 
-Create a dedicated API for allocating data related to code allocations and
-allow architectures to define address ranges for data allocations.
+Mlock this kind of large folio to prevent them being picked by page
+reclaim.
 
-Since currently this is only relevant for powerpc variants that use the
-VMALLOC address space for module data allocations, automatically reuse
-address ranges defined for text unless address range for data is
-explicitly defined by an architecture.
+For the large folio which cross the boundary of VM_LOCKED VMA or not fully
+mapped to VM_LOCKED VMA, we'd better not to mlock it.  So if the system is
+under memory pressure, this kind of large folio will be split and the
+pages ouf of VM_LOCKED VMA can be reclaimed.
 
-With separation of code and data allocations, data sections of the modules
-are now mapped as PAGE_KERNEL rather than PAGE_KERNEL_EXEC which was a
-default on many architectures.
+Ideally, for large folio, we should mlock it when the large folio is fully
+mapped to VMA and munlock it if any page are unmampped from VMA.  But it's
+not easy to detect whether the large folio is fully mapped to VMA in some
+cases (like add/remove rmap).  So we update mlock_vma_folio() and
+munlock_vma_folio() to mlock/munlock the folio according to vma->vm_flags.
+Let caller to decide whether they should call these two functions.
 
-Link: https://lkml.kernel.org/r/20230918072955.2507221-7-rppt@kernel.org
-Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Björn Töpel <bjorn@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Dinh Nguyen <dinguyen@kernel.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Kent Overstreet <kent.overstreet@linux.dev>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nadav Amit <nadav.amit@gmail.com>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Puranjay Mohan <puranjay12@gmail.com>
-Cc: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Cc: Russell King (Oracle) <linux@armlinux.org.uk>
-Cc: Song Liu <song@kernel.org>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
+For add rmap, only mlock normal 4K folio and postpone large folio handling
+to page reclaim phase.  It is possible to reuse page table iterator to
+detect whether folio is fully mapped or not during page reclaim phase. 
+For remove rmap, invoke munlock_vma_folio() to munlock folio unconditionly
+because rmap makes folio not fully mapped to VMA.
+
+Link: https://lkml.kernel.org/r/20230918073318.1181104-3-fengwei.yin@intel.com
+Signed-off-by: Yin Fengwei <fengwei.yin@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/module.c |   12 ++++++++++++
- include/linux/execmem.h      |   19 +++++++++++++++++++
- kernel/module/main.c         |   15 +++------------
- mm/execmem.c                 |   17 ++++++++++++++++-
- 4 files changed, 50 insertions(+), 13 deletions(-)
+ mm/internal.h |   23 +++++++++-------
+ mm/rmap.c     |   66 ++++++++++++++++++++++++++++++++++++++++--------
+ 2 files changed, 68 insertions(+), 21 deletions(-)
 
---- a/arch/powerpc/kernel/module.c~mm-execmem-introduce-execmem_data_alloc
-+++ a/arch/powerpc/kernel/module.c
-@@ -95,6 +95,9 @@ static struct execmem_params execmem_par
- 		[EXECMEM_DEFAULT] = {
- 			.alignment = 1,
- 		},
-+		[EXECMEM_MODULE_DATA] = {
-+			.alignment = 1,
-+		},
- 	},
- };
- 
-@@ -103,7 +106,12 @@ struct execmem_params __init *execmem_ar
- 	pgprot_t prot = strict_module_rwx_enabled() ? PAGE_KERNEL : PAGE_KERNEL_EXEC;
- 	struct execmem_range *range = &execmem_params.ranges[EXECMEM_DEFAULT];
- 
-+	/*
-+	 * BOOK3S_32 and 8xx define MODULES_VADDR for text allocations and
-+	 * allow allocating data in the entire vmalloc space
-+	 */
- #ifdef MODULES_VADDR
-+	struct execmem_range *data = &execmem_params.ranges[EXECMEM_MODULE_DATA];
- 	unsigned long limit = (unsigned long)_etext - SZ_32M;
- 
- 	/* First try within 32M limit from _etext to avoid branch trampolines */
-@@ -116,6 +124,10 @@ struct execmem_params __init *execmem_ar
- 		range->start = MODULES_VADDR;
- 		range->end = MODULES_END;
- 	}
-+	data->start = VMALLOC_START;
-+	data->end = VMALLOC_END;
-+	data->pgprot = PAGE_KERNEL;
-+	data->alignment = 1;
- #else
- 	range->start = VMALLOC_START;
- 	range->end = VMALLOC_END;
---- a/include/linux/execmem.h~mm-execmem-introduce-execmem_data_alloc
-+++ a/include/linux/execmem.h
-@@ -29,6 +29,7 @@
-  * @EXECMEM_KPROBES: parameters for kprobes
-  * @EXECMEM_FTRACE: parameters for ftrace
-  * @EXECMEM_BPF: parameters for BPF
-+ * @EXECMEM_MODULE_DATA: parameters for module data sections
-  * @EXECMEM_TYPE_MAX:
+--- a/mm/internal.h~mm-handle-large-folio-when-large-folio-in-vm_locked-vma-range
++++ a/mm/internal.h
+@@ -645,14 +645,10 @@ folio_within_vma(struct folio *folio, st
+  * mlock is usually called at the end of page_add_*_rmap(), munlock at
+  * the end of page_remove_rmap(); but new anon folios are managed by
+  * folio_add_lru_vma() calling mlock_new_folio().
+- *
+- * @compound is used to include pmd mappings of THPs, but filter out
+- * pte mappings of THPs, which cannot be consistently counted: a pte
+- * mapping of the THP head cannot be distinguished by the page alone.
   */
- enum execmem_type {
-@@ -37,6 +38,7 @@ enum execmem_type {
- 	EXECMEM_KPROBES,
- 	EXECMEM_FTRACE,
- 	EXECMEM_BPF,
-+	EXECMEM_MODULE_DATA,
- 	EXECMEM_TYPE_MAX,
- };
- 
-@@ -108,6 +110,23 @@ struct execmem_params *execmem_arch_para
- void *execmem_text_alloc(enum execmem_type type, size_t size);
- 
- /**
-+ * execmem_data_alloc - allocate memory for data coupled to code
-+ * @type: type of the allocation
-+ * @size: how many bytes of memory are required
-+ *
-+ * Allocates memory that will contain data coupled with executable code,
-+ * like data sections in kernel modules.
-+ *
-+ * The memory will have protections defined by architecture.
-+ *
-+ * The allocated memory will reside in an area that does not impose
-+ * restrictions on the addressing modes.
-+ *
-+ * Return: a pointer to the allocated memory or %NULL
-+ */
-+void *execmem_data_alloc(enum execmem_type type, size_t size);
-+
-+/**
-  * execmem_free - free executable memory
-  * @ptr: pointer to the memory that should be freed
-  */
---- a/kernel/module/main.c~mm-execmem-introduce-execmem_data_alloc
-+++ a/kernel/module/main.c
-@@ -1188,25 +1188,16 @@ void __weak module_arch_freeing_init(str
- {
- }
- 
--static bool mod_mem_use_vmalloc(enum mod_mem_type type)
--{
--	return IS_ENABLED(CONFIG_ARCH_WANTS_MODULES_DATA_IN_VMALLOC) &&
--		mod_mem_type_is_core_data(type);
--}
--
- static void *module_memory_alloc(unsigned int size, enum mod_mem_type type)
- {
--	if (mod_mem_use_vmalloc(type))
--		return vzalloc(size);
-+	if (mod_mem_type_is_data(type))
-+		return execmem_data_alloc(EXECMEM_MODULE_DATA, size);
- 	return execmem_text_alloc(EXECMEM_MODULE_TEXT, size);
- }
- 
- static void module_memory_free(void *ptr, enum mod_mem_type type)
- {
--	if (mod_mem_use_vmalloc(type))
--		vfree(ptr);
--	else
--		execmem_free(ptr);
-+	execmem_free(ptr);
- }
- 
- static void free_mod_mem(struct module *mod)
---- a/mm/execmem.c~mm-execmem-introduce-execmem_data_alloc
-+++ a/mm/execmem.c
-@@ -53,11 +53,23 @@ static void *execmem_alloc(size_t size,
- 	return kasan_reset_tag(p);
- }
- 
-+static inline bool execmem_range_is_data(enum execmem_type type)
-+{
-+	return type == EXECMEM_MODULE_DATA;
-+}
-+
- void *execmem_text_alloc(enum execmem_type type, size_t size)
- {
- 	return execmem_alloc(size, &execmem_params.ranges[type]);
- }
- 
-+void *execmem_data_alloc(enum execmem_type type, size_t size)
-+{
-+	WARN_ON_ONCE(!execmem_range_is_data(type));
-+
-+	return execmem_alloc(size, &execmem_params.ranges[type]);
-+}
-+
- void execmem_free(void *ptr)
+ void mlock_folio(struct folio *folio);
+ static inline void mlock_vma_folio(struct folio *folio,
+-			struct vm_area_struct *vma, bool compound)
++				struct vm_area_struct *vma)
  {
  	/*
-@@ -93,7 +105,10 @@ static void execmem_init_missing(struct
- 		struct execmem_range *r = &p->ranges[i];
+ 	 * The VM_SPECIAL check here serves two purposes.
+@@ -662,17 +658,24 @@ static inline void mlock_vma_folio(struc
+ 	 *    file->f_op->mmap() is using vm_insert_page(s), when VM_LOCKED may
+ 	 *    still be set while VM_SPECIAL bits are added: so ignore it then.
+ 	 */
+-	if (unlikely((vma->vm_flags & (VM_LOCKED|VM_SPECIAL)) == VM_LOCKED) &&
+-	    (compound || !folio_test_large(folio)))
++	if (unlikely((vma->vm_flags & (VM_LOCKED|VM_SPECIAL)) == VM_LOCKED))
+ 		mlock_folio(folio);
+ }
  
- 		if (!r->start) {
--			r->pgprot = default_range->pgprot;
-+			if (execmem_range_is_data(i))
-+				r->pgprot = PAGE_KERNEL;
-+			else
-+				r->pgprot = default_range->pgprot;
- 			r->alignment = default_range->alignment;
- 			r->start = default_range->start;
- 			r->end = default_range->end;
+ void munlock_folio(struct folio *folio);
+ static inline void munlock_vma_folio(struct folio *folio,
+-			struct vm_area_struct *vma, bool compound)
++					struct vm_area_struct *vma)
+ {
+-	if (unlikely(vma->vm_flags & VM_LOCKED) &&
+-	    (compound || !folio_test_large(folio)))
++	/*
++	 * munlock if the function is called. Ideally, we should only
++	 * do munlock if any page of folio is unmapped from VMA and
++	 * cause folio not fully mapped to VMA.
++	 *
++	 * But it's not easy to confirm that's the situation. So we
++	 * always munlock the folio and page reclaim will correct it
++	 * if it's wrong.
++	 */
++	if (unlikely(vma->vm_flags & VM_LOCKED))
+ 		munlock_folio(folio);
+ }
+ 
+--- a/mm/rmap.c~mm-handle-large-folio-when-large-folio-in-vm_locked-vma-range
++++ a/mm/rmap.c
+@@ -798,6 +798,7 @@ struct folio_referenced_arg {
+ 	unsigned long vm_flags;
+ 	struct mem_cgroup *memcg;
+ };
++
+ /*
+  * arg: folio_referenced_arg will be passed
+  */
+@@ -807,17 +808,33 @@ static bool folio_referenced_one(struct
+ 	struct folio_referenced_arg *pra = arg;
+ 	DEFINE_FOLIO_VMA_WALK(pvmw, folio, vma, address, 0);
+ 	int referenced = 0;
++	unsigned long start = address, ptes = 0;
+ 
+ 	while (page_vma_mapped_walk(&pvmw)) {
+ 		address = pvmw.address;
+ 
+-		if ((vma->vm_flags & VM_LOCKED) &&
+-		    (!folio_test_large(folio) || !pvmw.pte)) {
+-			/* Restore the mlock which got missed */
+-			mlock_vma_folio(folio, vma, !pvmw.pte);
+-			page_vma_mapped_walk_done(&pvmw);
+-			pra->vm_flags |= VM_LOCKED;
+-			return false; /* To break the loop */
++		if (vma->vm_flags & VM_LOCKED) {
++			if (!folio_test_large(folio) || !pvmw.pte) {
++				/* Restore the mlock which got missed */
++				mlock_vma_folio(folio, vma);
++				page_vma_mapped_walk_done(&pvmw);
++				pra->vm_flags |= VM_LOCKED;
++				return false; /* To break the loop */
++			}
++			/*
++			 * For large folio fully mapped to VMA, will
++			 * be handled after the pvmw loop.
++			 *
++			 * For large folio cross VMA boundaries, it's
++			 * expected to be picked  by page reclaim. But
++			 * should skip reference of pages which are in
++			 * the range of VM_LOCKED vma. As page reclaim
++			 * should just count the reference of pages out
++			 * the range of VM_LOCKED vma.
++			 */
++			ptes++;
++			pra->mapcount--;
++			continue;
+ 		}
+ 
+ 		if (pvmw.pte) {
+@@ -842,6 +859,23 @@ static bool folio_referenced_one(struct
+ 		pra->mapcount--;
+ 	}
+ 
++	if ((vma->vm_flags & VM_LOCKED) &&
++			folio_test_large(folio) &&
++			folio_within_vma(folio, vma)) {
++		unsigned long s_align, e_align;
++
++		s_align = ALIGN_DOWN(start, PMD_SIZE);
++		e_align = ALIGN_DOWN(start + folio_size(folio) - 1, PMD_SIZE);
++
++		/* folio doesn't cross page table boundary and fully mapped */
++		if ((s_align == e_align) && (ptes == folio_nr_pages(folio))) {
++			/* Restore the mlock which got missed */
++			mlock_vma_folio(folio, vma);
++			pra->vm_flags |= VM_LOCKED;
++			return false; /* To break the loop */
++		}
++	}
++
+ 	if (referenced)
+ 		folio_clear_idle(folio);
+ 	if (folio_test_clear_young(folio))
+@@ -1254,7 +1288,14 @@ void page_add_anon_rmap(struct page *pag
+ 			  (folio_test_large(folio) && folio_entire_mapcount(folio) > 1)) &&
+ 			 PageAnonExclusive(page), folio);
+ 
+-	mlock_vma_folio(folio, vma, compound);
++	/*
++	 * For large folio, only mlock it if it's fully mapped to VMA. It's
++	 * not easy to check whether the large folio is fully mapped to VMA
++	 * here. Only mlock normal 4K folio and leave page reclaim to handle
++	 * large folio.
++	 */
++	if (!folio_test_large(folio))
++		mlock_vma_folio(folio, vma);
+ }
+ 
+ /**
+@@ -1354,7 +1395,9 @@ void folio_add_file_rmap_range(struct fo
+ 	if (nr)
+ 		__lruvec_stat_mod_folio(folio, NR_FILE_MAPPED, nr);
+ 
+-	mlock_vma_folio(folio, vma, compound);
++	/* See comments in page_add_anon_rmap() */
++	if (!folio_test_large(folio))
++		mlock_vma_folio(folio, vma);
+ }
+ 
+ /**
+@@ -1465,7 +1508,7 @@ void page_remove_rmap(struct page *page,
+ 	 * it's only reliable while mapped.
+ 	 */
+ 
+-	munlock_vma_folio(folio, vma, compound);
++	munlock_vma_folio(folio, vma);
+ }
+ 
+ /*
+@@ -1526,7 +1569,8 @@ static bool try_to_unmap_one(struct foli
+ 		if (!(flags & TTU_IGNORE_MLOCK) &&
+ 		    (vma->vm_flags & VM_LOCKED)) {
+ 			/* Restore the mlock which got missed */
+-			mlock_vma_folio(folio, vma, false);
++			if (!folio_test_large(folio))
++				mlock_vma_folio(folio, vma);
+ 			page_vma_mapped_walk_done(&pvmw);
+ 			ret = false;
+ 			break;
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from fengwei.yin@intel.com are
 
-nios2-define-virtual-address-space-for-modules.patch
-mm-introduce-execmem_text_alloc-and-execmem_free.patch
-mm-execmem-arch-convert-simple-overrides-of-module_alloc-to-execmem.patch
-mm-execmem-arch-convert-remaining-overrides-of-module_alloc-to-execmem.patch
-modules-execmem-drop-module_alloc.patch
-mm-execmem-introduce-execmem_data_alloc.patch
-arm64-execmem-extend-execmem_params-for-generated-code-allocations.patch
-riscv-extend-execmem_params-for-generated-code-allocations.patch
-powerpc-extend-execmem_params-for-kprobes-allocations.patch
-arch-make-execmem-setup-available-regardless-of-config_modules.patch
-x86-ftrace-enable-dynamic-ftrace-without-config_modules.patch
-kprobes-remove-dependency-on-config_modules.patch
-bpf-remove-config_bpf_jit-dependency-on-config_modules-of.patch
+filemap-add-filemap_map_order0_folio-to-handle-order0-folio.patch
+mm-add-functions-folio_in_range-and-folio_within_vma.patch
+mm-handle-large-folio-when-large-folio-in-vm_locked-vma-range.patch
+mm-mlock-update-mlock_pte_range-to-handle-large-folio.patch
 
