@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62C28CD13DA
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 230E8CD13D2
 	for <mm-commits@archiver.kernel.org>; Mon, 18 Sep 2023 16:09:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229890AbjIRQJY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 18 Sep 2023 12:09:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54896 "EHLO
+        id S229948AbjIRQJX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 18 Sep 2023 12:09:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54882 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230012AbjIRQJH (ORCPT
+        with ESMTP id S230001AbjIRQJH (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Sep 2023 12:09:07 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7014F5B93
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7226B5B94
         for <mm-commits@vger.kernel.org>; Mon, 18 Sep 2023 09:07:32 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6148C116AD;
-        Mon, 18 Sep 2023 15:52:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A857C116A8;
+        Mon, 18 Sep 2023 15:52:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695052337;
-        bh=kpERd8SxZClF7mPEcdksvbleuySgirE8lst+TbzMLF8=;
+        s=korg; t=1695052328;
+        bh=wVHS7d1tRF5todHStq3PiNwJh3V65gRrGpEhHKUS/Mg=;
         h=Date:To:From:Subject:From;
-        b=z1WIoq7AjqE8s3nYXU5HOPUO1rNQx/Ig3KDz0BpmWmtCJ6Qp79gOSbcXPrP05aZ6o
-         ksdJJKeTiz+BVGOfsQkSEf12Sy/+5yCVbWmI5x4Unxz2XSjR1DmsKbfWYbgxvEHxXf
-         rGpwAt4UpVAGfepcmqeQGCNdrovYQQ9kkGFygT5A=
-Date:   Mon, 18 Sep 2023 08:52:16 -0700
+        b=o3LnFVKeFVY3hoqR1YUozXxQHkcdPySr2HQ/XM6Sn8gj9E6dK0YMHvOgy/x1LtzQG
+         9znyDFezeuG3XZDJ8X0rCH6DZThQL0bzLZ14zr76XfsGxR5TgF2FYBpzXvC/8vQn/l
+         l0wJmlQkgKgLpGlvCD8kX8Wnj83T1uelPcAVGkgA=
+Date:   Mon, 18 Sep 2023 08:52:07 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org,
         tsbogend@alpha.franken.de, tglx@linutronix.de, song@kernel.org,
         rostedt@goodmis.org, rick.p.edgecombe@intel.com,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org,
         chenhuacai@kernel.org, catalin.marinas@arm.com, bjorn@kernel.org,
         rppt@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + riscv-extend-execmem_params-for-generated-code-allocations.patch added to mm-unstable branch
-Message-Id: <20230918155216.D6148C116AD@smtp.kernel.org>
+Subject: + modules-execmem-drop-module_alloc.patch added to mm-unstable branch
+Message-Id: <20230918155208.3A857C116A8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: riscv: extend execmem_params for generated code allocations
+     Subject: modules, execmem: drop module_alloc
 has been added to the -mm mm-unstable branch.  Its filename is
-     riscv-extend-execmem_params-for-generated-code-allocations.patch
+     modules-execmem-drop-module_alloc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-extend-execmem_params-for-generated-code-allocations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/modules-execmem-drop-module_alloc.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,19 +69,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: riscv: extend execmem_params for generated code allocations
-Date: Mon, 18 Sep 2023 10:29:50 +0300
+Subject: modules, execmem: drop module_alloc
+Date: Mon, 18 Sep 2023 10:29:47 +0300
 
-The memory allocations for kprobes and BPF on RISC-V are not placed in the
-modules area and these custom allocations are implemented with overrides
-of alloc_insn_page() and bpf_jit_alloc_exec().
+Define default parameters for address range for code allocations using the
+current values in module_alloc() and make execmem_text_alloc() use these
+defaults when an architecture does not supply its specific parameters.
 
-Slightly reorder execmem_params initialization to support both 32 and 64
-bit variants, define EXECMEM_KPROBES and EXECMEM_BPF ranges in
-riscv::execmem_params and drop overrides of alloc_insn_page() and
-bpf_jit_alloc_exec().
+With this, execmem_text_alloc() implements memory allocation in a way
+compatible with module_alloc() and can be used as a replacement for
+module_alloc().
 
-Link: https://lkml.kernel.org/r/20230918072955.2507221-9-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20230918072955.2507221-6-rppt@kernel.org
 Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Cc: Björn Töpel <bjorn@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -109,95 +108,100 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/kernel/module.c         |   21 ++++++++++++++++++++-
- arch/riscv/kernel/probes/kprobes.c |   10 ----------
- arch/riscv/net/bpf_jit_core.c      |   13 -------------
- 3 files changed, 20 insertions(+), 24 deletions(-)
+ include/linux/execmem.h      |    8 ++++++++
+ include/linux/moduleloader.h |   12 ------------
+ kernel/module/main.c         |    7 -------
+ mm/execmem.c                 |   12 ++++++++----
+ 4 files changed, 16 insertions(+), 23 deletions(-)
 
---- a/arch/riscv/kernel/module.c~riscv-extend-execmem_params-for-generated-code-allocations
-+++ a/arch/riscv/kernel/module.c
-@@ -436,20 +436,39 @@ int apply_relocate_add(Elf_Shdr *sechdrs
- 	return 0;
- }
+--- a/include/linux/execmem.h~modules-execmem-drop-module_alloc
++++ a/include/linux/execmem.h
+@@ -4,6 +4,14 @@
  
--#if defined(CONFIG_MMU) && defined(CONFIG_64BIT)
-+#ifdef CONFIG_MMU
- static struct execmem_params execmem_params __ro_after_init = {
- 	.ranges = {
- 		[EXECMEM_DEFAULT] = {
- 			.pgprot = PAGE_KERNEL,
- 			.alignment = 1,
- 		},
-+		[EXECMEM_KPROBES] = {
-+			.pgprot = PAGE_KERNEL_READ_EXEC,
-+			.alignment = 1,
-+		},
-+		[EXECMEM_BPF] = {
-+			.pgprot = PAGE_KERNEL,
-+			.alignment = 1,
-+		},
- 	},
- };
+ #include <linux/types.h>
  
- struct execmem_params __init *execmem_arch_params(void)
- {
-+#ifdef CONFIG_64BIT
- 	execmem_params.ranges[EXECMEM_DEFAULT].start = MODULES_VADDR;
- 	execmem_params.ranges[EXECMEM_DEFAULT].end = MODULES_END;
++#if (defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)) && \
++		!defined(CONFIG_KASAN_VMALLOC)
++#include <linux/kasan.h>
++#define MODULE_ALIGN (PAGE_SIZE << KASAN_SHADOW_SCALE_SHIFT)
 +#else
-+	execmem_params.ranges[EXECMEM_DEFAULT].start = VMALLOC_START;
-+	execmem_params.ranges[EXECMEM_DEFAULT].end = VMALLOC_END;
++#define MODULE_ALIGN PAGE_SIZE
 +#endif
 +
-+	execmem_params.ranges[EXECMEM_KPROBES].start = VMALLOC_START;
-+	execmem_params.ranges[EXECMEM_KPROBES].end = VMALLOC_END;
-+
-+	execmem_params.ranges[EXECMEM_BPF].start = BPF_JIT_REGION_START;
-+	execmem_params.ranges[EXECMEM_BPF].end = BPF_JIT_REGION_END;
+ /**
+  * enum execmem_type - types of executable memory ranges
+  *
+--- a/include/linux/moduleloader.h~modules-execmem-drop-module_alloc
++++ a/include/linux/moduleloader.h
+@@ -25,10 +25,6 @@ int module_frob_arch_sections(Elf_Ehdr *
+ /* Additional bytes needed by arch in front of individual sections */
+ unsigned int arch_mod_section_prepend(struct module *mod, unsigned int section);
  
- 	return &execmem_params;
- }
---- a/arch/riscv/kernel/probes/kprobes.c~riscv-extend-execmem_params-for-generated-code-allocations
-+++ a/arch/riscv/kernel/probes/kprobes.c
-@@ -104,16 +104,6 @@ int __kprobes arch_prepare_kprobe(struct
- 	return 0;
- }
+-/* Allocator used for allocating struct module, core sections and init
+-   sections.  Returns NULL on failure. */
+-void *module_alloc(unsigned long size);
+-
+ /* Determines if the section name is an init section (that is only used during
+  * module loading).
+  */
+@@ -118,12 +114,4 @@ void module_arch_cleanup(struct module *
+ /* Any cleanup before freeing mod->module_init */
+ void module_arch_freeing_init(struct module *mod);
  
--#ifdef CONFIG_MMU
--void *alloc_insn_page(void)
--{
--	return  __vmalloc_node_range(PAGE_SIZE, 1, VMALLOC_START, VMALLOC_END,
--				     GFP_KERNEL, PAGE_KERNEL_READ_EXEC,
--				     VM_FLUSH_RESET_PERMS, NUMA_NO_NODE,
--				     __builtin_return_address(0));
--}
+-#if (defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)) && \
+-		!defined(CONFIG_KASAN_VMALLOC)
+-#include <linux/kasan.h>
+-#define MODULE_ALIGN (PAGE_SIZE << KASAN_SHADOW_SCALE_SHIFT)
+-#else
+-#define MODULE_ALIGN PAGE_SIZE
 -#endif
 -
- /* install breakpoint in text */
- void __kprobes arch_arm_kprobe(struct kprobe *p)
- {
---- a/arch/riscv/net/bpf_jit_core.c~riscv-extend-execmem_params-for-generated-code-allocations
-+++ a/arch/riscv/net/bpf_jit_core.c
-@@ -218,19 +218,6 @@ u64 bpf_jit_alloc_exec_limit(void)
- 	return BPF_JIT_REGION_SIZE;
+ #endif
+--- a/kernel/module/main.c~modules-execmem-drop-module_alloc
++++ a/kernel/module/main.c
+@@ -1601,13 +1601,6 @@ static void free_modinfo(struct module *
+ 	}
  }
  
--void *bpf_jit_alloc_exec(unsigned long size)
+-void * __weak module_alloc(unsigned long size)
 -{
--	return __vmalloc_node_range(size, PAGE_SIZE, BPF_JIT_REGION_START,
--				    BPF_JIT_REGION_END, GFP_KERNEL,
--				    PAGE_KERNEL, 0, NUMA_NO_NODE,
--				    __builtin_return_address(0));
+-	return __vmalloc_node_range(size, 1, VMALLOC_START, VMALLOC_END,
+-			GFP_KERNEL, PAGE_KERNEL_EXEC, VM_FLUSH_RESET_PERMS,
+-			NUMA_NO_NODE, __builtin_return_address(0));
 -}
 -
--void bpf_jit_free_exec(void *addr)
--{
--	return vfree(addr);
--}
--
- void *bpf_arch_text_copy(void *dst, void *src, size_t len)
+ bool __weak module_init_section(const char *name)
  {
- 	int ret;
+ 	return strstarts(name, ".init");
+--- a/mm/execmem.c~modules-execmem-drop-module_alloc
++++ a/mm/execmem.c
+@@ -55,9 +55,6 @@ static void *execmem_alloc(size_t size,
+ 
+ void *execmem_text_alloc(enum execmem_type type, size_t size)
+ {
+-	if (!execmem_params.ranges[type].start)
+-		return module_alloc(size);
+-
+ 	return execmem_alloc(size, &execmem_params.ranges[type]);
+ }
+ 
+@@ -111,8 +108,15 @@ void __init execmem_init(void)
+ {
+ 	struct execmem_params *p = execmem_arch_params();
+ 
+-	if (!p)
++	if (!p) {
++		p = &execmem_params;
++		p->ranges[EXECMEM_DEFAULT].start = VMALLOC_START;
++		p->ranges[EXECMEM_DEFAULT].end = VMALLOC_END;
++		p->ranges[EXECMEM_DEFAULT].pgprot = PAGE_KERNEL_EXEC;
++		p->ranges[EXECMEM_DEFAULT].alignment = 1;
++
+ 		return;
++	}
+ 
+ 	if (!execmem_validate_params(p))
+ 		return;
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
