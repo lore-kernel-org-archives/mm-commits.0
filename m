@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08789C46CA1
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Sep 2023 16:09:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A5A7CD37B0
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Sep 2023 16:09:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229730AbjIRQJ0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 18 Sep 2023 12:09:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42784 "EHLO
+        id S229928AbjIRQJ6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 18 Sep 2023 12:09:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57488 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230075AbjIRQJH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Sep 2023 12:09:07 -0400
+        with ESMTP id S229883AbjIRQJN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 18 Sep 2023 12:09:13 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 727DE5B95
-        for <mm-commits@vger.kernel.org>; Mon, 18 Sep 2023 09:07:32 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D336CC116B0;
-        Mon, 18 Sep 2023 15:52:32 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B238249EE
+        for <mm-commits@vger.kernel.org>; Mon, 18 Sep 2023 09:07:51 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A948C116A1;
+        Mon, 18 Sep 2023 15:51:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695052352;
-        bh=E9Ra3F0UHdUwaEbC0ONrdAvsI0AM5xGi3e4+aVePIpI=;
+        s=korg; t=1695052310;
+        bh=1Kyr75COxBlnI6fsBjh37oYMzqTnTLlRL9zJa7Mmmr4=;
         h=Date:To:From:Subject:From;
-        b=ntyjdLRetz2LgLtZyrDOA23y/XMBXBDb0hc2L9Gjb0KhWc0+gyxYyLeVxWzy7vxcq
-         DbzKuOAMUMZSCta4/xDCCfV8LwSNnDs7TfteS4uvhbl9xuoYH2CZm2oa/j/O4iSsDl
-         n1XaUAwBJ9gM9uoB6Ae0K21S8nV7OOg7kIJ1jyxg=
-Date:   Mon, 18 Sep 2023 08:52:32 -0700
+        b=CyniOmWP3QjksFks5VMJ21SNgknMsfvoo/3dC0V4vSbmV8t/3h4VhdE1Coool9a+L
+         go7Ao6oqqe0JxNFIYAGVMOVQKI0TfBPwJ3kexNqaoSxIs8X2fss6OSlSEDO1ZA6fRX
+         rBoCbda0SfQiqmzKYLu622zzXz9yr4rGzBI7aV4I=
+Date:   Mon, 18 Sep 2023 08:51:49 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org,
         tsbogend@alpha.franken.de, tglx@linutronix.de, song@kernel.org,
         rostedt@goodmis.org, rick.p.edgecombe@intel.com,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org,
         chenhuacai@kernel.org, catalin.marinas@arm.com, bjorn@kernel.org,
         rppt@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kprobes-remove-dependency-on-config_modules.patch added to mm-unstable branch
-Message-Id: <20230918155232.D336CC116B0@smtp.kernel.org>
+Subject: + nios2-define-virtual-address-space-for-modules.patch added to mm-unstable branch
+Message-Id: <20230918155150.1A948C116A1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,12 +45,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kprobes: remove dependency on CONFIG_MODULES
+     Subject: nios2: define virtual address space for modules
 has been added to the -mm mm-unstable branch.  Its filename is
-     kprobes-remove-dependency-on-config_modules.patch
+     nios2-define-virtual-address-space-for-modules.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kprobes-remove-dependency-on-config_modules.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nios2-define-virtual-address-space-for-modules.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,204 +69,95 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-Subject: kprobes: remove dependency on CONFIG_MODULES
-Date: Mon, 18 Sep 2023 10:29:54 +0300
+Subject: nios2: define virtual address space for modules
+Date: Mon, 18 Sep 2023 10:29:43 +0300
 
-kprobes depended on CONFIG_MODULES because it has to allocate memory for
-code.
+Patch series "mm: jit/text allocator", v3.
 
-Since code allocations are now implemented with execmem, kprobes can be
-enabled in non-modular kernels.
 
-Add #ifdef CONFIG_MODULE guards for the code dealing with kprobes inside
-modules, make CONFIG_KPROBES select CONFIG_EXECMEM and drop the dependency
-of CONFIG_KPROBES on CONFIG_MODULES.
+nios2 uses kmalloc() to implement module_alloc() because CALL26/PCREL26
+cannot reach all of vmalloc address space.
 
-Link: https://lkml.kernel.org/r/20230918072955.2507221-13-rppt@kernel.org
+Define module space as 32MiB below the kernel base and switch nios2 to use
+vmalloc for module allocations.
+
+Link: https://lkml.kernel.org/r/20230918072955.2507221-1-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20230918072955.2507221-2-rppt@kernel.org
 Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Suggested-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Dinh Nguyen <dinguyen@kernel.org>
+Acked-by: Song Liu <song@kernel.org>
 Cc: Björn Töpel <bjorn@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: David S. Miller <davem@davemloft.net>
-Cc: Dinh Nguyen <dinguyen@kernel.org>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Helge Deller <deller@gmx.de>
 Cc: Huacai Chen <chenhuacai@kernel.org>
 Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Cc: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
 Cc: Nadav Amit <nadav.amit@gmail.com>
 Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Puranjay Mohan <puranjay12@gmail.com>
 Cc: Rick Edgecombe <rick.p.edgecombe@intel.com>
 Cc: Russell King (Oracle) <linux@armlinux.org.uk>
-Cc: Song Liu <song@kernel.org>
 Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig                |    2 -
- kernel/kprobes.c            |   43 +++++++++++++++++++---------------
- kernel/trace/trace_kprobe.c |   11 ++++++++
- 3 files changed, 37 insertions(+), 19 deletions(-)
+ arch/nios2/include/asm/pgtable.h |    5 ++++-
+ arch/nios2/kernel/module.c       |   19 ++++---------------
+ 2 files changed, 8 insertions(+), 16 deletions(-)
 
---- a/arch/Kconfig~kprobes-remove-dependency-on-config_modules
-+++ a/arch/Kconfig
-@@ -52,9 +52,9 @@ config GENERIC_ENTRY
+--- a/arch/nios2/include/asm/pgtable.h~nios2-define-virtual-address-space-for-modules
++++ a/arch/nios2/include/asm/pgtable.h
+@@ -25,7 +25,10 @@
+ #include <asm-generic/pgtable-nopmd.h>
  
- config KPROBES
- 	bool "Kprobes"
--	depends on MODULES
- 	depends on HAVE_KPROBES
- 	select KALLSYMS
-+	select EXECMEM
- 	select TASKS_RCU if PREEMPTION
- 	help
- 	  Kprobes allows you to trap at almost any kernel address and
---- a/kernel/kprobes.c~kprobes-remove-dependency-on-config_modules
-+++ a/kernel/kprobes.c
-@@ -1580,6 +1580,7 @@ static int check_kprobe_address_safe(str
- 		goto out;
- 	}
- 
-+#ifdef CONFIG_MODULES
- 	/* Check if 'p' is probing a module. */
- 	*probed_mod = __module_text_address((unsigned long) p->addr);
- 	if (*probed_mod) {
-@@ -1603,6 +1604,8 @@ static int check_kprobe_address_safe(str
- 			ret = -ENOENT;
- 		}
- 	}
-+#endif
+ #define VMALLOC_START		CONFIG_NIOS2_KERNEL_MMU_REGION_BASE
+-#define VMALLOC_END		(CONFIG_NIOS2_KERNEL_REGION_BASE - 1)
++#define VMALLOC_END		(CONFIG_NIOS2_KERNEL_REGION_BASE - SZ_32M - 1)
 +
- out:
- 	preempt_enable();
- 	jump_label_unlock();
-@@ -2495,24 +2498,6 @@ int kprobe_add_area_blacklist(unsigned l
- 	return 0;
- }
++#define MODULES_VADDR		(CONFIG_NIOS2_KERNEL_REGION_BASE - SZ_32M)
++#define MODULES_END		(CONFIG_NIOS2_KERNEL_REGION_BASE - 1)
  
--/* Remove all symbols in given area from kprobe blacklist */
--static void kprobe_remove_area_blacklist(unsigned long start, unsigned long end)
--{
--	struct kprobe_blacklist_entry *ent, *n;
--
--	list_for_each_entry_safe(ent, n, &kprobe_blacklist, list) {
--		if (ent->start_addr < start || ent->start_addr >= end)
--			continue;
--		list_del(&ent->list);
--		kfree(ent);
--	}
+ struct mm_struct;
+ 
+--- a/arch/nios2/kernel/module.c~nios2-define-virtual-address-space-for-modules
++++ a/arch/nios2/kernel/module.c
+@@ -21,23 +21,12 @@
+ 
+ #include <asm/cacheflush.h>
+ 
+-/*
+- * Modules should NOT be allocated with kmalloc for (obvious) reasons.
+- * But we do it for now to avoid relocation issues. CALL26/PCREL26 cannot reach
+- * from 0x80000000 (vmalloc area) to 0xc00000000 (kernel) (kmalloc returns
+- * addresses in 0xc0000000)
+- */
+ void *module_alloc(unsigned long size)
+ {
+-	if (size == 0)
+-		return NULL;
+-	return kmalloc(size, GFP_KERNEL);
 -}
 -
--static void kprobe_remove_ksym_blacklist(unsigned long entry)
+-/* Free memory returned from module_alloc */
+-void module_memfree(void *module_region)
 -{
--	kprobe_remove_area_blacklist(entry, entry + 1);
--}
--
- int __weak arch_kprobe_get_kallsym(unsigned int *symnum, unsigned long *value,
- 				   char *type, char *sym)
- {
-@@ -2577,6 +2562,25 @@ static int __init populate_kprobe_blackl
- 	return ret ? : arch_populate_kprobe_blacklist();
+-	kfree(module_region);
++	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
++				    GFP_KERNEL, PAGE_KERNEL_EXEC,
++				    VM_FLUSH_RESET_PERMS, NUMA_NO_NODE,
++				    __builtin_return_address(0));
  }
  
-+#ifdef CONFIG_MODULES
-+/* Remove all symbols in given area from kprobe blacklist */
-+static void kprobe_remove_area_blacklist(unsigned long start, unsigned long end)
-+{
-+	struct kprobe_blacklist_entry *ent, *n;
-+
-+	list_for_each_entry_safe(ent, n, &kprobe_blacklist, list) {
-+		if (ent->start_addr < start || ent->start_addr >= end)
-+			continue;
-+		list_del(&ent->list);
-+		kfree(ent);
-+	}
-+}
-+
-+static void kprobe_remove_ksym_blacklist(unsigned long entry)
-+{
-+	kprobe_remove_area_blacklist(entry, entry + 1);
-+}
-+
- static void add_module_kprobe_blacklist(struct module *mod)
- {
- 	unsigned long start, end;
-@@ -2678,6 +2682,7 @@ static struct notifier_block kprobe_modu
- 	.notifier_call = kprobes_module_callback,
- 	.priority = 0
- };
-+#endif
- 
- void kprobe_free_init_mem(void)
- {
-@@ -2737,8 +2742,10 @@ static int __init init_kprobes(void)
- 	err = arch_init_kprobes();
- 	if (!err)
- 		err = register_die_notifier(&kprobe_exceptions_nb);
-+#ifdef CONFIG_MODULES
- 	if (!err)
- 		err = register_module_notifier(&kprobe_module_nb);
-+#endif
- 
- 	kprobes_initialized = (err == 0);
- 	kprobe_sysctls_init();
---- a/kernel/trace/trace_kprobe.c~kprobes-remove-dependency-on-config_modules
-+++ a/kernel/trace/trace_kprobe.c
-@@ -111,6 +111,7 @@ static nokprobe_inline bool trace_kprobe
- 	return strncmp(module_name(mod), name, len) == 0 && name[len] == ':';
- }
- 
-+#ifdef CONFIG_MODULES
- static nokprobe_inline bool trace_kprobe_module_exist(struct trace_kprobe *tk)
- {
- 	char *p;
-@@ -129,6 +130,12 @@ static nokprobe_inline bool trace_kprobe
- 
- 	return ret;
- }
-+#else
-+static inline bool trace_kprobe_module_exist(struct trace_kprobe *tk)
-+{
-+	return false;
-+}
-+#endif
- 
- static bool trace_kprobe_is_busy(struct dyn_event *ev)
- {
-@@ -670,6 +677,7 @@ end:
- 	return ret;
- }
- 
-+#ifdef CONFIG_MODULES
- /* Module notifier call back, checking event on the module */
- static int trace_kprobe_module_callback(struct notifier_block *nb,
- 				       unsigned long val, void *data)
-@@ -704,6 +712,7 @@ static struct notifier_block trace_kprob
- 	.notifier_call = trace_kprobe_module_callback,
- 	.priority = 1	/* Invoked after kprobe module callback */
- };
-+#endif
- 
- static int __trace_kprobe_create(int argc, const char *argv[])
- {
-@@ -1810,8 +1819,10 @@ static __init int init_kprobe_trace_earl
- 	if (ret)
- 		return ret;
- 
-+#ifdef CONFIG_MODULES
- 	if (register_module_notifier(&trace_kprobe_module_nb))
- 		return -EINVAL;
-+#endif
- 
- 	return 0;
- }
+ int apply_relocate_add(Elf32_Shdr *sechdrs, const char *strtab,
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
