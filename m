@@ -2,33 +2,37 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6BFACE79A8
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Sep 2023 20:22:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02DA3CE79AC
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Sep 2023 20:22:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233128AbjISUWO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 19 Sep 2023 16:22:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58962 "EHLO
+        id S232036AbjISUWQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Sep 2023 16:22:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44514 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229853AbjISUWK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Sep 2023 16:22:10 -0400
+        with ESMTP id S232804AbjISUWN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Sep 2023 16:22:13 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 67B7ABE;
-        Tue, 19 Sep 2023 13:22:04 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00D7FC433C7;
-        Tue, 19 Sep 2023 20:22:03 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D70FDC0
+        for <mm-commits@vger.kernel.org>; Tue, 19 Sep 2023 13:22:07 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DFA6C433C7;
+        Tue, 19 Sep 2023 20:22:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695154924;
-        bh=e7S7nVIr3nALEilcG/xKD2sdIhh9bFdJNA9D3o6VlVg=;
+        s=korg; t=1695154927;
+        bh=uz7qB9HTqAXKv1IrvGVmIcUyeUpnfvL2ieocxUBM2LY=;
         h=Date:To:From:Subject:From;
-        b=KEI9aY3RrTvAzJSyFZaIoFkdvUZuxblrICcNoqiu8x/6VWv6xlZKA7fmcYo178vfS
-         HKS8yZRXJOesEhxYGHLH+Kx0dApnbHB5mwLfpYigXo7a31Za+rqc5vU6bJ9k5mbeeE
-         hd7zc2X1X30GqP5STZ6oRlS8vcUo9Iv0orIP2DcI=
-Date:   Tue, 19 Sep 2023 13:22:03 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, stable@vger.kernel.org,
-        joe.liu@mediatek.com, hannes@cmpxchg.org, akpm@linux-foundation.org
+        b=Z3/Ex1AqkCo2qthaGda06GEEur2C6gOGi/cnrHr+kUGc814hULQUVGytNPfEiZFwK
+         P71nS6qCUJ2OzP2lDAeLRFYL7X6JqUuHrg5QVGeoidhnVtaL4BWTYhXAABoJdH44hb
+         F4MnyS6knqKeXm3WNPYdLbAzodqTbXWknJhOos2k=
+Date:   Tue, 19 Sep 2023 13:22:06 -0700
+To:     mm-commits@vger.kernel.org, qun-wei.lin@mediatek.com,
+        matthias.bgg@gmail.com, Kuan-Ying.Lee@mediatek.com,
+        kbingham@kernel.org, johannes@sipsolutions.net,
+        jan.kiszka@siemens.com, chinwen.chang@mediatek.com,
+        angelogioacchino.delregno@collabora.com, akpm@linux-foundation.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-page_alloc-fix-cma-and-highatomic-landing-on-the-wrong-buddy-list.patch removed from -mm tree
-Message-Id: <20230919202204.00D7FC433C7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] revert-scripts-gdb-symbols-add-specific-ko-module-load-command.patch removed from -mm tree
+Message-Id: <20230919202207.9DFA6C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,99 +40,92 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: page_alloc: fix CMA and HIGHATOMIC landing on the wrong buddy list
+     Subject: revert "scripts/gdb/symbols: add specific ko module load command"
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-fix-cma-and-highatomic-landing-on-the-wrong-buddy-list.patch
+     revert-scripts-gdb-symbols-add-specific-ko-module-load-command.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: fix CMA and HIGHATOMIC landing on the wrong buddy list
-Date: Mon, 11 Sep 2023 14:11:08 -0400
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: revert "scripts/gdb/symbols: add specific ko module load command"
+Date: Tue Sep 12 09:19:10 AM PDT 2023
 
-Commit 4b23a68f9536 ("mm/page_alloc: protect PCP lists with a spinlock")
-bypasses the pcplist on lock contention and returns the page directly to
-the buddy list of the page's migratetype.
+Revert 11f956538c07 ("scripts/gdb/symbols: add specific ko module load
+command") due to breakage identified by Johannes Berg in [1].
 
-For pages that don't have their own pcplist, such as CMA and HIGHATOMIC,
-the migratetype is temporarily updated such that the page can hitch a ride
-on the MOVABLE pcplist.  Their true type is later reassessed when flushing
-in free_pcppages_bulk().  However, when lock contention is detected after
-the type was already overridden, the bypass will then put the page on the
-wrong buddy list.
-
-Once on the MOVABLE buddy list, the page becomes eligible for fallbacks
-and even stealing.  In the case of HIGHATOMIC, otherwise ineligible
-allocations can dip into the highatomic reserves.  In the case of CMA, the
-page can be lost from the CMA region permanently.
-
-Use a separate pcpmigratetype variable for the pcplist override.  Use the
-original migratetype when going directly to the buddy.  This fixes the bug
-and should make the intentions more obvious in the code.
-
-Originally sent here to address the HIGHATOMIC case:
-https://lore.kernel.org/lkml/20230821183733.106619-4-hannes@cmpxchg.org/
-
-Changelog updated in response to the CMA-specific bug report.
-
-[mgorman@techsingularity.net: updated changelog]
-Link: https://lkml.kernel.org/r/20230911181108.GA104295@cmpxchg.org
-Fixes: 4b23a68f9536 ("mm/page_alloc: protect PCP lists with a spinlock")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Joe Liu <joe.liu@mediatek.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+Fixes: 11f956538c07 ("scripts/gdb/symbols: add specific ko module load command")
+Reported-by: Johannes Berg <johannes@sipsolutions.net>
+Closes: https://lkml.kernel.org/r/c44b748307a074d0c250002cdcfe209b8cce93c9.camel@sipsolutions.net [1]
+Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
+Cc: Chinwen Chang <chinwen.chang@mediatek.com>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Qun-Wei Lin <qun-wei.lin@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ scripts/gdb/linux/symbols.py |   23 ++---------------------
+ 1 file changed, 2 insertions(+), 21 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-fix-cma-and-highatomic-landing-on-the-wrong-buddy-list
-+++ a/mm/page_alloc.c
-@@ -2400,7 +2400,7 @@ void free_unref_page(struct page *page,
- 	struct per_cpu_pages *pcp;
- 	struct zone *zone;
- 	unsigned long pfn = page_to_pfn(page);
--	int migratetype;
-+	int migratetype, pcpmigratetype;
+--- a/scripts/gdb/linux/symbols.py~revert-scripts-gdb-symbols-add-specific-ko-module-load-command
++++ a/scripts/gdb/linux/symbols.py
+@@ -111,12 +111,11 @@ lx-symbols command."""
+         return "{textaddr} {sections}".format(
+             textaddr=textaddr, sections="".join(args))
  
- 	if (!free_unref_page_prepare(page, pfn, order))
- 		return;
-@@ -2408,24 +2408,24 @@ void free_unref_page(struct page *page,
- 	/*
- 	 * We only track unmovable, reclaimable and movable on pcp lists.
- 	 * Place ISOLATE pages on the isolated list because they are being
--	 * offlined but treat HIGHATOMIC as movable pages so we can get those
--	 * areas back if necessary. Otherwise, we may have to free
-+	 * offlined but treat HIGHATOMIC and CMA as movable pages so we can
-+	 * get those areas back if necessary. Otherwise, we may have to free
- 	 * excessively into the page allocator
- 	 */
--	migratetype = get_pcppage_migratetype(page);
-+	migratetype = pcpmigratetype = get_pcppage_migratetype(page);
- 	if (unlikely(migratetype >= MIGRATE_PCPTYPES)) {
- 		if (unlikely(is_migrate_isolate(migratetype))) {
- 			free_one_page(page_zone(page), page, pfn, order, migratetype, FPI_NONE);
- 			return;
- 		}
--		migratetype = MIGRATE_MOVABLE;
-+		pcpmigratetype = MIGRATE_MOVABLE;
- 	}
+-    def load_module_symbols(self, module, module_file=None):
++    def load_module_symbols(self, module):
+         module_name = module['name'].string()
+         module_addr = str(module['mem'][constants.LX_MOD_TEXT]['base']).split()[0]
  
- 	zone = page_zone(page);
- 	pcp_trylock_prepare(UP_flags);
- 	pcp = pcp_spin_trylock(zone->per_cpu_pageset);
- 	if (pcp) {
--		free_unref_page_commit(zone, pcp, page, migratetype, order);
-+		free_unref_page_commit(zone, pcp, page, pcpmigratetype, order);
- 		pcp_spin_unlock(pcp);
- 	} else {
- 		free_one_page(zone, page, pfn, order, migratetype, FPI_NONE);
+-        if not module_file:
+-            module_file = self._get_module_file(module_name)
++        module_file = self._get_module_file(module_name)
+         if not module_file and not self.module_files_updated:
+             self._update_module_files()
+             module_file = self._get_module_file(module_name)
+@@ -139,19 +138,6 @@ lx-symbols command."""
+         else:
+             gdb.write("no module object found for '{0}'\n".format(module_name))
+ 
+-    def load_ko_symbols(self, mod_path):
+-        self.loaded_modules = []
+-        module_list = modules.module_list()
+-
+-        for module in module_list:
+-            module_name = module['name'].string()
+-            module_pattern = ".*/{0}\.ko(?:.debug)?$".format(
+-                module_name.replace("_", r"[_\-]"))
+-            if re.match(module_pattern, mod_path) and os.path.exists(mod_path):
+-                self.load_module_symbols(module, mod_path)
+-                return
+-        raise gdb.GdbError("%s is not a valid .ko\n" % mod_path)
+-
+     def load_all_symbols(self):
+         gdb.write("loading vmlinux\n")
+ 
+@@ -190,11 +176,6 @@ lx-symbols command."""
+         self.module_files = []
+         self.module_files_updated = False
+ 
+-        argv = gdb.string_to_argv(arg)
+-        if len(argv) == 1:
+-            self.load_ko_symbols(argv[0])
+-            return
+-
+         self.load_all_symbols()
+ 
+         if hasattr(gdb, 'Breakpoint'):
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
+mm-memcg-add-thp-swap-out-info-for-anonymous-reclaim-fix.patch
+mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo-fix.patch
+kthread-add-kthread_stop_put-v2-fix.patch
 
