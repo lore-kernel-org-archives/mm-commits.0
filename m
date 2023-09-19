@@ -2,149 +2,91 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB248CE79A9
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Sep 2023 20:19:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 686E6CE79A9
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Sep 2023 20:22:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231993AbjISUT4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 19 Sep 2023 16:19:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57850 "EHLO
+        id S231993AbjISUWJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Sep 2023 16:22:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58960 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229853AbjISUTz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Sep 2023 16:19:55 -0400
+        with ESMTP id S229853AbjISUWJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 19 Sep 2023 16:22:09 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA72393;
-        Tue, 19 Sep 2023 13:19:49 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 406FDC433C8;
-        Tue, 19 Sep 2023 20:19:49 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32D50BA
+        for <mm-commits@vger.kernel.org>; Tue, 19 Sep 2023 13:22:03 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2CEBC433C8;
+        Tue, 19 Sep 2023 20:22:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695154789;
-        bh=MFRflf02psEDADtPzRYWjnW+ykkxML+k7Ux7IEy1sDE=;
+        s=korg; t=1695154922;
+        bh=BP+xSp00AG1uQInmGbLGQ9daai0zUYWJjvFxPoITet8=;
         h=Date:To:From:Subject:From;
-        b=BJ69u5bu7nNj/RWeT6IkHJ01ba02YjCXXxrLOqT7JeaClthTU6UDKij6B9aNtc//h
-         P2nixlyXHNxLx1rnF6X7//0Cq35hiVLHSkFx/Wofx6jXdDToBywHg+tfkY2yeuLd3f
-         0LLo9dYhZPYPXbdN3AKMCXU5thwKPeeSuQf0DFyM=
-Date:   Tue, 19 Sep 2023 13:19:48 -0700
-To:     mm-commits@vger.kernel.org, tvrtko.ursulin@linux.intel.com,
-        stable@vger.kernel.org, rodrigo.vivi@intel.com,
-        oleksandr@natalenko.name, joonas.lahtinen@linux.intel.com,
-        jani.nikula@linux.intel.com, willy@infradead.org,
-        akpm@linux-foundation.org
+        b=rCBPmAxFNuT4M3rMOcr6gU14TQb/hFN/1ZVJScwrdM0RP2Mgvj8R97tzzIfPkxowT
+         qn2P5JPbcilQcQ3qidLDDkf7snAWk0yx0JyiUKuTvLxsV5K9G+LXj/WKLrL45K7VM9
+         BkmLOnJOn57xcKyxiknwZMYlg/TlHEDRid8LbVL0=
+Date:   Tue, 19 Sep 2023 13:22:02 -0700
+To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
+        glaubitz@physik.fu-berlin.de, dalias@libc.org, bhe@redhat.com,
+        geert+renesas@glider.be, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + i915-limit-the-length-of-an-sg-list-to-the-requested-length.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230919201949.406FDC433C8@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] sh-mm-re-add-lost-__ref-to-ioremap_prot-to-fix-modpost-warning.patch removed from -mm tree
+Message-Id: <20230919202202.C2CEBC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: i915: limit the length of an sg list to the requested length
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     i915-limit-the-length-of-an-sg-list-to-the-requested-length.patch
+The quilt patch titled
+     Subject: sh: mm: re-add lost __ref to ioremap_prot() to fix modpost warning
+has been removed from the -mm tree.  Its filename was
+     sh-mm-re-add-lost-__ref-to-ioremap_prot-to-fix-modpost-warning.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/i915-limit-the-length-of-an-sg-list-to-the-requested-length.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: i915: limit the length of an sg list to the requested length
-Date: Tue, 19 Sep 2023 20:48:55 +0100
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: sh: mm: re-add lost __ref to ioremap_prot() to fix modpost warning
+Date: Mon, 11 Sep 2023 11:38:50 +0200
 
-The folio conversion changed the behaviour of shmem_sg_alloc_table() to
-put the entire length of the last folio into the sg list, even if the sg
-list should have been shorter.  gen8_ggtt_insert_entries() relied on the
-list being the right langth and would overrun the end of the page tables. 
-Other functions may also have been affected.
+When __ioremap_caller() was replaced by ioremap_prot(), the __ref
+annotation added in commit af1415314a4190b8 ("sh: Flag __ioremap_caller()
+__init_refok.") was removed, causing a modpost warning:
 
-Clamp the length of the last entry in the sg list to be the expected
-length.
+    WARNING: modpost: vmlinux: section mismatch in reference: ioremap_prot+0x88 (section: .text) -> ioremap_fixed (section: .init.text)
 
-Link: https://lkml.kernel.org/r/20230919194855.347582-1-willy@infradead.org
-Link: https://gitlab.freedesktop.org/drm/intel/-/issues/9256
-Fixes: 0b62af28f249 ("i915: convert shmem_sg_free_table() to use a folio_batch")
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reported-by: Oleksandr Natalenko <oleksandr@natalenko.name>
-Closes: https://lore.kernel.org/lkml/6287208.lOV4Wx5bFT@natalenko.name/
-Tested-by: Oleksandr Natalenko <oleksandr@natalenko.name>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
-Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
-Cc: <stable@vger.kernel.org>	[6.5.x]
+ioremap_prot() calls ioremap_fixed() (which is marked __init), but only
+before mem_init_done becomes true, so this is safe.  Hence fix this by
+re-adding the lost __ref.
+
+Link: https://lkml.kernel.org/r/20230911093850.1517389-1-geert+renesas@glider.be
+Fixes: 0453c9a78015cb22 ("sh: mm: convert to GENERIC_IOREMAP")
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Reviewed-by: Baoquan He <bhe@redhat.com>
+Reviewed-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/gem/i915_gem_shmem.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ arch/sh/mm/ioremap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c~i915-limit-the-length-of-an-sg-list-to-the-requested-length
-+++ a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c
-@@ -100,6 +100,7 @@ int shmem_sg_alloc_table(struct drm_i915
- 	st->nents = 0;
- 	for (i = 0; i < page_count; i++) {
- 		struct folio *folio;
-+		unsigned long nr_pages;
- 		const unsigned int shrink[] = {
- 			I915_SHRINK_BOUND | I915_SHRINK_UNBOUND,
- 			0,
-@@ -150,6 +151,8 @@ int shmem_sg_alloc_table(struct drm_i915
- 			}
- 		} while (1);
+--- a/arch/sh/mm/ioremap.c~sh-mm-re-add-lost-__ref-to-ioremap_prot-to-fix-modpost-warning
++++ a/arch/sh/mm/ioremap.c
+@@ -72,8 +72,8 @@ __ioremap_29bit(phys_addr_t offset, unsi
+ #define __ioremap_29bit(offset, size, prot)		NULL
+ #endif /* CONFIG_29BIT */
  
-+		nr_pages = min_t(unsigned long,
-+				folio_nr_pages(folio), page_count - i);
- 		if (!i ||
- 		    sg->length >= max_segment ||
- 		    folio_pfn(folio) != next_pfn) {
-@@ -157,13 +160,13 @@ int shmem_sg_alloc_table(struct drm_i915
- 				sg = sg_next(sg);
- 
- 			st->nents++;
--			sg_set_folio(sg, folio, folio_size(folio), 0);
-+			sg_set_folio(sg, folio, nr_pages * PAGE_SIZE, 0);
- 		} else {
- 			/* XXX: could overflow? */
--			sg->length += folio_size(folio);
-+			sg->length += nr_pages * PAGE_SIZE;
- 		}
--		next_pfn = folio_pfn(folio) + folio_nr_pages(folio);
--		i += folio_nr_pages(folio) - 1;
-+		next_pfn = folio_pfn(folio) + nr_pages;
-+		i += nr_pages - 1;
- 
- 		/* Check that the i965g/gm workaround works. */
- 		GEM_BUG_ON(gfp & __GFP_DMA32 && next_pfn >= 0x00100000UL);
+-void __iomem *ioremap_prot(phys_addr_t phys_addr, size_t size,
+-			   unsigned long prot)
++void __iomem __ref *ioremap_prot(phys_addr_t phys_addr, size_t size,
++				 unsigned long prot)
+ {
+ 	void __iomem *mapped;
+ 	pgprot_t pgprot = __pgprot(prot);
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from geert+renesas@glider.be are
 
-i915-limit-the-length-of-an-sg-list-to-the-requested-length.patch
-mm-convert-dax-lock-unlock-page-to-lock-unlock-folio.patch
-buffer-pass-gfp-flags-to-folio_alloc_buffers.patch
-buffer-hoist-gfp-flags-from-grow_dev_page-to-__getblk_gfp.patch
-ext4-use-bdev_getblk-to-avoid-memory-reclaim-in-readahead-path.patch
-buffer-use-bdev_getblk-to-avoid-memory-reclaim-in-readahead-path.patch
-buffer-convert-getblk_unmovable-and-__getblk-to-use-bdev_getblk.patch
-buffer-convert-sb_getblk-to-call-__getblk.patch
-ext4-call-bdev_getblk-from-sb_getblk_gfp.patch
-buffer-remove-__getblk_gfp.patch
-hugetlb-use-a-folio-in-free_hpage_workfn.patch
-hugetlb-remove-a-few-calls-to-page_folio.patch
-hugetlb-convert-remove_pool_huge_page-to-remove_pool_hugetlb_folio.patch
 
