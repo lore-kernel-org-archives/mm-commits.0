@@ -2,44 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6409CD4847
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Sep 2023 16:48:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E45FCD4844
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Sep 2023 16:57:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229583AbjIVQsd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 22 Sep 2023 12:48:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37280 "EHLO
+        id S229538AbjIVQ5c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 22 Sep 2023 12:57:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34186 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229541AbjIVQsc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 22 Sep 2023 12:48:32 -0400
+        with ESMTP id S231905AbjIVQ5b (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 22 Sep 2023 12:57:31 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B7DBA1;
-        Fri, 22 Sep 2023 09:48:26 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF8FCC433C8;
-        Fri, 22 Sep 2023 16:48:25 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C143199
+        for <mm-commits@vger.kernel.org>; Fri, 22 Sep 2023 09:57:24 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87E67C433C7;
+        Fri, 22 Sep 2023 16:57:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695401306;
-        bh=kY+h+QqnnICl37ByvyaE0OGO98W3rp+qOj95KvRXnro=;
+        s=korg; t=1695401844;
+        bh=losXbAXC9NZY2mYeD1CXV12K6/awBjHuQ3kzapxPDqk=;
         h=Date:To:From:Subject:From;
-        b=dNqHXvNta5ItzmnpegAWqWZhiPL34GP4VsgzbGQeYAHgDVau2xvnqg3+iXEIMxMKe
-         kEyq7TFNo+BybQ+a7i520QZdXOUoPx+KgCUerybuJDCQ1y004szpb8FFDtrfX00NAR
-         zxRsWhtyl1V6ABfEInaiZBRnlExSjwzCImLoVcb8=
-Date:   Fri, 22 Sep 2023 09:48:25 -0700
-To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
-        will@kernel.org, urezki@gmail.com, svens@linux.ibm.com,
-        stable@vger.kernel.org, sj@kernel.org, peterx@redhat.com,
-        paul.walmsley@sifive.com, palmer@dabbelt.com, npiggin@gmail.com,
-        muchun.song@linux.dev, mike.kravetz@oracle.com, lstoakes@gmail.com,
-        James.Bottomley@HansenPartnership.com, hch@infradead.org,
-        hca@linux.ibm.com, gor@linux.ibm.com,
-        gerald.schaefer@linux.ibm.com, deller@gmx.de, davem@davemloft.net,
-        christophe.leroy@csgroup.eu, catalin.marinas@arm.com,
-        borntraeger@linux.ibm.com, axelrasmussen@google.com, arnd@arndb.de,
-        aou@eecs.berkeley.edu, anshuman.khandual@arm.com, alex@ghiti.fr,
-        agordeev@linux.ibm.com, ryan.roberts@arm.com,
-        akpm@linux-foundation.org
+        b=nyJ3z5Vrp2Iq2WMtUROZltsLLxewxOIq9y6HjeqXDx060gWO3/ij4ugjDaFQgNWB2
+         fQ4DceXG5TUMfrZOlkfuJOsMf3I+StaIEl2p0opwBUlnlhNZYnjKDq4x81k8Zk3kU6
+         h7wwYHS282iiYaaPD2JNFYpmRq1oZ+wMnzQAjZOA=
+Date:   Fri, 22 Sep 2023 09:57:23 -0700
+To:     mm-commits@vger.kernel.org, abaci@linux.alibaba.com,
+        jiapeng.chong@linux.alibaba.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-hugetlb-fix-set_huge_pte_at-to-work-with-all-swap-entries.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230922164825.EF8FCC433C8@smtp.kernel.org>
+Subject: + mm-list_lru-remove-unused-function.patch added to mm-nonmm-unstable branch
+Message-Id: <20230922165724.87E67C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,14 +36,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: hugetlb: fix set_huge_pte_at() to work with all swap entries
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     arm64-hugetlb-fix-set_huge_pte_at-to-work-with-all-swap-entries.patch
+     Subject: mm/list_lru: remove unused function
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     mm-list_lru-remove-unused-function.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-hugetlb-fix-set_huge_pte_at-to-work-with-all-swap-entries.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-list_lru-remove-unused-function.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -70,136 +59,74 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: arm64: hugetlb: fix set_huge_pte_at() to work with all swap entries
-Date: Fri, 22 Sep 2023 12:58:04 +0100
+From: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
+Subject: mm/list_lru: remove unused function
+Date: Fri, 22 Sep 2023 18:07:47 +0800
 
-When called with a swap entry that does not embed a PFN (e.g. 
-PTE_MARKER_POISONED or PTE_MARKER_UFFD_WP), the previous implementation of
-set_huge_pte_at() would either cause a BUG() to fire (if CONFIG_DEBUG_VM
-is enabled) or cause a dereference of an invalid address and subsequent
-panic.
+The function is defined in list_lru.c, but not called elsewhere, so delete
+the unused function.
 
-arm64's huge pte implementation supports multiple huge page sizes, some of
-which are implemented in the page table with multiple contiguous entries. 
-So set_huge_pte_at() needs to work out how big the logical pte is, so that
-it can also work out how many physical ptes (or pmds) need to be written. 
-It previously did this by grabbing the folio out of the pte and querying
-its size.
+mm/list_lru.c:64:1: warning: unused function 'list_lru_from_kmem'.
 
-However, there are cases when the pte being set is actually a swap entry. 
-But this also used to work fine, because for huge ptes, we only ever saw
-migration entries and hwpoison entries.  And both of these types of swap
-entries have a PFN embedded, so the code would grab that and everything
-still worked out.
-
-But over time, more calls to set_huge_pte_at() have been added that set
-swap entry types that do not embed a PFN.  And this causes the code to go
-bang.  The triggering case is for the uffd poison test, commit
-99aa77215ad0 ("selftests/mm: add uffd unit test for UFFDIO_POISON"), which
-causes a PTE_MARKER_POISONED swap entry to be set, coutesey of commit
-8a13897fb0da ("mm: userfaultfd: support UFFDIO_POISON for hugetlbfs") -
-added in v6.5-rc7.  Although review shows that there are other call sites
-that set PTE_MARKER_UFFD_WP (which also has no PFN), these don't trigger
-on arm64 because arm64 doesn't support UFFD WP.
-
-Arguably, the root cause is really due to commit 18f3962953e4 ("mm:
-hugetlb: kill set_huge_swap_pte_at()"), which aimed to simplify the
-interface to the core code by removing set_huge_swap_pte_at() (which took
-a page size parameter) and replacing it with calls to set_huge_pte_at()
-where the size was inferred from the folio, as descibed above.  While that
-commit didn't break anything at the time, it did break the interface
-because it couldn't handle swap entries without PFNs.  And since then new
-callers have come along which rely on this working.  But given the
-brokeness is only observable after commit 8a13897fb0da ("mm: userfaultfd:
-support UFFDIO_POISON for hugetlbfs"), that one gets the Fixes tag.
-
-Now that we have modified the set_huge_pte_at() interface to pass the huge
-page size in the previous patch, we can trivially fix this issue.
-
-Link: https://lkml.kernel.org/r/20230922115804.2043771-3-ryan.roberts@arm.com
-Fixes: 8a13897fb0da ("mm: userfaultfd: support UFFDIO_POISON for hugetlbfs")
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: <stable@vger.kernel.org>	[6.5+]
+Link: https://lkml.kernel.org/r/20230922100747.17045-1-jiapeng.chong@linux.alibaba.com
+Signed-off-by: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
+Reported-by: Abaci Robot <abaci@linux.alibaba.com>
+Closes: https://bugzilla.openanolis.cn/show_bug.cgi?id=6677
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/hugetlbpage.c |   17 +++--------------
- 1 file changed, 3 insertions(+), 14 deletions(-)
+ mm/list_lru.c |   30 ------------------------------
+ 1 file changed, 30 deletions(-)
 
---- a/arch/arm64/mm/hugetlbpage.c~arm64-hugetlb-fix-set_huge_pte_at-to-work-with-all-swap-entries
-+++ a/arch/arm64/mm/hugetlbpage.c
-@@ -241,13 +241,6 @@ static void clear_flush(struct mm_struct
- 	flush_tlb_range(&vma, saddr, addr);
+--- a/mm/list_lru.c~mm-list_lru-remove-unused-function
++++ a/mm/list_lru.c
+@@ -60,27 +60,6 @@ list_lru_from_memcg_idx(struct list_lru
+ 	return &lru->node[nid].lru;
  }
  
--static inline struct folio *hugetlb_swap_entry_to_folio(swp_entry_t entry)
+-static inline struct list_lru_one *
+-list_lru_from_kmem(struct list_lru *lru, int nid, void *ptr,
+-		   struct mem_cgroup **memcg_ptr)
 -{
--	VM_BUG_ON(!is_migration_entry(entry) && !is_hwpoison_entry(entry));
+-	struct list_lru_node *nlru = &lru->node[nid];
+-	struct list_lru_one *l = &nlru->lru;
+-	struct mem_cgroup *memcg = NULL;
 -
--	return page_folio(pfn_to_page(swp_offset_pfn(entry)));
+-	if (!list_lru_memcg_aware(lru))
+-		goto out;
+-
+-	memcg = mem_cgroup_from_slab_obj(ptr);
+-	if (!memcg)
+-		goto out;
+-
+-	l = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(memcg));
+-out:
+-	if (memcg_ptr)
+-		*memcg_ptr = memcg;
+-	return l;
 -}
--
- void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
- 			    pte_t *ptep, pte_t pte, unsigned long sz)
+ #else
+ static void list_lru_register(struct list_lru *lru)
  {
-@@ -257,13 +250,10 @@ void set_huge_pte_at(struct mm_struct *m
- 	unsigned long pfn, dpfn;
- 	pgprot_t hugeprot;
- 
--	if (!pte_present(pte)) {
--		struct folio *folio;
+@@ -105,15 +84,6 @@ list_lru_from_memcg_idx(struct list_lru
+ {
+ 	return &lru->node[nid].lru;
+ }
 -
--		folio = hugetlb_swap_entry_to_folio(pte_to_swp_entry(pte));
--		ncontig = num_contig_ptes(folio_size(folio), &pgsize);
-+	ncontig = num_contig_ptes(sz, &pgsize);
+-static inline struct list_lru_one *
+-list_lru_from_kmem(struct list_lru *lru, int nid, void *ptr,
+-		   struct mem_cgroup **memcg_ptr)
+-{
+-	if (memcg_ptr)
+-		*memcg_ptr = NULL;
+-	return &lru->node[nid].lru;
+-}
+ #endif /* CONFIG_MEMCG_KMEM */
  
--		for (i = 0; i < ncontig; i++, ptep++)
-+	if (!pte_present(pte)) {
-+		for (i = 0; i < ncontig; i++, ptep++, addr += pgsize)
- 			set_pte_at(mm, addr, ptep, pte);
- 		return;
- 	}
-@@ -273,7 +263,6 @@ void set_huge_pte_at(struct mm_struct *m
- 		return;
- 	}
- 
--	ncontig = find_num_contig(mm, addr, ptep, &pgsize);
- 	pfn = pte_pfn(pte);
- 	dpfn = pgsize >> PAGE_SHIFT;
- 	hugeprot = pte_pgprot(pte);
+ bool list_lru_add(struct list_lru *lru, struct list_head *item)
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from jiapeng.chong@linux.alibaba.com are
 
-mm-hugetlb-add-huge-page-size-param-to-set_huge_pte_at.patch
-arm64-hugetlb-fix-set_huge_pte_at-to-work-with-all-swap-entries.patch
+mm-list_lru-remove-unused-function.patch
 
