@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 365A8E7D0BC
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Sep 2023 01:34:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 107A4E7D0BC
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Sep 2023 01:34:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230078AbjIVBeo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 21 Sep 2023 21:34:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53942 "EHLO
+        id S230137AbjIVBex (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 21 Sep 2023 21:34:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42670 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230134AbjIVBej (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Sep 2023 21:34:39 -0400
+        with ESMTP id S230133AbjIVBep (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Sep 2023 21:34:45 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C135EF4;
-        Thu, 21 Sep 2023 18:34:33 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D1A3C433C7;
-        Fri, 22 Sep 2023 01:34:33 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EBC9DCF
+        for <mm-commits@vger.kernel.org>; Thu, 21 Sep 2023 18:34:38 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8667BC433C7;
+        Fri, 22 Sep 2023 01:34:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695346473;
-        bh=RoOqiADMW93lOJZw5qLeWTM8S1+LP6nBtl7kmLV67kE=;
+        s=korg; t=1695346478;
+        bh=z8ygBXPm1SbwgxXRs8oRMBvxDDzDOTuEZmfo7TJ8LFg=;
         h=Date:To:From:Subject:From;
-        b=hgk9mldgYWF/3Qc9yLBC0weVwLwBBnnqz8HF9iDvETmJwldOAILErlH1llQV1u1M6
-         BQzrnt27n+a7eNyhUAc3l3HgojdaA3B7fzOSK7lYT1x//yHthMk3Ylc+HlyaLMtWQE
-         S6pOudMA9hJMIsCbe/l/ncSzm2LOHg+g2nv6wTKs=
-Date:   Thu, 21 Sep 2023 18:34:32 -0700
+        b=Ve+jo8wLVqTzrqNlZiF5p9g+PeGJZ6KE1nys7lUGIkhcQegNntICmpLXtoUhUbDBs
+         5xVdGRvqexp4LwWpciGdy+hVi8u2tVqEVf+wT/9Knfb+gifbLqQb7e9l/WR73t7CLn
+         agcuFWE6r7IorqdVy9Kghxo9mRcAQGDMaP7I7oqE=
+Date:   Thu, 21 Sep 2023 18:34:38 -0700
 To:     mm-commits@vger.kernel.org, toiwoton@gmail.com,
-        Szabolcs.Nagy@arm.com, stable@vger.kernel.org,
-        ryan.roberts@arm.com, peterx@redhat.com, mhocko@suse.com,
-        kpsingh@kernel.org, keescook@chromium.org, joey.gouly@arm.com,
-        izbyshev@ispras.ru, gthelen@google.com, david@redhat.com,
-        catalin.marinas@arm.com, broonie@kernel.org, ayush.jain3@amd.com,
-        anshuman.khandual@arm.com, revest@chromium.org,
-        akpm@linux-foundation.org
+        Szabolcs.Nagy@arm.com, ryan.roberts@arm.com, peterx@redhat.com,
+        mhocko@suse.com, kpsingh@kernel.org, keescook@chromium.org,
+        joey.gouly@arm.com, izbyshev@ispras.ru, gthelen@google.com,
+        david@redhat.com, catalin.marinas@arm.com, broonie@kernel.org,
+        ayush.jain3@amd.com, anshuman.khandual@arm.com,
+        revest@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-make-pr_mdwe_refuse_exec_gain-an-unsigned-long.patch added to mm-unstable branch
-Message-Id: <20230922013433.5D1A3C433C7@smtp.kernel.org>
+Subject: + kselftest-vm-add-tests-for-no-inherit-memory-deny-write-execute.patch added to mm-unstable branch
+Message-Id: <20230922013438.8667BC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: make PR_MDWE_REFUSE_EXEC_GAIN an unsigned long
+     Subject: kselftest: vm: add tests for no-inherit memory-deny-write-execute
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-make-pr_mdwe_refuse_exec_gain-an-unsigned-long.patch
+     kselftest-vm-add-tests-for-no-inherit-memory-deny-write-execute.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-pr_mdwe_refuse_exec_gain-an-unsigned-long.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kselftest-vm-add-tests-for-no-inherit-memory-deny-write-execute.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,27 +65,25 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Florent Revest <revest@chromium.org>
-Subject: mm: make PR_MDWE_REFUSE_EXEC_GAIN an unsigned long
-Date: Mon, 28 Aug 2023 17:08:56 +0200
+Subject: kselftest: vm: add tests for no-inherit memory-deny-write-execute
+Date: Mon, 28 Aug 2023 17:08:58 +0200
 
-Defining a prctl flag as an int is a footgun because on a 64 bit machine
-and with a variadic implementation of prctl (like in musl and glibc), when
-used directly as a prctl argument, it can get casted to long with garbage
-upper bits which would result in unexpected behaviors.
+Add some tests to cover the new PR_MDWE_NO_INHERIT flag of the
+PR_SET_MDWE prctl.
 
-This patch changes the constant to an unsigned long to eliminate that
-possibilities.  This does not break UAPI.
+Check that:
+- it can't be set without PR_SET_MDWE
+- MDWE flags can't be unset
+- when set, PR_SET_MDWE doesn't propagate to children
 
-Link: https://lkml.kernel.org/r/20230828150858.393570-5-revest@chromium.org
-Fixes: b507808ebce2 ("mm: implement memory-deny-write-execute as a prctl")
+Link: https://lkml.kernel.org/r/20230828150858.393570-7-revest@chromium.org
 Signed-off-by: Florent Revest <revest@chromium.org>
-Suggested-by: Alexey Izbyshev <izbyshev@ispras.ru>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
 Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: <stable@vger.kernel.org>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Cc: Alexey Izbyshev <izbyshev@ispras.ru>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Ayush Jain <ayush.jain3@amd.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Greg Thelen <gthelen@google.com>
 Cc: Joey Gouly <joey.gouly@arm.com>
 Cc: KP Singh <kpsingh@kernel.org>
@@ -99,32 +96,200 @@ Cc: Topi Miettinen <toiwoton@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/prctl.h       |    2 +-
- tools/include/uapi/linux/prctl.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/mdwe_test.c |  114 +++++++++++++++++++++--
+ 1 file changed, 108 insertions(+), 6 deletions(-)
 
---- a/include/uapi/linux/prctl.h~mm-make-pr_mdwe_refuse_exec_gain-an-unsigned-long
-+++ a/include/uapi/linux/prctl.h
-@@ -283,7 +283,7 @@ struct prctl_mm_map {
+--- a/tools/testing/selftests/mm/mdwe_test.c~kselftest-vm-add-tests-for-no-inherit-memory-deny-write-execute
++++ a/tools/testing/selftests/mm/mdwe_test.c
+@@ -22,6 +22,9 @@
  
- /* Memory deny write / execute */
- #define PR_SET_MDWE			65
--# define PR_MDWE_REFUSE_EXEC_GAIN	1
-+# define PR_MDWE_REFUSE_EXEC_GAIN	(1UL << 0)
+ TEST(prctl_flags)
+ {
++	EXPECT_LT(prctl(PR_SET_MDWE, PR_MDWE_NO_INHERIT, 0L, 0L, 7L), 0);
++	EXPECT_EQ(errno, EINVAL);
++
+ 	EXPECT_LT(prctl(PR_SET_MDWE, 7L, 0L, 0L, 0L), 0);
+ 	EXPECT_EQ(errno, EINVAL);
+ 	EXPECT_LT(prctl(PR_SET_MDWE, 0L, 7L, 0L, 0L), 0);
+@@ -41,6 +44,84 @@ TEST(prctl_flags)
+ 	EXPECT_EQ(errno, EINVAL);
+ }
  
- #define PR_GET_MDWE			66
++FIXTURE(consecutive_prctl_flags) {};
++FIXTURE_SETUP(consecutive_prctl_flags) {}
++FIXTURE_TEARDOWN(consecutive_prctl_flags) {}
++
++FIXTURE_VARIANT(consecutive_prctl_flags)
++{
++	unsigned long first_flags;
++	unsigned long second_flags;
++	bool should_work;
++};
++
++FIXTURE_VARIANT_ADD(consecutive_prctl_flags, can_keep_no_flags)
++{
++	.first_flags = 0,
++	.second_flags = 0,
++	.should_work = true,
++};
++
++FIXTURE_VARIANT_ADD(consecutive_prctl_flags, can_keep_exec_gain)
++{
++	.first_flags = PR_MDWE_REFUSE_EXEC_GAIN,
++	.second_flags = PR_MDWE_REFUSE_EXEC_GAIN,
++	.should_work = true,
++};
++
++FIXTURE_VARIANT_ADD(consecutive_prctl_flags, can_keep_both_flags)
++{
++	.first_flags = PR_MDWE_REFUSE_EXEC_GAIN | PR_MDWE_NO_INHERIT,
++	.second_flags = PR_MDWE_REFUSE_EXEC_GAIN | PR_MDWE_NO_INHERIT,
++	.should_work = true,
++};
++
++FIXTURE_VARIANT_ADD(consecutive_prctl_flags, cant_disable_mdwe)
++{
++	.first_flags = PR_MDWE_REFUSE_EXEC_GAIN,
++	.second_flags = 0,
++	.should_work = false,
++};
++
++FIXTURE_VARIANT_ADD(consecutive_prctl_flags, cant_disable_mdwe_no_inherit)
++{
++	.first_flags = PR_MDWE_REFUSE_EXEC_GAIN | PR_MDWE_NO_INHERIT,
++	.second_flags = 0,
++	.should_work = false,
++};
++
++FIXTURE_VARIANT_ADD(consecutive_prctl_flags, cant_disable_no_inherit)
++{
++	.first_flags = PR_MDWE_REFUSE_EXEC_GAIN | PR_MDWE_NO_INHERIT,
++	.second_flags = PR_MDWE_REFUSE_EXEC_GAIN,
++	.should_work = false,
++};
++
++FIXTURE_VARIANT_ADD(consecutive_prctl_flags, cant_enable_no_inherit)
++{
++	.first_flags = PR_MDWE_REFUSE_EXEC_GAIN,
++	.second_flags = PR_MDWE_REFUSE_EXEC_GAIN | PR_MDWE_NO_INHERIT,
++	.should_work = false,
++};
++
++TEST_F(consecutive_prctl_flags, two_prctls)
++{
++	int ret;
++
++	EXPECT_EQ(prctl(PR_SET_MDWE, variant->first_flags, 0L, 0L, 0L), 0);
++
++	ret = prctl(PR_SET_MDWE, variant->second_flags, 0L, 0L, 0L);
++	if (variant->should_work) {
++		EXPECT_EQ(ret, 0);
++
++		ret = prctl(PR_GET_MDWE, 0L, 0L, 0L, 0L);
++		ASSERT_EQ(ret, variant->second_flags);
++	} else {
++		EXPECT_NE(ret, 0);
++		ASSERT_EQ(errno, EPERM);
++	}
++}
++
+ FIXTURE(mdwe)
+ {
+ 	void *p;
+@@ -53,28 +134,45 @@ FIXTURE_VARIANT(mdwe)
+ {
+ 	bool enabled;
+ 	bool forked;
++	bool inherit;
+ };
  
---- a/tools/include/uapi/linux/prctl.h~mm-make-pr_mdwe_refuse_exec_gain-an-unsigned-long
-+++ a/tools/include/uapi/linux/prctl.h
-@@ -283,7 +283,7 @@ struct prctl_mm_map {
+ FIXTURE_VARIANT_ADD(mdwe, stock)
+ {
+ 	.enabled = false,
+ 	.forked = false,
++	.inherit = false,
+ };
  
- /* Memory deny write / execute */
- #define PR_SET_MDWE			65
--# define PR_MDWE_REFUSE_EXEC_GAIN	1
-+# define PR_MDWE_REFUSE_EXEC_GAIN	(1UL << 0)
+ FIXTURE_VARIANT_ADD(mdwe, enabled)
+ {
+ 	.enabled = true,
+ 	.forked = false,
++	.inherit = true,
+ };
  
- #define PR_GET_MDWE			66
+-FIXTURE_VARIANT_ADD(mdwe, forked)
++FIXTURE_VARIANT_ADD(mdwe, inherited)
+ {
+ 	.enabled = true,
+ 	.forked = true,
++	.inherit = true,
+ };
  
++FIXTURE_VARIANT_ADD(mdwe, not_inherited)
++{
++	.enabled = true,
++	.forked = true,
++	.inherit = false,
++};
++
++static bool executable_map_should_fail(const FIXTURE_VARIANT(mdwe) *variant)
++{
++	return variant->enabled && (!variant->forked || variant->inherit);
++}
++
+ FIXTURE_SETUP(mdwe)
+ {
++	unsigned long mdwe_flags;
+ 	int ret, status;
+ 
+ 	self->p = NULL;
+@@ -84,13 +182,17 @@ FIXTURE_SETUP(mdwe)
+ 	if (!variant->enabled)
+ 		return;
+ 
+-	ret = prctl(PR_SET_MDWE, PR_MDWE_REFUSE_EXEC_GAIN, 0L, 0L, 0L);
++	mdwe_flags = PR_MDWE_REFUSE_EXEC_GAIN;
++	if (!variant->inherit)
++		mdwe_flags |= PR_MDWE_NO_INHERIT;
++
++	ret = prctl(PR_SET_MDWE, mdwe_flags, 0L, 0L, 0L);
+ 	ASSERT_EQ(ret, 0) {
+ 		TH_LOG("PR_SET_MDWE failed or unsupported");
+ 	}
+ 
+ 	ret = prctl(PR_GET_MDWE, 0L, 0L, 0L, 0L);
+-	ASSERT_EQ(ret, 1);
++	ASSERT_EQ(ret, mdwe_flags);
+ 
+ 	if (variant->forked) {
+ 		self->pid = fork();
+@@ -121,7 +223,7 @@ TEST_F(mdwe, mmap_READ_EXEC)
+ TEST_F(mdwe, mmap_WRITE_EXEC)
+ {
+ 	self->p = mmap(NULL, self->size, PROT_WRITE | PROT_EXEC, self->flags, 0, 0);
+-	if (variant->enabled) {
++	if (executable_map_should_fail(variant)) {
+ 		EXPECT_EQ(self->p, MAP_FAILED);
+ 	} else {
+ 		EXPECT_NE(self->p, MAP_FAILED);
+@@ -147,7 +249,7 @@ TEST_F(mdwe, mprotect_add_EXEC)
+ 	ASSERT_NE(self->p, MAP_FAILED);
+ 
+ 	ret = mprotect(self->p, self->size, PROT_READ | PROT_EXEC);
+-	if (variant->enabled) {
++	if (executable_map_should_fail(variant)) {
+ 		EXPECT_LT(ret, 0);
+ 	} else {
+ 		EXPECT_EQ(ret, 0);
+@@ -162,7 +264,7 @@ TEST_F(mdwe, mprotect_WRITE_EXEC)
+ 	ASSERT_NE(self->p, MAP_FAILED);
+ 
+ 	ret = mprotect(self->p, self->size, PROT_WRITE | PROT_EXEC);
+-	if (variant->enabled) {
++	if (executable_map_should_fail(variant)) {
+ 		EXPECT_LT(ret, 0);
+ 	} else {
+ 		EXPECT_EQ(ret, 0);
 _
 
 Patches currently in -mm which might be from revest@chromium.org are
