@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4568E7D0A1
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Sep 2023 00:36:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B6FCE7D0B8
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Sep 2023 00:36:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230252AbjIVAgV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 21 Sep 2023 20:36:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55500 "EHLO
+        id S230495AbjIVAgX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 21 Sep 2023 20:36:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55470 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230299AbjIVAgU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Sep 2023 20:36:20 -0400
+        with ESMTP id S230402AbjIVAgV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Sep 2023 20:36:21 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 139D319A
-        for <mm-commits@vger.kernel.org>; Thu, 21 Sep 2023 17:36:06 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88B4EC433C8;
-        Fri, 22 Sep 2023 00:36:05 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 938631AA
+        for <mm-commits@vger.kernel.org>; Thu, 21 Sep 2023 17:36:08 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECB0FC433D9;
+        Fri, 22 Sep 2023 00:36:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695342965;
-        bh=XtXlsX+hj7shHuU0ttrUaIJY+e+2upZSECjZQUOa6Rk=;
+        s=korg; t=1695342968;
+        bh=Mp9aj+wOGt/ZCAsbxx3F9Urx9MySYaMEjpnIfhX1uZo=;
         h=Date:To:From:Subject:From;
-        b=qsa6+budAoyXJhBT5t8zmd1JYINmteVPxzrR270gcFMeondrKuT2dM7RQ6OCA4v3j
-         wLiCeamTvCDFPrvFPa5DhZxW0uDN55JKFoUy2r79ifaWRSq3d5MxPgbaqiZARhZmoR
-         Xmdb8hIDgm2hhVygWyGvDvLgmdVf4J7k8M06R18o=
-Date:   Thu, 21 Sep 2023 17:36:04 -0700
+        b=jGlm7NKNtpXDUTDYML9pKjyyqkklrx3zfrplMILWlZg247KqfeB8GZncBFVIa5Xc3
+         jpzPOrTZ9q+IKjKXMnztAaFMNhc91CtewZ/PB9D3sKZY/MIZfqRkYn8U7NBzeWtb08
+         0895xpcQU2I3LnnN6eNdQFn3xBOdyNsJtS3cEepY=
+Date:   Thu, 21 Sep 2023 17:36:07 -0700
 To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         will@kernel.org, urezki@gmail.com, svens@linux.ibm.com,
         sj@kernel.org, peterx@redhat.com, paul.walmsley@sifive.com,
@@ -38,8 +38,8 @@ To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
         agordeev@linux.ibm.com, ryan.roberts@arm.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + parisc-hugetlb-convert-set_huge_pte_at-to-take-vma.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230922003605.88B4EC433C8@smtp.kernel.org>
+Subject: + powerpc-hugetlb-convert-set_huge_pte_at-to-take-vma.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230922003607.ECB0FC433D9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,12 +47,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: parisc: hugetlb: convert set_huge_pte_at() to take vma
+     Subject: powerpc: hugetlb: convert set_huge_pte_at() to take vma
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     parisc-hugetlb-convert-set_huge_pte_at-to-take-vma.patch
+     powerpc-hugetlb-convert-set_huge_pte_at-to-take-vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/parisc-hugetlb-convert-set_huge_pte_at-to-take-vma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-hugetlb-convert-set_huge_pte_at-to-take-vma.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -71,103 +71,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: parisc: hugetlb: convert set_huge_pte_at() to take vma
-Date: Thu, 21 Sep 2023 17:20:00 +0100
-
-Patch series "Fix set_huge_pte_at() panic on arm64".
-
-This series fixes a bug in arm64's implementation of set_huge_pte_at(),
-which can result in an unprivileged user causing a kernel panic.  The
-problem was triggered when running the new uffd poison mm selftest for
-HUGETLB memory.  This test (and the uffd poison feature) was merged for
-v6.6-rc1.  However, upon inspection there are multiple other pre-existing
-paths that can trigger this bug.
-
-Ideally, I'd like to get this fix in for v6.6 if possible?  And I guess it
-should be backported too, given there are call sites where this can
-theoretically happen that pre-date v6.6-rc1 (I've cc'ed
-stable@vger.kernel.org).
-
-
-Description of Bug
-------------------
-
-arm64's huge pte implementation supports multiple huge page sizes, some of
-which are implemented in the page table with contiguous mappings.  So
-set_huge_pte_at() needs to work out how big the logical pte is, so that it
-can also work out how many physical ptes (or pmds) need to be written.  It
-does this by grabbing the folio out of the pte and querying its size.
-
-However, there are cases when the pte being set is actually a swap entry. 
-But this also used to work fine, because for huge ptes, we only ever saw
-migration entries and hwpoison entries.  And both of these types of swap
-entries have a PFN embedded, so the code would grab that and everything
-still worked out.
-
-But over time, more calls to set_huge_pte_at() have been added that set
-swap entry types that do not embed a PFN.  And this causes the code to go
-bang.  The triggering case is for the uffd poison test, commit
-99aa77215ad0 ("selftests/mm: add uffd unit test for UFFDIO_POISON"), which
-sets a PTE_MARKER_POISONED swap entry.  But review shows there are other
-places too (PTE_MARKER_UFFD_WP).
-
-If CONFIG_DEBUG_VM is enabled, we do at least get a BUG(), but otherwise,
-it will dereference a bad pointer in page_folio():
-
-    static inline struct folio *hugetlb_swap_entry_to_folio(swp_entry_t entry)
-    {
-        VM_BUG_ON(!is_migration_entry(entry) && !is_hwpoison_entry(entry));
-
-        return page_folio(pfn_to_page(swp_offset_pfn(entry)));
-    }
-
-So the root cause is due to commit 18f3962953e4 ("mm: hugetlb: kill
-set_huge_swap_pte_at()"), which aimed to simplify the interface to the
-core code by removing set_huge_swap_pte_at() (which took a page size
-parameter) and replacing it with calls to set_huge_swap_pte_at() where the
-size was inferred from the folio, as descibed above.  While that commit
-didn't break anything at the time, it did break the interface because it
-couldn't handle swap entries without PFNs.  And since then new callers
-have come along which rely on this working.
-
-
-Fix
----
-
-The simplest fix would have been to revert the dodgy cleanup commit, but
-since things have moved on, this would have required an audit of all the
-new set_huge_pte_at() call sites to see if they should be converted to
-set_huge_swap_pte_at().  As per the original intent of the change, it
-would also leave us open to future bugs when people invariably get it
-wrong and call the wrong helper.
-
-So instead, I've converted the first parameter of set_huge_pte_at() to be
-a vma rather than an mm.  This means that the arm64 code can easily
-recover the huge page size in all cases.  It's a bigger change, due to
-needing to touch the arches that implement the function, but it is
-entirely mechanical, so in my view, low risk.
-
-I've compile-tested all touched arches; arm64, parisc, powerpc, riscv,
-s390 (and additionally x86_64).  I've additionally booted and run mm
-selftests against arm64, where I observe the uffd poison test is fixed,
-and there are no other regressions.
-
-
-This patch (of 8):
+Subject: powerpc: hugetlb: convert set_huge_pte_at() to take vma
+Date: Thu, 21 Sep 2023 17:20:01 +0100
 
 In order to fix a bug, arm64 needs access to the vma inside it's
 implementation of set_huge_pte_at().  Provide for this by converting the
 mm parameter to be a vma.  Any implementations that require the mm can
 access it via vma->vm_mm.
 
-This commit makes the required parisc modifications. Separate commits
+This commit makes the required powerpc modifications. Separate commits
 update the other arches and core code, before the actual bug is fixed in
 arm64.
 
 No behavioral changes intended.
 
-Link: https://lkml.kernel.org/r/20230921162007.1630149-1-ryan.roberts@arm.com
-Link: https://lkml.kernel.org/r/20230921162007.1630149-2-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20230921162007.1630149-3-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -199,35 +117,78 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/include/asm/hugetlb.h |    2 +-
- arch/parisc/mm/hugetlbpage.c      |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ arch/powerpc/include/asm/nohash/32/hugetlb-8xx.h |    3 ++-
+ arch/powerpc/mm/book3s64/hugetlbpage.c           |    2 +-
+ arch/powerpc/mm/book3s64/radix_hugetlbpage.c     |    2 +-
+ arch/powerpc/mm/nohash/8xx.c                     |    2 +-
+ arch/powerpc/mm/pgtable.c                        |    7 ++++++-
+ 5 files changed, 11 insertions(+), 5 deletions(-)
 
---- a/arch/parisc/include/asm/hugetlb.h~parisc-hugetlb-convert-set_huge_pte_at-to-take-vma
-+++ a/arch/parisc/include/asm/hugetlb.h
-@@ -5,7 +5,7 @@
- #include <asm/page.h>
+--- a/arch/powerpc/include/asm/nohash/32/hugetlb-8xx.h~powerpc-hugetlb-convert-set_huge_pte_at-to-take-vma
++++ a/arch/powerpc/include/asm/nohash/32/hugetlb-8xx.h
+@@ -46,7 +46,8 @@ static inline int check_and_get_huge_psi
+ }
  
  #define __HAVE_ARCH_HUGE_SET_HUGE_PTE_AT
--void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
-+void set_huge_pte_at(struct vm_area_struct *vma, unsigned long addr,
- 		     pte_t *ptep, pte_t pte);
+-void set_huge_pte_at(struct mm_struct *mm, unsigned long addr, pte_t *ptep, pte_t pte);
++void set_huge_pte_at(struct vm_area_struct *vma, unsigned long addr, pte_t *ptep, pte_t pte);
++void __set_huge_pte_at(struct mm_struct *mm, unsigned long addr, pte_t *ptep, pte_t pte);
  
- #define __HAVE_ARCH_HUGE_PTEP_GET_AND_CLEAR
---- a/arch/parisc/mm/hugetlbpage.c~parisc-hugetlb-convert-set_huge_pte_at-to-take-vma
-+++ a/arch/parisc/mm/hugetlbpage.c
-@@ -139,10 +139,10 @@ static void __set_huge_pte_at(struct mm_
- 	purge_tlb_entries_huge(mm, addr_start);
+ #define __HAVE_ARCH_HUGE_PTE_CLEAR
+ static inline void huge_pte_clear(struct mm_struct *mm, unsigned long addr,
+--- a/arch/powerpc/mm/book3s64/hugetlbpage.c~powerpc-hugetlb-convert-set_huge_pte_at-to-take-vma
++++ a/arch/powerpc/mm/book3s64/hugetlbpage.c
+@@ -147,7 +147,7 @@ void huge_ptep_modify_prot_commit(struct
+ 	if (radix_enabled())
+ 		return radix__huge_ptep_modify_prot_commit(vma, addr, ptep,
+ 							   old_pte, pte);
+-	set_huge_pte_at(vma->vm_mm, addr, ptep, pte);
++	set_huge_pte_at(vma, addr, ptep, pte);
  }
  
--void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
-+void set_huge_pte_at(struct vm_area_struct *vma, unsigned long addr,
- 		     pte_t *ptep, pte_t entry)
+ void __init hugetlbpage_init_defaultsize(void)
+--- a/arch/powerpc/mm/book3s64/radix_hugetlbpage.c~powerpc-hugetlb-convert-set_huge_pte_at-to-take-vma
++++ a/arch/powerpc/mm/book3s64/radix_hugetlbpage.c
+@@ -58,5 +58,5 @@ void radix__huge_ptep_modify_prot_commit
+ 	    atomic_read(&mm->context.copros) > 0)
+ 		radix__flush_hugetlb_page(vma, addr);
+ 
+-	set_huge_pte_at(vma->vm_mm, addr, ptep, pte);
++	set_huge_pte_at(vma, addr, ptep, pte);
+ }
+--- a/arch/powerpc/mm/nohash/8xx.c~powerpc-hugetlb-convert-set_huge_pte_at-to-take-vma
++++ a/arch/powerpc/mm/nohash/8xx.c
+@@ -91,7 +91,7 @@ static int __ref __early_map_kernel_huge
+ 	if (new && WARN_ON(pte_present(*ptep) && pgprot_val(prot)))
+ 		return -EINVAL;
+ 
+-	set_huge_pte_at(&init_mm, va, ptep, pte_mkhuge(pfn_pte(pa >> PAGE_SHIFT, prot)));
++	__set_huge_pte_at(&init_mm, va, ptep, pte_mkhuge(pfn_pte(pa >> PAGE_SHIFT, prot)));
+ 
+ 	return 0;
+ }
+--- a/arch/powerpc/mm/pgtable.c~powerpc-hugetlb-convert-set_huge_pte_at-to-take-vma
++++ a/arch/powerpc/mm/pgtable.c
+@@ -288,7 +288,7 @@ int huge_ptep_set_access_flags(struct vm
+ }
+ 
+ #if defined(CONFIG_PPC_8xx)
+-void set_huge_pte_at(struct mm_struct *mm, unsigned long addr, pte_t *ptep, pte_t pte)
++void __set_huge_pte_at(struct mm_struct *mm, unsigned long addr, pte_t *ptep, pte_t pte)
  {
--	__set_huge_pte_at(mm, addr, ptep, entry);
-+	__set_huge_pte_at(vma->vm_mm, addr, ptep, entry);
+ 	pmd_t *pmd = pmd_off(mm, addr);
+ 	pte_basic_t val;
+@@ -310,6 +310,11 @@ void set_huge_pte_at(struct mm_struct *m
+ 	for (i = 0; i < num; i++, entry++, val += SZ_4K)
+ 		*entry = val;
  }
- 
++
++void set_huge_pte_at(struct vm_area_struct *vma, unsigned long addr, pte_t *ptep, pte_t pte)
++{
++	__set_huge_pte_at(vma->vm_mm, addr, ptep, pte);
++}
+ #endif
+ #endif /* CONFIG_HUGETLB_PAGE */
  
 _
 
