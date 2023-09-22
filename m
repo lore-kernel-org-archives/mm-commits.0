@@ -2,36 +2,44 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2981E7D0A1
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Sep 2023 00:36:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4568E7D0A1
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Sep 2023 00:36:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230091AbjIVAgK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 21 Sep 2023 20:36:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50254 "EHLO
+        id S230252AbjIVAgV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 21 Sep 2023 20:36:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55500 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230078AbjIVAgG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Sep 2023 20:36:06 -0400
+        with ESMTP id S230299AbjIVAgU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Sep 2023 20:36:20 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DDC6194
-        for <mm-commits@vger.kernel.org>; Thu, 21 Sep 2023 17:36:00 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B5D8C433C9;
-        Fri, 22 Sep 2023 00:26:58 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 139D319A
+        for <mm-commits@vger.kernel.org>; Thu, 21 Sep 2023 17:36:06 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88B4EC433C8;
+        Fri, 22 Sep 2023 00:36:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695342418;
-        bh=PybXRR3Lopu67hNZ217DRV5bSZDgH3lynnaNFs3MBrA=;
+        s=korg; t=1695342965;
+        bh=XtXlsX+hj7shHuU0ttrUaIJY+e+2upZSECjZQUOa6Rk=;
         h=Date:To:From:Subject:From;
-        b=Ip37/lUeXPn4T0e5E5Z/LCTNj//XZ5qH2ZlbqRB43n/Hq9qfgj/2sm92F9S9hq6EF
-         g6/FsB3YstF7fmOocPPjGqlAc3EcWbmCknSV1CgkVOvx2AkOBlYAxR7TP1C33jkAnw
-         j9TDIRYsLRdJT4pvJh4jSf+IRLOfhwGlz2rdRNy0=
-Date:   Thu, 21 Sep 2023 17:26:57 -0700
-To:     mm-commits@vger.kernel.org, vgoyal@redhat.com,
-        sourabhjain@linux.ibm.com, konrad.wilk@oracle.com,
-        ebiederm@xmission.com, dyoung@redhat.com,
-        boris.ostrovsky@oracle.com, bhe@redhat.com,
-        eric.devolder@oracle.com, akpm@linux-foundation.org
+        b=qsa6+budAoyXJhBT5t8zmd1JYINmteVPxzrR270gcFMeondrKuT2dM7RQ6OCA4v3j
+         wLiCeamTvCDFPrvFPa5DhZxW0uDN55JKFoUy2r79ifaWRSq3d5MxPgbaqiZARhZmoR
+         Xmdb8hIDgm2hhVygWyGvDvLgmdVf4J7k8M06R18o=
+Date:   Thu, 21 Sep 2023 17:36:04 -0700
+To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
+        will@kernel.org, urezki@gmail.com, svens@linux.ibm.com,
+        sj@kernel.org, peterx@redhat.com, paul.walmsley@sifive.com,
+        palmer@dabbelt.com, npiggin@gmail.com, muchun.song@linux.dev,
+        mike.kravetz@oracle.com, lstoakes@gmail.com,
+        James.Bottomley@HansenPartnership.com, hch@infradead.org,
+        hca@linux.ibm.com, gor@linux.ibm.com,
+        gerald.schaefer@linux.ibm.com, deller@gmx.de, davem@davemloft.net,
+        christophe.leroy@csgroup.eu, catalin.marinas@arm.com,
+        borntraeger@linux.ibm.com, axelrasmussen@google.com, arnd@arndb.de,
+        aou@eecs.berkeley.edu, anshuman.khandual@arm.com,
+        agordeev@linux.ibm.com, ryan.roberts@arm.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kexec-change-locking-mechanism-to-a-mutex.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230922002658.4B5D8C433C9@smtp.kernel.org>
+Subject: + parisc-hugetlb-convert-set_huge_pte_at-to-take-vma.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230922003605.88B4EC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,12 +47,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: change locking mechanism to a mutex
+     Subject: parisc: hugetlb: convert set_huge_pte_at() to take vma
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kexec-change-locking-mechanism-to-a-mutex.patch
+     parisc-hugetlb-convert-set_huge_pte_at-to-take-vma.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-change-locking-mechanism-to-a-mutex.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/parisc-hugetlb-convert-set_huge_pte_at-to-take-vma.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,224 +70,175 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Eric DeVolder <eric.devolder@oracle.com>
-Subject: kexec: change locking mechanism to a mutex
-Date: Thu, 21 Sep 2023 17:59:38 -0400
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: parisc: hugetlb: convert set_huge_pte_at() to take vma
+Date: Thu, 21 Sep 2023 17:20:00 +0100
 
-Scaled up testing has revealed that the kexec_trylock() implementation
-leads to failures within the crash hotplug infrastructure due to the
-inability to acquire the lock, specifically the message:
+Patch series "Fix set_huge_pte_at() panic on arm64".
 
- crash hp: kexec_trylock() failed, elfcorehdr may be inaccurate
+This series fixes a bug in arm64's implementation of set_huge_pte_at(),
+which can result in an unprivileged user causing a kernel panic.  The
+problem was triggered when running the new uffd poison mm selftest for
+HUGETLB memory.  This test (and the uffd poison feature) was merged for
+v6.6-rc1.  However, upon inspection there are multiple other pre-existing
+paths that can trigger this bug.
 
-When hotplug events occur, the crash hotplug infrastructure first attempts
-to obtain the lock via the kexec_trylock().  However, the implementation
-either acquires the lock, or fails and returns; there is no waiting on the
-lock.  Here is the comment/explanation from
-kernel/kexec_internal.h:kexec_trylock():
+Ideally, I'd like to get this fix in for v6.6 if possible?  And I guess it
+should be backported too, given there are call sites where this can
+theoretically happen that pre-date v6.6-rc1 (I've cc'ed
+stable@vger.kernel.org).
 
- * Whatever is used to serialize accesses to the kexec_crash_image needs to be
- * NMI safe, as __crash_kexec() can happen during nmi_panic(), so here we use a
- * "simple" atomic variable that is acquired with a cmpxchg().
 
-While this in theory can happen for either CPU or memory hoptlug, this
-problem is most prone to occur for memory hotplug.
+Description of Bug
+------------------
 
-When memory is hot plugged, the memory is converted into smaller 128MiB
-memblocks (typically).  As each memblock is processed, a kernel thread and
-a udev event thread are created.  The udev thread tries for the lock via
-the reading of the sysfs node /sys/devices/system/memory/crash_hotplug
-node, and the kernel worker thread tries for the lock upon entering the
-crash hotplug infrastructure.
+arm64's huge pte implementation supports multiple huge page sizes, some of
+which are implemented in the page table with contiguous mappings.  So
+set_huge_pte_at() needs to work out how big the logical pte is, so that it
+can also work out how many physical ptes (or pmds) need to be written.  It
+does this by grabbing the folio out of the pte and querying its size.
 
-These threads then compete for the kexec lock.
+However, there are cases when the pte being set is actually a swap entry. 
+But this also used to work fine, because for huge ptes, we only ever saw
+migration entries and hwpoison entries.  And both of these types of swap
+entries have a PFN embedded, so the code would grab that and everything
+still worked out.
 
-For example, a 1GiB DIMM is converted into 8 memblocks, each spawning two
-threads for a total of 16 threads that create a small "swarm" all trying
-to acquire the lock.  The larger the DIMM, the more the memblocks and the
-larger the swarm.
+But over time, more calls to set_huge_pte_at() have been added that set
+swap entry types that do not embed a PFN.  And this causes the code to go
+bang.  The triggering case is for the uffd poison test, commit
+99aa77215ad0 ("selftests/mm: add uffd unit test for UFFDIO_POISON"), which
+sets a PTE_MARKER_POISONED swap entry.  But review shows there are other
+places too (PTE_MARKER_UFFD_WP).
 
-At the root of the problem is the atomic lock behind kexec_trylock(); it
-works well for low lock traffic; ie loading/unloading a capture kernel,
-things that happen basically once.  But with the introduction of crash
-hotplug, the traffic through the lock increases significantly, and more
-importantly in bursts occurring at roughly the same time.  Thus there is a
-need to wait on the lock.
+If CONFIG_DEBUG_VM is enabled, we do at least get a BUG(), but otherwise,
+it will dereference a bad pointer in page_folio():
 
-A possible workaround is to simply retry the lock, say up to N times. 
-There is, of course, the problem of determining a value of N that works
-for all implementations, and for all the other call sites of
-kexec_trylock().  Not ideal.
+    static inline struct folio *hugetlb_swap_entry_to_folio(swp_entry_t entry)
+    {
+        VM_BUG_ON(!is_migration_entry(entry) && !is_hwpoison_entry(entry));
 
-The design decision to use the atomic lock is described in the comment
-from kexec_internal.h, cited above.  However, examining the code of
-__crash_kexec():
+        return page_folio(pfn_to_page(swp_offset_pfn(entry)));
+    }
 
-        if (kexec_trylock()) {
-                if (kexec_crash_image) {
-                        ...
-                }
-                kexec_unlock();
-        }
+So the root cause is due to commit 18f3962953e4 ("mm: hugetlb: kill
+set_huge_swap_pte_at()"), which aimed to simplify the interface to the
+core code by removing set_huge_swap_pte_at() (which took a page size
+parameter) and replacing it with calls to set_huge_swap_pte_at() where the
+size was inferred from the folio, as descibed above.  While that commit
+didn't break anything at the time, it did break the interface because it
+couldn't handle swap entries without PFNs.  And since then new callers
+have come along which rely on this working.
 
-reveals that the use of kexec_trylock() here is actually a "best effort"
-due to the atomic lock.  This atomic lock, prior to crash hotplug, would
-almost always be assured (another kexec syscall could hold the lock and
-prevent this, but that is about it).
 
-So at the point where the capture kernel would be invoked, if the lock is
-not obtained, then kdump doesn't occur.
+Fix
+---
 
-It is possible to instead use a mutex with proper waiting, and utilize
-mutex_trylock() as the "best effort" in __crash_kexec().  The use of a
-mutex then avoids all the lock acquisition problems that were revealed by
-the crash hotplug activity.
+The simplest fix would have been to revert the dodgy cleanup commit, but
+since things have moved on, this would have required an audit of all the
+new set_huge_pte_at() call sites to see if they should be converted to
+set_huge_swap_pte_at().  As per the original intent of the change, it
+would also leave us open to future bugs when people invariably get it
+wrong and call the wrong helper.
 
-Convert the atomic lock to a mutex.
+So instead, I've converted the first parameter of set_huge_pte_at() to be
+a vma rather than an mm.  This means that the arm64 code can easily
+recover the huge page size in all cases.  It's a bigger change, due to
+needing to touch the arches that implement the function, but it is
+entirely mechanical, so in my view, low risk.
 
-Link: https://lkml.kernel.org/r/20230921215938.2192-1-eric.devolder@oracle.com
-Signed-off-by: Eric DeVolder <eric.devolder@oracle.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+I've compile-tested all touched arches; arm64, parisc, powerpc, riscv,
+s390 (and additionally x86_64).  I've additionally booted and run mm
+selftests against arm64, where I observe the uffd poison test is fixed,
+and there are no other regressions.
+
+
+This patch (of 8):
+
+In order to fix a bug, arm64 needs access to the vma inside it's
+implementation of set_huge_pte_at().  Provide for this by converting the
+mm parameter to be a vma.  Any implementations that require the mm can
+access it via vma->vm_mm.
+
+This commit makes the required parisc modifications. Separate commits
+update the other arches and core code, before the actual bug is fixed in
+arm64.
+
+No behavioral changes intended.
+
+Link: https://lkml.kernel.org/r/20230921162007.1630149-1-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20230921162007.1630149-2-ryan.roberts@arm.com
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/crash_core.c     |   10 ++--------
- kernel/kexec.c          |    3 +--
- kernel/kexec_core.c     |   13 +++++--------
- kernel/kexec_file.c     |    3 +--
- kernel/kexec_internal.h |   12 +++---------
- 5 files changed, 12 insertions(+), 29 deletions(-)
+ arch/parisc/include/asm/hugetlb.h |    2 +-
+ arch/parisc/mm/hugetlbpage.c      |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/kernel/crash_core.c~kexec-change-locking-mechanism-to-a-mutex
-+++ a/kernel/crash_core.c
-@@ -749,10 +749,7 @@ int crash_check_update_elfcorehdr(void)
- 	int rc = 0;
+--- a/arch/parisc/include/asm/hugetlb.h~parisc-hugetlb-convert-set_huge_pte_at-to-take-vma
++++ a/arch/parisc/include/asm/hugetlb.h
+@@ -5,7 +5,7 @@
+ #include <asm/page.h>
  
- 	/* Obtain lock while reading crash information */
--	if (!kexec_trylock()) {
--		pr_info("kexec_trylock() failed, elfcorehdr may be inaccurate\n");
--		return 0;
--	}
-+	kexec_lock();
- 	if (kexec_crash_image) {
- 		if (kexec_crash_image->file_mode)
- 			rc = 1;
-@@ -784,10 +781,7 @@ static void crash_handle_hotplug_event(u
- 	struct kimage *image;
+ #define __HAVE_ARCH_HUGE_SET_HUGE_PTE_AT
+-void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
++void set_huge_pte_at(struct vm_area_struct *vma, unsigned long addr,
+ 		     pte_t *ptep, pte_t pte);
  
- 	/* Obtain lock while changing crash information */
--	if (!kexec_trylock()) {
--		pr_info("kexec_trylock() failed, elfcorehdr may be inaccurate\n");
--		return;
--	}
-+	kexec_lock();
+ #define __HAVE_ARCH_HUGE_PTEP_GET_AND_CLEAR
+--- a/arch/parisc/mm/hugetlbpage.c~parisc-hugetlb-convert-set_huge_pte_at-to-take-vma
++++ a/arch/parisc/mm/hugetlbpage.c
+@@ -139,10 +139,10 @@ static void __set_huge_pte_at(struct mm_
+ 	purge_tlb_entries_huge(mm, addr_start);
+ }
  
- 	/* Check kdump is not loaded */
- 	if (!kexec_crash_image)
---- a/kernel/kexec.c~kexec-change-locking-mechanism-to-a-mutex
-+++ a/kernel/kexec.c
-@@ -96,8 +96,7 @@ static int do_kexec_load(unsigned long e
- 	 * crash kernels we need a serialization here to prevent multiple crash
- 	 * kernels from attempting to load simultaneously.
- 	 */
--	if (!kexec_trylock())
--		return -EBUSY;
-+	kexec_lock();
- 
- 	if (flags & KEXEC_ON_CRASH) {
- 		dest_image = &kexec_crash_image;
---- a/kernel/kexec_core.c~kexec-change-locking-mechanism-to-a-mutex
-+++ a/kernel/kexec_core.c
-@@ -47,7 +47,7 @@
- #include <crypto/hash.h>
- #include "kexec_internal.h"
- 
--atomic_t __kexec_lock = ATOMIC_INIT(0);
-+DEFINE_MUTEX(__kexec_lock);
- 
- /* Flag to indicate we are going to kexec a new kernel */
- bool kexec_in_progress = false;
-@@ -1057,7 +1057,7 @@ void __noclone __crash_kexec(struct pt_r
- 	 * of memory the xchg(&kexec_crash_image) would be
- 	 * sufficient.  But since I reuse the memory...
- 	 */
--	if (kexec_trylock()) {
-+	if (mutex_trylock(&__kexec_lock)) {
- 		if (kexec_crash_image) {
- 			struct pt_regs fixed_regs;
- 
-@@ -1103,8 +1103,7 @@ ssize_t crash_get_memory_size(void)
+-void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
++void set_huge_pte_at(struct vm_area_struct *vma, unsigned long addr,
+ 		     pte_t *ptep, pte_t entry)
  {
- 	ssize_t size = 0;
+-	__set_huge_pte_at(mm, addr, ptep, entry);
++	__set_huge_pte_at(vma->vm_mm, addr, ptep, entry);
+ }
  
--	if (!kexec_trylock())
--		return -EBUSY;
-+	kexec_lock();
  
- 	size += crash_resource_size(&crashk_res);
- 	size += crash_resource_size(&crashk_low_res);
-@@ -1146,8 +1145,7 @@ int crash_shrink_memory(unsigned long ne
- 	int ret = 0;
- 	unsigned long old_size, low_size;
- 
--	if (!kexec_trylock())
--		return -EBUSY;
-+	kexec_lock();
- 
- 	if (kexec_crash_image) {
- 		ret = -ENOENT;
-@@ -1229,8 +1227,7 @@ int kernel_kexec(void)
- {
- 	int error = 0;
- 
--	if (!kexec_trylock())
--		return -EBUSY;
-+	kexec_lock();
- 	if (!kexec_image) {
- 		error = -EINVAL;
- 		goto Unlock;
---- a/kernel/kexec_file.c~kexec-change-locking-mechanism-to-a-mutex
-+++ a/kernel/kexec_file.c
-@@ -341,8 +341,7 @@ SYSCALL_DEFINE5(kexec_file_load, int, ke
- 
- 	image = NULL;
- 
--	if (!kexec_trylock())
--		return -EBUSY;
-+	kexec_lock();
- 
- 	if (image_type == KEXEC_TYPE_CRASH) {
- 		dest_image = &kexec_crash_image;
---- a/kernel/kexec_internal.h~kexec-change-locking-mechanism-to-a-mutex
-+++ a/kernel/kexec_internal.h
-@@ -18,15 +18,9 @@ int kimage_is_destination_range(struct k
-  * NMI safe, as __crash_kexec() can happen during nmi_panic(), so here we use a
-  * "simple" atomic variable that is acquired with a cmpxchg().
-  */
--extern atomic_t __kexec_lock;
--static inline bool kexec_trylock(void)
--{
--	return atomic_cmpxchg_acquire(&__kexec_lock, 0, 1) == 0;
--}
--static inline void kexec_unlock(void)
--{
--	atomic_set_release(&__kexec_lock, 0);
--}
-+extern struct mutex __kexec_lock;
-+#define kexec_lock() mutex_lock(&__kexec_lock)
-+#define kexec_unlock() mutex_unlock(&__kexec_lock)
- 
- #ifdef CONFIG_KEXEC_FILE
- #include <linux/purgatory.h>
 _
 
-Patches currently in -mm which might be from eric.devolder@oracle.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
-kexec-change-locking-mechanism-to-a-mutex.patch
+parisc-hugetlb-convert-set_huge_pte_at-to-take-vma.patch
+powerpc-hugetlb-convert-set_huge_pte_at-to-take-vma.patch
+riscv-hugetlb-convert-set_huge_pte_at-to-take-vma.patch
+s390-hugetlb-convert-set_huge_pte_at-to-take-vma.patch
+sparc-hugetlb-convert-set_huge_pte_at-to-take-vma.patch
+mm-hugetlb-convert-set_huge_pte_at-to-take-vma.patch
+arm64-hugetlb-convert-set_huge_pte_at-to-take-vma.patch
+arm64-hugetlb-fix-set_huge_pte_at-to-work-with-all-swap-entries.patch
 
