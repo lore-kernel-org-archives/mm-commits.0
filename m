@@ -2,44 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65A0FE7D0B8
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Sep 2023 00:36:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2AB5E7D0A1
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Sep 2023 00:42:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229637AbjIVAgy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 21 Sep 2023 20:36:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59186 "EHLO
+        id S229532AbjIVAmT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 21 Sep 2023 20:42:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51016 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230198AbjIVAgl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Sep 2023 20:36:41 -0400
+        with ESMTP id S229503AbjIVAmS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Sep 2023 20:42:18 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDF00E65
-        for <mm-commits@vger.kernel.org>; Thu, 21 Sep 2023 17:36:24 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AF92C433C8;
-        Fri, 22 Sep 2023 00:36:24 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4DB08F5
+        for <mm-commits@vger.kernel.org>; Thu, 21 Sep 2023 17:42:12 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB0CBC433C8;
+        Fri, 22 Sep 2023 00:42:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695342984;
-        bh=X5DP+3XfZsvaRjmkUdUyX7fPIYUuWF54ibgKAQDVvSo=;
+        s=korg; t=1695343332;
+        bh=dUG1cnAC65KqfMiKeXdKWYFMm+GzUuR1sodSUWCqEx4=;
         h=Date:To:From:Subject:From;
-        b=u6KbxervPGXcnfZ6ReIOf3NBsYPVBFpPgZsO2pel+bEyDG0hnKP8GCXFi1qLzNh7P
-         4KsNfxbCQ6lszxQqRgcpKSkJHilP6nHZxlw7BLQyiAGjrqFODGUo+l5m4/Wir1tF/c
-         lt2m4DpJLFqAdeLWTjlwMkoTqowsBYC/azYzkkwQ=
-Date:   Thu, 21 Sep 2023 17:36:23 -0700
-To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
-        will@kernel.org, urezki@gmail.com, svens@linux.ibm.com,
-        sj@kernel.org, peterx@redhat.com, paul.walmsley@sifive.com,
-        palmer@dabbelt.com, npiggin@gmail.com, muchun.song@linux.dev,
-        mike.kravetz@oracle.com, lstoakes@gmail.com,
-        James.Bottomley@HansenPartnership.com, hch@infradead.org,
-        hca@linux.ibm.com, gor@linux.ibm.com,
-        gerald.schaefer@linux.ibm.com, deller@gmx.de, davem@davemloft.net,
-        christophe.leroy@csgroup.eu, catalin.marinas@arm.com,
-        borntraeger@linux.ibm.com, axelrasmussen@google.com, arnd@arndb.de,
-        aou@eecs.berkeley.edu, anshuman.khandual@arm.com,
-        agordeev@linux.ibm.com, ryan.roberts@arm.com,
-        akpm@linux-foundation.org
+        b=YTl6gIR5FRgRb6aYXLTE9XQZMOAJeMPkiHKIkOpqEwFrp25sRn3Te6dEKycB84sNf
+         CVYi/kMJ2Z1y1VFsHfoQiGk9l/xd9WQ7P4KABJEqYF9CrfkVDqg+NNUFkY+yoDK3/A
+         krNXu9CNYck9ugPx3fQzDTRZxvT9Nbq7llXq7NXo=
+Date:   Thu, 21 Sep 2023 17:42:11 -0700
+To:     mm-commits@vger.kernel.org, falcon@tinylab.org,
+        wangjiexun@tinylab.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-hugetlb-fix-set_huge_pte_at-to-work-with-all-swap-entries.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230922003624.6AF92C433C8@smtp.kernel.org>
+Subject: + mm-madvise-add-cond_resched-in-madvise_cold_or_pageout_pte_range.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230922004211.DB0CBC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: hugetlb: fix set_huge_pte_at() to work with all swap entries
+     Subject: mm/madvise: add cond_resched() in madvise_cold_or_pageout_pte_range()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     arm64-hugetlb-fix-set_huge_pte_at-to-work-with-all-swap-entries.patch
+     mm-madvise-add-cond_resched-in-madvise_cold_or_pageout_pte_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-hugetlb-fix-set_huge_pte_at-to-work-with-all-swap-entries.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-add-cond_resched-in-madvise_cold_or_pageout_pte_range.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,139 +59,213 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: arm64: hugetlb: fix set_huge_pte_at() to work with all swap entries
-Date: Thu, 21 Sep 2023 17:20:07 +0100
+From: Jiexun Wang <wangjiexun@tinylab.org>
+Subject: mm/madvise: add cond_resched() in madvise_cold_or_pageout_pte_range()
+Date: Thu, 21 Sep 2023 20:27:51 +0800
 
-When called with a swap entry that does not embed a PFN (e.g. 
-PTE_MARKER_POISONED or PTE_MARKER_UFFD_WP), the previous implementation of
-set_huge_pte_at() would either cause a BUG() to fire (if CONFIG_DEBUG_VM
-is enabled) or cause a dereference of an invalid address and subsequent
-panic.
+I conducted real-time testing and observed that
+madvise_cold_or_pageout_pte_range() causes significant latency under
+memory pressure, which can be effectively reduced by adding cond_resched()
+within the loop.
 
-arm64's huge pte implementation supports multiple huge page sizes, some of
-which are implemented in the page table with contiguous mappings.  So
-set_huge_pte_at() needs to work out how big the logical pte is, so that it
-can also work out how many physical ptes (or pmds) need to be written.  It
-does this by grabbing the folio out of the pte and querying its size.
+I tested on the LicheePi 4A board using Cylictest for latency testing and
+Ftrace for latency tracing.  The board uses TH1520 processor and has a
+memory size of 8GB.  The kernel version is 6.5.0 with the PREEMPT_RT patch
+applied.
 
-However, there are cases when the pte being set is actually a swap entry. 
-But this also used to work fine, because for huge ptes, we only ever saw
-migration entries and hwpoison entries.  And both of these types of swap
-entries have a PFN embedded, so the code would grab that and everything
-still worked out.
+The script I tested is as follows:
 
-But over time, more calls to set_huge_pte_at() have been added that set
-swap entry types that do not embed a PFN.  And this causes the code to go
-bang.  The triggering case is for the uffd poison test, commit
-99aa77215ad0 ("selftests/mm: add uffd unit test for UFFDIO_POISON"), which
-sets a PTE_MARKER_POISONED swap entry.  But review shows there are other
-places too (PTE_MARKER_UFFD_WP).
+echo wakeup_rt > /sys/kernel/tracing/current_tracer
+echo 1 > /sys/kernel/tracing/tracing_on
+echo 0 > /sys/kernel/tracing/tracing_max_latency
+stress-ng --vm 8 --vm-bytes 2G &
+cyclictest --mlockall --smp --priority=99 --distance=0 --duration=30m
+echo 0 > /sys/kernel/tracing/tracing_on
+cat /sys/kernel/tracing/trace 
 
-So the root cause is due to commit 18f3962953e4 ("mm: hugetlb: kill
-set_huge_swap_pte_at()"), which aimed to simplify the interface to the
-core code by removing set_huge_swap_pte_at() (which took a page size
-parameter) and replacing it with calls to set_huge_swap_pte_at() where the
-size was inferred from the folio, as descibed above.  While that commit
-didn't break anything at the time, it did break the interface because it
-couldn't handle swap entries without PFNs.  And since then new callers
-have come along which rely on this working.
+The tracing results before modification are as follows:
 
-Now that we have modified the set_huge_pte_at() interface to pass the vma,
-we can extract the huge page size from it and fix this issue.
+# tracer: wakeup_rt
+#
+# wakeup_rt latency trace v1.1.5 on 6.5.0-rt6-r1208-00003-g999d221864bf
+# --------------------------------------------------------------------
+# latency: 2552 us, #6/6, CPU#3 | (M:preempt_rt VP:0, KP:0, SP:0 HP:0 #P:4)
+#    -----------------
+#    | task: cyclictest-196 (uid:0 nice:0 policy:1 rt_prio:99)
+#    -----------------
+#
+#                    _--------=> CPU#
+#                   / _-------=> irqs-off/BH-disabled
+#                  | / _------=> need-resched
+#                  || / _-----=> need-resched-lazy
+#                  ||| / _----=> hardirq/softirq
+#                  |||| / _---=> preempt-depth
+#                  ||||| / _--=> preempt-lazy-depth
+#                  |||||| / _-=> migrate-disable
+#                  ||||||| /     delay
+#  cmd     pid     |||||||| time  |   caller
+#     \   /        ||||||||  \    |    /
+stress-n-206       3dn.h512    2us :      206:120:R   + [003]     196:  0:R cyclictest
+stress-n-206       3dn.h512    7us : <stack trace>
+ => __ftrace_trace_stack
+ => __trace_stack
+ => probe_wakeup
+ => ttwu_do_activate
+ => try_to_wake_up
+ => wake_up_process
+ => hrtimer_wakeup
+ => __hrtimer_run_queues
+ => hrtimer_interrupt
+ => riscv_timer_interrupt
+ => handle_percpu_devid_irq
+ => generic_handle_domain_irq
+ => riscv_intc_irq
+ => handle_riscv_irq
+ => do_irq
+stress-n-206       3dn.h512    9us#: 0
+stress-n-206       3d...3.. 2544us : __schedule
+stress-n-206       3d...3.. 2545us :      206:120:R ==> [003]     196:  0:R cyclictest
+stress-n-206       3d...3.. 2551us : <stack trace>
+ => __ftrace_trace_stack
+ => __trace_stack
+ => probe_wakeup_sched_switch
+ => __schedule
+ => preempt_schedule
+ => migrate_enable
+ => rt_spin_unlock
+ => madvise_cold_or_pageout_pte_range
+ => walk_pgd_range
+ => __walk_page_range
+ => walk_page_range
+ => madvise_pageout
+ => madvise_vma_behavior
+ => do_madvise
+ => sys_madvise
+ => do_trap_ecall_u
+ => ret_from_exception
 
-I'm tagging the commit that added the uffd poison feature, since that is
-what exposed the problem, as well as the original change that broke the
-interface.  Hopefully this is valuable for people doing bisect.
+The tracing results after modification are as follows:
 
-Link: https://lkml.kernel.org/r/20230921162007.1630149-9-ryan.roberts@arm.com
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Fixes: 18f3962953e4 ("mm: hugetlb: kill set_huge_swap_pte_at()")
-Fixes: 8a13897fb0da ("mm: userfaultfd: support UFFDIO_POISON for hugetlbfs")
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Will Deacon <will@kernel.org>
+# tracer: wakeup_rt
+#
+# wakeup_rt latency trace v1.1.5 on 6.5.0-rt6-r1208-00004-gca3876fc69a6-dirty
+# --------------------------------------------------------------------
+# latency: 1689 us, #6/6, CPU#0 | (M:preempt_rt VP:0, KP:0, SP:0 HP:0 #P:4)
+#    -----------------
+#    | task: cyclictest-217 (uid:0 nice:0 policy:1 rt_prio:99)
+#    -----------------
+#
+#                    _--------=> CPU#
+#                   / _-------=> irqs-off/BH-disabled
+#                  | / _------=> need-resched
+#                  || / _-----=> need-resched-lazy
+#                  ||| / _----=> hardirq/softirq
+#                  |||| / _---=> preempt-depth
+#                  ||||| / _--=> preempt-lazy-depth
+#                  |||||| / _-=> migrate-disable
+#                  ||||||| /     delay
+#  cmd     pid     |||||||| time  |   caller
+#     \   /        ||||||||  \    |    /
+stress-n-232       0dn.h413    1us+:      232:120:R   + [000]     217:  0:R cyclictest
+stress-n-232       0dn.h413   12us : <stack trace>
+ => __ftrace_trace_stack
+ => __trace_stack
+ => probe_wakeup
+ => ttwu_do_activate
+ => try_to_wake_up
+ => wake_up_process
+ => hrtimer_wakeup
+ => __hrtimer_run_queues
+ => hrtimer_interrupt
+ => riscv_timer_interrupt
+ => handle_percpu_devid_irq
+ => generic_handle_domain_irq
+ => riscv_intc_irq
+ => handle_riscv_irq
+ => do_irq
+stress-n-232       0dn.h413   19us#: 0
+stress-n-232       0d...3.. 1671us : __schedule
+stress-n-232       0d...3.. 1676us+:      232:120:R ==> [000]     217:  0:R cyclictest
+stress-n-232       0d...3.. 1687us : <stack trace>
+ => __ftrace_trace_stack
+ => __trace_stack
+ => probe_wakeup_sched_switch
+ => __schedule
+ => preempt_schedule
+ => migrate_enable
+ => free_unref_page_list
+ => release_pages
+ => free_pages_and_swap_cache
+ => tlb_batch_pages_flush
+ => tlb_flush_mmu
+ => unmap_page_range
+ => unmap_vmas
+ => unmap_region
+ => do_vmi_align_munmap.constprop.0
+ => do_vmi_munmap
+ => __vm_munmap
+ => sys_munmap
+ => do_trap_ecall_u
+ => ret_from_exception
+
+After the modification, the cause of maximum latency is no longer
+madvise_cold_or_pageout_pte_range(), so this modification can reduce the
+latency caused by madvise_cold_or_pageout_pte_range().
+
+
+Currently the madvise_cold_or_pageout_pte_range() function exhibits
+significant latency under memory pressure, which can be effectively
+reduced by adding cond_resched() within the loop.
+
+When the batch_count reaches SWAP_CLUSTER_MAX, we reschedule
+the task to ensure fairness and avoid long lock holding times.
+
+Link: https://lkml.kernel.org/r/85363861af65fac66c7a98c251906afc0d9c8098.1695291046.git.wangjiexun@tinylab.org
+Signed-off-by: Jiexun Wang <wangjiexun@tinylab.org>
+Cc: Zhangjin Wu <falcon@tinylab.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/hugetlbpage.c |   17 +++--------------
- 1 file changed, 3 insertions(+), 14 deletions(-)
+ mm/madvise.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
---- a/arch/arm64/mm/hugetlbpage.c~arm64-hugetlb-fix-set_huge_pte_at-to-work-with-all-swap-entries
-+++ a/arch/arm64/mm/hugetlbpage.c
-@@ -241,13 +241,6 @@ static void clear_flush(struct mm_struct
- 	flush_tlb_range(&vma, saddr, addr);
- }
+--- a/mm/madvise.c~mm-madvise-add-cond_resched-in-madvise_cold_or_pageout_pte_range
++++ a/mm/madvise.c
+@@ -353,6 +353,7 @@ static int madvise_cold_or_pageout_pte_r
+ 	struct folio *folio = NULL;
+ 	LIST_HEAD(folio_list);
+ 	bool pageout_anon_only_filter;
++	unsigned int batch_count = 0;
  
--static inline struct folio *hugetlb_swap_entry_to_folio(swp_entry_t entry)
--{
--	VM_BUG_ON(!is_migration_entry(entry) && !is_hwpoison_entry(entry));
--
--	return page_folio(pfn_to_page(swp_offset_pfn(entry)));
--}
--
- void set_huge_pte_at(struct vm_area_struct *vma, unsigned long addr,
- 			    pte_t *ptep, pte_t pte)
- {
-@@ -258,13 +251,10 @@ void set_huge_pte_at(struct vm_area_stru
- 	unsigned long pfn, dpfn;
- 	pgprot_t hugeprot;
+ 	if (fatal_signal_pending(current))
+ 		return -EINTR;
+@@ -434,6 +435,7 @@ huge_unlock:
+ regular_folio:
+ #endif
+ 	tlb_change_page_size(tlb, PAGE_SIZE);
++restart:
+ 	start_pte = pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+ 	if (!start_pte)
+ 		return 0;
+@@ -442,6 +444,15 @@ regular_folio:
+ 	for (; addr < end; pte++, addr += PAGE_SIZE) {
+ 		ptent = ptep_get(pte);
  
--	if (!pte_present(pte)) {
--		struct folio *folio;
--
--		folio = hugetlb_swap_entry_to_folio(pte_to_swp_entry(pte));
--		ncontig = num_contig_ptes(folio_size(folio), &pgsize);
-+	ncontig = num_contig_ptes(huge_page_size(hstate_vma(vma)), &pgsize);
++		if (++batch_count == SWAP_CLUSTER_MAX) {
++			batch_count = 0;
++			if (need_resched()) {
++				pte_unmap_unlock(start_pte, ptl);
++				cond_resched();
++				goto restart;
++			}
++		}
++
+ 		if (pte_none(ptent))
+ 			continue;
  
--		for (i = 0; i < ncontig; i++, ptep++)
-+	if (!pte_present(pte)) {
-+		for (i = 0; i < ncontig; i++, ptep++, addr += pgsize)
- 			set_pte_at(mm, addr, ptep, pte);
- 		return;
- 	}
-@@ -274,7 +264,6 @@ void set_huge_pte_at(struct vm_area_stru
- 		return;
- 	}
- 
--	ncontig = find_num_contig(mm, addr, ptep, &pgsize);
- 	pfn = pte_pfn(pte);
- 	dpfn = pgsize >> PAGE_SHIFT;
- 	hugeprot = pte_pgprot(pte);
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from wangjiexun@tinylab.org are
 
-parisc-hugetlb-convert-set_huge_pte_at-to-take-vma.patch
-powerpc-hugetlb-convert-set_huge_pte_at-to-take-vma.patch
-riscv-hugetlb-convert-set_huge_pte_at-to-take-vma.patch
-s390-hugetlb-convert-set_huge_pte_at-to-take-vma.patch
-sparc-hugetlb-convert-set_huge_pte_at-to-take-vma.patch
-mm-hugetlb-convert-set_huge_pte_at-to-take-vma.patch
-arm64-hugetlb-convert-set_huge_pte_at-to-take-vma.patch
-arm64-hugetlb-fix-set_huge_pte_at-to-work-with-all-swap-entries.patch
+mm-madvise-add-cond_resched-in-madvise_cold_or_pageout_pte_range.patch
 
