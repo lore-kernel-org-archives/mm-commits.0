@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E971EE7D0BD
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Sep 2023 01:38:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5CE4E7D0BB
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Sep 2023 01:38:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229497AbjIVBim (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 21 Sep 2023 21:38:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46924 "EHLO
+        id S230078AbjIVBit (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 21 Sep 2023 21:38:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46938 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229550AbjIVBik (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Sep 2023 21:38:40 -0400
+        with ESMTP id S229550AbjIVBim (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Sep 2023 21:38:42 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C8E46F1
-        for <mm-commits@vger.kernel.org>; Thu, 21 Sep 2023 18:38:34 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62946C433CA;
-        Fri, 22 Sep 2023 01:38:34 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B01BCF
+        for <mm-commits@vger.kernel.org>; Thu, 21 Sep 2023 18:38:36 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38A0EC433C8;
+        Fri, 22 Sep 2023 01:38:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695346714;
-        bh=TH4L7yetQZAx0PqMdnDzpg23vB/FRf/tFWOrnmbWBZ8=;
+        s=korg; t=1695346716;
+        bh=o3b4zT3qUzpVWmHEkiPCfUyOokeo2kgxAzlXfr1c3c4=;
         h=Date:To:From:Subject:From;
-        b=RFRrqb2wC2BoEq+GBTSJ/ANilpSqZihC6V2NVtELpLGbIFZ7PaVPquzuOZCqdyvRh
-         TfhzqL99r9s4iUTp7z1zYNGt/nWItFKKlZNhnlbGmblSyZ8a1z7eC18yoI/mU5yCEc
-         DMHKcPBpfvaS52jsM7nxPO1fqoxBDQ6AmBxXm1Go=
-Date:   Thu, 21 Sep 2023 18:38:33 -0700
+        b=LPXK8mbtxw7ARwDmNcw6vYYqu1epgLhWpTbTK7chAOvpq7UD0VZ+VLcNugcZ9IR/+
+         8OEAnWuTkggHqnSOqgkv5QiLMoUUivAsAcEG3sUFR1IZ4LcBezkcwKc0/etrqYSKWd
+         0ahuo4tG6GdMUjUYVduFrnVPpwUIL/4P7Bh/hxYc=
+Date:   Thu, 21 Sep 2023 18:38:35 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
         willy@infradead.org, mike.kravetz@oracle.com, hughd@google.com,
         david@redhat.com, wangkefeng.wang@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-use-a-folio-in-do_numa_page.patch added to mm-unstable branch
-Message-Id: <20230922013834.62946C433CA@smtp.kernel.org>
+Subject: + mm-memory-make-numa_migrate_prep-to-take-a-folio.patch added to mm-unstable branch
+Message-Id: <20230922013836.38A0EC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,12 +38,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memory: use a folio in do_numa_page()
+     Subject: mm: memory: make numa_migrate_prep() to take a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-use-a-folio-in-do_numa_page.patch
+     mm-memory-make-numa_migrate_prep-to-take-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-use-a-folio-in-do_numa_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-make-numa_migrate_prep-to-take-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,16 +62,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: memory: use a folio in do_numa_page()
-Date: Thu, 21 Sep 2023 15:44:14 +0800
+Subject: mm: memory: make numa_migrate_prep() to take a folio
+Date: Thu, 21 Sep 2023 15:44:15 +0800
 
-Numa balancing only try to migrate non-compound page in do_numa_page(),
-use a folio in it to save several compound_head calls, note we use
-folio_estimated_sharers(), it is enough to check the folio sharers since
-only normal page is handled, if large folio numa balancing is supported, a
-precise folio sharers check would be used, no functional change intended.
+In preparation for large folio numa balancing, make numa_migrate_prep() to
+take a folio, no functional change intended.
 
-Link: https://lkml.kernel.org/r/20230921074417.24004-4-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20230921074417.24004-5-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: "Huang, Ying" <ying.huang@intel.com>
@@ -82,94 +79,67 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   34 +++++++++++++++++-----------------
- 1 file changed, 17 insertions(+), 17 deletions(-)
+ mm/huge_memory.c |    2 +-
+ mm/internal.h    |    2 +-
+ mm/memory.c      |    9 ++++-----
+ 3 files changed, 6 insertions(+), 7 deletions(-)
 
---- a/mm/memory.c~mm-memory-use-a-folio-in-do_numa_page
+--- a/mm/huge_memory.c~mm-memory-make-numa_migrate_prep-to-take-a-folio
++++ a/mm/huge_memory.c
+@@ -1556,7 +1556,7 @@ vm_fault_t do_huge_pmd_numa_page(struct
+ 	 */
+ 	if (node_is_toptier(nid))
+ 		last_cpupid = page_cpupid_last(&folio->page);
+-	target_nid = numa_migrate_prep(&folio->page, vma, haddr, nid, &flags);
++	target_nid = numa_migrate_prep(folio, vma, haddr, nid, &flags);
+ 	if (target_nid == NUMA_NO_NODE) {
+ 		folio_put(folio);
+ 		goto out_map;
+--- a/mm/internal.h~mm-memory-make-numa_migrate_prep-to-take-a-folio
++++ a/mm/internal.h
+@@ -984,7 +984,7 @@ void vunmap_range_noflush(unsigned long
+ 
+ void __vunmap_range_noflush(unsigned long start, unsigned long end);
+ 
+-int numa_migrate_prep(struct page *page, struct vm_area_struct *vma,
++int numa_migrate_prep(struct folio *folio, struct vm_area_struct *vma,
+ 		      unsigned long addr, int page_nid, int *flags);
+ 
+ void free_zone_device_page(struct page *page);
+--- a/mm/memory.c~mm-memory-make-numa_migrate_prep-to-take-a-folio
 +++ a/mm/memory.c
-@@ -4747,8 +4747,8 @@ int numa_migrate_prep(struct page *page,
- static vm_fault_t do_numa_page(struct vm_fault *vmf)
+@@ -4727,10 +4727,10 @@ static vm_fault_t do_fault(struct vm_fau
+ 	return ret;
+ }
+ 
+-int numa_migrate_prep(struct page *page, struct vm_area_struct *vma,
++int numa_migrate_prep(struct folio *folio, struct vm_area_struct *vma,
+ 		      unsigned long addr, int page_nid, int *flags)
  {
- 	struct vm_area_struct *vma = vmf->vma;
--	struct page *page = NULL;
--	int page_nid = NUMA_NO_NODE;
-+	struct folio *folio = NULL;
-+	int nid = NUMA_NO_NODE;
- 	bool writable = false;
- 	int last_cpupid;
- 	int target_nid;
-@@ -4779,12 +4779,12 @@ static vm_fault_t do_numa_page(struct vm
- 	    can_change_pte_writable(vma, vmf->address, pte))
- 		writable = true;
+-	get_page(page);
++	folio_get(folio);
  
--	page = vm_normal_page(vma, vmf->address, pte);
--	if (!page || is_zone_device_page(page))
-+	folio = vm_normal_folio(vma, vmf->address, pte);
-+	if (!folio || folio_is_zone_device(folio))
- 		goto out_map;
+ 	/* Record the current PID acceesing VMA */
+ 	vma_set_access_pid_bit(vma);
+@@ -4741,7 +4741,7 @@ int numa_migrate_prep(struct page *page,
+ 		*flags |= TNF_FAULT_LOCAL;
+ 	}
  
- 	/* TODO: handle PTE-mapped THP */
--	if (PageCompound(page))
-+	if (folio_test_large(folio))
- 		goto out_map;
+-	return mpol_misplaced(page, vma, addr);
++	return mpol_misplaced(&folio->page, vma, addr);
+ }
  
- 	/*
-@@ -4799,34 +4799,34 @@ static vm_fault_t do_numa_page(struct vm
- 		flags |= TNF_NO_GROUP;
- 
- 	/*
--	 * Flag if the page is shared between multiple address spaces. This
-+	 * Flag if the folio is shared between multiple address spaces. This
- 	 * is later used when determining whether to group tasks together
- 	 */
--	if (page_mapcount(page) > 1 && (vma->vm_flags & VM_SHARED))
-+	if (folio_estimated_sharers(folio) > 1 && (vma->vm_flags & VM_SHARED))
- 		flags |= TNF_SHARED;
- 
--	page_nid = page_to_nid(page);
-+	nid = folio_nid(folio);
- 	/*
- 	 * For memory tiering mode, cpupid of slow memory page is used
- 	 * to record page access time.  So use default value.
- 	 */
- 	if ((sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING) &&
--	    !node_is_toptier(page_nid))
-+	    !node_is_toptier(nid))
+ static vm_fault_t do_numa_page(struct vm_fault *vmf)
+@@ -4815,8 +4815,7 @@ static vm_fault_t do_numa_page(struct vm
  		last_cpupid = (-1 & LAST_CPUPID_MASK);
  	else
--		last_cpupid = page_cpupid_last(page);
--	target_nid = numa_migrate_prep(page, vma, vmf->address, page_nid,
--			&flags);
-+		last_cpupid = page_cpupid_last(&folio->page);
-+	target_nid = numa_migrate_prep(&folio->page, vma, vmf->address, nid,
-+				       &flags);
+ 		last_cpupid = page_cpupid_last(&folio->page);
+-	target_nid = numa_migrate_prep(&folio->page, vma, vmf->address, nid,
+-				       &flags);
++	target_nid = numa_migrate_prep(folio, vma, vmf->address, nid, &flags);
  	if (target_nid == NUMA_NO_NODE) {
--		put_page(page);
-+		folio_put(folio);
+ 		folio_put(folio);
  		goto out_map;
- 	}
- 	pte_unmap_unlock(vmf->pte, vmf->ptl);
- 	writable = false;
- 
- 	/* Migrate to the requested node */
--	if (migrate_misplaced_folio(page_folio(page), vma, target_nid)) {
--		page_nid = target_nid;
-+	if (migrate_misplaced_folio(folio, vma, target_nid)) {
-+		nid = target_nid;
- 		flags |= TNF_MIGRATED;
- 	} else {
- 		flags |= TNF_MIGRATE_FAIL;
-@@ -4842,8 +4842,8 @@ static vm_fault_t do_numa_page(struct vm
- 	}
- 
- out:
--	if (page_nid != NUMA_NO_NODE)
--		task_numa_fault(last_cpupid, page_nid, 1, flags);
-+	if (nid != NUMA_NO_NODE)
-+		task_numa_fault(last_cpupid, nid, 1, flags);
- 	return 0;
- out_map:
- 	/*
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
