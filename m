@@ -2,34 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09229E7D0A2
-	for <mm-commits@archiver.kernel.org>; Thu, 21 Sep 2023 19:41:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2981E7D0A1
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Sep 2023 00:36:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230169AbjIUTlp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 21 Sep 2023 15:41:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44866 "EHLO
+        id S230091AbjIVAgK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 21 Sep 2023 20:36:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50254 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230213AbjIUTlm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Sep 2023 15:41:42 -0400
+        with ESMTP id S230078AbjIVAgG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 21 Sep 2023 20:36:06 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 042D8D3179;
-        Thu, 21 Sep 2023 11:23:55 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88E45C433C7;
-        Thu, 21 Sep 2023 18:23:54 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DDC6194
+        for <mm-commits@vger.kernel.org>; Thu, 21 Sep 2023 17:36:00 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B5D8C433C9;
+        Fri, 22 Sep 2023 00:26:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695320634;
-        bh=5p1DCTz+botrIfR5k/ZcTPrMacfOfClci6JhGxQkX1Q=;
+        s=korg; t=1695342418;
+        bh=PybXRR3Lopu67hNZ217DRV5bSZDgH3lynnaNFs3MBrA=;
         h=Date:To:From:Subject:From;
-        b=VvMoIF16gCXTy7xU5RrLgfMBxtsflFtV0zziIuxb5QXl3vr++L6LvRNNsNH9qlCDy
-         EEQ1PPQe5Q4W3aS/tezJwhbr26Z4QJDvqixwh4m2y1/H5jsaHSZ629GR7ukxslqXKi
-         E/KIetVkX2WI4qD6lHiWTXWhxThRWKSaorkbPAwI=
-Date:   Thu, 21 Sep 2023 11:23:53 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        pedro.falcato@gmail.com, Liam.Howlett@oracle.com,
-        akpm@linux-foundation.org
+        b=Ip37/lUeXPn4T0e5E5Z/LCTNj//XZ5qH2ZlbqRB43n/Hq9qfgj/2sm92F9S9hq6EF
+         g6/FsB3YstF7fmOocPPjGqlAc3EcWbmCknSV1CgkVOvx2AkOBlYAxR7TP1C33jkAnw
+         j9TDIRYsLRdJT4pvJh4jSf+IRLOfhwGlz2rdRNy0=
+Date:   Thu, 21 Sep 2023 17:26:57 -0700
+To:     mm-commits@vger.kernel.org, vgoyal@redhat.com,
+        sourabhjain@linux.ibm.com, konrad.wilk@oracle.com,
+        ebiederm@xmission.com, dyoung@redhat.com,
+        boris.ostrovsky@oracle.com, bhe@redhat.com,
+        eric.devolder@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-add-mas_underflow-and-mas_overflow-states.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230921182354.88E45C433C7@smtp.kernel.org>
+Subject: + kexec-change-locking-mechanism-to-a-mutex.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230922002658.4B5D8C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +39,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: add MAS_UNDERFLOW and MAS_OVERFLOW states
+     Subject: kexec: change locking mechanism to a mutex
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maple_tree-add-mas_underflow-and-mas_overflow-states.patch
+     kexec-change-locking-mechanism-to-a-mutex.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-add-mas_underflow-and-mas_overflow-states.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-change-locking-mechanism-to-a-mutex.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,756 +62,224 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: add MAS_UNDERFLOW and MAS_OVERFLOW states
-Date: Thu, 21 Sep 2023 14:12:36 -0400
+From: Eric DeVolder <eric.devolder@oracle.com>
+Subject: kexec: change locking mechanism to a mutex
+Date: Thu, 21 Sep 2023 17:59:38 -0400
 
-When updating the maple tree iterator to avoid rewalks, an issue was
-introduced when shifting beyond the limits.  This can be seen by trying to
-go to the previous address of 0, which would set the maple node to
-MAS_NONE and keep the range as the last entry.
+Scaled up testing has revealed that the kexec_trylock() implementation
+leads to failures within the crash hotplug infrastructure due to the
+inability to acquire the lock, specifically the message:
 
-Subsequent calls to mas_find() would then search upwards from mas->last
-and skip the value at mas->index/mas->last.  This showed up as a bug in
-mprotect which skips the actual VMA at the current range after attempting
-to go to the previous VMA from 0.
+ crash hp: kexec_trylock() failed, elfcorehdr may be inaccurate
 
-Since MAS_NONE is used for handling of the maple tree when it's a single
-entry at 0 (just a pointer), changing the handling of MAS_NONE in
-mas_find() would make the code more complicated and error prone. 
-Furthermore, there was no way to tell which limit was hit, and thus which
-action to take (next or the entry at the current range).
+When hotplug events occur, the crash hotplug infrastructure first attempts
+to obtain the lock via the kexec_trylock().  However, the implementation
+either acquires the lock, or fails and returns; there is no waiting on the
+lock.  Here is the comment/explanation from
+kernel/kexec_internal.h:kexec_trylock():
 
-This solution is to add two states to track what happened with the
-previous iterator action.  This allows for the expected behaviour of the
-next command to return the correct item (either the item at the range
-requested, or the next/previous).
+ * Whatever is used to serialize accesses to the kexec_crash_image needs to be
+ * NMI safe, as __crash_kexec() can happen during nmi_panic(), so here we use a
+ * "simple" atomic variable that is acquired with a cmpxchg().
 
-Tests are also added and updated accordingly.
+While this in theory can happen for either CPU or memory hoptlug, this
+problem is most prone to occur for memory hotplug.
 
-Link: https://lkml.kernel.org/r/20230921181236.509072-3-Liam.Howlett@oracle.com
-Fixes: 39193685d585 ("maple_tree: try harder to keep active node with mas_prev()")
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reported-by: Pedro Falcato <pedro.falcato@gmail.com>
-Closes: https://gist.github.com/heatd/85d2971fae1501b55b6ea401fbbe485b
-Cc: <stable@vger.kernel.org>
+When memory is hot plugged, the memory is converted into smaller 128MiB
+memblocks (typically).  As each memblock is processed, a kernel thread and
+a udev event thread are created.  The udev thread tries for the lock via
+the reading of the sysfs node /sys/devices/system/memory/crash_hotplug
+node, and the kernel worker thread tries for the lock upon entering the
+crash hotplug infrastructure.
+
+These threads then compete for the kexec lock.
+
+For example, a 1GiB DIMM is converted into 8 memblocks, each spawning two
+threads for a total of 16 threads that create a small "swarm" all trying
+to acquire the lock.  The larger the DIMM, the more the memblocks and the
+larger the swarm.
+
+At the root of the problem is the atomic lock behind kexec_trylock(); it
+works well for low lock traffic; ie loading/unloading a capture kernel,
+things that happen basically once.  But with the introduction of crash
+hotplug, the traffic through the lock increases significantly, and more
+importantly in bursts occurring at roughly the same time.  Thus there is a
+need to wait on the lock.
+
+A possible workaround is to simply retry the lock, say up to N times. 
+There is, of course, the problem of determining a value of N that works
+for all implementations, and for all the other call sites of
+kexec_trylock().  Not ideal.
+
+The design decision to use the atomic lock is described in the comment
+from kexec_internal.h, cited above.  However, examining the code of
+__crash_kexec():
+
+        if (kexec_trylock()) {
+                if (kexec_crash_image) {
+                        ...
+                }
+                kexec_unlock();
+        }
+
+reveals that the use of kexec_trylock() here is actually a "best effort"
+due to the atomic lock.  This atomic lock, prior to crash hotplug, would
+almost always be assured (another kexec syscall could hold the lock and
+prevent this, but that is about it).
+
+So at the point where the capture kernel would be invoked, if the lock is
+not obtained, then kdump doesn't occur.
+
+It is possible to instead use a mutex with proper waiting, and utilize
+mutex_trylock() as the "best effort" in __crash_kexec().  The use of a
+mutex then avoids all the lock acquisition problems that were revealed by
+the crash hotplug activity.
+
+Convert the atomic lock to a mutex.
+
+Link: https://lkml.kernel.org/r/20230921215938.2192-1-eric.devolder@oracle.com
+Signed-off-by: Eric DeVolder <eric.devolder@oracle.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/maple_tree.h |    2 
- lib/maple_tree.c           |  221 +++++++++++++++++++++++++----------
- lib/test_maple_tree.c      |   87 +++++++++++--
- 3 files changed, 237 insertions(+), 73 deletions(-)
+ kernel/crash_core.c     |   10 ++--------
+ kernel/kexec.c          |    3 +--
+ kernel/kexec_core.c     |   13 +++++--------
+ kernel/kexec_file.c     |    3 +--
+ kernel/kexec_internal.h |   12 +++---------
+ 5 files changed, 12 insertions(+), 29 deletions(-)
 
---- a/include/linux/maple_tree.h~maple_tree-add-mas_underflow-and-mas_overflow-states
-+++ a/include/linux/maple_tree.h
-@@ -428,6 +428,8 @@ struct ma_wr_state {
- #define MAS_ROOT	((struct maple_enode *)5UL)
- #define MAS_NONE	((struct maple_enode *)9UL)
- #define MAS_PAUSE	((struct maple_enode *)17UL)
-+#define MAS_OVERFLOW	((struct maple_enode *)33UL)
-+#define MAS_UNDERFLOW	((struct maple_enode *)65UL)
- #define MA_ERROR(err) \
- 		((struct maple_enode *)(((unsigned long)err << 2) | 2UL))
+--- a/kernel/crash_core.c~kexec-change-locking-mechanism-to-a-mutex
++++ a/kernel/crash_core.c
+@@ -749,10 +749,7 @@ int crash_check_update_elfcorehdr(void)
+ 	int rc = 0;
  
---- a/lib/maple_tree.c~maple_tree-add-mas_underflow-and-mas_overflow-states
-+++ a/lib/maple_tree.c
-@@ -256,6 +256,22 @@ bool mas_is_err(struct ma_state *mas)
- 	return xa_is_err(mas->node);
- }
+ 	/* Obtain lock while reading crash information */
+-	if (!kexec_trylock()) {
+-		pr_info("kexec_trylock() failed, elfcorehdr may be inaccurate\n");
+-		return 0;
+-	}
++	kexec_lock();
+ 	if (kexec_crash_image) {
+ 		if (kexec_crash_image->file_mode)
+ 			rc = 1;
+@@ -784,10 +781,7 @@ static void crash_handle_hotplug_event(u
+ 	struct kimage *image;
  
-+static __always_inline bool mas_is_overflow(struct ma_state *mas)
-+{
-+	if (unlikely(mas->node == MAS_OVERFLOW))
-+		return true;
-+
-+	return false;
-+}
-+
-+static __always_inline bool mas_is_underflow(struct ma_state *mas)
-+{
-+	if (unlikely(mas->node == MAS_UNDERFLOW))
-+		return true;
-+
-+	return false;
-+}
-+
- static inline bool mas_searchable(struct ma_state *mas)
- {
- 	if (mas_is_none(mas))
-@@ -4415,10 +4431,13 @@ no_entry:
-  *
-  * @mas: The maple state
-  * @max: The minimum starting range
-+ * @empty: Can be empty
-+ * @set_underflow: Set the @mas->node to underflow state on limit.
-  *
-  * Return: The entry in the previous slot which is possibly NULL
-  */
--static void *mas_prev_slot(struct ma_state *mas, unsigned long min, bool empty)
-+static void *mas_prev_slot(struct ma_state *mas, unsigned long min, bool empty,
-+			   bool set_underflow)
- {
- 	void *entry;
- 	void __rcu **slots;
-@@ -4435,7 +4454,6 @@ retry:
- 	if (unlikely(mas_rewalk_if_dead(mas, node, save_point)))
- 		goto retry;
- 
--again:
- 	if (mas->min <= min) {
- 		pivot = mas_safe_min(mas, pivots, mas->offset);
- 
-@@ -4443,9 +4461,10 @@ again:
- 			goto retry;
- 
- 		if (pivot <= min)
--			return NULL;
-+			goto underflow;
- 	}
- 
-+again:
- 	if (likely(mas->offset)) {
- 		mas->offset--;
- 		mas->last = mas->index - 1;
-@@ -4457,7 +4476,7 @@ again:
- 		}
- 
- 		if (mas_is_none(mas))
--			return NULL;
-+			goto underflow;
- 
- 		mas->last = mas->max;
- 		node = mas_mn(mas);
-@@ -4474,10 +4493,19 @@ again:
- 	if (likely(entry))
- 		return entry;
- 
--	if (!empty)
-+	if (!empty) {
-+		if (mas->index <= min)
-+			goto underflow;
-+
- 		goto again;
-+	}
- 
- 	return entry;
-+
-+underflow:
-+	if (set_underflow)
-+		mas->node = MAS_UNDERFLOW;
-+	return NULL;
- }
- 
- /*
-@@ -4567,10 +4595,13 @@ no_entry:
-  * @mas: The maple state
-  * @max: The maximum starting range
-  * @empty: Can be empty
-+ * @set_overflow: Should @mas->node be set to overflow when the limit is
-+ * reached.
-  *
-  * Return: The entry in the next slot which is possibly NULL
-  */
--static void *mas_next_slot(struct ma_state *mas, unsigned long max, bool empty)
-+static void *mas_next_slot(struct ma_state *mas, unsigned long max, bool empty,
-+			   bool set_overflow)
- {
- 	void __rcu **slots;
- 	unsigned long *pivots;
-@@ -4589,22 +4620,22 @@ retry:
- 	if (unlikely(mas_rewalk_if_dead(mas, node, save_point)))
- 		goto retry;
- 
--again:
- 	if (mas->max >= max) {
- 		if (likely(mas->offset < data_end))
- 			pivot = pivots[mas->offset];
- 		else
--			return NULL; /* must be mas->max */
-+			goto overflow;
- 
- 		if (unlikely(mas_rewalk_if_dead(mas, node, save_point)))
- 			goto retry;
- 
- 		if (pivot >= max)
--			return NULL;
-+			goto overflow;
- 	}
- 
- 	if (likely(mas->offset < data_end)) {
- 		mas->index = pivots[mas->offset] + 1;
-+again:
- 		mas->offset++;
- 		if (likely(mas->offset < data_end))
- 			mas->last = pivots[mas->offset];
-@@ -4616,8 +4647,11 @@ again:
- 			goto retry;
- 		}
- 
--		if (mas_is_none(mas))
-+		if (WARN_ON_ONCE(mas_is_none(mas))) {
-+			mas->node = MAS_OVERFLOW;
- 			return NULL;
-+			goto overflow;
-+		}
- 
- 		mas->offset = 0;
- 		mas->index = mas->min;
-@@ -4636,12 +4670,20 @@ again:
- 		return entry;
- 
- 	if (!empty) {
--		if (!mas->offset)
--			data_end = 2;
-+		if (mas->last >= max)
-+			goto overflow;
-+
-+		mas->index = mas->last + 1;
-+		/* Node cannot end on NULL, so it's safe to short-cut here */
- 		goto again;
- 	}
- 
- 	return entry;
-+
-+overflow:
-+	if (set_overflow)
-+		mas->node = MAS_OVERFLOW;
-+	return NULL;
- }
- 
- /*
-@@ -4651,17 +4693,20 @@ again:
-  *
-  * Set the @mas->node to the next entry and the range_start to
-  * the beginning value for the entry.  Does not check beyond @limit.
-- * Sets @mas->index and @mas->last to the limit if it is hit.
-+ * Sets @mas->index and @mas->last to the range, Does not update @mas->index and
-+ * @mas->last on overflow.
-  * Restarts on dead nodes.
-  *
-  * Return: the next entry or %NULL.
-  */
- static inline void *mas_next_entry(struct ma_state *mas, unsigned long limit)
- {
--	if (mas->last >= limit)
-+	if (mas->last >= limit) {
-+		mas->node = MAS_OVERFLOW;
- 		return NULL;
-+	}
- 
--	return mas_next_slot(mas, limit, false);
-+	return mas_next_slot(mas, limit, false, true);
- }
- 
- /*
-@@ -4837,7 +4882,7 @@ void *mas_walk(struct ma_state *mas)
- {
- 	void *entry;
- 
--	if (mas_is_none(mas) || mas_is_paused(mas) || mas_is_ptr(mas))
-+	if (!mas_is_active(mas) || !mas_is_start(mas))
- 		mas->node = MAS_START;
- retry:
- 	entry = mas_state_walk(mas);
-@@ -5294,14 +5339,22 @@ static inline void mte_destroy_walk(stru
- 
- static void mas_wr_store_setup(struct ma_wr_state *wr_mas)
- {
--	if (mas_is_start(wr_mas->mas))
+ 	/* Obtain lock while changing crash information */
+-	if (!kexec_trylock()) {
+-		pr_info("kexec_trylock() failed, elfcorehdr may be inaccurate\n");
 -		return;
-+	if (!mas_is_active(wr_mas->mas)) {
-+		if (mas_is_start(wr_mas->mas))
-+			return;
+-	}
++	kexec_lock();
  
--	if (unlikely(mas_is_paused(wr_mas->mas)))
--		goto reset;
-+		if (unlikely(mas_is_paused(wr_mas->mas)))
-+			goto reset;
+ 	/* Check kdump is not loaded */
+ 	if (!kexec_crash_image)
+--- a/kernel/kexec.c~kexec-change-locking-mechanism-to-a-mutex
++++ a/kernel/kexec.c
+@@ -96,8 +96,7 @@ static int do_kexec_load(unsigned long e
+ 	 * crash kernels we need a serialization here to prevent multiple crash
+ 	 * kernels from attempting to load simultaneously.
+ 	 */
+-	if (!kexec_trylock())
+-		return -EBUSY;
++	kexec_lock();
  
--	if (unlikely(mas_is_none(wr_mas->mas)))
--		goto reset;
-+		if (unlikely(mas_is_none(wr_mas->mas)))
-+			goto reset;
-+
-+		if (unlikely(mas_is_overflow(wr_mas->mas)))
-+			goto reset;
-+
-+		if (unlikely(mas_is_underflow(wr_mas->mas)))
-+			goto reset;
-+	}
+ 	if (flags & KEXEC_ON_CRASH) {
+ 		dest_image = &kexec_crash_image;
+--- a/kernel/kexec_core.c~kexec-change-locking-mechanism-to-a-mutex
++++ a/kernel/kexec_core.c
+@@ -47,7 +47,7 @@
+ #include <crypto/hash.h>
+ #include "kexec_internal.h"
  
- 	/*
- 	 * A less strict version of mas_is_span_wr() where we allow spanning
-@@ -5595,8 +5648,25 @@ static inline bool mas_next_setup(struct
+-atomic_t __kexec_lock = ATOMIC_INIT(0);
++DEFINE_MUTEX(__kexec_lock);
+ 
+ /* Flag to indicate we are going to kexec a new kernel */
+ bool kexec_in_progress = false;
+@@ -1057,7 +1057,7 @@ void __noclone __crash_kexec(struct pt_r
+ 	 * of memory the xchg(&kexec_crash_image) would be
+ 	 * sufficient.  But since I reuse the memory...
+ 	 */
+-	if (kexec_trylock()) {
++	if (mutex_trylock(&__kexec_lock)) {
+ 		if (kexec_crash_image) {
+ 			struct pt_regs fixed_regs;
+ 
+@@ -1103,8 +1103,7 @@ ssize_t crash_get_memory_size(void)
  {
- 	bool was_none = mas_is_none(mas);
+ 	ssize_t size = 0;
  
--	if (mas_is_none(mas) || mas_is_paused(mas))
-+	if (unlikely(mas->last >= max)) {
-+		mas->node = MAS_OVERFLOW;
-+		return true;
-+	}
-+
-+	if (mas_is_active(mas))
-+		return false;
-+
-+	if (mas_is_none(mas) || mas_is_paused(mas)) {
-+		mas->node = MAS_START;
-+	} else if (mas_is_overflow(mas)) {
-+		/* Overflowed before, but the max changed */
- 		mas->node = MAS_START;
-+	} else if (mas_is_underflow(mas)) {
-+		mas->node = MAS_START;
-+		*entry = mas_walk(mas);
-+		if (*entry)
-+			return true;
-+	}
+-	if (!kexec_trylock())
+-		return -EBUSY;
++	kexec_lock();
  
- 	if (mas_is_start(mas))
- 		*entry = mas_walk(mas); /* Retries on dead nodes handled by mas_walk */
-@@ -5615,6 +5685,7 @@ static inline bool mas_next_setup(struct
+ 	size += crash_resource_size(&crashk_res);
+ 	size += crash_resource_size(&crashk_low_res);
+@@ -1146,8 +1145,7 @@ int crash_shrink_memory(unsigned long ne
+ 	int ret = 0;
+ 	unsigned long old_size, low_size;
  
- 	if (mas_is_none(mas))
- 		return true;
-+
- 	return false;
- }
+-	if (!kexec_trylock())
+-		return -EBUSY;
++	kexec_lock();
  
-@@ -5637,7 +5708,7 @@ void *mas_next(struct ma_state *mas, uns
- 		return entry;
- 
- 	/* Retries on dead nodes handled by mas_next_slot */
--	return mas_next_slot(mas, max, false);
-+	return mas_next_slot(mas, max, false, true);
- }
- EXPORT_SYMBOL_GPL(mas_next);
- 
-@@ -5660,7 +5731,7 @@ void *mas_next_range(struct ma_state *ma
- 		return entry;
- 
- 	/* Retries on dead nodes handled by mas_next_slot */
--	return mas_next_slot(mas, max, true);
-+	return mas_next_slot(mas, max, true, true);
- }
- EXPORT_SYMBOL_GPL(mas_next_range);
- 
-@@ -5691,18 +5762,31 @@ EXPORT_SYMBOL_GPL(mt_next);
- static inline bool mas_prev_setup(struct ma_state *mas, unsigned long min,
- 		void **entry)
+ 	if (kexec_crash_image) {
+ 		ret = -ENOENT;
+@@ -1229,8 +1227,7 @@ int kernel_kexec(void)
  {
--	if (mas->index <= min)
--		goto none;
-+	if (unlikely(mas->index <= min)) {
-+		mas->node = MAS_UNDERFLOW;
-+		return true;
-+	}
+ 	int error = 0;
  
--	if (mas_is_none(mas) || mas_is_paused(mas))
-+	if (mas_is_active(mas))
-+		return false;
-+
-+	if (mas_is_overflow(mas)) {
- 		mas->node = MAS_START;
-+		*entry = mas_walk(mas);
-+		if (*entry)
-+			return true;
-+	}
+-	if (!kexec_trylock())
+-		return -EBUSY;
++	kexec_lock();
+ 	if (!kexec_image) {
+ 		error = -EINVAL;
+ 		goto Unlock;
+--- a/kernel/kexec_file.c~kexec-change-locking-mechanism-to-a-mutex
++++ a/kernel/kexec_file.c
+@@ -341,8 +341,7 @@ SYSCALL_DEFINE5(kexec_file_load, int, ke
  
--	if (mas_is_start(mas)) {
--		mas_walk(mas);
--		if (!mas->index)
--			goto none;
-+	if (mas_is_none(mas) || mas_is_paused(mas)) {
-+		mas->node = MAS_START;
-+	} else if (mas_is_underflow(mas)) {
-+		/* underflowed before but the min changed */
-+		mas->node = MAS_START;
- 	}
+ 	image = NULL;
  
-+	if (mas_is_start(mas))
-+		mas_walk(mas);
-+
- 	if (unlikely(mas_is_ptr(mas))) {
- 		if (!mas->index)
- 			goto none;
-@@ -5747,7 +5831,7 @@ void *mas_prev(struct ma_state *mas, uns
- 	if (mas_prev_setup(mas, min, &entry))
- 		return entry;
+-	if (!kexec_trylock())
+-		return -EBUSY;
++	kexec_lock();
  
--	return mas_prev_slot(mas, min, false);
-+	return mas_prev_slot(mas, min, false, true);
- }
- EXPORT_SYMBOL_GPL(mas_prev);
- 
-@@ -5770,7 +5854,7 @@ void *mas_prev_range(struct ma_state *ma
- 	if (mas_prev_setup(mas, min, &entry))
- 		return entry;
- 
--	return mas_prev_slot(mas, min, true);
-+	return mas_prev_slot(mas, min, true, true);
- }
- EXPORT_SYMBOL_GPL(mas_prev_range);
- 
-@@ -5828,24 +5912,35 @@ EXPORT_SYMBOL_GPL(mas_pause);
- static inline bool mas_find_setup(struct ma_state *mas, unsigned long max,
- 		void **entry)
- {
--	*entry = NULL;
-+	if (mas_is_active(mas)) {
-+		if (mas->last < max)
-+			return false;
-+
-+		return true;
-+	}
- 
--	if (unlikely(mas_is_none(mas))) {
-+	if (mas_is_paused(mas)) {
- 		if (unlikely(mas->last >= max))
- 			return true;
- 
--		mas->index = mas->last;
-+		mas->index = ++mas->last;
- 		mas->node = MAS_START;
--	} else if (unlikely(mas_is_paused(mas))) {
-+	} else if (mas_is_none(mas)) {
- 		if (unlikely(mas->last >= max))
- 			return true;
- 
-+		mas->index = mas->last;
- 		mas->node = MAS_START;
--		mas->index = ++mas->last;
--	} else if (unlikely(mas_is_ptr(mas)))
--		goto ptr_out_of_range;
-+	} else if (mas_is_overflow(mas) || mas_is_underflow(mas)) {
-+		if (mas->index > max) {
-+			mas->node = MAS_OVERFLOW;
-+			return true;
-+		}
- 
--	if (unlikely(mas_is_start(mas))) {
-+		mas->node = MAS_START;
-+	}
-+
-+	if (mas_is_start(mas)) {
- 		/* First run or continue */
- 		if (mas->index > max)
- 			return true;
-@@ -5895,7 +5990,7 @@ void *mas_find(struct ma_state *mas, uns
- 		return entry;
- 
- 	/* Retries on dead nodes handled by mas_next_slot */
--	return mas_next_slot(mas, max, false);
-+	return mas_next_slot(mas, max, false, false);
- }
- EXPORT_SYMBOL_GPL(mas_find);
- 
-@@ -5913,13 +6008,13 @@ EXPORT_SYMBOL_GPL(mas_find);
+ 	if (image_type == KEXEC_TYPE_CRASH) {
+ 		dest_image = &kexec_crash_image;
+--- a/kernel/kexec_internal.h~kexec-change-locking-mechanism-to-a-mutex
++++ a/kernel/kexec_internal.h
+@@ -18,15 +18,9 @@ int kimage_is_destination_range(struct k
+  * NMI safe, as __crash_kexec() can happen during nmi_panic(), so here we use a
+  * "simple" atomic variable that is acquired with a cmpxchg().
   */
- void *mas_find_range(struct ma_state *mas, unsigned long max)
- {
--	void *entry;
-+	void *entry = NULL;
+-extern atomic_t __kexec_lock;
+-static inline bool kexec_trylock(void)
+-{
+-	return atomic_cmpxchg_acquire(&__kexec_lock, 0, 1) == 0;
+-}
+-static inline void kexec_unlock(void)
+-{
+-	atomic_set_release(&__kexec_lock, 0);
+-}
++extern struct mutex __kexec_lock;
++#define kexec_lock() mutex_lock(&__kexec_lock)
++#define kexec_unlock() mutex_unlock(&__kexec_lock)
  
- 	if (mas_find_setup(mas, max, &entry))
- 		return entry;
- 
- 	/* Retries on dead nodes handled by mas_next_slot */
--	return mas_next_slot(mas, max, true);
-+	return mas_next_slot(mas, max, true, false);
- }
- EXPORT_SYMBOL_GPL(mas_find_range);
- 
-@@ -5934,26 +6029,36 @@ EXPORT_SYMBOL_GPL(mas_find_range);
- static inline bool mas_find_rev_setup(struct ma_state *mas, unsigned long min,
- 		void **entry)
- {
--	*entry = NULL;
--
--	if (unlikely(mas_is_none(mas))) {
--		if (mas->index <= min)
--			goto none;
-+	if (mas_is_active(mas)) {
-+		if (mas->index > min)
-+			return false;
- 
--		mas->last = mas->index;
--		mas->node = MAS_START;
-+		return true;
- 	}
- 
--	if (unlikely(mas_is_paused(mas))) {
-+	if (mas_is_paused(mas)) {
- 		if (unlikely(mas->index <= min)) {
- 			mas->node = MAS_NONE;
- 			return true;
- 		}
- 		mas->node = MAS_START;
- 		mas->last = --mas->index;
-+	} else if (mas_is_none(mas)) {
-+		if (mas->index <= min)
-+			goto none;
-+
-+		mas->last = mas->index;
-+		mas->node = MAS_START;
-+	} else if (mas_is_underflow(mas) || mas_is_overflow(mas)) {
-+		if (mas->last <= min) {
-+			mas->node = MAS_UNDERFLOW;
-+			return true;
-+		}
-+
-+		mas->node = MAS_START;
- 	}
- 
--	if (unlikely(mas_is_start(mas))) {
-+	if (mas_is_start(mas)) {
- 		/* First run or continue */
- 		if (mas->index < min)
- 			return true;
-@@ -6004,13 +6109,13 @@ none:
-  */
- void *mas_find_rev(struct ma_state *mas, unsigned long min)
- {
--	void *entry;
-+	void *entry = NULL;
- 
- 	if (mas_find_rev_setup(mas, min, &entry))
- 		return entry;
- 
- 	/* Retries on dead nodes handled by mas_prev_slot */
--	return mas_prev_slot(mas, min, false);
-+	return mas_prev_slot(mas, min, false, false);
- 
- }
- EXPORT_SYMBOL_GPL(mas_find_rev);
-@@ -6030,13 +6135,13 @@ EXPORT_SYMBOL_GPL(mas_find_rev);
-  */
- void *mas_find_range_rev(struct ma_state *mas, unsigned long min)
- {
--	void *entry;
-+	void *entry = NULL;
- 
- 	if (mas_find_rev_setup(mas, min, &entry))
- 		return entry;
- 
- 	/* Retries on dead nodes handled by mas_prev_slot */
--	return mas_prev_slot(mas, min, true);
-+	return mas_prev_slot(mas, min, true, false);
- }
- EXPORT_SYMBOL_GPL(mas_find_range_rev);
- 
---- a/lib/test_maple_tree.c~maple_tree-add-mas_underflow-and-mas_overflow-states
-+++ a/lib/test_maple_tree.c
-@@ -2166,7 +2166,7 @@ static noinline void __init next_prev_te
- 	MT_BUG_ON(mt, val != NULL);
- 	MT_BUG_ON(mt, mas.index != 0);
- 	MT_BUG_ON(mt, mas.last != 5);
--	MT_BUG_ON(mt, mas.node != MAS_NONE);
-+	MT_BUG_ON(mt, mas.node != MAS_UNDERFLOW);
- 
- 	mas.index = 0;
- 	mas.last = 5;
-@@ -2917,6 +2917,7 @@ static noinline void __init check_empty_
-  *		exists	MAS_NONE	active		range
-  *		exists	active		active		range
-  *		DNE	active		active		set to last range
-+ *		ERANGE	active		MAS_OVERFLOW	last range
-  *
-  * Function	ENTRY	Start		Result		index & last
-  * mas_prev()
-@@ -2945,6 +2946,7 @@ static noinline void __init check_empty_
-  *		any	MAS_ROOT	MAS_NONE	0
-  *		exists	active		active		range
-  *		DNE	active		active		last range
-+ *		ERANGE	active		MAS_UNDERFLOW	last range
-  *
-  * Function	ENTRY	Start		Result		index & last
-  * mas_find()
-@@ -2955,7 +2957,7 @@ static noinline void __init check_empty_
-  *		DNE	MAS_START	MAS_NONE	0
-  *		DNE	MAS_PAUSE	MAS_NONE	0
-  *		DNE	MAS_ROOT	MAS_NONE	0
-- *		DNE	MAS_NONE	MAS_NONE	0
-+ *		DNE	MAS_NONE	MAS_NONE	1
-  *				if index ==  0
-  *		exists	MAS_START	MAS_ROOT	0
-  *		exists	MAS_PAUSE	MAS_ROOT	0
-@@ -2967,7 +2969,7 @@ static noinline void __init check_empty_
-  *		DNE	MAS_START	active		set to max
-  *		exists	MAS_PAUSE	active		range
-  *		DNE	MAS_PAUSE	active		set to max
-- *		exists	MAS_NONE	active		range
-+ *		exists	MAS_NONE	active		range (start at last)
-  *		exists	active		active		range
-  *		DNE	active		active		last range (max < last)
-  *
-@@ -2992,7 +2994,7 @@ static noinline void __init check_empty_
-  *		DNE	MAS_START	active		set to min
-  *		exists	MAS_PAUSE	active		range
-  *		DNE	MAS_PAUSE	active		set to min
-- *		exists	MAS_NONE	active		range
-+ *		exists	MAS_NONE	active		range (start at index)
-  *		exists	active		active		range
-  *		DNE	active		active		last range (min > index)
-  *
-@@ -3039,10 +3041,10 @@ static noinline void __init check_state_
- 	mtree_store_range(mt, 0, 0, ptr, GFP_KERNEL);
- 
- 	mas_lock(&mas);
--	/* prev: Start -> none */
-+	/* prev: Start -> underflow*/
- 	entry = mas_prev(&mas, 0);
- 	MT_BUG_ON(mt, entry != NULL);
--	MT_BUG_ON(mt, mas.node != MAS_NONE);
-+	MT_BUG_ON(mt, mas.node != MAS_UNDERFLOW);
- 
- 	/* prev: Start -> root */
- 	mas_set(&mas, 10);
-@@ -3069,7 +3071,7 @@ static noinline void __init check_state_
- 	MT_BUG_ON(mt, entry != NULL);
- 	MT_BUG_ON(mt, mas.node != MAS_NONE);
- 
--	/* next: start -> none */
-+	/* next: start -> none*/
- 	mas_set(&mas, 10);
- 	entry = mas_next(&mas, ULONG_MAX);
- 	MT_BUG_ON(mt, mas.index != 1);
-@@ -3268,25 +3270,46 @@ static noinline void __init check_state_
- 	MT_BUG_ON(mt, mas.last != 0x2500);
- 	MT_BUG_ON(mt, !mas_active(mas));
- 
--	/* next:active -> active out of range*/
-+	/* next:active -> active beyond data */
- 	entry = mas_next(&mas, 0x2999);
- 	MT_BUG_ON(mt, entry != NULL);
- 	MT_BUG_ON(mt, mas.index != 0x2501);
- 	MT_BUG_ON(mt, mas.last != 0x2fff);
- 	MT_BUG_ON(mt, !mas_active(mas));
- 
--	/* Continue after out of range*/
-+	/* Continue after last range ends after max */
- 	entry = mas_next(&mas, ULONG_MAX);
- 	MT_BUG_ON(mt, entry != ptr3);
- 	MT_BUG_ON(mt, mas.index != 0x3000);
- 	MT_BUG_ON(mt, mas.last != 0x3500);
- 	MT_BUG_ON(mt, !mas_active(mas));
- 
--	/* next:active -> active out of range*/
-+	/* next:active -> active continued */
-+	entry = mas_next(&mas, ULONG_MAX);
-+	MT_BUG_ON(mt, entry != NULL);
-+	MT_BUG_ON(mt, mas.index != 0x3501);
-+	MT_BUG_ON(mt, mas.last != ULONG_MAX);
-+	MT_BUG_ON(mt, !mas_active(mas));
-+
-+	/* next:active -> overflow  */
- 	entry = mas_next(&mas, ULONG_MAX);
- 	MT_BUG_ON(mt, entry != NULL);
- 	MT_BUG_ON(mt, mas.index != 0x3501);
- 	MT_BUG_ON(mt, mas.last != ULONG_MAX);
-+	MT_BUG_ON(mt, mas.node != MAS_OVERFLOW);
-+
-+	/* next:overflow -> overflow  */
-+	entry = mas_next(&mas, ULONG_MAX);
-+	MT_BUG_ON(mt, entry != NULL);
-+	MT_BUG_ON(mt, mas.index != 0x3501);
-+	MT_BUG_ON(mt, mas.last != ULONG_MAX);
-+	MT_BUG_ON(mt, mas.node != MAS_OVERFLOW);
-+
-+	/* prev:overflow -> active  */
-+	entry = mas_prev(&mas, 0);
-+	MT_BUG_ON(mt, entry != ptr3);
-+	MT_BUG_ON(mt, mas.index != 0x3000);
-+	MT_BUG_ON(mt, mas.last != 0x3500);
- 	MT_BUG_ON(mt, !mas_active(mas));
- 
- 	/* next: none -> active, skip value at location */
-@@ -3307,11 +3330,46 @@ static noinline void __init check_state_
- 	MT_BUG_ON(mt, mas.last != 0x1500);
- 	MT_BUG_ON(mt, !mas_active(mas));
- 
--	/* prev:active -> active out of range*/
-+	/* prev:active -> active spanning end range */
-+	entry = mas_prev(&mas, 0x0100);
-+	MT_BUG_ON(mt, entry != NULL);
-+	MT_BUG_ON(mt, mas.index != 0);
-+	MT_BUG_ON(mt, mas.last != 0x0FFF);
-+	MT_BUG_ON(mt, !mas_active(mas));
-+
-+	/* prev:active -> underflow */
-+	entry = mas_prev(&mas, 0);
-+	MT_BUG_ON(mt, entry != NULL);
-+	MT_BUG_ON(mt, mas.index != 0);
-+	MT_BUG_ON(mt, mas.last != 0x0FFF);
-+	MT_BUG_ON(mt, mas.node != MAS_UNDERFLOW);
-+
-+	/* prev:underflow -> underflow */
- 	entry = mas_prev(&mas, 0);
- 	MT_BUG_ON(mt, entry != NULL);
- 	MT_BUG_ON(mt, mas.index != 0);
- 	MT_BUG_ON(mt, mas.last != 0x0FFF);
-+	MT_BUG_ON(mt, mas.node != MAS_UNDERFLOW);
-+
-+	/* next:underflow -> active */
-+	entry = mas_next(&mas, ULONG_MAX);
-+	MT_BUG_ON(mt, entry != ptr);
-+	MT_BUG_ON(mt, mas.index != 0x1000);
-+	MT_BUG_ON(mt, mas.last != 0x1500);
-+	MT_BUG_ON(mt, !mas_active(mas));
-+
-+	/* prev:first value -> underflow */
-+	entry = mas_prev(&mas, 0x1000);
-+	MT_BUG_ON(mt, entry != NULL);
-+	MT_BUG_ON(mt, mas.index != 0x1000);
-+	MT_BUG_ON(mt, mas.last != 0x1500);
-+	MT_BUG_ON(mt, mas.node != MAS_UNDERFLOW);
-+
-+	/* find:underflow -> first value */
-+	entry = mas_find(&mas, ULONG_MAX);
-+	MT_BUG_ON(mt, entry != ptr);
-+	MT_BUG_ON(mt, mas.index != 0x1000);
-+	MT_BUG_ON(mt, mas.last != 0x1500);
- 	MT_BUG_ON(mt, !mas_active(mas));
- 
- 	/* prev: pause ->active */
-@@ -3325,14 +3383,14 @@ static noinline void __init check_state_
- 	MT_BUG_ON(mt, mas.last != 0x2500);
- 	MT_BUG_ON(mt, !mas_active(mas));
- 
--	/* prev:active -> active out of range*/
-+	/* prev:active -> active spanning min */
- 	entry = mas_prev(&mas, 0x1600);
- 	MT_BUG_ON(mt, entry != NULL);
- 	MT_BUG_ON(mt, mas.index != 0x1501);
- 	MT_BUG_ON(mt, mas.last != 0x1FFF);
- 	MT_BUG_ON(mt, !mas_active(mas));
- 
--	/* prev: active ->active, continue*/
-+	/* prev: active ->active, continue */
- 	entry = mas_prev(&mas, 0);
- 	MT_BUG_ON(mt, entry != ptr);
- 	MT_BUG_ON(mt, mas.index != 0x1000);
-@@ -3379,7 +3437,7 @@ static noinline void __init check_state_
- 	MT_BUG_ON(mt, mas.last != 0x2FFF);
- 	MT_BUG_ON(mt, !mas_active(mas));
- 
--	/* find: none ->active */
-+	/* find: overflow ->active */
- 	entry = mas_find(&mas, 0x5000);
- 	MT_BUG_ON(mt, entry != ptr3);
- 	MT_BUG_ON(mt, mas.index != 0x3000);
-@@ -3778,7 +3836,6 @@ static int __init maple_tree_seed(void)
- 	check_empty_area_fill(&tree);
- 	mtree_destroy(&tree);
- 
--
- 	mt_init_flags(&tree, MT_FLAGS_ALLOC_RANGE);
- 	check_state_handling(&tree);
- 	mtree_destroy(&tree);
+ #ifdef CONFIG_KEXEC_FILE
+ #include <linux/purgatory.h>
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from eric.devolder@oracle.com are
 
-maple_tree-add-mas_active-to-detect-in-tree-walks.patch
-maple_tree-add-mas_underflow-and-mas_overflow-states.patch
+kexec-change-locking-mechanism-to-a-mutex.patch
 
