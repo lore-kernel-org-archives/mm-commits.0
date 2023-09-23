@@ -2,108 +2,64 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37329CE7A8C
-	for <mm-commits@archiver.kernel.org>; Sat, 23 Sep 2023 17:35:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DD89CE7A89
+	for <mm-commits@archiver.kernel.org>; Sat, 23 Sep 2023 19:08:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231593AbjIWRfk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 23 Sep 2023 13:35:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36464 "EHLO
+        id S229584AbjIWTIV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 23 Sep 2023 15:08:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39138 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229513AbjIWRfj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 23 Sep 2023 13:35:39 -0400
+        with ESMTP id S229526AbjIWTIU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 23 Sep 2023 15:08:20 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 487EF124;
-        Sat, 23 Sep 2023 10:35:32 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C0D8C433C9;
-        Sat, 23 Sep 2023 17:35:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695490531;
-        bh=LDzoxQiXR1UXK5eOrDD8NSF+bFzFTzgjToeIVd++w2U=;
-        h=Date:From:To:Cc:Subject:From;
-        b=AwWC8ST+NjkhQqQJNaHk7Y7x1NiZYTkDdBeI4PZtgCQUiFjVvRcXW3+Mj1U8WG+gf
-         pymMM/Wj5Io6Zz+mz7QUOV1LaohIcQdu7vgmbD75rVNpKxYYtm3I5jD3H0Wsk8r66Y
-         pTLVJzp5n6qbOQlh+UhmPlrPA+8FGqir8IiYvrOQ=
-Date:   Sat, 23 Sep 2023 10:35:30 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org,
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE915193;
+        Sat, 23 Sep 2023 12:08:14 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 1F0A4C433C7;
+        Sat, 23 Sep 2023 19:08:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1695496094;
+        bh=VY8Hdv9HzreNNnBXg9avRuxBPBMOxUYFHf+f3MhabnM=;
+        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+        b=SfYRJdNKBQY83suDDkYQhdWe0KAPt77v+ZQGILBs0oVO/5y9Y3wUHzrdws7v7Mvoh
+         NFiMtDoU2Hliz0Hl627MiNwVoBx7iQpgG/L6UhvBC2KYsCHakLWVAwk7SFXm0DjJ0f
+         swnktWPBoKOdJ5ejUl73fbqDvNobJvYUyGyhqqk+cQkkHnkVbVdBav9TFFumgjXBQP
+         kw7SGLEmQ4VJOySBPtrVg3J3EB8uKlNMv20pPU68KEg3P5JV0yawabA5/3zy3Asoe0
+         EUQ5gTdb1CTH8jv6D/Nso4NfMrzXmXz4qFUHToBHGKpWW5x24+J6SS0Op9G66oMqpx
+         zaRjCDkicpwZA==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 0CAF9C561EE;
+        Sat, 23 Sep 2023 19:08:14 +0000 (UTC)
+Subject: Re: [GIT PULL] hotfixes for 6.6-rc3
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <20230923103530.4df4257fc2b80c97a52b55b6@linux-foundation.org>
+References: <20230923103530.4df4257fc2b80c97a52b55b6@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-mm.kvack.org>
+X-PR-Tracked-Message-Id: <20230923103530.4df4257fc2b80c97a52b55b6@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-09-23-10-31
+X-PR-Tracked-Commit-Id: fe4419801617514765974f3e796269bc512ad146
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 85eba5f1759f9eb89273225027254ced57bd18a2
+Message-Id: <169549609404.2215.9389176594640598180.pr-tracker-bot@kernel.org>
+Date:   Sat, 23 Sep 2023 19:08:14 +0000
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        mm-commits@vger.kernel.org, linux-mm@kvack.org,
         linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.6-rc3
-Message-Id: <20230923103530.4df4257fc2b80c97a52b55b6@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Linus, please pull this batch of hotfixes, thanks.
+The pull request you sent on Sat, 23 Sep 2023 10:35:30 -0700:
 
-The following changes since commit ce9ecca0238b140b88f43859b211c9fdfd8e5b70:
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-09-23-10-31
 
-  Linux 6.6-rc2 (2023-09-17 14:40:24 -0700)
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/85eba5f1759f9eb89273225027254ced57bd18a2
 
-are available in the Git repository at:
+Thank you!
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-09-23-10-31
-
-for you to fetch changes up to fe4419801617514765974f3e796269bc512ad146:
-
-  proc: nommu: fix empty /proc/<pid>/maps (2023-09-19 13:21:34 -0700)
-
-----------------------------------------------------------------
-13 hotfixes, 10 of which pertain to post-6.5 issues.  The other 3 are
-cc:stable.
-
-----------------------------------------------------------------
-Alexey Dobriyan (1):
-      selftests/proc: fixup proc-empty-vm test after KSM changes
-
-Andrew Morton (1):
-      revert "scripts/gdb/symbols: add specific ko module load command"
-
-Ben Wolsieffer (2):
-      proc: nommu: /proc/<pid>/maps: release mmap read lock
-      proc: nommu: fix empty /proc/<pid>/maps
-
-Geert Uytterhoeven (1):
-      sh: mm: re-add lost __ref to ioremap_prot() to fix modpost warning
-
-Jens Axboe (1):
-      task_work: add kerneldoc annotation for 'data' argument
-
-Johannes Weiner (2):
-      mm: page_alloc: fix CMA and HIGHATOMIC landing on the wrong buddy list
-      mm: memcontrol: fix GFP_NOFS recursion in memory.high enforcement
-
-Randy Dunlap (3):
-      scatterlist: add missing function params to kernel-doc
-      argv_split: fix kernel-doc warnings
-      pidfd: prevent a kernel-doc warning
-
-Ryan Roberts (1):
-      selftests: link libasan statically for tests with -fsanitize=address
-
-Yin Fengwei (1):
-      filemap: add filemap_map_order0_folio() to handle order0 folio
-
- arch/sh/mm/ioremap.c                         |  4 +-
- fs/proc/internal.h                           |  2 -
- fs/proc/task_nommu.c                         | 64 +++++++++++++++-----------
- include/linux/memcontrol.h                   |  4 +-
- include/linux/resume_user_mode.h             |  2 +-
- kernel/pid.c                                 |  2 +-
- kernel/task_work.c                           |  1 +
- lib/argv_split.c                             |  4 +-
- lib/scatterlist.c                            |  4 +-
- mm/filemap.c                                 | 69 +++++++++++++++++++---------
- mm/memcontrol.c                              |  6 +--
- mm/page_alloc.c                              | 12 ++---
- scripts/gdb/linux/symbols.py                 | 23 +---------
- tools/testing/selftests/fchmodat2/Makefile   |  2 +-
- tools/testing/selftests/openat2/Makefile     |  2 +-
- tools/testing/selftests/proc/proc-empty-vm.c |  1 +
- 16 files changed, 111 insertions(+), 91 deletions(-)
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
