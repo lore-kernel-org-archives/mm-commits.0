@@ -2,64 +2,159 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DD89CE7A89
-	for <mm-commits@archiver.kernel.org>; Sat, 23 Sep 2023 19:08:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DD13CE7A81
+	for <mm-commits@archiver.kernel.org>; Mon, 25 Sep 2023 14:49:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229584AbjIWTIV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 23 Sep 2023 15:08:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39138 "EHLO
+        id S232388AbjIYOtc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 25 Sep 2023 10:49:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55344 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229526AbjIWTIU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 23 Sep 2023 15:08:20 -0400
+        with ESMTP id S232364AbjIYOta (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Sep 2023 10:49:30 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE915193;
-        Sat, 23 Sep 2023 12:08:14 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 1F0A4C433C7;
-        Sat, 23 Sep 2023 19:08:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1695496094;
-        bh=VY8Hdv9HzreNNnBXg9avRuxBPBMOxUYFHf+f3MhabnM=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=SfYRJdNKBQY83suDDkYQhdWe0KAPt77v+ZQGILBs0oVO/5y9Y3wUHzrdws7v7Mvoh
-         NFiMtDoU2Hliz0Hl627MiNwVoBx7iQpgG/L6UhvBC2KYsCHakLWVAwk7SFXm0DjJ0f
-         swnktWPBoKOdJ5ejUl73fbqDvNobJvYUyGyhqqk+cQkkHnkVbVdBav9TFFumgjXBQP
-         kw7SGLEmQ4VJOySBPtrVg3J3EB8uKlNMv20pPU68KEg3P5JV0yawabA5/3zy3Asoe0
-         EUQ5gTdb1CTH8jv6D/Nso4NfMrzXmXz4qFUHToBHGKpWW5x24+J6SS0Op9G66oMqpx
-         zaRjCDkicpwZA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 0CAF9C561EE;
-        Sat, 23 Sep 2023 19:08:14 +0000 (UTC)
-Subject: Re: [GIT PULL] hotfixes for 6.6-rc3
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <20230923103530.4df4257fc2b80c97a52b55b6@linux-foundation.org>
-References: <20230923103530.4df4257fc2b80c97a52b55b6@linux-foundation.org>
-X-PR-Tracked-List-Id: <linux-mm.kvack.org>
-X-PR-Tracked-Message-Id: <20230923103530.4df4257fc2b80c97a52b55b6@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-09-23-10-31
-X-PR-Tracked-Commit-Id: fe4419801617514765974f3e796269bc512ad146
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 85eba5f1759f9eb89273225027254ced57bd18a2
-Message-Id: <169549609404.2215.9389176594640598180.pr-tracker-bot@kernel.org>
-Date:   Sat, 23 Sep 2023 19:08:14 +0000
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        mm-commits@vger.kernel.org, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0602C10A
+        for <mm-commits@vger.kernel.org>; Mon, 25 Sep 2023 07:49:24 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 925F9C433C8;
+        Mon, 25 Sep 2023 14:49:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1695653363;
+        bh=9B6W4qohCxmyH54Ww4suz8UpaiWd1yEd4c68ki3zCzA=;
+        h=Date:To:From:Subject:From;
+        b=NradYIzuTwvcz8pX7eak/TQKHvajG8bjqCAs32MQx8Tvjn3M9EzD3nThG8C4lu3bY
+         bKtMgZ09mqSaNL4WiWDjY6V1j6Jw3ZJB7oyc4A3nW7WCZM/KwFW6mZEt7rmcJQT/Sp
+         ELHEKsBEJftWNaOJ2/iOXHBTq3gmpDniq8/V7nks=
+Date:   Mon, 25 Sep 2023 07:49:22 -0700
+To:     mm-commits@vger.kernel.org, zephray@outlook.com,
+        thunder.leizhen@huawei.com, sunilvl@ventanamicro.com,
+        robh@kernel.org, paul.walmsley@sifive.com, palmer@dabbelt.com,
+        jszhang@kernel.org, conor.dooley@microchip.com, bjorn@rivosinc.com,
+        bhe@redhat.com, aou@eecs.berkeley.edu, alexghiti@rivosinc.com,
+        ajones@ventanamicro.com, chenjiahao16@huawei.com,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + riscv-kdump-use-generic-interface-to-simplify-crashkernel-reservation-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20230925144923.925F9C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-The pull request you sent on Sat, 23 Sep 2023 10:35:30 -0700:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-09-23-10-31
+The patch titled
+     Subject: riscv: kdump: fix crashkernel reserving problem on RISC-V
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     riscv-kdump-use-generic-interface-to-simplify-crashkernel-reservation-fix.patch
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/85eba5f1759f9eb89273225027254ced57bd18a2
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-kdump-use-generic-interface-to-simplify-crashkernel-reservation-fix.patch
 
-Thank you!
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Chen Jiahao <chenjiahao16@huawei.com>
+Subject: riscv: kdump: fix crashkernel reserving problem on RISC-V
+Date: Mon, 25 Sep 2023 10:43:33 +0800
+
+When testing on risc-v QEMU environment with "crashkernel="
+parameter enabled, a problem occurred with the following
+message:
+
+[    0.000000] crashkernel low memory reserved: 0xf8000000 - 0x100000000 (128 MB)
+[    0.000000] crashkernel reserved: 0x0000000177e00000 - 0x0000000277e00000 (4096 MB)
+[    0.000000] ------------[ cut here ]------------
+[    0.000000] WARNING: CPU: 0 PID: 0 at kernel/resource.c:779 __insert_resource+0x8e/0xd0
+[    0.000000] Modules linked in:
+[    0.000000] CPU: 0 PID: 0 Comm: swapper Not tainted 6.6.0-rc2-next-20230920 #1
+[    0.000000] Hardware name: riscv-virtio,qemu (DT)
+[    0.000000] epc : __insert_resource+0x8e/0xd0
+[    0.000000]  ra : insert_resource+0x28/0x4e
+[    0.000000] epc : ffffffff80017344 ra : ffffffff8001742e sp : ffffffff81203db0
+[    0.000000]  gp : ffffffff812ece98 tp : ffffffff8120dac0 t0 : ff600001f7ff2b00
+[    0.000000]  t1 : 0000000000000000 t2 : 3428203030303030 s0 : ffffffff81203dc0
+[    0.000000]  s1 : ffffffff81211e18 a0 : ffffffff81211e18 a1 : ffffffff81289380
+[    0.000000]  a2 : 0000000277dfffff a3 : 0000000177e00000 a4 : 0000000177e00000
+[    0.000000]  a5 : ffffffff81289380 a6 : 0000000277dfffff a7 : 0000000000000078
+[    0.000000]  s2 : ffffffff81289380 s3 : ffffffff80a0bac8 s4 : ff600001f7ff2880
+[    0.000000]  s5 : 0000000000000280 s6 : 8000000a00006800 s7 : 000000000000007f
+[    0.000000]  s8 : 0000000080017038 s9 : 0000000080038ea0 s10: 0000000000000000
+[    0.000000]  s11: 0000000000000000 t3 : ffffffff80a0bc00 t4 : ffffffff80a0bc00
+[    0.000000]  t5 : ffffffff80a0bbd0 t6 : ffffffff80a0bc00
+[    0.000000] status: 0000000200000100 badaddr: 0000000000000000 cause: 0000000000000003
+[    0.000000] [<ffffffff80017344>] __insert_resource+0x8e/0xd0
+[    0.000000] ---[ end trace 0000000000000000 ]---
+[    0.000000] Failed to add a Crash kernel resource at 177e00000
+
+The crashkernel memory has been allocated successfully, whereas
+it failed to insert into iomem_resource. This is due to the
+unique reserving logic in risc-v arch specific code, i.e.
+crashk_res/crashk_low_res will be added into iomem_resource
+later in init_resources(), which is not aligned with current
+unified reserving logic in reserve_crashkernel_{generic,low}()
+and therefore leads to the failure of crashkernel reservation.
+
+Removing the arch specific code within #ifdef CONFIG_KEXEC_CORE
+in init_resources() to fix above problem.
+
+Link: https://lkml.kernel.org/r/20230925024333.730964-1-chenjiahao16@huawei.com
+Fixes: 31549153088e ("riscv: kdump: use generic interface to simplify crashkernel reservation")
+Signed-off-by: Chen Jiahao <chenjiahao16@huawei.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
+Cc: Andrew Jones <ajones@ventanamicro.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Björn Töpel <bjorn@rivosinc.com>
+Cc: Conor Dooley <conor.dooley@microchip.com>
+Cc: Jisheng Zhang <jszhang@kernel.org>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Rob Herring <robh@kernel.org>
+Cc: Sunil V L <sunilvl@ventanamicro.com>
+Cc: Wenting Zhang <zephray@outlook.com>
+Cc: Zhen Lei <thunder.leizhen@huawei.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ arch/riscv/kernel/setup.c |   13 -------------
+ 1 file changed, 13 deletions(-)
+
+--- a/arch/riscv/kernel/setup.c~riscv-kdump-use-generic-interface-to-simplify-crashkernel-reservation-fix
++++ a/arch/riscv/kernel/setup.c
+@@ -173,19 +173,6 @@ static void __init init_resources(void)
+ 	if (ret < 0)
+ 		goto error;
+ 
+-#ifdef CONFIG_KEXEC_CORE
+-	if (crashk_res.start != crashk_res.end) {
+-		ret = add_resource(&iomem_resource, &crashk_res);
+-		if (ret < 0)
+-			goto error;
+-	}
+-	if (crashk_low_res.start != crashk_low_res.end) {
+-		ret = add_resource(&iomem_resource, &crashk_low_res);
+-		if (ret < 0)
+-			goto error;
+-	}
+-#endif
+-
+ #ifdef CONFIG_CRASH_DUMP
+ 	if (elfcorehdr_size > 0) {
+ 		elfcorehdr_res.start = elfcorehdr_addr;
+_
+
+Patches currently in -mm which might be from chenjiahao16@huawei.com are
+
+riscv-kdump-use-generic-interface-to-simplify-crashkernel-reservation-fix.patch
+
