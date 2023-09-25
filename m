@@ -2,38 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DD13CE7A81
-	for <mm-commits@archiver.kernel.org>; Mon, 25 Sep 2023 14:49:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C7A5CE7A95
+	for <mm-commits@archiver.kernel.org>; Mon, 25 Sep 2023 14:55:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232388AbjIYOtc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 25 Sep 2023 10:49:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55344 "EHLO
+        id S231715AbjIYOz0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 25 Sep 2023 10:55:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36838 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232364AbjIYOta (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Sep 2023 10:49:30 -0400
+        with ESMTP id S232395AbjIYOz0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 25 Sep 2023 10:55:26 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0602C10A
-        for <mm-commits@vger.kernel.org>; Mon, 25 Sep 2023 07:49:24 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 925F9C433C8;
-        Mon, 25 Sep 2023 14:49:23 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9647D10D;
+        Mon, 25 Sep 2023 07:55:19 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D000C433C7;
+        Mon, 25 Sep 2023 14:55:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695653363;
-        bh=9B6W4qohCxmyH54Ww4suz8UpaiWd1yEd4c68ki3zCzA=;
+        s=korg; t=1695653719;
+        bh=CVFyjEfwtWHCPvQV11TeR5X613S7x2bWLOmnUCpNc+s=;
         h=Date:To:From:Subject:From;
-        b=NradYIzuTwvcz8pX7eak/TQKHvajG8bjqCAs32MQx8Tvjn3M9EzD3nThG8C4lu3bY
-         bKtMgZ09mqSaNL4WiWDjY6V1j6Jw3ZJB7oyc4A3nW7WCZM/KwFW6mZEt7rmcJQT/Sp
-         ELHEKsBEJftWNaOJ2/iOXHBTq3gmpDniq8/V7nks=
-Date:   Mon, 25 Sep 2023 07:49:22 -0700
-To:     mm-commits@vger.kernel.org, zephray@outlook.com,
-        thunder.leizhen@huawei.com, sunilvl@ventanamicro.com,
-        robh@kernel.org, paul.walmsley@sifive.com, palmer@dabbelt.com,
-        jszhang@kernel.org, conor.dooley@microchip.com, bjorn@rivosinc.com,
-        bhe@redhat.com, aou@eecs.berkeley.edu, alexghiti@rivosinc.com,
-        ajones@ventanamicro.com, chenjiahao16@huawei.com,
+        b=P5+rvEYyk3uAc2Q87ci/gSEzr2OTGkcnrWZbbGSyVBcYp5/PzUsHWkYhHKNfAVWzU
+         yS1V6vSnflcg27tsPfogNaZMqEBydBA0rmljs4vYS8IL36i9tRC1AswHmRmKPGrfDc
+         083w8mPL4p7+ngwQmWg1JjB66787dt9aPE9N3pDg=
+Date:   Mon, 25 Sep 2023 07:55:18 -0700
+To:     mm-commits@vger.kernel.org, tj@kernel.org, stable@vger.kernel.org,
+        shakeelb@google.com, roman.gushchin@linux.dev,
+        muchun.song@linux.dev, jpiotrowski@linux.microsoft.com,
+        hannes@cmpxchg.org, gregkh@linuxfoundation.org, mhocko@suse.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + riscv-kdump-use-generic-interface-to-simplify-crashkernel-reservation-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20230925144923.925F9C433C8@smtp.kernel.org>
+Subject: + mm-memcg-reconsider-kmemlimit_in_bytes-deprecation.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230925145519.0D000C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: riscv: kdump: fix crashkernel reserving problem on RISC-V
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     riscv-kdump-use-generic-interface-to-simplify-crashkernel-reservation-fix.patch
+     Subject: mm, memcg: reconsider kmem.limit_in_bytes deprecation
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-memcg-reconsider-kmemlimit_in_bytes-deprecation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-kdump-use-generic-interface-to-simplify-crashkernel-reservation-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-reconsider-kmemlimit_in_bytes-deprecation.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -64,97 +62,112 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Chen Jiahao <chenjiahao16@huawei.com>
-Subject: riscv: kdump: fix crashkernel reserving problem on RISC-V
-Date: Mon, 25 Sep 2023 10:43:33 +0800
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, memcg: reconsider kmem.limit_in_bytes deprecation
+Date: Thu, 21 Sep 2023 09:38:29 +0200
 
-When testing on risc-v QEMU environment with "crashkernel="
-parameter enabled, a problem occurred with the following
-message:
+This reverts commits 86327e8eb94c ("memcg: drop kmem.limit_in_bytes") and
+partially reverts 58056f77502f ("memcg, kmem: further deprecate
+kmem.limit_in_bytes") which have incrementally removed support for the
+kernel memory accounting hard limit.  Unfortunately it has turned out that
+there is still userspace depending on the existence of
+memory.kmem.limit_in_bytes [1].  The underlying functionality is not
+really required but the non-existent file just confuses the userspace
+which fails in the result.  The patch to fix this on the userspace side
+has been submitted but it is hard to predict how it will propagate through
+the maze of 3rd party consumers of the software.
 
-[    0.000000] crashkernel low memory reserved: 0xf8000000 - 0x100000000 (128 MB)
-[    0.000000] crashkernel reserved: 0x0000000177e00000 - 0x0000000277e00000 (4096 MB)
-[    0.000000] ------------[ cut here ]------------
-[    0.000000] WARNING: CPU: 0 PID: 0 at kernel/resource.c:779 __insert_resource+0x8e/0xd0
-[    0.000000] Modules linked in:
-[    0.000000] CPU: 0 PID: 0 Comm: swapper Not tainted 6.6.0-rc2-next-20230920 #1
-[    0.000000] Hardware name: riscv-virtio,qemu (DT)
-[    0.000000] epc : __insert_resource+0x8e/0xd0
-[    0.000000]  ra : insert_resource+0x28/0x4e
-[    0.000000] epc : ffffffff80017344 ra : ffffffff8001742e sp : ffffffff81203db0
-[    0.000000]  gp : ffffffff812ece98 tp : ffffffff8120dac0 t0 : ff600001f7ff2b00
-[    0.000000]  t1 : 0000000000000000 t2 : 3428203030303030 s0 : ffffffff81203dc0
-[    0.000000]  s1 : ffffffff81211e18 a0 : ffffffff81211e18 a1 : ffffffff81289380
-[    0.000000]  a2 : 0000000277dfffff a3 : 0000000177e00000 a4 : 0000000177e00000
-[    0.000000]  a5 : ffffffff81289380 a6 : 0000000277dfffff a7 : 0000000000000078
-[    0.000000]  s2 : ffffffff81289380 s3 : ffffffff80a0bac8 s4 : ff600001f7ff2880
-[    0.000000]  s5 : 0000000000000280 s6 : 8000000a00006800 s7 : 000000000000007f
-[    0.000000]  s8 : 0000000080017038 s9 : 0000000080038ea0 s10: 0000000000000000
-[    0.000000]  s11: 0000000000000000 t3 : ffffffff80a0bc00 t4 : ffffffff80a0bc00
-[    0.000000]  t5 : ffffffff80a0bbd0 t6 : ffffffff80a0bc00
-[    0.000000] status: 0000000200000100 badaddr: 0000000000000000 cause: 0000000000000003
-[    0.000000] [<ffffffff80017344>] __insert_resource+0x8e/0xd0
-[    0.000000] ---[ end trace 0000000000000000 ]---
-[    0.000000] Failed to add a Crash kernel resource at 177e00000
+Now, reverting alone 86327e8eb94c is not an option because there is
+another set of userspace which cannot cope with ENOTSUPP returned when
+writing to the file.  Therefore we have to go and revisit 58056f77502f as
+well.  There are two ways to go ahead.  Either we give up on the
+deprecation and fully revert 58056f77502f as well or we can keep
+kmem.limit_in_bytes but make the write a noop and warn about the fact. 
+This should work for both known breaking workloads which depend on the
+existence but do not depend on the hard limit enforcement.
 
-The crashkernel memory has been allocated successfully, whereas
-it failed to insert into iomem_resource. This is due to the
-unique reserving logic in risc-v arch specific code, i.e.
-crashk_res/crashk_low_res will be added into iomem_resource
-later in init_resources(), which is not aligned with current
-unified reserving logic in reserve_crashkernel_{generic,low}()
-and therefore leads to the failure of crashkernel reservation.
+Note to backporters to stable trees.  a8c49af3be5f ("memcg: add per-memcg
+total kernel memory stat") introduced in 4.18 has added memcg_account_kmem
+so the accounting is not done by obj_cgroup_charge_pages directly for v1
+anymore.  Prior kernels need to add it explicitly (thanks to Johannes for
+pointing this out).
 
-Removing the arch specific code within #ifdef CONFIG_KEXEC_CORE
-in init_resources() to fix above problem.
-
-Link: https://lkml.kernel.org/r/20230925024333.730964-1-chenjiahao16@huawei.com
-Fixes: 31549153088e ("riscv: kdump: use generic interface to simplify crashkernel reservation")
-Signed-off-by: Chen Jiahao <chenjiahao16@huawei.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
-Cc: Andrew Jones <ajones@ventanamicro.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Björn Töpel <bjorn@rivosinc.com>
-Cc: Conor Dooley <conor.dooley@microchip.com>
-Cc: Jisheng Zhang <jszhang@kernel.org>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Rob Herring <robh@kernel.org>
-Cc: Sunil V L <sunilvl@ventanamicro.com>
-Cc: Wenting Zhang <zephray@outlook.com>
-Cc: Zhen Lei <thunder.leizhen@huawei.com>
+Link: http://lkml.kernel.org/r/20230920081101.GA12096@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net [1]
+Link: https://lkml.kernel.org/r/ZRE5VJozPZt9bRPy@dhcp22.suse.cz
+Fixes: 86327e8eb94c ("memcg: drop kmem.limit_in_bytes")
+Fixes: 58056f77502f ("memcg, kmem: further deprecate kmem.limit_in_bytes")
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jeremi Piotrowski <jpiotrowski@linux.microsoft.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Tejun heo <tj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/kernel/setup.c |   13 -------------
- 1 file changed, 13 deletions(-)
+ Documentation/admin-guide/cgroup-v1/memory.rst |    7 +++++++
+ mm/memcontrol.c                                |   14 ++++++++++++++
+ 2 files changed, 21 insertions(+)
 
---- a/arch/riscv/kernel/setup.c~riscv-kdump-use-generic-interface-to-simplify-crashkernel-reservation-fix
-+++ a/arch/riscv/kernel/setup.c
-@@ -173,19 +173,6 @@ static void __init init_resources(void)
- 	if (ret < 0)
- 		goto error;
+--- a/Documentation/admin-guide/cgroup-v1/memory.rst~mm-memcg-reconsider-kmemlimit_in_bytes-deprecation
++++ a/Documentation/admin-guide/cgroup-v1/memory.rst
+@@ -92,6 +92,13 @@ Brief summary of control files.
+  memory.oom_control		     set/show oom controls.
+  memory.numa_stat		     show the number of memory usage per numa
+ 				     node
++ memory.kmem.limit_in_bytes          Deprecated knob to set and read the kernel
++                                     memory hard limit. Kernel hard limit is not
++                                     supported since 5.16. Writing any value to
++                                     do file will not have any effect same as if
++                                     nokmem kernel parameter was specified.
++                                     Kernel memory is still charged and reported
++                                     by memory.kmem.usage_in_bytes.
+  memory.kmem.usage_in_bytes          show current kernel memory allocation
+  memory.kmem.failcnt                 show the number of kernel memory usage
+ 				     hits limits
+--- a/mm/memcontrol.c~mm-memcg-reconsider-kmemlimit_in_bytes-deprecation
++++ a/mm/memcontrol.c
+@@ -3097,6 +3097,7 @@ static void obj_cgroup_uncharge_pages(st
+ static int obj_cgroup_charge_pages(struct obj_cgroup *objcg, gfp_t gfp,
+ 				   unsigned int nr_pages)
+ {
++	struct page_counter *counter;
+ 	struct mem_cgroup *memcg;
+ 	int ret;
  
--#ifdef CONFIG_KEXEC_CORE
--	if (crashk_res.start != crashk_res.end) {
--		ret = add_resource(&iomem_resource, &crashk_res);
--		if (ret < 0)
--			goto error;
--	}
--	if (crashk_low_res.start != crashk_low_res.end) {
--		ret = add_resource(&iomem_resource, &crashk_low_res);
--		if (ret < 0)
--			goto error;
--	}
--#endif
--
- #ifdef CONFIG_CRASH_DUMP
- 	if (elfcorehdr_size > 0) {
- 		elfcorehdr_res.start = elfcorehdr_addr;
+@@ -3867,6 +3868,13 @@ static ssize_t mem_cgroup_write(struct k
+ 		case _MEMSWAP:
+ 			ret = mem_cgroup_resize_max(memcg, nr_pages, true);
+ 			break;
++		case _KMEM:
++			pr_warn_once("kmem.limit_in_bytes is deprecated and will be removed. "
++				     "Writing any value to this file has no effect. "
++				     "Please report your usecase to linux-mm@kvack.org if you "
++				     "depend on this functionality.\n");
++			ret = 0;
++			break;
+ 		case _TCP:
+ 			ret = memcg_update_tcp_max(memcg, nr_pages);
+ 			break;
+@@ -5078,6 +5086,12 @@ static struct cftype mem_cgroup_legacy_f
+ 	},
+ #endif
+ 	{
++		.name = "kmem.limit_in_bytes",
++		.private = MEMFILE_PRIVATE(_KMEM, RES_LIMIT),
++		.write = mem_cgroup_write,
++		.read_u64 = mem_cgroup_read_u64,
++	},
++	{
+ 		.name = "kmem.usage_in_bytes",
+ 		.private = MEMFILE_PRIVATE(_KMEM, RES_USAGE),
+ 		.read_u64 = mem_cgroup_read_u64,
 _
 
-Patches currently in -mm which might be from chenjiahao16@huawei.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-riscv-kdump-use-generic-interface-to-simplify-crashkernel-reservation-fix.patch
+mm-memcg-reconsider-kmemlimit_in_bytes-deprecation.patch
 
