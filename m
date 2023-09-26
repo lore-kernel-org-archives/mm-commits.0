@@ -2,33 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BA69E7F143
-	for <mm-commits@archiver.kernel.org>; Tue, 26 Sep 2023 23:30:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B545E7F144
+	for <mm-commits@archiver.kernel.org>; Tue, 26 Sep 2023 23:34:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232555AbjIZXaA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Sep 2023 19:30:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58344 "EHLO
+        id S229730AbjIZXeL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Sep 2023 19:34:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39202 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229478AbjIZX2A (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Sep 2023 19:28:00 -0400
+        with ESMTP id S232929AbjIZXcK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Sep 2023 19:32:10 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D2461F9CE
-        for <mm-commits@vger.kernel.org>; Tue, 26 Sep 2023 15:32:20 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2687DC433BA;
-        Tue, 26 Sep 2023 21:13:24 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 82C9B228BA
+        for <mm-commits@vger.kernel.org>; Tue, 26 Sep 2023 15:37:20 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 843EFC43140;
+        Tue, 26 Sep 2023 21:18:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695762804;
-        bh=XuzFFiT0iFk2TL2Qs6JWYLWqh2UZlE4+8Y5PFjo+0o0=;
+        s=korg; t=1695763100;
+        bh=vEOi5fDCy7r1OM4+LznpPsasqpkwZTSG7PrQxH/GY2k=;
         h=Date:To:From:Subject:From;
-        b=WA9SjTCJRtw+3KpOzH1aysMJV4Vmo0KGz2+M5VF5uUD5h51O2MzJhOchkvGPuts5L
-         b+6ny2oe+OVYR3F0TpSMSALLYq1bU5Su/eDNtrAJZkXx7sH96Y/V/4KMQB+TBd0/ng
-         pS/mnM0DMAArALLu7V7Z0OLiCHr24Jrr+xyyU098=
-Date:   Tue, 26 Sep 2023 14:13:23 -0700
-To:     mm-commits@vger.kernel.org, riel@surriel.com, hannes@cmpxchg.org,
-        david@redhat.com, shr@devkernel.io, akpm@linux-foundation.org
+        b=g+8Mdd7nluDLicNYdDAsvPjMFh0nuTIpU12PDhmb7H8QpLSVvGlqNINha4YVjGsJS
+         HgJeDRiEwY1Ls1mrK6nwPU4dk/LrA2k+PDgrXkWotWiG9UUBwMnHQR3fRn+OS9YAyO
+         lu66gfStduFyYDBwrNutOTEpDCpVGTUnMxcgxfxk=
+Date:   Tue, 26 Sep 2023 14:18:19 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        muchun.song@linux.dev, mike.kravetz@oracle.com, riel@surriel.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-ksm-add-smart-page-scanning-mode.patch added to mm-unstable branch
-Message-Id: <20230926211324.2687DC433BA@smtp.kernel.org>
+Subject: + hugetlbfs-close-race-between-madv_dontneed-and-page-fault.patch added to mm-unstable branch
+Message-Id: <20230926211820.843EFC43140@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/ksm: add "smart" page scanning mode
+     Subject: hugetlbfs: close race between MADV_DONTNEED and page fault
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-ksm-add-smart-page-scanning-mode.patch
+     hugetlbfs-close-race-between-madv_dontneed-and-page-fault.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-add-smart-page-scanning-mode.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlbfs-close-race-between-madv_dontneed-and-page-fault.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,268 +60,207 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Stefan Roesch <shr@devkernel.io>
-Subject: mm/ksm: add "smart" page scanning mode
-Date: Mon, 25 Sep 2023 21:09:36 -0700
+From: Rik van Riel <riel@surriel.com>
+Subject: hugetlbfs: close race between MADV_DONTNEED and page fault
+Date: Mon, 25 Sep 2023 23:10:51 -0400
 
-Patch series "Smart scanning mode for KSM", v3.
+Malloc libraries, like jemalloc and tcalloc, take decisions on when to
+call madvise independently from the code in the main application.
 
-This patch series adds "smart scanning" for KSM.
+This sometimes results in the application page faulting on an address,
+right after the malloc library has shot down the backing memory with
+MADV_DONTNEED.
 
-What is smart scanning?
-=======================
-KSM evaluates all the candidate pages for each scan. It does not use historic
-information from previous scans. This has the effect that candidate pages that
-couldn't be used for KSM de-duplication continue to be evaluated for each scan.
+Usually this is harmless, because we always have some 4kB pages sitting
+around to satisfy a page fault.  However, with hugetlbfs systems often
+allocate only the exact number of huge pages that the application wants.
 
-The idea of "smart scanning" is to keep historic information. With the historic
-information we can temporarily skip the candidate page for one or several scans.
+Due to TLB batching, hugetlbfs MADV_DONTNEED will free pages outside of
+any lock taken on the page fault path, which can open up the following
+race condition:
 
-Details:
-========
-"Smart scanning" is to keep two small counters to store if the page has been
-used for KSM. One counter stores how often we already tried to use the page for
-KSM and the other counter stores how often we skip a page.
+       CPU 1                            CPU 2
 
-How often we skip the candidate page depends how often a page failed KSM
-de-duplication. The code skips a maximum of 8 times. During testing this has
-shown to be a good compromise for different workloads.
+       MADV_DONTNEED
+       unmap page
+       shoot down TLB entry
+                                       page fault
+                                       fail to allocate a huge page
+                                       killed with SIGBUS
+       free page
 
-New sysfs knob:
-===============
-Smart scanning is not enabled by default. With /sys/kernel/mm/ksm/smart_scan
-smart scanning can be enabled.
+Fix that race by pulling the locking from __unmap_hugepage_final_range
+into helper functions called from zap_page_range_single.  This ensures
+page faults stay locked out of the MADV_DONTNEED VMA until the huge pages
+have actually been freed.
 
-Monitoring:
-===========
-To monitor how effective smart scanning is a new sysfs knob has been introduced.
-/sys/kernel/mm/pages_skipped report how many pages have been skipped by smart
-scanning.
-
-Results:
-========
-- Various workloads have shown a 20% - 25% reduction in page scans
-  For the instagram workload for instance, the number of pages scanned has been
-  reduced from over 20M pages per scan to less than 15M pages.
-- Less pages scans also resulted in an overall higher de-duplication rate as
-  some shorter lived pages could be de-duplicated additionally
-- Less pages scanned allows to reduce the pages_to_scan parameter
-  and this resulted in  a 25% reduction in terms of CPU.
-- The improvements have been observed for workloads that enable KSM with
-  madvise as well as prctl
-
-
-This patch (of 4):
-
-This change adds a "smart" page scanning mode for KSM.  So far all the
-candidate pages are continuously scanned to find candidates for
-de-duplication.  There are a considerably number of pages that cannot be
-de-duplicated.  This is costly in terms of CPU.  By using smart scanning
-considerable CPU savings can be achieved.
-
-This change takes the history of scanning pages into account and skips the
-page scanning of certain pages for a while if de-deduplication for this
-page has not been successful in the past.
-
-To do this it introduces two new fields in the ksm_rmap_item structure:
-age and remaining_skips.  age, is the KSM age and remaining_skips
-determines how often scanning of this page is skipped.  The age field is
-incremented each time the page is scanned and the page cannot be de-
-duplicated.  age updated is capped at U8_MAX.
-
-How often a page is skipped is dependent how often de-duplication has been
-tried so far and the number of skips is currently limited to 8.  This
-value has shown to be effective with different workloads.
-
-The feature is currently disable by default and can be enabled with the
-new smart_scan knob.
-
-The feature has shown to be very effective: upt to 25% of the page scans
-can be eliminated; the pages_to_scan rate can be reduced by 40 - 50% and a
-similar de-duplication rate can be maintained.
-
-Link: https://lkml.kernel.org/r/20230926040939.516161-1-shr@devkernel.io
-Link: https://lkml.kernel.org/r/20230926040939.516161-2-shr@devkernel.io
-Signed-off-by: Stefan Roesch <shr@devkernel.io>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Stefan Roesch <shr@devkernel.io>
+Link: https://lkml.kernel.org/r/20230926031245.795759-3-riel@surriel.com
+Signed-off-by: Rik van Riel <riel@surriel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |  103 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 103 insertions(+)
+ include/linux/hugetlb.h |   35 +++++++++++++++++++++++++++++++++--
+ mm/hugetlb.c            |   20 +++++++++++---------
+ mm/memory.c             |   13 ++++++++-----
+ 3 files changed, 52 insertions(+), 16 deletions(-)
 
---- a/mm/ksm.c~mm-ksm-add-smart-page-scanning-mode
-+++ a/mm/ksm.c
-@@ -56,6 +56,8 @@
- #define DO_NUMA(x)	do { } while (0)
- #endif
+--- a/include/linux/hugetlb.h~hugetlbfs-close-race-between-madv_dontneed-and-page-fault
++++ a/include/linux/hugetlb.h
+@@ -139,7 +139,7 @@ struct page *hugetlb_follow_page_mask(st
+ void unmap_hugepage_range(struct vm_area_struct *,
+ 			  unsigned long, unsigned long, struct page *,
+ 			  zap_flags_t);
+-void __unmap_hugepage_range_final(struct mmu_gather *tlb,
++void __unmap_hugepage_range(struct mmu_gather *tlb,
+ 			  struct vm_area_struct *vma,
+ 			  unsigned long start, unsigned long end,
+ 			  struct page *ref_page, zap_flags_t zap_flags);
+@@ -246,6 +246,25 @@ int huge_pmd_unshare(struct mm_struct *m
+ void adjust_range_if_pmd_sharing_possible(struct vm_area_struct *vma,
+ 				unsigned long *start, unsigned long *end);
  
-+typedef u8 rmap_age_t;
++extern void __hugetlb_zap_begin(struct vm_area_struct *vma,
++				unsigned long *begin, unsigned long *end);
++extern void __hugetlb_zap_end(struct vm_area_struct *vma,
++			      struct zap_details *details);
 +
- /**
-  * DOC: Overview
-  *
-@@ -193,6 +195,8 @@ struct ksm_stable_node {
-  * @node: rb node of this rmap_item in the unstable tree
-  * @head: pointer to stable_node heading this list in the stable tree
-  * @hlist: link into hlist of rmap_items hanging off that stable_node
-+ * @age: number of scan iterations since creation
-+ * @remaining_skips: how many scans to skip
-  */
- struct ksm_rmap_item {
- 	struct ksm_rmap_item *rmap_list;
-@@ -205,6 +209,8 @@ struct ksm_rmap_item {
- 	struct mm_struct *mm;
- 	unsigned long address;		/* + low bits used for flags below */
- 	unsigned int oldchecksum;	/* when unstable */
-+	rmap_age_t age;
-+	rmap_age_t remaining_skips;
- 	union {
- 		struct rb_node node;	/* when node of unstable tree */
- 		struct {		/* when listed from stable tree */
-@@ -281,6 +287,9 @@ static unsigned int zero_checksum __read
- /* Whether to merge empty (zeroed) pages with actual zero pages */
- static bool ksm_use_zero_pages __read_mostly;
- 
-+/* Skip pages that couldn't be de-duplicated previously  */
-+static bool ksm_smart_scan;
-+
- /* The number of zero pages which is placed by KSM */
- unsigned long ksm_zero_pages;
- 
-@@ -2305,6 +2314,73 @@ static struct ksm_rmap_item *get_next_rm
- 	return rmap_item;
- }
- 
-+/*
-+ * Calculate skip age for the ksm page age. The age determines how often
-+ * de-duplicating has already been tried unsuccessfully. If the age is
-+ * smaller, the scanning of this page is skipped for less scans.
-+ *
-+ * @age: rmap_item age of page
-+ */
-+static unsigned int skip_age(rmap_age_t age)
++static inline void hugetlb_zap_begin(struct vm_area_struct *vma,
++				     unsigned long *start, unsigned long *end)
 +{
-+	if (age <= 3)
-+		return 1;
-+	if (age <= 5)
-+		return 2;
-+	if (age <= 8)
-+		return 4;
-+
-+	return 8;
++	if (is_vm_hugetlb_page(vma))
++		__hugetlb_zap_begin(vma, start, end);
 +}
 +
-+/*
-+ * Determines if a page should be skipped for the current scan.
-+ *
-+ * @page: page to check
-+ * @rmap_item: associated rmap_item of page
-+ */
-+static bool should_skip_rmap_item(struct page *page,
-+				  struct ksm_rmap_item *rmap_item)
++static inline void hugetlb_zap_end(struct vm_area_struct *vma,
++				   struct zap_details *details)
 +{
-+	rmap_age_t age;
-+
-+	if (!ksm_smart_scan)
-+		return false;
-+
-+	/*
-+	 * Never skip pages that are already KSM; pages cmp_and_merge_page()
-+	 * will essentially ignore them, but we still have to process them
-+	 * properly.
-+	 */
-+	if (PageKsm(page))
-+		return false;
-+
-+	age = rmap_item->age;
-+	if (age != U8_MAX)
-+		rmap_item->age++;
-+
-+	/*
-+	 * Smaller ages are not skipped, they need to get a chance to go
-+	 * through the different phases of the KSM merging.
-+	 */
-+	if (age < 3)
-+		return false;
-+
-+	/*
-+	 * Are we still allowed to skip? If not, then don't skip it
-+	 * and determine how much more often we are allowed to skip next.
-+	 */
-+	if (!rmap_item->remaining_skips) {
-+		rmap_item->remaining_skips = skip_age(age);
-+		return false;
-+	}
-+
-+	/* Skip this page */
-+	rmap_item->remaining_skips--;
-+	remove_rmap_item_from_tree(rmap_item);
-+	return true;
++	if (is_vm_hugetlb_page(vma))
++		__hugetlb_zap_end(vma, details);
 +}
 +
- static struct ksm_rmap_item *scan_get_next_rmap_item(struct page **page)
+ void hugetlb_vma_lock_read(struct vm_area_struct *vma);
+ void hugetlb_vma_unlock_read(struct vm_area_struct *vma);
+ void hugetlb_vma_lock_write(struct vm_area_struct *vma);
+@@ -298,6 +317,18 @@ static inline void adjust_range_if_pmd_s
  {
- 	struct mm_struct *mm;
-@@ -2409,6 +2485,10 @@ next_mm:
- 				if (rmap_item) {
- 					ksm_scan.rmap_list =
- 							&rmap_item->rmap_list;
-+
-+					if (should_skip_rmap_item(*page, rmap_item))
-+						goto next_page;
-+
- 					ksm_scan.address += PAGE_SIZE;
- 				} else
- 					put_page(*page);
-@@ -3449,6 +3529,28 @@ static ssize_t full_scans_show(struct ko
  }
- KSM_ATTR_RO(full_scans);
  
-+static ssize_t smart_scan_show(struct kobject *kobj,
-+			       struct kobj_attribute *attr, char *buf)
++static inline void hugetlb_zap_begin(
++				struct vm_area_struct *vma,
++				unsigned long *start, unsigned long *end)
 +{
-+	return sysfs_emit(buf, "%u\n", ksm_smart_scan);
 +}
 +
-+static ssize_t smart_scan_store(struct kobject *kobj,
-+				struct kobj_attribute *attr,
-+				const char *buf, size_t count)
++static inline void hugetlb_zap_end(
++				struct vm_area_struct *vma,
++				struct zap_details *details)
 +{
-+	int err;
-+	bool value;
-+
-+	err = kstrtobool(buf, &value);
-+	if (err)
-+		return -EINVAL;
-+
-+	ksm_smart_scan = value;
-+	return count;
 +}
-+KSM_ATTR(smart_scan);
 +
- static struct attribute *ksm_attrs[] = {
- 	&sleep_millisecs_attr.attr,
- 	&pages_to_scan_attr.attr,
-@@ -3469,6 +3571,7 @@ static struct attribute *ksm_attrs[] = {
- 	&stable_node_chains_prune_millisecs_attr.attr,
- 	&use_zero_pages_attr.attr,
- 	&general_profit_attr.attr,
-+	&smart_scan_attr.attr,
- 	NULL,
- };
+ static inline struct page *hugetlb_follow_page_mask(
+     struct vm_area_struct *vma, unsigned long address, unsigned int flags,
+     unsigned int *page_mask)
+@@ -443,7 +474,7 @@ static inline long hugetlb_change_protec
+ 	return 0;
+ }
  
+-static inline void __unmap_hugepage_range_final(struct mmu_gather *tlb,
++static inline void __unmap_hugepage_range(struct mmu_gather *tlb,
+ 			struct vm_area_struct *vma, unsigned long start,
+ 			unsigned long end, struct page *ref_page,
+ 			zap_flags_t zap_flags)
+--- a/mm/hugetlb.c~hugetlbfs-close-race-between-madv_dontneed-and-page-fault
++++ a/mm/hugetlb.c
+@@ -5348,9 +5348,9 @@ int move_hugetlb_page_tables(struct vm_a
+ 	return len + old_addr - old_end;
+ }
+ 
+-static void __unmap_hugepage_range(struct mmu_gather *tlb, struct vm_area_struct *vma,
+-				   unsigned long start, unsigned long end,
+-				   struct page *ref_page, zap_flags_t zap_flags)
++void __unmap_hugepage_range(struct mmu_gather *tlb, struct vm_area_struct *vma,
++			    unsigned long start, unsigned long end,
++			    struct page *ref_page, zap_flags_t zap_flags)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	unsigned long address;
+@@ -5479,16 +5479,18 @@ static void __unmap_hugepage_range(struc
+ 		tlb_flush_mmu_tlbonly(tlb);
+ }
+ 
+-void __unmap_hugepage_range_final(struct mmu_gather *tlb,
+-			  struct vm_area_struct *vma, unsigned long start,
+-			  unsigned long end, struct page *ref_page,
+-			  zap_flags_t zap_flags)
++void __hugetlb_zap_begin(struct vm_area_struct *vma,
++			 unsigned long *start, unsigned long *end)
+ {
++	adjust_range_if_pmd_sharing_possible(vma, start, end);
+ 	hugetlb_vma_lock_write(vma);
+ 	i_mmap_lock_write(vma->vm_file->f_mapping);
++}
+ 
+-	/* mmu notification performed in caller */
+-	__unmap_hugepage_range(tlb, vma, start, end, ref_page, zap_flags);
++void __hugetlb_zap_end(struct vm_area_struct *vma,
++		       struct zap_details *details)
++{
++	zap_flags_t zap_flags = details ? details->zap_flags : 0;
+ 
+ 	if (zap_flags & ZAP_FLAG_UNMAP) {	/* final unmap */
+ 		/*
+--- a/mm/memory.c~hugetlbfs-close-race-between-madv_dontneed-and-page-fault
++++ a/mm/memory.c
+@@ -1692,7 +1692,7 @@ static void unmap_single_vma(struct mmu_
+ 			if (vma->vm_file) {
+ 				zap_flags_t zap_flags = details ?
+ 				    details->zap_flags : 0;
+-				__unmap_hugepage_range_final(tlb, vma, start, end,
++				__unmap_hugepage_range(tlb, vma, start, end,
+ 							     NULL, zap_flags);
+ 			}
+ 		} else
+@@ -1737,8 +1737,12 @@ void unmap_vmas(struct mmu_gather *tlb,
+ 				start_addr, end_addr);
+ 	mmu_notifier_invalidate_range_start(&range);
+ 	do {
+-		unmap_single_vma(tlb, vma, start_addr, end_addr, &details,
++		unsigned long start = start_addr;
++		unsigned long end = end_addr;
++		hugetlb_zap_begin(vma, &start, &end);
++		unmap_single_vma(tlb, vma, start, end, &details,
+ 				 mm_wr_locked);
++		hugetlb_zap_end(vma, &details);
+ 	} while ((vma = mas_find(mas, tree_end - 1)) != NULL);
+ 	mmu_notifier_invalidate_range_end(&range);
+ }
+@@ -1762,9 +1766,7 @@ void zap_page_range_single(struct vm_are
+ 	lru_add_drain();
+ 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma->vm_mm,
+ 				address, end);
+-	if (is_vm_hugetlb_page(vma))
+-		adjust_range_if_pmd_sharing_possible(vma, &range.start,
+-						     &range.end);
++	hugetlb_zap_begin(vma, &range.start, &range.end);
+ 	tlb_gather_mmu(&tlb, vma->vm_mm);
+ 	update_hiwater_rss(vma->vm_mm);
+ 	mmu_notifier_invalidate_range_start(&range);
+@@ -1775,6 +1777,7 @@ void zap_page_range_single(struct vm_are
+ 	unmap_single_vma(&tlb, vma, address, end, details, false);
+ 	mmu_notifier_invalidate_range_end(&range);
+ 	tlb_finish_mmu(&tlb);
++	hugetlb_zap_end(vma, details);
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from shr@devkernel.io are
+Patches currently in -mm which might be from riel@surriel.com are
 
-mm-ksm-support-fork-exec-for-prctl.patch
-mm-ksm-test-case-for-prctl-fork-exec-workflow.patch
-mm-ksm-add-smart-page-scanning-mode.patch
-mm-ksm-add-pages_skipped-metric.patch
-mm-ksm-document-smart-scan-mode.patch
-mm-ksm-document-pages_skipped-sysfs-knob.patch
+hugetlbfs-extend-hugetlb_vma_lock-to-private-vmas.patch
+hugetlbfs-close-race-between-madv_dontneed-and-page-fault.patch
+hugetlbfs-replace-hugetlb_vma_lock-with-invalidate_lock.patch
 
