@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AB2FE7F145
-	for <mm-commits@archiver.kernel.org>; Tue, 26 Sep 2023 23:17:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47ACFE7F145
+	for <mm-commits@archiver.kernel.org>; Tue, 26 Sep 2023 23:17:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229916AbjIZXRx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Sep 2023 19:17:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49754 "EHLO
+        id S231759AbjIZXR4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Sep 2023 19:17:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49806 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232515AbjIZXPw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Sep 2023 19:15:52 -0400
+        with ESMTP id S231222AbjIZXPz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Sep 2023 19:15:55 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4DF2A16EBC
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C8B416EAF
         for <mm-commits@vger.kernel.org>; Tue, 26 Sep 2023 15:17:20 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9D09C43395;
-        Tue, 26 Sep 2023 20:59:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 873B5C433D9;
+        Tue, 26 Sep 2023 20:59:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695761972;
-        bh=ewDR/wc4iXbuw+ZkwIEw6+xtaTb4yeOSFgk56PkjrKw=;
+        s=korg; t=1695761971;
+        bh=qN8dkTP+RRlzSXTaGDDgqYXo7Q74gY2HRhYthw/6bLM=;
         h=Date:To:From:Subject:From;
-        b=VJ8jvU3nVVMp4gOYNxTg9d5UvN0aOWzvEbBENtoBf7abZfif2nDjOC7y6yEB8MTuk
-         nybKl2lUAv4e/0g0jdj3jDz4qvMXU0OgLSDUoidJpwzT5Zs2VkVsR2F6S9Ggd1Ii6x
-         TszLN6KABKsRyc0qRtHlBF2tefRzqtIRrKkN6XJ0=
-Date:   Tue, 26 Sep 2023 13:59:31 -0700
+        b=ZmopbpewXSwQtz4f3cuCzmvdIGDxZ1b1qnapFUB3o37u0A3l4jFCi4CsuhzoGgUNe
+         wisRT2rlnSeJLoVonppeF8gDs/cOc8BPEZbM+3yQKEo+AzaJI52gJZGTagCEZvunDd
+         Mtc70GUQ+9tWan4WYt/HS/MDFAqMBa7w50oEtm8M=
+Date:   Tue, 26 Sep 2023 13:59:30 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         sudeep.holla@arm.com, pasha.tatashin@soleen.com, mhocko@suse.com,
         mgorman@techsingularity.net, jweiner@redhat.com, david@redhat.com,
         dave.hansen@linux.intel.com, cl@linux.com, arjan@linux.intel.com,
         ying.huang@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pcp-avoid-to-reduce-pcp-high-unnecessarily.patch added to mm-unstable branch
-Message-Id: <20230926205932.D9D09C43395@smtp.kernel.org>
+Subject: + mm-pcp-decrease-pcp-high-if-free-pages-high-watermark.patch added to mm-unstable branch
+Message-Id: <20230926205931.873B5C433D9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,12 +39,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, pcp: avoid to reduce PCP high unnecessarily
+     Subject: mm, pcp: decrease PCP high if free pages < high watermark
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-pcp-avoid-to-reduce-pcp-high-unnecessarily.patch
+     mm-pcp-decrease-pcp-high-if-free-pages-high-watermark.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pcp-avoid-to-reduce-pcp-high-unnecessarily.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pcp-decrease-pcp-high-if-free-pages-high-watermark.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -63,26 +63,25 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: mm, pcp: avoid to reduce PCP high unnecessarily
-Date: Tue, 26 Sep 2023 14:09:10 +0800
+Subject: mm, pcp: decrease PCP high if free pages < high watermark
+Date: Tue, 26 Sep 2023 14:09:09 +0800
 
-In PCP high auto-tuning algorithm, to minimize idle pages in PCP, in
-periodic vmstat updating kworker (via refresh_cpu_vm_stats()), we will
-decrease PCP high to try to free possible idle PCP pages.  One issue is
-that even if the page allocating/freeing depth is larger than maximal PCP
-high, we may reduce PCP high unnecessarily.
+One target of PCP is to minimize pages in PCP if the system free pages is
+too few.  To reach that target, when page reclaiming is active for the
+zone (ZONE_RECLAIM_ACTIVE), we will stop increasing PCP high in allocating
+path, decrease PCP high and free some pages in freeing path.  But this may
+be too late because the background page reclaiming may introduce latency
+for some workloads.  So, in this patch, during page allocation we will
+detect whether the number of free pages of the zone is below high
+watermark.  If so, we will stop increasing PCP high in allocating path,
+decrease PCP high and free some pages in freeing path.  With this, we can
+reduce the possibility of the premature background page reclaiming caused
+by too large PCP.
 
-To avoid the above issue, in this patch, we will track the minimal PCP
-page count.  And, the periodic PCP high decrement will not more than the
-recent minimal PCP page count.  So, only detected idle pages will be
-freed.
+The high watermark checking is done in allocating path to reduce the
+overhead in hotter freeing path.
 
-On a 2-socket Intel server with 224 logical CPU, we run 8 kbuild instances
-in parallel (each with `make -j 28`) in 8 cgroup.  This simulates the
-kbuild server that is used by 0-Day kbuild service.  With the patch, The
-number of pages allocated from zone (instead of from PCP) decreases 21.4%.
-
-Link: https://lkml.kernel.org/r/20230926060911.266511-10-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20230926060911.266511-9-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -99,65 +98,71 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  include/linux/mmzone.h |    1 +
- mm/page_alloc.c        |   15 ++++++++++-----
- 2 files changed, 11 insertions(+), 5 deletions(-)
+ mm/page_alloc.c        |   22 ++++++++++++++++++++--
+ 2 files changed, 21 insertions(+), 2 deletions(-)
 
---- a/include/linux/mmzone.h~mm-pcp-avoid-to-reduce-pcp-high-unnecessarily
+--- a/include/linux/mmzone.h~mm-pcp-decrease-pcp-high-if-free-pages-high-watermark
 +++ a/include/linux/mmzone.h
-@@ -694,6 +694,7 @@ enum zone_watermarks {
- struct per_cpu_pages {
- 	spinlock_t lock;	/* Protects lists field */
- 	int count;		/* number of pages in the list */
-+	int count_min;		/* minimal number of pages in the list recently */
- 	int high;		/* high watermark, emptying needed */
- 	int high_min;		/* min high watermark */
- 	int high_max;		/* max high watermark */
---- a/mm/page_alloc.c~mm-pcp-avoid-to-reduce-pcp-high-unnecessarily
+@@ -1018,6 +1018,7 @@ enum zone_flags {
+ 					 * Cleared when kswapd is woken.
+ 					 */
+ 	ZONE_RECLAIM_ACTIVE,		/* kswapd may be scanning the zone. */
++	ZONE_BELOW_HIGH,		/* zone is below high watermark. */
+ };
+ 
+ static inline unsigned long zone_managed_pages(struct zone *zone)
+--- a/mm/page_alloc.c~mm-pcp-decrease-pcp-high-if-free-pages-high-watermark
 +++ a/mm/page_alloc.c
-@@ -2196,19 +2196,20 @@ static int rmqueue_bulk(struct zone *zon
-  */
- int decay_pcp_high(struct zone *zone, struct per_cpu_pages *pcp)
- {
--	int high_min, to_drain, batch;
-+	int high_min, decrease, to_drain, batch;
- 	int todo = 0;
- 
- 	high_min = READ_ONCE(pcp->high_min);
- 	batch = READ_ONCE(pcp->batch);
- 	/*
--	 * Decrease pcp->high periodically to try to free possible
--	 * idle PCP pages.  And, avoid to free too many pages to
--	 * control latency.
-+	 * Decrease pcp->high periodically to free idle PCP pages counted
-+	 * via pcp->count_min.  And, avoid to free too many pages to
-+	 * control latency.  This caps pcp->high decrement too.
- 	 */
- 	if (pcp->high > high_min) {
-+		decrease = min(pcp->count_min, pcp->high / 5);
- 		pcp->high = max3(pcp->count - (batch << PCP_BATCH_SCALE_MAX),
--				 pcp->high * 4 / 5, high_min);
-+				 pcp->high - decrease, high_min);
- 		if (pcp->high > high_min)
- 			todo++;
- 	}
-@@ -2221,6 +2222,8 @@ int decay_pcp_high(struct zone *zone, st
- 		todo++;
+@@ -2439,7 +2439,13 @@ static int nr_pcp_high(struct per_cpu_pa
+ 		return min(batch << 2, pcp->high);
  	}
  
-+	pcp->count_min = pcp->count;
+-	if (pcp->count >= high && high_min != high_max) {
++	if (high_min == high_max)
++		return high;
 +
- 	return todo;
++	if (test_bit(ZONE_BELOW_HIGH, &zone->flags)) {
++		pcp->high = max(high - (batch << pcp->free_factor), high_min);
++		high = max(pcp->count, high_min);
++	} else if (pcp->count >= high) {
+ 		int need_high = (batch << pcp->free_factor) + batch;
+ 
+ 		/* pcp->high should be large enough to hold batch freed pages */
+@@ -2489,6 +2495,10 @@ static void free_unref_page_commit(struc
+ 	if (pcp->count >= high) {
+ 		free_pcppages_bulk(zone, nr_pcp_free(pcp, batch, high, free_high),
+ 				   pcp, pindex);
++		if (test_bit(ZONE_BELOW_HIGH, &zone->flags) &&
++		    zone_watermark_ok(zone, 0, high_wmark_pages(zone),
++				      ZONE_MOVABLE, 0))
++			clear_bit(ZONE_BELOW_HIGH, &zone->flags);
+ 	}
  }
  
-@@ -2858,6 +2861,8 @@ struct page *__rmqueue_pcplist(struct zo
- 		page = list_first_entry(list, struct page, pcp_list);
- 		list_del(&page->pcp_list);
- 		pcp->count -= 1 << order;
-+		if (pcp->count < pcp->count_min)
-+			pcp->count_min = pcp->count;
- 	} while (check_new_pages(page, order));
+@@ -2795,7 +2805,7 @@ static int nr_pcp_alloc(struct per_cpu_p
+ 	 * If we had larger pcp->high, we could avoid to allocate from
+ 	 * zone.
+ 	 */
+-	if (high_min != high_max && !test_bit(ZONE_RECLAIM_ACTIVE, &zone->flags))
++	if (high_min != high_max && !test_bit(ZONE_BELOW_HIGH, &zone->flags))
+ 		high = pcp->high = min(high + batch, high_max);
  
- 	return page;
+ 	if (!order) {
+@@ -3256,6 +3266,14 @@ retry:
+ 			}
+ 		}
+ 
++		mark = high_wmark_pages(zone);
++		if (zone_watermark_fast(zone, order, mark,
++					ac->highest_zoneidx, alloc_flags,
++					gfp_mask))
++			goto try_this_zone;
++		else if (!test_bit(ZONE_BELOW_HIGH, &zone->flags))
++			set_bit(ZONE_BELOW_HIGH, &zone->flags);
++
+ 		mark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK);
+ 		if (!zone_watermark_fast(zone, order, mark,
+ 				       ac->highest_zoneidx, alloc_flags,
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
