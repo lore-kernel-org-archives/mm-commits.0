@@ -2,38 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AA08E7F14A
-	for <mm-commits@archiver.kernel.org>; Tue, 26 Sep 2023 23:18:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2C90E7F148
+	for <mm-commits@archiver.kernel.org>; Tue, 26 Sep 2023 23:18:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232515AbjIZXSC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Sep 2023 19:18:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51258 "EHLO
+        id S231489AbjIZXSB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Sep 2023 19:18:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51354 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231859AbjIZXPz (ORCPT
+        with ESMTP id S232565AbjIZXPz (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Sep 2023 19:15:55 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4ACCE17819
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 67DE91781C
         for <mm-commits@vger.kernel.org>; Tue, 26 Sep 2023 15:17:23 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B7C7C116D5;
-        Tue, 26 Sep 2023 21:39:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 224F4C433CC;
+        Tue, 26 Sep 2023 20:59:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695764389;
-        bh=h8csv/L4ZSb9cQBhwOJJz/yQE602eDQ/umocsF/sSRk=;
+        s=korg; t=1695761970;
+        bh=fiDYvssmirhqVMa8IUTALgy9z3P0nvRdQFEz4d9X3HI=;
         h=Date:To:From:Subject:From;
-        b=op7+O9T5UOjx6NeEeERRsb6I9hKNMgjYo2dAPez27WDOVc6/e1U1wwSYVQWLzIdFt
-         NQCOwBoU4IspY0u1Csfb1Wn3kohXLtU4NsT8vGP7o0X+QeX2XRQSj4DiZP2ecN+FXz
-         bzK5yi/CiOp8L/r25lY6PhnxcPEkp7+/JOLRYRvs=
-Date:   Tue, 26 Sep 2023 14:39:48 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        songmuchun@bytedance.com, rientjes@google.com, osalvador@suse.de,
-        naoya.horiguchi@linux.dev, mike.kravetz@oracle.com,
-        mhocko@suse.com, linmiaohe@huawei.com, jthoughton@google.com,
-        duanxiongchun@bytedance.com, david@redhat.com,
-        anshuman.khandual@arm.com, joao.m.martins@oracle.com,
-        akpm@linux-foundation.org
+        b=1X0xGyysijf7L3+8iducUXoOWe//Ex8sn2mAB6Rn6h1c/JSpB0yfMaZ2OYJV1f2/W
+         rEj8Ls9Cz/zfbP5PJnrfKPvu8ydLgFBYD4CIvkcmdBTxcmkgIM8BXWAu+QDWJyqlIH
+         3lo3X/a9dfhOptxOsSvIM4hL2J3onSlgBV8wTIuA=
+Date:   Tue, 26 Sep 2023 13:59:28 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        sudeep.holla@arm.com, pasha.tatashin@soleen.com, mhocko@suse.com,
+        mgorman@techsingularity.net, jweiner@redhat.com, david@redhat.com,
+        dave.hansen@linux.intel.com, cl@linux.com, arjan@linux.intel.com,
+        ying.huang@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-batch-tlb-flushes-when-freeing-vmemmap.patch added to mm-unstable branch
-Message-Id: <20230926213949.7B7C7C116D5@smtp.kernel.org>
+Subject: + mm-tune-pcp-high-automatically.patch added to mm-unstable branch
+Message-Id: <20230926205930.224F4C433CC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +39,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: batch TLB flushes when freeing vmemmap
+     Subject: mm: tune PCP high automatically
 has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-batch-tlb-flushes-when-freeing-vmemmap.patch
+     mm-tune-pcp-high-automatically.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-batch-tlb-flushes-when-freeing-vmemmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-tune-pcp-high-automatically.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,177 +62,347 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Joao Martins <joao.m.martins@oracle.com>
-Subject: hugetlb: batch TLB flushes when freeing vmemmap
-Date: Mon, 25 Sep 2023 16:48:35 -0700
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm: tune PCP high automatically
+Date: Tue, 26 Sep 2023 14:09:08 +0800
 
-Now that a list of pages is deduplicated at once, the TLB flush can be
-batched for all vmemmap pages that got remapped.
+The target to tune PCP high automatically is as follows,
 
-Expand the flags field value to pass whether to skip the TLB flush on
-remap of the PTE.
+- Minimize allocation/freeing from/to shared zone
 
-The TLB flush is global as we don't have guarantees from caller that the
-set of folios is contiguous, or to add complexity in composing a list of
-kVAs to flush.
+- Minimize idle pages in PCP
 
-Modified by Mike Kravetz to perform TLB flush on single folio if an error
-is encountered.
+- Minimize pages in PCP if the system free pages is too few
 
-Link: https://lkml.kernel.org/r/20230925234837.86786-8-mike.kravetz@oracle.com
-Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+To reach these target, a tuning algorithm as follows is designed,
+
+- When we refill PCP via allocating from the zone, increase PCP high.
+  Because if we had larger PCP, we could avoid to allocate from the
+  zone.
+
+- In periodic vmstat updating kworker (via refresh_cpu_vm_stats()),
+  decrease PCP high to try to free possible idle PCP pages.
+
+- When page reclaiming is active for the zone, stop increasing PCP
+  high in allocating path, decrease PCP high and free some pages in
+  freeing path.
+
+So, the PCP high can be tuned to the page allocating/freeing depth of
+workloads eventually.
+
+One issue of the algorithm is that if the number of pages allocated is
+much more than that of pages freed on a CPU, the PCP high may become the
+maximal value even if the allocating/freeing depth is small.  But this
+isn't a severe issue, because there are no idle pages in this case.
+
+One alternative choice is to increase PCP high when we drain PCP via
+trying to free pages to the zone, but don't increase PCP high during PCP
+refilling.  This can avoid the issue above.  But if the number of pages
+allocated is much less than that of pages freed on a CPU, there will be
+many idle pages in PCP and it may be hard to free these idle pages.
+
+On a 2-socket Intel server with 224 logical CPU, we run 8 kbuild instances
+in parallel (each with `make -j 28`) in 8 cgroup.  This simulates the
+kbuild server that is used by 0-Day kbuild service.  With the patch, the
+build time decreases 3.6%.  The cycles% of the spinlock contention (mostly
+for zone lock) decreases from 10.0% to 0.7% (with PCP size == 361).  The
+number of PCP draining for high order pages freeing (free_high) decreases
+63.4%.  The number of pages allocated from zone (instead of from PCP)
+decreases 80.4%.
+
+Link: https://lkml.kernel.org/r/20230926060911.266511-8-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Suggested-by: Mel Gorman <mgorman@techsingularity.net>
+Suggested-by: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: James Houghton <jthoughton@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_vmemmap.c |   49 +++++++++++++++++++++++++++++++----------
- 1 file changed, 38 insertions(+), 11 deletions(-)
+ include/linux/gfp.h |    1 
+ mm/page_alloc.c     |  118 +++++++++++++++++++++++++++++++++---------
+ mm/vmstat.c         |    8 +-
+ 3 files changed, 98 insertions(+), 29 deletions(-)
 
---- a/mm/hugetlb_vmemmap.c~hugetlb-batch-tlb-flushes-when-freeing-vmemmap
-+++ a/mm/hugetlb_vmemmap.c
-@@ -40,6 +40,8 @@ struct vmemmap_remap_walk {
+--- a/include/linux/gfp.h~mm-tune-pcp-high-automatically
++++ a/include/linux/gfp.h
+@@ -320,6 +320,7 @@ extern void page_frag_free(void *addr);
+ #define free_page(addr) free_pages((addr), 0)
  
- /* Skip the TLB flush when we split the PMD */
- #define VMEMMAP_SPLIT_NO_TLB_FLUSH	BIT(0)
-+/* Skip the TLB flush when we remap the PTE */
-+#define VMEMMAP_REMAP_NO_TLB_FLUSH	BIT(1)
- 	unsigned long		flags;
- };
+ void page_alloc_init_cpuhp(void);
++int decay_pcp_high(struct zone *zone, struct per_cpu_pages *pcp);
+ void drain_zone_pages(struct zone *zone, struct per_cpu_pages *pcp);
+ void drain_all_pages(struct zone *zone);
+ void drain_local_pages(struct zone *zone);
+--- a/mm/page_alloc.c~mm-tune-pcp-high-automatically
++++ a/mm/page_alloc.c
+@@ -2190,6 +2190,40 @@ static int rmqueue_bulk(struct zone *zon
+ 	return i;
+ }
  
-@@ -214,7 +216,7 @@ static int vmemmap_remap_range(unsigned
- 			return ret;
- 	} while (pgd++, addr = next, addr != end);
- 
--	if (walk->remap_pte)
-+	if (walk->remap_pte && !(walk->flags & VMEMMAP_REMAP_NO_TLB_FLUSH))
- 		flush_tlb_kernel_range(start, end);
- 
- 	return 0;
-@@ -355,19 +357,21 @@ static int vmemmap_remap_split(unsigned
-  * @reuse:	reuse address.
-  * @vmemmap_pages: list to deposit vmemmap pages to be freed.  It is callers
-  *		responsibility to free pages.
-+ * @flags:	modifications to vmemmap_remap_walk flags
-  *
-  * Return: %0 on success, negative error code otherwise.
-  */
- static int vmemmap_remap_free(unsigned long start, unsigned long end,
- 			      unsigned long reuse,
--			      struct list_head *vmemmap_pages)
-+			      struct list_head *vmemmap_pages,
-+			      unsigned long flags)
- {
- 	int ret;
- 	struct vmemmap_remap_walk walk = {
- 		.remap_pte	= vmemmap_remap_pte,
- 		.reuse_addr	= reuse,
- 		.vmemmap_pages	= vmemmap_pages,
--		.flags		= 0,
-+		.flags		= flags,
- 	};
- 	int nid = page_to_nid((struct page *)reuse);
- 	gfp_t gfp_mask = GFP_KERNEL | __GFP_NORETRY | __GFP_NOWARN;
-@@ -629,7 +633,8 @@ static bool vmemmap_should_optimize(cons
- 
- static int __hugetlb_vmemmap_optimize(const struct hstate *h,
- 					struct page *head,
--					struct list_head *vmemmap_pages)
-+					struct list_head *vmemmap_pages,
-+					unsigned long flags)
- {
- 	int ret = 0;
- 	unsigned long vmemmap_start = (unsigned long)head, vmemmap_end;
-@@ -640,6 +645,18 @@ static int __hugetlb_vmemmap_optimize(co
- 		return ret;
- 
- 	static_branch_inc(&hugetlb_optimize_vmemmap_key);
++/*
++ * Called from the vmstat counter updater to decay the PCP high.
++ * Return whether there are addition works to do.
++ */
++int decay_pcp_high(struct zone *zone, struct per_cpu_pages *pcp)
++{
++	int high_min, to_drain, batch;
++	int todo = 0;
++
++	high_min = READ_ONCE(pcp->high_min);
++	batch = READ_ONCE(pcp->batch);
 +	/*
-+	 * Very Subtle
-+	 * If VMEMMAP_REMAP_NO_TLB_FLUSH is set, TLB flushing is not performed
-+	 * immediately after remapping.  As a result, subsequent accesses
-+	 * and modifications to struct pages associated with the hugetlb
-+	 * page could be to the OLD struct pages.  Set the vmemmap optimized
-+	 * flag here so that it is copied to the new head page.  This keeps
-+	 * the old and new struct pages in sync.
-+	 * If there is an error during optimization, we will immediately FLUSH
-+	 * the TLB and clear the flag below.
++	 * Decrease pcp->high periodically to try to free possible
++	 * idle PCP pages.  And, avoid to free too many pages to
++	 * control latency.
 +	 */
-+	SetHPageVmemmapOptimized(head);
++	if (pcp->high > high_min) {
++		pcp->high = max3(pcp->count - (batch << PCP_BATCH_SCALE_MAX),
++				 pcp->high * 4 / 5, high_min);
++		if (pcp->high > high_min)
++			todo++;
++	}
++
++	to_drain = pcp->count - pcp->high;
++	if (to_drain > 0) {
++		spin_lock(&pcp->lock);
++		free_pcppages_bulk(zone, to_drain, pcp, 0);
++		spin_unlock(&pcp->lock);
++		todo++;
++	}
++
++	return todo;
++}
++
+ #ifdef CONFIG_NUMA
+ /*
+  * Called from the vmstat counter updater to drain pagesets of this
+@@ -2351,14 +2385,13 @@ static bool free_unref_page_prepare(stru
+ 	return true;
+ }
  
- 	vmemmap_end	= vmemmap_start + hugetlb_vmemmap_size(h);
- 	vmemmap_reuse	= vmemmap_start;
-@@ -651,11 +668,12 @@ static int __hugetlb_vmemmap_optimize(co
- 	 * mapping the range to vmemmap_pages list so that they can be freed by
- 	 * the caller.
+-static int nr_pcp_free(struct per_cpu_pages *pcp, int high, bool free_high)
++static int nr_pcp_free(struct per_cpu_pages *pcp, int batch, int high, bool free_high)
+ {
+ 	int min_nr_free, max_nr_free;
+-	int batch = READ_ONCE(pcp->batch);
+ 
+-	/* Free everything if batch freeing high-order pages. */
++	/* Free as much as possible if batch freeing high-order pages. */
+ 	if (unlikely(free_high))
+-		return pcp->count;
++		return min(pcp->count, batch << PCP_BATCH_SCALE_MAX);
+ 
+ 	/* Check for PCP disabled or boot pageset */
+ 	if (unlikely(high < batch))
+@@ -2373,7 +2406,7 @@ static int nr_pcp_free(struct per_cpu_pa
+ 	 * freeing of pages without any allocation.
  	 */
--	ret = vmemmap_remap_free(vmemmap_start, vmemmap_end, vmemmap_reuse, vmemmap_pages);
--	if (ret)
-+	ret = vmemmap_remap_free(vmemmap_start, vmemmap_end, vmemmap_reuse,
-+							vmemmap_pages, flags);
-+	if (ret) {
- 		static_branch_dec(&hugetlb_optimize_vmemmap_key);
--	else
--		SetHPageVmemmapOptimized(head);
-+		ClearHPageVmemmapOptimized(head);
+ 	batch <<= pcp->free_factor;
+-	if (batch < max_nr_free && pcp->free_factor < PCP_BATCH_SCALE_MAX)
++	if (batch <= max_nr_free && pcp->free_factor < PCP_BATCH_SCALE_MAX)
+ 		pcp->free_factor++;
+ 	batch = clamp(batch, min_nr_free, max_nr_free);
+ 
+@@ -2381,28 +2414,47 @@ static int nr_pcp_free(struct per_cpu_pa
+ }
+ 
+ static int nr_pcp_high(struct per_cpu_pages *pcp, struct zone *zone,
+-		       bool free_high)
++		       int batch, bool free_high)
+ {
+-	int high = READ_ONCE(pcp->high_min);
++	int high, high_min, high_max;
+ 
+-	if (unlikely(!high || free_high))
++	high_min = READ_ONCE(pcp->high_min);
++	high_max = READ_ONCE(pcp->high_max);
++	high = pcp->high = clamp(pcp->high, high_min, high_max);
++
++	if (unlikely(!high))
+ 		return 0;
+ 
+-	if (!test_bit(ZONE_RECLAIM_ACTIVE, &zone->flags))
+-		return high;
++	if (unlikely(free_high)) {
++		pcp->high = max(high - (batch << PCP_BATCH_SCALE_MAX), high_min);
++		return 0;
 +	}
  
- 	return ret;
+ 	/*
+ 	 * If reclaim is active, limit the number of pages that can be
+ 	 * stored on pcp lists
+ 	 */
+-	return min(READ_ONCE(pcp->batch) << 2, high);
++	if (test_bit(ZONE_RECLAIM_ACTIVE, &zone->flags)) {
++		pcp->high = max(high - (batch << pcp->free_factor), high_min);
++		return min(batch << 2, pcp->high);
++	}
++
++	if (pcp->count >= high && high_min != high_max) {
++		int need_high = (batch << pcp->free_factor) + batch;
++
++		/* pcp->high should be large enough to hold batch freed pages */
++		if (pcp->high < need_high)
++			pcp->high = clamp(need_high, high_min, high_max);
++	}
++
++	return high;
  }
-@@ -674,7 +692,7 @@ void hugetlb_vmemmap_optimize(const stru
+ 
+ static void free_unref_page_commit(struct zone *zone, struct per_cpu_pages *pcp,
+ 				   struct page *page, int migratetype,
+ 				   unsigned int order)
  {
- 	LIST_HEAD(vmemmap_pages);
+-	int high;
++	int high, batch;
+ 	int pindex;
+ 	bool free_high = false;
  
--	__hugetlb_vmemmap_optimize(h, head, &vmemmap_pages);
-+	__hugetlb_vmemmap_optimize(h, head, &vmemmap_pages, 0);
- 	free_vmemmap_page_list(&vmemmap_pages);
+@@ -2417,6 +2469,7 @@ static void free_unref_page_commit(struc
+ 	list_add(&page->pcp_list, &pcp->lists[pindex]);
+ 	pcp->count += 1 << order;
+ 
++	batch = READ_ONCE(pcp->batch);
+ 	/*
+ 	 * As high-order pages other than THP's stored on PCP can contribute
+ 	 * to fragmentation, limit the number stored when PCP is heavily
+@@ -2427,14 +2480,15 @@ static void free_unref_page_commit(struc
+ 		free_high = (pcp->free_factor &&
+ 			     (pcp->flags & PCPF_PREV_FREE_HIGH_ORDER) &&
+ 			     (!(pcp->flags & PCPF_FREE_HIGH_BATCH) ||
+-			      pcp->count >= READ_ONCE(pcp->batch)));
++			      pcp->count >= READ_ONCE(batch)));
+ 		pcp->flags |= PCPF_PREV_FREE_HIGH_ORDER;
+ 	} else if (pcp->flags & PCPF_PREV_FREE_HIGH_ORDER) {
+ 		pcp->flags &= ~PCPF_PREV_FREE_HIGH_ORDER;
+ 	}
+-	high = nr_pcp_high(pcp, zone, free_high);
++	high = nr_pcp_high(pcp, zone, batch, free_high);
+ 	if (pcp->count >= high) {
+-		free_pcppages_bulk(zone, nr_pcp_free(pcp, high, free_high), pcp, pindex);
++		free_pcppages_bulk(zone, nr_pcp_free(pcp, batch, high, free_high),
++				   pcp, pindex);
+ 	}
  }
  
-@@ -719,19 +737,28 @@ void hugetlb_vmemmap_optimize_folios(str
+@@ -2718,24 +2772,38 @@ struct page *rmqueue_buddy(struct zone *
+ 	return page;
+ }
  
- 	list_for_each_entry(folio, folio_list, lru) {
- 		int ret = __hugetlb_vmemmap_optimize(h, &folio->page,
--								&vmemmap_pages);
-+						&vmemmap_pages,
-+						VMEMMAP_REMAP_NO_TLB_FLUSH);
+-static int nr_pcp_alloc(struct per_cpu_pages *pcp, int order)
++static int nr_pcp_alloc(struct per_cpu_pages *pcp, struct zone *zone, int order)
+ {
+-	int high, batch, max_nr_alloc;
++	int high, base_batch, batch, max_nr_alloc;
++	int high_max, high_min;
  
- 		/*
- 		 * Pages to be freed may have been accumulated.  If we
- 		 * encounter an ENOMEM,  free what we have and try again.
-+		 * This can occur in the case that both spliting fails
-+		 * halfway and head page allocation also failed. In this
-+		 * case __hugetlb_vmemmap_optimize() would free memory
-+		 * allowing more vmemmap remaps to occur.
- 		 */
- 		if (ret == -ENOMEM && !list_empty(&vmemmap_pages)) {
-+			flush_tlb_all();
- 			free_vmemmap_page_list(&vmemmap_pages);
- 			INIT_LIST_HEAD(&vmemmap_pages);
--			__hugetlb_vmemmap_optimize(h, &folio->page, &vmemmap_pages);
-+			__hugetlb_vmemmap_optimize(h, &folio->page,
-+						&vmemmap_pages,
-+						VMEMMAP_REMAP_NO_TLB_FLUSH);
+-	high = READ_ONCE(pcp->high_min);
+-	batch = READ_ONCE(pcp->batch);
++	base_batch = READ_ONCE(pcp->batch);
++	high_min = READ_ONCE(pcp->high_min);
++	high_max = READ_ONCE(pcp->high_max);
++	high = pcp->high = clamp(pcp->high, high_min, high_max);
+ 
+ 	/* Check for PCP disabled or boot pageset */
+-	if (unlikely(high < batch))
++	if (unlikely(high < base_batch))
+ 		return 1;
+ 
++	if (order)
++		batch = base_batch;
++	else
++		batch = (base_batch << pcp->alloc_factor);
++
+ 	/*
+-	 * Double the number of pages allocated each time there is subsequent
+-	 * refiling of order-0 pages without drain.
++	 * If we had larger pcp->high, we could avoid to allocate from
++	 * zone.
+ 	 */
++	if (high_min != high_max && !test_bit(ZONE_RECLAIM_ACTIVE, &zone->flags))
++		high = pcp->high = min(high + batch, high_max);
++
+ 	if (!order) {
+-		max_nr_alloc = max(high - pcp->count - batch, batch);
+-		batch <<= pcp->alloc_factor;
++		max_nr_alloc = max(high - pcp->count - base_batch, base_batch);
++		/*
++		 * Double the number of pages allocated each time there is
++		 * subsequent refiling of order-0 pages without drain.
++		 */
+ 		if (batch <= max_nr_alloc && pcp->alloc_factor < PCP_BATCH_SCALE_MAX)
+ 			pcp->alloc_factor++;
+ 		batch = min(batch, max_nr_alloc);
+@@ -2765,7 +2833,7 @@ struct page *__rmqueue_pcplist(struct zo
+ 
+ 	do {
+ 		if (list_empty(list)) {
+-			int batch = nr_pcp_alloc(pcp, order);
++			int batch = nr_pcp_alloc(pcp, zone, order);
+ 			int alloced;
+ 
+ 			alloced = rmqueue_bulk(zone, order,
+--- a/mm/vmstat.c~mm-tune-pcp-high-automatically
++++ a/mm/vmstat.c
+@@ -816,9 +816,7 @@ static int refresh_cpu_vm_stats(bool do_
+ 
+ 	for_each_populated_zone(zone) {
+ 		struct per_cpu_zonestat __percpu *pzstats = zone->per_cpu_zonestats;
+-#ifdef CONFIG_NUMA
+ 		struct per_cpu_pages __percpu *pcp = zone->per_cpu_pageset;
+-#endif
+ 
+ 		for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++) {
+ 			int v;
+@@ -834,10 +832,12 @@ static int refresh_cpu_vm_stats(bool do_
+ #endif
+ 			}
  		}
+-#ifdef CONFIG_NUMA
+ 
+ 		if (do_pagesets) {
+ 			cond_resched();
++
++			changes += decay_pcp_high(zone, this_cpu_ptr(pcp));
++#ifdef CONFIG_NUMA
+ 			/*
+ 			 * Deal with draining the remote pageset of this
+ 			 * processor
+@@ -866,8 +866,8 @@ static int refresh_cpu_vm_stats(bool do_
+ 				drain_zone_pages(zone, this_cpu_ptr(pcp));
+ 				changes++;
+ 			}
+-		}
+ #endif
++		}
  	}
  
-+	flush_tlb_all();
- 	free_vmemmap_page_list(&vmemmap_pages);
- }
- 
+ 	for_each_online_pgdat(pgdat) {
 _
 
-Patches currently in -mm which might be from joao.m.martins@oracle.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-hugetlb-batch-pmd-split-for-bulk-vmemmap-dedup.patch
-hugetlb-batch-tlb-flushes-when-freeing-vmemmap.patch
+mm-fix-draining-remote-pageset.patch
+memory-tiering-add-abstract-distance-calculation-algorithms-management.patch
+acpi-hmat-refactor-hmat_register_target_initiators.patch
+acpi-hmat-calculate-abstract-distance-with-hmat.patch
+dax-kmem-calculate-abstract-distance-with-general-interface.patch
+mm-pcp-avoid-to-drain-pcp-when-process-exit.patch
+cacheinfo-calculate-per-cpu-data-cache-size.patch
+mm-pcp-reduce-lock-contention-for-draining-high-order-pages.patch
+mm-restrict-the-pcp-batch-scale-factor-to-avoid-too-long-latency.patch
+mm-page_alloc-scale-the-number-of-pages-that-are-batch-allocated.patch
+mm-add-framework-for-pcp-high-auto-tuning.patch
+mm-tune-pcp-high-automatically.patch
+mm-pcp-decrease-pcp-high-if-free-pages-high-watermark.patch
+mm-pcp-avoid-to-reduce-pcp-high-unnecessarily.patch
+mm-pcp-reduce-detecting-time-of-consecutive-high-order-page-freeing.patch
 
