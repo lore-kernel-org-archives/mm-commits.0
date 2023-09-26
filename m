@@ -2,34 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6074E7F14B
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Sep 2023 01:46:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EAABE7F153
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Sep 2023 02:46:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229868AbjI0BqH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Sep 2023 21:46:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46308 "EHLO
+        id S229584AbjI0Cqg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Sep 2023 22:46:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33174 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235103AbjI0BoG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Sep 2023 21:44:06 -0400
+        with ESMTP id S231888AbjI0Cof (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Sep 2023 22:44:35 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B246B1FC6
-        for <mm-commits@vger.kernel.org>; Tue, 26 Sep 2023 17:51:07 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48637C433C9;
-        Wed, 27 Sep 2023 00:51:07 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FFC31B3A2
+        for <mm-commits@vger.kernel.org>; Tue, 26 Sep 2023 15:22:20 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AB5CC433A9;
+        Tue, 26 Sep 2023 21:07:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695775867;
-        bh=5uNdh0TTB3gHxzjZ93b6wGw9j66XGv9cBcEGOzmqKQg=;
+        s=korg; t=1695762421;
+        bh=bMo5c9sYEHAy0GoLpQu+jgq0Xurz9m38nl8ZNTfM5F4=;
         h=Date:To:From:Subject:From;
-        b=d/1JrsqsOTKioLLjwGdnWZJUGHNHGenfSgJ1ls7Yfy3J7NZ2/an0YvVLfkNTYsno1
-         aQi+SJuIya+03xRiupyTm/m75jNm8oJ4nEy3qHuKD/Vl4IUUMq+Xxdhe2J05iKkwOd
-         DJSYZa+up55agBfznK3E38JDPGFbde3QbC5Q282o=
-Date:   Tue, 26 Sep 2023 17:51:06 -0700
-To:     mm-commits@vger.kernel.org, shr@devkernel.io, riel@surriel.com,
-        hannes@cmpxchg.org, david@redhat.com, akpm@linux-foundation.org,
+        b=KUeZRsBCLQRjyn1M39uRVGUDP6lcIE1HvaQMwH+8X5aOqrPFGDIV8JYo8HmYRxkNZ
+         H0fvReMB4Rdz48S2v/aSUI9ArEDbhTuiMMi9nalFXCb/09nyLOgJAMVs8EfKX9A62+
+         spEAY8NmaJDbiEVBUZ19Kw7rDOE1BSUuyTFWY2eE=
+Date:   Tue, 26 Sep 2023 14:06:59 -0700
+To:     mm-commits@vger.kernel.org, weixugc@google.com,
+        shy828301@gmail.com, rafael.j.wysocki@intel.com, mhocko@kernel.org,
+        Jonathan.Cameron@huawei.com, hannes@cmpxchg.org, dave@stgolabs.net,
+        dave.jiang@intel.com, dave.hansen@intel.com,
+        dan.j.williams@intel.com, bharata@amd.com, apopple@nvidia.com,
+        aneesh.kumar@linux.ibm.com, ying.huang@intel.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-ksm-document-smart-scan-mode-fix-2.patch added to mm-unstable branch
-Message-Id: <20230927005107.48637C433C9@smtp.kernel.org>
+Subject: + memory-tiering-add-abstract-distance-calculation-algorithms-management.patch added to mm-unstable branch
+Message-Id: <20230926210701.5AB5CC433A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-ksm-document-smart-scan-mode-fix
+     Subject: memory tiering: add abstract distance calculation algorithms management
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-ksm-document-smart-scan-mode-fix-2.patch
+     memory-tiering-add-abstract-distance-calculation-algorithms-management.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-document-smart-scan-mode-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memory-tiering-add-abstract-distance-calculation-algorithms-management.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,53 +64,205 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-ksm-document-smart-scan-mode-fix
-Date: Tue Sep 26 05:48:29 PM PDT 2023
+From: Huang Ying <ying.huang@intel.com>
+Subject: memory tiering: add abstract distance calculation algorithms management
+Date: Tue, 26 Sep 2023 14:06:25 +0800
 
-document that smart_scan defaults to on
+Patch series "memory tiering: calculate abstract distance based on ACPI
+HMAT", v4.
 
-Cc: David Hildenbrand <david@redhat.com>
+We have the explicit memory tiers framework to manage systems with
+multiple types of memory, e.g., DRAM in DIMM slots and CXL memory devices.
+Where, same kind of memory devices will be grouped into memory types,
+then put into memory tiers.  To describe the performance of a memory type,
+abstract distance is defined.  Which is in direct proportion to the memory
+latency and inversely proportional to the memory bandwidth.  To keep the
+code as simple as possible, fixed abstract distance is used in dax/kmem to
+describe slow memory such as Optane DCPMM.
+
+To support more memory types, in this series, we added the abstract
+distance calculation algorithm management mechanism, provided a algorithm
+implementation based on ACPI HMAT, and used the general abstract distance
+calculation interface in dax/kmem driver.  So, dax/kmem can support HBM
+(high bandwidth memory) in addition to the original Optane DCPMM.
+
+
+This patch (of 4):
+
+The abstract distance may be calculated by various drivers, such as ACPI
+HMAT, CXL CDAT, etc.  While it may be used by various code which hot-add
+memory node, such as dax/kmem etc.  To decouple the algorithm users and
+the providers, the abstract distance calculation algorithms management
+mechanism is implemented in this patch.  It provides interface for the
+providers to register the implementation, and interface for the users.
+
+Multiple algorithm implementations can cooperate via calculating abstract
+distance for different memory nodes.  The preference of algorithm
+implementations can be specified via priority (notifier_block.priority).
+
+Link: https://lkml.kernel.org/r/20230926060628.265989-1-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20230926060628.265989-2-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Tested-by: Bharata B Rao <bharata@amd.com>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Stefan Roesch <shr@devkernel.io>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Rafael J Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/ksm.rst |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/memory-tiers.h |   19 ++++++++++
+ mm/memory-tiers.c            |   59 +++++++++++++++++++++++++++++++++
+ 2 files changed, 78 insertions(+)
 
---- a/Documentation/admin-guide/mm/ksm.rst~mm-ksm-document-smart-scan-mode-fix-2
-+++ a/Documentation/admin-guide/mm/ksm.rst
-@@ -156,12 +156,12 @@ stable_node_chains_prune_millisecs
-         ``max_page_sharing`` yet.
+--- a/include/linux/memory-tiers.h~memory-tiering-add-abstract-distance-calculation-algorithms-management
++++ a/include/linux/memory-tiers.h
+@@ -6,6 +6,7 @@
+ #include <linux/nodemask.h>
+ #include <linux/kref.h>
+ #include <linux/mmzone.h>
++#include <linux/notifier.h>
+ /*
+  * Each tier cover a abstrace distance chunk size of 128
+  */
+@@ -36,6 +37,9 @@ struct memory_dev_type *alloc_memory_typ
+ void put_memory_type(struct memory_dev_type *memtype);
+ void init_node_memory_type(int node, struct memory_dev_type *default_type);
+ void clear_node_memory_type(int node, struct memory_dev_type *memtype);
++int register_mt_adistance_algorithm(struct notifier_block *nb);
++int unregister_mt_adistance_algorithm(struct notifier_block *nb);
++int mt_calc_adistance(int node, int *adist);
+ #ifdef CONFIG_MIGRATION
+ int next_demotion_node(int node);
+ void node_get_allowed_targets(pg_data_t *pgdat, nodemask_t *targets);
+@@ -97,5 +101,20 @@ static inline bool node_is_toptier(int n
+ {
+ 	return true;
+ }
++
++static inline int register_mt_adistance_algorithm(struct notifier_block *nb)
++{
++	return 0;
++}
++
++static inline int unregister_mt_adistance_algorithm(struct notifier_block *nb)
++{
++	return 0;
++}
++
++static inline int mt_calc_adistance(int node, int *adist)
++{
++	return NOTIFY_DONE;
++}
+ #endif	/* CONFIG_NUMA */
+ #endif  /* _LINUX_MEMORY_TIERS_H */
+--- a/mm/memory-tiers.c~memory-tiering-add-abstract-distance-calculation-algorithms-management
++++ a/mm/memory-tiers.c
+@@ -5,6 +5,7 @@
+ #include <linux/kobject.h>
+ #include <linux/memory.h>
+ #include <linux/memory-tiers.h>
++#include <linux/notifier.h>
  
- smart_scan
--        By default KSM checks every candidate page for each scan. It does
--        not take into account historic information. When smart scan is
-+        Historically KSM checked every candidate page for each scan. It did
-+        not take into account historic information.  When smart scan is
-         enabled, pages that have previously not been de-duplicated get
-         skipped. How often these pages are skipped depends on how often
-         de-duplication has already been tried and failed. By default this
--        optimization is disabled. The ``pages_skipped`` metric shows how
-+        optimization is enabled.  The ``pages_skipped`` metric shows how
-         effective the setting is.
+ #include "internal.h"
  
- The effectiveness of KSM and MADV_MERGEABLE is shown in ``/sys/kernel/mm/ksm/``:
+@@ -105,6 +106,8 @@ static int top_tier_adistance;
+ static struct demotion_nodes *node_demotion __read_mostly;
+ #endif /* CONFIG_MIGRATION */
+ 
++static BLOCKING_NOTIFIER_HEAD(mt_adistance_algorithms);
++
+ static inline struct memory_tier *to_memory_tier(struct device *device)
+ {
+ 	return container_of(device, struct memory_tier, dev);
+@@ -592,6 +595,62 @@ void clear_node_memory_type(int node, st
+ }
+ EXPORT_SYMBOL_GPL(clear_node_memory_type);
+ 
++/**
++ * register_mt_adistance_algorithm() - Register memory tiering abstract distance algorithm
++ * @nb: The notifier block which describe the algorithm
++ *
++ * Return: 0 on success, errno on error.
++ *
++ * Every memory tiering abstract distance algorithm provider needs to
++ * register the algorithm with register_mt_adistance_algorithm().  To
++ * calculate the abstract distance for a specified memory node, the
++ * notifier function will be called unless some high priority
++ * algorithm has provided result.  The prototype of the notifier
++ * function is as follows,
++ *
++ *   int (*algorithm_notifier)(struct notifier_block *nb,
++ *                             unsigned long nid, void *data);
++ *
++ * Where "nid" specifies the memory node, "data" is the pointer to the
++ * returned abstract distance (that is, "int *adist").  If the
++ * algorithm provides the result, NOTIFY_STOP should be returned.
++ * Otherwise, return_value & %NOTIFY_STOP_MASK == 0 to allow the next
++ * algorithm in the chain to provide the result.
++ */
++int register_mt_adistance_algorithm(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_register(&mt_adistance_algorithms, nb);
++}
++EXPORT_SYMBOL_GPL(register_mt_adistance_algorithm);
++
++/**
++ * unregister_mt_adistance_algorithm() - Unregister memory tiering abstract distance algorithm
++ * @nb: the notifier block which describe the algorithm
++ *
++ * Return: 0 on success, errno on error.
++ */
++int unregister_mt_adistance_algorithm(struct notifier_block *nb)
++{
++	return blocking_notifier_chain_unregister(&mt_adistance_algorithms, nb);
++}
++EXPORT_SYMBOL_GPL(unregister_mt_adistance_algorithm);
++
++/**
++ * mt_calc_adistance() - Calculate abstract distance with registered algorithms
++ * @node: the node to calculate abstract distance for
++ * @adist: the returned abstract distance
++ *
++ * Return: if return_value & %NOTIFY_STOP_MASK != 0, then some
++ * abstract distance algorithm provides the result, and return it via
++ * @adist.  Otherwise, no algorithm can provide the result and @adist
++ * will be kept as it is.
++ */
++int mt_calc_adistance(int node, int *adist)
++{
++	return blocking_notifier_call_chain(&mt_adistance_algorithms, node, adist);
++}
++EXPORT_SYMBOL_GPL(mt_calc_adistance);
++
+ static int __meminit memtier_hotplug_callback(struct notifier_block *self,
+ 					      unsigned long action, void *_arg)
+ {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
-mm-memcg-reconsider-kmemlimit_in_bytes-deprecation-fix.patch
-mm-memcg-add-thp-swap-out-info-for-anonymous-reclaim-fix.patch
-mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo-fix.patch
-fs-proc-task_mmu-implement-ioctl-to-get-and-optionally-clear-info-about-ptes-fix.patch
-fs-proc-task_mmu-implement-ioctl-to-get-and-optionally-clear-info-about-ptes-fix-fix.patch
-fs-proc-task_mmu-implement-ioctl-to-get-and-optionally-clear-info-about-ptes-fix-2.patch
-mm-ksm-add-smart-page-scanning-mode-fix.patch
-mm-ksm-document-smart-scan-mode-fix.patch
-mm-ksm-document-smart-scan-mode-fix-2.patch
-kthread-add-kthread_stop_put-v2-fix.patch
+mm-fix-draining-remote-pageset.patch
+mm-pcp-avoid-to-drain-pcp-when-process-exit.patch
+cacheinfo-calculate-per-cpu-data-cache-size.patch
+mm-pcp-reduce-lock-contention-for-draining-high-order-pages.patch
+mm-restrict-the-pcp-batch-scale-factor-to-avoid-too-long-latency.patch
+mm-page_alloc-scale-the-number-of-pages-that-are-batch-allocated.patch
+mm-add-framework-for-pcp-high-auto-tuning.patch
+mm-tune-pcp-high-automatically.patch
+mm-pcp-decrease-pcp-high-if-free-pages-high-watermark.patch
+mm-pcp-avoid-to-reduce-pcp-high-unnecessarily.patch
+mm-pcp-reduce-detecting-time-of-consecutive-high-order-page-freeing.patch
+memory-tiering-add-abstract-distance-calculation-algorithms-management.patch
+acpi-hmat-refactor-hmat_register_target_initiators.patch
+acpi-hmat-calculate-abstract-distance-with-hmat.patch
+dax-kmem-calculate-abstract-distance-with-general-interface.patch
 
