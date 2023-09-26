@@ -2,38 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C691E7F14B
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Sep 2023 01:04:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17A2CE7F150
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Sep 2023 01:05:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233630AbjI0BEn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Sep 2023 21:04:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36130 "EHLO
+        id S229567AbjI0BFY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Sep 2023 21:05:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40442 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233739AbjI0BCn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Sep 2023 21:02:43 -0400
+        with ESMTP id S234168AbjI0BDX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Sep 2023 21:03:23 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FF9C1B3A3
-        for <mm-commits@vger.kernel.org>; Tue, 26 Sep 2023 15:22:20 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 536D2C433B6;
-        Tue, 26 Sep 2023 21:07:05 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9EC9017803
+        for <mm-commits@vger.kernel.org>; Tue, 26 Sep 2023 15:17:21 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66C2BC433CA;
+        Tue, 26 Sep 2023 20:59:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695762425;
-        bh=MyyB7vspbfPGCpLqEgPn4Kw76rGKK4xZpuwwgr9JIJs=;
+        s=korg; t=1695761967;
+        bh=zEmXUFPXA7mCHQUo2yQ6JkYrnav0HulOunWb+mW4KQs=;
         h=Date:To:From:Subject:From;
-        b=nrcZdGsTzXtQony+BNFHmHOg8kgQb7nclFLVpr4F7Cyqr0oCD8kVNxR3KFoF0H6vm
-         b7sjcWsKKUWz1Zm3PKJF9fhcS3FQbmaXlWZEiVFfSc65mz6l8AleV4F1e2yLrRCJps
-         3v/A7yJqtUff9IKyWrrIfRsINz5yUprMZU5VH01k=
-Date:   Tue, 26 Sep 2023 14:07:03 -0700
-To:     mm-commits@vger.kernel.org, weixugc@google.com,
-        shy828301@gmail.com, rafael.j.wysocki@intel.com, mhocko@kernel.org,
-        Jonathan.Cameron@huawei.com, hannes@cmpxchg.org, dave@stgolabs.net,
-        dave.jiang@intel.com, dave.hansen@intel.com,
-        dan.j.williams@intel.com, bharata@amd.com, apopple@nvidia.com,
-        aneesh.kumar@linux.ibm.com, ying.huang@intel.com,
-        akpm@linux-foundation.org
+        b=dS/fy7eKkCw4vy4BxlyOn/aIKwp4rlqGl3ZkL3h1u4ZvxPaS76E9azwQtf0R44zKd
+         5j469iIxUM54gvQ2jzz5ywamDQvGXQjMCkpqCNAeYEHkhCgsrhrUqjOz/tYU4oJLFf
+         BMXfW9kzN42S1xmiCZVPUFGPCYc6Cfh0qYob+Az0=
+Date:   Tue, 26 Sep 2023 13:59:25 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        sudeep.holla@arm.com, pasha.tatashin@soleen.com, mhocko@suse.com,
+        mgorman@techsingularity.net, jweiner@redhat.com, david@redhat.com,
+        dave.hansen@linux.intel.com, cl@linux.com, arjan@linux.intel.com,
+        ying.huang@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + dax-kmem-calculate-abstract-distance-with-general-interface.patch added to mm-unstable branch
-Message-Id: <20230926210705.536D2C433B6@smtp.kernel.org>
+Subject: + mm-page_alloc-scale-the-number-of-pages-that-are-batch-allocated.patch added to mm-unstable branch
+Message-Id: <20230926205927.66C2BC433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +39,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax, kmem: calculate abstract distance with general interface
+     Subject: mm, page_alloc: scale the number of pages that are batch allocated
 has been added to the -mm mm-unstable branch.  Its filename is
-     dax-kmem-calculate-abstract-distance-with-general-interface.patch
+     mm-page_alloc-scale-the-number-of-pages-that-are-batch-allocated.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dax-kmem-calculate-abstract-distance-with-general-interface.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-scale-the-number-of-pages-that-are-batch-allocated.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,206 +63,141 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: dax, kmem: calculate abstract distance with general interface
-Date: Tue, 26 Sep 2023 14:06:28 +0800
+Subject: mm, page_alloc: scale the number of pages that are batch allocated
+Date: Tue, 26 Sep 2023 14:09:06 +0800
 
-Previously, a fixed abstract distance MEMTIER_DEFAULT_DAX_ADISTANCE is
-used for slow memory type in kmem driver.  This limits the usage of kmem
-driver, for example, it cannot be used for HBM (high bandwidth memory).
+When a task is allocating a large number of order-0 pages, it may acquire
+the zone->lock multiple times allocating pages in batches.  This may
+unnecessarily contend on the zone lock when allocating very large number
+of pages.  This patch adapts the size of the batch based on the recent
+pattern to scale the batch size for subsequent allocations.
 
-So, we use the general abstract distance calculation mechanism in kmem
-drivers to get more accurate abstract distance on systems with proper
-support.  The original MEMTIER_DEFAULT_DAX_ADISTANCE is used as fallback
-only.
+On a 2-socket Intel server with 224 logical CPU, we run 8 kbuild instances
+in parallel (each with `make -j 28`) in 8 cgroup.  This simulates the
+kbuild server that is used by 0-Day kbuild service.  With the patch, the
+cycles% of the spinlock contention (mostly for zone lock) decreases from
+11.7% to 10.0% (with PCP size == 361).
 
-Now, multiple memory types may be managed by kmem.  These memory types are
-put into the "kmem_memory_types" list and protected by
-kmem_memory_type_lock.
-
-Link: https://lkml.kernel.org/r/20230926060628.265989-5-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20230926060911.266511-6-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Tested-by: Bharata B Rao <bharata@amd.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Rafael J Wysocki <rafael.j.wysocki@intel.com>
+Suggested-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/kmem.c           |   62 ++++++++++++++++++++++++++-------
- include/linux/memory-tiers.h |    2 +
- mm/memory-tiers.c            |    3 +
- 3 files changed, 53 insertions(+), 14 deletions(-)
+ include/linux/mmzone.h |    3 +-
+ mm/page_alloc.c        |   52 +++++++++++++++++++++++++++++++--------
+ 2 files changed, 44 insertions(+), 11 deletions(-)
 
---- a/drivers/dax/kmem.c~dax-kmem-calculate-abstract-distance-with-general-interface
-+++ a/drivers/dax/kmem.c
-@@ -49,14 +49,52 @@ struct dax_kmem_data {
- 	struct resource *res[];
- };
+--- a/include/linux/mmzone.h~mm-page_alloc-scale-the-number-of-pages-that-are-batch-allocated
++++ a/include/linux/mmzone.h
+@@ -697,9 +697,10 @@ struct per_cpu_pages {
+ 	int high;		/* high watermark, emptying needed */
+ 	int batch;		/* chunk size for buddy add/remove */
+ 	u8 flags;		/* protected by pcp->lock */
++	u8 alloc_factor;	/* batch scaling factor during allocate */
+ 	u8 free_factor;		/* batch scaling factor during free */
+ #ifdef CONFIG_NUMA
+-	short expire;		/* When 0, remote pagesets are drained */
++	u8 expire;		/* When 0, remote pagesets are drained */
+ #endif
  
--static struct memory_dev_type *dax_slowmem_type;
-+static DEFINE_MUTEX(kmem_memory_type_lock);
-+static LIST_HEAD(kmem_memory_types);
-+
-+static struct memory_dev_type *kmem_find_alloc_memory_type(int adist)
+ 	/* Lists of pages, one per migrate type stored on the pcp-lists */
+--- a/mm/page_alloc.c~mm-page_alloc-scale-the-number-of-pages-that-are-batch-allocated
++++ a/mm/page_alloc.c
+@@ -2406,6 +2406,12 @@ static void free_unref_page_commit(struc
+ 	int pindex;
+ 	bool free_high = false;
+ 
++	/*
++	 * On freeing, reduce the number of pages that are batch allocated.
++	 * See nr_pcp_alloc() where alloc_factor is increased for subsequent
++	 * allocations.
++	 */
++	pcp->alloc_factor >>= 1;
+ 	__count_vm_events(PGFREE, 1 << order);
+ 	pindex = order_to_pindex(migratetype, order);
+ 	list_add(&page->pcp_list, &pcp->lists[pindex]);
+@@ -2712,6 +2718,41 @@ struct page *rmqueue_buddy(struct zone *
+ 	return page;
+ }
+ 
++static int nr_pcp_alloc(struct per_cpu_pages *pcp, int order)
 +{
-+	bool found = false;
-+	struct memory_dev_type *mtype;
++	int high, batch, max_nr_alloc;
 +
-+	mutex_lock(&kmem_memory_type_lock);
-+	list_for_each_entry(mtype, &kmem_memory_types, list) {
-+		if (mtype->adistance == adist) {
-+			found = true;
-+			break;
-+		}
-+	}
-+	if (!found) {
-+		mtype = alloc_memory_type(adist);
-+		if (!IS_ERR(mtype))
-+			list_add(&mtype->list, &kmem_memory_types);
-+	}
-+	mutex_unlock(&kmem_memory_type_lock);
++	high = READ_ONCE(pcp->high);
++	batch = READ_ONCE(pcp->batch);
 +
-+	return mtype;
++	/* Check for PCP disabled or boot pageset */
++	if (unlikely(high < batch))
++		return 1;
++
++	/*
++	 * Double the number of pages allocated each time there is subsequent
++	 * refiling of order-0 pages without drain.
++	 */
++	if (!order) {
++		max_nr_alloc = max(high - pcp->count - batch, batch);
++		batch <<= pcp->alloc_factor;
++		if (batch <= max_nr_alloc && pcp->alloc_factor < PCP_BATCH_SCALE_MAX)
++			pcp->alloc_factor++;
++		batch = min(batch, max_nr_alloc);
++	}
++
++	/*
++	 * Scale batch relative to order if batch implies free pages
++	 * can be stored on the PCP. Batch can be 1 for small zones or
++	 * for boot pagesets which should never store free pages as
++	 * the pages may belong to arbitrary zones.
++	 */
++	if (batch > 1)
++		batch = max(batch >> order, 2);
++
++	return batch;
 +}
 +
-+static void kmem_put_memory_types(void)
-+{
-+	struct memory_dev_type *mtype, *mtn;
-+
-+	mutex_lock(&kmem_memory_type_lock);
-+	list_for_each_entry_safe(mtype, mtn, &kmem_memory_types, list) {
-+		list_del(&mtype->list);
-+		put_memory_type(mtype);
-+	}
-+	mutex_unlock(&kmem_memory_type_lock);
-+}
-+
- static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
- {
- 	struct device *dev = &dev_dax->dev;
- 	unsigned long total_len = 0;
- 	struct dax_kmem_data *data;
-+	struct memory_dev_type *mtype;
- 	int i, rc, mapped = 0;
- 	int numa_node;
-+	int adist = MEMTIER_DEFAULT_DAX_ADISTANCE;
+ /* Remove page from the per-cpu list, caller must protect the list */
+ static inline
+ struct page *__rmqueue_pcplist(struct zone *zone, unsigned int order,
+@@ -2724,18 +2765,9 @@ struct page *__rmqueue_pcplist(struct zo
  
- 	/*
- 	 * Ensure good NUMA information for the persistent memory.
-@@ -71,6 +109,11 @@ static int dev_dax_kmem_probe(struct dev
- 		return -EINVAL;
- 	}
+ 	do {
+ 		if (list_empty(list)) {
+-			int batch = READ_ONCE(pcp->batch);
++			int batch = nr_pcp_alloc(pcp, order);
+ 			int alloced;
  
-+	mt_calc_adistance(numa_node, &adist);
-+	mtype = kmem_find_alloc_memory_type(adist);
-+	if (IS_ERR(mtype))
-+		return PTR_ERR(mtype);
-+
- 	for (i = 0; i < dev_dax->nr_range; i++) {
- 		struct range range;
- 
-@@ -88,7 +131,7 @@ static int dev_dax_kmem_probe(struct dev
- 		return -EINVAL;
- 	}
- 
--	init_node_memory_type(numa_node, dax_slowmem_type);
-+	init_node_memory_type(numa_node, mtype);
- 
- 	rc = -ENOMEM;
- 	data = kzalloc(struct_size(data, res, dev_dax->nr_range), GFP_KERNEL);
-@@ -167,7 +210,7 @@ err_reg_mgid:
- err_res_name:
- 	kfree(data);
- err_dax_kmem_data:
--	clear_node_memory_type(numa_node, dax_slowmem_type);
-+	clear_node_memory_type(numa_node, mtype);
- 	return rc;
- }
- 
-@@ -219,7 +262,7 @@ static void dev_dax_kmem_remove(struct d
- 		 * for that. This implies this reference will be around
- 		 * till next reboot.
- 		 */
--		clear_node_memory_type(node, dax_slowmem_type);
-+		clear_node_memory_type(node, NULL);
- 	}
- }
- #else
-@@ -251,12 +294,6 @@ static int __init dax_kmem_init(void)
- 	if (!kmem_name)
- 		return -ENOMEM;
- 
--	dax_slowmem_type = alloc_memory_type(MEMTIER_DEFAULT_DAX_ADISTANCE);
--	if (IS_ERR(dax_slowmem_type)) {
--		rc = PTR_ERR(dax_slowmem_type);
--		goto err_dax_slowmem_type;
--	}
--
- 	rc = dax_driver_register(&device_dax_kmem_driver);
- 	if (rc)
- 		goto error_dax_driver;
-@@ -264,8 +301,7 @@ static int __init dax_kmem_init(void)
- 	return rc;
- 
- error_dax_driver:
--	put_memory_type(dax_slowmem_type);
--err_dax_slowmem_type:
-+	kmem_put_memory_types();
- 	kfree_const(kmem_name);
- 	return rc;
- }
-@@ -275,7 +311,7 @@ static void __exit dax_kmem_exit(void)
- 	dax_driver_unregister(&device_dax_kmem_driver);
- 	if (!any_hotremove_failed)
- 		kfree_const(kmem_name);
--	put_memory_type(dax_slowmem_type);
-+	kmem_put_memory_types();
- }
- 
- MODULE_AUTHOR("Intel Corporation");
---- a/include/linux/memory-tiers.h~dax-kmem-calculate-abstract-distance-with-general-interface
-+++ a/include/linux/memory-tiers.h
-@@ -24,6 +24,8 @@ struct memory_tier;
- struct memory_dev_type {
- 	/* list of memory types that are part of same tier as this type */
- 	struct list_head tier_sibling;
-+	/* list of memory types that are managed by one driver */
-+	struct list_head list;
- 	/* abstract distance for this specific memory type */
- 	int adistance;
- 	/* Nodes of same abstract distance */
---- a/mm/memory-tiers.c~dax-kmem-calculate-abstract-distance-with-general-interface
-+++ a/mm/memory-tiers.c
-@@ -586,13 +586,14 @@ EXPORT_SYMBOL_GPL(init_node_memory_type)
- void clear_node_memory_type(int node, struct memory_dev_type *memtype)
- {
- 	mutex_lock(&memory_tier_lock);
--	if (node_memory_types[node].memtype == memtype)
-+	if (node_memory_types[node].memtype == memtype || !memtype)
- 		node_memory_types[node].map_count--;
- 	/*
- 	 * If we umapped all the attached devices to this node,
- 	 * clear the node memory type.
- 	 */
- 	if (!node_memory_types[node].map_count) {
-+		memtype = node_memory_types[node].memtype;
- 		node_memory_types[node].memtype = NULL;
- 		put_memory_type(memtype);
- 	}
+-			/*
+-			 * Scale batch relative to order if batch implies
+-			 * free pages can be stored on the PCP. Batch can
+-			 * be 1 for small zones or for boot pagesets which
+-			 * should never store free pages as the pages may
+-			 * belong to arbitrary zones.
+-			 */
+-			if (batch > 1)
+-				batch = max(batch >> order, 2);
+ 			alloced = rmqueue_bulk(zone, order,
+ 					batch, list,
+ 					migratetype, alloc_flags);
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
 
 mm-fix-draining-remote-pageset.patch
+memory-tiering-add-abstract-distance-calculation-algorithms-management.patch
+acpi-hmat-refactor-hmat_register_target_initiators.patch
+acpi-hmat-calculate-abstract-distance-with-hmat.patch
+dax-kmem-calculate-abstract-distance-with-general-interface.patch
 mm-pcp-avoid-to-drain-pcp-when-process-exit.patch
 cacheinfo-calculate-per-cpu-data-cache-size.patch
 mm-pcp-reduce-lock-contention-for-draining-high-order-pages.patch
@@ -275,8 +208,4 @@ mm-tune-pcp-high-automatically.patch
 mm-pcp-decrease-pcp-high-if-free-pages-high-watermark.patch
 mm-pcp-avoid-to-reduce-pcp-high-unnecessarily.patch
 mm-pcp-reduce-detecting-time-of-consecutive-high-order-page-freeing.patch
-memory-tiering-add-abstract-distance-calculation-algorithms-management.patch
-acpi-hmat-refactor-hmat_register_target_initiators.patch
-acpi-hmat-calculate-abstract-distance-with-hmat.patch
-dax-kmem-calculate-abstract-distance-with-general-interface.patch
 
