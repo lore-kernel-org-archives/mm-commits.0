@@ -2,38 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 594EDE7F145
-	for <mm-commits@archiver.kernel.org>; Tue, 26 Sep 2023 23:18:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8114BE7F143
+	for <mm-commits@archiver.kernel.org>; Tue, 26 Sep 2023 23:18:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229500AbjIZXSA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Sep 2023 19:18:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47898 "EHLO
+        id S231307AbjIZXSB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Sep 2023 19:18:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51244 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232559AbjIZXPz (ORCPT
+        with ESMTP id S232525AbjIZXPz (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Sep 2023 19:15:55 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7BA811781D
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4B6D17824
         for <mm-commits@vger.kernel.org>; Tue, 26 Sep 2023 15:17:23 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E259C116CA;
-        Tue, 26 Sep 2023 21:39:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B59A2C433C8;
+        Tue, 26 Sep 2023 20:59:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695764383;
-        bh=aEBYQx2Qly1o1pNe52D/J6HdjxG3hpbmN9LKSxSpLyk=;
+        s=korg; t=1695761964;
+        bh=Atu7q/VEIkXRevrxjmOKhaObPRj08105B+t4E9IvGhg=;
         h=Date:To:From:Subject:From;
-        b=rThZB8BApqo221gdUd6d/tfMjeG1ysnK1eOsHIHRd5R8srzuK089+KFY4kWp16lyc
-         CugAFpvRjj3PN/D0eHjHXW0OVmZsos9cW4tyzxu+RsXaF6y/h7nM1+Gg54gPZpAGRL
-         HyJy7H9TyHs/KWCeXPn2IqgDg2X26NAk8MAIpOYY=
-Date:   Tue, 26 Sep 2023 14:39:42 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        songmuchun@bytedance.com, rientjes@google.com, osalvador@suse.de,
-        naoya.horiguchi@linux.dev, mhocko@suse.com, linmiaohe@huawei.com,
-        jthoughton@google.com, joao.m.martins@oracle.com,
-        duanxiongchun@bytedance.com, david@redhat.com,
-        anshuman.khandual@arm.com, mike.kravetz@oracle.com,
-        akpm@linux-foundation.org
+        b=imsuBMcAYB+1dmdHvmeRfzo8YnI8Dqgx+HPsbsEFJRYhA7rNKP89h81ljC0Veb+2K
+         woZWCuC7aw/xVBkip83KAx8dt7pWIT1pJSXBmwtwVMPHJixqCA7pNWfa9izE0KFYqO
+         mYWw0yHfZn4DsTJxl1Hk+v7twYtBXLhdNSBGKhZM=
+Date:   Tue, 26 Sep 2023 13:59:23 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        sudeep.holla@arm.com, pasha.tatashin@soleen.com, mhocko@suse.com,
+        mgorman@techsingularity.net, jweiner@redhat.com, david@redhat.com,
+        dave.hansen@linux.intel.com, cl@linux.com, arjan@linux.intel.com,
+        ying.huang@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-restructure-pool-allocations.patch added to mm-unstable branch
-Message-Id: <20230926213943.2E259C116CA@smtp.kernel.org>
+Subject: + mm-pcp-reduce-lock-contention-for-draining-high-order-pages.patch added to mm-unstable branch
+Message-Id: <20230926205924.B59A2C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +39,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: restructure pool allocations
+     Subject: mm, pcp: reduce lock contention for draining high-order pages
 has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-restructure-pool-allocations.patch
+     mm-pcp-reduce-lock-contention-for-draining-high-order-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-restructure-pool-allocations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pcp-reduce-lock-contention-for-draining-high-order-pages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,370 +62,168 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: restructure pool allocations
-Date: Mon, 25 Sep 2023 16:48:30 -0700
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm, pcp: reduce lock contention for draining high-order pages
+Date: Tue, 26 Sep 2023 14:09:04 +0800
 
-Allocation of a hugetlb page for the hugetlb pool is done by the routine
-alloc_pool_huge_page.  This routine will allocate contiguous pages from a
-low level allocator, prep the pages for usage as a hugetlb page and then
-add the resulting hugetlb page to the pool.
+In commit f26b3fa04611 ("mm/page_alloc: limit number of high-order pages
+on PCP during bulk free"), the PCP (Per-CPU Pageset) will be drained when
+PCP is mostly used for high-order pages freeing to improve the cache-hot
+pages reusing between page allocating and freeing CPUs.
 
-In the 'prep' stage, optional vmemmap optimization is done.  For
-performance reasons we want to perform vmemmap optimization on multiple
-hugetlb pages at once.  To do this, restructure the hugetlb pool
-allocation code such that vmemmap optimization can be isolated and later
-batched.
+On system with small per-CPU data cache, pages shouldn't be cached before
+draining to guarantee cache-hot.  But on a system with large per-CPU data
+cache, more pages can be cached before draining to reduce zone lock
+contention.
 
-The code to allocate hugetlb pages from bootmem was also modified to
-allow batching.
+So, in this patch, instead of draining without any caching, "batch" pages
+will be cached in PCP before draining if the per-CPU data cache size is
+more than "4 * batch".
 
-No functional changes, only code restructure.
+On a 2-socket Intel server with 128 logical CPU, with the patch, the
+network bandwidth of the UNIX (AF_UNIX) test case of lmbench test suite
+with 16-pair processes increase 72.2%.  The cycles% of the spinlock
+contention (mostly for zone lock) decreases from 45.8% to 21.2%.  The
+number of PCP draining for high order pages freeing (free_high) decreases
+89.8%.  The cache miss rate keeps 0.3%.
 
-Link: https://lkml.kernel.org/r/20230925234837.86786-3-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Link: https://lkml.kernel.org/r/20230926060911.266511-4-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: James Houghton <jthoughton@google.com>
-Cc: Joao Martins <joao.m.martins@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |  179 ++++++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 140 insertions(+), 39 deletions(-)
+ drivers/base/cacheinfo.c |    2 ++
+ include/linux/gfp.h      |    1 +
+ include/linux/mmzone.h   |    1 +
+ mm/page_alloc.c          |   37 ++++++++++++++++++++++++++++++++++++-
+ 4 files changed, 40 insertions(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~hugetlb-restructure-pool-allocations
-+++ a/mm/hugetlb.c
-@@ -1852,16 +1852,21 @@ static void __prep_account_new_huge_page
- 	h->nr_huge_pages_node[nid]++;
+--- a/drivers/base/cacheinfo.c~mm-pcp-reduce-lock-contention-for-draining-high-order-pages
++++ a/drivers/base/cacheinfo.c
+@@ -943,6 +943,7 @@ static int cacheinfo_cpu_online(unsigned
+ 	if (rc)
+ 		goto err;
+ 	update_data_cache_size(true, cpu);
++	setup_pcp_cacheinfo();
+ 	return 0;
+ err:
+ 	free_cache_attributes(cpu);
+@@ -956,6 +957,7 @@ static int cacheinfo_cpu_pre_down(unsign
+ 
+ 	free_cache_attributes(cpu);
+ 	update_data_cache_size(false, cpu);
++	setup_pcp_cacheinfo();
+ 	return 0;
  }
  
--static void __prep_new_hugetlb_folio(struct hstate *h, struct folio *folio)
-+static void init_new_hugetlb_folio(struct hstate *h, struct folio *folio)
- {
- 	folio_set_hugetlb(folio);
--	hugetlb_vmemmap_optimize(h, &folio->page);
- 	INIT_LIST_HEAD(&folio->lru);
- 	hugetlb_set_folio_subpool(folio, NULL);
- 	set_hugetlb_cgroup(folio, NULL);
- 	set_hugetlb_cgroup_rsvd(folio, NULL);
- }
+--- a/include/linux/gfp.h~mm-pcp-reduce-lock-contention-for-draining-high-order-pages
++++ a/include/linux/gfp.h
+@@ -325,6 +325,7 @@ void drain_all_pages(struct zone *zone);
+ void drain_local_pages(struct zone *zone);
  
-+static void __prep_new_hugetlb_folio(struct hstate *h, struct folio *folio)
-+{
-+	init_new_hugetlb_folio(h, folio);
-+	hugetlb_vmemmap_optimize(h, &folio->page);
-+}
-+
- static void prep_new_hugetlb_folio(struct hstate *h, struct folio *folio, int nid)
- {
- 	__prep_new_hugetlb_folio(h, folio);
-@@ -2058,16 +2063,9 @@ retry:
- 	return page_folio(page);
- }
- 
--/*
-- * Common helper to allocate a fresh hugetlb page. All specific allocators
-- * should use this function to get new hugetlb pages
-- *
-- * Note that returned page is 'frozen':  ref count of head page and all tail
-- * pages is zero.
-- */
--static struct folio *alloc_fresh_hugetlb_folio(struct hstate *h,
--		gfp_t gfp_mask, int nid, nodemask_t *nmask,
--		nodemask_t *node_alloc_noretry)
-+static struct folio *__alloc_fresh_hugetlb_folio(struct hstate *h,
-+				gfp_t gfp_mask, int nid, nodemask_t *nmask,
-+				nodemask_t *node_alloc_noretry)
- {
- 	struct folio *folio;
- 	bool retry = false;
-@@ -2080,6 +2078,7 @@ retry:
- 				nid, nmask, node_alloc_noretry);
- 	if (!folio)
- 		return NULL;
-+
- 	if (hstate_is_gigantic(h)) {
- 		if (!prep_compound_gigantic_folio(folio, huge_page_order(h))) {
- 			/*
-@@ -2094,32 +2093,80 @@ retry:
- 			return NULL;
- 		}
- 	}
--	prep_new_hugetlb_folio(h, folio, folio_nid(folio));
- 
- 	return folio;
- }
- 
-+static struct folio *only_alloc_fresh_hugetlb_folio(struct hstate *h,
-+		gfp_t gfp_mask, int nid, nodemask_t *nmask,
-+		nodemask_t *node_alloc_noretry)
-+{
-+	struct folio *folio;
-+
-+	folio = __alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask,
-+						node_alloc_noretry);
-+	if (folio)
-+		init_new_hugetlb_folio(h, folio);
-+	return folio;
-+}
-+
- /*
-- * Allocates a fresh page to the hugetlb allocator pool in the node interleaved
-- * manner.
-+ * Common helper to allocate a fresh hugetlb page. All specific allocators
-+ * should use this function to get new hugetlb pages
-+ *
-+ * Note that returned page is 'frozen':  ref count of head page and all tail
-+ * pages is zero.
-  */
--static int alloc_pool_huge_page(struct hstate *h, nodemask_t *nodes_allowed,
--				nodemask_t *node_alloc_noretry)
-+static struct folio *alloc_fresh_hugetlb_folio(struct hstate *h,
-+		gfp_t gfp_mask, int nid, nodemask_t *nmask,
-+		nodemask_t *node_alloc_noretry)
- {
- 	struct folio *folio;
--	int nr_nodes, node;
-+
-+	folio = __alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask,
-+						node_alloc_noretry);
-+	if (!folio)
-+		return NULL;
-+
-+	prep_new_hugetlb_folio(h, folio, folio_nid(folio));
-+	return folio;
-+}
-+
-+static void prep_and_add_allocated_folios(struct hstate *h,
-+					struct list_head *folio_list)
-+{
-+	struct folio *folio, *tmp_f;
-+
-+	/* Add all new pool pages to free lists in one lock cycle */
-+	spin_lock_irq(&hugetlb_lock);
-+	list_for_each_entry_safe(folio, tmp_f, folio_list, lru) {
-+		__prep_account_new_huge_page(h, folio_nid(folio));
-+		enqueue_hugetlb_folio(h, folio);
-+	}
-+	spin_unlock_irq(&hugetlb_lock);
-+}
-+
-+/*
-+ * Allocates a fresh hugetlb page in a node interleaved manner.  The page
-+ * will later be added to the appropriate hugetlb pool.
-+ */
-+static struct folio *alloc_pool_huge_folio(struct hstate *h,
-+					nodemask_t *nodes_allowed,
-+					nodemask_t *node_alloc_noretry)
-+{
- 	gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
-+	int nr_nodes, node;
- 
- 	for_each_node_mask_to_alloc(h, nr_nodes, node, nodes_allowed) {
--		folio = alloc_fresh_hugetlb_folio(h, gfp_mask, node,
-+		struct folio *folio;
-+
-+		folio = only_alloc_fresh_hugetlb_folio(h, gfp_mask, node,
- 					nodes_allowed, node_alloc_noretry);
--		if (folio) {
--			free_huge_folio(folio); /* free it into the hugepage allocator */
--			return 1;
--		}
-+		if (folio)
-+			return folio;
- 	}
- 
--	return 0;
-+	return NULL;
- }
+ void page_alloc_init_late(void);
++void setup_pcp_cacheinfo(void);
  
  /*
-@@ -3132,25 +3179,35 @@ static void __init hugetlb_folio_init_vm
-  */
- static void __init gather_bootmem_prealloc(void)
- {
-+	LIST_HEAD(folio_list);
- 	struct huge_bootmem_page *m;
-+	struct hstate *h, *prev_h = NULL;
+  * gfp_allowed_mask is set to GFP_BOOT_MASK during early boot to restrict what
+--- a/include/linux/mmzone.h~mm-pcp-reduce-lock-contention-for-draining-high-order-pages
++++ a/include/linux/mmzone.h
+@@ -689,6 +689,7 @@ enum zone_watermarks {
+ #define wmark_pages(z, i) (z->_watermark[i] + z->watermark_boost)
  
- 	list_for_each_entry(m, &huge_boot_pages, list) {
- 		struct page *page = virt_to_page(m);
- 		struct folio *folio = (void *)page;
--		struct hstate *h = m->hstate;
-+
-+		h = m->hstate;
-+		/*
-+		 * It is possible to have multiple huge page sizes (hstates)
-+		 * in this list.  If so, process each size separately.
-+		 */
-+		if (h != prev_h && prev_h != NULL)
-+			prep_and_add_allocated_folios(prev_h, &folio_list);
-+		prev_h = h;
+ #define	PCPF_PREV_FREE_HIGH_ORDER	0x01
++#define	PCPF_FREE_HIGH_BATCH		0x02
  
- 		VM_BUG_ON(!hstate_is_gigantic(h));
- 		WARN_ON(folio_ref_count(folio) != 1);
- 
- 		hugetlb_folio_init_vmemmap(folio, h,
- 					   HUGETLB_VMEMMAP_RESERVE_PAGES);
--		prep_new_hugetlb_folio(h, folio, folio_nid(folio));
-+		__prep_new_hugetlb_folio(h, folio);
- 		/* If HVO fails, initialize all tail struct pages */
- 		if (!HPageVmemmapOptimized(&folio->page))
- 			hugetlb_folio_init_tail_vmemmap(folio,
- 						HUGETLB_VMEMMAP_RESERVE_PAGES,
- 						pages_per_huge_page(h));
--		free_huge_folio(folio); /* add to the hugepage allocator */
-+		list_add(&folio->lru, &folio_list);
- 
- 		/*
- 		 * We need to restore the 'stolen' pages to totalram_pages
-@@ -3160,6 +3217,8 @@ static void __init gather_bootmem_preall
- 		adjust_managed_page_count(page, pages_per_huge_page(h));
- 		cond_resched();
- 	}
-+
-+	prep_and_add_allocated_folios(h, &folio_list);
- }
- 
- static void __init hugetlb_hstate_alloc_pages_onenode(struct hstate *h, int nid)
-@@ -3193,9 +3252,22 @@ static void __init hugetlb_hstate_alloc_
- 	h->max_huge_pages_node[nid] = i;
- }
- 
-+/*
-+ * NOTE: this routine is called in different contexts for gigantic and
-+ * non-gigantic pages.
-+ * - For gigantic pages, this is called early in the boot process and
-+ *   pages are allocated from memblock allocated or something similar.
-+ *   Gigantic pages are actually added to pools later with the routine
-+ *   gather_bootmem_prealloc.
-+ * - For non-gigantic pages, this is called later in the boot process after
-+ *   all of mm is up and functional.  Pages are allocated from buddy and
-+ *   then added to hugetlb pools.
-+ */
- static void __init hugetlb_hstate_alloc_pages(struct hstate *h)
- {
- 	unsigned long i;
-+	struct folio *folio;
-+	LIST_HEAD(folio_list);
- 	nodemask_t *node_alloc_noretry;
- 	bool node_specific_alloc = false;
- 
-@@ -3237,14 +3309,25 @@ static void __init hugetlb_hstate_alloc_
- 
- 	for (i = 0; i < h->max_huge_pages; ++i) {
- 		if (hstate_is_gigantic(h)) {
-+			/*
-+			 * gigantic pages not added to list as they are not
-+			 * added to pools now.
-+			 */
- 			if (!alloc_bootmem_huge_page(h, NUMA_NO_NODE))
- 				break;
--		} else if (!alloc_pool_huge_page(h,
--					 &node_states[N_MEMORY],
--					 node_alloc_noretry))
--			break;
-+		} else {
-+			folio = alloc_pool_huge_folio(h, &node_states[N_MEMORY],
-+							node_alloc_noretry);
-+			if (!folio)
-+				break;
-+			list_add(&folio->lru, &folio_list);
-+		}
- 		cond_resched();
- 	}
-+
-+	/* list will be empty if hstate_is_gigantic */
-+	prep_and_add_allocated_folios(h, &folio_list);
-+
- 	if (i < h->max_huge_pages) {
- 		char buf[32];
- 
-@@ -3378,7 +3461,9 @@ found:
- static int set_max_huge_pages(struct hstate *h, unsigned long count, int nid,
- 			      nodemask_t *nodes_allowed)
- {
--	unsigned long min_count, ret;
-+	unsigned long min_count;
-+	unsigned long allocated;
-+	struct folio *folio;
- 	LIST_HEAD(page_list);
- 	NODEMASK_ALLOC(nodemask_t, node_alloc_noretry, GFP_KERNEL);
- 
-@@ -3455,7 +3540,8 @@ static int set_max_huge_pages(struct hst
- 			break;
- 	}
- 
--	while (count > persistent_huge_pages(h)) {
-+	allocated = 0;
-+	while (count > (persistent_huge_pages(h) + allocated)) {
- 		/*
- 		 * If this allocation races such that we no longer need the
- 		 * page, free_huge_folio will handle it by freeing the page
-@@ -3466,15 +3552,32 @@ static int set_max_huge_pages(struct hst
- 		/* yield cpu to avoid soft lockup */
- 		cond_resched();
- 
--		ret = alloc_pool_huge_page(h, nodes_allowed,
-+		folio = alloc_pool_huge_folio(h, nodes_allowed,
- 						node_alloc_noretry);
--		spin_lock_irq(&hugetlb_lock);
--		if (!ret)
-+		if (!folio) {
-+			prep_and_add_allocated_folios(h, &page_list);
-+			spin_lock_irq(&hugetlb_lock);
- 			goto out;
-+		}
-+
-+		list_add(&folio->lru, &page_list);
-+		allocated++;
- 
- 		/* Bail for signals. Probably ctrl-c from user */
--		if (signal_pending(current))
-+		if (signal_pending(current)) {
-+			prep_and_add_allocated_folios(h, &page_list);
-+			spin_lock_irq(&hugetlb_lock);
- 			goto out;
-+		}
-+
-+		spin_lock_irq(&hugetlb_lock);
-+	}
-+
-+	/* Add allocated pages to the pool */
-+	if (!list_empty(&page_list)) {
-+		spin_unlock_irq(&hugetlb_lock);
-+		prep_and_add_allocated_folios(h, &page_list);
-+		spin_lock_irq(&hugetlb_lock);
- 	}
- 
- 	/*
-@@ -3500,8 +3603,6 @@ static int set_max_huge_pages(struct hst
- 	 * Collect pages to be removed on list without dropping lock
+ struct per_cpu_pages {
+ 	spinlock_t lock;	/* Protects lists field */
+--- a/mm/page_alloc.c~mm-pcp-reduce-lock-contention-for-draining-high-order-pages
++++ a/mm/page_alloc.c
+@@ -52,6 +52,7 @@
+ #include <linux/psi.h>
+ #include <linux/khugepaged.h>
+ #include <linux/delayacct.h>
++#include <linux/cacheinfo.h>
+ #include <asm/div64.h>
+ #include "internal.h"
+ #include "shuffle.h"
+@@ -2415,7 +2416,9 @@ static void free_unref_page_commit(struc
  	 */
- 	while (min_count < persistent_huge_pages(h)) {
--		struct folio *folio;
--
- 		folio = remove_pool_hugetlb_folio(h, nodes_allowed, 0);
- 		if (!folio)
- 			break;
+ 	if (order && order <= PAGE_ALLOC_COSTLY_ORDER) {
+ 		free_high = (pcp->free_factor &&
+-			     (pcp->flags & PCPF_PREV_FREE_HIGH_ORDER));
++			     (pcp->flags & PCPF_PREV_FREE_HIGH_ORDER) &&
++			     (!(pcp->flags & PCPF_FREE_HIGH_BATCH) ||
++			      pcp->count >= READ_ONCE(pcp->batch)));
+ 		pcp->flags |= PCPF_PREV_FREE_HIGH_ORDER;
+ 	} else if (pcp->flags & PCPF_PREV_FREE_HIGH_ORDER) {
+ 		pcp->flags &= ~PCPF_PREV_FREE_HIGH_ORDER;
+@@ -5448,6 +5451,38 @@ static void zone_pcp_update(struct zone
+ 	mutex_unlock(&pcp_batch_high_lock);
+ }
+ 
++static void zone_pcp_update_cacheinfo(struct zone *zone)
++{
++	int cpu;
++	struct per_cpu_pages *pcp;
++	struct cpu_cacheinfo *cci;
++
++	for_each_online_cpu(cpu) {
++		pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
++		cci = get_cpu_cacheinfo(cpu);
++		/*
++		 * If per-CPU data cache is large enough, up to
++		 * "batch" high-order pages can be cached in PCP for
++		 * consecutive freeing.  This can reduce zone lock
++		 * contention without hurting cache-hot pages sharing.
++		 */
++		spin_lock(&pcp->lock);
++		if ((cci->size_data >> PAGE_SHIFT) > 4 * pcp->batch)
++			pcp->flags |= PCPF_FREE_HIGH_BATCH;
++		else
++			pcp->flags &= ~PCPF_FREE_HIGH_BATCH;
++		spin_unlock(&pcp->lock);
++	}
++}
++
++void setup_pcp_cacheinfo(void)
++{
++	struct zone *zone;
++
++	for_each_populated_zone(zone)
++		zone_pcp_update_cacheinfo(zone);
++}
++
+ /*
+  * Allocate per cpu pagesets and initialize them.
+  * Before this call only boot pagesets were available.
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-hugetlb-set-hugetlb-page-flag-before-optimizing-vmemmap.patch
-hugetlb-optimize-update_and_free_pages_bulk-to-avoid-lock-cycles.patch
-hugetlb-restructure-pool-allocations.patch
-hugetlb-perform-vmemmap-optimization-on-a-list-of-pages.patch
-hugetlb-perform-vmemmap-restoration-on-a-list-of-pages.patch
-hugetlb-batch-freeing-of-vmemmap-pages.patch
-hugetlb-batch-tlb-flushes-when-restoring-vmemmap.patch
+mm-fix-draining-remote-pageset.patch
+memory-tiering-add-abstract-distance-calculation-algorithms-management.patch
+acpi-hmat-refactor-hmat_register_target_initiators.patch
+acpi-hmat-calculate-abstract-distance-with-hmat.patch
+dax-kmem-calculate-abstract-distance-with-general-interface.patch
+mm-pcp-avoid-to-drain-pcp-when-process-exit.patch
+cacheinfo-calculate-per-cpu-data-cache-size.patch
+mm-pcp-reduce-lock-contention-for-draining-high-order-pages.patch
+mm-restrict-the-pcp-batch-scale-factor-to-avoid-too-long-latency.patch
+mm-page_alloc-scale-the-number-of-pages-that-are-batch-allocated.patch
+mm-add-framework-for-pcp-high-auto-tuning.patch
+mm-tune-pcp-high-automatically.patch
+mm-pcp-decrease-pcp-high-if-free-pages-high-watermark.patch
+mm-pcp-avoid-to-reduce-pcp-high-unnecessarily.patch
+mm-pcp-reduce-detecting-time-of-consecutive-high-order-page-freeing.patch
 
