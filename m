@@ -2,36 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47E18E7F149
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D67CBE7F146
 	for <mm-commits@archiver.kernel.org>; Tue, 26 Sep 2023 23:18:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231765AbjIZXR7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231785AbjIZXR7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 26 Sep 2023 19:17:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51314 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51236 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231785AbjIZXPz (ORCPT
+        with ESMTP id S232555AbjIZXPz (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Sep 2023 19:15:55 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C2CF16EAB
-        for <mm-commits@vger.kernel.org>; Tue, 26 Sep 2023 15:17:20 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BF04C433C9;
-        Tue, 26 Sep 2023 20:59:22 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7BC2A17823
+        for <mm-commits@vger.kernel.org>; Tue, 26 Sep 2023 15:17:23 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C22FFC116D4;
+        Tue, 26 Sep 2023 21:39:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695761962;
-        bh=+rRy2jy6x1zwuEwXHEpiYmG0HZmtGeI2xncgV85Yt2Q=;
+        s=korg; t=1695764385;
+        bh=M4TR91rmzZf5RcV3v1OwzTnw49tIYOxdOnO6JkAEBUY=;
         h=Date:To:From:Subject:From;
-        b=xPWianN9s4JT9q9fu6yDZ8ARcQFeMusBGgE3eRKUw2L5O+G7kZyJwKktVQd0K80Wd
-         aqYXjRpf/Granf0ReuBs3reifnhExCSAJ9IR+GF4Ux+9s+F4Xa2fV0DOkrpNQeq37h
-         sjPYTir+bOX4r5NeEfQoCvzlDOkaXR4DH+Oy2Wm8=
-Date:   Tue, 26 Sep 2023 13:59:20 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        sudeep.holla@arm.com, pasha.tatashin@soleen.com, mhocko@suse.com,
-        mgorman@techsingularity.net, jweiner@redhat.com, david@redhat.com,
-        dave.hansen@linux.intel.com, cl@linux.com, arjan@linux.intel.com,
-        ying.huang@intel.com, akpm@linux-foundation.org
+        b=nO5/KZ3CvRjuK1HVphRKgy2YyG136urwaZX0cQ1OxnAqOGVaa4aErENfstmt/Qg39
+         cABEHaoTv5Euemzj7m4HPEtBn5FctCheSJ9SEwyuo2Pk9tEy84j2LOC/VMZt9R34tR
+         cBilYlJ0/Cv+CQsQf6AthVWFmSH0MhtsbYjKT+dI=
+Date:   Tue, 26 Sep 2023 14:39:45 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        songmuchun@bytedance.com, rientjes@google.com, osalvador@suse.de,
+        naoya.horiguchi@linux.dev, mhocko@suse.com, linmiaohe@huawei.com,
+        jthoughton@google.com, joao.m.martins@oracle.com,
+        duanxiongchun@bytedance.com, david@redhat.com,
+        anshuman.khandual@arm.com, mike.kravetz@oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pcp-avoid-to-drain-pcp-when-process-exit.patch added to mm-unstable branch
-Message-Id: <20230926205922.3BF04C433C9@smtp.kernel.org>
+Subject: + hugetlb-perform-vmemmap-restoration-on-a-list-of-pages.patch added to mm-unstable branch
+Message-Id: <20230926213945.C22FFC116D4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, pcp: avoid to drain PCP when process exit
+     Subject: hugetlb: perform vmemmap restoration on a list of pages
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-pcp-avoid-to-drain-pcp-when-process-exit.patch
+     hugetlb-perform-vmemmap-restoration-on-a-list-of-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pcp-avoid-to-drain-pcp-when-process-exit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-perform-vmemmap-restoration-on-a-list-of-pages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,326 +64,253 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm, pcp: avoid to drain PCP when process exit
-Date: Tue, 26 Sep 2023 14:09:02 +0800
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb: perform vmemmap restoration on a list of pages
+Date: Mon, 25 Sep 2023 16:48:32 -0700
 
-Patch series "mm: PCP high auto-tuning", v2.
+The routine update_and_free_pages_bulk already performs vmemmap
+restoration on the list of hugetlb pages in a separate step.  In
+preparation for more functionality to be added in this step, create a new
+routine hugetlb_vmemmap_restore_folios() that will restore vmemmap for a
+list of folios.
 
-The page allocation performance requirements of different workloads
-are often different.  So, we need to tune the PCP (Per-CPU Pageset)
-high on each CPU automatically to optimize the page allocation
-performance.
+This new routine must provide sufficient feedback about errors and actual
+restoration performed so that update_and_free_pages_bulk can perform
+optimally.
 
-The list of patches in series is as follows,
+Special care must be taken when encountering an error from
+hugetlb_vmemmap_restore_folios.  We want to continue making as much
+forward progress as possible.  A new routine bulk_vmemmap_restore_error
+handles this specific situation.
 
- 1 mm, pcp: avoid to drain PCP when process exit
- 2 cacheinfo: calculate per-CPU data cache size
- 3 mm, pcp: reduce lock contention for draining high-order pages
- 4 mm: restrict the pcp batch scale factor to avoid too long latency
- 5 mm, page_alloc: scale the number of pages that are batch allocated
- 6 mm: add framework for PCP high auto-tuning
- 7 mm: tune PCP high automatically
- 8 mm, pcp: decrease PCP high if free pages < high watermark
- 9 mm, pcp: avoid to reduce PCP high unnecessarily
-10 mm, pcp: reduce detecting time of consecutive high order page freeing
-
-Patch 1/2/3 optimize the PCP draining for consecutive high-order pages
-freeing.
-
-Patch 4/5 optimize batch freeing and allocating.
-
-Patch 6/7/8/9 implement and optimize a PCP high auto-tuning method.
-
-Patch 10 optimize the PCP draining for consecutive high order page
-freeing based on PCP high auto-tuning.
-
-The test results for patches with performance impact are as follows,
-
-kbuild
-======
-
-On a 2-socket Intel server with 224 logical CPU, we run 8 kbuild
-instances in parallel (each with `make -j 28`) in 8 cgroup.  This
-simulates the kbuild server that is used by 0-Day kbuild service.
-
-	build time   lock contend%	free_high	alloc_zone
-	----------	----------	---------	----------
-base	     100.0	      13.5          100.0            100.0
-patch1	      99.2	      10.6	     19.2	      95.6
-patch3	      99.2	      11.7	      7.1	      95.6
-patch5	      98.4	      10.0	      8.2	      97.1
-patch7	      94.9	       0.7	      3.0	      19.0
-patch9	      94.9	       0.6	      2.7	      15.0
-patch10	      94.9	       0.9	      8.8	      18.6
-
-The PCP draining optimization (patch 1/3) and PCP batch allocation
-optimization (patch 5) reduces zone lock contention a little.  The PCP
-high auto-tuning (patch 7/9/10) reduces build time visibly.  Where the
-tuning target: the number of pages allocated from zone reduces
-greatly.  So, the zone contention cycles% reduces greatly.
-
-With PCP tuning patches (patch 7/9/10), the average used memory during
-test increases up to 21.0% because more pages are cached in PCP.  But
-at the end of the test, the number of the used memory decreases to the
-same level as that of the base patch.  That is, the pages cached in
-PCP will be released to zone after not being used actively.
-
-netperf SCTP_STREAM_MANY
-========================
-
-On a 2-socket Intel server with 128 logical CPU, we tested
-SCTP_STREAM_MANY test case of netperf test suite with 64-pair
-processes.
-
-	     score   lock contend%	free_high	alloc_zone  cache miss rate%
-	     -----	----------	---------	----------  ----------------
-base	     100.0	       2.0          100.0            100.0	         1.3
-patch1	      99.7	       2.0	     99.7	      99.7		 1.3
-patch3	     105.5	       1.2	     13.2	     105.4		 1.2
-patch5	     106.9	       1.2	     13.4	     106.9		 1.3
-patch7	     103.5	       1.8	      6.8	      90.8		 7.6
-patch9	     103.7	       1.8	      6.6	      89.8		 7.7
-patch10	     106.9	       1.2	     13.5	     106.9		 1.2
-
-The PCP draining optimization (patch 1+3) improves performance.  The
-PCP high auto-tuning (patch 7/9) reduces performance a little because
-PCP draining cannot be triggered in time sometimes.  So, the cache
-miss rate% increases.  The further PCP draining optimization (patch
-10) based on PCP tuning restore the performance.
-
-lmbench3 UNIX (AF_UNIX)
-=======================
-
-On a 2-socket Intel server with 128 logical CPU, we tested UNIX
-(AF_UNIX socket) test case of lmbench3 test suite with 16-pair
-processes.
-
-	     score   lock contend%	free_high	alloc_zone  cache miss rate%
-	     -----	----------	---------	----------  ----------------
-base	     100.0	      50.0          100.0            100.0	         0.3
-patch1	     117.1	      45.8           72.6	     108.9	         0.2
-patch3	     201.6	      21.2            7.4	     111.5	         0.2
-patch5	     201.9	      20.9            7.5	     112.7	         0.3
-patch7	     194.2	      19.3            7.3	     111.5	         2.9
-patch9	     193.1	      19.2            7.2	     110.4	         2.9
-patch10	     196.8	      21.0            7.4	     111.2	         2.1
-
-The PCP draining optimization (patch 1/3) improves performance much.
-The PCP tuning (patch 7/9) reduces performance a little because PCP
-draining cannot be triggered in time sometimes.  The further PCP
-draining optimization (patch 10) based on PCP tuning restores the
-performance partly.
-
-The patchset adds several fields in struct per_cpu_pages.  The struct
-layout before/after the patchset is as follows,
-
-base
-====
-
-struct per_cpu_pages {
-	spinlock_t                 lock;                 /*     0     4 */
-	int                        count;                /*     4     4 */
-	int                        high;                 /*     8     4 */
-	int                        batch;                /*    12     4 */
-	short int                  free_factor;          /*    16     2 */
-	short int                  expire;               /*    18     2 */
-
-	/* XXX 4 bytes hole, try to pack */
-
-	struct list_head           lists[13];            /*    24   208 */
-
-	/* size: 256, cachelines: 4, members: 7 */
-	/* sum members: 228, holes: 1, sum holes: 4 */
-	/* padding: 24 */
-} __attribute__((__aligned__(64)));
-
-patched
-=======
-
-struct per_cpu_pages {
-	spinlock_t                 lock;                 /*     0     4 */
-	int                        count;                /*     4     4 */
-	int                        count_min;            /*     8     4 */
-	int                        high;                 /*    12     4 */
-	int                        high_min;             /*    16     4 */
-	int                        high_max;             /*    20     4 */
-	int                        batch;                /*    24     4 */
-	u8                         flags;                /*    28     1 */
-	u8                         alloc_factor;         /*    29     1 */
-	u8                         expire;               /*    30     1 */
-
-	/* XXX 1 byte hole, try to pack */
-
-	short int                  free_count;           /*    32     2 */
-
-	/* XXX 6 bytes hole, try to pack */
-
-	struct list_head           lists[13];            /*    40   208 */
-
-	/* size: 256, cachelines: 4, members: 12 */
-	/* sum members: 241, holes: 2, sum holes: 7 */
-	/* padding: 8 */
-} __attribute__((__aligned__(64)));
-
-The size of the struct doesn't change with the patchset.
-
-
-This patch (of 10):
-
-In commit f26b3fa04611 ("mm/page_alloc: limit number of high-order pages
-on PCP during bulk free"), the PCP (Per-CPU Pageset) will be drained when
-PCP is mostly used for high-order pages freeing to improve the cache-hot
-pages reusing between page allocation and freeing CPUs.
-
-But, the PCP draining mechanism may be triggered unexpectedly when process
-exits.  With some customized trace point, it was found that PCP draining
-(free_high == true) was triggered with the order-1 page freeing with the
-following call stack,
-
- => free_unref_page_commit
- => free_unref_page
- => __mmdrop
- => exit_mm
- => do_exit
- => do_group_exit
- => __x64_sys_exit_group
- => do_syscall_64
-
-Checking the source code, this is the page table PGD freeing
-(mm_free_pgd()).  It's a order-1 page freeing if
-CONFIG_PAGE_TABLE_ISOLATION=y.  Which is a common configuration for
-security.
-
-Just before that, page freeing with the following call stack was found,
-
- => free_unref_page_commit
- => free_unref_page_list
- => release_pages
- => tlb_batch_pages_flush
- => tlb_finish_mmu
- => exit_mmap
- => __mmput
- => exit_mm
- => do_exit
- => do_group_exit
- => __x64_sys_exit_group
- => do_syscall_64
-
-So, when a process exits,
-
-- a large number of user pages of the process will be freed without
-  page allocation, it's highly possible that pcp->free_factor becomes
-  > 0.
-
-- after freeing all user pages, the PGD will be freed, which is a
-  order-1 page freeing, PCP will be drained.
-
-All in all, when a process exits, it's high possible that the PCP will
-be drained.  This is an unexpected behavior.
-
-To avoid this, in the patch, the PCP draining will only be triggered
-for 2 consecutive high-order page freeing.
-
-On a 2-socket Intel server with 224 logical CPU, we run 8 kbuild instances
-in parallel (each with `make -j 28`) in 8 cgroup.  This simulates the
-kbuild server that is used by 0-Day kbuild service.  With the patch, the
-cycles% of the spinlock contention (mostly for zone lock) decreases from
-13.5% to 10.6% (with PCP size == 361).  The number of PCP draining for
-high order pages freeing (free_high) decreases 80.8%.
-
-This helps network workload too for reduced zone lock contention.  On a
-2-socket Intel server with 128 logical CPU, with the patch, the network
-bandwidth of the UNIX (AF_UNIX) test case of lmbench test suite with
-16-pair processes increase 17.1%.  The cycles% of the spinlock contention
-(mostly for zone lock) decreases from 50.0% to 45.8%.  The number of PCP
-draining for high order pages freeing (free_high) decreases 27.4%.  The
-cache miss rate keeps 0.3%.
-
-Link: https://lkml.kernel.org/r/20230926060911.266511-1-ying.huang@intel.com
-Link: https://lkml.kernel.org/r/20230926060911.266511-2-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20230925234837.86786-5-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    5 ++++-
- mm/page_alloc.c        |   11 ++++++++---
- 2 files changed, 12 insertions(+), 4 deletions(-)
+ mm/hugetlb.c         |   99 +++++++++++++++++++++++++++++------------
+ mm/hugetlb_vmemmap.c |   38 +++++++++++++++
+ mm/hugetlb_vmemmap.h |   10 ++++
+ 3 files changed, 119 insertions(+), 28 deletions(-)
 
---- a/include/linux/mmzone.h~mm-pcp-avoid-to-drain-pcp-when-process-exit
-+++ a/include/linux/mmzone.h
-@@ -688,12 +688,15 @@ enum zone_watermarks {
- #define high_wmark_pages(z) (z->_watermark[WMARK_HIGH] + z->watermark_boost)
- #define wmark_pages(z, i) (z->_watermark[i] + z->watermark_boost)
+--- a/mm/hugetlb.c~hugetlb-perform-vmemmap-restoration-on-a-list-of-pages
++++ a/mm/hugetlb.c
+@@ -1716,50 +1716,93 @@ static void update_and_free_hugetlb_foli
+ 		schedule_work(&free_hpage_work);
+ }
  
-+#define	PCPF_PREV_FREE_HIGH_ORDER	0x01
-+
- struct per_cpu_pages {
- 	spinlock_t lock;	/* Protects lists field */
- 	int count;		/* number of pages in the list */
- 	int high;		/* high watermark, emptying needed */
- 	int batch;		/* chunk size for buddy add/remove */
--	short free_factor;	/* batch scaling factor during free */
-+	u8 flags;		/* protected by pcp->lock */
-+	u8 free_factor;		/* batch scaling factor during free */
- #ifdef CONFIG_NUMA
- 	short expire;		/* When 0, remote pagesets are drained */
- #endif
---- a/mm/page_alloc.c~mm-pcp-avoid-to-drain-pcp-when-process-exit
-+++ a/mm/page_alloc.c
-@@ -2400,7 +2400,7 @@ static void free_unref_page_commit(struc
+-static void update_and_free_pages_bulk(struct hstate *h, struct list_head *list)
++static void bulk_vmemmap_restore_error(struct hstate *h,
++					struct list_head *folio_list,
++					struct list_head *non_hvo_folios)
  {
- 	int high;
- 	int pindex;
--	bool free_high;
-+	bool free_high = false;
+ 	struct folio *folio, *t_folio;
+-	bool clear_dtor = false;
  
- 	__count_vm_events(PGFREE, 1 << order);
- 	pindex = order_to_pindex(migratetype, order);
-@@ -2413,8 +2413,13 @@ static void free_unref_page_commit(struc
- 	 * freeing without allocation. The remainder after bulk freeing
- 	 * stops will be drained from vmstat refresh context.
- 	 */
--	free_high = (pcp->free_factor && order && order <= PAGE_ALLOC_COSTLY_ORDER);
--
-+	if (order && order <= PAGE_ALLOC_COSTLY_ORDER) {
-+		free_high = (pcp->free_factor &&
-+			     (pcp->flags & PCPF_PREV_FREE_HIGH_ORDER));
-+		pcp->flags |= PCPF_PREV_FREE_HIGH_ORDER;
-+	} else if (pcp->flags & PCPF_PREV_FREE_HIGH_ORDER) {
-+		pcp->flags &= ~PCPF_PREV_FREE_HIGH_ORDER;
+-	/*
+-	 * First allocate required vmemmmap (if necessary) for all folios on
+-	 * list.  If vmemmap can not be allocated, we can not free folio to
+-	 * lower level allocator, so add back as hugetlb surplus page.
+-	 * add_hugetlb_folio() removes the page from THIS list.
+-	 * Use clear_dtor to note if vmemmap was successfully allocated for
+-	 * ANY page on the list.
+-	 */
+-	list_for_each_entry_safe(folio, t_folio, list, lru) {
+-		if (folio_test_hugetlb_vmemmap_optimized(folio)) {
++	if (!list_empty(non_hvo_folios)) {
++		/*
++		 * Free any restored hugetlb pages so that restore of the
++		 * entire list can be retried.
++		 * The idea is that in the common case of ENOMEM errors freeing
++		 * hugetlb pages with vmemmap we will free up memory so that we
++		 * can allocate vmemmap for more hugetlb pages.
++		 */
++		list_for_each_entry_safe(folio, t_folio, non_hvo_folios, lru) {
++			list_del(&folio->lru);
++			spin_lock_irq(&hugetlb_lock);
++			__clear_hugetlb_destructor(h, folio);
++			spin_unlock_irq(&hugetlb_lock);
++			update_and_free_hugetlb_folio(h, folio, false);
++			cond_resched();
++		}
++	} else {
++		/*
++		 * In the case where there are no folios which can be
++		 * immediately freed, we loop through the list trying to restore
++		 * vmemmap individually in the hope that someone elsewhere may
++		 * have done something to cause success (such as freeing some
++		 * memory).  If unable to restore a hugetlb page, the hugetlb
++		 * page is made a surplus page and removed from the list.
++		 * If are able to restore vmemmap and free one hugetlb page, we
++		 * quit processing the list to retry the bulk operation.
++		 */
++		list_for_each_entry_safe(folio, t_folio, folio_list, lru)
+ 			if (hugetlb_vmemmap_restore(h, &folio->page)) {
++				list_del(&folio->lru);
+ 				spin_lock_irq(&hugetlb_lock);
+ 				add_hugetlb_folio(h, folio, true);
+ 				spin_unlock_irq(&hugetlb_lock);
+-			} else
+-				clear_dtor = true;
+-		}
++			} else {
++				list_del(&folio->lru);
++				spin_lock_irq(&hugetlb_lock);
++				__clear_hugetlb_destructor(h, folio);
++				spin_unlock_irq(&hugetlb_lock);
++				update_and_free_hugetlb_folio(h, folio, false);
++				cond_resched();
++				break;
++			}
 +	}
- 	high = nr_pcp_high(pcp, zone, free_high);
- 	if (pcp->count >= high) {
- 		free_pcppages_bulk(zone, nr_pcp_free(pcp, high, free_high), pcp, pindex);
++}
++
++static void update_and_free_pages_bulk(struct hstate *h,
++						struct list_head *folio_list)
++{
++	long ret;
++	struct folio *folio, *t_folio;
++	LIST_HEAD(non_hvo_folios);
++
++	/*
++	 * First allocate required vmemmmap (if necessary) for all folios.
++	 * Carefully handle errors and free up any available hugetlb pages
++	 * in an effort to make forward progress.
++	 */
++retry:
++	ret = hugetlb_vmemmap_restore_folios(h, folio_list, &non_hvo_folios);
++	if (ret < 0) {
++		bulk_vmemmap_restore_error(h, folio_list, &non_hvo_folios);
++		goto retry;
+ 	}
+ 
+ 	/*
+-	 * If vmemmmap allocation was performed on any folio above, take lock
+-	 * to clear destructor of all folios on list.  This avoids the need to
+-	 * lock/unlock for each individual folio.
+-	 * The assumption is vmemmap allocation was performed on all or none
+-	 * of the folios on the list.  This is true expect in VERY rare cases.
++	 * At this point, list should be empty, ret should be >= 0 and there
++	 * should only be pages on the non_hvo_folios list.
++	 * Do note that the non_hvo_folios list could be empty.
++	 * Without HVO enabled, ret will be 0 and there is no need to call
++	 * __clear_hugetlb_destructor as this was done previously.
+ 	 */
+-	if (clear_dtor) {
++	VM_WARN_ON(!list_empty(folio_list));
++	VM_WARN_ON(ret < 0);
++	if (!list_empty(&non_hvo_folios) && ret) {
+ 		spin_lock_irq(&hugetlb_lock);
+-		list_for_each_entry(folio, list, lru)
++		list_for_each_entry(folio, &non_hvo_folios, lru)
+ 			__clear_hugetlb_destructor(h, folio);
+ 		spin_unlock_irq(&hugetlb_lock);
+ 	}
+ 
+-	/*
+-	 * Free folios back to low level allocators.  vmemmap and destructors
+-	 * were taken care of above, so update_and_free_hugetlb_folio will
+-	 * not need to take hugetlb lock.
+-	 */
+-	list_for_each_entry_safe(folio, t_folio, list, lru) {
++	list_for_each_entry_safe(folio, t_folio, &non_hvo_folios, lru) {
+ 		update_and_free_hugetlb_folio(h, folio, false);
+ 		cond_resched();
+ 	}
+--- a/mm/hugetlb_vmemmap.c~hugetlb-perform-vmemmap-restoration-on-a-list-of-pages
++++ a/mm/hugetlb_vmemmap.c
+@@ -480,6 +480,44 @@ int hugetlb_vmemmap_restore(const struct
+ 	return ret;
+ }
+ 
++/**
++ * hugetlb_vmemmap_restore_folios - restore vmemmap for every folio on the list.
++ * @h:			hstate.
++ * @folio_list:		list of folios.
++ * @non_hvo_folios:	Output list of folios for which vmemmap exists.
++ *
++ * Return: number of folios for which vmemmap was restored, or an error code
++ *		if an error was encountered restoring vmemmap for a folio.
++ *		Folios that have vmemmap are moved to the non_hvo_folios
++ *		list.  Processing of entries stops when the first error is
++ *		encountered. The folio that experienced the error and all
++ *		non-processed folios will remain on folio_list.
++ */
++long hugetlb_vmemmap_restore_folios(const struct hstate *h,
++					struct list_head *folio_list,
++					struct list_head *non_hvo_folios)
++{
++	struct folio *folio, *t_folio;
++	long restored = 0;
++	long ret = 0;
++
++	list_for_each_entry_safe(folio, t_folio, folio_list, lru) {
++		if (folio_test_hugetlb_vmemmap_optimized(folio)) {
++			ret = hugetlb_vmemmap_restore(h, &folio->page);
++			if (ret)
++				break;
++			restored++;
++		}
++
++		/* Add non-optimized folios to output list */
++		list_move(&folio->lru, non_hvo_folios);
++	}
++
++	if (!ret)
++		ret = restored;
++	return ret;
++}
++
+ /* Return true iff a HugeTLB whose vmemmap should and can be optimized. */
+ static bool vmemmap_should_optimize(const struct hstate *h, const struct page *head)
+ {
+--- a/mm/hugetlb_vmemmap.h~hugetlb-perform-vmemmap-restoration-on-a-list-of-pages
++++ a/mm/hugetlb_vmemmap.h
+@@ -19,6 +19,9 @@
+ 
+ #ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ int hugetlb_vmemmap_restore(const struct hstate *h, struct page *head);
++long hugetlb_vmemmap_restore_folios(const struct hstate *h,
++					struct list_head *folio_list,
++					struct list_head *non_hvo_folios);
+ void hugetlb_vmemmap_optimize(const struct hstate *h, struct page *head);
+ void hugetlb_vmemmap_optimize_folios(struct hstate *h, struct list_head *folio_list);
+ 
+@@ -44,6 +47,13 @@ static inline int hugetlb_vmemmap_restor
+ {
+ 	return 0;
+ }
++
++static long hugetlb_vmemmap_restore_folios(const struct hstate *h,
++					struct list_head *folio_list,
++					struct list_head *non_hvo_folios)
++{
++	return 0;
++}
+ 
+ static inline void hugetlb_vmemmap_optimize(const struct hstate *h, struct page *head)
+ {
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-mm-fix-draining-remote-pageset.patch
-memory-tiering-add-abstract-distance-calculation-algorithms-management.patch
-acpi-hmat-refactor-hmat_register_target_initiators.patch
-acpi-hmat-calculate-abstract-distance-with-hmat.patch
-dax-kmem-calculate-abstract-distance-with-general-interface.patch
-mm-pcp-avoid-to-drain-pcp-when-process-exit.patch
-cacheinfo-calculate-per-cpu-data-cache-size.patch
-mm-pcp-reduce-lock-contention-for-draining-high-order-pages.patch
-mm-restrict-the-pcp-batch-scale-factor-to-avoid-too-long-latency.patch
-mm-page_alloc-scale-the-number-of-pages-that-are-batch-allocated.patch
-mm-add-framework-for-pcp-high-auto-tuning.patch
-mm-tune-pcp-high-automatically.patch
-mm-pcp-decrease-pcp-high-if-free-pages-high-watermark.patch
-mm-pcp-avoid-to-reduce-pcp-high-unnecessarily.patch
-mm-pcp-reduce-detecting-time-of-consecutive-high-order-page-freeing.patch
+hugetlb-set-hugetlb-page-flag-before-optimizing-vmemmap.patch
+hugetlb-optimize-update_and_free_pages_bulk-to-avoid-lock-cycles.patch
+hugetlb-restructure-pool-allocations.patch
+hugetlb-perform-vmemmap-optimization-on-a-list-of-pages.patch
+hugetlb-perform-vmemmap-restoration-on-a-list-of-pages.patch
+hugetlb-batch-freeing-of-vmemmap-pages.patch
+hugetlb-batch-tlb-flushes-when-restoring-vmemmap.patch
 
