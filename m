@@ -2,38 +2,37 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EAABE7F153
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Sep 2023 02:46:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84363E7F153
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Sep 2023 02:46:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229584AbjI0Cqg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Sep 2023 22:46:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33174 "EHLO
+        id S231741AbjI0Cqj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Sep 2023 22:46:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52476 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231888AbjI0Cof (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Sep 2023 22:44:35 -0400
+        with ESMTP id S233036AbjI0Col (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Sep 2023 22:44:41 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FFC31B3A2
-        for <mm-commits@vger.kernel.org>; Tue, 26 Sep 2023 15:22:20 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AB5CC433A9;
-        Tue, 26 Sep 2023 21:07:01 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 673281781A
+        for <mm-commits@vger.kernel.org>; Tue, 26 Sep 2023 15:17:23 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F98FC43397;
+        Tue, 26 Sep 2023 20:59:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695762421;
-        bh=bMo5c9sYEHAy0GoLpQu+jgq0Xurz9m38nl8ZNTfM5F4=;
+        s=korg; t=1695761974;
+        bh=wmJBFk18U1uYNfNEzYOCR1OD/uJPGDJNeqVy/J97m3w=;
         h=Date:To:From:Subject:From;
-        b=KUeZRsBCLQRjyn1M39uRVGUDP6lcIE1HvaQMwH+8X5aOqrPFGDIV8JYo8HmYRxkNZ
-         H0fvReMB4Rdz48S2v/aSUI9ArEDbhTuiMMi9nalFXCb/09nyLOgJAMVs8EfKX9A62+
-         spEAY8NmaJDbiEVBUZ19Kw7rDOE1BSUuyTFWY2eE=
-Date:   Tue, 26 Sep 2023 14:06:59 -0700
-To:     mm-commits@vger.kernel.org, weixugc@google.com,
-        shy828301@gmail.com, rafael.j.wysocki@intel.com, mhocko@kernel.org,
-        Jonathan.Cameron@huawei.com, hannes@cmpxchg.org, dave@stgolabs.net,
-        dave.jiang@intel.com, dave.hansen@intel.com,
-        dan.j.williams@intel.com, bharata@amd.com, apopple@nvidia.com,
-        aneesh.kumar@linux.ibm.com, ying.huang@intel.com,
+        b=cbqWhwLuxYinm/K3moTMcct5K5tymPAR29qxxlajv93S0/svh2RADFCckKsXIGTnk
+         d7UcMASP8jRlvoB+8EIGL8hP0+Fguq7cfj6v8oi1VIVaakK+jlyoHS8FcagGSXA8hb
+         fC+cdA/s1QjjKeiS5OAk2kKZ30fMHjYt4wBwLv1c=
+Date:   Tue, 26 Sep 2023 13:59:32 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        sudeep.holla@arm.com, pasha.tatashin@soleen.com, mhocko@suse.com,
+        mgorman@techsingularity.net, jweiner@redhat.com, david@redhat.com,
+        dave.hansen@linux.intel.com, cl@linux.com, arjan@linux.intel.com,
+        akpm@linux-foundation.org, ying.huang@intel.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + memory-tiering-add-abstract-distance-calculation-algorithms-management.patch added to mm-unstable branch
-Message-Id: <20230926210701.5AB5CC433A9@smtp.kernel.org>
+Subject: + mm-pcp-reduce-detecting-time-of-consecutive-high-order-page-freeing.patch added to mm-unstable branch
+Message-Id: <20230926205934.2F98FC43397@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +40,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory tiering: add abstract distance calculation algorithms management
+     Subject: mm, pcp: reduce detecting time of consecutive high order page freeing
 has been added to the -mm mm-unstable branch.  Its filename is
-     memory-tiering-add-abstract-distance-calculation-algorithms-management.patch
+     mm-pcp-reduce-detecting-time-of-consecutive-high-order-page-freeing.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memory-tiering-add-abstract-distance-calculation-algorithms-management.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pcp-reduce-detecting-time-of-consecutive-high-order-page-freeing.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,192 +64,148 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: memory tiering: add abstract distance calculation algorithms management
-Date: Tue, 26 Sep 2023 14:06:25 +0800
+Subject: mm, pcp: reduce detecting time of consecutive high order page freeing
+Date: Tue, 26 Sep 2023 14:09:11 +0800
 
-Patch series "memory tiering: calculate abstract distance based on ACPI
-HMAT", v4.
+In current PCP auto-tuning design, if the number of pages allocated is
+much more than that of pages freed on a CPU, the PCP high may become the
+maximal value even if the allocating/freeing depth is small, for example,
+in the sender of network workloads.  If a CPU was used as sender
+originally, then it is used as receiver after context switching, we need
+to fill the whole PCP with maximal high before triggering PCP draining for
+consecutive high order freeing.  This will hurt the performance of some
+network workloads.
 
-We have the explicit memory tiers framework to manage systems with
-multiple types of memory, e.g., DRAM in DIMM slots and CXL memory devices.
-Where, same kind of memory devices will be grouped into memory types,
-then put into memory tiers.  To describe the performance of a memory type,
-abstract distance is defined.  Which is in direct proportion to the memory
-latency and inversely proportional to the memory bandwidth.  To keep the
-code as simple as possible, fixed abstract distance is used in dax/kmem to
-describe slow memory such as Optane DCPMM.
+To solve the issue, in this patch, we will track the consecutive page
+freeing with a counter in stead of relying on PCP draining.  So, we can
+detect consecutive page freeing much earlier.
 
-To support more memory types, in this series, we added the abstract
-distance calculation algorithm management mechanism, provided a algorithm
-implementation based on ACPI HMAT, and used the general abstract distance
-calculation interface in dax/kmem driver.  So, dax/kmem can support HBM
-(high bandwidth memory) in addition to the original Optane DCPMM.
+On a 2-socket Intel server with 128 logical CPU, we tested
+SCTP_STREAM_MANY test case of netperf test suite with 64-pair processes. 
+With the patch, the network bandwidth improves 3.1%.  This restores the
+performance drop caused by PCP auto-tuning.
 
-
-This patch (of 4):
-
-The abstract distance may be calculated by various drivers, such as ACPI
-HMAT, CXL CDAT, etc.  While it may be used by various code which hot-add
-memory node, such as dax/kmem etc.  To decouple the algorithm users and
-the providers, the abstract distance calculation algorithms management
-mechanism is implemented in this patch.  It provides interface for the
-providers to register the implementation, and interface for the users.
-
-Multiple algorithm implementations can cooperate via calculating abstract
-distance for different memory nodes.  The preference of algorithm
-implementations can be specified via priority (notifier_block.priority).
-
-Link: https://lkml.kernel.org/r/20230926060628.265989-1-ying.huang@intel.com
-Link: https://lkml.kernel.org/r/20230926060628.265989-2-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20230926060911.266511-11-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Tested-by: Bharata B Rao <bharata@amd.com>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Rafael J Wysocki <rafael.j.wysocki@intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory-tiers.h |   19 ++++++++++
- mm/memory-tiers.c            |   59 +++++++++++++++++++++++++++++++++
- 2 files changed, 78 insertions(+)
+ include/linux/mmzone.h |    2 +-
+ mm/page_alloc.c        |   23 +++++++++++------------
+ 2 files changed, 12 insertions(+), 13 deletions(-)
 
---- a/include/linux/memory-tiers.h~memory-tiering-add-abstract-distance-calculation-algorithms-management
-+++ a/include/linux/memory-tiers.h
-@@ -6,6 +6,7 @@
- #include <linux/nodemask.h>
- #include <linux/kref.h>
- #include <linux/mmzone.h>
-+#include <linux/notifier.h>
- /*
-  * Each tier cover a abstrace distance chunk size of 128
-  */
-@@ -36,6 +37,9 @@ struct memory_dev_type *alloc_memory_typ
- void put_memory_type(struct memory_dev_type *memtype);
- void init_node_memory_type(int node, struct memory_dev_type *default_type);
- void clear_node_memory_type(int node, struct memory_dev_type *memtype);
-+int register_mt_adistance_algorithm(struct notifier_block *nb);
-+int unregister_mt_adistance_algorithm(struct notifier_block *nb);
-+int mt_calc_adistance(int node, int *adist);
- #ifdef CONFIG_MIGRATION
- int next_demotion_node(int node);
- void node_get_allowed_targets(pg_data_t *pgdat, nodemask_t *targets);
-@@ -97,5 +101,20 @@ static inline bool node_is_toptier(int n
- {
- 	return true;
+--- a/include/linux/mmzone.h~mm-pcp-reduce-detecting-time-of-consecutive-high-order-page-freeing
++++ a/include/linux/mmzone.h
+@@ -701,10 +701,10 @@ struct per_cpu_pages {
+ 	int batch;		/* chunk size for buddy add/remove */
+ 	u8 flags;		/* protected by pcp->lock */
+ 	u8 alloc_factor;	/* batch scaling factor during allocate */
+-	u8 free_factor;		/* batch scaling factor during free */
+ #ifdef CONFIG_NUMA
+ 	u8 expire;		/* When 0, remote pagesets are drained */
+ #endif
++	short free_count;	/* consecutive free count */
+ 
+ 	/* Lists of pages, one per migrate type stored on the pcp-lists */
+ 	struct list_head lists[NR_PCP_LISTS];
+--- a/mm/page_alloc.c~mm-pcp-reduce-detecting-time-of-consecutive-high-order-page-freeing
++++ a/mm/page_alloc.c
+@@ -2405,13 +2405,10 @@ static int nr_pcp_free(struct per_cpu_pa
+ 	max_nr_free = high - batch;
+ 
+ 	/*
+-	 * Double the number of pages freed each time there is subsequent
+-	 * freeing of pages without any allocation.
++	 * Increase the batch number to the number of the consecutive
++	 * freed pages to reduce zone lock contention.
+ 	 */
+-	batch <<= pcp->free_factor;
+-	if (batch <= max_nr_free && pcp->free_factor < PCP_BATCH_SCALE_MAX)
+-		pcp->free_factor++;
+-	batch = clamp(batch, min_nr_free, max_nr_free);
++	batch = clamp_t(int, pcp->free_count, min_nr_free, max_nr_free);
+ 
+ 	return batch;
  }
-+
-+static inline int register_mt_adistance_algorithm(struct notifier_block *nb)
-+{
-+	return 0;
-+}
-+
-+static inline int unregister_mt_adistance_algorithm(struct notifier_block *nb)
-+{
-+	return 0;
-+}
-+
-+static inline int mt_calc_adistance(int node, int *adist)
-+{
-+	return NOTIFY_DONE;
-+}
- #endif	/* CONFIG_NUMA */
- #endif  /* _LINUX_MEMORY_TIERS_H */
---- a/mm/memory-tiers.c~memory-tiering-add-abstract-distance-calculation-algorithms-management
-+++ a/mm/memory-tiers.c
-@@ -5,6 +5,7 @@
- #include <linux/kobject.h>
- #include <linux/memory.h>
- #include <linux/memory-tiers.h>
-+#include <linux/notifier.h>
+@@ -2438,7 +2435,7 @@ static int nr_pcp_high(struct per_cpu_pa
+ 	 * stored on pcp lists
+ 	 */
+ 	if (test_bit(ZONE_RECLAIM_ACTIVE, &zone->flags)) {
+-		pcp->high = max(high - (batch << pcp->free_factor), high_min);
++		pcp->high = max(high - pcp->free_count, high_min);
+ 		return min(batch << 2, pcp->high);
+ 	}
  
- #include "internal.h"
+@@ -2446,10 +2443,10 @@ static int nr_pcp_high(struct per_cpu_pa
+ 		return high;
  
-@@ -105,6 +106,8 @@ static int top_tier_adistance;
- static struct demotion_nodes *node_demotion __read_mostly;
- #endif /* CONFIG_MIGRATION */
+ 	if (test_bit(ZONE_BELOW_HIGH, &zone->flags)) {
+-		pcp->high = max(high - (batch << pcp->free_factor), high_min);
++		pcp->high = max(high - pcp->free_count, high_min);
+ 		high = max(pcp->count, high_min);
+ 	} else if (pcp->count >= high) {
+-		int need_high = (batch << pcp->free_factor) + batch;
++		int need_high = pcp->free_count + batch;
  
-+static BLOCKING_NOTIFIER_HEAD(mt_adistance_algorithms);
-+
- static inline struct memory_tier *to_memory_tier(struct device *device)
- {
- 	return container_of(device, struct memory_tier, dev);
-@@ -592,6 +595,62 @@ void clear_node_memory_type(int node, st
+ 		/* pcp->high should be large enough to hold batch freed pages */
+ 		if (pcp->high < need_high)
+@@ -2486,7 +2483,7 @@ static void free_unref_page_commit(struc
+ 	 * stops will be drained from vmstat refresh context.
+ 	 */
+ 	if (order && order <= PAGE_ALLOC_COSTLY_ORDER) {
+-		free_high = (pcp->free_factor &&
++		free_high = (pcp->free_count >= batch &&
+ 			     (pcp->flags & PCPF_PREV_FREE_HIGH_ORDER) &&
+ 			     (!(pcp->flags & PCPF_FREE_HIGH_BATCH) ||
+ 			      pcp->count >= READ_ONCE(batch)));
+@@ -2494,6 +2491,8 @@ static void free_unref_page_commit(struc
+ 	} else if (pcp->flags & PCPF_PREV_FREE_HIGH_ORDER) {
+ 		pcp->flags &= ~PCPF_PREV_FREE_HIGH_ORDER;
+ 	}
++	if (pcp->free_count < (batch << PCP_BATCH_SCALE_MAX))
++		pcp->free_count += (1 << order);
+ 	high = nr_pcp_high(pcp, zone, batch, free_high);
+ 	if (pcp->count >= high) {
+ 		free_pcppages_bulk(zone, nr_pcp_free(pcp, batch, high, free_high),
+@@ -2891,7 +2890,7 @@ static struct page *rmqueue_pcplist(stru
+ 	 * See nr_pcp_free() where free_factor is increased for subsequent
+ 	 * frees.
+ 	 */
+-	pcp->free_factor >>= 1;
++	pcp->free_count >>= 1;
+ 	list = &pcp->lists[order_to_pindex(migratetype, order)];
+ 	page = __rmqueue_pcplist(zone, order, migratetype, alloc_flags, pcp, list);
+ 	pcp_spin_unlock(pcp);
+@@ -5513,7 +5512,7 @@ static void per_cpu_pages_init(struct pe
+ 	pcp->high_min = BOOT_PAGESET_HIGH;
+ 	pcp->high_max = BOOT_PAGESET_HIGH;
+ 	pcp->batch = BOOT_PAGESET_BATCH;
+-	pcp->free_factor = 0;
++	pcp->free_count = 0;
  }
- EXPORT_SYMBOL_GPL(clear_node_memory_type);
  
-+/**
-+ * register_mt_adistance_algorithm() - Register memory tiering abstract distance algorithm
-+ * @nb: The notifier block which describe the algorithm
-+ *
-+ * Return: 0 on success, errno on error.
-+ *
-+ * Every memory tiering abstract distance algorithm provider needs to
-+ * register the algorithm with register_mt_adistance_algorithm().  To
-+ * calculate the abstract distance for a specified memory node, the
-+ * notifier function will be called unless some high priority
-+ * algorithm has provided result.  The prototype of the notifier
-+ * function is as follows,
-+ *
-+ *   int (*algorithm_notifier)(struct notifier_block *nb,
-+ *                             unsigned long nid, void *data);
-+ *
-+ * Where "nid" specifies the memory node, "data" is the pointer to the
-+ * returned abstract distance (that is, "int *adist").  If the
-+ * algorithm provides the result, NOTIFY_STOP should be returned.
-+ * Otherwise, return_value & %NOTIFY_STOP_MASK == 0 to allow the next
-+ * algorithm in the chain to provide the result.
-+ */
-+int register_mt_adistance_algorithm(struct notifier_block *nb)
-+{
-+	return blocking_notifier_chain_register(&mt_adistance_algorithms, nb);
-+}
-+EXPORT_SYMBOL_GPL(register_mt_adistance_algorithm);
-+
-+/**
-+ * unregister_mt_adistance_algorithm() - Unregister memory tiering abstract distance algorithm
-+ * @nb: the notifier block which describe the algorithm
-+ *
-+ * Return: 0 on success, errno on error.
-+ */
-+int unregister_mt_adistance_algorithm(struct notifier_block *nb)
-+{
-+	return blocking_notifier_chain_unregister(&mt_adistance_algorithms, nb);
-+}
-+EXPORT_SYMBOL_GPL(unregister_mt_adistance_algorithm);
-+
-+/**
-+ * mt_calc_adistance() - Calculate abstract distance with registered algorithms
-+ * @node: the node to calculate abstract distance for
-+ * @adist: the returned abstract distance
-+ *
-+ * Return: if return_value & %NOTIFY_STOP_MASK != 0, then some
-+ * abstract distance algorithm provides the result, and return it via
-+ * @adist.  Otherwise, no algorithm can provide the result and @adist
-+ * will be kept as it is.
-+ */
-+int mt_calc_adistance(int node, int *adist)
-+{
-+	return blocking_notifier_call_chain(&mt_adistance_algorithms, node, adist);
-+}
-+EXPORT_SYMBOL_GPL(mt_calc_adistance);
-+
- static int __meminit memtier_hotplug_callback(struct notifier_block *self,
- 					      unsigned long action, void *_arg)
- {
+ static void __zone_set_pageset_high_and_batch(struct zone *zone, unsigned long high_min,
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
 
 mm-fix-draining-remote-pageset.patch
+memory-tiering-add-abstract-distance-calculation-algorithms-management.patch
+acpi-hmat-refactor-hmat_register_target_initiators.patch
+acpi-hmat-calculate-abstract-distance-with-hmat.patch
+dax-kmem-calculate-abstract-distance-with-general-interface.patch
 mm-pcp-avoid-to-drain-pcp-when-process-exit.patch
 cacheinfo-calculate-per-cpu-data-cache-size.patch
 mm-pcp-reduce-lock-contention-for-draining-high-order-pages.patch
@@ -261,8 +216,4 @@ mm-tune-pcp-high-automatically.patch
 mm-pcp-decrease-pcp-high-if-free-pages-high-watermark.patch
 mm-pcp-avoid-to-reduce-pcp-high-unnecessarily.patch
 mm-pcp-reduce-detecting-time-of-consecutive-high-order-page-freeing.patch
-memory-tiering-add-abstract-distance-calculation-algorithms-management.patch
-acpi-hmat-refactor-hmat_register_target_initiators.patch
-acpi-hmat-calculate-abstract-distance-with-hmat.patch
-dax-kmem-calculate-abstract-distance-with-general-interface.patch
 
