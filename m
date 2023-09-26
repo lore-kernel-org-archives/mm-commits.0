@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD112E7F127
-	for <mm-commits@archiver.kernel.org>; Tue, 26 Sep 2023 20:43:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70826E7F124
+	for <mm-commits@archiver.kernel.org>; Tue, 26 Sep 2023 20:45:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235843AbjIZUn2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Sep 2023 16:43:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33636 "EHLO
+        id S231727AbjIZUpN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Sep 2023 16:45:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51606 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235916AbjIZUn1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Sep 2023 16:43:27 -0400
+        with ESMTP id S235843AbjIZUpL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Sep 2023 16:45:11 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8ECA711D
-        for <mm-commits@vger.kernel.org>; Tue, 26 Sep 2023 13:43:19 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20F53C433C7;
-        Tue, 26 Sep 2023 20:43:19 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 40CEF12A;
+        Tue, 26 Sep 2023 13:45:05 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF509C433C7;
+        Tue, 26 Sep 2023 20:45:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695760999;
-        bh=Y9fiHdy5qA/LAKoq9UfnesvXbeyymB2k4q+E4ngOLpY=;
+        s=korg; t=1695761104;
+        bh=BO8S085ySt4LdR+kvsStRpPlPQ3rU/7I4K1lPgysQxw=;
         h=Date:To:From:Subject:From;
-        b=sE2S0EahW8UcS29eGgwz8De8J7YKNjUstiI/CK2/+T7k6Eav4f6ueOHJHfzsk/MwL
-         AYdLSKT/u5BiUbWk0Spm+U1AjnNB3+UxK27oo4Uz+oiItChhNisonnPfe3WhnoIlmb
-         pzvizMZoLcRRwSxmHcnYKOzD6zZZcvke1j5YcmVA=
-Date:   Tue, 26 Sep 2023 13:43:17 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        songmuchun@bytedance.com, mike.kravetz@oracle.com,
-        sidhartha.kumar@oracle.com, akpm@linux-foundation.org
+        b=OSRUJUPs97ZeGM7Y4EwLrm91uT0aPN+gaoTH/twvis82K8eBLAcDpTsbKo2bkg0c6
+         r19QiXQWXJfBdewmXvQCu2DNWoN+Nt2u1vYHQXKITstn4Kkqs7Vf3MhfLyK5Rges6A
+         2fnOrxOAgVd40iQ2beXoiQEcPNv2NPzbc3lJeVgc=
+Date:   Tue, 26 Sep 2023 13:45:03 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        shuah@kernel.org, juntong.deng@outlook.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filemap-remove-hugetlb-special-casing-in-filemapc.patch added to mm-unstable branch
-Message-Id: <20230926204319.20F53C433C7@smtp.kernel.org>
+Subject: + selftests-mm-fix-awk-usage-in-charge_reserved_hugetlbsh-and-hugetlb_reparenting_testsh-that-may-cause-error.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230926204504.BF509C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,14 +37,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap: remove hugetlb special casing in filemap.c
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-filemap-remove-hugetlb-special-casing-in-filemapc.patch
+     Subject: selftests/mm: fix awk usage in charge_reserved_hugetlb.sh and hugetlb_reparenting_test.sh that may cause error
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     selftests-mm-fix-awk-usage-in-charge_reserved_hugetlbsh-and-hugetlb_reparenting_testsh-that-may-cause-error.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-remove-hugetlb-special-casing-in-filemapc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-awk-usage-in-charge_reserved_hugetlbsh-and-hugetlb_reparenting_testsh-that-may-cause-error.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -60,642 +60,73 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm/filemap: remove hugetlb special casing in filemap.c
-Date: Tue, 26 Sep 2023 12:20:17 -0700
+From: Juntong Deng <juntong.deng@outlook.com>
+Subject: selftests/mm: fix awk usage in charge_reserved_hugetlb.sh and hugetlb_reparenting_test.sh that may cause error
+Date: Wed, 27 Sep 2023 02:19:44 +0800
 
-Remove special cased hugetlb handling code within the page cache by
-changing the granularity of ->index to the base page size rather than the
-huge page size.  The motivation of this patch is to reduce complexity
-within the filemap code while also increasing performance by removing
-branches that are evaluated on every page cache lookup.
+According to the awk manual, the -e option does not need to be specified
+in front of 'program' (unless you need to mix program-file).
 
-To support the change in index, new wrappers for hugetlb page cache
-interactions are added.  These wrappers perform the conversion to a linear
-index which is now expected by the page cache for huge pages.
+The redundant -e option can cause error when users use awk tools other
+than gawk (for example, mawk does not support the -e option).
 
-========================= PERFORMANCE ======================================
+Error Example:
+awk: not an option: -e
 
-Perf was used to check the performance differences after the patch. 
-Overall the performance is similar to mainline with a very small larger
-overhead that occurs in __filemap_add_folio() and
-hugetlb_add_to_page_cache().  This is because of the larger overhead that
-occurs in xa_load() and xa_store() as the xarray is now using more entries
-to store hugetlb folios in the page cache.
-
-Timing
-
-aarch64
-    2MB Page Size
-        6.5-rc3 + this patch:
-            [root@sidhakum-ol9-1 hugepages]# time fallocate -l 700GB test.txt
-            real    1m49.568s
-            user    0m0.000s
-            sys     1m49.461s
-
-        6.5-rc3:
-            [root]# time fallocate -l 700GB test.txt
-            real    1m47.495s
-            user    0m0.000s
-            sys     1m47.370s
-    1GB Page Size
-        6.5-rc3 + this patch:
-            [root@sidhakum-ol9-1 hugepages1G]# time fallocate -l 700GB test.txt
-            real    1m47.024s
-            user    0m0.000s
-            sys     1m46.921s
-
-        6.5-rc3:
-            [root@sidhakum-ol9-1 hugepages1G]# time fallocate -l 700GB test.txt
-            real    1m44.551s
-            user    0m0.000s
-            sys     1m44.438s
-
-x86
-    2MB Page Size
-        6.5-rc3 + this patch:
-            [root@sidhakum-ol9-2 hugepages]# time fallocate -l 100GB test.txt
-            real    0m22.383s
-            user    0m0.000s
-            sys     0m22.255s
-
-        6.5-rc3:
-            [opc@sidhakum-ol9-2 hugepages]$ time sudo fallocate -l 100GB /dev/hugepages/test.txt
-            real    0m22.735s
-            user    0m0.038s
-            sys     0m22.567s
-
-    1GB Page Size
-        6.5-rc3 + this patch:
-            [root@sidhakum-ol9-2 hugepages1GB]# time fallocate -l 100GB test.txt
-            real    0m25.786s
-            user    0m0.001s
-            sys     0m25.589s
-
-        6.5-rc3:
-            [root@sidhakum-ol9-2 hugepages1G]# time fallocate -l 100GB test.txt
-            real    0m33.454s
-            user    0m0.001s
-            sys     0m33.193s
-
-aarch64:
-    workload - fallocate a 700GB file backed by huge pages
-
-    6.5-rc3 + this patch:
-        2MB Page Size:
-            --100.00%--__arm64_sys_fallocate
-                          ksys_fallocate
-                          vfs_fallocate
-                          hugetlbfs_fallocate
-                          |
-                          |--95.04%--__pi_clear_page
-                          |
-                          |--3.57%--clear_huge_page
-                          |          |
-                          |          |--2.63%--rcu_all_qs
-                          |          |
-                          |           --0.91%--__cond_resched
-                          |
-                           --0.67%--__cond_resched
-            0.17%     0.00%             0  fallocate  [kernel.vmlinux]       [k] hugetlb_add_to_page_cache
-            0.14%     0.10%            11  fallocate  [kernel.vmlinux]       [k] __filemap_add_folio
-
-    6.5-rc3
-        2MB Page Size:
-                --100.00%--__arm64_sys_fallocate
-                          ksys_fallocate
-                          vfs_fallocate
-                          hugetlbfs_fallocate
-                          |
-                          |--94.91%--__pi_clear_page
-                          |
-                          |--4.11%--clear_huge_page
-                          |          |
-                          |          |--3.00%--rcu_all_qs
-                          |          |
-                          |           --1.10%--__cond_resched
-                          |
-                           --0.59%--__cond_resched
-            0.08%     0.01%             1  fallocate  [kernel.kallsyms]  [k] hugetlb_add_to_page_cache
-            0.05%     0.03%             3  fallocate  [kernel.kallsyms]  [k] __filemap_add_folio
-
-x86
-    workload - fallocate a 100GB file backed by huge pages
-
-    6.5-rc3 + this patch:
-        2MB Page Size:
-            hugetlbfs_fallocate
-            |
-            --99.57%--clear_huge_page
-                |
-                --98.47%--clear_page_erms
-                    |
-                    --0.53%--asm_sysvec_apic_timer_interrupt
-
-            0.04%     0.04%             1  fallocate  [kernel.kallsyms]     [k] xa_load
-            0.04%     0.00%             0  fallocate  [kernel.kallsyms]     [k] hugetlb_add_to_page_cache
-            0.04%     0.00%             0  fallocate  [kernel.kallsyms]     [k] __filemap_add_folio
-            0.04%     0.00%             0  fallocate  [kernel.kallsyms]     [k] xas_store
-
-    6.5-rc3
-        2MB Page Size:
-                --99.93%--__x64_sys_fallocate
-                          vfs_fallocate
-                          hugetlbfs_fallocate
-                          |
-                           --99.38%--clear_huge_page
-                                     |
-                                     |--98.40%--clear_page_erms
-                                     |
-                                      --0.59%--__cond_resched
-            0.03%     0.03%             1  fallocate  [kernel.kallsyms]  [k] __filemap_add_folio
-
-========================= TESTING ======================================
-
-This patch passes libhugetlbfs tests and LTP hugetlb tests
-
-********** TEST SUMMARY
-*                      2M
-*                      32-bit 64-bit
-*     Total testcases:   110    113
-*             Skipped:     0      0
-*                PASS:   107    113
-*                FAIL:     0      0
-*    Killed by signal:     3      0
-*   Bad configuration:     0      0
-*       Expected FAIL:     0      0
-*     Unexpected PASS:     0      0
-*    Test not present:     0      0
-* Strange test result:     0      0
-**********
-
-    Done executing testcases.
-    LTP Version:  20220527-178-g2761a81c4
-
-page migration was also tested using Mike Kravetz's test program.[8]
-
-Link: https://lkml.kernel.org/r/20230926192017.98183-1-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Reported-and-tested-by: syzbot+c225dea486da4d5592bd@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=c225dea486da4d5592bd
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Link: https://lkml.kernel.org/r/VI1P193MB075228810591AF2FDD7D42C599C3A@VI1P193MB0752.EURP193.PROD.OUTLOOK.COM
+Signed-off-by: Juntong Deng <juntong.deng@outlook.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c    |   37 +++++++++++++++++++------------------
- include/linux/hugetlb.h |   12 ++++++++++++
- include/linux/pagemap.h |   32 ++------------------------------
- mm/filemap.c            |   34 ++++++++++------------------------
- mm/hugetlb.c            |   32 ++++++--------------------------
- mm/migrate.c            |    6 +++---
- 6 files changed, 52 insertions(+), 101 deletions(-)
+ tools/testing/selftests/mm/charge_reserved_hugetlb.sh  |    4 ++--
+ tools/testing/selftests/mm/hugetlb_reparenting_test.sh |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~mm-filemap-remove-hugetlb-special-casing-in-filemapc
-+++ a/fs/hugetlbfs/inode.c
-@@ -334,7 +334,7 @@ static ssize_t hugetlbfs_read_iter(struc
- 	ssize_t retval = 0;
+--- a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh~selftests-mm-fix-awk-usage-in-charge_reserved_hugetlbsh-and-hugetlb_reparenting_testsh-that-may-cause-error
++++ a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh
+@@ -25,7 +25,7 @@ if [[ "$1" == "-cgroup-v2" ]]; then
+ fi
  
- 	while (iov_iter_count(to)) {
--		struct page *page;
-+		struct folio *folio;
- 		size_t nr, copied, want;
+ if [[ $cgroup2 ]]; then
+-  cgroup_path=$(mount -t cgroup2 | head -1 | awk -e '{print $3}')
++  cgroup_path=$(mount -t cgroup2 | head -1 | awk '{print $3}')
+   if [[ -z "$cgroup_path" ]]; then
+     cgroup_path=/dev/cgroup/memory
+     mount -t cgroup2 none $cgroup_path
+@@ -33,7 +33,7 @@ if [[ $cgroup2 ]]; then
+   fi
+   echo "+hugetlb" >$cgroup_path/cgroup.subtree_control
+ else
+-  cgroup_path=$(mount -t cgroup | grep ",hugetlb" | awk -e '{print $3}')
++  cgroup_path=$(mount -t cgroup | grep ",hugetlb" | awk '{print $3}')
+   if [[ -z "$cgroup_path" ]]; then
+     cgroup_path=/dev/cgroup/memory
+     mount -t cgroup memory,hugetlb $cgroup_path
+--- a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh~selftests-mm-fix-awk-usage-in-charge_reserved_hugetlbsh-and-hugetlb_reparenting_testsh-that-may-cause-error
++++ a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh
+@@ -20,7 +20,7 @@ fi
  
- 		/* nr is the maximum number of bytes to copy from this page */
-@@ -352,18 +352,18 @@ static ssize_t hugetlbfs_read_iter(struc
- 		}
- 		nr = nr - offset;
  
--		/* Find the page */
--		page = find_lock_page(mapping, index);
--		if (unlikely(page == NULL)) {
-+		/* Find the folio */
-+		folio = filemap_lock_hugetlb_folio(h, mapping, index);
-+		if (unlikely(folio == NULL)) {
- 			/*
- 			 * We have a HOLE, zero out the user-buffer for the
- 			 * length of the hole or request.
- 			 */
- 			copied = iov_iter_zero(nr, to);
- 		} else {
--			unlock_page(page);
-+			folio_unlock(folio);
- 
--			if (!PageHWPoison(page))
-+			if (!folio_test_has_hwpoisoned(folio))
- 				want = nr;
- 			else {
- 				/*
-@@ -371,19 +371,19 @@ static ssize_t hugetlbfs_read_iter(struc
- 				 * touching the 1st raw HWPOISON subpage after
- 				 * offset.
- 				 */
--				want = adjust_range_hwpoison(page, offset, nr);
-+				want = adjust_range_hwpoison(&folio->page, offset, nr);
- 				if (want == 0) {
--					put_page(page);
-+					folio_put(folio);
- 					retval = -EIO;
- 					break;
- 				}
- 			}
- 
- 			/*
--			 * We have the page, copy it to user space buffer.
-+			 * We have the folio, copy it to user space buffer.
- 			 */
--			copied = copy_page_to_iter(page, offset, want, to);
--			put_page(page);
-+			copied = copy_folio_to_iter(folio, offset, want, to);
-+			folio_put(folio);
- 		}
- 		offset += copied;
- 		retval += copied;
-@@ -661,21 +661,20 @@ static void remove_inode_hugepages(struc
- {
- 	struct hstate *h = hstate_inode(inode);
- 	struct address_space *mapping = &inode->i_data;
--	const pgoff_t start = lstart >> huge_page_shift(h);
--	const pgoff_t end = lend >> huge_page_shift(h);
-+	const pgoff_t end = lend >> PAGE_SHIFT;
- 	struct folio_batch fbatch;
- 	pgoff_t next, index;
- 	int i, freed = 0;
- 	bool truncate_op = (lend == LLONG_MAX);
- 
- 	folio_batch_init(&fbatch);
--	next = start;
-+	next = lstart >> PAGE_SHIFT;
- 	while (filemap_get_folios(mapping, &next, end - 1, &fbatch)) {
- 		for (i = 0; i < folio_batch_count(&fbatch); ++i) {
- 			struct folio *folio = fbatch.folios[i];
- 			u32 hash = 0;
- 
--			index = folio->index;
-+			index = folio->index >> huge_page_order(h);
- 			hash = hugetlb_fault_mutex_hash(mapping, index);
- 			mutex_lock(&hugetlb_fault_mutex_table[hash]);
- 
-@@ -693,7 +692,9 @@ static void remove_inode_hugepages(struc
- 	}
- 
- 	if (truncate_op)
--		(void)hugetlb_unreserve_pages(inode, start, LONG_MAX, freed);
-+		(void)hugetlb_unreserve_pages(inode,
-+				lstart >> huge_page_shift(h),
-+				LONG_MAX, freed);
- }
- 
- static void hugetlbfs_evict_inode(struct inode *inode)
-@@ -741,7 +742,7 @@ static void hugetlbfs_zero_partial_page(
- 	pgoff_t idx = start >> huge_page_shift(h);
- 	struct folio *folio;
- 
--	folio = filemap_lock_folio(mapping, idx);
-+	folio = filemap_lock_hugetlb_folio(h, mapping, idx);
- 	if (IS_ERR(folio))
- 		return;
- 
-@@ -886,7 +887,7 @@ static long hugetlbfs_fallocate(struct f
- 		mutex_lock(&hugetlb_fault_mutex_table[hash]);
- 
- 		/* See if already present in mapping to avoid alloc/free */
--		folio = filemap_get_folio(mapping, index);
-+		folio = filemap_get_folio(mapping, index << huge_page_order(h));
- 		if (!IS_ERR(folio)) {
- 			folio_put(folio);
- 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
---- a/include/linux/hugetlb.h~mm-filemap-remove-hugetlb-special-casing-in-filemapc
-+++ a/include/linux/hugetlb.h
-@@ -813,6 +813,12 @@ static inline unsigned int blocks_per_hu
- 	return huge_page_size(h) / 512;
- }
- 
-+static inline struct folio *filemap_lock_hugetlb_folio(struct hstate *h,
-+				struct address_space *mapping, pgoff_t idx)
-+{
-+	return filemap_lock_folio(mapping, idx << huge_page_order(h));
-+}
-+
- #include <asm/hugetlb.h>
- 
- #ifndef is_hugepage_only_range
-@@ -1008,6 +1014,12 @@ static inline struct hugepage_subpool *h
- {
- 	return NULL;
- }
-+
-+static inline struct folio *filemap_lock_hugetlb_folio(struct hstate *h,
-+				struct address_space *mapping, pgoff_t idx)
-+{
-+	return NULL;
-+}
- 
- static inline int isolate_or_dissolve_huge_page(struct page *page,
- 						struct list_head *list)
---- a/include/linux/pagemap.h~mm-filemap-remove-hugetlb-special-casing-in-filemapc
-+++ a/include/linux/pagemap.h
-@@ -789,9 +789,6 @@ static inline pgoff_t folio_next_index(s
-  */
- static inline struct page *folio_file_page(struct folio *folio, pgoff_t index)
- {
--	/* HugeTLBfs indexes the page cache in units of hpage_size */
--	if (folio_test_hugetlb(folio))
--		return &folio->page;
- 	return folio_page(folio, index & (folio_nr_pages(folio) - 1));
- }
- 
-@@ -807,9 +804,6 @@ static inline struct page *folio_file_pa
-  */
- static inline bool folio_contains(struct folio *folio, pgoff_t index)
- {
--	/* HugeTLBfs indexes the page cache in units of hpage_size */
--	if (folio_test_hugetlb(folio))
--		return folio->index == index;
- 	return index - folio_index(folio) < folio_nr_pages(folio);
- }
- 
-@@ -867,10 +861,9 @@ static inline struct folio *read_mapping
- }
- 
- /*
-- * Get index of the page within radix-tree (but not for hugetlb pages).
-- * (TODO: remove once hugetlb pages will have ->index in PAGE_SIZE)
-+ * Get the offset in PAGE_SIZE (even for hugetlb pages).
-  */
--static inline pgoff_t page_to_index(struct page *page)
-+static inline pgoff_t page_to_pgoff(struct page *page)
- {
- 	struct page *head;
- 
-@@ -885,19 +878,6 @@ static inline pgoff_t page_to_index(stru
- 	return head->index + page - head;
- }
- 
--extern pgoff_t hugetlb_basepage_index(struct page *page);
--
--/*
-- * Get the offset in PAGE_SIZE (even for hugetlb pages).
-- * (TODO: hugetlb pages should have ->index in PAGE_SIZE)
-- */
--static inline pgoff_t page_to_pgoff(struct page *page)
--{
--	if (unlikely(PageHuge(page)))
--		return hugetlb_basepage_index(page);
--	return page_to_index(page);
--}
--
- /*
-  * Return byte-offset into filesystem object for page.
-  */
-@@ -934,24 +914,16 @@ static inline loff_t folio_file_pos(stru
- 
- /*
-  * Get the offset in PAGE_SIZE (even for hugetlb folios).
-- * (TODO: hugetlb folios should have ->index in PAGE_SIZE)
-  */
- static inline pgoff_t folio_pgoff(struct folio *folio)
- {
--	if (unlikely(folio_test_hugetlb(folio)))
--		return hugetlb_basepage_index(&folio->page);
- 	return folio->index;
- }
- 
--extern pgoff_t linear_hugepage_index(struct vm_area_struct *vma,
--				     unsigned long address);
--
- static inline pgoff_t linear_page_index(struct vm_area_struct *vma,
- 					unsigned long address)
- {
- 	pgoff_t pgoff;
--	if (unlikely(is_vm_hugetlb_page(vma)))
--		return linear_hugepage_index(vma, address);
- 	pgoff = (address - vma->vm_start) >> PAGE_SHIFT;
- 	pgoff += vma->vm_pgoff;
- 	return pgoff;
---- a/mm/filemap.c~mm-filemap-remove-hugetlb-special-casing-in-filemapc
-+++ a/mm/filemap.c
-@@ -131,11 +131,8 @@ static void page_cache_delete(struct add
- 
- 	mapping_set_update(&xas, mapping);
- 
--	/* hugetlb pages are represented by a single entry in the xarray */
--	if (!folio_test_hugetlb(folio)) {
--		xas_set_order(&xas, folio->index, folio_order(folio));
--		nr = folio_nr_pages(folio);
--	}
-+	xas_set_order(&xas, folio->index, folio_order(folio));
-+	nr = folio_nr_pages(folio);
- 
- 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
- 
-@@ -234,7 +231,7 @@ void filemap_free_folio(struct address_s
- 	if (free_folio)
- 		free_folio(folio);
- 
--	if (folio_test_large(folio) && !folio_test_hugetlb(folio))
-+	if (folio_test_large(folio))
- 		refs = folio_nr_pages(folio);
- 	folio_put_refs(folio, refs);
- }
-@@ -855,14 +852,15 @@ noinline int __filemap_add_folio(struct
- 
- 	if (!huge) {
- 		int error = mem_cgroup_charge(folio, NULL, gfp);
--		VM_BUG_ON_FOLIO(index & (folio_nr_pages(folio) - 1), folio);
- 		if (error)
- 			return error;
- 		charged = true;
--		xas_set_order(&xas, index, folio_order(folio));
--		nr = folio_nr_pages(folio);
- 	}
- 
-+	VM_BUG_ON_FOLIO(index & (folio_nr_pages(folio) - 1), folio);
-+	xas_set_order(&xas, index, folio_order(folio));
-+	nr = folio_nr_pages(folio);
-+
- 	gfp &= GFP_RECLAIM_MASK;
- 	folio_ref_add(folio, nr);
- 	folio->mapping = mapping;
-@@ -2040,7 +2038,7 @@ unsigned find_get_entries(struct address
- 		int idx = folio_batch_count(fbatch) - 1;
- 
- 		folio = fbatch->folios[idx];
--		if (!xa_is_value(folio) && !folio_test_hugetlb(folio))
-+		if (!xa_is_value(folio))
- 			nr = folio_nr_pages(folio);
- 		*start = indices[idx] + nr;
- 	}
-@@ -2104,7 +2102,7 @@ put:
- 		int idx = folio_batch_count(fbatch) - 1;
- 
- 		folio = fbatch->folios[idx];
--		if (!xa_is_value(folio) && !folio_test_hugetlb(folio))
-+		if (!xa_is_value(folio))
- 			nr = folio_nr_pages(folio);
- 		*start = indices[idx] + nr;
- 	}
-@@ -2145,9 +2143,6 @@ unsigned filemap_get_folios(struct addre
- 			continue;
- 		if (!folio_batch_add(fbatch, folio)) {
- 			unsigned long nr = folio_nr_pages(folio);
--
--			if (folio_test_hugetlb(folio))
--				nr = 1;
- 			*start = folio->index + nr;
- 			goto out;
- 		}
-@@ -2213,9 +2208,6 @@ unsigned filemap_get_folios_contig(struc
- 
- 		if (!folio_batch_add(fbatch, folio)) {
- 			nr = folio_nr_pages(folio);
--
--			if (folio_test_hugetlb(folio))
--				nr = 1;
- 			*start = folio->index + nr;
- 			goto out;
- 		}
-@@ -2232,10 +2224,7 @@ update_start:
- 
- 	if (nr) {
- 		folio = fbatch->folios[nr - 1];
--		if (folio_test_hugetlb(folio))
--			*start = folio->index + 1;
--		else
--			*start = folio_next_index(folio);
-+		*start = folio->index + folio_nr_pages(folio);
- 	}
- out:
- 	rcu_read_unlock();
-@@ -2273,9 +2262,6 @@ unsigned filemap_get_folios_tag(struct a
- 			continue;
- 		if (!folio_batch_add(fbatch, folio)) {
- 			unsigned long nr = folio_nr_pages(folio);
--
--			if (folio_test_hugetlb(folio))
--				nr = 1;
- 			*start = folio->index + nr;
- 			goto out;
- 		}
---- a/mm/hugetlb.c~mm-filemap-remove-hugetlb-special-casing-in-filemapc
-+++ a/mm/hugetlb.c
-@@ -952,7 +952,7 @@ static long region_count(struct resv_map
- 
- /*
-  * Convert the address within this vma to the page offset within
-- * the mapping, in pagecache page units; huge pages here.
-+ * the mapping, huge page units here.
-  */
- static pgoff_t vma_hugecache_offset(struct hstate *h,
- 			struct vm_area_struct *vma, unsigned long address)
-@@ -961,13 +961,6 @@ static pgoff_t vma_hugecache_offset(stru
- 			(vma->vm_pgoff >> huge_page_order(h));
- }
- 
--pgoff_t linear_hugepage_index(struct vm_area_struct *vma,
--				     unsigned long address)
--{
--	return vma_hugecache_offset(hstate_vma(vma), vma, address);
--}
--EXPORT_SYMBOL_GPL(linear_hugepage_index);
--
- /**
-  * vma_kernel_pagesize - Page size granularity for this VMA.
-  * @vma: The user mapping.
-@@ -2074,20 +2067,6 @@ struct address_space *hugetlb_page_mappi
- 	return NULL;
- }
- 
--pgoff_t hugetlb_basepage_index(struct page *page)
--{
--	struct page *page_head = compound_head(page);
--	pgoff_t index = page_index(page_head);
--	unsigned long compound_idx;
--
--	if (compound_order(page_head) > MAX_ORDER)
--		compound_idx = page_to_pfn(page) - page_to_pfn(page_head);
--	else
--		compound_idx = page - page_head;
--
--	return (index << compound_order(page_head)) + compound_idx;
--}
--
- static struct folio *alloc_buddy_hugetlb_folio(struct hstate *h,
- 		gfp_t gfp_mask, int nid, nodemask_t *nmask,
- 		nodemask_t *node_alloc_noretry)
-@@ -5772,7 +5751,7 @@ static bool hugetlbfs_pagecache_present(
- 			struct vm_area_struct *vma, unsigned long address)
- {
- 	struct address_space *mapping = vma->vm_file->f_mapping;
--	pgoff_t idx = vma_hugecache_offset(h, vma, address);
-+	pgoff_t idx = linear_page_index(vma, address);
- 	struct folio *folio;
- 
- 	folio = filemap_get_folio(mapping, idx);
-@@ -5789,6 +5768,7 @@ int hugetlb_add_to_page_cache(struct fol
- 	struct hstate *h = hstate_inode(inode);
- 	int err;
- 
-+	idx <<= huge_page_order(h);
- 	__folio_set_locked(folio);
- 	err = __filemap_add_folio(mapping, folio, idx, GFP_KERNEL, NULL);
- 
-@@ -5896,7 +5876,7 @@ static vm_fault_t hugetlb_no_page(struct
- 	 * before we get page_table_lock.
- 	 */
- 	new_folio = false;
--	folio = filemap_lock_folio(mapping, idx);
-+	folio = filemap_lock_hugetlb_folio(h, mapping, idx);
- 	if (IS_ERR(folio)) {
- 		size = i_size_read(mapping->host) >> huge_page_shift(h);
- 		if (idx >= size)
-@@ -6205,7 +6185,7 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 		/* Just decrements count, does not deallocate */
- 		vma_end_reservation(h, vma, haddr);
- 
--		pagecache_folio = filemap_lock_folio(mapping, idx);
-+		pagecache_folio = filemap_lock_hugetlb_folio(h, mapping, idx);
- 		if (IS_ERR(pagecache_folio))
- 			pagecache_folio = NULL;
- 	}
-@@ -6345,7 +6325,7 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
- 
- 	if (is_continue) {
- 		ret = -EFAULT;
--		folio = filemap_lock_folio(mapping, idx);
-+		folio = filemap_lock_hugetlb_folio(h, mapping, idx);
- 		if (IS_ERR(folio))
- 			goto out;
- 		folio_in_pagecache = true;
---- a/mm/migrate.c~mm-filemap-remove-hugetlb-special-casing-in-filemapc
-+++ a/mm/migrate.c
-@@ -524,7 +524,7 @@ int migrate_huge_page_move_mapping(struc
- 	int expected_count;
- 
- 	xas_lock_irq(&xas);
--	expected_count = 2 + folio_has_private(src);
-+	expected_count = folio_expected_refs(mapping, src);
- 	if (!folio_ref_freeze(src, expected_count)) {
- 		xas_unlock_irq(&xas);
- 		return -EAGAIN;
-@@ -533,11 +533,11 @@ int migrate_huge_page_move_mapping(struc
- 	dst->index = src->index;
- 	dst->mapping = src->mapping;
- 
--	folio_get(dst);
-+	folio_ref_add(dst, folio_nr_pages(dst));
- 
- 	xas_store(&xas, dst);
- 
--	folio_ref_unfreeze(src, expected_count - 1);
-+	folio_ref_unfreeze(src, expected_count - folio_nr_pages(src));
- 
- 	xas_unlock_irq(&xas);
- 
+ if [[ $cgroup2 ]]; then
+-  CGROUP_ROOT=$(mount -t cgroup2 | head -1 | awk -e '{print $3}')
++  CGROUP_ROOT=$(mount -t cgroup2 | head -1 | awk '{print $3}')
+   if [[ -z "$CGROUP_ROOT" ]]; then
+     CGROUP_ROOT=/dev/cgroup/memory
+     mount -t cgroup2 none $CGROUP_ROOT
+@@ -28,7 +28,7 @@ if [[ $cgroup2 ]]; then
+   fi
+   echo "+hugetlb +memory" >$CGROUP_ROOT/cgroup.subtree_control
+ else
+-  CGROUP_ROOT=$(mount -t cgroup | grep ",hugetlb" | awk -e '{print $3}')
++  CGROUP_ROOT=$(mount -t cgroup | grep ",hugetlb" | awk '{print $3}')
+   if [[ -z "$CGROUP_ROOT" ]]; then
+     CGROUP_ROOT=/dev/cgroup/memory
+     mount -t cgroup memory,hugetlb $CGROUP_ROOT
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from juntong.deng@outlook.com are
 
-mm-filemap-remove-hugetlb-special-casing-in-filemapc.patch
+selftests-mm-fix-awk-usage-in-charge_reserved_hugetlbsh-and-hugetlb_reparenting_testsh-that-may-cause-error.patch
 
