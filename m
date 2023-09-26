@@ -2,36 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F08F4E7F147
-	for <mm-commits@archiver.kernel.org>; Tue, 26 Sep 2023 23:18:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69AEAE7F146
+	for <mm-commits@archiver.kernel.org>; Tue, 26 Sep 2023 23:18:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229829AbjIZXSC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Sep 2023 19:18:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51332 "EHLO
+        id S230525AbjIZXSD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Sep 2023 19:18:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51282 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232524AbjIZXPz (ORCPT
+        with ESMTP id S231781AbjIZXPz (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Sep 2023 19:15:55 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 08A1717804
-        for <mm-commits@vger.kernel.org>; Tue, 26 Sep 2023 15:17:22 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE4BCC433CD;
-        Tue, 26 Sep 2023 20:59:28 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E40217802
+        for <mm-commits@vger.kernel.org>; Tue, 26 Sep 2023 15:17:21 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CEDCC116D3;
+        Tue, 26 Sep 2023 21:39:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695761968;
-        bh=gju8kxVhR1rocLlrNh+Cyd3wRxU1fa6YiRbRYbMehmI=;
+        s=korg; t=1695764388;
+        bh=poaUBSdDDX62MTvWropH+ZNw97cMX8eErGiv6BV1JGw=;
         h=Date:To:From:Subject:From;
-        b=LnS9pno/OKjS5JlHpZxJm1aPg9AAAkz44R5Sdp0BCErc81SE7u2bLmzL+zObQMOlV
-         TzA34Es6MZdLaC6y//aBm0YFNqEaWIYpcj2lb8USaQTjL6Ac3S+vi4/AuOt30NBk+K
-         26dYFG92boGnIE7L77ws7QjFPj8JINltWXNnxBXw=
-Date:   Tue, 26 Sep 2023 13:59:27 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        sudeep.holla@arm.com, pasha.tatashin@soleen.com, mhocko@suse.com,
-        mgorman@techsingularity.net, jweiner@redhat.com, david@redhat.com,
-        dave.hansen@linux.intel.com, cl@linux.com, arjan@linux.intel.com,
-        ying.huang@intel.com, akpm@linux-foundation.org
+        b=rLETIUu5MtmPJs2pw9q9gFo4sLe6BUczLyzwTX+16yy39MTzxduOnt12OLau2r8+M
+         5bHa+Bv4lSveG36EgbMrxQo0hZRpeVTqQAC9HSK0yNdsWc5WwKJzsR17+bgDVyCe7J
+         NnGa0d/cSPkHMrOSnPgoYUQ/aE39W0mx4be+ueek=
+Date:   Tue, 26 Sep 2023 14:39:47 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        songmuchun@bytedance.com, rientjes@google.com, osalvador@suse.de,
+        naoya.horiguchi@linux.dev, mike.kravetz@oracle.com,
+        mhocko@suse.com, linmiaohe@huawei.com, jthoughton@google.com,
+        duanxiongchun@bytedance.com, david@redhat.com,
+        anshuman.khandual@arm.com, joao.m.martins@oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-framework-for-pcp-high-auto-tuning.patch added to mm-unstable branch
-Message-Id: <20230926205928.AE4BCC433CD@smtp.kernel.org>
+Subject: + hugetlb-batch-pmd-split-for-bulk-vmemmap-dedup.patch added to mm-unstable branch
+Message-Id: <20230926213948.4CEDCC116D3@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add framework for PCP high auto-tuning
+     Subject: hugetlb: batch PMD split for bulk vmemmap dedup
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-framework-for-pcp-high-auto-tuning.patch
+     hugetlb-batch-pmd-split-for-bulk-vmemmap-dedup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-framework-for-pcp-high-auto-tuning.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-batch-pmd-split-for-bulk-vmemmap-dedup.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,294 +64,221 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm: add framework for PCP high auto-tuning
-Date: Tue, 26 Sep 2023 14:09:07 +0800
+From: Joao Martins <joao.m.martins@oracle.com>
+Subject: hugetlb: batch PMD split for bulk vmemmap dedup
+Date: Mon, 25 Sep 2023 16:48:34 -0700
 
-The page allocation performance requirements of different workloads are
-usually different.  So, we need to tune PCP (per-CPU pageset) high to
-optimize the workload page allocation performance.  Now, we have a system
-wide sysctl knob (percpu_pagelist_high_fraction) to tune PCP high by hand.
-But, it's hard to find out the best value by hand.  And one global
-configuration may not work best for the different workloads that run on
-the same system.  One solution to these issues is to tune PCP high of each
-CPU automatically.
+In an effort to minimize amount of TLB flushes, batch all PMD splits
+belonging to a range of pages in order to perform only 1 (global) TLB
+flush.
 
-This patch adds the framework for PCP high auto-tuning.  With it,
-pcp->high of each CPU will be changed automatically by tuning algorithm at
-runtime.  The minimal high (pcp->high_min) is the original PCP high value
-calculated based on the low watermark pages.  While the maximal high
-(pcp->high_max) is the PCP high value when percpu_pagelist_high_fraction
-sysctl knob is set to MIN_PERCPU_PAGELIST_HIGH_FRACTION.  That is, the
-maximal pcp->high that can be set via sysctl knob by hand.
+Add a flags field to the walker and pass whether it's a bulk allocation or
+just a single page to decide to remap.  First value
+(VMEMMAP_SPLIT_NO_TLB_FLUSH) designates the request to not do the TLB
+flush when we split the PMD.
 
-It's possible that PCP high auto-tuning doesn't work well for some
-workloads.  So, when PCP high is tuned by hand via the sysctl knob, the
-auto-tuning will be disabled.  The PCP high set by hand will be used
-instead.
+Rebased and updated by Mike Kravetz
 
-This patch only adds the framework, so pcp->high will be set to
-pcp->high_min (original default) always.  We will add actual auto-tuning
-algorithm in the following patches in the series.
-
-Link: https://lkml.kernel.org/r/20230926060911.266511-7-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20230925234837.86786-7-mike.kravetz@oracle.com
+Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/vm.rst |   12 ++-
- include/linux/mmzone.h                  |    5 +
- mm/page_alloc.c                         |   71 ++++++++++++++--------
- 3 files changed, 58 insertions(+), 30 deletions(-)
+ mm/hugetlb_vmemmap.c |   92 +++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 88 insertions(+), 4 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/vm.rst~mm-add-framework-for-pcp-high-auto-tuning
-+++ a/Documentation/admin-guide/sysctl/vm.rst
-@@ -843,10 +843,14 @@ each zone between per-cpu lists.
- The batch value of each per-cpu page list remains the same regardless of
- the value of the high fraction so allocation latencies are unaffected.
- 
--The initial value is zero. Kernel uses this value to set the high pcp->high
--mark based on the low watermark for the zone and the number of local
--online CPUs.  If the user writes '0' to this sysctl, it will revert to
--this default behavior.
-+The initial value is zero. With this value, kernel will tune pcp->high
-+automatically according to the requirements of workloads.  The lower
-+limit of tuning is based on the low watermark for the zone and the
-+number of local online CPUs.  The upper limit is the page number when
-+the sysctl is set to the minimal value (8).  If the user writes '0' to
-+this sysctl, it will revert to this default behavior.  In another
-+words, if the user write other value, the auto-tuning will be disabled
-+and the user specified pcp->high will be used.
- 
- 
- stat_interval
---- a/include/linux/mmzone.h~mm-add-framework-for-pcp-high-auto-tuning
-+++ a/include/linux/mmzone.h
-@@ -695,6 +695,8 @@ struct per_cpu_pages {
- 	spinlock_t lock;	/* Protects lists field */
- 	int count;		/* number of pages in the list */
- 	int high;		/* high watermark, emptying needed */
-+	int high_min;		/* min high watermark */
-+	int high_max;		/* max high watermark */
- 	int batch;		/* chunk size for buddy add/remove */
- 	u8 flags;		/* protected by pcp->lock */
- 	u8 alloc_factor;	/* batch scaling factor during allocate */
-@@ -854,7 +856,8 @@ struct zone {
- 	 * the high and batch values are copied to individual pagesets for
- 	 * faster access
- 	 */
--	int pageset_high;
-+	int pageset_high_min;
-+	int pageset_high_max;
- 	int pageset_batch;
- 
- #ifndef CONFIG_SPARSEMEM
---- a/mm/page_alloc.c~mm-add-framework-for-pcp-high-auto-tuning
-+++ a/mm/page_alloc.c
-@@ -2383,7 +2383,7 @@ static int nr_pcp_free(struct per_cpu_pa
- static int nr_pcp_high(struct per_cpu_pages *pcp, struct zone *zone,
- 		       bool free_high)
- {
--	int high = READ_ONCE(pcp->high);
-+	int high = READ_ONCE(pcp->high_min);
- 
- 	if (unlikely(!high || free_high))
- 		return 0;
-@@ -2722,7 +2722,7 @@ static int nr_pcp_alloc(struct per_cpu_p
- {
- 	int high, batch, max_nr_alloc;
- 
--	high = READ_ONCE(pcp->high);
-+	high = READ_ONCE(pcp->high_min);
- 	batch = READ_ONCE(pcp->batch);
- 
- 	/* Check for PCP disabled or boot pageset */
-@@ -5328,14 +5328,15 @@ static int zone_batchsize(struct zone *z
- }
- 
- static int percpu_pagelist_high_fraction;
--static int zone_highsize(struct zone *zone, int batch, int cpu_online)
-+static int zone_highsize(struct zone *zone, int batch, int cpu_online,
-+			 int high_fraction)
- {
- #ifdef CONFIG_MMU
- 	int high;
- 	int nr_split_cpus;
- 	unsigned long total_pages;
- 
--	if (!percpu_pagelist_high_fraction) {
-+	if (!high_fraction) {
- 		/*
- 		 * By default, the high value of the pcp is based on the zone
- 		 * low watermark so that if they are full then background
-@@ -5348,15 +5349,15 @@ static int zone_highsize(struct zone *zo
- 		 * value is based on a fraction of the managed pages in the
- 		 * zone.
- 		 */
--		total_pages = zone_managed_pages(zone) / percpu_pagelist_high_fraction;
-+		total_pages = zone_managed_pages(zone) / high_fraction;
- 	}
- 
- 	/*
- 	 * Split the high value across all online CPUs local to the zone. Note
- 	 * that early in boot that CPUs may not be online yet and that during
- 	 * CPU hotplug that the cpumask is not yet updated when a CPU is being
--	 * onlined. For memory nodes that have no CPUs, split pcp->high across
--	 * all online CPUs to mitigate the risk that reclaim is triggered
-+	 * onlined. For memory nodes that have no CPUs, split the high value
-+	 * across all online CPUs to mitigate the risk that reclaim is triggered
- 	 * prematurely due to pages stored on pcp lists.
- 	 */
- 	nr_split_cpus = cpumask_weight(cpumask_of_node(zone_to_nid(zone))) + cpu_online;
-@@ -5384,19 +5385,21 @@ static int zone_highsize(struct zone *zo
-  * However, guaranteeing these relations at all times would require e.g. write
-  * barriers here but also careful usage of read barriers at the read side, and
-  * thus be prone to error and bad for performance. Thus the update only prevents
-- * store tearing. Any new users of pcp->batch and pcp->high should ensure they
-- * can cope with those fields changing asynchronously, and fully trust only the
-- * pcp->count field on the local CPU with interrupts disabled.
-+ * store tearing. Any new users of pcp->batch, pcp->high_min and pcp->high_max
-+ * should ensure they can cope with those fields changing asynchronously, and
-+ * fully trust only the pcp->count field on the local CPU with interrupts
-+ * disabled.
-  *
-  * mutex_is_locked(&pcp_batch_high_lock) required when calling this function
-  * outside of boot time (or some other assurance that no concurrent updaters
-  * exist).
+--- a/mm/hugetlb_vmemmap.c~hugetlb-batch-pmd-split-for-bulk-vmemmap-dedup
++++ a/mm/hugetlb_vmemmap.c
+@@ -27,6 +27,8 @@
+  * @reuse_addr:		the virtual address of the @reuse_page page.
+  * @vmemmap_pages:	the list head of the vmemmap pages that can be freed
+  *			or is mapped from.
++ * @flags:		used to modify behavior in vmemmap page table walking
++ *			operations.
   */
--static void pageset_update(struct per_cpu_pages *pcp, unsigned long high,
--		unsigned long batch)
-+static void pageset_update(struct per_cpu_pages *pcp, unsigned long high_min,
-+			   unsigned long high_max, unsigned long batch)
+ struct vmemmap_remap_walk {
+ 	void			(*remap_pte)(pte_t *pte, unsigned long addr,
+@@ -35,9 +37,13 @@ struct vmemmap_remap_walk {
+ 	struct page		*reuse_page;
+ 	unsigned long		reuse_addr;
+ 	struct list_head	*vmemmap_pages;
++
++/* Skip the TLB flush when we split the PMD */
++#define VMEMMAP_SPLIT_NO_TLB_FLUSH	BIT(0)
++	unsigned long		flags;
+ };
+ 
+-static int split_vmemmap_huge_pmd(pmd_t *pmd, unsigned long start)
++static int split_vmemmap_huge_pmd(pmd_t *pmd, unsigned long start, bool flush)
  {
- 	WRITE_ONCE(pcp->batch, batch);
--	WRITE_ONCE(pcp->high, high);
-+	WRITE_ONCE(pcp->high_min, high_min);
-+	WRITE_ONCE(pcp->high_max, high_max);
- }
- 
- static void per_cpu_pages_init(struct per_cpu_pages *pcp, struct per_cpu_zonestat *pzstats)
-@@ -5416,20 +5419,21 @@ static void per_cpu_pages_init(struct pe
- 	 * need to be as careful as pageset_update() as nobody can access the
- 	 * pageset yet.
- 	 */
--	pcp->high = BOOT_PAGESET_HIGH;
-+	pcp->high_min = BOOT_PAGESET_HIGH;
-+	pcp->high_max = BOOT_PAGESET_HIGH;
- 	pcp->batch = BOOT_PAGESET_BATCH;
- 	pcp->free_factor = 0;
- }
- 
--static void __zone_set_pageset_high_and_batch(struct zone *zone, unsigned long high,
--		unsigned long batch)
-+static void __zone_set_pageset_high_and_batch(struct zone *zone, unsigned long high_min,
-+					      unsigned long high_max, unsigned long batch)
- {
- 	struct per_cpu_pages *pcp;
- 	int cpu;
- 
- 	for_each_possible_cpu(cpu) {
- 		pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
--		pageset_update(pcp, high, batch);
-+		pageset_update(pcp, high_min, high_max, batch);
+ 	pmd_t __pmd;
+ 	int i;
+@@ -80,7 +86,8 @@ static int split_vmemmap_huge_pmd(pmd_t
+ 		/* Make pte visible before pmd. See comment in pmd_install(). */
+ 		smp_wmb();
+ 		pmd_populate_kernel(&init_mm, pmd, pgtable);
+-		flush_tlb_kernel_range(start, start + PMD_SIZE);
++		if (flush)
++			flush_tlb_kernel_range(start, start + PMD_SIZE);
+ 	} else {
+ 		pte_free_kernel(&init_mm, pgtable);
  	}
- }
+@@ -127,11 +134,20 @@ static int vmemmap_pmd_range(pud_t *pud,
+ 	do {
+ 		int ret;
  
-@@ -5439,19 +5443,34 @@ static void __zone_set_pageset_high_and_
-  */
- static void zone_set_pageset_high_and_batch(struct zone *zone, int cpu_online)
- {
--	int new_high, new_batch;
-+	int new_high_min, new_high_max, new_batch;
+-		ret = split_vmemmap_huge_pmd(pmd, addr & PMD_MASK);
++		ret = split_vmemmap_huge_pmd(pmd, addr & PMD_MASK,
++				!(walk->flags & VMEMMAP_SPLIT_NO_TLB_FLUSH));
+ 		if (ret)
+ 			return ret;
  
- 	new_batch = max(1, zone_batchsize(zone));
--	new_high = zone_highsize(zone, new_batch, cpu_online);
-+	if (percpu_pagelist_high_fraction) {
-+		new_high_min = zone_highsize(zone, new_batch, cpu_online,
-+					     percpu_pagelist_high_fraction);
+ 		next = pmd_addr_end(addr, end);
++
 +		/*
-+		 * PCP high is tuned manually, disable auto-tuning via
-+		 * setting high_min and high_max to the manual value.
++		 * We are only splitting, not remapping the hugetlb vmemmap
++		 * pages.
 +		 */
-+		new_high_max = new_high_min;
-+	} else {
-+		new_high_min = zone_highsize(zone, new_batch, cpu_online, 0);
-+		new_high_max = zone_highsize(zone, new_batch, cpu_online,
-+					     MIN_PERCPU_PAGELIST_HIGH_FRACTION);
++		if (!walk->remap_pte)
++			continue;
++
+ 		vmemmap_pte_range(pmd, addr, next, walk);
+ 	} while (pmd++, addr = next, addr != end);
+ 
+@@ -198,7 +214,8 @@ static int vmemmap_remap_range(unsigned
+ 			return ret;
+ 	} while (pgd++, addr = next, addr != end);
+ 
+-	flush_tlb_kernel_range(start, end);
++	if (walk->remap_pte)
++		flush_tlb_kernel_range(start, end);
+ 
+ 	return 0;
+ }
+@@ -298,6 +315,36 @@ static void vmemmap_restore_pte(pte_t *p
+ }
+ 
+ /**
++ * vmemmap_remap_split - split the vmemmap virtual address range [@start, @end)
++ *                      backing PMDs of the directmap into PTEs
++ * @start:     start address of the vmemmap virtual address range that we want
++ *             to remap.
++ * @end:       end address of the vmemmap virtual address range that we want to
++ *             remap.
++ * @reuse:     reuse address.
++ *
++ * Return: %0 on success, negative error code otherwise.
++ */
++static int vmemmap_remap_split(unsigned long start, unsigned long end,
++				unsigned long reuse)
++{
++	int ret;
++	struct vmemmap_remap_walk walk = {
++		.remap_pte	= NULL,
++		.flags		= VMEMMAP_SPLIT_NO_TLB_FLUSH,
++	};
++
++	/* See the comment in the vmemmap_remap_free(). */
++	BUG_ON(start - reuse != PAGE_SIZE);
++
++	mmap_read_lock(&init_mm);
++	ret = vmemmap_remap_range(reuse, end, &walk);
++	mmap_read_unlock(&init_mm);
++
++	return ret;
++}
++
++/**
+  * vmemmap_remap_free - remap the vmemmap virtual address range [@start, @end)
+  *			to the page which @reuse is mapped to, then free vmemmap
+  *			which the range are mapped to.
+@@ -320,6 +367,7 @@ static int vmemmap_remap_free(unsigned l
+ 		.remap_pte	= vmemmap_remap_pte,
+ 		.reuse_addr	= reuse,
+ 		.vmemmap_pages	= vmemmap_pages,
++		.flags		= 0,
+ 	};
+ 	int nid = page_to_nid((struct page *)reuse);
+ 	gfp_t gfp_mask = GFP_KERNEL | __GFP_NORETRY | __GFP_NOWARN;
+@@ -368,6 +416,7 @@ static int vmemmap_remap_free(unsigned l
+ 			.remap_pte	= vmemmap_restore_pte,
+ 			.reuse_addr	= reuse,
+ 			.vmemmap_pages	= vmemmap_pages,
++			.flags		= 0,
+ 		};
+ 
+ 		vmemmap_remap_range(reuse, end, &walk);
+@@ -419,6 +468,7 @@ static int vmemmap_remap_alloc(unsigned
+ 		.remap_pte	= vmemmap_restore_pte,
+ 		.reuse_addr	= reuse,
+ 		.vmemmap_pages	= &vmemmap_pages,
++		.flags		= 0,
+ 	};
+ 
+ 	/* See the comment in the vmemmap_remap_free(). */
+@@ -628,12 +678,46 @@ void hugetlb_vmemmap_optimize(const stru
+ 	free_vmemmap_page_list(&vmemmap_pages);
+ }
+ 
++static int hugetlb_vmemmap_split(const struct hstate *h, struct page *head)
++{
++	unsigned long vmemmap_start = (unsigned long)head, vmemmap_end;
++	unsigned long vmemmap_reuse;
++
++	if (!vmemmap_should_optimize(h, head))
++		return 0;
++
++	vmemmap_end	= vmemmap_start + hugetlb_vmemmap_size(h);
++	vmemmap_reuse	= vmemmap_start;
++	vmemmap_start	+= HUGETLB_VMEMMAP_RESERVE_SIZE;
++
++	/*
++	 * Split PMDs on the vmemmap virtual address range [@vmemmap_start,
++	 * @vmemmap_end]
++	 */
++	return vmemmap_remap_split(vmemmap_start, vmemmap_end, vmemmap_reuse);
++}
++
+ void hugetlb_vmemmap_optimize_folios(struct hstate *h, struct list_head *folio_list)
+ {
+ 	struct folio *folio;
+ 	LIST_HEAD(vmemmap_pages);
+ 
+ 	list_for_each_entry(folio, folio_list, lru) {
++		int ret = hugetlb_vmemmap_split(h, &folio->page);
++
++		/*
++		 * Spliting the PMD requires allocating a page, thus lets fail
++		 * early once we encounter the first OOM. No point in retrying
++		 * as it can be dynamically done on remap with the memory
++		 * we get back from the vmemmap deduplication.
++		 */
++		if (ret == -ENOMEM)
++			break;
 +	}
- 
--	if (zone->pageset_high == new_high &&
-+	if (zone->pageset_high_min == new_high_min &&
-+	    zone->pageset_high_max == new_high_max &&
- 	    zone->pageset_batch == new_batch)
- 		return;
- 
--	zone->pageset_high = new_high;
-+	zone->pageset_high_min = new_high_min;
-+	zone->pageset_high_max = new_high_max;
- 	zone->pageset_batch = new_batch;
- 
--	__zone_set_pageset_high_and_batch(zone, new_high, new_batch);
-+	__zone_set_pageset_high_and_batch(zone, new_high_min, new_high_max,
-+					  new_batch);
- }
- 
- void __meminit setup_zone_pageset(struct zone *zone)
-@@ -5559,7 +5578,8 @@ __meminit void zone_pcp_init(struct zone
- 	 */
- 	zone->per_cpu_pageset = &boot_pageset;
- 	zone->per_cpu_zonestats = &boot_zonestats;
--	zone->pageset_high = BOOT_PAGESET_HIGH;
-+	zone->pageset_high_min = BOOT_PAGESET_HIGH;
-+	zone->pageset_high_max = BOOT_PAGESET_HIGH;
- 	zone->pageset_batch = BOOT_PAGESET_BATCH;
- 
- 	if (populated_zone(zone))
-@@ -6461,13 +6481,14 @@ EXPORT_SYMBOL(free_contig_range);
- void zone_pcp_disable(struct zone *zone)
- {
- 	mutex_lock(&pcp_batch_high_lock);
--	__zone_set_pageset_high_and_batch(zone, 0, 1);
-+	__zone_set_pageset_high_and_batch(zone, 0, 0, 1);
- 	__drain_all_pages(zone, true);
- }
- 
- void zone_pcp_enable(struct zone *zone)
- {
--	__zone_set_pageset_high_and_batch(zone, zone->pageset_high, zone->pageset_batch);
-+	__zone_set_pageset_high_and_batch(zone, zone->pageset_high_min,
-+		zone->pageset_high_max, zone->pageset_batch);
- 	mutex_unlock(&pcp_batch_high_lock);
- }
++
++	flush_tlb_all();
++
++	list_for_each_entry(folio, folio_list, lru) {
+ 		int ret = __hugetlb_vmemmap_optimize(h, &folio->page,
+ 								&vmemmap_pages);
  
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from joao.m.martins@oracle.com are
 
-mm-fix-draining-remote-pageset.patch
-memory-tiering-add-abstract-distance-calculation-algorithms-management.patch
-acpi-hmat-refactor-hmat_register_target_initiators.patch
-acpi-hmat-calculate-abstract-distance-with-hmat.patch
-dax-kmem-calculate-abstract-distance-with-general-interface.patch
-mm-pcp-avoid-to-drain-pcp-when-process-exit.patch
-cacheinfo-calculate-per-cpu-data-cache-size.patch
-mm-pcp-reduce-lock-contention-for-draining-high-order-pages.patch
-mm-restrict-the-pcp-batch-scale-factor-to-avoid-too-long-latency.patch
-mm-page_alloc-scale-the-number-of-pages-that-are-batch-allocated.patch
-mm-add-framework-for-pcp-high-auto-tuning.patch
-mm-tune-pcp-high-automatically.patch
-mm-pcp-decrease-pcp-high-if-free-pages-high-watermark.patch
-mm-pcp-avoid-to-reduce-pcp-high-unnecessarily.patch
-mm-pcp-reduce-detecting-time-of-consecutive-high-order-page-freeing.patch
+hugetlb-batch-pmd-split-for-bulk-vmemmap-dedup.patch
+hugetlb-batch-tlb-flushes-when-freeing-vmemmap.patch
 
