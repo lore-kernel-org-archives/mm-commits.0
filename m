@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C678E7F144
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3171AE7F147
 	for <mm-commits@archiver.kernel.org>; Tue, 26 Sep 2023 23:29:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231822AbjIZX34 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231859AbjIZX34 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 26 Sep 2023 19:29:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58234 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58224 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229640AbjIZX14 (ORCPT
+        with ESMTP id S231942AbjIZX14 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Sep 2023 19:27:56 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D5FD1F9CF
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92AA61F9D4
         for <mm-commits@vger.kernel.org>; Tue, 26 Sep 2023 15:32:20 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71A74C433BB;
-        Tue, 26 Sep 2023 21:13:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AA47C433BC;
+        Tue, 26 Sep 2023 21:13:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695762806;
-        bh=tovF7n+4KvYSKMmY9b6SZV/3pyG2XpT6jEsd/pCDZ+A=;
+        s=korg; t=1695762805;
+        bh=v+82WXYLafTQcPTJ1j2IZ+OMkmzJ6aFWxwRjh2AKpWs=;
         h=Date:To:From:Subject:From;
-        b=H5DbgQ5BKW7yqeXBJs9ZZlkwnkaxSyAGgZDlOCfVd52ViELwGkYWmnaakJY9r+DzJ
-         wFLLuckVUSQaCFK16dubLVkwpSzLxqq3M0wXpTnib47nQW0Oy7tbpfDaOSHo5++63L
-         G2ZXsGdkI7vf4sza/0ZTSvFJc6DXETIEjMI9k/F8=
-Date:   Tue, 26 Sep 2023 14:13:25 -0700
+        b=w8uM+Hs7uYiFgpaGw2s+sNGO3s078qozOId5R5CdbWW5I6CUv2oXMVwInc+2YU99H
+         vN3JfGQB6/Q7F9qJRSuBDF4ImEiRca1z/PA4pXCjazQAJWEZDj5ed4Sr4ChswGpUm8
+         wnZSHKN3o+aDndvOjcjl0gr7YpIFR4AeGMbhOA1w=
+Date:   Tue, 26 Sep 2023 14:13:24 -0700
 To:     mm-commits@vger.kernel.org, riel@surriel.com, hannes@cmpxchg.org,
         david@redhat.com, shr@devkernel.io, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-ksm-document-smart-scan-mode.patch added to mm-unstable branch
-Message-Id: <20230926211326.71A74C433BB@smtp.kernel.org>
+Subject: + mm-ksm-add-pages_skipped-metric.patch added to mm-unstable branch
+Message-Id: <20230926211325.5AA47C433BC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/ksm: document smart scan mode
+     Subject: mm/ksm: add pages_skipped metric
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-ksm-document-smart-scan-mode.patch
+     mm-ksm-add-pages_skipped-metric.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-document-smart-scan-mode.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-add-pages_skipped-metric.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,12 +60,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Stefan Roesch <shr@devkernel.io>
-Subject: mm/ksm: document smart scan mode
-Date: Mon, 25 Sep 2023 21:09:38 -0700
+Subject: mm/ksm: add pages_skipped metric
+Date: Mon, 25 Sep 2023 21:09:37 -0700
 
-This adds documentation for the smart scan mode of KSM.
+This change adds the "pages skipped" metric.  To be able to evaluate how
+successful smart page scanning is, the pages skipped metric can be
+compared to the pages scanned metric.
 
-Link: https://lkml.kernel.org/r/20230926040939.516161-4-shr@devkernel.io
+The pages skipped metric is a cumulative counter.  The counter is stored
+under /sys/kernel/mm/ksm/pages_skipped.
+
+Link: https://lkml.kernel.org/r/20230926040939.516161-3-shr@devkernel.io
 Signed-off-by: Stefan Roesch <shr@devkernel.io>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -73,27 +78,51 @@ Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/ksm.rst |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/ksm.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
---- a/Documentation/admin-guide/mm/ksm.rst~mm-ksm-document-smart-scan-mode
-+++ a/Documentation/admin-guide/mm/ksm.rst
-@@ -155,6 +155,15 @@ stable_node_chains_prune_millisecs
-         scan. It's a noop if not a single KSM page hit the
-         ``max_page_sharing`` yet.
+--- a/mm/ksm.c~mm-ksm-add-pages_skipped-metric
++++ a/mm/ksm.c
+@@ -293,6 +293,9 @@ static bool ksm_smart_scan;
+ /* The number of zero pages which is placed by KSM */
+ unsigned long ksm_zero_pages;
  
-+smart_scan
-+        By default KSM checks every candidate page for each scan. It does
-+        not take into account historic information. When smart scan is
-+        enabled, pages that have previously not been de-duplicated get
-+        skipped. How often these pages are skipped depends on how often
-+        de-duplication has already been tried and failed. By default this
-+        optimization is disabled. The ``pages_skipped`` metric shows how
-+        effetive the setting is.
++/* The number of pages that have been skipped due to "smart scanning" */
++static unsigned long ksm_pages_skipped;
 +
- The effectiveness of KSM and MADV_MERGEABLE is shown in ``/sys/kernel/mm/ksm/``:
+ #ifdef CONFIG_NUMA
+ /* Zeroed when merging across nodes is not allowed */
+ static unsigned int ksm_merge_across_nodes = 1;
+@@ -2376,6 +2379,7 @@ static bool should_skip_rmap_item(struct
+ 	}
  
- general_profit
+ 	/* Skip this page */
++	ksm_pages_skipped++;
+ 	rmap_item->remaining_skips--;
+ 	remove_rmap_item_from_tree(rmap_item);
+ 	return true;
+@@ -3463,6 +3467,13 @@ static ssize_t pages_volatile_show(struc
+ }
+ KSM_ATTR_RO(pages_volatile);
+ 
++static ssize_t pages_skipped_show(struct kobject *kobj,
++				  struct kobj_attribute *attr, char *buf)
++{
++	return sysfs_emit(buf, "%lu\n", ksm_pages_skipped);
++}
++KSM_ATTR_RO(pages_skipped);
++
+ static ssize_t ksm_zero_pages_show(struct kobject *kobj,
+ 				struct kobj_attribute *attr, char *buf)
+ {
+@@ -3560,6 +3571,7 @@ static struct attribute *ksm_attrs[] = {
+ 	&pages_sharing_attr.attr,
+ 	&pages_unshared_attr.attr,
+ 	&pages_volatile_attr.attr,
++	&pages_skipped_attr.attr,
+ 	&ksm_zero_pages_attr.attr,
+ 	&full_scans_attr.attr,
+ #ifdef CONFIG_NUMA
 _
 
 Patches currently in -mm which might be from shr@devkernel.io are
