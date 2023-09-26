@@ -2,36 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47ACFE7F145
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A75EE7F146
 	for <mm-commits@archiver.kernel.org>; Tue, 26 Sep 2023 23:17:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231759AbjIZXR4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229475AbjIZXR4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 26 Sep 2023 19:17:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49806 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49820 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231222AbjIZXPz (ORCPT
+        with ESMTP id S231822AbjIZXPz (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Sep 2023 19:15:55 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C8B416EAF
-        for <mm-commits@vger.kernel.org>; Tue, 26 Sep 2023 15:17:20 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 873B5C433D9;
-        Tue, 26 Sep 2023 20:59:31 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0971E17808
+        for <mm-commits@vger.kernel.org>; Tue, 26 Sep 2023 15:17:23 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED3BEC116A4;
+        Tue, 26 Sep 2023 21:39:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695761971;
-        bh=qN8dkTP+RRlzSXTaGDDgqYXo7Q74gY2HRhYthw/6bLM=;
+        s=korg; t=1695764382;
+        bh=BI21vC6q76jLn8q3YdBz3h8jcN4skRjJcaiCNZ3wLlA=;
         h=Date:To:From:Subject:From;
-        b=ZmopbpewXSwQtz4f3cuCzmvdIGDxZ1b1qnapFUB3o37u0A3l4jFCi4CsuhzoGgUNe
-         wisRT2rlnSeJLoVonppeF8gDs/cOc8BPEZbM+3yQKEo+AzaJI52gJZGTagCEZvunDd
-         Mtc70GUQ+9tWan4WYt/HS/MDFAqMBa7w50oEtm8M=
-Date:   Tue, 26 Sep 2023 13:59:30 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        sudeep.holla@arm.com, pasha.tatashin@soleen.com, mhocko@suse.com,
-        mgorman@techsingularity.net, jweiner@redhat.com, david@redhat.com,
-        dave.hansen@linux.intel.com, cl@linux.com, arjan@linux.intel.com,
-        ying.huang@intel.com, akpm@linux-foundation.org
+        b=i7qLKuJzXcuolfEyVZt028b80OZdlICVVSNX8/SIJjm6t+rywAu1fFhJ8i4itJH4C
+         vyqlF0guGpH33fjC0QI26EKC/sXDnVROeWP/E7KmIrI5MUHDzoD9vVK6N2vGDHxdqZ
+         aI92p7OpIi6zZtNPCh4Yh2PzuBQOVl0uHQUO28kM=
+Date:   Tue, 26 Sep 2023 14:39:41 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        songmuchun@bytedance.com, rientjes@google.com, osalvador@suse.de,
+        naoya.horiguchi@linux.dev, mhocko@suse.com, linmiaohe@huawei.com,
+        jthoughton@google.com, joao.m.martins@oracle.com,
+        duanxiongchun@bytedance.com, david@redhat.com,
+        anshuman.khandual@arm.com, mike.kravetz@oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pcp-decrease-pcp-high-if-free-pages-high-watermark.patch added to mm-unstable branch
-Message-Id: <20230926205931.873B5C433D9@smtp.kernel.org>
+Subject: + hugetlb-optimize-update_and_free_pages_bulk-to-avoid-lock-cycles.patch added to mm-unstable branch
+Message-Id: <20230926213941.ED3BEC116A4@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, pcp: decrease PCP high if free pages < high watermark
+     Subject: hugetlb: optimize update_and_free_pages_bulk to avoid lock cycles
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-pcp-decrease-pcp-high-if-free-pages-high-watermark.patch
+     hugetlb-optimize-update_and_free_pages_bulk-to-avoid-lock-cycles.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pcp-decrease-pcp-high-if-free-pages-high-watermark.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-optimize-update_and_free_pages_bulk-to-avoid-lock-cycles.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,124 +64,201 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm, pcp: decrease PCP high if free pages < high watermark
-Date: Tue, 26 Sep 2023 14:09:09 +0800
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb: optimize update_and_free_pages_bulk to avoid lock cycles
+Date: Mon, 25 Sep 2023 16:48:29 -0700
 
-One target of PCP is to minimize pages in PCP if the system free pages is
-too few.  To reach that target, when page reclaiming is active for the
-zone (ZONE_RECLAIM_ACTIVE), we will stop increasing PCP high in allocating
-path, decrease PCP high and free some pages in freeing path.  But this may
-be too late because the background page reclaiming may introduce latency
-for some workloads.  So, in this patch, during page allocation we will
-detect whether the number of free pages of the zone is below high
-watermark.  If so, we will stop increasing PCP high in allocating path,
-decrease PCP high and free some pages in freeing path.  With this, we can
-reduce the possibility of the premature background page reclaiming caused
-by too large PCP.
+Patch series "Batch hugetlb vmemmap modification operations", v6.
 
-The high watermark checking is done in allocating path to reduce the
-overhead in hotter freeing path.
+When hugetlb vmemmap optimization was introduced, the overhead of enabling
+the option was measured as described in commit 426e5c429d16 [1].  The
+summary states that allocating a hugetlb page should be ~2x slower with
+optimization and freeing a hugetlb page should be ~2-3x slower.  Such
+overhead was deemed an acceptable trade off for the memory savings
+obtained by freeing vmemmap pages.
 
-Link: https://lkml.kernel.org/r/20230926060911.266511-9-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+It was recently reported that the overhead associated with enabling
+vmemmap optimization could be as high as 190x for hugetlb page
+allocations.  Yes, 190x!  Some actual numbers from other environments are:
+
+Bare Metal 8 socket Intel(R) Xeon(R) CPU E7-8895
+------------------------------------------------
+Unmodified next-20230824, vm.hugetlb_optimize_vmemmap = 0
+time echo 500000 > .../hugepages-2048kB/nr_hugepages
+real    0m4.119s
+time echo 0 > .../hugepages-2048kB/nr_hugepages
+real    0m4.477s
+
+Unmodified next-20230824, vm.hugetlb_optimize_vmemmap = 1
+time echo 500000 > .../hugepages-2048kB/nr_hugepages
+real    0m28.973s
+time echo 0 > .../hugepages-2048kB/nr_hugepages
+real    0m36.748s
+
+VM with 252 vcpus on host with 2 socket AMD EPYC 7J13 Milan
+-----------------------------------------------------------
+Unmodified next-20230824, vm.hugetlb_optimize_vmemmap = 0
+time echo 524288 > .../hugepages-2048kB/nr_hugepages
+real    0m2.463s
+time echo 0 > .../hugepages-2048kB/nr_hugepages
+real    0m2.931s
+
+Unmodified next-20230824, vm.hugetlb_optimize_vmemmap = 1
+time echo 524288 > .../hugepages-2048kB/nr_hugepages
+real    2m27.609s
+time echo 0 > .../hugepages-2048kB/nr_hugepages
+real    2m29.924s
+
+In the VM environment, the slowdown of enabling hugetlb vmemmap optimization
+resulted in allocation times being 61x slower.
+
+A quick profile showed that the vast majority of this overhead was due to
+TLB flushing.  Each time we modify the kernel pagetable we need to flush
+the TLB.  For each hugetlb that is optimized, there could be potentially
+two TLB flushes performed.  One for the vmemmap pages associated with the
+hugetlb page, and potentially another one if the vmemmap pages are mapped
+at the PMD level and must be split.  The TLB flushes required for the kernel
+pagetable, result in a broadcast IPI with each CPU having to flush a range
+of pages, or do a global flush if a threshold is exceeded.  So, the flush
+time increases with the number of CPUs.  In addition, in virtual environments
+the broadcast IPI can’t be accelerated by hypervisor hardware and leads to
+traps that need to wakeup/IPI all vCPUs which is very expensive.  Because of
+this the slowdown in virtual environments is even worse than bare metal as
+the number of vCPUS/CPUs is increased.
+
+The following series attempts to reduce amount of time spent in TLB flushing.
+The idea is to batch the vmemmap modification operations for multiple hugetlb
+pages.  Instead of doing one or two TLB flushes for each page, we do two TLB
+flushes for each batch of pages.  One flush after splitting pages mapped at
+the PMD level, and another after remapping vmemmap associated with all
+hugetlb pages.  Results of such batching are as follows:
+
+Bare Metal 8 socket Intel(R) Xeon(R) CPU E7-8895
+------------------------------------------------
+next-20230824 + Batching patches, vm.hugetlb_optimize_vmemmap = 0
+time echo 500000 > .../hugepages-2048kB/nr_hugepages
+real    0m4.719s
+time echo 0 > .../hugepages-2048kB/nr_hugepages
+real    0m4.245s
+
+next-20230824 + Batching patches, vm.hugetlb_optimize_vmemmap = 1
+time echo 500000 > .../hugepages-2048kB/nr_hugepages
+real    0m7.267s
+time echo 0 > .../hugepages-2048kB/nr_hugepages
+real    0m13.199s
+
+VM with 252 vcpus on host with 2 socket AMD EPYC 7J13 Milan
+-----------------------------------------------------------
+next-20230824 + Batching patches, vm.hugetlb_optimize_vmemmap = 0
+time echo 524288 > .../hugepages-2048kB/nr_hugepages
+real    0m2.715s
+time echo 0 > .../hugepages-2048kB/nr_hugepages
+real    0m3.186s
+
+next-20230824 + Batching patches, vm.hugetlb_optimize_vmemmap = 1
+time echo 524288 > .../hugepages-2048kB/nr_hugepages
+real    0m4.799s
+time echo 0 > .../hugepages-2048kB/nr_hugepages
+real    0m5.273s
+
+With batching, results are back in the 2-3x slowdown range.
+
+
+Ths patch (of 6):
+
+update_and_free_pages_bulk is designed to free a list of hugetlb pages
+back to their associated lower level allocators.  This may require
+allocating vmemmmap pages associated with each hugetlb page.  The hugetlb
+page destructor must be changed before pages are freed to lower level
+allocators.  However, the destructor must be changed under the hugetlb
+lock.  This means there is potentially one lock cycle per page.
+
+Minimize the number of lock cycles in update_and_free_pages_bulk by:
+1) allocating necessary vmemmap for all hugetlb pages on the list
+2) take hugetlb lock and clear destructor for all pages on the list
+3) free all pages on list back to low level allocators
+
+Link: https://lkml.kernel.org/r/20230925234837.86786-1-mike.kravetz@oracle.com
+Link: https://lkml.kernel.org/r/20230925234837.86786-2-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: James Houghton <jthoughton@google.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    1 +
- mm/page_alloc.c        |   22 ++++++++++++++++++++--
- 2 files changed, 21 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |   39 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
---- a/include/linux/mmzone.h~mm-pcp-decrease-pcp-high-if-free-pages-high-watermark
-+++ a/include/linux/mmzone.h
-@@ -1018,6 +1018,7 @@ enum zone_flags {
- 					 * Cleared when kswapd is woken.
- 					 */
- 	ZONE_RECLAIM_ACTIVE,		/* kswapd may be scanning the zone. */
-+	ZONE_BELOW_HIGH,		/* zone is below high watermark. */
- };
+--- a/mm/hugetlb.c~hugetlb-optimize-update_and_free_pages_bulk-to-avoid-lock-cycles
++++ a/mm/hugetlb.c
+@@ -1719,7 +1719,46 @@ static void update_and_free_hugetlb_foli
+ static void update_and_free_pages_bulk(struct hstate *h, struct list_head *list)
+ {
+ 	struct folio *folio, *t_folio;
++	bool clear_dtor = false;
  
- static inline unsigned long zone_managed_pages(struct zone *zone)
---- a/mm/page_alloc.c~mm-pcp-decrease-pcp-high-if-free-pages-high-watermark
-+++ a/mm/page_alloc.c
-@@ -2439,7 +2439,13 @@ static int nr_pcp_high(struct per_cpu_pa
- 		return min(batch << 2, pcp->high);
- 	}
- 
--	if (pcp->count >= high && high_min != high_max) {
-+	if (high_min == high_max)
-+		return high;
++	/*
++	 * First allocate required vmemmmap (if necessary) for all folios on
++	 * list.  If vmemmap can not be allocated, we can not free folio to
++	 * lower level allocator, so add back as hugetlb surplus page.
++	 * add_hugetlb_folio() removes the page from THIS list.
++	 * Use clear_dtor to note if vmemmap was successfully allocated for
++	 * ANY page on the list.
++	 */
++	list_for_each_entry_safe(folio, t_folio, list, lru) {
++		if (folio_test_hugetlb_vmemmap_optimized(folio)) {
++			if (hugetlb_vmemmap_restore(h, &folio->page)) {
++				spin_lock_irq(&hugetlb_lock);
++				add_hugetlb_folio(h, folio, true);
++				spin_unlock_irq(&hugetlb_lock);
++			} else
++				clear_dtor = true;
++		}
++	}
 +
-+	if (test_bit(ZONE_BELOW_HIGH, &zone->flags)) {
-+		pcp->high = max(high - (batch << pcp->free_factor), high_min);
-+		high = max(pcp->count, high_min);
-+	} else if (pcp->count >= high) {
- 		int need_high = (batch << pcp->free_factor) + batch;
- 
- 		/* pcp->high should be large enough to hold batch freed pages */
-@@ -2489,6 +2495,10 @@ static void free_unref_page_commit(struc
- 	if (pcp->count >= high) {
- 		free_pcppages_bulk(zone, nr_pcp_free(pcp, batch, high, free_high),
- 				   pcp, pindex);
-+		if (test_bit(ZONE_BELOW_HIGH, &zone->flags) &&
-+		    zone_watermark_ok(zone, 0, high_wmark_pages(zone),
-+				      ZONE_MOVABLE, 0))
-+			clear_bit(ZONE_BELOW_HIGH, &zone->flags);
- 	}
- }
- 
-@@ -2795,7 +2805,7 @@ static int nr_pcp_alloc(struct per_cpu_p
- 	 * If we had larger pcp->high, we could avoid to allocate from
- 	 * zone.
- 	 */
--	if (high_min != high_max && !test_bit(ZONE_RECLAIM_ACTIVE, &zone->flags))
-+	if (high_min != high_max && !test_bit(ZONE_BELOW_HIGH, &zone->flags))
- 		high = pcp->high = min(high + batch, high_max);
- 
- 	if (!order) {
-@@ -3256,6 +3266,14 @@ retry:
- 			}
- 		}
- 
-+		mark = high_wmark_pages(zone);
-+		if (zone_watermark_fast(zone, order, mark,
-+					ac->highest_zoneidx, alloc_flags,
-+					gfp_mask))
-+			goto try_this_zone;
-+		else if (!test_bit(ZONE_BELOW_HIGH, &zone->flags))
-+			set_bit(ZONE_BELOW_HIGH, &zone->flags);
++	/*
++	 * If vmemmmap allocation was performed on any folio above, take lock
++	 * to clear destructor of all folios on list.  This avoids the need to
++	 * lock/unlock for each individual folio.
++	 * The assumption is vmemmap allocation was performed on all or none
++	 * of the folios on the list.  This is true expect in VERY rare cases.
++	 */
++	if (clear_dtor) {
++		spin_lock_irq(&hugetlb_lock);
++		list_for_each_entry(folio, list, lru)
++			__clear_hugetlb_destructor(h, folio);
++		spin_unlock_irq(&hugetlb_lock);
++	}
 +
- 		mark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK);
- 		if (!zone_watermark_fast(zone, order, mark,
- 				       ac->highest_zoneidx, alloc_flags,
++	/*
++	 * Free folios back to low level allocators.  vmemmap and destructors
++	 * were taken care of above, so update_and_free_hugetlb_folio will
++	 * not need to take hugetlb lock.
++	 */
+ 	list_for_each_entry_safe(folio, t_folio, list, lru) {
+ 		update_and_free_hugetlb_folio(h, folio, false);
+ 		cond_resched();
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-mm-fix-draining-remote-pageset.patch
-memory-tiering-add-abstract-distance-calculation-algorithms-management.patch
-acpi-hmat-refactor-hmat_register_target_initiators.patch
-acpi-hmat-calculate-abstract-distance-with-hmat.patch
-dax-kmem-calculate-abstract-distance-with-general-interface.patch
-mm-pcp-avoid-to-drain-pcp-when-process-exit.patch
-cacheinfo-calculate-per-cpu-data-cache-size.patch
-mm-pcp-reduce-lock-contention-for-draining-high-order-pages.patch
-mm-restrict-the-pcp-batch-scale-factor-to-avoid-too-long-latency.patch
-mm-page_alloc-scale-the-number-of-pages-that-are-batch-allocated.patch
-mm-add-framework-for-pcp-high-auto-tuning.patch
-mm-tune-pcp-high-automatically.patch
-mm-pcp-decrease-pcp-high-if-free-pages-high-watermark.patch
-mm-pcp-avoid-to-reduce-pcp-high-unnecessarily.patch
-mm-pcp-reduce-detecting-time-of-consecutive-high-order-page-freeing.patch
+hugetlb-set-hugetlb-page-flag-before-optimizing-vmemmap.patch
+hugetlb-optimize-update_and_free_pages_bulk-to-avoid-lock-cycles.patch
+hugetlb-restructure-pool-allocations.patch
+hugetlb-perform-vmemmap-optimization-on-a-list-of-pages.patch
+hugetlb-perform-vmemmap-restoration-on-a-list-of-pages.patch
+hugetlb-batch-freeing-of-vmemmap-pages.patch
+hugetlb-batch-tlb-flushes-when-restoring-vmemmap.patch
 
