@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4382AE7F150
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Sep 2023 01:04:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C691E7F14B
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Sep 2023 01:04:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233509AbjI0BEP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 26 Sep 2023 21:04:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36244 "EHLO
+        id S233630AbjI0BEn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 26 Sep 2023 21:04:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36130 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234127AbjI0BCO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Sep 2023 21:02:14 -0400
+        with ESMTP id S233739AbjI0BCn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 26 Sep 2023 21:02:43 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 378B71780A
-        for <mm-commits@vger.kernel.org>; Tue, 26 Sep 2023 15:17:23 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8357C116D6;
-        Tue, 26 Sep 2023 21:39:50 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FF9C1B3A3
+        for <mm-commits@vger.kernel.org>; Tue, 26 Sep 2023 15:22:20 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 536D2C433B6;
+        Tue, 26 Sep 2023 21:07:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695764390;
-        bh=tDzKH9lnTFo8ttViJeQD/oMG32hwJNGfKRkj8fyRtQQ=;
+        s=korg; t=1695762425;
+        bh=MyyB7vspbfPGCpLqEgPn4Kw76rGKK4xZpuwwgr9JIJs=;
         h=Date:To:From:Subject:From;
-        b=trBA6mRTxghcpa/87O7644dvQw4qvWX3SkeMES3v9g2MbefvNp5sfL8mU0OwdhCCS
-         070gnIkq2DnsyHz3ukWM5t620TlAoBI23NCGjcK4ldi1Ar74CSKEIaXwrEe3Ltg4G4
-         R/6wZxajHKvKK2hx87eYdBgDGNP6jYTFUNAebHbk=
-Date:   Tue, 26 Sep 2023 14:39:50 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        songmuchun@bytedance.com, rientjes@google.com, osalvador@suse.de,
-        naoya.horiguchi@linux.dev, mhocko@suse.com, linmiaohe@huawei.com,
-        jthoughton@google.com, joao.m.martins@oracle.com,
-        duanxiongchun@bytedance.com, david@redhat.com,
-        anshuman.khandual@arm.com, mike.kravetz@oracle.com,
+        b=nrcZdGsTzXtQony+BNFHmHOg8kgQb7nclFLVpr4F7Cyqr0oCD8kVNxR3KFoF0H6vm
+         b7sjcWsKKUWz1Zm3PKJF9fhcS3FQbmaXlWZEiVFfSc65mz6l8AleV4F1e2yLrRCJps
+         3v/A7yJqtUff9IKyWrrIfRsINz5yUprMZU5VH01k=
+Date:   Tue, 26 Sep 2023 14:07:03 -0700
+To:     mm-commits@vger.kernel.org, weixugc@google.com,
+        shy828301@gmail.com, rafael.j.wysocki@intel.com, mhocko@kernel.org,
+        Jonathan.Cameron@huawei.com, hannes@cmpxchg.org, dave@stgolabs.net,
+        dave.jiang@intel.com, dave.hansen@intel.com,
+        dan.j.williams@intel.com, bharata@amd.com, apopple@nvidia.com,
+        aneesh.kumar@linux.ibm.com, ying.huang@intel.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-batch-tlb-flushes-when-restoring-vmemmap.patch added to mm-unstable branch
-Message-Id: <20230926213950.A8357C116D6@smtp.kernel.org>
+Subject: + dax-kmem-calculate-abstract-distance-with-general-interface.patch added to mm-unstable branch
+Message-Id: <20230926210705.536D2C433B6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: batch TLB flushes when restoring vmemmap
+     Subject: dax, kmem: calculate abstract distance with general interface
 has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-batch-tlb-flushes-when-restoring-vmemmap.patch
+     dax-kmem-calculate-abstract-distance-with-general-interface.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-batch-tlb-flushes-when-restoring-vmemmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dax-kmem-calculate-abstract-distance-with-general-interface.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,139 +64,219 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: batch TLB flushes when restoring vmemmap
-Date: Mon, 25 Sep 2023 16:48:36 -0700
+From: Huang Ying <ying.huang@intel.com>
+Subject: dax, kmem: calculate abstract distance with general interface
+Date: Tue, 26 Sep 2023 14:06:28 +0800
 
-Update the internal hugetlb restore vmemmap code path such that TLB
-flushing can be batched.  Use the existing mechanism of passing the
-VMEMMAP_REMAP_NO_TLB_FLUSH flag to indicate flushing should not be
-performed for individual pages.  The routine
-hugetlb_vmemmap_restore_folios is the only user of this new mechanism, and
-it will perform a global flush after all vmemmap is restored.
+Previously, a fixed abstract distance MEMTIER_DEFAULT_DAX_ADISTANCE is
+used for slow memory type in kmem driver.  This limits the usage of kmem
+driver, for example, it cannot be used for HBM (high bandwidth memory).
 
-Link: https://lkml.kernel.org/r/20230925234837.86786-9-mike.kravetz@oracle.com
-Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: James Houghton <jthoughton@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
+So, we use the general abstract distance calculation mechanism in kmem
+drivers to get more accurate abstract distance on systems with proper
+support.  The original MEMTIER_DEFAULT_DAX_ADISTANCE is used as fallback
+only.
+
+Now, multiple memory types may be managed by kmem.  These memory types are
+put into the "kmem_memory_types" list and protected by
+kmem_memory_type_lock.
+
+Link: https://lkml.kernel.org/r/20230926060628.265989-5-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Tested-by: Bharata B Rao <bharata@amd.com>
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Rafael J Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_vmemmap.c |   39 ++++++++++++++++++++++++---------------
- 1 file changed, 24 insertions(+), 15 deletions(-)
+ drivers/dax/kmem.c           |   62 ++++++++++++++++++++++++++-------
+ include/linux/memory-tiers.h |    2 +
+ mm/memory-tiers.c            |    3 +
+ 3 files changed, 53 insertions(+), 14 deletions(-)
 
---- a/mm/hugetlb_vmemmap.c~hugetlb-batch-tlb-flushes-when-restoring-vmemmap
-+++ a/mm/hugetlb_vmemmap.c
-@@ -461,18 +461,19 @@ out:
-  * @end:	end address of the vmemmap virtual address range that we want to
-  *		remap.
-  * @reuse:	reuse address.
-+ * @flags:	modifications to vmemmap_remap_walk flags
-  *
-  * Return: %0 on success, negative error code otherwise.
-  */
- static int vmemmap_remap_alloc(unsigned long start, unsigned long end,
--			       unsigned long reuse)
-+			       unsigned long reuse, unsigned long flags)
- {
- 	LIST_HEAD(vmemmap_pages);
- 	struct vmemmap_remap_walk walk = {
- 		.remap_pte	= vmemmap_restore_pte,
- 		.reuse_addr	= reuse,
- 		.vmemmap_pages	= &vmemmap_pages,
--		.flags		= 0,
-+		.flags		= flags,
- 	};
+--- a/drivers/dax/kmem.c~dax-kmem-calculate-abstract-distance-with-general-interface
++++ a/drivers/dax/kmem.c
+@@ -49,14 +49,52 @@ struct dax_kmem_data {
+ 	struct resource *res[];
+ };
  
- 	/* See the comment in the vmemmap_remap_free(). */
-@@ -494,17 +495,7 @@ EXPORT_SYMBOL(hugetlb_optimize_vmemmap_k
- static bool vmemmap_optimize_enabled = IS_ENABLED(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP_DEFAULT_ON);
- core_param(hugetlb_free_vmemmap, vmemmap_optimize_enabled, bool, 0);
- 
--/**
-- * hugetlb_vmemmap_restore - restore previously optimized (by
-- *			     hugetlb_vmemmap_optimize()) vmemmap pages which
-- *			     will be reallocated and remapped.
-- * @h:		struct hstate.
-- * @head:	the head page whose vmemmap pages will be restored.
-- *
-- * Return: %0 if @head's vmemmap pages have been reallocated and remapped,
-- * negative error code otherwise.
-- */
--int hugetlb_vmemmap_restore(const struct hstate *h, struct page *head)
-+static int __hugetlb_vmemmap_restore(const struct hstate *h, struct page *head, unsigned long flags)
- {
- 	int ret;
- 	unsigned long vmemmap_start = (unsigned long)head, vmemmap_end;
-@@ -525,7 +516,7 @@ int hugetlb_vmemmap_restore(const struct
- 	 * When a HugeTLB page is freed to the buddy allocator, previously
- 	 * discarded vmemmap pages must be allocated and remapping.
- 	 */
--	ret = vmemmap_remap_alloc(vmemmap_start, vmemmap_end, vmemmap_reuse);
-+	ret = vmemmap_remap_alloc(vmemmap_start, vmemmap_end, vmemmap_reuse, flags);
- 	if (!ret) {
- 		ClearHPageVmemmapOptimized(head);
- 		static_branch_dec(&hugetlb_optimize_vmemmap_key);
-@@ -535,6 +526,21 @@ int hugetlb_vmemmap_restore(const struct
- }
- 
- /**
-+ * hugetlb_vmemmap_restore - restore previously optimized (by
-+ *				hugetlb_vmemmap_optimize()) vmemmap pages which
-+ *				will be reallocated and remapped.
-+ * @h:		struct hstate.
-+ * @head:	the head page whose vmemmap pages will be restored.
-+ *
-+ * Return: %0 if @head's vmemmap pages have been reallocated and remapped,
-+ * negative error code otherwise.
-+ */
-+int hugetlb_vmemmap_restore(const struct hstate *h, struct page *head)
+-static struct memory_dev_type *dax_slowmem_type;
++static DEFINE_MUTEX(kmem_memory_type_lock);
++static LIST_HEAD(kmem_memory_types);
++
++static struct memory_dev_type *kmem_find_alloc_memory_type(int adist)
 +{
-+	return __hugetlb_vmemmap_restore(h, head, 0);
++	bool found = false;
++	struct memory_dev_type *mtype;
++
++	mutex_lock(&kmem_memory_type_lock);
++	list_for_each_entry(mtype, &kmem_memory_types, list) {
++		if (mtype->adistance == adist) {
++			found = true;
++			break;
++		}
++	}
++	if (!found) {
++		mtype = alloc_memory_type(adist);
++		if (!IS_ERR(mtype))
++			list_add(&mtype->list, &kmem_memory_types);
++	}
++	mutex_unlock(&kmem_memory_type_lock);
++
++	return mtype;
 +}
 +
-+/**
-  * hugetlb_vmemmap_restore_folios - restore vmemmap for every folio on the list.
-  * @h:			hstate.
-  * @folio_list:		list of folios.
-@@ -557,7 +563,8 @@ long hugetlb_vmemmap_restore_folios(cons
++static void kmem_put_memory_types(void)
++{
++	struct memory_dev_type *mtype, *mtn;
++
++	mutex_lock(&kmem_memory_type_lock);
++	list_for_each_entry_safe(mtype, mtn, &kmem_memory_types, list) {
++		list_del(&mtype->list);
++		put_memory_type(mtype);
++	}
++	mutex_unlock(&kmem_memory_type_lock);
++}
++
+ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+ {
+ 	struct device *dev = &dev_dax->dev;
+ 	unsigned long total_len = 0;
+ 	struct dax_kmem_data *data;
++	struct memory_dev_type *mtype;
+ 	int i, rc, mapped = 0;
+ 	int numa_node;
++	int adist = MEMTIER_DEFAULT_DAX_ADISTANCE;
  
- 	list_for_each_entry_safe(folio, t_folio, folio_list, lru) {
- 		if (folio_test_hugetlb_vmemmap_optimized(folio)) {
--			ret = hugetlb_vmemmap_restore(h, &folio->page);
-+			ret = __hugetlb_vmemmap_restore(h, &folio->page,
-+						VMEMMAP_REMAP_NO_TLB_FLUSH);
- 			if (ret)
- 				break;
- 			restored++;
-@@ -567,6 +574,8 @@ long hugetlb_vmemmap_restore_folios(cons
- 		list_move(&folio->lru, non_hvo_folios);
+ 	/*
+ 	 * Ensure good NUMA information for the persistent memory.
+@@ -71,6 +109,11 @@ static int dev_dax_kmem_probe(struct dev
+ 		return -EINVAL;
  	}
  
-+	if (restored)
-+		flush_tlb_all();
- 	if (!ret)
- 		ret = restored;
- 	return ret;
++	mt_calc_adistance(numa_node, &adist);
++	mtype = kmem_find_alloc_memory_type(adist);
++	if (IS_ERR(mtype))
++		return PTR_ERR(mtype);
++
+ 	for (i = 0; i < dev_dax->nr_range; i++) {
+ 		struct range range;
+ 
+@@ -88,7 +131,7 @@ static int dev_dax_kmem_probe(struct dev
+ 		return -EINVAL;
+ 	}
+ 
+-	init_node_memory_type(numa_node, dax_slowmem_type);
++	init_node_memory_type(numa_node, mtype);
+ 
+ 	rc = -ENOMEM;
+ 	data = kzalloc(struct_size(data, res, dev_dax->nr_range), GFP_KERNEL);
+@@ -167,7 +210,7 @@ err_reg_mgid:
+ err_res_name:
+ 	kfree(data);
+ err_dax_kmem_data:
+-	clear_node_memory_type(numa_node, dax_slowmem_type);
++	clear_node_memory_type(numa_node, mtype);
+ 	return rc;
+ }
+ 
+@@ -219,7 +262,7 @@ static void dev_dax_kmem_remove(struct d
+ 		 * for that. This implies this reference will be around
+ 		 * till next reboot.
+ 		 */
+-		clear_node_memory_type(node, dax_slowmem_type);
++		clear_node_memory_type(node, NULL);
+ 	}
+ }
+ #else
+@@ -251,12 +294,6 @@ static int __init dax_kmem_init(void)
+ 	if (!kmem_name)
+ 		return -ENOMEM;
+ 
+-	dax_slowmem_type = alloc_memory_type(MEMTIER_DEFAULT_DAX_ADISTANCE);
+-	if (IS_ERR(dax_slowmem_type)) {
+-		rc = PTR_ERR(dax_slowmem_type);
+-		goto err_dax_slowmem_type;
+-	}
+-
+ 	rc = dax_driver_register(&device_dax_kmem_driver);
+ 	if (rc)
+ 		goto error_dax_driver;
+@@ -264,8 +301,7 @@ static int __init dax_kmem_init(void)
+ 	return rc;
+ 
+ error_dax_driver:
+-	put_memory_type(dax_slowmem_type);
+-err_dax_slowmem_type:
++	kmem_put_memory_types();
+ 	kfree_const(kmem_name);
+ 	return rc;
+ }
+@@ -275,7 +311,7 @@ static void __exit dax_kmem_exit(void)
+ 	dax_driver_unregister(&device_dax_kmem_driver);
+ 	if (!any_hotremove_failed)
+ 		kfree_const(kmem_name);
+-	put_memory_type(dax_slowmem_type);
++	kmem_put_memory_types();
+ }
+ 
+ MODULE_AUTHOR("Intel Corporation");
+--- a/include/linux/memory-tiers.h~dax-kmem-calculate-abstract-distance-with-general-interface
++++ a/include/linux/memory-tiers.h
+@@ -24,6 +24,8 @@ struct memory_tier;
+ struct memory_dev_type {
+ 	/* list of memory types that are part of same tier as this type */
+ 	struct list_head tier_sibling;
++	/* list of memory types that are managed by one driver */
++	struct list_head list;
+ 	/* abstract distance for this specific memory type */
+ 	int adistance;
+ 	/* Nodes of same abstract distance */
+--- a/mm/memory-tiers.c~dax-kmem-calculate-abstract-distance-with-general-interface
++++ a/mm/memory-tiers.c
+@@ -586,13 +586,14 @@ EXPORT_SYMBOL_GPL(init_node_memory_type)
+ void clear_node_memory_type(int node, struct memory_dev_type *memtype)
+ {
+ 	mutex_lock(&memory_tier_lock);
+-	if (node_memory_types[node].memtype == memtype)
++	if (node_memory_types[node].memtype == memtype || !memtype)
+ 		node_memory_types[node].map_count--;
+ 	/*
+ 	 * If we umapped all the attached devices to this node,
+ 	 * clear the node memory type.
+ 	 */
+ 	if (!node_memory_types[node].map_count) {
++		memtype = node_memory_types[node].memtype;
+ 		node_memory_types[node].memtype = NULL;
+ 		put_memory_type(memtype);
+ 	}
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-hugetlb-set-hugetlb-page-flag-before-optimizing-vmemmap.patch
-hugetlb-optimize-update_and_free_pages_bulk-to-avoid-lock-cycles.patch
-hugetlb-restructure-pool-allocations.patch
-hugetlb-perform-vmemmap-optimization-on-a-list-of-pages.patch
-hugetlb-perform-vmemmap-restoration-on-a-list-of-pages.patch
-hugetlb-batch-freeing-of-vmemmap-pages.patch
-hugetlb-batch-tlb-flushes-when-restoring-vmemmap.patch
+mm-fix-draining-remote-pageset.patch
+mm-pcp-avoid-to-drain-pcp-when-process-exit.patch
+cacheinfo-calculate-per-cpu-data-cache-size.patch
+mm-pcp-reduce-lock-contention-for-draining-high-order-pages.patch
+mm-restrict-the-pcp-batch-scale-factor-to-avoid-too-long-latency.patch
+mm-page_alloc-scale-the-number-of-pages-that-are-batch-allocated.patch
+mm-add-framework-for-pcp-high-auto-tuning.patch
+mm-tune-pcp-high-automatically.patch
+mm-pcp-decrease-pcp-high-if-free-pages-high-watermark.patch
+mm-pcp-avoid-to-reduce-pcp-high-unnecessarily.patch
+mm-pcp-reduce-detecting-time-of-consecutive-high-order-page-freeing.patch
+memory-tiering-add-abstract-distance-calculation-algorithms-management.patch
+acpi-hmat-refactor-hmat_register_target_initiators.patch
+acpi-hmat-calculate-abstract-distance-with-hmat.patch
+dax-kmem-calculate-abstract-distance-with-general-interface.patch
 
