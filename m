@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A82FE82CA9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6373E82CAA
 	for <mm-commits@archiver.kernel.org>; Wed, 27 Sep 2023 15:58:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232466AbjI0P6T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232539AbjI0P6T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 27 Sep 2023 11:58:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46216 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46232 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231752AbjI0P6R (ORCPT
+        with ESMTP id S232561AbjI0P6R (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Sep 2023 11:58:17 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71DD219E
-        for <mm-commits@vger.kernel.org>; Wed, 27 Sep 2023 08:58:14 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01F72C433C9;
-        Wed, 27 Sep 2023 15:58:13 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B54E1AD
+        for <mm-commits@vger.kernel.org>; Wed, 27 Sep 2023 08:58:16 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF649C433C7;
+        Wed, 27 Sep 2023 15:58:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695830294;
-        bh=dAeEgiW0LW463WShHgxT26LC0EqeGTtOJ8w4O54y6Uo=;
+        s=korg; t=1695830295;
+        bh=bGM5sXhmz292n4aaQgPrJxvpOSEny4geQuGvfR/j0Gw=;
         h=Date:To:From:Subject:From;
-        b=BvC2C2bQBCECJ6ZwUhTL2L0YyhWmD0wc05A2LFyt/ZpzaAJZoyzwSvrId+iwXXztu
-         UV5CM2U+tX3SOhU97tXBbZSu/nY6H/JoTDMjkJqz4UUNvNK5CwV2pFZcgHGCb6PFfZ
-         k4oy7NYBmnm3cXZCSPve/zoQRVPf/26zf6qI3fTQ=
-Date:   Wed, 27 Sep 2023 08:58:13 -0700
+        b=CxTtnLlZ9TlCiu7Y5zm4ZrFXfKRn46Es/HjLYKJcrrgWyKDVi2jBtaqcQ18eHN6ux
+         Qjwn2Gn1+BQT3W/d7m23ryiUb5zVjrlL/WEylbToZybrfXyTNGdeJumd/6Gd3RP3+i
+         4fA1mqkpaJHWvll5fJ+UIu1sPfGIkt1WpOzbpNo4=
+Date:   Wed, 27 Sep 2023 08:58:15 -0700
 To:     mm-commits@vger.kernel.org, surenb@google.com, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-handle-shared-faults-under-the-vma-lock.patch added to mm-unstable branch
-Message-Id: <20230927155814.01F72C433C9@smtp.kernel.org>
+Subject: + mm-handle-cow-faults-under-the-vma-lock.patch added to mm-unstable branch
+Message-Id: <20230927155815.CF649C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: handle shared faults under the VMA lock
+     Subject: mm: handle COW faults under the VMA lock
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-handle-shared-faults-under-the-vma-lock.patch
+     mm-handle-cow-faults-under-the-vma-lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-handle-shared-faults-under-the-vma-lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-handle-cow-faults-under-the-vma-lock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,63 +60,44 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: handle shared faults under the VMA lock
-Date: Wed, 27 Sep 2023 06:25:01 +0100
+Subject: mm: handle COW faults under the VMA lock
+Date: Wed, 27 Sep 2023 06:25:02 +0100
 
-There are many implementations of ->fault and some of them depend on
-mmap_lock being held.  All vm_ops that implement ->map_pages() end up
-calling filemap_fault(), which I have audited to be sure it does not rely
-on mmap_lock.  So (for now) key off ->map_pages existing as being a flag
-to indicate that it's safe to call ->fault while only holding the vma
-lock.
+If the page is not currently present in the page tables, we need to call
+the page fault handler to find out which page we're supposed to COW, so we
+need to both check that there is already an anon_vma and that the fault
+handler doesn't need the mmap_lock.
 
-Link: https://lkml.kernel.org/r/20230927052505.2855872-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230927052505.2855872-5-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   22 ++++++++++++++++++----
- 1 file changed, 18 insertions(+), 4 deletions(-)
+ mm/memory.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
---- a/mm/memory.c~mm-handle-shared-faults-under-the-vma-lock
+--- a/mm/memory.c~mm-handle-cow-faults-under-the-vma-lock
 +++ a/mm/memory.c
-@@ -3045,6 +3045,21 @@ static inline void wp_page_reuse(struct
- 	count_vm_event(PGREUSE);
- }
- 
-+/*
-+ * We could add a bitflag somewhere, but for now, we know that all
-+ * vm_ops that have a ->map_pages have been audited and don't need
-+ * the mmap_lock to be held.
-+ */
-+static inline vm_fault_t vmf_maybe_unlock_vma(const struct vm_fault *vmf)
-+{
-+	struct vm_area_struct *vma = vmf->vma;
-+
-+	if (vma->vm_ops->map_pages || !(vmf->flags & FAULT_FLAG_VMA_LOCK))
-+		return 0;
-+	vma_end_read(vma);
-+	return VM_FAULT_RETRY;
-+}
-+
- static vm_fault_t vmf_anon_prepare(struct vm_fault *vmf)
- {
+@@ -4642,13 +4642,11 @@ static vm_fault_t do_cow_fault(struct vm
  	struct vm_area_struct *vma = vmf->vma;
-@@ -4672,10 +4687,9 @@ static vm_fault_t do_shared_fault(struct
- 	vm_fault_t ret, tmp;
- 	struct folio *folio;
+ 	vm_fault_t ret;
  
 -	if (vmf->flags & FAULT_FLAG_VMA_LOCK) {
 -		vma_end_read(vma);
 -		return VM_FAULT_RETRY;
 -	}
+-
+-	if (unlikely(anon_vma_prepare(vma)))
+-		return VM_FAULT_OOM;
 +	ret = vmf_maybe_unlock_vma(vmf);
++	if (!ret)
++		ret = vmf_anon_prepare(vmf);
 +	if (ret)
 +		return ret;
  
- 	ret = __do_fault(vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 	vmf->cow_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, vmf->address);
+ 	if (!vmf->cow_page)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
