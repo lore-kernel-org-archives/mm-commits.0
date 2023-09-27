@@ -2,34 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7E9DE82CA5
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Sep 2023 15:47:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 713D3E82CA7
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Sep 2023 15:50:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232848AbjI0Pry (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Sep 2023 11:47:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36420 "EHLO
+        id S232890AbjI0PuN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Sep 2023 11:50:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36496 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232867AbjI0Prj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Sep 2023 11:47:39 -0400
+        with ESMTP id S232608AbjI0PuD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Sep 2023 11:50:03 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA3B9284E6;
-        Wed, 27 Sep 2023 08:47:10 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB7ABC433C7;
-        Wed, 27 Sep 2023 15:47:09 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B9D09EF8
+        for <mm-commits@vger.kernel.org>; Wed, 27 Sep 2023 08:42:02 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B834C433CB;
+        Wed, 27 Sep 2023 15:42:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695829630;
-        bh=2rMgseKbIX4TDdskairnX1o3/qQEXOmLx97RSfB7Xew=;
+        s=korg; t=1695829321;
+        bh=K7idKZa2L7YfHdvdbYOsugMb29anevWK580bOuKhfqM=;
         h=Date:To:From:Subject:From;
-        b=gOZul6zlDBDAGvOoD46LtWJjnFhz6ViCorRjU/j+Kjr5gQyj28CxXJjhbT3DCFJVi
-         B82yfft7yvdRJOxlm+Oco5mJIsNxyqFc6OvP8azY235so7jW1k/zFl7GVBiMY14T09
-         wGKEnXlz26rShBgkhv61lvbn6ZrhtvIDhsI39pBs=
-Date:   Wed, 27 Sep 2023 08:47:09 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        stable@vger.kernel.org, osalvador@suse.de, naoya.horiguchi@nec.com,
-        shikemeng@huaweicloud.com, akpm@linux-foundation.org
+        b=xJ1ugM8DkF9EhURxW1g7sOCI8VPwFj2owQOrfhKAeGNR0x3XB2Bb4ZF0JB2eRaonN
+         WR0j6k2OkkpeEWC+ZCkRMut1FsqdRUXF5LpDPzcW4qdPOm/HVDfmHAhSkeaz9/y4fS
+         gHzE6QIMARshfUEs7xuOZhmijVrWYvZBLIWsZgAI=
+Date:   Wed, 27 Sep 2023 08:42:00 -0700
+To:     mm-commits@vger.kernel.org, dan.carpenter@linaro.org,
+        willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-correct-start-page-when-guard-page-debug-is-enabled.patch added to mm-hotfixes-unstable branch
-Message-Id: <20230927154709.EB7ABC433C7@smtp.kernel.org>
+Subject: + buffer-hoist-gfp-flags-from-grow_dev_page-to-__getblk_gfp-fix.patch added to mm-unstable branch
+Message-Id: <20230927154201.7B834C433CB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,14 +36,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: correct start page when guard page debug is enabled
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-page_alloc-correct-start-page-when-guard-page-debug-is-enabled.patch
+     Subject: buffer-hoist-gfp-flags-from-grow_dev_page-to-__getblk_gfp-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     buffer-hoist-gfp-flags-from-grow_dev_page-to-__getblk_gfp-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-correct-start-page-when-guard-page-debug-is-enabled.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buffer-hoist-gfp-flags-from-grow_dev_page-to-__getblk_gfp-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -60,73 +59,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kemeng Shi <shikemeng@huaweicloud.com>
-Subject: mm/page_alloc: correct start page when guard page debug is enabled
-Date: Wed, 27 Sep 2023 17:44:01 +0800
+From: Matthew Wilcox <willy@infradead.org>
+Subject: buffer-hoist-gfp-flags-from-grow_dev_page-to-__getblk_gfp-fix
+Date: Wed, 27 Sep 2023 16:02:40 +0100
 
-When guard page debug is enabled and set_page_guard returns success, we
-miss to forward page to point to start of next split range and we will do
-split unexpectedly in page range without target page.  Move start page
-update before set_page_guard to fix this.
+fix grow_dev_page() error handling
 
-As we split to wrong target page, then splited pages are not able to merge
-back to original order when target page is put back and splited pages
-except target page is not usable.  To be specific:
-
-Consider target page is the third page in buddy page with order 2.
-| buddy-2 | Page | Target | Page |
-
-After break down to target page, we will only set first page to Guard
-because of bug.
-| Guard   | Page | Target | Page |
-
-When we try put_page_back_buddy with target page, the buddy page of target
-if neither guard nor buddy, Then it's not able to construct original page
-with order 2
-| Guard | Page | buddy-0 | Page |
-
-All pages except target page is not in free list and is not usable.
-
-Link: https://lkml.kernel.org/r/20230927094401.68205-1-shikemeng@huaweicloud.com
-Fixes: 06be6ff3d2ec ("mm,hwpoison: rework soft offline for free pages")
-Signed-off-by: Kemeng Shi <shikemeng@huaweicloud.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/ZRREEIwqiy5DijKB@casper.infradead.org
+Signed-off-by: Matthew Wilcox <willy@infradead.org>
+Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/buffer.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-correct-start-page-when-guard-page-debug-is-enabled
-+++ a/mm/page_alloc.c
-@@ -6475,6 +6475,7 @@ static void break_down_buddy_pages(struc
- 			next_page = page;
- 			current_buddy = page + size;
- 		}
-+		page = next_page;
- 
- 		if (set_page_guard(zone, current_buddy, high, migratetype))
- 			continue;
-@@ -6482,7 +6483,6 @@ static void break_down_buddy_pages(struc
- 		if (current_buddy != target) {
- 			add_to_free_list(current_buddy, zone, high, migratetype);
- 			set_buddy_order(current_buddy, high);
--			page = next_page;
- 		}
+--- a/fs/buffer.c~buffer-hoist-gfp-flags-from-grow_dev_page-to-__getblk_gfp-fix
++++ a/fs/buffer.c
+@@ -1060,6 +1060,7 @@ grow_dev_page(struct block_device *bdev,
+ 			goto failed;
  	}
- }
+ 
++	ret = -ENOMEM;
+ 	bh = folio_alloc_buffers(folio, size, gfp | __GFP_ACCOUNT);
+ 	if (!bh)
+ 		goto failed;
 _
 
-Patches currently in -mm which might be from shikemeng@huaweicloud.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-page_alloc-correct-start-page-when-guard-page-debug-is-enabled.patch
-mm-compaction-use-correct-list-in-move_freelist_head-tail.patch
-mm-compaction-call-list_is_first-last-more-intuitively-in-move_freelist_head-tail.patch
-mm-compaction-correctly-return-failure-with-bogus-compound_order-in-strict-mode.patch
-mm-compaction-remove-repeat-compact_blockskip_flush-check-in-reset_isolation_suitable.patch
-mm-compaction-improve-comment-of-is_via_compact_memory.patch
-mm-compaction-factor-out-code-to-test-if-we-should-run-compaction-for-target-order.patch
+i915-limit-the-length-of-an-sg-list-to-the-requested-length.patch
+mm-report-success-more-often-from-filemap_map_folio_range.patch
+mm-abstract-moving-to-the-next-pfn.patch
+mm-convert-dax-lock-unlock-page-to-lock-unlock-folio.patch
+buffer-pass-gfp-flags-to-folio_alloc_buffers.patch
+buffer-hoist-gfp-flags-from-grow_dev_page-to-__getblk_gfp.patch
+buffer-hoist-gfp-flags-from-grow_dev_page-to-__getblk_gfp-fix.patch
+ext4-use-bdev_getblk-to-avoid-memory-reclaim-in-readahead-path.patch
+buffer-use-bdev_getblk-to-avoid-memory-reclaim-in-readahead-path.patch
+buffer-convert-getblk_unmovable-and-__getblk-to-use-bdev_getblk.patch
+buffer-convert-sb_getblk-to-call-__getblk.patch
+ext4-call-bdev_getblk-from-sb_getblk_gfp.patch
+buffer-remove-__getblk_gfp.patch
+hugetlb-use-a-folio-in-free_hpage_workfn.patch
+hugetlb-remove-a-few-calls-to-page_folio.patch
+hugetlb-convert-remove_pool_huge_page-to-remove_pool_hugetlb_folio.patch
 
