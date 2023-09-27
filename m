@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 455BEE82CB9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCFC1E82CBB
 	for <mm-commits@archiver.kernel.org>; Wed, 27 Sep 2023 17:30:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229561AbjI0Ral (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229450AbjI0Ral (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 27 Sep 2023 13:30:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53038 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53072 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229499AbjI0Rah (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Sep 2023 13:30:37 -0400
+        with ESMTP id S229570AbjI0Ral (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Sep 2023 13:30:41 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0889EF4
-        for <mm-commits@vger.kernel.org>; Wed, 27 Sep 2023 10:30:36 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90525C433C9;
-        Wed, 27 Sep 2023 17:30:35 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A24FCF3
+        for <mm-commits@vger.kernel.org>; Wed, 27 Sep 2023 10:30:39 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EBF4C433C7;
+        Wed, 27 Sep 2023 17:30:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695835835;
-        bh=RpIvKYIJBytuqIKr4KOFem1SIwfQsit4AxVnqQhnx0I=;
+        s=korg; t=1695835839;
+        bh=CVrsjc5x+C/rdcZma67sYuSdp78ASsu8ZOb0/TFjkuI=;
         h=Date:To:From:Subject:From;
-        b=KCP2WUTkJr78CtfTIvd5abHxnMfPX+gsHNys8BhmqkTK/mI9cMQWffzTAP9tU+Y3a
-         /Nx0DnUWnIQW9ZUYucnrg9ZqhKawoLD3dq3oxV+/zuWAbvCzqfuBWFz7snGbUjBu85
-         98OBxrrczuS9U1AMU4kTcQ4UbeXMhSw9aluCTSVQ=
-Date:   Wed, 27 Sep 2023 10:30:34 -0700
+        b=Edu1E+vlcmziEydwe274AqxGy6Av/ipFEkDk1v5eqTuIWzI+Y8j66GE4Il3FnPa17
+         LQNoX6eaPmpvsLRj5EOpTjx3OUhL+FHnua91QBnDdVI8+VBtRi0oNixu2hysDNd/Mp
+         Pz3041C6zZ2lNnkdkpQJ4tzS46LxJYsReG8hOCjY=
+Date:   Wed, 27 Sep 2023 10:30:38 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         torvalds@linux-foundation.org, Jason@zx2c4.com, hch@infradead.org,
         david.laight@aculab.com, andriy.shevchenko@linux.intel.com,
         David.Laight@ACULAB.COM, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + minmax-allow-min-max-clamp-if-the-arguments-have-the-same-signedness.patch added to mm-nonmm-unstable branch
-Message-Id: <20230927173035.90525C433C9@smtp.kernel.org>
+Subject: + minmax-allow-comparisons-of-int-against-unsigned-char-short.patch added to mm-nonmm-unstable branch
+Message-Id: <20230927173039.3EBF4C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,12 +38,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: minmax: allow min()/max()/clamp() if the arguments have the same signedness.
+     Subject: minmax: allow comparisons of 'int' against 'unsigned char/short'
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     minmax-allow-min-max-clamp-if-the-arguments-have-the-same-signedness.patch
+     minmax-allow-comparisons-of-int-against-unsigned-char-short.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/minmax-allow-min-max-clamp-if-the-arguments-have-the-same-signedness.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/minmax-allow-comparisons-of-int-against-unsigned-char-short.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,24 +62,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Laight <David.Laight@ACULAB.COM>
-Subject: minmax: allow min()/max()/clamp() if the arguments have the same signedness.
-Date: Mon, 18 Sep 2023 08:17:15 +0000
+Subject: minmax: allow comparisons of 'int' against 'unsigned char/short'
+Date: Mon, 18 Sep 2023 08:18:40 +0000
 
-The type-check in min()/max() is there to stop unexpected results if a
-negative value gets converted to a large unsigned value.  However it also
-rejects 'unsigned int' v 'unsigned long' compares which are common and
-never problematc.
+Since 'unsigned char/short' get promoted to 'signed int' it is safe to
+compare them against an 'int' value.
 
-Replace the 'same type' check with a 'same signedness' check.
-
-The new test isn't itself a compile time error, so use static_assert() to
-report the error and give a meaningful error message.
-
-Due to the way builtin_choose_expr() works detecting the error in the
-'non-constant' side (where static_assert() can be used) also detects
-errors when the arguments are constant.
-
-Link: https://lkml.kernel.org/r/fe7e6c542e094bfca655abcd323c1c98@AcuMS.aculab.com
+Link: https://lkml.kernel.org/r/8732ef5f809c47c28a7be47c938b28d4@AcuMS.aculab.com
 Signed-off-by: David Laight <david.laight@aculab.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Christoph Hellwig <hch@infradead.org>
@@ -89,143 +78,23 @@ Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/minmax.h |   62 ++++++++++++++++++++-------------------
- 1 file changed, 33 insertions(+), 29 deletions(-)
+ include/linux/minmax.h |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/include/linux/minmax.h~minmax-allow-min-max-clamp-if-the-arguments-have-the-same-signedness
+--- a/include/linux/minmax.h~minmax-allow-comparisons-of-int-against-unsigned-char-short
 +++ a/include/linux/minmax.h
-@@ -12,9 +12,8 @@
-  *
-  * - avoid multiple evaluations of the arguments (so side-effects like
-  *   "x++" happen only once) when non-constant.
-- * - perform strict type-checking (to generate warnings instead of
-- *   nasty runtime surprises). See the "unnecessary" pointer comparison
-- *   in __typecheck().
-+ * - perform signed v unsigned type-checking (to generate compile
-+ *   errors instead of nasty runtime surprises).
-  * - retain result as a constant expressions when called with only
-  *   constant expressions (to avoid tripping VLA warnings in stack
-  *   allocation usage).
-@@ -22,23 +21,30 @@
- #define __typecheck(x, y) \
- 	(!!(sizeof((typeof(x) *)1 == (typeof(y) *)1)))
+@@ -26,8 +26,9 @@
+ 	__builtin_choose_expr(__is_constexpr(is_signed_type(typeof(x))),	\
+ 		is_signed_type(typeof(x)), 0)
  
--#define __no_side_effects(x, y) \
--		(__is_constexpr(x) && __is_constexpr(y))
-+/* is_signed_type() isn't a constexpr for pointer types */
-+#define __is_signed(x) 								\
-+	__builtin_choose_expr(__is_constexpr(is_signed_type(typeof(x))),	\
-+		is_signed_type(typeof(x)), 0)
+-#define __types_ok(x, y) \
+-	(__is_signed(x) == __is_signed(y))
++#define __types_ok(x, y) 			\
++	(__is_signed(x) == __is_signed(y) ||	\
++		__is_signed((x) + 0) == __is_signed((y) + 0))
  
--#define __safe_cmp(x, y) \
--		(__typecheck(x, y) && __no_side_effects(x, y))
-+#define __types_ok(x, y) \
-+	(__is_signed(x) == __is_signed(y))
- 
--#define __cmp(x, y, op)	((x) op (y) ? (x) : (y))
-+#define __cmp_op_min <
-+#define __cmp_op_max >
- 
--#define __cmp_once(x, y, unique_x, unique_y, op) ({	\
-+#define __cmp(op, x, y)	((x) __cmp_op_##op (y) ? (x) : (y))
-+
-+#define __cmp_once(op, x, y, unique_x, unique_y) ({	\
- 		typeof(x) unique_x = (x);		\
- 		typeof(y) unique_y = (y);		\
--		__cmp(unique_x, unique_y, op); })
--
--#define __careful_cmp(x, y, op) \
--	__builtin_choose_expr(__safe_cmp(x, y), \
--		__cmp(x, y, op), \
--		__cmp_once(x, y, __UNIQUE_ID(__x), __UNIQUE_ID(__y), op))
-+		static_assert(__types_ok(x, y),		\
-+			#op "(" #x ", " #y ") signedness error, fix types or consider u" #op "() before " #op "_t()"); \
-+		__cmp(op, unique_x, unique_y); })
-+
-+#define __careful_cmp(op, x, y)					\
-+	__builtin_choose_expr(__is_constexpr((x) - (y)),	\
-+		__cmp(op, x, y),				\
-+		__cmp_once(op, x, y, __UNIQUE_ID(__x), __UNIQUE_ID(__y)))
- 
- #define __clamp(val, lo, hi)	\
- 	((val) >= (hi) ? (hi) : ((val) <= (lo) ? (lo) : (val)))
-@@ -47,17 +53,15 @@
- 		typeof(val) unique_val = (val);				\
- 		typeof(lo) unique_lo = (lo);				\
- 		typeof(hi) unique_hi = (hi);				\
-+		static_assert(__builtin_choose_expr(__is_constexpr((lo) > (hi)), 	\
-+				(lo) <= (hi), true),					\
-+			"clamp() low limit " #lo " greater than high limit " #hi);	\
-+		static_assert(__types_ok(val, lo), "clamp() 'lo' signedness error");	\
-+		static_assert(__types_ok(val, hi), "clamp() 'hi' signedness error");	\
- 		__clamp(unique_val, unique_lo, unique_hi); })
- 
--#define __clamp_input_check(lo, hi)					\
--        (BUILD_BUG_ON_ZERO(__builtin_choose_expr(			\
--                __is_constexpr((lo) > (hi)), (lo) > (hi), false)))
--
- #define __careful_clamp(val, lo, hi) ({					\
--	__clamp_input_check(lo, hi) +					\
--	__builtin_choose_expr(__typecheck(val, lo) && __typecheck(val, hi) && \
--			      __typecheck(hi, lo) && __is_constexpr(val) && \
--			      __is_constexpr(lo) && __is_constexpr(hi),	\
-+	__builtin_choose_expr(__is_constexpr((val) - (lo) + (hi)),	\
- 		__clamp(val, lo, hi),					\
- 		__clamp_once(val, lo, hi, __UNIQUE_ID(__val),		\
- 			     __UNIQUE_ID(__lo), __UNIQUE_ID(__hi))); })
-@@ -67,14 +71,14 @@
-  * @x: first value
-  * @y: second value
-  */
--#define min(x, y)	__careful_cmp(x, y, <)
-+#define min(x, y)	__careful_cmp(min, x, y)
- 
- /**
-  * max - return maximum of two values of the same or compatible types
-  * @x: first value
-  * @y: second value
-  */
--#define max(x, y)	__careful_cmp(x, y, >)
-+#define max(x, y)	__careful_cmp(max, x, y)
- 
- /**
-  * umin - return minimum of two non-negative values
-@@ -83,7 +87,7 @@
-  * @y: second value
-  */
- #define umin(x, y)	\
--	__careful_cmp((x) + 0u + 0ul + 0ull, (y) + 0u + 0ul + 0ull, <)
-+	__careful_cmp(min, (x) + 0u + 0ul + 0ull, (y) + 0u + 0ul + 0ull)
- 
- /**
-  * umax - return maximum of two non-negative values
-@@ -91,7 +95,7 @@
-  * @y: second value
-  */
- #define umax(x, y)	\
--	__careful_cmp((x) + 0u + 0ul + 0ull, (y) + 0u + 0ul + 0ull, >)
-+	__careful_cmp(max, (x) + 0u + 0ul + 0ull, (y) + 0u + 0ul + 0ull)
- 
- /**
-  * min3 - return minimum of three values
-@@ -143,7 +147,7 @@
-  * @x: first value
-  * @y: second value
-  */
--#define min_t(type, x, y)	__careful_cmp((type)(x), (type)(y), <)
-+#define min_t(type, x, y)	__careful_cmp(min, (type)(x), (type)(y))
- 
- /**
-  * max_t - return maximum of two values, using the specified type
-@@ -151,7 +155,7 @@
-  * @x: first value
-  * @y: second value
-  */
--#define max_t(type, x, y)	__careful_cmp((type)(x), (type)(y), >)
-+#define max_t(type, x, y)	__careful_cmp(max, (type)(x), (type)(y))
- 
- /*
-  * Do not check the array parameter using __must_be_array().
+ #define __cmp_op_min <
+ #define __cmp_op_max >
 _
 
 Patches currently in -mm which might be from David.Laight@ACULAB.COM are
