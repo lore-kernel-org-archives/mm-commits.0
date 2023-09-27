@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6373E82CAA
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Sep 2023 15:58:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC327E82CA7
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Sep 2023 15:58:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232539AbjI0P6T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Sep 2023 11:58:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46232 "EHLO
+        id S231752AbjI0P61 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Sep 2023 11:58:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42724 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232561AbjI0P6R (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Sep 2023 11:58:17 -0400
+        with ESMTP id S231974AbjI0P6T (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Sep 2023 11:58:19 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B54E1AD
-        for <mm-commits@vger.kernel.org>; Wed, 27 Sep 2023 08:58:16 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF649C433C7;
-        Wed, 27 Sep 2023 15:58:15 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01E479C
+        for <mm-commits@vger.kernel.org>; Wed, 27 Sep 2023 08:58:18 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EDABC433C9;
+        Wed, 27 Sep 2023 15:58:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695830295;
-        bh=bGM5sXhmz292n4aaQgPrJxvpOSEny4geQuGvfR/j0Gw=;
+        s=korg; t=1695830297;
+        bh=sgt1oDc/1G1WEao1bl8HY+H757P1KQr3ICjH+P7sXyo=;
         h=Date:To:From:Subject:From;
-        b=CxTtnLlZ9TlCiu7Y5zm4ZrFXfKRn46Es/HjLYKJcrrgWyKDVi2jBtaqcQ18eHN6ux
-         Qjwn2Gn1+BQT3W/d7m23ryiUb5zVjrlL/WEylbToZybrfXyTNGdeJumd/6Gd3RP3+i
-         4fA1mqkpaJHWvll5fJ+UIu1sPfGIkt1WpOzbpNo4=
-Date:   Wed, 27 Sep 2023 08:58:15 -0700
+        b=FApTWL34yXwfElJvVIBEzqe4J0bLKH6oOiAcgoTVr3Bl0fQtudXQI55zrG5jOWfNI
+         8W2gp8VPhTEWta6SPaBxlCSaCvuUehJKLGz6r9XDv6zKBCWxSbRCQaiYors0vtsOne
+         2efe4negt2fhrFUu0WbgonbMP3yhPQr40rG+oZqo=
+Date:   Wed, 27 Sep 2023 08:58:17 -0700
 To:     mm-commits@vger.kernel.org, surenb@google.com, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-handle-cow-faults-under-the-vma-lock.patch added to mm-unstable branch
-Message-Id: <20230927155815.CF649C433C7@smtp.kernel.org>
+Subject: + mm-handle-read-faults-under-the-vma-lock.patch added to mm-unstable branch
+Message-Id: <20230927155817.8EDABC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: handle COW faults under the VMA lock
+     Subject: mm: handle read faults under the VMA lock
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-handle-cow-faults-under-the-vma-lock.patch
+     mm-handle-read-faults-under-the-vma-lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-handle-cow-faults-under-the-vma-lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-handle-read-faults-under-the-vma-lock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,44 +60,39 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: handle COW faults under the VMA lock
-Date: Wed, 27 Sep 2023 06:25:02 +0100
+Subject: mm: handle read faults under the VMA lock
+Date: Wed, 27 Sep 2023 06:25:03 +0100
 
-If the page is not currently present in the page tables, we need to call
-the page fault handler to find out which page we're supposed to COW, so we
-need to both check that there is already an anon_vma and that the fault
-handler doesn't need the mmap_lock.
+Most file-backed faults are already handled through ->map_pages(), but if
+we need to do I/O we'll come this way.  Since filemap_fault() is now safe
+to be called under the VMA lock, we can handle these faults under the VMA
+lock now.
 
-Link: https://lkml.kernel.org/r/20230927052505.2855872-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230927052505.2855872-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ mm/memory.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/mm/memory.c~mm-handle-cow-faults-under-the-vma-lock
+--- a/mm/memory.c~mm-handle-read-faults-under-the-vma-lock
 +++ a/mm/memory.c
-@@ -4642,13 +4642,11 @@ static vm_fault_t do_cow_fault(struct vm
- 	struct vm_area_struct *vma = vmf->vma;
- 	vm_fault_t ret;
+@@ -4620,10 +4620,9 @@ static vm_fault_t do_read_fault(struct v
+ 			return ret;
+ 	}
  
 -	if (vmf->flags & FAULT_FLAG_VMA_LOCK) {
--		vma_end_read(vma);
+-		vma_end_read(vmf->vma);
 -		return VM_FAULT_RETRY;
 -	}
--
--	if (unlikely(anon_vma_prepare(vma)))
--		return VM_FAULT_OOM;
 +	ret = vmf_maybe_unlock_vma(vmf);
-+	if (!ret)
-+		ret = vmf_anon_prepare(vmf);
 +	if (ret)
 +		return ret;
  
- 	vmf->cow_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, vmf->address);
- 	if (!vmf->cow_page)
+ 	ret = __do_fault(vmf);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
