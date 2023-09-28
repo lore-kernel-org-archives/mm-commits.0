@@ -2,96 +2,100 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59488E732E7
-	for <mm-commits@archiver.kernel.org>; Thu, 28 Sep 2023 16:29:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 457A7E732EA
+	for <mm-commits@archiver.kernel.org>; Thu, 28 Sep 2023 16:37:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229605AbjI1Q3l (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 28 Sep 2023 12:29:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51592 "EHLO
+        id S230119AbjI1Qhl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 28 Sep 2023 12:37:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41882 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230111AbjI1Q3l (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Sep 2023 12:29:41 -0400
+        with ESMTP id S229581AbjI1Qhk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Sep 2023 12:37:40 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE55FBF
-        for <mm-commits@vger.kernel.org>; Thu, 28 Sep 2023 09:29:39 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 574F0C433C9;
-        Thu, 28 Sep 2023 16:29:39 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46EAF98;
+        Thu, 28 Sep 2023 09:37:39 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D428BC433C8;
+        Thu, 28 Sep 2023 16:37:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695918579;
-        bh=m+NSxaPfPi9euruuteSh2spFpiVa8idiLeJdW7bvdoE=;
+        s=korg; t=1695919058;
+        bh=MmGDBtL7vWwLKH0oOK2GPmhNtX8tnZqWovjVu4q+8WM=;
         h=Date:To:From:Subject:From;
-        b=ytm14eTIaOTvveuC1NaoEtqcWf1eRl3tJIJJYKw+zmLTTK+Iaa2m8C6VxnzB2DjQa
-         tibLWdeBlTf1qfV6pVrGh12J8n4OgLsTYy8xs6XbSCcyqjDEqcseFODNU1C9ZZ9vOZ
-         QeMZXYb1S/lyqbG+E9dDKZFTu7wutI+rPotUMk1Q=
-Date:   Thu, 28 Sep 2023 09:29:38 -0700
-To:     mm-commits@vger.kernel.org, sidhartha.kumar@oracle.com,
-        dan.carpenter@linaro.org, akpm@linux-foundation.org
+        b=O7/Wrkb9VCJWLWVuhHyORkup0+3i90DZmwiIKlxaLDvQIWOyuVnmdz+AyudBXfNXv
+         VHF8jl3rYa8X3UUZk7bU2iF2vl5sT/yc8gxJv0ooxFOfZrcdik2/ayWiUhKUTDvTgu
+         0QnoP72+Z08xOztykWGjn4IMzvH56jAT9c8o89/s=
+Date:   Thu, 28 Sep 2023 09:37:38 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        stable@vger.kernel.org, shy828301@gmail.com, mhocko@suse.com,
+        hughd@google.com, surenb@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filemap-remove-hugetlb-special-casing-in-filemapc-fix.patch added to mm-unstable branch
-Message-Id: <20230928162939.574F0C433C9@smtp.kernel.org>
+Subject: [obsolete] mm-lock-vmas-skipped-by-a-failed-queue_pages_range.patch removed from -mm tree
+Message-Id: <20230928163738.D428BC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: hugetlbfs: fix an NULL vs IS_ERR() bug
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-filemap-remove-hugetlb-special-casing-in-filemapc-fix.patch
+The quilt patch titled
+     Subject: mm: lock VMAs skipped by a failed queue_pages_range()
+has been removed from the -mm tree.  Its filename was
+     mm-lock-vmas-skipped-by-a-failed-queue_pages_range.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-remove-hugetlb-special-casing-in-filemapc-fix.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@linaro.org>
-Subject: hugetlbfs: fix an NULL vs IS_ERR() bug
-Date: Thu, 28 Sep 2023 08:17:36 +0300
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm: lock VMAs skipped by a failed queue_pages_range()
+Date: Mon, 18 Sep 2023 14:16:08 -0700
 
-This code was converted from using find_lock_page() which returns NULL,
-to calling filemap_lock_hugetlb_folio() which returns -ENOENT.  The
-check needs to be updated to match.  Also IS_ERR() has an unlikely()
-built in so we can remove that.
+When queue_pages_range() encounters an unmovable page, it terminates its
+page walk.  This walk, among other things, locks the VMAs in the range. 
+This termination might result in some VMAs being left unlocked after
+queue_pages_range() completes.  Since do_mbind() continues to operate on
+these VMAs despite the failure from queue_pages_range(), it will encounter
+an unlocked VMA, leading to a BUG().
 
-Link: https://lkml.kernel.org/r/1772c296-1417-486f-8eef-171af2192681@moroto.mountain
-Fixes: 4649d8d5bb81 ("mm/filemap: remove hugetlb special casing in filemap.c")
-Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
-Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+This mbind() behavior has been modified several times before and might
+need some changes to either finish the page walk even in the presence of
+unmovable pages or to error out immediately after the failure to
+queue_pages_range().  However that requires more discussions, so to fix
+the immediate issue, explicitly lock the VMAs in the range if
+queue_pages_range() failed.  The added condition does not save much but is
+added for documentation purposes to understand when this extra locking is
+needed.
+
+Link: https://lkml.kernel.org/r/20230918211608.3580629-1-surenb@google.com
+Fixes: 49b0638502da ("mm: enable page walking API to lock vmas during the walk")
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reported-by: syzbot+b591856e0f0139f83023@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/000000000000f392a60604a65085@google.com/
+Acked-by: Hugh Dickins <hughd@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mempolicy.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/fs/hugetlbfs/inode.c~mm-filemap-remove-hugetlb-special-casing-in-filemapc-fix
-+++ a/fs/hugetlbfs/inode.c
-@@ -354,7 +354,7 @@ static ssize_t hugetlbfs_read_iter(struc
- 
- 		/* Find the folio */
- 		folio = filemap_lock_hugetlb_folio(h, mapping, index);
--		if (unlikely(folio == NULL)) {
-+		if (IS_ERR(folio)) {
- 			/*
- 			 * We have a HOLE, zero out the user-buffer for the
- 			 * length of the hole or request.
+--- a/mm/mempolicy.c~mm-lock-vmas-skipped-by-a-failed-queue_pages_range
++++ a/mm/mempolicy.c
+@@ -1342,6 +1342,9 @@ static long do_mbind(unsigned long start
+ 	vma_iter_init(&vmi, mm, start);
+ 	prev = vma_prev(&vmi);
+ 	for_each_vma_range(vmi, vma, end) {
++		/* If queue_pages_range failed then not all VMAs might be locked */
++		if (ret)
++			vma_start_write(vma);
+ 		err = mbind_range(&vmi, vma, &prev, start, end, new);
+ 		if (err)
+ 			break;
 _
 
-Patches currently in -mm which might be from dan.carpenter@linaro.org are
+Patches currently in -mm which might be from surenb@google.com are
 
-mm-filemap-remove-hugetlb-special-casing-in-filemapc-fix.patch
+selftests-mm-add-uffdio_remap-ioctl-test.patch
 
