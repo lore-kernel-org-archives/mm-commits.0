@@ -2,33 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B32ABE732E5
-	for <mm-commits@archiver.kernel.org>; Thu, 28 Sep 2023 16:07:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3750CE732E7
+	for <mm-commits@archiver.kernel.org>; Thu, 28 Sep 2023 16:10:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230274AbjI1QH6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 28 Sep 2023 12:07:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42734 "EHLO
+        id S230274AbjI1QKJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 28 Sep 2023 12:10:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45048 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229445AbjI1QH5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Sep 2023 12:07:57 -0400
+        with ESMTP id S229445AbjI1QKI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 28 Sep 2023 12:10:08 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B22B5D6
-        for <mm-commits@vger.kernel.org>; Thu, 28 Sep 2023 09:07:55 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41C90C433C7;
-        Thu, 28 Sep 2023 16:07:55 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B8C2B7
+        for <mm-commits@vger.kernel.org>; Thu, 28 Sep 2023 09:10:07 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83262C433C8;
+        Thu, 28 Sep 2023 16:10:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1695917275;
-        bh=3c1XLjpFrd4vdcQnDgrjM/9tH3a5KKYn6oP1DCBgAZE=;
+        s=korg; t=1695917406;
+        bh=sKFJzowRxA1HxlfjnyYrJ9opdyaFulP6aEZKRrV3PZA=;
         h=Date:To:From:Subject:From;
-        b=Xv8DCJuotZEDyGC99kTrd1rxbPFRsJEt7din2um/pdso7ldPd5AyoSfCx1oAAg0SW
-         9bMZhik48JdsOOJiqwu/9Hk1b/6bfohyO+YxKQuK3rumjjZNMmQYASeMonjUowNf5r
-         hF1ajR+afV7dG33HG3aa2mIV0YCgKVe5OvZeaW0U=
-Date:   Thu, 28 Sep 2023 09:07:54 -0700
-To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=IAGcw1xPX6+kQEksPrdfEV8lr5qTMMB6ZbXOv5q5F1RvN5Xlu+rSoHYC4IcCpmDon
+         mx4sIL+7XMkaF/vZsGxypiBzurJTwnR4K0V4BV62E0eWXsarCz3pmIzj2wwZJ6wfM1
+         lBUFy4t7A8oxpeScQHbmwbeU9LE6cKkTlbbHxQ8Q=
+Date:   Thu, 28 Sep 2023 09:10:05 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, mcgrof@kernel.org,
+        jack@suse.cz, djwong@kernel.org, dan.j.williams@intel.com,
+        ruansy.fnst@fujitsu.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shrinker-convert-shrinker_rwsem-to-mutex-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20230928160755.41C90C433C7@smtp.kernel.org>
+Subject: + mm-pmem-xfs-introduce-mf_mem_pre_remove-for-unbind-v15.patch added to mm-hotfixes-unstable branch
+Message-Id: <20230928161006.83262C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,14 +37,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-shrinker-convert-shrinker_rwsem-to-mutex-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mm-shrinker-convert-shrinker_rwsem-to-mutex-fix.patch
+     Subject: mm, pmem, xfs: Introduce MF_MEM_PRE_REMOVE for unbind
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-pmem-xfs-introduce-mf_mem_pre_remove-for-unbind-v15.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinker-convert-shrinker_rwsem-to-mutex-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pmem-xfs-introduce-mf_mem_pre_remove-for-unbind-v15.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,44 +60,86 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-shrinker-convert-shrinker_rwsem-to-mutex-fix
-Date: Thu Sep 28 09:06:40 AM PDT 2023
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Subject: mm, pmem, xfs: Introduce MF_MEM_PRE_REMOVE for unbind
+Date: Thu, 28 Sep 2023 18:32:27 +0800
 
-update the fix to alloc_shrinker_info()
+add/fix code comments per Dan's comments
 
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Link: https://lkml.kernel.org/r/20230928103227.250550-1-ruansy.fnst@fujitsu.com
+Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Reviewed-by: Darrick J. Wong <djwong@kernel.org>
+Acked-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shrinker.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/xfs/xfs_notify_failure.c |   21 +++++++++++++++------
+ mm/memory-failure.c         |    4 ++++
+ 2 files changed, 19 insertions(+), 6 deletions(-)
 
---- a/mm/shrinker.c~mm-shrinker-convert-shrinker_rwsem-to-mutex-fix
-+++ a/mm/shrinker.c
-@@ -96,7 +96,7 @@ int alloc_shrinker_info(struct mem_cgrou
- 	return ret;
+--- a/fs/xfs/xfs_notify_failure.c~mm-pmem-xfs-introduce-mf_mem_pre_remove-for-unbind-v15
++++ a/fs/xfs/xfs_notify_failure.c
+@@ -234,18 +234,21 @@ xfs_dax_notify_ddev_failure(
+ 	xfs_trans_cancel(tp);
  
- err:
--	up_write(&shrinker_rwsem);
-+	mutex_unlock(&shrinker_mutex);
- 	free_shrinker_info(memcg);
- 	return -ENOMEM;
- }
+ 	/*
+-	 * Determine how to shutdown the filesystem according to the
+-	 * error code and flags.
++	 * Shutdown fs from a force umount in pre-remove case which won't fail,
++	 * so errors can be ignored.  Otherwise, shutdown the filesystem with
++	 * CORRUPT flag if error occured or notify.want_shutdown was set during
++	 * RMAP querying.
+ 	 */
+-	if (error || notify.want_shutdown) {
++	if (mf_flags & MF_MEM_PRE_REMOVE)
++		xfs_force_shutdown(mp, SHUTDOWN_FORCE_UMOUNT);
++	else if (error || notify.want_shutdown) {
+ 		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
+ 		if (!error)
+ 			error = -EFSCORRUPTED;
+-	} else if (mf_flags & MF_MEM_PRE_REMOVE)
+-		xfs_force_shutdown(mp, SHUTDOWN_FORCE_UMOUNT);
++	}
+ 
+ out:
+-	/* Thaw the fs if it is frozen before. */
++	/* Thaw the fs if it has been frozen before. */
+ 	if (mf_flags & MF_MEM_PRE_REMOVE)
+ 		xfs_dax_notify_failure_thaw(mp, kernel_frozen);
+ 
+@@ -276,6 +279,12 @@ xfs_dax_notify_failure(
+ 
+ 	if (mp->m_logdev_targp && mp->m_logdev_targp->bt_daxdev == dax_dev &&
+ 	    mp->m_logdev_targp != mp->m_ddev_targp) {
++		/*
++		 * In the pre-remove case the failure notification is attempting
++		 * to trigger a force unmount.  The expectation is that the
++		 * device is still present, but its removal is in progress and
++		 * can not be cancelled, proceed with accessing the log device.
++		 */
+ 		if (mf_flags & MF_MEM_PRE_REMOVE)
+ 			return 0;
+ 		xfs_err(mp, "ondisk log corrupt, shutting down fs!");
+--- a/mm/memory-failure.c~mm-pmem-xfs-introduce-mf_mem_pre_remove-for-unbind-v15
++++ a/mm/memory-failure.c
+@@ -1814,6 +1814,10 @@ int mf_dax_kill_procs(struct address_spa
+ 		if (!pre_remove)
+ 			SetPageHWPoison(page);
+ 
++		/*
++		 * The pre_remove case is revoking access, the memory is still
++		 * good and could theoretically be put back into service.
++		 */
+ 		collect_procs_fsdax(page, mapping, index, &to_kill, pre_remove);
+ 		unmap_and_kill(&to_kill, page_to_pfn(page), mapping,
+ 				index, mf_flags);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ruansy.fnst@fujitsu.com are
 
-mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
-mm-memcg-reconsider-kmemlimit_in_bytes-deprecation-fix.patch
-mm-memcg-add-thp-swap-out-info-for-anonymous-reclaim-fix.patch
-mm-hugetlb-skip-initialization-of-gigantic-tail-struct-pages-if-freed-by-hvo-fix.patch
-fs-proc-task_mmu-implement-ioctl-to-get-and-optionally-clear-info-about-ptes-fix.patch
-fs-proc-task_mmu-implement-ioctl-to-get-and-optionally-clear-info-about-ptes-fix-fix.patch
-fs-proc-task_mmu-implement-ioctl-to-get-and-optionally-clear-info-about-ptes-fix-2.patch
-mm-ksm-add-smart-page-scanning-mode-fix.patch
-mm-ksm-document-smart-scan-mode-fix.patch
-mm-ksm-document-smart-scan-mode-fix-2.patch
-kthread-add-kthread_stop_put-v2-fix.patch
-mm-shrinker-convert-shrinker_rwsem-to-mutex-fix.patch
+mm-pmem-xfs-introduce-mf_mem_pre_remove-for-unbind.patch
+mm-pmem-xfs-introduce-mf_mem_pre_remove-for-unbind-v15.patch
 
