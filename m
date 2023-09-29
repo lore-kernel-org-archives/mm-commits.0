@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60724E728D8
-	for <mm-commits@archiver.kernel.org>; Fri, 29 Sep 2023 19:08:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9FCCE728D7
+	for <mm-commits@archiver.kernel.org>; Fri, 29 Sep 2023 19:08:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233833AbjI2TIw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Sep 2023 15:08:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46702 "EHLO
+        id S233869AbjI2TI7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 29 Sep 2023 15:08:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46722 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233837AbjI2TIv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Sep 2023 15:08:51 -0400
+        with ESMTP id S233837AbjI2TIx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Sep 2023 15:08:53 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A19371B0
-        for <mm-commits@vger.kernel.org>; Fri, 29 Sep 2023 12:08:48 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BCDEC433C7;
-        Fri, 29 Sep 2023 19:08:48 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3FF8B193
+        for <mm-commits@vger.kernel.org>; Fri, 29 Sep 2023 12:08:51 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD6AFC433C8;
+        Fri, 29 Sep 2023 19:08:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696014528;
-        bh=WTV9zvlcyncKUcWu0OCLmldxsMHdkbOlN6p2l4ZbHnQ=;
+        s=korg; t=1696014530;
+        bh=bHODacq6grsBpgc3/otmKKBw85dJ3LRYP29v0l1hMuU=;
         h=Date:To:From:Subject:From;
-        b=SfzpfA9eZCZbpVhDOwjDS5HmUBv/GRwv1p02KBdRLqjyUiMtRDcKHcL4dQuUAEBhd
-         iVYN+WMt+cDwIcDKFdkZj3FwMFImf5lmdOGRWTzac9EMYlTnUDSixkt7njCKeQQVik
-         DHTblNnuEcXZzE6Qg0qbkJMf4RIcsa0UTMenLbcA=
-Date:   Fri, 29 Sep 2023 12:08:47 -0700
+        b=2RmUk8nzA3PC/w20KlBiKwzwX0Nd0+3BIHXa8KhfP+hFyiErRYfZXtuif2IYgPY1L
+         iJz46XZ8YQze5IOPAEkv5nijTF2sKpo0u9X0Ew9TfQfRHeGHd43qHhMaQByA5g5a2m
+         wi9hZEVY1PQJYhpPHyvKFEnh2xch4cjkDF0lko1k=
+Date:   Fri, 29 Sep 2023 12:08:50 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, yuzhao@google.com,
         ying.huang@intel.com, willy@infradead.org, vbabka@suse.cz,
         shy828301@gmail.com, rientjes@google.com, mcgrof@kernel.org,
@@ -33,8 +33,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com, yuzhao@google.com,
         anshuman.khandual@arm.com, ryan.roberts@arm.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-thp-add-recommend-option-for-anon_orders.patch added to mm-unstable branch
-Message-Id: <20230929190848.3BCDEC433C7@smtp.kernel.org>
+Subject: + arm64-mm-override-arch_wants_pte_order.patch added to mm-unstable branch
+Message-Id: <20230929190850.CD6AFC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: thp: add "recommend" option for anon_orders
+     Subject: arm64/mm: override arch_wants_pte_order()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-thp-add-recommend-option-for-anon_orders.patch
+     arm64-mm-override-arch_wants_pte_order.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-thp-add-recommend-option-for-anon_orders.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-override-arch_wants_pte_order.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,36 +66,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm: thp: add "recommend" option for anon_orders
-Date: Fri, 29 Sep 2023 12:44:17 +0100
+Subject: arm64/mm: override arch_wants_pte_order()
+Date: Fri, 29 Sep 2023 12:44:18 +0100
 
-In addition to passing a bitfield of folio orders to enable for THP, allow
-the string "recommend" to be written, which has the effect of causing the
-system to enable the orders preferred by the architecture and by the mm. 
-The user can see what these orders are by subsequently reading back the
-file.
+Define an arch-specific override of arch_wants_pte_order() so that when
+anon_orders=recommend is set, large folios will be allocated for anonymous
+memory with an order that is compatible with arm64's HPA uarch feature.
 
-Note that these recommended orders are expected to be static for a given
-boot of the system, and so the keyword "auto" was deliberately not used,
-as I want to reserve it for a possible future use where the "best" order
-is chosen more dynamically at runtime.
-
-Recommended orders are determined as follows:
-  - PMD_ORDER: The traditional THP size
-  - arch_wants_pte_order() if implemented by the arch
-  - PAGE_ALLOC_COSTLY_ORDER: The largest order kept on per-cpu free list
-
-arch_wants_pte_order() can be overridden by the architecture if desired. 
-Some architectures (e.g.  arm64) can coalsece TLB entries if a contiguous
-set of ptes map physically contigious, naturally aligned memory, so this
-mechanism allows the architecture to optimize as required.
-
-Here we add the default implementation of arch_wants_pte_order(), used
-when the architecture does not define it, which returns -1, implying that
-the HW has no preference.
-
-Link: https://lkml.kernel.org/r/20230929114421.3761121-7-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20230929114421.3761121-8-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Reviewed-by: Yu Zhao <yuzhao@google.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -110,75 +90,32 @@ Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Yang Shi <shy828301@gmail.com>
 Cc: Yin Fengwei <fengwei.yin@intel.com>
-Cc: Yu Zhao <yuzhao@google.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |    4 ++++
- include/linux/pgtable.h                    |   13 +++++++++++++
- mm/huge_memory.c                           |   14 +++++++++++---
- 3 files changed, 28 insertions(+), 3 deletions(-)
+ arch/arm64/include/asm/pgtable.h |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~mm-thp-add-recommend-option-for-anon_orders
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -187,6 +187,10 @@ pages (=16K if the page size is 4K). The
- By enabling multiple orders, allocation of each order will be
- attempted, highest to lowest, until a successful allocation is made.
- If the PMD-order is unset, then no PMD-sized THPs will be allocated.
-+It is also possible to enable the recommended set of orders, which
-+will be optimized for the architecture and mm::
+--- a/arch/arm64/include/asm/pgtable.h~arm64-mm-override-arch_wants_pte_order
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -1110,6 +1110,16 @@ extern pte_t ptep_modify_prot_start(stru
+ extern void ptep_modify_prot_commit(struct vm_area_struct *vma,
+ 				    unsigned long addr, pte_t *ptep,
+ 				    pte_t old_pte, pte_t new_pte);
 +
-+	echo recommend >/sys/kernel/mm/transparent_hugepage/anon_orders
- 
- The kernel will ignore any orders that it does not support so read the
- file back to determine which orders are enabled::
---- a/include/linux/pgtable.h~mm-thp-add-recommend-option-for-anon_orders
-+++ a/include/linux/pgtable.h
-@@ -393,6 +393,19 @@ static inline void arch_check_zapped_pmd
- }
- #endif
- 
-+#ifndef arch_wants_pte_order
-+/*
-+ * Returns preferred folio order for pte-mapped memory. Must be in range [0,
-+ * PMD_ORDER) and must not be order-1 since THP requires large folios to be at
-+ * least order-2. Negative value implies that the HW has no preference and mm
-+ * will choose it's own default order.
-+ */
++#define arch_wants_pte_order arch_wants_pte_order
 +static inline int arch_wants_pte_order(void)
 +{
-+	return -1;
++	/*
++	 * Many arm64 CPUs support hardware page aggregation (HPA), which can
++	 * coalesce 4 contiguous pages into a single TLB entry.
++	 */
++	return 2;
 +}
-+#endif
-+
- #ifndef __HAVE_ARCH_PTEP_GET_AND_CLEAR
- static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
- 				       unsigned long address,
---- a/mm/huge_memory.c~mm-thp-add-recommend-option-for-anon_orders
-+++ a/mm/huge_memory.c
-@@ -464,10 +464,18 @@ static ssize_t anon_orders_store(struct
- 	int err;
- 	int ret = count;
- 	unsigned int orders;
-+	int arch;
+ #endif /* !__ASSEMBLY__ */
  
--	err = kstrtouint(buf, 0, &orders);
--	if (err)
--		ret = -EINVAL;
-+	if (sysfs_streq(buf, "recommend")) {
-+		arch = max(arch_wants_pte_order(), PAGE_ALLOC_COSTLY_ORDER);
-+		orders = BIT(arch);
-+		orders |= BIT(PAGE_ALLOC_COSTLY_ORDER);
-+		orders |= BIT(PMD_ORDER);
-+	} else {
-+		err = kstrtouint(buf, 0, &orders);
-+		if (err)
-+			ret = -EINVAL;
-+	}
- 
- 	if (ret > 0) {
- 		orders &= THP_ORDERS_ALL_ANON;
+ #endif /* __ASM_PGTABLE_H */
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
