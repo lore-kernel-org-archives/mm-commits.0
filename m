@@ -2,34 +2,37 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 477F9E728D7
-	for <mm-commits@archiver.kernel.org>; Fri, 29 Sep 2023 19:15:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F66FE728D7
+	for <mm-commits@archiver.kernel.org>; Fri, 29 Sep 2023 19:22:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233651AbjI2TPe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Sep 2023 15:15:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55426 "EHLO
+        id S233559AbjI2TW4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 29 Sep 2023 15:22:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36462 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233878AbjI2TPd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Sep 2023 15:15:33 -0400
+        with ESMTP id S233392AbjI2TWz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Sep 2023 15:22:55 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 722201B3
-        for <mm-commits@vger.kernel.org>; Fri, 29 Sep 2023 12:15:30 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8683C433C8;
-        Fri, 29 Sep 2023 19:15:29 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A68CE7
+        for <mm-commits@vger.kernel.org>; Fri, 29 Sep 2023 12:22:53 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5D8CC433C7;
+        Fri, 29 Sep 2023 19:22:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696014930;
-        bh=b7UgY54H63wknMnDYK8dy4HZqAT97LW14k2I717bKRk=;
+        s=korg; t=1696015372;
+        bh=AUVpYiZ9os99iX7+wcOp9dQ3I7FpaNlX/6lIF36bJ34=;
         h=Date:To:From:Subject:From;
-        b=dNGdSBeam5sNETTaddBQfi7NsfhGzLym30IwVAPWzBiMqBZJqhmAu6BUQcwt0tfIP
-         uQnzrCo4Ux0hzVpoVWDGmUZc5AfVzt6uziW33oOEl7UQYO5EUMKKg0GLOd/YGmdJ/r
-         MHE6hfq2z42xciGlShO7oZWPnZ2d9mUj3mWHo3NU=
-Date:   Fri, 29 Sep 2023 12:15:29 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        Liam.Howlett@oracle.com, akpm@linux-foudation.org,
-        christophe.jaillet@wanadoo.fr, akpm@linux-foundation.org
+        b=ElrGN+K9FTaLsKU11TwhcC8qN1l7DtMsHp+fcSCjGDuBZ0w9GaQWASH8qnVYNUC5E
+         KGdzEfP1gGE/JS46Dn0M3ZG6A84zLpS0MJZYVTXgVpeTgGdeLyFOwBY1wNMnCmajwe
+         ioVhv+WBiIPJl8Gz2Cb4z0r/t3adJnULo6cvJZbs=
+Date:   Fri, 29 Sep 2023 12:22:52 -0700
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
+        osalvador@suse.de, mhocko@suse.com, Jonathan.Cameron@huawei.com,
+        jmoyer@redhat.com, david@redhat.com, dave.jiang@intel.com,
+        dave.hansen@linux.intel.com, dan.j.williams@intel.com,
+        aneesh.kumar@linux.ibm.com, vishal.l.verma@intel.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + radix-tree-test-suite-fix-a-memory-initialization-issue.patch added to mm-unstable branch
-Message-Id: <20230929191529.E8683C433C8@smtp.kernel.org>
+Subject: + mm-memory_hotplug-split-memmap_on_memory-requests-across-memblocks.patch added to mm-unstable branch
+Message-Id: <20230929192252.B5D8CC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +40,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix tree test suite: Fix a memory initialization issue
+     Subject: mm/memory_hotplug: split memmap_on_memory requests across memblocks
 has been added to the -mm mm-unstable branch.  Its filename is
-     radix-tree-test-suite-fix-a-memory-initialization-issue.patch
+     mm-memory_hotplug-split-memmap_on_memory-requests-across-memblocks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/radix-tree-test-suite-fix-a-memory-initialization-issue.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-split-memmap_on_memory-requests-across-memblocks.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,40 +63,293 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: radix tree test suite: Fix a memory initialization issue
-Date: Thu, 28 Sep 2023 23:11:45 +0200
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: mm/memory_hotplug: split memmap_on_memory requests across memblocks
+Date: Thu, 28 Sep 2023 14:30:10 -0600
 
-If __GFP_ZERO is used, the whole allocated memory should be cleared, not
-the first part of it only.
+Patch series "mm: use memmap_on_memory semantics for dax/kmem", v4.
 
-Link: https://lkml.kernel.org/r/b1f490b450b14dd754a45f91bb1abd622ce8d4f7.1695935486.git.christophe.jaillet@wanadoo.fr
-Fixes: cc86e0c2f306 ("radix tree test suite: add support for slab bulk APIs")
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Reviewed-by: Andrew Morton <akpm@linux-foudation.org>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+The dax/kmem driver can potentially hot-add large amounts of memory
+originating from CXL memory expanders, or NVDIMMs, or other 'device
+memories'.  There is a chance there isn't enough regular system memory
+available to fit the memmap for this new memory.  It's therefore
+desirable, if all other conditions are met, for the kmem managed memory to
+place its memmap on the newly added memory itself.
+
+The main hurdle for accomplishing this for kmem is that memmap_on_memory
+can only be done if the memory being added is equal to the size of one
+memblock.  To overcome this, allow the hotplug code to split an
+add_memory() request into memblock-sized chunks, and try_remove_memory()
+to also expect and handle such a scenario.
+
+Patch 1 teaches the memory_hotplug code to allow for splitting
+add_memory() and remove_memory() requests over memblock sized chunks.
+
+Patch 2 adds a sysfs control for the kmem driver that would allow an
+opt-out of using memmap_on_memory for the memory being added.
+
+
+This patch (of 2):
+
+The MHP_MEMMAP_ON_MEMORY flag for hotplugged memory is restricted to
+'memblock_size' chunks of memory being added.  Adding a larger span of
+memory precludes memmap_on_memory semantics.
+
+For users of hotplug such as kmem, large amounts of memory might get added
+from the CXL subsystem.  In some cases, this amount may exceed the
+available 'main memory' to store the memmap for the memory being added. 
+In this case, it is useful to have a way to place the memmap on the memory
+being added, even if it means splitting the addition into memblock-sized
+chunks.
+
+Change add_memory_resource() to loop over memblock-sized chunks of memory
+if caller requested memmap_on_memory, and if other conditions for it are
+met.  Teach try_remove_memory() to also expect that a memory range being
+removed might have been split up into memblock sized chunks, and to loop
+through those as needed.
+
+Link: https://lkml.kernel.org/r/20230928-vv-kmem_memmap-v4-0-6ff73fec519a@intel.com
+Link: https://lkml.kernel.org/r/20230928-vv-kmem_memmap-v4-1-6ff73fec519a@intel.com
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/linux.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory_hotplug.c |  166 +++++++++++++++++++++++++-----------------
+ 1 file changed, 100 insertions(+), 66 deletions(-)
 
---- a/tools/testing/radix-tree/linux.c~radix-tree-test-suite-fix-a-memory-initialization-issue
-+++ a/tools/testing/radix-tree/linux.c
-@@ -172,7 +172,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 			if (cachep->ctor)
- 				cachep->ctor(p[i]);
- 			else if (gfp & __GFP_ZERO)
--				memset(p[i], 0, cachep->size);
-+				memset(p[i], 0, cachep->size * size);
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-split-memmap_on_memory-requests-across-memblocks
++++ a/mm/memory_hotplug.c
+@@ -1380,6 +1380,44 @@ static bool mhp_supports_memmap_on_memor
+ 	return arch_supports_memmap_on_memory(vmemmap_size);
+ }
+ 
++static int add_memory_create_devices(int nid, struct memory_group *group,
++				     u64 start, u64 size, mhp_t mhp_flags)
++{
++	struct mhp_params params = { .pgprot = pgprot_mhp(PAGE_KERNEL) };
++	struct vmem_altmap mhp_altmap = {
++		.base_pfn =  PHYS_PFN(start),
++		.end_pfn  =  PHYS_PFN(start + size - 1),
++	};
++	int ret;
++
++	if ((mhp_flags & MHP_MEMMAP_ON_MEMORY)) {
++		mhp_altmap.free = memory_block_memmap_on_memory_pages();
++		params.altmap = kmalloc(sizeof(struct vmem_altmap), GFP_KERNEL);
++		if (!params.altmap)
++			return -ENOMEM;
++
++		memcpy(params.altmap, &mhp_altmap, sizeof(mhp_altmap));
++	}
++
++	/* call arch's memory hotadd */
++	ret = arch_add_memory(nid, start, size, &params);
++	if (ret < 0)
++		goto error;
++
++	/* create memory block devices after memory was added */
++	ret = create_memory_block_devices(start, size, params.altmap, group);
++	if (ret)
++		goto err_bdev;
++
++	return 0;
++
++err_bdev:
++	arch_remove_memory(start, size, NULL);
++error:
++	kfree(params.altmap);
++	return ret;
++}
++
+ /*
+  * NOTE: The caller must call lock_device_hotplug() to serialize hotplug
+  * and online/offline operations (triggered e.g. by sysfs).
+@@ -1388,14 +1426,10 @@ static bool mhp_supports_memmap_on_memor
+  */
+ int __ref add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
+ {
+-	struct mhp_params params = { .pgprot = pgprot_mhp(PAGE_KERNEL) };
++	unsigned long memblock_size = memory_block_size_bytes();
+ 	enum memblock_flags memblock_flags = MEMBLOCK_NONE;
+-	struct vmem_altmap mhp_altmap = {
+-		.base_pfn =  PHYS_PFN(res->start),
+-		.end_pfn  =  PHYS_PFN(res->end),
+-	};
+ 	struct memory_group *group = NULL;
+-	u64 start, size;
++	u64 start, size, cur_start;
+ 	bool new_node = false;
+ 	int ret;
+ 
+@@ -1436,30 +1470,22 @@ int __ref add_memory_resource(int nid, s
+ 	/*
+ 	 * Self hosted memmap array
+ 	 */
+-	if (mhp_flags & MHP_MEMMAP_ON_MEMORY) {
+-		if (mhp_supports_memmap_on_memory(size)) {
+-			mhp_altmap.free = memory_block_memmap_on_memory_pages();
+-			params.altmap = kmalloc(sizeof(struct vmem_altmap), GFP_KERNEL);
+-			if (!params.altmap) {
+-				ret = -ENOMEM;
++	if ((mhp_flags & MHP_MEMMAP_ON_MEMORY) &&
++	    mhp_supports_memmap_on_memory(memblock_size)) {
++		for (cur_start = start; cur_start < start + size;
++		     cur_start += memblock_size) {
++			ret = add_memory_create_devices(nid, group, cur_start,
++							memblock_size,
++							mhp_flags);
++			if (ret)
+ 				goto error;
+-			}
+-
+-			memcpy(params.altmap, &mhp_altmap, sizeof(mhp_altmap));
  		}
+ 		/* fallback to not using altmap  */
+-	}
+-
+-	/* call arch's memory hotadd */
+-	ret = arch_add_memory(nid, start, size, &params);
+-	if (ret < 0)
+-		goto error_free;
+-
+-	/* create memory block devices after memory was added */
+-	ret = create_memory_block_devices(start, size, params.altmap, group);
+-	if (ret) {
+-		arch_remove_memory(start, size, NULL);
+-		goto error_free;
++	} else {
++		ret = add_memory_create_devices(nid, group, start, size,
++						mhp_flags);
++		if (ret)
++			goto error;
  	}
+ 
+ 	if (new_node) {
+@@ -1496,8 +1522,6 @@ int __ref add_memory_resource(int nid, s
+ 		walk_memory_blocks(start, size, NULL, online_memory_block);
+ 
+ 	return ret;
+-error_free:
+-	kfree(params.altmap);
+ error:
+ 	if (IS_ENABLED(CONFIG_ARCH_KEEP_MEMBLOCK))
+ 		memblock_remove(start, size);
+@@ -2148,47 +2172,20 @@ void try_offline_node(int nid)
+ }
+ EXPORT_SYMBOL(try_offline_node);
+ 
+-static int __ref try_remove_memory(u64 start, u64 size)
++static void __ref __try_remove_memory(int nid, u64 start, u64 size)
+ {
++	int rc = 0;
+ 	struct memory_block *mem;
+-	int rc = 0, nid = NUMA_NO_NODE;
+ 	struct vmem_altmap *altmap = NULL;
+ 
+-	BUG_ON(check_hotplug_memory_range(start, size));
+-
+-	/*
+-	 * All memory blocks must be offlined before removing memory.  Check
+-	 * whether all memory blocks in question are offline and return error
+-	 * if this is not the case.
+-	 *
+-	 * While at it, determine the nid. Note that if we'd have mixed nodes,
+-	 * we'd only try to offline the last determined one -- which is good
+-	 * enough for the cases we care about.
+-	 */
+-	rc = walk_memory_blocks(start, size, &nid, check_memblock_offlined_cb);
+-	if (rc)
+-		return rc;
+-
+-	/*
+-	 * We only support removing memory added with MHP_MEMMAP_ON_MEMORY in
+-	 * the same granularity it was added - a single memory block.
+-	 */
+-	if (mhp_memmap_on_memory()) {
+-		rc = walk_memory_blocks(start, size, &mem, test_has_altmap_cb);
+-		if (rc) {
+-			if (size != memory_block_size_bytes()) {
+-				pr_warn("Refuse to remove %#llx - %#llx,"
+-					"wrong granularity\n",
+-					start, start + size);
+-				return -EINVAL;
+-			}
+-			altmap = mem->altmap;
+-			/*
+-			 * Mark altmap NULL so that we can add a debug
+-			 * check on memblock free.
+-			 */
+-			mem->altmap = NULL;
+-		}
++	rc = walk_memory_blocks(start, size, &mem, test_has_altmap_cb);
++	if (rc) {
++		altmap = mem->altmap;
++		/*
++		 * Mark altmap NULL so that we can add a debug
++		 * check on memblock free.
++		 */
++		mem->altmap = NULL;
+ 	}
+ 
+ 	/* remove memmap entry */
+@@ -2221,6 +2218,43 @@ static int __ref try_remove_memory(u64 s
+ 		try_offline_node(nid);
+ 
+ 	mem_hotplug_done();
++}
++
++static int __ref try_remove_memory(u64 start, u64 size)
++{
++	int rc, nid = NUMA_NO_NODE;
++
++	BUG_ON(check_hotplug_memory_range(start, size));
++
++	/*
++	 * All memory blocks must be offlined before removing memory.  Check
++	 * whether all memory blocks in question are offline and return error
++	 * if this is not the case.
++	 *
++	 * While at it, determine the nid. Note that if we'd have mixed nodes,
++	 * we'd only try to offline the last determined one -- which is good
++	 * enough for the cases we care about.
++	 */
++	rc = walk_memory_blocks(start, size, &nid, check_memblock_offlined_cb);
++	if (rc)
++		return rc;
++
++	/*
++	 * For memmap_on_memory, the altmaps could have been added on
++	 * a per-memblock basis. Loop through the entire range if so,
++	 * and remove each memblock and its altmap.
++	 */
++	if (mhp_memmap_on_memory()) {
++		unsigned long memblock_size = memory_block_size_bytes();
++		u64 cur_start;
++
++		for (cur_start = start; cur_start < start + size;
++		     cur_start += memblock_size)
++			__try_remove_memory(nid, cur_start, memblock_size);
++	} else {
++		__try_remove_memory(nid, start, size);
++	}
++
+ 	return 0;
+ }
  
 _
 
-Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
+Patches currently in -mm which might be from vishal.l.verma@intel.com are
 
-radix-tree-test-suite-fix-a-memory-initialization-issue.patch
-kstrtox-remove-strtobool.patch
+mm-memory_hotplug-split-memmap_on_memory-requests-across-memblocks.patch
+dax-kmem-allow-kmem-to-add-memory-with-memmap_on_memory.patch
 
