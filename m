@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD7E2E728CF
-	for <mm-commits@archiver.kernel.org>; Fri, 29 Sep 2023 19:08:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9D74E728D7
+	for <mm-commits@archiver.kernel.org>; Fri, 29 Sep 2023 19:08:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233584AbjI2TIe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Sep 2023 15:08:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44660 "EHLO
+        id S233592AbjI2TIi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 29 Sep 2023 15:08:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44662 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233365AbjI2TId (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Sep 2023 15:08:33 -0400
+        with ESMTP id S233365AbjI2TIf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Sep 2023 15:08:35 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46C5B193
-        for <mm-commits@vger.kernel.org>; Fri, 29 Sep 2023 12:08:31 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C19F7C433C7;
-        Fri, 29 Sep 2023 19:08:30 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44722193
+        for <mm-commits@vger.kernel.org>; Fri, 29 Sep 2023 12:08:33 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBFFBC433C7;
+        Fri, 29 Sep 2023 19:08:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696014510;
-        bh=bK4Hk2LY3HmZBLLHBY6h002xc1yTHUCiehS0lO2uqbc=;
+        s=korg; t=1696014512;
+        bh=lrOB67krN0TLd8IXueLl4ofqqEYJbWg/gfPsPgeikj0=;
         h=Date:To:From:Subject:From;
-        b=J8GpeMzVbi+1eW9RPXwpleIgKKc1DSkrwanA8tia8pigfptSRXikMB6W4eJrX3DTC
-         IBgov3igGU0Y3qhfYdNFU1rty8Atywgq90GtSI5YT7X3KOqFM+sXQdfbAqgIg+qq7u
-         Yv10eN4qCqq19C5Sgv5wWbbu7AMFDHPNF+V9ZFsU=
-Date:   Fri, 29 Sep 2023 12:08:30 -0700
+        b=iSMKNsN5XuJ1TRbPGPGPKWHXLnxNGSBnMCC4IM6teOt/rP7uKZBdRuuaXtXE9WEqA
+         ExZJz670DrRRjdPCwDa8ewkIOJypeUaLVixrpWjzh0Rvla09Bqowh2BWKAps1GzeKG
+         P+hQBKvZHzbssahabq25EWxsN4HobXItvx0/7HWk=
+Date:   Fri, 29 Sep 2023 12:08:32 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, yuzhao@google.com,
         ying.huang@intel.com, willy@infradead.org, vbabka@suse.cz,
         shy828301@gmail.com, rientjes@google.com, mcgrof@kernel.org,
@@ -33,8 +33,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com, yuzhao@google.com,
         anshuman.khandual@arm.com, ryan.roberts@arm.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-allow-deferred-splitting-of-arbitrary-anon-large-folios.patch added to mm-unstable branch
-Message-Id: <20230929190830.C19F7C433C7@smtp.kernel.org>
+Subject: + mm-non-pmd-mappable-large-folios-for-folio_add_new_anon_rmap.patch added to mm-unstable branch
+Message-Id: <20230929190832.CBFFBC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: allow deferred splitting of arbitrary anon large folios
+     Subject: mm: non-pmd-mappable, large folios for folio_add_new_anon_rmap()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-allow-deferred-splitting-of-arbitrary-anon-large-folios.patch
+     mm-non-pmd-mappable-large-folios-for-folio_add_new_anon_rmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-allow-deferred-splitting-of-arbitrary-anon-large-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-non-pmd-mappable-large-folios-for-folio_add_new_anon_rmap.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,107 +66,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm: allow deferred splitting of arbitrary anon large folios
-Date: Fri, 29 Sep 2023 12:44:12 +0100
+Subject: mm: non-pmd-mappable, large folios for folio_add_new_anon_rmap()
+Date: Fri, 29 Sep 2023 12:44:13 +0100
 
-Patch series "variable-order, large folios for anonymous memory", v6.
+In preparation for anonymous large folio support, improve
+folio_add_new_anon_rmap() to allow a non-pmd-mappable, large folio to be
+passed to it.  In this case, all contained pages are accounted using the
+order-0 folio (or base page) scheme.
 
-A series to implement variable order, large folios for anonymous memory. 
-(previously called "ANON_LARGE_FOLIO", "LARGE_ANON_FOLIO", "FLEXIBLE_THP",
-but now exposed as an extension to THP; "small-order THP").  The objective
-of this is to improve performance by allocating larger chunks of memory
-during anonymous page faults:
-
-1) Since SW (the kernel) is dealing with larger chunks of memory than base
-   pages, there are efficiency savings to be had; fewer page faults, batched PTE
-   and RMAP manipulation, reduced lru list, etc. In short, we reduce kernel
-   overhead. This should benefit all architectures.
-2) Since we are now mapping physically contiguous chunks of memory, we can take
-   advantage of HW TLB compression techniques. A reduction in TLB pressure
-   speeds up kernel and user space. arm64 systems have 2 mechanisms to coalesce
-   TLB entries; "the contiguous bit" (architectural) and HPA (uarch).
-
-Testing
-=======
-
-This version adds patches to mm selftests so that the cow tests explicitly test
-small-order THP, in the same way that PMD-order THP is tested. The new tests all
-pass, and no regressions are observed in the mm selftest suite.
-
-
-Performance
-===========
-
-The below tables show performance and memory data for selected workloads, with
-different small-order THPs enabled. All configs are compared to a 4k page kernel
-with small-order THP disabled. 16k and 64k (with small-order THP disabled)
-kernels are included to aid the comparison. All kernels built from the same
-source; mm-hotfixes-unstable (f9911db48293) + this series.
-
-4k-page-16k-folio: 16k (order-2) THP enabled
-4k-page-32k-folio: 32k+16k (order-3, order-2) THP enabled
-4k-page-64k-folio: 64k+32k+16k (order-4, order-3, order-2) THP enabled
-
-Running on Ampere Altra with 1 NUMA node enabled, Ubuntu 22.04, XFS filesystem
-20 repeats across 5 reboots (with 1 warmup run after each reboot)
-Run in its own cgroup and read memory.peak after completion
-
-
-Kernel Compilation with 8 jobs: (make defconfig && make -s -j8 Image)
-(smaller is better):
-
-| kernel            |   real-time |   kern-time |   user-time | memory |
-|:------------------|------------:|------------:|------------:|-------:|
-| baseline-4k-page  |        0.0% |        0.0% |        0.0% |   0.0% |
-| 16k-page          |       -9.0% |      -49.7% |       -4.0% |   6.2% |
-| 64k-page          |      -11.9% |      -66.5% |       -5.0% |  28.3% |
-| 4k-page-16k-folio |       -2.8% |      -23.0% |       -0.3% |   0.0% |
-| 4k-page-32k-folio |       -4.0% |      -32.0% |       -0.6% |   0.1% |
-| 4k-page-64k-folio |       -4.6% |      -37.9% |       -0.5% |   0.1% |
-
-
-Kernel Compilation with 80 jobs: (make defconfig && make -s -j80 Image)
-(smaller is better):
-
-| kernel            |   real-time |   kern-time |   user-time | memory |
-|:------------------|------------:|------------:|------------:|:-------|
-| baseline-4k-page  |        0.0% |        0.0% |        0.0% |   0.0% |
-| 16k-page          |       -9.2% |      -52.1% |       -3.6% |   4.6% |
-| 64k-page          |      -11.4% |      -66.4% |       -3.0% |  12.6% |
-| 4k-page-16k-folio |       -3.2% |      -22.8% |       -0.3% |   2.7% |
-| 4k-page-32k-folio |       -4.8% |      -37.1% |       -0.5% |   2.9% |
-| 4k-page-64k-folio |       -5.0% |      -42.1% |       -0.3% |   3.4% |
-
-
-Speedometer 2.0: Running on Chromium automated with Selenium
-(bigger is better for runs_per_min, smaller is better for memory):
-
-| kernel            |   runs_per_min | memory |
-|:------------------|---------------:|-------:|
-| baseline-4k-page  |           0.0% |   0.0% |
-| 16k-page          |           5.9% |  10.6% |
-| 4k-page-16k-folio |           1.0% |  -0.6% |
-| 4k-page-32k-folio |           1.3% |   3.5% |
-| 4k-page-64k-folio |           1.3% |   6.4% |
-
-
-This patch (of 6):
-
-In preparation for the introduction of large folios for anonymous memory,
-we would like to be able to split them when they have unmapped subpages,
-in order to free those unused pages under memory pressure.  So remove the
-artificial requirement that the large folio needed to be at least
-PMD-sized.
-
-Link: https://lkml.kernel.org/r/20230929114421.3761121-1-ryan.roberts@arm.com
-Link: https://lkml.kernel.org/r/20230929114421.3761121-2-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20230929114421.3761121-3-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
 Reviewed-by: Yu Zhao <yuzhao@google.com>
 Reviewed-by: Yin Fengwei <fengwei.yin@intel.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Huang Ying <ying.huang@intel.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -174,31 +88,65 @@ Cc: Itaru Kitayama <itaru.kitayama@gmail.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Yang Shi <shy828301@gmail.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/rmap.c |   26 ++++++++++++++++++++------
+ 1 file changed, 20 insertions(+), 6 deletions(-)
 
---- a/mm/rmap.c~mm-allow-deferred-splitting-of-arbitrary-anon-large-folios
+--- a/mm/rmap.c~mm-non-pmd-mappable-large-folios-for-folio_add_new_anon_rmap
 +++ a/mm/rmap.c
-@@ -1504,11 +1504,11 @@ void page_remove_rmap(struct page *page,
- 		__lruvec_stat_mod_folio(folio, idx, -nr);
+@@ -1321,26 +1321,40 @@ void page_add_anon_rmap(struct page *pag
+  * This means the inc-and-test can be bypassed.
+  * The folio does not have to be locked.
+  *
+- * If the folio is large, it is accounted as a THP.  As the folio
++ * If the folio is pmd-mappable, it is accounted as a THP.  As the folio
+  * is new, it's assumed to be mapped exclusively by a single process.
+  */
+ void folio_add_new_anon_rmap(struct folio *folio, struct vm_area_struct *vma,
+ 		unsigned long address)
+ {
+-	int nr;
++	int nr = folio_nr_pages(folio);
  
- 		/*
--		 * Queue anon THP for deferred split if at least one
-+		 * Queue anon large folio for deferred split if at least one
- 		 * page of the folio is unmapped and at least one page
- 		 * is still mapped.
- 		 */
--		if (folio_test_pmd_mappable(folio) && folio_test_anon(folio))
-+		if (folio_test_large(folio) && folio_test_anon(folio))
- 			if (!compound || nr < nr_pmdmapped)
- 				deferred_split_folio(folio);
+-	VM_BUG_ON_VMA(address < vma->vm_start || address >= vma->vm_end, vma);
++	VM_BUG_ON_VMA(address < vma->vm_start ||
++			address + (nr << PAGE_SHIFT) > vma->vm_end, vma);
+ 	__folio_set_swapbacked(folio);
+ 
+-	if (likely(!folio_test_pmd_mappable(folio))) {
++	if (likely(!folio_test_large(folio))) {
+ 		/* increment count (starts at -1) */
+ 		atomic_set(&folio->_mapcount, 0);
+-		nr = 1;
++		__page_set_anon_rmap(folio, &folio->page, vma, address, 1);
++	} else if (!folio_test_pmd_mappable(folio)) {
++		int i;
++
++		for (i = 0; i < nr; i++) {
++			struct page *page = folio_page(folio, i);
++
++			/* increment count (starts at -1) */
++			atomic_set(&page->_mapcount, 0);
++			__page_set_anon_rmap(folio, page, vma,
++					address + (i << PAGE_SHIFT), 1);
++		}
++
++		atomic_set(&folio->_nr_pages_mapped, nr);
+ 	} else {
+ 		/* increment count (starts at -1) */
+ 		atomic_set(&folio->_entire_mapcount, 0);
+ 		atomic_set(&folio->_nr_pages_mapped, COMPOUND_MAPPED);
+-		nr = folio_nr_pages(folio);
++		__page_set_anon_rmap(folio, &folio->page, vma, address, 1);
+ 		__lruvec_stat_mod_folio(folio, NR_ANON_THPS, nr);
  	}
+ 
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
