@@ -2,34 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08A78E728EE
-	for <mm-commits@archiver.kernel.org>; Fri, 29 Sep 2023 20:06:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 297ADE77347
+	for <mm-commits@archiver.kernel.org>; Fri, 29 Sep 2023 22:56:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232985AbjI2UGW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Sep 2023 16:06:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36946 "EHLO
+        id S233179AbjI2W4H (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 29 Sep 2023 18:56:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34224 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232748AbjI2UGV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Sep 2023 16:06:21 -0400
+        with ESMTP id S229508AbjI2W4H (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Sep 2023 18:56:07 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D4261A7
-        for <mm-commits@vger.kernel.org>; Fri, 29 Sep 2023 13:06:17 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0B1CC433C8;
-        Fri, 29 Sep 2023 20:06:16 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BB8DDD
+        for <mm-commits@vger.kernel.org>; Fri, 29 Sep 2023 15:56:04 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE886C433C8;
+        Fri, 29 Sep 2023 22:56:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696017977;
-        bh=dJbkm6yw7MYjtJ1JHJMd4fEBwtx0G+XUScAk8OOlnEQ=;
+        s=korg; t=1696028164;
+        bh=D4B0HTZWmV7xwEaib9nXsGTmIGQWQnWYYL0gPMYybDU=;
         h=Date:To:From:Subject:From;
-        b=OfwTUX2e2uEegnvJIxg7zW1DpbYPnXJG7nbsZrfeCWeHSnxtlJiFUNkuRQAJOxRcn
-         k4jY2TRI6+zCreKAUnD39B64GV5CA4RrrU+eGivd7jcKD4WdzxiFls+Ii5E6pyJXuR
-         IoalJzXK3hagJXxQ0v81uipiMeYrTlKSY8zUS6eo=
-Date:   Fri, 29 Sep 2023 13:06:16 -0700
-To:     mm-commits@vger.kernel.org, yuzhao@google.com,
-        ryan.roberts@arm.com, fengwei.yin@intel.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=v49ghZJ6Khg0os8g7pk23C1P38A5YrXvQ3t98gkEqS1QxEp7GjPGfKQUBf63NDXfl
+         ZLflou2FeHy1OPe3TLhyQjRokf3bDyLyi7vCbHizJmCxZ/0PBGzgnoLgX8GrhUJh84
+         aXgV2iKC47w8/Sum3jwTFF3mrlAvxY0f/S+0zfs8=
+Date:   Fri, 29 Sep 2023 15:56:03 -0700
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, yuzhao@google.com,
+        ying.huang@intel.com, willy@infradead.org, vbabka@suse.cz,
+        shy828301@gmail.com, ryan.roberts@arm.com, rientjes@google.com,
+        mcgrof@kernel.org, kirill.shutemov@linux.intel.com,
+        jhubbard@nvidia.com, itaru.kitayama@gmail.com, hughd@google.com,
+        fengwei.yin@intel.com, david@redhat.com, catalin.marinas@arm.com,
+        anshuman.khandual@arm.com, akpm@linux-foundation.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-non-pmd-mappable-large-folios-for-folio_add_new_anon_rmap-fix.patch added to mm-unstable branch
-Message-Id: <20230929200616.E0B1CC433C8@smtp.kernel.org>
+Subject: + mm-thp-introduce-anon_orders-and-anon_always_mask-sysfs-files-fix.patch added to mm-unstable branch
+Message-Id: <20230929225603.EE886C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-non-pmd-mappable-large-folios-for-folio_add_new_anon_rmap-fix
+     Subject: mm-thp-introduce-anon_orders-and-anon_always_mask-sysfs-files-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-non-pmd-mappable-large-folios-for-folio_add_new_anon_rmap-fix.patch
+     mm-thp-introduce-anon_orders-and-anon_always_mask-sysfs-files-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-non-pmd-mappable-large-folios-for-folio_add_new_anon_rmap-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-thp-introduce-anon_orders-and-anon_always_mask-sysfs-files-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -61,51 +66,53 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-non-pmd-mappable-large-folios-for-folio_add_new_anon_rmap-fix
-Date: Fri Sep 29 01:02:43 PM PDT 2023
+Subject: mm-thp-introduce-anon_orders-and-anon_always_mask-sysfs-files-fix
+Date: Fri Sep 29 03:40:25 PM PDT 2023
 
-__page_set_anon_rmap() has become __folio_set_anon()
-
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Itaru Kitayama <itaru.kitayama@gmail.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <shy828301@gmail.com>
 Cc: Yin Fengwei <fengwei.yin@intel.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/huge_memory.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/rmap.c~mm-non-pmd-mappable-large-folios-for-folio_add_new_anon_rmap-fix
-+++ a/mm/rmap.c
-@@ -1336,7 +1336,7 @@ void folio_add_new_anon_rmap(struct foli
- 	if (likely(!folio_test_large(folio))) {
- 		/* increment count (starts at -1) */
- 		atomic_set(&folio->_mapcount, 0);
--		__page_set_anon_rmap(folio, &folio->page, vma, address, 1);
-+		__folio_set_anon(folio, vma, address, 1);
- 	} else if (!folio_test_pmd_mappable(folio)) {
- 		int i;
+--- a/mm/huge_memory.c~mm-thp-introduce-anon_orders-and-anon_always_mask-sysfs-files-fix
++++ a/mm/huge_memory.c
+@@ -74,7 +74,7 @@ static unsigned long deferred_split_scan
+ static atomic_t huge_zero_refcount;
+ struct page *huge_zero_page __read_mostly;
+ unsigned long huge_zero_pfn __read_mostly = ~0UL;
+-unsigned int huge_anon_orders __read_mostly = BIT(PMD_ORDER);
++unsigned int huge_anon_orders __read_mostly;
+ static unsigned int huge_anon_always_mask __read_mostly;
  
-@@ -1345,8 +1345,8 @@ void folio_add_new_anon_rmap(struct foli
+ /**
+@@ -528,6 +528,9 @@ static int __init hugepage_init_sysfs(st
+ {
+ 	int err;
  
- 			/* increment count (starts at -1) */
- 			atomic_set(&page->_mapcount, 0);
--			__page_set_anon_rmap(folio, page, vma,
--					address + (i << PAGE_SHIFT), 1);
-+			__folio_set_anon(folio, vma,
-+				         address + (i << PAGE_SHIFT), 1);
- 		}
- 
- 		atomic_set(&folio->_nr_pages_mapped, nr);
-@@ -1354,7 +1354,7 @@ void folio_add_new_anon_rmap(struct foli
- 		/* increment count (starts at -1) */
- 		atomic_set(&folio->_entire_mapcount, 0);
- 		atomic_set(&folio->_nr_pages_mapped, COMPOUND_MAPPED);
--		__page_set_anon_rmap(folio, &folio->page, vma, address, 1);
-+		__folio_set_anon(folio, vma, address, 1);
- 		__lruvec_stat_mod_folio(folio, NR_ANON_THPS, nr);
- 	}
- 
++	/* powerpc's PMD_ORDER isn't a compile-time constant */
++	huge_anon_orders = BIT(PMD_ORDER);
++
+ 	*hugepage_kobj = kobject_create_and_add("transparent_hugepage", mm_kobj);
+ 	if (unlikely(!*hugepage_kobj)) {
+ 		pr_err("failed to create transparent hugepage kobject\n");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,5 +130,6 @@ mm-ksm-document-smart-scan-mode-fix.patch
 mm-ksm-document-smart-scan-mode-fix-2.patch
 mm-kmem-scoped-objcg-protection-checkpatch-fixes.patch
 mm-non-pmd-mappable-large-folios-for-folio_add_new_anon_rmap-fix.patch
+mm-thp-introduce-anon_orders-and-anon_always_mask-sysfs-files-fix.patch
 kthread-add-kthread_stop_put-v2-fix.patch
 
