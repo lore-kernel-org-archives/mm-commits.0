@@ -2,81 +2,106 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2E6BE7734B
-	for <mm-commits@archiver.kernel.org>; Fri, 29 Sep 2023 22:57:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1058E7734B
+	for <mm-commits@archiver.kernel.org>; Fri, 29 Sep 2023 22:59:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233179AbjI2W5r (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Sep 2023 18:57:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58994 "EHLO
+        id S233820AbjI2W7h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 29 Sep 2023 18:59:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53344 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229508AbjI2W5r (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Sep 2023 18:57:47 -0400
+        with ESMTP id S232748AbjI2W7h (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Sep 2023 18:59:37 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D671BAC
-        for <mm-commits@vger.kernel.org>; Fri, 29 Sep 2023 15:57:45 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F746C433C8;
-        Fri, 29 Sep 2023 22:57:45 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F3AADD
+        for <mm-commits@vger.kernel.org>; Fri, 29 Sep 2023 15:59:35 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2DD6C433C7;
+        Fri, 29 Sep 2023 22:59:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696028265;
-        bh=4eUlDIkQUP6kCcRzYgnxup+z/ht9+BvMsoWKcIKsnyc=;
+        s=korg; t=1696028374;
+        bh=CYnxdgrMzyax5XN8tQl8TvJHJD43bOonuFJTngQCUM0=;
         h=Date:To:From:Subject:From;
-        b=DXqOcEkZYyu32WI+7LZHEVnKxz4B+w9LHvMeztxBS5lVViM3NQ2RRfSeKnZAluLTF
-         VHoOeEBzu5pweW9bl8sSUJc+xnoB9rcbiFvtL6rj4cAqxbTgZW67M4v6uaYWLMXoTj
-         7W9fhU+VxcYLJYiSOHHvFfoFkS0a7Apg3GQTqXj0=
-Date:   Fri, 29 Sep 2023 15:57:44 -0700
+        b=lxZkOZmt1/Gb+1lxm51ADKJzRyN1syoe79iXrCznhWyLuTBCQ3+iDrr0uH1aBuTJK
+         hXd4BioY2cUzimSF859ItjdhXoqDZi3+3m5DPjzi0nnkl7o6OrT5AqITK1LbH6ZiA5
+         gX1AqbCD+BdG6xn1bItjNTXWDUE22ri4hM2+SBuk=
+Date:   Fri, 29 Sep 2023 15:59:34 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        Liam.Howlett@oracle.com, akpm@linux-foudation.org,
-        christophe.jaillet@wanadoo.fr, akpm@linux-foundation.org
+        christophe.jaillet@wanadoo.fr, Liam.Howlett@oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [nacked] radix-tree-test-suite-fix-a-memory-initialization-issue.patch removed from -mm tree
-Message-Id: <20230929225745.6F746C433C8@smtp.kernel.org>
+Subject: + radix-tree-test-suite-fix-allocation-calculation-in-kmem_cache_alloc_bulk.patch added to mm-unstable branch
+Message-Id: <20230929225934.D2DD6C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: radix tree test suite: Fix a memory initialization issue
-has been removed from the -mm tree.  Its filename was
-     radix-tree-test-suite-fix-a-memory-initialization-issue.patch
+The patch titled
+     Subject: radix tree test suite: fix allocation calculation in kmem_cache_alloc_bulk()
+has been added to the -mm mm-unstable branch.  Its filename is
+     radix-tree-test-suite-fix-allocation-calculation-in-kmem_cache_alloc_bulk.patch
 
-This patch was dropped because it was nacked
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/radix-tree-test-suite-fix-allocation-calculation-in-kmem_cache_alloc_bulk.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: radix tree test suite: Fix a memory initialization issue
-Date: Thu, 28 Sep 2023 23:11:45 +0200
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: radix tree test suite: fix allocation calculation in kmem_cache_alloc_bulk()
+Date: Fri, 29 Sep 2023 16:13:59 -0400
 
-If __GFP_ZERO is used, the whole allocated memory should be cleared, not
-the first part of it only.
+The bulk allocation is iterating through an array and storing enough
+memory for the entire bulk allocation instead of a single array entry. 
+Only allocate an array element of the size set in the kmem_cache.
 
-Link: https://lkml.kernel.org/r/b1f490b450b14dd754a45f91bb1abd622ce8d4f7.1695935486.git.christophe.jaillet@wanadoo.fr
+Link: https://lkml.kernel.org/r/20230929201359.2857583-1-Liam.Howlett@oracle.com
 Fixes: cc86e0c2f306 ("radix tree test suite: add support for slab bulk APIs")
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Reviewed-by: Andrew Morton <akpm@linux-foudation.org>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reported-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/linux.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/radix-tree/linux.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/tools/testing/radix-tree/linux.c~radix-tree-test-suite-fix-a-memory-initialization-issue
+--- a/tools/testing/radix-tree/linux.c~radix-tree-test-suite-fix-allocation-calculation-in-kmem_cache_alloc_bulk
 +++ a/tools/testing/radix-tree/linux.c
-@@ -172,7 +172,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
+@@ -165,9 +165,9 @@ int kmem_cache_alloc_bulk(struct kmem_ca
+ 		for (i = 0; i < size; i++) {
+ 			if (cachep->align) {
+ 				posix_memalign(&p[i], cachep->align,
+-					       cachep->size * size);
++					       cachep->size);
+ 			} else {
+-				p[i] = malloc(cachep->size * size);
++				p[i] = malloc(cachep->size);
+ 			}
  			if (cachep->ctor)
  				cachep->ctor(p[i]);
- 			else if (gfp & __GFP_ZERO)
--				memset(p[i], 0, cachep->size);
-+				memset(p[i], 0, cachep->size * size);
- 		}
- 	}
- 
 _
 
-Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
-kstrtox-remove-strtobool.patch
+maple_tree-add-mas_active-to-detect-in-tree-walks.patch
+maple_tree-add-mas_underflow-and-mas_overflow-states.patch
+mm-mempolicy-fix-set_mempolicy_home_node-previous-vma-pointer.patch
+mmap-fix-vma_iterator-in-error-path-of-vma_merge.patch
+mmap-fix-error-paths-with-dup_anon_vma.patch
+mmap-add-clarifying-comment-to-vma_merge-code.patch
+radix-tree-test-suite-fix-allocation-calculation-in-kmem_cache_alloc_bulk.patch
 
