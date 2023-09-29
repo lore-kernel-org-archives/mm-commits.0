@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 548A3E728D8
-	for <mm-commits@archiver.kernel.org>; Fri, 29 Sep 2023 19:08:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD156E728CF
+	for <mm-commits@archiver.kernel.org>; Fri, 29 Sep 2023 19:08:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233651AbjI2TIj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Sep 2023 15:08:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60370 "EHLO
+        id S233365AbjI2TIr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 29 Sep 2023 15:08:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46640 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233365AbjI2TIi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Sep 2023 15:08:38 -0400
+        with ESMTP id S233833AbjI2TIq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Sep 2023 15:08:46 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 964A3199
-        for <mm-commits@vger.kernel.org>; Fri, 29 Sep 2023 12:08:35 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DACBC433C8;
-        Fri, 29 Sep 2023 19:08:35 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FD13199
+        for <mm-commits@vger.kernel.org>; Fri, 29 Sep 2023 12:08:41 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCD4DC433C9;
+        Fri, 29 Sep 2023 19:08:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696014515;
-        bh=8mPWZgcy4FE+U98StTL+u/Cdn62OX93HwrOZYqiGvgA=;
+        s=korg; t=1696014521;
+        bh=ELQnZpCKVm8YHAcipCRIN4F1ZFx5ka1x9GbbECUGafs=;
         h=Date:To:From:Subject:From;
-        b=ecbqYXyGsKgH7UFBE0e7aFDvSyp0n4UKlBQKeihAqRL9/GXuTNUyYGNcKaPe5SIvF
-         BHzWUnFpCtCHF5Kmo9QwMqf4sCNnPhNvGL1aW8jLAzmaflMPWttktg07A6X0B3yQ0A
-         eb7ctoS9m5ZZ8Sy7W8j4qiVKKDW2QEiXznyGLTLo=
-Date:   Fri, 29 Sep 2023 12:08:34 -0700
+        b=DFfY8WVB64vuHtheK5iMptQcOvEq6yjj5tSIvmFlnDAghmKj0V8cvyY92vOAlogzt
+         SWzFIoOeLhO2AcFikTrdTOTtV/wByCej0y2yFr84uGKvVO3Thy8GuTCxwO38OGgb1P
+         q840+ZELhupIupyEGcm0arLLbqJDv26uPF6xewCI=
+Date:   Fri, 29 Sep 2023 12:08:40 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, yuzhao@google.com,
         ying.huang@intel.com, willy@infradead.org, vbabka@suse.cz,
         shy828301@gmail.com, rientjes@google.com, mcgrof@kernel.org,
@@ -33,8 +33,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com, yuzhao@google.com,
         anshuman.khandual@arm.com, ryan.roberts@arm.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-thp-account-pte-mapped-anonymous-thp-usage.patch added to mm-unstable branch
-Message-Id: <20230929190835.1DACBC433C8@smtp.kernel.org>
+Subject: + mm-thp-introduce-anon_orders-and-anon_always_mask-sysfs-files.patch added to mm-unstable branch
+Message-Id: <20230929190840.DCD4DC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: thp: account pte-mapped anonymous THP usage
+     Subject: mm: thp: introduce anon_orders and anon_always_mask sysfs files
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-thp-account-pte-mapped-anonymous-thp-usage.patch
+     mm-thp-introduce-anon_orders-and-anon_always_mask-sysfs-files.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-thp-account-pte-mapped-anonymous-thp-usage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-thp-introduce-anon_orders-and-anon_always_mask-sysfs-files.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,76 +66,61 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm: thp: account pte-mapped anonymous THP usage
-Date: Fri, 29 Sep 2023 12:44:14 +0100
+Subject: mm: thp: introduce anon_orders and anon_always_mask sysfs files
+Date: Fri, 29 Sep 2023 12:44:15 +0100
 
-Add accounting for pte-mapped anonymous transparent hugepages at various
-locations.  This visibility will aid in debugging and tuning performance
-for the "small order" thp extension that will be added in a subsequent
-commit, where hugepages can be allocated which are large (greater than
-order-0) but smaller than PMD_ORDER.  This new accounting follows a
-similar pattern to the existing NR_ANON_THPS, which measures pmd-mapped
-anonymous transparent hugepages.
+In preparation for adding support for anonymous large folios that are
+smaller than the PMD-size, introduce 2 new sysfs files that will be used
+to control the new behaviours via the transparent_hugepage interface.  For
+now, the kernel still only supports PMD-order anonymous THP, so when
+reading back anon_orders, it will reflect that.  Therefore there are no
+behavioural changes intended here.
 
-We account pte-mapped anonymous thp mappings per-page, where the page is
-mapped at least once via PTE and the page belongs to a large folio.  So
-when a page belonging to a large folio is PTE-mapped for the first time,
-then we add 1 to NR_ANON_THPS_PTEMAPPED.  And when a page belonging to a
-large folio is PTE-unmapped for the last time, then we remove 1 from
-NR_ANON_THPS_PTEMAPPED.
+The bulk of the change is implemented by converting
+transhuge_vma_suitable() and hugepage_vma_check() so that they take a
+bitfield of orders for which the user wants to determine support, and the
+functions filter out all the orders that can't be supported.  If there is
+only 1 order set in the input then the output can continue to be treated
+like a boolean; this is the case for most call sites.
 
-/proc/meminfo:
-  Introduce new "AnonHugePteMap" field, which reports the amount of
-  memory (in KiB) mapped from large folios globally (similar to
-  AnonHugePages field).
+The remainder is copied from Documentation/admin-guide/mm/transhuge.rst,
+as modified by this commit.  See that file for further details.
 
-/proc/vmstat:
-  Introduce new "nr_anon_thp_pte" field, which reports the amount of
-  memory (in pages) mapped from large folios globally (similar to
-  nr_anon_transparent_hugepages field).
+By default, allocation of anonymous THPs that are smaller than PMD-size is
+disabled.  These smaller allocation orders can be enabled by writing an
+encoded set of orders as follows::
 
-/sys/devices/system/node/nodeX/meminfo
-  Introduce new "AnonHugePteMap" field, which reports the amount of
-  memory (in KiB) mapped from large folios per-node (similar to
-  AnonHugePages field).
+	echo 0x208 >/sys/kernel/mm/transparent_hugepage/anon_orders
 
-show_mem (panic logger):
-  Introduce new "anon_thp_pte" field, which reports the amount of memory
-  (in KiB) mapped from large folios per-node (similar to anon_thp
-  field).
+Where an order refers to the number of pages in the large folio as
+2^order, and where each order is encoded in the written value such that
+each set bit represents an enabled order; So setting bit-2 indicates that
+order-2 folios are in use, and order-2 means 2^2=4 pages (=16K if the page
+size is 4K).  The example above enables order-9 (PMD-order) and order-3.
 
-memory.stat (cgroup v1 and v2):
-  Introduce new "anon_thp_pte" field, which reports the amount of memory
-  (in bytes) mapped from large folios in the memcg (similar to rss_huge
-  (v1) / anon_thp (v2) fields).
+By enabling multiple orders, allocation of each order will be attempted,
+highest to lowest, until a successful allocation is made.  If the
+PMD-order is unset, then no PMD-sized THPs will be allocated.
 
-/proc/<pid>/smaps & /proc/<pid>/smaps_rollup:
-  Introduce new "AnonHugePteMap" field, which reports the amount of
-  memory (in KiB) mapped from large folios within the vma/process
-  (similar to AnonHugePages field).
+The kernel will ignore any orders that it does not support so read the
+file back to determine which orders are enabled::
 
-NOTE on charge migration: The new NR_ANON_THPS_PTEMAPPED charge is NOT
-moved between cgroups, even when the (v1) memory.move_charge_at_immigrate
-feature is enabled.  That feature is marked deprecated and the current
-code does not attempt to move the NR_ANON_MAPPED charge for large
-PTE-mapped folios anyway (see comment in
-mem_cgroup_move_charge_pte_range()).  If this code was enhanced to allow
-moving the NR_ANON_MAPPED charge for large PTE-mapped folios, we would
-also need to add support for moving the new NR_ANON_THPS_PTEMAPPED charge.
-This would likely get quite fiddly.  Given the deprecation of
-memory.move_charge_at_immigrate, I assume it is not valuable to implement.
+	cat /sys/kernel/mm/transparent_hugepage/anon_orders
 
-NOTE on naming: Given the new small order anonymous thp feature will be
-exposed to user space as an extension to thp, I've opted to call the new
-counters after thp also (as aposed to "large"/"large folio"/etc.), so
-"huge" no longer strictly means PMD - one could argue hugetlb already
-breaks this rule anyway.  I also did not want to risk breaking back compat
-by renaming/redefining the existing counters (which would have resulted in
-more consistent and clearer names).  So the existing NR_ANON_THPS counters
-remain and continue to only refer to PMD-mapped THPs.  And I've added new
-counters, which only refer to PTE-mapped THPs.
+For some workloads it may be desirable to limit some THP orders to be used
+only for MADV_HUGEPAGE regions, while allowing others to be used always. 
+For example, a workload may only benefit from PMD-sized THP in specific
+areas, but can take benefit of 32K sized THP more generally.  In this
+case, THP can be enabled in ``madvise`` mode as normal, but specific
+orders can be configured to be allocated as if in ``always`` mode.  The
+below example enables orders 9 and 3, with order-9 only applied to
+MADV_HUGEPAGE regions, and order-3 applied always::
 
-Link: https://lkml.kernel.org/r/20230929114421.3761121-4-ryan.roberts@arm.com
+	echo madvise >/sys/kernel/mm/transparent_hugepage/enabled
+	echo 0x208 >/sys/kernel/mm/transparent_hugepage/anon_orders
+	echo 0x008 >/sys/kernel/mm/transparent_hugepage/anon_always_mask
+
+Link: https://lkml.kernel.org/r/20230929114421.3761121-5-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -156,325 +141,654 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/procfs-smaps_rollup  |    1 +
- Documentation/admin-guide/cgroup-v1/memory.rst |    5 ++++-
- Documentation/admin-guide/cgroup-v2.rst        |    6 +++++-
- Documentation/admin-guide/mm/transhuge.rst     |   11 +++++++----
- Documentation/filesystems/proc.rst             |   14 ++++++++++++--
- drivers/base/node.c                            |    2 ++
- fs/proc/meminfo.c                              |    2 ++
- fs/proc/task_mmu.c                             |    4 ++++
- include/linux/mmzone.h                         |    1 +
- mm/memcontrol.c                                |    8 ++++++++
- mm/rmap.c                                      |   11 +++++++++--
- mm/show_mem.c                                  |    2 ++
- mm/vmstat.c                                    |    1 +
- 13 files changed, 58 insertions(+), 10 deletions(-)
+ Documentation/admin-guide/mm/transhuge.rst |   74 +++++++-
+ Documentation/filesystems/proc.rst         |    6 
+ fs/proc/task_mmu.c                         |    3 
+ include/linux/huge_mm.h                    |   89 +++++++---
+ mm/huge_memory.c                           |  164 ++++++++++++++++---
+ mm/khugepaged.c                            |   18 +-
+ mm/memory.c                                |    6 
+ mm/page_vma_mapped.c                       |    3 
+ 8 files changed, 294 insertions(+), 69 deletions(-)
 
---- a/Documentation/ABI/testing/procfs-smaps_rollup~mm-thp-account-pte-mapped-anonymous-thp-usage
-+++ a/Documentation/ABI/testing/procfs-smaps_rollup
-@@ -34,6 +34,7 @@ Description:
- 			Anonymous:	      68 kB
- 			LazyFree:	       0 kB
- 			AnonHugePages:	       0 kB
-+			AnonHugePteMap:        0 kB
- 			ShmemPmdMapped:	       0 kB
- 			Shared_Hugetlb:	       0 kB
- 			Private_Hugetlb:       0 kB
---- a/Documentation/admin-guide/cgroup-v1/memory.rst~mm-thp-account-pte-mapped-anonymous-thp-usage
-+++ a/Documentation/admin-guide/cgroup-v1/memory.rst
-@@ -542,7 +542,10 @@ memory.stat file includes following stat
-     cache           # of bytes of page cache memory.
-     rss             # of bytes of anonymous and swap cache memory (includes
-                     transparent hugepages).
--    rss_huge        # of bytes of anonymous transparent hugepages.
-+    rss_huge        # of bytes of anonymous transparent hugepages, mapped by
-+                    PMD.
-+    anon_thp_pte    # of bytes of anonymous transparent hugepages, mapped by
-+                    PTE.
-     mapped_file     # of bytes of mapped file (includes tmpfs/shmem)
-     pgpgin          # of charging events to the memory cgroup. The charging
-                     event happens each time a page is accounted as either mapped
---- a/Documentation/admin-guide/cgroup-v2.rst~mm-thp-account-pte-mapped-anonymous-thp-usage
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1421,7 +1421,11 @@ PAGE_SIZE multiple when read back.
- 
- 	  anon_thp
- 		Amount of memory used in anonymous mappings backed by
--		transparent hugepages
-+		transparent hugepages, mapped by PMD
-+
-+	  anon_thp_pte
-+		Amount of memory used in anonymous mappings backed by
-+		transparent hugepages, mapped by PTE
- 
- 	  file_thp
- 		Amount of cached filesystem data backed by transparent
---- a/Documentation/admin-guide/mm/transhuge.rst~mm-thp-account-pte-mapped-anonymous-thp-usage
+--- a/Documentation/admin-guide/mm/transhuge.rst~mm-thp-introduce-anon_orders-and-anon_always_mask-sysfs-files
 +++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -291,10 +291,13 @@ Monitoring usage
- ================
+@@ -45,10 +45,22 @@ components:
+    the two is using hugepages just because of the fact the TLB miss is
+    going to run faster.
  
- The number of anonymous transparent huge pages currently used by the
--system is available by reading the AnonHugePages field in ``/proc/meminfo``.
--To identify what applications are using anonymous transparent huge pages,
--it is necessary to read ``/proc/PID/smaps`` and count the AnonHugePages fields
--for each mapping.
-+system is available by reading the AnonHugePages and AnonHugePteMap
-+fields in ``/proc/meminfo``. To identify what applications are using
-+anonymous transparent huge pages, it is necessary to read
-+``/proc/PID/smaps`` and count the AnonHugePages and AnonHugePteMap
-+fields for each mapping. Note that in both cases, AnonHugePages refers
-+only to PMD-mapped THPs. AnonHugePteMap refers to THPs that are mapped
-+using PTEs.
- 
- The number of file transparent huge pages mapped to userspace is available
- by reading ShmemPmdMapped and ShmemHugePages fields in ``/proc/meminfo``.
---- a/Documentation/filesystems/proc.rst~mm-thp-account-pte-mapped-anonymous-thp-usage
-+++ a/Documentation/filesystems/proc.rst
-@@ -464,6 +464,7 @@ Memory Area, or VMA) there is a series o
-     KSM:                   0 kB
-     LazyFree:              0 kB
-     AnonHugePages:         0 kB
-+    AnonHugePteMap:        0 kB
-     ShmemPmdMapped:        0 kB
-     Shared_Hugetlb:        0 kB
-     Private_Hugetlb:       0 kB
-@@ -511,7 +512,11 @@ pressure if the memory is clean. Please
- be lower than the real value due to optimizations used in the current
- implementation. If this is not desirable please file a bug report.
- 
--"AnonHugePages" shows the amount of memory backed by transparent hugepage.
-+"AnonHugePages" shows the amount of memory backed by transparent hugepage,
-+mapped by PMD.
++Furthermore, it is possible to configure THP to allocate large folios
++to back anonymous memory, which are smaller than PMD-size (for example
++16K, 32K, 64K, etc). These THPs continue to be PTE-mapped, but in many
++cases can still provide the similar benefits to those outlined above:
++Page faults are significantly reduced (by a factor of e.g. 4, 8, 16,
++etc), but latency spikes are much less prominent because the size of
++each page isn't as huge as the PMD-sized variant and there is less
++memory to clear in each page fault. Some architectures also employ TLB
++compression mechanisms to squeeze more entries in when a set of PTEs
++are virtually and physically contiguous and approporiately aligned. In
++this case, TLB misses will occur less often.
 +
-+"AnonHugePteMap" shows the amount of memory backed by transparent hugepage,
-+mapped by PTE.
+ THP can be enabled system wide or restricted to certain tasks or even
+ memory ranges inside task's address space. Unless THP is completely
+ disabled, there is ``khugepaged`` daemon that scans memory and
+-collapses sequences of basic pages into huge pages.
++collapses sequences of basic pages into PMD-sized huge pages.
  
- "ShmemPmdMapped" shows the amount of shared (shmem/tmpfs) memory backed by
- huge pages.
-@@ -1006,6 +1011,7 @@ Example output. You may not have all of
-     EarlyMemtestBad:       0 kB
-     HardwareCorrupted:     0 kB
-     AnonHugePages:   4149248 kB
-+    AnonHugePteMap:        0 kB
-     ShmemHugePages:        0 kB
-     ShmemPmdMapped:        0 kB
-     FileHugePages:         0 kB
-@@ -1165,7 +1171,11 @@ HardwareCorrupted
-               The amount of RAM/memory in KB, the kernel identifies as
-               corrupted.
- AnonHugePages
--              Non-file backed huge pages mapped into userspace page tables
-+              Non-file backed huge pages mapped into userspace page tables by
-+              PMD
-+AnonHugePteMap
-+              Non-file backed huge pages mapped into userspace page tables by
-+              PTE
- ShmemHugePages
-               Memory used by shared memory (shmem) and tmpfs allocated
-               with huge pages
---- a/drivers/base/node.c~mm-thp-account-pte-mapped-anonymous-thp-usage
-+++ a/drivers/base/node.c
-@@ -443,6 +443,7 @@ static ssize_t node_read_meminfo(struct
- 			     "Node %d SUnreclaim:     %8lu kB\n"
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 			     "Node %d AnonHugePages:  %8lu kB\n"
-+			     "Node %d AnonHugePteMap: %8lu kB\n"
- 			     "Node %d ShmemHugePages: %8lu kB\n"
- 			     "Node %d ShmemPmdMapped: %8lu kB\n"
- 			     "Node %d FileHugePages:  %8lu kB\n"
-@@ -475,6 +476,7 @@ static ssize_t node_read_meminfo(struct
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 			     ,
- 			     nid, K(node_page_state(pgdat, NR_ANON_THPS)),
-+			     nid, K(node_page_state(pgdat, NR_ANON_THPS_PTEMAPPED)),
- 			     nid, K(node_page_state(pgdat, NR_SHMEM_THPS)),
- 			     nid, K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED)),
- 			     nid, K(node_page_state(pgdat, NR_FILE_THPS)),
---- a/fs/proc/meminfo.c~mm-thp-account-pte-mapped-anonymous-thp-usage
-+++ a/fs/proc/meminfo.c
-@@ -143,6 +143,8 @@ static int meminfo_proc_show(struct seq_
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	show_val_kb(m, "AnonHugePages:  ",
- 		    global_node_page_state(NR_ANON_THPS));
-+	show_val_kb(m, "AnonHugePteMap: ",
-+		    global_node_page_state(NR_ANON_THPS_PTEMAPPED));
- 	show_val_kb(m, "ShmemHugePages: ",
- 		    global_node_page_state(NR_SHMEM_THPS));
- 	show_val_kb(m, "ShmemPmdMapped: ",
---- a/fs/proc/task_mmu.c~mm-thp-account-pte-mapped-anonymous-thp-usage
+ The THP behaviour is controlled via :ref:`sysfs <thp_sysfs>`
+ interface and using madvise(2) and prctl(2) system calls.
+@@ -146,25 +158,69 @@ madvise
+ never
+ 	should be self-explanatory.
+ 
+-By default kernel tries to use huge zero page on read page fault to
+-anonymous mapping. It's possible to disable huge zero page by writing 0
+-or enable it back by writing 1::
++By default kernel tries to use huge, PMD-mapped zero page on read page
++fault to anonymous mapping. It's possible to disable huge zero page by
++writing 0 or enable it back by writing 1::
+ 
+ 	echo 0 >/sys/kernel/mm/transparent_hugepage/use_zero_page
+ 	echo 1 >/sys/kernel/mm/transparent_hugepage/use_zero_page
+ 
+ Some userspace (such as a test program, or an optimized memory allocation
+-library) may want to know the size (in bytes) of a transparent hugepage::
++library) may want to know the size (in bytes) of a PMD-mappable
++transparent hugepage::
+ 
+ 	cat /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+ 
++By default, allocation of anonymous THPs that are smaller than
++PMD-size is disabled. These smaller allocation orders can be enabled
++by writing an encoded set of orders as follows::
++
++	echo 0x208 >/sys/kernel/mm/transparent_hugepage/anon_orders
++
++Where an order refers to the number of pages in the large folio as
++2^order, and where each order is encoded in the written value such
++that each set bit represents an enabled order; So setting bit-2
++indicates that order-2 folios are in use, and order-2 means 2^2=4
++pages (=16K if the page size is 4K). The example above enables order-9
++(PMD-order) and order-3.
++
++By enabling multiple orders, allocation of each order will be
++attempted, highest to lowest, until a successful allocation is made.
++If the PMD-order is unset, then no PMD-sized THPs will be allocated.
++
++The kernel will ignore any orders that it does not support so read the
++file back to determine which orders are enabled::
++
++	cat /sys/kernel/mm/transparent_hugepage/anon_orders
++
++For some workloads it may be desirable to limit some THP orders to be
++used only for MADV_HUGEPAGE regions, while allowing others to be used
++always. For example, a workload may only benefit from PMD-sized THP in
++specific areas, but can take benefit of 32K sized THP more generally.
++In this case, THP can be enabled in ``madvise`` mode as normal, but
++specific orders can be configured to be allocated as if in ``always``
++mode. The below example enables orders 9 and 3, with order-9 only
++applied to MADV_HUGEPAGE regions, and order-3 applied always::
++
++	echo madvise >/sys/kernel/mm/transparent_hugepage/enabled
++	echo 0x208 >/sys/kernel/mm/transparent_hugepage/anon_orders
++	echo 0x008 >/sys/kernel/mm/transparent_hugepage/anon_always_mask
++
+ khugepaged will be automatically started when
+-transparent_hugepage/enabled is set to "always" or "madvise, and it'll
+-be automatically shutdown if it's set to "never".
++transparent_hugepage/enabled is set to "always" or "madvise",
++providing the PMD-order is enabled in
++transparent_hugepage/anon_orders, and it'll be automatically shutdown
++if it's set to "never" or the PMD-order is disabled in
++transparent_hugepage/anon_orders.
+ 
+ Khugepaged controls
+ -------------------
+ 
++.. note::
++   khugepaged currently only searches for opportunities to collapse to
++   PMD-sized THP and no attempt is made to collapse to smaller order
++   THP.
++
+ khugepaged runs usually at low frequency so while one may not want to
+ invoke defrag algorithms synchronously during the page faults, it
+ should be worth invoking defrag at least in khugepaged. However it's
+@@ -285,7 +341,7 @@ Need of application restart
+ The transparent_hugepage/enabled values and tmpfs mount option only affect
+ future behavior. So to make them effective you need to restart any
+ application that could have been using hugepages. This also applies to the
+-regions registered in khugepaged.
++regions registered in khugepaged, and transparent_hugepage/anon_orders.
+ 
+ Monitoring usage
+ ================
+@@ -416,7 +472,7 @@ for huge pages.
+ Optimizing the applications
+ ===========================
+ 
+-To be guaranteed that the kernel will map a 2M page immediately in any
++To be guaranteed that the kernel will map a thp immediately in any
+ memory region, the mmap region has to be hugepage naturally
+ aligned. posix_memalign() can provide that guarantee.
+ 
+--- a/Documentation/filesystems/proc.rst~mm-thp-introduce-anon_orders-and-anon_always_mask-sysfs-files
++++ a/Documentation/filesystems/proc.rst
+@@ -533,9 +533,9 @@ replaced by copy-on-write) part of the u
+ does not take into account swapped out page of underlying shmem objects.
+ "Locked" indicates whether the mapping is locked in memory or not.
+ 
+-"THPeligible" indicates whether the mapping is eligible for allocating THP
+-pages as well as the THP is PMD mappable or not - 1 if true, 0 otherwise.
+-It just shows the current status.
++"THPeligible" indicates whether the mapping is eligible for allocating
++naturally aligned THP pages of any currently enabled order. 1 if true, 0
++otherwise. It just shows the current status.
+ 
+ "VmFlags" field deserves a separate description. This member represents the
+ kernel flags associated with the particular virtual memory area in two letter
+--- a/fs/proc/task_mmu.c~mm-thp-introduce-anon_orders-and-anon_always_mask-sysfs-files
 +++ a/fs/proc/task_mmu.c
-@@ -394,6 +394,7 @@ struct mem_size_stats {
- 	unsigned long anonymous;
- 	unsigned long lazyfree;
- 	unsigned long anonymous_thp;
-+	unsigned long anonymous_thp_pte;
- 	unsigned long shmem_thp;
- 	unsigned long file_thp;
- 	unsigned long swap;
-@@ -454,6 +455,8 @@ static void smaps_account(struct mem_siz
- 		mss->anonymous += size;
- 		if (!PageSwapBacked(page) && !dirty && !PageDirty(page))
- 			mss->lazyfree += size;
-+		if (!compound && PageTransCompound(page))
-+			mss->anonymous_thp_pte += size;
- 	}
+@@ -871,7 +871,8 @@ static int show_smap(struct seq_file *m,
+ 	__show_smap(m, &mss, false);
  
- 	if (PageKsm(page))
-@@ -835,6 +838,7 @@ static void __show_smap(struct seq_file
- 	SEQ_PUT_DEC(" kB\nKSM:            ", mss->ksm);
- 	SEQ_PUT_DEC(" kB\nLazyFree:       ", mss->lazyfree);
- 	SEQ_PUT_DEC(" kB\nAnonHugePages:  ", mss->anonymous_thp);
-+	SEQ_PUT_DEC(" kB\nAnonHugePteMap: ", mss->anonymous_thp_pte);
- 	SEQ_PUT_DEC(" kB\nShmemPmdMapped: ", mss->shmem_thp);
- 	SEQ_PUT_DEC(" kB\nFilePmdMapped:  ", mss->file_thp);
- 	SEQ_PUT_DEC(" kB\nShared_Hugetlb: ", mss->shared_hugetlb);
---- a/include/linux/mmzone.h~mm-thp-account-pte-mapped-anonymous-thp-usage
-+++ a/include/linux/mmzone.h
-@@ -186,6 +186,7 @@ enum node_stat_item {
- 	NR_FILE_THPS,
- 	NR_FILE_PMDMAPPED,
- 	NR_ANON_THPS,
-+	NR_ANON_THPS_PTEMAPPED,
- 	NR_VMSCAN_WRITE,
- 	NR_VMSCAN_IMMEDIATE,	/* Prioritise for reclaim when writeback ends */
- 	NR_DIRTIED,		/* page dirtyings since bootup */
---- a/mm/memcontrol.c~mm-thp-account-pte-mapped-anonymous-thp-usage
-+++ a/mm/memcontrol.c
-@@ -827,6 +827,7 @@ void __mod_memcg_lruvec_state(struct lru
- 		case NR_ANON_MAPPED:
- 		case NR_FILE_MAPPED:
- 		case NR_ANON_THPS:
-+		case NR_ANON_THPS_PTEMAPPED:
- 		case NR_SHMEM_PMDMAPPED:
- 		case NR_FILE_PMDMAPPED:
- 			WARN_ON_ONCE(!in_task());
-@@ -1517,6 +1518,7 @@ static const struct memory_stat memory_s
- #endif
+ 	seq_printf(m, "THPeligible:    %8u\n",
+-		   hugepage_vma_check(vma, vma->vm_flags, true, false, true));
++		   !!hugepage_vma_check(vma, vma->vm_flags, true, false, true,
++					THP_ORDERS_ALL));
+ 
+ 	if (arch_pkeys_enabled())
+ 		seq_printf(m, "ProtectionKey:  %8u\n", vma_pkey(vma));
+--- a/include/linux/huge_mm.h~mm-thp-introduce-anon_orders-and-anon_always_mask-sysfs-files
++++ a/include/linux/huge_mm.h
+@@ -67,6 +67,21 @@ extern struct kobj_attribute shmem_enabl
+ #define HPAGE_PMD_ORDER (HPAGE_PMD_SHIFT-PAGE_SHIFT)
+ #define HPAGE_PMD_NR (1<<HPAGE_PMD_ORDER)
+ 
++/*
++ * Mask of all large folio orders supported for anonymous THP.
++ */
++#define THP_ORDERS_ALL_ANON	BIT(PMD_ORDER)
++
++/*
++ * Mask of all large folio orders supported for file THP.
++ */
++#define THP_ORDERS_ALL_FILE	(BIT(PMD_ORDER) | BIT(PUD_ORDER))
++
++/*
++ * Mask of all large folio orders supported for THP.
++ */
++#define THP_ORDERS_ALL		(THP_ORDERS_ALL_ANON | THP_ORDERS_ALL_FILE)
++
  #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	{ "anon_thp",			NR_ANON_THPS			},
-+	{ "anon_thp_pte",		NR_ANON_THPS_PTEMAPPED		},
- 	{ "file_thp",			NR_FILE_THPS			},
- 	{ "shmem_thp",			NR_SHMEM_THPS			},
+ #define HPAGE_PMD_SHIFT PMD_SHIFT
+ #define HPAGE_PMD_SIZE	((1UL) << HPAGE_PMD_SHIFT)
+@@ -77,6 +92,7 @@ extern struct kobj_attribute shmem_enabl
+ #define HPAGE_PUD_MASK	(~(HPAGE_PUD_SIZE - 1))
+ 
+ extern unsigned long transparent_hugepage_flags;
++extern unsigned int huge_anon_orders;
+ 
+ #define hugepage_flags_enabled()					       \
+ 	(transparent_hugepage_flags &				       \
+@@ -86,6 +102,17 @@ extern unsigned long transparent_hugepag
+ 	(transparent_hugepage_flags &			\
+ 	 (1<<TRANSPARENT_HUGEPAGE_FLAG))
+ 
++static inline int first_order(unsigned int orders)
++{
++	return fls(orders) - 1;
++}
++
++static inline int next_order(unsigned int *orders, int prev)
++{
++	*orders &= ~BIT(prev);
++	return first_order(*orders);
++}
++
+ /*
+  * Do the below checks:
+  *   - For file vma, check if the linear page offset of vma is
+@@ -97,23 +124,39 @@ extern unsigned long transparent_hugepag
+  *   - For all vmas, check if the haddr is in an aligned HPAGE_PMD_SIZE
+  *     area.
+  */
+-static inline bool transhuge_vma_suitable(struct vm_area_struct *vma,
+-		unsigned long addr)
++static inline unsigned int transhuge_vma_suitable(struct vm_area_struct *vma,
++		unsigned long addr, unsigned int orders)
+ {
+-	unsigned long haddr;
++	int order;
+ 
+-	/* Don't have to check pgoff for anonymous vma */
+-	if (!vma_is_anonymous(vma)) {
+-		if (!IS_ALIGNED((vma->vm_start >> PAGE_SHIFT) - vma->vm_pgoff,
+-				HPAGE_PMD_NR))
+-			return false;
+-	}
++	/*
++	 * Iterate over orders, highest to lowest, removing orders that don't
++	 * meet alignment requirements from the set. Exit loop at first order
++	 * that meets requirements, since all lower orders must also meet
++	 * requirements.
++	 */
++
++	order = first_order(orders);
++
++	while (orders) {
++		unsigned long hpage_size = PAGE_SIZE << order;
++		unsigned long haddr = ALIGN_DOWN(addr, hpage_size);
++
++		if (haddr >= vma->vm_start &&
++		    haddr + hpage_size <= vma->vm_end) {
++			if (!vma_is_anonymous(vma)) {
++				if (IS_ALIGNED((vma->vm_start >> PAGE_SHIFT) -
++						vma->vm_pgoff,
++						hpage_size >> PAGE_SHIFT))
++					break;
++			} else
++				break;
++		}
+ 
+-	haddr = addr & HPAGE_PMD_MASK;
++		order = next_order(&orders, order);
++	}
+ 
+-	if (haddr < vma->vm_start || haddr + HPAGE_PMD_SIZE > vma->vm_end)
+-		return false;
+-	return true;
++	return orders;
+ }
+ 
+ static inline bool file_thp_enabled(struct vm_area_struct *vma)
+@@ -130,8 +173,9 @@ static inline bool file_thp_enabled(stru
+ 	       !inode_is_open_for_write(inode) && S_ISREG(inode->i_mode);
+ }
+ 
+-bool hugepage_vma_check(struct vm_area_struct *vma, unsigned long vm_flags,
+-			bool smaps, bool in_pf, bool enforce_sysfs);
++unsigned int hugepage_vma_check(struct vm_area_struct *vma,
++				unsigned long vm_flags, bool smaps, bool in_pf,
++				bool enforce_sysfs, unsigned int orders);
+ 
+ #define transparent_hugepage_use_zero_page()				\
+ 	(transparent_hugepage_flags &					\
+@@ -267,17 +311,18 @@ static inline bool folio_test_pmd_mappab
+ 	return false;
+ }
+ 
+-static inline bool transhuge_vma_suitable(struct vm_area_struct *vma,
+-		unsigned long addr)
++static inline unsigned int transhuge_vma_suitable(struct vm_area_struct *vma,
++		unsigned long addr, unsigned int orders)
+ {
+-	return false;
++	return 0;
+ }
+ 
+-static inline bool hugepage_vma_check(struct vm_area_struct *vma,
+-				      unsigned long vm_flags, bool smaps,
+-				      bool in_pf, bool enforce_sysfs)
++static inline unsigned int hugepage_vma_check(struct vm_area_struct *vma,
++					unsigned long vm_flags, bool smaps,
++					bool in_pf, bool enforce_sysfs,
++					unsigned int orders)
+ {
+-	return false;
++	return 0;
+ }
+ 
+ static inline void folio_prep_large_rmappable(struct folio *folio) {}
+--- a/mm/huge_memory.c~mm-thp-introduce-anon_orders-and-anon_always_mask-sysfs-files
++++ a/mm/huge_memory.c
+@@ -74,12 +74,48 @@ static unsigned long deferred_split_scan
+ static atomic_t huge_zero_refcount;
+ struct page *huge_zero_page __read_mostly;
+ unsigned long huge_zero_pfn __read_mostly = ~0UL;
++unsigned int huge_anon_orders __read_mostly = BIT(PMD_ORDER);
++static unsigned int huge_anon_always_mask __read_mostly;
+ 
+-bool hugepage_vma_check(struct vm_area_struct *vma, unsigned long vm_flags,
+-			bool smaps, bool in_pf, bool enforce_sysfs)
++/**
++ * hugepage_vma_check - determine which hugepage orders can be applied to vma
++ * @vma:  the vm area to check
++ * @vm_flags: use these vm_flags instead of vma->vm_flags
++ * @smaps: whether answer will be used for smaps file
++ * @in_pf: whether answer will be used by page fault handler
++ * @enforce_sysfs: whether sysfs config should be taken into account
++ * @orders: bitfield of all orders to consider
++ *
++ * Calculates the intersection of the requested hugepage orders and the allowed
++ * hugepage orders for the provided vma. Permitted orders are encoded as a set
++ * bit at the corresponding bit position (bit-2 corresponds to order-2, bit-3
++ * corresponds to order-3, etc). Order-0 is never considered a hugepage order.
++ *
++ * Return: bitfield of orders allowed for hugepage in the vma. 0 if no hugepage
++ * orders are allowed.
++ */
++unsigned int hugepage_vma_check(struct vm_area_struct *vma,
++				unsigned long vm_flags, bool smaps, bool in_pf,
++				bool enforce_sysfs, unsigned int orders)
+ {
++	/*
++	 * Fix up the orders mask; Supported orders for file vmas are static.
++	 * Supported orders for anon vmas are configured dynamically - but only
++	 * use the dynamic set if enforce_sysfs=true, otherwise use the full
++	 * set.
++	 */
++	if (vma_is_anonymous(vma))
++		orders &= enforce_sysfs ? READ_ONCE(huge_anon_orders)
++					: THP_ORDERS_ALL_ANON;
++	else
++		orders &= THP_ORDERS_ALL_FILE;
++
++	/* No orders in the intersection. */
++	if (!orders)
++		return 0;
++
+ 	if (!vma->vm_mm)		/* vdso */
+-		return false;
++		return 0;
+ 
+ 	/*
+ 	 * Explicitly disabled through madvise or prctl, or some
+@@ -88,16 +124,16 @@ bool hugepage_vma_check(struct vm_area_s
+ 	 * */
+ 	if ((vm_flags & VM_NOHUGEPAGE) ||
+ 	    test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags))
+-		return false;
++		return 0;
+ 	/*
+ 	 * If the hardware/firmware marked hugepage support disabled.
+ 	 */
+ 	if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_UNSUPPORTED))
+-		return false;
++		return 0;
+ 
+ 	/* khugepaged doesn't collapse DAX vma, but page fault is fine. */
+ 	if (vma_is_dax(vma))
+-		return in_pf;
++		return in_pf ? orders : 0;
+ 
+ 	/*
+ 	 * Special VMA and hugetlb VMA.
+@@ -105,17 +141,29 @@ bool hugepage_vma_check(struct vm_area_s
+ 	 * VM_MIXEDMAP set.
+ 	 */
+ 	if (vm_flags & VM_NO_KHUGEPAGED)
+-		return false;
++		return 0;
+ 
+ 	/*
+-	 * Check alignment for file vma and size for both file and anon vma.
++	 * Check alignment for file vma and size for both file and anon vma by
++	 * filtering out the unsuitable orders.
+ 	 *
+ 	 * Skip the check for page fault. Huge fault does the check in fault
+-	 * handlers. And this check is not suitable for huge PUD fault.
++	 * handlers.
+ 	 */
+-	if (!in_pf &&
+-	    !transhuge_vma_suitable(vma, (vma->vm_end - HPAGE_PMD_SIZE)))
+-		return false;
++	if (!in_pf) {
++		int order = first_order(orders);
++		unsigned long addr;
++
++		while (orders) {
++			addr = vma->vm_end - (PAGE_SIZE << order);
++			if (transhuge_vma_suitable(vma, addr, BIT(order)))
++				break;
++			order = next_order(&orders, order);
++		}
++
++		if (!orders)
++			return 0;
++	}
+ 
+ 	/*
+ 	 * Enabled via shmem mount options or sysfs settings.
+@@ -124,23 +172,35 @@ bool hugepage_vma_check(struct vm_area_s
+ 	 */
+ 	if (!in_pf && shmem_file(vma->vm_file))
+ 		return shmem_is_huge(file_inode(vma->vm_file), vma->vm_pgoff,
+-				     !enforce_sysfs, vma->vm_mm, vm_flags);
++				     !enforce_sysfs, vma->vm_mm, vm_flags)
++			? orders : 0;
+ 
+ 	/* Enforce sysfs THP requirements as necessary */
+-	if (enforce_sysfs &&
+-	    (!hugepage_flags_enabled() || (!(vm_flags & VM_HUGEPAGE) &&
+-					   !hugepage_flags_always())))
+-		return false;
++	if (enforce_sysfs) {
++		/* enabled=never. */
++		if (!hugepage_flags_enabled())
++			return 0;
++
++		/* enabled=madvise without VM_HUGEPAGE. */
++		if (!(vm_flags & VM_HUGEPAGE) && !hugepage_flags_always()) {
++			if (vma_is_anonymous(vma)) {
++				orders &= READ_ONCE(huge_anon_always_mask);
++				if (!orders)
++					return 0;
++			} else
++				return 0;
++		}
++	}
+ 
+ 	/* Only regular file is valid */
+ 	if (!in_pf && file_thp_enabled(vma))
+-		return true;
++		return orders;
+ 
+ 	if (!vma_is_anonymous(vma))
+-		return false;
++		return 0;
+ 
+ 	if (vma_is_temporary_stack(vma))
+-		return false;
++		return 0;
+ 
+ 	/*
+ 	 * THPeligible bit of smaps should show 1 for proper VMAs even
+@@ -150,9 +210,9 @@ bool hugepage_vma_check(struct vm_area_s
+ 	 * the first page fault.
+ 	 */
+ 	if (!vma->anon_vma)
+-		return (smaps || in_pf);
++		return (smaps || in_pf) ? orders : 0;
+ 
+-	return true;
++	return orders;
+ }
+ 
+ static bool get_huge_zero_page(void)
+@@ -391,11 +451,69 @@ static ssize_t hpage_pmd_size_show(struc
+ static struct kobj_attribute hpage_pmd_size_attr =
+ 	__ATTR_RO(hpage_pmd_size);
+ 
++static ssize_t anon_orders_show(struct kobject *kobj,
++				struct kobj_attribute *attr, char *buf)
++{
++	return sysfs_emit(buf, "0x%08x\n", READ_ONCE(huge_anon_orders));
++}
++
++static ssize_t anon_orders_store(struct kobject *kobj,
++				 struct kobj_attribute *attr,
++				 const char *buf, size_t count)
++{
++	int err;
++	int ret = count;
++	unsigned int orders;
++
++	err = kstrtouint(buf, 0, &orders);
++	if (err)
++		ret = -EINVAL;
++
++	if (ret > 0) {
++		orders &= THP_ORDERS_ALL_ANON;
++		WRITE_ONCE(huge_anon_orders, orders);
++
++		err = start_stop_khugepaged();
++		if (err)
++			ret = err;
++	}
++
++	return ret;
++}
++
++static struct kobj_attribute anon_orders_attr = __ATTR_RW(anon_orders);
++
++static ssize_t anon_always_mask_show(struct kobject *kobj,
++				     struct kobj_attribute *attr, char *buf)
++{
++	return sysfs_emit(buf, "0x%08x\n", READ_ONCE(huge_anon_always_mask));
++}
++
++static ssize_t anon_always_mask_store(struct kobject *kobj,
++				      struct kobj_attribute *attr,
++				      const char *buf, size_t count)
++{
++	int err;
++	unsigned int always_mask;
++
++	err = kstrtouint(buf, 0, &always_mask);
++	if (err)
++		return -EINVAL;
++
++	WRITE_ONCE(huge_anon_always_mask, always_mask);
++
++	return count;
++}
++
++static struct kobj_attribute anon_always_mask_attr = __ATTR_RW(anon_always_mask);
++
+ static struct attribute *hugepage_attr[] = {
+ 	&enabled_attr.attr,
+ 	&defrag_attr.attr,
+ 	&use_zero_page_attr.attr,
+ 	&hpage_pmd_size_attr.attr,
++	&anon_orders_attr.attr,
++	&anon_always_mask_attr.attr,
+ #ifdef CONFIG_SHMEM
+ 	&shmem_enabled_attr.attr,
  #endif
-@@ -4185,6 +4187,7 @@ static const unsigned int memcg1_stats[]
- 	NR_ANON_MAPPED,
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	NR_ANON_THPS,
-+	NR_ANON_THPS_PTEMAPPED,
- #endif
- 	NR_SHMEM,
- 	NR_FILE_MAPPED,
-@@ -4203,6 +4206,7 @@ static const char *const memcg1_stat_nam
- 	"rss",
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	"rss_huge",
-+	"anon_thp_pte",
- #endif
- 	"shmem",
- 	"mapped_file",
-@@ -6403,6 +6407,10 @@ retry:
- 			 * can be done but it would be too convoluted so simply
- 			 * ignore such a partial THP and keep it in original
- 			 * memcg. There should be somebody mapping the head.
-+			 * This simplification also means that pte-mapped large
-+			 * folios are never migrated, which means we don't need
-+			 * to worry about migrating the NR_ANON_THPS_PTEMAPPED
-+			 * accounting.
+@@ -805,7 +923,7 @@ vm_fault_t do_huge_pmd_anonymous_page(st
+ 	struct folio *folio;
+ 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
+ 
+-	if (!transhuge_vma_suitable(vma, haddr))
++	if (!transhuge_vma_suitable(vma, haddr, BIT(PMD_ORDER)))
+ 		return VM_FAULT_FALLBACK;
+ 	if (unlikely(anon_vma_prepare(vma)))
+ 		return VM_FAULT_OOM;
+--- a/mm/khugepaged.c~mm-thp-introduce-anon_orders-and-anon_always_mask-sysfs-files
++++ a/mm/khugepaged.c
+@@ -446,7 +446,8 @@ void khugepaged_enter_vma(struct vm_area
+ {
+ 	if (!test_bit(MMF_VM_HUGEPAGE, &vma->vm_mm->flags) &&
+ 	    hugepage_flags_enabled()) {
+-		if (hugepage_vma_check(vma, vm_flags, false, false, true))
++		if (hugepage_vma_check(vma, vm_flags, false, false, true,
++				       BIT(PMD_ORDER)))
+ 			__khugepaged_enter(vma->vm_mm);
+ 	}
+ }
+@@ -921,10 +922,10 @@ static int hugepage_vma_revalidate(struc
+ 	if (!vma)
+ 		return SCAN_VMA_NULL;
+ 
+-	if (!transhuge_vma_suitable(vma, address))
++	if (!transhuge_vma_suitable(vma, address, BIT(PMD_ORDER)))
+ 		return SCAN_ADDRESS_RANGE;
+ 	if (!hugepage_vma_check(vma, vma->vm_flags, false, false,
+-				cc->is_khugepaged))
++				cc->is_khugepaged, BIT(PMD_ORDER)))
+ 		return SCAN_VMA_CHECK;
+ 	/*
+ 	 * Anon VMA expected, the address may be unmapped then
+@@ -1502,7 +1503,8 @@ int collapse_pte_mapped_thp(struct mm_st
+ 	 * and map it by a PMD, regardless of sysfs THP settings. As such, let's
+ 	 * analogously elide sysfs THP settings here.
+ 	 */
+-	if (!hugepage_vma_check(vma, vma->vm_flags, false, false, false))
++	if (!hugepage_vma_check(vma, vma->vm_flags, false, false, false,
++				BIT(PMD_ORDER)))
+ 		return SCAN_VMA_CHECK;
+ 
+ 	/* Keep pmd pgtable for uffd-wp; see comment in retract_page_tables() */
+@@ -2372,7 +2374,8 @@ static unsigned int khugepaged_scan_mm_s
+ 			progress++;
+ 			break;
+ 		}
+-		if (!hugepage_vma_check(vma, vma->vm_flags, false, false, true)) {
++		if (!hugepage_vma_check(vma, vma->vm_flags, false, false, true,
++					BIT(PMD_ORDER))) {
+ skip:
+ 			progress++;
+ 			continue;
+@@ -2629,7 +2632,7 @@ int start_stop_khugepaged(void)
+ 	int err = 0;
+ 
+ 	mutex_lock(&khugepaged_mutex);
+-	if (hugepage_flags_enabled()) {
++	if (hugepage_flags_enabled() && (huge_anon_orders & BIT(PMD_ORDER))) {
+ 		if (!khugepaged_thread)
+ 			khugepaged_thread = kthread_run(khugepaged, NULL,
+ 							"khugepaged");
+@@ -2709,7 +2712,8 @@ int madvise_collapse(struct vm_area_stru
+ 
+ 	*prev = vma;
+ 
+-	if (!hugepage_vma_check(vma, vma->vm_flags, false, false, false))
++	if (!hugepage_vma_check(vma, vma->vm_flags, false, false, false,
++				BIT(PMD_ORDER)))
+ 		return -EINVAL;
+ 
+ 	cc = kmalloc(sizeof(*cc), GFP_KERNEL);
+--- a/mm/memory.c~mm-thp-introduce-anon_orders-and-anon_always_mask-sysfs-files
++++ a/mm/memory.c
+@@ -4312,7 +4312,7 @@ vm_fault_t do_set_pmd(struct vm_fault *v
+ 	pmd_t entry;
+ 	vm_fault_t ret = VM_FAULT_FALLBACK;
+ 
+-	if (!transhuge_vma_suitable(vma, haddr))
++	if (!transhuge_vma_suitable(vma, haddr, BIT(PMD_ORDER)))
+ 		return ret;
+ 
+ 	page = compound_head(page);
+@@ -5110,7 +5110,7 @@ static vm_fault_t __handle_mm_fault(stru
+ 		return VM_FAULT_OOM;
+ retry_pud:
+ 	if (pud_none(*vmf.pud) &&
+-	    hugepage_vma_check(vma, vm_flags, false, true, true)) {
++	    hugepage_vma_check(vma, vm_flags, false, true, true, BIT(PUD_ORDER))) {
+ 		ret = create_huge_pud(&vmf);
+ 		if (!(ret & VM_FAULT_FALLBACK))
+ 			return ret;
+@@ -5144,7 +5144,7 @@ retry_pud:
+ 		goto retry_pud;
+ 
+ 	if (pmd_none(*vmf.pmd) &&
+-	    hugepage_vma_check(vma, vm_flags, false, true, true)) {
++	    hugepage_vma_check(vma, vm_flags, false, true, true, BIT(PMD_ORDER))) {
+ 		ret = create_huge_pmd(&vmf);
+ 		if (!(ret & VM_FAULT_FALLBACK))
+ 			return ret;
+--- a/mm/page_vma_mapped.c~mm-thp-introduce-anon_orders-and-anon_always_mask-sysfs-files
++++ a/mm/page_vma_mapped.c
+@@ -268,7 +268,8 @@ restart:
+ 			 * cleared *pmd but not decremented compound_mapcount().
  			 */
- 			if (PageTransCompound(page))
- 				goto put;
---- a/mm/rmap.c~mm-thp-account-pte-mapped-anonymous-thp-usage
-+++ a/mm/rmap.c
-@@ -1244,7 +1244,7 @@ void page_add_anon_rmap(struct page *pag
- {
- 	struct folio *folio = page_folio(page);
- 	atomic_t *mapped = &folio->_nr_pages_mapped;
--	int nr = 0, nr_pmdmapped = 0;
-+	int nr = 0, nr_pmdmapped = 0, nr_lgmapped = 0;
- 	bool compound = flags & RMAP_COMPOUND;
- 	bool first;
+ 			if ((pvmw->flags & PVMW_SYNC) &&
+-			    transhuge_vma_suitable(vma, pvmw->address) &&
++			    transhuge_vma_suitable(vma, pvmw->address,
++						   BIT(PMD_ORDER)) &&
+ 			    (pvmw->nr_pages >= HPAGE_PMD_NR)) {
+ 				spinlock_t *ptl = pmd_lock(mm, pvmw->pmd);
  
-@@ -1253,6 +1253,7 @@ void page_add_anon_rmap(struct page *pag
- 		first = atomic_inc_and_test(&page->_mapcount);
- 		nr = first;
- 		if (first && folio_test_large(folio)) {
-+			nr_lgmapped = 1;
- 			nr = atomic_inc_return_relaxed(mapped);
- 			nr = (nr < COMPOUND_MAPPED);
- 		}
-@@ -1277,6 +1278,8 @@ void page_add_anon_rmap(struct page *pag
- 
- 	if (nr_pmdmapped)
- 		__lruvec_stat_mod_folio(folio, NR_ANON_THPS, nr_pmdmapped);
-+	if (nr_lgmapped)
-+		__lruvec_stat_mod_folio(folio, NR_ANON_THPS_PTEMAPPED, nr_lgmapped);
- 	if (nr)
- 		__lruvec_stat_mod_folio(folio, NR_ANON_MAPPED, nr);
- 
-@@ -1350,6 +1353,7 @@ void folio_add_new_anon_rmap(struct foli
- 		}
- 
- 		atomic_set(&folio->_nr_pages_mapped, nr);
-+		__lruvec_stat_mod_folio(folio, NR_ANON_THPS_PTEMAPPED, nr);
- 	} else {
- 		/* increment count (starts at -1) */
- 		atomic_set(&folio->_entire_mapcount, 0);
-@@ -1464,7 +1468,7 @@ void page_remove_rmap(struct page *page,
- {
- 	struct folio *folio = page_folio(page);
- 	atomic_t *mapped = &folio->_nr_pages_mapped;
--	int nr = 0, nr_pmdmapped = 0;
-+	int nr = 0, nr_pmdmapped = 0, nr_lgmapped = 0;
- 	bool last;
- 	enum node_stat_item idx;
- 
-@@ -1482,6 +1486,7 @@ void page_remove_rmap(struct page *page,
- 		last = atomic_add_negative(-1, &page->_mapcount);
- 		nr = last;
- 		if (last && folio_test_large(folio)) {
-+			nr_lgmapped = 1;
- 			nr = atomic_dec_return_relaxed(mapped);
- 			nr = (nr < COMPOUND_MAPPED);
- 		}
-@@ -1513,6 +1518,8 @@ void page_remove_rmap(struct page *page,
- 			idx = NR_FILE_PMDMAPPED;
- 		__lruvec_stat_mod_folio(folio, idx, -nr_pmdmapped);
- 	}
-+	if (nr_lgmapped && folio_test_anon(folio))
-+		__lruvec_stat_mod_folio(folio, NR_ANON_THPS_PTEMAPPED, -nr_lgmapped);
- 	if (nr) {
- 		idx = folio_test_anon(folio) ? NR_ANON_MAPPED : NR_FILE_MAPPED;
- 		__lruvec_stat_mod_folio(folio, idx, -nr);
---- a/mm/show_mem.c~mm-thp-account-pte-mapped-anonymous-thp-usage
-+++ a/mm/show_mem.c
-@@ -251,6 +251,7 @@ static void show_free_areas(unsigned int
- 			" shmem_thp:%lukB"
- 			" shmem_pmdmapped:%lukB"
- 			" anon_thp:%lukB"
-+			" anon_thp_pte:%lukB"
- #endif
- 			" writeback_tmp:%lukB"
- 			" kernel_stack:%lukB"
-@@ -277,6 +278,7 @@ static void show_free_areas(unsigned int
- 			K(node_page_state(pgdat, NR_SHMEM_THPS)),
- 			K(node_page_state(pgdat, NR_SHMEM_PMDMAPPED)),
- 			K(node_page_state(pgdat, NR_ANON_THPS)),
-+			K(node_page_state(pgdat, NR_ANON_THPS_PTEMAPPED)),
- #endif
- 			K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
- 			node_page_state(pgdat, NR_KERNEL_STACK_KB),
---- a/mm/vmstat.c~mm-thp-account-pte-mapped-anonymous-thp-usage
-+++ a/mm/vmstat.c
-@@ -1228,6 +1228,7 @@ const char * const vmstat_text[] = {
- 	"nr_file_hugepages",
- 	"nr_file_pmdmapped",
- 	"nr_anon_transparent_hugepages",
-+	"nr_anon_thp_pte",
- 	"nr_vmscan_write",
- 	"nr_vmscan_immediate_reclaim",
- 	"nr_dirtied",
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
