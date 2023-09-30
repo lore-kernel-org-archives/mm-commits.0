@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F735E7734F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6475E77353
 	for <mm-commits@archiver.kernel.org>; Sat, 30 Sep 2023 00:21:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232410AbjI3AVV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S233925AbjI3AVV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 29 Sep 2023 20:21:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51152 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51130 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233925AbjI3AVT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Sep 2023 20:21:19 -0400
+        with ESMTP id S233908AbjI3AVU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Sep 2023 20:21:20 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5DB31B6;
-        Fri, 29 Sep 2023 17:21:17 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 176A6C433CC;
-        Sat, 30 Sep 2023 00:21:17 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 458051B8
+        for <mm-commits@vger.kernel.org>; Fri, 29 Sep 2023 17:21:15 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8129C433C8;
+        Sat, 30 Sep 2023 00:21:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696033277;
-        bh=BOXFOmCjhGVUPIv7MNkaYg9RArm5d9WXK1IfFQrn7HA=;
+        s=korg; t=1696033274;
+        bh=pLNB6E5dKhS1qqtKNOnfx4/T1XTlhnX+u50hSNFianw=;
         h=Date:To:From:Subject:From;
-        b=euL0Vy3qhLMGjwbWzBxSENtlj7xOBsyU4vz4mjQ+mpTr4awBDWwOVaEcU/6K4qGmM
-         5IiZOoPInOmrAJLH9DNOcYVEFaNqT3unPP5z5UtWBHLAStCpXLVZqNueVhd9gO/PeG
-         yHs3nYpGXLDYPAe0ywmNXuSUg+f6Xf+a0VeKHuoI=
-Date:   Fri, 29 Sep 2023 17:21:16 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        pedro.falcato@gmail.com, Liam.Howlett@oracle.com,
-        akpm@linux-foundation.org
+        b=yDr2p+t15fI2IozvEL88i06reSYKcnYBbGevq3MxhF1bqSJPoYZ/frv5KNvcqEQKT
+         g57bftz9sGsLiYkRsAb+7URGleVcgYXgG3hpO70qwkfxYdOC8vFkkB3spDcdmmrX22
+         q3U7G+E2nTdezIIoBrAiucf0dhA6RnSV9jpaQpiU=
+Date:   Fri, 29 Sep 2023 17:21:14 -0700
+To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
+        fengwei.yin@intel.com, david@redhat.com, dave.hansen@intel.com,
+        willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maple_tree-add-mas_active-to-detect-in-tree-walks.patch removed from -mm tree
-Message-Id: <20230930002117.176A6C433CC@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-abstract-moving-to-the-next-pfn.patch removed from -mm tree
+Message-Id: <20230930002114.C8129C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,74 +37,107 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: maple_tree: add mas_is_active() to detect in-tree walks
+     Subject: mm: abstract moving to the next PFN
 has been removed from the -mm tree.  Its filename was
-     maple_tree-add-mas_active-to-detect-in-tree-walks.patch
+     mm-abstract-moving-to-the-next-pfn.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: add mas_is_active() to detect in-tree walks
-Date: Thu, 21 Sep 2023 14:12:35 -0400
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: abstract moving to the next PFN
+Date: Wed, 20 Sep 2023 05:09:58 +0100
 
-Patch series "maple_tree: Fix mas_prev() state regression".
+In order to fix the L1TF vulnerability, x86 can invert the PTE bits for
+PROT_NONE VMAs, which means we cannot move from one PTE to the next by
+adding 1 to the PFN field of the PTE.  This results in the BUG reported at
+[1].
 
-Pedro Falcato retported an mprotect regression [1] which was bisected back
-to the iterator changes for maple tree.  Root cause analysis showed the
-mas_prev() running off the end of the VMA space (previous from 0) followed
-by mas_find(), would skip the first value.
+Abstract advancing the PTE to the next PFN through a pte_next_pfn()
+function/macro.
 
-This patchset introduces maple state underflow/overflow so the sequence of
-calls on the maple state will return what the user expects.
-
-Users who encounter this bug may see mprotect(), userfaultfd_register(),
-and mlock() fail on VMAs mapped with address 0.
-
-
-This patch (of 2):
-
-Instead of constantly checking each possibility of the maple state,
-create a fast path that will skip over checking unlikely states.
-
-Link: https://lkml.kernel.org/r/20230921181236.509072-1-Liam.Howlett@oracle.com
-Link: https://lkml.kernel.org/r/20230921181236.509072-2-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Pedro Falcato <pedro.falcato@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20230920040958.866520-1-willy@infradead.org
+Fixes: bcc6cc832573 ("mm: add default definition of set_ptes()")
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reported-by: syzbot+55cc72f8cc3a549119df@syzkaller.appspotmail.com
+Closes: https://lkml.kernel.org/r/000000000000d099fa0604f03351@google.com [1]
+Reviewed-by: Yin Fengwei <fengwei.yin@intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/maple_tree.h |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/x86/include/asm/pgtable.h |    8 ++++++++
+ include/linux/pgtable.h        |   10 +++++++++-
+ 2 files changed, 17 insertions(+), 1 deletion(-)
 
---- a/include/linux/maple_tree.h~maple_tree-add-mas_active-to-detect-in-tree-walks
-+++ a/include/linux/maple_tree.h
-@@ -511,6 +511,15 @@ static inline bool mas_is_paused(const s
- 	return mas->node == MAS_PAUSE;
+--- a/arch/x86/include/asm/pgtable.h~mm-abstract-moving-to-the-next-pfn
++++ a/arch/x86/include/asm/pgtable.h
+@@ -955,6 +955,14 @@ static inline int pte_same(pte_t a, pte_
+ 	return a.pte == b.pte;
  }
  
-+/* Check if the mas is pointing to a node or not */
-+static inline bool mas_is_active(struct ma_state *mas)
++static inline pte_t pte_next_pfn(pte_t pte)
 +{
-+	if ((unsigned long)mas->node >= MAPLE_RESERVED_RANGE)
-+		return true;
-+
-+	return false;
++	if (__pte_needs_invert(pte_val(pte)))
++		return __pte(pte_val(pte) - (1UL << PFN_PTE_SHIFT));
++	return __pte(pte_val(pte) + (1UL << PFN_PTE_SHIFT));
 +}
++#define pte_next_pfn	pte_next_pfn
++
+ static inline int pte_present(pte_t a)
+ {
+ 	return pte_flags(a) & (_PAGE_PRESENT | _PAGE_PROTNONE);
+--- a/include/linux/pgtable.h~mm-abstract-moving-to-the-next-pfn
++++ a/include/linux/pgtable.h
+@@ -206,6 +206,14 @@ static inline int pmd_young(pmd_t pmd)
+ #endif
+ 
+ #ifndef set_ptes
++
++#ifndef pte_next_pfn
++static inline pte_t pte_next_pfn(pte_t pte)
++{
++	return __pte(pte_val(pte) + (1UL << PFN_PTE_SHIFT));
++}
++#endif
 +
  /**
-  * mas_reset() - Reset a Maple Tree operation state.
-  * @mas: Maple Tree operation state.
+  * set_ptes - Map consecutive pages to a contiguous range of addresses.
+  * @mm: Address space to map the pages into.
+@@ -231,7 +239,7 @@ static inline void set_ptes(struct mm_st
+ 		if (--nr == 0)
+ 			break;
+ 		ptep++;
+-		pte = __pte(pte_val(pte) + (1UL << PFN_PTE_SHIFT));
++		pte = pte_next_pfn(pte);
+ 	}
+ 	arch_leave_lazy_mmu_mode();
+ }
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-maple_tree-add-mas_underflow-and-mas_overflow-states.patch
-mm-mempolicy-fix-set_mempolicy_home_node-previous-vma-pointer.patch
-mmap-fix-vma_iterator-in-error-path-of-vma_merge.patch
-mmap-fix-error-paths-with-dup_anon_vma.patch
-mmap-add-clarifying-comment-to-vma_merge-code.patch
-radix-tree-test-suite-fix-allocation-calculation-in-kmem_cache_alloc_bulk.patch
+i915-limit-the-length-of-an-sg-list-to-the-requested-length.patch
+mm-convert-dax-lock-unlock-page-to-lock-unlock-folio.patch
+buffer-pass-gfp-flags-to-folio_alloc_buffers.patch
+buffer-hoist-gfp-flags-from-grow_dev_page-to-__getblk_gfp.patch
+buffer-hoist-gfp-flags-from-grow_dev_page-to-__getblk_gfp-fix.patch
+ext4-use-bdev_getblk-to-avoid-memory-reclaim-in-readahead-path.patch
+buffer-use-bdev_getblk-to-avoid-memory-reclaim-in-readahead-path.patch
+buffer-convert-getblk_unmovable-and-__getblk-to-use-bdev_getblk.patch
+buffer-convert-sb_getblk-to-call-__getblk.patch
+ext4-call-bdev_getblk-from-sb_getblk_gfp.patch
+buffer-remove-__getblk_gfp.patch
+hugetlb-use-a-folio-in-free_hpage_workfn.patch
+hugetlb-remove-a-few-calls-to-page_folio.patch
+hugetlb-convert-remove_pool_huge_page-to-remove_pool_hugetlb_folio.patch
+mm-make-lock_folio_maybe_drop_mmap-vma-lock-aware.patch
+mm-call-wp_page_copy-under-the-vma-lock.patch
+mm-handle-shared-faults-under-the-vma-lock.patch
+mm-handle-cow-faults-under-the-vma-lock.patch
+mm-handle-read-faults-under-the-vma-lock.patch
+mm-handle-write-faults-to-ro-pages-under-the-vma-lock.patch
 
