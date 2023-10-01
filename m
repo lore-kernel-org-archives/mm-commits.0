@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89A7BE78486
-	for <mm-commits@archiver.kernel.org>; Sun,  1 Oct 2023 19:56:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6629E78488
+	for <mm-commits@archiver.kernel.org>; Sun,  1 Oct 2023 19:56:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235349AbjJAT4m (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 1 Oct 2023 15:56:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45448 "EHLO
+        id S235346AbjJAT4o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 1 Oct 2023 15:56:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45462 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235346AbjJAT4l (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 1 Oct 2023 15:56:41 -0400
+        with ESMTP id S235353AbjJAT4n (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 1 Oct 2023 15:56:43 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5453291
-        for <mm-commits@vger.kernel.org>; Sun,  1 Oct 2023 12:56:39 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB478C433C7;
-        Sun,  1 Oct 2023 19:56:38 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45C48C4
+        for <mm-commits@vger.kernel.org>; Sun,  1 Oct 2023 12:56:41 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5565C433C9;
+        Sun,  1 Oct 2023 19:56:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696190199;
-        bh=eF8W+EaCG1wDjEymGfCjsetoGQoEjGI48PQ97vjmT9I=;
+        s=korg; t=1696190200;
+        bh=GuDD4S6nCq+jd94REKrMWORTXPzAHHU4x0d7f7OYtss=;
         h=Date:To:From:Subject:From;
-        b=OGCzHACtol9i2jqN5yTNIeq8BBSBMJzTLPxionaYtkUMUsuLh+f2kF4q7Henw+JVQ
-         SmbDnhOIqB3n4tjKRh2mbSoCQ8graNDcloe0JwlSEgW9KOxDnOGfjENnWvPo9godoC
-         YzPb7lQU7RwNpnRxGVHeKBsuIDIrnwPpT5i1CbIE=
-Date:   Sun, 01 Oct 2023 12:56:38 -0700
+        b=J5KRlkQGk81ptYbh1bLt9pZigh8YUxHSRHgDsXNSjjD6o9AJbB0cvGp55uzV7bvVM
+         BiLbxINuAAOQ/puKdup8mR7y029E2BRXMspj51oBxR+lUd0wLi5VNVlu0lzyl4jUxJ
+         oJmsCldh9fl1t2zZQV0ulhLIbXuxWL5OfKMOLde8=
+Date:   Sun, 01 Oct 2023 12:56:40 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         tim.c.chen@intel.com, jack@suse.cz, hannes@cmpxchg.org,
         djwong@kernel.org, dchinner@redhat.com, chuck.lever@oracle.com,
         cem@kernel.org, brauner@kernel.org, axelrasmussen@google.com,
         hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + shmem-shrink-shmem_inode_info-dir_offsets-in-a-union.patch added to mm-unstable branch
-Message-Id: <20231001195638.DB478C433C7@smtp.kernel.org>
+Subject: + shmem-remove-vma-arg-from-shmem_get_folio_gfp.patch added to mm-unstable branch
+Message-Id: <20231001195640.C5565C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,12 +39,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: shrink shmem_inode_info: dir_offsets in a union
+     Subject: shmem: remove vma arg from shmem_get_folio_gfp()
 has been added to the -mm mm-unstable branch.  Its filename is
-     shmem-shrink-shmem_inode_info-dir_offsets-in-a-union.patch
+     shmem-remove-vma-arg-from-shmem_get_folio_gfp.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-shrink-shmem_inode_info-dir_offsets-in-a-union.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-remove-vma-arg-from-shmem_get_folio_gfp.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -63,73 +63,75 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: shmem: shrink shmem_inode_info: dir_offsets in a union
-Date: Fri, 29 Sep 2023 20:25:38 -0700 (PDT)
+Subject: shmem: remove vma arg from shmem_get_folio_gfp()
+Date: Fri, 29 Sep 2023 20:26:53 -0700 (PDT)
 
-Patch series "shmem,tmpfs: general maintenance".
+The vma is already there in vmf->vma, so no need for a separate arg.
 
-Mostly just cosmetic mods in mm/shmem.c, but the last two enforcing the
-"size=" limit better.  8/8 goes into percpu counter territory, and could
-stand alone.
-
-
-This patch (of 8):
-
-Shave 32 bytes off (the 64-bit) shmem_inode_info.  There was a 4-byte
-pahole after stop_eviction, better filled by fsflags.  And the 24-byte
-dir_offsets can only be used by directories, whereas shrinklist and
-swaplist only by shmem_mapping() inodes (regular files or long symlinks):
-so put those into a union.  No change in mm/shmem.c is required for this.
-
-Link: https://lkml.kernel.org/r/c7441dc6-f3bb-dd60-c670-9f5cbd9f266@google.com
-Link: https://lkml.kernel.org/r/86ebb4b-c571-b9e8-27f5-cb82ec50357e@google.com
+Link: https://lkml.kernel.org/r/d9ce6f65-a2ed-48f4-4299-fdb0544875c5@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Chuck Lever <chuck.lever@oracle.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Carlos Maiolino <cem@kernel.org>
 Cc: Christian Brauner <brauner@kernel.org>
+Cc: Chuck Lever <chuck.lever@oracle.com>
+Cc: Darrick J. Wong <djwong@kernel.org>
+Cc: Dave Chinner <dchinner@redhat.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Darrick J. Wong <djwong@kernel.org>
-Cc: Dave Chinner <dchinner@redhat.com>
 Cc: Tim Chen <tim.c.chen@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shmem_fs.h |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ mm/shmem.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
---- a/include/linux/shmem_fs.h~shmem-shrink-shmem_inode_info-dir_offsets-in-a-union
-+++ a/include/linux/shmem_fs.h
-@@ -23,18 +23,22 @@ struct shmem_inode_info {
- 	unsigned long		flags;
- 	unsigned long		alloced;	/* data pages alloced to file */
- 	unsigned long		swapped;	/* subtotal assigned to swap */
--	pgoff_t			fallocend;	/* highest fallocate endindex */
--	struct list_head        shrinklist;     /* shrinkable hpage inodes */
--	struct list_head	swaplist;	/* chain of maybes on swap */
-+	union {
-+	    struct offset_ctx	dir_offsets;	/* stable directory offsets */
-+	    struct {
-+		struct list_head shrinklist;	/* shrinkable hpage inodes */
-+		struct list_head swaplist;	/* chain of maybes on swap */
-+	    };
-+	};
-+	struct timespec64	i_crtime;	/* file creation time */
- 	struct shared_policy	policy;		/* NUMA memory alloc policy */
- 	struct simple_xattrs	xattrs;		/* list of xattrs */
-+	pgoff_t			fallocend;	/* highest fallocate endindex */
-+	unsigned int		fsflags;	/* for FS_IOC_[SG]ETFLAGS */
- 	atomic_t		stop_eviction;	/* hold when working on inode */
--	struct timespec64	i_crtime;	/* file creation time */
--	unsigned int		fsflags;	/* flags for FS_IOC_[SG]ETFLAGS */
- #ifdef CONFIG_TMPFS_QUOTA
- 	struct dquot		*i_dquot[MAXQUOTAS];
- #endif
--	struct offset_ctx	dir_offsets;	/* stable entry offsets */
- 	struct inode		vfs_inode;
- };
+--- a/mm/shmem.c~shmem-remove-vma-arg-from-shmem_get_folio_gfp
++++ a/mm/shmem.c
+@@ -1938,14 +1938,13 @@ unlock:
+  * vm. If we swap it in we mark it dirty since we also free the swap
+  * entry since a page cannot live in both the swap and page cache.
+  *
+- * vma, vmf, and fault_type are only supplied by shmem_fault:
+- * otherwise they are NULL.
++ * vmf and fault_type are only supplied by shmem_fault: otherwise they are NULL.
+  */
+ static int shmem_get_folio_gfp(struct inode *inode, pgoff_t index,
+ 		struct folio **foliop, enum sgp_type sgp, gfp_t gfp,
+-		struct vm_area_struct *vma, struct vm_fault *vmf,
+-		vm_fault_t *fault_type)
++		struct vm_fault *vmf, vm_fault_t *fault_type)
+ {
++	struct vm_area_struct *vma = vmf ? vmf->vma : NULL;
+ 	struct address_space *mapping = inode->i_mapping;
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+ 	struct shmem_sb_info *sbinfo;
+@@ -2158,7 +2157,7 @@ int shmem_get_folio(struct inode *inode,
+ 		enum sgp_type sgp)
+ {
+ 	return shmem_get_folio_gfp(inode, index, foliop, sgp,
+-			mapping_gfp_mask(inode->i_mapping), NULL, NULL, NULL);
++			mapping_gfp_mask(inode->i_mapping), NULL, NULL);
+ }
+ 
+ /*
+@@ -2242,7 +2241,7 @@ static vm_fault_t shmem_fault(struct vm_
+ 	}
+ 
+ 	err = shmem_get_folio_gfp(inode, vmf->pgoff, &folio, SGP_CACHE,
+-				  gfp, vma, vmf, &ret);
++				  gfp, vmf, &ret);
+ 	if (err)
+ 		return vmf_error(err);
+ 	if (folio)
+@@ -4910,7 +4909,7 @@ struct folio *shmem_read_folio_gfp(struc
+ 
+ 	BUG_ON(!shmem_mapping(mapping));
+ 	error = shmem_get_folio_gfp(inode, index, &folio, SGP_CACHE,
+-				  gfp, NULL, NULL, NULL);
++				    gfp, NULL, NULL);
+ 	if (error)
+ 		return ERR_PTR(error);
  
 _
 
