@@ -2,34 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 232F1E78488
-	for <mm-commits@archiver.kernel.org>; Sun,  1 Oct 2023 19:37:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63CCCE78486
+	for <mm-commits@archiver.kernel.org>; Sun,  1 Oct 2023 19:39:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235309AbjJATho (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 1 Oct 2023 15:37:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42640 "EHLO
+        id S235339AbjJATjl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 1 Oct 2023 15:39:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40182 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235338AbjJAThn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 1 Oct 2023 15:37:43 -0400
+        with ESMTP id S235338AbjJATjl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 1 Oct 2023 15:39:41 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 35AA9BF
-        for <mm-commits@vger.kernel.org>; Sun,  1 Oct 2023 12:37:41 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B716AC433C7;
-        Sun,  1 Oct 2023 19:37:40 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8AF22BF
+        for <mm-commits@vger.kernel.org>; Sun,  1 Oct 2023 12:39:39 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 136BFC433C8;
+        Sun,  1 Oct 2023 19:39:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696189060;
-        bh=6EPjLlb4OBJAhOkG8auvTmx/3zuxdSU3NHc+usR5alI=;
+        s=korg; t=1696189179;
+        bh=P4A85VJjXdPdCbyJVHJWQ38/3tVAbNMH5U2KYZPO9RQ=;
         h=Date:To:From:Subject:From;
-        b=EeGWscLAN4xNFZRaAVmr4erKOj3XAGX/drKwIQSgTTIjfWydQuTsNplnOOPpPfss4
-         5XeZXjO9KZYnYWYR5bn/0A6PXU6+yC3Px4c/ZX5pqUkAZl+Jf+lAgEFxl8vRYELAJw
-         iGvqNrPNiX7QdJOUWlibDU32YvIYXGhmb+xBT6J0=
-Date:   Sun, 01 Oct 2023 12:37:40 -0700
-To:     mm-commits@vger.kernel.org, shuah@kernel.org, hughd@google.com,
-        adobriyan@gmail.com, swarupkotikalapudi@gmail.com,
+        b=xF5aItISY6ITdHpJIDNpIt2x7gW7eNWVw0+L5//vSj6RDqBU3NUeCFhnm0H9YJ0Fw
+         ie2Q4M2sQCfETKP6iB9/zGhvaprtR4qsKX5BKCtcmuQcYN8lLjo7kzUcQ3SC5MVRmP
+         WAtIku4lKb3FbR8edz6usF6a1axA7N/+dGNtkpHY=
+Date:   Sun, 01 Oct 2023 12:39:38 -0700
+To:     mm-commits@vger.kernel.org, roman.gushchin@linux.dev,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-proc-add-proc-pid-statm-output-validation.patch added to mm-nonmm-unstable branch
-Message-Id: <20231001193740.B716AC433C7@smtp.kernel.org>
+Subject: + mm-kmem-add-direct-objcg-pointer-to-task_struct-fix.patch added to mm-unstable branch
+Message-Id: <20231001193939.136BFC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,14 +36,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: proc: add /proc/$(pid)/statm output validation
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-proc-add-proc-pid-statm-output-validation.patch
+     Subject: mm-kmem-add-direct-objcg-pointer-to-task_struct-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-kmem-add-direct-objcg-pointer-to-task_struct-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-proc-add-proc-pid-statm-output-validation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmem-add-direct-objcg-pointer-to-task_struct-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -60,88 +59,39 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Swarup Laxman Kotiaklapudi <swarupkotikalapudi@gmail.com>
-Subject: selftests: proc: add /proc/$(pid)/statm output validation
-Date: Sun, 1 Oct 2023 22:38:16 +0530
+From: Roman Gushchin <roman.gushchin@linux.dev>
+Subject: mm-kmem-add-direct-objcg-pointer-to-task_struct-fix
+Date: Sun, 1 Oct 2023 09:42:54 -0700
 
-Add /proc/${pid}/statm validation
+fix sparse complaint
 
-/proc/$(pid)/statm output is expected to be:
- "0 0 0 * 0 0 0\n"
-Here * can be any value
+Link: https://lkml.kernel.org/r/ZRmhjpGvKIdGj162@P9FQF9L96D.lan
 
-Read output of /proc/$(pid)/statm
-and compare length of output is
-equal or greater than expected output
-
-Link: https://lkml.kernel.org/r/20231001170816.28241-1-swarupkotikalapudi@gmail.com
-Signed-off-by: Swarup Laxman Kotiaklapudi <swarupkotikalapudi@gmail.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/proc/proc-empty-vm.c |   38 ++++++++++++++---
- 1 file changed, 33 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/proc/proc-empty-vm.c~selftests-proc-add-proc-pid-statm-output-validation
-+++ a/tools/testing/selftests/proc/proc-empty-vm.c
-@@ -303,6 +303,37 @@ static int test_proc_pid_smaps_rollup(pi
- 	}
- }
+--- a/mm/memcontrol.c~mm-kmem-add-direct-objcg-pointer-to-task_struct-fix
++++ a/mm/memcontrol.c
+@@ -3053,7 +3053,7 @@ static struct obj_cgroup *current_objcg_
+ 	rcu_read_lock();
+ 	do {
+ 		/* Atomically drop the update bit, */
+-		WARN_ON_ONCE(cmpxchg(&current->objcg, tmp, 0) != tmp);
++		WARN_ON_ONCE(cmpxchg(&current->objcg, tmp, NULL) != tmp);
  
-+static const char g_statm[] = "0 0 0 * 0 0 0\n";
-+
-+static int test_proc_pid_statm(pid_t pid)
-+{
-+	char buf[4096];
-+
-+	snprintf(buf, sizeof(buf), "/proc/%u/statm", pid);
-+
-+	int fd = open(buf, O_RDONLY);
-+
-+	if (fd == -1) {
-+		if (errno == ENOENT) {
-+			/*
-+			 * /proc/${pid}/statm is under CONFIG_PROC_PAGE_MONITOR,
-+			 * it doesn't necessarily exist.
-+			 */
-+			return EXIT_SUCCESS;
-+		}
-+		perror("open /proc/${pid}/statm");
-+		return EXIT_FAILURE;
-+	} else {
-+		ssize_t rv = read(fd, buf, sizeof(buf));
-+
-+		close(fd);
-+		size_t len = strlen(g_statm);
-+
-+		assert(rv >= len);
-+		return EXIT_SUCCESS;
-+	}
-+}
-+
- int main(void)
- {
- 	int rv = EXIT_SUCCESS;
-@@ -389,11 +420,8 @@ int main(void)
- 		if (rv == EXIT_SUCCESS) {
- 			rv = test_proc_pid_smaps_rollup(pid);
- 		}
--		/*
--		 * TODO test /proc/${pid}/statm, task_statm()
--		 * ->start_code, ->end_code aren't updated by munmap().
--		 * Output can be "0 0 0 2 0 0 0\n" where "2" can be anything.
--		 */
-+		if (rv == EXIT_SUCCESS)
-+			rv = test_proc_pid_statm(pid);
- 
- 		/* Cut the rope. */
- 		int wstatus;
+ 		/* ...obtain the new objcg pointer */
+ 		memcg = mem_cgroup_from_task(current);
 _
 
-Patches currently in -mm which might be from swarupkotikalapudi@gmail.com are
+Patches currently in -mm which might be from roman.gushchin@linux.dev are
 
-selftests-proc-add-proc-pid-statm-output-validation.patch
+mm-kmem-optimize-get_obj_cgroup_from_current.patch
+mm-kmem-add-direct-objcg-pointer-to-task_struct.patch
+mm-kmem-add-direct-objcg-pointer-to-task_struct-fix.patch
+mm-kmem-make-memcg-keep-a-reference-to-the-original-objcg.patch
+mm-kmem-scoped-objcg-protection.patch
+percpu-scoped-objcg-protection.patch
 
