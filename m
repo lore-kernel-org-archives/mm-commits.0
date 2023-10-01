@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48845E78486
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E987CE7848A
 	for <mm-commits@archiver.kernel.org>; Sun,  1 Oct 2023 19:56:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235358AbjJAT45 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 1 Oct 2023 15:56:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34644 "EHLO
+        id S235365AbjJAT46 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 1 Oct 2023 15:56:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235369AbjJAT4y (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 1 Oct 2023 15:56:54 -0400
+        with ESMTP id S235370AbjJAT4z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 1 Oct 2023 15:56:55 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 13C4AD9
-        for <mm-commits@vger.kernel.org>; Sun,  1 Oct 2023 12:56:51 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A14A1C433CB;
-        Sun,  1 Oct 2023 19:56:50 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E396DA
+        for <mm-commits@vger.kernel.org>; Sun,  1 Oct 2023 12:56:53 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B89A1C433C8;
+        Sun,  1 Oct 2023 19:56:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696190210;
-        bh=e9N9hP1UTXgYNBN9aBQ8gQMlz/+vM+lfziBQzdWtxOw=;
+        s=korg; t=1696190212;
+        bh=0FAWM9xnP2hf5amQOuhB2ZlYllhVY9E7pcK6mXQY6DU=;
         h=Date:To:From:Subject:From;
-        b=Z4NdY4I+Gbzm8i9fRzc9PgEi1kt4bQWYOepKzwoY2zMID8TJ/wY74p0aiRQROo+7t
-         p7yRvyZdGD8+wy2Wloq7f2OZ/NSfG8RB8uPhSum9LaJNfQNnb3HW77nIWKODia0w8f
-         85Gbni7MhoLhcvi/pIBnGGV982aRCrLMdPazlwHE=
-Date:   Sun, 01 Oct 2023 12:56:50 -0700
+        b=eEgzA2rKcgdQaeCrzhUf1OD7vbcWE9dsU8cmIL2QtKlge8H5P3ZWfsMn6k7dncz+3
+         X8ZP50FfD0Qjv3eLjGWy0bU3Kq3vFYuknJs6ty9ITsnsQ5yUjn3blwaYaAni4BioHq
+         OYzRmd+aFD86gxe7gdc60a/fGC8Lj/eB4bOwhzF0=
+Date:   Sun, 01 Oct 2023 12:56:52 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         tim.c.chen@intel.com, jack@suse.cz, hannes@cmpxchg.org,
         djwong@kernel.org, dchinner@redhat.com, chuck.lever@oracle.com,
         cem@kernel.org, brauner@kernel.org, axelrasmussen@google.com,
         hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + shmem-_add_to_page_cache-before-shmem_inode_acct_blocks.patch added to mm-unstable branch
-Message-Id: <20231001195650.A14A1C433CB@smtp.kernel.org>
+Subject: + shmempercpu_counter-add-_limited_addfbc-limit-amount.patch added to mm-unstable branch
+Message-Id: <20231001195652.B89A1C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,12 +39,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: _add_to_page_cache() before shmem_inode_acct_blocks()
+     Subject: shmem,percpu_counter: add _limited_add(fbc, limit, amount)
 has been added to the -mm mm-unstable branch.  Its filename is
-     shmem-_add_to_page_cache-before-shmem_inode_acct_blocks.patch
+     shmempercpu_counter-add-_limited_addfbc-limit-amount.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-_add_to_page_cache-before-shmem_inode_acct_blocks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmempercpu_counter-add-_limited_addfbc-limit-amount.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -63,425 +63,184 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: shmem: _add_to_page_cache() before shmem_inode_acct_blocks()
-Date: Fri, 29 Sep 2023 20:32:40 -0700 (PDT)
+Subject: shmem,percpu_counter: add _limited_add(fbc, limit, amount)
+Date: Fri, 29 Sep 2023 20:42:45 -0700 (PDT)
 
-There has been a recurring problem, that when a tmpfs volume is being
-filled by racing threads, some fail with ENOSPC (or consequent SIGBUS or
-EFAULT) even though all allocations were within the permitted size.
+Percpu counter's compare and add are separate functions: without locking
+around them (which would defeat their purpose), it has been possible to
+overflow the intended limit.  Imagine all the other CPUs fallocating tmpfs
+huge pages to the limit, in between this CPU's compare and its add.
 
-This was a problem since early days, but magnified and complicated by the
-addition of huge pages.  We have often worked around it by adding some
-slop to the tmpfs size, but it's hard to say how much is needed, and some
-users prefer not to do that e.g.  keeping sparse files in a tightly
-tailored tmpfs helps to prevent accidental writing to holes.
+I have not seen reports of that happening; but tmpfs's recent addition of
+dquot_alloc_block_nodirty() in between the compare and the add makes it
+even more likely, and I'd be uncomfortable to leave it unfixed.
 
-This comes from the allocation sequence:
-1. check page cache for existing folio
-2. check and reserve from vm_enough_memory
-3. check and account from size of tmpfs
-4. if huge, check page cache for overlapping folio
-5. allocate physical folio, huge or small
-6. check and charge from mem cgroup limit
-7. add to page cache (but maybe another folio already got in).
+Introduce percpu_counter_limited_add(fbc, limit, amount) to prevent it.
 
-Concurrent tasks allocating at the same position could deplete the size
-allowance and fail.  Doing vm_enough_memory and size checks before the
-folio allocation was intentional (to limit the load on the page allocator
-from this source) and still has some virtue; but memory cgroup never did
-that, so I think it's better reordered to favour predictable behaviour.
+I believe this implementation is correct, and slightly more efficient than
+the combination of compare and add (taking the lock once rather than twice
+when nearing full - the last 128MiB of a tmpfs volume on a machine with
+128 CPUs and 4KiB pages); but it does beg for a better design - when
+nearing full, there is no new batching, but the costly percpu counter sum
+across CPUs still has to be done, while locked.
 
-1. check page cache for existing folio
-2. if huge, check page cache for overlapping folio
-3. allocate physical folio, huge or small
-4. check and charge from mem cgroup limit
-5. add to page cache (but maybe another folio already got in)
-6. check and reserve from vm_enough_memory
-7. check and account from size of tmpfs.
+Follow __percpu_counter_sum()'s example, including cpu_dying_mask as well
+as cpu_online_mask: but shouldn't __percpu_counter_compare() and
+__percpu_counter_limited_add() then be adding a num_dying_cpus() to
+num_online_cpus(), when they calculate the maximum which could be held
+across CPUs?  But the times when it matters would be vanishingly rare.
 
-The folio lock held from allocation onwards ensures that the !uptodate
-folio cannot be used by others, and can safely be deleted from the cache
-if checks 6 or 7 subsequently fail (and those waiting on folio lock
-already check that the folio was not truncated once they get the lock);
-and the early addition to page cache ensures that racers find it before
-they try to duplicate the accounting.
-
-Seize the opportunity to tidy up shmem_get_folio_gfp()'s ENOSPC retrying,
-which can be combined inside the new shmem_alloc_and_add_folio(): doing 2
-splits twice (once huge, once nonhuge) is not exactly equivalent to trying
-5 splits (and giving up early on huge), but let's keep it simple unless
-more complication proves necessary.
-
-Userfaultfd is a foreign country: they do things differently there, and
-for good reason - to avoid mmap_lock deadlock.  Leave ordering in
-shmem_mfill_atomic_pte() untouched for now, but I would rather like to
-mesh it better with shmem_get_folio_gfp() in the future.
-
-Link: https://lkml.kernel.org/r/22ddd06-d919-33b-1219-56335c1bf28e@google.com
+Link: https://lkml.kernel.org/r/bb817848-2d19-bcc8-39ca-ea179af0f0b4@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Tim Chen <tim.c.chen@intel.com>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Darrick J. Wong <djwong@kernel.org>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Carlos Maiolino <cem@kernel.org>
 Cc: Christian Brauner <brauner@kernel.org>
 Cc: Chuck Lever <chuck.lever@oracle.com>
-Cc: Darrick J. Wong <djwong@kernel.org>
-Cc: Dave Chinner <dchinner@redhat.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Tim Chen <tim.c.chen@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |  231 ++++++++++++++++++++++++++-------------------------
- 1 file changed, 119 insertions(+), 112 deletions(-)
+ include/linux/percpu_counter.h |   23 +++++++++++++
+ lib/percpu_counter.c           |   53 +++++++++++++++++++++++++++++++
+ mm/shmem.c                     |   10 ++---
+ 3 files changed, 81 insertions(+), 5 deletions(-)
 
---- a/mm/shmem.c~shmem-_add_to_page_cache-before-shmem_inode_acct_blocks
-+++ a/mm/shmem.c
-@@ -789,13 +789,11 @@ static int shmem_add_to_page_cache(struc
- 		xas_store(&xas, folio);
- 		if (xas_error(&xas))
- 			goto unlock;
--		if (folio_test_pmd_mappable(folio)) {
--			count_vm_event(THP_FILE_ALLOC);
-+		if (folio_test_pmd_mappable(folio))
- 			__lruvec_stat_mod_folio(folio, NR_SHMEM_THPS, nr);
--		}
--		mapping->nrpages += nr;
- 		__lruvec_stat_mod_folio(folio, NR_FILE_PAGES, nr);
- 		__lruvec_stat_mod_folio(folio, NR_SHMEM, nr);
-+		mapping->nrpages += nr;
- unlock:
- 		xas_unlock_irq(&xas);
- 	} while (xas_nomem(&xas, gfp));
-@@ -1629,25 +1627,17 @@ static struct folio *shmem_alloc_hugefol
- 		struct shmem_inode_info *info, pgoff_t index)
- {
- 	struct vm_area_struct pvma;
--	struct address_space *mapping = info->vfs_inode.i_mapping;
--	pgoff_t hindex;
- 	struct folio *folio;
+--- a/include/linux/percpu_counter.h~shmempercpu_counter-add-_limited_addfbc-limit-amount
++++ a/include/linux/percpu_counter.h
+@@ -57,6 +57,8 @@ void percpu_counter_add_batch(struct per
+ 			      s32 batch);
+ s64 __percpu_counter_sum(struct percpu_counter *fbc);
+ int __percpu_counter_compare(struct percpu_counter *fbc, s64 rhs, s32 batch);
++bool __percpu_counter_limited_add(struct percpu_counter *fbc, s64 limit,
++				  s64 amount, s32 batch);
+ void percpu_counter_sync(struct percpu_counter *fbc);
  
--	hindex = round_down(index, HPAGE_PMD_NR);
--	if (xa_find(&mapping->i_pages, &hindex, hindex + HPAGE_PMD_NR - 1,
--								XA_PRESENT))
--		return NULL;
--
--	shmem_pseudo_vma_init(&pvma, info, hindex);
-+	shmem_pseudo_vma_init(&pvma, info, index);
- 	folio = vma_alloc_folio(gfp, HPAGE_PMD_ORDER, &pvma, 0, true);
- 	shmem_pseudo_vma_destroy(&pvma);
--	if (!folio)
--		count_vm_event(THP_FILE_FALLBACK);
-+
- 	return folio;
+ static inline int percpu_counter_compare(struct percpu_counter *fbc, s64 rhs)
+@@ -69,6 +71,13 @@ static inline void percpu_counter_add(st
+ 	percpu_counter_add_batch(fbc, amount, percpu_counter_batch);
  }
  
- static struct folio *shmem_alloc_folio(gfp_t gfp,
--			struct shmem_inode_info *info, pgoff_t index)
-+		struct shmem_inode_info *info, pgoff_t index)
- {
- 	struct vm_area_struct pvma;
- 	struct folio *folio;
-@@ -1659,36 +1649,101 @@ static struct folio *shmem_alloc_folio(g
- 	return folio;
- }
- 
--static struct folio *shmem_alloc_and_acct_folio(gfp_t gfp, struct inode *inode,
--		pgoff_t index, bool huge)
-+static struct folio *shmem_alloc_and_add_folio(gfp_t gfp,
-+		struct inode *inode, pgoff_t index,
-+		struct mm_struct *fault_mm, bool huge)
- {
-+	struct address_space *mapping = inode->i_mapping;
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	struct folio *folio;
--	int nr;
--	int err;
-+	long pages;
-+	int error;
- 
- 	if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE))
- 		huge = false;
--	nr = huge ? HPAGE_PMD_NR : 1;
- 
--	err = shmem_inode_acct_blocks(inode, nr);
--	if (err)
--		goto failed;
-+	if (huge) {
-+		pages = HPAGE_PMD_NR;
-+		index = round_down(index, HPAGE_PMD_NR);
++static inline bool
++percpu_counter_limited_add(struct percpu_counter *fbc, s64 limit, s64 amount)
++{
++	return __percpu_counter_limited_add(fbc, limit, amount,
++					    percpu_counter_batch);
++}
 +
-+		/*
-+		 * Check for conflict before waiting on a huge allocation.
-+		 * Conflict might be that a huge page has just been allocated
-+		 * and added to page cache by a racing thread, or that there
-+		 * is already at least one small page in the huge extent.
-+		 * Be careful to retry when appropriate, but not forever!
-+		 * Elsewhere -EEXIST would be the right code, but not here.
-+		 */
-+		if (xa_find(&mapping->i_pages, &index,
-+				index + HPAGE_PMD_NR - 1, XA_PRESENT))
-+			return ERR_PTR(-E2BIG);
- 
--	if (huge)
- 		folio = shmem_alloc_hugefolio(gfp, info, index);
--	else
-+		if (!folio)
-+			count_vm_event(THP_FILE_FALLBACK);
-+	} else {
-+		pages = 1;
- 		folio = shmem_alloc_folio(gfp, info, index);
--	if (folio) {
--		__folio_set_locked(folio);
--		__folio_set_swapbacked(folio);
--		return folio;
- 	}
-+	if (!folio)
-+		return ERR_PTR(-ENOMEM);
- 
--	err = -ENOMEM;
--	shmem_inode_unacct_blocks(inode, nr);
--failed:
--	return ERR_PTR(err);
-+	__folio_set_locked(folio);
-+	__folio_set_swapbacked(folio);
-+
-+	gfp &= GFP_RECLAIM_MASK;
-+	error = mem_cgroup_charge(folio, fault_mm, gfp);
-+	if (error) {
-+		if (xa_find(&mapping->i_pages, &index,
-+				index + pages - 1, XA_PRESENT)) {
-+			error = -EEXIST;
-+		} else if (huge) {
-+			count_vm_event(THP_FILE_FALLBACK);
-+			count_vm_event(THP_FILE_FALLBACK_CHARGE);
-+		}
-+		goto unlock;
-+	}
-+
-+	error = shmem_add_to_page_cache(folio, mapping, index, NULL, gfp);
-+	if (error)
-+		goto unlock;
-+
-+	error = shmem_inode_acct_blocks(inode, pages);
-+	if (error) {
-+		struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
-+		long freed;
-+		/*
-+		 * Try to reclaim some space by splitting a few
-+		 * large folios beyond i_size on the filesystem.
-+		 */
-+		shmem_unused_huge_shrink(sbinfo, NULL, 2);
-+		/*
-+		 * And do a shmem_recalc_inode() to account for freed pages:
-+		 * except our folio is there in cache, so not quite balanced.
-+		 */
-+		spin_lock(&info->lock);
-+		freed = pages + info->alloced - info->swapped -
-+			READ_ONCE(mapping->nrpages);
-+		if (freed > 0)
-+			info->alloced -= freed;
-+		spin_unlock(&info->lock);
-+		if (freed > 0)
-+			shmem_inode_unacct_blocks(inode, freed);
-+		error = shmem_inode_acct_blocks(inode, pages);
-+		if (error) {
-+			filemap_remove_folio(folio);
-+			goto unlock;
-+		}
-+	}
-+
-+	shmem_recalc_inode(inode, pages, 0);
-+	folio_add_lru(folio);
-+	return folio;
-+
-+unlock:
-+	folio_unlock(folio);
-+	folio_put(folio);
-+	return ERR_PTR(error);
- }
- 
  /*
-@@ -1924,29 +1979,22 @@ static int shmem_get_folio_gfp(struct in
- 		struct vm_fault *vmf, vm_fault_t *fault_type)
- {
- 	struct vm_area_struct *vma = vmf ? vmf->vma : NULL;
--	struct address_space *mapping = inode->i_mapping;
--	struct shmem_inode_info *info = SHMEM_I(inode);
--	struct shmem_sb_info *sbinfo;
- 	struct mm_struct *fault_mm;
- 	struct folio *folio;
--	pgoff_t hindex;
--	gfp_t huge_gfp;
- 	int error;
--	int once = 0;
--	int alloced = 0;
-+	bool alloced;
- 
- 	if (index > (MAX_LFS_FILESIZE >> PAGE_SHIFT))
- 		return -EFBIG;
- repeat:
- 	if (sgp <= SGP_CACHE &&
--	    ((loff_t)index << PAGE_SHIFT) >= i_size_read(inode)) {
-+	    ((loff_t)index << PAGE_SHIFT) >= i_size_read(inode))
- 		return -EINVAL;
--	}
- 
--	sbinfo = SHMEM_SB(inode->i_sb);
-+	alloced = false;
- 	fault_mm = vma ? vma->vm_mm : NULL;
- 
--	folio = filemap_get_entry(mapping, index);
-+	folio = filemap_get_entry(inode->i_mapping, index);
- 	if (folio && vma && userfaultfd_minor(vma)) {
- 		if (!xa_is_value(folio))
- 			folio_put(folio);
-@@ -1968,7 +2016,7 @@ repeat:
- 		folio_lock(folio);
- 
- 		/* Has the folio been truncated or swapped out? */
--		if (unlikely(folio->mapping != mapping)) {
-+		if (unlikely(folio->mapping != inode->i_mapping)) {
- 			folio_unlock(folio);
- 			folio_put(folio);
- 			goto repeat;
-@@ -2003,65 +2051,38 @@ repeat:
- 		return 0;
- 	}
- 
--	if (!shmem_is_huge(inode, index, false,
--			   vma ? vma->vm_mm : NULL, vma ? vma->vm_flags : 0))
--		goto alloc_nohuge;
--
--	huge_gfp = vma_thp_gfp_mask(vma);
--	huge_gfp = limit_gfp_mask(huge_gfp, gfp);
--	folio = shmem_alloc_and_acct_folio(huge_gfp, inode, index, true);
--	if (IS_ERR(folio)) {
--alloc_nohuge:
--		folio = shmem_alloc_and_acct_folio(gfp, inode, index, false);
-+	if (shmem_is_huge(inode, index, false, fault_mm,
-+			  vma ? vma->vm_flags : 0)) {
-+		gfp_t huge_gfp;
-+
-+		huge_gfp = vma_thp_gfp_mask(vma);
-+		huge_gfp = limit_gfp_mask(huge_gfp, gfp);
-+		folio = shmem_alloc_and_add_folio(huge_gfp,
-+				inode, index, fault_mm, true);
-+		if (!IS_ERR(folio)) {
-+			count_vm_event(THP_FILE_ALLOC);
-+			goto alloced;
-+		}
-+		if (PTR_ERR(folio) == -EEXIST)
-+			goto repeat;
- 	}
--	if (IS_ERR(folio)) {
--		int retry = 5;
- 
-+	folio = shmem_alloc_and_add_folio(gfp, inode, index, fault_mm, false);
-+	if (IS_ERR(folio)) {
- 		error = PTR_ERR(folio);
-+		if (error == -EEXIST)
-+			goto repeat;
- 		folio = NULL;
--		if (error != -ENOSPC)
--			goto unlock;
--		/*
--		 * Try to reclaim some space by splitting a large folio
--		 * beyond i_size on the filesystem.
--		 */
--		while (retry--) {
--			int ret;
--
--			ret = shmem_unused_huge_shrink(sbinfo, NULL, 1);
--			if (ret == SHRINK_STOP)
--				break;
--			if (ret)
--				goto alloc_nohuge;
--		}
- 		goto unlock;
- 	}
- 
--	hindex = round_down(index, folio_nr_pages(folio));
--
--	if (sgp == SGP_WRITE)
--		__folio_set_referenced(folio);
--
--	error = mem_cgroup_charge(folio, fault_mm, gfp);
--	if (error) {
--		if (folio_test_pmd_mappable(folio)) {
--			count_vm_event(THP_FILE_FALLBACK);
--			count_vm_event(THP_FILE_FALLBACK_CHARGE);
--		}
--		goto unacct;
--	}
--
--	error = shmem_add_to_page_cache(folio, mapping, hindex, NULL, gfp);
--	if (error)
--		goto unacct;
--
--	folio_add_lru(folio);
--	shmem_recalc_inode(inode, folio_nr_pages(folio), 0);
-+alloced:
- 	alloced = true;
--
- 	if (folio_test_pmd_mappable(folio) &&
- 	    DIV_ROUND_UP(i_size_read(inode), PAGE_SIZE) <
- 					folio_next_index(folio) - 1) {
-+		struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
-+		struct shmem_inode_info *info = SHMEM_I(inode);
- 		/*
- 		 * Part of the large folio is beyond i_size: subject
- 		 * to shrink under memory pressure.
-@@ -2079,6 +2100,8 @@ alloc_nohuge:
- 		spin_unlock(&sbinfo->shrinklist_lock);
- 	}
- 
-+	if (sgp == SGP_WRITE)
-+		folio_set_referenced(folio);
- 	/*
- 	 * Let SGP_FALLOC use the SGP_WRITE optimization on a new folio.
- 	 */
-@@ -2102,11 +2125,6 @@ clear:
- 	/* Perhaps the file has been truncated since we checked */
- 	if (sgp <= SGP_CACHE &&
- 	    ((loff_t)index << PAGE_SHIFT) >= i_size_read(inode)) {
--		if (alloced) {
--			folio_clear_dirty(folio);
--			filemap_remove_folio(folio);
--			shmem_recalc_inode(inode, 0, 0);
--		}
- 		error = -EINVAL;
- 		goto unlock;
- 	}
-@@ -2117,25 +2135,14 @@ out:
- 	/*
- 	 * Error recovery.
- 	 */
--unacct:
--	shmem_inode_unacct_blocks(inode, folio_nr_pages(folio));
--
--	if (folio_test_large(folio)) {
--		folio_unlock(folio);
--		folio_put(folio);
--		goto alloc_nohuge;
--	}
- unlock:
-+	if (alloced)
-+		filemap_remove_folio(folio);
-+	shmem_recalc_inode(inode, 0, 0);
- 	if (folio) {
- 		folio_unlock(folio);
- 		folio_put(folio);
- 	}
--	if (error == -ENOSPC && !once++) {
--		shmem_recalc_inode(inode, 0, 0);
--		goto repeat;
--	}
--	if (error == -EEXIST)
--		goto repeat;
- 	return error;
+  * With percpu_counter_add_local() and percpu_counter_sub_local(), counts
+  * are accumulated in local per cpu counter and not in fbc->count until
+@@ -185,6 +194,20 @@ percpu_counter_add(struct percpu_counter
+ 	local_irq_restore(flags);
  }
  
++static inline bool
++percpu_counter_limited_add(struct percpu_counter *fbc, s64 limit, s64 amount)
++{
++	unsigned long flags;
++	s64 count;
++
++	local_irq_save(flags);
++	count = fbc->count + amount;
++	if (count <= limit)
++		fbc->count = count;
++	local_irq_restore(flags);
++	return count <= limit;
++}
++
+ /* non-SMP percpu_counter_add_local is the same with percpu_counter_add */
+ static inline void
+ percpu_counter_add_local(struct percpu_counter *fbc, s64 amount)
+--- a/lib/percpu_counter.c~shmempercpu_counter-add-_limited_addfbc-limit-amount
++++ a/lib/percpu_counter.c
+@@ -278,6 +278,59 @@ int __percpu_counter_compare(struct perc
+ }
+ EXPORT_SYMBOL(__percpu_counter_compare);
+ 
++/*
++ * Compare counter, and add amount if the total is within limit.
++ * Return true if amount was added, false if it would exceed limit.
++ */
++bool __percpu_counter_limited_add(struct percpu_counter *fbc,
++				  s64 limit, s64 amount, s32 batch)
++{
++	s64 count;
++	s64 unknown;
++	unsigned long flags;
++	bool good;
++
++	if (amount > limit)
++		return false;
++
++	local_irq_save(flags);
++	unknown = batch * num_online_cpus();
++	count = __this_cpu_read(*fbc->counters);
++
++	/* Skip taking the lock when safe */
++	if (abs(count + amount) <= batch &&
++	    fbc->count + unknown <= limit) {
++		this_cpu_add(*fbc->counters, amount);
++		local_irq_restore(flags);
++		return true;
++	}
++
++	raw_spin_lock(&fbc->lock);
++	count = fbc->count + amount;
++
++	/* Skip percpu_counter_sum() when safe */
++	if (count + unknown > limit) {
++		s32 *pcount;
++		int cpu;
++
++		for_each_cpu_or(cpu, cpu_online_mask, cpu_dying_mask) {
++			pcount = per_cpu_ptr(fbc->counters, cpu);
++			count += *pcount;
++		}
++	}
++
++	good = count <= limit;
++	if (good) {
++		count = __this_cpu_read(*fbc->counters);
++		fbc->count += count + amount;
++		__this_cpu_sub(*fbc->counters, count);
++	}
++
++	raw_spin_unlock(&fbc->lock);
++	local_irq_restore(flags);
++	return good;
++}
++
+ static int __init percpu_counter_startup(void)
+ {
+ 	int ret;
+--- a/mm/shmem.c~shmempercpu_counter-add-_limited_addfbc-limit-amount
++++ a/mm/shmem.c
+@@ -217,15 +217,15 @@ static int shmem_inode_acct_blocks(struc
+ 
+ 	might_sleep();	/* when quotas */
+ 	if (sbinfo->max_blocks) {
+-		if (percpu_counter_compare(&sbinfo->used_blocks,
+-					   sbinfo->max_blocks - pages) > 0)
++		if (!percpu_counter_limited_add(&sbinfo->used_blocks,
++						sbinfo->max_blocks, pages))
+ 			goto unacct;
+ 
+ 		err = dquot_alloc_block_nodirty(inode, pages);
+-		if (err)
++		if (err) {
++			percpu_counter_sub(&sbinfo->used_blocks, pages);
+ 			goto unacct;
+-
+-		percpu_counter_add(&sbinfo->used_blocks, pages);
++		}
+ 	} else {
+ 		err = dquot_alloc_block_nodirty(inode, pages);
+ 		if (err)
 _
 
 Patches currently in -mm which might be from hughd@google.com are
