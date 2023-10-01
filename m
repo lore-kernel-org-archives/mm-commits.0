@@ -2,138 +2,200 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22E12E748E9
-	for <mm-commits@archiver.kernel.org>; Sun,  1 Oct 2023 15:39:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DE85E748F6
+	for <mm-commits@archiver.kernel.org>; Sun,  1 Oct 2023 16:52:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235009AbjJAPjl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 1 Oct 2023 11:39:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45450 "EHLO
+        id S235200AbjJAQwf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 1 Oct 2023 12:52:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49542 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234846AbjJAPjl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 1 Oct 2023 11:39:41 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3CA12C9;
-        Sun,  1 Oct 2023 08:39:39 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA38BC433C7;
-        Sun,  1 Oct 2023 15:39:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696174778;
-        bh=/oq0SDIUrQGm9VKxJZQaOIyN7U+l+PKbKKYbnVkn6G0=;
-        h=Date:From:To:Cc:Subject:From;
-        b=TxKd+OCvWpl3b/DrMZxgbVeWKpYw7VN2qdPwi056EPRIY4+T4Krr92J3QipiMwGt4
-         Io8yUWrfygaJH9v2FddMVkzMxD3s7jlbZ/mmw35R+X8gr7Dk5UVvSJs3WMI6iEmcxO
-         uULKDBBPDbe8CE+VF0BebOUd/ZB71ntHzd3UI3go=
-Date:   Sun, 1 Oct 2023 08:39:37 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.6-rc4
-Message-Id: <20231001083937.5f401972d99dc3168e6d4218@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        with ESMTP id S235093AbjJAQwf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 1 Oct 2023 12:52:35 -0400
+X-Greylist: delayed 566 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 01 Oct 2023 09:52:31 PDT
+Received: from out-196.mta1.migadu.com (out-196.mta1.migadu.com [IPv6:2001:41d0:203:375::c4])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D94C4C6
+        for <mm-commits@vger.kernel.org>; Sun,  1 Oct 2023 09:52:31 -0700 (PDT)
+Date:   Sun, 1 Oct 2023 09:42:54 -0700
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+        t=1696178580;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=EAi9eSgMjQ5ZALDGCBbLWFL0Blz/OIA6LU7+Q6jhV9I=;
+        b=Q03R1GN9GYOBBs5vxxO9GGkKM8Et4spEwhIePS7Ch3gkArwW8Mwv5rfbY/CxmLYvWodoHY
+        uyfuWl5HDsvVEAg2NJeuHtpiDmYYWg2vuXnxrkQWmCda5AeBaznVz9Fir9Y492c5l5m0dy
+        Pp0ZkIeFTGN4QpWwUmf9aBmJjkZg8ao=
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From:   Roman Gushchin <roman.gushchin@linux.dev>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, vbabka@suse.cz, shakeelb@google.com,
+        rientjes@google.com, muchun.song@linux.dev, mhocko@kernel.org,
+        hannes@cmpxchg.org, dennis@kernel.org
+Subject: Re: + mm-kmem-add-direct-objcg-pointer-to-task_struct.patch added to
+ mm-unstable branch
+Message-ID: <ZRmhjpGvKIdGj162@P9FQF9L96D.lan>
+References: <20230929184249.8F34FC433C8@smtp.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230929184249.8F34FC433C8@smtp.kernel.org>
+X-Migadu-Flow: FLOW_OUT
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Fri, Sep 29, 2023 at 11:42:48AM -0700, Andrew Morton wrote:
+> 
+> The patch titled
+>      Subject: mm: kmem: add direct objcg pointer to task_struct
+> has been added to the -mm mm-unstable branch.  Its filename is
+>      mm-kmem-add-direct-objcg-pointer-to-task_struct.patch
+> 
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmem-add-direct-objcg-pointer-to-task_struct.patch
+> 
+> This patch will later appear in the mm-unstable branch at
+>     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> 
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+> 
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> 
+> The -mm tree is included into linux-next via the mm-everything
+> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there every 2-3 working days
+> 
+> ------------------------------------------------------
+> From: Roman Gushchin <roman.gushchin@linux.dev>
+> Subject: mm: kmem: add direct objcg pointer to task_struct
+> Date: Fri, 29 Sep 2023 11:00:52 -0700
+> 
+> To charge a freshly allocated kernel object to a memory cgroup, the kernel
+> needs to obtain an objcg pointer.  Currently it does it indirectly by
+> obtaining the memcg pointer first and then calling to
+> __get_obj_cgroup_from_memcg().
+> 
+> Usually tasks spend their entire life belonging to the same object cgroup.
+> So it makes sense to save the objcg pointer on task_struct directly, so
+> it can be obtained faster.  It requires some work on fork, exit and cgroup
+> migrate paths, but these paths are way colder.
+> 
+> To avoid any costly synchronization the following rules are applied:
+> 1) A task sets it's objcg pointer itself.
+> 
+> 2) If a task is being migrated to another cgroup, the least
+>    significant bit of the objcg pointer is set atomically.
+> 
+> 3) On the allocation path the objcg pointer is obtained locklessly
+>    using the READ_ONCE() macro and the least significant bit is
+>    checked. If it's set, the following procedure is used to update
+>    it locklessly:
+>        - task->objcg is zeroed using cmpxcg
+>        - new objcg pointer is obtained
+>        - task->objcg is updated using try_cmpxchg
+>        - operation is repeated if try_cmpxcg fails
+>    It guarantees that no updates will be lost if task migration
+>    is racing against objcg pointer update. It also allows to keep
+>    both read and write paths fully lockless.
+> 
+> Because the task is keeping a reference to the objcg, it can't go away
+> while the task is alive.
+> 
+> This commit doesn't change the way the remote memcg charging works.
+> 
+> Link: https://lkml.kernel.org/r/20230929180056.1122002-3-roman.gushchin@linux.dev
+> Signed-off-by: Roman Gushchin (Cruise) <roman.gushchin@linux.dev>
+> Cc: David Rientjes <rientjes@google.com>
+> Cc: Dennis Zhou <dennis@kernel.org>
+> Cc: Johannes Weiner <hannes@cmpxchg.org>
+> Cc: Michal Hocko <mhocko@kernel.org>
+> Cc: Muchun Song <muchun.song@linux.dev>
+> Cc: Shakeel Butt <shakeelb@google.com>
+> Cc: Vlastimil Babka <vbabka@suse.cz>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  include/linux/memcontrol.h |   10 +++
+>  include/linux/sched.h      |    4 +
+>  mm/memcontrol.c            |  111 ++++++++++++++++++++++++++++++++---
+>  3 files changed, 116 insertions(+), 9 deletions(-)
+> 
+> --- a/include/linux/memcontrol.h~mm-kmem-add-direct-objcg-pointer-to-task_struct
+> +++ a/include/linux/memcontrol.h
+> @@ -544,6 +544,16 @@ static inline bool folio_memcg_kmem(stru
+>  	return folio->memcg_data & MEMCG_DATA_KMEM;
+>  }
+>  
+> +static inline bool current_objcg_needs_update(struct obj_cgroup *objcg)
+> +{
+> +	return (struct obj_cgroup *)((unsigned long)objcg & 0x1);
+> +}
+> +
+> +static inline struct obj_cgroup *
+> +current_objcg_without_update_flag(struct obj_cgroup *objcg)
+> +{
+> +	return (struct obj_cgroup *)((unsigned long)objcg & ~0x1);
+> +}
+>  
+>  #else
+>  static inline bool folio_memcg_kmem(struct folio *folio)
+> --- a/include/linux/sched.h~mm-kmem-add-direct-objcg-pointer-to-task_struct
+> +++ a/include/linux/sched.h
+> @@ -1443,6 +1443,10 @@ struct task_struct {
+>  	struct mem_cgroup		*active_memcg;
+>  #endif
+>  
+> +#ifdef CONFIG_MEMCG_KMEM
+> +	struct obj_cgroup		*objcg;
+> +#endif
+> +
+>  #ifdef CONFIG_BLK_CGROUP
+>  	struct gendisk			*throttle_disk;
+>  #endif
+> --- a/mm/memcontrol.c~mm-kmem-add-direct-objcg-pointer-to-task_struct
+> +++ a/mm/memcontrol.c
+> @@ -3041,6 +3041,47 @@ static struct obj_cgroup *__get_obj_cgro
+>  	return objcg;
+>  }
+>  
+> +static struct obj_cgroup *current_objcg_update(struct obj_cgroup *old)
+> +{
+> +	struct mem_cgroup *memcg;
+> +	struct obj_cgroup *objcg = NULL, *tmp = old;
+> +
+> +	old = current_objcg_without_update_flag(old);
+> +	if (old)
+> +		obj_cgroup_put(old);
+> +
+> +	rcu_read_lock();
+> +	do {
+> +		/* Atomically drop the update bit, */
+> +		WARN_ON_ONCE(cmpxchg(&current->objcg, tmp, 0) != tmp);
 
-Linus, please merge this batch of MM and non-MM hotfixes, thanks.
+Hi Andrew,
 
+can you please, merge a small fixup here?
+I've got a sparse complaint from the Intel's kernel test robot.
 
+Thanks!
 
-The following changes since commit fe4419801617514765974f3e796269bc512ad146:
+--
 
-  proc: nommu: fix empty /proc/<pid>/maps (2023-09-19 13:21:34 -0700)
+diff --git a/mm/memcontrol.c b/mm/memcontrol.c
+index 78ab36b5899f..4c762a04a689 100644
+--- a/mm/memcontrol.c
++++ b/mm/memcontrol.c
+@@ -3013,7 +3013,7 @@ static struct obj_cgroup *current_objcg_update(struct obj_cgroup *old)
+        rcu_read_lock();
+        do {
+                /* Atomically drop the update bit, */
+-               WARN_ON_ONCE(cmpxchg(&current->objcg, tmp, 0) != tmp);
++               WARN_ON_ONCE(cmpxchg(&current->objcg, tmp, NULL) != tmp);
 
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-10-01-08-34
-
-for you to fetch changes up to e2a8f20dd8e9df695f736e51cd9115ae55be92d1:
-
-  Crash: add lock to serialize crash hotplug handling (2023-09-29 17:20:48 -0700)
-
-----------------------------------------------------------------
-Fourteen hotfixes, eleven of which are cc:stable.  The remainder pertain
-to issues which were introduced after 6.5.
-
-----------------------------------------------------------------
-Baoquan He (1):
-      Crash: add lock to serialize crash hotplug handling
-
-Domenico Cerasuolo (1):
-      mm: zswap: fix potential memory corruption on duplicate store
-
-Greg Ungerer (1):
-      fs: binfmt_elf_efpic: fix personality for ELF-FDPIC
-
-Jinjie Ruan (1):
-      mm/damon/vaddr-test: fix memory leak in damon_do_test_apply_three_regions()
-
-Juntong Deng (1):
-      selftests/mm: fix awk usage in charge_reserved_hugetlb.sh and hugetlb_reparenting_test.sh that may cause error
-
-Liam R. Howlett (2):
-      maple_tree: add mas_is_active() to detect in-tree walks
-      maple_tree: add MAS_UNDERFLOW and MAS_OVERFLOW states
-
-Matthew Wilcox (Oracle) (2):
-      mm: report success more often from filemap_map_folio_range()
-      mm: abstract moving to the next PFN
-
-Michal Hocko (1):
-      mm, memcg: reconsider kmem.limit_in_bytes deprecation
-
-Pan Bian (1):
-      nilfs2: fix potential use after free in nilfs_gccache_submit_read_data()
-
-Ryan Roberts (2):
-      mm: hugetlb: add huge page size param to set_huge_pte_at()
-      arm64: hugetlb: fix set_huge_pte_at() to work with all swap entries
-
-Yang Shi (1):
-      mm: mempolicy: keep VMA walk if both MPOL_MF_STRICT and MPOL_MF_MOVE are specified
-
- Documentation/admin-guide/cgroup-v1/memory.rst     |   7 +
- arch/arm64/include/asm/hugetlb.h                   |   2 +-
- arch/arm64/mm/hugetlbpage.c                        |  23 +--
- arch/parisc/include/asm/hugetlb.h                  |   2 +-
- arch/parisc/mm/hugetlbpage.c                       |   2 +-
- arch/powerpc/include/asm/nohash/32/hugetlb-8xx.h   |   3 +-
- arch/powerpc/mm/book3s64/hugetlbpage.c             |   5 +-
- arch/powerpc/mm/book3s64/radix_hugetlbpage.c       |   3 +-
- arch/powerpc/mm/nohash/8xx.c                       |   3 +-
- arch/powerpc/mm/pgtable.c                          |   3 +-
- arch/riscv/include/asm/hugetlb.h                   |   3 +-
- arch/riscv/mm/hugetlbpage.c                        |   3 +-
- arch/s390/include/asm/hugetlb.h                    |   6 +-
- arch/s390/mm/hugetlbpage.c                         |   8 +-
- arch/sparc/include/asm/hugetlb.h                   |   6 +-
- arch/sparc/mm/hugetlbpage.c                        |   8 +-
- arch/x86/include/asm/pgtable.h                     |   8 +
- fs/binfmt_elf_fdpic.c                              |   5 +-
- fs/nilfs2/gcinode.c                                |   6 +-
- include/asm-generic/hugetlb.h                      |   2 +-
- include/linux/hugetlb.h                            |   6 +-
- include/linux/maple_tree.h                         |  11 +
- include/linux/pgtable.h                            |  10 +-
- kernel/crash_core.c                                |  17 ++
- lib/maple_tree.c                                   | 221 +++++++++++++++------
- lib/test_maple_tree.c                              |  87 ++++++--
- mm/damon/vaddr-test.h                              |   2 +
- mm/damon/vaddr.c                                   |   3 +-
- mm/filemap.c                                       |   4 +-
- mm/hugetlb.c                                       |  43 ++--
- mm/memcontrol.c                                    |  13 ++
- mm/mempolicy.c                                     |  39 ++--
- mm/migrate.c                                       |   7 +-
- mm/rmap.c                                          |  23 ++-
- mm/vmalloc.c                                       |   2 +-
- mm/zswap.c                                         |  20 ++
- .../selftests/mm/charge_reserved_hugetlb.sh        |   4 +-
- .../selftests/mm/hugetlb_reparenting_test.sh       |   4 +-
- 38 files changed, 455 insertions(+), 169 deletions(-)
-
+                /* ...obtain the new objcg pointer */
+                memcg = mem_cgroup_from_task(current);
