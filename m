@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB714E78488
-	for <mm-commits@archiver.kernel.org>; Sun,  1 Oct 2023 19:56:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48845E78486
+	for <mm-commits@archiver.kernel.org>; Sun,  1 Oct 2023 19:56:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235356AbjJAT45 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S235358AbjJAT45 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sun, 1 Oct 2023 15:56:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34638 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34644 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235363AbjJAT4w (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 1 Oct 2023 15:56:52 -0400
+        with ESMTP id S235369AbjJAT4y (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 1 Oct 2023 15:56:54 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18A4F91
-        for <mm-commits@vger.kernel.org>; Sun,  1 Oct 2023 12:56:49 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A6ACC433C7;
-        Sun,  1 Oct 2023 19:56:48 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 13C4AD9
+        for <mm-commits@vger.kernel.org>; Sun,  1 Oct 2023 12:56:51 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A14A1C433CB;
+        Sun,  1 Oct 2023 19:56:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696190208;
-        bh=YRhF3+ubL3NE3IpVAS2ituwbXQhP+/dCGLZ9naSqrC8=;
+        s=korg; t=1696190210;
+        bh=e9N9hP1UTXgYNBN9aBQ8gQMlz/+vM+lfziBQzdWtxOw=;
         h=Date:To:From:Subject:From;
-        b=DUHc8esinWVamWe07FEkX9QIKe9SmUPFmB2WY/9vlRVuxQO0IL5fFiMKbgJm9m9Kj
-         6EjCQqNxVEnFbOBjtupMVtc/FXm/4icG/qzpFf0gmfzwGblKcfPKeB+cI1e5qwBoRe
-         4axjpgwLXEgolALegX2Fo8NqGrObr1YDdNOr9yBA=
-Date:   Sun, 01 Oct 2023 12:56:48 -0700
+        b=Z4NdY4I+Gbzm8i9fRzc9PgEi1kt4bQWYOepKzwoY2zMID8TJ/wY74p0aiRQROo+7t
+         p7yRvyZdGD8+wy2Wloq7f2OZ/NSfG8RB8uPhSum9LaJNfQNnb3HW77nIWKODia0w8f
+         85Gbni7MhoLhcvi/pIBnGGV982aRCrLMdPazlwHE=
+Date:   Sun, 01 Oct 2023 12:56:50 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         tim.c.chen@intel.com, jack@suse.cz, hannes@cmpxchg.org,
         djwong@kernel.org, dchinner@redhat.com, chuck.lever@oracle.com,
         cem@kernel.org, brauner@kernel.org, axelrasmussen@google.com,
         hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + shmem-move-memcg-charge-out-of-shmem_add_to_page_cache.patch added to mm-unstable branch
-Message-Id: <20231001195648.9A6ACC433C7@smtp.kernel.org>
+Subject: + shmem-_add_to_page_cache-before-shmem_inode_acct_blocks.patch added to mm-unstable branch
+Message-Id: <20231001195650.A14A1C433CB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,12 +39,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: move memcg charge out of shmem_add_to_page_cache()
+     Subject: shmem: _add_to_page_cache() before shmem_inode_acct_blocks()
 has been added to the -mm mm-unstable branch.  Its filename is
-     shmem-move-memcg-charge-out-of-shmem_add_to_page_cache.patch
+     shmem-_add_to_page_cache-before-shmem_inode_acct_blocks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-move-memcg-charge-out-of-shmem_add_to_page_cache.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-_add_to_page_cache-before-shmem_inode_acct_blocks.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -63,23 +63,61 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: shmem: move memcg charge out of shmem_add_to_page_cache()
-Date: Fri, 29 Sep 2023 20:31:27 -0700 (PDT)
+Subject: shmem: _add_to_page_cache() before shmem_inode_acct_blocks()
+Date: Fri, 29 Sep 2023 20:32:40 -0700 (PDT)
 
-Extract shmem's memcg charging out of shmem_add_to_page_cache(): it's
-misleading done there, because many calls are dealing with a swapcache
-page, whose memcg is nowadays always remembered while swapped out, then
-the charge re-levied when it's brought back into swapcache.
+There has been a recurring problem, that when a tmpfs volume is being
+filled by racing threads, some fail with ENOSPC (or consequent SIGBUS or
+EFAULT) even though all allocations were within the permitted size.
 
-Temporarily move it back up to the shmem_get_folio_gfp() level, where the
-memcg was charged before v5.8; but the next commit goes on to move it back
-down to a new home.
+This was a problem since early days, but magnified and complicated by the
+addition of huge pages.  We have often worked around it by adding some
+slop to the tmpfs size, but it's hard to say how much is needed, and some
+users prefer not to do that e.g.  keeping sparse files in a tightly
+tailored tmpfs helps to prevent accidental writing to holes.
 
-In making this change, it becomes clear that shmem_swapin_folio() does not
-need to know the vma, just the fault mm (if any): call it fault_mm rather
-than charge_mm - let mem_cgroup_charge() decide whom to charge.
+This comes from the allocation sequence:
+1. check page cache for existing folio
+2. check and reserve from vm_enough_memory
+3. check and account from size of tmpfs
+4. if huge, check page cache for overlapping folio
+5. allocate physical folio, huge or small
+6. check and charge from mem cgroup limit
+7. add to page cache (but maybe another folio already got in).
 
-Link: https://lkml.kernel.org/r/4b2143c5-bf32-64f0-841-81a81158dac@google.com
+Concurrent tasks allocating at the same position could deplete the size
+allowance and fail.  Doing vm_enough_memory and size checks before the
+folio allocation was intentional (to limit the load on the page allocator
+from this source) and still has some virtue; but memory cgroup never did
+that, so I think it's better reordered to favour predictable behaviour.
+
+1. check page cache for existing folio
+2. if huge, check page cache for overlapping folio
+3. allocate physical folio, huge or small
+4. check and charge from mem cgroup limit
+5. add to page cache (but maybe another folio already got in)
+6. check and reserve from vm_enough_memory
+7. check and account from size of tmpfs.
+
+The folio lock held from allocation onwards ensures that the !uptodate
+folio cannot be used by others, and can safely be deleted from the cache
+if checks 6 or 7 subsequently fail (and those waiting on folio lock
+already check that the folio was not truncated once they get the lock);
+and the early addition to page cache ensures that racers find it before
+they try to duplicate the accounting.
+
+Seize the opportunity to tidy up shmem_get_folio_gfp()'s ENOSPC retrying,
+which can be combined inside the new shmem_alloc_and_add_folio(): doing 2
+splits twice (once huge, once nonhuge) is not exactly equivalent to trying
+5 splits (and giving up early on huge), but let's keep it simple unless
+more complication proves necessary.
+
+Userfaultfd is a foreign country: they do things differently there, and
+for good reason - to avoid mmap_lock deadlock.  Leave ordering in
+shmem_mfill_atomic_pte() untouched for now, but I would rather like to
+mesh it better with shmem_get_folio_gfp() in the future.
+
+Link: https://lkml.kernel.org/r/22ddd06-d919-33b-1219-56335c1bf28e@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Carlos Maiolino <cem@kernel.org>
@@ -94,179 +132,355 @@ Cc: Tim Chen <tim.c.chen@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   68 +++++++++++++++++++++------------------------------
- 1 file changed, 29 insertions(+), 39 deletions(-)
+ mm/shmem.c |  231 ++++++++++++++++++++++++++-------------------------
+ 1 file changed, 119 insertions(+), 112 deletions(-)
 
---- a/mm/shmem.c~shmem-move-memcg-charge-out-of-shmem_add_to_page_cache
+--- a/mm/shmem.c~shmem-_add_to_page_cache-before-shmem_inode_acct_blocks
 +++ a/mm/shmem.c
-@@ -146,9 +146,8 @@ static unsigned long shmem_default_max_i
- #endif
- 
- static int shmem_swapin_folio(struct inode *inode, pgoff_t index,
--			     struct folio **foliop, enum sgp_type sgp,
--			     gfp_t gfp, struct vm_area_struct *vma,
--			     vm_fault_t *fault_type);
-+			struct folio **foliop, enum sgp_type sgp, gfp_t gfp,
-+			struct mm_struct *fault_mm, vm_fault_t *fault_type);
- 
- static inline struct shmem_sb_info *SHMEM_SB(struct super_block *sb)
- {
-@@ -760,12 +759,10 @@ static unsigned long shmem_unused_huge_s
-  */
- static int shmem_add_to_page_cache(struct folio *folio,
- 				   struct address_space *mapping,
--				   pgoff_t index, void *expected, gfp_t gfp,
--				   struct mm_struct *charge_mm)
-+				   pgoff_t index, void *expected, gfp_t gfp)
- {
- 	XA_STATE_ORDER(xas, &mapping->i_pages, index, folio_order(folio));
- 	long nr = folio_nr_pages(folio);
--	int error;
- 
- 	VM_BUG_ON_FOLIO(index != round_down(index, nr), folio);
- 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
-@@ -776,16 +773,7 @@ static int shmem_add_to_page_cache(struc
- 	folio->mapping = mapping;
- 	folio->index = index;
- 
--	if (!folio_test_swapcache(folio)) {
--		error = mem_cgroup_charge(folio, charge_mm, gfp);
--		if (error) {
--			if (folio_test_pmd_mappable(folio)) {
--				count_vm_event(THP_FILE_FALLBACK);
--				count_vm_event(THP_FILE_FALLBACK_CHARGE);
--			}
--			goto error;
+@@ -789,13 +789,11 @@ static int shmem_add_to_page_cache(struc
+ 		xas_store(&xas, folio);
+ 		if (xas_error(&xas))
+ 			goto unlock;
+-		if (folio_test_pmd_mappable(folio)) {
+-			count_vm_event(THP_FILE_ALLOC);
++		if (folio_test_pmd_mappable(folio))
+ 			__lruvec_stat_mod_folio(folio, NR_SHMEM_THPS, nr);
 -		}
--	}
-+	gfp &= GFP_RECLAIM_MASK;
- 	folio_throttle_swaprate(folio, gfp);
- 
- 	do {
-@@ -813,15 +801,12 @@ unlock:
+-		mapping->nrpages += nr;
+ 		__lruvec_stat_mod_folio(folio, NR_FILE_PAGES, nr);
+ 		__lruvec_stat_mod_folio(folio, NR_SHMEM, nr);
++		mapping->nrpages += nr;
+ unlock:
+ 		xas_unlock_irq(&xas);
  	} while (xas_nomem(&xas, gfp));
+@@ -1629,25 +1627,17 @@ static struct folio *shmem_alloc_hugefol
+ 		struct shmem_inode_info *info, pgoff_t index)
+ {
+ 	struct vm_area_struct pvma;
+-	struct address_space *mapping = info->vfs_inode.i_mapping;
+-	pgoff_t hindex;
+ 	struct folio *folio;
  
- 	if (xas_error(&xas)) {
--		error = xas_error(&xas);
--		goto error;
-+		folio->mapping = NULL;
-+		folio_ref_sub(folio, nr);
-+		return xas_error(&xas);
- 	}
- 
- 	return 0;
--error:
--	folio->mapping = NULL;
--	folio_ref_sub(folio, nr);
--	return error;
+-	hindex = round_down(index, HPAGE_PMD_NR);
+-	if (xa_find(&mapping->i_pages, &hindex, hindex + HPAGE_PMD_NR - 1,
+-								XA_PRESENT))
+-		return NULL;
+-
+-	shmem_pseudo_vma_init(&pvma, info, hindex);
++	shmem_pseudo_vma_init(&pvma, info, index);
+ 	folio = vma_alloc_folio(gfp, HPAGE_PMD_ORDER, &pvma, 0, true);
+ 	shmem_pseudo_vma_destroy(&pvma);
+-	if (!folio)
+-		count_vm_event(THP_FILE_FALLBACK);
++
+ 	return folio;
  }
  
- /*
-@@ -1341,10 +1326,8 @@ static int shmem_unuse_swap_entries(stru
- 
- 		if (!xa_is_value(folio))
- 			continue;
--		error = shmem_swapin_folio(inode, indices[i],
--					  &folio, SGP_CACHE,
--					  mapping_gfp_mask(mapping),
--					  NULL, NULL);
-+		error = shmem_swapin_folio(inode, indices[i], &folio, SGP_CACHE,
-+					mapping_gfp_mask(mapping), NULL, NULL);
- 		if (error == 0) {
- 			folio_unlock(folio);
- 			folio_put(folio);
-@@ -1827,12 +1810,11 @@ static void shmem_set_folio_swapin_error
-  */
- static int shmem_swapin_folio(struct inode *inode, pgoff_t index,
- 			     struct folio **foliop, enum sgp_type sgp,
--			     gfp_t gfp, struct vm_area_struct *vma,
-+			     gfp_t gfp, struct mm_struct *fault_mm,
- 			     vm_fault_t *fault_type)
+ static struct folio *shmem_alloc_folio(gfp_t gfp,
+-			struct shmem_inode_info *info, pgoff_t index)
++		struct shmem_inode_info *info, pgoff_t index)
  {
- 	struct address_space *mapping = inode->i_mapping;
- 	struct shmem_inode_info *info = SHMEM_I(inode);
--	struct mm_struct *charge_mm = vma ? vma->vm_mm : NULL;
- 	struct swap_info_struct *si;
- 	struct folio *folio = NULL;
- 	swp_entry_t swap;
-@@ -1860,7 +1842,7 @@ static int shmem_swapin_folio(struct ino
- 		if (fault_type) {
- 			*fault_type |= VM_FAULT_MAJOR;
- 			count_vm_event(PGMAJFAULT);
--			count_memcg_event_mm(charge_mm, PGMAJFAULT);
-+			count_memcg_event_mm(fault_mm, PGMAJFAULT);
- 		}
- 		/* Here we actually start the io */
- 		folio = shmem_swapin(swap, gfp, info, index);
-@@ -1897,8 +1879,7 @@ static int shmem_swapin_folio(struct ino
- 	}
- 
- 	error = shmem_add_to_page_cache(folio, mapping, index,
--					swp_to_radix_entry(swap), gfp,
--					charge_mm);
-+					swp_to_radix_entry(swap), gfp);
- 	if (error)
- 		goto failed;
- 
-@@ -1946,7 +1927,7 @@ static int shmem_get_folio_gfp(struct in
- 	struct address_space *mapping = inode->i_mapping;
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	struct shmem_sb_info *sbinfo;
--	struct mm_struct *charge_mm;
-+	struct mm_struct *fault_mm;
+ 	struct vm_area_struct pvma;
  	struct folio *folio;
- 	pgoff_t hindex;
- 	gfp_t huge_gfp;
-@@ -1963,7 +1944,7 @@ repeat:
+@@ -1659,36 +1649,101 @@ static struct folio *shmem_alloc_folio(g
+ 	return folio;
+ }
+ 
+-static struct folio *shmem_alloc_and_acct_folio(gfp_t gfp, struct inode *inode,
+-		pgoff_t index, bool huge)
++static struct folio *shmem_alloc_and_add_folio(gfp_t gfp,
++		struct inode *inode, pgoff_t index,
++		struct mm_struct *fault_mm, bool huge)
+ {
++	struct address_space *mapping = inode->i_mapping;
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+ 	struct folio *folio;
+-	int nr;
+-	int err;
++	long pages;
++	int error;
+ 
+ 	if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE))
+ 		huge = false;
+-	nr = huge ? HPAGE_PMD_NR : 1;
+ 
+-	err = shmem_inode_acct_blocks(inode, nr);
+-	if (err)
+-		goto failed;
++	if (huge) {
++		pages = HPAGE_PMD_NR;
++		index = round_down(index, HPAGE_PMD_NR);
++
++		/*
++		 * Check for conflict before waiting on a huge allocation.
++		 * Conflict might be that a huge page has just been allocated
++		 * and added to page cache by a racing thread, or that there
++		 * is already at least one small page in the huge extent.
++		 * Be careful to retry when appropriate, but not forever!
++		 * Elsewhere -EEXIST would be the right code, but not here.
++		 */
++		if (xa_find(&mapping->i_pages, &index,
++				index + HPAGE_PMD_NR - 1, XA_PRESENT))
++			return ERR_PTR(-E2BIG);
+ 
+-	if (huge)
+ 		folio = shmem_alloc_hugefolio(gfp, info, index);
+-	else
++		if (!folio)
++			count_vm_event(THP_FILE_FALLBACK);
++	} else {
++		pages = 1;
+ 		folio = shmem_alloc_folio(gfp, info, index);
+-	if (folio) {
+-		__folio_set_locked(folio);
+-		__folio_set_swapbacked(folio);
+-		return folio;
  	}
++	if (!folio)
++		return ERR_PTR(-ENOMEM);
  
- 	sbinfo = SHMEM_SB(inode->i_sb);
--	charge_mm = vma ? vma->vm_mm : NULL;
-+	fault_mm = vma ? vma->vm_mm : NULL;
- 
- 	folio = filemap_get_entry(mapping, index);
- 	if (folio && vma && userfaultfd_minor(vma)) {
-@@ -1975,7 +1956,7 @@ repeat:
- 
- 	if (xa_is_value(folio)) {
- 		error = shmem_swapin_folio(inode, index, &folio,
--					  sgp, gfp, vma, fault_type);
-+					   sgp, gfp, fault_mm, fault_type);
- 		if (error == -EEXIST)
- 			goto repeat;
- 
-@@ -2061,9 +2042,16 @@ alloc_nohuge:
- 	if (sgp == SGP_WRITE)
- 		__folio_set_referenced(folio);
- 
--	error = shmem_add_to_page_cache(folio, mapping, hindex,
--					NULL, gfp & GFP_RECLAIM_MASK,
--					charge_mm);
+-	err = -ENOMEM;
+-	shmem_inode_unacct_blocks(inode, nr);
+-failed:
+-	return ERR_PTR(err);
++	__folio_set_locked(folio);
++	__folio_set_swapbacked(folio);
++
++	gfp &= GFP_RECLAIM_MASK;
 +	error = mem_cgroup_charge(folio, fault_mm, gfp);
 +	if (error) {
-+		if (folio_test_pmd_mappable(folio)) {
++		if (xa_find(&mapping->i_pages, &index,
++				index + pages - 1, XA_PRESENT)) {
++			error = -EEXIST;
++		} else if (huge) {
 +			count_vm_event(THP_FILE_FALLBACK);
 +			count_vm_event(THP_FILE_FALLBACK_CHARGE);
 +		}
-+		goto unacct;
++		goto unlock;
 +	}
 +
-+	error = shmem_add_to_page_cache(folio, mapping, hindex, NULL, gfp);
- 	if (error)
- 		goto unacct;
++	error = shmem_add_to_page_cache(folio, mapping, index, NULL, gfp);
++	if (error)
++		goto unlock;
++
++	error = shmem_inode_acct_blocks(inode, pages);
++	if (error) {
++		struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
++		long freed;
++		/*
++		 * Try to reclaim some space by splitting a few
++		 * large folios beyond i_size on the filesystem.
++		 */
++		shmem_unused_huge_shrink(sbinfo, NULL, 2);
++		/*
++		 * And do a shmem_recalc_inode() to account for freed pages:
++		 * except our folio is there in cache, so not quite balanced.
++		 */
++		spin_lock(&info->lock);
++		freed = pages + info->alloced - info->swapped -
++			READ_ONCE(mapping->nrpages);
++		if (freed > 0)
++			info->alloced -= freed;
++		spin_unlock(&info->lock);
++		if (freed > 0)
++			shmem_inode_unacct_blocks(inode, freed);
++		error = shmem_inode_acct_blocks(inode, pages);
++		if (error) {
++			filemap_remove_folio(folio);
++			goto unlock;
++		}
++	}
++
++	shmem_recalc_inode(inode, pages, 0);
++	folio_add_lru(folio);
++	return folio;
++
++unlock:
++	folio_unlock(folio);
++	folio_put(folio);
++	return ERR_PTR(error);
+ }
  
-@@ -2661,8 +2649,10 @@ int shmem_mfill_atomic_pte(pmd_t *dst_pm
- 	if (unlikely(pgoff >= max_off))
- 		goto out_release;
+ /*
+@@ -1924,29 +1979,22 @@ static int shmem_get_folio_gfp(struct in
+ 		struct vm_fault *vmf, vm_fault_t *fault_type)
+ {
+ 	struct vm_area_struct *vma = vmf ? vmf->vma : NULL;
+-	struct address_space *mapping = inode->i_mapping;
+-	struct shmem_inode_info *info = SHMEM_I(inode);
+-	struct shmem_sb_info *sbinfo;
+ 	struct mm_struct *fault_mm;
+ 	struct folio *folio;
+-	pgoff_t hindex;
+-	gfp_t huge_gfp;
+ 	int error;
+-	int once = 0;
+-	int alloced = 0;
++	bool alloced;
  
--	ret = shmem_add_to_page_cache(folio, mapping, pgoff, NULL,
--				      gfp & GFP_RECLAIM_MASK, dst_vma->vm_mm);
-+	ret = mem_cgroup_charge(folio, dst_vma->vm_mm, gfp);
-+	if (ret)
-+		goto out_release;
-+	ret = shmem_add_to_page_cache(folio, mapping, pgoff, NULL, gfp);
- 	if (ret)
- 		goto out_release;
+ 	if (index > (MAX_LFS_FILESIZE >> PAGE_SHIFT))
+ 		return -EFBIG;
+ repeat:
+ 	if (sgp <= SGP_CACHE &&
+-	    ((loff_t)index << PAGE_SHIFT) >= i_size_read(inode)) {
++	    ((loff_t)index << PAGE_SHIFT) >= i_size_read(inode))
+ 		return -EINVAL;
+-	}
+ 
+-	sbinfo = SHMEM_SB(inode->i_sb);
++	alloced = false;
+ 	fault_mm = vma ? vma->vm_mm : NULL;
+ 
+-	folio = filemap_get_entry(mapping, index);
++	folio = filemap_get_entry(inode->i_mapping, index);
+ 	if (folio && vma && userfaultfd_minor(vma)) {
+ 		if (!xa_is_value(folio))
+ 			folio_put(folio);
+@@ -1968,7 +2016,7 @@ repeat:
+ 		folio_lock(folio);
+ 
+ 		/* Has the folio been truncated or swapped out? */
+-		if (unlikely(folio->mapping != mapping)) {
++		if (unlikely(folio->mapping != inode->i_mapping)) {
+ 			folio_unlock(folio);
+ 			folio_put(folio);
+ 			goto repeat;
+@@ -2003,65 +2051,38 @@ repeat:
+ 		return 0;
+ 	}
+ 
+-	if (!shmem_is_huge(inode, index, false,
+-			   vma ? vma->vm_mm : NULL, vma ? vma->vm_flags : 0))
+-		goto alloc_nohuge;
+-
+-	huge_gfp = vma_thp_gfp_mask(vma);
+-	huge_gfp = limit_gfp_mask(huge_gfp, gfp);
+-	folio = shmem_alloc_and_acct_folio(huge_gfp, inode, index, true);
+-	if (IS_ERR(folio)) {
+-alloc_nohuge:
+-		folio = shmem_alloc_and_acct_folio(gfp, inode, index, false);
++	if (shmem_is_huge(inode, index, false, fault_mm,
++			  vma ? vma->vm_flags : 0)) {
++		gfp_t huge_gfp;
++
++		huge_gfp = vma_thp_gfp_mask(vma);
++		huge_gfp = limit_gfp_mask(huge_gfp, gfp);
++		folio = shmem_alloc_and_add_folio(huge_gfp,
++				inode, index, fault_mm, true);
++		if (!IS_ERR(folio)) {
++			count_vm_event(THP_FILE_ALLOC);
++			goto alloced;
++		}
++		if (PTR_ERR(folio) == -EEXIST)
++			goto repeat;
+ 	}
+-	if (IS_ERR(folio)) {
+-		int retry = 5;
+ 
++	folio = shmem_alloc_and_add_folio(gfp, inode, index, fault_mm, false);
++	if (IS_ERR(folio)) {
+ 		error = PTR_ERR(folio);
++		if (error == -EEXIST)
++			goto repeat;
+ 		folio = NULL;
+-		if (error != -ENOSPC)
+-			goto unlock;
+-		/*
+-		 * Try to reclaim some space by splitting a large folio
+-		 * beyond i_size on the filesystem.
+-		 */
+-		while (retry--) {
+-			int ret;
+-
+-			ret = shmem_unused_huge_shrink(sbinfo, NULL, 1);
+-			if (ret == SHRINK_STOP)
+-				break;
+-			if (ret)
+-				goto alloc_nohuge;
+-		}
+ 		goto unlock;
+ 	}
+ 
+-	hindex = round_down(index, folio_nr_pages(folio));
+-
+-	if (sgp == SGP_WRITE)
+-		__folio_set_referenced(folio);
+-
+-	error = mem_cgroup_charge(folio, fault_mm, gfp);
+-	if (error) {
+-		if (folio_test_pmd_mappable(folio)) {
+-			count_vm_event(THP_FILE_FALLBACK);
+-			count_vm_event(THP_FILE_FALLBACK_CHARGE);
+-		}
+-		goto unacct;
+-	}
+-
+-	error = shmem_add_to_page_cache(folio, mapping, hindex, NULL, gfp);
+-	if (error)
+-		goto unacct;
+-
+-	folio_add_lru(folio);
+-	shmem_recalc_inode(inode, folio_nr_pages(folio), 0);
++alloced:
+ 	alloced = true;
+-
+ 	if (folio_test_pmd_mappable(folio) &&
+ 	    DIV_ROUND_UP(i_size_read(inode), PAGE_SIZE) <
+ 					folio_next_index(folio) - 1) {
++		struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
++		struct shmem_inode_info *info = SHMEM_I(inode);
+ 		/*
+ 		 * Part of the large folio is beyond i_size: subject
+ 		 * to shrink under memory pressure.
+@@ -2079,6 +2100,8 @@ alloc_nohuge:
+ 		spin_unlock(&sbinfo->shrinklist_lock);
+ 	}
+ 
++	if (sgp == SGP_WRITE)
++		folio_set_referenced(folio);
+ 	/*
+ 	 * Let SGP_FALLOC use the SGP_WRITE optimization on a new folio.
+ 	 */
+@@ -2102,11 +2125,6 @@ clear:
+ 	/* Perhaps the file has been truncated since we checked */
+ 	if (sgp <= SGP_CACHE &&
+ 	    ((loff_t)index << PAGE_SHIFT) >= i_size_read(inode)) {
+-		if (alloced) {
+-			folio_clear_dirty(folio);
+-			filemap_remove_folio(folio);
+-			shmem_recalc_inode(inode, 0, 0);
+-		}
+ 		error = -EINVAL;
+ 		goto unlock;
+ 	}
+@@ -2117,25 +2135,14 @@ out:
+ 	/*
+ 	 * Error recovery.
+ 	 */
+-unacct:
+-	shmem_inode_unacct_blocks(inode, folio_nr_pages(folio));
+-
+-	if (folio_test_large(folio)) {
+-		folio_unlock(folio);
+-		folio_put(folio);
+-		goto alloc_nohuge;
+-	}
+ unlock:
++	if (alloced)
++		filemap_remove_folio(folio);
++	shmem_recalc_inode(inode, 0, 0);
+ 	if (folio) {
+ 		folio_unlock(folio);
+ 		folio_put(folio);
+ 	}
+-	if (error == -ENOSPC && !once++) {
+-		shmem_recalc_inode(inode, 0, 0);
+-		goto repeat;
+-	}
+-	if (error == -EEXIST)
+-		goto repeat;
+ 	return error;
+ }
  
 _
 
