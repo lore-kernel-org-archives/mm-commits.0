@@ -2,160 +2,259 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BE7EE7734E
-	for <mm-commits@archiver.kernel.org>; Sat, 30 Sep 2023 00:21:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96363E748F0
+	for <mm-commits@archiver.kernel.org>; Sun,  1 Oct 2023 02:58:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233960AbjI3AVr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 29 Sep 2023 20:21:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36466 "EHLO
+        id S233822AbjJAC6X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 30 Sep 2023 22:58:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60456 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233952AbjI3AVb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 29 Sep 2023 20:21:31 -0400
+        with ESMTP id S229461AbjJAC6W (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 30 Sep 2023 22:58:22 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC8871B4;
-        Fri, 29 Sep 2023 17:21:29 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8161C433C9;
-        Sat, 30 Sep 2023 00:21:29 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43224D3
+        for <mm-commits@vger.kernel.org>; Sat, 30 Sep 2023 19:58:20 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2C8FC433C8;
+        Sun,  1 Oct 2023 02:58:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696033289;
-        bh=KWCr9dYQNzeQe6FCZub4/z6A8j+mp/OhQUm5ZVb38Uo=;
+        s=korg; t=1696129099;
+        bh=7xoYbxzNJdtr37d9P8DCOXhW3AthIUiM2sNFQ1tqnAg=;
         h=Date:To:From:Subject:From;
-        b=bOXTHTFpBHX6DRokhqQBBDPz1/C1ne45jK0niWgqASeAXxHBAnIQIddD1Lg9zByX1
-         tWbPHFTcrsmIWj1PrV6RL0HFL8WqY0tzlHoh1vJ+hwFivgFvPFdBoi0vX5ErAOLM0V
-         zf4GZCRIuEMafgkJ+EpuAOCn/Zy869zWI8JtwJoM=
-Date:   Fri, 29 Sep 2023 17:21:29 -0700
-To:     mm-commits@vger.kernel.org, vschneid@redhat.com,
-        stable@vger.kernel.org, sourabhjain@linux.ibm.com,
-        eric.devolder@oracle.com, bhe@redhat.com, akpm@linux-foundation.org
+        b=ecfihFBSrB0P2QCZ/8G3AY8+EGJHre/zc0WZfUeqzHndICZTip6Wl1ujTUpdsuiBE
+         9H9sbp1ad7oC8qdpiNElqfY3m1qr4mwsMmmjWPQ7ppwosDxfzhjS/SY5ZzWNMdLTNH
+         sjC3a7Soxw+fICJ83iqCGKpjAUpW2XvFvNcdb72I=
+Date:   Sat, 30 Sep 2023 19:58:19 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        muchun.song@linux.dev, mike.kravetz@oracle.com, riel@surriel.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] crash-add-lock-to-serialize-crash-hotplug-handling.patch removed from -mm tree
-Message-Id: <20230930002129.A8161C433C9@smtp.kernel.org>
+Subject: + hugetlbfs-extend-hugetlb_vma_lock-to-private-vmas.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231001025819.B2C8FC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: Crash: add lock to serialize crash hotplug handling
-has been removed from the -mm tree.  Its filename was
-     crash-add-lock-to-serialize-crash-hotplug-handling.patch
+The patch titled
+     Subject: hugetlbfs: extend hugetlb_vma_lock to private VMAs
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     hugetlbfs-extend-hugetlb_vma_lock-to-private-vmas.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlbfs-extend-hugetlb_vma_lock-to-private-vmas.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: Crash: add lock to serialize crash hotplug handling
-Date: Tue, 26 Sep 2023 20:09:05 +0800
+From: Rik van Riel <riel@surriel.com>
+Subject: hugetlbfs: extend hugetlb_vma_lock to private VMAs
+Date: Sat, 30 Sep 2023 20:55:48 -0400
 
-Eric reported that handling corresponding crash hotplug event can be
-failed easily when many memory hotplug event are notified in a short
-period.  They failed because failing to take __kexec_lock.
+Patch series "hugetlbfs: close race between MADV_DONTNEED and page fault",
+v5.
 
-=======
-[   78.714569] Fallback order for Node 0: 0
-[   78.714575] Built 1 zonelists, mobility grouping on.  Total pages: 1817886
-[   78.717133] Policy zone: Normal
-[   78.724423] crash hp: kexec_trylock() failed, elfcorehdr may be inaccurate
-[   78.727207] crash hp: kexec_trylock() failed, elfcorehdr may be inaccurate
-[   80.056643] PEFILE: Unsigned PE binary
-=======
+Malloc libraries, like jemalloc and tcalloc, take decisions on when to
+call madvise independently from the code in the main application.
 
-The memory hotplug events are notified very quickly and very many, while
-the handling of crash hotplug is much slower relatively.  So the atomic
-variable __kexec_lock and kexec_trylock() can't guarantee the
-serialization of crash hotplug handling.
+This sometimes results in the application page faulting on an address,
+right after the malloc library has shot down the backing memory with
+MADV_DONTNEED.
 
-Here, add a new mutex lock __crash_hotplug_lock to serialize crash hotplug
-handling specifically.  This doesn't impact the usage of __kexec_lock.
+Usually this is harmless, because we always have some 4kB pages sitting
+around to satisfy a page fault.  However, with hugetlbfs systems often
+allocate only the exact number of huge pages that the application wants.
 
-Link: https://lkml.kernel.org/r/20230926120905.392903-1-bhe@redhat.com
-Fixes: 247262756121 ("crash: add generic infrastructure for crash hotplug support")
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Tested-by: Eric DeVolder <eric.devolder@oracle.com>
-Reviewed-by: Eric DeVolder <eric.devolder@oracle.com>
-Reviewed-by: Valentin Schneider <vschneid@redhat.com>
-Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
-Cc: <stable@vger.kernel.org>
+Due to TLB batching, hugetlbfs MADV_DONTNEED will free pages outside of
+any lock taken on the page fault path, which can open up the following
+race condition:
+
+       CPU 1                            CPU 2
+
+       MADV_DONTNEED
+       unmap page
+       shoot down TLB entry
+                                       page fault
+                                       fail to allocate a huge page
+                                       killed with SIGBUS
+       free page
+
+Fix that race by extending the hugetlb_vma_lock locking scheme to also
+cover private hugetlb mappings (with resv_map), and pulling the locking
+from __unmap_hugepage_final_range into helper functions called from
+zap_page_range_single.  This ensures page faults stay locked out of the
+MADV_DONTNEED VMA until the huge pages have actually been freed.
+
+
+This patch (of 2):
+
+Extend the locking scheme used to protect shared hugetlb mappings from
+truncate vs page fault races, in order to protect private hugetlb mappings
+(with resv_map) against MADV_DONTNEED.
+
+Add a read-write semaphore to the resv_map data structure, and use that
+from the hugetlb_vma_(un)lock_* functions, in preparation for closing the
+race between MADV_DONTNEED and page faults.
+
+Link: https://lkml.kernel.org/r/20231001005659.2185316-1-riel@surriel.com
+Link: https://lkml.kernel.org/r/20231001005659.2185316-2-riel@surriel.com
+Signed-off-by: Rik van Riel <riel@surriel.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/crash_core.c |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ include/linux/hugetlb.h |    6 +++++
+ mm/hugetlb.c            |   41 ++++++++++++++++++++++++++++++++++----
+ 2 files changed, 43 insertions(+), 4 deletions(-)
 
---- a/kernel/crash_core.c~crash-add-lock-to-serialize-crash-hotplug-handling
-+++ a/kernel/crash_core.c
-@@ -740,6 +740,17 @@ subsys_initcall(crash_notes_memory_init)
- #define pr_fmt(fmt) "crash hp: " fmt
+--- a/include/linux/hugetlb.h~hugetlbfs-extend-hugetlb_vma_lock-to-private-vmas
++++ a/include/linux/hugetlb.h
+@@ -60,6 +60,7 @@ struct resv_map {
+ 	long adds_in_progress;
+ 	struct list_head region_cache;
+ 	long region_cache_count;
++	struct rw_semaphore rw_sema;
+ #ifdef CONFIG_CGROUP_HUGETLB
+ 	/*
+ 	 * On private mappings, the counter to uncharge reservations is stored
+@@ -1233,6 +1234,11 @@ static inline bool __vma_shareable_lock(
+ 	return (vma->vm_flags & VM_MAYSHARE) && vma->vm_private_data;
+ }
  
- /*
-+ * Different than kexec/kdump loading/unloading/jumping/shrinking which
-+ * usually rarely happen, there will be many crash hotplug events notified
-+ * during one short period, e.g one memory board is hot added and memory
-+ * regions are online. So mutex lock  __crash_hotplug_lock is used to
-+ * serialize the crash hotplug handling specifically.
-+ */
-+DEFINE_MUTEX(__crash_hotplug_lock);
-+#define crash_hotplug_lock() mutex_lock(&__crash_hotplug_lock)
-+#define crash_hotplug_unlock() mutex_unlock(&__crash_hotplug_lock)
++static inline bool __vma_private_lock(struct vm_area_struct *vma)
++{
++	return (!(vma->vm_flags & VM_MAYSHARE)) && vma->vm_private_data;
++}
 +
-+/*
-  * This routine utilized when the crash_hotplug sysfs node is read.
-  * It reflects the kernel's ability/permission to update the crash
-  * elfcorehdr directly.
-@@ -748,9 +759,11 @@ int crash_check_update_elfcorehdr(void)
+ /*
+  * Safe version of huge_pte_offset() to check the locks.  See comments
+  * above huge_pte_offset().
+--- a/mm/hugetlb.c~hugetlbfs-extend-hugetlb_vma_lock-to-private-vmas
++++ a/mm/hugetlb.c
+@@ -97,6 +97,7 @@ static void hugetlb_vma_lock_alloc(struc
+ static void __hugetlb_vma_unlock_write_free(struct vm_area_struct *vma);
+ static void hugetlb_unshare_pmds(struct vm_area_struct *vma,
+ 		unsigned long start, unsigned long end);
++static struct resv_map *vma_resv_map(struct vm_area_struct *vma);
+ 
+ static inline bool subpool_is_free(struct hugepage_subpool *spool)
  {
- 	int rc = 0;
+@@ -267,6 +268,10 @@ void hugetlb_vma_lock_read(struct vm_are
+ 		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
  
-+	crash_hotplug_lock();
- 	/* Obtain lock while reading crash information */
- 	if (!kexec_trylock()) {
- 		pr_info("kexec_trylock() failed, elfcorehdr may be inaccurate\n");
-+		crash_hotplug_unlock();
- 		return 0;
+ 		down_read(&vma_lock->rw_sema);
++	} else if (__vma_private_lock(vma)) {
++		struct resv_map *resv_map = vma_resv_map(vma);
++
++		down_read(&resv_map->rw_sema);
  	}
- 	if (kexec_crash_image) {
-@@ -761,6 +774,7 @@ int crash_check_update_elfcorehdr(void)
- 	}
- 	/* Release lock now that update complete */
- 	kexec_unlock();
-+	crash_hotplug_unlock();
- 
- 	return rc;
- }
-@@ -783,9 +797,11 @@ static void crash_handle_hotplug_event(u
- {
- 	struct kimage *image;
- 
-+	crash_hotplug_lock();
- 	/* Obtain lock while changing crash information */
- 	if (!kexec_trylock()) {
- 		pr_info("kexec_trylock() failed, elfcorehdr may be inaccurate\n");
-+		crash_hotplug_unlock();
- 		return;
- 	}
- 
-@@ -852,6 +868,7 @@ static void crash_handle_hotplug_event(u
- out:
- 	/* Release lock now that update complete */
- 	kexec_unlock();
-+	crash_hotplug_unlock();
  }
  
- static int crash_memhp_notifier(struct notifier_block *nb, unsigned long val, void *v)
+@@ -276,6 +281,10 @@ void hugetlb_vma_unlock_read(struct vm_a
+ 		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
+ 
+ 		up_read(&vma_lock->rw_sema);
++	} else if (__vma_private_lock(vma)) {
++		struct resv_map *resv_map = vma_resv_map(vma);
++
++		up_read(&resv_map->rw_sema);
+ 	}
+ }
+ 
+@@ -285,6 +294,10 @@ void hugetlb_vma_lock_write(struct vm_ar
+ 		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
+ 
+ 		down_write(&vma_lock->rw_sema);
++	} else if (__vma_private_lock(vma)) {
++		struct resv_map *resv_map = vma_resv_map(vma);
++
++		down_write(&resv_map->rw_sema);
+ 	}
+ }
+ 
+@@ -294,17 +307,27 @@ void hugetlb_vma_unlock_write(struct vm_
+ 		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
+ 
+ 		up_write(&vma_lock->rw_sema);
++	} else if (__vma_private_lock(vma)) {
++		struct resv_map *resv_map = vma_resv_map(vma);
++
++		up_write(&resv_map->rw_sema);
+ 	}
+ }
+ 
+ int hugetlb_vma_trylock_write(struct vm_area_struct *vma)
+ {
+-	struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
+ 
+-	if (!__vma_shareable_lock(vma))
+-		return 1;
++	if (__vma_shareable_lock(vma)) {
++		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
+ 
+-	return down_write_trylock(&vma_lock->rw_sema);
++		return down_write_trylock(&vma_lock->rw_sema);
++	} else if (__vma_private_lock(vma)) {
++		struct resv_map *resv_map = vma_resv_map(vma);
++
++		return down_write_trylock(&resv_map->rw_sema);
++	}
++
++	return 1;
+ }
+ 
+ void hugetlb_vma_assert_locked(struct vm_area_struct *vma)
+@@ -313,6 +336,10 @@ void hugetlb_vma_assert_locked(struct vm
+ 		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
+ 
+ 		lockdep_assert_held(&vma_lock->rw_sema);
++	} else if (__vma_private_lock(vma)) {
++		struct resv_map *resv_map = vma_resv_map(vma);
++
++		lockdep_assert_held(&resv_map->rw_sema);
+ 	}
+ }
+ 
+@@ -345,6 +372,11 @@ static void __hugetlb_vma_unlock_write_f
+ 		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
+ 
+ 		__hugetlb_vma_unlock_write_put(vma_lock);
++	} else if (__vma_private_lock(vma)) {
++		struct resv_map *resv_map = vma_resv_map(vma);
++
++		/* no free for anon vmas, but still need to unlock */
++		up_write(&resv_map->rw_sema);
+ 	}
+ }
+ 
+@@ -1068,6 +1100,7 @@ struct resv_map *resv_map_alloc(void)
+ 	kref_init(&resv_map->refs);
+ 	spin_lock_init(&resv_map->lock);
+ 	INIT_LIST_HEAD(&resv_map->regions);
++	init_rwsem(&resv_map->rw_sema);
+ 
+ 	resv_map->adds_in_progress = 0;
+ 	/*
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from riel@surriel.com are
 
-crash_corec-remove-unnecessary-parameter-of-function.patch
-crash_core-change-the-prototype-of-function-parse_crashkernel.patch
-crash_core-change-parse_crashkernel-to-support-crashkernel=highlow-parsing.patch
-crash_core-add-generic-function-to-do-reservation.patch
-crash_core-move-crashk_res-definition-into-crash_corec.patch
-x86-kdump-use-generic-interface-to-simplify-crashkernel-reservation-code.patch
-x86-kdump-use-generic-interface-to-simplify-crashkernel-reservation-code-fix.patch
-arm64-kdump-use-generic-interface-to-simplify-crashkernel-reservation.patch
-riscv-kdump-use-generic-interface-to-simplify-crashkernel-reservation.patch
-crash_corec-remove-unneeded-functions.patch
+hugetlbfs-extend-hugetlb_vma_lock-to-private-vmas.patch
+hugetlbfs-close-race-between-madv_dontneed-and-page-fault.patch
+hugetlbfs-replace-hugetlb_vma_lock-with-invalidate_lock.patch
 
