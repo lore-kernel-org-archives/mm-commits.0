@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63CCCE78486
-	for <mm-commits@archiver.kernel.org>; Sun,  1 Oct 2023 19:39:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBF1AE7848A
+	for <mm-commits@archiver.kernel.org>; Sun,  1 Oct 2023 19:48:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235339AbjJATjl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 1 Oct 2023 15:39:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40182 "EHLO
+        id S235344AbjJATsu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 1 Oct 2023 15:48:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59888 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235338AbjJATjl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 1 Oct 2023 15:39:41 -0400
+        with ESMTP id S235309AbjJATsu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 1 Oct 2023 15:48:50 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8AF22BF
-        for <mm-commits@vger.kernel.org>; Sun,  1 Oct 2023 12:39:39 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 136BFC433C8;
-        Sun,  1 Oct 2023 19:39:39 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9556C4
+        for <mm-commits@vger.kernel.org>; Sun,  1 Oct 2023 12:48:47 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6191DC433C8;
+        Sun,  1 Oct 2023 19:48:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696189179;
-        bh=P4A85VJjXdPdCbyJVHJWQ38/3tVAbNMH5U2KYZPO9RQ=;
+        s=korg; t=1696189727;
+        bh=wY6KJjhwPCBRF/sTM5wKg/Ep+EX20Qz8beb4NmswIKE=;
         h=Date:To:From:Subject:From;
-        b=xF5aItISY6ITdHpJIDNpIt2x7gW7eNWVw0+L5//vSj6RDqBU3NUeCFhnm0H9YJ0Fw
-         ie2Q4M2sQCfETKP6iB9/zGhvaprtR4qsKX5BKCtcmuQcYN8lLjo7kzUcQ3SC5MVRmP
-         WAtIku4lKb3FbR8edz6usF6a1axA7N/+dGNtkpHY=
-Date:   Sun, 01 Oct 2023 12:39:38 -0700
-To:     mm-commits@vger.kernel.org, roman.gushchin@linux.dev,
-        akpm@linux-foundation.org
+        b=1CI+kTl4qPVLpd4IGZGGaab9joJ2NAZjheFyA1NYG6MYEkTl+oX4G6rgDzww87u/R
+         eTn9G0LLFb83hfTmpvdBF7BHFgJMIVD6fU+MxW9qRZ2NBFlElOLuMWEYvbMRK6zlut
+         BpsTRDdlT8DjWaz3RNRrmV9bn0Igk6+NGo5OxYsw=
+Date:   Sun, 01 Oct 2023 12:48:46 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, jack@suse.cz,
+        lstoakes@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmem-add-direct-objcg-pointer-to-task_struct-fix.patch added to mm-unstable branch
-Message-Id: <20231001193939.136BFC433C8@smtp.kernel.org>
+Subject: + mm-filemap-clarify-filemap_fault-comments-for-not-uptodate-case.patch added to mm-unstable branch
+Message-Id: <20231001194847.6191DC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-kmem-add-direct-objcg-pointer-to-task_struct-fix
+     Subject: mm/filemap: clarify filemap_fault() comments for not uptodate case
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kmem-add-direct-objcg-pointer-to-task_struct-fix.patch
+     mm-filemap-clarify-filemap_fault-comments-for-not-uptodate-case.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmem-add-direct-objcg-pointer-to-task_struct-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-clarify-filemap_fault-comments-for-not-uptodate-case.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,39 +59,83 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: mm-kmem-add-direct-objcg-pointer-to-task_struct-fix
-Date: Sun, 1 Oct 2023 09:42:54 -0700
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: mm/filemap: clarify filemap_fault() comments for not uptodate case
+Date: Sun, 1 Oct 2023 00:10:29 +0100
 
-fix sparse complaint
+The existing comments in filemap_fault() suggest that, after either a
+minor fault has occurred and filemap_get_folio() found a folio in the page
+cache, or a major fault arose and __filemap_get_folio(FGP_CREATE...) did
+the job (having relied on do_sync_mmap_readahead() or filemap_read_folio()
+to read in the folio), the only possible reason it could not be uptodate
+is because of an error.
 
-Link: https://lkml.kernel.org/r/ZRmhjpGvKIdGj162@P9FQF9L96D.lan
+This is not so, as if, for instance, the fault occurred within a VMA which
+had the VM_RAND_READ flag set (via madvise() with the MADV_RANDOM flag
+specified), this would cause even synchronous readahead to fail to read in
+the folio.
 
+I confirmed this by dropping page caches and faulting in memory
+madvise()'d this way, observing that this code path was reached on each
+occasion.
+
+Clarify the comments to include this case, and additionally update the
+comment recently added around the invalidate lock logic to make it clear
+the comment explicitly refers to the minor fault case.
+
+In addition, while we're here, refer to folios rather than pages.
+
+Link: https://lkml.kernel.org/r/20230930231029.88196-1-lstoakes@gmail.com
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/filemap.c |   19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
---- a/mm/memcontrol.c~mm-kmem-add-direct-objcg-pointer-to-task_struct-fix
-+++ a/mm/memcontrol.c
-@@ -3053,7 +3053,7 @@ static struct obj_cgroup *current_objcg_
- 	rcu_read_lock();
- 	do {
- 		/* Atomically drop the update bit, */
--		WARN_ON_ONCE(cmpxchg(&current->objcg, tmp, 0) != tmp);
-+		WARN_ON_ONCE(cmpxchg(&current->objcg, tmp, NULL) != tmp);
+--- a/mm/filemap.c~mm-filemap-clarify-filemap_fault-comments-for-not-uptodate-case
++++ a/mm/filemap.c
+@@ -3308,21 +3308,28 @@ retry_find:
+ 	VM_BUG_ON_FOLIO(!folio_contains(folio, index), folio);
  
- 		/* ...obtain the new objcg pointer */
- 		memcg = mem_cgroup_from_task(current);
+ 	/*
+-	 * We have a locked page in the page cache, now we need to check
+-	 * that it's up-to-date. If not, it is going to be due to an error.
++	 * We have a locked folio in the page cache, now we need to check
++	 * that it's up-to-date. If not, it is going to be due to an error,
++	 * or because readahead was otherwise unable to retrieve it.
+ 	 */
+ 	if (unlikely(!folio_test_uptodate(folio))) {
+ 		/*
+-		 * The page was in cache and uptodate and now it is not.
+-		 * Strange but possible since we didn't hold the page lock all
+-		 * the time. Let's drop everything get the invalidate lock and
+-		 * try again.
++		 * If the invalidate lock is not held, the folio was in cache and
++		 * uptodate and now it is not. Strange but possible since we
++		 * didn't hold the page lock all the time. Let's drop everything,
++		 * get the invalidate lock and try again.
+ 		 */
+ 		if (!mapping_locked) {
+ 			folio_unlock(folio);
+ 			folio_put(folio);
+ 			goto retry_find;
+ 		}
++
++		/*
++		 * OK, the folio is really not uptodate. This can be because the
++		 * VMA has the VM_RAND_READ flag set, or because an error
++		 * arose. Let's read it in directly.
++		 */
+ 		goto page_not_uptodate;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from roman.gushchin@linux.dev are
+Patches currently in -mm which might be from lstoakes@gmail.com are
 
-mm-kmem-optimize-get_obj_cgroup_from_current.patch
-mm-kmem-add-direct-objcg-pointer-to-task_struct.patch
-mm-kmem-add-direct-objcg-pointer-to-task_struct-fix.patch
-mm-kmem-make-memcg-keep-a-reference-to-the-original-objcg.patch
-mm-kmem-scoped-objcg-protection.patch
-percpu-scoped-objcg-protection.patch
+mm-refactor-si_mem_available.patch
+mm-filemap-clarify-filemap_fault-comments-for-not-uptodate-case.patch
 
