@@ -2,36 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76181E784BC
-	for <mm-commits@archiver.kernel.org>; Mon,  2 Oct 2023 15:16:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4911DE784BD
+	for <mm-commits@archiver.kernel.org>; Mon,  2 Oct 2023 15:19:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237978AbjJBPQp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 2 Oct 2023 11:16:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52790 "EHLO
+        id S238035AbjJBPTG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 2 Oct 2023 11:19:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46384 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238030AbjJBPQm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Oct 2023 11:16:42 -0400
+        with ESMTP id S238055AbjJBPTF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Oct 2023 11:19:05 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3D3AA6
-        for <mm-commits@vger.kernel.org>; Mon,  2 Oct 2023 08:16:39 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6435CC433C8;
-        Mon,  2 Oct 2023 15:16:39 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2AC1DDA
+        for <mm-commits@vger.kernel.org>; Mon,  2 Oct 2023 08:19:02 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B57C0C433C8;
+        Mon,  2 Oct 2023 15:19:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696259799;
-        bh=rBT83ZfNQuv+jOVf6G1arnWFRBpwHtMLAM374xxHwq8=;
+        s=korg; t=1696259941;
+        bh=gQOstL2gESzlZ8ETutRMqUzzCNnZFyUMHwCjHxHssvc=;
         h=Date:To:From:Subject:From;
-        b=M0vSCvci+Bdppg8VTWsUiKHAHLvHXS3yt+j/wM1AXbvS7IwypYBmOMQkn4gSTQSwR
-         NnQP/5EZd+tJYLGN0lJ3vslkVbW0jUWmA30A3Tns6+rrWXPad3QPKpJTFa+EltC3ve
-         3ZtijaGTXdTS9DV0HrykoudlA7lzW/SEx7et7obw=
-Date:   Mon, 02 Oct 2023 08:16:38 -0700
-To:     mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        rostedt@goodmis.org, ndesaulniers@google.com, nathan@kernel.org,
-        linux@rasmusvillemoes.dk, keescook@chromium.org,
-        david.laight@aculab.com, bvanassche@acm.org, arnd@arndb.de,
-        David.Laight@ACULAB.COM, akpm@linux-foundation.org
+        b=vEBaLvMWHZhJk4Wczq3b/jfxPk6kHzFkcEHFPuNwu/o0WGaBwT11tn0/TTE21JsrJ
+         GtOE00SdvQr+tPl3oZuNB3s5fs82wNUJAtB8UIPM1BIjhjmuGNsKXI8PLGeuKMw1l5
+         m6T6vPUjbdTQJW5sTSqYPQThfLfEwgunSPXRtgUY=
+Date:   Mon, 02 Oct 2023 08:19:01 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, surenb@google.com,
+        muchun.song@linux.dev, mike.kravetz@oracle.com, david@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + compilerh-move-__is_constexpr-to-compilerh.patch added to mm-nonmm-unstable branch
-Message-Id: <20231002151639.6435CC433C8@smtp.kernel.org>
+Subject: + mm-rmap-move-setpageanonexclusive-out-of-page_move_anon_rmap.patch added to mm-unstable branch
+Message-Id: <20231002151901.B57C0C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,14 +37,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: compiler.h: move __is_constexpr() to compiler.h
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     compilerh-move-__is_constexpr-to-compilerh.patch
+     Subject: mm/rmap: move SetPageAnonExclusive() out of page_move_anon_rmap()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-rmap-move-setpageanonexclusive-out-of-page_move_anon_rmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/compilerh-move-__is_constexpr-to-compilerh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-move-setpageanonexclusive-out-of-page_move_anon_rmap.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -62,99 +60,101 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Laight <David.Laight@ACULAB.COM>
-Subject: compiler.h: move __is_constexpr() to compiler.h
-Date: Mon, 2 Oct 2023 14:34:05 +0000
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/rmap: move SetPageAnonExclusive() out of page_move_anon_rmap()
+Date: Mon, 2 Oct 2023 16:29:47 +0200
 
-Prior to f747e6667ebb2 __is_constexpr() was in its only user minmax.h. 
-That commit moved it to const.h - but that file just defined ULL(x) and
-UL(x) so that constants can be defined for .S and .c files.
+Patch series "mm/rmap: convert page_move_anon_rmap() to
+folio_move_anon_rmap()".
 
-So apart from the word 'const' it wasn't really a good location.  Instead
-move the definition to compiler.h just before the similar
+Convert page_move_anon_rmap() to folio_move_anon_rmap(), letting the
+callers handle PageAnonExclusive.  I'm including cleanup patch #3 because
+it fits into the picture and can be done cleaner by the conversion.
 
-  is_signed_type() and is_unsigned_type().
 
-(Which were moved there by dcf8e5633e2e6) This may not be a good long-term
-home, but the three definitions belong together.
+This patch (of 3):
 
-This makes it possible to use __is_constexpr() inside is_signed_type() so
-that the result is constant integer expression for pointer types.  In
-particular (void *)1 isn't constant enough.
+Let's move it into the caller: there is a difference between whether an
+anon folio can only be mapped by one process (e.g., into one VMA), and
+whether it is truly exclusive (e.g., no references -- including GUP --
+from other processes).
 
-Link: https://lkml.kernel.org/r/6d2b584e26544ee6a0810e494352d432@AcuMS.aculab.com
-Signed-off-by: David Laight <david.laight@aculab.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Bart Van Assche <bvanassche@acm.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Further, for large folios the page might not actually be pointing at the
+head page of the folio, so it better be handled in the caller.  This is a
+preparation for converting page_move_anon_rmap() to consume a folio.
+
+Link: https://lkml.kernel.org/r/20231002142949.235104-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20231002142949.235104-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler.h    |    8 ++++++++
- include/linux/const.h       |    8 --------
- tools/include/linux/const.h |    8 --------
- 3 files changed, 8 insertions(+), 16 deletions(-)
+ mm/huge_memory.c |    1 +
+ mm/hugetlb.c     |    4 +++-
+ mm/memory.c      |    1 +
+ mm/rmap.c        |    1 -
+ 4 files changed, 5 insertions(+), 2 deletions(-)
 
---- a/include/linux/compiler.h~compilerh-move-__is_constexpr-to-compilerh
-+++ a/include/linux/compiler.h
-@@ -228,6 +228,14 @@ static inline void *offset_to_ptr(const
- #define __must_be_array(a)	BUILD_BUG_ON_ZERO(__same_type((a), &(a)[0]))
+--- a/mm/huge_memory.c~mm-rmap-move-setpageanonexclusive-out-of-page_move_anon_rmap
++++ a/mm/huge_memory.c
+@@ -1506,6 +1506,7 @@ vm_fault_t do_huge_pmd_wp_page(struct vm
+ 		pmd_t entry;
  
- /*
-+ * This returns a constant expression while determining if an argument is
-+ * a constant expression, most importantly without evaluating the argument.
-+ * Glory to Martin Uecker <Martin.Uecker@med.uni-goettingen.de>
-+ */
-+#define __is_constexpr(x) \
-+	(sizeof(int) == sizeof(*(8 ? ((void *)((long)(x) * 0l)) : (int *)8)))
-+
-+/*
-  * Whether 'type' is a signed type or an unsigned type. Supports scalar types,
-  * bool and also pointer types.
-  */
---- a/include/linux/const.h~compilerh-move-__is_constexpr-to-compilerh
-+++ a/include/linux/const.h
-@@ -3,12 +3,4 @@
+ 		page_move_anon_rmap(page, vma);
++		SetPageAnonExclusive(page);
+ 		folio_unlock(folio);
+ reuse:
+ 		if (unlikely(unshare)) {
+--- a/mm/hugetlb.c~mm-rmap-move-setpageanonexclusive-out-of-page_move_anon_rmap
++++ a/mm/hugetlb.c
+@@ -5460,8 +5460,10 @@ retry_avoidcopy:
+ 	 * owner and can reuse this page.
+ 	 */
+ 	if (folio_mapcount(old_folio) == 1 && folio_test_anon(old_folio)) {
+-		if (!PageAnonExclusive(&old_folio->page))
++		if (!PageAnonExclusive(&old_folio->page)) {
+ 			page_move_anon_rmap(&old_folio->page, vma);
++			SetPageAnonExclusive(&old_folio->page);
++		}
+ 		if (likely(!unshare))
+ 			set_huge_ptep_writable(vma, haddr, ptep);
  
- #include <vdso/const.h>
+--- a/mm/memory.c~mm-rmap-move-setpageanonexclusive-out-of-page_move_anon_rmap
++++ a/mm/memory.c
+@@ -3484,6 +3484,7 @@ static vm_fault_t do_wp_page(struct vm_f
+ 		 * sunglasses. Hit it.
+ 		 */
+ 		page_move_anon_rmap(vmf->page, vma);
++		SetPageAnonExclusive(vmf->page);
+ 		folio_unlock(folio);
+ reuse:
+ 		if (unlikely(unshare)) {
+--- a/mm/rmap.c~mm-rmap-move-setpageanonexclusive-out-of-page_move_anon_rmap
++++ a/mm/rmap.c
+@@ -1165,7 +1165,6 @@ void page_move_anon_rmap(struct page *pa
+ 	 * folio_test_anon()) will not see one without the other.
+ 	 */
+ 	WRITE_ONCE(folio->mapping, anon_vma);
+-	SetPageAnonExclusive(page);
+ }
  
--/*
-- * This returns a constant expression while determining if an argument is
-- * a constant expression, most importantly without evaluating the argument.
-- * Glory to Martin Uecker <Martin.Uecker@med.uni-goettingen.de>
-- */
--#define __is_constexpr(x) \
--	(sizeof(int) == sizeof(*(8 ? ((void *)((long)(x) * 0l)) : (int *)8)))
--
- #endif /* _LINUX_CONST_H */
---- a/tools/include/linux/const.h~compilerh-move-__is_constexpr-to-compilerh
-+++ a/tools/include/linux/const.h
-@@ -3,12 +3,4 @@
- 
- #include <vdso/const.h>
- 
--/*
-- * This returns a constant expression while determining if an argument is
-- * a constant expression, most importantly without evaluating the argument.
-- * Glory to Martin Uecker <Martin.Uecker@med.uni-goettingen.de>
-- */
--#define __is_constexpr(x) \
--	(sizeof(int) == sizeof(*(8 ? ((void *)((long)(x) * 0l)) : (int *)8)))
--
- #endif /* _LINUX_CONST_H */
+ /**
 _
 
-Patches currently in -mm which might be from David.Laight@ACULAB.COM are
+Patches currently in -mm which might be from david@redhat.com are
 
-minmax-add-umina-b-and-umaxa-b.patch
-minmax-allow-min-max-clamp-if-the-arguments-have-the-same-signedness.patch
-minmax-fix-indentation-of-__cmp_once-and-__clamp_once.patch
-minmax-allow-comparisons-of-int-against-unsigned-char-short.patch
-minmax-relax-check-to-allow-comparison-between-unsigned-arguments-and-signed-constants.patch
-compilerh-move-__is_constexpr-to-compilerh.patch
+mm-rmap-drop-stale-comment-in-page_add_anon_rmap-and-hugepage_add_anon_rmap.patch
+mm-rmap-move-setpageanonexclusive-out-of-__page_set_anon_rmap.patch
+mm-rmap-move-folio_test_anon-check-out-of-__folio_set_anon.patch
+mm-rmap-warn-on-new-pte-mapped-folios-in-page_add_anon_rmap.patch
+mm-rmap-simplify-pageanonexclusive-sanity-checks-when-adding-anon-rmap.patch
+mm-rmap-simplify-pageanonexclusive-sanity-checks-when-adding-anon-rmap-fix.patch
+mm-rmap-pass-folio-to-hugepage_add_anon_rmap.patch
+mm-rmap-move-setpageanonexclusive-out-of-page_move_anon_rmap.patch
+mm-rmap-convert-page_move_anon_rmap-to-folio_move_anon_rmap.patch
+memory-move-exclusivity-detection-in-do_wp_page-into-wp_can_reuse_anon_folio.patch
 
