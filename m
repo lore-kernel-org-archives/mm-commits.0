@@ -2,211 +2,129 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 933B1E784BF
-	for <mm-commits@archiver.kernel.org>; Mon,  2 Oct 2023 15:19:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06B49E784BC
+	for <mm-commits@archiver.kernel.org>; Mon,  2 Oct 2023 15:32:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238055AbjJBPTM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 2 Oct 2023 11:19:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42466 "EHLO
+        id S237908AbjJBPcz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 2 Oct 2023 11:32:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47166 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238060AbjJBPTL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Oct 2023 11:19:11 -0400
+        with ESMTP id S238124AbjJBPcy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Oct 2023 11:32:54 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39595F2
-        for <mm-commits@vger.kernel.org>; Mon,  2 Oct 2023 08:19:08 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB8ECC433C8;
-        Mon,  2 Oct 2023 15:19:07 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F232BD
+        for <mm-commits@vger.kernel.org>; Mon,  2 Oct 2023 08:32:49 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAEE4C433C8;
+        Mon,  2 Oct 2023 15:32:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696259947;
-        bh=l6ddSMbcyiUNS0GJZnlQZuLvzdsYLgaTU2VStYEW5zU=;
+        s=korg; t=1696260768;
+        bh=vrltsHPO6KJAUjqWCmoR0Pu4+KK1zO0CA9l6gkx8DVM=;
         h=Date:To:From:Subject:From;
-        b=RduC2YO4fahegeVryJ5Rfti1Nm9q9NdRsDOHnggUk7MYfMWqXsivcHGHFUOFVb704
-         NiJEHM18Z5v+PZe2of5H9VqZWo4UtLa7lzZqXWHOSwCZhXIoapRE7wTUWBjQRoZqje
-         JIbfeoB+M65xyb5WMprutFs78QE/TXEmxZ+2yDwc=
-Date:   Mon, 02 Oct 2023 08:19:07 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, surenb@google.com,
-        muchun.song@linux.dev, mike.kravetz@oracle.com, david@redhat.com,
+        b=Z8yAVg7gNq+D3ATiCrlGbxxmVL4G/vXyOufBESi6bmtaZsWfz8l6440GqYZwQqTdy
+         1HFsvSlV0WqrchjkP+IvnuRiOGUFx1yhydHkdZK4w3HF3jOdN5MYtwpOv1rBwPjt8C
+         9+GFyGIPuO0aMk3pAMs8c+9gxPuGzC+6qG1UiR2Q=
+Date:   Mon, 02 Oct 2023 08:32:48 -0700
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, hughd@google.com,
+        adobriyan@gmail.com, swarupkotikalapudi@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + memory-move-exclusivity-detection-in-do_wp_page-into-wp_can_reuse_anon_folio.patch added to mm-unstable branch
-Message-Id: <20231002151907.AB8ECC433C8@smtp.kernel.org>
+Subject: [to-be-updated] selftests-proc-add-proc-pid-statm-output-validation.patch removed from -mm tree
+Message-Id: <20231002153248.BAEE4C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: memory: move exclusivity detection in do_wp_page() into wp_can_reuse_anon_folio()
-has been added to the -mm mm-unstable branch.  Its filename is
-     memory-move-exclusivity-detection-in-do_wp_page-into-wp_can_reuse_anon_folio.patch
+The quilt patch titled
+     Subject: selftests: proc: add /proc/$(pid)/statm output validation
+has been removed from the -mm tree.  Its filename was
+     selftests-proc-add-proc-pid-statm-output-validation.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memory-move-exclusivity-detection-in-do_wp_page-into-wp_can_reuse_anon_folio.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: memory: move exclusivity detection in do_wp_page() into wp_can_reuse_anon_folio()
-Date: Mon, 2 Oct 2023 16:29:49 +0200
+From: Swarup Laxman Kotiaklapudi <swarupkotikalapudi@gmail.com>
+Subject: selftests: proc: add /proc/$(pid)/statm output validation
+Date: Sun, 1 Oct 2023 22:38:16 +0530
 
-Let's clean up do_wp_page() a bit, removing two labels and making it a
-easier to read.
+Add /proc/${pid}/statm validation
 
-wp_can_reuse_anon_folio() now only operates on the whole folio.  Move the
-SetPageAnonExclusive() out into do_wp_page().  No need to do this under
-page lock -- the page table lock is sufficient.
+/proc/$(pid)/statm output is expected to be:
+ "0 0 0 * 0 0 0\n"
+Here * can be any value
 
-Link: https://lkml.kernel.org/r/20231002142949.235104-4-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Read output of /proc/$(pid)/statm
+and compare length of output is
+equal or greater than expected output
+
+Link: https://lkml.kernel.org/r/20231001170816.28241-1-swarupkotikalapudi@gmail.com
+Signed-off-by: Swarup Laxman Kotiaklapudi <swarupkotikalapudi@gmail.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   88 +++++++++++++++++++++++++-------------------------
- 1 file changed, 45 insertions(+), 43 deletions(-)
+ tools/testing/selftests/proc/proc-empty-vm.c |   38 ++++++++++++++---
+ 1 file changed, 33 insertions(+), 5 deletions(-)
 
---- a/mm/memory.c~memory-move-exclusivity-detection-in-do_wp_page-into-wp_can_reuse_anon_folio
-+++ a/mm/memory.c
-@@ -3358,6 +3358,44 @@ static vm_fault_t wp_page_shared(struct
- 	return ret;
+--- a/tools/testing/selftests/proc/proc-empty-vm.c~selftests-proc-add-proc-pid-statm-output-validation
++++ a/tools/testing/selftests/proc/proc-empty-vm.c
+@@ -302,6 +302,37 @@ static int test_proc_pid_smaps_rollup(pi
+ 	}
  }
  
-+static bool wp_can_reuse_anon_folio(struct folio *folio,
-+				    struct vm_area_struct *vma)
++static const char g_statm[] = "0 0 0 * 0 0 0\n";
++
++static int test_proc_pid_statm(pid_t pid)
 +{
-+	/*
-+	 * We have to verify under folio lock: these early checks are
-+	 * just an optimization to avoid locking the folio and freeing
-+	 * the swapcache if there is little hope that we can reuse.
-+	 *
-+	 * KSM doesn't necessarily raise the folio refcount.
-+	 */
-+	if (folio_test_ksm(folio) || folio_ref_count(folio) > 3)
-+		return false;
-+	if (!folio_test_lru(folio))
-+		/*
-+		 * We cannot easily detect+handle references from
-+		 * remote LRU caches or references to LRU folios.
-+		 */
-+		lru_add_drain();
-+	if (folio_ref_count(folio) > 1 + folio_test_swapcache(folio))
-+		return false;
-+	if (!folio_trylock(folio))
-+		return false;
-+	if (folio_test_swapcache(folio))
-+		folio_free_swap(folio);
-+	if (folio_test_ksm(folio) || folio_ref_count(folio) != 1) {
-+		folio_unlock(folio);
-+		return false;
++	char buf[4096];
++
++	snprintf(buf, sizeof(buf), "/proc/%u/statm", pid);
++
++	int fd = open(buf, O_RDONLY);
++
++	if (fd == -1) {
++		if (errno == ENOENT) {
++			/*
++			 * /proc/${pid}/statm is under CONFIG_PROC_PAGE_MONITOR,
++			 * it doesn't necessarily exist.
++			 */
++			return EXIT_SUCCESS;
++		}
++		perror("open /proc/${pid}/statm");
++		return EXIT_FAILURE;
++	} else {
++		ssize_t rv = read(fd, buf, sizeof(buf));
++
++		close(fd);
++		size_t len = strlen(g_statm);
++
++		assert(rv >= len);
++		return EXIT_SUCCESS;
 +	}
-+	/*
-+	 * Ok, we've got the only folio reference from our mapping
-+	 * and the folio is locked, it's dark out, and we're wearing
-+	 * sunglasses. Hit it.
-+	 */
-+	folio_move_anon_rmap(folio, vma);
-+	folio_unlock(folio);
-+	return true;
 +}
 +
- /*
-  * This routine handles present pages, when
-  * * users try to write to a shared page (FAULT_FLAG_WRITE)
-@@ -3444,49 +3482,14 @@ static vm_fault_t do_wp_page(struct vm_f
- 	/*
- 	 * Private mapping: create an exclusive anonymous page copy if reuse
- 	 * is impossible. We might miss VM_WRITE for FOLL_FORCE handling.
-+	 *
-+	 * If we encounter a page that is marked exclusive, we must reuse
-+	 * the page without further checks.
- 	 */
--	if (folio && folio_test_anon(folio)) {
+ int main(void)
+ {
+ 	int rv = EXIT_SUCCESS;
+@@ -388,11 +419,8 @@ int main(void)
+ 		if (rv == EXIT_SUCCESS) {
+ 			rv = test_proc_pid_smaps_rollup(pid);
+ 		}
 -		/*
--		 * If the page is exclusive to this process we must reuse the
--		 * page without further checks.
+-		 * TODO test /proc/${pid}/statm, task_statm()
+-		 * ->start_code, ->end_code aren't updated by munmap().
+-		 * Output can be "0 0 0 2 0 0 0\n" where "2" can be anything.
 -		 */
--		if (PageAnonExclusive(vmf->page))
--			goto reuse;
--
--		/*
--		 * We have to verify under folio lock: these early checks are
--		 * just an optimization to avoid locking the folio and freeing
--		 * the swapcache if there is little hope that we can reuse.
--		 *
--		 * KSM doesn't necessarily raise the folio refcount.
--		 */
--		if (folio_test_ksm(folio) || folio_ref_count(folio) > 3)
--			goto copy;
--		if (!folio_test_lru(folio))
--			/*
--			 * We cannot easily detect+handle references from
--			 * remote LRU caches or references to LRU folios.
--			 */
--			lru_add_drain();
--		if (folio_ref_count(folio) > 1 + folio_test_swapcache(folio))
--			goto copy;
--		if (!folio_trylock(folio))
--			goto copy;
--		if (folio_test_swapcache(folio))
--			folio_free_swap(folio);
--		if (folio_test_ksm(folio) || folio_ref_count(folio) != 1) {
--			folio_unlock(folio);
--			goto copy;
--		}
--		/*
--		 * Ok, we've got the only folio reference from our mapping
--		 * and the folio is locked, it's dark out, and we're wearing
--		 * sunglasses. Hit it.
--		 */
--		folio_move_anon_rmap(folio, vma);
--		SetPageAnonExclusive(vmf->page);
--		folio_unlock(folio);
--reuse:
-+	if (folio && folio_test_anon(folio) &&
-+	    (PageAnonExclusive(vmf->page) || wp_can_reuse_anon_folio(folio, vma))) {
-+		if (!PageAnonExclusive(vmf->page))
-+			SetPageAnonExclusive(vmf->page);
- 		if (unlikely(unshare)) {
- 			pte_unmap_unlock(vmf->pte, vmf->ptl);
- 			return 0;
-@@ -3494,7 +3497,6 @@ reuse:
- 		wp_page_reuse(vmf);
- 		return 0;
- 	}
--copy:
- 	/*
- 	 * Ok, we need to copy. Oh, well..
- 	 */
++		if (rv == EXIT_SUCCESS)
++			rv = test_proc_pid_statm(pid);
+ 
+ 		/* Cut the rope. */
+ 		int wstatus;
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from swarupkotikalapudi@gmail.com are
 
-mm-rmap-drop-stale-comment-in-page_add_anon_rmap-and-hugepage_add_anon_rmap.patch
-mm-rmap-move-setpageanonexclusive-out-of-__page_set_anon_rmap.patch
-mm-rmap-move-folio_test_anon-check-out-of-__folio_set_anon.patch
-mm-rmap-warn-on-new-pte-mapped-folios-in-page_add_anon_rmap.patch
-mm-rmap-simplify-pageanonexclusive-sanity-checks-when-adding-anon-rmap.patch
-mm-rmap-simplify-pageanonexclusive-sanity-checks-when-adding-anon-rmap-fix.patch
-mm-rmap-pass-folio-to-hugepage_add_anon_rmap.patch
-mm-rmap-move-setpageanonexclusive-out-of-page_move_anon_rmap.patch
-mm-rmap-convert-page_move_anon_rmap-to-folio_move_anon_rmap.patch
-memory-move-exclusivity-detection-in-do_wp_page-into-wp_can_reuse_anon_folio.patch
 
