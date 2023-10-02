@@ -2,129 +2,93 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06B49E784BC
-	for <mm-commits@archiver.kernel.org>; Mon,  2 Oct 2023 15:32:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 476F4E784BC
+	for <mm-commits@archiver.kernel.org>; Mon,  2 Oct 2023 15:33:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237908AbjJBPcz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 2 Oct 2023 11:32:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47166 "EHLO
+        id S238121AbjJBPdM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 2 Oct 2023 11:33:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56410 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238124AbjJBPcy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Oct 2023 11:32:54 -0400
+        with ESMTP id S237779AbjJBPdM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 2 Oct 2023 11:33:12 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F232BD
-        for <mm-commits@vger.kernel.org>; Mon,  2 Oct 2023 08:32:49 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAEE4C433C8;
-        Mon,  2 Oct 2023 15:32:48 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9DD34B7
+        for <mm-commits@vger.kernel.org>; Mon,  2 Oct 2023 08:33:09 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37856C433C8;
+        Mon,  2 Oct 2023 15:33:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696260768;
-        bh=vrltsHPO6KJAUjqWCmoR0Pu4+KK1zO0CA9l6gkx8DVM=;
+        s=korg; t=1696260789;
+        bh=e8wLKamHu5FMCfZ8evWoiRzUObDE2NpRWQDnHFZ0Zv4=;
         h=Date:To:From:Subject:From;
-        b=Z8yAVg7gNq+D3ATiCrlGbxxmVL4G/vXyOufBESi6bmtaZsWfz8l6440GqYZwQqTdy
-         1HFsvSlV0WqrchjkP+IvnuRiOGUFx1yhydHkdZK4w3HF3jOdN5MYtwpOv1rBwPjt8C
-         9+GFyGIPuO0aMk3pAMs8c+9gxPuGzC+6qG1UiR2Q=
-Date:   Mon, 02 Oct 2023 08:32:48 -0700
-To:     mm-commits@vger.kernel.org, shuah@kernel.org, hughd@google.com,
-        adobriyan@gmail.com, swarupkotikalapudi@gmail.com,
+        b=dosiHfSuWFDxVVGG1ftVryaSYssLsnVZz07gQazSEhbRMr+kELl2deN1sdTpSklDO
+         OFOmV/kzKHE7h90r4sTpJpdtI0a3bOCjaY9WSR7HXhyC8MWj2gELvx7h/c/E3NpGXp
+         28Vx8sJbRBvvnUjlgcZktZZ4SCm8Km0oYWLS8aKw=
+Date:   Mon, 02 Oct 2023 08:33:08 -0700
+To:     mm-commits@vger.kernel.org, oleg@redhat.com, kunyu@nfschina.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] selftests-proc-add-proc-pid-statm-output-validation.patch removed from -mm tree
-Message-Id: <20231002153248.BAEE4C433C8@smtp.kernel.org>
+Subject: + kernel-signal-remove-unnecessary-null-values-from-ucounts.patch added to mm-nonmm-unstable branch
+Message-Id: <20231002153309.37856C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: selftests: proc: add /proc/$(pid)/statm output validation
-has been removed from the -mm tree.  Its filename was
-     selftests-proc-add-proc-pid-statm-output-validation.patch
+The patch titled
+     Subject: kernel/signal: remove unnecessary NULL values from ucounts
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kernel-signal-remove-unnecessary-null-values-from-ucounts.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-signal-remove-unnecessary-null-values-from-ucounts.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Swarup Laxman Kotiaklapudi <swarupkotikalapudi@gmail.com>
-Subject: selftests: proc: add /proc/$(pid)/statm output validation
-Date: Sun, 1 Oct 2023 22:38:16 +0530
+From: Li kunyu <kunyu@nfschina.com>
+Subject: kernel/signal: remove unnecessary NULL values from ucounts
+Date: Tue, 26 Sep 2023 10:24:10 +0800
 
-Add /proc/${pid}/statm validation
+ucounts is assigned first, so it does not need to initialize the
+assignment.
 
-/proc/$(pid)/statm output is expected to be:
- "0 0 0 * 0 0 0\n"
-Here * can be any value
-
-Read output of /proc/$(pid)/statm
-and compare length of output is
-equal or greater than expected output
-
-Link: https://lkml.kernel.org/r/20231001170816.28241-1-swarupkotikalapudi@gmail.com
-Signed-off-by: Swarup Laxman Kotiaklapudi <swarupkotikalapudi@gmail.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20230926022410.4280-1-kunyu@nfschina.com
+Signed-off-by: Li kunyu <kunyu@nfschina.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/proc/proc-empty-vm.c |   38 ++++++++++++++---
- 1 file changed, 33 insertions(+), 5 deletions(-)
+ kernel/signal.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/proc/proc-empty-vm.c~selftests-proc-add-proc-pid-statm-output-validation
-+++ a/tools/testing/selftests/proc/proc-empty-vm.c
-@@ -302,6 +302,37 @@ static int test_proc_pid_smaps_rollup(pi
- 	}
- }
- 
-+static const char g_statm[] = "0 0 0 * 0 0 0\n";
-+
-+static int test_proc_pid_statm(pid_t pid)
-+{
-+	char buf[4096];
-+
-+	snprintf(buf, sizeof(buf), "/proc/%u/statm", pid);
-+
-+	int fd = open(buf, O_RDONLY);
-+
-+	if (fd == -1) {
-+		if (errno == ENOENT) {
-+			/*
-+			 * /proc/${pid}/statm is under CONFIG_PROC_PAGE_MONITOR,
-+			 * it doesn't necessarily exist.
-+			 */
-+			return EXIT_SUCCESS;
-+		}
-+		perror("open /proc/${pid}/statm");
-+		return EXIT_FAILURE;
-+	} else {
-+		ssize_t rv = read(fd, buf, sizeof(buf));
-+
-+		close(fd);
-+		size_t len = strlen(g_statm);
-+
-+		assert(rv >= len);
-+		return EXIT_SUCCESS;
-+	}
-+}
-+
- int main(void)
+--- a/kernel/signal.c~kernel-signal-remove-unnecessary-null-values-from-ucounts
++++ a/kernel/signal.c
+@@ -415,7 +415,7 @@ __sigqueue_alloc(int sig, struct task_st
+ 		 int override_rlimit, const unsigned int sigqueue_flags)
  {
- 	int rv = EXIT_SUCCESS;
-@@ -388,11 +419,8 @@ int main(void)
- 		if (rv == EXIT_SUCCESS) {
- 			rv = test_proc_pid_smaps_rollup(pid);
- 		}
--		/*
--		 * TODO test /proc/${pid}/statm, task_statm()
--		 * ->start_code, ->end_code aren't updated by munmap().
--		 * Output can be "0 0 0 2 0 0 0\n" where "2" can be anything.
--		 */
-+		if (rv == EXIT_SUCCESS)
-+			rv = test_proc_pid_statm(pid);
+ 	struct sigqueue *q = NULL;
+-	struct ucounts *ucounts = NULL;
++	struct ucounts *ucounts;
+ 	long sigpending;
  
- 		/* Cut the rope. */
- 		int wstatus;
+ 	/*
 _
 
-Patches currently in -mm which might be from swarupkotikalapudi@gmail.com are
+Patches currently in -mm which might be from kunyu@nfschina.com are
 
+kernel-signal-remove-unnecessary-null-values-from-ucounts.patch
 
