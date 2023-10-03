@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47DF3E7AD78
-	for <mm-commits@archiver.kernel.org>; Tue,  3 Oct 2023 17:02:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23289E7AD78
+	for <mm-commits@archiver.kernel.org>; Tue,  3 Oct 2023 17:02:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229639AbjJCRCk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 3 Oct 2023 13:02:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38012 "EHLO
+        id S231488AbjJCRCt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 3 Oct 2023 13:02:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34572 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231397AbjJCRCd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2023 13:02:33 -0400
+        with ESMTP id S240524AbjJCRCs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2023 13:02:48 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D33A79B
-        for <mm-commits@vger.kernel.org>; Tue,  3 Oct 2023 10:02:29 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BEA8C433CA;
-        Tue,  3 Oct 2023 17:02:29 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC11DE6
+        for <mm-commits@vger.kernel.org>; Tue,  3 Oct 2023 10:02:39 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E4A6C433CB;
+        Tue,  3 Oct 2023 17:02:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696352549;
-        bh=m8TMzEAJtODeI7N51MXjd16SfnVpU0S970UYUGSR+K4=;
+        s=korg; t=1696352559;
+        bh=ko5Voin+4jnimRh+iRXbGd/eSdtEOhO8OrUqBMDkOgo=;
         h=Date:To:From:Subject:From;
-        b=oRPBJrMOGlAp+gxRGq5jkrmD7uykVYzWXkCw7ouZV9uWf6ZoOoys0oG2BlOptAHro
-         wvg+JClFvty3KBeons1Mq+iz2n/8VJ+w8LVN+oUdcQEjppbrCZ+eqqto/m9PpjcoUh
-         vasXIKTS4CpnHvdWhD1+yxiIbKCdxxbK8cxZ2yVQ=
-Date:   Tue, 03 Oct 2023 10:02:28 -0700
+        b=dSxQyIKeLv6Je7SRJthdzKRW61FB5KGxUGBeD9c8vXZZgaXLwR0iY+BoYYiBBftty
+         lBidEXtgIN9pXJh/er9V2HMxvsGdvg114TNBPHr5FlTOzh4rIHkfPA8qlGbdDTd9vV
+         6aRBg/NZKcMsytAvjJ87V8omxEOL/Sq6zGEagqvY=
+Date:   Tue, 03 Oct 2023 10:02:38 -0700
 To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
         willy@infradead.org, wangkefeng.wang@huawei.com,
         vishal.moola@gmail.com, tj@kernel.org, surenb@google.com,
@@ -33,8 +33,8 @@ To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
         david@redhat.com, cl@linux.com, ak@linux.intel.com,
         hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mempolicy-remove-confusing-mpol_mf_lazy-dead-code.patch added to mm-unstable branch
-Message-Id: <20231003170229.6BEA8C433CA@smtp.kernel.org>
+Subject: + mempolicy-mmap_lock-is-not-needed-while-migrating-folios.patch added to mm-unstable branch
+Message-Id: <20231003170239.7E4A6C433CB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mempolicy: remove confusing MPOL_MF_LAZY dead code
+     Subject: mempolicy: mmap_lock is not needed while migrating folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     mempolicy-remove-confusing-mpol_mf_lazy-dead-code.patch
+     mempolicy-mmap_lock-is-not-needed-while-migrating-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mempolicy-remove-confusing-mpol_mf_lazy-dead-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mempolicy-mmap_lock-is-not-needed-while-migrating-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,32 +66,50 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mempolicy: remove confusing MPOL_MF_LAZY dead code
-Date: Tue, 3 Oct 2023 02:24:18 -0700 (PDT)
+Subject: mempolicy: mmap_lock is not needed while migrating folios
+Date: Tue, 3 Oct 2023 02:27:47 -0700 (PDT)
 
-v3.8 commit b24f53a0bea3 ("mm: mempolicy: Add MPOL_MF_LAZY") introduced
-MPOL_MF_LAZY, and included it in the MPOL_MF_VALID flags; but a720094ded8
-("mm: mempolicy: Hide MPOL_NOOP and MPOL_MF_LAZY from userspace for now")
-immediately removed it from MPOL_MF_VALID flags, pending further review. 
-"This will need to be revisited", but it has not been reinstated.
+mbind(2) holds down_write of current task's mmap_lock throughout
+(exclusive because it needs to set the new mempolicy on the vmas);
+migrate_pages(2) holds down_read of pid's mmap_lock throughout.
 
-The present state is confusing: there is dead code in mm/mempolicy.c to
-handle MPOL_MF_LAZY cases which can never occur.  Remove that: it can be
-resurrected later if necessary.  But keep the definition of MPOL_MF_LAZY,
-which must remain in the UAPI, even though it always fails with EINVAL.
+They both hold mmap_lock across the internal migrate_pages(), under which
+all new page allocations (huge or small) are made.  I'm nervous about it;
+and migrate_pages() certainly does not need mmap_lock itself.  It's done
+this way for mbind(2), because its page allocator is vma_alloc_folio() or
+alloc_hugetlb_folio_vma(), both of which depend on vma and address.
 
-https://lore.kernel.org/linux-mm/1553041659-46787-1-git-send-email-yang.shi@linux.alibaba.com/
-links to a previous request to remove MPOL_MF_LAZY.
+Now that we have alloc_pages_mpol(), depending on (refcounted) memory
+policy and interleave index, mbind(2) can be modified to use that or
+alloc_hugetlb_folio_nodemask(), and then not need mmap_lock across the
+internal migrate_pages() at all: add alloc_migration_target_by_mpol() to
+replace mbind's new_page().
 
-Link: https://lkml.kernel.org/r/80c9665c-1c3f-17ba-21a3-f6115cebf7d@google.com
+(After that change, alloc_hugetlb_folio_vma() is used by nothing but a
+userfaultfd function: move it out of hugetlb.h and into the #ifdef.)
+
+migrate_pages(2) has chosen its target node before migrating, so can
+continue to use the standard alloc_migration_target(); but let it take and
+drop mmap_lock just around migrate_to_node()'s queue_pages_range():
+neither the node-to-node calculations nor the page migrations need it.
+
+It seems unlikely, but it is conceivable that some userspace depends on
+the kernel's mmap_lock exclusion here, instead of doing its own locking:
+more likely in a testsuite than in real life.  It is also possible, of
+course, that some pages on the list will be munmapped by another thread
+before they are migrated, or a newer memory policy applied to the range by
+that time: but such races could happen before, as soon as mmap_lock was
+dropped, so it does not appear to be a concern.
+
+Link: https://lkml.kernel.org/r/21e564e8-269f-6a89-7ee2-fd612831c289@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Huang Ying <ying.huang@intel.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
@@ -103,69 +121,253 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/mempolicy.h |    2 +-
- mm/mempolicy.c                 |   18 ------------------
- 2 files changed, 1 insertion(+), 19 deletions(-)
+ include/linux/hugetlb.h |    9 ----
+ mm/hugetlb.c            |   38 +++++++++--------
+ mm/mempolicy.c          |   83 +++++++++++++++++++-------------------
+ 3 files changed, 63 insertions(+), 67 deletions(-)
 
---- a/include/uapi/linux/mempolicy.h~mempolicy-remove-confusing-mpol_mf_lazy-dead-code
-+++ a/include/uapi/linux/mempolicy.h
-@@ -48,7 +48,7 @@ enum {
- #define MPOL_MF_MOVE	 (1<<1)	/* Move pages owned by this process to conform
- 				   to policy */
- #define MPOL_MF_MOVE_ALL (1<<2)	/* Move every page to conform to policy */
--#define MPOL_MF_LAZY	 (1<<3)	/* Modifies '_MOVE:  lazy migrate on fault */
-+#define MPOL_MF_LAZY	 (1<<3)	/* UNSUPPORTED FLAG: Lazy migrate on fault */
- #define MPOL_MF_INTERNAL (1<<4)	/* Internal flags start here */
- 
- #define MPOL_MF_VALID	(MPOL_MF_STRICT   | 	\
---- a/mm/mempolicy.c~mempolicy-remove-confusing-mpol_mf_lazy-dead-code
-+++ a/mm/mempolicy.c
-@@ -636,12 +636,6 @@ unsigned long change_prot_numa(struct vm
- 
- 	return nr_updated;
+--- a/include/linux/hugetlb.h~mempolicy-mmap_lock-is-not-needed-while-migrating-folios
++++ a/include/linux/hugetlb.h
+@@ -716,8 +716,6 @@ struct folio *alloc_hugetlb_folio(struct
+ 				unsigned long addr, int avoid_reserve);
+ struct folio *alloc_hugetlb_folio_nodemask(struct hstate *h, int preferred_nid,
+ 				nodemask_t *nmask, gfp_t gfp_mask);
+-struct folio *alloc_hugetlb_folio_vma(struct hstate *h, struct vm_area_struct *vma,
+-				unsigned long address);
+ int hugetlb_add_to_page_cache(struct folio *folio, struct address_space *mapping,
+ 			pgoff_t idx);
+ void restore_reserve_on_error(struct hstate *h, struct vm_area_struct *vma,
+@@ -1039,13 +1037,6 @@ alloc_hugetlb_folio_nodemask(struct hsta
+ {
+ 	return NULL;
  }
--#else
--static unsigned long change_prot_numa(struct vm_area_struct *vma,
--			unsigned long addr, unsigned long end)
+-
+-static inline struct folio *alloc_hugetlb_folio_vma(struct hstate *h,
+-					       struct vm_area_struct *vma,
+-					       unsigned long address)
 -{
--	return 0;
+-	return NULL;
 -}
- #endif /* CONFIG_NUMA_BALANCING */
  
- static int queue_pages_test_walk(unsigned long start, unsigned long end,
-@@ -680,14 +674,6 @@ static int queue_pages_test_walk(unsigne
- 	if (endvma > end)
- 		endvma = end;
+ static inline int __alloc_bootmem_huge_page(struct hstate *h)
+ {
+--- a/mm/hugetlb.c~mempolicy-mmap_lock-is-not-needed-while-migrating-folios
++++ a/mm/hugetlb.c
+@@ -2458,24 +2458,6 @@ struct folio *alloc_hugetlb_folio_nodema
+ 	return alloc_migrate_hugetlb_folio(h, gfp_mask, preferred_nid, nmask);
+ }
  
--	if (flags & MPOL_MF_LAZY) {
--		/* Similar to task_numa_work, skip inaccessible VMAs */
--		if (!is_vm_hugetlb_page(vma) && vma_is_accessible(vma) &&
--			!(vma->vm_flags & VM_MIXEDMAP))
--			change_prot_numa(vma, start, endvma);
--		return 1;
+-/* mempolicy aware migration callback */
+-struct folio *alloc_hugetlb_folio_vma(struct hstate *h, struct vm_area_struct *vma,
+-		unsigned long address)
+-{
+-	struct mempolicy *mpol;
+-	nodemask_t *nodemask;
+-	struct folio *folio;
+-	gfp_t gfp_mask;
+-	int node;
+-
+-	gfp_mask = htlb_alloc_mask(h);
+-	node = huge_node(vma, address, gfp_mask, &mpol, &nodemask);
+-	folio = alloc_hugetlb_folio_nodemask(h, node, nodemask, gfp_mask);
+-	mpol_cond_put(mpol);
+-
+-	return folio;
+-}
+-
+ /*
+  * Increase the hugetlb pool such that it can accommodate a reservation
+  * of size 'delta'.
+@@ -6280,6 +6262,26 @@ out_mutex:
+ 
+ #ifdef CONFIG_USERFAULTFD
+ /*
++ * Can probably be eliminated, but still used by hugetlb_mfill_atomic_pte().
++ */
++static struct folio *alloc_hugetlb_folio_vma(struct hstate *h,
++		struct vm_area_struct *vma, unsigned long address)
++{
++	struct mempolicy *mpol;
++	nodemask_t *nodemask;
++	struct folio *folio;
++	gfp_t gfp_mask;
++	int node;
++
++	gfp_mask = htlb_alloc_mask(h);
++	node = huge_node(vma, address, gfp_mask, &mpol, &nodemask);
++	folio = alloc_hugetlb_folio_nodemask(h, node, nodemask, gfp_mask);
++	mpol_cond_put(mpol);
++
++	return folio;
++}
++
++/*
+  * Used by userfaultfd UFFDIO_* ioctls. Based on userfaultfd's mfill_atomic_pte
+  * with modifications for hugetlb pages.
+  */
+--- a/mm/mempolicy.c~mempolicy-mmap_lock-is-not-needed-while-migrating-folios
++++ a/mm/mempolicy.c
+@@ -417,6 +417,8 @@ static const struct mempolicy_operations
+ 
+ static bool migrate_folio_add(struct folio *folio, struct list_head *foliolist,
+ 				unsigned long flags);
++static nodemask_t *policy_nodemask(gfp_t gfp, struct mempolicy *pol,
++				pgoff_t ilx, int *nid);
+ 
+ static bool strictly_unmovable(unsigned long flags)
+ {
+@@ -1043,6 +1045,8 @@ static long migrate_to_node(struct mm_st
+ 	node_set(source, nmask);
+ 
+ 	VM_BUG_ON(!(flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL)));
++
++	mmap_read_lock(mm);
+ 	vma = find_vma(mm, 0);
+ 
+ 	/*
+@@ -1053,6 +1057,7 @@ static long migrate_to_node(struct mm_st
+ 	 */
+ 	nr_failed = queue_pages_range(mm, vma->vm_start, mm->task_size, &nmask,
+ 				      flags | MPOL_MF_DISCONTIG_OK, &pagelist);
++	mmap_read_unlock(mm);
+ 
+ 	if (!list_empty(&pagelist)) {
+ 		err = migrate_pages(&pagelist, alloc_migration_target, NULL,
+@@ -1081,8 +1086,6 @@ int do_migrate_pages(struct mm_struct *m
+ 
+ 	lru_cache_disable();
+ 
+-	mmap_read_lock(mm);
+-
+ 	/*
+ 	 * Find a 'source' bit set in 'tmp' whose corresponding 'dest'
+ 	 * bit in 'to' is not also set in 'tmp'.  Clear the found 'source'
+@@ -1162,7 +1165,6 @@ int do_migrate_pages(struct mm_struct *m
+ 		if (err < 0)
+ 			break;
+ 	}
+-	mmap_read_unlock(mm);
+ 
+ 	lru_cache_enable();
+ 	if (err < 0)
+@@ -1171,44 +1173,38 @@ int do_migrate_pages(struct mm_struct *m
+ }
+ 
+ /*
+- * Allocate a new page for page migration based on vma policy.
+- * Start by assuming the page is mapped by the same vma as contains @start.
+- * Search forward from there, if not.  N.B., this assumes that the
+- * list of pages handed to migrate_pages()--which is how we get here--
+- * is in virtual address order.
++ * Allocate a new folio for page migration, according to NUMA mempolicy.
+  */
+-static struct folio *new_folio(struct folio *src, unsigned long start)
++static struct folio *alloc_migration_target_by_mpol(struct folio *src,
++						    unsigned long private)
+ {
+-	struct vm_area_struct *vma;
+-	unsigned long address;
+-	VMA_ITERATOR(vmi, current->mm, start);
+-	gfp_t gfp = GFP_HIGHUSER_MOVABLE | __GFP_RETRY_MAYFAIL;
+-
+-	for_each_vma(vmi, vma) {
+-		address = page_address_in_vma(&src->page, vma);
+-		if (address != -EFAULT)
+-			break;
 -	}
--
- 	/*
- 	 * Check page nodes, and queue pages to move, in the current vma.
- 	 * But if no moving, and no strict checking, the scan can be skipped.
-@@ -1274,9 +1260,6 @@ static long do_mbind(unsigned long start
- 	if (IS_ERR(new))
- 		return PTR_ERR(new);
++	struct mempolicy *pol = (struct mempolicy *)private;
++	pgoff_t ilx = 0;	/* improve on this later */
++	struct page *page;
++	unsigned int order;
++	int nid = numa_node_id();
++	gfp_t gfp;
  
--	if (flags & MPOL_MF_LAZY)
--		new->flags |= MPOL_F_MOF;
--
- 	/*
- 	 * If we are using the default policy then operation
- 	 * on discontinuous address spaces is okay after all
-@@ -1321,7 +1304,6 @@ static long do_mbind(unsigned long start
+-	/*
+-	 * __get_vma_policy() now expects a genuine non-NULL vma. Return NULL
+-	 * when the page can no longer be located in a vma: that is not ideal
+-	 * (migrate_pages() will give up early, presuming ENOMEM), but good
+-	 * enough to avoid a crash by syzkaller or concurrent holepunch.
+-	 */
+-	if (!vma)
+-		return NULL;
++	order = folio_order(src);
++	ilx += src->index >> order;
  
- 	if (!err) {
- 		if (!list_empty(&pagelist)) {
--			WARN_ON_ONCE(flags & MPOL_MF_LAZY);
- 			nr_failed |= migrate_pages(&pagelist, new_folio, NULL,
- 				start, MIGRATE_SYNC, MR_MEMPOLICY_MBIND, NULL);
+ 	if (folio_test_hugetlb(src)) {
+-		return alloc_hugetlb_folio_vma(folio_hstate(src),
+-				vma, address);
++		nodemask_t *nodemask;
++		struct hstate *h;
++
++		h = folio_hstate(src);
++		gfp = htlb_alloc_mask(h);
++		nodemask = policy_nodemask(gfp, pol, ilx, &nid);
++		return alloc_hugetlb_folio_nodemask(h, nid, nodemask, gfp);
+ 	}
+ 
+ 	if (folio_test_large(src))
+ 		gfp = GFP_TRANSHUGE;
++	else
++		gfp = GFP_HIGHUSER_MOVABLE | __GFP_RETRY_MAYFAIL | __GFP_COMP;
+ 
+-	return vma_alloc_folio(gfp, folio_order(src), vma, address,
+-			folio_test_large(src));
++	page = alloc_pages_mpol(gfp, order, pol, ilx, nid);
++	return page_rmappable_folio(page);
+ }
+ #else
+ 
+@@ -1224,7 +1220,8 @@ int do_migrate_pages(struct mm_struct *m
+ 	return -ENOSYS;
+ }
+ 
+-static struct folio *new_folio(struct folio *src, unsigned long start)
++static struct folio *alloc_migration_target_by_mpol(struct folio *src,
++						    unsigned long private)
+ {
+ 	return NULL;
+ }
+@@ -1298,6 +1295,7 @@ static long do_mbind(unsigned long start
+ 
+ 	if (nr_failed < 0) {
+ 		err = nr_failed;
++		nr_failed = 0;
+ 	} else {
+ 		vma_iter_init(&vmi, mm, start);
+ 		prev = vma_prev(&vmi);
+@@ -1308,19 +1306,24 @@ static long do_mbind(unsigned long start
  		}
+ 	}
+ 
+-	if (!err) {
+-		if (!list_empty(&pagelist)) {
+-			nr_failed |= migrate_pages(&pagelist, new_folio, NULL,
+-				start, MIGRATE_SYNC, MR_MEMPOLICY_MBIND, NULL);
++	mmap_write_unlock(mm);
++
++	if (!err && !list_empty(&pagelist)) {
++		/* Convert MPOL_DEFAULT's NULL to task or default policy */
++		if (!new) {
++			new = get_task_policy(current);
++			mpol_get(new);
+ 		}
+-		if (nr_failed && (flags & MPOL_MF_STRICT))
+-			err = -EIO;
++		nr_failed |= migrate_pages(&pagelist,
++				alloc_migration_target_by_mpol, NULL,
++				(unsigned long)new, MIGRATE_SYNC,
++				MR_MEMPOLICY_MBIND, NULL);
+ 	}
+ 
++	if (nr_failed && (flags & MPOL_MF_STRICT))
++		err = -EIO;
+ 	if (!list_empty(&pagelist))
+ 		putback_movable_pages(&pagelist);
+-
+-	mmap_write_unlock(mm);
+ mpol_out:
+ 	mpol_put(new);
+ 	if (flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL))
 _
 
 Patches currently in -mm which might be from hughd@google.com are
