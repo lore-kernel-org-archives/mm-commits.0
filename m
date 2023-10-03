@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C6D7E7AD78
-	for <mm-commits@archiver.kernel.org>; Tue,  3 Oct 2023 17:02:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FC83E7AD77
+	for <mm-commits@archiver.kernel.org>; Tue,  3 Oct 2023 17:02:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240678AbjJCRCS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 3 Oct 2023 13:02:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34134 "EHLO
+        id S240689AbjJCRCY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 3 Oct 2023 13:02:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34276 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240671AbjJCRCS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2023 13:02:18 -0400
+        with ESMTP id S240690AbjJCRCX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2023 13:02:23 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 871B6A7
-        for <mm-commits@vger.kernel.org>; Tue,  3 Oct 2023 10:02:14 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1024DC433C7;
-        Tue,  3 Oct 2023 17:02:14 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2306A7
+        for <mm-commits@vger.kernel.org>; Tue,  3 Oct 2023 10:02:16 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F519C433C7;
+        Tue,  3 Oct 2023 17:02:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696352534;
-        bh=cohXHqNODwDtXCYmDBxkuyFQLgi3lSBoOk7BV1BfZf4=;
+        s=korg; t=1696352536;
+        bh=PNKe87B4o3RpWotcOp3bSefYcTMPysxRNJTKhQ2yns4=;
         h=Date:To:From:Subject:From;
-        b=BU57HgC0XeJFNqt0e1MaxM5VWKiFiDpT3n7adg5nx/viNj4YhGGhAO/E4n3o7ZvxA
-         y52dSsYNDgr23BiCOZ/Mha4D16CWn0ZngvDEbj0X8sKvsQQgeokIUFfcG+vlf2UuGz
-         S6JKURv/5hgZ8EkA5h1OAWLmQW4kFBpo1bYoKxzM=
-Date:   Tue, 03 Oct 2023 10:02:13 -0700
+        b=nQ0MF8u15FvSH46f+JIvTn8L9LDmqggH3TFLq3XszwaxspP3EeYYONCGCDxc9u8Rw
+         Muh5L+wyn3+iotgUVrE9eOAbYrRYxH5oAKJ/Y9PHLRpJ+dpXtdCEKi1HdNGkx+aGva
+         lH/wDZDa2zddauOrPzEL0edMi8gC/F4nr3ogagEg=
+Date:   Tue, 03 Oct 2023 10:02:15 -0700
 To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
         willy@infradead.org, wangkefeng.wang@huawei.com,
         vishal.moola@gmail.com, tj@kernel.org, surenb@google.com,
@@ -33,8 +33,8 @@ To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
         david@redhat.com, cl@linux.com, ak@linux.intel.com,
         hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlbfs-drop-shared-numa-mempolicy-pretence.patch added to mm-unstable branch
-Message-Id: <20231003170214.1024DC433C7@smtp.kernel.org>
+Subject: + kernfs-drop-shared-numa-mempolicy-hooks.patch added to mm-unstable branch
+Message-Id: <20231003170216.6F519C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlbfs: drop shared NUMA mempolicy pretence
+     Subject: kernfs: drop shared NUMA mempolicy hooks
 has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlbfs-drop-shared-numa-mempolicy-pretence.patch
+     kernfs-drop-shared-numa-mempolicy-hooks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlbfs-drop-shared-numa-mempolicy-pretence.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernfs-drop-shared-numa-mempolicy-hooks.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,40 +66,27 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: hugetlbfs: drop shared NUMA mempolicy pretence
-Date: Tue, 3 Oct 2023 02:15:09 -0700 (PDT)
+Subject: kernfs: drop shared NUMA mempolicy hooks
+Date: Tue, 3 Oct 2023 02:16:29 -0700 (PDT)
 
-A series of mempolicy patches.  Mostly cleanups in mm/mempolicy.c, but
-finally removing the pseudo-vma from shmem folio allocation, and removing
-the mmap_lock around folio migration for mbind and migrate_pages syscalls.
+It seems strange that kernfs should be an outlier with a set_policy and
+get_policy in its kernfs_vm_ops.  Ah, it dates back to v2.6.30's commit
+095160aee954 ("sysfs: fix some bin_vm_ops errors"), when I had crashed on
+powerpc's pci_mmap_legacy_page_range() fallback to shmem_zero_setup().
 
+Well, that was commendably thorough, to give sysfs-bin a set_policy and
+get_policy, just to avoid the way it was coded resulting in EINVAL from
+mmap when CONFIG_NUMA; but somehow feels a bit over-the-top to me now.
 
-This patch (of 12):
+It's easier to say that nobody should expect to manage a shmem object's
+shared NUMA mempolicy via some kernfs backdoor to that object: delete that
+code (and there's no longer an EINVAL from mmap in the NUMA case).
 
-hugetlbfs_fallocate() goes through the motions of pasting a shared NUMA
-mempolicy onto its pseudo-vma, but how could there ever be a shared NUMA
-mempolicy for this file?  hugetlb_vm_ops has never offered a set_policy
-method, and hugetlbfs_parse_param() has never supported any mpol options
-for a mount-wide default policy.
+This then leaves set_policy/get_policy as implemented only by shmem -
+though importantly also by SysV SHM, which has to interface with shmem
+which implements them, and with SHM_HUGETLB which does not.
 
-It's just an illusion: clean it away so as not to confuse others, giving
-us more freedom to adjust shmem's set_policy/get_policy implementation. 
-But hugetlbfs_inode_info is still required, just to accommodate seals.
-
-Yes, shared NUMA mempolicy support could be added to hugetlbfs, with a
-set_policy method and/or mpol mount option (Andi's first posting did
-include an admitted-unsatisfactory hugetlb_set_policy()); but it seems
-that nobody has bothered to add that in the nineteen years since v2.6.7
-made it possible, and there is at least one company that has invested
-enough into hugetlbfs, that I guess they have learnt well enough how to
-manage its NUMA, without needing shared mempolicy.
-
-Remove linux/mempolicy.h from linux/hugetlb.h: include linux/pagemap.h in
-its place, because hugetlb.h's recently added use of filemap_lock_folio()
-requires that (although most .configs and .c's get it in some other way).
-
-Link: https://lkml.kernel.org/r/ebc0987e-beff-8bfb-9283-234c2cbd17c5@google.com
-Link: https://lkml.kernel.org/r/cae82d4b-904a-faaf-282a-34fcc188c81f@google.com
+Link: https://lkml.kernel.org/r/302164-a760-4a9e-879b-6870c9b4013@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Andi Kleen <ak@linux.intel.com>
@@ -116,112 +103,75 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Tejun heo <tj@kernel.org>
 Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Cc: Yang Shi <shy828301@gmail.com>
-
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c    |   41 --------------------------------------
- include/linux/hugetlb.h |    3 --
- 2 files changed, 2 insertions(+), 42 deletions(-)
+ fs/kernfs/file.c |   49 ---------------------------------------------
+ 1 file changed, 49 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-drop-shared-numa-mempolicy-pretence
-+++ a/fs/hugetlbfs/inode.c
-@@ -83,29 +83,6 @@ static const struct fs_parameter_spec hu
- 	{}
- };
+--- a/fs/kernfs/file.c~kernfs-drop-shared-numa-mempolicy-hooks
++++ a/fs/kernfs/file.c
+@@ -429,60 +429,11 @@ static int kernfs_vma_access(struct vm_a
+ 	return ret;
+ }
  
 -#ifdef CONFIG_NUMA
--static inline void hugetlb_set_vma_policy(struct vm_area_struct *vma,
--					struct inode *inode, pgoff_t index)
+-static int kernfs_vma_set_policy(struct vm_area_struct *vma,
+-				 struct mempolicy *new)
 -{
--	vma->vm_policy = mpol_shared_policy_lookup(&HUGETLBFS_I(inode)->policy,
--							index);
+-	struct file *file = vma->vm_file;
+-	struct kernfs_open_file *of = kernfs_of(file);
+-	int ret;
+-
+-	if (!of->vm_ops)
+-		return 0;
+-
+-	if (!kernfs_get_active(of->kn))
+-		return -EINVAL;
+-
+-	ret = 0;
+-	if (of->vm_ops->set_policy)
+-		ret = of->vm_ops->set_policy(vma, new);
+-
+-	kernfs_put_active(of->kn);
+-	return ret;
 -}
 -
--static inline void hugetlb_drop_vma_policy(struct vm_area_struct *vma)
+-static struct mempolicy *kernfs_vma_get_policy(struct vm_area_struct *vma,
+-					       unsigned long addr)
 -{
--	mpol_cond_put(vma->vm_policy);
--}
--#else
--static inline void hugetlb_set_vma_policy(struct vm_area_struct *vma,
--					struct inode *inode, pgoff_t index)
--{
+-	struct file *file = vma->vm_file;
+-	struct kernfs_open_file *of = kernfs_of(file);
+-	struct mempolicy *pol;
+-
+-	if (!of->vm_ops)
+-		return vma->vm_policy;
+-
+-	if (!kernfs_get_active(of->kn))
+-		return vma->vm_policy;
+-
+-	pol = vma->vm_policy;
+-	if (of->vm_ops->get_policy)
+-		pol = of->vm_ops->get_policy(vma, addr);
+-
+-	kernfs_put_active(of->kn);
+-	return pol;
 -}
 -
--static inline void hugetlb_drop_vma_policy(struct vm_area_struct *vma)
--{
--}
 -#endif
 -
- /*
-  * Mask used when checking the page offset value passed in via system
-  * calls.  This value will be converted to a loff_t which is signed.
-@@ -853,8 +830,7 @@ static long hugetlbfs_fallocate(struct f
- 
- 	/*
- 	 * Initialize a pseudo vma as this is required by the huge page
--	 * allocation routines.  If NUMA is configured, use page index
--	 * as input to create an allocation policy.
-+	 * allocation routines.
- 	 */
- 	vma_init(&pseudo_vma, mm);
- 	vm_flags_init(&pseudo_vma, VM_HUGETLB | VM_MAYSHARE | VM_SHARED);
-@@ -902,9 +878,7 @@ static long hugetlbfs_fallocate(struct f
- 		 * folios in these areas, we need to consume the reserves
- 		 * to keep reservation accounting consistent.
- 		 */
--		hugetlb_set_vma_policy(&pseudo_vma, inode, index);
- 		folio = alloc_hugetlb_folio(&pseudo_vma, addr, 0);
--		hugetlb_drop_vma_policy(&pseudo_vma);
- 		if (IS_ERR(folio)) {
- 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 			error = PTR_ERR(folio);
-@@ -1283,18 +1257,6 @@ static struct inode *hugetlbfs_alloc_ino
- 		hugetlbfs_inc_free_inodes(sbinfo);
- 		return NULL;
- 	}
--
--	/*
--	 * Any time after allocation, hugetlbfs_destroy_inode can be called
--	 * for the inode.  mpol_free_shared_policy is unconditionally called
--	 * as part of hugetlbfs_destroy_inode.  So, initialize policy here
--	 * in case of a quick call to destroy.
--	 *
--	 * Note that the policy is initialized even if we are creating a
--	 * private inode.  This simplifies hugetlbfs_destroy_inode.
--	 */
--	mpol_shared_policy_init(&p->policy, NULL);
--
- 	return &p->vfs_inode;
- }
- 
-@@ -1306,7 +1268,6 @@ static void hugetlbfs_free_inode(struct
- static void hugetlbfs_destroy_inode(struct inode *inode)
- {
- 	hugetlbfs_inc_free_inodes(HUGETLBFS_SB(inode->i_sb));
--	mpol_free_shared_policy(&HUGETLBFS_I(inode)->policy);
- }
- 
- static const struct address_space_operations hugetlbfs_aops = {
---- a/include/linux/hugetlb.h~hugetlbfs-drop-shared-numa-mempolicy-pretence
-+++ a/include/linux/hugetlb.h
-@@ -30,7 +30,7 @@ void free_huge_folio(struct folio *folio
- 
- #ifdef CONFIG_HUGETLB_PAGE
- 
--#include <linux/mempolicy.h>
-+#include <linux/pagemap.h>
- #include <linux/shm.h>
- #include <asm/tlbflush.h>
- 
-@@ -513,7 +513,6 @@ static inline struct hugetlbfs_sb_info *
- }
- 
- struct hugetlbfs_inode_info {
--	struct shared_policy policy;
- 	struct inode vfs_inode;
- 	unsigned int seals;
+ static const struct vm_operations_struct kernfs_vm_ops = {
+ 	.open		= kernfs_vma_open,
+ 	.fault		= kernfs_vma_fault,
+ 	.page_mkwrite	= kernfs_vma_page_mkwrite,
+ 	.access		= kernfs_vma_access,
+-#ifdef CONFIG_NUMA
+-	.set_policy	= kernfs_vma_set_policy,
+-	.get_policy	= kernfs_vma_get_policy,
+-#endif
  };
+ 
+ static int kernfs_fop_mmap(struct file *file, struct vm_area_struct *vma)
 _
 
 Patches currently in -mm which might be from hughd@google.com are
