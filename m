@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EDDD4E7AD7C
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F779E7AD7A
 	for <mm-commits@archiver.kernel.org>; Tue,  3 Oct 2023 17:02:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231600AbjJCRCu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230422AbjJCRCu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 3 Oct 2023 13:02:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34572 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33052 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231150AbjJCRCk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2023 13:02:40 -0400
+        with ESMTP id S240565AbjJCRCs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2023 13:02:48 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2EAEBB7
-        for <mm-commits@vger.kernel.org>; Tue,  3 Oct 2023 10:02:32 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B244BC433C9;
-        Tue,  3 Oct 2023 17:02:31 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 88DB7EC
+        for <mm-commits@vger.kernel.org>; Tue,  3 Oct 2023 10:02:42 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22CBCC433C7;
+        Tue,  3 Oct 2023 17:02:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696352551;
-        bh=ZtNECsn1+lAcTyqjF0Xh01/P9O8HgvCk9JaNriT8VnA=;
+        s=korg; t=1696352562;
+        bh=fn0W+s9+acH6yM7ZcsWIzYeEETHeSzxrcuAqn+ufbAc=;
         h=Date:To:From:Subject:From;
-        b=1lLkZwDN7/l6rd7DriXKpdzXKaaGWUcwgDfEVQQGoWN4DPOcvd3xfmh9tWIp4b2VD
-         TyU+y0VGU0qWCXO/iTfIJAMVtQtJ4uP1kgm648+JMfUhDbdUOQ+3Tgsn47s7lciNn3
-         BLHxQh7/ysvnSkClZ26Bsxyri9mvn4Ca8IzWRuYc=
-Date:   Tue, 03 Oct 2023 10:02:31 -0700
+        b=NS459bioKUXAIGRxfY2Onbgec5yJM3UHGnAJbSbEaad6pjgrzWgt0uGdPWeUAXyI6
+         vcPxGr0aLVZ5sQXeAKlEfqhUE5iWKZROnLd2uQEB6VMFQvDIhrnZIhJukrJ835J0gY
+         WEum1fLLfUiMDygP9yClccAtV7Dpzh6LvkIeOOOI=
+Date:   Tue, 03 Oct 2023 10:02:41 -0700
 To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
         willy@infradead.org, wangkefeng.wang@huawei.com,
         vishal.moola@gmail.com, tj@kernel.org, surenb@google.com,
@@ -33,8 +33,8 @@ To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
         david@redhat.com, cl@linux.com, ak@linux.intel.com,
         hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-page_rmappable_folio-wrapper.patch added to mm-unstable branch
-Message-Id: <20231003170231.B244BC433C9@smtp.kernel.org>
+Subject: + mempolicy-migration-attempt-to-match-interleave-nodes.patch added to mm-unstable branch
+Message-Id: <20231003170242.22CBCC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add page_rmappable_folio() wrapper
+     Subject: mempolicy: migration attempt to match interleave nodes
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-page_rmappable_folio-wrapper.patch
+     mempolicy-migration-attempt-to-match-interleave-nodes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-page_rmappable_folio-wrapper.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mempolicy-migration-attempt-to-match-interleave-nodes.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,14 +66,22 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm: add page_rmappable_folio() wrapper
-Date: Tue, 3 Oct 2023 02:25:33 -0700 (PDT)
+Subject: mempolicy: migration attempt to match interleave nodes
+Date: Tue, 3 Oct 2023 02:29:00 -0700 (PDT)
 
-folio_prep_large_rmappable() is being used repeatedly along with a
-conversion from page to folio, a check non-NULL, a check order > 1: wrap
-it all up into struct folio *page_rmappable_folio(struct page *).
+Improve alloc_migration_target_by_mpol()'s treatment of MPOL_INTERLEAVE.
 
-Link: https://lkml.kernel.org/r/8d92c6cf-eebe-748-e29c-c8ab224c741@google.com
+Make an effort in do_mbind(), to identify the correct interleave index for
+the first page to be migrated, so that it and all subsequent pages from
+the same vma will be targeted to precisely their intended nodes.  Pages
+from following vmas will still be interleaved from the requested nodemask,
+but perhaps starting from a different base.
+
+Whether this is worth doing at all, or worth improving further, is
+arguable: queue_folio_required() is right not to care about the precise
+placement on interleaved nodes; but this little effort seems appropriate.
+
+Link: https://lkml.kernel.org/r/77954a5-9c9b-1c11-7d5c-3262c01b895f@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -93,85 +101,89 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |    9 +++++++++
- mm/mempolicy.c  |   17 +++--------------
- mm/page_alloc.c |    8 ++------
- 3 files changed, 14 insertions(+), 20 deletions(-)
+ mm/mempolicy.c |   49 ++++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 46 insertions(+), 3 deletions(-)
 
---- a/mm/internal.h~mm-add-page_rmappable_folio-wrapper
-+++ a/mm/internal.h
-@@ -415,6 +415,15 @@ static inline void folio_set_order(struc
- 
- void folio_undo_large_rmappable(struct folio *folio);
- 
-+static inline struct folio *page_rmappable_folio(struct page *page)
-+{
-+	struct folio *folio = (struct folio *)page;
-+
-+	if (folio && folio_order(folio) > 1)
-+		folio_prep_large_rmappable(folio);
-+	return folio;
-+}
-+
- static inline void prep_compound_head(struct page *page, unsigned int order)
- {
- 	struct folio *folio = (struct folio *)page;
---- a/mm/mempolicy.c~mm-add-page_rmappable_folio-wrapper
+--- a/mm/mempolicy.c~mempolicy-migration-attempt-to-match-interleave-nodes
 +++ a/mm/mempolicy.c
-@@ -2142,10 +2142,7 @@ struct folio *vma_alloc_folio(gfp_t gfp,
- 		mpol_cond_put(pol);
- 		gfp |= __GFP_COMP;
- 		page = alloc_page_interleave(gfp, order, nid);
--		folio = (struct folio *)page;
--		if (folio && order > 1)
--			folio_prep_large_rmappable(folio);
--		goto out;
-+		return page_rmappable_folio(page);
- 	}
- 
- 	if (pol->mode == MPOL_PREFERRED_MANY) {
-@@ -2155,10 +2152,7 @@ struct folio *vma_alloc_folio(gfp_t gfp,
- 		gfp |= __GFP_COMP;
- 		page = alloc_pages_preferred_many(gfp, order, node, pol);
- 		mpol_cond_put(pol);
--		folio = (struct folio *)page;
--		if (folio && order > 1)
--			folio_prep_large_rmappable(folio);
--		goto out;
-+		return page_rmappable_folio(page);
- 	}
- 
- 	if (unlikely(IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && hugepage)) {
-@@ -2252,12 +2246,7 @@ EXPORT_SYMBOL(alloc_pages);
- 
- struct folio *folio_alloc(gfp_t gfp, unsigned order)
- {
--	struct page *page = alloc_pages(gfp | __GFP_COMP, order);
--	struct folio *folio = (struct folio *)page;
--
--	if (folio && order > 1)
--		folio_prep_large_rmappable(folio);
--	return folio;
-+	return page_rmappable_folio(alloc_pages(gfp | __GFP_COMP, order));
+@@ -430,6 +430,11 @@ static bool strictly_unmovable(unsigned
+ 			 MPOL_MF_STRICT;
  }
- EXPORT_SYMBOL(folio_alloc);
  
---- a/mm/page_alloc.c~mm-add-page_rmappable_folio-wrapper
-+++ a/mm/page_alloc.c
-@@ -4619,12 +4619,8 @@ struct folio *__folio_alloc(gfp_t gfp, u
- 		nodemask_t *nodemask)
++struct migration_mpol {		/* for alloc_migration_target_by_mpol() */
++	struct mempolicy *pol;
++	pgoff_t ilx;
++};
++
+ struct queue_pages {
+ 	struct list_head *pagelist;
+ 	unsigned long flags;
+@@ -1178,8 +1183,9 @@ int do_migrate_pages(struct mm_struct *m
+ static struct folio *alloc_migration_target_by_mpol(struct folio *src,
+ 						    unsigned long private)
  {
- 	struct page *page = __alloc_pages(gfp | __GFP_COMP, order,
--			preferred_nid, nodemask);
--	struct folio *folio = (struct folio *)page;
--
--	if (folio && order > 1)
--		folio_prep_large_rmappable(folio);
--	return folio;
-+					preferred_nid, nodemask);
-+	return page_rmappable_folio(page);
- }
- EXPORT_SYMBOL(__folio_alloc);
+-	struct mempolicy *pol = (struct mempolicy *)private;
+-	pgoff_t ilx = 0;	/* improve on this later */
++	struct migration_mpol *mmpol = (struct migration_mpol *)private;
++	struct mempolicy *pol = mmpol->pol;
++	pgoff_t ilx = mmpol->ilx;
+ 	struct page *page;
+ 	unsigned int order;
+ 	int nid = numa_node_id();
+@@ -1234,6 +1240,7 @@ static long do_mbind(unsigned long start
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma, *prev;
+ 	struct vma_iterator vmi;
++	struct migration_mpol mmpol;
+ 	struct mempolicy *new;
+ 	unsigned long end;
+ 	long err;
+@@ -1314,9 +1321,45 @@ static long do_mbind(unsigned long start
+ 			new = get_task_policy(current);
+ 			mpol_get(new);
+ 		}
++		mmpol.pol = new;
++		mmpol.ilx = 0;
++
++		/*
++		 * In the interleaved case, attempt to allocate on exactly the
++		 * targeted nodes, for the first VMA to be migrated; for later
++		 * VMAs, the nodes will still be interleaved from the targeted
++		 * nodemask, but one by one may be selected differently.
++		 */
++		if (new->mode == MPOL_INTERLEAVE) {
++			struct page *page;
++			unsigned int order;
++			unsigned long addr = -EFAULT;
++
++			list_for_each_entry(page, &pagelist, lru) {
++				if (!PageKsm(page))
++					break;
++			}
++			if (!list_entry_is_head(page, &pagelist, lru)) {
++				vma_iter_init(&vmi, mm, start);
++				for_each_vma_range(vmi, vma, end) {
++					addr = page_address_in_vma(page, vma);
++					if (addr != -EFAULT)
++						break;
++				}
++			}
++			if (addr != -EFAULT) {
++				order = compound_order(page);
++				/* We already know the pol, but not the ilx */
++				mpol_cond_put(get_vma_policy(vma, addr, order,
++							     &mmpol.ilx));
++				/* Set base from which to increment by index */
++				mmpol.ilx -= page->index >> order;
++			}
++		}
++
+ 		nr_failed |= migrate_pages(&pagelist,
+ 				alloc_migration_target_by_mpol, NULL,
+-				(unsigned long)new, MIGRATE_SYNC,
++				(unsigned long)&mmpol, MIGRATE_SYNC,
+ 				MR_MEMPOLICY_MBIND, NULL);
+ 	}
  
 _
 
