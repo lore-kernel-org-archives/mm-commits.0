@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84ADDE7AD7A
-	for <mm-commits@archiver.kernel.org>; Tue,  3 Oct 2023 17:15:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC77EE7AD78
+	for <mm-commits@archiver.kernel.org>; Tue,  3 Oct 2023 17:15:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230119AbjJCRPW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 3 Oct 2023 13:15:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56862 "EHLO
+        id S231368AbjJCRPZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 3 Oct 2023 13:15:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56910 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231620AbjJCRPV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2023 13:15:21 -0400
+        with ESMTP id S231867AbjJCRPZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2023 13:15:25 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A04C5AF
-        for <mm-commits@vger.kernel.org>; Tue,  3 Oct 2023 10:15:18 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 320B2C433C7;
-        Tue,  3 Oct 2023 17:15:18 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA64FA7
+        for <mm-commits@vger.kernel.org>; Tue,  3 Oct 2023 10:15:20 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 498CCC433C8;
+        Tue,  3 Oct 2023 17:15:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696353318;
-        bh=CB3GQUpdpFHAfDOFzmb9Hr7nqCHSAIc7F4WVMnsJV0s=;
+        s=korg; t=1696353320;
+        bh=ODujUVY3nQ67kkAW05fQMzmm1YYSh+1n/M/uQ6kQYRo=;
         h=Date:To:From:Subject:From;
-        b=S8pNKnNIC39/L6AI4bWGQn9Vt3OWvVZUqTlZ4CFZNDlR8ju6yD8u+dPtKFecz/pHU
-         Bxb0irC+otZfg3MZS6Y/FLCdmt4Lhw1g539MXKip2SIEhJ7lI/frckTfZfSXH7Me9l
-         45+DBSh/Z6URhwHNikym0ozxP2AJa+yM/b24Bcig=
-Date:   Tue, 03 Oct 2023 10:15:17 -0700
+        b=jA3hxjF6fHYSjs90nEDSy+1GtUKszlZWSyL1r4JhHqXi++EFwjQ+ptpZ3zFkPYAax
+         0u9cp7pd3P0rZ86Zo/+gdYN77H2Wq6KBHJZiFl9mjnuv5G+KxCh6LJIUGvFkL4gzNJ
+         g3PDm5d5KQ8TCbMc8h264TFgNOp6CK3hRMPdnMtA=
+Date:   Tue, 03 Oct 2023 10:15:19 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org,
         richardcochran@gmail.com, peterz@infradead.org, oleg@redhat.com,
         namhyung@kernel.org, mingo@redhat.com, mark.rutland@arm.com,
@@ -33,8 +33,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org,
         adrian.hunter@intel.com, acme@kernel.org, lstoakes@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-make-failure-to-pin-an-error-if-foll_nowait-not-specified.patch added to mm-unstable branch
-Message-Id: <20231003171518.320B2C433C7@smtp.kernel.org>
+Subject: + mm-gup-adapt-get_user_page_vma_remote-to-never-return-null.patch added to mm-unstable branch
+Message-Id: <20231003171520.498CCC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: make failure to pin an error if FOLL_NOWAIT not specified
+     Subject: mm/gup: adapt get_user_page_vma_remote() to never return NULL
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-gup-make-failure-to-pin-an-error-if-foll_nowait-not-specified.patch
+     mm-gup-adapt-get_user_page_vma_remote-to-never-return-null.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-make-failure-to-pin-an-error-if-foll_nowait-not-specified.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-adapt-get_user_page_vma_remote-to-never-return-null.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,24 +66,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm/gup: make failure to pin an error if FOLL_NOWAIT not specified
-Date: Tue, 3 Oct 2023 00:14:53 +0100
+Subject: mm/gup: adapt get_user_page_vma_remote() to never return NULL
+Date: Tue, 3 Oct 2023 00:14:54 +0100
 
-There really should be no circumstances under which a non-FOLL_NOWAIT GUP
-operation fails to return any pages, so make this an error and warn on it.
+get_user_pages_remote() will never return 0 except in the case of
+FOLL_NOWAIT being specified, which we explicitly disallow.
 
-To catch the trivial case, simply exit early if nr_pages == 0.
+This simplifies error handling for the caller and avoids the awkwardness
+of dealing with both errors and failing to pin.  Failing to pin here is an
+error.
 
-This brings __get_user_pages_locked() in line with the behaviour of its
-nommu variant.
-
-Link: https://lkml.kernel.org/r/2a42d96dd1e37163f90a0019a541163dafb7e4c3.1696288092.git.lstoakes@gmail.com
+Link: https://lkml.kernel.org/r/00319ce292d27b3aae76a0eb220ce3f528187508.1696288092.git.lstoakes@gmail.com
 Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Suggested-by: Arnd Bergmann <arnd@arndb.de>
 Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
 Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Ian Rogers <irogers@google.com>
 Cc: Ingo Molnar <mingo@redhat.com>
@@ -99,36 +99,88 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ arch/arm64/kernel/mte.c |    4 ++--
+ include/linux/mm.h      |   12 +++++++++---
+ kernel/events/uprobes.c |    4 ++--
+ mm/memory.c             |    3 +--
+ 4 files changed, 14 insertions(+), 9 deletions(-)
 
---- a/mm/gup.c~mm-gup-make-failure-to-pin-an-error-if-foll_nowait-not-specified
-+++ a/mm/gup.c
-@@ -1471,6 +1471,9 @@ static __always_inline long __get_user_p
- 	long ret, pages_done;
- 	bool must_unlock = false;
+--- a/arch/arm64/kernel/mte.c~mm-gup-adapt-get_user_page_vma_remote-to-never-return-null
++++ a/arch/arm64/kernel/mte.c
+@@ -411,8 +411,8 @@ static int __access_remote_tags(struct m
+ 		struct page *page = get_user_page_vma_remote(mm, addr,
+ 							     gup_flags, &vma);
  
-+	if (!nr_pages)
-+		return 0;
-+
- 	/*
- 	 * The internal caller expects GUP to manage the lock internally and the
- 	 * lock must be released when this returns.
-@@ -1595,6 +1598,14 @@ retry:
- 		mmap_read_unlock(mm);
- 		*locked = 0;
- 	}
-+
-+	/*
-+	 * Failing to pin anything implies something has gone wrong (except when
-+	 * FOLL_NOWAIT is specified).
-+	 */
-+	if (WARN_ON_ONCE(pages_done == 0 && !(flags & FOLL_NOWAIT)))
-+		return -EFAULT;
-+
- 	return pages_done;
- }
+-		if (IS_ERR_OR_NULL(page)) {
+-			err = page == NULL ? -EIO : PTR_ERR(page);
++		if (IS_ERR(page)) {
++			err = PTR_ERR(page);
+ 			break;
+ 		}
  
+--- a/include/linux/mm.h~mm-gup-adapt-get_user_page_vma_remote-to-never-return-null
++++ a/include/linux/mm.h
+@@ -2425,6 +2425,9 @@ long pin_user_pages_remote(struct mm_str
+ 			   unsigned int gup_flags, struct page **pages,
+ 			   int *locked);
+ 
++/*
++ * Retrieves a single page alongside its VMA. Does not support FOLL_NOWAIT.
++ */
+ static inline struct page *get_user_page_vma_remote(struct mm_struct *mm,
+ 						    unsigned long addr,
+ 						    int gup_flags,
+@@ -2432,12 +2435,15 @@ static inline struct page *get_user_page
+ {
+ 	struct page *page;
+ 	struct vm_area_struct *vma;
+-	int got = get_user_pages_remote(mm, addr, 1, gup_flags, &page, NULL);
++	int got;
++
++	if (WARN_ON_ONCE(unlikely(gup_flags & FOLL_NOWAIT)))
++		return ERR_PTR(-EINVAL);
++
++	got = get_user_pages_remote(mm, addr, 1, gup_flags, &page, NULL);
+ 
+ 	if (got < 0)
+ 		return ERR_PTR(got);
+-	if (got == 0)
+-		return NULL;
+ 
+ 	vma = vma_lookup(mm, addr);
+ 	if (WARN_ON_ONCE(!vma)) {
+--- a/kernel/events/uprobes.c~mm-gup-adapt-get_user_page_vma_remote-to-never-return-null
++++ a/kernel/events/uprobes.c
+@@ -474,8 +474,8 @@ retry:
+ 		gup_flags |= FOLL_SPLIT_PMD;
+ 	/* Read the page with vaddr into memory */
+ 	old_page = get_user_page_vma_remote(mm, vaddr, gup_flags, &vma);
+-	if (IS_ERR_OR_NULL(old_page))
+-		return old_page ? PTR_ERR(old_page) : 0;
++	if (IS_ERR(old_page))
++		return PTR_ERR(old_page);
+ 
+ 	ret = verify_opcode(old_page, vaddr, &opcode);
+ 	if (ret <= 0)
+--- a/mm/memory.c~mm-gup-adapt-get_user_page_vma_remote-to-never-return-null
++++ a/mm/memory.c
+@@ -5905,7 +5905,7 @@ static int __access_remote_vm(struct mm_
+ 		struct page *page = get_user_page_vma_remote(mm, addr,
+ 							     gup_flags, &vma);
+ 
+-		if (IS_ERR_OR_NULL(page)) {
++		if (IS_ERR(page)) {
+ 			/* We might need to expand the stack to access it */
+ 			vma = vma_lookup(mm, addr);
+ 			if (!vma) {
+@@ -5919,7 +5919,6 @@ static int __access_remote_vm(struct mm_
+ 				continue;
+ 			}
+ 
+-
+ 			/*
+ 			 * Check if this is a VM_IO | VM_PFNMAP VMA, which
+ 			 * we can access using slightly different code.
 _
 
 Patches currently in -mm which might be from lstoakes@gmail.com are
