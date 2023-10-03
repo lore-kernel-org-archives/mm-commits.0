@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D819E7AD78
-	for <mm-commits@archiver.kernel.org>; Tue,  3 Oct 2023 17:15:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7356EE7AD78
+	for <mm-commits@archiver.kernel.org>; Tue,  3 Oct 2023 17:15:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230245AbjJCRPR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 3 Oct 2023 13:15:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46394 "EHLO
+        id S231828AbjJCRPV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 3 Oct 2023 13:15:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56818 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230119AbjJCRPQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2023 13:15:16 -0400
+        with ESMTP id S231368AbjJCRPT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Oct 2023 13:15:19 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 716329B
-        for <mm-commits@vger.kernel.org>; Tue,  3 Oct 2023 10:15:13 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F083AC433C8;
-        Tue,  3 Oct 2023 17:15:12 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C547A6
+        for <mm-commits@vger.kernel.org>; Tue,  3 Oct 2023 10:15:16 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D23DFC433C8;
+        Tue,  3 Oct 2023 17:15:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696353313;
-        bh=gElz2LbMU57pNEpDNsOgSKWXrGiuPYbFzCcrVoTgE+g=;
+        s=korg; t=1696353316;
+        bh=f33mzEeat2IOWaUuaU8k9hQWQGws5zO2uI12ZsDPmEM=;
         h=Date:To:From:Subject:From;
-        b=bVA1Sn9QOGXSk6Xc+yDLT9NBWVDM49oqAShVrwEkpzK0Q0ts6uuIPsCEF/6qucw9z
-         W3ByjGJ0Y6ZbFUXdBf+6ajXnLVNDcbpXcOaeQ7Zyx0CVIU7duQOZXg7tqFBJSmHyzb
-         w5Ek3fjl+jghVs+BAlrjpzhNA7pQPVJnxx3q/ZiU=
-Date:   Tue, 03 Oct 2023 10:15:12 -0700
+        b=d8S4ELg0zDZSVLe1RpFz0S7+6kohr7JdLn1hyKt2/48LkWIk3+mYFHk2JcGAnwbsD
+         rc7NFoB0b+VlWgLNdWD5+MFvRsAO2OqJTNlh1UBnUgZVwbxrfrEunHgmpfHQMZbtuw
+         QFdybD5Cdv/o5/9sMB3LJpU796bbs1bKk03hiQCU=
+Date:   Tue, 03 Oct 2023 10:15:15 -0700
 To:     mm-commits@vger.kernel.org, will@kernel.org,
         richardcochran@gmail.com, peterz@infradead.org, oleg@redhat.com,
         namhyung@kernel.org, mingo@redhat.com, mark.rutland@arm.com,
@@ -33,8 +33,8 @@ To:     mm-commits@vger.kernel.org, will@kernel.org,
         adrian.hunter@intel.com, acme@kernel.org, lstoakes@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-make-__access_remote_vm-static.patch added to mm-unstable branch
-Message-Id: <20231003171512.F083AC433C8@smtp.kernel.org>
+Subject: + mm-gup-explicitly-define-and-check-internal-gup-flags-disallow-foll_touch.patch added to mm-unstable branch
+Message-Id: <20231003171515.D23DFC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: make __access_remote_vm() static
+     Subject: mm/gup: explicitly define and check internal GUP flags, disallow FOLL_TOUCH
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-make-__access_remote_vm-static.patch
+     mm-gup-explicitly-define-and-check-internal-gup-flags-disallow-foll_touch.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-__access_remote_vm-static.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-explicitly-define-and-check-internal-gup-flags-disallow-foll_touch.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,43 +66,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm: make __access_remote_vm() static
-Date: Tue, 3 Oct 2023 00:14:51 +0100
+Subject: mm/gup: explicitly define and check internal GUP flags, disallow FOLL_TOUCH
+Date: Tue, 3 Oct 2023 00:14:52 +0100
 
-Patch series "various improvements to the GUP interface", v2.
+Rather than open-coding a list of internal GUP flags in
+is_valid_gup_args(), define which ones are internal.
 
-A series of fixes to simplify and improve the GUP interface with an eye to
-providing groundwork to future improvements:-
+In addition, explicitly check to see if the user passed in FOLL_TOUCH
+somehow, as this appears to have been accidentally excluded.
 
-* __access_remote_vm() and access_remote_vm() are functionally identical,
-  so make the former static such that in future we can potentially change
-  the external-facing implementation details of this function.
-
-* Extend is_valid_gup_args() to cover the missing FOLL_TOUCH case, and
-  simplify things by defining INTERNAL_GUP_FLAGS to check against.
-
-* Adjust __get_user_pages_locked() to explicitly treat a failure to pin any
-  pages as an error in all circumstances other than FOLL_NOWAIT being
-  specified, bringing it in line with the nommu implementation of this
-  function.
-
-* (With many thanks to Arnd who suggested this in the first instance)
-  Update get_user_page_vma_remote() to explicitly only return a page or an
-  error, simplifying the interface and avoiding the questionable
-  IS_ERR_OR_NULL() pattern.
-
-
-This patch (of 4):
-
-access_remote_vm() passes through parameters to __access_remote_vm()
-directly, so remove the __access_remote_vm() function from mm.h and use
-access_remote_vm() in the one caller that needs it (ptrace_access_vm()).
-
-This allows future adjustments to the GUP-internal __access_remote_vm()
-function while keeping the access_remote_vm() function stable.
-
-Link: https://lkml.kernel.org/r/cover.1696288092.git.lstoakes@gmail.com
-Link: https://lkml.kernel.org/r/f7877c5039ce1c202a514a8aeeefc5cdd5e32d19.1696288092.git.lstoakes@gmail.com
+Link: https://lkml.kernel.org/r/971e013dfe20915612ea8b704e801d7aef9a66b6.1696288092.git.lstoakes@gmail.com
 Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
 Reviewed-by: Arnd Bergmann <arnd@arndb.de>
 Reviewed-by: David Hildenbrand <david@redhat.com>
@@ -124,60 +97,39 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 --
- kernel/ptrace.c    |    2 +-
- mm/memory.c        |    4 ++--
- mm/nommu.c         |    4 ++--
- 4 files changed, 5 insertions(+), 7 deletions(-)
+ mm/gup.c      |    5 ++---
+ mm/internal.h |    3 +++
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
---- a/include/linux/mm.h~mm-make-__access_remote_vm-static
-+++ a/include/linux/mm.h
-@@ -2415,8 +2415,6 @@ extern int access_process_vm(struct task
- 		void *buf, int len, unsigned int gup_flags);
- extern int access_remote_vm(struct mm_struct *mm, unsigned long addr,
- 		void *buf, int len, unsigned int gup_flags);
--extern int __access_remote_vm(struct mm_struct *mm, unsigned long addr,
--			      void *buf, int len, unsigned int gup_flags);
+--- a/mm/gup.c~mm-gup-explicitly-define-and-check-internal-gup-flags-disallow-foll_touch
++++ a/mm/gup.c
+@@ -2227,12 +2227,11 @@ static bool is_valid_gup_args(struct pag
+ 	/*
+ 	 * These flags not allowed to be specified externally to the gup
+ 	 * interfaces:
+-	 * - FOLL_PIN/FOLL_TRIED/FOLL_FAST_ONLY are internal only
++	 * - FOLL_TOUCH/FOLL_PIN/FOLL_TRIED/FOLL_FAST_ONLY are internal only
+ 	 * - FOLL_REMOTE is internal only and used on follow_page()
+ 	 * - FOLL_UNLOCKABLE is internal only and used if locked is !NULL
+ 	 */
+-	if (WARN_ON_ONCE(gup_flags & (FOLL_PIN | FOLL_TRIED | FOLL_UNLOCKABLE |
+-				      FOLL_REMOTE | FOLL_FAST_ONLY)))
++	if (WARN_ON_ONCE(gup_flags & INTERNAL_GUP_FLAGS))
+ 		return false;
  
- long get_user_pages_remote(struct mm_struct *mm,
- 			   unsigned long start, unsigned long nr_pages,
---- a/kernel/ptrace.c~mm-make-__access_remote_vm-static
-+++ a/kernel/ptrace.c
-@@ -59,7 +59,7 @@ int ptrace_access_vm(struct task_struct
- 		return 0;
- 	}
+ 	gup_flags |= to_set;
+--- a/mm/internal.h~mm-gup-explicitly-define-and-check-internal-gup-flags-disallow-foll_touch
++++ a/mm/internal.h
+@@ -1027,6 +1027,9 @@ enum {
+ 	FOLL_UNLOCKABLE = 1 << 21,
+ };
  
--	ret = __access_remote_vm(mm, addr, buf, len, gup_flags);
-+	ret = access_remote_vm(mm, addr, buf, len, gup_flags);
- 	mmput(mm);
- 
- 	return ret;
---- a/mm/memory.c~mm-make-__access_remote_vm-static
-+++ a/mm/memory.c
-@@ -5881,8 +5881,8 @@ EXPORT_SYMBOL_GPL(generic_access_phys);
++#define INTERNAL_GUP_FLAGS (FOLL_TOUCH | FOLL_TRIED | FOLL_REMOTE | FOLL_PIN | \
++			    FOLL_FAST_ONLY | FOLL_UNLOCKABLE)
++
  /*
-  * Access another process' address space as given in mm.
-  */
--int __access_remote_vm(struct mm_struct *mm, unsigned long addr, void *buf,
--		       int len, unsigned int gup_flags)
-+static int __access_remote_vm(struct mm_struct *mm, unsigned long addr,
-+			      void *buf, int len, unsigned int gup_flags)
- {
- 	void *old_buf = buf;
- 	int write = gup_flags & FOLL_WRITE;
---- a/mm/nommu.c~mm-make-__access_remote_vm-static
-+++ a/mm/nommu.c
-@@ -1651,8 +1651,8 @@ vm_fault_t filemap_map_pages(struct vm_f
- }
- EXPORT_SYMBOL(filemap_map_pages);
- 
--int __access_remote_vm(struct mm_struct *mm, unsigned long addr, void *buf,
--		       int len, unsigned int gup_flags)
-+static int __access_remote_vm(struct mm_struct *mm, unsigned long addr,
-+			      void *buf, int len, unsigned int gup_flags)
- {
- 	struct vm_area_struct *vma;
- 	int write = gup_flags & FOLL_WRITE;
+  * Indicates for which pages that are write-protected in the page table,
+  * whether GUP has to trigger unsharing via FAULT_FLAG_UNSHARE such that the
 _
 
 Patches currently in -mm which might be from lstoakes@gmail.com are
