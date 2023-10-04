@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9551AE936E3
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:24:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1015E936E1
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:24:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245016AbjJDUYn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:24:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46636 "EHLO
+        id S244641AbjJDUYq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:24:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46720 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245034AbjJDUXc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:23:32 -0400
+        with ESMTP id S245052AbjJDUXe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:23:34 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 21340194
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:23:29 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7542EC433CC;
-        Wed,  4 Oct 2023 20:23:28 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28A2419E
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:23:31 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 880F9C433C9;
+        Wed,  4 Oct 2023 20:23:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696451008;
-        bh=nejf15bLop6r+eTtsU5W+SvAKxhY5VrXqf/2PUVH1us=;
+        s=korg; t=1696451010;
+        bh=yzw6T7jTjT40iL2MyVyVd10TJlrkRFWVxFO9Sk+15Qo=;
         h=Date:To:From:Subject:From;
-        b=NJdduX96DnhUqZe3V0WuGEZM8b2SpoM0A0ky5K4mOLEou0Hn7sbuj3QL9L57N7v3y
-         ftXwlOPg7Gplq2BBOkNuOJTQmNYWTumtiRwR4fEvucV+iqrX841M6oCkg1mdrD6vup
-         smMhsrofCu8ro98l7BBHqROcOZvAMu32j7B698RY=
-Date:   Wed, 04 Oct 2023 13:23:27 -0700
-To:     mm-commits@vger.kernel.org, mark.rutland@arm.com,
-        ubizjak@gmail.com, akpm@linux-foundation.org
+        b=CsRMv6MOz1zOFdheArXceqGM6C/aIsT3L0k/9xB7RxH3Xf78jINQwp2JOMGPMF0xq
+         nIf/Edc3eOWsf/yOMQxi7KHtFXwRj2JYKvXgAEAbCP2/LYWMZwpUK0GilcdJb5uyvl
+         Z+Jkx1ykcadWWs/MnV81OTrNi/cGQBLfafq4+UB4=
+Date:   Wed, 04 Oct 2023 13:23:28 -0700
+To:     mm-commits@vger.kernel.org, peterz@infradead.org,
+        ebiederm@xmission.com, oleg@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] panic-use-atomic_try_cmpxchg-in-panic-and-nmi_panic.patch removed from -mm tree
-Message-Id: <20231004202328.7542EC433CC@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] change-next_thread-to-use-__next_thread-group_leader.patch removed from -mm tree
+Message-Id: <20231004202330.880F9C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,87 +36,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: panic: use atomic_try_cmpxchg in panic() and nmi_panic()
+     Subject: change next_thread() to use __next_thread() ?: group_leader
 has been removed from the -mm tree.  Its filename was
-     panic-use-atomic_try_cmpxchg-in-panic-and-nmi_panic.patch
+     change-next_thread-to-use-__next_thread-group_leader.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Uros Bizjak <ubizjak@gmail.com>
-Subject: panic: use atomic_try_cmpxchg in panic() and nmi_panic()
-Date: Mon, 4 Sep 2023 17:21:01 +0200
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: change next_thread() to use __next_thread() ?: group_leader
+Date: Thu, 24 Aug 2023 16:32:01 +0200
 
-Use atomic_try_cmpxchg instead of atomic_cmpxchg (*ptr, old, new) == old
-in panic() and nmi_panic().  x86 CMPXCHG instruction returns success in ZF
-flag, so this change saves a compare after cmpxchg (and related move
-instruction in front of cmpxchg).
+This relies on fact that group leader is always the 1st entry in the
+signal->thread_head list.
 
-Also, rename cpu variable to this_cpu in nmi_panic() and try to unify
-logic flow between panic() and nmi_panic().
+With or without this change, if the lockless next_thread(last_thread)
+races with exec it can return the old or the new leader.
 
-No functional change intended.
+We are almost ready to kill task->thread_group, after this change its
+only user is thread_group_empty().
 
-[ubizjak@gmail.com: clean up if/else block]
-  Link: https://lkml.kernel.org/r/20230906191200.68707-1-ubizjak@gmail.com
-Link: https://lkml.kernel.org/r/20230904152230.9227-1-ubizjak@gmail.com
-Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
+Link: https://lkml.kernel.org/r/20230824143201.GB31222@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |   22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+ include/linux/sched/signal.h |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/kernel/panic.c~panic-use-atomic_try_cmpxchg-in-panic-and-nmi_panic
-+++ a/kernel/panic.c
-@@ -192,14 +192,15 @@ atomic_t panic_cpu = ATOMIC_INIT(PANIC_C
-  */
- void nmi_panic(struct pt_regs *regs, const char *msg)
- {
--	int old_cpu, cpu;
-+	int old_cpu, this_cpu;
- 
--	cpu = raw_smp_processor_id();
--	old_cpu = atomic_cmpxchg(&panic_cpu, PANIC_CPU_INVALID, cpu);
-+	old_cpu = PANIC_CPU_INVALID;
-+	this_cpu = raw_smp_processor_id();
- 
--	if (old_cpu == PANIC_CPU_INVALID)
-+	/* atomic_try_cmpxchg updates old_cpu on failure */
-+	if (atomic_try_cmpxchg(&panic_cpu, &old_cpu, this_cpu))
- 		panic("%s", msg);
--	else if (old_cpu != cpu)
-+	else if (old_cpu != this_cpu)
- 		nmi_panic_self_stop(regs);
+--- a/include/linux/sched/signal.h~change-next_thread-to-use-__next_thread-group_leader
++++ a/include/linux/sched/signal.h
+@@ -726,10 +726,9 @@ static inline struct task_struct *__next
+ 					thread_node);
  }
- EXPORT_SYMBOL(nmi_panic);
-@@ -311,15 +312,18 @@ void panic(const char *fmt, ...)
- 	 * stop themself or will wait until they are stopped by the 1st CPU
- 	 * with smp_send_stop().
- 	 *
--	 * `old_cpu == PANIC_CPU_INVALID' means this is the 1st CPU which
--	 * comes here, so go ahead.
-+	 * cmpxchg success means this is the 1st CPU which comes here,
-+	 * so go ahead.
- 	 * `old_cpu == this_cpu' means we came from nmi_panic() which sets
- 	 * panic_cpu to this CPU.  In this case, this is also the 1st CPU.
- 	 */
-+	old_cpu = PANIC_CPU_INVALID;
- 	this_cpu = raw_smp_processor_id();
--	old_cpu  = atomic_cmpxchg(&panic_cpu, PANIC_CPU_INVALID, this_cpu);
  
--	if (old_cpu != PANIC_CPU_INVALID && old_cpu != this_cpu)
-+	/* atomic_try_cmpxchg updates old_cpu on failure */
-+	if (atomic_try_cmpxchg(&panic_cpu, &old_cpu, this_cpu)) {
-+		/* go ahead */
-+	} else if (old_cpu != this_cpu)
- 		panic_smp_self_stop();
+-static inline struct task_struct *next_thread(const struct task_struct *p)
++static inline struct task_struct *next_thread(struct task_struct *p)
+ {
+-	return list_entry_rcu(p->thread_group.next,
+-			      struct task_struct, thread_group);
++	return __next_thread(p) ?: p->group_leader;
+ }
  
- 	console_verbose();
+ static inline int thread_group_empty(struct task_struct *p)
 _
 
-Patches currently in -mm which might be from ubizjak@gmail.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 
