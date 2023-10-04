@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EEB8E7C4F3
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:20:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1ECEEE7C4F4
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:20:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244612AbjJDUUs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:20:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37172 "EHLO
+        id S244723AbjJDUUt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:20:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37116 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244614AbjJDUU0 (ORCPT
+        with ESMTP id S244604AbjJDUU0 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:20:26 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79532115
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:20:15 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD4A7C433C7;
-        Wed,  4 Oct 2023 20:20:14 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0CC1510E
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:20:13 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43CEDC433C8;
+        Wed,  4 Oct 2023 20:20:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450815;
-        bh=CvbIGmJ2ygYA/cbVxjCbJ6E+Y8ctCe14Dsoss7Qb67Y=;
+        s=korg; t=1696450812;
+        bh=lWOoB0GFLia/+erlOHHXZSHazlJyb8vyFD+AFFt4iZw=;
         h=Date:To:From:Subject:From;
-        b=qu5BOF5YUHSGqDPqSKRiXQIdmgSevnWWNT90ciO+ZWDkoYfmWjTcCMWmr2iUvKUly
-         GbWhsVXnTJT0HBDH8R0cqbEtMyXas4TNXyOGAfCyrQ3TaOLb6nb6Z62Lzu6C3DTdC8
-         aLPPAOSrXgZ+67/cDRaWuet3kJrbMhM9Ums6/Two=
-Date:   Wed, 04 Oct 2023 13:20:13 -0700
+        b=LSwzyhfad27ZLHVoudPjZqh1TZmzQBbjlkCNmGmlzqvdbXPG06BvyCQRWZoy7c5L/
+         LELU25gpf0VS9ahczkJ55SJ6ZKGsLK5WhNUV7kggytjN7GPXlyUnXkIJ+kww4XMT8Q
+         7Qe4QiulCXvKlvNEYpuLpqlM9H3Cyh2/SlREdl1g=
+Date:   Wed, 04 Oct 2023 13:20:10 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -47,15 +47,15 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         david@redhat.com, david@fromorbit.com, dave.hansen@linux.intel.com,
         daniel.vetter@ffwll.ch, daniel@ffwll.ch, Dai.Ngo@oracle.com,
         colyli@suse.de, cmllamas@google.com, clm@fb.com,
-        chuck.lever@oracle.com, christian.koenig@amd.com, chao@kernel.org,
-        chandan.babu@oracle.com, cel@kernel.org, brauner@kernel.org,
-        bp@alien8.de, arnd@arndb.de, anna@kernel.org,
-        alyssa.rosenzweig@collabora.com, airlied@gmail.com,
-        agruenba@redhat.com, agk@redhat.com, adilger.kernel@dilger.ca,
-        zhengqi.arch@bytedance.com, akpm@linux-foundation.org
+        christian.koenig@amd.com, chao@kernel.org, chandan.babu@oracle.com,
+        cel@kernel.org, brauner@kernel.org, bp@alien8.de, arnd@arndb.de,
+        anna@kernel.org, alyssa.rosenzweig@collabora.com,
+        airlied@gmail.com, agruenba@redhat.com, agk@redhat.com,
+        adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] nfsd-dynamically-allocate-the-nfsd-client-shrinker.patch removed from -mm tree
-Message-Id: <20231004202014.BD4A7C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] ext4-dynamically-allocate-the-ext4-es-shrinker.patch removed from -mm tree
+Message-Id: <20231004202012.43CEDC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,36 +63,32 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: nfsd: dynamically allocate the nfsd-client shrinker
+     Subject: ext4: dynamically allocate the ext4-es shrinker
 has been removed from the -mm tree.  Its filename was
-     nfsd-dynamically-allocate-the-nfsd-client-shrinker.patch
+     ext4-dynamically-allocate-the-ext4-es-shrinker.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: nfsd: dynamically allocate the nfsd-client shrinker
-Date: Mon, 11 Sep 2023 17:44:31 +0800
+Subject: ext4: dynamically allocate the ext4-es shrinker
+Date: Mon, 11 Sep 2023 17:44:29 +0800
 
 In preparation for implementing lockless slab shrink, use new APIs to
-dynamically allocate the nfsd-client shrinker, so that it can be freed
+dynamically allocate the ext4-es shrinker, so that it can be freed
 asynchronously via RCU. Then it doesn't need to wait for RCU read-side
-critical section when releasing the struct nfsd_net.
+critical section when releasing the struct ext4_sb_info.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-33-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-31-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Acked-by: Chuck Lever <chuck.lever@oracle.com>
-Acked-by: Jeff Layton <jlayton@kernel.org>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Olga Kornievskaia <kolga@netapp.com>
-Cc: Dai Ngo <Dai.Ngo@oracle.com>
-Cc: Tom Talpey <tom@talpey.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alyssa Rosenzweig <alyssa.rosenzweig@collabora.com>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Cc: Anna Schumaker <anna@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -106,6 +102,7 @@ Cc: Christian Brauner <brauner@kernel.org>
 Cc: Christian Koenig <christian.koenig@amd.com>
 Cc: Chuck Lever <cel@kernel.org>
 Cc: Coly Li <colyli@suse.de>
+Cc: Dai Ngo <Dai.Ngo@oracle.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
@@ -123,6 +120,7 @@ Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Wang <jasowang@redhat.com>
+Cc: Jeff Layton <jlayton@kernel.org>
 Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
 Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
 Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
@@ -135,10 +133,10 @@ Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Nadav Amit <namit@vmware.com>
 Cc: Neil Brown <neilb@suse.de>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
+Cc: Olga Kornievskaia <kolga@netapp.com>
 Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Richard Weinberger <richard@nod.at>
 Cc: Rob Clark <robdclark@gmail.com>
@@ -150,9 +148,9 @@ Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Song Liu <song@kernel.org>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Steven Price <steven.price@arm.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: Tom Talpey <tom@talpey.com>
 Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -161,64 +159,75 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/netns.h     |    2 +-
- fs/nfsd/nfs4state.c |   19 +++++++++++--------
- 2 files changed, 12 insertions(+), 9 deletions(-)
+ fs/ext4/ext4.h           |    2 +-
+ fs/ext4/extents_status.c |   23 +++++++++++++----------
+ 2 files changed, 14 insertions(+), 11 deletions(-)
 
---- a/fs/nfsd/netns.h~nfsd-dynamically-allocate-the-nfsd-client-shrinker
-+++ a/fs/nfsd/netns.h
-@@ -195,7 +195,7 @@ struct nfsd_net {
- 	int			nfs4_max_clients;
+--- a/fs/ext4/ext4.h~ext4-dynamically-allocate-the-ext4-es-shrinker
++++ a/fs/ext4/ext4.h
+@@ -1653,7 +1653,7 @@ struct ext4_sb_info {
+ 	__u32 s_csum_seed;
  
- 	atomic_t		nfsd_courtesy_clients;
--	struct shrinker		nfsd_client_shrinker;
-+	struct shrinker		*nfsd_client_shrinker;
- 	struct work_struct	nfsd_shrinker_work;
- };
+ 	/* Reclaim extents from extent status tree */
+-	struct shrinker s_es_shrinker;
++	struct shrinker *s_es_shrinker;
+ 	struct list_head s_es_list;	/* List of inodes with reclaimable extents */
+ 	long s_es_nr_inode;
+ 	struct ext4_es_stats s_es_stats;
+--- a/fs/ext4/extents_status.c~ext4-dynamically-allocate-the-ext4-es-shrinker
++++ a/fs/ext4/extents_status.c
+@@ -1606,7 +1606,7 @@ static unsigned long ext4_es_count(struc
+ 	unsigned long nr;
+ 	struct ext4_sb_info *sbi;
  
---- a/fs/nfsd/nfs4state.c~nfsd-dynamically-allocate-the-nfsd-client-shrinker
-+++ a/fs/nfsd/nfs4state.c
-@@ -4400,8 +4400,7 @@ static unsigned long
- nfsd4_state_shrinker_count(struct shrinker *shrink, struct shrink_control *sc)
+-	sbi = container_of(shrink, struct ext4_sb_info, s_es_shrinker);
++	sbi = shrink->private_data;
+ 	nr = percpu_counter_read_positive(&sbi->s_es_stats.es_stats_shk_cnt);
+ 	trace_ext4_es_shrink_count(sbi->s_sb, sc->nr_to_scan, nr);
+ 	return nr;
+@@ -1615,8 +1615,7 @@ static unsigned long ext4_es_count(struc
+ static unsigned long ext4_es_scan(struct shrinker *shrink,
+ 				  struct shrink_control *sc)
  {
- 	int count;
--	struct nfsd_net *nn = container_of(shrink,
--			struct nfsd_net, nfsd_client_shrinker);
-+	struct nfsd_net *nn = shrink->private_data;
+-	struct ext4_sb_info *sbi = container_of(shrink,
+-					struct ext4_sb_info, s_es_shrinker);
++	struct ext4_sb_info *sbi = shrink->private_data;
+ 	int nr_to_scan = sc->nr_to_scan;
+ 	int ret, nr_shrunk;
  
- 	count = atomic_read(&nn->nfsd_courtesy_clients);
- 	if (!count)
-@@ -8149,12 +8148,16 @@ static int nfs4_state_create_net(struct
- 	INIT_WORK(&nn->nfsd_shrinker_work, nfsd4_state_shrinker_worker);
- 	get_net(net);
+@@ -1700,13 +1699,17 @@ int ext4_es_register_shrinker(struct ext
+ 	if (err)
+ 		goto err3;
  
--	nn->nfsd_client_shrinker.scan_objects = nfsd4_state_shrinker_scan;
--	nn->nfsd_client_shrinker.count_objects = nfsd4_state_shrinker_count;
--	nn->nfsd_client_shrinker.seeks = DEFAULT_SEEKS;
--
--	if (register_shrinker(&nn->nfsd_client_shrinker, "nfsd-client"))
-+	nn->nfsd_client_shrinker = shrinker_alloc(0, "nfsd-client");
-+	if (!nn->nfsd_client_shrinker)
- 		goto err_shrinker;
+-	sbi->s_es_shrinker.scan_objects = ext4_es_scan;
+-	sbi->s_es_shrinker.count_objects = ext4_es_count;
+-	sbi->s_es_shrinker.seeks = DEFAULT_SEEKS;
+-	err = register_shrinker(&sbi->s_es_shrinker, "ext4-es:%s",
+-				sbi->s_sb->s_id);
+-	if (err)
++	sbi->s_es_shrinker = shrinker_alloc(0, "ext4-es:%s", sbi->s_sb->s_id);
++	if (!sbi->s_es_shrinker) {
++		err = -ENOMEM;
+ 		goto err4;
++	}
 +
-+	nn->nfsd_client_shrinker->scan_objects = nfsd4_state_shrinker_scan;
-+	nn->nfsd_client_shrinker->count_objects = nfsd4_state_shrinker_count;
-+	nn->nfsd_client_shrinker->private_data = nn;
++	sbi->s_es_shrinker->scan_objects = ext4_es_scan;
++	sbi->s_es_shrinker->count_objects = ext4_es_count;
++	sbi->s_es_shrinker->private_data = sbi;
 +
-+	shrinker_register(nn->nfsd_client_shrinker);
-+
++	shrinker_register(sbi->s_es_shrinker);
+ 
  	return 0;
+ err4:
+@@ -1726,7 +1729,7 @@ void ext4_es_unregister_shrinker(struct
+ 	percpu_counter_destroy(&sbi->s_es_stats.es_stats_cache_misses);
+ 	percpu_counter_destroy(&sbi->s_es_stats.es_stats_all_cnt);
+ 	percpu_counter_destroy(&sbi->s_es_stats.es_stats_shk_cnt);
+-	unregister_shrinker(&sbi->s_es_shrinker);
++	shrinker_free(sbi->s_es_shrinker);
+ }
  
- err_shrinker:
-@@ -8252,7 +8255,7 @@ nfs4_state_shutdown_net(struct net *net)
- 	struct list_head *pos, *next, reaplist;
- 	struct nfsd_net *nn = net_generic(net, nfsd_net_id);
- 
--	unregister_shrinker(&nn->nfsd_client_shrinker);
-+	shrinker_free(nn->nfsd_client_shrinker);
- 	cancel_work(&nn->nfsd_shrinker_work);
- 	cancel_delayed_work_sync(&nn->laundromat_work);
- 	locks_end_grace(&nn->nfsd4_manager);
+ /*
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
