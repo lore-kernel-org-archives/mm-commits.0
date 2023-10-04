@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3421E7C4F9
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:19:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B98A0E7C4F4
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:19:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243883AbjJDUTv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:19:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37074 "EHLO
+        id S244105AbjJDUTx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:19:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37116 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244105AbjJDUTr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:19:47 -0400
+        with ESMTP id S244104AbjJDUTq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:19:46 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 40CE6EC
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:19:39 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F004C433C8;
-        Wed,  4 Oct 2023 20:19:38 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 140BBE5
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:19:37 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A7C5C433C7;
+        Wed,  4 Oct 2023 20:19:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450778;
-        bh=pJKLZ65bo4G9sZ1GxsZ0SdyPqocMmHNXopv7GBuHy10=;
+        s=korg; t=1696450776;
+        bh=y5s3aShTAlPeBrPUyh7tfOGMWdFSqbUbA3VovhxKQZI=;
         h=Date:To:From:Subject:From;
-        b=XutH5aKlzVusnt5mJIlrMAaXYZnXhXxPZTR025X/2sm0hzY78pq62BWaojmN20eau
-         4h8O5g5NNrNOqSXyqUYWWMTJqC0qcH61eGM10nYnhgHXxuD5ch0fJ+qppN69WpDmTC
-         XqRBCTpFRYwTUOLRToSFm0yLgIzjUIrjSvwJJKcQ=
-Date:   Wed, 04 Oct 2023 13:19:37 -0700
+        b=BeCwVQZ3RHkdubZuLUfIxSZN+ZK7URi82+dy23g7yBQQLinFti9JhWlxvwMY2bxR+
+         qjfpg+prPgEVz9UOd/DxLrSDrzoAR7L274Q6DKbTdy7jpywBAM1GmqMQlvNh3tlKxI
+         K7ni47QmedUkJ8CUKnvgBC1lnGvlEp6Q1vxcGsP8=
+Date:   Wed, 04 Oct 2023 13:19:35 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] rcu-dynamically-allocate-the-rcu-kfree-shrinker.patch removed from -mm tree
-Message-Id: <20231004201938.6F004C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] quota-dynamically-allocate-the-dquota-cache-shrinker.patch removed from -mm tree
+Message-Id: <20231004201936.4A7C5C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,24 +63,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: rcu: dynamically allocate the rcu-kfree shrinker
+     Subject: quota: dynamically allocate the dquota-cache shrinker
 has been removed from the -mm tree.  Its filename was
-     rcu-dynamically-allocate-the-rcu-kfree-shrinker.patch
+     quota-dynamically-allocate-the-dquota-cache-shrinker.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: rcu: dynamically allocate the rcu-kfree shrinker
-Date: Mon, 11 Sep 2023 17:44:15 +0800
+Subject: quota: dynamically allocate the dquota-cache shrinker
+Date: Mon, 11 Sep 2023 17:44:12 +0800
 
-Use new APIs to dynamically allocate the rcu-kfree shrinker.
+Use new APIs to dynamically allocate the dquota-cache shrinker.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-17-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-14-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Joel Fernandes (Google) <joel@joelfernandes.org>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Jan Kara <jack@suse.cz>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -115,10 +115,10 @@ Cc: Huang Rui <ray.huang@amd.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Wang <jasowang@redhat.com>
 Cc: Jeff Layton <jlayton@kernel.org>
 Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
+Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
 Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
 Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: Juergen Gross <jgross@suse.com>
@@ -156,53 +156,49 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rcu/tree.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ fs/quota/dquot.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
---- a/kernel/rcu/tree.c~rcu-dynamically-allocate-the-rcu-kfree-shrinker
-+++ a/kernel/rcu/tree.c
-@@ -3449,13 +3449,6 @@ kfree_rcu_shrink_scan(struct shrinker *s
- 	return freed == 0 ? SHRINK_STOP : freed;
+--- a/fs/quota/dquot.c~quota-dynamically-allocate-the-dquota-cache-shrinker
++++ a/fs/quota/dquot.c
+@@ -791,12 +791,6 @@ dqcache_shrink_count(struct shrinker *sh
+ 	percpu_counter_read_positive(&dqstats.counter[DQST_FREE_DQUOTS]));
  }
  
--static struct shrinker kfree_rcu_shrinker = {
--	.count_objects = kfree_rcu_shrink_count,
--	.scan_objects = kfree_rcu_shrink_scan,
--	.batch = 0,
+-static struct shrinker dqcache_shrinker = {
+-	.count_objects = dqcache_shrink_count,
+-	.scan_objects = dqcache_shrink_scan,
 -	.seeks = DEFAULT_SEEKS,
 -};
 -
- void __init kfree_rcu_scheduler_running(void)
+ /*
+  * Safely release dquot and put reference to dquot.
+  */
+@@ -2956,6 +2950,7 @@ static int __init dquot_init(void)
  {
- 	int cpu;
-@@ -4931,6 +4924,7 @@ static void __init kfree_rcu_batch_init(
- {
- 	int cpu;
- 	int i, j;
-+	struct shrinker *kfree_rcu_shrinker;
+ 	int i, ret;
+ 	unsigned long nr_hash, order;
++	struct shrinker *dqcache_shrinker;
  
- 	/* Clamp it to [0:100] seconds interval. */
- 	if (rcu_delay_page_cache_fill_msec < 0 ||
-@@ -4962,8 +4956,17 @@ static void __init kfree_rcu_batch_init(
- 		INIT_DELAYED_WORK(&krcp->page_cache_work, fill_page_cache_func);
- 		krcp->initialized = true;
- 	}
--	if (register_shrinker(&kfree_rcu_shrinker, "rcu-kfree"))
--		pr_err("Failed to register kfree_rcu() shrinker!\n");
+ 	printk(KERN_NOTICE "VFS: Disk quotas %s\n", __DQUOT_VERSION__);
+ 
+@@ -2990,8 +2985,14 @@ static int __init dquot_init(void)
+ 	pr_info("VFS: Dquot-cache hash table entries: %ld (order %ld,"
+ 		" %ld bytes)\n", nr_hash, order, (PAGE_SIZE << order));
+ 
+-	if (register_shrinker(&dqcache_shrinker, "dquota-cache"))
+-		panic("Cannot register dquot shrinker");
++	dqcache_shrinker = shrinker_alloc(0, "dquota-cache");
++	if (!dqcache_shrinker)
++		panic("Cannot allocate dquot shrinker");
 +
-+	kfree_rcu_shrinker = shrinker_alloc(0, "rcu-kfree");
-+	if (!kfree_rcu_shrinker) {
-+		pr_err("Failed to allocate kfree_rcu() shrinker!\n");
-+		return;
-+	}
++	dqcache_shrinker->count_objects = dqcache_shrink_count;
++	dqcache_shrinker->scan_objects = dqcache_shrink_scan;
 +
-+	kfree_rcu_shrinker->count_objects = kfree_rcu_shrink_count;
-+	kfree_rcu_shrinker->scan_objects = kfree_rcu_shrink_scan;
-+
-+	shrinker_register(kfree_rcu_shrinker);
++	shrinker_register(dqcache_shrinker);
+ 
+ 	return 0;
  }
- 
- void __init rcu_init(void)
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
