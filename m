@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7ECFCE7C4F1
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:19:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8FF9E7C4F4
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:19:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244057AbjJDUTq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:19:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58386 "EHLO
+        id S244022AbjJDUTr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:19:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58400 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244022AbjJDUTW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:19:22 -0400
+        with ESMTP id S244086AbjJDUT0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:19:26 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D259993
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:19:18 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2601CC433C9;
-        Wed,  4 Oct 2023 20:19:18 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00F76BF
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:19:22 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3507CC433C7;
+        Wed,  4 Oct 2023 20:19:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450758;
-        bh=hBiDY9o9aoSqrKphMGmfLRx1bSlCcNTa+k1siuKvFSs=;
+        s=korg; t=1696450762;
+        bh=4nGADQWHLsji1qzDj4sOWPT+zEkbLciJ5k/JaBqxWEo=;
         h=Date:To:From:Subject:From;
-        b=cLiLOXMLHNcPgSAp6psvMCECQphSpmeKKPD8n+AF9bfJLHJH/IB77KKCMR/CJ8gA8
-         qUMZ5qhox18LbaGIVeQFw4RXSOwtVaf4K0xJqsZhXIslQ/x+YIXRHMbFNrqYmeCE0v
-         8uQmimANH6mHWwzkqKZogmd01iqhxvJnAhM6K8Ic=
-Date:   Wed, 04 Oct 2023 13:19:16 -0700
+        b=ucGqGbvN5noW84IRxgJo4/0F+fmC+ZYA7JtFpYlPOaFpDEfEsqlZcGcNrl3YgPzto
+         UWg8iHBY72bbktxNGCtS5kOzooCw2AgytE82bYYkSQC+IwQGU+d5E1UlLapY+hqMpK
+         gCLOqe0wKr/McrGq9ecperlfOhj3LZZJHcfwVFTo=
+Date:   Wed, 04 Oct 2023 13:19:20 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] drm-ttm-dynamically-allocate-the-drm-ttm_pool-shrinker.patch removed from -mm tree
-Message-Id: <20231004201918.2601CC433C9@smtp.kernel.org>
+Subject: [merged mm-stable] erofs-dynamically-allocate-the-erofs-shrinker.patch removed from -mm tree
+Message-Id: <20231004201922.3507CC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,27 +63,27 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: drm/ttm: dynamically allocate the drm-ttm_pool shrinker
+     Subject: erofs: dynamically allocate the erofs-shrinker
 has been removed from the -mm tree.  Its filename was
-     drm-ttm-dynamically-allocate-the-drm-ttm_pool-shrinker.patch
+     erofs-dynamically-allocate-the-erofs-shrinker.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: drm/ttm: dynamically allocate the drm-ttm_pool shrinker
-Date: Mon, 11 Sep 2023 17:44:03 +0800
+Subject: erofs: dynamically allocate the erofs-shrinker
+Date: Mon, 11 Sep 2023 17:44:05 +0800
 
-Use new APIs to dynamically allocate the drm-ttm_pool shrinker.
+Use new APIs to dynamically allocate the erofs-shrinker.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-5-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-7-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Christian Koenig <christian.koenig@amd.com>
-Cc: Huang Rui <ray.huang@amd.com>
-Cc: David Airlie <airlied@gmail.com>
+Reviewed-by: Chao Yu <chao@kernel.org>
+Reviewed-by: Gao Xiang <hsiangkao@linux.alibaba.com>
+Cc: Yue Hu <huyue2@coolpad.com>
+Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -96,28 +96,29 @@ Cc: Bob Peterson <rpeterso@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Carlos Llamas <cmllamas@google.com>
 Cc: Chandan Babu R <chandan.babu@oracle.com>
-Cc: Chao Yu <chao@kernel.org>
 Cc: Chris Mason <clm@fb.com>
 Cc: Christian Brauner <brauner@kernel.org>
+Cc: Christian Koenig <christian.koenig@amd.com>
 Cc: Chuck Lever <cel@kernel.org>
 Cc: Coly Li <colyli@suse.de>
 Cc: Dai Ngo <Dai.Ngo@oracle.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Airlie <airlied@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Sterba <dsterba@suse.com>
 Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
-Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Huang Rui <ray.huang@amd.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Wang <jasowang@redhat.com>
 Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
 Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
 Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
 Cc: Josef Bacik <josef@toxicpanda.com>
@@ -152,65 +153,46 @@ Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
-Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/ttm/ttm_pool.c |   23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
+ fs/erofs/utils.c |   19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
---- a/drivers/gpu/drm/ttm/ttm_pool.c~drm-ttm-dynamically-allocate-the-drm-ttm_pool-shrinker
-+++ a/drivers/gpu/drm/ttm/ttm_pool.c
-@@ -73,7 +73,7 @@ static struct ttm_pool_type global_dma32
+--- a/fs/erofs/utils.c~erofs-dynamically-allocate-the-erofs-shrinker
++++ a/fs/erofs/utils.c
+@@ -270,19 +270,24 @@ static unsigned long erofs_shrink_scan(s
+ 	return freed;
+ }
  
- static spinlock_t shrinker_lock;
- static struct list_head shrinker_list;
--static struct shrinker mm_shrinker;
-+static struct shrinker *mm_shrinker;
- static DECLARE_RWSEM(pool_shrink_rwsem);
+-static struct shrinker erofs_shrinker_info = {
+-	.scan_objects = erofs_shrink_scan,
+-	.count_objects = erofs_shrink_count,
+-	.seeks = DEFAULT_SEEKS,
+-};
++static struct shrinker *erofs_shrinker_info;
  
- /* Allocate pages of size 1 << order with the given gfp_flags */
-@@ -749,8 +749,8 @@ static int ttm_pool_debugfs_shrink_show(
- 	struct shrink_control sc = { .gfp_mask = GFP_NOFS };
- 
- 	fs_reclaim_acquire(GFP_KERNEL);
--	seq_printf(m, "%lu/%lu\n", ttm_pool_shrinker_count(&mm_shrinker, &sc),
--		   ttm_pool_shrinker_scan(&mm_shrinker, &sc));
-+	seq_printf(m, "%lu/%lu\n", ttm_pool_shrinker_count(mm_shrinker, &sc),
-+		   ttm_pool_shrinker_scan(mm_shrinker, &sc));
- 	fs_reclaim_release(GFP_KERNEL);
- 
- 	return 0;
-@@ -794,10 +794,17 @@ int ttm_pool_mgr_init(unsigned long num_
- 			    &ttm_pool_debugfs_shrink_fops);
- #endif
- 
--	mm_shrinker.count_objects = ttm_pool_shrinker_count;
--	mm_shrinker.scan_objects = ttm_pool_shrinker_scan;
--	mm_shrinker.seeks = 1;
--	return register_shrinker(&mm_shrinker, "drm-ttm_pool");
-+	mm_shrinker = shrinker_alloc(0, "drm-ttm_pool");
-+	if (!mm_shrinker)
+ int __init erofs_init_shrinker(void)
+ {
+-	return register_shrinker(&erofs_shrinker_info, "erofs-shrinker");
++	erofs_shrinker_info = shrinker_alloc(0, "erofs-shrinker");
++	if (!erofs_shrinker_info)
 +		return -ENOMEM;
 +
-+	mm_shrinker->count_objects = ttm_pool_shrinker_count;
-+	mm_shrinker->scan_objects = ttm_pool_shrinker_scan;
-+	mm_shrinker->seeks = 1;
++	erofs_shrinker_info->count_objects = erofs_shrink_count;
++	erofs_shrinker_info->scan_objects = erofs_shrink_scan;
 +
-+	shrinker_register(mm_shrinker);
++	shrinker_register(erofs_shrinker_info);
 +
 +	return 0;
  }
  
- /**
-@@ -817,6 +824,6 @@ void ttm_pool_mgr_fini(void)
- 		ttm_pool_type_fini(&global_dma32_uncached[i]);
- 	}
- 
--	unregister_shrinker(&mm_shrinker);
-+	shrinker_free(mm_shrinker);
- 	WARN_ON(!list_empty(&shrinker_list));
+ void erofs_exit_shrinker(void)
+ {
+-	unregister_shrinker(&erofs_shrinker_info);
++	shrinker_free(erofs_shrinker_info);
  }
+ #endif	/* !CONFIG_EROFS_FS_ZIP */
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
