@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B434BE7C4F4
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:20:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1FC4E7C4F7
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:20:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244220AbjJDUU2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:20:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55162 "EHLO
+        id S244514AbjJDUUc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:20:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33772 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244418AbjJDUT4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:19:56 -0400
+        with ESMTP id S244492AbjJDUT7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:19:59 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0444EE5
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:19:53 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F4D6C433C9;
-        Wed,  4 Oct 2023 20:19:52 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0471AE9
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:19:55 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48C9CC433CA;
+        Wed,  4 Oct 2023 20:19:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450792;
-        bh=fJFHUKOFiZyqTkOH/2rM2pBEFrqxVdRrhvnRUaKMzkM=;
+        s=korg; t=1696450794;
+        bh=OuSLm9rvXVwvQCSNxa+oAownNMByRH0xWaaqrbIu8Zo=;
         h=Date:To:From:Subject:From;
-        b=lmxYm3HThszmpa+He959yZi8jTFTtgYsT29IrYzQEl3vuf5icS9pdH9vwB/wkkZaz
-         493M5ssyjZQl72rPUPqQTfyG7S2KDd0WsuBau8hDnpq/FMDalk/YvC1diyfucoq/sL
-         7rCXaSiqS5ZjFyJ5fdY8nPcwxo1+N3e0fZs/p8yg=
-Date:   Wed, 04 Oct 2023 13:19:51 -0700
+        b=ypSvF6dxn6yi4dD5l8o471W/iGhKl3dLQrKiB9bg7hLJzJ8WBRPLUmlNvK1tVD4IP
+         vWoA1bgD6wb50ReqVQOOrhZmwSvprkx114yROG53qgRZNntbxrOC3DZUdx6Sz77m0b
+         LNNsb4GKPiwN5qo8gLVQku5Y31ex8oJeBTWVDkOA=
+Date:   Wed, 04 Oct 2023 13:19:53 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] drm-msm-dynamically-allocate-the-drm-msm_gem-shrinker.patch removed from -mm tree
-Message-Id: <20231004201952.4F4D6C433C9@smtp.kernel.org>
+Subject: [merged mm-stable] dm-zoned-dynamically-allocate-the-dm-zoned-meta-shrinker.patch removed from -mm tree
+Message-Id: <20231004201954.48C9CC433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,34 +63,29 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: drm/msm: dynamically allocate the drm-msm_gem shrinker
+     Subject: dm zoned: dynamically allocate the dm-zoned-meta shrinker
 has been removed from the -mm tree.  Its filename was
-     drm-msm-dynamically-allocate-the-drm-msm_gem-shrinker.patch
+     dm-zoned-dynamically-allocate-the-dm-zoned-meta-shrinker.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: drm/msm: dynamically allocate the drm-msm_gem shrinker
-Date: Mon, 11 Sep 2023 17:44:20 +0800
+Subject: dm zoned: dynamically allocate the dm-zoned-meta shrinker
+Date: Mon, 11 Sep 2023 17:44:23 +0800
 
 In preparation for implementing lockless slab shrink, use new APIs to
-dynamically allocate the drm-msm_gem shrinker, so that it can be freed
+dynamically allocate the dm-zoned-meta shrinker, so that it can be freed
 asynchronously via RCU. Then it doesn't need to wait for RCU read-side
-critical section when releasing the struct msm_drm_private.
+critical section when releasing the struct dmz_metadata.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-22-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-25-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Rob Clark <robdclark@gmail.com>
-Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
-Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
-Cc: Sean Paul <sean@poorly.run>
-Cc: Marijn Suijten <marijn.suijten@somainline.org>
-Cc: David Airlie <airlied@gmail.com>
 Cc: Alasdair Kergon <agk@redhat.com>
+Cc: Mike Snitzer <snitzer@kernel.org>
+Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alyssa Rosenzweig <alyssa.rosenzweig@collabora.com>
 Cc: Andreas Dilger <adilger.kernel@dilger.ca>
@@ -109,11 +104,14 @@ Cc: Chuck Lever <cel@kernel.org>
 Cc: Coly Li <colyli@suse.de>
 Cc: Dai Ngo <Dai.Ngo@oracle.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Airlie <airlied@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Sterba <dsterba@suse.com>
+Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
 Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Huang Rui <ray.huang@amd.com>
@@ -130,8 +128,8 @@ Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: Juergen Gross <jgross@suse.com>
 Cc: Kent Overstreet <kent.overstreet@gmail.com>
 Cc: Kirill Tkhai <tkhai@ya.ru>
+Cc: Marijn Suijten <marijn.suijten@somainline.org>
 Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Nadav Amit <namit@vmware.com>
@@ -140,9 +138,11 @@ Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
 Cc: Olga Kornievskaia <kolga@netapp.com>
 Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Richard Weinberger <richard@nod.at>
+Cc: Rob Clark <robdclark@gmail.com>
 Cc: Rob Herring <robh@kernel.org>
 Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Sean Paul <sean@poorly.run>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Song Liu <song@kernel.org>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
@@ -159,120 +159,78 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/msm/msm_drv.c          |    4 ++
- drivers/gpu/drm/msm/msm_drv.h          |    4 +-
- drivers/gpu/drm/msm/msm_gem_shrinker.c |   33 +++++++++++++----------
- 3 files changed, 25 insertions(+), 16 deletions(-)
+ drivers/md/dm-zoned-metadata.c |   28 ++++++++++++++++------------
+ 1 file changed, 16 insertions(+), 12 deletions(-)
 
---- a/drivers/gpu/drm/msm/msm_drv.c~drm-msm-dynamically-allocate-the-drm-msm_gem-shrinker
-+++ a/drivers/gpu/drm/msm/msm_drv.c
-@@ -462,7 +462,9 @@ static int msm_drm_init(struct device *d
- 	if (ret)
- 		goto err_msm_uninit;
+--- a/drivers/md/dm-zoned-metadata.c~dm-zoned-dynamically-allocate-the-dm-zoned-meta-shrinker
++++ a/drivers/md/dm-zoned-metadata.c
+@@ -187,7 +187,7 @@ struct dmz_metadata {
+ 	struct rb_root		mblk_rbtree;
+ 	struct list_head	mblk_lru_list;
+ 	struct list_head	mblk_dirty_list;
+-	struct shrinker		mblk_shrinker;
++	struct shrinker		*mblk_shrinker;
  
--	msm_gem_shrinker_init(ddev);
-+	ret = msm_gem_shrinker_init(ddev);
-+	if (ret)
-+		goto err_msm_uninit;
- 
- 	if (priv->kms_init) {
- 		ret = priv->kms_init(ddev);
---- a/drivers/gpu/drm/msm/msm_drv.h~drm-msm-dynamically-allocate-the-drm-msm_gem-shrinker
-+++ a/drivers/gpu/drm/msm/msm_drv.h
-@@ -221,7 +221,7 @@ struct msm_drm_private {
- 	} vram;
- 
- 	struct notifier_block vmap_notifier;
--	struct shrinker shrinker;
-+	struct shrinker *shrinker;
- 
- 	struct drm_atomic_state *pm_state;
- 
-@@ -283,7 +283,7 @@ int msm_ioctl_gem_submit(struct drm_devi
- unsigned long msm_gem_shrinker_shrink(struct drm_device *dev, unsigned long nr_to_scan);
- #endif
- 
--void msm_gem_shrinker_init(struct drm_device *dev);
-+int msm_gem_shrinker_init(struct drm_device *dev);
- void msm_gem_shrinker_cleanup(struct drm_device *dev);
- 
- struct sg_table *msm_gem_prime_get_sg_table(struct drm_gem_object *obj);
---- a/drivers/gpu/drm/msm/msm_gem_shrinker.c~drm-msm-dynamically-allocate-the-drm-msm_gem-shrinker
-+++ a/drivers/gpu/drm/msm/msm_gem_shrinker.c
-@@ -34,8 +34,7 @@ static bool can_block(struct shrink_cont
- static unsigned long
- msm_gem_shrinker_count(struct shrinker *shrinker, struct shrink_control *sc)
+ 	/* Zone allocation management */
+ 	struct mutex		map_lock;
+@@ -615,7 +615,7 @@ static unsigned long dmz_shrink_mblock_c
+ static unsigned long dmz_mblock_shrinker_count(struct shrinker *shrink,
+ 					       struct shrink_control *sc)
  {
--	struct msm_drm_private *priv =
--		container_of(shrinker, struct msm_drm_private, shrinker);
-+	struct msm_drm_private *priv = shrinker->private_data;
- 	unsigned count = priv->lru.dontneed.count;
+-	struct dmz_metadata *zmd = container_of(shrink, struct dmz_metadata, mblk_shrinker);
++	struct dmz_metadata *zmd = shrink->private_data;
  
- 	if (can_swap())
-@@ -100,8 +99,7 @@ active_evict(struct drm_gem_object *obj)
- static unsigned long
- msm_gem_shrinker_scan(struct shrinker *shrinker, struct shrink_control *sc)
- {
--	struct msm_drm_private *priv =
--		container_of(shrinker, struct msm_drm_private, shrinker);
-+	struct msm_drm_private *priv = shrinker->private_data;
- 	struct {
- 		struct drm_gem_lru *lru;
- 		bool (*shrink)(struct drm_gem_object *obj);
-@@ -148,10 +146,11 @@ msm_gem_shrinker_shrink(struct drm_devic
- 	struct shrink_control sc = {
- 		.nr_to_scan = nr_to_scan,
- 	};
--	int ret;
-+	unsigned long ret = SHRINK_STOP;
- 
- 	fs_reclaim_acquire(GFP_KERNEL);
--	ret = msm_gem_shrinker_scan(&priv->shrinker, &sc);
-+	if (priv->shrinker)
-+		ret = msm_gem_shrinker_scan(priv->shrinker, &sc);
- 	fs_reclaim_release(GFP_KERNEL);
- 
- 	return ret;
-@@ -210,16 +209,24 @@ msm_gem_shrinker_vmap(struct notifier_bl
-  *
-  * This function registers and sets up the msm shrinker.
-  */
--void msm_gem_shrinker_init(struct drm_device *dev)
-+int msm_gem_shrinker_init(struct drm_device *dev)
- {
- 	struct msm_drm_private *priv = dev->dev_private;
--	priv->shrinker.count_objects = msm_gem_shrinker_count;
--	priv->shrinker.scan_objects = msm_gem_shrinker_scan;
--	priv->shrinker.seeks = DEFAULT_SEEKS;
--	WARN_ON(register_shrinker(&priv->shrinker, "drm-msm_gem"));
-+
-+	priv->shrinker = shrinker_alloc(0, "drm-msm_gem");
-+	if (!priv->shrinker)
-+		return -ENOMEM;
-+
-+	priv->shrinker->count_objects = msm_gem_shrinker_count;
-+	priv->shrinker->scan_objects = msm_gem_shrinker_scan;
-+	priv->shrinker->private_data = priv;
-+
-+	shrinker_register(priv->shrinker);
- 
- 	priv->vmap_notifier.notifier_call = msm_gem_shrinker_vmap;
- 	WARN_ON(register_vmap_purge_notifier(&priv->vmap_notifier));
-+
-+	return 0;
+ 	return atomic_read(&zmd->nr_mblks);
  }
- 
- /**
-@@ -232,8 +239,8 @@ void msm_gem_shrinker_cleanup(struct drm
+@@ -626,7 +626,7 @@ static unsigned long dmz_mblock_shrinker
+ static unsigned long dmz_mblock_shrinker_scan(struct shrinker *shrink,
+ 					      struct shrink_control *sc)
  {
- 	struct msm_drm_private *priv = dev->dev_private;
+-	struct dmz_metadata *zmd = container_of(shrink, struct dmz_metadata, mblk_shrinker);
++	struct dmz_metadata *zmd = shrink->private_data;
+ 	unsigned long count;
  
--	if (priv->shrinker.nr_deferred) {
-+	if (priv->shrinker) {
- 		WARN_ON(unregister_vmap_purge_notifier(&priv->vmap_notifier));
--		unregister_shrinker(&priv->shrinker);
-+		shrinker_free(priv->shrinker);
+ 	spin_lock(&zmd->mblk_lock);
+@@ -2936,19 +2936,23 @@ int dmz_ctr_metadata(struct dmz_dev *dev
+ 	 */
+ 	zmd->min_nr_mblks = 2 + zmd->nr_map_blocks + zmd->zone_nr_bitmap_blocks * 16;
+ 	zmd->max_nr_mblks = zmd->min_nr_mblks + 512;
+-	zmd->mblk_shrinker.count_objects = dmz_mblock_shrinker_count;
+-	zmd->mblk_shrinker.scan_objects = dmz_mblock_shrinker_scan;
+-	zmd->mblk_shrinker.seeks = DEFAULT_SEEKS;
+ 
+ 	/* Metadata cache shrinker */
+-	ret = register_shrinker(&zmd->mblk_shrinker, "dm-zoned-meta:(%u:%u)",
+-				MAJOR(dev->bdev->bd_dev),
+-				MINOR(dev->bdev->bd_dev));
+-	if (ret) {
+-		dmz_zmd_err(zmd, "Register metadata cache shrinker failed");
++	zmd->mblk_shrinker = shrinker_alloc(0,  "dm-zoned-meta:(%u:%u)",
++					    MAJOR(dev->bdev->bd_dev),
++					    MINOR(dev->bdev->bd_dev));
++	if (!zmd->mblk_shrinker) {
++		ret = -ENOMEM;
++		dmz_zmd_err(zmd, "Allocate metadata cache shrinker failed");
+ 		goto err;
  	}
+ 
++	zmd->mblk_shrinker->count_objects = dmz_mblock_shrinker_count;
++	zmd->mblk_shrinker->scan_objects = dmz_mblock_shrinker_scan;
++	zmd->mblk_shrinker->private_data = zmd;
++
++	shrinker_register(zmd->mblk_shrinker);
++
+ 	dmz_zmd_info(zmd, "DM-Zoned metadata version %d", zmd->sb_version);
+ 	for (i = 0; i < zmd->nr_devs; i++)
+ 		dmz_print_dev(zmd, i);
+@@ -2995,7 +2999,7 @@ err:
+  */
+ void dmz_dtr_metadata(struct dmz_metadata *zmd)
+ {
+-	unregister_shrinker(&zmd->mblk_shrinker);
++	shrinker_free(zmd->mblk_shrinker);
+ 	dmz_cleanup_metadata(zmd);
+ 	kfree(zmd);
  }
 _
 
