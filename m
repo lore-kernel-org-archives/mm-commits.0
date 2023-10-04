@@ -2,33 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33068E7C4F4
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:17:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B83DE7C4F1
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:17:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233912AbjJDUR5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:17:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56604 "EHLO
+        id S233959AbjJDUR6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:17:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56632 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233959AbjJDURx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:17:53 -0400
+        with ESMTP id S243789AbjJDUR5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:17:57 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE54E93
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:17:49 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D03BC433C7;
-        Wed,  4 Oct 2023 20:17:49 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E903BC6
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:17:53 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58AF1C433C7;
+        Wed,  4 Oct 2023 20:17:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450669;
-        bh=omuolOqfnbUZiFr6PN/FZlta5J9EJx7jpbzfwhiY9bU=;
+        s=korg; t=1696450673;
+        bh=5Fmz/bCJvjPbrcJ8izhNZ+wAS0no0XDJCzCJlTAVqcc=;
         h=Date:To:From:Subject:From;
-        b=gdGNnUIlwJi3+s1JSn6SV3BDjW0oTGlpdvk5GURvLvjjJeWeDNu2Fzzj+GBR2eCJz
-         uTySJRXJksWBuS6TuA88aR4JExntuBngFW8dj8lLrz6VGD0g+n+ksEAMdsxYzXFUvN
-         fmsJlPPBKPNmZpRiBZrVMTwtBLpPobYMsXEJy60g=
-Date:   Wed, 04 Oct 2023 13:17:47 -0700
-To:     mm-commits@vger.kernel.org, shakeelb@google.com, mjguzik@gmail.com,
+        b=zUPMzJeLIkAJxsQ+tW+TCNTlfAIjKK0fvUOY8Mmc0U3KmvpgytqCk9OXQEKku6Qg0
+         BtG8rntVtbZknmeKVqzwUGR3vpWwtVvVEs6GFsyJ4rHitWp2xB4Lu+psuE+SyH2FLE
+         s6+9Kcn4bDsLWybNzeKrzbtVGMndn9stLpv4YVT0=
+Date:   Wed, 04 Oct 2023 13:17:51 -0700
+To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
+        hughd@google.com, david@redhat.com, lstoakes@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-remnants-of-split_rss_counting.patch removed from -mm tree
-Message-Id: <20231004201749.4D03BC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-refactor-si_mem_available.patch removed from -mm tree
+Message-Id: <20231004201753.58AF1C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,135 +37,80 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: remove remnants of SPLIT_RSS_COUNTING
+     Subject: mm: refactor si_mem_available()
 has been removed from the -mm tree.  Its filename was
-     mm-remove-remnants-of-split_rss_counting.patch
+     mm-refactor-si_mem_available.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mateusz Guzik <mjguzik@gmail.com>
-Subject: mm: remove remnants of SPLIT_RSS_COUNTING
-Date: Wed, 23 Aug 2023 19:05:56 +0200
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: mm: refactor si_mem_available()
+Date: Sun, 27 Aug 2023 12:08:48 +0100
 
-The feature got retired in f1a7941243c1 ("mm: convert mm's rss stats into
-percpu_counter"), but the patch failed to fully clean it up.
+si_mem_available() needlessly places LRU statistics into an array before
+retrieving only two of them, simply access those directly.
 
-Link: https://lkml.kernel.org/r/20230823170556.2281747-1-mjguzik@gmail.com
-Signed-off-by: Mateusz Guzik <mjguzik@gmail.com>
-Acked-by: Shakeel Butt <shakeelb@google.com>
+In addition, refactor the code so that the blocks of code which calculate
+the page cache and reclaimable components each resemble one another to
+clearly indicate we cap both against wmark_low in the same fashion.
+
+Link: https://lkml.kernel.org/r/20230827110848.43510-1-lstoakes@gmail.com
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c          |    2 --
- include/linux/mm.h |    8 --------
- kernel/exit.c      |    4 ----
- kernel/fork.c      |    4 ----
- kernel/kthread.c   |    1 -
- mm/madvise.c       |    5 +----
- mm/memory.c        |    2 --
- 7 files changed, 1 insertion(+), 25 deletions(-)
+ mm/show_mem.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
---- a/fs/exec.c~mm-remove-remnants-of-split_rss_counting
-+++ a/fs/exec.c
-@@ -986,8 +986,6 @@ static int exec_mmap(struct mm_struct *m
- 	tsk = current;
- 	old_mm = current->mm;
- 	exec_mm_release(tsk, old_mm);
--	if (old_mm)
--		sync_mm_rss(old_mm);
- 
- 	ret = down_write_killable(&tsk->signal->exec_update_lock);
- 	if (ret)
---- a/include/linux/mm.h~mm-remove-remnants-of-split_rss_counting
-+++ a/include/linux/mm.h
-@@ -2628,14 +2628,6 @@ static inline void setmax_mm_hiwater_rss
- 		*maxrss = hiwater_rss;
- }
- 
--#if defined(SPLIT_RSS_COUNTING)
--void sync_mm_rss(struct mm_struct *mm);
--#else
--static inline void sync_mm_rss(struct mm_struct *mm)
--{
--}
--#endif
+--- a/mm/show_mem.c~mm-refactor-si_mem_available
++++ a/mm/show_mem.c
+@@ -34,13 +34,8 @@ long si_mem_available(void)
+ 	long available;
+ 	unsigned long pagecache;
+ 	unsigned long wmark_low = 0;
+-	unsigned long pages[NR_LRU_LISTS];
+ 	unsigned long reclaimable;
+ 	struct zone *zone;
+-	int lru;
 -
- #ifndef CONFIG_ARCH_HAS_PTE_SPECIAL
- static inline int pte_special(pte_t pte)
- {
---- a/kernel/exit.c~mm-remove-remnants-of-split_rss_counting
-+++ a/kernel/exit.c
-@@ -539,7 +539,6 @@ static void exit_mm(void)
- 	exit_mm_release(current, mm);
- 	if (!mm)
- 		return;
--	sync_mm_rss(mm);
- 	mmap_read_lock(mm);
- 	mmgrab_lazy_tlb(mm);
- 	BUG_ON(mm != current->active_mm);
-@@ -829,9 +828,6 @@ void __noreturn do_exit(long code)
- 	io_uring_files_cancel();
- 	exit_signals(tsk);  /* sets PF_EXITING */
+-	for (lru = LRU_BASE; lru < NR_LRU_LISTS; lru++)
+-		pages[lru] = global_node_page_state(NR_LRU_BASE + lru);
  
--	/* sync mm's RSS info before statistics gathering */
--	if (tsk->mm)
--		sync_mm_rss(tsk->mm);
- 	acct_update_integrals(tsk);
- 	group_dead = atomic_dec_and_test(&tsk->signal->live);
- 	if (group_dead) {
---- a/kernel/fork.c~mm-remove-remnants-of-split_rss_counting
-+++ a/kernel/fork.c
-@@ -2406,10 +2406,6 @@ __latent_entropy struct task_struct *cop
- 	p->io_uring = NULL;
- #endif
- 
--#if defined(SPLIT_RSS_COUNTING)
--	memset(&p->rss_stat, 0, sizeof(p->rss_stat));
--#endif
--
- 	p->default_timer_slack_ns = current->timer_slack_ns;
- 
- #ifdef CONFIG_PSI
---- a/kernel/kthread.c~mm-remove-remnants-of-split_rss_counting
-+++ a/kernel/kthread.c
-@@ -1469,7 +1469,6 @@ void kthread_unuse_mm(struct mm_struct *
- 	 * clearing tsk->mm.
+ 	for_each_zone(zone)
+ 		wmark_low += low_wmark_pages(zone);
+@@ -56,7 +51,8 @@ long si_mem_available(void)
+ 	 * start swapping or thrashing. Assume at least half of the page
+ 	 * cache, or the low watermark worth of cache, needs to stay.
  	 */
- 	smp_mb__after_spinlock();
--	sync_mm_rss(mm);
- 	local_irq_disable();
- 	tsk->mm = NULL;
- 	membarrier_update_current_mm(NULL);
---- a/mm/madvise.c~mm-remove-remnants-of-split_rss_counting
-+++ a/mm/madvise.c
-@@ -746,11 +746,8 @@ static int madvise_free_pte_range(pmd_t
- 		folio_mark_lazyfree(folio);
- 	}
+-	pagecache = pages[LRU_ACTIVE_FILE] + pages[LRU_INACTIVE_FILE];
++	pagecache = global_node_page_state(NR_ACTIVE_FILE) +
++		global_node_page_state(NR_INACTIVE_FILE);
+ 	pagecache -= min(pagecache / 2, wmark_low);
+ 	available += pagecache;
  
--	if (nr_swap) {
--		if (current->mm == mm)
--			sync_mm_rss(mm);
-+	if (nr_swap)
- 		add_mm_counter(mm, MM_SWAPENTS, nr_swap);
--	}
- 	if (start_pte) {
- 		arch_leave_lazy_mmu_mode();
- 		pte_unmap_unlock(start_pte, ptl);
---- a/mm/memory.c~mm-remove-remnants-of-split_rss_counting
-+++ a/mm/memory.c
-@@ -471,8 +471,6 @@ static inline void add_mm_rss_vec(struct
- {
- 	int i;
+@@ -67,7 +63,8 @@ long si_mem_available(void)
+ 	 */
+ 	reclaimable = global_node_page_state_pages(NR_SLAB_RECLAIMABLE_B) +
+ 		global_node_page_state(NR_KERNEL_MISC_RECLAIMABLE);
+-	available += reclaimable - min(reclaimable / 2, wmark_low);
++	reclaimable -= min(reclaimable / 2, wmark_low);
++	available += reclaimable;
  
--	if (current->mm == mm)
--		sync_mm_rss(mm);
- 	for (i = 0; i < NR_MM_COUNTERS; i++)
- 		if (rss[i])
- 			add_mm_counter(mm, i, rss[i]);
+ 	if (available < 0)
+ 		available = 0;
 _
 
-Patches currently in -mm which might be from mjguzik@gmail.com are
+Patches currently in -mm which might be from lstoakes@gmail.com are
 
+mm-filemap-clarify-filemap_fault-comments-for-not-uptodate-case.patch
+mm-filemap-clarify-filemap_fault-comments-for-not-uptodate-case-fix.patch
+mm-make-__access_remote_vm-static.patch
+mm-gup-explicitly-define-and-check-internal-gup-flags-disallow-foll_touch.patch
+mm-gup-make-failure-to-pin-an-error-if-foll_nowait-not-specified.patch
+mm-gup-adapt-get_user_page_vma_remote-to-never-return-null.patch
 
