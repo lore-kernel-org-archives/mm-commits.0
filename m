@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1F4DE936E1
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:25:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1FC4E936E2
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:25:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244499AbjJDUZR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:25:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46630 "EHLO
+        id S244885AbjJDUZT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:25:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46672 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244937AbjJDUYm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:24:42 -0400
+        with ESMTP id S245028AbjJDUYp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:24:45 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA86610F5
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:24:01 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A8E7C433C7;
-        Wed,  4 Oct 2023 20:24:01 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0530FDC
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:24:04 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 636E8C433C8;
+        Wed,  4 Oct 2023 20:24:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696451041;
-        bh=OpNMI9W43QrCBF5FyYqImpu02N4/twd2GOz7+cMzh+A=;
+        s=korg; t=1696451043;
+        bh=gmzdSTHGKW6sZ6uSJi1WO3+EUC2zgZ4wqZY3MaxltgA=;
         h=Date:To:From:Subject:From;
-        b=Hmcgz2aFW4LyT3WsglQNR+NcgkcLp1H11bgDpItGUY6ZENFrEDHD5h6NvVIf0q9oX
-         7tbWQXqOowogfD8drmCqhz7hv//SuUUM65fkyAVXfkPGldOZ+22nsaEFQHyW7yPHFc
-         WfjKWZVySSaobFret0FXs+mEGKTnEtmyIzXw75sU=
-Date:   Wed, 04 Oct 2023 13:23:59 -0700
+        b=ssxF5pCrN0hQaeU1DBapzlfQD8eACWnueSIi925onmsAyhfzO1pB6qS/tC52S2aVY
+         ymQO3+OWB3/NVl83LBirvqzr+3tHnXFDLjERlSarwOHv03RuMCCuXaL4pchV0dkZS8
+         wGozyPWvZZh8AXuYTKO3cphoCTngVSo+X3UixR34=
+Date:   Wed, 04 Oct 2023 13:24:01 -0700
 To:     mm-commits@vger.kernel.org, thunder.leizhen@huawei.com,
         chenjiahao16@huawei.com, catalin.marinas@arm.com, bhe@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] crash_core-change-parse_crashkernel-to-support-crashkernel=highlow-parsing.patch removed from -mm tree
-Message-Id: <20231004202401.4A8E7C433C7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] crash_core-add-generic-function-to-do-reservation.patch removed from -mm tree
+Message-Id: <20231004202403.636E8C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,25 +37,31 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: crash_core: change parse_crashkernel() to support crashkernel=,high|low parsing
+     Subject: crash_core: add generic function to do reservation
 has been removed from the -mm tree.  Its filename was
-     crash_core-change-parse_crashkernel-to-support-crashkernel=highlow-parsing.patch
+     crash_core-add-generic-function-to-do-reservation.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: crash_core: change parse_crashkernel() to support crashkernel=,high|low parsing
-Date: Thu, 14 Sep 2023 11:31:36 +0800
+Subject: crash_core: add generic function to do reservation
+Date: Thu, 14 Sep 2023 11:31:37 +0800
 
-Now parse_crashkernel() is a real entry point for all kinds of crahskernel
-parsing on any architecture.
+In architecture like x86_64, arm64 and riscv, they have vast virtual
+address space and usually have huge physical memory RAM.  Their
+crashkernel reservation doesn't have to be limited under 4G RAM, but can
+be extended to the whole physical memory via crashkernel=,high support.
 
-And wrap the crahskernel=,high|low handling inside
-CONFIG_ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION ifdeffery scope.
+Now add function reserve_crashkernel_generic() to reserve crashkernel
+memory if users specify any case of kernel pamameters, like
+crashkernel=xM[@offset] or crashkernel=,high|low.
 
-Link: https://lkml.kernel.org/r/20230914033142.676708-4-bhe@redhat.com
+This is preparation to simplify code of crashkernel=,high support in
+architecutures.
+
+Link: https://lkml.kernel.org/r/20230914033142.676708-5-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Reviewed-by: Zhen Lei <thunder.leizhen@huawei.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -63,78 +69,177 @@ Cc: Chen Jiahao <chenjiahao16@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/crash_core.h |    6 +++++
- kernel/crash_core.c        |   36 ++++++++++++++++++++++++++++++++---
- 2 files changed, 39 insertions(+), 3 deletions(-)
+ include/linux/crash_core.h |   28 +++++++++
+ kernel/crash_core.c        |  107 ++++++++++++++++++++++++++++++++++-
+ 2 files changed, 134 insertions(+), 1 deletion(-)
 
---- a/include/linux/crash_core.h~crash_core-change-parse_crashkernel-to-support-crashkernel=highlow-parsing
+--- a/include/linux/crash_core.h~crash_core-add-generic-function-to-do-reservation
 +++ a/include/linux/crash_core.h
-@@ -79,6 +79,12 @@ Elf_Word *append_elf_note(Elf_Word *buf,
- 			  void *data, size_t data_len);
- void final_note(Elf_Word *buf);
+@@ -93,6 +93,34 @@ int parse_crashkernel_high(char *cmdline
+ int parse_crashkernel_low(char *cmdline, unsigned long long system_ram,
+ 		unsigned long long *crash_size, unsigned long long *crash_base);
  
 +#ifdef CONFIG_ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION
 +#ifndef DEFAULT_CRASH_KERNEL_LOW_SIZE
-+#define DEFAULT_CRASH_KERNEL_LOW_SIZE  (128UL << 20)
++#define DEFAULT_CRASH_KERNEL_LOW_SIZE	(128UL << 20)
 +#endif
++#ifndef CRASH_ALIGN
++#define CRASH_ALIGN			SZ_2M
++#endif
++#ifndef CRASH_ADDR_LOW_MAX
++#define CRASH_ADDR_LOW_MAX		SZ_4G
++#endif
++#ifndef CRASH_ADDR_HIGH_MAX
++#define CRASH_ADDR_HIGH_MAX		memblock_end_of_DRAM()
 +#endif
 +
- int __init parse_crashkernel(char *cmdline, unsigned long long system_ram,
- 		unsigned long long *crash_size, unsigned long long *crash_base,
- 		unsigned long long *low_size, bool *high);
---- a/kernel/crash_core.c~crash_core-change-parse_crashkernel-to-support-crashkernel=highlow-parsing
-+++ a/kernel/crash_core.c
-@@ -283,6 +283,9 @@ static int __init __parse_crashkernel(ch
- /*
-  * That function is the entry point for command line parsing and should be
-  * called from the arch-specific code.
-+ *
-+ * If crashkernel=,high|low is supported on architecture, non-NULL values
-+ * should be passed to parameters 'low_size' and 'high'.
-  */
- int __init parse_crashkernel(char *cmdline,
- 			     unsigned long long system_ram,
-@@ -296,10 +299,37 @@ int __init parse_crashkernel(char *cmdli
- 	/* crashkernel=X[@offset] */
- 	ret = __parse_crashkernel(cmdline, system_ram, crash_size,
- 				crash_base, NULL);
--	if (!high)
--		return ret;
-+#ifdef CONFIG_ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION
-+	/*
-+	 * If non-NULL 'high' passed in and no normal crashkernel
-+	 * setting detected, try parsing crashkernel=,high|low.
-+	 */
-+	if (high && ret == -ENOENT) {
-+		ret = __parse_crashkernel(cmdline, 0, crash_size,
-+				crash_base, suffix_tbl[SUFFIX_HIGH]);
-+		if (ret || !*crash_size)
-+			return -EINVAL;
++void __init reserve_crashkernel_generic(char *cmdline,
++		unsigned long long crash_size,
++		unsigned long long crash_base,
++		unsigned long long crash_low_size,
++		bool high);
++#else
++static inline void __init reserve_crashkernel_generic(char *cmdline,
++		unsigned long long crash_size,
++		unsigned long long crash_base,
++		unsigned long long crash_low_size,
++		bool high)
++{}
++#endif
++
+ /* Alignment required for elf header segment */
+ #define ELF_CORE_HEADER_ALIGN   4096
  
--	return 0;
+--- a/kernel/crash_core.c~crash_core-add-generic-function-to-do-reservation
++++ a/kernel/crash_core.c
+@@ -5,7 +5,6 @@
+  */
+ 
+ #include <linux/buildid.h>
+-#include <linux/crash_core.h>
+ #include <linux/init.h>
+ #include <linux/utsname.h>
+ #include <linux/vmalloc.h>
+@@ -13,6 +12,9 @@
+ #include <linux/kexec.h>
+ #include <linux/memory.h>
+ #include <linux/cpuhotplug.h>
++#include <linux/memblock.h>
++#include <linux/kexec.h>
++#include <linux/kmemleak.h>
+ 
+ #include <asm/page.h>
+ #include <asm/sections.h>
+@@ -360,6 +362,109 @@ static int __init parse_crashkernel_dumm
+ }
+ early_param("crashkernel", parse_crashkernel_dummy);
+ 
++#ifdef CONFIG_ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION
++static int __init reserve_crashkernel_low(unsigned long long low_size)
++{
++#ifdef CONFIG_64BIT
++	unsigned long long low_base;
++
++	low_base = memblock_phys_alloc_range(low_size, CRASH_ALIGN, 0, CRASH_ADDR_LOW_MAX);
++	if (!low_base) {
++		pr_err("cannot allocate crashkernel low memory (size:0x%llx).\n", low_size);
++		return -ENOMEM;
++	}
++
++	pr_info("crashkernel low memory reserved: 0x%08llx - 0x%08llx (%lld MB)\n",
++		low_base, low_base + low_size, low_size >> 20);
++
++	crashk_low_res.start = low_base;
++	crashk_low_res.end   = low_base + low_size - 1;
++	insert_resource(&iomem_resource, &crashk_low_res);
++#endif
++	return 0;
++}
++
++void __init reserve_crashkernel_generic(char *cmdline,
++			     unsigned long long crash_size,
++			     unsigned long long crash_base,
++			     unsigned long long crash_low_size,
++			     bool high)
++{
++	unsigned long long search_end = CRASH_ADDR_LOW_MAX, search_base = 0;
++	bool fixed_base = false;
++
++	/* User specifies base address explicitly. */
++	if (crash_base) {
++		fixed_base = true;
++		search_base = crash_base;
++		search_end = crash_base + crash_size;
++	} else if (high) {
++		search_base = CRASH_ADDR_LOW_MAX;
++		search_end = CRASH_ADDR_HIGH_MAX;
++	}
++
++retry:
++	crash_base = memblock_phys_alloc_range(crash_size, CRASH_ALIGN,
++					       search_base, search_end);
++	if (!crash_base) {
 +		/*
-+		 * crashkernel=Y,low can be specified or not, but invalid value
-+		 * is not allowed.
++		 * For crashkernel=size[KMG]@offset[KMG], print out failure
++		 * message if can't reserve the specified region.
 +		 */
-+		ret = __parse_crashkernel(cmdline, 0, low_size,
-+				crash_base, suffix_tbl[SUFFIX_LOW]);
-+		if (ret == -ENOENT) {
-+			*low_size = DEFAULT_CRASH_KERNEL_LOW_SIZE;
-+			ret = 0;
-+		} else if (ret) {
-+			return ret;
++		if (fixed_base) {
++			pr_warn("crashkernel reservation failed - memory is in use.\n");
++			return;
 +		}
 +
-+		*high = true;
-+	}
-+#endif
-+	if (!*crash_size)
-+		ret = -EINVAL;
++		/*
++		 * For crashkernel=size[KMG], if the first attempt was for
++		 * low memory, fall back to high memory, the minimum required
++		 * low memory will be reserved later.
++		 */
++		if (!high && search_end == CRASH_ADDR_LOW_MAX) {
++			search_end = CRASH_ADDR_HIGH_MAX;
++			search_base = CRASH_ADDR_LOW_MAX;
++			crash_low_size = DEFAULT_CRASH_KERNEL_LOW_SIZE;
++			goto retry;
++		}
 +
-+	return ret;
- }
- 
- int __init parse_crashkernel_high(char *cmdline,
++		/*
++		 * For crashkernel=size[KMG],high, if the first attempt was
++		 * for high memory, fall back to low memory.
++		 */
++		if (high && search_end == CRASH_ADDR_HIGH_MAX) {
++			search_end = CRASH_ADDR_LOW_MAX;
++			search_base = 0;
++			goto retry;
++		}
++		pr_warn("cannot allocate crashkernel (size:0x%llx)\n",
++			crash_size);
++		return;
++	}
++
++	if ((crash_base > CRASH_ADDR_LOW_MAX) &&
++	     crash_low_size && reserve_crashkernel_low(crash_low_size)) {
++		memblock_phys_free(crash_base, crash_size);
++		return;
++	}
++
++	pr_info("crashkernel reserved: 0x%016llx - 0x%016llx (%lld MB)\n",
++		crash_base, crash_base + crash_size, crash_size >> 20);
++
++	/*
++	 * The crashkernel memory will be removed from the kernel linear
++	 * map. Inform kmemleak so that it won't try to access it.
++	 */
++	kmemleak_ignore_phys(crash_base);
++	if (crashk_low_res.end)
++		kmemleak_ignore_phys(crashk_low_res.start);
++
++	crashk_res.start = crash_base;
++	crashk_res.end = crash_base + crash_size - 1;
++	insert_resource(&iomem_resource, &crashk_res);
++}
++#endif
++
+ int crash_prepare_elf64_headers(struct crash_mem *mem, int need_kernel_map,
+ 			  void **addr, unsigned long *sz)
+ {
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
