@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF1EAE7C4F1
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:18:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47ED8E7C4F3
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:18:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244012AbjJDUSS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S243896AbjJDUSS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 4 Oct 2023 16:18:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46990 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47036 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243941AbjJDUSK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:18:10 -0400
+        with ESMTP id S243761AbjJDUSO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:18:14 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F143C0
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:18:06 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F398BC433C7;
-        Wed,  4 Oct 2023 20:18:05 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92DEBCE
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:18:10 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFF16C433C8;
+        Wed,  4 Oct 2023 20:18:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450686;
-        bh=Al97Gnz3CLBMRSS42g/KQUIziaaNPWN0TVGNNHYde6g=;
+        s=korg; t=1696450690;
+        bh=JymA/186Kk+HZCHxJMTI/N5ZT30ip6hjAo+W6AtXBjs=;
         h=Date:To:From:Subject:From;
-        b=KCAf7BHdmh8gGQ8bmKOxKaKUi3RhF6VOp6JUQPUrnVNsC27Kj2wtxWbg1YLuCtRqu
-         T01owJmJsN9KSjbr/6KdEmqmX4pWO6KCov+ubrNOkK5h0ZU+2OXG9bRII7mSpF17Lg
-         nwi/2bi76msEsl8uIJ9cdYjzJa4kH5A2QjP85IRc=
-Date:   Wed, 04 Oct 2023 13:18:04 -0700
+        b=OQRlw0wvh3t0/2Q08x00Y3gwGMVywExB8FcOJLWZ7Ud+HmViv4m8/Q35yTbWxZDFz
+         lubwnB/WOKlN2rB93R+9fyWUTWiLd7d6dPFUSFvMVk1uttXGreMZl3PrIWQBQnMyEm
+         ACo8WB4rdJrGk+6VdlLeLvG2QGLz0mxCsMzodltA=
+Date:   Wed, 04 Oct 2023 13:18:08 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
         torvalds@linux-foundation.org, surenb@google.com, shuah@kernel.org,
         paulmck@kernel.org, mhocko@suse.com, lstoakes@gmail.com,
@@ -31,8 +31,8 @@ To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
         kirill@shutemov.name, kaleshsingh@google.com,
         joel@joelfernandes.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-add-a-test-for-remapping-to-area-immediately-after-existing-mapping.patch removed from -mm tree
-Message-Id: <20231004201805.F398BC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-add-a-test-for-moving-from-an-offset-from-start-of-mapping.patch removed from -mm tree
+Message-Id: <20231004201809.DFF16C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,56 +40,27 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests: mm: add a test for remapping to area immediately after existing mapping
+     Subject: selftests: mm: add a test for moving from an offset from start of mapping
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-add-a-test-for-remapping-to-area-immediately-after-existing-mapping.patch
+     selftests-mm-add-a-test-for-moving-from-an-offset-from-start-of-mapping.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Joel Fernandes (Google)" <joel@joelfernandes.org>
-Subject: selftests: mm: add a test for remapping to area immediately after existing mapping
-Date: Sun, 3 Sep 2023 15:13:26 +0000
+From: Joel Fernandes <joel@joelfernandes.org>
+Subject: selftests: mm: add a test for moving from an offset from start of mapping
+Date: Sun, 3 Sep 2023 15:13:28 +0000
 
-This patch adds support for verifying that we correctly handle the
-situation where something is already mapped before the destination of the remap.
+It is possible that the aligned address falls on no existing mapping,
+however that does not mean that we can just align it down to that.  This
+test verifies that the "vma->vm_start != addr_to_align" check in
+can_align_down() prevents disastrous results if aligning down when source
+and dest are mutually aligned within a PMD but the source/dest addresses
+requested are not at the beginning of the respective mapping containing
+these addresses.
 
-Any realignment of destination address and PMD-copy will destroy that
-existing mapping. In such cases, we need to avoid doing the optimization.
-
-To test this, we map an area called the preamble before the remap
-region. Then we verify after the mremap operation that this region did not get
-corrupted.
-
-Putting some prints in the kernel, I verified that we optimize
-correctly in different situations:
-
-Optimize when there is alignment and no previous mapping (this is tested
-by previous patch).
-<prints>
-can_align_down(old_vma->vm_start=2900000, old_addr=2900000, mask=-2097152): 0
-can_align_down(new_vma->vm_start=2f00000, new_addr=2f00000, mask=-2097152): 0
-=== Starting move_page_tables ===
-Doing PUD move for 2800000 -> 2e00000 of extent=200000 <-- Optimization
-Doing PUD move for 2a00000 -> 3000000 of extent=200000
-Doing PUD move for 2c00000 -> 3200000 of extent=200000
-</prints>
-
-Don't optimize when there is alignment but there is previous mapping
-(this is tested by this patch).
-Notice that can_align_down() returns 1 for the destination mapping
-as we detected there is something there.
-<prints>
-can_align_down(old_vma->vm_start=2900000, old_addr=2900000, mask=-2097152): 0
-can_align_down(new_vma->vm_start=5700000, new_addr=5700000, mask=-2097152): 1
-=== Starting move_page_tables ===
-Doing move_ptes for 2900000 -> 5700000 of extent=100000 <-- Unoptimized
-Doing PUD move for 2a00000 -> 5800000 of extent=200000
-Doing PUD move for 2c00000 -> 5a00000 of extent=200000
-</prints>
-
-Link: https://lkml.kernel.org/r/20230903151328.2981432-6-joel@joelfernandes.org
+Link: https://lkml.kernel.org/r/20230903151328.2981432-8-joel@joelfernandes.org
 Signed-off-by: Joel Fernandes (Google) <joel@joelfernandes.org>
 Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Kalesh Singh <kaleshsingh@google.com>
@@ -105,145 +76,242 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mremap_test.c |   57 +++++++++++++++++++--
- 1 file changed, 52 insertions(+), 5 deletions(-)
+ tools/testing/selftests/mm/mremap_test.c |  189 ++++++++++++++-------
+ 1 file changed, 134 insertions(+), 55 deletions(-)
 
---- a/tools/testing/selftests/mm/mremap_test.c~selftests-mm-add-a-test-for-remapping-to-area-immediately-after-existing-mapping
+--- a/tools/testing/selftests/mm/mremap_test.c~selftests-mm-add-a-test-for-moving-from-an-offset-from-start-of-mapping
 +++ a/tools/testing/selftests/mm/mremap_test.c
-@@ -29,6 +29,7 @@ struct config {
- 	unsigned long long dest_alignment;
- 	unsigned long long region_size;
- 	int overlapping;
-+	int dest_preamble_size;
- };
+@@ -24,6 +24,7 @@
  
- struct test {
-@@ -283,7 +284,7 @@ error:
- static long long remap_region(struct config c, unsigned int threshold_mb,
- 			      char pattern_seed)
- {
--	void *addr, *src_addr, *dest_addr;
-+	void *addr, *src_addr, *dest_addr, *dest_preamble_addr;
- 	unsigned long long i;
- 	struct timespec t_start = {0, 0}, t_end = {0, 0};
- 	long long  start_ns, end_ns, align_mask, ret, offset;
-@@ -300,7 +301,7 @@ static long long remap_region(struct con
- 		goto out;
- 	}
+ #define MIN(X, Y) ((X) < (Y) ? (X) : (Y))
+ #define SIZE_MB(m) ((size_t)m * (1024 * 1024))
++#define SIZE_KB(k) ((size_t)k * 1024)
  
--	/* Set byte pattern */
-+	/* Set byte pattern for source block. */
- 	srand(pattern_seed);
- 	for (i = 0; i < threshold; i++)
- 		memset((char *) src_addr + i, (char) rand(), 1);
-@@ -312,6 +313,9 @@ static long long remap_region(struct con
- 	addr = (void *) (((unsigned long long) src_addr + c.region_size
- 			  + offset) & align_mask);
- 
-+	/* Remap after the destination block preamble. */
-+	addr += c.dest_preamble_size;
-+
- 	/* See comment in get_source_mapping() */
- 	if (!((unsigned long long) addr & c.dest_alignment))
- 		addr = (void *) ((unsigned long long) addr | c.dest_alignment);
-@@ -327,6 +331,24 @@ static long long remap_region(struct con
- 		addr += c.dest_alignment;
- 	}
- 
-+	if (c.dest_preamble_size) {
-+		dest_preamble_addr = mmap((void *) addr - c.dest_preamble_size, c.dest_preamble_size,
-+					  PROT_READ | PROT_WRITE,
-+					  MAP_FIXED_NOREPLACE | MAP_ANONYMOUS | MAP_SHARED,
-+							-1, 0);
-+		if (dest_preamble_addr == MAP_FAILED) {
-+			ksft_print_msg("Failed to map dest preamble region: %s\n",
-+					strerror(errno));
-+			ret = -1;
-+			goto clean_up_src;
-+		}
-+
-+		/* Set byte pattern for the dest preamble block. */
-+		srand(pattern_seed);
-+		for (i = 0; i < c.dest_preamble_size; i++)
-+			memset((char *) dest_preamble_addr + i, (char) rand(), 1);
-+	}
-+
- 	clock_gettime(CLOCK_MONOTONIC, &t_start);
- 	dest_addr = mremap(src_addr, c.region_size, c.region_size,
- 					  MREMAP_MAYMOVE|MREMAP_FIXED, (char *) addr);
-@@ -335,7 +357,7 @@ static long long remap_region(struct con
- 	if (dest_addr == MAP_FAILED) {
- 		ksft_print_msg("mremap failed: %s\n", strerror(errno));
- 		ret = -1;
--		goto clean_up_src;
-+		goto clean_up_dest_preamble;
- 	}
- 
- 	/* Verify byte pattern after remapping */
-@@ -353,6 +375,23 @@ static long long remap_region(struct con
- 		}
- 	}
- 
-+	/* Verify the dest preamble byte pattern after remapping */
-+	if (c.dest_preamble_size) {
-+		srand(pattern_seed);
-+		for (i = 0; i < c.dest_preamble_size; i++) {
-+			char c = (char) rand();
-+
-+			if (((char *) dest_preamble_addr)[i] != c) {
-+				ksft_print_msg("Preamble data after remap doesn't match at offset %d\n",
-+					       i);
-+				ksft_print_msg("Expected: %#x\t Got: %#x\n", c & 0xff,
-+					       ((char *) dest_preamble_addr)[i] & 0xff);
-+				ret = -1;
-+				goto clean_up_dest;
-+			}
-+		}
-+	}
-+
- 	start_ns = t_start.tv_sec * NS_PER_SEC + t_start.tv_nsec;
- 	end_ns = t_end.tv_sec * NS_PER_SEC + t_end.tv_nsec;
- 	ret = end_ns - start_ns;
-@@ -365,6 +404,9 @@ static long long remap_region(struct con
-  */
- clean_up_dest:
- 	munmap(dest_addr, c.region_size);
-+clean_up_dest_preamble:
-+	if (c.dest_preamble_size && dest_preamble_addr)
-+		munmap(dest_preamble_addr, c.dest_preamble_size);
- clean_up_src:
- 	munmap(src_addr, c.region_size);
- out:
-@@ -440,7 +482,7 @@ static int parse_args(int argc, char **a
- 	return 0;
+ struct config {
+ 	unsigned long long src_alignment;
+@@ -149,6 +150,60 @@ static bool is_range_mapped(FILE *maps_f
  }
  
--#define MAX_TEST 14
-+#define MAX_TEST 15
- #define MAX_PERF_TEST 3
- int main(int argc, char **argv)
- {
-@@ -449,7 +491,7 @@ int main(int argc, char **argv)
+ /*
++ * Returns the start address of the mapping on success, else returns
++ * NULL on failure.
++ */
++static void *get_source_mapping(struct config c)
++{
++	unsigned long long addr = 0ULL;
++	void *src_addr = NULL;
++	unsigned long long mmap_min_addr;
++
++	mmap_min_addr = get_mmap_min_addr();
++	/*
++	 * For some tests, we need to not have any mappings below the
++	 * source mapping. Add some headroom to mmap_min_addr for this.
++	 */
++	mmap_min_addr += 10 * _4MB;
++
++retry:
++	addr += c.src_alignment;
++	if (addr < mmap_min_addr)
++		goto retry;
++
++	src_addr = mmap((void *) addr, c.region_size, PROT_READ | PROT_WRITE,
++					MAP_FIXED_NOREPLACE | MAP_ANONYMOUS | MAP_SHARED,
++					-1, 0);
++	if (src_addr == MAP_FAILED) {
++		if (errno == EPERM || errno == EEXIST)
++			goto retry;
++		goto error;
++	}
++	/*
++	 * Check that the address is aligned to the specified alignment.
++	 * Addresses which have alignments that are multiples of that
++	 * specified are not considered valid. For instance, 1GB address is
++	 * 2MB-aligned, however it will not be considered valid for a
++	 * requested alignment of 2MB. This is done to reduce coincidental
++	 * alignment in the tests.
++	 */
++	if (((unsigned long long) src_addr & (c.src_alignment - 1)) ||
++			!((unsigned long long) src_addr & c.src_alignment)) {
++		munmap(src_addr, c.region_size);
++		goto retry;
++	}
++
++	if (!src_addr)
++		goto error;
++
++	return src_addr;
++error:
++	ksft_print_msg("Failed to map source region: %s\n",
++			strerror(errno));
++	return NULL;
++}
++
++/*
+  * This test validates that merge is called when expanding a mapping.
+  * Mapping containing three pages is created, middle page is unmapped
+  * and then the mapping containing the first page is expanded so that
+@@ -300,60 +355,6 @@ out:
+ 		ksft_test_result_fail("%s\n", test_name);
+ }
+ 
+-/*
+- * Returns the start address of the mapping on success, else returns
+- * NULL on failure.
+- */
+-static void *get_source_mapping(struct config c)
+-{
+-	unsigned long long addr = 0ULL;
+-	void *src_addr = NULL;
+-	unsigned long long mmap_min_addr;
+-
+-	mmap_min_addr = get_mmap_min_addr();
+-	/*
+-	 * For some tests, we need to not have any mappings below the
+-	 * source mapping. Add some headroom to mmap_min_addr for this.
+-	 */
+-	mmap_min_addr += 10 * _4MB;
+-
+-retry:
+-	addr += c.src_alignment;
+-	if (addr < mmap_min_addr)
+-		goto retry;
+-
+-	src_addr = mmap((void *) addr, c.region_size, PROT_READ | PROT_WRITE,
+-					MAP_FIXED_NOREPLACE | MAP_ANONYMOUS | MAP_SHARED,
+-					-1, 0);
+-	if (src_addr == MAP_FAILED) {
+-		if (errno == EPERM || errno == EEXIST)
+-			goto retry;
+-		goto error;
+-	}
+-	/*
+-	 * Check that the address is aligned to the specified alignment.
+-	 * Addresses which have alignments that are multiples of that
+-	 * specified are not considered valid. For instance, 1GB address is
+-	 * 2MB-aligned, however it will not be considered valid for a
+-	 * requested alignment of 2MB. This is done to reduce coincidental
+-	 * alignment in the tests.
+-	 */
+-	if (((unsigned long long) src_addr & (c.src_alignment - 1)) ||
+-			!((unsigned long long) src_addr & c.src_alignment)) {
+-		munmap(src_addr, c.region_size);
+-		goto retry;
+-	}
+-
+-	if (!src_addr)
+-		goto error;
+-
+-	return src_addr;
+-error:
+-	ksft_print_msg("Failed to map source region: %s\n",
+-			strerror(errno));
+-	return NULL;
+-}
+-
+ /* Returns the time taken for the remap on success else returns -1. */
+ static long long remap_region(struct config c, unsigned int threshold_mb,
+ 			      char pattern_seed)
+@@ -487,6 +488,83 @@ out:
+ 	return ret;
+ }
+ 
++/*
++ * Verify that an mremap aligning down does not destroy
++ * the beginning of the mapping just because the aligned
++ * down address landed on a mapping that maybe does not exist.
++ */
++static void mremap_move_1mb_from_start(char pattern_seed)
++{
++	char *test_name = "mremap move 1mb from start at 1MB+256KB aligned src";
++	void *src = NULL, *dest = NULL;
++	int i, success = 1;
++
++	/* Config to reuse get_source_mapping() to do an aligned mmap. */
++	struct config c = {
++		.src_alignment = SIZE_MB(1) + SIZE_KB(256),
++		.region_size = SIZE_MB(6)
++	};
++
++	src = get_source_mapping(c);
++	if (!src) {
++		success = 0;
++		goto out;
++	}
++
++	c.src_alignment = SIZE_MB(1) + SIZE_KB(256);
++	dest = get_source_mapping(c);
++	if (!dest) {
++		success = 0;
++		goto out;
++	}
++
++	/* Set byte pattern for source block. */
++	srand(pattern_seed);
++	for (i = 0; i < SIZE_MB(2); i++) {
++		((char *)src)[i] = (char) rand();
++	}
++
++	/*
++	 * Unmap the beginning of dest so that the aligned address
++	 * falls on no mapping.
++	 */
++	munmap(dest, SIZE_MB(1));
++
++	void *new_ptr = mremap(src + SIZE_MB(1), SIZE_MB(1), SIZE_MB(1),
++						   MREMAP_MAYMOVE | MREMAP_FIXED, dest + SIZE_MB(1));
++	if (new_ptr == MAP_FAILED) {
++		perror("mremap");
++		success = 0;
++		goto out;
++	}
++
++	/* Verify byte pattern after remapping */
++	srand(pattern_seed);
++	for (i = 0; i < SIZE_MB(1); i++) {
++		char c = (char) rand();
++
++		if (((char *)src)[i] != c) {
++			ksft_print_msg("Data at src at %d got corrupted due to unrelated mremap\n",
++				       i);
++			ksft_print_msg("Expected: %#x\t Got: %#x\n", c & 0xff,
++					((char *) src)[i] & 0xff);
++			success = 0;
++		}
++	}
++
++out:
++	if (src && munmap(src, c.region_size) == -1)
++		perror("munmap src");
++
++	if (dest && munmap(dest, c.region_size) == -1)
++		perror("munmap dest");
++
++	if (success)
++		ksft_test_result_pass("%s\n", test_name);
++	else
++		ksft_test_result_fail("%s\n", test_name);
++}
++
+ static void run_mremap_test_case(struct test test_case, int *failures,
+ 				 unsigned int threshold_mb,
+ 				 unsigned int pattern_seed)
+@@ -565,7 +643,7 @@ int main(int argc, char **argv)
  	unsigned int threshold_mb = VALIDATION_DEFAULT_THRESHOLD;
  	unsigned int pattern_seed;
  	int num_expand_tests = 2;
--	struct test test_cases[MAX_TEST];
-+	struct test test_cases[MAX_TEST] = {};
+-	int num_misc_tests = 1;
++	int num_misc_tests = 2;
+ 	struct test test_cases[MAX_TEST] = {};
  	struct test perf_test_cases[MAX_PERF_TEST];
  	int page_size;
- 	time_t t;
-@@ -510,6 +552,11 @@ int main(int argc, char **argv)
- 	test_cases[13] = MAKE_TEST(_1MB, _1MB, _5MB, NON_OVERLAPPING, EXPECT_SUCCESS,
- 				  "5MB mremap - Source 1MB-aligned, Destination 1MB-aligned");
+@@ -666,6 +744,7 @@ int main(int argc, char **argv)
+ 	fclose(maps_fp);
  
-+	/* Src and Dest addr 1MB aligned. 5MB mremap. */
-+	test_cases[14] = MAKE_TEST(_1MB, _1MB, _5MB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				  "5MB mremap - Source 1MB-aligned, Dest 1MB-aligned with 40MB Preamble");
-+	test_cases[14].config.dest_preamble_size = 10 * _4MB;
-+
- 	perf_test_cases[0] =  MAKE_TEST(page_size, page_size, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
- 					"1GB mremap - Source PTE-aligned, Destination PTE-aligned");
- 	/*
+ 	mremap_move_within_range(pattern_seed);
++	mremap_move_1mb_from_start(pattern_seed);
+ 
+ 	if (run_perf_tests) {
+ 		ksft_print_msg("\n%s\n",
 _
 
 Patches currently in -mm which might be from joel@joelfernandes.org are
