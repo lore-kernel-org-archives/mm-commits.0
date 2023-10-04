@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E832CE7C4F1
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:20:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EEB8E7C4F3
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:20:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244684AbjJDUUr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:20:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60290 "EHLO
+        id S244612AbjJDUUs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:20:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37172 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244101AbjJDUU0 (ORCPT
+        with ESMTP id S244614AbjJDUU0 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:20:26 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7E4210B
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:20:10 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22444C433CB;
-        Wed,  4 Oct 2023 20:20:10 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79532115
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:20:15 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD4A7C433C7;
+        Wed,  4 Oct 2023 20:20:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450810;
-        bh=32/DZlrNXm8g3gpAh/ju9K7/gc8Tcin8C0Qp5br47OI=;
+        s=korg; t=1696450815;
+        bh=CvbIGmJ2ygYA/cbVxjCbJ6E+Y8ctCe14Dsoss7Qb67Y=;
         h=Date:To:From:Subject:From;
-        b=nglA14PATZgqwcOJPGCWdXpaCmSnX0v05/5ES46XxwIHChaR67NAqck8HrJbW9I7p
-         hrrar1nMG+4EvlwsThYBIFskiDgYlLmZCfIVHo1MNu0kSmnQKmLyYMDqmhf0cNn4to
-         X3firoyoW9w2suPkEIbVzZIyp/JIbjddSqtuXDWc=
-Date:   Wed, 04 Oct 2023 13:20:08 -0700
+        b=qu5BOF5YUHSGqDPqSKRiXQIdmgSevnWWNT90ciO+ZWDkoYfmWjTcCMWmr2iUvKUly
+         GbWhsVXnTJT0HBDH8R0cqbEtMyXas4TNXyOGAfCyrQ3TaOLb6nb6Z62Lzu6C3DTdC8
+         aLPPAOSrXgZ+67/cDRaWuet3kJrbMhM9Ums6/Two=
+Date:   Wed, 04 Oct 2023 13:20:13 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -47,15 +47,15 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         david@redhat.com, david@fromorbit.com, dave.hansen@linux.intel.com,
         daniel.vetter@ffwll.ch, daniel@ffwll.ch, Dai.Ngo@oracle.com,
         colyli@suse.de, cmllamas@google.com, clm@fb.com,
-        christian.koenig@amd.com, chao@kernel.org, chandan.babu@oracle.com,
-        cel@kernel.org, brauner@kernel.org, bp@alien8.de, arnd@arndb.de,
-        anna@kernel.org, alyssa.rosenzweig@collabora.com,
-        airlied@gmail.com, agruenba@redhat.com, agk@redhat.com,
-        adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
-        akpm@linux-foundation.org
+        chuck.lever@oracle.com, christian.koenig@amd.com, chao@kernel.org,
+        chandan.babu@oracle.com, cel@kernel.org, brauner@kernel.org,
+        bp@alien8.de, arnd@arndb.de, anna@kernel.org,
+        alyssa.rosenzweig@collabora.com, airlied@gmail.com,
+        agruenba@redhat.com, agk@redhat.com, adilger.kernel@dilger.ca,
+        zhengqi.arch@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] jbd2ext4-dynamically-allocate-the-jbd2-journal-shrinker.patch removed from -mm tree
-Message-Id: <20231004202010.22444C433CB@smtp.kernel.org>
+Subject: [merged mm-stable] nfsd-dynamically-allocate-the-nfsd-client-shrinker.patch removed from -mm tree
+Message-Id: <20231004202014.BD4A7C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,28 +63,31 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: jbd2,ext4: dynamically allocate the jbd2-journal shrinker
+     Subject: nfsd: dynamically allocate the nfsd-client shrinker
 has been removed from the -mm tree.  Its filename was
-     jbd2ext4-dynamically-allocate-the-jbd2-journal-shrinker.patch
+     nfsd-dynamically-allocate-the-nfsd-client-shrinker.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: jbd2,ext4: dynamically allocate the jbd2-journal shrinker
-Date: Mon, 11 Sep 2023 17:44:30 +0800
+Subject: nfsd: dynamically allocate the nfsd-client shrinker
+Date: Mon, 11 Sep 2023 17:44:31 +0800
 
 In preparation for implementing lockless slab shrink, use new APIs to
-dynamically allocate the jbd2-journal shrinker, so that it can be freed
+dynamically allocate the nfsd-client shrinker, so that it can be freed
 asynchronously via RCU. Then it doesn't need to wait for RCU read-side
-critical section when releasing the struct journal_s.
+critical section when releasing the struct nfsd_net.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-32-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-33-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Jan Kara <jack@suse.cz>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
+Acked-by: Chuck Lever <chuck.lever@oracle.com>
+Acked-by: Jeff Layton <jlayton@kernel.org>
+Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Olga Kornievskaia <kolga@netapp.com>
+Cc: Dai Ngo <Dai.Ngo@oracle.com>
+Cc: Tom Talpey <tom@talpey.com>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -103,7 +106,6 @@ Cc: Christian Brauner <brauner@kernel.org>
 Cc: Christian Koenig <christian.koenig@amd.com>
 Cc: Chuck Lever <cel@kernel.org>
 Cc: Coly Li <colyli@suse.de>
-Cc: Dai Ngo <Dai.Ngo@oracle.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
@@ -119,8 +121,8 @@ Cc: Huang Rui <ray.huang@amd.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Wang <jasowang@redhat.com>
-Cc: Jeff Layton <jlayton@kernel.org>
 Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
 Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
 Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
@@ -133,10 +135,10 @@ Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Nadav Amit <namit@vmware.com>
 Cc: Neil Brown <neilb@suse.de>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
-Cc: Olga Kornievskaia <kolga@netapp.com>
 Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Richard Weinberger <richard@nod.at>
 Cc: Rob Clark <robdclark@gmail.com>
@@ -148,9 +150,9 @@ Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Song Liu <song@kernel.org>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Steven Price <steven.price@arm.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: Tom Talpey <tom@talpey.com>
 Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -159,82 +161,64 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd2/journal.c    |   29 ++++++++++++++++++-----------
- include/linux/jbd2.h |    2 +-
- 2 files changed, 19 insertions(+), 12 deletions(-)
+ fs/nfsd/netns.h     |    2 +-
+ fs/nfsd/nfs4state.c |   19 +++++++++++--------
+ 2 files changed, 12 insertions(+), 9 deletions(-)
 
---- a/fs/jbd2/journal.c~jbd2ext4-dynamically-allocate-the-jbd2-journal-shrinker
-+++ a/fs/jbd2/journal.c
-@@ -1290,7 +1290,7 @@ static int jbd2_min_tag_size(void)
- static unsigned long jbd2_journal_shrink_scan(struct shrinker *shrink,
- 					      struct shrink_control *sc)
+--- a/fs/nfsd/netns.h~nfsd-dynamically-allocate-the-nfsd-client-shrinker
++++ a/fs/nfsd/netns.h
+@@ -195,7 +195,7 @@ struct nfsd_net {
+ 	int			nfs4_max_clients;
+ 
+ 	atomic_t		nfsd_courtesy_clients;
+-	struct shrinker		nfsd_client_shrinker;
++	struct shrinker		*nfsd_client_shrinker;
+ 	struct work_struct	nfsd_shrinker_work;
+ };
+ 
+--- a/fs/nfsd/nfs4state.c~nfsd-dynamically-allocate-the-nfsd-client-shrinker
++++ a/fs/nfsd/nfs4state.c
+@@ -4400,8 +4400,7 @@ static unsigned long
+ nfsd4_state_shrinker_count(struct shrinker *shrink, struct shrink_control *sc)
  {
--	journal_t *journal = container_of(shrink, journal_t, j_shrinker);
-+	journal_t *journal = shrink->private_data;
- 	unsigned long nr_to_scan = sc->nr_to_scan;
- 	unsigned long nr_shrunk;
- 	unsigned long count;
-@@ -1316,7 +1316,7 @@ static unsigned long jbd2_journal_shrink
- static unsigned long jbd2_journal_shrink_count(struct shrinker *shrink,
- 					       struct shrink_control *sc)
- {
--	journal_t *journal = container_of(shrink, journal_t, j_shrinker);
-+	journal_t *journal = shrink->private_data;
- 	unsigned long count;
+ 	int count;
+-	struct nfsd_net *nn = container_of(shrink,
+-			struct nfsd_net, nfsd_client_shrinker);
++	struct nfsd_net *nn = shrink->private_data;
  
- 	count = percpu_counter_read_positive(&journal->j_checkpoint_jh_count);
-@@ -1588,14 +1588,21 @@ static journal_t *journal_init_common(st
- 		goto err_cleanup;
+ 	count = atomic_read(&nn->nfsd_courtesy_clients);
+ 	if (!count)
+@@ -8149,12 +8148,16 @@ static int nfs4_state_create_net(struct
+ 	INIT_WORK(&nn->nfsd_shrinker_work, nfsd4_state_shrinker_worker);
+ 	get_net(net);
  
- 	journal->j_shrink_transaction = NULL;
--	journal->j_shrinker.scan_objects = jbd2_journal_shrink_scan;
--	journal->j_shrinker.count_objects = jbd2_journal_shrink_count;
--	journal->j_shrinker.seeks = DEFAULT_SEEKS;
--	journal->j_shrinker.batch = journal->j_max_transaction_buffers;
--	err = register_shrinker(&journal->j_shrinker, "jbd2-journal:(%u:%u)",
--				MAJOR(bdev->bd_dev), MINOR(bdev->bd_dev));
--	if (err)
+-	nn->nfsd_client_shrinker.scan_objects = nfsd4_state_shrinker_scan;
+-	nn->nfsd_client_shrinker.count_objects = nfsd4_state_shrinker_count;
+-	nn->nfsd_client_shrinker.seeks = DEFAULT_SEEKS;
+-
+-	if (register_shrinker(&nn->nfsd_client_shrinker, "nfsd-client"))
++	nn->nfsd_client_shrinker = shrinker_alloc(0, "nfsd-client");
++	if (!nn->nfsd_client_shrinker)
+ 		goto err_shrinker;
 +
-+	journal->j_shrinker = shrinker_alloc(0, "jbd2-journal:(%u:%u)",
-+					     MAJOR(bdev->bd_dev),
-+					     MINOR(bdev->bd_dev));
-+	if (!journal->j_shrinker) {
-+		err = -ENOMEM;
- 		goto err_cleanup;
-+	}
++	nn->nfsd_client_shrinker->scan_objects = nfsd4_state_shrinker_scan;
++	nn->nfsd_client_shrinker->count_objects = nfsd4_state_shrinker_count;
++	nn->nfsd_client_shrinker->private_data = nn;
 +
-+	journal->j_shrinker->scan_objects = jbd2_journal_shrink_scan;
-+	journal->j_shrinker->count_objects = jbd2_journal_shrink_count;
-+	journal->j_shrinker->batch = journal->j_max_transaction_buffers;
-+	journal->j_shrinker->private_data = journal;
++	shrinker_register(nn->nfsd_client_shrinker);
 +
-+	shrinker_register(journal->j_shrinker);
+ 	return 0;
  
- 	return journal;
+ err_shrinker:
+@@ -8252,7 +8255,7 @@ nfs4_state_shutdown_net(struct net *net)
+ 	struct list_head *pos, *next, reaplist;
+ 	struct nfsd_net *nn = net_generic(net, nfsd_net_id);
  
-@@ -2172,9 +2179,9 @@ int jbd2_journal_destroy(journal_t *jour
- 		brelse(journal->j_sb_buffer);
- 	}
- 
--	if (journal->j_shrinker.flags & SHRINKER_REGISTERED) {
-+	if (journal->j_shrinker) {
- 		percpu_counter_destroy(&journal->j_checkpoint_jh_count);
--		unregister_shrinker(&journal->j_shrinker);
-+		shrinker_free(journal->j_shrinker);
- 	}
- 	if (journal->j_proc_entry)
- 		jbd2_stats_proc_exit(journal);
---- a/include/linux/jbd2.h~jbd2ext4-dynamically-allocate-the-jbd2-journal-shrinker
-+++ a/include/linux/jbd2.h
-@@ -886,7 +886,7 @@ struct journal_s
- 	 * Journal head shrinker, reclaim buffer's journal head which
- 	 * has been written back.
- 	 */
--	struct shrinker		j_shrinker;
-+	struct shrinker		*j_shrinker;
- 
- 	/**
- 	 * @j_checkpoint_jh_count:
+-	unregister_shrinker(&nn->nfsd_client_shrinker);
++	shrinker_free(nn->nfsd_client_shrinker);
+ 	cancel_work(&nn->nfsd_shrinker_work);
+ 	cancel_delayed_work_sync(&nn->laundromat_work);
+ 	locks_end_grace(&nn->nfsd4_manager);
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
