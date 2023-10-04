@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D38B0E7C4F1
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:19:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 774EEE7C4F5
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:19:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244031AbjJDUTU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S243990AbjJDUTU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 4 Oct 2023 16:19:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54060 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54084 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244050AbjJDUTL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:19:11 -0400
+        with ESMTP id S244080AbjJDUTM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:19:12 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 95E6CC9
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:19:06 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE8E3C433C7;
-        Wed,  4 Oct 2023 20:19:05 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8503BD9
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:19:08 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C98E9C433C9;
+        Wed,  4 Oct 2023 20:19:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450746;
-        bh=gCPe/lAR6ODQ9mrDURdZtYgP3NxpzyWlcylDyuPpCTU=;
+        s=korg; t=1696450748;
+        bh=4CE3K0AaOHw8Wv/urEGXAAMn6jjvfBguXk9NPiAVGN8=;
         h=Date:To:From:Subject:From;
-        b=KBus0WWjdSb8TWngKU5TD+pdDDkIMgaRiH5MuLWno8I+u+ISg/atw8SXXsH+f71xi
-         l6tORRNa/6POuiWT1UvoVNVvBOXcY4H1KtYfF1qqCYDlt8Z2VFWXw5Igk9BmdLt9Uc
-         uQl3VPS60KBotea/qjHfq22KpPHFpC57j/45vv+k=
-Date:   Wed, 04 Oct 2023 13:19:04 -0700
+        b=HbGmLv4Kd+hwhE3VWF2wnfaCfgCBBhfwDfa9I1RZvrpFROp7uz13/dn6zP4HooZ2a
+         O9CoGeqQZZMO+ONr8uxXMiqDUTras0ZYIvMXzQeKhbVmTqU92xZk7HP7oIJotE6ovx
+         sy2Xwajzfcnr09MYMbRrXfWHLLbAxlLz7TdvPuvQ=
+Date:   Wed, 04 Oct 2023 13:19:06 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] drm-ttm-introduce-pool_shrink_rwsem.patch removed from -mm tree
-Message-Id: <20231004201905.CE8E3C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-shrinker-remove-redundant-shrinker_rwsem-in-debugfs-operations.patch removed from -mm tree
+Message-Id: <20231004201907.C98E9C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,36 +63,31 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: drm/ttm: introduce pool_shrink_rwsem
+     Subject: mm: shrinker: remove redundant shrinker_rwsem in debugfs operations
 has been removed from the -mm tree.  Its filename was
-     drm-ttm-introduce-pool_shrink_rwsem.patch
+     mm-shrinker-remove-redundant-shrinker_rwsem-in-debugfs-operations.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: drm/ttm: introduce pool_shrink_rwsem
-Date: Mon, 11 Sep 2023 17:25:17 +0800
+Subject: mm: shrinker: remove redundant shrinker_rwsem in debugfs operations
+Date: Mon, 11 Sep 2023 17:25:16 +0800
 
-Currently, synchronize_shrinkers() is only used by TTM pool.  It only
-requires that no shrinkers run in parallel.
+debugfs_remove_recursive() will wait for debugfs_file_put() to return, so
+the shrinker will not be freed when doing debugfs operations (such as
+shrinker_debugfs_count_show() and shrinker_debugfs_scan_write()), so there
+is no need to hold shrinker_rwsem during debugfs operations.
 
-After we use RCU+refcount method to implement the lockless slab shrink, we
-can not use shrinker_rwsem or synchronize_rcu() to guarantee that all
-shrinker invocations have seen an update before freeing memory.
-
-So we introduce a new pool_shrink_rwsem to implement a private
-ttm_pool_synchronize_shrinkers(), so as to achieve the same purpose.
-
-Link: https://lkml.kernel.org/r/20230911092517.64141-5-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911092517.64141-4-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Christian König <christian.koenig@amd.com>
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: Christian Brauner <brauner@kernel.org>
+Cc: Christian König <christian.koenig@amd.com>
 Cc: Chuck Lever <cel@kernel.org>
 Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: Darrick J. Wong <djwong@kernel.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -164,96 +159,67 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/ttm/ttm_pool.c |   17 ++++++++++++++++-
- include/linux/shrinker.h       |    1 -
- mm/shrinker.c                  |   15 ---------------
- 3 files changed, 16 insertions(+), 17 deletions(-)
+ mm/shrinker_debug.c |   16 +---------------
+ 1 file changed, 1 insertion(+), 15 deletions(-)
 
---- a/drivers/gpu/drm/ttm/ttm_pool.c~drm-ttm-introduce-pool_shrink_rwsem
-+++ a/drivers/gpu/drm/ttm/ttm_pool.c
-@@ -74,6 +74,7 @@ static struct ttm_pool_type global_dma32
- static spinlock_t shrinker_lock;
- static struct list_head shrinker_list;
- static struct shrinker mm_shrinker;
-+static DECLARE_RWSEM(pool_shrink_rwsem);
+--- a/mm/shrinker_debug.c~mm-shrinker-remove-redundant-shrinker_rwsem-in-debugfs-operations
++++ a/mm/shrinker_debug.c
+@@ -51,17 +51,12 @@ static int shrinker_debugfs_count_show(s
+ 	struct mem_cgroup *memcg;
+ 	unsigned long total;
+ 	bool memcg_aware;
+-	int ret, nid;
++	int ret = 0, nid;
  
- /* Allocate pages of size 1 << order with the given gfp_flags */
- static struct page *ttm_pool_alloc_page(struct ttm_pool *pool, gfp_t gfp_flags,
-@@ -317,6 +318,7 @@ static unsigned int ttm_pool_shrink(void
- 	unsigned int num_pages;
- 	struct page *p;
+ 	count_per_node = kcalloc(nr_node_ids, sizeof(unsigned long), GFP_KERNEL);
+ 	if (!count_per_node)
+ 		return -ENOMEM;
  
-+	down_read(&pool_shrink_rwsem);
- 	spin_lock(&shrinker_lock);
- 	pt = list_first_entry(&shrinker_list, typeof(*pt), shrinker_list);
- 	list_move_tail(&pt->shrinker_list, &shrinker_list);
-@@ -329,6 +331,7 @@ static unsigned int ttm_pool_shrink(void
- 	} else {
- 		num_pages = 0;
+-	ret = down_read_killable(&shrinker_rwsem);
+-	if (ret) {
+-		kfree(count_per_node);
+-		return ret;
+-	}
+ 	rcu_read_lock();
+ 
+ 	memcg_aware = shrinker->flags & SHRINKER_MEMCG_AWARE;
+@@ -94,7 +89,6 @@ static int shrinker_debugfs_count_show(s
+ 	} while ((memcg = mem_cgroup_iter(NULL, memcg, NULL)) != NULL);
+ 
+ 	rcu_read_unlock();
+-	up_read(&shrinker_rwsem);
+ 
+ 	kfree(count_per_node);
+ 	return ret;
+@@ -119,7 +113,6 @@ static ssize_t shrinker_debugfs_scan_wri
+ 	struct mem_cgroup *memcg = NULL;
+ 	int nid;
+ 	char kbuf[72];
+-	ssize_t ret;
+ 
+ 	read_len = size < (sizeof(kbuf) - 1) ? size : (sizeof(kbuf) - 1);
+ 	if (copy_from_user(kbuf, buf, read_len))
+@@ -148,12 +141,6 @@ static ssize_t shrinker_debugfs_scan_wri
+ 		return -EINVAL;
  	}
-+	up_read(&pool_shrink_rwsem);
  
- 	return num_pages;
- }
-@@ -573,6 +576,18 @@ void ttm_pool_init(struct ttm_pool *pool
- EXPORT_SYMBOL(ttm_pool_init);
- 
- /**
-+ * ttm_pool_synchronize_shrinkers - Wait for all running shrinkers to complete.
-+ *
-+ * This is useful to guarantee that all shrinker invocations have seen an
-+ * update, before freeing memory, similar to rcu.
-+ */
-+static void ttm_pool_synchronize_shrinkers(void)
-+{
-+	down_write(&pool_shrink_rwsem);
-+	up_write(&pool_shrink_rwsem);
-+}
-+
-+/**
-  * ttm_pool_fini - Cleanup a pool
-  *
-  * @pool: the pool to clean up
-@@ -593,7 +608,7 @@ void ttm_pool_fini(struct ttm_pool *pool
- 	/* We removed the pool types from the LRU, but we need to also make sure
- 	 * that no shrinker is concurrently freeing pages from the pool.
- 	 */
--	synchronize_shrinkers();
-+	ttm_pool_synchronize_shrinkers();
- }
- EXPORT_SYMBOL(ttm_pool_fini);
- 
---- a/include/linux/shrinker.h~drm-ttm-introduce-pool_shrink_rwsem
-+++ a/include/linux/shrinker.h
-@@ -103,7 +103,6 @@ extern int __printf(2, 3) register_shrin
- 					    const char *fmt, ...);
- extern void unregister_shrinker(struct shrinker *shrinker);
- extern void free_prealloced_shrinker(struct shrinker *shrinker);
--extern void synchronize_shrinkers(void);
- 
- #ifdef CONFIG_SHRINKER_DEBUG
- extern int __printf(2, 3) shrinker_debugfs_rename(struct shrinker *shrinker,
---- a/mm/shrinker.c~drm-ttm-introduce-pool_shrink_rwsem
-+++ a/mm/shrinker.c
-@@ -692,18 +692,3 @@ void unregister_shrinker(struct shrinker
- 	shrinker->nr_deferred = NULL;
- }
- EXPORT_SYMBOL(unregister_shrinker);
+-	ret = down_read_killable(&shrinker_rwsem);
+-	if (ret) {
+-		mem_cgroup_put(memcg);
+-		return ret;
+-	}
 -
--/**
-- * synchronize_shrinkers - Wait for all running shrinkers to complete.
-- *
-- * This is equivalent to calling unregister_shrink() and register_shrinker(),
-- * but atomically and with less overhead. This is useful to guarantee that all
-- * shrinker invocations have seen an update, before freeing memory, similar to
-- * rcu.
-- */
--void synchronize_shrinkers(void)
--{
--	down_write(&shrinker_rwsem);
--	up_write(&shrinker_rwsem);
--}
--EXPORT_SYMBOL(synchronize_shrinkers);
+ 	sc.nid = nid;
+ 	sc.memcg = memcg;
+ 	sc.nr_to_scan = nr_to_scan;
+@@ -161,7 +148,6 @@ static ssize_t shrinker_debugfs_scan_wri
+ 
+ 	shrinker->scan_objects(shrinker, &sc);
+ 
+-	up_read(&shrinker_rwsem);
+ 	mem_cgroup_put(memcg);
+ 
+ 	return size;
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
