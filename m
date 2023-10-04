@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AD71E7C4F1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3421E7C4F9
 	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:19:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233912AbjJDUTv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S243883AbjJDUTv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 4 Oct 2023 16:19:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37096 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37074 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243883AbjJDUTq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:19:46 -0400
+        with ESMTP id S244105AbjJDUTr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:19:47 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 17EF5DC
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:19:35 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 602FCC433C8;
-        Wed,  4 Oct 2023 20:19:34 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 40CE6EC
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:19:39 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F004C433C8;
+        Wed,  4 Oct 2023 20:19:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450774;
-        bh=Tj0ggrtvTpN4306LcBmO65n1d0h9+27kj1v3dHAiBLU=;
+        s=korg; t=1696450778;
+        bh=pJKLZ65bo4G9sZ1GxsZ0SdyPqocMmHNXopv7GBuHy10=;
         h=Date:To:From:Subject:From;
-        b=XcpvzFpQW+HFdiyBu8X/x0Ln6K7djuoyhthr3yvg4UURa3EFQxkXXAzJmbu5bM3ov
-         XCwE14hLnbomr9cJsbbJzGAGFUpr15jBYBLVAk6qQ5cL10TKMDWMjPMjLsWbgZoNg5
-         G1ytskjqg5N+dv6PB6MUL5HKXtI74V03kEG9TU4o=
-Date:   Wed, 04 Oct 2023 13:19:33 -0700
+        b=XutH5aKlzVusnt5mJIlrMAaXYZnXhXxPZTR025X/2sm0hzY78pq62BWaojmN20eau
+         4h8O5g5NNrNOqSXyqUYWWMTJqC0qcH61eGM10nYnhgHXxuD5ch0fJ+qppN69WpDmTC
+         XqRBCTpFRYwTUOLRToSFm0yLgIzjUIrjSvwJJKcQ=
+Date:   Wed, 04 Oct 2023 13:19:37 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] ubifs-dynamically-allocate-the-ubifs-slab-shrinker.patch removed from -mm tree
-Message-Id: <20231004201934.602FCC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] rcu-dynamically-allocate-the-rcu-kfree-shrinker.patch removed from -mm tree
+Message-Id: <20231004201938.6F004C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,24 +63,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: ubifs: dynamically allocate the ubifs-slab shrinker
+     Subject: rcu: dynamically allocate the rcu-kfree shrinker
 has been removed from the -mm tree.  Its filename was
-     ubifs-dynamically-allocate-the-ubifs-slab-shrinker.patch
+     rcu-dynamically-allocate-the-rcu-kfree-shrinker.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: ubifs: dynamically allocate the ubifs-slab shrinker
-Date: Mon, 11 Sep 2023 17:44:13 +0800
+Subject: rcu: dynamically allocate the rcu-kfree shrinker
+Date: Mon, 11 Sep 2023 17:44:15 +0800
 
-Use new APIs to dynamically allocate the ubifs-slab shrinker.
+Use new APIs to dynamically allocate the rcu-kfree shrinker.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-15-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-17-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Reviewed-by: Joel Fernandes (Google) <joel@joelfernandes.org>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Richard Weinberger <richard@nod.at>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -119,7 +119,6 @@ Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Wang <jasowang@redhat.com>
 Cc: Jeff Layton <jlayton@kernel.org>
 Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
-Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
 Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
 Cc: Josef Bacik <josef@toxicpanda.com>
 Cc: Juergen Gross <jgross@suse.com>
@@ -135,6 +134,7 @@ Cc: Neil Brown <neilb@suse.de>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
 Cc: Olga Kornievskaia <kolga@netapp.com>
 Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Richard Weinberger <richard@nod.at>
 Cc: Rob Clark <robdclark@gmail.com>
 Cc: Rob Herring <robh@kernel.org>
 Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
@@ -156,69 +156,53 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ubifs/super.c |   21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ kernel/rcu/tree.c |   21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
---- a/fs/ubifs/super.c~ubifs-dynamically-allocate-the-ubifs-slab-shrinker
-+++ a/fs/ubifs/super.c
-@@ -54,11 +54,7 @@ module_param_cb(default_version, &ubifs_
- static struct kmem_cache *ubifs_inode_slab;
+--- a/kernel/rcu/tree.c~rcu-dynamically-allocate-the-rcu-kfree-shrinker
++++ a/kernel/rcu/tree.c
+@@ -3449,13 +3449,6 @@ kfree_rcu_shrink_scan(struct shrinker *s
+ 	return freed == 0 ? SHRINK_STOP : freed;
+ }
  
- /* UBIFS TNC shrinker description */
--static struct shrinker ubifs_shrinker_info = {
--	.scan_objects = ubifs_shrink_scan,
--	.count_objects = ubifs_shrink_count,
+-static struct shrinker kfree_rcu_shrinker = {
+-	.count_objects = kfree_rcu_shrink_count,
+-	.scan_objects = kfree_rcu_shrink_scan,
+-	.batch = 0,
 -	.seeks = DEFAULT_SEEKS,
 -};
-+static struct shrinker *ubifs_shrinker_info;
- 
- /**
-  * validate_inode - validate inode.
-@@ -2373,7 +2369,7 @@ static void inode_slab_ctor(void *obj)
- 
- static int __init ubifs_init(void)
+-
+ void __init kfree_rcu_scheduler_running(void)
  {
--	int err;
-+	int err = -ENOMEM;
+ 	int cpu;
+@@ -4931,6 +4924,7 @@ static void __init kfree_rcu_batch_init(
+ {
+ 	int cpu;
+ 	int i, j;
++	struct shrinker *kfree_rcu_shrinker;
  
- 	BUILD_BUG_ON(sizeof(struct ubifs_ch) != 24);
- 
-@@ -2439,10 +2435,15 @@ static int __init ubifs_init(void)
- 	if (!ubifs_inode_slab)
- 		return -ENOMEM;
- 
--	err = register_shrinker(&ubifs_shrinker_info, "ubifs-slab");
--	if (err)
-+	ubifs_shrinker_info = shrinker_alloc(0, "ubifs-slab");
-+	if (!ubifs_shrinker_info)
- 		goto out_slab;
- 
-+	ubifs_shrinker_info->count_objects = ubifs_shrink_count;
-+	ubifs_shrinker_info->scan_objects = ubifs_shrink_scan;
+ 	/* Clamp it to [0:100] seconds interval. */
+ 	if (rcu_delay_page_cache_fill_msec < 0 ||
+@@ -4962,8 +4956,17 @@ static void __init kfree_rcu_batch_init(
+ 		INIT_DELAYED_WORK(&krcp->page_cache_work, fill_page_cache_func);
+ 		krcp->initialized = true;
+ 	}
+-	if (register_shrinker(&kfree_rcu_shrinker, "rcu-kfree"))
+-		pr_err("Failed to register kfree_rcu() shrinker!\n");
 +
-+	shrinker_register(ubifs_shrinker_info);
++	kfree_rcu_shrinker = shrinker_alloc(0, "rcu-kfree");
++	if (!kfree_rcu_shrinker) {
++		pr_err("Failed to allocate kfree_rcu() shrinker!\n");
++		return;
++	}
 +
- 	err = ubifs_compressors_init();
- 	if (err)
- 		goto out_shrinker;
-@@ -2467,7 +2468,7 @@ out_dbg:
- 	dbg_debugfs_exit();
- 	ubifs_compressors_exit();
- out_shrinker:
--	unregister_shrinker(&ubifs_shrinker_info);
-+	shrinker_free(ubifs_shrinker_info);
- out_slab:
- 	kmem_cache_destroy(ubifs_inode_slab);
- 	return err;
-@@ -2483,7 +2484,7 @@ static void __exit ubifs_exit(void)
- 	dbg_debugfs_exit();
- 	ubifs_sysfs_exit();
- 	ubifs_compressors_exit();
--	unregister_shrinker(&ubifs_shrinker_info);
-+	shrinker_free(ubifs_shrinker_info);
++	kfree_rcu_shrinker->count_objects = kfree_rcu_shrink_count;
++	kfree_rcu_shrinker->scan_objects = kfree_rcu_shrink_scan;
++
++	shrinker_register(kfree_rcu_shrinker);
+ }
  
- 	/*
- 	 * Make sure all delayed rcu free inodes are flushed before we
+ void __init rcu_init(void)
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
