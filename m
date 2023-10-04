@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72C86E936E0
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:25:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C80BCE936E1
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:25:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244876AbjJDUZD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:25:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45642 "EHLO
+        id S244634AbjJDUZI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:25:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38724 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244945AbjJDUYE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:24:04 -0400
+        with ESMTP id S244668AbjJDUYF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:24:05 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB74210C4
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:23:47 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B9A0C433C7;
-        Wed,  4 Oct 2023 20:23:46 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF31910CB
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:23:49 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D47AC433C9;
+        Wed,  4 Oct 2023 20:23:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696451027;
-        bh=DtG26YZfMi+5GeFZah7ksiQVF+M03rqQJg5jUhd/pBg=;
+        s=korg; t=1696451029;
+        bh=ClVt3x7/VrfHXQHkg69DUP6SqR3ARB3NJNmyKsN0s0E=;
         h=Date:To:From:Subject:From;
-        b=zPRTSqECzrdtyp9dnRH+M97FkXyxQSBiwEybRzVXpHEsNSMNEw0AqC6C8QYCpde8J
-         5syiDwEZv9BQ1R5kYfygnpApB11Kxt0nc4P+kkRZVul3Gf6DbyXoHEfXsbvfa87RLn
-         leVGJowBAONiILw4gr5gHYPYBFbNIAx99OAW39jw=
-Date:   Wed, 04 Oct 2023 13:23:45 -0700
-To:     mm-commits@vger.kernel.org, agruenba@redhat.com,
-        akpm@linux-foundation.org
+        b=0aR2WbK1bG2rKtbI8MIz93LlsYKFtlAbJVudT/ZWnFNdS0nfykomg4CaGxWEYAvLD
+         Pv/BoIGeNARhe296XuQ3UMpuCJC3nnJXHR61Hfd1bmlVssVeXnP8lDUiygzvzUUsTU
+         FzZ/C+Grt8KRr8wK8nCJQJTrWCWbNWqYLjodkOUk=
+Date:   Wed, 04 Oct 2023 13:23:47 -0700
+To:     mm-commits@vger.kernel.org, herve.codina@bootlin.com,
+        andriy.shevchenko@linux.intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kthread-add-kthread_stop_put.patch removed from -mm tree
-Message-Id: <20231004202347.1B9A0C433C7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] minmax-deduplicate-__unconst_integer_typeof.patch removed from -mm tree
+Message-Id: <20231004202349.3D47AC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,298 +36,87 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kthread: add kthread_stop_put
+     Subject: minmax: deduplicate __unconst_integer_typeof()
 has been removed from the -mm tree.  Its filename was
-     kthread-add-kthread_stop_put.patch
+     minmax-deduplicate-__unconst_integer_typeof.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andreas Gruenbacher <agruenba@redhat.com>
-Subject: kthread: add kthread_stop_put
-Date: Fri, 8 Sep 2023 01:40:48 +0200
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: minmax: deduplicate __unconst_integer_typeof()
+Date: Mon, 11 Sep 2023 18:49:13 +0300
 
-Add a kthread_stop_put() helper that stops a thread and puts its task
-struct.  Use it to replace the various instances of kthread_stop()
-followed by put_task_struct().
+It appears that compiler_types.h already have an implementation of the
+__unconst_integer_typeof() called __unqual_scalar_typeof().  Use it
+instead of the copy.
 
-Remove the kthread_stop_put() macro in usbip that is similar but doesn't
-return the result of kthread_stop().
-
-[agruenba@redhat.com: fix kerneldoc comment]
-  Link: https://lkml.kernel.org/r/20230911111730.2565537-1-agruenba@redhat.com
-[akpm@linux-foundation.org: document kthread_stop_put()'s argument]
-Link: https://lkml.kernel.org/r/20230907234048.2499820-1-agruenba@redhat.com
-Signed-off-by: Andreas Gruenbacher <agruenba@redhat.com>
+Link: https://lkml.kernel.org/r/20230911154913.4176033-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Acked-by: Herve Codina <herve.codina@bootlin.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/accel/ivpu/ivpu_job.c              |    3 +--
- drivers/dma-buf/st-dma-fence-chain.c       |   12 ++++--------
- drivers/dma-buf/st-dma-fence.c             |    4 +---
- drivers/gpu/drm/i915/gt/selftest_migrate.c |    4 +---
- drivers/net/xen-netback/interface.c        |    3 +--
- drivers/usb/usbip/usbip_common.h           |    6 ------
- fs/gfs2/ops_fstype.c                       |    9 +++------
- include/linux/kthread.h                    |    1 +
- kernel/irq/manage.c                        |   15 +++++----------
- kernel/kthread.c                           |   18 ++++++++++++++++++
- kernel/smpboot.c                           |    3 +--
- mm/damon/core.c                            |    3 +--
- net/core/pktgen.c                          |    3 +--
- 13 files changed, 38 insertions(+), 46 deletions(-)
+ include/linux/minmax.h |   26 +++-----------------------
+ 1 file changed, 3 insertions(+), 23 deletions(-)
 
---- a/drivers/accel/ivpu/ivpu_job.c~kthread-add-kthread_stop_put
-+++ a/drivers/accel/ivpu/ivpu_job.c
-@@ -618,6 +618,5 @@ int ivpu_job_done_thread_init(struct ivp
+--- a/include/linux/minmax.h~minmax-deduplicate-__unconst_integer_typeof
++++ a/include/linux/minmax.h
+@@ -2,6 +2,7 @@
+ #ifndef _LINUX_MINMAX_H
+ #define _LINUX_MINMAX_H
  
- void ivpu_job_done_thread_fini(struct ivpu_device *vdev)
- {
--	kthread_stop(vdev->job_done_thread);
--	put_task_struct(vdev->job_done_thread);
-+	kthread_stop_put(vdev->job_done_thread);
- }
---- a/drivers/dma-buf/st-dma-fence.c~kthread-add-kthread_stop_put
-+++ a/drivers/dma-buf/st-dma-fence.c
-@@ -548,11 +548,9 @@ static int race_signal_callback(void *ar
- 		for (i = 0; i < ARRAY_SIZE(t); i++) {
- 			int err;
++#include <linux/compiler_types.h>
+ #include <linux/const.h>
+ #include <linux/types.h>
  
--			err = kthread_stop(t[i].task);
-+			err = kthread_stop_put(t[i].task);
- 			if (err && !ret)
- 				ret = err;
+@@ -135,27 +136,6 @@
+ #define max_t(type, x, y)	__careful_cmp((type)(x), (type)(y), >)
+ 
+ /*
+- * Remove a const qualifier from integer types
+- * _Generic(foo, type-name: association, ..., default: association) performs a
+- * comparison against the foo type (not the qualified type).
+- * Do not use the const keyword in the type-name as it will not match the
+- * unqualified type of foo.
+- */
+-#define __unconst_integer_type_cases(type)	\
+-	unsigned type:  (unsigned type)0,	\
+-	signed type:    (signed type)0
 -
--			put_task_struct(t[i].task);
- 		}
- 	}
- 
---- a/drivers/dma-buf/st-dma-fence-chain.c~kthread-add-kthread_stop_put
-+++ a/drivers/dma-buf/st-dma-fence-chain.c
-@@ -476,10 +476,9 @@ static int find_race(void *arg)
- 	for (i = 0; i < ncpus; i++) {
- 		int ret;
- 
--		ret = kthread_stop(threads[i]);
-+		ret = kthread_stop_put(threads[i]);
- 		if (ret && !err)
- 			err = ret;
--		put_task_struct(threads[i]);
- 	}
- 	kfree(threads);
- 
-@@ -591,8 +590,7 @@ static int wait_forward(void *arg)
- 	for (i = 0; i < fc.chain_length; i++)
- 		dma_fence_signal(fc.fences[i]);
- 
--	err = kthread_stop(tsk);
--	put_task_struct(tsk);
-+	err = kthread_stop_put(tsk);
- 
- err:
- 	fence_chains_fini(&fc);
-@@ -621,8 +619,7 @@ static int wait_backward(void *arg)
- 	for (i = fc.chain_length; i--; )
- 		dma_fence_signal(fc.fences[i]);
- 
--	err = kthread_stop(tsk);
--	put_task_struct(tsk);
-+	err = kthread_stop_put(tsk);
- 
- err:
- 	fence_chains_fini(&fc);
-@@ -669,8 +666,7 @@ static int wait_random(void *arg)
- 	for (i = 0; i < fc.chain_length; i++)
- 		dma_fence_signal(fc.fences[i]);
- 
--	err = kthread_stop(tsk);
--	put_task_struct(tsk);
-+	err = kthread_stop_put(tsk);
- 
- err:
- 	fence_chains_fini(&fc);
---- a/drivers/gpu/drm/i915/gt/selftest_migrate.c~kthread-add-kthread_stop_put
-+++ a/drivers/gpu/drm/i915/gt/selftest_migrate.c
-@@ -719,11 +719,9 @@ static int threaded_migrate(struct intel
- 		if (IS_ERR_OR_NULL(tsk))
- 			continue;
- 
--		status = kthread_stop(tsk);
-+		status = kthread_stop_put(tsk);
- 		if (status && !err)
- 			err = status;
+-#define __unconst_integer_typeof(x) typeof(			\
+-	_Generic((x),						\
+-		char: (char)0,					\
+-		__unconst_integer_type_cases(char),		\
+-		__unconst_integer_type_cases(short),		\
+-		__unconst_integer_type_cases(int),		\
+-		__unconst_integer_type_cases(long),		\
+-		__unconst_integer_type_cases(long long),	\
+-		default: (x)))
 -
--		put_task_struct(tsk);
- 	}
- 
- 	kfree(thread);
---- a/drivers/net/xen-netback/interface.c~kthread-add-kthread_stop_put
-+++ a/drivers/net/xen-netback/interface.c
-@@ -672,8 +672,7 @@ err:
- static void xenvif_disconnect_queue(struct xenvif_queue *queue)
- {
- 	if (queue->task) {
--		kthread_stop(queue->task);
--		put_task_struct(queue->task);
-+		kthread_stop_put(queue->task);
- 		queue->task = NULL;
- 	}
- 
---- a/drivers/usb/usbip/usbip_common.h~kthread-add-kthread_stop_put
-+++ a/drivers/usb/usbip/usbip_common.h
-@@ -298,12 +298,6 @@ struct usbip_device {
- 	__k;								   \
- })
- 
--#define kthread_stop_put(k)		\
--	do {				\
--		kthread_stop(k);	\
--		put_task_struct(k);	\
--	} while (0)
--
- /* usbip_common.c */
- void usbip_dump_urb(struct urb *purb);
- void usbip_dump_header(struct usbip_header *pdu);
---- a/fs/gfs2/ops_fstype.c~kthread-add-kthread_stop_put
-+++ a/fs/gfs2/ops_fstype.c
-@@ -1126,8 +1126,7 @@ static int init_threads(struct gfs2_sbd
- 	return 0;
- 
- fail:
--	kthread_stop(sdp->sd_logd_process);
--	put_task_struct(sdp->sd_logd_process);
-+	kthread_stop_put(sdp->sd_logd_process);
- 	sdp->sd_logd_process = NULL;
- 	return error;
- }
-@@ -1135,13 +1134,11 @@ fail:
- void gfs2_destroy_threads(struct gfs2_sbd *sdp)
- {
- 	if (sdp->sd_logd_process) {
--		kthread_stop(sdp->sd_logd_process);
--		put_task_struct(sdp->sd_logd_process);
-+		kthread_stop_put(sdp->sd_logd_process);
- 		sdp->sd_logd_process = NULL;
- 	}
- 	if (sdp->sd_quotad_process) {
--		kthread_stop(sdp->sd_quotad_process);
--		put_task_struct(sdp->sd_quotad_process);
-+		kthread_stop_put(sdp->sd_quotad_process);
- 		sdp->sd_quotad_process = NULL;
- 	}
- }
---- a/include/linux/kthread.h~kthread-add-kthread_stop_put
-+++ a/include/linux/kthread.h
-@@ -86,6 +86,7 @@ void free_kthread_struct(struct task_str
- void kthread_bind(struct task_struct *k, unsigned int cpu);
- void kthread_bind_mask(struct task_struct *k, const struct cpumask *mask);
- int kthread_stop(struct task_struct *k);
-+int kthread_stop_put(struct task_struct *k);
- bool kthread_should_stop(void);
- bool kthread_should_park(void);
- bool kthread_should_stop_or_park(void);
---- a/kernel/irq/manage.c~kthread-add-kthread_stop_put
-+++ a/kernel/irq/manage.c
-@@ -1852,15 +1852,13 @@ out_thread:
- 		struct task_struct *t = new->thread;
- 
- 		new->thread = NULL;
--		kthread_stop(t);
--		put_task_struct(t);
-+		kthread_stop_put(t);
- 	}
- 	if (new->secondary && new->secondary->thread) {
- 		struct task_struct *t = new->secondary->thread;
- 
- 		new->secondary->thread = NULL;
--		kthread_stop(t);
--		put_task_struct(t);
-+		kthread_stop_put(t);
- 	}
- out_mput:
- 	module_put(desc->owner);
-@@ -1971,12 +1969,9 @@ static struct irqaction *__free_irq(stru
- 	 * the same bit to a newly requested action.
- 	 */
- 	if (action->thread) {
--		kthread_stop(action->thread);
--		put_task_struct(action->thread);
--		if (action->secondary && action->secondary->thread) {
--			kthread_stop(action->secondary->thread);
--			put_task_struct(action->secondary->thread);
--		}
-+		kthread_stop_put(action->thread);
-+		if (action->secondary && action->secondary->thread)
-+			kthread_stop_put(action->secondary->thread);
- 	}
- 
- 	/* Last action releases resources */
---- a/kernel/kthread.c~kthread-add-kthread_stop_put
-+++ a/kernel/kthread.c
-@@ -715,6 +715,24 @@ int kthread_stop(struct task_struct *k)
- }
- EXPORT_SYMBOL(kthread_stop);
- 
-+/**
-+ * kthread_stop_put - stop a thread and put its task struct
-+ * @k: thread created by kthread_create().
-+ *
-+ * Stops a thread created by kthread_create() and put its task_struct.
-+ * Only use when holding an extra task struct reference obtained by
-+ * calling get_task_struct().
-+ */
-+int kthread_stop_put(struct task_struct *k)
-+{
-+	int ret;
-+
-+	ret = kthread_stop(k);
-+	put_task_struct(k);
-+	return ret;
-+}
-+EXPORT_SYMBOL(kthread_stop_put);
-+
- int kthreadd(void *unused)
- {
- 	struct task_struct *tsk = current;
---- a/kernel/smpboot.c~kthread-add-kthread_stop_put
-+++ a/kernel/smpboot.c
-@@ -272,8 +272,7 @@ static void smpboot_destroy_threads(stru
- 		struct task_struct *tsk = *per_cpu_ptr(ht->store, cpu);
- 
- 		if (tsk) {
--			kthread_stop(tsk);
--			put_task_struct(tsk);
-+			kthread_stop_put(tsk);
- 			*per_cpu_ptr(ht->store, cpu) = NULL;
- 		}
- 	}
---- a/mm/damon/core.c~kthread-add-kthread_stop_put
-+++ a/mm/damon/core.c
-@@ -699,8 +699,7 @@ static int __damon_stop(struct damon_ctx
- 	if (tsk) {
- 		get_task_struct(tsk);
- 		mutex_unlock(&ctx->kdamond_lock);
--		kthread_stop(tsk);
--		put_task_struct(tsk);
-+		kthread_stop_put(tsk);
- 		return 0;
- 	}
- 	mutex_unlock(&ctx->kdamond_lock);
---- a/net/core/pktgen.c~kthread-add-kthread_stop_put
-+++ a/net/core/pktgen.c
-@@ -3982,8 +3982,7 @@ static void __net_exit pg_net_exit(struc
- 	list_for_each_safe(q, n, &list) {
- 		t = list_entry(q, struct pktgen_thread, th_list);
- 		list_del(&t->th_list);
--		kthread_stop(t->tsk);
--		put_task_struct(t->tsk);
-+		kthread_stop_put(t->tsk);
- 		kfree(t);
- 	}
- 
+-/*
+  * Do not check the array parameter using __must_be_array().
+  * In the following legit use-case where the "array" passed is a simple pointer,
+  * __must_be_array() will return a failure.
+@@ -169,13 +149,13 @@
+  * 'int *buff' and 'int buff[N]' types.
+  *
+  * The array can be an array of const items.
+- * typeof() keeps the const qualifier. Use __unconst_integer_typeof() in order
++ * typeof() keeps the const qualifier. Use __unqual_scalar_typeof() in order
+  * to discard the const qualifier for the __element variable.
+  */
+ #define __minmax_array(op, array, len) ({				\
+ 	typeof(&(array)[0]) __array = (array);				\
+ 	typeof(len) __len = (len);					\
+-	__unconst_integer_typeof(__array[0]) __element = __array[--__len]; \
++	__unqual_scalar_typeof(__array[0]) __element = __array[--__len];\
+ 	while (__len--)							\
+ 		__element = op(__element, __array[__len]);		\
+ 	__element; })
 _
 
-Patches currently in -mm which might be from agruenba@redhat.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
 
