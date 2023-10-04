@@ -2,33 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72900E7C4F7
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:22:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1E4BE7C4F3
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:22:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244492AbjJDUWh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:22:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57888 "EHLO
+        id S244571AbjJDUWi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:22:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57880 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244878AbjJDUW1 (ORCPT
+        with ESMTP id S244879AbjJDUW1 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:22:27 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E6EF171C
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:21:22 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D60A2C433C7;
-        Wed,  4 Oct 2023 20:21:21 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0DE1171F
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:21:24 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EFB7C433C9;
+        Wed,  4 Oct 2023 20:21:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450882;
-        bh=55Ffa9W3IAtKE7gTNE3YpN8mtHlE58Blu11Uk3c9pbg=;
+        s=korg; t=1696450884;
+        bh=bz7qe+FN3hxULq4OOdi7dr2cdxEporwRHIyvLxGIaaw=;
         h=Date:To:From:Subject:From;
-        b=wv62EmzstgwXaLKJ8B8+I1wTHHz3UZVyjAQv9nHfYPk4dh8YExHLYK7SemRSBi8Rc
-         oSM/TzXFfXiehMMFtACpUE4QM5zrHih4fGuMmUtx3YbUgVlV7jtT6Ks+12X8Kpe2Zm
-         QSLvrWyy1+ZR0IkRc/hol6VcSLRHrbQkpmwI0/zY=
-Date:   Wed, 04 Oct 2023 13:21:20 -0700
-To:     mm-commits@vger.kernel.org, rostedt@goodmis.org, corbet@lwn.net,
-        sj@kernel.org, akpm@linux-foundation.org
+        b=WvQGjzrcbfQYXlvX/2IOpob6qMJbd9fukUouwim2fbtLEAIWuOPNsb91iDzTCJWZ8
+         w2J8z90rkWkOnY4cX5rUvAUr0lDCtJShgdrLai5jzfKTgdRlcF1lYsyOB46mLgCKN7
+         N7Elz1U/9PLfLO4a0PShmI6CNIl7mtknHLDFej14=
+Date:   Wed, 04 Oct 2023 13:21:22 -0700
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
+        willy@infradead.org, mike.kravetz@oracle.com, hughd@google.com,
+        david@redhat.com, wangkefeng.wang@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-admin-guide-mm-damon-usage-document-damos_before_apply-tracepoint.patch removed from -mm tree
-Message-Id: <20231004202121.D60A2C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-migrate-use-__folio_test_movable.patch removed from -mm tree
+Message-Id: <20231004202124.1EFB7C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,87 +38,100 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: document damos_before_apply tracepoint
+     Subject: mm: migrate: use __folio_test_movable()
 has been removed from the -mm tree.  Its filename was
-     docs-admin-guide-mm-damon-usage-document-damos_before_apply-tracepoint.patch
+     mm-migrate-use-__folio_test_movable.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: document damos_before_apply tracepoint
-Date: Wed, 13 Sep 2023 02:20:50 +0000
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: migrate: use __folio_test_movable()
+Date: Wed, 13 Sep 2023 17:51:28 +0800
 
-Document damos_before_apply tracepoint on the usage document.
+Use __folio_test_movable(), no need to convert from folio to page again.
 
-Link: https://lkml.kernel.org/r/20230913022050.2109-3-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Link: https://lkml.kernel.org/r/20230913095131.2426871-6-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |   37 +++++++++++++----
- 1 file changed, 30 insertions(+), 7 deletions(-)
+ mm/migrate.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-damos_before_apply-tracepoint
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -496,15 +496,24 @@ the files as above.  Above is only for a
+--- a/mm/migrate.c~mm-migrate-use-__folio_test_movable
++++ a/mm/migrate.c
+@@ -157,8 +157,8 @@ void putback_movable_pages(struct list_h
+ 		list_del(&folio->lru);
+ 		/*
+ 		 * We isolated non-lru movable folio so here we can use
+-		 * __PageMovable because LRU folio's mapping cannot have
+-		 * PAGE_MAPPING_MOVABLE.
++		 * __folio_test_movable because LRU folio's mapping cannot
++		 * have PAGE_MAPPING_MOVABLE.
+ 		 */
+ 		if (unlikely(__folio_test_movable(folio))) {
+ 			VM_BUG_ON_FOLIO(!folio_test_isolated(folio), folio);
+@@ -946,7 +946,7 @@ static int move_to_new_folio(struct foli
+ 				enum migrate_mode mode)
+ {
+ 	int rc = -EAGAIN;
+-	bool is_lru = !__PageMovable(&src->page);
++	bool is_lru = !__folio_test_movable(src);
  
- .. _tracepoint:
+ 	VM_BUG_ON_FOLIO(!folio_test_locked(src), src);
+ 	VM_BUG_ON_FOLIO(!folio_test_locked(dst), dst);
+@@ -993,7 +993,7 @@ static int move_to_new_folio(struct foli
+ 	 * src is freed; but stats require that PageAnon be left as PageAnon.
+ 	 */
+ 	if (rc == MIGRATEPAGE_SUCCESS) {
+-		if (__PageMovable(&src->page)) {
++		if (__folio_test_movable(src)) {
+ 			VM_BUG_ON_FOLIO(!folio_test_isolated(src), src);
  
--Tracepoint for Monitoring Results
--=================================
-+Tracepoints for Monitoring Results
-+==================================
+ 			/*
+@@ -1085,7 +1085,7 @@ static void migrate_folio_done(struct fo
+ 	/*
+ 	 * Compaction can migrate also non-LRU pages which are
+ 	 * not accounted to NR_ISOLATED_*. They can be recognized
+-	 * as __PageMovable
++	 * as __folio_test_movable
+ 	 */
+ 	if (likely(!__folio_test_movable(src)))
+ 		mod_node_page_state(folio_pgdat(src), NR_ISOLATED_ANON +
+@@ -1106,7 +1106,7 @@ static int migrate_folio_unmap(new_folio
+ 	int rc = -EAGAIN;
+ 	int page_was_mapped = 0;
+ 	struct anon_vma *anon_vma = NULL;
+-	bool is_lru = !__PageMovable(&src->page);
++	bool is_lru = !__folio_test_movable(src);
+ 	bool locked = false;
+ 	bool dst_locked = false;
  
- Users can get the monitoring results via the :ref:`tried_regions
--<sysfs_schemes_tried_regions>` or a tracepoint, ``damon:damon_aggregated``.
--While the tried regions directory is useful for getting a snapshot, the
--tracepoint is useful for getting a full record of the results.  While the
--monitoring is turned on, you could record the tracepoint events and show
--results using tracepoint supporting tools like ``perf``.  For example::
-+<sysfs_schemes_tried_regions>`.  The interface is useful for getting a
-+snapshot, but it could be inefficient for fully recording all the monitoring
-+results.  For the purpose, two trace points, namely ``damon:damon_aggregated``
-+and ``damon:damos_before_apply``, are provided.  ``damon:damon_aggregated``
-+provides the whole monitoring results, while ``damon:damos_before_apply``
-+provides the monitoring results for regions that each DAMON-based Operation
-+Scheme (:ref:`DAMOS <damon_design_damos>`) is gonna be applied.  Hence,
-+``damon:damos_before_apply`` is more useful for recording internal behavior of
-+DAMOS, or DAMOS target access
-+:ref:`pattern <damon_design_damos_access_pattern>` based query-like efficient
-+monitoring results recording.
-+
-+While the monitoring is turned on, you could record the tracepoint events and
-+show results using tracepoint supporting tools like ``perf``.  For example::
+@@ -1264,7 +1264,7 @@ static int migrate_folio_move(free_folio
+ 	int rc;
+ 	int page_was_mapped = 0;
+ 	struct anon_vma *anon_vma = NULL;
+-	bool is_lru = !__PageMovable(&src->page);
++	bool is_lru = !__folio_test_movable(src);
+ 	struct list_head *prev;
  
-     # echo on > monitor_on
-     # perf record -e damon:damon_aggregated &
-@@ -527,6 +536,20 @@ counter).  Finally the tenth field (``X`
- (refer to :ref:`design <damon_design_age_tracking>` for more details of the
- counter).
- 
-+If the event was ``damon:damos_beofre_apply``, the ``perf script`` output would
-+be somewhat like below::
-+
-+    kdamond.0 47293 [000] 80801.060214: damon:damos_before_apply: ctx_idx=0 scheme_idx=0 target_idx=0 nr_regions=11 121932607488-135128711168: 0 136
-+    [...]
-+
-+Each line of the output represents each monitoring region that each DAMON-based
-+Operation Scheme was about to be applied at the traced time.  The first five
-+fields are as usual.  It shows the index of the DAMON context (``ctx_idx=X``)
-+of the scheme in the list of the contexts of the context's kdamond, the index
-+of the scheme (``scheme_idx=X``) in the list of the schemes of the context, in
-+addition to the output of ``damon_aggregated`` tracepoint.
-+
-+
- .. _debugfs_interface:
- 
- debugfs Interface (DEPRECATED!)
+ 	__migrate_folio_extract(dst, &page_was_mapped, &anon_vma);
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
+mm-memory-add-vm_normal_folio_pmd.patch
+mm-huge_memory-use-a-folio-in-do_huge_pmd_numa_page.patch
+mm-memory-use-a-folio-in-do_numa_page.patch
+mm-memory-make-numa_migrate_prep-to-take-a-folio.patch
+mm-mempolicy-make-mpol_misplaced-to-take-a-folio.patch
+sched-numa-mm-make-numa-migrate-functions-to-take-a-folio.patch
 
