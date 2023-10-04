@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19B69E7C4F8
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:23:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CB7FE936E5
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:23:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244557AbjJDUXO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:23:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48000 "EHLO
+        id S244951AbjJDUXR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:23:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38690 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244616AbjJDUWl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:22:41 -0400
+        with ESMTP id S244759AbjJDUWw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:22:52 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06A0DFD
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:22:38 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A6D7C433C7;
-        Wed,  4 Oct 2023 20:22:37 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C065B112
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:22:48 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 043F6C433C7;
+        Wed,  4 Oct 2023 20:22:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450957;
-        bh=54lSdoiZQwFQjOOl4dr+mXmgw1ZoJ9XX40WZIOzoAgk=;
+        s=korg; t=1696450968;
+        bh=8hfHwAXZ7LGbGL1lrcVSzXJsqiJYgE4Eq18GOOziJfE=;
         h=Date:To:From:Subject:From;
-        b=ppvrE0+C3Qsi0Uoqi2847954K9hkyoPTRAcCN4oEg66D22PHa/mptembxBuz92DHx
-         V4a1ru0S1Zn0NsKJ1CHaSLnu5v3LG4w7YDlXbLf9hqiKkdFTbAYZYPU6uJOVDd4SHe
-         4DUuwEdvAEJ55tNcN1LWizmp1TGsKl/kn5RYSExo=
-Date:   Wed, 04 Oct 2023 13:22:35 -0700
+        b=OKXYhlwOmKVGwlFk3yYZ3C26ZMw7YUI9dXWX1qLdjWdF8nB0W+PwBqe4SdX+rv+i/
+         qTHWPjd2eDJ4UoTqUr0D5Bln+Hb6na3+KGJin8qdMPW1E6AmgExM5b21rgtof0QEE9
+         rJU8m8uqEaQnxsoRQWWHpIbILkzKh+RugIQ6+YTU=
+Date:   Wed, 04 Oct 2023 13:22:46 -0700
 To:     mm-commits@vger.kernel.org, shuah@kernel.org, rostedt@goodmis.org,
         corbet@lwn.net, sj@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-implement-scheme-specific-apply-interval.patch removed from -mm tree
-Message-Id: <20231004202237.6A6D7C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] docs-abi-damon-update-for-damos-apply-intervals.patch removed from -mm tree
+Message-Id: <20231004202248.043F6C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,44 +36,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/core: implement scheme-specific apply interval
+     Subject: Docs/ABI/damon: update for DAMOS apply intervals
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-implement-scheme-specific-apply-interval.patch
+     docs-abi-damon-update-for-damos-apply-intervals.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: implement scheme-specific apply interval
-Date: Sat, 16 Sep 2023 02:09:40 +0000
+Subject: Docs/ABI/damon: update for DAMOS apply intervals
+Date: Sat, 16 Sep 2023 02:09:45 +0000
 
-DAMON-based operation schemes are applied for every aggregation interval. 
-That was mainly because schemes were using nr_accesses, which be complete
-to be used for every aggregation interval.  However, the schemes are now
-using nr_accesses_bp, which is updated for each sampling interval in a way
-that reasonable to be used.  Therefore, there is no reason to apply
-schemes for each aggregation interval.
+Update DAMON ABI document for the newly added DAMON sysfs file for DAMOS
+apply intervals (apply_interval_us file).
 
-The unnecessary alignment with aggregation interval was also making some
-use cases of DAMOS tricky.  Quotas setting under long aggregation interval
-is one such example.  Suppose the aggregation interval is ten seconds, and
-there is a scheme having CPU quota 100ms per 1s.  The scheme will actually
-uses 100ms per ten seconds, since it cannobe be applied before next
-aggregation interval.  The feature is working as intended, but the results
-might not that intuitive for some users.  This could be fixed by updating
-the quota to 1s per 10s.  But, in the case, the CPU usage of DAMOS could
-look like spikes, and would actually make a bad effect to other
-CPU-sensitive workloads.
-
-Implement a dedicated timing interval for each DAMON-based operation
-scheme, namely apply_interval.  The interval will be sampling interval
-aligned, and each scheme will be applied for its apply_interval.  The
-interval is set to 0 by default, and it means the scheme should use the
-aggregation interval instead.  This avoids old users getting any
-behavioral difference.
-
-Link: https://lkml.kernel.org/r/20230916020945.47296-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20230916020945.47296-10-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <shuah@kernel.org>
@@ -81,261 +59,25 @@ Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h    |   17 +++++++-
- mm/damon/core.c          |   72 +++++++++++++++++++++++++++++++++----
- mm/damon/dbgfs.c         |    3 +
- mm/damon/lru_sort.c      |    2 +
- mm/damon/reclaim.c       |    2 +
- mm/damon/sysfs-schemes.c |    2 -
- 6 files changed, 87 insertions(+), 11 deletions(-)
+ Documentation/ABI/testing/sysfs-kernel-mm-damon |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/include/linux/damon.h~mm-damon-core-implement-scheme-specific-apply-interval
-+++ a/include/linux/damon.h
-@@ -314,16 +314,19 @@ struct damos_access_pattern {
-  * struct damos - Represents a Data Access Monitoring-based Operation Scheme.
-  * @pattern:		Access pattern of target regions.
-  * @action:		&damo_action to be applied to the target regions.
-+ * @apply_interval_us:	The time between applying the @action.
-  * @quota:		Control the aggressiveness of this scheme.
-  * @wmarks:		Watermarks for automated (in)activation of this scheme.
-  * @filters:		Additional set of &struct damos_filter for &action.
-  * @stat:		Statistics of this scheme.
-  * @list:		List head for siblings.
-  *
-- * For each aggregation interval, DAMON finds regions which fit in the
-+ * For each @apply_interval_us, DAMON finds regions which fit in the
-  * &pattern and applies &action to those. To avoid consuming too much
-  * CPU time or IO resources for the &action, &quota is used.
-  *
-+ * If @apply_interval_us is zero, &damon_attrs->aggr_interval is used instead.
-+ *
-  * To do the work only when needed, schemes can be activated for specific
-  * system situations using &wmarks.  If all schemes that registered to the
-  * monitoring context are inactive, DAMON stops monitoring either, and just
-@@ -340,6 +343,14 @@ struct damos_access_pattern {
- struct damos {
- 	struct damos_access_pattern pattern;
- 	enum damos_action action;
-+	unsigned long apply_interval_us;
-+/* private: internal use only */
-+	/*
-+	 * number of sample intervals that should be passed before applying
-+	 * @action
-+	 */
-+	unsigned long next_apply_sis;
-+/* public: */
- 	struct damos_quota quota;
- 	struct damos_watermarks wmarks;
- 	struct list_head filters;
-@@ -641,7 +652,9 @@ void damos_add_filter(struct damos *s, s
- void damos_destroy_filter(struct damos_filter *f);
+--- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-update-for-damos-apply-intervals
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
+@@ -151,6 +151,13 @@ Contact:	SeongJae Park <sj@kernel.org>
+ Description:	Writing to and reading from this file sets and gets the action
+ 		of the scheme.
  
- struct damos *damon_new_scheme(struct damos_access_pattern *pattern,
--			enum damos_action action, struct damos_quota *quota,
-+			enum damos_action action,
-+			unsigned long apply_interval_us,
-+			struct damos_quota *quota,
- 			struct damos_watermarks *wmarks);
- void damon_add_scheme(struct damon_ctx *ctx, struct damos *s);
- void damon_destroy_scheme(struct damos *s);
---- a/mm/damon/core.c~mm-damon-core-implement-scheme-specific-apply-interval
-+++ a/mm/damon/core.c
-@@ -313,7 +313,9 @@ static struct damos_quota *damos_quota_i
- }
- 
- struct damos *damon_new_scheme(struct damos_access_pattern *pattern,
--			enum damos_action action, struct damos_quota *quota,
-+			enum damos_action action,
-+			unsigned long apply_interval_us,
-+			struct damos_quota *quota,
- 			struct damos_watermarks *wmarks)
- {
- 	struct damos *scheme;
-@@ -323,6 +325,13 @@ struct damos *damon_new_scheme(struct da
- 		return NULL;
- 	scheme->pattern = *pattern;
- 	scheme->action = action;
-+	scheme->apply_interval_us = apply_interval_us;
-+	/*
-+	 * next_apply_sis will be set when kdamond starts.  While kdamond is
-+	 * running, it will also updated when it is added to the DAMON context,
-+	 * or damon_attrs are updated.
-+	 */
-+	scheme->next_apply_sis = 0;
- 	INIT_LIST_HEAD(&scheme->filters);
- 	scheme->stat = (struct damos_stat){};
- 	INIT_LIST_HEAD(&scheme->list);
-@@ -335,9 +344,21 @@ struct damos *damon_new_scheme(struct da
- 	return scheme;
- }
- 
-+static void damos_set_next_apply_sis(struct damos *s, struct damon_ctx *ctx)
-+{
-+	unsigned long sample_interval = ctx->attrs.sample_interval ?
-+		ctx->attrs.sample_interval : 1;
-+	unsigned long apply_interval = s->apply_interval_us ?
-+		s->apply_interval_us : ctx->attrs.aggr_interval;
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/apply_interval_us
++Date:		Sep 2023
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing a value to this file sets the action apply interval of
++		the scheme in microseconds.  Reading this file returns the
++		value.
 +
-+	s->next_apply_sis = ctx->passed_sample_intervals +
-+		apply_interval / sample_interval;
-+}
-+
- void damon_add_scheme(struct damon_ctx *ctx, struct damos *s)
- {
- 	list_add_tail(&s->list, &ctx->schemes);
-+	damos_set_next_apply_sis(s, ctx);
- }
- 
- static void damon_del_scheme(struct damos *s)
-@@ -558,6 +579,7 @@ int damon_set_attrs(struct damon_ctx *ct
- {
- 	unsigned long sample_interval = attrs->sample_interval ?
- 		attrs->sample_interval : 1;
-+	struct damos *s;
- 
- 	if (attrs->min_nr_regions < 3)
- 		return -EINVAL;
-@@ -573,6 +595,10 @@ int damon_set_attrs(struct damon_ctx *ct
- 
- 	damon_update_monitoring_results(ctx, attrs);
- 	ctx->attrs = *attrs;
-+
-+	damon_for_each_scheme(s, ctx)
-+		damos_set_next_apply_sis(s, ctx);
-+
- 	return 0;
- }
- 
-@@ -1094,14 +1120,29 @@ static void kdamond_apply_schemes(struct
- 	struct damon_target *t;
- 	struct damon_region *r, *next_r;
- 	struct damos *s;
-+	unsigned long sample_interval = c->attrs.sample_interval ?
-+		c->attrs.sample_interval : 1;
-+	bool has_schemes_to_apply = false;
- 
- 	damon_for_each_scheme(s, c) {
-+		if (c->passed_sample_intervals != s->next_apply_sis)
-+			continue;
-+
-+		s->next_apply_sis +=
-+			(s->apply_interval_us ? s->apply_interval_us :
-+			 c->attrs.aggr_interval) / sample_interval;
-+
- 		if (!s->wmarks.activated)
- 			continue;
- 
-+		has_schemes_to_apply = true;
-+
- 		damos_adjust_quota(c, s);
- 	}
- 
-+	if (!has_schemes_to_apply)
-+		return;
-+
- 	damon_for_each_target(t, c) {
- 		damon_for_each_region_safe(r, next_r, t)
- 			damon_do_apply_schemes(c, t, r);
-@@ -1372,11 +1413,19 @@ static void kdamond_init_intervals_sis(s
- {
- 	unsigned long sample_interval = ctx->attrs.sample_interval ?
- 		ctx->attrs.sample_interval : 1;
-+	unsigned long apply_interval;
-+	struct damos *scheme;
- 
- 	ctx->passed_sample_intervals = 0;
- 	ctx->next_aggregation_sis = ctx->attrs.aggr_interval / sample_interval;
- 	ctx->next_ops_update_sis = ctx->attrs.ops_update_interval /
- 		sample_interval;
-+
-+	damon_for_each_scheme(scheme, ctx) {
-+		apply_interval = scheme->apply_interval_us ?
-+			scheme->apply_interval_us : ctx->attrs.aggr_interval;
-+		scheme->next_apply_sis = apply_interval / sample_interval;
-+	}
- }
- 
- /*
-@@ -1428,19 +1477,28 @@ static int kdamond_fn(void *data)
- 		if (ctx->ops.check_accesses)
- 			max_nr_accesses = ctx->ops.check_accesses(ctx);
- 
--		sample_interval = ctx->attrs.sample_interval ?
--			ctx->attrs.sample_interval : 1;
- 		if (ctx->passed_sample_intervals == next_aggregation_sis) {
--			ctx->next_aggregation_sis = next_aggregation_sis +
--				ctx->attrs.aggr_interval / sample_interval;
- 			kdamond_merge_regions(ctx,
- 					max_nr_accesses / 10,
- 					sz_limit);
- 			if (ctx->callback.after_aggregation &&
- 					ctx->callback.after_aggregation(ctx))
- 				break;
--			if (!list_empty(&ctx->schemes))
--				kdamond_apply_schemes(ctx);
-+		}
-+
-+		/*
-+		 * do kdamond_apply_schemes() after kdamond_merge_regions() if
-+		 * possible, to reduce overhead
-+		 */
-+		if (!list_empty(&ctx->schemes))
-+			kdamond_apply_schemes(ctx);
-+
-+		sample_interval = ctx->attrs.sample_interval ?
-+			ctx->attrs.sample_interval : 1;
-+		if (ctx->passed_sample_intervals == next_aggregation_sis) {
-+			ctx->next_aggregation_sis = next_aggregation_sis +
-+				ctx->attrs.aggr_interval / sample_interval;
-+
- 			kdamond_reset_aggregated(ctx);
- 			kdamond_split_regions(ctx);
- 			if (ctx->ops.reset_aggregated)
---- a/mm/damon/dbgfs.c~mm-damon-core-implement-scheme-specific-apply-interval
-+++ a/mm/damon/dbgfs.c
-@@ -278,7 +278,8 @@ static struct damos **str_to_schemes(con
- 			goto fail;
- 
- 		pos += parsed;
--		scheme = damon_new_scheme(&pattern, action, &quota, &wmarks);
-+		scheme = damon_new_scheme(&pattern, action, 0, &quota,
-+				&wmarks);
- 		if (!scheme)
- 			goto fail;
- 
---- a/mm/damon/lru_sort.c~mm-damon-core-implement-scheme-specific-apply-interval
-+++ a/mm/damon/lru_sort.c
-@@ -158,6 +158,8 @@ static struct damos *damon_lru_sort_new_
- 			pattern,
- 			/* (de)prioritize on LRU-lists */
- 			action,
-+			/* for each aggregation interval */
-+			0,
- 			/* under the quota. */
- 			&quota,
- 			/* (De)activate this according to the watermarks. */
---- a/mm/damon/reclaim.c~mm-damon-core-implement-scheme-specific-apply-interval
-+++ a/mm/damon/reclaim.c
-@@ -142,6 +142,8 @@ static struct damos *damon_reclaim_new_s
- 			&pattern,
- 			/* page out those, as soon as found */
- 			DAMOS_PAGEOUT,
-+			/* for each aggregation interval */
-+			0,
- 			/* under the quota. */
- 			&damon_reclaim_quota,
- 			/* (De)activate this according to the watermarks. */
---- a/mm/damon/sysfs-schemes.c~mm-damon-core-implement-scheme-specific-apply-interval
-+++ a/mm/damon/sysfs-schemes.c
-@@ -1610,7 +1610,7 @@ static struct damos *damon_sysfs_mk_sche
- 		.low = sysfs_wmarks->low,
- 	};
- 
--	scheme = damon_new_scheme(&pattern, sysfs_scheme->action, &quota,
-+	scheme = damon_new_scheme(&pattern, sysfs_scheme->action, 0, &quota,
- 			&wmarks);
- 	if (!scheme)
- 		return NULL;
+ What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/access_pattern/sz/min
+ Date:		Mar 2022
+ Contact:	SeongJae Park <sj@kernel.org>
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
