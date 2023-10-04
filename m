@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8294E7C4F3
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:20:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C51EE7C4F8
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:20:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243795AbjJDUUx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:20:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57460 "EHLO
+        id S244650AbjJDUUz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:20:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45378 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244496AbjJDUUb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:20:31 -0400
+        with ESMTP id S244641AbjJDUUj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:20:39 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 78C58C9
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:20:27 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D432C433C9;
-        Wed,  4 Oct 2023 20:20:26 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0427BEB
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:20:29 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43D0BC433C8;
+        Wed,  4 Oct 2023 20:20:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450827;
-        bh=IQ2Gsxyjzrss1lk0qapeOOFHzxumakYSKG4+YHfzakk=;
+        s=korg; t=1696450829;
+        bh=Y254Sx/XYCEZ1ebfg32kwWaMovOzWSk8FDanF1+0+pI=;
         h=Date:To:From:Subject:From;
-        b=kH9ZXebLCbIf5XPWRM+xx4vyv9T/SK12DwxjLiNxeDGOKRPH82wuQm6BwkNvNaqAU
-         K0TFjg7qY7U21ewt8C/pQlxVVLL26tPO26up2RCf54f9luuyyZdOYs24Yrt5GNcyHz
-         3JSW/Epec9EeMG7Tw5Vp1iA6rw42odNL1R6MB3xs=
-Date:   Wed, 04 Oct 2023 13:20:24 -0700
+        b=IUCTASgUIHBuK31iaDo5hGkes5rw/eHQHFBjd1O6Jnr/pSQc9+vQYeCN1jcmkSzBr
+         sPX1GzqV5RStguV45uYcSHPOvq5zEc1E644Mm5Ks9EtlHRb6pBoWadLJN52jK3mtQh
+         YXPVSR5qbiGIENKnUXlEWIpGG4wIvP2nffOkkRgc=
+Date:   Wed, 04 Oct 2023 13:20:27 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zsmalloc-dynamically-allocate-the-mm-zspool-shrinker.patch removed from -mm tree
-Message-Id: <20231004202026.8D432C433C9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-shrinker-remove-old-apis.patch removed from -mm tree
+Message-Id: <20231004202029.43D0BC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,28 +63,23 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: zsmalloc: dynamically allocate the mm-zspool shrinker
+     Subject: mm: shrinker: remove old APIs
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-dynamically-allocate-the-mm-zspool-shrinker.patch
+     mm-shrinker-remove-old-apis.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: zsmalloc: dynamically allocate the mm-zspool shrinker
-Date: Mon, 11 Sep 2023 17:44:36 +0800
+Subject: mm: shrinker: remove old APIs
+Date: Mon, 11 Sep 2023 17:44:38 +0800
 
-In preparation for implementing lockless slab shrink, use new APIs to
-dynamically allocate the mm-zspool shrinker, so that it can be freed
-asynchronously via RCU. Then it doesn't need to wait for RCU read-side
-critical section when releasing the struct zs_pool.
+Now no users are using the old APIs, just remove them.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-38-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-40-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Minchan Kim <minchan@kernel.org>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -132,6 +127,7 @@ Cc: Kirill Tkhai <tkhai@ya.ru>
 Cc: Marijn Suijten <marijn.suijten@somainline.org>
 Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Nadav Amit <namit@vmware.com>
 Cc: Neil Brown <neilb@suse.de>
@@ -144,6 +140,7 @@ Cc: Rob Herring <robh@kernel.org>
 Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Sean Paul <sean@poorly.run>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Song Liu <song@kernel.org>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Steven Price <steven.price@arm.com>
@@ -159,71 +156,176 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   27 +++++++++++++++------------
- 1 file changed, 15 insertions(+), 12 deletions(-)
+ include/linux/shrinker.h |    8 --
+ mm/shrinker.c            |  143 -------------------------------------
+ 2 files changed, 151 deletions(-)
 
---- a/mm/zsmalloc.c~zsmalloc-dynamically-allocate-the-mm-zspool-shrinker
-+++ a/mm/zsmalloc.c
-@@ -229,7 +229,7 @@ struct zs_pool {
- 	struct zs_pool_stats stats;
+--- a/include/linux/shrinker.h~mm-shrinker-remove-old-apis
++++ a/include/linux/shrinker.h
+@@ -105,14 +105,6 @@ struct shrinker *shrinker_alloc(unsigned
+ void shrinker_register(struct shrinker *shrinker);
+ void shrinker_free(struct shrinker *shrinker);
  
- 	/* Compact classes */
--	struct shrinker shrinker;
-+	struct shrinker *shrinker;
- 
- #ifdef CONFIG_ZSMALLOC_STAT
- 	struct dentry *stat_dentry;
-@@ -2086,8 +2086,7 @@ static unsigned long zs_shrinker_scan(st
- 		struct shrink_control *sc)
- {
- 	unsigned long pages_freed;
--	struct zs_pool *pool = container_of(shrinker, struct zs_pool,
--			shrinker);
-+	struct zs_pool *pool = shrinker->private_data;
- 
- 	/*
- 	 * Compact classes and calculate compaction delta.
-@@ -2105,8 +2104,7 @@ static unsigned long zs_shrinker_count(s
- 	int i;
- 	struct size_class *class;
- 	unsigned long pages_to_free = 0;
--	struct zs_pool *pool = container_of(shrinker, struct zs_pool,
--			shrinker);
-+	struct zs_pool *pool = shrinker->private_data;
- 
- 	for (i = ZS_SIZE_CLASSES - 1; i >= 0; i--) {
- 		class = pool->size_class[i];
-@@ -2121,18 +2119,23 @@ static unsigned long zs_shrinker_count(s
- 
- static void zs_unregister_shrinker(struct zs_pool *pool)
- {
--	unregister_shrinker(&pool->shrinker);
-+	shrinker_free(pool->shrinker);
+-extern int __printf(2, 3) prealloc_shrinker(struct shrinker *shrinker,
+-					    const char *fmt, ...);
+-extern void register_shrinker_prepared(struct shrinker *shrinker);
+-extern int __printf(2, 3) register_shrinker(struct shrinker *shrinker,
+-					    const char *fmt, ...);
+-extern void unregister_shrinker(struct shrinker *shrinker);
+-extern void free_prealloced_shrinker(struct shrinker *shrinker);
+-
+ #ifdef CONFIG_SHRINKER_DEBUG
+ extern int __printf(2, 3) shrinker_debugfs_rename(struct shrinker *shrinker,
+ 						  const char *fmt, ...);
+--- a/mm/shrinker.c~mm-shrinker-remove-old-apis
++++ a/mm/shrinker.c
+@@ -655,146 +655,3 @@ void shrinker_free(struct shrinker *shri
+ 	kfree(shrinker);
  }
- 
- static int zs_register_shrinker(struct zs_pool *pool)
- {
--	pool->shrinker.scan_objects = zs_shrinker_scan;
--	pool->shrinker.count_objects = zs_shrinker_count;
--	pool->shrinker.batch = 0;
--	pool->shrinker.seeks = DEFAULT_SEEKS;
-+	pool->shrinker = shrinker_alloc(0, "mm-zspool:%s", pool->name);
-+	if (!pool->shrinker)
-+		return -ENOMEM;
-+
-+	pool->shrinker->scan_objects = zs_shrinker_scan;
-+	pool->shrinker->count_objects = zs_shrinker_count;
-+	pool->shrinker->batch = 0;
-+	pool->shrinker->private_data = pool;
- 
--	return register_shrinker(&pool->shrinker, "mm-zspool:%s",
--				 pool->name);
-+	shrinker_register(pool->shrinker);
-+
-+	return 0;
- }
- 
- static int calculate_zspage_chain_size(int class_size)
+ EXPORT_SYMBOL_GPL(shrinker_free);
+-
+-/*
+- * Add a shrinker callback to be called from the vm.
+- */
+-static int __prealloc_shrinker(struct shrinker *shrinker)
+-{
+-	unsigned int size;
+-	int err;
+-
+-	if (shrinker->flags & SHRINKER_MEMCG_AWARE) {
+-		err = prealloc_memcg_shrinker(shrinker);
+-		if (err != -ENOSYS)
+-			return err;
+-
+-		shrinker->flags &= ~SHRINKER_MEMCG_AWARE;
+-	}
+-
+-	size = sizeof(*shrinker->nr_deferred);
+-	if (shrinker->flags & SHRINKER_NUMA_AWARE)
+-		size *= nr_node_ids;
+-
+-	shrinker->nr_deferred = kzalloc(size, GFP_KERNEL);
+-	if (!shrinker->nr_deferred)
+-		return -ENOMEM;
+-
+-	return 0;
+-}
+-
+-#ifdef CONFIG_SHRINKER_DEBUG
+-int prealloc_shrinker(struct shrinker *shrinker, const char *fmt, ...)
+-{
+-	va_list ap;
+-	int err;
+-
+-	va_start(ap, fmt);
+-	shrinker->name = kvasprintf_const(GFP_KERNEL, fmt, ap);
+-	va_end(ap);
+-	if (!shrinker->name)
+-		return -ENOMEM;
+-
+-	err = __prealloc_shrinker(shrinker);
+-	if (err) {
+-		kfree_const(shrinker->name);
+-		shrinker->name = NULL;
+-	}
+-
+-	return err;
+-}
+-#else
+-int prealloc_shrinker(struct shrinker *shrinker, const char *fmt, ...)
+-{
+-	return __prealloc_shrinker(shrinker);
+-}
+-#endif
+-
+-void free_prealloced_shrinker(struct shrinker *shrinker)
+-{
+-#ifdef CONFIG_SHRINKER_DEBUG
+-	kfree_const(shrinker->name);
+-	shrinker->name = NULL;
+-#endif
+-	if (shrinker->flags & SHRINKER_MEMCG_AWARE) {
+-		down_write(&shrinker_rwsem);
+-		unregister_memcg_shrinker(shrinker);
+-		up_write(&shrinker_rwsem);
+-		return;
+-	}
+-
+-	kfree(shrinker->nr_deferred);
+-	shrinker->nr_deferred = NULL;
+-}
+-
+-void register_shrinker_prepared(struct shrinker *shrinker)
+-{
+-	down_write(&shrinker_rwsem);
+-	list_add_tail(&shrinker->list, &shrinker_list);
+-	shrinker->flags |= SHRINKER_REGISTERED;
+-	shrinker_debugfs_add(shrinker);
+-	up_write(&shrinker_rwsem);
+-}
+-
+-static int __register_shrinker(struct shrinker *shrinker)
+-{
+-	int err = __prealloc_shrinker(shrinker);
+-
+-	if (err)
+-		return err;
+-	register_shrinker_prepared(shrinker);
+-	return 0;
+-}
+-
+-#ifdef CONFIG_SHRINKER_DEBUG
+-int register_shrinker(struct shrinker *shrinker, const char *fmt, ...)
+-{
+-	va_list ap;
+-	int err;
+-
+-	va_start(ap, fmt);
+-	shrinker->name = kvasprintf_const(GFP_KERNEL, fmt, ap);
+-	va_end(ap);
+-	if (!shrinker->name)
+-		return -ENOMEM;
+-
+-	err = __register_shrinker(shrinker);
+-	if (err) {
+-		kfree_const(shrinker->name);
+-		shrinker->name = NULL;
+-	}
+-	return err;
+-}
+-#else
+-int register_shrinker(struct shrinker *shrinker, const char *fmt, ...)
+-{
+-	return __register_shrinker(shrinker);
+-}
+-#endif
+-EXPORT_SYMBOL(register_shrinker);
+-
+-/*
+- * Remove one
+- */
+-void unregister_shrinker(struct shrinker *shrinker)
+-{
+-	struct dentry *debugfs_entry;
+-	int debugfs_id;
+-
+-	if (!(shrinker->flags & SHRINKER_REGISTERED))
+-		return;
+-
+-	down_write(&shrinker_rwsem);
+-	list_del(&shrinker->list);
+-	shrinker->flags &= ~SHRINKER_REGISTERED;
+-	if (shrinker->flags & SHRINKER_MEMCG_AWARE)
+-		unregister_memcg_shrinker(shrinker);
+-	debugfs_entry = shrinker_debugfs_detach(shrinker, &debugfs_id);
+-	up_write(&shrinker_rwsem);
+-
+-	shrinker_debugfs_remove(debugfs_entry, debugfs_id);
+-
+-	kfree(shrinker->nr_deferred);
+-	shrinker->nr_deferred = NULL;
+-}
+-EXPORT_SYMBOL(unregister_shrinker);
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
