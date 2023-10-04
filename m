@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52BFAE7C4F6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE7DFE7C4F3
 	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:19:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244050AbjJDUTW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:19:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54108 "EHLO
+        id S244080AbjJDUTX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:19:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54120 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244088AbjJDUTQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:19:16 -0400
+        with ESMTP id S244101AbjJDUTR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:19:17 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F019C0
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:19:12 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2AF7C433CB;
-        Wed,  4 Oct 2023 20:19:11 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2139E5
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:19:14 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 044F7C433C8;
+        Wed,  4 Oct 2023 20:19:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450752;
-        bh=K93MLyW5+6Xl+V+kDZjJnV51WM9WzochqcULlOZxfc8=;
+        s=korg; t=1696450754;
+        bh=qJE/a6LLr4YicbWXsDN3cUUitW8HUc2OAxjZSA0VcH4=;
         h=Date:To:From:Subject:From;
-        b=0WSji8k2nQAqiT0JkXdZPjvQXj/sQkrPSgmhtSxDUg8fMMM/5sYXMd49QefjdIMQR
-         /Bp1YTOI9jo/Cqn/ymJMW/ziUmwzPfr+u5t4eVq49UEcc8m9PdFQ1bLXFJnCEHFJGE
-         DybiutDynLHb03HmXlB2nNEg2DcGVVipTNObUq8A=
-Date:   Wed, 04 Oct 2023 13:19:10 -0700
+        b=NxOF1aLEzFbtSvZcRDhyUPixNGpVV8V5LUAcctLQ/gmYQZ9T8NCcxjuH/099ApX6R
+         BrujoxgErg6niO70NtNYmSh2oHmb4QTMngNFgeKGlgk72Y7fUcHfwu+r6w9rBPEb0u
+         vLasW40fj36CiSKJUAlyV+DFQWi61r6Njg8mRBiM=
+Date:   Wed, 04 Oct 2023 13:19:12 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] binder-dynamically-allocate-the-android-binder-shrinker.patch removed from -mm tree
-Message-Id: <20231004201911.E2AF7C433CB@smtp.kernel.org>
+Subject: [merged mm-stable] kvm-mmu-dynamically-allocate-the-x86-mmu-shrinker.patch removed from -mm tree
+Message-Id: <20231004201914.044F7C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,25 +63,27 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: binder: dynamically allocate the android-binder shrinker
+     Subject: kvm: mmu: dynamically allocate the x86-mmu shrinker
 has been removed from the -mm tree.  Its filename was
-     binder-dynamically-allocate-the-android-binder-shrinker.patch
+     kvm-mmu-dynamically-allocate-the-x86-mmu-shrinker.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: binder: dynamically allocate the android-binder shrinker
-Date: Mon, 11 Sep 2023 17:44:02 +0800
+Subject: kvm: mmu: dynamically allocate the x86-mmu shrinker
+Date: Mon, 11 Sep 2023 17:44:01 +0800
 
-Use new APIs to dynamically allocate the android-binder shrinker.
+Use new APIs to dynamically allocate the x86-mmu shrinker.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-4-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-3-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Carlos Llamas <cmllamas@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -91,7 +93,7 @@ Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Cc: Anna Schumaker <anna@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Bob Peterson <rpeterso@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
+Cc: Carlos Llamas <cmllamas@google.com>
 Cc: Chandan Babu R <chandan.babu@oracle.com>
 Cc: Chao Yu <chao@kernel.org>
 Cc: Chris Mason <clm@fb.com>
@@ -104,14 +106,13 @@ Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Dave Chinner <david@fromorbit.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Airlie <airlied@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Sterba <dsterba@suse.com>
 Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
 Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Huang Rui <ray.huang@amd.com>
-Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
 Cc: Jan Kara <jack@suse.cz>
@@ -145,7 +146,6 @@ Cc: Song Liu <song@kernel.org>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Steven Price <steven.price@arm.com>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Cc: Tom Talpey <tom@talpey.com>
 Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
@@ -156,61 +156,52 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/android/binder_alloc.c |   30 ++++++++++++++++++------------
- 1 file changed, 18 insertions(+), 12 deletions(-)
+ arch/x86/kvm/mmu/mmu.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
---- a/drivers/android/binder_alloc.c~binder-dynamically-allocate-the-android-binder-shrinker
-+++ a/drivers/android/binder_alloc.c
-@@ -1053,11 +1053,7 @@ binder_shrink_scan(struct shrinker *shri
- 			    NULL, sc->nr_to_scan);
+--- a/arch/x86/kvm/mmu/mmu.c~kvm-mmu-dynamically-allocate-the-x86-mmu-shrinker
++++ a/arch/x86/kvm/mmu/mmu.c
+@@ -6785,11 +6785,7 @@ static unsigned long mmu_shrink_count(st
+ 	return percpu_counter_read_positive(&kvm_total_used_mmu_pages);
  }
  
--static struct shrinker binder_shrinker = {
--	.count_objects = binder_shrink_count,
--	.scan_objects = binder_shrink_scan,
--	.seeks = DEFAULT_SEEKS,
+-static struct shrinker mmu_shrinker = {
+-	.count_objects = mmu_shrink_count,
+-	.scan_objects = mmu_shrink_scan,
+-	.seeks = DEFAULT_SEEKS * 10,
 -};
-+static struct shrinker *binder_shrinker;
++static struct shrinker *mmu_shrinker;
  
- /**
-  * binder_alloc_init() - called by binder_open() for per-proc initialization
-@@ -1077,19 +1073,29 @@ void binder_alloc_init(struct binder_all
- 
- int binder_alloc_shrinker_init(void)
+ static void mmu_destroy_caches(void)
  {
--	int ret = list_lru_init(&binder_alloc_lru);
-+	int ret;
+@@ -6922,10 +6918,16 @@ int kvm_mmu_vendor_module_init(void)
+ 	if (percpu_counter_init(&kvm_total_used_mmu_pages, 0, GFP_KERNEL))
+ 		goto out;
  
--	if (ret == 0) {
--		ret = register_shrinker(&binder_shrinker, "android-binder");
--		if (ret)
--			list_lru_destroy(&binder_alloc_lru);
-+	ret = list_lru_init(&binder_alloc_lru);
-+	if (ret)
-+		return ret;
+-	ret = register_shrinker(&mmu_shrinker, "x86-mmu");
+-	if (ret)
++	mmu_shrinker = shrinker_alloc(0, "x86-mmu");
++	if (!mmu_shrinker)
+ 		goto out_shrinker;
+ 
++	mmu_shrinker->count_objects = mmu_shrink_count;
++	mmu_shrinker->scan_objects = mmu_shrink_scan;
++	mmu_shrinker->seeks = DEFAULT_SEEKS * 10;
 +
-+	binder_shrinker = shrinker_alloc(0, "android-binder");
-+	if (!binder_shrinker) {
-+		list_lru_destroy(&binder_alloc_lru);
-+		return -ENOMEM;
- 	}
--	return ret;
++	shrinker_register(mmu_shrinker);
 +
-+	binder_shrinker->count_objects = binder_shrink_count;
-+	binder_shrinker->scan_objects = binder_shrink_scan;
-+
-+	shrinker_register(binder_shrinker);
-+
-+	return 0;
+ 	return 0;
+ 
+ out_shrinker:
+@@ -6947,7 +6949,7 @@ void kvm_mmu_vendor_module_exit(void)
+ {
+ 	mmu_destroy_caches();
+ 	percpu_counter_destroy(&kvm_total_used_mmu_pages);
+-	unregister_shrinker(&mmu_shrinker);
++	shrinker_free(mmu_shrinker);
  }
  
- void binder_alloc_shrinker_exit(void)
- {
--	unregister_shrinker(&binder_shrinker);
-+	shrinker_free(binder_shrinker);
- 	list_lru_destroy(&binder_alloc_lru);
- }
- 
+ /*
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
