@@ -2,40 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0FC8E936E2
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:24:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84233E936E3
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:24:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244811AbjJDUYw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:24:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49654 "EHLO
+        id S245069AbjJDUYy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:24:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49782 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245062AbjJDUXj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:23:39 -0400
+        with ESMTP id S245091AbjJDUXp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:23:45 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C1F51A5
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:23:35 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E49F0C433C7;
-        Wed,  4 Oct 2023 20:23:34 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84EEA1B6
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:23:41 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE5A2C433C7;
+        Wed,  4 Oct 2023 20:23:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696451015;
-        bh=zQzuheB9DfktUJRI4E3JFOr23H+8guQ/wbcjaMuz+do=;
+        s=korg; t=1696451021;
+        bh=KB3sDfYpxKJ1iUCK7BXz9ShFqfS1rm1Gmc7VRQ3usU4=;
         h=Date:To:From:Subject:From;
-        b=u68qHxCYQYh9rFLUZMXOkdubZFCQ2jInx4rL4Bc8bUZfZqfvZJuzcw2MeroB5UjfX
-         8isU4UgJwSzDjFH3Sr6YBNH/wurEXnlJd80LwpWClS2G5Hpn2Wh3XOYy4Q50NXaIwx
-         UJmF4T2xKOEO4aHYodqu3nT8IhmEXYs+NG7VkpX0=
-Date:   Wed, 04 Oct 2023 13:23:33 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        uma.shankar@intel.com, prime.zeng@hisilicon.com,
-        martin.petersen@oracle.com, luojiaxing@huawei.com,
-        john.g.garry@oracle.com, jejb@linux.ibm.com,
-        himanshu.madhani@cavium.com, gregkh@linuxfoundation.org,
-        felipe.balbi@linux.intel.com, damien.lemoal@opensource.wdc.com,
-        chenxiang66@hisilicon.com, anshuman.gupta@intel.com,
-        animesh.manna@intel.com, andriy.shevchenko@linux.intel.com,
-        yangxingui@huawei.com, akpm@linux-foundation.org
+        b=tOLwdVtyayBrqmfiQuMXIN0SRuL/iHM9wcbNicPzCuCUQ4BYlu7jAQvgspZZtIisr
+         quo2L8o7+OwCLR/nUtZLbuQciQmiCHpcf1i+/7ub/DnzPW5G/8e73P8t8Qvu9/y1Z6
+         6kR4VjZ6hL8GMCn0/iYw8rw775dRyDdVEPR2Ta6Q=
+Date:   Wed, 04 Oct 2023 13:23:39 -0700
+To:     mm-commits@vger.kernel.org, ebiederm@xmission.com, oleg@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] scsi-qla2xxx-use-define_show_store_attribute-helper-for-debugfs.patch removed from -mm tree
-Message-Id: <20231004202334.E49F0C433C7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] getrusage-add-the-signal_struct-sig-local-variable.patch removed from -mm tree
+Message-Id: <20231004202340.EE5A2C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,156 +36,98 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: scsi: qla2xxx: use DEFINE_SHOW_STORE_ATTRIBUTE() helper for debugfs
+     Subject: getrusage: add the "signal_struct *sig" local variable
 has been removed from the -mm tree.  Its filename was
-     scsi-qla2xxx-use-define_show_store_attribute-helper-for-debugfs.patch
+     getrusage-add-the-signal_struct-sig-local-variable.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Xingui Yang <yangxingui@huawei.com>
-Subject: scsi: qla2xxx: use DEFINE_SHOW_STORE_ATTRIBUTE() helper for debugfs
-Date: Tue, 5 Sep 2023 02:48:35 +0000
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: getrusage: add the "signal_struct *sig" local variable
+Date: Sat, 9 Sep 2023 19:25:54 +0200
 
-Use DEFINE_SHOW_STORE_ATTRIBUTE() helper for read-write file to reduce some
-duplicated code.
+No functional changes, cleanup/preparation.
 
-Link: https://lkml.kernel.org/r/20230905024835.43219-4-yangxingui@huawei.com
-Signed-off-by: Luo Jiaxing <luojiaxing@huawei.com>
-Co-developed-by: Xingui Yang <yangxingui@huawei.com>
-Signed-off-by: Xingui Yang <yangxingui@huawei.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Animesh Manna <animesh.manna@intel.com>
-Cc: Anshuman Gupta <anshuman.gupta@intel.com>
-Cc: Damien Le Moal <damien.lemoal@opensource.wdc.com>
-Cc: Felipe Balbi <felipe.balbi@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Himanshu Madhani <himanshu.madhani@cavium.com>
-Cc: James Bottomley <jejb@linux.ibm.com>
-Cc: John Garry <john.g.garry@oracle.com>
-Cc: Martin K. Petersen <martin.petersen@oracle.com>
-Cc: Uma Shankar <uma.shankar@intel.com>
-Cc: Xiang Chen <chenxiang66@hisilicon.com>
-Cc: Zeng Tao <prime.zeng@hisilicon.com>
+Link: https://lkml.kernel.org/r/20230909172554.GA20441@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/qla2xxx/qla_dfs.c |   61 ++++---------------------------
- 1 file changed, 8 insertions(+), 53 deletions(-)
+ kernel/sys.c |   37 +++++++++++++++++++------------------
+ 1 file changed, 19 insertions(+), 18 deletions(-)
 
---- a/drivers/scsi/qla2xxx/qla_dfs.c~scsi-qla2xxx-use-define_show_store_attribute-helper-for-debugfs
-+++ a/drivers/scsi/qla2xxx/qla_dfs.c
-@@ -528,51 +528,22 @@ qla_dfs_naqp_show(struct seq_file *s, vo
-  *
-  * Example for creating "TEST" sysfs file:
-  * 1. struct qla_hw_data { ... struct dentry *dfs_TEST; }
-- * 2. QLA_DFS_SETUP_RD(TEST, scsi_qla_host_t);
-+ * 2. QLA_DFS_SETUP_RD(TEST);
-  * 3. In qla2x00_dfs_setup():
-  * QLA_DFS_CREATE_FILE(ha, TEST, 0600, ha->dfs_dir, vha);
-  * 4. In qla2x00_dfs_remove():
-  * QLA_DFS_REMOVE_FILE(ha, TEST);
-  */
--#define QLA_DFS_SETUP_RD(_name, _ctx_struct)				\
--static int								\
--qla_dfs_##_name##_open(struct inode *inode, struct file *file)		\
--{									\
--	_ctx_struct *__ctx = inode->i_private;				\
--									\
--	return single_open(file, qla_dfs_##_name##_show, __ctx);	\
--}									\
--									\
--static const struct file_operations qla_dfs_##_name##_ops = {		\
--	.open           = qla_dfs_##_name##_open,			\
--	.read           = seq_read,					\
--	.llseek         = seq_lseek,					\
--	.release        = single_release,				\
--};
--
--#define QLA_DFS_SETUP_RW(_name, _ctx_struct)				\
--static int								\
--qla_dfs_##_name##_open(struct inode *inode, struct file *file)		\
--{									\
--	_ctx_struct *__ctx = inode->i_private;				\
--									\
--	return single_open(file, qla_dfs_##_name##_show, __ctx);	\
--}									\
--									\
--static const struct file_operations qla_dfs_##_name##_ops = {		\
--	.open           = qla_dfs_##_name##_open,			\
--	.read           = seq_read,					\
--	.llseek         = seq_lseek,					\
--	.release        = single_release,				\
--	.write		= qla_dfs_##_name##_write,			\
--};
-+#define QLA_DFS_SETUP_RD(_name)	DEFINE_SHOW_ATTRIBUTE(qla_dfs_##_name)
-+
-+#define QLA_DFS_SETUP_RW(_name)	DEFINE_SHOW_STORE_ATTRIBUTE(qla_dfs_##_name)
+--- a/kernel/sys.c~getrusage-add-the-signal_struct-sig-local-variable
++++ a/kernel/sys.c
+@@ -1786,6 +1786,7 @@ void getrusage(struct task_struct *p, in
+ 	unsigned long flags;
+ 	u64 tgutime, tgstime, utime, stime;
+ 	unsigned long maxrss = 0;
++	struct signal_struct *sig = p->signal;
  
- #define QLA_DFS_ROOT_CREATE_FILE(_name, _perm, _ctx)			\
- 	do {								\
- 		if (!qla_dfs_##_name)					\
- 			qla_dfs_##_name = debugfs_create_file(#_name,	\
- 					_perm, qla2x00_dfs_root, _ctx,	\
--					&qla_dfs_##_name##_ops);	\
-+					&qla_dfs_##_name##_fops);	\
- 	} while (0)
+ 	memset((char *)r, 0, sizeof (*r));
+ 	utime = stime = 0;
+@@ -1793,7 +1794,7 @@ void getrusage(struct task_struct *p, in
+ 	if (who == RUSAGE_THREAD) {
+ 		task_cputime_adjusted(current, &utime, &stime);
+ 		accumulate_thread_rusage(p, r);
+-		maxrss = p->signal->maxrss;
++		maxrss = sig->maxrss;
+ 		goto out;
+ 	}
  
- #define QLA_DFS_ROOT_REMOVE_FILE(_name)					\
-@@ -587,7 +558,7 @@ static const struct file_operations qla_
- 	do {								\
- 		(_struct)->dfs_##_name = debugfs_create_file(#_name,	\
- 					_perm, _parent, _ctx,		\
--					&qla_dfs_##_name##_ops)		\
-+					&qla_dfs_##_name##_fops)	\
- 	} while (0)
+@@ -1803,15 +1804,15 @@ void getrusage(struct task_struct *p, in
+ 	switch (who) {
+ 	case RUSAGE_BOTH:
+ 	case RUSAGE_CHILDREN:
+-		utime = p->signal->cutime;
+-		stime = p->signal->cstime;
+-		r->ru_nvcsw = p->signal->cnvcsw;
+-		r->ru_nivcsw = p->signal->cnivcsw;
+-		r->ru_minflt = p->signal->cmin_flt;
+-		r->ru_majflt = p->signal->cmaj_flt;
+-		r->ru_inblock = p->signal->cinblock;
+-		r->ru_oublock = p->signal->coublock;
+-		maxrss = p->signal->cmaxrss;
++		utime = sig->cutime;
++		stime = sig->cstime;
++		r->ru_nvcsw = sig->cnvcsw;
++		r->ru_nivcsw = sig->cnivcsw;
++		r->ru_minflt = sig->cmin_flt;
++		r->ru_majflt = sig->cmaj_flt;
++		r->ru_inblock = sig->cinblock;
++		r->ru_oublock = sig->coublock;
++		maxrss = sig->cmaxrss;
  
- #define QLA_DFS_REMOVE_FILE(_struct, _name)				\
-@@ -598,14 +569,6 @@ static const struct file_operations qla_
- 		}							\
- 	} while (0)
- 
--static int
--qla_dfs_naqp_open(struct inode *inode, struct file *file)
--{
--	struct scsi_qla_host *vha = inode->i_private;
--
--	return single_open(file, qla_dfs_naqp_show, vha);
--}
--
- static ssize_t
- qla_dfs_naqp_write(struct file *file, const char __user *buffer,
-     size_t count, loff_t *pos)
-@@ -653,15 +616,7 @@ out_free:
- 	kfree(buf);
- 	return rc;
- }
--
--static const struct file_operations dfs_naqp_ops = {
--	.open		= qla_dfs_naqp_open,
--	.read		= seq_read,
--	.llseek		= seq_lseek,
--	.release	= single_release,
--	.write		= qla_dfs_naqp_write,
--};
--
-+QLA_DFS_SETUP_RW(naqp);
- 
- int
- qla2x00_dfs_setup(scsi_qla_host_t *vha)
-@@ -707,7 +662,7 @@ create_nodes:
- 
- 	if (IS_QLA27XX(ha) || IS_QLA83XX(ha) || IS_QLA28XX(ha)) {
- 		ha->tgt.dfs_naqp = debugfs_create_file("naqp",
--		    0400, ha->dfs_dir, vha, &dfs_naqp_ops);
-+		    0400, ha->dfs_dir, vha, &qla_dfs_naqp_fops);
- 		if (IS_ERR(ha->tgt.dfs_naqp)) {
- 			ql_log(ql_log_warn, vha, 0xd011,
- 			       "Unable to create debugFS naqp node.\n");
+ 		if (who == RUSAGE_CHILDREN)
+ 			break;
+@@ -1821,14 +1822,14 @@ void getrusage(struct task_struct *p, in
+ 		thread_group_cputime_adjusted(p, &tgutime, &tgstime);
+ 		utime += tgutime;
+ 		stime += tgstime;
+-		r->ru_nvcsw += p->signal->nvcsw;
+-		r->ru_nivcsw += p->signal->nivcsw;
+-		r->ru_minflt += p->signal->min_flt;
+-		r->ru_majflt += p->signal->maj_flt;
+-		r->ru_inblock += p->signal->inblock;
+-		r->ru_oublock += p->signal->oublock;
+-		if (maxrss < p->signal->maxrss)
+-			maxrss = p->signal->maxrss;
++		r->ru_nvcsw += sig->nvcsw;
++		r->ru_nivcsw += sig->nivcsw;
++		r->ru_minflt += sig->min_flt;
++		r->ru_majflt += sig->maj_flt;
++		r->ru_inblock += sig->inblock;
++		r->ru_oublock += sig->oublock;
++		if (maxrss < sig->maxrss)
++			maxrss = sig->maxrss;
+ 		t = p;
+ 		do {
+ 			accumulate_thread_rusage(t, r);
 _
 
-Patches currently in -mm which might be from yangxingui@huawei.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 
