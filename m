@@ -2,35 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FDC8E936E4
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:32:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6ACC9E936E5
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:32:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243717AbjJDUc1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:32:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45422 "EHLO
+        id S233873AbjJDUc0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:32:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57988 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244746AbjJDUWZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:22:25 -0400
+        with ESMTP id S244810AbjJDUWL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:22:11 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03CD11702
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:21:14 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 832E3C433C8;
-        Wed,  4 Oct 2023 20:21:13 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39AAB10D3
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:21:02 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D32EC433CA;
+        Wed,  4 Oct 2023 20:21:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450873;
-        bh=vhHKrlIgrBsb+5XbXO8NwP+26VwPwe4NYZivXeBlNg4=;
+        s=korg; t=1696450861;
+        bh=PNBU6bQOSTgrYuWFM1rGgQBXuqYXF41jhAN+h6e+uzk=;
         h=Date:To:From:Subject:From;
-        b=OgvBAXg9X+QviOlu4KznzNjyuBQWg7OnlMgHYgsxuQb/uce08P8qarbRQrRFOKB69
-         3oAjUcSNFyk0RqxFtWNi+guYUVpZxBAwFBXrMEVelYmQ+qEIZkrLoMl+qc37MnxTza
-         OPw5U3CxJpprDYXM8t8OjhVTvm8bIJn/ZW3ocDGs=
-Date:   Wed, 04 Oct 2023 13:21:11 -0700
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
-        willy@infradead.org, mike.kravetz@oracle.com, hughd@google.com,
-        david@redhat.com, wangkefeng.wang@huawei.com,
+        b=oS8a7CVnYBrDxHmCPdDvaEfTWjE2DnL5yazA+2+z+inR+mUjHEnYRz3GyH/OaVlkz
+         +62wEKUKjc7XSghgQEE8h6Hf7dI6/Fvvpnoh01stFfqUKZWTptPRpTZFUnTuZLOu/Q
+         i7olZubAK9rFcDHz0jumRxaCcG9hVeMLso4K3D+4=
+Date:   Wed, 04 Oct 2023 13:20:59 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        muchun.song@linux.dev, mike.kravetz@oracle.com, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-migrate-use-a-folio-in-add_page_for_migration.patch removed from -mm tree
-Message-Id: <20231004202113.832E3C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rmap-move-folio_test_anon-check-out-of-__folio_set_anon.patch removed from -mm tree
+Message-Id: <20231004202101.6D32EC433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,116 +37,102 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: migrate: use a folio in add_page_for_migration()
+     Subject: mm/rmap: move folio_test_anon() check out of __folio_set_anon()
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-use-a-folio-in-add_page_for_migration.patch
+     mm-rmap-move-folio_test_anon-check-out-of-__folio_set_anon.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: migrate: use a folio in add_page_for_migration()
-Date: Wed, 13 Sep 2023 17:51:29 +0800
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/rmap: move folio_test_anon() check out of __folio_set_anon()
+Date: Wed, 13 Sep 2023 14:51:10 +0200
 
-Use a folio in add_page_for_migration() to save compound_head() calls.
+Let's handle it in the caller; no need for the "first" check based on the
+mapcount.
 
-Link: https://lkml.kernel.org/r/20230913095131.2426871-7-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+We really only end up with !anon pages in page_add_anon_rmap() via
+do_swap_page(), where we hold the folio lock.  So races are not possible. 
+Add a VM_WARN_ON_FOLIO() to make sure that we really hold the folio lock.
+
+In the future, we might want to let do_swap_page() use
+folio_add_new_anon_rmap() on new pages instead: however, we might have to
+pass then whether the folio is exclusive or not.  So keep it in there for
+now.
+
+For hugetlb we never expect to have a non-anon page in
+hugepage_add_anon_rmap().  Remove that code, along with some other checks
+that are either not required or were checked in
+hugepage_add_new_anon_rmap() already.
+
+Link: https://lkml.kernel.org/r/20230913125113.313322-4-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   40 +++++++++++++++++++---------------------
- 1 file changed, 19 insertions(+), 21 deletions(-)
+ mm/rmap.c |   23 ++++++++---------------
+ 1 file changed, 8 insertions(+), 15 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-use-a-folio-in-add_page_for_migration
-+++ a/mm/migrate.c
-@@ -2060,6 +2060,7 @@ static int add_page_for_migration(struct
- 	struct vm_area_struct *vma;
- 	unsigned long addr;
- 	struct page *page;
-+	struct folio *folio;
- 	int err;
- 	bool isolated;
+--- a/mm/rmap.c~mm-rmap-move-folio_test_anon-check-out-of-__folio_set_anon
++++ a/mm/rmap.c
+@@ -1135,9 +1135,6 @@ static void __folio_set_anon(struct foli
  
-@@ -2082,45 +2083,42 @@ static int add_page_for_migration(struct
- 	if (!page)
- 		goto out;
+ 	BUG_ON(!anon_vma);
  
--	if (is_zone_device_page(page))
--		goto out_putpage;
-+	folio = page_folio(page);
-+	if (folio_is_zone_device(folio))
-+		goto out_putfolio;
- 
- 	err = 0;
--	if (page_to_nid(page) == node)
--		goto out_putpage;
-+	if (folio_nid(folio) == node)
-+		goto out_putfolio;
- 
- 	err = -EACCES;
- 	if (page_mapcount(page) > 1 && !migrate_all)
--		goto out_putpage;
-+		goto out_putfolio;
- 
--	if (PageHuge(page)) {
-+	if (folio_test_hugetlb(folio)) {
- 		if (PageHead(page)) {
--			isolated = isolate_hugetlb(page_folio(page), pagelist);
-+			isolated = isolate_hugetlb(folio, pagelist);
- 			err = isolated ? 1 : -EBUSY;
- 		}
- 	} else {
--		struct page *head;
+-	if (folio_test_anon(folio))
+-		return;
 -
--		head = compound_head(page);
--		isolated = isolate_lru_page(head);
-+		isolated = folio_isolate_lru(folio);
- 		if (!isolated) {
- 			err = -EBUSY;
--			goto out_putpage;
-+			goto out_putfolio;
- 		}
- 
- 		err = 1;
--		list_add_tail(&head->lru, pagelist);
--		mod_node_page_state(page_pgdat(head),
--			NR_ISOLATED_ANON + page_is_file_lru(head),
--			thp_nr_pages(head));
-+		list_add_tail(&folio->lru, pagelist);
-+		node_stat_mod_folio(folio,
-+			NR_ISOLATED_ANON + folio_is_file_lru(folio),
-+			folio_nr_pages(folio));
- 	}
--out_putpage:
-+out_putfolio:
  	/*
--	 * Either remove the duplicate refcount from
--	 * isolate_lru_page() or drop the page ref if it was
--	 * not isolated.
-+	 * Either remove the duplicate refcount from folio_isolate_lru()
-+	 * or drop the folio ref if it was not isolated.
- 	 */
--	put_page(page);
-+	folio_put(folio);
- out:
- 	mmap_read_unlock(mm);
- 	return err;
+ 	 * If the folio isn't exclusive to this vma, we must use the _oldest_
+ 	 * possible anon_vma for the folio mapping!
+@@ -1239,12 +1236,12 @@ void page_add_anon_rmap(struct page *pag
+ 	if (nr)
+ 		__lruvec_stat_mod_folio(folio, NR_ANON_MAPPED, nr);
+ 
+-	if (likely(!folio_test_ksm(folio))) {
+-		if (first)
+-			__folio_set_anon(folio, vma, address,
+-					 !!(flags & RMAP_EXCLUSIVE));
+-		else
+-			__page_check_anon_rmap(folio, page, vma, address);
++	if (unlikely(!folio_test_anon(folio))) {
++		VM_WARN_ON_FOLIO(!folio_test_locked(folio), folio);
++		__folio_set_anon(folio, vma, address,
++				 !!(flags & RMAP_EXCLUSIVE));
++	} else if (likely(!folio_test_ksm(folio))) {
++		__page_check_anon_rmap(folio, page, vma, address);
+ 	}
+ 	if (flags & RMAP_EXCLUSIVE)
+ 		SetPageAnonExclusive(page);
+@@ -2541,17 +2538,13 @@ void hugepage_add_anon_rmap(struct page
+ 			    unsigned long address, rmap_t flags)
+ {
+ 	struct folio *folio = page_folio(page);
+-	struct anon_vma *anon_vma = vma->anon_vma;
+ 	int first;
+ 
+-	BUG_ON(!folio_test_locked(folio));
+-	BUG_ON(!anon_vma);
++	VM_WARN_ON_FOLIO(!folio_test_anon(folio), folio);
++
+ 	first = atomic_inc_and_test(&folio->_entire_mapcount);
+ 	VM_BUG_ON_PAGE(!first && (flags & RMAP_EXCLUSIVE), page);
+ 	VM_BUG_ON_PAGE(!first && PageAnonExclusive(page), page);
+-	if (first)
+-		__folio_set_anon(folio, vma, address,
+-				 !!(flags & RMAP_EXCLUSIVE));
+ 	if (flags & RMAP_EXCLUSIVE)
+ 		SetPageAnonExclusive(page);
+ }
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-memory-add-vm_normal_folio_pmd.patch
-mm-huge_memory-use-a-folio-in-do_huge_pmd_numa_page.patch
-mm-memory-use-a-folio-in-do_numa_page.patch
-mm-memory-make-numa_migrate_prep-to-take-a-folio.patch
-mm-mempolicy-make-mpol_misplaced-to-take-a-folio.patch
-sched-numa-mm-make-numa-migrate-functions-to-take-a-folio.patch
+mm-rmap-move-setpageanonexclusive-out-of-page_move_anon_rmap.patch
+mm-rmap-convert-page_move_anon_rmap-to-folio_move_anon_rmap.patch
+memory-move-exclusivity-detection-in-do_wp_page-into-wp_can_reuse_anon_folio.patch
 
