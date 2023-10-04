@@ -2,33 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87FCDE7C4F4
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:23:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA179E75455
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:23:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244932AbjJDUXH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:23:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58054 "EHLO
+        id S244594AbjJDUXJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:23:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38870 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244982AbjJDUWb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:22:31 -0400
+        with ESMTP id S245012AbjJDUWc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:22:32 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 97B43AD
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:22:10 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4350C433C7;
-        Wed,  4 Oct 2023 20:22:09 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19D3CD9
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:22:17 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E4AFC433C7;
+        Wed,  4 Oct 2023 20:22:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450930;
-        bh=9IENxfK6zFAZUzz4gCzfXq/liI5TigR9L039oKmQXVs=;
+        s=korg; t=1696450936;
+        bh=muf8kOK/iFTjKaGpR5gcxXlwCzVaLgH2ZsLjSaOJRso=;
         h=Date:To:From:Subject:From;
-        b=1OCVS75lrK1yjzIXGSoZNKSl4KtRtpjN6xof7/M3mzL7nSuag+aJAh9RV9Lsajsn9
-         uge2DtOj9beBEnLx6DUljY5gFkPD8DkANRBKotPJndl+ovE+duvCjtsZrdDXAZdNKl
-         7M0GltNZaE/INzC6tRWaGjZrY2Y7Q7st9K3Li8FU=
-Date:   Wed, 04 Oct 2023 13:22:08 -0700
-To:     mm-commits@vger.kernel.org, brendanhiggins@google.com,
-        sj@kernel.org, akpm@linux-foundation.org
+        b=Hw8FyktHdvJCrCQC4zHAP3ORiKQaOPYlhAiDNtkYdwk/eDARDASLm7Vzbpo8vXqIv
+         f4G/ohR/lXn1XopdGsOghsWNUMM5NUSesOjTAZRQtM4xno4WxoIoxfMH8k64xgDjOi
+         uVK9gLSvhw8K9xSgkleePrDvkDft1XTWvKaNh9kc=
+Date:   Wed, 04 Oct 2023 13:22:15 -0700
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        rppt@kernel.org, punit.agrawal@bytedance.com,
+        mike.kravetz@oracle.com, fam.zheng@bytedance.com,
+        usama.arif@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-use-pseudo-moving-sum-for-nr_accesses_bp.patch removed from -mm tree
-Message-Id: <20231004202209.E4350C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb_vmemmap-use-nid-of-the-head-page-to-reallocate-it.patch removed from -mm tree
+Message-Id: <20231004202216.7E4AFC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,185 +38,73 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/core: use pseudo-moving sum for nr_accesses_bp
+     Subject: mm: hugetlb_vmemmap: use nid of the head page to reallocate it
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-use-pseudo-moving-sum-for-nr_accesses_bp.patch
+     mm-hugetlb_vmemmap-use-nid-of-the-head-page-to-reallocate-it.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: use pseudo-moving sum for nr_accesses_bp
-Date: Fri, 15 Sep 2023 02:52:49 +0000
+From: Usama Arif <usama.arif@bytedance.com>
+Subject: mm: hugetlb_vmemmap: use nid of the head page to reallocate it
+Date: Wed, 13 Sep 2023 11:53:58 +0100
 
-Let nr_accesses_bp be calculated as a pseudo-moving sum that updated for
-every sampling interval, using damon_moving_sum().  This is assumed to be
-useful for cases that the aggregation interval is set quite huge, but the
-monivoting results need to be collected earlier than next aggregation
-interval is passed.
+Patch series "mm: hugetlb: Skip initialization of gigantic tail struct
+pages if freed by HVO", v5.
 
-Link: https://lkml.kernel.org/r/20230915025251.72816-7-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Brendan Higgins <brendanhiggins@google.com>
+This series moves the boot time initialization of tail struct pages of a
+gigantic page to later on in the boot.  Only the
+HUGETLB_VMEMMAP_RESERVE_SIZE / sizeof(struct page) - 1 tail struct pages
+are initialized at the start.  If HVO is successful, then no more tail
+struct pages need to be initialized.  For a 1G hugepage, this series avoid
+initialization of 262144 - 63 = 262081 struct pages per hugepage.
+
+When tested on a 512G system (allocating 500 1G hugepages), the kexec-boot
+times with DEFERRED_STRUCT_PAGE_INIT enabled are:
+
+- with patches, HVO enabled: 1.32 seconds
+- with patches, HVO disabled: 2.15 seconds
+- without patches, HVO enabled: 3.90  seconds
+- without patches, HVO disabled: 3.58 seconds
+
+This represents an approximately 70% reduction in boot time and will
+significantly reduce server downtime when using a large number of gigantic
+pages.
+
+
+This patch (of 4):
+
+If tail page prep and initialization is skipped, then the "start" page
+will not contain the correct nid.  Use the nid from first vmemap page.
+
+Link: https://lkml.kernel.org/r/20230913105401.519709-1-usama.arif@bytedance.com
+Link: https://lkml.kernel.org/r/20230913105401.519709-2-usama.arif@bytedance.com
+Signed-off-by: Usama Arif <usama.arif@bytedance.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Fam Zheng <fam.zheng@bytedance.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Punit Agrawal <punit.agrawal@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |   12 +++++++++---
- mm/damon/core.c       |   16 +++++++++++++++-
- mm/damon/paddr.c      |    9 +++++----
- mm/damon/vaddr.c      |   12 +++++++-----
- 4 files changed, 36 insertions(+), 13 deletions(-)
+ mm/hugetlb_vmemmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/damon.h~mm-damon-core-use-pseudo-moving-sum-for-nr_accesses_bp
-+++ a/include/linux/damon.h
-@@ -40,7 +40,8 @@ struct damon_addr_range {
-  * @ar:			The address range of the region.
-  * @sampling_addr:	Address of the sample for the next access check.
-  * @nr_accesses:	Access frequency of this region.
-- * @nr_accesses_bp:	@nr_accesses in basis point (0.01%).
-+ * @nr_accesses_bp:	@nr_accesses in basis point (0.01%) that updated for
-+ *			each sampling interval.
-  * @list:		List head for siblings.
-  * @age:		Age of this region.
-  *
-@@ -51,7 +52,11 @@ struct damon_addr_range {
-  * damon_update_region_access_rate().
-  *
-  * @nr_accesses_bp is another representation of @nr_accesses in basis point
-- * (1 in 10,000) that updated every aggregation interval.
-+ * (1 in 10,000) that updated for every &damon_attrs->sample_interval in a
-+ * manner similar to moving sum.  By the algorithm, this value becomes
-+ * @nr_accesses * 10000 for every &struct damon_attrs->aggr_interval.  This can
-+ * be used when the aggregation interval is too huge and therefore cannot wait
-+ * for it before getting the access monitoring results.
-  *
-  * @age is initially zero, increased for each aggregation interval, and reset
-  * to zero again if the access frequency is significantly changed.  If two
-@@ -629,7 +634,8 @@ int damon_set_regions(struct damon_targe
- 		unsigned int nr_ranges);
- unsigned int damon_moving_sum(unsigned int mvsum, unsigned int nomvsum,
- 		unsigned int len_window, unsigned int new_value);
--void damon_update_region_access_rate(struct damon_region *r, bool accessed);
-+void damon_update_region_access_rate(struct damon_region *r, bool accessed,
-+		struct damon_attrs *attrs);
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-use-nid-of-the-head-page-to-reallocate-it
++++ a/mm/hugetlb_vmemmap.c
+@@ -319,7 +319,7 @@ static int vmemmap_remap_free(unsigned l
+ 		.reuse_addr	= reuse,
+ 		.vmemmap_pages	= &vmemmap_pages,
+ 	};
+-	int nid = page_to_nid((struct page *)start);
++	int nid = page_to_nid((struct page *)reuse);
+ 	gfp_t gfp_mask = GFP_KERNEL | __GFP_NORETRY | __GFP_NOWARN;
  
- struct damos_filter *damos_new_filter(enum damos_filter_type type,
- 		bool matching);
---- a/mm/damon/core.c~mm-damon-core-use-pseudo-moving-sum-for-nr_accesses_bp
-+++ a/mm/damon/core.c
-@@ -1599,14 +1599,28 @@ unsigned int damon_moving_sum(unsigned i
-  * damon_update_region_access_rate() - Update the access rate of a region.
-  * @r:		The DAMON region to update for its access check result.
-  * @accessed:	Whether the region has accessed during last sampling interval.
-+ * @attrs:	The damon_attrs of the DAMON context.
-  *
-  * Update the access rate of a region with the region's last sampling interval
-  * access check result.
-  *
-  * Usually this will be called by &damon_operations->check_accesses callback.
-  */
--void damon_update_region_access_rate(struct damon_region *r, bool accessed)
-+void damon_update_region_access_rate(struct damon_region *r, bool accessed,
-+		struct damon_attrs *attrs)
- {
-+	unsigned int len_window = 1;
-+
-+	/*
-+	 * sample_interval can be zero, but cannot be larger than
-+	 * aggr_interval, owing to validation of damon_set_attrs().
-+	 */
-+	if (attrs->sample_interval)
-+		len_window = attrs->aggr_interval / attrs->sample_interval;
-+	r->nr_accesses_bp = damon_moving_sum(r->nr_accesses_bp,
-+			r->last_nr_accesses * 10000, len_window,
-+			accessed ? 10000 : 0);
-+
- 	if (accessed)
- 		r->nr_accesses++;
- }
---- a/mm/damon/paddr.c~mm-damon-core-use-pseudo-moving-sum-for-nr_accesses_bp
-+++ a/mm/damon/paddr.c
-@@ -148,7 +148,8 @@ out:
- 	return accessed;
- }
- 
--static void __damon_pa_check_access(struct damon_region *r)
-+static void __damon_pa_check_access(struct damon_region *r,
-+		struct damon_attrs *attrs)
- {
- 	static unsigned long last_addr;
- 	static unsigned long last_folio_sz = PAGE_SIZE;
-@@ -157,12 +158,12 @@ static void __damon_pa_check_access(stru
- 	/* If the region is in the last checked page, reuse the result */
- 	if (ALIGN_DOWN(last_addr, last_folio_sz) ==
- 				ALIGN_DOWN(r->sampling_addr, last_folio_sz)) {
--		damon_update_region_access_rate(r, last_accessed);
-+		damon_update_region_access_rate(r, last_accessed, attrs);
- 		return;
- 	}
- 
- 	last_accessed = damon_pa_young(r->sampling_addr, &last_folio_sz);
--	damon_update_region_access_rate(r, last_accessed);
-+	damon_update_region_access_rate(r, last_accessed, attrs);
- 
- 	last_addr = r->sampling_addr;
- }
-@@ -175,7 +176,7 @@ static unsigned int damon_pa_check_acces
- 
- 	damon_for_each_target(t, ctx) {
- 		damon_for_each_region(r, t) {
--			__damon_pa_check_access(r);
-+			__damon_pa_check_access(r, &ctx->attrs);
- 			max_nr_accesses = max(r->nr_accesses, max_nr_accesses);
- 		}
- 	}
---- a/mm/damon/vaddr.c~mm-damon-core-use-pseudo-moving-sum-for-nr_accesses_bp
-+++ a/mm/damon/vaddr.c
-@@ -558,26 +558,27 @@ static bool damon_va_young(struct mm_str
-  * r	the region to be checked
-  */
- static void __damon_va_check_access(struct mm_struct *mm,
--				struct damon_region *r, bool same_target)
-+				struct damon_region *r, bool same_target,
-+				struct damon_attrs *attrs)
- {
- 	static unsigned long last_addr;
- 	static unsigned long last_folio_sz = PAGE_SIZE;
- 	static bool last_accessed;
- 
- 	if (!mm) {
--		damon_update_region_access_rate(r, false);
-+		damon_update_region_access_rate(r, false, attrs);
- 		return;
- 	}
- 
- 	/* If the region is in the last checked page, reuse the result */
- 	if (same_target && (ALIGN_DOWN(last_addr, last_folio_sz) ==
- 				ALIGN_DOWN(r->sampling_addr, last_folio_sz))) {
--		damon_update_region_access_rate(r, last_accessed);
-+		damon_update_region_access_rate(r, last_accessed, attrs);
- 		return;
- 	}
- 
- 	last_accessed = damon_va_young(mm, r->sampling_addr, &last_folio_sz);
--	damon_update_region_access_rate(r, last_accessed);
-+	damon_update_region_access_rate(r, last_accessed, attrs);
- 
- 	last_addr = r->sampling_addr;
- }
-@@ -594,7 +595,8 @@ static unsigned int damon_va_check_acces
- 		mm = damon_get_mm(t);
- 		same_target = false;
- 		damon_for_each_region(r, t) {
--			__damon_va_check_access(mm, r, same_target);
-+			__damon_va_check_access(mm, r, same_target,
-+					&ctx->attrs);
- 			max_nr_accesses = max(r->nr_accesses, max_nr_accesses);
- 			same_target = true;
- 		}
+ 	/*
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from usama.arif@bytedance.com are
 
 
