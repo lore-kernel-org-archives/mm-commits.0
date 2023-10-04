@@ -2,36 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F739E7C4F3
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:17:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CAB64E7C4F4
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:17:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233332AbjJDURD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:17:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34456 "EHLO
+        id S233433AbjJDURG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:17:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34464 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232977AbjJDURD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:17:03 -0400
+        with ESMTP id S232977AbjJDURF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:17:05 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E723A93
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:16:59 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37796C433C7;
-        Wed,  4 Oct 2023 20:16:59 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F4DE93
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:17:02 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87CB5C433C7;
+        Wed,  4 Oct 2023 20:17:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450619;
-        bh=lhVRZl3KmW1WaH+yUWFohuzrDwOyjS3WrOBYyl0i/T8=;
+        s=korg; t=1696450621;
+        bh=cdjazfbp8Pz0orhe+iGwTWziknZjJcPZxbxU2sniEC4=;
         h=Date:To:From:Subject:From;
-        b=N27NNnWbUk3Xjik99CTf5pvclSLfrtLUchxCD3ZKZegTfG3gFKvo4/z64XT/kLKEM
-         n1baX94WYiTX2u+bIrS1OE553rJTVwmDprwLfRT90sHUVu6RYWpnBGW64MSUu6rKqk
-         3IvNpza758bARZd7bWUrdH3Nf/h4RoczOAOKwszA=
-Date:   Wed, 04 Oct 2023 13:16:57 -0700
-To:     mm-commits@vger.kernel.org, yosryahmed@google.com, tj@kernel.org,
-        shuah@kernel.org, shakeelb@google.com, roman.gushchin@linux.dev,
-        riel@surriel.com, muchun.song@linux.dev, mike.kravetz@oracle.com,
-        mhocko@suse.com, lizefan.x@bytedance.com, hannes@cmpxchg.org,
-        fvdl@google.com, nphamcs@gmail.com, akpm@linux-foundation.org
+        b=kg+vfXgY8msEC+tVF2hbzRHFtxhkqeiOPhAoHzPVQopfik/fvYiX2SWEIm8Um7GqM
+         aE10dmWbdiaKxeCYJvvnR3YsDDbWdFIeoF+CRBeTDhiBWY7+aW1WUw/hPV0cI9L8J4
+         8wa29CBmWY2egZJPNqvak5HGz104Cc1emCv4V0I4=
+Date:   Wed, 04 Oct 2023 13:17:00 -0700
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, hughd@google.com,
+        adobriyan@gmail.com, swarupkotikalapudi@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-memcg-account-hugetlb-backed-memory-in-memory-controller-fix.patch added to mm-unstable branch
-Message-Id: <20231004201659.37796C433C7@smtp.kernel.org>
+Subject: + selftests-proc-add-proc-pid-statm-output-validation.patch added to mm-nonmm-unstable branch
+Message-Id: <20231004201701.87CB5C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,14 +37,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcontrol: only transfer the memcg data for migration
-has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-memcg-account-hugetlb-backed-memory-in-memory-controller-fix.patch
+     Subject: selftests: proc: add /proc/$(pid)/statm output validation
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     selftests-proc-add-proc-pid-statm-output-validation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-memcg-account-hugetlb-backed-memory-in-memory-controller-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-proc-add-proc-pid-statm-output-validation.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -62,174 +60,106 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nhat Pham <nphamcs@gmail.com>
-Subject: memcontrol: only transfer the memcg data for migration
-Date: Tue, 3 Oct 2023 16:14:22 -0700
+From: Swarup Laxman Kotiaklapudi <swarupkotikalapudi@gmail.com>
+Subject: selftests: proc: add /proc/$(pid)/statm output validation
+Date: Wed, 4 Oct 2023 01:13:19 +0530
 
-For most migration use cases, only transfer the memcg data from the old
-folio to the new folio, and clear the old folio's memcg data.  No charging
-and uncharging will be done.  These use cases include the new hugetlb
-memcg accounting behavior (which was not previously handled).
+Add /proc/${pid}/statm validation
 
-This shaves off some work on the migration path, and avoids the temporary
-double charging of a folio during its migration.
+/proc/$(pid)/statm output is expected to be:
+ "0 0 0 * 0 0 0\n"
+Here * can be any value
 
-The only exception is replace_page_cache_folio(), which will use the old
-mem_cgroup_migrate() (now renamed to mem_cgroup_replace_folio).  In that
-context, the isolation of the old page isn't quite as thorough as with
-migration, so we cannot use our new implementation directly.
+Read output of /proc/$(pid)/statm and check except for 4th position, all
+other positions have value zero.
 
-This patch is the result of the following discussion on the new hugetlb
-memcg accounting behavior:
-
-https://lore.kernel.org/lkml/20231003171329.GB314430@monkey/
-
-Link: https://lkml.kernel.org/r/20231003231422.4046187-1-nphamcs@gmail.com
-Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Mike Kravetz <mike.kravetz@oracle.com>
-Closes: https://lore.kernel.org/lkml/20231003171329.GB314430@monkey/
-Cc: Frank van der Linden <fvdl@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
+Link: https://lkml.kernel.org/r/20231003194319.602646-1-swarupkotikalapudi@gmail.com
+Signed-off-by: Swarup Laxman Kotiaklapudi <swarupkotikalapudi@gmail.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Shuah Khan <shuah@kernel.org>
-Cc: Tejun heo <tj@kernel.org>
-Cc: Yosry Ahmed <yosryahmed@google.com>
-Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    7 +++++
- mm/filemap.c               |    2 -
- mm/memcontrol.c            |   45 ++++++++++++++++++++++++++++++++---
- mm/migrate.c               |    3 --
- 4 files changed, 51 insertions(+), 6 deletions(-)
+ tools/testing/selftests/proc/proc-empty-vm.c |   57 +++++++++++++++--
+ 1 file changed, 52 insertions(+), 5 deletions(-)
 
---- a/include/linux/memcontrol.h~hugetlb-memcg-account-hugetlb-backed-memory-in-memory-controller-fix
-+++ a/include/linux/memcontrol.h
-@@ -727,6 +727,8 @@ static inline void mem_cgroup_uncharge_l
- 
- void mem_cgroup_cancel_charge(struct mem_cgroup *memcg, unsigned int nr_pages);
- 
-+void mem_cgroup_replace_folio(struct folio *old, struct folio *new);
-+
- void mem_cgroup_migrate(struct folio *old, struct folio *new);
- 
- /**
-@@ -1310,6 +1312,11 @@ static inline void mem_cgroup_cancel_cha
- {
+--- a/tools/testing/selftests/proc/proc-empty-vm.c~selftests-proc-add-proc-pid-statm-output-validation
++++ a/tools/testing/selftests/proc/proc-empty-vm.c
+@@ -303,6 +303,56 @@ static int test_proc_pid_smaps_rollup(pi
+ 	}
  }
  
-+static inline void mem_cgroup_replace_folio(struct folio *old,
-+		struct folio *new)
++static int test_proc_pid_statm(pid_t pid)
 +{
-+}
++	char buf[4096];
++	char *tok;
++	char *string;
++	int non_zero_value_indx = 4;
++	int i = 1;
 +
- static inline void mem_cgroup_migrate(struct folio *old, struct folio *new)
- {
- }
---- a/mm/filemap.c~hugetlb-memcg-account-hugetlb-backed-memory-in-memory-controller-fix
-+++ a/mm/filemap.c
-@@ -816,7 +816,7 @@ void replace_page_cache_folio(struct fol
- 	new->mapping = mapping;
- 	new->index = offset;
- 
--	mem_cgroup_migrate(old, new);
-+	mem_cgroup_replace_folio(old, new);
- 
- 	xas_lock_irq(&xas);
- 	xas_store(&xas, new);
---- a/mm/memcontrol.c~hugetlb-memcg-account-hugetlb-backed-memory-in-memory-controller-fix
-+++ a/mm/memcontrol.c
-@@ -7471,16 +7471,17 @@ void __mem_cgroup_uncharge_list(struct l
- }
- 
- /**
-- * mem_cgroup_migrate - Charge a folio's replacement.
-+ * mem_cgroup_replace_folio - Charge a folio's replacement.
-  * @old: Currently circulating folio.
-  * @new: Replacement folio.
-  *
-  * Charge @new as a replacement folio for @old. @old will
-- * be uncharged upon free.
-+ * be uncharged upon free. This is only used by the page cache
-+ * (in replace_page_cache_folio()).
-  *
-  * Both folios must be locked, @new->mapping must be set up.
-  */
--void mem_cgroup_migrate(struct folio *old, struct folio *new)
-+void mem_cgroup_replace_folio(struct folio *old, struct folio *new)
- {
- 	struct mem_cgroup *memcg;
- 	long nr_pages = folio_nr_pages(new);
-@@ -7519,6 +7520,44 @@ void mem_cgroup_migrate(struct folio *ol
- 	local_irq_restore(flags);
- }
- 
-+/**
-+ * mem_cgroup_migrate - Transfer the memcg data from the old to the new folio.
-+ * @old: Currently circulating folio.
-+ * @new: Replacement folio.
-+ *
-+ * Transfer the memcg data from the old folio to the new folio for migration.
-+ * The old folio's data info will be cleared. Note that the memory counters
-+ * will remain unchanged throughout the process.
-+ *
-+ * Both folios must be locked, @new->mapping must be set up.
-+ */
-+void mem_cgroup_migrate(struct folio *old, struct folio *new)
-+{
-+	struct mem_cgroup *memcg;
++	snprintf(buf, sizeof(buf), "/proc/%u/statm", pid);
 +
-+	VM_BUG_ON_FOLIO(!folio_test_locked(old), old);
-+	VM_BUG_ON_FOLIO(!folio_test_locked(new), new);
-+	VM_BUG_ON_FOLIO(folio_test_anon(old) != folio_test_anon(new), new);
-+	VM_BUG_ON_FOLIO(folio_nr_pages(old) != folio_nr_pages(new), new);
-+
-+	if (mem_cgroup_disabled())
-+		return;
-+
-+	memcg = folio_memcg(old);
 +	/*
-+	 * Note that it is normal to see !memcg for a hugetlb folio.
-+	 * It could have been allocated when memory_hugetlb_accounting was not
-+	 * selected, for e.g.
++	 *  Output can be "0 0 0 2 0 0 0\n" where "2" can be anything.
 +	 */
-+	VM_WARN_ON_ONCE_FOLIO(!memcg, old);
-+	if (!memcg)
-+		return;
++	int fd = open(buf, O_RDONLY);
 +
-+	/* Transfer the charge and the css ref */
-+	commit_charge(new, memcg);
-+	old->memcg_data = 0;
++	if (fd == -1) {
++		if (errno == ENOENT) {
++			/*
++			 * /proc/${pid}/statm is under CONFIG_PROC_PAGE_MONITOR,
++			 * it doesn't necessarily exist.
++			 */
++			return EXIT_SUCCESS;
++		}
++		perror("open /proc/${pid}/statm");
++		return EXIT_FAILURE;
++	} else {
++		ssize_t rv = read(fd, buf, sizeof(buf));
++
++		close(fd);
++		assert(rv);
++		string = buf;
++
++		while ((tok = strsep(&string, " ")) != NULL) {
++			if (i == non_zero_value_indx) {
++				if (!strncmp(tok, "0", 1))
++					goto err_statm;
++			} else {
++				if (strncmp(tok, "0", 1))
++					goto err_statm;
++			}
++			i++;
++		}
++	}
++
++	return EXIT_SUCCESS;
++
++err_statm:
++	assert(0);
 +}
 +
- DEFINE_STATIC_KEY_FALSE(memcg_sockets_enabled_key);
- EXPORT_SYMBOL(memcg_sockets_enabled_key);
+ int main(void)
+ {
+ 	int rv = EXIT_SUCCESS;
+@@ -389,11 +439,8 @@ int main(void)
+ 		if (rv == EXIT_SUCCESS) {
+ 			rv = test_proc_pid_smaps_rollup(pid);
+ 		}
+-		/*
+-		 * TODO test /proc/${pid}/statm, task_statm()
+-		 * ->start_code, ->end_code aren't updated by munmap().
+-		 * Output can be "0 0 0 2 0 0 0\n" where "2" can be anything.
+-		 */
++		if (rv == EXIT_SUCCESS)
++			rv = test_proc_pid_statm(pid);
  
---- a/mm/migrate.c~hugetlb-memcg-account-hugetlb-backed-memory-in-memory-controller-fix
-+++ a/mm/migrate.c
-@@ -633,8 +633,7 @@ void folio_migrate_flags(struct folio *n
- 
- 	folio_copy_owner(newfolio, folio);
- 
--	if (!folio_test_hugetlb(folio))
--		mem_cgroup_migrate(folio, newfolio);
-+	mem_cgroup_migrate(folio, newfolio);
- }
- EXPORT_SYMBOL(folio_migrate_flags);
- 
+ 		/* Cut the rope. */
+ 		int wstatus;
 _
 
-Patches currently in -mm which might be from nphamcs@gmail.com are
+Patches currently in -mm which might be from swarupkotikalapudi@gmail.com are
 
-zswap-change-zswaps-default-allocator-to-zsmalloc.patch
-zswap-shrinks-zswap-pool-based-on-memory-pressure.patch
-memcontrol-add-helpers-for-hugetlb-memcg-accounting.patch
-hugetlb-memcg-account-hugetlb-backed-memory-in-memory-controller.patch
-hugetlb-memcg-account-hugetlb-backed-memory-in-memory-controller-fix.patch
-selftests-add-a-selftest-to-verify-hugetlb-usage-in-memcg.patch
+selftests-proc-add-proc-pid-statm-output-validation.patch
 
