@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84529E7C4F5
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:22:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB90EE7C4F6
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:22:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244756AbjJDUWv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:22:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57970 "EHLO
+        id S244846AbjJDUWy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:22:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55152 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244924AbjJDUW2 (ORCPT
+        with ESMTP id S244932AbjJDUW2 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:22:28 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A1691734
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:21:35 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FEC6C433C8;
-        Wed,  4 Oct 2023 20:21:34 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71A411738
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:21:39 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDDB9C433C7;
+        Wed,  4 Oct 2023 20:21:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450894;
-        bh=i3oWQjYqNeS/RrBOlzjgNi2/Aq7UgMZueABkYZWylzg=;
+        s=korg; t=1696450899;
+        bh=T0LkLdBDhjnuHuSF+R/UOW44Tl0ka03FW9+GZJqhx7I=;
         h=Date:To:From:Subject:From;
-        b=eJAeTvdblbR33aPyW+rVb4t1x1scymAeP/DKR7It7JJpV9oEyXXbd+2mqhjFCjCVS
-         pfram6W/84JwINmEl/2zgQn4OWG5Yco6EwQhxN/nQQHJL1zqxAHoinbS6K1qHLKNMf
-         YIA4+GFL9EhjncuRAKeX7YV+NbJYIs19jd56uNrk=
-Date:   Wed, 04 Oct 2023 13:21:33 -0700
+        b=u9G2njgKktU/tbRF+T5wnoCb6x9c4RZfM7OtfXhcMbvcCGGCi5w2e6yBf2OIhodRG
+         xgKM2zg64LAuPwBtgijtDeWKHvgvCdkShfNLTrME4nzKQqcaLoWW+q7kZz2DEGXnsM
+         I2991tKT05rtHG9Lvs3HzyNsxDpYKtWxJbxokXgY=
+Date:   Wed, 04 Oct 2023 13:21:37 -0700
 To:     mm-commits@vger.kernel.org, teawater@antgroup.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] buffer-convert-sb_getblk-to-call-__getblk.patch removed from -mm tree
-Message-Id: <20231004202134.9FEC6C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] buffer-remove-__getblk_gfp.patch removed from -mm tree
+Message-Id: <20231004202138.CDDB9C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,49 +36,100 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: buffer: convert sb_getblk() to call __getblk()
+     Subject: buffer: remove __getblk_gfp()
 has been removed from the -mm tree.  Its filename was
-     buffer-convert-sb_getblk-to-call-__getblk.patch
+     buffer-remove-__getblk_gfp.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: buffer: convert sb_getblk() to call __getblk()
-Date: Thu, 14 Sep 2023 16:00:09 +0100
+Subject: buffer: remove __getblk_gfp()
+Date: Thu, 14 Sep 2023 16:00:11 +0100
 
-Now that __getblk() is in the right place in the file, it is trivial to
-call it from sb_getblk().
+Inline it into __bread_gfp().
 
-Link: https://lkml.kernel.org/r/20230914150011.843330-7-willy@infradead.org
+Link: https://lkml.kernel.org/r/20230914150011.843330-9-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Hui Zhu <teawater@antgroup.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/buffer_head.h |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ fs/buffer.c                 |   36 ++++++++++------------------------
+ include/linux/buffer_head.h |    2 -
+ 2 files changed, 11 insertions(+), 27 deletions(-)
 
---- a/include/linux/buffer_head.h~buffer-convert-sb_getblk-to-call-__getblk
-+++ a/include/linux/buffer_head.h
-@@ -362,13 +362,12 @@ static inline struct buffer_head *__getb
- 	return bdev_getblk(bdev, block, size, gfp);
- }
+--- a/fs/buffer.c~buffer-remove-__getblk_gfp
++++ a/fs/buffer.c
+@@ -1421,9 +1421,6 @@ EXPORT_SYMBOL(__find_get_block);
+  * @size: The size of buffer_heads for this @bdev.
+  * @gfp: The memory allocation flags to use.
+  *
+- * In contrast to __getblk_gfp(), the @gfp flags must be all of the flags;
+- * they are not augmented with the mapping's GFP flags.
+- *
+  * Return: The buffer head, or NULL if memory could not be allocated.
+  */
+ struct buffer_head *bdev_getblk(struct block_device *bdev, sector_t block,
+@@ -1440,27 +1437,6 @@ struct buffer_head *bdev_getblk(struct b
+ EXPORT_SYMBOL(bdev_getblk);
  
--static inline struct buffer_head *
--sb_getblk(struct super_block *sb, sector_t block)
-+static inline struct buffer_head *sb_getblk(struct super_block *sb,
-+		sector_t block)
- {
--	return __getblk_gfp(sb->s_bdev, block, sb->s_blocksize, __GFP_MOVABLE);
-+	return __getblk(sb->s_bdev, block, sb->s_blocksize);
- }
- 
+ /*
+- * __getblk_gfp() will locate (and, if necessary, create) the buffer_head
+- * which corresponds to the passed block_device, block and size. The
+- * returned buffer has its reference count incremented.
+- */
+-struct buffer_head *
+-__getblk_gfp(struct block_device *bdev, sector_t block,
+-	     unsigned size, gfp_t gfp)
+-{
+-	gfp |= mapping_gfp_constraint(bdev->bd_inode->i_mapping, ~__GFP_FS);
 -
- static inline struct buffer_head *
- sb_getblk_gfp(struct super_block *sb, sector_t block, gfp_t gfp)
+-	/*
+-	 * Prefer looping in the allocator rather than here, at least that
+-	 * code knows what it's doing.
+-	 */
+-	gfp |= __GFP_NOFAIL;
+-
+-	return bdev_getblk(bdev, block, size, gfp);
+-}
+-EXPORT_SYMBOL(__getblk_gfp);
+-
+-/*
+  * Do async read-ahead on a buffer..
+  */
+ void __breadahead(struct block_device *bdev, sector_t block, unsigned size)
+@@ -1491,7 +1467,17 @@ struct buffer_head *
+ __bread_gfp(struct block_device *bdev, sector_t block,
+ 		   unsigned size, gfp_t gfp)
  {
+-	struct buffer_head *bh = __getblk_gfp(bdev, block, size, gfp);
++	struct buffer_head *bh;
++
++	gfp |= mapping_gfp_constraint(bdev->bd_inode->i_mapping, ~__GFP_FS);
++
++	/*
++	 * Prefer looping in the allocator rather than here, at least that
++	 * code knows what it's doing.
++	 */
++	gfp |= __GFP_NOFAIL;
++
++	bh = bdev_getblk(bdev, block, size, gfp);
+ 
+ 	if (likely(bh) && !buffer_uptodate(bh))
+ 		bh = __bread_slow(bh);
+--- a/include/linux/buffer_head.h~buffer-remove-__getblk_gfp
++++ a/include/linux/buffer_head.h
+@@ -229,8 +229,6 @@ struct buffer_head *__find_get_block(str
+ 			unsigned size);
+ struct buffer_head *bdev_getblk(struct block_device *bdev, sector_t block,
+ 		unsigned size, gfp_t gfp);
+-struct buffer_head *__getblk_gfp(struct block_device *bdev, sector_t block,
+-				  unsigned size, gfp_t gfp);
+ void __brelse(struct buffer_head *);
+ void __bforget(struct buffer_head *);
+ void __breadahead(struct block_device *, sector_t block, unsigned int size);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
