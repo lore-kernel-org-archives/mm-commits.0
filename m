@@ -2,37 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78119E936E0
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:25:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0832FE936E2
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:25:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244839AbjJDUZO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S243987AbjJDUZO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 4 Oct 2023 16:25:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38830 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38928 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244979AbjJDUY3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:24:29 -0400
+        with ESMTP id S244907AbjJDUYg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:24:36 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DAF6810E9
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:23:55 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4350CC433CA;
-        Wed,  4 Oct 2023 20:23:55 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EBD3F10E4
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:23:57 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 403D3C433C8;
+        Wed,  4 Oct 2023 20:23:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696451035;
-        bh=93ARpE/t3dji45c4Eh44q9g4LrmDxPZdrmNWff/wMjs=;
+        s=korg; t=1696451037;
+        bh=LkS/mCrALlzTqMQi76mIWkEo9QVyQXKyO6sRugcsyJU=;
         h=Date:To:From:Subject:From;
-        b=2wSapzdDekEwkB5hw7jTorCpIV8oqm13dDd8B1uyG1qcCH5YDSqw1GwXnLJg25r6d
-         7Ac7gyBc0HoyJcaLTPe3ixdlqKUOhE97yO6h7QoL6nD3UQjPrBjKPRs5c7u4bSBvxl
-         2tzJl6FlB32bXz8Wx4uWxdOJzldal/NoFBWiy0oI=
-Date:   Wed, 04 Oct 2023 13:23:53 -0700
-To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
-        keescook@chromium.org, junxiao.bi@oracle.com,
-        joseph.qi@linux.alibaba.com, jlbec@evilplan.org,
-        jlayton@kernel.org, jack@suse.cz, ghe@suse.com, gechangwei@live.cn,
-        dchinner@redhat.com, brauner@kernel.org, azeemshaikh38@gmail.com,
+        b=hzbQIe8lfBGrurM8pcNSJ9XUMkTFEQwdcTzZ/n/ZZHu/i6r2IXuvFLGZAdZp2E43G
+         Q2xcXDiClVw/2xqYY0VYBjG47ZOkiC8bG9Uqbl6lfhWly4xsE1kOIuPJITmpcFtgKi
+         JZZzwvyox3HIpiYH/JGu39gQ5QJF+I7hwEPit11A=
+Date:   Wed, 04 Oct 2023 13:23:55 -0700
+To:     mm-commits@vger.kernel.org, ebiederm@xmission.com, oleg@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] fs-ocfs2-replace-strlcpy-with-sysfs_emit.patch removed from -mm tree
-Message-Id: <20231004202355.4350CC433CA@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] taskstats-fill_stats_for_tgid-use-for_each_thread.patch removed from -mm tree
+Message-Id: <20231004202357.403D3C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,65 +36,60 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: fs: ocfs2: replace strlcpy with sysfs_emit
+     Subject: taskstats: fill_stats_for_tgid: use for_each_thread()
 has been removed from the -mm tree.  Its filename was
-     fs-ocfs2-replace-strlcpy-with-sysfs_emit.patch
+     taskstats-fill_stats_for_tgid-use-for_each_thread.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Azeem Shaikh <azeemshaikh38@gmail.com>
-Subject: fs: ocfs2: replace strlcpy with sysfs_emit
-Date: Thu, 31 Aug 2023 19:38:27 +0000
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: taskstats: fill_stats_for_tgid: use for_each_thread()
+Date: Sat, 9 Sep 2023 23:49:51 +0200
 
-strlcpy() reads the entire source buffer first.  This read may exceed the
-destination size limit.  This is both inefficient and can lead to linear
-read overflows if a source string is not NUL-terminated [1].  In an effort
-to remove strlcpy() completely [2], replace strlcpy() here with
-sysfs_emit().
+do/while_each_thread should be avoided when possible.
 
-Direct replacement is safe here since its ok for `kernel_param_ops.get()`
-to return -errno [3].
+Plus I _think_ this change allows to avoid lock_task_sighand() but I am
+not sure, I forgot everything about taskstats.  In any case, this code
+does not look right in that the same thread can be accounted twice:
+taskstats_exit() can account the exiting thread in signal->stats and drop
+->siglock but this thread is still on the thread-group list, so
+lock_task_sighand() can't help.
 
-[1] https://www.kernel.org/doc/html/latest/process/deprecated.html#strlcpy
-[2] https://github.com/KSPP/linux/issues/89
-[3] https://elixir.bootlin.com/linux/v6.5/source/include/linux/moduleparam.h#L52
-
-Link: https://lkml.kernel.org/r/20230831193827.1528867-1-azeemshaikh38@gmail.com
-Signed-off-by: Azeem Shaikh <azeemshaikh38@gmail.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/20230909214951.GA24274@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlmfs/dlmfs.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/taskstats.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/fs/ocfs2/dlmfs/dlmfs.c~fs-ocfs2-replace-strlcpy-with-sysfs_emit
-+++ a/fs/ocfs2/dlmfs/dlmfs.c
-@@ -80,8 +80,7 @@ static int param_set_dlmfs_capabilities(
- static int param_get_dlmfs_capabilities(char *buffer,
- 					const struct kernel_param *kp)
- {
--	return strlcpy(buffer, DLMFS_CAPABILITIES,
--		       strlen(DLMFS_CAPABILITIES) + 1);
-+	return sysfs_emit(buffer, DLMFS_CAPABILITIES);
- }
- module_param_call(capabilities, param_set_dlmfs_capabilities,
- 		  param_get_dlmfs_capabilities, NULL, 0444);
+--- a/kernel/taskstats.c~taskstats-fill_stats_for_tgid-use-for_each_thread
++++ a/kernel/taskstats.c
+@@ -233,9 +233,8 @@ static int fill_stats_for_tgid(pid_t tgi
+ 	else
+ 		memset(stats, 0, sizeof(*stats));
+ 
+-	tsk = first;
+ 	start_time = ktime_get_ns();
+-	do {
++	for_each_thread(first, tsk) {
+ 		if (tsk->exit_state)
+ 			continue;
+ 		/*
+@@ -258,7 +257,7 @@ static int fill_stats_for_tgid(pid_t tgi
+ 
+ 		stats->nvcsw += tsk->nvcsw;
+ 		stats->nivcsw += tsk->nivcsw;
+-	} while_each_thread(first, tsk);
++	}
+ 
+ 	unlock_task_sighand(first, &flags);
+ 	rc = 0;
 _
 
-Patches currently in -mm which might be from azeemshaikh38@gmail.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 
