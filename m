@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45035E936E8
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:23:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94562E936EB
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:23:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244971AbjJDUXT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:23:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55152 "EHLO
+        id S244878AbjJDUXU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:23:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38864 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233545AbjJDUWy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:22:54 -0400
+        with ESMTP id S245016AbjJDUWc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:22:32 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CBADD11B
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:22:50 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32BC3C433C9;
-        Wed,  4 Oct 2023 20:22:50 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 618FBEB
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:22:21 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3668C433C7;
+        Wed,  4 Oct 2023 20:22:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450970;
-        bh=9tP2xrawOqaBF+eMJ1OIEHusLh1fiYbbaqpWtHb5ixg=;
+        s=korg; t=1696450941;
+        bh=rYsYMT3QQBSp0IE+AA3LRG8PcyY70QUdmqlyPDhue5w=;
         h=Date:To:From:Subject:From;
-        b=xVCp/EbeerYeWueziJvsakJc7bCgJ6bQkmH7r6tQhyk78JJeYPOzvnDG82Dc+bBxR
-         c5OPU1kRzdVmVl6IkpNE/leDrT8X/U7va0FoQ5ZIJxo/eY8I5WRRK7E/IbQv9QVi7p
-         K46GRfVE4miWO3BuTsP4kWgRcF8Hi1rj4TlynH38=
-Date:   Wed, 04 Oct 2023 13:22:48 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        roidinev@gmail.com, akpm@linux-foundation.org
+        b=OMIPJGe/8ANnAAlGwj7CzpwfJDj63UbtsH4eFxx3s8LIS12fl+SFu5y9fM/I56l4d
+         +XwR8ivFARWj2Yd4YgRy5g65TElBFTRv1agL5HAV9Mf2u0zGhrRVsYgG0E2H6pqeAC
+         Ik0XCRap1ONPRs2FZD/lljm2afM0/F9FZc23O2eo=
+Date:   Wed, 04 Oct 2023 13:22:19 -0700
+To:     mm-commits@vger.kernel.org, brendanhiggins@google.com,
+        sj@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-writeback-update-filemap_dirty_folio-comment.patch removed from -mm tree
-Message-Id: <20231004202250.32BC3C433C9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-introduce-nr_accesses_bp.patch removed from -mm tree
+Message-Id: <20231004202220.B3668C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,43 +36,148 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/writeback: update filemap_dirty_folio() comment
+     Subject: mm/damon/core: introduce nr_accesses_bp
 has been removed from the -mm tree.  Its filename was
-     mm-writeback-update-filemap_dirty_folio-comment.patch
+     mm-damon-core-introduce-nr_accesses_bp.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jianguo Bao <roidinev@gmail.com>
-Subject: mm/writeback: update filemap_dirty_folio() comment
-Date: Sun, 17 Sep 2023 23:04:01 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: introduce nr_accesses_bp
+Date: Fri, 15 Sep 2023 02:52:48 +0000
 
-Change to use new address space operation dirty_folio().
+Add yet another representation of the access rate of each region, namely
+nr_accesses_bp.  It is just same to the nr_accesses but represents the
+value in basis point (1 in 10,000), and updated at once in every
+aggregation interval.  That is, moving_accesses_bp is just nr_accesses *
+10000.  This may seems useless at the moment.  However, it will be useful
+for representing less than one nr_accesses value that will be needed to
+make moving sum-based nr_accesses.
 
-Link: https://lkml.kernel.org/r/20230917-trycontrib1-v1-1-db22630b8839@gmail.com
-Fixes: 6f31a5a261db ("fs: Add aops->dirty_folio")
-Signed-off-by: Jianguo Bau <roidinev@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20230915025251.72816-6-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Brendan Higgins <brendanhiggins@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/damon.h |    5 +++++
+ mm/damon/core-test.h  |    5 +++++
+ mm/damon/core.c       |    6 ++++++
+ 3 files changed, 16 insertions(+)
 
---- a/mm/page-writeback.c~mm-writeback-update-filemap_dirty_folio-comment
-+++ a/mm/page-writeback.c
-@@ -2679,7 +2679,7 @@ void __folio_mark_dirty(struct folio *fo
-  * @folio: Folio to be marked as dirty.
+--- a/include/linux/damon.h~mm-damon-core-introduce-nr_accesses_bp
++++ a/include/linux/damon.h
+@@ -40,6 +40,7 @@ struct damon_addr_range {
+  * @ar:			The address range of the region.
+  * @sampling_addr:	Address of the sample for the next access check.
+  * @nr_accesses:	Access frequency of this region.
++ * @nr_accesses_bp:	@nr_accesses in basis point (0.01%).
+  * @list:		List head for siblings.
+  * @age:		Age of this region.
   *
-  * Filesystems which do not use buffer heads should call this function
-- * from their set_page_dirty address space operation.  It ignores the
-+ * from their dirty_folio address space operation.  It ignores the
-  * contents of folio_get_private(), so if the filesystem marks individual
-  * blocks as dirty, the filesystem should handle that itself.
+@@ -49,6 +50,9 @@ struct damon_addr_range {
+  * not be done with direct access but with the helper function,
+  * damon_update_region_access_rate().
   *
++ * @nr_accesses_bp is another representation of @nr_accesses in basis point
++ * (1 in 10,000) that updated every aggregation interval.
++ *
+  * @age is initially zero, increased for each aggregation interval, and reset
+  * to zero again if the access frequency is significantly changed.  If two
+  * regions are merged into a new region, both @nr_accesses and @age of the new
+@@ -58,6 +62,7 @@ struct damon_region {
+ 	struct damon_addr_range ar;
+ 	unsigned long sampling_addr;
+ 	unsigned int nr_accesses;
++	unsigned int nr_accesses_bp;
+ 	struct list_head list;
+ 
+ 	unsigned int age;
+--- a/mm/damon/core.c~mm-damon-core-introduce-nr_accesses_bp
++++ a/mm/damon/core.c
+@@ -128,6 +128,7 @@ struct damon_region *damon_new_region(un
+ 	region->ar.start = start;
+ 	region->ar.end = end;
+ 	region->nr_accesses = 0;
++	region->nr_accesses_bp = 0;
+ 	INIT_LIST_HEAD(&region->list);
+ 
+ 	region->age = 0;
+@@ -508,6 +509,7 @@ static void damon_update_monitoring_resu
+ {
+ 	r->nr_accesses = damon_nr_accesses_for_new_attrs(r->nr_accesses,
+ 			old_attrs, new_attrs);
++	r->nr_accesses_bp = r->nr_accesses * 10000;
+ 	r->age = damon_age_for_new_attrs(r->age, old_attrs, new_attrs);
+ }
+ 
+@@ -1115,6 +1117,7 @@ static void damon_merge_two_regions(stru
+ 
+ 	l->nr_accesses = (l->nr_accesses * sz_l + r->nr_accesses * sz_r) /
+ 			(sz_l + sz_r);
++	l->nr_accesses_bp = l->nr_accesses * 10000;
+ 	l->age = (l->age * sz_l + r->age * sz_r) / (sz_l + sz_r);
+ 	l->ar.end = r->ar.end;
+ 	damon_destroy_region(r, t);
+@@ -1138,6 +1141,8 @@ static void damon_merge_regions_of(struc
+ 		else
+ 			r->age++;
+ 
++		r->nr_accesses_bp = r->nr_accesses * 10000;
++
+ 		if (prev && prev->ar.end == r->ar.start &&
+ 		    abs(prev->nr_accesses - r->nr_accesses) <= thres &&
+ 		    damon_sz_region(prev) + damon_sz_region(r) <= sz_limit)
+@@ -1186,6 +1191,7 @@ static void damon_split_region_at(struct
+ 
+ 	new->age = r->age;
+ 	new->last_nr_accesses = r->last_nr_accesses;
++	new->nr_accesses_bp = r->nr_accesses_bp;
+ 
+ 	damon_insert_region(new, r, damon_next_region(r), t);
+ }
+--- a/mm/damon/core-test.h~mm-damon-core-introduce-nr_accesses_bp
++++ a/mm/damon/core-test.h
+@@ -94,6 +94,7 @@ static void damon_test_aggregate(struct
+ 		for (ir = 0; ir < 3; ir++) {
+ 			r = damon_new_region(saddr[it][ir], eaddr[it][ir]);
+ 			r->nr_accesses = accesses[it][ir];
++			r->nr_accesses_bp = accesses[it][ir] * 10000;
+ 			damon_add_region(r, t);
+ 		}
+ 		it++;
+@@ -147,9 +148,11 @@ static void damon_test_merge_two(struct
+ 	t = damon_new_target();
+ 	r = damon_new_region(0, 100);
+ 	r->nr_accesses = 10;
++	r->nr_accesses_bp = 100000;
+ 	damon_add_region(r, t);
+ 	r2 = damon_new_region(100, 300);
+ 	r2->nr_accesses = 20;
++	r2->nr_accesses_bp = 200000;
+ 	damon_add_region(r2, t);
+ 
+ 	damon_merge_two_regions(t, r, r2);
+@@ -196,6 +199,7 @@ static void damon_test_merge_regions_of(
+ 	for (i = 0; i < ARRAY_SIZE(sa); i++) {
+ 		r = damon_new_region(sa[i], ea[i]);
+ 		r->nr_accesses = nrs[i];
++		r->nr_accesses_bp = nrs[i] * 10000;
+ 		damon_add_region(r, t);
+ 	}
+ 
+@@ -297,6 +301,7 @@ static void damon_test_update_monitoring
+ 	struct damon_region *r = damon_new_region(3, 7);
+ 
+ 	r->nr_accesses = 15;
++	r->nr_accesses_bp = 150000;
+ 	r->age = 20;
+ 
+ 	new_attrs = (struct damon_attrs){
 _
 
-Patches currently in -mm which might be from roidinev@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
 
