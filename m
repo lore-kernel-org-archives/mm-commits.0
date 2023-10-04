@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1ECEEE7C4F4
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:20:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 826D3E7C4F1
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:20:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244723AbjJDUUt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:20:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37116 "EHLO
+        id S244503AbjJDUUu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:20:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55152 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244604AbjJDUU0 (ORCPT
+        with ESMTP id S244620AbjJDUU0 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:20:26 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0CC1510E
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:20:13 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43CEDC433C8;
-        Wed,  4 Oct 2023 20:20:12 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE9FA112
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:20:17 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6E7CC433C7;
+        Wed,  4 Oct 2023 20:20:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450812;
-        bh=lWOoB0GFLia/+erlOHHXZSHazlJyb8vyFD+AFFt4iZw=;
+        s=korg; t=1696450817;
+        bh=XTiuPjVdFEuP+4XWBRAmh0HWAIKMXMp19JLBF7l54mw=;
         h=Date:To:From:Subject:From;
-        b=LSwzyhfad27ZLHVoudPjZqh1TZmzQBbjlkCNmGmlzqvdbXPG06BvyCQRWZoy7c5L/
-         LELU25gpf0VS9ahczkJ55SJ6ZKGsLK5WhNUV7kggytjN7GPXlyUnXkIJ+kww4XMT8Q
-         7Qe4QiulCXvKlvNEYpuLpqlM9H3Cyh2/SlREdl1g=
-Date:   Wed, 04 Oct 2023 13:20:10 -0700
+        b=jWSKO6WxtwIpLg3zrq6XWxAnwGzNBJE007HVATH6MDDZw/jQlydz9liw/fM55YkPu
+         /kRUwib4798iGgnEKY6tCmmJjispLjMlvg9g14FOmLUnBB/cE8V7mlHoG+TECcBKaq
+         a1nJWMKZvDSHI8BciNZQjYg+zWNl7mkHFXs4d7TU=
+Date:   Wed, 04 Oct 2023 13:20:15 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] ext4-dynamically-allocate-the-ext4-es-shrinker.patch removed from -mm tree
-Message-Id: <20231004202012.43CEDC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] xfs-dynamically-allocate-the-xfs-buf-shrinker.patch removed from -mm tree
+Message-Id: <20231004202016.E6E7CC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,39 +63,39 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: ext4: dynamically allocate the ext4-es shrinker
+     Subject: xfs: dynamically allocate the xfs-buf shrinker
 has been removed from the -mm tree.  Its filename was
-     ext4-dynamically-allocate-the-ext4-es-shrinker.patch
+     xfs-dynamically-allocate-the-xfs-buf-shrinker.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: ext4: dynamically allocate the ext4-es shrinker
-Date: Mon, 11 Sep 2023 17:44:29 +0800
+Subject: xfs: dynamically allocate the xfs-buf shrinker
+Date: Mon, 11 Sep 2023 17:44:33 +0800
 
 In preparation for implementing lockless slab shrink, use new APIs to
-dynamically allocate the ext4-es shrinker, so that it can be freed
+dynamically allocate the xfs-buf shrinker, so that it can be freed
 asynchronously via RCU. Then it doesn't need to wait for RCU read-side
-critical section when releasing the struct ext4_sb_info.
+critical section when releasing the struct xfs_buftarg.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-31-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-35-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Chandan Babu R <chandan.babu@oracle.com>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alyssa Rosenzweig <alyssa.rosenzweig@collabora.com>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Cc: Anna Schumaker <anna@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Bob Peterson <rpeterso@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Carlos Llamas <cmllamas@google.com>
-Cc: Chandan Babu R <chandan.babu@oracle.com>
 Cc: Chao Yu <chao@kernel.org>
 Cc: Chris Mason <clm@fb.com>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -105,7 +105,6 @@ Cc: Coly Li <colyli@suse.de>
 Cc: Dai Ngo <Dai.Ngo@oracle.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Airlie <airlied@gmail.com>
@@ -148,6 +147,7 @@ Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Song Liu <song@kernel.org>
 Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Steven Price <steven.price@arm.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Cc: Tom Talpey <tom@talpey.com>
@@ -159,75 +159,76 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/ext4.h           |    2 +-
- fs/ext4/extents_status.c |   23 +++++++++++++----------
- 2 files changed, 14 insertions(+), 11 deletions(-)
+ fs/xfs/xfs_buf.c |   24 +++++++++++++-----------
+ fs/xfs/xfs_buf.h |    2 +-
+ 2 files changed, 14 insertions(+), 12 deletions(-)
 
---- a/fs/ext4/ext4.h~ext4-dynamically-allocate-the-ext4-es-shrinker
-+++ a/fs/ext4/ext4.h
-@@ -1653,7 +1653,7 @@ struct ext4_sb_info {
- 	__u32 s_csum_seed;
- 
- 	/* Reclaim extents from extent status tree */
--	struct shrinker s_es_shrinker;
-+	struct shrinker *s_es_shrinker;
- 	struct list_head s_es_list;	/* List of inodes with reclaimable extents */
- 	long s_es_nr_inode;
- 	struct ext4_es_stats s_es_stats;
---- a/fs/ext4/extents_status.c~ext4-dynamically-allocate-the-ext4-es-shrinker
-+++ a/fs/ext4/extents_status.c
-@@ -1606,7 +1606,7 @@ static unsigned long ext4_es_count(struc
- 	unsigned long nr;
- 	struct ext4_sb_info *sbi;
- 
--	sbi = container_of(shrink, struct ext4_sb_info, s_es_shrinker);
-+	sbi = shrink->private_data;
- 	nr = percpu_counter_read_positive(&sbi->s_es_stats.es_stats_shk_cnt);
- 	trace_ext4_es_shrink_count(sbi->s_sb, sc->nr_to_scan, nr);
- 	return nr;
-@@ -1615,8 +1615,7 @@ static unsigned long ext4_es_count(struc
- static unsigned long ext4_es_scan(struct shrinker *shrink,
- 				  struct shrink_control *sc)
+--- a/fs/xfs/xfs_buf.c~xfs-dynamically-allocate-the-xfs-buf-shrinker
++++ a/fs/xfs/xfs_buf.c
+@@ -1913,8 +1913,7 @@ xfs_buftarg_shrink_scan(
+ 	struct shrinker		*shrink,
+ 	struct shrink_control	*sc)
  {
--	struct ext4_sb_info *sbi = container_of(shrink,
--					struct ext4_sb_info, s_es_shrinker);
-+	struct ext4_sb_info *sbi = shrink->private_data;
- 	int nr_to_scan = sc->nr_to_scan;
- 	int ret, nr_shrunk;
+-	struct xfs_buftarg	*btp = container_of(shrink,
+-					struct xfs_buftarg, bt_shrinker);
++	struct xfs_buftarg	*btp = shrink->private_data;
+ 	LIST_HEAD(dispose);
+ 	unsigned long		freed;
  
-@@ -1700,13 +1699,17 @@ int ext4_es_register_shrinker(struct ext
- 	if (err)
- 		goto err3;
- 
--	sbi->s_es_shrinker.scan_objects = ext4_es_scan;
--	sbi->s_es_shrinker.count_objects = ext4_es_count;
--	sbi->s_es_shrinker.seeks = DEFAULT_SEEKS;
--	err = register_shrinker(&sbi->s_es_shrinker, "ext4-es:%s",
--				sbi->s_sb->s_id);
--	if (err)
-+	sbi->s_es_shrinker = shrinker_alloc(0, "ext4-es:%s", sbi->s_sb->s_id);
-+	if (!sbi->s_es_shrinker) {
-+		err = -ENOMEM;
- 		goto err4;
-+	}
-+
-+	sbi->s_es_shrinker->scan_objects = ext4_es_scan;
-+	sbi->s_es_shrinker->count_objects = ext4_es_count;
-+	sbi->s_es_shrinker->private_data = sbi;
-+
-+	shrinker_register(sbi->s_es_shrinker);
- 
- 	return 0;
- err4:
-@@ -1726,7 +1729,7 @@ void ext4_es_unregister_shrinker(struct
- 	percpu_counter_destroy(&sbi->s_es_stats.es_stats_cache_misses);
- 	percpu_counter_destroy(&sbi->s_es_stats.es_stats_all_cnt);
- 	percpu_counter_destroy(&sbi->s_es_stats.es_stats_shk_cnt);
--	unregister_shrinker(&sbi->s_es_shrinker);
-+	shrinker_free(sbi->s_es_shrinker);
+@@ -1936,8 +1935,7 @@ xfs_buftarg_shrink_count(
+ 	struct shrinker		*shrink,
+ 	struct shrink_control	*sc)
+ {
+-	struct xfs_buftarg	*btp = container_of(shrink,
+-					struct xfs_buftarg, bt_shrinker);
++	struct xfs_buftarg	*btp = shrink->private_data;
+ 	return list_lru_shrink_count(&btp->bt_lru, sc);
  }
  
- /*
+@@ -1947,7 +1945,7 @@ xfs_free_buftarg(
+ {
+ 	struct block_device	*bdev = btp->bt_bdev;
+ 
+-	unregister_shrinker(&btp->bt_shrinker);
++	shrinker_free(btp->bt_shrinker);
+ 	ASSERT(percpu_counter_sum(&btp->bt_io_count) == 0);
+ 	percpu_counter_destroy(&btp->bt_io_count);
+ 	list_lru_destroy(&btp->bt_lru);
+@@ -2031,13 +2029,17 @@ xfs_alloc_buftarg(
+ 	if (percpu_counter_init(&btp->bt_io_count, 0, GFP_KERNEL))
+ 		goto error_lru;
+ 
+-	btp->bt_shrinker.count_objects = xfs_buftarg_shrink_count;
+-	btp->bt_shrinker.scan_objects = xfs_buftarg_shrink_scan;
+-	btp->bt_shrinker.seeks = DEFAULT_SEEKS;
+-	btp->bt_shrinker.flags = SHRINKER_NUMA_AWARE;
+-	if (register_shrinker(&btp->bt_shrinker, "xfs-buf:%s",
+-			      mp->m_super->s_id))
++	btp->bt_shrinker = shrinker_alloc(SHRINKER_NUMA_AWARE, "xfs-buf:%s",
++					  mp->m_super->s_id);
++	if (!btp->bt_shrinker)
+ 		goto error_pcpu;
++
++	btp->bt_shrinker->count_objects = xfs_buftarg_shrink_count;
++	btp->bt_shrinker->scan_objects = xfs_buftarg_shrink_scan;
++	btp->bt_shrinker->private_data = btp;
++
++	shrinker_register(btp->bt_shrinker);
++
+ 	return btp;
+ 
+ error_pcpu:
+--- a/fs/xfs/xfs_buf.h~xfs-dynamically-allocate-the-xfs-buf-shrinker
++++ a/fs/xfs/xfs_buf.h
+@@ -108,7 +108,7 @@ typedef struct xfs_buftarg {
+ 	size_t			bt_logical_sectormask;
+ 
+ 	/* LRU control structures */
+-	struct shrinker		bt_shrinker;
++	struct shrinker		*bt_shrinker;
+ 	struct list_lru		bt_lru;
+ 
+ 	struct percpu_counter	bt_io_count;
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
