@@ -2,33 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0832FE936E2
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:25:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 349CFE936E3
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:25:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243987AbjJDUZO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:25:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38928 "EHLO
+        id S244884AbjJDUZR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:25:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46586 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244907AbjJDUYg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:24:36 -0400
+        with ESMTP id S244998AbjJDUYl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:24:41 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EBD3F10E4
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:23:57 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 403D3C433C8;
-        Wed,  4 Oct 2023 20:23:57 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C997410FA
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:23:59 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BC4EC433C9;
+        Wed,  4 Oct 2023 20:23:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696451037;
-        bh=LkS/mCrALlzTqMQi76mIWkEo9QVyQXKyO6sRugcsyJU=;
+        s=korg; t=1696451039;
+        bh=hX4U0XaGlIgA4hL6VS/EdSwUnxZ0SPnouITNi7pyG5U=;
         h=Date:To:From:Subject:From;
-        b=hzbQIe8lfBGrurM8pcNSJ9XUMkTFEQwdcTzZ/n/ZZHu/i6r2IXuvFLGZAdZp2E43G
-         Q2xcXDiClVw/2xqYY0VYBjG47ZOkiC8bG9Uqbl6lfhWly4xsE1kOIuPJITmpcFtgKi
-         JZZzwvyox3HIpiYH/JGu39gQ5QJF+I7hwEPit11A=
-Date:   Wed, 04 Oct 2023 13:23:55 -0700
-To:     mm-commits@vger.kernel.org, ebiederm@xmission.com, oleg@redhat.com,
+        b=SGzSOXNwH27VfOFd/tSI/lncsO1O62KylAetnm7mZip6z4sc4RpshI4LOrodGzv3O
+         wWe5kYmwWQjaetjfZlaNeGUDWNJc9dSiuvNGbHnQUO1RtPQ7anlNQ7Scr+C3ddIr+Q
+         aawKQ+WcHxR2MPCArzNYcEeZoij3mrrbHrRdgvTE=
+Date:   Wed, 04 Oct 2023 13:23:57 -0700
+To:     mm-commits@vger.kernel.org, thunder.leizhen@huawei.com,
+        chenjiahao16@huawei.com, catalin.marinas@arm.com, bhe@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] taskstats-fill_stats_for_tgid-use-for_each_thread.patch removed from -mm tree
-Message-Id: <20231004202357.403D3C433C8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] crash_core-change-the-prototype-of-function-parse_crashkernel.patch removed from -mm tree
+Message-Id: <20231004202359.3BC4EC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,60 +37,224 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: taskstats: fill_stats_for_tgid: use for_each_thread()
+     Subject: crash_core: change the prototype of function parse_crashkernel()
 has been removed from the -mm tree.  Its filename was
-     taskstats-fill_stats_for_tgid-use-for_each_thread.patch
+     crash_core-change-the-prototype-of-function-parse_crashkernel.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: taskstats: fill_stats_for_tgid: use for_each_thread()
-Date: Sat, 9 Sep 2023 23:49:51 +0200
+From: Baoquan He <bhe@redhat.com>
+Subject: crash_core: change the prototype of function parse_crashkernel()
+Date: Thu, 14 Sep 2023 11:31:35 +0800
 
-do/while_each_thread should be avoided when possible.
+Add two parameters 'low_size' and 'high' to function parse_crashkernel(),
+later crashkernel=,high|low parsing will be added.  Make adjustments in
+all call sites of parse_crashkernel() in arch.
 
-Plus I _think_ this change allows to avoid lock_task_sighand() but I am
-not sure, I forgot everything about taskstats.  In any case, this code
-does not look right in that the same thread can be accounted twice:
-taskstats_exit() can account the exiting thread in signal->stats and drop
-->siglock but this thread is still on the thread-group list, so
-lock_task_sighand() can't help.
-
-Link: https://lkml.kernel.org/r/20230909214951.GA24274@redhat.com
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
+Link: https://lkml.kernel.org/r/20230914033142.676708-3-bhe@redhat.com
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Reviewed-by: Zhen Lei <thunder.leizhen@huawei.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Chen Jiahao <chenjiahao16@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/taskstats.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ arch/arm/kernel/setup.c              |    3 ++-
+ arch/arm64/mm/init.c                 |    2 +-
+ arch/ia64/kernel/setup.c             |    2 +-
+ arch/loongarch/kernel/setup.c        |    4 +++-
+ arch/mips/kernel/setup.c             |    3 ++-
+ arch/powerpc/kernel/fadump.c         |    2 +-
+ arch/powerpc/kexec/core.c            |    2 +-
+ arch/powerpc/mm/nohash/kaslr_booke.c |    2 +-
+ arch/riscv/mm/init.c                 |    2 +-
+ arch/s390/kernel/setup.c             |    4 ++--
+ arch/sh/kernel/machine_kexec.c       |    2 +-
+ arch/x86/kernel/setup.c              |    3 ++-
+ include/linux/crash_core.h           |    3 ++-
+ kernel/crash_core.c                  |   15 ++++++++++++---
+ 14 files changed, 32 insertions(+), 17 deletions(-)
 
---- a/kernel/taskstats.c~taskstats-fill_stats_for_tgid-use-for_each_thread
-+++ a/kernel/taskstats.c
-@@ -233,9 +233,8 @@ static int fill_stats_for_tgid(pid_t tgi
- 	else
- 		memset(stats, 0, sizeof(*stats));
+--- a/arch/arm64/mm/init.c~crash_core-change-the-prototype-of-function-parse_crashkernel
++++ a/arch/arm64/mm/init.c
+@@ -142,7 +142,7 @@ static void __init reserve_crashkernel(v
  
--	tsk = first;
- 	start_time = ktime_get_ns();
--	do {
-+	for_each_thread(first, tsk) {
- 		if (tsk->exit_state)
- 			continue;
- 		/*
-@@ -258,7 +257,7 @@ static int fill_stats_for_tgid(pid_t tgi
+ 	/* crashkernel=X[@offset] */
+ 	ret = parse_crashkernel(cmdline, memblock_phys_mem_size(),
+-				&crash_size, &crash_base);
++				&crash_size, &crash_base, NULL, NULL);
+ 	if (ret == -ENOENT) {
+ 		ret = parse_crashkernel_high(cmdline, 0, &crash_size, &crash_base);
+ 		if (ret || !crash_size)
+--- a/arch/arm/kernel/setup.c~crash_core-change-the-prototype-of-function-parse_crashkernel
++++ a/arch/arm/kernel/setup.c
+@@ -1010,7 +1010,8 @@ static void __init reserve_crashkernel(v
  
- 		stats->nvcsw += tsk->nvcsw;
- 		stats->nivcsw += tsk->nivcsw;
--	} while_each_thread(first, tsk);
-+	}
+ 	total_mem = get_total_mem();
+ 	ret = parse_crashkernel(boot_command_line, total_mem,
+-				&crash_size, &crash_base);
++				&crash_size, &crash_base,
++				NULL, NULL);
+ 	/* invalid value specified or crashkernel=0 */
+ 	if (ret || !crash_size)
+ 		return;
+--- a/arch/ia64/kernel/setup.c~crash_core-change-the-prototype-of-function-parse_crashkernel
++++ a/arch/ia64/kernel/setup.c
+@@ -277,7 +277,7 @@ static void __init setup_crashkernel(uns
+ 	int ret;
  
- 	unlock_task_sighand(first, &flags);
- 	rc = 0;
+ 	ret = parse_crashkernel(boot_command_line, total,
+-			&size, &base);
++			&size, &base, NULL, NULL);
+ 	if (ret == 0 && size > 0) {
+ 		if (!base) {
+ 			sort_regions(rsvd_region, *n);
+--- a/arch/loongarch/kernel/setup.c~crash_core-change-the-prototype-of-function-parse_crashkernel
++++ a/arch/loongarch/kernel/setup.c
+@@ -267,7 +267,9 @@ static void __init arch_parse_crashkerne
+ 	unsigned long long crash_base, crash_size;
+ 
+ 	total_mem = memblock_phys_mem_size();
+-	ret = parse_crashkernel(boot_command_line, total_mem, &crash_size, &crash_base);
++	ret = parse_crashkernel(boot_command_line, total_mem,
++				&crash_size, &crash_base,
++				NULL, NULL);
+ 	if (ret < 0 || crash_size <= 0)
+ 		return;
+ 
+--- a/arch/mips/kernel/setup.c~crash_core-change-the-prototype-of-function-parse_crashkernel
++++ a/arch/mips/kernel/setup.c
+@@ -460,7 +460,8 @@ static void __init mips_parse_crashkerne
+ 
+ 	total_mem = memblock_phys_mem_size();
+ 	ret = parse_crashkernel(boot_command_line, total_mem,
+-				&crash_size, &crash_base);
++				&crash_size, &crash_base,
++				NULL, NULL);
+ 	if (ret != 0 || crash_size <= 0)
+ 		return;
+ 
+--- a/arch/powerpc/kernel/fadump.c~crash_core-change-the-prototype-of-function-parse_crashkernel
++++ a/arch/powerpc/kernel/fadump.c
+@@ -313,7 +313,7 @@ static __init u64 fadump_calculate_reser
+ 	 * memory at a predefined offset.
+ 	 */
+ 	ret = parse_crashkernel(boot_command_line, memblock_phys_mem_size(),
+-				&size, &base);
++				&size, &base, NULL, NULL);
+ 	if (ret == 0 && size > 0) {
+ 		unsigned long max_size;
+ 
+--- a/arch/powerpc/kexec/core.c~crash_core-change-the-prototype-of-function-parse_crashkernel
++++ a/arch/powerpc/kexec/core.c
+@@ -109,7 +109,7 @@ void __init reserve_crashkernel(void)
+ 	total_mem_sz = memory_limit ? memory_limit : memblock_phys_mem_size();
+ 	/* use common parsing */
+ 	ret = parse_crashkernel(boot_command_line, total_mem_sz,
+-			&crash_size, &crash_base);
++			&crash_size, &crash_base, NULL, NULL);
+ 	if (ret == 0 && crash_size > 0) {
+ 		crashk_res.start = crash_base;
+ 		crashk_res.end = crash_base + crash_size - 1;
+--- a/arch/powerpc/mm/nohash/kaslr_booke.c~crash_core-change-the-prototype-of-function-parse_crashkernel
++++ a/arch/powerpc/mm/nohash/kaslr_booke.c
+@@ -178,7 +178,7 @@ static void __init get_crash_kernel(void
+ 	int ret;
+ 
+ 	ret = parse_crashkernel(boot_command_line, size, &crash_size,
+-				&crash_base);
++				&crash_base, NULL, NULL);
+ 	if (ret != 0 || crash_size == 0)
+ 		return;
+ 	if (crash_base == 0)
+--- a/arch/riscv/mm/init.c~crash_core-change-the-prototype-of-function-parse_crashkernel
++++ a/arch/riscv/mm/init.c
+@@ -1388,7 +1388,7 @@ static void __init reserve_crashkernel(v
+ 	}
+ 
+ 	ret = parse_crashkernel(cmdline, memblock_phys_mem_size(),
+-				&crash_size, &crash_base);
++				&crash_size, &crash_base, NULL, NULL);
+ 	if (ret == -ENOENT) {
+ 		/* Fallback to crashkernel=X,[high,low] */
+ 		ret = parse_crashkernel_high(cmdline, 0, &crash_size, &crash_base);
+--- a/arch/s390/kernel/setup.c~crash_core-change-the-prototype-of-function-parse_crashkernel
++++ a/arch/s390/kernel/setup.c
+@@ -625,8 +625,8 @@ static void __init reserve_crashkernel(v
+ 	phys_addr_t low, high;
+ 	int rc;
+ 
+-	rc = parse_crashkernel(boot_command_line, ident_map_size, &crash_size,
+-			       &crash_base);
++	rc = parse_crashkernel(boot_command_line, ident_map_size,
++			       &crash_size, &crash_base, NULL, NULL);
+ 
+ 	crash_base = ALIGN(crash_base, KEXEC_CRASH_MEM_ALIGN);
+ 	crash_size = ALIGN(crash_size, KEXEC_CRASH_MEM_ALIGN);
+--- a/arch/sh/kernel/machine_kexec.c~crash_core-change-the-prototype-of-function-parse_crashkernel
++++ a/arch/sh/kernel/machine_kexec.c
+@@ -154,7 +154,7 @@ void __init reserve_crashkernel(void)
+ 	int ret;
+ 
+ 	ret = parse_crashkernel(boot_command_line, memblock_phys_mem_size(),
+-			&crash_size, &crash_base);
++			&crash_size, &crash_base, NULL, NULL);
+ 	if (ret == 0 && crash_size > 0) {
+ 		crashk_res.start = crash_base;
+ 		crashk_res.end = crash_base + crash_size - 1;
+--- a/arch/x86/kernel/setup.c~crash_core-change-the-prototype-of-function-parse_crashkernel
++++ a/arch/x86/kernel/setup.c
+@@ -553,7 +553,8 @@ static void __init reserve_crashkernel(v
+ 	total_mem = memblock_phys_mem_size();
+ 
+ 	/* crashkernel=XM */
+-	ret = parse_crashkernel(boot_command_line, total_mem, &crash_size, &crash_base);
++	ret = parse_crashkernel(boot_command_line, total_mem,
++				&crash_size, &crash_base, NULL, NULL);
+ 	if (ret != 0 || crash_size <= 0) {
+ 		/* crashkernel=X,high */
+ 		ret = parse_crashkernel_high(boot_command_line, total_mem,
+--- a/include/linux/crash_core.h~crash_core-change-the-prototype-of-function-parse_crashkernel
++++ a/include/linux/crash_core.h
+@@ -80,7 +80,8 @@ Elf_Word *append_elf_note(Elf_Word *buf,
+ void final_note(Elf_Word *buf);
+ 
+ int __init parse_crashkernel(char *cmdline, unsigned long long system_ram,
+-		unsigned long long *crash_size, unsigned long long *crash_base);
++		unsigned long long *crash_size, unsigned long long *crash_base,
++		unsigned long long *low_size, bool *high);
+ int parse_crashkernel_high(char *cmdline, unsigned long long system_ram,
+ 		unsigned long long *crash_size, unsigned long long *crash_base);
+ int parse_crashkernel_low(char *cmdline, unsigned long long system_ram,
+--- a/kernel/crash_core.c~crash_core-change-the-prototype-of-function-parse_crashkernel
++++ a/kernel/crash_core.c
+@@ -287,10 +287,19 @@ static int __init __parse_crashkernel(ch
+ int __init parse_crashkernel(char *cmdline,
+ 			     unsigned long long system_ram,
+ 			     unsigned long long *crash_size,
+-			     unsigned long long *crash_base)
++			     unsigned long long *crash_base,
++			     unsigned long long *low_size,
++			     bool *high)
+ {
+-	return __parse_crashkernel(cmdline, system_ram, crash_size, crash_base,
+-				NULL);
++	int ret;
++
++	/* crashkernel=X[@offset] */
++	ret = __parse_crashkernel(cmdline, system_ram, crash_size,
++				crash_base, NULL);
++	if (!high)
++		return ret;
++
++	return 0;
+ }
+ 
+ int __init parse_crashkernel_high(char *cmdline,
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from bhe@redhat.com are
 
 
