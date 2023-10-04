@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3174FE7C4FA
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:19:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61E85E7C4F5
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:19:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244104AbjJDUTx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:19:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37082 "EHLO
+        id S233633AbjJDUTy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:19:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37068 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243759AbjJDUTq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:19:46 -0400
+        with ESMTP id S244499AbjJDUTr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:19:47 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 054FECE
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:19:31 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BB95C433C8;
-        Wed,  4 Oct 2023 20:19:30 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A90C102
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:19:43 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 607CCC433C7;
+        Wed,  4 Oct 2023 20:19:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450770;
-        bh=ZDgWOejSmkRfzmW2I28eicu6aqpdwhvmwNXYagzspJs=;
+        s=korg; t=1696450782;
+        bh=x5BLPhA+v6pgMKs8aMI4EznNg75K/V/01FHdYjQ7HPE=;
         h=Date:To:From:Subject:From;
-        b=jMEuJtDs4ruYVl5ecK/8vytTBSBTZkmkw0tMBLu0oEC37dsc2f3Uq1FV77yTImpXo
-         C/Q1MnNk5Lzu7BGLiMJwmJZxc1fPYbTMSDcGycw1Cr3T1LrUWIuS41qOwZunKy1cdX
-         BqQzASZlryLs/3+CseLnew5K+AhAZuqRrEHb18Mk=
-Date:   Wed, 04 Oct 2023 13:19:28 -0700
+        b=iGYvy9oenXfDAcCBswbvFwauQnuBfYKo6Vv+Ujcoc9JFvzbTp7Xp3vwp0tbs8X42l
+         JA3IUNZ5cKEgHVUYbmixH+Q6qHs3ae3b/5EHLRl6GKUu5mc+sC7H4dwEJSzgK0So7w
+         zB1wbPj/UQIZMcrdA0Bu0tVVqj6NJ+JL8om7rORc=
+Date:   Wed, 04 Oct 2023 13:19:41 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] nfsv42-dynamically-allocate-the-nfs-xattr-shrinkers.patch removed from -mm tree
-Message-Id: <20231004201930.3BB95C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] sunrpc-dynamically-allocate-the-sunrpc_cred-shrinker.patch removed from -mm tree
+Message-Id: <20231004201942.607CCC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,23 +63,28 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: NFSv4.2: dynamically allocate the nfs-xattr shrinkers
+     Subject: sunrpc: dynamically allocate the sunrpc_cred shrinker
 has been removed from the -mm tree.  Its filename was
-     nfsv42-dynamically-allocate-the-nfs-xattr-shrinkers.patch
+     sunrpc-dynamically-allocate-the-sunrpc_cred-shrinker.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: NFSv4.2: dynamically allocate the nfs-xattr shrinkers
-Date: Mon, 11 Sep 2023 17:44:09 +0800
+Subject: sunrpc: dynamically allocate the sunrpc_cred shrinker
+Date: Mon, 11 Sep 2023 17:44:17 +0800
 
-Use new APIs to dynamically allocate the nfs-xattr shrinkers.
+Use new APIs to dynamically allocate the sunrpc_cred shrinker.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-11-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-19-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Olga Kornievskaia <kolga@netapp.com>
+Cc: Dai Ngo <Dai.Ngo@oracle.com>
+Cc: Tom Talpey <tom@talpey.com>
 Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Cc: Anna Schumaker <anna@kernel.org>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
@@ -99,7 +104,6 @@ Cc: Christian Brauner <brauner@kernel.org>
 Cc: Christian Koenig <christian.koenig@amd.com>
 Cc: Chuck Lever <cel@kernel.org>
 Cc: Coly Li <colyli@suse.de>
-Cc: Dai Ngo <Dai.Ngo@oracle.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
@@ -117,7 +121,6 @@ Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Wang <jasowang@redhat.com>
-Cc: Jeff Layton <jlayton@kernel.org>
 Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
 Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
 Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
@@ -131,9 +134,7 @@ Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Nadav Amit <namit@vmware.com>
-Cc: Neil Brown <neilb@suse.de>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
-Cc: Olga Kornievskaia <kolga@netapp.com>
 Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Richard Weinberger <richard@nod.at>
 Cc: Rob Clark <robdclark@gmail.com>
@@ -148,7 +149,6 @@ Cc: Steven Price <steven.price@arm.com>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: Tom Talpey <tom@talpey.com>
 Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
@@ -156,166 +156,50 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/nfs42xattr.c |   87 +++++++++++++++++++++---------------------
- 1 file changed, 44 insertions(+), 43 deletions(-)
+ net/sunrpc/auth.c |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
---- a/fs/nfs/nfs42xattr.c~nfsv42-dynamically-allocate-the-nfs-xattr-shrinkers
-+++ a/fs/nfs/nfs42xattr.c
-@@ -796,28 +796,9 @@ static unsigned long nfs4_xattr_cache_sc
- static unsigned long nfs4_xattr_entry_scan(struct shrinker *shrink,
- 					   struct shrink_control *sc);
- 
--static struct shrinker nfs4_xattr_cache_shrinker = {
--	.count_objects	= nfs4_xattr_cache_count,
--	.scan_objects	= nfs4_xattr_cache_scan,
--	.seeks		= DEFAULT_SEEKS,
--	.flags		= SHRINKER_MEMCG_AWARE,
--};
--
--static struct shrinker nfs4_xattr_entry_shrinker = {
--	.count_objects	= nfs4_xattr_entry_count,
--	.scan_objects	= nfs4_xattr_entry_scan,
--	.seeks		= DEFAULT_SEEKS,
--	.batch		= 512,
--	.flags		= SHRINKER_MEMCG_AWARE,
--};
--
--static struct shrinker nfs4_xattr_large_entry_shrinker = {
--	.count_objects	= nfs4_xattr_entry_count,
--	.scan_objects	= nfs4_xattr_entry_scan,
--	.seeks		= 1,
--	.batch		= 512,
--	.flags		= SHRINKER_MEMCG_AWARE,
--};
-+static struct shrinker *nfs4_xattr_cache_shrinker;
-+static struct shrinker *nfs4_xattr_entry_shrinker;
-+static struct shrinker *nfs4_xattr_large_entry_shrinker;
- 
- static enum lru_status
- cache_lru_isolate(struct list_head *item,
-@@ -943,7 +924,7 @@ nfs4_xattr_entry_scan(struct shrinker *s
- 	struct nfs4_xattr_entry *entry;
- 	struct list_lru *lru;
- 
--	lru = (shrink == &nfs4_xattr_large_entry_shrinker) ?
-+	lru = (shrink == nfs4_xattr_large_entry_shrinker) ?
- 	    &nfs4_xattr_large_entry_lru : &nfs4_xattr_entry_lru;
- 
- 	freed = list_lru_shrink_walk(lru, sc, entry_lru_isolate, &dispose);
-@@ -971,7 +952,7 @@ nfs4_xattr_entry_count(struct shrinker *
- 	unsigned long count;
- 	struct list_lru *lru;
- 
--	lru = (shrink == &nfs4_xattr_large_entry_shrinker) ?
-+	lru = (shrink == nfs4_xattr_large_entry_shrinker) ?
- 	    &nfs4_xattr_large_entry_lru : &nfs4_xattr_entry_lru;
- 
- 	count = list_lru_shrink_count(lru, sc);
-@@ -991,18 +972,34 @@ static void nfs4_xattr_cache_init_once(v
- 	INIT_LIST_HEAD(&cache->dispose);
+--- a/net/sunrpc/auth.c~sunrpc-dynamically-allocate-the-sunrpc_cred-shrinker
++++ a/net/sunrpc/auth.c
+@@ -861,11 +861,7 @@ rpcauth_uptodatecred(struct rpc_task *ta
+ 		test_bit(RPCAUTH_CRED_UPTODATE, &cred->cr_flags) != 0;
  }
  
--static int nfs4_xattr_shrinker_init(struct shrinker *shrinker,
--				    struct list_lru *lru, const char *name)
-+typedef unsigned long (*count_objects_cb)(struct shrinker *s,
-+					  struct shrink_control *sc);
-+typedef unsigned long (*scan_objects_cb)(struct shrinker *s,
-+					 struct shrink_control *sc);
-+
-+static int __init nfs4_xattr_shrinker_init(struct shrinker **shrinker,
-+					   struct list_lru *lru, const char *name,
-+					   count_objects_cb count,
-+					   scan_objects_cb scan, long batch, int seeks)
+-static struct shrinker rpc_cred_shrinker = {
+-	.count_objects = rpcauth_cache_shrink_count,
+-	.scan_objects = rpcauth_cache_shrink_scan,
+-	.seeks = DEFAULT_SEEKS,
+-};
++static struct shrinker *rpc_cred_shrinker;
+ 
+ int __init rpcauth_init_module(void)
  {
--	int ret = 0;
-+	int ret;
- 
--	ret = register_shrinker(shrinker, name);
--	if (ret)
-+	*shrinker = shrinker_alloc(SHRINKER_MEMCG_AWARE, name);
-+	if (!*shrinker)
-+		return -ENOMEM;
-+
-+	ret = list_lru_init_memcg(lru, *shrinker);
-+	if (ret) {
-+		shrinker_free(*shrinker);
- 		return ret;
-+	}
- 
--	ret = list_lru_init_memcg(lru, shrinker);
--	if (ret)
--		unregister_shrinker(shrinker);
-+	(*shrinker)->count_objects = count;
-+	(*shrinker)->scan_objects = scan;
-+	(*shrinker)->batch = batch;
-+	(*shrinker)->seeks = seeks;
-+
-+	shrinker_register(*shrinker);
- 
- 	return ret;
- }
-@@ -1010,7 +1007,7 @@ static int nfs4_xattr_shrinker_init(stru
- static void nfs4_xattr_shrinker_destroy(struct shrinker *shrinker,
- 					struct list_lru *lru)
- {
--	unregister_shrinker(shrinker);
-+	shrinker_free(shrinker);
- 	list_lru_destroy(lru);
- }
- 
-@@ -1026,27 +1023,31 @@ int __init nfs4_xattr_cache_init(void)
- 		return -ENOMEM;
- 
- 	ret = nfs4_xattr_shrinker_init(&nfs4_xattr_cache_shrinker,
--				       &nfs4_xattr_cache_lru,
--				       "nfs-xattr_cache");
-+				       &nfs4_xattr_cache_lru, "nfs-xattr_cache",
-+				       nfs4_xattr_cache_count,
-+				       nfs4_xattr_cache_scan, 0, DEFAULT_SEEKS);
- 	if (ret)
+@@ -874,9 +870,17 @@ int __init rpcauth_init_module(void)
+ 	err = rpc_init_authunix();
+ 	if (err < 0)
  		goto out1;
- 
- 	ret = nfs4_xattr_shrinker_init(&nfs4_xattr_entry_shrinker,
--				       &nfs4_xattr_entry_lru,
--				       "nfs-xattr_entry");
-+				       &nfs4_xattr_entry_lru, "nfs-xattr_entry",
-+				       nfs4_xattr_entry_count,
-+				       nfs4_xattr_entry_scan, 512, DEFAULT_SEEKS);
- 	if (ret)
+-	err = register_shrinker(&rpc_cred_shrinker, "sunrpc_cred");
+-	if (err < 0)
++	rpc_cred_shrinker = shrinker_alloc(0, "sunrpc_cred");
++	if (!rpc_cred_shrinker) {
++		err = -ENOMEM;
  		goto out2;
- 
- 	ret = nfs4_xattr_shrinker_init(&nfs4_xattr_large_entry_shrinker,
- 				       &nfs4_xattr_large_entry_lru,
--				       "nfs-xattr_large_entry");
-+				       "nfs-xattr_large_entry",
-+				       nfs4_xattr_entry_count,
-+				       nfs4_xattr_entry_scan, 512, 1);
- 	if (!ret)
- 		return 0;
- 
--	nfs4_xattr_shrinker_destroy(&nfs4_xattr_entry_shrinker,
-+	nfs4_xattr_shrinker_destroy(nfs4_xattr_entry_shrinker,
- 				    &nfs4_xattr_entry_lru);
++	}
++
++	rpc_cred_shrinker->count_objects = rpcauth_cache_shrink_count;
++	rpc_cred_shrinker->scan_objects = rpcauth_cache_shrink_scan;
++
++	shrinker_register(rpc_cred_shrinker);
++
+ 	return 0;
  out2:
--	nfs4_xattr_shrinker_destroy(&nfs4_xattr_cache_shrinker,
-+	nfs4_xattr_shrinker_destroy(nfs4_xattr_cache_shrinker,
- 				    &nfs4_xattr_cache_lru);
- out1:
- 	kmem_cache_destroy(nfs4_xattr_cache_cachep);
-@@ -1056,11 +1057,11 @@ out1:
- 
- void nfs4_xattr_cache_exit(void)
+ 	rpc_destroy_authunix();
+@@ -887,5 +891,5 @@ out1:
+ void rpcauth_remove_module(void)
  {
--	nfs4_xattr_shrinker_destroy(&nfs4_xattr_large_entry_shrinker,
-+	nfs4_xattr_shrinker_destroy(nfs4_xattr_large_entry_shrinker,
- 				    &nfs4_xattr_large_entry_lru);
--	nfs4_xattr_shrinker_destroy(&nfs4_xattr_entry_shrinker,
-+	nfs4_xattr_shrinker_destroy(nfs4_xattr_entry_shrinker,
- 				    &nfs4_xattr_entry_lru);
--	nfs4_xattr_shrinker_destroy(&nfs4_xattr_cache_shrinker,
-+	nfs4_xattr_shrinker_destroy(nfs4_xattr_cache_shrinker,
- 				    &nfs4_xattr_cache_lru);
- 	kmem_cache_destroy(nfs4_xattr_cache_cachep);
+ 	rpc_destroy_authunix();
+-	unregister_shrinker(&rpc_cred_shrinker);
++	shrinker_free(rpc_cred_shrinker);
  }
 _
 
