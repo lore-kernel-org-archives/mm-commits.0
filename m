@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61E85E7C4F5
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:19:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12643E7C4F1
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:19:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233633AbjJDUTy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:19:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37068 "EHLO
+        id S244388AbjJDUT4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:19:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37096 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244499AbjJDUTr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:19:47 -0400
+        with ESMTP id S244220AbjJDUTs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:19:48 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A90C102
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:19:43 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 607CCC433C7;
-        Wed,  4 Oct 2023 20:19:42 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 17CE6C6
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:19:45 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DDEDC433C9;
+        Wed,  4 Oct 2023 20:19:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450782;
-        bh=x5BLPhA+v6pgMKs8aMI4EznNg75K/V/01FHdYjQ7HPE=;
+        s=korg; t=1696450784;
+        bh=Lmewry0mqlk3RMgpi0pCEE0Tkico/uYNWvHEZ5mKFVw=;
         h=Date:To:From:Subject:From;
-        b=iGYvy9oenXfDAcCBswbvFwauQnuBfYKo6Vv+Ujcoc9JFvzbTp7Xp3vwp0tbs8X42l
-         JA3IUNZ5cKEgHVUYbmixH+Q6qHs3ae3b/5EHLRl6GKUu5mc+sC7H4dwEJSzgK0So7w
-         zB1wbPj/UQIZMcrdA0Bu0tVVqj6NJ+JL8om7rORc=
-Date:   Wed, 04 Oct 2023 13:19:41 -0700
+        b=J6sNejEkPsPe6P80xvjYLgDpr5lc2ACP+L6ZRs33Y51sOtUZi33L9+ozYBMET5kdP
+         hey335wfspq82HR0rkF+tG8qeG7VzzG6XoEexrkpV0rz9L/CE8ImFkeyu1bNqwb9M9
+         R0Wip2SPq9vv6HwU9Q6pOPhSMJKJ52K7muRaZOq4=
+Date:   Wed, 04 Oct 2023 13:19:43 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] sunrpc-dynamically-allocate-the-sunrpc_cred-shrinker.patch removed from -mm tree
-Message-Id: <20231004201942.607CCC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-thp-dynamically-allocate-the-thp-related-shrinkers.patch removed from -mm tree
+Message-Id: <20231004201944.7DDEDC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,36 +63,30 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: sunrpc: dynamically allocate the sunrpc_cred shrinker
+     Subject: mm: thp: dynamically allocate the thp-related shrinkers
 has been removed from the -mm tree.  Its filename was
-     sunrpc-dynamically-allocate-the-sunrpc_cred-shrinker.patch
+     mm-thp-dynamically-allocate-the-thp-related-shrinkers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: sunrpc: dynamically allocate the sunrpc_cred shrinker
-Date: Mon, 11 Sep 2023 17:44:17 +0800
+Subject: mm: thp: dynamically allocate the thp-related shrinkers
+Date: Mon, 11 Sep 2023 17:44:16 +0800
 
-Use new APIs to dynamically allocate the sunrpc_cred shrinker.
+Use new APIs to dynamically allocate the thp-zero and thp-deferred_split
+shrinkers.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-19-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-18-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Olga Kornievskaia <kolga@netapp.com>
-Cc: Dai Ngo <Dai.Ngo@oracle.com>
-Cc: Tom Talpey <tom@talpey.com>
-Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
-Cc: Anna Schumaker <anna@kernel.org>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Alyssa Rosenzweig <alyssa.rosenzweig@collabora.com>
 Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
+Cc: Anna Schumaker <anna@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Bob Peterson <rpeterso@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
@@ -104,6 +98,7 @@ Cc: Christian Brauner <brauner@kernel.org>
 Cc: Christian Koenig <christian.koenig@amd.com>
 Cc: Chuck Lever <cel@kernel.org>
 Cc: Coly Li <colyli@suse.de>
+Cc: Dai Ngo <Dai.Ngo@oracle.com>
 Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
@@ -121,6 +116,7 @@ Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jason Wang <jasowang@redhat.com>
+Cc: Jeff Layton <jlayton@kernel.org>
 Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
 Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
 Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
@@ -133,8 +129,11 @@ Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Nadav Amit <namit@vmware.com>
+Cc: Neil Brown <neilb@suse.de>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
+Cc: Olga Kornievskaia <kolga@netapp.com>
 Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Richard Weinberger <richard@nod.at>
 Cc: Rob Clark <robdclark@gmail.com>
@@ -149,6 +148,8 @@ Cc: Steven Price <steven.price@arm.com>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: Tom Talpey <tom@talpey.com>
+Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
@@ -156,51 +157,128 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/auth.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ mm/huge_memory.c |   67 ++++++++++++++++++++++++++++-----------------
+ 1 file changed, 43 insertions(+), 24 deletions(-)
 
---- a/net/sunrpc/auth.c~sunrpc-dynamically-allocate-the-sunrpc_cred-shrinker
-+++ a/net/sunrpc/auth.c
-@@ -861,11 +861,7 @@ rpcauth_uptodatecred(struct rpc_task *ta
- 		test_bit(RPCAUTH_CRED_UPTODATE, &cred->cr_flags) != 0;
+--- a/mm/huge_memory.c~mm-thp-dynamically-allocate-the-thp-related-shrinkers
++++ a/mm/huge_memory.c
+@@ -65,7 +65,11 @@ unsigned long transparent_hugepage_flags
+ 	(1<<TRANSPARENT_HUGEPAGE_DEFRAG_KHUGEPAGED_FLAG)|
+ 	(1<<TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG);
+ 
+-static struct shrinker deferred_split_shrinker;
++static struct shrinker *deferred_split_shrinker;
++static unsigned long deferred_split_count(struct shrinker *shrink,
++					  struct shrink_control *sc);
++static unsigned long deferred_split_scan(struct shrinker *shrink,
++					 struct shrink_control *sc);
+ 
+ static atomic_t huge_zero_refcount;
+ struct page *huge_zero_page __read_mostly;
+@@ -229,11 +233,7 @@ static unsigned long shrink_huge_zero_pa
+ 	return 0;
  }
  
--static struct shrinker rpc_cred_shrinker = {
--	.count_objects = rpcauth_cache_shrink_count,
--	.scan_objects = rpcauth_cache_shrink_scan,
+-static struct shrinker huge_zero_page_shrinker = {
+-	.count_objects = shrink_huge_zero_page_count,
+-	.scan_objects = shrink_huge_zero_page_scan,
 -	.seeks = DEFAULT_SEEKS,
 -};
-+static struct shrinker *rpc_cred_shrinker;
++static struct shrinker *huge_zero_page_shrinker;
  
- int __init rpcauth_init_module(void)
- {
-@@ -874,9 +870,17 @@ int __init rpcauth_init_module(void)
- 	err = rpc_init_authunix();
- 	if (err < 0)
- 		goto out1;
--	err = register_shrinker(&rpc_cred_shrinker, "sunrpc_cred");
--	if (err < 0)
-+	rpc_cred_shrinker = shrinker_alloc(0, "sunrpc_cred");
-+	if (!rpc_cred_shrinker) {
-+		err = -ENOMEM;
- 		goto out2;
+ #ifdef CONFIG_SYSFS
+ static ssize_t enabled_show(struct kobject *kobj,
+@@ -454,6 +454,38 @@ static inline void hugepage_exit_sysfs(s
+ }
+ #endif /* CONFIG_SYSFS */
+ 
++static int __init thp_shrinker_init(void)
++{
++	huge_zero_page_shrinker = shrinker_alloc(0, "thp-zero");
++	if (!huge_zero_page_shrinker)
++		return -ENOMEM;
++
++	deferred_split_shrinker = shrinker_alloc(SHRINKER_NUMA_AWARE |
++						 SHRINKER_MEMCG_AWARE |
++						 SHRINKER_NONSLAB,
++						 "thp-deferred_split");
++	if (!deferred_split_shrinker) {
++		shrinker_free(huge_zero_page_shrinker);
++		return -ENOMEM;
 +	}
 +
-+	rpc_cred_shrinker->count_objects = rpcauth_cache_shrink_count;
-+	rpc_cred_shrinker->scan_objects = rpcauth_cache_shrink_scan;
++	huge_zero_page_shrinker->count_objects = shrink_huge_zero_page_count;
++	huge_zero_page_shrinker->scan_objects = shrink_huge_zero_page_scan;
++	shrinker_register(huge_zero_page_shrinker);
 +
-+	shrinker_register(rpc_cred_shrinker);
++	deferred_split_shrinker->count_objects = deferred_split_count;
++	deferred_split_shrinker->scan_objects = deferred_split_scan;
++	shrinker_register(deferred_split_shrinker);
 +
- 	return 0;
- out2:
- 	rpc_destroy_authunix();
-@@ -887,5 +891,5 @@ out1:
- void rpcauth_remove_module(void)
++	return 0;
++}
++
++static void __init thp_shrinker_exit(void)
++{
++	shrinker_free(huge_zero_page_shrinker);
++	shrinker_free(deferred_split_shrinker);
++}
++
+ static int __init hugepage_init(void)
  {
- 	rpc_destroy_authunix();
--	unregister_shrinker(&rpc_cred_shrinker);
-+	shrinker_free(rpc_cred_shrinker);
+ 	int err;
+@@ -482,12 +514,9 @@ static int __init hugepage_init(void)
+ 	if (err)
+ 		goto err_slab;
+ 
+-	err = register_shrinker(&huge_zero_page_shrinker, "thp-zero");
+-	if (err)
+-		goto err_hzp_shrinker;
+-	err = register_shrinker(&deferred_split_shrinker, "thp-deferred_split");
++	err = thp_shrinker_init();
+ 	if (err)
+-		goto err_split_shrinker;
++		goto err_shrinker;
+ 
+ 	/*
+ 	 * By default disable transparent hugepages on smaller systems,
+@@ -505,10 +534,8 @@ static int __init hugepage_init(void)
+ 
+ 	return 0;
+ err_khugepaged:
+-	unregister_shrinker(&deferred_split_shrinker);
+-err_split_shrinker:
+-	unregister_shrinker(&huge_zero_page_shrinker);
+-err_hzp_shrinker:
++	thp_shrinker_exit();
++err_shrinker:
+ 	khugepaged_destroy();
+ err_slab:
+ 	hugepage_exit_sysfs(hugepage_kobj);
+@@ -2828,7 +2855,7 @@ void deferred_split_folio(struct folio *
+ #ifdef CONFIG_MEMCG
+ 		if (memcg)
+ 			set_shrinker_bit(memcg, folio_nid(folio),
+-					 deferred_split_shrinker.id);
++					 deferred_split_shrinker->id);
+ #endif
+ 	}
+ 	spin_unlock_irqrestore(&ds_queue->split_queue_lock, flags);
+@@ -2902,14 +2929,6 @@ next:
+ 	return split;
  }
+ 
+-static struct shrinker deferred_split_shrinker = {
+-	.count_objects = deferred_split_count,
+-	.scan_objects = deferred_split_scan,
+-	.seeks = DEFAULT_SEEKS,
+-	.flags = SHRINKER_NUMA_AWARE | SHRINKER_MEMCG_AWARE |
+-		 SHRINKER_NONSLAB,
+-};
+-
+ #ifdef CONFIG_DEBUG_FS
+ static void split_huge_pages_all(void)
+ {
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
