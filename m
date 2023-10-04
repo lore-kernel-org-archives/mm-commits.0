@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 826D3E7C4F1
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:20:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AFB88E7C4F5
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:20:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244503AbjJDUUu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:20:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55152 "EHLO
+        id S244384AbjJDUUv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:20:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60352 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244620AbjJDUU0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:20:26 -0400
+        with ESMTP id S244624AbjJDUU1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:20:27 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE9FA112
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:20:17 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6E7CC433C7;
-        Wed,  4 Oct 2023 20:20:16 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02A4E11B
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:20:22 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3680AC433C8;
+        Wed,  4 Oct 2023 20:20:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450817;
-        bh=XTiuPjVdFEuP+4XWBRAmh0HWAIKMXMp19JLBF7l54mw=;
+        s=korg; t=1696450821;
+        bh=g+hxHwbdePbEmafxWRGKW5WIqhXj5QBWAY4xfJ9MXbI=;
         h=Date:To:From:Subject:From;
-        b=jWSKO6WxtwIpLg3zrq6XWxAnwGzNBJE007HVATH6MDDZw/jQlydz9liw/fM55YkPu
-         /kRUwib4798iGgnEKY6tCmmJjispLjMlvg9g14FOmLUnBB/cE8V7mlHoG+TECcBKaq
-         a1nJWMKZvDSHI8BciNZQjYg+zWNl7mkHFXs4d7TU=
-Date:   Wed, 04 Oct 2023 13:20:15 -0700
+        b=TvenzeNmBfonwgswlDhac3fzvKdxYV/VVvplht1TY3LTE+5RJo2GJsu0782ULuKLV
+         naBgt4O2rd6gVATiRioH4/FnL9Dy9UNaHyTnHHx+XF7tF5FLI2mZBoBMps5CpSX8Cb
+         htn286kHKz0ERqBSYWM646ohH2DTAHivPv+57jIg=
+Date:   Wed, 04 Oct 2023 13:20:19 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] xfs-dynamically-allocate-the-xfs-buf-shrinker.patch removed from -mm tree
-Message-Id: <20231004202016.E6E7CC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] xfs-dynamically-allocate-the-xfs-qm-shrinker.patch removed from -mm tree
+Message-Id: <20231004202021.3680AC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,24 +63,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: xfs: dynamically allocate the xfs-buf shrinker
+     Subject: xfs: dynamically allocate the xfs-qm shrinker
 has been removed from the -mm tree.  Its filename was
-     xfs-dynamically-allocate-the-xfs-buf-shrinker.patch
+     xfs-dynamically-allocate-the-xfs-qm-shrinker.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: xfs: dynamically allocate the xfs-buf shrinker
-Date: Mon, 11 Sep 2023 17:44:33 +0800
+Subject: xfs: dynamically allocate the xfs-qm shrinker
+Date: Mon, 11 Sep 2023 17:44:35 +0800
 
 In preparation for implementing lockless slab shrink, use new APIs to
-dynamically allocate the xfs-buf shrinker, so that it can be freed
+dynamically allocate the xfs-qm shrinker, so that it can be freed
 asynchronously via RCU. Then it doesn't need to wait for RCU read-side
-critical section when releasing the struct xfs_buftarg.
+critical section when releasing the struct xfs_quotainfo.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-35-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-37-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Chandan Babu R <chandan.babu@oracle.com>
@@ -159,76 +159,79 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_buf.c |   24 +++++++++++++-----------
- fs/xfs/xfs_buf.h |    2 +-
- 2 files changed, 14 insertions(+), 12 deletions(-)
+ fs/xfs/xfs_qm.c |   27 ++++++++++++++-------------
+ fs/xfs/xfs_qm.h |    2 +-
+ 2 files changed, 15 insertions(+), 14 deletions(-)
 
---- a/fs/xfs/xfs_buf.c~xfs-dynamically-allocate-the-xfs-buf-shrinker
-+++ a/fs/xfs/xfs_buf.c
-@@ -1913,8 +1913,7 @@ xfs_buftarg_shrink_scan(
+--- a/fs/xfs/xfs_qm.c~xfs-dynamically-allocate-the-xfs-qm-shrinker
++++ a/fs/xfs/xfs_qm.c
+@@ -504,8 +504,7 @@ xfs_qm_shrink_scan(
  	struct shrinker		*shrink,
  	struct shrink_control	*sc)
  {
--	struct xfs_buftarg	*btp = container_of(shrink,
--					struct xfs_buftarg, bt_shrinker);
-+	struct xfs_buftarg	*btp = shrink->private_data;
- 	LIST_HEAD(dispose);
+-	struct xfs_quotainfo	*qi = container_of(shrink,
+-					struct xfs_quotainfo, qi_shrinker);
++	struct xfs_quotainfo	*qi = shrink->private_data;
+ 	struct xfs_qm_isolate	isol;
  	unsigned long		freed;
- 
-@@ -1936,8 +1935,7 @@ xfs_buftarg_shrink_count(
+ 	int			error;
+@@ -539,8 +538,7 @@ xfs_qm_shrink_count(
  	struct shrinker		*shrink,
  	struct shrink_control	*sc)
  {
--	struct xfs_buftarg	*btp = container_of(shrink,
--					struct xfs_buftarg, bt_shrinker);
-+	struct xfs_buftarg	*btp = shrink->private_data;
- 	return list_lru_shrink_count(&btp->bt_lru, sc);
+-	struct xfs_quotainfo	*qi = container_of(shrink,
+-					struct xfs_quotainfo, qi_shrinker);
++	struct xfs_quotainfo	*qi = shrink->private_data;
+ 
+ 	return list_lru_shrink_count(&qi->qi_lru, sc);
  }
+@@ -680,15 +678,18 @@ xfs_qm_init_quotainfo(
+ 	if (XFS_IS_PQUOTA_ON(mp))
+ 		xfs_qm_set_defquota(mp, XFS_DQTYPE_PROJ, qinf);
  
-@@ -1947,7 +1945,7 @@ xfs_free_buftarg(
- {
- 	struct block_device	*bdev = btp->bt_bdev;
- 
--	unregister_shrinker(&btp->bt_shrinker);
-+	shrinker_free(btp->bt_shrinker);
- 	ASSERT(percpu_counter_sum(&btp->bt_io_count) == 0);
- 	percpu_counter_destroy(&btp->bt_io_count);
- 	list_lru_destroy(&btp->bt_lru);
-@@ -2031,13 +2029,17 @@ xfs_alloc_buftarg(
- 	if (percpu_counter_init(&btp->bt_io_count, 0, GFP_KERNEL))
- 		goto error_lru;
- 
--	btp->bt_shrinker.count_objects = xfs_buftarg_shrink_count;
--	btp->bt_shrinker.scan_objects = xfs_buftarg_shrink_scan;
--	btp->bt_shrinker.seeks = DEFAULT_SEEKS;
--	btp->bt_shrinker.flags = SHRINKER_NUMA_AWARE;
--	if (register_shrinker(&btp->bt_shrinker, "xfs-buf:%s",
--			      mp->m_super->s_id))
-+	btp->bt_shrinker = shrinker_alloc(SHRINKER_NUMA_AWARE, "xfs-buf:%s",
-+					  mp->m_super->s_id);
-+	if (!btp->bt_shrinker)
- 		goto error_pcpu;
+-	qinf->qi_shrinker.count_objects = xfs_qm_shrink_count;
+-	qinf->qi_shrinker.scan_objects = xfs_qm_shrink_scan;
+-	qinf->qi_shrinker.seeks = DEFAULT_SEEKS;
+-	qinf->qi_shrinker.flags = SHRINKER_NUMA_AWARE;
+-
+-	error = register_shrinker(&qinf->qi_shrinker, "xfs-qm:%s",
+-				  mp->m_super->s_id);
+-	if (error)
++	qinf->qi_shrinker = shrinker_alloc(SHRINKER_NUMA_AWARE, "xfs-qm:%s",
++					   mp->m_super->s_id);
++	if (!qinf->qi_shrinker) {
++		error = -ENOMEM;
+ 		goto out_free_inos;
++	}
 +
-+	btp->bt_shrinker->count_objects = xfs_buftarg_shrink_count;
-+	btp->bt_shrinker->scan_objects = xfs_buftarg_shrink_scan;
-+	btp->bt_shrinker->private_data = btp;
++	qinf->qi_shrinker->count_objects = xfs_qm_shrink_count;
++	qinf->qi_shrinker->scan_objects = xfs_qm_shrink_scan;
++	qinf->qi_shrinker->private_data = qinf;
 +
-+	shrinker_register(btp->bt_shrinker);
-+
- 	return btp;
++	shrinker_register(qinf->qi_shrinker);
  
- error_pcpu:
---- a/fs/xfs/xfs_buf.h~xfs-dynamically-allocate-the-xfs-buf-shrinker
-+++ a/fs/xfs/xfs_buf.h
-@@ -108,7 +108,7 @@ typedef struct xfs_buftarg {
- 	size_t			bt_logical_sectormask;
+ 	return 0;
  
- 	/* LRU control structures */
--	struct shrinker		bt_shrinker;
-+	struct shrinker		*bt_shrinker;
- 	struct list_lru		bt_lru;
+@@ -718,7 +719,7 @@ xfs_qm_destroy_quotainfo(
+ 	qi = mp->m_quotainfo;
+ 	ASSERT(qi != NULL);
  
- 	struct percpu_counter	bt_io_count;
+-	unregister_shrinker(&qi->qi_shrinker);
++	shrinker_free(qi->qi_shrinker);
+ 	list_lru_destroy(&qi->qi_lru);
+ 	xfs_qm_destroy_quotainos(qi);
+ 	mutex_destroy(&qi->qi_tree_lock);
+--- a/fs/xfs/xfs_qm.h~xfs-dynamically-allocate-the-xfs-qm-shrinker
++++ a/fs/xfs/xfs_qm.h
+@@ -63,7 +63,7 @@ struct xfs_quotainfo {
+ 	struct xfs_def_quota	qi_usr_default;
+ 	struct xfs_def_quota	qi_grp_default;
+ 	struct xfs_def_quota	qi_prj_default;
+-	struct shrinker		qi_shrinker;
++	struct shrinker		*qi_shrinker;
+ 
+ 	/* Minimum and maximum quota expiration timestamp values. */
+ 	time64_t		qi_expiry_min;
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
