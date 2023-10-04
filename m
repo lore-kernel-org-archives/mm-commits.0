@@ -2,34 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 409F4E7C4F3
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:23:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F784E784A9
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:23:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244841AbjJDUXL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:23:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37084 "EHLO
+        id S244633AbjJDUXJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:23:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38866 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243761AbjJDUWd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:22:33 -0400
+        with ESMTP id S245014AbjJDUWc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:22:32 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C3E84EE
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:22:29 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FB94C433C8;
-        Wed,  4 Oct 2023 20:22:29 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34C14DC
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:22:19 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A0EFC433C7;
+        Wed,  4 Oct 2023 20:22:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450949;
-        bh=4FpI9A3UyrIR92L0XeiJr+9RAo40PyB2TqvrowSWkCA=;
+        s=korg; t=1696450938;
+        bh=kCBYRejvcJ62K2Q++IUO9EFD9fll+ZTjAMMiBFtl4Kg=;
         h=Date:To:From:Subject:From;
-        b=CjdtcSJoeYv4U38xLEjsFFWw6yyvHC57tL1mAfnh4FAECZ/gpRJ6FD1pmFzBJt8jI
-         UGVlCho//ZS0Z9QNcx7VfhTT/7qNf62wk5cP8oc7otBdc1uOw6XvlaqZRZVTVy5NAa
-         oSz6NWpIFkMOEG7qmsC6WMAuLZILuF+v8xZTQrEI=
-Date:   Wed, 04 Oct 2023 13:22:27 -0700
+        b=jV6wW39pibLJ6xcNpGmBieKh4hlVhQQukt4X3Xiy4q+GRYc9itK/44H1xjV4HzERL
+         7wqKwhgMzN/3mIhq3ATsH+KZoJuW9mZMC9hmGeEn/Nm1F3WFuJERn8i+nhgT7kxfD3
+         R/qFwzMAKKh3owcEaGQP0pyc2zLWsoNyG4eQKB9o=
+Date:   Wed, 04 Oct 2023 13:22:17 -0700
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        sidhartha.kumar@oracle.com, mike.kravetz@oracle.com,
-        willy@infradead.org, akpm@linux-foundation.org
+        rppt@kernel.org, punit.agrawal@bytedance.com,
+        mike.kravetz@oracle.com, fam.zheng@bytedance.com,
+        usama.arif@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] hugetlb-convert-remove_pool_huge_page-to-remove_pool_hugetlb_folio.patch removed from -mm tree
-Message-Id: <20231004202229.2FB94C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] memblock-pass-memblock_type-to-memblock_setclr_flag.patch removed from -mm tree
+Message-Id: <20231004202218.8A0EFC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,127 +38,107 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: hugetlb: convert remove_pool_huge_page() to remove_pool_hugetlb_folio()
+     Subject: memblock: pass memblock_type to memblock_setclr_flag
 has been removed from the -mm tree.  Its filename was
-     hugetlb-convert-remove_pool_huge_page-to-remove_pool_hugetlb_folio.patch
+     memblock-pass-memblock_type-to-memblock_setclr_flag.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: hugetlb: convert remove_pool_huge_page() to remove_pool_hugetlb_folio()
-Date: Thu, 24 Aug 2023 15:13:25 +0100
+From: Usama Arif <usama.arif@bytedance.com>
+Subject: memblock: pass memblock_type to memblock_setclr_flag
+Date: Wed, 13 Sep 2023 11:53:59 +0100
 
-Convert the callers to expect a folio and remove the unnecesary conversion
-back to a struct page.
+This allows setting flags to both memblock types and is in preparation for
+setting flags (for e.g.  to not initialize struct pages) on reserved
+memory region.
 
-Link: https://lkml.kernel.org/r/20230824141325.2704553-4-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+[usama.arif@bytedance.com: add missing argument definition]
+  Link: https://lkml.kernel.org/r/20230918090657.220463-1-usama.arif@bytedance.com
+Link: https://lkml.kernel.org/r/20230913105401.519709-3-usama.arif@bytedance.com
+Signed-off-by: Usama Arif <usama.arif@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Fam Zheng <fam.zheng@bytedance.com>
+Cc: Punit Agrawal <punit.agrawal@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   29 +++++++++++++++--------------
- 1 file changed, 15 insertions(+), 14 deletions(-)
+ mm/memblock.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-convert-remove_pool_huge_page-to-remove_pool_hugetlb_folio
-+++ a/mm/hugetlb.c
-@@ -1446,7 +1446,7 @@ static int hstate_next_node_to_alloc(str
- }
+--- a/mm/memblock.c~memblock-pass-memblock_type-to-memblock_setclr_flag
++++ a/mm/memblock.c
+@@ -892,6 +892,7 @@ int __init_memblock memblock_physmem_add
  
- /*
-- * helper for remove_pool_huge_page() - return the previously saved
-+ * helper for remove_pool_hugetlb_folio() - return the previously saved
-  * node ["this node"] from which to free a huge page.  Advance the
-  * next node id whether or not we find a free huge page to free so
-  * that the next attempt to free addresses the next node.
-@@ -2222,9 +2222,8 @@ static int alloc_pool_huge_page(struct h
-  * an additional call to free the page to low level allocators.
-  * Called with hugetlb_lock locked.
+ /**
+  * memblock_setclr_flag - set or clear flag for a memory region
++ * @type: memblock type to set/clear flag for
+  * @base: base address of the region
+  * @size: size of the region
+  * @set: set or clear the flag
+@@ -901,10 +902,9 @@ int __init_memblock memblock_physmem_add
+  *
+  * Return: 0 on success, -errno on failure.
   */
--static struct page *remove_pool_huge_page(struct hstate *h,
--						nodemask_t *nodes_allowed,
--						 bool acct_surplus)
-+static struct folio *remove_pool_hugetlb_folio(struct hstate *h,
-+		nodemask_t *nodes_allowed, bool acct_surplus)
+-static int __init_memblock memblock_setclr_flag(phys_addr_t base,
+-				phys_addr_t size, int set, int flag)
++static int __init_memblock memblock_setclr_flag(struct memblock_type *type,
++				phys_addr_t base, phys_addr_t size, int set, int flag)
  {
- 	int nr_nodes, node;
- 	struct folio *folio = NULL;
-@@ -2244,7 +2243,7 @@ static struct page *remove_pool_huge_pag
- 		}
- 	}
+-	struct memblock_type *type = &memblock.memory;
+ 	int i, ret, start_rgn, end_rgn;
  
--	return &folio->page;
-+	return folio;
+ 	ret = memblock_isolate_range(type, base, size, &start_rgn, &end_rgn);
+@@ -933,7 +933,7 @@ static int __init_memblock memblock_setc
+  */
+ int __init_memblock memblock_mark_hotplug(phys_addr_t base, phys_addr_t size)
+ {
+-	return memblock_setclr_flag(base, size, 1, MEMBLOCK_HOTPLUG);
++	return memblock_setclr_flag(&memblock.memory, base, size, 1, MEMBLOCK_HOTPLUG);
  }
  
- /*
-@@ -2598,7 +2597,6 @@ static void return_unused_surplus_pages(
- 					unsigned long unused_resv_pages)
+ /**
+@@ -945,7 +945,7 @@ int __init_memblock memblock_mark_hotplu
+  */
+ int __init_memblock memblock_clear_hotplug(phys_addr_t base, phys_addr_t size)
  {
- 	unsigned long nr_pages;
--	struct page *page;
- 	LIST_HEAD(page_list);
+-	return memblock_setclr_flag(base, size, 0, MEMBLOCK_HOTPLUG);
++	return memblock_setclr_flag(&memblock.memory, base, size, 0, MEMBLOCK_HOTPLUG);
+ }
  
- 	lockdep_assert_held(&hugetlb_lock);
-@@ -2619,15 +2617,17 @@ static void return_unused_surplus_pages(
- 	 * evenly across all nodes with memory. Iterate across these nodes
- 	 * until we can no longer free unreserved surplus pages. This occurs
- 	 * when the nodes with surplus pages have no free pages.
--	 * remove_pool_huge_page() will balance the freed pages across the
-+	 * remove_pool_hugetlb_folio() will balance the freed pages across the
- 	 * on-line nodes with memory and will handle the hstate accounting.
- 	 */
- 	while (nr_pages--) {
--		page = remove_pool_huge_page(h, &node_states[N_MEMORY], 1);
--		if (!page)
-+		struct folio *folio;
-+
-+		folio = remove_pool_hugetlb_folio(h, &node_states[N_MEMORY], 1);
-+		if (!folio)
- 			goto out;
+ /**
+@@ -962,7 +962,7 @@ int __init_memblock memblock_mark_mirror
  
--		list_add(&page->lru, &page_list);
-+		list_add(&folio->lru, &page_list);
- 	}
+ 	system_has_some_mirror = true;
  
- out:
-@@ -3472,7 +3472,6 @@ static int set_max_huge_pages(struct hst
- 			      nodemask_t *nodes_allowed)
+-	return memblock_setclr_flag(base, size, 1, MEMBLOCK_MIRROR);
++	return memblock_setclr_flag(&memblock.memory, base, size, 1, MEMBLOCK_MIRROR);
+ }
+ 
+ /**
+@@ -982,7 +982,7 @@ int __init_memblock memblock_mark_mirror
+  */
+ int __init_memblock memblock_mark_nomap(phys_addr_t base, phys_addr_t size)
  {
- 	unsigned long min_count, ret;
--	struct page *page;
- 	LIST_HEAD(page_list);
- 	NODEMASK_ALLOC(nodemask_t, node_alloc_noretry, GFP_KERNEL);
+-	return memblock_setclr_flag(base, size, 1, MEMBLOCK_NOMAP);
++	return memblock_setclr_flag(&memblock.memory, base, size, 1, MEMBLOCK_NOMAP);
+ }
  
-@@ -3594,11 +3593,13 @@ static int set_max_huge_pages(struct hst
- 	 * Collect pages to be removed on list without dropping lock
- 	 */
- 	while (min_count < persistent_huge_pages(h)) {
--		page = remove_pool_huge_page(h, nodes_allowed, 0);
--		if (!page)
-+		struct folio *folio;
-+
-+		folio = remove_pool_hugetlb_folio(h, nodes_allowed, 0);
-+		if (!folio)
- 			break;
+ /**
+@@ -994,7 +994,7 @@ int __init_memblock memblock_mark_nomap(
+  */
+ int __init_memblock memblock_clear_nomap(phys_addr_t base, phys_addr_t size)
+ {
+-	return memblock_setclr_flag(base, size, 0, MEMBLOCK_NOMAP);
++	return memblock_setclr_flag(&memblock.memory, base, size, 0, MEMBLOCK_NOMAP);
+ }
  
--		list_add(&page->lru, &page_list);
-+		list_add(&folio->lru, &page_list);
- 	}
- 	/* free the pages after dropping lock */
- 	spin_unlock_irq(&hugetlb_lock);
+ static bool should_skip_region(struct memblock_type *type,
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from usama.arif@bytedance.com are
 
-mm-make-lock_folio_maybe_drop_mmap-vma-lock-aware.patch
-mm-call-wp_page_copy-under-the-vma-lock.patch
-mm-handle-shared-faults-under-the-vma-lock.patch
-mm-handle-cow-faults-under-the-vma-lock.patch
-mm-handle-read-faults-under-the-vma-lock.patch
-mm-handle-write-faults-to-ro-pages-under-the-vma-lock.patch
 
