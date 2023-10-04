@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A925BE7C4F3
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:18:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57661E7C4F4
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:19:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233683AbjJDUS6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:18:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42884 "EHLO
+        id S233493AbjJDUTC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:19:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42964 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244057AbjJDUSv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:18:51 -0400
+        with ESMTP id S244466AbjJDUS5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:18:57 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F3283C9
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:18:43 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A147C433C7;
-        Wed,  4 Oct 2023 20:18:43 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C1A1C0
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:18:54 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4AC7EC433C8;
+        Wed,  4 Oct 2023 20:18:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450723;
-        bh=m6Hq7PgrDUJebNz8G2J7rX4ZD/P6FuPuqKQZ1cCix/c=;
+        s=korg; t=1696450733;
+        bh=aOuJsW293Fa+7+YDbB4r66bn9Asmnas3WXOT9TsCb6U=;
         h=Date:To:From:Subject:From;
-        b=x/fdIb4tg7ZVcV0ql0lN1pldf8Zw+VCKJa+AXoDHdjtb2dhBkqUMMTzXBlI6DFE2d
-         11+Q2cZukgKlGgE4HJ6DDDX1hMfAh79/u4BgWfHoT7E2YEQ0CqXusCIyUqRDWzg+6t
-         VaEYkTImwIZkPotyaiWnNcX6s5+WqkLw5+j88u1g=
-Date:   Wed, 04 Oct 2023 13:18:41 -0700
-To:     mm-commits@vger.kernel.org, rostedt@goodmis.org, corbet@lwn.net,
-        sj@kernel.org, akpm@linux-foundation.org
+        b=j5PkwcuGMsEKAOZGK9zl8b9qSnxo757c+1bv1UgVRqUBElG0aAsjyWTfh3ZdO2aBw
+         BiIhC/t4FlxYlBbNBHHOTPn5TblgGMtuMbROAytcVL1WJCSqGYyvGXgYNbq2xF6B/O
+         FSOcdveFx2c6gfMJ3yeg7NkINjMs46yxCHY8Ap3A=
+Date:   Wed, 04 Oct 2023 13:18:51 -0700
+To:     mm-commits@vger.kernel.org, renyanjie01@gmail.com,
+        sunying@nj.iscas.ac.cn, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-remove-duplicated-comment-for-watermarks-based-deactivation.patch removed from -mm tree
-Message-Id: <20231004201843.4A147C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-shmem-remove-dead-code-can-not-be-satisfied-by-config_shmemconfig_shmem.patch removed from -mm tree
+Message-Id: <20231004201853.4AC7EC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,45 +36,48 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/core: remove duplicated comment for watermarks-based deactivation
+     Subject: mm/shmem: remove dead code can not be satisfied by "(CONFIG_SHMEM)&&(!(CONFIG_SHMEM))"
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-remove-duplicated-comment-for-watermarks-based-deactivation.patch
+     mm-shmem-remove-dead-code-can-not-be-satisfied-by-config_shmemconfig_shmem.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: remove duplicated comment for watermarks-based deactivation
-Date: Thu, 7 Sep 2023 02:29:28 +0000
+From: Ying Sun <sunying@nj.iscas.ac.cn>
+Subject: mm/shmem: remove dead code can not be satisfied by "(CONFIG_SHMEM)&&(!(CONFIG_SHMEM))"
+Date: Wed, 6 Sep 2023 12:50:12 +0800
 
-The comment for explaining about watermarks-based monitoring part
-deactivation is duplicated in two paragraphs.  Remove one.
+The value of “.fs_flags” in line 4608 is a dead code which will never
+be implemented，because its conditions of line 47 "#ifdef CONFIG_SHMEM"
+and line 4607 are mutually exclusive.  It is recommended to delete
+redundant code.
 
-Link: https://lkml.kernel.org/r/20230907022929.91361-11-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Link: https://lkml.kernel.org/r/20230906045012.14999-1-sunying@nj.iscas.ac.cn
+Signed-off-by: Ying Sun <sunying@nj.iscas.ac.cn>
+Suggested-by: Yanjie Ren <renyanjie01@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/shmem.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-core-remove-duplicated-comment-for-watermarks-based-deactivation
-+++ a/include/linux/damon.h
-@@ -317,9 +317,6 @@ struct damos_access_pattern {
-  * monitoring context are inactive, DAMON stops monitoring either, and just
-  * repeatedly checks the watermarks.
-  *
-- * If all schemes that registered to a &struct damon_ctx are inactive, DAMON
-- * stops monitoring and just repeatedly checks the watermarks.
-- *
-  * Before applying the &action to a memory region, &struct damon_operations
-  * implementation could check pages of the region and skip &action to respect
-  * &filters
+--- a/mm/shmem.c~mm-shmem-remove-dead-code-can-not-be-satisfied-by-config_shmemconfig_shmem
++++ a/mm/shmem.c
+@@ -4585,11 +4585,7 @@ static struct file_system_type shmem_fs_
+ 	.parameters	= shmem_fs_parameters,
+ #endif
+ 	.kill_sb	= kill_litter_super,
+-#ifdef CONFIG_SHMEM
+ 	.fs_flags	= FS_USERNS_MOUNT | FS_ALLOW_IDMAP,
+-#else
+-	.fs_flags	= FS_USERNS_MOUNT,
+-#endif
+ };
+ 
+ void __init shmem_init(void)
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from sunying@nj.iscas.ac.cn are
 
 
