@@ -2,73 +2,234 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9088EE7C4D0
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 15:08:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F739E7C4F3
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:17:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233192AbjJDPI7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 11:08:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47494 "EHLO
+        id S233332AbjJDURD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:17:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34456 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232995AbjJDPI6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 11:08:58 -0400
+        with ESMTP id S232977AbjJDURD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:17:03 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04503BD
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 08:08:55 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16380C433C9;
-        Wed,  4 Oct 2023 15:08:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1696432134;
-        bh=pStkvGE8dEk8xz7y4JnC4P2926RLXj9PtaWywM4hYfQ=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=tPL4XZN7GdD7lrL5/XIVtRGoeXDQu6wfFXm4DUp2vUjLuofhTufxOgDMSgVbLFvdy
-         +sG0n7AP+RJpGLZifaFCPlKKgS/C7YrQL+AQ6WLHSi95vVYJuyJKkBelR9ucQMUGHR
-         EqyfRMZaDNLCy/HIX3SxhldQB+5YdIsCC1/27ZlXhuNHgzUnsBWOUkNaq7KPsqSCV3
-         TetI6kdIPz0xGxcocQPB06bZI+hEceYu7/MfFSDyV9P5ojAkvXbg2nhD+1EVHwFZwH
-         qyGcX6yMsd/MaAe/DsViCt10AX1Ay1rEOzPwjxok5HfgIuGCZYRO/e0MW/8xwNX0f8
-         d+dUFiB1ctL5A==
-Date:   Wed, 4 Oct 2023 08:08:52 -0700
-From:   Nathan Chancellor <nathan@kernel.org>
-To:     David Laight <David.Laight@aculab.com>
-Cc:     'Andrew Morton' <akpm@linux-foundation.org>,
-        "mm-commits@vger.kernel.org" <mm-commits@vger.kernel.org>,
-        "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>,
-        "rostedt@goodmis.org" <rostedt@goodmis.org>,
-        "ndesaulniers@google.com" <ndesaulniers@google.com>,
-        "linux@rasmusvillemoes.dk" <linux@rasmusvillemoes.dk>,
-        "keescook@chromium.org" <keescook@chromium.org>,
-        "bvanassche@acm.org" <bvanassche@acm.org>,
-        "arnd@arndb.de" <arnd@arndb.de>
-Subject: Re: [failures] compilerh-move-__is_constexpr-to-compilerh.patch
- removed from -mm tree
-Message-ID: <20231004150852.GA2580510@dev-arch.thelio-3990X>
-References: <20231003234225.15C03C433C7@smtp.kernel.org>
- <e82afc60ad0741a99c0980cb17b3679a@AcuMS.aculab.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <e82afc60ad0741a99c0980cb17b3679a@AcuMS.aculab.com>
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E723A93
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:16:59 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37796C433C7;
+        Wed,  4 Oct 2023 20:16:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1696450619;
+        bh=lhVRZl3KmW1WaH+yUWFohuzrDwOyjS3WrOBYyl0i/T8=;
+        h=Date:To:From:Subject:From;
+        b=N27NNnWbUk3Xjik99CTf5pvclSLfrtLUchxCD3ZKZegTfG3gFKvo4/z64XT/kLKEM
+         n1baX94WYiTX2u+bIrS1OE553rJTVwmDprwLfRT90sHUVu6RYWpnBGW64MSUu6rKqk
+         3IvNpza758bARZd7bWUrdH3Nf/h4RoczOAOKwszA=
+Date:   Wed, 04 Oct 2023 13:16:57 -0700
+To:     mm-commits@vger.kernel.org, yosryahmed@google.com, tj@kernel.org,
+        shuah@kernel.org, shakeelb@google.com, roman.gushchin@linux.dev,
+        riel@surriel.com, muchun.song@linux.dev, mike.kravetz@oracle.com,
+        mhocko@suse.com, lizefan.x@bytedance.com, hannes@cmpxchg.org,
+        fvdl@google.com, nphamcs@gmail.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + hugetlb-memcg-account-hugetlb-backed-memory-in-memory-controller-fix.patch added to mm-unstable branch
+Message-Id: <20231004201659.37796C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Wed, Oct 04, 2023 at 08:14:53AM +0000, David Laight wrote:
-> From: Andrew Morton
-> > Sent: 04 October 2023 00:42
-> > 
-> > 
-> > The quilt patch titled
-> >      Subject: compiler.h: move __is_constexpr() to compiler.h
-> > has been removed from the -mm tree.  Its filename was
-> >      compilerh-move-__is_constexpr-to-compilerh.patch
-> > 
-> > This patch was dropped because it had testing failures
-> 
-> Any hint as to where?
 
-You were CC'd on the report it seems:
+The patch titled
+     Subject: memcontrol: only transfer the memcg data for migration
+has been added to the -mm mm-unstable branch.  Its filename is
+     hugetlb-memcg-account-hugetlb-backed-memory-in-memory-controller-fix.patch
 
-https://lore.kernel.org/20231004095058.392f8c17@canb.auug.org.au/
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-memcg-account-hugetlb-backed-memory-in-memory-controller-fix.patch
 
-Cheers,
-Nathan
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Nhat Pham <nphamcs@gmail.com>
+Subject: memcontrol: only transfer the memcg data for migration
+Date: Tue, 3 Oct 2023 16:14:22 -0700
+
+For most migration use cases, only transfer the memcg data from the old
+folio to the new folio, and clear the old folio's memcg data.  No charging
+and uncharging will be done.  These use cases include the new hugetlb
+memcg accounting behavior (which was not previously handled).
+
+This shaves off some work on the migration path, and avoids the temporary
+double charging of a folio during its migration.
+
+The only exception is replace_page_cache_folio(), which will use the old
+mem_cgroup_migrate() (now renamed to mem_cgroup_replace_folio).  In that
+context, the isolation of the old page isn't quite as thorough as with
+migration, so we cannot use our new implementation directly.
+
+This patch is the result of the following discussion on the new hugetlb
+memcg accounting behavior:
+
+https://lore.kernel.org/lkml/20231003171329.GB314430@monkey/
+
+Link: https://lkml.kernel.org/r/20231003231422.4046187-1-nphamcs@gmail.com
+Signed-off-by: Nhat Pham <nphamcs@gmail.com>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Mike Kravetz <mike.kravetz@oracle.com>
+Closes: https://lore.kernel.org/lkml/20231003171329.GB314430@monkey/
+Cc: Frank van der Linden <fvdl@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Tejun heo <tj@kernel.org>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Zefan Li <lizefan.x@bytedance.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/memcontrol.h |    7 +++++
+ mm/filemap.c               |    2 -
+ mm/memcontrol.c            |   45 ++++++++++++++++++++++++++++++++---
+ mm/migrate.c               |    3 --
+ 4 files changed, 51 insertions(+), 6 deletions(-)
+
+--- a/include/linux/memcontrol.h~hugetlb-memcg-account-hugetlb-backed-memory-in-memory-controller-fix
++++ a/include/linux/memcontrol.h
+@@ -727,6 +727,8 @@ static inline void mem_cgroup_uncharge_l
+ 
+ void mem_cgroup_cancel_charge(struct mem_cgroup *memcg, unsigned int nr_pages);
+ 
++void mem_cgroup_replace_folio(struct folio *old, struct folio *new);
++
+ void mem_cgroup_migrate(struct folio *old, struct folio *new);
+ 
+ /**
+@@ -1310,6 +1312,11 @@ static inline void mem_cgroup_cancel_cha
+ {
+ }
+ 
++static inline void mem_cgroup_replace_folio(struct folio *old,
++		struct folio *new)
++{
++}
++
+ static inline void mem_cgroup_migrate(struct folio *old, struct folio *new)
+ {
+ }
+--- a/mm/filemap.c~hugetlb-memcg-account-hugetlb-backed-memory-in-memory-controller-fix
++++ a/mm/filemap.c
+@@ -816,7 +816,7 @@ void replace_page_cache_folio(struct fol
+ 	new->mapping = mapping;
+ 	new->index = offset;
+ 
+-	mem_cgroup_migrate(old, new);
++	mem_cgroup_replace_folio(old, new);
+ 
+ 	xas_lock_irq(&xas);
+ 	xas_store(&xas, new);
+--- a/mm/memcontrol.c~hugetlb-memcg-account-hugetlb-backed-memory-in-memory-controller-fix
++++ a/mm/memcontrol.c
+@@ -7471,16 +7471,17 @@ void __mem_cgroup_uncharge_list(struct l
+ }
+ 
+ /**
+- * mem_cgroup_migrate - Charge a folio's replacement.
++ * mem_cgroup_replace_folio - Charge a folio's replacement.
+  * @old: Currently circulating folio.
+  * @new: Replacement folio.
+  *
+  * Charge @new as a replacement folio for @old. @old will
+- * be uncharged upon free.
++ * be uncharged upon free. This is only used by the page cache
++ * (in replace_page_cache_folio()).
+  *
+  * Both folios must be locked, @new->mapping must be set up.
+  */
+-void mem_cgroup_migrate(struct folio *old, struct folio *new)
++void mem_cgroup_replace_folio(struct folio *old, struct folio *new)
+ {
+ 	struct mem_cgroup *memcg;
+ 	long nr_pages = folio_nr_pages(new);
+@@ -7519,6 +7520,44 @@ void mem_cgroup_migrate(struct folio *ol
+ 	local_irq_restore(flags);
+ }
+ 
++/**
++ * mem_cgroup_migrate - Transfer the memcg data from the old to the new folio.
++ * @old: Currently circulating folio.
++ * @new: Replacement folio.
++ *
++ * Transfer the memcg data from the old folio to the new folio for migration.
++ * The old folio's data info will be cleared. Note that the memory counters
++ * will remain unchanged throughout the process.
++ *
++ * Both folios must be locked, @new->mapping must be set up.
++ */
++void mem_cgroup_migrate(struct folio *old, struct folio *new)
++{
++	struct mem_cgroup *memcg;
++
++	VM_BUG_ON_FOLIO(!folio_test_locked(old), old);
++	VM_BUG_ON_FOLIO(!folio_test_locked(new), new);
++	VM_BUG_ON_FOLIO(folio_test_anon(old) != folio_test_anon(new), new);
++	VM_BUG_ON_FOLIO(folio_nr_pages(old) != folio_nr_pages(new), new);
++
++	if (mem_cgroup_disabled())
++		return;
++
++	memcg = folio_memcg(old);
++	/*
++	 * Note that it is normal to see !memcg for a hugetlb folio.
++	 * It could have been allocated when memory_hugetlb_accounting was not
++	 * selected, for e.g.
++	 */
++	VM_WARN_ON_ONCE_FOLIO(!memcg, old);
++	if (!memcg)
++		return;
++
++	/* Transfer the charge and the css ref */
++	commit_charge(new, memcg);
++	old->memcg_data = 0;
++}
++
+ DEFINE_STATIC_KEY_FALSE(memcg_sockets_enabled_key);
+ EXPORT_SYMBOL(memcg_sockets_enabled_key);
+ 
+--- a/mm/migrate.c~hugetlb-memcg-account-hugetlb-backed-memory-in-memory-controller-fix
++++ a/mm/migrate.c
+@@ -633,8 +633,7 @@ void folio_migrate_flags(struct folio *n
+ 
+ 	folio_copy_owner(newfolio, folio);
+ 
+-	if (!folio_test_hugetlb(folio))
+-		mem_cgroup_migrate(folio, newfolio);
++	mem_cgroup_migrate(folio, newfolio);
+ }
+ EXPORT_SYMBOL(folio_migrate_flags);
+ 
+_
+
+Patches currently in -mm which might be from nphamcs@gmail.com are
+
+zswap-change-zswaps-default-allocator-to-zsmalloc.patch
+zswap-shrinks-zswap-pool-based-on-memory-pressure.patch
+memcontrol-add-helpers-for-hugetlb-memcg-accounting.patch
+hugetlb-memcg-account-hugetlb-backed-memory-in-memory-controller.patch
+hugetlb-memcg-account-hugetlb-backed-memory-in-memory-controller-fix.patch
+selftests-add-a-selftest-to-verify-hugetlb-usage-in-memcg.patch
+
