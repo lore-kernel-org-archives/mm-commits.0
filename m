@@ -2,35 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF36AE7C4F4
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:18:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FDE3E7C4F5
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:18:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244087AbjJDUS5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:18:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42886 "EHLO
+        id S233617AbjJDUS7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:18:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42894 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244080AbjJDUSv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:18:51 -0400
+        with ESMTP id S244081AbjJDUS4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:18:56 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4FA0E5
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:18:45 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43D1BC433C8;
-        Wed,  4 Oct 2023 20:18:45 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D18EAEB
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:18:49 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A131C433CA;
+        Wed,  4 Oct 2023 20:18:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450725;
-        bh=vYpIReTd16yUdM/sR1KVfr2vhn+l/c9xJU4GiEntgJk=;
+        s=korg; t=1696450729;
+        bh=VavdaRiDBJo1uKLDwlesoJptyjCYwlOAo2M/kwB4X78=;
         h=Date:To:From:Subject:From;
-        b=m0llZyAQYFgRhkpY0t+mPRVBvdvbDmleR2nYFjBDFPdbHK3ZWQEVD2zAwrrPJoTYf
-         U2+M3QShHrzf7H3wY0Cyzs8FO+kqU74WYOtjYBkeldJdoj7AoXgsF01b6FDQV14xsM
-         a0bTHptwKSdNhJQQ/FMPGooBPklIlyUXY6wD9gK4=
-Date:   Wed, 04 Oct 2023 13:18:43 -0700
-To:     mm-commits@vger.kernel.org, shuah@kernel.org,
-        keescook@chromium.org, jeffxu@google.com, dverkamp@chromium.org,
-        dtometzki@fedoraproject.org, brauner@kernel.org, cyphar@cyphar.com,
-        akpm@linux-foundation.org
+        b=c3Y5+KLSqwmwPj4KgrXST7qvxAgZYiDJJ/cNPvP4YirQS6vHAw4bxas2lexYaUwd2
+         MLd1Ufz+8gNJF2f3iPto7kyyJN/4fnTFzE5AUWNimngNv3zSS6ihxB4/CuXwLTIcrv
+         nhKn3oDRIXAcheJ+dPSWEYfVn4ISMHdgQLehHLgw=
+Date:   Wed, 04 Oct 2023 13:18:47 -0700
+To:     mm-commits@vger.kernel.org, elver@google.com, dvyukov@google.com,
+        glider@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memfd-drop-warning-for-missing-exec-related-flags.patch removed from -mm tree
-Message-Id: <20231004201845.43D1BC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] kmsan-prevent-optimizations-in-memcpy-tests.patch removed from -mm tree
+Message-Id: <20231004201849.3A131C433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,67 +36,125 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: memfd: drop warning for missing exec-related flags
+     Subject: kmsan: prevent optimizations in memcpy tests
 has been removed from the -mm tree.  Its filename was
-     memfd-drop-warning-for-missing-exec-related-flags.patch
+     kmsan-prevent-optimizations-in-memcpy-tests.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Aleksa Sarai <cyphar@cyphar.com>
-Subject: memfd: drop warning for missing exec-related flags
-Date: Tue, 12 Sep 2023 01:17:20 +1000
+From: Alexander Potapenko <glider@google.com>
+Subject: kmsan: prevent optimizations in memcpy tests
+Date: Mon, 11 Sep 2023 16:57:00 +0200
 
-Commit 434ed3350f57 ("memfd: improve userspace warnings for missing
-exec-related flags") attempted to make these warnings more useful (so
-they would work as an incentive to get users to switch to specifying
-these flags -- as intended by the original MFD_NOEXEC_SEAL patchset).
-Unfortunately, it turns out that even INFO-level logging is too extreme
-to enable by default and alternative solutions to the spam issue (such
-as doing more extreme rate-limiting per-task) are either too ugly or
-overkill for something as simple as emitting a log as a developer aid.
+Clang 18 learned to optimize away memcpy() calls of small uninitialized
+scalar values.  To ensure that memcpy tests in kmsan_test.c still perform
+calls to memcpy() (which KMSAN replaces with __msan_memcpy()), declare a
+separate memcpy_noinline() function with volatile parameters, which won't
+be optimized.
 
-Given that the flags are new and there is no harm to not specifying them
-(after all, we maintain backwards compatibility) we can just drop the
-warnings for now until some time in the future when most programs have
-migrated and distributions start using vm.memfd_noexec=1 (where failing
-to pass the flag would result in unexpected errors for programs that use
-executable memfds).
+Also retire DO_NOT_OPTIMIZE(), as memcpy_noinline() is apparently enough.
 
-Link: https://lkml.kernel.org/r/20230912-memfd-reduce-spam-v2-1-7d92a4964b6a@cyphar.com
-Fixes: 434ed3350f57 ("memfd: improve userspace warnings for missing exec-related flags")
-Fixes: 2562d67b1bdf ("revert "memfd: improve userspace warnings for missing exec-related flags".")
-Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
-Reported-by: Damian Tometzki <dtometzki@fedoraproject.org>
-Reviewed-by: Christian Brauner <brauner@kernel.org>
-Cc: Daniel Verkamp <dverkamp@chromium.org>
-Cc: Jeff Xu <jeffxu@google.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20230911145702.2663753-2-glider@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Acked-by: Marco Elver <elver@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memfd.c |    6 ------
- 1 file changed, 6 deletions(-)
+ mm/kmsan/kmsan_test.c |   41 +++++++++++++++-------------------------
+ 1 file changed, 16 insertions(+), 25 deletions(-)
 
---- a/mm/memfd.c~memfd-drop-warning-for-missing-exec-related-flags
-+++ a/mm/memfd.c
-@@ -315,12 +315,6 @@ SYSCALL_DEFINE2(memfd_create,
- 	if ((flags & MFD_EXEC) && (flags & MFD_NOEXEC_SEAL))
- 		return -EINVAL;
+--- a/mm/kmsan/kmsan_test.c~kmsan-prevent-optimizations-in-memcpy-tests
++++ a/mm/kmsan/kmsan_test.c
+@@ -407,33 +407,25 @@ static void test_printk(struct kunit *te
+ 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
+ }
  
--	if (!(flags & (MFD_EXEC | MFD_NOEXEC_SEAL))) {
--		pr_warn_once(
--			"%s[%d]: memfd_create() called without MFD_EXEC or MFD_NOEXEC_SEAL set\n",
--			current->comm, task_pid_nr(current));
--	}
--
- 	error = check_sysctl_memfd_noexec(&flags);
- 	if (error < 0)
- 		return error;
+-/*
+- * Prevent the compiler from optimizing @var away. Without this, Clang may
+- * notice that @var is uninitialized and drop memcpy() calls that use it.
+- *
+- * There is OPTIMIZER_HIDE_VAR() in linux/compier.h that we cannot use here,
+- * because it is implemented as inline assembly receiving @var as a parameter
+- * and will enforce a KMSAN check. Same is true for e.g. barrier_data(var).
+- */
+-#define DO_NOT_OPTIMIZE(var) barrier()
++/* Prevent the compiler from inlining a memcpy() call. */
++static noinline void *memcpy_noinline(volatile void *dst,
++				      const volatile void *src, size_t size)
++{
++	return memcpy((void *)dst, (const void *)src, size);
++}
+ 
+-/*
+- * Test case: ensure that memcpy() correctly copies initialized values.
+- * Also serves as a regression test to ensure DO_NOT_OPTIMIZE() does not cause
+- * extra checks.
+- */
++/* Test case: ensure that memcpy() correctly copies initialized values. */
+ static void test_init_memcpy(struct kunit *test)
+ {
+ 	EXPECTATION_NO_REPORT(expect);
+-	volatile int src;
+-	volatile int dst = 0;
++	volatile long long src;
++	volatile long long dst = 0;
+ 
+-	DO_NOT_OPTIMIZE(src);
+ 	src = 1;
+ 	kunit_info(
+ 		test,
+ 		"memcpy()ing aligned initialized src to aligned dst (no reports)\n");
+-	memcpy((void *)&dst, (void *)&src, sizeof(src));
++	memcpy_noinline((void *)&dst, (void *)&src, sizeof(src));
+ 	kmsan_check_memory((void *)&dst, sizeof(dst));
+ 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
+ }
+@@ -451,8 +443,7 @@ static void test_memcpy_aligned_to_align
+ 	kunit_info(
+ 		test,
+ 		"memcpy()ing aligned uninit src to aligned dst (UMR report)\n");
+-	DO_NOT_OPTIMIZE(uninit_src);
+-	memcpy((void *)&dst, (void *)&uninit_src, sizeof(uninit_src));
++	memcpy_noinline((void *)&dst, (void *)&uninit_src, sizeof(uninit_src));
+ 	kmsan_check_memory((void *)&dst, sizeof(dst));
+ 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
+ }
+@@ -474,8 +465,9 @@ static void test_memcpy_aligned_to_unali
+ 	kunit_info(
+ 		test,
+ 		"memcpy()ing aligned uninit src to unaligned dst (UMR report)\n");
+-	DO_NOT_OPTIMIZE(uninit_src);
+-	memcpy((void *)&dst[1], (void *)&uninit_src, sizeof(uninit_src));
++	kmsan_check_memory((void *)&uninit_src, sizeof(uninit_src));
++	memcpy_noinline((void *)&dst[1], (void *)&uninit_src,
++			sizeof(uninit_src));
+ 	kmsan_check_memory((void *)dst, 4);
+ 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
+ }
+@@ -498,8 +490,8 @@ static void test_memcpy_aligned_to_unali
+ 	kunit_info(
+ 		test,
+ 		"memcpy()ing aligned uninit src to unaligned dst - part 2 (UMR report)\n");
+-	DO_NOT_OPTIMIZE(uninit_src);
+-	memcpy((void *)&dst[1], (void *)&uninit_src, sizeof(uninit_src));
++	memcpy_noinline((void *)&dst[1], (void *)&uninit_src,
++			sizeof(uninit_src));
+ 	kmsan_check_memory((void *)&dst[4], sizeof(uninit_src));
+ 	KUNIT_EXPECT_TRUE(test, report_matches(&expect));
+ }
+@@ -513,7 +505,6 @@ static void test_memcpy_aligned_to_unali
+                                                                             \
+ 		kunit_info(test,                                            \
+ 			   "memset" #size "() should initialize memory\n"); \
+-		DO_NOT_OPTIMIZE(uninit);                                    \
+ 		memset##size((uint##size##_t *)&uninit, 0, 1);              \
+ 		kmsan_check_memory((void *)&uninit, sizeof(uninit));        \
+ 		KUNIT_EXPECT_TRUE(test, report_matches(&expect));           \
 _
 
-Patches currently in -mm which might be from cyphar@cyphar.com are
+Patches currently in -mm which might be from glider@google.com are
 
 
