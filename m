@@ -2,35 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D6AAE7C4F1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72900E7C4F7
 	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:22:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244453AbjJDUWf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:22:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38762 "EHLO
+        id S244492AbjJDUWh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:22:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57888 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244847AbjJDUWM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:22:12 -0400
+        with ESMTP id S244878AbjJDUW1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:22:27 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3DC0410F2
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:21:07 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BBDEC433C8;
-        Wed,  4 Oct 2023 20:21:06 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E6EF171C
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:21:22 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D60A2C433C7;
+        Wed,  4 Oct 2023 20:21:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450866;
-        bh=KNKdEh4lSA1XSiOKYDgLIEEfd13M7YC2XrxHkLWSpmc=;
+        s=korg; t=1696450882;
+        bh=55Ffa9W3IAtKE7gTNE3YpN8mtHlE58Blu11Uk3c9pbg=;
         h=Date:To:From:Subject:From;
-        b=KZiAQUh9+qySeh/W4bdx1FOqX2iS8JrzdLsBxxu5gYtpjJK+Xz93ByU0PEyhDq32k
-         UzY6vis9ifnp+DqqJlgjTllrGM//hIlnlDDN0dsV6QD3pQZUvvkZFlNCIUdD4ymBdh
-         Xj4G9tO/LxKVEj5rHI2crqALsPrm+uO5XO8iT5HM=
-Date:   Wed, 04 Oct 2023 13:21:04 -0700
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
-        willy@infradead.org, mike.kravetz@oracle.com, hughd@google.com,
-        david@redhat.com, wangkefeng.wang@huawei.com,
-        akpm@linux-foundation.org
+        b=wv62EmzstgwXaLKJ8B8+I1wTHHz3UZVyjAQv9nHfYPk4dh8YExHLYK7SemRSBi8Rc
+         oSM/TzXFfXiehMMFtACpUE4QM5zrHih4fGuMmUtx3YbUgVlV7jtT6Ks+12X8Kpe2Zm
+         QSLvrWyy1+ZR0IkRc/hol6VcSLRHrbQkpmwI0/zY=
+Date:   Wed, 04 Oct 2023 13:21:20 -0700
+To:     mm-commits@vger.kernel.org, rostedt@goodmis.org, corbet@lwn.net,
+        sj@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-migrate-convert-numamigrate_isolate_page-to-numamigrate_isolate_folio.patch removed from -mm tree
-Message-Id: <20231004202106.6BBDEC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] docs-admin-guide-mm-damon-usage-document-damos_before_apply-tracepoint.patch removed from -mm tree
+Message-Id: <20231004202121.D60A2C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,97 +36,87 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: migrate: convert numamigrate_isolate_page() to numamigrate_isolate_folio()
+     Subject: Docs/admin-guide/mm/damon/usage: document damos_before_apply tracepoint
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-convert-numamigrate_isolate_page-to-numamigrate_isolate_folio.patch
+     docs-admin-guide-mm-damon-usage-document-damos_before_apply-tracepoint.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: migrate: convert numamigrate_isolate_page() to numamigrate_isolate_folio()
-Date: Wed, 13 Sep 2023 17:51:26 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: Docs/admin-guide/mm/damon/usage: document damos_before_apply tracepoint
+Date: Wed, 13 Sep 2023 02:20:50 +0000
 
-Rename numamigrate_isolate_page() to numamigrate_isolate_folio(), then
-make it takes a folio and use folio API to save compound_head() calls.
+Document damos_before_apply tracepoint on the usage document.
 
-Link: https://lkml.kernel.org/r/20230913095131.2426871-4-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Link: https://lkml.kernel.org/r/20230913022050.2109-3-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ Documentation/admin-guide/mm/damon/usage.rst |   37 +++++++++++++----
+ 1 file changed, 30 insertions(+), 7 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-convert-numamigrate_isolate_page-to-numamigrate_isolate_folio
-+++ a/mm/migrate.c
-@@ -2481,10 +2481,9 @@ static struct folio *alloc_misplaced_dst
- 	return __folio_alloc_node(gfp, order, nid);
- }
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-damos_before_apply-tracepoint
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -496,15 +496,24 @@ the files as above.  Above is only for a
  
--static int numamigrate_isolate_page(pg_data_t *pgdat, struct page *page)
-+static int numamigrate_isolate_folio(pg_data_t *pgdat, struct folio *folio)
- {
--	int nr_pages = thp_nr_pages(page);
--	int order = compound_order(page);
-+	int nr_pages = folio_nr_pages(folio);
+ .. _tracepoint:
  
- 	/* Avoid migrating to a node that is nearly full */
- 	if (!migrate_balanced_pgdat(pgdat, nr_pages)) {
-@@ -2496,22 +2495,23 @@ static int numamigrate_isolate_page(pg_d
- 			if (managed_zone(pgdat->node_zones + z))
- 				break;
- 		}
--		wakeup_kswapd(pgdat->node_zones + z, 0, order, ZONE_MOVABLE);
-+		wakeup_kswapd(pgdat->node_zones + z, 0,
-+			      folio_order(folio), ZONE_MOVABLE);
- 		return 0;
- 	}
+-Tracepoint for Monitoring Results
+-=================================
++Tracepoints for Monitoring Results
++==================================
  
--	if (!isolate_lru_page(page))
-+	if (!folio_isolate_lru(folio))
- 		return 0;
+ Users can get the monitoring results via the :ref:`tried_regions
+-<sysfs_schemes_tried_regions>` or a tracepoint, ``damon:damon_aggregated``.
+-While the tried regions directory is useful for getting a snapshot, the
+-tracepoint is useful for getting a full record of the results.  While the
+-monitoring is turned on, you could record the tracepoint events and show
+-results using tracepoint supporting tools like ``perf``.  For example::
++<sysfs_schemes_tried_regions>`.  The interface is useful for getting a
++snapshot, but it could be inefficient for fully recording all the monitoring
++results.  For the purpose, two trace points, namely ``damon:damon_aggregated``
++and ``damon:damos_before_apply``, are provided.  ``damon:damon_aggregated``
++provides the whole monitoring results, while ``damon:damos_before_apply``
++provides the monitoring results for regions that each DAMON-based Operation
++Scheme (:ref:`DAMOS <damon_design_damos>`) is gonna be applied.  Hence,
++``damon:damos_before_apply`` is more useful for recording internal behavior of
++DAMOS, or DAMOS target access
++:ref:`pattern <damon_design_damos_access_pattern>` based query-like efficient
++monitoring results recording.
++
++While the monitoring is turned on, you could record the tracepoint events and
++show results using tracepoint supporting tools like ``perf``.  For example::
  
--	mod_node_page_state(page_pgdat(page), NR_ISOLATED_ANON + page_is_file_lru(page),
-+	node_stat_mod_folio(folio, NR_ISOLATED_ANON + folio_is_file_lru(folio),
- 			    nr_pages);
+     # echo on > monitor_on
+     # perf record -e damon:damon_aggregated &
+@@ -527,6 +536,20 @@ counter).  Finally the tenth field (``X`
+ (refer to :ref:`design <damon_design_age_tracking>` for more details of the
+ counter).
  
- 	/*
--	 * Isolating the page has taken another reference, so the
--	 * caller's reference can be safely dropped without the page
-+	 * Isolating the folio has taken another reference, so the
-+	 * caller's reference can be safely dropped without the folio
- 	 * disappearing underneath us during migration.
- 	 */
--	put_page(page);
-+	folio_put(folio);
- 	return 1;
- }
++If the event was ``damon:damos_beofre_apply``, the ``perf script`` output would
++be somewhat like below::
++
++    kdamond.0 47293 [000] 80801.060214: damon:damos_before_apply: ctx_idx=0 scheme_idx=0 target_idx=0 nr_regions=11 121932607488-135128711168: 0 136
++    [...]
++
++Each line of the output represents each monitoring region that each DAMON-based
++Operation Scheme was about to be applied at the traced time.  The first five
++fields are as usual.  It shows the index of the DAMON context (``ctx_idx=X``)
++of the scheme in the list of the contexts of the context's kdamond, the index
++of the scheme (``scheme_idx=X``) in the list of the schemes of the context, in
++addition to the output of ``damon_aggregated`` tracepoint.
++
++
+ .. _debugfs_interface:
  
-@@ -2545,7 +2545,7 @@ int migrate_misplaced_page(struct page *
- 	if (page_is_file_lru(page) && PageDirty(page))
- 		goto out;
- 
--	isolated = numamigrate_isolate_page(pgdat, page);
-+	isolated = numamigrate_isolate_folio(pgdat, page_folio(page));
- 	if (!isolated)
- 		goto out;
- 
+ debugfs Interface (DEPRECATED!)
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-memory-add-vm_normal_folio_pmd.patch
-mm-huge_memory-use-a-folio-in-do_huge_pmd_numa_page.patch
-mm-memory-use-a-folio-in-do_numa_page.patch
-mm-memory-make-numa_migrate_prep-to-take-a-folio.patch
-mm-mempolicy-make-mpol_misplaced-to-take-a-folio.patch
-sched-numa-mm-make-numa-migrate-functions-to-take-a-folio.patch
 
