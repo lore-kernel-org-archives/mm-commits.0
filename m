@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0EBAE7C4F6
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:19:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A64FE7C4F3
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:19:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244084AbjJDUTs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:19:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37068 "EHLO
+        id S233858AbjJDUTt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:19:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35506 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233858AbjJDUTq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:19:46 -0400
+        with ESMTP id S233854AbjJDUT2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:19:28 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D64CFC6
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:19:26 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 282BEC433C8;
-        Wed,  4 Oct 2023 20:19:26 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4B40C0
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:19:24 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39D05C433C8;
+        Wed,  4 Oct 2023 20:19:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450766;
-        bh=EVLzef/0D6gO0//8IXGewEmLQxSfqgRtLGFYDZUctmY=;
+        s=korg; t=1696450764;
+        bh=D+/ybGlGweR69XNMq2Ucruv7OZi/q3KujLkfovw6Ee4=;
         h=Date:To:From:Subject:From;
-        b=wPOlQz2X8D0+abS0BXptpFZ21NnlAjPSFcjjtw/Jd1Cst9oWOyIqbSTRNmIhXe5gw
-         W79o6B5GwqVoCUJ5v0zGGJoJbfxaHCh1BfPLpoqKZdwfuj71bcxqO0VGT1rktNjBQY
-         N3n3ydGP/Q9ne4fwgNzFMuG21MkW8HkzNB8at+MM=
-Date:   Wed, 04 Oct 2023 13:19:24 -0700
+        b=EnYiBDEX62zehqsbtRDoofxEZSS2Uhb3m+hutEJOKf09jSRJBeSncscV0qbkynoQK
+         Z+5ZJvMuvGhdvcYUh2YcGXMrovcCeyWknK3k17BrkCH+GopbIe7Q2CGijA88yQykvO
+         yD9zBHPwGNfKs527Pf1FV7iBvAOMgKM9ZsLsuL3I=
+Date:   Wed, 04 Oct 2023 13:19:23 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] gfs2-dynamically-allocate-the-gfs2-glock-shrinker.patch removed from -mm tree
-Message-Id: <20231004201926.282BEC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] gfs2-dynamically-allocate-the-gfs2-qd-shrinker.patch removed from -mm tree
+Message-Id: <20231004201924.39D05C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,21 +63,21 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: gfs2: dynamically allocate the gfs2-glock shrinker
+     Subject: gfs2: dynamically allocate the gfs2-qd shrinker
 has been removed from the -mm tree.  Its filename was
-     gfs2-dynamically-allocate-the-gfs2-glock-shrinker.patch
+     gfs2-dynamically-allocate-the-gfs2-qd-shrinker.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: gfs2: dynamically allocate the gfs2-glock shrinker
-Date: Mon, 11 Sep 2023 17:44:07 +0800
+Subject: gfs2: dynamically allocate the gfs2-qd shrinker
+Date: Mon, 11 Sep 2023 17:44:08 +0800
 
-Use new APIs to dynamically allocate the gfs2-glock shrinker.
+Use new APIs to dynamically allocate the gfs2-qd shrinker.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-9-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-10-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Bob Peterson <rpeterso@redhat.com>
@@ -156,55 +156,87 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/glock.c |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ fs/gfs2/main.c  |    6 +++---
+ fs/gfs2/quota.c |   25 +++++++++++++++++++------
+ fs/gfs2/quota.h |    3 ++-
+ 3 files changed, 24 insertions(+), 10 deletions(-)
 
---- a/fs/gfs2/glock.c~gfs2-dynamically-allocate-the-gfs2-glock-shrinker
-+++ a/fs/gfs2/glock.c
-@@ -2041,11 +2041,7 @@ static unsigned long gfs2_glock_shrink_c
- 	return vfs_pressure_ratio(atomic_read(&lru_count));
- }
+--- a/fs/gfs2/main.c~gfs2-dynamically-allocate-the-gfs2-qd-shrinker
++++ a/fs/gfs2/main.c
+@@ -147,7 +147,7 @@ static int __init init_gfs2_fs(void)
+ 	if (!gfs2_trans_cachep)
+ 		goto fail_cachep8;
  
--static struct shrinker glock_shrinker = {
--	.seeks = DEFAULT_SEEKS,
--	.count_objects = gfs2_glock_shrink_count,
--	.scan_objects = gfs2_glock_shrink_scan,
--};
-+static struct shrinker *glock_shrinker;
+-	error = register_shrinker(&gfs2_qd_shrinker, "gfs2-qd");
++	error = gfs2_qd_shrinker_init();
+ 	if (error)
+ 		goto fail_shrinker;
  
- /**
-  * glock_hash_walk - Call a function for glock in a hash bucket
-@@ -2465,13 +2461,18 @@ int __init gfs2_glock_init(void)
- 		return -ENOMEM;
- 	}
+@@ -196,7 +196,7 @@ fail_wq3:
+ fail_wq2:
+ 	destroy_workqueue(gfs2_recovery_wq);
+ fail_wq1:
+-	unregister_shrinker(&gfs2_qd_shrinker);
++	gfs2_qd_shrinker_exit();
+ fail_shrinker:
+ 	kmem_cache_destroy(gfs2_trans_cachep);
+ fail_cachep8:
+@@ -229,7 +229,7 @@ fail_lru:
  
--	ret = register_shrinker(&glock_shrinker, "gfs2-glock");
--	if (ret) {
-+	glock_shrinker = shrinker_alloc(0, "gfs2-glock");
-+	if (!glock_shrinker) {
- 		destroy_workqueue(glock_workqueue);
- 		rhashtable_destroy(&gl_hash_table);
--		return ret;
-+		return -ENOMEM;
- 	}
- 
-+	glock_shrinker->count_objects = gfs2_glock_shrink_count;
-+	glock_shrinker->scan_objects = gfs2_glock_shrink_scan;
-+
-+	shrinker_register(glock_shrinker);
-+
- 	for (i = 0; i < GLOCK_WAIT_TABLE_SIZE; i++)
- 		init_waitqueue_head(glock_wait_table + i);
- 
-@@ -2480,7 +2481,7 @@ int __init gfs2_glock_init(void)
- 
- void gfs2_glock_exit(void)
+ static void __exit exit_gfs2_fs(void)
  {
--	unregister_shrinker(&glock_shrinker);
-+	shrinker_free(glock_shrinker);
- 	rhashtable_destroy(&gl_hash_table);
- 	destroy_workqueue(glock_workqueue);
+-	unregister_shrinker(&gfs2_qd_shrinker);
++	gfs2_qd_shrinker_exit();
+ 	gfs2_glock_exit();
+ 	gfs2_unregister_debugfs();
+ 	unregister_filesystem(&gfs2_fs_type);
+--- a/fs/gfs2/quota.c~gfs2-dynamically-allocate-the-gfs2-qd-shrinker
++++ a/fs/gfs2/quota.c
+@@ -196,13 +196,26 @@ static unsigned long gfs2_qd_shrink_coun
+ 	return vfs_pressure_ratio(list_lru_shrink_count(&gfs2_qd_lru, sc));
  }
+ 
+-struct shrinker gfs2_qd_shrinker = {
+-	.count_objects = gfs2_qd_shrink_count,
+-	.scan_objects = gfs2_qd_shrink_scan,
+-	.seeks = DEFAULT_SEEKS,
+-	.flags = SHRINKER_NUMA_AWARE,
+-};
++static struct shrinker *gfs2_qd_shrinker;
+ 
++int __init gfs2_qd_shrinker_init(void)
++{
++	gfs2_qd_shrinker = shrinker_alloc(SHRINKER_NUMA_AWARE, "gfs2-qd");
++	if (!gfs2_qd_shrinker)
++		return -ENOMEM;
++
++	gfs2_qd_shrinker->count_objects = gfs2_qd_shrink_count;
++	gfs2_qd_shrinker->scan_objects = gfs2_qd_shrink_scan;
++
++	shrinker_register(gfs2_qd_shrinker);
++
++	return 0;
++}
++
++void gfs2_qd_shrinker_exit(void)
++{
++	shrinker_free(gfs2_qd_shrinker);
++}
+ 
+ static u64 qd2index(struct gfs2_quota_data *qd)
+ {
+--- a/fs/gfs2/quota.h~gfs2-dynamically-allocate-the-gfs2-qd-shrinker
++++ a/fs/gfs2/quota.h
+@@ -60,7 +60,8 @@ static inline int gfs2_quota_lock_check(
+ }
+ 
+ extern const struct quotactl_ops gfs2_quotactl_ops;
+-extern struct shrinker gfs2_qd_shrinker;
++int __init gfs2_qd_shrinker_init(void);
++void gfs2_qd_shrinker_exit(void);
+ extern struct list_lru gfs2_qd_lru;
+ extern void __init gfs2_quota_hash_init(void);
+ 
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
