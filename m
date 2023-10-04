@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE7DFE7C4F3
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:19:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A25FE7C4F7
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:19:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244080AbjJDUTX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S244082AbjJDUTX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 4 Oct 2023 16:19:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54120 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54044 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244101AbjJDUTR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:19:17 -0400
+        with ESMTP id S244111AbjJDUTU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:19:20 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2139E5
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:19:14 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 044F7C433C8;
-        Wed,  4 Oct 2023 20:19:14 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C1396E8
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:19:16 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15633C433C7;
+        Wed,  4 Oct 2023 20:19:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450754;
-        bh=qJE/a6LLr4YicbWXsDN3cUUitW8HUc2OAxjZSA0VcH4=;
+        s=korg; t=1696450756;
+        bh=9yQXWTfRuIpX0D/8aQ6WBIWKXmHWvtFpUDYLKLKE+Xc=;
         h=Date:To:From:Subject:From;
-        b=NxOF1aLEzFbtSvZcRDhyUPixNGpVV8V5LUAcctLQ/gmYQZ9T8NCcxjuH/099ApX6R
-         BrujoxgErg6niO70NtNYmSh2oHmb4QTMngNFgeKGlgk72Y7fUcHfwu+r6w9rBPEb0u
-         vLasW40fj36CiSKJUAlyV+DFQWi61r6Njg8mRBiM=
-Date:   Wed, 04 Oct 2023 13:19:12 -0700
+        b=Oi/9nH8hq9m8oxSZzSy5HgHkwFATXcfLkV+oS1uDogNmhERi5x3OycGZMCOvGIdnd
+         388PLw8XeCqjzpmIrt4Mw8EsG/HuSXw1Xo6wj8sXiEFNPPSn2/k2nL759a2JawZsXl
+         aYs0N/l769QevqwwDjxLa5DiZ2tsPPVrf7A0lYcE=
+Date:   Wed, 04 Oct 2023 13:19:14 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kvm-mmu-dynamically-allocate-the-x86-mmu-shrinker.patch removed from -mm tree
-Message-Id: <20231004201914.044F7C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] xenbus-backend-dynamically-allocate-the-xen-backend-shrinker.patch removed from -mm tree
+Message-Id: <20231004201916.15633C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,27 +63,26 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kvm: mmu: dynamically allocate the x86-mmu shrinker
+     Subject: xenbus/backend: dynamically allocate the xen-backend shrinker
 has been removed from the -mm tree.  Its filename was
-     kvm-mmu-dynamically-allocate-the-x86-mmu-shrinker.patch
+     xenbus-backend-dynamically-allocate-the-xen-backend-shrinker.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: kvm: mmu: dynamically allocate the x86-mmu shrinker
-Date: Mon, 11 Sep 2023 17:44:01 +0800
+Subject: xenbus/backend: dynamically allocate the xen-backend shrinker
+Date: Mon, 11 Sep 2023 17:44:04 +0800
 
-Use new APIs to dynamically allocate the x86-mmu shrinker.
+Use new APIs to dynamically allocate the xen-backend shrinker.
 
-Link: https://lkml.kernel.org/r/20230911094444.68966-3-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20230911094444.68966-6-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Acked-by: Juergen Gross <jgross@suse.com>
+Cc: Stefano Stabellini <sstabellini@kernel.org>
+Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -93,6 +92,7 @@ Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Cc: Anna Schumaker <anna@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Bob Peterson <rpeterso@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
 Cc: Carlos Llamas <cmllamas@google.com>
 Cc: Chandan Babu R <chandan.babu@oracle.com>
 Cc: Chao Yu <chao@kernel.org>
@@ -106,6 +106,7 @@ Cc: Daniel Vetter <daniel@ffwll.ch>
 Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Dave Chinner <david@fromorbit.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Airlie <airlied@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Sterba <dsterba@suse.com>
@@ -113,6 +114,7 @@ Cc: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
 Cc: Gao Xiang <hsiangkao@linux.alibaba.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Huang Rui <ray.huang@amd.com>
+Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
 Cc: Jan Kara <jack@suse.cz>
@@ -122,7 +124,6 @@ Cc: Jeffle Xu <jefflexu@linux.alibaba.com>
 Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
 Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
 Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: Juergen Gross <jgross@suse.com>
 Cc: Kent Overstreet <kent.overstreet@gmail.com>
 Cc: Kirill Tkhai <tkhai@ya.ru>
 Cc: Marijn Suijten <marijn.suijten@somainline.org>
@@ -132,7 +133,6 @@ Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Nadav Amit <namit@vmware.com>
 Cc: Neil Brown <neilb@suse.de>
-Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
 Cc: Olga Kornievskaia <kolga@netapp.com>
 Cc: Paul E. McKenney <paulmck@kernel.org>
 Cc: Richard Weinberger <richard@nod.at>
@@ -143,9 +143,9 @@ Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Sean Paul <sean@poorly.run>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Song Liu <song@kernel.org>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
 Cc: Steven Price <steven.price@arm.com>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Cc: Tom Talpey <tom@talpey.com>
 Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
@@ -156,52 +156,44 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kvm/mmu/mmu.c |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ drivers/xen/xenbus/xenbus_probe_backend.c |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
---- a/arch/x86/kvm/mmu/mmu.c~kvm-mmu-dynamically-allocate-the-x86-mmu-shrinker
-+++ a/arch/x86/kvm/mmu/mmu.c
-@@ -6785,11 +6785,7 @@ static unsigned long mmu_shrink_count(st
- 	return percpu_counter_read_positive(&kvm_total_used_mmu_pages);
- }
- 
--static struct shrinker mmu_shrinker = {
--	.count_objects = mmu_shrink_count,
--	.scan_objects = mmu_shrink_scan,
--	.seeks = DEFAULT_SEEKS * 10,
--};
-+static struct shrinker *mmu_shrinker;
- 
- static void mmu_destroy_caches(void)
- {
-@@ -6922,10 +6918,16 @@ int kvm_mmu_vendor_module_init(void)
- 	if (percpu_counter_init(&kvm_total_used_mmu_pages, 0, GFP_KERNEL))
- 		goto out;
- 
--	ret = register_shrinker(&mmu_shrinker, "x86-mmu");
--	if (ret)
-+	mmu_shrinker = shrinker_alloc(0, "x86-mmu");
-+	if (!mmu_shrinker)
- 		goto out_shrinker;
- 
-+	mmu_shrinker->count_objects = mmu_shrink_count;
-+	mmu_shrinker->scan_objects = mmu_shrink_scan;
-+	mmu_shrinker->seeks = DEFAULT_SEEKS * 10;
-+
-+	shrinker_register(mmu_shrinker);
-+
+--- a/drivers/xen/xenbus/xenbus_probe_backend.c~xenbus-backend-dynamically-allocate-the-xen-backend-shrinker
++++ a/drivers/xen/xenbus/xenbus_probe_backend.c
+@@ -284,13 +284,9 @@ static unsigned long backend_shrink_memo
  	return 0;
- 
- out_shrinker:
-@@ -6947,7 +6949,7 @@ void kvm_mmu_vendor_module_exit(void)
- {
- 	mmu_destroy_caches();
- 	percpu_counter_destroy(&kvm_total_used_mmu_pages);
--	unregister_shrinker(&mmu_shrinker);
-+	shrinker_free(mmu_shrinker);
  }
  
- /*
+-static struct shrinker backend_memory_shrinker = {
+-	.count_objects = backend_shrink_memory_count,
+-	.seeks = DEFAULT_SEEKS,
+-};
+-
+ static int __init xenbus_probe_backend_init(void)
+ {
++	struct shrinker *backend_memory_shrinker;
+ 	static struct notifier_block xenstore_notifier = {
+ 		.notifier_call = backend_probe_and_watch
+ 	};
+@@ -305,8 +301,15 @@ static int __init xenbus_probe_backend_i
+ 
+ 	register_xenstore_notifier(&xenstore_notifier);
+ 
+-	if (register_shrinker(&backend_memory_shrinker, "xen-backend"))
+-		pr_warn("shrinker registration failed\n");
++	backend_memory_shrinker = shrinker_alloc(0, "xen-backend");
++	if (!backend_memory_shrinker) {
++		pr_warn("shrinker allocation failed\n");
++		return 0;
++	}
++
++	backend_memory_shrinker->count_objects = backend_shrink_memory_count;
++
++	shrinker_register(backend_memory_shrinker);
+ 
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
