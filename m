@@ -2,34 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05D7DE936E9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41CA8E936EC
 	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:23:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244883AbjJDUXU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:23:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46292 "EHLO
+        id S244039AbjJDUXV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:23:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46358 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244039AbjJDUW6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:22:58 -0400
+        with ESMTP id S244879AbjJDUXA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:23:00 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F180D122
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:22:54 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 637BCC433C8;
-        Wed,  4 Oct 2023 20:22:54 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE5D013A
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:22:56 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50BE5C433C8;
+        Wed,  4 Oct 2023 20:22:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450974;
-        bh=w0vToTcFlabnEuqY8Sdav152wmTAXl8aTKNP8vYIh1k=;
+        s=korg; t=1696450976;
+        bh=HJSSdaBNnbxoHGuQeHfcRtTpuudfScz5EOa9w9K5CmA=;
         h=Date:To:From:Subject:From;
-        b=kuKDSIe1G3gWfufMZxoNednROGFB5w/X0Uga89BX23bQAYGCRd8qlVepy7Rt308Qz
-         drd7bKg25lxHcmGkpQkfrCadwl4I1g3wzywGSArvdiZSoaLH6OB2a0IMdzoIi61/sN
-         QbFVTEYVXKRzFxAN7DMcGjbbkYnR5R3pqjUv3IUc=
-Date:   Wed, 04 Oct 2023 13:22:52 -0700
-To:     mm-commits@vger.kernel.org, sj@kernel.org, feng.tang@intel.com,
-        brendan.higgins@linux.dev, ruanjinjie@huawei.com,
-        akpm@linux-foundation.org
+        b=1xIfyA5HVOceIQdSWm2Gb3EsiN0Cg/0TtlEurTIDoGbstZOOEdTzDiG1cdIYHAbcE
+         /MY7quz+BypL5NhmF4BciaabV7Z84pMG/JCijBuADVvMjudpUKaJq6v5/NmIbjrtMd
+         Na+cxH2HAZ6ZHmpmepOMQjErhnFVyCvVAeIhJSn8=
+Date:   Wed, 04 Oct 2023 13:22:54 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com,
+        yosryahmed@google.com, willy@infradead.org, shy828301@gmail.com,
+        ryan.roberts@arm.com, hughd@google.com, david@redhat.com,
+        fengwei.yin@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-test-fix-memory-leak-in-damon_new_ctx.patch removed from -mm tree
-Message-Id: <20231004202254.637BCC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-functions-folio_in_range-and-folio_within_vma.patch removed from -mm tree
+Message-Id: <20231004202256.50BE5C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,92 +38,169 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/core-test: fix memory leak in damon_new_ctx()
+     Subject: mm: add functions folio_in_range() and folio_within_vma()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-test-fix-memory-leak-in-damon_new_ctx.patch
+     mm-add-functions-folio_in_range-and-folio_within_vma.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jinjie Ruan <ruanjinjie@huawei.com>
-Subject: mm/damon/core-test: fix memory leak in damon_new_ctx()
-Date: Mon, 18 Sep 2023 20:09:51 +0800
+From: Yin Fengwei <fengwei.yin@intel.com>
+Subject: mm: add functions folio_in_range() and folio_within_vma()
+Date: Mon, 18 Sep 2023 15:33:16 +0800
 
-When CONFIG_DAMON_KUNIT_TEST=y and making CONFIG_DEBUG_KMEMLEAK=y and
-CONFIG_DEBUG_KMEMLEAK_AUTO_SCAN=y, the below memory leak is detected.
+Patch series "support large folio for mlock", v3.
 
-The damon_ctx which is allocated by kzalloc() in damon_new_ctx() in
-damon_test_ops_registration() and damon_test_set_attrs() are not freed. 
-So use damon_destroy_ctx() to free it.  After applying this patch, the
-following memory leak is never detected
+Yu mentioned at [1] about the mlock() can't be applied to large folio.
 
-    unreferenced object 0xffff2b49c6968800 (size 512):
-      comm "kunit_try_catch", pid 350, jiffies 4294895294 (age 557.028s)
-      hex dump (first 32 bytes):
-        88 13 00 00 00 00 00 00 a0 86 01 00 00 00 00 00  ................
-        00 87 93 03 00 00 00 00 0a 00 00 00 00 00 00 00  ................
-      backtrace:
-        [<0000000088e71769>] slab_post_alloc_hook+0xb8/0x368
-        [<0000000073acab3b>] __kmem_cache_alloc_node+0x174/0x290
-        [<00000000b5f89cef>] kmalloc_trace+0x40/0x164
-        [<00000000eb19e83f>] damon_new_ctx+0x28/0xb4
-        [<00000000daf6227b>] damon_test_ops_registration+0x34/0x328
-        [<00000000559c4801>] kunit_try_run_case+0x50/0xac
-        [<000000003932ed49>] kunit_generic_run_threadfn_adapter+0x20/0x2c
-        [<000000003c3e9211>] kthread+0x124/0x130
-        [<0000000028f85bdd>] ret_from_fork+0x10/0x20
-    unreferenced object 0xffff2b49c1a9cc00 (size 512):
-      comm "kunit_try_catch", pid 356, jiffies 4294895306 (age 557.000s)
-      hex dump (first 32 bytes):
-        88 13 00 00 00 00 00 00 a0 86 01 00 00 00 00 00  ................
-        00 00 00 00 00 00 00 00 0a 00 00 00 00 00 00 00  ................
-      backtrace:
-        [<0000000088e71769>] slab_post_alloc_hook+0xb8/0x368
-        [<0000000073acab3b>] __kmem_cache_alloc_node+0x174/0x290
-        [<00000000b5f89cef>] kmalloc_trace+0x40/0x164
-        [<00000000eb19e83f>] damon_new_ctx+0x28/0xb4
-        [<00000000058495c4>] damon_test_set_attrs+0x30/0x1a8
-        [<00000000559c4801>] kunit_try_run_case+0x50/0xac
-        [<000000003932ed49>] kunit_generic_run_threadfn_adapter+0x20/0x2c
-        [<000000003c3e9211>] kthread+0x124/0x130
-        [<0000000028f85bdd>] ret_from_fork+0x10/0x20
+I leant the related code and here is my understanding:
 
-Link: https://lkml.kernel.org/r/20230918120951.2230468-3-ruanjinjie@huawei.com
-Fixes: d1836a3b2a9a ("mm/damon/core-test: initialise context before test in damon_test_set_attrs()")
-Fixes: 4f540f5ab4f2 ("mm/damon/core-test: add a kunit test case for ops registration")
-Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
-Reviewed-by: Feng Tang <feng.tang@intel.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
+- For RLIMIT_MEMLOCK related, there is no problem.  Because the
+  RLIMIT_MEMLOCK statistics is not related underneath page.  That means
+  underneath page mlock or munlock doesn't impact the RLIMIT_MEMLOCK
+  statistics collection which is always correct.
+
+- For keeping the page in RAM, there is no problem either.  At least,
+  during try_to_unmap_one(), once detect the VMA has VM_LOCKED bit set in
+  vm_flags, the folio will be kept whatever the folio is mlocked or not.
+
+So the function of mlock for large folio works.  But it's not optimized
+because the page reclaim needs scan these large folio and may split them.
+
+This series identified the large folio for mlock to four types:
+  - The large folio is in VM_LOCKED range and fully mapped to the
+    range
+
+  - The large folio is in the VM_LOCKED range but not fully mapped to
+    the range
+
+  - The large folio cross VM_LOCKED VMA boundary
+
+  - The large folio cross last level page table boundary
+
+For the first type, we mlock large folio so page reclaim will skip it.
+
+For the second/third type, we don't mlock large folio.  As the pages not
+mapped to VM_LOACKED range are mapped to none VM_LOCKED range, if system
+is in memory pressure situation, the large folio can be picked by page
+reclaim and split.  Then the pages not mapped to VM_LOCKED range can be
+reclaimed.
+
+For the fourth type, we don't mlock large folio because locking one page
+table lock can't prevent the part in another last level page table being
+unmapped.  Thanks to Ryan for pointing this out.
+
+
+To check whether the folio is fully mapped to the range, PTEs needs be
+checked to see whether the page of folio is associated.  Which needs take
+page table lock and is heavy operation.  So far, the only place needs this
+check is madvise and page reclaim.  These functions already have their own
+PTE iterator.
+
+patch1 introduce API to check whether large folio is in VMA range.
+patch2 make page reclaim/mlock_vma_folio/munlock_vma_folio support
+       large folio mlock/munlock.
+patch3 make mlock/munlock syscall support large folio.
+
+Yu also mentioned a race which can make folio unevictable after munlock
+during RFC v2 discussion [3]:
+We decided that race issue didn't block this series based on:
+  - That race issue was not introduced by this series
+
+  - We had a looks-ok fix for that race issue. Need to wait
+    for mlock_count fixing patch as Yosry Ahmed suggested [4]
+
+[1] https://lore.kernel.org/linux-mm/CAOUHufbtNPkdktjt_5qM45GegVO-rCFOMkSh0HQminQ12zsV8Q@mail.gmail.com/
+[2] https://lore.kernel.org/linux-mm/20230809061105.3369958-1-fengwei.yin@intel.com/
+[3] https://lore.kernel.org/linux-mm/CAOUHufZ6=9P_=CAOQyw0xw-3q707q-1FVV09dBNDC-hpcpj2Pg@mail.gmail.com/
+
+
+This patch (of 3):
+
+folio_in_range() will be used to check whether the folio is mapped to
+specific VMA and whether the mapping address of folio is in the range.
+
+Also a helper function folio_within_vma() to check whether folio
+is in the range of vma based on folio_in_range().
+
+Link: https://lkml.kernel.org/r/20230918073318.1181104-1-fengwei.yin@intel.com
+Link: https://lkml.kernel.org/r/20230918073318.1181104-2-fengwei.yin@intel.com
+Signed-off-by: Yin Fengwei <fengwei.yin@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core-test.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/internal.h |   50 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 50 insertions(+)
 
---- a/mm/damon/core-test.h~mm-damon-core-test-fix-memory-leak-in-damon_new_ctx
-+++ a/mm/damon/core-test.h
-@@ -269,6 +269,8 @@ static void damon_test_ops_registration(
- 
- 	/* Check double-registration failure again */
- 	KUNIT_EXPECT_EQ(test, damon_register_ops(&ops), -EINVAL);
+--- a/mm/internal.h~mm-add-functions-folio_in_range-and-folio_within_vma
++++ a/mm/internal.h
+@@ -586,6 +586,56 @@ extern long faultin_vma_page_range(struc
+ 				   bool write, int *locked);
+ extern bool mlock_future_ok(struct mm_struct *mm, unsigned long flags,
+ 			       unsigned long bytes);
 +
-+	damon_destroy_ctx(c);
- }
- 
- static void damon_test_set_regions(struct kunit *test)
-@@ -346,6 +348,8 @@ static void damon_test_set_attrs(struct
- 	invalid_attrs = valid_attrs;
- 	invalid_attrs.aggr_interval = 4999;
- 	KUNIT_EXPECT_EQ(test, damon_set_attrs(c, &invalid_attrs), -EINVAL);
++/*
++ * NOTE: This function can't tell whether the folio is "fully mapped" in the
++ * range.
++ * "fully mapped" means all the pages of folio is associated with the page
++ * table of range while this function just check whether the folio range is
++ * within the range [start, end). Funcation caller nees to do page table
++ * check if it cares about the page table association.
++ *
++ * Typical usage (like mlock or madvise) is:
++ * Caller knows at least 1 page of folio is associated with page table of VMA
++ * and the range [start, end) is intersect with the VMA range. Caller wants
++ * to know whether the folio is fully associated with the range. It calls
++ * this function to check whether the folio is in the range first. Then checks
++ * the page table to know whether the folio is fully mapped to the range.
++ */
++static inline bool
++folio_within_range(struct folio *folio, struct vm_area_struct *vma,
++		unsigned long start, unsigned long end)
++{
++	pgoff_t pgoff, addr;
++	unsigned long vma_pglen = (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
 +
-+	damon_destroy_ctx(c);
- }
- 
- static void damon_test_moving_sum(struct kunit *test)
++	VM_WARN_ON_FOLIO(folio_test_ksm(folio), folio);
++	if (start > end)
++		return false;
++
++	if (start < vma->vm_start)
++		start = vma->vm_start;
++
++	if (end > vma->vm_end)
++		end = vma->vm_end;
++
++	pgoff = folio_pgoff(folio);
++
++	/* if folio start address is not in vma range */
++	if (!in_range(pgoff, vma->vm_pgoff, vma_pglen))
++		return false;
++
++	addr = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
++
++	return !(addr < start || end - addr < folio_size(folio));
++}
++
++static inline bool
++folio_within_vma(struct folio *folio, struct vm_area_struct *vma)
++{
++	return folio_within_range(folio, vma, vma->vm_start, vma->vm_end);
++}
++
+ /*
+  * mlock_vma_folio() and munlock_vma_folio():
+  * should be called with vma's mmap_lock held for read or write,
 _
 
-Patches currently in -mm which might be from ruanjinjie@huawei.com are
+Patches currently in -mm which might be from fengwei.yin@intel.com are
 
 
