@@ -2,34 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90E6CE7C4F3
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:17:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33068E7C4F4
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:17:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233936AbjJDUR4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:17:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56642 "EHLO
+        id S233912AbjJDUR5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:17:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56604 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243894AbjJDUR4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:17:56 -0400
+        with ESMTP id S233959AbjJDURx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:17:53 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF3EFC0
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:17:51 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45E36C433C7;
-        Wed,  4 Oct 2023 20:17:51 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE54E93
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:17:49 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D03BC433C7;
+        Wed,  4 Oct 2023 20:17:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450671;
-        bh=GmqWHRxqG06q8JAKhfXRrLRO+yMOazQoUIfC6dbn9yA=;
+        s=korg; t=1696450669;
+        bh=omuolOqfnbUZiFr6PN/FZlta5J9EJx7jpbzfwhiY9bU=;
         h=Date:To:From:Subject:From;
-        b=i+0fAB/DZeG0ap1Q8tU0F+1MkPWMY/eJeD+1GapWcQTz+XiHl/cmOmAvZqMNHBQi8
-         fLSfOWD4CbD6YbHEIG4OqFAbC2WUTyPy9IkEfLJ10xO22RoONGfE6yzEhd/+A3Ty9x
-         pZGat23fTYHjsL2MC7YqlyqLdUdnbVLVN+q+joTc=
-Date:   Wed, 04 Oct 2023 13:17:49 -0700
-To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        jane.chu@oracle.com, dan.j.williams@intel.com, willy@infradead.org,
+        b=gdGNnUIlwJi3+s1JSn6SV3BDjW0oTGlpdvk5GURvLvjjJeWeDNu2Fzzj+GBR2eCJz
+         uTySJRXJksWBuS6TuA88aR4JExntuBngFW8dj8lLrz6VGD0g+n+ksEAMdsxYzXFUvN
+         fmsJlPPBKPNmZpRiBZrVMTwtBLpPobYMsXEJy60g=
+Date:   Wed, 04 Oct 2023 13:17:47 -0700
+To:     mm-commits@vger.kernel.org, shakeelb@google.com, mjguzik@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-convert-dax-lock-unlock-page-to-lock-unlock-folio.patch removed from -mm tree
-Message-Id: <20231004201751.45E36C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-remnants-of-split_rss_counting.patch removed from -mm tree
+Message-Id: <20231004201749.4D03BC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,209 +36,135 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: convert DAX lock/unlock page to lock/unlock folio
+     Subject: mm: remove remnants of SPLIT_RSS_COUNTING
 has been removed from the -mm tree.  Its filename was
-     mm-convert-dax-lock-unlock-page-to-lock-unlock-folio.patch
+     mm-remove-remnants-of-split_rss_counting.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: convert DAX lock/unlock page to lock/unlock folio
-Date: Wed, 23 Aug 2023 00:13:14 +0100
+From: Mateusz Guzik <mjguzik@gmail.com>
+Subject: mm: remove remnants of SPLIT_RSS_COUNTING
+Date: Wed, 23 Aug 2023 19:05:56 +0200
 
-The one caller of DAX lock/unlock page already calls compound_head(), so
-use page_folio() instead, then use a folio throughout the DAX code to
-remove uses of page->mapping and page->index.
+The feature got retired in f1a7941243c1 ("mm: convert mm's rss stats into
+percpu_counter"), but the patch failed to fully clean it up.
 
-[jane.chu@oracle.com: add comment to mf_generic_kill_procss(), simplify mf_generic_kill_procs:folio initialization]
-  Link: https://lkml.kernel.org/r/20230908222336.186313-1-jane.chu@oracle.com
-Link: https://lkml.kernel.org/r/20230822231314.349200-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Signed-off-by: Jane Chu <jane.chu@oracle.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Jane Chu <jane.chu@oracle.com>
+Link: https://lkml.kernel.org/r/20230823170556.2281747-1-mjguzik@gmail.com
+Signed-off-by: Mateusz Guzik <mjguzik@gmail.com>
+Acked-by: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c            |   24 ++++++++++++------------
- include/linux/dax.h |   10 +++++-----
- mm/memory-failure.c |   29 ++++++++++++++++-------------
- 3 files changed, 33 insertions(+), 30 deletions(-)
+ fs/exec.c          |    2 --
+ include/linux/mm.h |    8 --------
+ kernel/exit.c      |    4 ----
+ kernel/fork.c      |    4 ----
+ kernel/kthread.c   |    1 -
+ mm/madvise.c       |    5 +----
+ mm/memory.c        |    2 --
+ 7 files changed, 1 insertion(+), 25 deletions(-)
 
---- a/fs/dax.c~mm-convert-dax-lock-unlock-page-to-lock-unlock-folio
-+++ a/fs/dax.c
-@@ -412,23 +412,23 @@ static struct page *dax_busy_page(void *
- 	return NULL;
+--- a/fs/exec.c~mm-remove-remnants-of-split_rss_counting
++++ a/fs/exec.c
+@@ -986,8 +986,6 @@ static int exec_mmap(struct mm_struct *m
+ 	tsk = current;
+ 	old_mm = current->mm;
+ 	exec_mm_release(tsk, old_mm);
+-	if (old_mm)
+-		sync_mm_rss(old_mm);
+ 
+ 	ret = down_write_killable(&tsk->signal->exec_update_lock);
+ 	if (ret)
+--- a/include/linux/mm.h~mm-remove-remnants-of-split_rss_counting
++++ a/include/linux/mm.h
+@@ -2628,14 +2628,6 @@ static inline void setmax_mm_hiwater_rss
+ 		*maxrss = hiwater_rss;
  }
  
--/*
-- * dax_lock_page - Lock the DAX entry corresponding to a page
-- * @page: The page whose entry we want to lock
-+/**
-+ * dax_lock_folio - Lock the DAX entry corresponding to a folio
-+ * @folio: The folio whose entry we want to lock
-  *
-  * Context: Process context.
-- * Return: A cookie to pass to dax_unlock_page() or 0 if the entry could
-+ * Return: A cookie to pass to dax_unlock_folio() or 0 if the entry could
-  * not be locked.
-  */
--dax_entry_t dax_lock_page(struct page *page)
-+dax_entry_t dax_lock_folio(struct folio *folio)
- {
- 	XA_STATE(xas, NULL, 0);
- 	void *entry;
- 
--	/* Ensure page->mapping isn't freed while we look at it */
-+	/* Ensure folio->mapping isn't freed while we look at it */
- 	rcu_read_lock();
- 	for (;;) {
--		struct address_space *mapping = READ_ONCE(page->mapping);
-+		struct address_space *mapping = READ_ONCE(folio->mapping);
- 
- 		entry = NULL;
- 		if (!mapping || !dax_mapping(mapping))
-@@ -447,11 +447,11 @@ dax_entry_t dax_lock_page(struct page *p
- 
- 		xas.xa = &mapping->i_pages;
- 		xas_lock_irq(&xas);
--		if (mapping != page->mapping) {
-+		if (mapping != folio->mapping) {
- 			xas_unlock_irq(&xas);
- 			continue;
- 		}
--		xas_set(&xas, page->index);
-+		xas_set(&xas, folio->index);
- 		entry = xas_load(&xas);
- 		if (dax_is_locked(entry)) {
- 			rcu_read_unlock();
-@@ -467,10 +467,10 @@ dax_entry_t dax_lock_page(struct page *p
- 	return (dax_entry_t)entry;
- }
- 
--void dax_unlock_page(struct page *page, dax_entry_t cookie)
-+void dax_unlock_folio(struct folio *folio, dax_entry_t cookie)
- {
--	struct address_space *mapping = page->mapping;
--	XA_STATE(xas, &mapping->i_pages, page->index);
-+	struct address_space *mapping = folio->mapping;
-+	XA_STATE(xas, &mapping->i_pages, folio->index);
- 
- 	if (S_ISCHR(mapping->host->i_mode))
- 		return;
---- a/include/linux/dax.h~mm-convert-dax-lock-unlock-page-to-lock-unlock-folio
-+++ a/include/linux/dax.h
-@@ -159,8 +159,8 @@ int dax_writeback_mapping_range(struct a
- 
- struct page *dax_layout_busy_page(struct address_space *mapping);
- struct page *dax_layout_busy_page_range(struct address_space *mapping, loff_t start, loff_t end);
--dax_entry_t dax_lock_page(struct page *page);
--void dax_unlock_page(struct page *page, dax_entry_t cookie);
-+dax_entry_t dax_lock_folio(struct folio *folio);
-+void dax_unlock_folio(struct folio *folio, dax_entry_t cookie);
- dax_entry_t dax_lock_mapping_entry(struct address_space *mapping,
- 		unsigned long index, struct page **page);
- void dax_unlock_mapping_entry(struct address_space *mapping,
-@@ -182,14 +182,14 @@ static inline int dax_writeback_mapping_
- 	return -EOPNOTSUPP;
- }
- 
--static inline dax_entry_t dax_lock_page(struct page *page)
-+static inline dax_entry_t dax_lock_folio(struct folio *folio)
- {
--	if (IS_DAX(page->mapping->host))
-+	if (IS_DAX(folio->mapping->host))
- 		return ~0UL;
- 	return 0;
- }
- 
--static inline void dax_unlock_page(struct page *page, dax_entry_t cookie)
-+static inline void dax_unlock_folio(struct folio *folio, dax_entry_t cookie)
- {
- }
- 
---- a/mm/memory-failure.c~mm-convert-dax-lock-unlock-page-to-lock-unlock-folio
-+++ a/mm/memory-failure.c
-@@ -1713,32 +1713,35 @@ static void unmap_and_kill(struct list_h
- 	kill_procs(to_kill, flags & MF_MUST_KILL, false, pfn, flags);
- }
- 
-+/*
-+ * Only dev_pagemap pages get here, such as fsdax when the filesystem
-+ * either do not claim or fails to claim a hwpoison event, or devdax.
-+ * The fsdax pages are initialized per base page, and the devdax pages
-+ * could be initialized either as base pages, or as compound pages with
-+ * vmemmap optimization enabled. Devdax is simplistic in its dealing with
-+ * hwpoison, such that, if a subpage of a compound page is poisoned,
-+ * simply mark the compound head page is by far sufficient.
-+ */
- static int mf_generic_kill_procs(unsigned long long pfn, int flags,
- 		struct dev_pagemap *pgmap)
- {
--	struct page *page = pfn_to_page(pfn);
-+	struct folio *folio = pfn_folio(pfn);
- 	LIST_HEAD(to_kill);
- 	dax_entry_t cookie;
- 	int rc = 0;
- 
- 	/*
--	 * Pages instantiated by device-dax (not filesystem-dax)
--	 * may be compound pages.
--	 */
--	page = compound_head(page);
+-#if defined(SPLIT_RSS_COUNTING)
+-void sync_mm_rss(struct mm_struct *mm);
+-#else
+-static inline void sync_mm_rss(struct mm_struct *mm)
+-{
+-}
+-#endif
 -
--	/*
- 	 * Prevent the inode from being freed while we are interrogating
- 	 * the address_space, typically this would be handled by
- 	 * lock_page(), but dax pages do not use the page lock. This
- 	 * also prevents changes to the mapping of this pfn until
- 	 * poison signaling is complete.
- 	 */
--	cookie = dax_lock_page(page);
-+	cookie = dax_lock_folio(folio);
- 	if (!cookie)
- 		return -EBUSY;
+ #ifndef CONFIG_ARCH_HAS_PTE_SPECIAL
+ static inline int pte_special(pte_t pte)
+ {
+--- a/kernel/exit.c~mm-remove-remnants-of-split_rss_counting
++++ a/kernel/exit.c
+@@ -539,7 +539,6 @@ static void exit_mm(void)
+ 	exit_mm_release(current, mm);
+ 	if (!mm)
+ 		return;
+-	sync_mm_rss(mm);
+ 	mmap_read_lock(mm);
+ 	mmgrab_lazy_tlb(mm);
+ 	BUG_ON(mm != current->active_mm);
+@@ -829,9 +828,6 @@ void __noreturn do_exit(long code)
+ 	io_uring_files_cancel();
+ 	exit_signals(tsk);  /* sets PF_EXITING */
  
--	if (hwpoison_filter(page)) {
-+	if (hwpoison_filter(&folio->page)) {
- 		rc = -EOPNOTSUPP;
- 		goto unlock;
+-	/* sync mm's RSS info before statistics gathering */
+-	if (tsk->mm)
+-		sync_mm_rss(tsk->mm);
+ 	acct_update_integrals(tsk);
+ 	group_dead = atomic_dec_and_test(&tsk->signal->live);
+ 	if (group_dead) {
+--- a/kernel/fork.c~mm-remove-remnants-of-split_rss_counting
++++ a/kernel/fork.c
+@@ -2406,10 +2406,6 @@ __latent_entropy struct task_struct *cop
+ 	p->io_uring = NULL;
+ #endif
+ 
+-#if defined(SPLIT_RSS_COUNTING)
+-	memset(&p->rss_stat, 0, sizeof(p->rss_stat));
+-#endif
+-
+ 	p->default_timer_slack_ns = current->timer_slack_ns;
+ 
+ #ifdef CONFIG_PSI
+--- a/kernel/kthread.c~mm-remove-remnants-of-split_rss_counting
++++ a/kernel/kthread.c
+@@ -1469,7 +1469,6 @@ void kthread_unuse_mm(struct mm_struct *
+ 	 * clearing tsk->mm.
+ 	 */
+ 	smp_mb__after_spinlock();
+-	sync_mm_rss(mm);
+ 	local_irq_disable();
+ 	tsk->mm = NULL;
+ 	membarrier_update_current_mm(NULL);
+--- a/mm/madvise.c~mm-remove-remnants-of-split_rss_counting
++++ a/mm/madvise.c
+@@ -746,11 +746,8 @@ static int madvise_free_pte_range(pmd_t
+ 		folio_mark_lazyfree(folio);
  	}
-@@ -1760,7 +1763,7 @@ static int mf_generic_kill_procs(unsigne
- 	 * Use this flag as an indication that the dax page has been
- 	 * remapped UC to prevent speculative consumption of poison.
- 	 */
--	SetPageHWPoison(page);
-+	SetPageHWPoison(&folio->page);
  
- 	/*
- 	 * Unlike System-RAM there is no possibility to swap in a
-@@ -1769,11 +1772,11 @@ static int mf_generic_kill_procs(unsigne
- 	 * SIGBUS (i.e. MF_MUST_KILL)
- 	 */
- 	flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
--	collect_procs(page, &to_kill, true);
-+	collect_procs(&folio->page, &to_kill, true);
+-	if (nr_swap) {
+-		if (current->mm == mm)
+-			sync_mm_rss(mm);
++	if (nr_swap)
+ 		add_mm_counter(mm, MM_SWAPENTS, nr_swap);
+-	}
+ 	if (start_pte) {
+ 		arch_leave_lazy_mmu_mode();
+ 		pte_unmap_unlock(start_pte, ptl);
+--- a/mm/memory.c~mm-remove-remnants-of-split_rss_counting
++++ a/mm/memory.c
+@@ -471,8 +471,6 @@ static inline void add_mm_rss_vec(struct
+ {
+ 	int i;
  
--	unmap_and_kill(&to_kill, pfn, page->mapping, page->index, flags);
-+	unmap_and_kill(&to_kill, pfn, folio->mapping, folio->index, flags);
- unlock:
--	dax_unlock_page(page, cookie);
-+	dax_unlock_folio(folio, cookie);
- 	return rc;
- }
- 
+-	if (current->mm == mm)
+-		sync_mm_rss(mm);
+ 	for (i = 0; i < NR_MM_COUNTERS; i++)
+ 		if (rss[i])
+ 			add_mm_counter(mm, i, rss[i]);
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from mjguzik@gmail.com are
 
-mm-make-lock_folio_maybe_drop_mmap-vma-lock-aware.patch
-mm-call-wp_page_copy-under-the-vma-lock.patch
-mm-handle-shared-faults-under-the-vma-lock.patch
-mm-handle-cow-faults-under-the-vma-lock.patch
-mm-handle-read-faults-under-the-vma-lock.patch
-mm-handle-write-faults-to-ro-pages-under-the-vma-lock.patch
 
