@@ -2,38 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BE15E936E0
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:24:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4ABF1E936E1
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:24:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244949AbjJDUYG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:24:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45652 "EHLO
+        id S244877AbjJDUYJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:24:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38768 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244664AbjJDUXR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:23:17 -0400
+        with ESMTP id S244960AbjJDUXT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:23:19 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 17A5EE8
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:23:13 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68564C433C8;
-        Wed,  4 Oct 2023 20:23:12 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 327DEF5
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:23:15 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 711D1C433C7;
+        Wed,  4 Oct 2023 20:23:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450992;
-        bh=U5WKNV4hJD3CxAHKaBLn/J6SfAJcrrUqu+v8WNpXVlQ=;
+        s=korg; t=1696450994;
+        bh=JHhM2nzoYoTrJ87YduWLlIDpK8R2EoqLSTUy6Mdm6xI=;
         h=Date:To:From:Subject:From;
-        b=r+AoFq3As2oTVRLTZa5f0zcL83RentYyvAGzxYCuLCsTEBdQ3+i8bbwkMiVeR2Qr5
-         rUax5SZOMaB+nkL0yzy7DwV3YDwws2dHTbbXXJykUHUV/O+gnM3PEp8saG4YMHMSKe
-         K9YfOjOHsAWJ9VJa/jFBk2FzLuHAuzqnyOOhq9YM=
-Date:   Wed, 04 Oct 2023 13:23:11 -0700
-To:     mm-commits@vger.kernel.org, zephray@outlook.com,
-        thunder.leizhen@huawei.com, sunilvl@ventanamicro.com,
-        robh@kernel.org, paul.walmsley@sifive.com, palmer@dabbelt.com,
-        jszhang@kernel.org, conor.dooley@microchip.com, bjorn@rivosinc.com,
-        bhe@redhat.com, aou@eecs.berkeley.edu, alexghiti@rivosinc.com,
-        ajones@ventanamicro.com, chenjiahao16@huawei.com,
+        b=xwGwSCrMwb4BKAR8hB3WPb7ncCMhA2hiHq7vfcTZYwwbS/sPKK64bs09V045iMLM+
+         c1byYrtmsYDuH20q9McuwWV2GI/9Z0RP7ZT+bbXDFd7qYNag6ZEmNKGTn8K1dC2ZrR
+         hr/4EB7zHcx/cwFRwryuxhheP2lQ/rsd47uVpm1Q=
+Date:   Wed, 04 Oct 2023 13:23:12 -0700
+To:     mm-commits@vger.kernel.org, trix@redhat.com, rusty@rustcorp.com.au,
+        nathan@kernel.org, mmarek@suse.com, luc.vanoostenryck@gmail.com,
+        jbeulich@suse.com, arnd@arndb.de, ndesaulniers@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] riscv-kdump-use-generic-interface-to-simplify-crashkernel-reservation-fix.patch removed from -mm tree
-Message-Id: <20231004202312.68564C433C8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] compilerh-unify-__unique_id.patch removed from -mm tree
+Message-Id: <20231004202314.711D1C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,104 +38,91 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: riscv: kdump: fix crashkernel reserving problem on RISC-V
+     Subject: compiler.h: unify __UNIQUE_ID
 has been removed from the -mm tree.  Its filename was
-     riscv-kdump-use-generic-interface-to-simplify-crashkernel-reservation-fix.patch
+     compilerh-unify-__unique_id.patch
 
-This patch was dropped because it was folded into riscv-kdump-use-generic-interface-to-simplify-crashkernel-reservation.patch
+This patch was dropped because it was merged into the mm-nonmm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Chen Jiahao <chenjiahao16@huawei.com>
-Subject: riscv: kdump: fix crashkernel reserving problem on RISC-V
-Date: Mon, 25 Sep 2023 10:43:33 +0800
+From: Nick Desaulniers <ndesaulniers@google.com>
+Subject: compiler.h: unify __UNIQUE_ID
+Date: Thu, 31 Aug 2023 09:33:40 -0700
 
-When testing on risc-v QEMU environment with "crashkernel="
-parameter enabled, a problem occurred with the following
-message:
+commit 6f33d58794ef ("__UNIQUE_ID()")
+added a fallback definition of __UNIQUE_ID because gcc 4.2 and older did
+not support __COUNTER__.
 
-[    0.000000] crashkernel low memory reserved: 0xf8000000 - 0x100000000 (128 MB)
-[    0.000000] crashkernel reserved: 0x0000000177e00000 - 0x0000000277e00000 (4096 MB)
-[    0.000000] ------------[ cut here ]------------
-[    0.000000] WARNING: CPU: 0 PID: 0 at kernel/resource.c:779 __insert_resource+0x8e/0xd0
-[    0.000000] Modules linked in:
-[    0.000000] CPU: 0 PID: 0 Comm: swapper Not tainted 6.6.0-rc2-next-20230920 #1
-[    0.000000] Hardware name: riscv-virtio,qemu (DT)
-[    0.000000] epc : __insert_resource+0x8e/0xd0
-[    0.000000]  ra : insert_resource+0x28/0x4e
-[    0.000000] epc : ffffffff80017344 ra : ffffffff8001742e sp : ffffffff81203db0
-[    0.000000]  gp : ffffffff812ece98 tp : ffffffff8120dac0 t0 : ff600001f7ff2b00
-[    0.000000]  t1 : 0000000000000000 t2 : 3428203030303030 s0 : ffffffff81203dc0
-[    0.000000]  s1 : ffffffff81211e18 a0 : ffffffff81211e18 a1 : ffffffff81289380
-[    0.000000]  a2 : 0000000277dfffff a3 : 0000000177e00000 a4 : 0000000177e00000
-[    0.000000]  a5 : ffffffff81289380 a6 : 0000000277dfffff a7 : 0000000000000078
-[    0.000000]  s2 : ffffffff81289380 s3 : ffffffff80a0bac8 s4 : ff600001f7ff2880
-[    0.000000]  s5 : 0000000000000280 s6 : 8000000a00006800 s7 : 000000000000007f
-[    0.000000]  s8 : 0000000080017038 s9 : 0000000080038ea0 s10: 0000000000000000
-[    0.000000]  s11: 0000000000000000 t3 : ffffffff80a0bc00 t4 : ffffffff80a0bc00
-[    0.000000]  t5 : ffffffff80a0bbd0 t6 : ffffffff80a0bc00
-[    0.000000] status: 0000000200000100 badaddr: 0000000000000000 cause: 0000000000000003
-[    0.000000] [<ffffffff80017344>] __insert_resource+0x8e/0xd0
-[    0.000000] ---[ end trace 0000000000000000 ]---
-[    0.000000] Failed to add a Crash kernel resource at 177e00000
+Also, this commit is effectively a revert of
+commit b41c29b0527c ("Kbuild: provide a __UNIQUE_ID for clang")
+which mentions clang 2.6+ supporting __COUNTER__.
 
-The crashkernel memory has been allocated successfully, whereas
-it failed to insert into iomem_resource. This is due to the
-unique reserving logic in risc-v arch specific code, i.e.
-crashk_res/crashk_low_res will be added into iomem_resource
-later in init_resources(), which is not aligned with current
-unified reserving logic in reserve_crashkernel_{generic,low}()
-and therefore leads to the failure of crashkernel reservation.
+Documentation/process/changes.rst currently lists the minimum supported
+version of these compilers as:
+- gcc: 5.1
+- clang: 11.0.0
+It should be safe to say that __COUNTER__ is well supported by this
+point.
 
-Removing the arch specific code within #ifdef CONFIG_KEXEC_CORE
-in init_resources() to fix above problem.
-
-Link: https://lkml.kernel.org/r/20230925024333.730964-1-chenjiahao16@huawei.com
-Fixes: 31549153088e ("riscv: kdump: use generic interface to simplify crashkernel reservation")
-Signed-off-by: Chen Jiahao <chenjiahao16@huawei.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
-Cc: Andrew Jones <ajones@ventanamicro.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Björn Töpel <bjorn@rivosinc.com>
-Cc: Conor Dooley <conor.dooley@microchip.com>
-Cc: Jisheng Zhang <jszhang@kernel.org>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Rob Herring <robh@kernel.org>
-Cc: Sunil V L <sunilvl@ventanamicro.com>
-Cc: Wenting Zhang <zephray@outlook.com>
-Cc: Zhen Lei <thunder.leizhen@huawei.com>
+Link: https://lkml.kernel.org/r/20230831-unique_id-v1-1-28bacd18eb1d@google.com
+Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Jan Beulich <jbeulich@suse.com>
+Cc: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+Cc: Michal rarek <mmarek@suse.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Paul Russel <rusty@rustcorp.com.au>
+Cc: Tom Rix <trix@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/kernel/setup.c |   13 -------------
- 1 file changed, 13 deletions(-)
+ include/linux/compiler-clang.h |    5 -----
+ include/linux/compiler-gcc.h   |    2 --
+ include/linux/compiler.h       |    5 +----
+ 3 files changed, 1 insertion(+), 11 deletions(-)
 
---- a/arch/riscv/kernel/setup.c~riscv-kdump-use-generic-interface-to-simplify-crashkernel-reservation-fix
-+++ a/arch/riscv/kernel/setup.c
-@@ -173,19 +173,6 @@ static void __init init_resources(void)
- 	if (ret < 0)
- 		goto error;
+--- a/include/linux/compiler-clang.h~compilerh-unify-__unique_id
++++ a/include/linux/compiler-clang.h
+@@ -14,11 +14,6 @@
+ #undef __cleanup
+ #define __cleanup(func) __maybe_unused __attribute__((__cleanup__(func)))
  
--#ifdef CONFIG_KEXEC_CORE
--	if (crashk_res.start != crashk_res.end) {
--		ret = add_resource(&iomem_resource, &crashk_res);
--		if (ret < 0)
--			goto error;
--	}
--	if (crashk_low_res.start != crashk_low_res.end) {
--		ret = add_resource(&iomem_resource, &crashk_low_res);
--		if (ret < 0)
--			goto error;
--	}
--#endif
+-/* same as gcc, this was present in clang-2.6 so we can assume it works
+- * with any version that can compile the kernel
+- */
+-#define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
 -
- #ifdef CONFIG_CRASH_DUMP
- 	if (elfcorehdr_size > 0) {
- 		elfcorehdr_res.start = elfcorehdr_addr;
+ /* all clang versions usable with the kernel support KASAN ABI version 5 */
+ #define KASAN_ABI_VERSION 5
+ 
+--- a/include/linux/compiler-gcc.h~compilerh-unify-__unique_id
++++ a/include/linux/compiler-gcc.h
+@@ -39,8 +39,6 @@
+ #define __noretpoline __attribute__((__indirect_branch__("keep")))
+ #endif
+ 
+-#define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
+-
+ #if defined(LATENT_ENTROPY_PLUGIN) && !defined(__CHECKER__)
+ #define __latent_entropy __attribute__((latent_entropy))
+ #endif
+--- a/include/linux/compiler.h~compilerh-unify-__unique_id
++++ a/include/linux/compiler.h
+@@ -177,10 +177,7 @@ void ftrace_likely_update(struct ftrace_
+ 	__asm__ ("" : "=r" (var) : "0" (var))
+ #endif
+ 
+-/* Not-quite-unique ID. */
+-#ifndef __UNIQUE_ID
+-# define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __LINE__)
+-#endif
++#define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
+ 
+ /**
+  * data_race - mark an expression as containing intentional data races
 _
 
-Patches currently in -mm which might be from chenjiahao16@huawei.com are
+Patches currently in -mm which might be from ndesaulniers@google.com are
 
-riscv-kdump-use-generic-interface-to-simplify-crashkernel-reservation.patch
 
