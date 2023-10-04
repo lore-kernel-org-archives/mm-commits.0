@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0557DE936E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0FC8E936E2
 	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:24:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244241AbjJDUYv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:24:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57998 "EHLO
+        id S244811AbjJDUYw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:24:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244811AbjJDUXh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:23:37 -0400
+        with ESMTP id S245062AbjJDUXj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:23:39 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 82A7019C
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:23:33 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE435C433CA;
-        Wed,  4 Oct 2023 20:23:32 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C1F51A5
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:23:35 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E49F0C433C7;
+        Wed,  4 Oct 2023 20:23:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696451013;
-        bh=qbe8mYaPjF+JPICiXOcIFVMWWBDDhoBMN8Rw3yhmuyM=;
+        s=korg; t=1696451015;
+        bh=zQzuheB9DfktUJRI4E3JFOr23H+8guQ/wbcjaMuz+do=;
         h=Date:To:From:Subject:From;
-        b=vPxKcmYhlSAnrf5w+Vam4VK5eCMr1kY8b4BT35enCdpg8zgbSjjvakgBIexK2p6m1
-         VIeCNwo4AVaI0qXRbZG1Yle6qNep/9alajDEUXFSFRdg94wBHVpc5ShDaOIHbSJYnc
-         ErKXhVxT9ApKG8PYvzGVlKR8/8FxiBxebxdV/eD0=
-Date:   Wed, 04 Oct 2023 13:23:31 -0700
+        b=u68qHxCYQYh9rFLUZMXOkdubZFCQ2jInx4rL4Bc8bUZfZqfvZJuzcw2MeroB5UjfX
+         8isU4UgJwSzDjFH3Sr6YBNH/wurEXnlJd80LwpWClS2G5Hpn2Wh3XOYy4Q50NXaIwx
+         UJmF4T2xKOEO4aHYodqu3nT8IhmEXYs+NG7VkpX0=
+Date:   Wed, 04 Oct 2023 13:23:33 -0700
 To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
         uma.shankar@intel.com, prime.zeng@hisilicon.com,
         martin.petersen@oracle.com, luojiaxing@huawei.com,
@@ -34,8 +34,8 @@ To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
         animesh.manna@intel.com, andriy.shevchenko@linux.intel.com,
         yangxingui@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] scsi-hisi_sas-use-define_show_store_attribute-helper-for-debugfs.patch removed from -mm tree
-Message-Id: <20231004202332.BE435C433CA@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] scsi-qla2xxx-use-define_show_store_attribute-helper-for-debugfs.patch removed from -mm tree
+Message-Id: <20231004202334.E49F0C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,22 +43,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: scsi: hisi_sas: use DEFINE_SHOW_STORE_ATTRIBUTE() helper for debugfs
+     Subject: scsi: qla2xxx: use DEFINE_SHOW_STORE_ATTRIBUTE() helper for debugfs
 has been removed from the -mm tree.  Its filename was
-     scsi-hisi_sas-use-define_show_store_attribute-helper-for-debugfs.patch
+     scsi-qla2xxx-use-define_show_store_attribute-helper-for-debugfs.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Xingui Yang <yangxingui@huawei.com>
-Subject: scsi: hisi_sas: use DEFINE_SHOW_STORE_ATTRIBUTE() helper for debugfs
-Date: Tue, 5 Sep 2023 02:48:34 +0000
+Subject: scsi: qla2xxx: use DEFINE_SHOW_STORE_ATTRIBUTE() helper for debugfs
+Date: Tue, 5 Sep 2023 02:48:35 +0000
 
 Use DEFINE_SHOW_STORE_ATTRIBUTE() helper for read-write file to reduce some
 duplicated code.
 
-Link: https://lkml.kernel.org/r/20230905024835.43219-3-yangxingui@huawei.com
+Link: https://lkml.kernel.org/r/20230905024835.43219-4-yangxingui@huawei.com
 Signed-off-by: Luo Jiaxing <luojiaxing@huawei.com>
 Co-developed-by: Xingui Yang <yangxingui@huawei.com>
 Signed-off-by: Xingui Yang <yangxingui@huawei.com>
@@ -79,211 +79,118 @@ Cc: Zeng Tao <prime.zeng@hisilicon.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hisi_sas/hisi_sas_v3_hw.c |  137 +----------------------
- 1 file changed, 9 insertions(+), 128 deletions(-)
+ drivers/scsi/qla2xxx/qla_dfs.c |   61 ++++---------------------------
+ 1 file changed, 8 insertions(+), 53 deletions(-)
 
---- a/drivers/scsi/hisi_sas/hisi_sas_v3_hw.c~scsi-hisi_sas-use-define_show_store_attribute-helper-for-debugfs
-+++ a/drivers/scsi/hisi_sas/hisi_sas_v3_hw.c
-@@ -3990,22 +3990,7 @@ static ssize_t debugfs_bist_linkrate_v3_
- 
- 	return count;
- }
+--- a/drivers/scsi/qla2xxx/qla_dfs.c~scsi-qla2xxx-use-define_show_store_attribute-helper-for-debugfs
++++ a/drivers/scsi/qla2xxx/qla_dfs.c
+@@ -528,51 +528,22 @@ qla_dfs_naqp_show(struct seq_file *s, vo
+  *
+  * Example for creating "TEST" sysfs file:
+  * 1. struct qla_hw_data { ... struct dentry *dfs_TEST; }
+- * 2. QLA_DFS_SETUP_RD(TEST, scsi_qla_host_t);
++ * 2. QLA_DFS_SETUP_RD(TEST);
+  * 3. In qla2x00_dfs_setup():
+  * QLA_DFS_CREATE_FILE(ha, TEST, 0600, ha->dfs_dir, vha);
+  * 4. In qla2x00_dfs_remove():
+  * QLA_DFS_REMOVE_FILE(ha, TEST);
+  */
+-#define QLA_DFS_SETUP_RD(_name, _ctx_struct)				\
+-static int								\
+-qla_dfs_##_name##_open(struct inode *inode, struct file *file)		\
+-{									\
+-	_ctx_struct *__ctx = inode->i_private;				\
+-									\
+-	return single_open(file, qla_dfs_##_name##_show, __ctx);	\
+-}									\
+-									\
+-static const struct file_operations qla_dfs_##_name##_ops = {		\
+-	.open           = qla_dfs_##_name##_open,			\
+-	.read           = seq_read,					\
+-	.llseek         = seq_lseek,					\
+-	.release        = single_release,				\
+-};
 -
--static int debugfs_bist_linkrate_v3_hw_open(struct inode *inode,
--					    struct file *filp)
+-#define QLA_DFS_SETUP_RW(_name, _ctx_struct)				\
+-static int								\
+-qla_dfs_##_name##_open(struct inode *inode, struct file *file)		\
+-{									\
+-	_ctx_struct *__ctx = inode->i_private;				\
+-									\
+-	return single_open(file, qla_dfs_##_name##_show, __ctx);	\
+-}									\
+-									\
+-static const struct file_operations qla_dfs_##_name##_ops = {		\
+-	.open           = qla_dfs_##_name##_open,			\
+-	.read           = seq_read,					\
+-	.llseek         = seq_lseek,					\
+-	.release        = single_release,				\
+-	.write		= qla_dfs_##_name##_write,			\
+-};
++#define QLA_DFS_SETUP_RD(_name)	DEFINE_SHOW_ATTRIBUTE(qla_dfs_##_name)
++
++#define QLA_DFS_SETUP_RW(_name)	DEFINE_SHOW_STORE_ATTRIBUTE(qla_dfs_##_name)
+ 
+ #define QLA_DFS_ROOT_CREATE_FILE(_name, _perm, _ctx)			\
+ 	do {								\
+ 		if (!qla_dfs_##_name)					\
+ 			qla_dfs_##_name = debugfs_create_file(#_name,	\
+ 					_perm, qla2x00_dfs_root, _ctx,	\
+-					&qla_dfs_##_name##_ops);	\
++					&qla_dfs_##_name##_fops);	\
+ 	} while (0)
+ 
+ #define QLA_DFS_ROOT_REMOVE_FILE(_name)					\
+@@ -587,7 +558,7 @@ static const struct file_operations qla_
+ 	do {								\
+ 		(_struct)->dfs_##_name = debugfs_create_file(#_name,	\
+ 					_perm, _parent, _ctx,		\
+-					&qla_dfs_##_name##_ops)		\
++					&qla_dfs_##_name##_fops)	\
+ 	} while (0)
+ 
+ #define QLA_DFS_REMOVE_FILE(_struct, _name)				\
+@@ -598,14 +569,6 @@ static const struct file_operations qla_
+ 		}							\
+ 	} while (0)
+ 
+-static int
+-qla_dfs_naqp_open(struct inode *inode, struct file *file)
 -{
--	return single_open(filp, debugfs_bist_linkrate_v3_hw_show,
--			   inode->i_private);
+-	struct scsi_qla_host *vha = inode->i_private;
+-
+-	return single_open(file, qla_dfs_naqp_show, vha);
 -}
 -
--static const struct file_operations debugfs_bist_linkrate_v3_hw_fops = {
--	.open = debugfs_bist_linkrate_v3_hw_open,
--	.read = seq_read,
--	.write = debugfs_bist_linkrate_v3_hw_write,
--	.llseek = seq_lseek,
--	.release = single_release,
--	.owner = THIS_MODULE,
--};
-+DEFINE_SHOW_STORE_ATTRIBUTE(debugfs_bist_linkrate_v3_hw);
- 
- static const struct {
- 	int		value;
-@@ -4080,22 +4065,7 @@ static ssize_t debugfs_bist_code_mode_v3
- 
- 	return count;
+ static ssize_t
+ qla_dfs_naqp_write(struct file *file, const char __user *buffer,
+     size_t count, loff_t *pos)
+@@ -653,15 +616,7 @@ out_free:
+ 	kfree(buf);
+ 	return rc;
  }
 -
--static int debugfs_bist_code_mode_v3_hw_open(struct inode *inode,
--					     struct file *filp)
--{
--	return single_open(filp, debugfs_bist_code_mode_v3_hw_show,
--			   inode->i_private);
--}
--
--static const struct file_operations debugfs_bist_code_mode_v3_hw_fops = {
--	.open = debugfs_bist_code_mode_v3_hw_open,
--	.read = seq_read,
--	.write = debugfs_bist_code_mode_v3_hw_write,
--	.llseek = seq_lseek,
--	.release = single_release,
--	.owner = THIS_MODULE,
+-static const struct file_operations dfs_naqp_ops = {
+-	.open		= qla_dfs_naqp_open,
+-	.read		= seq_read,
+-	.llseek		= seq_lseek,
+-	.release	= single_release,
+-	.write		= qla_dfs_naqp_write,
 -};
-+DEFINE_SHOW_STORE_ATTRIBUTE(debugfs_bist_code_mode_v3_hw);
- 
- static ssize_t debugfs_bist_phy_v3_hw_write(struct file *filp,
- 					    const char __user *buf,
-@@ -4129,22 +4099,7 @@ static int debugfs_bist_phy_v3_hw_show(s
- 
- 	return 0;
- }
 -
--static int debugfs_bist_phy_v3_hw_open(struct inode *inode,
--				       struct file *filp)
--{
--	return single_open(filp, debugfs_bist_phy_v3_hw_show,
--			   inode->i_private);
--}
--
--static const struct file_operations debugfs_bist_phy_v3_hw_fops = {
--	.open = debugfs_bist_phy_v3_hw_open,
--	.read = seq_read,
--	.write = debugfs_bist_phy_v3_hw_write,
--	.llseek = seq_lseek,
--	.release = single_release,
--	.owner = THIS_MODULE,
--};
-+DEFINE_SHOW_STORE_ATTRIBUTE(debugfs_bist_phy_v3_hw);
++QLA_DFS_SETUP_RW(naqp);
  
- static ssize_t debugfs_bist_cnt_v3_hw_write(struct file *filp,
- 					const char __user *buf,
-@@ -4177,22 +4132,7 @@ static int debugfs_bist_cnt_v3_hw_show(s
+ int
+ qla2x00_dfs_setup(scsi_qla_host_t *vha)
+@@ -707,7 +662,7 @@ create_nodes:
  
- 	return 0;
- }
--
--static int debugfs_bist_cnt_v3_hw_open(struct inode *inode,
--					  struct file *filp)
--{
--	return single_open(filp, debugfs_bist_cnt_v3_hw_show,
--			   inode->i_private);
--}
--
--static const struct file_operations debugfs_bist_cnt_v3_hw_ops = {
--	.open = debugfs_bist_cnt_v3_hw_open,
--	.read = seq_read,
--	.write = debugfs_bist_cnt_v3_hw_write,
--	.llseek = seq_lseek,
--	.release = single_release,
--	.owner = THIS_MODULE,
--};
-+DEFINE_SHOW_STORE_ATTRIBUTE(debugfs_bist_cnt_v3_hw);
- 
- static const struct {
- 	int		value;
-@@ -4256,22 +4196,7 @@ static ssize_t debugfs_bist_mode_v3_hw_w
- 
- 	return count;
- }
--
--static int debugfs_bist_mode_v3_hw_open(struct inode *inode,
--					struct file *filp)
--{
--	return single_open(filp, debugfs_bist_mode_v3_hw_show,
--			   inode->i_private);
--}
--
--static const struct file_operations debugfs_bist_mode_v3_hw_fops = {
--	.open = debugfs_bist_mode_v3_hw_open,
--	.read = seq_read,
--	.write = debugfs_bist_mode_v3_hw_write,
--	.llseek = seq_lseek,
--	.release = single_release,
--	.owner = THIS_MODULE,
--};
-+DEFINE_SHOW_STORE_ATTRIBUTE(debugfs_bist_mode_v3_hw);
- 
- static ssize_t debugfs_bist_enable_v3_hw_write(struct file *filp,
- 					       const char __user *buf,
-@@ -4309,22 +4234,7 @@ static int debugfs_bist_enable_v3_hw_sho
- 
- 	return 0;
- }
--
--static int debugfs_bist_enable_v3_hw_open(struct inode *inode,
--					  struct file *filp)
--{
--	return single_open(filp, debugfs_bist_enable_v3_hw_show,
--			   inode->i_private);
--}
--
--static const struct file_operations debugfs_bist_enable_v3_hw_fops = {
--	.open = debugfs_bist_enable_v3_hw_open,
--	.read = seq_read,
--	.write = debugfs_bist_enable_v3_hw_write,
--	.llseek = seq_lseek,
--	.release = single_release,
--	.owner = THIS_MODULE,
--};
-+DEFINE_SHOW_STORE_ATTRIBUTE(debugfs_bist_enable_v3_hw);
- 
- static const struct {
- 	char *name;
-@@ -4362,21 +4272,7 @@ static int debugfs_v3_hw_show(struct seq
- 
- 	return 0;
- }
--
--static int debugfs_v3_hw_open(struct inode *inode, struct file *filp)
--{
--	return single_open(filp, debugfs_v3_hw_show,
--			   inode->i_private);
--}
--
--static const struct file_operations debugfs_v3_hw_fops = {
--	.open = debugfs_v3_hw_open,
--	.read = seq_read,
--	.write = debugfs_v3_hw_write,
--	.llseek = seq_lseek,
--	.release = single_release,
--	.owner = THIS_MODULE,
--};
-+DEFINE_SHOW_STORE_ATTRIBUTE(debugfs_v3_hw);
- 
- static ssize_t debugfs_phy_down_cnt_v3_hw_write(struct file *filp,
- 						const char __user *buf,
-@@ -4407,22 +4303,7 @@ static int debugfs_phy_down_cnt_v3_hw_sh
- 
- 	return 0;
- }
--
--static int debugfs_phy_down_cnt_v3_hw_open(struct inode *inode,
--					   struct file *filp)
--{
--	return single_open(filp, debugfs_phy_down_cnt_v3_hw_show,
--			   inode->i_private);
--}
--
--static const struct file_operations debugfs_phy_down_cnt_v3_hw_fops = {
--	.open = debugfs_phy_down_cnt_v3_hw_open,
--	.read = seq_read,
--	.write = debugfs_phy_down_cnt_v3_hw_write,
--	.llseek = seq_lseek,
--	.release = single_release,
--	.owner = THIS_MODULE,
--};
-+DEFINE_SHOW_STORE_ATTRIBUTE(debugfs_phy_down_cnt_v3_hw);
- 
- enum fifo_dump_mode_v3_hw {
- 	FIFO_DUMP_FORVER =		(1U << 0),
-@@ -4832,7 +4713,7 @@ static void debugfs_bist_init_v3_hw(stru
- 			    hisi_hba, &debugfs_bist_phy_v3_hw_fops);
- 
- 	debugfs_create_file("cnt", 0600, hisi_hba->debugfs_bist_dentry,
--			    hisi_hba, &debugfs_bist_cnt_v3_hw_ops);
-+			    hisi_hba, &debugfs_bist_cnt_v3_hw_fops);
- 
- 	debugfs_create_file("loopback_mode", 0600,
- 			    hisi_hba->debugfs_bist_dentry,
+ 	if (IS_QLA27XX(ha) || IS_QLA83XX(ha) || IS_QLA28XX(ha)) {
+ 		ha->tgt.dfs_naqp = debugfs_create_file("naqp",
+-		    0400, ha->dfs_dir, vha, &dfs_naqp_ops);
++		    0400, ha->dfs_dir, vha, &qla_dfs_naqp_fops);
+ 		if (IS_ERR(ha->tgt.dfs_naqp)) {
+ 			ql_log(ql_log_warn, vha, 0xd011,
+ 			       "Unable to create debugFS naqp node.\n");
 _
 
 Patches currently in -mm which might be from yangxingui@huawei.com are
