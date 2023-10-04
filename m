@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69068E7C4F1
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:17:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89EA8E7C4F1
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:17:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233493AbjJDURL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:17:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35130 "EHLO
+        id S233538AbjJDURO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:17:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35138 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232977AbjJDURK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:17:10 -0400
+        with ESMTP id S232977AbjJDURM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:17:12 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B0D9AD
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:17:06 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDE06C433C8;
-        Wed,  4 Oct 2023 20:17:05 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA37393
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:17:08 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FF79C433CA;
+        Wed,  4 Oct 2023 20:17:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450626;
-        bh=Zdhn5ldq7MUYOVFsHRoQPCoBIhISheSOO2F6GjjYVqk=;
+        s=korg; t=1696450628;
+        bh=K6BRWh1okNuuwxsy6OHU4BJips8Pnc7YpqWgnUfMjnM=;
         h=Date:To:From:Subject:From;
-        b=2e8j2cVmd6BQSpmztu54Wj+wxoLaFsdg+I+5TgYpPG1aewtgHRmOkd5BX03kvq0xV
-         MfUfoknfkQ8/5x188P+xinVn7RBey6BJU0+UykA5rMmxvcBubKTSegBwyGgnK0SgVS
-         Y2EXd0u8OTKinX7ogu8msbiDDCYLpd1aHLGF43D8=
-Date:   Wed, 04 Oct 2023 13:17:04 -0700
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        b=nlShzU9bFMGvFiUzrvEYbO7kkf3l/lLe4w+oIslo1a1vk4HHFs50jIR8m3FeLBhY6
+         YOzjQbIqfckyGXNF4fhbYRxAB8NCxBiVV732Egvg92UNGbT58IEaB8d1uixZ8rFZe3
+         8YB9U3xEDJQmUtJaIBufLUEuAI3r0xEaZFNTEBdA=
+Date:   Wed, 04 Oct 2023 13:17:06 -0700
+To:     mm-commits@vger.kernel.org, dan.carpenter@linaro.org,
         zhengqi.arch@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-shrinker-add-infrastructure-for-dynamically-allocating-shrinker-fix.patch removed from -mm tree
-Message-Id: <20231004201705.DDE06C433C8@smtp.kernel.org>
+Subject: [folded-merged] mm-shrinker-add-a-secondary-array-for-shrinker_info-map-nr_deferred-fix.patch removed from -mm tree
+Message-Id: <20231004201708.2FF79C433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,167 +36,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: shrinker: some cleanup
+     Subject: fixup: mm: shrinker: add a secondary array for shrinker_info::{map, nr_deferred}
 has been removed from the -mm tree.  Its filename was
-     mm-shrinker-add-infrastructure-for-dynamically-allocating-shrinker-fix.patch
+     mm-shrinker-add-a-secondary-array-for-shrinker_info-map-nr_deferred-fix.patch
 
-This patch was dropped because it was folded into mm-shrinker-add-infrastructure-for-dynamically-allocating-shrinker.patch
+This patch was dropped because it was folded into mm-shrinker-add-a-secondary-array-for-shrinker_info-map-nr_deferred.patch
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: shrinker: some cleanup
-Date: Tue, 19 Sep 2023 10:46:07 +0800
+Subject: fixup: mm: shrinker: add a secondary array for shrinker_info::{map, nr_deferred}
+Date: Thu, 28 Sep 2023 22:15:17 +0800
 
-Link: https://lkml.kernel.org/r/20230919024607.65463-1-zhengqi.arch@bytedance.com
+Dan Carpenter reported the following bug:
+
+```
+The patch b6884b5f15cf: "mm: shrinker: add a secondary array for
+shrinker_info::{map, nr_deferred}" from Sep 11, 2023 (linux-next),
+leads to the following Smatch static checker warning:
+
+	mm/shrinker.c:100 alloc_shrinker_info()
+	warn: inconsistent returns '&shrinker_mutex'.
+```
+
+To fix it, unlock the &shrinker_rwsem before the call to
+free_shrinker_info().
+
+Link: https://lkml.kernel.org/r/20230928141517.12164-1-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
+Closes: https://lore.kernel.org/linux-mm/f960ae49-078c-4c00-9516-da31fc1a17d6@moroto.mountain/
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shrinker.h |   14 ++++++++------
- mm/internal.h            |   17 ++++++++++++++---
- mm/shrinker.c            |   20 ++++++++++++--------
- mm/shrinker_debug.c      |   16 ----------------
- 4 files changed, 34 insertions(+), 33 deletions(-)
+ mm/shrinker.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/shrinker.h~mm-shrinker-add-infrastructure-for-dynamically-allocating-shrinker-fix
-+++ a/include/linux/shrinker.h
-@@ -88,16 +88,18 @@ struct shrinker {
- };
- #define DEFAULT_SEEKS 2 /* A good number if you don't know better. */
- 
--/* Flags */
--#define SHRINKER_REGISTERED	(1 << 0)
--#define SHRINKER_NUMA_AWARE	(1 << 1)
--#define SHRINKER_MEMCG_AWARE	(1 << 2)
-+/* Internal flags */
-+#define SHRINKER_REGISTERED	BIT(0)
-+#define SHRINKER_ALLOCATED	BIT(1)
-+
-+/* Flags for users to use */
-+#define SHRINKER_NUMA_AWARE	BIT(2)
-+#define SHRINKER_MEMCG_AWARE	BIT(3)
- /*
-  * It just makes sense when the shrinker is also MEMCG_AWARE for now,
-  * non-MEMCG_AWARE shrinker should not have this flag set.
-  */
--#define SHRINKER_NONSLAB	(1 << 3)
--#define SHRINKER_ALLOCATED	(1 << 4)
-+#define SHRINKER_NONSLAB	BIT(4)
- 
- struct shrinker *shrinker_alloc(unsigned int flags, const char *fmt, ...);
- void shrinker_register(struct shrinker *shrinker);
---- a/mm/internal.h~mm-shrinker-add-infrastructure-for-dynamically-allocating-shrinker-fix
-+++ a/mm/internal.h
-@@ -1161,10 +1161,21 @@ unsigned long shrink_slab(gfp_t gfp_mask
- 			  int priority);
- 
- #ifdef CONFIG_SHRINKER_DEBUG
-+static inline int shrinker_debugfs_name_alloc(struct shrinker *shrinker,
-+					      const char *fmt, va_list ap)
-+{
-+	shrinker->name = kvasprintf_const(GFP_KERNEL, fmt, ap);
-+
-+	return shrinker->name ? 0 : -ENOMEM;
-+}
-+
-+static inline void shrinker_debugfs_name_free(struct shrinker *shrinker)
-+{
-+	kfree_const(shrinker->name);
-+	shrinker->name = NULL;
-+}
-+
- extern int shrinker_debugfs_add(struct shrinker *shrinker);
--extern int shrinker_debugfs_name_alloc(struct shrinker *shrinker,
--				       const char *fmt, va_list ap);
--extern void shrinker_debugfs_name_free(struct shrinker *shrinker);
- extern struct dentry *shrinker_debugfs_detach(struct shrinker *shrinker,
- 					      int *debugfs_id);
- extern void shrinker_debugfs_remove(struct dentry *debugfs_entry,
---- a/mm/shrinker.c~mm-shrinker-add-infrastructure-for-dynamically-allocating-shrinker-fix
+--- a/mm/shrinker.c~mm-shrinker-add-a-secondary-array-for-shrinker_info-map-nr_deferred-fix
 +++ a/mm/shrinker.c
-@@ -572,18 +572,23 @@ struct shrinker *shrinker_alloc(unsigned
+@@ -95,6 +95,7 @@ int alloc_shrinker_info(struct mem_cgrou
+ 	return ret;
  
- 	if (flags & SHRINKER_MEMCG_AWARE) {
- 		err = prealloc_memcg_shrinker(shrinker);
--		if (err == -ENOSYS)
-+		if (err == -ENOSYS) {
-+			/* Memcg is not supported, fallback to non-memcg-aware shrinker. */
- 			shrinker->flags &= ~SHRINKER_MEMCG_AWARE;
--		else if (err == 0)
--			goto done;
--		else
-+			goto non_memcg;
-+		}
-+
-+		if (err)
- 			goto err_flags;
-+
-+		return shrinker;
- 	}
- 
-+non_memcg:
- 	/*
- 	 * The nr_deferred is available on per memcg level for memcg aware
- 	 * shrinkers, so only allocate nr_deferred in the following cases:
--	 *  - non memcg aware shrinkers
-+	 *  - non-memcg-aware shrinkers
- 	 *  - !CONFIG_MEMCG
- 	 *  - memcg is disabled by kernel command line
- 	 */
-@@ -595,7 +600,6 @@ struct shrinker *shrinker_alloc(unsigned
- 	if (!shrinker->nr_deferred)
- 		goto err_flags;
- 
--done:
- 	return shrinker;
- 
- err_flags:
-@@ -634,10 +638,10 @@ void shrinker_free(struct shrinker *shri
- 		list_del(&shrinker->list);
- 		debugfs_entry = shrinker_debugfs_detach(shrinker, &debugfs_id);
- 		shrinker->flags &= ~SHRINKER_REGISTERED;
--	} else {
--		shrinker_debugfs_name_free(shrinker);
- 	}
- 
-+	shrinker_debugfs_name_free(shrinker);
-+
- 	if (shrinker->flags & SHRINKER_MEMCG_AWARE)
- 		unregister_memcg_shrinker(shrinker);
- 	up_write(&shrinker_rwsem);
---- a/mm/shrinker_debug.c~mm-shrinker-add-infrastructure-for-dynamically-allocating-shrinker-fix
-+++ a/mm/shrinker_debug.c
-@@ -193,20 +193,6 @@ int shrinker_debugfs_add(struct shrinker
- 	return 0;
+ err:
++	up_write(&shrinker_rwsem);
+ 	free_shrinker_info(memcg);
+ 	return -ENOMEM;
  }
- 
--int shrinker_debugfs_name_alloc(struct shrinker *shrinker, const char *fmt,
--				va_list ap)
--{
--	shrinker->name = kvasprintf_const(GFP_KERNEL, fmt, ap);
--
--	return shrinker->name ? 0 : -ENOMEM;
--}
--
--void shrinker_debugfs_name_free(struct shrinker *shrinker)
--{
--	kfree_const(shrinker->name);
--	shrinker->name = NULL;
--}
--
- int shrinker_debugfs_rename(struct shrinker *shrinker, const char *fmt, ...)
- {
- 	struct dentry *entry;
-@@ -255,8 +241,6 @@ struct dentry *shrinker_debugfs_detach(s
- 
- 	lockdep_assert_held(&shrinker_rwsem);
- 
--	shrinker_debugfs_name_free(shrinker);
--
- 	*debugfs_id = entry ? shrinker->debugfs_id : -1;
- 	shrinker->debugfs_entry = NULL;
- 
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
@@ -245,7 +129,6 @@ zsmalloc-dynamically-allocate-the-mm-zspool-shrinker.patch
 fs-super-dynamically-allocate-the-s_shrink.patch
 mm-shrinker-remove-old-apis.patch
 mm-shrinker-add-a-secondary-array-for-shrinker_info-map-nr_deferred.patch
-mm-shrinker-add-a-secondary-array-for-shrinker_info-map-nr_deferred-fix.patch
 mm-shrinker-rename-preallocunregister_memcg_shrinker-to-shrinker_memcg_allocremove.patch
 mm-shrinker-make-global-slab-shrink-lockless.patch
 mm-shrinker-make-memcg-slab-shrink-lockless.patch
