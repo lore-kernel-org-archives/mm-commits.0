@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2419E7C4F5
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:20:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79481E7C4F3
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:22:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244561AbjJDUU7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:20:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45402 "EHLO
+        id S244789AbjJDUWK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 4 Oct 2023 16:22:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60310 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244670AbjJDUUl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:20:41 -0400
+        with ESMTP id S244700AbjJDUUr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:20:47 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19563122
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:20:34 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5250AC433C9;
-        Wed,  4 Oct 2023 20:20:33 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D550FB
+        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:20:40 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F09CC433C8;
+        Wed,  4 Oct 2023 20:20:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450833;
-        bh=FGvERGEZRKQf1FMnSYlLYo8fnjMpbxy2sNdPAvBPeyc=;
+        s=korg; t=1696450839;
+        bh=oN1ga0qSuZ6UY/9fHQAzXyVH8S2QL3q0IA+7V3lJ3eQ=;
         h=Date:To:From:Subject:From;
-        b=zqGrwFs5+cVEhMs3ZIWE3PkkF/5Myca/Zgus4jufQgQICOo3/5UkdIF0hUGTwbNIO
-         8TdpBXYGz7+AQctw0GsQIFki/J35aBcRmU7Ajk6Tll6TPcCYF0H9k4V1oLQI7fA+V7
-         mb9+7dOHbsT+Tdfib5IPumSBOusifSkdqO87GOOk=
-Date:   Wed, 04 Oct 2023 13:20:32 -0700
+        b=R4MSKicqNQsa0l3TcWkP2jWO3/H9LGT2f7MSSEEWzwk62aAayB+7Os6RIUOgnjjB9
+         X05E2zVp+LgXgjl7JMs8o/NpJHmN2g6sRcCaS5SwpUoPFogM1qhJRtbEz/vGQ6ESwz
+         ZSZPlLJQEBBdKXJhMd8eFLzb7444oh/HXQH+Zyrs=
+Date:   Wed, 04 Oct 2023 13:20:38 -0700
 To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         viro@zeniv.linux.org.uk, vbabka@suse.cz, tytso@mit.edu,
         tvrtko.ursulin@linux.intel.com, trond.myklebust@hammerspace.com,
@@ -54,8 +54,8 @@ To:     mm-commits@vger.kernel.org, xuanzhuo@linux.alibaba.com,
         adilger.kernel@dilger.ca, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-shrinker-add-a-secondary-array-for-shrinker_info-map-nr_deferred.patch removed from -mm tree
-Message-Id: <20231004202033.5250AC433C9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-shrinker-make-memcg-slab-shrink-lockless.patch removed from -mm tree
+Message-Id: <20231004202039.8F09CC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -63,70 +63,108 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: shrinker: add a secondary array for shrinker_info::{map, nr_deferred}
+     Subject: mm: shrinker: make memcg slab shrink lockless
 has been removed from the -mm tree.  Its filename was
-     mm-shrinker-add-a-secondary-array-for-shrinker_info-map-nr_deferred.patch
+     mm-shrinker-make-memcg-slab-shrink-lockless.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: shrinker: add a secondary array for shrinker_info::{map, nr_deferred}
-Date: Mon, 11 Sep 2023 17:44:39 +0800
+Subject: mm: shrinker: make memcg slab shrink lockless
+Date: Mon, 11 Sep 2023 17:44:42 +0800
 
-Currently, we maintain two linear arrays per node per memcg, which are
-shrinker_info::map and shrinker_info::nr_deferred. And we need to resize
-them when the shrinker_nr_max is exceeded, that is, allocate a new array,
-and then copy the old array to the new array, and finally free the old
-array by RCU.
+Like global slab shrink, this commit also uses refcount+RCU method to make
+memcg slab shrink lockless.
 
-For shrinker_info::map, we do set_bit() under the RCU lock, so we may set
-the value into the old map which is about to be freed. This may cause the
-value set to be lost. The current solution is not to copy the old map when
-resizing, but to set all the corresponding bits in the new map to 1. This
-solves the data loss problem, but bring the overhead of more pointless
-loops while doing memcg slab shrink.
+Use the following script to do slab shrink stress test:
 
-For shrinker_info::nr_deferred, we will only modify it under the read lock
-of shrinker_rwsem, so it will not run concurrently with the resizing. But
-after we make memcg slab shrink lockless, there will be the same data loss
-problem as shrinker_info::map, and we can't work around it like the map.
+```
 
-For such resizable arrays, the most straightforward idea is to change it
-to xarray, like we did for list_lru [1]. We need to do xa_store() in the
-list_lru_add()-->set_shrinker_bit(), but this will cause memory
-allocation, and the list_lru_add() doesn't accept failure. A possible
-solution is to pre-allocate, but the location of pre-allocation is not
-well determined (such as deferred_split_shrinker case).
+DIR="/root/shrinker/memcg/mnt"
 
-Therefore, this commit chooses to introduce the following secondary array
-for shrinker_info::{map, nr_deferred}:
+do_create()
+{
+    mkdir -p /sys/fs/cgroup/memory/test
+    echo 4G > /sys/fs/cgroup/memory/test/memory.limit_in_bytes
+    for i in `seq 0 $1`;
+    do
+        mkdir -p /sys/fs/cgroup/memory/test/$i;
+        echo $$ > /sys/fs/cgroup/memory/test/$i/cgroup.procs;
+        mkdir -p $DIR/$i;
+    done
+}
 
-+---------------+--------+--------+-----+
-| shrinker_info | unit 0 | unit 1 | ... | (secondary array)
-+---------------+--------+--------+-----+
-                     |
-                     v
-                +---------------+-----+
-                | nr_deferred[] | map | (leaf array)
-                +---------------+-----+
-                (shrinker_info_unit)
+do_mount()
+{
+    for i in `seq $1 $2`;
+    do
+        mount -t tmpfs $i $DIR/$i;
+    done
+}
 
-The leaf array is never freed unless the memcg is destroyed. The secondary
-array will be resized every time the shrinker id exceeds shrinker_nr_max.
-So the shrinker_info_unit can be indexed from both the old and the new
-shrinker_info->unit[x]. Then even if we get the old secondary array under
-the RCU lock, the found map and nr_deferred are also true, so the updated
-nr_deferred and map will not be lost.
+do_touch()
+{
+    for i in `seq $1 $2`;
+    do
+        echo $$ > /sys/fs/cgroup/memory/test/$i/cgroup.procs;
+        dd if=/dev/zero of=$DIR/$i/file$i bs=1M count=1 &
+    done
+}
 
-[1]. https://lore.kernel.org/all/20220228122126.37293-13-songmuchun@bytedance.com/
+case "$1" in
+  touch)
+    do_touch $2 $3
+    ;;
+  test)
+    do_create 4000
+    do_mount 0 4000
+    do_touch 0 3000
+    ;;
+  *)
+    exit 1
+    ;;
+esac
+```
 
-[zhengqi.arch@bytedance.com: unlock the &shrinker_rwsem before the call to free_shrinker_info()]
-  Link: https://lkml.kernel.org/r/20230928141517.12164-1-zhengqi.arch@bytedance.com
-Link: https://lkml.kernel.org/r/20230911094444.68966-41-zhengqi.arch@bytedance.com
+Save the above script, then run test and touch commands. Then we can use
+the following perf command to view hotspots:
+
+perf top -U -F 999
+
+1) Before applying this patchset:
+
+  33.15%  [kernel]          [k] down_read_trylock
+  25.38%  [kernel]          [k] shrink_slab
+  21.75%  [kernel]          [k] up_read
+   4.45%  [kernel]          [k] _find_next_bit
+   2.27%  [kernel]          [k] do_shrink_slab
+   1.80%  [kernel]          [k] intel_idle_irq
+   1.79%  [kernel]          [k] shrink_lruvec
+   0.67%  [kernel]          [k] xas_descend
+   0.41%  [kernel]          [k] mem_cgroup_iter
+   0.40%  [kernel]          [k] shrink_node
+   0.38%  [kernel]          [k] list_lru_count_one
+
+2) After applying this patchset:
+
+  64.56%  [kernel]          [k] shrink_slab
+  12.18%  [kernel]          [k] do_shrink_slab
+   3.30%  [kernel]          [k] __rcu_read_unlock
+   2.61%  [kernel]          [k] shrink_lruvec
+   2.49%  [kernel]          [k] __rcu_read_lock
+   1.93%  [kernel]          [k] intel_idle_irq
+   0.89%  [kernel]          [k] shrink_node
+   0.81%  [kernel]          [k] mem_cgroup_iter
+   0.77%  [kernel]          [k] mem_cgroup_calculate_protection
+   0.66%  [kernel]          [k] list_lru_count_one
+
+We can see that the first perf hotspot becomes shrink_slab, which is what
+we expect.
+
+Link: https://lkml.kernel.org/r/20230911094444.68966-44-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Abhinav Kumar <quic_abhinavk@quicinc.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -176,6 +214,7 @@ Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Nadav Amit <namit@vmware.com>
 Cc: Neil Brown <neilb@suse.de>
 Cc: Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
@@ -203,458 +242,155 @@ Cc: Yue Hu <huyue2@coolpad.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   12 -
- include/linux/shrinker.h   |   17 ++
- mm/shrinker.c              |  252 +++++++++++++++++++++--------------
- 3 files changed, 173 insertions(+), 108 deletions(-)
+ mm/shrinker.c |   85 +++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 66 insertions(+), 19 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-shrinker-add-a-secondary-array-for-shrinker_info-map-nr_deferred
-+++ a/include/linux/memcontrol.h
-@@ -21,6 +21,7 @@
- #include <linux/vmstat.h>
- #include <linux/writeback.h>
- #include <linux/page-flags.h>
-+#include <linux/shrinker.h>
- 
- struct mem_cgroup;
- struct obj_cgroup;
-@@ -88,17 +89,6 @@ struct mem_cgroup_reclaim_iter {
- 	unsigned int generation;
- };
- 
--/*
-- * Bitmap and deferred work of shrinker::id corresponding to memcg-aware
-- * shrinkers, which have elements charged to this memcg.
-- */
--struct shrinker_info {
--	struct rcu_head rcu;
--	atomic_long_t *nr_deferred;
--	unsigned long *map;
--	int map_nr_max;
--};
--
- struct lruvec_stats_percpu {
- 	/* Local (CPU and cgroup) state */
- 	long state[NR_VM_NODE_STAT_ITEMS];
---- a/include/linux/shrinker.h~mm-shrinker-add-a-secondary-array-for-shrinker_info-map-nr_deferred
-+++ a/include/linux/shrinker.h
-@@ -5,6 +5,23 @@
- #include <linux/atomic.h>
- #include <linux/types.h>
- 
-+#define SHRINKER_UNIT_BITS	BITS_PER_LONG
-+
-+/*
-+ * Bitmap and deferred work of shrinker::id corresponding to memcg-aware
-+ * shrinkers, which have elements charged to the memcg.
-+ */
-+struct shrinker_info_unit {
-+	atomic_long_t nr_deferred[SHRINKER_UNIT_BITS];
-+	DECLARE_BITMAP(map, SHRINKER_UNIT_BITS);
-+};
-+
-+struct shrinker_info {
-+	struct rcu_head rcu;
-+	int map_nr_max;
-+	struct shrinker_info_unit *unit[];
-+};
-+
- /*
-  * This struct is used to pass information from page reclaim to the shrinkers.
-  * We consolidate the values for easier extension later.
---- a/mm/shrinker.c~mm-shrinker-add-a-secondary-array-for-shrinker_info-map-nr_deferred
+--- a/mm/shrinker.c~mm-shrinker-make-memcg-slab-shrink-lockless
 +++ a/mm/shrinker.c
-@@ -12,15 +12,50 @@ DECLARE_RWSEM(shrinker_rwsem);
- #ifdef CONFIG_MEMCG
- static int shrinker_nr_max;
- 
--/* The shrinker_info is expanded in a batch of BITS_PER_LONG */
--static inline int shrinker_map_size(int nr_items)
-+static inline int shrinker_unit_size(int nr_items)
- {
--	return (DIV_ROUND_UP(nr_items, BITS_PER_LONG) * sizeof(unsigned long));
-+	return (DIV_ROUND_UP(nr_items, SHRINKER_UNIT_BITS) * sizeof(struct shrinker_info_unit *));
- }
- 
--static inline int shrinker_defer_size(int nr_items)
-+static inline void shrinker_unit_free(struct shrinker_info *info, int start)
- {
--	return (round_up(nr_items, BITS_PER_LONG) * sizeof(atomic_long_t));
-+	struct shrinker_info_unit **unit;
-+	int nr, i;
-+
-+	if (!info)
-+		return;
-+
-+	unit = info->unit;
-+	nr = DIV_ROUND_UP(info->map_nr_max, SHRINKER_UNIT_BITS);
-+
-+	for (i = start; i < nr; i++) {
-+		if (!unit[i])
-+			break;
-+
-+		kfree(unit[i]);
-+		unit[i] = NULL;
-+	}
-+}
-+
-+static inline int shrinker_unit_alloc(struct shrinker_info *new,
-+				       struct shrinker_info *old, int nid)
-+{
-+	struct shrinker_info_unit *unit;
-+	int nr = DIV_ROUND_UP(new->map_nr_max, SHRINKER_UNIT_BITS);
-+	int start = old ? DIV_ROUND_UP(old->map_nr_max, SHRINKER_UNIT_BITS) : 0;
-+	int i;
-+
-+	for (i = start; i < nr; i++) {
-+		unit = kzalloc_node(sizeof(*unit), GFP_KERNEL, nid);
-+		if (!unit) {
-+			shrinker_unit_free(new, start);
-+			return -ENOMEM;
-+		}
-+
-+		new->unit[i] = unit;
-+	}
-+
-+	return 0;
- }
- 
- void free_shrinker_info(struct mem_cgroup *memcg)
-@@ -32,6 +67,7 @@ void free_shrinker_info(struct mem_cgrou
- 	for_each_node(nid) {
- 		pn = memcg->nodeinfo[nid];
- 		info = rcu_dereference_protected(pn->shrinker_info, true);
-+		shrinker_unit_free(info, 0);
- 		kvfree(info);
- 		rcu_assign_pointer(pn->shrinker_info, NULL);
- 	}
-@@ -40,28 +76,28 @@ void free_shrinker_info(struct mem_cgrou
- int alloc_shrinker_info(struct mem_cgroup *memcg)
- {
- 	struct shrinker_info *info;
--	int nid, size, ret = 0;
--	int map_size, defer_size = 0;
-+	int nid, ret = 0;
-+	int array_size = 0;
+@@ -219,7 +219,6 @@ static int shrinker_memcg_alloc(struct s
+ 		return -ENOSYS;
  
  	down_write(&shrinker_rwsem);
--	map_size = shrinker_map_size(shrinker_nr_max);
--	defer_size = shrinker_defer_size(shrinker_nr_max);
--	size = map_size + defer_size;
-+	array_size = shrinker_unit_size(shrinker_nr_max);
- 	for_each_node(nid) {
--		info = kvzalloc_node(sizeof(*info) + size, GFP_KERNEL, nid);
--		if (!info) {
--			free_shrinker_info(memcg);
--			ret = -ENOMEM;
--			break;
--		}
--		info->nr_deferred = (atomic_long_t *)(info + 1);
--		info->map = (void *)info->nr_deferred + defer_size;
-+		info = kvzalloc_node(sizeof(*info) + array_size, GFP_KERNEL, nid);
-+		if (!info)
-+			goto err;
- 		info->map_nr_max = shrinker_nr_max;
-+		if (shrinker_unit_alloc(info, NULL, nid))
-+			goto err;
- 		rcu_assign_pointer(memcg->nodeinfo[nid]->shrinker_info, info);
- 	}
- 	up_write(&shrinker_rwsem);
- 
- 	return ret;
-+
-+err:
-+	up_write(&shrinker_rwsem);
-+	free_shrinker_info(memcg);
-+	return -ENOMEM;
- }
- 
- static struct shrinker_info *shrinker_info_protected(struct mem_cgroup *memcg,
-@@ -71,15 +107,12 @@ static struct shrinker_info *shrinker_in
- 					 lockdep_is_held(&shrinker_rwsem));
- }
- 
--static int expand_one_shrinker_info(struct mem_cgroup *memcg,
--				    int map_size, int defer_size,
--				    int old_map_size, int old_defer_size,
--				    int new_nr_max)
-+static int expand_one_shrinker_info(struct mem_cgroup *memcg, int new_size,
-+				    int old_size, int new_nr_max)
- {
- 	struct shrinker_info *new, *old;
- 	struct mem_cgroup_per_node *pn;
- 	int nid;
--	int size = map_size + defer_size;
- 
- 	for_each_node(nid) {
- 		pn = memcg->nodeinfo[nid];
-@@ -92,21 +125,17 @@ static int expand_one_shrinker_info(stru
- 		if (new_nr_max <= old->map_nr_max)
- 			continue;
- 
--		new = kvmalloc_node(sizeof(*new) + size, GFP_KERNEL, nid);
-+		new = kvmalloc_node(sizeof(*new) + new_size, GFP_KERNEL, nid);
- 		if (!new)
- 			return -ENOMEM;
- 
--		new->nr_deferred = (atomic_long_t *)(new + 1);
--		new->map = (void *)new->nr_deferred + defer_size;
- 		new->map_nr_max = new_nr_max;
- 
--		/* map: set all old bits, clear all new bits */
--		memset(new->map, (int)0xff, old_map_size);
--		memset((void *)new->map + old_map_size, 0, map_size - old_map_size);
--		/* nr_deferred: copy old values, clear all new values */
--		memcpy(new->nr_deferred, old->nr_deferred, old_defer_size);
--		memset((void *)new->nr_deferred + old_defer_size, 0,
--		       defer_size - old_defer_size);
-+		memcpy(new->unit, old->unit, old_size);
-+		if (shrinker_unit_alloc(new, old, nid)) {
-+			kvfree(new);
-+			return -ENOMEM;
-+		}
- 
- 		rcu_assign_pointer(pn->shrinker_info, new);
- 		kvfree_rcu(old, rcu);
-@@ -118,9 +147,8 @@ static int expand_one_shrinker_info(stru
- static int expand_shrinker_info(int new_id)
- {
- 	int ret = 0;
--	int new_nr_max = round_up(new_id + 1, BITS_PER_LONG);
--	int map_size, defer_size = 0;
--	int old_map_size, old_defer_size = 0;
-+	int new_nr_max = round_up(new_id + 1, SHRINKER_UNIT_BITS);
-+	int new_size, old_size = 0;
- 	struct mem_cgroup *memcg;
- 
- 	if (!root_mem_cgroup)
-@@ -128,15 +156,12 @@ static int expand_shrinker_info(int new_
- 
- 	lockdep_assert_held(&shrinker_rwsem);
- 
--	map_size = shrinker_map_size(new_nr_max);
--	defer_size = shrinker_defer_size(new_nr_max);
--	old_map_size = shrinker_map_size(shrinker_nr_max);
--	old_defer_size = shrinker_defer_size(shrinker_nr_max);
-+	new_size = shrinker_unit_size(new_nr_max);
-+	old_size = shrinker_unit_size(shrinker_nr_max);
- 
- 	memcg = mem_cgroup_iter(NULL, NULL, NULL);
- 	do {
--		ret = expand_one_shrinker_info(memcg, map_size, defer_size,
--					       old_map_size, old_defer_size,
-+		ret = expand_one_shrinker_info(memcg, new_size, old_size,
- 					       new_nr_max);
- 		if (ret) {
- 			mem_cgroup_iter_break(NULL, memcg);
-@@ -150,17 +175,34 @@ out:
- 	return ret;
- }
- 
-+static inline int shrinker_id_to_index(int shrinker_id)
-+{
-+	return shrinker_id / SHRINKER_UNIT_BITS;
-+}
-+
-+static inline int shrinker_id_to_offset(int shrinker_id)
-+{
-+	return shrinker_id % SHRINKER_UNIT_BITS;
-+}
-+
-+static inline int calc_shrinker_id(int index, int offset)
-+{
-+	return index * SHRINKER_UNIT_BITS + offset;
-+}
-+
- void set_shrinker_bit(struct mem_cgroup *memcg, int nid, int shrinker_id)
- {
- 	if (shrinker_id >= 0 && memcg && !mem_cgroup_is_root(memcg)) {
- 		struct shrinker_info *info;
-+		struct shrinker_info_unit *unit;
- 
- 		rcu_read_lock();
- 		info = rcu_dereference(memcg->nodeinfo[nid]->shrinker_info);
-+		unit = info->unit[shrinker_id_to_index(shrinker_id)];
- 		if (!WARN_ON_ONCE(shrinker_id >= info->map_nr_max)) {
- 			/* Pairs with smp mb in shrink_slab() */
- 			smp_mb__before_atomic();
--			set_bit(shrinker_id, info->map);
-+			set_bit(shrinker_id_to_offset(shrinker_id), unit->map);
- 		}
- 		rcu_read_unlock();
- 	}
-@@ -209,26 +251,31 @@ static long xchg_nr_deferred_memcg(int n
- 				   struct mem_cgroup *memcg)
+-	/* This may call shrinker, so it must use down_read_trylock() */
+ 	id = idr_alloc(&shrinker_idr, shrinker, 0, 0, GFP_KERNEL);
+ 	if (id < 0)
+ 		goto unlock;
+@@ -253,10 +252,15 @@ static long xchg_nr_deferred_memcg(int n
  {
  	struct shrinker_info *info;
-+	struct shrinker_info_unit *unit;
+ 	struct shrinker_info_unit *unit;
++	long nr_deferred;
  
- 	info = shrinker_info_protected(memcg, nid);
--	return atomic_long_xchg(&info->nr_deferred[shrinker->id], 0);
-+	unit = info->unit[shrinker_id_to_index(shrinker->id)];
-+	return atomic_long_xchg(&unit->nr_deferred[shrinker_id_to_offset(shrinker->id)], 0);
+-	info = shrinker_info_protected(memcg, nid);
++	rcu_read_lock();
++	info = rcu_dereference(memcg->nodeinfo[nid]->shrinker_info);
+ 	unit = info->unit[shrinker_id_to_index(shrinker->id)];
+-	return atomic_long_xchg(&unit->nr_deferred[shrinker_id_to_offset(shrinker->id)], 0);
++	nr_deferred = atomic_long_xchg(&unit->nr_deferred[shrinker_id_to_offset(shrinker->id)], 0);
++	rcu_read_unlock();
++
++	return nr_deferred;
  }
  
  static long add_nr_deferred_memcg(long nr, int nid, struct shrinker *shrinker,
- 				  struct mem_cgroup *memcg)
+@@ -264,10 +268,16 @@ static long add_nr_deferred_memcg(long n
  {
  	struct shrinker_info *info;
-+	struct shrinker_info_unit *unit;
+ 	struct shrinker_info_unit *unit;
++	long nr_deferred;
  
- 	info = shrinker_info_protected(memcg, nid);
--	return atomic_long_add_return(nr, &info->nr_deferred[shrinker->id]);
-+	unit = info->unit[shrinker_id_to_index(shrinker->id)];
-+	return atomic_long_add_return(nr, &unit->nr_deferred[shrinker_id_to_offset(shrinker->id)]);
+-	info = shrinker_info_protected(memcg, nid);
++	rcu_read_lock();
++	info = rcu_dereference(memcg->nodeinfo[nid]->shrinker_info);
+ 	unit = info->unit[shrinker_id_to_index(shrinker->id)];
+-	return atomic_long_add_return(nr, &unit->nr_deferred[shrinker_id_to_offset(shrinker->id)]);
++	nr_deferred =
++		atomic_long_add_return(nr, &unit->nr_deferred[shrinker_id_to_offset(shrinker->id)]);
++	rcu_read_unlock();
++
++	return nr_deferred;
  }
  
  void reparent_shrinker_deferred(struct mem_cgroup *memcg)
- {
--	int i, nid;
-+	int nid, index, offset;
- 	long nr;
- 	struct mem_cgroup *parent;
- 	struct shrinker_info *child_info, *parent_info;
-+	struct shrinker_info_unit *child_unit, *parent_unit;
- 
- 	parent = parent_mem_cgroup(memcg);
- 	if (!parent)
-@@ -239,9 +286,13 @@ void reparent_shrinker_deferred(struct m
- 	for_each_node(nid) {
- 		child_info = shrinker_info_protected(memcg, nid);
- 		parent_info = shrinker_info_protected(parent, nid);
--		for (i = 0; i < child_info->map_nr_max; i++) {
--			nr = atomic_long_read(&child_info->nr_deferred[i]);
--			atomic_long_add(nr, &parent_info->nr_deferred[i]);
-+		for (index = 0; index < shrinker_id_to_index(child_info->map_nr_max); index++) {
-+			child_unit = child_info->unit[index];
-+			parent_unit = parent_info->unit[index];
-+			for (offset = 0; offset < SHRINKER_UNIT_BITS; offset++) {
-+				nr = atomic_long_read(&child_unit->nr_deferred[offset]);
-+				atomic_long_add(nr, &parent_unit->nr_deferred[offset]);
-+			}
- 		}
- 	}
- 	up_read(&shrinker_rwsem);
-@@ -407,7 +458,7 @@ static unsigned long shrink_slab_memcg(g
- {
- 	struct shrinker_info *info;
- 	unsigned long ret, freed = 0;
--	int i;
-+	int offset, index = 0;
- 
+@@ -464,18 +474,54 @@ static unsigned long shrink_slab_memcg(g
  	if (!mem_cgroup_online(memcg))
  		return 0;
-@@ -419,56 +470,63 @@ static unsigned long shrink_slab_memcg(g
+ 
+-	if (!down_read_trylock(&shrinker_rwsem))
+-		return 0;
+-
+-	info = shrinker_info_protected(memcg, nid);
++	/*
++	 * lockless algorithm of memcg shrink.
++	 *
++	 * The shrinker_info may be freed asynchronously via RCU in the
++	 * expand_one_shrinker_info(), so the rcu_read_lock() needs to be used
++	 * to ensure the existence of the shrinker_info.
++	 *
++	 * The shrinker_info_unit is never freed unless its corresponding memcg
++	 * is destroyed. Here we already hold the refcount of memcg, so the
++	 * memcg will not be destroyed, and of course shrinker_info_unit will
++	 * not be freed.
++	 *
++	 * So in the memcg shrink:
++	 *  step 1: use rcu_read_lock() to guarantee existence of the
++	 *          shrinker_info.
++	 *  step 2: after getting shrinker_info_unit we can safely release the
++	 *          RCU lock.
++	 *  step 3: traverse the bitmap and calculate shrinker_id
++	 *  step 4: use rcu_read_lock() to guarantee existence of the shrinker.
++	 *  step 5: use shrinker_id to find the shrinker, then use
++	 *          shrinker_try_get() to guarantee existence of the shrinker,
++	 *          then we can release the RCU lock to do do_shrink_slab() that
++	 *          may sleep.
++	 *  step 6: do shrinker_put() paired with step 5 to put the refcount,
++	 *          if the refcount reaches 0, then wake up the waiter in
++	 *          shrinker_free() by calling complete().
++	 *          Note: here is different from the global shrink, we don't
++	 *                need to acquire the RCU lock to guarantee existence of
++	 *                the shrinker, because we don't need to use this
++	 *                shrinker to traverse the next shrinker in the bitmap.
++	 *  step 7: we have already exited the read-side of rcu critical section
++	 *          before calling do_shrink_slab(), the shrinker_info may be
++	 *          released in expand_one_shrinker_info(), so go back to step 1
++	 *          to reacquire the shrinker_info.
++	 */
++again:
++	rcu_read_lock();
++	info = rcu_dereference(memcg->nodeinfo[nid]->shrinker_info);
  	if (unlikely(!info))
  		goto unlock;
  
--	for_each_set_bit(i, info->map, info->map_nr_max) {
--		struct shrink_control sc = {
--			.gfp_mask = gfp_mask,
--			.nid = nid,
--			.memcg = memcg,
--		};
--		struct shrinker *shrinker;
--
--		shrinker = idr_find(&shrinker_idr, i);
--		if (unlikely(!shrinker || !(shrinker->flags & SHRINKER_REGISTERED))) {
--			if (!shrinker)
--				clear_bit(i, info->map);
--			continue;
--		}
-+	for (; index < shrinker_id_to_index(info->map_nr_max); index++) {
-+		struct shrinker_info_unit *unit;
+-	for (; index < shrinker_id_to_index(info->map_nr_max); index++) {
++	if (index < shrinker_id_to_index(info->map_nr_max)) {
+ 		struct shrinker_info_unit *unit;
  
--		/* Call non-slab shrinkers even though kmem is disabled */
--		if (!memcg_kmem_online() &&
--		    !(shrinker->flags & SHRINKER_NONSLAB))
--			continue;
-+		unit = info->unit[index];
+ 		unit = info->unit[index];
  
--		ret = do_shrink_slab(&sc, shrinker, priority);
--		if (ret == SHRINK_EMPTY) {
--			clear_bit(i, info->map);
--			/*
--			 * After the shrinker reported that it had no objects to
--			 * free, but before we cleared the corresponding bit in
--			 * the memcg shrinker map, a new object might have been
--			 * added. To make sure, we have the bit set in this
--			 * case, we invoke the shrinker one more time and reset
--			 * the bit if it reports that it is not empty anymore.
--			 * The memory barrier here pairs with the barrier in
--			 * set_shrinker_bit():
--			 *
--			 * list_lru_add()     shrink_slab_memcg()
--			 *   list_add_tail()    clear_bit()
--			 *   <MB>               <MB>
--			 *   set_bit()          do_shrink_slab()
--			 */
--			smp_mb__after_atomic();
--			ret = do_shrink_slab(&sc, shrinker, priority);
--			if (ret == SHRINK_EMPTY)
--				ret = 0;
--			else
--				set_shrinker_bit(memcg, nid, i);
--		}
--		freed += ret;
-+		for_each_set_bit(offset, unit->map, SHRINKER_UNIT_BITS) {
-+			struct shrink_control sc = {
-+				.gfp_mask = gfp_mask,
-+				.nid = nid,
-+				.memcg = memcg,
-+			};
-+			struct shrinker *shrinker;
-+			int shrinker_id = calc_shrinker_id(index, offset);
++		rcu_read_unlock();
 +
-+			shrinker = idr_find(&shrinker_idr, shrinker_id);
-+			if (unlikely(!shrinker || !(shrinker->flags & SHRINKER_REGISTERED))) {
-+				if (!shrinker)
-+					clear_bit(offset, unit->map);
-+				continue;
-+			}
-+
-+			/* Call non-slab shrinkers even though kmem is disabled */
-+			if (!memcg_kmem_online() &&
-+			    !(shrinker->flags & SHRINKER_NONSLAB))
-+				continue;
+ 		for_each_set_bit(offset, unit->map, SHRINKER_UNIT_BITS) {
+ 			struct shrink_control sc = {
+ 				.gfp_mask = gfp_mask,
+@@ -485,12 +531,14 @@ static unsigned long shrink_slab_memcg(g
+ 			struct shrinker *shrinker;
+ 			int shrinker_id = calc_shrinker_id(index, offset);
  
--		if (rwsem_is_contended(&shrinker_rwsem)) {
--			freed = freed ? : 1;
--			break;
-+			ret = do_shrink_slab(&sc, shrinker, priority);
-+			if (ret == SHRINK_EMPTY) {
++			rcu_read_lock();
+ 			shrinker = idr_find(&shrinker_idr, shrinker_id);
+-			if (unlikely(!shrinker || !(shrinker->flags & SHRINKER_REGISTERED))) {
+-				if (!shrinker)
+-					clear_bit(offset, unit->map);
++			if (unlikely(!shrinker || !shrinker_try_get(shrinker))) {
 +				clear_bit(offset, unit->map);
-+				/*
-+				 * After the shrinker reported that it had no objects to
-+				 * free, but before we cleared the corresponding bit in
-+				 * the memcg shrinker map, a new object might have been
-+				 * added. To make sure, we have the bit set in this
-+				 * case, we invoke the shrinker one more time and reset
-+				 * the bit if it reports that it is not empty anymore.
-+				 * The memory barrier here pairs with the barrier in
-+				 * set_shrinker_bit():
-+				 *
-+				 * list_lru_add()     shrink_slab_memcg()
-+				 *   list_add_tail()    clear_bit()
-+				 *   <MB>               <MB>
-+				 *   set_bit()          do_shrink_slab()
-+				 */
-+				smp_mb__after_atomic();
-+				ret = do_shrink_slab(&sc, shrinker, priority);
-+				if (ret == SHRINK_EMPTY)
-+					ret = 0;
-+				else
-+					set_shrinker_bit(memcg, nid, shrinker_id);
-+			}
-+			freed += ret;
-+
-+			if (rwsem_is_contended(&shrinker_rwsem)) {
-+				freed = freed ? : 1;
-+				goto unlock;
-+			}
++				rcu_read_unlock();
+ 				continue;
+ 			}
++			rcu_read_unlock();
+ 
+ 			/* Call non-slab shrinkers even though kmem is disabled */
+ 			if (!memcg_kmem_online() &&
+@@ -523,15 +571,14 @@ static unsigned long shrink_slab_memcg(g
+ 					set_shrinker_bit(memcg, nid, shrinker_id);
+ 			}
+ 			freed += ret;
+-
+-			if (rwsem_is_contended(&shrinker_rwsem)) {
+-				freed = freed ? : 1;
+-				goto unlock;
+-			}
++			shrinker_put(shrinker);
  		}
++
++		index++;
++		goto again;
  	}
  unlock:
+-	up_read(&shrinker_rwsem);
++	rcu_read_unlock();
+ 	return freed;
+ }
+ #else /* !CONFIG_MEMCG */
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
