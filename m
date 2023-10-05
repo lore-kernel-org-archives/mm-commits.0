@@ -2,137 +2,114 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6ACC9E936E5
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Oct 2023 20:32:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 364AFE9270A
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Oct 2023 14:43:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233873AbjJDUc0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 4 Oct 2023 16:32:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57988 "EHLO
+        id S238858AbjJEOnw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Oct 2023 10:43:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48348 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244810AbjJDUWL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 4 Oct 2023 16:22:11 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39AAB10D3
-        for <mm-commits@vger.kernel.org>; Wed,  4 Oct 2023 13:21:02 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D32EC433CA;
-        Wed,  4 Oct 2023 20:21:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696450861;
-        bh=PNBU6bQOSTgrYuWFM1rGgQBXuqYXF41jhAN+h6e+uzk=;
-        h=Date:To:From:Subject:From;
-        b=oS8a7CVnYBrDxHmCPdDvaEfTWjE2DnL5yazA+2+z+inR+mUjHEnYRz3GyH/OaVlkz
-         +62wEKUKjc7XSghgQEE8h6Hf7dI6/Fvvpnoh01stFfqUKZWTptPRpTZFUnTuZLOu/Q
-         i7olZubAK9rFcDHz0jumRxaCcG9hVeMLso4K3D+4=
-Date:   Wed, 04 Oct 2023 13:20:59 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        muchun.song@linux.dev, mike.kravetz@oracle.com, david@redhat.com,
-        akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-rmap-move-folio_test_anon-check-out-of-__folio_set_anon.patch removed from -mm tree
-Message-Id: <20231004202101.6D32EC433CA@smtp.kernel.org>
+        with ESMTP id S239054AbjJEOlm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 5 Oct 2023 10:41:42 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66FD22708
+        for <mm-commits@vger.kernel.org>; Thu,  5 Oct 2023 07:14:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1696515264;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=6Bi66j3k4ynnWKgb81nCxW5uhFN2nM8BDT+nUoM2MKQ=;
+        b=Q5MdI3yhR3mF7OQCiVAzO1KORhaSFn30mGWG4QIVgj6SC2vxIFXGym5z1xFJsRWalXuqol
+        EyujBtpRPqWzeX0zgxvvfnaMuHLe7pl7uwg9er5mByZlRnBW7YNK6mbRatdJNp7a/LcNRP
+        AZnpCndvXvK4bbbE189PYc7u62IkQJs=
+Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
+ [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-404-3gJ2NiJAN1muS8IS5k6P3w-1; Thu, 05 Oct 2023 04:12:31 -0400
+X-MC-Unique: 3gJ2NiJAN1muS8IS5k6P3w-1
+Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-40566c578b7so5173535e9.0
+        for <mm-commits@vger.kernel.org>; Thu, 05 Oct 2023 01:12:31 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1696493550; x=1697098350;
+        h=content-transfer-encoding:in-reply-to:organization:from
+         :content-language:references:to:subject:user-agent:mime-version:date
+         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=6Bi66j3k4ynnWKgb81nCxW5uhFN2nM8BDT+nUoM2MKQ=;
+        b=qCO9l2CtAH5gmf6rwA0yy9AUivXrw8tlBqJY1mw5wvrsBo05KVOYK50DpmmKgu0aHc
+         YauAO+VitHEp5lQO4L4wFxf+MeHQ7hm0FNL2VTv4LHgTSiCRap9mGZbodCm+4blxRThh
+         W5IuRvEcnc9khh4G5QFxCKQgjImBBw91Fe6S2Qtj8Umjm17mP5RQqYYXB8KltunaRUw4
+         uR8t+SLTAKz0fiMz+TU7qTYRqTNjipT3NJbDPvUFOFNeqTII/qM9KraYTVh6lMVLEszz
+         BZysdIz5IFJ68Y0VcEMOOBe+WfnFCpzjQhVTpsGkx9OaF1lf7CLMM+IxvXK4LQWu+WdK
+         ypZQ==
+X-Gm-Message-State: AOJu0Yy3xNtVZS0h9xOz8kqTz6hM4IUlqyJN3+dwH4YBrHam6cuNcXzd
+        nl6BpwIl7KnsvCLg19gW7RZAA5Z0MbzzeLylK3assJ3f3N8Lxrx7vmrt9H2G63NJHvRJqb0rFlj
+        4wOgcKrf4w5iRo+ZMv3z33Q==
+X-Received: by 2002:adf:db50:0:b0:327:d08a:1fb3 with SMTP id f16-20020adfdb50000000b00327d08a1fb3mr3962211wrj.35.1696493550411;
+        Thu, 05 Oct 2023 01:12:30 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IGXyzVX/rCtRMnqeVxerQpvmINBqYp9ORX3SDaeC4SkbHnbCP+OZicAIqrP+6ta8R2kz5S7ww==
+X-Received: by 2002:adf:db50:0:b0:327:d08a:1fb3 with SMTP id f16-20020adfdb50000000b00327d08a1fb3mr3962186wrj.35.1696493550030;
+        Thu, 05 Oct 2023 01:12:30 -0700 (PDT)
+Received: from [192.168.3.108] (p4ff231b6.dip0.t-ipconnect.de. [79.242.49.182])
+        by smtp.gmail.com with ESMTPSA id x6-20020adff0c6000000b003233b554e6esm1163542wro.85.2023.10.05.01.12.28
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 05 Oct 2023 01:12:29 -0700 (PDT)
+Message-ID: <63426190-5865-970f-773f-cce33a8209d1@redhat.com>
+Date:   Thu, 5 Oct 2023 10:12:28 +0200
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.15.1
+Subject: Re: +
+ mm-non-pmd-mappable-large-folios-for-folio_add_new_anon_rmap.patch added to
+ mm-unstable branch
+To:     Andrew Morton <akpm@linux-foundation.org>,
+        mm-commits@vger.kernel.org, ziy@nvidia.com, yuzhao@google.com,
+        ying.huang@intel.com, willy@infradead.org, vbabka@suse.cz,
+        shy828301@gmail.com, rientjes@google.com, mcgrof@kernel.org,
+        kirill.shutemov@linux.intel.com, jhubbard@nvidia.com,
+        itaru.kitayama@gmail.com, hughd@google.com, fengwei.yin@intel.com,
+        catalin.marinas@arm.com, anshuman.khandual@arm.com,
+        ryan.roberts@arm.com
+References: <20230929190832.CBFFBC433C7@smtp.kernel.org>
+Content-Language: en-US
+From:   David Hildenbrand <david@redhat.com>
+Organization: Red Hat
+In-Reply-To: <20230929190832.CBFFBC433C7@smtp.kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On 29.09.23 21:08, Andrew Morton wrote:
+> 
+> The patch titled
+>       Subject: mm: non-pmd-mappable, large folios for folio_add_new_anon_rmap()
+> has been added to the -mm mm-unstable branch.  Its filename is
+>       mm-non-pmd-mappable-large-folios-for-folio_add_new_anon_rmap.patch
+> 
 
-The quilt patch titled
-     Subject: mm/rmap: move folio_test_anon() check out of __folio_set_anon()
-has been removed from the -mm tree.  Its filename was
-     mm-rmap-move-folio_test_anon-check-out-of-__folio_set_anon.patch
+Andrew, please don't move these patches to stable before we have a 
+couple of acks from people involved in the discussions.
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+I'm confident that we'll get them into 6.8. Not so sure about 6.7.
 
-------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: move folio_test_anon() check out of __folio_set_anon()
-Date: Wed, 13 Sep 2023 14:51:10 +0200
+Besides, there are still other things to be sorted out to make this 
+actually consumable: As the cover letter reads:
 
-Let's handle it in the caller; no need for the "first" check based on the
-mapcount.
+"
+NOTE: These changes should not be merged until the prerequisites are 
+complete.
+These are in progress and tracked at [7].
+"
 
-We really only end up with !anon pages in page_add_anon_rmap() via
-do_swap_page(), where we hold the folio lock.  So races are not possible. 
-Add a VM_WARN_ON_FOLIO() to make sure that we really hold the folio lock.
+Again, I am happy to see them in mm-unstable early.
 
-In the future, we might want to let do_swap_page() use
-folio_add_new_anon_rmap() on new pages instead: however, we might have to
-pass then whether the folio is exclusive or not.  So keep it in there for
-now.
+-- 
+Cheers,
 
-For hugetlb we never expect to have a non-anon page in
-hugepage_add_anon_rmap().  Remove that code, along with some other checks
-that are either not required or were checked in
-hugepage_add_new_anon_rmap() already.
-
-Link: https://lkml.kernel.org/r/20230913125113.313322-4-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/rmap.c |   23 ++++++++---------------
- 1 file changed, 8 insertions(+), 15 deletions(-)
-
---- a/mm/rmap.c~mm-rmap-move-folio_test_anon-check-out-of-__folio_set_anon
-+++ a/mm/rmap.c
-@@ -1135,9 +1135,6 @@ static void __folio_set_anon(struct foli
- 
- 	BUG_ON(!anon_vma);
- 
--	if (folio_test_anon(folio))
--		return;
--
- 	/*
- 	 * If the folio isn't exclusive to this vma, we must use the _oldest_
- 	 * possible anon_vma for the folio mapping!
-@@ -1239,12 +1236,12 @@ void page_add_anon_rmap(struct page *pag
- 	if (nr)
- 		__lruvec_stat_mod_folio(folio, NR_ANON_MAPPED, nr);
- 
--	if (likely(!folio_test_ksm(folio))) {
--		if (first)
--			__folio_set_anon(folio, vma, address,
--					 !!(flags & RMAP_EXCLUSIVE));
--		else
--			__page_check_anon_rmap(folio, page, vma, address);
-+	if (unlikely(!folio_test_anon(folio))) {
-+		VM_WARN_ON_FOLIO(!folio_test_locked(folio), folio);
-+		__folio_set_anon(folio, vma, address,
-+				 !!(flags & RMAP_EXCLUSIVE));
-+	} else if (likely(!folio_test_ksm(folio))) {
-+		__page_check_anon_rmap(folio, page, vma, address);
- 	}
- 	if (flags & RMAP_EXCLUSIVE)
- 		SetPageAnonExclusive(page);
-@@ -2541,17 +2538,13 @@ void hugepage_add_anon_rmap(struct page
- 			    unsigned long address, rmap_t flags)
- {
- 	struct folio *folio = page_folio(page);
--	struct anon_vma *anon_vma = vma->anon_vma;
- 	int first;
- 
--	BUG_ON(!folio_test_locked(folio));
--	BUG_ON(!anon_vma);
-+	VM_WARN_ON_FOLIO(!folio_test_anon(folio), folio);
-+
- 	first = atomic_inc_and_test(&folio->_entire_mapcount);
- 	VM_BUG_ON_PAGE(!first && (flags & RMAP_EXCLUSIVE), page);
- 	VM_BUG_ON_PAGE(!first && PageAnonExclusive(page), page);
--	if (first)
--		__folio_set_anon(folio, vma, address,
--				 !!(flags & RMAP_EXCLUSIVE));
- 	if (flags & RMAP_EXCLUSIVE)
- 		SetPageAnonExclusive(page);
- }
-_
-
-Patches currently in -mm which might be from david@redhat.com are
-
-mm-rmap-move-setpageanonexclusive-out-of-page_move_anon_rmap.patch
-mm-rmap-convert-page_move_anon_rmap-to-folio_move_anon_rmap.patch
-memory-move-exclusivity-detection-in-do_wp_page-into-wp_can_reuse_anon_folio.patch
+David / dhildenb
 
