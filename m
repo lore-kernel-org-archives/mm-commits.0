@@ -2,39 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ECD39E94125
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 21:47:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BEF1E9412F
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 21:47:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233812AbjJFVre (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Oct 2023 17:47:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37712 "EHLO
+        id S233823AbjJFVrf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Oct 2023 17:47:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60744 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233836AbjJFVrV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 17:47:21 -0400
+        with ESMTP id S233847AbjJFVrY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 17:47:24 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 23929BD
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 14:47:20 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CCCDC433C8;
-        Fri,  6 Oct 2023 21:47:19 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6038FC6
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 14:47:23 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 915CEC433C8;
+        Fri,  6 Oct 2023 21:47:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696628839;
-        bh=650OsFv5/AdfRgzYumJSLvhdMifzzhZKl6S2O7+FtEI=;
+        s=korg; t=1696628843;
+        bh=c/ZGoGInpMae4N0ku9UOyhNefSYDaPxVrCUSLmBUxXU=;
         h=Date:To:From:Subject:From;
-        b=fMgDtRVqZUNsyAAPeFzPIhyuTB/36B1oEi7CiFKCc6wBO4n4v2vZ5rVN4+tCYpsXf
-         tJnMdba4oxBw6VTlWJAQbECdf0BagJ65aGCG82NyAknRBQ1/NvOTLK6vtjrSYMboZw
-         EeH6eOkj1C/fsurTRZsPWhf5V8Ds2AJiy3yDplMY=
-Date:   Fri, 06 Oct 2023 14:47:16 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, will@kernel.org,
-        vishal.moola@gmail.com, tsbogend@alpha.franken.de,
-        tglx@linutronix.de, rppt@kernel.org, peterz@infradead.org,
-        npiggin@gmail.com, mingo@redhat.com, luto@kernel.org,
-        dave.hansen@linux.intel.com, chenhuacai@kernel.org,
-        catalin.marinas@arm.com, bp@alien8.de, arnd@arndb.de,
-        aneesh.kumar@linux.ibm.com, baolin.wang@linux.alibaba.com,
-        akpm@linux-foundation.org
+        b=IHFDnlri0JKRKSGYG9gXYnU2D+PAzMS8/nLrjgCzF6gGHJkEppJ243xfxc0c6vTso
+         hg45w09vSyfSmozdJUKgeOCK/PfOEfITHKnS3z5YV1wetTwQXu3Lea5Ks8sBUSxMEh
+         kz/HkWXnd8LH15PxbKnRSQhim95cvKMp/pbR1evA=
+Date:   Fri, 06 Oct 2023 14:47:20 -0700
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
+        rafael@kernel.org, lenb@kernel.org, aneesh.kumar@linux.ibm.com,
+        lizhijian@cn.fujitsu.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-statistics-for-pud-level-pagetable.patch removed from -mm tree
-Message-Id: <20231006214719.4CCCDC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] acpimm-fix-typo-sibiling-sibling.patch removed from -mm tree
+Message-Id: <20231006214722.915CEC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,166 +37,108 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: add statistics for PUD level pagetable
+     Subject: acpi,mm: fix typo sibiling -> sibling
 has been removed from the -mm tree.  Its filename was
-     mm-add-statistics-for-pud-level-pagetable.patch
+     acpimm-fix-typo-sibiling-sibling.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: add statistics for PUD level pagetable
-Date: Mon, 18 Sep 2023 14:31:42 +0800
+From: Li Zhijian <lizhijian@cn.fujitsu.com>
+Subject: acpi,mm: fix typo sibiling -> sibling
+Date: Wed, 2 Aug 2023 17:28:56 +0800
 
-Recently, we found that cross-die access to pagetable pages on ARM64
-machines can cause performance fluctuations in our business.  Currently,
-there are no PMU events available to track this situation on our ARM64
-machines, so accurate pagetable accounting can help to analyze this issue,
-but now the PUD level pagetable accounting is missed.
+First found this typo as reviewing memory tier code. Fix it by sed like:
+$ sed -i 's/sibiling/sibling/g' $(git grep -l sibiling)
 
-So introduce pagetable_pud_ctor/dtor() to help to get accurate PUD
-pagetable accounting, as well as converting the architectures which use
-generic PUD pagetable allocation to add corresponding PUD pagetable
-accounting.  Moreover this patch will mark the PUD level pagetable with
-PG_table flag, which will help to do sanity validation in
-unpoison_memory().
+so the acpi one will be corrected as well.
 
-On my testing machine, I can see more pagetables statistics after the patch
-with page-types tool:
-
-Before patch:
-        flags           page-count      MB  symbolic-flags                     long-symbolic-flags
-0x0000000004000000           27326      106  __________________________g_________________       pgtable
-After patch:
-0x0000000004000000           27541      107  __________________________g_________________       pgtable
-
-Link: https://lkml.kernel.org/r/876c71c03a7e69c17722a690e3225a4f7b172fb2.1695017383.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Acked-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Andy Lutomirski <luto@kernel.org>
+Link: https://lkml.kernel.org/r/20230802092856.819328-1-lizhijian@cn.fujitsu.com
+Signed-off-by: Li Zhijian <lizhijian@cn.fujitsu.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
+Cc: Huang, Ying <ying.huang@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/tlb.h         |    5 ++++-
- arch/loongarch/include/asm/pgalloc.h |    1 +
- arch/mips/include/asm/pgalloc.h      |    1 +
- arch/x86/mm/pgtable.c                |    3 +++
- include/asm-generic/pgalloc.h        |    7 ++++++-
- include/linux/mm.h                   |   16 ++++++++++++++++
- 6 files changed, 31 insertions(+), 2 deletions(-)
+ drivers/acpi/acpi_pad.c      |    2 +-
+ include/linux/memory-tiers.h |    2 +-
+ mm/memory-tiers.c            |   10 +++++-----
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
---- a/arch/arm64/include/asm/tlb.h~mm-add-statistics-for-pud-level-pagetable
-+++ a/arch/arm64/include/asm/tlb.h
-@@ -96,7 +96,10 @@ static inline void __pmd_free_tlb(struct
- static inline void __pud_free_tlb(struct mmu_gather *tlb, pud_t *pudp,
- 				  unsigned long addr)
- {
--	tlb_remove_ptdesc(tlb, virt_to_ptdesc(pudp));
-+	struct ptdesc *ptdesc = virt_to_ptdesc(pudp);
-+
-+	pagetable_pud_dtor(ptdesc);
-+	tlb_remove_ptdesc(tlb, ptdesc);
- }
- #endif
+--- a/drivers/acpi/acpi_pad.c~acpimm-fix-typo-sibiling-sibling
++++ a/drivers/acpi/acpi_pad.c
+@@ -100,7 +100,7 @@ static void round_robin_cpu(unsigned int
+ 	for_each_cpu(cpu, pad_busy_cpus)
+ 		cpumask_or(tmp, tmp, topology_sibling_cpumask(cpu));
+ 	cpumask_andnot(tmp, cpu_online_mask, tmp);
+-	/* avoid HT sibilings if possible */
++	/* avoid HT siblings if possible */
+ 	if (cpumask_empty(tmp))
+ 		cpumask_andnot(tmp, cpu_online_mask, pad_busy_cpus);
+ 	if (cpumask_empty(tmp)) {
+--- a/include/linux/memory-tiers.h~acpimm-fix-typo-sibiling-sibling
++++ a/include/linux/memory-tiers.h
+@@ -22,7 +22,7 @@
+ struct memory_tier;
+ struct memory_dev_type {
+ 	/* list of memory types that are part of same tier as this type */
+-	struct list_head tier_sibiling;
++	struct list_head tier_sibling;
+ 	/* abstract distance for this specific memory type */
+ 	int adistance;
+ 	/* Nodes of same abstract distance */
+--- a/mm/memory-tiers.c~acpimm-fix-typo-sibiling-sibling
++++ a/mm/memory-tiers.c
+@@ -115,7 +115,7 @@ static __always_inline nodemask_t get_me
+ 	nodemask_t nodes = NODE_MASK_NONE;
+ 	struct memory_dev_type *memtype;
  
---- a/arch/loongarch/include/asm/pgalloc.h~mm-add-statistics-for-pud-level-pagetable
-+++ a/arch/loongarch/include/asm/pgalloc.h
-@@ -84,6 +84,7 @@ static inline pud_t *pud_alloc_one(struc
+-	list_for_each_entry(memtype, &memtier->memory_types, tier_sibiling)
++	list_for_each_entry(memtype, &memtier->memory_types, tier_sibling)
+ 		nodes_or(nodes, nodes, memtype->nodes);
  
- 	if (!ptdesc)
- 		return NULL;
-+	pagetable_pud_ctor(ptdesc);
- 	pud = ptdesc_address(ptdesc);
+ 	return nodes;
+@@ -174,7 +174,7 @@ static struct memory_tier *find_create_m
+ 	 * If the memtype is already part of a memory tier,
+ 	 * just return that.
+ 	 */
+-	if (!list_empty(&memtype->tier_sibiling)) {
++	if (!list_empty(&memtype->tier_sibling)) {
+ 		list_for_each_entry(memtier, &memory_tiers, list) {
+ 			if (adistance == memtier->adistance_start)
+ 				return memtier;
+@@ -218,7 +218,7 @@ static struct memory_tier *find_create_m
+ 	memtier = new_memtier;
  
- 	pud_init(pud);
---- a/arch/mips/include/asm/pgalloc.h~mm-add-statistics-for-pud-level-pagetable
-+++ a/arch/mips/include/asm/pgalloc.h
-@@ -95,6 +95,7 @@ static inline pud_t *pud_alloc_one(struc
- 
- 	if (!ptdesc)
- 		return NULL;
-+	pagetable_pud_ctor(ptdesc);
- 	pud = ptdesc_address(ptdesc);
- 
- 	pud_init(pud);
---- a/arch/x86/mm/pgtable.c~mm-add-statistics-for-pud-level-pagetable
-+++ a/arch/x86/mm/pgtable.c
-@@ -76,6 +76,9 @@ void ___pmd_free_tlb(struct mmu_gather *
- #if CONFIG_PGTABLE_LEVELS > 3
- void ___pud_free_tlb(struct mmu_gather *tlb, pud_t *pud)
- {
-+	struct ptdesc *ptdesc = virt_to_ptdesc(pud);
-+
-+	pagetable_pud_dtor(ptdesc);
- 	paravirt_release_pud(__pa(pud) >> PAGE_SHIFT);
- 	paravirt_tlb_remove_table(tlb, virt_to_page(pud));
- }
---- a/include/asm-generic/pgalloc.h~mm-add-statistics-for-pud-level-pagetable
-+++ a/include/asm-generic/pgalloc.h
-@@ -169,6 +169,8 @@ static inline pud_t *__pud_alloc_one(str
- 	ptdesc = pagetable_alloc(gfp, 0);
- 	if (!ptdesc)
- 		return NULL;
-+
-+	pagetable_pud_ctor(ptdesc);
- 	return ptdesc_address(ptdesc);
+ link_memtype:
+-	list_add(&memtype->tier_sibiling, &memtier->memory_types);
++	list_add(&memtype->tier_sibling, &memtier->memory_types);
+ 	return memtier;
  }
  
-@@ -190,8 +192,11 @@ static inline pud_t *pud_alloc_one(struc
+@@ -527,7 +527,7 @@ static bool clear_node_memory_tier(int n
+ 		memtype = node_memory_types[node].memtype;
+ 		node_clear(node, memtype->nodes);
+ 		if (nodes_empty(memtype->nodes)) {
+-			list_del_init(&memtype->tier_sibiling);
++			list_del_init(&memtype->tier_sibling);
+ 			if (list_empty(&memtier->memory_types))
+ 				destroy_memory_tier(memtier);
+ 		}
+@@ -553,7 +553,7 @@ struct memory_dev_type *alloc_memory_typ
+ 		return ERR_PTR(-ENOMEM);
  
- static inline void __pud_free(struct mm_struct *mm, pud_t *pud)
- {
-+	struct ptdesc *ptdesc = virt_to_ptdesc(pud);
-+
- 	BUG_ON((unsigned long)pud & (PAGE_SIZE-1));
--	pagetable_free(virt_to_ptdesc(pud));
-+	pagetable_pud_dtor(ptdesc);
-+	pagetable_free(ptdesc);
- }
- 
- #ifndef __HAVE_ARCH_PUD_FREE
---- a/include/linux/mm.h~mm-add-statistics-for-pud-level-pagetable
-+++ a/include/linux/mm.h
-@@ -3049,6 +3049,22 @@ static inline spinlock_t *pud_lock(struc
- 	return ptl;
- }
- 
-+static inline void pagetable_pud_ctor(struct ptdesc *ptdesc)
-+{
-+	struct folio *folio = ptdesc_folio(ptdesc);
-+
-+	__folio_set_pgtable(folio);
-+	lruvec_stat_add_folio(folio, NR_PAGETABLE);
-+}
-+
-+static inline void pagetable_pud_dtor(struct ptdesc *ptdesc)
-+{
-+	struct folio *folio = ptdesc_folio(ptdesc);
-+
-+	__folio_clear_pgtable(folio);
-+	lruvec_stat_sub_folio(folio, NR_PAGETABLE);
-+}
-+
- extern void __init pagecache_init(void);
- extern void free_initmem(void);
- 
+ 	memtype->adistance = adistance;
+-	INIT_LIST_HEAD(&memtype->tier_sibiling);
++	INIT_LIST_HEAD(&memtype->tier_sibling);
+ 	memtype->nodes  = NODE_MASK_NONE;
+ 	kref_init(&memtype->kref);
+ 	return memtype;
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from lizhijian@cn.fujitsu.com are
 
 
