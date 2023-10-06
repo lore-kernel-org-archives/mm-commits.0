@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3C27E94107
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:19:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA0F7E9410B
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:19:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233296AbjJFTT4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Oct 2023 15:19:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35238 "EHLO
+        id S233417AbjJFTT6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Oct 2023 15:19:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35220 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233444AbjJFTTv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:19:51 -0400
+        with ESMTP id S233451AbjJFTTz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:19:55 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 13435A6
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:19:49 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48B5CC433C8;
-        Fri,  6 Oct 2023 19:19:48 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0A4EB6
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:19:54 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A667C433C9;
+        Fri,  6 Oct 2023 19:19:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696619988;
-        bh=m/oxeO3sbxzOVqiBc9L/vu2XBYpVDvF2EP0Fi8GZ4vw=;
+        s=korg; t=1696619994;
+        bh=eAuxXN6O6082xNG5SPzI1PaoFKmLcLSld3swuGvgGlM=;
         h=Date:To:From:Subject:From;
-        b=mj1GcJM1s7gufGagWc43Bv2d3vMJ8auWJSyEwuaMEcwtzQhDgA8pyCXDPamcTZY9V
-         XBT9BZPHiQ8jZzPYUjP5+BJBd/SbuG7U7eT9+YYJ/+5l8Wu8tknyP9cYt/OgSulzMd
-         H4o/d+wO6Jtazddfy8uwj5NytkYk+qCAOKOW7ccE=
-Date:   Fri, 06 Oct 2023 12:19:46 -0700
+        b=xWN+IhI6yyCzy+r9Ore0EuhPt1RDxZ4QGURxfcNR/0SFUC2No0feJdqdAPAHSrsUA
+         Nrapd5t39NVjLUphLpMoTa1x0e6mo/HU4prGSbyUzaGicON9UEgMgHdqWWWlGxfGgK
+         TECBVmzpbr+G+n1hFSBGFZ/mfStVvEL3lub+T0zw=
+Date:   Fri, 06 Oct 2023 12:19:52 -0700
 To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         tsbogend@alpha.franken.de, svens@linux.ibm.com,
         richard.henderson@linaro.org, paul.walmsley@sifive.com,
@@ -35,8 +35,8 @@ To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         adilger.kernel@dilger.ca, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-delete-checks-for-xor_unlock_is_negative_byte.patch added to mm-unstable branch
-Message-Id: <20231006191948.48B5CC433C8@smtp.kernel.org>
+Subject: + mm-add-folio_xor_flags_has_waiters.patch added to mm-unstable branch
+Message-Id: <20231006191954.1A667C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: delete checks for xor_unlock_is_negative_byte()
+     Subject: mm: add folio_xor_flags_has_waiters()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-delete-checks-for-xor_unlock_is_negative_byte.patch
+     mm-add-folio_xor_flags_has_waiters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-delete-checks-for-xor_unlock_is_negative_byte.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-folio_xor_flags_has_waiters.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,21 +68,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: delete checks for xor_unlock_is_negative_byte()
-Date: Wed, 4 Oct 2023 17:53:14 +0100
+Subject: mm: add folio_xor_flags_has_waiters()
+Date: Wed, 4 Oct 2023 17:53:15 +0100
 
-Architectures which don't define their own use the one in
-asm-generic/bitops/lock.h.  Get rid of all the ifdefs around "maybe we
-don't have it".
+Optimise folio_end_read() by setting the uptodate bit at the same time we
+clear the unlock bit.  This saves at least one memory barrier and one
+write-after-write hazard.
 
-Link: https://lkml.kernel.org/r/20231004165317.1061855-15-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231004165317.1061855-16-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Cc: Matt Turner <mattst88@gmail.com>
@@ -98,178 +98,69 @@ Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/bitops.h                |    1 
- arch/m68k/include/asm/bitops.h                 |    1 
- arch/mips/include/asm/bitops.h                 |    1 
- arch/riscv/include/asm/bitops.h                |    1 
- include/asm-generic/bitops/instrumented-lock.h |    5 --
- include/asm-generic/bitops/lock.h              |    1 
- kernel/kcsan/kcsan_test.c                      |    3 -
- kernel/kcsan/selftest.c                        |    3 -
- mm/filemap.c                                   |   30 ---------------
- mm/kasan/kasan_test.c                          |    3 -
- 10 files changed, 1 insertion(+), 48 deletions(-)
+ include/linux/page-flags.h |   19 +++++++++++++++++++
+ mm/filemap.c               |   14 +++++++++++---
+ 2 files changed, 30 insertions(+), 3 deletions(-)
 
---- a/arch/alpha/include/asm/bitops.h~mm-delete-checks-for-xor_unlock_is_negative_byte
-+++ a/arch/alpha/include/asm/bitops.h
-@@ -305,7 +305,6 @@ static inline bool xor_unlock_is_negativ
+--- a/include/linux/page-flags.h~mm-add-folio_xor_flags_has_waiters
++++ a/include/linux/page-flags.h
+@@ -693,6 +693,25 @@ TESTPAGEFLAG_FALSE(Ksm, ksm)
+ u64 stable_page_flags(struct page *page);
  
- 	return (old & BIT(7)) != 0;
- }
--#define xor_unlock_is_negative_byte xor_unlock_is_negative_byte
- 
- /*
-  * ffz = Find First Zero in word. Undefined if no zero exists,
---- a/arch/m68k/include/asm/bitops.h~mm-delete-checks-for-xor_unlock_is_negative_byte
-+++ a/arch/m68k/include/asm/bitops.h
-@@ -339,7 +339,6 @@ static inline bool xor_unlock_is_negativ
- 	return result;
- #endif
- }
--#define xor_unlock_is_negative_byte xor_unlock_is_negative_byte
- 
- /*
-  *	The true 68020 and more advanced processors support the "bfffo"
---- a/arch/mips/include/asm/bitops.h~mm-delete-checks-for-xor_unlock_is_negative_byte
-+++ a/arch/mips/include/asm/bitops.h
-@@ -301,7 +301,6 @@ static inline bool xor_unlock_is_negativ
- 
- 	return res;
- }
--#define xor_unlock_is_negative_byte xor_unlock_is_negative_byte
- 
- #undef __bit_op
- #undef __test_bit_op
---- a/arch/riscv/include/asm/bitops.h~mm-delete-checks-for-xor_unlock_is_negative_byte
-+++ a/arch/riscv/include/asm/bitops.h
-@@ -202,7 +202,6 @@ static inline bool xor_unlock_is_negativ
- 		: "memory");
- 	return (res & BIT(7)) != 0;
- }
--#define xor_unlock_is_negative_byte xor_unlock_is_negative_byte
- 
- #undef __test_and_op_bit
- #undef __op_bit
---- a/include/asm-generic/bitops/instrumented-lock.h~mm-delete-checks-for-xor_unlock_is_negative_byte
-+++ a/include/asm-generic/bitops/instrumented-lock.h
-@@ -58,7 +58,6 @@ static inline bool test_and_set_bit_lock
- 	return arch_test_and_set_bit_lock(nr, addr);
- }
- 
--#if defined(arch_xor_unlock_is_negative_byte)
  /**
-  * xor_unlock_is_negative_byte - XOR a single byte in memory and test if
-  * it is negative, for unlock.
-@@ -80,8 +79,4 @@ static inline bool xor_unlock_is_negativ
- 	instrument_atomic_write(addr, sizeof(long));
- 	return arch_xor_unlock_is_negative_byte(mask, addr);
- }
--/* Let everybody know we have it. */
--#define xor_unlock_is_negative_byte xor_unlock_is_negative_byte
--#endif
--
- #endif /* _ASM_GENERIC_BITOPS_INSTRUMENTED_LOCK_H */
---- a/include/asm-generic/bitops/lock.h~mm-delete-checks-for-xor_unlock_is_negative_byte
-+++ a/include/asm-generic/bitops/lock.h
-@@ -75,7 +75,6 @@ static inline bool arch_xor_unlock_is_ne
- 	old = raw_atomic_long_fetch_xor_release(mask, (atomic_long_t *)p);
- 	return !!(old & BIT(7));
- }
--#define arch_xor_unlock_is_negative_byte arch_xor_unlock_is_negative_byte
- #endif
- 
- #include <asm-generic/bitops/instrumented-lock.h>
---- a/kernel/kcsan/kcsan_test.c~mm-delete-checks-for-xor_unlock_is_negative_byte
-+++ a/kernel/kcsan/kcsan_test.c
-@@ -699,12 +699,9 @@ static void test_barrier_nothreads(struc
- 	KCSAN_EXPECT_RW_BARRIER(spin_unlock(&test_spinlock), true);
- 	KCSAN_EXPECT_RW_BARRIER(mutex_lock(&test_mutex), false);
- 	KCSAN_EXPECT_RW_BARRIER(mutex_unlock(&test_mutex), true);
--
--#ifdef xor_unlock_is_negative_byte
- 	KCSAN_EXPECT_READ_BARRIER(xor_unlock_is_negative_byte(1, &test_var), true);
- 	KCSAN_EXPECT_WRITE_BARRIER(xor_unlock_is_negative_byte(1, &test_var), true);
- 	KCSAN_EXPECT_RW_BARRIER(xor_unlock_is_negative_byte(1, &test_var), true);
--#endif
- 	kcsan_nestable_atomic_end();
- }
- 
---- a/kernel/kcsan/selftest.c~mm-delete-checks-for-xor_unlock_is_negative_byte
-+++ a/kernel/kcsan/selftest.c
-@@ -227,12 +227,9 @@ static bool __init test_barrier(void)
- 	KCSAN_CHECK_RW_BARRIER(arch_spin_unlock(&arch_spinlock));
- 	spin_lock(&test_spinlock);
- 	KCSAN_CHECK_RW_BARRIER(spin_unlock(&test_spinlock));
--
--#ifdef xor_unlock_is_negative_byte
- 	KCSAN_CHECK_RW_BARRIER(xor_unlock_is_negative_byte(1, &test_var));
- 	KCSAN_CHECK_READ_BARRIER(xor_unlock_is_negative_byte(1, &test_var));
- 	KCSAN_CHECK_WRITE_BARRIER(xor_unlock_is_negative_byte(1, &test_var));
--#endif
- 	kcsan_nestable_atomic_end();
- 
- 	return ret;
---- a/mm/filemap.c~mm-delete-checks-for-xor_unlock_is_negative_byte
-+++ a/mm/filemap.c
-@@ -1482,34 +1482,6 @@ void folio_add_wait_queue(struct folio *
- }
- EXPORT_SYMBOL_GPL(folio_add_wait_queue);
- 
--#ifdef xor_unlock_is_negative_byte
--#define clear_bit_unlock_is_negative_byte(nr, p)	\
--	xor_unlock_is_negative_byte(1 << nr, p)
--#endif
--
--#ifndef clear_bit_unlock_is_negative_byte
--
--/*
-- * PG_waiters is the high bit in the same byte as PG_lock.
-- *
-- * On x86 (and on many other architectures), we can clear PG_lock and
-- * test the sign bit at the same time. But if the architecture does
-- * not support that special operation, we just do this all by hand
-- * instead.
-- *
-- * The read of PG_waiters has to be after (or concurrently with) PG_locked
-- * being cleared, but a memory barrier should be unnecessary since it is
-- * in the same byte as PG_locked.
-- */
--static inline bool clear_bit_unlock_is_negative_byte(long nr, volatile void *mem)
--{
--	clear_bit_unlock(nr, mem);
--	/* smp_mb__after_atomic(); */
--	return test_bit(PG_waiters, mem);
--}
--
--#endif
--
- /**
-  * folio_unlock - Unlock a locked folio.
++ * folio_xor_flags_has_waiters - Change some folio flags.
++ * @folio: The folio.
++ * @mask: Bits set in this word will be changed.
++ *
++ * This must only be used for flags which are changed with the folio
++ * lock held.  For example, it is unsafe to use for PG_dirty as that
++ * can be set without the folio lock held.  It can also only be used
++ * on flags which are in the range 0-6 as some of the implementations
++ * only affect those bits.
++ *
++ * Return: Whether there are tasks waiting on the folio.
++ */
++static inline bool folio_xor_flags_has_waiters(struct folio *folio,
++		unsigned long mask)
++{
++	return xor_unlock_is_negative_byte(mask, folio_flags(folio, 0));
++}
++
++/**
+  * folio_test_uptodate - Is this folio up to date?
   * @folio: The folio.
-@@ -1525,7 +1497,7 @@ void folio_unlock(struct folio *folio)
+  *
+--- a/mm/filemap.c~mm-add-folio_xor_flags_has_waiters
++++ a/mm/filemap.c
+@@ -1497,7 +1497,7 @@ void folio_unlock(struct folio *folio)
  	BUILD_BUG_ON(PG_waiters != 7);
  	BUILD_BUG_ON(PG_locked > 7);
  	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
--	if (clear_bit_unlock_is_negative_byte(PG_locked, folio_flags(folio, 0)))
-+	if (xor_unlock_is_negative_byte(1 << PG_locked, folio_flags(folio, 0)))
+-	if (xor_unlock_is_negative_byte(1 << PG_locked, folio_flags(folio, 0)))
++	if (folio_xor_flags_has_waiters(folio, 1 << PG_locked))
  		folio_wake_bit(folio, PG_locked);
  }
  EXPORT_SYMBOL(folio_unlock);
---- a/mm/kasan/kasan_test.c~mm-delete-checks-for-xor_unlock_is_negative_byte
-+++ a/mm/kasan/kasan_test.c
-@@ -1098,12 +1098,9 @@ static void kasan_bitops_test_and_modify
- 	KUNIT_EXPECT_KASAN_FAIL(test, test_and_change_bit(nr, addr));
- 	KUNIT_EXPECT_KASAN_FAIL(test, __test_and_change_bit(nr, addr));
- 	KUNIT_EXPECT_KASAN_FAIL(test, kasan_int_result = test_bit(nr, addr));
--
--#if defined(xor_unlock_is_negative_byte)
- 	if (nr < 7)
- 		KUNIT_EXPECT_KASAN_FAIL(test, kasan_int_result =
- 				xor_unlock_is_negative_byte(1 << nr, addr));
--#endif
+@@ -1518,9 +1518,17 @@ EXPORT_SYMBOL(folio_unlock);
+  */
+ void folio_end_read(struct folio *folio, bool success)
+ {
++	unsigned long mask = 1 << PG_locked;
++
++	/* Must be in bottom byte for x86 to work */
++	BUILD_BUG_ON(PG_uptodate > 7);
++	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
++	VM_BUG_ON_FOLIO(folio_test_uptodate(folio), folio);
++
+ 	if (likely(success))
+-		folio_mark_uptodate(folio);
+-	folio_unlock(folio);
++		mask |= 1 << PG_uptodate;
++	if (folio_xor_flags_has_waiters(folio, mask))
++		folio_wake_bit(folio, PG_locked);
  }
+ EXPORT_SYMBOL(folio_end_read);
  
- static void kasan_bitops_generic(struct kunit *test)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
