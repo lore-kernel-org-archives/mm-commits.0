@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E8C2E9410A
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:19:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C16C8E9410B
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:19:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233436AbjJFTTs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Oct 2023 15:19:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44116 "EHLO
+        id S233430AbjJFTTr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Oct 2023 15:19:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44080 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233445AbjJFTTp (ORCPT
+        with ESMTP id S233443AbjJFTTp (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:19:45 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E717BD
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:19:43 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 973E4C433C7;
-        Fri,  6 Oct 2023 19:19:42 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D723AD
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:19:37 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED81BC433C7;
+        Fri,  6 Oct 2023 19:19:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696619983;
-        bh=Z9iSkWl78MCS6aNJCpQI+7IDs58LQSt9uFwJNZXP0gw=;
+        s=korg; t=1696619977;
+        bh=WN4DLZ8staP/eCo+RdUAX/xVg9GLpRBpYdMDzHEp8TY=;
         h=Date:To:From:Subject:From;
-        b=RDb2Rmvnz6B9A6XhBZ0K+K2whc3qvqiWx67wouQIbFNmJxN+EjIUAmC12RqxfvH5c
-         GlLKibGBnoB/4dUqkNQEtDkgdou7PlNNryjyCZDrFxprWMrFGewSD9zm2T5A66RW5D
-         65FamCgYxwADqy09KUcbahPaBskiIa7qgmOGuloA=
-Date:   Fri, 06 Oct 2023 12:19:40 -0700
+        b=djchXUwWwaJ+JrEV8ea3eCSKgeRECx8I/cl3W4VJ7zeH3MHBUyjBvECGqGp6OnHs6
+         1VQa9icJPWdG6fySg6rdHLxBdxo6ZeQkF7yrm3osvDBWzsVS/MqfUYoG5M5Uw7N76Z
+         kpkwzzdaPQ+qWIr1bniOqw4Gu1VAIqKq2YaYCkXo=
+Date:   Fri, 06 Oct 2023 12:19:34 -0700
 To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         tsbogend@alpha.franken.de, svens@linux.ibm.com,
         richard.henderson@linaro.org, paul.walmsley@sifive.com,
@@ -35,8 +35,8 @@ To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         adilger.kernel@dilger.ca, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-implement-arch_xor_unlock_is_negative_byte.patch added to mm-unstable branch
-Message-Id: <20231006191942.973E4C433C7@smtp.kernel.org>
+Subject: + powerpc-implement-arch_xor_unlock_is_negative_byte-on-32-bit.patch added to mm-unstable branch
+Message-Id: <20231006191936.ED81BC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390: implement arch_xor_unlock_is_negative_byte
+     Subject: powerpc: implement arch_xor_unlock_is_negative_byte on 32-bit
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-implement-arch_xor_unlock_is_negative_byte.patch
+     powerpc-implement-arch_xor_unlock_is_negative_byte-on-32-bit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-implement-arch_xor_unlock_is_negative_byte.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-implement-arch_xor_unlock_is_negative_byte-on-32-bit.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,13 +68,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: s390: implement arch_xor_unlock_is_negative_byte
-Date: Wed, 4 Oct 2023 17:53:13 +0100
+Subject: powerpc: implement arch_xor_unlock_is_negative_byte on 32-bit
+Date: Wed, 4 Oct 2023 17:53:11 +0100
 
-Inspired by the s390 arch_test_and_clear_bit(), this will surely be more
-efficient than the generic one defined in filemap.c.
+Simply remove the ifdef.  The assembly is identical to that in the
+non-optimised case of test_and_clear_bits() on PPC32, and it's not clear
+to me how the PPC32 optimisation works, nor whether it would work for
+arch_xor_unlock_is_negative_byte().  If that optimisation would work,
+someone can implement it later, but this is more efficient than the
+implementation in filemap.c.
 
-Link: https://lkml.kernel.org/r/20231004165317.1061855-14-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231004165317.1061855-12-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -97,28 +101,31 @@ Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/bitops.h |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ arch/powerpc/include/asm/bitops.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/arch/s390/include/asm/bitops.h~s390-implement-arch_xor_unlock_is_negative_byte
-+++ a/arch/s390/include/asm/bitops.h
-@@ -201,6 +201,16 @@ static inline void arch___clear_bit_unlo
- 	arch___clear_bit(nr, ptr);
+--- a/arch/powerpc/include/asm/bitops.h~powerpc-implement-arch_xor_unlock_is_negative_byte-on-32-bit
++++ a/arch/powerpc/include/asm/bitops.h
+@@ -233,7 +233,6 @@ static inline int arch_test_and_change_b
+ 	return test_and_change_bits(BIT_MASK(nr), addr + BIT_WORD(nr)) != 0;
  }
  
-+static inline bool arch_xor_unlock_is_negative_byte(unsigned long mask,
-+		volatile unsigned long *ptr)
-+{
-+	unsigned long old;
-+
-+	old = __atomic64_xor_barrier(mask, (long *)ptr);
-+	return old & BIT(7);
-+}
-+#define arch_xor_unlock_is_negative_byte arch_xor_unlock_is_negative_byte
-+
- #include <asm-generic/bitops/instrumented-atomic.h>
- #include <asm-generic/bitops/instrumented-non-atomic.h>
- #include <asm-generic/bitops/instrumented-lock.h>
+-#ifdef CONFIG_PPC64
+ static inline bool arch_xor_unlock_is_negative_byte(unsigned long mask,
+ 		volatile unsigned long *p)
+ {
+@@ -251,11 +250,8 @@ static inline bool arch_xor_unlock_is_ne
+ 
+ 	return (old & BIT_MASK(7)) != 0;
+ }
+-
+ #define arch_xor_unlock_is_negative_byte arch_xor_unlock_is_negative_byte
+ 
+-#endif /* CONFIG_PPC64 */
+-
+ #include <asm-generic/bitops/non-atomic.h>
+ 
+ static inline void arch___clear_bit_unlock(int nr, volatile unsigned long *addr)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
