@@ -2,35 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91355E94130
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 21:47:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AA20E9412F
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 21:47:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233764AbjJFVrM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Oct 2023 17:47:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37556 "EHLO
+        id S233788AbjJFVrT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Oct 2023 17:47:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37550 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233806AbjJFVrK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 17:47:10 -0400
+        with ESMTP id S233789AbjJFVrM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 17:47:12 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4168CD6
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 14:47:04 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85D2AC433C8;
-        Fri,  6 Oct 2023 21:47:03 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A6BBFC
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 14:47:07 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B468C433C8;
+        Fri,  6 Oct 2023 21:47:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696628823;
-        bh=HukcqQfbCQPJTHoMIkebOHgR12zLYwoBRWjgdg+PxXA=;
+        s=korg; t=1696628826;
+        bh=AUQXthUXKKZ3rqQAcpG2z2Bn9yX5LZ12VD2bZjd47m4=;
         h=Date:To:From:Subject:From;
-        b=IVgk6qKGhkn7AXtW39HomCCEXYNRFRquZtw0Q9yznsJeQAieIxhEgbAGhPFVJp4yq
-         1j91KRMDpWHCgJJKkw+ZQWVtYM95AJGaa+31Z7kwqWW05lqMFIilTTdOO1yS8Ay1uN
-         8d0XCKxxIbBsXer7Cp1psAZJD/jqAwklOPLdKKtA=
-Date:   Fri, 06 Oct 2023 14:47:01 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        shy828301@gmail.com, mike.kravetz@oracle.com, kirill@shutemov.name,
-        hughd@google.com, david@redhat.com, peterx@redhat.com,
-        akpm@linux-foundation.org
+        b=s9npmHcNLsZrjqAd5bRpX+a3y8dtNA26+YVGz7t1b4N+7xIGCwhnXkpu2VTmq/Pac
+         e8pwNyyeeubgQ9yNV9PxxsBralnphWO6SJX5LkvZ9rQsOtk69lVBGddTHQFcqGhm9v
+         brqMjNSlVMyfzTrAo6hWhJHbUYLRzWI7EarVIT10=
+Date:   Fri, 06 Oct 2023 14:47:04 -0700
+To:     mm-commits@vger.kernel.org, sidhartha.kumar@oracle.com,
+        dan.carpenter@linaro.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-wire-up-tail-page-poisoning-over-mappings.patch removed from -mm tree
-Message-Id: <20231006214703.85D2AC433C8@smtp.kernel.org>
+Subject: [folded-merged] mm-filemap-remove-hugetlb-special-casing-in-filemapc-fix.patch removed from -mm tree
+Message-Id: <20231006214706.7B468C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,157 +36,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: wire up tail page poisoning over ->mappings
+     Subject: hugetlbfs: fix an NULL vs IS_ERR() bug
 has been removed from the -mm tree.  Its filename was
-     mm-wire-up-tail-page-poisoning-over-mappings.patch
+     mm-filemap-remove-hugetlb-special-casing-in-filemapc-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was folded into mm-filemap-remove-hugetlb-special-casing-in-filemapc.patch
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm: wire up tail page poisoning over ->mappings
-Date: Tue, 15 Aug 2023 17:06:59 -0400
+From: Dan Carpenter <dan.carpenter@linaro.org>
+Subject: hugetlbfs: fix an NULL vs IS_ERR() bug
+Date: Thu, 28 Sep 2023 08:17:36 +0300
 
-Tail pages have a sanity check on ->mapping fields, not all of them but
-only upon index>2, for now.  It's because we reused ->mapping fields of
-the tail pages index=1,2 for other things.
+This code was converted from using find_lock_page() which returns NULL,
+to calling filemap_lock_hugetlb_folio() which returns -ENOENT.  The
+check needs to be updated to match.  Also IS_ERR() has an unlikely()
+built in so we can remove that.
 
-Define a macro for "max index of tail pages that got ->mapping field
-reused" on top of folio definition, because when we grow folio tail pages
-we'd want to boost this too together.
-
-Then wire everything up using that macro.
-
-Don't try to poison the ->mapping field in prep_compound_tail() for tail
-pages <=TAIL_MAPPING_REUSED_MAX because it's wrong.  For example, the 1st
-tail page already reused ->mapping field as _nr_pages_mapped.  It didn't
-already blow up only because we luckily always prepare tail pages before
-preparing the head, then prep_compound_head() will update
-folio->_nr_pages_mapped so as to void the poisoning.  This should make it
-always safe again, even e.g.  if we prep the head first.
-
-Clean up free_tail_page_prepare() along the way on checking ->mapping
-poisoning to also leverage the new macro.
-
-Link: https://lkml.kernel.org/r/20230815210659.430010-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Yang Shi <shy828301@gmail.com>
+Link: https://lkml.kernel.org/r/1772c296-1417-486f-8eef-171af2192681@moroto.mountain
+Fixes: 4649d8d5bb81 ("mm/filemap: remove hugetlb special casing in filemap.c")
+Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
+Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |   11 +++++++++++
- mm/huge_memory.c         |    6 +++---
- mm/internal.h            |    3 ++-
- mm/page_alloc.c          |   28 +++++++++++-----------------
- 4 files changed, 27 insertions(+), 21 deletions(-)
+ fs/hugetlbfs/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm_types.h~mm-wire-up-tail-page-poisoning-over-mappings
-+++ a/include/linux/mm_types.h
-@@ -256,6 +256,17 @@ typedef struct {
- 	unsigned long val;
- } swp_entry_t;
+--- a/fs/hugetlbfs/inode.c~mm-filemap-remove-hugetlb-special-casing-in-filemapc-fix
++++ a/fs/hugetlbfs/inode.c
+@@ -354,7 +354,7 @@ static ssize_t hugetlbfs_read_iter(struc
  
-+/*
-+ * This macro defines the maximum tail pages (of a folio) that can have the
-+ * page->mapping field reused.
-+ *
-+ * When the tail page's mapping field reused, it'll be exempted from
-+ * ->mapping poisoning and checks.  Also see the macro TAIL_MAPPING.
-+ *
-+ * When grow the folio struct, please consider growing this too.
-+ */
-+#define  TAIL_MAPPING_REUSED_MAX  (2)
-+
- /**
-  * struct folio - Represents a contiguous set of bytes.
-  * @flags: Identical to the page flags.
---- a/mm/huge_memory.c~mm-wire-up-tail-page-poisoning-over-mappings
-+++ a/mm/huge_memory.c
-@@ -2473,9 +2473,9 @@ static void __split_huge_page_tail(struc
- 			 (1L << PG_dirty) |
- 			 LRU_GEN_MASK | LRU_REFS_MASK));
- 
--	/* ->mapping in first and second tail page is replaced by other uses */
--	VM_BUG_ON_PAGE(tail > 2 && page_tail->mapping != TAIL_MAPPING,
--			page_tail);
-+	/* ->mapping in <=TAIL_MAPPING_REUSED_MAX tail pages are reused */
-+	VM_BUG_ON_PAGE(tail > TAIL_MAPPING_REUSED_MAX &&
-+		       page_tail->mapping != TAIL_MAPPING, page_tail);
- 	page_tail->mapping = head->mapping;
- 	page_tail->index = head->index + tail;
- 
---- a/mm/internal.h~mm-wire-up-tail-page-poisoning-over-mappings
-+++ a/mm/internal.h
-@@ -429,7 +429,8 @@ static inline void prep_compound_tail(st
- {
- 	struct page *p = head + tail_idx;
- 
--	p->mapping = TAIL_MAPPING;
-+	if (tail_idx > TAIL_MAPPING_REUSED_MAX)
-+		p->mapping = TAIL_MAPPING;
- 	set_compound_head(p, head);
- 	set_page_private(p, 0);
- }
---- a/mm/page_alloc.c~mm-wire-up-tail-page-poisoning-over-mappings
-+++ a/mm/page_alloc.c
-@@ -968,7 +968,7 @@ static inline bool is_check_pages_enable
- static int free_tail_page_prepare(struct page *head_page, struct page *page)
- {
- 	struct folio *folio = (struct folio *)head_page;
--	int ret = 1;
-+	int ret = 1, index = page - head_page;
- 
- 	/*
- 	 * We rely page->lru.next never has bit 0 set, unless the page
-@@ -980,9 +980,9 @@ static int free_tail_page_prepare(struct
- 		ret = 0;
- 		goto out;
- 	}
--	switch (page - head_page) {
--	case 1:
--		/* the first tail page: these may be in place of ->mapping */
-+
-+	/* Sanity check the first tail page */
-+	if (index == 1) {
- 		if (unlikely(folio_entire_mapcount(folio))) {
- 			bad_page(page, "nonzero entire_mapcount");
- 			goto out;
-@@ -995,20 +995,14 @@ static int free_tail_page_prepare(struct
- 			bad_page(page, "nonzero pincount");
- 			goto out;
- 		}
--		break;
--	case 2:
--		/*
--		 * the second tail page: ->mapping is
--		 * deferred_list.next -- ignore value.
--		 */
--		break;
--	default:
--		if (page->mapping != TAIL_MAPPING) {
--			bad_page(page, "corrupted mapping in tail page");
--			goto out;
--		}
--		break;
- 	}
-+
-+	/* Sanity check the rest tail pages over ->mapping */
-+	if (index > TAIL_MAPPING_REUSED_MAX && page->mapping != TAIL_MAPPING) {
-+		bad_page(page, "corrupted mapping in tail page");
-+		goto out;
-+	}
-+
- 	if (unlikely(!PageTail(page))) {
- 		bad_page(page, "PageTail not set");
- 		goto out;
+ 		/* Find the folio */
+ 		folio = filemap_lock_hugetlb_folio(h, mapping, index);
+-		if (unlikely(folio == NULL)) {
++		if (IS_ERR(folio)) {
+ 			/*
+ 			 * We have a HOLE, zero out the user-buffer for the
+ 			 * length of the hole or request.
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from dan.carpenter@linaro.org are
 
-userfaultfd-uffd_feature_wp_async.patch
+mm-filemap-remove-hugetlb-special-casing-in-filemapc.patch
 
