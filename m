@@ -2,34 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8D18E94107
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:20:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF7A5E94115
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 20:14:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233365AbjJFTUk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Oct 2023 15:20:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57742 "EHLO
+        id S233349AbjJFUO5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Oct 2023 16:14:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42480 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233487AbjJFTUa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:20:30 -0400
+        with ESMTP id S233167AbjJFUO4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 16:14:56 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 68783F9
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:20:26 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5E20C433C7;
-        Fri,  6 Oct 2023 19:20:25 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 862FFBD
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 13:14:55 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C002CC433C8;
+        Fri,  6 Oct 2023 20:14:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696620026;
-        bh=dANjNMUMD+ISN/jE35x7k0cTb/gXGbg2l29z/0b13Kg=;
+        s=korg; t=1696623295;
+        bh=88j0PQu+3Gk+Ik4ulxUnYzUzHHveH4hAAATWSodabHc=;
         h=Date:To:From:Subject:From;
-        b=yxVtW57IsT3/5D149zmoSJhRMc/2XJ/0pMameXCZhqDERKGOSGkplhWfIQwG1GzaU
-         aDuaSyLxsQEimvovlDXuo1UejZ6h4wN6wAJfXMQZp6R79lt9AldHJZjcUMvwNiGNFJ
-         IbivQ/2v0iNTdAYoBQviC0RgrdlCkCeR3o/X0a4s=
-Date:   Fri, 06 Oct 2023 12:20:23 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        ssengar@microsoft.com, shy828301@gmail.com, ryan.roberts@arm.com,
-        david@redhat.com, zokeefe@google.com, akpm@linux-foundation.org
+        b=ZCcfGYTiWLffbQHVEKF9sm9MCOc7Os7vQejpjNuvrh09dsGhw31nhK2Cqt1cGIMwQ
+         F7yrpkXG4MEK/pz0RLQdR8SQhqZnHKgUN1vM4w0/JpihQK/u0A20A1SQpw+LTX/HNS
+         n6YcKCNfE7rDNvSEMy3VhfuJJisJBIjnY2h4ERhU=
+Date:   Fri, 06 Oct 2023 13:14:51 -0700
+To:     mm-commits@vger.kernel.org, surenb@google.com, willy@infradead.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-thp-fix-mm-thp-kill-__transhuge_page_enabled.patch added to mm-unstable branch
-Message-Id: <20231006192025.B5E20C433C7@smtp.kernel.org>
+Subject: + mm-make-lock_folio_maybe_drop_mmap-vma-lock-aware.patch added to mm-unstable branch
+Message-Id: <20231006201454.C002CC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/thp: fix "mm: thp: kill __transhuge_page_enabled()"
+     Subject: mm: make lock_folio_maybe_drop_mmap() VMA lock aware
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-thp-fix-mm-thp-kill-__transhuge_page_enabled.patch
+     mm-make-lock_folio_maybe_drop_mmap-vma-lock-aware.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-thp-fix-mm-thp-kill-__transhuge_page_enabled.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-lock_folio_maybe_drop_mmap-vma-lock-aware.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,96 +59,110 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Zach O'Keefe" <zokeefe@google.com>
-Subject: mm/thp: fix "mm: thp: kill __transhuge_page_enabled()"
-Date: Mon, 25 Sep 2023 13:01:10 -0700
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: make lock_folio_maybe_drop_mmap() VMA lock aware
+Date: Fri, 6 Oct 2023 20:53:13 +0100
 
-The 6.0 commits:
+Patch series "Handle more faults under the VMA lock", v2.
 
-commit 9fec51689ff6 ("mm: thp: kill transparent_hugepage_active()")
-commit 7da4e2cb8b1f ("mm: thp: kill __transhuge_page_enabled()")
+At this point, we're handling the majority of file-backed page faults
+under the VMA lock, using the ->map_pages entry point.  This patch set
+attempts to expand that for the following siutations:
 
-merged "can we have THPs in this VMA?" logic that was previously done
-separately by fault-path, khugepaged, and smaps "THPeligible" checks.
+ - We have to do a read.  This could be because we've hit the point in
+   the readahead window where we need to kick off the next readahead,
+   or because the page is simply not present in cache.
+ - We're handling a write fault.  Most applications don't do I/O by writes
+   to shared mmaps for very good reasons, but some do, and it'd be nice
+   to not make that slow unnecessarily.
+ - We're doing a COW of a private mapping (both PTE already present
+   and PTE not-present).  These are two different codepaths and I handle
+   both of them in this patch set.
 
-During the process, the semantics of the fault path check changed in two
-ways:
+There is no support in this patch set for drivers to mark themselves as
+being VMA lock friendly; they could implement the ->map_pages
+vm_operation, but if they do, they would be the first.  This is probably
+something we want to change at some point in the future, and I've marked
+where to make that change in the code.
 
-1) A VM_NO_KHUGEPAGED check was introduced (also added to smaps path).
-2) We no longer checked if non-anonymous memory had a vm_ops->huge_fault
-   handler that could satisfy the fault.  Previously, this check had been
-   done in create_huge_pud() and create_huge_pmd() routines, but after
-   the changes, we never reach those routines.
+There is very little performance change in the benchmarks we've run;
+mostly because the vast majority of page faults are handled through the
+other paths.  I still think this patch series is useful for workloads that
+may take these paths more often, and just for cleaning up the fault path
+in general (it's now clearer why we have to retry in these cases).
 
-During the review of the above commits, it was determined that in-tree
-users weren't affected by the change; most notably, since the only
-relevant user (in terms of THP) of VM_MIXEDMAP or ->huge_fault is DAX,
-which is explicitly approved early in approval logic.  However, this was a
-bad assumption to make as it assumes the only reason to support
-->huge_fault was for DAX (which is not true in general).
 
-Remove the VM_NO_KHUGEPAGED check when not in collapse path and give any
-->huge_fault handler a chance to handle the fault.  Note that we don't
-validate the file mode or mapping alignment, which is consistent with the
-behavior before the aforementioned commits.
+This patch (of 6):
 
-Link: https://lkml.kernel.org/r/20230925200110.1979606-1-zokeefe@google.com
-Fixes: 7da4e2cb8b1f ("mm: thp: kill __transhuge_page_enabled()")
-Reported-by: Saurabh Singh Sengar <ssengar@microsoft.com>
-Signed-off-by: Zach O'Keefe <zokeefe@google.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Drop the VMA lock instead of the mmap_lock if that's the one which
+is held.
+
+Link: https://lkml.kernel.org/r/20231006195318.4087158-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231006195318.4087158-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ mm/filemap.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
---- a/mm/huge_memory.c~mm-thp-fix-mm-thp-kill-__transhuge_page_enabled
-+++ a/mm/huge_memory.c
-@@ -100,11 +100,11 @@ bool hugepage_vma_check(struct vm_area_s
- 		return in_pf;
+--- a/mm/filemap.c~mm-make-lock_folio_maybe_drop_mmap-vma-lock-aware
++++ a/mm/filemap.c
+@@ -3090,7 +3090,7 @@ static int lock_folio_maybe_drop_mmap(st
  
  	/*
--	 * Special VMA and hugetlb VMA.
-+	 * khugepaged special VMA and hugetlb VMA.
- 	 * Must be checked after dax since some dax mappings may have
- 	 * VM_MIXEDMAP set.
+ 	 * NOTE! This will make us return with VM_FAULT_RETRY, but with
+-	 * the mmap_lock still held. That's how FAULT_FLAG_RETRY_NOWAIT
++	 * the fault lock still held. That's how FAULT_FLAG_RETRY_NOWAIT
+ 	 * is supposed to work. We have way too many special cases..
  	 */
--	if (vm_flags & VM_NO_KHUGEPAGED)
-+	if (!in_pf && !smaps && (vm_flags & VM_NO_KHUGEPAGED))
- 		return false;
- 
- 	/*
-@@ -132,12 +132,18 @@ bool hugepage_vma_check(struct vm_area_s
- 					   !hugepage_flags_always())))
- 		return false;
- 
--	/* Only regular file is valid */
--	if (!in_pf && file_thp_enabled(vma))
--		return true;
--
--	if (!vma_is_anonymous(vma))
-+	if (!vma_is_anonymous(vma)) {
-+		/*
-+		 * Trust that ->huge_fault() handlers know what they are doing
-+		 * in fault path.
-+		 */
-+		if (((in_pf || smaps)) && vma->vm_ops->huge_fault)
-+			return true;
-+		/* Only regular file is valid in collapse path */
-+		if (((!in_pf || smaps)) && file_thp_enabled(vma))
-+			return true;
- 		return false;
-+	}
- 
- 	if (vma_is_temporary_stack(vma))
- 		return false;
+ 	if (vmf->flags & FAULT_FLAG_RETRY_NOWAIT)
+@@ -3100,13 +3100,14 @@ static int lock_folio_maybe_drop_mmap(st
+ 	if (vmf->flags & FAULT_FLAG_KILLABLE) {
+ 		if (__folio_lock_killable(folio)) {
+ 			/*
+-			 * We didn't have the right flags to drop the mmap_lock,
+-			 * but all fault_handlers only check for fatal signals
+-			 * if we return VM_FAULT_RETRY, so we need to drop the
+-			 * mmap_lock here and return 0 if we don't have a fpin.
++			 * We didn't have the right flags to drop the
++			 * fault lock, but all fault_handlers only check
++			 * for fatal signals if we return VM_FAULT_RETRY,
++			 * so we need to drop the fault lock here and
++			 * return 0 if we don't have a fpin.
+ 			 */
+ 			if (*fpin == NULL)
+-				mmap_read_unlock(vmf->vma->vm_mm);
++				release_fault_lock(vmf);
+ 			return 0;
+ 		}
+ 	} else
 _
 
-Patches currently in -mm which might be from zokeefe@google.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-thp-fix-mm-thp-kill-__transhuge_page_enabled.patch
+mm-make-lock_folio_maybe_drop_mmap-vma-lock-aware.patch
+mm-call-wp_page_copy-under-the-vma-lock.patch
+mm-handle-shared-faults-under-the-vma-lock.patch
+mm-handle-cow-faults-under-the-vma-lock.patch
+mm-handle-read-faults-under-the-vma-lock.patch
+mm-handle-write-faults-to-ro-pages-under-the-vma-lock.patch
+iomap-hold-state_lock-over-call-to-ifs_set_range_uptodate.patch
+iomap-protect-read_bytes_pending-with-the-state_lock.patch
+mm-add-folio_end_read.patch
+ext4-use-folio_end_read.patch
+buffer-use-folio_end_read.patch
+iomap-use-folio_end_read.patch
+bitops-add-xor_unlock_is_negative_byte.patch
+alpha-implement-xor_unlock_is_negative_byte.patch
+m68k-implement-xor_unlock_is_negative_byte.patch
+mips-implement-xor_unlock_is_negative_byte.patch
+powerpc-implement-arch_xor_unlock_is_negative_byte-on-32-bit.patch
+riscv-implement-xor_unlock_is_negative_byte.patch
+s390-implement-arch_xor_unlock_is_negative_byte.patch
+mm-delete-checks-for-xor_unlock_is_negative_byte.patch
+mm-add-folio_xor_flags_has_waiters.patch
+mm-make-__end_folio_writeback-return-void.patch
+mm-use-folio_xor_flags_has_waiters-in-folio_end_writeback.patch
 
