@@ -2,38 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39AA5E94107
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:19:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79572E94104
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:19:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233437AbjJFTTD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Oct 2023 15:19:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34874 "EHLO
+        id S233405AbjJFTTE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Oct 2023 15:19:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39126 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233417AbjJFTSx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:18:53 -0400
+        with ESMTP id S233420AbjJFTTC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:19:02 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 536C8AD
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:18:51 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F8BCC433C9;
-        Fri,  6 Oct 2023 19:18:50 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E5FEB6
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:18:59 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0028C433C7;
+        Fri,  6 Oct 2023 19:18:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696619931;
-        bh=xevC8kOf64Yrdg2eKj4/QIX3volGbACZyxQtIq8qsw4=;
+        s=korg; t=1696619939;
+        bh=UH8KsrqwkLstEyn93iPzIm4mUdPktapZkmYgpzGWep0=;
         h=Date:To:From:Subject:From;
-        b=j3K1CG35s6dCIRZW/v5vfZ71G4eLn+XOmpn/IFacWOinZ7wg73NQupkdzVGKLO35B
-         5Fa12J/vpdfhgWH0onoVhgnH41MahDmdtfWEZhbE5/hRRQL8gvw2QikFh/MRpWGh5l
-         E7IkIZ8ZHlxfInqik82jlf2WmeSBIloVbVk+BOs0=
-Date:   Fri, 06 Oct 2023 12:18:48 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        songmuchun@bytedance.com, rientjes@google.com, osalvador@suse.de,
-        naoya.horiguchi@linux.dev, mhocko@suse.com, linmiaohe@huawei.com,
-        konradybcio@kernel.org, jthoughton@google.com,
-        joao.m.martins@oracle.com, duanxiongchun@bytedance.com,
-        david@redhat.com, anshuman.khandual@arm.com, 21cnbao@gmail.com,
-        mike.kravetz@oracle.com, akpm@linux-foundation.org
+        b=Wx0I8Lad9JTeHIm+sUmcI2vYHCaCE8/ZNnxtEB/w/DE9v+rUQ+bLu0mzAEAWeirm8
+         wHE+Qc5cN9WoJGNT1Xz82FNf62izwtt2N3osSXHwI6jVSN0kBOt3dbIl5DJ9RY4Rxf
+         FsVWRLHKOVDD9w1LnO/tvu5i4JIeIXOKvPNoP36Y=
+Date:   Fri, 06 Oct 2023 12:18:56 -0700
+To:     mm-commits@vger.kernel.org, riel@surriel.com,
+        muchun.song@linux.dev, mike.kravetz@oracle.com, leitao@debian.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-batch-tlb-flushes-when-restoring-vmemmap.patch added to mm-unstable branch
-Message-Id: <20231006191850.8F8BCC433C9@smtp.kernel.org>
+Subject: + selftests-mm-export-get_free_hugepages.patch added to mm-unstable branch
+Message-Id: <20231006191858.D0028C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: batch TLB flushes when restoring vmemmap
+     Subject: selftests/mm: export get_free_hugepages()
 has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-batch-tlb-flushes-when-restoring-vmemmap.patch
+     selftests-mm-export-get_free_hugepages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-batch-tlb-flushes-when-restoring-vmemmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-export-get_free_hugepages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,140 +60,108 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: batch TLB flushes when restoring vmemmap
-Date: Thu, 5 Oct 2023 20:20:10 -0700
+From: Breno Leitao <leitao@debian.org>
+Subject: selftests/mm: export get_free_hugepages()
+Date: Thu, 5 Oct 2023 09:39:21 -0700
 
-Update the internal hugetlb restore vmemmap code path such that TLB
-flushing can be batched.  Use the existing mechanism of passing the
-VMEMMAP_REMAP_NO_TLB_FLUSH flag to indicate flushing should not be
-performed for individual pages.  The routine
-hugetlb_vmemmap_restore_folios is the only user of this new mechanism, and
-it will perform a global flush after all vmemmap is restored.
+Patch series "New selftest for mm", v2.
 
-Link: https://lkml.kernel.org/r/20231006032012.296473-9-mike.kravetz@oracle.com
-Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: James Houghton <jthoughton@google.com>
-Cc: Konrad Dybcio <konradybcio@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
+This is a simple test case that reproduces an mm problem[1], where a page
+fault races with madvise(), and it is not trivial to reproduce and debug.
+
+This test-case aims to avoid such race problems from happening again,
+impacting workloads that leverages external allocators, such as tcmalloc,
+jemalloc, etc.
+
+[1] https://lore.kernel.org/all/20231001005659.2185316-1-riel@surriel.com/#r
+
+
+This patch (of 2):
+
+get_free_hugepages() is helpful for other hugepage tests.  Export it to
+the common file (vm_util.c) to be reused.
+
+Link: https://lkml.kernel.org/r/20231005163922.87568-1-leitao@debian.org
+Link: https://lkml.kernel.org/r/20231005163922.87568-2-leitao@debian.org
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Reviewed-by: Rik van Riel <riel@surriel.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_vmemmap.c |   39 ++++++++++++++++++++++++---------------
- 1 file changed, 24 insertions(+), 15 deletions(-)
+ tools/testing/selftests/mm/hugetlb-madvise.c |   19 -----------------
+ tools/testing/selftests/mm/vm_util.c         |   19 +++++++++++++++++
+ tools/testing/selftests/mm/vm_util.h         |    1 
+ 3 files changed, 20 insertions(+), 19 deletions(-)
 
---- a/mm/hugetlb_vmemmap.c~hugetlb-batch-tlb-flushes-when-restoring-vmemmap
-+++ a/mm/hugetlb_vmemmap.c
-@@ -461,18 +461,19 @@ out:
-  * @end:	end address of the vmemmap virtual address range that we want to
-  *		remap.
-  * @reuse:	reuse address.
-+ * @flags:	modifications to vmemmap_remap_walk flags
-  *
-  * Return: %0 on success, negative error code otherwise.
-  */
- static int vmemmap_remap_alloc(unsigned long start, unsigned long end,
--			       unsigned long reuse)
-+			       unsigned long reuse, unsigned long flags)
+--- a/tools/testing/selftests/mm/hugetlb-madvise.c~selftests-mm-export-get_free_hugepages
++++ a/tools/testing/selftests/mm/hugetlb-madvise.c
+@@ -36,25 +36,6 @@
+ unsigned long huge_page_size;
+ unsigned long base_page_size;
+ 
+-unsigned long get_free_hugepages(void)
+-{
+-	unsigned long fhp = 0;
+-	char *line = NULL;
+-	size_t linelen = 0;
+-	FILE *f = fopen("/proc/meminfo", "r");
+-
+-	if (!f)
+-		return fhp;
+-	while (getline(&line, &linelen, f) > 0) {
+-		if (sscanf(line, "HugePages_Free:      %lu", &fhp) == 1)
+-			break;
+-	}
+-
+-	free(line);
+-	fclose(f);
+-	return fhp;
+-}
+-
+ void write_fault_pages(void *addr, unsigned long nr_pages)
  {
- 	LIST_HEAD(vmemmap_pages);
- 	struct vmemmap_remap_walk walk = {
- 		.remap_pte	= vmemmap_restore_pte,
- 		.reuse_addr	= reuse,
- 		.vmemmap_pages	= &vmemmap_pages,
--		.flags		= 0,
-+		.flags		= flags,
- 	};
+ 	unsigned long i;
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-export-get_free_hugepages
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -269,3 +269,22 @@ int uffd_unregister(int uffd, void *addr
  
- 	/* See the comment in the vmemmap_remap_free(). */
-@@ -494,17 +495,7 @@ EXPORT_SYMBOL(hugetlb_optimize_vmemmap_k
- static bool vmemmap_optimize_enabled = IS_ENABLED(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP_DEFAULT_ON);
- core_param(hugetlb_free_vmemmap, vmemmap_optimize_enabled, bool, 0);
- 
--/**
-- * hugetlb_vmemmap_restore - restore previously optimized (by
-- *			     hugetlb_vmemmap_optimize()) vmemmap pages which
-- *			     will be reallocated and remapped.
-- * @h:		struct hstate.
-- * @head:	the head page whose vmemmap pages will be restored.
-- *
-- * Return: %0 if @head's vmemmap pages have been reallocated and remapped,
-- * negative error code otherwise.
-- */
--int hugetlb_vmemmap_restore(const struct hstate *h, struct page *head)
-+static int __hugetlb_vmemmap_restore(const struct hstate *h, struct page *head, unsigned long flags)
- {
- 	int ret;
- 	unsigned long vmemmap_start = (unsigned long)head, vmemmap_end;
-@@ -525,7 +516,7 @@ int hugetlb_vmemmap_restore(const struct
- 	 * When a HugeTLB page is freed to the buddy allocator, previously
- 	 * discarded vmemmap pages must be allocated and remapping.
- 	 */
--	ret = vmemmap_remap_alloc(vmemmap_start, vmemmap_end, vmemmap_reuse);
-+	ret = vmemmap_remap_alloc(vmemmap_start, vmemmap_end, vmemmap_reuse, flags);
- 	if (!ret) {
- 		ClearHPageVmemmapOptimized(head);
- 		static_branch_dec(&hugetlb_optimize_vmemmap_key);
-@@ -535,6 +526,21 @@ int hugetlb_vmemmap_restore(const struct
- }
- 
- /**
-+ * hugetlb_vmemmap_restore - restore previously optimized (by
-+ *				hugetlb_vmemmap_optimize()) vmemmap pages which
-+ *				will be reallocated and remapped.
-+ * @h:		struct hstate.
-+ * @head:	the head page whose vmemmap pages will be restored.
-+ *
-+ * Return: %0 if @head's vmemmap pages have been reallocated and remapped,
-+ * negative error code otherwise.
-+ */
-+int hugetlb_vmemmap_restore(const struct hstate *h, struct page *head)
-+{
-+	return __hugetlb_vmemmap_restore(h, head, 0);
-+}
-+
-+/**
-  * hugetlb_vmemmap_restore_folios - restore vmemmap for every folio on the list.
-  * @h:			hstate.
-  * @folio_list:		list of folios.
-@@ -557,7 +563,8 @@ long hugetlb_vmemmap_restore_folios(cons
- 
- 	list_for_each_entry_safe(folio, t_folio, folio_list, lru) {
- 		if (folio_test_hugetlb_vmemmap_optimized(folio)) {
--			ret = hugetlb_vmemmap_restore(h, &folio->page);
-+			ret = __hugetlb_vmemmap_restore(h, &folio->page,
-+						VMEMMAP_REMAP_NO_TLB_FLUSH);
- 			if (ret)
- 				break;
- 			restored++;
-@@ -567,6 +574,8 @@ long hugetlb_vmemmap_restore_folios(cons
- 		list_move(&folio->lru, non_hvo_folios);
- 	}
- 
-+	if (restored)
-+		flush_tlb_all();
- 	if (!ret)
- 		ret = restored;
  	return ret;
+ }
++
++unsigned long get_free_hugepages(void)
++{
++	unsigned long fhp = 0;
++	char *line = NULL;
++	size_t linelen = 0;
++	FILE *f = fopen("/proc/meminfo", "r");
++
++	if (!f)
++		return fhp;
++	while (getline(&line, &linelen, f) > 0) {
++		if (sscanf(line, "HugePages_Free:      %lu", &fhp) == 1)
++			break;
++	}
++
++	free(line);
++	fclose(f);
++	return fhp;
++}
+--- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-export-get_free_hugepages
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -51,6 +51,7 @@ int uffd_register(int uffd, void *addr,
+ int uffd_unregister(int uffd, void *addr, uint64_t len);
+ int uffd_register_with_ioctls(int uffd, void *addr, uint64_t len,
+ 			      bool miss, bool wp, bool minor, uint64_t *ioctls);
++unsigned long get_free_hugepages(void);
+ 
+ /*
+  * On ppc64 this will only work with radix 2M hugepage size
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from leitao@debian.org are
 
-hugetlb-optimize-update_and_free_pages_bulk-to-avoid-lock-cycles.patch
-hugetlb-restructure-pool-allocations.patch
-hugetlb-perform-vmemmap-optimization-on-a-list-of-pages.patch
-hugetlb-perform-vmemmap-restoration-on-a-list-of-pages.patch
-hugetlb-batch-freeing-of-vmemmap-pages.patch
-hugetlb-batch-tlb-flushes-when-restoring-vmemmap.patch
+selftests-mm-export-get_free_hugepages.patch
+selftests-mm-add-a-new-test-for-madv-and-hugetlb.patch
 
