@@ -2,35 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B5DFE94130
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 21:48:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8B55E94130
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 21:48:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233752AbjJFVsn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Oct 2023 17:48:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47046 "EHLO
+        id S233651AbjJFVss (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Oct 2023 17:48:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34110 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233651AbjJFVsl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 17:48:41 -0400
+        with ESMTP id S233774AbjJFVsp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 17:48:45 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F3CB6BF
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 14:48:37 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46B3BC433CA;
-        Fri,  6 Oct 2023 21:48:37 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6808DC2
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 14:48:44 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91149C433C8;
+        Fri,  6 Oct 2023 21:48:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696628917;
-        bh=ly4J9bhDoEQ7I/OGAQBsBsNVMhuYjeZRI6icwU2yXYQ=;
+        s=korg; t=1696628924;
+        bh=B0DimdbhnnNgHhnRm0CfNOGXi0/aTasXENzf89vCZKU=;
         h=Date:To:From:Subject:From;
-        b=iYIlydZqzds51NZRYHiLVEeZz0La/pTx9CTHGNGfRSj2Xtr7qbtoMvslRfq6lXc6N
-         xfSDas3TbkN4EsaeDZTgW/tvhIHFy/A4DWmtNFH/fd2eih897/OVpliHwylH1SlqVO
-         +xAqZgjzEIDWsA6po/121Yfhc/+iLpoQ2sn78XvQ=
-Date:   Fri, 06 Oct 2023 14:48:35 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        songmuchun@bytedance.com, mike.kravetz@oracle.com,
-        dan.carpenter@linaro.org, sidhartha.kumar@oracle.com,
-        akpm@linux-foundation.org
+        b=dU6o5VR5ahRnZff3aGA4iBcgaR0zKY7B9yGYHiY3ZKP0Dt3/0NIXXLGgoXFrvz+hh
+         iCrpyTEyVVjM+8j7NhDT4Ce+EmsjCCre4fzgy7i99+4ogWlOqNbmUzhG/AzkNGTt7C
+         Na8z6WPBiagtET7GDstQP9yzh6LIY89p/ut4hwbQ=
+Date:   Fri, 06 Oct 2023 14:48:41 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        sudeep.holla@arm.com, pasha.tatashin@soleen.com, mhocko@suse.com,
+        mgorman@techsingularity.net, jweiner@redhat.com, david@redhat.com,
+        dave.hansen@linux.intel.com, cl@linux.com, arjan@linux.intel.com,
+        ying.huang@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-filemap-remove-hugetlb-special-casing-in-filemapc.patch removed from -mm tree
-Message-Id: <20231006214837.46B3BC433CA@smtp.kernel.org>
+Subject: [merged mm-stable] mm-restrict-the-pcp-batch-scale-factor-to-avoid-too-long-latency.patch removed from -mm tree
+Message-Id: <20231006214843.91149C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,652 +39,168 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/filemap: remove hugetlb special casing in filemap.c
+     Subject: mm: restrict the pcp batch scale factor to avoid too long latency
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-remove-hugetlb-special-casing-in-filemapc.patch
+     mm-restrict-the-pcp-batch-scale-factor-to-avoid-too-long-latency.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Subject: mm/filemap: remove hugetlb special casing in filemap.c
-Date: Tue, 26 Sep 2023 12:20:17 -0700
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm: restrict the pcp batch scale factor to avoid too long latency
+Date: Tue, 26 Sep 2023 14:09:05 +0800
 
-Remove special cased hugetlb handling code within the page cache by
-changing the granularity of ->index to the base page size rather than the
-huge page size.  The motivation of this patch is to reduce complexity
-within the filemap code while also increasing performance by removing
-branches that are evaluated on every page cache lookup.
+In page allocator, PCP (Per-CPU Pageset) is refilled and drained in
+batches to increase page allocation throughput, reduce page
+allocation/freeing latency per page, and reduce zone lock contention.  But
+too large batch size will cause too long maximal allocation/freeing
+latency, which may punish arbitrary users.  So the default batch size is
+chosen carefully (in zone_batchsize(), the value is 63 for zone > 1GB) to
+avoid that.
 
-To support the change in index, new wrappers for hugetlb page cache
-interactions are added.  These wrappers perform the conversion to a linear
-index which is now expected by the page cache for huge pages.
+In commit 3b12e7e97938 ("mm/page_alloc: scale the number of pages that are
+batch freed"), the batch size will be scaled for large number of page
+freeing to improve page freeing performance and reduce zone lock
+contention.  Similar optimization can be used for large number of pages
+allocation too.
 
-========================= PERFORMANCE ======================================
+To find out a suitable max batch scale factor (that is, max effective
+batch size), some tests and measurement on some machines were done as
+follows.
 
-Perf was used to check the performance differences after the patch. 
-Overall the performance is similar to mainline with a very small larger
-overhead that occurs in __filemap_add_folio() and
-hugetlb_add_to_page_cache().  This is because of the larger overhead that
-occurs in xa_load() and xa_store() as the xarray is now using more entries
-to store hugetlb folios in the page cache.
+A set of debug patches are implemented as follows,
 
-Timing
+- Set PCP high to be 2 * batch to reduce the effect of PCP high
 
-aarch64
-    2MB Page Size
-        6.5-rc3 + this patch:
-            [root@sidhakum-ol9-1 hugepages]# time fallocate -l 700GB test.txt
-            real    1m49.568s
-            user    0m0.000s
-            sys     1m49.461s
+- Disable free batch size scaling to get the raw performance.
 
-        6.5-rc3:
-            [root]# time fallocate -l 700GB test.txt
-            real    1m47.495s
-            user    0m0.000s
-            sys     1m47.370s
-    1GB Page Size
-        6.5-rc3 + this patch:
-            [root@sidhakum-ol9-1 hugepages1G]# time fallocate -l 700GB test.txt
-            real    1m47.024s
-            user    0m0.000s
-            sys     1m46.921s
+- The code with zone lock held is extracted from rmqueue_bulk() and
+  free_pcppages_bulk() to 2 separate functions to make it easy to
+  measure the function run time with ftrace function_graph tracer.
 
-        6.5-rc3:
-            [root@sidhakum-ol9-1 hugepages1G]# time fallocate -l 700GB test.txt
-            real    1m44.551s
-            user    0m0.000s
-            sys     1m44.438s
+- The batch size is hard coded to be 63 (default), 127, 255, 511,
+  1023, 2047, 4095.
 
-x86
-    2MB Page Size
-        6.5-rc3 + this patch:
-            [root@sidhakum-ol9-2 hugepages]# time fallocate -l 100GB test.txt
-            real    0m22.383s
-            user    0m0.000s
-            sys     0m22.255s
+Then will-it-scale/page_fault1 is used to generate the page
+allocation/freeing workload.  The page allocation/freeing throughput
+(page/s) is measured via will-it-scale.  The page allocation/freeing
+average latency (alloc/free latency avg, in us) and allocation/freeing
+latency at 99 percentile (alloc/free latency 99%, in us) are measured with
+ftrace function_graph tracer.
 
-        6.5-rc3:
-            [opc@sidhakum-ol9-2 hugepages]$ time sudo fallocate -l 100GB /dev/hugepages/test.txt
-            real    0m22.735s
-            user    0m0.038s
-            sys     0m22.567s
+The test results are as follows,
 
-    1GB Page Size
-        6.5-rc3 + this patch:
-            [root@sidhakum-ol9-2 hugepages1GB]# time fallocate -l 100GB test.txt
-            real    0m25.786s
-            user    0m0.001s
-            sys     0m25.589s
+Sapphire Rapids Server
+======================
+Batch	throughput	free latency	free latency	alloc latency	alloc latency
+	page/s		avg / us	99% / us	avg / us	99% / us
+-----	----------	------------	------------	-------------	-------------
+  63	513633.4	 2.33		 3.57		 2.67		  6.83
+ 127	517616.7	 4.35		 6.65		 4.22		 13.03
+ 255	520822.8	 8.29		13.32		 7.52		 25.24
+ 511	524122.0	15.79		23.42		14.02		 49.35
+1023	525980.5	30.25		44.19		25.36		 94.88
+2047	526793.6	59.39		84.50		45.22		140.81
 
-        6.5-rc3:
-            [root@sidhakum-ol9-2 hugepages1G]# time fallocate -l 100GB test.txt
-            real    0m33.454s
-            user    0m0.001s
-            sys     0m33.193s
+Ice Lake Server
+===============
+Batch	throughput	free latency	free latency	alloc latency	alloc latency
+	page/s		avg / us	99% / us	avg / us	99% / us
+-----	----------	------------	------------	-------------	-------------
+  63	620210.3	 2.21		 3.68		 2.02		 4.35
+ 127	627003.0	 4.09		 6.86		 3.51		 8.28
+ 255	630777.5	 7.70		13.50		 6.17		15.97
+ 511	633651.5	14.85		22.62		11.66		31.08
+1023	637071.1	28.55		42.02		20.81		54.36
+2047	638089.7	56.54		84.06		39.28		91.68
 
-aarch64:
-    workload - fallocate a 700GB file backed by huge pages
+Cascade Lake Server
+===================
+Batch	throughput	free latency	free latency	alloc latency	alloc latency
+	page/s		avg / us	99% / us	avg / us	99% / us
+-----	----------	------------	------------	-------------	-------------
+  63	404706.7	 3.29		  5.03		 3.53		  4.75
+ 127	422475.2	 6.12		  9.09		 6.36		  8.76
+ 255	411522.2	11.68		 16.97		10.90		 16.39
+ 511	428124.1	22.54		 31.28		19.86		 32.25
+1023	414718.4	43.39		 62.52		40.00		 66.33
+2047	429848.7	86.64		120.34		71.14		106.08
 
-    6.5-rc3 + this patch:
-        2MB Page Size:
-            --100.00%--__arm64_sys_fallocate
-                          ksys_fallocate
-                          vfs_fallocate
-                          hugetlbfs_fallocate
-                          |
-                          |--95.04%--__pi_clear_page
-                          |
-                          |--3.57%--clear_huge_page
-                          |          |
-                          |          |--2.63%--rcu_all_qs
-                          |          |
-                          |           --0.91%--__cond_resched
-                          |
-                           --0.67%--__cond_resched
-            0.17%     0.00%             0  fallocate  [kernel.vmlinux]       [k] hugetlb_add_to_page_cache
-            0.14%     0.10%            11  fallocate  [kernel.vmlinux]       [k] __filemap_add_folio
+Commet Lake Desktop
+===================
+Batch	throughput	free latency	free latency	alloc latency	alloc latency
+	page/s		avg / us	99% / us	avg / us	99% / us
+-----	----------	------------	------------	-------------	-------------
 
-    6.5-rc3
-        2MB Page Size:
-                --100.00%--__arm64_sys_fallocate
-                          ksys_fallocate
-                          vfs_fallocate
-                          hugetlbfs_fallocate
-                          |
-                          |--94.91%--__pi_clear_page
-                          |
-                          |--4.11%--clear_huge_page
-                          |          |
-                          |          |--3.00%--rcu_all_qs
-                          |          |
-                          |           --1.10%--__cond_resched
-                          |
-                           --0.59%--__cond_resched
-            0.08%     0.01%             1  fallocate  [kernel.kallsyms]  [k] hugetlb_add_to_page_cache
-            0.05%     0.03%             3  fallocate  [kernel.kallsyms]  [k] __filemap_add_folio
+  63	795183.13	 2.18		 3.55		 2.03		 3.05
+ 127	803067.85	 3.91		 6.56		 3.85		 5.52
+ 255	812771.10	 7.35		10.80		 7.14		10.20
+ 511	817723.48	14.17		27.54		13.43		30.31
+1023	818870.19	27.72		40.10		27.89		46.28
 
-x86
-    workload - fallocate a 100GB file backed by huge pages
+Coffee Lake Desktop
+===================
+Batch	throughput	free latency	free latency	alloc latency	alloc latency
+	page/s		avg / us	99% / us	avg / us	99% / us
+-----	----------	------------	------------	-------------	-------------
+  63	510542.8	 3.13		  4.40		 2.48		 3.43
+ 127	514288.6	 5.97		  7.89		 4.65		 6.04
+ 255	516889.7	11.86		 15.58		 8.96		12.55
+ 511	519802.4	23.10		 28.81		16.95		26.19
+1023	520802.7	45.30		 52.51		33.19		45.95
+2047	519997.1	90.63		104.00		65.26		81.74
 
-    6.5-rc3 + this patch:
-        2MB Page Size:
-            hugetlbfs_fallocate
-            |
-            --99.57%--clear_huge_page
-                |
-                --98.47%--clear_page_erms
-                    |
-                    --0.53%--asm_sysvec_apic_timer_interrupt
+From the above data, to restrict the allocation/freeing latency to be less
+than 100 us in most times, the max batch scale factor needs to be less
+than or equal to 5.
 
-            0.04%     0.04%             1  fallocate  [kernel.kallsyms]     [k] xa_load
-            0.04%     0.00%             0  fallocate  [kernel.kallsyms]     [k] hugetlb_add_to_page_cache
-            0.04%     0.00%             0  fallocate  [kernel.kallsyms]     [k] __filemap_add_folio
-            0.04%     0.00%             0  fallocate  [kernel.kallsyms]     [k] xas_store
+So, in this patch, the batch scale factor is restricted to be less than or
+equal to 5.
 
-    6.5-rc3
-        2MB Page Size:
-                --99.93%--__x64_sys_fallocate
-                          vfs_fallocate
-                          hugetlbfs_fallocate
-                          |
-                           --99.38%--clear_huge_page
-                                     |
-                                     |--98.40%--clear_page_erms
-                                     |
-                                      --0.59%--__cond_resched
-            0.03%     0.03%             1  fallocate  [kernel.kallsyms]  [k] __filemap_add_folio
-
-========================= TESTING ======================================
-
-This patch passes libhugetlbfs tests and LTP hugetlb tests
-
-********** TEST SUMMARY
-*                      2M
-*                      32-bit 64-bit
-*     Total testcases:   110    113
-*             Skipped:     0      0
-*                PASS:   107    113
-*                FAIL:     0      0
-*    Killed by signal:     3      0
-*   Bad configuration:     0      0
-*       Expected FAIL:     0      0
-*     Unexpected PASS:     0      0
-*    Test not present:     0      0
-* Strange test result:     0      0
-**********
-
-    Done executing testcases.
-    LTP Version:  20220527-178-g2761a81c4
-
-page migration was also tested using Mike Kravetz's test program.[8]
-
-[dan.carpenter@linaro.org: fix an NULL vs IS_ERR() bug]
-  Link: https://lkml.kernel.org/r/1772c296-1417-486f-8eef-171af2192681@moroto.mountain
-Link: https://lkml.kernel.org/r/20230926192017.98183-1-sidhartha.kumar@oracle.com
-Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
-Reported-and-tested-by: syzbot+c225dea486da4d5592bd@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=c225dea486da4d5592bd
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Link: https://lkml.kernel.org/r/20230926060911.266511-5-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c    |   37 +++++++++++++++++++------------------
- include/linux/hugetlb.h |   12 ++++++++++++
- include/linux/pagemap.h |   32 ++------------------------------
- mm/filemap.c            |   34 ++++++++++------------------------
- mm/hugetlb.c            |   32 ++++++--------------------------
- mm/migrate.c            |    6 +++---
- 6 files changed, 52 insertions(+), 101 deletions(-)
+ mm/page_alloc.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/fs/hugetlbfs/inode.c~mm-filemap-remove-hugetlb-special-casing-in-filemapc
-+++ a/fs/hugetlbfs/inode.c
-@@ -334,7 +334,7 @@ static ssize_t hugetlbfs_read_iter(struc
- 	ssize_t retval = 0;
+--- a/mm/page_alloc.c~mm-restrict-the-pcp-batch-scale-factor-to-avoid-too-long-latency
++++ a/mm/page_alloc.c
+@@ -86,6 +86,9 @@ typedef int __bitwise fpi_t;
+  */
+ #define FPI_TO_TAIL		((__force fpi_t)BIT(1))
  
- 	while (iov_iter_count(to)) {
--		struct page *page;
-+		struct folio *folio;
- 		size_t nr, copied, want;
- 
- 		/* nr is the maximum number of bytes to copy from this page */
-@@ -352,18 +352,18 @@ static ssize_t hugetlbfs_read_iter(struc
- 		}
- 		nr = nr - offset;
- 
--		/* Find the page */
--		page = find_lock_page(mapping, index);
--		if (unlikely(page == NULL)) {
-+		/* Find the folio */
-+		folio = filemap_lock_hugetlb_folio(h, mapping, index);
-+		if (IS_ERR(folio)) {
- 			/*
- 			 * We have a HOLE, zero out the user-buffer for the
- 			 * length of the hole or request.
- 			 */
- 			copied = iov_iter_zero(nr, to);
- 		} else {
--			unlock_page(page);
-+			folio_unlock(folio);
- 
--			if (!PageHWPoison(page))
-+			if (!folio_test_has_hwpoisoned(folio))
- 				want = nr;
- 			else {
- 				/*
-@@ -371,19 +371,19 @@ static ssize_t hugetlbfs_read_iter(struc
- 				 * touching the 1st raw HWPOISON subpage after
- 				 * offset.
- 				 */
--				want = adjust_range_hwpoison(page, offset, nr);
-+				want = adjust_range_hwpoison(&folio->page, offset, nr);
- 				if (want == 0) {
--					put_page(page);
-+					folio_put(folio);
- 					retval = -EIO;
- 					break;
- 				}
- 			}
- 
- 			/*
--			 * We have the page, copy it to user space buffer.
-+			 * We have the folio, copy it to user space buffer.
- 			 */
--			copied = copy_page_to_iter(page, offset, want, to);
--			put_page(page);
-+			copied = copy_folio_to_iter(folio, offset, want, to);
-+			folio_put(folio);
- 		}
- 		offset += copied;
- 		retval += copied;
-@@ -661,21 +661,20 @@ static void remove_inode_hugepages(struc
- {
- 	struct hstate *h = hstate_inode(inode);
- 	struct address_space *mapping = &inode->i_data;
--	const pgoff_t start = lstart >> huge_page_shift(h);
--	const pgoff_t end = lend >> huge_page_shift(h);
-+	const pgoff_t end = lend >> PAGE_SHIFT;
- 	struct folio_batch fbatch;
- 	pgoff_t next, index;
- 	int i, freed = 0;
- 	bool truncate_op = (lend == LLONG_MAX);
- 
- 	folio_batch_init(&fbatch);
--	next = start;
-+	next = lstart >> PAGE_SHIFT;
- 	while (filemap_get_folios(mapping, &next, end - 1, &fbatch)) {
- 		for (i = 0; i < folio_batch_count(&fbatch); ++i) {
- 			struct folio *folio = fbatch.folios[i];
- 			u32 hash = 0;
- 
--			index = folio->index;
-+			index = folio->index >> huge_page_order(h);
- 			hash = hugetlb_fault_mutex_hash(mapping, index);
- 			mutex_lock(&hugetlb_fault_mutex_table[hash]);
- 
-@@ -693,7 +692,9 @@ static void remove_inode_hugepages(struc
- 	}
- 
- 	if (truncate_op)
--		(void)hugetlb_unreserve_pages(inode, start, LONG_MAX, freed);
-+		(void)hugetlb_unreserve_pages(inode,
-+				lstart >> huge_page_shift(h),
-+				LONG_MAX, freed);
- }
- 
- static void hugetlbfs_evict_inode(struct inode *inode)
-@@ -741,7 +742,7 @@ static void hugetlbfs_zero_partial_page(
- 	pgoff_t idx = start >> huge_page_shift(h);
- 	struct folio *folio;
- 
--	folio = filemap_lock_folio(mapping, idx);
-+	folio = filemap_lock_hugetlb_folio(h, mapping, idx);
- 	if (IS_ERR(folio))
- 		return;
- 
-@@ -886,7 +887,7 @@ static long hugetlbfs_fallocate(struct f
- 		mutex_lock(&hugetlb_fault_mutex_table[hash]);
- 
- 		/* See if already present in mapping to avoid alloc/free */
--		folio = filemap_get_folio(mapping, index);
-+		folio = filemap_get_folio(mapping, index << huge_page_order(h));
- 		if (!IS_ERR(folio)) {
- 			folio_put(folio);
- 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
---- a/include/linux/hugetlb.h~mm-filemap-remove-hugetlb-special-casing-in-filemapc
-+++ a/include/linux/hugetlb.h
-@@ -812,6 +812,12 @@ static inline unsigned int blocks_per_hu
- 	return huge_page_size(h) / 512;
- }
- 
-+static inline struct folio *filemap_lock_hugetlb_folio(struct hstate *h,
-+				struct address_space *mapping, pgoff_t idx)
-+{
-+	return filemap_lock_folio(mapping, idx << huge_page_order(h));
-+}
++/* Maximum PCP batch scale factor to restrict max allocation/freeing latency */
++#define PCP_BATCH_SCALE_MAX	5
 +
- #include <asm/hugetlb.h>
- 
- #ifndef is_hugepage_only_range
-@@ -1007,6 +1013,12 @@ static inline struct hugepage_subpool *h
- {
- 	return NULL;
- }
-+
-+static inline struct folio *filemap_lock_hugetlb_folio(struct hstate *h,
-+				struct address_space *mapping, pgoff_t idx)
-+{
-+	return NULL;
-+}
- 
- static inline int isolate_or_dissolve_huge_page(struct page *page,
- 						struct list_head *list)
---- a/include/linux/pagemap.h~mm-filemap-remove-hugetlb-special-casing-in-filemapc
-+++ a/include/linux/pagemap.h
-@@ -789,9 +789,6 @@ static inline pgoff_t folio_next_index(s
-  */
- static inline struct page *folio_file_page(struct folio *folio, pgoff_t index)
- {
--	/* HugeTLBfs indexes the page cache in units of hpage_size */
--	if (folio_test_hugetlb(folio))
--		return &folio->page;
- 	return folio_page(folio, index & (folio_nr_pages(folio) - 1));
- }
- 
-@@ -807,9 +804,6 @@ static inline struct page *folio_file_pa
-  */
- static inline bool folio_contains(struct folio *folio, pgoff_t index)
- {
--	/* HugeTLBfs indexes the page cache in units of hpage_size */
--	if (folio_test_hugetlb(folio))
--		return folio->index == index;
- 	return index - folio_index(folio) < folio_nr_pages(folio);
- }
- 
-@@ -867,10 +861,9 @@ static inline struct folio *read_mapping
- }
- 
- /*
-- * Get index of the page within radix-tree (but not for hugetlb pages).
-- * (TODO: remove once hugetlb pages will have ->index in PAGE_SIZE)
-+ * Get the offset in PAGE_SIZE (even for hugetlb pages).
-  */
--static inline pgoff_t page_to_index(struct page *page)
-+static inline pgoff_t page_to_pgoff(struct page *page)
- {
- 	struct page *head;
- 
-@@ -885,19 +878,6 @@ static inline pgoff_t page_to_index(stru
- 	return head->index + page - head;
- }
- 
--extern pgoff_t hugetlb_basepage_index(struct page *page);
--
--/*
-- * Get the offset in PAGE_SIZE (even for hugetlb pages).
-- * (TODO: hugetlb pages should have ->index in PAGE_SIZE)
-- */
--static inline pgoff_t page_to_pgoff(struct page *page)
--{
--	if (unlikely(PageHuge(page)))
--		return hugetlb_basepage_index(page);
--	return page_to_index(page);
--}
--
- /*
-  * Return byte-offset into filesystem object for page.
-  */
-@@ -934,24 +914,16 @@ static inline loff_t folio_file_pos(stru
- 
- /*
-  * Get the offset in PAGE_SIZE (even for hugetlb folios).
-- * (TODO: hugetlb folios should have ->index in PAGE_SIZE)
-  */
- static inline pgoff_t folio_pgoff(struct folio *folio)
- {
--	if (unlikely(folio_test_hugetlb(folio)))
--		return hugetlb_basepage_index(&folio->page);
- 	return folio->index;
- }
- 
--extern pgoff_t linear_hugepage_index(struct vm_area_struct *vma,
--				     unsigned long address);
--
- static inline pgoff_t linear_page_index(struct vm_area_struct *vma,
- 					unsigned long address)
- {
- 	pgoff_t pgoff;
--	if (unlikely(is_vm_hugetlb_page(vma)))
--		return linear_hugepage_index(vma, address);
- 	pgoff = (address - vma->vm_start) >> PAGE_SHIFT;
- 	pgoff += vma->vm_pgoff;
- 	return pgoff;
---- a/mm/filemap.c~mm-filemap-remove-hugetlb-special-casing-in-filemapc
-+++ a/mm/filemap.c
-@@ -131,11 +131,8 @@ static void page_cache_delete(struct add
- 
- 	mapping_set_update(&xas, mapping);
- 
--	/* hugetlb pages are represented by a single entry in the xarray */
--	if (!folio_test_hugetlb(folio)) {
--		xas_set_order(&xas, folio->index, folio_order(folio));
--		nr = folio_nr_pages(folio);
--	}
-+	xas_set_order(&xas, folio->index, folio_order(folio));
-+	nr = folio_nr_pages(folio);
- 
- 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
- 
-@@ -234,7 +231,7 @@ void filemap_free_folio(struct address_s
- 	if (free_folio)
- 		free_folio(folio);
- 
--	if (folio_test_large(folio) && !folio_test_hugetlb(folio))
-+	if (folio_test_large(folio))
- 		refs = folio_nr_pages(folio);
- 	folio_put_refs(folio, refs);
- }
-@@ -855,14 +852,15 @@ noinline int __filemap_add_folio(struct
- 
- 	if (!huge) {
- 		int error = mem_cgroup_charge(folio, NULL, gfp);
--		VM_BUG_ON_FOLIO(index & (folio_nr_pages(folio) - 1), folio);
- 		if (error)
- 			return error;
- 		charged = true;
--		xas_set_order(&xas, index, folio_order(folio));
--		nr = folio_nr_pages(folio);
- 	}
- 
-+	VM_BUG_ON_FOLIO(index & (folio_nr_pages(folio) - 1), folio);
-+	xas_set_order(&xas, index, folio_order(folio));
-+	nr = folio_nr_pages(folio);
-+
- 	gfp &= GFP_RECLAIM_MASK;
- 	folio_ref_add(folio, nr);
- 	folio->mapping = mapping;
-@@ -2040,7 +2038,7 @@ unsigned find_get_entries(struct address
- 		int idx = folio_batch_count(fbatch) - 1;
- 
- 		folio = fbatch->folios[idx];
--		if (!xa_is_value(folio) && !folio_test_hugetlb(folio))
-+		if (!xa_is_value(folio))
- 			nr = folio_nr_pages(folio);
- 		*start = indices[idx] + nr;
- 	}
-@@ -2104,7 +2102,7 @@ put:
- 		int idx = folio_batch_count(fbatch) - 1;
- 
- 		folio = fbatch->folios[idx];
--		if (!xa_is_value(folio) && !folio_test_hugetlb(folio))
-+		if (!xa_is_value(folio))
- 			nr = folio_nr_pages(folio);
- 		*start = indices[idx] + nr;
- 	}
-@@ -2145,9 +2143,6 @@ unsigned filemap_get_folios(struct addre
- 			continue;
- 		if (!folio_batch_add(fbatch, folio)) {
- 			unsigned long nr = folio_nr_pages(folio);
--
--			if (folio_test_hugetlb(folio))
--				nr = 1;
- 			*start = folio->index + nr;
- 			goto out;
- 		}
-@@ -2213,9 +2208,6 @@ unsigned filemap_get_folios_contig(struc
- 
- 		if (!folio_batch_add(fbatch, folio)) {
- 			nr = folio_nr_pages(folio);
--
--			if (folio_test_hugetlb(folio))
--				nr = 1;
- 			*start = folio->index + nr;
- 			goto out;
- 		}
-@@ -2232,10 +2224,7 @@ update_start:
- 
- 	if (nr) {
- 		folio = fbatch->folios[nr - 1];
--		if (folio_test_hugetlb(folio))
--			*start = folio->index + 1;
--		else
--			*start = folio_next_index(folio);
-+		*start = folio->index + folio_nr_pages(folio);
- 	}
- out:
- 	rcu_read_unlock();
-@@ -2273,9 +2262,6 @@ unsigned filemap_get_folios_tag(struct a
- 			continue;
- 		if (!folio_batch_add(fbatch, folio)) {
- 			unsigned long nr = folio_nr_pages(folio);
--
--			if (folio_test_hugetlb(folio))
--				nr = 1;
- 			*start = folio->index + nr;
- 			goto out;
- 		}
---- a/mm/hugetlb.c~mm-filemap-remove-hugetlb-special-casing-in-filemapc
-+++ a/mm/hugetlb.c
-@@ -952,7 +952,7 @@ static long region_count(struct resv_map
- 
- /*
-  * Convert the address within this vma to the page offset within
-- * the mapping, in pagecache page units; huge pages here.
-+ * the mapping, huge page units here.
-  */
- static pgoff_t vma_hugecache_offset(struct hstate *h,
- 			struct vm_area_struct *vma, unsigned long address)
-@@ -961,13 +961,6 @@ static pgoff_t vma_hugecache_offset(stru
- 			(vma->vm_pgoff >> huge_page_order(h));
- }
- 
--pgoff_t linear_hugepage_index(struct vm_area_struct *vma,
--				     unsigned long address)
--{
--	return vma_hugecache_offset(hstate_vma(vma), vma, address);
--}
--EXPORT_SYMBOL_GPL(linear_hugepage_index);
--
- /**
-  * vma_kernel_pagesize - Page size granularity for this VMA.
-  * @vma: The user mapping.
-@@ -2074,20 +2067,6 @@ struct address_space *hugetlb_page_mappi
- 	return NULL;
- }
- 
--pgoff_t hugetlb_basepage_index(struct page *page)
--{
--	struct page *page_head = compound_head(page);
--	pgoff_t index = page_index(page_head);
--	unsigned long compound_idx;
--
--	if (compound_order(page_head) > MAX_ORDER)
--		compound_idx = page_to_pfn(page) - page_to_pfn(page_head);
--	else
--		compound_idx = page - page_head;
--
--	return (index << compound_order(page_head)) + compound_idx;
--}
--
- static struct folio *alloc_buddy_hugetlb_folio(struct hstate *h,
- 		gfp_t gfp_mask, int nid, nodemask_t *nmask,
- 		nodemask_t *node_alloc_noretry)
-@@ -5772,7 +5751,7 @@ static bool hugetlbfs_pagecache_present(
- 			struct vm_area_struct *vma, unsigned long address)
- {
- 	struct address_space *mapping = vma->vm_file->f_mapping;
--	pgoff_t idx = vma_hugecache_offset(h, vma, address);
-+	pgoff_t idx = linear_page_index(vma, address);
- 	struct folio *folio;
- 
- 	folio = filemap_get_folio(mapping, idx);
-@@ -5789,6 +5768,7 @@ int hugetlb_add_to_page_cache(struct fol
- 	struct hstate *h = hstate_inode(inode);
- 	int err;
- 
-+	idx <<= huge_page_order(h);
- 	__folio_set_locked(folio);
- 	err = __filemap_add_folio(mapping, folio, idx, GFP_KERNEL, NULL);
- 
-@@ -5896,7 +5876,7 @@ static vm_fault_t hugetlb_no_page(struct
- 	 * before we get page_table_lock.
+ /* prevent >1 _updater_ of zone percpu pageset ->high and ->batch fields */
+ static DEFINE_MUTEX(pcp_batch_high_lock);
+ #define MIN_PERCPU_PAGELIST_HIGH_FRACTION (8)
+@@ -2340,7 +2343,7 @@ static int nr_pcp_free(struct per_cpu_pa
+ 	 * freeing of pages without any allocation.
  	 */
- 	new_folio = false;
--	folio = filemap_lock_folio(mapping, idx);
-+	folio = filemap_lock_hugetlb_folio(h, mapping, idx);
- 	if (IS_ERR(folio)) {
- 		size = i_size_read(mapping->host) >> huge_page_shift(h);
- 		if (idx >= size)
-@@ -6205,7 +6185,7 @@ vm_fault_t hugetlb_fault(struct mm_struc
- 		/* Just decrements count, does not deallocate */
- 		vma_end_reservation(h, vma, haddr);
- 
--		pagecache_folio = filemap_lock_folio(mapping, idx);
-+		pagecache_folio = filemap_lock_hugetlb_folio(h, mapping, idx);
- 		if (IS_ERR(pagecache_folio))
- 			pagecache_folio = NULL;
- 	}
-@@ -6338,7 +6318,7 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
- 
- 	if (is_continue) {
- 		ret = -EFAULT;
--		folio = filemap_lock_folio(mapping, idx);
-+		folio = filemap_lock_hugetlb_folio(h, mapping, idx);
- 		if (IS_ERR(folio))
- 			goto out;
- 		folio_in_pagecache = true;
---- a/mm/migrate.c~mm-filemap-remove-hugetlb-special-casing-in-filemapc
-+++ a/mm/migrate.c
-@@ -524,7 +524,7 @@ int migrate_huge_page_move_mapping(struc
- 	int expected_count;
- 
- 	xas_lock_irq(&xas);
--	expected_count = 2 + folio_has_private(src);
-+	expected_count = folio_expected_refs(mapping, src);
- 	if (!folio_ref_freeze(src, expected_count)) {
- 		xas_unlock_irq(&xas);
- 		return -EAGAIN;
-@@ -533,11 +533,11 @@ int migrate_huge_page_move_mapping(struc
- 	dst->index = src->index;
- 	dst->mapping = src->mapping;
- 
--	folio_get(dst);
-+	folio_ref_add(dst, folio_nr_pages(dst));
- 
- 	xas_store(&xas, dst);
- 
--	folio_ref_unfreeze(src, expected_count - 1);
-+	folio_ref_unfreeze(src, expected_count - folio_nr_pages(src));
- 
- 	xas_unlock_irq(&xas);
+ 	batch <<= pcp->free_factor;
+-	if (batch < max_nr_free)
++	if (batch < max_nr_free && pcp->free_factor < PCP_BATCH_SCALE_MAX)
+ 		pcp->free_factor++;
+ 	batch = clamp(batch, min_nr_free, max_nr_free);
  
 _
 
-Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
+mm-fix-draining-remote-pageset.patch
 
