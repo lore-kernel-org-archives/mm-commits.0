@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 452C0E94115
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 20:15:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3148E94114
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 20:15:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233365AbjJFUPI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Oct 2023 16:15:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50440 "EHLO
+        id S233390AbjJFUPL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Oct 2023 16:15:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50448 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233167AbjJFUPG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 16:15:06 -0400
+        with ESMTP id S233167AbjJFUPJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 16:15:09 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFAB2BD
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 13:15:04 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28876C433C7;
-        Fri,  6 Oct 2023 20:15:03 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E823CBF
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 13:15:07 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 226DFC433C9;
+        Fri,  6 Oct 2023 20:15:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696623304;
-        bh=MugWodMC+3nGqUIVKFN7TLIMgO8tPJVykLvL7/Vx+8o=;
+        s=korg; t=1696623307;
+        bh=Sz8jb7z7RHRBRPEGw7ORbresLyrUiohwi3cDhNeH/hk=;
         h=Date:To:From:Subject:From;
-        b=nw+YlbBfO6tEmPPum4m8FWbcb+DMiNyXwYmaAkLhaHzCZPwN1vAt+zwUvkxpomB6b
-         TMxyCJVzjhnn8Br+eBrGbNCE5Q9vPKL8LSHjwlo0aDkhM+W4Ffv9+hd/RVsga7x/4f
-         K1zFovTy/ihQp5hH/XzkIYtNZOrcwi2FniNPUBzo=
-Date:   Fri, 06 Oct 2023 13:15:01 -0700
+        b=YrHvI1+ZCxUwKL9r3zyTWog2uxES2hMxGWeTlIZH3p5k/1YIczUCi6wCg6M2lqgGO
+         M3E0HIk7Nz4uIkjacQGidurfqTASbpg0uGhAASfn/WFwhVRbSlJ8FHjoV7qWg419gC
+         P2yNoeh4/kkk3+/q4fS39jTFwHI7ONX0EMy2IsYQ=
+Date:   Fri, 06 Oct 2023 13:15:04 -0700
 To:     mm-commits@vger.kernel.org, surenb@google.com, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-call-wp_page_copy-under-the-vma-lock.patch added to mm-unstable branch
-Message-Id: <20231006201504.28876C433C7@smtp.kernel.org>
+Subject: + mm-handle-write-faults-to-ro-pages-under-the-vma-lock.patch added to mm-unstable branch
+Message-Id: <20231006201507.226DFC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: call wp_page_copy() under the VMA lock
+     Subject: mm: handle write faults to RO pages under the VMA lock
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-call-wp_page_copy-under-the-vma-lock.patch
+     mm-handle-write-faults-to-ro-pages-under-the-vma-lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-call-wp_page_copy-under-the-vma-lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-handle-write-faults-to-ro-pages-under-the-vma-lock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,125 +60,52 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: call wp_page_copy() under the VMA lock
-Date: Fri, 6 Oct 2023 20:53:14 +0100
+Subject: mm: handle write faults to RO pages under the VMA lock
+Date: Fri, 6 Oct 2023 20:53:18 +0100
 
-It is usually safe to call wp_page_copy() under the VMA lock.  The only
-unsafe situation is when no anon_vma has been allocated for this VMA, and
-we have to look at adjacent VMAs to determine if their anon_vma can be
-shared.  Since this happens only for the first COW of a page in this VMA,
-the majority of calls to wp_page_copy() do not need to fall back to the
-mmap_sem.
+I think this is a pretty rare occurrence, but for consistency handle
+faults with the VMA lock held the same way that we handle other faults
+with the VMA lock held.
 
-Add vmf_anon_prepare() as an alternative to anon_vma_prepare() which will
-return RETRY if we currently hold the VMA lock and need to allocate an
-anon_vma.  This lets us drop the check in do_wp_page().
-
-Link: https://lkml.kernel.org/r/20231006195318.4087158-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231006195318.4087158-7-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   39 ++++++++++++++++++++++++++-------------
- 1 file changed, 26 insertions(+), 13 deletions(-)
+ mm/memory.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
---- a/mm/memory.c~mm-call-wp_page_copy-under-the-vma-lock
+--- a/mm/memory.c~mm-handle-write-faults-to-ro-pages-under-the-vma-lock
 +++ a/mm/memory.c
-@@ -3045,6 +3045,21 @@ static inline void wp_page_reuse(struct
- 	count_vm_event(PGREUSE);
- }
+@@ -3304,10 +3304,9 @@ static vm_fault_t wp_pfn_shared(struct v
+ 		vm_fault_t ret;
  
-+static vm_fault_t vmf_anon_prepare(struct vm_fault *vmf)
-+{
-+	struct vm_area_struct *vma = vmf->vma;
-+
-+	if (likely(vma->anon_vma))
-+		return 0;
-+	if (vmf->flags & FAULT_FLAG_VMA_LOCK) {
-+		vma_end_read(vma);
-+		return VM_FAULT_RETRY;
-+	}
-+	if (__anon_vma_prepare(vma))
-+		return VM_FAULT_OOM;
-+	return 0;
-+}
-+
- /*
-  * Handle the case of a page which we actually need to copy to a new page,
-  * either due to COW or unsharing.
-@@ -3072,27 +3087,29 @@ static vm_fault_t wp_page_copy(struct vm
- 	pte_t entry;
- 	int page_copied = 0;
- 	struct mmu_notifier_range range;
--	int ret;
-+	vm_fault_t ret;
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+-		if (vmf->flags & FAULT_FLAG_VMA_LOCK) {
+-			vma_end_read(vmf->vma);
+-			return VM_FAULT_RETRY;
+-		}
++		ret = vmf_can_call_fault(vmf);
++		if (ret)
++			return ret;
  
- 	delayacct_wpcopy_start();
+ 		vmf->flags |= FAULT_FLAG_MKWRITE;
+ 		ret = vma->vm_ops->pfn_mkwrite(vmf);
+@@ -3331,10 +3330,10 @@ static vm_fault_t wp_page_shared(struct
+ 		vm_fault_t tmp;
  
- 	if (vmf->page)
- 		old_folio = page_folio(vmf->page);
--	if (unlikely(anon_vma_prepare(vma)))
--		goto oom;
-+	ret = vmf_anon_prepare(vmf);
-+	if (unlikely(ret))
-+		goto out;
- 
- 	if (is_zero_pfn(pte_pfn(vmf->orig_pte))) {
- 		new_folio = vma_alloc_zeroed_movable_folio(vma, vmf->address);
- 		if (!new_folio)
- 			goto oom;
- 	} else {
-+		int err;
- 		new_folio = vma_alloc_folio(GFP_HIGHUSER_MOVABLE, 0, vma,
- 				vmf->address, false);
- 		if (!new_folio)
- 			goto oom;
- 
--		ret = __wp_page_copy_user(&new_folio->page, vmf->page, vmf);
--		if (ret) {
-+		err = __wp_page_copy_user(&new_folio->page, vmf->page, vmf);
-+		if (err) {
- 			/*
- 			 * COW failed, if the fault was solved by other,
- 			 * it's fine. If not, userspace would re-fault on
-@@ -3105,7 +3122,7 @@ static vm_fault_t wp_page_copy(struct vm
- 				folio_put(old_folio);
- 
- 			delayacct_wpcopy_end();
--			return ret == -EHWPOISON ? VM_FAULT_HWPOISON : 0;
-+			return err == -EHWPOISON ? VM_FAULT_HWPOISON : 0;
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+-		if (vmf->flags & FAULT_FLAG_VMA_LOCK) {
++		tmp = vmf_can_call_fault(vmf);
++		if (tmp) {
+ 			folio_put(folio);
+-			vma_end_read(vmf->vma);
+-			return VM_FAULT_RETRY;
++			return tmp;
  		}
- 		kmsan_copy_page_meta(&new_folio->page, vmf->page);
- 	}
-@@ -3215,11 +3232,13 @@ static vm_fault_t wp_page_copy(struct vm
- oom_free_new:
- 	folio_put(new_folio);
- oom:
-+	ret = VM_FAULT_OOM;
-+out:
- 	if (old_folio)
- 		folio_put(old_folio);
  
- 	delayacct_wpcopy_end();
--	return VM_FAULT_OOM;
-+	return ret;
- }
- 
- /**
-@@ -3461,12 +3480,6 @@ reuse:
- 		return 0;
- 	}
- copy:
--	if ((vmf->flags & FAULT_FLAG_VMA_LOCK) && !vma->anon_vma) {
--		pte_unmap_unlock(vmf->pte, vmf->ptl);
--		vma_end_read(vmf->vma);
--		return VM_FAULT_RETRY;
--	}
--
- 	/*
- 	 * Ok, we need to copy. Oh, well..
- 	 */
+ 		tmp = do_page_mkwrite(vmf, folio);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
