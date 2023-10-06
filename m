@@ -2,34 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63D46E94104
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:18:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7954E94104
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:18:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233389AbjJFTSc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Oct 2023 15:18:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60558 "EHLO
+        id S233365AbjJFTSi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Oct 2023 15:18:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60594 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233385AbjJFTSb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:18:31 -0400
+        with ESMTP id S233385AbjJFTSe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:18:34 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E38A495
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:18:28 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DBCAC433C8;
-        Fri,  6 Oct 2023 19:18:28 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F912A6
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:18:32 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42F0AC433C7;
+        Fri,  6 Oct 2023 19:18:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696619908;
-        bh=/OJrbJVSYCUtsnMkDUY1DZ7tzE5cowUvItka3tspaN0=;
+        s=korg; t=1696619911;
+        bh=thc2qTDu/EAHMe5rcyhoAAoMWHaf6gmalgeQFRAzv1Y=;
         h=Date:To:From:Subject:From;
-        b=X2WMfB4hn6oXh4T3YZzpy1JqJ/lfAcQFZzy1oSUDrluddzcnwLQNZqfKQFOTYIU3s
-         zVcsFntrxvoIWz0X3A/yfiKt6CDOmR9H+lPFnCXxnDens921wtvENFIqYizvWzhQAh
-         jJdVY4WnsvWhremc2n8RVhD95ujHcrzcC4DSp86A=
-Date:   Fri, 06 Oct 2023 12:18:26 -0700
+        b=a/KKjoErtITSUvURuT277hTU2b09JnLbQsRDxpUEyvmymABxvAFQG6S+HksNKiNrU
+         L4RjmpS7bmrPf1Q5p0ckCBheVIV02x5rdrpYiOVWYkcC2lE59V+8NtYM8HDZkq8feX
+         JTT1IcwsN4IU+nJvtkDaF5wKdQSNFCbJFWOiycVo=
+Date:   Fri, 06 Oct 2023 12:18:28 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        muchun.song@linux.dev, mike.kravetz@oracle.com, riel@surriel.com,
-        akpm@linux-foundation.org
+        songmuchun@bytedance.com, rientjes@google.com, osalvador@suse.de,
+        naoya.horiguchi@linux.dev, mhocko@suse.com, linmiaohe@huawei.com,
+        konradybcio@kernel.org, jthoughton@google.com,
+        joao.m.martins@oracle.com, duanxiongchun@bytedance.com,
+        david@redhat.com, anshuman.khandual@arm.com, 21cnbao@gmail.com,
+        mike.kravetz@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlbfs-replace-hugetlb_vma_lock-with-invalidate_lock.patch added to mm-unstable branch
-Message-Id: <20231006191828.3DBCAC433C8@smtp.kernel.org>
+Subject: + hugetlb-restructure-pool-allocations.patch added to mm-unstable branch
+Message-Id: <20231006191831.42F0AC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlbfs: replace hugetlb_vma_lock with invalidate_lock
+     Subject: hugetlb: restructure pool allocations
 has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlbfs-replace-hugetlb_vma_lock-with-invalidate_lock.patch
+     hugetlb-restructure-pool-allocations.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlbfs-replace-hugetlb_vma_lock-with-invalidate_lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-restructure-pool-allocations.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,603 +64,371 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Rik van Riel <riel@surriel.com>
-Subject: hugetlbfs: replace hugetlb_vma_lock with invalidate_lock
-Date: Thu, 5 Oct 2023 23:59:09 -0400
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb: restructure pool allocations
+Date: Thu, 5 Oct 2023 20:20:04 -0700
 
-Replace the custom hugetlbfs VMA locking code with the recently introduced
-invalidate_lock.  This greatly simplifies things.
+Allocation of a hugetlb page for the hugetlb pool is done by the routine
+alloc_pool_huge_page.  This routine will allocate contiguous pages from a
+low level allocator, prep the pages for usage as a hugetlb page and then
+add the resulting hugetlb page to the pool.
 
-However, this is a large enough change that it should probably go in
-separately from the other changes.
+In the 'prep' stage, optional vmemmap optimization is done.  For
+performance reasons we want to perform vmemmap optimization on multiple
+hugetlb pages at once.  To do this, restructure the hugetlb pool
+allocation code such that vmemmap optimization can be isolated and later
+batched.
 
-Another question is whether this simplification hurts scalability for
-certain workloads.
+The code to allocate hugetlb pages from bootmem was also modified to allow
+batching.
 
-Link: https://lkml.kernel.org/r/20231006040020.3677377-5-riel@surriel.com
-Signed-off-by: Rik van Riel <riel@surriel.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+No functional changes, only code restructure.
+
+Link: https://lkml.kernel.org/r/20231006032012.296473-3-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: Konrad Dybcio <konradybcio@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c    |   71 +----------
- include/linux/fs.h      |    6 
- include/linux/hugetlb.h |   21 ---
- mm/hugetlb.c            |  237 +++-----------------------------------
- 4 files changed, 35 insertions(+), 300 deletions(-)
+ mm/hugetlb.c |  179 ++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 140 insertions(+), 39 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~hugetlbfs-replace-hugetlb_vma_lock-with-invalidate_lock
-+++ a/fs/hugetlbfs/inode.c
-@@ -462,7 +462,6 @@ static void hugetlb_unmap_file_folio(str
- 					struct folio *folio, pgoff_t index)
+--- a/mm/hugetlb.c~hugetlb-restructure-pool-allocations
++++ a/mm/hugetlb.c
+@@ -1852,16 +1852,21 @@ static void __prep_account_new_huge_page
+ 	h->nr_huge_pages_node[nid]++;
+ }
+ 
+-static void __prep_new_hugetlb_folio(struct hstate *h, struct folio *folio)
++static void init_new_hugetlb_folio(struct hstate *h, struct folio *folio)
  {
- 	struct rb_root_cached *root = &mapping->i_mmap;
--	struct hugetlb_vma_lock *vma_lock;
- 	struct page *page = &folio->page;
- 	struct vm_area_struct *vma;
- 	unsigned long v_start;
-@@ -472,9 +471,9 @@ static void hugetlb_unmap_file_folio(str
- 	start = index * pages_per_huge_page(h);
- 	end = (index + 1) * pages_per_huge_page(h);
- 
-+	filemap_invalidate_lock(mapping);
- 	i_mmap_lock_write(mapping);
--retry:
--	vma_lock = NULL;
-+
- 	vma_interval_tree_foreach(vma, root, start, end - 1) {
- 		v_start = vma_offset_start(vma, start);
- 		v_end = vma_offset_end(vma, end);
-@@ -482,62 +481,12 @@ retry:
- 		if (!hugetlb_vma_maps_page(vma, v_start, page))
- 			continue;
- 
--		if (!hugetlb_vma_trylock_write(vma)) {
--			vma_lock = vma->vm_private_data;
--			/*
--			 * If we can not get vma lock, we need to drop
--			 * immap_sema and take locks in order.  First,
--			 * take a ref on the vma_lock structure so that
--			 * we can be guaranteed it will not go away when
--			 * dropping immap_sema.
--			 */
--			kref_get(&vma_lock->refs);
--			break;
--		}
--
- 		unmap_hugepage_range(vma, v_start, v_end, NULL,
- 				     ZAP_FLAG_DROP_MARKER);
--		hugetlb_vma_unlock_write(vma);
- 	}
- 
-+	filemap_invalidate_unlock(mapping);
- 	i_mmap_unlock_write(mapping);
--
--	if (vma_lock) {
--		/*
--		 * Wait on vma_lock.  We know it is still valid as we have
--		 * a reference.  We must 'open code' vma locking as we do
--		 * not know if vma_lock is still attached to vma.
--		 */
--		down_write(&vma_lock->rw_sema);
--		i_mmap_lock_write(mapping);
--
--		vma = vma_lock->vma;
--		if (!vma) {
--			/*
--			 * If lock is no longer attached to vma, then just
--			 * unlock, drop our reference and retry looking for
--			 * other vmas.
--			 */
--			up_write(&vma_lock->rw_sema);
--			kref_put(&vma_lock->refs, hugetlb_vma_lock_release);
--			goto retry;
--		}
--
--		/*
--		 * vma_lock is still attached to vma.  Check to see if vma
--		 * still maps page and if so, unmap.
--		 */
--		v_start = vma_offset_start(vma, start);
--		v_end = vma_offset_end(vma, end);
--		if (hugetlb_vma_maps_page(vma, v_start, page))
--			unmap_hugepage_range(vma, v_start, v_end, NULL,
--					     ZAP_FLAG_DROP_MARKER);
--
--		kref_put(&vma_lock->refs, hugetlb_vma_lock_release);
--		hugetlb_vma_unlock_write(vma);
--
--		goto retry;
--	}
+ 	folio_set_hugetlb(folio);
+-	hugetlb_vmemmap_optimize(h, &folio->page);
+ 	INIT_LIST_HEAD(&folio->lru);
+ 	hugetlb_set_folio_subpool(folio, NULL);
+ 	set_hugetlb_cgroup(folio, NULL);
+ 	set_hugetlb_cgroup_rsvd(folio, NULL);
  }
  
- static void
-@@ -555,20 +504,10 @@ hugetlb_vmdelete_list(struct rb_root_cac
- 		unsigned long v_start;
- 		unsigned long v_end;
- 
--		if (!hugetlb_vma_trylock_write(vma))
--			continue;
--
- 		v_start = vma_offset_start(vma, start);
- 		v_end = vma_offset_end(vma, end);
- 
- 		unmap_hugepage_range(vma, v_start, v_end, NULL, zap_flags);
--
--		/*
--		 * Note that vma lock only exists for shared/non-private
--		 * vmas.  Therefore, lock is not held when calling
--		 * unmap_hugepage_range for private vmas.
--		 */
--		hugetlb_vma_unlock_write(vma);
- 	}
- }
- 
-@@ -703,10 +642,12 @@ static void hugetlb_vmtruncate(struct in
- 	pgoff = offset >> PAGE_SHIFT;
- 
- 	i_size_write(inode, offset);
-+	filemap_invalidate_lock(mapping);
- 	i_mmap_lock_write(mapping);
- 	if (!RB_EMPTY_ROOT(&mapping->i_mmap.rb_root))
- 		hugetlb_vmdelete_list(&mapping->i_mmap, pgoff, 0,
- 				      ZAP_FLAG_DROP_MARKER);
-+	filemap_invalidate_unlock(mapping);
- 	i_mmap_unlock_write(mapping);
- 	remove_inode_hugepages(inode, offset, LLONG_MAX);
- }
-@@ -756,6 +697,7 @@ static long hugetlbfs_punch_hole(struct
- 		return -EPERM;
- 	}
- 
-+	filemap_invalidate_lock(mapping);
- 	i_mmap_lock_write(mapping);
- 
- 	/* If range starts before first full page, zero partial page. */
-@@ -777,6 +719,7 @@ static long hugetlbfs_punch_hole(struct
- 				hole_end, offset + len);
- 
- 	i_mmap_unlock_write(mapping);
-+	filemap_invalidate_unlock(mapping);
- 
- 	/* Remove full pages from the file. */
- 	if (hole_end > hole_start)
---- a/include/linux/fs.h~hugetlbfs-replace-hugetlb_vma_lock-with-invalidate_lock
-+++ a/include/linux/fs.h
-@@ -847,6 +847,12 @@ static inline void filemap_invalidate_lo
- 	down_write(&mapping->invalidate_lock);
- }
- 
-+static inline int filemap_invalidate_trylock(
-+					struct address_space *mapping)
++static void __prep_new_hugetlb_folio(struct hstate *h, struct folio *folio)
 +{
-+	return down_write_trylock(&mapping->invalidate_lock);
++	init_new_hugetlb_folio(h, folio);
++	hugetlb_vmemmap_optimize(h, &folio->page);
 +}
 +
- static inline void filemap_invalidate_unlock(struct address_space *mapping)
+ static void prep_new_hugetlb_folio(struct hstate *h, struct folio *folio, int nid)
  {
- 	up_write(&mapping->invalidate_lock);
---- a/include/linux/hugetlb.h~hugetlbfs-replace-hugetlb_vma_lock-with-invalidate_lock
-+++ a/include/linux/hugetlb.h
-@@ -60,7 +60,6 @@ struct resv_map {
- 	long adds_in_progress;
- 	struct list_head region_cache;
- 	long region_cache_count;
--	struct rw_semaphore rw_sema;
- #ifdef CONFIG_CGROUP_HUGETLB
- 	/*
- 	 * On private mappings, the counter to uncharge reservations is stored
-@@ -107,12 +106,6 @@ struct file_region {
- #endif
- };
+ 	__prep_new_hugetlb_folio(h, folio);
+@@ -2058,16 +2063,9 @@ retry:
+ 	return page_folio(page);
+ }
  
--struct hugetlb_vma_lock {
--	struct kref refs;
--	struct rw_semaphore rw_sema;
--	struct vm_area_struct *vma;
--};
--
- extern struct resv_map *resv_map_alloc(void);
- void resv_map_release(struct kref *ref);
- 
-@@ -1282,17 +1275,9 @@ hugetlb_walk(struct vm_area_struct *vma,
+-/*
+- * Common helper to allocate a fresh hugetlb page. All specific allocators
+- * should use this function to get new hugetlb pages
+- *
+- * Note that returned page is 'frozen':  ref count of head page and all tail
+- * pages is zero.
+- */
+-static struct folio *alloc_fresh_hugetlb_folio(struct hstate *h,
+-		gfp_t gfp_mask, int nid, nodemask_t *nmask,
+-		nodemask_t *node_alloc_noretry)
++static struct folio *__alloc_fresh_hugetlb_folio(struct hstate *h,
++				gfp_t gfp_mask, int nid, nodemask_t *nmask,
++				nodemask_t *node_alloc_noretry)
  {
- #if defined(CONFIG_HUGETLB_PAGE) && \
- 	defined(CONFIG_ARCH_WANT_HUGE_PMD_SHARE) && defined(CONFIG_LOCKDEP)
--	struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
--
--	/*
--	 * If pmd sharing possible, locking needed to safely walk the
--	 * hugetlb pgtables.  More information can be found at the comment
--	 * above huge_pte_offset() in the same file.
--	 *
--	 * NOTE: lockdep_is_held() is only defined with CONFIG_LOCKDEP.
--	 */
--	if (__vma_shareable_lock(vma))
--		WARN_ON_ONCE(!lockdep_is_held(&vma_lock->rw_sema) &&
-+	if (vma->vm_file)
-+		WARN_ON_ONCE(!lockdep_is_held(
-+				 &vma->vm_file->f_mapping->invalidate_lock) &&
- 			     !lockdep_is_held(
- 				 &vma->vm_file->f_mapping->i_mmap_rwsem));
- #endif
---- a/mm/hugetlb.c~hugetlbfs-replace-hugetlb_vma_lock-with-invalidate_lock
-+++ a/mm/hugetlb.c
-@@ -92,9 +92,6 @@ struct mutex *hugetlb_fault_mutex_table
+ 	struct folio *folio;
+ 	bool retry = false;
+@@ -2080,6 +2078,7 @@ retry:
+ 				nid, nmask, node_alloc_noretry);
+ 	if (!folio)
+ 		return NULL;
++
+ 	if (hstate_is_gigantic(h)) {
+ 		if (!prep_compound_gigantic_folio(folio, huge_page_order(h))) {
+ 			/*
+@@ -2094,32 +2093,80 @@ retry:
+ 			return NULL;
+ 		}
+ 	}
+-	prep_new_hugetlb_folio(h, folio, folio_nid(folio));
  
- /* Forward declaration */
- static int hugetlb_acct_memory(struct hstate *h, long delta);
--static void hugetlb_vma_lock_free(struct vm_area_struct *vma);
--static void hugetlb_vma_lock_alloc(struct vm_area_struct *vma);
--static void __hugetlb_vma_unlock_write_free(struct vm_area_struct *vma);
- static void hugetlb_unshare_pmds(struct vm_area_struct *vma,
- 		unsigned long start, unsigned long end);
- static struct resv_map *vma_resv_map(struct vm_area_struct *vma);
-@@ -264,170 +261,41 @@ static inline struct hugepage_subpool *s
+ 	return folio;
+ }
+ 
++static struct folio *only_alloc_fresh_hugetlb_folio(struct hstate *h,
++		gfp_t gfp_mask, int nid, nodemask_t *nmask,
++		nodemask_t *node_alloc_noretry)
++{
++	struct folio *folio;
++
++	folio = __alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask,
++						node_alloc_noretry);
++	if (folio)
++		init_new_hugetlb_folio(h, folio);
++	return folio;
++}
++
+ /*
+- * Allocates a fresh page to the hugetlb allocator pool in the node interleaved
+- * manner.
++ * Common helper to allocate a fresh hugetlb page. All specific allocators
++ * should use this function to get new hugetlb pages
++ *
++ * Note that returned page is 'frozen':  ref count of head page and all tail
++ * pages is zero.
   */
- void hugetlb_vma_lock_read(struct vm_area_struct *vma)
+-static int alloc_pool_huge_page(struct hstate *h, nodemask_t *nodes_allowed,
+-				nodemask_t *node_alloc_noretry)
++static struct folio *alloc_fresh_hugetlb_folio(struct hstate *h,
++		gfp_t gfp_mask, int nid, nodemask_t *nmask,
++		nodemask_t *node_alloc_noretry)
  {
--	if (__vma_shareable_lock(vma)) {
--		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
--
--		down_read(&vma_lock->rw_sema);
--	} else if (__vma_private_lock(vma)) {
--		struct resv_map *resv_map = vma_resv_map(vma);
--
--		down_read(&resv_map->rw_sema);
--	}
-+	if (vma->vm_file)
-+		filemap_invalidate_lock_shared(vma->vm_file->f_mapping);
- }
- 
- void hugetlb_vma_unlock_read(struct vm_area_struct *vma)
- {
--	if (__vma_shareable_lock(vma)) {
--		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
--
--		up_read(&vma_lock->rw_sema);
--	} else if (__vma_private_lock(vma)) {
--		struct resv_map *resv_map = vma_resv_map(vma);
--
--		up_read(&resv_map->rw_sema);
--	}
-+	if (vma->vm_file)
-+		filemap_invalidate_unlock_shared(vma->vm_file->f_mapping);
- }
- 
- void hugetlb_vma_lock_write(struct vm_area_struct *vma)
- {
--	if (__vma_shareable_lock(vma)) {
--		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
--
--		down_write(&vma_lock->rw_sema);
--	} else if (__vma_private_lock(vma)) {
--		struct resv_map *resv_map = vma_resv_map(vma);
--
--		down_write(&resv_map->rw_sema);
--	}
-+	if (vma->vm_file)
-+		filemap_invalidate_lock(vma->vm_file->f_mapping);
- }
- 
- void hugetlb_vma_unlock_write(struct vm_area_struct *vma)
- {
--	if (__vma_shareable_lock(vma)) {
--		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
--
--		up_write(&vma_lock->rw_sema);
--	} else if (__vma_private_lock(vma)) {
--		struct resv_map *resv_map = vma_resv_map(vma);
--
--		up_write(&resv_map->rw_sema);
--	}
-+	if (vma->vm_file)
-+		filemap_invalidate_unlock(vma->vm_file->f_mapping);
- }
- 
- int hugetlb_vma_trylock_write(struct vm_area_struct *vma)
- {
- 
--	if (__vma_shareable_lock(vma)) {
--		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
--
--		return down_write_trylock(&vma_lock->rw_sema);
--	} else if (__vma_private_lock(vma)) {
--		struct resv_map *resv_map = vma_resv_map(vma);
--
--		return down_write_trylock(&resv_map->rw_sema);
--	}
-+	if (vma->vm_file)
-+		return filemap_invalidate_trylock(vma->vm_file->f_mapping);
- 
- 	return 1;
- }
- 
- void hugetlb_vma_assert_locked(struct vm_area_struct *vma)
- {
--	if (__vma_shareable_lock(vma)) {
--		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
--
--		lockdep_assert_held(&vma_lock->rw_sema);
--	} else if (__vma_private_lock(vma)) {
--		struct resv_map *resv_map = vma_resv_map(vma);
--
--		lockdep_assert_held(&resv_map->rw_sema);
--	}
--}
--
--void hugetlb_vma_lock_release(struct kref *kref)
--{
--	struct hugetlb_vma_lock *vma_lock = container_of(kref,
--			struct hugetlb_vma_lock, refs);
--
--	kfree(vma_lock);
--}
--
--static void __hugetlb_vma_unlock_write_put(struct hugetlb_vma_lock *vma_lock)
--{
--	struct vm_area_struct *vma = vma_lock->vma;
--
--	/*
--	 * vma_lock structure may or not be released as a result of put,
--	 * it certainly will no longer be attached to vma so clear pointer.
--	 * Semaphore synchronizes access to vma_lock->vma field.
--	 */
--	vma_lock->vma = NULL;
--	vma->vm_private_data = NULL;
--	up_write(&vma_lock->rw_sema);
--	kref_put(&vma_lock->refs, hugetlb_vma_lock_release);
--}
--
--static void __hugetlb_vma_unlock_write_free(struct vm_area_struct *vma)
--{
--	if (__vma_shareable_lock(vma)) {
--		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
--
--		__hugetlb_vma_unlock_write_put(vma_lock);
--	} else if (__vma_private_lock(vma)) {
--		struct resv_map *resv_map = vma_resv_map(vma);
--
--		/* no free for anon vmas, but still need to unlock */
--		up_write(&resv_map->rw_sema);
--	}
--}
--
--static void hugetlb_vma_lock_free(struct vm_area_struct *vma)
--{
--	/*
--	 * Only present in sharable vmas.
--	 */
--	if (!vma || !__vma_shareable_lock(vma))
--		return;
--
--	if (vma->vm_private_data) {
--		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
--
--		down_write(&vma_lock->rw_sema);
--		__hugetlb_vma_unlock_write_put(vma_lock);
--	}
--}
--
--static void hugetlb_vma_lock_alloc(struct vm_area_struct *vma)
--{
--	struct hugetlb_vma_lock *vma_lock;
--
--	/* Only establish in (flags) sharable vmas */
--	if (!vma || !(vma->vm_flags & VM_MAYSHARE))
--		return;
--
--	/* Should never get here with non-NULL vm_private_data */
--	if (vma->vm_private_data)
--		return;
--
--	vma_lock = kmalloc(sizeof(*vma_lock), GFP_KERNEL);
--	if (!vma_lock) {
--		/*
--		 * If we can not allocate structure, then vma can not
--		 * participate in pmd sharing.  This is only a possible
--		 * performance enhancement and memory saving issue.
--		 * However, the lock is also used to synchronize page
--		 * faults with truncation.  If the lock is not present,
--		 * unlikely races could leave pages in a file past i_size
--		 * until the file is removed.  Warn in the unlikely case of
--		 * allocation failure.
--		 */
--		pr_warn_once("HugeTLB: unable to allocate vma specific lock\n");
--		return;
--	}
--
--	kref_init(&vma_lock->refs);
--	init_rwsem(&vma_lock->rw_sema);
--	vma_lock->vma = vma;
--	vma->vm_private_data = vma_lock;
-+	if (vma->vm_file)
-+		lockdep_assert_held(&vma->vm_file->f_mapping->invalidate_lock);
- }
- 
- /* Helper that removes a struct file_region from the resv_map cache and returns
-@@ -1093,7 +961,6 @@ struct resv_map *resv_map_alloc(void)
- 	kref_init(&resv_map->refs);
- 	spin_lock_init(&resv_map->lock);
- 	INIT_LIST_HEAD(&resv_map->regions);
--	init_rwsem(&resv_map->rw_sema);
- 
- 	resv_map->adds_in_progress = 0;
- 	/*
-@@ -1187,22 +1054,11 @@ void hugetlb_dup_vma_private(struct vm_a
- 	VM_BUG_ON_VMA(!is_vm_hugetlb_page(vma), vma);
- 	/*
- 	 * Clear vm_private_data
--	 * - For shared mappings this is a per-vma semaphore that may be
--	 *   allocated in a subsequent call to hugetlb_vm_op_open.
--	 *   Before clearing, make sure pointer is not associated with vma
--	 *   as this will leak the structure.  This is the case when called
--	 *   via clear_vma_resv_huge_pages() and hugetlb_vm_op_open has already
--	 *   been called to allocate a new structure.
- 	 * - For MAP_PRIVATE mappings, this is the reserve map which does
- 	 *   not apply to children.  Faults generated by the children are
- 	 *   not guaranteed to succeed, even if read-only.
- 	 */
--	if (vma->vm_flags & VM_MAYSHARE) {
--		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
--
--		if (vma_lock && vma_lock->vma != vma)
--			vma->vm_private_data = NULL;
--	} else
-+	if (!(vma->vm_flags & VM_MAYSHARE))
- 		vma->vm_private_data = NULL;
- }
- 
-@@ -4889,25 +4745,6 @@ static void hugetlb_vm_op_open(struct vm
- 		resv_map_dup_hugetlb_cgroup_uncharge_info(resv);
- 		kref_get(&resv->refs);
- 	}
--
--	/*
--	 * vma_lock structure for sharable mappings is vma specific.
--	 * Clear old pointer (if copied via vm_area_dup) and allocate
--	 * new structure.  Before clearing, make sure vma_lock is not
--	 * for this vma.
--	 */
--	if (vma->vm_flags & VM_MAYSHARE) {
--		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
--
--		if (vma_lock) {
--			if (vma_lock->vma != vma) {
--				vma->vm_private_data = NULL;
--				hugetlb_vma_lock_alloc(vma);
--			} else
--				pr_warn("HugeTLB: vma_lock already exists in %s.\n", __func__);
--		} else
--			hugetlb_vma_lock_alloc(vma);
--	}
- }
- 
- static void hugetlb_vm_op_close(struct vm_area_struct *vma)
-@@ -4918,8 +4755,6 @@ static void hugetlb_vm_op_close(struct v
- 	unsigned long reserve, start, end;
- 	long gbl_reserve;
- 
--	hugetlb_vma_lock_free(vma);
--
- 	resv = vma_resv_map(vma);
- 	if (!resv || !is_vma_resv_set(vma, HPAGE_RESV_OWNER))
- 		return;
-@@ -5091,16 +4926,10 @@ int copy_hugetlb_page_range(struct mm_st
- 		mmu_notifier_invalidate_range_start(&range);
- 		vma_assert_write_locked(src_vma);
- 		raw_write_seqcount_begin(&src->write_protect_seq);
--	} else {
--		/*
--		 * For shared mappings the vma lock must be held before
--		 * calling hugetlb_walk() in the src vma. Otherwise, the
--		 * returned ptep could go away if part of a shared pmd and
--		 * another thread calls huge_pmd_unshare.
--		 */
--		hugetlb_vma_lock_read(src_vma);
- 	}
- 
-+	hugetlb_vma_lock_read(src_vma);
+ 	struct folio *folio;
+-	int nr_nodes, node;
 +
- 	last_addr_mask = hugetlb_mask_last_page(h);
- 	for (addr = src_vma->vm_start; addr < src_vma->vm_end; addr += sz) {
- 		spinlock_t *src_ptl, *dst_ptl;
-@@ -5252,10 +5081,10 @@ again:
- 	if (cow) {
- 		raw_write_seqcount_end(&src->write_protect_seq);
- 		mmu_notifier_invalidate_range_end(&range);
--	} else {
--		hugetlb_vma_unlock_read(src_vma);
- 	}
- 
-+	hugetlb_vma_unlock_read(src_vma);
++	folio = __alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask,
++						node_alloc_noretry);
++	if (!folio)
++		return NULL;
 +
- 	return ret;
++	prep_new_hugetlb_folio(h, folio, folio_nid(folio));
++	return folio;
++}
++
++static void prep_and_add_allocated_folios(struct hstate *h,
++					struct list_head *folio_list)
++{
++	struct folio *folio, *tmp_f;
++
++	/* Add all new pool pages to free lists in one lock cycle */
++	spin_lock_irq(&hugetlb_lock);
++	list_for_each_entry_safe(folio, tmp_f, folio_list, lru) {
++		__prep_account_new_huge_page(h, folio_nid(folio));
++		enqueue_hugetlb_folio(h, folio);
++	}
++	spin_unlock_irq(&hugetlb_lock);
++}
++
++/*
++ * Allocates a fresh hugetlb page in a node interleaved manner.  The page
++ * will later be added to the appropriate hugetlb pool.
++ */
++static struct folio *alloc_pool_huge_folio(struct hstate *h,
++					nodemask_t *nodes_allowed,
++					nodemask_t *node_alloc_noretry)
++{
+ 	gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
++	int nr_nodes, node;
+ 
+ 	for_each_node_mask_to_alloc(h, nr_nodes, node, nodes_allowed) {
+-		folio = alloc_fresh_hugetlb_folio(h, gfp_mask, node,
++		struct folio *folio;
++
++		folio = only_alloc_fresh_hugetlb_folio(h, gfp_mask, node,
+ 					nodes_allowed, node_alloc_noretry);
+-		if (folio) {
+-			free_huge_folio(folio); /* free it into the hugepage allocator */
+-			return 1;
+-		}
++		if (folio)
++			return folio;
+ 	}
+ 
+-	return 0;
++	return NULL;
  }
  
-@@ -5496,28 +5325,12 @@ void __hugetlb_zap_begin(struct vm_area_
- void __hugetlb_zap_end(struct vm_area_struct *vma,
- 		       struct zap_details *details)
+ /*
+@@ -3134,25 +3181,35 @@ static void __init hugetlb_folio_init_vm
+  */
+ static void __init gather_bootmem_prealloc(void)
  {
--	zap_flags_t zap_flags = details ? details->zap_flags : 0;
--
- 	if (!vma->vm_file)	/* hugetlbfs_file_mmap error */
- 		return;
++	LIST_HEAD(folio_list);
+ 	struct huge_bootmem_page *m;
++	struct hstate *h, *prev_h = NULL;
  
--	if (zap_flags & ZAP_FLAG_UNMAP) {	/* final unmap */
--		/*
--		 * Unlock and free the vma lock before releasing i_mmap_rwsem.
--		 * When the vma_lock is freed, this makes the vma ineligible
--		 * for pmd sharing.  And, i_mmap_rwsem is required to set up
--		 * pmd sharing.  This is important as page tables for this
--		 * unmapped range will be asynchrously deleted.  If the page
--		 * tables are shared, there will be issues when accessed by
--		 * someone else.
--		 */
--		__hugetlb_vma_unlock_write_free(vma);
--	} else {
--		hugetlb_vma_unlock_write(vma);
--	}
--
- 	if (vma->vm_file)
- 		i_mmap_unlock_write(vma->vm_file->f_mapping);
-+	hugetlb_vma_unlock_write(vma);
+ 	list_for_each_entry(m, &huge_boot_pages, list) {
+ 		struct page *page = virt_to_page(m);
+ 		struct folio *folio = (void *)page;
+-		struct hstate *h = m->hstate;
++
++		h = m->hstate;
++		/*
++		 * It is possible to have multiple huge page sizes (hstates)
++		 * in this list.  If so, process each size separately.
++		 */
++		if (h != prev_h && prev_h != NULL)
++			prep_and_add_allocated_folios(prev_h, &folio_list);
++		prev_h = h;
+ 
+ 		VM_BUG_ON(!hstate_is_gigantic(h));
+ 		WARN_ON(folio_ref_count(folio) != 1);
+ 
+ 		hugetlb_folio_init_vmemmap(folio, h,
+ 					   HUGETLB_VMEMMAP_RESERVE_PAGES);
+-		prep_new_hugetlb_folio(h, folio, folio_nid(folio));
++		__prep_new_hugetlb_folio(h, folio);
+ 		/* If HVO fails, initialize all tail struct pages */
+ 		if (!HPageVmemmapOptimized(&folio->page))
+ 			hugetlb_folio_init_tail_vmemmap(folio,
+ 						HUGETLB_VMEMMAP_RESERVE_PAGES,
+ 						pages_per_huge_page(h));
+-		free_huge_folio(folio); /* add to the hugepage allocator */
++		list_add(&folio->lru, &folio_list);
+ 
+ 		/*
+ 		 * We need to restore the 'stolen' pages to totalram_pages
+@@ -3162,6 +3219,8 @@ static void __init gather_bootmem_preall
+ 		adjust_managed_page_count(page, pages_per_huge_page(h));
+ 		cond_resched();
+ 	}
++
++	prep_and_add_allocated_folios(h, &folio_list);
  }
  
- void unmap_hugepage_range(struct vm_area_struct *vma, unsigned long start,
-@@ -6793,12 +6606,6 @@ bool hugetlb_reserve_pages(struct inode
+ static void __init hugetlb_hstate_alloc_pages_onenode(struct hstate *h, int nid)
+@@ -3195,9 +3254,22 @@ static void __init hugetlb_hstate_alloc_
+ 	h->max_huge_pages_node[nid] = i;
+ }
+ 
++/*
++ * NOTE: this routine is called in different contexts for gigantic and
++ * non-gigantic pages.
++ * - For gigantic pages, this is called early in the boot process and
++ *   pages are allocated from memblock allocated or something similar.
++ *   Gigantic pages are actually added to pools later with the routine
++ *   gather_bootmem_prealloc.
++ * - For non-gigantic pages, this is called later in the boot process after
++ *   all of mm is up and functional.  Pages are allocated from buddy and
++ *   then added to hugetlb pools.
++ */
+ static void __init hugetlb_hstate_alloc_pages(struct hstate *h)
+ {
+ 	unsigned long i;
++	struct folio *folio;
++	LIST_HEAD(folio_list);
+ 	nodemask_t *node_alloc_noretry;
+ 	bool node_specific_alloc = false;
+ 
+@@ -3239,14 +3311,25 @@ static void __init hugetlb_hstate_alloc_
+ 
+ 	for (i = 0; i < h->max_huge_pages; ++i) {
+ 		if (hstate_is_gigantic(h)) {
++			/*
++			 * gigantic pages not added to list as they are not
++			 * added to pools now.
++			 */
+ 			if (!alloc_bootmem_huge_page(h, NUMA_NO_NODE))
+ 				break;
+-		} else if (!alloc_pool_huge_page(h,
+-					 &node_states[N_MEMORY],
+-					 node_alloc_noretry))
+-			break;
++		} else {
++			folio = alloc_pool_huge_folio(h, &node_states[N_MEMORY],
++							node_alloc_noretry);
++			if (!folio)
++				break;
++			list_add(&folio->lru, &folio_list);
++		}
+ 		cond_resched();
+ 	}
++
++	/* list will be empty if hstate_is_gigantic */
++	prep_and_add_allocated_folios(h, &folio_list);
++
+ 	if (i < h->max_huge_pages) {
+ 		char buf[32];
+ 
+@@ -3380,7 +3463,9 @@ found:
+ static int set_max_huge_pages(struct hstate *h, unsigned long count, int nid,
+ 			      nodemask_t *nodes_allowed)
+ {
+-	unsigned long min_count, ret;
++	unsigned long min_count;
++	unsigned long allocated;
++	struct folio *folio;
+ 	LIST_HEAD(page_list);
+ 	NODEMASK_ALLOC(nodemask_t, node_alloc_noretry, GFP_KERNEL);
+ 
+@@ -3457,7 +3542,8 @@ static int set_max_huge_pages(struct hst
+ 			break;
+ 	}
+ 
+-	while (count > persistent_huge_pages(h)) {
++	allocated = 0;
++	while (count > (persistent_huge_pages(h) + allocated)) {
+ 		/*
+ 		 * If this allocation races such that we no longer need the
+ 		 * page, free_huge_folio will handle it by freeing the page
+@@ -3468,15 +3554,32 @@ static int set_max_huge_pages(struct hst
+ 		/* yield cpu to avoid soft lockup */
+ 		cond_resched();
+ 
+-		ret = alloc_pool_huge_page(h, nodes_allowed,
++		folio = alloc_pool_huge_folio(h, nodes_allowed,
+ 						node_alloc_noretry);
+-		spin_lock_irq(&hugetlb_lock);
+-		if (!ret)
++		if (!folio) {
++			prep_and_add_allocated_folios(h, &page_list);
++			spin_lock_irq(&hugetlb_lock);
+ 			goto out;
++		}
++
++		list_add(&folio->lru, &page_list);
++		allocated++;
+ 
+ 		/* Bail for signals. Probably ctrl-c from user */
+-		if (signal_pending(current))
++		if (signal_pending(current)) {
++			prep_and_add_allocated_folios(h, &page_list);
++			spin_lock_irq(&hugetlb_lock);
+ 			goto out;
++		}
++
++		spin_lock_irq(&hugetlb_lock);
++	}
++
++	/* Add allocated pages to the pool */
++	if (!list_empty(&page_list)) {
++		spin_unlock_irq(&hugetlb_lock);
++		prep_and_add_allocated_folios(h, &page_list);
++		spin_lock_irq(&hugetlb_lock);
  	}
  
  	/*
--	 * vma specific semaphore used for pmd sharing and fault/truncation
--	 * synchronization
--	 */
--	hugetlb_vma_lock_alloc(vma);
+@@ -3502,8 +3605,6 @@ static int set_max_huge_pages(struct hst
+ 	 * Collect pages to be removed on list without dropping lock
+ 	 */
+ 	while (min_count < persistent_huge_pages(h)) {
+-		struct folio *folio;
 -
--	/*
- 	 * Only apply hugepage reservation if asked. At fault time, an
- 	 * attempt will be made for VM_NORESERVE to allocate a page
- 	 * without using reserves
-@@ -6920,7 +6727,6 @@ out_uncharge_cgroup:
- 	hugetlb_cgroup_uncharge_cgroup_rsvd(hstate_index(h),
- 					    chg * pages_per_huge_page(h), h_cg);
- out_err:
--	hugetlb_vma_lock_free(vma);
- 	if (!vma || vma->vm_flags & VM_MAYSHARE)
- 		/* Only call region_abort if the region_chg succeeded but the
- 		 * region_add failed or didn't run.
-@@ -6992,13 +6798,10 @@ static unsigned long page_table_shareabl
- 	/*
- 	 * match the virtual addresses, permission and the alignment of the
- 	 * page table page.
--	 *
--	 * Also, vma_lock (vm_private_data) is required for sharing.
- 	 */
- 	if (pmd_index(addr) != pmd_index(saddr) ||
- 	    vm_flags != svm_flags ||
--	    !range_in_vma(svma, sbase, s_end) ||
--	    !svma->vm_private_data)
-+	    !range_in_vma(svma, sbase, s_end))
- 		return 0;
- 
- 	return saddr;
-@@ -7018,8 +6821,6 @@ bool want_pmd_share(struct vm_area_struc
- 	 */
- 	if (!(vma->vm_flags & VM_MAYSHARE))
- 		return false;
--	if (!vma->vm_private_data)	/* vma lock required for sharing */
--		return false;
- 	if (!range_in_vma(vma, start, end))
- 		return false;
- 	return true;
+ 		folio = remove_pool_hugetlb_folio(h, nodes_allowed, 0);
+ 		if (!folio)
+ 			break;
 _
 
-Patches currently in -mm which might be from riel@surriel.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-hugetlbfs-clear-resv_map-pointer-if-mmap-fails.patch
-hugetlbfs-extend-hugetlb_vma_lock-to-private-vmas.patch
-hugetlbfs-close-race-between-madv_dontneed-and-page-fault.patch
-hugetlbfs-replace-hugetlb_vma_lock-with-invalidate_lock.patch
+hugetlb-optimize-update_and_free_pages_bulk-to-avoid-lock-cycles.patch
+hugetlb-restructure-pool-allocations.patch
+hugetlb-perform-vmemmap-optimization-on-a-list-of-pages.patch
+hugetlb-perform-vmemmap-restoration-on-a-list-of-pages.patch
+hugetlb-batch-freeing-of-vmemmap-pages.patch
+hugetlb-batch-tlb-flushes-when-restoring-vmemmap.patch
 
