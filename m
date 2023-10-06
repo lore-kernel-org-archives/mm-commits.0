@@ -2,37 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5966EE94132
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 21:49:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A7FDE94131
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 21:49:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233811AbjJFVtF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Oct 2023 17:49:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51104 "EHLO
+        id S233806AbjJFVtE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Oct 2023 17:49:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51050 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233772AbjJFVtD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 17:49:03 -0400
+        with ESMTP id S233864AbjJFVs5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 17:48:57 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 028FCCF
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 14:49:01 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FCA7C433C8;
-        Fri,  6 Oct 2023 21:49:00 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7746CE
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 14:48:55 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0019EC433C7;
+        Fri,  6 Oct 2023 21:48:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696628940;
-        bh=1kimI6dJdm0fHZ1UY1XK31wOdqWKu60NYEDbafgDWuY=;
+        s=korg; t=1696628935;
+        bh=vmupAjxAk6MVnVWrXSI8JLPtmRuingnkzUbq0vYT2JQ=;
         h=Date:To:From:Subject:From;
-        b=RYB26mo+8j0ex7hXBCz4TuvkPubVDx5GnPH7SoQFIb+ImqpsLoqf1wv+5HPDHL7CP
-         B74tJivKS4igKwg+1Bt0B6s0zRUcaW5Lt+vGxxrTMJRRSW9KR+wHlodCUe5XwdD6GE
-         I42ACnzI6PWXEvJocomLeh/2aR91/jOT/HU+ruuM=
-Date:   Fri, 06 Oct 2023 14:48:58 -0700
+        b=O7l24zOjNXXGnQBorytBKsNciQXBkIjO1Gk1aaXOSTfTFGNuyTDl0esAL823aUr2H
+         C+gstHr18KEEoAPFVsWS7UD2Sabj4udIJs+tY3MQAhuiNeyBNug2OO3UIBoxD0Pkax
+         R21208jL3O5xfbP3B4tn93skV0KAk8NRXXZmm3a8=
+Date:   Fri, 06 Oct 2023 14:48:52 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         sudeep.holla@arm.com, pasha.tatashin@soleen.com, mhocko@suse.com,
         mgorman@techsingularity.net, jweiner@redhat.com, david@redhat.com,
         dave.hansen@linux.intel.com, cl@linux.com, arjan@linux.intel.com,
-        akpm@linux-foundation.org, ying.huang@intel.com,
-        akpm@linux-foundation.org
+        ying.huang@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-pcp-reduce-detecting-time-of-consecutive-high-order-page-freeing.patch removed from -mm tree
-Message-Id: <20231006214900.4FCA7C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-scale-the-number-of-pages-that-are-batch-allocated.patch removed from -mm tree
+Message-Id: <20231006214855.0019EC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,40 +39,33 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm, pcp: reduce detecting time of consecutive high order page freeing
+     Subject: mm, page_alloc: scale the number of pages that are batch allocated
 has been removed from the -mm tree.  Its filename was
-     mm-pcp-reduce-detecting-time-of-consecutive-high-order-page-freeing.patch
+     mm-page_alloc-scale-the-number-of-pages-that-are-batch-allocated.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: mm, pcp: reduce detecting time of consecutive high order page freeing
-Date: Tue, 26 Sep 2023 14:09:11 +0800
+Subject: mm, page_alloc: scale the number of pages that are batch allocated
+Date: Tue, 26 Sep 2023 14:09:06 +0800
 
-In current PCP auto-tuning design, if the number of pages allocated is
-much more than that of pages freed on a CPU, the PCP high may become the
-maximal value even if the allocating/freeing depth is small, for example,
-in the sender of network workloads.  If a CPU was used as sender
-originally, then it is used as receiver after context switching, we need
-to fill the whole PCP with maximal high before triggering PCP draining for
-consecutive high order freeing.  This will hurt the performance of some
-network workloads.
+When a task is allocating a large number of order-0 pages, it may acquire
+the zone->lock multiple times allocating pages in batches.  This may
+unnecessarily contend on the zone lock when allocating very large number
+of pages.  This patch adapts the size of the batch based on the recent
+pattern to scale the batch size for subsequent allocations.
 
-To solve the issue, in this patch, we will track the consecutive page
-freeing with a counter in stead of relying on PCP draining.  So, we can
-detect consecutive page freeing much earlier.
+On a 2-socket Intel server with 224 logical CPU, we run 8 kbuild instances
+in parallel (each with `make -j 28`) in 8 cgroup.  This simulates the
+kbuild server that is used by 0-Day kbuild service.  With the patch, the
+cycles% of the spinlock contention (mostly for zone lock) decreases from
+11.7% to 10.0% (with PCP size == 361).
 
-On a 2-socket Intel server with 128 logical CPU, we tested
-SCTP_STREAM_MANY test case of netperf test suite with 64-pair processes. 
-With the patch, the network bandwidth improves 3.1%.  This restores the
-performance drop caused by PCP auto-tuning.
-
-Link: https://lkml.kernel.org/r/20230926060911.266511-11-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20230926060911.266511-6-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Suggested-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Johannes Weiner <jweiner@redhat.com>
@@ -87,101 +79,101 @@ Cc: Sudeep Holla <sudeep.holla@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 +-
- mm/page_alloc.c        |   23 +++++++++++------------
- 2 files changed, 12 insertions(+), 13 deletions(-)
+ include/linux/mmzone.h |    3 +-
+ mm/page_alloc.c        |   52 +++++++++++++++++++++++++++++++--------
+ 2 files changed, 44 insertions(+), 11 deletions(-)
 
---- a/include/linux/mmzone.h~mm-pcp-reduce-detecting-time-of-consecutive-high-order-page-freeing
+--- a/include/linux/mmzone.h~mm-page_alloc-scale-the-number-of-pages-that-are-batch-allocated
 +++ a/include/linux/mmzone.h
-@@ -687,10 +687,10 @@ struct per_cpu_pages {
+@@ -683,9 +683,10 @@ struct per_cpu_pages {
+ 	int high;		/* high watermark, emptying needed */
  	int batch;		/* chunk size for buddy add/remove */
  	u8 flags;		/* protected by pcp->lock */
- 	u8 alloc_factor;	/* batch scaling factor during allocate */
--	u8 free_factor;		/* batch scaling factor during free */
++	u8 alloc_factor;	/* batch scaling factor during allocate */
+ 	u8 free_factor;		/* batch scaling factor during free */
  #ifdef CONFIG_NUMA
- 	u8 expire;		/* When 0, remote pagesets are drained */
+-	short expire;		/* When 0, remote pagesets are drained */
++	u8 expire;		/* When 0, remote pagesets are drained */
  #endif
-+	short free_count;	/* consecutive free count */
  
  	/* Lists of pages, one per migrate type stored on the pcp-lists */
- 	struct list_head lists[NR_PCP_LISTS];
---- a/mm/page_alloc.c~mm-pcp-reduce-detecting-time-of-consecutive-high-order-page-freeing
+--- a/mm/page_alloc.c~mm-page_alloc-scale-the-number-of-pages-that-are-batch-allocated
 +++ a/mm/page_alloc.c
-@@ -2375,13 +2375,10 @@ static int nr_pcp_free(struct per_cpu_pa
- 	max_nr_free = high - batch;
+@@ -2376,6 +2376,12 @@ static void free_unref_page_commit(struc
+ 	int pindex;
+ 	bool free_high = false;
  
- 	/*
--	 * Double the number of pages freed each time there is subsequent
--	 * freeing of pages without any allocation.
-+	 * Increase the batch number to the number of the consecutive
-+	 * freed pages to reduce zone lock contention.
- 	 */
--	batch <<= pcp->free_factor;
--	if (batch <= max_nr_free && pcp->free_factor < PCP_BATCH_SCALE_MAX)
--		pcp->free_factor++;
--	batch = clamp(batch, min_nr_free, max_nr_free);
-+	batch = clamp_t(int, pcp->free_count, min_nr_free, max_nr_free);
- 
- 	return batch;
- }
-@@ -2408,7 +2405,7 @@ static int nr_pcp_high(struct per_cpu_pa
- 	 * stored on pcp lists
- 	 */
- 	if (test_bit(ZONE_RECLAIM_ACTIVE, &zone->flags)) {
--		pcp->high = max(high - (batch << pcp->free_factor), high_min);
-+		pcp->high = max(high - pcp->free_count, high_min);
- 		return min(batch << 2, pcp->high);
- 	}
- 
-@@ -2416,10 +2413,10 @@ static int nr_pcp_high(struct per_cpu_pa
- 		return high;
- 
- 	if (test_bit(ZONE_BELOW_HIGH, &zone->flags)) {
--		pcp->high = max(high - (batch << pcp->free_factor), high_min);
-+		pcp->high = max(high - pcp->free_count, high_min);
- 		high = max(pcp->count, high_min);
- 	} else if (pcp->count >= high) {
--		int need_high = (batch << pcp->free_factor) + batch;
-+		int need_high = pcp->free_count + batch;
- 
- 		/* pcp->high should be large enough to hold batch freed pages */
- 		if (pcp->high < need_high)
-@@ -2456,7 +2453,7 @@ static void free_unref_page_commit(struc
- 	 * stops will be drained from vmstat refresh context.
- 	 */
- 	if (order && order <= PAGE_ALLOC_COSTLY_ORDER) {
--		free_high = (pcp->free_factor &&
-+		free_high = (pcp->free_count >= batch &&
- 			     (pcp->flags & PCPF_PREV_FREE_HIGH_ORDER) &&
- 			     (!(pcp->flags & PCPF_FREE_HIGH_BATCH) ||
- 			      pcp->count >= READ_ONCE(batch)));
-@@ -2464,6 +2461,8 @@ static void free_unref_page_commit(struc
- 	} else if (pcp->flags & PCPF_PREV_FREE_HIGH_ORDER) {
- 		pcp->flags &= ~PCPF_PREV_FREE_HIGH_ORDER;
- 	}
-+	if (pcp->free_count < (batch << PCP_BATCH_SCALE_MAX))
-+		pcp->free_count += (1 << order);
- 	high = nr_pcp_high(pcp, zone, batch, free_high);
- 	if (pcp->count >= high) {
- 		free_pcppages_bulk(zone, nr_pcp_free(pcp, batch, high, free_high),
-@@ -2861,7 +2860,7 @@ static struct page *rmqueue_pcplist(stru
- 	 * See nr_pcp_free() where free_factor is increased for subsequent
- 	 * frees.
- 	 */
--	pcp->free_factor >>= 1;
-+	pcp->free_count >>= 1;
- 	list = &pcp->lists[order_to_pindex(migratetype, order)];
- 	page = __rmqueue_pcplist(zone, order, migratetype, alloc_flags, pcp, list);
- 	pcp_spin_unlock(pcp);
-@@ -5483,7 +5482,7 @@ static void per_cpu_pages_init(struct pe
- 	pcp->high_min = BOOT_PAGESET_HIGH;
- 	pcp->high_max = BOOT_PAGESET_HIGH;
- 	pcp->batch = BOOT_PAGESET_BATCH;
--	pcp->free_factor = 0;
-+	pcp->free_count = 0;
++	/*
++	 * On freeing, reduce the number of pages that are batch allocated.
++	 * See nr_pcp_alloc() where alloc_factor is increased for subsequent
++	 * allocations.
++	 */
++	pcp->alloc_factor >>= 1;
+ 	__count_vm_events(PGFREE, 1 << order);
+ 	pindex = order_to_pindex(migratetype, order);
+ 	list_add(&page->pcp_list, &pcp->lists[pindex]);
+@@ -2682,6 +2688,41 @@ struct page *rmqueue_buddy(struct zone *
+ 	return page;
  }
  
- static void __zone_set_pageset_high_and_batch(struct zone *zone, unsigned long high_min,
++static int nr_pcp_alloc(struct per_cpu_pages *pcp, int order)
++{
++	int high, batch, max_nr_alloc;
++
++	high = READ_ONCE(pcp->high);
++	batch = READ_ONCE(pcp->batch);
++
++	/* Check for PCP disabled or boot pageset */
++	if (unlikely(high < batch))
++		return 1;
++
++	/*
++	 * Double the number of pages allocated each time there is subsequent
++	 * refiling of order-0 pages without drain.
++	 */
++	if (!order) {
++		max_nr_alloc = max(high - pcp->count - batch, batch);
++		batch <<= pcp->alloc_factor;
++		if (batch <= max_nr_alloc && pcp->alloc_factor < PCP_BATCH_SCALE_MAX)
++			pcp->alloc_factor++;
++		batch = min(batch, max_nr_alloc);
++	}
++
++	/*
++	 * Scale batch relative to order if batch implies free pages
++	 * can be stored on the PCP. Batch can be 1 for small zones or
++	 * for boot pagesets which should never store free pages as
++	 * the pages may belong to arbitrary zones.
++	 */
++	if (batch > 1)
++		batch = max(batch >> order, 2);
++
++	return batch;
++}
++
+ /* Remove page from the per-cpu list, caller must protect the list */
+ static inline
+ struct page *__rmqueue_pcplist(struct zone *zone, unsigned int order,
+@@ -2694,18 +2735,9 @@ struct page *__rmqueue_pcplist(struct zo
+ 
+ 	do {
+ 		if (list_empty(list)) {
+-			int batch = READ_ONCE(pcp->batch);
++			int batch = nr_pcp_alloc(pcp, order);
+ 			int alloced;
+ 
+-			/*
+-			 * Scale batch relative to order if batch implies
+-			 * free pages can be stored on the PCP. Batch can
+-			 * be 1 for small zones or for boot pagesets which
+-			 * should never store free pages as the pages may
+-			 * belong to arbitrary zones.
+-			 */
+-			if (batch > 1)
+-				batch = max(batch >> order, 2);
+ 			alloced = rmqueue_bulk(zone, order,
+ 					batch, list,
+ 					migratetype, alloc_flags);
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
