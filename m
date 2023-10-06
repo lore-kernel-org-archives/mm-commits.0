@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA70CE94107
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:18:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83E36E94104
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:18:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233238AbjJFTSD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Oct 2023 15:18:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51608 "EHLO
+        id S233248AbjJFTSG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Oct 2023 15:18:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51616 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231163AbjJFTSC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:18:02 -0400
+        with ESMTP id S231163AbjJFTSE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:18:04 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 389F195
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:17:57 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D300C433CA;
-        Fri,  6 Oct 2023 19:17:56 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 74D3D83
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:18:00 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B827C433C8;
+        Fri,  6 Oct 2023 19:17:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696619876;
-        bh=vcOlzmbSAmT3JiVULiR0SsV+RZiXRXdUIFl4snJ9ms4=;
+        s=korg; t=1696619879;
+        bh=f6f1x3q1sgWs/e1VxvmTSGOcpM+VTW2JNa/JQSMJQKo=;
         h=Date:To:From:Subject:From;
-        b=EtBJpFq1sqbjUsMu3ujIY6HKVKZV7BRSgyMWfZDzt93Jl+OvnBIGlcSRVd9ySUTVM
-         e00xZs3wiQUyf1+NKEOwQOnGnMByvPmW+irpYZx9OPKK8af9yh8okNtAe2OqtzsUZS
-         bdN/3XLbnQ5OUtIc+l3CaUM//kahan4zu5mE0Nhk=
-Date:   Fri, 06 Oct 2023 12:17:54 -0700
+        b=SR352iOjnBCLkzdXAKujKIqZCV2IRFZ7pFGhrxaKMKODE5b24Aiu8ST+aV/1AmkfU
+         DRqGFF4niSilHiyJu5JFfpH7+kHewCSCYlZhSFb5QWntPykTQyBD714gk8RF+8Ampq
+         HNtlVXJLTaICbouDIAGDTjtHM3CiFYzqoVyU9koY=
+Date:   Fri, 06 Oct 2023 12:17:57 -0700
 To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, lkp@intel.com,
         glider@google.com, elver@google.com, dvyukov@google.com,
         andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-use-unchecked-__memset-internally.patch added to mm-unstable branch
-Message-Id: <20231006191756.5D300C433CA@smtp.kernel.org>
+Subject: + kasan-unify-printk-prefixes.patch added to mm-unstable branch
+Message-Id: <20231006191759.8B827C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: use unchecked __memset internally
+     Subject: kasan: unify printk prefixes
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-use-unchecked-__memset-internally.patch
+     kasan-unify-printk-prefixes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-use-unchecked-__memset-internally.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-unify-printk-prefixes.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -61,15 +61,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: use unchecked __memset internally
-Date: Fri, 6 Oct 2023 17:18:44 +0200
+Subject: kasan: unify printk prefixes
+Date: Fri, 6 Oct 2023 17:18:43 +0200
 
-KASAN code is supposed to use the unchecked __memset implementation when
-accessing its metadata.
+Unify prefixes for printk messages in mm/kasan/.
 
-Change uses of memset to __memset in mm/kasan/.
-
-Link: https://lkml.kernel.org/r/6f621966c6f52241b5aaa7220c348be90c075371.1696605143.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/35589629806cf0840e5f01ec9d8011a7bad648df.1696605143.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
@@ -79,41 +76,83 @@ Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |    4 ++--
- mm/kasan/shadow.c |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ mm/kasan/kasan_test.c        |    2 +-
+ mm/kasan/kasan_test_module.c |    2 +-
+ mm/kasan/quarantine.c        |    4 +++-
+ mm/kasan/report_generic.c    |    6 +++---
+ 4 files changed, 8 insertions(+), 6 deletions(-)
 
---- a/mm/kasan/report.c~kasan-use-unchecked-__memset-internally
-+++ a/mm/kasan/report.c
-@@ -538,7 +538,7 @@ void kasan_report_invalid_free(void *ptr
+--- a/mm/kasan/kasan_test.c~kasan-unify-printk-prefixes
++++ a/mm/kasan/kasan_test.c
+@@ -5,7 +5,7 @@
+  * Author: Andrey Ryabinin <a.ryabinin@samsung.com>
+  */
  
- 	start_report(&flags, true);
+-#define pr_fmt(fmt) "kasan_test: " fmt
++#define pr_fmt(fmt) "kasan: test: " fmt
  
--	memset(&info, 0, sizeof(info));
-+	__memset(&info, 0, sizeof(info));
- 	info.type = type;
- 	info.access_addr = ptr;
- 	info.access_size = 0;
-@@ -576,7 +576,7 @@ bool kasan_report(const void *addr, size
+ #include <kunit/test.h>
+ #include <linux/bitops.h>
+--- a/mm/kasan/kasan_test_module.c~kasan-unify-printk-prefixes
++++ a/mm/kasan/kasan_test_module.c
+@@ -5,7 +5,7 @@
+  * Author: Andrey Ryabinin <a.ryabinin@samsung.com>
+  */
  
- 	start_report(&irq_flags, true);
+-#define pr_fmt(fmt) "kasan test: %s " fmt, __func__
++#define pr_fmt(fmt) "kasan: test: " fmt
  
--	memset(&info, 0, sizeof(info));
-+	__memset(&info, 0, sizeof(info));
- 	info.type = KASAN_REPORT_ACCESS;
- 	info.access_addr = addr;
- 	info.access_size = size;
---- a/mm/kasan/shadow.c~kasan-use-unchecked-__memset-internally
-+++ a/mm/kasan/shadow.c
-@@ -324,7 +324,7 @@ static int kasan_populate_vmalloc_pte(pt
- 	if (!page)
- 		return -ENOMEM;
+ #include <linux/mman.h>
+ #include <linux/module.h>
+--- a/mm/kasan/quarantine.c~kasan-unify-printk-prefixes
++++ a/mm/kasan/quarantine.c
+@@ -8,6 +8,8 @@
+  * Based on code by Dmitry Chernenkov.
+  */
  
--	memset((void *)page, KASAN_VMALLOC_INVALID, PAGE_SIZE);
-+	__memset((void *)page, KASAN_VMALLOC_INVALID, PAGE_SIZE);
- 	pte = pfn_pte(PFN_DOWN(__pa(page)), PAGE_KERNEL);
++#define pr_fmt(fmt) "kasan: " fmt
++
+ #include <linux/gfp.h>
+ #include <linux/hash.h>
+ #include <linux/kernel.h>
+@@ -414,7 +416,7 @@ static int __init kasan_cpu_quarantine_i
+ 	ret = cpuhp_setup_state(CPUHP_AP_ONLINE_DYN, "mm/kasan:online",
+ 				kasan_cpu_online, kasan_cpu_offline);
+ 	if (ret < 0)
+-		pr_err("kasan cpu quarantine register failed [%d]\n", ret);
++		pr_err("cpu quarantine register failed [%d]\n", ret);
+ 	return ret;
+ }
+ late_initcall(kasan_cpu_quarantine_init);
+--- a/mm/kasan/report_generic.c~kasan-unify-printk-prefixes
++++ a/mm/kasan/report_generic.c
+@@ -220,7 +220,7 @@ static bool __must_check tokenize_frame_
+ 		const size_t tok_len = sep - *frame_descr;
  
- 	spin_lock(&init_mm.page_table_lock);
+ 		if (tok_len + 1 > max_tok_len) {
+-			pr_err("KASAN internal error: frame description too long: %s\n",
++			pr_err("internal error: frame description too long: %s\n",
+ 			       *frame_descr);
+ 			return false;
+ 		}
+@@ -233,7 +233,7 @@ static bool __must_check tokenize_frame_
+ 	*frame_descr = sep + 1;
+ 
+ 	if (value != NULL && kstrtoul(token, 10, value)) {
+-		pr_err("KASAN internal error: not a valid number: %s\n", token);
++		pr_err("internal error: not a valid number: %s\n", token);
+ 		return false;
+ 	}
+ 
+@@ -323,7 +323,7 @@ static bool __must_check get_address_sta
+ 
+ 	frame = (const unsigned long *)(mem_ptr + KASAN_GRANULE_SIZE);
+ 	if (frame[0] != KASAN_CURRENT_STACK_FRAME_MAGIC) {
+-		pr_err("KASAN internal error: frame info validation failed; invalid marker: %lu\n",
++		pr_err("internal error: frame has invalid marker: %lu\n",
+ 		       frame[0]);
+ 		return false;
+ 	}
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
