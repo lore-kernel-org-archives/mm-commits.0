@@ -2,36 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9375E94108
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8D18E94107
 	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:20:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233456AbjJFTUk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S233365AbjJFTUk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 6 Oct 2023 15:20:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48040 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57742 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233484AbjJFTUa (ORCPT
+        with ESMTP id S233487AbjJFTUa (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:20:30 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7DA3DE
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:20:23 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A36DC433C7;
-        Fri,  6 Oct 2023 19:20:22 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 68783F9
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:20:26 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5E20C433C7;
+        Fri,  6 Oct 2023 19:20:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696620023;
-        bh=hlsvPtZ7LXnpl2Ss5tkg7FbXAXOytx1yQEFGAhWtF4g=;
+        s=korg; t=1696620026;
+        bh=dANjNMUMD+ISN/jE35x7k0cTb/gXGbg2l29z/0b13Kg=;
         h=Date:To:From:Subject:From;
-        b=cdnjOrWGJ41nAE7wsB4YvyxUNDlfCZRppoKGYE5q5H8tCVFk6naU2UnZbUNdasTKI
-         egt9Ga3DAhEc/XCXAD2i+AouEF2b5/TWNPyKI2pOAV0QDuFvFpvuW/cg4xVBCrq127
-         mzgpBDcJLlxqPZ20nM3ZaPegLIEDL8qf9o/ndYKw=
-Date:   Fri, 06 Oct 2023 12:20:20 -0700
-To:     mm-commits@vger.kernel.org, yosryahmed@google.com, tj@kernel.org,
-        shuah@kernel.org, shakeelb@google.com, roman.gushchin@linux.dev,
-        riel@surriel.com, muchun.song@linux.dev, mike.kravetz@oracle.com,
-        mhocko@suse.com, lizefan.x@bytedance.com, hannes@cmpxchg.org,
-        fvdl@google.com, nphamcs@gmail.com, akpm@linux-foundation.org
+        b=yxVtW57IsT3/5D149zmoSJhRMc/2XJ/0pMameXCZhqDERKGOSGkplhWfIQwG1GzaU
+         aDuaSyLxsQEimvovlDXuo1UejZ6h4wN6wAJfXMQZp6R79lt9AldHJZjcUMvwNiGNFJ
+         IbivQ/2v0iNTdAYoBQviC0RgrdlCkCeR3o/X0a4s=
+Date:   Fri, 06 Oct 2023 12:20:23 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        ssengar@microsoft.com, shy828301@gmail.com, ryan.roberts@arm.com,
+        david@redhat.com, zokeefe@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-add-a-selftest-to-verify-hugetlb-usage-in-memcg.patch added to mm-unstable branch
-Message-Id: <20231006192023.2A36DC433C7@smtp.kernel.org>
+Subject: + mm-thp-fix-mm-thp-kill-__transhuge_page_enabled.patch added to mm-unstable branch
+Message-Id: <20231006192025.B5E20C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: add a selftest to verify hugetlb usage in memcg
+     Subject: mm/thp: fix "mm: thp: kill __transhuge_page_enabled()"
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-add-a-selftest-to-verify-hugetlb-usage-in-memcg.patch
+     mm-thp-fix-mm-thp-kill-__transhuge_page_enabled.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-add-a-selftest-to-verify-hugetlb-usage-in-memcg.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-thp-fix-mm-thp-kill-__transhuge_page_enabled.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,321 +60,96 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nhat Pham <nphamcs@gmail.com>
-Subject: selftests: add a selftest to verify hugetlb usage in memcg
-Date: Fri, 6 Oct 2023 11:46:29 -0700
+From: "Zach O'Keefe" <zokeefe@google.com>
+Subject: mm/thp: fix "mm: thp: kill __transhuge_page_enabled()"
+Date: Mon, 25 Sep 2023 13:01:10 -0700
 
-This patch add a new kselftest to demonstrate and verify the new hugetlb
-memcg accounting behavior.
+The 6.0 commits:
 
-Link: https://lkml.kernel.org/r/20231006184629.155543-5-nphamcs@gmail.com
-Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Frank van der Linden <fvdl@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Tejun heo <tj@kernel.org>
-Cc: Yosry Ahmed <yosryahmed@google.com>
-Cc: Zefan Li <lizefan.x@bytedance.com>
+commit 9fec51689ff6 ("mm: thp: kill transparent_hugepage_active()")
+commit 7da4e2cb8b1f ("mm: thp: kill __transhuge_page_enabled()")
+
+merged "can we have THPs in this VMA?" logic that was previously done
+separately by fault-path, khugepaged, and smaps "THPeligible" checks.
+
+During the process, the semantics of the fault path check changed in two
+ways:
+
+1) A VM_NO_KHUGEPAGED check was introduced (also added to smaps path).
+2) We no longer checked if non-anonymous memory had a vm_ops->huge_fault
+   handler that could satisfy the fault.  Previously, this check had been
+   done in create_huge_pud() and create_huge_pmd() routines, but after
+   the changes, we never reach those routines.
+
+During the review of the above commits, it was determined that in-tree
+users weren't affected by the change; most notably, since the only
+relevant user (in terms of THP) of VM_MIXEDMAP or ->huge_fault is DAX,
+which is explicitly approved early in approval logic.  However, this was a
+bad assumption to make as it assumes the only reason to support
+->huge_fault was for DAX (which is not true in general).
+
+Remove the VM_NO_KHUGEPAGED check when not in collapse path and give any
+->huge_fault handler a chance to handle the fault.  Note that we don't
+validate the file mode or mapping alignment, which is consistent with the
+behavior before the aforementioned commits.
+
+Link: https://lkml.kernel.org/r/20230925200110.1979606-1-zokeefe@google.com
+Fixes: 7da4e2cb8b1f ("mm: thp: kill __transhuge_page_enabled()")
+Reported-by: Saurabh Singh Sengar <ssengar@microsoft.com>
+Signed-off-by: Zach O'Keefe <zokeefe@google.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                                         |    2 
- tools/testing/selftests/cgroup/.gitignore           |    1 
- tools/testing/selftests/cgroup/Makefile             |    2 
- tools/testing/selftests/cgroup/test_hugetlb_memcg.c |  234 ++++++++++
- 4 files changed, 239 insertions(+)
+ mm/huge_memory.c |   20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
---- a/MAINTAINERS~selftests-add-a-selftest-to-verify-hugetlb-usage-in-memcg
-+++ a/MAINTAINERS
-@@ -5269,6 +5269,7 @@ S:	Maintained
- F:	mm/memcontrol.c
- F:	mm/swap_cgroup.c
- F:	tools/testing/selftests/cgroup/memcg_protection.m
-+F:	tools/testing/selftests/cgroup/test_hugetlb_memcg.c
- F:	tools/testing/selftests/cgroup/test_kmem.c
- F:	tools/testing/selftests/cgroup/test_memcontrol.c
+--- a/mm/huge_memory.c~mm-thp-fix-mm-thp-kill-__transhuge_page_enabled
++++ a/mm/huge_memory.c
+@@ -100,11 +100,11 @@ bool hugepage_vma_check(struct vm_area_s
+ 		return in_pf;
  
-@@ -9652,6 +9653,7 @@ F:	include/linux/hugetlb.h
- F:	mm/hugetlb.c
- F:	mm/hugetlb_vmemmap.c
- F:	mm/hugetlb_vmemmap.h
-+F:	tools/testing/selftests/cgroup/test_hugetlb_memcg.c
+ 	/*
+-	 * Special VMA and hugetlb VMA.
++	 * khugepaged special VMA and hugetlb VMA.
+ 	 * Must be checked after dax since some dax mappings may have
+ 	 * VM_MIXEDMAP set.
+ 	 */
+-	if (vm_flags & VM_NO_KHUGEPAGED)
++	if (!in_pf && !smaps && (vm_flags & VM_NO_KHUGEPAGED))
+ 		return false;
  
- HVA ST MEDIA DRIVER
- M:	Jean-Christophe Trotin <jean-christophe.trotin@foss.st.com>
---- a/tools/testing/selftests/cgroup/.gitignore~selftests-add-a-selftest-to-verify-hugetlb-usage-in-memcg
-+++ a/tools/testing/selftests/cgroup/.gitignore
-@@ -7,4 +7,5 @@ test_kill
- test_cpu
- test_cpuset
- test_zswap
-+test_hugetlb_memcg
- wait_inotify
---- a/tools/testing/selftests/cgroup/Makefile~selftests-add-a-selftest-to-verify-hugetlb-usage-in-memcg
-+++ a/tools/testing/selftests/cgroup/Makefile
-@@ -14,6 +14,7 @@ TEST_GEN_PROGS += test_kill
- TEST_GEN_PROGS += test_cpu
- TEST_GEN_PROGS += test_cpuset
- TEST_GEN_PROGS += test_zswap
-+TEST_GEN_PROGS += test_hugetlb_memcg
+ 	/*
+@@ -132,12 +132,18 @@ bool hugepage_vma_check(struct vm_area_s
+ 					   !hugepage_flags_always())))
+ 		return false;
  
- LOCAL_HDRS += $(selfdir)/clone3/clone3_selftests.h $(selfdir)/pidfd/pidfd.h
+-	/* Only regular file is valid */
+-	if (!in_pf && file_thp_enabled(vma))
+-		return true;
+-
+-	if (!vma_is_anonymous(vma))
++	if (!vma_is_anonymous(vma)) {
++		/*
++		 * Trust that ->huge_fault() handlers know what they are doing
++		 * in fault path.
++		 */
++		if (((in_pf || smaps)) && vma->vm_ops->huge_fault)
++			return true;
++		/* Only regular file is valid in collapse path */
++		if (((!in_pf || smaps)) && file_thp_enabled(vma))
++			return true;
+ 		return false;
++	}
  
-@@ -27,3 +28,4 @@ $(OUTPUT)/test_kill: cgroup_util.c
- $(OUTPUT)/test_cpu: cgroup_util.c
- $(OUTPUT)/test_cpuset: cgroup_util.c
- $(OUTPUT)/test_zswap: cgroup_util.c
-+$(OUTPUT)/test_hugetlb_memcg: cgroup_util.c
---- /dev/null
-+++ a/tools/testing/selftests/cgroup/test_hugetlb_memcg.c
-@@ -0,0 +1,234 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#define _GNU_SOURCE
-+
-+#include <linux/limits.h>
-+#include <sys/mman.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <fcntl.h>
-+#include "../kselftest.h"
-+#include "cgroup_util.h"
-+
-+#define ADDR ((void *)(0x0UL))
-+#define FLAGS (MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB)
-+/* mapping 8 MBs == 4 hugepages */
-+#define LENGTH (8UL*1024*1024)
-+#define PROTECTION (PROT_READ | PROT_WRITE)
-+
-+/* borrowed from mm/hmm-tests.c */
-+static long get_hugepage_size(void)
-+{
-+	int fd;
-+	char buf[2048];
-+	int len;
-+	char *p, *q, *path = "/proc/meminfo", *tag = "Hugepagesize:";
-+	long val;
-+
-+	fd = open(path, O_RDONLY);
-+	if (fd < 0) {
-+		/* Error opening the file */
-+		return -1;
-+	}
-+
-+	len = read(fd, buf, sizeof(buf));
-+	close(fd);
-+	if (len < 0) {
-+		/* Error in reading the file */
-+		return -1;
-+	}
-+	if (len == sizeof(buf)) {
-+		/* Error file is too large */
-+		return -1;
-+	}
-+	buf[len] = '\0';
-+
-+	/* Search for a tag if provided */
-+	if (tag) {
-+		p = strstr(buf, tag);
-+		if (!p)
-+			return -1; /* looks like the line we want isn't there */
-+		p += strlen(tag);
-+	} else
-+		p = buf;
-+
-+	val = strtol(p, &q, 0);
-+	if (*q != ' ') {
-+		/* Error parsing the file */
-+		return -1;
-+	}
-+
-+	return val;
-+}
-+
-+static int set_file(const char *path, long value)
-+{
-+	FILE *file;
-+	int ret;
-+
-+	file = fopen(path, "w");
-+	if (!file)
-+		return -1;
-+	ret = fprintf(file, "%ld\n", value);
-+	fclose(file);
-+	return ret;
-+}
-+
-+static int set_nr_hugepages(long value)
-+{
-+	return set_file("/proc/sys/vm/nr_hugepages", value);
-+}
-+
-+static unsigned int check_first(char *addr)
-+{
-+	return *(unsigned int *)addr;
-+}
-+
-+static void write_data(char *addr)
-+{
-+	unsigned long i;
-+
-+	for (i = 0; i < LENGTH; i++)
-+		*(addr + i) = (char)i;
-+}
-+
-+static int hugetlb_test_program(const char *cgroup, void *arg)
-+{
-+	char *test_group = (char *)arg;
-+	void *addr;
-+	long old_current, expected_current, current;
-+	int ret = EXIT_FAILURE;
-+
-+	old_current = cg_read_long(test_group, "memory.current");
-+	set_nr_hugepages(20);
-+	current = cg_read_long(test_group, "memory.current");
-+	if (current - old_current >= MB(2)) {
-+		ksft_print_msg(
-+			"setting nr_hugepages should not increase hugepage usage.\n");
-+		ksft_print_msg("before: %ld, after: %ld\n", old_current, current);
-+		return EXIT_FAILURE;
-+	}
-+
-+	addr = mmap(ADDR, LENGTH, PROTECTION, FLAGS, 0, 0);
-+	if (addr == MAP_FAILED) {
-+		ksft_print_msg("fail to mmap.\n");
-+		return EXIT_FAILURE;
-+	}
-+	current = cg_read_long(test_group, "memory.current");
-+	if (current - old_current >= MB(2)) {
-+		ksft_print_msg("mmap should not increase hugepage usage.\n");
-+		ksft_print_msg("before: %ld, after: %ld\n", old_current, current);
-+		goto out_failed_munmap;
-+	}
-+	old_current = current;
-+
-+	/* read the first page */
-+	check_first(addr);
-+	expected_current = old_current + MB(2);
-+	current = cg_read_long(test_group, "memory.current");
-+	if (!values_close(expected_current, current, 5)) {
-+		ksft_print_msg("memory usage should increase by around 2MB.\n");
-+		ksft_print_msg(
-+			"expected memory: %ld, actual memory: %ld\n",
-+			expected_current, current);
-+		goto out_failed_munmap;
-+	}
-+
-+	/* write to the whole range */
-+	write_data(addr);
-+	current = cg_read_long(test_group, "memory.current");
-+	expected_current = old_current + MB(8);
-+	if (!values_close(expected_current, current, 5)) {
-+		ksft_print_msg("memory usage should increase by around 8MB.\n");
-+		ksft_print_msg(
-+			"expected memory: %ld, actual memory: %ld\n",
-+			expected_current, current);
-+		goto out_failed_munmap;
-+	}
-+
-+	/* unmap the whole range */
-+	munmap(addr, LENGTH);
-+	current = cg_read_long(test_group, "memory.current");
-+	expected_current = old_current;
-+	if (!values_close(expected_current, current, 5)) {
-+		ksft_print_msg("memory usage should go back down.\n");
-+		ksft_print_msg(
-+			"expected memory: %ld, actual memory: %ld\n",
-+			expected_current, current);
-+		return ret;
-+	}
-+
-+	ret = EXIT_SUCCESS;
-+	return ret;
-+
-+out_failed_munmap:
-+	munmap(addr, LENGTH);
-+	return ret;
-+}
-+
-+static int test_hugetlb_memcg(char *root)
-+{
-+	int ret = KSFT_FAIL;
-+	char *test_group;
-+
-+	test_group = cg_name(root, "hugetlb_memcg_test");
-+	if (!test_group || cg_create(test_group)) {
-+		ksft_print_msg("fail to create cgroup.\n");
-+		goto out;
-+	}
-+
-+	if (cg_write(test_group, "memory.max", "100M")) {
-+		ksft_print_msg("fail to set cgroup memory limit.\n");
-+		goto out;
-+	}
-+
-+	/* disable swap */
-+	if (cg_write(test_group, "memory.swap.max", "0")) {
-+		ksft_print_msg("fail to disable swap.\n");
-+		goto out;
-+	}
-+
-+	if (!cg_run(test_group, hugetlb_test_program, (void *)test_group))
-+		ret = KSFT_PASS;
-+out:
-+	cg_destroy(test_group);
-+	free(test_group);
-+	return ret;
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	char root[PATH_MAX];
-+	int ret = EXIT_SUCCESS, has_memory_hugetlb_acc;
-+
-+	has_memory_hugetlb_acc = proc_mount_contains("memory_hugetlb_accounting");
-+	if (has_memory_hugetlb_acc < 0)
-+		ksft_exit_skip("Failed to query cgroup mount option\n");
-+	else if (!has_memory_hugetlb_acc)
-+		ksft_exit_skip("memory hugetlb accounting is disabled\n");
-+
-+	/* Unit is kB! */
-+	if (get_hugepage_size() != 2048) {
-+		ksft_print_msg("test_hugetlb_memcg requires 2MB hugepages\n");
-+		ksft_test_result_skip("test_hugetlb_memcg\n");
-+		return ret;
-+	}
-+
-+	if (cg_find_unified_root(root, sizeof(root)))
-+		ksft_exit_skip("cgroup v2 isn't mounted\n");
-+
-+	switch (test_hugetlb_memcg(root)) {
-+	case KSFT_PASS:
-+		ksft_test_result_pass("test_hugetlb_memcg\n");
-+		break;
-+	case KSFT_SKIP:
-+		ksft_test_result_skip("test_hugetlb_memcg\n");
-+		break;
-+	default:
-+		ret = EXIT_FAILURE;
-+		ksft_test_result_fail("test_hugetlb_memcg\n");
-+		break;
-+	}
-+
-+	return ret;
-+}
+ 	if (vma_is_temporary_stack(vma))
+ 		return false;
 _
 
-Patches currently in -mm which might be from nphamcs@gmail.com are
+Patches currently in -mm which might be from zokeefe@google.com are
 
-zswap-shrinks-zswap-pool-based-on-memory-pressure.patch
-memcontrol-add-helpers-for-hugetlb-memcg-accounting.patch
-memcontrol-only-transfer-the-memcg-data-for-migration.patch
-hugetlb-memcg-account-hugetlb-backed-memory-in-memory-controller.patch
-selftests-add-a-selftest-to-verify-hugetlb-usage-in-memcg.patch
+mm-thp-fix-mm-thp-kill-__transhuge_page_enabled.patch
 
