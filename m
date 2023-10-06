@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 683EAE94107
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:19:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 377D7E94104
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:19:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233318AbjJFTTb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Oct 2023 15:19:31 -0400
+        id S233277AbjJFTTc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Oct 2023 15:19:32 -0400
 Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52164 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233413AbjJFTTW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:19:22 -0400
+        with ESMTP id S233436AbjJFTTb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:19:31 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70687AC
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:19:20 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8262C433C7;
-        Fri,  6 Oct 2023 19:19:19 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 379C7BD
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:19:29 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B6DEC433C8;
+        Fri,  6 Oct 2023 19:19:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696619960;
-        bh=K7V2pUuOXtJ3IC0SvMLQw3KvpwbQwV3/EyWeRvP+aiU=;
+        s=korg; t=1696619968;
+        bh=BT1taeflwpVYu9kVlfkr9EDIbEBvQVhBzmpGrGvj1Dc=;
         h=Date:To:From:Subject:From;
-        b=TFJY23Ok9s5U97jOv20roCqnF9Znx/8Df1D0CLda5CnRlHoK+N7pNzusR0fQ1CUL8
-         jmXmhmS833mPBDviUrfj1QjBmpI6zXeUpFgGKtbAjqbOINVrtVf348ZyCf25LyMTcL
-         HVT+2OayG4Pl7iOY2iFeH70Xau8MX/xhV5DFkMOY=
-Date:   Fri, 06 Oct 2023 12:19:17 -0700
+        b=PCjsxDm5mdLlFDqAngBxfCMyP+V7Lsx4AZxprpSyFJs5QGauozDcKa/ntb3d5OFfn
+         yTIGsUWLVcc4TrSgK7I/PwB7duV2R6y/E6UdWpuvrSrEH2+9XokL1ZTwtoqNgaLv2c
+         EWkVAxjWZ5RHWjkkmLEAQ7uh6NgHD3g8mc5pu10Q=
+Date:   Fri, 06 Oct 2023 12:19:26 -0700
 To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         tsbogend@alpha.franken.de, svens@linux.ibm.com,
         richard.henderson@linaro.org, paul.walmsley@sifive.com,
@@ -35,8 +35,8 @@ To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         adilger.kernel@dilger.ca, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-folio_end_read.patch added to mm-unstable branch
-Message-Id: <20231006191919.A8262C433C7@smtp.kernel.org>
+Subject: + bitops-add-xor_unlock_is_negative_byte.patch added to mm-unstable branch
+Message-Id: <20231006191928.7B6DEC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add folio_end_read()
+     Subject: bitops: add xor_unlock_is_negative_byte()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-folio_end_read.patch
+     bitops-add-xor_unlock_is_negative_byte.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-folio_end_read.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bitops-add-xor_unlock_is_negative_byte.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,13 +68,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: add folio_end_read()
-Date: Wed, 4 Oct 2023 17:53:03 +0100
+Subject: bitops: add xor_unlock_is_negative_byte()
+Date: Wed, 4 Oct 2023 17:53:07 +0100
 
-Provide a function for filesystems to call when they have finished reading
-an entire folio.
+Replace clear_bit_and_unlock_is_negative_byte() with
+xor_unlock_is_negative_byte().  We have a few places that like to lock a
+folio, set a flag and unlock it again.  Allow for the possibility of
+combining the latter two operations for efficiency.  We are guaranteed
+that the caller holds the lock, so it is safe to unlock it with the xor. 
+The caller must guarantee that nobody else will set the flag without
+holding the lock; it is not safe to do this with the PG_dirty flag, for
+example.
 
-Link: https://lkml.kernel.org/r/20231004165317.1061855-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231004165317.1061855-8-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -97,51 +103,226 @@ Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    1 +
- mm/filemap.c            |   22 ++++++++++++++++++++++
- 2 files changed, 23 insertions(+)
+ arch/powerpc/include/asm/bitops.h              |   17 ++-------
+ arch/x86/include/asm/bitops.h                  |   11 ++----
+ include/asm-generic/bitops/instrumented-lock.h |   27 ++++++++-------
+ include/asm-generic/bitops/lock.h              |   21 ++---------
+ kernel/kcsan/kcsan_test.c                      |    8 ++--
+ kernel/kcsan/selftest.c                        |    8 ++--
+ mm/filemap.c                                   |    5 ++
+ mm/kasan/kasan_test.c                          |    7 ++-
+ 8 files changed, 47 insertions(+), 57 deletions(-)
 
---- a/include/linux/pagemap.h~mm-add-folio_end_read
-+++ a/include/linux/pagemap.h
-@@ -1101,6 +1101,7 @@ static inline void wait_on_page_locked(s
- 	folio_wait_locked(page_folio(page));
+--- a/arch/powerpc/include/asm/bitops.h~bitops-add-xor_unlock_is_negative_byte
++++ a/arch/powerpc/include/asm/bitops.h
+@@ -234,32 +234,25 @@ static inline int arch_test_and_change_b
  }
  
-+void folio_end_read(struct folio *folio, bool success);
- void wait_on_page_writeback(struct page *page);
- void folio_wait_writeback(struct folio *folio);
- int folio_wait_writeback_killable(struct folio *folio);
---- a/mm/filemap.c~mm-add-folio_end_read
-+++ a/mm/filemap.c
-@@ -1526,6 +1526,28 @@ void folio_unlock(struct folio *folio)
- EXPORT_SYMBOL(folio_unlock);
+ #ifdef CONFIG_PPC64
+-static inline unsigned long
+-clear_bit_unlock_return_word(int nr, volatile unsigned long *addr)
++static inline bool arch_xor_unlock_is_negative_byte(unsigned long mask,
++		volatile unsigned long *p)
+ {
+ 	unsigned long old, t;
+-	unsigned long *p = (unsigned long *)addr + BIT_WORD(nr);
+-	unsigned long mask = BIT_MASK(nr);
  
+ 	__asm__ __volatile__ (
+ 	PPC_RELEASE_BARRIER
+ "1:"	PPC_LLARX "%0,0,%3,0\n"
+-	"andc %1,%0,%2\n"
++	"xor %1,%0,%2\n"
+ 	PPC_STLCX "%1,0,%3\n"
+ 	"bne- 1b\n"
+ 	: "=&r" (old), "=&r" (t)
+ 	: "r" (mask), "r" (p)
+ 	: "cc", "memory");
+ 
+-	return old;
++	return (old & BIT_MASK(7)) != 0;
+ }
+ 
+-/*
+- * This is a special function for mm/filemap.c
+- * Bit 7 corresponds to PG_waiters.
+- */
+-#define arch_clear_bit_unlock_is_negative_byte(nr, addr)		\
+-	(clear_bit_unlock_return_word(nr, addr) & BIT_MASK(7))
++#define arch_xor_unlock_is_negative_byte arch_xor_unlock_is_negative_byte
+ 
+ #endif /* CONFIG_PPC64 */
+ 
+--- a/arch/x86/include/asm/bitops.h~bitops-add-xor_unlock_is_negative_byte
++++ a/arch/x86/include/asm/bitops.h
+@@ -94,18 +94,17 @@ arch___clear_bit(unsigned long nr, volat
+ 	asm volatile(__ASM_SIZE(btr) " %1,%0" : : ADDR, "Ir" (nr) : "memory");
+ }
+ 
+-static __always_inline bool
+-arch_clear_bit_unlock_is_negative_byte(long nr, volatile unsigned long *addr)
++static __always_inline bool arch_xor_unlock_is_negative_byte(unsigned long mask,
++		volatile unsigned long *addr)
+ {
+ 	bool negative;
+-	asm volatile(LOCK_PREFIX "andb %2,%1"
++	asm volatile(LOCK_PREFIX "xorb %2,%1"
+ 		CC_SET(s)
+ 		: CC_OUT(s) (negative), WBYTE_ADDR(addr)
+-		: "ir" ((char) ~(1 << nr)) : "memory");
++		: "iq" ((char)mask) : "memory");
+ 	return negative;
+ }
+-#define arch_clear_bit_unlock_is_negative_byte                                 \
+-	arch_clear_bit_unlock_is_negative_byte
++#define arch_xor_unlock_is_negative_byte arch_xor_unlock_is_negative_byte
+ 
+ static __always_inline void
+ arch___clear_bit_unlock(long nr, volatile unsigned long *addr)
+--- a/include/asm-generic/bitops/instrumented-lock.h~bitops-add-xor_unlock_is_negative_byte
++++ a/include/asm-generic/bitops/instrumented-lock.h
+@@ -58,27 +58,30 @@ static inline bool test_and_set_bit_lock
+ 	return arch_test_and_set_bit_lock(nr, addr);
+ }
+ 
+-#if defined(arch_clear_bit_unlock_is_negative_byte)
++#if defined(arch_xor_unlock_is_negative_byte)
  /**
-+ * folio_end_read - End read on a folio.
-+ * @folio: The folio.
-+ * @success: True if all reads completed successfully.
-+ *
-+ * When all reads against a folio have completed, filesystems should
-+ * call this function to let the pagecache know that no more reads
-+ * are outstanding.  This will unlock the folio and wake up any thread
-+ * sleeping on the lock.  The folio will also be marked uptodate if all
-+ * reads succeeded.
-+ *
-+ * Context: May be called from interrupt or process context.  May not be
-+ * called from NMI context.
-+ */
-+void folio_end_read(struct folio *folio, bool success)
-+{
-+	if (likely(success))
-+		folio_mark_uptodate(folio);
-+	folio_unlock(folio);
-+}
-+EXPORT_SYMBOL(folio_end_read);
-+
-+/**
-  * folio_end_private_2 - Clear PG_private_2 and wake any waiters.
-  * @folio: The folio.
+- * clear_bit_unlock_is_negative_byte - Clear a bit in memory and test if bottom
+- *                                     byte is negative, for unlock.
+- * @nr: the bit to clear
+- * @addr: the address to start counting from
++ * xor_unlock_is_negative_byte - XOR a single byte in memory and test if
++ * it is negative, for unlock.
++ * @mask: Change the bits which are set in this mask.
++ * @addr: The address of the word containing the byte to change.
   *
++ * Changes some of bits 0-6 in the word pointed to by @addr.
+  * This operation is atomic and provides release barrier semantics.
++ * Used to optimise some folio operations which are commonly paired
++ * with an unlock or end of writeback.  Bit 7 is used as PG_waiters to
++ * indicate whether anybody is waiting for the unlock.
+  *
+- * This is a bit of a one-trick-pony for the filemap code, which clears
+- * PG_locked and tests PG_waiters,
++ * Return: Whether the top bit of the byte is set.
+  */
+-static inline bool
+-clear_bit_unlock_is_negative_byte(long nr, volatile unsigned long *addr)
++static inline bool xor_unlock_is_negative_byte(unsigned long mask,
++		volatile unsigned long *addr)
+ {
+ 	kcsan_release();
+-	instrument_atomic_write(addr + BIT_WORD(nr), sizeof(long));
+-	return arch_clear_bit_unlock_is_negative_byte(nr, addr);
++	instrument_atomic_write(addr, sizeof(long));
++	return arch_xor_unlock_is_negative_byte(mask, addr);
+ }
+ /* Let everybody know we have it. */
+-#define clear_bit_unlock_is_negative_byte clear_bit_unlock_is_negative_byte
++#define xor_unlock_is_negative_byte xor_unlock_is_negative_byte
+ #endif
+ 
+ #endif /* _ASM_GENERIC_BITOPS_INSTRUMENTED_LOCK_H */
+--- a/include/asm-generic/bitops/lock.h~bitops-add-xor_unlock_is_negative_byte
++++ a/include/asm-generic/bitops/lock.h
+@@ -66,27 +66,16 @@ arch___clear_bit_unlock(unsigned int nr,
+ 	raw_atomic_long_set_release((atomic_long_t *)p, old);
+ }
+ 
+-/**
+- * arch_clear_bit_unlock_is_negative_byte - Clear a bit in memory and test if bottom
+- *                                          byte is negative, for unlock.
+- * @nr: the bit to clear
+- * @addr: the address to start counting from
+- *
+- * This is a bit of a one-trick-pony for the filemap code, which clears
+- * PG_locked and tests PG_waiters,
+- */
+-#ifndef arch_clear_bit_unlock_is_negative_byte
+-static inline bool arch_clear_bit_unlock_is_negative_byte(unsigned int nr,
+-							  volatile unsigned long *p)
++#ifndef arch_xor_unlock_is_negative_byte
++static inline bool arch_xor_unlock_is_negative_byte(unsigned long mask,
++		volatile unsigned long *p)
+ {
+ 	long old;
+-	unsigned long mask = BIT_MASK(nr);
+ 
+-	p += BIT_WORD(nr);
+-	old = raw_atomic_long_fetch_andnot_release(mask, (atomic_long_t *)p);
++	old = raw_atomic_long_fetch_xor_release(mask, (atomic_long_t *)p);
+ 	return !!(old & BIT(7));
+ }
+-#define arch_clear_bit_unlock_is_negative_byte arch_clear_bit_unlock_is_negative_byte
++#define arch_xor_unlock_is_negative_byte arch_xor_unlock_is_negative_byte
+ #endif
+ 
+ #include <asm-generic/bitops/instrumented-lock.h>
+--- a/kernel/kcsan/kcsan_test.c~bitops-add-xor_unlock_is_negative_byte
++++ a/kernel/kcsan/kcsan_test.c
+@@ -700,10 +700,10 @@ static void test_barrier_nothreads(struc
+ 	KCSAN_EXPECT_RW_BARRIER(mutex_lock(&test_mutex), false);
+ 	KCSAN_EXPECT_RW_BARRIER(mutex_unlock(&test_mutex), true);
+ 
+-#ifdef clear_bit_unlock_is_negative_byte
+-	KCSAN_EXPECT_READ_BARRIER(clear_bit_unlock_is_negative_byte(0, &test_var), true);
+-	KCSAN_EXPECT_WRITE_BARRIER(clear_bit_unlock_is_negative_byte(0, &test_var), true);
+-	KCSAN_EXPECT_RW_BARRIER(clear_bit_unlock_is_negative_byte(0, &test_var), true);
++#ifdef xor_unlock_is_negative_byte
++	KCSAN_EXPECT_READ_BARRIER(xor_unlock_is_negative_byte(1, &test_var), true);
++	KCSAN_EXPECT_WRITE_BARRIER(xor_unlock_is_negative_byte(1, &test_var), true);
++	KCSAN_EXPECT_RW_BARRIER(xor_unlock_is_negative_byte(1, &test_var), true);
+ #endif
+ 	kcsan_nestable_atomic_end();
+ }
+--- a/kernel/kcsan/selftest.c~bitops-add-xor_unlock_is_negative_byte
++++ a/kernel/kcsan/selftest.c
+@@ -228,10 +228,10 @@ static bool __init test_barrier(void)
+ 	spin_lock(&test_spinlock);
+ 	KCSAN_CHECK_RW_BARRIER(spin_unlock(&test_spinlock));
+ 
+-#ifdef clear_bit_unlock_is_negative_byte
+-	KCSAN_CHECK_RW_BARRIER(clear_bit_unlock_is_negative_byte(0, &test_var));
+-	KCSAN_CHECK_READ_BARRIER(clear_bit_unlock_is_negative_byte(0, &test_var));
+-	KCSAN_CHECK_WRITE_BARRIER(clear_bit_unlock_is_negative_byte(0, &test_var));
++#ifdef xor_unlock_is_negative_byte
++	KCSAN_CHECK_RW_BARRIER(xor_unlock_is_negative_byte(1, &test_var));
++	KCSAN_CHECK_READ_BARRIER(xor_unlock_is_negative_byte(1, &test_var));
++	KCSAN_CHECK_WRITE_BARRIER(xor_unlock_is_negative_byte(1, &test_var));
+ #endif
+ 	kcsan_nestable_atomic_end();
+ 
+--- a/mm/filemap.c~bitops-add-xor_unlock_is_negative_byte
++++ a/mm/filemap.c
+@@ -1482,6 +1482,11 @@ void folio_add_wait_queue(struct folio *
+ }
+ EXPORT_SYMBOL_GPL(folio_add_wait_queue);
+ 
++#ifdef xor_unlock_is_negative_byte
++#define clear_bit_unlock_is_negative_byte(nr, p)	\
++	xor_unlock_is_negative_byte(1 << nr, p)
++#endif
++
+ #ifndef clear_bit_unlock_is_negative_byte
+ 
+ /*
+--- a/mm/kasan/kasan_test.c~bitops-add-xor_unlock_is_negative_byte
++++ a/mm/kasan/kasan_test.c
+@@ -1099,9 +1099,10 @@ static void kasan_bitops_test_and_modify
+ 	KUNIT_EXPECT_KASAN_FAIL(test, __test_and_change_bit(nr, addr));
+ 	KUNIT_EXPECT_KASAN_FAIL(test, kasan_int_result = test_bit(nr, addr));
+ 
+-#if defined(clear_bit_unlock_is_negative_byte)
+-	KUNIT_EXPECT_KASAN_FAIL(test, kasan_int_result =
+-				clear_bit_unlock_is_negative_byte(nr, addr));
++#if defined(xor_unlock_is_negative_byte)
++	if (nr < 7)
++		KUNIT_EXPECT_KASAN_FAIL(test, kasan_int_result =
++				xor_unlock_is_negative_byte(1 << nr, addr));
+ #endif
+ }
+ 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
