@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9714BE9410B
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:19:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7992E94107
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:19:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233413AbjJFTTd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Oct 2023 15:19:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60720 "EHLO
+        id S233446AbjJFTTp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Oct 2023 15:19:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60732 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233430AbjJFTTa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:19:30 -0400
+        with ESMTP id S233420AbjJFTTd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:19:33 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 686BA9E
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:19:24 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 834DEC433C7;
-        Fri,  6 Oct 2023 19:19:22 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D8FCD95
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:19:31 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3266DC433C7;
+        Fri,  6 Oct 2023 19:19:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696619963;
-        bh=VEVk6kVqhwrrYtV3b5IlNSTnogmGwTKdqZxioR6tD+U=;
+        s=korg; t=1696619971;
+        bh=XazDc9CFLhBAS4KGTwo/j8v4G0l8W95iFbJHD5jdAsw=;
         h=Date:To:From:Subject:From;
-        b=JWEA3C3LCumXxwl974rWfRiacSt+X//LVe6ZNlJnmEwB34Qt0lkR2/zPJsVFGcv8b
-         oUJmFKqRSnmptWi7dKmCATuQXaGNQKAR18FO31+gmAYmgzr+bwvB9VA1uhJSZTK5eS
-         hYVcydkRlSlNEvVA78EcGW+dmGQhb/6o1E+5AUw4=
-Date:   Fri, 06 Oct 2023 12:19:20 -0700
+        b=2tvDzwE6HjQts7IPAAmGLayu97PsXm31J2oxUfYgDEWbL2dR5nboX6JJgx0tBL39R
+         ig+ZFHXauRMFylpqW2Lp7zccPwAIeBEduT319EbQlz50eT+d8fpZAuDqo1uw9cif/7
+         bcHWrKt2irmzt2c11z+N629syPFwqBwX34yHTJbM=
+Date:   Fri, 06 Oct 2023 12:19:29 -0700
 To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         tsbogend@alpha.franken.de, svens@linux.ibm.com,
         richard.henderson@linaro.org, paul.walmsley@sifive.com,
@@ -35,8 +35,8 @@ To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         adilger.kernel@dilger.ca, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + iomap-use-folio_end_read.patch added to mm-unstable branch
-Message-Id: <20231006191922.834DEC433C7@smtp.kernel.org>
+Subject: + m68k-implement-xor_unlock_is_negative_byte.patch added to mm-unstable branch
+Message-Id: <20231006191931.3266DC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: iomap: use folio_end_read()
+     Subject: m68k: implement xor_unlock_is_negative_byte
 has been added to the -mm mm-unstable branch.  Its filename is
-     iomap-use-folio_end_read.patch
+     m68k-implement-xor_unlock_is_negative_byte.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/iomap-use-folio_end_read.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/m68k-implement-xor_unlock_is_negative_byte.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,13 +68,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: iomap: use folio_end_read()
-Date: Wed, 4 Oct 2023 17:53:06 +0100
+Subject: m68k: implement xor_unlock_is_negative_byte
+Date: Wed, 4 Oct 2023 17:53:09 +0100
 
-Combine the setting of the uptodate flag with the clearing of the locked
-flag.
+Using EOR to clear the guaranteed-to-be-set lock bit will test the
+negative flag just like the x86 implementation.  This should be more
+efficient than the generic implementation in filemap.c.  It would be
+better if m68k had __GCC_ASM_FLAG_OUTPUTS__.
 
-Link: https://lkml.kernel.org/r/20231004165317.1061855-7-willy@infradead.org
+Coldfire doesn't have a byte-sized EOR, so we test bit 7 after the EOR,
+which is a second memory access, but it's slightly better than the current
+C code.
+
+Link: https://lkml.kernel.org/r/20231004165317.1061855-10-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -97,23 +103,40 @@ Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/iomap/buffered-io.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/m68k/include/asm/bitops.h |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
---- a/fs/iomap/buffered-io.c~iomap-use-folio_end_read
-+++ a/fs/iomap/buffered-io.c
-@@ -270,10 +270,8 @@ static void iomap_finish_folio_read(stru
- 
- 	if (error)
- 		folio_set_error(folio);
--	if (uptodate)
--		folio_mark_uptodate(folio);
- 	if (finished)
--		folio_unlock(folio);
-+		folio_end_read(folio, uptodate);
+--- a/arch/m68k/include/asm/bitops.h~m68k-implement-xor_unlock_is_negative_byte
++++ a/arch/m68k/include/asm/bitops.h
+@@ -319,6 +319,28 @@ arch___test_and_change_bit(unsigned long
+ 	return test_and_change_bit(nr, addr);
  }
  
- static void iomap_read_end_io(struct bio *bio)
++static inline bool xor_unlock_is_negative_byte(unsigned long mask,
++		volatile unsigned long *p)
++{
++#ifdef CONFIG_COLDFIRE
++	__asm__ __volatile__ ("eorl %1, %0"
++		: "+m" (*p)
++		: "d" (mask)
++		: "memory");
++	return *p & (1 << 7);
++#else
++	char result;
++	char *cp = (char *)p + 3;	/* m68k is big-endian */
++
++	__asm__ __volatile__ ("eor.b %1, %2; smi %0"
++		: "=d" (result)
++		: "di" (mask), "o" (*cp)
++		: "memory");
++	return result;
++#endif
++}
++#define xor_unlock_is_negative_byte xor_unlock_is_negative_byte
++
+ /*
+  *	The true 68020 and more advanced processors support the "bfffo"
+  *	instruction for finding bits. ColdFire and simple 68000 parts
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
