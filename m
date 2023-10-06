@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0D8AE94130
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 21:48:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A961CE94125
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 21:48:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233769AbjJFVsi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Oct 2023 17:48:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47030 "EHLO
+        id S233755AbjJFVsn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Oct 2023 17:48:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47078 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233774AbjJFVsh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 17:48:37 -0400
+        with ESMTP id S233773AbjJFVsm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 17:48:42 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 23ABBC5
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 14:48:35 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15548C433C8;
-        Fri,  6 Oct 2023 21:48:33 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25787CA
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 14:48:41 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6717AC433C9;
+        Fri,  6 Oct 2023 21:48:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696628914;
-        bh=cfPpFjmJrClbiC2msXujCpJtQ5hWJ9ht6CcZ1bMc+8s=;
+        s=korg; t=1696628920;
+        bh=ArtKX9GEpkuglb92HNvdtN9ML9ls1yiMSdR3c1Ge1X8=;
         h=Date:To:From:Subject:From;
-        b=m/3W3l3COeT+WuAXF9dY0QiNa0YCEVZo4H3w5hr5GWtHayTLpTcISZobIUyr5e+ys
-         krKwws5dzpX4Zex5sa6D+SZ2MdN/v2PMcxdiAM6HCULCmHO6MaogURzQNim9BhUmwv
-         g8S7np6/1PvupROZX8yfnNrk9Njwv3h8lVOzOJB4=
-Date:   Fri, 06 Oct 2023 14:48:31 -0700
+        b=t2QQp13K29PZqu/sfhcwOfcyv6uS8RRP1LDl/T55Wb2oluRvYWeRB3zDXzXQcKqjg
+         r+wBZgu+udDZDiVFK/X7rl/urRIoKP+xFz/yUWBgWLCQGu9aLlVbiKiokGc9gAdasl
+         rJcTJNS+/BWhIyQqwk//mqU3m5rTkaIfo+MnGdxU=
+Date:   Fri, 06 Oct 2023 14:48:38 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         sudeep.holla@arm.com, pasha.tatashin@soleen.com, mhocko@suse.com,
         mgorman@techsingularity.net, jweiner@redhat.com, david@redhat.com,
         dave.hansen@linux.intel.com, cl@linux.com, arjan@linux.intel.com,
         ying.huang@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-pcp-avoid-to-drain-pcp-when-process-exit.patch removed from -mm tree
-Message-Id: <20231006214834.15548C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-pcp-reduce-lock-contention-for-draining-high-order-pages.patch removed from -mm tree
+Message-Id: <20231006214840.6717AC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,252 +39,40 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm, pcp: avoid to drain PCP when process exit
+     Subject: mm, pcp: reduce lock contention for draining high-order pages
 has been removed from the -mm tree.  Its filename was
-     mm-pcp-avoid-to-drain-pcp-when-process-exit.patch
+     mm-pcp-reduce-lock-contention-for-draining-high-order-pages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: mm, pcp: avoid to drain PCP when process exit
-Date: Tue, 26 Sep 2023 14:09:02 +0800
-
-Patch series "mm: PCP high auto-tuning", v2.
-
-The page allocation performance requirements of different workloads
-are often different.  So, we need to tune the PCP (Per-CPU Pageset)
-high on each CPU automatically to optimize the page allocation
-performance.
-
-The list of patches in series is as follows,
-
- 1 mm, pcp: avoid to drain PCP when process exit
- 2 cacheinfo: calculate per-CPU data cache size
- 3 mm, pcp: reduce lock contention for draining high-order pages
- 4 mm: restrict the pcp batch scale factor to avoid too long latency
- 5 mm, page_alloc: scale the number of pages that are batch allocated
- 6 mm: add framework for PCP high auto-tuning
- 7 mm: tune PCP high automatically
- 8 mm, pcp: decrease PCP high if free pages < high watermark
- 9 mm, pcp: avoid to reduce PCP high unnecessarily
-10 mm, pcp: reduce detecting time of consecutive high order page freeing
-
-Patch 1/2/3 optimize the PCP draining for consecutive high-order pages
-freeing.
-
-Patch 4/5 optimize batch freeing and allocating.
-
-Patch 6/7/8/9 implement and optimize a PCP high auto-tuning method.
-
-Patch 10 optimize the PCP draining for consecutive high order page
-freeing based on PCP high auto-tuning.
-
-The test results for patches with performance impact are as follows,
-
-kbuild
-======
-
-On a 2-socket Intel server with 224 logical CPU, we run 8 kbuild
-instances in parallel (each with `make -j 28`) in 8 cgroup.  This
-simulates the kbuild server that is used by 0-Day kbuild service.
-
-	build time   lock contend%	free_high	alloc_zone
-	----------	----------	---------	----------
-base	     100.0	      13.5          100.0            100.0
-patch1	      99.2	      10.6	     19.2	      95.6
-patch3	      99.2	      11.7	      7.1	      95.6
-patch5	      98.4	      10.0	      8.2	      97.1
-patch7	      94.9	       0.7	      3.0	      19.0
-patch9	      94.9	       0.6	      2.7	      15.0
-patch10	      94.9	       0.9	      8.8	      18.6
-
-The PCP draining optimization (patch 1/3) and PCP batch allocation
-optimization (patch 5) reduces zone lock contention a little.  The PCP
-high auto-tuning (patch 7/9/10) reduces build time visibly.  Where the
-tuning target: the number of pages allocated from zone reduces
-greatly.  So, the zone contention cycles% reduces greatly.
-
-With PCP tuning patches (patch 7/9/10), the average used memory during
-test increases up to 21.0% because more pages are cached in PCP.  But
-at the end of the test, the number of the used memory decreases to the
-same level as that of the base patch.  That is, the pages cached in
-PCP will be released to zone after not being used actively.
-
-netperf SCTP_STREAM_MANY
-========================
-
-On a 2-socket Intel server with 128 logical CPU, we tested
-SCTP_STREAM_MANY test case of netperf test suite with 64-pair
-processes.
-
-	     score   lock contend%	free_high	alloc_zone  cache miss rate%
-	     -----	----------	---------	----------  ----------------
-base	     100.0	       2.0          100.0            100.0	         1.3
-patch1	      99.7	       2.0	     99.7	      99.7		 1.3
-patch3	     105.5	       1.2	     13.2	     105.4		 1.2
-patch5	     106.9	       1.2	     13.4	     106.9		 1.3
-patch7	     103.5	       1.8	      6.8	      90.8		 7.6
-patch9	     103.7	       1.8	      6.6	      89.8		 7.7
-patch10	     106.9	       1.2	     13.5	     106.9		 1.2
-
-The PCP draining optimization (patch 1+3) improves performance.  The
-PCP high auto-tuning (patch 7/9) reduces performance a little because
-PCP draining cannot be triggered in time sometimes.  So, the cache
-miss rate% increases.  The further PCP draining optimization (patch
-10) based on PCP tuning restore the performance.
-
-lmbench3 UNIX (AF_UNIX)
-=======================
-
-On a 2-socket Intel server with 128 logical CPU, we tested UNIX
-(AF_UNIX socket) test case of lmbench3 test suite with 16-pair
-processes.
-
-	     score   lock contend%	free_high	alloc_zone  cache miss rate%
-	     -----	----------	---------	----------  ----------------
-base	     100.0	      50.0          100.0            100.0	         0.3
-patch1	     117.1	      45.8           72.6	     108.9	         0.2
-patch3	     201.6	      21.2            7.4	     111.5	         0.2
-patch5	     201.9	      20.9            7.5	     112.7	         0.3
-patch7	     194.2	      19.3            7.3	     111.5	         2.9
-patch9	     193.1	      19.2            7.2	     110.4	         2.9
-patch10	     196.8	      21.0            7.4	     111.2	         2.1
-
-The PCP draining optimization (patch 1/3) improves performance much.
-The PCP tuning (patch 7/9) reduces performance a little because PCP
-draining cannot be triggered in time sometimes.  The further PCP
-draining optimization (patch 10) based on PCP tuning restores the
-performance partly.
-
-The patchset adds several fields in struct per_cpu_pages.  The struct
-layout before/after the patchset is as follows,
-
-base
-====
-
-struct per_cpu_pages {
-	spinlock_t                 lock;                 /*     0     4 */
-	int                        count;                /*     4     4 */
-	int                        high;                 /*     8     4 */
-	int                        batch;                /*    12     4 */
-	short int                  free_factor;          /*    16     2 */
-	short int                  expire;               /*    18     2 */
-
-	/* XXX 4 bytes hole, try to pack */
-
-	struct list_head           lists[13];            /*    24   208 */
-
-	/* size: 256, cachelines: 4, members: 7 */
-	/* sum members: 228, holes: 1, sum holes: 4 */
-	/* padding: 24 */
-} __attribute__((__aligned__(64)));
-
-patched
-=======
-
-struct per_cpu_pages {
-	spinlock_t                 lock;                 /*     0     4 */
-	int                        count;                /*     4     4 */
-	int                        count_min;            /*     8     4 */
-	int                        high;                 /*    12     4 */
-	int                        high_min;             /*    16     4 */
-	int                        high_max;             /*    20     4 */
-	int                        batch;                /*    24     4 */
-	u8                         flags;                /*    28     1 */
-	u8                         alloc_factor;         /*    29     1 */
-	u8                         expire;               /*    30     1 */
-
-	/* XXX 1 byte hole, try to pack */
-
-	short int                  free_count;           /*    32     2 */
-
-	/* XXX 6 bytes hole, try to pack */
-
-	struct list_head           lists[13];            /*    40   208 */
-
-	/* size: 256, cachelines: 4, members: 12 */
-	/* sum members: 241, holes: 2, sum holes: 7 */
-	/* padding: 8 */
-} __attribute__((__aligned__(64)));
-
-The size of the struct doesn't change with the patchset.
-
-
-This patch (of 10):
+Subject: mm, pcp: reduce lock contention for draining high-order pages
+Date: Tue, 26 Sep 2023 14:09:04 +0800
 
 In commit f26b3fa04611 ("mm/page_alloc: limit number of high-order pages
 on PCP during bulk free"), the PCP (Per-CPU Pageset) will be drained when
 PCP is mostly used for high-order pages freeing to improve the cache-hot
-pages reusing between page allocation and freeing CPUs.
+pages reusing between page allocating and freeing CPUs.
 
-But, the PCP draining mechanism may be triggered unexpectedly when process
-exits.  With some customized trace point, it was found that PCP draining
-(free_high == true) was triggered with the order-1 page freeing with the
-following call stack,
+On system with small per-CPU data cache, pages shouldn't be cached before
+draining to guarantee cache-hot.  But on a system with large per-CPU data
+cache, more pages can be cached before draining to reduce zone lock
+contention.
 
- => free_unref_page_commit
- => free_unref_page
- => __mmdrop
- => exit_mm
- => do_exit
- => do_group_exit
- => __x64_sys_exit_group
- => do_syscall_64
+So, in this patch, instead of draining without any caching, "batch" pages
+will be cached in PCP before draining if the per-CPU data cache size is
+more than "4 * batch".
 
-Checking the source code, this is the page table PGD freeing
-(mm_free_pgd()).  It's a order-1 page freeing if
-CONFIG_PAGE_TABLE_ISOLATION=y.  Which is a common configuration for
-security.
+On a 2-socket Intel server with 128 logical CPU, with the patch, the
+network bandwidth of the UNIX (AF_UNIX) test case of lmbench test suite
+with 16-pair processes increase 72.2%.  The cycles% of the spinlock
+contention (mostly for zone lock) decreases from 45.8% to 21.2%.  The
+number of PCP draining for high order pages freeing (free_high) decreases
+89.8%.  The cache miss rate keeps 0.3%.
 
-Just before that, page freeing with the following call stack was found,
-
- => free_unref_page_commit
- => free_unref_page_list
- => release_pages
- => tlb_batch_pages_flush
- => tlb_finish_mmu
- => exit_mmap
- => __mmput
- => exit_mm
- => do_exit
- => do_group_exit
- => __x64_sys_exit_group
- => do_syscall_64
-
-So, when a process exits,
-
-- a large number of user pages of the process will be freed without
-  page allocation, it's highly possible that pcp->free_factor becomes
-  > 0.
-
-- after freeing all user pages, the PGD will be freed, which is a
-  order-1 page freeing, PCP will be drained.
-
-All in all, when a process exits, it's high possible that the PCP will
-be drained.  This is an unexpected behavior.
-
-To avoid this, in the patch, the PCP draining will only be triggered
-for 2 consecutive high-order page freeing.
-
-On a 2-socket Intel server with 224 logical CPU, we run 8 kbuild instances
-in parallel (each with `make -j 28`) in 8 cgroup.  This simulates the
-kbuild server that is used by 0-Day kbuild service.  With the patch, the
-cycles% of the spinlock contention (mostly for zone lock) decreases from
-13.5% to 10.6% (with PCP size == 361).  The number of PCP draining for
-high order pages freeing (free_high) decreases 80.8%.
-
-This helps network workload too for reduced zone lock contention.  On a
-2-socket Intel server with 128 logical CPU, with the patch, the network
-bandwidth of the UNIX (AF_UNIX) test case of lmbench test suite with
-16-pair processes increase 17.1%.  The cycles% of the spinlock contention
-(mostly for zone lock) decreases from 50.0% to 45.8%.  The number of PCP
-draining for high order pages freeing (free_high) decreases 27.4%.  The
-cache miss rate keeps 0.3%.
-
-Link: https://lkml.kernel.org/r/20230926060911.266511-1-ying.huang@intel.com
-Link: https://lkml.kernel.org/r/20230926060911.266511-2-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20230926060911.266511-4-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -300,56 +88,110 @@ Cc: Sudeep Holla <sudeep.holla@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    5 ++++-
- mm/page_alloc.c        |   11 ++++++++---
- 2 files changed, 12 insertions(+), 4 deletions(-)
+ drivers/base/cacheinfo.c |    2 ++
+ include/linux/gfp.h      |    1 +
+ include/linux/mmzone.h   |    1 +
+ mm/page_alloc.c          |   37 ++++++++++++++++++++++++++++++++++++-
+ 4 files changed, 40 insertions(+), 1 deletion(-)
 
---- a/include/linux/mmzone.h~mm-pcp-avoid-to-drain-pcp-when-process-exit
+--- a/drivers/base/cacheinfo.c~mm-pcp-reduce-lock-contention-for-draining-high-order-pages
++++ a/drivers/base/cacheinfo.c
+@@ -943,6 +943,7 @@ static int cacheinfo_cpu_online(unsigned
+ 	if (rc)
+ 		goto err;
+ 	update_data_cache_size(true, cpu);
++	setup_pcp_cacheinfo();
+ 	return 0;
+ err:
+ 	free_cache_attributes(cpu);
+@@ -956,6 +957,7 @@ static int cacheinfo_cpu_pre_down(unsign
+ 
+ 	free_cache_attributes(cpu);
+ 	update_data_cache_size(false, cpu);
++	setup_pcp_cacheinfo();
+ 	return 0;
+ }
+ 
+--- a/include/linux/gfp.h~mm-pcp-reduce-lock-contention-for-draining-high-order-pages
++++ a/include/linux/gfp.h
+@@ -325,6 +325,7 @@ void drain_all_pages(struct zone *zone);
+ void drain_local_pages(struct zone *zone);
+ 
+ void page_alloc_init_late(void);
++void setup_pcp_cacheinfo(void);
+ 
+ /*
+  * gfp_allowed_mask is set to GFP_BOOT_MASK during early boot to restrict what
+--- a/include/linux/mmzone.h~mm-pcp-reduce-lock-contention-for-draining-high-order-pages
 +++ a/include/linux/mmzone.h
-@@ -674,12 +674,15 @@ enum zone_watermarks {
- #define high_wmark_pages(z) (z->_watermark[WMARK_HIGH] + z->watermark_boost)
+@@ -675,6 +675,7 @@ enum zone_watermarks {
  #define wmark_pages(z, i) (z->_watermark[i] + z->watermark_boost)
  
-+#define	PCPF_PREV_FREE_HIGH_ORDER	0x01
-+
+ #define	PCPF_PREV_FREE_HIGH_ORDER	0x01
++#define	PCPF_FREE_HIGH_BATCH		0x02
+ 
  struct per_cpu_pages {
  	spinlock_t lock;	/* Protects lists field */
- 	int count;		/* number of pages in the list */
- 	int high;		/* high watermark, emptying needed */
- 	int batch;		/* chunk size for buddy add/remove */
--	short free_factor;	/* batch scaling factor during free */
-+	u8 flags;		/* protected by pcp->lock */
-+	u8 free_factor;		/* batch scaling factor during free */
- #ifdef CONFIG_NUMA
- 	short expire;		/* When 0, remote pagesets are drained */
- #endif
---- a/mm/page_alloc.c~mm-pcp-avoid-to-drain-pcp-when-process-exit
+--- a/mm/page_alloc.c~mm-pcp-reduce-lock-contention-for-draining-high-order-pages
 +++ a/mm/page_alloc.c
-@@ -2370,7 +2370,7 @@ static void free_unref_page_commit(struc
- {
- 	int high;
- 	int pindex;
--	bool free_high;
-+	bool free_high = false;
- 
- 	__count_vm_events(PGFREE, 1 << order);
- 	pindex = order_to_pindex(migratetype, order);
-@@ -2383,8 +2383,13 @@ static void free_unref_page_commit(struc
- 	 * freeing without allocation. The remainder after bulk freeing
- 	 * stops will be drained from vmstat refresh context.
+@@ -52,6 +52,7 @@
+ #include <linux/psi.h>
+ #include <linux/khugepaged.h>
+ #include <linux/delayacct.h>
++#include <linux/cacheinfo.h>
+ #include <asm/div64.h>
+ #include "internal.h"
+ #include "shuffle.h"
+@@ -2385,7 +2386,9 @@ static void free_unref_page_commit(struc
  	 */
--	free_high = (pcp->free_factor && order && order <= PAGE_ALLOC_COSTLY_ORDER);
--
-+	if (order && order <= PAGE_ALLOC_COSTLY_ORDER) {
-+		free_high = (pcp->free_factor &&
-+			     (pcp->flags & PCPF_PREV_FREE_HIGH_ORDER));
-+		pcp->flags |= PCPF_PREV_FREE_HIGH_ORDER;
-+	} else if (pcp->flags & PCPF_PREV_FREE_HIGH_ORDER) {
-+		pcp->flags &= ~PCPF_PREV_FREE_HIGH_ORDER;
+ 	if (order && order <= PAGE_ALLOC_COSTLY_ORDER) {
+ 		free_high = (pcp->free_factor &&
+-			     (pcp->flags & PCPF_PREV_FREE_HIGH_ORDER));
++			     (pcp->flags & PCPF_PREV_FREE_HIGH_ORDER) &&
++			     (!(pcp->flags & PCPF_FREE_HIGH_BATCH) ||
++			      pcp->count >= READ_ONCE(pcp->batch)));
+ 		pcp->flags |= PCPF_PREV_FREE_HIGH_ORDER;
+ 	} else if (pcp->flags & PCPF_PREV_FREE_HIGH_ORDER) {
+ 		pcp->flags &= ~PCPF_PREV_FREE_HIGH_ORDER;
+@@ -5418,6 +5421,38 @@ static void zone_pcp_update(struct zone
+ 	mutex_unlock(&pcp_batch_high_lock);
+ }
+ 
++static void zone_pcp_update_cacheinfo(struct zone *zone)
++{
++	int cpu;
++	struct per_cpu_pages *pcp;
++	struct cpu_cacheinfo *cci;
++
++	for_each_online_cpu(cpu) {
++		pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
++		cci = get_cpu_cacheinfo(cpu);
++		/*
++		 * If per-CPU data cache is large enough, up to
++		 * "batch" high-order pages can be cached in PCP for
++		 * consecutive freeing.  This can reduce zone lock
++		 * contention without hurting cache-hot pages sharing.
++		 */
++		spin_lock(&pcp->lock);
++		if ((cci->size_data >> PAGE_SHIFT) > 4 * pcp->batch)
++			pcp->flags |= PCPF_FREE_HIGH_BATCH;
++		else
++			pcp->flags &= ~PCPF_FREE_HIGH_BATCH;
++		spin_unlock(&pcp->lock);
 +	}
- 	high = nr_pcp_high(pcp, zone, free_high);
- 	if (pcp->count >= high) {
- 		free_pcppages_bulk(zone, nr_pcp_free(pcp, high, free_high), pcp, pindex);
++}
++
++void setup_pcp_cacheinfo(void)
++{
++	struct zone *zone;
++
++	for_each_populated_zone(zone)
++		zone_pcp_update_cacheinfo(zone);
++}
++
+ /*
+  * Allocate per cpu pagesets and initialize them.
+  * Before this call only boot pagesets were available.
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
