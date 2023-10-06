@@ -2,33 +2,38 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67C8EE94133
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 21:49:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DAE9E94132
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 21:49:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233802AbjJFVtT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Oct 2023 17:49:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41304 "EHLO
+        id S233774AbjJFVtS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Oct 2023 17:49:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41280 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233823AbjJFVtQ (ORCPT
+        with ESMTP id S233820AbjJFVtQ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 17:49:16 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6AA0AE4
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 14:49:15 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95004C433C8;
-        Fri,  6 Oct 2023 21:49:14 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 864EADB
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 14:49:09 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5F31C433C8;
+        Fri,  6 Oct 2023 21:49:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696628955;
-        bh=HSQPu2wS/aODO9luPbXiZwBcrUJPefoD2MMxhYrgdGY=;
+        s=korg; t=1696628949;
+        bh=c5fDLfEd/zjRiH3vRKBwBzQEygaR8Qc3rHzwQzGmatw=;
         h=Date:To:From:Subject:From;
-        b=weL2oidVqtYOwSWAqOEtZKWAldHfwSenoFqq8P+3pIXS1nafgU1r6L8gLYaEXeL3N
-         ZysyPN21uW/vRbJMz46h/jIykLH1tVg6s03nUHrBxCRCmBGhT0fTYOaqk8ZfsW2CBh
-         HChR8uQ6g/scB9RQ9wWUR5Ix/2MIhmY/9kxWgXng=
-Date:   Fri, 06 Oct 2023 14:49:12 -0700
-To:     mm-commits@vger.kernel.org, riel@surriel.com, hannes@cmpxchg.org,
-        david@redhat.com, shr@devkernel.io, akpm@linux-foundation.org
+        b=vxealDvFNnYMmoJCx+cKNUzooGe3WFj8pN0R7K2q2YSUUykzEkwIo8yYaGmiGSYXY
+         07+AmZ+ujep9T2sFP6dhdkxPXwXeyMXN851kGhBvZdFCCFKkuS3TEac7zxAkaddN/3
+         jDvjs0m187v2UKso3U5j4J8GkXBGDXZvlTMj54ec=
+Date:   Fri, 06 Oct 2023 14:49:06 -0700
+To:     mm-commits@vger.kernel.org, weixugc@google.com,
+        shy828301@gmail.com, rafael.j.wysocki@intel.com, mhocko@kernel.org,
+        Jonathan.Cameron@huawei.com, hannes@cmpxchg.org, dave@stgolabs.net,
+        dave.jiang@intel.com, dave.hansen@intel.com,
+        dan.j.williams@intel.com, bharata@amd.com, apopple@nvidia.com,
+        aneesh.kumar@linux.ibm.com, ying.huang@intel.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-ksm-add-smart-page-scanning-mode.patch removed from -mm tree
-Message-Id: <20231006214914.95004C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] acpi-hmat-calculate-abstract-distance-with-hmat.patch removed from -mm tree
+Message-Id: <20231006214908.C5F31C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,272 +41,322 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/ksm: add "smart" page scanning mode
+     Subject: acpi, hmat: calculate abstract distance with HMAT
 has been removed from the -mm tree.  Its filename was
-     mm-ksm-add-smart-page-scanning-mode.patch
+     acpi-hmat-calculate-abstract-distance-with-hmat.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Stefan Roesch <shr@devkernel.io>
-Subject: mm/ksm: add "smart" page scanning mode
-Date: Mon, 25 Sep 2023 21:09:36 -0700
+From: Huang Ying <ying.huang@intel.com>
+Subject: acpi, hmat: calculate abstract distance with HMAT
+Date: Tue, 26 Sep 2023 14:06:27 +0800
 
-Patch series "Smart scanning mode for KSM", v3.
+A memory tiering abstract distance calculation algorithm based on ACPI
+HMAT is implemented.  The basic idea is as follows.
 
-This patch series adds "smart scanning" for KSM.
+The performance attributes of system default DRAM nodes are recorded as
+the base line.  Whose abstract distance is MEMTIER_ADISTANCE_DRAM.  Then,
+the ratio of the abstract distance of a memory node (target) to
+MEMTIER_ADISTANCE_DRAM is scaled based on the ratio of the performance
+attributes of the node to that of the default DRAM nodes.
 
-What is smart scanning?
-=======================
-KSM evaluates all the candidate pages for each scan. It does not use historic
-information from previous scans. This has the effect that candidate pages that
-couldn't be used for KSM de-duplication continue to be evaluated for each scan.
+The functions to record the read/write latency/bandwidth of the default
+DRAM nodes and calculate abstract distance according to read/write
+latency/bandwidth ratio will be used by CXL CDAT (Coherent Device
+Attribute Table) and other memory device drivers.  So, they are put in
+memory-tiers.c.
 
-The idea of "smart scanning" is to keep historic information. With the historic
-information we can temporarily skip the candidate page for one or several scans.
-
-Details:
-========
-"Smart scanning" is to keep two small counters to store if the page has been
-used for KSM. One counter stores how often we already tried to use the page for
-KSM and the other counter stores how often we skip a page.
-
-How often we skip the candidate page depends how often a page failed KSM
-de-duplication. The code skips a maximum of 8 times. During testing this has
-shown to be a good compromise for different workloads.
-
-New sysfs knob:
-===============
-Smart scanning is not enabled by default. With /sys/kernel/mm/ksm/smart_scan
-smart scanning can be enabled.
-
-Monitoring:
-===========
-To monitor how effective smart scanning is a new sysfs knob has been introduced.
-/sys/kernel/mm/pages_skipped report how many pages have been skipped by smart
-scanning.
-
-Results:
-========
-- Various workloads have shown a 20% - 25% reduction in page scans
-  For the instagram workload for instance, the number of pages scanned has been
-  reduced from over 20M pages per scan to less than 15M pages.
-- Less pages scans also resulted in an overall higher de-duplication rate as
-  some shorter lived pages could be de-duplicated additionally
-- Less pages scanned allows to reduce the pages_to_scan parameter
-  and this resulted in  a 25% reduction in terms of CPU.
-- The improvements have been observed for workloads that enable KSM with
-  madvise as well as prctl
-
-
-This patch (of 4):
-
-This change adds a "smart" page scanning mode for KSM.  So far all the
-candidate pages are continuously scanned to find candidates for
-de-duplication.  There are a considerably number of pages that cannot be
-de-duplicated.  This is costly in terms of CPU.  By using smart scanning
-considerable CPU savings can be achieved.
-
-This change takes the history of scanning pages into account and skips the
-page scanning of certain pages for a while if de-deduplication for this
-page has not been successful in the past.
-
-To do this it introduces two new fields in the ksm_rmap_item structure:
-age and remaining_skips.  age, is the KSM age and remaining_skips
-determines how often scanning of this page is skipped.  The age field is
-incremented each time the page is scanned and the page cannot be de-
-duplicated.  age updated is capped at U8_MAX.
-
-How often a page is skipped is dependent how often de-duplication has been
-tried so far and the number of skips is currently limited to 8.  This
-value has shown to be effective with different workloads.
-
-The feature is currently disable by default and can be enabled with the
-new smart_scan knob.
-
-The feature has shown to be very effective: upt to 25% of the page scans
-can be eliminated; the pages_to_scan rate can be reduced by 40 - 50% and a
-similar de-duplication rate can be maintained.
-
-[akpm@linux-foundation.org: make ksm_smart_scan default true, for testing]
-Link: https://lkml.kernel.org/r/20230926040939.516161-1-shr@devkernel.io
-Link: https://lkml.kernel.org/r/20230926040939.516161-2-shr@devkernel.io
-Signed-off-by: Stefan Roesch <shr@devkernel.io>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20230926060628.265989-4-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Tested-by: Bharata B Rao <bharata@amd.com>
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Stefan Roesch <shr@devkernel.io>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Rafael J Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |  104 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 104 insertions(+)
+ drivers/acpi/numa/hmat.c     |   65 ++++++++++++++++++++
+ include/linux/memory-tiers.h |   18 +++++
+ mm/memory-tiers.c            |  103 ++++++++++++++++++++++++++++++++-
+ 3 files changed, 183 insertions(+), 3 deletions(-)
 
---- a/mm/ksm.c~mm-ksm-add-smart-page-scanning-mode
-+++ a/mm/ksm.c
-@@ -56,6 +56,8 @@
- #define DO_NUMA(x)	do { } while (0)
- #endif
+--- a/drivers/acpi/numa/hmat.c~acpi-hmat-calculate-abstract-distance-with-hmat
++++ a/drivers/acpi/numa/hmat.c
+@@ -24,6 +24,7 @@
+ #include <linux/node.h>
+ #include <linux/sysfs.h>
+ #include <linux/dax.h>
++#include <linux/memory-tiers.h>
  
-+typedef u8 rmap_age_t;
-+
- /**
-  * DOC: Overview
-  *
-@@ -193,6 +195,8 @@ struct ksm_stable_node {
-  * @node: rb node of this rmap_item in the unstable tree
-  * @head: pointer to stable_node heading this list in the stable tree
-  * @hlist: link into hlist of rmap_items hanging off that stable_node
-+ * @age: number of scan iterations since creation
-+ * @remaining_skips: how many scans to skip
-  */
- struct ksm_rmap_item {
- 	struct ksm_rmap_item *rmap_list;
-@@ -205,6 +209,8 @@ struct ksm_rmap_item {
- 	struct mm_struct *mm;
- 	unsigned long address;		/* + low bits used for flags below */
- 	unsigned int oldchecksum;	/* when unstable */
-+	rmap_age_t age;
-+	rmap_age_t remaining_skips;
- 	union {
- 		struct rb_node node;	/* when node of unstable tree */
- 		struct {		/* when listed from stable tree */
-@@ -281,6 +287,10 @@ static unsigned int zero_checksum __read
- /* Whether to merge empty (zeroed) pages with actual zero pages */
- static bool ksm_use_zero_pages __read_mostly;
- 
-+/* Skip pages that couldn't be de-duplicated previously */
-+/* Default to true at least temporarily, for testing */
-+static bool ksm_smart_scan = true;
-+
- /* The number of zero pages which is placed by KSM */
- unsigned long ksm_zero_pages;
- 
-@@ -2305,6 +2315,73 @@ static struct ksm_rmap_item *get_next_rm
- 	return rmap_item;
+ static u8 hmat_revision;
+ static int hmat_disable __initdata;
+@@ -759,6 +760,61 @@ static int hmat_callback(struct notifier
+ 	return NOTIFY_OK;
  }
  
-+/*
-+ * Calculate skip age for the ksm page age. The age determines how often
-+ * de-duplicating has already been tried unsuccessfully. If the age is
-+ * smaller, the scanning of this page is skipped for less scans.
-+ *
-+ * @age: rmap_item age of page
-+ */
-+static unsigned int skip_age(rmap_age_t age)
++static int hmat_set_default_dram_perf(void)
 +{
-+	if (age <= 3)
-+		return 1;
-+	if (age <= 5)
-+		return 2;
-+	if (age <= 8)
-+		return 4;
++	int rc;
++	int nid, pxm;
++	struct memory_target *target;
++	struct node_hmem_attrs *attrs;
 +
-+	return 8;
-+}
++	if (!default_dram_type)
++		return -EIO;
 +
-+/*
-+ * Determines if a page should be skipped for the current scan.
-+ *
-+ * @page: page to check
-+ * @rmap_item: associated rmap_item of page
-+ */
-+static bool should_skip_rmap_item(struct page *page,
-+				  struct ksm_rmap_item *rmap_item)
-+{
-+	rmap_age_t age;
-+
-+	if (!ksm_smart_scan)
-+		return false;
-+
-+	/*
-+	 * Never skip pages that are already KSM; pages cmp_and_merge_page()
-+	 * will essentially ignore them, but we still have to process them
-+	 * properly.
-+	 */
-+	if (PageKsm(page))
-+		return false;
-+
-+	age = rmap_item->age;
-+	if (age != U8_MAX)
-+		rmap_item->age++;
-+
-+	/*
-+	 * Smaller ages are not skipped, they need to get a chance to go
-+	 * through the different phases of the KSM merging.
-+	 */
-+	if (age < 3)
-+		return false;
-+
-+	/*
-+	 * Are we still allowed to skip? If not, then don't skip it
-+	 * and determine how much more often we are allowed to skip next.
-+	 */
-+	if (!rmap_item->remaining_skips) {
-+		rmap_item->remaining_skips = skip_age(age);
-+		return false;
++	for_each_node_mask(nid, default_dram_type->nodes) {
++		pxm = node_to_pxm(nid);
++		target = find_mem_target(pxm);
++		if (!target)
++			continue;
++		attrs = &target->hmem_attrs[1];
++		rc = mt_set_default_dram_perf(nid, attrs, "ACPI HMAT");
++		if (rc)
++			return rc;
 +	}
 +
-+	/* Skip this page */
-+	rmap_item->remaining_skips--;
-+	remove_rmap_item_from_tree(rmap_item);
-+	return true;
++	return 0;
 +}
 +
- static struct ksm_rmap_item *scan_get_next_rmap_item(struct page **page)
++static int hmat_calculate_adistance(struct notifier_block *self,
++				    unsigned long nid, void *data)
++{
++	static DECLARE_BITMAP(p_nodes, MAX_NUMNODES);
++	struct memory_target *target;
++	struct node_hmem_attrs *perf;
++	int *adist = data;
++	int pxm;
++
++	pxm = node_to_pxm(nid);
++	target = find_mem_target(pxm);
++	if (!target)
++		return NOTIFY_OK;
++
++	mutex_lock(&target_lock);
++	hmat_update_target_attrs(target, p_nodes, 1);
++	mutex_unlock(&target_lock);
++
++	perf = &target->hmem_attrs[1];
++
++	if (mt_perf_to_adistance(perf, adist))
++		return NOTIFY_OK;
++
++	return NOTIFY_STOP;
++}
++
++static struct notifier_block hmat_adist_nb __meminitdata = {
++	.notifier_call = hmat_calculate_adistance,
++	.priority = 100,
++};
++
+ static __init void hmat_free_structures(void)
  {
- 	struct mm_struct *mm;
-@@ -2409,6 +2486,10 @@ next_mm:
- 				if (rmap_item) {
- 					ksm_scan.rmap_list =
- 							&rmap_item->rmap_list;
-+
-+					if (should_skip_rmap_item(*page, rmap_item))
-+						goto next_page;
-+
- 					ksm_scan.address += PAGE_SIZE;
- 				} else
- 					put_page(*page);
-@@ -3449,6 +3530,28 @@ static ssize_t full_scans_show(struct ko
- }
- KSM_ATTR_RO(full_scans);
+ 	struct memory_target *target, *tnext;
+@@ -841,8 +897,13 @@ static __init int hmat_init(void)
+ 	hmat_register_targets();
  
-+static ssize_t smart_scan_show(struct kobject *kobj,
-+			       struct kobj_attribute *attr, char *buf)
-+{
-+	return sysfs_emit(buf, "%u\n", ksm_smart_scan);
-+}
+ 	/* Keep the table and structures if the notifier may use them */
+-	if (!hotplug_memory_notifier(hmat_callback, HMAT_CALLBACK_PRI))
+-		return 0;
++	if (hotplug_memory_notifier(hmat_callback, HMAT_CALLBACK_PRI))
++		goto out_put;
 +
-+static ssize_t smart_scan_store(struct kobject *kobj,
-+				struct kobj_attribute *attr,
-+				const char *buf, size_t count)
-+{
-+	int err;
-+	bool value;
++	if (!hmat_set_default_dram_perf())
++		register_mt_adistance_algorithm(&hmat_adist_nb);
 +
-+	err = kstrtobool(buf, &value);
-+	if (err)
-+		return -EINVAL;
-+
-+	ksm_smart_scan = value;
-+	return count;
-+}
-+KSM_ATTR(smart_scan);
-+
- static struct attribute *ksm_attrs[] = {
- 	&sleep_millisecs_attr.attr,
- 	&pages_to_scan_attr.attr,
-@@ -3469,6 +3572,7 @@ static struct attribute *ksm_attrs[] = {
- 	&stable_node_chains_prune_millisecs_attr.attr,
- 	&use_zero_pages_attr.attr,
- 	&general_profit_attr.attr,
-+	&smart_scan_attr.attr,
- 	NULL,
++	return 0;
+ out_put:
+ 	hmat_free_structures();
+ 	acpi_put_table(tbl);
+--- a/include/linux/memory-tiers.h~acpi-hmat-calculate-abstract-distance-with-hmat
++++ a/include/linux/memory-tiers.h
+@@ -31,8 +31,11 @@ struct memory_dev_type {
+ 	struct kref kref;
  };
  
++struct node_hmem_attrs;
++
+ #ifdef CONFIG_NUMA
+ extern bool numa_demotion_enabled;
++extern struct memory_dev_type *default_dram_type;
+ struct memory_dev_type *alloc_memory_type(int adistance);
+ void put_memory_type(struct memory_dev_type *memtype);
+ void init_node_memory_type(int node, struct memory_dev_type *default_type);
+@@ -40,6 +43,9 @@ void clear_node_memory_type(int node, st
+ int register_mt_adistance_algorithm(struct notifier_block *nb);
+ int unregister_mt_adistance_algorithm(struct notifier_block *nb);
+ int mt_calc_adistance(int node, int *adist);
++int mt_set_default_dram_perf(int nid, struct node_hmem_attrs *perf,
++			     const char *source);
++int mt_perf_to_adistance(struct node_hmem_attrs *perf, int *adist);
+ #ifdef CONFIG_MIGRATION
+ int next_demotion_node(int node);
+ void node_get_allowed_targets(pg_data_t *pgdat, nodemask_t *targets);
+@@ -64,6 +70,7 @@ static inline bool node_is_toptier(int n
+ #else
+ 
+ #define numa_demotion_enabled	false
++#define default_dram_type	NULL
+ /*
+  * CONFIG_NUMA implementation returns non NULL error.
+  */
+@@ -116,5 +123,16 @@ static inline int mt_calc_adistance(int
+ {
+ 	return NOTIFY_DONE;
+ }
++
++static inline int mt_set_default_dram_perf(int nid, struct node_hmem_attrs *perf,
++					   const char *source)
++{
++	return -EIO;
++}
++
++static inline int mt_perf_to_adistance(struct node_hmem_attrs *perf, int *adist)
++{
++	return -EIO;
++}
+ #endif	/* CONFIG_NUMA */
+ #endif  /* _LINUX_MEMORY_TIERS_H */
+--- a/mm/memory-tiers.c~acpi-hmat-calculate-abstract-distance-with-hmat
++++ a/mm/memory-tiers.c
+@@ -37,7 +37,7 @@ struct node_memory_type_map {
+ static DEFINE_MUTEX(memory_tier_lock);
+ static LIST_HEAD(memory_tiers);
+ static struct node_memory_type_map node_memory_types[MAX_NUMNODES];
+-static struct memory_dev_type *default_dram_type;
++struct memory_dev_type *default_dram_type;
+ 
+ static struct bus_type memory_tier_subsys = {
+ 	.name = "memory_tiering",
+@@ -108,6 +108,11 @@ static struct demotion_nodes *node_demot
+ 
+ static BLOCKING_NOTIFIER_HEAD(mt_adistance_algorithms);
+ 
++static bool default_dram_perf_error;
++static struct node_hmem_attrs default_dram_perf;
++static int default_dram_perf_ref_nid = NUMA_NO_NODE;
++static const char *default_dram_perf_ref_source;
++
+ static inline struct memory_tier *to_memory_tier(struct device *device)
+ {
+ 	return container_of(device, struct memory_tier, dev);
+@@ -595,6 +600,102 @@ void clear_node_memory_type(int node, st
+ }
+ EXPORT_SYMBOL_GPL(clear_node_memory_type);
+ 
++static void dump_hmem_attrs(struct node_hmem_attrs *attrs, const char *prefix)
++{
++	pr_info(
++"%sread_latency: %u, write_latency: %u, read_bandwidth: %u, write_bandwidth: %u\n",
++		prefix, attrs->read_latency, attrs->write_latency,
++		attrs->read_bandwidth, attrs->write_bandwidth);
++}
++
++int mt_set_default_dram_perf(int nid, struct node_hmem_attrs *perf,
++			     const char *source)
++{
++	int rc = 0;
++
++	mutex_lock(&memory_tier_lock);
++	if (default_dram_perf_error) {
++		rc = -EIO;
++		goto out;
++	}
++
++	if (perf->read_latency + perf->write_latency == 0 ||
++	    perf->read_bandwidth + perf->write_bandwidth == 0) {
++		rc = -EINVAL;
++		goto out;
++	}
++
++	if (default_dram_perf_ref_nid == NUMA_NO_NODE) {
++		default_dram_perf = *perf;
++		default_dram_perf_ref_nid = nid;
++		default_dram_perf_ref_source = kstrdup(source, GFP_KERNEL);
++		goto out;
++	}
++
++	/*
++	 * The performance of all default DRAM nodes is expected to be
++	 * same (that is, the variation is less than 10%).  And it
++	 * will be used as base to calculate the abstract distance of
++	 * other memory nodes.
++	 */
++	if (abs(perf->read_latency - default_dram_perf.read_latency) * 10 >
++	    default_dram_perf.read_latency ||
++	    abs(perf->write_latency - default_dram_perf.write_latency) * 10 >
++	    default_dram_perf.write_latency ||
++	    abs(perf->read_bandwidth - default_dram_perf.read_bandwidth) * 10 >
++	    default_dram_perf.read_bandwidth ||
++	    abs(perf->write_bandwidth - default_dram_perf.write_bandwidth) * 10 >
++	    default_dram_perf.write_bandwidth) {
++		pr_info(
++"memory-tiers: the performance of DRAM node %d mismatches that of the reference\n"
++"DRAM node %d.\n", nid, default_dram_perf_ref_nid);
++		pr_info("  performance of reference DRAM node %d:\n",
++			default_dram_perf_ref_nid);
++		dump_hmem_attrs(&default_dram_perf, "    ");
++		pr_info("  performance of DRAM node %d:\n", nid);
++		dump_hmem_attrs(perf, "    ");
++		pr_info(
++"  disable default DRAM node performance based abstract distance algorithm.\n");
++		default_dram_perf_error = true;
++		rc = -EINVAL;
++	}
++
++out:
++	mutex_unlock(&memory_tier_lock);
++	return rc;
++}
++
++int mt_perf_to_adistance(struct node_hmem_attrs *perf, int *adist)
++{
++	if (default_dram_perf_error)
++		return -EIO;
++
++	if (default_dram_perf_ref_nid == NUMA_NO_NODE)
++		return -ENOENT;
++
++	if (perf->read_latency + perf->write_latency == 0 ||
++	    perf->read_bandwidth + perf->write_bandwidth == 0)
++		return -EINVAL;
++
++	mutex_lock(&memory_tier_lock);
++	/*
++	 * The abstract distance of a memory node is in direct proportion to
++	 * its memory latency (read + write) and inversely proportional to its
++	 * memory bandwidth (read + write).  The abstract distance, memory
++	 * latency, and memory bandwidth of the default DRAM nodes are used as
++	 * the base.
++	 */
++	*adist = MEMTIER_ADISTANCE_DRAM *
++		(perf->read_latency + perf->write_latency) /
++		(default_dram_perf.read_latency + default_dram_perf.write_latency) *
++		(default_dram_perf.read_bandwidth + default_dram_perf.write_bandwidth) /
++		(perf->read_bandwidth + perf->write_bandwidth);
++	mutex_unlock(&memory_tier_lock);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(mt_perf_to_adistance);
++
+ /**
+  * register_mt_adistance_algorithm() - Register memory tiering abstract distance algorithm
+  * @nb: The notifier block which describe the algorithm
 _
 
-Patches currently in -mm which might be from shr@devkernel.io are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
+mm-fix-draining-remote-pageset.patch
 
