@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D77DEE94108
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:19:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9714BE9410B
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:19:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233410AbjJFTTc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Oct 2023 15:19:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60726 "EHLO
+        id S233413AbjJFTTd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Oct 2023 15:19:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60720 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233433AbjJFTTb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:19:31 -0400
+        with ESMTP id S233430AbjJFTTa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:19:30 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 959CBAD
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:19:26 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80E91C433C7;
-        Fri,  6 Oct 2023 19:19:25 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 686BA9E
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:19:24 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 834DEC433C7;
+        Fri,  6 Oct 2023 19:19:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696619966;
-        bh=//5P+ccrFFHX2Bn9L1lzPu/o4i36EPFvTvEwui1YEz8=;
+        s=korg; t=1696619963;
+        bh=VEVk6kVqhwrrYtV3b5IlNSTnogmGwTKdqZxioR6tD+U=;
         h=Date:To:From:Subject:From;
-        b=2arCvIiFjQW6P2lSDei/ar/ujHHndI2tvRABoLAZ1yyZHhPspPn2B1xY+j4ZTYB+y
-         6RfAjctdPGAMmFqgPNBf25epbefXhGCgwMgTpqYASNX4g9kgyFF44/5dn4aeltk2lv
-         qy2xvnvV98kHm1yUDvJlYTI1208wbxYxMypI5Nds=
-Date:   Fri, 06 Oct 2023 12:19:23 -0700
+        b=JWEA3C3LCumXxwl974rWfRiacSt+X//LVe6ZNlJnmEwB34Qt0lkR2/zPJsVFGcv8b
+         oUJmFKqRSnmptWi7dKmCATuQXaGNQKAR18FO31+gmAYmgzr+bwvB9VA1uhJSZTK5eS
+         hYVcydkRlSlNEvVA78EcGW+dmGQhb/6o1E+5AUw4=
+Date:   Fri, 06 Oct 2023 12:19:20 -0700
 To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         tsbogend@alpha.franken.de, svens@linux.ibm.com,
         richard.henderson@linaro.org, paul.walmsley@sifive.com,
@@ -35,8 +35,8 @@ To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         adilger.kernel@dilger.ca, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + buffer-use-folio_end_read.patch added to mm-unstable branch
-Message-Id: <20231006191925.80E91C433C7@smtp.kernel.org>
+Subject: + iomap-use-folio_end_read.patch added to mm-unstable branch
+Message-Id: <20231006191922.834DEC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: buffer: use folio_end_read()
+     Subject: iomap: use folio_end_read()
 has been added to the -mm mm-unstable branch.  Its filename is
-     buffer-use-folio_end_read.patch
+     iomap-use-folio_end_read.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buffer-use-folio_end_read.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/iomap-use-folio_end_read.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,12 +68,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: buffer: use folio_end_read()
-Date: Wed, 4 Oct 2023 17:53:05 +0100
+Subject: iomap: use folio_end_read()
+Date: Wed, 4 Oct 2023 17:53:06 +0100
 
-There are two places that we can use this new helper.
+Combine the setting of the uptodate flag with the clearing of the locked
+flag.
 
-Link: https://lkml.kernel.org/r/20231004165317.1061855-6-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231004165317.1061855-7-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -96,42 +97,23 @@ Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |   16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ fs/iomap/buffered-io.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/fs/buffer.c~buffer-use-folio_end_read
-+++ a/fs/buffer.c
-@@ -282,13 +282,7 @@ static void end_buffer_async_read(struct
- 	} while (tmp != bh);
- 	spin_unlock_irqrestore(&first->b_uptodate_lock, flags);
+--- a/fs/iomap/buffered-io.c~iomap-use-folio_end_read
++++ a/fs/iomap/buffered-io.c
+@@ -270,10 +270,8 @@ static void iomap_finish_folio_read(stru
  
--	/*
--	 * If all of the buffers are uptodate then we can set the page
--	 * uptodate.
--	 */
--	if (folio_uptodate)
+ 	if (error)
+ 		folio_set_error(folio);
+-	if (uptodate)
 -		folio_mark_uptodate(folio);
--	folio_unlock(folio);
-+	folio_end_read(folio, folio_uptodate);
- 	return;
- 
- still_busy:
-@@ -2433,12 +2427,10 @@ int block_read_full_folio(struct folio *
- 
- 	if (!nr) {
- 		/*
--		 * All buffers are uptodate - we can set the folio uptodate
--		 * as well. But not if get_block() returned an error.
-+		 * All buffers are uptodate or get_block() returned an
-+		 * error when trying to map them - we can finish the read.
- 		 */
--		if (!page_error)
--			folio_mark_uptodate(folio);
+ 	if (finished)
 -		folio_unlock(folio);
-+		folio_end_read(folio, !page_error);
- 		return 0;
- 	}
++		folio_end_read(folio, uptodate);
+ }
  
+ static void iomap_read_end_io(struct bio *bio)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
