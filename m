@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF52DE9410C
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:19:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 584ACE94104
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:20:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233445AbjJFTT6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Oct 2023 15:19:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44100 "EHLO
+        id S233448AbjJFTUA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Oct 2023 15:20:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42020 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233421AbjJFTTr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:19:47 -0400
+        with ESMTP id S233421AbjJFTT7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:19:59 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 23BA89F
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:19:46 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AE86C433C7;
-        Fri,  6 Oct 2023 19:19:45 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B389995
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:19:57 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1267C433C8;
+        Fri,  6 Oct 2023 19:19:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696619985;
-        bh=zo/zuhYyIeex393lGuNB0QSosZWToyfV6RGojFUDqnA=;
+        s=korg; t=1696619997;
+        bh=ktKYPJcEGmTD4KoUGBa6Nrjw2EJ6+I8IgMzwNfC9dI4=;
         h=Date:To:From:Subject:From;
-        b=eZU4JZ14MRCMkogZocD9PeQTUZhVnM4n8+COR9gNIS7a+oby8RYODvmpsUoy+B231
-         LO2X/APv6xnlDvOHnuBpH+U7zxBuBL3MqzpH/SLrLrqwxgCuzCOAnLky5id+eGYeUz
-         1NfIITtzaD2wiYauKAI6PN3ctSuK2Ok/MKVeBs9w=
-Date:   Fri, 06 Oct 2023 12:19:43 -0700
+        b=rUSx9IAQSxw6pvWAIBGq7qv1j9Sn5aKu1tQ73d/j50gsozUizlZQyK8MzKu9jRFG9
+         HItc4gjmZUorSMSGK82+rGaQR7ge6FkR8rCjr1XqIajP5v6OwxPg4N35L0xFSYUFuT
+         oADOo9OjGAPvm5nqOMV5PSXu72bjsTDEeHhDwG6s=
+Date:   Fri, 06 Oct 2023 12:19:54 -0700
 To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         tsbogend@alpha.franken.de, svens@linux.ibm.com,
         richard.henderson@linaro.org, paul.walmsley@sifive.com,
@@ -35,8 +35,8 @@ To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         adilger.kernel@dilger.ca, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + riscv-implement-xor_unlock_is_negative_byte.patch added to mm-unstable branch
-Message-Id: <20231006191945.5AE86C433C7@smtp.kernel.org>
+Subject: + mm-use-folio_xor_flags_has_waiters-in-folio_end_writeback.patch added to mm-unstable branch
+Message-Id: <20231006191956.F1267C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: riscv: implement xor_unlock_is_negative_byte
+     Subject: mm: use folio_xor_flags_has_waiters() in folio_end_writeback()
 has been added to the -mm mm-unstable branch.  Its filename is
-     riscv-implement-xor_unlock_is_negative_byte.patch
+     mm-use-folio_xor_flags_has_waiters-in-folio_end_writeback.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-implement-xor_unlock_is_negative_byte.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-folio_xor_flags_has_waiters-in-folio_end_writeback.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,13 +68,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: riscv: implement xor_unlock_is_negative_byte
-Date: Wed, 4 Oct 2023 17:53:12 +0100
+Subject: mm: use folio_xor_flags_has_waiters() in folio_end_writeback()
+Date: Wed, 4 Oct 2023 17:53:17 +0100
 
-Inspired by the riscv clear_bit_unlock(), this will surely be
-more efficient than the generic one defined in filemap.c.
+Match how folio_unlock() works by combining the test for PG_waiters with
+the clearing of PG_writeback.  This should have a small performance win,
+and removes the last user of folio_wake().
 
-Link: https://lkml.kernel.org/r/20231004165317.1061855-13-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231004165317.1061855-18-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -97,31 +98,96 @@ Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/include/asm/bitops.h |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ mm/filemap.c        |   15 +++------------
+ mm/internal.h       |    2 +-
+ mm/page-writeback.c |    9 ++++++---
+ 3 files changed, 10 insertions(+), 16 deletions(-)
 
---- a/arch/riscv/include/asm/bitops.h~riscv-implement-xor_unlock_is_negative_byte
-+++ a/arch/riscv/include/asm/bitops.h
-@@ -191,6 +191,19 @@ static inline void __clear_bit_unlock(
- 	clear_bit_unlock(nr, addr);
+--- a/mm/filemap.c~mm-use-folio_xor_flags_has_waiters-in-folio_end_writeback
++++ a/mm/filemap.c
+@@ -1175,13 +1175,6 @@ static void folio_wake_bit(struct folio
+ 	spin_unlock_irqrestore(&q->lock, flags);
  }
  
-+static inline bool xor_unlock_is_negative_byte(unsigned long mask,
-+		volatile unsigned long *addr)
-+{
-+	unsigned long res;
-+	__asm__ __volatile__ (
-+		__AMO(xor) ".rl %0, %2, %1"
-+		: "=r" (res), "+A" (*addr)
-+		: "r" (__NOP(mask))
-+		: "memory");
-+	return (res & BIT(7)) != 0;
-+}
-+#define xor_unlock_is_negative_byte xor_unlock_is_negative_byte
+-static void folio_wake(struct folio *folio, int bit)
+-{
+-	if (!folio_test_waiters(folio))
+-		return;
+-	folio_wake_bit(folio, bit);
+-}
+-
+ /*
+  * A choice of three behaviors for folio_wait_bit_common():
+  */
+@@ -1618,13 +1611,11 @@ void folio_end_writeback(struct folio *f
+ 	 * Writeback does not hold a folio reference of its own, relying
+ 	 * on truncation to wait for the clearing of PG_writeback.
+ 	 * But here we must make sure that the folio is not freed and
+-	 * reused before the folio_wake().
++	 * reused before the folio_wake_bit().
+ 	 */
+ 	folio_get(folio);
+-	__folio_end_writeback(folio);
+-
+-	smp_mb__after_atomic();
+-	folio_wake(folio, PG_writeback);
++	if (__folio_end_writeback(folio))
++		folio_wake_bit(folio, PG_writeback);
+ 	acct_reclaim_writeback(folio);
+ 	folio_put(folio);
+ }
+--- a/mm/internal.h~mm-use-folio_xor_flags_has_waiters-in-folio_end_writeback
++++ a/mm/internal.h
+@@ -105,7 +105,7 @@ static inline void wake_throttle_isolate
+ 
+ vm_fault_t do_swap_page(struct vm_fault *vmf);
+ void folio_rotate_reclaimable(struct folio *folio);
+-void __folio_end_writeback(struct folio *folio);
++bool __folio_end_writeback(struct folio *folio);
+ void deactivate_file_folio(struct folio *folio);
+ void folio_activate(struct folio *folio);
+ 
+--- a/mm/page-writeback.c~mm-use-folio_xor_flags_has_waiters-in-folio_end_writeback
++++ a/mm/page-writeback.c
+@@ -2940,10 +2940,11 @@ static void wb_inode_writeback_end(struc
+ 	spin_unlock_irqrestore(&wb->work_lock, flags);
+ }
+ 
+-void __folio_end_writeback(struct folio *folio)
++bool __folio_end_writeback(struct folio *folio)
+ {
+ 	long nr = folio_nr_pages(folio);
+ 	struct address_space *mapping = folio_mapping(folio);
++	bool ret;
+ 
+ 	folio_memcg_lock(folio);
+ 	if (mapping && mapping_use_writeback_tags(mapping)) {
+@@ -2952,7 +2953,7 @@ void __folio_end_writeback(struct folio
+ 		unsigned long flags;
+ 
+ 		xa_lock_irqsave(&mapping->i_pages, flags);
+-		folio_test_clear_writeback(folio);
++		ret = folio_xor_flags_has_waiters(folio, 1 << PG_writeback);
+ 		__xa_clear_mark(&mapping->i_pages, folio_index(folio),
+ 					PAGECACHE_TAG_WRITEBACK);
+ 		if (bdi->capabilities & BDI_CAP_WRITEBACK_ACCT) {
+@@ -2970,13 +2971,15 @@ void __folio_end_writeback(struct folio
+ 
+ 		xa_unlock_irqrestore(&mapping->i_pages, flags);
+ 	} else {
+-		folio_test_clear_writeback(folio);
++		ret = folio_xor_flags_has_waiters(folio, 1 << PG_writeback);
+ 	}
+ 
+ 	lruvec_stat_mod_folio(folio, NR_WRITEBACK, -nr);
+ 	zone_stat_mod_folio(folio, NR_ZONE_WRITE_PENDING, -nr);
+ 	node_stat_mod_folio(folio, NR_WRITTEN, nr);
+ 	folio_memcg_unlock(folio);
 +
- #undef __test_and_op_bit
- #undef __op_bit
- #undef __NOP
++	return ret;
+ }
+ 
+ bool __folio_start_writeback(struct folio *folio, bool keep_write)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
