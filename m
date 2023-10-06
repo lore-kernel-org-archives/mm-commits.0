@@ -2,34 +2,37 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BEF1E9412F
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 21:47:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A6A4E94130
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 21:47:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233823AbjJFVrf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Oct 2023 17:47:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60744 "EHLO
+        id S233859AbjJFVrn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Oct 2023 17:47:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60678 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233847AbjJFVrY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 17:47:24 -0400
+        with ESMTP id S233860AbjJFVra (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 17:47:30 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6038FC6
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 14:47:23 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 915CEC433C8;
-        Fri,  6 Oct 2023 21:47:22 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63F23106
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 14:47:26 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3B11C433C7;
+        Fri,  6 Oct 2023 21:47:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696628843;
-        bh=c/ZGoGInpMae4N0ku9UOyhNefSYDaPxVrCUSLmBUxXU=;
+        s=korg; t=1696628846;
+        bh=Snqsp6FTrv1z+q208khmWzmgqIiFLAY5zZIi+kiG+Ds=;
         h=Date:To:From:Subject:From;
-        b=IHFDnlri0JKRKSGYG9gXYnU2D+PAzMS8/nLrjgCzF6gGHJkEppJ243xfxc0c6vTso
-         hg45w09vSyfSmozdJUKgeOCK/PfOEfITHKnS3z5YV1wetTwQXu3Lea5Ks8sBUSxMEh
-         kz/HkWXnd8LH15PxbKnRSQhim95cvKMp/pbR1evA=
-Date:   Fri, 06 Oct 2023 14:47:20 -0700
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
-        rafael@kernel.org, lenb@kernel.org, aneesh.kumar@linux.ibm.com,
-        lizhijian@cn.fujitsu.com, akpm@linux-foundation.org
+        b=EnPE5XzvJjMwqjJmOEhgQj7xvaDS05pNyrRC7NkzsJfTiE0BzpKEIy6mw/crSpNLP
+         yThvrjzK7fA+BPom6gtp3q3TWdAbwfTQKppi1nUkkyHCpV+TOppuO52d4iKqjsV/qo
+         Gxyv/gSkQkSoU8AiJQsnLff5J8wf6L+7wMCmxig0=
+Date:   Fri, 06 Oct 2023 14:47:23 -0700
+To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
+        wangkefeng.wang@huawei.com, tj@kernel.org,
+        songmuchun@bytedance.com, shakeelb@google.com,
+        roman.gushchin@linux.dev, mkoutny@suse.com, mhocko@kernel.org,
+        lizefan.x@bytedance.com, hannes@cmpxchg.org, corbet@lwn.net,
+        liushixin2@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] acpimm-fix-typo-sibiling-sibling.patch removed from -mm tree
-Message-Id: <20231006214722.915CEC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-remove-unused-do_memsw_account-in-memcg1_stat_format.patch removed from -mm tree
+Message-Id: <20231006214725.A3B11C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,108 +40,75 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: acpi,mm: fix typo sibiling -> sibling
+     Subject: memcg: remove unused do_memsw_account in memcg1_stat_format
 has been removed from the -mm tree.  Its filename was
-     acpimm-fix-typo-sibiling-sibling.patch
+     memcg-remove-unused-do_memsw_account-in-memcg1_stat_format.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Li Zhijian <lizhijian@cn.fujitsu.com>
-Subject: acpi,mm: fix typo sibiling -> sibling
-Date: Wed, 2 Aug 2023 17:28:56 +0800
+From: Liu Shixin <liushixin2@huawei.com>
+Subject: memcg: remove unused do_memsw_account in memcg1_stat_format
+Date: Fri, 15 Sep 2023 18:58:45 +0800
 
-First found this typo as reviewing memory tier code. Fix it by sed like:
-$ sed -i 's/sibiling/sibling/g' $(git grep -l sibiling)
+Since commit b25806dcd3d5("mm: memcontrol: deprecate swapaccounting=0
+mode") do_memsw_account() is synonymous with
+!cgroup_subsys_on_dfl(memory_cgrp_subsys), It always equals true in
+memcg1_stat_format().  Remove the unused code.
 
-so the acpi one will be corrected as well.
-
-Link: https://lkml.kernel.org/r/20230802092856.819328-1-lizhijian@cn.fujitsu.com
-Signed-off-by: Li Zhijian <lizhijian@cn.fujitsu.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Huang, Ying <ying.huang@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Link: https://lkml.kernel.org/r/20230915105845.3199656-3-liushixin2@huawei.com
+Signed-off-by: Liu Shixin <liushixin2@huawei.com>
+Suggested-by: Michal Koutný <mkoutny@suse.com>
+Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
+Acked-by: Tejun heo <tj@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/acpi_pad.c      |    2 +-
- include/linux/memory-tiers.h |    2 +-
- mm/memory-tiers.c            |   10 +++++-----
- 3 files changed, 7 insertions(+), 7 deletions(-)
+ mm/memcontrol.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
---- a/drivers/acpi/acpi_pad.c~acpimm-fix-typo-sibiling-sibling
-+++ a/drivers/acpi/acpi_pad.c
-@@ -100,7 +100,7 @@ static void round_robin_cpu(unsigned int
- 	for_each_cpu(cpu, pad_busy_cpus)
- 		cpumask_or(tmp, tmp, topology_sibling_cpumask(cpu));
- 	cpumask_andnot(tmp, cpu_online_mask, tmp);
--	/* avoid HT sibilings if possible */
-+	/* avoid HT siblings if possible */
- 	if (cpumask_empty(tmp))
- 		cpumask_andnot(tmp, cpu_online_mask, pad_busy_cpus);
- 	if (cpumask_empty(tmp)) {
---- a/include/linux/memory-tiers.h~acpimm-fix-typo-sibiling-sibling
-+++ a/include/linux/memory-tiers.h
-@@ -22,7 +22,7 @@
- struct memory_tier;
- struct memory_dev_type {
- 	/* list of memory types that are part of same tier as this type */
--	struct list_head tier_sibiling;
-+	struct list_head tier_sibling;
- 	/* abstract distance for this specific memory type */
- 	int adistance;
- 	/* Nodes of same abstract distance */
---- a/mm/memory-tiers.c~acpimm-fix-typo-sibiling-sibling
-+++ a/mm/memory-tiers.c
-@@ -115,7 +115,7 @@ static __always_inline nodemask_t get_me
- 	nodemask_t nodes = NODE_MASK_NONE;
- 	struct memory_dev_type *memtype;
+--- a/mm/memcontrol.c~memcg-remove-unused-do_memsw_account-in-memcg1_stat_format
++++ a/mm/memcontrol.c
+@@ -4113,8 +4113,6 @@ static void memcg1_stat_format(struct me
+ 	for (i = 0; i < ARRAY_SIZE(memcg1_stats); i++) {
+ 		unsigned long nr;
  
--	list_for_each_entry(memtype, &memtier->memory_types, tier_sibiling)
-+	list_for_each_entry(memtype, &memtier->memory_types, tier_sibling)
- 		nodes_or(nodes, nodes, memtype->nodes);
+-		if (memcg1_stats[i] == MEMCG_SWAP && !do_memsw_account())
+-			continue;
+ 		nr = memcg_page_state_local(memcg, memcg1_stats[i]);
+ 		seq_buf_printf(s, "%s %lu\n", memcg1_stat_names[i],
+ 			   nr * memcg_page_state_unit(memcg1_stats[i]));
+@@ -4137,15 +4135,12 @@ static void memcg1_stat_format(struct me
+ 	}
+ 	seq_buf_printf(s, "hierarchical_memory_limit %llu\n",
+ 		       (u64)memory * PAGE_SIZE);
+-	if (do_memsw_account())
+-		seq_buf_printf(s, "hierarchical_memsw_limit %llu\n",
+-			       (u64)memsw * PAGE_SIZE);
++	seq_buf_printf(s, "hierarchical_memsw_limit %llu\n",
++		       (u64)memsw * PAGE_SIZE);
  
- 	return nodes;
-@@ -174,7 +174,7 @@ static struct memory_tier *find_create_m
- 	 * If the memtype is already part of a memory tier,
- 	 * just return that.
- 	 */
--	if (!list_empty(&memtype->tier_sibiling)) {
-+	if (!list_empty(&memtype->tier_sibling)) {
- 		list_for_each_entry(memtier, &memory_tiers, list) {
- 			if (adistance == memtier->adistance_start)
- 				return memtier;
-@@ -218,7 +218,7 @@ static struct memory_tier *find_create_m
- 	memtier = new_memtier;
+ 	for (i = 0; i < ARRAY_SIZE(memcg1_stats); i++) {
+ 		unsigned long nr;
  
- link_memtype:
--	list_add(&memtype->tier_sibiling, &memtier->memory_types);
-+	list_add(&memtype->tier_sibling, &memtier->memory_types);
- 	return memtier;
- }
- 
-@@ -527,7 +527,7 @@ static bool clear_node_memory_tier(int n
- 		memtype = node_memory_types[node].memtype;
- 		node_clear(node, memtype->nodes);
- 		if (nodes_empty(memtype->nodes)) {
--			list_del_init(&memtype->tier_sibiling);
-+			list_del_init(&memtype->tier_sibling);
- 			if (list_empty(&memtier->memory_types))
- 				destroy_memory_tier(memtier);
- 		}
-@@ -553,7 +553,7 @@ struct memory_dev_type *alloc_memory_typ
- 		return ERR_PTR(-ENOMEM);
- 
- 	memtype->adistance = adistance;
--	INIT_LIST_HEAD(&memtype->tier_sibiling);
-+	INIT_LIST_HEAD(&memtype->tier_sibling);
- 	memtype->nodes  = NODE_MASK_NONE;
- 	kref_init(&memtype->kref);
- 	return memtype;
+-		if (memcg1_stats[i] == MEMCG_SWAP && !do_memsw_account())
+-			continue;
+ 		nr = memcg_page_state(memcg, memcg1_stats[i]);
+ 		seq_buf_printf(s, "total_%s %llu\n", memcg1_stat_names[i],
+ 			   (u64)nr * memcg_page_state_unit(memcg1_stats[i]));
 _
 
-Patches currently in -mm which might be from lizhijian@cn.fujitsu.com are
+Patches currently in -mm which might be from liushixin2@huawei.com are
 
+mm-vmscan-try-to-reclaim-swapcache-pages-if-no-swap-space.patch
+mm-vmscan-try-to-reclaim-swapcache-pages-if-no-swap-space-v6.patch
 
