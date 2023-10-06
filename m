@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30020E94107
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B78CAE94104
 	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:18:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233412AbjJFTSs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Oct 2023 15:18:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48668 "EHLO
+        id S233390AbjJFTSt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Oct 2023 15:18:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48684 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233390AbjJFTSl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:18:41 -0400
+        with ESMTP id S233392AbjJFTSo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:18:44 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C1E883
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:18:40 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96E0CC433C8;
-        Fri,  6 Oct 2023 19:18:39 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 086229E
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:18:43 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50386C433C9;
+        Fri,  6 Oct 2023 19:18:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696619919;
-        bh=INW+LzjKE4AlL+lP7d2mrQZW7QD1KRs+dWiM5rA27yM=;
+        s=korg; t=1696619922;
+        bh=cMBCGik1d6swq9ah9o27hN0hFM9LjyGt5umsd6RMXDs=;
         h=Date:To:From:Subject:From;
-        b=TOsrs/XELI4k6AbSRatWxTnU+8TQ3LKx/hM+GokjExT2DdsRpGJdvrnsE/M2m4mA+
-         eWQa2DdY1kWLi6UOlGJmJU2pYCbsjsoIw0TDhW49yFlqmHQUFxGSI0Xqftekrkf90J
-         OIPZUNCU3fXygXZkSn1L4jnX3Iow79Xyco/FwZm4=
-Date:   Fri, 06 Oct 2023 12:18:37 -0700
+        b=wkjH/UQIz3lrq4eRJlXWSR+R4+Hvw+pw6QF+GPlCwM+mIY1T0kq8DaYksp5M56QMK
+         60Ae2Ta1gxxTNtfXQRS8WNelf6lQ32G9NisAXi3F6yNJowSbDx8QmGTPUmECeB3Qih
+         OiKBoZ0ddzEB2lyLyAZD+wC4T6w+rgl7xedXTIS8=
+Date:   Fri, 06 Oct 2023 12:18:40 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         songmuchun@bytedance.com, rientjes@google.com, osalvador@suse.de,
         naoya.horiguchi@linux.dev, mhocko@suse.com, linmiaohe@huawei.com,
@@ -32,8 +32,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         david@redhat.com, anshuman.khandual@arm.com, 21cnbao@gmail.com,
         mike.kravetz@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-perform-vmemmap-optimization-on-a-list-of-pages.patch added to mm-unstable branch
-Message-Id: <20231006191839.96E0CC433C8@smtp.kernel.org>
+Subject: + hugetlb-batch-freeing-of-vmemmap-pages.patch added to mm-unstable branch
+Message-Id: <20231006191842.50386C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,12 +41,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: perform vmemmap optimization on a list of pages
+     Subject: hugetlb: batch freeing of vmemmap pages
 has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-perform-vmemmap-optimization-on-a-list-of-pages.patch
+     hugetlb-batch-freeing-of-vmemmap-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-perform-vmemmap-optimization-on-a-list-of-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-batch-freeing-of-vmemmap-pages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -65,22 +65,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: perform vmemmap optimization on a list of pages
-Date: Thu, 5 Oct 2023 20:20:05 -0700
+Subject: hugetlb: batch freeing of vmemmap pages
+Date: Thu, 5 Oct 2023 20:20:07 -0700
 
-When adding hugetlb pages to the pool, we first create a list of the
-allocated pages before adding to the pool.  Pass this list of pages to a
-new routine hugetlb_vmemmap_optimize_folios() for vmemmap optimization.
+Now that batching of hugetlb vmemmap optimization processing is possible,
+batch the freeing of vmemmap pages.  When freeing vmemmap pages for a
+hugetlb page, we add them to a list that is freed after the entire batch
+has been processed.
 
-Due to significant differences in vmemmmap initialization for bootmem
-allocated hugetlb pages, a new routine prep_and_add_bootmem_folios is
-created.
+This enhances the ability to return contiguous ranges of memory to the low
+level allocators.
 
-We also modify the routine vmemmap_should_optimize() to check for pages
-that are already optimized.  There are code paths that might request
-vmemmap optimization twice and we want to make sure this is not attempted.
-
-Link: https://lkml.kernel.org/r/20231006032012.296473-4-mike.kravetz@oracle.com
+Link: https://lkml.kernel.org/r/20231006032012.296473-6-mike.kravetz@oracle.com
 Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -99,138 +95,173 @@ Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c         |   42 +++++++++++++++++++++++++++++++++--------
- mm/hugetlb_vmemmap.c |   11 ++++++++++
- mm/hugetlb_vmemmap.h |    5 ++++
- 3 files changed, 50 insertions(+), 8 deletions(-)
+ mm/hugetlb_vmemmap.c |   82 ++++++++++++++++++++++++++++-------------
+ 1 file changed, 56 insertions(+), 26 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-perform-vmemmap-optimization-on-a-list-of-pages
-+++ a/mm/hugetlb.c
-@@ -2137,6 +2137,9 @@ static void prep_and_add_allocated_folio
- {
- 	struct folio *folio, *tmp_f;
- 
-+	/* Send list for bulk vmemmap optimization processing */
-+	hugetlb_vmemmap_optimize_folios(h, folio_list);
-+
- 	/* Add all new pool pages to free lists in one lock cycle */
- 	spin_lock_irq(&hugetlb_lock);
- 	list_for_each_entry_safe(folio, tmp_f, folio_list, lru) {
-@@ -3175,6 +3178,34 @@ static void __init hugetlb_folio_init_vm
- 	prep_compound_head((struct page *)folio, huge_page_order(h));
- }
- 
-+static void __init prep_and_add_bootmem_folios(struct hstate *h,
-+					struct list_head *folio_list)
-+{
-+	struct folio *folio, *tmp_f;
-+
-+	/* Send list for bulk vmemmap optimization processing */
-+	hugetlb_vmemmap_optimize_folios(h, folio_list);
-+
-+	/* Add all new pool pages to free lists in one lock cycle */
-+	spin_lock_irq(&hugetlb_lock);
-+	list_for_each_entry_safe(folio, tmp_f, folio_list, lru) {
-+		if (!folio_test_hugetlb_vmemmap_optimized(folio)) {
-+			/*
-+			 * If HVO fails, initialize all tail struct pages
-+			 * We do not worry about potential long lock hold
-+			 * time as this is early in boot and there should
-+			 * be no contention.
-+			 */
-+			hugetlb_folio_init_tail_vmemmap(folio,
-+					HUGETLB_VMEMMAP_RESERVE_PAGES,
-+					pages_per_huge_page(h));
-+		}
-+		__prep_account_new_huge_page(h, folio_nid(folio));
-+		enqueue_hugetlb_folio(h, folio);
-+	}
-+	spin_unlock_irq(&hugetlb_lock);
-+}
-+
- /*
-  * Put bootmem huge pages into the standard lists after mem_map is up.
-  * Note: This only applies to gigantic (order > MAX_ORDER) pages.
-@@ -3195,7 +3226,7 @@ static void __init gather_bootmem_preall
- 		 * in this list.  If so, process each size separately.
- 		 */
- 		if (h != prev_h && prev_h != NULL)
--			prep_and_add_allocated_folios(prev_h, &folio_list);
-+			prep_and_add_bootmem_folios(prev_h, &folio_list);
- 		prev_h = h;
- 
- 		VM_BUG_ON(!hstate_is_gigantic(h));
-@@ -3203,12 +3234,7 @@ static void __init gather_bootmem_preall
- 
- 		hugetlb_folio_init_vmemmap(folio, h,
- 					   HUGETLB_VMEMMAP_RESERVE_PAGES);
--		__prep_new_hugetlb_folio(h, folio);
--		/* If HVO fails, initialize all tail struct pages */
--		if (!HPageVmemmapOptimized(&folio->page))
--			hugetlb_folio_init_tail_vmemmap(folio,
--						HUGETLB_VMEMMAP_RESERVE_PAGES,
--						pages_per_huge_page(h));
-+		init_new_hugetlb_folio(h, folio);
- 		list_add(&folio->lru, &folio_list);
- 
- 		/*
-@@ -3220,7 +3246,7 @@ static void __init gather_bootmem_preall
- 		cond_resched();
+--- a/mm/hugetlb_vmemmap.c~hugetlb-batch-freeing-of-vmemmap-pages
++++ a/mm/hugetlb_vmemmap.c
+@@ -251,7 +251,7 @@ static void vmemmap_remap_pte(pte_t *pte
  	}
  
--	prep_and_add_allocated_folios(h, &folio_list);
-+	prep_and_add_bootmem_folios(h, &folio_list);
+ 	entry = mk_pte(walk->reuse_page, pgprot);
+-	list_add_tail(&page->lru, walk->vmemmap_pages);
++	list_add(&page->lru, walk->vmemmap_pages);
+ 	set_pte_at(&init_mm, addr, pte, entry);
  }
  
- static void __init hugetlb_hstate_alloc_pages_onenode(struct hstate *h, int nid)
---- a/mm/hugetlb_vmemmap.c~hugetlb-perform-vmemmap-optimization-on-a-list-of-pages
-+++ a/mm/hugetlb_vmemmap.c
-@@ -483,6 +483,9 @@ int hugetlb_vmemmap_restore(const struct
- /* Return true iff a HugeTLB whose vmemmap should and can be optimized. */
- static bool vmemmap_should_optimize(const struct hstate *h, const struct page *head)
+@@ -306,18 +306,20 @@ static void vmemmap_restore_pte(pte_t *p
+  * @end:	end address of the vmemmap virtual address range that we want to
+  *		remap.
+  * @reuse:	reuse address.
++ * @vmemmap_pages: list to deposit vmemmap pages to be freed.  It is callers
++ *		responsibility to free pages.
+  *
+  * Return: %0 on success, negative error code otherwise.
+  */
+ static int vmemmap_remap_free(unsigned long start, unsigned long end,
+-			      unsigned long reuse)
++			      unsigned long reuse,
++			      struct list_head *vmemmap_pages)
  {
-+	if (HPageVmemmapOptimized((struct page *)head))
-+		return false;
-+
- 	if (!READ_ONCE(vmemmap_optimize_enabled))
- 		return false;
+ 	int ret;
+-	LIST_HEAD(vmemmap_pages);
+ 	struct vmemmap_remap_walk walk = {
+ 		.remap_pte	= vmemmap_remap_pte,
+ 		.reuse_addr	= reuse,
+-		.vmemmap_pages	= &vmemmap_pages,
++		.vmemmap_pages	= vmemmap_pages,
+ 	};
+ 	int nid = page_to_nid((struct page *)reuse);
+ 	gfp_t gfp_mask = GFP_KERNEL | __GFP_NORETRY | __GFP_NOWARN;
+@@ -334,7 +336,7 @@ static int vmemmap_remap_free(unsigned l
+ 	if (walk.reuse_page) {
+ 		copy_page(page_to_virt(walk.reuse_page),
+ 			  (void *)walk.reuse_addr);
+-		list_add(&walk.reuse_page->lru, &vmemmap_pages);
++		list_add(&walk.reuse_page->lru, vmemmap_pages);
+ 	}
  
-@@ -572,6 +575,14 @@ void hugetlb_vmemmap_optimize(const stru
- 		SetHPageVmemmapOptimized(head);
+ 	/*
+@@ -365,15 +367,13 @@ static int vmemmap_remap_free(unsigned l
+ 		walk = (struct vmemmap_remap_walk) {
+ 			.remap_pte	= vmemmap_restore_pte,
+ 			.reuse_addr	= reuse,
+-			.vmemmap_pages	= &vmemmap_pages,
++			.vmemmap_pages	= vmemmap_pages,
+ 		};
+ 
+ 		vmemmap_remap_range(reuse, end, &walk);
+ 	}
+ 	mmap_read_unlock(&init_mm);
+ 
+-	free_vmemmap_page_list(&vmemmap_pages);
+-
+ 	return ret;
  }
  
-+void hugetlb_vmemmap_optimize_folios(struct hstate *h, struct list_head *folio_list)
-+{
-+	struct folio *folio;
-+
-+	list_for_each_entry(folio, folio_list, lru)
-+		hugetlb_vmemmap_optimize(h, &folio->page);
-+}
-+
- static struct ctl_table hugetlb_vmemmap_sysctls[] = {
- 	{
- 		.procname	= "hugetlb_optimize_vmemmap",
---- a/mm/hugetlb_vmemmap.h~hugetlb-perform-vmemmap-optimization-on-a-list-of-pages
-+++ a/mm/hugetlb_vmemmap.h
-@@ -20,6 +20,7 @@
- #ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
- int hugetlb_vmemmap_restore(const struct hstate *h, struct page *head);
- void hugetlb_vmemmap_optimize(const struct hstate *h, struct page *head);
-+void hugetlb_vmemmap_optimize_folios(struct hstate *h, struct list_head *folio_list);
+@@ -389,7 +389,7 @@ static int alloc_vmemmap_page_list(unsig
+ 		page = alloc_pages_node(nid, gfp_mask, 0);
+ 		if (!page)
+ 			goto out;
+-		list_add_tail(&page->lru, list);
++		list_add(&page->lru, list);
+ 	}
  
- static inline unsigned int hugetlb_vmemmap_size(const struct hstate *h)
- {
-@@ -48,6 +49,10 @@ static inline void hugetlb_vmemmap_optim
- {
- }
- 
-+static inline void hugetlb_vmemmap_optimize_folios(struct hstate *h, struct list_head *folio_list)
-+{
-+}
-+
- static inline unsigned int hugetlb_vmemmap_optimizable_size(const struct hstate *h)
- {
  	return 0;
+@@ -577,24 +577,17 @@ static bool vmemmap_should_optimize(cons
+ 	return true;
+ }
+ 
+-/**
+- * hugetlb_vmemmap_optimize - optimize @head page's vmemmap pages.
+- * @h:		struct hstate.
+- * @head:	the head page whose vmemmap pages will be optimized.
+- *
+- * This function only tries to optimize @head's vmemmap pages and does not
+- * guarantee that the optimization will succeed after it returns. The caller
+- * can use HPageVmemmapOptimized(@head) to detect if @head's vmemmap pages
+- * have been optimized.
+- */
+-void hugetlb_vmemmap_optimize(const struct hstate *h, struct page *head)
++static int __hugetlb_vmemmap_optimize(const struct hstate *h,
++					struct page *head,
++					struct list_head *vmemmap_pages)
+ {
++	int ret = 0;
+ 	unsigned long vmemmap_start = (unsigned long)head, vmemmap_end;
+ 	unsigned long vmemmap_reuse;
+ 
+ 	VM_WARN_ON_ONCE(!PageHuge(head));
+ 	if (!vmemmap_should_optimize(h, head))
+-		return;
++		return ret;
+ 
+ 	static_branch_inc(&hugetlb_optimize_vmemmap_key);
+ 
+@@ -604,21 +597,58 @@ void hugetlb_vmemmap_optimize(const stru
+ 
+ 	/*
+ 	 * Remap the vmemmap virtual address range [@vmemmap_start, @vmemmap_end)
+-	 * to the page which @vmemmap_reuse is mapped to, then free the pages
+-	 * which the range [@vmemmap_start, @vmemmap_end] is mapped to.
++	 * to the page which @vmemmap_reuse is mapped to.  Add pages previously
++	 * mapping the range to vmemmap_pages list so that they can be freed by
++	 * the caller.
+ 	 */
+-	if (vmemmap_remap_free(vmemmap_start, vmemmap_end, vmemmap_reuse))
++	ret = vmemmap_remap_free(vmemmap_start, vmemmap_end, vmemmap_reuse, vmemmap_pages);
++	if (ret)
+ 		static_branch_dec(&hugetlb_optimize_vmemmap_key);
+ 	else
+ 		SetHPageVmemmapOptimized(head);
++
++	return ret;
++}
++
++/**
++ * hugetlb_vmemmap_optimize - optimize @head page's vmemmap pages.
++ * @h:		struct hstate.
++ * @head:	the head page whose vmemmap pages will be optimized.
++ *
++ * This function only tries to optimize @head's vmemmap pages and does not
++ * guarantee that the optimization will succeed after it returns. The caller
++ * can use HPageVmemmapOptimized(@head) to detect if @head's vmemmap pages
++ * have been optimized.
++ */
++void hugetlb_vmemmap_optimize(const struct hstate *h, struct page *head)
++{
++	LIST_HEAD(vmemmap_pages);
++
++	__hugetlb_vmemmap_optimize(h, head, &vmemmap_pages);
++	free_vmemmap_page_list(&vmemmap_pages);
+ }
+ 
+ void hugetlb_vmemmap_optimize_folios(struct hstate *h, struct list_head *folio_list)
+ {
+ 	struct folio *folio;
++	LIST_HEAD(vmemmap_pages);
++
++	list_for_each_entry(folio, folio_list, lru) {
++		int ret = __hugetlb_vmemmap_optimize(h, &folio->page,
++								&vmemmap_pages);
++
++		/*
++		 * Pages to be freed may have been accumulated.  If we
++		 * encounter an ENOMEM,  free what we have and try again.
++		 */
++		if (ret == -ENOMEM && !list_empty(&vmemmap_pages)) {
++			free_vmemmap_page_list(&vmemmap_pages);
++			INIT_LIST_HEAD(&vmemmap_pages);
++			__hugetlb_vmemmap_optimize(h, &folio->page, &vmemmap_pages);
++		}
++	}
+ 
+-	list_for_each_entry(folio, folio_list, lru)
+-		hugetlb_vmemmap_optimize(h, &folio->page);
++	free_vmemmap_page_list(&vmemmap_pages);
+ }
+ 
+ static struct ctl_table hugetlb_vmemmap_sysctls[] = {
 _
 
 Patches currently in -mm which might be from mike.kravetz@oracle.com are
