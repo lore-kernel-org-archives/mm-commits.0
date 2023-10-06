@@ -2,38 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17F76E94131
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67C8EE94133
 	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 21:49:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233779AbjJFVtS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Oct 2023 17:49:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41298 "EHLO
+        id S233802AbjJFVtT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Oct 2023 17:49:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41304 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233821AbjJFVtQ (ORCPT
+        with ESMTP id S233823AbjJFVtQ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 17:49:16 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B531DF
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 14:49:12 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93583C433C9;
-        Fri,  6 Oct 2023 21:49:11 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6AA0AE4
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 14:49:15 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95004C433C8;
+        Fri,  6 Oct 2023 21:49:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696628952;
-        bh=Oy7kiEyy/xpbPGN71sqM09gtDOW2ajdpMzsR8DUeO6Y=;
+        s=korg; t=1696628955;
+        bh=HSQPu2wS/aODO9luPbXiZwBcrUJPefoD2MMxhYrgdGY=;
         h=Date:To:From:Subject:From;
-        b=l+ICVz8Sp2PrhlM/NMu9qhLaGbnrPvmw0dzWZmUD4YMwZY+U4yjBieI9YsskDEJvl
-         Upj4u81pZrE9Lme4AEDuc/c8rnXopFScNCQzMhL0I5H2YHc30/f077SS6IyHdD8OOi
-         OyKd3jVCBQuppk9NlOAd9X1nEuLMr4qfaJ4dCEQo=
-Date:   Fri, 06 Oct 2023 14:49:09 -0700
-To:     mm-commits@vger.kernel.org, weixugc@google.com,
-        shy828301@gmail.com, rafael.j.wysocki@intel.com, mhocko@kernel.org,
-        Jonathan.Cameron@huawei.com, hannes@cmpxchg.org, dave@stgolabs.net,
-        dave.jiang@intel.com, dave.hansen@intel.com,
-        dan.j.williams@intel.com, bharata@amd.com, apopple@nvidia.com,
-        aneesh.kumar@linux.ibm.com, ying.huang@intel.com,
-        akpm@linux-foundation.org
+        b=weL2oidVqtYOwSWAqOEtZKWAldHfwSenoFqq8P+3pIXS1nafgU1r6L8gLYaEXeL3N
+         ZysyPN21uW/vRbJMz46h/jIykLH1tVg6s03nUHrBxCRCmBGhT0fTYOaqk8ZfsW2CBh
+         HChR8uQ6g/scB9RQ9wWUR5Ix/2MIhmY/9kxWgXng=
+Date:   Fri, 06 Oct 2023 14:49:12 -0700
+To:     mm-commits@vger.kernel.org, riel@surriel.com, hannes@cmpxchg.org,
+        david@redhat.com, shr@devkernel.io, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] dax-kmem-calculate-abstract-distance-with-general-interface.patch removed from -mm tree
-Message-Id: <20231006214911.93583C433C9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-ksm-add-smart-page-scanning-mode.patch removed from -mm tree
+Message-Id: <20231006214914.95004C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,213 +36,272 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: dax, kmem: calculate abstract distance with general interface
+     Subject: mm/ksm: add "smart" page scanning mode
 has been removed from the -mm tree.  Its filename was
-     dax-kmem-calculate-abstract-distance-with-general-interface.patch
+     mm-ksm-add-smart-page-scanning-mode.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: dax, kmem: calculate abstract distance with general interface
-Date: Tue, 26 Sep 2023 14:06:28 +0800
+From: Stefan Roesch <shr@devkernel.io>
+Subject: mm/ksm: add "smart" page scanning mode
+Date: Mon, 25 Sep 2023 21:09:36 -0700
 
-Previously, a fixed abstract distance MEMTIER_DEFAULT_DAX_ADISTANCE is
-used for slow memory type in kmem driver.  This limits the usage of kmem
-driver, for example, it cannot be used for HBM (high bandwidth memory).
+Patch series "Smart scanning mode for KSM", v3.
 
-So, we use the general abstract distance calculation mechanism in kmem
-drivers to get more accurate abstract distance on systems with proper
-support.  The original MEMTIER_DEFAULT_DAX_ADISTANCE is used as fallback
-only.
+This patch series adds "smart scanning" for KSM.
 
-Now, multiple memory types may be managed by kmem.  These memory types are
-put into the "kmem_memory_types" list and protected by
-kmem_memory_type_lock.
+What is smart scanning?
+=======================
+KSM evaluates all the candidate pages for each scan. It does not use historic
+information from previous scans. This has the effect that candidate pages that
+couldn't be used for KSM de-duplication continue to be evaluated for each scan.
 
-Link: https://lkml.kernel.org/r/20230926060628.265989-5-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Tested-by: Bharata B Rao <bharata@amd.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
+The idea of "smart scanning" is to keep historic information. With the historic
+information we can temporarily skip the candidate page for one or several scans.
+
+Details:
+========
+"Smart scanning" is to keep two small counters to store if the page has been
+used for KSM. One counter stores how often we already tried to use the page for
+KSM and the other counter stores how often we skip a page.
+
+How often we skip the candidate page depends how often a page failed KSM
+de-duplication. The code skips a maximum of 8 times. During testing this has
+shown to be a good compromise for different workloads.
+
+New sysfs knob:
+===============
+Smart scanning is not enabled by default. With /sys/kernel/mm/ksm/smart_scan
+smart scanning can be enabled.
+
+Monitoring:
+===========
+To monitor how effective smart scanning is a new sysfs knob has been introduced.
+/sys/kernel/mm/pages_skipped report how many pages have been skipped by smart
+scanning.
+
+Results:
+========
+- Various workloads have shown a 20% - 25% reduction in page scans
+  For the instagram workload for instance, the number of pages scanned has been
+  reduced from over 20M pages per scan to less than 15M pages.
+- Less pages scans also resulted in an overall higher de-duplication rate as
+  some shorter lived pages could be de-duplicated additionally
+- Less pages scanned allows to reduce the pages_to_scan parameter
+  and this resulted in  a 25% reduction in terms of CPU.
+- The improvements have been observed for workloads that enable KSM with
+  madvise as well as prctl
+
+
+This patch (of 4):
+
+This change adds a "smart" page scanning mode for KSM.  So far all the
+candidate pages are continuously scanned to find candidates for
+de-duplication.  There are a considerably number of pages that cannot be
+de-duplicated.  This is costly in terms of CPU.  By using smart scanning
+considerable CPU savings can be achieved.
+
+This change takes the history of scanning pages into account and skips the
+page scanning of certain pages for a while if de-deduplication for this
+page has not been successful in the past.
+
+To do this it introduces two new fields in the ksm_rmap_item structure:
+age and remaining_skips.  age, is the KSM age and remaining_skips
+determines how often scanning of this page is skipped.  The age field is
+incremented each time the page is scanned and the page cannot be de-
+duplicated.  age updated is capped at U8_MAX.
+
+How often a page is skipped is dependent how often de-duplication has been
+tried so far and the number of skips is currently limited to 8.  This
+value has shown to be effective with different workloads.
+
+The feature is currently disable by default and can be enabled with the
+new smart_scan knob.
+
+The feature has shown to be very effective: upt to 25% of the page scans
+can be eliminated; the pages_to_scan rate can be reduced by 40 - 50% and a
+similar de-duplication rate can be maintained.
+
+[akpm@linux-foundation.org: make ksm_smart_scan default true, for testing]
+Link: https://lkml.kernel.org/r/20230926040939.516161-1-shr@devkernel.io
+Link: https://lkml.kernel.org/r/20230926040939.516161-2-shr@devkernel.io
+Signed-off-by: Stefan Roesch <shr@devkernel.io>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Rafael J Wysocki <rafael.j.wysocki@intel.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Stefan Roesch <shr@devkernel.io>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/kmem.c           |   62 ++++++++++++++++++++++++++-------
- include/linux/memory-tiers.h |    2 +
- mm/memory-tiers.c            |    3 +
- 3 files changed, 53 insertions(+), 14 deletions(-)
+ mm/ksm.c |  104 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 104 insertions(+)
 
---- a/drivers/dax/kmem.c~dax-kmem-calculate-abstract-distance-with-general-interface
-+++ a/drivers/dax/kmem.c
-@@ -49,14 +49,52 @@ struct dax_kmem_data {
- 	struct resource *res[];
+--- a/mm/ksm.c~mm-ksm-add-smart-page-scanning-mode
++++ a/mm/ksm.c
+@@ -56,6 +56,8 @@
+ #define DO_NUMA(x)	do { } while (0)
+ #endif
+ 
++typedef u8 rmap_age_t;
++
+ /**
+  * DOC: Overview
+  *
+@@ -193,6 +195,8 @@ struct ksm_stable_node {
+  * @node: rb node of this rmap_item in the unstable tree
+  * @head: pointer to stable_node heading this list in the stable tree
+  * @hlist: link into hlist of rmap_items hanging off that stable_node
++ * @age: number of scan iterations since creation
++ * @remaining_skips: how many scans to skip
+  */
+ struct ksm_rmap_item {
+ 	struct ksm_rmap_item *rmap_list;
+@@ -205,6 +209,8 @@ struct ksm_rmap_item {
+ 	struct mm_struct *mm;
+ 	unsigned long address;		/* + low bits used for flags below */
+ 	unsigned int oldchecksum;	/* when unstable */
++	rmap_age_t age;
++	rmap_age_t remaining_skips;
+ 	union {
+ 		struct rb_node node;	/* when node of unstable tree */
+ 		struct {		/* when listed from stable tree */
+@@ -281,6 +287,10 @@ static unsigned int zero_checksum __read
+ /* Whether to merge empty (zeroed) pages with actual zero pages */
+ static bool ksm_use_zero_pages __read_mostly;
+ 
++/* Skip pages that couldn't be de-duplicated previously */
++/* Default to true at least temporarily, for testing */
++static bool ksm_smart_scan = true;
++
+ /* The number of zero pages which is placed by KSM */
+ unsigned long ksm_zero_pages;
+ 
+@@ -2305,6 +2315,73 @@ static struct ksm_rmap_item *get_next_rm
+ 	return rmap_item;
+ }
+ 
++/*
++ * Calculate skip age for the ksm page age. The age determines how often
++ * de-duplicating has already been tried unsuccessfully. If the age is
++ * smaller, the scanning of this page is skipped for less scans.
++ *
++ * @age: rmap_item age of page
++ */
++static unsigned int skip_age(rmap_age_t age)
++{
++	if (age <= 3)
++		return 1;
++	if (age <= 5)
++		return 2;
++	if (age <= 8)
++		return 4;
++
++	return 8;
++}
++
++/*
++ * Determines if a page should be skipped for the current scan.
++ *
++ * @page: page to check
++ * @rmap_item: associated rmap_item of page
++ */
++static bool should_skip_rmap_item(struct page *page,
++				  struct ksm_rmap_item *rmap_item)
++{
++	rmap_age_t age;
++
++	if (!ksm_smart_scan)
++		return false;
++
++	/*
++	 * Never skip pages that are already KSM; pages cmp_and_merge_page()
++	 * will essentially ignore them, but we still have to process them
++	 * properly.
++	 */
++	if (PageKsm(page))
++		return false;
++
++	age = rmap_item->age;
++	if (age != U8_MAX)
++		rmap_item->age++;
++
++	/*
++	 * Smaller ages are not skipped, they need to get a chance to go
++	 * through the different phases of the KSM merging.
++	 */
++	if (age < 3)
++		return false;
++
++	/*
++	 * Are we still allowed to skip? If not, then don't skip it
++	 * and determine how much more often we are allowed to skip next.
++	 */
++	if (!rmap_item->remaining_skips) {
++		rmap_item->remaining_skips = skip_age(age);
++		return false;
++	}
++
++	/* Skip this page */
++	rmap_item->remaining_skips--;
++	remove_rmap_item_from_tree(rmap_item);
++	return true;
++}
++
+ static struct ksm_rmap_item *scan_get_next_rmap_item(struct page **page)
+ {
+ 	struct mm_struct *mm;
+@@ -2409,6 +2486,10 @@ next_mm:
+ 				if (rmap_item) {
+ 					ksm_scan.rmap_list =
+ 							&rmap_item->rmap_list;
++
++					if (should_skip_rmap_item(*page, rmap_item))
++						goto next_page;
++
+ 					ksm_scan.address += PAGE_SIZE;
+ 				} else
+ 					put_page(*page);
+@@ -3449,6 +3530,28 @@ static ssize_t full_scans_show(struct ko
+ }
+ KSM_ATTR_RO(full_scans);
+ 
++static ssize_t smart_scan_show(struct kobject *kobj,
++			       struct kobj_attribute *attr, char *buf)
++{
++	return sysfs_emit(buf, "%u\n", ksm_smart_scan);
++}
++
++static ssize_t smart_scan_store(struct kobject *kobj,
++				struct kobj_attribute *attr,
++				const char *buf, size_t count)
++{
++	int err;
++	bool value;
++
++	err = kstrtobool(buf, &value);
++	if (err)
++		return -EINVAL;
++
++	ksm_smart_scan = value;
++	return count;
++}
++KSM_ATTR(smart_scan);
++
+ static struct attribute *ksm_attrs[] = {
+ 	&sleep_millisecs_attr.attr,
+ 	&pages_to_scan_attr.attr,
+@@ -3469,6 +3572,7 @@ static struct attribute *ksm_attrs[] = {
+ 	&stable_node_chains_prune_millisecs_attr.attr,
+ 	&use_zero_pages_attr.attr,
+ 	&general_profit_attr.attr,
++	&smart_scan_attr.attr,
+ 	NULL,
  };
  
--static struct memory_dev_type *dax_slowmem_type;
-+static DEFINE_MUTEX(kmem_memory_type_lock);
-+static LIST_HEAD(kmem_memory_types);
-+
-+static struct memory_dev_type *kmem_find_alloc_memory_type(int adist)
-+{
-+	bool found = false;
-+	struct memory_dev_type *mtype;
-+
-+	mutex_lock(&kmem_memory_type_lock);
-+	list_for_each_entry(mtype, &kmem_memory_types, list) {
-+		if (mtype->adistance == adist) {
-+			found = true;
-+			break;
-+		}
-+	}
-+	if (!found) {
-+		mtype = alloc_memory_type(adist);
-+		if (!IS_ERR(mtype))
-+			list_add(&mtype->list, &kmem_memory_types);
-+	}
-+	mutex_unlock(&kmem_memory_type_lock);
-+
-+	return mtype;
-+}
-+
-+static void kmem_put_memory_types(void)
-+{
-+	struct memory_dev_type *mtype, *mtn;
-+
-+	mutex_lock(&kmem_memory_type_lock);
-+	list_for_each_entry_safe(mtype, mtn, &kmem_memory_types, list) {
-+		list_del(&mtype->list);
-+		put_memory_type(mtype);
-+	}
-+	mutex_unlock(&kmem_memory_type_lock);
-+}
-+
- static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
- {
- 	struct device *dev = &dev_dax->dev;
- 	unsigned long total_len = 0;
- 	struct dax_kmem_data *data;
-+	struct memory_dev_type *mtype;
- 	int i, rc, mapped = 0;
- 	int numa_node;
-+	int adist = MEMTIER_DEFAULT_DAX_ADISTANCE;
- 
- 	/*
- 	 * Ensure good NUMA information for the persistent memory.
-@@ -71,6 +109,11 @@ static int dev_dax_kmem_probe(struct dev
- 		return -EINVAL;
- 	}
- 
-+	mt_calc_adistance(numa_node, &adist);
-+	mtype = kmem_find_alloc_memory_type(adist);
-+	if (IS_ERR(mtype))
-+		return PTR_ERR(mtype);
-+
- 	for (i = 0; i < dev_dax->nr_range; i++) {
- 		struct range range;
- 
-@@ -88,7 +131,7 @@ static int dev_dax_kmem_probe(struct dev
- 		return -EINVAL;
- 	}
- 
--	init_node_memory_type(numa_node, dax_slowmem_type);
-+	init_node_memory_type(numa_node, mtype);
- 
- 	rc = -ENOMEM;
- 	data = kzalloc(struct_size(data, res, dev_dax->nr_range), GFP_KERNEL);
-@@ -167,7 +210,7 @@ err_reg_mgid:
- err_res_name:
- 	kfree(data);
- err_dax_kmem_data:
--	clear_node_memory_type(numa_node, dax_slowmem_type);
-+	clear_node_memory_type(numa_node, mtype);
- 	return rc;
- }
- 
-@@ -219,7 +262,7 @@ static void dev_dax_kmem_remove(struct d
- 		 * for that. This implies this reference will be around
- 		 * till next reboot.
- 		 */
--		clear_node_memory_type(node, dax_slowmem_type);
-+		clear_node_memory_type(node, NULL);
- 	}
- }
- #else
-@@ -251,12 +294,6 @@ static int __init dax_kmem_init(void)
- 	if (!kmem_name)
- 		return -ENOMEM;
- 
--	dax_slowmem_type = alloc_memory_type(MEMTIER_DEFAULT_DAX_ADISTANCE);
--	if (IS_ERR(dax_slowmem_type)) {
--		rc = PTR_ERR(dax_slowmem_type);
--		goto err_dax_slowmem_type;
--	}
--
- 	rc = dax_driver_register(&device_dax_kmem_driver);
- 	if (rc)
- 		goto error_dax_driver;
-@@ -264,8 +301,7 @@ static int __init dax_kmem_init(void)
- 	return rc;
- 
- error_dax_driver:
--	put_memory_type(dax_slowmem_type);
--err_dax_slowmem_type:
-+	kmem_put_memory_types();
- 	kfree_const(kmem_name);
- 	return rc;
- }
-@@ -275,7 +311,7 @@ static void __exit dax_kmem_exit(void)
- 	dax_driver_unregister(&device_dax_kmem_driver);
- 	if (!any_hotremove_failed)
- 		kfree_const(kmem_name);
--	put_memory_type(dax_slowmem_type);
-+	kmem_put_memory_types();
- }
- 
- MODULE_AUTHOR("Intel Corporation");
---- a/include/linux/memory-tiers.h~dax-kmem-calculate-abstract-distance-with-general-interface
-+++ a/include/linux/memory-tiers.h
-@@ -24,6 +24,8 @@ struct memory_tier;
- struct memory_dev_type {
- 	/* list of memory types that are part of same tier as this type */
- 	struct list_head tier_sibling;
-+	/* list of memory types that are managed by one driver */
-+	struct list_head list;
- 	/* abstract distance for this specific memory type */
- 	int adistance;
- 	/* Nodes of same abstract distance */
---- a/mm/memory-tiers.c~dax-kmem-calculate-abstract-distance-with-general-interface
-+++ a/mm/memory-tiers.c
-@@ -586,13 +586,14 @@ EXPORT_SYMBOL_GPL(init_node_memory_type)
- void clear_node_memory_type(int node, struct memory_dev_type *memtype)
- {
- 	mutex_lock(&memory_tier_lock);
--	if (node_memory_types[node].memtype == memtype)
-+	if (node_memory_types[node].memtype == memtype || !memtype)
- 		node_memory_types[node].map_count--;
- 	/*
- 	 * If we umapped all the attached devices to this node,
- 	 * clear the node memory type.
- 	 */
- 	if (!node_memory_types[node].map_count) {
-+		memtype = node_memory_types[node].memtype;
- 		node_memory_types[node].memtype = NULL;
- 		put_memory_type(memtype);
- 	}
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from shr@devkernel.io are
 
-mm-fix-draining-remote-pageset.patch
 
