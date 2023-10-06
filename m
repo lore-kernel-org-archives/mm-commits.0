@@ -2,35 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CB7CE94108
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:17:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C502E94107
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:17:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232798AbjJFTRz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Oct 2023 15:17:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44964 "EHLO
+        id S233227AbjJFTR7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Oct 2023 15:17:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51606 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231163AbjJFTRy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:17:54 -0400
+        with ESMTP id S231163AbjJFTR6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:17:58 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10EB795;
-        Fri,  6 Oct 2023 12:17:52 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C0ACC433C8;
-        Fri,  6 Oct 2023 19:17:50 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8149783
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:17:55 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73A51C433C7;
+        Fri,  6 Oct 2023 19:17:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696619870;
-        bh=2zqtTTDisbdsknt0y+ts4M2OS+ihKcqhacDujCWu5bk=;
+        s=korg; t=1696619873;
+        bh=lvJod7apmT76K0Jx4TzDxuH9hSRbcKCDyJetl55l+XU=;
         h=Date:To:From:Subject:From;
-        b=BAOVxzsxXOi48nGQ5bCaSN2ODbRB1J2YRwMYzXCT64JptM+A03UhDrcZPeQpEjiY3
-         iRkIukZMKXmslXb+/KGqjOqRfDP3TpzSau/wahoHcfRr0CdWv9/MjqgDKm1qrrW7Y0
-         Vjl3SGWmSOVnmtZKjtV436czPCJb+Fs8zoDTKOkA=
-Date:   Fri, 06 Oct 2023 12:17:47 -0700
-To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
-        stable@vger.kernel.org, nphamcs@gmail.com, clm@fb.com,
-        cerasuolodomenico@gmail.com, hannes@cmpxchg.org,
-        akpm@linux-foundation.org
+        b=DNdpb3Fn/JvBcfkzRg68LeS27qroxsKm+b03Al2SxGiewVRNm0qiFhnMOcfBoBSR7
+         1UI/QKxwvLNNEF8jnd1G0kN4eZEqtzGwvAtjoIU1Is8WmJcQUU7tRrmddJ5SvXrRxo
+         T4VgUjmO5T3SswQQSOB8MKfFS3TK6idLqulsI1VM=
+Date:   Fri, 06 Oct 2023 12:17:51 -0700
+To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, lkp@intel.com,
+        glider@google.com, elver@google.com, dvyukov@google.com,
+        andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-fix-pool-refcount-bug-around-shrink_worker.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231006191750.5C0ACC433C8@smtp.kernel.org>
+Subject: + arm64-kasan-update-comment-in-kasan_init.patch added to mm-unstable branch
+Message-Id: <20231006191753.73A51C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,14 +37,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: zswap: fix pool refcount bug around shrink_worker()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-zswap-fix-pool-refcount-bug-around-shrink_worker.patch
+     Subject: arm64, kasan: update comment in kasan_init
+has been added to the -mm mm-unstable branch.  Its filename is
+     arm64-kasan-update-comment-in-kasan_init.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-fix-pool-refcount-bug-around-shrink_worker.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-kasan-update-comment-in-kasan_init.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -61,49 +60,54 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: zswap: fix pool refcount bug around shrink_worker()
-Date: Fri, 6 Oct 2023 12:00:24 -0400
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: arm64, kasan: update comment in kasan_init
+Date: Fri, 6 Oct 2023 17:18:42 +0200
 
-When a zswap store fails due to the limit, it acquires a pool reference
-and queues the shrinker.  When the shrinker runs, it drops the reference. 
-However, there can be multiple store attempts before the shrinker wakes up
-and runs once.  This results in reference leaks and eventual saturation
-warnings for the pool refcount.
+Patch series "kasan: assorted fixes and improvements".
 
-Fix this by dropping the reference again when the shrinker is already
-queued.  This ensures one reference per shrinker run.
 
-Link: https://lkml.kernel.org/r/20231006160024.170748-1-hannes@cmpxchg.org
-Fixes: 45190f01dd40 ("mm/zswap.c: add allocation hysteresis if pool limit is hit")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Chris Mason <clm@fb.com>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: <stable@vger.kernel.org>	[5.6+]
+This patch (of 5):
+
+Update the comment in kasan_init to also mention the Hardware Tag-Based
+KASAN mode.
+
+Link: https://lkml.kernel.org/r/cover.1696605143.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/4186aefd368b019eaf27c907c4fa692a89448d66.1696605143.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm64/mm/kasan_init.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/mm/zswap.c~mm-zswap-fix-pool-refcount-bug-around-shrink_worker
-+++ a/mm/zswap.c
-@@ -1383,8 +1383,8 @@ reject:
- 
- shrink:
- 	pool = zswap_pool_last_get();
--	if (pool)
--		queue_work(shrink_wq, &pool->shrink_work);
-+	if (pool && !queue_work(shrink_wq, &pool->shrink_work))
-+		zswap_pool_put(pool);
- 	goto reject;
+--- a/arch/arm64/mm/kasan_init.c~arm64-kasan-update-comment-in-kasan_init
++++ a/arch/arm64/mm/kasan_init.c
+@@ -300,7 +300,11 @@ void __init kasan_init(void)
+ 	kasan_init_shadow();
+ 	kasan_init_depth();
+ #if defined(CONFIG_KASAN_GENERIC)
+-	/* CONFIG_KASAN_SW_TAGS also requires kasan_init_sw_tags(). */
++	/*
++	 * Generic KASAN is now fully initialized.
++	 * Software and Hardware Tag-Based modes still require
++	 * kasan_init_sw_tags() and kasan_init_hw_tags() correspondingly.
++	 */
+ 	pr_info("KernelAddressSanitizer initialized (generic)\n");
+ #endif
  }
- 
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-mm-zswap-fix-pool-refcount-bug-around-shrink_worker.patch
+arm64-kasan-update-comment-in-kasan_init.patch
+kasan-unify-printk-prefixes.patch
+kasan-use-unchecked-__memset-internally.patch
+kasan-fix-and-update-kunit_expect_kasan_fail-comment.patch
+documentation-san-drop-the-from-article-titles.patch
 
