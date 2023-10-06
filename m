@@ -2,38 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5E5FE94125
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 21:49:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A670EE94130
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 21:49:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233762AbjJFVtR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S233772AbjJFVtR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 6 Oct 2023 17:49:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48794 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41242 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233813AbjJFVtG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 17:49:06 -0400
+        with ESMTP id S233810AbjJFVtQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 17:49:16 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F1FECA
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 14:49:04 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3621C433C7;
-        Fri,  6 Oct 2023 21:49:02 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABF9BCF
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 14:49:06 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02528C433C8;
+        Fri,  6 Oct 2023 21:49:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696628943;
-        bh=sNJC7Z93fCv0ORDRJJmKy7IwY8SyG9B655yESeQuIDo=;
+        s=korg; t=1696628946;
+        bh=R1C8FeWOsKmkMvHMgOVSdrWK9o+3lR23rmv8tIzed2k=;
         h=Date:To:From:Subject:From;
-        b=GbWHq/ssC1FPBzBxnrCoSf5NpnBj5DNJm1ASxmTOGtJuWjutSBW0ZEEG2HfArbkOp
-         dRCbS302VKfZM9uXT5HZZc5HmB7Q2+kA18HJ1faNKyBEZVtAWQ7AVapQD0J2h06imy
-         M2vwD+TaPhMAUril2I3Ud0WdJZdtuR/aguMHkYDY=
-Date:   Fri, 06 Oct 2023 14:49:01 -0700
-To:     mm-commits@vger.kernel.org, weixugc@google.com,
-        shy828301@gmail.com, rafael.j.wysocki@intel.com, mhocko@kernel.org,
-        Jonathan.Cameron@huawei.com, hannes@cmpxchg.org, dave@stgolabs.net,
-        dave.jiang@intel.com, dave.hansen@intel.com,
-        dan.j.williams@intel.com, bharata@amd.com, apopple@nvidia.com,
-        aneesh.kumar@linux.ibm.com, ying.huang@intel.com,
-        akpm@linux-foundation.org
+        b=J2IQL1/n+xu8nJyQvtYCG2RszGMBWHsY78I4F1WK86GFHJ/nYraf5K/G1YjATw6I1
+         +8gkIKKVAyJNKtWslxzxtFVfTo3y8YhAOoQdN0pofZlfgPtg5+h0we/HfYHYxbl93e
+         OeQLZ7XVI17GsAWs4ZUOaNTw/w6FkZjgv7W0LtuE=
+Date:   Fri, 06 Oct 2023 14:49:03 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        sudeep.holla@arm.com, pasha.tatashin@soleen.com, mhocko@suse.com,
+        mgorman@techsingularity.net, jweiner@redhat.com, david@redhat.com,
+        dave.hansen@linux.intel.com, cl@linux.com, arjan@linux.intel.com,
+        ying.huang@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memory-tiering-add-abstract-distance-calculation-algorithms-management.patch removed from -mm tree
-Message-Id: <20231006214902.E3621C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-pcp-decrease-pcp-high-if-free-pages-high-watermark.patch removed from -mm tree
+Message-Id: <20231006214906.02528C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,196 +39,115 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: memory tiering: add abstract distance calculation algorithms management
+     Subject: mm, pcp: decrease PCP high if free pages < high watermark
 has been removed from the -mm tree.  Its filename was
-     memory-tiering-add-abstract-distance-calculation-algorithms-management.patch
+     mm-pcp-decrease-pcp-high-if-free-pages-high-watermark.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: memory tiering: add abstract distance calculation algorithms management
-Date: Tue, 26 Sep 2023 14:06:25 +0800
+Subject: mm, pcp: decrease PCP high if free pages < high watermark
+Date: Tue, 26 Sep 2023 14:09:09 +0800
 
-Patch series "memory tiering: calculate abstract distance based on ACPI
-HMAT", v4.
+One target of PCP is to minimize pages in PCP if the system free pages is
+too few.  To reach that target, when page reclaiming is active for the
+zone (ZONE_RECLAIM_ACTIVE), we will stop increasing PCP high in allocating
+path, decrease PCP high and free some pages in freeing path.  But this may
+be too late because the background page reclaiming may introduce latency
+for some workloads.  So, in this patch, during page allocation we will
+detect whether the number of free pages of the zone is below high
+watermark.  If so, we will stop increasing PCP high in allocating path,
+decrease PCP high and free some pages in freeing path.  With this, we can
+reduce the possibility of the premature background page reclaiming caused
+by too large PCP.
 
-We have the explicit memory tiers framework to manage systems with
-multiple types of memory, e.g., DRAM in DIMM slots and CXL memory devices.
-Where, same kind of memory devices will be grouped into memory types,
-then put into memory tiers.  To describe the performance of a memory type,
-abstract distance is defined.  Which is in direct proportion to the memory
-latency and inversely proportional to the memory bandwidth.  To keep the
-code as simple as possible, fixed abstract distance is used in dax/kmem to
-describe slow memory such as Optane DCPMM.
+The high watermark checking is done in allocating path to reduce the
+overhead in hotter freeing path.
 
-To support more memory types, in this series, we added the abstract
-distance calculation algorithm management mechanism, provided a algorithm
-implementation based on ACPI HMAT, and used the general abstract distance
-calculation interface in dax/kmem driver.  So, dax/kmem can support HBM
-(high bandwidth memory) in addition to the original Optane DCPMM.
-
-
-This patch (of 4):
-
-The abstract distance may be calculated by various drivers, such as ACPI
-HMAT, CXL CDAT, etc.  While it may be used by various code which hot-add
-memory node, such as dax/kmem etc.  To decouple the algorithm users and
-the providers, the abstract distance calculation algorithms management
-mechanism is implemented in this patch.  It provides interface for the
-providers to register the implementation, and interface for the users.
-
-Multiple algorithm implementations can cooperate via calculating abstract
-distance for different memory nodes.  The preference of algorithm
-implementations can be specified via priority (notifier_block.priority).
-
-Link: https://lkml.kernel.org/r/20230926060628.265989-1-ying.huang@intel.com
-Link: https://lkml.kernel.org/r/20230926060628.265989-2-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20230926060911.266511-9-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Tested-by: Bharata B Rao <bharata@amd.com>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Rafael J Wysocki <rafael.j.wysocki@intel.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory-tiers.h |   19 ++++++++++
- mm/memory-tiers.c            |   59 +++++++++++++++++++++++++++++++++
- 2 files changed, 78 insertions(+)
+ include/linux/mmzone.h |    1 +
+ mm/page_alloc.c        |   22 ++++++++++++++++++++--
+ 2 files changed, 21 insertions(+), 2 deletions(-)
 
---- a/include/linux/memory-tiers.h~memory-tiering-add-abstract-distance-calculation-algorithms-management
-+++ a/include/linux/memory-tiers.h
-@@ -6,6 +6,7 @@
- #include <linux/nodemask.h>
- #include <linux/kref.h>
- #include <linux/mmzone.h>
-+#include <linux/notifier.h>
- /*
-  * Each tier cover a abstrace distance chunk size of 128
-  */
-@@ -36,6 +37,9 @@ struct memory_dev_type *alloc_memory_typ
- void put_memory_type(struct memory_dev_type *memtype);
- void init_node_memory_type(int node, struct memory_dev_type *default_type);
- void clear_node_memory_type(int node, struct memory_dev_type *memtype);
-+int register_mt_adistance_algorithm(struct notifier_block *nb);
-+int unregister_mt_adistance_algorithm(struct notifier_block *nb);
-+int mt_calc_adistance(int node, int *adist);
- #ifdef CONFIG_MIGRATION
- int next_demotion_node(int node);
- void node_get_allowed_targets(pg_data_t *pgdat, nodemask_t *targets);
-@@ -97,5 +101,20 @@ static inline bool node_is_toptier(int n
- {
- 	return true;
+--- a/include/linux/mmzone.h~mm-pcp-decrease-pcp-high-if-free-pages-high-watermark
++++ a/include/linux/mmzone.h
+@@ -1004,6 +1004,7 @@ enum zone_flags {
+ 					 * Cleared when kswapd is woken.
+ 					 */
+ 	ZONE_RECLAIM_ACTIVE,		/* kswapd may be scanning the zone. */
++	ZONE_BELOW_HIGH,		/* zone is below high watermark. */
+ };
+ 
+ static inline unsigned long zone_managed_pages(struct zone *zone)
+--- a/mm/page_alloc.c~mm-pcp-decrease-pcp-high-if-free-pages-high-watermark
++++ a/mm/page_alloc.c
+@@ -2409,7 +2409,13 @@ static int nr_pcp_high(struct per_cpu_pa
+ 		return min(batch << 2, pcp->high);
+ 	}
+ 
+-	if (pcp->count >= high && high_min != high_max) {
++	if (high_min == high_max)
++		return high;
++
++	if (test_bit(ZONE_BELOW_HIGH, &zone->flags)) {
++		pcp->high = max(high - (batch << pcp->free_factor), high_min);
++		high = max(pcp->count, high_min);
++	} else if (pcp->count >= high) {
+ 		int need_high = (batch << pcp->free_factor) + batch;
+ 
+ 		/* pcp->high should be large enough to hold batch freed pages */
+@@ -2459,6 +2465,10 @@ static void free_unref_page_commit(struc
+ 	if (pcp->count >= high) {
+ 		free_pcppages_bulk(zone, nr_pcp_free(pcp, batch, high, free_high),
+ 				   pcp, pindex);
++		if (test_bit(ZONE_BELOW_HIGH, &zone->flags) &&
++		    zone_watermark_ok(zone, 0, high_wmark_pages(zone),
++				      ZONE_MOVABLE, 0))
++			clear_bit(ZONE_BELOW_HIGH, &zone->flags);
+ 	}
  }
-+
-+static inline int register_mt_adistance_algorithm(struct notifier_block *nb)
-+{
-+	return 0;
-+}
-+
-+static inline int unregister_mt_adistance_algorithm(struct notifier_block *nb)
-+{
-+	return 0;
-+}
-+
-+static inline int mt_calc_adistance(int node, int *adist)
-+{
-+	return NOTIFY_DONE;
-+}
- #endif	/* CONFIG_NUMA */
- #endif  /* _LINUX_MEMORY_TIERS_H */
---- a/mm/memory-tiers.c~memory-tiering-add-abstract-distance-calculation-algorithms-management
-+++ a/mm/memory-tiers.c
-@@ -5,6 +5,7 @@
- #include <linux/kobject.h>
- #include <linux/memory.h>
- #include <linux/memory-tiers.h>
-+#include <linux/notifier.h>
  
- #include "internal.h"
+@@ -2765,7 +2775,7 @@ static int nr_pcp_alloc(struct per_cpu_p
+ 	 * If we had larger pcp->high, we could avoid to allocate from
+ 	 * zone.
+ 	 */
+-	if (high_min != high_max && !test_bit(ZONE_RECLAIM_ACTIVE, &zone->flags))
++	if (high_min != high_max && !test_bit(ZONE_BELOW_HIGH, &zone->flags))
+ 		high = pcp->high = min(high + batch, high_max);
  
-@@ -105,6 +106,8 @@ static int top_tier_adistance;
- static struct demotion_nodes *node_demotion __read_mostly;
- #endif /* CONFIG_MIGRATION */
+ 	if (!order) {
+@@ -3226,6 +3236,14 @@ retry:
+ 			}
+ 		}
  
-+static BLOCKING_NOTIFIER_HEAD(mt_adistance_algorithms);
++		mark = high_wmark_pages(zone);
++		if (zone_watermark_fast(zone, order, mark,
++					ac->highest_zoneidx, alloc_flags,
++					gfp_mask))
++			goto try_this_zone;
++		else if (!test_bit(ZONE_BELOW_HIGH, &zone->flags))
++			set_bit(ZONE_BELOW_HIGH, &zone->flags);
 +
- static inline struct memory_tier *to_memory_tier(struct device *device)
- {
- 	return container_of(device, struct memory_tier, dev);
-@@ -592,6 +595,62 @@ void clear_node_memory_type(int node, st
- }
- EXPORT_SYMBOL_GPL(clear_node_memory_type);
- 
-+/**
-+ * register_mt_adistance_algorithm() - Register memory tiering abstract distance algorithm
-+ * @nb: The notifier block which describe the algorithm
-+ *
-+ * Return: 0 on success, errno on error.
-+ *
-+ * Every memory tiering abstract distance algorithm provider needs to
-+ * register the algorithm with register_mt_adistance_algorithm().  To
-+ * calculate the abstract distance for a specified memory node, the
-+ * notifier function will be called unless some high priority
-+ * algorithm has provided result.  The prototype of the notifier
-+ * function is as follows,
-+ *
-+ *   int (*algorithm_notifier)(struct notifier_block *nb,
-+ *                             unsigned long nid, void *data);
-+ *
-+ * Where "nid" specifies the memory node, "data" is the pointer to the
-+ * returned abstract distance (that is, "int *adist").  If the
-+ * algorithm provides the result, NOTIFY_STOP should be returned.
-+ * Otherwise, return_value & %NOTIFY_STOP_MASK == 0 to allow the next
-+ * algorithm in the chain to provide the result.
-+ */
-+int register_mt_adistance_algorithm(struct notifier_block *nb)
-+{
-+	return blocking_notifier_chain_register(&mt_adistance_algorithms, nb);
-+}
-+EXPORT_SYMBOL_GPL(register_mt_adistance_algorithm);
-+
-+/**
-+ * unregister_mt_adistance_algorithm() - Unregister memory tiering abstract distance algorithm
-+ * @nb: the notifier block which describe the algorithm
-+ *
-+ * Return: 0 on success, errno on error.
-+ */
-+int unregister_mt_adistance_algorithm(struct notifier_block *nb)
-+{
-+	return blocking_notifier_chain_unregister(&mt_adistance_algorithms, nb);
-+}
-+EXPORT_SYMBOL_GPL(unregister_mt_adistance_algorithm);
-+
-+/**
-+ * mt_calc_adistance() - Calculate abstract distance with registered algorithms
-+ * @node: the node to calculate abstract distance for
-+ * @adist: the returned abstract distance
-+ *
-+ * Return: if return_value & %NOTIFY_STOP_MASK != 0, then some
-+ * abstract distance algorithm provides the result, and return it via
-+ * @adist.  Otherwise, no algorithm can provide the result and @adist
-+ * will be kept as it is.
-+ */
-+int mt_calc_adistance(int node, int *adist)
-+{
-+	return blocking_notifier_call_chain(&mt_adistance_algorithms, node, adist);
-+}
-+EXPORT_SYMBOL_GPL(mt_calc_adistance);
-+
- static int __meminit memtier_hotplug_callback(struct notifier_block *self,
- 					      unsigned long action, void *_arg)
- {
+ 		mark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK);
+ 		if (!zone_watermark_fast(zone, order, mark,
+ 				       ac->highest_zoneidx, alloc_flags,
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
