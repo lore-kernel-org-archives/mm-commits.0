@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E66AE94108
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:19:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 683EAE94107
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 19:19:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233325AbjJFTTV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Oct 2023 15:19:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52100 "EHLO
+        id S233318AbjJFTTb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Oct 2023 15:19:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52164 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233413AbjJFTTT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:19:19 -0400
+        with ESMTP id S233413AbjJFTTW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 15:19:22 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 61BEAC6
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:19:17 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A70D3C433C8;
-        Fri,  6 Oct 2023 19:19:16 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70687AC
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 12:19:20 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8262C433C7;
+        Fri,  6 Oct 2023 19:19:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696619957;
-        bh=Pjtfm/LrFUAipC/oASY7ziC6JPDlgUwvM3gPIU57ZZM=;
+        s=korg; t=1696619960;
+        bh=K7V2pUuOXtJ3IC0SvMLQw3KvpwbQwV3/EyWeRvP+aiU=;
         h=Date:To:From:Subject:From;
-        b=qC2lirdusZ4bwmT8h2hasqMi677OqiVjS5f5PZh5SZDPEn9OII2/5oMt6RDt7GUOF
-         zXFB1YAXZ9XopeuH3IbxfllSdbwsD9Ia+K+9HzgWzBQERUsWUBousJGaONVDqTdghb
-         xqs0jQ5Pz7rBGtT2rrIjltKc33Bmyc4b2Voxf+ic=
-Date:   Fri, 06 Oct 2023 12:19:14 -0700
+        b=TFJY23Ok9s5U97jOv20roCqnF9Znx/8Df1D0CLda5CnRlHoK+N7pNzusR0fQ1CUL8
+         jmXmhmS833mPBDviUrfj1QjBmpI6zXeUpFgGKtbAjqbOINVrtVf348ZyCf25LyMTcL
+         HVT+2OayG4Pl7iOY2iFeH70Xau8MX/xhV5DFkMOY=
+Date:   Fri, 06 Oct 2023 12:19:17 -0700
 To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         tsbogend@alpha.franken.de, svens@linux.ibm.com,
         richard.henderson@linaro.org, paul.walmsley@sifive.com,
@@ -35,8 +35,8 @@ To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         adilger.kernel@dilger.ca, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ext4-use-folio_end_read.patch added to mm-unstable branch
-Message-Id: <20231006191916.A70D3C433C8@smtp.kernel.org>
+Subject: + mm-add-folio_end_read.patch added to mm-unstable branch
+Message-Id: <20231006191919.A8262C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ext4: use folio_end_read()
+     Subject: mm: add folio_end_read()
 has been added to the -mm mm-unstable branch.  Its filename is
-     ext4-use-folio_end_read.patch
+     mm-add-folio_end_read.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ext4-use-folio_end_read.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-folio_end_read.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,12 +68,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: ext4: use folio_end_read()
-Date: Wed, 4 Oct 2023 17:53:04 +0100
+Subject: mm: add folio_end_read()
+Date: Wed, 4 Oct 2023 17:53:03 +0100
 
-folio_end_read() is the perfect fit for ext4.
+Provide a function for filesystems to call when they have finished reading
+an entire folio.
 
-Link: https://lkml.kernel.org/r/20231004165317.1061855-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231004165317.1061855-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -96,39 +97,51 @@ Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/readpage.c |   14 +++-----------
- 1 file changed, 3 insertions(+), 11 deletions(-)
+ include/linux/pagemap.h |    1 +
+ mm/filemap.c            |   22 ++++++++++++++++++++++
+ 2 files changed, 23 insertions(+)
 
---- a/fs/ext4/readpage.c~ext4-use-folio_end_read
-+++ a/fs/ext4/readpage.c
-@@ -70,15 +70,8 @@ static void __read_end_io(struct bio *bi
- {
- 	struct folio_iter fi;
+--- a/include/linux/pagemap.h~mm-add-folio_end_read
++++ a/include/linux/pagemap.h
+@@ -1101,6 +1101,7 @@ static inline void wait_on_page_locked(s
+ 	folio_wait_locked(page_folio(page));
+ }
  
--	bio_for_each_folio_all(fi, bio) {
--		struct folio *folio = fi.folio;
--
--		if (bio->bi_status)
--			folio_clear_uptodate(folio);
--		else
--			folio_mark_uptodate(folio);
--		folio_unlock(folio);
--	}
-+	bio_for_each_folio_all(fi, bio)
-+		folio_end_read(fi.folio, bio->bi_status == 0);
- 	if (bio->bi_private)
- 		mempool_free(bio->bi_private, bio_post_read_ctx_pool);
- 	bio_put(bio);
-@@ -336,8 +329,7 @@ int ext4_mpage_readpages(struct inode *i
- 				if (ext4_need_verity(inode, folio->index) &&
- 				    !fsverity_verify_folio(folio))
- 					goto set_error_page;
--				folio_mark_uptodate(folio);
--				folio_unlock(folio);
-+				folio_end_read(folio, true);
- 				continue;
- 			}
- 		} else if (fully_mapped) {
++void folio_end_read(struct folio *folio, bool success);
+ void wait_on_page_writeback(struct page *page);
+ void folio_wait_writeback(struct folio *folio);
+ int folio_wait_writeback_killable(struct folio *folio);
+--- a/mm/filemap.c~mm-add-folio_end_read
++++ a/mm/filemap.c
+@@ -1526,6 +1526,28 @@ void folio_unlock(struct folio *folio)
+ EXPORT_SYMBOL(folio_unlock);
+ 
+ /**
++ * folio_end_read - End read on a folio.
++ * @folio: The folio.
++ * @success: True if all reads completed successfully.
++ *
++ * When all reads against a folio have completed, filesystems should
++ * call this function to let the pagecache know that no more reads
++ * are outstanding.  This will unlock the folio and wake up any thread
++ * sleeping on the lock.  The folio will also be marked uptodate if all
++ * reads succeeded.
++ *
++ * Context: May be called from interrupt or process context.  May not be
++ * called from NMI context.
++ */
++void folio_end_read(struct folio *folio, bool success)
++{
++	if (likely(success))
++		folio_mark_uptodate(folio);
++	folio_unlock(folio);
++}
++EXPORT_SYMBOL(folio_end_read);
++
++/**
+  * folio_end_private_2 - Clear PG_private_2 and wake any waiters.
+  * @folio: The folio.
+  *
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
