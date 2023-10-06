@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8B55E94130
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 21:48:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25BBAE94125
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 21:48:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233651AbjJFVss (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Oct 2023 17:48:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34110 "EHLO
+        id S233815AbjJFVsu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Oct 2023 17:48:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34150 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233774AbjJFVsp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 17:48:45 -0400
+        with ESMTP id S233773AbjJFVss (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 17:48:48 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6808DC2
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 14:48:44 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91149C433C8;
-        Fri,  6 Oct 2023 21:48:43 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4ABA6DF
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 14:48:47 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92C5EC433C9;
+        Fri,  6 Oct 2023 21:48:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696628924;
-        bh=B0DimdbhnnNgHhnRm0CfNOGXi0/aTasXENzf89vCZKU=;
+        s=korg; t=1696628927;
+        bh=oYdURQAelEa5OI/+87Zqx/Sc7OS+uyT94TXDV2VYGtQ=;
         h=Date:To:From:Subject:From;
-        b=dU6o5VR5ahRnZff3aGA4iBcgaR0zKY7B9yGYHiY3ZKP0Dt3/0NIXXLGgoXFrvz+hh
-         iCrpyTEyVVjM+8j7NhDT4Ce+EmsjCCre4fzgy7i99+4ogWlOqNbmUzhG/AzkNGTt7C
-         Na8z6WPBiagtET7GDstQP9yzh6LIY89p/ut4hwbQ=
-Date:   Fri, 06 Oct 2023 14:48:41 -0700
+        b=DWBkC9mRxIO87ke9843oWTxnoQLF2SSLfkciZyqhtMOU2TCp8Ehp24bA/IMk3HVCE
+         L4ekK6ompWuiohtra20zneXZDgC9F85rQic7BQL7PrTFI4lKfPBxrA8sCCYoji+H9W
+         2NX1eJMrS2RAxWQguEQ38RHRB5jY4PHsbImLfcwk=
+Date:   Fri, 06 Oct 2023 14:48:44 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         sudeep.holla@arm.com, pasha.tatashin@soleen.com, mhocko@suse.com,
         mgorman@techsingularity.net, jweiner@redhat.com, david@redhat.com,
         dave.hansen@linux.intel.com, cl@linux.com, arjan@linux.intel.com,
         ying.huang@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-restrict-the-pcp-batch-scale-factor-to-avoid-too-long-latency.patch removed from -mm tree
-Message-Id: <20231006214843.91149C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] cacheinfo-calculate-per-cpu-data-cache-size.patch removed from -mm tree
+Message-Id: <20231006214846.92C5EC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,127 +39,28 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: restrict the pcp batch scale factor to avoid too long latency
+     Subject: cacheinfo: calculate per-CPU data cache size
 has been removed from the -mm tree.  Its filename was
-     mm-restrict-the-pcp-batch-scale-factor-to-avoid-too-long-latency.patch
+     cacheinfo-calculate-per-cpu-data-cache-size.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: mm: restrict the pcp batch scale factor to avoid too long latency
-Date: Tue, 26 Sep 2023 14:09:05 +0800
+Subject: cacheinfo: calculate per-CPU data cache size
+Date: Tue, 26 Sep 2023 14:09:03 +0800
 
-In page allocator, PCP (Per-CPU Pageset) is refilled and drained in
-batches to increase page allocation throughput, reduce page
-allocation/freeing latency per page, and reduce zone lock contention.  But
-too large batch size will cause too long maximal allocation/freeing
-latency, which may punish arbitrary users.  So the default batch size is
-chosen carefully (in zone_batchsize(), the value is 63 for zone > 1GB) to
-avoid that.
+Per-CPU data cache size is useful information.  For example, it can be
+used to determine per-CPU cache size.  So, in this patch, the data cache
+size for each CPU is calculated via data_cache_size / shared_cpu_weight.
 
-In commit 3b12e7e97938 ("mm/page_alloc: scale the number of pages that are
-batch freed"), the batch size will be scaled for large number of page
-freeing to improve page freeing performance and reduce zone lock
-contention.  Similar optimization can be used for large number of pages
-allocation too.
+A brute-force algorithm to iterate all online CPUs is used to avoid to
+allocate an extra cpumask, especially in offline callback.
 
-To find out a suitable max batch scale factor (that is, max effective
-batch size), some tests and measurement on some machines were done as
-follows.
-
-A set of debug patches are implemented as follows,
-
-- Set PCP high to be 2 * batch to reduce the effect of PCP high
-
-- Disable free batch size scaling to get the raw performance.
-
-- The code with zone lock held is extracted from rmqueue_bulk() and
-  free_pcppages_bulk() to 2 separate functions to make it easy to
-  measure the function run time with ftrace function_graph tracer.
-
-- The batch size is hard coded to be 63 (default), 127, 255, 511,
-  1023, 2047, 4095.
-
-Then will-it-scale/page_fault1 is used to generate the page
-allocation/freeing workload.  The page allocation/freeing throughput
-(page/s) is measured via will-it-scale.  The page allocation/freeing
-average latency (alloc/free latency avg, in us) and allocation/freeing
-latency at 99 percentile (alloc/free latency 99%, in us) are measured with
-ftrace function_graph tracer.
-
-The test results are as follows,
-
-Sapphire Rapids Server
-======================
-Batch	throughput	free latency	free latency	alloc latency	alloc latency
-	page/s		avg / us	99% / us	avg / us	99% / us
------	----------	------------	------------	-------------	-------------
-  63	513633.4	 2.33		 3.57		 2.67		  6.83
- 127	517616.7	 4.35		 6.65		 4.22		 13.03
- 255	520822.8	 8.29		13.32		 7.52		 25.24
- 511	524122.0	15.79		23.42		14.02		 49.35
-1023	525980.5	30.25		44.19		25.36		 94.88
-2047	526793.6	59.39		84.50		45.22		140.81
-
-Ice Lake Server
-===============
-Batch	throughput	free latency	free latency	alloc latency	alloc latency
-	page/s		avg / us	99% / us	avg / us	99% / us
------	----------	------------	------------	-------------	-------------
-  63	620210.3	 2.21		 3.68		 2.02		 4.35
- 127	627003.0	 4.09		 6.86		 3.51		 8.28
- 255	630777.5	 7.70		13.50		 6.17		15.97
- 511	633651.5	14.85		22.62		11.66		31.08
-1023	637071.1	28.55		42.02		20.81		54.36
-2047	638089.7	56.54		84.06		39.28		91.68
-
-Cascade Lake Server
-===================
-Batch	throughput	free latency	free latency	alloc latency	alloc latency
-	page/s		avg / us	99% / us	avg / us	99% / us
------	----------	------------	------------	-------------	-------------
-  63	404706.7	 3.29		  5.03		 3.53		  4.75
- 127	422475.2	 6.12		  9.09		 6.36		  8.76
- 255	411522.2	11.68		 16.97		10.90		 16.39
- 511	428124.1	22.54		 31.28		19.86		 32.25
-1023	414718.4	43.39		 62.52		40.00		 66.33
-2047	429848.7	86.64		120.34		71.14		106.08
-
-Commet Lake Desktop
-===================
-Batch	throughput	free latency	free latency	alloc latency	alloc latency
-	page/s		avg / us	99% / us	avg / us	99% / us
------	----------	------------	------------	-------------	-------------
-
-  63	795183.13	 2.18		 3.55		 2.03		 3.05
- 127	803067.85	 3.91		 6.56		 3.85		 5.52
- 255	812771.10	 7.35		10.80		 7.14		10.20
- 511	817723.48	14.17		27.54		13.43		30.31
-1023	818870.19	27.72		40.10		27.89		46.28
-
-Coffee Lake Desktop
-===================
-Batch	throughput	free latency	free latency	alloc latency	alloc latency
-	page/s		avg / us	99% / us	avg / us	99% / us
------	----------	------------	------------	-------------	-------------
-  63	510542.8	 3.13		  4.40		 2.48		 3.43
- 127	514288.6	 5.97		  7.89		 4.65		 6.04
- 255	516889.7	11.86		 15.58		 8.96		12.55
- 511	519802.4	23.10		 28.81		16.95		26.19
-1023	520802.7	45.30		 52.51		33.19		45.95
-2047	519997.1	90.63		104.00		65.26		81.74
-
-From the above data, to restrict the allocation/freeing latency to be less
-than 100 us in most times, the max batch scale factor needs to be less
-than or equal to 5.
-
-So, in this patch, the batch scale factor is restricted to be less than or
-equal to 5.
-
-Link: https://lkml.kernel.org/r/20230926060911.266511-5-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20230926060911.266511-3-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: David Hildenbrand <david@redhat.com>
@@ -170,34 +71,88 @@ Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/base/cacheinfo.c  |   42 +++++++++++++++++++++++++++++++++++-
+ include/linux/cacheinfo.h |    1 
+ 2 files changed, 42 insertions(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-restrict-the-pcp-batch-scale-factor-to-avoid-too-long-latency
-+++ a/mm/page_alloc.c
-@@ -86,6 +86,9 @@ typedef int __bitwise fpi_t;
-  */
- #define FPI_TO_TAIL		((__force fpi_t)BIT(1))
+--- a/drivers/base/cacheinfo.c~cacheinfo-calculate-per-cpu-data-cache-size
++++ a/drivers/base/cacheinfo.c
+@@ -898,6 +898,41 @@ err:
+ 	return rc;
+ }
  
-+/* Maximum PCP batch scale factor to restrict max allocation/freeing latency */
-+#define PCP_BATCH_SCALE_MAX	5
++static void update_data_cache_size_cpu(unsigned int cpu)
++{
++	struct cpu_cacheinfo *ci;
++	struct cacheinfo *leaf;
++	unsigned int i, nr_shared;
++	unsigned int size_data = 0;
 +
- /* prevent >1 _updater_ of zone percpu pageset ->high and ->batch fields */
- static DEFINE_MUTEX(pcp_batch_high_lock);
- #define MIN_PERCPU_PAGELIST_HIGH_FRACTION (8)
-@@ -2340,7 +2343,7 @@ static int nr_pcp_free(struct per_cpu_pa
- 	 * freeing of pages without any allocation.
- 	 */
- 	batch <<= pcp->free_factor;
--	if (batch < max_nr_free)
-+	if (batch < max_nr_free && pcp->free_factor < PCP_BATCH_SCALE_MAX)
- 		pcp->free_factor++;
- 	batch = clamp(batch, min_nr_free, max_nr_free);
++	if (!per_cpu_cacheinfo(cpu))
++		return;
++
++	ci = ci_cacheinfo(cpu);
++	for (i = 0; i < cache_leaves(cpu); i++) {
++		leaf = per_cpu_cacheinfo_idx(cpu, i);
++		if (leaf->type != CACHE_TYPE_DATA &&
++		    leaf->type != CACHE_TYPE_UNIFIED)
++			continue;
++		nr_shared = cpumask_weight(&leaf->shared_cpu_map);
++		if (!nr_shared)
++			continue;
++		size_data += leaf->size / nr_shared;
++	}
++	ci->size_data = size_data;
++}
++
++static void update_data_cache_size(bool cpu_online, unsigned int cpu)
++{
++	unsigned int icpu;
++
++	for_each_online_cpu(icpu) {
++		if (!cpu_online && icpu == cpu)
++			continue;
++		update_data_cache_size_cpu(icpu);
++	}
++}
++
+ static int cacheinfo_cpu_online(unsigned int cpu)
+ {
+ 	int rc = detect_cache_attributes(cpu);
+@@ -906,7 +941,11 @@ static int cacheinfo_cpu_online(unsigned
+ 		return rc;
+ 	rc = cache_add_dev(cpu);
+ 	if (rc)
+-		free_cache_attributes(cpu);
++		goto err;
++	update_data_cache_size(true, cpu);
++	return 0;
++err:
++	free_cache_attributes(cpu);
+ 	return rc;
+ }
  
+@@ -916,6 +955,7 @@ static int cacheinfo_cpu_pre_down(unsign
+ 		cpu_cache_sysfs_exit(cpu);
+ 
+ 	free_cache_attributes(cpu);
++	update_data_cache_size(false, cpu);
+ 	return 0;
+ }
+ 
+--- a/include/linux/cacheinfo.h~cacheinfo-calculate-per-cpu-data-cache-size
++++ a/include/linux/cacheinfo.h
+@@ -73,6 +73,7 @@ struct cacheinfo {
+ 
+ struct cpu_cacheinfo {
+ 	struct cacheinfo *info_list;
++	unsigned int size_data;
+ 	unsigned int num_levels;
+ 	unsigned int num_leaves;
+ 	bool cpu_map_populated;
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
