@@ -2,36 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1073E94125
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 21:47:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91355E94130
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Oct 2023 21:47:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233804AbjJFVrL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Oct 2023 17:47:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44816 "EHLO
+        id S233764AbjJFVrM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Oct 2023 17:47:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37556 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233801AbjJFVrD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 17:47:03 -0400
+        with ESMTP id S233806AbjJFVrK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Oct 2023 17:47:10 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D136BE
-        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 14:47:01 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 709DEC433C7;
-        Fri,  6 Oct 2023 21:47:00 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4168CD6
+        for <mm-commits@vger.kernel.org>; Fri,  6 Oct 2023 14:47:04 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85D2AC433C8;
+        Fri,  6 Oct 2023 21:47:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696628820;
-        bh=B0gGtcHHHZNczqwafebNS3TC2bATZGbuMgxRHwIYqEI=;
+        s=korg; t=1696628823;
+        bh=HukcqQfbCQPJTHoMIkebOHgR12zLYwoBRWjgdg+PxXA=;
         h=Date:To:From:Subject:From;
-        b=Yokin+tbOVRLXjnpLk1F0u2fvQlvnDcYl02WA7SpumvZSO4kveowltsiCkc2StKqW
-         1evJr58uwqkEmHqqQYPUIAwQdxkih0gF1fRq3aMOaR/Rz8Ah35zRvNU9WxvwTA5JIt
-         4yJNa39PMgiCQGGaZQ1gdLw3YfsfwlsNPzxwoaHg=
-Date:   Fri, 06 Oct 2023 14:46:58 -0700
-To:     mm-commits@vger.kernel.org, ryan.roberts@arm.com,
-        paul.walmsley@sifive.com, panqinglin2020@iscas.ac.cn,
-        palmer@dabbelt.com, conor@kernel.org, aou@eecs.berkeley.edu,
-        ajones@ventanamicro.com, alexghiti@rivosinc.com,
+        b=IVgk6qKGhkn7AXtW39HomCCEXYNRFRquZtw0Q9yznsJeQAieIxhEgbAGhPFVJp4yq
+         1j91KRMDpWHCgJJKkw+ZQWVtYM95AJGaa+31Z7kwqWW05lqMFIilTTdOO1yS8Ay1uN
+         8d0XCKxxIbBsXer7Cp1psAZJD/jqAwklOPLdKKtA=
+Date:   Fri, 06 Oct 2023 14:47:01 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        shy828301@gmail.com, mike.kravetz@oracle.com, kirill@shutemov.name,
+        hughd@google.com, david@redhat.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] riscv-fix-set_huge_pte_at-for-napot-mappings-when-a-swap-entry-is-set.patch removed from -mm tree
-Message-Id: <20231006214700.709DEC433C7@smtp.kernel.org>
+Subject: [to-be-updated] mm-wire-up-tail-page-poisoning-over-mappings.patch removed from -mm tree
+Message-Id: <20231006214703.85D2AC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,77 +38,157 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: riscv: fix set_huge_pte_at() for NAPOT mappings when a swap entry is set
+     Subject: mm: wire up tail page poisoning over ->mappings
 has been removed from the -mm tree.  Its filename was
-     riscv-fix-set_huge_pte_at-for-napot-mappings-when-a-swap-entry-is-set.patch
+     mm-wire-up-tail-page-poisoning-over-mappings.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Alexandre Ghiti <alexghiti@rivosinc.com>
-Subject: riscv: fix set_huge_pte_at() for NAPOT mappings when a swap entry is set
-Date: Thu, 28 Sep 2023 17:18:46 +0200
+From: Peter Xu <peterx@redhat.com>
+Subject: mm: wire up tail page poisoning over ->mappings
+Date: Tue, 15 Aug 2023 17:06:59 -0400
 
-We used to determine the number of page table entries to set for a NAPOT
-hugepage by using the pte value which actually fails when the pte to set
-is a swap entry.
+Tail pages have a sanity check on ->mapping fields, not all of them but
+only upon index>2, for now.  It's because we reused ->mapping fields of
+the tail pages index=1,2 for other things.
 
-So take advantage of a recent fix for arm64 reported in [1] which
-introduces the size of the mapping as an argument of set_huge_pte_at(): we
-can then use this size to compute the number of page table entries to set
-for a NAPOT region.
+Define a macro for "max index of tail pages that got ->mapping field
+reused" on top of folio definition, because when we grow folio tail pages
+we'd want to boost this too together.
 
-Link: https://lkml.kernel.org/r/20230928151846.8229-3-alexghiti@rivosinc.com
-Fixes: 82a1a1f3bfb6 ("riscv: mm: support Svnapot in hugetlb page")
-Signed-off-by: Alexandre Ghiti <alexghiti@rivosinc.com>
-Reported-by: Ryan Roberts <ryan.roberts@arm.com>
-Closes: https://lore.kernel.org/linux-arm-kernel/20230922115804.2043771-1-ryan.roberts@arm.com/ [1]
-Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Qinglin Pan <panqinglin2020@iscas.ac.cn>
-Cc: Conor Dooley <conor@kernel.org>
+Then wire everything up using that macro.
+
+Don't try to poison the ->mapping field in prep_compound_tail() for tail
+pages <=TAIL_MAPPING_REUSED_MAX because it's wrong.  For example, the 1st
+tail page already reused ->mapping field as _nr_pages_mapped.  It didn't
+already blow up only because we luckily always prepare tail pages before
+preparing the head, then prep_compound_head() will update
+folio->_nr_pages_mapped so as to void the poisoning.  This should make it
+always safe again, even e.g.  if we prep the head first.
+
+Clean up free_tail_page_prepare() along the way on checking ->mapping
+poisoning to also leverage the new macro.
+
+Link: https://lkml.kernel.org/r/20230815210659.430010-1-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/mm/hugetlbpage.c |   19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ include/linux/mm_types.h |   11 +++++++++++
+ mm/huge_memory.c         |    6 +++---
+ mm/internal.h            |    3 ++-
+ mm/page_alloc.c          |   28 +++++++++++-----------------
+ 4 files changed, 27 insertions(+), 21 deletions(-)
 
---- a/arch/riscv/mm/hugetlbpage.c~riscv-fix-set_huge_pte_at-for-napot-mappings-when-a-swap-entry-is-set
-+++ a/arch/riscv/mm/hugetlbpage.c
-@@ -183,15 +183,22 @@ void set_huge_pte_at(struct mm_struct *m
- 		     pte_t pte,
- 		     unsigned long sz)
+--- a/include/linux/mm_types.h~mm-wire-up-tail-page-poisoning-over-mappings
++++ a/include/linux/mm_types.h
+@@ -256,6 +256,17 @@ typedef struct {
+ 	unsigned long val;
+ } swp_entry_t;
+ 
++/*
++ * This macro defines the maximum tail pages (of a folio) that can have the
++ * page->mapping field reused.
++ *
++ * When the tail page's mapping field reused, it'll be exempted from
++ * ->mapping poisoning and checks.  Also see the macro TAIL_MAPPING.
++ *
++ * When grow the folio struct, please consider growing this too.
++ */
++#define  TAIL_MAPPING_REUSED_MAX  (2)
++
+ /**
+  * struct folio - Represents a contiguous set of bytes.
+  * @flags: Identical to the page flags.
+--- a/mm/huge_memory.c~mm-wire-up-tail-page-poisoning-over-mappings
++++ a/mm/huge_memory.c
+@@ -2473,9 +2473,9 @@ static void __split_huge_page_tail(struc
+ 			 (1L << PG_dirty) |
+ 			 LRU_GEN_MASK | LRU_REFS_MASK));
+ 
+-	/* ->mapping in first and second tail page is replaced by other uses */
+-	VM_BUG_ON_PAGE(tail > 2 && page_tail->mapping != TAIL_MAPPING,
+-			page_tail);
++	/* ->mapping in <=TAIL_MAPPING_REUSED_MAX tail pages are reused */
++	VM_BUG_ON_PAGE(tail > TAIL_MAPPING_REUSED_MAX &&
++		       page_tail->mapping != TAIL_MAPPING, page_tail);
+ 	page_tail->mapping = head->mapping;
+ 	page_tail->index = head->index + tail;
+ 
+--- a/mm/internal.h~mm-wire-up-tail-page-poisoning-over-mappings
++++ a/mm/internal.h
+@@ -429,7 +429,8 @@ static inline void prep_compound_tail(st
  {
-+	unsigned long hugepage_shift;
- 	int i, pte_num;
+ 	struct page *p = head + tail_idx;
  
--	if (!pte_napot(pte)) {
--		set_pte_at(mm, addr, ptep, pte);
--		return;
--	}
-+	if (sz >= PGDIR_SIZE)
-+		hugepage_shift = PGDIR_SHIFT;
-+	else if (sz >= P4D_SIZE)
-+		hugepage_shift = P4D_SHIFT;
-+	else if (sz >= PUD_SIZE)
-+		hugepage_shift = PUD_SHIFT;
-+	else if (sz >= PMD_SIZE)
-+		hugepage_shift = PMD_SHIFT;
-+	else
-+		hugepage_shift = PAGE_SHIFT;
- 
--	pte_num = napot_pte_num(napot_cont_order(pte));
--	for (i = 0; i < pte_num; i++, ptep++, addr += PAGE_SIZE)
-+	pte_num = sz >> hugepage_shift;
-+	for (i = 0; i < pte_num; i++, ptep++, addr += (1 << hugepage_shift))
- 		set_pte_at(mm, addr, ptep, pte);
+-	p->mapping = TAIL_MAPPING;
++	if (tail_idx > TAIL_MAPPING_REUSED_MAX)
++		p->mapping = TAIL_MAPPING;
+ 	set_compound_head(p, head);
+ 	set_page_private(p, 0);
  }
+--- a/mm/page_alloc.c~mm-wire-up-tail-page-poisoning-over-mappings
++++ a/mm/page_alloc.c
+@@ -968,7 +968,7 @@ static inline bool is_check_pages_enable
+ static int free_tail_page_prepare(struct page *head_page, struct page *page)
+ {
+ 	struct folio *folio = (struct folio *)head_page;
+-	int ret = 1;
++	int ret = 1, index = page - head_page;
  
+ 	/*
+ 	 * We rely page->lru.next never has bit 0 set, unless the page
+@@ -980,9 +980,9 @@ static int free_tail_page_prepare(struct
+ 		ret = 0;
+ 		goto out;
+ 	}
+-	switch (page - head_page) {
+-	case 1:
+-		/* the first tail page: these may be in place of ->mapping */
++
++	/* Sanity check the first tail page */
++	if (index == 1) {
+ 		if (unlikely(folio_entire_mapcount(folio))) {
+ 			bad_page(page, "nonzero entire_mapcount");
+ 			goto out;
+@@ -995,20 +995,14 @@ static int free_tail_page_prepare(struct
+ 			bad_page(page, "nonzero pincount");
+ 			goto out;
+ 		}
+-		break;
+-	case 2:
+-		/*
+-		 * the second tail page: ->mapping is
+-		 * deferred_list.next -- ignore value.
+-		 */
+-		break;
+-	default:
+-		if (page->mapping != TAIL_MAPPING) {
+-			bad_page(page, "corrupted mapping in tail page");
+-			goto out;
+-		}
+-		break;
+ 	}
++
++	/* Sanity check the rest tail pages over ->mapping */
++	if (index > TAIL_MAPPING_REUSED_MAX && page->mapping != TAIL_MAPPING) {
++		bad_page(page, "corrupted mapping in tail page");
++		goto out;
++	}
++
+ 	if (unlikely(!PageTail(page))) {
+ 		bad_page(page, "PageTail not set");
+ 		goto out;
 _
 
-Patches currently in -mm which might be from alexghiti@rivosinc.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
+userfaultfd-uffd_feature_wp_async.patch
 
