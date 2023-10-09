@@ -2,184 +2,255 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BE52CD612B
-	for <mm-commits@archiver.kernel.org>; Mon,  9 Oct 2023 19:20:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D442E9371F
+	for <mm-commits@archiver.kernel.org>; Mon,  9 Oct 2023 23:27:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1378362AbjJITUc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 Oct 2023 15:20:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46460 "EHLO
+        id S232095AbjJIX16 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 Oct 2023 19:27:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51852 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1378347AbjJITUb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Oct 2023 15:20:31 -0400
-Received: from mail-pg1-x52f.google.com (mail-pg1-x52f.google.com [IPv6:2607:f8b0:4864:20::52f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4817CB7;
-        Mon,  9 Oct 2023 12:20:29 -0700 (PDT)
-Received: by mail-pg1-x52f.google.com with SMTP id 41be03b00d2f7-5859b2eaa55so3099729a12.1;
-        Mon, 09 Oct 2023 12:20:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1696879229; x=1697484029; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=/g1j9HiKSnjL7yGbF4RkqOe02EOquhx1LcTcmnYbMcQ=;
-        b=d8Hnk7Bj6/UvyUw9VsWfqDm8xXFvwsIvuXD3TmazhYOhiRcC1fI56MWKRtwrqPYhSA
-         hUY/upG0S/ggvoAqpARnwbcNxrfLgKdqKIHWjgqI3cPKJSSKHTt47z1lnyetoWFT7MHI
-         q+l0b6dqBx+/qOXER8FoYfj6JRHUjReQP1uqYraJf+JCkP+PwwFB4B698jINwyPBTh12
-         8X4X9VzMrG77dXhVOCxTlGUISqau8YWDtab4YWJmTuz/Zpsg52IWbXOI3mQHRximxd34
-         eIPuM8RQuNDLaoTixN3eg/QJChoI7P2INeBUtrxOghzEJnyJBmkr89QqzqyldD/wHmsb
-         SX2g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1696879229; x=1697484029;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=/g1j9HiKSnjL7yGbF4RkqOe02EOquhx1LcTcmnYbMcQ=;
-        b=VhIY7n7/A2gbRklpf6IW3EeebgtcHa56c61npsWqu4EWsjjBK0XUHf+ueHvNz2RMKN
-         auyw62qHB3n2dpwrwq0eXNQV9MHCgHcMF76Ak5frM67XO6hOinufDlYCDgEC7RjlUqWg
-         x8IQUf5zmak3r/ebQJB7KKFrzsPOZ6U7CBU9R/bUQjGTVJmaeVLNYTHnrA4qcED6evAu
-         rmk21getZ2NsOPq6aOTKVRnEwqRSTzndt6M2kGLclVGHmUcfd2D4+KbAb7kwXxMV7ffi
-         C456Vb3NszJyAN+J2KSYpuZ1NFDM7jNca2FBktS4PV/v9hk59fxo9lYmGFflpP7NncmI
-         cKHw==
-X-Gm-Message-State: AOJu0YwCtz6rHqAU5ZoSryScKDHpvqIFM4ACQYeftE4jgaECQF5SYkhT
-        qEijR+eS+szEvaP/ItQgAe8=
-X-Google-Smtp-Source: AGHT+IFrYk6upoIKzXF/DQuWt1tnCOakUk+x6ZLBPpUhsKG7M6OsjazGNh91QAd63xstpiP5gi4DYQ==
-X-Received: by 2002:a17:90b:88e:b0:269:3771:7342 with SMTP id bj14-20020a17090b088e00b0026937717342mr12380407pjb.18.1696879228566;
-        Mon, 09 Oct 2023 12:20:28 -0700 (PDT)
-Received: from swarup-virtual-machine.localdomain ([171.76.87.78])
-        by smtp.gmail.com with ESMTPSA id 23-20020a17090a199700b00278ff752eacsm9472837pji.50.2023.10.09.12.20.25
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 09 Oct 2023 12:20:28 -0700 (PDT)
-From:   Swarup Laxman Kotiaklapudi <swarupkotikalapudi@gmail.com>
-To:     adobriyan@gmail.com, akpm@linux-foundation.org,
-        linux-kernel@vger.kernel.org, shuah@kernel.org, hughd@google.com,
-        mm-commits@vger.kernel.org
-Cc:     linux-kernel-mentees@lists.linuxfoundation.org,
-        Swarup Laxman Kotiaklapudi <swarupkotikalapudi@gmail.com>
-Subject: [PATCH v3] selftests:proc Add /proc/$(pid)/statm output validation
-Date:   Tue, 10 Oct 2023 00:50:10 +0530
-Message-Id: <20231009192010.10456-1-swarupkotikalapudi@gmail.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20231004201701.87CB5C433C7@smtp.kernel.org>
-References: <20231004201701.87CB5C433C7@smtp.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        with ESMTP id S231434AbjJIX16 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Oct 2023 19:27:58 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A111D9D
+        for <mm-commits@vger.kernel.org>; Mon,  9 Oct 2023 16:27:56 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D3ADC433C7;
+        Mon,  9 Oct 2023 23:27:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1696894076;
+        bh=G4t5xC0FqicFSTEVP61SxDeSPx9URnIxP06hlFFxCro=;
+        h=Date:To:From:Subject:From;
+        b=ziE3U/5sTxbBcY6tUgUOGU6LBgZ2KMW3hA0oUzZMNNrfqsBQaC9uSvLEA75r83PRU
+         JQym4UrHqTbr/5qpsmTHP4DtLjGpqzD1e87X8/fXCAQd5nGBOltLTmxd7qnW0qG4Ce
+         Q0nSt5noB9wl84KbYBrLvhLw4ouuGmjZJ9DX9P10=
+Date:   Mon, 09 Oct 2023 16:27:11 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        vbabka@suse.cz, Liam.Howlett@oracle.com, brauner@kernel.org,
+        lstoakes@gmail.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-move-vma_policy-and-anon_vma_name-decls-to-mm_typesh.patch added to mm-unstable branch
+Message-Id: <20231009232739.2D3ADC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Add /proc/${pid}/statm validation
 
-/proc/$(pid)/statm output is expected to be:
- "0 0 0 * 0 0 0\n"
-Here * can be any value
+The patch titled
+     Subject: mm: move vma_policy() and anon_vma_name() decls to mm_types.h
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-move-vma_policy-and-anon_vma_name-decls-to-mm_typesh.patch
 
-Read output of /proc/$(pid)/statm
-and check except for 4th position,
-all other positions have value zero.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-vma_policy-and-anon_vma_name-decls-to-mm_typesh.patch
 
-Fixes: 5bc73bb3451b (proc: test how it holds up with mapping'less process)
-Signed-off-by: Swarup Laxman Kotiaklapudi <swarupkotikalapudi@gmail.com>
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: mm: move vma_policy() and anon_vma_name() decls to mm_types.h
+Date: Mon, 9 Oct 2023 21:53:16 +0100
+
+Patch series "Abstract vma_merge() and split_vma()", v2.
+
+The vma_merge() interface is very confusing and its implementation has led
+to numerous bugs as a result of that confusion.
+
+In addition there is duplication both in invocation of vma_merge(), but
+also in the common mprotect()-style pattern of attempting a merge, then if
+this fails, splitting the portion of a VMA about to have its attributes
+changed.
+
+This pattern has been copy/pasted around the kernel in each instance where
+such an operation has been required, each very slightly modified from the
+last to make it even harder to decipher what is going on.
+
+Simplify the whole thing by dividing the actual uses of vma_merge() and
+split_vma() into specific and abstracted functions and de-duplicate the
+vma_merge()/split_vma() pattern altogether.
+
+Doing so also opens the door to changing how vma_merge() is implemented -
+by knowing precisely what cases a caller is invoking rather than having a
+central interface where anything might happen we can untangle the brittle
+and confusing vma_merge() implementation into something more workable.
+
+For mprotect()-like cases we introduce vma_modify() which performs the
+vma_merge()/split_vma() pattern, returning a pointer or an ERR_PTR(err) if
+the splits fail.
+
+We provide a number of inline helper functions to make things even clearer:-
+
+* vma_modify_flags()      - Prepare to modify the VMA's flags.
+* vma_modify_flags_name() - Prepare to modify the VMA's flags/anon_vma_name
+* vma_modify_policy()     - Prepare to modify the VMA's mempolicy.
+* vma_modify_flags_uffd() - Prepare to modify the VMA's flags/uffd context.
+
+For cases where a new VMA is attempted to be merged with adjacent VMAs we
+add:-
+
+* vma_merge_new_vma() - Prepare to merge a new VMA.
+* vma_merge_extend()  - Prepare to extend the end of a new VMA.
+
+
+This patch (of 5):
+
+The vma_policy() define is a helper specifically for a VMA field so it
+makes sense to host it in the memory management types header.
+
+The anon_vma_name(), anon_vma_name_alloc() and anon_vma_name_free()
+functions are a little out of place in mm_inline.h as they define external
+functions, and so it makes sense to locate them in mm_types.h.
+
+The purpose of these relocations is to make it possible to abstract static
+inline wrappers which invoke both of these helpers.
+
+Link: https://lkml.kernel.org/r/cover.1696884493.git.lstoakes@gmail.com
+Link: https://lkml.kernel.org/r/4f1063f9c0e05ada89458083476e03434498e81e.1696884493.git.lstoakes@gmail.com
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Changes in V3:
-- Remove wrong comment "/proc/${pid}/statm is under
-  CONFIG_PROC_PAGE_MONITOR"
-- read() function usage is change
+ include/linux/mempolicy.h |    4 ----
+ include/linux/mm_inline.h |   20 +-------------------
+ include/linux/mm_types.h  |   27 +++++++++++++++++++++++++++
+ 3 files changed, 28 insertions(+), 23 deletions(-)
 
- Changes in V2:
-- 4th field if zero it will assert
-- field other than 4th field is checked for zero value
-- clean up of function test_proc_pid_statm()
-
- tools/testing/selftests/proc/proc-empty-vm.c | 60 ++++++++++++++++++--
- 1 file changed, 55 insertions(+), 5 deletions(-)
-
-diff --git a/tools/testing/selftests/proc/proc-empty-vm.c b/tools/testing/selftests/proc/proc-empty-vm.c
-index b16c13688b88..bc76e8bba7e4 100644
---- a/tools/testing/selftests/proc/proc-empty-vm.c
-+++ b/tools/testing/selftests/proc/proc-empty-vm.c
-@@ -38,6 +38,8 @@
- #include <sys/wait.h>
- #include <unistd.h>
- 
-+#include "../kselftest.h"
-+
- #ifdef __amd64__
- #define TEST_VSYSCALL
- #endif
-@@ -302,6 +304,57 @@ static int test_proc_pid_smaps_rollup(pid_t pid)
- 	}
+--- a/include/linux/mempolicy.h~mm-move-vma_policy-and-anon_vma_name-decls-to-mm_typesh
++++ a/include/linux/mempolicy.h
+@@ -89,8 +89,6 @@ static inline struct mempolicy *mpol_dup
+ 	return pol;
  }
  
-+static int test_proc_pid_statm(pid_t pid)
+-#define vma_policy(vma) ((vma)->vm_policy)
+-
+ static inline void mpol_get(struct mempolicy *pol)
+ {
+ 	if (pol)
+@@ -222,8 +220,6 @@ static inline struct mempolicy *get_vma_
+ 	return NULL;
+ }
+ 
+-#define vma_policy(vma) NULL
+-
+ static inline int
+ vma_dup_policy(struct vm_area_struct *src, struct vm_area_struct *dst)
+ {
+--- a/include/linux/mm_inline.h~mm-move-vma_policy-and-anon_vma_name-decls-to-mm_typesh
++++ a/include/linux/mm_inline.h
+@@ -4,6 +4,7 @@
+ 
+ #include <linux/atomic.h>
+ #include <linux/huge_mm.h>
++#include <linux/mm_types.h>
+ #include <linux/swap.h>
+ #include <linux/string.h>
+ #include <linux/userfaultfd_k.h>
+@@ -352,15 +353,6 @@ void lruvec_del_folio(struct lruvec *lru
+ }
+ 
+ #ifdef CONFIG_ANON_VMA_NAME
+-/*
+- * mmap_lock should be read-locked when calling anon_vma_name(). Caller should
+- * either keep holding the lock while using the returned pointer or it should
+- * raise anon_vma_name refcount before releasing the lock.
+- */
+-extern struct anon_vma_name *anon_vma_name(struct vm_area_struct *vma);
+-extern struct anon_vma_name *anon_vma_name_alloc(const char *name);
+-extern void anon_vma_name_free(struct kref *kref);
+-
+ /* mmap_lock should be read-locked */
+ static inline void anon_vma_name_get(struct anon_vma_name *anon_name)
+ {
+@@ -415,16 +407,6 @@ static inline bool anon_vma_name_eq(stru
+ }
+ 
+ #else /* CONFIG_ANON_VMA_NAME */
+-static inline struct anon_vma_name *anon_vma_name(struct vm_area_struct *vma)
+-{
+-	return NULL;
+-}
+-
+-static inline struct anon_vma_name *anon_vma_name_alloc(const char *name)
+-{
+-	return NULL;
+-}
+-
+ static inline void anon_vma_name_get(struct anon_vma_name *anon_name) {}
+ static inline void anon_vma_name_put(struct anon_vma_name *anon_name) {}
+ static inline void dup_anon_vma_name(struct vm_area_struct *orig_vma,
+--- a/include/linux/mm_types.h~mm-move-vma_policy-and-anon_vma_name-decls-to-mm_typesh
++++ a/include/linux/mm_types.h
+@@ -546,6 +546,27 @@ struct anon_vma_name {
+ 	char name[];
+ };
+ 
++#ifdef CONFIG_ANON_VMA_NAME
++/*
++ * mmap_lock should be read-locked when calling anon_vma_name(). Caller should
++ * either keep holding the lock while using the returned pointer or it should
++ * raise anon_vma_name refcount before releasing the lock.
++ */
++struct anon_vma_name *anon_vma_name(struct vm_area_struct *vma);
++struct anon_vma_name *anon_vma_name_alloc(const char *name);
++void anon_vma_name_free(struct kref *kref);
++#else /* CONFIG_ANON_VMA_NAME */
++static inline struct anon_vma_name *anon_vma_name(struct vm_area_struct *vma)
 +{
-+	char buf[4096];
-+	char *tok;
-+	char *string, *p;
-+	int non_zero_value_indx = 4;
-+	int i = 1, len;
-+        size_t left;
-+
-+	snprintf(buf, sizeof(buf), "/proc/%u/statm", pid);
-+
-+	/*
-+	 *  Output can be "0 0 0 2 0 0 0\n" where "2" can be anything.
-+	 */
-+	int fd = open(buf, O_RDONLY);
-+
-+	if (fd == -1) {
-+		if (errno == ENOENT) {
-+			return EXIT_SUCCESS;
-+		}
-+		perror("open /proc/${pid}/statm");
-+		return EXIT_FAILURE;
-+	} else {
-+		memset(buf, 0, sizeof(buf));
-+		left = ARRAY_SIZE(buf);
-+		p = buf;
-+		while ((len = read(fd, p, left)) > 0) {
-+			p += len;
-+			left -= len;
-+		}
-+		close(fd);
-+		string = buf;
-+
-+		while ((tok = strsep(&string, " ")) != NULL) {
-+			if (i == non_zero_value_indx) {
-+				if (!strncmp(tok, "0", 1))
-+					goto err_statm;
-+			} else {
-+				if (strncmp(tok, "0", 1))
-+					goto err_statm;
-+			}
-+			i++;
-+		}
-+	}
-+
-+	return EXIT_SUCCESS;
-+
-+err_statm:
-+	assert(0);
++	return NULL;
 +}
 +
- int main(void)
- {
- 	int rv = EXIT_SUCCESS;
-@@ -388,11 +441,8 @@ int main(void)
- 		if (rv == EXIT_SUCCESS) {
- 			rv = test_proc_pid_smaps_rollup(pid);
- 		}
--		/*
--		 * TODO test /proc/${pid}/statm, task_statm()
--		 * ->start_code, ->end_code aren't updated by munmap().
--		 * Output can be "0 0 0 2 0 0 0\n" where "2" can be anything.
--		 */
-+		if (rv == EXIT_SUCCESS)
-+			rv = test_proc_pid_statm(pid);
++static inline struct anon_vma_name *anon_vma_name_alloc(const char *name)
++{
++	return NULL;
++}
++#endif
++
+ struct vma_lock {
+ 	struct rw_semaphore lock;
+ };
+@@ -662,6 +683,12 @@ struct vm_area_struct {
+ 	struct vm_userfaultfd_ctx vm_userfaultfd_ctx;
+ } __randomize_layout;
  
- 		/* Cut the rope. */
- 		int wstatus;
--- 
-2.34.1
++#ifdef CONFIG_NUMA
++#define vma_policy(vma) ((vma)->vm_policy)
++#else
++#define vma_policy(vma) NULL
++#endif
++
+ #ifdef CONFIG_SCHED_MM_CID
+ struct mm_cid {
+ 	u64 time;
+_
+
+Patches currently in -mm which might be from lstoakes@gmail.com are
+
+mm-filemap-clarify-filemap_fault-comments-for-not-uptodate-case.patch
+mm-filemap-clarify-filemap_fault-comments-for-not-uptodate-case-fix.patch
+mm-make-__access_remote_vm-static.patch
+mm-gup-explicitly-define-and-check-internal-gup-flags-disallow-foll_touch.patch
+mm-gup-make-failure-to-pin-an-error-if-foll_nowait-not-specified.patch
+mm-gup-adapt-get_user_page_vma_remote-to-never-return-null.patch
+mm-move-vma_policy-and-anon_vma_name-decls-to-mm_typesh.patch
+mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al.patch
+mm-make-vma_merge-and-split_vma-internal.patch
+mm-abstract-merge-for-new-vmas-into-vma_merge_new_vma.patch
+mm-abstract-vma-merge-and-extend-into-vma_merge_extend-helper.patch
 
