@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF4E9E95A97
-	for <mm-commits@archiver.kernel.org>; Mon,  9 Oct 2023 23:30:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D426FE9413E
+	for <mm-commits@archiver.kernel.org>; Mon,  9 Oct 2023 23:30:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379086AbjJIXaA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 Oct 2023 19:30:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59980 "EHLO
+        id S234616AbjJIXaN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 Oct 2023 19:30:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54106 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379120AbjJIX36 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Oct 2023 19:29:58 -0400
+        with ESMTP id S234610AbjJIXaM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Oct 2023 19:30:12 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53DE3D8
-        for <mm-commits@vger.kernel.org>; Mon,  9 Oct 2023 16:29:55 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6668FC433C8;
-        Mon,  9 Oct 2023 23:29:14 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E74AAF
+        for <mm-commits@vger.kernel.org>; Mon,  9 Oct 2023 16:30:10 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E7C9C433C8;
+        Mon,  9 Oct 2023 23:30:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696894194;
-        bh=2y4EPEyiNUAX1wJsWStt0tgizwv+JBBLzOKe5Q13RI0=;
+        s=korg; t=1696894209;
+        bh=B1+GLa4au92C6v4wYKwTzTHPUi4+jHidAL+aQpr3T0A=;
         h=Date:To:From:Subject:From;
-        b=MN2Z+kV2w/nvI5l+I9gMKHllNhLyhjCSFdO06qv19BGdYzSiHnDffgKjLW0/zdRiO
-         gQmlPiXqr/RvzoHTHYW/l4iQiYAz8IUFMDPvxd6+PCeePOwAhSYpt4az94Tl6LKo/y
-         te1pJqg/d3ko1ul5YKzW92AfNBtyE59E/ZmXRNx4=
-Date:   Mon, 09 Oct 2023 16:28:32 -0700
+        b=O2wEA7pHR0XJWsZVbHRg8XO5xYbtCpYyDSnscvx7b1F9pnjFDst/Q+Y31i4RmiEEf
+         W6pAJkiFKEW8yTb6HHrQ72OjaRaT3RMxVtBPRrXJYV5gPvG+fsPkbpVibnJIk3zEr+
+         3M28uvC7sPAtvYOnkigoRCOA1GWcPqAwKGMdsHZY=
+Date:   Mon, 09 Oct 2023 16:29:56 -0700
 To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
         vbabka@suse.cz, Liam.Howlett@oracle.com, brauner@kernel.org,
         lstoakes@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-abstract-merge-for-new-vmas-into-vma_merge_new_vma.patch added to mm-unstable branch
-Message-Id: <20231009232915.6668FC433C8@smtp.kernel.org>
+Subject: + mm-make-vma_merge-and-split_vma-internal.patch added to mm-unstable branch
+Message-Id: <20231009233007.4E7C9C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: abstract merge for new VMAs into vma_merge_new_vma()
+     Subject: mm: make vma_merge() and split_vma() internal
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-abstract-merge-for-new-vmas-into-vma_merge_new_vma.patch
+     mm-make-vma_merge-and-split_vma-internal.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-abstract-merge-for-new-vmas-into-vma_merge_new_vma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-vma_merge-and-split_vma-internal.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -61,23 +61,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm: abstract merge for new VMAs into vma_merge_new_vma()
-Date: Mon, 9 Oct 2023 21:53:19 +0100
+Subject: mm: make vma_merge() and split_vma() internal
+Date: Mon, 9 Oct 2023 21:53:18 +0100
 
-Only in mmap_region() and copy_vma() do we attempt to merge VMAs which
-occupy entirely new regions of virtual memory.
+Now the common pattern of - attempting a merge via vma_merge() and should
+this fail splitting VMAs via split_vma() - has been abstracted, the former
+can be placed into mm/internal.h and the latter made static.
 
-We can abstract this logic and make the intent of this invocations of it
-completely explicit, rather than invoking vma_merge() with an inscrutable
-wall of parameters.
+In addition, the split_vma() nommu variant also need not be exported.
 
-This also paves the way for a simplification of the core vma_merge()
-implementation, as we seek to make it entirely an implementation detail.
-
-Note that on mmap_region(), VMA fields are initialised to zero, so we can
-simply reference these rather than explicitly specifying NULL.
-
-Link: https://lkml.kernel.org/r/8525290591267805ffabf8a31b53f0290a6a4276.1696884493.git.lstoakes@gmail.com
+Link: https://lkml.kernel.org/r/31d2c79f7a3bca03d4a4c95e98d9a27cb1f99bf1.1696884493.git.lstoakes@gmail.com
 Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -86,59 +79,86 @@ Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   27 ++++++++++++++++++++-------
- 1 file changed, 20 insertions(+), 7 deletions(-)
+ include/linux/mm.h |    9 ---------
+ mm/internal.h      |    9 +++++++++
+ mm/mmap.c          |    8 ++++----
+ mm/nommu.c         |    4 ++--
+ 4 files changed, 15 insertions(+), 15 deletions(-)
 
---- a/mm/mmap.c~mm-abstract-merge-for-new-vmas-into-vma_merge_new_vma
-+++ a/mm/mmap.c
-@@ -2483,6 +2483,22 @@ struct vm_area_struct *vma_modify(struct
- }
+--- a/include/linux/mm.h~mm-make-vma_merge-and-split_vma-internal
++++ a/include/linux/mm.h
+@@ -3237,16 +3237,7 @@ extern int vma_expand(struct vma_iterato
+ 		      struct vm_area_struct *next);
+ extern int vma_shrink(struct vma_iterator *vmi, struct vm_area_struct *vma,
+ 		       unsigned long start, unsigned long end, pgoff_t pgoff);
+-extern struct vm_area_struct *vma_merge(struct vma_iterator *vmi,
+-	struct mm_struct *, struct vm_area_struct *prev, unsigned long addr,
+-	unsigned long end, unsigned long vm_flags, struct anon_vma *,
+-	struct file *, pgoff_t, struct mempolicy *, struct vm_userfaultfd_ctx,
+-	struct anon_vma_name *);
+ extern struct anon_vma *find_mergeable_anon_vma(struct vm_area_struct *);
+-extern int __split_vma(struct vma_iterator *vmi, struct vm_area_struct *,
+-		       unsigned long addr, int new_below);
+-extern int split_vma(struct vma_iterator *vmi, struct vm_area_struct *,
+-			 unsigned long addr, int new_below);
+ extern int insert_vm_struct(struct mm_struct *, struct vm_area_struct *);
+ extern void unlink_file_vma(struct vm_area_struct *);
+ extern struct vm_area_struct *copy_vma(struct vm_area_struct **,
+--- a/mm/internal.h~mm-make-vma_merge-and-split_vma-internal
++++ a/mm/internal.h
+@@ -1011,6 +1011,15 @@ struct page *follow_trans_huge_pmd(struc
+ 				   unsigned long addr, pmd_t *pmd,
+ 				   unsigned int flags);
  
- /*
-+ * Attempt to merge a newly mapped VMA with those adjacent to it. The caller
-+ * must ensure that [start, end) does not overlap any existing VMA.
-+ */
-+static struct vm_area_struct *vma_merge_new_vma(struct vma_iterator *vmi,
-+						struct vm_area_struct *prev,
-+						struct vm_area_struct *vma,
-+						unsigned long start,
-+						unsigned long end,
-+						pgoff_t pgoff)
-+{
-+	return vma_merge(vmi, vma->vm_mm, prev, start, end, vma->vm_flags,
-+			 vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma),
-+			 vma->vm_userfaultfd_ctx, anon_vma_name(vma));
-+}
-+
 +/*
-  * do_vmi_align_munmap() - munmap the aligned region from @start to @end.
-  * @vmi: The vma iterator
-  * @vma: The starting vm_area_struct
-@@ -2837,10 +2853,9 @@ cannot_expand:
- 		 * vma again as we may succeed this time.
- 		 */
- 		if (unlikely(vm_flags != vma->vm_flags && prev)) {
--			merge = vma_merge(&vmi, mm, prev, vma->vm_start,
--				    vma->vm_end, vma->vm_flags, NULL,
--				    vma->vm_file, vma->vm_pgoff, NULL,
--				    NULL_VM_UFFD_CTX, NULL);
-+			merge = vma_merge_new_vma(&vmi, prev, vma,
-+						  vma->vm_start, vma->vm_end,
-+						  pgoff);
- 			if (merge) {
- 				/*
- 				 * ->mmap() can change vma->vm_file and fput
-@@ -3382,9 +3397,7 @@ struct vm_area_struct *copy_vma(struct v
- 	if (new_vma && new_vma->vm_start < addr + len)
- 		return NULL;	/* should never get here */
- 
--	new_vma = vma_merge(&vmi, mm, prev, addr, addr + len, vma->vm_flags,
--			    vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma),
--			    vma->vm_userfaultfd_ctx, anon_vma_name(vma));
-+	new_vma = vma_merge_new_vma(&vmi, prev, vma, addr, addr + len, pgoff);
- 	if (new_vma) {
- 		/*
- 		 * Source vma may have been merged into new_vma
++ * mm/mmap.c
++ */
++struct vm_area_struct *vma_merge(struct vma_iterator *vmi,
++	struct mm_struct *, struct vm_area_struct *prev, unsigned long addr,
++	unsigned long end, unsigned long vm_flags, struct anon_vma *,
++	struct file *, pgoff_t, struct mempolicy *, struct vm_userfaultfd_ctx,
++	struct anon_vma_name *);
++
+ enum {
+ 	/* mark page accessed */
+ 	FOLL_TOUCH = 1 << 16,
+--- a/mm/mmap.c~mm-make-vma_merge-and-split_vma-internal
++++ a/mm/mmap.c
+@@ -2346,8 +2346,8 @@ static void unmap_region(struct mm_struc
+  * has already been checked or doesn't make sense to fail.
+  * VMA Iterator will point to the end VMA.
+  */
+-int __split_vma(struct vma_iterator *vmi, struct vm_area_struct *vma,
+-		unsigned long addr, int new_below)
++static int __split_vma(struct vma_iterator *vmi, struct vm_area_struct *vma,
++		       unsigned long addr, int new_below)
+ {
+ 	struct vma_prepare vp;
+ 	struct vm_area_struct *new;
+@@ -2428,8 +2428,8 @@ out_free_vma:
+  * Split a vma into two pieces at address 'addr', a new vma is allocated
+  * either for the first part or the tail.
+  */
+-int split_vma(struct vma_iterator *vmi, struct vm_area_struct *vma,
+-	      unsigned long addr, int new_below)
++static int split_vma(struct vma_iterator *vmi, struct vm_area_struct *vma,
++		     unsigned long addr, int new_below)
+ {
+ 	if (vma->vm_mm->map_count >= sysctl_max_map_count)
+ 		return -ENOMEM;
+--- a/mm/nommu.c~mm-make-vma_merge-and-split_vma-internal
++++ a/mm/nommu.c
+@@ -1305,8 +1305,8 @@ SYSCALL_DEFINE1(old_mmap, struct mmap_ar
+  * split a vma into two pieces at address 'addr', a new vma is allocated either
+  * for the first part or the tail.
+  */
+-int split_vma(struct vma_iterator *vmi, struct vm_area_struct *vma,
+-	      unsigned long addr, int new_below)
++static int split_vma(struct vma_iterator *vmi, struct vm_area_struct *vma,
++		     unsigned long addr, int new_below)
+ {
+ 	struct vm_area_struct *new;
+ 	struct vm_region *region;
 _
 
 Patches currently in -mm which might be from lstoakes@gmail.com are
