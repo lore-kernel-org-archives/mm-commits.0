@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E390CD8CAC
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Oct 2023 18:21:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE295CD8CAE
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Oct 2023 18:21:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233691AbjJJSVK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Oct 2023 14:21:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34178 "EHLO
+        id S233931AbjJJSVZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Oct 2023 14:21:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52130 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229885AbjJJSVK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2023 14:21:10 -0400
+        with ESMTP id S233117AbjJJSVY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2023 14:21:24 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C03494
-        for <mm-commits@vger.kernel.org>; Tue, 10 Oct 2023 11:21:08 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5AB3C433C9;
-        Tue, 10 Oct 2023 18:21:04 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 060FA9D
+        for <mm-commits@vger.kernel.org>; Tue, 10 Oct 2023 11:21:23 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4070FC433C8;
+        Tue, 10 Oct 2023 18:21:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696962068;
-        bh=n/uUcWvSXPLat4vkS9QKo8w1gV9ZdFD/PxhG6TmS1c0=;
+        s=korg; t=1696962082;
+        bh=zC1HeKS7sbEU1odcso22jwu+toFzwoOX2hTwCFCJ47Q=;
         h=Date:To:From:Subject:From;
-        b=p9cXXRC6UCww6AsH/z8rtEBcGPBqjQ/aV2jOZue80i2kzHCFGN5wEM7/nJ7n5WK00
-         NzVif7/2A7JdxeNg3wg0GExl6vWz2/Ll72s0HxR/moBmZe64aubyGEziOPe8DarJNB
-         UtnuBA83VtByHQDFgDsmpCE/3aP59UygFveoSerI=
-Date:   Tue, 10 Oct 2023 11:20:50 -0700
+        b=xelb0YEkIVdXxzI30yOWp5ZP4zuDSgHYXI7Z/kRGQ7FQw4OYqWwI7A7/WzB0gTZSl
+         VNFMGFrKqMF4Z4nfUhatgWfjRMVIMcmaG8RZ9AN0D4VryAaVe/TPEZ4ZUbsJoC2CHW
+         EJp/CCAS5IlHvsh5Zda46VceCXzdq0LVf/wcLfPE=
+Date:   Tue, 10 Oct 2023 11:21:09 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, shakeelb@google.com,
         rientjes@google.com, naresh.kamboju@linaro.org,
         muchun.song@linux.dev, mhocko@kernel.org, hannes@cmpxchg.org,
         dennis@kernel.org, roman.gushchin@linux.dev,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmem-make-memcg-keep-a-reference-to-the-original-objcg.patch added to mm-unstable branch
-Message-Id: <20231010182105.B5AB3C433C9@smtp.kernel.org>
+Subject: + percpu-scoped-objcg-protection.patch added to mm-unstable branch
+Message-Id: <20231010182120.4070FC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,12 +39,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kmem: make memcg keep a reference to the original objcg
+     Subject: percpu: scoped objcg protection
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kmem-make-memcg-keep-a-reference-to-the-original-objcg.patch
+     percpu-scoped-objcg-protection.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmem-make-memcg-keep-a-reference-to-the-original-objcg.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu-scoped-objcg-protection.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -63,21 +63,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: mm: kmem: make memcg keep a reference to the original objcg
-Date: Mon, 9 Oct 2023 17:09:27 -0700
+Subject: percpu: scoped objcg protection
+Date: Mon, 9 Oct 2023 17:09:29 -0700
 
-Keep a reference to the original objcg object for the entire life
-of a memcg structure.
+Similar to slab and kmem, switch to a scope-based protection of the
+objcg pointer to avoid.
 
-This allows to simplify the synchronization on the kernel memory
-allocation paths: pinning a (live) memcg will also pin the
-corresponding objcg.
-
-The memory overhead of this change is minimal because object cgroups
-usually outlive their corresponding memory cgroups even without this
-change, so it's only an additional pointer per memcg.
-
-Link: https://lkml.kernel.org/r/20231010000929.450702-4-roman.gushchin@linux.dev
+Link: https://lkml.kernel.org/r/20231010000929.450702-6-roman.gushchin@linux.dev
 Signed-off-by: Roman Gushchin (Cruise) <roman.gushchin@linux.dev>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Dennis Zhou <dennis@kernel.org>
@@ -90,48 +82,44 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    8 +++++++-
- mm/memcontrol.c            |    5 +++++
- 2 files changed, 12 insertions(+), 1 deletion(-)
+ mm/percpu.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-kmem-make-memcg-keep-a-reference-to-the-original-objcg
-+++ a/include/linux/memcontrol.h
-@@ -290,7 +290,13 @@ struct mem_cgroup {
+--- a/mm/percpu.c~percpu-scoped-objcg-protection
++++ a/mm/percpu.c
+@@ -1628,14 +1628,12 @@ static bool pcpu_memcg_pre_alloc_hook(si
+ 	if (!memcg_kmem_online() || !(gfp & __GFP_ACCOUNT))
+ 		return true;
  
- #ifdef CONFIG_MEMCG_KMEM
- 	int kmemcg_id;
--	struct obj_cgroup __rcu *objcg;
-+	/*
-+	 * memcg->objcg is wiped out as a part of the objcg repaprenting
-+	 * process. memcg->orig_objcg preserves a pointer (and a reference)
-+	 * to the original objcg until the end of live of memcg.
-+	 */
-+	struct obj_cgroup __rcu	*objcg;
-+	struct obj_cgroup	*orig_objcg;
- 	/* list of inherited objcgs, protected by objcg_lock */
- 	struct list_head objcg_list;
- #endif
---- a/mm/memcontrol.c~mm-kmem-make-memcg-keep-a-reference-to-the-original-objcg
-+++ a/mm/memcontrol.c
-@@ -3914,6 +3914,8 @@ static int memcg_online_kmem(struct mem_
+-	objcg = get_obj_cgroup_from_current();
++	objcg = current_obj_cgroup();
+ 	if (!objcg)
+ 		return true;
  
- 	objcg->memcg = memcg;
- 	rcu_assign_pointer(memcg->objcg, objcg);
-+	obj_cgroup_get(objcg);
-+	memcg->orig_objcg = objcg;
+-	if (obj_cgroup_charge(objcg, gfp, pcpu_obj_full_size(size))) {
+-		obj_cgroup_put(objcg);
++	if (obj_cgroup_charge(objcg, gfp, pcpu_obj_full_size(size)))
+ 		return false;
+-	}
  
- 	static_branch_enable(&memcg_kmem_online_key);
+ 	*objcgp = objcg;
+ 	return true;
+@@ -1649,6 +1647,7 @@ static void pcpu_memcg_post_alloc_hook(s
+ 		return;
  
-@@ -5421,6 +5423,9 @@ static void __mem_cgroup_free(struct mem
- {
- 	int node;
+ 	if (likely(chunk && chunk->obj_cgroups)) {
++		obj_cgroup_get(objcg);
+ 		chunk->obj_cgroups[off >> PCPU_MIN_ALLOC_SHIFT] = objcg;
  
-+	if (memcg->orig_objcg)
-+		obj_cgroup_put(memcg->orig_objcg);
-+
- 	for_each_node(node)
- 		free_mem_cgroup_per_node_info(memcg, node);
- 	kfree(memcg->vmstats);
+ 		rcu_read_lock();
+@@ -1657,7 +1656,6 @@ static void pcpu_memcg_post_alloc_hook(s
+ 		rcu_read_unlock();
+ 	} else {
+ 		obj_cgroup_uncharge(objcg, pcpu_obj_full_size(size));
+-		obj_cgroup_put(objcg);
+ 	}
+ }
+ 
 _
 
 Patches currently in -mm which might be from roman.gushchin@linux.dev are
