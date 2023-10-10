@@ -2,34 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D156ACD8CAE
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Oct 2023 18:19:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D1B9CD8CAE
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Oct 2023 18:19:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233931AbjJJSTi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Oct 2023 14:19:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45016 "EHLO
+        id S234079AbjJJSTv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Oct 2023 14:19:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47610 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234079AbjJJSTh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2023 14:19:37 -0400
+        with ESMTP id S234102AbjJJSTs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2023 14:19:48 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B802A9D
-        for <mm-commits@vger.kernel.org>; Tue, 10 Oct 2023 11:19:35 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0DA7C433C7;
-        Tue, 10 Oct 2023 18:19:32 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4A309D
+        for <mm-commits@vger.kernel.org>; Tue, 10 Oct 2023 11:19:46 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F0D0C433C8;
+        Tue, 10 Oct 2023 18:19:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696961975;
-        bh=BpyDn4VNCXNhj/uSjREtrK0/bd9vAq3qQ/U6ttKjzwA=;
+        s=korg; t=1696961986;
+        bh=DRaW0sgU1LBvugqs1iaBCT/kyQ4j2rrGUozWUX5sTpk=;
         h=Date:To:From:Subject:From;
-        b=a7O18YsXZItQMkZPBl27dk1zEksE2ptQ0CLlDjzw6C6bIq18HNghSzNTEuxiwomV9
-         AlZuOe9QHJJomXubVfgWu64zVcRucibXBsTYP5V+0S0WpAEABO/XsdbgXDlffVK1zd
-         8i6mVam2O0Xo8NEBfbTLNMxxTGcAWfhfWOEHp3gg=
-Date:   Tue, 10 Oct 2023 11:19:24 -0700
-To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
-        lucymielke@icloud.com, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
+        b=v/P83KpDoTxw//V/fe4W0KP3qDLkcjuXhxHRiLEzmcUSuMyz4Pxqw70NheV0EDErv
+         wYlRp+qRJdfxGOogUZzQwTClyLCKnnHzeV2pfYyJvfB7Yn6y0uik301n1EGF//NhjA
+         hZl7IubfLZpUEHwbE7kOhbZj0+3P5hYokpaSxesc=
+Date:   Tue, 10 Oct 2023 11:19:36 -0700
+To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
+        junxiao.bi@oracle.com, joseph.qi@linux.alibaba.com,
+        jlbec@evilplan.org, ghe@suse.com, gechangwei@live.cn,
+        artem.chernyshev@red-soft.ru, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-printf-attribute-to-shrinker_debugfs_name_alloc-fix.patch added to mm-unstable branch
-Message-Id: <20231010181933.A0DA7C433C7@smtp.kernel.org>
+Subject: + fs-ocfs2-check-status-values.patch added to mm-nonmm-unstable branch
+Message-Id: <20231010181944.1F0D0C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,14 +38,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-add-printf-attribute-to-shrinker_debugfs_name_alloc-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-printf-attribute-to-shrinker_debugfs_name_alloc-fix.patch
+     Subject: fs: ocfs2: check status values
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     fs-ocfs2-check-status-values.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-printf-attribute-to-shrinker_debugfs_name_alloc-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-ocfs2-check-status-values.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -60,39 +61,70 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-add-printf-attribute-to-shrinker_debugfs_name_alloc-fix
-Date: Tue Oct 10 11:03:09 AM PDT 2023
+From: Artem Chernyshev <artem.chernyshev@red-soft.ru>
+Subject: fs: ocfs2: check status values
+Date: Mon, 9 Oct 2023 17:11:11 +0300
 
-fix shrinker_alloc() as welll per Qi Zheng
+Test return values before overwriting.
 
-Link: https://lkml.kernel.org/r/822387b7-4895-4e64-5806-0f56b5d6c447@bytedance.com
-Cc: Lucy Mielke <lucymielke@icloud.com>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Found by Linux Verification Center (linuxtesting.org) with SVACE.
+
+Link: https://lkml.kernel.org/r/20231009141111.149858-1-artem.chernyshev@red-soft.ru
+Signed-off-by: Artem Chernyshev <artem.chernyshev@red-soft.ru>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shrinker.h |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ocfs2/namei.c       |    8 ++++++++
+ fs/ocfs2/quota_local.c |    4 ++++
+ 2 files changed, 12 insertions(+)
 
---- a/include/linux/shrinker.h~mm-add-printf-attribute-to-shrinker_debugfs_name_alloc-fix
-+++ a/include/linux/shrinker.h
-@@ -131,6 +131,7 @@ struct shrinker {
-  */
- #define SHRINKER_NONSLAB	BIT(4)
+--- a/fs/ocfs2/namei.c~fs-ocfs2-check-status-values
++++ a/fs/ocfs2/namei.c
+@@ -1597,6 +1597,10 @@ static int ocfs2_rename(struct mnt_idmap
+ 	if (update_dot_dot) {
+ 		status = ocfs2_update_entry(old_inode, handle,
+ 					    &old_inode_dot_dot_res, new_dir);
++		if (status < 0) {
++			mlog_errno(status);
++			goto bail;
++		}
+ 		drop_nlink(old_dir);
+ 		if (new_inode) {
+ 			drop_nlink(new_inode);
+@@ -1636,6 +1640,10 @@ static int ocfs2_rename(struct mnt_idmap
+ 							 INODE_CACHE(old_dir),
+ 							 old_dir_bh,
+ 							 OCFS2_JOURNAL_ACCESS_WRITE);
++			if (status < 0) {
++				mlog_errno(status);
++				goto bail;
++			}
+ 			fe = (struct ocfs2_dinode *) old_dir_bh->b_data;
+ 			ocfs2_set_links_count(fe, old_dir->i_nlink);
+ 			ocfs2_journal_dirty(handle, old_dir_bh);
+--- a/fs/ocfs2/quota_local.c~fs-ocfs2-check-status-values
++++ a/fs/ocfs2/quota_local.c
+@@ -1240,6 +1240,10 @@ int ocfs2_create_local_dquot(struct dquo
+ 				     &od->dq_local_phys_blk,
+ 				     &pcount,
+ 				     NULL);
++	if (status < 0) {
++		mlog_errno(status);
++		goto out;
++	}
  
-+__printf(2, 3)
- struct shrinker *shrinker_alloc(unsigned int flags, const char *fmt, ...);
- void shrinker_register(struct shrinker *shrinker);
- void shrinker_free(struct shrinker *shrinker);
+ 	/* Initialize dquot structure on disk */
+ 	status = ocfs2_local_write_dquot(dquot);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from artem.chernyshev@red-soft.ru are
 
-mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
-fs-proc-task_mmu-implement-ioctl-to-get-and-optionally-clear-info-about-ptes-fix.patch
-fs-proc-task_mmu-implement-ioctl-to-get-and-optionally-clear-info-about-ptes-fix-fix.patch
-fs-proc-task_mmu-implement-ioctl-to-get-and-optionally-clear-info-about-ptes-fix-2.patch
-mm-kmem-scoped-objcg-protection-checkpatch-fixes.patch
-mm-add-printf-attribute-to-shrinker_debugfs_name_alloc-fix.patch
+fs-ocfs2-check-status-values.patch
 
