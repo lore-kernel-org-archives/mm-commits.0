@@ -2,36 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B1E7CD68E2
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Oct 2023 00:52:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DB36CD68E0
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Oct 2023 00:53:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379269AbjJJAwv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 Oct 2023 20:52:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48230 "EHLO
+        id S1379271AbjJJAxA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 Oct 2023 20:53:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37286 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379293AbjJJAwk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Oct 2023 20:52:40 -0400
+        with ESMTP id S1379217AbjJJAw7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Oct 2023 20:52:59 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C82FB6
-        for <mm-commits@vger.kernel.org>; Mon,  9 Oct 2023 17:52:38 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C062C433C7;
-        Tue, 10 Oct 2023 00:52:34 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7927E9E;
+        Mon,  9 Oct 2023 17:52:58 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9924CC433C8;
+        Tue, 10 Oct 2023 00:52:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696899157;
-        bh=irz2H+XwVh5EpIvbYeS/Dge7bwowGreCo2q/PtiO/nw=;
+        s=korg; t=1696899178;
+        bh=lWIJZFVAITmmAckP9ZBNoeV80iKH9hrKMtBD4bdfGUs=;
         h=Date:To:From:Subject:From;
-        b=1vgwB5nSamdWxXBhujUgXPsHogS9Jueu4IMCYbdWT6MIFaVOcwi5T6ih+Kzn3MXlw
-         nwN+Xcwrqfs9F9cEkXa7rNn7oNje0iqf3ge9WaaWywV3YjRT6BuXksJrcPeVmQ3eAN
-         cz3iWOOMwl41jqDhR7RvVuQ6kq6XAXgSz9Y/RSDk=
-Date:   Mon, 09 Oct 2023 17:52:21 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        viro@zeniv.linux.org.uk, muchun.song@linux.dev,
-        mike.kravetz@oracle.com, luto@kernel.org, jack@suse.cz,
-        hughd@google.com, brauner@kernel.org, lstoakes@gmail.com,
+        b=IjiilYUcVUzkpQs5VzMxaPgiJtWaPYTMefK56V9qshM+/oq/TQlraDG47fOlUknXo
+         3nOH6YLfleQOGd6ZPS9wSt39BiPlnnnqRAwiYIG8nhN6TZ/bcnaZnMODHUax+a51Cj
+         EMbpOg34HGPHNzwd55Jq3VnY+fE/A+5cwoge3TQU=
+Date:   Mon, 09 Oct 2023 17:52:39 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-enforce-the-mapping_map_writable-check-after-call_mmap.patch added to mm-unstable branch
-Message-Id: <20231010005235.8C062C433C7@smtp.kernel.org>
+Subject: + mm-damon-sysfs-check-damos-regions-update-progress-from-before_terminate.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231010005256.9924CC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,14 +36,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: enforce the mapping_map_writable() check after call_mmap()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-enforce-the-mapping_map_writable-check-after-call_mmap.patch
+     Subject: mm/damon/sysfs: check DAMOS regions update progress from before_terminate()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-sysfs-check-damos-regions-update-progress-from-before_terminate.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-enforce-the-mapping_map_writable-check-after-call_mmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-check-damos-regions-update-progress-from-before_terminate.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -62,97 +59,64 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm: enforce the mapping_map_writable() check after call_mmap()
-Date: Sat, 7 Oct 2023 21:51:01 +0100
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs: check DAMOS regions update progress from before_terminate()
+Date: Sat, 7 Oct 2023 20:04:32 +0000
 
-In order for an F_SEAL_WRITE sealed memfd mapping to have an opportunity
-to clear VM_MAYWRITE in seal_check_write() we must be able to invoke
-either the shmem_mmap() or hugetlbfs_file_mmap() f_ops->mmap() handler to
-do so.
+DAMON_SYSFS can receive DAMOS tried regions update request while kdamond
+is already out of the main loop and before_terminate callback
+(damon_sysfs_before_terminate() in this case) is not yet called.  And
+damon_sysfs_handle_cmd() can further be finished before the callback is
+invoked.  Then, damon_sysfs_before_terminate() unlocks damon_sysfs_lock,
+which is not locked by anyone.  This happens because the callback function
+assumes damon_sysfs_cmd_request_callback() should be called before it. 
+Check if the assumption was true before doing the unlock, to avoid this
+problem.
 
-We would otherwise fail the mapping_map_writable() check before we had the
-opportunity to clear VM_MAYWRITE.
-
-However, the existing logic in mmap_region() performs this check BEFORE
-calling call_mmap() (which invokes file->f_ops->mmap()).  We must enforce
-this check AFTER the function call.
-
-In order to avoid any risk of breaking call_mmap() handlers which assume
-this will have been done first, we continue to mark the file writable
-first, simply deferring enforcement of it failing until afterwards.
-
-This enables mmap(..., PROT_READ, MAP_SHARED, fd, 0) mappings for memfd's
-sealed via F_SEAL_WRITE to succeed, whereas previously they were not
-permitted.
-
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=217238
-Link: https://lkml.kernel.org/r/d2748bc4077b53c60bcb06fccaf976cb2afee345.1696709413.git.lstoakes@gmail.com
-Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+Link: https://lkml.kernel.org/r/20231007200432.3110-1-sj@kernel.org
+Fixes: f1d13cacabe1 ("mm/damon/sysfs: implement DAMOS tried regions update command")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>	[6.2.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ mm/damon/sysfs.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/mm/mmap.c~mm-enforce-the-mapping_map_writable-check-after-call_mmap
-+++ a/mm/mmap.c
-@@ -2845,11 +2845,10 @@ cannot_expand:
- 	vma->vm_pgoff = pgoff;
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-check-damos-regions-update-progress-from-before_terminate
++++ a/mm/damon/sysfs.c
+@@ -1208,6 +1208,8 @@ static int damon_sysfs_set_targets(struc
+ 	return 0;
+ }
  
- 	if (file) {
--		if (is_shared_maywrite(vm_flags)) {
--			error = mapping_map_writable(file->f_mapping);
--			if (error)
--				goto free_vma;
--		}
-+		int writable_error = 0;
++static bool damon_sysfs_schemes_regions_updating;
 +
-+		if (vma_is_shared_maywrite(vma))
-+			writable_error = mapping_map_writable(file->f_mapping);
+ static void damon_sysfs_before_terminate(struct damon_ctx *ctx)
+ {
+ 	struct damon_target *t, *next;
+@@ -1219,8 +1221,10 @@ static void damon_sysfs_before_terminate
+ 	cmd = damon_sysfs_cmd_request.cmd;
+ 	if (kdamond && ctx == kdamond->damon_ctx &&
+ 			(cmd == DAMON_SYSFS_CMD_UPDATE_SCHEMES_TRIED_REGIONS ||
+-			 cmd == DAMON_SYSFS_CMD_UPDATE_SCHEMES_TRIED_BYTES)) {
++			 cmd == DAMON_SYSFS_CMD_UPDATE_SCHEMES_TRIED_BYTES) &&
++			damon_sysfs_schemes_regions_updating) {
+ 		damon_sysfs_schemes_update_regions_stop(ctx);
++		damon_sysfs_schemes_regions_updating = false;
+ 		mutex_unlock(&damon_sysfs_lock);
+ 	}
  
- 		vma->vm_file = get_file(file);
- 		error = call_mmap(file, vma);
-@@ -2857,6 +2856,15 @@ cannot_expand:
- 			goto unmap_and_free_vma;
+@@ -1340,7 +1344,6 @@ static int damon_sysfs_commit_input(stru
+ static int damon_sysfs_cmd_request_callback(struct damon_ctx *c)
+ {
+ 	struct damon_sysfs_kdamond *kdamond;
+-	static bool damon_sysfs_schemes_regions_updating;
+ 	bool total_bytes_only = false;
+ 	int err = 0;
  
- 		/*
-+		 * call_mmap() may have changed VMA flags, so retry this check
-+		 * if it failed before.
-+		 */
-+		if (writable_error && vma_is_shared_maywrite(vma)) {
-+			error = writable_error;
-+			goto close_and_free_vma;
-+		}
-+
-+		/*
- 		 * Expansion is handled above, merging is handled below.
- 		 * Drivers should not alter the address of the VMA.
- 		 */
 _
 
-Patches currently in -mm which might be from lstoakes@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-filemap-clarify-filemap_fault-comments-for-not-uptodate-case.patch
-mm-filemap-clarify-filemap_fault-comments-for-not-uptodate-case-fix.patch
-mm-make-__access_remote_vm-static.patch
-mm-gup-explicitly-define-and-check-internal-gup-flags-disallow-foll_touch.patch
-mm-gup-make-failure-to-pin-an-error-if-foll_nowait-not-specified.patch
-mm-gup-adapt-get_user_page_vma_remote-to-never-return-null.patch
-mm-move-vma_policy-and-anon_vma_name-decls-to-mm_typesh.patch
-mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al.patch
-mm-make-vma_merge-and-split_vma-internal.patch
-mm-abstract-merge-for-new-vmas-into-vma_merge_new_vma.patch
-mm-abstract-vma-merge-and-extend-into-vma_merge_extend-helper.patch
-mm-drop-the-assumption-that-vm_shared-always-implies-writable.patch
-mm-update-memfd-seal-write-check-to-include-f_seal_write.patch
-mm-enforce-the-mapping_map_writable-check-after-call_mmap.patch
+mm-damon-sysfs-check-damos-regions-update-progress-from-before_terminate.patch
 
