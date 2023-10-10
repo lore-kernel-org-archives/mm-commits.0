@@ -2,33 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82582CD68E2
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Oct 2023 00:53:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0A1BCD8CAF
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Oct 2023 18:17:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379246AbjJJAxa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 Oct 2023 20:53:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52994 "EHLO
+        id S233986AbjJJSRe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Oct 2023 14:17:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46218 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379287AbjJJAx3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Oct 2023 20:53:29 -0400
+        with ESMTP id S233931AbjJJSRd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2023 14:17:33 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E55ADB0
-        for <mm-commits@vger.kernel.org>; Mon,  9 Oct 2023 17:53:27 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4540C433C7;
-        Tue, 10 Oct 2023 00:53:21 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00FC194;
+        Tue, 10 Oct 2023 11:17:31 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49E64C433C7;
+        Tue, 10 Oct 2023 18:17:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696899207;
-        bh=XQdI2cFrNm/ReizhdEgQMU+CN+2/Xe4Lpx6wkl1p8Rk=;
+        s=korg; t=1696961851;
+        bh=n08KAtxs2MVTqYiW7dIJ3ZUqre1aDEV3KgtOiG/G9/U=;
         h=Date:To:From:Subject:From;
-        b=TP8EleGU1glqR/jnJ6rxRgiMqTEhtLFn2vt4QVeoDL0TFx+XMBpYkhpmS2UMf6+FU
-         DDuQRbsn8NOHEUynCRFA9nKztQVAm8Hdya0L990c6dPX6DBzcZyYZts+Au3J7WvhUG
-         mlRglDHZVkgmfps6FgmRJdCxxqWm8BBoE1g32sok=
-Date:   Mon, 09 Oct 2023 17:53:13 -0700
-To:     mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com,
-        lucymielke@icloud.com, akpm@linux-foundation.org
+        b=ElivzVsA0XztGB7/9i+StEXAzUxIsoPs9IUZ8CBjIgL6B9cKYI4Ncml+9MNkXvG0K
+         fhu9QrxviwE2JSpph/OICxeFHoIpBw0YNEcHXPBKZMdklES1QKUc3xvR6Ockc8Wp4W
+         Q6AGfTuvfYoJ8MJvwER/Ab5zOBVMh8laxE7/5Zpw=
+Date:   Tue, 10 Oct 2023 11:17:18 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        jason.sim@samsung.com, Liam.Howlett@oracle.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-printf-attribute-to-shrinker_debugfs_name_alloc.patch added to mm-unstable branch
-Message-Id: <20231010005323.B4540C433C7@smtp.kernel.org>
+Subject: + maple_tree-add-gfp_kernel-to-allocations-in-mas_expected_entries.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231010181729.49E64C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,14 +37,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add printf attribute to shrinker_debugfs_name_alloc
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-printf-attribute-to-shrinker_debugfs_name_alloc.patch
+     Subject: maple_tree: add GFP_KERNEL to allocations in mas_expected_entries()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maple_tree-add-gfp_kernel-to-allocations-in-mas_expected_entries.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-printf-attribute-to-shrinker_debugfs_name_alloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-add-gfp_kernel-to-allocations-in-mas_expected_entries.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,41 +60,144 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lucy Mielke <lucymielke@icloud.com>
-Subject: mm: add printf attribute to shrinker_debugfs_name_alloc
-Date: Fri, 6 Oct 2023 22:30:51 +0200
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: maple_tree: add GFP_KERNEL to allocations in mas_expected_entries()
+Date: Tue, 10 Oct 2023 10:17:37 -0400
 
-This fixes a compiler warning when compiling an allyesconfig with W=1:
+Users complained about OOM errors during fork without triggering
+compaction.  This can be fixed by modifying the flags used in
+mas_expected_entries() so that the compaction will be triggered in low
+memory situations.  Since mas_expected_entries() is only used during fork,
+the extra argument does not need to be passed through.
 
-mm/internal.h:1235:9: error: function might be a candidate for `gnu_printf'
-format attribute [-Werror=suggest-attribute=format]
+Additionally, the testing in the maple tree fork testing needed to be
+altered to use the correct locking type so that allocations would not
+trigger sleeping and thus failures in the testing.  The additional locking
+change requires rwsem support additions to the tools/ directory through
+the use of pthreads pthread_rwlock_t.  With this change test_maple_tree
+works in userspace, as a module, and in-kernel.
 
-Link: https://lkml.kernel.org/r/ZSBue-3kM6gI6jCr@mainframe
-Fixes: c42d50aefd17 ("mm: shrinker: add infrastructure for dynamically allocating shrinker")
-Signed-off-by: Lucy Mielke <lucymielke@icloud.com>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Users may notice that the system gave up early on attempting to start new
+processes instead of attempting to reclaim memory.
+
+Link: https://lkml.kernel.org/r/20230915093243epcms1p46fa00bbac1ab7b7dca94acb66c44c456@epcms1p4
+Link: https://lkml.kernel.org/r/20231010141737.1592866-1-Liam.Howlett@oracle.com
+Fixes: 54a611b60590 ("Maple Tree: add new data structure")
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: <jason.sim@samsung.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/maple_tree.c            |    2 -
+ lib/test_maple_tree.c       |   13 +++++++----
+ tools/include/linux/rwsem.h |   40 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 50 insertions(+), 5 deletions(-)
 
---- a/mm/internal.h~mm-add-printf-attribute-to-shrinker_debugfs_name_alloc
-+++ a/mm/internal.h
-@@ -1235,8 +1235,8 @@ unsigned long shrink_slab(gfp_t gfp_mask
- 			  int priority);
+--- a/lib/maple_tree.c~maple_tree-add-gfp_kernel-to-allocations-in-mas_expected_entries
++++ a/lib/maple_tree.c
+@@ -5627,7 +5627,7 @@ int mas_expected_entries(struct ma_state
+ 	/* Internal nodes */
+ 	nr_nodes += DIV_ROUND_UP(nr_nodes, nonleaf_cap);
+ 	/* Add working room for split (2 nodes) + new parents */
+-	mas_node_count(mas, nr_nodes + 3);
++	mas_node_count_gfp(mas, nr_nodes + 3, GFP_KERNEL);
  
- #ifdef CONFIG_SHRINKER_DEBUG
--static inline int shrinker_debugfs_name_alloc(struct shrinker *shrinker,
--					      const char *fmt, va_list ap)
-+static inline __printf(2, 0) int shrinker_debugfs_name_alloc(
-+			struct shrinker *shrinker, const char *fmt, va_list ap)
- {
- 	shrinker->name = kvasprintf_const(GFP_KERNEL, fmt, ap);
+ 	/* Detect if allocations run out */
+ 	mas->mas_flags |= MA_STATE_PREALLOC;
+--- a/lib/test_maple_tree.c~maple_tree-add-gfp_kernel-to-allocations-in-mas_expected_entries
++++ a/lib/test_maple_tree.c
+@@ -9,6 +9,7 @@
  
+ #include <linux/maple_tree.h>
+ #include <linux/module.h>
++#include <linux/rwsem.h>
+ 
+ #define MTREE_ALLOC_MAX 0x2000000000000Ul
+ #define CONFIG_MAPLE_SEARCH
+@@ -2616,6 +2617,10 @@ static noinline void __init check_dup_ga
+ 	void *tmp;
+ 	MA_STATE(mas, mt, 0, 0);
+ 	MA_STATE(newmas, &newmt, 0, 0);
++	struct rw_semaphore newmt_lock;
++
++	init_rwsem(&newmt_lock);
++	mt_set_external_lock(&newmt, &newmt_lock);
+ 
+ 	if (!zero_start)
+ 		i = 1;
+@@ -2625,9 +2630,9 @@ static noinline void __init check_dup_ga
+ 		mtree_store_range(mt, i*10, (i+1)*10 - gap,
+ 				  xa_mk_value(i), GFP_KERNEL);
+ 
+-	mt_init_flags(&newmt, MT_FLAGS_ALLOC_RANGE);
++	mt_init_flags(&newmt, MT_FLAGS_ALLOC_RANGE | MT_FLAGS_LOCK_EXTERN);
+ 	mt_set_non_kernel(99999);
+-	mas_lock(&newmas);
++	down_write(&newmt_lock);
+ 	ret = mas_expected_entries(&newmas, nr_entries);
+ 	mt_set_non_kernel(0);
+ 	MT_BUG_ON(mt, ret != 0);
+@@ -2640,9 +2645,9 @@ static noinline void __init check_dup_ga
+ 	}
+ 	rcu_read_unlock();
+ 	mas_destroy(&newmas);
+-	mas_unlock(&newmas);
+ 
+-	mtree_destroy(&newmt);
++	__mt_destroy(&newmt);
++	up_write(&newmt_lock);
+ }
+ 
+ /* Duplicate many sizes of trees.  Mainly to test expected entry values */
+--- /dev/null
++++ a/tools/include/linux/rwsem.h
+@@ -0,0 +1,40 @@
++/* SPDX-License-Identifier: GPL-2.0+ */
++#ifndef _TOOLS__RWSEM_H
++#define _TOOLS__RWSEM_H
++
++#include <pthread.h>
++
++struct rw_semaphore {
++	pthread_rwlock_t lock;
++};
++
++static inline int init_rwsem(struct rw_semaphore *sem)
++{
++	return pthread_rwlock_init(&sem->lock, NULL);
++}
++
++static inline int exit_rwsem(struct rw_semaphore *sem)
++{
++	return pthread_rwlock_destroy(&sem->lock);
++}
++
++static inline int down_read(struct rw_semaphore *sem)
++{
++	return pthread_rwlock_rdlock(&sem->lock);
++}
++
++static inline int up_read(struct rw_semaphore *sem)
++{
++	return pthread_rwlock_unlock(&sem->lock);
++}
++
++static inline int down_write(struct rw_semaphore *sem)
++{
++	return pthread_rwlock_wrlock(&sem->lock);
++}
++
++static inline int up_write(struct rw_semaphore *sem)
++{
++	return pthread_rwlock_unlock(&sem->lock);
++}
++#endif /* _TOOLS_RWSEM_H */
 _
 
-Patches currently in -mm which might be from lucymielke@icloud.com are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
-mm-add-printf-attribute-to-shrinker_debugfs_name_alloc.patch
+maple_tree-add-gfp_kernel-to-allocations-in-mas_expected_entries.patch
+mmap-add-clarifying-comment-to-vma_merge-code.patch
+radix-tree-test-suite-fix-allocation-calculation-in-kmem_cache_alloc_bulk.patch
 
