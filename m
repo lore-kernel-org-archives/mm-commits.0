@@ -2,36 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AF75CD68E0
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Oct 2023 00:51:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C07E4CD68E3
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Oct 2023 00:51:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379272AbjJJAvf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 Oct 2023 20:51:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39210 "EHLO
+        id S1379328AbjJJAvz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 Oct 2023 20:51:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40604 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379274AbjJJAve (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Oct 2023 20:51:34 -0400
+        with ESMTP id S1379320AbjJJAvw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 9 Oct 2023 20:51:52 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00CA8CA
-        for <mm-commits@vger.kernel.org>; Mon,  9 Oct 2023 17:51:31 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0D34C433C7;
-        Tue, 10 Oct 2023 00:51:19 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6CD0DE0
+        for <mm-commits@vger.kernel.org>; Mon,  9 Oct 2023 17:51:50 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 918A9C433CD;
+        Tue, 10 Oct 2023 00:51:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696899091;
-        bh=a9pCEk4SXTS0e5xofns/P21bWmI+T7RNogu7efz4yS8=;
+        s=korg; t=1696899110;
+        bh=+Cbw1aU8RrG9Iy4yJss7H7lLOiHTHLJgJKkvC5GslAA=;
         h=Date:To:From:Subject:From;
-        b=MFlKOD5Oj2txnKGFnvGGm9zWrMkPt81LhywGBmG/yVqXfRaDtKhuM6iPsaZWe3UUx
-         m1b6jnnrqkPcXdOBP4E7e14En+NRDkeXWGRkUfzig/kkEjMZg7zKK2cAoDU1IIAed/
-         ep+8WpbpFlyl6YhHTYL9CFkNYbjhWh/QpWo5DfhU=
-Date:   Mon, 09 Oct 2023 17:51:11 -0700
-To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
-        ryabinin.a.a@gmail.com, matthias.bgg@gmail.com, glider@google.com,
-        dvyukov@google.com, angelogioacchino.delregno@collabora.com,
-        andreyknvl@gmail.com, haibo.li@mediatek.com,
-        akpm@linux-foundation.org
+        b=aUm/Ukwub5Ew6jesCBw8mToytlgVUQ/51CbtcnEl1tib1dyPCTbWh6y4MzdwT3nmO
+         61oK34sQo3tCdTo1kz2CAEkummV8mfmCMZsWf6Qy7FJlHMhFsH+ZUQkwxlHolXw2eC
+         rdePwK53Cbf5jjOnUsGsO0mR5/EonYWzddY6tZnc=
+Date:   Mon, 09 Oct 2023 17:51:32 -0700
+To:     mm-commits@vger.kernel.org, stephen@networkplumber.org,
+        qyousef@layalina.io, quic_bjorande@quicinc.com, kuba@kernel.org,
+        konrad.dybcio@linaro.org, heiko@sntech.de, broonie@kernel.org,
+        axboe@kernel.dk, megi@xff.cz, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-print-the-original-fault-addr-when-access-invalid-shadow.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231010005119.C0D34C433C7@smtp.kernel.org>
+Subject: + maintainers-update-my-email-address.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231010005147.918A9C433CD@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,12 +38,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: print the original fault addr when access invalid shadow
+     Subject: MAINTAINERS: Ondrej has moved
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kasan-print-the-original-fault-addr-when-access-invalid-shadow.patch
+     maintainers-update-my-email-address.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-print-the-original-fault-addr-when-access-invalid-shadow.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-update-my-email-address.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,91 +61,54 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Haibo Li <haibo.li@mediatek.com>
-Subject: kasan: print the original fault addr when access invalid shadow
-Date: Mon, 9 Oct 2023 15:37:48 +0800
+From: Ondrej Jirman <megi@xff.cz>
+Subject: MAINTAINERS: Ondrej has moved
+Date: Sun, 8 Oct 2023 12:58:07 +0200
 
-when the checked address is illegal,the corresponding shadow address from
-kasan_mem_to_shadow may have no mapping in mmu table.  Access such shadow
-address causes kernel oops.  Here is a sample about oops on arm64(VA
-39bit) with KASAN_SW_TAGS and KASAN_OUTLINE on:
+Update my email-address in MAINTAINERS to <megi@xff.cz>.  Also add
+.mailmap entries to map my old, now blocked, email address.
 
-[ffffffb80aaaaaaa] pgd=000000005d3ce003, p4d=000000005d3ce003,
-    pud=000000005d3ce003, pmd=0000000000000000
-Internal error: Oops: 0000000096000006 [#1] PREEMPT SMP
-Modules linked in:
-CPU: 3 PID: 100 Comm: sh Not tainted 6.6.0-rc1-dirty #43
-Hardware name: linux,dummy-virt (DT)
-pstate: 80000005 (Nzcv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
-pc : __hwasan_load8_noabort+0x5c/0x90
-lr : do_ib_ob+0xf4/0x110
-ffffffb80aaaaaaa is the shadow address for efffff80aaaaaaaa.
-The problem is reading invalid shadow in kasan_check_range.
-
-The generic kasan also has similar oops.
-
-It only reports the shadow address which causes oops but not
-the original address.
-
-Commit 2f004eea0fc8("x86/kasan: Print original address on #GP")
-introduce to kasan_non_canonical_hook but limit it to KASAN_INLINE.
-
-This patch extends it to KASAN_OUTLINE mode.
-
-Link: https://lkml.kernel.org/r/20231009073748.159228-1-haibo.li@mediatek.com
-Signed-off-by: Haibo Li <haibo.li@mediatek.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Haibo Li <haibo.li@mediatek.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Link: https://lkml.kernel.org/r/20231008105812.1084226-1-megi@xff.cz
+Signed-off-by: Ondrej Jirman <megi@xff.cz>
+Cc: Bjorn Andersson <quic_bjorande@quicinc.com>
+Cc: Heiko Stuebner <heiko@sntech.de>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Konrad Dybcio <konrad.dybcio@linaro.org> # qcom
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Qais Yousef <qyousef@layalina.io>
+Cc: Stephen Hemminger <stephen@networkplumber.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |    6 +++---
- mm/kasan/report.c     |    4 +---
- 2 files changed, 4 insertions(+), 6 deletions(-)
+ .mailmap    |    1 +
+ MAINTAINERS |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
---- a/include/linux/kasan.h~kasan-print-the-original-fault-addr-when-access-invalid-shadow
-+++ a/include/linux/kasan.h
-@@ -466,10 +466,10 @@ static inline void kasan_free_module_sha
- 
- #endif /* (CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS) && !CONFIG_KASAN_VMALLOC */
- 
--#ifdef CONFIG_KASAN_INLINE
-+#ifdef CONFIG_KASAN
- void kasan_non_canonical_hook(unsigned long addr);
--#else /* CONFIG_KASAN_INLINE */
-+#else /* CONFIG_KASAN */
- static inline void kasan_non_canonical_hook(unsigned long addr) { }
--#endif /* CONFIG_KASAN_INLINE */
-+#endif /* CONFIG_KASAN */
- 
- #endif /* LINUX_KASAN_H */
---- a/mm/kasan/report.c~kasan-print-the-original-fault-addr-when-access-invalid-shadow
-+++ a/mm/kasan/report.c
-@@ -621,9 +621,8 @@ void kasan_report_async(void)
- }
- #endif /* CONFIG_KASAN_HW_TAGS */
- 
--#ifdef CONFIG_KASAN_INLINE
- /*
-- * With CONFIG_KASAN_INLINE, accesses to bogus pointers (outside the high
-+ * With CONFIG_KASAN, accesses to bogus pointers (outside the high
-  * canonical half of the address space) cause out-of-bounds shadow memory reads
-  * before the actual access. For addresses in the low canonical half of the
-  * address space, as well as most non-canonical addresses, that out-of-bounds
-@@ -659,4 +658,3 @@ void kasan_non_canonical_hook(unsigned l
- 	pr_alert("KASAN: %s in range [0x%016lx-0x%016lx]\n", bug_type,
- 		 orig_addr, orig_addr + KASAN_GRANULE_SIZE - 1);
- }
--#endif
+--- a/.mailmap~maintainers-update-my-email-address
++++ a/.mailmap
+@@ -452,6 +452,7 @@ Oleksij Rempel <linux@rempel-privat.de>
+ Oleksij Rempel <linux@rempel-privat.de> <o.rempel@pengutronix.de>
+ Oleksij Rempel <linux@rempel-privat.de> <ore@pengutronix.de>
+ Oliver Upton <oliver.upton@linux.dev> <oupton@google.com>
++Ondřej Jirman <megi@xff.cz> <megous@megous.com>
+ Oza Pawandeep <quic_poza@quicinc.com> <poza@codeaurora.org>
+ Pali Rohár <pali@kernel.org> <pali.rohar@gmail.com>
+ Paolo 'Blaisorblade' Giarrusso <blaisorblade@yahoo.it>
+--- a/MAINTAINERS~maintainers-update-my-email-address
++++ a/MAINTAINERS
+@@ -6748,7 +6748,7 @@ F:	drivers/gpu/drm/panel/panel-sitronix-
+ DRM DRIVER FOR SITRONIX ST7703 PANELS
+ M:	Guido Günther <agx@sigxcpu.org>
+ R:	Purism Kernel Team <kernel@puri.sm>
+-R:	Ondrej Jirman <megous@megous.com>
++R:	Ondrej Jirman <megi@xff.cz>
+ S:	Maintained
+ F:	Documentation/devicetree/bindings/display/panel/rocktech,jh057n00900.yaml
+ F:	drivers/gpu/drm/panel/panel-sitronix-st7703.c
 _
 
-Patches currently in -mm which might be from haibo.li@mediatek.com are
+Patches currently in -mm which might be from megi@xff.cz are
 
-kasan-print-the-original-fault-addr-when-access-invalid-shadow.patch
+maintainers-update-my-email-address.patch
 
