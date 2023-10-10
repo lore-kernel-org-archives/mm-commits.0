@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0A1BCD8CAF
-	for <mm-commits@archiver.kernel.org>; Tue, 10 Oct 2023 18:17:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 310FBCD8CAE
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Oct 2023 18:17:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233986AbjJJSRe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Oct 2023 14:17:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46218 "EHLO
+        id S233538AbjJJSRr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Oct 2023 14:17:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47644 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233931AbjJJSRd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2023 14:17:33 -0400
+        with ESMTP id S232771AbjJJSRr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 10 Oct 2023 14:17:47 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00FC194;
-        Tue, 10 Oct 2023 11:17:31 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49E64C433C7;
-        Tue, 10 Oct 2023 18:17:28 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C315B7
+        for <mm-commits@vger.kernel.org>; Tue, 10 Oct 2023 11:17:45 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC889C433C8;
+        Tue, 10 Oct 2023 18:17:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1696961851;
-        bh=n08KAtxs2MVTqYiW7dIJ3ZUqre1aDEV3KgtOiG/G9/U=;
+        s=korg; t=1696961864;
+        bh=kOoxlJYZPRjovNZgt4eAtjsgH5AYNd25vVUhlH3G2Jc=;
         h=Date:To:From:Subject:From;
-        b=ElivzVsA0XztGB7/9i+StEXAzUxIsoPs9IUZ8CBjIgL6B9cKYI4Ncml+9MNkXvG0K
-         fhu9QrxviwE2JSpph/OICxeFHoIpBw0YNEcHXPBKZMdklES1QKUc3xvR6Ockc8Wp4W
-         Q6AGfTuvfYoJ8MJvwER/Ab5zOBVMh8laxE7/5Zpw=
-Date:   Tue, 10 Oct 2023 11:17:18 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        jason.sim@samsung.com, Liam.Howlett@oracle.com,
+        b=tXuTYZxugdtcptj7Hzvbn4VgeY6+uC2cijHPePBKvAP5BzdchrX1ZDmMKAAlW/n3P
+         uInY7Hkc8wAOFWvFMoJ3EMmRbgNannvu5onS8tA07ZcPGcRqXf+/jBcA0WOlCE3UrI
+         3Q+Kv3f9q5W5EYtFYy4GtINns/l5Kr4Di8JoWbRI=
+Date:   Tue, 10 Oct 2023 11:17:32 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rppt@kernel.org,
+        Liam.Howlett@oracle.com, david@redhat.com, lstoakes@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-add-gfp_kernel-to-allocations-in-mas_expected_entries.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231010181729.49E64C433C7@smtp.kernel.org>
+Subject: + mm-mprotect-allow-unfaulted-vmas-to-be-unaccounted-on-mprotect.patch added to mm-unstable branch
+Message-Id: <20231010181740.BC889C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,14 +37,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: add GFP_KERNEL to allocations in mas_expected_entries()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maple_tree-add-gfp_kernel-to-allocations-in-mas_expected_entries.patch
+     Subject: mm/mprotect: allow unfaulted VMAs to be unaccounted on mprotect()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-mprotect-allow-unfaulted-vmas-to-be-unaccounted-on-mprotect.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-add-gfp_kernel-to-allocations-in-mas_expected_entries.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mprotect-allow-unfaulted-vmas-to-be-unaccounted-on-mprotect.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -60,144 +60,123 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: add GFP_KERNEL to allocations in mas_expected_entries()
-Date: Tue, 10 Oct 2023 10:17:37 -0400
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: mm/mprotect: allow unfaulted VMAs to be unaccounted on mprotect()
+Date: Tue, 10 Oct 2023 08:25:02 +0100
 
-Users complained about OOM errors during fork without triggering
-compaction.  This can be fixed by modifying the flags used in
-mas_expected_entries() so that the compaction will be triggered in low
-memory situations.  Since mas_expected_entries() is only used during fork,
-the extra argument does not need to be passed through.
+When mprotect() is used to make unwritable VMAs writable, they have the
+VM_ACCOUNT flag applied and memory accounted accordingly.
 
-Additionally, the testing in the maple tree fork testing needed to be
-altered to use the correct locking type so that allocations would not
-trigger sleeping and thus failures in the testing.  The additional locking
-change requires rwsem support additions to the tools/ directory through
-the use of pthreads pthread_rwlock_t.  With this change test_maple_tree
-works in userspace, as a module, and in-kernel.
+If the VMA has had no pages faulted in and is then made unwritable once
+again, it will remain accounted for, despite not being capable of
+extending memory usage.
 
-Users may notice that the system gave up early on attempting to start new
-processes instead of attempting to reclaim memory.
+Consider:-
 
-Link: https://lkml.kernel.org/r/20230915093243epcms1p46fa00bbac1ab7b7dca94acb66c44c456@epcms1p4
-Link: https://lkml.kernel.org/r/20231010141737.1592866-1-Liam.Howlett@oracle.com
-Fixes: 54a611b60590 ("Maple Tree: add new data structure")
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: <jason.sim@samsung.com>
-Cc: <stable@vger.kernel.org>
+ptr = mmap(NULL, page_size * 3, PROT_READ, MAP_ANON | MAP_PRIVATE, -1, 0);
+mprotect(ptr + page_size, page_size, PROT_READ | PROT_WRITE);
+mprotect(ptr + page_size, page_size, PROT_READ);
+
+The first mprotect() splits the range into 3 VMAs and the second fails to
+merge the three as the middle VMA has VM_ACCOUNT set and the others do
+not, rendering them unmergeable.
+
+This is unnecessary, since no pages have actually been allocated and the
+middle VMA is not capable of utilising more memory, thereby introducing
+unnecessary VMA fragmentation (and accounting for more memory than is
+necessary).
+
+Since we cannot efficiently determine which pages map to an anonymous VMA,
+we have to be very conservative - determining whether any pages at all
+have been faulted in, by checking whether vma->anon_vma is NULL.
+
+We can see that the lack of anon_vma implies that no anonymous pages are
+present as evidenced by vma_needs_copy() utilising this on fork to
+determine whether page tables need to be copied.
+
+The only place where anon_vma is set NULL explicitly is on fork with
+VM_WIPEONFORK set, however since this flag is intended to cause the child
+process to not CoW on a given memory range, it is right to interpret this
+as indicating the VMA has no faulted-in anonymous memory mapped.
+
+If the VMA was forked without VM_WIPEONFORK set, then anon_vma_fork() will
+have ensured that a new anon_vma is assigned (and correctly related to its
+parent anon_vma) should any pages be CoW-mapped.
+
+The overall operation is safe against races as we hold a write lock against
+mm->mmap_lock.
+
+If we could efficiently look up the VMA's faulted-in pages then we would
+unaccount all those pages not yet faulted in.  However as the original
+comment alludes this simply isn't currently possible, so we are
+conservative and account all pages or none at all.
+
+Link: https://lkml.kernel.org/r/ad5540371a16623a069f03f4db1739f33cde1fab.1696921767.git.lstoakes@gmail.com
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c            |    2 -
- lib/test_maple_tree.c       |   13 +++++++----
- tools/include/linux/rwsem.h |   40 ++++++++++++++++++++++++++++++++++
- 3 files changed, 50 insertions(+), 5 deletions(-)
+ mm/mprotect.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-add-gfp_kernel-to-allocations-in-mas_expected_entries
-+++ a/lib/maple_tree.c
-@@ -5627,7 +5627,7 @@ int mas_expected_entries(struct ma_state
- 	/* Internal nodes */
- 	nr_nodes += DIV_ROUND_UP(nr_nodes, nonleaf_cap);
- 	/* Add working room for split (2 nodes) + new parents */
--	mas_node_count(mas, nr_nodes + 3);
-+	mas_node_count_gfp(mas, nr_nodes + 3, GFP_KERNEL);
- 
- 	/* Detect if allocations run out */
- 	mas->mas_flags |= MA_STATE_PREALLOC;
---- a/lib/test_maple_tree.c~maple_tree-add-gfp_kernel-to-allocations-in-mas_expected_entries
-+++ a/lib/test_maple_tree.c
-@@ -9,6 +9,7 @@
- 
- #include <linux/maple_tree.h>
- #include <linux/module.h>
-+#include <linux/rwsem.h>
- 
- #define MTREE_ALLOC_MAX 0x2000000000000Ul
- #define CONFIG_MAPLE_SEARCH
-@@ -2616,6 +2617,10 @@ static noinline void __init check_dup_ga
- 	void *tmp;
- 	MA_STATE(mas, mt, 0, 0);
- 	MA_STATE(newmas, &newmt, 0, 0);
-+	struct rw_semaphore newmt_lock;
-+
-+	init_rwsem(&newmt_lock);
-+	mt_set_external_lock(&newmt, &newmt_lock);
- 
- 	if (!zero_start)
- 		i = 1;
-@@ -2625,9 +2630,9 @@ static noinline void __init check_dup_ga
- 		mtree_store_range(mt, i*10, (i+1)*10 - gap,
- 				  xa_mk_value(i), GFP_KERNEL);
- 
--	mt_init_flags(&newmt, MT_FLAGS_ALLOC_RANGE);
-+	mt_init_flags(&newmt, MT_FLAGS_ALLOC_RANGE | MT_FLAGS_LOCK_EXTERN);
- 	mt_set_non_kernel(99999);
--	mas_lock(&newmas);
-+	down_write(&newmt_lock);
- 	ret = mas_expected_entries(&newmas, nr_entries);
- 	mt_set_non_kernel(0);
- 	MT_BUG_ON(mt, ret != 0);
-@@ -2640,9 +2645,9 @@ static noinline void __init check_dup_ga
+--- a/mm/mprotect.c~mm-mprotect-allow-unfaulted-vmas-to-be-unaccounted-on-mprotect
++++ a/mm/mprotect.c
+@@ -608,8 +608,11 @@ mprotect_fixup(struct vma_iterator *vmi,
+ 	/*
+ 	 * If we make a private mapping writable we increase our commit;
+ 	 * but (without finer accounting) cannot reduce our commit if we
+-	 * make it unwritable again. hugetlb mapping were accounted for
+-	 * even if read-only so there is no need to account for them here
++	 * make it unwritable again except in the anonymous case where no
++	 * anon_vma has yet to be assigned.
++	 *
++	 * hugetlb mapping were accounted for even if read-only so there is
++	 * no need to account for them here.
+ 	 */
+ 	if (newflags & VM_WRITE) {
+ 		/* Check space limits when area turns into data. */
+@@ -623,6 +626,9 @@ mprotect_fixup(struct vma_iterator *vmi,
+ 				return -ENOMEM;
+ 			newflags |= VM_ACCOUNT;
+ 		}
++	} else if ((oldflags & VM_ACCOUNT) && vma_is_anonymous(vma) &&
++		   !vma->anon_vma) {
++		newflags &= ~VM_ACCOUNT;
  	}
- 	rcu_read_unlock();
- 	mas_destroy(&newmas);
--	mas_unlock(&newmas);
  
--	mtree_destroy(&newmt);
-+	__mt_destroy(&newmt);
-+	up_write(&newmt_lock);
- }
+ 	merged = vma_modify_flags(vmi, *pprev, vma, start, end, newflags);
+@@ -638,6 +644,9 @@ mprotect_fixup(struct vma_iterator *vmi,
+ 		*pprev = vma;
+ 	}
  
- /* Duplicate many sizes of trees.  Mainly to test expected entry values */
---- /dev/null
-+++ a/tools/include/linux/rwsem.h
-@@ -0,0 +1,40 @@
-+/* SPDX-License-Identifier: GPL-2.0+ */
-+#ifndef _TOOLS__RWSEM_H
-+#define _TOOLS__RWSEM_H
++	if ((oldflags & VM_ACCOUNT) && !(newflags & VM_ACCOUNT))
++		vm_unacct_memory(nrpages);
 +
-+#include <pthread.h>
-+
-+struct rw_semaphore {
-+	pthread_rwlock_t lock;
-+};
-+
-+static inline int init_rwsem(struct rw_semaphore *sem)
-+{
-+	return pthread_rwlock_init(&sem->lock, NULL);
-+}
-+
-+static inline int exit_rwsem(struct rw_semaphore *sem)
-+{
-+	return pthread_rwlock_destroy(&sem->lock);
-+}
-+
-+static inline int down_read(struct rw_semaphore *sem)
-+{
-+	return pthread_rwlock_rdlock(&sem->lock);
-+}
-+
-+static inline int up_read(struct rw_semaphore *sem)
-+{
-+	return pthread_rwlock_unlock(&sem->lock);
-+}
-+
-+static inline int down_write(struct rw_semaphore *sem)
-+{
-+	return pthread_rwlock_wrlock(&sem->lock);
-+}
-+
-+static inline int up_write(struct rw_semaphore *sem)
-+{
-+	return pthread_rwlock_unlock(&sem->lock);
-+}
-+#endif /* _TOOLS_RWSEM_H */
+ 	/*
+ 	 * vm_flags and vm_page_prot are protected by the mmap_lock
+ 	 * held in write mode.
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from lstoakes@gmail.com are
 
-maple_tree-add-gfp_kernel-to-allocations-in-mas_expected_entries.patch
-mmap-add-clarifying-comment-to-vma_merge-code.patch
-radix-tree-test-suite-fix-allocation-calculation-in-kmem_cache_alloc_bulk.patch
+mm-filemap-clarify-filemap_fault-comments-for-not-uptodate-case.patch
+mm-filemap-clarify-filemap_fault-comments-for-not-uptodate-case-fix.patch
+mm-make-__access_remote_vm-static.patch
+mm-gup-explicitly-define-and-check-internal-gup-flags-disallow-foll_touch.patch
+mm-gup-make-failure-to-pin-an-error-if-foll_nowait-not-specified.patch
+mm-gup-adapt-get_user_page_vma_remote-to-never-return-null.patch
+mm-move-vma_policy-and-anon_vma_name-decls-to-mm_typesh.patch
+mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al.patch
+mm-make-vma_merge-and-split_vma-internal.patch
+mm-abstract-merge-for-new-vmas-into-vma_merge_new_vma.patch
+mm-abstract-vma-merge-and-extend-into-vma_merge_extend-helper.patch
+mm-drop-the-assumption-that-vm_shared-always-implies-writable.patch
+mm-update-memfd-seal-write-check-to-include-f_seal_write.patch
+mm-enforce-the-mapping_map_writable-check-after-call_mmap.patch
+mm-mprotect-allow-unfaulted-vmas-to-be-unaccounted-on-mprotect.patch
 
