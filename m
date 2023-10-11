@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FBDBCDB470
-	for <mm-commits@archiver.kernel.org>; Wed, 11 Oct 2023 17:54:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 514CBCDB472
+	for <mm-commits@archiver.kernel.org>; Wed, 11 Oct 2023 17:54:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232917AbjJKRx7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 11 Oct 2023 13:53:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51000 "EHLO
+        id S232554AbjJKRyP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 11 Oct 2023 13:54:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59704 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232010AbjJKRx6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Oct 2023 13:53:58 -0400
+        with ESMTP id S232010AbjJKRyO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 11 Oct 2023 13:54:14 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0AFD8F
-        for <mm-commits@vger.kernel.org>; Wed, 11 Oct 2023 10:53:57 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2F69C433C8;
-        Wed, 11 Oct 2023 17:53:54 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F74298
+        for <mm-commits@vger.kernel.org>; Wed, 11 Oct 2023 10:54:12 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25F05C433C8;
+        Wed, 11 Oct 2023 17:54:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697046837;
-        bh=z7Bs8pOUWzf7eVgT6xqrd2B8GS3zKuWyygOfeddYidQ=;
+        s=korg; t=1697046851;
+        bh=7bOdLZWwBYHQiH/6oJtIAYncxZIo4RGtdoOWltAvvhk=;
         h=Date:To:From:Subject:From;
-        b=bpkovWuRimQLnE28przcGuF4XS1A1qtvDtBDfCKkHmTsesFuCp4s1QogfH0pgRlH7
-         v56hromJCXjX+wxL+qrR6Y56l8+1wPzrG+uT9FfmDB5LZwgHilWnbSZXgv9Ah9OH7l
-         DSIDC0T8Ya2xrVgake2xv7N9f5Vel7JdCU90XRUg=
-Date:   Wed, 11 Oct 2023 10:53:47 -0700
-To:     mm-commits@vger.kernel.org, qyousef@layalina.io, kuba@kernel.org,
-        konrad.dybcio@linaro.org, broonie@kernel.org,
-        o.rempel@pengutronix.de, akpm@linux-foundation.org
+        b=Z1aeDGsgF4NglDSzHCbrANyrynEOzVqT0XXmumMDGj2W6l49VIeC8chE69YgFSFuV
+         VKRUbN8oZWXhVdzwBycuAi+L066faimp+jwJWwxQFHZkutSk7uGrFGTL00ztAcehtA
+         ZQEM/XcyjucOegystMshjSCEBxrIPUidlIoaFCDk=
+Date:   Wed, 11 Oct 2023 10:53:58 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        vbabka@suse.cz, Liam.Howlett@oracle.com, brauner@kernel.org,
+        lstoakes@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-correct-email-aliasing-for-oleksij-rempel.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231011175355.B2F69C433C8@smtp.kernel.org>
+Subject: + mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al.patch added to mm-unstable branch
+Message-Id: <20231011175407.25F05C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,14 +37,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mailmap: correct email aliasing for Oleksij Rempel
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mailmap-correct-email-aliasing-for-oleksij-rempel.patch
+     Subject: mm: abstract the vma_merge()/split_vma() pattern for mprotect() et al.
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-correct-email-aliasing-for-oleksij-rempel.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -60,42 +60,499 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oleksij Rempel <o.rempel@pengutronix.de>
-Subject: mailmap: correct email aliasing for Oleksij Rempel
-Date: Wed, 11 Oct 2023 13:25:19 +0200
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: mm: abstract the vma_merge()/split_vma() pattern for mprotect() et al.
+Date: Tue, 10 Oct 2023 19:23:05 +0100
 
-Ensure the current work email addresses for Oleksij Rempel are preserved
-and not overridden by private address.  Alias the alternate work email to
-the primary work email address.
+mprotect() and other functions which change VMA parameters over a range
+each employ a pattern of:-
 
-Link: https://lkml.kernel.org/r/20231011112519.1427077-1-o.rempel@pengutronix.de
-Signed-off-by: Oleksij Rempel <o.rempel@pengutronix.de>
-Cc: Jakub Kicinski <kuba@kernel.org>
-Cc: Konrad Dybcio <konrad.dybcio@linaro.org> # qcom
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Qais Yousef <qyousef@layalina.io>
+1. Attempt to merge the range with adjacent VMAs.
+2. If this fails, and the range spans a subset of the VMA, split it
+   accordingly.
+
+This is open-coded and duplicated in each case. Also in each case most of
+the parameters passed to vma_merge() remain the same.
+
+Create a new function, vma_modify(), which abstracts this operation,
+accepting only those parameters which can be changed.
+
+To avoid the mess of invoking each function call with unnecessary
+parameters, create inline wrapper functions for each of the modify
+operations, parameterised only by what is required to perform the action.
+
+We can also significantly simplify the logic - by returning the VMA if we
+split (or merged VMA if we do not) we no longer need specific handling for
+merge/split cases in any of the call sites.
+
+Note that the userfaultfd_release() case works even though it does not
+split VMAs - since start is set to vma->vm_start and end is set to
+vma->vm_end, the split logic does not trigger.
+
+In addition, since we calculate pgoff to be equal to vma->vm_pgoff + (start
+- vma->vm_start) >> PAGE_SHIFT, and start - vma->vm_start will be 0 in this
+instance, this invocation will remain unchanged.
+
+We eliminate a VM_WARN_ON() in mprotect_fixup() as this simply asserts that
+vma_merge() correctly ensures that flags remain the same, something that is
+already checked in is_mergeable_vma() and elsewhere, and in any case is not
+specific to mprotect().
+
+Link: https://lkml.kernel.org/r/b9bf27ff9ac19985f9ce966b83a7dbbe25a31f9d.1696929425.git.lstoakes@gmail.com
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/userfaultfd.c   |   71 +++++++++++--------------------------------
+ include/linux/mm.h |   60 ++++++++++++++++++++++++++++++++++++
+ mm/madvise.c       |   26 ++-------------
+ mm/mempolicy.c     |   26 +--------------
+ mm/mlock.c         |   25 ++-------------
+ mm/mmap.c          |   48 +++++++++++++++++++++++++++++
+ mm/mprotect.c      |   29 ++---------------
+ 7 files changed, 142 insertions(+), 143 deletions(-)
 
---- a/.mailmap~mailmap-correct-email-aliasing-for-oleksij-rempel
-+++ a/.mailmap
-@@ -450,8 +450,8 @@ Oleksandr Natalenko <oleksandr@natalenko
- Oleksij Rempel <linux@rempel-privat.de> <bug-track@fisher-privat.net>
- Oleksij Rempel <linux@rempel-privat.de> <external.Oleksij.Rempel@de.bosch.com>
- Oleksij Rempel <linux@rempel-privat.de> <fixed-term.Oleksij.Rempel@de.bosch.com>
--Oleksij Rempel <linux@rempel-privat.de> <o.rempel@pengutronix.de>
--Oleksij Rempel <linux@rempel-privat.de> <ore@pengutronix.de>
-+Oleksij Rempel <o.rempel@pengutronix.de>
-+Oleksij Rempel <o.rempel@pengutronix.de> <ore@pengutronix.de>
- Oliver Upton <oliver.upton@linux.dev> <oupton@google.com>
- Ondřej Jirman <megi@xff.cz> <megous@megous.com>
- Oza Pawandeep <quic_poza@quicinc.com> <poza@codeaurora.org>
+--- a/fs/userfaultfd.c~mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al
++++ a/fs/userfaultfd.c
+@@ -927,20 +927,15 @@ static int userfaultfd_release(struct in
+ 			continue;
+ 		}
+ 		new_flags = vma->vm_flags & ~__VM_UFFD_FLAGS;
+-		prev = vma_merge(&vmi, mm, prev, vma->vm_start, vma->vm_end,
+-				 new_flags, vma->anon_vma,
+-				 vma->vm_file, vma->vm_pgoff,
+-				 vma_policy(vma),
+-				 NULL_VM_UFFD_CTX, anon_vma_name(vma));
+-		if (prev) {
+-			vma = prev;
+-		} else {
+-			prev = vma;
+-		}
++		vma = vma_modify_flags_uffd(&vmi, prev, vma, vma->vm_start,
++					    vma->vm_end, new_flags,
++					    NULL_VM_UFFD_CTX);
+ 
+ 		vma_start_write(vma);
+ 		userfaultfd_set_vm_flags(vma, new_flags);
+ 		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
++
++		prev = vma;
+ 	}
+ 	mmap_write_unlock(mm);
+ 	mmput(mm);
+@@ -1331,7 +1326,6 @@ static int userfaultfd_register(struct u
+ 	unsigned long start, end, vma_end;
+ 	struct vma_iterator vmi;
+ 	bool wp_async = userfaultfd_wp_async_ctx(ctx);
+-	pgoff_t pgoff;
+ 
+ 	user_uffdio_register = (struct uffdio_register __user *) arg;
+ 
+@@ -1484,28 +1478,15 @@ static int userfaultfd_register(struct u
+ 		vma_end = min(end, vma->vm_end);
+ 
+ 		new_flags = (vma->vm_flags & ~__VM_UFFD_FLAGS) | vm_flags;
+-		pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
+-		prev = vma_merge(&vmi, mm, prev, start, vma_end, new_flags,
+-				 vma->anon_vma, vma->vm_file, pgoff,
+-				 vma_policy(vma),
+-				 ((struct vm_userfaultfd_ctx){ ctx }),
+-				 anon_vma_name(vma));
+-		if (prev) {
+-			/* vma_merge() invalidated the mas */
+-			vma = prev;
+-			goto next;
+-		}
+-		if (vma->vm_start < start) {
+-			ret = split_vma(&vmi, vma, start, 1);
+-			if (ret)
+-				break;
+-		}
+-		if (vma->vm_end > end) {
+-			ret = split_vma(&vmi, vma, end, 0);
+-			if (ret)
+-				break;
++
++		vma = vma_modify_flags_uffd(&vmi, prev, vma, start, vma_end,
++					    new_flags,
++					    (struct vm_userfaultfd_ctx){ctx});
++		if (IS_ERR(vma)) {
++			ret = PTR_ERR(vma);
++			break;
+ 		}
+-	next:
++
+ 		/*
+ 		 * In the vma_merge() successful mprotect-like case 8:
+ 		 * the next vma was merged into the current one and
+@@ -1568,7 +1549,6 @@ static int userfaultfd_unregister(struct
+ 	const void __user *buf = (void __user *)arg;
+ 	struct vma_iterator vmi;
+ 	bool wp_async = userfaultfd_wp_async_ctx(ctx);
+-	pgoff_t pgoff;
+ 
+ 	ret = -EFAULT;
+ 	if (copy_from_user(&uffdio_unregister, buf, sizeof(uffdio_unregister)))
+@@ -1671,26 +1651,13 @@ static int userfaultfd_unregister(struct
+ 			uffd_wp_range(vma, start, vma_end - start, false);
+ 
+ 		new_flags = vma->vm_flags & ~__VM_UFFD_FLAGS;
+-		pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
+-		prev = vma_merge(&vmi, mm, prev, start, vma_end, new_flags,
+-				 vma->anon_vma, vma->vm_file, pgoff,
+-				 vma_policy(vma),
+-				 NULL_VM_UFFD_CTX, anon_vma_name(vma));
+-		if (prev) {
+-			vma = prev;
+-			goto next;
+-		}
+-		if (vma->vm_start < start) {
+-			ret = split_vma(&vmi, vma, start, 1);
+-			if (ret)
+-				break;
+-		}
+-		if (vma->vm_end > end) {
+-			ret = split_vma(&vmi, vma, end, 0);
+-			if (ret)
+-				break;
++		vma = vma_modify_flags_uffd(&vmi, prev, vma, start, vma_end,
++					    new_flags, NULL_VM_UFFD_CTX);
++		if (IS_ERR(vma)) {
++			ret = PTR_ERR(prev);
++			break;
+ 		}
+-	next:
++
+ 		/*
+ 		 * In the vma_merge() successful mprotect-like case 8:
+ 		 * the next vma was merged into the current one and
+--- a/include/linux/mm.h~mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al
++++ a/include/linux/mm.h
+@@ -3264,6 +3264,66 @@ extern struct vm_area_struct *copy_vma(s
+ 	unsigned long addr, unsigned long len, pgoff_t pgoff,
+ 	bool *need_rmap_locks);
+ extern void exit_mmap(struct mm_struct *);
++struct vm_area_struct *vma_modify(struct vma_iterator *vmi,
++				  struct vm_area_struct *prev,
++				  struct vm_area_struct *vma,
++				  unsigned long start, unsigned long end,
++				  unsigned long vm_flags,
++				  struct mempolicy *policy,
++				  struct vm_userfaultfd_ctx uffd_ctx,
++				  struct anon_vma_name *anon_name);
++
++/* We are about to modify the VMA's flags. */
++static inline struct vm_area_struct
++*vma_modify_flags(struct vma_iterator *vmi,
++		  struct vm_area_struct *prev,
++		  struct vm_area_struct *vma,
++		  unsigned long start, unsigned long end,
++		  unsigned long new_flags)
++{
++	return vma_modify(vmi, prev, vma, start, end, new_flags,
++			  vma_policy(vma), vma->vm_userfaultfd_ctx,
++			  anon_vma_name(vma));
++}
++
++/* We are about to modify the VMA's flags and/or anon_name. */
++static inline struct vm_area_struct
++*vma_modify_flags_name(struct vma_iterator *vmi,
++		       struct vm_area_struct *prev,
++		       struct vm_area_struct *vma,
++		       unsigned long start,
++		       unsigned long end,
++		       unsigned long new_flags,
++		       struct anon_vma_name *new_name)
++{
++	return vma_modify(vmi, prev, vma, start, end, new_flags,
++			  vma_policy(vma), vma->vm_userfaultfd_ctx, new_name);
++}
++
++/* We are about to modify the VMA's memory policy. */
++static inline struct vm_area_struct
++*vma_modify_policy(struct vma_iterator *vmi,
++		   struct vm_area_struct *prev,
++		   struct vm_area_struct *vma,
++		   unsigned long start, unsigned long end,
++		   struct mempolicy *new_pol)
++{
++	return vma_modify(vmi, prev, vma, start, end, vma->vm_flags,
++			  new_pol, vma->vm_userfaultfd_ctx, anon_vma_name(vma));
++}
++
++/* We are about to modify the VMA's flags and/or uffd context. */
++static inline struct vm_area_struct
++*vma_modify_flags_uffd(struct vma_iterator *vmi,
++		       struct vm_area_struct *prev,
++		       struct vm_area_struct *vma,
++		       unsigned long start, unsigned long end,
++		       unsigned long new_flags,
++		       struct vm_userfaultfd_ctx new_ctx)
++{
++	return vma_modify(vmi, prev, vma, start, end, new_flags,
++			  vma_policy(vma), new_ctx, anon_vma_name(vma));
++}
+ 
+ static inline int check_data_rlimit(unsigned long rlim,
+ 				    unsigned long new,
+--- a/mm/madvise.c~mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al
++++ a/mm/madvise.c
+@@ -141,7 +141,6 @@ static int madvise_update_vma(struct vm_
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	int error;
+-	pgoff_t pgoff;
+ 	VMA_ITERATOR(vmi, mm, start);
+ 
+ 	if (new_flags == vma->vm_flags && anon_vma_name_eq(anon_vma_name(vma), anon_name)) {
+@@ -149,30 +148,13 @@ static int madvise_update_vma(struct vm_
+ 		return 0;
+ 	}
+ 
+-	pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
+-	*prev = vma_merge(&vmi, mm, *prev, start, end, new_flags,
+-			  vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma),
+-			  vma->vm_userfaultfd_ctx, anon_name);
+-	if (*prev) {
+-		vma = *prev;
+-		goto success;
+-	}
++	vma = vma_modify_flags_name(&vmi, *prev, vma, start, end, new_flags,
++				    anon_name);
++	if (IS_ERR(vma))
++		return PTR_ERR(vma);
+ 
+ 	*prev = vma;
+ 
+-	if (start != vma->vm_start) {
+-		error = split_vma(&vmi, vma, start, 1);
+-		if (error)
+-			return error;
+-	}
+-
+-	if (end != vma->vm_end) {
+-		error = split_vma(&vmi, vma, end, 0);
+-		if (error)
+-			return error;
+-	}
+-
+-success:
+ 	/* vm_flags is protected by the mmap_lock held in write mode. */
+ 	vma_start_write(vma);
+ 	vm_flags_reset(vma, new_flags);
+--- a/mm/mempolicy.c~mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al
++++ a/mm/mempolicy.c
+@@ -784,10 +784,7 @@ static int mbind_range(struct vma_iterat
+ 		struct vm_area_struct **prev, unsigned long start,
+ 		unsigned long end, struct mempolicy *new_pol)
+ {
+-	struct vm_area_struct *merged;
+ 	unsigned long vmstart, vmend;
+-	pgoff_t pgoff;
+-	int err;
+ 
+ 	vmend = min(end, vma->vm_end);
+ 	if (start > vma->vm_start) {
+@@ -802,26 +799,9 @@ static int mbind_range(struct vma_iterat
+ 		return 0;
+ 	}
+ 
+-	pgoff = vma->vm_pgoff + ((vmstart - vma->vm_start) >> PAGE_SHIFT);
+-	merged = vma_merge(vmi, vma->vm_mm, *prev, vmstart, vmend, vma->vm_flags,
+-			 vma->anon_vma, vma->vm_file, pgoff, new_pol,
+-			 vma->vm_userfaultfd_ctx, anon_vma_name(vma));
+-	if (merged) {
+-		*prev = merged;
+-		return vma_replace_policy(merged, new_pol);
+-	}
+-
+-	if (vma->vm_start != vmstart) {
+-		err = split_vma(vmi, vma, vmstart, 1);
+-		if (err)
+-			return err;
+-	}
+-
+-	if (vma->vm_end != vmend) {
+-		err = split_vma(vmi, vma, vmend, 0);
+-		if (err)
+-			return err;
+-	}
++	vma =  vma_modify_policy(vmi, *prev, vma, vmstart, vmend, new_pol);
++	if (IS_ERR(vma))
++		return PTR_ERR(vma);
+ 
+ 	*prev = vma;
+ 	return vma_replace_policy(vma, new_pol);
+--- a/mm/mlock.c~mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al
++++ a/mm/mlock.c
+@@ -476,7 +476,6 @@ static int mlock_fixup(struct vma_iterat
+ 	       unsigned long end, vm_flags_t newflags)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+-	pgoff_t pgoff;
+ 	int nr_pages;
+ 	int ret = 0;
+ 	vm_flags_t oldflags = vma->vm_flags;
+@@ -487,28 +486,12 @@ static int mlock_fixup(struct vma_iterat
+ 		/* don't set VM_LOCKED or VM_LOCKONFAULT and don't count */
+ 		goto out;
+ 
+-	pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
+-	*prev = vma_merge(vmi, mm, *prev, start, end, newflags,
+-			vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma),
+-			vma->vm_userfaultfd_ctx, anon_vma_name(vma));
+-	if (*prev) {
+-		vma = *prev;
+-		goto success;
+-	}
+-
+-	if (start != vma->vm_start) {
+-		ret = split_vma(vmi, vma, start, 1);
+-		if (ret)
+-			goto out;
+-	}
+-
+-	if (end != vma->vm_end) {
+-		ret = split_vma(vmi, vma, end, 0);
+-		if (ret)
+-			goto out;
++	vma = vma_modify_flags(vmi, *prev, vma, start, end, newflags);
++	if (IS_ERR(vma)) {
++		ret = PTR_ERR(vma);
++		goto out;
+ 	}
+ 
+-success:
+ 	/*
+ 	 * Keep track of amount of locked VM.
+ 	 */
+--- a/mm/mmap.c~mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al
++++ a/mm/mmap.c
+@@ -2438,6 +2438,54 @@ int split_vma(struct vma_iterator *vmi,
+ }
+ 
+ /*
++ * We are about to modify one or multiple of a VMA's flags, policy, userfaultfd
++ * context and anonymous VMA name within the range [start, end).
++ *
++ * As a result, we might be able to merge the newly modified VMA range with an
++ * adjacent VMA with identical properties.
++ *
++ * If no merge is possible and the range does not span the entirety of the VMA,
++ * we then need to split the VMA to accommodate the change.
++ *
++ * The function returns either the merged VMA, the original VMA if a split was
++ * required instead, or an error if the split failed.
++ */
++struct vm_area_struct *vma_modify(struct vma_iterator *vmi,
++				  struct vm_area_struct *prev,
++				  struct vm_area_struct *vma,
++				  unsigned long start, unsigned long end,
++				  unsigned long vm_flags,
++				  struct mempolicy *policy,
++				  struct vm_userfaultfd_ctx uffd_ctx,
++				  struct anon_vma_name *anon_name)
++{
++	pgoff_t pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
++	struct vm_area_struct *merged;
++
++	merged = vma_merge(vmi, vma->vm_mm, prev, start, end, vm_flags,
++			   vma->anon_vma, vma->vm_file, pgoff, policy,
++			   uffd_ctx, anon_name);
++	if (merged)
++		return merged;
++
++	if (vma->vm_start < start) {
++		int err = split_vma(vmi, vma, start, 1);
++
++		if (err)
++			return ERR_PTR(err);
++	}
++
++	if (vma->vm_end > end) {
++		int err = split_vma(vmi, vma, end, 0);
++
++		if (err)
++			return ERR_PTR(err);
++	}
++
++	return vma;
++}
++
++/*
+  * do_vmi_align_munmap() - munmap the aligned region from @start to @end.
+  * @vmi: The vma iterator
+  * @vma: The starting vm_area_struct
+--- a/mm/mprotect.c~mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al
++++ a/mm/mprotect.c
+@@ -581,7 +581,6 @@ mprotect_fixup(struct vma_iterator *vmi,
+ 	long nrpages = (end - start) >> PAGE_SHIFT;
+ 	unsigned int mm_cp_flags = 0;
+ 	unsigned long charged = 0;
+-	pgoff_t pgoff;
+ 	int error;
+ 
+ 	if (newflags == oldflags) {
+@@ -631,34 +630,14 @@ mprotect_fixup(struct vma_iterator *vmi,
+ 		newflags &= ~VM_ACCOUNT;
+ 	}
+ 
+-	/*
+-	 * First try to merge with previous and/or next vma.
+-	 */
+-	pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
+-	*pprev = vma_merge(vmi, mm, *pprev, start, end, newflags,
+-			   vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma),
+-			   vma->vm_userfaultfd_ctx, anon_vma_name(vma));
+-	if (*pprev) {
+-		vma = *pprev;
+-		VM_WARN_ON((vma->vm_flags ^ newflags) & ~VM_SOFTDIRTY);
+-		goto success;
++	vma = vma_modify_flags(vmi, *pprev, vma, start, end, newflags);
++	if (IS_ERR(vma)) {
++		error = PTR_ERR(vma);
++		goto fail;
+ 	}
+ 
+ 	*pprev = vma;
+ 
+-	if (start != vma->vm_start) {
+-		error = split_vma(vmi, vma, start, 1);
+-		if (error)
+-			goto fail;
+-	}
+-
+-	if (end != vma->vm_end) {
+-		error = split_vma(vmi, vma, end, 0);
+-		if (error)
+-			goto fail;
+-	}
+-
+-success:
+ 	/*
+ 	 * vm_flags and vm_page_prot are protected by the mmap_lock
+ 	 * held in write mode.
 _
 
-Patches currently in -mm which might be from o.rempel@pengutronix.de are
+Patches currently in -mm which might be from lstoakes@gmail.com are
 
-mailmap-correct-email-aliasing-for-oleksij-rempel.patch
+mm-filemap-clarify-filemap_fault-comments-for-not-uptodate-case.patch
+mm-filemap-clarify-filemap_fault-comments-for-not-uptodate-case-fix.patch
+mm-make-__access_remote_vm-static.patch
+mm-gup-explicitly-define-and-check-internal-gup-flags-disallow-foll_touch.patch
+mm-gup-make-failure-to-pin-an-error-if-foll_nowait-not-specified.patch
+mm-gup-adapt-get_user_page_vma_remote-to-never-return-null.patch
+mm-drop-the-assumption-that-vm_shared-always-implies-writable.patch
+mm-update-memfd-seal-write-check-to-include-f_seal_write.patch
+mm-enforce-the-mapping_map_writable-check-after-call_mmap.patch
+mm-mprotect-allow-unfaulted-vmas-to-be-unaccounted-on-mprotect.patch
+mm-move-vma_policy-and-anon_vma_name-decls-to-mm_typesh.patch
+mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al.patch
+mm-make-vma_merge-and-split_vma-internal.patch
+mm-abstract-merge-for-new-vmas-into-vma_merge_new_vma.patch
+mm-abstract-vma-merge-and-extend-into-vma_merge_extend-helper.patch
 
