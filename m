@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6F6FCDB465
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Oct 2023 22:33:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9232ECDB465
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Oct 2023 22:33:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229872AbjJNWdX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 14 Oct 2023 18:33:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38108 "EHLO
+        id S229555AbjJNWd3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 14 Oct 2023 18:33:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36060 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229555AbjJNWdW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 14 Oct 2023 18:33:22 -0400
+        with ESMTP id S230217AbjJNWd2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 14 Oct 2023 18:33:28 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 509D6D6
-        for <mm-commits@vger.kernel.org>; Sat, 14 Oct 2023 15:33:21 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A10CC433C8;
-        Sat, 14 Oct 2023 22:33:20 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B336DC
+        for <mm-commits@vger.kernel.org>; Sat, 14 Oct 2023 15:33:26 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39995C433C7;
+        Sat, 14 Oct 2023 22:33:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697322801;
-        bh=GXHr6pC3GE5aomjijSkJoo2u8e6ES2x1gn1rxf98LAU=;
+        s=korg; t=1697322806;
+        bh=fd/SrSt6/c6989c6m0VE8ZBIfAd1xkanOGBEaqEdbBQ=;
         h=Date:To:From:Subject:From;
-        b=ulBCPZ1eCQxAbSfp5axkOZuFVkwJWQ8q2QJykqRjjxk/0eeGZl6/A7jX0zE3RoL88
-         uZrIqLXgnj0yE8MF4loGYC7sOpn3IQr9K2FSLzldAgK1sWAj4KYr3eaQtRn6L3boAe
-         C7Elnp3lr3r4I6y9iwznapx9Lm5eXgZnLfYXZU6M=
-Date:   Sat, 14 Oct 2023 15:33:17 -0700
+        b=tScvJf7IOxjm6ppeV2Sy1u1t3oPjG47ScwsrO/zQ91Q9S4Gagavp2UVBUFdRuqQWM
+         7jjw9Y33EHmBAaTyqcAbMNzyELMlk5sLZSCP3UqCmxk3rhnhC/rydtA4BobhsROo9k
+         1D3y+GiIa/3LWyfe+Jre7RYh9dTA7lUtzM2dS9dc=
+Date:   Sat, 14 Oct 2023 15:33:21 -0700
 To:     mm-commits@vger.kernel.org, corbet@lwn.net, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-do-not-update-tried-regions-more-than-one-damon-snapshot.patch added to mm-unstable branch
-Message-Id: <20231014223320.4A10CC433C8@smtp.kernel.org>
+Subject: + mm-damon-sysfs-avoid-empty-scheme-tried-regions-for-large-apply-interval.patch added to mm-unstable branch
+Message-Id: <20231014223325.39995C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: do not update tried regions more than one DAMON snapshot
+     Subject: mm/damon/sysfs: avoid empty scheme tried regions for large apply interval
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-schemes-do-not-update-tried-regions-more-than-one-damon-snapshot.patch
+     mm-damon-sysfs-avoid-empty-scheme-tried-regions-for-large-apply-interval.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-do-not-update-tried-regions-more-than-one-damon-snapshot.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-avoid-empty-scheme-tried-regions-for-large-apply-interval.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,136 +60,116 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: do not update tried regions more than one DAMON snapshot
-Date: Thu, 12 Oct 2023 19:22:53 +0000
+Subject: mm/damon/sysfs: avoid empty scheme tried regions for large apply interval
+Date: Thu, 12 Oct 2023 19:22:54 +0000
 
-Patch series "mm/damon/sysfs-schemes: Do DAMOS tried regions update for
-only one apply interval".
+DAMON_SYSFS assumes all schemes will be applied for at least one DAMON
+monitoring results snapshot within one aggregation interval, or makes no
+sense to wait for it while DAMON is deactivated by the watermarks.  That
+for deactivated status still makes sense, but the aggregation interval
+based assumption is invalid now because each scheme can has its own apply
+interval.  For schemes having larger than the aggregation or watermarks
+check interval, DAMOS tried regions update request can be finished without
+the update.  Avoid the case by explicitly checking the status of the
+schemes tried regions update and watermarks based DAMON deactivation.
 
-DAMOS tried regions update feature of DAMON sysfs interface is doing the
-update for one aggregation interval after the request is made.  Since the
-per-scheme apply interval is supported, that behavior makes no much sense.
-That is, the tried regions directory will have regions from multiple
-DAMON monitoring results snapshots, or no region for apply intervals that
-much shorter than, or longer than the aggregation interval, respectively. 
-Update the behavior to update the regions for each scheme for only its
-apply interval, and update the document.
-
-Since DAMOS apply interval is the aggregation by default, this change
-makes no visible behavioral difference to old users who don't explicitly
-set the apply intervals.
-
-Patches Sequence
-----------------
-
-The first two patches makes schemes of apply intervals that much shorter
-or longer than the aggregation interval to keep the maximum and minimum
-times for continuing the update.  After the two patches, the update aligns
-with the each scheme's apply interval.
-
-Finally, the third patch updates the document to reflect the behavior.
-
-
-This patch (of 3):
-
-DAMON_SYSFS exposes every DAMON-found region that eligible for applying
-the scheme action for one aggregation interval.  However, each DAMON-based
-operation scheme has its own apply interval.  Hence, for a scheme that
-having its apply interval much smaller than the aggregation interval,
-DAMON_SYSFS will expose the scheme regions that applied to more than one
-DAMON monitoring results snapshots.  Since the purpose of DAMON tried
-regions is exposing single snapshot, this makes no much sense.  Track
-progress of each scheme's tried regions update and avoid the case.
-
-Link: https://lkml.kernel.org/r/20231012192256.33556-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20231012192256.33556-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20231012192256.33556-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |   77 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 77 insertions(+)
+ mm/damon/sysfs-common.h  |    2 ++
+ mm/damon/sysfs-schemes.c |   16 ++++++++++++++++
+ mm/damon/sysfs.c         |   34 ++++++++++++++++++++++++++++++----
+ 3 files changed, 48 insertions(+), 4 deletions(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-do-not-update-tried-regions-more-than-one-damon-snapshot
-+++ a/mm/damon/sysfs-schemes.c
-@@ -113,11 +113,47 @@ static const struct kobj_type damon_sysf
-  * scheme regions directory
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-avoid-empty-scheme-tried-regions-for-large-apply-interval
++++ a/mm/damon/sysfs.c
+@@ -1336,12 +1336,13 @@ static int damon_sysfs_commit_input(stru
+ 
+ /*
+  * damon_sysfs_cmd_request_callback() - DAMON callback for handling requests.
+- * @c:	The DAMON context of the callback.
++ * @c:		The DAMON context of the callback.
++ * @active:	Whether @c is not deactivated due to watermarks.
+  *
+  * This function is periodically called back from the kdamond thread for @c.
+  * Then, it checks if there is a waiting DAMON sysfs request and handles it.
   */
- 
-+/*
-+ * enum damos_sysfs_regions_upd_status - Represent DAMOS tried regions update
-+ *					 status
-+ * @DAMOS_TRIED_REGIONS_UPD_IDLE:		Waiting for next request.
-+ * @DAMOS_TRIED_REGIONS_UPD_STARTED:		Update started.
-+ * @DAMOS_TRIED_REGIONS_UPD_FINISHED:	Update finished.
-+ *
-+ * Each DAMON-based operation scheme (&struct damos) has its own apply
-+ * interval, and we need to expose the scheme tried regions based on only
-+ * single snapshot.  For this, we keep the tried regions update status for each
-+ * scheme.  The status becomes 'idle' at the beginning.
-+ *
-+ * Once the tried regions update request is received, the request handling
-+ * start function (damon_sysfs_scheme_update_regions_start()) sets the status
-+ * of all schemes as 'idle' again, and register ->before_damos_apply() and
-+ * ->after_sampling() callbacks.
-+ *
-+ * Then, the first followup ->before_damos_apply() callback
-+ * (damon_sysfs_before_damos_apply()) sets the status 'started'.  The first
-+ * ->after_sampling() callback (damon_sysfs_after_sampling()) after the call
-+ * is called only after the scheme is completely applied
-+ * to the given snapshot.  Hence the callback knows the situation by showing
-+ * 'started' status, and sets the status as 'finished'.  Then,
-+ * damon_sysfs_before_damos_apply() understands the situation by showing the
-+ * 'finished' status and do nothing.
-+ *
-+ *  Finally, the tried regions request handling finisher function
-+ *  (damon_sysfs_schemes_update_regions_stop()) unregisters the callbacks.
-+ */
-+enum damos_sysfs_regions_upd_status {
-+	DAMOS_TRIED_REGIONS_UPD_IDLE,
-+	DAMOS_TRIED_REGIONS_UPD_STARTED,
-+	DAMOS_TRIED_REGIONS_UPD_FINISHED,
-+};
-+
- struct damon_sysfs_scheme_regions {
- 	struct kobject kobj;
- 	struct list_head regions_list;
- 	int nr_regions;
- 	unsigned long total_bytes;
-+	enum damos_sysfs_regions_upd_status upd_status;
- };
- 
- static struct damon_sysfs_scheme_regions *
-@@ -130,6 +166,7 @@ damon_sysfs_scheme_regions_alloc(void)
- 	INIT_LIST_HEAD(&regions->regions_list);
- 	regions->nr_regions = 0;
- 	regions->total_bytes = 0;
-+	regions->upd_status = DAMOS_TRIED_REGIONS_UPD_IDLE;
- 	return regions;
+-static int damon_sysfs_cmd_request_callback(struct damon_ctx *c)
++static int damon_sysfs_cmd_request_callback(struct damon_ctx *c, bool active)
+ {
+ 	struct damon_sysfs_kdamond *kdamond;
+ 	bool total_bytes_only = false;
+@@ -1373,6 +1374,13 @@ static int damon_sysfs_cmd_request_callb
+ 				goto keep_lock_out;
+ 			}
+ 		} else {
++			/*
++			 * Continue regions updating if DAMON is till
++			 * active and the update for all schemes is not
++			 * finished.
++			 */
++			if (active && !damos_sysfs_regions_upd_done())
++				goto keep_lock_out;
+ 			err = damon_sysfs_upd_schemes_regions_stop(kdamond);
+ 			damon_sysfs_schemes_regions_updating = false;
+ 		}
+@@ -1392,6 +1400,24 @@ keep_lock_out:
+ 	return err;
  }
  
-@@ -1777,6 +1814,10 @@ static int damon_sysfs_before_damos_appl
- 		return 0;
++static int damon_sysfs_after_wmarks_check(struct damon_ctx *c)
++{
++	/*
++	 * after_wmarks_check() is called back while the context is deactivated
++	 * by watermarks.
++	 */
++	return damon_sysfs_cmd_request_callback(c, false);
++}
++
++static int damon_sysfs_after_aggregation(struct damon_ctx *c)
++{
++	/*
++	 * after_aggregation() is called back only while the context is not
++	 * deactivated by watermarks.
++	 */
++	return damon_sysfs_cmd_request_callback(c, true);
++}
++
+ static struct damon_ctx *damon_sysfs_build_ctx(
+ 		struct damon_sysfs_context *sys_ctx)
+ {
+@@ -1407,8 +1433,8 @@ static struct damon_ctx *damon_sysfs_bui
+ 		return ERR_PTR(err);
+ 	}
  
- 	sysfs_regions = sysfs_schemes->schemes_arr[schemes_idx]->tried_regions;
-+	if (sysfs_regions->upd_status == DAMOS_TRIED_REGIONS_UPD_FINISHED)
-+		return 0;
-+	if (sysfs_regions->upd_status == DAMOS_TRIED_REGIONS_UPD_IDLE)
-+		sysfs_regions->upd_status = DAMOS_TRIED_REGIONS_UPD_STARTED;
- 	sysfs_regions->total_bytes += r->ar.end - r->ar.start;
- 	if (damos_regions_upd_total_bytes_only)
- 		return 0;
-@@ -1793,6 +1834,29 @@ static int damon_sysfs_before_damos_appl
+-	ctx->callback.after_wmarks_check = damon_sysfs_cmd_request_callback;
+-	ctx->callback.after_aggregation = damon_sysfs_cmd_request_callback;
++	ctx->callback.after_wmarks_check = damon_sysfs_after_wmarks_check;
++	ctx->callback.after_aggregation = damon_sysfs_after_aggregation;
+ 	ctx->callback.before_terminate = damon_sysfs_before_terminate;
+ 	return ctx;
+ }
+--- a/mm/damon/sysfs-common.h~mm-damon-sysfs-avoid-empty-scheme-tried-regions-for-large-apply-interval
++++ a/mm/damon/sysfs-common.h
+@@ -49,6 +49,8 @@ int damon_sysfs_schemes_update_regions_s
+ 		struct damon_sysfs_schemes *sysfs_schemes,
+ 		struct damon_ctx *ctx, bool total_bytes_only);
+ 
++bool damos_sysfs_regions_upd_done(void);
++
+ int damon_sysfs_schemes_update_regions_stop(struct damon_ctx *ctx);
+ 
+ int damon_sysfs_schemes_clear_regions(
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-avoid-empty-scheme-tried-regions-for-large-apply-interval
++++ a/mm/damon/sysfs-schemes.c
+@@ -1904,6 +1904,22 @@ int damon_sysfs_schemes_update_regions_s
  	return 0;
  }
  
-+/*
-+ * DAMON callback that called after each accesses sampling.  While this
-+ * callback is registered, damon_sysfs_lock should be held to ensure the
-+ * regions directories exist.
-+ */
-+static int damon_sysfs_after_sampling(struct damon_ctx *ctx)
++bool damos_sysfs_regions_upd_done(void)
 +{
 +	struct damon_sysfs_schemes *sysfs_schemes =
 +		damon_sysfs_schemes_for_damos_callback;
@@ -198,54 +178,16 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +
 +	for (i = 0; i < sysfs_schemes->nr; i++) {
 +		sysfs_regions = sysfs_schemes->schemes_arr[i]->tried_regions;
-+		if (sysfs_regions->upd_status ==
-+				DAMOS_TRIED_REGIONS_UPD_STARTED)
-+			sysfs_regions->upd_status =
-+				DAMOS_TRIED_REGIONS_UPD_FINISHED;
++		if (sysfs_regions->upd_status !=
++				DAMOS_TRIED_REGIONS_UPD_FINISHED)
++			return false;
 +	}
-+
-+	return 0;
++	return true;
 +}
 +
- /* Called from damon_sysfs_cmd_request_callback under damon_sysfs_lock */
- int damon_sysfs_schemes_clear_regions(
- 		struct damon_sysfs_schemes *sysfs_schemes,
-@@ -1816,6 +1880,16 @@ int damon_sysfs_schemes_clear_regions(
- 	return 0;
- }
- 
-+static void damos_tried_regions_init_upd_status(
-+		struct damon_sysfs_schemes *sysfs_schemes)
-+{
-+	int i;
-+
-+	for (i = 0; i < sysfs_schemes->nr; i++)
-+		sysfs_schemes->schemes_arr[i]->tried_regions->upd_status =
-+			DAMOS_TRIED_REGIONS_UPD_IDLE;
-+}
-+
- /* Called from damon_sysfs_cmd_request_callback under damon_sysfs_lock */
- int damon_sysfs_schemes_update_regions_start(
- 		struct damon_sysfs_schemes *sysfs_schemes,
-@@ -1823,8 +1897,10 @@ int damon_sysfs_schemes_update_regions_s
- {
- 	damon_sysfs_schemes_clear_regions(sysfs_schemes, ctx);
- 	damon_sysfs_schemes_for_damos_callback = sysfs_schemes;
-+	damos_tried_regions_init_upd_status(sysfs_schemes);
- 	damos_regions_upd_total_bytes_only = total_bytes_only;
- 	ctx->callback.before_damos_apply = damon_sysfs_before_damos_apply;
-+	ctx->callback.after_sampling = damon_sysfs_after_sampling;
- 	return 0;
- }
- 
-@@ -1837,6 +1913,7 @@ int damon_sysfs_schemes_update_regions_s
- {
- 	damon_sysfs_schemes_for_damos_callback = NULL;
- 	ctx->callback.before_damos_apply = NULL;
-+	ctx->callback.after_sampling = NULL;
- 	damon_sysfs_schemes_region_idx = 0;
- 	return 0;
- }
+ /*
+  * Called from damon_sysfs_cmd_request_callback under damon_sysfs_lock.  Caller
+  * should unlock damon_sysfs_lock which held before
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
