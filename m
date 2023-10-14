@@ -2,35 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DE11CDB465
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Oct 2023 22:26:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6F6FCDB465
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Oct 2023 22:33:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229735AbjJNW0m (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 14 Oct 2023 18:26:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39546 "EHLO
+        id S229872AbjJNWdX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 14 Oct 2023 18:33:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38108 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229867AbjJNW0m (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 14 Oct 2023 18:26:42 -0400
+        with ESMTP id S229555AbjJNWdW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 14 Oct 2023 18:33:22 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91782D6
-        for <mm-commits@vger.kernel.org>; Sat, 14 Oct 2023 15:26:40 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62703C433C7;
-        Sat, 14 Oct 2023 22:26:39 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 509D6D6
+        for <mm-commits@vger.kernel.org>; Sat, 14 Oct 2023 15:33:21 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A10CC433C8;
+        Sat, 14 Oct 2023 22:33:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697322400;
-        bh=DUcX+rHkIwXdsHWNggymnDnd4ILEEyKH/RXtLb7kDG0=;
+        s=korg; t=1697322801;
+        bh=GXHr6pC3GE5aomjijSkJoo2u8e6ES2x1gn1rxf98LAU=;
         h=Date:To:From:Subject:From;
-        b=s+lGVy6rkfZpPpJh27LCZKvanxcbEbIbG3MMgnvpAr7aKEzu7DPp8gSLma/RgrTbu
-         PDV2JlaPPjh3Z/306eEM342yOxywqHjQOrEx0tC0nd+Y8txtYBAf8V0NizzMqpsUzX
-         qEHZ9/1h7AtOAAaPQ0P9sDYjgqpzgIt3LyOUg1Z4=
-Date:   Sat, 14 Oct 2023 15:26:36 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, osalvador@suse.de,
-        mgorman@techsingularity.net, david@redhat.com,
-        dan.j.williams@intel.com, aneesh.kumar@linux.ibm.com,
-        quic_charante@quicinc.com, akpm@linux-foundation.org
+        b=ulBCPZ1eCQxAbSfp5axkOZuFVkwJWQ8q2QJykqRjjxk/0eeGZl6/A7jX0zE3RoL88
+         uZrIqLXgnj0yE8MF4loGYC7sOpn3IQr9K2FSLzldAgK1sWAj4KYr3eaQtRn6L3boAe
+         C7Elnp3lr3r4I6y9iwznapx9Lm5eXgZnLfYXZU6M=
+Date:   Sat, 14 Oct 2023 15:33:17 -0700
+To:     mm-commits@vger.kernel.org, corbet@lwn.net, sj@kernel.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sparsemem-fix-race-in-accessing-memory_section-usage.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231014222639.62703C433C7@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-do-not-update-tried-regions-more-than-one-damon-snapshot.patch added to mm-unstable branch
+Message-Id: <20231014223320.4A10CC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,14 +36,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/sparsemem: fix race in accessing memory_section->usage
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-sparsemem-fix-race-in-accessing-memory_section-usage.patch
+     Subject: mm/damon/sysfs-schemes: do not update tried regions more than one DAMON snapshot
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-damon-sysfs-schemes-do-not-update-tried-regions-more-than-one-damon-snapshot.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparsemem-fix-race-in-accessing-memory_section-usage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-do-not-update-tried-regions-more-than-one-damon-snapshot.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -61,144 +59,199 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Charan Teja Kalla <quic_charante@quicinc.com>
-Subject: mm/sparsemem: fix race in accessing memory_section->usage
-Date: Fri, 13 Oct 2023 18:34:27 +0530
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs-schemes: do not update tried regions more than one DAMON snapshot
+Date: Thu, 12 Oct 2023 19:22:53 +0000
 
-The below race is observed on a PFN which falls into the device memory
-region with the system memory configuration where PFN's are such that
-[ZONE_NORMAL ZONE_DEVICE ZONE_NORMAL].  Since normal zone start and end
-pfn contains the device memory PFN's as well, the compaction triggered
-will try on the device memory PFN's too though they end up in NOP(because
-pfn_to_online_page() returns NULL for ZONE_DEVICE memory sections).  When
-from other core, the section mappings are being removed for the
-ZONE_DEVICE region, that the PFN in question belongs to, on which
-compaction is currently being operated is resulting into the kernel crash
-with CONFIG_SPASEMEM_VMEMAP enabled.
+Patch series "mm/damon/sysfs-schemes: Do DAMOS tried regions update for
+only one apply interval".
 
-compact_zone()			memunmap_pages
--------------			---------------
-__pageblock_pfn_to_page
-   ......
- (a)pfn_valid():
-     valid_section()//return true
-			      (b)__remove_pages()->
-				  sparse_remove_section()->
-				    section_deactivate():
-				    [Free the array ms->usage and set
-				     ms->usage = NULL]
-     pfn_section_valid()
-     [Access ms->usage which
-     is NULL]
+DAMOS tried regions update feature of DAMON sysfs interface is doing the
+update for one aggregation interval after the request is made.  Since the
+per-scheme apply interval is supported, that behavior makes no much sense.
+That is, the tried regions directory will have regions from multiple
+DAMON monitoring results snapshots, or no region for apply intervals that
+much shorter than, or longer than the aggregation interval, respectively. 
+Update the behavior to update the regions for each scheme for only its
+apply interval, and update the document.
 
-NOTE: From the above it can be said that the race is reduced to between
-the pfn_valid()/pfn_section_valid() and the section deactivate with
-SPASEMEM_VMEMAP enabled.
+Since DAMOS apply interval is the aggregation by default, this change
+makes no visible behavioral difference to old users who don't explicitly
+set the apply intervals.
 
-The commit b943f045a9af("mm/sparse: fix kernel crash with
-pfn_section_valid check") tried to address the same problem by clearing
-the SECTION_HAS_MEM_MAP with the expectation of valid_section() returns
-false thus ms->usage is not accessed.
+Patches Sequence
+----------------
 
-Fix this issue by the below steps:
+The first two patches makes schemes of apply intervals that much shorter
+or longer than the aggregation interval to keep the maximum and minimum
+times for continuing the update.  After the two patches, the update aligns
+with the each scheme's apply interval.
 
-a) Clear SECTION_HAS_MEM_MAP before freeing the ->usage.
+Finally, the third patch updates the document to reflect the behavior.
 
-b) RCU protected read side critical section will either return NULL
-   when SECTION_HAS_MEM_MAP is cleared or can successfully access ->usage.
 
-c) Synchronize the rcu on the write side and free the ->usage.  No
-   attempt will be made to access ->usage after this as the
-   SECTION_HAS_MEM_MAP is cleared thus valid_section() return false.
+This patch (of 3):
 
-Since the section_deactivate() is a rare operation and will come in the
-hot remove path, impact of synchronize_rcu() should be negligble.
+DAMON_SYSFS exposes every DAMON-found region that eligible for applying
+the scheme action for one aggregation interval.  However, each DAMON-based
+operation scheme has its own apply interval.  Hence, for a scheme that
+having its apply interval much smaller than the aggregation interval,
+DAMON_SYSFS will expose the scheme regions that applied to more than one
+DAMON monitoring results snapshots.  Since the purpose of DAMON tried
+regions is exposing single snapshot, this makes no much sense.  Track
+progress of each scheme's tried regions update and avoid the case.
 
-Link: https://lkml.kernel.org/r/1697202267-23600-1-git-send-email-quic_charante@quicinc.com
-Fixes: f46edbd1b151 ("mm/sparsemem: add helpers track active portions of a section at boot")
-Signed-off-by: Charan Teja Kalla <quic_charante@quicinc.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20231012192256.33556-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20231012192256.33556-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   11 +++++++++--
- mm/sparse.c            |   14 ++++++++------
- 2 files changed, 17 insertions(+), 8 deletions(-)
+ mm/damon/sysfs-schemes.c |   77 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 77 insertions(+)
 
---- a/include/linux/mmzone.h~mm-sparsemem-fix-race-in-accessing-memory_section-usage
-+++ a/include/linux/mmzone.h
-@@ -1987,6 +1987,7 @@ static inline int pfn_section_valid(stru
- static inline int pfn_valid(unsigned long pfn)
- {
- 	struct mem_section *ms;
-+	int ret;
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-do-not-update-tried-regions-more-than-one-damon-snapshot
++++ a/mm/damon/sysfs-schemes.c
+@@ -113,11 +113,47 @@ static const struct kobj_type damon_sysf
+  * scheme regions directory
+  */
  
- 	/*
- 	 * Ensure the upper PAGE_SHIFT bits are clear in the
-@@ -2000,13 +2001,19 @@ static inline int pfn_valid(unsigned lon
- 	if (pfn_to_section_nr(pfn) >= NR_MEM_SECTIONS)
- 		return 0;
- 	ms = __pfn_to_section(pfn);
--	if (!valid_section(ms))
-+	rcu_read_lock();
-+	if (!valid_section(ms)) {
-+		rcu_read_unlock();
- 		return 0;
-+	}
- 	/*
- 	 * Traditionally early sections always returned pfn_valid() for
- 	 * the entire section-sized span.
- 	 */
--	return early_section(ms) || pfn_section_valid(ms, pfn);
-+	ret = early_section(ms) || pfn_section_valid(ms, pfn);
-+	rcu_read_unlock();
++/*
++ * enum damos_sysfs_regions_upd_status - Represent DAMOS tried regions update
++ *					 status
++ * @DAMOS_TRIED_REGIONS_UPD_IDLE:		Waiting for next request.
++ * @DAMOS_TRIED_REGIONS_UPD_STARTED:		Update started.
++ * @DAMOS_TRIED_REGIONS_UPD_FINISHED:	Update finished.
++ *
++ * Each DAMON-based operation scheme (&struct damos) has its own apply
++ * interval, and we need to expose the scheme tried regions based on only
++ * single snapshot.  For this, we keep the tried regions update status for each
++ * scheme.  The status becomes 'idle' at the beginning.
++ *
++ * Once the tried regions update request is received, the request handling
++ * start function (damon_sysfs_scheme_update_regions_start()) sets the status
++ * of all schemes as 'idle' again, and register ->before_damos_apply() and
++ * ->after_sampling() callbacks.
++ *
++ * Then, the first followup ->before_damos_apply() callback
++ * (damon_sysfs_before_damos_apply()) sets the status 'started'.  The first
++ * ->after_sampling() callback (damon_sysfs_after_sampling()) after the call
++ * is called only after the scheme is completely applied
++ * to the given snapshot.  Hence the callback knows the situation by showing
++ * 'started' status, and sets the status as 'finished'.  Then,
++ * damon_sysfs_before_damos_apply() understands the situation by showing the
++ * 'finished' status and do nothing.
++ *
++ *  Finally, the tried regions request handling finisher function
++ *  (damon_sysfs_schemes_update_regions_stop()) unregisters the callbacks.
++ */
++enum damos_sysfs_regions_upd_status {
++	DAMOS_TRIED_REGIONS_UPD_IDLE,
++	DAMOS_TRIED_REGIONS_UPD_STARTED,
++	DAMOS_TRIED_REGIONS_UPD_FINISHED,
++};
 +
-+	return ret;
+ struct damon_sysfs_scheme_regions {
+ 	struct kobject kobj;
+ 	struct list_head regions_list;
+ 	int nr_regions;
+ 	unsigned long total_bytes;
++	enum damos_sysfs_regions_upd_status upd_status;
+ };
+ 
+ static struct damon_sysfs_scheme_regions *
+@@ -130,6 +166,7 @@ damon_sysfs_scheme_regions_alloc(void)
+ 	INIT_LIST_HEAD(&regions->regions_list);
+ 	regions->nr_regions = 0;
+ 	regions->total_bytes = 0;
++	regions->upd_status = DAMOS_TRIED_REGIONS_UPD_IDLE;
+ 	return regions;
  }
- #endif
  
---- a/mm/sparse.c~mm-sparsemem-fix-race-in-accessing-memory_section-usage
-+++ a/mm/sparse.c
-@@ -792,6 +792,13 @@ static void section_deactivate(unsigned
- 		unsigned long section_nr = pfn_to_section_nr(pfn);
+@@ -1777,6 +1814,10 @@ static int damon_sysfs_before_damos_appl
+ 		return 0;
  
- 		/*
-+		 * Mark the section invalid so that valid_section()
-+		 * return false. This prevents code from dereferencing
-+		 * ms->usage array.
-+		 */
-+		ms->section_mem_map &= ~SECTION_HAS_MEM_MAP;
+ 	sysfs_regions = sysfs_schemes->schemes_arr[schemes_idx]->tried_regions;
++	if (sysfs_regions->upd_status == DAMOS_TRIED_REGIONS_UPD_FINISHED)
++		return 0;
++	if (sysfs_regions->upd_status == DAMOS_TRIED_REGIONS_UPD_IDLE)
++		sysfs_regions->upd_status = DAMOS_TRIED_REGIONS_UPD_STARTED;
+ 	sysfs_regions->total_bytes += r->ar.end - r->ar.start;
+ 	if (damos_regions_upd_total_bytes_only)
+ 		return 0;
+@@ -1793,6 +1834,29 @@ static int damon_sysfs_before_damos_appl
+ 	return 0;
+ }
+ 
++/*
++ * DAMON callback that called after each accesses sampling.  While this
++ * callback is registered, damon_sysfs_lock should be held to ensure the
++ * regions directories exist.
++ */
++static int damon_sysfs_after_sampling(struct damon_ctx *ctx)
++{
++	struct damon_sysfs_schemes *sysfs_schemes =
++		damon_sysfs_schemes_for_damos_callback;
++	struct damon_sysfs_scheme_regions *sysfs_regions;
++	int i;
 +
-+		/*
- 		 * When removing an early section, the usage map is kept (as the
- 		 * usage maps of other sections fall into the same page). It
- 		 * will be re-used when re-adding the section - which is then no
-@@ -799,16 +806,11 @@ static void section_deactivate(unsigned
- 		 * was allocated during boot.
- 		 */
- 		if (!PageReserved(virt_to_page(ms->usage))) {
-+			synchronize_rcu();
- 			kfree(ms->usage);
- 			ms->usage = NULL;
- 		}
- 		memmap = sparse_decode_mem_map(ms->section_mem_map, section_nr);
--		/*
--		 * Mark the section invalid so that valid_section()
--		 * return false. This prevents code from dereferencing
--		 * ms->usage array.
--		 */
--		ms->section_mem_map &= ~SECTION_HAS_MEM_MAP;
- 	}
++	for (i = 0; i < sysfs_schemes->nr; i++) {
++		sysfs_regions = sysfs_schemes->schemes_arr[i]->tried_regions;
++		if (sysfs_regions->upd_status ==
++				DAMOS_TRIED_REGIONS_UPD_STARTED)
++			sysfs_regions->upd_status =
++				DAMOS_TRIED_REGIONS_UPD_FINISHED;
++	}
++
++	return 0;
++}
++
+ /* Called from damon_sysfs_cmd_request_callback under damon_sysfs_lock */
+ int damon_sysfs_schemes_clear_regions(
+ 		struct damon_sysfs_schemes *sysfs_schemes,
+@@ -1816,6 +1880,16 @@ int damon_sysfs_schemes_clear_regions(
+ 	return 0;
+ }
  
- 	/*
++static void damos_tried_regions_init_upd_status(
++		struct damon_sysfs_schemes *sysfs_schemes)
++{
++	int i;
++
++	for (i = 0; i < sysfs_schemes->nr; i++)
++		sysfs_schemes->schemes_arr[i]->tried_regions->upd_status =
++			DAMOS_TRIED_REGIONS_UPD_IDLE;
++}
++
+ /* Called from damon_sysfs_cmd_request_callback under damon_sysfs_lock */
+ int damon_sysfs_schemes_update_regions_start(
+ 		struct damon_sysfs_schemes *sysfs_schemes,
+@@ -1823,8 +1897,10 @@ int damon_sysfs_schemes_update_regions_s
+ {
+ 	damon_sysfs_schemes_clear_regions(sysfs_schemes, ctx);
+ 	damon_sysfs_schemes_for_damos_callback = sysfs_schemes;
++	damos_tried_regions_init_upd_status(sysfs_schemes);
+ 	damos_regions_upd_total_bytes_only = total_bytes_only;
+ 	ctx->callback.before_damos_apply = damon_sysfs_before_damos_apply;
++	ctx->callback.after_sampling = damon_sysfs_after_sampling;
+ 	return 0;
+ }
+ 
+@@ -1837,6 +1913,7 @@ int damon_sysfs_schemes_update_regions_s
+ {
+ 	damon_sysfs_schemes_for_damos_callback = NULL;
+ 	ctx->callback.before_damos_apply = NULL;
++	ctx->callback.after_sampling = NULL;
+ 	damon_sysfs_schemes_region_idx = 0;
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from quic_charante@quicinc.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-sparsemem-fix-race-in-accessing-memory_section-usage.patch
+mm-damon-sysfs-check-damos-regions-update-progress-from-before_terminate.patch
+mm-damon-sysfs-schemes-do-not-update-tried-regions-more-than-one-damon-snapshot.patch
+mm-damon-sysfs-avoid-empty-scheme-tried-regions-for-large-apply-interval.patch
+docs-admin-guide-mm-damon-usage-update-for-tried-regions-update-time-interval.patch
 
