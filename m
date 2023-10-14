@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BACFCDB465
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Oct 2023 22:16:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86DE8CDB465
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Oct 2023 22:16:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231987AbjJNWQV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 14 Oct 2023 18:16:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52252 "EHLO
+        id S229735AbjJNWQ2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 14 Oct 2023 18:16:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49968 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233331AbjJNWQS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 14 Oct 2023 18:16:18 -0400
+        with ESMTP id S233362AbjJNWQ0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 14 Oct 2023 18:16:26 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32740D6
-        for <mm-commits@vger.kernel.org>; Sat, 14 Oct 2023 15:16:17 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 625C0C433C8;
-        Sat, 14 Oct 2023 22:16:16 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0992E5
+        for <mm-commits@vger.kernel.org>; Sat, 14 Oct 2023 15:16:23 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA10AC433C8;
+        Sat, 14 Oct 2023 22:16:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697321776;
-        bh=y2RLE7pXaJEY/a58qfGl3hzLtPUnZwmCHCMRMb1o2hY=;
+        s=korg; t=1697321783;
+        bh=kK2xtaevIfwOS09eEbEycFBicagTrkFYV2pPFixrw0o=;
         h=Date:To:From:Subject:From;
-        b=dwPAsLYGThjD+GDjdIqFMZPoVl1rxpvvzHzM4pwYNh0dh+KK52PsCc44hhCgahAPE
-         1DxnMvlsSIys/cE93B38mW0T1Fn/2uiGYm2U1quTvqqB1mGrpBEu613TPGX7WlmYT+
-         Pd4uZyksC12KnjVoHkuQQ28ZZBwY8l/s0kAMqeuA=
-Date:   Sat, 14 Oct 2023 15:16:14 -0700
+        b=TgRPQ+NYk8093uhxxLmAhWoDpppwWGo8FPwNyEGNTAOtYREPpqJWybrGb53K4GMBY
+         yD1uunyewvjYwMGdm2ood+onuAdTlBptqcPyQ81RN14DkFHHepAoZq+O0avnsigLyr
+         gas8q3xVKNPq8PgHgknQGPQ5ctkIvr4SpqXAP7Sw=
+Date:   Sat, 14 Oct 2023 15:16:17 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, raquini@redhat.com,
         djakov@kernel.org, audra@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-mm-filter-out-timestamps-for-correct-collation.patch added to mm-unstable branch
-Message-Id: <20231014221616.625C0C433C8@smtp.kernel.org>
+Subject: + tools-mm-fix-the-default-case-for-page_owner_sort.patch added to mm-unstable branch
+Message-Id: <20231014221622.EA10AC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/mm: filter out timestamps for correct collation
+     Subject: tools/mm: fix the default case for page_owner_sort
 has been added to the -mm mm-unstable branch.  Its filename is
-     tools-mm-filter-out-timestamps-for-correct-collation.patch
+     tools-mm-fix-the-default-case-for-page_owner_sort.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-filter-out-timestamps-for-correct-collation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-fix-the-default-case-for-page_owner_sort.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,20 +60,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Audra Mitchell <audra@redhat.com>
-Subject: tools/mm: filter out timestamps for correct collation
-Date: Fri, 13 Oct 2023 15:03:47 -0400
+Subject: tools/mm: fix the default case for page_owner_sort
+Date: Fri, 13 Oct 2023 15:03:48 -0400
 
-With the introduction of allocation timestamps being included in
-page_owner output, each record becomes unique due to the timestamp
-nanosecond granularity.  Remove the check in add_list that tries to
-collate each record during processing as the memcmp() is just additional
-overhead at this point.
+With the additional commands and timestamps added to the tool, the default
+case (-t) has been broken.  Now that the allocation timestamps are saved
+outside of the txt field, allow us to properly sort the data by number of
+times the record has been seen.  Furthermore prevent the misuse of the
+commandline arguments so only one compare option can be used.
 
-Also keep the allocation timestamps, but allow collation to occur without
-consideration of the allocation timestamp except in the case were
-allocation timestamps are requested by the user (the -a option).
-
-Link: https://lkml.kernel.org/r/20231013190350.579407-4-audra@redhat.com
+Link: https://lkml.kernel.org/r/20231013190350.579407-5-audra@redhat.com
 Signed-off-by: Audra Mitchell <audra@redhat.com>
 Cc: Georgi Djakov <djakov@kernel.org>
 Cc: Rafael Aquini <raquini@redhat.com>
@@ -81,57 +77,118 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/mm/page_owner_sort.c |   25 ++++++++++++++++++-------
- 1 file changed, 18 insertions(+), 7 deletions(-)
+ tools/mm/page_owner_sort.c |   61 ++++++++++++++++++++++++++++++-----
+ 1 file changed, 53 insertions(+), 8 deletions(-)
 
---- a/tools/mm/page_owner_sort.c~tools-mm-filter-out-timestamps-for-correct-collation
+--- a/tools/mm/page_owner_sort.c~tools-mm-fix-the-default-case-for-page_owner_sort
 +++ a/tools/mm/page_owner_sort.c
-@@ -203,6 +203,21 @@ static int compare_sort_condition(const
- 	return cmp;
- }
- 
-+static int remove_pattern(regex_t *pattern, char *buf, int len)
-+{
-+	regmatch_t pmatch[2];
-+	int err;
-+
-+	err = regexec(pattern, buf, 2, pmatch, REG_NOTBOL);
-+	if (err != 0 || pmatch[1].rm_so == -1)
-+		return len;
-+
-+	memcpy(buf + pmatch[1].rm_so,
-+		buf + pmatch[1].rm_eo, len - pmatch[1].rm_eo);
-+
-+	return len - (pmatch[1].rm_eo - pmatch[1].rm_so);
-+}
-+
- static int search_pattern(regex_t *pattern, char *pattern_str, char *buf)
+@@ -66,6 +66,16 @@ enum SORT_ORDER {
+ 	SORT_ASC = 1,
+ 	SORT_DESC = -1,
+ };
++enum COMP_FLAG {
++	COMP_NO_FLAG = 0,
++	COMP_ALLOC = 1<<0,
++	COMP_PAGE_NUM = 1<<1,
++	COMP_PID = 1<<2,
++	COMP_STACK = 1<<3,
++	COMP_NUM = 1<<4,
++	COMP_TGID = 1<<5,
++	COMP_COMM = 1<<6
++};
+ struct filter_condition {
+ 	pid_t *pids;
+ 	pid_t *tgids;
+@@ -644,7 +654,7 @@ int main(int argc, char **argv)
  {
- 	int err, val_len;
-@@ -443,13 +458,6 @@ static bool is_need(char *buf)
+ 	FILE *fin, *fout;
+ 	char *buf, *ext_buf;
+-	int i, count;
++	int i, count, compare_flag;
+ 	struct stat st;
+ 	int opt;
+ 	struct option longopts[] = {
+@@ -656,31 +666,33 @@ int main(int argc, char **argv)
+ 		{ 0, 0, 0, 0},
+ 	};
  
- static bool add_list(char *buf, int len, char *ext_buf)
- {
--	if (list_size != 0 &&
--		len == list[list_size-1].len &&
--		memcmp(buf, list[list_size-1].txt, len) == 0) {
--		list[list_size-1].num++;
--		list[list_size-1].page_num += get_page_num(buf);
--		return true;
--	}
- 	if (list_size == max_size) {
- 		fprintf(stderr, "max_size too small??\n");
- 		return false;
-@@ -465,6 +473,9 @@ static bool add_list(char *buf, int len,
- 		return false;
++	compare_flag = COMP_NO_FLAG;
++
+ 	while ((opt = getopt_long(argc, argv, "admnpstP", longopts, NULL)) != -1)
+ 		switch (opt) {
+ 		case 'a':
+-			set_single_cmp(compare_ts, SORT_ASC);
++			compare_flag |= COMP_ALLOC;
+ 			break;
+ 		case 'd':
+ 			debug_on = true;
+ 			break;
+ 		case 'm':
+-			set_single_cmp(compare_page_num, SORT_DESC);
++			compare_flag |= COMP_PAGE_NUM;
+ 			break;
+ 		case 'p':
+-			set_single_cmp(compare_pid, SORT_ASC);
++			compare_flag |= COMP_PID;
+ 			break;
+ 		case 's':
+-			set_single_cmp(compare_stacktrace, SORT_ASC);
++			compare_flag |= COMP_STACK;
+ 			break;
+ 		case 't':
+-			set_single_cmp(compare_num, SORT_DESC);
++			compare_flag |= COMP_NUM;
+ 			break;
+ 		case 'P':
+-			set_single_cmp(compare_tgid, SORT_ASC);
++			compare_flag |= COMP_TGID;
+ 			break;
+ 		case 'n':
+-			set_single_cmp(compare_comm, SORT_ASC);
++			compare_flag |= COMP_COMM;
+ 			break;
+ 		case 1:
+ 			filter = filter | FILTER_PID;
+@@ -727,6 +739,39 @@ int main(int argc, char **argv)
+ 		usage();
+ 		exit(1);
  	}
- 	memcpy(list[list_size].txt, buf, len);
-+	if (sc.cmps[0] != compare_ts) {
-+		len = remove_pattern(&ts_nsec_pattern, list[list_size].txt, len);
++
++	/* Only one compare option is allowed, yet we also want handle the
++	 * default case were no option is provided, but we still want to
++	 * match the behavior of the -t option (compare by number of times
++	 * a record is seen
++	 */
++	switch (compare_flag) {
++	case COMP_ALLOC:
++		set_single_cmp(compare_ts, SORT_ASC);
++		break;
++	case COMP_PAGE_NUM:
++		set_single_cmp(compare_page_num, SORT_DESC);
++		break;
++	case COMP_PID:
++		set_single_cmp(compare_pid, SORT_ASC);
++		break;
++	case COMP_STACK:
++		set_single_cmp(compare_stacktrace, SORT_ASC);
++		break;
++	case COMP_NO_FLAG:
++	case COMP_NUM:
++		set_single_cmp(compare_num, SORT_DESC);
++		break;
++	case COMP_TGID:
++		set_single_cmp(compare_tgid, SORT_ASC);
++		break;
++	case COMP_COMM:
++		set_single_cmp(compare_comm, SORT_ASC);
++		break;
++	default:
++		usage();
++		exit(1);
 +	}
- 	list[list_size].txt[len] = 0;
- 	list[list_size].len = len;
- 	list[list_size].num = 1;
+ 
+ 	fin = fopen(argv[optind], "r");
+ 	fout = fopen(argv[optind + 1], "w");
 _
 
 Patches currently in -mm which might be from audra@redhat.com are
