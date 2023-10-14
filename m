@@ -2,34 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AE9DCDB465
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Oct 2023 22:43:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C69DCDB465
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Oct 2023 23:05:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229867AbjJNWn4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 14 Oct 2023 18:43:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48820 "EHLO
+        id S229735AbjJNXFk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 14 Oct 2023 19:05:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48072 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229555AbjJNWnz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 14 Oct 2023 18:43:55 -0400
+        with ESMTP id S229555AbjJNXFj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 14 Oct 2023 19:05:39 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE45CC9;
-        Sat, 14 Oct 2023 15:43:53 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEE69C433C7;
-        Sat, 14 Oct 2023 22:43:52 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C462AB7
+        for <mm-commits@vger.kernel.org>; Sat, 14 Oct 2023 16:05:36 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C33C8C433C7;
+        Sat, 14 Oct 2023 23:05:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697323433;
-        bh=Da2IBvRgLyAG8Zh3sJD9WkEmc5IeFSv3b8dHbuvMp0s=;
+        s=korg; t=1697324736;
+        bh=+JWAbvnjbEcQr+9ySvvbOXJ5n5uOR+xo0X38AliHACM=;
         h=Date:To:From:Subject:From;
-        b=SlhvSd1GeQNZkfmLX/0N/Na6yc5ylQbbsHhxLGUeD2SFMx+aKUc0ER18kxVFz1k+y
-         dHeCdI59cFypfTUsnIiUeD/piw0CoFQCT5xwD7acZPer2LA2JDeO/UMObjC7DAxmMe
-         0lrYZZHKwdFS/rbX4fhniar8zBsmIq6WCMUCXnDs=
-Date:   Sat, 14 Oct 2023 15:43:43 -0700
-To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
-        stable@vger.kernel.org, jason.sim@samsung.com,
-        Liam.Howlett@oracle.com, akpm@linux-foundation.org
+        b=ynVCSBvv88J77Gpw94B1QBQPtKf1Xk4xJy081tQ5dMQOeYEZ3ZsZdweEkYKbD/HM6
+         kCeBzNOvFuBBEBK05G+z/2+WwpAD9mJUuc9gx5ZxNpECrVr/J2kUK9t36hGcq6dgAp
+         wXrE1Esb0VedA/D7Pk+fPbRS6aIJO+zZqMnSFLUE=
+Date:   Sat, 14 Oct 2023 16:05:33 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        tim.c.chen@intel.com, jack@suse.cz, hannes@cmpxchg.org,
+        djwong@kernel.org, dchinner@redhat.com, chuck.lever@oracle.com,
+        cem@kernel.org, brauner@kernel.org, axelrasmussen@google.com,
+        hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-add-gfp_kernel-to-allocations-in-mas_expected_entries.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231014224352.DEE69C433C7@smtp.kernel.org>
+Subject: + percpu_counter-extend-_limited_add-to-negative-amounts.patch added to mm-unstable branch
+Message-Id: <20231014230535.C33C8C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,14 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: add GFP_KERNEL to allocations in mas_expected_entries()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maple_tree-add-gfp_kernel-to-allocations-in-mas_expected_entries.patch
+     Subject: percpu_counter: extend _limited_add() to negative amounts
+has been added to the -mm mm-unstable branch.  Its filename is
+     percpu_counter-extend-_limited_add-to-negative-amounts.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-add-gfp_kernel-to-allocations-in-mas_expected_entries.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu_counter-extend-_limited_add-to-negative-amounts.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -60,218 +62,183 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: add GFP_KERNEL to allocations in mas_expected_entries()
-Date: Thu, 12 Oct 2023 11:52:33 -0400
+From: Hugh Dickins <hughd@google.com>
+Subject: percpu_counter: extend _limited_add() to negative amounts
+Date: Wed, 11 Oct 2023 21:40:09 -0700 (PDT)
 
-Users complained about OOM errors during fork without triggering
-compaction.  This can be fixed by modifying the flags used in
-mas_expected_entries() so that the compaction will be triggered in low
-memory situations.  Since mas_expected_entries() is only used during fork,
-the extra argument does not need to be passed through.
+Though tmpfs does not need it, percpu_counter_limited_add() can be twice
+as useful if it works sensibly with negative amounts (subs) - typically
+decrements towards a limit of 0 or nearby: as suggested by Dave Chinner.
 
-Additionally, the two test_maple_tree test cases and one benchmark test
-were altered to use the correct locking type so that allocations would not
-trigger sleeping and thus fail.  Testing was completed with lockdep atomic
-sleep detection.
+And in the course of that reworking, skip the percpu counter sum if it is
+already obvious that the limit would be passed: as suggested by Tim Chen.
 
-The additional locking change requires rwsem support additions to the
-tools/ directory through the use of pthreads pthread_rwlock_t.  With this
-change test_maple_tree works in userspace, as a module, and in-kernel.
+Extend the comment above __percpu_counter_limited_add(), defining the
+behaviour with positive and negative amounts, allowing negative limits,
+but not bothering about overflow beyond S64_MAX.
 
-Users may notice that the system gave up early on attempting to start new
-processes instead of attempting to reclaim memory.
-
-Link: https://lkml.kernel.org/r/20230915093243epcms1p46fa00bbac1ab7b7dca94acb66c44c456@epcms1p4
-Link: https://lkml.kernel.org/r/20231012155233.2272446-1-Liam.Howlett@oracle.com
-Fixes: 54a611b60590 ("Maple Tree: add new data structure")
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reviewed-by: Peng Zhang <zhangpeng.00@bytedance.com>
-Cc: <jason.sim@samsung.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/8f86083b-c452-95d4-365b-f16a2e4ebcd4@google.com
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Carlos Maiolino <cem@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Chuck Lever <chuck.lever@oracle.com>
+Cc: Darrick J. Wong <djwong@kernel.org>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Tim Chen <tim.c.chen@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c            |    2 -
- lib/test_maple_tree.c       |   35 ++++++++++++++++++++---------
- tools/include/linux/rwsem.h |   40 ++++++++++++++++++++++++++++++++++
- 3 files changed, 65 insertions(+), 12 deletions(-)
+ include/linux/percpu_counter.h |   11 +++++-
+ lib/percpu_counter.c           |   54 ++++++++++++++++++++++---------
+ 2 files changed, 49 insertions(+), 16 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-add-gfp_kernel-to-allocations-in-mas_expected_entries
-+++ a/lib/maple_tree.c
-@@ -5627,7 +5627,7 @@ int mas_expected_entries(struct ma_state
- 	/* Internal nodes */
- 	nr_nodes += DIV_ROUND_UP(nr_nodes, nonleaf_cap);
- 	/* Add working room for split (2 nodes) + new parents */
--	mas_node_count(mas, nr_nodes + 3);
-+	mas_node_count_gfp(mas, nr_nodes + 3, GFP_KERNEL);
+--- a/include/linux/percpu_counter.h~percpu_counter-extend-_limited_add-to-negative-amounts
++++ a/include/linux/percpu_counter.h
+@@ -198,14 +198,21 @@ static inline bool
+ percpu_counter_limited_add(struct percpu_counter *fbc, s64 limit, s64 amount)
+ {
+ 	unsigned long flags;
++	bool good = false;
+ 	s64 count;
  
- 	/* Detect if allocations run out */
- 	mas->mas_flags |= MA_STATE_PREALLOC;
---- a/lib/test_maple_tree.c~maple_tree-add-gfp_kernel-to-allocations-in-mas_expected_entries
-+++ a/lib/test_maple_tree.c
-@@ -9,6 +9,7 @@
- 
- #include <linux/maple_tree.h>
- #include <linux/module.h>
-+#include <linux/rwsem.h>
- 
- #define MTREE_ALLOC_MAX 0x2000000000000Ul
- #define CONFIG_MAPLE_SEARCH
-@@ -1841,17 +1842,21 @@ static noinline void __init check_forkin
- 	void *val;
- 	MA_STATE(mas, mt, 0, 0);
- 	MA_STATE(newmas, mt, 0, 0);
-+	struct rw_semaphore newmt_lock;
++	if (amount == 0)
++		return true;
 +
-+	init_rwsem(&newmt_lock);
- 
- 	for (i = 0; i <= nr_entries; i++)
- 		mtree_store_range(mt, i*10, i*10 + 5,
- 				  xa_mk_value(i), GFP_KERNEL);
- 
- 	mt_set_non_kernel(99999);
--	mt_init_flags(&newmt, MT_FLAGS_ALLOC_RANGE);
-+	mt_init_flags(&newmt, MT_FLAGS_ALLOC_RANGE | MT_FLAGS_LOCK_EXTERN);
-+	mt_set_external_lock(&newmt, &newmt_lock);
- 	newmas.tree = &newmt;
- 	mas_reset(&newmas);
- 	mas_reset(&mas);
--	mas_lock(&newmas);
-+	down_write(&newmt_lock);
- 	mas.index = 0;
- 	mas.last = 0;
- 	if (mas_expected_entries(&newmas, nr_entries)) {
-@@ -1866,10 +1871,10 @@ static noinline void __init check_forkin
- 	}
- 	rcu_read_unlock();
- 	mas_destroy(&newmas);
--	mas_unlock(&newmas);
- 	mt_validate(&newmt);
- 	mt_set_non_kernel(0);
--	mtree_destroy(&newmt);
-+	__mt_destroy(&newmt);
-+	up_write(&newmt_lock);
+ 	local_irq_save(flags);
+ 	count = fbc->count + amount;
+-	if (count <= limit)
++	if ((amount > 0 && count <= limit) ||
++	    (amount < 0 && count >= limit)) {
+ 		fbc->count = count;
++		good = true;
++	}
+ 	local_irq_restore(flags);
+-	return count <= limit;
++	return good;
  }
  
- static noinline void __init check_iteration(struct maple_tree *mt)
-@@ -1980,6 +1985,10 @@ static noinline void __init bench_forkin
- 	void *val;
- 	MA_STATE(mas, mt, 0, 0);
- 	MA_STATE(newmas, mt, 0, 0);
-+	struct rw_semaphore newmt_lock;
-+
-+	init_rwsem(&newmt_lock);
-+	mt_set_external_lock(&newmt, &newmt_lock);
+ /* non-SMP percpu_counter_add_local is the same with percpu_counter_add */
+--- a/lib/percpu_counter.c~percpu_counter-extend-_limited_add-to-negative-amounts
++++ a/lib/percpu_counter.c
+@@ -279,8 +279,16 @@ int __percpu_counter_compare(struct perc
+ EXPORT_SYMBOL(__percpu_counter_compare);
  
- 	for (i = 0; i <= nr_entries; i++)
- 		mtree_store_range(mt, i*10, i*10 + 5,
-@@ -1994,7 +2003,7 @@ static noinline void __init bench_forkin
- 		mas.index = 0;
- 		mas.last = 0;
- 		rcu_read_lock();
--		mas_lock(&newmas);
-+		down_write(&newmt_lock);
- 		if (mas_expected_entries(&newmas, nr_entries)) {
- 			printk("OOM!");
- 			BUG_ON(1);
-@@ -2005,11 +2014,11 @@ static noinline void __init bench_forkin
- 			mas_store(&newmas, val);
+ /*
+- * Compare counter, and add amount if the total is within limit.
+- * Return true if amount was added, false if it would exceed limit.
++ * Compare counter, and add amount if total is: less than or equal to limit if
++ * amount is positive, or greater than or equal to limit if amount is negative.
++ * Return true if amount is added, or false if total would be beyond the limit.
++ *
++ * Negative limit is allowed, but unusual.
++ * When negative amounts (subs) are given to percpu_counter_limited_add(),
++ * the limit would most naturally be 0 - but other limits are also allowed.
++ *
++ * Overflow beyond S64_MAX is not allowed for: counter, limit and amount
++ * are all assumed to be sane (far from S64_MIN and S64_MAX).
+  */
+ bool __percpu_counter_limited_add(struct percpu_counter *fbc,
+ 				  s64 limit, s64 amount, s32 batch)
+@@ -288,10 +296,10 @@ bool __percpu_counter_limited_add(struct
+ 	s64 count;
+ 	s64 unknown;
+ 	unsigned long flags;
+-	bool good;
++	bool good = false;
+ 
+-	if (amount > limit)
+-		return false;
++	if (amount == 0)
++		return true;
+ 
+ 	local_irq_save(flags);
+ 	unknown = batch * num_online_cpus();
+@@ -299,7 +307,8 @@ bool __percpu_counter_limited_add(struct
+ 
+ 	/* Skip taking the lock when safe */
+ 	if (abs(count + amount) <= batch &&
+-	    fbc->count + unknown <= limit) {
++	    ((amount > 0 && fbc->count + unknown <= limit) ||
++	     (amount < 0 && fbc->count - unknown >= limit))) {
+ 		this_cpu_add(*fbc->counters, amount);
+ 		local_irq_restore(flags);
+ 		return true;
+@@ -309,7 +318,19 @@ bool __percpu_counter_limited_add(struct
+ 	count = fbc->count + amount;
+ 
+ 	/* Skip percpu_counter_sum() when safe */
+-	if (count + unknown > limit) {
++	if (amount > 0) {
++		if (count - unknown > limit)
++			goto out;
++		if (count + unknown <= limit)
++			good = true;
++	} else {
++		if (count + unknown < limit)
++			goto out;
++		if (count - unknown >= limit)
++			good = true;
++	}
++
++	if (!good) {
+ 		s32 *pcount;
+ 		int cpu;
+ 
+@@ -317,15 +338,20 @@ bool __percpu_counter_limited_add(struct
+ 			pcount = per_cpu_ptr(fbc->counters, cpu);
+ 			count += *pcount;
  		}
- 		mas_destroy(&newmas);
--		mas_unlock(&newmas);
- 		rcu_read_unlock();
- 		mt_validate(&newmt);
- 		mt_set_non_kernel(0);
--		mtree_destroy(&newmt);
-+		__mt_destroy(&newmt);
-+		up_write(&newmt_lock);
++		if (amount > 0) {
++			if (count > limit)
++				goto out;
++		} else {
++			if (count < limit)
++				goto out;
++		}
++		good = true;
  	}
- }
- #endif
-@@ -2616,6 +2625,10 @@ static noinline void __init check_dup_ga
- 	void *tmp;
- 	MA_STATE(mas, mt, 0, 0);
- 	MA_STATE(newmas, &newmt, 0, 0);
-+	struct rw_semaphore newmt_lock;
-+
-+	init_rwsem(&newmt_lock);
-+	mt_set_external_lock(&newmt, &newmt_lock);
  
- 	if (!zero_start)
- 		i = 1;
-@@ -2625,9 +2638,9 @@ static noinline void __init check_dup_ga
- 		mtree_store_range(mt, i*10, (i+1)*10 - gap,
- 				  xa_mk_value(i), GFP_KERNEL);
- 
--	mt_init_flags(&newmt, MT_FLAGS_ALLOC_RANGE);
-+	mt_init_flags(&newmt, MT_FLAGS_ALLOC_RANGE | MT_FLAGS_LOCK_EXTERN);
- 	mt_set_non_kernel(99999);
--	mas_lock(&newmas);
-+	down_write(&newmt_lock);
- 	ret = mas_expected_entries(&newmas, nr_entries);
- 	mt_set_non_kernel(0);
- 	MT_BUG_ON(mt, ret != 0);
-@@ -2640,9 +2653,9 @@ static noinline void __init check_dup_ga
- 	}
- 	rcu_read_unlock();
- 	mas_destroy(&newmas);
--	mas_unlock(&newmas);
- 
--	mtree_destroy(&newmt);
-+	__mt_destroy(&newmt);
-+	up_write(&newmt_lock);
- }
- 
- /* Duplicate many sizes of trees.  Mainly to test expected entry values */
---- /dev/null
-+++ a/tools/include/linux/rwsem.h
-@@ -0,0 +1,40 @@
-+/* SPDX-License-Identifier: GPL-2.0+ */
-+#ifndef _TOOLS__RWSEM_H
-+#define _TOOLS__RWSEM_H
-+
-+#include <pthread.h>
-+
-+struct rw_semaphore {
-+	pthread_rwlock_t lock;
-+};
-+
-+static inline int init_rwsem(struct rw_semaphore *sem)
-+{
-+	return pthread_rwlock_init(&sem->lock, NULL);
-+}
-+
-+static inline int exit_rwsem(struct rw_semaphore *sem)
-+{
-+	return pthread_rwlock_destroy(&sem->lock);
-+}
-+
-+static inline int down_read(struct rw_semaphore *sem)
-+{
-+	return pthread_rwlock_rdlock(&sem->lock);
-+}
-+
-+static inline int up_read(struct rw_semaphore *sem)
-+{
-+	return pthread_rwlock_unlock(&sem->lock);
-+}
-+
-+static inline int down_write(struct rw_semaphore *sem)
-+{
-+	return pthread_rwlock_wrlock(&sem->lock);
-+}
-+
-+static inline int up_write(struct rw_semaphore *sem)
-+{
-+	return pthread_rwlock_unlock(&sem->lock);
-+}
-+#endif /* _TOOLS_RWSEM_H */
+-	good = count <= limit;
+-	if (good) {
+-		count = __this_cpu_read(*fbc->counters);
+-		fbc->count += count + amount;
+-		__this_cpu_sub(*fbc->counters, count);
+-	}
+-
++	count = __this_cpu_read(*fbc->counters);
++	fbc->count += count + amount;
++	__this_cpu_sub(*fbc->counters, count);
++out:
+ 	raw_spin_unlock(&fbc->lock);
+ 	local_irq_restore(flags);
+ 	return good;
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-maple_tree-add-gfp_kernel-to-allocations-in-mas_expected_entries.patch
-mmap-add-clarifying-comment-to-vma_merge-code.patch
-radix-tree-test-suite-fix-allocation-calculation-in-kmem_cache_alloc_bulk.patch
+shmem-shrink-shmem_inode_info-dir_offsets-in-a-union.patch
+shmem-remove-vma-arg-from-shmem_get_folio_gfp.patch
+shmem-factor-shmem_falloc_wait-out-of-shmem_fault.patch
+shmem-trivial-tidyups-removing-extra-blank-lines-etc.patch
+shmem-shmem_acct_blocks-and-shmem_inode_acct_blocks.patch
+shmem-move-memcg-charge-out-of-shmem_add_to_page_cache.patch
+shmem-_add_to_page_cache-before-shmem_inode_acct_blocks.patch
+shmempercpu_counter-add-_limited_addfbc-limit-amount.patch
+percpu_counter-extend-_limited_add-to-negative-amounts.patch
+hugetlbfs-drop-shared-numa-mempolicy-pretence.patch
+kernfs-drop-shared-numa-mempolicy-hooks.patch
+mempolicy-fix-migrate_pages2-syscall-return-nr_failed.patch
+mempolicy-trivia-delete-those-ancient-pr_debugs.patch
+mempolicy-trivia-slightly-more-consistent-naming.patch
+mempolicy-trivia-use-pgoff_t-in-shared-mempolicy-tree.patch
+mempolicy-mpol_shared_policy_init-without-pseudo-vma.patch
+mempolicy-remove-confusing-mpol_mf_lazy-dead-code.patch
+mm-add-page_rmappable_folio-wrapper.patch
+mempolicy-alloc_pages_mpol-for-numa-policy-without-vma.patch
+mempolicy-mmap_lock-is-not-needed-while-migrating-folios.patch
+mempolicy-migration-attempt-to-match-interleave-nodes.patch
 
