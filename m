@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3230DCDB482
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A87CBCDB474
 	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:11:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233777AbjJPWLF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Oct 2023 18:11:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45598 "EHLO
+        id S233494AbjJPWLG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Oct 2023 18:11:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45638 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233494AbjJPWLB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:11:01 -0400
+        with ESMTP id S233771AbjJPWLE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:11:04 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59BD3A2
-        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:10:59 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E185BC433C9;
-        Mon, 16 Oct 2023 22:10:58 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BCDE5D9
+        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:11:02 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56373C433C7;
+        Mon, 16 Oct 2023 22:11:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697494259;
-        bh=x6StKpqWpX4XvLlymVC3ORwp8QSGEgpnLaVSbQ8gA6Y=;
+        s=korg; t=1697494262;
+        bh=Ki53o/IvysrS/3Ugo9nvSiEdidYlCXfw0qokJb6DTFw=;
         h=Date:To:From:Subject:From;
-        b=GmMDBB7AKkUEcS+EBtNvVLVATEyitUsAZC/Br2kqBdEUYaa37w6lFZ1i4AYnmEFhC
-         cW+pyGxjjcf4HM/570lhMA11WytSZBnAjAAghmPfRkL1c/loG7nQv4hpj1J3j+IcJn
-         7PZYMG8bEIiPkdnqOeL3n4UI4dfZ40OCHhYVO+GU=
-Date:   Mon, 16 Oct 2023 15:10:58 -0700
+        b=YrJnVZccAmYsDxCBZLvZ0I0Rh6j8tI1A6qIMX68uzKIq5Le+eNM44ymU1JJx4PzD0
+         AREakYCtmpzEu5Njj5LFOfw8pc52DS41L5z9BPplBB463GtWyM0lmD1PxruJK/opZ7
+         MhO3YDNZhW0JEHxlK2hW1bYvA9YyOrSUsxJOZvPI=
+Date:   Mon, 16 Oct 2023 15:11:01 -0700
 To:     mm-commits@vger.kernel.org, p.raghav@samsung.com,
         konishi.ryusuke@gmail.com, agruenba@redhat.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + gfs2-convert-gfs2_getjdatabuf-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20231016221058.E185BC433C9@smtp.kernel.org>
+Subject: + nilfs2-convert-nilfs_mdt_freeze_buffer-to-use-a-folio.patch added to mm-unstable branch
+Message-Id: <20231016221102.56373C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: gfs2: convert gfs2_getjdatabuf to use a folio
+     Subject: nilfs2: convert nilfs_mdt_freeze_buffer to use a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     gfs2-convert-gfs2_getjdatabuf-to-use-a-folio.patch
+     nilfs2-convert-nilfs_mdt_freeze_buffer-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/gfs2-convert-gfs2_getjdatabuf-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-nilfs_mdt_freeze_buffer-to-use-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -61,57 +61,61 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: gfs2: convert gfs2_getjdatabuf to use a folio
-Date: Mon, 16 Oct 2023 21:10:55 +0100
+Subject: nilfs2: convert nilfs_mdt_freeze_buffer to use a folio
+Date: Mon, 16 Oct 2023 21:10:57 +0100
 
-Use the folio APIs, saving four hidden calls to compound_head().
+Remove a number of folio->page->folio conversions.
 
-Link: https://lkml.kernel.org/r/20231016201114.1928083-9-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231016201114.1928083-11-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Andreas Gruenbacher <agruenba@redhat.com>
+Acked-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Cc: Pankaj Raghav <p.raghav@samsung.com>
-Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/meta_io.c |   22 ++++++++--------------
- 1 file changed, 8 insertions(+), 14 deletions(-)
+ fs/nilfs2/mdt.c |   22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
---- a/fs/gfs2/meta_io.c~gfs2-convert-gfs2_getjdatabuf-to-use-a-folio
-+++ a/fs/gfs2/meta_io.c
-@@ -400,26 +400,20 @@ static struct buffer_head *gfs2_getjdata
+--- a/fs/nilfs2/mdt.c~nilfs2-convert-nilfs_mdt_freeze_buffer-to-use-a-folio
++++ a/fs/nilfs2/mdt.c
+@@ -560,17 +560,19 @@ int nilfs_mdt_freeze_buffer(struct inode
  {
- 	struct address_space *mapping = ip->i_inode.i_mapping;
- 	struct gfs2_sbd *sdp = GFS2_SB(&ip->i_inode);
+ 	struct nilfs_shadow_map *shadow = NILFS_MDT(inode)->mi_shadow;
+ 	struct buffer_head *bh_frozen;
 -	struct page *page;
 +	struct folio *folio;
- 	struct buffer_head *bh;
- 	unsigned int shift = PAGE_SHIFT - sdp->sd_sb.sb_bsize_shift;
- 	unsigned long index = blkno >> shift; /* convert block to page */
- 	unsigned int bufnum = blkno - (index << shift);
+ 	int blkbits = inode->i_blkbits;
  
--	page = find_get_page_flags(mapping, index, FGP_LOCK|FGP_ACCESSED);
+-	page = grab_cache_page(shadow->inode->i_mapping, bh->b_folio->index);
 -	if (!page)
-+	folio = __filemap_get_folio(mapping, index, FGP_LOCK | FGP_ACCESSED, 0);
+-		return -ENOMEM;
++	folio = filemap_grab_folio(shadow->inode->i_mapping,
++			bh->b_folio->index);
 +	if (IS_ERR(folio))
- 		return NULL;
--	if (!page_has_buffers(page)) {
--		unlock_page(page);
--		put_page(page);
--		return NULL;
--	}
--	/* Locate header for our buffer within our page */
--	for (bh = page_buffers(page); bufnum--; bh = bh->b_this_page)
--		/* Do nothing */;
--	get_bh(bh);
++		return PTR_ERR(folio);
++
++	bh_frozen = folio_buffers(folio);
++	if (!bh_frozen)
++		bh_frozen = folio_create_empty_buffers(folio, 1 << blkbits, 0);
+ 
+-	if (!page_has_buffers(page))
+-		create_empty_buffers(page, 1 << blkbits, 0);
+-
+-	bh_frozen = nilfs_page_get_nth_block(page, bh_offset(bh) >> blkbits);
++	bh_frozen = get_nth_bh(bh_frozen, bh_offset(bh) >> blkbits);
+ 
+ 	if (!buffer_uptodate(bh_frozen))
+ 		nilfs_copy_buffer(bh_frozen, bh);
+@@ -582,8 +584,8 @@ int nilfs_mdt_freeze_buffer(struct inode
+ 		brelse(bh_frozen); /* already frozen */
+ 	}
+ 
 -	unlock_page(page);
 -	put_page(page);
-+	bh = folio_buffers(folio);
-+	if (bh)
-+		bh = get_nth_bh(bh, bufnum);
 +	folio_unlock(folio);
 +	folio_put(folio);
- 	return bh;
+ 	return 0;
  }
  
 _
