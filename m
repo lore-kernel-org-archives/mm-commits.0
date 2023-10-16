@@ -2,34 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38786CDB474
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:27:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 059C5CDB465
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:30:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232577AbjJPW11 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Oct 2023 18:27:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44116 "EHLO
+        id S232577AbjJPWaI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Oct 2023 18:30:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53692 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229943AbjJPW11 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:27:27 -0400
+        with ESMTP id S229943AbjJPWaI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:30:08 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BCB24AC
-        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:27:25 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56F6EC433C7;
-        Mon, 16 Oct 2023 22:27:25 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C18F9A1
+        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:30:06 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51676C433C7;
+        Mon, 16 Oct 2023 22:30:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697495245;
-        bh=OYosnyF77dd0C/fxbca0mUK3leqwkp5YZP2fGozsgfY=;
+        s=korg; t=1697495406;
+        bh=nBHOYjOT8E+Sua1srtR/AnS0330bJhF2CKq4PXBzigA=;
         h=Date:To:From:Subject:From;
-        b=aS4L9OFFeGtrsLzr0hZHP5iBYkTbx1Ea7JQrAcCVltkaAzN3dXZWhZYYVCKiVdgVd
-         bhUryKVikIznx6wSOgBIMuB7sUZuDySE3oKlT390xFAWLvzSmau9oCY2NzL2vpBEcd
-         Fr2bUbvxgByr9UTuG3cg8CCpEal3P7GumYYzIeTs=
-Date:   Mon, 16 Oct 2023 15:27:23 -0700
-To:     mm-commits@vger.kernel.org, glider@google.com, elver@google.com,
-        dvyukov@google.com, pedro.falcato@gmail.com,
-        akpm@linux-foundation.org
+        b=nnpPlm5AynG/7WHApLkwtKdV4cgTjpWvWnssdwa20nwrdJ7Ixc8VC4parNoS5HO9X
+         4gwjetJZxTcESI1Gj7awT4wqxQFQ0v/CuOK/hEj5g2+zsNY6NDtuoRQ6erUavoxUgE
+         ZNl03347ppTBcGqjtcYgHxur8Hr/Bcx03RRdDaXQ=
+Date:   Mon, 16 Oct 2023 15:30:05 -0700
+To:     mm-commits@vger.kernel.org, surenb@google.com, mhocko@suse.com,
+        brauner@kernel.org, kasong@tencent.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmsan-panic-on-failure-to-allocate-early-boot-metadata.patch added to mm-unstable branch
-Message-Id: <20231016222725.56F6EC433C7@smtp.kernel.org>
+Subject: + mm-oom_killer-simplify-oom-killer-info-dump-helper.patch added to mm-unstable branch
+Message-Id: <20231016223006.51676C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kmsan: panic on failure to allocate early boot metadata
+     Subject: mm/oom_killer: simplify OOM killer info dump helper
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kmsan-panic-on-failure-to-allocate-early-boot-metadata.patch
+     mm-oom_killer-simplify-oom-killer-info-dump-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmsan-panic-on-failure-to-allocate-early-boot-metadata.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-oom_killer-simplify-oom-killer-info-dump-helper.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,62 +59,97 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Pedro Falcato <pedro.falcato@gmail.com>
-Subject: mm: kmsan: panic on failure to allocate early boot metadata
-Date: Mon, 16 Oct 2023 16:34:46 +0100
+From: Kairui Song <kasong@tencent.com>
+Subject: mm/oom_killer: simplify OOM killer info dump helper
+Date: Mon, 16 Oct 2023 19:31:03 +0800
 
-Given large enough allocations and a machine with low enough memory (i.e a
-default QEMU VM), it's entirely possible that
-kmsan_init_alloc_meta_for_range's shadow+origin allocation fails.
+There is only one caller wants to dump the kill victim info, so just let
+it call the standalone helper, no need to make the generic info dump
+helper take an extra argument for that.
 
-Instead of eating a NULL deref kernel oops, check explicitly for
-memblock_alloc() failure and panic with a nice error message.
+Result of bloat-o-meter:
+./scripts/bloat-o-meter ./mm/oom_kill.old.o ./mm/oom_kill.o
+add/remove: 0/0 grow/shrink: 1/2 up/down: 131/-142 (-11)
+Function                                     old     new   delta
+oom_kill_process                             412     543    +131
+out_of_memory                               1422    1418      -4
+dump_header                                  562     424    -138
+Total: Before=21514, After=21503, chg -0.05%
 
-Alexander Potapenko said:
-
-For posterity, it is generally quite important for the allocated shadow
-and origin to be contiguous, otherwise an unaligned memory write may
-result in memory corruption (the corresponding unaligned shadow write will
-be assuming that shadow pages are adjacent).  So instead of panicking we
-could have split the range into smaller ones until the allocation
-succeeds, but that would've led to hard-to-debug problems in the future.
-
-Link: https://lkml.kernel.org/r/20231016153446.132763-1-pedro.falcato@gmail.com
-Signed-off-by: Pedro Falcato <pedro.falcato@gmail.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Marco Elver <elver@google.com>
+Link: https://lkml.kernel.org/r/20231016113103.86477-1-ryncsn@gmail.com
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/shadow.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/oom_kill.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/mm/kmsan/shadow.c~mm-kmsan-panic-on-failure-to-allocate-early-boot-metadata
-+++ a/mm/kmsan/shadow.c
-@@ -285,12 +285,17 @@ void __init kmsan_init_alloc_meta_for_ra
- 	size = PAGE_ALIGN((u64)end - (u64)start);
- 	shadow = memblock_alloc(size, PAGE_SIZE);
- 	origin = memblock_alloc(size, PAGE_SIZE);
-+
-+	if (!shadow || !origin)
-+		panic("%s: Failed to allocate metadata memory for early boot range of size %llu",
-+		      __func__, size);
-+
- 	for (u64 addr = 0; addr < size; addr += PAGE_SIZE) {
- 		page = virt_to_page_or_null((char *)start + addr);
--		shadow_p = virt_to_page_or_null((char *)shadow + addr);
-+		shadow_p = virt_to_page((char *)shadow + addr);
- 		set_no_shadow_origin_page(shadow_p);
- 		shadow_page_for(page) = shadow_p;
--		origin_p = virt_to_page_or_null((char *)origin + addr);
-+		origin_p = virt_to_page((char *)origin + addr);
- 		set_no_shadow_origin_page(origin_p);
- 		origin_page_for(page) = origin_p;
+--- a/mm/oom_kill.c~mm-oom_killer-simplify-oom-killer-info-dump-helper
++++ a/mm/oom_kill.c
+@@ -437,7 +437,7 @@ static void dump_tasks(struct oom_contro
  	}
+ }
+ 
+-static void dump_oom_summary(struct oom_control *oc, struct task_struct *victim)
++static void dump_oom_victim(struct oom_control *oc, struct task_struct *victim)
+ {
+ 	/* one line summary of the oom killer context. */
+ 	pr_info("oom-kill:constraint=%s,nodemask=%*pbl",
+@@ -449,7 +449,7 @@ static void dump_oom_summary(struct oom_
+ 		from_kuid(&init_user_ns, task_uid(victim)));
+ }
+ 
+-static void dump_header(struct oom_control *oc, struct task_struct *p)
++static void dump_header(struct oom_control *oc)
+ {
+ 	pr_warn("%s invoked oom-killer: gfp_mask=%#x(%pGg), order=%d, oom_score_adj=%hd\n",
+ 		current->comm, oc->gfp_mask, &oc->gfp_mask, oc->order,
+@@ -467,8 +467,6 @@ static void dump_header(struct oom_contr
+ 	}
+ 	if (sysctl_oom_dump_tasks)
+ 		dump_tasks(oc);
+-	if (p)
+-		dump_oom_summary(oc, p);
+ }
+ 
+ /*
+@@ -1029,8 +1027,10 @@ static void oom_kill_process(struct oom_
+ 	}
+ 	task_unlock(victim);
+ 
+-	if (__ratelimit(&oom_rs))
+-		dump_header(oc, victim);
++	if (__ratelimit(&oom_rs)) {
++		dump_header(oc);
++		dump_oom_victim(oc, victim);
++	}
+ 
+ 	/*
+ 	 * Do we need to kill the entire memory cgroup?
+@@ -1072,7 +1072,7 @@ static void check_panic_on_oom(struct oo
+ 	/* Do not panic for oom kills triggered by sysrq */
+ 	if (is_sysrq_oom(oc))
+ 		return;
+-	dump_header(oc, NULL);
++	dump_header(oc);
+ 	panic("Out of memory: %s panic_on_oom is enabled\n",
+ 		sysctl_panic_on_oom == 2 ? "compulsory" : "system-wide");
+ }
+@@ -1155,7 +1155,7 @@ bool out_of_memory(struct oom_control *o
+ 	select_bad_process(oc);
+ 	/* Found nothing?!?! */
+ 	if (!oc->chosen) {
+-		dump_header(oc, NULL);
++		dump_header(oc);
+ 		pr_warn("Out of memory and no killable processes...\n");
+ 		/*
+ 		 * If we got here due to an actual allocation at the
 _
 
-Patches currently in -mm which might be from pedro.falcato@gmail.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-mm-kmsan-panic-on-failure-to-allocate-early-boot-metadata.patch
+mm-oom_killer-simplify-oom-killer-info-dump-helper.patch
 
