@@ -2,121 +2,95 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52B95CDB474
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:17:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6561ECDB465
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:24:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231221AbjJPWRP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Oct 2023 18:17:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36432 "EHLO
+        id S232985AbjJPWYu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Oct 2023 18:24:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33010 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229943AbjJPWRP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:17:15 -0400
+        with ESMTP id S229943AbjJPWYt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:24:49 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2A3395
-        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:17:13 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45541C433C7;
-        Mon, 16 Oct 2023 22:17:13 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1EA2F9B
+        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:24:48 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD13BC433C7;
+        Mon, 16 Oct 2023 22:24:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697494633;
-        bh=2yx7zO1JnP0SwgXxEfZF4Rucd9On/ZPBD1mt/o7xfNE=;
+        s=korg; t=1697495087;
+        bh=WcVE8yyJcEXti/hXCV2936miKvhj3h/0SSSv4bhKryY=;
         h=Date:To:From:Subject:From;
-        b=0TlcykedED1br1QN7k/h6IS0zprn7k35n35LB+KumT9jj6kgF7gg/IInXEHIDGasz
-         7ASrc8/q+51H39uP9BADUrYsfNPwnEvj6FPWkE4e07bgqfPSlkLdTh/z+cVOn6quyw
-         yFWEhuZCtd2lvuHDWKLU1SUwcI5Jv/tZ4Z5AIAWw=
-Date:   Mon, 16 Oct 2023 15:17:12 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        viro@zeniv.linux.org.uk, muchun.song@linux.dev,
-        mike.kravetz@oracle.com, luto@kernel.org, jack@suse.cz,
-        hughd@google.com, brauner@kernel.org, lstoakes@gmail.com,
+        b=0bnuxrpqrJvENi/ZDLs3teo3W7VABk2FmegPdwfq5nTx2HaNbzOWtzdvzVZFqpZoJ
+         3GkzkCXtMs2DL+0YQjGp6QC9gAxKmGHgPRbWK+sq88fSeuZ4dLOfuKWywPPsAHXwXp
+         iNIyyqnes1VlmuW55Rqxj0TsWNZCZTk7XN5UiLJQ=
+Date:   Mon, 16 Oct 2023 15:24:47 -0700
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
+        willy@infradead.org, david@redhat.com,
+        baolin.wang@linux.alibaba.com, ziy@nvidia.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-perform-the-mapping_map_writable-check-after-call_mmap-fix.patch added to mm-unstable branch
-Message-Id: <20231016221713.45541C433C7@smtp.kernel.org>
+Subject: [to-be-updated] mm-migrate-correct-nr_failed-in-migrate_pages_sync.patch removed from -mm tree
+Message-Id: <20231016222447.AD13BC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm: perform the mapping_map_writable() check after call_mmap()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-perform-the-mapping_map_writable-check-after-call_mmap-fix.patch
+The quilt patch titled
+     Subject: mm/migrate: correct nr_failed in migrate_pages_sync()
+has been removed from the -mm tree.  Its filename was
+     mm-migrate-correct-nr_failed-in-migrate_pages_sync.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-perform-the-mapping_map_writable-check-after-call_mmap-fix.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm: perform the mapping_map_writable() check after call_mmap()
-Date: Mon, 16 Oct 2023 17:17:13 +0100
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/migrate: correct nr_failed in migrate_pages_sync()
+Date: Mon, 9 Oct 2023 16:32:31 -0400
 
-Do not set writable_file_mapping in an instance where it is not appropriate
-to do so.
+In the upstream tree, large folios can be migrated via move_pages()
+syscall and there is no VM_BUG_ON in do_move_pages_to_node() but pages
+left in the source page list will not be returned to LRU lists.  This is
+from my code inspection and I have not reproduced it on upstream tree yet.
 
-Link: https://lkml.kernel.org/r/c9eb4cc6-7db4-4c2b-838d-43a0b319a4f0@lucifer.local
-Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jan Kara <jack@suse.cz>
+nr_failed was missing the rc value from migrate_pages_batch() and can
+cause a mismatch between migrate_pages() return value and the number of
+not migrated pages, i.e., when the return value of migrate_pages() is 0,
+there are still pages left in the from page list.  It will happen when a
+non-PMD THP large folio fails to migrate due to -ENOMEM and is split
+successfully but not all the split pages are not migrated,
+migrate_pages_batch() would return non-zero, but astats.nr_thp_split =
+0.  nr_failed would be 0 and returned to the caller of migrate_pages(),
+but the not migrated pages are left in the from page list without being
+added back to LRU lists.
+
+Link: https://lkml.kernel.org/r/20231009203231.1715845-2-zi.yan@sent.com
+Fixes: 2ef7dbb26990 ("migrate_pages: try migrate in batch asynchronously firstly")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Huang Ying <ying.huang@intel.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mmap.c~mm-perform-the-mapping_map_writable-check-after-call_mmap-fix
-+++ a/mm/mmap.c
-@@ -2923,10 +2923,8 @@ cannot_expand:
- 	mm->map_count++;
- 	if (vma->vm_file) {
- 		i_mmap_lock_write(vma->vm_file->f_mapping);
--		if (vma_is_shared_maywrite(vma)) {
-+		if (vma_is_shared_maywrite(vma))
- 			mapping_allow_writable(vma->vm_file->f_mapping);
--			writable_file_mapping = true;
--		}
- 
- 		flush_dcache_mmap_lock(vma->vm_file->f_mapping);
- 		vma_interval_tree_insert(vma, &vma->vm_file->f_mapping->i_mmap);
+--- a/mm/migrate.c~mm-migrate-correct-nr_failed-in-migrate_pages_sync
++++ a/mm/migrate.c
+@@ -1834,7 +1834,7 @@ static int migrate_pages_sync(struct lis
+ 		return rc;
+ 	}
+ 	stats->nr_thp_failed += astats.nr_thp_split;
+-	nr_failed += astats.nr_thp_split;
++	nr_failed += rc + astats.nr_thp_split;
+ 	/*
+ 	 * Fall back to migrate all failed folios one by one synchronously. All
+ 	 * failed folios except split THPs will be retried, so their failure
 _
 
-Patches currently in -mm which might be from lstoakes@gmail.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-filemap-clarify-filemap_fault-comments-for-not-uptodate-case.patch
-mm-filemap-clarify-filemap_fault-comments-for-not-uptodate-case-fix.patch
-mm-make-__access_remote_vm-static.patch
-mm-gup-explicitly-define-and-check-internal-gup-flags-disallow-foll_touch.patch
-mm-gup-make-failure-to-pin-an-error-if-foll_nowait-not-specified.patch
-mm-gup-adapt-get_user_page_vma_remote-to-never-return-null.patch
-mm-mprotect-allow-unfaulted-vmas-to-be-unaccounted-on-mprotect.patch
-mm-move-vma_policy-and-anon_vma_name-decls-to-mm_typesh.patch
-mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al.patch
-mm-make-vma_merge-and-split_vma-internal.patch
-mm-abstract-merge-for-new-vmas-into-vma_merge_new_vma.patch
-mm-abstract-vma-merge-and-extend-into-vma_merge_extend-helper.patch
-mm-drop-the-assumption-that-vm_shared-always-implies-writable.patch
-mm-update-memfd-seal-write-check-to-include-f_seal_write.patch
-mm-perform-the-mapping_map_writable-check-after-call_mmap.patch
-mm-perform-the-mapping_map_writable-check-after-call_mmap-fix.patch
 
