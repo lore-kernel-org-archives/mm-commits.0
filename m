@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85F13CDB482
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:11:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3029CDB465
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:11:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233728AbjJPWLY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Oct 2023 18:11:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48060 "EHLO
+        id S234226AbjJPWLj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Oct 2023 18:11:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48070 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234152AbjJPWLW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:11:22 -0400
+        with ESMTP id S231955AbjJPWLY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:11:24 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E30FD9
-        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:11:21 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BFF2C433CA;
-        Mon, 16 Oct 2023 22:11:20 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD4B29B
+        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:11:22 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A49BC433C8;
+        Mon, 16 Oct 2023 22:11:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697494280;
-        bh=yJMbVxBm8lCHpvPvTdlz6j6oXy1Cqv+ZXeJbFJ+9f2g=;
+        s=korg; t=1697494282;
+        bh=M71TPk1E7o2L9Si7T/pURDALQ/j8xuQ5aoN9waviV9I=;
         h=Date:To:From:Subject:From;
-        b=qUscTJTk0/ZT6zVwqVA0Vern2fkbCCnxVpfiIGB/NKo7oWbvbwHeGXsMlVYmQZmoE
-         uuqPopBahvONIBNWAq+ovzUXqPSioBFBdnAl4rAHZhVGs/WLX42p4sFcvrY/M3Ebzb
-         +qk3VRtum3x+ek5cy9QrdQOymnojfAOBv9+dUu00=
-Date:   Mon, 16 Oct 2023 15:11:20 -0700
+        b=wEsG0CUz3Wj0aAH5hgO9HUuhOvLHi4JqAmvxFey6NWfPOJEYoY9HOI8aWrERiMOd1
+         n+seMwfQXXP+RtsQ8zLQt61ssYZKJZK5AaRtJGogW/WvIRdFIMjXSmqOmt1RzlQmOt
+         NjKW3Pe+PmSbuMy8aHV+BE4BXuVD37dAsPQV9N30=
+Date:   Mon, 16 Oct 2023 15:11:21 -0700
 To:     mm-commits@vger.kernel.org, p.raghav@samsung.com,
         konishi.ryusuke@gmail.com, agruenba@redhat.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ntfs3-convert-ntfs_zero_range-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20231016221120.9BFF2C433CA@smtp.kernel.org>
+Subject: + ocfs2-convert-ocfs2_map_page_blocks-to-use-a-folio.patch added to mm-unstable branch
+Message-Id: <20231016221122.6A49BC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ntfs3: convert ntfs_zero_range() to use a folio
+     Subject: ocfs2: convert ocfs2_map_page_blocks to use a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     ntfs3-convert-ntfs_zero_range-to-use-a-folio.patch
+     ocfs2-convert-ocfs2_map_page_blocks-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ntfs3-convert-ntfs_zero_range-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-convert-ocfs2_map_page_blocks-to-use-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -61,12 +61,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: ntfs3: convert ntfs_zero_range() to use a folio
-Date: Mon, 16 Oct 2023 21:11:07 +0100
+Subject: ocfs2: convert ocfs2_map_page_blocks to use a folio
+Date: Mon, 16 Oct 2023 21:11:08 +0100
 
-Use the folio API throughout, saving six hidden calls to compound_head().
+Convert the page argument to a folio and then use the folio APIs
+throughout.  Replaces three hidden calls to compound_head() with one
+explicit one.
 
-Link: https://lkml.kernel.org/r/20231016201114.1928083-21-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231016201114.1928083-22-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Cc: Pankaj Raghav <p.raghav@samsung.com>
@@ -74,79 +76,76 @@ Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs3/file.c |   33 +++++++++++++++++----------------
- 1 file changed, 17 insertions(+), 16 deletions(-)
+ fs/ocfs2/aops.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
---- a/fs/ntfs3/file.c~ntfs3-convert-ntfs_zero_range-to-use-a-folio
-+++ a/fs/ntfs3/file.c
-@@ -187,7 +187,7 @@ static int ntfs_zero_range(struct inode
- 	struct buffer_head *head, *bh;
- 	u32 bh_next, bh_off, to;
- 	sector_t iblock;
--	struct page *page;
-+	struct folio *folio;
+--- a/fs/ocfs2/aops.c~ocfs2-convert-ocfs2_map_page_blocks-to-use-a-folio
++++ a/fs/ocfs2/aops.c
+@@ -568,10 +568,10 @@ static void ocfs2_clear_page_regions(str
+  * read-in the blocks at the tail of our file. Avoid reading them by
+  * testing i_size against each block offset.
+  */
+-static int ocfs2_should_read_blk(struct inode *inode, struct page *page,
++static int ocfs2_should_read_blk(struct inode *inode, struct folio *folio,
+ 				 unsigned int block_start)
+ {
+-	u64 offset = page_offset(page) + block_start;
++	u64 offset = folio_pos(folio) + block_start;
  
- 	for (; idx < idx_end; idx += 1, from = 0) {
- 		page_off = (loff_t)idx << PAGE_SHIFT;
-@@ -195,16 +195,17 @@ static int ntfs_zero_range(struct inode
- 						       PAGE_SIZE;
- 		iblock = page_off >> inode->i_blkbits;
+ 	if (ocfs2_sparse_alloc(OCFS2_SB(inode->i_sb)))
+ 		return 1;
+@@ -593,15 +593,16 @@ int ocfs2_map_page_blocks(struct page *p
+ 			  struct inode *inode, unsigned int from,
+ 			  unsigned int to, int new)
+ {
++	struct folio *folio = page_folio(page);
+ 	int ret = 0;
+ 	struct buffer_head *head, *bh, *wait[2], **wait_bh = wait;
+ 	unsigned int block_end, block_start;
+ 	unsigned int bsize = i_blocksize(inode);
  
--		page = find_or_create_page(mapping, idx,
--					   mapping_gfp_constraint(mapping,
--								  ~__GFP_FS));
--		if (!page)
--			return -ENOMEM;
-+		folio = __filemap_get_folio(mapping, idx,
-+				FGP_LOCK | FGP_ACCESSED | FGP_CREAT,
-+				mapping_gfp_constraint(mapping, ~__GFP_FS));
-+		if (IS_ERR(folio))
-+			return PTR_ERR(folio);
-+
-+		head = folio_buffers(folio);
-+		if (!head)
-+			head = folio_create_empty_buffers(folio, blocksize, 0);
+-	if (!page_has_buffers(page))
+-		create_empty_buffers(page, bsize, 0);
++	head = folio_buffers(folio);
++	if (!head)
++		head = folio_create_empty_buffers(folio, bsize, 0);
  
--		if (!page_has_buffers(page))
--			create_empty_buffers(page, blocksize, 0);
--
--		bh = head = page_buffers(page);
-+		bh = head;
- 		bh_off = 0;
- 		do {
- 			bh_next = bh_off + blocksize;
-@@ -220,14 +221,14 @@ static int ntfs_zero_range(struct inode
- 			}
- 
- 			/* Ok, it's mapped. Make sure it's up-to-date. */
+-	head = page_buffers(page);
+ 	for (bh = head, block_start = 0; bh != head || !block_start;
+ 	     bh = bh->b_this_page, block_start += bsize) {
+ 		block_end = block_start + bsize;
+@@ -613,7 +614,7 @@ int ocfs2_map_page_blocks(struct page *p
+ 		 * they may belong to unallocated clusters.
+ 		 */
+ 		if (block_start >= to || block_end <= from) {
 -			if (PageUptodate(page))
 +			if (folio_test_uptodate(folio))
  				set_buffer_uptodate(bh);
+ 			continue;
+ 		}
+@@ -630,11 +631,11 @@ int ocfs2_map_page_blocks(struct page *p
+ 			clean_bdev_bh_alias(bh);
+ 		}
  
- 			if (!buffer_uptodate(bh)) {
- 				err = bh_read(bh, 0);
- 				if (err < 0) {
--					unlock_page(page);
--					put_page(page);
-+					folio_unlock(folio);
-+					folio_put(folio);
- 					goto out;
- 				}
- 			}
-@@ -237,10 +238,10 @@ static int ntfs_zero_range(struct inode
- 		} while (bh_off = bh_next, iblock += 1,
- 			 head != (bh = bh->b_this_page));
+-		if (PageUptodate(page)) {
++		if (folio_test_uptodate(folio)) {
+ 			set_buffer_uptodate(bh);
+ 		} else if (!buffer_uptodate(bh) && !buffer_delay(bh) &&
+ 			   !buffer_new(bh) &&
+-			   ocfs2_should_read_blk(inode, page, block_start) &&
++			   ocfs2_should_read_blk(inode, folio, block_start) &&
+ 			   (block_start < from || block_end > to)) {
+ 			bh_read_nowait(bh, 0);
+ 			*wait_bh++=bh;
+@@ -668,7 +669,7 @@ int ocfs2_map_page_blocks(struct page *p
+ 		if (block_start >= to)
+ 			break;
  
--		zero_user_segment(page, from, to);
-+		folio_zero_segment(folio, from, to);
+-		zero_user(page, block_start, bh->b_size);
++		folio_zero_range(folio, block_start, bh->b_size);
+ 		set_buffer_uptodate(bh);
+ 		mark_buffer_dirty(bh);
  
--		unlock_page(page);
--		put_page(page);
-+		folio_unlock(folio);
-+		folio_put(folio);
- 		cond_resched();
- 	}
- out:
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
