@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06C60CDB474
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:10:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 102A6CDB465
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:10:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232716AbjJPWKs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Oct 2023 18:10:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59450 "EHLO
+        id S229943AbjJPWKt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Oct 2023 18:10:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59486 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232812AbjJPWKr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:10:47 -0400
+        with ESMTP id S232812AbjJPWKt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:10:49 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 98D7AA1
-        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:10:45 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16F99C433C7;
-        Mon, 16 Oct 2023 22:10:45 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57CF2B4
+        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:10:47 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7E05C433C9;
+        Mon, 16 Oct 2023 22:10:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697494245;
-        bh=h/PGb9UQ2bo2lhd/xLB9vEn+soYl9Qhsd9clKYHMB+s=;
+        s=korg; t=1697494247;
+        bh=NGyd/4KENkeMgDzj1+rzPXrOq7u+LrVkhE94zSaL0bM=;
         h=Date:To:From:Subject:From;
-        b=MB14OXxQuIyuFWjElWfPf1Tmd6gzi0rUHUfXMfebPSW1dNpalFXnXMoNDak9u2B+N
-         ImYZluFL7O9IU7OZhWT1/oldkQ+m4t3DnEJh8d2IsKA2ic++nOdMEJOehotUjkiVZL
-         J1Mlyhx/yc3Xnsjq930lvZ0GPLqdauMGijcDW17k=
-Date:   Mon, 16 Oct 2023 15:10:44 -0700
+        b=k+diPZgj6mTA8DEQlb9hg1sNX5fie4WqeYh8ej/FUTyfa5ZlqqvJR9nzEiMouVlEJ
+         7k2B/FQ+EtzgWzVVbCz65yrqzFk8iArOMgRzKS5exa37N/AuVtGdYxkAK4X2bCKKMr
+         UxY+A2sGZBKP+658bVMUVo9AD/1d0Icirp3Pq9Ec=
+Date:   Mon, 16 Oct 2023 15:10:46 -0700
 To:     mm-commits@vger.kernel.org, p.raghav@samsung.com,
         konishi.ryusuke@gmail.com, agruenba@redhat.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + buffer-return-bool-from-grow_dev_folio.patch added to mm-unstable branch
-Message-Id: <20231016221045.16F99C433C7@smtp.kernel.org>
+Subject: + buffer-make-folio_create_empty_buffers-return-a-buffer_head.patch added to mm-unstable branch
+Message-Id: <20231016221046.E7E05C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: buffer: return bool from grow_dev_folio()
+     Subject: buffer: make folio_create_empty_buffers() return a buffer_head
 has been added to the -mm mm-unstable branch.  Its filename is
-     buffer-return-bool-from-grow_dev_folio.patch
+     buffer-make-folio_create_empty_buffers-return-a-buffer_head.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buffer-return-bool-from-grow_dev_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buffer-make-folio_create_empty_buffers-return-a-buffer_head.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -61,141 +61,93 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: buffer: return bool from grow_dev_folio()
-Date: Mon, 16 Oct 2023 21:10:48 +0100
+Subject: buffer: make folio_create_empty_buffers() return a buffer_head
+Date: Mon, 16 Oct 2023 21:10:49 +0100
 
-Patch series "Finish the create_empty_buffers() transition", v2.
+Almost all callers want to know the first BH that was allocated for this
+folio.  We already have that handy, so return it.
 
-Pankaj recently added folio_create_empty_buffers() as the folio equivalent
-to create_empty_buffers().  This patch set finishes the conversion by
-first converting all remaining filesystems to call
-folio_create_empty_buffers(), then renaming it back to
-create_empty_buffers().  I took the opportunity to make a few
-simplifications like making folio_create_empty_buffers() return the head
-buffer and extracting get_nth_bh() from nilfs2.
-
-A few of the patches in this series aren't directly related to
-create_empty_buffers(), but I saw them while I was working on this and
-thought they'd be easy enough to add to this series.  Compile-tested only,
-other than ext4.
-
-
-This patch (of 27):
-
-Rename grow_dev_page() to grow_dev_folio() and make it return a bool. 
-Document what that bool means; it's more subtle than it first appears. 
-Also rename the 'failed' label to 'unlock' beacuse it's not exactly
-'failed'.  It just hasn't succeeded.
-
-Link: https://lkml.kernel.org/r/20231016201114.1928083-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20231016201114.1928083-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231016201114.1928083-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Pankaj Raghav <p.raghav@samsung.com>
+Reviewed-by: Pankaj Raghav <p.raghav@samsung.com>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |   39 ++++++++++++++++++++++-----------------
- 1 file changed, 22 insertions(+), 17 deletions(-)
+ fs/buffer.c                 |   24 +++++++++++++-----------
+ include/linux/buffer_head.h |    4 ++--
+ 2 files changed, 15 insertions(+), 13 deletions(-)
 
---- a/fs/buffer.c~buffer-return-bool-from-grow_dev_folio
+--- a/fs/buffer.c~buffer-make-folio_create_empty_buffers-return-a-buffer_head
 +++ a/fs/buffer.c
-@@ -1024,24 +1024,26 @@ static sector_t folio_init_buffers(struc
+@@ -1646,8 +1646,8 @@ EXPORT_SYMBOL(block_invalidate_folio);
+  * block_dirty_folio() via private_lock.  try_to_free_buffers
+  * is already excluded via the folio lock.
+  */
+-void folio_create_empty_buffers(struct folio *folio, unsigned long blocksize,
+-				unsigned long b_state)
++struct buffer_head *folio_create_empty_buffers(struct folio *folio,
++		unsigned long blocksize, unsigned long b_state)
+ {
+ 	struct buffer_head *bh, *head, *tail;
+ 	gfp_t gfp = GFP_NOFS | __GFP_ACCOUNT | __GFP_NOFAIL;
+@@ -1674,6 +1674,8 @@ void folio_create_empty_buffers(struct f
+ 	}
+ 	folio_attach_private(folio, head);
+ 	spin_unlock(&folio->mapping->private_lock);
++
++	return head;
+ }
+ EXPORT_SYMBOL(folio_create_empty_buffers);
+ 
+@@ -1775,13 +1777,15 @@ static struct buffer_head *folio_create_
+ 						struct inode *inode,
+ 						unsigned int b_state)
+ {
++	struct buffer_head *bh;
++
+ 	BUG_ON(!folio_test_locked(folio));
+ 
+-	if (!folio_buffers(folio))
+-		folio_create_empty_buffers(folio,
+-					   1 << READ_ONCE(inode->i_blkbits),
+-					   b_state);
+-	return folio_buffers(folio);
++	bh = folio_buffers(folio);
++	if (!bh)
++		bh = folio_create_empty_buffers(folio,
++				1 << READ_ONCE(inode->i_blkbits), b_state);
++	return bh;
  }
  
  /*
-- * Create the page-cache page that contains the requested block.
-+ * Create the page-cache folio that contains the requested block.
-  *
-  * This is used purely for blockdev mappings.
-+ *
-+ * Returns false if we have a 'permanent' failure.  Returns true if
-+ * we succeeded, or the caller should retry.
-  */
--static int
--grow_dev_page(struct block_device *bdev, sector_t block,
-+static bool grow_dev_folio(struct block_device *bdev, sector_t block,
- 	      pgoff_t index, int size, int sizebits, gfp_t gfp)
- {
- 	struct inode *inode = bdev->bd_inode;
- 	struct folio *folio;
- 	struct buffer_head *bh;
- 	sector_t end_block;
--	int ret = 0;
-+	bool ret;
- 
- 	folio = __filemap_get_folio(inode->i_mapping, index,
- 			FGP_LOCK | FGP_ACCESSED | FGP_CREAT, gfp);
- 	if (IS_ERR(folio))
--		return PTR_ERR(folio);
-+		return false;
+@@ -2681,10 +2685,8 @@ int block_truncate_page(struct address_s
+ 		return PTR_ERR(folio);
  
  	bh = folio_buffers(folio);
- 	if (bh) {
-@@ -1050,14 +1052,17 @@ grow_dev_page(struct block_device *bdev,
- 					(sector_t)index << sizebits, size);
- 			goto done;
- 		}
-+
-+		/* Caller should retry if this call fails */
-+		ret = true;
- 		if (!try_to_free_buffers(folio))
--			goto failed;
-+			goto unlock;
- 	}
+-	if (!bh) {
+-		folio_create_empty_buffers(folio, blocksize, 0);
+-		bh = folio_buffers(folio);
+-	}
++	if (!bh)
++		bh = folio_create_empty_buffers(folio, blocksize, 0);
  
--	ret = -ENOMEM;
-+	ret = false;
- 	bh = folio_alloc_buffers(folio, size, gfp | __GFP_ACCOUNT);
- 	if (!bh)
--		goto failed;
-+		goto unlock;
- 
- 	/*
- 	 * Link the folio to the buffers and initialise them.  Take the
-@@ -1070,19 +1075,19 @@ grow_dev_page(struct block_device *bdev,
- 			(sector_t)index << sizebits, size);
- 	spin_unlock(&inode->i_mapping->private_lock);
- done:
--	ret = (block < end_block) ? 1 : -ENXIO;
--failed:
-+	ret = block < end_block;
-+unlock:
- 	folio_unlock(folio);
- 	folio_put(folio);
- 	return ret;
- }
- 
- /*
-- * Create buffers for the specified block device block's page.  If
-- * that page was dirty, the buffers are set dirty also.
-+ * Create buffers for the specified block device block's folio.  If
-+ * that folio was dirty, the buffers are set dirty also.
-  */
--static int
--grow_buffers(struct block_device *bdev, sector_t block, int size, gfp_t gfp)
-+static bool grow_buffers(struct block_device *bdev, sector_t block,
-+		int size, gfp_t gfp)
- {
- 	pgoff_t index;
- 	int sizebits;
-@@ -1099,11 +1104,11 @@ grow_buffers(struct block_device *bdev,
- 			"device %pg\n",
- 			__func__, (unsigned long long)block,
- 			bdev);
--		return -EIO;
-+		return false;
- 	}
- 
--	/* Create a page with the proper size buffers.. */
--	return grow_dev_page(bdev, block, index, size, sizebits, gfp);
-+	/* Create a folio with the proper size buffers.. */
-+	return grow_dev_folio(bdev, block, index, size, sizebits, gfp);
- }
- 
- static struct buffer_head *
+ 	/* Find the buffer that contains "offset" */
+ 	offset = offset_in_folio(folio, from);
+--- a/include/linux/buffer_head.h~buffer-make-folio_create_empty_buffers-return-a-buffer_head
++++ a/include/linux/buffer_head.h
+@@ -203,8 +203,8 @@ struct buffer_head *alloc_page_buffers(s
+ 		bool retry);
+ void create_empty_buffers(struct page *, unsigned long,
+ 			unsigned long b_state);
+-void folio_create_empty_buffers(struct folio *folio, unsigned long blocksize,
+-				unsigned long b_state);
++struct buffer_head *folio_create_empty_buffers(struct folio *folio,
++		unsigned long blocksize, unsigned long b_state);
+ void end_buffer_read_sync(struct buffer_head *bh, int uptodate);
+ void end_buffer_write_sync(struct buffer_head *bh, int uptodate);
+ void end_buffer_async_write(struct buffer_head *bh, int uptodate);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
