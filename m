@@ -2,232 +2,254 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DEDECDB465
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 14:11:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06C60CDB474
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:10:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233501AbjJPOL1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Oct 2023 10:11:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36770 "EHLO
+        id S232716AbjJPWKs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Oct 2023 18:10:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59450 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233529AbjJPOL0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 10:11:26 -0400
-Received: from mail-ej1-x62b.google.com (mail-ej1-x62b.google.com [IPv6:2a00:1450:4864:20::62b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9AFCFED
-        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 07:11:24 -0700 (PDT)
-Received: by mail-ej1-x62b.google.com with SMTP id a640c23a62f3a-99bdeae1d0aso737029666b.1
-        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 07:11:24 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1697465483; x=1698070283; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=NfeN1/cIDW4FSonLOYgq9VC9LqgWPCA8otMtI71xuEQ=;
-        b=T53E8PB7YPIL2AOWrHBQjHbaHvI3rMgcvKwBHDKLKR8wZvDmPPM2n3KQ6KLWat0S+s
-         yIk/iwKudRBXy1OXS1sBnuRuHE2WSfiKNmjOVZjzq6sSM7tEBxh79xaZYh3g5sELwm2s
-         XIamYi5JHo/V+X+pfWhqsi21J3yp3UoVzO73Zn4pM9TiSpyUY+fkeD1g1nPdZvjT2VoE
-         k2ahJ/nCZJoJZ3Lfzje8d+x7wZ9ORSFZE70FsII0wxvwLyw7LwF1P87lnsurBNL5HZEC
-         cqL6ZH2e3U5bkL8Dk7v9L57t3mCtcIFKIqIxWyYzau9ngVxYmWSVnMIZsKKAn/JJT91Q
-         hG6Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1697465483; x=1698070283;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=NfeN1/cIDW4FSonLOYgq9VC9LqgWPCA8otMtI71xuEQ=;
-        b=PVhnb+69+KJ7Pk2cBiBJUWkCzmqA9Zj1pTU8LQxaSVQgObNR2bLFAAH2I9YZ/zAH6K
-         Cz4q6bmHvbHQMcKxvdwZqquwexyJEC8atQlofAw1SfZCvq+Ezx4G79/6+X5XN+MnPtAe
-         wmf0kQ4Sx/R4+SQNqr4qhTl33IOmVpz9AO516zOSbGmLpHx5G2rzBwm45b4xvfdS/1n1
-         hS1OTp6LdCQ9L/nBIKKv1qtRUoys5UOHkymEP9tDCHLeAtoMNlRBpoVNdO/jieq81P4Z
-         wXhXs9cJ7Cyh043utJoaUx6yRJ7qRHoLSyriILclzqLFV9t/Unsyf69GRRlI1S75Flyl
-         nLoQ==
-X-Gm-Message-State: AOJu0YygectBi4HBZkkrvpR1sgrRf5uvqFViWclpNBbbBiD1VVPK7GtF
-        STxB/gWJph0CtphQ/xkpzeOPBRfzNLJAygT8Ht/M58SjtC8=
-X-Google-Smtp-Source: AGHT+IFr9FHaGJ1EOisep9+YuFwipeZqQDEXWTi/K7Io/A3sccydQBW0R/5sjBrWQIJggxc+JyuljceSv7i8nqFsexk=
-X-Received: by 2002:a17:907:7f0b:b0:9bf:5696:9153 with SMTP id
- qf11-20020a1709077f0b00b009bf56969153mr5524161ejc.57.1697465482623; Mon, 16
- Oct 2023 07:11:22 -0700 (PDT)
-MIME-Version: 1.0
-References: <20231010005309.79E1CC433C7@smtp.kernel.org> <20231012091305.GP3303@kernel.org>
-In-Reply-To: <20231012091305.GP3303@kernel.org>
-From:   Liam Ni <zhiguangni01@gmail.com>
-Date:   Mon, 16 Oct 2023 22:11:11 +0800
-Message-ID: <CACZJ9cUtU=gO9-9f0uXfcNbuuob2P=wPp0HiZ1OOZCYn3iRiOw@mail.gmail.com>
-Subject: Re: + numa-improve-the-efficiency-of-calculating-pages-loss.patch
- added to mm-unstable branch
-To:     Mike Rapoport <rppt@kernel.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        mm-commits@vger.kernel.org, tglx@linutronix.de,
-        peterz@infradead.org, mingo@redhat.com, luto@kernel.org,
-        hpa@zytor.com, dave.hansen@linux.intel.com, bp@alien8.de
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        with ESMTP id S232812AbjJPWKr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:10:47 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 98D7AA1
+        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:10:45 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16F99C433C7;
+        Mon, 16 Oct 2023 22:10:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1697494245;
+        bh=h/PGb9UQ2bo2lhd/xLB9vEn+soYl9Qhsd9clKYHMB+s=;
+        h=Date:To:From:Subject:From;
+        b=MB14OXxQuIyuFWjElWfPf1Tmd6gzi0rUHUfXMfebPSW1dNpalFXnXMoNDak9u2B+N
+         ImYZluFL7O9IU7OZhWT1/oldkQ+m4t3DnEJh8d2IsKA2ic++nOdMEJOehotUjkiVZL
+         J1Mlyhx/yc3Xnsjq930lvZ0GPLqdauMGijcDW17k=
+Date:   Mon, 16 Oct 2023 15:10:44 -0700
+To:     mm-commits@vger.kernel.org, p.raghav@samsung.com,
+        konishi.ryusuke@gmail.com, agruenba@redhat.com,
+        willy@infradead.org, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + buffer-return-bool-from-grow_dev_folio.patch added to mm-unstable branch
+Message-Id: <20231016221045.16F99C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Thu, 12 Oct 2023 at 17:14, Mike Rapoport <rppt@kernel.org> wrote:
->
-> On Mon, Oct 09, 2023 at 05:52:59PM -0700, Andrew Morton wrote:
-> >
-> > The patch titled
-> >      Subject: NUMA: improve the efficiency of calculating pages loss
->
-> We don't calculate the lost pages here, but pages with no NUMA node
-> assigned. How about
->
-> NUMA: optimize detection of memory with no node id assigned by firmware
->
-thanks, i will send patch v5.
+
+The patch titled
+     Subject: buffer: return bool from grow_dev_folio()
+has been added to the -mm mm-unstable branch.  Its filename is
+     buffer-return-bool-from-grow_dev_folio.patch
+
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buffer-return-bool-from-grow_dev_folio.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: buffer: return bool from grow_dev_folio()
+Date: Mon, 16 Oct 2023 21:10:48 +0100
+
+Patch series "Finish the create_empty_buffers() transition", v2.
+
+Pankaj recently added folio_create_empty_buffers() as the folio equivalent
+to create_empty_buffers().  This patch set finishes the conversion by
+first converting all remaining filesystems to call
+folio_create_empty_buffers(), then renaming it back to
+create_empty_buffers().  I took the opportunity to make a few
+simplifications like making folio_create_empty_buffers() return the head
+buffer and extracting get_nth_bh() from nilfs2.
+
+A few of the patches in this series aren't directly related to
+create_empty_buffers(), but I saw them while I was working on this and
+thought they'd be easy enough to add to this series.  Compile-tested only,
+other than ext4.
 
 
-> >  arch/x86/mm/numa.c       |   33 +--------------------------------
->
-> arch/loongarch/kernel/numa.c copied the same check from x86, it should be
-> updated as well.
+This patch (of 27):
 
-In the previous version=EF=BC=88patch v3=EF=BC=89, I submitted a patch to l=
-oongarch,
-but there was no response.
- How about submitting the patch to loongarch after the patch v5 is
-merged into the mainline?
+Rename grow_dev_page() to grow_dev_folio() and make it return a bool. 
+Document what that bool means; it's more subtle than it first appears. 
+Also rename the 'failed' label to 'unlock' beacuse it's not exactly
+'failed'.  It just hasn't succeeded.
 
->
-> >  include/linux/memblock.h |    1 +
-> >  mm/memblock.c            |   21 +++++++++++++++++++++
-> >  3 files changed, 23 insertions(+), 32 deletions(-)
-> >
-> > --- a/arch/x86/mm/numa.c~numa-improve-the-efficiency-of-calculating-pag=
-es-loss
-> > +++ a/arch/x86/mm/numa.c
-> > @@ -448,37 +448,6 @@ int __node_distance(int from, int to)
-> >  EXPORT_SYMBOL(__node_distance);
-> >
-> >  /*
-> > - * Sanity check to catch more bad NUMA configurations (they are amazin=
-gly
-> > - * common).  Make sure the nodes cover all memory.
-> > - */
-> > -static bool __init numa_meminfo_cover_memory(const struct numa_meminfo=
- *mi)
-> > -{
-> > -     u64 numaram, e820ram;
-> > -     int i;
-> > -
-> > -     numaram =3D 0;
-> > -     for (i =3D 0; i < mi->nr_blks; i++) {
-> > -             u64 s =3D mi->blk[i].start >> PAGE_SHIFT;
-> > -             u64 e =3D mi->blk[i].end >> PAGE_SHIFT;
-> > -             numaram +=3D e - s;
-> > -             numaram -=3D __absent_pages_in_range(mi->blk[i].nid, s, e=
-);
-> > -             if ((s64)numaram < 0)
-> > -                     numaram =3D 0;
-> > -     }
-> > -
-> > -     e820ram =3D max_pfn - absent_pages_in_range(0, max_pfn);
-> > -
-> > -     /* We seem to lose 3 pages somewhere. Allow 1M of slack. */
-> > -     if ((s64)(e820ram - numaram) >=3D (1 << (20 - PAGE_SHIFT))) {
-> > -             printk(KERN_ERR "NUMA: nodes only cover %LuMB of your %Lu=
-MB e820 RAM. Not used.\n",
-> > -                    (numaram << PAGE_SHIFT) >> 20,
-> > -                    (e820ram << PAGE_SHIFT) >> 20);
-> > -             return false;
-> > -     }
-> > -     return true;
-> > -}
-> > -
-> > -/*
-> >   * Mark all currently memblock-reserved physical memory (which covers =
-the
-> >   * kernel's own memory ranges) as hot-unswappable.
-> >   */
-> > @@ -583,7 +552,7 @@ static int __init numa_register_memblks(
-> >                       return -EINVAL;
-> >               }
-> >       }
-> > -     if (!numa_meminfo_cover_memory(mi))
-> > +     if (!memblock_validate_numa_coverage(SZ_1M))
-> >               return -EINVAL;
-> >
-> >       /* Finally register nodes. */
-> > --- a/include/linux/memblock.h~numa-improve-the-efficiency-of-calculati=
-ng-pages-loss
-> > +++ a/include/linux/memblock.h
-> > @@ -123,6 +123,7 @@ int memblock_physmem_add(phys_addr_t bas
-> >  void memblock_trim_memory(phys_addr_t align);
-> >  bool memblock_overlaps_region(struct memblock_type *type,
-> >                             phys_addr_t base, phys_addr_t size);
-> > +bool memblock_validate_numa_coverage(const u64 limit);
-> >  int memblock_mark_hotplug(phys_addr_t base, phys_addr_t size);
-> >  int memblock_clear_hotplug(phys_addr_t base, phys_addr_t size);
-> >  int memblock_mark_mirror(phys_addr_t base, phys_addr_t size);
-> > --- a/mm/memblock.c~numa-improve-the-efficiency-of-calculating-pages-lo=
-ss
-> > +++ a/mm/memblock.c
-> > @@ -734,6 +734,27 @@ int __init_memblock memblock_add(phys_ad
-> >       return memblock_add_range(&memblock.memory, base, size, MAX_NUMNO=
-DES, 0);
-> >  }
-> >
->
-> Please add kernel-doc description.
->
-> > +bool __init_memblock memblock_validate_numa_coverage(const u64 limit)
->
-> I think threshold is better name than limit here.
->
-> > +{
-> > +     unsigned long lose_pg =3D 0;
->
-> The pages we count are not lost, they just don't have node id assigned.
-> I'm inclined to use plain nr_pages rather that try to invent descriptive
-> but yet short name here.
->
-> > +     unsigned long start_pfn, end_pfn;
-> > +     int nid, i;
-> > +
-> > +     /* calculate lose page */
-> > +     for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &ni=
-d) {
-> > +             if (nid =3D=3D NUMA_NO_NODE)
-> > +                     lose_pg +=3D end_pfn - start_pfn;
-> > +     }
-> > +
-> > +     if (lose_pg >=3D limit) {
->
-> The caller defines the limit in bytes, and here you compare it with pages=
-.
->
-> > +             pr_err("NUMA: We lost %ld pages.\n", lose_pg);
->
-> I believe a better message would be:
->
->                 mem_size_mb =3D memblock_phys_mem_size() >> 20;
->                 pr_err("NUMA: no nodes coverage for %luMB of %luMB RAM\n"=
-,
->                        (nr_pages << PAGE_SHIFT) >> 20, mem_size_mb);
->
->
-> > +             return false;
-> > +     }
-> > +
-> > +     return true;
-> > +}
-> > +
-> > +
-> >  /**
-> >   * memblock_isolate_range - isolate given range into disjoint memblock=
-s
-> >   * @type: memblock type to isolate range for
-> > _
-> >
-> > Patches currently in -mm which might be from zhiguangni01@gmail.com are
-> >
-> > numa-improve-the-efficiency-of-calculating-pages-loss.patch
-> >
->
-> --
-> Sincerely yours,
-> Mike.
+Link: https://lkml.kernel.org/r/20231016201114.1928083-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231016201114.1928083-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Pankaj Raghav <p.raghav@samsung.com>
+Cc: Andreas Gruenbacher <agruenba@redhat.com>
+Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/buffer.c |   39 ++++++++++++++++++++++-----------------
+ 1 file changed, 22 insertions(+), 17 deletions(-)
+
+--- a/fs/buffer.c~buffer-return-bool-from-grow_dev_folio
++++ a/fs/buffer.c
+@@ -1024,24 +1024,26 @@ static sector_t folio_init_buffers(struc
+ }
+ 
+ /*
+- * Create the page-cache page that contains the requested block.
++ * Create the page-cache folio that contains the requested block.
+  *
+  * This is used purely for blockdev mappings.
++ *
++ * Returns false if we have a 'permanent' failure.  Returns true if
++ * we succeeded, or the caller should retry.
+  */
+-static int
+-grow_dev_page(struct block_device *bdev, sector_t block,
++static bool grow_dev_folio(struct block_device *bdev, sector_t block,
+ 	      pgoff_t index, int size, int sizebits, gfp_t gfp)
+ {
+ 	struct inode *inode = bdev->bd_inode;
+ 	struct folio *folio;
+ 	struct buffer_head *bh;
+ 	sector_t end_block;
+-	int ret = 0;
++	bool ret;
+ 
+ 	folio = __filemap_get_folio(inode->i_mapping, index,
+ 			FGP_LOCK | FGP_ACCESSED | FGP_CREAT, gfp);
+ 	if (IS_ERR(folio))
+-		return PTR_ERR(folio);
++		return false;
+ 
+ 	bh = folio_buffers(folio);
+ 	if (bh) {
+@@ -1050,14 +1052,17 @@ grow_dev_page(struct block_device *bdev,
+ 					(sector_t)index << sizebits, size);
+ 			goto done;
+ 		}
++
++		/* Caller should retry if this call fails */
++		ret = true;
+ 		if (!try_to_free_buffers(folio))
+-			goto failed;
++			goto unlock;
+ 	}
+ 
+-	ret = -ENOMEM;
++	ret = false;
+ 	bh = folio_alloc_buffers(folio, size, gfp | __GFP_ACCOUNT);
+ 	if (!bh)
+-		goto failed;
++		goto unlock;
+ 
+ 	/*
+ 	 * Link the folio to the buffers and initialise them.  Take the
+@@ -1070,19 +1075,19 @@ grow_dev_page(struct block_device *bdev,
+ 			(sector_t)index << sizebits, size);
+ 	spin_unlock(&inode->i_mapping->private_lock);
+ done:
+-	ret = (block < end_block) ? 1 : -ENXIO;
+-failed:
++	ret = block < end_block;
++unlock:
+ 	folio_unlock(folio);
+ 	folio_put(folio);
+ 	return ret;
+ }
+ 
+ /*
+- * Create buffers for the specified block device block's page.  If
+- * that page was dirty, the buffers are set dirty also.
++ * Create buffers for the specified block device block's folio.  If
++ * that folio was dirty, the buffers are set dirty also.
+  */
+-static int
+-grow_buffers(struct block_device *bdev, sector_t block, int size, gfp_t gfp)
++static bool grow_buffers(struct block_device *bdev, sector_t block,
++		int size, gfp_t gfp)
+ {
+ 	pgoff_t index;
+ 	int sizebits;
+@@ -1099,11 +1104,11 @@ grow_buffers(struct block_device *bdev,
+ 			"device %pg\n",
+ 			__func__, (unsigned long long)block,
+ 			bdev);
+-		return -EIO;
++		return false;
+ 	}
+ 
+-	/* Create a page with the proper size buffers.. */
+-	return grow_dev_page(bdev, block, index, size, sizebits, gfp);
++	/* Create a folio with the proper size buffers.. */
++	return grow_dev_folio(bdev, block, index, size, sizebits, gfp);
+ }
+ 
+ static struct buffer_head *
+_
+
+Patches currently in -mm which might be from willy@infradead.org are
+
+mm-make-lock_folio_maybe_drop_mmap-vma-lock-aware.patch
+mm-call-wp_page_copy-under-the-vma-lock.patch
+mm-handle-shared-faults-under-the-vma-lock.patch
+mm-handle-cow-faults-under-the-vma-lock.patch
+mm-handle-read-faults-under-the-vma-lock.patch
+mm-handle-write-faults-to-ro-pages-under-the-vma-lock.patch
+iomap-hold-state_lock-over-call-to-ifs_set_range_uptodate.patch
+iomap-protect-read_bytes_pending-with-the-state_lock.patch
+mm-add-folio_end_read.patch
+ext4-use-folio_end_read.patch
+buffer-use-folio_end_read.patch
+iomap-use-folio_end_read.patch
+bitops-add-xor_unlock_is_negative_byte.patch
+alpha-implement-xor_unlock_is_negative_byte.patch
+m68k-implement-xor_unlock_is_negative_byte.patch
+mips-implement-xor_unlock_is_negative_byte.patch
+powerpc-implement-arch_xor_unlock_is_negative_byte-on-32-bit.patch
+riscv-implement-xor_unlock_is_negative_byte.patch
+s390-implement-arch_xor_unlock_is_negative_byte.patch
+mm-delete-checks-for-xor_unlock_is_negative_byte.patch
+mm-add-folio_xor_flags_has_waiters.patch
+mm-make-__end_folio_writeback-return-void.patch
+mm-use-folio_xor_flags_has_waiters-in-folio_end_writeback.patch
+filemap-remove-use-of-wait-bookmarks.patch
+sched-remove-wait-bookmarks.patch
+buffer-return-bool-from-grow_dev_folio.patch
+buffer-make-folio_create_empty_buffers-return-a-buffer_head.patch
+mpage-convert-map_buffer_to_folio-to-folio_create_empty_buffers.patch
+ext4-convert-to-folio_create_empty_buffers.patch
+buffer-add-get_nth_bh.patch
+gfs2-convert-inode-unstuffing-to-use-a-folio.patch
+gfs2-convert-gfs2_getbuf-to-folios.patch
+gfs2-convert-gfs2_getjdatabuf-to-use-a-folio.patch
+gfs2-convert-gfs2_write_buf_to_page-to-use-a-folio.patch
+nilfs2-convert-nilfs_mdt_freeze_buffer-to-use-a-folio.patch
+nilfs2-convert-nilfs_grab_buffer-to-use-a-folio.patch
+nilfs2-convert-nilfs_copy_page-to-nilfs_copy_folio.patch
+nilfs2-convert-nilfs_mdt_forget_block-to-use-a-folio.patch
+nilfs2-convert-nilfs_mdt_get_frozen_buffer-to-use-a-folio.patch
+nilfs2-remove-nilfs_page_get_nth_block.patch
+nilfs2-convert-nilfs_lookup_dirty_data_buffers-to-use-folio_create_empty_buffers.patch
+ntfs-convert-ntfs_read_block-to-use-a-folio.patch
+ntfs-convert-ntfs_writepage-to-use-a-folio.patch
+ntfs-convert-ntfs_prepare_pages_for_non_resident_write-to-folios.patch
+ntfs3-convert-ntfs_zero_range-to-use-a-folio.patch
+ocfs2-convert-ocfs2_map_page_blocks-to-use-a-folio.patch
+reiserfs-convert-writepage-to-use-a-folio.patch
+ufs-add-ufs_get_locked_folio-and-ufs_put_locked_folio.patch
+ufs-use-ufs_get_locked_folio-in-ufs_alloc_lastblock.patch
+ufs-convert-ufs_change_blocknr-to-use-folios.patch
+ufs-remove-ufs_get_locked_page.patch
+buffer-remove-folio_create_empty_buffers.patch
+
