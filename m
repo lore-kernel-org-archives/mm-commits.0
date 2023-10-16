@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4317CDB465
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:49:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FD50CDB482
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:49:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233800AbjJPWtn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Oct 2023 18:49:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48102 "EHLO
+        id S232615AbjJPWto (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Oct 2023 18:49:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60632 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232615AbjJPWtk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:49:40 -0400
+        with ESMTP id S233655AbjJPWtm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:49:42 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76D089B
-        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:49:38 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D5E5C433C8;
-        Mon, 16 Oct 2023 22:49:38 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D35C9E1
+        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:49:40 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7303EC433C9;
+        Mon, 16 Oct 2023 22:49:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697496578;
-        bh=EDAahLCtFGwOm574/mdWmsYfSAsOj+j26qqXeVyEo2I=;
+        s=korg; t=1697496580;
+        bh=fIL72+ilTSdd92RA+v4+Xov2xNAF0FpiTF7rP5oyy5s=;
         h=Date:To:From:Subject:From;
-        b=PbvAR7cZp/5/IO10yIjs36Kp8c554zcbDRxX7QNgWo1O6ZobYtYYIM2dLcuZ4DNzN
-         uKyAvZckKvI+i3E9PIcSytKzHgz9vdETetqlzuXmVmsEEP6x1RBpTTWCYgSPEGn96+
-         bpWcrVkitTaL/pee/7EaRH+orX+X0EVvrM2PZAHQ=
-Date:   Mon, 16 Oct 2023 15:49:37 -0700
+        b=R1ow9vtvxOwoy7KWgwpcc+N4rThdse96n4cwaC4xM+VQOZoQ3+TftrJpvYCmpd2dn
+         tJtJz10VuqxKod8BEDRunG4QlXLCQfIb2a9Te/Sg0VGxN3IaU+UV00EaGB4V+E4fQr
+         Tl2PmNppd6RbjrlePL+ge77MXFyusM+4iDTMCCSE=
+Date:   Mon, 16 Oct 2023 15:49:39 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         sudeep.holla@arm.com, pasha.tatashin@soleen.com, mhocko@suse.com,
         mgorman@techsingularity.net, jweiner@redhat.com, david@redhat.com,
         dave.hansen@linux.intel.com, cl@linux.com, arjan@linux.intel.com,
         ying.huang@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + cacheinfo-calculate-size-of-per-cpu-data-cache-slice.patch added to mm-unstable branch
-Message-Id: <20231016224938.0D5E5C433C8@smtp.kernel.org>
+Subject: + mm-pcp-reduce-lock-contention-for-draining-high-order-pages.patch added to mm-unstable branch
+Message-Id: <20231016224940.7303EC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,12 +39,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cacheinfo: calculate size of per-CPU data cache slice
+     Subject: mm, pcp: reduce lock contention for draining high-order pages
 has been added to the -mm mm-unstable branch.  Its filename is
-     cacheinfo-calculate-size-of-per-cpu-data-cache-slice.patch
+     mm-pcp-reduce-lock-contention-for-draining-high-order-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cacheinfo-calculate-size-of-per-cpu-data-cache-slice.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pcp-reduce-lock-contention-for-draining-high-order-pages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -63,26 +63,43 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: cacheinfo: calculate size of per-CPU data cache slice
-Date: Mon, 16 Oct 2023 13:29:55 +0800
+Subject: mm, pcp: reduce lock contention for draining high-order pages
+Date: Mon, 16 Oct 2023 13:29:56 +0800
 
-This can be used to estimate the size of the data cache slice that can be
-used by one CPU under ideal circumstances.  Both DATA caches and UNIFIED
-caches are used in calculation.  So, the users need to consider the impact
-of the code cache usage.
+In commit f26b3fa04611 ("mm/page_alloc: limit number of high-order pages
+on PCP during bulk free"), the PCP (Per-CPU Pageset) will be drained when
+PCP is mostly used for high-order pages freeing to improve the cache-hot
+pages reusing between page allocating and freeing CPUs.
 
-Because the cache inclusive/non-inclusive information isn't available now,
-we just use the size of the per-CPU slice of LLC to make the result more
-predictable across architectures.  This may be improved when more cache
-information is available in the future.
+On system with small per-CPU data cache slice, pages shouldn't be cached
+before draining to guarantee cache-hot.  But on a system with large
+per-CPU data cache slice, some pages can be cached before draining to
+reduce zone lock contention.
 
-A brute-force algorithm to iterate all online CPUs is used to avoid to
-allocate an extra cpumask, especially in offline callback.
+So, in this patch, instead of draining without any caching, "pcp->batch"
+pages will be cached in PCP before draining if the size of the per-CPU
+data cache slice is more than "3 * batch".
 
-Link: https://lkml.kernel.org/r/20231016053002.756205-3-ying.huang@intel.com
+In theory, if the size of per-CPU data cache slice is more than "2 *
+batch", we can reuse cache-hot pages between CPUs.  But considering the
+other usage of cache (code, other data accessing, etc.), "3 * batch" is
+used.
+
+Note: "3 * batch" is chosen to make sure the optimization works on recent
+x86_64 server CPUs.  If you want to increase it, please check whether it
+breaks the optimization.
+
+On a 2-socket Intel server with 128 logical CPU, with the patch, the
+network bandwidth of the UNIX (AF_UNIX) test case of lmbench test suite
+with 16-pair processes increase 70.5%.  The cycles% of the spinlock
+contention (mostly for zone lock) decreases from 46.1% to 21.3%.  The
+number of PCP draining for high order pages freeing (free_high) decreases
+89.9%.  The cache miss rate keeps 0.2%.
+
+Link: https://lkml.kernel.org/r/20231016053002.756205-4-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Sudeep Holla <sudeep.holla@arm.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Johannes Weiner <jweiner@redhat.com>
@@ -95,92 +112,118 @@ Cc: Arjan van de Ven <arjan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/cacheinfo.c  |   49 +++++++++++++++++++++++++++++++++++-
- include/linux/cacheinfo.h |    1 
- 2 files changed, 49 insertions(+), 1 deletion(-)
+ drivers/base/cacheinfo.c |    2 +
+ include/linux/gfp.h      |    1 
+ include/linux/mmzone.h   |    6 +++++
+ mm/page_alloc.c          |   38 ++++++++++++++++++++++++++++++++++++-
+ 4 files changed, 46 insertions(+), 1 deletion(-)
 
---- a/drivers/base/cacheinfo.c~cacheinfo-calculate-size-of-per-cpu-data-cache-slice
+--- a/drivers/base/cacheinfo.c~mm-pcp-reduce-lock-contention-for-draining-high-order-pages
 +++ a/drivers/base/cacheinfo.c
-@@ -898,6 +898,48 @@ err:
- 	return rc;
- }
- 
-+/*
-+ * Calculate the size of the per-CPU data cache slice.  This can be
-+ * used to estimate the size of the data cache slice that can be used
-+ * by one CPU under ideal circumstances.  UNIFIED caches are counted
-+ * in addition to DATA caches.  So, please consider code cache usage
-+ * when use the result.
-+ *
-+ * Because the cache inclusive/non-inclusive information isn't
-+ * available, we just use the size of the per-CPU slice of LLC to make
-+ * the result more predictable across architectures.
-+ */
-+static void update_per_cpu_data_slice_size_cpu(unsigned int cpu)
-+{
-+	struct cpu_cacheinfo *ci;
-+	struct cacheinfo *llc;
-+	unsigned int nr_shared;
-+
-+	if (!last_level_cache_is_valid(cpu))
-+		return;
-+
-+	ci = ci_cacheinfo(cpu);
-+	llc = per_cpu_cacheinfo_idx(cpu, cache_leaves(cpu) - 1);
-+
-+	if (llc->type != CACHE_TYPE_DATA && llc->type != CACHE_TYPE_UNIFIED)
-+		return;
-+
-+	nr_shared = cpumask_weight(&llc->shared_cpu_map);
-+	if (nr_shared)
-+		ci->per_cpu_data_slice_size = llc->size / nr_shared;
-+}
-+
-+static void update_per_cpu_data_slice_size(bool cpu_online, unsigned int cpu)
-+{
-+	unsigned int icpu;
-+
-+	for_each_online_cpu(icpu) {
-+		if (!cpu_online && icpu == cpu)
-+			continue;
-+		update_per_cpu_data_slice_size_cpu(icpu);
-+	}
-+}
-+
- static int cacheinfo_cpu_online(unsigned int cpu)
- {
- 	int rc = detect_cache_attributes(cpu);
-@@ -906,7 +948,11 @@ static int cacheinfo_cpu_online(unsigned
- 		return rc;
- 	rc = cache_add_dev(cpu);
+@@ -950,6 +950,7 @@ static int cacheinfo_cpu_online(unsigned
  	if (rc)
--		free_cache_attributes(cpu);
-+		goto err;
-+	update_per_cpu_data_slice_size(true, cpu);
-+	return 0;
-+err:
-+	free_cache_attributes(cpu);
- 	return rc;
- }
- 
-@@ -916,6 +962,7 @@ static int cacheinfo_cpu_pre_down(unsign
- 		cpu_cache_sysfs_exit(cpu);
+ 		goto err;
+ 	update_per_cpu_data_slice_size(true, cpu);
++	setup_pcp_cacheinfo();
+ 	return 0;
+ err:
+ 	free_cache_attributes(cpu);
+@@ -963,6 +964,7 @@ static int cacheinfo_cpu_pre_down(unsign
  
  	free_cache_attributes(cpu);
-+	update_per_cpu_data_slice_size(false, cpu);
+ 	update_per_cpu_data_slice_size(false, cpu);
++	setup_pcp_cacheinfo();
  	return 0;
  }
  
---- a/include/linux/cacheinfo.h~cacheinfo-calculate-size-of-per-cpu-data-cache-slice
-+++ a/include/linux/cacheinfo.h
-@@ -73,6 +73,7 @@ struct cacheinfo {
+--- a/include/linux/gfp.h~mm-pcp-reduce-lock-contention-for-draining-high-order-pages
++++ a/include/linux/gfp.h
+@@ -333,6 +333,7 @@ void drain_all_pages(struct zone *zone);
+ void drain_local_pages(struct zone *zone);
  
- struct cpu_cacheinfo {
- 	struct cacheinfo *info_list;
-+	unsigned int per_cpu_data_slice_size;
- 	unsigned int num_levels;
- 	unsigned int num_leaves;
- 	bool cpu_map_populated;
+ void page_alloc_init_late(void);
++void setup_pcp_cacheinfo(void);
+ 
+ /*
+  * gfp_allowed_mask is set to GFP_BOOT_MASK during early boot to restrict what
+--- a/include/linux/mmzone.h~mm-pcp-reduce-lock-contention-for-draining-high-order-pages
++++ a/include/linux/mmzone.h
+@@ -694,8 +694,14 @@ enum zone_watermarks {
+  * PCPF_PREV_FREE_HIGH_ORDER: a high-order page is freed in the
+  * previous page freeing.  To avoid to drain PCP for an accident
+  * high-order page freeing.
++ *
++ * PCPF_FREE_HIGH_BATCH: preserve "pcp->batch" pages in PCP before
++ * draining PCP for consecutive high-order pages freeing without
++ * allocation if data cache slice of CPU is large enough.  To reduce
++ * zone lock contention and keep cache-hot pages reusing.
+  */
+ #define	PCPF_PREV_FREE_HIGH_ORDER	BIT(0)
++#define	PCPF_FREE_HIGH_BATCH		BIT(1)
+ 
+ struct per_cpu_pages {
+ 	spinlock_t lock;	/* Protects lists field */
+--- a/mm/page_alloc.c~mm-pcp-reduce-lock-contention-for-draining-high-order-pages
++++ a/mm/page_alloc.c
+@@ -52,6 +52,7 @@
+ #include <linux/psi.h>
+ #include <linux/khugepaged.h>
+ #include <linux/delayacct.h>
++#include <linux/cacheinfo.h>
+ #include <asm/div64.h>
+ #include "internal.h"
+ #include "shuffle.h"
+@@ -2421,7 +2422,9 @@ static void free_unref_page_commit(struc
+ 	 */
+ 	if (order && order <= PAGE_ALLOC_COSTLY_ORDER) {
+ 		free_high = (pcp->free_factor &&
+-			     (pcp->flags & PCPF_PREV_FREE_HIGH_ORDER));
++			     (pcp->flags & PCPF_PREV_FREE_HIGH_ORDER) &&
++			     (!(pcp->flags & PCPF_FREE_HIGH_BATCH) ||
++			      pcp->count >= READ_ONCE(pcp->batch)));
+ 		pcp->flags |= PCPF_PREV_FREE_HIGH_ORDER;
+ 	} else if (pcp->flags & PCPF_PREV_FREE_HIGH_ORDER) {
+ 		pcp->flags &= ~PCPF_PREV_FREE_HIGH_ORDER;
+@@ -5450,6 +5453,39 @@ static void zone_pcp_update(struct zone
+ 	mutex_unlock(&pcp_batch_high_lock);
+ }
+ 
++static void zone_pcp_update_cacheinfo(struct zone *zone)
++{
++	int cpu;
++	struct per_cpu_pages *pcp;
++	struct cpu_cacheinfo *cci;
++
++	for_each_online_cpu(cpu) {
++		pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
++		cci = get_cpu_cacheinfo(cpu);
++		/*
++		 * If data cache slice of CPU is large enough, "pcp->batch"
++		 * pages can be preserved in PCP before draining PCP for
++		 * consecutive high-order pages freeing without allocation.
++		 * This can reduce zone lock contention without hurting
++		 * cache-hot pages sharing.
++		 */
++		spin_lock(&pcp->lock);
++		if ((cci->per_cpu_data_slice_size >> PAGE_SHIFT) > 3 * pcp->batch)
++			pcp->flags |= PCPF_FREE_HIGH_BATCH;
++		else
++			pcp->flags &= ~PCPF_FREE_HIGH_BATCH;
++		spin_unlock(&pcp->lock);
++	}
++}
++
++void setup_pcp_cacheinfo(void)
++{
++	struct zone *zone;
++
++	for_each_populated_zone(zone)
++		zone_pcp_update_cacheinfo(zone);
++}
++
+ /*
+  * Allocate per cpu pagesets and initialize them.
+  * Before this call only boot pagesets were available.
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
