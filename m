@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 631B8CDB465
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:11:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2273ECDB465
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:11:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233661AbjJPWK7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Oct 2023 18:10:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45576 "EHLO
+        id S232792AbjJPWLA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Oct 2023 18:11:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45586 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233494AbjJPWK5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:10:57 -0400
+        with ESMTP id S233574AbjJPWK7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:10:59 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6EE19B
-        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:10:55 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64A05C433C9;
-        Mon, 16 Oct 2023 22:10:55 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E789A1
+        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:10:57 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 367B0C433C7;
+        Mon, 16 Oct 2023 22:10:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697494255;
-        bh=FvaCwkSEeq8NtFcfyJdqKS22X0ypQOBfq94COOdTj0Y=;
+        s=korg; t=1697494257;
+        bh=E60Viv6nn8zDuZKZoXRos5tSk1DnxI582H1vEYoYe1o=;
         h=Date:To:From:Subject:From;
-        b=phm8m9FGoYrhhsOUjB4WuiisK9yPQbovtUX9ACsrM66DaEVbIufkRtKhAlUv2BKJm
-         l66pCwX6n5dn9NiUQ0+PtzKNhJMOxDaBYSUuVYXKjd8GluBLIEeWf/F3Ql3/yWALJu
-         7XbEqMLGd8yxrVv5OV9v5TxA6mYo82KT48I6hO64=
-Date:   Mon, 16 Oct 2023 15:10:54 -0700
+        b=NAmR7syadkOSLv1KfEkb7joLEpxsgH2eO16HMyTXeHEcF+Zi3S2xKEtU6TQK0J1Mh
+         8eA97ZUkIimgGdPn6M+rriCnbjpOYrzkHpE1PMluI1sRi/uHaFeDoLOeEXosHp5AlA
+         wThTrWxOqya2++AvIffrWA2m+KQKISM92flfc0S0=
+Date:   Mon, 16 Oct 2023 15:10:56 -0700
 To:     mm-commits@vger.kernel.org, p.raghav@samsung.com,
         konishi.ryusuke@gmail.com, agruenba@redhat.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + gfs2-convert-inode-unstuffing-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20231016221055.64A05C433C9@smtp.kernel.org>
+Subject: + gfs2-convert-gfs2_getbuf-to-folios.patch added to mm-unstable branch
+Message-Id: <20231016221057.367B0C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: gfs2: convert inode unstuffing to use a folio
+     Subject: gfs2: convert gfs2_getbuf() to folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     gfs2-convert-inode-unstuffing-to-use-a-folio.patch
+     gfs2-convert-gfs2_getbuf-to-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/gfs2-convert-inode-unstuffing-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/gfs2-convert-gfs2_getbuf-to-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -61,13 +61,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: gfs2: convert inode unstuffing to use a folio
-Date: Mon, 16 Oct 2023 21:10:53 +0100
+Subject: gfs2: convert gfs2_getbuf() to folios
+Date: Mon, 16 Oct 2023 21:10:54 +0100
 
-Use the folio APIs, removing numerous hidden calls to compound_head(). 
-Also remove the stale comment about the page being looked up if it's NULL.
+Remove several folio->page->folio conversions.  Also use __GFP_NOFAIL
+instead of calling yield() and the new get_nth_bh().
 
-Link: https://lkml.kernel.org/r/20231016201114.1928083-7-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231016201114.1928083-8-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Andreas Gruenbacher <agruenba@redhat.com>
 Cc: Pankaj Raghav <p.raghav@samsung.com>
@@ -75,114 +75,73 @@ Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/bmap.c |   48 ++++++++++++++++++++++-------------------------
- 1 file changed, 23 insertions(+), 25 deletions(-)
+ fs/gfs2/meta_io.c |   39 +++++++++++++++++----------------------
+ 1 file changed, 17 insertions(+), 22 deletions(-)
 
---- a/fs/gfs2/bmap.c~gfs2-convert-inode-unstuffing-to-use-a-folio
-+++ a/fs/gfs2/bmap.c
-@@ -43,53 +43,51 @@ struct metapath {
- static int punch_hole(struct gfs2_inode *ip, u64 offset, u64 length);
- 
- /**
-- * gfs2_unstuffer_page - unstuff a stuffed inode into a block cached by a page
-+ * gfs2_unstuffer_folio - unstuff a stuffed inode into a block cached by a folio
-  * @ip: the inode
-  * @dibh: the dinode buffer
-  * @block: the block number that was allocated
-- * @page: The (optional) page. This is looked up if @page is NULL
-+ * @folio: The folio.
-  *
-  * Returns: errno
-  */
--
--static int gfs2_unstuffer_page(struct gfs2_inode *ip, struct buffer_head *dibh,
--			       u64 block, struct page *page)
-+static int gfs2_unstuffer_folio(struct gfs2_inode *ip, struct buffer_head *dibh,
-+			       u64 block, struct folio *folio)
+--- a/fs/gfs2/meta_io.c~gfs2-convert-gfs2_getbuf-to-folios
++++ a/fs/gfs2/meta_io.c
+@@ -115,7 +115,7 @@ struct buffer_head *gfs2_getbuf(struct g
  {
- 	struct inode *inode = &ip->i_inode;
- 
--	if (!PageUptodate(page)) {
--		void *kaddr = kmap(page);
-+	if (!folio_test_uptodate(folio)) {
-+		void *kaddr = kmap_local_folio(folio, 0);
- 		u64 dsize = i_size_read(inode);
-  
- 		memcpy(kaddr, dibh->b_data + sizeof(struct gfs2_dinode), dsize);
--		memset(kaddr + dsize, 0, PAGE_SIZE - dsize);
--		kunmap(page);
-+		memset(kaddr + dsize, 0, folio_size(folio) - dsize);
-+		kunmap_local(kaddr);
- 
--		SetPageUptodate(page);
-+		folio_mark_uptodate(folio);
- 	}
- 
- 	if (gfs2_is_jdata(ip)) {
--		struct buffer_head *bh;
-+		struct buffer_head *bh = folio_buffers(folio);
- 
--		if (!page_has_buffers(page))
--			create_empty_buffers(page, BIT(inode->i_blkbits),
--					     BIT(BH_Uptodate));
-+		if (!bh)
-+			bh = folio_create_empty_buffers(folio,
-+				BIT(inode->i_blkbits), BIT(BH_Uptodate));
- 
--		bh = page_buffers(page);
- 		if (!buffer_mapped(bh))
- 			map_bh(bh, inode->i_sb, block);
- 
- 		set_buffer_uptodate(bh);
- 		gfs2_trans_add_data(ip->i_gl, bh);
- 	} else {
--		set_page_dirty(page);
-+		folio_mark_dirty(folio);
- 		gfs2_ordered_add_inode(ip);
- 	}
- 
- 	return 0;
- }
- 
--static int __gfs2_unstuff_inode(struct gfs2_inode *ip, struct page *page)
-+static int __gfs2_unstuff_inode(struct gfs2_inode *ip, struct folio *folio)
- {
- 	struct buffer_head *bh, *dibh;
- 	struct gfs2_dinode *di;
-@@ -118,7 +116,7 @@ static int __gfs2_unstuff_inode(struct g
- 					      dibh, sizeof(struct gfs2_dinode));
- 			brelse(bh);
- 		} else {
--			error = gfs2_unstuffer_page(ip, dibh, block, page);
-+			error = gfs2_unstuffer_folio(ip, dibh, block, folio);
- 			if (error)
- 				goto out_brelse;
- 		}
-@@ -157,17 +155,17 @@ out_brelse:
- int gfs2_unstuff_dinode(struct gfs2_inode *ip)
- {
- 	struct inode *inode = &ip->i_inode;
+ 	struct address_space *mapping = gfs2_glock2aspace(gl);
+ 	struct gfs2_sbd *sdp = gl->gl_name.ln_sbd;
 -	struct page *page;
 +	struct folio *folio;
- 	int error;
+ 	struct buffer_head *bh;
+ 	unsigned int shift;
+ 	unsigned long index;
+@@ -129,36 +129,31 @@ struct buffer_head *gfs2_getbuf(struct g
+ 	bufnum = blkno - (index << shift);  /* block buf index within page */
  
- 	down_write(&ip->i_rw_mutex);
--	page = grab_cache_page(inode->i_mapping, 0);
--	error = -ENOMEM;
--	if (!page)
-+	folio = filemap_grab_folio(inode->i_mapping, 0);
-+	error = PTR_ERR(folio);
-+	if (IS_ERR(folio))
- 		goto out;
--	error = __gfs2_unstuff_inode(ip, page);
+ 	if (create) {
+-		for (;;) {
+-			page = grab_cache_page(mapping, index);
+-			if (page)
+-				break;
+-			yield();
+-		}
+-		if (!page_has_buffers(page))
+-			create_empty_buffers(page, sdp->sd_sb.sb_bsize, 0);
++		folio = __filemap_get_folio(mapping, index,
++				FGP_LOCK | FGP_ACCESSED | FGP_CREAT,
++				mapping_gfp_mask(mapping) | __GFP_NOFAIL);
++		bh = folio_buffers(folio);
++		if (!bh)
++			bh = folio_create_empty_buffers(folio,
++				sdp->sd_sb.sb_bsize, 0);
+ 	} else {
+-		page = find_get_page_flags(mapping, index,
+-						FGP_LOCK|FGP_ACCESSED);
+-		if (!page)
++		folio = __filemap_get_folio(mapping, index,
++				FGP_LOCK | FGP_ACCESSED, 0);
++		if (IS_ERR(folio))
+ 			return NULL;
+-		if (!page_has_buffers(page)) {
+-			bh = NULL;
+-			goto out_unlock;
+-		}
++		bh = folio_buffers(folio);
+ 	}
+ 
+-	/* Locate header for our buffer within our page */
+-	for (bh = page_buffers(page); bufnum--; bh = bh->b_this_page)
+-		/* Do nothing */;
+-	get_bh(bh);
++	if (!bh)
++		goto out_unlock;
+ 
++	bh = get_nth_bh(bh, bufnum);
+ 	if (!buffer_mapped(bh))
+ 		map_bh(bh, sdp->sd_vfs, blkno);
+ 
+ out_unlock:
 -	unlock_page(page);
 -	put_page(page);
-+	error = __gfs2_unstuff_inode(ip, folio);
 +	folio_unlock(folio);
 +	folio_put(folio);
- out:
- 	up_write(&ip->i_rw_mutex);
- 	return error;
+ 
+ 	return bh;
+ }
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
