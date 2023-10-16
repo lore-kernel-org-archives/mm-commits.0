@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 102A6CDB465
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:10:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C62D4CDB465
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:10:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229943AbjJPWKt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Oct 2023 18:10:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59486 "EHLO
+        id S232985AbjJPWK4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Oct 2023 18:10:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59526 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232812AbjJPWKt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:10:49 -0400
+        with ESMTP id S233333AbjJPWKv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:10:51 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57CF2B4
-        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:10:47 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7E05C433C9;
-        Mon, 16 Oct 2023 22:10:46 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0A1B9B
+        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:10:49 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39D47C433C9;
+        Mon, 16 Oct 2023 22:10:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697494247;
-        bh=NGyd/4KENkeMgDzj1+rzPXrOq7u+LrVkhE94zSaL0bM=;
+        s=korg; t=1697494249;
+        bh=T/WqHEVwpEhOtUveU3WFwxJSsvWY6fsYGCNL3i5wwrE=;
         h=Date:To:From:Subject:From;
-        b=k+diPZgj6mTA8DEQlb9hg1sNX5fie4WqeYh8ej/FUTyfa5ZlqqvJR9nzEiMouVlEJ
-         7k2B/FQ+EtzgWzVVbCz65yrqzFk8iArOMgRzKS5exa37N/AuVtGdYxkAK4X2bCKKMr
-         UxY+A2sGZBKP+658bVMUVo9AD/1d0Icirp3Pq9Ec=
-Date:   Mon, 16 Oct 2023 15:10:46 -0700
+        b=lEB8SEDV5sgbhQJEJb2h29cdOfE3as2xBNgAL0YG23HwJm9PE2ebRnAKFzGI1nzzW
+         /OCJnw9ZPkZwWtgcsxg1tUgMVl+Is7ss/TjPwW8csWdObgbGY+SOiGZU5fycGhnkUd
+         y23M3w8Z1aI2FOOecNH9YLvZS/M3nYY3qrO4Xqw8=
+Date:   Mon, 16 Oct 2023 15:10:48 -0700
 To:     mm-commits@vger.kernel.org, p.raghav@samsung.com,
         konishi.ryusuke@gmail.com, agruenba@redhat.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + buffer-make-folio_create_empty_buffers-return-a-buffer_head.patch added to mm-unstable branch
-Message-Id: <20231016221046.E7E05C433C9@smtp.kernel.org>
+Subject: + mpage-convert-map_buffer_to_folio-to-folio_create_empty_buffers.patch added to mm-unstable branch
+Message-Id: <20231016221049.39D47C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: buffer: make folio_create_empty_buffers() return a buffer_head
+     Subject: mpage: convert map_buffer_to_folio() to folio_create_empty_buffers()
 has been added to the -mm mm-unstable branch.  Its filename is
-     buffer-make-folio_create_empty_buffers-return-a-buffer_head.patch
+     mpage-convert-map_buffer_to_folio-to-folio_create_empty_buffers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buffer-make-folio_create_empty_buffers-return-a-buffer_head.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mpage-convert-map_buffer_to_folio-to-folio_create_empty_buffers.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -61,13 +61,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: buffer: make folio_create_empty_buffers() return a buffer_head
-Date: Mon, 16 Oct 2023 21:10:49 +0100
+Subject: mpage: convert map_buffer_to_folio() to folio_create_empty_buffers()
+Date: Mon, 16 Oct 2023 21:10:50 +0100
 
-Almost all callers want to know the first BH that was allocated for this
-folio.  We already have that handy, so return it.
+Saves a folio->page->folio conversion.
 
-Link: https://lkml.kernel.org/r/20231016201114.1928083-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231016201114.1928083-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Pankaj Raghav <p.raghav@samsung.com>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
@@ -75,79 +74,21 @@ Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c                 |   24 +++++++++++++-----------
- include/linux/buffer_head.h |    4 ++--
- 2 files changed, 15 insertions(+), 13 deletions(-)
+ fs/mpage.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/fs/buffer.c~buffer-make-folio_create_empty_buffers-return-a-buffer_head
-+++ a/fs/buffer.c
-@@ -1646,8 +1646,8 @@ EXPORT_SYMBOL(block_invalidate_folio);
-  * block_dirty_folio() via private_lock.  try_to_free_buffers
-  * is already excluded via the folio lock.
-  */
--void folio_create_empty_buffers(struct folio *folio, unsigned long blocksize,
--				unsigned long b_state)
-+struct buffer_head *folio_create_empty_buffers(struct folio *folio,
-+		unsigned long blocksize, unsigned long b_state)
- {
- 	struct buffer_head *bh, *head, *tail;
- 	gfp_t gfp = GFP_NOFS | __GFP_ACCOUNT | __GFP_NOFAIL;
-@@ -1674,6 +1674,8 @@ void folio_create_empty_buffers(struct f
+--- a/fs/mpage.c~mpage-convert-map_buffer_to_folio-to-folio_create_empty_buffers
++++ a/fs/mpage.c
+@@ -119,8 +119,7 @@ static void map_buffer_to_folio(struct f
+ 			folio_mark_uptodate(folio);
+ 			return;
+ 		}
+-		create_empty_buffers(&folio->page, i_blocksize(inode), 0);
+-		head = folio_buffers(folio);
++		head = folio_create_empty_buffers(folio, i_blocksize(inode), 0);
  	}
- 	folio_attach_private(folio, head);
- 	spin_unlock(&folio->mapping->private_lock);
-+
-+	return head;
- }
- EXPORT_SYMBOL(folio_create_empty_buffers);
  
-@@ -1775,13 +1777,15 @@ static struct buffer_head *folio_create_
- 						struct inode *inode,
- 						unsigned int b_state)
- {
-+	struct buffer_head *bh;
-+
- 	BUG_ON(!folio_test_locked(folio));
- 
--	if (!folio_buffers(folio))
--		folio_create_empty_buffers(folio,
--					   1 << READ_ONCE(inode->i_blkbits),
--					   b_state);
--	return folio_buffers(folio);
-+	bh = folio_buffers(folio);
-+	if (!bh)
-+		bh = folio_create_empty_buffers(folio,
-+				1 << READ_ONCE(inode->i_blkbits), b_state);
-+	return bh;
- }
- 
- /*
-@@ -2681,10 +2685,8 @@ int block_truncate_page(struct address_s
- 		return PTR_ERR(folio);
- 
- 	bh = folio_buffers(folio);
--	if (!bh) {
--		folio_create_empty_buffers(folio, blocksize, 0);
--		bh = folio_buffers(folio);
--	}
-+	if (!bh)
-+		bh = folio_create_empty_buffers(folio, blocksize, 0);
- 
- 	/* Find the buffer that contains "offset" */
- 	offset = offset_in_folio(folio, from);
---- a/include/linux/buffer_head.h~buffer-make-folio_create_empty_buffers-return-a-buffer_head
-+++ a/include/linux/buffer_head.h
-@@ -203,8 +203,8 @@ struct buffer_head *alloc_page_buffers(s
- 		bool retry);
- void create_empty_buffers(struct page *, unsigned long,
- 			unsigned long b_state);
--void folio_create_empty_buffers(struct folio *folio, unsigned long blocksize,
--				unsigned long b_state);
-+struct buffer_head *folio_create_empty_buffers(struct folio *folio,
-+		unsigned long blocksize, unsigned long b_state);
- void end_buffer_read_sync(struct buffer_head *bh, int uptodate);
- void end_buffer_write_sync(struct buffer_head *bh, int uptodate);
- void end_buffer_async_write(struct buffer_head *bh, int uptodate);
+ 	page_bh = head;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
