@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07B06C41513
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:11:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91AD1CDB483
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:11:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233863AbjJPWLT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Oct 2023 18:11:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57818 "EHLO
+        id S233831AbjJPWLR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Oct 2023 18:11:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57722 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234133AbjJPWLQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:11:16 -0400
+        with ESMTP id S233771AbjJPWLI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:11:08 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D0356F3
-        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:11:11 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 696F5C433C7;
-        Mon, 16 Oct 2023 22:11:11 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1928AC
+        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:11:04 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33A89C433C8;
+        Mon, 16 Oct 2023 22:11:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697494271;
-        bh=2n0I+GNXn0atL7p8RTHT64aRmRB2hi1/J5luNxEXdn8=;
+        s=korg; t=1697494264;
+        bh=NaoqdNvv6fH8m530mO3/KQXWlsdj9rQyfp+pt2smCDI=;
         h=Date:To:From:Subject:From;
-        b=BnxefSKLq/tGbt9FF3UdWkHR3MPr7gbmYUocgAT7Zdfi2knpYAeLPTFrA4NexkeqC
-         aclhrxlMHhQQ6AmB39GogyAHfDXUv2vt6EqsafAEYJBBBal7FqjeZqgOgCQvWP5D4S
-         2Dt0kuRVzNX8r+iNEmY2xcQp62vVQWgum1qqc0dY=
-Date:   Mon, 16 Oct 2023 15:11:10 -0700
+        b=QkVYe/oaTbmGdPDRRNYF4OZj4KX2xOuSxESmLlAA48opG1F676cDK9C+1M1X+jMhn
+         f24XVdE2JwDjtG30D4/++RrEQfs0ieMcNDkjV3eBbJ4QDP7QHVebonM1tnEBA5oVJ6
+         yqDIrv+f6N4wrmPNtoZKCm5lQDbCQq2UMR6F2vP0=
+Date:   Mon, 16 Oct 2023 15:11:03 -0700
 To:     mm-commits@vger.kernel.org, p.raghav@samsung.com,
         konishi.ryusuke@gmail.com, agruenba@redhat.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-remove-nilfs_page_get_nth_block.patch added to mm-unstable branch
-Message-Id: <20231016221111.696F5C433C7@smtp.kernel.org>
+Subject: + nilfs2-convert-nilfs_grab_buffer-to-use-a-folio.patch added to mm-unstable branch
+Message-Id: <20231016221104.33A89C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: remove nilfs_page_get_nth_block
+     Subject: nilfs2: convert nilfs_grab_buffer() to use a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     nilfs2-remove-nilfs_page_get_nth_block.patch
+     nilfs2-convert-nilfs_grab_buffer-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-remove-nilfs_page_get_nth_block.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-nilfs_grab_buffer-to-use-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -61,12 +61,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: nilfs2: remove nilfs_page_get_nth_block
-Date: Mon, 16 Oct 2023 21:11:02 +0100
+Subject: nilfs2: convert nilfs_grab_buffer() to use a folio
+Date: Mon, 16 Oct 2023 21:10:58 +0100
 
-All users have now been converted to get_nth_block().
+Remove a number of folio->page->folio conversions.
 
-Link: https://lkml.kernel.org/r/20231016201114.1928083-16-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231016201114.1928083-12-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
@@ -74,22 +74,62 @@ Cc: Pankaj Raghav <p.raghav@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/page.h |    6 ------
- 1 file changed, 6 deletions(-)
+ fs/nilfs2/page.c |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
---- a/fs/nilfs2/page.h~nilfs2-remove-nilfs_page_get_nth_block
-+++ a/fs/nilfs2/page.h
-@@ -52,10 +52,4 @@ unsigned long nilfs_find_uncommitted_ext
- #define NILFS_PAGE_BUG(page, m, a...) \
- 	do { nilfs_page_bug(page); BUG(); } while (0)
+--- a/fs/nilfs2/page.c~nilfs2-convert-nilfs_grab_buffer-to-use-a-folio
++++ a/fs/nilfs2/page.c
+@@ -25,19 +25,19 @@
+ 	(BIT(BH_Uptodate) | BIT(BH_Mapped) | BIT(BH_NILFS_Node) |	\
+ 	 BIT(BH_NILFS_Volatile) | BIT(BH_NILFS_Checked))
  
--static inline struct buffer_head *
--nilfs_page_get_nth_block(struct page *page, unsigned int count)
--{
--	return get_nth_bh(page_buffers(page), count);
--}
--
- #endif /* _NILFS_PAGE_H */
+-static struct buffer_head *
+-__nilfs_get_page_block(struct page *page, unsigned long block, pgoff_t index,
+-		       int blkbits, unsigned long b_state)
++static struct buffer_head *__nilfs_get_folio_block(struct folio *folio,
++		unsigned long block, pgoff_t index, int blkbits,
++		unsigned long b_state)
+ 
+ {
+ 	unsigned long first_block;
+-	struct buffer_head *bh;
++	struct buffer_head *bh = folio_buffers(folio);
+ 
+-	if (!page_has_buffers(page))
+-		create_empty_buffers(page, 1 << blkbits, b_state);
++	if (!bh)
++		bh = folio_create_empty_buffers(folio, 1 << blkbits, b_state);
+ 
+ 	first_block = (unsigned long)index << (PAGE_SHIFT - blkbits);
+-	bh = nilfs_page_get_nth_block(page, block - first_block);
++	bh = get_nth_bh(bh, block - first_block);
+ 
+ 	touch_buffer(bh);
+ 	wait_on_buffer(bh);
+@@ -51,17 +51,17 @@ struct buffer_head *nilfs_grab_buffer(st
+ {
+ 	int blkbits = inode->i_blkbits;
+ 	pgoff_t index = blkoff >> (PAGE_SHIFT - blkbits);
+-	struct page *page;
++	struct folio *folio;
+ 	struct buffer_head *bh;
+ 
+-	page = grab_cache_page(mapping, index);
+-	if (unlikely(!page))
++	folio = filemap_grab_folio(mapping, index);
++	if (IS_ERR(folio))
+ 		return NULL;
+ 
+-	bh = __nilfs_get_page_block(page, blkoff, index, blkbits, b_state);
++	bh = __nilfs_get_folio_block(folio, blkoff, index, blkbits, b_state);
+ 	if (unlikely(!bh)) {
+-		unlock_page(page);
+-		put_page(page);
++		folio_unlock(folio);
++		folio_put(folio);
+ 		return NULL;
+ 	}
+ 	return bh;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
