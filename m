@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 772FFCDB482
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:11:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A14CCDB474
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:11:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233997AbjJPWLp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S234228AbjJPWLp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 16 Oct 2023 18:11:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49200 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49294 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234230AbjJPWLk (ORCPT
+        with ESMTP id S234201AbjJPWLk (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:11:40 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C7A9710D
-        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:11:28 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64495C433C9;
-        Mon, 16 Oct 2023 22:11:28 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80ECD112
+        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:11:30 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CE00C433C7;
+        Mon, 16 Oct 2023 22:11:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697494288;
-        bh=ASy9sY5oiClE1xIYtW/mJER4LLRWEtWS+YkCRTxFMtE=;
+        s=korg; t=1697494290;
+        bh=LPTB/VWbM0kfyVHQMyuj3tvQKHI1GUj6ED1ybglexbg=;
         h=Date:To:From:Subject:From;
-        b=QSKCWy28+OCk0O2FatpzTJjwPcmy2wohH7kxs/dIELnO8E6dtF/9eZIN6WGGSwIsE
-         dXUOgxSVz/VYkEGirqI53ZjzWPzlMtC4SYa65WMg433wwPZFfdQKSi6xz4RSRNDjOh
-         749bSgw65WVf4TCWSStBZBYKSB2SB3kcKROG+iCI=
-Date:   Mon, 16 Oct 2023 15:11:27 -0700
+        b=TgcVFuqJ3A9TGHrSkjpX96x3Hp5b4mbNkhsxYT75D15kAFukm8T0GGDeq2MeulLiT
+         OLil7ElGHV2+mzKhwT2cLKDamAr1xsRcnRmQ+vThd99bmHbaAusHVT4TLNgJ323vPc
+         B7Zdz35Cw5+2U/n7zSUIPkmXAWUjFfRcxZctRT6k=
+Date:   Mon, 16 Oct 2023 15:11:29 -0700
 To:     mm-commits@vger.kernel.org, p.raghav@samsung.com,
         konishi.ryusuke@gmail.com, agruenba@redhat.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ufs-use-ufs_get_locked_folio-in-ufs_alloc_lastblock.patch added to mm-unstable branch
-Message-Id: <20231016221128.64495C433C9@smtp.kernel.org>
+Subject: + ufs-convert-ufs_change_blocknr-to-use-folios.patch added to mm-unstable branch
+Message-Id: <20231016221130.1CE00C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ufs: use ufs_get_locked_folio() in ufs_alloc_lastblock()
+     Subject: ufs: convert ufs_change_blocknr() to use folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     ufs-use-ufs_get_locked_folio-in-ufs_alloc_lastblock.patch
+     ufs-convert-ufs_change_blocknr-to-use-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ufs-use-ufs_get_locked_folio-in-ufs_alloc_lastblock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ufs-convert-ufs_change_blocknr-to-use-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -61,12 +61,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: ufs: use ufs_get_locked_folio() in ufs_alloc_lastblock()
-Date: Mon, 16 Oct 2023 21:11:11 +0100
+Subject: ufs: convert ufs_change_blocknr() to use folios
+Date: mon, 16 Oct 2023 21:11:12 +0100
 
-Switch to the folio APIs, saving one folio->page->folio conversion.
+Convert the locked_page argument to a folio, then use folios throughout. 
+Saves three hidden calls to compound_head().
 
-Link: https://lkml.kernel.org/r/20231016201114.1928083-25-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231016201114.1928083-26-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Cc: Pankaj Raghav <p.raghav@samsung.com>
@@ -74,65 +75,77 @@ Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/inode.c |   25 ++++++++++++-------------
- 1 file changed, 12 insertions(+), 13 deletions(-)
+ fs/ufs/balloc.c |   20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
---- a/fs/ufs/inode.c~ufs-use-ufs_get_locked_folio-in-ufs_alloc_lastblock
-+++ a/fs/ufs/inode.c
-@@ -1057,7 +1057,7 @@ static int ufs_alloc_lastblock(struct in
- 	struct ufs_sb_private_info *uspi = UFS_SB(sb)->s_uspi;
- 	unsigned i, end;
- 	sector_t lastfrag;
--	struct page *lastpage;
-+	struct folio *folio;
- 	struct buffer_head *bh;
- 	u64 phys64;
+--- a/fs/ufs/balloc.c~ufs-convert-ufs_change_blocknr-to-use-folios
++++ a/fs/ufs/balloc.c
+@@ -240,6 +240,7 @@ static void ufs_change_blocknr(struct in
+ 			       unsigned int count, sector_t oldb,
+ 			       sector_t newb, struct page *locked_page)
+ {
++	struct folio *folio, *locked_folio = page_folio(locked_page);
+ 	const unsigned blks_per_page =
+ 		1 << (PAGE_SHIFT - inode->i_blkbits);
+ 	const unsigned mask = blks_per_page - 1;
+@@ -247,42 +248,39 @@ static void ufs_change_blocknr(struct in
+ 	pgoff_t index, cur_index, last_index;
+ 	unsigned pos, j, lblock;
+ 	sector_t end, i;
+-	struct page *page;
+ 	struct buffer_head *head, *bh;
  
-@@ -1068,18 +1068,17 @@ static int ufs_alloc_lastblock(struct in
+ 	UFSD("ENTER, ino %lu, count %u, oldb %llu, newb %llu\n",
+ 	      inode->i_ino, count,
+ 	     (unsigned long long)oldb, (unsigned long long)newb);
  
- 	lastfrag--;
+-	BUG_ON(!locked_page);
+-	BUG_ON(!PageLocked(locked_page));
++	BUG_ON(!folio_test_locked(locked_folio));
  
--	lastpage = ufs_get_locked_page(mapping, lastfrag >>
-+	folio = ufs_get_locked_folio(mapping, lastfrag >>
- 				       (PAGE_SHIFT - inode->i_blkbits));
--       if (IS_ERR(lastpage)) {
--               err = -EIO;
--               goto out;
--       }
+-	cur_index = locked_page->index;
++	cur_index = locked_folio->index;
+ 	end = count + beg;
+ 	last_index = end >> (PAGE_SHIFT - inode->i_blkbits);
+ 	for (i = beg; i < end; i = (i | mask) + 1) {
+ 		index = i >> (PAGE_SHIFT - inode->i_blkbits);
+ 
+ 		if (likely(cur_index != index)) {
+-			page = ufs_get_locked_page(mapping, index);
+-			if (!page)/* it was truncated */
++			folio = ufs_get_locked_folio(mapping, index);
++			if (!folio) /* it was truncated */
+ 				continue;
+-			if (IS_ERR(page)) {/* or EIO */
++			if (IS_ERR(folio)) {/* or EIO */
+ 				ufs_error(inode->i_sb, __func__,
+ 					  "read of page %llu failed\n",
+ 					  (unsigned long long)index);
+ 				continue;
+ 			}
+ 		} else
+-			page = locked_page;
++			folio = locked_folio;
+ 
+-		head = page_buffers(page);
++		head = folio_buffers(folio);
+ 		bh = head;
+ 		pos = i & mask;
+ 		for (j = 0; j < pos; ++j)
+ 			bh = bh->b_this_page;
+ 
 -
--       end = lastfrag & ((1 << (PAGE_SHIFT - inode->i_blkbits)) - 1);
--       bh = page_buffers(lastpage);
--       for (i = 0; i < end; ++i)
--               bh = bh->b_this_page;
-+	if (IS_ERR(folio)) {
-+		err = -EIO;
-+		goto out;
-+	}
+ 		if (unlikely(index == last_index))
+ 			lblock = end & mask;
+ 		else
+@@ -313,7 +311,7 @@ static void ufs_change_blocknr(struct in
+ 		} while (bh != head);
  
-+	end = lastfrag & ((1 << (PAGE_SHIFT - inode->i_blkbits)) - 1);
-+	bh = folio_buffers(folio);
-+	for (i = 0; i < end; ++i)
-+		bh = bh->b_this_page;
- 
-        err = ufs_getfrag_block(inode, lastfrag, bh, 1);
- 
-@@ -1095,7 +1094,7 @@ static int ufs_alloc_lastblock(struct in
- 		*/
- 	       set_buffer_uptodate(bh);
- 	       mark_buffer_dirty(bh);
--	       set_page_dirty(lastpage);
-+		folio_mark_dirty(folio);
-        }
- 
-        if (lastfrag >= UFS_IND_FRAGMENT) {
-@@ -1113,7 +1112,7 @@ static int ufs_alloc_lastblock(struct in
- 	       }
-        }
- out_unlock:
--       ufs_put_locked_page(lastpage);
-+       ufs_put_locked_folio(folio);
- out:
-        return err;
+ 		if (likely(cur_index != index))
+-			ufs_put_locked_page(page);
++			ufs_put_locked_folio(folio);
+  	}
+ 	UFSD("EXIT\n");
  }
 _
 
