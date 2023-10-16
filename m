@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F898CDB482
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:11:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70BDDCDB474
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:11:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234156AbjJPWLQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Oct 2023 18:11:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57734 "EHLO
+        id S233574AbjJPWLR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Oct 2023 18:11:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57750 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233831AbjJPWLJ (ORCPT
+        with ESMTP id S233854AbjJPWLJ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:11:09 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52C0FD9
-        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:11:06 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1BC1C433C9;
-        Mon, 16 Oct 2023 22:11:05 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60642EA
+        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:11:08 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EED66C433CC;
+        Mon, 16 Oct 2023 22:11:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697494266;
-        bh=Vq9wAg1rQEYHBH26sK7Q7uhjnvVy8h/hP5XPf644T7A=;
+        s=korg; t=1697494268;
+        bh=L3aC7n1UmxPNHtfTzat5hZP2eBXDQDsBKpKromq3gpM=;
         h=Date:To:From:Subject:From;
-        b=A16Ddebluflg1kU7PWmsrXpOflN0JDcT5SSOGlgS5XZk7L++YJhXckSbg6EQtkGpi
-         18lzxrXL8gk3s+cPLvB3NUBTdRN4xFgKNSHEywQgqwPi4oIUvoxpJjP6YSF3gvNXMd
-         /wsL5WCD3Fmn/MN+ldMGcZmNaUTO7fhlG5OOaN4M=
-Date:   Mon, 16 Oct 2023 15:11:05 -0700
+        b=NTsPvIWmDAz6vKsuQL4RCSRatKt45cqxJUh6g5KBehYeRRi9EJQa6mn/hU5/MDW8W
+         MqXEci1EGbtPYeKxjwkVpO23SuECw4DJFPTb7BBXHtwM4RSeLPF1YFMhXHOiyEjbMz
+         +X50IwUcyy/1LjuQ5e2cVT4YnPTYnm9S+jVSW8fs=
+Date:   Mon, 16 Oct 2023 15:11:07 -0700
 To:     mm-commits@vger.kernel.org, p.raghav@samsung.com,
         konishi.ryusuke@gmail.com, agruenba@redhat.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-convert-nilfs_copy_page-to-nilfs_copy_folio.patch added to mm-unstable branch
-Message-Id: <20231016221105.E1BC1C433C9@smtp.kernel.org>
+Subject: + nilfs2-convert-nilfs_mdt_forget_block-to-use-a-folio.patch added to mm-unstable branch
+Message-Id: <20231016221107.EED66C433CC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: convert nilfs_copy_page() to nilfs_copy_folio()
+     Subject: nilfs2: convert nilfs_mdt_forget_block() to use a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     nilfs2-convert-nilfs_copy_page-to-nilfs_copy_folio.patch
+     nilfs2-convert-nilfs_mdt_forget_block-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-nilfs_copy_page-to-nilfs_copy_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-nilfs_mdt_forget_block-to-use-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -61,13 +61,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: nilfs2: convert nilfs_copy_page() to nilfs_copy_folio()
-Date: Mon, 16 Oct 2023 21:10:59 +0100
+Subject: nilfs2: convert nilfs_mdt_forget_block() to use a folio
+Date: Mon, 16 Oct 2023 21:11:00 +0100
 
-Both callers already have a folio, so pass it in and use it directly. 
-Removes a lot of hidden calls to compound_head().
+Remove a number of folio->page->folio conversions.
 
-Link: https://lkml.kernel.org/r/20231016201114.1928083-13-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231016201114.1928083-14-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
@@ -75,112 +74,56 @@ Cc: Pankaj Raghav <p.raghav@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/page.c |   50 +++++++++++++++++++++++----------------------
- mm/util.c        |    1 
- 2 files changed, 27 insertions(+), 24 deletions(-)
+ fs/nilfs2/mdt.c |   30 ++++++++++++++----------------
+ 1 file changed, 14 insertions(+), 16 deletions(-)
 
---- a/fs/nilfs2/page.c~nilfs2-convert-nilfs_copy_page-to-nilfs_copy_folio
-+++ a/fs/nilfs2/page.c
-@@ -184,30 +184,32 @@ void nilfs_page_bug(struct page *page)
- }
- 
- /**
-- * nilfs_copy_page -- copy the page with buffers
-- * @dst: destination page
-- * @src: source page
-- * @copy_dirty: flag whether to copy dirty states on the page's buffer heads.
-+ * nilfs_copy_folio -- copy the folio with buffers
-+ * @dst: destination folio
-+ * @src: source folio
-+ * @copy_dirty: flag whether to copy dirty states on the folio's buffer heads.
-  *
-- * This function is for both data pages and btnode pages.  The dirty flag
-- * should be treated by caller.  The page must not be under i/o.
-- * Both src and dst page must be locked
-+ * This function is for both data folios and btnode folios.  The dirty flag
-+ * should be treated by caller.  The folio must not be under i/o.
-+ * Both src and dst folio must be locked
+--- a/fs/nilfs2/mdt.c~nilfs2-convert-nilfs_mdt_forget_block-to-use-a-folio
++++ a/fs/nilfs2/mdt.c
+@@ -356,30 +356,28 @@ int nilfs_mdt_delete_block(struct inode
   */
--static void nilfs_copy_page(struct page *dst, struct page *src, int copy_dirty)
-+static void nilfs_copy_folio(struct folio *dst, struct folio *src,
-+		bool copy_dirty)
+ int nilfs_mdt_forget_block(struct inode *inode, unsigned long block)
  {
- 	struct buffer_head *dbh, *dbufs, *sbh;
- 	unsigned long mask = NILFS_BUFFER_INHERENT_BITS;
+-	pgoff_t index = (pgoff_t)block >>
+-		(PAGE_SHIFT - inode->i_blkbits);
+-	struct page *page;
+-	unsigned long first_block;
++	pgoff_t index = block >> (PAGE_SHIFT - inode->i_blkbits);
++	struct folio *folio;
++	struct buffer_head *bh;
+ 	int ret = 0;
+ 	int still_dirty;
  
--	BUG_ON(PageWriteback(dst));
-+	BUG_ON(folio_test_writeback(dst));
+-	page = find_lock_page(inode->i_mapping, index);
+-	if (!page)
++	folio = filemap_lock_folio(inode->i_mapping, index);
++	if (IS_ERR(folio))
+ 		return -ENOENT;
  
--	sbh = page_buffers(src);
--	if (!page_has_buffers(dst))
--		create_empty_buffers(dst, sbh->b_size, 0);
-+	sbh = folio_buffers(src);
-+	dbh = folio_buffers(dst);
-+	if (!dbh)
-+		dbh = folio_create_empty_buffers(dst, sbh->b_size, 0);
+-	wait_on_page_writeback(page);
++	folio_wait_writeback(folio);
  
- 	if (copy_dirty)
- 		mask |= BIT(BH_Dirty);
- 
--	dbh = dbufs = page_buffers(dst);
-+	dbufs = dbh;
- 	do {
- 		lock_buffer(sbh);
- 		lock_buffer(dbh);
-@@ -218,16 +220,16 @@ static void nilfs_copy_page(struct page
- 		dbh = dbh->b_this_page;
- 	} while (dbh != dbufs);
- 
--	copy_highpage(dst, src);
-+	folio_copy(dst, src);
- 
--	if (PageUptodate(src) && !PageUptodate(dst))
--		SetPageUptodate(dst);
--	else if (!PageUptodate(src) && PageUptodate(dst))
--		ClearPageUptodate(dst);
--	if (PageMappedToDisk(src) && !PageMappedToDisk(dst))
--		SetPageMappedToDisk(dst);
--	else if (!PageMappedToDisk(src) && PageMappedToDisk(dst))
--		ClearPageMappedToDisk(dst);
-+	if (folio_test_uptodate(src) && !folio_test_uptodate(dst))
-+		folio_mark_uptodate(dst);
-+	else if (!folio_test_uptodate(src) && folio_test_uptodate(dst))
-+		folio_clear_uptodate(dst);
-+	if (folio_test_mappedtodisk(src) && !folio_test_mappedtodisk(dst))
-+		folio_set_mappedtodisk(dst);
-+	else if (!folio_test_mappedtodisk(src) && folio_test_mappedtodisk(dst))
-+		folio_clear_mappedtodisk(dst);
- 
- 	do {
- 		unlock_buffer(sbh);
-@@ -269,7 +271,7 @@ repeat:
- 			NILFS_PAGE_BUG(&folio->page,
- 				       "found empty page in dat page cache");
- 
--		nilfs_copy_page(&dfolio->page, &folio->page, 1);
-+		nilfs_copy_folio(dfolio, folio, true);
- 		filemap_dirty_folio(folio_mapping(dfolio), dfolio);
- 
- 		folio_unlock(dfolio);
-@@ -314,7 +316,7 @@ repeat:
- 		if (!IS_ERR(dfolio)) {
- 			/* overwrite existing folio in the destination cache */
- 			WARN_ON(folio_test_dirty(dfolio));
--			nilfs_copy_page(&dfolio->page, &folio->page, 0);
-+			nilfs_copy_folio(dfolio, folio, false);
- 			folio_unlock(dfolio);
- 			folio_put(dfolio);
- 			/* Do we not need to remove folio from smap here? */
---- a/mm/util.c~nilfs2-convert-nilfs_copy_page-to-nilfs_copy_folio
-+++ a/mm/util.c
-@@ -799,6 +799,7 @@ void folio_copy(struct folio *dst, struc
- 		cond_resched();
+-	first_block = (unsigned long)index <<
+-		(PAGE_SHIFT - inode->i_blkbits);
+-	if (page_has_buffers(page)) {
+-		struct buffer_head *bh;
+-
+-		bh = nilfs_page_get_nth_block(page, block - first_block);
++	bh = folio_buffers(folio);
++	if (bh) {
++		unsigned long first_block = index <<
++				(PAGE_SHIFT - inode->i_blkbits);
++		bh = get_nth_bh(bh, block - first_block);
+ 		nilfs_forget_buffer(bh);
  	}
- }
-+EXPORT_SYMBOL(folio_copy);
+-	still_dirty = PageDirty(page);
+-	unlock_page(page);
+-	put_page(page);
++	still_dirty = folio_test_dirty(folio);
++	folio_unlock(folio);
++	folio_put(folio);
  
- int sysctl_overcommit_memory __read_mostly = OVERCOMMIT_GUESS;
- int sysctl_overcommit_ratio __read_mostly = 50;
+ 	if (still_dirty ||
+ 	    invalidate_inode_pages2_range(inode->i_mapping, index, index) != 0)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
