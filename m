@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37B86CDB482
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:11:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABBE7C41513
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:11:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233747AbjJPWLU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Oct 2023 18:11:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57798 "EHLO
+        id S234133AbjJPWLX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Oct 2023 18:11:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48036 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233728AbjJPWLQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:11:16 -0400
+        with ESMTP id S233728AbjJPWLV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:11:21 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 361BFFC
-        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:11:15 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C915EC433C7;
-        Mon, 16 Oct 2023 22:11:14 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2825AA2
+        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:11:19 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B25C5C433C9;
+        Mon, 16 Oct 2023 22:11:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697494274;
-        bh=l/z2TFV4GOEiyb8aKyGcgWwUa3Jhi0jMgV9kSzD6McY=;
+        s=korg; t=1697494278;
+        bh=uSrTrHSj6RbmsU1vY1tOLDaKtl5THOFwW7rJ+Kes5Pw=;
         h=Date:To:From:Subject:From;
-        b=K6j71a4ffIacYS4l6pvQWQ5Z2052gXjJCCqSwAlRVWBxWx8C9Vj+77d69XqfsomG4
-         Ce3e+Wtt9iKOfKAsAa+9BMYPMFWvikqMqJpG0XZvc0Phd4OhZEJStW7SGi4SJChr2O
-         IouS5gF5Mme99gTn+ZRpsNi0KVdpdF7OfDqypj4E=
-Date:   Mon, 16 Oct 2023 15:11:14 -0700
+        b=ksXyMl19hbsBfsBMUvmX/ahL+Dyr06uNRqjo7DE79ZHunQvFXopNaBh7hzliXTeNg
+         M3hqQkU1iyDNbVhwol/ifunXF1wW7YDgX1LzSHWKwLKfR4tKdyTNp+ju1Zj+E+BjLU
+         d/16p7oy8jYka9j6qweY2Q1r8K1T9WMP3l5Xr26Y=
+Date:   Mon, 16 Oct 2023 15:11:18 -0700
 To:     mm-commits@vger.kernel.org, p.raghav@samsung.com,
         konishi.ryusuke@gmail.com, agruenba@redhat.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ntfs-convert-ntfs_read_block-to-use-a-folio.patch added to mm-unstable branch
-Message-Id: <20231016221114.C915EC433C7@smtp.kernel.org>
+Subject: + ntfs-convert-ntfs_prepare_pages_for_non_resident_write-to-folios.patch added to mm-unstable branch
+Message-Id: <20231016221118.B25C5C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ntfs: convert ntfs_read_block() to use a folio
+     Subject: ntfs: convert ntfs_prepare_pages_for_non_resident_write() to folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     ntfs-convert-ntfs_read_block-to-use-a-folio.patch
+     ntfs-convert-ntfs_prepare_pages_for_non_resident_write-to-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ntfs-convert-ntfs_read_block-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ntfs-convert-ntfs_prepare_pages_for_non_resident_write-to-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -61,13 +61,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: ntfs: convert ntfs_read_block() to use a folio
-Date: Mon, 16 Oct 2023 21:11:04 +0100
+Subject: ntfs: convert ntfs_prepare_pages_for_non_resident_write() to folios
+Date: Mon, 16 Oct 2023 21:11:06 +0100
 
-The caller already has the folio, so pass it in and use the folio API
-throughout saving five hidden calls to compound_head().
+Convert each element of the pages array to a folio before using it.  This
+in no way renders the function large-folio safe, but it does remove a lot
+of hidden calls to compound_head().
 
-Link: https://lkml.kernel.org/r/20231016201114.1928083-18-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231016201114.1928083-20-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Cc: Pankaj Raghav <p.raghav@samsung.com>
@@ -75,138 +76,247 @@ Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs/aops.c |   44 +++++++++++++++++++-------------------------
- 1 file changed, 19 insertions(+), 25 deletions(-)
+ fs/ntfs/file.c |   89 +++++++++++++++++++++--------------------------
+ 1 file changed, 41 insertions(+), 48 deletions(-)
 
---- a/fs/ntfs/aops.c~ntfs-convert-ntfs_read_block-to-use-a-folio
-+++ a/fs/ntfs/aops.c
-@@ -145,13 +145,12 @@ still_busy:
- }
- 
- /**
-- * ntfs_read_block - fill a @page of an address space with data
-- * @page:	page cache page to fill with data
-+ * ntfs_read_block - fill a @folio of an address space with data
-+ * @folio:	page cache folio to fill with data
-  *
-- * Fill the page @page of the address space belonging to the @page->host inode.
-  * We read each buffer asynchronously and when all buffers are read in, our io
-  * completion handler ntfs_end_buffer_read_async(), if required, automatically
-- * applies the mst fixups to the page before finally marking it uptodate and
-+ * applies the mst fixups to the folio before finally marking it uptodate and
-  * unlocking it.
-  *
-  * We only enforce allocated_size limit because i_size is checked for in
-@@ -161,7 +160,7 @@ still_busy:
-  *
-  * Contains an adapted version of fs/buffer.c::block_read_full_folio().
-  */
--static int ntfs_read_block(struct page *page)
-+static int ntfs_read_block(struct folio *folio)
- {
- 	loff_t i_size;
- 	VCN vcn;
-@@ -178,7 +177,7 @@ static int ntfs_read_block(struct page *
- 	int i, nr;
- 	unsigned char blocksize_bits;
- 
--	vi = page->mapping->host;
-+	vi = folio->mapping->host;
- 	ni = NTFS_I(vi);
- 	vol = ni->vol;
- 
-@@ -188,15 +187,10 @@ static int ntfs_read_block(struct page *
+--- a/fs/ntfs/file.c~ntfs-convert-ntfs_prepare_pages_for_non_resident_write-to-folios
++++ a/fs/ntfs/file.c
+@@ -567,7 +567,7 @@ static int ntfs_prepare_pages_for_non_re
+ 	LCN lcn;
+ 	s64 bh_pos, vcn_len, end, initialized_size;
+ 	sector_t lcn_block;
+-	struct page *page;
++	struct folio *folio;
+ 	struct inode *vi;
+ 	ntfs_inode *ni, *base_ni = NULL;
+ 	ntfs_volume *vol;
+@@ -601,20 +601,6 @@ static int ntfs_prepare_pages_for_non_re
+ 			(long long)pos, bytes);
  	blocksize = vol->sb->s_blocksize;
  	blocksize_bits = vol->sb->s_blocksize_bits;
- 
--	if (!page_has_buffers(page)) {
--		create_empty_buffers(page, blocksize, 0);
--		if (unlikely(!page_has_buffers(page))) {
--			unlock_page(page);
--			return -ENOMEM;
+-	u = 0;
+-	do {
+-		page = pages[u];
+-		BUG_ON(!page);
+-		/*
+-		 * create_empty_buffers() will create uptodate/dirty buffers if
+-		 * the page is uptodate/dirty.
+-		 */
+-		if (!page_has_buffers(page)) {
+-			create_empty_buffers(page, blocksize, 0);
+-			if (unlikely(!page_has_buffers(page)))
+-				return -ENOMEM;
 -		}
--	}
+-	} while (++u < nr_pages);
+ 	rl_write_locked = false;
+ 	rl = NULL;
+ 	err = 0;
+@@ -626,14 +612,21 @@ static int ntfs_prepare_pages_for_non_re
+ 	end = pos + bytes;
+ 	cend = (end + vol->cluster_size - 1) >> vol->cluster_size_bits;
+ 	/*
+-	 * Loop over each page and for each page over each buffer.  Use goto to
++	 * Loop over each buffer in each folio.  Use goto to
+ 	 * reduce indentation.
+ 	 */
+ 	u = 0;
+-do_next_page:
+-	page = pages[u];
+-	bh_pos = (s64)page->index << PAGE_SHIFT;
 -	bh = head = page_buffers(page);
--	BUG_ON(!bh);
++do_next_folio:
++	folio = page_folio(pages[u]);
++	bh_pos = folio_pos(folio);
 +	head = folio_buffers(folio);
 +	if (!head)
++		/*
++		 * create_empty_buffers() will create uptodate/dirty
++		 * buffers if the folio is uptodate/dirty.
++		 */
 +		head = folio_create_empty_buffers(folio, blocksize, 0);
 +	bh = head;
- 
- 	/*
- 	 * We may be racing with truncate.  To avoid some of the problems we
-@@ -205,11 +199,11 @@ static int ntfs_read_block(struct page *
- 	 * may leave some buffers unmapped which are now allocated.  This is
- 	 * not a problem since these buffers will just get mapped when a write
- 	 * occurs.  In case of a shrinking truncate, we will detect this later
--	 * on due to the runlist being incomplete and if the page is being
-+	 * on due to the runlist being incomplete and if the folio is being
- 	 * fully truncated, truncate will throw it away as soon as we unlock
- 	 * it so no need to worry what we do with it.
- 	 */
--	iblock = (s64)page->index << (PAGE_SHIFT - blocksize_bits);
-+	iblock = (s64)folio->index << (PAGE_SHIFT - blocksize_bits);
- 	read_lock_irqsave(&ni->size_lock, flags);
- 	lblock = (ni->allocated_size + blocksize - 1) >> blocksize_bits;
- 	init_size = ni->initialized_size;
-@@ -221,7 +215,7 @@ static int ntfs_read_block(struct page *
- 	}
- 	zblock = (init_size + blocksize - 1) >> blocksize_bits;
- 
--	/* Loop through all the buffers in the page. */
-+	/* Loop through all the buffers in the folio. */
- 	rl = NULL;
- 	nr = i = 0;
  	do {
-@@ -299,7 +293,7 @@ lock_retry_remap:
- 			if (!err)
- 				err = -EIO;
- 			bh->b_blocknr = -1;
--			SetPageError(page);
-+			folio_set_error(folio);
- 			ntfs_error(vol->sb, "Failed to read from inode 0x%lx, "
- 					"attribute type 0x%x, vcn 0x%llx, "
- 					"offset 0x%x because its location on "
-@@ -312,13 +306,13 @@ lock_retry_remap:
- 		/*
- 		 * Either iblock was outside lblock limits or
- 		 * ntfs_rl_vcn_to_lcn() returned error.  Just zero that portion
--		 * of the page and set the buffer uptodate.
-+		 * of the folio and set the buffer uptodate.
- 		 */
- handle_hole:
- 		bh->b_blocknr = -1UL;
- 		clear_buffer_mapped(bh);
- handle_zblock:
--		zero_user(page, i * blocksize, blocksize);
-+		folio_zero_range(folio, i * blocksize, blocksize);
- 		if (likely(!err))
- 			set_buffer_uptodate(bh);
- 	} while (i++, iblock++, (bh = bh->b_this_page) != head);
-@@ -349,11 +343,11 @@ handle_zblock:
- 		return 0;
- 	}
- 	/* No i/o was scheduled on any of the buffers. */
--	if (likely(!PageError(page)))
--		SetPageUptodate(page);
-+	if (likely(!folio_test_error(folio)))
-+		folio_mark_uptodate(folio);
- 	else /* Signal synchronous i/o error. */
- 		nr = -EIO;
--	unlock_page(page);
-+	folio_unlock(folio);
- 	return nr;
- }
+ 		VCN cdelta;
+ 		s64 bh_end;
+@@ -653,15 +646,15 @@ do_next_page:
+ 			if (buffer_uptodate(bh))
+ 				continue;
+ 			/*
+-			 * The buffer is not uptodate.  If the page is uptodate
++			 * The buffer is not uptodate.  If the folio is uptodate
+ 			 * set the buffer uptodate and otherwise ignore it.
+ 			 */
+-			if (PageUptodate(page)) {
++			if (folio_test_uptodate(folio)) {
+ 				set_buffer_uptodate(bh);
+ 				continue;
+ 			}
+ 			/*
+-			 * Neither the page nor the buffer are uptodate.  If
++			 * Neither the folio nor the buffer are uptodate.  If
+ 			 * the buffer is only partially being written to, we
+ 			 * need to read it in before the write, i.e. now.
+ 			 */
+@@ -679,7 +672,7 @@ do_next_page:
+ 					ntfs_submit_bh_for_read(bh);
+ 					*wait_bh++ = bh;
+ 				} else {
+-					zero_user(page, bh_offset(bh),
++					folio_zero_range(folio, bh_offset(bh),
+ 							blocksize);
+ 					set_buffer_uptodate(bh);
+ 				}
+@@ -706,7 +699,7 @@ map_buffer_cached:
+ 					(bh_cofs >> blocksize_bits);
+ 			set_buffer_mapped(bh);
+ 			/*
+-			 * If the page is uptodate so is the buffer.  If the
++			 * If the folio is uptodate so is the buffer.  If the
+ 			 * buffer is fully outside the write, we ignore it if
+ 			 * it was already allocated and we mark it dirty so it
+ 			 * gets written out if we allocated it.  On the other
+@@ -714,7 +707,7 @@ map_buffer_cached:
+ 			 * marking it dirty we set buffer_new so we can do
+ 			 * error recovery.
+ 			 */
+-			if (PageUptodate(page)) {
++			if (folio_test_uptodate(folio)) {
+ 				if (!buffer_uptodate(bh))
+ 					set_buffer_uptodate(bh);
+ 				if (unlikely(was_hole)) {
+@@ -754,7 +747,8 @@ map_buffer_cached:
+ 						ntfs_submit_bh_for_read(bh);
+ 						*wait_bh++ = bh;
+ 					} else {
+-						zero_user(page, bh_offset(bh),
++						folio_zero_range(folio,
++								bh_offset(bh),
+ 								blocksize);
+ 						set_buffer_uptodate(bh);
+ 					}
+@@ -773,7 +767,7 @@ map_buffer_cached:
+ 			 */
+ 			if (bh_end <= pos || bh_pos >= end) {
+ 				if (!buffer_uptodate(bh)) {
+-					zero_user(page, bh_offset(bh),
++					folio_zero_range(folio, bh_offset(bh),
+ 							blocksize);
+ 					set_buffer_uptodate(bh);
+ 				}
+@@ -786,7 +780,7 @@ map_buffer_cached:
+ 				u8 *kaddr;
+ 				unsigned pofs;
+ 					
+-				kaddr = kmap_atomic(page);
++				kaddr = kmap_local_folio(folio, 0);
+ 				if (bh_pos < pos) {
+ 					pofs = bh_pos & ~PAGE_MASK;
+ 					memset(kaddr + pofs, 0, pos - bh_pos);
+@@ -795,8 +789,8 @@ map_buffer_cached:
+ 					pofs = end & ~PAGE_MASK;
+ 					memset(kaddr + pofs, 0, bh_end - end);
+ 				}
+-				kunmap_atomic(kaddr);
+-				flush_dcache_page(page);
++				kunmap_local(kaddr);
++				flush_dcache_folio(folio);
+ 			}
+ 			continue;
+ 		}
+@@ -809,11 +803,12 @@ map_buffer_cached:
+ 		initialized_size = ni->allocated_size;
+ 		read_unlock_irqrestore(&ni->size_lock, flags);
+ 		if (bh_pos > initialized_size) {
+-			if (PageUptodate(page)) {
++			if (folio_test_uptodate(folio)) {
+ 				if (!buffer_uptodate(bh))
+ 					set_buffer_uptodate(bh);
+ 			} else if (!buffer_uptodate(bh)) {
+-				zero_user(page, bh_offset(bh), blocksize);
++				folio_zero_range(folio, bh_offset(bh),
++						blocksize);
+ 				set_buffer_uptodate(bh);
+ 			}
+ 			continue;
+@@ -927,17 +922,17 @@ rl_not_mapped_enoent:
+ 				bh->b_blocknr = -1;
+ 				/*
+ 				 * If the buffer is uptodate we skip it.  If it
+-				 * is not but the page is uptodate, we can set
+-				 * the buffer uptodate.  If the page is not
++				 * is not but the folio is uptodate, we can set
++				 * the buffer uptodate.  If the folio is not
+ 				 * uptodate, we can clear the buffer and set it
+ 				 * uptodate.  Whether this is worthwhile is
+ 				 * debatable and this could be removed.
+ 				 */
+-				if (PageUptodate(page)) {
++				if (folio_test_uptodate(folio)) {
+ 					if (!buffer_uptodate(bh))
+ 						set_buffer_uptodate(bh);
+ 				} else if (!buffer_uptodate(bh)) {
+-					zero_user(page, bh_offset(bh),
++					folio_zero_range(folio, bh_offset(bh),
+ 						blocksize);
+ 					set_buffer_uptodate(bh);
+ 				}
+@@ -1167,7 +1162,7 @@ rl_not_mapped_enoent:
+ 	} while (bh_pos += blocksize, (bh = bh->b_this_page) != head);
+ 	/* If there are no errors, do the next page. */
+ 	if (likely(!err && ++u < nr_pages))
+-		goto do_next_page;
++		goto do_next_folio;
+ 	/* If there are no errors, release the runlist lock if we took it. */
+ 	if (likely(!err)) {
+ 		if (unlikely(rl_write_locked)) {
+@@ -1185,9 +1180,8 @@ rl_not_mapped_enoent:
+ 		bh = *--wait_bh;
+ 		wait_on_buffer(bh);
+ 		if (likely(buffer_uptodate(bh))) {
+-			page = bh->b_page;
+-			bh_pos = ((s64)page->index << PAGE_SHIFT) +
+-					bh_offset(bh);
++			folio = bh->b_folio;
++			bh_pos = folio_pos(folio) + bh_offset(bh);
+ 			/*
+ 			 * If the buffer overflows the initialized size, need
+ 			 * to zero the overflowing region.
+@@ -1197,7 +1191,7 @@ rl_not_mapped_enoent:
  
-@@ -433,7 +427,7 @@ retry_readpage:
- 	/* NInoNonResident() == NInoIndexAllocPresent() */
- 	if (NInoNonResident(ni)) {
- 		/* Normal, non-resident data stream. */
--		return ntfs_read_block(page);
-+		return ntfs_read_block(folio);
- 	}
- 	/*
- 	 * Attribute is resident, implying it is not compressed or encrypted.
+ 				if (likely(bh_pos < initialized_size))
+ 					ofs = initialized_size - bh_pos;
+-				zero_user_segment(page, bh_offset(bh) + ofs,
++				folio_zero_segment(folio, bh_offset(bh) + ofs,
+ 						blocksize);
+ 			}
+ 		} else /* if (unlikely(!buffer_uptodate(bh))) */
+@@ -1324,21 +1318,20 @@ rl_not_mapped_enoent:
+ 	u = 0;
+ 	end = bh_cpos << vol->cluster_size_bits;
+ 	do {
+-		page = pages[u];
+-		bh = head = page_buffers(page);
++		folio = page_folio(pages[u]);
++		bh = head = folio_buffers(folio);
+ 		do {
+ 			if (u == nr_pages &&
+-					((s64)page->index << PAGE_SHIFT) +
+-					bh_offset(bh) >= end)
++			    folio_pos(folio) + bh_offset(bh) >= end)
+ 				break;
+ 			if (!buffer_new(bh))
+ 				continue;
+ 			clear_buffer_new(bh);
+ 			if (!buffer_uptodate(bh)) {
+-				if (PageUptodate(page))
++				if (folio_test_uptodate(folio))
+ 					set_buffer_uptodate(bh);
+ 				else {
+-					zero_user(page, bh_offset(bh),
++					folio_zero_range(folio, bh_offset(bh),
+ 							blocksize);
+ 					set_buffer_uptodate(bh);
+ 				}
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
