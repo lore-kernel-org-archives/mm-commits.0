@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 814CCCDB465
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:58:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C32ACDB465
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:58:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232615AbjJPW6g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Oct 2023 18:58:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54690 "EHLO
+        id S232345AbjJPW6j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Oct 2023 18:58:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54702 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232345AbjJPW6g (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:58:36 -0400
+        with ESMTP id S233567AbjJPW6i (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:58:38 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B369483
-        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:58:34 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B279C433C7;
-        Mon, 16 Oct 2023 22:58:34 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BE0AF83
+        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:58:36 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 501DEC433C7;
+        Mon, 16 Oct 2023 22:58:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697497114;
-        bh=8CVhhVU0rRApsRqUNcx4BY/C5TQeN3M97etGYCfTn8Q=;
+        s=korg; t=1697497116;
+        bh=anqxm62LenuexP14kx+G+4tB5I4CTZXVf1p51h82t/A=;
         h=Date:To:From:Subject:From;
-        b=ZHMiVY8Y1WOj4o9ndqBi6/Qk7+7uKKpeZrYBeA8fnjevVmHYFV7SFC6f6oeTtkeZg
-         jklt89PTEUHGXuY0CORpKSizxLs2n+yAtD6Zuz3WAIUv3QDRBycfF95Hh53Q2Q999z
-         C4owHuC4v+1YuVx7jRhAhhWwP4T96cK5fQP+6Erw=
-Date:   Mon, 16 Oct 2023 15:58:33 -0700
+        b=ycVD6jw+Cyc6jLDvTZA5TwRAUn3+nl9wvNgSxY0L5toPphitDwny89vVLRWa8338O
+         +bzZt4zBVra/ool8y3NiO1s7zgjejj3arMMdp+CbB2ecvhYon+lWfNnontLv3Ke+pb
+         72ugI02KsyGqSEAu1wgSlrCpeS9uNl81KvPEpeCc=
+Date:   Mon, 16 Oct 2023 15:58:35 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, shakeelb@google.com,
         rientjes@google.com, naresh.kamboju@linaro.org,
         muchun.song@linux.dev, mhocko@kernel.org, hannes@cmpxchg.org,
         dennis@kernel.org, roman.gushchin@linux.dev,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmem-optimize-get_obj_cgroup_from_current.patch added to mm-unstable branch
-Message-Id: <20231016225834.4B279C433C7@smtp.kernel.org>
+Subject: + mm-kmem-add-direct-objcg-pointer-to-task_struct.patch added to mm-unstable branch
+Message-Id: <20231016225836.501DEC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,12 +39,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kmem: optimize get_obj_cgroup_from_current()
+     Subject: mm: kmem: add direct objcg pointer to task_struct
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kmem-optimize-get_obj_cgroup_from_current.patch
+     mm-kmem-add-direct-objcg-pointer-to-task_struct.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmem-optimize-get_obj_cgroup_from_current.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmem-add-direct-objcg-pointer-to-task_struct.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -63,50 +63,47 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: mm: kmem: optimize get_obj_cgroup_from_current()
-Date: Mon, 16 Oct 2023 15:18:56 -0700
+Subject: mm: kmem: add direct objcg pointer to task_struct
+Date: Mon, 16 Oct 2023 15:18:57 -0700
 
-Patch series "mm: improve performance of accounted kernel memory
-allocations", v3.
+To charge a freshly allocated kernel object to a memory cgroup, the kernel
+needs to obtain an objcg pointer.  Currently it does it indirectly by
+obtaining the memcg pointer first and then calling to
+__get_obj_cgroup_from_memcg().
 
-This patchset improves the performance of accounted kernel memory
-allocations by ~30% as measured by a micro-benchmark [1].  The benchmark
-is very straightforward: 1M of 64 bytes-large kmalloc() allocations.
+Usually tasks spend their entire life belonging to the same object cgroup.
+So it makes sense to save the objcg pointer on task_struct directly, so
+it can be obtained faster.  It requires some work on fork, exit and cgroup
+migrate paths, but these paths are way colder.
 
-Below are results with the disabled kernel memory accounting, the original
-state and with this patchset applied.
+To avoid any costly synchronization the following rules are applied:
+1) A task sets it's objcg pointer itself.
 
-|             | Kmem disabled | Original | Patched |  Delta |
-|-------------+---------------+----------+---------+--------|
-| User cgroup |         29764 |    84548 |   59078 | -30.0% |
-| Root cgroup |         29742 |    48342 |   31501 | -34.8% |
+2) If a task is being migrated to another cgroup, the least
+   significant bit of the objcg pointer is set atomically.
 
-As we can see, the patchset removes the majority of the overhead when
-there is no actual accounting (a task belongs to the root memory cgroup)
-and almost halves the accounting overhead otherwise.
+3) On the allocation path the objcg pointer is obtained locklessly
+   using the READ_ONCE() macro and the least significant bit is
+   checked. If it's set, the following procedure is used to update
+   it locklessly:
+       - task->objcg is zeroed using cmpxcg
+       - new objcg pointer is obtained
+       - task->objcg is updated using try_cmpxchg
+       - operation is repeated if try_cmpxcg fails
+   It guarantees that no updates will be lost if task migration
+   is racing against objcg pointer update. It also allows to keep
+   both read and write paths fully lockless.
 
-The main idea is to get rid of unnecessary memcg to objcg conversions and
-switch to a scope-based protection of objcgs, which eliminates extra
-operations with objcg reference counters under a rcu read lock.  More
-details are provided in individual commit descriptions.
+Because the task is keeping a reference to the objcg, it can't go away
+while the task is alive.
 
+This commit doesn't change the way the remote memcg charging works.
 
-This patch (of 5):
-
-Manually inline memcg_kmem_bypass() and active_memcg() to speed up
-get_obj_cgroup_from_current() by avoiding duplicate in_task() checks and
-active_memcg() readings.
-
-Also add a likely() macro to __get_obj_cgroup_from_memcg():
-obj_cgroup_tryget() should succeed at almost all times except a very
-unlikely race with the memcg deletion path.
-
-Link: https://lkml.kernel.org/r/20231016221900.4031141-1-roman.gushchin@linux.dev
-Link: https://lkml.kernel.org/r/20231016221900.4031141-2-roman.gushchin@linux.dev
+Link: https://lkml.kernel.org/r/20231016221900.4031141-3-roman.gushchin@linux.dev
 Signed-off-by: Roman Gushchin (Cruise) <roman.gushchin@linux.dev>
 Tested-by: Naresh Kamboju <naresh.kamboju@linaro.org>
-Acked-by: Shakeel Butt <shakeelb@google.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Shakeel Butt <shakeelb@google.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Dennis Zhou <dennis@kernel.org>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -115,70 +112,217 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   34 ++++++++++++++--------------------
- 1 file changed, 14 insertions(+), 20 deletions(-)
+ include/linux/sched.h |    4 +
+ mm/memcontrol.c       |  130 +++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 125 insertions(+), 9 deletions(-)
 
---- a/mm/memcontrol.c~mm-kmem-optimize-get_obj_cgroup_from_current
+--- a/include/linux/sched.h~mm-kmem-add-direct-objcg-pointer-to-task_struct
++++ a/include/linux/sched.h
+@@ -1443,6 +1443,10 @@ struct task_struct {
+ 	struct mem_cgroup		*active_memcg;
+ #endif
+ 
++#ifdef CONFIG_MEMCG_KMEM
++	struct obj_cgroup		*objcg;
++#endif
++
+ #ifdef CONFIG_BLK_CGROUP
+ 	struct gendisk			*throttle_disk;
+ #endif
+--- a/mm/memcontrol.c~mm-kmem-add-direct-objcg-pointer-to-task_struct
 +++ a/mm/memcontrol.c
-@@ -1110,19 +1110,6 @@ struct mem_cgroup *get_mem_cgroup_from_m
+@@ -249,6 +249,8 @@ struct mem_cgroup *vmpressure_to_memcg(s
+ 	return container_of(vmpr, struct mem_cgroup, vmpressure);
  }
- EXPORT_SYMBOL(get_mem_cgroup_from_mm);
  
--static __always_inline bool memcg_kmem_bypass(void)
--{
--	/* Allow remote memcg charging from any context. */
--	if (unlikely(active_memcg()))
--		return false;
--
--	/* Memcg to charge can't be determined. */
--	if (!in_task() || !current->mm || (current->flags & PF_KTHREAD))
--		return true;
--
--	return false;
--}
--
- /**
-  * get_mem_cgroup_from_current - Obtain a reference on current task's memcg.
-  */
-@@ -3113,7 +3100,7 @@ static struct obj_cgroup *__get_obj_cgro
++#define CURRENT_OBJCG_UPDATE_FLAG 0x1UL
++
+ #ifdef CONFIG_MEMCG_KMEM
+ static DEFINE_SPINLOCK(objcg_lock);
  
- 	for (; !mem_cgroup_is_root(memcg); memcg = parent_mem_cgroup(memcg)) {
- 		objcg = rcu_dereference(memcg->objcg);
--		if (objcg && obj_cgroup_tryget(objcg))
-+		if (likely(objcg && obj_cgroup_tryget(objcg)))
- 			break;
- 		objcg = NULL;
- 	}
-@@ -3122,16 +3109,23 @@ static struct obj_cgroup *__get_obj_cgro
+@@ -3107,6 +3109,50 @@ static struct obj_cgroup *__get_obj_cgro
+ 	return objcg;
+ }
  
++static struct obj_cgroup *current_objcg_update(void)
++{
++	struct mem_cgroup *memcg;
++	struct obj_cgroup *old, *objcg = NULL;
++
++	do {
++		/* Atomically drop the update bit. */
++		old = xchg(&current->objcg, NULL);
++		if (old) {
++			old = (struct obj_cgroup *)
++				((unsigned long)old & ~CURRENT_OBJCG_UPDATE_FLAG);
++			if (old)
++				obj_cgroup_put(old);
++
++			old = NULL;
++		}
++
++		/* Obtain the new objcg pointer. */
++		rcu_read_lock();
++		memcg = mem_cgroup_from_task(current);
++		/*
++		 * The current task can be asynchronously moved to another
++		 * memcg and the previous memcg can be offlined. So let's
++		 * get the memcg pointer and try get a reference to objcg
++		 * under a rcu read lock.
++		 */
++		for (; memcg != root_mem_cgroup; memcg = parent_mem_cgroup(memcg)) {
++			objcg = rcu_dereference(memcg->objcg);
++			if (likely(objcg && obj_cgroup_tryget(objcg)))
++				break;
++			objcg = NULL;
++		}
++		rcu_read_unlock();
++
++		/*
++		 * Try set up a new objcg pointer atomically. If it
++		 * fails, it means the update flag was set concurrently, so
++		 * the whole procedure should be repeated.
++		 */
++	} while (!try_cmpxchg(&current->objcg, &old, objcg));
++
++	return objcg;
++}
++
  __always_inline struct obj_cgroup *get_obj_cgroup_from_current(void)
  {
--	struct obj_cgroup *objcg = NULL;
  	struct mem_cgroup *memcg;
-+	struct obj_cgroup *objcg;
+@@ -3114,19 +3160,26 @@ __always_inline struct obj_cgroup *get_o
  
--	if (memcg_kmem_bypass())
--		return NULL;
-+	if (in_task()) {
-+		memcg = current->active_memcg;
+ 	if (in_task()) {
+ 		memcg = current->active_memcg;
++		if (unlikely(memcg))
++			goto from_memcg;
+ 
+-		/* Memcg to charge can't be determined. */
+-		if (likely(!memcg) && (!current->mm || (current->flags & PF_KTHREAD)))
+-			return NULL;
++		objcg = READ_ONCE(current->objcg);
++		if (unlikely((unsigned long)objcg & CURRENT_OBJCG_UPDATE_FLAG))
++			objcg = current_objcg_update();
 +
-+		/* Memcg to charge can't be determined. */
-+		if (likely(!memcg) && (!current->mm || (current->flags & PF_KTHREAD)))
-+			return NULL;
-+	} else {
-+		memcg = this_cpu_read(int_active_memcg);
-+		if (likely(!memcg))
-+			return NULL;
-+	}
++		if (objcg) {
++			obj_cgroup_get(objcg);
++			return objcg;
++		}
+ 	} else {
+ 		memcg = this_cpu_read(int_active_memcg);
+-		if (likely(!memcg))
+-			return NULL;
++		if (unlikely(memcg))
++			goto from_memcg;
+ 	}
++	return NULL;
  
++from_memcg:
  	rcu_read_lock();
--	if (unlikely(active_memcg()))
--		memcg = active_memcg();
--	else
-+	if (!memcg)
- 		memcg = mem_cgroup_from_task(current);
+-	if (!memcg)
+-		memcg = mem_cgroup_from_task(current);
  	objcg = __get_obj_cgroup_from_memcg(memcg);
  	rcu_read_unlock();
+ 	return objcg;
+@@ -6469,6 +6522,7 @@ static void mem_cgroup_move_task(void)
+ 		mem_cgroup_clear_mc();
+ 	}
+ }
++
+ #else	/* !CONFIG_MMU */
+ static int mem_cgroup_can_attach(struct cgroup_taskset *tset)
+ {
+@@ -6482,8 +6536,39 @@ static void mem_cgroup_move_task(void)
+ }
+ #endif
+ 
++#ifdef CONFIG_MEMCG_KMEM
++static void mem_cgroup_fork(struct task_struct *task)
++{
++	/*
++	 * Set the update flag to cause task->objcg to be initialized lazily
++	 * on the first allocation. It can be done without any synchronization
++	 * because it's always performed on the current task, so does
++	 * current_objcg_update().
++	 */
++	task->objcg = (struct obj_cgroup *)CURRENT_OBJCG_UPDATE_FLAG;
++}
++
++static void mem_cgroup_exit(struct task_struct *task)
++{
++	struct obj_cgroup *objcg = task->objcg;
++
++	objcg = (struct obj_cgroup *)
++		((unsigned long)objcg & ~CURRENT_OBJCG_UPDATE_FLAG);
++	if (objcg)
++		obj_cgroup_put(objcg);
++
++	/*
++	 * Some kernel allocations can happen after this point,
++	 * but let's ignore them. It can be done without any synchronization
++	 * because it's always performed on the current task, so does
++	 * current_objcg_update().
++	 */
++	task->objcg = NULL;
++}
++#endif
++
+ #ifdef CONFIG_LRU_GEN
+-static void mem_cgroup_attach(struct cgroup_taskset *tset)
++static void mem_cgroup_lru_gen_attach(struct cgroup_taskset *tset)
+ {
+ 	struct task_struct *task;
+ 	struct cgroup_subsys_state *css;
+@@ -6501,10 +6586,31 @@ static void mem_cgroup_attach(struct cgr
+ 	task_unlock(task);
+ }
+ #else
++static void mem_cgroup_lru_gen_attach(struct cgroup_taskset *tset) {}
++#endif /* CONFIG_LRU_GEN */
++
++#ifdef CONFIG_MEMCG_KMEM
++static void mem_cgroup_kmem_attach(struct cgroup_taskset *tset)
++{
++	struct task_struct *task;
++	struct cgroup_subsys_state *css;
++
++	cgroup_taskset_for_each(task, css, tset) {
++		/* atomically set the update bit */
++		set_bit(0, (unsigned long *)&task->objcg);
++	}
++}
++#else
++static void mem_cgroup_kmem_attach(struct cgroup_taskset *tset) {}
++#endif /* CONFIG_MEMCG_KMEM */
++
++#if defined(CONFIG_LRU_GEN) || defined(CONFIG_MEMCG_KMEM)
+ static void mem_cgroup_attach(struct cgroup_taskset *tset)
+ {
++	mem_cgroup_lru_gen_attach(tset);
++	mem_cgroup_kmem_attach(tset);
+ }
+-#endif /* CONFIG_LRU_GEN */
++#endif
+ 
+ static int seq_puts_memcg_tunable(struct seq_file *m, unsigned long value)
+ {
+@@ -6914,9 +7020,15 @@ struct cgroup_subsys memory_cgrp_subsys
+ 	.css_reset = mem_cgroup_css_reset,
+ 	.css_rstat_flush = mem_cgroup_css_rstat_flush,
+ 	.can_attach = mem_cgroup_can_attach,
++#if defined(CONFIG_LRU_GEN) || defined(CONFIG_MEMCG_KMEM)
+ 	.attach = mem_cgroup_attach,
++#endif
+ 	.cancel_attach = mem_cgroup_cancel_attach,
+ 	.post_attach = mem_cgroup_move_task,
++#ifdef CONFIG_MEMCG_KMEM
++	.fork = mem_cgroup_fork,
++	.exit = mem_cgroup_exit,
++#endif
+ 	.dfl_cftypes = memory_files,
+ 	.legacy_cftypes = mem_cgroup_legacy_files,
+ 	.early_init = 0,
 _
 
 Patches currently in -mm which might be from roman.gushchin@linux.dev are
