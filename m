@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EBB35CDB474
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:49:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 328DFC41513
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:50:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233949AbjJPWtx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Oct 2023 18:49:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60626 "EHLO
+        id S231560AbjJPWuD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Oct 2023 18:50:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43532 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234226AbjJPWtu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:49:50 -0400
+        with ESMTP id S234137AbjJPWty (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:49:54 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4481CFA
-        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:49:48 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5FD2C433C8;
-        Mon, 16 Oct 2023 22:49:47 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2CB48B4
+        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:49:53 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B462AC433C9;
+        Mon, 16 Oct 2023 22:49:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697496587;
-        bh=kibt7YEWsu/a4kvc77xScVF760524XQhYsn+JsOWozU=;
+        s=korg; t=1697496592;
+        bh=k3gDXRzXZArJsXPUM0Z1Mro0wi4FepTFI6d1p+Bd4tk=;
         h=Date:To:From:Subject:From;
-        b=nRom5g3ZEOy0tYd+eugdibWrrmLnf3YdDPrQgjJOD1vlh3aSVUppUqF+8KQ8YbPx6
-         Ix9E3jO07gAWHZcC1CVMeBfptcwnQ84QHKBCkqqPwjgnGRXwBmUsGtWQeesdojyQdU
-         bMYJo3QB+X6yaLVm9nPHuX1IxAEhw/RfjIJ0Z90g=
-Date:   Mon, 16 Oct 2023 15:49:47 -0700
+        b=2UNAvseSxDlv0ikaG6J89rTWI8YDjGpFVrAeeCw3y3Z3iJtXA3rCK8Hgh9ogbSFkK
+         LFzR46YiQGFFZ0UC7rxuNGDEEBXN0oBxEsNfub+sCEGnirScWrNHI9qsPEMFI2GNkJ
+         k7KfU7XS1VcF4eNhfl5ecNlZ7bq5IeNKqbW5zM0U=
+Date:   Mon, 16 Oct 2023 15:49:52 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         sudeep.holla@arm.com, pasha.tatashin@soleen.com, mhocko@suse.com,
         mgorman@techsingularity.net, jweiner@redhat.com, david@redhat.com,
         dave.hansen@linux.intel.com, cl@linux.com, arjan@linux.intel.com,
         ying.huang@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-framework-for-pcp-high-auto-tuning.patch added to mm-unstable branch
-Message-Id: <20231016224947.C5FD2C433C8@smtp.kernel.org>
+Subject: + mm-pcp-decrease-pcp-high-if-free-pages-high-watermark.patch added to mm-unstable branch
+Message-Id: <20231016224952.B462AC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,12 +39,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add framework for PCP high auto-tuning
+     Subject: mm, pcp: decrease PCP high if free pages < high watermark
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-framework-for-pcp-high-auto-tuning.patch
+     mm-pcp-decrease-pcp-high-if-free-pages-high-watermark.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-framework-for-pcp-high-auto-tuning.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pcp-decrease-pcp-high-if-free-pages-high-watermark.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -63,36 +63,25 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: mm: add framework for PCP high auto-tuning
-Date: Mon, 16 Oct 2023 13:29:59 +0800
+Subject: mm, pcp: decrease PCP high if free pages < high watermark
+Date: Mon, 16 Oct 2023 13:30:01 +0800
 
-The page allocation performance requirements of different workloads are
-usually different.  So, we need to tune PCP (per-CPU pageset) high to
-optimize the workload page allocation performance.  Now, we have a system
-wide sysctl knob (percpu_pagelist_high_fraction) to tune PCP high by hand.
-But, it's hard to find out the best value by hand.  And one global
-configuration may not work best for the different workloads that run on
-the same system.  One solution to these issues is to tune PCP high of each
-CPU automatically.
+One target of PCP is to minimize pages in PCP if the system free pages is
+too few.  To reach that target, when page reclaiming is active for the
+zone (ZONE_RECLAIM_ACTIVE), we will stop increasing PCP high in allocating
+path, decrease PCP high and free some pages in freeing path.  But this may
+be too late because the background page reclaiming may introduce latency
+for some workloads.  So, in this patch, during page allocation we will
+detect whether the number of free pages of the zone is below high
+watermark.  If so, we will stop increasing PCP high in allocating path,
+decrease PCP high and free some pages in freeing path.  With this, we can
+reduce the possibility of the premature background page reclaiming caused
+by too large PCP.
 
-This patch adds the framework for PCP high auto-tuning.  With it,
-pcp->high of each CPU will be changed automatically by tuning algorithm at
-runtime.  The minimal high (pcp->high_min) is the original PCP high value
-calculated based on the low watermark pages.  While the maximal high
-(pcp->high_max) is the PCP high value when percpu_pagelist_high_fraction
-sysctl knob is set to MIN_PERCPU_PAGELIST_HIGH_FRACTION.  That is, the
-maximal pcp->high that can be set via sysctl knob by hand.
+The high watermark checking is done in allocating path to reduce the
+overhead in hotter freeing path.
 
-It's possible that PCP high auto-tuning doesn't work well for some
-workloads.  So, when PCP high is tuned by hand via the sysctl knob, the
-auto-tuning will be disabled.  The PCP high set by hand will be used
-instead.
-
-This patch only adds the framework, so pcp->high will be set to
-pcp->high_min (original default) always.  We will add actual auto-tuning
-algorithm in the following patches in the series.
-
-Link: https://lkml.kernel.org/r/20231016053002.756205-7-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20231016053002.756205-9-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -108,209 +97,83 @@ Cc: Sudeep Holla <sudeep.holla@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    5 ++
- mm/page_alloc.c        |   71 +++++++++++++++++++++++++--------------
- 2 files changed, 50 insertions(+), 26 deletions(-)
+ include/linux/mmzone.h |    1 +
+ mm/page_alloc.c        |   33 +++++++++++++++++++++++++++++++--
+ 2 files changed, 32 insertions(+), 2 deletions(-)
 
---- a/include/linux/mmzone.h~mm-add-framework-for-pcp-high-auto-tuning
+--- a/include/linux/mmzone.h~mm-pcp-decrease-pcp-high-if-free-pages-high-watermark
 +++ a/include/linux/mmzone.h
-@@ -707,6 +707,8 @@ struct per_cpu_pages {
- 	spinlock_t lock;	/* Protects lists field */
- 	int count;		/* number of pages in the list */
- 	int high;		/* high watermark, emptying needed */
-+	int high_min;		/* min high watermark */
-+	int high_max;		/* max high watermark */
- 	int batch;		/* chunk size for buddy add/remove */
- 	u8 flags;		/* protected by pcp->lock */
- 	u8 alloc_factor;	/* batch scaling factor during allocate */
-@@ -866,7 +868,8 @@ struct zone {
- 	 * the high and batch values are copied to individual pagesets for
- 	 * faster access
- 	 */
--	int pageset_high;
-+	int pageset_high_min;
-+	int pageset_high_max;
- 	int pageset_batch;
+@@ -1030,6 +1030,7 @@ enum zone_flags {
+ 					 * Cleared when kswapd is woken.
+ 					 */
+ 	ZONE_RECLAIM_ACTIVE,		/* kswapd may be scanning the zone. */
++	ZONE_BELOW_HIGH,		/* zone is below high watermark. */
+ };
  
- #ifndef CONFIG_SPARSEMEM
---- a/mm/page_alloc.c~mm-add-framework-for-pcp-high-auto-tuning
+ static inline unsigned long zone_managed_pages(struct zone *zone)
+--- a/mm/page_alloc.c~mm-pcp-decrease-pcp-high-if-free-pages-high-watermark
 +++ a/mm/page_alloc.c
-@@ -2386,7 +2386,7 @@ static int nr_pcp_free(struct per_cpu_pa
- static int nr_pcp_high(struct per_cpu_pages *pcp, struct zone *zone,
- 		       bool free_high)
- {
--	int high = READ_ONCE(pcp->high);
-+	int high = READ_ONCE(pcp->high_min);
- 
- 	if (unlikely(!high || free_high))
- 		return 0;
-@@ -2725,7 +2725,7 @@ static int nr_pcp_alloc(struct per_cpu_p
- {
- 	int high, batch, max_nr_alloc;
- 
--	high = READ_ONCE(pcp->high);
-+	high = READ_ONCE(pcp->high_min);
- 	batch = READ_ONCE(pcp->batch);
- 
- 	/* Check for PCP disabled or boot pageset */
-@@ -5328,14 +5328,15 @@ static int zone_batchsize(struct zone *z
- }
- 
- static int percpu_pagelist_high_fraction;
--static int zone_highsize(struct zone *zone, int batch, int cpu_online)
-+static int zone_highsize(struct zone *zone, int batch, int cpu_online,
-+			 int high_fraction)
- {
- #ifdef CONFIG_MMU
- 	int high;
- 	int nr_split_cpus;
- 	unsigned long total_pages;
- 
--	if (!percpu_pagelist_high_fraction) {
-+	if (!high_fraction) {
- 		/*
- 		 * By default, the high value of the pcp is based on the zone
- 		 * low watermark so that if they are full then background
-@@ -5348,15 +5349,15 @@ static int zone_highsize(struct zone *zo
- 		 * value is based on a fraction of the managed pages in the
- 		 * zone.
- 		 */
--		total_pages = zone_managed_pages(zone) / percpu_pagelist_high_fraction;
-+		total_pages = zone_managed_pages(zone) / high_fraction;
+@@ -2443,7 +2443,13 @@ static int nr_pcp_high(struct per_cpu_pa
+ 		return min(batch << 2, pcp->high);
  	}
  
- 	/*
- 	 * Split the high value across all online CPUs local to the zone. Note
- 	 * that early in boot that CPUs may not be online yet and that during
- 	 * CPU hotplug that the cpumask is not yet updated when a CPU is being
--	 * onlined. For memory nodes that have no CPUs, split pcp->high across
--	 * all online CPUs to mitigate the risk that reclaim is triggered
-+	 * onlined. For memory nodes that have no CPUs, split the high value
-+	 * across all online CPUs to mitigate the risk that reclaim is triggered
- 	 * prematurely due to pages stored on pcp lists.
- 	 */
- 	nr_split_cpus = cpumask_weight(cpumask_of_node(zone_to_nid(zone))) + cpu_online;
-@@ -5384,19 +5385,21 @@ static int zone_highsize(struct zone *zo
-  * However, guaranteeing these relations at all times would require e.g. write
-  * barriers here but also careful usage of read barriers at the read side, and
-  * thus be prone to error and bad for performance. Thus the update only prevents
-- * store tearing. Any new users of pcp->batch and pcp->high should ensure they
-- * can cope with those fields changing asynchronously, and fully trust only the
-- * pcp->count field on the local CPU with interrupts disabled.
-+ * store tearing. Any new users of pcp->batch, pcp->high_min and pcp->high_max
-+ * should ensure they can cope with those fields changing asynchronously, and
-+ * fully trust only the pcp->count field on the local CPU with interrupts
-+ * disabled.
-  *
-  * mutex_is_locked(&pcp_batch_high_lock) required when calling this function
-  * outside of boot time (or some other assurance that no concurrent updaters
-  * exist).
-  */
--static void pageset_update(struct per_cpu_pages *pcp, unsigned long high,
--		unsigned long batch)
-+static void pageset_update(struct per_cpu_pages *pcp, unsigned long high_min,
-+			   unsigned long high_max, unsigned long batch)
- {
- 	WRITE_ONCE(pcp->batch, batch);
--	WRITE_ONCE(pcp->high, high);
-+	WRITE_ONCE(pcp->high_min, high_min);
-+	WRITE_ONCE(pcp->high_max, high_max);
- }
+-	if (pcp->count >= high && high_min != high_max) {
++	if (high_min == high_max)
++		return high;
++
++	if (test_bit(ZONE_BELOW_HIGH, &zone->flags)) {
++		pcp->high = max(high - (batch << pcp->free_factor), high_min);
++		high = max(pcp->count, high_min);
++	} else if (pcp->count >= high) {
+ 		int need_high = (batch << pcp->free_factor) + batch;
  
- static void per_cpu_pages_init(struct per_cpu_pages *pcp, struct per_cpu_zonestat *pzstats)
-@@ -5416,20 +5419,21 @@ static void per_cpu_pages_init(struct pe
- 	 * need to be as careful as pageset_update() as nobody can access the
- 	 * pageset yet.
- 	 */
--	pcp->high = BOOT_PAGESET_HIGH;
-+	pcp->high_min = BOOT_PAGESET_HIGH;
-+	pcp->high_max = BOOT_PAGESET_HIGH;
- 	pcp->batch = BOOT_PAGESET_BATCH;
- 	pcp->free_factor = 0;
- }
- 
--static void __zone_set_pageset_high_and_batch(struct zone *zone, unsigned long high,
--		unsigned long batch)
-+static void __zone_set_pageset_high_and_batch(struct zone *zone, unsigned long high_min,
-+					      unsigned long high_max, unsigned long batch)
- {
- 	struct per_cpu_pages *pcp;
- 	int cpu;
- 
- 	for_each_possible_cpu(cpu) {
- 		pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
--		pageset_update(pcp, high, batch);
-+		pageset_update(pcp, high_min, high_max, batch);
+ 		/* pcp->high should be large enough to hold batch freed pages */
+@@ -2493,6 +2499,10 @@ static void free_unref_page_commit(struc
+ 	if (pcp->count >= high) {
+ 		free_pcppages_bulk(zone, nr_pcp_free(pcp, batch, high, free_high),
+ 				   pcp, pindex);
++		if (test_bit(ZONE_BELOW_HIGH, &zone->flags) &&
++		    zone_watermark_ok(zone, 0, high_wmark_pages(zone),
++				      ZONE_MOVABLE, 0))
++			clear_bit(ZONE_BELOW_HIGH, &zone->flags);
  	}
  }
  
-@@ -5439,19 +5443,34 @@ static void __zone_set_pageset_high_and_
-  */
- static void zone_set_pageset_high_and_batch(struct zone *zone, int cpu_online)
- {
--	int new_high, new_batch;
-+	int new_high_min, new_high_max, new_batch;
+@@ -2799,7 +2809,7 @@ static int nr_pcp_alloc(struct per_cpu_p
+ 	 * If we had larger pcp->high, we could avoid to allocate from
+ 	 * zone.
+ 	 */
+-	if (high_min != high_max && !test_bit(ZONE_RECLAIM_ACTIVE, &zone->flags))
++	if (high_min != high_max && !test_bit(ZONE_BELOW_HIGH, &zone->flags))
+ 		high = pcp->high = min(high + batch, high_max);
  
- 	new_batch = max(1, zone_batchsize(zone));
--	new_high = zone_highsize(zone, new_batch, cpu_online);
-+	if (percpu_pagelist_high_fraction) {
-+		new_high_min = zone_highsize(zone, new_batch, cpu_online,
-+					     percpu_pagelist_high_fraction);
+ 	if (!order) {
+@@ -3261,6 +3271,25 @@ retry:
+ 			}
+ 		}
+ 
 +		/*
-+		 * PCP high is tuned manually, disable auto-tuning via
-+		 * setting high_min and high_max to the manual value.
++		 * Detect whether the number of free pages is below high
++		 * watermark.  If so, we will decrease pcp->high and free
++		 * PCP pages in free path to reduce the possibility of
++		 * premature page reclaiming.  Detection is done here to
++		 * avoid to do that in hotter free path.
 +		 */
-+		new_high_max = new_high_min;
-+	} else {
-+		new_high_min = zone_highsize(zone, new_batch, cpu_online, 0);
-+		new_high_max = zone_highsize(zone, new_batch, cpu_online,
-+					     MIN_PERCPU_PAGELIST_HIGH_FRACTION);
-+	}
- 
--	if (zone->pageset_high == new_high &&
-+	if (zone->pageset_high_min == new_high_min &&
-+	    zone->pageset_high_max == new_high_max &&
- 	    zone->pageset_batch == new_batch)
- 		return;
- 
--	zone->pageset_high = new_high;
-+	zone->pageset_high_min = new_high_min;
-+	zone->pageset_high_max = new_high_max;
- 	zone->pageset_batch = new_batch;
- 
--	__zone_set_pageset_high_and_batch(zone, new_high, new_batch);
-+	__zone_set_pageset_high_and_batch(zone, new_high_min, new_high_max,
-+					  new_batch);
- }
- 
- void __meminit setup_zone_pageset(struct zone *zone)
-@@ -5560,7 +5579,8 @@ __meminit void zone_pcp_init(struct zone
- 	 */
- 	zone->per_cpu_pageset = &boot_pageset;
- 	zone->per_cpu_zonestats = &boot_zonestats;
--	zone->pageset_high = BOOT_PAGESET_HIGH;
-+	zone->pageset_high_min = BOOT_PAGESET_HIGH;
-+	zone->pageset_high_max = BOOT_PAGESET_HIGH;
- 	zone->pageset_batch = BOOT_PAGESET_BATCH;
- 
- 	if (populated_zone(zone))
-@@ -6462,13 +6482,14 @@ EXPORT_SYMBOL(free_contig_range);
- void zone_pcp_disable(struct zone *zone)
- {
- 	mutex_lock(&pcp_batch_high_lock);
--	__zone_set_pageset_high_and_batch(zone, 0, 1);
-+	__zone_set_pageset_high_and_batch(zone, 0, 0, 1);
- 	__drain_all_pages(zone, true);
- }
- 
- void zone_pcp_enable(struct zone *zone)
- {
--	__zone_set_pageset_high_and_batch(zone, zone->pageset_high, zone->pageset_batch);
-+	__zone_set_pageset_high_and_batch(zone, zone->pageset_high_min,
-+		zone->pageset_high_max, zone->pageset_batch);
- 	mutex_unlock(&pcp_batch_high_lock);
- }
- 
++		if (test_bit(ZONE_BELOW_HIGH, &zone->flags))
++			goto check_alloc_wmark;
++
++		mark = high_wmark_pages(zone);
++		if (zone_watermark_fast(zone, order, mark,
++					ac->highest_zoneidx, alloc_flags,
++					gfp_mask))
++			goto try_this_zone;
++		else
++			set_bit(ZONE_BELOW_HIGH, &zone->flags);
++
++check_alloc_wmark:
+ 		mark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK);
+ 		if (!zone_watermark_fast(zone, order, mark,
+ 				       ac->highest_zoneidx, alloc_flags,
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
