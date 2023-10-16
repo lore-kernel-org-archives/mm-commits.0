@@ -2,34 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2678DCDB482
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:15:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52B95CDB474
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:17:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233777AbjJPWPY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Oct 2023 18:15:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46396 "EHLO
+        id S231221AbjJPWRP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Oct 2023 18:17:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36432 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233661AbjJPWPX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:15:23 -0400
+        with ESMTP id S229943AbjJPWRP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:17:15 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 354D4A1
-        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:15:21 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD18BC433C8;
-        Mon, 16 Oct 2023 22:15:20 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2A3395
+        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:17:13 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45541C433C7;
+        Mon, 16 Oct 2023 22:17:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697494520;
-        bh=3ougKQ2oaWHxt3ZZ5g/mRPyaWAWi8zJju40YeIN43K0=;
+        s=korg; t=1697494633;
+        bh=2yx7zO1JnP0SwgXxEfZF4Rucd9On/ZPBD1mt/o7xfNE=;
         h=Date:To:From:Subject:From;
-        b=yV0E5rw6BUjtKH/RbMEajlo9bPRTxbcWJ+GCXn8uvpLSffYnamkbzf6mR9vWqdDcg
-         1jmnVIn+p325uA0ZOglb+IdeelZDtY53gxtImpPWDaw/wXP/8D6QfNw13cd9sgl2za
-         YCnT0jFiraePwjPaEGQwPtiUWQ6hHMemJxVI43EY=
-Date:   Mon, 16 Oct 2023 15:15:19 -0700
+        b=0TlcykedED1br1QN7k/h6IS0zprn7k35n35LB+KumT9jj6kgF7gg/IInXEHIDGasz
+         7ASrc8/q+51H39uP9BADUrYsfNPwnEvj6FPWkE4e07bgqfPSlkLdTh/z+cVOn6quyw
+         yFWEhuZCtd2lvuHDWKLU1SUwcI5Jv/tZ4Z5AIAWw=
+Date:   Mon, 16 Oct 2023 15:17:12 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        shy828301@gmail.com, vishal.moola@gmail.com,
+        viro@zeniv.linux.org.uk, muchun.song@linux.dev,
+        mike.kravetz@oracle.com, luto@kernel.org, jack@suse.cz,
+        hughd@google.com, brauner@kernel.org, lstoakes@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-convert-collapse_pte_mapped_thp-to-use-folios.patch added to mm-unstable branch
-Message-Id: <20231016221520.BD18BC433C8@smtp.kernel.org>
+Subject: + mm-perform-the-mapping_map_writable-check-after-call_mmap-fix.patch added to mm-unstable branch
+Message-Id: <20231016221713.45541C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +39,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/khugepaged: convert collapse_pte_mapped_thp() to use folios
+     Subject: mm: perform the mapping_map_writable() check after call_mmap()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-convert-collapse_pte_mapped_thp-to-use-folios.patch
+     mm-perform-the-mapping_map_writable-check-after-call_mmap-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-convert-collapse_pte_mapped_thp-to-use-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-perform-the-mapping_map_writable-check-after-call_mmap-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,165 +62,61 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm/khugepaged: convert collapse_pte_mapped_thp() to use folios
-Date: Mon, 16 Oct 2023 13:05:10 -0700
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: mm: perform the mapping_map_writable() check after call_mmap()
+Date: Mon, 16 Oct 2023 17:17:13 +0100
 
-This removes 2 calls to compound_head() and helps convert khugepaged to
-use folios throughout.
+Do not set writable_file_mapping in an instance where it is not appropriate
+to do so.
 
-Previously, if the address passed to collapse_pte_mapped_thp()
-corresponded to a tail page, the scan would fail immediately.  Using
-filemap_lock_folio() we can get the corresponding folio back and try to
-operate on the folio instead.
-
-Link: https://lkml.kernel.org/r/20231016200510.7387-6-vishal.moola@gmail.com
-Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Link: https://lkml.kernel.org/r/c9eb4cc6-7db4-4c2b-838d-43a0b319a4f0@lucifer.local
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Yang Shi <shy828301@gmail.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   45 ++++++++++++++++++++-------------------------
- 1 file changed, 20 insertions(+), 25 deletions(-)
+ mm/mmap.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-convert-collapse_pte_mapped_thp-to-use-folios
-+++ a/mm/khugepaged.c
-@@ -1471,7 +1471,7 @@ int collapse_pte_mapped_thp(struct mm_st
- 	bool notified = false;
- 	unsigned long haddr = addr & HPAGE_PMD_MASK;
- 	struct vm_area_struct *vma = vma_lookup(mm, haddr);
--	struct page *hpage;
-+	struct folio *folio;
- 	pte_t *start_pte, *pte;
- 	pmd_t *pmd, pgt_pmd;
- 	spinlock_t *pml = NULL, *ptl;
-@@ -1504,19 +1504,14 @@ int collapse_pte_mapped_thp(struct mm_st
- 	if (userfaultfd_wp(vma))
- 		return SCAN_PTE_UFFD_WP;
+--- a/mm/mmap.c~mm-perform-the-mapping_map_writable-check-after-call_mmap-fix
++++ a/mm/mmap.c
+@@ -2923,10 +2923,8 @@ cannot_expand:
+ 	mm->map_count++;
+ 	if (vma->vm_file) {
+ 		i_mmap_lock_write(vma->vm_file->f_mapping);
+-		if (vma_is_shared_maywrite(vma)) {
++		if (vma_is_shared_maywrite(vma))
+ 			mapping_allow_writable(vma->vm_file->f_mapping);
+-			writable_file_mapping = true;
+-		}
  
--	hpage = find_lock_page(vma->vm_file->f_mapping,
-+	folio = filemap_lock_folio(vma->vm_file->f_mapping,
- 			       linear_page_index(vma, haddr));
--	if (!hpage)
-+	if (!folio)
- 		return SCAN_PAGE_NULL;
- 
--	if (!PageHead(hpage)) {
--		result = SCAN_FAIL;
--		goto drop_hpage;
--	}
--
--	if (compound_order(hpage) != HPAGE_PMD_ORDER) {
-+	if (folio_order(folio) != HPAGE_PMD_ORDER) {
- 		result = SCAN_PAGE_COMPOUND;
--		goto drop_hpage;
-+		goto drop_folio;
- 	}
- 
- 	result = find_pmd_or_thp_or_none(mm, haddr, &pmd);
-@@ -1530,13 +1525,13 @@ int collapse_pte_mapped_thp(struct mm_st
- 		 */
- 		goto maybe_install_pmd;
- 	default:
--		goto drop_hpage;
-+		goto drop_folio;
- 	}
- 
- 	result = SCAN_FAIL;
- 	start_pte = pte_offset_map_lock(mm, pmd, haddr, &ptl);
- 	if (!start_pte)		/* mmap_lock + page lock should prevent this */
--		goto drop_hpage;
-+		goto drop_folio;
- 
- 	/* step 1: check all mapped PTEs are to the right huge page */
- 	for (i = 0, addr = haddr, pte = start_pte;
-@@ -1561,7 +1556,7 @@ int collapse_pte_mapped_thp(struct mm_st
- 		 * Note that uprobe, debugger, or MAP_PRIVATE may change the
- 		 * page table, but the new page will not be a subpage of hpage.
- 		 */
--		if (hpage + i != page)
-+		if (folio_page(folio, i) != page)
- 			goto abort;
- 	}
- 
-@@ -1576,7 +1571,7 @@ int collapse_pte_mapped_thp(struct mm_st
- 	 * page_table_lock) ptl nests inside pml. The less time we hold pml,
- 	 * the better; but userfaultfd's mfill_atomic_pte() on a private VMA
- 	 * inserts a valid as-if-COWed PTE without even looking up page cache.
--	 * So page lock of hpage does not protect from it, so we must not drop
-+	 * So page lock of folio does not protect from it, so we must not drop
- 	 * ptl before pgt_pmd is removed, so uffd private needs pml taken now.
- 	 */
- 	if (userfaultfd_armed(vma) && !(vma->vm_flags & VM_SHARED))
-@@ -1600,7 +1595,7 @@ int collapse_pte_mapped_thp(struct mm_st
- 			continue;
- 		/*
- 		 * We dropped ptl after the first scan, to do the mmu_notifier:
--		 * page lock stops more PTEs of the hpage being faulted in, but
-+		 * page lock stops more PTEs of the folio being faulted in, but
- 		 * does not stop write faults COWing anon copies from existing
- 		 * PTEs; and does not stop those being swapped out or migrated.
- 		 */
-@@ -1609,7 +1604,7 @@ int collapse_pte_mapped_thp(struct mm_st
- 			goto abort;
- 		}
- 		page = vm_normal_page(vma, addr, ptent);
--		if (hpage + i != page)
-+		if (folio_page(folio, i) != page)
- 			goto abort;
- 
- 		/*
-@@ -1628,8 +1623,8 @@ int collapse_pte_mapped_thp(struct mm_st
- 
- 	/* step 3: set proper refcount and mm_counters. */
- 	if (nr_ptes) {
--		page_ref_sub(hpage, nr_ptes);
--		add_mm_counter(mm, mm_counter_file(hpage), -nr_ptes);
-+		folio_ref_sub(folio, nr_ptes);
-+		add_mm_counter(mm, mm_counter_file(&folio->page), -nr_ptes);
- 	}
- 
- 	/* step 4: remove empty page table */
-@@ -1653,14 +1648,14 @@ int collapse_pte_mapped_thp(struct mm_st
- maybe_install_pmd:
- 	/* step 5: install pmd entry */
- 	result = install_pmd
--			? set_huge_pmd(vma, haddr, pmd, hpage)
-+			? set_huge_pmd(vma, haddr, pmd, &folio->page)
- 			: SCAN_SUCCEED;
--	goto drop_hpage;
-+	goto drop_folio;
- abort:
- 	if (nr_ptes) {
- 		flush_tlb_mm(mm);
--		page_ref_sub(hpage, nr_ptes);
--		add_mm_counter(mm, mm_counter_file(hpage), -nr_ptes);
-+		folio_ref_sub(folio, nr_ptes);
-+		add_mm_counter(mm, mm_counter_file(&folio->page), -nr_ptes);
- 	}
- 	if (start_pte)
- 		pte_unmap_unlock(start_pte, ptl);
-@@ -1668,9 +1663,9 @@ abort:
- 		spin_unlock(pml);
- 	if (notified)
- 		mmu_notifier_invalidate_range_end(&range);
--drop_hpage:
--	unlock_page(hpage);
--	put_page(hpage);
-+drop_folio:
-+	folio_unlock(folio);
-+	folio_put(folio);
- 	return result;
- }
- 
+ 		flush_dcache_mmap_lock(vma->vm_file->f_mapping);
+ 		vma_interval_tree_insert(vma, &vma->vm_file->f_mapping->i_mmap);
 _
 
-Patches currently in -mm which might be from vishal.moola@gmail.com are
+Patches currently in -mm which might be from lstoakes@gmail.com are
 
-mm-khugepaged-convert-__collapse_huge_page_isolate-to-use-folios.patch
-mm-khugepaged-convert-hpage_collapse_scan_pmd-to-use-folios.patch
-mm-khugepaged-convert-is_refcount_suitable-to-use-folios.patch
-mm-khugepaged-convert-alloc_charge_hpage-to-use-folios.patch
-mm-khugepaged-convert-collapse_pte_mapped_thp-to-use-folios.patch
+mm-filemap-clarify-filemap_fault-comments-for-not-uptodate-case.patch
+mm-filemap-clarify-filemap_fault-comments-for-not-uptodate-case-fix.patch
+mm-make-__access_remote_vm-static.patch
+mm-gup-explicitly-define-and-check-internal-gup-flags-disallow-foll_touch.patch
+mm-gup-make-failure-to-pin-an-error-if-foll_nowait-not-specified.patch
+mm-gup-adapt-get_user_page_vma_remote-to-never-return-null.patch
+mm-mprotect-allow-unfaulted-vmas-to-be-unaccounted-on-mprotect.patch
+mm-move-vma_policy-and-anon_vma_name-decls-to-mm_typesh.patch
+mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al.patch
+mm-make-vma_merge-and-split_vma-internal.patch
+mm-abstract-merge-for-new-vmas-into-vma_merge_new_vma.patch
+mm-abstract-vma-merge-and-extend-into-vma_merge_extend-helper.patch
+mm-drop-the-assumption-that-vm_shared-always-implies-writable.patch
+mm-update-memfd-seal-write-check-to-include-f_seal_write.patch
+mm-perform-the-mapping_map_writable-check-after-call_mmap.patch
+mm-perform-the-mapping_map_writable-check-after-call_mmap-fix.patch
 
