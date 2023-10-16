@@ -2,36 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1892CDB465
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:13:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 235D0CDB482
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Oct 2023 22:15:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233707AbjJPWND (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Oct 2023 18:13:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39532 "EHLO
+        id S231221AbjJPWPP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Oct 2023 18:15:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44126 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233874AbjJPWNC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:13:02 -0400
+        with ESMTP id S229943AbjJPWPO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 16 Oct 2023 18:15:14 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F01A18D
-        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:12:41 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0BE0C433C7;
-        Mon, 16 Oct 2023 22:12:40 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A052B9B
+        for <mm-commits@vger.kernel.org>; Mon, 16 Oct 2023 15:15:12 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B5C0C433C8;
+        Mon, 16 Oct 2023 22:15:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697494360;
-        bh=aoSJbLeFhBlMR61xxmtUDMl5dMszMhjsAGWnCfwNuvY=;
+        s=korg; t=1697494512;
+        bh=ijF2KggTQCLTIY8t/AurCGQVkxeN/K7oq0Kh+3HUpYE=;
         h=Date:To:From:Subject:From;
-        b=TgxWgQkf9sHI1OW8zww1dqv3CmCO2I4Or2Qc44mm1CPCBZn0v5LpCty+HpChs5npW
-         8DMbylzHm05zGUOT/8Rn4nXyneHUx0JC2jsDwW3fz0VjK3DSmiP5JtFfOtQMqLhpge
-         5l8y0rTMhZ9K0yNo6Oc6WYsNiSJS9x/hmJIMKv4E=
-Date:   Mon, 16 Oct 2023 15:12:40 -0700
-To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
-        ryabinin.a.a@gmail.com, matthias.bgg@gmail.com,
-        keescook@chromium.org, haibo.li@mediatek.com, glider@google.com,
-        dvyukov@google.com, angelogioacchino.delregno@collabora.com,
-        andreyknvl@gmail.com, arnd@arndb.de, akpm@linux-foundation.org
+        b=TEHVsO77wJOTdT9YOaxpSuk9FafRpsOrtGakIHXRgDN9EkzoWkBcUzzDpKfZ4Q42j
+         A4jVayYY578j0PGgJ136IQz7ss95ZmgW0Mj3nqrCbenP8B/NcVRVZmpprlRyV9O6CU
+         REFu6NBEwXgwPAAd/GQlRmNIvTBLE9pSjfl1Fh1g=
+Date:   Mon, 16 Oct 2023 15:15:11 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        shy828301@gmail.com, vishal.moola@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-print-the-original-fault-addr-when-access-invalid-shadow-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231016221240.D0BE0C433C7@smtp.kernel.org>
+Subject: + mm-khugepaged-convert-__collapse_huge_page_isolate-to-use-folios.patch added to mm-unstable branch
+Message-Id: <20231016221512.3B5C0C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,14 +37,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: disable kasan_non_canonical_hook() for HW tags
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kasan-print-the-original-fault-addr-when-access-invalid-shadow-fix.patch
+     Subject: mm/khugepaged: convert __collapse_huge_page_isolate() to use folios
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-khugepaged-convert-__collapse_huge_page_isolate-to-use-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-print-the-original-fault-addr-when-access-invalid-shadow-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-convert-__collapse_huge_page_isolate-to-use-folios.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -62,83 +60,176 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: kasan: disable kasan_non_canonical_hook() for HW tags
-Date: Mon, 16 Oct 2023 22:08:38 +0200
+From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Subject: mm/khugepaged: convert __collapse_huge_page_isolate() to use folios
+Date: Mon, 16 Oct 2023 13:05:06 -0700
 
-On arm64, building with CONFIG_KASAN_HW_TAGS now causes a compile-time
-error:
+Patch series "Some khugepaged folio conversions".
 
-mm/kasan/report.c: In function 'kasan_non_canonical_hook':
-mm/kasan/report.c:637:20: error: 'KASAN_SHADOW_OFFSET' undeclared (first use in this function)
-  637 |         if (addr < KASAN_SHADOW_OFFSET)
-      |                    ^~~~~~~~~~~~~~~~~~~
-mm/kasan/report.c:637:20: note: each undeclared identifier is reported only once for each function it appears in
-mm/kasan/report.c:640:77: error: expected expression before ';' token
-  640 |         orig_addr = (addr - KASAN_SHADOW_OFFSET) << KASAN_SHADOW_SCALE_SHIFT;
+This patchset converts a number of functions to use folios.  This cleans
+up some khugepaged code and removes a large number of hidden
+compound_head() calls.
 
-This was caused by removing the dependency on CONFIG_KASAN_INLINE that
-used to prevent this from happening. Use the more specific dependency
-on KASAN_SW_TAGS || KASAN_GENERIC to only ignore the function for hwasan
-mode.
 
-Link: https://lkml.kernel.org/r/20231016200925.984439-1-arnd@kernel.org
-Fixes: 12ec6a919b0f ("kasan: print the original fault addr when access invalid shadow")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Haibo Li <haibo.li@mediatek.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
+This patch (of 5):
+
+Replaces 11 calls to compound_head() with 1, and removes 1375 bytes of
+kernel text.
+
+Previously, to determine if any pte was shared, the page mapcount
+corresponding exactly to the pte was checked.  This gave us a precise
+number of shared ptes.  Using folio_estimated_sharers() instead uses the
+mapcount of the head page, giving us an estimate for tail page ptes.
+
+This means if a tail page's mapcount is greater than its head page's
+mapcount, folio_estimated_sharers() would be underestimating the number of
+shared ptes, and vice versa.
+
+Link: https://lkml.kernel.org/r/20231016200510.7387-1-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20231016200510.7387-2-vishal.moola@gmail.com
+Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |    6 +++---
- mm/kasan/report.c     |    4 +++-
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ mm/khugepaged.c |   51 ++++++++++++++++++++++------------------------
+ 1 file changed, 25 insertions(+), 26 deletions(-)
 
---- a/include/linux/kasan.h~kasan-print-the-original-fault-addr-when-access-invalid-shadow-fix
-+++ a/include/linux/kasan.h
-@@ -466,10 +466,10 @@ static inline void kasan_free_module_sha
+--- a/mm/khugepaged.c~mm-khugepaged-convert-__collapse_huge_page_isolate-to-use-folios
++++ a/mm/khugepaged.c
+@@ -541,7 +541,7 @@ static int __collapse_huge_page_isolate(
+ 					struct collapse_control *cc,
+ 					struct list_head *compound_pagelist)
+ {
+-	struct page *page = NULL;
++	struct folio *folio = NULL;
+ 	pte_t *_pte;
+ 	int none_or_zero = 0, shared = 0, result = SCAN_FAIL, referenced = 0;
+ 	bool writable = false;
+@@ -570,15 +570,15 @@ static int __collapse_huge_page_isolate(
+ 			result = SCAN_PTE_UFFD_WP;
+ 			goto out;
+ 		}
+-		page = vm_normal_page(vma, address, pteval);
+-		if (unlikely(!page) || unlikely(is_zone_device_page(page))) {
++		folio = vm_normal_folio(vma, address, pteval);
++		if (unlikely(!folio) || unlikely(folio_is_zone_device(folio))) {
+ 			result = SCAN_PAGE_NULL;
+ 			goto out;
+ 		}
  
- #endif /* (CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS) && !CONFIG_KASAN_VMALLOC */
+-		VM_BUG_ON_PAGE(!PageAnon(page), page);
++		VM_BUG_ON_FOLIO(!folio_test_anon(folio), folio);
  
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- void kasan_non_canonical_hook(unsigned long addr);
--#else /* CONFIG_KASAN */
-+#else /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
- static inline void kasan_non_canonical_hook(unsigned long addr) { }
--#endif /* CONFIG_KASAN */
-+#endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
+-		if (page_mapcount(page) > 1) {
++		if (folio_estimated_sharers(folio) > 1) {
+ 			++shared;
+ 			if (cc->is_khugepaged &&
+ 			    shared > khugepaged_max_ptes_shared) {
+@@ -588,16 +588,15 @@ static int __collapse_huge_page_isolate(
+ 			}
+ 		}
  
- #endif /* LINUX_KASAN_H */
---- a/mm/kasan/report.c~kasan-print-the-original-fault-addr-when-access-invalid-shadow-fix
-+++ a/mm/kasan/report.c
-@@ -621,8 +621,9 @@ void kasan_report_async(void)
+-		if (PageCompound(page)) {
+-			struct page *p;
+-			page = compound_head(page);
++		if (folio_test_large(folio)) {
++			struct folio *f;
+ 
+ 			/*
+ 			 * Check if we have dealt with the compound page
+ 			 * already
+ 			 */
+-			list_for_each_entry(p, compound_pagelist, lru) {
+-				if (page == p)
++			list_for_each_entry(f, compound_pagelist, lru) {
++				if (folio == f)
+ 					goto next;
+ 			}
+ 		}
+@@ -608,7 +607,7 @@ static int __collapse_huge_page_isolate(
+ 		 * is needed to serialize against split_huge_page
+ 		 * when invoked from the VM.
+ 		 */
+-		if (!trylock_page(page)) {
++		if (!folio_trylock(folio)) {
+ 			result = SCAN_PAGE_LOCK;
+ 			goto out;
+ 		}
+@@ -624,8 +623,8 @@ static int __collapse_huge_page_isolate(
+ 		 * but not from this process. The other process cannot write to
+ 		 * the page, only trigger CoW.
+ 		 */
+-		if (!is_refcount_suitable(page)) {
+-			unlock_page(page);
++		if (!is_refcount_suitable(&folio->page)) {
++			folio_unlock(folio);
+ 			result = SCAN_PAGE_COUNT;
+ 			goto out;
+ 		}
+@@ -634,27 +633,27 @@ static int __collapse_huge_page_isolate(
+ 		 * Isolate the page to avoid collapsing an hugepage
+ 		 * currently in use by the VM.
+ 		 */
+-		if (!isolate_lru_page(page)) {
+-			unlock_page(page);
++		if (!folio_isolate_lru(folio)) {
++			folio_unlock(folio);
+ 			result = SCAN_DEL_PAGE_LRU;
+ 			goto out;
+ 		}
+-		mod_node_page_state(page_pgdat(page),
+-				NR_ISOLATED_ANON + page_is_file_lru(page),
+-				compound_nr(page));
+-		VM_BUG_ON_PAGE(!PageLocked(page), page);
+-		VM_BUG_ON_PAGE(PageLRU(page), page);
++		node_stat_mod_folio(folio,
++				NR_ISOLATED_ANON + folio_is_file_lru(folio),
++				folio_nr_pages(folio));
++		VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
++		VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
+ 
+-		if (PageCompound(page))
+-			list_add_tail(&page->lru, compound_pagelist);
++		if (folio_test_large(folio))
++			list_add_tail(&folio->lru, compound_pagelist);
+ next:
+ 		/*
+ 		 * If collapse was initiated by khugepaged, check that there is
+ 		 * enough young pte to justify collapsing the page
+ 		 */
+ 		if (cc->is_khugepaged &&
+-		    (pte_young(pteval) || page_is_young(page) ||
+-		     PageReferenced(page) || mmu_notifier_test_young(vma->vm_mm,
++		    (pte_young(pteval) || folio_test_young(folio) ||
++		     folio_test_referenced(folio) || mmu_notifier_test_young(vma->vm_mm,
+ 								     address)))
+ 			referenced++;
+ 
+@@ -668,13 +667,13 @@ next:
+ 		result = SCAN_LACK_REFERENCED_PAGE;
+ 	} else {
+ 		result = SCAN_SUCCEED;
+-		trace_mm_collapse_huge_page_isolate(page, none_or_zero,
++		trace_mm_collapse_huge_page_isolate(&folio->page, none_or_zero,
+ 						    referenced, writable, result);
+ 		return result;
+ 	}
+ out:
+ 	release_pte_pages(pte, _pte, compound_pagelist);
+-	trace_mm_collapse_huge_page_isolate(page, none_or_zero,
++	trace_mm_collapse_huge_page_isolate(&folio->page, none_or_zero,
+ 					    referenced, writable, result);
+ 	return result;
  }
- #endif /* CONFIG_KASAN_HW_TAGS */
- 
-+#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- /*
-- * With CONFIG_KASAN, accesses to bogus pointers (outside the high
-+ * With CONFIG_KASAN_INLINE, accesses to bogus pointers (outside the high
-  * canonical half of the address space) cause out-of-bounds shadow memory reads
-  * before the actual access. For addresses in the low canonical half of the
-  * address space, as well as most non-canonical addresses, that out-of-bounds
-@@ -658,3 +659,4 @@ void kasan_non_canonical_hook(unsigned l
- 	pr_alert("KASAN: %s in range [0x%016lx-0x%016lx]\n", bug_type,
- 		 orig_addr, orig_addr + KASAN_GRANULE_SIZE - 1);
- }
-+#endif
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from vishal.moola@gmail.com are
 
-kasan-print-the-original-fault-addr-when-access-invalid-shadow-fix.patch
-fs-proc-task_mmu-implement-ioctl-to-get-and-optionally-clear-info-about-ptes-fix-3.patch
+mm-khugepaged-convert-__collapse_huge_page_isolate-to-use-folios.patch
+mm-khugepaged-convert-hpage_collapse_scan_pmd-to-use-folios.patch
+mm-khugepaged-convert-is_refcount_suitable-to-use-folios.patch
+mm-khugepaged-convert-alloc_charge_hpage-to-use-folios.patch
+mm-khugepaged-convert-collapse_pte_mapped_thp-to-use-folios.patch
 
