@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C593CDB47E
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 758B9CDB483
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235276AbjJRVhQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232373AbjJRVhQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 18 Oct 2023 17:37:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46856 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41640 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232373AbjJRVg1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:27 -0400
+        with ESMTP id S235283AbjJRVg0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:26 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ACB7DD58
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:43 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 445C0C433C7;
-        Wed, 18 Oct 2023 21:35:43 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6CBF019D
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:39 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB063C433D9;
+        Wed, 18 Oct 2023 21:35:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697664943;
-        bh=K1pxvboEVOQhqyZ3ftVaDdKK5twZiilS8AK3WXXHlD0=;
+        s=korg; t=1697664936;
+        bh=ahnhUdci1fZRnD//AKphzcISNjGXfqmdHAuHcrxVdJk=;
         h=Date:To:From:Subject:From;
-        b=fi7BE/W96X5Gah3OG3Fq5pkS8jiEx83ZqlAu+n1X4VUQPgpC+x8hkyRGVG2DQ4RnK
-         x9fslht5HcITuWSQ3WkWONt5tWUAc4azDghczS0YKnRoZ7IaxWpqLc9Kq3kBDukJYR
-         haAzn86Dty8WRyBLvnWW7+P7KgsTjAqOAkIrerVA=
-Date:   Wed, 18 Oct 2023 14:35:42 -0700
+        b=oHNC0V3qLtXFXarwNE/YCn4vS08518TVKduti88/0CaMxvz5GaCdJjcwGPLwywR0h
+         s71Ajt4SgTpckTt812YXf8aZy3comL/WrqGajW2WexWrQ7yGIIpwQGQAVBarwY/BCR
+         Sk1AeX6sWaCUvLWks9WJeY+9NF+d7q6izYyry8H8=
+Date:   Wed, 18 Oct 2023 14:35:36 -0700
 To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         tsbogend@alpha.franken.de, svens@linux.ibm.com,
         richard.henderson@linaro.org, paul.walmsley@sifive.com,
@@ -35,8 +35,8 @@ To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         adilger.kernel@dilger.ca, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] m68k-implement-xor_unlock_is_negative_byte.patch removed from -mm tree
-Message-Id: <20231018213543.445C0C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] iomap-protect-read_bytes_pending-with-the-state_lock.patch removed from -mm tree
+Message-Id: <20231018213536.BB063C433D9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,28 +44,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: m68k: implement xor_unlock_is_negative_byte
+     Subject: iomap: protect read_bytes_pending with the state_lock
 has been removed from the -mm tree.  Its filename was
-     m68k-implement-xor_unlock_is_negative_byte.patch
+     iomap-protect-read_bytes_pending-with-the-state_lock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: m68k: implement xor_unlock_is_negative_byte
-Date: Wed, 4 Oct 2023 17:53:09 +0100
+Subject: iomap: protect read_bytes_pending with the state_lock
+Date: Wed, 4 Oct 2023 17:53:02 +0100
 
-Using EOR to clear the guaranteed-to-be-set lock bit will test the
-negative flag just like the x86 implementation.  This should be more
-efficient than the generic implementation in filemap.c.  It would be
-better if m68k had __GCC_ASM_FLAG_OUTPUTS__.
+Perform one atomic operation (acquiring the spinlock) instead of two
+(spinlock & atomic_sub) per read completion.
 
-Coldfire doesn't have a byte-sized EOR, so we test bit 7 after the EOR,
-which is a second memory access, but it's slightly better than the current
-C code.
-
-Link: https://lkml.kernel.org/r/20231004165317.1061855-10-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231004165317.1061855-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -88,40 +82,83 @@ Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/bitops.h |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ fs/iomap/buffered-io.c |   37 +++++++++++++++++++++++++------------
+ 1 file changed, 25 insertions(+), 12 deletions(-)
 
---- a/arch/m68k/include/asm/bitops.h~m68k-implement-xor_unlock_is_negative_byte
-+++ a/arch/m68k/include/asm/bitops.h
-@@ -319,6 +319,28 @@ arch___test_and_change_bit(unsigned long
- 	return test_and_change_bit(nr, addr);
+--- a/fs/iomap/buffered-io.c~iomap-protect-read_bytes_pending-with-the-state_lock
++++ a/fs/iomap/buffered-io.c
+@@ -29,9 +29,9 @@ typedef int (*iomap_punch_t)(struct inod
+  * and I/O completions.
+  */
+ struct iomap_folio_state {
+-	atomic_t		read_bytes_pending;
+-	atomic_t		write_bytes_pending;
+ 	spinlock_t		state_lock;
++	unsigned int		read_bytes_pending;
++	atomic_t		write_bytes_pending;
+ 
+ 	/*
+ 	 * Each block has two bits in this bitmap:
+@@ -183,7 +183,7 @@ static void ifs_free(struct folio *folio
+ 
+ 	if (!ifs)
+ 		return;
+-	WARN_ON_ONCE(atomic_read(&ifs->read_bytes_pending));
++	WARN_ON_ONCE(ifs->read_bytes_pending != 0);
+ 	WARN_ON_ONCE(atomic_read(&ifs->write_bytes_pending));
+ 	WARN_ON_ONCE(ifs_is_fully_uptodate(folio, ifs) !=
+ 			folio_test_uptodate(folio));
+@@ -250,19 +250,29 @@ static void iomap_adjust_read_range(stru
+ 	*lenp = plen;
  }
  
-+static inline bool xor_unlock_is_negative_byte(unsigned long mask,
-+		volatile unsigned long *p)
-+{
-+#ifdef CONFIG_COLDFIRE
-+	__asm__ __volatile__ ("eorl %1, %0"
-+		: "+m" (*p)
-+		: "d" (mask)
-+		: "memory");
-+	return *p & (1 << 7);
-+#else
-+	char result;
-+	char *cp = (char *)p + 3;	/* m68k is big-endian */
+-static void iomap_finish_folio_read(struct folio *folio, size_t offset,
++static void iomap_finish_folio_read(struct folio *folio, size_t off,
+ 		size_t len, int error)
+ {
+ 	struct iomap_folio_state *ifs = folio->private;
++	bool uptodate = !error;
++	bool finished = true;
+ 
+-	if (unlikely(error)) {
+-		folio_clear_uptodate(folio);
+-		folio_set_error(folio);
+-	} else {
+-		iomap_set_range_uptodate(folio, offset, len);
++	if (ifs) {
++		unsigned long flags;
 +
-+	__asm__ __volatile__ ("eor.b %1, %2; smi %0"
-+		: "=d" (result)
-+		: "di" (mask), "o" (*cp)
-+		: "memory");
-+	return result;
-+#endif
-+}
-+#define xor_unlock_is_negative_byte xor_unlock_is_negative_byte
-+
- /*
-  *	The true 68020 and more advanced processors support the "bfffo"
-  *	instruction for finding bits. ColdFire and simple 68000 parts
++		spin_lock_irqsave(&ifs->state_lock, flags);
++		if (!error)
++			uptodate = ifs_set_range_uptodate(folio, ifs, off, len);
++		ifs->read_bytes_pending -= len;
++		finished = !ifs->read_bytes_pending;
++		spin_unlock_irqrestore(&ifs->state_lock, flags);
+ 	}
+ 
+-	if (!ifs || atomic_sub_and_test(len, &ifs->read_bytes_pending))
++	if (error)
++		folio_set_error(folio);
++	if (uptodate)
++		folio_mark_uptodate(folio);
++	if (finished)
+ 		folio_unlock(folio);
+ }
+ 
+@@ -360,8 +370,11 @@ static loff_t iomap_readpage_iter(const
+ 	}
+ 
+ 	ctx->cur_folio_in_bio = true;
+-	if (ifs)
+-		atomic_add(plen, &ifs->read_bytes_pending);
++	if (ifs) {
++		spin_lock_irq(&ifs->state_lock);
++		ifs->read_bytes_pending += plen;
++		spin_unlock_irq(&ifs->state_lock);
++	}
+ 
+ 	sector = iomap_sector(iomap, pos);
+ 	if (!ctx->bio ||
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
