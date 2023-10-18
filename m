@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EBD8CDB484
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AE12CDB485
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235226AbjJRVhG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 17:37:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50624 "EHLO
+        id S235236AbjJRVhH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 17:37:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46814 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235280AbjJRVg0 (ORCPT
+        with ESMTP id S235281AbjJRVg0 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:26 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FAEE19A
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:39 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98C2DC433AB;
-        Wed, 18 Oct 2023 21:35:38 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C3BF21A4
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:40 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8ED4DC433C8;
+        Wed, 18 Oct 2023 21:35:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697664938;
-        bh=NSRVJGuvi6e1Tnf2iwgIPgAaeLbDbN19QxqsNhDEJoc=;
+        s=korg; t=1697664940;
+        bh=aYlMK15J+7Qs+l1pmeIFJ+KcNXTEsL9x0eJO89AVlDw=;
         h=Date:To:From:Subject:From;
-        b=GYoxCIlanO3IBSP9jivp+LcMFKlkJn0R4dcm7hoDkqueR9q5+nhjsInbNY2TJPCxG
-         JBXT9Q6InazBqc3x4EkK8O/Fi4wicQ1sZRFFJlYWIBG6kNYcvJz317phUZNqirMzfm
-         J5rstiRITcl5Ye9RKOpHVX9CRQnsGnDfnhK49dCk=
-Date:   Wed, 18 Oct 2023 14:35:38 -0700
+        b=16uJA1fWpGzoT3r4lsgO+zHmt/1pHYdpWKaEOKMHLnGz/zWTw+msETfRWpRcp8Dsy
+         2VLUivQ73doo6knaINVWS5SQ+VlFw1jqHQ2pCM1J1G4WNnXfF26nhoe1LaYJvpah4A
+         JgHjlVkUFYLtfjz96+sd3mGY5gU2PhfhUZeQa3yA=
+Date:   Wed, 18 Oct 2023 14:35:39 -0700
 To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         tsbogend@alpha.franken.de, svens@linux.ibm.com,
         richard.henderson@linaro.org, paul.walmsley@sifive.com,
@@ -35,8 +35,8 @@ To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         adilger.kernel@dilger.ca, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] ext4-use-folio_end_read.patch removed from -mm tree
-Message-Id: <20231018213538.98C2DC433AB@smtp.kernel.org>
+Subject: [merged mm-stable] iomap-use-folio_end_read.patch removed from -mm tree
+Message-Id: <20231018213540.8ED4DC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,21 +44,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: ext4: use folio_end_read()
+     Subject: iomap: use folio_end_read()
 has been removed from the -mm tree.  Its filename was
-     ext4-use-folio_end_read.patch
+     iomap-use-folio_end_read.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: ext4: use folio_end_read()
-Date: Wed, 4 Oct 2023 17:53:04 +0100
+Subject: iomap: use folio_end_read()
+Date: Wed, 4 Oct 2023 17:53:06 +0100
 
-folio_end_read() is the perfect fit for ext4.
+Combine the setting of the uptodate flag with the clearing of the locked
+flag.
 
-Link: https://lkml.kernel.org/r/20231004165317.1061855-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231004165317.1061855-7-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -81,39 +82,23 @@ Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/readpage.c |   14 +++-----------
- 1 file changed, 3 insertions(+), 11 deletions(-)
+ fs/iomap/buffered-io.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/fs/ext4/readpage.c~ext4-use-folio_end_read
-+++ a/fs/ext4/readpage.c
-@@ -70,15 +70,8 @@ static void __read_end_io(struct bio *bi
- {
- 	struct folio_iter fi;
+--- a/fs/iomap/buffered-io.c~iomap-use-folio_end_read
++++ a/fs/iomap/buffered-io.c
+@@ -270,10 +270,8 @@ static void iomap_finish_folio_read(stru
  
--	bio_for_each_folio_all(fi, bio) {
--		struct folio *folio = fi.folio;
--
--		if (bio->bi_status)
--			folio_clear_uptodate(folio);
--		else
--			folio_mark_uptodate(folio);
+ 	if (error)
+ 		folio_set_error(folio);
+-	if (uptodate)
+-		folio_mark_uptodate(folio);
+ 	if (finished)
 -		folio_unlock(folio);
--	}
-+	bio_for_each_folio_all(fi, bio)
-+		folio_end_read(fi.folio, bio->bi_status == 0);
- 	if (bio->bi_private)
- 		mempool_free(bio->bi_private, bio_post_read_ctx_pool);
- 	bio_put(bio);
-@@ -336,8 +329,7 @@ int ext4_mpage_readpages(struct inode *i
- 				if (ext4_need_verity(inode, folio->index) &&
- 				    !fsverity_verify_folio(folio))
- 					goto set_error_page;
--				folio_mark_uptodate(folio);
--				folio_unlock(folio);
-+				folio_end_read(folio, true);
- 				continue;
- 			}
- 		} else if (fully_mapped) {
++		folio_end_read(folio, uptodate);
+ }
+ 
+ static void iomap_read_end_io(struct bio *bio)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
