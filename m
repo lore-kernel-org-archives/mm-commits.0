@@ -2,34 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D147CDB483
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:36:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 325F0CDB482
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:36:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235329AbjJRVgw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 17:36:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51646 "EHLO
+        id S235346AbjJRVgx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 17:36:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57432 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229697AbjJRVgG (ORCPT
+        with ESMTP id S235263AbjJRVgG (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:06 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E84A13E
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:34 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30BD1C433C8;
-        Wed, 18 Oct 2023 21:35:18 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 62957183
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:35 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E72CDC433CA;
+        Wed, 18 Oct 2023 21:35:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697664918;
-        bh=4X1qVBckaduQ0V6ec014ZoAtuhjM9FCaNgfEJXnUn1M=;
+        s=korg; t=1697664920;
+        bh=uUVCNMDoK5j5Xgv+bf95L1hMbe8HWI4VO6VFLIjm5pc=;
         h=Date:To:From:Subject:From;
-        b=GKT2x5pKrNJ/27g6LtxzUl5XDpy0w2RkjYGsGbcp/AJGgNoEB8QWiKJhhq0qkCtdq
-         O8g5jn5DxuxeAmYcCO0Tq4hfNNvwRAbBEolr1385GBCw2MYmN5CEjHnH+CwwiaTV86
-         BzYc7pjAggnhagMDJ633KC86jk3A7vOjglvanqyk=
-Date:   Wed, 18 Oct 2023 14:35:17 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, surenb@google.com,
-        muchun.song@linux.dev, mike.kravetz@oracle.com, david@redhat.com,
-        akpm@linux-foundation.org
+        b=rmI8VBuYQQlVf3R/cjR1HvilSxjs06UZWR1gNtY4TSdqZAMiy2uaE2mZ334jXaMS5
+         mRET845gUVH2cLRMDYml7hmDJzvnBukywvZtQMlB9vVNGEz8x6I6hKXgYgw04NxEax
+         ojZK1+2cw9fcM4ad0EBXS3T75RrBjKh1Vrhp9YOg=
+Date:   Wed, 18 Oct 2023 14:35:19 -0700
+To:     mm-commits@vger.kernel.org, yuzhao@google.com, vbabka@suse.cz,
+        tjmercier@google.com, sj@kernel.org, rostedt@goodmis.org,
+        kaleshsingh@google.com, hannes@cmpxchg.org,
+        jaewon31.kim@samsung.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memory-move-exclusivity-detection-in-do_wp_page-into-wp_can_reuse_anon_folio.patch removed from -mm tree
-Message-Id: <20231018213518.30BD1C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-multi-gen-lru-reuse-some-legacy-trace-events.patch removed from -mm tree
+Message-Id: <20231018213519.E72CDC433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,151 +38,106 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: memory: move exclusivity detection in do_wp_page() into wp_can_reuse_anon_folio()
+     Subject: mm: multi-gen LRU: reuse some legacy trace events
 has been removed from the -mm tree.  Its filename was
-     memory-move-exclusivity-detection-in-do_wp_page-into-wp_can_reuse_anon_folio.patch
+     mm-multi-gen-lru-reuse-some-legacy-trace-events.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: memory: move exclusivity detection in do_wp_page() into wp_can_reuse_anon_folio()
-Date: Mon, 2 Oct 2023 16:29:49 +0200
+From: Jaewon Kim <jaewon31.kim@samsung.com>
+Subject: mm: multi-gen LRU: reuse some legacy trace events
+Date: Tue, 3 Oct 2023 20:41:55 +0900
 
-Let's clean up do_wp_page() a bit, removing two labels and making it a
-easier to read.
+As the legacy lru provides, the mglru needs some trace events for
+debugging.  Let's reuse following legacy events for the mglru.
 
-wp_can_reuse_anon_folio() now only operates on the whole folio.  Move the
-SetPageAnonExclusive() out into do_wp_page().  No need to do this under
-page lock -- the page table lock is sufficient.
+  trace_mm_vmscan_lru_isolate
+  trace_mm_vmscan_lru_shrink_inactive
 
-Link: https://lkml.kernel.org/r/20231002142949.235104-4-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Here's an example
+  mm_vmscan_lru_isolate: classzone=2 order=0 nr_requested=4096 nr_scanned=64 nr_skipped=0 nr_taken=64 lru=inactive_file
+  mm_vmscan_lru_shrink_inactive: nid=0 nr_scanned=64 nr_reclaimed=63 nr_dirty=0 nr_writeback=0 nr_congested=0 nr_immediate=0 nr_activate_anon=0 nr_activate_file=1 nr_ref_keep=0 nr_unmap_fail=0 priority=2 flags=RECLAIM_WB_FILE|RECLAIM_WB_ASYNC
+
+Link: https://lkml.kernel.org/r/20231003114155.21869-1-jaewon31.kim@samsung.com
+Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
+Acked-by: Yu Zhao <yuzhao@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: T.J. Mercier <tjmercier@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   88 +++++++++++++++++++++++++-------------------------
- 1 file changed, 45 insertions(+), 43 deletions(-)
+ mm/vmscan.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
---- a/mm/memory.c~memory-move-exclusivity-detection-in-do_wp_page-into-wp_can_reuse_anon_folio
-+++ a/mm/memory.c
-@@ -3355,6 +3355,44 @@ static vm_fault_t wp_page_shared(struct
- 	return ret;
- }
+--- a/mm/vmscan.c~mm-multi-gen-lru-reuse-some-legacy-trace-events
++++ a/mm/vmscan.c
+@@ -4304,6 +4304,7 @@ static int scan_folios(struct lruvec *lr
+ 	int sorted = 0;
+ 	int scanned = 0;
+ 	int isolated = 0;
++	int skipped = 0;
+ 	int remaining = MAX_LRU_BATCH;
+ 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+@@ -4317,7 +4318,7 @@ static int scan_folios(struct lruvec *lr
  
-+static bool wp_can_reuse_anon_folio(struct folio *folio,
-+				    struct vm_area_struct *vma)
-+{
-+	/*
-+	 * We have to verify under folio lock: these early checks are
-+	 * just an optimization to avoid locking the folio and freeing
-+	 * the swapcache if there is little hope that we can reuse.
-+	 *
-+	 * KSM doesn't necessarily raise the folio refcount.
-+	 */
-+	if (folio_test_ksm(folio) || folio_ref_count(folio) > 3)
-+		return false;
-+	if (!folio_test_lru(folio))
-+		/*
-+		 * We cannot easily detect+handle references from
-+		 * remote LRU caches or references to LRU folios.
-+		 */
-+		lru_add_drain();
-+	if (folio_ref_count(folio) > 1 + folio_test_swapcache(folio))
-+		return false;
-+	if (!folio_trylock(folio))
-+		return false;
-+	if (folio_test_swapcache(folio))
-+		folio_free_swap(folio);
-+	if (folio_test_ksm(folio) || folio_ref_count(folio) != 1) {
-+		folio_unlock(folio);
-+		return false;
-+	}
-+	/*
-+	 * Ok, we've got the only folio reference from our mapping
-+	 * and the folio is locked, it's dark out, and we're wearing
-+	 * sunglasses. Hit it.
-+	 */
-+	folio_move_anon_rmap(folio, vma);
-+	folio_unlock(folio);
-+	return true;
-+}
-+
- /*
-  * This routine handles present pages, when
-  * * users try to write to a shared page (FAULT_FLAG_WRITE)
-@@ -3441,49 +3479,14 @@ static vm_fault_t do_wp_page(struct vm_f
+ 	for (i = MAX_NR_ZONES; i > 0; i--) {
+ 		LIST_HEAD(moved);
+-		int skipped = 0;
++		int skipped_zone = 0;
+ 		int zone = (sc->reclaim_idx + i) % MAX_NR_ZONES;
+ 		struct list_head *head = &lrugen->folios[gen][type][zone];
+ 
+@@ -4339,16 +4340,17 @@ static int scan_folios(struct lruvec *lr
+ 				isolated += delta;
+ 			} else {
+ 				list_move(&folio->lru, &moved);
+-				skipped += delta;
++				skipped_zone += delta;
+ 			}
+ 
+-			if (!--remaining || max(isolated, skipped) >= MIN_LRU_BATCH)
++			if (!--remaining || max(isolated, skipped_zone) >= MIN_LRU_BATCH)
+ 				break;
+ 		}
+ 
+-		if (skipped) {
++		if (skipped_zone) {
+ 			list_splice(&moved, head);
+-			__count_zid_vm_events(PGSCAN_SKIP, zone, skipped);
++			__count_zid_vm_events(PGSCAN_SKIP, zone, skipped_zone);
++			skipped += skipped_zone;
+ 		}
+ 
+ 		if (!remaining || isolated >= MIN_LRU_BATCH)
+@@ -4363,6 +4365,9 @@ static int scan_folios(struct lruvec *lr
+ 	__count_memcg_events(memcg, item, isolated);
+ 	__count_memcg_events(memcg, PGREFILL, sorted);
+ 	__count_vm_events(PGSCAN_ANON + type, isolated);
++	trace_mm_vmscan_lru_isolate(sc->reclaim_idx, sc->order, MAX_LRU_BATCH,
++				scanned, skipped, isolated,
++				type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
+ 
  	/*
- 	 * Private mapping: create an exclusive anonymous page copy if reuse
- 	 * is impossible. We might miss VM_WRITE for FOLL_FORCE handling.
-+	 *
-+	 * If we encounter a page that is marked exclusive, we must reuse
-+	 * the page without further checks.
- 	 */
--	if (folio && folio_test_anon(folio)) {
--		/*
--		 * If the page is exclusive to this process we must reuse the
--		 * page without further checks.
--		 */
--		if (PageAnonExclusive(vmf->page))
--			goto reuse;
--
--		/*
--		 * We have to verify under folio lock: these early checks are
--		 * just an optimization to avoid locking the folio and freeing
--		 * the swapcache if there is little hope that we can reuse.
--		 *
--		 * KSM doesn't necessarily raise the folio refcount.
--		 */
--		if (folio_test_ksm(folio) || folio_ref_count(folio) > 3)
--			goto copy;
--		if (!folio_test_lru(folio))
--			/*
--			 * We cannot easily detect+handle references from
--			 * remote LRU caches or references to LRU folios.
--			 */
--			lru_add_drain();
--		if (folio_ref_count(folio) > 1 + folio_test_swapcache(folio))
--			goto copy;
--		if (!folio_trylock(folio))
--			goto copy;
--		if (folio_test_swapcache(folio))
--			folio_free_swap(folio);
--		if (folio_test_ksm(folio) || folio_ref_count(folio) != 1) {
--			folio_unlock(folio);
--			goto copy;
--		}
--		/*
--		 * Ok, we've got the only folio reference from our mapping
--		 * and the folio is locked, it's dark out, and we're wearing
--		 * sunglasses. Hit it.
--		 */
--		folio_move_anon_rmap(folio, vma);
--		SetPageAnonExclusive(vmf->page);
--		folio_unlock(folio);
--reuse:
-+	if (folio && folio_test_anon(folio) &&
-+	    (PageAnonExclusive(vmf->page) || wp_can_reuse_anon_folio(folio, vma))) {
-+		if (!PageAnonExclusive(vmf->page))
-+			SetPageAnonExclusive(vmf->page);
- 		if (unlikely(unshare)) {
- 			pte_unmap_unlock(vmf->pte, vmf->ptl);
- 			return 0;
-@@ -3491,7 +3494,6 @@ reuse:
- 		wp_page_reuse(vmf);
- 		return 0;
- 	}
--copy:
- 	/*
- 	 * Ok, we need to copy. Oh, well..
- 	 */
+ 	 * There might not be eligible folios due to reclaim_idx. Check the
+@@ -4493,6 +4498,9 @@ static int evict_folios(struct lruvec *l
+ retry:
+ 	reclaimed = shrink_folio_list(&list, pgdat, sc, &stat, false);
+ 	sc->nr_reclaimed += reclaimed;
++	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
++			scanned, reclaimed, &stat, sc->priority,
++			type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
+ 
+ 	list_for_each_entry_safe_reverse(folio, next, &list, lru) {
+ 		if (!folio_evictable(folio)) {
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from jaewon31.kim@samsung.com are
 
 
