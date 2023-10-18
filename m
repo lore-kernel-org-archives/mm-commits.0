@@ -2,34 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75156CDB487
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 628C5CDB482
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232048AbjJRVhl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 17:37:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46800 "EHLO
+        id S235339AbjJRVhm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 17:37:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50612 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231629AbjJRVgw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:52 -0400
+        with ESMTP id S235243AbjJRVg5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:57 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 17D43D7B
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:36:04 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A46DFC433CB;
-        Wed, 18 Oct 2023 21:36:03 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5AE65125
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:36:09 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E84C0C433CD;
+        Wed, 18 Oct 2023 21:36:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697664963;
-        bh=EGXeDzHp3po+A9nhg4yIE7HtUh7GYJtiq7EU6LaEH1A=;
+        s=korg; t=1697664969;
+        bh=cbJW7Iy2NAOsqpD+5R2Nqm8aTnFPEeBA4x8BL36XPEw=;
         h=Date:To:From:Subject:From;
-        b=FDb9+NR8m67DvOCa/l1qoOVeglV9n+mQ0Yp7fE8Rn8Is8srVaRBvxmjL0/ONhtcFJ
-         2ES4PtYIUriNhyUK3Zf7CTscVjaF5owSV2oqeC163l9HyUZSzpc90ip0Nbdzt1WA7q
-         Nns5+Zzl+ws2XQuhItX0+6L+Nx69FcDQobn72MfI=
-Date:   Wed, 18 Oct 2023 14:36:03 -0700
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        vbabka@suse.cz, Liam.Howlett@oracle.com, brauner@kernel.org,
-        lstoakes@gmail.com, akpm@linux-foundation.org
+        b=Q5ILGxULH3GCE0N0O4tHwBTuzHNVFGlKlzAoRDwpccWI87XXFxTX3G6FinKKu8In+
+         nHlEjWPrS2KukWjiUkK3QtKxq+5XJVV+dCOx7zdAzj2+fU/6VO5S+ZC2IT0mWYhbVB
+         65L3sPlelPPutlyTdk1dBtLaVSBuTMpTfbxrp/hQ=
+Date:   Wed, 18 Oct 2023 14:36:08 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, djakov@kernel.org,
+        aquini@redhat.com, audra@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al.patch removed from -mm tree
-Message-Id: <20231018213603.A46DFC433CB@smtp.kernel.org>
+Subject: [merged mm-stable] tools-mm-remove-references-to-free_ts-from-page_owner_sort.patch removed from -mm tree
+Message-Id: <20231018213608.E84C0C433CD@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,491 +36,272 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: abstract the vma_merge()/split_vma() pattern for mprotect() et al.
+     Subject: tools/mm: remove references to free_ts from page_owner_sort
 has been removed from the -mm tree.  Its filename was
-     mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al.patch
+     tools-mm-remove-references-to-free_ts-from-page_owner_sort.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm: abstract the vma_merge()/split_vma() pattern for mprotect() et al.
-Date: Wed, 11 Oct 2023 18:04:28 +0100
+From: Audra Mitchell <audra@redhat.com>
+Subject: tools/mm: remove references to free_ts from page_owner_sort
+Date: Fri, 13 Oct 2023 15:03:46 -0400
 
-mprotect() and other functions which change VMA parameters over a range
-each employ a pattern of:-
+With the removal of free timestamps from page_owner output, we no longer
+need to handle this case or the "unreleased" case.  Remove all references
+to both cases.
 
-1. Attempt to merge the range with adjacent VMAs.
-2. If this fails, and the range spans a subset of the VMA, split it
-   accordingly.
-
-This is open-coded and duplicated in each case. Also in each case most of
-the parameters passed to vma_merge() remain the same.
-
-Create a new function, vma_modify(), which abstracts this operation,
-accepting only those parameters which can be changed.
-
-To avoid the mess of invoking each function call with unnecessary
-parameters, create inline wrapper functions for each of the modify
-operations, parameterised only by what is required to perform the action.
-
-We can also significantly simplify the logic - by returning the VMA if we
-split (or merged VMA if we do not) we no longer need specific handling for
-merge/split cases in any of the call sites.
-
-Note that the userfaultfd_release() case works even though it does not
-split VMAs - since start is set to vma->vm_start and end is set to
-vma->vm_end, the split logic does not trigger.
-
-In addition, since we calculate pgoff to be equal to vma->vm_pgoff + (start
-- vma->vm_start) >> PAGE_SHIFT, and start - vma->vm_start will be 0 in this
-instance, this invocation will remain unchanged.
-
-We eliminate a VM_WARN_ON() in mprotect_fixup() as this simply asserts that
-vma_merge() correctly ensures that flags remain the same, something that is
-already checked in is_mergeable_vma() and elsewhere, and in any case is not
-specific to mprotect().
-
-Link: https://lkml.kernel.org/r/0dfa9368f37199a423674bf0ee312e8ea0619044.1697043508.git.lstoakes@gmail.com
-Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Link: https://lkml.kernel.org/r/20231013190350.579407-3-audra@redhat.com
+Signed-off-by: Audra Mitchell <audra@redhat.com>
+Acked-by: Rafael Aquini <aquini@redhat.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Georgi Djakov <djakov@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c   |   70 +++++++++++--------------------------------
- include/linux/mm.h |   60 ++++++++++++++++++++++++++++++++++++
- mm/madvise.c       |   26 ++-------------
- mm/mempolicy.c     |   26 +--------------
- mm/mlock.c         |   25 ++-------------
- mm/mmap.c          |   48 +++++++++++++++++++++++++++++
- mm/mprotect.c      |   29 ++---------------
- 7 files changed, 141 insertions(+), 143 deletions(-)
+ tools/mm/page_owner_sort.c |   98 ++++-------------------------------
+ 1 file changed, 12 insertions(+), 86 deletions(-)
 
---- a/fs/userfaultfd.c~mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al
-+++ a/fs/userfaultfd.c
-@@ -927,20 +927,15 @@ static int userfaultfd_release(struct in
- 			continue;
- 		}
- 		new_flags = vma->vm_flags & ~__VM_UFFD_FLAGS;
--		prev = vma_merge(&vmi, mm, prev, vma->vm_start, vma->vm_end,
--				 new_flags, vma->anon_vma,
--				 vma->vm_file, vma->vm_pgoff,
--				 vma_policy(vma),
--				 NULL_VM_UFFD_CTX, anon_vma_name(vma));
--		if (prev) {
--			vma = prev;
--		} else {
--			prev = vma;
--		}
-+		vma = vma_modify_flags_uffd(&vmi, prev, vma, vma->vm_start,
-+					    vma->vm_end, new_flags,
-+					    NULL_VM_UFFD_CTX);
- 
- 		vma_start_write(vma);
- 		userfaultfd_set_vm_flags(vma, new_flags);
- 		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
-+
-+		prev = vma;
- 	}
- 	mmap_write_unlock(mm);
- 	mmput(mm);
-@@ -1331,7 +1326,6 @@ static int userfaultfd_register(struct u
- 	unsigned long start, end, vma_end;
- 	struct vma_iterator vmi;
- 	bool wp_async = userfaultfd_wp_async_ctx(ctx);
--	pgoff_t pgoff;
- 
- 	user_uffdio_register = (struct uffdio_register __user *) arg;
- 
-@@ -1484,28 +1478,14 @@ static int userfaultfd_register(struct u
- 		vma_end = min(end, vma->vm_end);
- 
- 		new_flags = (vma->vm_flags & ~__VM_UFFD_FLAGS) | vm_flags;
--		pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
--		prev = vma_merge(&vmi, mm, prev, start, vma_end, new_flags,
--				 vma->anon_vma, vma->vm_file, pgoff,
--				 vma_policy(vma),
--				 ((struct vm_userfaultfd_ctx){ ctx }),
--				 anon_vma_name(vma));
--		if (prev) {
--			/* vma_merge() invalidated the mas */
--			vma = prev;
--			goto next;
--		}
--		if (vma->vm_start < start) {
--			ret = split_vma(&vmi, vma, start, 1);
--			if (ret)
--				break;
--		}
--		if (vma->vm_end > end) {
--			ret = split_vma(&vmi, vma, end, 0);
--			if (ret)
--				break;
-+		vma = vma_modify_flags_uffd(&vmi, prev, vma, start, vma_end,
-+					    new_flags,
-+					    (struct vm_userfaultfd_ctx){ctx});
-+		if (IS_ERR(vma)) {
-+			ret = PTR_ERR(vma);
-+			break;
- 		}
--	next:
-+
- 		/*
- 		 * In the vma_merge() successful mprotect-like case 8:
- 		 * the next vma was merged into the current one and
-@@ -1568,7 +1548,6 @@ static int userfaultfd_unregister(struct
- 	const void __user *buf = (void __user *)arg;
- 	struct vma_iterator vmi;
- 	bool wp_async = userfaultfd_wp_async_ctx(ctx);
--	pgoff_t pgoff;
- 
- 	ret = -EFAULT;
- 	if (copy_from_user(&uffdio_unregister, buf, sizeof(uffdio_unregister)))
-@@ -1671,26 +1650,13 @@ static int userfaultfd_unregister(struct
- 			uffd_wp_range(vma, start, vma_end - start, false);
- 
- 		new_flags = vma->vm_flags & ~__VM_UFFD_FLAGS;
--		pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
--		prev = vma_merge(&vmi, mm, prev, start, vma_end, new_flags,
--				 vma->anon_vma, vma->vm_file, pgoff,
--				 vma_policy(vma),
--				 NULL_VM_UFFD_CTX, anon_vma_name(vma));
--		if (prev) {
--			vma = prev;
--			goto next;
--		}
--		if (vma->vm_start < start) {
--			ret = split_vma(&vmi, vma, start, 1);
--			if (ret)
--				break;
--		}
--		if (vma->vm_end > end) {
--			ret = split_vma(&vmi, vma, end, 0);
--			if (ret)
--				break;
-+		vma = vma_modify_flags_uffd(&vmi, prev, vma, start, vma_end,
-+					    new_flags, NULL_VM_UFFD_CTX);
-+		if (IS_ERR(vma)) {
-+			ret = PTR_ERR(vma);
-+			break;
- 		}
--	next:
-+
- 		/*
- 		 * In the vma_merge() successful mprotect-like case 8:
- 		 * the next vma was merged into the current one and
---- a/include/linux/mm.h~mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al
-+++ a/include/linux/mm.h
-@@ -3251,6 +3251,66 @@ extern struct vm_area_struct *copy_vma(s
- 	unsigned long addr, unsigned long len, pgoff_t pgoff,
- 	bool *need_rmap_locks);
- extern void exit_mmap(struct mm_struct *);
-+struct vm_area_struct *vma_modify(struct vma_iterator *vmi,
-+				  struct vm_area_struct *prev,
-+				  struct vm_area_struct *vma,
-+				  unsigned long start, unsigned long end,
-+				  unsigned long vm_flags,
-+				  struct mempolicy *policy,
-+				  struct vm_userfaultfd_ctx uffd_ctx,
-+				  struct anon_vma_name *anon_name);
-+
-+/* We are about to modify the VMA's flags. */
-+static inline struct vm_area_struct
-+*vma_modify_flags(struct vma_iterator *vmi,
-+		  struct vm_area_struct *prev,
-+		  struct vm_area_struct *vma,
-+		  unsigned long start, unsigned long end,
-+		  unsigned long new_flags)
-+{
-+	return vma_modify(vmi, prev, vma, start, end, new_flags,
-+			  vma_policy(vma), vma->vm_userfaultfd_ctx,
-+			  anon_vma_name(vma));
-+}
-+
-+/* We are about to modify the VMA's flags and/or anon_name. */
-+static inline struct vm_area_struct
-+*vma_modify_flags_name(struct vma_iterator *vmi,
-+		       struct vm_area_struct *prev,
-+		       struct vm_area_struct *vma,
-+		       unsigned long start,
-+		       unsigned long end,
-+		       unsigned long new_flags,
-+		       struct anon_vma_name *new_name)
-+{
-+	return vma_modify(vmi, prev, vma, start, end, new_flags,
-+			  vma_policy(vma), vma->vm_userfaultfd_ctx, new_name);
-+}
-+
-+/* We are about to modify the VMA's memory policy. */
-+static inline struct vm_area_struct
-+*vma_modify_policy(struct vma_iterator *vmi,
-+		   struct vm_area_struct *prev,
-+		   struct vm_area_struct *vma,
-+		   unsigned long start, unsigned long end,
-+		   struct mempolicy *new_pol)
-+{
-+	return vma_modify(vmi, prev, vma, start, end, vma->vm_flags,
-+			  new_pol, vma->vm_userfaultfd_ctx, anon_vma_name(vma));
-+}
-+
-+/* We are about to modify the VMA's flags and/or uffd context. */
-+static inline struct vm_area_struct
-+*vma_modify_flags_uffd(struct vma_iterator *vmi,
-+		       struct vm_area_struct *prev,
-+		       struct vm_area_struct *vma,
-+		       unsigned long start, unsigned long end,
-+		       unsigned long new_flags,
-+		       struct vm_userfaultfd_ctx new_ctx)
-+{
-+	return vma_modify(vmi, prev, vma, start, end, new_flags,
-+			  vma_policy(vma), new_ctx, anon_vma_name(vma));
-+}
- 
- static inline int check_data_rlimit(unsigned long rlim,
- 				    unsigned long new,
---- a/mm/madvise.c~mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al
-+++ a/mm/madvise.c
-@@ -141,7 +141,6 @@ static int madvise_update_vma(struct vm_
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	int error;
--	pgoff_t pgoff;
- 	VMA_ITERATOR(vmi, mm, start);
- 
- 	if (new_flags == vma->vm_flags && anon_vma_name_eq(anon_vma_name(vma), anon_name)) {
-@@ -149,30 +148,13 @@ static int madvise_update_vma(struct vm_
- 		return 0;
- 	}
- 
--	pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
--	*prev = vma_merge(&vmi, mm, *prev, start, end, new_flags,
--			  vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma),
--			  vma->vm_userfaultfd_ctx, anon_name);
--	if (*prev) {
--		vma = *prev;
--		goto success;
--	}
-+	vma = vma_modify_flags_name(&vmi, *prev, vma, start, end, new_flags,
-+				    anon_name);
-+	if (IS_ERR(vma))
-+		return PTR_ERR(vma);
- 
- 	*prev = vma;
- 
--	if (start != vma->vm_start) {
--		error = split_vma(&vmi, vma, start, 1);
--		if (error)
--			return error;
--	}
--
--	if (end != vma->vm_end) {
--		error = split_vma(&vmi, vma, end, 0);
--		if (error)
--			return error;
--	}
--
--success:
- 	/* vm_flags is protected by the mmap_lock held in write mode. */
- 	vma_start_write(vma);
- 	vm_flags_reset(vma, new_flags);
---- a/mm/mempolicy.c~mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al
-+++ a/mm/mempolicy.c
-@@ -811,10 +811,7 @@ static int mbind_range(struct vma_iterat
- 		struct vm_area_struct **prev, unsigned long start,
- 		unsigned long end, struct mempolicy *new_pol)
- {
--	struct vm_area_struct *merged;
- 	unsigned long vmstart, vmend;
--	pgoff_t pgoff;
--	int err;
- 
- 	vmend = min(end, vma->vm_end);
- 	if (start > vma->vm_start) {
-@@ -829,26 +826,9 @@ static int mbind_range(struct vma_iterat
- 		return 0;
- 	}
- 
--	pgoff = vma->vm_pgoff + ((vmstart - vma->vm_start) >> PAGE_SHIFT);
--	merged = vma_merge(vmi, vma->vm_mm, *prev, vmstart, vmend, vma->vm_flags,
--			 vma->anon_vma, vma->vm_file, pgoff, new_pol,
--			 vma->vm_userfaultfd_ctx, anon_vma_name(vma));
--	if (merged) {
--		*prev = merged;
--		return vma_replace_policy(merged, new_pol);
--	}
--
--	if (vma->vm_start != vmstart) {
--		err = split_vma(vmi, vma, vmstart, 1);
--		if (err)
--			return err;
--	}
--
--	if (vma->vm_end != vmend) {
--		err = split_vma(vmi, vma, vmend, 0);
--		if (err)
--			return err;
--	}
-+	vma =  vma_modify_policy(vmi, *prev, vma, vmstart, vmend, new_pol);
-+	if (IS_ERR(vma))
-+		return PTR_ERR(vma);
- 
- 	*prev = vma;
- 	return vma_replace_policy(vma, new_pol);
---- a/mm/mlock.c~mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al
-+++ a/mm/mlock.c
-@@ -476,7 +476,6 @@ static int mlock_fixup(struct vma_iterat
- 	       unsigned long end, vm_flags_t newflags)
- {
- 	struct mm_struct *mm = vma->vm_mm;
--	pgoff_t pgoff;
- 	int nr_pages;
- 	int ret = 0;
- 	vm_flags_t oldflags = vma->vm_flags;
-@@ -487,28 +486,12 @@ static int mlock_fixup(struct vma_iterat
- 		/* don't set VM_LOCKED or VM_LOCKONFAULT and don't count */
- 		goto out;
- 
--	pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
--	*prev = vma_merge(vmi, mm, *prev, start, end, newflags,
--			vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma),
--			vma->vm_userfaultfd_ctx, anon_vma_name(vma));
--	if (*prev) {
--		vma = *prev;
--		goto success;
--	}
--
--	if (start != vma->vm_start) {
--		ret = split_vma(vmi, vma, start, 1);
--		if (ret)
--			goto out;
--	}
--
--	if (end != vma->vm_end) {
--		ret = split_vma(vmi, vma, end, 0);
--		if (ret)
--			goto out;
-+	vma = vma_modify_flags(vmi, *prev, vma, start, end, newflags);
-+	if (IS_ERR(vma)) {
-+		ret = PTR_ERR(vma);
-+		goto out;
- 	}
- 
--success:
- 	/*
- 	 * Keep track of amount of locked VM.
- 	 */
---- a/mm/mmap.c~mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al
-+++ a/mm/mmap.c
-@@ -2438,6 +2438,54 @@ int split_vma(struct vma_iterator *vmi,
+--- a/tools/mm/page_owner_sort.c~tools-mm-remove-references-to-free_ts-from-page_owner_sort
++++ a/tools/mm/page_owner_sort.c
+@@ -33,7 +33,6 @@ struct block_list {
+ 	char *comm; // task command name
+ 	char *stacktrace;
+ 	__u64 ts_nsec;
+-	__u64 free_ts_nsec;
+ 	int len;
+ 	int num;
+ 	int page_num;
+@@ -42,18 +41,16 @@ struct block_list {
+ 	int allocator;
+ };
+ enum FILTER_BIT {
+-	FILTER_UNRELEASE = 1<<1,
+-	FILTER_PID = 1<<2,
+-	FILTER_TGID = 1<<3,
+-	FILTER_COMM = 1<<4
++	FILTER_PID = 1<<1,
++	FILTER_TGID = 1<<2,
++	FILTER_COMM = 1<<3
+ };
+ enum CULL_BIT {
+-	CULL_UNRELEASE = 1<<1,
+-	CULL_PID = 1<<2,
+-	CULL_TGID = 1<<3,
+-	CULL_COMM = 1<<4,
+-	CULL_STACKTRACE = 1<<5,
+-	CULL_ALLOCATOR = 1<<6
++	CULL_PID = 1<<1,
++	CULL_TGID = 1<<2,
++	CULL_COMM = 1<<3,
++	CULL_STACKTRACE = 1<<4,
++	CULL_ALLOCATOR = 1<<5
+ };
+ enum ALLOCATOR_BIT {
+ 	ALLOCATOR_CMA = 1<<1,
+@@ -62,9 +59,8 @@ enum ALLOCATOR_BIT {
+ 	ALLOCATOR_OTHERS = 1<<4
+ };
+ enum ARG_TYPE {
+-	ARG_TXT, ARG_COMM, ARG_STACKTRACE, ARG_ALLOC_TS, ARG_FREE_TS,
+-	ARG_CULL_TIME, ARG_PAGE_NUM, ARG_PID, ARG_TGID, ARG_UNKNOWN, ARG_FREE,
+-	ARG_ALLOCATOR
++	ARG_TXT, ARG_COMM, ARG_STACKTRACE, ARG_ALLOC_TS, ARG_CULL_TIME,
++	ARG_PAGE_NUM, ARG_PID, ARG_TGID, ARG_UNKNOWN, ARG_ALLOCATOR
+ };
+ enum SORT_ORDER {
+ 	SORT_ASC = 1,
+@@ -90,7 +86,6 @@ static regex_t pid_pattern;
+ static regex_t tgid_pattern;
+ static regex_t comm_pattern;
+ static regex_t ts_nsec_pattern;
+-static regex_t free_ts_nsec_pattern;
+ static struct block_list *list;
+ static int list_size;
+ static int max_size;
+@@ -181,24 +176,6 @@ static int compare_ts(const void *p1, co
+ 	return l1->ts_nsec < l2->ts_nsec ? -1 : 1;
  }
  
- /*
-+ * We are about to modify one or multiple of a VMA's flags, policy, userfaultfd
-+ * context and anonymous VMA name within the range [start, end).
-+ *
-+ * As a result, we might be able to merge the newly modified VMA range with an
-+ * adjacent VMA with identical properties.
-+ *
-+ * If no merge is possible and the range does not span the entirety of the VMA,
-+ * we then need to split the VMA to accommodate the change.
-+ *
-+ * The function returns either the merged VMA, the original VMA if a split was
-+ * required instead, or an error if the split failed.
-+ */
-+struct vm_area_struct *vma_modify(struct vma_iterator *vmi,
-+				  struct vm_area_struct *prev,
-+				  struct vm_area_struct *vma,
-+				  unsigned long start, unsigned long end,
-+				  unsigned long vm_flags,
-+				  struct mempolicy *policy,
-+				  struct vm_userfaultfd_ctx uffd_ctx,
-+				  struct anon_vma_name *anon_name)
-+{
-+	pgoff_t pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
-+	struct vm_area_struct *merged;
-+
-+	merged = vma_merge(vmi, vma->vm_mm, prev, start, end, vm_flags,
-+			   vma->anon_vma, vma->vm_file, pgoff, policy,
-+			   uffd_ctx, anon_name);
-+	if (merged)
-+		return merged;
-+
-+	if (vma->vm_start < start) {
-+		int err = split_vma(vmi, vma, start, 1);
-+
-+		if (err)
-+			return ERR_PTR(err);
-+	}
-+
-+	if (vma->vm_end > end) {
-+		int err = split_vma(vmi, vma, end, 0);
-+
-+		if (err)
-+			return ERR_PTR(err);
-+	}
-+
-+	return vma;
-+}
-+
-+/*
-  * do_vmi_align_munmap() - munmap the aligned region from @start to @end.
-  * @vmi: The vma iterator
-  * @vma: The starting vm_area_struct
---- a/mm/mprotect.c~mm-abstract-the-vma_merge-split_vma-pattern-for-mprotect-et-al
-+++ a/mm/mprotect.c
-@@ -581,7 +581,6 @@ mprotect_fixup(struct vma_iterator *vmi,
- 	long nrpages = (end - start) >> PAGE_SHIFT;
- 	unsigned int mm_cp_flags = 0;
- 	unsigned long charged = 0;
--	pgoff_t pgoff;
- 	int error;
+-static int compare_free_ts(const void *p1, const void *p2)
+-{
+-	const struct block_list *l1 = p1, *l2 = p2;
+-
+-	return l1->free_ts_nsec < l2->free_ts_nsec ? -1 : 1;
+-}
+-
+-static int compare_release(const void *p1, const void *p2)
+-{
+-	const struct block_list *l1 = p1, *l2 = p2;
+-
+-	if (!l1->free_ts_nsec && !l2->free_ts_nsec)
+-		return 0;
+-	if (l1->free_ts_nsec && l2->free_ts_nsec)
+-		return 0;
+-	return l1->free_ts_nsec ? 1 : -1;
+-}
+-
+ static int compare_cull_condition(const void *p1, const void *p2)
+ {
+ 	if (cull == 0)
+@@ -211,8 +188,6 @@ static int compare_cull_condition(const
+ 		return compare_tgid(p1, p2);
+ 	if ((cull & CULL_COMM) && compare_comm(p1, p2))
+ 		return compare_comm(p1, p2);
+-	if ((cull & CULL_UNRELEASE) && compare_release(p1, p2))
+-		return compare_release(p1, p2);
+ 	if ((cull & CULL_ALLOCATOR) && compare_allocator(p1, p2))
+ 		return compare_allocator(p1, p2);
+ 	return 0;
+@@ -366,24 +341,6 @@ static __u64 get_ts_nsec(char *buf)
+ 	return ts_nsec;
+ }
  
- 	if (newflags == oldflags) {
-@@ -631,34 +630,14 @@ mprotect_fixup(struct vma_iterator *vmi,
- 		newflags &= ~VM_ACCOUNT;
- 	}
- 
--	/*
--	 * First try to merge with previous and/or next vma.
--	 */
--	pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
--	*pprev = vma_merge(vmi, mm, *pprev, start, end, newflags,
--			   vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma),
--			   vma->vm_userfaultfd_ctx, anon_vma_name(vma));
--	if (*pprev) {
--		vma = *pprev;
--		VM_WARN_ON((vma->vm_flags ^ newflags) & ~VM_SOFTDIRTY);
--		goto success;
-+	vma = vma_modify_flags(vmi, *pprev, vma, start, end, newflags);
-+	if (IS_ERR(vma)) {
-+		error = PTR_ERR(vma);
-+		goto fail;
- 	}
- 
- 	*pprev = vma;
- 
--	if (start != vma->vm_start) {
--		error = split_vma(vmi, vma, start, 1);
--		if (error)
--			goto fail;
+-static __u64 get_free_ts_nsec(char *buf)
+-{
+-	__u64 free_ts_nsec;
+-	char free_ts_nsec_str[FIELD_BUFF] = {0};
+-	char *endptr;
+-
+-	search_pattern(&free_ts_nsec_pattern, free_ts_nsec_str, buf);
+-	errno = 0;
+-	free_ts_nsec = strtoull(free_ts_nsec_str, &endptr, 10);
+-	if (errno != 0 || endptr == free_ts_nsec_str || *endptr != '\0') {
+-		if (debug_on)
+-			fprintf(stderr, "wrong free_ts_nsec in follow buf:\n%s\n", buf);
+-		return -1;
 -	}
 -
--	if (end != vma->vm_end) {
--		error = split_vma(vmi, vma, end, 0);
--		if (error)
--			goto fail;
--	}
+-	return free_ts_nsec;
+-}
 -
--success:
- 	/*
- 	 * vm_flags and vm_page_prot are protected by the mmap_lock
- 	 * held in write mode.
+ static char *get_comm(char *buf)
+ {
+ 	char *comm_str = malloc(TASK_COMM_LEN);
+@@ -411,12 +368,8 @@ static int get_arg_type(const char *arg)
+ 		return  ARG_COMM;
+ 	else if (!strcmp(arg, "stacktrace") || !strcmp(arg, "st"))
+ 		return ARG_STACKTRACE;
+-	else if (!strcmp(arg, "free") || !strcmp(arg, "f"))
+-		return ARG_FREE;
+ 	else if (!strcmp(arg, "txt") || !strcmp(arg, "T"))
+ 		return ARG_TXT;
+-	else if (!strcmp(arg, "free_ts") || !strcmp(arg, "ft"))
+-		return ARG_FREE_TS;
+ 	else if (!strcmp(arg, "alloc_ts") || !strcmp(arg, "at"))
+ 		return ARG_ALLOC_TS;
+ 	else if (!strcmp(arg, "allocator") || !strcmp(arg, "ator"))
+@@ -471,13 +424,6 @@ static bool match_str_list(const char *s
+ 
+ static bool is_need(char *buf)
+ {
+-	__u64 ts_nsec, free_ts_nsec;
+-
+-	ts_nsec = get_ts_nsec(buf);
+-	free_ts_nsec = get_free_ts_nsec(buf);
+-
+-	if ((filter & FILTER_UNRELEASE) && free_ts_nsec != 0 && ts_nsec < free_ts_nsec)
+-		return false;
+ 	if ((filter & FILTER_PID) && !match_num_list(get_pid(buf), fc.pids, fc.pids_size))
+ 		return false;
+ 	if ((filter & FILTER_TGID) &&
+@@ -528,7 +474,6 @@ static bool add_list(char *buf, int len,
+ 	if (*list[list_size].stacktrace == '\n')
+ 		list[list_size].stacktrace++;
+ 	list[list_size].ts_nsec = get_ts_nsec(buf);
+-	list[list_size].free_ts_nsec = get_free_ts_nsec(buf);
+ 	list[list_size].allocator = get_allocator(buf, ext_buf);
+ 	list_size++;
+ 	if (list_size % 1000 == 0) {
+@@ -554,8 +499,6 @@ static bool parse_cull_args(const char *
+ 			cull |= CULL_COMM;
+ 		else if (arg_type == ARG_STACKTRACE)
+ 			cull |= CULL_STACKTRACE;
+-		else if (arg_type == ARG_FREE)
+-			cull |= CULL_UNRELEASE;
+ 		else if (arg_type == ARG_ALLOCATOR)
+ 			cull |= CULL_ALLOCATOR;
+ 		else {
+@@ -616,8 +559,6 @@ static bool parse_sort_args(const char *
+ 			sc.cmps[i] = compare_stacktrace;
+ 		else if (arg_type == ARG_ALLOC_TS)
+ 			sc.cmps[i] = compare_ts;
+-		else if (arg_type == ARG_FREE_TS)
+-			sc.cmps[i] = compare_free_ts;
+ 		else if (arg_type == ARG_TXT)
+ 			sc.cmps[i] = compare_txt;
+ 		else if (arg_type == ARG_ALLOCATOR)
+@@ -679,8 +620,6 @@ static void usage(void)
+ 		"-P\t\tSort by tgid.\n"
+ 		"-n\t\tSort by task command name.\n"
+ 		"-a\t\tSort by memory allocate time.\n"
+-		"-r\t\tSort by memory release time.\n"
+-		"-f\t\tFilter out the information of blocks whose memory has been released.\n"
+ 		"-d\t\tPrint debug information.\n"
+ 		"--pid <pidlist>\tSelect by pid. This selects the information of blocks whose process ID numbers appear in <pidlist>.\n"
+ 		"--tgid <tgidlist>\tSelect by tgid. This selects the information of blocks whose Thread Group ID numbers appear in <tgidlist>.\n"
+@@ -706,7 +645,7 @@ int main(int argc, char **argv)
+ 		{ 0, 0, 0, 0},
+ 	};
+ 
+-	while ((opt = getopt_long(argc, argv, "adfmnprstP", longopts, NULL)) != -1)
++	while ((opt = getopt_long(argc, argv, "admnpstP", longopts, NULL)) != -1)
+ 		switch (opt) {
+ 		case 'a':
+ 			set_single_cmp(compare_ts, SORT_ASC);
+@@ -714,18 +653,12 @@ int main(int argc, char **argv)
+ 		case 'd':
+ 			debug_on = true;
+ 			break;
+-		case 'f':
+-			filter = filter | FILTER_UNRELEASE;
+-			break;
+ 		case 'm':
+ 			set_single_cmp(compare_page_num, SORT_DESC);
+ 			break;
+ 		case 'p':
+ 			set_single_cmp(compare_pid, SORT_ASC);
+ 			break;
+-		case 'r':
+-			set_single_cmp(compare_free_ts, SORT_ASC);
+-			break;
+ 		case 's':
+ 			set_single_cmp(compare_stacktrace, SORT_ASC);
+ 			break;
+@@ -800,10 +733,8 @@ int main(int argc, char **argv)
+ 		goto out_tgid;
+ 	if (!check_regcomp(&comm_pattern, "tgid\\s*[0-9]*\\s*\\((.*)\\),\\s*ts"))
+ 		goto out_comm;
+-	if (!check_regcomp(&ts_nsec_pattern, "ts\\s*([0-9]*)\\s*ns,"))
++	if (!check_regcomp(&ts_nsec_pattern, "ts\\s*([0-9]*)\\s*ns"))
+ 		goto out_ts;
+-	if (!check_regcomp(&free_ts_nsec_pattern, "free_ts\\s*([0-9]*)\\s*ns"))
+-		goto out_free_ts;
+ 
+ 	fstat(fileno(fin), &st);
+ 	max_size = st.st_size / 100; /* hack ... */
+@@ -864,9 +795,6 @@ int main(int argc, char **argv)
+ 				fprintf(fout, ", ");
+ 				print_allocator(fout, list[i].allocator);
+ 			}
+-			if (cull & CULL_UNRELEASE)
+-				fprintf(fout, " (%s)",
+-						list[i].free_ts_nsec ? "UNRELEASED" : "RELEASED");
+ 			if (cull & CULL_STACKTRACE)
+ 				fprintf(fout, ":\n%s", list[i].stacktrace);
+ 			fprintf(fout, "\n");
+@@ -880,8 +808,6 @@ out_free:
+ 		free(buf);
+ 	if (list)
+ 		free(list);
+-out_free_ts:
+-	regfree(&free_ts_nsec_pattern);
+ out_ts:
+ 	regfree(&ts_nsec_pattern);
+ out_comm:
 _
 
-Patches currently in -mm which might be from lstoakes@gmail.com are
+Patches currently in -mm which might be from audra@redhat.com are
 
 
