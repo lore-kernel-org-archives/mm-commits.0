@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF7C5CDB47E
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 20:09:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D68ACDB482
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 20:09:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231486AbjJRUJp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 16:09:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37974 "EHLO
+        id S231656AbjJRUJq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 16:09:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37986 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229605AbjJRUJn (ORCPT
+        with ESMTP id S230239AbjJRUJn (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 16:09:43 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1469DF7
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 13:09:40 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0A01C433CA;
-        Wed, 18 Oct 2023 20:09:39 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8218A9F
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 13:09:41 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E21FC433C7;
+        Wed, 18 Oct 2023 20:09:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697659779;
-        bh=Q/2m29HTHkmpuf52z5xRip8Q1/3BnUNoTVDnqjVCDQc=;
+        s=korg; t=1697659781;
+        bh=Bbqj6pn2u52B6Vq0XNRuaPtYGkM7lj0QPSsE8Vml/go=;
         h=Date:To:From:Subject:From;
-        b=sAFviADxuYA2VVNsOJxX6DTBs5GRyDLuQGja3D8eC+fb9ZN7P4Wr9c49HvBByJg5F
-         taYwFzQYNt9Zsnf+wysLR30N8u1JqQ1Mhy0EIrv/z3ltLlSpz79hI+P5dGRn3mbsT6
-         rFt2nwjXIQaKlLfXeHKGRRjkL2VyZK335kmWnG1c=
-Date:   Wed, 18 Oct 2023 13:09:39 -0700
+        b=Twv28ACo/P1dvRiY/ziunJ6bNbhMklsBHfylusXiNXHxtN6pC2DWFdnefK4oP4XYY
+         kpcoB2a1Y9bYA1IDrIqM33kr75yR4f/fKPnu5cP89Z1rB0ywNpNIDxaE9mJT8hAtVM
+         YgFdCT0SGttDWpx9WeS8ryAsXG3w76aV7tVxHKXA=
+Date:   Wed, 18 Oct 2023 13:09:40 -0700
 To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
         vitaly.wool@konsulko.com, sjenning@redhat.com, shuah@kernel.org,
         shakeelb@google.com, roman.gushchin@linux.dev, nphamcs@gmail.com,
@@ -31,8 +31,8 @@ To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
         ddstreet@ieee.org, cerasuolodomenico@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zswap-make-shrinking-memcg-aware.patch added to mm-unstable branch
-Message-Id: <20231018200939.A0A01C433CA@smtp.kernel.org>
+Subject: + mm-memcg-add-per-memcg-zswap-writeback-stat.patch added to mm-unstable branch
+Message-Id: <20231018200941.1E21FC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,12 +40,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zswap: make shrinking memcg-aware
+     Subject: mm: memcg: add per-memcg zswap writeback stat
 has been added to the -mm mm-unstable branch.  Its filename is
-     zswap-make-shrinking-memcg-aware.patch
+     mm-memcg-add-per-memcg-zswap-writeback-stat.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zswap-make-shrinking-memcg-aware.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-add-per-memcg-zswap-writeback-stat.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,30 +64,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Subject: zswap: make shrinking memcg-aware
-Date: Tue, 17 Oct 2023 16:21:49 -0700
+Subject: mm: memcg: add per-memcg zswap writeback stat
+Date: Tue, 17 Oct 2023 16:21:50 -0700
 
-Currently, we only have a single global LRU for zswap.  This makes it
-impossible to perform worload-specific shrinking - an memcg cannot
-determine which pages in the pool it owns, and often ends up writing pages
-from other memcgs.  This issue has been previously observed in practice
-and mitigated by simply disabling memcg-initiated shrinking:
+Since zswap now writes back pages from memcg-specific LRUs, we now need a
+new stat to show writebacks count for each memcg.
 
-https://lore.kernel.org/all/20230530232435.3097106-1-nphamcs@gmail.com/T/#u
-
-This patch fully resolves the issue by replacing the global zswap LRU
-with memcg- and NUMA-specific LRUs, and modify the reclaim logic:
-
-a) When a store attempt hits an memcg limit, it now triggers a
-   synchronous reclaim attempt that, if successful, allows the new
-   hotter page to be accepted by zswap.
-b) If the store attempt instead hits the global zswap limit, it will
-   trigger an asynchronous reclaim attempt, in which an memcg is
-   selected for reclaim in a round-robin-like fashion.
-
-Link: https://lkml.kernel.org/r/20231017232152.2605440-3-nphamcs@gmail.com
+Link: https://lkml.kernel.org/r/20231017232152.2605440-4-nphamcs@gmail.com
+Suggested-by: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Co-developed-by: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Nhat Pham <nphamcs@gmail.com>
 Cc: Dan Streetman <ddstreet@ieee.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -102,454 +87,79 @@ Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    5 
- mm/swap.h                  |    3 
- mm/swap_state.c            |   17 ++-
- mm/zswap.c                 |  179 ++++++++++++++++++++++++-----------
- 4 files changed, 147 insertions(+), 57 deletions(-)
+ include/linux/memcontrol.h |    2 ++
+ mm/memcontrol.c            |   15 +++++++++++++++
+ mm/zswap.c                 |    3 +++
+ 3 files changed, 20 insertions(+)
 
---- a/include/linux/memcontrol.h~zswap-make-shrinking-memcg-aware
+--- a/include/linux/memcontrol.h~mm-memcg-add-per-memcg-zswap-writeback-stat
 +++ a/include/linux/memcontrol.h
-@@ -1179,6 +1179,11 @@ static inline struct mem_cgroup *page_me
- 	return NULL;
- }
- 
-+static inline struct mem_cgroup *get_mem_cgroup_from_objcg(struct obj_cgroup *objcg)
-+{
-+	return NULL;
-+}
-+
- static inline bool folio_memcg_kmem(struct folio *folio)
- {
- 	return false;
---- a/mm/swap.h~zswap-make-shrinking-memcg-aware
-+++ a/mm/swap.h
-@@ -50,7 +50,8 @@ struct page *read_swap_cache_async(swp_e
- struct page *__read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
- 				     struct vm_area_struct *vma,
- 				     unsigned long addr,
--				     bool *new_page_allocated);
-+				     bool *new_page_allocated,
-+				     bool fail_if_exists);
- struct page *swap_cluster_readahead(swp_entry_t entry, gfp_t flag,
- 				    struct vm_fault *vmf);
- struct page *swapin_readahead(swp_entry_t entry, gfp_t flag,
---- a/mm/swap_state.c~zswap-make-shrinking-memcg-aware
-+++ a/mm/swap_state.c
-@@ -411,7 +411,7 @@ struct folio *filemap_get_incore_folio(s
- 
- struct page *__read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
- 			struct vm_area_struct *vma, unsigned long addr,
--			bool *new_page_allocated)
-+			bool *new_page_allocated, bool fail_if_exists)
- {
- 	struct swap_info_struct *si;
- 	struct folio *folio;
-@@ -469,6 +469,15 @@ struct page *__read_swap_cache_async(swp
- 			goto fail_put_swap;
- 
- 		/*
-+		 * This check guards against a state that happens if a call
-+		 * to __read_swap_cache_async triggers a reclaim, if the
-+		 * reclaimer (zswap's writeback as of now) then decides to
-+		 * reclaim that same entry, then the subsequent call to
-+		 * __read_swap_cache_async would get stuck in this loop.
-+		 */
-+		if (fail_if_exists && err == -EEXIST)
-+			goto fail_put_swap;
-+		/*
- 		 * We might race against __delete_from_swap_cache(), and
- 		 * stumble across a swap_map entry whose SWAP_HAS_CACHE
- 		 * has not yet been cleared.  Or race against another
-@@ -530,7 +539,7 @@ struct page *read_swap_cache_async(swp_e
- {
- 	bool page_was_allocated;
- 	struct page *retpage = __read_swap_cache_async(entry, gfp_mask,
--			vma, addr, &page_was_allocated);
-+			vma, addr, &page_was_allocated, false);
- 
- 	if (page_was_allocated)
- 		swap_readpage(retpage, false, plug);
-@@ -649,7 +658,7 @@ struct page *swap_cluster_readahead(swp_
- 		/* Ok, do the async read-ahead now */
- 		page = __read_swap_cache_async(
- 			swp_entry(swp_type(entry), offset),
--			gfp_mask, vma, addr, &page_allocated);
-+			gfp_mask, vma, addr, &page_allocated, false);
- 		if (!page)
- 			continue;
- 		if (page_allocated) {
-@@ -815,7 +824,7 @@ static struct page *swap_vma_readahead(s
- 		pte_unmap(pte);
- 		pte = NULL;
- 		page = __read_swap_cache_async(entry, gfp_mask, vma,
--					       addr, &page_allocated);
-+					       addr, &page_allocated, false);
- 		if (!page)
- 			continue;
- 		if (page_allocated) {
---- a/mm/zswap.c~zswap-make-shrinking-memcg-aware
-+++ a/mm/zswap.c
-@@ -34,6 +34,7 @@
- #include <linux/writeback.h>
- #include <linux/pagemap.h>
- #include <linux/workqueue.h>
-+#include <linux/list_lru.h>
- 
- #include "swap.h"
- #include "internal.h"
-@@ -171,8 +172,8 @@ struct zswap_pool {
- 	struct work_struct shrink_work;
- 	struct hlist_node node;
- 	char tfm_name[CRYPTO_MAX_ALG_NAME];
--	struct list_head lru;
--	spinlock_t lru_lock;
-+	struct list_lru list_lru;
-+	struct mem_cgroup *next_shrink;
+@@ -38,6 +38,7 @@ enum memcg_stat_item {
+ 	MEMCG_KMEM,
+ 	MEMCG_ZSWAP_B,
+ 	MEMCG_ZSWAPPED,
++	MEMCG_ZSWAP_WB,
+ 	MEMCG_NR_STAT,
  };
  
- /*
-@@ -288,15 +289,25 @@ static void zswap_update_total_size(void
- 	zswap_pool_total_size = total;
- }
- 
-+static inline struct mem_cgroup *get_mem_cgroup_from_entry(struct zswap_entry *entry)
-+{
-+	return entry->objcg ? get_mem_cgroup_from_objcg(entry->objcg) : NULL;
-+}
-+
-+static inline int entry_to_nid(struct zswap_entry *entry)
-+{
-+	return page_to_nid(virt_to_page(entry));
-+}
-+
- /*********************************
- * zswap entry functions
- **********************************/
- static struct kmem_cache *zswap_entry_cache;
- 
--static struct zswap_entry *zswap_entry_cache_alloc(gfp_t gfp)
-+static struct zswap_entry *zswap_entry_cache_alloc(gfp_t gfp, int nid)
+@@ -1884,6 +1885,7 @@ static inline void count_objcg_event(str
+ bool obj_cgroup_may_zswap(struct obj_cgroup *objcg);
+ void obj_cgroup_charge_zswap(struct obj_cgroup *objcg, size_t size);
+ void obj_cgroup_uncharge_zswap(struct obj_cgroup *objcg, size_t size);
++void obj_cgroup_report_zswap_wb(struct obj_cgroup *objcg);
+ #else
+ static inline bool obj_cgroup_may_zswap(struct obj_cgroup *objcg)
  {
- 	struct zswap_entry *entry;
--	entry = kmem_cache_alloc(zswap_entry_cache, gfp);
-+	entry = kmem_cache_alloc_node(zswap_entry_cache, gfp, nid);
- 	if (!entry)
- 		return NULL;
- 	entry->refcount = 1;
-@@ -310,6 +321,27 @@ static void zswap_entry_cache_free(struc
+--- a/mm/memcontrol.c~mm-memcg-add-per-memcg-zswap-writeback-stat
++++ a/mm/memcontrol.c
+@@ -1521,6 +1521,7 @@ static const struct memory_stat memory_s
+ #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
+ 	{ "zswap",			MEMCG_ZSWAP_B			},
+ 	{ "zswapped",			MEMCG_ZSWAPPED			},
++	{ "zswap_wb",			MEMCG_ZSWAP_WB			},
+ #endif
+ 	{ "file_mapped",		NR_FILE_MAPPED			},
+ 	{ "file_dirty",			NR_FILE_DIRTY			},
+@@ -1557,6 +1558,7 @@ static int memcg_page_state_unit(int ite
+ 	switch (item) {
+ 	case MEMCG_PERCPU_B:
+ 	case MEMCG_ZSWAP_B:
++	case MEMCG_ZSWAP_WB:
+ 	case NR_SLAB_RECLAIMABLE_B:
+ 	case NR_SLAB_UNRECLAIMABLE_B:
+ 		return 1;
+@@ -7899,6 +7901,19 @@ void obj_cgroup_uncharge_zswap(struct ob
+ 	rcu_read_unlock();
  }
  
- /*********************************
-+* lru functions
-+**********************************/
-+static bool zswap_lru_add(struct list_lru *list_lru, struct zswap_entry *entry)
++void obj_cgroup_report_zswap_wb(struct obj_cgroup *objcg)
 +{
-+	struct mem_cgroup *memcg = get_mem_cgroup_from_entry(entry);
-+	bool added = __list_lru_add(list_lru, &entry->lru, entry_to_nid(entry), memcg);
-+
-+	mem_cgroup_put(memcg);
-+	return added;
-+}
-+
-+static bool zswap_lru_del(struct list_lru *list_lru, struct zswap_entry *entry)
-+{
-+	struct mem_cgroup *memcg = get_mem_cgroup_from_entry(entry);
-+	bool removed = __list_lru_del(list_lru, &entry->lru, entry_to_nid(entry), memcg);
-+
-+	mem_cgroup_put(memcg);
-+	return removed;
-+}
-+
-+/*********************************
- * rbtree functions
- **********************************/
- static struct zswap_entry *zswap_rb_search(struct rb_root *root, pgoff_t offset)
-@@ -393,9 +425,7 @@ static void zswap_free_entry(struct zswa
- 	if (!entry->length)
- 		atomic_dec(&zswap_same_filled_pages);
- 	else {
--		spin_lock(&entry->pool->lru_lock);
--		list_del(&entry->lru);
--		spin_unlock(&entry->pool->lru_lock);
-+		zswap_lru_del(&entry->pool->list_lru, entry);
- 		zpool_free(zswap_find_zpool(entry), entry->handle);
- 		zswap_pool_put(entry->pool);
- 	}
-@@ -629,21 +659,16 @@ static void zswap_invalidate_entry(struc
- 		zswap_entry_put(tree, entry);
- }
- 
--static int zswap_reclaim_entry(struct zswap_pool *pool)
-+static enum lru_status shrink_memcg_cb(struct list_head *item, struct list_lru_one *l,
-+				       spinlock_t *lock, void *arg)
- {
--	struct zswap_entry *entry;
-+	struct zswap_entry *entry = container_of(item, struct zswap_entry, lru);
 +	struct mem_cgroup *memcg;
- 	struct zswap_tree *tree;
- 	pgoff_t swpoffset;
--	int ret;
-+	enum lru_status ret = LRU_REMOVED_RETRY;
-+	int writeback_result;
- 
--	/* Get an entry off the LRU */
--	spin_lock(&pool->lru_lock);
--	if (list_empty(&pool->lru)) {
--		spin_unlock(&pool->lru_lock);
--		return -EINVAL;
--	}
--	entry = list_last_entry(&pool->lru, struct zswap_entry, lru);
--	list_del_init(&entry->lru);
- 	/*
- 	 * Once the lru lock is dropped, the entry might get freed. The
- 	 * swpoffset is copied to the stack, and entry isn't deref'd again
-@@ -651,28 +676,33 @@ static int zswap_reclaim_entry(struct zs
- 	 */
- 	swpoffset = swp_offset(entry->swpentry);
- 	tree = zswap_trees[swp_type(entry->swpentry)];
--	spin_unlock(&pool->lru_lock);
-+	list_lru_isolate(l, item);
-+	spin_unlock(lock);
- 
- 	/* Check for invalidate() race */
- 	spin_lock(&tree->lock);
- 	if (entry != zswap_rb_search(&tree->rbroot, swpoffset)) {
--		ret = -EAGAIN;
- 		goto unlock;
++
++	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
++		return;
++
++	rcu_read_lock();
++	memcg = obj_cgroup_memcg(objcg);
++	mod_memcg_state(memcg, MEMCG_ZSWAP_WB, 1);
++	rcu_read_unlock();
++}
++
+ static u64 zswap_current_read(struct cgroup_subsys_state *css,
+ 			      struct cftype *cft)
+ {
+--- a/mm/zswap.c~mm-memcg-add-per-memcg-zswap-writeback-stat
++++ a/mm/zswap.c
+@@ -704,6 +704,9 @@ static enum lru_status shrink_memcg_cb(s
  	}
- 	/* Hold a reference to prevent a free during writeback */
- 	zswap_entry_get(entry);
- 	spin_unlock(&tree->lock);
+ 	zswap_written_back_pages++;
  
--	ret = zswap_writeback_entry(entry, tree);
-+	writeback_result = zswap_writeback_entry(entry, tree);
- 
- 	spin_lock(&tree->lock);
--	if (ret) {
--		/* Writeback failed, put entry back on LRU */
--		spin_lock(&pool->lru_lock);
--		list_move(&entry->lru, &pool->lru);
--		spin_unlock(&pool->lru_lock);
-+	if (writeback_result) {
-+		zswap_reject_reclaim_fail++;
-+		memcg = get_mem_cgroup_from_entry(entry);
-+		spin_lock(lock);
-+		/* we cannot use zswap_lru_add here, because it increments node's lru count */
-+		list_lru_putback(&entry->pool->list_lru, item, entry_to_nid(entry), memcg);
-+		spin_unlock(lock);
-+		mem_cgroup_put(memcg);
-+		ret = LRU_RETRY;
- 		goto put_unlock;
- 	}
-+	zswap_written_back_pages++;
- 
++	if (entry->objcg)
++		obj_cgroup_report_zswap_wb(entry->objcg);
++
  	/*
  	 * Writeback started successfully, the page now belongs to the
-@@ -686,7 +716,36 @@ put_unlock:
- 	zswap_entry_put(tree, entry);
- unlock:
- 	spin_unlock(&tree->lock);
--	return ret ? -EAGAIN : 0;
-+	spin_lock(lock);
-+	return ret;
-+}
-+
-+static int shrink_memcg(struct mem_cgroup *memcg)
-+{
-+	struct zswap_pool *pool;
-+	int nid, shrunk = 0;
-+
-+	pool = zswap_pool_current_get();
-+	if (!pool)
-+		return -EINVAL;
-+
-+	/*
-+	 * Skip zombies because their LRUs are reparented and we would be
-+	 * reclaiming from the parent instead of the dead memcgroup.
-+	 */
-+	if (memcg && !mem_cgroup_online(memcg))
-+		goto out;
-+
-+	for_each_node_state(nid, N_NORMAL_MEMORY) {
-+		unsigned long nr_to_walk = 1;
-+
-+		if (list_lru_walk_one(&pool->list_lru, nid, memcg, &shrink_memcg_cb,
-+				      NULL, &nr_to_walk))
-+			shrunk++;
-+	}
-+out:
-+	zswap_pool_put(pool);
-+	return shrunk ? 0 : -EAGAIN;
- }
- 
- static void shrink_worker(struct work_struct *w)
-@@ -695,10 +754,13 @@ static void shrink_worker(struct work_st
- 						shrink_work);
- 	int ret, failures = 0;
- 
-+	/* global reclaim will select cgroup in a round-robin fashion. */
- 	do {
--		ret = zswap_reclaim_entry(pool);
-+		pool->next_shrink = mem_cgroup_iter(NULL, pool->next_shrink, NULL);
-+
-+		ret = shrink_memcg(pool->next_shrink);
-+
- 		if (ret) {
--			zswap_reject_reclaim_fail++;
- 			if (ret != -EAGAIN)
- 				break;
- 			if (++failures == MAX_RECLAIM_RETRIES)
-@@ -764,8 +826,7 @@ static struct zswap_pool *zswap_pool_cre
- 	 */
- 	kref_init(&pool->kref);
- 	INIT_LIST_HEAD(&pool->list);
--	INIT_LIST_HEAD(&pool->lru);
--	spin_lock_init(&pool->lru_lock);
-+	list_lru_init_memcg(&pool->list_lru, NULL);
- 	INIT_WORK(&pool->shrink_work, shrink_worker);
- 
- 	zswap_pool_debug("created", pool);
-@@ -831,6 +892,9 @@ static void zswap_pool_destroy(struct zs
- 
- 	cpuhp_state_remove_instance(CPUHP_MM_ZSWP_POOL_PREPARE, &pool->node);
- 	free_percpu(pool->acomp_ctx);
-+	list_lru_destroy(&pool->list_lru);
-+	if (pool->next_shrink)
-+		mem_cgroup_put(pool->next_shrink);
- 	for (i = 0; i < ZSWAP_NR_ZPOOLS; i++)
- 		zpool_destroy_pool(pool->zpools[i]);
- 	kfree(pool);
-@@ -1076,7 +1140,7 @@ static int zswap_writeback_entry(struct
- 
- 	/* try to allocate swap cache page */
- 	page = __read_swap_cache_async(swpentry, GFP_KERNEL, NULL, 0,
--				       &page_was_allocated);
-+				       &page_was_allocated, true);
- 	if (!page) {
- 		ret = -ENOMEM;
- 		goto fail;
-@@ -1142,7 +1206,6 @@ static int zswap_writeback_entry(struct
- 	/* start writeback */
- 	__swap_writepage(page, &wbc);
- 	put_page(page);
--	zswap_written_back_pages++;
- 
- 	return ret;
- 
-@@ -1199,8 +1262,10 @@ bool zswap_store(struct folio *folio)
- 	struct scatterlist input, output;
- 	struct crypto_acomp_ctx *acomp_ctx;
- 	struct obj_cgroup *objcg = NULL;
-+	struct mem_cgroup *memcg = NULL;
- 	struct zswap_pool *pool;
- 	struct zpool *zpool;
-+	int lru_alloc_ret;
- 	unsigned int dlen = PAGE_SIZE;
- 	unsigned long handle, value;
- 	char *buf;
-@@ -1230,15 +1295,15 @@ bool zswap_store(struct folio *folio)
- 		zswap_invalidate_entry(tree, dupentry);
- 	}
- 	spin_unlock(&tree->lock);
--
--	/*
--	 * XXX: zswap reclaim does not work with cgroups yet. Without a
--	 * cgroup-aware entry LRU, we will push out entries system-wide based on
--	 * local cgroup limits.
--	 */
- 	objcg = get_obj_cgroup_from_folio(folio);
--	if (objcg && !obj_cgroup_may_zswap(objcg))
--		goto reject;
-+	if (objcg && !obj_cgroup_may_zswap(objcg)) {
-+		memcg = get_mem_cgroup_from_objcg(objcg);
-+		if (shrink_memcg(memcg)) {
-+			mem_cgroup_put(memcg);
-+			goto reject;
-+		}
-+		mem_cgroup_put(memcg);
-+	}
- 
- 	/* reclaim space if needed */
- 	if (zswap_is_full()) {
-@@ -1254,10 +1319,15 @@ bool zswap_store(struct folio *folio)
- 			zswap_pool_reached_full = false;
- 	}
- 
-+	pool = zswap_pool_current_get();
-+	if (!pool)
-+		goto reject;
-+
- 	/* allocate entry */
--	entry = zswap_entry_cache_alloc(GFP_KERNEL);
-+	entry = zswap_entry_cache_alloc(GFP_KERNEL, page_to_nid(page));
- 	if (!entry) {
- 		zswap_reject_kmemcache_fail++;
-+		zswap_pool_put(pool);
- 		goto reject;
- 	}
- 
-@@ -1269,6 +1339,7 @@ bool zswap_store(struct folio *folio)
- 			entry->length = 0;
- 			entry->value = value;
- 			atomic_inc(&zswap_same_filled_pages);
-+			zswap_pool_put(pool);
- 			goto insert_entry;
- 		}
- 		kunmap_atomic(src);
-@@ -1278,9 +1349,15 @@ bool zswap_store(struct folio *folio)
- 		goto freepage;
- 
- 	/* if entry is successfully added, it keeps the reference */
--	entry->pool = zswap_pool_current_get();
--	if (!entry->pool)
--		goto freepage;
-+	entry->pool = pool;
-+	if (objcg) {
-+		memcg = get_mem_cgroup_from_objcg(objcg);
-+		lru_alloc_ret = memcg_list_lru_alloc(memcg, &pool->list_lru, GFP_KERNEL);
-+		mem_cgroup_put(memcg);
-+
-+		if (lru_alloc_ret)
-+			goto freepage;
-+	}
- 
- 	/* compress */
- 	acomp_ctx = raw_cpu_ptr(entry->pool->acomp_ctx);
-@@ -1358,9 +1435,8 @@ insert_entry:
- 		zswap_invalidate_entry(tree, dupentry);
- 	}
- 	if (entry->length) {
--		spin_lock(&entry->pool->lru_lock);
--		list_add(&entry->lru, &entry->pool->lru);
--		spin_unlock(&entry->pool->lru_lock);
-+		INIT_LIST_HEAD(&entry->lru);
-+		zswap_lru_add(&pool->list_lru, entry);
- 	}
- 	spin_unlock(&tree->lock);
- 
-@@ -1373,8 +1449,8 @@ insert_entry:
- 
- put_dstmem:
- 	mutex_unlock(acomp_ctx->mutex);
--	zswap_pool_put(entry->pool);
- freepage:
-+	zswap_pool_put(entry->pool);
- 	zswap_entry_cache_free(entry);
- reject:
- 	if (objcg)
-@@ -1467,9 +1543,8 @@ freeentry:
- 		zswap_invalidate_entry(tree, entry);
- 		folio_mark_dirty(folio);
- 	} else if (entry->length) {
--		spin_lock(&entry->pool->lru_lock);
--		list_move(&entry->lru, &entry->pool->lru);
--		spin_unlock(&entry->pool->lru_lock);
-+		zswap_lru_del(&entry->pool->list_lru, entry);
-+		zswap_lru_add(&entry->pool->list_lru, entry);
- 	}
- 	zswap_entry_put(tree, entry);
- 	spin_unlock(&tree->lock);
+ 	 * swapcache. Drop the entry from zswap - unless invalidate already
 _
 
 Patches currently in -mm which might be from cerasuolodomenico@gmail.com are
