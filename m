@@ -2,35 +2,37 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0226C41513
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 19:13:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56601CDB47E
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 19:30:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231381AbjJRTNz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 15:13:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53740 "EHLO
+        id S229552AbjJRTao (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 15:30:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58596 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230421AbjJRTNR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 15:13:17 -0400
+        with ESMTP id S229923AbjJRTan (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 15:30:43 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C457D11C;
-        Wed, 18 Oct 2023 12:13:15 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C476C433C8;
-        Wed, 18 Oct 2023 19:13:15 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A1E1125
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 12:30:41 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2FF4C433C7;
+        Wed, 18 Oct 2023 19:30:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697656395;
-        bh=dk5GOx4PFjGrCgVwENMgx3CVPxZxbfVvOISoVj/QZgo=;
+        s=korg; t=1697657440;
+        bh=9Cbm1q2cnfAqhFUGQ/TWQbHg4ZoA3RvoDonbNla5hx8=;
         h=Date:To:From:Subject:From;
-        b=by/Lyeborr3JRz99trvW91EiGDZ/OjNSsxPgdnLyezFAHkGpzJhNnPW1sQyIGGLDJ
-         HC9eMOg63VUm1T+hxA4p3odR75cym2GVugEOg1xR7A3JbpAwSvrKXTL0cfU4/WD4eS
-         9HSBrgjoVSlWvmIrAsgh85AE/VzRxqxP05pl9bog=
-Date:   Wed, 18 Oct 2023 12:13:14 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        stable@vger.kernel.org, muchun.song@linux.dev,
-        mike.kravetz@oracle.com, riel@surriel.com,
+        b=zYNhEDzfnp218tfKqSvyioQ3aKrbJybc7NMbPXpFPImNQZ4rBEsCk8y55QzcvaxQA
+         29C5XfIH9NvjKEdPcz8v9AXzdlUg9P75CGtm5vBjgr4tLtcF3+WGYreK8+95cVK6Lo
+         t4+QIHQsD5ITVqeDvJUcGGFqbNnxexg9dYcClVnI=
+Date:   Wed, 18 Oct 2023 12:30:40 -0700
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
+        osalvador@suse.de, mhocko@suse.com, Jonathan.Cameron@huawei.com,
+        jmoyer@redhat.com, david@redhat.com, dave.jiang@intel.com,
+        dave.hansen@linux.intel.com, dan.j.williams@intel.com,
+        aneesh.kumar@linux.ibm.com, vishal.l.verma@intel.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] hugetlbfs-extend-hugetlb_vma_lock-to-private-vmas.patch removed from -mm tree
-Message-Id: <20231018191315.5C476C433C8@smtp.kernel.org>
+Subject: [to-be-updated] mm-memory_hotplug-split-memmap_on_memory-requests-across-memblocks.patch removed from -mm tree
+Message-Id: <20231018193040.D2FF4C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,170 +40,299 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: hugetlbfs: extend hugetlb_vma_lock to private VMAs
+     Subject: mm/memory_hotplug: split memmap_on_memory requests across memblocks
 has been removed from the -mm tree.  Its filename was
-     hugetlbfs-extend-hugetlb_vma_lock-to-private-vmas.patch
+     mm-memory_hotplug-split-memmap_on_memory-requests-across-memblocks.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Rik van Riel <riel@surriel.com>
-Subject: hugetlbfs: extend hugetlb_vma_lock to private VMAs
-Date: Thu, 5 Oct 2023 23:59:07 -0400
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: mm/memory_hotplug: split memmap_on_memory requests across memblocks
+Date: Thu, 28 Sep 2023 14:30:10 -0600
 
-Extend the locking scheme used to protect shared hugetlb mappings from
-truncate vs page fault races, in order to protect private hugetlb mappings
-(with resv_map) against MADV_DONTNEED.
+Patch series "mm: use memmap_on_memory semantics for dax/kmem", v4.
 
-Add a read-write semaphore to the resv_map data structure, and use that
-from the hugetlb_vma_(un)lock_* functions, in preparation for closing the
-race between MADV_DONTNEED and page faults.
+The dax/kmem driver can potentially hot-add large amounts of memory
+originating from CXL memory expanders, or NVDIMMs, or other 'device
+memories'.  There is a chance there isn't enough regular system memory
+available to fit the memmap for this new memory.  It's therefore
+desirable, if all other conditions are met, for the kmem managed memory to
+place its memmap on the newly added memory itself.
 
-Link: https://lkml.kernel.org/r/20231006040020.3677377-3-riel@surriel.com
-Fixes: 04ada095dcfc ("hugetlb: don't delete vma_lock in hugetlb MADV_DONTNEED processing")
-Signed-off-by: Rik van Riel <riel@surriel.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: <stable@vger.kernel.org>
+The main hurdle for accomplishing this for kmem is that memmap_on_memory
+can only be done if the memory being added is equal to the size of one
+memblock.  To overcome this, allow the hotplug code to split an
+add_memory() request into memblock-sized chunks, and try_remove_memory()
+to also expect and handle such a scenario.
+
+Patch 1 teaches the memory_hotplug code to allow for splitting
+add_memory() and remove_memory() requests over memblock sized chunks.
+
+Patch 2 adds a sysfs control for the kmem driver that would allow an
+opt-out of using memmap_on_memory for the memory being added.
+
+
+This patch (of 2):
+
+The MHP_MEMMAP_ON_MEMORY flag for hotplugged memory is restricted to
+'memblock_size' chunks of memory being added.  Adding a larger span of
+memory precludes memmap_on_memory semantics.
+
+For users of hotplug such as kmem, large amounts of memory might get added
+from the CXL subsystem.  In some cases, this amount may exceed the
+available 'main memory' to store the memmap for the memory being added. 
+In this case, it is useful to have a way to place the memmap on the memory
+being added, even if it means splitting the addition into memblock-sized
+chunks.
+
+Change add_memory_resource() to loop over memblock-sized chunks of memory
+if caller requested memmap_on_memory, and if other conditions for it are
+met.  Teach try_remove_memory() to also expect that a memory range being
+removed might have been split up into memblock sized chunks, and to loop
+through those as needed.
+
+Link: https://lkml.kernel.org/r/20230928-vv-kmem_memmap-v4-0-6ff73fec519a@intel.com
+Link: https://lkml.kernel.org/r/20230928-vv-kmem_memmap-v4-1-6ff73fec519a@intel.com
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    6 +++++
- mm/hugetlb.c            |   41 ++++++++++++++++++++++++++++++++++----
- 2 files changed, 43 insertions(+), 4 deletions(-)
+ mm/memory_hotplug.c |  166 +++++++++++++++++++++++++-----------------
+ 1 file changed, 100 insertions(+), 66 deletions(-)
 
---- a/include/linux/hugetlb.h~hugetlbfs-extend-hugetlb_vma_lock-to-private-vmas
-+++ a/include/linux/hugetlb.h
-@@ -60,6 +60,7 @@ struct resv_map {
- 	long adds_in_progress;
- 	struct list_head region_cache;
- 	long region_cache_count;
-+	struct rw_semaphore rw_sema;
- #ifdef CONFIG_CGROUP_HUGETLB
- 	/*
- 	 * On private mappings, the counter to uncharge reservations is stored
-@@ -1233,6 +1234,11 @@ static inline bool __vma_shareable_lock(
- 	return (vma->vm_flags & VM_MAYSHARE) && vma->vm_private_data;
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-split-memmap_on_memory-requests-across-memblocks
++++ a/mm/memory_hotplug.c
+@@ -1380,6 +1380,44 @@ static bool mhp_supports_memmap_on_memor
+ 	return arch_supports_memmap_on_memory(vmemmap_size);
  }
  
-+static inline bool __vma_private_lock(struct vm_area_struct *vma)
++static int add_memory_create_devices(int nid, struct memory_group *group,
++				     u64 start, u64 size, mhp_t mhp_flags)
 +{
-+	return (!(vma->vm_flags & VM_MAYSHARE)) && vma->vm_private_data;
++	struct mhp_params params = { .pgprot = pgprot_mhp(PAGE_KERNEL) };
++	struct vmem_altmap mhp_altmap = {
++		.base_pfn =  PHYS_PFN(start),
++		.end_pfn  =  PHYS_PFN(start + size - 1),
++	};
++	int ret;
++
++	if ((mhp_flags & MHP_MEMMAP_ON_MEMORY)) {
++		mhp_altmap.free = memory_block_memmap_on_memory_pages();
++		params.altmap = kmalloc(sizeof(struct vmem_altmap), GFP_KERNEL);
++		if (!params.altmap)
++			return -ENOMEM;
++
++		memcpy(params.altmap, &mhp_altmap, sizeof(mhp_altmap));
++	}
++
++	/* call arch's memory hotadd */
++	ret = arch_add_memory(nid, start, size, &params);
++	if (ret < 0)
++		goto error;
++
++	/* create memory block devices after memory was added */
++	ret = create_memory_block_devices(start, size, params.altmap, group);
++	if (ret)
++		goto err_bdev;
++
++	return 0;
++
++err_bdev:
++	arch_remove_memory(start, size, NULL);
++error:
++	kfree(params.altmap);
++	return ret;
 +}
 +
  /*
-  * Safe version of huge_pte_offset() to check the locks.  See comments
-  * above huge_pte_offset().
---- a/mm/hugetlb.c~hugetlbfs-extend-hugetlb_vma_lock-to-private-vmas
-+++ a/mm/hugetlb.c
-@@ -97,6 +97,7 @@ static void hugetlb_vma_lock_alloc(struc
- static void __hugetlb_vma_unlock_write_free(struct vm_area_struct *vma);
- static void hugetlb_unshare_pmds(struct vm_area_struct *vma,
- 		unsigned long start, unsigned long end);
-+static struct resv_map *vma_resv_map(struct vm_area_struct *vma);
- 
- static inline bool subpool_is_free(struct hugepage_subpool *spool)
+  * NOTE: The caller must call lock_device_hotplug() to serialize hotplug
+  * and online/offline operations (triggered e.g. by sysfs).
+@@ -1388,14 +1426,10 @@ static bool mhp_supports_memmap_on_memor
+  */
+ int __ref add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
  {
-@@ -267,6 +268,10 @@ void hugetlb_vma_lock_read(struct vm_are
- 		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
+-	struct mhp_params params = { .pgprot = pgprot_mhp(PAGE_KERNEL) };
++	unsigned long memblock_size = memory_block_size_bytes();
+ 	enum memblock_flags memblock_flags = MEMBLOCK_NONE;
+-	struct vmem_altmap mhp_altmap = {
+-		.base_pfn =  PHYS_PFN(res->start),
+-		.end_pfn  =  PHYS_PFN(res->end),
+-	};
+ 	struct memory_group *group = NULL;
+-	u64 start, size;
++	u64 start, size, cur_start;
+ 	bool new_node = false;
+ 	int ret;
  
- 		down_read(&vma_lock->rw_sema);
-+	} else if (__vma_private_lock(vma)) {
-+		struct resv_map *resv_map = vma_resv_map(vma);
-+
-+		down_read(&resv_map->rw_sema);
+@@ -1436,30 +1470,22 @@ int __ref add_memory_resource(int nid, s
+ 	/*
+ 	 * Self hosted memmap array
+ 	 */
+-	if (mhp_flags & MHP_MEMMAP_ON_MEMORY) {
+-		if (mhp_supports_memmap_on_memory(size)) {
+-			mhp_altmap.free = memory_block_memmap_on_memory_pages();
+-			params.altmap = kmalloc(sizeof(struct vmem_altmap), GFP_KERNEL);
+-			if (!params.altmap) {
+-				ret = -ENOMEM;
++	if ((mhp_flags & MHP_MEMMAP_ON_MEMORY) &&
++	    mhp_supports_memmap_on_memory(memblock_size)) {
++		for (cur_start = start; cur_start < start + size;
++		     cur_start += memblock_size) {
++			ret = add_memory_create_devices(nid, group, cur_start,
++							memblock_size,
++							mhp_flags);
++			if (ret)
+ 				goto error;
+-			}
+-
+-			memcpy(params.altmap, &mhp_altmap, sizeof(mhp_altmap));
+ 		}
+ 		/* fallback to not using altmap  */
+-	}
+-
+-	/* call arch's memory hotadd */
+-	ret = arch_add_memory(nid, start, size, &params);
+-	if (ret < 0)
+-		goto error_free;
+-
+-	/* create memory block devices after memory was added */
+-	ret = create_memory_block_devices(start, size, params.altmap, group);
+-	if (ret) {
+-		arch_remove_memory(start, size, NULL);
+-		goto error_free;
++	} else {
++		ret = add_memory_create_devices(nid, group, start, size,
++						mhp_flags);
++		if (ret)
++			goto error;
  	}
+ 
+ 	if (new_node) {
+@@ -1496,8 +1522,6 @@ int __ref add_memory_resource(int nid, s
+ 		walk_memory_blocks(start, size, NULL, online_memory_block);
+ 
+ 	return ret;
+-error_free:
+-	kfree(params.altmap);
+ error:
+ 	if (IS_ENABLED(CONFIG_ARCH_KEEP_MEMBLOCK))
+ 		memblock_remove(start, size);
+@@ -2148,47 +2172,20 @@ void try_offline_node(int nid)
  }
+ EXPORT_SYMBOL(try_offline_node);
  
-@@ -276,6 +281,10 @@ void hugetlb_vma_unlock_read(struct vm_a
- 		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
- 
- 		up_read(&vma_lock->rw_sema);
-+	} else if (__vma_private_lock(vma)) {
-+		struct resv_map *resv_map = vma_resv_map(vma);
-+
-+		up_read(&resv_map->rw_sema);
- 	}
- }
- 
-@@ -285,6 +294,10 @@ void hugetlb_vma_lock_write(struct vm_ar
- 		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
- 
- 		down_write(&vma_lock->rw_sema);
-+	} else if (__vma_private_lock(vma)) {
-+		struct resv_map *resv_map = vma_resv_map(vma);
-+
-+		down_write(&resv_map->rw_sema);
- 	}
- }
- 
-@@ -294,17 +307,27 @@ void hugetlb_vma_unlock_write(struct vm_
- 		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
- 
- 		up_write(&vma_lock->rw_sema);
-+	} else if (__vma_private_lock(vma)) {
-+		struct resv_map *resv_map = vma_resv_map(vma);
-+
-+		up_write(&resv_map->rw_sema);
- 	}
- }
- 
- int hugetlb_vma_trylock_write(struct vm_area_struct *vma)
+-static int __ref try_remove_memory(u64 start, u64 size)
++static void __ref __try_remove_memory(int nid, u64 start, u64 size)
  {
--	struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
++	int rc = 0;
+ 	struct memory_block *mem;
+-	int rc = 0, nid = NUMA_NO_NODE;
+ 	struct vmem_altmap *altmap = NULL;
  
--	if (!__vma_shareable_lock(vma))
--		return 1;
-+	if (__vma_shareable_lock(vma)) {
-+		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
+-	BUG_ON(check_hotplug_memory_range(start, size));
+-
+-	/*
+-	 * All memory blocks must be offlined before removing memory.  Check
+-	 * whether all memory blocks in question are offline and return error
+-	 * if this is not the case.
+-	 *
+-	 * While at it, determine the nid. Note that if we'd have mixed nodes,
+-	 * we'd only try to offline the last determined one -- which is good
+-	 * enough for the cases we care about.
+-	 */
+-	rc = walk_memory_blocks(start, size, &nid, check_memblock_offlined_cb);
+-	if (rc)
+-		return rc;
+-
+-	/*
+-	 * We only support removing memory added with MHP_MEMMAP_ON_MEMORY in
+-	 * the same granularity it was added - a single memory block.
+-	 */
+-	if (mhp_memmap_on_memory()) {
+-		rc = walk_memory_blocks(start, size, &mem, test_has_altmap_cb);
+-		if (rc) {
+-			if (size != memory_block_size_bytes()) {
+-				pr_warn("Refuse to remove %#llx - %#llx,"
+-					"wrong granularity\n",
+-					start, start + size);
+-				return -EINVAL;
+-			}
+-			altmap = mem->altmap;
+-			/*
+-			 * Mark altmap NULL so that we can add a debug
+-			 * check on memblock free.
+-			 */
+-			mem->altmap = NULL;
+-		}
++	rc = walk_memory_blocks(start, size, &mem, test_has_altmap_cb);
++	if (rc) {
++		altmap = mem->altmap;
++		/*
++		 * Mark altmap NULL so that we can add a debug
++		 * check on memblock free.
++		 */
++		mem->altmap = NULL;
+ 	}
  
--	return down_write_trylock(&vma_lock->rw_sema);
-+		return down_write_trylock(&vma_lock->rw_sema);
-+	} else if (__vma_private_lock(vma)) {
-+		struct resv_map *resv_map = vma_resv_map(vma);
+ 	/* remove memmap entry */
+@@ -2221,6 +2218,43 @@ static int __ref try_remove_memory(u64 s
+ 		try_offline_node(nid);
+ 
+ 	mem_hotplug_done();
++}
 +
-+		return down_write_trylock(&resv_map->rw_sema);
++static int __ref try_remove_memory(u64 start, u64 size)
++{
++	int rc, nid = NUMA_NO_NODE;
++
++	BUG_ON(check_hotplug_memory_range(start, size));
++
++	/*
++	 * All memory blocks must be offlined before removing memory.  Check
++	 * whether all memory blocks in question are offline and return error
++	 * if this is not the case.
++	 *
++	 * While at it, determine the nid. Note that if we'd have mixed nodes,
++	 * we'd only try to offline the last determined one -- which is good
++	 * enough for the cases we care about.
++	 */
++	rc = walk_memory_blocks(start, size, &nid, check_memblock_offlined_cb);
++	if (rc)
++		return rc;
++
++	/*
++	 * For memmap_on_memory, the altmaps could have been added on
++	 * a per-memblock basis. Loop through the entire range if so,
++	 * and remove each memblock and its altmap.
++	 */
++	if (mhp_memmap_on_memory()) {
++		unsigned long memblock_size = memory_block_size_bytes();
++		u64 cur_start;
++
++		for (cur_start = start; cur_start < start + size;
++		     cur_start += memblock_size)
++			__try_remove_memory(nid, cur_start, memblock_size);
++	} else {
++		__try_remove_memory(nid, start, size);
 +	}
 +
-+	return 1;
+ 	return 0;
  }
  
- void hugetlb_vma_assert_locked(struct vm_area_struct *vma)
-@@ -313,6 +336,10 @@ void hugetlb_vma_assert_locked(struct vm
- 		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
- 
- 		lockdep_assert_held(&vma_lock->rw_sema);
-+	} else if (__vma_private_lock(vma)) {
-+		struct resv_map *resv_map = vma_resv_map(vma);
-+
-+		lockdep_assert_held(&resv_map->rw_sema);
- 	}
- }
- 
-@@ -345,6 +372,11 @@ static void __hugetlb_vma_unlock_write_f
- 		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
- 
- 		__hugetlb_vma_unlock_write_put(vma_lock);
-+	} else if (__vma_private_lock(vma)) {
-+		struct resv_map *resv_map = vma_resv_map(vma);
-+
-+		/* no free for anon vmas, but still need to unlock */
-+		up_write(&resv_map->rw_sema);
- 	}
- }
- 
-@@ -1068,6 +1100,7 @@ struct resv_map *resv_map_alloc(void)
- 	kref_init(&resv_map->refs);
- 	spin_lock_init(&resv_map->lock);
- 	INIT_LIST_HEAD(&resv_map->regions);
-+	init_rwsem(&resv_map->rw_sema);
- 
- 	resv_map->adds_in_progress = 0;
- 	/*
 _
 
-Patches currently in -mm which might be from riel@surriel.com are
+Patches currently in -mm which might be from vishal.l.verma@intel.com are
 
+dax-kmem-allow-kmem-to-add-memory-with-memmap_on_memory.patch
 
