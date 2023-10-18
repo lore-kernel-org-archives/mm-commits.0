@@ -2,35 +2,37 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DAEFDC41513
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 19:13:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C28DCDB486
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 19:13:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231378AbjJRTNT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 15:13:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53806 "EHLO
+        id S231320AbjJRTNU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 15:13:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53774 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231373AbjJRTNP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 15:13:15 -0400
+        with ESMTP id S231390AbjJRTNT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 15:13:19 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7E9C11D;
-        Wed, 18 Oct 2023 12:13:13 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74042C433C7;
-        Wed, 18 Oct 2023 19:13:13 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BFCF1109
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 12:13:17 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87CBEC433C7;
+        Wed, 18 Oct 2023 19:13:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697656393;
-        bh=lweJdFy3QfFbwuPeWxx5QKJW7lo6zTWLXHJ/6xFu/II=;
+        s=korg; t=1697656397;
+        bh=dwmX8lGev7UDvWb+sySN+cKJht1ihZHYB8ccCvUwk94=;
         h=Date:To:From:Subject:From;
-        b=PpjJ/1RpFreH3j0RyC2rhaiQwjsT7M0kbqAtcmtOwaLsLQSxIspaF2qVjBPBK6+Ra
-         Y4EUJ2OimNnd9lVmVblBCAdtElGQHFU3PPvdOkxB8vyFswURt+4mmmjn4S+Lo/hl8p
-         skQf5eg4BJ1r7sVEGjHFBDAo8Ij50asSTQ1zYt/Q=
-Date:   Wed, 18 Oct 2023 12:13:12 -0700
-To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
-        stable@vger.kernel.org, nphamcs@gmail.com, clm@fb.com,
-        cerasuolodomenico@gmail.com, hannes@cmpxchg.org,
+        b=yeD/0YQFb0WSPEdGme7n0H5CbG+sVB4IkUa5zmvJbRPA+mBTxXc1t4cM83kULxz54
+         9VHXSesNpZSiPUuWhEvDfXezYfNJ8QLlUl+fm7haOnDiAOItEAqk3YezCutXZzbHpC
+         No9e2fClxgmIrbsSyDlquuBwVOMiSo43OWYHtf94=
+Date:   Wed, 18 Oct 2023 12:13:16 -0700
+To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
+        ryabinin.a.a@gmail.com, matthias.bgg@gmail.com,
+        keescook@chromium.org, glider@google.com, dvyukov@google.com,
+        arnd@arndb.de, angelogioacchino.delregno@collabora.com,
+        andreyknvl@gmail.com, haibo.li@mediatek.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-zswap-fix-pool-refcount-bug-around-shrink_worker.patch removed from -mm tree
-Message-Id: <20231018191313.74042C433C7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] kasan-print-the-original-fault-addr-when-access-invalid-shadow.patch removed from -mm tree
+Message-Id: <20231018191317.87CBEC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,56 +40,101 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: zswap: fix pool refcount bug around shrink_worker()
+     Subject: kasan: print the original fault addr when access invalid shadow
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-fix-pool-refcount-bug-around-shrink_worker.patch
+     kasan-print-the-original-fault-addr-when-access-invalid-shadow.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: zswap: fix pool refcount bug around shrink_worker()
-Date: Fri, 6 Oct 2023 12:00:24 -0400
+From: Haibo Li <haibo.li@mediatek.com>
+Subject: kasan: print the original fault addr when access invalid shadow
+Date: Mon, 9 Oct 2023 15:37:48 +0800
 
-When a zswap store fails due to the limit, it acquires a pool reference
-and queues the shrinker.  When the shrinker runs, it drops the reference. 
-However, there can be multiple store attempts before the shrinker wakes up
-and runs once.  This results in reference leaks and eventual saturation
-warnings for the pool refcount.
+when the checked address is illegal,the corresponding shadow address from
+kasan_mem_to_shadow may have no mapping in mmu table.  Access such shadow
+address causes kernel oops.  Here is a sample about oops on arm64(VA
+39bit) with KASAN_SW_TAGS and KASAN_OUTLINE on:
 
-Fix this by dropping the reference again when the shrinker is already
-queued.  This ensures one reference per shrinker run.
+[ffffffb80aaaaaaa] pgd=000000005d3ce003, p4d=000000005d3ce003,
+    pud=000000005d3ce003, pmd=0000000000000000
+Internal error: Oops: 0000000096000006 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 3 PID: 100 Comm: sh Not tainted 6.6.0-rc1-dirty #43
+Hardware name: linux,dummy-virt (DT)
+pstate: 80000005 (Nzcv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : __hwasan_load8_noabort+0x5c/0x90
+lr : do_ib_ob+0xf4/0x110
+ffffffb80aaaaaaa is the shadow address for efffff80aaaaaaaa.
+The problem is reading invalid shadow in kasan_check_range.
 
-Link: https://lkml.kernel.org/r/20231006160024.170748-1-hannes@cmpxchg.org
-Fixes: 45190f01dd40 ("mm/zswap.c: add allocation hysteresis if pool limit is hit")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Chris Mason <clm@fb.com>
-Acked-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: <stable@vger.kernel.org>	[5.6+]
+The generic kasan also has similar oops.
+
+It only reports the shadow address which causes oops but not
+the original address.
+
+Commit 2f004eea0fc8("x86/kasan: Print original address on #GP")
+introduce to kasan_non_canonical_hook but limit it to KASAN_INLINE.
+
+This patch extends it to KASAN_OUTLINE mode.
+
+Link: https://lkml.kernel.org/r/20231009073748.159228-1-haibo.li@mediatek.com
+Fixes: 2f004eea0fc8("x86/kasan: Print original address on #GP")
+Signed-off-by: Haibo Li <haibo.li@mediatek.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Haibo Li <haibo.li@mediatek.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/kasan.h |    6 +++---
+ mm/kasan/report.c     |    4 +---
+ 2 files changed, 4 insertions(+), 6 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-fix-pool-refcount-bug-around-shrink_worker
-+++ a/mm/zswap.c
-@@ -1383,8 +1383,8 @@ reject:
+--- a/include/linux/kasan.h~kasan-print-the-original-fault-addr-when-access-invalid-shadow
++++ a/include/linux/kasan.h
+@@ -466,10 +466,10 @@ static inline void kasan_free_module_sha
  
- shrink:
- 	pool = zswap_pool_last_get();
--	if (pool)
--		queue_work(shrink_wq, &pool->shrink_work);
-+	if (pool && !queue_work(shrink_wq, &pool->shrink_work))
-+		zswap_pool_put(pool);
- 	goto reject;
+ #endif /* (CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS) && !CONFIG_KASAN_VMALLOC */
+ 
+-#ifdef CONFIG_KASAN_INLINE
++#ifdef CONFIG_KASAN
+ void kasan_non_canonical_hook(unsigned long addr);
+-#else /* CONFIG_KASAN_INLINE */
++#else /* CONFIG_KASAN */
+ static inline void kasan_non_canonical_hook(unsigned long addr) { }
+-#endif /* CONFIG_KASAN_INLINE */
++#endif /* CONFIG_KASAN */
+ 
+ #endif /* LINUX_KASAN_H */
+--- a/mm/kasan/report.c~kasan-print-the-original-fault-addr-when-access-invalid-shadow
++++ a/mm/kasan/report.c
+@@ -621,9 +621,8 @@ void kasan_report_async(void)
  }
+ #endif /* CONFIG_KASAN_HW_TAGS */
  
+-#ifdef CONFIG_KASAN_INLINE
+ /*
+- * With CONFIG_KASAN_INLINE, accesses to bogus pointers (outside the high
++ * With CONFIG_KASAN, accesses to bogus pointers (outside the high
+  * canonical half of the address space) cause out-of-bounds shadow memory reads
+  * before the actual access. For addresses in the low canonical half of the
+  * address space, as well as most non-canonical addresses, that out-of-bounds
+@@ -659,4 +658,3 @@ void kasan_non_canonical_hook(unsigned l
+ 	pr_alert("KASAN: %s in range [0x%016lx-0x%016lx]\n", bug_type,
+ 		 orig_addr, orig_addr + KASAN_GRANULE_SIZE - 1);
+ }
+-#endif
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from haibo.li@mediatek.com are
 
 
