@@ -2,131 +2,134 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B11DCDB47E
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 18:37:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28FA0CDB47E
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 19:13:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229697AbjJRShS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 14:37:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41026 "EHLO
+        id S229897AbjJRTNT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 15:13:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53712 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229726AbjJRShR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 14:37:17 -0400
+        with ESMTP id S231451AbjJRTNQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 15:13:16 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A59DEF7
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 11:37:15 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32814C433C8;
-        Wed, 18 Oct 2023 18:37:15 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF228133;
+        Wed, 18 Oct 2023 12:13:14 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71CC6C433C9;
+        Wed, 18 Oct 2023 19:13:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697654235;
-        bh=5u5+Ff/sAP09HxbsEEiFI2hrd1/5PQhyAGRKJ2Lzis4=;
+        s=korg; t=1697656394;
+        bh=CbiZ+XPJ2doFmIVjBORRbaj8pINn0bHMqxr8Erk7Bow=;
         h=Date:To:From:Subject:From;
-        b=WRoXfB+8kOjwatxP+6z8TqPEAphb0wdQXkDKh8yd26sh0tVN3dBjuOE34eUksrawX
-         lARcp269oeuGkkMSJadwHsOID2V8A+wwx14Mx/VbyUGy/WcCATZXCccsmF+W4iVh+j
-         pEvMNep/2rEIm/UUpLiv+VnRY52l/bYl8O3Iz+Gg=
-Date:   Wed, 18 Oct 2023 11:37:14 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, shakeelb@google.com,
-        rientjes@google.com, naresh.kamboju@linaro.org,
-        muchun.song@linux.dev, mhocko@kernel.org, hannes@cmpxchg.org,
-        dennis@kernel.org, roman.gushchin@linux.dev,
+        b=vvh7Sk4SjBqWiizMga6527CxbYPsawh0Dt83e3N1+7TEGmQfIeNRchgF+bKbc3Cw1
+         +vAmBoo/Zl4RjeSRU1Mjhm0wIDUOlTaTrOR3ldkTQAiCOH3fNSic7UQiwrKqoJWoW2
+         54JbL+L8Xhh0gQKiF5nJKuKAqT0hRwrrUadkU5aQ=
+Date:   Wed, 18 Oct 2023 12:13:13 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        stable@vger.kernel.org, muchun.song@linux.dev,
+        mike.kravetz@oracle.com, riel@surriel.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmem-add-direct-objcg-pointer-to-task_struct-v4.patch added to mm-unstable branch
-Message-Id: <20231018183715.32814C433C8@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] hugetlbfs-clear-resv_map-pointer-if-mmap-fails.patch removed from -mm tree
+Message-Id: <20231018191314.71CC6C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm-kmem-add-direct-objcg-pointer-to-task_struct-v4
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kmem-add-direct-objcg-pointer-to-task_struct-v4.patch
+The quilt patch titled
+     Subject: hugetlbfs: clear resv_map pointer if mmap fails
+has been removed from the -mm tree.  Its filename was
+     hugetlbfs-clear-resv_map-pointer-if-mmap-fails.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmem-add-direct-objcg-pointer-to-task_struct-v4.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: mm-kmem-add-direct-objcg-pointer-to-task_struct-v4
-Date: Wed, 18 Oct 2023 11:08:20 -0700
+From: Rik van Riel <riel@surriel.com>
+Subject: hugetlbfs: clear resv_map pointer if mmap fails
+Date: Thu, 5 Oct 2023 23:59:06 -0400
 
-add comment, s/0/CURRENT_OBJCG_UPDATE_BIT/
+Patch series "hugetlbfs: close race between MADV_DONTNEED and page fault", v7.
 
-Link: https://lkml.kernel.org/r/ZTAfFOsvlbqPI0Uk@P9FQF9L96D.corp.robot.car
-Signed-off-by: Roman Gushchin (Cruise) <roman.gushchin@linux.dev>
-Tested-by: Naresh Kamboju <naresh.kamboju@linaro.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
+Malloc libraries, like jemalloc and tcalloc, take decisions on when to
+call madvise independently from the code in the main application.
+
+This sometimes results in the application page faulting on an address,
+right after the malloc library has shot down the backing memory with
+MADV_DONTNEED.
+
+Usually this is harmless, because we always have some 4kB pages sitting
+around to satisfy a page fault.  However, with hugetlbfs systems often
+allocate only the exact number of huge pages that the application wants.
+
+Due to TLB batching, hugetlbfs MADV_DONTNEED will free pages outside of
+any lock taken on the page fault path, which can open up the following
+race condition:
+
+       CPU 1                            CPU 2
+
+       MADV_DONTNEED
+       unmap page
+       shoot down TLB entry
+                                       page fault
+                                       fail to allocate a huge page
+                                       killed with SIGBUS
+       free page
+
+Fix that race by extending the hugetlb_vma_lock locking scheme to also
+cover private hugetlb mappings (with resv_map), and pulling the locking
+from __unmap_hugepage_final_range into helper functions called from
+zap_page_range_single.  This ensures page faults stay locked out of the
+MADV_DONTNEED VMA until the huge pages have actually been freed.
+
+
+This patch (of 3):
+
+Hugetlbfs leaves a dangling pointer in the VMA if mmap fails.  This has
+not been a problem so far, but other code in this patch series tries to
+follow that pointer.
+
+Link: https://lkml.kernel.org/r/20231006040020.3677377-1-riel@surriel.com
+Link: https://lkml.kernel.org/r/20231006040020.3677377-2-riel@surriel.com
+Fixes: 04ada095dcfc ("hugetlb: don't delete vma_lock in hugetlb MADV_DONTNEED processing")
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Signed-off-by: Rik van Riel <riel@surriel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/memcontrol.c~mm-kmem-add-direct-objcg-pointer-to-task_struct-v4
-+++ a/mm/memcontrol.c
-@@ -249,7 +249,8 @@ struct mem_cgroup *vmpressure_to_memcg(s
- 	return container_of(vmpr, struct mem_cgroup, vmpressure);
+--- a/mm/hugetlb.c~hugetlbfs-clear-resv_map-pointer-if-mmap-fails
++++ a/mm/hugetlb.c
+@@ -1138,8 +1138,7 @@ static void set_vma_resv_map(struct vm_a
+ 	VM_BUG_ON_VMA(!is_vm_hugetlb_page(vma), vma);
+ 	VM_BUG_ON_VMA(vma->vm_flags & VM_MAYSHARE, vma);
+ 
+-	set_vma_private_data(vma, (get_vma_private_data(vma) &
+-				HPAGE_RESV_MASK) | (unsigned long)map);
++	set_vma_private_data(vma, (unsigned long)map);
  }
  
--#define CURRENT_OBJCG_UPDATE_FLAG 0x1UL
-+#define CURRENT_OBJCG_UPDATE_BIT 0
-+#define CURRENT_OBJCG_UPDATE_FLAG (1UL << CURRENT_OBJCG_UPDATE_BIT)
- 
- #ifdef CONFIG_MEMCG_KMEM
- static DEFINE_SPINLOCK(objcg_lock);
-@@ -3126,6 +3127,13 @@ static struct obj_cgroup *current_objcg_
- 			old = NULL;
- 		}
- 
-+		/*
-+		 * Release the objcg pointer from the previous iteration,
-+		 * if try_cmpxcg() below fails.
-+		 */
-+		if (unlikely(objcg))
-+			obj_cgroup_put(objcg);
-+
- 		/* Obtain the new objcg pointer. */
- 		rcu_read_lock();
- 		memcg = mem_cgroup_from_task(current);
-@@ -6598,7 +6606,7 @@ static void mem_cgroup_kmem_attach(struc
- 
- 	cgroup_taskset_for_each(task, css, tset) {
- 		/* atomically set the update bit */
--		set_bit(0, (unsigned long *)&task->objcg);
-+		set_bit(CURRENT_OBJCG_UPDATE_BIT, (unsigned long *)&task->objcg);
- 	}
+ static void set_vma_resv_flags(struct vm_area_struct *vma, unsigned long flags)
+@@ -6811,8 +6810,10 @@ out_err:
+ 		 */
+ 		if (chg >= 0 && add < 0)
+ 			region_abort(resv_map, from, to, regions_needed);
+-	if (vma && is_vma_resv_set(vma, HPAGE_RESV_OWNER))
++	if (vma && is_vma_resv_set(vma, HPAGE_RESV_OWNER)) {
+ 		kref_put(&resv_map->refs, resv_map_release);
++		set_vma_resv_map(vma, NULL);
++	}
+ 	return false;
  }
- #else
+ 
 _
 
-Patches currently in -mm which might be from roman.gushchin@linux.dev are
+Patches currently in -mm which might be from riel@surriel.com are
 
-mm-kmem-optimize-get_obj_cgroup_from_current.patch
-mm-kmem-add-direct-objcg-pointer-to-task_struct.patch
-mm-kmem-add-direct-objcg-pointer-to-task_struct-v4.patch
-mm-kmem-make-memcg-keep-a-reference-to-the-original-objcg.patch
-mm-kmem-scoped-objcg-protection.patch
-percpu-scoped-objcg-protection.patch
 
