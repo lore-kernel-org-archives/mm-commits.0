@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5FD5CDB47E
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 19:13:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08988C41513
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 19:13:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231452AbjJRTNj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 15:13:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52268 "EHLO
+        id S231453AbjJRTNk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 15:13:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53712 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231483AbjJRTNY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 15:13:24 -0400
+        with ESMTP id S231390AbjJRTN0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 15:13:26 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5EFBE119;
-        Wed, 18 Oct 2023 12:13:23 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFE48C433C8;
-        Wed, 18 Oct 2023 19:13:22 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B1AB126;
+        Wed, 18 Oct 2023 12:13:24 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAFA6C433C7;
+        Wed, 18 Oct 2023 19:13:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
         s=korg; t=1697656403;
-        bh=o/jJQcRcTJsCc/Y46guB4iuWQEdihoZOViyY1UKM8sg=;
+        bh=z0v61iAu9VWzsqP++HvDzfBiIk49FoVpTmd2XM5zUjI=;
         h=Date:To:From:Subject:From;
-        b=XHVLvrD8Q3B30685nqDynZzINMnIzAcJTEHR0FrIEuOPmdltOR6WryKTRNJKF4NuL
-         PGF2PGBPh4Nr5YzJQtxYDD0fhVF1YcQEntNtZJSy4MO7rzWiYzgpg7Ai7RhR6Vuntl
-         unvpxLpdJK3OXdJoWWtDsDVk2AbLzRqv5sBw0Hn0=
-Date:   Wed, 18 Oct 2023 12:13:22 -0700
-To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
-        stable@vger.kernel.org, shuah@kernel.org, lkft@linaro.org,
-        samasth.norway.ananda@oracle.com, akpm@linux-foundation.org
+        b=uVF4UTcLEbtAEeCrIrIXHttRWacakHww9Sy2Ush5iE3q+5yG2QX7FICXGiHpFEthg
+         NNvQqR2tR9eSdc2o94drtOY4VYvRn0G4yixUtS7TnompoLsLTBS0YIIImPZ8bgMnox
+         FOgwBk688ubEH1lUs5kwaGdUroBAG5ojVUrOGnSI=
+Date:   Wed, 18 Oct 2023 12:13:23 -0700
+To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
+        stable@vger.kernel.org, jason.sim@samsung.com,
+        Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-mm-include-mman-header-to-access-mremap_dontunmap-identifier.patch removed from -mm tree
-Message-Id: <20231018191322.EFE48C433C8@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maple_tree-add-gfp_kernel-to-allocations-in-mas_expected_entries.patch removed from -mm tree
+Message-Id: <20231018191323.CAFA6C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,48 +37,225 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/mm: include mman header to access MREMAP_DONTUNMAP identifier
+     Subject: maple_tree: add GFP_KERNEL to allocations in mas_expected_entries()
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-include-mman-header-to-access-mremap_dontunmap-identifier.patch
+     maple_tree-add-gfp_kernel-to-allocations-in-mas_expected_entries.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Samasth Norway Ananda <samasth.norway.ananda@oracle.com>
-Subject: selftests/mm: include mman header to access MREMAP_DONTUNMAP identifier
-Date: Thu, 12 Oct 2023 08:52:57 -0700
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: maple_tree: add GFP_KERNEL to allocations in mas_expected_entries()
+Date: Thu, 12 Oct 2023 11:52:33 -0400
 
-Definition for MREMAP_DONTUNMAP is not present in glibc older than 2.32
-thus throwing an undeclared error when running make on mm.  Including
-linux/mman.h solves the build error for people having older glibc.
+Users complained about OOM errors during fork without triggering
+compaction.  This can be fixed by modifying the flags used in
+mas_expected_entries() so that the compaction will be triggered in low
+memory situations.  Since mas_expected_entries() is only used during fork,
+the extra argument does not need to be passed through.
 
-Link: https://lkml.kernel.org/r/20231012155257.891776-1-samasth.norway.ananda@oracle.com
-Fixes: 0183d777c29a ("selftests: mm: remove duplicate unneeded defines")
-Signed-off-by: Samasth Norway Ananda <samasth.norway.ananda@oracle.com>
-Reported-by: Linux Kernel Functional Testing <lkft@linaro.org>
-Closes: https://lore.kernel.org/linux-mm/CA+G9fYvV-71XqpCr_jhdDfEtN701fBdG3q+=bafaZiGwUXy_aA@mail.gmail.com/
-Tested-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Additionally, the two test_maple_tree test cases and one benchmark test
+were altered to use the correct locking type so that allocations would not
+trigger sleeping and thus fail.  Testing was completed with lockdep atomic
+sleep detection.
+
+The additional locking change requires rwsem support additions to the
+tools/ directory through the use of pthreads pthread_rwlock_t.  With this
+change test_maple_tree works in userspace, as a module, and in-kernel.
+
+Users may notice that the system gave up early on attempting to start new
+processes instead of attempting to reclaim memory.
+
+Link: https://lkml.kernel.org/r/20230915093243epcms1p46fa00bbac1ab7b7dca94acb66c44c456@epcms1p4
+Link: https://lkml.kernel.org/r/20231012155233.2272446-1-Liam.Howlett@oracle.com
+Fixes: 54a611b60590 ("Maple Tree: add new data structure")
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reviewed-by: Peng Zhang <zhangpeng.00@bytedance.com>
+Cc: <jason.sim@samsung.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mremap_dontunmap.c |    1 +
- 1 file changed, 1 insertion(+)
+ lib/maple_tree.c            |    2 -
+ lib/test_maple_tree.c       |   35 ++++++++++++++++++++---------
+ tools/include/linux/rwsem.h |   40 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 65 insertions(+), 12 deletions(-)
 
---- a/tools/testing/selftests/mm/mremap_dontunmap.c~selftests-mm-include-mman-header-to-access-mremap_dontunmap-identifier
-+++ a/tools/testing/selftests/mm/mremap_dontunmap.c
-@@ -7,6 +7,7 @@
-  */
- #define _GNU_SOURCE
- #include <sys/mman.h>
-+#include <linux/mman.h>
- #include <errno.h>
- #include <stdio.h>
- #include <stdlib.h>
+--- a/lib/maple_tree.c~maple_tree-add-gfp_kernel-to-allocations-in-mas_expected_entries
++++ a/lib/maple_tree.c
+@@ -5627,7 +5627,7 @@ int mas_expected_entries(struct ma_state
+ 	/* Internal nodes */
+ 	nr_nodes += DIV_ROUND_UP(nr_nodes, nonleaf_cap);
+ 	/* Add working room for split (2 nodes) + new parents */
+-	mas_node_count(mas, nr_nodes + 3);
++	mas_node_count_gfp(mas, nr_nodes + 3, GFP_KERNEL);
+ 
+ 	/* Detect if allocations run out */
+ 	mas->mas_flags |= MA_STATE_PREALLOC;
+--- a/lib/test_maple_tree.c~maple_tree-add-gfp_kernel-to-allocations-in-mas_expected_entries
++++ a/lib/test_maple_tree.c
+@@ -9,6 +9,7 @@
+ 
+ #include <linux/maple_tree.h>
+ #include <linux/module.h>
++#include <linux/rwsem.h>
+ 
+ #define MTREE_ALLOC_MAX 0x2000000000000Ul
+ #define CONFIG_MAPLE_SEARCH
+@@ -1841,17 +1842,21 @@ static noinline void __init check_forkin
+ 	void *val;
+ 	MA_STATE(mas, mt, 0, 0);
+ 	MA_STATE(newmas, mt, 0, 0);
++	struct rw_semaphore newmt_lock;
++
++	init_rwsem(&newmt_lock);
+ 
+ 	for (i = 0; i <= nr_entries; i++)
+ 		mtree_store_range(mt, i*10, i*10 + 5,
+ 				  xa_mk_value(i), GFP_KERNEL);
+ 
+ 	mt_set_non_kernel(99999);
+-	mt_init_flags(&newmt, MT_FLAGS_ALLOC_RANGE);
++	mt_init_flags(&newmt, MT_FLAGS_ALLOC_RANGE | MT_FLAGS_LOCK_EXTERN);
++	mt_set_external_lock(&newmt, &newmt_lock);
+ 	newmas.tree = &newmt;
+ 	mas_reset(&newmas);
+ 	mas_reset(&mas);
+-	mas_lock(&newmas);
++	down_write(&newmt_lock);
+ 	mas.index = 0;
+ 	mas.last = 0;
+ 	if (mas_expected_entries(&newmas, nr_entries)) {
+@@ -1866,10 +1871,10 @@ static noinline void __init check_forkin
+ 	}
+ 	rcu_read_unlock();
+ 	mas_destroy(&newmas);
+-	mas_unlock(&newmas);
+ 	mt_validate(&newmt);
+ 	mt_set_non_kernel(0);
+-	mtree_destroy(&newmt);
++	__mt_destroy(&newmt);
++	up_write(&newmt_lock);
+ }
+ 
+ static noinline void __init check_iteration(struct maple_tree *mt)
+@@ -1980,6 +1985,10 @@ static noinline void __init bench_forkin
+ 	void *val;
+ 	MA_STATE(mas, mt, 0, 0);
+ 	MA_STATE(newmas, mt, 0, 0);
++	struct rw_semaphore newmt_lock;
++
++	init_rwsem(&newmt_lock);
++	mt_set_external_lock(&newmt, &newmt_lock);
+ 
+ 	for (i = 0; i <= nr_entries; i++)
+ 		mtree_store_range(mt, i*10, i*10 + 5,
+@@ -1994,7 +2003,7 @@ static noinline void __init bench_forkin
+ 		mas.index = 0;
+ 		mas.last = 0;
+ 		rcu_read_lock();
+-		mas_lock(&newmas);
++		down_write(&newmt_lock);
+ 		if (mas_expected_entries(&newmas, nr_entries)) {
+ 			printk("OOM!");
+ 			BUG_ON(1);
+@@ -2005,11 +2014,11 @@ static noinline void __init bench_forkin
+ 			mas_store(&newmas, val);
+ 		}
+ 		mas_destroy(&newmas);
+-		mas_unlock(&newmas);
+ 		rcu_read_unlock();
+ 		mt_validate(&newmt);
+ 		mt_set_non_kernel(0);
+-		mtree_destroy(&newmt);
++		__mt_destroy(&newmt);
++		up_write(&newmt_lock);
+ 	}
+ }
+ #endif
+@@ -2616,6 +2625,10 @@ static noinline void __init check_dup_ga
+ 	void *tmp;
+ 	MA_STATE(mas, mt, 0, 0);
+ 	MA_STATE(newmas, &newmt, 0, 0);
++	struct rw_semaphore newmt_lock;
++
++	init_rwsem(&newmt_lock);
++	mt_set_external_lock(&newmt, &newmt_lock);
+ 
+ 	if (!zero_start)
+ 		i = 1;
+@@ -2625,9 +2638,9 @@ static noinline void __init check_dup_ga
+ 		mtree_store_range(mt, i*10, (i+1)*10 - gap,
+ 				  xa_mk_value(i), GFP_KERNEL);
+ 
+-	mt_init_flags(&newmt, MT_FLAGS_ALLOC_RANGE);
++	mt_init_flags(&newmt, MT_FLAGS_ALLOC_RANGE | MT_FLAGS_LOCK_EXTERN);
+ 	mt_set_non_kernel(99999);
+-	mas_lock(&newmas);
++	down_write(&newmt_lock);
+ 	ret = mas_expected_entries(&newmas, nr_entries);
+ 	mt_set_non_kernel(0);
+ 	MT_BUG_ON(mt, ret != 0);
+@@ -2640,9 +2653,9 @@ static noinline void __init check_dup_ga
+ 	}
+ 	rcu_read_unlock();
+ 	mas_destroy(&newmas);
+-	mas_unlock(&newmas);
+ 
+-	mtree_destroy(&newmt);
++	__mt_destroy(&newmt);
++	up_write(&newmt_lock);
+ }
+ 
+ /* Duplicate many sizes of trees.  Mainly to test expected entry values */
+--- /dev/null
++++ a/tools/include/linux/rwsem.h
+@@ -0,0 +1,40 @@
++/* SPDX-License-Identifier: GPL-2.0+ */
++#ifndef _TOOLS__RWSEM_H
++#define _TOOLS__RWSEM_H
++
++#include <pthread.h>
++
++struct rw_semaphore {
++	pthread_rwlock_t lock;
++};
++
++static inline int init_rwsem(struct rw_semaphore *sem)
++{
++	return pthread_rwlock_init(&sem->lock, NULL);
++}
++
++static inline int exit_rwsem(struct rw_semaphore *sem)
++{
++	return pthread_rwlock_destroy(&sem->lock);
++}
++
++static inline int down_read(struct rw_semaphore *sem)
++{
++	return pthread_rwlock_rdlock(&sem->lock);
++}
++
++static inline int up_read(struct rw_semaphore *sem)
++{
++	return pthread_rwlock_unlock(&sem->lock);
++}
++
++static inline int down_write(struct rw_semaphore *sem)
++{
++	return pthread_rwlock_wrlock(&sem->lock);
++}
++
++static inline int up_write(struct rw_semaphore *sem)
++{
++	return pthread_rwlock_unlock(&sem->lock);
++}
++#endif /* _TOOLS_RWSEM_H */
 _
 
-Patches currently in -mm which might be from samasth.norway.ananda@oracle.com are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
+mmap-add-clarifying-comment-to-vma_merge-code.patch
+radix-tree-test-suite-fix-allocation-calculation-in-kmem_cache_alloc_bulk.patch
 
