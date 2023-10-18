@@ -2,33 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85397CDB484
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:35:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A436FCDB47E
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:35:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232048AbjJRVfv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232035AbjJRVfv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 18 Oct 2023 17:35:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51646 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51604 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232042AbjJRVfc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:35:32 -0400
+        with ESMTP id S235220AbjJRVfr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:35:47 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02EC1D47
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:14 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF14FC4339A;
-        Wed, 18 Oct 2023 21:34:59 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26E7AD4B
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:18 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BA39C433A9;
+        Wed, 18 Oct 2023 21:35:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697664900;
-        bh=frAUvHaxPymfEzZXC67FmtjsAdI4TpeKAB7iwp8AvVc=;
+        s=korg; t=1697664902;
+        bh=qjqv2nXsHsPg16pki0yPEiuzdmSQSd1UlF/BRpwDD8M=;
         h=Date:To:From:Subject:From;
-        b=BuC5Vv67W9Wrjbr+tppbX4lqnTWdQtSrxg8PDQvXd+Hg88igXd5XF9vGdOnG9nSV0
-         6gMDEAh/7b4JbZ7Uofz/A5A6ybdNtMs0lhngJ7SB5pBnc0WoWze+525yvT5zZon7HE
-         rxgDdEz20zJKQv7TOyadi2iiUIqp49e2tjpbzDgE=
-Date:   Wed, 18 Oct 2023 14:34:59 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, jack@suse.cz,
-        hch@lst.de, lstoakes@gmail.com, akpm@linux-foundation.org
+        b=VxER9NvSq59jmIRGMv+kCOFRFYQJmJOhaI6xpEFaNhE+XX1NZvbAScqhpReBrHn9q
+         W38BkU1qG3NkdendaXecMqBfYNnR3PwzweFXdNXXMo5VcPZoNXu+CVoHzFx2aXGjTO
+         z3D3cB/eA0WKUF2W64TQCnLgjvtvPfKq2LLs9krA=
+Date:   Wed, 18 Oct 2023 14:35:01 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        tim.c.chen@intel.com, jack@suse.cz, hannes@cmpxchg.org,
+        djwong@kernel.org, dchinner@redhat.com, chuck.lever@oracle.com,
+        cem@kernel.org, brauner@kernel.org, axelrasmussen@google.com,
+        hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-filemap-clarify-filemap_fault-comments-for-not-uptodate-case.patch removed from -mm tree
-Message-Id: <20231018213459.EF14FC4339A@smtp.kernel.org>
+Subject: [merged mm-stable] shmem-remove-vma-arg-from-shmem_get_folio_gfp.patch removed from -mm tree
+Message-Id: <20231018213502.0BA39C433A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,92 +39,99 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/filemap: clarify filemap_fault() comments for not uptodate case
+     Subject: shmem: remove vma arg from shmem_get_folio_gfp()
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-clarify-filemap_fault-comments-for-not-uptodate-case.patch
+     shmem-remove-vma-arg-from-shmem_get_folio_gfp.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm/filemap: clarify filemap_fault() comments for not uptodate case
-Date: Sun, 1 Oct 2023 00:10:29 +0100
+From: Hugh Dickins <hughd@google.com>
+Subject: shmem: remove vma arg from shmem_get_folio_gfp()
+Date: Fri, 29 Sep 2023 20:26:53 -0700 (PDT)
 
-The existing comments in filemap_fault() suggest that, after either a
-minor fault has occurred and filemap_get_folio() found a folio in the page
-cache, or a major fault arose and __filemap_get_folio(FGP_CREATE...) did
-the job (having relied on do_sync_mmap_readahead() or filemap_read_folio()
-to read in the folio), the only possible reason it could not be uptodate
-is because of an error.
+The vma is already there in vmf->vma, so no need for a separate arg.
 
-This is not so, as if, for instance, the fault occurred within a VMA which
-had the VM_RAND_READ flag set (via madvise() with the MADV_RANDOM flag
-specified), this would cause even synchronous readahead to fail to read in
-the folio.
-
-I confirmed this by dropping page caches and faulting in memory
-madvise()'d this way, observing that this code path was reached on each
-occasion.
-
-Clarify the comments to include this case, and additionally update the
-comment recently added around the invalidate lock logic to make it clear
-the comment explicitly refers to the minor fault case.
-
-In addition, while we're here, refer to folios rather than pages.
-
-[lstoakes@gmail.com: correct identation as per Christopher's feedback]
-  Link: https://lkml.kernel.org/r/2c7014c0-6343-4e76-8697-3f84f54350bd@lucifer.local
-Link: https://lkml.kernel.org/r/20230930231029.88196-1-lstoakes@gmail.com
-Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Link: https://lkml.kernel.org/r/d9ce6f65-a2ed-48f4-4299-fdb0544875c5@google.com
+Signed-off-by: Hugh Dickins <hughd@google.com>
 Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Carlos Maiolino <cem@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Chuck Lever <chuck.lever@oracle.com>
+Cc: Darrick J. Wong <djwong@kernel.org>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Tim Chen <tim.c.chen@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ mm/shmem.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-clarify-filemap_fault-comments-for-not-uptodate-case
-+++ a/mm/filemap.c
-@@ -3307,21 +3307,28 @@ retry_find:
- 	VM_BUG_ON_FOLIO(!folio_contains(folio, index), folio);
+--- a/mm/shmem.c~shmem-remove-vma-arg-from-shmem_get_folio_gfp
++++ a/mm/shmem.c
+@@ -1921,14 +1921,13 @@ unlock:
+  * vm. If we swap it in we mark it dirty since we also free the swap
+  * entry since a page cannot live in both the swap and page cache.
+  *
+- * vma, vmf, and fault_type are only supplied by shmem_fault:
+- * otherwise they are NULL.
++ * vmf and fault_type are only supplied by shmem_fault: otherwise they are NULL.
+  */
+ static int shmem_get_folio_gfp(struct inode *inode, pgoff_t index,
+ 		struct folio **foliop, enum sgp_type sgp, gfp_t gfp,
+-		struct vm_area_struct *vma, struct vm_fault *vmf,
+-		vm_fault_t *fault_type)
++		struct vm_fault *vmf, vm_fault_t *fault_type)
+ {
++	struct vm_area_struct *vma = vmf ? vmf->vma : NULL;
+ 	struct address_space *mapping = inode->i_mapping;
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+ 	struct shmem_sb_info *sbinfo;
+@@ -2141,7 +2140,7 @@ int shmem_get_folio(struct inode *inode,
+ 		enum sgp_type sgp)
+ {
+ 	return shmem_get_folio_gfp(inode, index, foliop, sgp,
+-			mapping_gfp_mask(inode->i_mapping), NULL, NULL, NULL);
++			mapping_gfp_mask(inode->i_mapping), NULL, NULL);
+ }
  
- 	/*
--	 * We have a locked page in the page cache, now we need to check
--	 * that it's up-to-date. If not, it is going to be due to an error.
-+	 * We have a locked folio in the page cache, now we need to check
-+	 * that it's up-to-date. If not, it is going to be due to an error,
-+	 * or because readahead was otherwise unable to retrieve it.
- 	 */
- 	if (unlikely(!folio_test_uptodate(folio))) {
- 		/*
--		 * The page was in cache and uptodate and now it is not.
--		 * Strange but possible since we didn't hold the page lock all
--		 * the time. Let's drop everything get the invalidate lock and
--		 * try again.
-+		 * If the invalidate lock is not held, the folio was in cache
-+		 * and uptodate and now it is not. Strange but possible since we
-+		 * didn't hold the page lock all the time. Let's drop
-+		 * everything, get the invalidate lock and try again.
- 		 */
- 		if (!mapping_locked) {
- 			folio_unlock(folio);
- 			folio_put(folio);
- 			goto retry_find;
- 		}
-+
-+		/*
-+		 * OK, the folio is really not uptodate. This can be because the
-+		 * VMA has the VM_RAND_READ flag set, or because an error
-+		 * arose. Let's read it in directly.
-+		 */
- 		goto page_not_uptodate;
+ /*
+@@ -2225,7 +2224,7 @@ static vm_fault_t shmem_fault(struct vm_
  	}
+ 
+ 	err = shmem_get_folio_gfp(inode, vmf->pgoff, &folio, SGP_CACHE,
+-				  gfp, vma, vmf, &ret);
++				  gfp, vmf, &ret);
+ 	if (err)
+ 		return vmf_error(err);
+ 	if (folio)
+@@ -4893,7 +4892,7 @@ struct folio *shmem_read_folio_gfp(struc
+ 
+ 	BUG_ON(!shmem_mapping(mapping));
+ 	error = shmem_get_folio_gfp(inode, index, &folio, SGP_CACHE,
+-				  gfp, NULL, NULL, NULL);
++				    gfp, NULL, NULL);
+ 	if (error)
+ 		return ERR_PTR(error);
  
 _
 
-Patches currently in -mm which might be from lstoakes@gmail.com are
+Patches currently in -mm which might be from hughd@google.com are
 
+hugetlbfs-drop-shared-numa-mempolicy-pretence.patch
+kernfs-drop-shared-numa-mempolicy-hooks.patch
+mempolicy-fix-migrate_pages2-syscall-return-nr_failed.patch
+mempolicy-trivia-delete-those-ancient-pr_debugs.patch
+mempolicy-trivia-slightly-more-consistent-naming.patch
+mempolicy-trivia-use-pgoff_t-in-shared-mempolicy-tree.patch
+mempolicy-mpol_shared_policy_init-without-pseudo-vma.patch
+mempolicy-remove-confusing-mpol_mf_lazy-dead-code.patch
+mm-add-page_rmappable_folio-wrapper.patch
+mempolicy-alloc_pages_mpol-for-numa-policy-without-vma.patch
+mempolicy-mmap_lock-is-not-needed-while-migrating-folios.patch
+mempolicy-migration-attempt-to-match-interleave-nodes.patch
 
