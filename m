@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8225ECDB47E
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 15:37:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B109C41513
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 15:37:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344713AbjJRPhS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 11:37:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37710 "EHLO
+        id S1344692AbjJRPhT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 11:37:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37704 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232409AbjJRPhR (ORCPT
+        with ESMTP id S235063AbjJRPhR (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 11:37:17 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F629121
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 08:37:12 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2F8DC433C8;
-        Wed, 18 Oct 2023 15:37:11 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E36FF129
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 08:37:13 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FE01C433C8;
+        Wed, 18 Oct 2023 15:37:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697643431;
-        bh=m4jVkwzbSa//aijr7uCs3GoFzlcp3JH8WJmuaGiuvaE=;
+        s=korg; t=1697643433;
+        bh=2Q5Y3Z38uCOAtXqXinEms3W1EZ2cquUHsX6smIHQFTw=;
         h=Date:To:From:Subject:From;
-        b=y+sr3IoKtgWl+Sr0GyJdUkVDlxPopb1P3WZk9gmqVE7JsE3tLTm/m5yJm4Uall6Rw
-         tQvR+b5Twg3ip1Zag917KClVyhh7IuBXRWLg8z2lyDBhSfuiFWN7D2ES3hVkM6Xz9s
-         8jROg5lZS8P8vP5Kd2LKIPE8ArtO5pgILtQ4kAyU=
-Date:   Wed, 18 Oct 2023 08:37:11 -0700
+        b=ImqTg5/EIlBC0zZsIlVxdXqz+DAhCY3s8Br8kl2+vLU5eC5I32oO/EtuoCHDhRSkX
+         gIebhCRbgXN5f1wqjIcLqoTg7r81J/JGllHkyHVhJEYYnggbIbWjzEOfAJ4SSk8ZiE
+         NMLIpdUHJmBhfdtzBrIpUK6QzV8BsEVv1/3b3eIQ=
+Date:   Wed, 18 Oct 2023 08:37:13 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
         willy@infradead.org, vincent.guittot@linaro.org,
         peterz@infradead.org, mingo@redhat.com, juri.lelli@redhat.com,
         david@redhat.com, wangkefeng.wang@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-folio_xchg_access_time.patch added to mm-unstable branch
-Message-Id: <20231018153711.A2F8DC433C8@smtp.kernel.org>
+Subject: + sched-fair-use-folio_xchg_access_time-in-numa_hint_fault_latency.patch added to mm-unstable branch
+Message-Id: <20231018153713.7FE01C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,12 +39,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add folio_xchg_access_time()
+     Subject: sched/fair: use folio_xchg_access_time() in numa_hint_fault_latency()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-folio_xchg_access_time.patch
+     sched-fair-use-folio_xchg_access_time-in-numa_hint_fault_latency.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-folio_xchg_access_time.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sched-fair-use-folio_xchg_access_time-in-numa_hint_fault_latency.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -63,13 +63,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: add folio_xchg_access_time()
-Date: Wed, 18 Oct 2023 22:07:54 +0800
+Subject: sched/fair: use folio_xchg_access_time() in numa_hint_fault_latency()
+Date: Wed, 18 Oct 2023 22:07:55 +0800
 
-Add folio_xchg_access_time() wrapper, which is required to convert
-xchg_page_access_time() to folio vertion later in the series.
+Convert to use folio_xchg_access_time() in numa_hint_fault_latency().
 
-Link: https://lkml.kernel.org/r/20231018140806.2783514-8-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20231018140806.2783514-9-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Huang Ying <ying.huang@intel.com>
@@ -82,23 +81,20 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ kernel/sched/fair.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-add-folio_xchg_access_time
-+++ a/include/linux/mm.h
-@@ -1796,6 +1796,11 @@ static inline void vma_set_access_pid_bi
+--- a/kernel/sched/fair.c~sched-fair-use-folio_xchg_access_time-in-numa_hint_fault_latency
++++ a/kernel/sched/fair.c
+@@ -1727,7 +1727,7 @@ static int numa_hint_fault_latency(struc
+ 	int last_time, time;
+ 
+ 	time = jiffies_to_msecs(jiffies);
+-	last_time = xchg_page_access_time(&folio->page, time);
++	last_time = folio_xchg_access_time(folio, time);
+ 
+ 	return (time - last_time) & PAGE_ACCESS_TIME_MASK;
  }
- #endif /* CONFIG_NUMA_BALANCING */
- 
-+static inline int folio_xchg_access_time(struct folio *folio, int time)
-+{
-+	return xchg_page_access_time(&folio->page, time);
-+}
-+
- #if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
- 
- /*
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
