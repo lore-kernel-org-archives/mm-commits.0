@@ -2,39 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 124D3CDB47E
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:36:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D147CDB483
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:36:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235260AbjJRVgv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 17:36:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54528 "EHLO
+        id S235329AbjJRVgw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 17:36:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51646 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231432AbjJRVgG (ORCPT
+        with ESMTP id S229697AbjJRVgG (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:06 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84CCF185
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:36 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11736C116A5;
-        Wed, 18 Oct 2023 21:35:22 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E84A13E
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:34 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30BD1C433C8;
+        Wed, 18 Oct 2023 21:35:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697664922;
-        bh=CzARdzih6KNU+hRkZmTo7HHq+bCNPAs+uxxAe1kbNCU=;
+        s=korg; t=1697664918;
+        bh=4X1qVBckaduQ0V6ec014ZoAtuhjM9FCaNgfEJXnUn1M=;
         h=Date:To:From:Subject:From;
-        b=NW9TiGRlGCZkBN1XYxWXMeDa0FWaqF1LMNPhfWkD4+8DFD2q1bREHhVcr9vItB6Hb
-         cseDIhuew3sE114lU1ZuMKTkO0bhPXHJ5Lr3QNH1JGCcRFAlXVQvq4CBeCC04HuqvC
-         5BGeje/J7b5Odx0m4fSrsmLdd+l/OhPJii58bMuI=
-Date:   Wed, 18 Oct 2023 14:35:21 -0700
-To:     mm-commits@vger.kernel.org, will@kernel.org,
-        richardcochran@gmail.com, peterz@infradead.org, oleg@redhat.com,
-        namhyung@kernel.org, mingo@redhat.com, mark.rutland@arm.com,
-        jolsa@kernel.org, jhubbard@nvidia.com, jgg@nvidia.com,
-        irogers@google.com, david@redhat.com, catalin.marinas@arm.com,
-        arnd@arndb.de, alexander.shishkin@linux.intel.com,
-        adrian.hunter@intel.com, acme@kernel.org, lstoakes@gmail.com,
+        b=GKT2x5pKrNJ/27g6LtxzUl5XDpy0w2RkjYGsGbcp/AJGgNoEB8QWiKJhhq0qkCtdq
+         O8g5jn5DxuxeAmYcCO0Tq4hfNNvwRAbBEolr1385GBCw2MYmN5CEjHnH+CwwiaTV86
+         BzYc7pjAggnhagMDJ633KC86jk3A7vOjglvanqyk=
+Date:   Wed, 18 Oct 2023 14:35:17 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, surenb@google.com,
+        muchun.song@linux.dev, mike.kravetz@oracle.com, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-gup-explicitly-define-and-check-internal-gup-flags-disallow-foll_touch.patch removed from -mm tree
-Message-Id: <20231018213522.11736C116A5@smtp.kernel.org>
+Subject: [merged mm-stable] memory-move-exclusivity-detection-in-do_wp_page-into-wp_can_reuse_anon_folio.patch removed from -mm tree
+Message-Id: <20231018213518.30BD1C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,81 +37,151 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/gup: explicitly define and check internal GUP flags, disallow FOLL_TOUCH
+     Subject: memory: move exclusivity detection in do_wp_page() into wp_can_reuse_anon_folio()
 has been removed from the -mm tree.  Its filename was
-     mm-gup-explicitly-define-and-check-internal-gup-flags-disallow-foll_touch.patch
+     memory-move-exclusivity-detection-in-do_wp_page-into-wp_can_reuse_anon_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm/gup: explicitly define and check internal GUP flags, disallow FOLL_TOUCH
-Date: Tue, 3 Oct 2023 00:14:52 +0100
+From: David Hildenbrand <david@redhat.com>
+Subject: memory: move exclusivity detection in do_wp_page() into wp_can_reuse_anon_folio()
+Date: Mon, 2 Oct 2023 16:29:49 +0200
 
-Rather than open-coding a list of internal GUP flags in
-is_valid_gup_args(), define which ones are internal.
+Let's clean up do_wp_page() a bit, removing two labels and making it a
+easier to read.
 
-In addition, explicitly check to see if the user passed in FOLL_TOUCH
-somehow, as this appears to have been accidentally excluded.
+wp_can_reuse_anon_folio() now only operates on the whole folio.  Move the
+SetPageAnonExclusive() out into do_wp_page().  No need to do this under
+page lock -- the page table lock is sufficient.
 
-Link: https://lkml.kernel.org/r/971e013dfe20915612ea8b704e801d7aef9a66b6.1696288092.git.lstoakes@gmail.com
-Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Reviewed-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Ian Rogers <irogers@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Namhyung Kim <namhyung@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Richard Cochran <richardcochran@gmail.com>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20231002142949.235104-4-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c      |    5 ++---
- mm/internal.h |    3 +++
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ mm/memory.c |   88 +++++++++++++++++++++++++-------------------------
+ 1 file changed, 45 insertions(+), 43 deletions(-)
 
---- a/mm/gup.c~mm-gup-explicitly-define-and-check-internal-gup-flags-disallow-foll_touch
-+++ a/mm/gup.c
-@@ -2227,12 +2227,11 @@ static bool is_valid_gup_args(struct pag
- 	/*
- 	 * These flags not allowed to be specified externally to the gup
- 	 * interfaces:
--	 * - FOLL_PIN/FOLL_TRIED/FOLL_FAST_ONLY are internal only
-+	 * - FOLL_TOUCH/FOLL_PIN/FOLL_TRIED/FOLL_FAST_ONLY are internal only
- 	 * - FOLL_REMOTE is internal only and used on follow_page()
- 	 * - FOLL_UNLOCKABLE is internal only and used if locked is !NULL
- 	 */
--	if (WARN_ON_ONCE(gup_flags & (FOLL_PIN | FOLL_TRIED | FOLL_UNLOCKABLE |
--				      FOLL_REMOTE | FOLL_FAST_ONLY)))
-+	if (WARN_ON_ONCE(gup_flags & INTERNAL_GUP_FLAGS))
- 		return false;
+--- a/mm/memory.c~memory-move-exclusivity-detection-in-do_wp_page-into-wp_can_reuse_anon_folio
++++ a/mm/memory.c
+@@ -3355,6 +3355,44 @@ static vm_fault_t wp_page_shared(struct
+ 	return ret;
+ }
  
- 	gup_flags |= to_set;
---- a/mm/internal.h~mm-gup-explicitly-define-and-check-internal-gup-flags-disallow-foll_touch
-+++ a/mm/internal.h
-@@ -1017,6 +1017,9 @@ enum {
- 	FOLL_UNLOCKABLE = 1 << 21,
- };
- 
-+#define INTERNAL_GUP_FLAGS (FOLL_TOUCH | FOLL_TRIED | FOLL_REMOTE | FOLL_PIN | \
-+			    FOLL_FAST_ONLY | FOLL_UNLOCKABLE)
++static bool wp_can_reuse_anon_folio(struct folio *folio,
++				    struct vm_area_struct *vma)
++{
++	/*
++	 * We have to verify under folio lock: these early checks are
++	 * just an optimization to avoid locking the folio and freeing
++	 * the swapcache if there is little hope that we can reuse.
++	 *
++	 * KSM doesn't necessarily raise the folio refcount.
++	 */
++	if (folio_test_ksm(folio) || folio_ref_count(folio) > 3)
++		return false;
++	if (!folio_test_lru(folio))
++		/*
++		 * We cannot easily detect+handle references from
++		 * remote LRU caches or references to LRU folios.
++		 */
++		lru_add_drain();
++	if (folio_ref_count(folio) > 1 + folio_test_swapcache(folio))
++		return false;
++	if (!folio_trylock(folio))
++		return false;
++	if (folio_test_swapcache(folio))
++		folio_free_swap(folio);
++	if (folio_test_ksm(folio) || folio_ref_count(folio) != 1) {
++		folio_unlock(folio);
++		return false;
++	}
++	/*
++	 * Ok, we've got the only folio reference from our mapping
++	 * and the folio is locked, it's dark out, and we're wearing
++	 * sunglasses. Hit it.
++	 */
++	folio_move_anon_rmap(folio, vma);
++	folio_unlock(folio);
++	return true;
++}
 +
  /*
-  * Indicates for which pages that are write-protected in the page table,
-  * whether GUP has to trigger unsharing via FAULT_FLAG_UNSHARE such that the
+  * This routine handles present pages, when
+  * * users try to write to a shared page (FAULT_FLAG_WRITE)
+@@ -3441,49 +3479,14 @@ static vm_fault_t do_wp_page(struct vm_f
+ 	/*
+ 	 * Private mapping: create an exclusive anonymous page copy if reuse
+ 	 * is impossible. We might miss VM_WRITE for FOLL_FORCE handling.
++	 *
++	 * If we encounter a page that is marked exclusive, we must reuse
++	 * the page without further checks.
+ 	 */
+-	if (folio && folio_test_anon(folio)) {
+-		/*
+-		 * If the page is exclusive to this process we must reuse the
+-		 * page without further checks.
+-		 */
+-		if (PageAnonExclusive(vmf->page))
+-			goto reuse;
+-
+-		/*
+-		 * We have to verify under folio lock: these early checks are
+-		 * just an optimization to avoid locking the folio and freeing
+-		 * the swapcache if there is little hope that we can reuse.
+-		 *
+-		 * KSM doesn't necessarily raise the folio refcount.
+-		 */
+-		if (folio_test_ksm(folio) || folio_ref_count(folio) > 3)
+-			goto copy;
+-		if (!folio_test_lru(folio))
+-			/*
+-			 * We cannot easily detect+handle references from
+-			 * remote LRU caches or references to LRU folios.
+-			 */
+-			lru_add_drain();
+-		if (folio_ref_count(folio) > 1 + folio_test_swapcache(folio))
+-			goto copy;
+-		if (!folio_trylock(folio))
+-			goto copy;
+-		if (folio_test_swapcache(folio))
+-			folio_free_swap(folio);
+-		if (folio_test_ksm(folio) || folio_ref_count(folio) != 1) {
+-			folio_unlock(folio);
+-			goto copy;
+-		}
+-		/*
+-		 * Ok, we've got the only folio reference from our mapping
+-		 * and the folio is locked, it's dark out, and we're wearing
+-		 * sunglasses. Hit it.
+-		 */
+-		folio_move_anon_rmap(folio, vma);
+-		SetPageAnonExclusive(vmf->page);
+-		folio_unlock(folio);
+-reuse:
++	if (folio && folio_test_anon(folio) &&
++	    (PageAnonExclusive(vmf->page) || wp_can_reuse_anon_folio(folio, vma))) {
++		if (!PageAnonExclusive(vmf->page))
++			SetPageAnonExclusive(vmf->page);
+ 		if (unlikely(unshare)) {
+ 			pte_unmap_unlock(vmf->pte, vmf->ptl);
+ 			return 0;
+@@ -3491,7 +3494,6 @@ reuse:
+ 		wp_page_reuse(vmf);
+ 		return 0;
+ 	}
+-copy:
+ 	/*
+ 	 * Ok, we need to copy. Oh, well..
+ 	 */
 _
 
-Patches currently in -mm which might be from lstoakes@gmail.com are
+Patches currently in -mm which might be from david@redhat.com are
 
 
