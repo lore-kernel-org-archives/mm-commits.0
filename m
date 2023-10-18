@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00CC0CDB483
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1854CDB485
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232858AbjJRVhJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 17:37:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41748 "EHLO
+        id S235225AbjJRVhK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 17:37:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41730 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235225AbjJRVg2 (ORCPT
+        with ESMTP id S231439AbjJRVg2 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:28 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48DCF1BC
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:45 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15219C433CA;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3632DD66
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:46 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE5B1C433C9;
         Wed, 18 Oct 2023 21:35:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697664945;
-        bh=tHlhBBY0Np9HM76944Ojf0AbLzRoDdZLgQKQsiAy2/k=;
+        s=korg; t=1697664946;
+        bh=Hn+nZ+8EEL8BB38X+3ZX/lxtjpcERgdh755wBNlvzI0=;
         h=Date:To:From:Subject:From;
-        b=gnPoBwm6caBtOGeBZoonT7D9w+SB0jr7I8PcLsJ5JxHikrucsPohFcH+aN+lbZHr4
-         crVHw45Vqe06ChvaOyBNqStoKrJwV4DpFGT86iiOlVtnoydUtM1H2qmZrDde3Zo7cm
-         B5pMRsmzanBlAt9LbXFURSkG+IeruhQoqcYXd6wU=
-Date:   Wed, 18 Oct 2023 14:35:44 -0700
+        b=B58D9d/u3rkMveLXTvjyFDJkjQB80VVnoP0kEaDJRylzC654uAHXdXLUEN8PWCGdj
+         NrlDQoXRfJwBprs80bomqQ8souAUCrOYKmk5hBpVfBdhAnrrt2QGocj36icvecn17H
+         mqOlwLp6z8F8cX3sjBt0r9MGmeXRycYUlQH09IDM=
+Date:   Wed, 18 Oct 2023 14:35:45 -0700
 To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         tsbogend@alpha.franken.de, svens@linux.ibm.com,
         richard.henderson@linaro.org, paul.walmsley@sifive.com,
@@ -35,8 +35,8 @@ To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         adilger.kernel@dilger.ca, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] powerpc-implement-arch_xor_unlock_is_negative_byte-on-32-bit.patch removed from -mm tree
-Message-Id: <20231018213545.15219C433CA@smtp.kernel.org>
+Subject: [merged mm-stable] riscv-implement-xor_unlock_is_negative_byte.patch removed from -mm tree
+Message-Id: <20231018213545.EE5B1C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,26 +44,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: powerpc: implement arch_xor_unlock_is_negative_byte on 32-bit
+     Subject: riscv: implement xor_unlock_is_negative_byte
 has been removed from the -mm tree.  Its filename was
-     powerpc-implement-arch_xor_unlock_is_negative_byte-on-32-bit.patch
+     riscv-implement-xor_unlock_is_negative_byte.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: powerpc: implement arch_xor_unlock_is_negative_byte on 32-bit
-Date: Wed, 4 Oct 2023 17:53:11 +0100
+Subject: riscv: implement xor_unlock_is_negative_byte
+Date: Wed, 4 Oct 2023 17:53:12 +0100
 
-Simply remove the ifdef.  The assembly is identical to that in the
-non-optimised case of test_and_clear_bits() on PPC32, and it's not clear
-to me how the PPC32 optimisation works, nor whether it would work for
-arch_xor_unlock_is_negative_byte().  If that optimisation would work,
-someone can implement it later, but this is more efficient than the
-implementation in filemap.c.
+Inspired by the riscv clear_bit_unlock(), this will surely be
+more efficient than the generic one defined in filemap.c.
 
-Link: https://lkml.kernel.org/r/20231004165317.1061855-12-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231004165317.1061855-13-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -86,31 +82,31 @@ Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/bitops.h |    4 ----
- 1 file changed, 4 deletions(-)
+ arch/riscv/include/asm/bitops.h |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
---- a/arch/powerpc/include/asm/bitops.h~powerpc-implement-arch_xor_unlock_is_negative_byte-on-32-bit
-+++ a/arch/powerpc/include/asm/bitops.h
-@@ -233,7 +233,6 @@ static inline int arch_test_and_change_b
- 	return test_and_change_bits(BIT_MASK(nr), addr + BIT_WORD(nr)) != 0;
+--- a/arch/riscv/include/asm/bitops.h~riscv-implement-xor_unlock_is_negative_byte
++++ a/arch/riscv/include/asm/bitops.h
+@@ -191,6 +191,19 @@ static inline void __clear_bit_unlock(
+ 	clear_bit_unlock(nr, addr);
  }
  
--#ifdef CONFIG_PPC64
- static inline bool arch_xor_unlock_is_negative_byte(unsigned long mask,
- 		volatile unsigned long *p)
- {
-@@ -251,11 +250,8 @@ static inline bool arch_xor_unlock_is_ne
- 
- 	return (old & BIT_MASK(7)) != 0;
- }
--
- #define arch_xor_unlock_is_negative_byte arch_xor_unlock_is_negative_byte
- 
--#endif /* CONFIG_PPC64 */
--
- #include <asm-generic/bitops/non-atomic.h>
- 
- static inline void arch___clear_bit_unlock(int nr, volatile unsigned long *addr)
++static inline bool xor_unlock_is_negative_byte(unsigned long mask,
++		volatile unsigned long *addr)
++{
++	unsigned long res;
++	__asm__ __volatile__ (
++		__AMO(xor) ".rl %0, %2, %1"
++		: "=r" (res), "+A" (*addr)
++		: "r" (__NOP(mask))
++		: "memory");
++	return (res & BIT(7)) != 0;
++}
++#define xor_unlock_is_negative_byte xor_unlock_is_negative_byte
++
+ #undef __test_and_op_bit
+ #undef __op_bit
+ #undef __NOP
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
