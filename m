@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 27515CDB47E
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 15:37:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FFDFCDB482
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 15:37:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231958AbjJRPhD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 11:37:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39032 "EHLO
+        id S232390AbjJRPhG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 11:37:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39044 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231582AbjJRPhC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 11:37:02 -0400
+        with ESMTP id S232311AbjJRPhE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 11:37:04 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0306111
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 08:37:00 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CED7C433C8;
-        Wed, 18 Oct 2023 15:37:00 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C8915116
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 08:37:02 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62918C433C9;
+        Wed, 18 Oct 2023 15:37:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697643420;
-        bh=uFVxh0ONFa4JjGMtlmS70vjat97Wt/CPi469aFvu3XU=;
+        s=korg; t=1697643422;
+        bh=qN1knpXG1G51erGodHlX6Z0CHfedJA5liuSY81YoaY0=;
         h=Date:To:From:Subject:From;
-        b=t4+Hpvz/rTnHmGQcK5qI9tddLv0zF+nyT+Jg2OPMjHvPg6F4BPWJXu88j+KpLmrSl
-         y/vJnnB7AWyPWNuugKZ6rd1pnWJUNJ+vBQbSYYw7LhhWfmZMtES+a5JaAFHRMZRSkf
-         V5lnX/EhhC7OX23cgf8/KNrtYFaGR3Cl3qMhEuxw=
-Date:   Wed, 18 Oct 2023 08:36:59 -0700
+        b=i1hOF4cL2awhJ3yObKMikbAt2hXFOWqHAL1HWPnWPHVZq8TTrvPF/yEtLH9e2gScp
+         g+V/PQVdzdICyB/J9m/l/TEfhQXCpp0O9IPx7NTE79sxlTwl9kjgIVRgifrHZkSJUs
+         dRQgfikS1R6PPMaumCQnnGDlBJXv5h9cflOVUKWo=
+Date:   Wed, 18 Oct 2023 08:37:01 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
         willy@infradead.org, vincent.guittot@linaro.org,
         peterz@infradead.org, mingo@redhat.com, juri.lelli@redhat.com,
         david@redhat.com, wangkefeng.wang@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm_types-add-virtual-and-_last_cpupid-into-struct-folio.patch added to mm-unstable branch
-Message-Id: <20231018153700.7CED7C433C8@smtp.kernel.org>
+Subject: + mm-add-folio_last_cpupid.patch added to mm-unstable branch
+Message-Id: <20231018153702.62918C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,12 +39,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm_types: add virtual and _last_cpupid into struct folio
+     Subject: mm: add folio_last_cpupid()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm_types-add-virtual-and-_last_cpupid-into-struct-folio.patch
+     mm-add-folio_last_cpupid.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm_types-add-virtual-and-_last_cpupid-into-struct-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-folio_last_cpupid.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -63,32 +63,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm_types: add virtual and _last_cpupid into struct folio
-Date: Wed, 18 Oct 2023 22:07:48 +0800
+Subject: mm: add folio_last_cpupid()
+Date: Wed, 18 Oct 2023 22:07:49 +0800
 
-Patch series "mm: convert page cpupid functions to folios", v3.
+Add folio_last_cpupid() wrapper, which is required to convert
+page_cpupid_last() to folio vertion later in the series.
 
-The cpupid(or access time) used by numa balancing is stored in flags or
-_last_cpupid(if LAST_CPUPID_NOT_IN_PAGE_FLAGS) of page, this is to convert
-page cpupid to folio cpupid, a new _last_cpupid is added into folio, which
-make us to use folio->_last_cpupid directly, and the page cpupid functions
-are converted to folio ones.
-
-  page_cpupid_last()		-> folio_last_cpupid()
-  xchg_page_access_time()	-> folio_xchg_access_time()
-  page_cpupid_xchg_last()	-> folio_xchg_last_cpupid()
-
-
-This patch (of 19):
-
-If WANT_PAGE_VIRTUAL and LAST_CPUPID_NOT_IN_PAGE_FLAGS defined, the
-'virtual' and '_last_cpupid' are in struct page, and since _last_cpupid is
-used by numa balancing feature, it is better to move it before KMSAN
-metadata from struct page, also add them into struct folio to make us to
-access them from folio directly.
-
-Link: https://lkml.kernel.org/r/20231018140806.2783514-1-wangkefeng.wang@huawei.com
-Link: https://lkml.kernel.org/r/20231018140806.2783514-2-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20231018140806.2783514-3-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Huang Ying <ying.huang@intel.com>
@@ -101,68 +82,23 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |   22 ++++++++++++++++++----
- 1 file changed, 18 insertions(+), 4 deletions(-)
+ include/linux/mm.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/include/linux/mm_types.h~mm_types-add-virtual-and-_last_cpupid-into-struct-folio
-+++ a/include/linux/mm_types.h
-@@ -199,6 +199,10 @@ struct page {
- 					   not kmapped, ie. highmem) */
- #endif /* WANT_PAGE_VIRTUAL */
+--- a/include/linux/mm.h~mm-add-folio_last_cpupid
++++ a/include/linux/mm.h
+@@ -1796,6 +1796,11 @@ static inline void vma_set_access_pid_bi
+ }
+ #endif /* CONFIG_NUMA_BALANCING */
  
-+#ifdef LAST_CPUPID_NOT_IN_PAGE_FLAGS
-+	int _last_cpupid;
-+#endif
++static inline int folio_last_cpupid(struct folio *folio)
++{
++	return page_cpupid_last(&folio->page);
++}
 +
- #ifdef CONFIG_KMSAN
- 	/*
- 	 * KMSAN metadata for this page:
-@@ -210,10 +214,6 @@ struct page {
- 	struct page *kmsan_shadow;
- 	struct page *kmsan_origin;
- #endif
--
--#ifdef LAST_CPUPID_NOT_IN_PAGE_FLAGS
--	int _last_cpupid;
--#endif
- } _struct_page_alignment;
+ #if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
  
  /*
-@@ -272,6 +272,8 @@ typedef struct {
-  * @_refcount: Do not access this member directly.  Use folio_ref_count()
-  *    to find how many references there are to this folio.
-  * @memcg_data: Memory Control Group data.
-+ * @virtual: Virtual address in the kernel direct map.
-+ * @_last_cpupid: IDs of last CPU and last process that accessed the folio.
-  * @_entire_mapcount: Do not use directly, call folio_entire_mapcount().
-  * @_nr_pages_mapped: Do not use directly, call folio_mapcount().
-  * @_pincount: Do not use directly, call folio_maybe_dma_pinned().
-@@ -318,6 +320,12 @@ struct folio {
- #ifdef CONFIG_MEMCG
- 			unsigned long memcg_data;
- #endif
-+#if defined(WANT_PAGE_VIRTUAL)
-+			void *virtual;
-+#endif
-+#ifdef LAST_CPUPID_NOT_IN_PAGE_FLAGS
-+			int _last_cpupid;
-+#endif
- 	/* private: the union with struct page is transitional */
- 		};
- 		struct page page;
-@@ -373,6 +381,12 @@ FOLIO_MATCH(_refcount, _refcount);
- #ifdef CONFIG_MEMCG
- FOLIO_MATCH(memcg_data, memcg_data);
- #endif
-+#if defined(WANT_PAGE_VIRTUAL)
-+FOLIO_MATCH(virtual, virtual);
-+#endif
-+#ifdef LAST_CPUPID_NOT_IN_PAGE_FLAGS
-+FOLIO_MATCH(_last_cpupid, _last_cpupid);
-+#endif
- #undef FOLIO_MATCH
- #define FOLIO_MATCH(pg, fl)						\
- 	static_assert(offsetof(struct folio, fl) ==			\
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
