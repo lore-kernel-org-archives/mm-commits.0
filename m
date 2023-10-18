@@ -2,37 +2,37 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EC32CDB483
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 20:09:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62FE0C46CA1
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 20:09:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229921AbjJRUJl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 16:09:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37970 "EHLO
+        id S229605AbjJRUJq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 16:09:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37990 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229605AbjJRUJl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 16:09:41 -0400
+        with ESMTP id S231354AbjJRUJp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 16:09:45 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3628A4
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 13:09:38 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B8B4C433C9;
-        Wed, 18 Oct 2023 20:09:38 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EB683A4
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 13:09:42 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8292AC433CB;
+        Wed, 18 Oct 2023 20:09:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697659778;
-        bh=rbP/uzFqrJs7XcKmmozNSpbGKZGJRKWZK2KOZw0ZUOk=;
+        s=korg; t=1697659782;
+        bh=tdkI6uGtGv5QD+Kh3TzbqCeAF/CzCQGB8wp6oEqgPzo=;
         h=Date:To:From:Subject:From;
-        b=GR5VM/oGsyzRSSm9qOmIoxk45Lo8qo946S1aDGv+0LiAhz7MGgPtntJvDxH62ZQpt
-         XnQwzs9gwuayp/AnKLfUjdlYqZg2aK7tzi5UX7qKk0/SCox8tR9fxdLlOvDd4R2GYh
-         yKiUIaqFFM5e/vWjDtqqqKojjL1dCMT3c2N7Ps+Q=
-Date:   Wed, 18 Oct 2023 13:09:37 -0700
+        b=O0kzbIWIUzk2HIAJRD/DST5qsf64QSOIiANlDeBZ9jT3Mu1gsrNc5ELAaPa9+dShv
+         5WoMWkTPSF+yA5I6wwLlzKBMiSrVO+q3oSy+LkTFWhNtlGqaYyILfVmA36A6Z3xbHh
+         9cJqoS0w3cxGuc2OlfYXMT2gyEKFdXrlTj8GyLe0=
+Date:   Wed, 18 Oct 2023 13:09:41 -0700
 To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
         vitaly.wool@konsulko.com, sjenning@redhat.com, shuah@kernel.org,
-        shakeelb@google.com, roman.gushchin@linux.dev,
+        shakeelb@google.com, roman.gushchin@linux.dev, nphamcs@gmail.com,
         muchun.song@linux.dev, mhocko@kernel.org, hannes@cmpxchg.org,
-        ddstreet@ieee.org, cerasuolodomenico@gmail.com, nphamcs@gmail.com,
+        ddstreet@ieee.org, cerasuolodomenico@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-list_lru-allow-external-numa-node-and-cgroup-tracking.patch added to mm-unstable branch
-Message-Id: <20231018200938.4B8B4C433C9@smtp.kernel.org>
+Subject: + selftests-cgroup-update-per-memcg-zswap-writeback-selftest.patch added to mm-unstable branch
+Message-Id: <20231018200942.8292AC433CB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,12 +40,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: list_lru: allow external numa node and cgroup tracking
+     Subject: selftests: cgroup: update per-memcg zswap writeback selftest
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-list_lru-allow-external-numa-node-and-cgroup-tracking.patch
+     selftests-cgroup-update-per-memcg-zswap-writeback-selftest.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-list_lru-allow-external-numa-node-and-cgroup-tracking.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-cgroup-update-per-memcg-zswap-writeback-selftest.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -63,40 +63,18 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nhat Pham <nphamcs@gmail.com>
-Subject: mm: list_lru: allow external numa node and cgroup tracking
-Date: Tue, 17 Oct 2023 16:21:48 -0700
+From: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
+Subject: selftests: cgroup: update per-memcg zswap writeback selftest
+Date: Tue, 17 Oct 2023 16:21:51 -0700
 
-Patch series "workload-specific and memory pressure-driven zswap
-writeback", v3.
+The memcg-zswap self test is updated to adjust to the behavior change
+implemented by commit 87730b165089 ("zswap: make shrinking memcg-aware"),
+where zswap performs writeback for specific memcg.
 
-This patch series solves these issues by separating the global zswap LRU
-into per-memcg and per-NUMA LRUs, and performs workload-specific (i.e
-memcg- and NUMA-aware) zswap writeback under memory pressure.  The new
-shrinker does not have any parameter that must be tuned by the user, and
-can be opted in or out on a per-memcg basis.
-
-As a proof of concept, we ran the following synthetic benchmark: build the
-linux kernel in a memory-limited cgroup, and allocate some cold data in
-tmpfs to see if the shrinker could write them out and improved the overall
-performance.  Depending on the amount of cold data generated, we observe
-from 14% to 35% reduction in kernel CPU time used in the kernel builds.
-
-
-This patch (of 5):
-
-The interface of list_lru is based on the assumption that objects are
-allocated on the correct node/memcg, with this change it is introduced the
-possibility to explicitly specify numa node and memcgroup when adding and
-removing objects.  This is so that users of list_lru can track node/memcg
-of the items outside of the list_lru, like in zswap, where the allocations
-can be made by kswapd for data that's charged to a different cgroup.
-
-Link: https://lkml.kernel.org/r/20231017232152.2605440-1-nphamcs@gmail.com
-Link: https://lkml.kernel.org/r/20231017232152.2605440-2-nphamcs@gmail.com
+Link: https://lkml.kernel.org/r/20231017232152.2605440-5-nphamcs@gmail.com
+Signed-off-by: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
 Signed-off-by: Nhat Pham <nphamcs@gmail.com>
 Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
@@ -109,166 +87,122 @@ Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list_lru.h |   38 ++++++++++++++++++++++++++++++++
- mm/list_lru.c            |   43 ++++++++++++++++++++++++++++++++-----
- 2 files changed, 76 insertions(+), 5 deletions(-)
+ tools/testing/selftests/cgroup/test_zswap.c |   74 ++++++++++++------
+ 1 file changed, 50 insertions(+), 24 deletions(-)
 
---- a/include/linux/list_lru.h~mm-list_lru-allow-external-numa-node-and-cgroup-tracking
-+++ a/include/linux/list_lru.h
-@@ -90,6 +90,24 @@ void memcg_reparent_list_lrus(struct mem
- bool list_lru_add(struct list_lru *lru, struct list_head *item);
- 
- /**
-+ * __list_lru_add: add an element to a specific sublist.
-+ * @list_lru: the lru pointer
-+ * @item: the item to be added.
-+ * @memcg: the cgroup of the sublist to add the item to.
-+ * @nid: the node id of the sublist to add the item to.
-+ *
-+ * This function is similar to list_lru_add(), but it allows the caller to
-+ * specify the sublist to which the item should be added. This can be useful
-+ * when the list_head node is not necessarily in the same cgroup and NUMA node
-+ * as the data it represents, such as zswap, where the list_head node could be
-+ * from kswapd and the data from a different cgroup altogether.
-+ *
-+ * Return value: true if the list was updated, false otherwise
-+ */
-+bool __list_lru_add(struct list_lru *lru, struct list_head *item, int nid,
-+		    struct mem_cgroup *memcg);
-+
-+/**
-  * list_lru_del: delete an element to the lru list
-  * @list_lru: the lru pointer
-  * @item: the item to be deleted.
-@@ -103,6 +121,18 @@ bool list_lru_add(struct list_lru *lru,
- bool list_lru_del(struct list_lru *lru, struct list_head *item);
- 
- /**
-+ * __list_lru_del: delete an element from a specific sublist.
-+ * @list_lru: the lru pointer
-+ * @item: the item to be deleted.
-+ * @memcg: the cgroup of the sublist to delete the item from.
-+ * @nid: the node id of the sublist to delete the item from.
-+ *
-+ * Return value: true if the list was updated, false otherwise.
-+ */
-+bool __list_lru_del(struct list_lru *lru, struct list_head *item, int nid,
-+		    struct mem_cgroup *memcg);
-+
-+/**
-  * list_lru_count_one: return the number of objects currently held by @lru
-  * @lru: the lru pointer.
-  * @nid: the node id to count from.
-@@ -136,6 +166,14 @@ static inline unsigned long list_lru_cou
- void list_lru_isolate(struct list_lru_one *list, struct list_head *item);
- void list_lru_isolate_move(struct list_lru_one *list, struct list_head *item,
- 			   struct list_head *head);
-+/*
-+ * list_lru_putback: undo list_lru_isolate.
-+ *
-+ * Since we might have dropped the LRU lock in between, recompute list_lru_one
-+ * from the node's id and memcg.
-+ */
-+void list_lru_putback(struct list_lru *lru, struct list_head *item, int nid,
-+		      struct mem_cgroup *memcg);
- 
- typedef enum lru_status (*list_lru_walk_cb)(struct list_head *item,
- 		struct list_lru_one *list, spinlock_t *lock, void *cb_arg);
---- a/mm/list_lru.c~mm-list_lru-allow-external-numa-node-and-cgroup-tracking
-+++ a/mm/list_lru.c
-@@ -119,13 +119,22 @@ list_lru_from_kmem(struct list_lru *lru,
- bool list_lru_add(struct list_lru *lru, struct list_head *item)
- {
- 	int nid = page_to_nid(virt_to_page(item));
-+	struct mem_cgroup *memcg = list_lru_memcg_aware(lru) ?
-+		mem_cgroup_from_slab_obj(item) : NULL;
-+
-+	return __list_lru_add(lru, item, nid, memcg);
-+}
-+EXPORT_SYMBOL_GPL(list_lru_add);
-+
-+bool __list_lru_add(struct list_lru *lru, struct list_head *item, int nid,
-+		    struct mem_cgroup *memcg)
-+{
- 	struct list_lru_node *nlru = &lru->node[nid];
--	struct mem_cgroup *memcg;
- 	struct list_lru_one *l;
- 
- 	spin_lock(&nlru->lock);
- 	if (list_empty(item)) {
--		l = list_lru_from_kmem(lru, nid, item, &memcg);
-+		l = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(memcg));
- 		list_add_tail(item, &l->list);
- 		/* Set shrinker bit if the first element was added */
- 		if (!l->nr_items++)
-@@ -138,17 +147,27 @@ bool list_lru_add(struct list_lru *lru,
- 	spin_unlock(&nlru->lock);
- 	return false;
+--- a/tools/testing/selftests/cgroup/test_zswap.c~selftests-cgroup-update-per-memcg-zswap-writeback-selftest
++++ a/tools/testing/selftests/cgroup/test_zswap.c
+@@ -50,9 +50,9 @@ static int get_zswap_stored_pages(size_t
+ 	return read_int("/sys/kernel/debug/zswap/stored_pages", value);
  }
--EXPORT_SYMBOL_GPL(list_lru_add);
-+EXPORT_SYMBOL_GPL(__list_lru_add);
  
- bool list_lru_del(struct list_lru *lru, struct list_head *item)
+-static int get_zswap_written_back_pages(size_t *value)
++static int get_cg_wb_count(const char *cg)
  {
- 	int nid = page_to_nid(virt_to_page(item));
-+	struct mem_cgroup *memcg = list_lru_memcg_aware(lru) ?
-+		mem_cgroup_from_slab_obj(item) : NULL;
-+
-+	return __list_lru_del(lru, item, nid, memcg);
-+}
-+EXPORT_SYMBOL_GPL(list_lru_del);
-+
-+bool __list_lru_del(struct list_lru *lru, struct list_head *item, int nid,
-+		    struct mem_cgroup *memcg)
-+{
- 	struct list_lru_node *nlru = &lru->node[nid];
- 	struct list_lru_one *l;
- 
- 	spin_lock(&nlru->lock);
- 	if (!list_empty(item)) {
--		l = list_lru_from_kmem(lru, nid, item, NULL);
-+		l = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(memcg));
- 		list_del_init(item);
- 		l->nr_items--;
- 		nlru->nr_items--;
-@@ -158,7 +177,7 @@ bool list_lru_del(struct list_lru *lru,
- 	spin_unlock(&nlru->lock);
- 	return false;
+-	return read_int("/sys/kernel/debug/zswap/written_back_pages", value);
++	return cg_read_key_long(cg, "memory.stat", "zswap_wb");
  }
--EXPORT_SYMBOL_GPL(list_lru_del);
-+EXPORT_SYMBOL_GPL(__list_lru_del);
  
- void list_lru_isolate(struct list_lru_one *list, struct list_head *item)
- {
-@@ -175,6 +194,20 @@ void list_lru_isolate_move(struct list_l
+ static int allocate_bytes(const char *cgroup, void *arg)
+@@ -68,45 +68,71 @@ static int allocate_bytes(const char *cg
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(list_lru_isolate_move);
  
-+void list_lru_putback(struct list_lru *lru, struct list_head *item, int nid,
-+		      struct mem_cgroup *memcg)
++static char *setup_test_group_1M(const char *root, const char *name)
 +{
-+	struct list_lru_one *list =
-+		list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(memcg));
++	char *group_name = cg_name(root, name);
 +
-+	if (list_empty(item)) {
-+		list_add_tail(item, &list->list);
-+		if (!list->nr_items++)
-+			set_shrinker_bit(memcg, nid, lru_shrinker_id(lru));
++	if (!group_name)
++		return NULL;
++	if (cg_create(group_name))
++		goto fail;
++	if (cg_write(group_name, "memory.max", "1M")) {
++		cg_destroy(group_name);
++		goto fail;
 +	}
++	return group_name;
++fail:
++	free(group_name);
++	return NULL;
 +}
-+EXPORT_SYMBOL_GPL(list_lru_putback);
 +
- unsigned long list_lru_count_one(struct list_lru *lru,
- 				 int nid, struct mem_cgroup *memcg)
+ /*
+  * When trying to store a memcg page in zswap, if the memcg hits its memory
+- * limit in zswap, writeback should not be triggered.
+- *
+- * This was fixed with commit 0bdf0efa180a("zswap: do not shrink if cgroup may
+- * not zswap"). Needs to be revised when a per memcg writeback mechanism is
+- * implemented.
++ * limit in zswap, writeback should affect only the zswapped pages of that
++ * memcg.
+  */
+ static int test_no_invasive_cgroup_shrink(const char *root)
  {
+-	size_t written_back_before, written_back_after;
+ 	int ret = KSFT_FAIL;
+-	char *test_group;
++	size_t control_allocation_size = MB(10);
++	char *control_allocation, *wb_group = NULL, *control_group = NULL;
+ 
+ 	/* Set up */
+-	test_group = cg_name(root, "no_shrink_test");
+-	if (!test_group)
++	wb_group = setup_test_group_1M(root, "per_memcg_wb_test1");
++	if (!wb_group)
++		return KSFT_FAIL;
++	if (cg_write(wb_group, "memory.zswap.max", "10K"))
+ 		goto out;
+-	if (cg_create(test_group))
++	control_group = setup_test_group_1M(root, "per_memcg_wb_test2");
++	if (!control_group)
+ 		goto out;
+-	if (cg_write(test_group, "memory.max", "1M"))
+-		goto out;
+-	if (cg_write(test_group, "memory.zswap.max", "10K"))
++
++	/* Push some test_group2 memory into zswap */
++	if (cg_enter_current(control_group))
+ 		goto out;
+-	if (get_zswap_written_back_pages(&written_back_before))
++	control_allocation = malloc(control_allocation_size);
++	for (int i = 0; i < control_allocation_size; i += 4095)
++		control_allocation[i] = 'a';
++	if (cg_read_key_long(control_group, "memory.stat", "zswapped") < 1)
+ 		goto out;
+ 
+-	/* Allocate 10x memory.max to push memory into zswap */
+-	if (cg_run(test_group, allocate_bytes, (void *)MB(10)))
++	/* Allocate 10x memory.max to push wb_group memory into zswap and trigger wb */
++	if (cg_run(wb_group, allocate_bytes, (void *)MB(10)))
+ 		goto out;
+ 
+-	/* Verify that no writeback happened because of the memcg allocation */
+-	if (get_zswap_written_back_pages(&written_back_after))
+-		goto out;
+-	if (written_back_after == written_back_before)
++	/* Verify that only zswapped memory from gwb_group has been written back */
++	if (get_cg_wb_count(wb_group) > 0 && get_cg_wb_count(control_group) == 0)
+ 		ret = KSFT_PASS;
+ out:
+-	cg_destroy(test_group);
+-	free(test_group);
++	cg_enter_current(root);
++	if (control_group) {
++		cg_destroy(control_group);
++		free(control_group);
++	}
++	cg_destroy(wb_group);
++	free(wb_group);
++	if (control_allocation)
++		free(control_allocation);
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from nphamcs@gmail.com are
+Patches currently in -mm which might be from cerasuolodomenico@gmail.com are
 
-mm-list_lru-allow-external-numa-node-and-cgroup-tracking.patch
-zswap-shrinks-zswap-pool-based-on-memory-pressure.patch
-memcontrol-add-helpers-for-hugetlb-memcg-accounting.patch
-memcontrol-only-transfer-the-memcg-data-for-migration.patch
-hugetlb-memcg-account-hugetlb-backed-memory-in-memory-controller.patch
-selftests-add-a-selftest-to-verify-hugetlb-usage-in-memcg.patch
+zswap-make-shrinking-memcg-aware.patch
+mm-memcg-add-per-memcg-zswap-writeback-stat.patch
+selftests-cgroup-update-per-memcg-zswap-writeback-selftest.patch
 
