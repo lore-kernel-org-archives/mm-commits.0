@@ -2,36 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 180D9CDB487
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4108BCDB485
 	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 19:13:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231492AbjJRTNY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 15:13:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53712 "EHLO
+        id S231458AbjJRTN0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 15:13:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53696 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231390AbjJRTNV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 15:13:21 -0400
+        with ESMTP id S231450AbjJRTNW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 15:13:22 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDDCE126
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 12:13:18 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B1D4C433C8;
-        Wed, 18 Oct 2023 19:13:18 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 81BFD119;
+        Wed, 18 Oct 2023 12:13:20 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46E80C433CD;
+        Wed, 18 Oct 2023 19:13:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697656398;
-        bh=zQ16N2EYf07CLWGmzzUPXhI2x2RI+ScDmfwEJrcF6TE=;
+        s=korg; t=1697656400;
+        bh=4c3TEHANLYyMJlSMjF1ER0bH+v65lmFoaKWNmKj3z0Q=;
         h=Date:To:From:Subject:From;
-        b=WJmbjMI/21BzV2EAXQGoCHdxjV2+cwLaMtXnuxFBFX4QrSzZ3xaJiqL090yeiApNQ
-         b7wQTN8vmjPK12qOEOs3DoUVT1/3vrgX52IZslqw+Edk0Xcq/+nlh5iAInQp1GlQMO
-         9eS88sak9lr/gMPMbgBP0VG4b8liX4LmipAwAOSM=
-Date:   Wed, 18 Oct 2023 12:13:17 -0700
-To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
-        ryabinin.a.a@gmail.com, matthias.bgg@gmail.com,
-        keescook@chromium.org, haibo.li@mediatek.com, glider@google.com,
-        dvyukov@google.com, angelogioacchino.delregno@collabora.com,
-        andreyknvl@gmail.com, arnd@arndb.de, akpm@linux-foundation.org
+        b=GAnp5zUjLhYLXUE7vJgeTtSLfUNBaOSS3sWP5qCQ0jiPBBJntqnjZRFhN7ZOUB6a4
+         r9P4qPrC0Z96nSBPHS2vfL0DHBRDrzSv6hLqcRkHPF7p1lqZviWievC9nrW24wrafx
+         RGzgMkOwULFA+juy4mFE80LF35GOt7sNU2A4R2do=
+Date:   Wed, 18 Oct 2023 12:13:19 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org, sj@kernel.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] kasan-print-the-original-fault-addr-when-access-invalid-shadow-fix.patch removed from -mm tree
-Message-Id: <20231018191318.6B1D4C433C8@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-sysfs-check-damos-regions-update-progress-from-before_terminate.patch removed from -mm tree
+Message-Id: <20231018191320.46E80C433CD@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,90 +36,74 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kasan: disable kasan_non_canonical_hook() for HW tags
+     Subject: mm/damon/sysfs: check DAMOS regions update progress from before_terminate()
 has been removed from the -mm tree.  Its filename was
-     kasan-print-the-original-fault-addr-when-access-invalid-shadow-fix.patch
+     mm-damon-sysfs-check-damos-regions-update-progress-from-before_terminate.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: kasan: disable kasan_non_canonical_hook() for HW tags
-Date: Mon, 16 Oct 2023 22:08:38 +0200
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs: check DAMOS regions update progress from before_terminate()
+Date: Sat, 7 Oct 2023 20:04:32 +0000
 
-On arm64, building with CONFIG_KASAN_HW_TAGS now causes a compile-time
-error:
+DAMON_SYSFS can receive DAMOS tried regions update request while kdamond
+is already out of the main loop and before_terminate callback
+(damon_sysfs_before_terminate() in this case) is not yet called.  And
+damon_sysfs_handle_cmd() can further be finished before the callback is
+invoked.  Then, damon_sysfs_before_terminate() unlocks damon_sysfs_lock,
+which is not locked by anyone.  This happens because the callback function
+assumes damon_sysfs_cmd_request_callback() should be called before it. 
+Check if the assumption was true before doing the unlock, to avoid this
+problem.
 
-mm/kasan/report.c: In function 'kasan_non_canonical_hook':
-mm/kasan/report.c:637:20: error: 'KASAN_SHADOW_OFFSET' undeclared (first use in this function)
-  637 |         if (addr < KASAN_SHADOW_OFFSET)
-      |                    ^~~~~~~~~~~~~~~~~~~
-mm/kasan/report.c:637:20: note: each undeclared identifier is reported only once for each function it appears in
-mm/kasan/report.c:640:77: error: expected expression before ';' token
-  640 |         orig_addr = (addr - KASAN_SHADOW_OFFSET) << KASAN_SHADOW_SCALE_SHIFT;
-
-This was caused by removing the dependency on CONFIG_KASAN_INLINE that
-used to prevent this from happening. Use the more specific dependency
-on KASAN_SW_TAGS || KASAN_GENERIC to only ignore the function for hwasan
-mode.
-
-Link: https://lkml.kernel.org/r/20231016200925.984439-1-arnd@kernel.org
-Fixes: 12ec6a919b0f ("kasan: print the original fault addr when access invalid shadow")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Haibo Li <haibo.li@mediatek.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Link: https://lkml.kernel.org/r/20231007200432.3110-1-sj@kernel.org
+Fixes: f1d13cacabe1 ("mm/damon/sysfs: implement DAMOS tried regions update command")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>	[6.2.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |    6 +++---
- mm/kasan/report.c     |    4 +++-
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ mm/damon/sysfs.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/include/linux/kasan.h~kasan-print-the-original-fault-addr-when-access-invalid-shadow-fix
-+++ a/include/linux/kasan.h
-@@ -466,10 +466,10 @@ static inline void kasan_free_module_sha
- 
- #endif /* (CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS) && !CONFIG_KASAN_VMALLOC */
- 
--#ifdef CONFIG_KASAN
-+#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- void kasan_non_canonical_hook(unsigned long addr);
--#else /* CONFIG_KASAN */
-+#else /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
- static inline void kasan_non_canonical_hook(unsigned long addr) { }
--#endif /* CONFIG_KASAN */
-+#endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
- 
- #endif /* LINUX_KASAN_H */
---- a/mm/kasan/report.c~kasan-print-the-original-fault-addr-when-access-invalid-shadow-fix
-+++ a/mm/kasan/report.c
-@@ -621,8 +621,9 @@ void kasan_report_async(void)
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-check-damos-regions-update-progress-from-before_terminate
++++ a/mm/damon/sysfs.c
+@@ -1208,6 +1208,8 @@ static int damon_sysfs_set_targets(struc
+ 	return 0;
  }
- #endif /* CONFIG_KASAN_HW_TAGS */
  
-+#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- /*
-- * With CONFIG_KASAN, accesses to bogus pointers (outside the high
-+ * With CONFIG_KASAN_INLINE, accesses to bogus pointers (outside the high
-  * canonical half of the address space) cause out-of-bounds shadow memory reads
-  * before the actual access. For addresses in the low canonical half of the
-  * address space, as well as most non-canonical addresses, that out-of-bounds
-@@ -658,3 +659,4 @@ void kasan_non_canonical_hook(unsigned l
- 	pr_alert("KASAN: %s in range [0x%016lx-0x%016lx]\n", bug_type,
- 		 orig_addr, orig_addr + KASAN_GRANULE_SIZE - 1);
- }
-+#endif
++static bool damon_sysfs_schemes_regions_updating;
++
+ static void damon_sysfs_before_terminate(struct damon_ctx *ctx)
+ {
+ 	struct damon_target *t, *next;
+@@ -1219,8 +1221,10 @@ static void damon_sysfs_before_terminate
+ 	cmd = damon_sysfs_cmd_request.cmd;
+ 	if (kdamond && ctx == kdamond->damon_ctx &&
+ 			(cmd == DAMON_SYSFS_CMD_UPDATE_SCHEMES_TRIED_REGIONS ||
+-			 cmd == DAMON_SYSFS_CMD_UPDATE_SCHEMES_TRIED_BYTES)) {
++			 cmd == DAMON_SYSFS_CMD_UPDATE_SCHEMES_TRIED_BYTES) &&
++			damon_sysfs_schemes_regions_updating) {
+ 		damon_sysfs_schemes_update_regions_stop(ctx);
++		damon_sysfs_schemes_regions_updating = false;
+ 		mutex_unlock(&damon_sysfs_lock);
+ 	}
+ 
+@@ -1340,7 +1344,6 @@ static int damon_sysfs_commit_input(stru
+ static int damon_sysfs_cmd_request_callback(struct damon_ctx *c)
+ {
+ 	struct damon_sysfs_kdamond *kdamond;
+-	static bool damon_sysfs_schemes_regions_updating;
+ 	bool total_bytes_only = false;
+ 	int err = 0;
+ 
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from sj@kernel.org are
 
-fs-proc-task_mmu-implement-ioctl-to-get-and-optionally-clear-info-about-ptes-fix-3.patch
+mm-damon-sysfs-schemes-do-not-update-tried-regions-more-than-one-damon-snapshot.patch
+mm-damon-sysfs-avoid-empty-scheme-tried-regions-for-large-apply-interval.patch
+docs-admin-guide-mm-damon-usage-update-for-tried-regions-update-time-interval.patch
 
