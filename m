@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28FA0CDB47E
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 19:13:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB90DCDB484
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 19:13:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229897AbjJRTNT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 15:13:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53712 "EHLO
+        id S231400AbjJRTNU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 15:13:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53862 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231451AbjJRTNQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 15:13:16 -0400
+        with ESMTP id S231313AbjJRTNT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 15:13:19 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF228133;
-        Wed, 18 Oct 2023 12:13:14 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71CC6C433C9;
-        Wed, 18 Oct 2023 19:13:14 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C714F11B;
+        Wed, 18 Oct 2023 12:13:16 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62797C433C9;
+        Wed, 18 Oct 2023 19:13:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697656394;
-        bh=CbiZ+XPJ2doFmIVjBORRbaj8pINn0bHMqxr8Erk7Bow=;
+        s=korg; t=1697656396;
+        bh=+bssZdFnX7hk/lWIKSDE1hUGCaPXNDXoLxKH0mpXYQc=;
         h=Date:To:From:Subject:From;
-        b=vvh7Sk4SjBqWiizMga6527CxbYPsawh0Dt83e3N1+7TEGmQfIeNRchgF+bKbc3Cw1
-         +vAmBoo/Zl4RjeSRU1Mjhm0wIDUOlTaTrOR3ldkTQAiCOH3fNSic7UQiwrKqoJWoW2
-         54JbL+L8Xhh0gQKiF5nJKuKAqT0hRwrrUadkU5aQ=
-Date:   Wed, 18 Oct 2023 12:13:13 -0700
+        b=SW80Y7aknRCBcTfVaqMgTBFXiKtjd+Dka+j8uqwQwoDoF/lTnR1utKs8Av2GHlXed
+         5J24VLHL+cZIYsXkJZNF4YXy5/usoBlAJLO1lQvIegBJArtHNSNt20gDGnyz06CiuT
+         GVibrciwKEf+LlRw6/w/ERBL/VkW1d2R/4PGRRrg=
+Date:   Wed, 18 Oct 2023 12:13:15 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         stable@vger.kernel.org, muchun.song@linux.dev,
         mike.kravetz@oracle.com, riel@surriel.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] hugetlbfs-clear-resv_map-pointer-if-mmap-fails.patch removed from -mm tree
-Message-Id: <20231018191314.71CC6C433C9@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] hugetlbfs-close-race-between-madv_dontneed-and-page-fault.patch removed from -mm tree
+Message-Id: <20231018191316.62797C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,19 +38,17 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: hugetlbfs: clear resv_map pointer if mmap fails
+     Subject: hugetlbfs: close race between MADV_DONTNEED and page fault
 has been removed from the -mm tree.  Its filename was
-     hugetlbfs-clear-resv_map-pointer-if-mmap-fails.patch
+     hugetlbfs-close-race-between-madv_dontneed-and-page-fault.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Rik van Riel <riel@surriel.com>
-Subject: hugetlbfs: clear resv_map pointer if mmap fails
-Date: Thu, 5 Oct 2023 23:59:06 -0400
-
-Patch series "hugetlbfs: close race between MADV_DONTNEED and page fault", v7.
+Subject: hugetlbfs: close race between MADV_DONTNEED and page fault
+Date: Thu, 5 Oct 2023 23:59:08 -0400
 
 Malloc libraries, like jemalloc and tcalloc, take decisions on when to
 call madvise independently from the code in the main application.
@@ -77,57 +75,198 @@ race condition:
                                        killed with SIGBUS
        free page
 
-Fix that race by extending the hugetlb_vma_lock locking scheme to also
-cover private hugetlb mappings (with resv_map), and pulling the locking
-from __unmap_hugepage_final_range into helper functions called from
-zap_page_range_single.  This ensures page faults stay locked out of the
-MADV_DONTNEED VMA until the huge pages have actually been freed.
+Fix that race by pulling the locking from __unmap_hugepage_final_range
+into helper functions called from zap_page_range_single.  This ensures
+page faults stay locked out of the MADV_DONTNEED VMA until the huge pages
+have actually been freed.
 
-
-This patch (of 3):
-
-Hugetlbfs leaves a dangling pointer in the VMA if mmap fails.  This has
-not been a problem so far, but other code in this patch series tries to
-follow that pointer.
-
-Link: https://lkml.kernel.org/r/20231006040020.3677377-1-riel@surriel.com
-Link: https://lkml.kernel.org/r/20231006040020.3677377-2-riel@surriel.com
+Link: https://lkml.kernel.org/r/20231006040020.3677377-4-riel@surriel.com
 Fixes: 04ada095dcfc ("hugetlb: don't delete vma_lock in hugetlb MADV_DONTNEED processing")
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Rik van Riel <riel@surriel.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/linux/hugetlb.h |   35 +++++++++++++++++++++++++++++++++--
+ mm/hugetlb.c            |   34 ++++++++++++++++++++++------------
+ mm/memory.c             |   13 ++++++++-----
+ 3 files changed, 63 insertions(+), 19 deletions(-)
 
---- a/mm/hugetlb.c~hugetlbfs-clear-resv_map-pointer-if-mmap-fails
+--- a/include/linux/hugetlb.h~hugetlbfs-close-race-between-madv_dontneed-and-page-fault
++++ a/include/linux/hugetlb.h
+@@ -139,7 +139,7 @@ struct page *hugetlb_follow_page_mask(st
+ void unmap_hugepage_range(struct vm_area_struct *,
+ 			  unsigned long, unsigned long, struct page *,
+ 			  zap_flags_t);
+-void __unmap_hugepage_range_final(struct mmu_gather *tlb,
++void __unmap_hugepage_range(struct mmu_gather *tlb,
+ 			  struct vm_area_struct *vma,
+ 			  unsigned long start, unsigned long end,
+ 			  struct page *ref_page, zap_flags_t zap_flags);
+@@ -246,6 +246,25 @@ int huge_pmd_unshare(struct mm_struct *m
+ void adjust_range_if_pmd_sharing_possible(struct vm_area_struct *vma,
+ 				unsigned long *start, unsigned long *end);
+ 
++extern void __hugetlb_zap_begin(struct vm_area_struct *vma,
++				unsigned long *begin, unsigned long *end);
++extern void __hugetlb_zap_end(struct vm_area_struct *vma,
++			      struct zap_details *details);
++
++static inline void hugetlb_zap_begin(struct vm_area_struct *vma,
++				     unsigned long *start, unsigned long *end)
++{
++	if (is_vm_hugetlb_page(vma))
++		__hugetlb_zap_begin(vma, start, end);
++}
++
++static inline void hugetlb_zap_end(struct vm_area_struct *vma,
++				   struct zap_details *details)
++{
++	if (is_vm_hugetlb_page(vma))
++		__hugetlb_zap_end(vma, details);
++}
++
+ void hugetlb_vma_lock_read(struct vm_area_struct *vma);
+ void hugetlb_vma_unlock_read(struct vm_area_struct *vma);
+ void hugetlb_vma_lock_write(struct vm_area_struct *vma);
+@@ -297,6 +316,18 @@ static inline void adjust_range_if_pmd_s
+ {
+ }
+ 
++static inline void hugetlb_zap_begin(
++				struct vm_area_struct *vma,
++				unsigned long *start, unsigned long *end)
++{
++}
++
++static inline void hugetlb_zap_end(
++				struct vm_area_struct *vma,
++				struct zap_details *details)
++{
++}
++
+ static inline struct page *hugetlb_follow_page_mask(
+     struct vm_area_struct *vma, unsigned long address, unsigned int flags,
+     unsigned int *page_mask)
+@@ -442,7 +473,7 @@ static inline long hugetlb_change_protec
+ 	return 0;
+ }
+ 
+-static inline void __unmap_hugepage_range_final(struct mmu_gather *tlb,
++static inline void __unmap_hugepage_range(struct mmu_gather *tlb,
+ 			struct vm_area_struct *vma, unsigned long start,
+ 			unsigned long end, struct page *ref_page,
+ 			zap_flags_t zap_flags)
+--- a/mm/hugetlb.c~hugetlbfs-close-race-between-madv_dontneed-and-page-fault
 +++ a/mm/hugetlb.c
-@@ -1138,8 +1138,7 @@ static void set_vma_resv_map(struct vm_a
- 	VM_BUG_ON_VMA(!is_vm_hugetlb_page(vma), vma);
- 	VM_BUG_ON_VMA(vma->vm_flags & VM_MAYSHARE, vma);
- 
--	set_vma_private_data(vma, (get_vma_private_data(vma) &
--				HPAGE_RESV_MASK) | (unsigned long)map);
-+	set_vma_private_data(vma, (unsigned long)map);
+@@ -5306,9 +5306,9 @@ int move_hugetlb_page_tables(struct vm_a
+ 	return len + old_addr - old_end;
  }
  
- static void set_vma_resv_flags(struct vm_area_struct *vma, unsigned long flags)
-@@ -6811,8 +6810,10 @@ out_err:
+-static void __unmap_hugepage_range(struct mmu_gather *tlb, struct vm_area_struct *vma,
+-				   unsigned long start, unsigned long end,
+-				   struct page *ref_page, zap_flags_t zap_flags)
++void __unmap_hugepage_range(struct mmu_gather *tlb, struct vm_area_struct *vma,
++			    unsigned long start, unsigned long end,
++			    struct page *ref_page, zap_flags_t zap_flags)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	unsigned long address;
+@@ -5437,16 +5437,25 @@ static void __unmap_hugepage_range(struc
+ 		tlb_flush_mmu_tlbonly(tlb);
+ }
+ 
+-void __unmap_hugepage_range_final(struct mmu_gather *tlb,
+-			  struct vm_area_struct *vma, unsigned long start,
+-			  unsigned long end, struct page *ref_page,
+-			  zap_flags_t zap_flags)
++void __hugetlb_zap_begin(struct vm_area_struct *vma,
++			 unsigned long *start, unsigned long *end)
+ {
++	if (!vma->vm_file)	/* hugetlbfs_file_mmap error */
++		return;
++
++	adjust_range_if_pmd_sharing_possible(vma, start, end);
+ 	hugetlb_vma_lock_write(vma);
+-	i_mmap_lock_write(vma->vm_file->f_mapping);
++	if (vma->vm_file)
++		i_mmap_lock_write(vma->vm_file->f_mapping);
++}
++
++void __hugetlb_zap_end(struct vm_area_struct *vma,
++		       struct zap_details *details)
++{
++	zap_flags_t zap_flags = details ? details->zap_flags : 0;
+ 
+-	/* mmu notification performed in caller */
+-	__unmap_hugepage_range(tlb, vma, start, end, ref_page, zap_flags);
++	if (!vma->vm_file)	/* hugetlbfs_file_mmap error */
++		return;
+ 
+ 	if (zap_flags & ZAP_FLAG_UNMAP) {	/* final unmap */
+ 		/*
+@@ -5459,11 +5468,12 @@ void __unmap_hugepage_range_final(struct
+ 		 * someone else.
  		 */
- 		if (chg >= 0 && add < 0)
- 			region_abort(resv_map, from, to, regions_needed);
--	if (vma && is_vma_resv_set(vma, HPAGE_RESV_OWNER))
-+	if (vma && is_vma_resv_set(vma, HPAGE_RESV_OWNER)) {
- 		kref_put(&resv_map->refs, resv_map_release);
-+		set_vma_resv_map(vma, NULL);
-+	}
- 	return false;
+ 		__hugetlb_vma_unlock_write_free(vma);
+-		i_mmap_unlock_write(vma->vm_file->f_mapping);
+ 	} else {
+-		i_mmap_unlock_write(vma->vm_file->f_mapping);
+ 		hugetlb_vma_unlock_write(vma);
+ 	}
++
++	if (vma->vm_file)
++		i_mmap_unlock_write(vma->vm_file->f_mapping);
  }
  
+ void unmap_hugepage_range(struct vm_area_struct *vma, unsigned long start,
+--- a/mm/memory.c~hugetlbfs-close-race-between-madv_dontneed-and-page-fault
++++ a/mm/memory.c
+@@ -1683,7 +1683,7 @@ static void unmap_single_vma(struct mmu_
+ 			if (vma->vm_file) {
+ 				zap_flags_t zap_flags = details ?
+ 				    details->zap_flags : 0;
+-				__unmap_hugepage_range_final(tlb, vma, start, end,
++				__unmap_hugepage_range(tlb, vma, start, end,
+ 							     NULL, zap_flags);
+ 			}
+ 		} else
+@@ -1728,8 +1728,12 @@ void unmap_vmas(struct mmu_gather *tlb,
+ 				start_addr, end_addr);
+ 	mmu_notifier_invalidate_range_start(&range);
+ 	do {
+-		unmap_single_vma(tlb, vma, start_addr, end_addr, &details,
++		unsigned long start = start_addr;
++		unsigned long end = end_addr;
++		hugetlb_zap_begin(vma, &start, &end);
++		unmap_single_vma(tlb, vma, start, end, &details,
+ 				 mm_wr_locked);
++		hugetlb_zap_end(vma, &details);
+ 	} while ((vma = mas_find(mas, tree_end - 1)) != NULL);
+ 	mmu_notifier_invalidate_range_end(&range);
+ }
+@@ -1753,9 +1757,7 @@ void zap_page_range_single(struct vm_are
+ 	lru_add_drain();
+ 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma->vm_mm,
+ 				address, end);
+-	if (is_vm_hugetlb_page(vma))
+-		adjust_range_if_pmd_sharing_possible(vma, &range.start,
+-						     &range.end);
++	hugetlb_zap_begin(vma, &range.start, &range.end);
+ 	tlb_gather_mmu(&tlb, vma->vm_mm);
+ 	update_hiwater_rss(vma->vm_mm);
+ 	mmu_notifier_invalidate_range_start(&range);
+@@ -1766,6 +1768,7 @@ void zap_page_range_single(struct vm_are
+ 	unmap_single_vma(&tlb, vma, address, end, details, false);
+ 	mmu_notifier_invalidate_range_end(&range);
+ 	tlb_finish_mmu(&tlb);
++	hugetlb_zap_end(vma, details);
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from riel@surriel.com are
