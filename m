@@ -2,33 +2,42 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D742C46CA1
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:44:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78288CDB483
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:59:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235253AbjJRVoT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 17:44:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45986 "EHLO
+        id S235289AbjJRV7w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 17:59:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51538 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232694AbjJRVoJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:44:09 -0400
+        with ESMTP id S235202AbjJRVf2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:35:28 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7542911D
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:44:00 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40E5FC433C7;
-        Wed, 18 Oct 2023 21:44:00 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C8411B1
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:12 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04E1FC433D9;
+        Wed, 18 Oct 2023 21:34:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697665440;
-        bh=BoAceKIdlcyahXJOipxNC7gmIqvktgfcJ/p+MKnyHIk=;
+        s=korg; t=1697664895;
+        bh=I/dhhNKO+VmKv3p9uyG2HwmUqaR5tMBx08+M/1iegAg=;
         h=Date:To:From:Subject:From;
-        b=jEfTsASuDcif3iFDT6MZZ0DpteoiTt+wbDn3uN9JdqVztXk/kPc2LIV0CsAuuUet0
-         +TJpq8cFOvCMwlXXKeJwQ/cuBDpWh6ZaMixzah+UWMxeRcaR0rcCE7P79AjFDHcRWj
-         sVySP93baNP3d3DgW9VxTb0Po7HSdkSxAF5Xzm20=
-Date:   Wed, 18 Oct 2023 14:43:59 -0700
-To:     mm-commits@vger.kernel.org, adobriyan@gmail.com,
-        akpm@linux-foundation.org
+        b=t1hV4ZOA4nREqKn3p348cOwcVpFpdyXMQklzSOkWKjllXTSZn6MUJch1ryPrWH8hj
+         I2jdaH/A/EUPPtmgBDKddGBAegMrSDzM2C2FvvgAcvTPG98RLxJn6vuEUKkg0uqZ9K
+         KDiQMXUT2K4ToVcEq5UpxgPgVHnt63DKVxqQDZfo=
+Date:   Wed, 18 Oct 2023 14:34:54 -0700
+To:     mm-commits@vger.kernel.org, yun.zhou@windriver.com,
+        willy@infradead.org, viro@zeniv.linux.org.uk, vbabka@suse.cz,
+        surenb@google.com, shy828301@gmail.com, shuah@kernel.org,
+        rppt@kernel.org, pgofman@codeweavers.com, peterx@redhat.com,
+        pasha.tatashin@soleen.com, namit@vmware.com,
+        mirq-linux@rere.qmqm.pl, Liam.Howlett@oracle.com,
+        gustavoars@kernel.org, gregkh@linuxfoundation.org,
+        gorcunov@gmail.com, emmir@google.com, david@redhat.com,
+        dan.j.williams@intel.com, brauner@kernel.org,
+        axelrasmussen@google.com, avagin@gmail.com, alex.sierra@amd.com,
+        usama.anjum@collabora.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] mark-stuff-as-__ro_after_init.patch removed from -mm tree
-Message-Id: <20231018214400.40E5FC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] fs-proc-task_mmu-add-fast-paths-to-get-clear-page_is_written-flag.patch removed from -mm tree
+Message-Id: <20231018213455.04E1FC433D9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,510 +45,123 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: treewide: mark stuff as __ro_after_init
+     Subject: fs/proc/task_mmu: add fast paths to get/clear PAGE_IS_WRITTEN flag
 has been removed from the -mm tree.  Its filename was
-     mark-stuff-as-__ro_after_init.patch
+     fs-proc-task_mmu-add-fast-paths-to-get-clear-page_is_written-flag.patch
 
-This patch was dropped because it was merged into the mm-nonmm-stable branch
+This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: treewide: mark stuff as __ro_after_init
-Date: Wed, 11 Oct 2023 19:55:00 +0300
+From: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Subject: fs/proc/task_mmu: add fast paths to get/clear PAGE_IS_WRITTEN flag
+Date: Mon, 21 Aug 2023 19:15:15 +0500
 
-__read_mostly predates __ro_after_init. Many variables which are marked
-__read_mostly should have been __ro_after_init from day 1.
+Adding fast code paths to handle specifically only get and/or clear
+operation of PAGE_IS_WRITTEN, increases its performance by 0-35%.  The
+results of some test cases are given below:
 
-Also, mark some stuff as "const" and "__init" while I'm at it.
+Test-case-1
+t1 = (Get + WP) time
+t2 = WP time
+                       t1            t2
+Without this patch:    140-170mcs    90-115mcs
+With this patch:       110mcs        80mcs
+Worst case diff:       35% faster    30% faster
 
-[akpm@linux-foundation.org: revert sysctl_nr_open_min, sysctl_nr_open_max changes due to arm warning]
-[akpm@linux-foundation.org: coding-style cleanups]
-Link: https://lkml.kernel.org/r/4f6bb9c0-abba-4ee4-a7aa-89265e886817@p183
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Test-case-2
+t3 = atomic Get and WP
+                      t3
+Without this patch:   120-140mcs
+With this patch:      100-110mcs
+Worst case diff:      21% faster
+
+Link: https://lkml.kernel.org/r/20230821141518.870589-4-usama.anjum@collabora.com
+Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Alex Sierra <alex.sierra@amd.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andrei Vagin <avagin@gmail.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Gustavo A. R. Silva <gustavoars@kernel.org>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Miroslaw <emmir@google.com>
+Cc: Michał Mirosław <mirq-linux@rere.qmqm.pl>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Nadav Amit <namit@vmware.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Paul Gofman <pgofman@codeweavers.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yun Zhou <yun.zhou@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/bdev.c                       |    6 +++---
- fs/anon_inodes.c                   |    4 ++--
- fs/buffer.c                        |    4 ++--
- fs/char_dev.c                      |    2 +-
- fs/dcache.c                        |    8 ++++----
- fs/direct-io.c                     |    2 +-
- fs/eventpoll.c                     |    6 +++---
- fs/fcntl.c                         |    2 +-
- fs/file_table.c                    |    2 +-
- fs/inode.c                         |    8 ++++----
- fs/kernfs/mount.c                  |    5 +++--
- fs/locks.c                         |    4 ++--
- fs/namespace.c                     |   16 ++++++++--------
- fs/notify/dnotify/dnotify.c        |    6 +++---
- fs/notify/fanotify/fanotify_user.c |    8 ++++----
- fs/notify/inotify/inotify_user.c   |    2 +-
- fs/pipe.c                          |    2 +-
- fs/userfaultfd.c                   |    2 +-
- kernel/audit_tree.c                |    4 ++--
- kernel/sched/core.c                |    2 +-
- kernel/user_namespace.c            |    2 +-
- kernel/workqueue.c                 |   16 ++++++++--------
- lib/debugobjects.c                 |    2 +-
- mm/khugepaged.c                    |    2 +-
- mm/shmem.c                         |    8 ++++----
- security/integrity/iint.c          |    2 +-
- 26 files changed, 64 insertions(+), 63 deletions(-)
+ fs/proc/task_mmu.c |   36 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
---- a/block/bdev.c~mark-stuff-as-__ro_after_init
-+++ a/block/bdev.c
-@@ -292,7 +292,7 @@ EXPORT_SYMBOL(thaw_bdev);
-  */
- 
- static  __cacheline_aligned_in_smp DEFINE_MUTEX(bdev_lock);
--static struct kmem_cache * bdev_cachep __read_mostly;
-+static struct kmem_cache *bdev_cachep __ro_after_init;
- 
- static struct inode *bdev_alloc_inode(struct super_block *sb)
- {
-@@ -361,13 +361,13 @@ static struct file_system_type bd_type =
- 	.kill_sb	= kill_anon_super,
- };
- 
--struct super_block *blockdev_superblock __read_mostly;
-+struct super_block *blockdev_superblock __ro_after_init;
- EXPORT_SYMBOL_GPL(blockdev_superblock);
- 
- void __init bdev_cache_init(void)
- {
- 	int err;
--	static struct vfsmount *bd_mnt;
-+	static struct vfsmount *bd_mnt __ro_after_init;
- 
- 	bdev_cachep = kmem_cache_create("bdev_cache", sizeof(struct bdev_inode),
- 			0, (SLAB_HWCACHE_ALIGN|SLAB_RECLAIM_ACCOUNT|
---- a/fs/anon_inodes.c~mark-stuff-as-__ro_after_init
-+++ a/fs/anon_inodes.c
-@@ -24,8 +24,8 @@
- 
- #include <linux/uaccess.h>
- 
--static struct vfsmount *anon_inode_mnt __read_mostly;
--static struct inode *anon_inode_inode;
-+static struct vfsmount *anon_inode_mnt __ro_after_init;
-+static struct inode *anon_inode_inode __ro_after_init;
- 
- /*
-  * anon_inodefs_dname() is called from d_path().
---- a/fs/buffer.c~mark-stuff-as-__ro_after_init
-+++ a/fs/buffer.c
-@@ -2988,13 +2988,13 @@ EXPORT_SYMBOL(try_to_free_buffers);
- /*
-  * Buffer-head allocation
-  */
--static struct kmem_cache *bh_cachep __read_mostly;
-+static struct kmem_cache *bh_cachep __ro_after_init;
- 
- /*
-  * Once the number of bh's in the machine exceeds this level, we start
-  * stripping them in writeback.
-  */
--static unsigned long max_buffer_heads;
-+static unsigned long max_buffer_heads __ro_after_init;
- 
- int buffer_heads_over_limit;
- 
---- a/fs/char_dev.c~mark-stuff-as-__ro_after_init
-+++ a/fs/char_dev.c
-@@ -25,7 +25,7 @@
- 
- #include "internal.h"
- 
--static struct kobj_map *cdev_map;
-+static struct kobj_map *cdev_map __ro_after_init;
- 
- static DEFINE_MUTEX(chrdevs_lock);
- 
---- a/fs/dcache.c~mark-stuff-as-__ro_after_init
-+++ a/fs/dcache.c
-@@ -78,7 +78,7 @@ __cacheline_aligned_in_smp DEFINE_SEQLOC
- 
- EXPORT_SYMBOL(rename_lock);
- 
--static struct kmem_cache *dentry_cache __read_mostly;
-+static struct kmem_cache *dentry_cache __ro_after_init;
- 
- const struct qstr empty_name = QSTR_INIT("", 0);
- EXPORT_SYMBOL(empty_name);
-@@ -96,9 +96,9 @@ EXPORT_SYMBOL(dotdot_name);
-  * information, yet avoid using a prime hash-size or similar.
-  */
- 
--static unsigned int d_hash_shift __read_mostly;
-+static unsigned int d_hash_shift __ro_after_init;
- 
--static struct hlist_bl_head *dentry_hashtable __read_mostly;
-+static struct hlist_bl_head *dentry_hashtable __ro_after_init;
- 
- static inline struct hlist_bl_head *d_hash(unsigned int hash)
- {
-@@ -3324,7 +3324,7 @@ static void __init dcache_init(void)
- }
- 
- /* SLAB cache for __getname() consumers */
--struct kmem_cache *names_cachep __read_mostly;
-+struct kmem_cache *names_cachep __ro_after_init;
- EXPORT_SYMBOL(names_cachep);
- 
- void __init vfs_caches_init_early(void)
---- a/fs/direct-io.c~mark-stuff-as-__ro_after_init
-+++ a/fs/direct-io.c
-@@ -151,7 +151,7 @@ struct dio {
- 	};
- } ____cacheline_aligned_in_smp;
- 
--static struct kmem_cache *dio_cache __read_mostly;
-+static struct kmem_cache *dio_cache __ro_after_init;
- 
- /*
-  * How many pages are in the queue?
---- a/fs/eventpoll.c~mark-stuff-as-__ro_after_init
-+++ a/fs/eventpoll.c
-@@ -256,10 +256,10 @@ static u64 loop_check_gen = 0;
- static struct eventpoll *inserting_into;
- 
- /* Slab cache used to allocate "struct epitem" */
--static struct kmem_cache *epi_cache __read_mostly;
-+static struct kmem_cache *epi_cache __ro_after_init;
- 
- /* Slab cache used to allocate "struct eppoll_entry" */
--static struct kmem_cache *pwq_cache __read_mostly;
-+static struct kmem_cache *pwq_cache __ro_after_init;
- 
- /*
-  * List of files with newly added links, where we may need to limit the number
-@@ -271,7 +271,7 @@ struct epitems_head {
- };
- static struct epitems_head *tfile_check_list = EP_UNACTIVE_PTR;
- 
--static struct kmem_cache *ephead_cache __read_mostly;
-+static struct kmem_cache *ephead_cache __ro_after_init;
- 
- static inline void free_ephead(struct epitems_head *head)
- {
---- a/fs/fcntl.c~mark-stuff-as-__ro_after_init
-+++ a/fs/fcntl.c
-@@ -844,7 +844,7 @@ int send_sigurg(struct fown_struct *fown
- }
- 
- static DEFINE_SPINLOCK(fasync_lock);
--static struct kmem_cache *fasync_cache __read_mostly;
-+static struct kmem_cache *fasync_cache __ro_after_init;
- 
- static void fasync_free_rcu(struct rcu_head *head)
- {
---- a/fs/file_table.c~mark-stuff-as-__ro_after_init
-+++ a/fs/file_table.c
-@@ -40,7 +40,7 @@ static struct files_stat_struct files_st
- };
- 
- /* SLAB cache for file structures */
--static struct kmem_cache *filp_cachep __read_mostly;
-+static struct kmem_cache *filp_cachep __ro_after_init;
- 
- static struct percpu_counter nr_files __cacheline_aligned_in_smp;
- 
---- a/fs/inode.c~mark-stuff-as-__ro_after_init
-+++ a/fs/inode.c
-@@ -54,9 +54,9 @@
-  *   inode_hash_lock
-  */
- 
--static unsigned int i_hash_mask __read_mostly;
--static unsigned int i_hash_shift __read_mostly;
--static struct hlist_head *inode_hashtable __read_mostly;
-+static unsigned int i_hash_mask __ro_after_init;
-+static unsigned int i_hash_shift __ro_after_init;
-+static struct hlist_head *inode_hashtable __ro_after_init;
- static __cacheline_aligned_in_smp DEFINE_SPINLOCK(inode_hash_lock);
- 
- /*
-@@ -70,7 +70,7 @@ EXPORT_SYMBOL(empty_aops);
- static DEFINE_PER_CPU(unsigned long, nr_inodes);
- static DEFINE_PER_CPU(unsigned long, nr_unused);
- 
--static struct kmem_cache *inode_cachep __read_mostly;
-+static struct kmem_cache *inode_cachep __ro_after_init;
- 
- static long get_nr_inodes(void)
- {
---- a/fs/kernfs/mount.c~mark-stuff-as-__ro_after_init
-+++ a/fs/kernfs/mount.c
-@@ -21,8 +21,9 @@
- 
- #include "kernfs-internal.h"
- 
--struct kmem_cache *kernfs_node_cache, *kernfs_iattrs_cache;
--struct kernfs_global_locks *kernfs_locks;
-+struct kmem_cache *kernfs_node_cache __ro_after_init;
-+struct kmem_cache *kernfs_iattrs_cache __ro_after_init;
-+struct kernfs_global_locks *kernfs_locks __ro_after_init;
- 
- static int kernfs_sop_show_options(struct seq_file *sf, struct dentry *dentry)
- {
---- a/fs/locks.c~mark-stuff-as-__ro_after_init
-+++ a/fs/locks.c
-@@ -167,8 +167,8 @@ static DEFINE_HASHTABLE(blocked_hash, BL
-  */
- static DEFINE_SPINLOCK(blocked_lock_lock);
- 
--static struct kmem_cache *flctx_cache __read_mostly;
--static struct kmem_cache *filelock_cache __read_mostly;
-+static struct kmem_cache *flctx_cache __ro_after_init;
-+static struct kmem_cache *filelock_cache __ro_after_init;
- 
- static struct file_lock_context *
- locks_get_lock_context(struct inode *inode, int type)
---- a/fs/namespace.c~mark-stuff-as-__ro_after_init
-+++ a/fs/namespace.c
-@@ -39,10 +39,10 @@
- /* Maximum number of mounts in a mount namespace */
- static unsigned int sysctl_mount_max __read_mostly = 100000;
- 
--static unsigned int m_hash_mask __read_mostly;
--static unsigned int m_hash_shift __read_mostly;
--static unsigned int mp_hash_mask __read_mostly;
--static unsigned int mp_hash_shift __read_mostly;
-+static unsigned int m_hash_mask __ro_after_init;
-+static unsigned int m_hash_shift __ro_after_init;
-+static unsigned int mp_hash_mask __ro_after_init;
-+static unsigned int mp_hash_shift __ro_after_init;
- 
- static __initdata unsigned long mhash_entries;
- static int __init set_mhash_entries(char *str)
-@@ -68,9 +68,9 @@ static u64 event;
- static DEFINE_IDA(mnt_id_ida);
- static DEFINE_IDA(mnt_group_ida);
- 
--static struct hlist_head *mount_hashtable __read_mostly;
--static struct hlist_head *mountpoint_hashtable __read_mostly;
--static struct kmem_cache *mnt_cache __read_mostly;
-+static struct hlist_head *mount_hashtable __ro_after_init;
-+static struct hlist_head *mountpoint_hashtable __ro_after_init;
-+static struct kmem_cache *mnt_cache __ro_after_init;
- static DECLARE_RWSEM(namespace_sem);
- static HLIST_HEAD(unmounted);	/* protected by namespace_sem */
- static LIST_HEAD(ex_mountpoints); /* protected by namespace_sem */
-@@ -86,7 +86,7 @@ struct mount_kattr {
- };
- 
- /* /sys/fs */
--struct kobject *fs_kobj;
-+struct kobject *fs_kobj __ro_after_init;
- EXPORT_SYMBOL_GPL(fs_kobj);
- 
- /*
---- a/fs/notify/dnotify/dnotify.c~mark-stuff-as-__ro_after_init
-+++ a/fs/notify/dnotify/dnotify.c
-@@ -39,9 +39,9 @@ static void __init dnotify_sysctl_init(v
- #define dnotify_sysctl_init() do { } while (0)
- #endif
- 
--static struct kmem_cache *dnotify_struct_cache __read_mostly;
--static struct kmem_cache *dnotify_mark_cache __read_mostly;
--static struct fsnotify_group *dnotify_group __read_mostly;
-+static struct kmem_cache *dnotify_struct_cache __ro_after_init;
-+static struct kmem_cache *dnotify_mark_cache __ro_after_init;
-+static struct fsnotify_group *dnotify_group __ro_after_init;
- 
- /*
-  * dnotify will attach one of these to each inode (i_fsnotify_marks) which
---- a/fs/notify/fanotify/fanotify_user.c~mark-stuff-as-__ro_after_init
-+++ a/fs/notify/fanotify/fanotify_user.c
-@@ -112,10 +112,10 @@ static void __init fanotify_sysctls_init
- 
- extern const struct fsnotify_ops fanotify_fsnotify_ops;
- 
--struct kmem_cache *fanotify_mark_cache __read_mostly;
--struct kmem_cache *fanotify_fid_event_cachep __read_mostly;
--struct kmem_cache *fanotify_path_event_cachep __read_mostly;
--struct kmem_cache *fanotify_perm_event_cachep __read_mostly;
-+struct kmem_cache *fanotify_mark_cache __ro_after_init;
-+struct kmem_cache *fanotify_fid_event_cachep __ro_after_init;
-+struct kmem_cache *fanotify_path_event_cachep __ro_after_init;
-+struct kmem_cache *fanotify_perm_event_cachep __ro_after_init;
- 
- #define FANOTIFY_EVENT_ALIGN 4
- #define FANOTIFY_FID_INFO_HDR_LEN \
---- a/fs/notify/inotify/inotify_user.c~mark-stuff-as-__ro_after_init
-+++ a/fs/notify/inotify/inotify_user.c
-@@ -49,7 +49,7 @@
- /* configurable via /proc/sys/fs/inotify/ */
- static int inotify_max_queued_events __read_mostly;
- 
--struct kmem_cache *inotify_inode_mark_cachep __read_mostly;
-+struct kmem_cache *inotify_inode_mark_cachep __ro_after_init;
- 
- #ifdef CONFIG_SYSCTL
- 
---- a/fs/pipe.c~mark-stuff-as-__ro_after_init
-+++ a/fs/pipe.c
-@@ -854,7 +854,7 @@ void free_pipe_info(struct pipe_inode_in
- 	kfree(pipe);
- }
- 
--static struct vfsmount *pipe_mnt __read_mostly;
-+static struct vfsmount *pipe_mnt __ro_after_init;
- 
- /*
-  * pipefs_dname() is called from d_path().
---- a/fs/userfaultfd.c~mark-stuff-as-__ro_after_init
-+++ a/fs/userfaultfd.c
-@@ -49,7 +49,7 @@ static struct ctl_table vm_userfaultfd_t
- };
- #endif
- 
--static struct kmem_cache *userfaultfd_ctx_cachep __read_mostly;
-+static struct kmem_cache *userfaultfd_ctx_cachep __ro_after_init;
- 
- /*
-  * Start with fault_pending_wqh and fault_wqh so they're more likely
---- a/kernel/audit_tree.c~mark-stuff-as-__ro_after_init
-+++ a/kernel/audit_tree.c
-@@ -87,8 +87,8 @@ static struct task_struct *prune_thread;
-  * that makes a difference.  Some.
-  */
- 
--static struct fsnotify_group *audit_tree_group;
--static struct kmem_cache *audit_tree_mark_cachep __read_mostly;
-+static struct fsnotify_group *audit_tree_group __ro_after_init;
-+static struct kmem_cache *audit_tree_mark_cachep __ro_after_init;
- 
- static struct audit_tree *alloc_tree(const char *s)
- {
---- a/kernel/sched/core.c~mark-stuff-as-__ro_after_init
-+++ a/kernel/sched/core.c
-@@ -9903,7 +9903,7 @@ struct task_group root_task_group;
- LIST_HEAD(task_groups);
- 
- /* Cacheline aligned slab cache for task_group */
--static struct kmem_cache *task_group_cache __read_mostly;
-+static struct kmem_cache *task_group_cache __ro_after_init;
- #endif
- 
- void __init sched_init(void)
---- a/kernel/user_namespace.c~mark-stuff-as-__ro_after_init
-+++ a/kernel/user_namespace.c
-@@ -22,7 +22,7 @@
- #include <linux/bsearch.h>
- #include <linux/sort.h>
- 
--static struct kmem_cache *user_ns_cachep __read_mostly;
-+static struct kmem_cache *user_ns_cachep __ro_after_init;
- static DEFINE_MUTEX(userns_state_mutex);
- 
- static bool new_idmap_permitted(const struct file *file,
---- a/kernel/workqueue.c~mark-stuff-as-__ro_after_init
-+++ a/kernel/workqueue.c
-@@ -418,21 +418,21 @@ static struct workqueue_attrs *ordered_w
-  * process context while holding a pool lock. Bounce to a dedicated kthread
-  * worker to avoid A-A deadlocks.
-  */
--static struct kthread_worker *pwq_release_worker;
-+static struct kthread_worker *pwq_release_worker __ro_after_init;
- 
--struct workqueue_struct *system_wq __read_mostly;
-+struct workqueue_struct *system_wq __ro_after_init;
- EXPORT_SYMBOL(system_wq);
--struct workqueue_struct *system_highpri_wq __read_mostly;
-+struct workqueue_struct *system_highpri_wq __ro_after_init;
- EXPORT_SYMBOL_GPL(system_highpri_wq);
--struct workqueue_struct *system_long_wq __read_mostly;
-+struct workqueue_struct *system_long_wq __ro_after_init;
- EXPORT_SYMBOL_GPL(system_long_wq);
--struct workqueue_struct *system_unbound_wq __read_mostly;
-+struct workqueue_struct *system_unbound_wq __ro_after_init;
- EXPORT_SYMBOL_GPL(system_unbound_wq);
--struct workqueue_struct *system_freezable_wq __read_mostly;
-+struct workqueue_struct *system_freezable_wq __ro_after_init;
- EXPORT_SYMBOL_GPL(system_freezable_wq);
--struct workqueue_struct *system_power_efficient_wq __read_mostly;
-+struct workqueue_struct *system_power_efficient_wq __ro_after_init;
- EXPORT_SYMBOL_GPL(system_power_efficient_wq);
--struct workqueue_struct *system_freezable_power_efficient_wq __read_mostly;
-+struct workqueue_struct *system_freezable_power_efficient_wq __ro_after_init;
- EXPORT_SYMBOL_GPL(system_freezable_power_efficient_wq);
- 
- static int worker_thread(void *__worker);
---- a/lib/debugobjects.c~mark-stuff-as-__ro_after_init
-+++ a/lib/debugobjects.c
-@@ -89,7 +89,7 @@ static int			debug_objects_pool_size __r
- static int			debug_objects_pool_min_level __read_mostly
- 				= ODEBUG_POOL_MIN_LEVEL;
- static const struct debug_obj_descr *descr_test  __read_mostly;
--static struct kmem_cache	*obj_cache __read_mostly;
-+static struct kmem_cache	*obj_cache __ro_after_init;
- 
- /*
-  * Track numbers of kmem_cache_alloc()/free() calls done.
---- a/mm/khugepaged.c~mark-stuff-as-__ro_after_init
-+++ a/mm/khugepaged.c
-@@ -91,7 +91,7 @@ static unsigned int khugepaged_max_ptes_
- #define MM_SLOTS_HASH_BITS 10
- static DEFINE_READ_MOSTLY_HASHTABLE(mm_slots_hash, MM_SLOTS_HASH_BITS);
- 
--static struct kmem_cache *mm_slot_cache __read_mostly;
-+static struct kmem_cache *mm_slot_cache __ro_after_init;
- 
- struct collapse_control {
- 	bool is_khugepaged;
---- a/mm/shmem.c~mark-stuff-as-__ro_after_init
-+++ a/mm/shmem.c
-@@ -42,7 +42,7 @@
- #include <linux/iversion.h>
- #include "swap.h"
- 
--static struct vfsmount *shm_mnt;
-+static struct vfsmount *shm_mnt __ro_after_init;
- 
- #ifdef CONFIG_SHMEM
- /*
-@@ -4394,7 +4394,7 @@ static const struct fs_context_operation
- #endif
- };
- 
--static struct kmem_cache *shmem_inode_cachep;
-+static struct kmem_cache *shmem_inode_cachep __ro_after_init;
- 
- static struct inode *shmem_alloc_inode(struct super_block *sb)
- {
-@@ -4426,14 +4426,14 @@ static void shmem_init_inode(void *foo)
- 	inode_init_once(&info->vfs_inode);
- }
- 
--static void shmem_init_inodecache(void)
-+static void __init shmem_init_inodecache(void)
- {
- 	shmem_inode_cachep = kmem_cache_create("shmem_inode_cache",
- 				sizeof(struct shmem_inode_info),
- 				0, SLAB_PANIC|SLAB_ACCOUNT, shmem_init_inode);
- }
- 
--static void shmem_destroy_inodecache(void)
-+static void __init shmem_destroy_inodecache(void)
- {
- 	kmem_cache_destroy(shmem_inode_cachep);
- }
---- a/security/integrity/iint.c~mark-stuff-as-__ro_after_init
-+++ a/security/integrity/iint.c
-@@ -23,7 +23,7 @@
- 
- static struct rb_root integrity_iint_tree = RB_ROOT;
- static DEFINE_RWLOCK(integrity_iint_lock);
--static struct kmem_cache *iint_cache __read_mostly;
-+static struct kmem_cache *iint_cache __ro_after_init;
- 
- struct dentry *integrity_dir;
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-add-fast-paths-to-get-clear-page_is_written-flag
++++ a/fs/proc/task_mmu.c
+@@ -2145,6 +2145,41 @@ static int pagemap_scan_pmd_entry(pmd_t
+ 		return 0;
+ 	}
+ 
++	if (!p->vec_out) {
++		/* Fast path for performing exclusive WP */
++		for (addr = start; addr != end; pte++, addr += PAGE_SIZE) {
++			if (pte_uffd_wp(ptep_get(pte)))
++				continue;
++			make_uffd_wp_pte(vma, addr, pte);
++			if (!flush_end)
++				start = addr;
++			flush_end = addr + PAGE_SIZE;
++		}
++		goto flush_and_return;
++	}
++
++	if (!p->arg.category_anyof_mask && !p->arg.category_inverted &&
++	    p->arg.category_mask == PAGE_IS_WRITTEN &&
++	    p->arg.return_mask == PAGE_IS_WRITTEN) {
++		for (addr = start; addr < end; pte++, addr += PAGE_SIZE) {
++			unsigned long next = addr + PAGE_SIZE;
++
++			if (pte_uffd_wp(ptep_get(pte)))
++				continue;
++			ret = pagemap_scan_output(p->cur_vma_category | PAGE_IS_WRITTEN,
++						  p, addr, &next);
++			if (next == addr)
++				break;
++			if (~p->arg.flags & PM_SCAN_WP_MATCHING)
++				continue;
++			make_uffd_wp_pte(vma, addr, pte);
++			if (!flush_end)
++				start = addr;
++			flush_end = next;
++		}
++		goto flush_and_return;
++	}
++
+ 	for (addr = start; addr != end; pte++, addr += PAGE_SIZE) {
+ 		unsigned long categories = p->cur_vma_category |
+ 					   pagemap_page_category(p, vma, addr, ptep_get(pte));
+@@ -2168,6 +2203,7 @@ static int pagemap_scan_pmd_entry(pmd_t
+ 		flush_end = next;
+ 	}
+ 
++flush_and_return:
+ 	if (flush_end)
+ 		flush_tlb_range(vma, start, addr);
  
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from usama.anjum@collabora.com are
 
 
