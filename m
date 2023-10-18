@@ -2,36 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3305CCDB47E
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:44:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7079CDB47E
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:44:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232354AbjJRVoE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 17:44:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60514 "EHLO
+        id S235221AbjJRVoK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 17:44:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60538 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344916AbjJRVn7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:43:59 -0400
+        with ESMTP id S232127AbjJRVoA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:44:00 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7EDA112
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:43:57 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84065C433CB;
-        Wed, 18 Oct 2023 21:43:57 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF27311B
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:43:58 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78EBBC433C8;
+        Wed, 18 Oct 2023 21:43:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697665437;
-        bh=pGACIzlBK0HCPApqxMUVi4haxZt30myob7L/KatGrjI=;
+        s=korg; t=1697665438;
+        bh=xiArPlEBqzDJHh6ZcDhLOJ8Vv3p4tt4KMrL24ucH+9o=;
         h=Date:To:From:Subject:From;
-        b=0eFh2wIVJ1T+rfxm2ErAHlZLcE5PpEhgvBBPIT4b20cm+zFWcoXhY4jELzy9v7gw4
-         SvFMWO6XxB+HsZXgnuinbFTMNkOxa8eDHqwsjjbeS5Q3NksVUy0LEtuzq5yk1X67XX
-         ikO4UyViHcxvBaK0TfkfzYM/S9RF96YJIPDBp+Ck=
-Date:   Wed, 18 Oct 2023 14:43:56 -0700
-To:     mm-commits@vger.kernel.org, rostedt@goodmis.org,
-        ndesaulniers@google.com, nathan@kernel.org,
-        linux@rasmusvillemoes.dk, keescook@chromium.org,
-        david.laight@aculab.com, bvanassche@acm.org, arnd@arndb.de,
-        David.Laight@ACULAB.COM, akpm@linux-foundation.org
+        b=aoRPisVxN/sGez9D2tCK3icYgCLkALGGSX9aLuObeq22qOHVDaXCU9N7LPww2Ewz9
+         x5TrwXDUYmVsyGmX7KgRTNs0BcJZUDQj2WTKjtEttfJ6KKFeam+oc20qKVDseDZPB4
+         vRJj+WDhuwcNi+dmrzrnjHvCgwBHA0gnREHybBsI=
+Date:   Wed, 18 Oct 2023 14:43:57 -0700
+To:     mm-commits@vger.kernel.org, adobriyan@gmail.com,
+        swarupkotikalapudi@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] compilerh-move-__is_constexpr-to-compilerh.patch removed from -mm tree
-Message-Id: <20231018214357.84065C433CB@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] proc-test-proc-pid-statm.patch removed from -mm tree
+Message-Id: <20231018214358.78EBBC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,114 +36,154 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: compiler.h: move __is_constexpr() to compiler.h
+     Subject: proc: test /proc/${pid}/statm
 has been removed from the -mm tree.  Its filename was
-     compilerh-move-__is_constexpr-to-compilerh.patch
+     proc-test-proc-pid-statm.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Laight <David.Laight@ACULAB.COM>
-Subject: compiler.h: move __is_constexpr() to compiler.h
-Date: Thu, 5 Oct 2023 11:39:54 +0000
+From: Swarup Laxman Kotiaklapudi <swarupkotikalapudi@gmail.com>
+Subject: proc: test /proc/${pid}/statm
+Date: Mon, 9 Oct 2023 14:07:14 +0300
 
-Prior to f747e6667ebb2 __is_constexpr() was in its only user minmax.h. 
-That commit moved it to const.h - but that file just defines ULL(x) and
-UL(x) so that constants can be defined for .S and .c files.
 
-So apart from the word 'const' it wasn't really a good location.  Instead
-move the definition to compiler.h just before the similar
+My original comment lied, output can be "0 A A B 0 0 0\n"
+(see comment in the code).
 
-  is_signed_type() and is_unsigned_type().
+I don't quite understand why
 
-This may not be a good long-term home, but the three definitions belong
-together.
+	get_mm_counter(mm, MM_FILEPAGES) + get_mm_counter(mm, MM_SHMEMPAGES)
 
-Link: https://lkml.kernel.org/r/2a6680bbe2e84459816a113730426782@AcuMS.aculab.com
-Signed-off-by: David Laight <david.laight@aculab.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Bart Van Assche <bvanassche@acm.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+can stay positive but get_mm_counter(mm, MM_ANONPAGES) is always 0 after
+everything is unmapped but that's just me.
+
+[adobriyan@gmail.com: more or less rewritten]
+Link: https://lkml.kernel.org/r/0721ca69-7bb4-40aa-8d01-0c5f91e5f363@p183
+Signed-off-by: Swarup Laxman Kotiaklapudi <swarupkotikalapudi@gmail.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler.h       |    8 ++++++++
- include/linux/const.h          |    8 --------
- tools/include/linux/compiler.h |    8 ++++++++
- tools/include/linux/const.h    |    8 --------
- 4 files changed, 16 insertions(+), 16 deletions(-)
+ tools/testing/selftests/proc/proc-empty-vm.c |   97 ++++++++++++++++-
+ 1 file changed, 92 insertions(+), 5 deletions(-)
 
---- a/include/linux/compiler.h~compilerh-move-__is_constexpr-to-compilerh
-+++ a/include/linux/compiler.h
-@@ -228,6 +228,14 @@ static inline void *offset_to_ptr(const
- #define __must_be_array(a)	BUILD_BUG_ON_ZERO(__same_type((a), &(a)[0]))
+--- a/tools/testing/selftests/proc/proc-empty-vm.c~proc-test-proc-pid-statm
++++ a/tools/testing/selftests/proc/proc-empty-vm.c
+@@ -303,6 +303,95 @@ static int test_proc_pid_smaps_rollup(pi
+ 	}
+ }
  
- /*
-+ * This returns a constant expression while determining if an argument is
-+ * a constant expression, most importantly without evaluating the argument.
-+ * Glory to Martin Uecker <Martin.Uecker@med.uni-goettingen.de>
-+ */
-+#define __is_constexpr(x) \
-+	(sizeof(int) == sizeof(*(8 ? ((void *)((long)(x) * 0l)) : (int *)8)))
++static const char *parse_u64(const char *p, const char *const end, uint64_t *rv)
++{
++	*rv = 0;
++	for (; p != end; p += 1) {
++		if ('0' <= *p && *p <= '9') {
++			assert(!__builtin_mul_overflow(*rv, 10, rv));
++			assert(!__builtin_add_overflow(*rv, *p - '0', rv));
++		} else {
++			break;
++		}
++	}
++	assert(p != end);
++	return p;
++}
 +
 +/*
-  * Whether 'type' is a signed type or an unsigned type. Supports scalar types,
-  * bool and also pointer types.
-  */
---- a/include/linux/const.h~compilerh-move-__is_constexpr-to-compilerh
-+++ a/include/linux/const.h
-@@ -3,12 +3,4 @@
- 
- #include <vdso/const.h>
- 
--/*
-- * This returns a constant expression while determining if an argument is
-- * a constant expression, most importantly without evaluating the argument.
-- * Glory to Martin Uecker <Martin.Uecker@med.uni-goettingen.de>
-- */
--#define __is_constexpr(x) \
--	(sizeof(int) == sizeof(*(8 ? ((void *)((long)(x) * 0l)) : (int *)8)))
--
- #endif /* _LINUX_CONST_H */
---- a/tools/include/linux/compiler.h~compilerh-move-__is_constexpr-to-compilerh
-+++ a/tools/include/linux/compiler.h
-@@ -63,6 +63,14 @@
- # define __same_type(a, b) __builtin_types_compatible_p(typeof(a), typeof(b))
- #endif
- 
-+/*
-+ * This returns a constant expression while determining if an argument is
-+ * a constant expression, most importantly without evaluating the argument.
-+ * Glory to Martin Uecker <Martin.Uecker@med.uni-goettingen.de>
++ * There seems to be 2 types of valid output:
++ * "0 A A B 0 0 0\n" for dynamic exeuctables,
++ * "0 0 0 B 0 0 0\n" for static executables.
 + */
-+#define __is_constexpr(x) \
-+	(sizeof(int) == sizeof(*(8 ? ((void *)((long)(x) * 0l)) : (int *)8)))
++static int test_proc_pid_statm(pid_t pid)
++{
++	char buf[4096];
++	snprintf(buf, sizeof(buf), "/proc/%u/statm", pid);
++	int fd = open(buf, O_RDONLY);
++	if (fd == -1) {
++		perror("open /proc/${pid}/statm");
++		return EXIT_FAILURE;
++	}
 +
- #ifdef __ANDROID__
- /*
-  * FIXME: Big hammer to get rid of tons of:
---- a/tools/include/linux/const.h~compilerh-move-__is_constexpr-to-compilerh
-+++ a/tools/include/linux/const.h
-@@ -3,12 +3,4 @@
++	ssize_t rv = read(fd, buf, sizeof(buf));
++	close(fd);
++
++	assert(rv >= 0);
++	assert(rv <= sizeof(buf));
++	if (0) {
++		write(1, buf, rv);
++	}
++
++	const char *p = buf;
++	const char *const end = p + rv;
++
++	/* size */
++	assert(p != end && *p++ == '0');
++	assert(p != end && *p++ == ' ');
++
++	uint64_t resident;
++	p = parse_u64(p, end, &resident);
++	assert(p != end && *p++ == ' ');
++
++	uint64_t shared;
++	p = parse_u64(p, end, &shared);
++	assert(p != end && *p++ == ' ');
++
++	uint64_t text;
++	p = parse_u64(p, end, &text);
++	assert(p != end && *p++ == ' ');
++
++	assert(p != end && *p++ == '0');
++	assert(p != end && *p++ == ' ');
++
++	/* data */
++	assert(p != end && *p++ == '0');
++	assert(p != end && *p++ == ' ');
++
++	assert(p != end && *p++ == '0');
++	assert(p != end && *p++ == '\n');
++
++	assert(p == end);
++
++	/*
++	 * "text" is "mm->end_code - mm->start_code" at execve(2) time.
++	 * munmap() doesn't change it. It can be anything (just link
++	 * statically). It can't be 0 because executing to this point
++	 * implies at least 1 page of code.
++	 */
++	assert(text > 0);
++
++	/*
++	 * These two are always equal. Always 0 for statically linked
++	 * executables and sometimes 0 for dynamically linked executables.
++	 * There is no way to tell one from another without parsing ELF
++	 * which is too much for this test.
++	 */
++	assert(resident == shared);
++
++	return EXIT_SUCCESS;
++}
++
+ int main(void)
+ {
+ 	int rv = EXIT_SUCCESS;
+@@ -389,11 +478,9 @@ int main(void)
+ 		if (rv == EXIT_SUCCESS) {
+ 			rv = test_proc_pid_smaps_rollup(pid);
+ 		}
+-		/*
+-		 * TODO test /proc/${pid}/statm, task_statm()
+-		 * ->start_code, ->end_code aren't updated by munmap().
+-		 * Output can be "0 0 0 2 0 0 0\n" where "2" can be anything.
+-		 */
++		if (rv == EXIT_SUCCESS) {
++			rv = test_proc_pid_statm(pid);
++		}
  
- #include <vdso/const.h>
- 
--/*
-- * This returns a constant expression while determining if an argument is
-- * a constant expression, most importantly without evaluating the argument.
-- * Glory to Martin Uecker <Martin.Uecker@med.uni-goettingen.de>
-- */
--#define __is_constexpr(x) \
--	(sizeof(int) == sizeof(*(8 ? ((void *)((long)(x) * 0l)) : (int *)8)))
--
- #endif /* _LINUX_CONST_H */
+ 		/* Cut the rope. */
+ 		int wstatus;
 _
 
-Patches currently in -mm which might be from David.Laight@ACULAB.COM are
+Patches currently in -mm which might be from swarupkotikalapudi@gmail.com are
 
 
