@@ -2,33 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A06B7C41513
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:43:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 625A8CDB47E
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:43:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229891AbjJRVnt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 17:43:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48302 "EHLO
+        id S232047AbjJRVnu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 17:43:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48306 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231629AbjJRVnt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:43:49 -0400
+        with ESMTP id S232042AbjJRVnu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:43:50 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2826B11B
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:43:47 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC2F3C433C9;
-        Wed, 18 Oct 2023 21:43:46 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A4A8121
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:43:48 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3AD8C433C7;
+        Wed, 18 Oct 2023 21:43:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697665426;
-        bh=dh2aMbhN9L2i8YBZlwGdCmSL1gpCrKl4fddQWIWV8Tw=;
+        s=korg; t=1697665427;
+        bh=oAkTxMKtAcxwWmBy+BBX1iIvF5X54aMpeFxYm/obxwc=;
         h=Date:To:From:Subject:From;
-        b=HEahd0ooje0jhX9gUEykXiNc4MkcvRwQV8tYvVg2Xnl7qsvO1j+T0DYaKiGRQllh9
-         Z+NUKvkszRx+jh8w7Oimg4ukkEiIx4xmZPX0krNytGACNaVq8W1kNJXrb43AkGrzVj
-         OOv4NnG/WnBUyRQMVFOw+prNsX1truxvuckifvrg=
-Date:   Wed, 18 Oct 2023 14:43:46 -0700
-To:     mm-commits@vger.kernel.org, andriy.shevchenko@linux.intel.com,
-        christophe.jaillet@wanadoo.fr, akpm@linux-foundation.org
+        b=Zky5SV1kEHk77aT++T1hV7ho5giVUx94PyUfA7ZLBihL+7mtPiYp61yepxvBi4ent
+         FpjIkggv+8Uif8+dgHPJMECb/m/C4cE0OaOip+LgbjY9ZMHHkhYYrfJ1CeLNxjo71i
+         gajnYqMeUh3pT7LDmzYcpGLZl8YKWwnoG9Oxnvog=
+Date:   Wed, 18 Oct 2023 14:43:47 -0700
+To:     mm-commits@vger.kernel.org, trix@redhat.com,
+        ndesaulniers@google.com, nathan@kernel.org, mark@fasheh.com,
+        joseph.qi@linux.alibaba.com, jlbec@evilplan.org,
+        gustavoars@kernel.org, keescook@chromium.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kstrtox-remove-strtobool.patch removed from -mm tree
-Message-Id: <20231018214346.BC2F3C433C9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-annotate-struct-ocfs2_replay_map-with-__counted_by.patch removed from -mm tree
+Message-Id: <20231018214347.B3AD8C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,44 +39,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kstrtox: remove strtobool()
+     Subject: ocfs2: annotate struct ocfs2_replay_map with __counted_by
 has been removed from the -mm tree.  Its filename was
-     kstrtox-remove-strtobool.patch
+     ocfs2-annotate-struct-ocfs2_replay_map-with-__counted_by.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: kstrtox: remove strtobool()
-Date: Sat, 16 Sep 2023 17:50:11 +0200
+From: Kees Cook <keescook@chromium.org>
+Subject: ocfs2: annotate struct ocfs2_replay_map with __counted_by
+Date: Fri, 22 Sep 2023 10:49:30 -0700
 
-The conversion from strtobool() to kstrtobool() is completed.  So
-strtobool() can now be removed.
+Prepare for the coming implementation by GCC and Clang of the __counted_by
+attribute.  Flexible array members annotated with __counted_by can have
+their accesses bounds-checked at run-time checking via CONFIG_UBSAN_BOUNDS
+(for array indexing) and CONFIG_FORTIFY_SOURCE (for strcpy/memcpy-family
+functions).
 
-Link: https://lkml.kernel.org/r/87e3cc2547df174cd5af1fadbf866be4ef9e8e45.1694878151.git.christophe.jaillet@wanadoo.fr
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+As found with Coccinelle[1], add __counted_by for struct ocfs2_replay_map.
+
+[1] https://github.com/kees/kernel-tools/blob/trunk/coccinelle/examples/counted_by.cocci
+
+Link: https://lkml.kernel.org/r/20230922174925.work.293-kees@kernel.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Tom Rix <trix@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kstrtox.h |    5 -----
- 1 file changed, 5 deletions(-)
+ fs/ocfs2/journal.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/kstrtox.h~kstrtox-remove-strtobool
-+++ a/include/linux/kstrtox.h
-@@ -147,9 +147,4 @@ extern long simple_strtol(const char *,c
- extern unsigned long long simple_strtoull(const char *,char **,unsigned int);
- extern long long simple_strtoll(const char *,char **,unsigned int);
+--- a/fs/ocfs2/journal.c~ocfs2-annotate-struct-ocfs2_replay_map-with-__counted_by
++++ a/fs/ocfs2/journal.c
+@@ -90,7 +90,7 @@ enum ocfs2_replay_state {
+ struct ocfs2_replay_map {
+ 	unsigned int rm_slots;
+ 	enum ocfs2_replay_state rm_state;
+-	unsigned char rm_replay_slots[];
++	unsigned char rm_replay_slots[] __counted_by(rm_slots);
+ };
  
--static inline int strtobool(const char *s, bool *res)
--{
--	return kstrtobool(s, res);
--}
--
- #endif	/* _LINUX_KSTRTOX_H */
+ static void ocfs2_replay_map_set_state(struct ocfs2_super *osb, int state)
 _
 
-Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
+Patches currently in -mm which might be from keescook@chromium.org are
 
 
