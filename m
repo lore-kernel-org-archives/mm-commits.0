@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A147FCDB485
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59AB8CDB483
 	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344835AbjJRVhj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1344834AbjJRVhj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 18 Oct 2023 17:37:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55788 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54576 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235334AbjJRVgw (ORCPT
+        with ESMTP id S235337AbjJRVgw (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:52 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43692D68
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:36:00 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA396C433C9;
-        Wed, 18 Oct 2023 21:35:59 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D4AED77
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:36:02 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B34D7C433C8;
+        Wed, 18 Oct 2023 21:36:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697664959;
-        bh=Y1LFlL+JuH4vb0BkrBPOR4KLi7pOEX6n/W8hBxBhfU4=;
+        s=korg; t=1697664961;
+        bh=u3XQAwUBF+JgmiYMOPKyp0XLNj8emh7b8RZfXw7Ete0=;
         h=Date:To:From:Subject:From;
-        b=p5g7OZOlO7+7vrckkK9iPb1sYOEII9mZmXlOHeU1/kBcRAcluiyoWeX56oGtFsU3+
-         5ybZnJ34BiQd8IG+kigR4jT4Yu0wB6LdLjbNGJz/VNPEFTxWdZkVURvSRkyqMUgQWV
-         gyHH2k5VxggDf4wXfACKAJARg47XpQuRywAy0d80=
-Date:   Wed, 18 Oct 2023 14:35:59 -0700
+        b=0wTCMDGrdbEHNRLDPa6rqZm63sHKMNcM7yH5duyQCUCOaVJ39yEEIUp1xagjjb2fS
+         xKvJJrj5Ptfvr5zGFZOdUoVIU1OHjH2oYrPR/XEqkoiBlB6NCzt1sgxiOvkGHwIyZx
+         /n45pG+Y7ztATsh4JacDet7YO0CYgz19mKoO+wVg=
+Date:   Wed, 18 Oct 2023 14:36:00 -0700
 To:     mm-commits@vger.kernel.org, vschneid@redhat.com,
         vincent.guittot@linaro.org, sclaibin@gmail.com,
         rostedt@goodmis.org, peterz@infradead.org, mingo@redhat.com,
@@ -31,8 +31,8 @@ To:     mm-commits@vger.kernel.org, vschneid@redhat.com,
         dietmar.eggemann@arm.com, bsegall@google.com, bristot@redhat.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] filemap-remove-use-of-wait-bookmarks.patch removed from -mm tree
-Message-Id: <20231018213559.CA396C433C9@smtp.kernel.org>
+Subject: [merged mm-stable] sched-remove-wait-bookmarks.patch removed from -mm tree
+Message-Id: <20231018213601.B34D7C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,82 +40,190 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: filemap: remove use of wait bookmarks
+     Subject: sched: remove wait bookmarks
 has been removed from the -mm tree.  Its filename was
-     filemap-remove-use-of-wait-bookmarks.patch
+     sched-remove-wait-bookmarks.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: filemap: remove use of wait bookmarks
-Date: Tue, 10 Oct 2023 04:58:28 +0100
+Subject: sched: remove wait bookmarks
+Date: Tue, 10 Oct 2023 04:58:29 +0100
 
-The original problem of the overly long list of waiters on a locked page
-was solved properly by commit 9a1ea439b16b ("mm:
-put_and_wait_on_page_locked() while page is migrated").  In the meantime,
-using bookmarks for the writeback bit can cause livelocks, so we need to
-stop using them.
+There are no users of wait bookmarks left, so simplify the wait
+code by removing them.
 
-Link: https://lkml.kernel.org/r/20231010035829.544242-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231010035829.544242-2-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Bin Lai <sclaibin@gmail.com>
+Acked-by: Ingo Molnar <mingo@kernel.org>
 Cc: Benjamin Segall <bsegall@google.com>
+Cc: Bin Lai <sclaibin@gmail.com>
 Cc: Daniel Bristot de Oliveira <bristot@redhat.com>
 Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Cc: Valentin Schneider <vschneid@redhat.com>
 Cc: Vincent Guittot <vincent.guittot@linaro.org>
-
-Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   21 +--------------------
- 1 file changed, 1 insertion(+), 20 deletions(-)
+ include/linux/wait.h |    9 ++----
+ kernel/sched/wait.c  |   60 ++++++-----------------------------------
+ 2 files changed, 13 insertions(+), 56 deletions(-)
 
---- a/mm/filemap.c~filemap-remove-use-of-wait-bookmarks
-+++ a/mm/filemap.c
-@@ -1133,32 +1133,13 @@ static void folio_wake_bit(struct folio
- 	wait_queue_head_t *q = folio_waitqueue(folio);
- 	struct wait_page_key key;
+--- a/include/linux/wait.h~sched-remove-wait-bookmarks
++++ a/include/linux/wait.h
+@@ -19,10 +19,9 @@ int default_wake_function(struct wait_qu
+ /* wait_queue_entry::flags */
+ #define WQ_FLAG_EXCLUSIVE	0x01
+ #define WQ_FLAG_WOKEN		0x02
+-#define WQ_FLAG_BOOKMARK	0x04
+-#define WQ_FLAG_CUSTOM		0x08
+-#define WQ_FLAG_DONE		0x10
+-#define WQ_FLAG_PRIORITY	0x20
++#define WQ_FLAG_CUSTOM		0x04
++#define WQ_FLAG_DONE		0x08
++#define WQ_FLAG_PRIORITY	0x10
+ 
+ /*
+  * A single wait-queue entry structure:
+@@ -212,8 +211,6 @@ __remove_wait_queue(struct wait_queue_he
+ int __wake_up(struct wait_queue_head *wq_head, unsigned int mode, int nr, void *key);
+ void __wake_up_on_current_cpu(struct wait_queue_head *wq_head, unsigned int mode, void *key);
+ void __wake_up_locked_key(struct wait_queue_head *wq_head, unsigned int mode, void *key);
+-void __wake_up_locked_key_bookmark(struct wait_queue_head *wq_head,
+-		unsigned int mode, void *key, wait_queue_entry_t *bookmark);
+ void __wake_up_sync_key(struct wait_queue_head *wq_head, unsigned int mode, void *key);
+ void __wake_up_locked_sync_key(struct wait_queue_head *wq_head, unsigned int mode, void *key);
+ void __wake_up_locked(struct wait_queue_head *wq_head, unsigned int mode, int nr);
+--- a/kernel/sched/wait.c~sched-remove-wait-bookmarks
++++ a/kernel/sched/wait.c
+@@ -58,13 +58,6 @@ void remove_wait_queue(struct wait_queue
+ EXPORT_SYMBOL(remove_wait_queue);
+ 
+ /*
+- * Scan threshold to break wait queue walk.
+- * This allows a waker to take a break from holding the
+- * wait queue lock during the wait queue walk.
+- */
+-#define WAITQUEUE_WALK_BREAK_CNT 64
+-
+-/*
+  * The core wakeup function. Non-exclusive wakeups (nr_exclusive == 0) just
+  * wake everything up. If it's an exclusive wakeup (nr_exclusive == small +ve
+  * number) then we wake that number of exclusive tasks, and potentially all
+@@ -78,21 +71,13 @@ EXPORT_SYMBOL(remove_wait_queue);
+  * zero in this (rare) case, and we handle it by continuing to scan the queue.
+  */
+ static int __wake_up_common(struct wait_queue_head *wq_head, unsigned int mode,
+-			int nr_exclusive, int wake_flags, void *key,
+-			wait_queue_entry_t *bookmark)
++			int nr_exclusive, int wake_flags, void *key)
+ {
+ 	wait_queue_entry_t *curr, *next;
+-	int cnt = 0;
+ 
+ 	lockdep_assert_held(&wq_head->lock);
+ 
+-	if (bookmark && (bookmark->flags & WQ_FLAG_BOOKMARK)) {
+-		curr = list_next_entry(bookmark, entry);
+-
+-		list_del(&bookmark->entry);
+-		bookmark->flags = 0;
+-	} else
+-		curr = list_first_entry(&wq_head->head, wait_queue_entry_t, entry);
++	curr = list_first_entry(&wq_head->head, wait_queue_entry_t, entry);
+ 
+ 	if (&curr->entry == &wq_head->head)
+ 		return nr_exclusive;
+@@ -101,21 +86,11 @@ static int __wake_up_common(struct wait_
+ 		unsigned flags = curr->flags;
+ 		int ret;
+ 
+-		if (flags & WQ_FLAG_BOOKMARK)
+-			continue;
+-
+ 		ret = curr->func(curr, mode, wake_flags, key);
+ 		if (ret < 0)
+ 			break;
+ 		if (ret && (flags & WQ_FLAG_EXCLUSIVE) && !--nr_exclusive)
+ 			break;
+-
+-		if (bookmark && (++cnt > WAITQUEUE_WALK_BREAK_CNT) &&
+-				(&next->entry != &wq_head->head)) {
+-			bookmark->flags = WQ_FLAG_BOOKMARK;
+-			list_add_tail(&bookmark->entry, &next->entry);
+-			break;
+-		}
+ 	}
+ 
+ 	return nr_exclusive;
+@@ -125,20 +100,12 @@ static int __wake_up_common_lock(struct
+ 			int nr_exclusive, int wake_flags, void *key)
+ {
  	unsigned long flags;
 -	wait_queue_entry_t bookmark;
- 
- 	key.folio = folio;
- 	key.bit_nr = bit_nr;
- 	key.page_match = 0;
+-	int remaining = nr_exclusive;
++	int remaining;
  
 -	bookmark.flags = 0;
 -	bookmark.private = NULL;
 -	bookmark.func = NULL;
 -	INIT_LIST_HEAD(&bookmark.entry);
 -
- 	spin_lock_irqsave(&q->lock, flags);
--	__wake_up_locked_key_bookmark(q, TASK_NORMAL, &key, &bookmark);
--
--	while (bookmark.flags & WQ_FLAG_BOOKMARK) {
--		/*
--		 * Take a breather from holding the lock,
--		 * allow pages that finish wake up asynchronously
--		 * to acquire the lock and remove themselves
--		 * from wait queue
--		 */
--		spin_unlock_irqrestore(&q->lock, flags);
--		cpu_relax();
--		spin_lock_irqsave(&q->lock, flags);
--		__wake_up_locked_key_bookmark(q, TASK_NORMAL, &key, &bookmark);
--	}
-+	__wake_up_locked_key(q, TASK_NORMAL, &key);
+-	do {
+-		spin_lock_irqsave(&wq_head->lock, flags);
+-		remaining = __wake_up_common(wq_head, mode, remaining,
+-						wake_flags, key, &bookmark);
+-		spin_unlock_irqrestore(&wq_head->lock, flags);
+-	} while (bookmark.flags & WQ_FLAG_BOOKMARK);
++	spin_lock_irqsave(&wq_head->lock, flags);
++	remaining = __wake_up_common(wq_head, mode, nr_exclusive, wake_flags,
++			key);
++	spin_unlock_irqrestore(&wq_head->lock, flags);
  
- 	/*
- 	 * It's possible to miss clearing waiters here, when we woke our page
+ 	return nr_exclusive - remaining;
+ }
+@@ -171,23 +138,16 @@ void __wake_up_on_current_cpu(struct wai
+  */
+ void __wake_up_locked(struct wait_queue_head *wq_head, unsigned int mode, int nr)
+ {
+-	__wake_up_common(wq_head, mode, nr, 0, NULL, NULL);
++	__wake_up_common(wq_head, mode, nr, 0, NULL);
+ }
+ EXPORT_SYMBOL_GPL(__wake_up_locked);
+ 
+ void __wake_up_locked_key(struct wait_queue_head *wq_head, unsigned int mode, void *key)
+ {
+-	__wake_up_common(wq_head, mode, 1, 0, key, NULL);
++	__wake_up_common(wq_head, mode, 1, 0, key);
+ }
+ EXPORT_SYMBOL_GPL(__wake_up_locked_key);
+ 
+-void __wake_up_locked_key_bookmark(struct wait_queue_head *wq_head,
+-		unsigned int mode, void *key, wait_queue_entry_t *bookmark)
+-{
+-	__wake_up_common(wq_head, mode, 1, 0, key, bookmark);
+-}
+-EXPORT_SYMBOL_GPL(__wake_up_locked_key_bookmark);
+-
+ /**
+  * __wake_up_sync_key - wake up threads blocked on a waitqueue.
+  * @wq_head: the waitqueue
+@@ -233,7 +193,7 @@ EXPORT_SYMBOL_GPL(__wake_up_sync_key);
+ void __wake_up_locked_sync_key(struct wait_queue_head *wq_head,
+ 			       unsigned int mode, void *key)
+ {
+-        __wake_up_common(wq_head, mode, 1, WF_SYNC, key, NULL);
++        __wake_up_common(wq_head, mode, 1, WF_SYNC, key);
+ }
+ EXPORT_SYMBOL_GPL(__wake_up_locked_sync_key);
+ 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
