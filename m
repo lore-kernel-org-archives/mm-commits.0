@@ -2,33 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22757C46CA1
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C75F7CDB483
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232127AbjJRVhD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 17:37:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46800 "EHLO
+        id S229891AbjJRVhC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 17:37:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50588 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235276AbjJRVg0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:26 -0400
+        with ESMTP id S235236AbjJRVgZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:25 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5283D199
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3FC09198
         for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:39 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43CADC4339A;
-        Wed, 18 Oct 2023 21:35:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEE60C433B6;
+        Wed, 18 Oct 2023 21:35:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697664932;
-        bh=Ue+0JPjOUorDIpeEA+Mb9N+V48x/rPZAUbecK5iWaTU=;
+        s=korg; t=1697664935;
+        bh=Iva0A++KX/VSC9in12y6zWEkmPzlkf+R+XB9SIxd4vo=;
         h=Date:To:From:Subject:From;
-        b=bFLptoWmgunU+lVHcP4qkHa7ac8lQUaenqGtHH1Yb3Y+XFwZpXFXpvVOZrMc9/Yuw
-         qt650V0L5mFpjcC6tyYjLSACsUM13ZUN0Gz3Cfvws1ejby4vVV6zK42iRrDdgrviCe
-         iC+LVDnmn3T5ljx/4jpZwB88SlkDKduYVRx9rsfk=
-Date:   Wed, 18 Oct 2023 14:35:31 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        p.raghav@samsung.com, akpm@linux-foundation.org
+        b=nfvxoQLPnESat6b71VaNZz7DGqO7MyNuBP5SRmCVdC/xgke3TljkdcUFtTrrk6xRC
+         PJY1OzTguteDShARMvWFw5Ykh8oFZ1U4GUkiTrxkvfoeGPYeRyo1ZIlFCZCvsaisqs
+         wN/7xvzZYfP0wClpnXGXMA0STLyhjd2uoeS2+V+g=
+Date:   Wed, 18 Oct 2023 14:35:34 -0700
+To:     mm-commits@vger.kernel.org, riel@surriel.com,
+        muchun.song@linux.dev, mike.kravetz@oracle.com, leitao@debian.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] filemap-call-filemap_get_folios_tag-from-filemap_get_folios.patch removed from -mm tree
-Message-Id: <20231018213532.43CADC4339A@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-add-a-new-test-for-madv-and-hugetlb.patch removed from -mm tree
+Message-Id: <20231018213534.DEE60C433B6@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,103 +37,154 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: filemap: call filemap_get_folios_tag() from filemap_get_folios()
+     Subject: selftests/mm: add a new test for madv and hugetlb
 has been removed from the -mm tree.  Its filename was
-     filemap-call-filemap_get_folios_tag-from-filemap_get_folios.patch
+     selftests-mm-add-a-new-test-for-madv-and-hugetlb.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pankaj Raghav <p.raghav@samsung.com>
-Subject: filemap: call filemap_get_folios_tag() from filemap_get_folios()
-Date: Fri, 6 Oct 2023 13:01:20 +0200
+From: Breno Leitao <leitao@debian.org>
+Subject: selftests/mm: add a new test for madv and hugetlb
+Date: Thu, 5 Oct 2023 09:39:22 -0700
 
-filemap_get_folios() is filemap_get_folios_tag() with XA_PRESENT as the
-tag that is being matched.  Return filemap_get_folios_tag() with
-XA_PRESENT as the tag instead of duplicating the code in
-filemap_get_folios().
+Create a selftest that exercises the race between page faults and
+madvise(MADV_DONTNEED) in the same huge page. Do it by running two
+threads that touches the huge page and madvise(MADV_DONTNEED) at the same
+time.
 
-No functional changes.
+In case of a SIGBUS coming at pagefault, the test should fail, since we
+hit the bug.
 
-Link: https://lkml.kernel.org/r/20231006110120.136809-1-kernel@pankajraghav.com
-Signed-off-by: Pankaj Raghav <p.raghav@samsung.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+The test doesn't have a signal handler, and if it fails, it fails like
+the following
+
+  ----------------------------------
+  running ./hugetlb_fault_after_madv
+  ----------------------------------
+  ./run_vmtests.sh: line 186: 595563 Bus error    (core dumped) "$@"
+  [FAIL]
+
+This selftest goes together with the fix of the bug[1] itself.
+
+[1] https://lore.kernel.org/all/20231001005659.2185316-1-riel@surriel.com/#r
+
+Link: https://lkml.kernel.org/r/20231005163922.87568-3-leitao@debian.org
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Reviewed-by: Rik van Riel <riel@surriel.com>
+Tested-by: Rik van Riel <riel@surriel.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   45 ++++++++-------------------------------------
- 1 file changed, 8 insertions(+), 37 deletions(-)
+ tools/testing/selftests/mm/Makefile                   |    1 
+ tools/testing/selftests/mm/hugetlb_fault_after_madv.c |   73 ++++++++++
+ tools/testing/selftests/mm/run_vmtests.sh             |    4 
+ 3 files changed, 78 insertions(+)
 
---- a/mm/filemap.c~filemap-call-filemap_get_folios_tag-from-filemap_get_folios
-+++ a/mm/filemap.c
-@@ -2120,48 +2120,13 @@ put:
-  * index @start and up to index @end (inclusive).  The folios are returned
-  * in @fbatch with an elevated reference count.
-  *
-- * The first folio may start before @start; if it does, it will contain
-- * @start.  The final folio may extend beyond @end; if it does, it will
-- * contain @end.  The folios have ascending indices.  There may be gaps
-- * between the folios if there are indices which have no folio in the
-- * page cache.  If folios are added to or removed from the page cache
-- * while this is running, they may or may not be found by this call.
-- *
-  * Return: The number of folios which were found.
-  * We also update @start to index the next folio for the traversal.
-  */
- unsigned filemap_get_folios(struct address_space *mapping, pgoff_t *start,
- 		pgoff_t end, struct folio_batch *fbatch)
- {
--	XA_STATE(xas, &mapping->i_pages, *start);
--	struct folio *folio;
--
--	rcu_read_lock();
--	while ((folio = find_get_entry(&xas, end, XA_PRESENT)) != NULL) {
--		/* Skip over shadow, swap and DAX entries */
--		if (xa_is_value(folio))
--			continue;
--		if (!folio_batch_add(fbatch, folio)) {
--			unsigned long nr = folio_nr_pages(folio);
--			*start = folio->index + nr;
--			goto out;
--		}
--	}
--
--	/*
--	 * We come here when there is no page beyond @end. We take care to not
--	 * overflow the index @start as it confuses some of the callers. This
--	 * breaks the iteration when there is a page at index -1 but that is
--	 * already broken anyway.
--	 */
--	if (end == (pgoff_t)-1)
--		*start = (pgoff_t)-1;
--	else
--		*start = end + 1;
--out:
--	rcu_read_unlock();
--
--	return folio_batch_count(fbatch);
-+	return filemap_get_folios_tag(mapping, start, end, XA_PRESENT, fbatch);
- }
- EXPORT_SYMBOL(filemap_get_folios);
+--- /dev/null
++++ a/tools/testing/selftests/mm/hugetlb_fault_after_madv.c
+@@ -0,0 +1,73 @@
++// SPDX-License-Identifier: GPL-2.0
++#include <pthread.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <sys/mman.h>
++#include <sys/types.h>
++#include <unistd.h>
++
++#include "vm_util.h"
++#include "../kselftest.h"
++
++#define MMAP_SIZE (1 << 21)
++#define INLOOP_ITER 100
++
++char *huge_ptr;
++
++/* Touch the memory while it is being madvised() */
++void *touch(void *unused)
++{
++	char *ptr = (char *)huge_ptr;
++
++	for (int i = 0; i < INLOOP_ITER; i++)
++		ptr[0] = '.';
++
++	return NULL;
++}
++
++void *madv(void *unused)
++{
++	usleep(rand() % 10);
++
++	for (int i = 0; i < INLOOP_ITER; i++)
++		madvise(huge_ptr, MMAP_SIZE, MADV_DONTNEED);
++
++	return NULL;
++}
++
++int main(void)
++{
++	unsigned long free_hugepages;
++	pthread_t thread1, thread2;
++	/*
++	 * On kernel 6.4, we are able to reproduce the problem with ~1000
++	 * interactions
++	 */
++	int max = 10000;
++
++	srand(getpid());
++
++	free_hugepages = get_free_hugepages();
++	if (free_hugepages != 1) {
++		ksft_exit_skip("This test needs one and only one page to execute. Got %lu\n",
++			       free_hugepages);
++	}
++
++	while (max--) {
++		huge_ptr = mmap(NULL, MMAP_SIZE, PROT_READ | PROT_WRITE,
++				MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB,
++				-1, 0);
++
++		if ((unsigned long)huge_ptr == -1)
++			ksft_exit_skip("Failed to allocated huge page\n");
++
++		pthread_create(&thread1, NULL, madv, NULL);
++		pthread_create(&thread2, NULL, touch, NULL);
++
++		pthread_join(thread1, NULL);
++		pthread_join(thread2, NULL);
++		munmap(huge_ptr, MMAP_SIZE);
++	}
++
++	return KSFT_PASS;
++}
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-a-new-test-for-madv-and-hugetlb
++++ a/tools/testing/selftests/mm/Makefile
+@@ -69,6 +69,7 @@ TEST_GEN_FILES += split_huge_page_test
+ TEST_GEN_FILES += ksm_tests
+ TEST_GEN_FILES += ksm_functional_tests
+ TEST_GEN_FILES += mdwe_test
++TEST_GEN_FILES += hugetlb_fault_after_madv
  
-@@ -2240,7 +2205,13 @@ EXPORT_SYMBOL(filemap_get_folios_contig)
-  * @tag:        The tag index
-  * @fbatch:     The batch to fill
-  *
-- * Same as filemap_get_folios(), but only returning folios tagged with @tag.
-+ * The first folio may start before @start; if it does, it will contain
-+ * @start.  The final folio may extend beyond @end; if it does, it will
-+ * contain @end.  The folios have ascending indices.  There may be gaps
-+ * between the folios if there are indices which have no folio in the
-+ * page cache.  If folios are added to or removed from the page cache
-+ * while this is running, they may or may not be found by this call.
-+ * Only returns folios that are tagged with @tag.
-  *
-  * Return: The number of folios found.
-  * Also update @start to index the next folio for traversal.
+ ifneq ($(ARCH),arm64)
+ TEST_GEN_PROGS += soft-dirty
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-a-new-test-for-madv-and-hugetlb
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -223,6 +223,10 @@ CATEGORY="hugetlb" run_test ./hugepage-m
+ CATEGORY="hugetlb" run_test ./hugepage-vmemmap
+ CATEGORY="hugetlb" run_test ./hugetlb-madvise
+ 
++# For this test, we need one and just one huge page
++echo 1 > /proc/sys/vm/nr_hugepages
++CATEGORY="hugetlb" run_test ./hugetlb_fault_after_madv
++
+ if test_selected "hugetlb"; then
+ 	echo "NOTE: These hugetlb tests provide minimal coverage.  Use"
+ 	echo "      https://github.com/libhugetlbfs/libhugetlbfs.git for"
 _
 
-Patches currently in -mm which might be from p.raghav@samsung.com are
+Patches currently in -mm which might be from leitao@debian.org are
 
 
