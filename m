@@ -2,36 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC316CDB486
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3328CDB482
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344846AbjJRVhp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1344848AbjJRVhp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 18 Oct 2023 17:37:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50052 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46814 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235351AbjJRVg6 (ORCPT
+        with ESMTP id S235349AbjJRVg6 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:58 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 663C0D47
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:36:15 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30B5CC433CA;
-        Wed, 18 Oct 2023 21:36:15 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AAE981BB
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:36:12 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77BD7C433C8;
+        Wed, 18 Oct 2023 21:36:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697664975;
-        bh=EtZcUI/JB/Rce2SDIyXB4CEdtVe0RpIhI+YVYKIoJxo=;
+        s=korg; t=1697664972;
+        bh=fFd0huWzEe0ubC4KMkC6bATJK+5PvzrQSZ1nZLFRLGE=;
         h=Date:To:From:Subject:From;
-        b=0/xAIWVIY+fxtjjy5LaIMg9zz7Zlcz8jQbpMN7MH6unLDcd/cHy56iQkaFHi75rjT
-         eup8S7mwsje6iMFVCn5KIIzJg7TGCIIMFh1sOUAZcnbKlecL6f9ilw5H2ngyfn8Uic
-         ipidKeCiKjgn9NHERwYjIWntYgLOQpa6zK9bmMnQ=
-Date:   Wed, 18 Oct 2023 14:36:14 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        viro@zeniv.linux.org.uk, muchun.song@linux.dev,
-        mike.kravetz@oracle.com, luto@kernel.org, jack@suse.cz,
-        hughd@google.com, brauner@kernel.org, lstoakes@gmail.com,
+        b=taLAgPZFDyLTx9MyudgTG+MK98uIHtxogFBgbT92loy00NfLMo0Sp6eCbmf0MP29C
+         DurUz5TWQh6aZqsWcCladU/h4/hJhbkOW/fI/dP1BYllgSRoyqvmV61QN7jOXY7ztt
+         BnhrM4oZstQQtLpVCpNbE1JQ6VtpFXles3tr+Fmc=
+Date:   Wed, 18 Oct 2023 14:36:11 -0700
+To:     mm-commits@vger.kernel.org, corbet@lwn.net, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-drop-the-assumption-that-vm_shared-always-implies-writable.patch removed from -mm tree
-Message-Id: <20231018213615.30B5CC433CA@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-sysfs-schemes-do-not-update-tried-regions-more-than-one-damon-snapshot.patch removed from -mm tree
+Message-Id: <20231018213612.77BD7C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,226 +36,203 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: drop the assumption that VM_SHARED always implies writable
+     Subject: mm/damon/sysfs-schemes: do not update tried regions more than one DAMON snapshot
 has been removed from the -mm tree.  Its filename was
-     mm-drop-the-assumption-that-vm_shared-always-implies-writable.patch
+     mm-damon-sysfs-schemes-do-not-update-tried-regions-more-than-one-damon-snapshot.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm: drop the assumption that VM_SHARED always implies writable
-Date: Thu, 12 Oct 2023 18:04:28 +0100
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs-schemes: do not update tried regions more than one DAMON snapshot
+Date: Thu, 12 Oct 2023 19:22:53 +0000
 
-Patch series "permit write-sealed memfd read-only shared mappings", v4.
+Patch series "mm/damon/sysfs-schemes: Do DAMOS tried regions update for
+only one apply interval".
 
-The man page for fcntl() describing memfd file seals states the following
-about F_SEAL_WRITE:-
+DAMOS tried regions update feature of DAMON sysfs interface is doing the
+update for one aggregation interval after the request is made.  Since the
+per-scheme apply interval is supported, that behavior makes no much sense.
+That is, the tried regions directory will have regions from multiple
+DAMON monitoring results snapshots, or no region for apply intervals that
+much shorter than, or longer than the aggregation interval, respectively. 
+Update the behavior to update the regions for each scheme for only its
+apply interval, and update the document.
 
-    Furthermore, trying to create new shared, writable memory-mappings via
-    mmap(2) will also fail with EPERM.
+Since DAMOS apply interval is the aggregation by default, this change
+makes no visible behavioral difference to old users who don't explicitly
+set the apply intervals.
 
-With emphasis on 'writable'.  In turns out in fact that currently the
-kernel simply disallows all new shared memory mappings for a memfd with
-F_SEAL_WRITE applied, rendering this documentation inaccurate.
+Patches Sequence
+----------------
 
-This matters because users are therefore unable to obtain a shared mapping
-to a memfd after write sealing altogether, which limits their usefulness. 
-This was reported in the discussion thread [1] originating from a bug
-report [2].
+The first two patches makes schemes of apply intervals that much shorter
+or longer than the aggregation interval to keep the maximum and minimum
+times for continuing the update.  After the two patches, the update aligns
+with the each scheme's apply interval.
 
-This is a product of both using the struct address_space->i_mmap_writable
-atomic counter to determine whether writing may be permitted, and the
-kernel adjusting this counter when any VM_SHARED mapping is performed and
-more generally implicitly assuming VM_SHARED implies writable.
-
-It seems sensible that we should only update this mapping if VM_MAYWRITE
-is specified, i.e.  whether it is possible that this mapping could at any
-point be written to.
-
-If we do so then all we need to do to permit write seals to function as
-documented is to clear VM_MAYWRITE when mapping read-only.  It turns out
-this functionality already exists for F_SEAL_FUTURE_WRITE - we can
-therefore simply adapt this logic to do the same for F_SEAL_WRITE.
-
-We then hit a chicken and egg situation in mmap_region() where the check
-for VM_MAYWRITE occurs before we are able to clear this flag.  To work
-around this, perform this check after we invoke call_mmap(), with careful
-consideration of error paths.
-
-Thanks to Andy Lutomirski for the suggestion!
-
-[1]:https://lore.kernel.org/all/20230324133646.16101dfa666f253c4715d965@linux-foundation.org/
-[2]:https://bugzilla.kernel.org/show_bug.cgi?id=217238
+Finally, the third patch updates the document to reflect the behavior.
 
 
 This patch (of 3):
 
-There is a general assumption that VMAs with the VM_SHARED flag set are
-writable.  If the VM_MAYWRITE flag is not set, then this is simply not the
-case.
+DAMON_SYSFS exposes every DAMON-found region that eligible for applying
+the scheme action for one aggregation interval.  However, each DAMON-based
+operation scheme has its own apply interval.  Hence, for a scheme that
+having its apply interval much smaller than the aggregation interval,
+DAMON_SYSFS will expose the scheme regions that applied to more than one
+DAMON monitoring results snapshots.  Since the purpose of DAMON tried
+regions is exposing single snapshot, this makes no much sense.  Track
+progress of each scheme's tried regions update and avoid the case.
 
-Update those checks which affect the struct address_space->i_mmap_writable
-field to explicitly test for this by introducing
-[vma_]is_shared_maywrite() helper functions.
-
-This remains entirely conservative, as the lack of VM_MAYWRITE guarantees
-that the VMA cannot be written to.
-
-Link: https://lkml.kernel.org/r/cover.1697116581.git.lstoakes@gmail.com
-Link: https://lkml.kernel.org/r/d978aefefa83ec42d18dfa964ad180dbcde34795.1697116581.git.lstoakes@gmail.com
-Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Suggested-by: Andy Lutomirski <luto@kernel.org>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+Link: https://lkml.kernel.org/r/20231012192256.33556-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20231012192256.33556-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |    4 ++--
- include/linux/mm.h |   11 +++++++++++
- kernel/fork.c      |    2 +-
- mm/filemap.c       |    2 +-
- mm/madvise.c       |    2 +-
- mm/mmap.c          |   12 ++++++------
- 6 files changed, 22 insertions(+), 11 deletions(-)
+ mm/damon/sysfs-schemes.c |   77 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 77 insertions(+)
 
---- a/include/linux/fs.h~mm-drop-the-assumption-that-vm_shared-always-implies-writable
-+++ a/include/linux/fs.h
-@@ -454,7 +454,7 @@ extern const struct address_space_operat
-  *   It is also used to block modification of page cache contents through
-  *   memory mappings.
-  * @gfp_mask: Memory allocation flags to use for allocating pages.
-- * @i_mmap_writable: Number of VM_SHARED mappings.
-+ * @i_mmap_writable: Number of VM_SHARED, VM_MAYWRITE mappings.
-  * @nr_thps: Number of THPs in the pagecache (non-shmem only).
-  * @i_mmap: Tree of private and shared mappings.
-  * @i_mmap_rwsem: Protects @i_mmap and @i_mmap_writable.
-@@ -557,7 +557,7 @@ static inline int mapping_mapped(struct
- 
- /*
-  * Might pages of this file have been modified in userspace?
-- * Note that i_mmap_writable counts all VM_SHARED vmas: do_mmap
-+ * Note that i_mmap_writable counts all VM_SHARED, VM_MAYWRITE vmas: do_mmap
-  * marks vma as VM_SHARED if it is shared, and the file was opened for
-  * writing i.e. vma may be mprotected writable even if now readonly.
-  *
---- a/include/linux/mm.h~mm-drop-the-assumption-that-vm_shared-always-implies-writable
-+++ a/include/linux/mm.h
-@@ -937,6 +937,17 @@ static inline bool vma_is_accessible(str
- 	return vma->vm_flags & VM_ACCESS_FLAGS;
- }
- 
-+static inline bool is_shared_maywrite(vm_flags_t vm_flags)
-+{
-+	return (vm_flags & (VM_SHARED | VM_MAYWRITE)) ==
-+		(VM_SHARED | VM_MAYWRITE);
-+}
-+
-+static inline bool vma_is_shared_maywrite(struct vm_area_struct *vma)
-+{
-+	return is_shared_maywrite(vma->vm_flags);
-+}
-+
- static inline
- struct vm_area_struct *vma_find(struct vma_iterator *vmi, unsigned long max)
- {
---- a/kernel/fork.c~mm-drop-the-assumption-that-vm_shared-always-implies-writable
-+++ a/kernel/fork.c
-@@ -733,7 +733,7 @@ static __latent_entropy int dup_mmap(str
- 
- 			get_file(file);
- 			i_mmap_lock_write(mapping);
--			if (tmp->vm_flags & VM_SHARED)
-+			if (vma_is_shared_maywrite(tmp))
- 				mapping_allow_writable(mapping);
- 			flush_dcache_mmap_lock(mapping);
- 			/* insert tmp into the share list, just after mpnt */
---- a/mm/filemap.c~mm-drop-the-assumption-that-vm_shared-always-implies-writable
-+++ a/mm/filemap.c
-@@ -3618,7 +3618,7 @@ int generic_file_mmap(struct file *file,
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-do-not-update-tried-regions-more-than-one-damon-snapshot
++++ a/mm/damon/sysfs-schemes.c
+@@ -113,11 +113,47 @@ static const struct kobj_type damon_sysf
+  * scheme regions directory
   */
- int generic_file_readonly_mmap(struct file *file, struct vm_area_struct *vma)
- {
--	if ((vma->vm_flags & VM_SHARED) && (vma->vm_flags & VM_MAYWRITE))
-+	if (vma_is_shared_maywrite(vma))
- 		return -EINVAL;
- 	return generic_file_mmap(file, vma);
+ 
++/*
++ * enum damos_sysfs_regions_upd_status - Represent DAMOS tried regions update
++ *					 status
++ * @DAMOS_TRIED_REGIONS_UPD_IDLE:		Waiting for next request.
++ * @DAMOS_TRIED_REGIONS_UPD_STARTED:		Update started.
++ * @DAMOS_TRIED_REGIONS_UPD_FINISHED:	Update finished.
++ *
++ * Each DAMON-based operation scheme (&struct damos) has its own apply
++ * interval, and we need to expose the scheme tried regions based on only
++ * single snapshot.  For this, we keep the tried regions update status for each
++ * scheme.  The status becomes 'idle' at the beginning.
++ *
++ * Once the tried regions update request is received, the request handling
++ * start function (damon_sysfs_scheme_update_regions_start()) sets the status
++ * of all schemes as 'idle' again, and register ->before_damos_apply() and
++ * ->after_sampling() callbacks.
++ *
++ * Then, the first followup ->before_damos_apply() callback
++ * (damon_sysfs_before_damos_apply()) sets the status 'started'.  The first
++ * ->after_sampling() callback (damon_sysfs_after_sampling()) after the call
++ * is called only after the scheme is completely applied
++ * to the given snapshot.  Hence the callback knows the situation by showing
++ * 'started' status, and sets the status as 'finished'.  Then,
++ * damon_sysfs_before_damos_apply() understands the situation by showing the
++ * 'finished' status and do nothing.
++ *
++ *  Finally, the tried regions request handling finisher function
++ *  (damon_sysfs_schemes_update_regions_stop()) unregisters the callbacks.
++ */
++enum damos_sysfs_regions_upd_status {
++	DAMOS_TRIED_REGIONS_UPD_IDLE,
++	DAMOS_TRIED_REGIONS_UPD_STARTED,
++	DAMOS_TRIED_REGIONS_UPD_FINISHED,
++};
++
+ struct damon_sysfs_scheme_regions {
+ 	struct kobject kobj;
+ 	struct list_head regions_list;
+ 	int nr_regions;
+ 	unsigned long total_bytes;
++	enum damos_sysfs_regions_upd_status upd_status;
+ };
+ 
+ static struct damon_sysfs_scheme_regions *
+@@ -130,6 +166,7 @@ damon_sysfs_scheme_regions_alloc(void)
+ 	INIT_LIST_HEAD(&regions->regions_list);
+ 	regions->nr_regions = 0;
+ 	regions->total_bytes = 0;
++	regions->upd_status = DAMOS_TRIED_REGIONS_UPD_IDLE;
+ 	return regions;
  }
---- a/mm/madvise.c~mm-drop-the-assumption-that-vm_shared-always-implies-writable
-+++ a/mm/madvise.c
-@@ -970,7 +970,7 @@ static long madvise_remove(struct vm_are
- 			return -EINVAL;
- 	}
  
--	if ((vma->vm_flags & (VM_SHARED|VM_WRITE)) != (VM_SHARED|VM_WRITE))
-+	if (!vma_is_shared_maywrite(vma))
- 		return -EACCES;
+@@ -1777,6 +1814,10 @@ static int damon_sysfs_before_damos_appl
+ 		return 0;
  
- 	offset = (loff_t)(start - vma->vm_start)
---- a/mm/mmap.c~mm-drop-the-assumption-that-vm_shared-always-implies-writable
-+++ a/mm/mmap.c
-@@ -107,7 +107,7 @@ void vma_set_page_prot(struct vm_area_st
- static void __remove_shared_vm_struct(struct vm_area_struct *vma,
- 		struct file *file, struct address_space *mapping)
+ 	sysfs_regions = sysfs_schemes->schemes_arr[schemes_idx]->tried_regions;
++	if (sysfs_regions->upd_status == DAMOS_TRIED_REGIONS_UPD_FINISHED)
++		return 0;
++	if (sysfs_regions->upd_status == DAMOS_TRIED_REGIONS_UPD_IDLE)
++		sysfs_regions->upd_status = DAMOS_TRIED_REGIONS_UPD_STARTED;
+ 	sysfs_regions->total_bytes += r->ar.end - r->ar.start;
+ 	if (damos_regions_upd_total_bytes_only)
+ 		return 0;
+@@ -1793,6 +1834,29 @@ static int damon_sysfs_before_damos_appl
+ 	return 0;
+ }
+ 
++/*
++ * DAMON callback that called after each accesses sampling.  While this
++ * callback is registered, damon_sysfs_lock should be held to ensure the
++ * regions directories exist.
++ */
++static int damon_sysfs_after_sampling(struct damon_ctx *ctx)
++{
++	struct damon_sysfs_schemes *sysfs_schemes =
++		damon_sysfs_schemes_for_damos_callback;
++	struct damon_sysfs_scheme_regions *sysfs_regions;
++	int i;
++
++	for (i = 0; i < sysfs_schemes->nr; i++) {
++		sysfs_regions = sysfs_schemes->schemes_arr[i]->tried_regions;
++		if (sysfs_regions->upd_status ==
++				DAMOS_TRIED_REGIONS_UPD_STARTED)
++			sysfs_regions->upd_status =
++				DAMOS_TRIED_REGIONS_UPD_FINISHED;
++	}
++
++	return 0;
++}
++
+ /* Called from damon_sysfs_cmd_request_callback under damon_sysfs_lock */
+ int damon_sysfs_schemes_clear_regions(
+ 		struct damon_sysfs_schemes *sysfs_schemes,
+@@ -1816,6 +1880,16 @@ int damon_sysfs_schemes_clear_regions(
+ 	return 0;
+ }
+ 
++static void damos_tried_regions_init_upd_status(
++		struct damon_sysfs_schemes *sysfs_schemes)
++{
++	int i;
++
++	for (i = 0; i < sysfs_schemes->nr; i++)
++		sysfs_schemes->schemes_arr[i]->tried_regions->upd_status =
++			DAMOS_TRIED_REGIONS_UPD_IDLE;
++}
++
+ /* Called from damon_sysfs_cmd_request_callback under damon_sysfs_lock */
+ int damon_sysfs_schemes_update_regions_start(
+ 		struct damon_sysfs_schemes *sysfs_schemes,
+@@ -1823,8 +1897,10 @@ int damon_sysfs_schemes_update_regions_s
  {
--	if (vma->vm_flags & VM_SHARED)
-+	if (vma_is_shared_maywrite(vma))
- 		mapping_unmap_writable(mapping);
+ 	damon_sysfs_schemes_clear_regions(sysfs_schemes, ctx);
+ 	damon_sysfs_schemes_for_damos_callback = sysfs_schemes;
++	damos_tried_regions_init_upd_status(sysfs_schemes);
+ 	damos_regions_upd_total_bytes_only = total_bytes_only;
+ 	ctx->callback.before_damos_apply = damon_sysfs_before_damos_apply;
++	ctx->callback.after_sampling = damon_sysfs_after_sampling;
+ 	return 0;
+ }
  
- 	flush_dcache_mmap_lock(mapping);
-@@ -384,7 +384,7 @@ static unsigned long count_vma_pages_ran
- static void __vma_link_file(struct vm_area_struct *vma,
- 			    struct address_space *mapping)
+@@ -1837,6 +1913,7 @@ int damon_sysfs_schemes_update_regions_s
  {
--	if (vma->vm_flags & VM_SHARED)
-+	if (vma_is_shared_maywrite(vma))
- 		mapping_allow_writable(mapping);
- 
- 	flush_dcache_mmap_lock(mapping);
-@@ -2846,7 +2846,7 @@ cannot_expand:
- 	vma->vm_pgoff = pgoff;
- 
- 	if (file) {
--		if (vm_flags & VM_SHARED) {
-+		if (is_shared_maywrite(vm_flags)) {
- 			error = mapping_map_writable(file->f_mapping);
- 			if (error)
- 				goto free_vma;
-@@ -2920,7 +2920,7 @@ cannot_expand:
- 	mm->map_count++;
- 	if (vma->vm_file) {
- 		i_mmap_lock_write(vma->vm_file->f_mapping);
--		if (vma->vm_flags & VM_SHARED)
-+		if (vma_is_shared_maywrite(vma))
- 			mapping_allow_writable(vma->vm_file->f_mapping);
- 
- 		flush_dcache_mmap_lock(vma->vm_file->f_mapping);
-@@ -2937,7 +2937,7 @@ cannot_expand:
- 
- 	/* Once vma denies write, undo our temporary denial count */
- unmap_writable:
--	if (file && vm_flags & VM_SHARED)
-+	if (file && is_shared_maywrite(vm_flags))
- 		mapping_unmap_writable(file->f_mapping);
- 	file = vma->vm_file;
- 	ksm_add_vma(vma);
-@@ -2985,7 +2985,7 @@ unmap_and_free_vma:
- 		unmap_region(mm, &vmi.mas, vma, prev, next, vma->vm_start,
- 			     vma->vm_end, vma->vm_end, true);
- 	}
--	if (file && (vm_flags & VM_SHARED))
-+	if (file && is_shared_maywrite(vm_flags))
- 		mapping_unmap_writable(file->f_mapping);
- free_vma:
- 	vm_area_free(vma);
+ 	damon_sysfs_schemes_for_damos_callback = NULL;
+ 	ctx->callback.before_damos_apply = NULL;
++	ctx->callback.after_sampling = NULL;
+ 	damon_sysfs_schemes_region_idx = 0;
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from lstoakes@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
 
