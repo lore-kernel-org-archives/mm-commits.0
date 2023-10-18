@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AE12CDB485
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDEA5CDB482
 	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235236AbjJRVhH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 17:37:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46814 "EHLO
+        id S235251AbjJRVhI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 17:37:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41632 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235281AbjJRVg0 (ORCPT
+        with ESMTP id S235282AbjJRVg0 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:26 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C3BF21A4
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:40 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8ED4DC433C8;
-        Wed, 18 Oct 2023 21:35:40 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6081119B
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:39 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A98C6C43391;
+        Wed, 18 Oct 2023 21:35:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697664940;
-        bh=aYlMK15J+7Qs+l1pmeIFJ+KcNXTEsL9x0eJO89AVlDw=;
+        s=korg; t=1697664937;
+        bh=FeKj4wcJOrWT2oM2uc2obrp5f4zaZbxYx6PXrHPlAH0=;
         h=Date:To:From:Subject:From;
-        b=16uJA1fWpGzoT3r4lsgO+zHmt/1pHYdpWKaEOKMHLnGz/zWTw+msETfRWpRcp8Dsy
-         2VLUivQ73doo6knaINVWS5SQ+VlFw1jqHQ2pCM1J1G4WNnXfF26nhoe1LaYJvpah4A
-         JgHjlVkUFYLtfjz96+sd3mGY5gU2PhfhUZeQa3yA=
-Date:   Wed, 18 Oct 2023 14:35:39 -0700
+        b=pTl/bHj7W1O/WQCW2HOqlZPnYx5HUP93NaOUoKeQLK795wUV9pjbg2YisAyZfENVw
+         OriSVuqTlkCM3aykZN4ZM8Cvy2KA8sIz0SC5GQVU0/kmQr3RID/XN4+jqRTFB5kQ2H
+         fJi2w5Uchp5ODo9iuBTiTdlvfRSecZmL+JtRhb4Q=
+Date:   Wed, 18 Oct 2023 14:35:37 -0700
 To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         tsbogend@alpha.franken.de, svens@linux.ibm.com,
         richard.henderson@linaro.org, paul.walmsley@sifive.com,
@@ -35,8 +35,8 @@ To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         adilger.kernel@dilger.ca, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] iomap-use-folio_end_read.patch removed from -mm tree
-Message-Id: <20231018213540.8ED4DC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-folio_end_read.patch removed from -mm tree
+Message-Id: <20231018213537.A98C6C43391@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,22 +44,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: iomap: use folio_end_read()
+     Subject: mm: add folio_end_read()
 has been removed from the -mm tree.  Its filename was
-     iomap-use-folio_end_read.patch
+     mm-add-folio_end_read.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: iomap: use folio_end_read()
-Date: Wed, 4 Oct 2023 17:53:06 +0100
+Subject: mm: add folio_end_read()
+Date: Wed, 4 Oct 2023 17:53:03 +0100
 
-Combine the setting of the uptodate flag with the clearing of the locked
-flag.
+Provide a function for filesystems to call when they have finished reading
+an entire folio.
 
-Link: https://lkml.kernel.org/r/20231004165317.1061855-7-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231004165317.1061855-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -82,23 +82,51 @@ Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/iomap/buffered-io.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/linux/pagemap.h |    1 +
+ mm/filemap.c            |   22 ++++++++++++++++++++++
+ 2 files changed, 23 insertions(+)
 
---- a/fs/iomap/buffered-io.c~iomap-use-folio_end_read
-+++ a/fs/iomap/buffered-io.c
-@@ -270,10 +270,8 @@ static void iomap_finish_folio_read(stru
- 
- 	if (error)
- 		folio_set_error(folio);
--	if (uptodate)
--		folio_mark_uptodate(folio);
- 	if (finished)
--		folio_unlock(folio);
-+		folio_end_read(folio, uptodate);
+--- a/include/linux/pagemap.h~mm-add-folio_end_read
++++ a/include/linux/pagemap.h
+@@ -1101,6 +1101,7 @@ static inline void wait_on_page_locked(s
+ 	folio_wait_locked(page_folio(page));
  }
  
- static void iomap_read_end_io(struct bio *bio)
++void folio_end_read(struct folio *folio, bool success);
+ void wait_on_page_writeback(struct page *page);
+ void folio_wait_writeback(struct folio *folio);
+ int folio_wait_writeback_killable(struct folio *folio);
+--- a/mm/filemap.c~mm-add-folio_end_read
++++ a/mm/filemap.c
+@@ -1526,6 +1526,28 @@ void folio_unlock(struct folio *folio)
+ EXPORT_SYMBOL(folio_unlock);
+ 
+ /**
++ * folio_end_read - End read on a folio.
++ * @folio: The folio.
++ * @success: True if all reads completed successfully.
++ *
++ * When all reads against a folio have completed, filesystems should
++ * call this function to let the pagecache know that no more reads
++ * are outstanding.  This will unlock the folio and wake up any thread
++ * sleeping on the lock.  The folio will also be marked uptodate if all
++ * reads succeeded.
++ *
++ * Context: May be called from interrupt or process context.  May not be
++ * called from NMI context.
++ */
++void folio_end_read(struct folio *folio, bool success)
++{
++	if (likely(success))
++		folio_mark_uptodate(folio);
++	folio_unlock(folio);
++}
++EXPORT_SYMBOL(folio_end_read);
++
++/**
+  * folio_end_private_2 - Clear PG_private_2 and wake any waiters.
+  * @folio: The folio.
+  *
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
