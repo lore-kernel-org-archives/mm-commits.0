@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A436FCDB47E
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:35:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4676BCDB47E
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:36:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232035AbjJRVfv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 17:35:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51604 "EHLO
+        id S235249AbjJRVgG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 17:36:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54500 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235220AbjJRVfr (ORCPT
+        with ESMTP id S235223AbjJRVfr (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:35:47 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26E7AD4B
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29DEED4C
         for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:18 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BA39C433A9;
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06B02C43397;
         Wed, 18 Oct 2023 21:35:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697664902;
-        bh=qjqv2nXsHsPg16pki0yPEiuzdmSQSd1UlF/BRpwDD8M=;
+        s=korg; t=1697664903;
+        bh=s4L7KLPaOLpj5I4sjjqvl+rE6axX88WBABS56tUwhJ4=;
         h=Date:To:From:Subject:From;
-        b=VxER9NvSq59jmIRGMv+kCOFRFYQJmJOhaI6xpEFaNhE+XX1NZvbAScqhpReBrHn9q
-         W38BkU1qG3NkdendaXecMqBfYNnR3PwzweFXdNXXMo5VcPZoNXu+CVoHzFx2aXGjTO
-         z3D3cB/eA0WKUF2W64TQCnLgjvtvPfKq2LLs9krA=
-Date:   Wed, 18 Oct 2023 14:35:01 -0700
+        b=NMCzt6pVaRABfoTiv4163aqnx3JeG5J23TG8f8Rh0+sL80Mbndr1B2tDNnr4peqZ5
+         s41FAKUwJ4furjq9d3Ct4BtlagI63EeB9JLPd60ICT8cajnT8h+z8vfu+Lg8TUpggs
+         QoKE3bY9aT3RHuvbPb3sQjWuNZ9yhyS+uJyiLEOc=
+Date:   Wed, 18 Oct 2023 14:35:02 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         tim.c.chen@intel.com, jack@suse.cz, hannes@cmpxchg.org,
         djwong@kernel.org, dchinner@redhat.com, chuck.lever@oracle.com,
         cem@kernel.org, brauner@kernel.org, axelrasmussen@google.com,
         hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] shmem-remove-vma-arg-from-shmem_get_folio_gfp.patch removed from -mm tree
-Message-Id: <20231018213502.0BA39C433A9@smtp.kernel.org>
+Subject: [merged mm-stable] shmem-factor-shmem_falloc_wait-out-of-shmem_fault.patch removed from -mm tree
+Message-Id: <20231018213503.06B02C43397@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,21 +39,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: shmem: remove vma arg from shmem_get_folio_gfp()
+     Subject: shmem: factor shmem_falloc_wait() out of shmem_fault()
 has been removed from the -mm tree.  Its filename was
-     shmem-remove-vma-arg-from-shmem_get_folio_gfp.patch
+     shmem-factor-shmem_falloc_wait-out-of-shmem_fault.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: shmem: remove vma arg from shmem_get_folio_gfp()
-Date: Fri, 29 Sep 2023 20:26:53 -0700 (PDT)
+Subject: shmem: factor shmem_falloc_wait() out of shmem_fault()
+Date: Fri, 29 Sep 2023 20:27:53 -0700 (PDT)
 
-The vma is already there in vmf->vma, so no need for a separate arg.
+That Trinity livelock shmem_falloc avoidance block is unlikely, and a
+distraction from the proper business of shmem_fault(): separate it out. 
+(This used to help compilers save stack on the fault path too, but both
+gcc and clang nowadays seem to make better choices anyway.)
 
-Link: https://lkml.kernel.org/r/d9ce6f65-a2ed-48f4-4299-fdb0544875c5@google.com
+Link: https://lkml.kernel.org/r/6fe379a4-6176-9225-9263-fe60d2633c0@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Reviewed-by: Jan Kara <jack@suse.cz>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
@@ -68,55 +71,167 @@ Cc: Tim Chen <tim.c.chen@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ mm/shmem.c |  126 +++++++++++++++++++++++++++------------------------
+ 1 file changed, 69 insertions(+), 57 deletions(-)
 
---- a/mm/shmem.c~shmem-remove-vma-arg-from-shmem_get_folio_gfp
+--- a/mm/shmem.c~shmem-factor-shmem_falloc_wait-out-of-shmem_fault
 +++ a/mm/shmem.c
-@@ -1921,14 +1921,13 @@ unlock:
-  * vm. If we swap it in we mark it dirty since we also free the swap
-  * entry since a page cannot live in both the swap and page cache.
-  *
-- * vma, vmf, and fault_type are only supplied by shmem_fault:
-- * otherwise they are NULL.
-+ * vmf and fault_type are only supplied by shmem_fault: otherwise they are NULL.
+@@ -2148,87 +2148,99 @@ int shmem_get_folio(struct inode *inode,
+  * entry unconditionally - even if something else had already woken the
+  * target.
   */
- static int shmem_get_folio_gfp(struct inode *inode, pgoff_t index,
- 		struct folio **foliop, enum sgp_type sgp, gfp_t gfp,
--		struct vm_area_struct *vma, struct vm_fault *vmf,
--		vm_fault_t *fault_type)
-+		struct vm_fault *vmf, vm_fault_t *fault_type)
+-static int synchronous_wake_function(wait_queue_entry_t *wait, unsigned mode, int sync, void *key)
++static int synchronous_wake_function(wait_queue_entry_t *wait,
++			unsigned int mode, int sync, void *key)
  {
-+	struct vm_area_struct *vma = vmf ? vmf->vma : NULL;
- 	struct address_space *mapping = inode->i_mapping;
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	struct shmem_sb_info *sbinfo;
-@@ -2141,7 +2140,7 @@ int shmem_get_folio(struct inode *inode,
- 		enum sgp_type sgp)
- {
- 	return shmem_get_folio_gfp(inode, index, foliop, sgp,
--			mapping_gfp_mask(inode->i_mapping), NULL, NULL, NULL);
-+			mapping_gfp_mask(inode->i_mapping), NULL, NULL);
+ 	int ret = default_wake_function(wait, mode, sync, key);
+ 	list_del_init(&wait->entry);
+ 	return ret;
  }
  
- /*
-@@ -2225,7 +2224,7 @@ static vm_fault_t shmem_fault(struct vm_
++/*
++ * Trinity finds that probing a hole which tmpfs is punching can
++ * prevent the hole-punch from ever completing: which in turn
++ * locks writers out with its hold on i_rwsem.  So refrain from
++ * faulting pages into the hole while it's being punched.  Although
++ * shmem_undo_range() does remove the additions, it may be unable to
++ * keep up, as each new page needs its own unmap_mapping_range() call,
++ * and the i_mmap tree grows ever slower to scan if new vmas are added.
++ *
++ * It does not matter if we sometimes reach this check just before the
++ * hole-punch begins, so that one fault then races with the punch:
++ * we just need to make racing faults a rare case.
++ *
++ * The implementation below would be much simpler if we just used a
++ * standard mutex or completion: but we cannot take i_rwsem in fault,
++ * and bloating every shmem inode for this unlikely case would be sad.
++ */
++static vm_fault_t shmem_falloc_wait(struct vm_fault *vmf, struct inode *inode)
++{
++	struct shmem_falloc *shmem_falloc;
++	struct file *fpin = NULL;
++	vm_fault_t ret = 0;
++
++	spin_lock(&inode->i_lock);
++	shmem_falloc = inode->i_private;
++	if (shmem_falloc &&
++	    shmem_falloc->waitq &&
++	    vmf->pgoff >= shmem_falloc->start &&
++	    vmf->pgoff < shmem_falloc->next) {
++		wait_queue_head_t *shmem_falloc_waitq;
++		DEFINE_WAIT_FUNC(shmem_fault_wait, synchronous_wake_function);
++
++		ret = VM_FAULT_NOPAGE;
++		fpin = maybe_unlock_mmap_for_io(vmf, NULL);
++		shmem_falloc_waitq = shmem_falloc->waitq;
++		prepare_to_wait(shmem_falloc_waitq, &shmem_fault_wait,
++				TASK_UNINTERRUPTIBLE);
++		spin_unlock(&inode->i_lock);
++		schedule();
++
++		/*
++		 * shmem_falloc_waitq points into the shmem_fallocate()
++		 * stack of the hole-punching task: shmem_falloc_waitq
++		 * is usually invalid by the time we reach here, but
++		 * finish_wait() does not dereference it in that case;
++		 * though i_lock needed lest racing with wake_up_all().
++		 */
++		spin_lock(&inode->i_lock);
++		finish_wait(shmem_falloc_waitq, &shmem_fault_wait);
++	}
++	spin_unlock(&inode->i_lock);
++	if (fpin) {
++		fput(fpin);
++		ret = VM_FAULT_RETRY;
++	}
++	return ret;
++}
++
+ static vm_fault_t shmem_fault(struct vm_fault *vmf)
+ {
+-	struct vm_area_struct *vma = vmf->vma;
+-	struct inode *inode = file_inode(vma->vm_file);
++	struct inode *inode = file_inode(vmf->vma->vm_file);
+ 	gfp_t gfp = mapping_gfp_mask(inode->i_mapping);
+ 	struct folio *folio = NULL;
++	vm_fault_t ret = 0;
+ 	int err;
+-	vm_fault_t ret = VM_FAULT_LOCKED;
+ 
+ 	/*
+ 	 * Trinity finds that probing a hole which tmpfs is punching can
+-	 * prevent the hole-punch from ever completing: which in turn
+-	 * locks writers out with its hold on i_rwsem.  So refrain from
+-	 * faulting pages into the hole while it's being punched.  Although
+-	 * shmem_undo_range() does remove the additions, it may be unable to
+-	 * keep up, as each new page needs its own unmap_mapping_range() call,
+-	 * and the i_mmap tree grows ever slower to scan if new vmas are added.
+-	 *
+-	 * It does not matter if we sometimes reach this check just before the
+-	 * hole-punch begins, so that one fault then races with the punch:
+-	 * we just need to make racing faults a rare case.
+-	 *
+-	 * The implementation below would be much simpler if we just used a
+-	 * standard mutex or completion: but we cannot take i_rwsem in fault,
+-	 * and bloating every shmem inode for this unlikely case would be sad.
++	 * prevent the hole-punch from ever completing: noted in i_private.
+ 	 */
+ 	if (unlikely(inode->i_private)) {
+-		struct shmem_falloc *shmem_falloc;
+-
+-		spin_lock(&inode->i_lock);
+-		shmem_falloc = inode->i_private;
+-		if (shmem_falloc &&
+-		    shmem_falloc->waitq &&
+-		    vmf->pgoff >= shmem_falloc->start &&
+-		    vmf->pgoff < shmem_falloc->next) {
+-			struct file *fpin;
+-			wait_queue_head_t *shmem_falloc_waitq;
+-			DEFINE_WAIT_FUNC(shmem_fault_wait, synchronous_wake_function);
+-
+-			ret = VM_FAULT_NOPAGE;
+-			fpin = maybe_unlock_mmap_for_io(vmf, NULL);
+-			if (fpin)
+-				ret = VM_FAULT_RETRY;
+-
+-			shmem_falloc_waitq = shmem_falloc->waitq;
+-			prepare_to_wait(shmem_falloc_waitq, &shmem_fault_wait,
+-					TASK_UNINTERRUPTIBLE);
+-			spin_unlock(&inode->i_lock);
+-			schedule();
+-
+-			/*
+-			 * shmem_falloc_waitq points into the shmem_fallocate()
+-			 * stack of the hole-punching task: shmem_falloc_waitq
+-			 * is usually invalid by the time we reach here, but
+-			 * finish_wait() does not dereference it in that case;
+-			 * though i_lock needed lest racing with wake_up_all().
+-			 */
+-			spin_lock(&inode->i_lock);
+-			finish_wait(shmem_falloc_waitq, &shmem_fault_wait);
+-			spin_unlock(&inode->i_lock);
+-
+-			if (fpin)
+-				fput(fpin);
++		ret = shmem_falloc_wait(vmf, inode);
++		if (ret)
+ 			return ret;
+-		}
+-		spin_unlock(&inode->i_lock);
  	}
  
++	WARN_ON_ONCE(vmf->page != NULL);
  	err = shmem_get_folio_gfp(inode, vmf->pgoff, &folio, SGP_CACHE,
--				  gfp, vma, vmf, &ret);
-+				  gfp, vmf, &ret);
+ 				  gfp, vmf, &ret);
  	if (err)
  		return vmf_error(err);
- 	if (folio)
-@@ -4893,7 +4892,7 @@ struct folio *shmem_read_folio_gfp(struc
- 
- 	BUG_ON(!shmem_mapping(mapping));
- 	error = shmem_get_folio_gfp(inode, index, &folio, SGP_CACHE,
--				  gfp, NULL, NULL, NULL);
-+				    gfp, NULL, NULL);
- 	if (error)
- 		return ERR_PTR(error);
+-	if (folio)
++	if (folio) {
+ 		vmf->page = folio_file_page(folio, vmf->pgoff);
++		ret |= VM_FAULT_LOCKED;
++	}
+ 	return ret;
+ }
  
 _
 
