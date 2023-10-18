@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D01ACDB483
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 15:37:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B3D5CDB484
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 15:37:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231582AbjJRPhL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 11:37:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47842 "EHLO
+        id S1344689AbjJRPhM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 11:37:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47874 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232406AbjJRPhI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 11:37:08 -0400
+        with ESMTP id S1344683AbjJRPhL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 11:37:11 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80DDD116
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 08:37:06 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A17BC433CA;
-        Wed, 18 Oct 2023 15:37:06 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B579120
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 08:37:10 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBBFFC433C7;
+        Wed, 18 Oct 2023 15:37:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697643426;
-        bh=dE8VaHFBuduh7Or5pyPAg6+G1T9UNyXxPQb5k/AE3kw=;
+        s=korg; t=1697643429;
+        bh=DvdTkU3ztlsw8Wz0eiuxlSuE/FGzGaq/9BlnRU/EXM0=;
         h=Date:To:From:Subject:From;
-        b=iA7V6LyN1tz4gpQQ/0503FPec2FWMby3Kb0HOPFigbPWRNfFVjzvczeRMK8iBTxiz
-         Wg1xCNKblAhBwDGrF5NwapWqpRr+pHa4qw1ryWeueb84lJF3DyJHibXmvw70oW3bRi
-         YtM0hN58qA4i2zExaIeNVMg/S3e/54O+tlj/hEZk=
-Date:   Wed, 18 Oct 2023 08:37:05 -0700
+        b=iB3yMVcG0vPYWtdtsHJhJift//B2X+cCtWtZ4Dm2FFOn7s8QdMyrs+OyJps4kRMlf
+         az2JbDaffpbb3zwSfvknGcMJ9BnkyIV+vQ+R6c7ibNFcci2R12gFqW7MVYMy40Fmfs
+         t1gJSZQ0GJTnRfwdpcWHM1p0lRjGN1P573gzDQLg=
+Date:   Wed, 18 Oct 2023 08:37:09 -0700
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
         willy@infradead.org, vincent.guittot@linaro.org,
         peterz@infradead.org, mingo@redhat.com, juri.lelli@redhat.com,
         david@redhat.com, wangkefeng.wang@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-use-folio_last_cpupid-in-do_huge_pmd_numa_page.patch added to mm-unstable branch
-Message-Id: <20231018153706.1A17BC433CA@smtp.kernel.org>
+Subject: + mm-remove-page_cpupid_last.patch added to mm-unstable branch
+Message-Id: <20231018153709.CBBFFC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,12 +39,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: huge_memory: use folio_last_cpupid() in do_huge_pmd_numa_page()
+     Subject: mm: remove page_cpupid_last()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memory-use-folio_last_cpupid-in-do_huge_pmd_numa_page.patch
+     mm-remove-page_cpupid_last.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-use-folio_last_cpupid-in-do_huge_pmd_numa_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-page_cpupid_last.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -63,12 +63,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: huge_memory: use folio_last_cpupid() in do_huge_pmd_numa_page()
-Date: Wed, 18 Oct 2023 22:07:51 +0800
+Subject: mm: remove page_cpupid_last()
+Date: Wed, 18 Oct 2023 22:07:53 +0800
 
-Convert to use folio_last_cpupid() in do_huge_pmd_numa_page().
+Since all calls use folio_last_cpupid(), remove page_cpupid_last().
 
-Link: https://lkml.kernel.org/r/20231018140806.2783514-5-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20231018140806.2783514-7-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Huang Ying <ying.huang@intel.com>
@@ -81,20 +81,58 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm.h |   17 ++++++-----------
+ 1 file changed, 6 insertions(+), 11 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-use-folio_last_cpupid-in-do_huge_pmd_numa_page
-+++ a/mm/huge_memory.c
-@@ -1562,7 +1562,7 @@ vm_fault_t do_huge_pmd_numa_page(struct
- 	 * to record page access time.  So use default value.
- 	 */
- 	if (node_is_toptier(nid))
--		last_cpupid = page_cpupid_last(&folio->page);
-+		last_cpupid = folio_last_cpupid(folio);
- 	target_nid = numa_migrate_prep(folio, vma, haddr, nid, &flags);
- 	if (target_nid == NUMA_NO_NODE) {
- 		folio_put(folio);
+--- a/include/linux/mm.h~mm-remove-page_cpupid_last
++++ a/include/linux/mm.h
+@@ -1702,18 +1702,18 @@ static inline int page_cpupid_xchg_last(
+ 	return xchg(&page->_last_cpupid, cpupid & LAST_CPUPID_MASK);
+ }
+ 
+-static inline int page_cpupid_last(struct page *page)
++static inline int folio_last_cpupid(struct folio *folio)
+ {
+-	return page->_last_cpupid;
++	return folio->_last_cpupid;
+ }
+ static inline void page_cpupid_reset_last(struct page *page)
+ {
+ 	page->_last_cpupid = -1 & LAST_CPUPID_MASK;
+ }
+ #else
+-static inline int page_cpupid_last(struct page *page)
++static inline int folio_last_cpupid(struct folio *folio)
+ {
+-	return (page->flags >> LAST_CPUPID_PGSHIFT) & LAST_CPUPID_MASK;
++	return (folio->flags >> LAST_CPUPID_PGSHIFT) & LAST_CPUPID_MASK;
+ }
+ 
+ extern int page_cpupid_xchg_last(struct page *page, int cpupid);
+@@ -1752,9 +1752,9 @@ static inline int xchg_page_access_time(
+ 	return 0;
+ }
+ 
+-static inline int page_cpupid_last(struct page *page)
++static inline int folio_last_cpupid(struct folio *folio)
+ {
+-	return page_to_nid(page); /* XXX */
++	return folio_nid(folio); /* XXX */
+ }
+ 
+ static inline int cpupid_to_nid(int cpupid)
+@@ -1796,11 +1796,6 @@ static inline void vma_set_access_pid_bi
+ }
+ #endif /* CONFIG_NUMA_BALANCING */
+ 
+-static inline int folio_last_cpupid(struct folio *folio)
+-{
+-	return page_cpupid_last(&folio->page);
+-}
+-
+ #if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
+ 
+ /*
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
