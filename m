@@ -2,42 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78288CDB483
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9AC3CDB482
 	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:59:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235289AbjJRV7w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 17:59:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51538 "EHLO
+        id S230373AbjJRV7x (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 17:59:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48414 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235202AbjJRVf2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:35:28 -0400
+        with ESMTP id S232360AbjJRVnx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:43:53 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C8411B1
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:12 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04E1FC433D9;
-        Wed, 18 Oct 2023 21:34:55 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B680A11F
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:43:50 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 788CDC433C8;
+        Wed, 18 Oct 2023 21:43:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697664895;
-        bh=I/dhhNKO+VmKv3p9uyG2HwmUqaR5tMBx08+M/1iegAg=;
+        s=korg; t=1697665430;
+        bh=ZGA1yWvofQ4quqpxV4Vty2h0rM1XKvPpj8vXVPONYG4=;
         h=Date:To:From:Subject:From;
-        b=t1hV4ZOA4nREqKn3p348cOwcVpFpdyXMQklzSOkWKjllXTSZn6MUJch1ryPrWH8hj
-         I2jdaH/A/EUPPtmgBDKddGBAegMrSDzM2C2FvvgAcvTPG98RLxJn6vuEUKkg0uqZ9K
-         KDiQMXUT2K4ToVcEq5UpxgPgVHnt63DKVxqQDZfo=
-Date:   Wed, 18 Oct 2023 14:34:54 -0700
-To:     mm-commits@vger.kernel.org, yun.zhou@windriver.com,
-        willy@infradead.org, viro@zeniv.linux.org.uk, vbabka@suse.cz,
-        surenb@google.com, shy828301@gmail.com, shuah@kernel.org,
-        rppt@kernel.org, pgofman@codeweavers.com, peterx@redhat.com,
-        pasha.tatashin@soleen.com, namit@vmware.com,
-        mirq-linux@rere.qmqm.pl, Liam.Howlett@oracle.com,
-        gustavoars@kernel.org, gregkh@linuxfoundation.org,
-        gorcunov@gmail.com, emmir@google.com, david@redhat.com,
-        dan.j.williams@intel.com, brauner@kernel.org,
-        axelrasmussen@google.com, avagin@gmail.com, alex.sierra@amd.com,
-        usama.anjum@collabora.com, akpm@linux-foundation.org
+        b=WJ1/Mqw8jh8IDBTNBS6Z9Ecxyn0RuosgQHzOb6sEmxSEsGvcfVLqDUZFw4wuD2GHB
+         600LYCyHTSQImRTkrDhqJWnSkc+/hIRxjLuGhjsF9x+J6YwsCHtmCkgcivxPYf9wUD
+         FzSCzJYJ6QTgKVite9dMcGNajp/PWiPpFkr6al+A=
+Date:   Wed, 18 Oct 2023 14:43:49 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        torvalds@linux-foundation.org, Jason@zx2c4.com, hch@infradead.org,
+        david.laight@aculab.com, andriy.shevchenko@linux.intel.com,
+        David.Laight@ACULAB.COM, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] fs-proc-task_mmu-add-fast-paths-to-get-clear-page_is_written-flag.patch removed from -mm tree
-Message-Id: <20231018213455.04E1FC433D9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] minmax-allow-min-max-clamp-if-the-arguments-have-the-same-signedness.patch removed from -mm tree
+Message-Id: <20231018214350.788CDC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,123 +38,181 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: fs/proc/task_mmu: add fast paths to get/clear PAGE_IS_WRITTEN flag
+     Subject: minmax: allow min()/max()/clamp() if the arguments have the same signedness.
 has been removed from the -mm tree.  Its filename was
-     fs-proc-task_mmu-add-fast-paths-to-get-clear-page_is_written-flag.patch
+     minmax-allow-min-max-clamp-if-the-arguments-have-the-same-signedness.patch
 
-This patch was dropped because it was merged into the mm-stable branch
+This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: fs/proc/task_mmu: add fast paths to get/clear PAGE_IS_WRITTEN flag
-Date: Mon, 21 Aug 2023 19:15:15 +0500
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: minmax: allow min()/max()/clamp() if the arguments have the same signedness.
+Date: Mon, 18 Sep 2023 08:17:15 +0000
 
-Adding fast code paths to handle specifically only get and/or clear
-operation of PAGE_IS_WRITTEN, increases its performance by 0-35%.  The
-results of some test cases are given below:
+The type-check in min()/max() is there to stop unexpected results if a
+negative value gets converted to a large unsigned value.  However it also
+rejects 'unsigned int' v 'unsigned long' compares which are common and
+never problematc.
 
-Test-case-1
-t1 = (Get + WP) time
-t2 = WP time
-                       t1            t2
-Without this patch:    140-170mcs    90-115mcs
-With this patch:       110mcs        80mcs
-Worst case diff:       35% faster    30% faster
+Replace the 'same type' check with a 'same signedness' check.
 
-Test-case-2
-t3 = atomic Get and WP
-                      t3
-Without this patch:   120-140mcs
-With this patch:      100-110mcs
-Worst case diff:      21% faster
+The new test isn't itself a compile time error, so use static_assert() to
+report the error and give a meaningful error message.
 
-Link: https://lkml.kernel.org/r/20230821141518.870589-4-usama.anjum@collabora.com
-Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Alex Sierra <alex.sierra@amd.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andrei Vagin <avagin@gmail.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Gustavo A. R. Silva <gustavoars@kernel.org>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Miroslaw <emmir@google.com>
-Cc: Michał Mirosław <mirq-linux@rere.qmqm.pl>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Nadav Amit <namit@vmware.com>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Paul Gofman <pgofman@codeweavers.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yun Zhou <yun.zhou@windriver.com>
+Due to the way builtin_choose_expr() works detecting the error in the
+'non-constant' side (where static_assert() can be used) also detects
+errors when the arguments are constant.
+
+Link: https://lkml.kernel.org/r/fe7e6c542e094bfca655abcd323c1c98@AcuMS.aculab.com
+Signed-off-by: David Laight <david.laight@aculab.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Jason A. Donenfeld <Jason@zx2c4.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   36 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+ include/linux/minmax.h |   62 ++++++++++++++++++++-------------------
+ 1 file changed, 33 insertions(+), 29 deletions(-)
 
---- a/fs/proc/task_mmu.c~fs-proc-task_mmu-add-fast-paths-to-get-clear-page_is_written-flag
-+++ a/fs/proc/task_mmu.c
-@@ -2145,6 +2145,41 @@ static int pagemap_scan_pmd_entry(pmd_t
- 		return 0;
- 	}
+--- a/include/linux/minmax.h~minmax-allow-min-max-clamp-if-the-arguments-have-the-same-signedness
++++ a/include/linux/minmax.h
+@@ -12,9 +12,8 @@
+  *
+  * - avoid multiple evaluations of the arguments (so side-effects like
+  *   "x++" happen only once) when non-constant.
+- * - perform strict type-checking (to generate warnings instead of
+- *   nasty runtime surprises). See the "unnecessary" pointer comparison
+- *   in __typecheck().
++ * - perform signed v unsigned type-checking (to generate compile
++ *   errors instead of nasty runtime surprises).
+  * - retain result as a constant expressions when called with only
+  *   constant expressions (to avoid tripping VLA warnings in stack
+  *   allocation usage).
+@@ -22,23 +21,30 @@
+ #define __typecheck(x, y) \
+ 	(!!(sizeof((typeof(x) *)1 == (typeof(y) *)1)))
  
-+	if (!p->vec_out) {
-+		/* Fast path for performing exclusive WP */
-+		for (addr = start; addr != end; pte++, addr += PAGE_SIZE) {
-+			if (pte_uffd_wp(ptep_get(pte)))
-+				continue;
-+			make_uffd_wp_pte(vma, addr, pte);
-+			if (!flush_end)
-+				start = addr;
-+			flush_end = addr + PAGE_SIZE;
-+		}
-+		goto flush_and_return;
-+	}
-+
-+	if (!p->arg.category_anyof_mask && !p->arg.category_inverted &&
-+	    p->arg.category_mask == PAGE_IS_WRITTEN &&
-+	    p->arg.return_mask == PAGE_IS_WRITTEN) {
-+		for (addr = start; addr < end; pte++, addr += PAGE_SIZE) {
-+			unsigned long next = addr + PAGE_SIZE;
-+
-+			if (pte_uffd_wp(ptep_get(pte)))
-+				continue;
-+			ret = pagemap_scan_output(p->cur_vma_category | PAGE_IS_WRITTEN,
-+						  p, addr, &next);
-+			if (next == addr)
-+				break;
-+			if (~p->arg.flags & PM_SCAN_WP_MATCHING)
-+				continue;
-+			make_uffd_wp_pte(vma, addr, pte);
-+			if (!flush_end)
-+				start = addr;
-+			flush_end = next;
-+		}
-+		goto flush_and_return;
-+	}
-+
- 	for (addr = start; addr != end; pte++, addr += PAGE_SIZE) {
- 		unsigned long categories = p->cur_vma_category |
- 					   pagemap_page_category(p, vma, addr, ptep_get(pte));
-@@ -2168,6 +2203,7 @@ static int pagemap_scan_pmd_entry(pmd_t
- 		flush_end = next;
- 	}
+-#define __no_side_effects(x, y) \
+-		(__is_constexpr(x) && __is_constexpr(y))
++/* is_signed_type() isn't a constexpr for pointer types */
++#define __is_signed(x) 								\
++	__builtin_choose_expr(__is_constexpr(is_signed_type(typeof(x))),	\
++		is_signed_type(typeof(x)), 0)
  
-+flush_and_return:
- 	if (flush_end)
- 		flush_tlb_range(vma, start, addr);
+-#define __safe_cmp(x, y) \
+-		(__typecheck(x, y) && __no_side_effects(x, y))
++#define __types_ok(x, y) \
++	(__is_signed(x) == __is_signed(y))
  
+-#define __cmp(x, y, op)	((x) op (y) ? (x) : (y))
++#define __cmp_op_min <
++#define __cmp_op_max >
+ 
+-#define __cmp_once(x, y, unique_x, unique_y, op) ({	\
++#define __cmp(op, x, y)	((x) __cmp_op_##op (y) ? (x) : (y))
++
++#define __cmp_once(op, x, y, unique_x, unique_y) ({	\
+ 		typeof(x) unique_x = (x);		\
+ 		typeof(y) unique_y = (y);		\
+-		__cmp(unique_x, unique_y, op); })
+-
+-#define __careful_cmp(x, y, op) \
+-	__builtin_choose_expr(__safe_cmp(x, y), \
+-		__cmp(x, y, op), \
+-		__cmp_once(x, y, __UNIQUE_ID(__x), __UNIQUE_ID(__y), op))
++		static_assert(__types_ok(x, y),		\
++			#op "(" #x ", " #y ") signedness error, fix types or consider u" #op "() before " #op "_t()"); \
++		__cmp(op, unique_x, unique_y); })
++
++#define __careful_cmp(op, x, y)					\
++	__builtin_choose_expr(__is_constexpr((x) - (y)),	\
++		__cmp(op, x, y),				\
++		__cmp_once(op, x, y, __UNIQUE_ID(__x), __UNIQUE_ID(__y)))
+ 
+ #define __clamp(val, lo, hi)	\
+ 	((val) >= (hi) ? (hi) : ((val) <= (lo) ? (lo) : (val)))
+@@ -47,17 +53,15 @@
+ 		typeof(val) unique_val = (val);				\
+ 		typeof(lo) unique_lo = (lo);				\
+ 		typeof(hi) unique_hi = (hi);				\
++		static_assert(__builtin_choose_expr(__is_constexpr((lo) > (hi)), 	\
++				(lo) <= (hi), true),					\
++			"clamp() low limit " #lo " greater than high limit " #hi);	\
++		static_assert(__types_ok(val, lo), "clamp() 'lo' signedness error");	\
++		static_assert(__types_ok(val, hi), "clamp() 'hi' signedness error");	\
+ 		__clamp(unique_val, unique_lo, unique_hi); })
+ 
+-#define __clamp_input_check(lo, hi)					\
+-        (BUILD_BUG_ON_ZERO(__builtin_choose_expr(			\
+-                __is_constexpr((lo) > (hi)), (lo) > (hi), false)))
+-
+ #define __careful_clamp(val, lo, hi) ({					\
+-	__clamp_input_check(lo, hi) +					\
+-	__builtin_choose_expr(__typecheck(val, lo) && __typecheck(val, hi) && \
+-			      __typecheck(hi, lo) && __is_constexpr(val) && \
+-			      __is_constexpr(lo) && __is_constexpr(hi),	\
++	__builtin_choose_expr(__is_constexpr((val) - (lo) + (hi)),	\
+ 		__clamp(val, lo, hi),					\
+ 		__clamp_once(val, lo, hi, __UNIQUE_ID(__val),		\
+ 			     __UNIQUE_ID(__lo), __UNIQUE_ID(__hi))); })
+@@ -67,14 +71,14 @@
+  * @x: first value
+  * @y: second value
+  */
+-#define min(x, y)	__careful_cmp(x, y, <)
++#define min(x, y)	__careful_cmp(min, x, y)
+ 
+ /**
+  * max - return maximum of two values of the same or compatible types
+  * @x: first value
+  * @y: second value
+  */
+-#define max(x, y)	__careful_cmp(x, y, >)
++#define max(x, y)	__careful_cmp(max, x, y)
+ 
+ /**
+  * umin - return minimum of two non-negative values
+@@ -83,7 +87,7 @@
+  * @y: second value
+  */
+ #define umin(x, y)	\
+-	__careful_cmp((x) + 0u + 0ul + 0ull, (y) + 0u + 0ul + 0ull, <)
++	__careful_cmp(min, (x) + 0u + 0ul + 0ull, (y) + 0u + 0ul + 0ull)
+ 
+ /**
+  * umax - return maximum of two non-negative values
+@@ -91,7 +95,7 @@
+  * @y: second value
+  */
+ #define umax(x, y)	\
+-	__careful_cmp((x) + 0u + 0ul + 0ull, (y) + 0u + 0ul + 0ull, >)
++	__careful_cmp(max, (x) + 0u + 0ul + 0ull, (y) + 0u + 0ul + 0ull)
+ 
+ /**
+  * min3 - return minimum of three values
+@@ -143,7 +147,7 @@
+  * @x: first value
+  * @y: second value
+  */
+-#define min_t(type, x, y)	__careful_cmp((type)(x), (type)(y), <)
++#define min_t(type, x, y)	__careful_cmp(min, (type)(x), (type)(y))
+ 
+ /**
+  * max_t - return maximum of two values, using the specified type
+@@ -151,7 +155,7 @@
+  * @x: first value
+  * @y: second value
+  */
+-#define max_t(type, x, y)	__careful_cmp((type)(x), (type)(y), >)
++#define max_t(type, x, y)	__careful_cmp(max, (type)(x), (type)(y))
+ 
+ /*
+  * Do not check the array parameter using __must_be_array().
 _
 
-Patches currently in -mm which might be from usama.anjum@collabora.com are
+Patches currently in -mm which might be from David.Laight@ACULAB.COM are
 
 
