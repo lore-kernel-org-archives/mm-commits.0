@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CDEA5CDB482
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F070CDB47E
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235251AbjJRVhI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 17:37:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41632 "EHLO
+        id S235265AbjJRVhJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 17:37:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41734 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235282AbjJRVg0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:26 -0400
+        with ESMTP id S232858AbjJRVg2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:28 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6081119B
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:39 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A98C6C43391;
-        Wed, 18 Oct 2023 21:35:37 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFC181AC
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:44 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 337D1C433C8;
+        Wed, 18 Oct 2023 21:35:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697664937;
-        bh=FeKj4wcJOrWT2oM2uc2obrp5f4zaZbxYx6PXrHPlAH0=;
+        s=korg; t=1697664944;
+        bh=v9PFO4UQ1LBBEymwLXRpKbjMMBk1Za59T5TH36f7AI8=;
         h=Date:To:From:Subject:From;
-        b=pTl/bHj7W1O/WQCW2HOqlZPnYx5HUP93NaOUoKeQLK795wUV9pjbg2YisAyZfENVw
-         OriSVuqTlkCM3aykZN4ZM8Cvy2KA8sIz0SC5GQVU0/kmQr3RID/XN4+jqRTFB5kQ2H
-         fJi2w5Uchp5ODo9iuBTiTdlvfRSecZmL+JtRhb4Q=
-Date:   Wed, 18 Oct 2023 14:35:37 -0700
+        b=Lkgryv8cb0U0ZWLG7KXvfugRytu8dFfctIf+mpAfpmtX/Q9FXmETOQRCGniGmMpbF
+         B7iji9vYSIrZZtAs/+iuRDRtCMPZNtLCd5T/+IdOI18TzujNWxBDgIsrwa1LkBCdEn
+         drEOGn8lodExrg9PjhMOdTDiFnh3SUDZcosqbBkU=
+Date:   Wed, 18 Oct 2023 14:35:43 -0700
 To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         tsbogend@alpha.franken.de, svens@linux.ibm.com,
         richard.henderson@linaro.org, paul.walmsley@sifive.com,
@@ -35,8 +35,8 @@ To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         adilger.kernel@dilger.ca, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-folio_end_read.patch removed from -mm tree
-Message-Id: <20231018213537.A98C6C43391@smtp.kernel.org>
+Subject: [merged mm-stable] mips-implement-xor_unlock_is_negative_byte.patch removed from -mm tree
+Message-Id: <20231018213544.337D1C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,22 +44,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: add folio_end_read()
+     Subject: mips: implement xor_unlock_is_negative_byte
 has been removed from the -mm tree.  Its filename was
-     mm-add-folio_end_read.patch
+     mips-implement-xor_unlock_is_negative_byte.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: add folio_end_read()
-Date: Wed, 4 Oct 2023 17:53:03 +0100
+Subject: mips: implement xor_unlock_is_negative_byte
+Date: Wed, 4 Oct 2023 17:53:10 +0100
 
-Provide a function for filesystems to call when they have finished reading
-an entire folio.
+Inspired by the mips test_and_change_bit(), this will surely be more
+efficient than the generic one defined in filemap.c
 
-Link: https://lkml.kernel.org/r/20231004165317.1061855-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231004165317.1061855-11-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -82,51 +82,72 @@ Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    1 +
- mm/filemap.c            |   22 ++++++++++++++++++++++
- 2 files changed, 23 insertions(+)
+ arch/mips/include/asm/bitops.h |   26 +++++++++++++++++++++++++-
+ arch/mips/lib/bitops.c         |   14 ++++++++++++++
+ 2 files changed, 39 insertions(+), 1 deletion(-)
 
---- a/include/linux/pagemap.h~mm-add-folio_end_read
-+++ a/include/linux/pagemap.h
-@@ -1101,6 +1101,7 @@ static inline void wait_on_page_locked(s
- 	folio_wait_locked(page_folio(page));
+--- a/arch/mips/include/asm/bitops.h~mips-implement-xor_unlock_is_negative_byte
++++ a/arch/mips/include/asm/bitops.h
+@@ -73,7 +73,8 @@ int __mips_test_and_clear_bit(unsigned l
+ 			      volatile unsigned long *addr);
+ int __mips_test_and_change_bit(unsigned long nr,
+ 			       volatile unsigned long *addr);
+-
++bool __mips_xor_is_negative_byte(unsigned long mask,
++		volatile unsigned long *addr);
+ 
+ /*
+  * set_bit - Atomically set a bit in memory
+@@ -279,6 +280,29 @@ static inline int test_and_change_bit(un
+ 	return res;
  }
  
-+void folio_end_read(struct folio *folio, bool success);
- void wait_on_page_writeback(struct page *page);
- void folio_wait_writeback(struct folio *folio);
- int folio_wait_writeback_killable(struct folio *folio);
---- a/mm/filemap.c~mm-add-folio_end_read
-+++ a/mm/filemap.c
-@@ -1526,6 +1526,28 @@ void folio_unlock(struct folio *folio)
- EXPORT_SYMBOL(folio_unlock);
- 
- /**
-+ * folio_end_read - End read on a folio.
-+ * @folio: The folio.
-+ * @success: True if all reads completed successfully.
-+ *
-+ * When all reads against a folio have completed, filesystems should
-+ * call this function to let the pagecache know that no more reads
-+ * are outstanding.  This will unlock the folio and wake up any thread
-+ * sleeping on the lock.  The folio will also be marked uptodate if all
-+ * reads succeeded.
-+ *
-+ * Context: May be called from interrupt or process context.  May not be
-+ * called from NMI context.
-+ */
-+void folio_end_read(struct folio *folio, bool success)
++static inline bool xor_unlock_is_negative_byte(unsigned long mask,
++		volatile unsigned long *p)
 +{
-+	if (likely(success))
-+		folio_mark_uptodate(folio);
-+	folio_unlock(folio);
-+}
-+EXPORT_SYMBOL(folio_end_read);
++	unsigned long orig;
++	bool res;
 +
-+/**
-  * folio_end_private_2 - Clear PG_private_2 and wake any waiters.
-  * @folio: The folio.
-  *
++	smp_mb__before_atomic();
++
++	if (!kernel_uses_llsc) {
++		res = __mips_xor_is_negative_byte(mask, p);
++	} else {
++		orig = __test_bit_op(*p, "%0",
++				     "xor\t%1, %0, %3",
++				     "ir"(mask));
++		res = (orig & BIT(7)) != 0;
++	}
++
++	smp_llsc_mb();
++
++	return res;
++}
++#define xor_unlock_is_negative_byte xor_unlock_is_negative_byte
++
+ #undef __bit_op
+ #undef __test_bit_op
+ 
+--- a/arch/mips/lib/bitops.c~mips-implement-xor_unlock_is_negative_byte
++++ a/arch/mips/lib/bitops.c
+@@ -146,3 +146,17 @@ int __mips_test_and_change_bit(unsigned
+ 	return res;
+ }
+ EXPORT_SYMBOL(__mips_test_and_change_bit);
++
++bool __mips_xor_is_negative_byte(unsigned long mask,
++		volatile unsigned long *addr)
++{
++	unsigned long flags;
++	unsigned long data;
++
++	raw_local_irq_save(flags);
++	data = *addr;
++	*addr = data ^ mask;
++	raw_local_irq_restore(flags);
++
++	return (data & BIT(7)) != 0;
++}
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
