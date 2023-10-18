@@ -2,36 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6AAECDB47E
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 15:37:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDEB1CDB47E
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 15:39:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232311AbjJRPhr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 11:37:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37824 "EHLO
+        id S232311AbjJRPjw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 11:39:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60940 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235346AbjJRPhc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 11:37:32 -0400
+        with ESMTP id S231686AbjJRPjw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 11:39:52 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9963189
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 08:37:28 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44078C433C7;
-        Wed, 18 Oct 2023 15:37:28 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B09C114
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 08:39:50 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CE97C433C7;
+        Wed, 18 Oct 2023 15:39:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697643448;
-        bh=DzBwglpEJd9H5QvKRuvDj5Xye6Sd5oqTHMXjOpxMV8I=;
+        s=korg; t=1697643590;
+        bh=fhxN+BurWumKUiX8FSgs6VQSuHBJ8CUZbKgeqwnqkd8=;
         h=Date:To:From:Subject:From;
-        b=Jabo3zi9FnOYlfVquX/niRVSmvi5JwC6vA7UdwHhiQKhvmFNzrKANIRgiydGQRu9X
-         4DVoDk6mte7UZc+g+l4x60DBoFb6DpdZfq3+hF2+gpjI6Tx+51TY7ZOBYiAW8QuOwd
-         QU9Xl9Og288DU2VZylvAvPaF6VLxpjG6DnSvunyg=
-Date:   Wed, 18 Oct 2023 08:37:27 -0700
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
-        willy@infradead.org, vincent.guittot@linaro.org,
-        peterz@infradead.org, mingo@redhat.com, juri.lelli@redhat.com,
-        david@redhat.com, wangkefeng.wang@huawei.com,
-        akpm@linux-foundation.org
+        b=sbdEk4IMaTF+SOimli4xcBaLhCfwoI8jo3QRPZsYFY4uAoATaLLol/wxMPj8+Bq3T
+         +m/PkkfLe4C8FnKIJ+L+6e3kJiHpPVPTGUQtp7VF9oD3IjLbpw0L5RZvLzFsQ6IXog
+         GeWxBLBnTPAFmFtKYHKlUAOGTzhur0SU0+4KrI6w=
+Date:   Wed, 18 Oct 2023 08:39:49 -0700
+To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
+        patrick.wang.shcn@gmail.com, catalin.marinas@arm.com,
+        liushixin2@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-make-finish_mkwrite_fault-static.patch added to mm-unstable branch
-Message-Id: <20231018153728.44078C433C7@smtp.kernel.org>
+Subject: + bootmem-use-kmemleak_free_part_phys-in-put_page_bootmem.patch added to mm-unstable branch
+Message-Id: <20231018153950.2CE97C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: make finish_mkwrite_fault() static
+     Subject: bootmem: use kmemleak_free_part_phys in put_page_bootmem
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-make-finish_mkwrite_fault-static.patch
+     bootmem-use-kmemleak_free_part_phys-in-put_page_bootmem.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-finish_mkwrite_fault-static.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bootmem-use-kmemleak_free_part_phys-in-put_page_bootmem.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,72 +60,59 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: make finish_mkwrite_fault() static
-Date: Wed, 18 Oct 2023 22:08:03 +0800
+From: Liu Shixin <liushixin2@huawei.com>
+Subject: bootmem: use kmemleak_free_part_phys in put_page_bootmem
+Date: Wed, 18 Oct 2023 18:29:46 +0800
 
-Make finish_mkwrite_fault static since it is not used outside of
-memory.c.
+Patch series "Some bugfix about kmemleak", v3.
 
-Link: https://lkml.kernel.org/r/20231018140806.2783514-17-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Some bugfixes for kmemleak and the printed info from debug mode.
+
+
+This patch (of 7):
+
+Since kmemleak_alloc_phys() rather than kmemleak_alloc() was called from
+memblock_alloc_range_nid(), kmemleak_free_part_phys() should be used to
+delete kmemleak object in put_page_bootmem().  In debug mode, there are
+following warning:
+
+ kmemleak: Partially freeing unknown object at 0xffff97345aff7000 (size 4096)
+
+Link: https://lkml.kernel.org/r/20231018102952.3339837-1-liushixin2@huawei.com
+Link: https://lkml.kernel.org/r/20231018102952.3339837-2-liushixin2@huawei.com
+Fixes: dd0ff4d12dd2 ("bootmem: remove the vmemmap pages from kmemleak in put_page_bootmem")
+Signed-off-by: Liu Shixin <liushixin2@huawei.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Patrick Wang <patrick.wang.shcn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 -
- mm/memory.c        |    2 +-
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ mm/bootmem_info.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-make-finish_mkwrite_fault-static
-+++ a/include/linux/mm.h
-@@ -1348,7 +1348,6 @@ void set_pte_range(struct vm_fault *vmf,
- 		struct page *page, unsigned int nr, unsigned long addr);
- 
- vm_fault_t finish_fault(struct vm_fault *vmf);
--vm_fault_t finish_mkwrite_fault(struct vm_fault *vmf);
- #endif
- 
- /*
---- a/mm/memory.c~mm-make-finish_mkwrite_fault-static
-+++ a/mm/memory.c
-@@ -3272,7 +3272,7 @@ out:
-  * Return: %0 on success, %VM_FAULT_NOPAGE when PTE got changed before
-  * we acquired PTE lock.
-  */
--vm_fault_t finish_mkwrite_fault(struct vm_fault *vmf)
-+static vm_fault_t finish_mkwrite_fault(struct vm_fault *vmf)
- {
- 	WARN_ON_ONCE(!(vmf->vma->vm_flags & VM_SHARED));
- 	vmf->pte = pte_offset_map_lock(vmf->vma->vm_mm, vmf->pmd, vmf->address,
+--- a/mm/bootmem_info.c~bootmem-use-kmemleak_free_part_phys-in-put_page_bootmem
++++ a/mm/bootmem_info.c
+@@ -34,7 +34,7 @@ void put_page_bootmem(struct page *page)
+ 		ClearPagePrivate(page);
+ 		set_page_private(page, 0);
+ 		INIT_LIST_HEAD(&page->lru);
+-		kmemleak_free_part(page_to_virt(page), PAGE_SIZE);
++		kmemleak_free_part_phys(PFN_PHYS(page_to_pfn(page)), PAGE_SIZE);
+ 		free_reserved_page(page);
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from liushixin2@huawei.com are
 
-mm_types-add-virtual-and-_last_cpupid-into-struct-folio.patch
-mm-add-folio_last_cpupid.patch
-mm-memory-use-folio_last_cpupid-in-do_numa_page.patch
-mm-huge_memory-use-folio_last_cpupid-in-do_huge_pmd_numa_page.patch
-mm-huge_memory-use-folio_last_cpupid-in-__split_huge_page_tail.patch
-mm-remove-page_cpupid_last.patch
-mm-add-folio_xchg_access_time.patch
-sched-fair-use-folio_xchg_access_time-in-numa_hint_fault_latency.patch
-mm-mprotect-use-a-folio-in-change_pte_range.patch
-mm-huge_memory-use-a-folio-in-change_huge_pmd.patch
-mm-remove-xchg_page_access_time.patch
-mm-add-folio_xchg_last_cpupid.patch
-sched-fair-use-folio_xchg_last_cpupid-in-should_numa_migrate_memory.patch
-mm-migrate-use-folio_xchg_last_cpupid-in-folio_migrate_flags.patch
-mm-huge_memory-use-folio_xchg_last_cpupid-in-__split_huge_page_tail.patch
-mm-make-finish_mkwrite_fault-static.patch
-mm-convert-wp_page_reuse-and-finish_mkwrite_fault-to-take-a-folio.patch
-mm-use-folio_xchg_last_cpupid-in-wp_page_reuse.patch
-mm-remove-page_cpupid_xchg_last.patch
+mm-vmscan-try-to-reclaim-swapcache-pages-if-no-swap-space.patch
+mm-vmscan-try-to-reclaim-swapcache-pages-if-no-swap-space-v6.patch
+bootmem-use-kmemleak_free_part_phys-in-put_page_bootmem.patch
+bootmem-use-kmemleak_free_part_phys-in-free_bootmem_page.patch
+mm-kmemleak-fix-print-format-of-pointer-in-pr_debug.patch
+mm-kmemleak-split-__create_object-into-two-functions.patch
+mm-kmemleak-use-mem_pool_free-to-free-object.patch
+mm-kmemleak-add-__find_and_remove_object.patch
+mm-kmemleak-fix-partially-freeing-unknown-object-warning.patch
 
