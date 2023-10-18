@@ -2,34 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E157DC46CA1
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 19:13:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0226C41513
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 19:13:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231194AbjJRTNk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 15:13:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53772 "EHLO
+        id S231381AbjJRTNz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 15:13:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53740 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231450AbjJRTN0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 15:13:26 -0400
+        with ESMTP id S230421AbjJRTNR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 15:13:17 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D8A311C;
-        Wed, 18 Oct 2023 12:13:25 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C175DC433C8;
-        Wed, 18 Oct 2023 19:13:24 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C457D11C;
+        Wed, 18 Oct 2023 12:13:15 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C476C433C8;
+        Wed, 18 Oct 2023 19:13:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697656404;
-        bh=qTmp2TzHZtRdm8q1k/3umCQTMDxFgjVoonqxq4w0rwI=;
+        s=korg; t=1697656395;
+        bh=dk5GOx4PFjGrCgVwENMgx3CVPxZxbfVvOISoVj/QZgo=;
         h=Date:To:From:Subject:From;
-        b=Nj7FJW10UskT8Ct3kBkJ75M1BKtA/Zs9+cjG58xCdBIeuydMHAHwje33bEyQFGbjG
-         uBmSW2X7j41XOFVWK1wOb/dBfu7JDq+4fSiOkytWK+3R1Cv9wigBCovf2ixcCKszFW
-         ttk6pjq4aqNnXJzy3o7l9krIfug3fYCicWaLANOc=
-Date:   Wed, 18 Oct 2023 12:13:24 -0700
-To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
-        stable@vger.kernel.org, shuah@kernel.org, brauner@kernel.org,
-        yangtiezhu@loongson.cn, akpm@linux-foundation.org
+        b=by/Lyeborr3JRz99trvW91EiGDZ/OjNSsxPgdnLyezFAHkGpzJhNnPW1sQyIGGLDJ
+         HC9eMOg63VUm1T+hxA4p3odR75cym2GVugEOg1xR7A3JbpAwSvrKXTL0cfU4/WD4eS
+         9HSBrgjoVSlWvmIrAsgh85AE/VzRxqxP05pl9bog=
+Date:   Wed, 18 Oct 2023 12:13:14 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        stable@vger.kernel.org, muchun.song@linux.dev,
+        mike.kravetz@oracle.com, riel@surriel.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-clone3-fix-broken-test-under-config_time_ns.patch removed from -mm tree
-Message-Id: <20231018191324.C175DC433C8@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] hugetlbfs-extend-hugetlb_vma_lock-to-private-vmas.patch removed from -mm tree
+Message-Id: <20231018191315.5C476C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,79 +38,170 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/clone3: Fix broken test under !CONFIG_TIME_NS
+     Subject: hugetlbfs: extend hugetlb_vma_lock to private VMAs
 has been removed from the -mm tree.  Its filename was
-     selftests-clone3-fix-broken-test-under-config_time_ns.patch
+     hugetlbfs-extend-hugetlb_vma_lock-to-private-vmas.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Tiezhu Yang <yangtiezhu@loongson.cn>
-Subject: selftests/clone3: Fix broken test under !CONFIG_TIME_NS
-Date: Tue, 11 Jul 2023 17:13:34 +0800
+From: Rik van Riel <riel@surriel.com>
+Subject: hugetlbfs: extend hugetlb_vma_lock to private VMAs
+Date: Thu, 5 Oct 2023 23:59:07 -0400
 
-When execute the following command to test clone3 under !CONFIG_TIME_NS:
+Extend the locking scheme used to protect shared hugetlb mappings from
+truncate vs page fault races, in order to protect private hugetlb mappings
+(with resv_map) against MADV_DONTNEED.
 
-  # make headers && cd tools/testing/selftests/clone3 && make && ./clone3
+Add a read-write semaphore to the resv_map data structure, and use that
+from the hugetlb_vma_(un)lock_* functions, in preparation for closing the
+race between MADV_DONTNEED and page faults.
 
-we can see the following error info:
-
-  # [7538] Trying clone3() with flags 0x80 (size 0)
-  # Invalid argument - Failed to create new process
-  # [7538] clone3() with flags says: -22 expected 0
-  not ok 18 [7538] Result (-22) is different than expected (0)
-  ...
-  # Totals: pass:18 fail:1 xfail:0 xpass:0 skip:0 error:0
-
-This is because if CONFIG_TIME_NS is not set, but the flag
-CLONE_NEWTIME (0x80) is used to clone a time namespace, it
-will return -EINVAL in copy_time_ns().
-
-If kernel does not support CONFIG_TIME_NS, /proc/self/ns/time
-will be not exist, and then we should skip clone3() test with
-CLONE_NEWTIME.
-
-With this patch under !CONFIG_TIME_NS:
-
-  # make headers && cd tools/testing/selftests/clone3 && make && ./clone3
-  ...
-  # Time namespaces are not supported
-  ok 18 # SKIP Skipping clone3() with CLONE_NEWTIME
-  ...
-  # Totals: pass:18 fail:0 xfail:0 xpass:0 skip:1 error:0
-
-Link: https://lkml.kernel.org/r/1689066814-13295-1-git-send-email-yangtiezhu@loongson.cn
-Fixes: 515bddf0ec41 ("selftests/clone3: test clone3 with CLONE_NEWTIME")
-Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
-Suggested-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20231006040020.3677377-3-riel@surriel.com
+Fixes: 04ada095dcfc ("hugetlb: don't delete vma_lock in hugetlb MADV_DONTNEED processing")
+Signed-off-by: Rik van Riel <riel@surriel.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/clone3/clone3.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ include/linux/hugetlb.h |    6 +++++
+ mm/hugetlb.c            |   41 ++++++++++++++++++++++++++++++++++----
+ 2 files changed, 43 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/clone3/clone3.c~selftests-clone3-fix-broken-test-under-config_time_ns
-+++ a/tools/testing/selftests/clone3/clone3.c
-@@ -196,7 +196,12 @@ int main(int argc, char *argv[])
- 			CLONE3_ARGS_NO_TEST);
+--- a/include/linux/hugetlb.h~hugetlbfs-extend-hugetlb_vma_lock-to-private-vmas
++++ a/include/linux/hugetlb.h
+@@ -60,6 +60,7 @@ struct resv_map {
+ 	long adds_in_progress;
+ 	struct list_head region_cache;
+ 	long region_cache_count;
++	struct rw_semaphore rw_sema;
+ #ifdef CONFIG_CGROUP_HUGETLB
+ 	/*
+ 	 * On private mappings, the counter to uncharge reservations is stored
+@@ -1233,6 +1234,11 @@ static inline bool __vma_shareable_lock(
+ 	return (vma->vm_flags & VM_MAYSHARE) && vma->vm_private_data;
+ }
  
- 	/* Do a clone3() in a new time namespace */
--	test_clone3(CLONE_NEWTIME, 0, 0, CLONE3_ARGS_NO_TEST);
-+	if (access("/proc/self/ns/time", F_OK) == 0) {
-+		test_clone3(CLONE_NEWTIME, 0, 0, CLONE3_ARGS_NO_TEST);
-+	} else {
-+		ksft_print_msg("Time namespaces are not supported\n");
-+		ksft_test_result_skip("Skipping clone3() with CLONE_NEWTIME\n");
++static inline bool __vma_private_lock(struct vm_area_struct *vma)
++{
++	return (!(vma->vm_flags & VM_MAYSHARE)) && vma->vm_private_data;
++}
++
+ /*
+  * Safe version of huge_pte_offset() to check the locks.  See comments
+  * above huge_pte_offset().
+--- a/mm/hugetlb.c~hugetlbfs-extend-hugetlb_vma_lock-to-private-vmas
++++ a/mm/hugetlb.c
+@@ -97,6 +97,7 @@ static void hugetlb_vma_lock_alloc(struc
+ static void __hugetlb_vma_unlock_write_free(struct vm_area_struct *vma);
+ static void hugetlb_unshare_pmds(struct vm_area_struct *vma,
+ 		unsigned long start, unsigned long end);
++static struct resv_map *vma_resv_map(struct vm_area_struct *vma);
+ 
+ static inline bool subpool_is_free(struct hugepage_subpool *spool)
+ {
+@@ -267,6 +268,10 @@ void hugetlb_vma_lock_read(struct vm_are
+ 		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
+ 
+ 		down_read(&vma_lock->rw_sema);
++	} else if (__vma_private_lock(vma)) {
++		struct resv_map *resv_map = vma_resv_map(vma);
++
++		down_read(&resv_map->rw_sema);
+ 	}
+ }
+ 
+@@ -276,6 +281,10 @@ void hugetlb_vma_unlock_read(struct vm_a
+ 		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
+ 
+ 		up_read(&vma_lock->rw_sema);
++	} else if (__vma_private_lock(vma)) {
++		struct resv_map *resv_map = vma_resv_map(vma);
++
++		up_read(&resv_map->rw_sema);
+ 	}
+ }
+ 
+@@ -285,6 +294,10 @@ void hugetlb_vma_lock_write(struct vm_ar
+ 		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
+ 
+ 		down_write(&vma_lock->rw_sema);
++	} else if (__vma_private_lock(vma)) {
++		struct resv_map *resv_map = vma_resv_map(vma);
++
++		down_write(&resv_map->rw_sema);
+ 	}
+ }
+ 
+@@ -294,17 +307,27 @@ void hugetlb_vma_unlock_write(struct vm_
+ 		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
+ 
+ 		up_write(&vma_lock->rw_sema);
++	} else if (__vma_private_lock(vma)) {
++		struct resv_map *resv_map = vma_resv_map(vma);
++
++		up_write(&resv_map->rw_sema);
+ 	}
+ }
+ 
+ int hugetlb_vma_trylock_write(struct vm_area_struct *vma)
+ {
+-	struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
+ 
+-	if (!__vma_shareable_lock(vma))
+-		return 1;
++	if (__vma_shareable_lock(vma)) {
++		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
+ 
+-	return down_write_trylock(&vma_lock->rw_sema);
++		return down_write_trylock(&vma_lock->rw_sema);
++	} else if (__vma_private_lock(vma)) {
++		struct resv_map *resv_map = vma_resv_map(vma);
++
++		return down_write_trylock(&resv_map->rw_sema);
 +	}
++
++	return 1;
+ }
  
- 	/* Do a clone3() with exit signal (SIGCHLD) in flags */
- 	test_clone3(SIGCHLD, 0, -EINVAL, CLONE3_ARGS_NO_TEST);
+ void hugetlb_vma_assert_locked(struct vm_area_struct *vma)
+@@ -313,6 +336,10 @@ void hugetlb_vma_assert_locked(struct vm
+ 		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
+ 
+ 		lockdep_assert_held(&vma_lock->rw_sema);
++	} else if (__vma_private_lock(vma)) {
++		struct resv_map *resv_map = vma_resv_map(vma);
++
++		lockdep_assert_held(&resv_map->rw_sema);
+ 	}
+ }
+ 
+@@ -345,6 +372,11 @@ static void __hugetlb_vma_unlock_write_f
+ 		struct hugetlb_vma_lock *vma_lock = vma->vm_private_data;
+ 
+ 		__hugetlb_vma_unlock_write_put(vma_lock);
++	} else if (__vma_private_lock(vma)) {
++		struct resv_map *resv_map = vma_resv_map(vma);
++
++		/* no free for anon vmas, but still need to unlock */
++		up_write(&resv_map->rw_sema);
+ 	}
+ }
+ 
+@@ -1068,6 +1100,7 @@ struct resv_map *resv_map_alloc(void)
+ 	kref_init(&resv_map->refs);
+ 	spin_lock_init(&resv_map->lock);
+ 	INIT_LIST_HEAD(&resv_map->regions);
++	init_rwsem(&resv_map->rw_sema);
+ 
+ 	resv_map->adds_in_progress = 0;
+ 	/*
 _
 
-Patches currently in -mm which might be from yangtiezhu@loongson.cn are
+Patches currently in -mm which might be from riel@surriel.com are
 
 
