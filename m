@@ -2,36 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2FFFCDB483
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:36:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09894CDB482
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:36:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235295AbjJRVg1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 17:36:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54576 "EHLO
+        id S230284AbjJRVg2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 17:36:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54500 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232130AbjJRVft (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:35:49 -0400
+        with ESMTP id S232377AbjJRVgF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:05 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 047F512A
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:30 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C827C433BD;
-        Wed, 18 Oct 2023 21:35:07 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 120AC12F
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:31 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF049C433BA;
+        Wed, 18 Oct 2023 21:35:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697664907;
-        bh=ndmCvT1uLbpiU6YTWcpmaTmNN0wgB+nBATLw0DSpBL4=;
+        s=korg; t=1697664911;
+        bh=VXBKrT4dUXTeIPrHEGN9ocRwHBf3KeyY5PSLxGyBQ4k=;
         h=Date:To:From:Subject:From;
-        b=SEwhM9Vvr0KMsfsJTJbNbv2ueWjyS9MlrP03HRwGy5koEOCcqU5g4AXKKW4nwAP2x
-         QypB1pzMQ+y+khmAcx0KD60lKr0CJg6qkoxe95yj7yZd1CgxfXFQbbqI3jwzw//cur
-         hlbRY7tnr0tLIag9IGk8uvFEUkUbmpnCPg68bYDM=
-Date:   Wed, 18 Oct 2023 14:35:06 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        tim.c.chen@intel.com, jack@suse.cz, hannes@cmpxchg.org,
-        djwong@kernel.org, dchinner@redhat.com, chuck.lever@oracle.com,
-        cem@kernel.org, brauner@kernel.org, axelrasmussen@google.com,
-        hughd@google.com, akpm@linux-foundation.org
+        b=MWpNAwQvyx5HpLlGmqD1g9sDLDQTx9XQ0zutNV0HUgHYPEptHIEGWzH0Rtq5xPhVG
+         Sto5MZPPk2/pOCXerhYRVGesx8XuYPR8okeE+brGLLCaYyI0mgUp+j3sC2ILtkv70B
+         RsJCTnaP5q4oe7i7EvFpTHU23Py5DjkP2nMdOrNY=
+Date:   Wed, 18 Oct 2023 14:35:10 -0700
+To:     mm-commits@vger.kernel.org, surenb@google.com, willy@infradead.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] shmem-_add_to_page_cache-before-shmem_inode_acct_blocks.patch removed from -mm tree
-Message-Id: <20231018213507.4C827C433BD@smtp.kernel.org>
+Subject: [merged mm-stable] mm-call-wp_page_copy-under-the-vma-lock.patch removed from -mm tree
+Message-Id: <20231018213510.DF049C433BA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,448 +36,162 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: shmem: _add_to_page_cache() before shmem_inode_acct_blocks()
+     Subject: mm: call wp_page_copy() under the VMA lock
 has been removed from the -mm tree.  Its filename was
-     shmem-_add_to_page_cache-before-shmem_inode_acct_blocks.patch
+     mm-call-wp_page_copy-under-the-vma-lock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: shmem: _add_to_page_cache() before shmem_inode_acct_blocks()
-Date: Fri, 29 Sep 2023 20:32:40 -0700 (PDT)
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: call wp_page_copy() under the VMA lock
+Date: Fri, 6 Oct 2023 20:53:14 +0100
 
-There has been a recurring problem, that when a tmpfs volume is being
-filled by racing threads, some fail with ENOSPC (or consequent SIGBUS or
-EFAULT) even though all allocations were within the permitted size.
+It is usually safe to call wp_page_copy() under the VMA lock.  The only
+unsafe situation is when no anon_vma has been allocated for this VMA, and
+we have to look at adjacent VMAs to determine if their anon_vma can be
+shared.  Since this happens only for the first COW of a page in this VMA,
+the majority of calls to wp_page_copy() do not need to fall back to the
+mmap_sem.
 
-This was a problem since early days, but magnified and complicated by the
-addition of huge pages.  We have often worked around it by adding some
-slop to the tmpfs size, but it's hard to say how much is needed, and some
-users prefer not to do that e.g.  keeping sparse files in a tightly
-tailored tmpfs helps to prevent accidental writing to holes.
+Add vmf_anon_prepare() as an alternative to anon_vma_prepare() which will
+return RETRY if we currently hold the VMA lock and need to allocate an
+anon_vma.  This lets us drop the check in do_wp_page().
 
-This comes from the allocation sequence:
-1. check page cache for existing folio
-2. check and reserve from vm_enough_memory
-3. check and account from size of tmpfs
-4. if huge, check page cache for overlapping folio
-5. allocate physical folio, huge or small
-6. check and charge from mem cgroup limit
-7. add to page cache (but maybe another folio already got in).
-
-Concurrent tasks allocating at the same position could deplete the size
-allowance and fail.  Doing vm_enough_memory and size checks before the
-folio allocation was intentional (to limit the load on the page allocator
-from this source) and still has some virtue; but memory cgroup never did
-that, so I think it's better reordered to favour predictable behaviour.
-
-1. check page cache for existing folio
-2. if huge, check page cache for overlapping folio
-3. allocate physical folio, huge or small
-4. check and charge from mem cgroup limit
-5. add to page cache (but maybe another folio already got in)
-6. check and reserve from vm_enough_memory
-7. check and account from size of tmpfs.
-
-The folio lock held from allocation onwards ensures that the !uptodate
-folio cannot be used by others, and can safely be deleted from the cache
-if checks 6 or 7 subsequently fail (and those waiting on folio lock
-already check that the folio was not truncated once they get the lock);
-and the early addition to page cache ensures that racers find it before
-they try to duplicate the accounting.
-
-Seize the opportunity to tidy up shmem_get_folio_gfp()'s ENOSPC retrying,
-which can be combined inside the new shmem_alloc_and_add_folio(): doing 2
-splits twice (once huge, once nonhuge) is not exactly equivalent to trying
-5 splits (and giving up early on huge), but let's keep it simple unless
-more complication proves necessary.
-
-Userfaultfd is a foreign country: they do things differently there, and
-for good reason - to avoid mmap_lock deadlock.  Leave ordering in
-shmem_mfill_atomic_pte() untouched for now, but I would rather like to
-mesh it better with shmem_get_folio_gfp() in the future.
-
-Link: https://lkml.kernel.org/r/22ddd06-d919-33b-1219-56335c1bf28e@google.com
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Carlos Maiolino <cem@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Chuck Lever <chuck.lever@oracle.com>
-Cc: Darrick J. Wong <djwong@kernel.org>
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Tim Chen <tim.c.chen@intel.com>
+Link: https://lkml.kernel.org/r/20231006195318.4087158-3-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |  231 ++++++++++++++++++++++++++-------------------------
- 1 file changed, 119 insertions(+), 112 deletions(-)
+ mm/memory.c |   39 ++++++++++++++++++++++++++-------------
+ 1 file changed, 26 insertions(+), 13 deletions(-)
 
---- a/mm/shmem.c~shmem-_add_to_page_cache-before-shmem_inode_acct_blocks
-+++ a/mm/shmem.c
-@@ -789,13 +789,11 @@ static int shmem_add_to_page_cache(struc
- 		xas_store(&xas, folio);
- 		if (xas_error(&xas))
- 			goto unlock;
--		if (folio_test_pmd_mappable(folio)) {
--			count_vm_event(THP_FILE_ALLOC);
-+		if (folio_test_pmd_mappable(folio))
- 			__lruvec_stat_mod_folio(folio, NR_SHMEM_THPS, nr);
--		}
--		mapping->nrpages += nr;
- 		__lruvec_stat_mod_folio(folio, NR_FILE_PAGES, nr);
- 		__lruvec_stat_mod_folio(folio, NR_SHMEM, nr);
-+		mapping->nrpages += nr;
- unlock:
- 		xas_unlock_irq(&xas);
- 	} while (xas_nomem(&xas, gfp));
-@@ -1612,25 +1610,17 @@ static struct folio *shmem_alloc_hugefol
- 		struct shmem_inode_info *info, pgoff_t index)
- {
- 	struct vm_area_struct pvma;
--	struct address_space *mapping = info->vfs_inode.i_mapping;
--	pgoff_t hindex;
- 	struct folio *folio;
- 
--	hindex = round_down(index, HPAGE_PMD_NR);
--	if (xa_find(&mapping->i_pages, &hindex, hindex + HPAGE_PMD_NR - 1,
--								XA_PRESENT))
--		return NULL;
--
--	shmem_pseudo_vma_init(&pvma, info, hindex);
-+	shmem_pseudo_vma_init(&pvma, info, index);
- 	folio = vma_alloc_folio(gfp, HPAGE_PMD_ORDER, &pvma, 0, true);
- 	shmem_pseudo_vma_destroy(&pvma);
--	if (!folio)
--		count_vm_event(THP_FILE_FALLBACK);
-+
- 	return folio;
+--- a/mm/memory.c~mm-call-wp_page_copy-under-the-vma-lock
++++ a/mm/memory.c
+@@ -3042,6 +3042,21 @@ static inline void wp_page_reuse(struct
+ 	count_vm_event(PGREUSE);
  }
  
- static struct folio *shmem_alloc_folio(gfp_t gfp,
--			struct shmem_inode_info *info, pgoff_t index)
-+		struct shmem_inode_info *info, pgoff_t index)
- {
- 	struct vm_area_struct pvma;
- 	struct folio *folio;
-@@ -1642,36 +1632,101 @@ static struct folio *shmem_alloc_folio(g
- 	return folio;
- }
- 
--static struct folio *shmem_alloc_and_acct_folio(gfp_t gfp, struct inode *inode,
--		pgoff_t index, bool huge)
-+static struct folio *shmem_alloc_and_add_folio(gfp_t gfp,
-+		struct inode *inode, pgoff_t index,
-+		struct mm_struct *fault_mm, bool huge)
- {
-+	struct address_space *mapping = inode->i_mapping;
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	struct folio *folio;
--	int nr;
--	int err;
-+	long pages;
-+	int error;
- 
- 	if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE))
- 		huge = false;
--	nr = huge ? HPAGE_PMD_NR : 1;
- 
--	err = shmem_inode_acct_blocks(inode, nr);
--	if (err)
--		goto failed;
-+	if (huge) {
-+		pages = HPAGE_PMD_NR;
-+		index = round_down(index, HPAGE_PMD_NR);
++static vm_fault_t vmf_anon_prepare(struct vm_fault *vmf)
++{
++	struct vm_area_struct *vma = vmf->vma;
 +
-+		/*
-+		 * Check for conflict before waiting on a huge allocation.
-+		 * Conflict might be that a huge page has just been allocated
-+		 * and added to page cache by a racing thread, or that there
-+		 * is already at least one small page in the huge extent.
-+		 * Be careful to retry when appropriate, but not forever!
-+		 * Elsewhere -EEXIST would be the right code, but not here.
-+		 */
-+		if (xa_find(&mapping->i_pages, &index,
-+				index + HPAGE_PMD_NR - 1, XA_PRESENT))
-+			return ERR_PTR(-E2BIG);
- 
--	if (huge)
- 		folio = shmem_alloc_hugefolio(gfp, info, index);
--	else
-+		if (!folio)
-+			count_vm_event(THP_FILE_FALLBACK);
-+	} else {
-+		pages = 1;
- 		folio = shmem_alloc_folio(gfp, info, index);
--	if (folio) {
--		__folio_set_locked(folio);
--		__folio_set_swapbacked(folio);
--		return folio;
- 	}
-+	if (!folio)
-+		return ERR_PTR(-ENOMEM);
- 
--	err = -ENOMEM;
--	shmem_inode_unacct_blocks(inode, nr);
--failed:
--	return ERR_PTR(err);
-+	__folio_set_locked(folio);
-+	__folio_set_swapbacked(folio);
-+
-+	gfp &= GFP_RECLAIM_MASK;
-+	error = mem_cgroup_charge(folio, fault_mm, gfp);
-+	if (error) {
-+		if (xa_find(&mapping->i_pages, &index,
-+				index + pages - 1, XA_PRESENT)) {
-+			error = -EEXIST;
-+		} else if (huge) {
-+			count_vm_event(THP_FILE_FALLBACK);
-+			count_vm_event(THP_FILE_FALLBACK_CHARGE);
-+		}
-+		goto unlock;
++	if (likely(vma->anon_vma))
++		return 0;
++	if (vmf->flags & FAULT_FLAG_VMA_LOCK) {
++		vma_end_read(vma);
++		return VM_FAULT_RETRY;
 +	}
++	if (__anon_vma_prepare(vma))
++		return VM_FAULT_OOM;
++	return 0;
++}
 +
-+	error = shmem_add_to_page_cache(folio, mapping, index, NULL, gfp);
-+	if (error)
-+		goto unlock;
-+
-+	error = shmem_inode_acct_blocks(inode, pages);
-+	if (error) {
-+		struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
-+		long freed;
-+		/*
-+		 * Try to reclaim some space by splitting a few
-+		 * large folios beyond i_size on the filesystem.
-+		 */
-+		shmem_unused_huge_shrink(sbinfo, NULL, 2);
-+		/*
-+		 * And do a shmem_recalc_inode() to account for freed pages:
-+		 * except our folio is there in cache, so not quite balanced.
-+		 */
-+		spin_lock(&info->lock);
-+		freed = pages + info->alloced - info->swapped -
-+			READ_ONCE(mapping->nrpages);
-+		if (freed > 0)
-+			info->alloced -= freed;
-+		spin_unlock(&info->lock);
-+		if (freed > 0)
-+			shmem_inode_unacct_blocks(inode, freed);
-+		error = shmem_inode_acct_blocks(inode, pages);
-+		if (error) {
-+			filemap_remove_folio(folio);
-+			goto unlock;
-+		}
-+	}
-+
-+	shmem_recalc_inode(inode, pages, 0);
-+	folio_add_lru(folio);
-+	return folio;
-+
-+unlock:
-+	folio_unlock(folio);
-+	folio_put(folio);
-+	return ERR_PTR(error);
- }
- 
  /*
-@@ -1907,29 +1962,22 @@ static int shmem_get_folio_gfp(struct in
- 		struct vm_fault *vmf, vm_fault_t *fault_type)
- {
- 	struct vm_area_struct *vma = vmf ? vmf->vma : NULL;
--	struct address_space *mapping = inode->i_mapping;
--	struct shmem_inode_info *info = SHMEM_I(inode);
--	struct shmem_sb_info *sbinfo;
- 	struct mm_struct *fault_mm;
- 	struct folio *folio;
--	pgoff_t hindex;
--	gfp_t huge_gfp;
- 	int error;
--	int once = 0;
--	int alloced = 0;
-+	bool alloced;
+  * Handle the case of a page which we actually need to copy to a new page,
+  * either due to COW or unsharing.
+@@ -3069,27 +3084,29 @@ static vm_fault_t wp_page_copy(struct vm
+ 	pte_t entry;
+ 	int page_copied = 0;
+ 	struct mmu_notifier_range range;
+-	int ret;
++	vm_fault_t ret;
  
- 	if (index > (MAX_LFS_FILESIZE >> PAGE_SHIFT))
- 		return -EFBIG;
- repeat:
- 	if (sgp <= SGP_CACHE &&
--	    ((loff_t)index << PAGE_SHIFT) >= i_size_read(inode)) {
-+	    ((loff_t)index << PAGE_SHIFT) >= i_size_read(inode))
- 		return -EINVAL;
--	}
+ 	delayacct_wpcopy_start();
  
--	sbinfo = SHMEM_SB(inode->i_sb);
-+	alloced = false;
- 	fault_mm = vma ? vma->vm_mm : NULL;
+ 	if (vmf->page)
+ 		old_folio = page_folio(vmf->page);
+-	if (unlikely(anon_vma_prepare(vma)))
+-		goto oom;
++	ret = vmf_anon_prepare(vmf);
++	if (unlikely(ret))
++		goto out;
  
--	folio = filemap_get_entry(mapping, index);
-+	folio = filemap_get_entry(inode->i_mapping, index);
- 	if (folio && vma && userfaultfd_minor(vma)) {
- 		if (!xa_is_value(folio))
- 			folio_put(folio);
-@@ -1951,7 +1999,7 @@ repeat:
- 		folio_lock(folio);
+ 	if (is_zero_pfn(pte_pfn(vmf->orig_pte))) {
+ 		new_folio = vma_alloc_zeroed_movable_folio(vma, vmf->address);
+ 		if (!new_folio)
+ 			goto oom;
+ 	} else {
++		int err;
+ 		new_folio = vma_alloc_folio(GFP_HIGHUSER_MOVABLE, 0, vma,
+ 				vmf->address, false);
+ 		if (!new_folio)
+ 			goto oom;
  
- 		/* Has the folio been truncated or swapped out? */
--		if (unlikely(folio->mapping != mapping)) {
-+		if (unlikely(folio->mapping != inode->i_mapping)) {
- 			folio_unlock(folio);
- 			folio_put(folio);
- 			goto repeat;
-@@ -1986,65 +2034,38 @@ repeat:
+-		ret = __wp_page_copy_user(&new_folio->page, vmf->page, vmf);
+-		if (ret) {
++		err = __wp_page_copy_user(&new_folio->page, vmf->page, vmf);
++		if (err) {
+ 			/*
+ 			 * COW failed, if the fault was solved by other,
+ 			 * it's fine. If not, userspace would re-fault on
+@@ -3102,7 +3119,7 @@ static vm_fault_t wp_page_copy(struct vm
+ 				folio_put(old_folio);
+ 
+ 			delayacct_wpcopy_end();
+-			return ret == -EHWPOISON ? VM_FAULT_HWPOISON : 0;
++			return err == -EHWPOISON ? VM_FAULT_HWPOISON : 0;
+ 		}
+ 		kmsan_copy_page_meta(&new_folio->page, vmf->page);
+ 	}
+@@ -3212,11 +3229,13 @@ static vm_fault_t wp_page_copy(struct vm
+ oom_free_new:
+ 	folio_put(new_folio);
+ oom:
++	ret = VM_FAULT_OOM;
++out:
+ 	if (old_folio)
+ 		folio_put(old_folio);
+ 
+ 	delayacct_wpcopy_end();
+-	return VM_FAULT_OOM;
++	return ret;
+ }
+ 
+ /**
+@@ -3458,12 +3477,6 @@ reuse:
  		return 0;
  	}
- 
--	if (!shmem_is_huge(inode, index, false,
--			   vma ? vma->vm_mm : NULL, vma ? vma->vm_flags : 0))
--		goto alloc_nohuge;
--
--	huge_gfp = vma_thp_gfp_mask(vma);
--	huge_gfp = limit_gfp_mask(huge_gfp, gfp);
--	folio = shmem_alloc_and_acct_folio(huge_gfp, inode, index, true);
--	if (IS_ERR(folio)) {
--alloc_nohuge:
--		folio = shmem_alloc_and_acct_folio(gfp, inode, index, false);
-+	if (shmem_is_huge(inode, index, false, fault_mm,
-+			  vma ? vma->vm_flags : 0)) {
-+		gfp_t huge_gfp;
-+
-+		huge_gfp = vma_thp_gfp_mask(vma);
-+		huge_gfp = limit_gfp_mask(huge_gfp, gfp);
-+		folio = shmem_alloc_and_add_folio(huge_gfp,
-+				inode, index, fault_mm, true);
-+		if (!IS_ERR(folio)) {
-+			count_vm_event(THP_FILE_ALLOC);
-+			goto alloced;
-+		}
-+		if (PTR_ERR(folio) == -EEXIST)
-+			goto repeat;
- 	}
--	if (IS_ERR(folio)) {
--		int retry = 5;
- 
-+	folio = shmem_alloc_and_add_folio(gfp, inode, index, fault_mm, false);
-+	if (IS_ERR(folio)) {
- 		error = PTR_ERR(folio);
-+		if (error == -EEXIST)
-+			goto repeat;
- 		folio = NULL;
--		if (error != -ENOSPC)
--			goto unlock;
--		/*
--		 * Try to reclaim some space by splitting a large folio
--		 * beyond i_size on the filesystem.
--		 */
--		while (retry--) {
--			int ret;
--
--			ret = shmem_unused_huge_shrink(sbinfo, NULL, 1);
--			if (ret == SHRINK_STOP)
--				break;
--			if (ret)
--				goto alloc_nohuge;
--		}
- 		goto unlock;
- 	}
- 
--	hindex = round_down(index, folio_nr_pages(folio));
--
--	if (sgp == SGP_WRITE)
--		__folio_set_referenced(folio);
--
--	error = mem_cgroup_charge(folio, fault_mm, gfp);
--	if (error) {
--		if (folio_test_pmd_mappable(folio)) {
--			count_vm_event(THP_FILE_FALLBACK);
--			count_vm_event(THP_FILE_FALLBACK_CHARGE);
--		}
--		goto unacct;
+ copy:
+-	if ((vmf->flags & FAULT_FLAG_VMA_LOCK) && !vma->anon_vma) {
+-		pte_unmap_unlock(vmf->pte, vmf->ptl);
+-		vma_end_read(vmf->vma);
+-		return VM_FAULT_RETRY;
 -	}
 -
--	error = shmem_add_to_page_cache(folio, mapping, hindex, NULL, gfp);
--	if (error)
--		goto unacct;
--
--	folio_add_lru(folio);
--	shmem_recalc_inode(inode, folio_nr_pages(folio), 0);
-+alloced:
- 	alloced = true;
--
- 	if (folio_test_pmd_mappable(folio) &&
- 	    DIV_ROUND_UP(i_size_read(inode), PAGE_SIZE) <
- 					folio_next_index(folio) - 1) {
-+		struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
-+		struct shmem_inode_info *info = SHMEM_I(inode);
- 		/*
- 		 * Part of the large folio is beyond i_size: subject
- 		 * to shrink under memory pressure.
-@@ -2062,6 +2083,8 @@ alloc_nohuge:
- 		spin_unlock(&sbinfo->shrinklist_lock);
- 	}
- 
-+	if (sgp == SGP_WRITE)
-+		folio_set_referenced(folio);
  	/*
- 	 * Let SGP_FALLOC use the SGP_WRITE optimization on a new folio.
+ 	 * Ok, we need to copy. Oh, well..
  	 */
-@@ -2085,11 +2108,6 @@ clear:
- 	/* Perhaps the file has been truncated since we checked */
- 	if (sgp <= SGP_CACHE &&
- 	    ((loff_t)index << PAGE_SHIFT) >= i_size_read(inode)) {
--		if (alloced) {
--			folio_clear_dirty(folio);
--			filemap_remove_folio(folio);
--			shmem_recalc_inode(inode, 0, 0);
--		}
- 		error = -EINVAL;
- 		goto unlock;
- 	}
-@@ -2100,25 +2118,14 @@ out:
- 	/*
- 	 * Error recovery.
- 	 */
--unacct:
--	shmem_inode_unacct_blocks(inode, folio_nr_pages(folio));
--
--	if (folio_test_large(folio)) {
--		folio_unlock(folio);
--		folio_put(folio);
--		goto alloc_nohuge;
--	}
- unlock:
-+	if (alloced)
-+		filemap_remove_folio(folio);
-+	shmem_recalc_inode(inode, 0, 0);
- 	if (folio) {
- 		folio_unlock(folio);
- 		folio_put(folio);
- 	}
--	if (error == -ENOSPC && !once++) {
--		shmem_recalc_inode(inode, 0, 0);
--		goto repeat;
--	}
--	if (error == -EEXIST)
--		goto repeat;
- 	return error;
- }
- 
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-hugetlbfs-drop-shared-numa-mempolicy-pretence.patch
-kernfs-drop-shared-numa-mempolicy-hooks.patch
-mempolicy-fix-migrate_pages2-syscall-return-nr_failed.patch
-mempolicy-trivia-delete-those-ancient-pr_debugs.patch
-mempolicy-trivia-slightly-more-consistent-naming.patch
-mempolicy-trivia-use-pgoff_t-in-shared-mempolicy-tree.patch
-mempolicy-mpol_shared_policy_init-without-pseudo-vma.patch
-mempolicy-remove-confusing-mpol_mf_lazy-dead-code.patch
-mm-add-page_rmappable_folio-wrapper.patch
-mempolicy-alloc_pages_mpol-for-numa-policy-without-vma.patch
-mempolicy-mmap_lock-is-not-needed-while-migrating-folios.patch
-mempolicy-migration-attempt-to-match-interleave-nodes.patch
+buffer-make-folio_create_empty_buffers-return-a-buffer_head.patch
+mpage-convert-map_buffer_to_folio-to-folio_create_empty_buffers.patch
+ext4-convert-to-folio_create_empty_buffers.patch
+buffer-add-get_nth_bh.patch
+gfs2-convert-inode-unstuffing-to-use-a-folio.patch
+gfs2-convert-gfs2_getbuf-to-folios.patch
+gfs2-convert-gfs2_getjdatabuf-to-use-a-folio.patch
+gfs2-convert-gfs2_write_buf_to_page-to-use-a-folio.patch
+nilfs2-convert-nilfs_mdt_freeze_buffer-to-use-a-folio.patch
+nilfs2-convert-nilfs_grab_buffer-to-use-a-folio.patch
+nilfs2-convert-nilfs_copy_page-to-nilfs_copy_folio.patch
+nilfs2-convert-nilfs_mdt_forget_block-to-use-a-folio.patch
+nilfs2-convert-nilfs_mdt_get_frozen_buffer-to-use-a-folio.patch
+nilfs2-remove-nilfs_page_get_nth_block.patch
+nilfs2-convert-nilfs_lookup_dirty_data_buffers-to-use-folio_create_empty_buffers.patch
+ntfs-convert-ntfs_read_block-to-use-a-folio.patch
+ntfs-convert-ntfs_writepage-to-use-a-folio.patch
+ntfs-convert-ntfs_prepare_pages_for_non_resident_write-to-folios.patch
+ntfs3-convert-ntfs_zero_range-to-use-a-folio.patch
+ocfs2-convert-ocfs2_map_page_blocks-to-use-a-folio.patch
+reiserfs-convert-writepage-to-use-a-folio.patch
+ufs-add-ufs_get_locked_folio-and-ufs_put_locked_folio.patch
+ufs-use-ufs_get_locked_folio-in-ufs_alloc_lastblock.patch
+ufs-convert-ufs_change_blocknr-to-use-folios.patch
+ufs-remove-ufs_get_locked_page.patch
+buffer-remove-folio_create_empty_buffers.patch
 
