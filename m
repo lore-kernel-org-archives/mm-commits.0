@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14CA8CDB47E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6A75CDB484
 	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:35:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229552AbjJRVfc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232098AbjJRVfc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 18 Oct 2023 17:35:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51586 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51566 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235220AbjJRVfa (ORCPT
+        with ESMTP id S235217AbjJRVfa (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:35:30 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4DF421B6
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E1CF1B8
         for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:13 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34EFEC433CD;
-        Wed, 18 Oct 2023 21:34:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F88AC433C7;
+        Wed, 18 Oct 2023 21:34:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697664897;
-        bh=LXRF5wcCz6MinAuL8LRT0qNq5qN5lFayZAmkV+hhEz8=;
+        s=korg; t=1697664896;
+        bh=GmwqmppM4tF/ch2Ji4sRYlt7fC7eB6gvKJPGfUnMwaE=;
         h=Date:To:From:Subject:From;
-        b=I7lxIP39hRLahDuXZP6Mb8hYdcbVhSGKtixY7XYvl+Pydcbr3TQZaS2vgujnIWNSU
-         r0wrG4veHu9UxpjiCxsDal9wWYqU0Xkt1+u0XSIKRGaVH6805nSlWhhJ8UDxMrp4Hl
-         S1OOiPoohOWlm5v5ZpAiDnQyRCvcDhaGlMWEeC0s=
-Date:   Wed, 18 Oct 2023 14:34:56 -0700
+        b=yRdg8dZIKVug0c6/oZDBjW0x6AVXGAIiy6tdYUkbNx+Mmym/PsiVUohBNOns9XKCZ
+         n8CBKsKgkOc4Jw3M8bK1SB2grhxTkIIp1t5igRDtIIEDVMsdor7nubHudJA6f1Cp+5
+         s/wpVb+p133fWM8CsobEuB7hGYpmS9+BehaMgoXU=
+Date:   Wed, 18 Oct 2023 14:34:55 -0700
 To:     mm-commits@vger.kernel.org, yun.zhou@windriver.com,
         willy@infradead.org, viro@zeniv.linux.org.uk, vbabka@suse.cz,
         surenb@google.com, shy828301@gmail.com, shuah@kernel.org,
@@ -36,8 +36,8 @@ To:     mm-commits@vger.kernel.org, yun.zhou@windriver.com,
         axelrasmussen@google.com, avagin@gmail.com, alex.sierra@amd.com,
         usama.anjum@collabora.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-pagemap-add-documentation-of-pagemap_scan-ioctl.patch removed from -mm tree
-Message-Id: <20231018213457.34EFEC433CD@smtp.kernel.org>
+Subject: [merged mm-stable] tools-headers-uapi-update-linux-fsh-with-the-kernel-sources.patch removed from -mm tree
+Message-Id: <20231018213456.2F88AC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,22 +45,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/pagemap: add documentation of PAGEMAP_SCAN IOCTL
+     Subject: tools headers UAPI: update linux/fs.h with the kernel sources
 has been removed from the -mm tree.  Its filename was
-     mm-pagemap-add-documentation-of-pagemap_scan-ioctl.patch
+     tools-headers-uapi-update-linux-fsh-with-the-kernel-sources.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: mm/pagemap: add documentation of PAGEMAP_SCAN IOCTL
-Date: Mon, 21 Aug 2023 19:15:17 +0500
+Subject: tools headers UAPI: update linux/fs.h with the kernel sources
+Date: Mon, 21 Aug 2023 19:15:16 +0500
 
-Add some explanation and method to use write-protection and written-to
-on memory range.
+New IOCTL and macros has been added in the kernel sources. Update the
+tools header file as well.
 
-Link: https://lkml.kernel.org/r/20230821141518.870589-6-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20230821141518.870589-5-usama.anjum@collabora.com
 Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: Alex Sierra <alex.sierra@amd.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -89,104 +89,75 @@ Cc: Yun Zhou <yun.zhou@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/pagemap.rst |   89 +++++++++++++++++++++
- 1 file changed, 89 insertions(+)
+ tools/include/uapi/linux/fs.h |   59 ++++++++++++++++++++++++++++++++
+ 1 file changed, 59 insertions(+)
 
---- a/Documentation/admin-guide/mm/pagemap.rst~mm-pagemap-add-documentation-of-pagemap_scan-ioctl
-+++ a/Documentation/admin-guide/mm/pagemap.rst
-@@ -227,3 +227,92 @@ Before Linux 3.11 pagemap bits 55-60 wer
- always 12 at most architectures). Since Linux 3.11 their meaning changes
- after first clear of soft-dirty bits. Since Linux 4.2 they are used for
- flags unconditionally.
+--- a/tools/include/uapi/linux/fs.h~tools-headers-uapi-update-linux-fsh-with-the-kernel-sources
++++ a/tools/include/uapi/linux/fs.h
+@@ -305,4 +305,63 @@ typedef int __bitwise __kernel_rwf_t;
+ #define RWF_SUPPORTED	(RWF_HIPRI | RWF_DSYNC | RWF_SYNC | RWF_NOWAIT |\
+ 			 RWF_APPEND)
+ 
++/* Pagemap ioctl */
++#define PAGEMAP_SCAN	_IOWR('f', 16, struct pm_scan_arg)
 +
-+Pagemap Scan IOCTL
-+==================
++/* Bitmasks provided in pm_scan_args masks and reported in page_region.categories. */
++#define PAGE_IS_WPALLOWED	(1 << 0)
++#define PAGE_IS_WRITTEN		(1 << 1)
++#define PAGE_IS_FILE		(1 << 2)
++#define PAGE_IS_PRESENT		(1 << 3)
++#define PAGE_IS_SWAPPED		(1 << 4)
++#define PAGE_IS_PFNZERO		(1 << 5)
++#define PAGE_IS_HUGE		(1 << 6)
 +
-+The ``PAGEMAP_SCAN`` IOCTL on the pagemap file can be used to get or optionally
-+clear the info about page table entries. The following operations are supported
-+in this IOCTL:
++/*
++ * struct page_region - Page region with flags
++ * @start:	Start of the region
++ * @end:	End of the region (exclusive)
++ * @categories:	PAGE_IS_* category bitmask for the region
++ */
++struct page_region {
++	__u64 start;
++	__u64 end;
++	__u64 categories;
++};
 +
-+- Scan the address range and get the memory ranges matching the provided criteria.
-+  This is performed when the output buffer is specified.
-+- Write-protect the pages. The ``PM_SCAN_WP_MATCHING`` is used to write-protect
-+  the pages of interest. The ``PM_SCAN_CHECK_WPASYNC`` aborts the operation if
-+  non-Async Write Protected pages are found. The ``PM_SCAN_WP_MATCHING`` can be
-+  used with or without ``PM_SCAN_CHECK_WPASYNC``.
-+- Both of those operations can be combined into one atomic operation where we can
-+  get and write protect the pages as well.
++/* Flags for PAGEMAP_SCAN ioctl */
++#define PM_SCAN_WP_MATCHING	(1 << 0)	/* Write protect the pages matched. */
++#define PM_SCAN_CHECK_WPASYNC	(1 << 1)	/* Abort the scan when a non-WP-enabled page is found. */
 +
-+Following flags about pages are currently supported:
++/*
++ * struct pm_scan_arg - Pagemap ioctl argument
++ * @size:		Size of the structure
++ * @flags:		Flags for the IOCTL
++ * @start:		Starting address of the region
++ * @end:		Ending address of the region
++ * @walk_end		Address where the scan stopped (written by kernel).
++ *			walk_end == end (address tags cleared) informs that the scan completed on entire range.
++ * @vec:		Address of page_region struct array for output
++ * @vec_len:		Length of the page_region struct array
++ * @max_pages:		Optional limit for number of returned pages (0 = disabled)
++ * @category_inverted:	PAGE_IS_* categories which values match if 0 instead of 1
++ * @category_mask:	Skip pages for which any category doesn't match
++ * @category_anyof_mask: Skip pages for which no category matches
++ * @return_mask:	PAGE_IS_* categories that are to be reported in `page_region`s returned
++ */
++struct pm_scan_arg {
++	__u64 size;
++	__u64 flags;
++	__u64 start;
++	__u64 end;
++	__u64 walk_end;
++	__u64 vec;
++	__u64 vec_len;
++	__u64 max_pages;
++	__u64 category_inverted;
++	__u64 category_mask;
++	__u64 category_anyof_mask;
++	__u64 return_mask;
++};
 +
-+- ``PAGE_IS_WPALLOWED`` - Page has async-write-protection enabled
-+- ``PAGE_IS_WRITTEN`` - Page has been written to from the time it was write protected
-+- ``PAGE_IS_FILE`` - Page is file backed
-+- ``PAGE_IS_PRESENT`` - Page is present in the memory
-+- ``PAGE_IS_SWAPPED`` - Page is in swapped
-+- ``PAGE_IS_PFNZERO`` - Page has zero PFN
-+- ``PAGE_IS_HUGE`` - Page is THP or Hugetlb backed
-+
-+The ``struct pm_scan_arg`` is used as the argument of the IOCTL.
-+
-+ 1. The size of the ``struct pm_scan_arg`` must be specified in the ``size``
-+    field. This field will be helpful in recognizing the structure if extensions
-+    are done later.
-+ 2. The flags can be specified in the ``flags`` field. The ``PM_SCAN_WP_MATCHING``
-+    and ``PM_SCAN_CHECK_WPASYNC`` are the only added flags at this time. The get
-+    operation is optionally performed depending upon if the output buffer is
-+    provided or not.
-+ 3. The range is specified through ``start`` and ``end``.
-+ 4. The walk can abort before visiting the complete range such as the user buffer
-+    can get full etc. The walk ending address is specified in``end_walk``.
-+ 5. The output buffer of ``struct page_region`` array and size is specified in
-+    ``vec`` and ``vec_len``.
-+ 6. The optional maximum requested pages are specified in the ``max_pages``.
-+ 7. The masks are specified in ``category_mask``, ``category_anyof_mask``,
-+    ``category_inverted`` and ``return_mask``.
-+
-+Find pages which have been written and WP them as well::
-+
-+   struct pm_scan_arg arg = {
-+   .size = sizeof(arg),
-+   .flags = PM_SCAN_CHECK_WPASYNC | PM_SCAN_CHECK_WPASYNC,
-+   ..
-+   .category_mask = PAGE_IS_WRITTEN,
-+   .return_mask = PAGE_IS_WRITTEN,
-+   };
-+
-+Find pages which have been written, are file backed, not swapped and either
-+present or huge::
-+
-+   struct pm_scan_arg arg = {
-+   .size = sizeof(arg),
-+   .flags = 0,
-+   ..
-+   .category_mask = PAGE_IS_WRITTEN | PAGE_IS_SWAPPED,
-+   .category_inverted = PAGE_IS_SWAPPED,
-+   .category_anyof_mask = PAGE_IS_PRESENT | PAGE_IS_HUGE,
-+   .return_mask = PAGE_IS_WRITTEN | PAGE_IS_SWAPPED |
-+                  PAGE_IS_PRESENT | PAGE_IS_HUGE,
-+   };
-+
-+The ``PAGE_IS_WRITTEN`` flag can be considered as a better-performing alternative
-+of soft-dirty flag. It doesn't get affected by VMA merging of the kernel and hence
-+the user can find the true soft-dirty pages in case of normal pages. (There may
-+still be extra dirty pages reported for THP or Hugetlb pages.)
-+
-+"PAGE_IS_WRITTEN" category is used with uffd write protect-enabled ranges to
-+implement memory dirty tracking in userspace:
-+
-+ 1. The userfaultfd file descriptor is created with ``userfaultfd`` syscall.
-+ 2. The ``UFFD_FEATURE_WP_UNPOPULATED`` and ``UFFD_FEATURE_WP_ASYNC`` features
-+    are set by ``UFFDIO_API`` IOCTL.
-+ 3. The memory range is registered with ``UFFDIO_REGISTER_MODE_WP`` mode
-+    through ``UFFDIO_REGISTER`` IOCTL.
-+ 4. Then any part of the registered memory or the whole memory region must
-+    be write protected using ``PAGEMAP_SCAN`` IOCTL with flag ``PM_SCAN_WP_MATCHING``
-+    or the ``UFFDIO_WRITEPROTECT`` IOCTL can be used. Both of these perform the
-+    same operation. The former is better in terms of performance.
-+ 5. Now the ``PAGEMAP_SCAN`` IOCTL can be used to either just find pages which
-+    have been written to since they were last marked and/or optionally write protect
-+    the pages as well.
+ #endif /* _UAPI_LINUX_FS_H */
 _
 
 Patches currently in -mm which might be from usama.anjum@collabora.com are
