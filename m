@@ -2,35 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82FF7CDB486
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A3F4CDB47E
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235290AbjJRVhA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 17:37:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57466 "EHLO
+        id S235298AbjJRVhB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 17:37:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57460 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235270AbjJRVgH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:07 -0400
+        with ESMTP id S235268AbjJRVgG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:06 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37C02197
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:39 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C872C433AD;
-        Wed, 18 Oct 2023 21:35:33 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9EB6E18D
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:37 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E37EDC116A9;
+        Wed, 18 Oct 2023 21:35:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697664933;
-        bh=rxb0rGPt+elROr6NiScBsAD/IIFK62I0PAutrlih1ic=;
+        s=korg; t=1697664926;
+        bh=87WWgMPnLRJwWdI3zBbNx8a4M7j+7Zu0XfXSouIq/Us=;
         h=Date:To:From:Subject:From;
-        b=jDGZ/3dTxR5kafhWKCbGtO+5mya2mOieYOBha6GF9qigJDXFW8k9s8JxrvJqNsynX
-         NrZVRqueaQc5xHs13J/2BZ1wLcnTs1pRloJO0I3EhPaPMChud+9Wt9AnCF/mt+A9wm
-         ojVwsVvShibkloeQlAf8P/5zJbscNX3CzIREb9Tk=
-Date:   Wed, 18 Oct 2023 14:35:32 -0700
-To:     mm-commits@vger.kernel.org, yj.chiang@mediatek.com,
-        senozhatsky@chromium.org, minchan@kernel.org,
-        matthias.bgg@gmail.com, angelogioacchino.delregno@collabora.com,
-        mark-pk.tsai@mediatek.com, akpm@linux-foundation.org
+        b=muTlSu88ZGFWJIPvPGsN6Ii+eWUX98iUJWaEJa7Zr4cNtggVlRKLRdst/MMZXx6Sb
+         pzZt3eUsABLWjgR6KLVsx5wJWyi6DzYsaqXU8gA9of8o2iqpbZK8bQ5sNcNQHWbTw/
+         MLiH53896gH2+POVAaK6gd3kpuHXE9z5bYfUe+zc=
+Date:   Wed, 18 Oct 2023 14:35:25 -0700
+To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, lkp@intel.com,
+        glider@google.com, elver@google.com, dvyukov@google.com,
+        andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zsmalloc-use-copy_page-for-full-page-copy.patch removed from -mm tree
-Message-Id: <20231018213533.2C872C433AD@smtp.kernel.org>
+Subject: [merged mm-stable] kasan-unify-printk-prefixes.patch removed from -mm tree
+Message-Id: <20231018213525.E37EDC116A9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,50 +37,109 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: zsmalloc: use copy_page for full page copy
+     Subject: kasan: unify printk prefixes
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-use-copy_page-for-full-page-copy.patch
+     kasan-unify-printk-prefixes.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mark-PK Tsai <mark-pk.tsai@mediatek.com>
-Subject: zsmalloc: use copy_page for full page copy
-Date: Fri, 6 Oct 2023 14:02:40 +0800
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: unify printk prefixes
+Date: Fri, 6 Oct 2023 17:18:43 +0200
 
-Some architectures have implemented optimized copy_page for full page
-copying, such as arm.
+Unify prefixes for printk messages in mm/kasan/.
 
-On my arm platform, use the copy_page helper for single page copying is
-about 10 percent faster than memcpy.
-
-Link: https://lkml.kernel.org/r/20231006060245.7411-1-mark-pk.tsai@mediatek.com
-Signed-off-by: Mark-PK Tsai <mark-pk.tsai@mediatek.com>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: YJ Chiang <yj.chiang@mediatek.com>
+Link: https://lkml.kernel.org/r/35589629806cf0840e5f01ec9d8011a7bad648df.1696605143.git.andreyknvl@google.com
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kasan/kasan_test.c        |    2 +-
+ mm/kasan/kasan_test_module.c |    2 +-
+ mm/kasan/quarantine.c        |    4 +++-
+ mm/kasan/report_generic.c    |    6 +++---
+ 4 files changed, 8 insertions(+), 6 deletions(-)
 
---- a/mm/zsmalloc.c~zsmalloc-use-copy_page-for-full-page-copy
-+++ a/mm/zsmalloc.c
-@@ -1839,7 +1839,7 @@ static int zs_page_migrate(struct page *
- 	 * Here, any user cannot access all objects in the zspage so let's move.
- 	 */
- 	d_addr = kmap_atomic(newpage);
--	memcpy(d_addr, s_addr, PAGE_SIZE);
-+	copy_page(d_addr, s_addr);
- 	kunmap_atomic(d_addr);
+--- a/mm/kasan/kasan_test.c~kasan-unify-printk-prefixes
++++ a/mm/kasan/kasan_test.c
+@@ -5,7 +5,7 @@
+  * Author: Andrey Ryabinin <a.ryabinin@samsung.com>
+  */
  
- 	for (addr = s_addr + offset; addr < s_addr + PAGE_SIZE;
+-#define pr_fmt(fmt) "kasan_test: " fmt
++#define pr_fmt(fmt) "kasan: test: " fmt
+ 
+ #include <kunit/test.h>
+ #include <linux/bitops.h>
+--- a/mm/kasan/kasan_test_module.c~kasan-unify-printk-prefixes
++++ a/mm/kasan/kasan_test_module.c
+@@ -5,7 +5,7 @@
+  * Author: Andrey Ryabinin <a.ryabinin@samsung.com>
+  */
+ 
+-#define pr_fmt(fmt) "kasan test: %s " fmt, __func__
++#define pr_fmt(fmt) "kasan: test: " fmt
+ 
+ #include <linux/mman.h>
+ #include <linux/module.h>
+--- a/mm/kasan/quarantine.c~kasan-unify-printk-prefixes
++++ a/mm/kasan/quarantine.c
+@@ -8,6 +8,8 @@
+  * Based on code by Dmitry Chernenkov.
+  */
+ 
++#define pr_fmt(fmt) "kasan: " fmt
++
+ #include <linux/gfp.h>
+ #include <linux/hash.h>
+ #include <linux/kernel.h>
+@@ -414,7 +416,7 @@ static int __init kasan_cpu_quarantine_i
+ 	ret = cpuhp_setup_state(CPUHP_AP_ONLINE_DYN, "mm/kasan:online",
+ 				kasan_cpu_online, kasan_cpu_offline);
+ 	if (ret < 0)
+-		pr_err("kasan cpu quarantine register failed [%d]\n", ret);
++		pr_err("cpu quarantine register failed [%d]\n", ret);
+ 	return ret;
+ }
+ late_initcall(kasan_cpu_quarantine_init);
+--- a/mm/kasan/report_generic.c~kasan-unify-printk-prefixes
++++ a/mm/kasan/report_generic.c
+@@ -220,7 +220,7 @@ static bool __must_check tokenize_frame_
+ 		const size_t tok_len = sep - *frame_descr;
+ 
+ 		if (tok_len + 1 > max_tok_len) {
+-			pr_err("KASAN internal error: frame description too long: %s\n",
++			pr_err("internal error: frame description too long: %s\n",
+ 			       *frame_descr);
+ 			return false;
+ 		}
+@@ -233,7 +233,7 @@ static bool __must_check tokenize_frame_
+ 	*frame_descr = sep + 1;
+ 
+ 	if (value != NULL && kstrtoul(token, 10, value)) {
+-		pr_err("KASAN internal error: not a valid number: %s\n", token);
++		pr_err("internal error: not a valid number: %s\n", token);
+ 		return false;
+ 	}
+ 
+@@ -323,7 +323,7 @@ static bool __must_check get_address_sta
+ 
+ 	frame = (const unsigned long *)(mem_ptr + KASAN_GRANULE_SIZE);
+ 	if (frame[0] != KASAN_CURRENT_STACK_FRAME_MAGIC) {
+-		pr_err("KASAN internal error: frame info validation failed; invalid marker: %lu\n",
++		pr_err("internal error: frame has invalid marker: %lu\n",
+ 		       frame[0]);
+ 		return false;
+ 	}
 _
 
-Patches currently in -mm which might be from mark-pk.tsai@mediatek.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
 
