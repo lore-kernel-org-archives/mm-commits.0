@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F070CDB47E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00CC0CDB483
 	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235265AbjJRVhJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232858AbjJRVhJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 18 Oct 2023 17:37:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41734 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41748 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232858AbjJRVg2 (ORCPT
+        with ESMTP id S235225AbjJRVg2 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:28 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFC181AC
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:44 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 337D1C433C8;
-        Wed, 18 Oct 2023 21:35:44 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48DCF1BC
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:45 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15219C433CA;
+        Wed, 18 Oct 2023 21:35:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697664944;
-        bh=v9PFO4UQ1LBBEymwLXRpKbjMMBk1Za59T5TH36f7AI8=;
+        s=korg; t=1697664945;
+        bh=tHlhBBY0Np9HM76944Ojf0AbLzRoDdZLgQKQsiAy2/k=;
         h=Date:To:From:Subject:From;
-        b=Lkgryv8cb0U0ZWLG7KXvfugRytu8dFfctIf+mpAfpmtX/Q9FXmETOQRCGniGmMpbF
-         B7iji9vYSIrZZtAs/+iuRDRtCMPZNtLCd5T/+IdOI18TzujNWxBDgIsrwa1LkBCdEn
-         drEOGn8lodExrg9PjhMOdTDiFnh3SUDZcosqbBkU=
-Date:   Wed, 18 Oct 2023 14:35:43 -0700
+        b=gnPoBwm6caBtOGeBZoonT7D9w+SB0jr7I8PcLsJ5JxHikrucsPohFcH+aN+lbZHr4
+         crVHw45Vqe06ChvaOyBNqStoKrJwV4DpFGT86iiOlVtnoydUtM1H2qmZrDde3Zo7cm
+         B5pMRsmzanBlAt9LbXFURSkG+IeruhQoqcYXd6wU=
+Date:   Wed, 18 Oct 2023 14:35:44 -0700
 To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         tsbogend@alpha.franken.de, svens@linux.ibm.com,
         richard.henderson@linaro.org, paul.walmsley@sifive.com,
@@ -35,8 +35,8 @@ To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         adilger.kernel@dilger.ca, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mips-implement-xor_unlock_is_negative_byte.patch removed from -mm tree
-Message-Id: <20231018213544.337D1C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] powerpc-implement-arch_xor_unlock_is_negative_byte-on-32-bit.patch removed from -mm tree
+Message-Id: <20231018213545.15219C433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,22 +44,26 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mips: implement xor_unlock_is_negative_byte
+     Subject: powerpc: implement arch_xor_unlock_is_negative_byte on 32-bit
 has been removed from the -mm tree.  Its filename was
-     mips-implement-xor_unlock_is_negative_byte.patch
+     powerpc-implement-arch_xor_unlock_is_negative_byte-on-32-bit.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mips: implement xor_unlock_is_negative_byte
-Date: Wed, 4 Oct 2023 17:53:10 +0100
+Subject: powerpc: implement arch_xor_unlock_is_negative_byte on 32-bit
+Date: Wed, 4 Oct 2023 17:53:11 +0100
 
-Inspired by the mips test_and_change_bit(), this will surely be more
-efficient than the generic one defined in filemap.c
+Simply remove the ifdef.  The assembly is identical to that in the
+non-optimised case of test_and_clear_bits() on PPC32, and it's not clear
+to me how the PPC32 optimisation works, nor whether it would work for
+arch_xor_unlock_is_negative_byte().  If that optimisation would work,
+someone can implement it later, but this is more efficient than the
+implementation in filemap.c.
 
-Link: https://lkml.kernel.org/r/20231004165317.1061855-11-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231004165317.1061855-12-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -82,72 +86,31 @@ Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/bitops.h |   26 +++++++++++++++++++++++++-
- arch/mips/lib/bitops.c         |   14 ++++++++++++++
- 2 files changed, 39 insertions(+), 1 deletion(-)
+ arch/powerpc/include/asm/bitops.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/arch/mips/include/asm/bitops.h~mips-implement-xor_unlock_is_negative_byte
-+++ a/arch/mips/include/asm/bitops.h
-@@ -73,7 +73,8 @@ int __mips_test_and_clear_bit(unsigned l
- 			      volatile unsigned long *addr);
- int __mips_test_and_change_bit(unsigned long nr,
- 			       volatile unsigned long *addr);
+--- a/arch/powerpc/include/asm/bitops.h~powerpc-implement-arch_xor_unlock_is_negative_byte-on-32-bit
++++ a/arch/powerpc/include/asm/bitops.h
+@@ -233,7 +233,6 @@ static inline int arch_test_and_change_b
+ 	return test_and_change_bits(BIT_MASK(nr), addr + BIT_WORD(nr)) != 0;
+ }
+ 
+-#ifdef CONFIG_PPC64
+ static inline bool arch_xor_unlock_is_negative_byte(unsigned long mask,
+ 		volatile unsigned long *p)
+ {
+@@ -251,11 +250,8 @@ static inline bool arch_xor_unlock_is_ne
+ 
+ 	return (old & BIT_MASK(7)) != 0;
+ }
 -
-+bool __mips_xor_is_negative_byte(unsigned long mask,
-+		volatile unsigned long *addr);
+ #define arch_xor_unlock_is_negative_byte arch_xor_unlock_is_negative_byte
  
- /*
-  * set_bit - Atomically set a bit in memory
-@@ -279,6 +280,29 @@ static inline int test_and_change_bit(un
- 	return res;
- }
+-#endif /* CONFIG_PPC64 */
+-
+ #include <asm-generic/bitops/non-atomic.h>
  
-+static inline bool xor_unlock_is_negative_byte(unsigned long mask,
-+		volatile unsigned long *p)
-+{
-+	unsigned long orig;
-+	bool res;
-+
-+	smp_mb__before_atomic();
-+
-+	if (!kernel_uses_llsc) {
-+		res = __mips_xor_is_negative_byte(mask, p);
-+	} else {
-+		orig = __test_bit_op(*p, "%0",
-+				     "xor\t%1, %0, %3",
-+				     "ir"(mask));
-+		res = (orig & BIT(7)) != 0;
-+	}
-+
-+	smp_llsc_mb();
-+
-+	return res;
-+}
-+#define xor_unlock_is_negative_byte xor_unlock_is_negative_byte
-+
- #undef __bit_op
- #undef __test_bit_op
- 
---- a/arch/mips/lib/bitops.c~mips-implement-xor_unlock_is_negative_byte
-+++ a/arch/mips/lib/bitops.c
-@@ -146,3 +146,17 @@ int __mips_test_and_change_bit(unsigned
- 	return res;
- }
- EXPORT_SYMBOL(__mips_test_and_change_bit);
-+
-+bool __mips_xor_is_negative_byte(unsigned long mask,
-+		volatile unsigned long *addr)
-+{
-+	unsigned long flags;
-+	unsigned long data;
-+
-+	raw_local_irq_save(flags);
-+	data = *addr;
-+	*addr = data ^ mask;
-+	raw_local_irq_restore(flags);
-+
-+	return (data & BIT(7)) != 0;
-+}
+ static inline void arch___clear_bit_unlock(int nr, volatile unsigned long *addr)
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
