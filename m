@@ -2,37 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59AB8CDB483
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B38FCDB488
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344834AbjJRVhj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1344838AbjJRVhj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 18 Oct 2023 17:37:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54576 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55794 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235337AbjJRVgw (ORCPT
+        with ESMTP id S235339AbjJRVgw (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:52 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D4AED77
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:36:02 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B34D7C433C8;
-        Wed, 18 Oct 2023 21:36:01 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 140B3D78
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:36:03 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1B08C433C7;
+        Wed, 18 Oct 2023 21:36:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697664961;
-        bh=u3XQAwUBF+JgmiYMOPKyp0XLNj8emh7b8RZfXw7Ete0=;
+        s=korg; t=1697664962;
+        bh=RUGuro+hTjl8H8VViHkIILdEm+syk/3TMKXnSgNo2rU=;
         h=Date:To:From:Subject:From;
-        b=0wTCMDGrdbEHNRLDPa6rqZm63sHKMNcM7yH5duyQCUCOaVJ39yEEIUp1xagjjb2fS
-         xKvJJrj5Ptfvr5zGFZOdUoVIU1OHjH2oYrPR/XEqkoiBlB6NCzt1sgxiOvkGHwIyZx
-         /n45pG+Y7ztATsh4JacDet7YO0CYgz19mKoO+wVg=
-Date:   Wed, 18 Oct 2023 14:36:00 -0700
-To:     mm-commits@vger.kernel.org, vschneid@redhat.com,
-        vincent.guittot@linaro.org, sclaibin@gmail.com,
-        rostedt@goodmis.org, peterz@infradead.org, mingo@redhat.com,
-        mingo@kernel.org, mgorman@suse.de, juri.lelli@redhat.com,
-        dietmar.eggemann@arm.com, bsegall@google.com, bristot@redhat.com,
-        willy@infradead.org, akpm@linux-foundation.org
+        b=aZLlR+tClcQehHv/zvsz2O91EHKBDN9eiQWdZMcX+ZeQQN9d+mEFpGFpThC2IvO/d
+         yv+ZiiekB39aRIB6j8+KEZqSz1i2ZKoHV2HD6/ltzDFNJaxfnLTzlEhuQ6ETRReF4n
+         GV4FdAzRkVyFQNWPV4RbzVDJ118pr0pXwznGFDLo=
+Date:   Wed, 18 Oct 2023 14:36:02 -0700
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        vbabka@suse.cz, Liam.Howlett@oracle.com, brauner@kernel.org,
+        lstoakes@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] sched-remove-wait-bookmarks.patch removed from -mm tree
-Message-Id: <20231018213601.B34D7C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-move-vma_policy-and-anon_vma_name-decls-to-mm_typesh.patch removed from -mm tree
+Message-Id: <20231018213602.A1B08C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,218 +37,195 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: sched: remove wait bookmarks
+     Subject: mm: move vma_policy() and anon_vma_name() decls to mm_types.h
 has been removed from the -mm tree.  Its filename was
-     sched-remove-wait-bookmarks.patch
+     mm-move-vma_policy-and-anon_vma_name-decls-to-mm_typesh.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: sched: remove wait bookmarks
-Date: Tue, 10 Oct 2023 04:58:29 +0100
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: mm: move vma_policy() and anon_vma_name() decls to mm_types.h
+Date: Wed, 11 Oct 2023 18:04:27 +0100
 
-There are no users of wait bookmarks left, so simplify the wait
-code by removing them.
+Patch series "Abstract vma_merge() and split_vma()", v4.
 
-Link: https://lkml.kernel.org/r/20231010035829.544242-2-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Ingo Molnar <mingo@kernel.org>
-Cc: Benjamin Segall <bsegall@google.com>
-Cc: Bin Lai <sclaibin@gmail.com>
-Cc: Daniel Bristot de Oliveira <bristot@redhat.com>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: Valentin Schneider <vschneid@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
+The vma_merge() interface is very confusing and its implementation has led
+to numerous bugs as a result of that confusion.
+
+In addition there is duplication both in invocation of vma_merge(), but
+also in the common mprotect()-style pattern of attempting a merge, then if
+this fails, splitting the portion of a VMA about to have its attributes
+changed.
+
+This pattern has been copy/pasted around the kernel in each instance where
+such an operation has been required, each very slightly modified from the
+last to make it even harder to decipher what is going on.
+
+Simplify the whole thing by dividing the actual uses of vma_merge() and
+split_vma() into specific and abstracted functions and de-duplicate the
+vma_merge()/split_vma() pattern altogether.
+
+Doing so also opens the door to changing how vma_merge() is implemented -
+by knowing precisely what cases a caller is invoking rather than having a
+central interface where anything might happen we can untangle the brittle
+and confusing vma_merge() implementation into something more workable.
+
+For mprotect()-like cases we introduce vma_modify() which performs the
+vma_merge()/split_vma() pattern, returning a pointer to either the merged
+or split VMA or an ERR_PTR(err) if the splits fail.
+
+We provide a number of inline helper functions to make things even clearer:-
+
+* vma_modify_flags()      - Prepare to modify the VMA's flags.
+* vma_modify_flags_name() - Prepare to modify the VMA's flags/anon_vma_name
+* vma_modify_policy()     - Prepare to modify the VMA's mempolicy.
+* vma_modify_flags_uffd() - Prepare to modify the VMA's flags/uffd context.
+
+For cases where a new VMA is attempted to be merged with adjacent VMAs we
+add:-
+
+* vma_merge_new_vma() - Prepare to merge a new VMA.
+* vma_merge_extend()  - Prepare to extend the end of a new VMA.
+
+
+This patch (of 5):
+
+The vma_policy() define is a helper specifically for a VMA field so it
+makes sense to host it in the memory management types header.
+
+The anon_vma_name(), anon_vma_name_alloc() and anon_vma_name_free()
+functions are a little out of place in mm_inline.h as they define external
+functions, and so it makes sense to locate them in mm_types.h.
+
+The purpose of these relocations is to make it possible to abstract static
+inline wrappers which invoke both of these helpers.
+
+Link: https://lkml.kernel.org/r/cover.1697043508.git.lstoakes@gmail.com
+Link: https://lkml.kernel.org/r/24bfc6c9e382fffbcb0ea8d424392c27d56cc8ca.1697043508.git.lstoakes@gmail.com
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/wait.h |    9 ++----
- kernel/sched/wait.c  |   60 ++++++-----------------------------------
- 2 files changed, 13 insertions(+), 56 deletions(-)
+ include/linux/mempolicy.h |    4 ----
+ include/linux/mm_inline.h |   20 +-------------------
+ include/linux/mm_types.h  |   27 +++++++++++++++++++++++++++
+ 3 files changed, 28 insertions(+), 23 deletions(-)
 
---- a/include/linux/wait.h~sched-remove-wait-bookmarks
-+++ a/include/linux/wait.h
-@@ -19,10 +19,9 @@ int default_wake_function(struct wait_qu
- /* wait_queue_entry::flags */
- #define WQ_FLAG_EXCLUSIVE	0x01
- #define WQ_FLAG_WOKEN		0x02
--#define WQ_FLAG_BOOKMARK	0x04
--#define WQ_FLAG_CUSTOM		0x08
--#define WQ_FLAG_DONE		0x10
--#define WQ_FLAG_PRIORITY	0x20
-+#define WQ_FLAG_CUSTOM		0x04
-+#define WQ_FLAG_DONE		0x08
-+#define WQ_FLAG_PRIORITY	0x10
+--- a/include/linux/mempolicy.h~mm-move-vma_policy-and-anon_vma_name-decls-to-mm_typesh
++++ a/include/linux/mempolicy.h
+@@ -89,8 +89,6 @@ static inline struct mempolicy *mpol_dup
+ 	return pol;
+ }
  
- /*
-  * A single wait-queue entry structure:
-@@ -212,8 +211,6 @@ __remove_wait_queue(struct wait_queue_he
- int __wake_up(struct wait_queue_head *wq_head, unsigned int mode, int nr, void *key);
- void __wake_up_on_current_cpu(struct wait_queue_head *wq_head, unsigned int mode, void *key);
- void __wake_up_locked_key(struct wait_queue_head *wq_head, unsigned int mode, void *key);
--void __wake_up_locked_key_bookmark(struct wait_queue_head *wq_head,
--		unsigned int mode, void *key, wait_queue_entry_t *bookmark);
- void __wake_up_sync_key(struct wait_queue_head *wq_head, unsigned int mode, void *key);
- void __wake_up_locked_sync_key(struct wait_queue_head *wq_head, unsigned int mode, void *key);
- void __wake_up_locked(struct wait_queue_head *wq_head, unsigned int mode, int nr);
---- a/kernel/sched/wait.c~sched-remove-wait-bookmarks
-+++ a/kernel/sched/wait.c
-@@ -58,13 +58,6 @@ void remove_wait_queue(struct wait_queue
- EXPORT_SYMBOL(remove_wait_queue);
- 
- /*
-- * Scan threshold to break wait queue walk.
-- * This allows a waker to take a break from holding the
-- * wait queue lock during the wait queue walk.
-- */
--#define WAITQUEUE_WALK_BREAK_CNT 64
+-#define vma_policy(vma) ((vma)->vm_policy)
 -
+ static inline void mpol_get(struct mempolicy *pol)
+ {
+ 	if (pol)
+@@ -222,8 +220,6 @@ mpol_shared_policy_lookup(struct shared_
+ 	return NULL;
+ }
+ 
+-#define vma_policy(vma) NULL
+-
+ static inline int
+ vma_dup_policy(struct vm_area_struct *src, struct vm_area_struct *dst)
+ {
+--- a/include/linux/mm_inline.h~mm-move-vma_policy-and-anon_vma_name-decls-to-mm_typesh
++++ a/include/linux/mm_inline.h
+@@ -4,6 +4,7 @@
+ 
+ #include <linux/atomic.h>
+ #include <linux/huge_mm.h>
++#include <linux/mm_types.h>
+ #include <linux/swap.h>
+ #include <linux/string.h>
+ #include <linux/userfaultfd_k.h>
+@@ -352,15 +353,6 @@ void lruvec_del_folio(struct lruvec *lru
+ }
+ 
+ #ifdef CONFIG_ANON_VMA_NAME
 -/*
-  * The core wakeup function. Non-exclusive wakeups (nr_exclusive == 0) just
-  * wake everything up. If it's an exclusive wakeup (nr_exclusive == small +ve
-  * number) then we wake that number of exclusive tasks, and potentially all
-@@ -78,21 +71,13 @@ EXPORT_SYMBOL(remove_wait_queue);
-  * zero in this (rare) case, and we handle it by continuing to scan the queue.
-  */
- static int __wake_up_common(struct wait_queue_head *wq_head, unsigned int mode,
--			int nr_exclusive, int wake_flags, void *key,
--			wait_queue_entry_t *bookmark)
-+			int nr_exclusive, int wake_flags, void *key)
+- * mmap_lock should be read-locked when calling anon_vma_name(). Caller should
+- * either keep holding the lock while using the returned pointer or it should
+- * raise anon_vma_name refcount before releasing the lock.
+- */
+-extern struct anon_vma_name *anon_vma_name(struct vm_area_struct *vma);
+-extern struct anon_vma_name *anon_vma_name_alloc(const char *name);
+-extern void anon_vma_name_free(struct kref *kref);
+-
+ /* mmap_lock should be read-locked */
+ static inline void anon_vma_name_get(struct anon_vma_name *anon_name)
  {
- 	wait_queue_entry_t *curr, *next;
--	int cnt = 0;
- 
- 	lockdep_assert_held(&wq_head->lock);
- 
--	if (bookmark && (bookmark->flags & WQ_FLAG_BOOKMARK)) {
--		curr = list_next_entry(bookmark, entry);
--
--		list_del(&bookmark->entry);
--		bookmark->flags = 0;
--	} else
--		curr = list_first_entry(&wq_head->head, wait_queue_entry_t, entry);
-+	curr = list_first_entry(&wq_head->head, wait_queue_entry_t, entry);
- 
- 	if (&curr->entry == &wq_head->head)
- 		return nr_exclusive;
-@@ -101,21 +86,11 @@ static int __wake_up_common(struct wait_
- 		unsigned flags = curr->flags;
- 		int ret;
- 
--		if (flags & WQ_FLAG_BOOKMARK)
--			continue;
--
- 		ret = curr->func(curr, mode, wake_flags, key);
- 		if (ret < 0)
- 			break;
- 		if (ret && (flags & WQ_FLAG_EXCLUSIVE) && !--nr_exclusive)
- 			break;
--
--		if (bookmark && (++cnt > WAITQUEUE_WALK_BREAK_CNT) &&
--				(&next->entry != &wq_head->head)) {
--			bookmark->flags = WQ_FLAG_BOOKMARK;
--			list_add_tail(&bookmark->entry, &next->entry);
--			break;
--		}
- 	}
- 
- 	return nr_exclusive;
-@@ -125,20 +100,12 @@ static int __wake_up_common_lock(struct
- 			int nr_exclusive, int wake_flags, void *key)
- {
- 	unsigned long flags;
--	wait_queue_entry_t bookmark;
--	int remaining = nr_exclusive;
-+	int remaining;
- 
--	bookmark.flags = 0;
--	bookmark.private = NULL;
--	bookmark.func = NULL;
--	INIT_LIST_HEAD(&bookmark.entry);
--
--	do {
--		spin_lock_irqsave(&wq_head->lock, flags);
--		remaining = __wake_up_common(wq_head, mode, remaining,
--						wake_flags, key, &bookmark);
--		spin_unlock_irqrestore(&wq_head->lock, flags);
--	} while (bookmark.flags & WQ_FLAG_BOOKMARK);
-+	spin_lock_irqsave(&wq_head->lock, flags);
-+	remaining = __wake_up_common(wq_head, mode, nr_exclusive, wake_flags,
-+			key);
-+	spin_unlock_irqrestore(&wq_head->lock, flags);
- 
- 	return nr_exclusive - remaining;
+@@ -415,16 +407,6 @@ static inline bool anon_vma_name_eq(stru
  }
-@@ -171,23 +138,16 @@ void __wake_up_on_current_cpu(struct wai
-  */
- void __wake_up_locked(struct wait_queue_head *wq_head, unsigned int mode, int nr)
- {
--	__wake_up_common(wq_head, mode, nr, 0, NULL, NULL);
-+	__wake_up_common(wq_head, mode, nr, 0, NULL);
- }
- EXPORT_SYMBOL_GPL(__wake_up_locked);
  
- void __wake_up_locked_key(struct wait_queue_head *wq_head, unsigned int mode, void *key)
- {
--	__wake_up_common(wq_head, mode, 1, 0, key, NULL);
-+	__wake_up_common(wq_head, mode, 1, 0, key);
- }
- EXPORT_SYMBOL_GPL(__wake_up_locked_key);
- 
--void __wake_up_locked_key_bookmark(struct wait_queue_head *wq_head,
--		unsigned int mode, void *key, wait_queue_entry_t *bookmark)
+ #else /* CONFIG_ANON_VMA_NAME */
+-static inline struct anon_vma_name *anon_vma_name(struct vm_area_struct *vma)
 -{
--	__wake_up_common(wq_head, mode, 1, 0, key, bookmark);
+-	return NULL;
 -}
--EXPORT_SYMBOL_GPL(__wake_up_locked_key_bookmark);
 -
- /**
-  * __wake_up_sync_key - wake up threads blocked on a waitqueue.
-  * @wq_head: the waitqueue
-@@ -233,7 +193,7 @@ EXPORT_SYMBOL_GPL(__wake_up_sync_key);
- void __wake_up_locked_sync_key(struct wait_queue_head *wq_head,
- 			       unsigned int mode, void *key)
- {
--        __wake_up_common(wq_head, mode, 1, WF_SYNC, key, NULL);
-+        __wake_up_common(wq_head, mode, 1, WF_SYNC, key);
- }
- EXPORT_SYMBOL_GPL(__wake_up_locked_sync_key);
+-static inline struct anon_vma_name *anon_vma_name_alloc(const char *name)
+-{
+-	return NULL;
+-}
+-
+ static inline void anon_vma_name_get(struct anon_vma_name *anon_name) {}
+ static inline void anon_vma_name_put(struct anon_vma_name *anon_name) {}
+ static inline void dup_anon_vma_name(struct vm_area_struct *orig_vma,
+--- a/include/linux/mm_types.h~mm-move-vma_policy-and-anon_vma_name-decls-to-mm_typesh
++++ a/include/linux/mm_types.h
+@@ -546,6 +546,27 @@ struct anon_vma_name {
+ 	char name[];
+ };
  
++#ifdef CONFIG_ANON_VMA_NAME
++/*
++ * mmap_lock should be read-locked when calling anon_vma_name(). Caller should
++ * either keep holding the lock while using the returned pointer or it should
++ * raise anon_vma_name refcount before releasing the lock.
++ */
++struct anon_vma_name *anon_vma_name(struct vm_area_struct *vma);
++struct anon_vma_name *anon_vma_name_alloc(const char *name);
++void anon_vma_name_free(struct kref *kref);
++#else /* CONFIG_ANON_VMA_NAME */
++static inline struct anon_vma_name *anon_vma_name(struct vm_area_struct *vma)
++{
++	return NULL;
++}
++
++static inline struct anon_vma_name *anon_vma_name_alloc(const char *name)
++{
++	return NULL;
++}
++#endif
++
+ struct vma_lock {
+ 	struct rw_semaphore lock;
+ };
+@@ -662,6 +683,12 @@ struct vm_area_struct {
+ 	struct vm_userfaultfd_ctx vm_userfaultfd_ctx;
+ } __randomize_layout;
+ 
++#ifdef CONFIG_NUMA
++#define vma_policy(vma) ((vma)->vm_policy)
++#else
++#define vma_policy(vma) NULL
++#endif
++
+ #ifdef CONFIG_SCHED_MM_CID
+ struct mm_cid {
+ 	u64 time;
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from lstoakes@gmail.com are
 
-buffer-make-folio_create_empty_buffers-return-a-buffer_head.patch
-mpage-convert-map_buffer_to_folio-to-folio_create_empty_buffers.patch
-ext4-convert-to-folio_create_empty_buffers.patch
-buffer-add-get_nth_bh.patch
-gfs2-convert-inode-unstuffing-to-use-a-folio.patch
-gfs2-convert-gfs2_getbuf-to-folios.patch
-gfs2-convert-gfs2_getjdatabuf-to-use-a-folio.patch
-gfs2-convert-gfs2_write_buf_to_page-to-use-a-folio.patch
-nilfs2-convert-nilfs_mdt_freeze_buffer-to-use-a-folio.patch
-nilfs2-convert-nilfs_grab_buffer-to-use-a-folio.patch
-nilfs2-convert-nilfs_copy_page-to-nilfs_copy_folio.patch
-nilfs2-convert-nilfs_mdt_forget_block-to-use-a-folio.patch
-nilfs2-convert-nilfs_mdt_get_frozen_buffer-to-use-a-folio.patch
-nilfs2-remove-nilfs_page_get_nth_block.patch
-nilfs2-convert-nilfs_lookup_dirty_data_buffers-to-use-folio_create_empty_buffers.patch
-ntfs-convert-ntfs_read_block-to-use-a-folio.patch
-ntfs-convert-ntfs_writepage-to-use-a-folio.patch
-ntfs-convert-ntfs_prepare_pages_for_non_resident_write-to-folios.patch
-ntfs3-convert-ntfs_zero_range-to-use-a-folio.patch
-ocfs2-convert-ocfs2_map_page_blocks-to-use-a-folio.patch
-reiserfs-convert-writepage-to-use-a-folio.patch
-ufs-add-ufs_get_locked_folio-and-ufs_put_locked_folio.patch
-ufs-use-ufs_get_locked_folio-in-ufs_alloc_lastblock.patch
-ufs-convert-ufs_change_blocknr-to-use-folios.patch
-ufs-remove-ufs_get_locked_page.patch
-buffer-remove-folio_create_empty_buffers.patch
 
