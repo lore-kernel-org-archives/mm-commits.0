@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B729FCDB482
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79AFECDB47E
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229688AbjJRVhL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 17:37:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41708 "EHLO
+        id S231439AbjJRVhM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 17:37:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46862 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235294AbjJRVg1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:27 -0400
+        with ESMTP id S235217AbjJRVgi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:38 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B20EAD4F
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:42 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56E6CC433CB;
-        Wed, 18 Oct 2023 21:35:42 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C882D6B
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:47 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4A31C433CB;
+        Wed, 18 Oct 2023 21:35:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697664942;
-        bh=N0HmAwqdhCKRyN0ES6H1YzsvlomjEJ9qwh7+6VKOgX8=;
+        s=korg; t=1697664947;
+        bh=n00Cfb3IO7H28SDV6aQReI9eNfpw/wraGiGzdJSAvfs=;
         h=Date:To:From:Subject:From;
-        b=R8ga4Zk96bERAn2pUpmuNIADFpfyR+5f77wym/z/2v9wwIb8g+f0DxW0+WG0nGHjF
-         zt9JjwPC/uXJjK/h95g6BFRXuRnKtw4DIoWATwCNnoXtDAyBf+N1VgnxtwaU94xEGN
-         kpcg+u9hoFlWdTwZYvXaaGiu9T60arRrpKyLDPbI=
-Date:   Wed, 18 Oct 2023 14:35:41 -0700
+        b=dykN1RtsFnyDGU9TDl33sDrcch2R6rilqw4F7fdhMcTsZ5Kquwp55OJx8E9rdzJX1
+         X6GFX0QVGTlTJkWOecu3rNxgfq3JewDfBz/I6efsqv6CjIqdb+0XURisG7PjqFtkJD
+         qkiIXCwA0bxPrxvspYnoGCMrnABLff8Q4MMRNFhw=
+Date:   Wed, 18 Oct 2023 14:35:46 -0700
 To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         tsbogend@alpha.franken.de, svens@linux.ibm.com,
         richard.henderson@linaro.org, paul.walmsley@sifive.com,
@@ -35,8 +35,8 @@ To:     mm-commits@vger.kernel.org, tytso@mit.edu,
         adilger.kernel@dilger.ca, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] alpha-implement-xor_unlock_is_negative_byte.patch removed from -mm tree
-Message-Id: <20231018213542.56E6CC433CB@smtp.kernel.org>
+Subject: [merged mm-stable] s390-implement-arch_xor_unlock_is_negative_byte.patch removed from -mm tree
+Message-Id: <20231018213546.E4A31C433CB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,22 +44,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: alpha: implement xor_unlock_is_negative_byte
+     Subject: s390: implement arch_xor_unlock_is_negative_byte
 has been removed from the -mm tree.  Its filename was
-     alpha-implement-xor_unlock_is_negative_byte.patch
+     s390-implement-arch_xor_unlock_is_negative_byte.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: alpha: implement xor_unlock_is_negative_byte
-Date: Wed, 4 Oct 2023 17:53:08 +0100
+Subject: s390: implement arch_xor_unlock_is_negative_byte
+Date: Wed, 4 Oct 2023 17:53:13 +0100
 
-Inspired by the alpha clear_bit() and arch_atomic_add_return(), this will
-surely be more efficient than the generic one defined in filemap.c.
+Inspired by the s390 arch_test_and_clear_bit(), this will surely be more
+efficient than the generic one defined in filemap.c.
 
-Link: https://lkml.kernel.org/r/20231004165317.1061855-9-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231004165317.1061855-14-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -82,39 +82,28 @@ Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/bitops.h |   21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ arch/s390/include/asm/bitops.h |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/arch/alpha/include/asm/bitops.h~alpha-implement-xor_unlock_is_negative_byte
-+++ a/arch/alpha/include/asm/bitops.h
-@@ -286,6 +286,27 @@ arch___test_and_change_bit(unsigned long
- #define arch_test_bit generic_test_bit
- #define arch_test_bit_acquire generic_test_bit_acquire
+--- a/arch/s390/include/asm/bitops.h~s390-implement-arch_xor_unlock_is_negative_byte
++++ a/arch/s390/include/asm/bitops.h
+@@ -201,6 +201,16 @@ static inline void arch___clear_bit_unlo
+ 	arch___clear_bit(nr, ptr);
+ }
  
-+static inline bool xor_unlock_is_negative_byte(unsigned long mask,
-+		volatile unsigned long *p)
++static inline bool arch_xor_unlock_is_negative_byte(unsigned long mask,
++		volatile unsigned long *ptr)
 +{
-+	unsigned long temp, old;
++	unsigned long old;
 +
-+	__asm__ __volatile__(
-+	"1:	ldl_l %0,%4\n"
-+	"	mov %0,%2\n"
-+	"	xor %0,%3,%0\n"
-+	"	stl_c %0,%1\n"
-+	"	beq %0,2f\n"
-+	".subsection 2\n"
-+	"2:	br 1b\n"
-+	".previous"
-+	:"=&r" (temp), "=m" (*p), "=&r" (old)
-+	:"Ir" (mask), "m" (*p));
-+
-+	return (old & BIT(7)) != 0;
++	old = __atomic64_xor_barrier(mask, (long *)ptr);
++	return old & BIT(7);
 +}
-+#define xor_unlock_is_negative_byte xor_unlock_is_negative_byte
++#define arch_xor_unlock_is_negative_byte arch_xor_unlock_is_negative_byte
 +
- /*
-  * ffz = Find First Zero in word. Undefined if no zero exists,
-  * so code should check against ~0UL first..
+ #include <asm-generic/bitops/instrumented-atomic.h>
+ #include <asm-generic/bitops/instrumented-non-atomic.h>
+ #include <asm-generic/bitops/instrumented-lock.h>
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
