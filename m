@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AFFACDB483
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 14:36:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27515CDB47E
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 15:37:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235339AbjJROgu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 10:36:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47576 "EHLO
+        id S231958AbjJRPhD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 11:37:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39032 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235341AbjJROgh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 10:36:37 -0400
+        with ESMTP id S231582AbjJRPhC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 11:37:02 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF8241BDF
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 07:34:48 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64613C433C7;
-        Wed, 18 Oct 2023 14:34:48 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0306111
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 08:37:00 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CED7C433C8;
+        Wed, 18 Oct 2023 15:37:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697639688;
-        bh=LJdGZtJala4XmwkUpwUqBvi09HzCxcMevWTE2+VFYy4=;
+        s=korg; t=1697643420;
+        bh=uFVxh0ONFa4JjGMtlmS70vjat97Wt/CPi469aFvu3XU=;
         h=Date:To:From:Subject:From;
-        b=Vu28J8EhWrZL7ec1n7zXc7IV90kbWyztjfVd3bUTE3qL2RHeB3DLY+4P9fYu8bKUe
-         GJyS0+ijmuS0AEywHCCOWPgM4WUqBEKeNKmYX0XzrF0n7x0RpaG6LTUXg5P3Buep8j
-         khs9LsTi/s8ar2ibG3+t+SwG0EFmzGhFgX5tncwY=
-Date:   Wed, 18 Oct 2023 07:34:47 -0700
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, shakeelb@google.com,
-        roman.gushchin@linux.dev, rientjes@google.com,
-        naresh.kamboju@linaro.org, muchun.song@linux.dev,
-        mhocko@kernel.org, hannes@cmpxchg.org, dennis@kernel.org,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=t4+Hpvz/rTnHmGQcK5qI9tddLv0zF+nyT+Jg2OPMjHvPg6F4BPWJXu88j+KpLmrSl
+         y/vJnnB7AWyPWNuugKZ6rd1pnWJUNJ+vBQbSYYw7LhhWfmZMtES+a5JaAFHRMZRSkf
+         V5lnX/EhhC7OX23cgf8/KNrtYFaGR3Cl3qMhEuxw=
+Date:   Wed, 18 Oct 2023 08:36:59 -0700
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
+        willy@infradead.org, vincent.guittot@linaro.org,
+        peterz@infradead.org, mingo@redhat.com, juri.lelli@redhat.com,
+        david@redhat.com, wangkefeng.wang@huawei.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmem-make-memcg-keep-a-reference-to-the-original-objcg-fix.patch added to mm-unstable branch
-Message-Id: <20231018143448.64613C433C7@smtp.kernel.org>
+Subject: + mm_types-add-virtual-and-_last_cpupid-into-struct-folio.patch added to mm-unstable branch
+Message-Id: <20231018153700.7CED7C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,12 +39,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-kmem-make-memcg-keep-a-reference-to-the-original-objcg-fix
+     Subject: mm_types: add virtual and _last_cpupid into struct folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kmem-make-memcg-keep-a-reference-to-the-original-objcg-fix.patch
+     mm_types-add-virtual-and-_last_cpupid-into-struct-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmem-make-memcg-keep-a-reference-to-the-original-objcg-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm_types-add-virtual-and-_last_cpupid-into-struct-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,48 +62,128 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-kmem-make-memcg-keep-a-reference-to-the-original-objcg-fix
-Date: Wed Oct 18 07:33:49 AM PDT 2023
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm_types: add virtual and _last_cpupid into struct folio
+Date: Wed, 18 Oct 2023 22:07:48 +0800
 
-fix comment typo, per Vlastimil
+Patch series "mm: convert page cpupid functions to folios", v3.
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
-Cc: Roman Gushchin (Cruise) <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+The cpupid(or access time) used by numa balancing is stored in flags or
+_last_cpupid(if LAST_CPUPID_NOT_IN_PAGE_FLAGS) of page, this is to convert
+page cpupid to folio cpupid, a new _last_cpupid is added into folio, which
+make us to use folio->_last_cpupid directly, and the page cpupid functions
+are converted to folio ones.
+
+  page_cpupid_last()		-> folio_last_cpupid()
+  xchg_page_access_time()	-> folio_xchg_access_time()
+  page_cpupid_xchg_last()	-> folio_xchg_last_cpupid()
+
+
+This patch (of 19):
+
+If WANT_PAGE_VIRTUAL and LAST_CPUPID_NOT_IN_PAGE_FLAGS defined, the
+'virtual' and '_last_cpupid' are in struct page, and since _last_cpupid is
+used by numa balancing feature, it is better to move it before KMSAN
+metadata from struct page, also add them into struct folio to make us to
+access them from folio directly.
+
+Link: https://lkml.kernel.org/r/20231018140806.2783514-1-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20231018140806.2783514-2-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm_types.h |   22 ++++++++++++++++++----
+ 1 file changed, 18 insertions(+), 4 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-kmem-make-memcg-keep-a-reference-to-the-original-objcg-fix
-+++ a/include/linux/memcontrol.h
-@@ -291,7 +291,7 @@ struct mem_cgroup {
- #ifdef CONFIG_MEMCG_KMEM
- 	int kmemcg_id;
+--- a/include/linux/mm_types.h~mm_types-add-virtual-and-_last_cpupid-into-struct-folio
++++ a/include/linux/mm_types.h
+@@ -199,6 +199,10 @@ struct page {
+ 					   not kmapped, ie. highmem) */
+ #endif /* WANT_PAGE_VIRTUAL */
+ 
++#ifdef LAST_CPUPID_NOT_IN_PAGE_FLAGS
++	int _last_cpupid;
++#endif
++
+ #ifdef CONFIG_KMSAN
  	/*
--	 * memcg->objcg is wiped out as a part of the objcg repaprenting
-+	 * memcg->objcg is wiped out as a part of the objcg reparenting
- 	 * process. memcg->orig_objcg preserves a pointer (and a reference)
- 	 * to the original objcg until the end of live of memcg.
- 	 */
+ 	 * KMSAN metadata for this page:
+@@ -210,10 +214,6 @@ struct page {
+ 	struct page *kmsan_shadow;
+ 	struct page *kmsan_origin;
+ #endif
+-
+-#ifdef LAST_CPUPID_NOT_IN_PAGE_FLAGS
+-	int _last_cpupid;
+-#endif
+ } _struct_page_alignment;
+ 
+ /*
+@@ -272,6 +272,8 @@ typedef struct {
+  * @_refcount: Do not access this member directly.  Use folio_ref_count()
+  *    to find how many references there are to this folio.
+  * @memcg_data: Memory Control Group data.
++ * @virtual: Virtual address in the kernel direct map.
++ * @_last_cpupid: IDs of last CPU and last process that accessed the folio.
+  * @_entire_mapcount: Do not use directly, call folio_entire_mapcount().
+  * @_nr_pages_mapped: Do not use directly, call folio_mapcount().
+  * @_pincount: Do not use directly, call folio_maybe_dma_pinned().
+@@ -318,6 +320,12 @@ struct folio {
+ #ifdef CONFIG_MEMCG
+ 			unsigned long memcg_data;
+ #endif
++#if defined(WANT_PAGE_VIRTUAL)
++			void *virtual;
++#endif
++#ifdef LAST_CPUPID_NOT_IN_PAGE_FLAGS
++			int _last_cpupid;
++#endif
+ 	/* private: the union with struct page is transitional */
+ 		};
+ 		struct page page;
+@@ -373,6 +381,12 @@ FOLIO_MATCH(_refcount, _refcount);
+ #ifdef CONFIG_MEMCG
+ FOLIO_MATCH(memcg_data, memcg_data);
+ #endif
++#if defined(WANT_PAGE_VIRTUAL)
++FOLIO_MATCH(virtual, virtual);
++#endif
++#ifdef LAST_CPUPID_NOT_IN_PAGE_FLAGS
++FOLIO_MATCH(_last_cpupid, _last_cpupid);
++#endif
+ #undef FOLIO_MATCH
+ #define FOLIO_MATCH(pg, fl)						\
+ 	static_assert(offsetof(struct folio, fl) ==			\
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
-fs-proc-task_mmu-implement-ioctl-to-get-and-optionally-clear-info-about-ptes-fix.patch
-fs-proc-task_mmu-implement-ioctl-to-get-and-optionally-clear-info-about-ptes-fix-fix.patch
-fs-proc-task_mmu-implement-ioctl-to-get-and-optionally-clear-info-about-ptes-fix-2.patch
-mm-add-printf-attribute-to-shrinker_debugfs_name_alloc-fix.patch
-mm-kmem-make-memcg-keep-a-reference-to-the-original-objcg-fix.patch
-mark-stuff-as-__ro_after_init-checkpatch-fixes.patch
-mark-stuff-as-__ro_after_init-fix.patch
+mm_types-add-virtual-and-_last_cpupid-into-struct-folio.patch
+mm-add-folio_last_cpupid.patch
+mm-memory-use-folio_last_cpupid-in-do_numa_page.patch
+mm-huge_memory-use-folio_last_cpupid-in-do_huge_pmd_numa_page.patch
+mm-huge_memory-use-folio_last_cpupid-in-__split_huge_page_tail.patch
+mm-remove-page_cpupid_last.patch
+mm-add-folio_xchg_access_time.patch
+sched-fair-use-folio_xchg_access_time-in-numa_hint_fault_latency.patch
+mm-mprotect-use-a-folio-in-change_pte_range.patch
+mm-huge_memory-use-a-folio-in-change_huge_pmd.patch
+mm-remove-xchg_page_access_time.patch
+mm-add-folio_xchg_last_cpupid.patch
+sched-fair-use-folio_xchg_last_cpupid-in-should_numa_migrate_memory.patch
+mm-migrate-use-folio_xchg_last_cpupid-in-folio_migrate_flags.patch
+mm-huge_memory-use-folio_xchg_last_cpupid-in-__split_huge_page_tail.patch
+mm-make-finish_mkwrite_fault-static.patch
+mm-convert-wp_page_reuse-and-finish_mkwrite_fault-to-take-a-folio.patch
+mm-use-folio_xchg_last_cpupid-in-wp_page_reuse.patch
+mm-remove-page_cpupid_xchg_last.patch
 
