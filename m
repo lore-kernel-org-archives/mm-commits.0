@@ -2,246 +2,273 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3181CDB483
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 19:30:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EC32CDB483
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 20:09:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230391AbjJRTap (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 15:30:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58568 "EHLO
+        id S229921AbjJRUJl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 16:09:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37970 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231131AbjJRTao (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 15:30:44 -0400
+        with ESMTP id S229605AbjJRUJl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 16:09:41 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E9FE11C
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 12:30:42 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C38CCC433C9;
-        Wed, 18 Oct 2023 19:30:41 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3628A4
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 13:09:38 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B8B4C433C9;
+        Wed, 18 Oct 2023 20:09:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697657441;
-        bh=PygpErzjPW4RUuuVrUe1nYFDi7WV9NAX1XyhL0/Kq3o=;
+        s=korg; t=1697659778;
+        bh=rbP/uzFqrJs7XcKmmozNSpbGKZGJRKWZK2KOZw0ZUOk=;
         h=Date:To:From:Subject:From;
-        b=NJChtrQlIwuw0ZtC3gcRDb7M2zpgCK/3Uq75ndjfhJUxgrdXRS0wdGvF3WbvU6e63
-         AHYqSg6+dbeBl2ntS7ZwYBZa+WTQYXY/MytN0oHwnsHRiF+kOzEoJP5qMij2gbZw2x
-         op/HNrQlEQsTPCiU1cYRKEr/2DZOD+8Gd88XTTSo=
-Date:   Wed, 18 Oct 2023 12:30:41 -0700
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
-        osalvador@suse.de, mhocko@suse.com, Jonathan.Cameron@huawei.com,
-        jmoyer@redhat.com, david@redhat.com, dave.jiang@intel.com,
-        dave.hansen@linux.intel.com, dan.j.williams@intel.com,
-        aneesh.kumar@linux.ibm.com, vishal.l.verma@intel.com,
+        b=GR5VM/oGsyzRSSm9qOmIoxk45Lo8qo946S1aDGv+0LiAhz7MGgPtntJvDxH62ZQpt
+         XnQwzs9gwuayp/AnKLfUjdlYqZg2aK7tzi5UX7qKk0/SCox8tR9fxdLlOvDd4R2GYh
+         yKiUIaqFFM5e/vWjDtqqqKojjL1dCMT3c2N7Ps+Q=
+Date:   Wed, 18 Oct 2023 13:09:37 -0700
+To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
+        vitaly.wool@konsulko.com, sjenning@redhat.com, shuah@kernel.org,
+        shakeelb@google.com, roman.gushchin@linux.dev,
+        muchun.song@linux.dev, mhocko@kernel.org, hannes@cmpxchg.org,
+        ddstreet@ieee.org, cerasuolodomenico@gmail.com, nphamcs@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] dax-kmem-allow-kmem-to-add-memory-with-memmap_on_memory.patch removed from -mm tree
-Message-Id: <20231018193041.C38CCC433C9@smtp.kernel.org>
+Subject: + mm-list_lru-allow-external-numa-node-and-cgroup-tracking.patch added to mm-unstable branch
+Message-Id: <20231018200938.4B8B4C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: dax/kmem: allow kmem to add memory with memmap_on_memory
-has been removed from the -mm tree.  Its filename was
-     dax-kmem-allow-kmem-to-add-memory-with-memmap_on_memory.patch
+The patch titled
+     Subject: mm: list_lru: allow external numa node and cgroup tracking
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-list_lru-allow-external-numa-node-and-cgroup-tracking.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-list_lru-allow-external-numa-node-and-cgroup-tracking.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: dax/kmem: allow kmem to add memory with memmap_on_memory
-Date: Thu, 28 Sep 2023 14:30:11 -0600
+From: Nhat Pham <nphamcs@gmail.com>
+Subject: mm: list_lru: allow external numa node and cgroup tracking
+Date: Tue, 17 Oct 2023 16:21:48 -0700
 
-Large amounts of memory managed by the kmem driver may come in via CXL,
-and it is often desirable to have the memmap for this memory on the new
-memory itself.
+Patch series "workload-specific and memory pressure-driven zswap
+writeback", v3.
 
-Enroll kmem-managed memory for memmap_on_memory semantics if the dax
-region originates via CXL.  For non-CXL dax regions, retain the existing
-default behavior of hot adding without memmap_on_memory semantics.
+This patch series solves these issues by separating the global zswap LRU
+into per-memcg and per-NUMA LRUs, and performs workload-specific (i.e
+memcg- and NUMA-aware) zswap writeback under memory pressure.  The new
+shrinker does not have any parameter that must be tuned by the user, and
+can be opted in or out on a per-memcg basis.
 
-Add a sysfs override under the dax device to control this behavior and
-override either default.
+As a proof of concept, we ran the following synthetic benchmark: build the
+linux kernel in a memory-limited cgroup, and allocate some cold data in
+tmpfs to see if the shrinker could write them out and improved the overall
+performance.  Depending on the amount of cold data generated, we observe
+from 14% to 35% reduction in kernel CPU time used in the kernel builds.
 
-Link: https://lkml.kernel.org/r/20230928-vv-kmem_memmap-v4-2-6ff73fec519a@intel.com
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
+
+This patch (of 5):
+
+The interface of list_lru is based on the assumption that objects are
+allocated on the correct node/memcg, with this change it is introduced the
+possibility to explicitly specify numa node and memcgroup when adding and
+removing objects.  This is so that users of list_lru can track node/memcg
+of the items outside of the list_lru, like in zswap, where the allocations
+can be made by kswapd for data that's charged to a different cgroup.
+
+Link: https://lkml.kernel.org/r/20231017232152.2605440-1-nphamcs@gmail.com
+Link: https://lkml.kernel.org/r/20231017232152.2605440-2-nphamcs@gmail.com
+Signed-off-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/bus.c         |   38 ++++++++++++++++++++++++++++++++++++
- drivers/dax/bus.h         |    1 
- drivers/dax/cxl.c         |    1 
- drivers/dax/dax-private.h |    1 
- drivers/dax/hmem/hmem.c   |    1 
- drivers/dax/kmem.c        |    8 ++++++-
- drivers/dax/pmem.c        |    1 
- 7 files changed, 50 insertions(+), 1 deletion(-)
+ include/linux/list_lru.h |   38 ++++++++++++++++++++++++++++++++
+ mm/list_lru.c            |   43 ++++++++++++++++++++++++++++++++-----
+ 2 files changed, 76 insertions(+), 5 deletions(-)
 
---- a/drivers/dax/bus.c~dax-kmem-allow-kmem-to-add-memory-with-memmap_on_memory
-+++ a/drivers/dax/bus.c
-@@ -367,6 +367,7 @@ static ssize_t create_store(struct devic
- 			.dax_region = dax_region,
- 			.size = 0,
- 			.id = -1,
-+			.memmap_on_memory = false,
- 		};
- 		struct dev_dax *dev_dax = devm_create_dev_dax(&data);
+--- a/include/linux/list_lru.h~mm-list_lru-allow-external-numa-node-and-cgroup-tracking
++++ a/include/linux/list_lru.h
+@@ -90,6 +90,24 @@ void memcg_reparent_list_lrus(struct mem
+ bool list_lru_add(struct list_lru *lru, struct list_head *item);
  
-@@ -1269,6 +1270,40 @@ static ssize_t numa_node_show(struct dev
- }
- static DEVICE_ATTR_RO(numa_node);
+ /**
++ * __list_lru_add: add an element to a specific sublist.
++ * @list_lru: the lru pointer
++ * @item: the item to be added.
++ * @memcg: the cgroup of the sublist to add the item to.
++ * @nid: the node id of the sublist to add the item to.
++ *
++ * This function is similar to list_lru_add(), but it allows the caller to
++ * specify the sublist to which the item should be added. This can be useful
++ * when the list_head node is not necessarily in the same cgroup and NUMA node
++ * as the data it represents, such as zswap, where the list_head node could be
++ * from kswapd and the data from a different cgroup altogether.
++ *
++ * Return value: true if the list was updated, false otherwise
++ */
++bool __list_lru_add(struct list_lru *lru, struct list_head *item, int nid,
++		    struct mem_cgroup *memcg);
++
++/**
+  * list_lru_del: delete an element to the lru list
+  * @list_lru: the lru pointer
+  * @item: the item to be deleted.
+@@ -103,6 +121,18 @@ bool list_lru_add(struct list_lru *lru,
+ bool list_lru_del(struct list_lru *lru, struct list_head *item);
  
-+static ssize_t memmap_on_memory_show(struct device *dev,
-+				     struct device_attribute *attr, char *buf)
-+{
-+	struct dev_dax *dev_dax = to_dev_dax(dev);
+ /**
++ * __list_lru_del: delete an element from a specific sublist.
++ * @list_lru: the lru pointer
++ * @item: the item to be deleted.
++ * @memcg: the cgroup of the sublist to delete the item from.
++ * @nid: the node id of the sublist to delete the item from.
++ *
++ * Return value: true if the list was updated, false otherwise.
++ */
++bool __list_lru_del(struct list_lru *lru, struct list_head *item, int nid,
++		    struct mem_cgroup *memcg);
 +
-+	return sprintf(buf, "%d\n", dev_dax->memmap_on_memory);
-+}
-+
-+static ssize_t memmap_on_memory_store(struct device *dev,
-+				      struct device_attribute *attr,
-+				      const char *buf, size_t len)
-+{
-+	struct dev_dax *dev_dax = to_dev_dax(dev);
-+	struct dax_region *dax_region = dev_dax->region;
-+	ssize_t rc;
-+	bool val;
-+
-+	rc = kstrtobool(buf, &val);
-+	if (rc)
-+		return rc;
-+
-+	device_lock(dax_region->dev);
-+	if (!dax_region->dev->driver) {
-+		device_unlock(dax_region->dev);
-+		return -ENXIO;
-+	}
-+
-+	dev_dax->memmap_on_memory = val;
-+
-+	device_unlock(dax_region->dev);
-+	return rc == 0 ? len : rc;
-+}
-+static DEVICE_ATTR_RW(memmap_on_memory);
-+
- static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
++/**
+  * list_lru_count_one: return the number of objects currently held by @lru
+  * @lru: the lru pointer.
+  * @nid: the node id to count from.
+@@ -136,6 +166,14 @@ static inline unsigned long list_lru_cou
+ void list_lru_isolate(struct list_lru_one *list, struct list_head *item);
+ void list_lru_isolate_move(struct list_lru_one *list, struct list_head *item,
+ 			   struct list_head *head);
++/*
++ * list_lru_putback: undo list_lru_isolate.
++ *
++ * Since we might have dropped the LRU lock in between, recompute list_lru_one
++ * from the node's id and memcg.
++ */
++void list_lru_putback(struct list_lru *lru, struct list_head *item, int nid,
++		      struct mem_cgroup *memcg);
+ 
+ typedef enum lru_status (*list_lru_walk_cb)(struct list_head *item,
+ 		struct list_lru_one *list, spinlock_t *lock, void *cb_arg);
+--- a/mm/list_lru.c~mm-list_lru-allow-external-numa-node-and-cgroup-tracking
++++ a/mm/list_lru.c
+@@ -119,13 +119,22 @@ list_lru_from_kmem(struct list_lru *lru,
+ bool list_lru_add(struct list_lru *lru, struct list_head *item)
  {
- 	struct device *dev = container_of(kobj, struct device, kobj);
-@@ -1295,6 +1330,7 @@ static struct attribute *dev_dax_attribu
- 	&dev_attr_align.attr,
- 	&dev_attr_resource.attr,
- 	&dev_attr_numa_node.attr,
-+	&dev_attr_memmap_on_memory.attr,
- 	NULL,
- };
- 
-@@ -1400,6 +1436,8 @@ struct dev_dax *devm_create_dev_dax(stru
- 	dev_dax->align = dax_region->align;
- 	ida_init(&dev_dax->ida);
- 
-+	dev_dax->memmap_on_memory = data->memmap_on_memory;
+ 	int nid = page_to_nid(virt_to_page(item));
++	struct mem_cgroup *memcg = list_lru_memcg_aware(lru) ?
++		mem_cgroup_from_slab_obj(item) : NULL;
 +
- 	inode = dax_inode(dax_dev);
- 	dev->devt = inode->i_rdev;
- 	dev->bus = &dax_bus_type;
---- a/drivers/dax/bus.h~dax-kmem-allow-kmem-to-add-memory-with-memmap_on_memory
-+++ a/drivers/dax/bus.h
-@@ -23,6 +23,7 @@ struct dev_dax_data {
- 	struct dev_pagemap *pgmap;
- 	resource_size_t size;
- 	int id;
-+	bool memmap_on_memory;
- };
- 
- struct dev_dax *devm_create_dev_dax(struct dev_dax_data *data);
---- a/drivers/dax/cxl.c~dax-kmem-allow-kmem-to-add-memory-with-memmap_on_memory
-+++ a/drivers/dax/cxl.c
-@@ -26,6 +26,7 @@ static int cxl_dax_region_probe(struct d
- 		.dax_region = dax_region,
- 		.id = -1,
- 		.size = range_len(&cxlr_dax->hpa_range),
-+		.memmap_on_memory = true,
- 	};
- 
- 	return PTR_ERR_OR_ZERO(devm_create_dev_dax(&data));
---- a/drivers/dax/dax-private.h~dax-kmem-allow-kmem-to-add-memory-with-memmap_on_memory
-+++ a/drivers/dax/dax-private.h
-@@ -70,6 +70,7 @@ struct dev_dax {
- 	struct ida ida;
- 	struct device dev;
- 	struct dev_pagemap *pgmap;
-+	bool memmap_on_memory;
- 	int nr_range;
- 	struct dev_dax_range {
- 		unsigned long pgoff;
---- a/drivers/dax/hmem/hmem.c~dax-kmem-allow-kmem-to-add-memory-with-memmap_on_memory
-+++ a/drivers/dax/hmem/hmem.c
-@@ -36,6 +36,7 @@ static int dax_hmem_probe(struct platfor
- 		.dax_region = dax_region,
- 		.id = -1,
- 		.size = region_idle ? 0 : range_len(&mri->range),
-+		.memmap_on_memory = false,
- 	};
- 
- 	return PTR_ERR_OR_ZERO(devm_create_dev_dax(&data));
---- a/drivers/dax/kmem.c~dax-kmem-allow-kmem-to-add-memory-with-memmap_on_memory
-+++ a/drivers/dax/kmem.c
-@@ -12,6 +12,7 @@
- #include <linux/mm.h>
- #include <linux/mman.h>
- #include <linux/memory-tiers.h>
-+#include <linux/memory_hotplug.h>
- #include "dax-private.h"
- #include "bus.h"
- 
-@@ -93,6 +94,7 @@ static int dev_dax_kmem_probe(struct dev
- 	struct dax_kmem_data *data;
- 	struct memory_dev_type *mtype;
- 	int i, rc, mapped = 0;
-+	mhp_t mhp_flags;
- 	int numa_node;
- 	int adist = MEMTIER_DEFAULT_DAX_ADISTANCE;
- 
-@@ -179,12 +181,16 @@ static int dev_dax_kmem_probe(struct dev
- 		 */
- 		res->flags = IORESOURCE_SYSTEM_RAM;
- 
-+		mhp_flags = MHP_NID_IS_MGID;
-+		if (dev_dax->memmap_on_memory)
-+			mhp_flags |= MHP_MEMMAP_ON_MEMORY;
++	return __list_lru_add(lru, item, nid, memcg);
++}
++EXPORT_SYMBOL_GPL(list_lru_add);
 +
- 		/*
- 		 * Ensure that future kexec'd kernels will not treat
- 		 * this as RAM automatically.
- 		 */
- 		rc = add_memory_driver_managed(data->mgid, range.start,
--				range_len(&range), kmem_name, MHP_NID_IS_MGID);
-+				range_len(&range), kmem_name, mhp_flags);
++bool __list_lru_add(struct list_lru *lru, struct list_head *item, int nid,
++		    struct mem_cgroup *memcg)
++{
+ 	struct list_lru_node *nlru = &lru->node[nid];
+-	struct mem_cgroup *memcg;
+ 	struct list_lru_one *l;
  
- 		if (rc) {
- 			dev_warn(dev, "mapping%d: %#llx-%#llx memory add failed\n",
---- a/drivers/dax/pmem.c~dax-kmem-allow-kmem-to-add-memory-with-memmap_on_memory
-+++ a/drivers/dax/pmem.c
-@@ -63,6 +63,7 @@ static struct dev_dax *__dax_pmem_probe(
- 		.id = id,
- 		.pgmap = &pgmap,
- 		.size = range_len(&range),
-+		.memmap_on_memory = false,
- 	};
+ 	spin_lock(&nlru->lock);
+ 	if (list_empty(item)) {
+-		l = list_lru_from_kmem(lru, nid, item, &memcg);
++		l = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(memcg));
+ 		list_add_tail(item, &l->list);
+ 		/* Set shrinker bit if the first element was added */
+ 		if (!l->nr_items++)
+@@ -138,17 +147,27 @@ bool list_lru_add(struct list_lru *lru,
+ 	spin_unlock(&nlru->lock);
+ 	return false;
+ }
+-EXPORT_SYMBOL_GPL(list_lru_add);
++EXPORT_SYMBOL_GPL(__list_lru_add);
  
- 	return devm_create_dev_dax(&data);
+ bool list_lru_del(struct list_lru *lru, struct list_head *item)
+ {
+ 	int nid = page_to_nid(virt_to_page(item));
++	struct mem_cgroup *memcg = list_lru_memcg_aware(lru) ?
++		mem_cgroup_from_slab_obj(item) : NULL;
++
++	return __list_lru_del(lru, item, nid, memcg);
++}
++EXPORT_SYMBOL_GPL(list_lru_del);
++
++bool __list_lru_del(struct list_lru *lru, struct list_head *item, int nid,
++		    struct mem_cgroup *memcg)
++{
+ 	struct list_lru_node *nlru = &lru->node[nid];
+ 	struct list_lru_one *l;
+ 
+ 	spin_lock(&nlru->lock);
+ 	if (!list_empty(item)) {
+-		l = list_lru_from_kmem(lru, nid, item, NULL);
++		l = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(memcg));
+ 		list_del_init(item);
+ 		l->nr_items--;
+ 		nlru->nr_items--;
+@@ -158,7 +177,7 @@ bool list_lru_del(struct list_lru *lru,
+ 	spin_unlock(&nlru->lock);
+ 	return false;
+ }
+-EXPORT_SYMBOL_GPL(list_lru_del);
++EXPORT_SYMBOL_GPL(__list_lru_del);
+ 
+ void list_lru_isolate(struct list_lru_one *list, struct list_head *item)
+ {
+@@ -175,6 +194,20 @@ void list_lru_isolate_move(struct list_l
+ }
+ EXPORT_SYMBOL_GPL(list_lru_isolate_move);
+ 
++void list_lru_putback(struct list_lru *lru, struct list_head *item, int nid,
++		      struct mem_cgroup *memcg)
++{
++	struct list_lru_one *list =
++		list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(memcg));
++
++	if (list_empty(item)) {
++		list_add_tail(item, &list->list);
++		if (!list->nr_items++)
++			set_shrinker_bit(memcg, nid, lru_shrinker_id(lru));
++	}
++}
++EXPORT_SYMBOL_GPL(list_lru_putback);
++
+ unsigned long list_lru_count_one(struct list_lru *lru,
+ 				 int nid, struct mem_cgroup *memcg)
+ {
 _
 
-Patches currently in -mm which might be from vishal.l.verma@intel.com are
+Patches currently in -mm which might be from nphamcs@gmail.com are
 
+mm-list_lru-allow-external-numa-node-and-cgroup-tracking.patch
+zswap-shrinks-zswap-pool-based-on-memory-pressure.patch
+memcontrol-add-helpers-for-hugetlb-memcg-accounting.patch
+memcontrol-only-transfer-the-memcg-data-for-migration.patch
+hugetlb-memcg-account-hugetlb-backed-memory-in-memory-controller.patch
+selftests-add-a-selftest-to-verify-hugetlb-usage-in-memcg.patch
 
