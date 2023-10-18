@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB90DCDB484
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 19:13:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DAEFDC41513
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 19:13:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231400AbjJRTNU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 15:13:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53862 "EHLO
+        id S231378AbjJRTNT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 15:13:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53806 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231313AbjJRTNT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 15:13:19 -0400
+        with ESMTP id S231373AbjJRTNP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 15:13:15 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C714F11B;
-        Wed, 18 Oct 2023 12:13:16 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62797C433C9;
-        Wed, 18 Oct 2023 19:13:16 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7E9C11D;
+        Wed, 18 Oct 2023 12:13:13 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74042C433C7;
+        Wed, 18 Oct 2023 19:13:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697656396;
-        bh=+bssZdFnX7hk/lWIKSDE1hUGCaPXNDXoLxKH0mpXYQc=;
+        s=korg; t=1697656393;
+        bh=lweJdFy3QfFbwuPeWxx5QKJW7lo6zTWLXHJ/6xFu/II=;
         h=Date:To:From:Subject:From;
-        b=SW80Y7aknRCBcTfVaqMgTBFXiKtjd+Dka+j8uqwQwoDoF/lTnR1utKs8Av2GHlXed
-         5J24VLHL+cZIYsXkJZNF4YXy5/usoBlAJLO1lQvIegBJArtHNSNt20gDGnyz06CiuT
-         GVibrciwKEf+LlRw6/w/ERBL/VkW1d2R/4PGRRrg=
-Date:   Wed, 18 Oct 2023 12:13:15 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        stable@vger.kernel.org, muchun.song@linux.dev,
-        mike.kravetz@oracle.com, riel@surriel.com,
+        b=PpjJ/1RpFreH3j0RyC2rhaiQwjsT7M0kbqAtcmtOwaLsLQSxIspaF2qVjBPBK6+Ra
+         Y4EUJ2OimNnd9lVmVblBCAdtElGQHFU3PPvdOkxB8vyFswURt+4mmmjn4S+Lo/hl8p
+         skQf5eg4BJ1r7sVEGjHFBDAo8Ij50asSTQ1zYt/Q=
+Date:   Wed, 18 Oct 2023 12:13:12 -0700
+To:     mm-commits@vger.kernel.org, vitaly.wool@konsulko.com,
+        stable@vger.kernel.org, nphamcs@gmail.com, clm@fb.com,
+        cerasuolodomenico@gmail.com, hannes@cmpxchg.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] hugetlbfs-close-race-between-madv_dontneed-and-page-fault.patch removed from -mm tree
-Message-Id: <20231018191316.62797C433C9@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-zswap-fix-pool-refcount-bug-around-shrink_worker.patch removed from -mm tree
+Message-Id: <20231018191313.74042C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,237 +38,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: hugetlbfs: close race between MADV_DONTNEED and page fault
+     Subject: mm: zswap: fix pool refcount bug around shrink_worker()
 has been removed from the -mm tree.  Its filename was
-     hugetlbfs-close-race-between-madv_dontneed-and-page-fault.patch
+     mm-zswap-fix-pool-refcount-bug-around-shrink_worker.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Rik van Riel <riel@surriel.com>
-Subject: hugetlbfs: close race between MADV_DONTNEED and page fault
-Date: Thu, 5 Oct 2023 23:59:08 -0400
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: zswap: fix pool refcount bug around shrink_worker()
+Date: Fri, 6 Oct 2023 12:00:24 -0400
 
-Malloc libraries, like jemalloc and tcalloc, take decisions on when to
-call madvise independently from the code in the main application.
+When a zswap store fails due to the limit, it acquires a pool reference
+and queues the shrinker.  When the shrinker runs, it drops the reference. 
+However, there can be multiple store attempts before the shrinker wakes up
+and runs once.  This results in reference leaks and eventual saturation
+warnings for the pool refcount.
 
-This sometimes results in the application page faulting on an address,
-right after the malloc library has shot down the backing memory with
-MADV_DONTNEED.
+Fix this by dropping the reference again when the shrinker is already
+queued.  This ensures one reference per shrinker run.
 
-Usually this is harmless, because we always have some 4kB pages sitting
-around to satisfy a page fault.  However, with hugetlbfs systems often
-allocate only the exact number of huge pages that the application wants.
-
-Due to TLB batching, hugetlbfs MADV_DONTNEED will free pages outside of
-any lock taken on the page fault path, which can open up the following
-race condition:
-
-       CPU 1                            CPU 2
-
-       MADV_DONTNEED
-       unmap page
-       shoot down TLB entry
-                                       page fault
-                                       fail to allocate a huge page
-                                       killed with SIGBUS
-       free page
-
-Fix that race by pulling the locking from __unmap_hugepage_final_range
-into helper functions called from zap_page_range_single.  This ensures
-page faults stay locked out of the MADV_DONTNEED VMA until the huge pages
-have actually been freed.
-
-Link: https://lkml.kernel.org/r/20231006040020.3677377-4-riel@surriel.com
-Fixes: 04ada095dcfc ("hugetlb: don't delete vma_lock in hugetlb MADV_DONTNEED processing")
-Signed-off-by: Rik van Riel <riel@surriel.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20231006160024.170748-1-hannes@cmpxchg.org
+Fixes: 45190f01dd40 ("mm/zswap.c: add allocation hysteresis if pool limit is hit")
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Chris Mason <clm@fb.com>
+Acked-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
+Cc: <stable@vger.kernel.org>	[5.6+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |   35 +++++++++++++++++++++++++++++++++--
- mm/hugetlb.c            |   34 ++++++++++++++++++++++------------
- mm/memory.c             |   13 ++++++++-----
- 3 files changed, 63 insertions(+), 19 deletions(-)
+ mm/zswap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/hugetlb.h~hugetlbfs-close-race-between-madv_dontneed-and-page-fault
-+++ a/include/linux/hugetlb.h
-@@ -139,7 +139,7 @@ struct page *hugetlb_follow_page_mask(st
- void unmap_hugepage_range(struct vm_area_struct *,
- 			  unsigned long, unsigned long, struct page *,
- 			  zap_flags_t);
--void __unmap_hugepage_range_final(struct mmu_gather *tlb,
-+void __unmap_hugepage_range(struct mmu_gather *tlb,
- 			  struct vm_area_struct *vma,
- 			  unsigned long start, unsigned long end,
- 			  struct page *ref_page, zap_flags_t zap_flags);
-@@ -246,6 +246,25 @@ int huge_pmd_unshare(struct mm_struct *m
- void adjust_range_if_pmd_sharing_possible(struct vm_area_struct *vma,
- 				unsigned long *start, unsigned long *end);
+--- a/mm/zswap.c~mm-zswap-fix-pool-refcount-bug-around-shrink_worker
++++ a/mm/zswap.c
+@@ -1383,8 +1383,8 @@ reject:
  
-+extern void __hugetlb_zap_begin(struct vm_area_struct *vma,
-+				unsigned long *begin, unsigned long *end);
-+extern void __hugetlb_zap_end(struct vm_area_struct *vma,
-+			      struct zap_details *details);
-+
-+static inline void hugetlb_zap_begin(struct vm_area_struct *vma,
-+				     unsigned long *start, unsigned long *end)
-+{
-+	if (is_vm_hugetlb_page(vma))
-+		__hugetlb_zap_begin(vma, start, end);
-+}
-+
-+static inline void hugetlb_zap_end(struct vm_area_struct *vma,
-+				   struct zap_details *details)
-+{
-+	if (is_vm_hugetlb_page(vma))
-+		__hugetlb_zap_end(vma, details);
-+}
-+
- void hugetlb_vma_lock_read(struct vm_area_struct *vma);
- void hugetlb_vma_unlock_read(struct vm_area_struct *vma);
- void hugetlb_vma_lock_write(struct vm_area_struct *vma);
-@@ -297,6 +316,18 @@ static inline void adjust_range_if_pmd_s
- {
+ shrink:
+ 	pool = zswap_pool_last_get();
+-	if (pool)
+-		queue_work(shrink_wq, &pool->shrink_work);
++	if (pool && !queue_work(shrink_wq, &pool->shrink_work))
++		zswap_pool_put(pool);
+ 	goto reject;
  }
  
-+static inline void hugetlb_zap_begin(
-+				struct vm_area_struct *vma,
-+				unsigned long *start, unsigned long *end)
-+{
-+}
-+
-+static inline void hugetlb_zap_end(
-+				struct vm_area_struct *vma,
-+				struct zap_details *details)
-+{
-+}
-+
- static inline struct page *hugetlb_follow_page_mask(
-     struct vm_area_struct *vma, unsigned long address, unsigned int flags,
-     unsigned int *page_mask)
-@@ -442,7 +473,7 @@ static inline long hugetlb_change_protec
- 	return 0;
- }
- 
--static inline void __unmap_hugepage_range_final(struct mmu_gather *tlb,
-+static inline void __unmap_hugepage_range(struct mmu_gather *tlb,
- 			struct vm_area_struct *vma, unsigned long start,
- 			unsigned long end, struct page *ref_page,
- 			zap_flags_t zap_flags)
---- a/mm/hugetlb.c~hugetlbfs-close-race-between-madv_dontneed-and-page-fault
-+++ a/mm/hugetlb.c
-@@ -5306,9 +5306,9 @@ int move_hugetlb_page_tables(struct vm_a
- 	return len + old_addr - old_end;
- }
- 
--static void __unmap_hugepage_range(struct mmu_gather *tlb, struct vm_area_struct *vma,
--				   unsigned long start, unsigned long end,
--				   struct page *ref_page, zap_flags_t zap_flags)
-+void __unmap_hugepage_range(struct mmu_gather *tlb, struct vm_area_struct *vma,
-+			    unsigned long start, unsigned long end,
-+			    struct page *ref_page, zap_flags_t zap_flags)
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	unsigned long address;
-@@ -5437,16 +5437,25 @@ static void __unmap_hugepage_range(struc
- 		tlb_flush_mmu_tlbonly(tlb);
- }
- 
--void __unmap_hugepage_range_final(struct mmu_gather *tlb,
--			  struct vm_area_struct *vma, unsigned long start,
--			  unsigned long end, struct page *ref_page,
--			  zap_flags_t zap_flags)
-+void __hugetlb_zap_begin(struct vm_area_struct *vma,
-+			 unsigned long *start, unsigned long *end)
- {
-+	if (!vma->vm_file)	/* hugetlbfs_file_mmap error */
-+		return;
-+
-+	adjust_range_if_pmd_sharing_possible(vma, start, end);
- 	hugetlb_vma_lock_write(vma);
--	i_mmap_lock_write(vma->vm_file->f_mapping);
-+	if (vma->vm_file)
-+		i_mmap_lock_write(vma->vm_file->f_mapping);
-+}
-+
-+void __hugetlb_zap_end(struct vm_area_struct *vma,
-+		       struct zap_details *details)
-+{
-+	zap_flags_t zap_flags = details ? details->zap_flags : 0;
- 
--	/* mmu notification performed in caller */
--	__unmap_hugepage_range(tlb, vma, start, end, ref_page, zap_flags);
-+	if (!vma->vm_file)	/* hugetlbfs_file_mmap error */
-+		return;
- 
- 	if (zap_flags & ZAP_FLAG_UNMAP) {	/* final unmap */
- 		/*
-@@ -5459,11 +5468,12 @@ void __unmap_hugepage_range_final(struct
- 		 * someone else.
- 		 */
- 		__hugetlb_vma_unlock_write_free(vma);
--		i_mmap_unlock_write(vma->vm_file->f_mapping);
- 	} else {
--		i_mmap_unlock_write(vma->vm_file->f_mapping);
- 		hugetlb_vma_unlock_write(vma);
- 	}
-+
-+	if (vma->vm_file)
-+		i_mmap_unlock_write(vma->vm_file->f_mapping);
- }
- 
- void unmap_hugepage_range(struct vm_area_struct *vma, unsigned long start,
---- a/mm/memory.c~hugetlbfs-close-race-between-madv_dontneed-and-page-fault
-+++ a/mm/memory.c
-@@ -1683,7 +1683,7 @@ static void unmap_single_vma(struct mmu_
- 			if (vma->vm_file) {
- 				zap_flags_t zap_flags = details ?
- 				    details->zap_flags : 0;
--				__unmap_hugepage_range_final(tlb, vma, start, end,
-+				__unmap_hugepage_range(tlb, vma, start, end,
- 							     NULL, zap_flags);
- 			}
- 		} else
-@@ -1728,8 +1728,12 @@ void unmap_vmas(struct mmu_gather *tlb,
- 				start_addr, end_addr);
- 	mmu_notifier_invalidate_range_start(&range);
- 	do {
--		unmap_single_vma(tlb, vma, start_addr, end_addr, &details,
-+		unsigned long start = start_addr;
-+		unsigned long end = end_addr;
-+		hugetlb_zap_begin(vma, &start, &end);
-+		unmap_single_vma(tlb, vma, start, end, &details,
- 				 mm_wr_locked);
-+		hugetlb_zap_end(vma, &details);
- 	} while ((vma = mas_find(mas, tree_end - 1)) != NULL);
- 	mmu_notifier_invalidate_range_end(&range);
- }
-@@ -1753,9 +1757,7 @@ void zap_page_range_single(struct vm_are
- 	lru_add_drain();
- 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma->vm_mm,
- 				address, end);
--	if (is_vm_hugetlb_page(vma))
--		adjust_range_if_pmd_sharing_possible(vma, &range.start,
--						     &range.end);
-+	hugetlb_zap_begin(vma, &range.start, &range.end);
- 	tlb_gather_mmu(&tlb, vma->vm_mm);
- 	update_hiwater_rss(vma->vm_mm);
- 	mmu_notifier_invalidate_range_start(&range);
-@@ -1766,6 +1768,7 @@ void zap_page_range_single(struct vm_are
- 	unmap_single_vma(&tlb, vma, address, end, details, false);
- 	mmu_notifier_invalidate_range_end(&range);
- 	tlb_finish_mmu(&tlb);
-+	hugetlb_zap_end(vma, details);
- }
- 
- /**
 _
 
-Patches currently in -mm which might be from riel@surriel.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 
