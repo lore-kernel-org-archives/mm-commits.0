@@ -2,33 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3CACCDB47E
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:36:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 124D3CDB47E
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:36:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235221AbjJRVgi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 17:36:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46862 "EHLO
+        id S235260AbjJRVgv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 17:36:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54528 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235252AbjJRVgG (ORCPT
+        with ESMTP id S231432AbjJRVgG (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:06 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 712C5137
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:32 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CDDEC43215;
-        Wed, 18 Oct 2023 21:35:15 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84CCF185
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:36 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11736C116A5;
+        Wed, 18 Oct 2023 21:35:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697664915;
-        bh=6py0jWTy+EsOpUnn8hCHxEURA5/wPiVgv44p4PB54uA=;
+        s=korg; t=1697664922;
+        bh=CzARdzih6KNU+hRkZmTo7HHq+bCNPAs+uxxAe1kbNCU=;
         h=Date:To:From:Subject:From;
-        b=n1aeuTosZLZFsWk06v1+mwyePvAK85hMMe9ghEMA2oFFHMB2MTiPgSJb1cSCuph+F
-         bpA4VxZpNrdffp8djpFK+i2XVivmq6vWXK4YsPvidCHENBTMOWtejXevMSHzr4bDb0
-         sXrxnR62lWRtRSVQTqsUIjxYdl7884TNu2FuWskE=
-Date:   Wed, 18 Oct 2023 14:35:14 -0700
-To:     mm-commits@vger.kernel.org, surenb@google.com, willy@infradead.org,
+        b=NW9TiGRlGCZkBN1XYxWXMeDa0FWaqF1LMNPhfWkD4+8DFD2q1bREHhVcr9vItB6Hb
+         cseDIhuew3sE114lU1ZuMKTkO0bhPXHJ5Lr3QNH1JGCcRFAlXVQvq4CBeCC04HuqvC
+         5BGeje/J7b5Odx0m4fSrsmLdd+l/OhPJii58bMuI=
+Date:   Wed, 18 Oct 2023 14:35:21 -0700
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        richardcochran@gmail.com, peterz@infradead.org, oleg@redhat.com,
+        namhyung@kernel.org, mingo@redhat.com, mark.rutland@arm.com,
+        jolsa@kernel.org, jhubbard@nvidia.com, jgg@nvidia.com,
+        irogers@google.com, david@redhat.com, catalin.marinas@arm.com,
+        arnd@arndb.de, alexander.shishkin@linux.intel.com,
+        adrian.hunter@intel.com, acme@kernel.org, lstoakes@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-handle-write-faults-to-ro-pages-under-the-vma-lock.patch removed from -mm tree
-Message-Id: <20231018213515.2CDDEC43215@smtp.kernel.org>
+Subject: [merged mm-stable] mm-gup-explicitly-define-and-check-internal-gup-flags-disallow-foll_touch.patch removed from -mm tree
+Message-Id: <20231018213522.11736C116A5@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,89 +42,81 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: handle write faults to RO pages under the VMA lock
+     Subject: mm/gup: explicitly define and check internal GUP flags, disallow FOLL_TOUCH
 has been removed from the -mm tree.  Its filename was
-     mm-handle-write-faults-to-ro-pages-under-the-vma-lock.patch
+     mm-gup-explicitly-define-and-check-internal-gup-flags-disallow-foll_touch.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: handle write faults to RO pages under the VMA lock
-Date: Fri, 6 Oct 2023 20:53:18 +0100
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: mm/gup: explicitly define and check internal GUP flags, disallow FOLL_TOUCH
+Date: Tue, 3 Oct 2023 00:14:52 +0100
 
-I think this is a pretty rare occurrence, but for consistency handle
-faults with the VMA lock held the same way that we handle other faults
-with the VMA lock held.
+Rather than open-coding a list of internal GUP flags in
+is_valid_gup_args(), define which ones are internal.
 
-Link: https://lkml.kernel.org/r/20231006195318.4087158-7-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+In addition, explicitly check to see if the user passed in FOLL_TOUCH
+somehow, as this appears to have been accidentally excluded.
+
+Link: https://lkml.kernel.org/r/971e013dfe20915612ea8b704e801d7aef9a66b6.1696288092.git.lstoakes@gmail.com
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Richard Cochran <richardcochran@gmail.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ mm/gup.c      |    5 ++---
+ mm/internal.h |    3 +++
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
---- a/mm/memory.c~mm-handle-write-faults-to-ro-pages-under-the-vma-lock
-+++ a/mm/memory.c
-@@ -3301,10 +3301,9 @@ static vm_fault_t wp_pfn_shared(struct v
- 		vm_fault_t ret;
+--- a/mm/gup.c~mm-gup-explicitly-define-and-check-internal-gup-flags-disallow-foll_touch
++++ a/mm/gup.c
+@@ -2227,12 +2227,11 @@ static bool is_valid_gup_args(struct pag
+ 	/*
+ 	 * These flags not allowed to be specified externally to the gup
+ 	 * interfaces:
+-	 * - FOLL_PIN/FOLL_TRIED/FOLL_FAST_ONLY are internal only
++	 * - FOLL_TOUCH/FOLL_PIN/FOLL_TRIED/FOLL_FAST_ONLY are internal only
+ 	 * - FOLL_REMOTE is internal only and used on follow_page()
+ 	 * - FOLL_UNLOCKABLE is internal only and used if locked is !NULL
+ 	 */
+-	if (WARN_ON_ONCE(gup_flags & (FOLL_PIN | FOLL_TRIED | FOLL_UNLOCKABLE |
+-				      FOLL_REMOTE | FOLL_FAST_ONLY)))
++	if (WARN_ON_ONCE(gup_flags & INTERNAL_GUP_FLAGS))
+ 		return false;
  
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
--		if (vmf->flags & FAULT_FLAG_VMA_LOCK) {
--			vma_end_read(vmf->vma);
--			return VM_FAULT_RETRY;
--		}
-+		ret = vmf_can_call_fault(vmf);
-+		if (ret)
-+			return ret;
+ 	gup_flags |= to_set;
+--- a/mm/internal.h~mm-gup-explicitly-define-and-check-internal-gup-flags-disallow-foll_touch
++++ a/mm/internal.h
+@@ -1017,6 +1017,9 @@ enum {
+ 	FOLL_UNLOCKABLE = 1 << 21,
+ };
  
- 		vmf->flags |= FAULT_FLAG_MKWRITE;
- 		ret = vma->vm_ops->pfn_mkwrite(vmf);
-@@ -3328,10 +3327,10 @@ static vm_fault_t wp_page_shared(struct
- 		vm_fault_t tmp;
- 
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
--		if (vmf->flags & FAULT_FLAG_VMA_LOCK) {
-+		tmp = vmf_can_call_fault(vmf);
-+		if (tmp) {
- 			folio_put(folio);
--			vma_end_read(vmf->vma);
--			return VM_FAULT_RETRY;
-+			return tmp;
- 		}
- 
- 		tmp = do_page_mkwrite(vmf, folio);
++#define INTERNAL_GUP_FLAGS (FOLL_TOUCH | FOLL_TRIED | FOLL_REMOTE | FOLL_PIN | \
++			    FOLL_FAST_ONLY | FOLL_UNLOCKABLE)
++
+ /*
+  * Indicates for which pages that are write-protected in the page table,
+  * whether GUP has to trigger unsharing via FAULT_FLAG_UNSHARE such that the
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from lstoakes@gmail.com are
 
-buffer-make-folio_create_empty_buffers-return-a-buffer_head.patch
-mpage-convert-map_buffer_to_folio-to-folio_create_empty_buffers.patch
-ext4-convert-to-folio_create_empty_buffers.patch
-buffer-add-get_nth_bh.patch
-gfs2-convert-inode-unstuffing-to-use-a-folio.patch
-gfs2-convert-gfs2_getbuf-to-folios.patch
-gfs2-convert-gfs2_getjdatabuf-to-use-a-folio.patch
-gfs2-convert-gfs2_write_buf_to_page-to-use-a-folio.patch
-nilfs2-convert-nilfs_mdt_freeze_buffer-to-use-a-folio.patch
-nilfs2-convert-nilfs_grab_buffer-to-use-a-folio.patch
-nilfs2-convert-nilfs_copy_page-to-nilfs_copy_folio.patch
-nilfs2-convert-nilfs_mdt_forget_block-to-use-a-folio.patch
-nilfs2-convert-nilfs_mdt_get_frozen_buffer-to-use-a-folio.patch
-nilfs2-remove-nilfs_page_get_nth_block.patch
-nilfs2-convert-nilfs_lookup_dirty_data_buffers-to-use-folio_create_empty_buffers.patch
-ntfs-convert-ntfs_read_block-to-use-a-folio.patch
-ntfs-convert-ntfs_writepage-to-use-a-folio.patch
-ntfs-convert-ntfs_prepare_pages_for_non_resident_write-to-folios.patch
-ntfs3-convert-ntfs_zero_range-to-use-a-folio.patch
-ocfs2-convert-ocfs2_map_page_blocks-to-use-a-folio.patch
-reiserfs-convert-writepage-to-use-a-folio.patch
-ufs-add-ufs_get_locked_folio-and-ufs_put_locked_folio.patch
-ufs-use-ufs_get_locked_folio-in-ufs_alloc_lastblock.patch
-ufs-convert-ufs_change_blocknr-to-use-folios.patch
-ufs-remove-ufs_get_locked_page.patch
-buffer-remove-folio_create_empty_buffers.patch
 
