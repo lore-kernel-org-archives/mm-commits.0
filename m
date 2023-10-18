@@ -2,34 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A3F4CDB47E
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22757C46CA1
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235298AbjJRVhB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 17:37:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57460 "EHLO
+        id S232127AbjJRVhD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 17:37:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46800 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235268AbjJRVgG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:06 -0400
+        with ESMTP id S235276AbjJRVg0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:26 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9EB6E18D
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:37 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E37EDC116A9;
-        Wed, 18 Oct 2023 21:35:25 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5283D199
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:35:39 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43CADC4339A;
+        Wed, 18 Oct 2023 21:35:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697664926;
-        bh=87WWgMPnLRJwWdI3zBbNx8a4M7j+7Zu0XfXSouIq/Us=;
+        s=korg; t=1697664932;
+        bh=Ue+0JPjOUorDIpeEA+Mb9N+V48x/rPZAUbecK5iWaTU=;
         h=Date:To:From:Subject:From;
-        b=muTlSu88ZGFWJIPvPGsN6Ii+eWUX98iUJWaEJa7Zr4cNtggVlRKLRdst/MMZXx6Sb
-         pzZt3eUsABLWjgR6KLVsx5wJWyi6DzYsaqXU8gA9of8o2iqpbZK8bQ5sNcNQHWbTw/
-         MLiH53896gH2+POVAaK6gd3kpuHXE9z5bYfUe+zc=
-Date:   Wed, 18 Oct 2023 14:35:25 -0700
-To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com, lkp@intel.com,
-        glider@google.com, elver@google.com, dvyukov@google.com,
-        andreyknvl@google.com, akpm@linux-foundation.org
+        b=bFLptoWmgunU+lVHcP4qkHa7ac8lQUaenqGtHH1Yb3Y+XFwZpXFXpvVOZrMc9/Yuw
+         qt650V0L5mFpjcC6tyYjLSACsUM13ZUN0Gz3Cfvws1ejby4vVV6zK42iRrDdgrviCe
+         iC+LVDnmn3T5ljx/4jpZwB88SlkDKduYVRx9rsfk=
+Date:   Wed, 18 Oct 2023 14:35:31 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        p.raghav@samsung.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kasan-unify-printk-prefixes.patch removed from -mm tree
-Message-Id: <20231018213525.E37EDC116A9@smtp.kernel.org>
+Subject: [merged mm-stable] filemap-call-filemap_get_folios_tag-from-filemap_get_folios.patch removed from -mm tree
+Message-Id: <20231018213532.43CADC4339A@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,109 +36,103 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kasan: unify printk prefixes
+     Subject: filemap: call filemap_get_folios_tag() from filemap_get_folios()
 has been removed from the -mm tree.  Its filename was
-     kasan-unify-printk-prefixes.patch
+     filemap-call-filemap_get_folios_tag-from-filemap_get_folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: unify printk prefixes
-Date: Fri, 6 Oct 2023 17:18:43 +0200
+From: Pankaj Raghav <p.raghav@samsung.com>
+Subject: filemap: call filemap_get_folios_tag() from filemap_get_folios()
+Date: Fri, 6 Oct 2023 13:01:20 +0200
 
-Unify prefixes for printk messages in mm/kasan/.
+filemap_get_folios() is filemap_get_folios_tag() with XA_PRESENT as the
+tag that is being matched.  Return filemap_get_folios_tag() with
+XA_PRESENT as the tag instead of duplicating the code in
+filemap_get_folios().
 
-Link: https://lkml.kernel.org/r/35589629806cf0840e5f01ec9d8011a7bad648df.1696605143.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: kernel test robot <lkp@intel.com>
+No functional changes.
+
+Link: https://lkml.kernel.org/r/20231006110120.136809-1-kernel@pankajraghav.com
+Signed-off-by: Pankaj Raghav <p.raghav@samsung.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan_test.c        |    2 +-
- mm/kasan/kasan_test_module.c |    2 +-
- mm/kasan/quarantine.c        |    4 +++-
- mm/kasan/report_generic.c    |    6 +++---
- 4 files changed, 8 insertions(+), 6 deletions(-)
+ mm/filemap.c |   45 ++++++++-------------------------------------
+ 1 file changed, 8 insertions(+), 37 deletions(-)
 
---- a/mm/kasan/kasan_test.c~kasan-unify-printk-prefixes
-+++ a/mm/kasan/kasan_test.c
-@@ -5,7 +5,7 @@
-  * Author: Andrey Ryabinin <a.ryabinin@samsung.com>
+--- a/mm/filemap.c~filemap-call-filemap_get_folios_tag-from-filemap_get_folios
++++ a/mm/filemap.c
+@@ -2120,48 +2120,13 @@ put:
+  * index @start and up to index @end (inclusive).  The folios are returned
+  * in @fbatch with an elevated reference count.
+  *
+- * The first folio may start before @start; if it does, it will contain
+- * @start.  The final folio may extend beyond @end; if it does, it will
+- * contain @end.  The folios have ascending indices.  There may be gaps
+- * between the folios if there are indices which have no folio in the
+- * page cache.  If folios are added to or removed from the page cache
+- * while this is running, they may or may not be found by this call.
+- *
+  * Return: The number of folios which were found.
+  * We also update @start to index the next folio for the traversal.
   */
- 
--#define pr_fmt(fmt) "kasan_test: " fmt
-+#define pr_fmt(fmt) "kasan: test: " fmt
- 
- #include <kunit/test.h>
- #include <linux/bitops.h>
---- a/mm/kasan/kasan_test_module.c~kasan-unify-printk-prefixes
-+++ a/mm/kasan/kasan_test_module.c
-@@ -5,7 +5,7 @@
-  * Author: Andrey Ryabinin <a.ryabinin@samsung.com>
-  */
- 
--#define pr_fmt(fmt) "kasan test: %s " fmt, __func__
-+#define pr_fmt(fmt) "kasan: test: " fmt
- 
- #include <linux/mman.h>
- #include <linux/module.h>
---- a/mm/kasan/quarantine.c~kasan-unify-printk-prefixes
-+++ a/mm/kasan/quarantine.c
-@@ -8,6 +8,8 @@
-  * Based on code by Dmitry Chernenkov.
-  */
- 
-+#define pr_fmt(fmt) "kasan: " fmt
-+
- #include <linux/gfp.h>
- #include <linux/hash.h>
- #include <linux/kernel.h>
-@@ -414,7 +416,7 @@ static int __init kasan_cpu_quarantine_i
- 	ret = cpuhp_setup_state(CPUHP_AP_ONLINE_DYN, "mm/kasan:online",
- 				kasan_cpu_online, kasan_cpu_offline);
- 	if (ret < 0)
--		pr_err("kasan cpu quarantine register failed [%d]\n", ret);
-+		pr_err("cpu quarantine register failed [%d]\n", ret);
- 	return ret;
+ unsigned filemap_get_folios(struct address_space *mapping, pgoff_t *start,
+ 		pgoff_t end, struct folio_batch *fbatch)
+ {
+-	XA_STATE(xas, &mapping->i_pages, *start);
+-	struct folio *folio;
+-
+-	rcu_read_lock();
+-	while ((folio = find_get_entry(&xas, end, XA_PRESENT)) != NULL) {
+-		/* Skip over shadow, swap and DAX entries */
+-		if (xa_is_value(folio))
+-			continue;
+-		if (!folio_batch_add(fbatch, folio)) {
+-			unsigned long nr = folio_nr_pages(folio);
+-			*start = folio->index + nr;
+-			goto out;
+-		}
+-	}
+-
+-	/*
+-	 * We come here when there is no page beyond @end. We take care to not
+-	 * overflow the index @start as it confuses some of the callers. This
+-	 * breaks the iteration when there is a page at index -1 but that is
+-	 * already broken anyway.
+-	 */
+-	if (end == (pgoff_t)-1)
+-		*start = (pgoff_t)-1;
+-	else
+-		*start = end + 1;
+-out:
+-	rcu_read_unlock();
+-
+-	return folio_batch_count(fbatch);
++	return filemap_get_folios_tag(mapping, start, end, XA_PRESENT, fbatch);
  }
- late_initcall(kasan_cpu_quarantine_init);
---- a/mm/kasan/report_generic.c~kasan-unify-printk-prefixes
-+++ a/mm/kasan/report_generic.c
-@@ -220,7 +220,7 @@ static bool __must_check tokenize_frame_
- 		const size_t tok_len = sep - *frame_descr;
+ EXPORT_SYMBOL(filemap_get_folios);
  
- 		if (tok_len + 1 > max_tok_len) {
--			pr_err("KASAN internal error: frame description too long: %s\n",
-+			pr_err("internal error: frame description too long: %s\n",
- 			       *frame_descr);
- 			return false;
- 		}
-@@ -233,7 +233,7 @@ static bool __must_check tokenize_frame_
- 	*frame_descr = sep + 1;
- 
- 	if (value != NULL && kstrtoul(token, 10, value)) {
--		pr_err("KASAN internal error: not a valid number: %s\n", token);
-+		pr_err("internal error: not a valid number: %s\n", token);
- 		return false;
- 	}
- 
-@@ -323,7 +323,7 @@ static bool __must_check get_address_sta
- 
- 	frame = (const unsigned long *)(mem_ptr + KASAN_GRANULE_SIZE);
- 	if (frame[0] != KASAN_CURRENT_STACK_FRAME_MAGIC) {
--		pr_err("KASAN internal error: frame info validation failed; invalid marker: %lu\n",
-+		pr_err("internal error: frame has invalid marker: %lu\n",
- 		       frame[0]);
- 		return false;
- 	}
+@@ -2240,7 +2205,13 @@ EXPORT_SYMBOL(filemap_get_folios_contig)
+  * @tag:        The tag index
+  * @fbatch:     The batch to fill
+  *
+- * Same as filemap_get_folios(), but only returning folios tagged with @tag.
++ * The first folio may start before @start; if it does, it will contain
++ * @start.  The final folio may extend beyond @end; if it does, it will
++ * contain @end.  The folios have ascending indices.  There may be gaps
++ * between the folios if there are indices which have no folio in the
++ * page cache.  If folios are added to or removed from the page cache
++ * while this is running, they may or may not be found by this call.
++ * Only returns folios that are tagged with @tag.
+  *
+  * Return: The number of folios found.
+  * Also update @start to index the next folio for traversal.
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from p.raghav@samsung.com are
 
 
