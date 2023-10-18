@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD277CDB482
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 590ADCDB485
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 21:37:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235249AbjJRVhv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S235266AbjJRVhv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 18 Oct 2023 17:37:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41640 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50060 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235352AbjJRVg6 (ORCPT
+        with ESMTP id S235355AbjJRVg6 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 17:36:58 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A36ECD7F
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:36:17 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EA98C433C9;
-        Wed, 18 Oct 2023 21:36:17 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80C2AD6C
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 14:36:16 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A99BC433C7;
+        Wed, 18 Oct 2023 21:36:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697664977;
-        bh=g9Lf0H2fXE9IPCajs68hWTyJGdrGPQG5U7AgBW97xVg=;
+        s=korg; t=1697664976;
+        bh=tjnm7E9gY3Jo+BoiJgbxzJflUgp3xv9DL8qkjqRiy6s=;
         h=Date:To:From:Subject:From;
-        b=FDA7/9NNKalGRF+krD9vWBZRGPDhElIqSC1iyXcUbVJOozjMt8pV3yNT16iy12bpv
-         eGVKJMi327uMDj2GJgFsHLdsKSdgZL1qYtraHgt0Jum3b5V6j3UKNmvDfaqXI7sswp
-         /AbfXNb1oQc2odSOgwiOJq3RlEA7D6wOL9+ihs9M=
-Date:   Wed, 18 Oct 2023 14:36:16 -0700
+        b=BOvyoEsmSi7KqxiX4yb4GzdUcvvQtYtPJBXXX/SaFp2QoE4+LhYoAarrtIljOVGHG
+         GCij4lREJ2oYShUmULCzeIaDRfRIBG5PHmnKZ2cr1t/FdOx6vQpNcx2Jkp2NdUYJZi
+         PJTfYIvVPVSm24hWcRbazlBZRmmPVIyWL5YlgeAY=
+Date:   Wed, 18 Oct 2023 14:36:15 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         viro@zeniv.linux.org.uk, muchun.song@linux.dev,
         mike.kravetz@oracle.com, luto@kernel.org, jack@suse.cz,
         hughd@google.com, brauner@kernel.org, lstoakes@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-perform-the-mapping_map_writable-check-after-call_mmap.patch removed from -mm tree
-Message-Id: <20231018213617.6EA98C433C9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-update-memfd-seal-write-check-to-include-f_seal_write.patch removed from -mm tree
+Message-Id: <20231018213616.4A99BC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,40 +39,33 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: perform the mapping_map_writable() check after call_mmap()
+     Subject: mm: update memfd seal write check to include F_SEAL_WRITE
 has been removed from the -mm tree.  Its filename was
-     mm-perform-the-mapping_map_writable-check-after-call_mmap.patch
+     mm-update-memfd-seal-write-check-to-include-f_seal_write.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: mm: perform the mapping_map_writable() check after call_mmap()
-Date: Thu, 12 Oct 2023 18:04:30 +0100
+Subject: mm: update memfd seal write check to include F_SEAL_WRITE
+Date: Thu, 12 Oct 2023 18:04:29 +0100
 
-In order for a F_SEAL_WRITE sealed memfd mapping to have an opportunity to
-clear VM_MAYWRITE, we must be able to invoke the appropriate
-vm_ops->mmap() handler to do so.  We would otherwise fail the
-mapping_map_writable() check before we had the opportunity to avoid it.
+The seal_check_future_write() function is called by shmem_mmap() or
+hugetlbfs_file_mmap() to disallow any future writable mappings of an memfd
+sealed this way.
 
-This patch moves this check after the call_mmap() invocation.  Only memfd
-actively denies write access causing a potential failure here (in
-memfd_add_seals()), so there should be no impact on non-memfd cases.
+The F_SEAL_WRITE flag is not checked here, as that is handled via the
+mapping->i_mmap_writable mechanism and so any attempt at a mapping would
+fail before this could be run.
 
-This patch makes the userland-visible change that MAP_SHARED, PROT_READ
-mappings of an F_SEAL_WRITE sealed memfd mapping will now succeed.
+However we intend to change this, meaning this check can be performed for
+F_SEAL_WRITE mappings also.
 
-There is a delicate situation with cleanup paths assuming that a writable
-mapping must have occurred in circumstances where it may now not have.  In
-order to ensure we do not accidentally mark a writable file unwritable by
-mistake, we explicitly track whether we have a writable mapping and unmap
-only if we do.
+The logic here is equally applicable to both flags, so update this
+function to accommodate both and rename it accordingly.
 
-[lstoakes@gmail.com: do not set writable_file_mapping in inappropriate case]
-  Link: https://lkml.kernel.org/r/c9eb4cc6-7db4-4c2b-838d-43a0b319a4f0@lucifer.local
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=217238
-Link: https://lkml.kernel.org/r/55e413d20678a1bb4c7cce889062bbb07b0df892.1697116581.git.lstoakes@gmail.com
+Link: https://lkml.kernel.org/r/913628168ce6cce77df7d13a63970bae06a526e0.1697116581.git.lstoakes@gmail.com
 Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
 Reviewed-by: Jan Kara <jack@suse.cz>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -85,63 +78,69 @@ Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ fs/hugetlbfs/inode.c |    2 +-
+ include/linux/mm.h   |   15 ++++++++-------
+ mm/shmem.c           |    2 +-
+ 3 files changed, 10 insertions(+), 9 deletions(-)
 
---- a/mm/mmap.c~mm-perform-the-mapping_map_writable-check-after-call_mmap
-+++ a/mm/mmap.c
-@@ -2752,6 +2752,7 @@ unsigned long mmap_region(struct file *f
- 	unsigned long charged = 0;
- 	unsigned long end = addr + len;
- 	unsigned long merge_start = addr, merge_end = end;
-+	bool writable_file_mapping = false;
- 	pgoff_t vm_pgoff;
- 	int error;
- 	VMA_ITERATOR(vmi, mm, addr);
-@@ -2846,17 +2847,19 @@ cannot_expand:
- 	vma->vm_pgoff = pgoff;
+--- a/fs/hugetlbfs/inode.c~mm-update-memfd-seal-write-check-to-include-f_seal_write
++++ a/fs/hugetlbfs/inode.c
+@@ -135,7 +135,7 @@ static int hugetlbfs_file_mmap(struct fi
+ 	vm_flags_set(vma, VM_HUGETLB | VM_DONTEXPAND);
+ 	vma->vm_ops = &hugetlb_vm_ops;
  
- 	if (file) {
--		if (is_shared_maywrite(vm_flags)) {
--			error = mapping_map_writable(file->f_mapping);
--			if (error)
--				goto free_vma;
--		}
--
- 		vma->vm_file = get_file(file);
- 		error = call_mmap(file, vma);
- 		if (error)
- 			goto unmap_and_free_vma;
+-	ret = seal_check_future_write(info->seals, vma);
++	ret = seal_check_write(info->seals, vma);
+ 	if (ret)
+ 		return ret;
  
-+		if (vma_is_shared_maywrite(vma)) {
-+			error = mapping_map_writable(file->f_mapping);
-+			if (error)
-+				goto close_and_free_vma;
-+
-+			writable_file_mapping = true;
-+		}
-+
+--- a/include/linux/mm.h~mm-update-memfd-seal-write-check-to-include-f_seal_write
++++ a/include/linux/mm.h
+@@ -4076,25 +4076,26 @@ static inline void mem_dump_obj(void *ob
+ #endif
+ 
+ /**
+- * seal_check_future_write - Check for F_SEAL_FUTURE_WRITE flag and handle it
++ * seal_check_write - Check for F_SEAL_WRITE or F_SEAL_FUTURE_WRITE flags and
++ *                    handle them.
+  * @seals: the seals to check
+  * @vma: the vma to operate on
+  *
+- * Check whether F_SEAL_FUTURE_WRITE is set; if so, do proper check/handling on
+- * the vma flags.  Return 0 if check pass, or <0 for errors.
++ * Check whether F_SEAL_WRITE or F_SEAL_FUTURE_WRITE are set; if so, do proper
++ * check/handling on the vma flags.  Return 0 if check pass, or <0 for errors.
+  */
+-static inline int seal_check_future_write(int seals, struct vm_area_struct *vma)
++static inline int seal_check_write(int seals, struct vm_area_struct *vma)
+ {
+-	if (seals & F_SEAL_FUTURE_WRITE) {
++	if (seals & (F_SEAL_WRITE | F_SEAL_FUTURE_WRITE)) {
  		/*
- 		 * Expansion is handled above, merging is handled below.
- 		 * Drivers should not alter the address of the VMA.
-@@ -2937,7 +2940,7 @@ cannot_expand:
+ 		 * New PROT_WRITE and MAP_SHARED mmaps are not allowed when
+-		 * "future write" seal active.
++		 * write seals are active.
+ 		 */
+ 		if ((vma->vm_flags & VM_SHARED) && (vma->vm_flags & VM_WRITE))
+ 			return -EPERM;
  
- 	/* Once vma denies write, undo our temporary denial count */
- unmap_writable:
--	if (file && is_shared_maywrite(vm_flags))
-+	if (writable_file_mapping)
- 		mapping_unmap_writable(file->f_mapping);
- 	file = vma->vm_file;
- 	ksm_add_vma(vma);
-@@ -2985,7 +2988,7 @@ unmap_and_free_vma:
- 		unmap_region(mm, &vmi.mas, vma, prev, next, vma->vm_start,
- 			     vma->vm_end, vma->vm_end, true);
- 	}
--	if (file && is_shared_maywrite(vm_flags))
-+	if (writable_file_mapping)
- 		mapping_unmap_writable(file->f_mapping);
- free_vma:
- 	vm_area_free(vma);
+ 		/*
+-		 * Since an F_SEAL_FUTURE_WRITE sealed memfd can be mapped as
++		 * Since an F_SEAL_[FUTURE_]WRITE sealed memfd can be mapped as
+ 		 * MAP_SHARED and read-only, take care to not allow mprotect to
+ 		 * revert protections on such mappings. Do this only for shared
+ 		 * mappings. For private mappings, don't need to mask
+--- a/mm/shmem.c~mm-update-memfd-seal-write-check-to-include-f_seal_write
++++ a/mm/shmem.c
+@@ -2378,7 +2378,7 @@ static int shmem_mmap(struct file *file,
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+ 	int ret;
+ 
+-	ret = seal_check_future_write(info->seals, vma);
++	ret = seal_check_write(info->seals, vma);
+ 	if (ret)
+ 		return ret;
+ 
 _
 
 Patches currently in -mm which might be from lstoakes@gmail.com are
