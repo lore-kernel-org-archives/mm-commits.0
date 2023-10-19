@@ -2,34 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6979CDB482
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Oct 2023 01:07:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4180CDB47E
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Oct 2023 01:25:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231204AbjJSBHT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 21:07:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57780 "EHLO
+        id S229688AbjJSBZI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 21:25:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56640 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230373AbjJSBHP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 21:07:15 -0400
+        with ESMTP id S229632AbjJSBZI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 21:25:08 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 649AF124
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 18:07:11 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECFA5C433C7;
-        Thu, 19 Oct 2023 01:07:10 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0AFD114
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 18:25:05 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BDCAC433C8;
+        Thu, 19 Oct 2023 01:25:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697677631;
-        bh=Mi+TnEJna6wr/CwJqV/z4v/Xai17aMsHJBOq3SsTVPc=;
+        s=korg; t=1697678705;
+        bh=0y1O4NAuMB9KrTOdbR3otrXsE7DeR2mzoPedGXMD7DU=;
         h=Date:To:From:Subject:From;
-        b=Lh6XFFkGFMC+Wt1tqGyfgmZUBZHtqlTixqeIal7Op8K30u5nIPE/uhgIzpeTNlUHj
-         x/0X7U+kiKIH3rSBfDaBaGn7YQFP5UxqlgV5I3+i1KIUdxuNJESxGnKgb9b9VE6TiJ
-         xYodgR2rXjZhjUZOmtEbAv29F0LrFINiYBNF0+ds=
-Date:   Wed, 18 Oct 2023 18:07:10 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        shy828301@gmail.com, vishal.moola@gmail.com,
-        akpm@linux-foundation.org
+        b=aZDRcATHmxEuMq9flATwi14CD2m4E7n5MbLL7T7HwIV5v4H+SUAe8RiDW6vViGW+i
+         y4xgXz+p9DDiKqXVJ7rpAhafjqDDEBv3jkfakhrZ5Vlq1QVvnx29kLqq07qC7FseMN
+         FoChCMlzXPLuYdOH0lDENc1DOJY3v9wejfvHdtpg=
+Date:   Wed, 18 Oct 2023 18:25:04 -0700
+To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
+        junxiao.bi@oracle.com, joseph.qi@linux.alibaba.com,
+        jlbec@evilplan.org, ghe@suse.com, gechangwei@live.cn,
+        jindui71@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-convert-is_refcount_suitable-to-use-folios.patch added to mm-unstable branch
-Message-Id: <20231019010710.ECFA5C433C7@smtp.kernel.org>
+Subject: + ocfs2-replace-bug_on-at-ocfs2_num_free_extents-with-ocfs2_error.patch added to mm-nonmm-unstable branch
+Message-Id: <20231019012505.3BDCAC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,14 +38,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/khugepaged: convert is_refcount_suitable() to use folios
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-convert-is_refcount_suitable-to-use-folios.patch
+     Subject: ocfs2: replace BUG_ON() at ocfs2_num_free_extents() with ocfs2_error()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-replace-bug_on-at-ocfs2_num_free_extents-with-ocfs2_error.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-convert-is_refcount_suitable-to-use-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-replace-bug_on-at-ocfs2_num_free_extents-with-ocfs2_error.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -60,75 +61,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm/khugepaged: convert is_refcount_suitable() to use folios
-Date: Wed, 18 Oct 2023 13:32:11 -0700
+From: Jia Rui <jindui71@gmail.com>
+Subject: ocfs2: replace BUG_ON() at ocfs2_num_free_extents() with ocfs2_error()
+Date: Thu, 19 Oct 2023 03:18:11 +0800
 
-Both callers of is_refcount_suitable() have been converted to use folios,
-so convert it to take in a folio.  Both callers only operate on head pages
-of folios so mapcount/refcount conversions here are trivial.
+The BUG_ON() at ocfs2_num_free_extents() handles the error that
+l_tree_deepth of leaf extent block just read form disk is invalid.  This
+error is mostly caused by file system metadata corruption on the disk. 
+There is no need to call BUG_ON() to handle such errors.  We can return
+error code, since the caller can deal with errors from
+ocfs2_num_free_extents().  Also, we should make the file system read-only
+to avoid the damage from expanding.
 
-Removes 3 calls to compound head, and removes 315 bytes of kernel text.
+Therefore, BUG_ON() is removed and ocfs2_error() is called instead.
 
-Link: https://lkml.kernel.org/r/20231018203213.50224-4-vishal.moola@gmail.com
-Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Yang Shi <shy828301@gmail.com>
+Link: https://lkml.kernel.org/r/20231018191811.412458-1-jindui71@gmail.com
+Signed-off-by: Jia Rui <jindui71@gmail.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ fs/ocfs2/alloc.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-convert-is_refcount_suitable-to-use-folios
-+++ a/mm/khugepaged.c
-@@ -524,15 +524,15 @@ static void release_pte_pages(pte_t *pte
+--- a/fs/ocfs2/alloc.c~ocfs2-replace-bug_on-at-ocfs2_num_free_extents-with-ocfs2_error
++++ a/fs/ocfs2/alloc.c
+@@ -967,7 +967,14 @@ int ocfs2_num_free_extents(struct ocfs2_
+ 		el = &eb->h_list;
  	}
- }
  
--static bool is_refcount_suitable(struct page *page)
-+static bool is_refcount_suitable(struct folio *folio)
- {
- 	int expected_refcount;
+-	BUG_ON(el->l_tree_depth != 0);
++	if (el->l_tree_depth != 0) {
++		retval = ocfs2_error(ocfs2_metadata_cache_get_super(et->et_ci),
++				"Owner %llu has leaf extent block %llu with an invalid l_tree_depth of %u\n",
++				(unsigned long long)ocfs2_metadata_cache_owner(et->et_ci),
++				(unsigned long long)last_eb_blk,
++				le16_to_cpu(el->l_tree_depth));
++		goto bail;
++	}
  
--	expected_refcount = total_mapcount(page);
--	if (PageSwapCache(page))
--		expected_refcount += compound_nr(page);
-+	expected_refcount = folio_mapcount(folio);
-+	if (folio_test_swapcache(folio))
-+		expected_refcount += folio_nr_pages(folio);
- 
--	return page_count(page) == expected_refcount;
-+	return folio_ref_count(folio) == expected_refcount;
- }
- 
- static int __collapse_huge_page_isolate(struct vm_area_struct *vma,
-@@ -625,7 +625,7 @@ static int __collapse_huge_page_isolate(
- 		 * but not from this process. The other process cannot write to
- 		 * the page, only trigger CoW.
- 		 */
--		if (!is_refcount_suitable(&folio->page)) {
-+		if (!is_refcount_suitable(folio)) {
- 			folio_unlock(folio);
- 			result = SCAN_PAGE_COUNT;
- 			goto out;
-@@ -1371,7 +1371,7 @@ static int hpage_collapse_scan_pmd(struc
- 		 * has excessive GUP pins (i.e. 512).  Anyway the same check
- 		 * will be done again later the risk seems low.
- 		 */
--		if (!is_refcount_suitable(&folio->page)) {
-+		if (!is_refcount_suitable(folio)) {
- 			result = SCAN_PAGE_COUNT;
- 			goto out_unmap;
- 		}
+ 	retval = le16_to_cpu(el->l_count) - le16_to_cpu(el->l_next_free_rec);
+ bail:
 _
 
-Patches currently in -mm which might be from vishal.moola@gmail.com are
+Patches currently in -mm which might be from jindui71@gmail.com are
 
-mm-khugepaged-convert-__collapse_huge_page_isolate-to-use-folios.patch
-mm-khugepaged-convert-hpage_collapse_scan_pmd-to-use-folios.patch
-mm-khugepaged-convert-is_refcount_suitable-to-use-folios.patch
-mm-khugepaged-convert-alloc_charge_hpage-to-use-folios.patch
-mm-khugepaged-convert-collapse_pte_mapped_thp-to-use-folios.patch
-mm-khugepaged-convert-collapse_pte_mapped_thp-to-use-folios-fix.patch
+ocfs2-replace-bug_on-at-ocfs2_num_free_extents-with-ocfs2_error.patch
 
