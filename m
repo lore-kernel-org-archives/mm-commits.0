@@ -2,75 +2,193 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E9B3CDB465
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Oct 2023 16:41:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23DB9CDB465
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Oct 2023 16:46:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232981AbjJSQlW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 19 Oct 2023 12:41:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39490 "EHLO
+        id S233161AbjJSQqk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 19 Oct 2023 12:46:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36806 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232326AbjJSQlV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 Oct 2023 12:41:21 -0400
+        with ESMTP id S231601AbjJSQqj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 Oct 2023 12:46:39 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E50811F
-        for <mm-commits@vger.kernel.org>; Thu, 19 Oct 2023 09:41:20 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94B8FC433C8;
-        Thu, 19 Oct 2023 16:41:19 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FABB130
+        for <mm-commits@vger.kernel.org>; Thu, 19 Oct 2023 09:46:36 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1AD4C433C8;
+        Thu, 19 Oct 2023 16:46:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697733679;
-        bh=yAcNVhJMfiSaKOneU96Q89AHsAqGY2fQjBnvjFVofOE=;
+        s=korg; t=1697733996;
+        bh=ax/9pXeAv6lgEyNCkTKSpgtbmYgDEvP08wYHZ7tqr0Y=;
         h=Date:To:From:Subject:From;
-        b=Syf5KOvJ6e1ZBMQQR08Z5RaMBZkWdZJ8AK9PRsWxAU2nsEeBqovDZZLFrYBDb9d7i
-         N1zlapoV+Tyqmq4b4bsnYkTyuhBEQJCX5uArHJ0Sc2IwwYOAl4EhcHolNi2Q/blV7A
-         j9bzFCbfjagGmI5av2/kpXhjnKc53W8eGdxKFHgk=
-Date:   Thu, 19 Oct 2023 09:41:18 -0700
+        b=DPxYVLBjSv/SINXkTB/garD18lCM4ZsHkeJ3aKNa+z4bhNmsUUGLShHuRje8j03rm
+         BA/95VRxbuuJ9rycqDEtV3S5hHxDzn5lnOoGu4r7uEk7UTB91WECqBwEEZFjrNzOVk
+         KfmrBkuOpjwmGm383ghrs0kj368MOU/vU/s1tZ28=
+Date:   Thu, 19 Oct 2023 09:46:34 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        songmuchun@bytedance.com, rientjes@google.com,
-        punit.agrawal@bytedance.com, osalvador@suse.de,
-        naoya.horiguchi@linux.dev, mike.kravetz@oracle.com,
-        mhocko@suse.com, linmiaohe@huawei.com, konradybcio@kernel.org,
-        jthoughton@google.com, joao.m.martins@oracle.com,
-        fam.zheng@bytedance.com, duanxiongchun@bytedance.com,
+        usama.arif@bytedance.com, songmuchun@bytedance.com,
+        senozhatsky@chromium.org, rientjes@google.com, osalvador@suse.de,
+        naoya.horiguchi@linux.dev, mhocko@suse.com, linmiaohe@huawei.com,
+        konradybcio@kernel.org, jthoughton@google.com,
+        joao.m.martins@oracle.com, duanxiongchun@bytedance.com,
         david@redhat.com, anshuman.khandual@arm.com, 21cnbao@gmail.com,
-        usama.arif@bytedance.com, akpm@linux-foundation.org
+        mike.kravetz@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] hugetlb-restructure-pool-allocations-fix.patch removed from -mm tree
-Message-Id: <20231019164119.94B8FC433C8@smtp.kernel.org>
+Subject: + hugetlb-optimize-update_and_free_pages_bulk-to-avoid-lock-cycles.patch added to mm-unstable branch
+Message-Id: <20231019164635.E1AD4C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm: hugetlb: only prep and add allocated folios for non-gigantic pages
-has been removed from the -mm tree.  Its filename was
-     hugetlb-restructure-pool-allocations-fix.patch
+The patch titled
+     Subject: hugetlb: optimize update_and_free_pages_bulk to avoid lock cycles
+has been added to the -mm mm-unstable branch.  Its filename is
+     hugetlb-optimize-update_and_free_pages_bulk-to-avoid-lock-cycles.patch
 
-This patch was dropped because it is obsolete
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-optimize-update_and_free_pages_bulk-to-avoid-lock-cycles.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Usama Arif <usama.arif@bytedance.com>
-Subject: mm: hugetlb: only prep and add allocated folios for non-gigantic pages
-Date: Mon, 9 Oct 2023 15:56:05 +0100
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb: optimize update_and_free_pages_bulk to avoid lock cycles
+Date: Wed, 18 Oct 2023 19:31:03 -0700
 
-Calling prep_and_add_allocated_folios when allocating gigantic pages at
-boot time causes the kernel to crash as folio_list is empty and iterating
-it causes a NULL pointer dereference.  Call this only for non-gigantic
-pages when folio_list has entries.
+Patch series "Batch hugetlb vmemmap modification operations", v8.
 
-Link: https://lkml.kernel.org/r/20231009145605.2150897-1-usama.arif@bytedance.com
-Fixes: bfb41d6b2fe148 ("hugetlb: restructure pool allocations")
-Signed-off-by: Usama Arif <usama.arif@bytedance.com>
-Cc: Fam Zheng <fam.zheng@bytedance.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Punit Agrawal <punit.agrawal@bytedance.com>
+When hugetlb vmemmap optimization was introduced, the overhead of enabling
+the option was measured as described in commit 426e5c429d16 [1].  The
+summary states that allocating a hugetlb page should be ~2x slower with
+optimization and freeing a hugetlb page should be ~2-3x slower.  Such
+overhead was deemed an acceptable trade off for the memory savings
+obtained by freeing vmemmap pages.
+
+It was recently reported that the overhead associated with enabling
+vmemmap optimization could be as high as 190x for hugetlb page
+allocations.  Yes, 190x!  Some actual numbers from other environments are:
+
+Bare Metal 8 socket Intel(R) Xeon(R) CPU E7-8895
+------------------------------------------------
+Unmodified next-20230824, vm.hugetlb_optimize_vmemmap = 0
+time echo 500000 > .../hugepages-2048kB/nr_hugepages
+real    0m4.119s
+time echo 0 > .../hugepages-2048kB/nr_hugepages
+real    0m4.477s
+
+Unmodified next-20230824, vm.hugetlb_optimize_vmemmap = 1
+time echo 500000 > .../hugepages-2048kB/nr_hugepages
+real    0m28.973s
+time echo 0 > .../hugepages-2048kB/nr_hugepages
+real    0m36.748s
+
+VM with 252 vcpus on host with 2 socket AMD EPYC 7J13 Milan
+-----------------------------------------------------------
+Unmodified next-20230824, vm.hugetlb_optimize_vmemmap = 0
+time echo 524288 > .../hugepages-2048kB/nr_hugepages
+real    0m2.463s
+time echo 0 > .../hugepages-2048kB/nr_hugepages
+real    0m2.931s
+
+Unmodified next-20230824, vm.hugetlb_optimize_vmemmap = 1
+time echo 524288 > .../hugepages-2048kB/nr_hugepages
+real    2m27.609s
+time echo 0 > .../hugepages-2048kB/nr_hugepages
+real    2m29.924s
+
+In the VM environment, the slowdown of enabling hugetlb vmemmap optimization
+resulted in allocation times being 61x slower.
+
+A quick profile showed that the vast majority of this overhead was due to
+TLB flushing.  Each time we modify the kernel pagetable we need to flush
+the TLB.  For each hugetlb that is optimized, there could be potentially
+two TLB flushes performed.  One for the vmemmap pages associated with the
+hugetlb page, and potentially another one if the vmemmap pages are mapped
+at the PMD level and must be split.  The TLB flushes required for the
+kernel pagetable, result in a broadcast IPI with each CPU having to flush
+a range of pages, or do a global flush if a threshold is exceeded.  So,
+the flush time increases with the number of CPUs.  In addition, in virtual
+environments the broadcast IPI can’t be accelerated by hypervisor
+hardware and leads to traps that need to wakeup/IPI all vCPUs which is
+very expensive.  Because of this the slowdown in virtual environments is
+even worse than bare metal as the number of vCPUS/CPUs is increased.
+
+The following series attempts to reduce amount of time spent in TLB
+flushing.  The idea is to batch the vmemmap modification operations for
+multiple hugetlb pages.  Instead of doing one or two TLB flushes for each
+page, we do two TLB flushes for each batch of pages.  One flush after
+splitting pages mapped at the PMD level, and another after remapping
+vmemmap associated with all hugetlb pages.  Results of such batching are
+as follows:
+
+Bare Metal 8 socket Intel(R) Xeon(R) CPU E7-8895
+------------------------------------------------
+next-20230824 + Batching patches, vm.hugetlb_optimize_vmemmap = 0
+time echo 500000 > .../hugepages-2048kB/nr_hugepages
+real    0m4.719s
+time echo 0 > .../hugepages-2048kB/nr_hugepages
+real    0m4.245s
+
+next-20230824 + Batching patches, vm.hugetlb_optimize_vmemmap = 1
+time echo 500000 > .../hugepages-2048kB/nr_hugepages
+real    0m7.267s
+time echo 0 > .../hugepages-2048kB/nr_hugepages
+real    0m13.199s
+
+VM with 252 vcpus on host with 2 socket AMD EPYC 7J13 Milan
+-----------------------------------------------------------
+next-20230824 + Batching patches, vm.hugetlb_optimize_vmemmap = 0
+time echo 524288 > .../hugepages-2048kB/nr_hugepages
+real    0m2.715s
+time echo 0 > .../hugepages-2048kB/nr_hugepages
+real    0m3.186s
+
+next-20230824 + Batching patches, vm.hugetlb_optimize_vmemmap = 1
+time echo 524288 > .../hugepages-2048kB/nr_hugepages
+real    0m4.799s
+time echo 0 > .../hugepages-2048kB/nr_hugepages
+real    0m5.273s
+
+With batching, results are back in the 2-3x slowdown range.
+
+
+This patch (of 8):
+
+update_and_free_pages_bulk is designed to free a list of hugetlb pages
+back to their associated lower level allocators.  This may require
+allocating vmemmmap pages associated with each hugetlb page.  The hugetlb
+page destructor must be changed before pages are freed to lower level
+allocators.  However, the destructor must be changed under the hugetlb
+lock.  This means there is potentially one lock cycle per page.
+
+Minimize the number of lock cycles in update_and_free_pages_bulk by:
+1) allocating necessary vmemmap for all hugetlb pages on the list
+2) take hugetlb lock and clear destructor for all pages on the list
+3) free all pages on list back to low level allocators
+
+Link: https://lkml.kernel.org/r/20231019023113.345257-1-mike.kravetz@oracle.com
+Link: https://lkml.kernel.org/r/20231019023113.345257-2-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: James Houghton <jthoughton@google.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Barry Song <21cnbao@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: James Houghton <jthoughton@google.com>
 Cc: Joao Martins <joao.m.martins@oracle.com>
 Cc: Konrad Dybcio <konradybcio@kernel.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -78,28 +196,72 @@ Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
 Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Usama Arif <usama.arif@bytedance.com>
 Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |   39 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
---- a/mm/hugetlb.c~hugetlb-restructure-pool-allocations-fix
+--- a/mm/hugetlb.c~hugetlb-optimize-update_and_free_pages_bulk-to-avoid-lock-cycles
 +++ a/mm/hugetlb.c
-@@ -3478,7 +3478,8 @@ static void __init hugetlb_hstate_alloc_
- 	}
+@@ -1862,7 +1862,46 @@ static void update_and_free_hugetlb_foli
+ static void update_and_free_pages_bulk(struct hstate *h, struct list_head *list)
+ {
+ 	struct folio *folio, *t_folio;
++	bool clear_dtor = false;
  
- 	/* list will be empty if hstate_is_gigantic */
--	prep_and_add_allocated_folios(h, &folio_list);
-+	if (!hstate_is_gigantic(h))
-+		prep_and_add_allocated_folios(h, &folio_list);
- 
- 	if (i < h->max_huge_pages) {
- 		char buf[32];
++	/*
++	 * First allocate required vmemmmap (if necessary) for all folios on
++	 * list.  If vmemmap can not be allocated, we can not free folio to
++	 * lower level allocator, so add back as hugetlb surplus page.
++	 * add_hugetlb_folio() removes the page from THIS list.
++	 * Use clear_dtor to note if vmemmap was successfully allocated for
++	 * ANY page on the list.
++	 */
++	list_for_each_entry_safe(folio, t_folio, list, lru) {
++		if (folio_test_hugetlb_vmemmap_optimized(folio)) {
++			if (hugetlb_vmemmap_restore(h, &folio->page)) {
++				spin_lock_irq(&hugetlb_lock);
++				add_hugetlb_folio(h, folio, true);
++				spin_unlock_irq(&hugetlb_lock);
++			} else
++				clear_dtor = true;
++		}
++	}
++
++	/*
++	 * If vmemmmap allocation was performed on any folio above, take lock
++	 * to clear destructor of all folios on list.  This avoids the need to
++	 * lock/unlock for each individual folio.
++	 * The assumption is vmemmap allocation was performed on all or none
++	 * of the folios on the list.  This is true expect in VERY rare cases.
++	 */
++	if (clear_dtor) {
++		spin_lock_irq(&hugetlb_lock);
++		list_for_each_entry(folio, list, lru)
++			__clear_hugetlb_destructor(h, folio);
++		spin_unlock_irq(&hugetlb_lock);
++	}
++
++	/*
++	 * Free folios back to low level allocators.  vmemmap and destructors
++	 * were taken care of above, so update_and_free_hugetlb_folio will
++	 * not need to take hugetlb lock.
++	 */
+ 	list_for_each_entry_safe(folio, t_folio, list, lru) {
+ 		update_and_free_hugetlb_folio(h, folio, false);
+ 		cond_resched();
 _
 
-Patches currently in -mm which might be from usama.arif@bytedance.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-hugetlb_vmemmap-use-folio-argument-for-hugetlb_vmemmap_-functions.patch
+hugetlb-optimize-update_and_free_pages_bulk-to-avoid-lock-cycles.patch
+hugetlb-restructure-pool-allocations.patch
+hugetlb-perform-vmemmap-optimization-on-a-list-of-pages.patch
+hugetlb-perform-vmemmap-restoration-on-a-list-of-pages.patch
+hugetlb-batch-freeing-of-vmemmap-pages.patch
+hugetlb-batch-tlb-flushes-when-restoring-vmemmap.patch
 
