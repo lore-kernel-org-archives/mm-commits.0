@@ -2,33 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52E4FCDB47E
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Oct 2023 23:40:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32A0BCDB47E
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Oct 2023 01:07:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232222AbjJRXkH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Oct 2023 19:40:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38360 "EHLO
+        id S229632AbjJSBHK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Oct 2023 21:07:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57740 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231435AbjJRXkH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 19:40:07 -0400
+        with ESMTP id S229456AbjJSBHJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 18 Oct 2023 21:07:09 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41A68120
-        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 16:40:04 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7DDFC433C7;
-        Wed, 18 Oct 2023 23:40:03 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0652B0
+        for <mm-commits@vger.kernel.org>; Wed, 18 Oct 2023 18:07:07 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45FDDC433C7;
+        Thu, 19 Oct 2023 01:07:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697672403;
-        bh=/laJBakJdwgo1R3FygaJq9Xw2hIMmCqBBnsMees+zHI=;
+        s=korg; t=1697677627;
+        bh=AVa6EOkcnK8dRwkMeAQfDfawLZJ7YTfLOuopLHvNu8Y=;
         h=Date:To:From:Subject:From;
-        b=Pjq6rspNGS8yjZg0p+0X8gO7XF5x+8ZTIbtFVXLQ09yR36IcRdmeZhue8454BCpRk
-         A9BYDnljPtAUeH9F5iwrzGzo3/ok6x4K4bYqxpiprsh1uHWl4U8OlAMNWCkam6oLeG
-         AuF1SoTfWfA4GwuEQ2Xzp7c+FvNFKdmHBzvZhNDs=
-Date:   Wed, 18 Oct 2023 16:40:03 -0700
-To:     mm-commits@vger.kernel.org, vishal.moola@gmail.com,
+        b=csMIHNd38is0V9BokoRfL7hhrdPoD6aVm0HivLGELJvCY5TvD6WxplGDbbZv3titx
+         Rg7zlswweUBsJxvrqSgya7fjNmgtQPxMXB9FXlt0spEHi/HkoeS2UyxDhjUTUPXtgT
+         h6XmngL8tcVVShda8pcypQ/kKmPA+I2n6+l5lGwA=
+Date:   Wed, 18 Oct 2023 18:07:06 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        shy828301@gmail.com, vishal.moola@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-convert-collapse_pte_mapped_thp-to-use-folios-fix.patch added to mm-unstable branch
-Message-Id: <20231018234003.A7DDFC433C7@smtp.kernel.org>
+Subject: + mm-khugepaged-convert-__collapse_huge_page_isolate-to-use-folios.patch added to mm-unstable branch
+Message-Id: <20231019010707.45FDDC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: collapse_pte_mapped_thp() folio conversion fix
+     Subject: mm/khugepaged: convert __collapse_huge_page_isolate() to use folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-convert-collapse_pte_mapped_thp-to-use-folios-fix.patch
+     mm-khugepaged-convert-__collapse_huge_page_isolate-to-use-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-convert-collapse_pte_mapped_thp-to-use-folios-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-convert-__collapse_huge_page_isolate-to-use-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,36 +61,148 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: collapse_pte_mapped_thp() folio conversion fix
-Date: Wed, 18 Oct 2023 14:24:47 -0700
+Subject: mm/khugepaged: convert __collapse_huge_page_isolate() to use folios
+Date: Wed, 18 Oct 2023 13:32:09 -0700
 
-filemap_lock_folio() can return an ERR_PTR on failure.
-find_lock_page()/pagecache_get_page() handles this internally, while
-filemap_lock_folio() does not. Ensure this is checked for in the caller
-after converting find_lock_page() to filemap_lock_folio().
+Patch series "Some khugepaged folio conversions", v2.
 
-Link: https://lkml.kernel.org/r/ZTBjv4jyQ5/zu5cw@fedora
+This patchset converts a number of functions to use folios.  This cleans
+up some khugepaged code and removes a large number of hidden
+compound_head() calls.
+
+
+This patch (of 5):
+
+Replaces 11 calls to compound_head() with 1, and removes 1348 bytes of
+kernel text.
+
+Link: https://lkml.kernel.org/r/20231018203213.50224-1-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20231018203213.50224-2-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Reported-by: syzbot+1e2648076cadf48ad9a1@syzkaller.appspotmail.com
-Closes: https://lkml.kernel.org/r/ZTBjv4jyQ5/zu5cw@fedora
-Tested-by: syzbot+1e2648076cadf48ad9a1@syzkaller.appspotmail.com
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/khugepaged.c |   45 +++++++++++++++++++++++----------------------
+ 1 file changed, 23 insertions(+), 22 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-convert-collapse_pte_mapped_thp-to-use-folios-fix
+--- a/mm/khugepaged.c~mm-khugepaged-convert-__collapse_huge_page_isolate-to-use-folios
 +++ a/mm/khugepaged.c
-@@ -1506,7 +1506,7 @@ int collapse_pte_mapped_thp(struct mm_st
+@@ -542,6 +542,7 @@ static int __collapse_huge_page_isolate(
+ 					struct list_head *compound_pagelist)
+ {
+ 	struct page *page = NULL;
++	struct folio *folio = NULL;
+ 	pte_t *_pte;
+ 	int none_or_zero = 0, shared = 0, result = SCAN_FAIL, referenced = 0;
+ 	bool writable = false;
+@@ -576,7 +577,8 @@ static int __collapse_huge_page_isolate(
+ 			goto out;
+ 		}
  
- 	folio = filemap_lock_folio(vma->vm_file->f_mapping,
- 			       linear_page_index(vma, haddr));
--	if (!folio)
-+	if (!folio || IS_ERR(folio))
- 		return SCAN_PAGE_NULL;
+-		VM_BUG_ON_PAGE(!PageAnon(page), page);
++		folio = page_folio(page);
++		VM_BUG_ON_FOLIO(!folio_test_anon(folio), folio);
  
- 	if (folio_order(folio) != HPAGE_PMD_ORDER) {
+ 		if (page_mapcount(page) > 1) {
+ 			++shared;
+@@ -588,16 +590,15 @@ static int __collapse_huge_page_isolate(
+ 			}
+ 		}
+ 
+-		if (PageCompound(page)) {
+-			struct page *p;
+-			page = compound_head(page);
++		if (folio_test_large(folio)) {
++			struct folio *f;
+ 
+ 			/*
+ 			 * Check if we have dealt with the compound page
+ 			 * already
+ 			 */
+-			list_for_each_entry(p, compound_pagelist, lru) {
+-				if (page == p)
++			list_for_each_entry(f, compound_pagelist, lru) {
++				if (folio == f)
+ 					goto next;
+ 			}
+ 		}
+@@ -608,7 +609,7 @@ static int __collapse_huge_page_isolate(
+ 		 * is needed to serialize against split_huge_page
+ 		 * when invoked from the VM.
+ 		 */
+-		if (!trylock_page(page)) {
++		if (!folio_trylock(folio)) {
+ 			result = SCAN_PAGE_LOCK;
+ 			goto out;
+ 		}
+@@ -624,8 +625,8 @@ static int __collapse_huge_page_isolate(
+ 		 * but not from this process. The other process cannot write to
+ 		 * the page, only trigger CoW.
+ 		 */
+-		if (!is_refcount_suitable(page)) {
+-			unlock_page(page);
++		if (!is_refcount_suitable(&folio->page)) {
++			folio_unlock(folio);
+ 			result = SCAN_PAGE_COUNT;
+ 			goto out;
+ 		}
+@@ -634,27 +635,27 @@ static int __collapse_huge_page_isolate(
+ 		 * Isolate the page to avoid collapsing an hugepage
+ 		 * currently in use by the VM.
+ 		 */
+-		if (!isolate_lru_page(page)) {
+-			unlock_page(page);
++		if (!folio_isolate_lru(folio)) {
++			folio_unlock(folio);
+ 			result = SCAN_DEL_PAGE_LRU;
+ 			goto out;
+ 		}
+-		mod_node_page_state(page_pgdat(page),
+-				NR_ISOLATED_ANON + page_is_file_lru(page),
+-				compound_nr(page));
+-		VM_BUG_ON_PAGE(!PageLocked(page), page);
+-		VM_BUG_ON_PAGE(PageLRU(page), page);
++		node_stat_mod_folio(folio,
++				NR_ISOLATED_ANON + folio_is_file_lru(folio),
++				folio_nr_pages(folio));
++		VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
++		VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
+ 
+-		if (PageCompound(page))
+-			list_add_tail(&page->lru, compound_pagelist);
++		if (folio_test_large(folio))
++			list_add_tail(&folio->lru, compound_pagelist);
+ next:
+ 		/*
+ 		 * If collapse was initiated by khugepaged, check that there is
+ 		 * enough young pte to justify collapsing the page
+ 		 */
+ 		if (cc->is_khugepaged &&
+-		    (pte_young(pteval) || page_is_young(page) ||
+-		     PageReferenced(page) || mmu_notifier_test_young(vma->vm_mm,
++		    (pte_young(pteval) || folio_test_young(folio) ||
++		     folio_test_referenced(folio) || mmu_notifier_test_young(vma->vm_mm,
+ 								     address)))
+ 			referenced++;
+ 
+@@ -668,13 +669,13 @@ next:
+ 		result = SCAN_LACK_REFERENCED_PAGE;
+ 	} else {
+ 		result = SCAN_SUCCEED;
+-		trace_mm_collapse_huge_page_isolate(page, none_or_zero,
++		trace_mm_collapse_huge_page_isolate(&folio->page, none_or_zero,
+ 						    referenced, writable, result);
+ 		return result;
+ 	}
+ out:
+ 	release_pte_pages(pte, _pte, compound_pagelist);
+-	trace_mm_collapse_huge_page_isolate(page, none_or_zero,
++	trace_mm_collapse_huge_page_isolate(&folio->page, none_or_zero,
+ 					    referenced, writable, result);
+ 	return result;
+ }
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
