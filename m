@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FDAFCDB483
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Oct 2023 16:27:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 150BBCDB465
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Oct 2023 16:27:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232123AbjJSQ1i (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 19 Oct 2023 12:27:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35944 "EHLO
+        id S232860AbjJSQ1k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 19 Oct 2023 12:27:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35954 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232326AbjJSQ1h (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 Oct 2023 12:27:37 -0400
+        with ESMTP id S232326AbjJSQ1j (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 19 Oct 2023 12:27:39 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6B9D9B
-        for <mm-commits@vger.kernel.org>; Thu, 19 Oct 2023 09:27:35 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E31AC433C8;
-        Thu, 19 Oct 2023 16:27:35 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DAA789B
+        for <mm-commits@vger.kernel.org>; Thu, 19 Oct 2023 09:27:37 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A844C433C9;
+        Thu, 19 Oct 2023 16:27:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697732855;
-        bh=QvC5COQhXBk4OZjzZRM2VWKSIRQcA10oQmbsrPQKbQ0=;
+        s=korg; t=1697732857;
+        bh=PFo3vBufxrWwi0s+2CApDjCWtorzTFMDDcJTrbd2i0E=;
         h=Date:To:From:Subject:From;
-        b=loCAtEaR1KQ5qlCB7MqgLASolQU+PPr1JpYU/XGW3K3TWTZT0NEBjPMogIk2c8mM+
-         fk68eyLQSZs/oRprXEOHo3iL9pKBg7JERnDz0jZJRduSZ8KELr3EE+/ei+LrXzJUqb
-         KzhsfrkXt3vDOQRLvYC+DKjpClNw7Uyuo+WTHxz0=
-Date:   Thu, 19 Oct 2023 09:27:34 -0700
+        b=N+pP/5p/4oIxwhrZk1uEu3ImROHgXmYbyK6keg4bDnavrexWbJhk3VFjVf637zqAW
+         12CYIZzX4DPYAx/cSDMon9g22njXx44qDZL4yqfMuMxfHANq5UVls5xtR3f35OR7pO
+         CaLRZ3L93jzkdKtnSGEZOExxLqDKt3lzpnmBx1zI=
+Date:   Thu, 19 Oct 2023 09:27:36 -0700
 To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
         willy@infradead.org, vbabka@suse.cz, rppt@kernel.org,
         osalvador@suse.de, mingo@kernel.org, mhocko@suse.com,
@@ -31,8 +31,8 @@ To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
         aneesh.kumar@linux.ibm.com, zhengqi.arch@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-skip-memoryless-nodes-entirely.patch added to mm-unstable branch
-Message-Id: <20231019162735.5E31AC433C8@smtp.kernel.org>
+Subject: + mm-memory_hotplug-drop-memoryless-node-from-fallback-lists.patch added to mm-unstable branch
+Message-Id: <20231019162737.5A844C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,12 +40,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_alloc: skip memoryless nodes entirely
+     Subject: mm: memory_hotplug: drop memoryless node from fallback lists
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-skip-memoryless-nodes-entirely.patch
+     mm-memory_hotplug-drop-memoryless-node-from-fallback-lists.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-skip-memoryless-nodes-entirely.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-drop-memoryless-node-from-fallback-lists.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,50 +64,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: page_alloc: skip memoryless nodes entirely
-Date: Thu, 19 Oct 2023 18:43:54 +0800
+Subject: mm: memory_hotplug: drop memoryless node from fallback lists
+Date: Thu, 19 Oct 2023 18:43:55 +0800
 
-Patch series "handle memoryless nodes more appropriately", v3.
+In offline_pages(), if a node becomes memoryless, we will clear its
+N_MEMORY state by calling node_states_clear_node().  But we do this after
+rebuilding the zonelists by calling build_all_zonelists(), which will
+cause this memoryless node to still be in the fallback list of other
+nodes.  This will incur some runtime overhead.
 
-Currently, in the process of initialization or offline memory, memoryless
-nodes will still be built into the fallback list of itself or other nodes.
+To drop memoryless node from fallback lists in this case, just call
+node_states_clear_node() before calling build_all_zonelists().
 
-This is not what we expected, so this patch series removes memoryless
-nodes from the fallback list entirely.
-
-
-This patch (of 2):
-
-In find_next_best_node(), we skipped the memoryless nodes when building
-the zonelists of other normal nodes (N_NORMAL), but did not skip the
-memoryless node itself when building the zonelist.  This will cause it to
-be traversed at runtime.
-
-For example, say we have node0 and node1, node0 is memoryless
-node, then the fallback order of node0 and node1 as follows:
-
-[    0.153005] Fallback order for Node 0: 0 1
-[    0.153564] Fallback order for Node 1: 1
-
-After this patch, we skip memoryless node0 entirely, then
-the fallback order of node0 and node1 as follows:
-
-[    0.155236] Fallback order for Node 0: 1
-[    0.155806] Fallback order for Node 1: 1
-
-So it becomes completely invisible, which will reduce runtime
-overhead.
-
-And in this way, we will not try to allocate pages from memoryless node0,
-then the panic mentioned in [1] will also be fixed.  Even though this
-problem has been solved by dropping the NODE_MIN_SIZE constrain in x86
-[2], it would be better to fix it in core MM as well.
-
-[1]. https://lore.kernel.org/all/20230212110305.93670-1-zhengqi.arch@bytedance.com/
-[2]. https://lore.kernel.org/all/20231017062215.171670-1-rppt@kernel.org/
-
-Link: https://lkml.kernel.org/r/cover.1697711415.git.zhengqi.arch@bytedance.com
-Link: https://lkml.kernel.org/r/157013e978468241de4a4c05d5337a44638ecb0e.1697711415.git.zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/9f1dbe7ee1301c7163b2770e32954ff5e3ecf2c4.1697711415.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
@@ -123,25 +92,29 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/memory_hotplug.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-skip-memoryless-nodes-entirely
-+++ a/mm/page_alloc.c
-@@ -5052,8 +5052,11 @@ int find_next_best_node(int node, nodema
- 	int min_val = INT_MAX;
- 	int best_node = NUMA_NO_NODE;
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-drop-memoryless-node-from-fallback-lists
++++ a/mm/memory_hotplug.c
+@@ -2012,12 +2012,16 @@ int __ref offline_pages(unsigned long st
+ 	/* reinitialise watermarks and update pcp limits */
+ 	init_per_zone_wmark_min();
  
--	/* Use the local node if we haven't already */
--	if (!node_isset(node, *used_node_mask)) {
 +	/*
-+	 * Use the local node if we haven't already. But for memoryless local
-+	 * node, we should skip it and fallback to other nodes.
++	 * Make sure to mark the node as memory-less before rebuilding the zone
++	 * list. Otherwise this node would still appear in the fallback lists.
 +	 */
-+	if (!node_isset(node, *used_node_mask) && node_state(node, N_MEMORY)) {
- 		node_set(node, *used_node_mask);
- 		return node;
++	node_states_clear_node(node, &arg);
+ 	if (!populated_zone(zone)) {
+ 		zone_pcp_reset(zone);
+ 		build_all_zonelists(NULL);
  	}
+ 
+-	node_states_clear_node(node, &arg);
+ 	if (arg.status_change_nid >= 0) {
+ 		kcompactd_stop(node);
+ 		kswapd_stop(node);
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
