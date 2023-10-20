@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B5BBC00A98
-	for <mm-commits@archiver.kernel.org>; Fri, 20 Oct 2023 17:11:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A172C001DF
+	for <mm-commits@archiver.kernel.org>; Fri, 20 Oct 2023 17:11:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229692AbjJTRLQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229817AbjJTRLQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 20 Oct 2023 13:11:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49560 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49564 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229817AbjJTRLO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Oct 2023 13:11:14 -0400
+        with ESMTP id S229796AbjJTRLQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Oct 2023 13:11:16 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BDE4D1A3
-        for <mm-commits@vger.kernel.org>; Fri, 20 Oct 2023 10:11:11 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A9AAC433CB;
-        Fri, 20 Oct 2023 17:11:11 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B494CA
+        for <mm-commits@vger.kernel.org>; Fri, 20 Oct 2023 10:11:14 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36514C433C7;
+        Fri, 20 Oct 2023 17:11:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697821871;
-        bh=tqbab/c34Xh6VDHjp9wfG2bRbYOKZp4kBGmTqcWt9ao=;
+        s=korg; t=1697821874;
+        bh=IXdt7b8NXXg/MdMGd0MU1l0HMqwMyrMtTyiSpO+TRkc=;
         h=Date:To:From:Subject:From;
-        b=sAXlKhn8V5X+GZA4vRWRypXadZjgvPLFdwZeeR8A5JRx4V6M/P+PZ5+b9rnSonKpY
-         ssvZMZ+tFjAmy4tuPWkm8up23u9N5hahXD48JNVmk8JjIk1f0Zf4MEmjFLiePdF8n3
-         kKyjuftUxJRacl7N+qF416pXvVncyv7WAcM5HRgg=
-Date:   Fri, 20 Oct 2023 10:11:10 -0700
+        b=qxoEapD9fHPsG8zx814iPH8FMR5fxKyOxdhPU8oekdjWWSkotzH/mpFWDAutWCRa/
+         qz9VpA4ADO9F8MoukvhNX9W3bNWMHM7+hCWeSAccejecxMBbS4AlwIfzPz9Igg3xDD
+         BJd86MSkHUbc55As9IaRxju3dvT8vB94aF8enwg4=
+Date:   Fri, 20 Oct 2023 10:11:13 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, shakeelb@google.com,
         rientjes@google.com, naresh.kamboju@linaro.org,
         muchun.song@linux.dev, mhocko@kernel.org, hannes@cmpxchg.org,
         dennis@kernel.org, roman.gushchin@linux.dev,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmem-scoped-objcg-protection.patch added to mm-unstable branch
-Message-Id: <20231020171111.5A9AAC433CB@smtp.kernel.org>
+Subject: + percpu-scoped-objcg-protection.patch added to mm-unstable branch
+Message-Id: <20231020171114.36514C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,12 +39,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kmem: scoped objcg protection
+     Subject: percpu: scoped objcg protection
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kmem-scoped-objcg-protection.patch
+     percpu-scoped-objcg-protection.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmem-scoped-objcg-protection.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/percpu-scoped-objcg-protection.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -63,22 +63,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: mm: kmem: scoped objcg protection
-Date: Thu, 19 Oct 2023 15:53:44 -0700
+Subject: percpu: scoped objcg protection
+Date: Thu, 19 Oct 2023 15:53:45 -0700
 
-Switch to a scope-based protection of the objcg pointer on slab/kmem
-allocation paths.  Instead of using the get_() semantics in the
-pre-allocation hook and put the reference afterwards, let's rely on the
-fact that objcg is pinned by the scope.
+Similar to slab and kmem, switch to a scope-based protection of the objcg
+pointer to avoid.
 
-It's possible because:
-1) if the objcg is received from the current task struct, the task is
-   keeping a reference to the objcg.
-2) if the objcg is received from an active memcg (remote charging),
-   the memcg is pinned by the scope and has a reference to the
-   corresponding objcg.
-
-Link: https://lkml.kernel.org/r/20231019225346.1822282-5-roman.gushchin@linux.dev
+Link: https://lkml.kernel.org/r/20231019225346.1822282-6-roman.gushchin@linux.dev
 Signed-off-by: Roman Gushchin (Cruise) <roman.gushchin@linux.dev>
 Tested-by: Naresh Kamboju <naresh.kamboju@linaro.org>
 Acked-by: Shakeel Butt <shakeelb@google.com>
@@ -91,157 +82,44 @@ Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    9 ++++++
- include/linux/sched/mm.h   |    4 ++
- mm/memcontrol.c            |   47 +++++++++++++++++++++++++++++++++--
- mm/slab.h                  |   15 +++++------
- 4 files changed, 66 insertions(+), 9 deletions(-)
+ mm/percpu.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-kmem-scoped-objcg-protection
-+++ a/include/linux/memcontrol.h
-@@ -1796,6 +1796,15 @@ bool mem_cgroup_kmem_disabled(void);
- int __memcg_kmem_charge_page(struct page *page, gfp_t gfp, int order);
- void __memcg_kmem_uncharge_page(struct page *page, int order);
- 
-+/*
-+ * The returned objcg pointer is safe to use without additional
-+ * protection within a scope. The scope is defined either by
-+ * the current task (similar to the "current" global variable)
-+ * or by set_active_memcg() pair.
-+ * Please, use obj_cgroup_get() to get a reference if the pointer
-+ * needs to be used outside of the local scope.
-+ */
-+struct obj_cgroup *current_obj_cgroup(void);
- struct obj_cgroup *get_obj_cgroup_from_current(void);
- struct obj_cgroup *get_obj_cgroup_from_folio(struct folio *folio);
- 
---- a/include/linux/sched/mm.h~mm-kmem-scoped-objcg-protection
-+++ a/include/linux/sched/mm.h
-@@ -403,6 +403,10 @@ DECLARE_PER_CPU(struct mem_cgroup *, int
-  * __GFP_ACCOUNT allocations till the end of the scope will be charged to the
-  * given memcg.
-  *
-+ * Please, make sure that caller has a reference to the passed memcg structure,
-+ * so its lifetime is guaranteed to exceed the scope between two
-+ * set_active_memcg() calls.
-+ *
-  * NOTE: This function can nest. Users must save the return value and
-  * reset the previous value after their own charging scope is over.
-  */
---- a/mm/memcontrol.c~mm-kmem-scoped-objcg-protection
-+++ a/mm/memcontrol.c
-@@ -3194,6 +3194,49 @@ from_memcg:
- 	return objcg;
- }
- 
-+__always_inline struct obj_cgroup *current_obj_cgroup(void)
-+{
-+	struct mem_cgroup *memcg;
-+	struct obj_cgroup *objcg;
-+
-+	if (in_task()) {
-+		memcg = current->active_memcg;
-+		if (unlikely(memcg))
-+			goto from_memcg;
-+
-+		objcg = READ_ONCE(current->objcg);
-+		if (unlikely((unsigned long)objcg & CURRENT_OBJCG_UPDATE_FLAG))
-+			objcg = current_objcg_update();
-+		/*
-+		 * Objcg reference is kept by the task, so it's safe
-+		 * to use the objcg by the current task.
-+		 */
-+		return objcg;
-+	}
-+
-+	memcg = this_cpu_read(int_active_memcg);
-+	if (unlikely(memcg))
-+		goto from_memcg;
-+
-+	return NULL;
-+
-+from_memcg:
-+	for (; !mem_cgroup_is_root(memcg); memcg = parent_mem_cgroup(memcg)) {
-+		/*
-+		 * Memcg pointer is protected by scope (see set_active_memcg())
-+		 * and is pinning the corresponding objcg, so objcg can't go
-+		 * away and can be used within the scope without any additional
-+		 * protection.
-+		 */
-+		objcg = rcu_dereference_check(memcg->objcg, 1);
-+		if (likely(objcg))
-+			break;
-+		objcg = NULL;
-+	}
-+
-+	return objcg;
-+}
-+
- struct obj_cgroup *get_obj_cgroup_from_folio(struct folio *folio)
- {
- 	struct obj_cgroup *objcg;
-@@ -3288,15 +3331,15 @@ int __memcg_kmem_charge_page(struct page
- 	struct obj_cgroup *objcg;
- 	int ret = 0;
- 
--	objcg = get_obj_cgroup_from_current();
-+	objcg = current_obj_cgroup();
- 	if (objcg) {
- 		ret = obj_cgroup_charge_pages(objcg, gfp, 1 << order);
- 		if (!ret) {
-+			obj_cgroup_get(objcg);
- 			page->memcg_data = (unsigned long)objcg |
- 				MEMCG_DATA_KMEM;
- 			return 0;
- 		}
--		obj_cgroup_put(objcg);
- 	}
- 	return ret;
- }
---- a/mm/slab.h~mm-kmem-scoped-objcg-protection
-+++ a/mm/slab.h
-@@ -484,7 +484,12 @@ static inline bool memcg_slab_pre_alloc_
- 	if (!(flags & __GFP_ACCOUNT) && !(s->flags & SLAB_ACCOUNT))
+--- a/mm/percpu.c~percpu-scoped-objcg-protection
++++ a/mm/percpu.c
+@@ -1628,14 +1628,12 @@ static bool pcpu_memcg_pre_alloc_hook(si
+ 	if (!memcg_kmem_online() || !(gfp & __GFP_ACCOUNT))
  		return true;
  
 -	objcg = get_obj_cgroup_from_current();
-+	/*
-+	 * The obtained objcg pointer is safe to use within the current scope,
-+	 * defined by current task or set_active_memcg() pair.
-+	 * obj_cgroup_get() is used to get a permanent reference.
-+	 */
 +	objcg = current_obj_cgroup();
  	if (!objcg)
  		return true;
  
-@@ -497,17 +502,14 @@ static inline bool memcg_slab_pre_alloc_
- 		css_put(&memcg->css);
- 
- 		if (ret)
--			goto out;
-+			return false;
- 	}
- 
- 	if (obj_cgroup_charge(objcg, flags, objects * obj_full_size(s)))
--		goto out;
-+		return false;
+-	if (obj_cgroup_charge(objcg, gfp, pcpu_obj_full_size(size))) {
+-		obj_cgroup_put(objcg);
++	if (obj_cgroup_charge(objcg, gfp, pcpu_obj_full_size(size)))
+ 		return false;
+-	}
  
  	*objcgp = objcg;
  	return true;
--out:
--	obj_cgroup_put(objcg);
--	return false;
- }
+@@ -1649,6 +1647,7 @@ static void pcpu_memcg_post_alloc_hook(s
+ 		return;
  
- static inline void memcg_slab_post_alloc_hook(struct kmem_cache *s,
-@@ -542,7 +544,6 @@ static inline void memcg_slab_post_alloc
- 			obj_cgroup_uncharge(objcg, obj_full_size(s));
- 		}
+ 	if (likely(chunk && chunk->obj_cgroups)) {
++		obj_cgroup_get(objcg);
+ 		chunk->obj_cgroups[off >> PCPU_MIN_ALLOC_SHIFT] = objcg;
+ 
+ 		rcu_read_lock();
+@@ -1657,7 +1656,6 @@ static void pcpu_memcg_post_alloc_hook(s
+ 		rcu_read_unlock();
+ 	} else {
+ 		obj_cgroup_uncharge(objcg, pcpu_obj_full_size(size));
+-		obj_cgroup_put(objcg);
  	}
--	obj_cgroup_put(objcg);
  }
  
- static inline void memcg_slab_free_hook(struct kmem_cache *s, struct slab *slab,
 _
 
 Patches currently in -mm which might be from roman.gushchin@linux.dev are
