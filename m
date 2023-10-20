@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5044AC001DF
-	for <mm-commits@archiver.kernel.org>; Fri, 20 Oct 2023 17:26:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35986CDB474
+	for <mm-commits@archiver.kernel.org>; Fri, 20 Oct 2023 17:26:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230062AbjJTR0y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 20 Oct 2023 13:26:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57422 "EHLO
+        id S229954AbjJTR04 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 20 Oct 2023 13:26:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57476 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377932AbjJTR0t (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Oct 2023 13:26:49 -0400
+        with ESMTP id S1377706AbjJTR0u (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Oct 2023 13:26:50 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0E68D68
-        for <mm-commits@vger.kernel.org>; Fri, 20 Oct 2023 10:26:42 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43000C433C8;
-        Fri, 20 Oct 2023 17:26:42 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9EB8DD72
+        for <mm-commits@vger.kernel.org>; Fri, 20 Oct 2023 10:26:44 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3AC6FC433C8;
+        Fri, 20 Oct 2023 17:26:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697822802;
-        bh=5WUh6XRld8XHMuGVcoZdqzAc9/6O50ovq20PDDRLjCM=;
+        s=korg; t=1697822804;
+        bh=s9s1Ozmn3daGeGpUMO2VWWWzPNqsWew/KBXYxLLA0Xs=;
         h=Date:To:From:Subject:From;
-        b=jaJUD1rFxLO5o6HV6iQlpzdFdF4FlFaRWhtKXXO5C4Il9lW/hFogfhOrlG6rKgodn
-         g1SfHfxfF8+D/18iZ7CBp4c3s9eOr8tLnmcxdP6GqtEOwQPxIXoYp9Cs24cNvPxlDs
-         yVBE10Ufeeam38gou7rCYdMXksEXIEUX2pHbo7Io=
-Date:   Fri, 20 Oct 2023 10:26:41 -0700
+        b=lfrMUmr6TF3CUsSQZgLYf1dkwoSVT+WEMVC99x7g48/FTbZ+rUJzq1PJNZ9X6/3TT
+         DzLXpDkcE4CS2i/uoFy0t34WrFDh5qMjxFr37s4PrRPWsxWdqEV2KlsLhiSQbvuPvu
+         8fQfcuozWiO5cSf8r6fNxGhPCgV0gD7q2I2/VHuI=
+Date:   Fri, 20 Oct 2023 10:26:43 -0700
 To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
         ying.huang@intel.com, willy@infradead.org,
         wangkefeng.wang@huawei.com, vishal.moola@gmail.com, tj@kernel.org,
@@ -33,8 +33,8 @@ To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
         david@redhat.com, cl@linux.com, ak@linux.intel.com,
         hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mempolicy-mpol_shared_policy_init-without-pseudo-vma.patch added to mm-unstable branch
-Message-Id: <20231020172642.43000C433C8@smtp.kernel.org>
+Subject: + mempolicy-remove-confusing-mpol_mf_lazy-dead-code.patch added to mm-unstable branch
+Message-Id: <20231020172644.3AC6FC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mempolicy: mpol_shared_policy_init() without pseudo-vma
+     Subject: mempolicy: remove confusing MPOL_MF_LAZY dead code
 has been added to the -mm mm-unstable branch.  Its filename is
-     mempolicy-mpol_shared_policy_init-without-pseudo-vma.patch
+     mempolicy-remove-confusing-mpol_mf_lazy-dead-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mempolicy-mpol_shared_policy_init-without-pseudo-vma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mempolicy-remove-confusing-mpol_mf_lazy-dead-code.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,22 +66,33 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mempolicy: mpol_shared_policy_init() without pseudo-vma
-Date: Tue, 3 Oct 2023 02:22:59 -0700 (PDT)
+Subject: mempolicy: remove confusing MPOL_MF_LAZY dead code
+Date: Tue, 3 Oct 2023 02:24:18 -0700 (PDT)
 
-mpol_shared_policy_init() does not need to use a pseudo-vma: it can use
-sp_alloc() and sp_insert() directly, since the object's shared policy tree
-is empty and inaccessible (needing no lock) at get_inode() time.
+v3.8 commit b24f53a0bea3 ("mm: mempolicy: Add MPOL_MF_LAZY") introduced
+MPOL_MF_LAZY, and included it in the MPOL_MF_VALID flags; but a720094ded8
+("mm: mempolicy: Hide MPOL_NOOP and MPOL_MF_LAZY from userspace for now")
+immediately removed it from MPOL_MF_VALID flags, pending further review. 
+"This will need to be revisited", but it has not been reinstated.
 
-Link: https://lkml.kernel.org/r/3bef62d8-ae78-4c2-533-56a44ae425c@google.com
+The present state is confusing: there is dead code in mm/mempolicy.c to
+handle MPOL_MF_LAZY cases which can never occur.  Remove that: it can be
+resurrected later if necessary.  But keep the definition of MPOL_MF_LAZY,
+which must remain in the UAPI, even though it always fails with EINVAL.
+
+https://lore.kernel.org/linux-mm/1553041659-46787-1-git-send-email-yang.shi@linux.alibaba.com/
+links to a previous request to remove MPOL_MF_LAZY.
+
+Link: https://lkml.kernel.org/r/80c9665c-1c3f-17ba-21a3-f6115cebf7d@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
@@ -90,61 +101,73 @@ Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Tejun heo <tj@kernel.org>
 Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Yang Shi <shy828301@gmail.com>
 Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ include/uapi/linux/mempolicy.h |    2 +-
+ mm/mempolicy.c                 |   18 ------------------
+ 2 files changed, 1 insertion(+), 19 deletions(-)
 
---- a/mm/mempolicy.c~mempolicy-mpol_shared_policy_init-without-pseudo-vma
+--- a/include/uapi/linux/mempolicy.h~mempolicy-remove-confusing-mpol_mf_lazy-dead-code
++++ a/include/uapi/linux/mempolicy.h
+@@ -48,7 +48,7 @@ enum {
+ #define MPOL_MF_MOVE	 (1<<1)	/* Move pages owned by this process to conform
+ 				   to policy */
+ #define MPOL_MF_MOVE_ALL (1<<2)	/* Move every page to conform to policy */
+-#define MPOL_MF_LAZY	 (1<<3)	/* Modifies '_MOVE:  lazy migrate on fault */
++#define MPOL_MF_LAZY	 (1<<3)	/* UNSUPPORTED FLAG: Lazy migrate on fault */
+ #define MPOL_MF_INTERNAL (1<<4)	/* Internal flags start here */
+ 
+ #define MPOL_MF_VALID	(MPOL_MF_STRICT   | 	\
+--- a/mm/mempolicy.c~mempolicy-remove-confusing-mpol_mf_lazy-dead-code
 +++ a/mm/mempolicy.c
-@@ -2736,30 +2736,30 @@ void mpol_shared_policy_init(struct shar
- 	rwlock_init(&sp->lock);
+@@ -636,12 +636,6 @@ unsigned long change_prot_numa(struct vm
  
- 	if (mpol) {
--		struct vm_area_struct pvma;
--		struct mempolicy *new;
-+		struct sp_node *sn;
-+		struct mempolicy *npol;
- 		NODEMASK_SCRATCH(scratch);
+ 	return nr_updated;
+ }
+-#else
+-static unsigned long change_prot_numa(struct vm_area_struct *vma,
+-			unsigned long addr, unsigned long end)
+-{
+-	return 0;
+-}
+ #endif /* CONFIG_NUMA_BALANCING */
  
- 		if (!scratch)
- 			goto put_mpol;
--		/* contextualize the tmpfs mount point mempolicy */
--		new = mpol_new(mpol->mode, mpol->flags, &mpol->w.user_nodemask);
--		if (IS_ERR(new))
-+
-+		/* contextualize the tmpfs mount point mempolicy to this file */
-+		npol = mpol_new(mpol->mode, mpol->flags, &mpol->w.user_nodemask);
-+		if (IS_ERR(npol))
- 			goto free_scratch; /* no valid nodemask intersection */
+ static int queue_pages_test_walk(unsigned long start, unsigned long end,
+@@ -680,14 +674,6 @@ static int queue_pages_test_walk(unsigne
+ 	if (endvma > end)
+ 		endvma = end;
  
- 		task_lock(current);
--		ret = mpol_set_nodemask(new, &mpol->w.user_nodemask, scratch);
-+		ret = mpol_set_nodemask(npol, &mpol->w.user_nodemask, scratch);
- 		task_unlock(current);
- 		if (ret)
--			goto put_new;
+-	if (flags & MPOL_MF_LAZY) {
+-		/* Similar to task_numa_work, skip inaccessible VMAs */
+-		if (!is_vm_hugetlb_page(vma) && vma_is_accessible(vma) &&
+-			!(vma->vm_flags & VM_MIXEDMAP))
+-			change_prot_numa(vma, start, endvma);
+-		return 1;
+-	}
 -
--		/* Create pseudo-vma that contains just the policy */
--		vma_init(&pvma, NULL);
--		pvma.vm_end = TASK_SIZE;	/* policy covers entire file */
--		mpol_set_shared_policy(sp, &pvma, new); /* adds ref */
-+			goto put_npol;
+ 	/*
+ 	 * Check page nodes, and queue pages to move, in the current vma.
+ 	 * But if no moving, and no strict checking, the scan can be skipped.
+@@ -1254,9 +1240,6 @@ static long do_mbind(unsigned long start
+ 	if (IS_ERR(new))
+ 		return PTR_ERR(new);
  
--put_new:
--		mpol_put(new);			/* drop initial ref */
-+		/* alloc node covering entire file; adds ref to file's npol */
-+		sn = sp_alloc(0, MAX_LFS_FILESIZE >> PAGE_SHIFT, npol);
-+		if (sn)
-+			sp_insert(sp, sn);
-+put_npol:
-+		mpol_put(npol);	/* drop initial ref on file's npol */
- free_scratch:
- 		NODEMASK_SCRATCH_FREE(scratch);
- put_mpol:
+-	if (flags & MPOL_MF_LAZY)
+-		new->flags |= MPOL_F_MOF;
+-
+ 	/*
+ 	 * If we are using the default policy then operation
+ 	 * on discontinuous address spaces is okay after all
+@@ -1301,7 +1284,6 @@ static long do_mbind(unsigned long start
+ 
+ 	if (!err) {
+ 		if (!list_empty(&pagelist)) {
+-			WARN_ON_ONCE(flags & MPOL_MF_LAZY);
+ 			nr_failed |= migrate_pages(&pagelist, new_folio, NULL,
+ 				start, MIGRATE_SYNC, MR_MEMPOLICY_MBIND, NULL);
+ 		}
 _
 
 Patches currently in -mm which might be from hughd@google.com are
