@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87F13C07480
-	for <mm-commits@archiver.kernel.org>; Fri, 20 Oct 2023 17:26:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BFB65C00A98
+	for <mm-commits@archiver.kernel.org>; Fri, 20 Oct 2023 17:26:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377926AbjJTR0o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 20 Oct 2023 13:26:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53748 "EHLO
+        id S229905AbjJTR0n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 20 Oct 2023 13:26:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53786 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229971AbjJTR0m (ORCPT
+        with ESMTP id S230035AbjJTR0m (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Oct 2023 13:26:42 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77B6D10C1
-        for <mm-commits@vger.kernel.org>; Fri, 20 Oct 2023 10:26:40 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C43FC433C7;
-        Fri, 20 Oct 2023 17:26:40 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E6A3D73
+        for <mm-commits@vger.kernel.org>; Fri, 20 Oct 2023 10:26:38 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA494C433CC;
+        Fri, 20 Oct 2023 17:26:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697822800;
-        bh=nN3EuFMy4wqnwJ//roihyt3+mD/DTtkEIVf8m/x3DAs=;
+        s=korg; t=1697822797;
+        bh=/8+H67mGKWaQgYTUIawxUf44D5isXUmchQJWM4hPxyA=;
         h=Date:To:From:Subject:From;
-        b=F8mZan3Z2/vtSgS3V8Xo3YD87W34m+RsIyNwtxIvF6VKl/LOJMal7S4PLoQyCnFTL
-         /Sf4jqxIo3MGkaPHBDMXmgdP6aNj1O4dTXNt/B3VLjImyKycz8H0mHhTjz/3LBAxAz
-         nDdWYhIGaawAFAkW8UO8Un+hxtZ9/vkx1x/UFkfI=
-Date:   Fri, 20 Oct 2023 10:26:39 -0700
+        b=DpjksnOSPkOSmBViZ61rd3ZluwUTSIyxxuH7xNbUsEu7H5ohk+swtahF0EiJHFHBv
+         QSGcVRxg54pwQpFjiyKonU+5Y86mT3gWBPepQ7SYwvzxeI/IjG3XMWwcPl9n+WE7fr
+         37AXY/a2ge6e5Ax2OF3zTE/ZgmoxdRdCiRSHA3As=
+Date:   Fri, 20 Oct 2023 10:26:37 -0700
 To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
         ying.huang@intel.com, willy@infradead.org,
         wangkefeng.wang@huawei.com, vishal.moola@gmail.com, tj@kernel.org,
@@ -33,8 +33,8 @@ To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
         david@redhat.com, cl@linux.com, ak@linux.intel.com,
         hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mempolicy-trivia-use-pgoff_t-in-shared-mempolicy-tree.patch added to mm-unstable branch
-Message-Id: <20231020172640.0C43FC433C7@smtp.kernel.org>
+Subject: + mempolicy-trivia-slightly-more-consistent-naming.patch added to mm-unstable branch
+Message-Id: <20231020172637.BA494C433CC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mempolicy trivia: use pgoff_t in shared mempolicy tree
+     Subject: mempolicy trivia: slightly more consistent naming
 has been added to the -mm mm-unstable branch.  Its filename is
-     mempolicy-trivia-use-pgoff_t-in-shared-mempolicy-tree.patch
+     mempolicy-trivia-slightly-more-consistent-naming.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mempolicy-trivia-use-pgoff_t-in-shared-mempolicy-tree.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mempolicy-trivia-slightly-more-consistent-naming.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,21 +66,27 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mempolicy trivia: use pgoff_t in shared mempolicy tree
-Date: Tue, 3 Oct 2023 02:21:34 -0700 (PDT)
+Subject: mempolicy trivia: slightly more consistent naming
+Date: Tue, 3 Oct 2023 02:20:14 -0700 (PDT)
 
-Prefer the more explicit "pgoff_t" to "unsigned long" when dealing with a
-shared mempolicy tree.  Delete confusing comment about pseudo mm vmas.
+Before getting down to work, do a little cleanup, mainly of inconsistent
+variable naming.  I gave up trying to rationalize mpol versus pol versus
+policy, and node versus nid, but let's avoid p and nd.  Remove a few
+superfluous blank lines, but add one; and here prefer vma->vm_policy to
+vma_policy(vma) - the latter being appropriate in other sources, which
+have to allow for !CONFIG_NUMA.  That intriguing line about KERNEL_DS? 
+should have gone in v2.6.15, when numa_policy_init() stopped using
+set_mempolicy(2)'s system call handler.
 
-Link: https://lkml.kernel.org/r/5451157-3818-4af5-fd2c-5d26a5d1dc53@google.com
+Link: https://lkml.kernel.org/r/68287974-b6ae-7df-4ba-d19ddd69cbf@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
@@ -94,93 +100,285 @@ Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |   20 +++++++-------------
- mm/mempolicy.c            |   12 ++++++------
- 2 files changed, 13 insertions(+), 19 deletions(-)
+ include/linux/mempolicy.h |   11 ++---
+ mm/mempolicy.c            |   73 ++++++++++++++++--------------------
+ 2 files changed, 38 insertions(+), 46 deletions(-)
 
---- a/include/linux/mempolicy.h~mempolicy-trivia-use-pgoff_t-in-shared-mempolicy-tree
+--- a/include/linux/mempolicy.h~mempolicy-trivia-slightly-more-consistent-naming
 +++ a/include/linux/mempolicy.h
-@@ -105,22 +105,16 @@ static inline bool mpol_equal(struct mem
- 
- /*
-  * Tree of shared policies for a shared memory region.
-- * Maintain the policies in a pseudo mm that contains vmas. The vmas
-- * carry the policy. As a special twist the pseudo mm is indexed in pages, not
-- * bytes, so that we can work with shared memory segments bigger than
-- * unsigned long.
-  */
--
--struct sp_node {
--	struct rb_node nd;
--	unsigned long start, end;
--	struct mempolicy *policy;
--};
--
- struct shared_policy {
- 	struct rb_root root;
- 	rwlock_t lock;
- };
-+struct sp_node {
-+	struct rb_node nd;
-+	pgoff_t start, end;
-+	struct mempolicy *policy;
-+};
+@@ -124,10 +124,9 @@ struct shared_policy {
  
  int vma_dup_policy(struct vm_area_struct *src, struct vm_area_struct *dst);
  void mpol_shared_policy_init(struct shared_policy *sp, struct mempolicy *mpol);
-@@ -128,7 +122,7 @@ int mpol_set_shared_policy(struct shared
- 			   struct vm_area_struct *vma, struct mempolicy *mpol);
- void mpol_free_shared_policy(struct shared_policy *sp);
+-int mpol_set_shared_policy(struct shared_policy *info,
+-				struct vm_area_struct *vma,
+-				struct mempolicy *new);
+-void mpol_free_shared_policy(struct shared_policy *p);
++int mpol_set_shared_policy(struct shared_policy *sp,
++			   struct vm_area_struct *vma, struct mempolicy *mpol);
++void mpol_free_shared_policy(struct shared_policy *sp);
  struct mempolicy *mpol_shared_policy_lookup(struct shared_policy *sp,
--					    unsigned long idx);
-+					    pgoff_t idx);
+ 					    unsigned long idx);
  
- struct mempolicy *get_task_policy(struct task_struct *p);
- struct mempolicy *__get_vma_policy(struct vm_area_struct *vma,
-@@ -214,7 +208,7 @@ static inline void mpol_free_shared_poli
+@@ -191,7 +190,7 @@ static inline bool mpol_equal(struct mem
+ 	return true;
  }
  
- static inline struct mempolicy *
--mpol_shared_policy_lookup(struct shared_policy *sp, unsigned long idx)
-+mpol_shared_policy_lookup(struct shared_policy *sp, pgoff_t idx)
+-static inline void mpol_put(struct mempolicy *p)
++static inline void mpol_put(struct mempolicy *pol)
  {
- 	return NULL;
  }
---- a/mm/mempolicy.c~mempolicy-trivia-use-pgoff_t-in-shared-mempolicy-tree
+ 
+@@ -210,7 +209,7 @@ static inline void mpol_shared_policy_in
+ {
+ }
+ 
+-static inline void mpol_free_shared_policy(struct shared_policy *p)
++static inline void mpol_free_shared_policy(struct shared_policy *sp)
+ {
+ }
+ 
+--- a/mm/mempolicy.c~mempolicy-trivia-slightly-more-consistent-naming
 +++ a/mm/mempolicy.c
-@@ -2428,8 +2428,8 @@ bool __mpol_equal(struct mempolicy *a, s
-  * lookup first element intersecting start-end.  Caller holds sp->lock for
-  * reading or for writing
+@@ -25,7 +25,7 @@
+  *                to the last. It would be better if bind would truly restrict
+  *                the allocation to memory nodes instead
+  *
+- * preferred       Try a specific node first before normal fallback.
++ * preferred      Try a specific node first before normal fallback.
+  *                As a special case NUMA_NO_NODE here means do the allocation
+  *                on the local CPU. This is normally identical to default,
+  *                but useful to set in a VMA when you have a non default
+@@ -52,7 +52,7 @@
+  * on systems with highmem kernel lowmem allocation don't get policied.
+  * Same with GFP_DMA allocations.
+  *
+- * For shmfs/tmpfs/hugetlbfs shared memory the policy is shared between
++ * For shmem/tmpfs shared memory the policy is shared between
+  * all users and remembered even when nobody has memory mapped.
   */
--static struct sp_node *
--sp_lookup(struct shared_policy *sp, unsigned long start, unsigned long end)
-+static struct sp_node *sp_lookup(struct shared_policy *sp,
-+					pgoff_t start, pgoff_t end)
- {
- 	struct rb_node *n = sp->root.rb_node;
  
-@@ -2483,8 +2483,8 @@ static void sp_insert(struct shared_poli
+@@ -291,6 +291,7 @@ static struct mempolicy *mpol_new(unsign
+ 			return ERR_PTR(-EINVAL);
+ 	} else if (nodes_empty(*nodes))
+ 		return ERR_PTR(-EINVAL);
++
+ 	policy = kmem_cache_alloc(policy_cache, GFP_KERNEL);
+ 	if (!policy)
+ 		return ERR_PTR(-ENOMEM);
+@@ -303,11 +304,11 @@ static struct mempolicy *mpol_new(unsign
  }
  
- /* Find shared policy intersecting idx */
--struct mempolicy *
--mpol_shared_policy_lookup(struct shared_policy *sp, unsigned long idx)
-+struct mempolicy *mpol_shared_policy_lookup(struct shared_policy *sp,
-+						pgoff_t idx)
+ /* Slow path of a mpol destructor. */
+-void __mpol_put(struct mempolicy *p)
++void __mpol_put(struct mempolicy *pol)
  {
- 	struct mempolicy *pol = NULL;
- 	struct sp_node *sn;
-@@ -2652,8 +2652,8 @@ static struct sp_node *sp_alloc(unsigned
+-	if (!atomic_dec_and_test(&p->refcnt))
++	if (!atomic_dec_and_test(&pol->refcnt))
+ 		return;
+-	kmem_cache_free(policy_cache, p);
++	kmem_cache_free(policy_cache, pol);
  }
  
- /* Replace a policy range. */
--static int shared_policy_replace(struct shared_policy *sp, unsigned long start,
--				 unsigned long end, struct sp_node *new)
-+static int shared_policy_replace(struct shared_policy *sp, pgoff_t start,
-+				 pgoff_t end, struct sp_node *new)
+ static void mpol_rebind_default(struct mempolicy *pol, const nodemask_t *nodes)
+@@ -364,7 +365,6 @@ static void mpol_rebind_policy(struct me
+  *
+  * Called with task's alloc_lock held.
+  */
+-
+ void mpol_rebind_task(struct task_struct *tsk, const nodemask_t *new)
+ {
+ 	mpol_rebind_policy(tsk->mempolicy, new);
+@@ -375,7 +375,6 @@ void mpol_rebind_task(struct task_struct
+  *
+  * Call holding a reference to mm.  Takes mm->mmap_lock during call.
+  */
+-
+ void mpol_rebind_mm(struct mm_struct *mm, nodemask_t *new)
+ {
+ 	struct vm_area_struct *vma;
+@@ -757,7 +756,7 @@ queue_pages_range(struct mm_struct *mm,
+  * This must be called with the mmap_lock held for writing.
+  */
+ static int vma_replace_policy(struct vm_area_struct *vma,
+-						struct mempolicy *pol)
++				struct mempolicy *pol)
+ {
+ 	int err;
+ 	struct mempolicy *old;
+@@ -800,7 +799,7 @@ static int mbind_range(struct vma_iterat
+ 		vmstart = vma->vm_start;
+ 	}
+ 
+-	if (mpol_equal(vma_policy(vma), new_pol)) {
++	if (mpol_equal(vma->vm_policy, new_pol)) {
+ 		*prev = vma;
+ 		return 0;
+ 	}
+@@ -855,18 +854,18 @@ out:
+  *
+  * Called with task's alloc_lock held
+  */
+-static void get_policy_nodemask(struct mempolicy *p, nodemask_t *nodes)
++static void get_policy_nodemask(struct mempolicy *pol, nodemask_t *nodes)
+ {
+ 	nodes_clear(*nodes);
+-	if (p == &default_policy)
++	if (pol == &default_policy)
+ 		return;
+ 
+-	switch (p->mode) {
++	switch (pol->mode) {
+ 	case MPOL_BIND:
+ 	case MPOL_INTERLEAVE:
+ 	case MPOL_PREFERRED:
+ 	case MPOL_PREFERRED_MANY:
+-		*nodes = p->nodes;
++		*nodes = pol->nodes;
+ 		break;
+ 	case MPOL_LOCAL:
+ 		/* return empty node mask for local allocation */
+@@ -1634,7 +1633,6 @@ out:
+ out_put:
+ 	put_task_struct(task);
+ 	goto out;
+-
+ }
+ 
+ SYSCALL_DEFINE4(migrate_pages, pid_t, pid, unsigned long, maxnode,
+@@ -1644,7 +1642,6 @@ SYSCALL_DEFINE4(migrate_pages, pid_t, pi
+ 	return kernel_migrate_pages(pid, maxnode, old_nodes, new_nodes);
+ }
+ 
+-
+ /* Retrieve NUMA policy */
+ static int kernel_get_mempolicy(int __user *policy,
+ 				unsigned long __user *nmask,
+@@ -1827,10 +1824,10 @@ nodemask_t *policy_nodemask(gfp_t gfp, s
+  * policy_node() is always coupled with policy_nodemask(), which
+  * secures the nodemask limit for 'bind' and 'prefer-many' policy.
+  */
+-static int policy_node(gfp_t gfp, struct mempolicy *policy, int nd)
++static int policy_node(gfp_t gfp, struct mempolicy *policy, int nid)
+ {
+ 	if (policy->mode == MPOL_PREFERRED) {
+-		nd = first_node(policy->nodes);
++		nid = first_node(policy->nodes);
+ 	} else {
+ 		/*
+ 		 * __GFP_THISNODE shouldn't even be used with the bind policy
+@@ -1845,19 +1842,18 @@ static int policy_node(gfp_t gfp, struct
+ 	    policy->home_node != NUMA_NO_NODE)
+ 		return policy->home_node;
+ 
+-	return nd;
++	return nid;
+ }
+ 
+ /* Do dynamic interleaving for a process */
+-static unsigned interleave_nodes(struct mempolicy *policy)
++static unsigned int interleave_nodes(struct mempolicy *policy)
+ {
+-	unsigned next;
+-	struct task_struct *me = current;
++	unsigned int nid;
+ 
+-	next = next_node_in(me->il_prev, policy->nodes);
+-	if (next < MAX_NUMNODES)
+-		me->il_prev = next;
+-	return next;
++	nid = next_node_in(current->il_prev, policy->nodes);
++	if (nid < MAX_NUMNODES)
++		current->il_prev = nid;
++	return nid;
+ }
+ 
+ /*
+@@ -2347,7 +2343,7 @@ unsigned long alloc_pages_bulk_array_mem
+ 
+ int vma_dup_policy(struct vm_area_struct *src, struct vm_area_struct *dst)
+ {
+-	struct mempolicy *pol = mpol_dup(vma_policy(src));
++	struct mempolicy *pol = mpol_dup(src->vm_policy);
+ 
+ 	if (IS_ERR(pol))
+ 		return PTR_ERR(pol);
+@@ -2771,40 +2767,40 @@ put_mpol:
+ 	}
+ }
+ 
+-int mpol_set_shared_policy(struct shared_policy *info,
+-			struct vm_area_struct *vma, struct mempolicy *npol)
++int mpol_set_shared_policy(struct shared_policy *sp,
++			struct vm_area_struct *vma, struct mempolicy *pol)
+ {
+ 	int err;
+ 	struct sp_node *new = NULL;
+ 	unsigned long sz = vma_pages(vma);
+ 
+-	if (npol) {
+-		new = sp_alloc(vma->vm_pgoff, vma->vm_pgoff + sz, npol);
++	if (pol) {
++		new = sp_alloc(vma->vm_pgoff, vma->vm_pgoff + sz, pol);
+ 		if (!new)
+ 			return -ENOMEM;
+ 	}
+-	err = shared_policy_replace(info, vma->vm_pgoff, vma->vm_pgoff+sz, new);
++	err = shared_policy_replace(sp, vma->vm_pgoff, vma->vm_pgoff + sz, new);
+ 	if (err && new)
+ 		sp_free(new);
+ 	return err;
+ }
+ 
+ /* Free a backing policy store on inode delete. */
+-void mpol_free_shared_policy(struct shared_policy *p)
++void mpol_free_shared_policy(struct shared_policy *sp)
  {
  	struct sp_node *n;
- 	struct sp_node *n_new = NULL;
+ 	struct rb_node *next;
+ 
+-	if (!p->root.rb_node)
++	if (!sp->root.rb_node)
+ 		return;
+-	write_lock(&p->lock);
+-	next = rb_first(&p->root);
++	write_lock(&sp->lock);
++	next = rb_first(&sp->root);
+ 	while (next) {
+ 		n = rb_entry(next, struct sp_node, nd);
+ 		next = rb_next(&n->nd);
+-		sp_delete(p, n);
++		sp_delete(sp, n);
+ 	}
+-	write_unlock(&p->lock);
++	write_unlock(&sp->lock);
+ }
+ 
+ #ifdef CONFIG_NUMA_BALANCING
+@@ -2854,7 +2850,6 @@ static inline void __init check_numabala
+ }
+ #endif /* CONFIG_NUMA_BALANCING */
+ 
+-/* assumes fs == KERNEL_DS */
+ void __init numa_policy_init(void)
+ {
+ 	nodemask_t interleave_nodes;
+@@ -2917,7 +2912,6 @@ void numa_default_policy(void)
+ /*
+  * Parse and format mempolicy from/to strings
+  */
+-
+ static const char * const policy_modes[] =
+ {
+ 	[MPOL_DEFAULT]    = "default",
+@@ -2928,7 +2922,6 @@ static const char * const policy_modes[]
+ 	[MPOL_PREFERRED_MANY]  = "prefer (many)",
+ };
+ 
+-
+ #ifdef CONFIG_TMPFS
+ /**
+  * mpol_parse_str - parse string to mempolicy, for tmpfs mpol mount option.
 _
 
 Patches currently in -mm which might be from hughd@google.com are
