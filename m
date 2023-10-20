@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 553A7C001DF
-	for <mm-commits@archiver.kernel.org>; Fri, 20 Oct 2023 17:26:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DEDC3CDB474
+	for <mm-commits@archiver.kernel.org>; Fri, 20 Oct 2023 17:26:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229970AbjJTR0e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 20 Oct 2023 13:26:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39762 "EHLO
+        id S229902AbjJTR0m (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 20 Oct 2023 13:26:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53738 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229905AbjJTR0e (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Oct 2023 13:26:34 -0400
+        with ESMTP id S229999AbjJTR0j (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Oct 2023 13:26:39 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 480DDA3
-        for <mm-commits@vger.kernel.org>; Fri, 20 Oct 2023 10:26:32 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 980D0C433C9;
-        Fri, 20 Oct 2023 17:26:31 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 500C9D6C
+        for <mm-commits@vger.kernel.org>; Fri, 20 Oct 2023 10:26:36 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9727C433C8;
+        Fri, 20 Oct 2023 17:26:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697822791;
-        bh=chqYhdQTYz9yl3876wILmXHp/pmAIOL2i41DbsikvHw=;
+        s=korg; t=1697822796;
+        bh=R3z3p18GrM51Ghk+jkEdGf5sflzQNvq8Rrdl396yyTE=;
         h=Date:To:From:Subject:From;
-        b=AGSRJx13Ja03I8HBEsziWrbRaEA8n+8YV63ZcTxwV0fuu30OcKAeppIr4rTqEgSml
-         6dlx5F1NdjU4m1ROc3MpLHxQyDli6Q4kQKNd2RrsdUYSZxY5fOuBM+2z3EfccWakVC
-         cmySRTFUUWj8AsZ13cycJS669B7BkkYp7YUP9oqw=
-Date:   Fri, 20 Oct 2023 10:26:31 -0700
+        b=L0aWrNKd/P8gTNoDJhbzrN1QtXGQt6QzBfw00pSyfdev5zi+LChVx8SFetCR0JVL8
+         VhzfPa8QQ0GPXtuzBG5ExIXktpvgcYTaK6ulh840P1j+95vhgUz4Puzq0mI7kK7YhU
+         ZM+SNBfmeuvHLi6fVM8SI39Zlndvw8m7t+gEZvt0=
+Date:   Fri, 20 Oct 2023 10:26:35 -0700
 To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
         ying.huang@intel.com, willy@infradead.org,
         wangkefeng.wang@huawei.com, vishal.moola@gmail.com, tj@kernel.org,
@@ -33,8 +33,8 @@ To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
         david@redhat.com, cl@linux.com, ak@linux.intel.com,
         hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernfs-drop-shared-numa-mempolicy-hooks.patch added to mm-unstable branch
-Message-Id: <20231020172631.980D0C433C9@smtp.kernel.org>
+Subject: + mempolicy-trivia-delete-those-ancient-pr_debugs.patch added to mm-unstable branch
+Message-Id: <20231020172635.D9727C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernfs: drop shared NUMA mempolicy hooks
+     Subject: mempolicy trivia: delete those ancient pr_debug()s
 has been added to the -mm mm-unstable branch.  Its filename is
-     kernfs-drop-shared-numa-mempolicy-hooks.patch
+     mempolicy-trivia-delete-those-ancient-pr_debugs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernfs-drop-shared-numa-mempolicy-hooks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mempolicy-trivia-delete-those-ancient-pr_debugs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,27 +66,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: kernfs: drop shared NUMA mempolicy hooks
-Date: Tue, 3 Oct 2023 02:16:29 -0700 (PDT)
+Subject: mempolicy trivia: delete those ancient pr_debug()s
+Date: Tue, 3 Oct 2023 02:19:00 -0700 (PDT)
 
-It seems strange that kernfs should be an outlier with a set_policy and
-get_policy in its kernfs_vm_ops.  Ah, it dates back to v2.6.30's commit
-095160aee954 ("sysfs: fix some bin_vm_ops errors"), when I had crashed on
-powerpc's pci_mmap_legacy_page_range() fallback to shmem_zero_setup().
+Delete those ancient pr_debug()s - PDprintk()s in Andi Kleen's original
+submission of core NUMA API, and useful when debugging shared mempolicy
+lifetime back then, but not used recently.
 
-Well, that was commendably thorough, to give sysfs-bin a set_policy and
-get_policy, just to avoid the way it was coded resulting in EINVAL from
-mmap when CONFIG_NUMA; but somehow feels a bit over-the-top to me now.
-
-It's easier to say that nobody should expect to manage a shmem object's
-shared NUMA mempolicy via some kernfs backdoor to that object: delete that
-code (and there's no longer an EINVAL from mmap in the NUMA case).
-
-This then leaves set_policy/get_policy as implemented only by shmem -
-though importantly also by SysV SHM, which has to interface with shmem
-which implements them, and with SHM_HUGETLB which does not.
-
-Link: https://lkml.kernel.org/r/302164-a760-4a9e-879b-6870c9b4013@google.com
+Link: https://lkml.kernel.org/r/f25135-ffb2-40d8-9577-720772b333@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Andi Kleen <ak@linux.intel.com>
@@ -108,72 +95,74 @@ Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/kernfs/file.c |   49 ---------------------------------------------
- 1 file changed, 49 deletions(-)
+ mm/mempolicy.c |   21 ---------------------
+ 1 file changed, 21 deletions(-)
 
---- a/fs/kernfs/file.c~kernfs-drop-shared-numa-mempolicy-hooks
-+++ a/fs/kernfs/file.c
-@@ -429,60 +429,11 @@ static int kernfs_vma_access(struct vm_a
- 	return ret;
+--- a/mm/mempolicy.c~mempolicy-trivia-delete-those-ancient-pr_debugs
++++ a/mm/mempolicy.c
+@@ -264,9 +264,6 @@ static struct mempolicy *mpol_new(unsign
+ {
+ 	struct mempolicy *policy;
+ 
+-	pr_debug("setting mode %d flags %d nodes[0] %lx\n",
+-		 mode, flags, nodes ? nodes_addr(*nodes)[0] : NUMA_NO_NODE);
+-
+ 	if (mode == MPOL_DEFAULT) {
+ 		if (nodes && !nodes_empty(*nodes))
+ 			return ERR_PTR(-EINVAL);
+@@ -768,11 +765,6 @@ static int vma_replace_policy(struct vm_
+ 
+ 	vma_assert_write_locked(vma);
+ 
+-	pr_debug("vma %lx-%lx/%lx vm_ops %p vm_file %p set_policy %p\n",
+-		 vma->vm_start, vma->vm_end, vma->vm_pgoff,
+-		 vma->vm_ops, vma->vm_file,
+-		 vma->vm_ops ? vma->vm_ops->set_policy : NULL);
+-
+ 	new = mpol_dup(pol);
+ 	if (IS_ERR(new))
+ 		return PTR_ERR(new);
+@@ -1273,10 +1265,6 @@ static long do_mbind(unsigned long start
+ 	if (!new)
+ 		flags |= MPOL_MF_DISCONTIG_OK;
+ 
+-	pr_debug("mbind %lx-%lx mode:%d flags:%d nodes:%lx\n",
+-		 start, start + len, mode, mode_flags,
+-		 nmask ? nodes_addr(*nmask)[0] : NUMA_NO_NODE);
+-
+ 	if (flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL))
+ 		lru_cache_disable();
+ 	{
+@@ -2496,8 +2484,6 @@ static void sp_insert(struct shared_poli
+ 	}
+ 	rb_link_node(&new->nd, parent, p);
+ 	rb_insert_color(&new->nd, &sp->root);
+-	pr_debug("inserting %lx-%lx: %d\n", new->start, new->end,
+-		 new->policy ? new->policy->mode : 0);
  }
  
--#ifdef CONFIG_NUMA
--static int kernfs_vma_set_policy(struct vm_area_struct *vma,
--				 struct mempolicy *new)
--{
--	struct file *file = vma->vm_file;
--	struct kernfs_open_file *of = kernfs_of(file);
--	int ret;
--
--	if (!of->vm_ops)
--		return 0;
--
--	if (!kernfs_get_active(of->kn))
--		return -EINVAL;
--
--	ret = 0;
--	if (of->vm_ops->set_policy)
--		ret = of->vm_ops->set_policy(vma, new);
--
--	kernfs_put_active(of->kn);
--	return ret;
--}
--
--static struct mempolicy *kernfs_vma_get_policy(struct vm_area_struct *vma,
--					       unsigned long addr)
--{
--	struct file *file = vma->vm_file;
--	struct kernfs_open_file *of = kernfs_of(file);
--	struct mempolicy *pol;
--
--	if (!of->vm_ops)
--		return vma->vm_policy;
--
--	if (!kernfs_get_active(of->kn))
--		return vma->vm_policy;
--
--	pol = vma->vm_policy;
--	if (of->vm_ops->get_policy)
--		pol = of->vm_ops->get_policy(vma, addr);
--
--	kernfs_put_active(of->kn);
--	return pol;
--}
--
--#endif
--
- static const struct vm_operations_struct kernfs_vm_ops = {
- 	.open		= kernfs_vma_open,
- 	.fault		= kernfs_vma_fault,
- 	.page_mkwrite	= kernfs_vma_page_mkwrite,
- 	.access		= kernfs_vma_access,
--#ifdef CONFIG_NUMA
--	.set_policy	= kernfs_vma_set_policy,
--	.get_policy	= kernfs_vma_get_policy,
--#endif
- };
+ /* Find shared policy intersecting idx */
+@@ -2636,7 +2622,6 @@ void mpol_put_task_policy(struct task_st
  
- static int kernfs_fop_mmap(struct file *file, struct vm_area_struct *vma)
+ static void sp_delete(struct shared_policy *sp, struct sp_node *n)
+ {
+-	pr_debug("deleting %lx-l%lx\n", n->start, n->end);
+ 	rb_erase(&n->nd, &sp->root);
+ 	sp_free(n);
+ }
+@@ -2793,12 +2778,6 @@ int mpol_set_shared_policy(struct shared
+ 	struct sp_node *new = NULL;
+ 	unsigned long sz = vma_pages(vma);
+ 
+-	pr_debug("set_shared_policy %lx sz %lu %d %d %lx\n",
+-		 vma->vm_pgoff,
+-		 sz, npol ? npol->mode : -1,
+-		 npol ? npol->flags : -1,
+-		 npol ? nodes_addr(npol->nodes)[0] : NUMA_NO_NODE);
+-
+ 	if (npol) {
+ 		new = sp_alloc(vma->vm_pgoff, vma->vm_pgoff + sz, npol);
+ 		if (!new)
 _
 
 Patches currently in -mm which might be from hughd@google.com are
