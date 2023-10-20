@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35986CDB474
-	for <mm-commits@archiver.kernel.org>; Fri, 20 Oct 2023 17:26:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2BC7CDB474
+	for <mm-commits@archiver.kernel.org>; Fri, 20 Oct 2023 17:27:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229954AbjJTR04 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 20 Oct 2023 13:26:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57476 "EHLO
+        id S1377895AbjJTR1D (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 20 Oct 2023 13:27:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57438 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377706AbjJTR0u (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Oct 2023 13:26:50 -0400
+        with ESMTP id S230021AbjJTR0y (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Oct 2023 13:26:54 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9EB8DD72
-        for <mm-commits@vger.kernel.org>; Fri, 20 Oct 2023 10:26:44 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3AC6FC433C8;
-        Fri, 20 Oct 2023 17:26:44 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2CE0D6C
+        for <mm-commits@vger.kernel.org>; Fri, 20 Oct 2023 10:26:46 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E621C433CB;
+        Fri, 20 Oct 2023 17:26:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697822804;
-        bh=s9s1Ozmn3daGeGpUMO2VWWWzPNqsWew/KBXYxLLA0Xs=;
+        s=korg; t=1697822806;
+        bh=vLK0CoaJauC2ccRw28Q7NSrGsE0HlNGbQ1a5g75m1dc=;
         h=Date:To:From:Subject:From;
-        b=lfrMUmr6TF3CUsSQZgLYf1dkwoSVT+WEMVC99x7g48/FTbZ+rUJzq1PJNZ9X6/3TT
-         DzLXpDkcE4CS2i/uoFy0t34WrFDh5qMjxFr37s4PrRPWsxWdqEV2KlsLhiSQbvuPvu
-         8fQfcuozWiO5cSf8r6fNxGhPCgV0gD7q2I2/VHuI=
-Date:   Fri, 20 Oct 2023 10:26:43 -0700
+        b=RZOPBpLW/IqNO0J9i3Z8iHdm1dk32bh5DqVBEJL6dcTdpgV2+RoBs1zRY7PsgWc+U
+         Px8NAeCuifPzBEJdhFXjDSJZnv69V3RGMpzvye0TLuLzNAn7asfE0TEEXjkUNBk4df
+         EQd5qvT1YVMdzyYHONTf2WvgsTd5EKUCZrBa9w2o=
+Date:   Fri, 20 Oct 2023 10:26:45 -0700
 To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
         ying.huang@intel.com, willy@infradead.org,
         wangkefeng.wang@huawei.com, vishal.moola@gmail.com, tj@kernel.org,
@@ -33,8 +33,8 @@ To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
         david@redhat.com, cl@linux.com, ak@linux.intel.com,
         hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mempolicy-remove-confusing-mpol_mf_lazy-dead-code.patch added to mm-unstable branch
-Message-Id: <20231020172644.3AC6FC433C8@smtp.kernel.org>
+Subject: + mm-add-page_rmappable_folio-wrapper.patch added to mm-unstable branch
+Message-Id: <20231020172646.7E621C433CB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mempolicy: remove confusing MPOL_MF_LAZY dead code
+     Subject: mm: add page_rmappable_folio() wrapper
 has been added to the -mm mm-unstable branch.  Its filename is
-     mempolicy-remove-confusing-mpol_mf_lazy-dead-code.patch
+     mm-add-page_rmappable_folio-wrapper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mempolicy-remove-confusing-mpol_mf_lazy-dead-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-page_rmappable_folio-wrapper.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,33 +66,22 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mempolicy: remove confusing MPOL_MF_LAZY dead code
-Date: Tue, 3 Oct 2023 02:24:18 -0700 (PDT)
+Subject: mm: add page_rmappable_folio() wrapper
+Date: Tue, 3 Oct 2023 02:25:33 -0700 (PDT)
 
-v3.8 commit b24f53a0bea3 ("mm: mempolicy: Add MPOL_MF_LAZY") introduced
-MPOL_MF_LAZY, and included it in the MPOL_MF_VALID flags; but a720094ded8
-("mm: mempolicy: Hide MPOL_NOOP and MPOL_MF_LAZY from userspace for now")
-immediately removed it from MPOL_MF_VALID flags, pending further review. 
-"This will need to be revisited", but it has not been reinstated.
+folio_prep_large_rmappable() is being used repeatedly along with a
+conversion from page to folio, a check non-NULL, a check order > 1: wrap
+it all up into struct folio *page_rmappable_folio(struct page *).
 
-The present state is confusing: there is dead code in mm/mempolicy.c to
-handle MPOL_MF_LAZY cases which can never occur.  Remove that: it can be
-resurrected later if necessary.  But keep the definition of MPOL_MF_LAZY,
-which must remain in the UAPI, even though it always fails with EINVAL.
-
-https://lore.kernel.org/linux-mm/1553041659-46787-1-git-send-email-yang.shi@linux.alibaba.com/
-links to a previous request to remove MPOL_MF_LAZY.
-
-Link: https://lkml.kernel.org/r/80c9665c-1c3f-17ba-21a3-f6115cebf7d@google.com
+Link: https://lkml.kernel.org/r/8d92c6cf-eebe-748-e29c-c8ab224c741@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
@@ -101,73 +90,91 @@ Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Tejun heo <tj@kernel.org>
 Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/mempolicy.h |    2 +-
- mm/mempolicy.c                 |   18 ------------------
- 2 files changed, 1 insertion(+), 19 deletions(-)
+ mm/internal.h   |    9 +++++++++
+ mm/mempolicy.c  |   17 +++--------------
+ mm/page_alloc.c |    8 ++------
+ 3 files changed, 14 insertions(+), 20 deletions(-)
 
---- a/include/uapi/linux/mempolicy.h~mempolicy-remove-confusing-mpol_mf_lazy-dead-code
-+++ a/include/uapi/linux/mempolicy.h
-@@ -48,7 +48,7 @@ enum {
- #define MPOL_MF_MOVE	 (1<<1)	/* Move pages owned by this process to conform
- 				   to policy */
- #define MPOL_MF_MOVE_ALL (1<<2)	/* Move every page to conform to policy */
--#define MPOL_MF_LAZY	 (1<<3)	/* Modifies '_MOVE:  lazy migrate on fault */
-+#define MPOL_MF_LAZY	 (1<<3)	/* UNSUPPORTED FLAG: Lazy migrate on fault */
- #define MPOL_MF_INTERNAL (1<<4)	/* Internal flags start here */
+--- a/mm/internal.h~mm-add-page_rmappable_folio-wrapper
++++ a/mm/internal.h
+@@ -415,6 +415,15 @@ static inline void folio_set_order(struc
  
- #define MPOL_MF_VALID	(MPOL_MF_STRICT   | 	\
---- a/mm/mempolicy.c~mempolicy-remove-confusing-mpol_mf_lazy-dead-code
+ void folio_undo_large_rmappable(struct folio *folio);
+ 
++static inline struct folio *page_rmappable_folio(struct page *page)
++{
++	struct folio *folio = (struct folio *)page;
++
++	if (folio && folio_order(folio) > 1)
++		folio_prep_large_rmappable(folio);
++	return folio;
++}
++
+ static inline void prep_compound_head(struct page *page, unsigned int order)
+ {
+ 	struct folio *folio = (struct folio *)page;
+--- a/mm/mempolicy.c~mm-add-page_rmappable_folio-wrapper
 +++ a/mm/mempolicy.c
-@@ -636,12 +636,6 @@ unsigned long change_prot_numa(struct vm
+@@ -2122,10 +2122,7 @@ struct folio *vma_alloc_folio(gfp_t gfp,
+ 		mpol_cond_put(pol);
+ 		gfp |= __GFP_COMP;
+ 		page = alloc_page_interleave(gfp, order, nid);
+-		folio = (struct folio *)page;
+-		if (folio && order > 1)
+-			folio_prep_large_rmappable(folio);
+-		goto out;
++		return page_rmappable_folio(page);
+ 	}
  
- 	return nr_updated;
+ 	if (pol->mode == MPOL_PREFERRED_MANY) {
+@@ -2135,10 +2132,7 @@ struct folio *vma_alloc_folio(gfp_t gfp,
+ 		gfp |= __GFP_COMP;
+ 		page = alloc_pages_preferred_many(gfp, order, node, pol);
+ 		mpol_cond_put(pol);
+-		folio = (struct folio *)page;
+-		if (folio && order > 1)
+-			folio_prep_large_rmappable(folio);
+-		goto out;
++		return page_rmappable_folio(page);
+ 	}
+ 
+ 	if (unlikely(IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && hugepage)) {
+@@ -2232,12 +2226,7 @@ EXPORT_SYMBOL(alloc_pages);
+ 
+ struct folio *folio_alloc(gfp_t gfp, unsigned order)
+ {
+-	struct page *page = alloc_pages(gfp | __GFP_COMP, order);
+-	struct folio *folio = (struct folio *)page;
+-
+-	if (folio && order > 1)
+-		folio_prep_large_rmappable(folio);
+-	return folio;
++	return page_rmappable_folio(alloc_pages(gfp | __GFP_COMP, order));
  }
--#else
--static unsigned long change_prot_numa(struct vm_area_struct *vma,
--			unsigned long addr, unsigned long end)
--{
--	return 0;
--}
- #endif /* CONFIG_NUMA_BALANCING */
+ EXPORT_SYMBOL(folio_alloc);
  
- static int queue_pages_test_walk(unsigned long start, unsigned long end,
-@@ -680,14 +674,6 @@ static int queue_pages_test_walk(unsigne
- 	if (endvma > end)
- 		endvma = end;
- 
--	if (flags & MPOL_MF_LAZY) {
--		/* Similar to task_numa_work, skip inaccessible VMAs */
--		if (!is_vm_hugetlb_page(vma) && vma_is_accessible(vma) &&
--			!(vma->vm_flags & VM_MIXEDMAP))
--			change_prot_numa(vma, start, endvma);
--		return 1;
--	}
+--- a/mm/page_alloc.c~mm-add-page_rmappable_folio-wrapper
++++ a/mm/page_alloc.c
+@@ -4492,12 +4492,8 @@ struct folio *__folio_alloc(gfp_t gfp, u
+ 		nodemask_t *nodemask)
+ {
+ 	struct page *page = __alloc_pages(gfp | __GFP_COMP, order,
+-			preferred_nid, nodemask);
+-	struct folio *folio = (struct folio *)page;
 -
- 	/*
- 	 * Check page nodes, and queue pages to move, in the current vma.
- 	 * But if no moving, and no strict checking, the scan can be skipped.
-@@ -1254,9 +1240,6 @@ static long do_mbind(unsigned long start
- 	if (IS_ERR(new))
- 		return PTR_ERR(new);
+-	if (folio && order > 1)
+-		folio_prep_large_rmappable(folio);
+-	return folio;
++					preferred_nid, nodemask);
++	return page_rmappable_folio(page);
+ }
+ EXPORT_SYMBOL(__folio_alloc);
  
--	if (flags & MPOL_MF_LAZY)
--		new->flags |= MPOL_F_MOF;
--
- 	/*
- 	 * If we are using the default policy then operation
- 	 * on discontinuous address spaces is okay after all
-@@ -1301,7 +1284,6 @@ static long do_mbind(unsigned long start
- 
- 	if (!err) {
- 		if (!list_empty(&pagelist)) {
--			WARN_ON_ONCE(flags & MPOL_MF_LAZY);
- 			nr_failed |= migrate_pages(&pagelist, new_folio, NULL,
- 				start, MIGRATE_SYNC, MR_MEMPOLICY_MBIND, NULL);
- 		}
 _
 
 Patches currently in -mm which might be from hughd@google.com are
