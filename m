@@ -2,33 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9760AC25B46
-	for <mm-commits@archiver.kernel.org>; Mon, 23 Oct 2023 17:54:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 877C7C25B46
+	for <mm-commits@archiver.kernel.org>; Mon, 23 Oct 2023 18:00:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230232AbjJWRyx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 23 Oct 2023 13:54:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58264 "EHLO
+        id S229453AbjJWSAg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 23 Oct 2023 14:00:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51586 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229613AbjJWRyw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 23 Oct 2023 13:54:52 -0400
+        with ESMTP id S230247AbjJWSAf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 23 Oct 2023 14:00:35 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0C7BB4
-        for <mm-commits@vger.kernel.org>; Mon, 23 Oct 2023 10:54:49 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C882C433C8;
-        Mon, 23 Oct 2023 17:54:49 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12619B7
+        for <mm-commits@vger.kernel.org>; Mon, 23 Oct 2023 11:00:33 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92D4EC433C8;
+        Mon, 23 Oct 2023 18:00:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698083689;
-        bh=a7V+zADw60heqYS/j7vXZFg0binVGkYQy94rpuJfCZ8=;
+        s=korg; t=1698084032;
+        bh=d+8X3O/g7zDqn7X+Gr3z6lD9i7OykKdo4qXcTULwJ1Y=;
         h=Date:To:From:Subject:From;
-        b=S3kNbjr94iVSgzTHUTqus45nAI/BYXipDOsVBdwTZ+y1tKmya4sBStVLkEivEQv5F
-         SXR/l/BLrJhRNChrqEmmb6NGvWdOsI3YGJwtKcem7GfOnhLv9aBcAQoAvt0Uel9ype
-         Aa4CovPGfqpbLsEce97goVsVJRg+P053e78Ze74I=
-Date:   Mon, 23 Oct 2023 10:54:48 -0700
-To:     mm-commits@vger.kernel.org, ebiederm@xmission.com, oleg@redhat.com,
-        akpm@linux-foundation.org
+        b=kQihdvUjsXSNf4WQHoVcaKkXhR7WvGnrmhtEMTgFVZ3diUItax3GWgSPOr7+5iGaZ
+         7z2jfBd9AOuALU2qInupZy1YV1GiBsg5/9Gp009EaOqU77JAVlJC46f/5ghAkBW/VA
+         aK73p78P0Oh/kjZTZGKyN/ZqTZDdZalLjWr3fsqw=
+Date:   Mon, 23 Oct 2023 11:00:32 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        rdunlap@infradead.org, James.Bottomley@HansenPartnership.com,
+        m.muzzammilashraf@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + do_io_accounting-use-sig-stats_lock.patch added to mm-nonmm-unstable branch
-Message-Id: <20231023175449.8C882C433C8@smtp.kernel.org>
+Subject: + mm-fixed-multiple-typos-in-multiple-files.patch added to mm-unstable branch
+Message-Id: <20231023180032.92D4EC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,14 +37,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: do_io_accounting: use sig->stats_lock
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     do_io_accounting-use-sig-stats_lock.patch
+     Subject: mm: fix multiple typos in multiple files
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-fixed-multiple-typos-in-multiple-files.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/do_io_accounting-use-sig-stats_lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fixed-multiple-typos-in-multiple-files.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,68 +60,83 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: do_io_accounting: use sig->stats_lock
-Date: Mon, 23 Oct 2023 17:34:05 +0200
+From: Muhammad Muzammil <m.muzzammilashraf@gmail.com>
+Subject: mm: fix multiple typos in multiple files
+Date: Mon, 23 Oct 2023 17:44:05 +0500
 
-Rather than lock_task_sighand(), sig->stats_lock was specifically designed
-for this type of use.
-
-This way the "if (whole)" branch runs lockless in the likely case.
-
-Link: https://lkml.kernel.org/r/20231023153405.GA4639@redhat.com
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Link: https://lkml.kernel.org/r/20231023124405.36981-1-m.muzzammilashraf@gmail.com
+Signed-off-by: Muhammad Muzammil <m.muzzammilashraf@gmail.com>
+Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muhammad Muzammil <m.muzzammilashraf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
+ mm/debug_vm_pgtable.c |    4 ++--
+ mm/internal.h         |    2 +-
+ mm/memcontrol.c       |    4 ++--
+ mm/mmap.c             |    2 +-
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/fs/proc/base.c~do_io_accounting-use-sig-stats_lock
-+++ a/fs/proc/base.c
-@@ -2973,7 +2973,6 @@ static const struct file_operations proc
- static int do_io_accounting(struct task_struct *task, struct seq_file *m, int whole)
- {
- 	struct task_io_accounting acct;
--	unsigned long flags;
- 	int result;
+--- a/mm/debug_vm_pgtable.c~mm-fixed-multiple-typos-in-multiple-files
++++ a/mm/debug_vm_pgtable.c
+@@ -1322,8 +1322,8 @@ static int __init debug_vm_pgtable(void)
+ 	 * true irrespective of the starting protection value for a
+ 	 * given page table entry.
+ 	 *
+-	 * Protection based vm_flags combinatins are always linear
+-	 * and increasing i.e starting from VM_NONE and going upto
++	 * Protection based vm_flags combinations are always linear
++	 * and increasing i.e starting from VM_NONE and going up to
+ 	 * (VM_SHARED | READ | WRITE | EXEC).
+ 	 */
+ #define VM_FLAGS_START	(VM_NONE)
+--- a/mm/internal.h~mm-fixed-multiple-typos-in-multiple-files
++++ a/mm/internal.h
+@@ -601,7 +601,7 @@ extern bool mlock_future_ok(struct mm_st
+  * range.
+  * "fully mapped" means all the pages of folio is associated with the page
+  * table of range while this function just check whether the folio range is
+- * within the range [start, end). Funcation caller nees to do page table
++ * within the range [start, end). Function caller needs to do page table
+  * check if it cares about the page table association.
+  *
+  * Typical usage (like mlock or madvise) is:
+--- a/mm/memcontrol.c~mm-fixed-multiple-typos-in-multiple-files
++++ a/mm/memcontrol.c
+@@ -843,7 +843,7 @@ void __mod_memcg_lruvec_state(struct lru
+ 	memcg = pn->memcg;
  
- 	result = down_read_killable(&task->signal->exec_update_lock);
-@@ -2985,15 +2984,24 @@ static int do_io_accounting(struct task_
- 		goto out_unlock;
- 	}
- 
--	if (whole && lock_task_sighand(task, &flags)) {
-+	if (whole) {
- 		struct signal_struct *sig = task->signal;
- 		struct task_struct *t;
-+		unsigned int seq = 1;
-+		unsigned long flags;
- 
--		acct = sig->ioac;
--		__for_each_thread(sig, t)
--			task_io_accounting_add(&acct, &t->ioac);
-+		rcu_read_lock();
-+		do {
-+			seq++; /* 2 on the 1st/lockless path, otherwise odd */
-+			flags = read_seqbegin_or_lock_irqsave(&sig->stats_lock, &seq);
- 
--		unlock_task_sighand(task, &flags);
-+			acct = sig->ioac;
-+			__for_each_thread(sig, t)
-+				task_io_accounting_add(&acct, &t->ioac);
-+
-+		} while (need_seqretry(&sig->stats_lock, seq));
-+		done_seqretry_irqrestore(&sig->stats_lock, seq, flags);
-+		rcu_read_unlock();
- 	} else {
- 		acct = task->ioac;
- 	}
+ 	/*
+-	 * The caller from rmap relay on disabled preemption becase they never
++	 * The caller from rmap relies on disabled preemption because they never
+ 	 * update their counter from in-interrupt context. For these two
+ 	 * counters we check that the update is never performed from an
+ 	 * interrupt context while other caller need to have disabled interrupt.
+@@ -8080,7 +8080,7 @@ static struct cftype memsw_files[] = {
+  *
+  * This doesn't check for specific headroom, and it is not atomic
+  * either. But with zswap, the size of the allocation is only known
+- * once compression has occured, and this optimistic pre-check avoids
++ * once compression has occurred, and this optimistic pre-check avoids
+  * spending cycles on compression when there is already no room left
+  * or zswap is disabled altogether somewhere in the hierarchy.
+  */
+--- a/mm/mmap.c~mm-fixed-multiple-typos-in-multiple-files
++++ a/mm/mmap.c
+@@ -1223,7 +1223,7 @@ unsigned long do_mmap(struct file *file,
+ 	 * Does the application expect PROT_READ to imply PROT_EXEC?
+ 	 *
+ 	 * (the exception is when the underlying filesystem is noexec
+-	 *  mounted, in which case we dont add PROT_EXEC.)
++	 *  mounted, in which case we don't add PROT_EXEC.)
+ 	 */
+ 	if ((prot & PROT_READ) && (current->personality & READ_IMPLIES_EXEC))
+ 		if (!(file && path_noexec(&file->f_path)))
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from m.muzzammilashraf@gmail.com are
 
-do_io_accounting-use-__for_each_thread.patch
-do_io_accounting-use-sig-stats_lock.patch
+mm-fixed-multiple-typos-in-multiple-files.patch
 
