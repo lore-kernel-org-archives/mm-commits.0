@@ -2,34 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1CF7C004C0
-	for <mm-commits@archiver.kernel.org>; Fri, 20 Oct 2023 23:50:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16FDEC25B46
+	for <mm-commits@archiver.kernel.org>; Mon, 23 Oct 2023 17:54:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230311AbjJTXuu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 20 Oct 2023 19:50:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46622 "EHLO
+        id S229594AbjJWRyu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 23 Oct 2023 13:54:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58244 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230318AbjJTXuq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 20 Oct 2023 19:50:46 -0400
+        with ESMTP id S229569AbjJWRyt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 23 Oct 2023 13:54:49 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 857EFD6F
-        for <mm-commits@vger.kernel.org>; Fri, 20 Oct 2023 16:50:41 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A606C433CD;
-        Fri, 20 Oct 2023 23:50:41 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28ADA97
+        for <mm-commits@vger.kernel.org>; Mon, 23 Oct 2023 10:54:48 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5E76C433C7;
+        Mon, 23 Oct 2023 17:54:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1697845841;
-        bh=L5HeR/7NwXsHeGdaWj+voHUjJU5KjPv6NzjyjqAEso4=;
+        s=korg; t=1698083687;
+        bh=Xh9LrjVYOCi9hJxTFkJt23BR7v810Vch1YS7ISfLqAI=;
         h=Date:To:From:Subject:From;
-        b=2l/NrVqZnMRv5B+fnFwCW7Vkt6b3D9tQJ5D5gL3921cR6c1jOZLR1iv5s0r/a7qAw
-         /dIdjJxDiDRYwfi8ou65cpYSKQRoJ6HE4rjVc4tlF+iBN6r9r2kEIOp3mIj/wEL2YS
-         QPLuv008GNmsNdyUCt4u9rMFhmfG/pxsICgSON1A=
-Date:   Fri, 20 Oct 2023 16:50:40 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        wangkefeng.wang@huawei.com, shy828301@gmail.com,
-        vishal.moola@gmail.com, akpm@linux-foundation.org
+        b=A6CBTvgTAzsVvTrFzN6cfNHtLvGQYXP8X6txs13awZtw2AR+GB41kg2wRv0s+dXHf
+         PeYMJNRazEeIH2rLdP8Zu+mwwMKIkhA9Aht5HRoOpD2IC2vtBji7lQuAj9rJUjabV2
+         GyzJuZ/e3V0SR/LKvoPBbtKWg1JTpxU+xdVxHXQE=
+Date:   Mon, 23 Oct 2023 10:54:47 -0700
+To:     mm-commits@vger.kernel.org, ebiederm@xmission.com, oleg@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-convert-alloc_charge_hpage-to-use-folios.patch added to mm-unstable branch
-Message-Id: <20231020235041.1A606C433CD@smtp.kernel.org>
+Subject: + do_io_accounting-use-__for_each_thread.patch added to mm-nonmm-unstable branch
+Message-Id: <20231023175447.B5E76C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,14 +36,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/khugepaged: convert alloc_charge_hpage() to use folios
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-convert-alloc_charge_hpage-to-use-folios.patch
+     Subject: do_io_accounting: use __for_each_thread()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     do_io_accounting-use-__for_each_thread.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-convert-alloc_charge_hpage-to-use-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/do_io_accounting-use-__for_each_thread.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -60,112 +59,60 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm/khugepaged: convert alloc_charge_hpage() to use folios
-Date: Fri, 20 Oct 2023 11:33:30 -0700
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: do_io_accounting: use __for_each_thread()
+Date: Mon, 23 Oct 2023 17:33:43 +0200
 
-Also remove count_memcg_page_event now that its last caller no longer uses
-it and reword hpage_collapse_alloc_page() to hpage_collapse_alloc_folio().
+Rather than while_each_thread() which should be avoided when possible.
 
-This removes 1 call to compound_head() and helps convert khugepaged to
-use folios throughout.
+This makes the code more clear and allows the next change.
 
-Link: https://lkml.kernel.org/r/20231020183331.10770-5-vishal.moola@gmail.com
-Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Yang Shi <shy828301@gmail.com>
+Link: https://lkml.kernel.org/r/20231023153343.GA4629@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   14 --------------
- mm/khugepaged.c            |   17 ++++++++++-------
- 2 files changed, 10 insertions(+), 21 deletions(-)
+ fs/proc/base.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-khugepaged-convert-alloc_charge_hpage-to-use-folios
-+++ a/include/linux/memcontrol.h
-@@ -1087,15 +1087,6 @@ static inline void count_memcg_events(st
- 	local_irq_restore(flags);
- }
+--- a/fs/proc/base.c~do_io_accounting-use-__for_each_thread
++++ a/fs/proc/base.c
+@@ -2972,7 +2972,7 @@ static const struct file_operations proc
+ #ifdef CONFIG_TASK_IO_ACCOUNTING
+ static int do_io_accounting(struct task_struct *task, struct seq_file *m, int whole)
+ {
+-	struct task_io_accounting acct = task->ioac;
++	struct task_io_accounting acct;
+ 	unsigned long flags;
+ 	int result;
  
--static inline void count_memcg_page_event(struct page *page,
--					  enum vm_event_item idx)
--{
--	struct mem_cgroup *memcg = page_memcg(page);
--
--	if (memcg)
--		count_memcg_events(memcg, idx, 1);
--}
--
- static inline void count_memcg_folio_events(struct folio *folio,
- 		enum vm_event_item idx, unsigned long nr)
- {
-@@ -1598,11 +1589,6 @@ static inline void __count_memcg_events(
- {
- }
- 
--static inline void count_memcg_page_event(struct page *page,
--					  int idx)
--{
--}
--
- static inline void count_memcg_folio_events(struct folio *folio,
- 		enum vm_event_item idx, unsigned long nr)
- {
---- a/mm/khugepaged.c~mm-khugepaged-convert-alloc_charge_hpage-to-use-folios
-+++ a/mm/khugepaged.c
-@@ -888,16 +888,16 @@ static int hpage_collapse_find_target_no
- }
- #endif
- 
--static bool hpage_collapse_alloc_page(struct page **hpage, gfp_t gfp, int node,
-+static bool hpage_collapse_alloc_folio(struct folio **folio, gfp_t gfp, int node,
- 				      nodemask_t *nmask)
- {
--	*hpage = __alloc_pages(gfp, HPAGE_PMD_ORDER, node, nmask);
--	if (unlikely(!*hpage)) {
-+	*folio = __folio_alloc(gfp, HPAGE_PMD_ORDER, node, nmask);
-+
-+	if (unlikely(!*folio)) {
- 		count_vm_event(THP_COLLAPSE_ALLOC_FAILED);
- 		return false;
+@@ -2986,14 +2986,18 @@ static int do_io_accounting(struct task_
  	}
  
--	folio_prep_large_rmappable((struct folio *)*hpage);
- 	count_vm_event(THP_COLLAPSE_ALLOC);
- 	return true;
- }
-@@ -1064,17 +1064,20 @@ static int alloc_charge_hpage(struct pag
- 	int node = hpage_collapse_find_target_node(cc);
- 	struct folio *folio;
+ 	if (whole && lock_task_sighand(task, &flags)) {
+-		struct task_struct *t = task;
++		struct signal_struct *sig = task->signal;
++		struct task_struct *t;
  
--	if (!hpage_collapse_alloc_page(hpage, gfp, node, &cc->alloc_nmask))
-+	if (!hpage_collapse_alloc_folio(&folio, gfp, node, &cc->alloc_nmask)) {
-+		*hpage = NULL;
- 		return SCAN_ALLOC_HUGE_PAGE_FAIL;
-+	}
+-		task_io_accounting_add(&acct, &task->signal->ioac);
+-		while_each_thread(task, t)
++		acct = sig->ioac;
++		__for_each_thread(sig, t)
+ 			task_io_accounting_add(&acct, &t->ioac);
  
--	folio = page_folio(*hpage);
- 	if (unlikely(mem_cgroup_charge(folio, mm, gfp))) {
- 		folio_put(folio);
- 		*hpage = NULL;
- 		return SCAN_CGROUP_CHARGE_FAIL;
+ 		unlock_task_sighand(task, &flags);
++	} else {
++		acct = task->ioac;
  	}
--	count_memcg_page_event(*hpage, THP_COLLAPSE_ALLOC);
- 
-+	count_memcg_folio_events(folio, THP_COLLAPSE_ALLOC, 1);
 +
-+	*hpage = folio_page(folio, 0);
- 	return SCAN_SUCCEED;
- }
- 
+ 	seq_printf(m,
+ 		   "rchar: %llu\n"
+ 		   "wchar: %llu\n"
 _
 
-Patches currently in -mm which might be from vishal.moola@gmail.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-mm-khugepaged-convert-__collapse_huge_page_isolate-to-use-folios.patch
-mm-khugepaged-convert-hpage_collapse_scan_pmd-to-use-folios.patch
-mm-khugepaged-convert-is_refcount_suitable-to-use-folios.patch
-mm-khugepaged-convert-alloc_charge_hpage-to-use-folios.patch
-mm-khugepaged-convert-collapse_pte_mapped_thp-to-use-folios.patch
+do_io_accounting-use-__for_each_thread.patch
+do_io_accounting-use-sig-stats_lock.patch
 
