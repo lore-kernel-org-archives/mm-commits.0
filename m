@@ -2,199 +2,130 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 783CAC00A8F
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Oct 2023 16:20:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49DDCC07545
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Oct 2023 16:46:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343692AbjJXQUx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 24 Oct 2023 12:20:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37432 "EHLO
+        id S1343930AbjJXQqO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 24 Oct 2023 12:46:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37016 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234765AbjJXQUt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Oct 2023 12:20:49 -0400
+        with ESMTP id S1344008AbjJXQqN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Oct 2023 12:46:13 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18DBC10D1
-        for <mm-commits@vger.kernel.org>; Tue, 24 Oct 2023 09:20:43 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FDE4C433CC;
-        Tue, 24 Oct 2023 16:20:42 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2407010C6;
+        Tue, 24 Oct 2023 09:46:09 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 559DBC433C7;
+        Tue, 24 Oct 2023 16:46:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698164442;
-        bh=t7Culnysa1GMZ43qlju1tl3usthsYUc94UhE5nFLV7o=;
-        h=Date:To:From:Subject:From;
-        b=giqZ8gv1E4EkyUyoNF5En9nPTaengdbz6LtOudaAdprGeTJQa+ZAvpmVP/N/EFUPs
-         VYB7DA6Iekdc1DVuAGqzOTWourR+oljxJJNHanMZsErtjN4OHdLvQUqhqTVtXIxol5
-         bgAjH94UF1GiTwIL3ULCtGvpapH8UMC81upNe5oY=
-Date:   Tue, 24 Oct 2023 09:20:41 -0700
-To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
-        ying.huang@intel.com, willy@infradead.org,
-        wangkefeng.wang@huawei.com, tj@kernel.org, surenb@google.com,
-        sidhartha.kumar@oracle.com, shy828301@gmail.com, nphamcs@gmail.com,
-        mimmocerasuolo@gmail.com, mike.kravetz@oracle.com, mhocko@suse.com,
-        mgorman@techsingularity.net, hannes@cmpxchg.org,
-        gregkh@linuxfoundation.org, david@redhat.com, cl@linux.com,
-        ak@linux.intel.com, hughd@google.com, akpm@linux-foundation.org
+        s=korg; t=1698165969;
+        bh=UObGybaBZBWnIDCC2DGtll8X02tSiqsFuoXsbcNWfJM=;
+        h=Date:From:To:Cc:Subject:From;
+        b=WJ5KBwUFG2NNlr5wpLrhPgSa1dLMrywLrtp0zocalZW2UmDKicFg4skGwyYp0PcXw
+         GsASwIYMdDZupbOtkFIC5UfLz0N5+fbXcEEZ7PpWBCOEQj5y1NPevVsZoTp07CT4yH
+         IdMQPm8LuAYLoXi0DYlYNeLS5Ob9ixsDXhE2XU00=
+Date:   Tue, 24 Oct 2023 09:46:08 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mempolicy-alloc_pages_mpol-for-numa-policy-without-vma-fix.patch added to mm-unstable branch
-Message-Id: <20231024162042.8FDE4C433CC@smtp.kernel.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.6
+Message-Id: <20231024094608.f2dc0ca5ed2619d411a31df5@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mempolicy: alloc_pages_mpol() for NUMA policy without vma: fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mempolicy-alloc_pages_mpol-for-numa-policy-without-vma-fix.patch
+Linus, please merge this batch of hotfixes, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mempolicy-alloc_pages_mpol-for-numa-policy-without-vma-fix.patch
+The following changes since commit 8a749fd1a8720d4619c91c8b6e7528c0a355c0aa:
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+  Linux 6.6-rc4 (2023-10-01 14:15:13 -0700)
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+are available in the Git repository at:
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-10-24-09-40
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+for you to fetch changes up to 099d7439ce03d0e7bc8f0c3d7878b562f3a48d3d:
 
-------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mempolicy: alloc_pages_mpol() for NUMA policy without vma: fix
-Date: Tue, 24 Oct 2023 09:09:39 -0700 (PDT)
+  maple_tree: add GFP_KERNEL to allocations in mas_expected_entries() (2023-10-18 12:12:41 -0700)
 
-mm-unstable commit 48a7bd12d57f ("mempolicy: alloc_pages_mpol() for NUMA
-policy without vma") ended read_swap_cache_async() supporting NULL vma -
-okay; but missed the NULL mpol being passed to __read_swap_cache_async()
-by zswap_writeback_entry() - oops!
+----------------------------------------------------------------
+20 hotfixes.  12 are cc:stable and the remainder address post-6.5 issues
+or aren't considered necessary for earlier kernel versions.
 
-Since its other callers all give good mpol, add get_task_policy(current)
-there in mm/zswap.c, to produce the same good-enough behaviour as before
-(and task policy, acted on in current task, does not require the refcount
-to be dup'ed).
+----------------------------------------------------------------
+Alexandre Ghiti (2):
+      riscv: handle VM_FAULT_[HWPOISON|HWPOISON_LARGE] faults instead of panicking
+      riscv: fix set_huge_pte_at() for NAPOT mappings when a swap entry is set
 
-But if that policy is (quite reasonably) MPOL_INTERLEAVE, then ilx must be
-NO_INTERLEAVE_INDEX rather than 0, to provide the same distribution as
-before: move that definition from mempolicy.c to mempolicy.h.
+Arnd Bergmann (1):
+      kasan: disable kasan_non_canonical_hook() for HW tags
 
-Link: https://lkml.kernel.org/r/ea419956-4751-0102-21f7-9c93cb957892@google.com
-Fixes: 48a7bd12d57f ("mempolicy: alloc_pages_mpol() for NUMA policy without vma")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reported-by: Domenico Cerasuolo <mimmocerasuolo@gmail.com>
-Closes: https://lore.kernel.org/linux-mm/74e34633-6060-f5e3-aee-7040d43f2e93@google.com/T/#mf08c877d1884fc7867f9e328cdf02257ff3b3ae9
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Tejun heo <tj@kernel.org>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+Bartosz Golaszewski (1):
+      mailmap: map Bartosz's old address to the current one
 
- include/linux/mempolicy.h |    7 +++++++
- mm/mempolicy.c            |    2 --
- mm/zswap.c                |    7 +++++--
- 3 files changed, 12 insertions(+), 4 deletions(-)
+Gregory Price (1):
+      mm/migrate: fix do_pages_move for compat pointers
 
---- a/include/linux/mempolicy.h~mempolicy-alloc_pages_mpol-for-numa-policy-without-vma-fix
-+++ a/include/linux/mempolicy.h
-@@ -17,6 +17,8 @@
- 
- struct mm_struct;
- 
-+#define NO_INTERLEAVE_INDEX (-1UL)	/* use task il_prev for interleaving */
-+
- #ifdef CONFIG_NUMA
- 
- /*
-@@ -179,6 +181,11 @@ extern bool apply_policy_zone(struct mem
- 
- struct mempolicy {};
- 
-+static inline struct mempolicy *get_task_policy(struct task_struct *p)
-+{
-+	return NULL;
-+}
-+
- static inline bool mpol_equal(struct mempolicy *a, struct mempolicy *b)
- {
- 	return true;
---- a/mm/mempolicy.c~mempolicy-alloc_pages_mpol-for-numa-policy-without-vma-fix
-+++ a/mm/mempolicy.c
-@@ -114,8 +114,6 @@
- #define MPOL_MF_INVERT       (MPOL_MF_INTERNAL << 1)	/* Invert check for nodemask */
- #define MPOL_MF_WRLOCK       (MPOL_MF_INTERNAL << 2)	/* Write-lock walked vmas */
- 
--#define NO_INTERLEAVE_INDEX (-1UL)
--
- static struct kmem_cache *policy_cache;
- static struct kmem_cache *sn_cache;
- 
---- a/mm/zswap.c~mempolicy-alloc_pages_mpol-for-numa-policy-without-vma-fix
-+++ a/mm/zswap.c
-@@ -24,6 +24,7 @@
- #include <linux/swap.h>
- #include <linux/crypto.h>
- #include <linux/scatterlist.h>
-+#include <linux/mempolicy.h>
- #include <linux/mempool.h>
- #include <linux/zpool.h>
- #include <crypto/acompress.h>
-@@ -1057,6 +1058,7 @@ static int zswap_writeback_entry(struct
- {
- 	swp_entry_t swpentry = entry->swpentry;
- 	struct page *page;
-+	struct mempolicy *mpol;
- 	struct scatterlist input, output;
- 	struct crypto_acomp_ctx *acomp_ctx;
- 	struct zpool *pool = zswap_find_zpool(entry);
-@@ -1075,8 +1077,9 @@ static int zswap_writeback_entry(struct
- 	}
- 
- 	/* try to allocate swap cache page */
--	page = __read_swap_cache_async(swpentry, GFP_KERNEL, NULL, 0,
--				       &page_was_allocated);
-+	mpol = get_task_policy(current);
-+	page = __read_swap_cache_async(swpentry, GFP_KERNEL, mpol,
-+				NO_INTERLEAVE_INDEX, &page_was_allocated);
- 	if (!page) {
- 		ret = -ENOMEM;
- 		goto fail;
-_
+Haibo Li (1):
+      kasan: print the original fault addr when access invalid shadow
 
-Patches currently in -mm which might be from hughd@google.com are
+Johannes Weiner (1):
+      mm: zswap: fix pool refcount bug around shrink_worker()
 
-hugetlbfs-drop-shared-numa-mempolicy-pretence.patch
-kernfs-drop-shared-numa-mempolicy-hooks.patch
-mempolicy-fix-migrate_pages2-syscall-return-nr_failed.patch
-mempolicy-trivia-delete-those-ancient-pr_debugs.patch
-mempolicy-trivia-slightly-more-consistent-naming.patch
-mempolicy-trivia-use-pgoff_t-in-shared-mempolicy-tree.patch
-mempolicy-mpol_shared_policy_init-without-pseudo-vma.patch
-mempolicy-remove-confusing-mpol_mf_lazy-dead-code.patch
-mm-add-page_rmappable_folio-wrapper.patch
-mempolicy-alloc_pages_mpol-for-numa-policy-without-vma.patch
-mempolicy-alloc_pages_mpol-for-numa-policy-without-vma-fix.patch
-mempolicy-mmap_lock-is-not-needed-while-migrating-folios.patch
-mempolicy-migration-attempt-to-match-interleave-nodes.patch
-mempolicy-migration-attempt-to-match-interleave-nodes-fix.patch
-ext4-add-__gfp_nowarn-to-gfp_nowait-in-readahead.patch
-mm-mlock-avoid-folio_within_range-on-ksm-pages.patch
+Kemeng Shi (1):
+      mm/page_alloc: correct start page when guard page debug is enabled
+
+Liam R. Howlett (4):
+      mm/mempolicy: fix set_mempolicy_home_node() previous VMA pointer
+      mmap: fix vma_iterator in error path of vma_merge()
+      mmap: fix error paths with dup_anon_vma()
+      maple_tree: add GFP_KERNEL to allocations in mas_expected_entries()
+
+Oleksij Rempel (1):
+      mailmap: correct email aliasing for Oleksij Rempel
+
+Ondrej Jirman (1):
+      MAINTAINERS: Ondrej has moved
+
+Rik van Riel (3):
+      hugetlbfs: clear resv_map pointer if mmap fails
+      hugetlbfs: extend hugetlb_vma_lock to private VMAs
+      hugetlbfs: close race between MADV_DONTNEED and page fault
+
+Samasth Norway Ananda (1):
+      selftests/mm: include mman header to access MREMAP_DONTUNMAP identifier
+
+Sebastian Ott (1):
+      mm: fix vm_brk_flags() to not bail out while holding lock
+
+SeongJae Park (1):
+      mm/damon/sysfs: check DAMOS regions update progress from before_terminate()
+
+ .mailmap                                      |  6 +-
+ MAINTAINERS                                   |  2 +-
+ arch/riscv/mm/fault.c                         |  2 +-
+ arch/riscv/mm/hugetlbpage.c                   | 19 +++++--
+ include/linux/hugetlb.h                       | 41 +++++++++++++-
+ include/linux/kasan.h                         |  6 +-
+ lib/maple_tree.c                              |  2 +-
+ lib/test_maple_tree.c                         | 35 ++++++++----
+ mm/damon/sysfs.c                              |  7 ++-
+ mm/hugetlb.c                                  | 82 ++++++++++++++++++++-------
+ mm/kasan/report.c                             |  2 +-
+ mm/memory.c                                   | 13 +++--
+ mm/mempolicy.c                                |  4 +-
+ mm/migrate.c                                  | 14 ++++-
+ mm/mmap.c                                     | 46 ++++++++++-----
+ mm/page_alloc.c                               |  2 +-
+ mm/zswap.c                                    |  4 +-
+ tools/include/linux/rwsem.h                   | 40 +++++++++++++
+ tools/testing/selftests/mm/mremap_dontunmap.c |  1 +
+ 19 files changed, 255 insertions(+), 73 deletions(-)
+ create mode 100644 tools/include/linux/rwsem.h
 
