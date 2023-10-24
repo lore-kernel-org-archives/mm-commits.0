@@ -2,130 +2,191 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49DDCC07545
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Oct 2023 16:46:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2120C00A8F
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Oct 2023 17:22:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343930AbjJXQqO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 24 Oct 2023 12:46:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37016 "EHLO
+        id S229830AbjJXRWH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 24 Oct 2023 13:22:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47026 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344008AbjJXQqN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Oct 2023 12:46:13 -0400
+        with ESMTP id S229743AbjJXRWG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Oct 2023 13:22:06 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2407010C6;
-        Tue, 24 Oct 2023 09:46:09 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 559DBC433C7;
-        Tue, 24 Oct 2023 16:46:09 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CEDB9122
+        for <mm-commits@vger.kernel.org>; Tue, 24 Oct 2023 10:22:03 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58361C433C7;
+        Tue, 24 Oct 2023 17:22:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698165969;
-        bh=UObGybaBZBWnIDCC2DGtll8X02tSiqsFuoXsbcNWfJM=;
-        h=Date:From:To:Cc:Subject:From;
-        b=WJ5KBwUFG2NNlr5wpLrhPgSa1dLMrywLrtp0zocalZW2UmDKicFg4skGwyYp0PcXw
-         GsASwIYMdDZupbOtkFIC5UfLz0N5+fbXcEEZ7PpWBCOEQj5y1NPevVsZoTp07CT4yH
-         IdMQPm8LuAYLoXi0DYlYNeLS5Ob9ixsDXhE2XU00=
-Date:   Tue, 24 Oct 2023 09:46:08 -0700
+        s=korg; t=1698168123;
+        bh=/Iyc7veqNq6DJmQep5Qbs/E10jcgsGfseRKLlPqGNpE=;
+        h=Date:To:From:Subject:From;
+        b=pqIY6DF/A64vCSCIB7e+u6ZN6t4BiO96RzSEylkJwO4iWlSq0+ftoTn9U1UwucR8M
+         8xk/m1GV16TIzquu6pDj3PWDAK74Zw6FuI1O1u0VsyoIp7Sm4LSfT6T01iJq8XPndv
+         glZ5clhx5jdVcFnt88jwXqCA/vdj96bFdySBkTkw=
+Date:   Tue, 24 Oct 2023 10:22:02 -0700
+To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
+        vitaly.wool@konsulko.com, sjenning@redhat.com, shakeelb@google.com,
+        roman.gushchin@linux.dev, muchun.song@linux.dev, mhocko@kernel.org,
+        hannes@cmpxchg.org, ddstreet@ieee.org, cerasuolodomenico@gmail.com,
+        nphamcs@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.6
-Message-Id: <20231024094608.f2dc0ca5ed2619d411a31df5@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Subject: + zswap-export-more-zswap-store-failure-stats.patch added to mm-unstable branch
+Message-Id: <20231024172203.58361C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-Linus, please merge this batch of hotfixes, thanks.
+The patch titled
+     Subject: zswap: export more zswap store failure stats
+has been added to the -mm mm-unstable branch.  Its filename is
+     zswap-export-more-zswap-store-failure-stats.patch
 
-The following changes since commit 8a749fd1a8720d4619c91c8b6e7528c0a355c0aa:
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zswap-export-more-zswap-store-failure-stats.patch
 
-  Linux 6.6-rc4 (2023-10-01 14:15:13 -0700)
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-are available in the Git repository at:
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-10-24-09-40
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-for you to fetch changes up to 099d7439ce03d0e7bc8f0c3d7878b562f3a48d3d:
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
-  maple_tree: add GFP_KERNEL to allocations in mas_expected_entries() (2023-10-18 12:12:41 -0700)
+------------------------------------------------------
+From: Nhat Pham <nphamcs@gmail.com>
+Subject: zswap: export more zswap store failure stats
+Date: Mon, 23 Oct 2023 17:07:02 -0700
 
-----------------------------------------------------------------
-20 hotfixes.  12 are cc:stable and the remainder address post-6.5 issues
-or aren't considered necessary for earlier kernel versions.
+Since commit 42c06a0e8ebe ("mm: kill frontswap") we no longer have a
+counter to tracks the number of zswap store failures.  This makes it hard
+to investigate and monitor for zswap issues.
 
-----------------------------------------------------------------
-Alexandre Ghiti (2):
-      riscv: handle VM_FAULT_[HWPOISON|HWPOISON_LARGE] faults instead of panicking
-      riscv: fix set_huge_pte_at() for NAPOT mappings when a swap entry is set
+This patch adds a global and a per-cgroup zswap store failure counter,
+as well as a dedicated debugfs counter for compression algorithm failure
+(which can happen for e.g when random data are passed to zswap).
 
-Arnd Bergmann (1):
-      kasan: disable kasan_non_canonical_hook() for HW tags
+Link: https://lkml.kernel.org/r/20231024000702.1387130-1-nphamcs@gmail.com
+Signed-off-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Bartosz Golaszewski (1):
-      mailmap: map Bartosz's old address to the current one
+ include/linux/vm_event_item.h |    1 +
+ mm/memcontrol.c               |    1 +
+ mm/vmstat.c                   |    1 +
+ mm/zswap.c                    |   18 ++++++++++++++----
+ 4 files changed, 17 insertions(+), 4 deletions(-)
 
-Gregory Price (1):
-      mm/migrate: fix do_pages_move for compat pointers
+--- a/include/linux/vm_event_item.h~zswap-export-more-zswap-store-failure-stats
++++ a/include/linux/vm_event_item.h
+@@ -145,6 +145,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ #ifdef CONFIG_ZSWAP
+ 		ZSWPIN,
+ 		ZSWPOUT,
++		ZSWPOUT_FAIL,
+ #endif
+ #ifdef CONFIG_X86
+ 		DIRECT_MAP_LEVEL2_SPLIT,
+--- a/mm/memcontrol.c~zswap-export-more-zswap-store-failure-stats
++++ a/mm/memcontrol.c
+@@ -593,6 +593,7 @@ static const unsigned int memcg_vm_event
+ #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
+ 	ZSWPIN,
+ 	ZSWPOUT,
++	ZSWPOUT_FAIL,
+ #endif
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	THP_FAULT_ALLOC,
+--- a/mm/vmstat.c~zswap-export-more-zswap-store-failure-stats
++++ a/mm/vmstat.c
+@@ -1401,6 +1401,7 @@ const char * const vmstat_text[] = {
+ #ifdef CONFIG_ZSWAP
+ 	"zswpin",
+ 	"zswpout",
++	"zswpout_fail",
+ #endif
+ #ifdef CONFIG_X86
+ 	"direct_map_level2_splits",
+--- a/mm/zswap.c~zswap-export-more-zswap-store-failure-stats
++++ a/mm/zswap.c
+@@ -62,6 +62,8 @@ static u64 zswap_pool_limit_hit;
+ static u64 zswap_written_back_pages;
+ /* Store failed due to a reclaim failure after pool limit was reached */
+ static u64 zswap_reject_reclaim_fail;
++/* Store failed due to compression algorithm failure */
++static u64 zswap_reject_compress_fail;
+ /* Compressed page was too big for the allocator to (optimally) store */
+ static u64 zswap_reject_compress_poor;
+ /* Store failed because underlying allocator could not get memory */
+@@ -1221,10 +1223,10 @@ bool zswap_store(struct folio *folio)
+ 
+ 	/* Large folios aren't supported */
+ 	if (folio_test_large(folio))
+-		return false;
++		goto out_reject;
+ 
+ 	if (!zswap_enabled || !tree)
+-		return false;
++		goto out_reject;
+ 
+ 	/*
+ 	 * If this is a duplicate, it must be removed before attempting to store
+@@ -1317,8 +1319,10 @@ bool zswap_store(struct folio *folio)
+ 	ret = crypto_wait_req(crypto_acomp_compress(acomp_ctx->req), &acomp_ctx->wait);
+ 	dlen = acomp_ctx->req->dlen;
+ 
+-	if (ret)
++	if (ret) {
++		zswap_reject_compress_fail++;
+ 		goto put_dstmem;
++	}
+ 
+ 	/* store */
+ 	zpool = zswap_find_zpool(entry);
+@@ -1385,8 +1389,12 @@ put_dstmem:
+ freepage:
+ 	zswap_entry_cache_free(entry);
+ reject:
+-	if (objcg)
++	if (objcg) {
++		count_objcg_event(objcg, ZSWPOUT_FAIL);
+ 		obj_cgroup_put(objcg);
++	}
++out_reject:
++	count_vm_event(ZSWPOUT_FAIL);
+ 	return false;
+ 
+ shrink:
+@@ -1558,6 +1566,8 @@ static int zswap_debugfs_init(void)
+ 			   zswap_debugfs_root, &zswap_reject_alloc_fail);
+ 	debugfs_create_u64("reject_kmemcache_fail", 0444,
+ 			   zswap_debugfs_root, &zswap_reject_kmemcache_fail);
++	debugfs_create_u64("reject_compress_fail", 0444,
++			   zswap_debugfs_root, &zswap_reject_compress_fail);
+ 	debugfs_create_u64("reject_compress_poor", 0444,
+ 			   zswap_debugfs_root, &zswap_reject_compress_poor);
+ 	debugfs_create_u64("written_back_pages", 0444,
+_
 
-Haibo Li (1):
-      kasan: print the original fault addr when access invalid shadow
+Patches currently in -mm which might be from nphamcs@gmail.com are
 
-Johannes Weiner (1):
-      mm: zswap: fix pool refcount bug around shrink_worker()
-
-Kemeng Shi (1):
-      mm/page_alloc: correct start page when guard page debug is enabled
-
-Liam R. Howlett (4):
-      mm/mempolicy: fix set_mempolicy_home_node() previous VMA pointer
-      mmap: fix vma_iterator in error path of vma_merge()
-      mmap: fix error paths with dup_anon_vma()
-      maple_tree: add GFP_KERNEL to allocations in mas_expected_entries()
-
-Oleksij Rempel (1):
-      mailmap: correct email aliasing for Oleksij Rempel
-
-Ondrej Jirman (1):
-      MAINTAINERS: Ondrej has moved
-
-Rik van Riel (3):
-      hugetlbfs: clear resv_map pointer if mmap fails
-      hugetlbfs: extend hugetlb_vma_lock to private VMAs
-      hugetlbfs: close race between MADV_DONTNEED and page fault
-
-Samasth Norway Ananda (1):
-      selftests/mm: include mman header to access MREMAP_DONTUNMAP identifier
-
-Sebastian Ott (1):
-      mm: fix vm_brk_flags() to not bail out while holding lock
-
-SeongJae Park (1):
-      mm/damon/sysfs: check DAMOS regions update progress from before_terminate()
-
- .mailmap                                      |  6 +-
- MAINTAINERS                                   |  2 +-
- arch/riscv/mm/fault.c                         |  2 +-
- arch/riscv/mm/hugetlbpage.c                   | 19 +++++--
- include/linux/hugetlb.h                       | 41 +++++++++++++-
- include/linux/kasan.h                         |  6 +-
- lib/maple_tree.c                              |  2 +-
- lib/test_maple_tree.c                         | 35 ++++++++----
- mm/damon/sysfs.c                              |  7 ++-
- mm/hugetlb.c                                  | 82 ++++++++++++++++++++-------
- mm/kasan/report.c                             |  2 +-
- mm/memory.c                                   | 13 +++--
- mm/mempolicy.c                                |  4 +-
- mm/migrate.c                                  | 14 ++++-
- mm/mmap.c                                     | 46 ++++++++++-----
- mm/page_alloc.c                               |  2 +-
- mm/zswap.c                                    |  4 +-
- tools/include/linux/rwsem.h                   | 40 +++++++++++++
- tools/testing/selftests/mm/mremap_dontunmap.c |  1 +
- 19 files changed, 255 insertions(+), 73 deletions(-)
- create mode 100644 tools/include/linux/rwsem.h
+zswap-export-more-zswap-store-failure-stats.patch
 
