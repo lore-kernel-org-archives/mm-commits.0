@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A27EC07545
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Oct 2023 14:52:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72A16C00A8F
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Oct 2023 15:04:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234526AbjJXOwr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 24 Oct 2023 10:52:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49440 "EHLO
+        id S229707AbjJXPE4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 24 Oct 2023 11:04:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60074 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234560AbjJXOwq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Oct 2023 10:52:46 -0400
+        with ESMTP id S229544AbjJXPE4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 24 Oct 2023 11:04:56 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33613118
-        for <mm-commits@vger.kernel.org>; Tue, 24 Oct 2023 07:52:44 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97C91C433C7;
-        Tue, 24 Oct 2023 14:52:43 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6960C93
+        for <mm-commits@vger.kernel.org>; Tue, 24 Oct 2023 08:04:54 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC2D1C433C8;
+        Tue, 24 Oct 2023 15:04:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698159163;
-        bh=ely9Kn9SilC8pJ3wePVYfam6/SJvJfUFfeML7AfDc18=;
+        s=korg; t=1698159894;
+        bh=6N2jyKu7DOnfxhgahlNoPjFJvY5GlRS9MGLfqS9ukWc=;
         h=Date:To:From:Subject:From;
-        b=gJWCtq4Hs8Q4nKz5G/Wys0m511cITI/+kKb0tCVsjcmHE5gHn62lqXxSd4/zsM/WF
-         RrbDongf6aUu7V3sbd1ZuhF4xDuBonIUJFgILcVMQTmutvrhXk8O1d/YeXI7MoqEn1
-         hITYI79Bu+HeRBTDABmBMmGKtV8CWU9Mpjn8k0PM=
-Date:   Tue, 24 Oct 2023 07:52:42 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, tytso@mit.edu,
-        teawater@antgroup.com, jack@suse.cz, hughd@google.com,
+        b=W5n0nc2oX+tPZ3rZWrord15CVrgFMGfFKGQm8DvLByHWegzMR8PIYQ+basZOf/OLx
+         xmC6J2Fvgscf5saVAjI25PbZFgGFoR5fIhP63g3UcpcEn2CWTQ4AFSkjnzV9BbUFwl
+         XqTRFfIuW5bYAdo0cAMcIcbA3mip/INVXlWwP15g=
+Date:   Tue, 24 Oct 2023 08:04:53 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org, shr@devkernel.io,
+        lstoakes@gmail.com, fengwei.yin@intel.com, hughd@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ext4-add-__gfp_nowarn-to-gfp_nowait-in-readahead.patch added to mm-unstable branch
-Message-Id: <20231024145243.97C91C433C7@smtp.kernel.org>
+Subject: + mm-mlock-avoid-folio_within_range-on-ksm-pages.patch added to mm-unstable branch
+Message-Id: <20231024150453.EC2D1C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ext4: add __GFP_NOWARN to GFP_NOWAIT in readahead
+     Subject: mm: mlock: avoid folio_within_range() on KSM pages
 has been added to the -mm mm-unstable branch.  Its filename is
-     ext4-add-__gfp_nowarn-to-gfp_nowait-in-readahead.patch
+     mm-mlock-avoid-folio_within_range-on-ksm-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ext4-add-__gfp_nowarn-to-gfp_nowait-in-readahead.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mlock-avoid-folio_within_range-on-ksm-pages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -61,40 +61,46 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: ext4: add __GFP_NOWARN to GFP_NOWAIT in readahead
-Date: Mon, 23 Oct 2023 23:26:08 -0700 (PDT)
+Subject: mm: mlock: avoid folio_within_range() on KSM pages
+Date: Mon, 23 Oct 2023 23:38:41 -0700 (PDT)
 
-Since commit e509ad4d77e6 ("ext4: use bdev_getblk() to avoid memory
-reclaim in readahead path") rightly replaced GFP_NOFAIL allocations by
-GFP_NOWAIT allocations, I've occasionally been seeing "page allocation
-failure: order:0" warnings under load: all with
-ext4_sb_breadahead_unmovable() in the stack.  I don't think those warnings
-are of any interest: suppress them with __GFP_NOWARN.
+Since commit dc68badcede4 ("mm: mlock: update mlock_pte_range to handle
+large folio") I've just occasionally seen VM_WARN_ON_FOLIO(folio_test_ksm)
+warnings from folio_within_range(), in a splurge after testing with KSM
+hyperactive.
 
-Link: https://lkml.kernel.org/r/7bc6ad16-9a4d-dd90-202e-47d6cbb5a136@google.com
-Fixes: e509ad4d77e6 ("ext4: use bdev_getblk() to avoid memory reclaim in readahead path")
+folio_referenced_one()'s use of folio_within_vma() is safe because it
+checks folio_test_large() first; but allow_mlock_munlock() needs to do the
+same to avoid those warnings (or check !folio_test_ksm() itself?  or move
+either check into folio_within_range()?  hard to tell without more
+examples of its use).
+
+Link: https://lkml.kernel.org/r/23852f6a-5bfa-1ffd-30db-30c5560ad426@google.com
+Fixes: dc68badcede4 ("mm: mlock: update mlock_pte_range to handle large folio")
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Hui Zhu <teawater@antgroup.com>
+Reviewed-by: Yin Fengwei <fengwei.yin@intel.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Stefan Roesch <shr@devkernel.io>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mlock.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/fs/ext4/super.c~ext4-add-__gfp_nowarn-to-gfp_nowait-in-readahead
-+++ a/fs/ext4/super.c
-@@ -262,7 +262,7 @@ struct buffer_head *ext4_sb_bread_unmova
- void ext4_sb_breadahead_unmovable(struct super_block *sb, sector_t block)
- {
- 	struct buffer_head *bh = bdev_getblk(sb->s_bdev, block,
--			sb->s_blocksize, GFP_NOWAIT);
-+			sb->s_blocksize, GFP_NOWAIT | __GFP_NOWARN);
+--- a/mm/mlock.c~mm-mlock-avoid-folio_within_range-on-ksm-pages
++++ a/mm/mlock.c
+@@ -346,6 +346,10 @@ static inline bool allow_mlock_munlock(s
+ 	if (!(vma->vm_flags & VM_LOCKED))
+ 		return true;
  
- 	if (likely(bh)) {
- 		if (trylock_buffer(bh))
++	/* folio_within_range() cannot take KSM, but any small folio is OK */
++	if (!folio_test_large(folio))
++		return true;
++
+ 	/* folio not in range [start, end), skip mlock */
+ 	if (!folio_within_range(folio, vma, start, end))
+ 		return false;
 _
 
 Patches currently in -mm which might be from hughd@google.com are
@@ -112,4 +118,5 @@ mempolicy-alloc_pages_mpol-for-numa-policy-without-vma.patch
 mempolicy-mmap_lock-is-not-needed-while-migrating-folios.patch
 mempolicy-migration-attempt-to-match-interleave-nodes.patch
 ext4-add-__gfp_nowarn-to-gfp_nowait-in-readahead.patch
+mm-mlock-avoid-folio_within_range-on-ksm-pages.patch
 
