@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BED4EC25B70
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:48:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8A35C25B6E
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:48:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231400AbjJYXsG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Oct 2023 19:48:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44904 "EHLO
+        id S230241AbjJYXsF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Oct 2023 19:48:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52042 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230522AbjJYXsD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:48:03 -0400
+        with ESMTP id S230348AbjJYXry (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:47:54 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B76EC187
-        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:47:53 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83093C433C9;
-        Wed, 25 Oct 2023 23:47:53 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D6EF0183
+        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:47:52 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2481C433CB;
+        Wed, 25 Oct 2023 23:47:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698277673;
-        bh=xrsf5kl67sXlZDlDMKezWNNnNwYrGIr2oXm9LriiLiI=;
+        s=korg; t=1698277672;
+        bh=bUAn3xAlERILcbrkqPxRKYP36QyXZEhiKc0pSpj/fMw=;
         h=Date:To:From:Subject:From;
-        b=T7120h9CwmJrpcs8SyulfM5YZmcX4zOy7MGIdP6YiNbPVRQEraMABX1yTUMr+UOHu
-         b5qenk2WJXekfJfT7jceLlBTlEdHQJKxqH+LAQZARvHo1CMai9IQtd5E7tL2+k2/X+
-         MD2hWaHXuAqVT7YzuJlhYnwRkKw1PJtyIiuI2KV0=
+        b=E/zf3B7sKd+F6ZBN/LRdff/ZKfOut1qfW9J0X6z9Kds+mZ0iIuUdtre9P7BcrEay4
+         ibCECZKbsVsQFVEi2pN05F9PtuVeqwueFxto5BByl/OEnMZalUmRR8l6+jA8RvKZXG
+         RwTeoNPDwxp+NSShaHXlNSvqRp/lg0O5Rfwyvz+U=
 Date:   Wed, 25 Oct 2023 16:47:52 -0700
 To:     mm-commits@vger.kernel.org, p.raghav@samsung.com,
         konishi.ryusuke@gmail.com, agruenba@redhat.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] buffer-add-get_nth_bh.patch removed from -mm tree
-Message-Id: <20231025234753.83093C433C9@smtp.kernel.org>
+Subject: [merged mm-stable] ext4-convert-to-folio_create_empty_buffers.patch removed from -mm tree
+Message-Id: <20231025234752.A2481C433CB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,79 +37,98 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: buffer: add get_nth_bh()
+     Subject: ext4: convert to folio_create_empty_buffers
 has been removed from the -mm tree.  Its filename was
-     buffer-add-get_nth_bh.patch
+     ext4-convert-to-folio_create_empty_buffers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: buffer: add get_nth_bh()
-Date: Mon, 16 Oct 2023 21:10:52 +0100
+Subject: ext4: convert to folio_create_empty_buffers
+Date: Mon, 16 Oct 2023 21:10:51 +0100
 
-Extract this useful helper from nilfs_page_get_nth_block()
+Remove an unnecessary folio->page->folio conversion and take advantage of
+the new return value from folio_create_empty_buffers().
 
-Link: https://lkml.kernel.org/r/20231016201114.1928083-6-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231016201114.1928083-5-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reviewed-by: Pankaj Raghav <p.raghav@samsung.com>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
-Cc: Pankaj Raghav <p.raghav@samsung.com>
+Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/page.h            |    7 +------
- include/linux/buffer_head.h |   22 ++++++++++++++++++++++
- 2 files changed, 23 insertions(+), 6 deletions(-)
+ fs/ext4/inode.c       |   14 +++++---------
+ fs/ext4/move_extent.c |   11 +++++------
+ 2 files changed, 10 insertions(+), 15 deletions(-)
 
---- a/fs/nilfs2/page.h~buffer-add-get_nth_bh
-+++ a/fs/nilfs2/page.h
-@@ -55,12 +55,7 @@ unsigned long nilfs_find_uncommitted_ext
- static inline struct buffer_head *
- nilfs_page_get_nth_block(struct page *page, unsigned int count)
- {
--	struct buffer_head *bh = page_buffers(page);
--
--	while (count-- > 0)
--		bh = bh->b_this_page;
--	get_bh(bh);
--	return bh;
-+	return get_nth_bh(page_buffers(page), count);
- }
+--- a/fs/ext4/inode.c~ext4-convert-to-folio_create_empty_buffers
++++ a/fs/ext4/inode.c
+@@ -1020,10 +1020,8 @@ static int ext4_block_write_begin(struct
+ 	BUG_ON(from > to);
  
- #endif /* _NILFS_PAGE_H */
---- a/include/linux/buffer_head.h~buffer-add-get_nth_bh
-+++ a/include/linux/buffer_head.h
-@@ -457,6 +457,28 @@ __bread(struct block_device *bdev, secto
- 	return __bread_gfp(bdev, block, size, __GFP_MOVABLE);
- }
+ 	head = folio_buffers(folio);
+-	if (!head) {
+-		create_empty_buffers(&folio->page, blocksize, 0);
+-		head = folio_buffers(folio);
+-	}
++	if (!head)
++		head = folio_create_empty_buffers(folio, blocksize, 0);
+ 	bbits = ilog2(blocksize);
+ 	block = (sector_t)folio->index << (PAGE_SHIFT - bbits);
  
-+/**
-+ * get_nth_bh - Get a reference on the n'th buffer after this one.
-+ * @bh: The buffer to start counting from.
-+ * @count: How many buffers to skip.
-+ *
-+ * This is primarily useful for finding the nth buffer in a folio; in
-+ * that case you pass the head buffer and the byte offset in the folio
-+ * divided by the block size.  It can be used for other purposes, but
-+ * it will wrap at the end of the folio rather than returning NULL or
-+ * proceeding to the next folio for you.
-+ *
-+ * Return: The requested buffer with an elevated refcount.
-+ */
-+static inline __must_check
-+struct buffer_head *get_nth_bh(struct buffer_head *bh, unsigned int count)
-+{
-+	while (count--)
-+		bh = bh->b_this_page;
-+	get_bh(bh);
-+	return bh;
-+}
-+
- bool block_dirty_folio(struct address_space *mapping, struct folio *folio);
+@@ -1153,7 +1151,7 @@ retry_grab:
+ 	 * starting the handle.
+ 	 */
+ 	if (!folio_buffers(folio))
+-		create_empty_buffers(&folio->page, inode->i_sb->s_blocksize, 0);
++		folio_create_empty_buffers(folio, inode->i_sb->s_blocksize, 0);
  
- #ifdef CONFIG_BUFFER_HEAD
+ 	folio_unlock(folio);
+ 
+@@ -3643,10 +3641,8 @@ static int __ext4_block_zero_page_range(
+ 	iblock = index << (PAGE_SHIFT - inode->i_sb->s_blocksize_bits);
+ 
+ 	bh = folio_buffers(folio);
+-	if (!bh) {
+-		create_empty_buffers(&folio->page, blocksize, 0);
+-		bh = folio_buffers(folio);
+-	}
++	if (!bh)
++		bh = folio_create_empty_buffers(folio, blocksize, 0);
+ 
+ 	/* Find the buffer that contains "offset" */
+ 	pos = blocksize;
+--- a/fs/ext4/move_extent.c~ext4-convert-to-folio_create_empty_buffers
++++ a/fs/ext4/move_extent.c
+@@ -183,10 +183,8 @@ mext_page_mkuptodate(struct folio *folio
+ 
+ 	blocksize = i_blocksize(inode);
+ 	head = folio_buffers(folio);
+-	if (!head) {
+-		create_empty_buffers(&folio->page, blocksize, 0);
+-		head = folio_buffers(folio);
+-	}
++	if (!head)
++		head = folio_create_empty_buffers(folio, blocksize, 0);
+ 
+ 	block = (sector_t)folio->index << (PAGE_SHIFT - inode->i_blkbits);
+ 	for (bh = head, block_start = 0; bh != head || !block_start;
+@@ -380,9 +378,10 @@ data_copy:
+ 	}
+ 	/* Perform all necessary steps similar write_begin()/write_end()
+ 	 * but keeping in mind that i_size will not change */
+-	if (!folio_buffers(folio[0]))
+-		create_empty_buffers(&folio[0]->page, 1 << orig_inode->i_blkbits, 0);
+ 	bh = folio_buffers(folio[0]);
++	if (!bh)
++		bh = folio_create_empty_buffers(folio[0],
++				1 << orig_inode->i_blkbits, 0);
+ 	for (i = 0; i < data_offset_in_page; i++)
+ 		bh = bh->b_this_page;
+ 	for (i = 0; i < block_len_in_page; i++) {
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
