@@ -2,35 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06EE7C0032E
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:50:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B343C25B70
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:50:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233220AbjJYXu2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Oct 2023 19:50:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34116 "EHLO
+        id S234031AbjJYXu3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Oct 2023 19:50:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53740 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234925AbjJYXtI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:49:08 -0400
+        with ESMTP id S234948AbjJYXtQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:49:16 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C313710D2
-        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:48:58 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90243C433C8;
-        Wed, 25 Oct 2023 23:48:58 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1273810DD
+        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:49:04 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3320C433C9;
+        Wed, 25 Oct 2023 23:49:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698277738;
-        bh=7XZ5bJzkxnDFALyKrr5vxDX6cOihhhxnvPePD6A0p7E=;
+        s=korg; t=1698277743;
+        bh=yHhze7yhaMPM/CqMdFqHvEv3LxUzUrsmquJeBXw74xE=;
         h=Date:To:From:Subject:From;
-        b=tnlAq0Z6QLoHV+8kLfGrxSd2K1EO24/+mFaS8IbfWO5AKQLEkFtq7gEKflKkE+iwX
-         CvXEIpvnpyxygZxQtUJxnlYl7PS/i0hAKMaBSi0/pWkWhOoS9dUBJt7EjQrz5EFbzL
-         3Z/+RN5mRlxUYAQOi+yILYWUw5p67j9AfKzN2r3E=
-Date:   Wed, 25 Oct 2023 16:48:57 -0700
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
-        willy@infradead.org, david@redhat.com,
-        baolin.wang@linux.alibaba.com, ziy@nvidia.com,
-        akpm@linux-foundation.org
+        b=QFvmJxmgM9SeW6lgnr0aYL5QHSq+StbLOsy8iEKOzz84Y8OCH1bhaK1VTYJzUHo6O
+         HM6rLVe2lncuLcJeo4T5OysD7D34IhBNIh/DkE4VU4fd/98aKUuKigUpF1EM5/DVLQ
+         JM/xCyI4nm6Hes41HiuM2Xy/zazK2h68mUfa19Og=
+Date:   Wed, 25 Oct 2023 16:49:02 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        wangkefeng.wang@huawei.com, shy828301@gmail.com, david@redhat.com,
+        vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-migrate-correct-nr_failed-in-migrate_pages_sync.patch removed from -mm tree
-Message-Id: <20231025234858.90243C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-khugepaged-convert-__collapse_huge_page_isolate-to-use-folios.patch removed from -mm tree
+Message-Id: <20231025234903.A3320C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,119 +37,161 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/migrate: correct nr_failed in migrate_pages_sync()
+     Subject: mm/khugepaged: convert __collapse_huge_page_isolate() to use folios
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-correct-nr_failed-in-migrate_pages_sync.patch
+     mm-khugepaged-convert-__collapse_huge_page_isolate-to-use-folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/migrate: correct nr_failed in migrate_pages_sync()
-Date: Tue, 17 Oct 2023 12:31:28 -0400
+From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Subject: mm/khugepaged: convert __collapse_huge_page_isolate() to use folios
+Date: Fri, 20 Oct 2023 11:33:27 -0700
 
-nr_failed was missing the large folio splits from migrate_pages_batch()
-and can cause a mismatch between migrate_pages() return value and the
-number of not migrated pages, i.e., when the return value of
-migrate_pages() is 0, there are still pages left in the from page list. 
-It will happen when a non-PMD THP large folio fails to migrate due to
--ENOMEM and is split successfully but not all the split pages are not
-migrated, migrate_pages_batch() would return non-zero, but
-astats.nr_thp_split = 0.  nr_failed would be 0 and returned to the caller
-of migrate_pages(), but the not migrated pages are left in the from page
-list without being added back to LRU lists.
+Patch series "Some khugepaged folio conversions", v3.
 
-Fix it by adding a new nr_split counter for large folio splits and adding
-it to nr_failed in migrate_page_sync() after migrate_pages_batch() is
-done.
+This patchset converts a number of functions to use folios.  This cleans
+up some khugepaged code and removes a large number of hidden
+compound_head() calls.
 
-Link: https://lkml.kernel.org/r/20231017163129.2025214-1-zi.yan@sent.com
-Fixes: 2ef7dbb26990 ("migrate_pages: try migrate in batch asynchronously firstly")
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Huang Ying <ying.huang@intel.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+
+This patch (of 5):
+
+Replaces 11 calls to compound_head() with 1, and removes 1348 bytes of
+kernel text.
+
+Link: https://lkml.kernel.org/r/20231020183331.10770-1-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20231020183331.10770-2-vishal.moola@gmail.com
+Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+ mm/khugepaged.c |   45 +++++++++++++++++++++++----------------------
+ 1 file changed, 23 insertions(+), 22 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-correct-nr_failed-in-migrate_pages_sync
-+++ a/mm/migrate.c
-@@ -1495,6 +1495,7 @@ struct migrate_pages_stats {
- 	int nr_thp_succeeded;	/* THP migrated successfully */
- 	int nr_thp_failed;	/* THP failed to be migrated */
- 	int nr_thp_split;	/* THP split before migrating */
-+	int nr_split;	/* Large folio (include THP) split before migrating */
- };
+--- a/mm/khugepaged.c~mm-khugepaged-convert-__collapse_huge_page_isolate-to-use-folios
++++ a/mm/khugepaged.c
+@@ -542,6 +542,7 @@ static int __collapse_huge_page_isolate(
+ 					struct list_head *compound_pagelist)
+ {
+ 	struct page *page = NULL;
++	struct folio *folio = NULL;
+ 	pte_t *_pte;
+ 	int none_or_zero = 0, shared = 0, result = SCAN_FAIL, referenced = 0;
+ 	bool writable = false;
+@@ -576,7 +577,8 @@ static int __collapse_huge_page_isolate(
+ 			goto out;
+ 		}
  
- /*
-@@ -1614,6 +1615,7 @@ static int migrate_pages_batch(struct li
- 	int nr_retry_pages = 0;
- 	int pass = 0;
- 	bool is_thp = false;
-+	bool is_large = false;
- 	struct folio *folio, *folio2, *dst = NULL, *dst2;
- 	int rc, rc_saved = 0, nr_pages;
- 	LIST_HEAD(unmap_folios);
-@@ -1629,7 +1631,8 @@ static int migrate_pages_batch(struct li
- 		nr_retry_pages = 0;
+-		VM_BUG_ON_PAGE(!PageAnon(page), page);
++		folio = page_folio(page);
++		VM_BUG_ON_FOLIO(!folio_test_anon(folio), folio);
  
- 		list_for_each_entry_safe(folio, folio2, from, lru) {
--			is_thp = folio_test_large(folio) && folio_test_pmd_mappable(folio);
-+			is_large = folio_test_large(folio);
-+			is_thp = is_large && folio_test_pmd_mappable(folio);
- 			nr_pages = folio_nr_pages(folio);
+ 		if (page_mapcount(page) > 1) {
+ 			++shared;
+@@ -588,16 +590,15 @@ static int __collapse_huge_page_isolate(
+ 			}
+ 		}
  
- 			cond_resched();
-@@ -1649,6 +1652,7 @@ static int migrate_pages_batch(struct li
- 				stats->nr_thp_failed++;
- 				if (!try_split_folio(folio, split_folios)) {
- 					stats->nr_thp_split++;
-+					stats->nr_split++;
- 					continue;
- 				}
- 				stats->nr_failed_pages += nr_pages;
-@@ -1677,11 +1681,12 @@ static int migrate_pages_batch(struct li
- 				nr_failed++;
- 				stats->nr_thp_failed += is_thp;
- 				/* Large folio NUMA faulting doesn't split to retry. */
--				if (folio_test_large(folio) && !nosplit) {
-+				if (is_large && !nosplit) {
- 					int ret = try_split_folio(folio, split_folios);
+-		if (PageCompound(page)) {
+-			struct page *p;
+-			page = compound_head(page);
++		if (folio_test_large(folio)) {
++			struct folio *f;
  
- 					if (!ret) {
- 						stats->nr_thp_split += is_thp;
-+						stats->nr_split += is_large;
- 						break;
- 					} else if (reason == MR_LONGTERM_PIN &&
- 						   ret == -EAGAIN) {
-@@ -1827,6 +1832,7 @@ static int migrate_pages_sync(struct lis
- 	stats->nr_succeeded += astats.nr_succeeded;
- 	stats->nr_thp_succeeded += astats.nr_thp_succeeded;
- 	stats->nr_thp_split += astats.nr_thp_split;
-+	stats->nr_split += astats.nr_split;
- 	if (rc < 0) {
- 		stats->nr_failed_pages += astats.nr_failed_pages;
- 		stats->nr_thp_failed += astats.nr_thp_failed;
-@@ -1834,7 +1840,11 @@ static int migrate_pages_sync(struct lis
- 		return rc;
+ 			/*
+ 			 * Check if we have dealt with the compound page
+ 			 * already
+ 			 */
+-			list_for_each_entry(p, compound_pagelist, lru) {
+-				if (page == p)
++			list_for_each_entry(f, compound_pagelist, lru) {
++				if (folio == f)
+ 					goto next;
+ 			}
+ 		}
+@@ -608,7 +609,7 @@ static int __collapse_huge_page_isolate(
+ 		 * is needed to serialize against split_huge_page
+ 		 * when invoked from the VM.
+ 		 */
+-		if (!trylock_page(page)) {
++		if (!folio_trylock(folio)) {
+ 			result = SCAN_PAGE_LOCK;
+ 			goto out;
+ 		}
+@@ -624,8 +625,8 @@ static int __collapse_huge_page_isolate(
+ 		 * but not from this process. The other process cannot write to
+ 		 * the page, only trigger CoW.
+ 		 */
+-		if (!is_refcount_suitable(page)) {
+-			unlock_page(page);
++		if (!is_refcount_suitable(&folio->page)) {
++			folio_unlock(folio);
+ 			result = SCAN_PAGE_COUNT;
+ 			goto out;
+ 		}
+@@ -634,27 +635,27 @@ static int __collapse_huge_page_isolate(
+ 		 * Isolate the page to avoid collapsing an hugepage
+ 		 * currently in use by the VM.
+ 		 */
+-		if (!isolate_lru_page(page)) {
+-			unlock_page(page);
++		if (!folio_isolate_lru(folio)) {
++			folio_unlock(folio);
+ 			result = SCAN_DEL_PAGE_LRU;
+ 			goto out;
+ 		}
+-		mod_node_page_state(page_pgdat(page),
+-				NR_ISOLATED_ANON + page_is_file_lru(page),
+-				compound_nr(page));
+-		VM_BUG_ON_PAGE(!PageLocked(page), page);
+-		VM_BUG_ON_PAGE(PageLRU(page), page);
++		node_stat_mod_folio(folio,
++				NR_ISOLATED_ANON + folio_is_file_lru(folio),
++				folio_nr_pages(folio));
++		VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
++		VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
+ 
+-		if (PageCompound(page))
+-			list_add_tail(&page->lru, compound_pagelist);
++		if (folio_test_large(folio))
++			list_add_tail(&folio->lru, compound_pagelist);
+ next:
+ 		/*
+ 		 * If collapse was initiated by khugepaged, check that there is
+ 		 * enough young pte to justify collapsing the page
+ 		 */
+ 		if (cc->is_khugepaged &&
+-		    (pte_young(pteval) || page_is_young(page) ||
+-		     PageReferenced(page) || mmu_notifier_test_young(vma->vm_mm,
++		    (pte_young(pteval) || folio_test_young(folio) ||
++		     folio_test_referenced(folio) || mmu_notifier_test_young(vma->vm_mm,
+ 								     address)))
+ 			referenced++;
+ 
+@@ -668,13 +669,13 @@ next:
+ 		result = SCAN_LACK_REFERENCED_PAGE;
+ 	} else {
+ 		result = SCAN_SUCCEED;
+-		trace_mm_collapse_huge_page_isolate(page, none_or_zero,
++		trace_mm_collapse_huge_page_isolate(&folio->page, none_or_zero,
+ 						    referenced, writable, result);
+ 		return result;
  	}
- 	stats->nr_thp_failed += astats.nr_thp_split;
--	nr_failed += astats.nr_thp_split;
-+	/*
-+	 * Do not count rc, as pages will be retried below.
-+	 * Count nr_split only, since it includes nr_thp_split.
-+	 */
-+	nr_failed += astats.nr_split;
- 	/*
- 	 * Fall back to migrate all failed folios one by one synchronously. All
- 	 * failed folios except split THPs will be retried, so their failure
+ out:
+ 	release_pte_pages(pte, _pte, compound_pagelist);
+-	trace_mm_collapse_huge_page_isolate(page, none_or_zero,
++	trace_mm_collapse_huge_page_isolate(&folio->page, none_or_zero,
+ 					    referenced, writable, result);
+ 	return result;
+ }
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from vishal.moola@gmail.com are
 
 
