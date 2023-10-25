@@ -2,37 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C4E6C25B6F
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:50:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A798C25B6B
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:50:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234943AbjJYXu2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Oct 2023 19:50:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34162 "EHLO
+        id S234955AbjJYXua (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Oct 2023 19:50:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44980 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234031AbjJYXtP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:49:15 -0400
+        with ESMTP id S234959AbjJYXtQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:49:16 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA3F410D5
-        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:49:00 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9628CC433C7;
-        Wed, 25 Oct 2023 23:49:00 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EBFBF10E4
+        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:49:05 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86AF1C433C7;
+        Wed, 25 Oct 2023 23:49:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698277740;
-        bh=3Gijs/OWgyn1D+fO2+mOJ5JRCO96ppMqLZhQRGcWzEc=;
+        s=korg; t=1698277745;
+        bh=CEly+PxuSnoJrMWQZH8qmqZWc3Bip+VYYnBj1u2UeVw=;
         h=Date:To:From:Subject:From;
-        b=HBubiHRLLDsS4LbG587bm/OPsTr4wF3wGynHQvsD9B0wzM1WyyaY4J8X2OgQf2J3Z
-         JwG/YWDoySYftEL2qPE7aTSGtXpcOpHrjSiS1JkbnEPjxaYFXsNNlJEm37pAavagFM
-         DXzMF6QYdI3nY7ZulHOCqTAvPMKbSUWaHYSXUamU=
-Date:   Wed, 25 Oct 2023 16:49:00 -0700
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
-        willy@infradead.org, vbabka@suse.cz, rppt@kernel.org,
-        osalvador@suse.de, mingo@kernel.org, mhocko@suse.com,
-        mgorman@techsingularity.net, hannes@cmpxchg.org, david@redhat.com,
-        aneesh.kumar@linux.ibm.com, zhengqi.arch@bytedance.com,
-        akpm@linux-foundation.org
+        b=cvWYAcdorgCNKMK+LYJa4c2jvQTw4rwi7KKfdo7b58AMrc/eB3ivr8Wm3NiklWFKQ
+         I7vKBODOJb/KLwi4hxfzKnf8Q6FdvR8z8Cm9Vwk41I67IYvdD3i0muvJmjqyyU6vo3
+         /7D2GVgfZqUVKrzWJX0j8CDzHKQT2nDc+WqSQPy8=
+Date:   Wed, 25 Oct 2023 16:49:04 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        wangkefeng.wang@huawei.com, shy828301@gmail.com, david@redhat.com,
+        vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-skip-memoryless-nodes-entirely.patch removed from -mm tree
-Message-Id: <20231025234900.9628CC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-khugepaged-convert-is_refcount_suitable-to-use-folios.patch removed from -mm tree
+Message-Id: <20231025234905.86AF1C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,98 +37,79 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: page_alloc: skip memoryless nodes entirely
+     Subject: mm/khugepaged: convert is_refcount_suitable() to use folios
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-skip-memoryless-nodes-entirely.patch
+     mm-khugepaged-convert-is_refcount_suitable-to-use-folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: page_alloc: skip memoryless nodes entirely
-Date: Thu, 19 Oct 2023 18:43:54 +0800
+From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Subject: mm/khugepaged: convert is_refcount_suitable() to use folios
+Date: Fri, 20 Oct 2023 11:33:29 -0700
 
-Patch series "handle memoryless nodes more appropriately", v3.
+Both callers of is_refcount_suitable() have been converted to use
+folios, so convert it to take in a folio. Both callers only operate on
+head pages of folios so mapcount/refcount conversions here are trivial.
 
-Currently, in the process of initialization or offline memory, memoryless
-nodes will still be built into the fallback list of itself or other nodes.
+Removes 3 calls to compound head, and removes 315 bytes of kernel text.
 
-This is not what we expected, so this patch series removes memoryless
-nodes from the fallback list entirely.
-
-
-This patch (of 2):
-
-In find_next_best_node(), we skipped the memoryless nodes when building
-the zonelists of other normal nodes (N_NORMAL), but did not skip the
-memoryless node itself when building the zonelist.  This will cause it to
-be traversed at runtime.
-
-For example, say we have node0 and node1, node0 is memoryless
-node, then the fallback order of node0 and node1 as follows:
-
-[    0.153005] Fallback order for Node 0: 0 1
-[    0.153564] Fallback order for Node 1: 1
-
-After this patch, we skip memoryless node0 entirely, then
-the fallback order of node0 and node1 as follows:
-
-[    0.155236] Fallback order for Node 0: 1
-[    0.155806] Fallback order for Node 1: 1
-
-So it becomes completely invisible, which will reduce runtime
-overhead.
-
-And in this way, we will not try to allocate pages from memoryless node0,
-then the panic mentioned in [1] will also be fixed.  Even though this
-problem has been solved by dropping the NODE_MIN_SIZE constrain in x86
-[2], it would be better to fix it in core MM as well.
-
-[1]. https://lore.kernel.org/all/20230212110305.93670-1-zhengqi.arch@bytedance.com/
-[2]. https://lore.kernel.org/all/20231017062215.171670-1-rppt@kernel.org/
-
-[zhengqi.arch@bytedance.com: update comment, per Ingo]
-  Link: https://lkml.kernel.org/r/7300fc00a057eefeb9a68c8ad28171c3f0ce66ce.1697799303.git.zhengqi.arch@bytedance.com
-Link: https://lkml.kernel.org/r/cover.1697799303.git.zhengqi.arch@bytedance.com
-Link: https://lkml.kernel.org/r/cover.1697711415.git.zhengqi.arch@bytedance.com
-Link: https://lkml.kernel.org/r/157013e978468241de4a4c05d5337a44638ecb0e.1697711415.git.zhengqi.arch@bytedance.com
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Ingo Molnar <mingo@kernel.org>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20231020183331.10770-4-vishal.moola@gmail.com
+Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/khugepaged.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-skip-memoryless-nodes-entirely
-+++ a/mm/page_alloc.c
-@@ -5020,8 +5020,11 @@ int find_next_best_node(int node, nodema
- 	int min_val = INT_MAX;
- 	int best_node = NUMA_NO_NODE;
- 
--	/* Use the local node if we haven't already */
--	if (!node_isset(node, *used_node_mask)) {
-+	/*
-+	 * Use the local node if we haven't already, but for memoryless local
-+	 * node, we should skip it and fall back to other nodes.
-+	 */
-+	if (!node_isset(node, *used_node_mask) && node_state(node, N_MEMORY)) {
- 		node_set(node, *used_node_mask);
- 		return node;
+--- a/mm/khugepaged.c~mm-khugepaged-convert-is_refcount_suitable-to-use-folios
++++ a/mm/khugepaged.c
+@@ -524,15 +524,15 @@ static void release_pte_pages(pte_t *pte
  	}
+ }
+ 
+-static bool is_refcount_suitable(struct page *page)
++static bool is_refcount_suitable(struct folio *folio)
+ {
+ 	int expected_refcount;
+ 
+-	expected_refcount = total_mapcount(page);
+-	if (PageSwapCache(page))
+-		expected_refcount += compound_nr(page);
++	expected_refcount = folio_mapcount(folio);
++	if (folio_test_swapcache(folio))
++		expected_refcount += folio_nr_pages(folio);
+ 
+-	return page_count(page) == expected_refcount;
++	return folio_ref_count(folio) == expected_refcount;
+ }
+ 
+ static int __collapse_huge_page_isolate(struct vm_area_struct *vma,
+@@ -625,7 +625,7 @@ static int __collapse_huge_page_isolate(
+ 		 * but not from this process. The other process cannot write to
+ 		 * the page, only trigger CoW.
+ 		 */
+-		if (!is_refcount_suitable(&folio->page)) {
++		if (!is_refcount_suitable(folio)) {
+ 			folio_unlock(folio);
+ 			result = SCAN_PAGE_COUNT;
+ 			goto out;
+@@ -1371,7 +1371,7 @@ static int hpage_collapse_scan_pmd(struc
+ 		 * has excessive GUP pins (i.e. 512).  Anyway the same check
+ 		 * will be done again later the risk seems low.
+ 		 */
+-		if (!is_refcount_suitable(&folio->page)) {
++		if (!is_refcount_suitable(folio)) {
+ 			result = SCAN_PAGE_COUNT;
+ 			goto out_unmap;
+ 		}
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from vishal.moola@gmail.com are
 
 
