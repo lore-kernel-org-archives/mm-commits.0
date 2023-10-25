@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BEB3C27C47
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:48:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CE8FC25B6E
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:49:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231218AbjJYXs7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Oct 2023 19:48:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53802 "EHLO
+        id S232398AbjJYXtC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Oct 2023 19:49:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53698 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232329AbjJYXs0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:48:26 -0400
+        with ESMTP id S232431AbjJYXsp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:48:45 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 90F71182
-        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:48:24 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 286E4C433CC;
-        Wed, 25 Oct 2023 23:48:24 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E11FE1B5
+        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:48:31 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC1B1C433C9;
+        Wed, 25 Oct 2023 23:48:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698277704;
-        bh=NNkBIIFAiGlSlUO+BzIlbTox1/XoB6AjM+BhOlVyI6M=;
+        s=korg; t=1698277711;
+        bh=Jtez9TTraGKnQwvN+c8xrCLClBAnKP4chcchQFM/948=;
         h=Date:To:From:Subject:From;
-        b=yNCGfrQhQg/ieADH3yCQC3TgqXNM0aUzdY35sdFe+YmuQciRvADmLDU7vKFBnNAdn
-         9ikIsINzy0TkM3g5bFpRQO/8OzlaffyamBNxah+ngvJuSiLGruBUB11HHGWbNdCz9a
-         gX2brWHS63dmkMsRoH2e18mIFxwLvgfHl8GjT2H0=
-Date:   Wed, 25 Oct 2023 16:48:23 -0700
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        sudeep.holla@arm.com, pasha.tatashin@soleen.com, mhocko@suse.com,
-        mgorman@techsingularity.net, jweiner@redhat.com, david@redhat.com,
-        dave.hansen@linux.intel.com, cl@linux.com, arjan@linux.intel.com,
-        ying.huang@intel.com, akpm@linux-foundation.org
+        b=ch2wEVXrsVxU+AlB0LLfssv/rPhVgWcNTyLQ1xoC7/Pr9gXs4jfkHugJkgoFlzcEj
+         LYd+QESv8g0BGTQv/Lcgi7C9pbFSdszzmYTruXmMJZboIT6AIjCGvhTDftIx+gpLnj
+         pXtw/S3J5qn5McfL8iH/0wwtgaIsJpQLN69ablVM=
+Date:   Wed, 25 Oct 2023 16:48:31 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, shakeelb@google.com,
+        rientjes@google.com, naresh.kamboju@linaro.org,
+        muchun.song@linux.dev, mhocko@kernel.org, hannes@cmpxchg.org,
+        dennis@kernel.org, roman.gushchin@linux.dev,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-pcp-decrease-pcp-high-if-free-pages-high-watermark.patch removed from -mm tree
-Message-Id: <20231025234824.286E4C433CC@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kmem-reimplement-get_obj_cgroup_from_current.patch removed from -mm tree
+Message-Id: <20231025234831.AC1B1C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,128 +39,107 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm, pcp: decrease PCP high if free pages < high watermark
+     Subject: mm: kmem: reimplement get_obj_cgroup_from_current()
 has been removed from the -mm tree.  Its filename was
-     mm-pcp-decrease-pcp-high-if-free-pages-high-watermark.patch
+     mm-kmem-reimplement-get_obj_cgroup_from_current.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm, pcp: decrease PCP high if free pages < high watermark
-Date: Mon, 16 Oct 2023 13:30:01 +0800
+From: Roman Gushchin <roman.gushchin@linux.dev>
+Subject: mm: kmem: reimplement get_obj_cgroup_from_current()
+Date: Thu, 19 Oct 2023 15:53:46 -0700
 
-One target of PCP is to minimize pages in PCP if the system free pages is
-too few.  To reach that target, when page reclaiming is active for the
-zone (ZONE_RECLAIM_ACTIVE), we will stop increasing PCP high in allocating
-path, decrease PCP high and free some pages in freeing path.  But this may
-be too late because the background page reclaiming may introduce latency
-for some workloads.  So, in this patch, during page allocation we will
-detect whether the number of free pages of the zone is below high
-watermark.  If so, we will stop increasing PCP high in allocating path,
-decrease PCP high and free some pages in freeing path.  With this, we can
-reduce the possibility of the premature background page reclaiming caused
-by too large PCP.
+Reimplement get_obj_cgroup_from_current() using current_obj_cgroup(). 
+get_obj_cgroup_from_current() and current_obj_cgroup() share 80% of the
+code, so the new implementation is almost trivial.
 
-The high watermark checking is done in allocating path to reduce the
-overhead in hotter freeing path.
+get_obj_cgroup_from_current() is a convenient function used by the
+bpf subsystem, so there is no reason to get rid of it completely.
 
-Link: https://lkml.kernel.org/r/20231016053002.756205-9-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>
+Link: https://lkml.kernel.org/r/20231019225346.1822282-7-roman.gushchin@linux.dev
+Signed-off-by: Roman Gushchin (Cruise) <roman.gushchin@linux.dev>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Shakeel Butt <shakeelb@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    1 +
- mm/page_alloc.c        |   33 +++++++++++++++++++++++++++++++--
- 2 files changed, 32 insertions(+), 2 deletions(-)
+ include/linux/memcontrol.h |   11 ++++++++++-
+ mm/memcontrol.c            |   32 --------------------------------
+ 2 files changed, 10 insertions(+), 33 deletions(-)
 
---- a/include/linux/mmzone.h~mm-pcp-decrease-pcp-high-if-free-pages-high-watermark
-+++ a/include/linux/mmzone.h
-@@ -1016,6 +1016,7 @@ enum zone_flags {
- 					 * Cleared when kswapd is woken.
- 					 */
- 	ZONE_RECLAIM_ACTIVE,		/* kswapd may be scanning the zone. */
-+	ZONE_BELOW_HIGH,		/* zone is below high watermark. */
- };
+--- a/include/linux/memcontrol.h~mm-kmem-reimplement-get_obj_cgroup_from_current
++++ a/include/linux/memcontrol.h
+@@ -1805,9 +1805,18 @@ void __memcg_kmem_uncharge_page(struct p
+  * needs to be used outside of the local scope.
+  */
+ struct obj_cgroup *current_obj_cgroup(void);
+-struct obj_cgroup *get_obj_cgroup_from_current(void);
+ struct obj_cgroup *get_obj_cgroup_from_folio(struct folio *folio);
  
- static inline unsigned long zone_managed_pages(struct zone *zone)
---- a/mm/page_alloc.c~mm-pcp-decrease-pcp-high-if-free-pages-high-watermark
-+++ a/mm/page_alloc.c
-@@ -2407,7 +2407,13 @@ static int nr_pcp_high(struct per_cpu_pa
- 		return min(batch << 2, pcp->high);
- 	}
- 
--	if (pcp->count >= high && high_min != high_max) {
-+	if (high_min == high_max)
-+		return high;
++static inline struct obj_cgroup *get_obj_cgroup_from_current(void)
++{
++	struct obj_cgroup *objcg = current_obj_cgroup();
 +
-+	if (test_bit(ZONE_BELOW_HIGH, &zone->flags)) {
-+		pcp->high = max(high - (batch << pcp->free_factor), high_min);
-+		high = max(pcp->count, high_min);
-+	} else if (pcp->count >= high) {
- 		int need_high = (batch << pcp->free_factor) + batch;
++	if (objcg)
++		obj_cgroup_get(objcg);
++
++	return objcg;
++}
++
+ int obj_cgroup_charge(struct obj_cgroup *objcg, gfp_t gfp, size_t size);
+ void obj_cgroup_uncharge(struct obj_cgroup *objcg, size_t size);
  
- 		/* pcp->high should be large enough to hold batch freed pages */
-@@ -2457,6 +2463,10 @@ static void free_unref_page_commit(struc
- 	if (pcp->count >= high) {
- 		free_pcppages_bulk(zone, nr_pcp_free(pcp, batch, high, free_high),
- 				   pcp, pindex);
-+		if (test_bit(ZONE_BELOW_HIGH, &zone->flags) &&
-+		    zone_watermark_ok(zone, 0, high_wmark_pages(zone),
-+				      ZONE_MOVABLE, 0))
-+			clear_bit(ZONE_BELOW_HIGH, &zone->flags);
- 	}
+--- a/mm/memcontrol.c~mm-kmem-reimplement-get_obj_cgroup_from_current
++++ a/mm/memcontrol.c
+@@ -3138,38 +3138,6 @@ static struct obj_cgroup *current_objcg_
+ 	return objcg;
  }
  
-@@ -2763,7 +2773,7 @@ static int nr_pcp_alloc(struct per_cpu_p
- 	 * If we had larger pcp->high, we could avoid to allocate from
- 	 * zone.
- 	 */
--	if (high_min != high_max && !test_bit(ZONE_RECLAIM_ACTIVE, &zone->flags))
-+	if (high_min != high_max && !test_bit(ZONE_BELOW_HIGH, &zone->flags))
- 		high = pcp->high = min(high + batch, high_max);
- 
- 	if (!order) {
-@@ -3225,6 +3235,25 @@ retry:
- 			}
- 		}
- 
-+		/*
-+		 * Detect whether the number of free pages is below high
-+		 * watermark.  If so, we will decrease pcp->high and free
-+		 * PCP pages in free path to reduce the possibility of
-+		 * premature page reclaiming.  Detection is done here to
-+		 * avoid to do that in hotter free path.
-+		 */
-+		if (test_bit(ZONE_BELOW_HIGH, &zone->flags))
-+			goto check_alloc_wmark;
-+
-+		mark = high_wmark_pages(zone);
-+		if (zone_watermark_fast(zone, order, mark,
-+					ac->highest_zoneidx, alloc_flags,
-+					gfp_mask))
-+			goto try_this_zone;
-+		else
-+			set_bit(ZONE_BELOW_HIGH, &zone->flags);
-+
-+check_alloc_wmark:
- 		mark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK);
- 		if (!zone_watermark_fast(zone, order, mark,
- 				       ac->highest_zoneidx, alloc_flags,
+-__always_inline struct obj_cgroup *get_obj_cgroup_from_current(void)
+-{
+-	struct mem_cgroup *memcg;
+-	struct obj_cgroup *objcg;
+-
+-	if (in_task()) {
+-		memcg = current->active_memcg;
+-		if (unlikely(memcg))
+-			goto from_memcg;
+-
+-		objcg = READ_ONCE(current->objcg);
+-		if (unlikely((unsigned long)objcg & CURRENT_OBJCG_UPDATE_FLAG))
+-			objcg = current_objcg_update();
+-
+-		if (objcg) {
+-			obj_cgroup_get(objcg);
+-			return objcg;
+-		}
+-	} else {
+-		memcg = this_cpu_read(int_active_memcg);
+-		if (unlikely(memcg))
+-			goto from_memcg;
+-	}
+-	return NULL;
+-
+-from_memcg:
+-	rcu_read_lock();
+-	objcg = __get_obj_cgroup_from_memcg(memcg);
+-	rcu_read_unlock();
+-	return objcg;
+-}
+-
+ __always_inline struct obj_cgroup *current_obj_cgroup(void)
+ {
+ 	struct mem_cgroup *memcg;
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from roman.gushchin@linux.dev are
 
 
