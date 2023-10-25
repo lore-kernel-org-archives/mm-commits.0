@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CE8FC25B6E
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:49:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63682C25B6B
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:49:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232398AbjJYXtC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Oct 2023 19:49:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53698 "EHLO
+        id S233179AbjJYXtB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Oct 2023 19:49:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36150 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232431AbjJYXsp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:48:45 -0400
+        with ESMTP id S233183AbjJYXsm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:48:42 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E11FE1B5
-        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:48:31 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC1B1C433C9;
-        Wed, 25 Oct 2023 23:48:31 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD56B19A
+        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:48:29 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99308C433CA;
+        Wed, 25 Oct 2023 23:48:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698277711;
-        bh=Jtez9TTraGKnQwvN+c8xrCLClBAnKP4chcchQFM/948=;
+        s=korg; t=1698277709;
+        bh=ybxx7vZM4telh5QQI4nwmhKUPLCsv7IhCYHzDw1MxuI=;
         h=Date:To:From:Subject:From;
-        b=ch2wEVXrsVxU+AlB0LLfssv/rPhVgWcNTyLQ1xoC7/Pr9gXs4jfkHugJkgoFlzcEj
-         LYd+QESv8g0BGTQv/Lcgi7C9pbFSdszzmYTruXmMJZboIT6AIjCGvhTDftIx+gpLnj
-         pXtw/S3J5qn5McfL8iH/0wwtgaIsJpQLN69ablVM=
-Date:   Wed, 25 Oct 2023 16:48:31 -0700
+        b=mTE520T9YB8UOoFWk8Y6kk7ecTIkvrmh58vXUDVWM24AtVcuUC5gkmjPnhyng+1+L
+         +25GNndx2EXGTNTWrISiXAKOIhk0urTEW4bnzAg5qNC8madeRB45BdfCOIYT6P7JbL
+         Cx+W4qZTNJMUD5jlufm8qeQqTjPxjz9DE4ONMYIw=
+Date:   Wed, 25 Oct 2023 16:48:29 -0700
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, shakeelb@google.com,
         rientjes@google.com, naresh.kamboju@linaro.org,
         muchun.song@linux.dev, mhocko@kernel.org, hannes@cmpxchg.org,
         dennis@kernel.org, roman.gushchin@linux.dev,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-kmem-reimplement-get_obj_cgroup_from_current.patch removed from -mm tree
-Message-Id: <20231025234831.AC1B1C433C9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kmem-scoped-objcg-protection.patch removed from -mm tree
+Message-Id: <20231025234829.99308C433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,105 +39,194 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: kmem: reimplement get_obj_cgroup_from_current()
+     Subject: mm: kmem: scoped objcg protection
 has been removed from the -mm tree.  Its filename was
-     mm-kmem-reimplement-get_obj_cgroup_from_current.patch
+     mm-kmem-scoped-objcg-protection.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Roman Gushchin <roman.gushchin@linux.dev>
-Subject: mm: kmem: reimplement get_obj_cgroup_from_current()
-Date: Thu, 19 Oct 2023 15:53:46 -0700
+Subject: mm: kmem: scoped objcg protection
+Date: Thu, 19 Oct 2023 15:53:44 -0700
 
-Reimplement get_obj_cgroup_from_current() using current_obj_cgroup(). 
-get_obj_cgroup_from_current() and current_obj_cgroup() share 80% of the
-code, so the new implementation is almost trivial.
+Switch to a scope-based protection of the objcg pointer on slab/kmem
+allocation paths.  Instead of using the get_() semantics in the
+pre-allocation hook and put the reference afterwards, let's rely on the
+fact that objcg is pinned by the scope.
 
-get_obj_cgroup_from_current() is a convenient function used by the
-bpf subsystem, so there is no reason to get rid of it completely.
+It's possible because:
+1) if the objcg is received from the current task struct, the task is
+   keeping a reference to the objcg.
+2) if the objcg is received from an active memcg (remote charging),
+   the memcg is pinned by the scope and has a reference to the
+   corresponding objcg.
 
-Link: https://lkml.kernel.org/r/20231019225346.1822282-7-roman.gushchin@linux.dev
+Link: https://lkml.kernel.org/r/20231019225346.1822282-5-roman.gushchin@linux.dev
 Signed-off-by: Roman Gushchin (Cruise) <roman.gushchin@linux.dev>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Tested-by: Naresh Kamboju <naresh.kamboju@linaro.org>
 Acked-by: Shakeel Butt <shakeelb@google.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Dennis Zhou <dennis@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   11 ++++++++++-
- mm/memcontrol.c            |   32 --------------------------------
- 2 files changed, 10 insertions(+), 33 deletions(-)
+ include/linux/memcontrol.h |    9 ++++++
+ include/linux/sched/mm.h   |    4 ++
+ mm/memcontrol.c            |   47 +++++++++++++++++++++++++++++++++--
+ mm/slab.h                  |   15 +++++------
+ 4 files changed, 66 insertions(+), 9 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-kmem-reimplement-get_obj_cgroup_from_current
+--- a/include/linux/memcontrol.h~mm-kmem-scoped-objcg-protection
 +++ a/include/linux/memcontrol.h
-@@ -1805,9 +1805,18 @@ void __memcg_kmem_uncharge_page(struct p
-  * needs to be used outside of the local scope.
-  */
- struct obj_cgroup *current_obj_cgroup(void);
--struct obj_cgroup *get_obj_cgroup_from_current(void);
+@@ -1796,6 +1796,15 @@ bool mem_cgroup_kmem_disabled(void);
+ int __memcg_kmem_charge_page(struct page *page, gfp_t gfp, int order);
+ void __memcg_kmem_uncharge_page(struct page *page, int order);
+ 
++/*
++ * The returned objcg pointer is safe to use without additional
++ * protection within a scope. The scope is defined either by
++ * the current task (similar to the "current" global variable)
++ * or by set_active_memcg() pair.
++ * Please, use obj_cgroup_get() to get a reference if the pointer
++ * needs to be used outside of the local scope.
++ */
++struct obj_cgroup *current_obj_cgroup(void);
+ struct obj_cgroup *get_obj_cgroup_from_current(void);
  struct obj_cgroup *get_obj_cgroup_from_folio(struct folio *folio);
  
-+static inline struct obj_cgroup *get_obj_cgroup_from_current(void)
+--- a/include/linux/sched/mm.h~mm-kmem-scoped-objcg-protection
++++ a/include/linux/sched/mm.h
+@@ -403,6 +403,10 @@ DECLARE_PER_CPU(struct mem_cgroup *, int
+  * __GFP_ACCOUNT allocations till the end of the scope will be charged to the
+  * given memcg.
+  *
++ * Please, make sure that caller has a reference to the passed memcg structure,
++ * so its lifetime is guaranteed to exceed the scope between two
++ * set_active_memcg() calls.
++ *
+  * NOTE: This function can nest. Users must save the return value and
+  * reset the previous value after their own charging scope is over.
+  */
+--- a/mm/memcontrol.c~mm-kmem-scoped-objcg-protection
++++ a/mm/memcontrol.c
+@@ -3170,6 +3170,49 @@ from_memcg:
+ 	return objcg;
+ }
+ 
++__always_inline struct obj_cgroup *current_obj_cgroup(void)
 +{
-+	struct obj_cgroup *objcg = current_obj_cgroup();
++	struct mem_cgroup *memcg;
++	struct obj_cgroup *objcg;
 +
-+	if (objcg)
-+		obj_cgroup_get(objcg);
++	if (in_task()) {
++		memcg = current->active_memcg;
++		if (unlikely(memcg))
++			goto from_memcg;
++
++		objcg = READ_ONCE(current->objcg);
++		if (unlikely((unsigned long)objcg & CURRENT_OBJCG_UPDATE_FLAG))
++			objcg = current_objcg_update();
++		/*
++		 * Objcg reference is kept by the task, so it's safe
++		 * to use the objcg by the current task.
++		 */
++		return objcg;
++	}
++
++	memcg = this_cpu_read(int_active_memcg);
++	if (unlikely(memcg))
++		goto from_memcg;
++
++	return NULL;
++
++from_memcg:
++	for (; !mem_cgroup_is_root(memcg); memcg = parent_mem_cgroup(memcg)) {
++		/*
++		 * Memcg pointer is protected by scope (see set_active_memcg())
++		 * and is pinning the corresponding objcg, so objcg can't go
++		 * away and can be used within the scope without any additional
++		 * protection.
++		 */
++		objcg = rcu_dereference_check(memcg->objcg, 1);
++		if (likely(objcg))
++			break;
++		objcg = NULL;
++	}
 +
 +	return objcg;
 +}
 +
- int obj_cgroup_charge(struct obj_cgroup *objcg, gfp_t gfp, size_t size);
- void obj_cgroup_uncharge(struct obj_cgroup *objcg, size_t size);
+ struct obj_cgroup *get_obj_cgroup_from_folio(struct folio *folio)
+ {
+ 	struct obj_cgroup *objcg;
+@@ -3264,15 +3307,15 @@ int __memcg_kmem_charge_page(struct page
+ 	struct obj_cgroup *objcg;
+ 	int ret = 0;
  
---- a/mm/memcontrol.c~mm-kmem-reimplement-get_obj_cgroup_from_current
-+++ a/mm/memcontrol.c
-@@ -3138,38 +3138,6 @@ static struct obj_cgroup *current_objcg_
- 	return objcg;
+-	objcg = get_obj_cgroup_from_current();
++	objcg = current_obj_cgroup();
+ 	if (objcg) {
+ 		ret = obj_cgroup_charge_pages(objcg, gfp, 1 << order);
+ 		if (!ret) {
++			obj_cgroup_get(objcg);
+ 			page->memcg_data = (unsigned long)objcg |
+ 				MEMCG_DATA_KMEM;
+ 			return 0;
+ 		}
+-		obj_cgroup_put(objcg);
+ 	}
+ 	return ret;
+ }
+--- a/mm/slab.h~mm-kmem-scoped-objcg-protection
++++ a/mm/slab.h
+@@ -484,7 +484,12 @@ static inline bool memcg_slab_pre_alloc_
+ 	if (!(flags & __GFP_ACCOUNT) && !(s->flags & SLAB_ACCOUNT))
+ 		return true;
+ 
+-	objcg = get_obj_cgroup_from_current();
++	/*
++	 * The obtained objcg pointer is safe to use within the current scope,
++	 * defined by current task or set_active_memcg() pair.
++	 * obj_cgroup_get() is used to get a permanent reference.
++	 */
++	objcg = current_obj_cgroup();
+ 	if (!objcg)
+ 		return true;
+ 
+@@ -497,17 +502,14 @@ static inline bool memcg_slab_pre_alloc_
+ 		css_put(&memcg->css);
+ 
+ 		if (ret)
+-			goto out;
++			return false;
+ 	}
+ 
+ 	if (obj_cgroup_charge(objcg, flags, objects * obj_full_size(s)))
+-		goto out;
++		return false;
+ 
+ 	*objcgp = objcg;
+ 	return true;
+-out:
+-	obj_cgroup_put(objcg);
+-	return false;
  }
  
--__always_inline struct obj_cgroup *get_obj_cgroup_from_current(void)
--{
--	struct mem_cgroup *memcg;
--	struct obj_cgroup *objcg;
--
--	if (in_task()) {
--		memcg = current->active_memcg;
--		if (unlikely(memcg))
--			goto from_memcg;
--
--		objcg = READ_ONCE(current->objcg);
--		if (unlikely((unsigned long)objcg & CURRENT_OBJCG_UPDATE_FLAG))
--			objcg = current_objcg_update();
--
--		if (objcg) {
--			obj_cgroup_get(objcg);
--			return objcg;
--		}
--	} else {
--		memcg = this_cpu_read(int_active_memcg);
--		if (unlikely(memcg))
--			goto from_memcg;
--	}
--	return NULL;
--
--from_memcg:
--	rcu_read_lock();
--	objcg = __get_obj_cgroup_from_memcg(memcg);
--	rcu_read_unlock();
--	return objcg;
--}
--
- __always_inline struct obj_cgroup *current_obj_cgroup(void)
- {
- 	struct mem_cgroup *memcg;
+ static inline void memcg_slab_post_alloc_hook(struct kmem_cache *s,
+@@ -542,7 +544,6 @@ static inline void memcg_slab_post_alloc
+ 			obj_cgroup_uncharge(objcg, obj_full_size(s));
+ 		}
+ 	}
+-	obj_cgroup_put(objcg);
+ }
+ 
+ static inline void memcg_slab_free_hook(struct kmem_cache *s, struct slab *slab,
 _
 
 Patches currently in -mm which might be from roman.gushchin@linux.dev are
