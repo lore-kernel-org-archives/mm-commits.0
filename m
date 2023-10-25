@@ -2,104 +2,153 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7C7CC0032E
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 16:42:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CD40C0032E
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 20:11:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232398AbjJYQmR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Oct 2023 12:42:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40110 "EHLO
+        id S229893AbjJYULh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Oct 2023 16:11:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46748 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229583AbjJYQmQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 12:42:16 -0400
+        with ESMTP id S229441AbjJYULg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 16:11:36 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8F7DF128
-        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 09:42:14 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F9CAC433C7;
-        Wed, 25 Oct 2023 16:42:14 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4550181
+        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 13:11:34 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71F12C433C7;
+        Wed, 25 Oct 2023 20:11:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698252134;
-        bh=kkG/mBOIFFvgTWQf1dE8E0ZuFFvrugq5F+2uWG5F0kU=;
+        s=korg; t=1698264694;
+        bh=WE57SUNBmmkUFGyVyjhSYK7sDNOTo/Db55weU+C1g/o=;
         h=Date:To:From:Subject:From;
-        b=IHpU16QDbJ8LLPsN8o/6YyguLsOouIgetKVS66XRBd3SV1gD5n0KTZduIdlHGbQY3
-         +ybsJa1WvT7iK60S8F9YGcpaf6Xk2Hl+mlsNfORXfRQsi3YtY+LIOStSBa2fvLHtm6
-         EVCGaDpLwtcyqLrdRPk4gYmNCOHKn9iGpGcpwYMg=
-Date:   Wed, 25 Oct 2023 09:42:13 -0700
-To:     mm-commits@vger.kernel.org, nathan@kernel.org, hch@lst.de,
-        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
+        b=nfGNJPeVr+unMId9h+g8DVoP5XO7KbIq0I+SU9VbPEG4rFerTOIqK5LkBw760Rrbh
+         zsf5p3r2nVPuG9cQlTc+tyxFKHz1J7MXF1f1AQGHL4z8TgN9DX9KmFeNtgVeakiL4+
+         sYnfmEkRpbxFYSgIw15OK4Rt9bdawWJIgwGI1hyw=
+Date:   Wed, 25 Oct 2023 13:11:32 -0700
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, hughd@google.com,
+        adobriyan@gmail.com, swarupkotikalapudi@gmail.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] mm-cma-report-correct-node-id.patch removed from -mm tree
-Message-Id: <20231025164214.2F9CAC433C7@smtp.kernel.org>
+Subject: + selftests-proc-protectionkey-check-in-smpas-test.patch added to mm-nonmm-unstable branch
+Message-Id: <20231025201134.71F12C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm: cma: report correct node id
-has been removed from the -mm tree.  Its filename was
-     mm-cma-report-correct-node-id.patch
+The patch titled
+     Subject: selftests:proc ProtectionKey check in smpas test
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     selftests-proc-protectionkey-check-in-smpas-test.patch
 
-This patch was dropped because it had testing failures
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-proc-protectionkey-check-in-smpas-test.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: cma: report correct node id
-Date: Thu, 19 Oct 2023 09:32:53 +0800
+From: Swarup Laxman Kotiaklapudi <swarupkotikalapudi@gmail.com>
+Subject: selftests:proc ProtectionKey check in smpas test
+Date: Thu, 26 Oct 2023 01:06:27 +0530
 
-cma_declare_contiguous_nid()'s printk can show an invalid node ID:
+Check ProtectionKey field in /proc/*/smaps output, if system supports
+page-based memory permissions.
 
-cma: Reserved 32 MiB at 0x00000000fe000000 on node -1
-
-Use early_pfn_to_nid() to get correct node id from base instead of the
-default NUMA_NO_NODE in cma_declare_contiguous_nid(), so users will
-instead see
-
-cma: Reserved 32 MiB at 0x00000000fe000000 on node 0
-
-Link: https://lkml.kernel.org/r/20231019013253.2792048-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Nathan Chancellor <nathan@kernel.org>
+Link: https://lkml.kernel.org/r/20231025193627.316508-1-swarupkotikalapudi@gmail.com
+Signed-off-by: Swarup Laxman Kotiaklapudi <swarupkotikalapudi@gmail.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    3 +++
- 1 file changed, 3 insertions(+)
+ tools/testing/selftests/proc/proc-empty-vm.c |   38 ++++++++++-------
+ 1 file changed, 23 insertions(+), 15 deletions(-)
 
---- a/mm/cma.c~mm-cma-report-correct-node-id
-+++ a/mm/cma.c
-@@ -375,6 +375,9 @@ int __init cma_declare_contiguous_nid(ph
- 	if (ret)
- 		goto free_mem;
+--- a/tools/testing/selftests/proc/proc-empty-vm.c~selftests-proc-protectionkey-check-in-smpas-test
++++ a/tools/testing/selftests/proc/proc-empty-vm.c
+@@ -37,6 +37,7 @@
+ #include <sys/types.h>
+ #include <sys/wait.h>
+ #include <unistd.h>
++#include "../kselftest.h"
  
-+	if (nid == NUMA_NO_NODE)
-+		nid = early_pfn_to_nid(PHYS_PFN(base));
+ #ifdef __amd64__
+ #define TEST_VSYSCALL
+@@ -83,10 +84,7 @@ static const char proc_pid_smaps_vsyscal
+ "SwapPss:               0 kB\n"
+ "Locked:                0 kB\n"
+ "THPeligible:           0\n"
+-/*
+- * "ProtectionKey:" field is conditional. It is possible to check it as well,
+- * but I don't have such machine.
+- */
++"ProtectionKey:         0\n"
+ ;
+ 
+ static const char proc_pid_smaps_vsyscall_2[] =
+@@ -113,10 +111,7 @@ static const char proc_pid_smaps_vsyscal
+ "SwapPss:               0 kB\n"
+ "Locked:                0 kB\n"
+ "THPeligible:           0\n"
+-/*
+- * "ProtectionKey:" field is conditional. It is possible to check it as well,
+- * but I'm too tired.
+- */
++"ProtectionKey:         0\n"
+ ;
+ 
+ static void sigaction_SIGSEGV(int _, siginfo_t *__, void *___)
+@@ -241,13 +236,26 @@ static int test_proc_pid_smaps(pid_t pid
+ 	} else {
+ 		ssize_t rv = read(fd, buf, sizeof(buf));
+ 		close(fd);
+-		if (g_vsyscall == 0) {
+-			assert(rv == 0);
+-		} else {
+-			size_t len = strlen(g_proc_pid_maps_vsyscall);
+-			/* TODO "ProtectionKey:" */
+-			assert(rv > len);
+-			assert(memcmp(buf, g_proc_pid_maps_vsyscall, len) == 0);
++		assert(rv >= 0);
++		assert(rv <= sizeof(buf));
++		if (g_vsyscall != 0) {
++			int pkey = pkey_alloc(0, 0);
 +
- 	pr_info("Reserved %ld MiB at %pa on node %d\n", (unsigned long)size / SZ_1M,
- 		&base, nid);
- 	return 0;
++			if (pkey < 0) {
++				size_t len = strlen(g_proc_pid_maps_vsyscall);
++
++				assert(rv > len);
++				assert(memcmp(buf, g_proc_pid_maps_vsyscall, len) == 0);
++			} else {
++				pkey_free(pkey);
++				static const char * const S[] = {
++					"ProtectionKey:         0\n"
++				};
++				int i;
++
++				for (i = 0; i < ARRAY_SIZE(S); i++)
++					assert(memmem(buf, rv, S[i], strlen(S[i])));
++			}
+ 		}
+ 		return EXIT_SUCCESS;
+ 	}
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from swarupkotikalapudi@gmail.com are
 
-mm_types-add-virtual-and-_last_cpupid-into-struct-folio.patch
-mm-add-folio_last_cpupid.patch
-mm-memory-use-folio_last_cpupid-in-do_numa_page.patch
-mm-huge_memory-use-folio_last_cpupid-in-do_huge_pmd_numa_page.patch
-mm-huge_memory-use-folio_last_cpupid-in-__split_huge_page_tail.patch
-mm-remove-page_cpupid_last.patch
-mm-add-folio_xchg_access_time.patch
-sched-fair-use-folio_xchg_access_time-in-numa_hint_fault_latency.patch
-mm-mprotect-use-a-folio-in-change_pte_range.patch
-mm-huge_memory-use-a-folio-in-change_huge_pmd.patch
-mm-remove-xchg_page_access_time.patch
-mm-add-folio_xchg_last_cpupid.patch
-sched-fair-use-folio_xchg_last_cpupid-in-should_numa_migrate_memory.patch
-mm-migrate-use-folio_xchg_last_cpupid-in-folio_migrate_flags.patch
-mm-huge_memory-use-folio_xchg_last_cpupid-in-__split_huge_page_tail.patch
-mm-make-finish_mkwrite_fault-static.patch
-mm-convert-wp_page_reuse-and-finish_mkwrite_fault-to-take-a-folio.patch
-mm-use-folio_xchg_last_cpupid-in-wp_page_reuse.patch
-mm-remove-page_cpupid_xchg_last.patch
+selftests-proc-protectionkey-check-in-smpas-test.patch
 
