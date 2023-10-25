@@ -2,37 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A192C25B6F
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:48:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F24CCC25B71
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:48:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234874AbjJYXsx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Oct 2023 19:48:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36098 "EHLO
+        id S231652AbjJYXs6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Oct 2023 19:48:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56136 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233147AbjJYXsW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:48:22 -0400
+        with ESMTP id S231218AbjJYXs1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:48:27 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 375FF191
-        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:48:20 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7E20C433C7;
-        Wed, 25 Oct 2023 23:48:19 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B7BB183
+        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:48:25 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 447C8C433C8;
+        Wed, 25 Oct 2023 23:48:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698277699;
-        bh=QtouwT7yumRd6YzryvMaMJ0glVsXUcgDcIPrYIMDD3M=;
+        s=korg; t=1698277705;
+        bh=dbDoRwBUyhf4IHqKpsp/Ww5xGavCdEhEtOpDSngSpYI=;
         h=Date:To:From:Subject:From;
-        b=vkQBDcPJosP4Sfl2e7Bl7TGVTCtl6nlxXUuX0qhG9lBvZZWk8RuOj9VSy3GVgSOqQ
-         ifkXhnudCRrBJRyTPyNOTfkBxXvpTZtdKcHeysHsfqCgXmMdE/8DNT+ENMjwovwCY2
-         s7X6xMt5cq7zKYgV2MC8Bl4pzb4pQXg1+9grRL2M=
-Date:   Wed, 25 Oct 2023 16:48:19 -0700
+        b=b4b9qN9zJz+F5FXtkqjC6bR0U8NKblaBlQe8vutezh8aVDPFOjamWHCFM0TijBzFK
+         QyoORWKrKo38y5XM0xduPOnn8q1C6BwcEJR8GjTpZ7lI2VsNDxElY7qpmL3ojkD3Ax
+         deme+e/DEbNZK6cJFg9oyaq1O5U4L6XHVGtPnHIQ=
+Date:   Wed, 25 Oct 2023 16:48:24 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         sudeep.holla@arm.com, pasha.tatashin@soleen.com, mhocko@suse.com,
         mgorman@techsingularity.net, jweiner@redhat.com, david@redhat.com,
         dave.hansen@linux.intel.com, cl@linux.com, arjan@linux.intel.com,
-        akpm@linux-foundation.org, ying.huang@intel.com,
-        akpm@linux-foundation.org
+        ying.huang@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-restrict-the-pcp-batch-scale-factor-to-avoid-too-long-latency.patch removed from -mm tree
-Message-Id: <20231025234819.C7E20C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-pcp-reduce-detecting-time-of-consecutive-high-order-page-freeing.patch removed from -mm tree
+Message-Id: <20231025234825.447C8C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,134 +39,39 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: restrict the pcp batch scale factor to avoid too long latency
+     Subject: mm, pcp: reduce detecting time of consecutive high order page freeing
 has been removed from the -mm tree.  Its filename was
-     mm-restrict-the-pcp-batch-scale-factor-to-avoid-too-long-latency.patch
+     mm-pcp-reduce-detecting-time-of-consecutive-high-order-page-freeing.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: mm: restrict the pcp batch scale factor to avoid too long latency
-Date: Mon, 16 Oct 2023 13:29:57 +0800
+Subject: mm, pcp: reduce detecting time of consecutive high order page freeing
+Date: Mon, 16 Oct 2023 13:30:02 +0800
 
-In page allocator, PCP (Per-CPU Pageset) is refilled and drained in
-batches to increase page allocation throughput, reduce page
-allocation/freeing latency per page, and reduce zone lock contention.  But
-too large batch size will cause too long maximal allocation/freeing
-latency, which may punish arbitrary users.  So the default batch size is
-chosen carefully (in zone_batchsize(), the value is 63 for zone > 1GB) to
-avoid that.
+In current PCP auto-tuning design, if the number of pages allocated is
+much more than that of pages freed on a CPU, the PCP high may become the
+maximal value even if the allocating/freeing depth is small, for example,
+in the sender of network workloads.  If a CPU was used as sender
+originally, then it is used as receiver after context switching, we need
+to fill the whole PCP with maximal high before triggering PCP draining for
+consecutive high order freeing.  This will hurt the performance of some
+network workloads.
 
-In commit 3b12e7e97938 ("mm/page_alloc: scale the number of pages that are
-batch freed"), the batch size will be scaled for large number of page
-freeing to improve page freeing performance and reduce zone lock
-contention.  Similar optimization can be used for large number of pages
-allocation too.
+To solve the issue, in this patch, we will track the consecutive page
+freeing with a counter in stead of relying on PCP draining.  So, we can
+detect consecutive page freeing much earlier.
 
-To find out a suitable max batch scale factor (that is, max effective
-batch size), some tests and measurement on some machines were done as
-follows.
+On a 2-socket Intel server with 128 logical CPU, we tested
+SCTP_STREAM_MANY test case of netperf test suite with 64-pair processes. 
+With the patch, the network bandwidth improves 5.0%.  This restores the
+performance drop caused by PCP auto-tuning.
 
-A set of debug patches are implemented as follows,
-
-- Set PCP high to be 2 * batch to reduce the effect of PCP high
-
-- Disable free batch size scaling to get the raw performance.
-
-- The code with zone lock held is extracted from rmqueue_bulk() and
-  free_pcppages_bulk() to 2 separate functions to make it easy to
-  measure the function run time with ftrace function_graph tracer.
-
-- The batch size is hard coded to be 63 (default), 127, 255, 511,
-  1023, 2047, 4095.
-
-Then will-it-scale/page_fault1 is used to generate the page
-allocation/freeing workload.  The page allocation/freeing throughput
-(page/s) is measured via will-it-scale.  The page allocation/freeing
-average latency (alloc/free latency avg, in us) and allocation/freeing
-latency at 99 percentile (alloc/free latency 99%, in us) are measured with
-ftrace function_graph tracer.
-
-The test results are as follows,
-
-Sapphire Rapids Server
-======================
-Batch	throughput	free latency	free latency	alloc latency	alloc latency
-	page/s		avg / us	99% / us	avg / us	99% / us
------	----------	------------	------------	-------------	-------------
-  63	513633.4	 2.33		 3.57		 2.67		  6.83
- 127	517616.7	 4.35		 6.65		 4.22		 13.03
- 255	520822.8	 8.29		13.32		 7.52		 25.24
- 511	524122.0	15.79		23.42		14.02		 49.35
-1023	525980.5	30.25		44.19		25.36		 94.88
-2047	526793.6	59.39		84.50		45.22		140.81
-
-Ice Lake Server
-===============
-Batch	throughput	free latency	free latency	alloc latency	alloc latency
-	page/s		avg / us	99% / us	avg / us	99% / us
------	----------	------------	------------	-------------	-------------
-  63	620210.3	 2.21		 3.68		 2.02		 4.35
- 127	627003.0	 4.09		 6.86		 3.51		 8.28
- 255	630777.5	 7.70		13.50		 6.17		15.97
- 511	633651.5	14.85		22.62		11.66		31.08
-1023	637071.1	28.55		42.02		20.81		54.36
-2047	638089.7	56.54		84.06		39.28		91.68
-
-Cascade Lake Server
-===================
-Batch	throughput	free latency	free latency	alloc latency	alloc latency
-	page/s		avg / us	99% / us	avg / us	99% / us
------	----------	------------	------------	-------------	-------------
-  63	404706.7	 3.29		  5.03		 3.53		  4.75
- 127	422475.2	 6.12		  9.09		 6.36		  8.76
- 255	411522.2	11.68		 16.97		10.90		 16.39
- 511	428124.1	22.54		 31.28		19.86		 32.25
-1023	414718.4	43.39		 62.52		40.00		 66.33
-2047	429848.7	86.64		120.34		71.14		106.08
-
-Commet Lake Desktop
-===================
-Batch	throughput	free latency	free latency	alloc latency	alloc latency
-	page/s		avg / us	99% / us	avg / us	99% / us
------	----------	------------	------------	-------------	-------------
-
-  63	795183.13	 2.18		 3.55		 2.03		 3.05
- 127	803067.85	 3.91		 6.56		 3.85		 5.52
- 255	812771.10	 7.35		10.80		 7.14		10.20
- 511	817723.48	14.17		27.54		13.43		30.31
-1023	818870.19	27.72		40.10		27.89		46.28
-
-Coffee Lake Desktop
-===================
-Batch	throughput	free latency	free latency	alloc latency	alloc latency
-	page/s		avg / us	99% / us	avg / us	99% / us
------	----------	------------	------------	-------------	-------------
-  63	510542.8	 3.13		  4.40		 2.48		 3.43
- 127	514288.6	 5.97		  7.89		 4.65		 6.04
- 255	516889.7	11.86		 15.58		 8.96		12.55
- 511	519802.4	23.10		 28.81		16.95		26.19
-1023	520802.7	45.30		 52.51		33.19		45.95
-2047	519997.1	90.63		104.00		65.26		81.74
-
-From the above data, to restrict the allocation/freeing latency to be less
-than 100 us in most times, the max batch scale factor needs to be less
-than or equal to 5.
-
-Although it is reasonable to use 5 as max batch scale factor for the
-systems tested, there are also slower systems.  Where smaller value should
-be used to constrain the page allocation/freeing latency.
-
-So, in this patch, a new kconfig option (PCP_BATCH_SCALE_MAX) is added to
-set the max batch scale factor.  Whose default value is 5, and users can
-reduce it when necessary.
-
-Link: https://lkml.kernel.org/r/20231016053002.756205-5-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20231016053002.756205-10-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Acked-by: Andrew Morton <akpm@linux-foundation.org>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Johannes Weiner <jweiner@redhat.com>
@@ -181,41 +85,105 @@ Cc: Sudeep Holla <sudeep.holla@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig      |   11 +++++++++++
- mm/page_alloc.c |    2 +-
- 2 files changed, 12 insertions(+), 1 deletion(-)
+ include/linux/mmzone.h |    2 +-
+ mm/page_alloc.c        |   27 +++++++++++++++------------
+ 2 files changed, 16 insertions(+), 13 deletions(-)
 
---- a/mm/Kconfig~mm-restrict-the-pcp-batch-scale-factor-to-avoid-too-long-latency
-+++ a/mm/Kconfig
-@@ -705,6 +705,17 @@ config HUGETLB_PAGE_SIZE_VARIABLE
- config CONTIG_ALLOC
- 	def_bool (MEMORY_ISOLATION && COMPACTION) || CMA
+--- a/include/linux/mmzone.h~mm-pcp-reduce-detecting-time-of-consecutive-high-order-page-freeing
++++ a/include/linux/mmzone.h
+@@ -698,10 +698,10 @@ struct per_cpu_pages {
+ 	int batch;		/* chunk size for buddy add/remove */
+ 	u8 flags;		/* protected by pcp->lock */
+ 	u8 alloc_factor;	/* batch scaling factor during allocate */
+-	u8 free_factor;		/* batch scaling factor during free */
+ #ifdef CONFIG_NUMA
+ 	u8 expire;		/* When 0, remote pagesets are drained */
+ #endif
++	short free_count;	/* consecutive free count */
  
-+config PCP_BATCH_SCALE_MAX
-+	int "Maximum scale factor of PCP (Per-CPU pageset) batch allocate/free"
-+	default 5
-+	range 0 6
-+	help
-+	  In page allocator, PCP (Per-CPU pageset) is refilled and drained in
-+	  batches.  The batch number is scaled automatically to improve page
-+	  allocation/free throughput.  But too large scale factor may hurt
-+	  latency.  This option sets the upper limit of scale factor to limit
-+	  the maximum latency.
-+
- config PHYS_ADDR_T_64BIT
- 	def_bool 64BIT
- 
---- a/mm/page_alloc.c~mm-restrict-the-pcp-batch-scale-factor-to-avoid-too-long-latency
+ 	/* Lists of pages, one per migrate type stored on the pcp-lists */
+ 	struct list_head lists[NR_PCP_LISTS];
+--- a/mm/page_alloc.c~mm-pcp-reduce-detecting-time-of-consecutive-high-order-page-freeing
 +++ a/mm/page_alloc.c
-@@ -2340,7 +2340,7 @@ static int nr_pcp_free(struct per_cpu_pa
- 	 * freeing of pages without any allocation.
- 	 */
- 	batch <<= pcp->free_factor;
--	if (batch < max_nr_free)
-+	if (batch < max_nr_free && pcp->free_factor < CONFIG_PCP_BATCH_SCALE_MAX)
- 		pcp->free_factor++;
- 	batch = clamp(batch, min_nr_free, max_nr_free);
+@@ -2369,13 +2369,10 @@ static int nr_pcp_free(struct per_cpu_pa
+ 	max_nr_free = high - batch;
  
+ 	/*
+-	 * Double the number of pages freed each time there is subsequent
+-	 * freeing of pages without any allocation.
++	 * Increase the batch number to the number of the consecutive
++	 * freed pages to reduce zone lock contention.
+ 	 */
+-	batch <<= pcp->free_factor;
+-	if (batch <= max_nr_free && pcp->free_factor < CONFIG_PCP_BATCH_SCALE_MAX)
+-		pcp->free_factor++;
+-	batch = clamp(batch, min_nr_free, max_nr_free);
++	batch = clamp_t(int, pcp->free_count, min_nr_free, max_nr_free);
+ 
+ 	return batch;
+ }
+@@ -2403,7 +2400,9 @@ static int nr_pcp_high(struct per_cpu_pa
+ 	 * stored on pcp lists
+ 	 */
+ 	if (test_bit(ZONE_RECLAIM_ACTIVE, &zone->flags)) {
+-		pcp->high = max(high - (batch << pcp->free_factor), high_min);
++		int free_count = max_t(int, pcp->free_count, batch);
++
++		pcp->high = max(high - free_count, high_min);
+ 		return min(batch << 2, pcp->high);
+ 	}
+ 
+@@ -2411,10 +2410,12 @@ static int nr_pcp_high(struct per_cpu_pa
+ 		return high;
+ 
+ 	if (test_bit(ZONE_BELOW_HIGH, &zone->flags)) {
+-		pcp->high = max(high - (batch << pcp->free_factor), high_min);
++		int free_count = max_t(int, pcp->free_count, batch);
++
++		pcp->high = max(high - free_count, high_min);
+ 		high = max(pcp->count, high_min);
+ 	} else if (pcp->count >= high) {
+-		int need_high = (batch << pcp->free_factor) + batch;
++		int need_high = pcp->free_count + batch;
+ 
+ 		/* pcp->high should be large enough to hold batch freed pages */
+ 		if (pcp->high < need_high)
+@@ -2451,7 +2452,7 @@ static void free_unref_page_commit(struc
+ 	 * stops will be drained from vmstat refresh context.
+ 	 */
+ 	if (order && order <= PAGE_ALLOC_COSTLY_ORDER) {
+-		free_high = (pcp->free_factor &&
++		free_high = (pcp->free_count >= batch &&
+ 			     (pcp->flags & PCPF_PREV_FREE_HIGH_ORDER) &&
+ 			     (!(pcp->flags & PCPF_FREE_HIGH_BATCH) ||
+ 			      pcp->count >= READ_ONCE(batch)));
+@@ -2459,6 +2460,8 @@ static void free_unref_page_commit(struc
+ 	} else if (pcp->flags & PCPF_PREV_FREE_HIGH_ORDER) {
+ 		pcp->flags &= ~PCPF_PREV_FREE_HIGH_ORDER;
+ 	}
++	if (pcp->free_count < (batch << CONFIG_PCP_BATCH_SCALE_MAX))
++		pcp->free_count += (1 << order);
+ 	high = nr_pcp_high(pcp, zone, batch, free_high);
+ 	if (pcp->count >= high) {
+ 		free_pcppages_bulk(zone, nr_pcp_free(pcp, batch, high, free_high),
+@@ -2855,7 +2858,7 @@ static struct page *rmqueue_pcplist(stru
+ 	 * See nr_pcp_free() where free_factor is increased for subsequent
+ 	 * frees.
+ 	 */
+-	pcp->free_factor >>= 1;
++	pcp->free_count >>= 1;
+ 	list = &pcp->lists[order_to_pindex(migratetype, order)];
+ 	page = __rmqueue_pcplist(zone, order, migratetype, alloc_flags, pcp, list);
+ 	pcp_spin_unlock(pcp);
+@@ -5488,7 +5491,7 @@ static void per_cpu_pages_init(struct pe
+ 	pcp->high_min = BOOT_PAGESET_HIGH;
+ 	pcp->high_max = BOOT_PAGESET_HIGH;
+ 	pcp->batch = BOOT_PAGESET_BATCH;
+-	pcp->free_factor = 0;
++	pcp->free_count = 0;
+ }
+ 
+ static void __zone_set_pageset_high_and_batch(struct zone *zone, unsigned long high_min,
 _
 
 Patches currently in -mm which might be from ying.huang@intel.com are
