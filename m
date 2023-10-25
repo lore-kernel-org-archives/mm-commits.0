@@ -2,63 +2,80 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 826F4C07545
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 20:18:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 757E9C0032E
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 20:18:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229776AbjJYUSe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Oct 2023 16:18:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40318 "EHLO
+        id S234673AbjJYUS4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Oct 2023 16:18:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37404 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229695AbjJYUSe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 16:18:34 -0400
+        with ESMTP id S229881AbjJYUSx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 16:18:53 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2FE7AA4
-        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 13:18:32 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AD35C433C7;
-        Wed, 25 Oct 2023 20:18:31 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D509123
+        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 13:18:51 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 282A0C433C8;
+        Wed, 25 Oct 2023 20:18:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698265111;
-        bh=XWQ6Kd4NdjZkT2Ivk2W+QocoPPB7TukBHWMQiC2lXA4=;
+        s=korg; t=1698265131;
+        bh=bUbzuIm5tdHWQiem/zl4AM7uIsBH9l98JbnbXg27oxU=;
         h=Date:To:From:Subject:From;
-        b=cQbiYUyD/S7l6aWEO0aUUEj1zAkQPCC3CurIDsGxpKWMyM0bE0e71sjZYP7CmTdzT
-         ToLVWzvHuGufKkwJBMT5HYfJgziP0EqFNTJzzqF2re5y+kDPyEJPBPdlaGC3FQn71E
-         5lWtnwyheMGzhfDKo5is7Wbe4EKAyblHCkOnvf/w=
-Date:   Wed, 25 Oct 2023 13:18:30 -0700
+        b=yQ2hZKkvcStm5c5hQjHEqsGsM3pog3/6kwr78Yhzm9xYRNCONXs8vmEjo1LV8+mJ4
+         JNXme8rIIEdPMWw9rnvqyaGVQI3Ek5jxPFFAPpFQHU8ur7/KwBFIlvMLhV0ehS+7w3
+         hUN0PRf92YvexoyxMce95YWDaF8WB9YOlJCtgHCs=
+Date:   Wed, 25 Oct 2023 13:18:50 -0700
 To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
         vitaly.wool@konsulko.com, sjenning@redhat.com, shakeelb@google.com,
         roman.gushchin@linux.dev, muchun.song@linux.dev, mhocko@kernel.org,
         hannes@cmpxchg.org, ddstreet@ieee.org, cerasuolodomenico@gmail.com,
         nphamcs@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] zswap-export-more-zswap-store-failure-stats.patch removed from -mm tree
-Message-Id: <20231025201831.7AD35C433C7@smtp.kernel.org>
+Subject: + zswap-export-compression-failure-stats.patch added to mm-unstable branch
+Message-Id: <20231025201851.282A0C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: zswap: export more zswap store failure stats
-has been removed from the -mm tree.  Its filename was
-     zswap-export-more-zswap-store-failure-stats.patch
+The patch titled
+     Subject: zswap: export compression failure stats
+has been added to the -mm mm-unstable branch.  Its filename is
+     zswap-export-compression-failure-stats.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zswap-export-compression-failure-stats.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Nhat Pham <nphamcs@gmail.com>
-Subject: zswap: export more zswap store failure stats
-Date: Mon, 23 Oct 2023 17:07:02 -0700
+Subject: zswap: export compression failure stats
+Date: Tue, 24 Oct 2023 16:45:09 -0700
 
-Since commit 42c06a0e8ebe ("mm: kill frontswap") we no longer have a
-counter to tracks the number of zswap store failures.  This makes it hard
-to investigate and monitor for zswap issues.
+During a zswap store attempt, the compression algorithm could fail (for
+e.g due to the page containing incompressible random data).  This is not
+tracked in any of existing zswap counters, making it hard to monitor for
+and investigate.  We have run into this problem several times in our
+internal investigations on zswap store failures.
 
-This patch adds a global and a per-cgroup zswap store failure counter,
-as well as a dedicated debugfs counter for compression algorithm failure
-(which can happen for e.g when random data are passed to zswap).
+This patch adds a dedicated debugfs counter for compression algorithm
+failures.
 
-Link: https://lkml.kernel.org/r/20231024000702.1387130-1-nphamcs@gmail.com
+Link: https://lkml.kernel.org/r/20231024234509.2680539-1-nphamcs@gmail.com
 Signed-off-by: Nhat Pham <nphamcs@gmail.com>
 Cc: Dan Streetman <ddstreet@ieee.org>
 Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
@@ -73,43 +90,10 @@ Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vm_event_item.h |    1 +
- mm/memcontrol.c               |    1 +
- mm/vmstat.c                   |    1 +
- mm/zswap.c                    |   18 ++++++++++++++----
- 4 files changed, 17 insertions(+), 4 deletions(-)
+ mm/zswap.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/include/linux/vm_event_item.h~zswap-export-more-zswap-store-failure-stats
-+++ a/include/linux/vm_event_item.h
-@@ -145,6 +145,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- #ifdef CONFIG_ZSWAP
- 		ZSWPIN,
- 		ZSWPOUT,
-+		ZSWPOUT_FAIL,
- #endif
- #ifdef CONFIG_X86
- 		DIRECT_MAP_LEVEL2_SPLIT,
---- a/mm/memcontrol.c~zswap-export-more-zswap-store-failure-stats
-+++ a/mm/memcontrol.c
-@@ -593,6 +593,7 @@ static const unsigned int memcg_vm_event
- #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
- 	ZSWPIN,
- 	ZSWPOUT,
-+	ZSWPOUT_FAIL,
- #endif
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	THP_FAULT_ALLOC,
---- a/mm/vmstat.c~zswap-export-more-zswap-store-failure-stats
-+++ a/mm/vmstat.c
-@@ -1401,6 +1401,7 @@ const char * const vmstat_text[] = {
- #ifdef CONFIG_ZSWAP
- 	"zswpin",
- 	"zswpout",
-+	"zswpout_fail",
- #endif
- #ifdef CONFIG_X86
- 	"direct_map_level2_splits",
---- a/mm/zswap.c~zswap-export-more-zswap-store-failure-stats
+--- a/mm/zswap.c~zswap-export-compression-failure-stats
 +++ a/mm/zswap.c
 @@ -62,6 +62,8 @@ static u64 zswap_pool_limit_hit;
  static u64 zswap_written_back_pages;
@@ -120,19 +104,6 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  /* Compressed page was too big for the allocator to (optimally) store */
  static u64 zswap_reject_compress_poor;
  /* Store failed because underlying allocator could not get memory */
-@@ -1221,10 +1223,10 @@ bool zswap_store(struct folio *folio)
- 
- 	/* Large folios aren't supported */
- 	if (folio_test_large(folio))
--		return false;
-+		goto out_reject;
- 
- 	if (!zswap_enabled || !tree)
--		return false;
-+		goto out_reject;
- 
- 	/*
- 	 * If this is a duplicate, it must be removed before attempting to store
 @@ -1317,8 +1319,10 @@ bool zswap_store(struct folio *folio)
  	ret = crypto_wait_req(crypto_acomp_compress(acomp_ctx->req), &acomp_ctx->wait);
  	dlen = acomp_ctx->req->dlen;
@@ -145,21 +116,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
  	/* store */
  	zpool = zswap_find_zpool(entry);
-@@ -1385,8 +1389,12 @@ put_dstmem:
- freepage:
- 	zswap_entry_cache_free(entry);
- reject:
--	if (objcg)
-+	if (objcg) {
-+		count_objcg_event(objcg, ZSWPOUT_FAIL);
- 		obj_cgroup_put(objcg);
-+	}
-+out_reject:
-+	count_vm_event(ZSWPOUT_FAIL);
- 	return false;
- 
- shrink:
-@@ -1558,6 +1566,8 @@ static int zswap_debugfs_init(void)
+@@ -1558,6 +1562,8 @@ static int zswap_debugfs_init(void)
  			   zswap_debugfs_root, &zswap_reject_alloc_fail);
  	debugfs_create_u64("reject_kmemcache_fail", 0444,
  			   zswap_debugfs_root, &zswap_reject_kmemcache_fail);
