@@ -2,34 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19326C0032E
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:50:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF62BC25B6F
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:50:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232935AbjJYXuO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Oct 2023 19:50:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34092 "EHLO
+        id S232431AbjJYXuQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Oct 2023 19:50:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53710 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233203AbjJYXtI (ORCPT
+        with ESMTP id S234871AbjJYXtI (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:49:08 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D3B510C9
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2E2F10CC
         for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:48:57 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDCA1C433C7;
-        Wed, 25 Oct 2023 23:48:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE081C433C9;
+        Wed, 25 Oct 2023 23:48:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698277736;
-        bh=dVlLnWj7cS6HJuoCmTZdk2Ziev0gvH2yUD/Yju1KeTc=;
+        s=korg; t=1698277737;
+        bh=pW3wQaeC0HfO16iueVqMxlNvfJGkz00y+w9ghpWhG9Y=;
         h=Date:To:From:Subject:From;
-        b=1ZqRiyGYNnAvV9kHc4Vyih/oG1KTWMyGxcTNFia7UQXAHH6usTjcRfu8GJpvFRz0l
-         t+8VjBLL/cYvNatAH/cVC0aeIugI5kvFNjjRDpbO8Qu1KB0YZ2v+vNKJUhVPWlY2U+
-         ZTQfnIYAntVb0k2i766F+9eZqeumwu2fTfuzJ5mQ=
-Date:   Wed, 25 Oct 2023 16:48:56 -0700
-To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
-        patrick.wang.shcn@gmail.com, catalin.marinas@arm.com,
+        b=O8JT8eeVzlLHa8aFLRzQ0Y2a+IvlUFGKpyCVWctCKf51vKc1pnmcBfmPiw4ZtgfB6
+         U3wvbbKs9IeHwyoUvttJaCpvBoPZ54HRyaYmH6aJ7UXcsKkjlly37zffLDcStqG9b/
+         dN2a4ou4t81/1DQASDgGyOEeTt1SnxeNnBgwIw28=
+Date:   Wed, 25 Oct 2023 16:48:57 -0700
+To:     mm-commits@vger.kernel.org, catalin.marinas@arm.com,
         liushixin2@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-kmemleak-fix-partially-freeing-unknown-object-warning.patch removed from -mm tree
-Message-Id: <20231025234856.CDCA1C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kmemleak-move-the-initialisation-of-object-to-__link_object.patch removed from -mm tree
+Message-Id: <20231025234857.AE081C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,130 +36,93 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/kmemleak: fix partially freeing unknown object warning
+     Subject: mm/kmemleak: move the initialisation of object to __link_object
 has been removed from the -mm tree.  Its filename was
-     mm-kmemleak-fix-partially-freeing-unknown-object-warning.patch
+     mm-kmemleak-move-the-initialisation-of-object-to-__link_object.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Liu Shixin <liushixin2@huawei.com>
-Subject: mm/kmemleak: fix partially freeing unknown object warning
-Date: Wed, 18 Oct 2023 18:29:52 +0800
+Subject: mm/kmemleak: move the initialisation of object to __link_object
+Date: Mon, 23 Oct 2023 10:51:25 +0800
 
-delete_object_part() can be called by multiple callers in the same time. 
-If an object is found and removed by a caller, and then another caller try
-to find it too, it failed and return directly.  It still be recorded by
-kmemleak even if it has already been freed to buddy.  With DEBUG on,
-kmemleak will report the following warning,
+In patch (mm: kmemleak: split __create_object into two functions), the
+initialisation of object has been splited in two places.  Catalin said it
+feels a bit weird and error prone.  So leave __alloc_object() to just do
+the actual allocation and let __link_object() do the full initialisation.
 
- kmemleak: Partially freeing unknown object at 0xa1af86000 (size 4096)
- CPU: 0 PID: 742 Comm: test_huge Not tainted 6.6.0-rc3kmemleak+ #54
- Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1ubuntu1.1 04/01/2014
- Call Trace:
-  <TASK>
-  dump_stack_lvl+0x37/0x50
-  kmemleak_free_part_phys+0x50/0x60
-  hugetlb_vmemmap_optimize+0x172/0x290
-  ? __pfx_vmemmap_remap_pte+0x10/0x10
-  __prep_new_hugetlb_folio+0xe/0x30
-  prep_new_hugetlb_folio.isra.0+0xe/0x40
-  alloc_fresh_hugetlb_folio+0xc3/0xd0
-  alloc_surplus_hugetlb_folio.constprop.0+0x6e/0xd0
-  hugetlb_acct_memory.part.0+0xe6/0x2a0
-  hugetlb_reserve_pages+0x110/0x2c0
-  hugetlbfs_file_mmap+0x11d/0x1b0
-  mmap_region+0x248/0x9a0
-  ? hugetlb_get_unmapped_area+0x15c/0x2d0
-  do_mmap+0x38b/0x580
-  vm_mmap_pgoff+0xe6/0x190
-  ksys_mmap_pgoff+0x18a/0x1f0
-  do_syscall_64+0x3f/0x90
-  entry_SYSCALL_64_after_hwframe+0x6e/0xd8
-
-Expand __create_object() and move __alloc_object() to the beginning.  Then
-use kmemleak_lock to protect __find_and_remove_object() and
-__link_object() as a whole, which can guarantee all objects are processed
-sequentialally.
-
-Link: https://lkml.kernel.org/r/20231018102952.3339837-8-liushixin2@huawei.com
-Fixes: 53238a60dd4a ("kmemleak: Allow partial freeing of memory blocks")
+Link: https://lkml.kernel.org/r/20231023025125.90972-1-liushixin2@huawei.com
 Signed-off-by: Liu Shixin <liushixin2@huawei.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Patrick Wang <patrick.wang.shcn@gmail.com>
+Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |   42 +++++++++++++++++++++++++++++++-----------
- 1 file changed, 31 insertions(+), 11 deletions(-)
+ mm/kmemleak.c |   36 +++++++++++++++++-------------------
+ 1 file changed, 17 insertions(+), 19 deletions(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-fix-partially-freeing-unknown-object-warning
+--- a/mm/kmemleak.c~mm-kmemleak-move-the-initialisation-of-object-to-__link_object
 +++ a/mm/kmemleak.c
-@@ -816,16 +816,25 @@ static void delete_object_full(unsigned
-  */
- static void delete_object_part(unsigned long ptr, size_t size, bool is_phys)
- {
--	struct kmemleak_object *object;
--	unsigned long start, end;
-+	struct kmemleak_object *object, *object_l, *object_r;
-+	unsigned long start, end, flags;
- 
--	object = find_and_remove_object(ptr, 1, is_phys);
-+	object_l = __alloc_object(GFP_KERNEL);
-+	if (!object_l)
-+		return;
-+
-+	object_r = __alloc_object(GFP_KERNEL);
-+	if (!object_r)
-+		goto out;
-+
-+	raw_spin_lock_irqsave(&kmemleak_lock, flags);
-+	object = __find_and_remove_object(ptr, 1, is_phys);
+@@ -642,16 +642,32 @@ static struct kmemleak_object *__alloc_o
  	if (!object) {
- #ifdef DEBUG
- 		kmemleak_warn("Partially freeing unknown object at 0x%08lx (size %zu)\n",
- 			      ptr, size);
- #endif
--		return;
-+		goto unlock;
+ 		pr_warn("Cannot allocate a kmemleak_object structure\n");
+ 		kmemleak_disable();
+-		return NULL;
  	}
  
- 	/*
-@@ -835,14 +844,25 @@ static void delete_object_part(unsigned
- 	 */
- 	start = object->pointer;
- 	end = object->pointer + object->size;
--	if (ptr > start)
--		__create_object(start, ptr - start, object->min_count,
--			      GFP_KERNEL, is_phys);
--	if (ptr + size < end)
--		__create_object(ptr + size, end - ptr - size, object->min_count,
--			      GFP_KERNEL, is_phys);
-+	if ((ptr > start) &&
-+	    !__link_object(object_l, start, ptr - start,
-+			   object->min_count, is_phys))
-+		object_l = NULL;
-+	if ((ptr + size < end) &&
-+	    !__link_object(object_r, ptr + size, end - ptr - size,
-+			   object->min_count, is_phys))
-+		object_r = NULL;
++	return object;
++}
 +
-+unlock:
-+	raw_spin_unlock_irqrestore(&kmemleak_lock, flags);
-+	if (object)
-+		__delete_object(object);
++static int __link_object(struct kmemleak_object *object, unsigned long ptr,
++			 size_t size, int min_count, bool is_phys)
++{
++
++	struct kmemleak_object *parent;
++	struct rb_node **link, *rb_parent;
++	unsigned long untagged_ptr;
++	unsigned long untagged_objp;
++
+ 	INIT_LIST_HEAD(&object->object_list);
+ 	INIT_LIST_HEAD(&object->gray_list);
+ 	INIT_HLIST_HEAD(&object->area_list);
+ 	raw_spin_lock_init(&object->lock);
+ 	atomic_set(&object->use_count, 1);
++	object->flags = OBJECT_ALLOCATED | (is_phys ? OBJECT_PHYS : 0);
++	object->pointer = ptr;
++	object->size = kfence_ksize((void *)ptr) ?: size;
+ 	object->excess_ref = 0;
++	object->min_count = min_count;
+ 	object->count = 0;			/* white color initially */
++	object->jiffies = jiffies;
+ 	object->checksum = 0;
+ 	object->del_state = 0;
  
--	__delete_object(object);
-+out:
-+	if (object_l)
-+		mem_pool_free(object_l);
-+	if (object_r)
-+		mem_pool_free(object_r);
- }
+@@ -676,24 +692,6 @@ static struct kmemleak_object *__alloc_o
+ 	/* kernel backtrace */
+ 	object->trace_handle = set_track_prepare();
  
- static void __paint_it(struct kmemleak_object *object, int color)
+-	return object;
+-}
+-
+-static int __link_object(struct kmemleak_object *object, unsigned long ptr,
+-			 size_t size, int min_count, bool is_phys)
+-{
+-
+-	struct kmemleak_object *parent;
+-	struct rb_node **link, *rb_parent;
+-	unsigned long untagged_ptr;
+-	unsigned long untagged_objp;
+-
+-	object->flags = OBJECT_ALLOCATED | (is_phys ? OBJECT_PHYS : 0);
+-	object->pointer = ptr;
+-	object->size = kfence_ksize((void *)ptr) ?: size;
+-	object->min_count = min_count;
+-	object->jiffies = jiffies;
+-
+ 	untagged_ptr = (unsigned long)kasan_reset_tag((void *)ptr);
+ 	/*
+ 	 * Only update min_addr and max_addr with object
 _
 
 Patches currently in -mm which might be from liushixin2@huawei.com are
