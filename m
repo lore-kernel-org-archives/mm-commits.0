@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE225C25B6B
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:51:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9BF4C25B6F
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:51:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232859AbjJYXvM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Oct 2023 19:51:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38158 "EHLO
+        id S232904AbjJYXvN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Oct 2023 19:51:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56136 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232904AbjJYXte (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:49:34 -0400
+        with ESMTP id S234816AbjJYXti (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:49:38 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5194170A
-        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:49:25 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0EE9C433C9;
-        Wed, 25 Oct 2023 23:49:25 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5A60170D
+        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:49:27 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2708C433C9;
+        Wed, 25 Oct 2023 23:49:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698277765;
-        bh=RMKlwSVPwFb482LhtLucSn1TPYGTnpnV25Jj0Vz/4IQ=;
+        s=korg; t=1698277767;
+        bh=P0o5lO+0f/SzftGeiqfWtBeCW86AHaZrW0yKMCwi3PM=;
         h=Date:To:From:Subject:From;
-        b=qauCvt1jUx0gkaRSgwpBlMHM1Qmx/99Xu5HcnnkYrwkrNJhVXZM06bMTmnyK9Z+df
-         qcuYMej8axyNdIWswomU6RcaADaz0VjdphJGnA6q72ejWp9xSAvvquNSPXTUVkUd6j
-         hDFdyqoTmhZ+9Rl6MNuQA320bAkQNnutOb+X5sjk=
-Date:   Wed, 25 Oct 2023 16:49:25 -0700
+        b=FKVy9Yep8wK+LQWf7yujlWb2QEU/DfQmCZ7g3zOY7zbrpxJsGSrmgM6/x387hpSH0
+         8JSoxu47kzI5b2e+y/97K2m0YNNqy5OcQUVn/3ALG9v/Rr3vXBElFb55lEDMvydCGy
+         iXaAV+z++Nf7D6mkDzUNz8RT92nTNokLOe7CraZQ=
+Date:   Wed, 25 Oct 2023 16:49:27 -0700
 To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
         ying.huang@intel.com, willy@infradead.org,
         wangkefeng.wang@huawei.com, vishal.moola@gmail.com, tj@kernel.org,
@@ -33,8 +33,8 @@ To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
         david@redhat.com, cl@linux.com, ak@linux.intel.com,
         hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mempolicy-mpol_shared_policy_init-without-pseudo-vma.patch removed from -mm tree
-Message-Id: <20231025234925.B0EE9C433C9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-page_rmappable_folio-wrapper.patch removed from -mm tree
+Message-Id: <20231025234927.B2708C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,23 +42,23 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mempolicy: mpol_shared_policy_init() without pseudo-vma
+     Subject: mm: add page_rmappable_folio() wrapper
 has been removed from the -mm tree.  Its filename was
-     mempolicy-mpol_shared_policy_init-without-pseudo-vma.patch
+     mm-add-page_rmappable_folio-wrapper.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mempolicy: mpol_shared_policy_init() without pseudo-vma
-Date: Tue, 3 Oct 2023 02:22:59 -0700 (PDT)
+Subject: mm: add page_rmappable_folio() wrapper
+Date: Tue, 3 Oct 2023 02:25:33 -0700 (PDT)
 
-mpol_shared_policy_init() does not need to use a pseudo-vma: it can use
-sp_alloc() and sp_insert() directly, since the object's shared policy tree
-is empty and inaccessible (needing no lock) at get_inode() time.
+folio_prep_large_rmappable() is being used repeatedly along with a
+conversion from page to folio, a check non-NULL, a check order > 1: wrap
+it all up into struct folio *page_rmappable_folio(struct page *).
 
-Link: https://lkml.kernel.org/r/3bef62d8-ae78-4c2-533-56a44ae425c@google.com
+Link: https://lkml.kernel.org/r/8d92c6cf-eebe-748-e29c-c8ab224c741@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -80,56 +80,86 @@ Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ mm/internal.h   |    9 +++++++++
+ mm/mempolicy.c  |   17 +++--------------
+ mm/page_alloc.c |    8 ++------
+ 3 files changed, 14 insertions(+), 20 deletions(-)
 
---- a/mm/mempolicy.c~mempolicy-mpol_shared_policy_init-without-pseudo-vma
-+++ a/mm/mempolicy.c
-@@ -2736,30 +2736,30 @@ void mpol_shared_policy_init(struct shar
- 	rwlock_init(&sp->lock);
+--- a/mm/internal.h~mm-add-page_rmappable_folio-wrapper
++++ a/mm/internal.h
+@@ -415,6 +415,15 @@ static inline void folio_set_order(struc
  
- 	if (mpol) {
--		struct vm_area_struct pvma;
--		struct mempolicy *new;
-+		struct sp_node *sn;
-+		struct mempolicy *npol;
- 		NODEMASK_SCRATCH(scratch);
+ void folio_undo_large_rmappable(struct folio *folio);
  
- 		if (!scratch)
- 			goto put_mpol;
--		/* contextualize the tmpfs mount point mempolicy */
--		new = mpol_new(mpol->mode, mpol->flags, &mpol->w.user_nodemask);
--		if (IS_ERR(new))
++static inline struct folio *page_rmappable_folio(struct page *page)
++{
++	struct folio *folio = (struct folio *)page;
 +
-+		/* contextualize the tmpfs mount point mempolicy to this file */
-+		npol = mpol_new(mpol->mode, mpol->flags, &mpol->w.user_nodemask);
-+		if (IS_ERR(npol))
- 			goto free_scratch; /* no valid nodemask intersection */
++	if (folio && folio_order(folio) > 1)
++		folio_prep_large_rmappable(folio);
++	return folio;
++}
++
+ static inline void prep_compound_head(struct page *page, unsigned int order)
+ {
+ 	struct folio *folio = (struct folio *)page;
+--- a/mm/mempolicy.c~mm-add-page_rmappable_folio-wrapper
++++ a/mm/mempolicy.c
+@@ -2122,10 +2122,7 @@ struct folio *vma_alloc_folio(gfp_t gfp,
+ 		mpol_cond_put(pol);
+ 		gfp |= __GFP_COMP;
+ 		page = alloc_page_interleave(gfp, order, nid);
+-		folio = (struct folio *)page;
+-		if (folio && order > 1)
+-			folio_prep_large_rmappable(folio);
+-		goto out;
++		return page_rmappable_folio(page);
+ 	}
  
- 		task_lock(current);
--		ret = mpol_set_nodemask(new, &mpol->w.user_nodemask, scratch);
-+		ret = mpol_set_nodemask(npol, &mpol->w.user_nodemask, scratch);
- 		task_unlock(current);
- 		if (ret)
--			goto put_new;
+ 	if (pol->mode == MPOL_PREFERRED_MANY) {
+@@ -2135,10 +2132,7 @@ struct folio *vma_alloc_folio(gfp_t gfp,
+ 		gfp |= __GFP_COMP;
+ 		page = alloc_pages_preferred_many(gfp, order, node, pol);
+ 		mpol_cond_put(pol);
+-		folio = (struct folio *)page;
+-		if (folio && order > 1)
+-			folio_prep_large_rmappable(folio);
+-		goto out;
++		return page_rmappable_folio(page);
+ 	}
+ 
+ 	if (unlikely(IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && hugepage)) {
+@@ -2232,12 +2226,7 @@ EXPORT_SYMBOL(alloc_pages);
+ 
+ struct folio *folio_alloc(gfp_t gfp, unsigned order)
+ {
+-	struct page *page = alloc_pages(gfp | __GFP_COMP, order);
+-	struct folio *folio = (struct folio *)page;
 -
--		/* Create pseudo-vma that contains just the policy */
--		vma_init(&pvma, NULL);
--		pvma.vm_end = TASK_SIZE;	/* policy covers entire file */
--		mpol_set_shared_policy(sp, &pvma, new); /* adds ref */
-+			goto put_npol;
+-	if (folio && order > 1)
+-		folio_prep_large_rmappable(folio);
+-	return folio;
++	return page_rmappable_folio(alloc_pages(gfp | __GFP_COMP, order));
+ }
+ EXPORT_SYMBOL(folio_alloc);
  
--put_new:
--		mpol_put(new);			/* drop initial ref */
-+		/* alloc node covering entire file; adds ref to file's npol */
-+		sn = sp_alloc(0, MAX_LFS_FILESIZE >> PAGE_SHIFT, npol);
-+		if (sn)
-+			sp_insert(sp, sn);
-+put_npol:
-+		mpol_put(npol);	/* drop initial ref on file's npol */
- free_scratch:
- 		NODEMASK_SCRATCH_FREE(scratch);
- put_mpol:
+--- a/mm/page_alloc.c~mm-add-page_rmappable_folio-wrapper
++++ a/mm/page_alloc.c
+@@ -4598,12 +4598,8 @@ struct folio *__folio_alloc(gfp_t gfp, u
+ 		nodemask_t *nodemask)
+ {
+ 	struct page *page = __alloc_pages(gfp | __GFP_COMP, order,
+-			preferred_nid, nodemask);
+-	struct folio *folio = (struct folio *)page;
+-
+-	if (folio && order > 1)
+-		folio_prep_large_rmappable(folio);
+-	return folio;
++					preferred_nid, nodemask);
++	return page_rmappable_folio(page);
+ }
+ EXPORT_SYMBOL(__folio_alloc);
+ 
 _
 
 Patches currently in -mm which might be from hughd@google.com are
