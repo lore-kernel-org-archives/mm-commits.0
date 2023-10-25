@@ -2,153 +2,175 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CD40C0032E
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 20:11:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 826F4C07545
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 20:18:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229893AbjJYULh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Oct 2023 16:11:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46748 "EHLO
+        id S229776AbjJYUSe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Oct 2023 16:18:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40318 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229441AbjJYULg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 16:11:36 -0400
+        with ESMTP id S229695AbjJYUSe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 16:18:34 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4550181
-        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 13:11:34 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71F12C433C7;
-        Wed, 25 Oct 2023 20:11:34 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2FE7AA4
+        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 13:18:32 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AD35C433C7;
+        Wed, 25 Oct 2023 20:18:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698264694;
-        bh=WE57SUNBmmkUFGyVyjhSYK7sDNOTo/Db55weU+C1g/o=;
+        s=korg; t=1698265111;
+        bh=XWQ6Kd4NdjZkT2Ivk2W+QocoPPB7TukBHWMQiC2lXA4=;
         h=Date:To:From:Subject:From;
-        b=nfGNJPeVr+unMId9h+g8DVoP5XO7KbIq0I+SU9VbPEG4rFerTOIqK5LkBw760Rrbh
-         zsf5p3r2nVPuG9cQlTc+tyxFKHz1J7MXF1f1AQGHL4z8TgN9DX9KmFeNtgVeakiL4+
-         sYnfmEkRpbxFYSgIw15OK4Rt9bdawWJIgwGI1hyw=
-Date:   Wed, 25 Oct 2023 13:11:32 -0700
-To:     mm-commits@vger.kernel.org, shuah@kernel.org, hughd@google.com,
-        adobriyan@gmail.com, swarupkotikalapudi@gmail.com,
-        akpm@linux-foundation.org
+        b=cQbiYUyD/S7l6aWEO0aUUEj1zAkQPCC3CurIDsGxpKWMyM0bE0e71sjZYP7CmTdzT
+         ToLVWzvHuGufKkwJBMT5HYfJgziP0EqFNTJzzqF2re5y+kDPyEJPBPdlaGC3FQn71E
+         5lWtnwyheMGzhfDKo5is7Wbe4EKAyblHCkOnvf/w=
+Date:   Wed, 25 Oct 2023 13:18:30 -0700
+To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
+        vitaly.wool@konsulko.com, sjenning@redhat.com, shakeelb@google.com,
+        roman.gushchin@linux.dev, muchun.song@linux.dev, mhocko@kernel.org,
+        hannes@cmpxchg.org, ddstreet@ieee.org, cerasuolodomenico@gmail.com,
+        nphamcs@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-proc-protectionkey-check-in-smpas-test.patch added to mm-nonmm-unstable branch
-Message-Id: <20231025201134.71F12C433C7@smtp.kernel.org>
+Subject: [to-be-updated] zswap-export-more-zswap-store-failure-stats.patch removed from -mm tree
+Message-Id: <20231025201831.7AD35C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: selftests:proc ProtectionKey check in smpas test
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-proc-protectionkey-check-in-smpas-test.patch
+The quilt patch titled
+     Subject: zswap: export more zswap store failure stats
+has been removed from the -mm tree.  Its filename was
+     zswap-export-more-zswap-store-failure-stats.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-proc-protectionkey-check-in-smpas-test.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Swarup Laxman Kotiaklapudi <swarupkotikalapudi@gmail.com>
-Subject: selftests:proc ProtectionKey check in smpas test
-Date: Thu, 26 Oct 2023 01:06:27 +0530
+From: Nhat Pham <nphamcs@gmail.com>
+Subject: zswap: export more zswap store failure stats
+Date: Mon, 23 Oct 2023 17:07:02 -0700
 
-Check ProtectionKey field in /proc/*/smaps output, if system supports
-page-based memory permissions.
+Since commit 42c06a0e8ebe ("mm: kill frontswap") we no longer have a
+counter to tracks the number of zswap store failures.  This makes it hard
+to investigate and monitor for zswap issues.
 
-Link: https://lkml.kernel.org/r/20231025193627.316508-1-swarupkotikalapudi@gmail.com
-Signed-off-by: Swarup Laxman Kotiaklapudi <swarupkotikalapudi@gmail.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
+This patch adds a global and a per-cgroup zswap store failure counter,
+as well as a dedicated debugfs counter for compression algorithm failure
+(which can happen for e.g when random data are passed to zswap).
+
+Link: https://lkml.kernel.org/r/20231024000702.1387130-1-nphamcs@gmail.com
+Signed-off-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/proc/proc-empty-vm.c |   38 ++++++++++-------
- 1 file changed, 23 insertions(+), 15 deletions(-)
+ include/linux/vm_event_item.h |    1 +
+ mm/memcontrol.c               |    1 +
+ mm/vmstat.c                   |    1 +
+ mm/zswap.c                    |   18 ++++++++++++++----
+ 4 files changed, 17 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/proc/proc-empty-vm.c~selftests-proc-protectionkey-check-in-smpas-test
-+++ a/tools/testing/selftests/proc/proc-empty-vm.c
-@@ -37,6 +37,7 @@
- #include <sys/types.h>
- #include <sys/wait.h>
- #include <unistd.h>
-+#include "../kselftest.h"
+--- a/include/linux/vm_event_item.h~zswap-export-more-zswap-store-failure-stats
++++ a/include/linux/vm_event_item.h
+@@ -145,6 +145,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ #ifdef CONFIG_ZSWAP
+ 		ZSWPIN,
+ 		ZSWPOUT,
++		ZSWPOUT_FAIL,
+ #endif
+ #ifdef CONFIG_X86
+ 		DIRECT_MAP_LEVEL2_SPLIT,
+--- a/mm/memcontrol.c~zswap-export-more-zswap-store-failure-stats
++++ a/mm/memcontrol.c
+@@ -593,6 +593,7 @@ static const unsigned int memcg_vm_event
+ #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
+ 	ZSWPIN,
+ 	ZSWPOUT,
++	ZSWPOUT_FAIL,
+ #endif
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	THP_FAULT_ALLOC,
+--- a/mm/vmstat.c~zswap-export-more-zswap-store-failure-stats
++++ a/mm/vmstat.c
+@@ -1401,6 +1401,7 @@ const char * const vmstat_text[] = {
+ #ifdef CONFIG_ZSWAP
+ 	"zswpin",
+ 	"zswpout",
++	"zswpout_fail",
+ #endif
+ #ifdef CONFIG_X86
+ 	"direct_map_level2_splits",
+--- a/mm/zswap.c~zswap-export-more-zswap-store-failure-stats
++++ a/mm/zswap.c
+@@ -62,6 +62,8 @@ static u64 zswap_pool_limit_hit;
+ static u64 zswap_written_back_pages;
+ /* Store failed due to a reclaim failure after pool limit was reached */
+ static u64 zswap_reject_reclaim_fail;
++/* Store failed due to compression algorithm failure */
++static u64 zswap_reject_compress_fail;
+ /* Compressed page was too big for the allocator to (optimally) store */
+ static u64 zswap_reject_compress_poor;
+ /* Store failed because underlying allocator could not get memory */
+@@ -1221,10 +1223,10 @@ bool zswap_store(struct folio *folio)
  
- #ifdef __amd64__
- #define TEST_VSYSCALL
-@@ -83,10 +84,7 @@ static const char proc_pid_smaps_vsyscal
- "SwapPss:               0 kB\n"
- "Locked:                0 kB\n"
- "THPeligible:           0\n"
--/*
-- * "ProtectionKey:" field is conditional. It is possible to check it as well,
-- * but I don't have such machine.
-- */
-+"ProtectionKey:         0\n"
- ;
+ 	/* Large folios aren't supported */
+ 	if (folio_test_large(folio))
+-		return false;
++		goto out_reject;
  
- static const char proc_pid_smaps_vsyscall_2[] =
-@@ -113,10 +111,7 @@ static const char proc_pid_smaps_vsyscal
- "SwapPss:               0 kB\n"
- "Locked:                0 kB\n"
- "THPeligible:           0\n"
--/*
-- * "ProtectionKey:" field is conditional. It is possible to check it as well,
-- * but I'm too tired.
-- */
-+"ProtectionKey:         0\n"
- ;
+ 	if (!zswap_enabled || !tree)
+-		return false;
++		goto out_reject;
  
- static void sigaction_SIGSEGV(int _, siginfo_t *__, void *___)
-@@ -241,13 +236,26 @@ static int test_proc_pid_smaps(pid_t pid
- 	} else {
- 		ssize_t rv = read(fd, buf, sizeof(buf));
- 		close(fd);
--		if (g_vsyscall == 0) {
--			assert(rv == 0);
--		} else {
--			size_t len = strlen(g_proc_pid_maps_vsyscall);
--			/* TODO "ProtectionKey:" */
--			assert(rv > len);
--			assert(memcmp(buf, g_proc_pid_maps_vsyscall, len) == 0);
-+		assert(rv >= 0);
-+		assert(rv <= sizeof(buf));
-+		if (g_vsyscall != 0) {
-+			int pkey = pkey_alloc(0, 0);
-+
-+			if (pkey < 0) {
-+				size_t len = strlen(g_proc_pid_maps_vsyscall);
-+
-+				assert(rv > len);
-+				assert(memcmp(buf, g_proc_pid_maps_vsyscall, len) == 0);
-+			} else {
-+				pkey_free(pkey);
-+				static const char * const S[] = {
-+					"ProtectionKey:         0\n"
-+				};
-+				int i;
-+
-+				for (i = 0; i < ARRAY_SIZE(S); i++)
-+					assert(memmem(buf, rv, S[i], strlen(S[i])));
-+			}
- 		}
- 		return EXIT_SUCCESS;
- 	}
+ 	/*
+ 	 * If this is a duplicate, it must be removed before attempting to store
+@@ -1317,8 +1319,10 @@ bool zswap_store(struct folio *folio)
+ 	ret = crypto_wait_req(crypto_acomp_compress(acomp_ctx->req), &acomp_ctx->wait);
+ 	dlen = acomp_ctx->req->dlen;
+ 
+-	if (ret)
++	if (ret) {
++		zswap_reject_compress_fail++;
+ 		goto put_dstmem;
++	}
+ 
+ 	/* store */
+ 	zpool = zswap_find_zpool(entry);
+@@ -1385,8 +1389,12 @@ put_dstmem:
+ freepage:
+ 	zswap_entry_cache_free(entry);
+ reject:
+-	if (objcg)
++	if (objcg) {
++		count_objcg_event(objcg, ZSWPOUT_FAIL);
+ 		obj_cgroup_put(objcg);
++	}
++out_reject:
++	count_vm_event(ZSWPOUT_FAIL);
+ 	return false;
+ 
+ shrink:
+@@ -1558,6 +1566,8 @@ static int zswap_debugfs_init(void)
+ 			   zswap_debugfs_root, &zswap_reject_alloc_fail);
+ 	debugfs_create_u64("reject_kmemcache_fail", 0444,
+ 			   zswap_debugfs_root, &zswap_reject_kmemcache_fail);
++	debugfs_create_u64("reject_compress_fail", 0444,
++			   zswap_debugfs_root, &zswap_reject_compress_fail);
+ 	debugfs_create_u64("reject_compress_poor", 0444,
+ 			   zswap_debugfs_root, &zswap_reject_compress_poor);
+ 	debugfs_create_u64("written_back_pages", 0444,
 _
 
-Patches currently in -mm which might be from swarupkotikalapudi@gmail.com are
+Patches currently in -mm which might be from nphamcs@gmail.com are
 
-selftests-proc-protectionkey-check-in-smpas-test.patch
+zswap-export-compression-failure-stats.patch
 
