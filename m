@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1E1EC25B6F
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:50:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5728AC0032E
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:50:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233766AbjJYXuc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Oct 2023 19:50:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34204 "EHLO
+        id S235029AbjJYXup (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Oct 2023 19:50:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38090 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234963AbjJYXtQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:49:16 -0400
+        with ESMTP id S229863AbjJYXtc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:49:32 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D978D10EB
-        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:49:06 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79764C433CA;
-        Wed, 25 Oct 2023 23:49:06 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8837C10F1
+        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:49:07 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 570BAC433C8;
+        Wed, 25 Oct 2023 23:49:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698277746;
-        bh=2paGaYdDjLx8NrTjRK6qPFWzHFIST+ICRRj5TIBkLl8=;
+        s=korg; t=1698277747;
+        bh=bG/rbBllF28bUR7TCmdyooku5nVrPOjlD0vtvRXAiiI=;
         h=Date:To:From:Subject:From;
-        b=ACzwfZNV6bghMrO7tSFHm2wiZQ6fMsdJ7CCuW1RS7Hx63/L1D+Mqp+uQG0U6C7df3
-         Ak7WUVXpsSCVdOB7rV62cHzsHkOOhmjfJR3gApY3iAgtzfc2+DQOyXrcAdKM+Px1K7
-         FUo4ABokyovdD+cdkxY2Zaz1ncTlf4kBMhGPxWXg=
-Date:   Wed, 25 Oct 2023 16:49:05 -0700
+        b=DMvHY75H5tPhC3tAdjsnTCMkD5ChYsD/g83eAnqLQDZtg2VBWFIENmS+Ic6TP5TJn
+         TrI08rtr3TyAQXqd/6lmLGlAoDwN5VUY/k3CRdNUv8/V3B+63yX2UsLJ6orcEfp3H1
+         Y3LGOkMlLRWGbdBJ+hUuFijJ31KIi6ONP5A61DkQ=
+Date:   Wed, 25 Oct 2023 16:49:06 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         wangkefeng.wang@huawei.com, shy828301@gmail.com, riel@surriel.com,
         vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-khugepaged-convert-alloc_charge_hpage-to-use-folios.patch removed from -mm tree
-Message-Id: <20231025234906.79764C433CA@smtp.kernel.org>
+Subject: [merged mm-stable] mm-khugepaged-convert-collapse_pte_mapped_thp-to-use-folios.patch removed from -mm tree
+Message-Id: <20231025234907.570BAC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,25 +37,27 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/khugepaged: convert alloc_charge_hpage() to use folios
+     Subject: mm/khugepaged: convert collapse_pte_mapped_thp() to use folios
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-convert-alloc_charge_hpage-to-use-folios.patch
+     mm-khugepaged-convert-collapse_pte_mapped_thp-to-use-folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm/khugepaged: convert alloc_charge_hpage() to use folios
-Date: Fri, 20 Oct 2023 11:33:30 -0700
+Subject: mm/khugepaged: convert collapse_pte_mapped_thp() to use folios
+Date: Fri, 20 Oct 2023 11:33:31 -0700
 
-Also remove count_memcg_page_event now that its last caller no longer uses
-it and reword hpage_collapse_alloc_page() to hpage_collapse_alloc_folio().
-
-This removes 1 call to compound_head() and helps convert khugepaged to
+This removes 2 calls to compound_head() and helps convert khugepaged to
 use folios throughout.
 
-Link: https://lkml.kernel.org/r/20231020183331.10770-5-vishal.moola@gmail.com
+Previously, if the address passed to collapse_pte_mapped_thp()
+corresponded to a tail page, the scan would fail immediately. Using
+filemap_lock_folio() we get the corresponding folio back and try to
+operate on the folio instead.
+
+Link: https://lkml.kernel.org/r/20231020183331.10770-6-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Reviewed-by: Rik van Riel <riel@surriel.com>
 Reviewed-by: Yang Shi <shy828301@gmail.com>
@@ -64,85 +66,137 @@ Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   14 --------------
- mm/khugepaged.c            |   17 ++++++++++-------
- 2 files changed, 10 insertions(+), 21 deletions(-)
+ mm/khugepaged.c |   45 ++++++++++++++++++++-------------------------
+ 1 file changed, 20 insertions(+), 25 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-khugepaged-convert-alloc_charge_hpage-to-use-folios
-+++ a/include/linux/memcontrol.h
-@@ -1087,15 +1087,6 @@ static inline void count_memcg_events(st
- 	local_irq_restore(flags);
- }
- 
--static inline void count_memcg_page_event(struct page *page,
--					  enum vm_event_item idx)
--{
--	struct mem_cgroup *memcg = page_memcg(page);
--
--	if (memcg)
--		count_memcg_events(memcg, idx, 1);
--}
--
- static inline void count_memcg_folio_events(struct folio *folio,
- 		enum vm_event_item idx, unsigned long nr)
- {
-@@ -1598,11 +1589,6 @@ static inline void __count_memcg_events(
- {
- }
- 
--static inline void count_memcg_page_event(struct page *page,
--					  int idx)
--{
--}
--
- static inline void count_memcg_folio_events(struct folio *folio,
- 		enum vm_event_item idx, unsigned long nr)
- {
---- a/mm/khugepaged.c~mm-khugepaged-convert-alloc_charge_hpage-to-use-folios
+--- a/mm/khugepaged.c~mm-khugepaged-convert-collapse_pte_mapped_thp-to-use-folios
 +++ a/mm/khugepaged.c
-@@ -888,16 +888,16 @@ static int hpage_collapse_find_target_no
- }
- #endif
+@@ -1477,7 +1477,7 @@ int collapse_pte_mapped_thp(struct mm_st
+ 	bool notified = false;
+ 	unsigned long haddr = addr & HPAGE_PMD_MASK;
+ 	struct vm_area_struct *vma = vma_lookup(mm, haddr);
+-	struct page *hpage;
++	struct folio *folio;
+ 	pte_t *start_pte, *pte;
+ 	pmd_t *pmd, pgt_pmd;
+ 	spinlock_t *pml = NULL, *ptl;
+@@ -1510,19 +1510,14 @@ int collapse_pte_mapped_thp(struct mm_st
+ 	if (userfaultfd_wp(vma))
+ 		return SCAN_PTE_UFFD_WP;
  
--static bool hpage_collapse_alloc_page(struct page **hpage, gfp_t gfp, int node,
-+static bool hpage_collapse_alloc_folio(struct folio **folio, gfp_t gfp, int node,
- 				      nodemask_t *nmask)
- {
--	*hpage = __alloc_pages(gfp, HPAGE_PMD_ORDER, node, nmask);
--	if (unlikely(!*hpage)) {
-+	*folio = __folio_alloc(gfp, HPAGE_PMD_ORDER, node, nmask);
-+
-+	if (unlikely(!*folio)) {
- 		count_vm_event(THP_COLLAPSE_ALLOC_FAILED);
- 		return false;
+-	hpage = find_lock_page(vma->vm_file->f_mapping,
++	folio = filemap_lock_folio(vma->vm_file->f_mapping,
+ 			       linear_page_index(vma, haddr));
+-	if (!hpage)
++	if (IS_ERR(folio))
+ 		return SCAN_PAGE_NULL;
+ 
+-	if (!PageHead(hpage)) {
+-		result = SCAN_FAIL;
+-		goto drop_hpage;
+-	}
+-
+-	if (compound_order(hpage) != HPAGE_PMD_ORDER) {
++	if (folio_order(folio) != HPAGE_PMD_ORDER) {
+ 		result = SCAN_PAGE_COMPOUND;
+-		goto drop_hpage;
++		goto drop_folio;
  	}
  
--	folio_prep_large_rmappable((struct folio *)*hpage);
- 	count_vm_event(THP_COLLAPSE_ALLOC);
- 	return true;
- }
-@@ -1064,17 +1064,20 @@ static int alloc_charge_hpage(struct pag
- 	int node = hpage_collapse_find_target_node(cc);
- 	struct folio *folio;
- 
--	if (!hpage_collapse_alloc_page(hpage, gfp, node, &cc->alloc_nmask))
-+	if (!hpage_collapse_alloc_folio(&folio, gfp, node, &cc->alloc_nmask)) {
-+		*hpage = NULL;
- 		return SCAN_ALLOC_HUGE_PAGE_FAIL;
-+	}
- 
--	folio = page_folio(*hpage);
- 	if (unlikely(mem_cgroup_charge(folio, mm, gfp))) {
- 		folio_put(folio);
- 		*hpage = NULL;
- 		return SCAN_CGROUP_CHARGE_FAIL;
+ 	result = find_pmd_or_thp_or_none(mm, haddr, &pmd);
+@@ -1536,13 +1531,13 @@ int collapse_pte_mapped_thp(struct mm_st
+ 		 */
+ 		goto maybe_install_pmd;
+ 	default:
+-		goto drop_hpage;
++		goto drop_folio;
  	}
--	count_memcg_page_event(*hpage, THP_COLLAPSE_ALLOC);
  
-+	count_memcg_folio_events(folio, THP_COLLAPSE_ALLOC, 1);
-+
-+	*hpage = folio_page(folio, 0);
- 	return SCAN_SUCCEED;
+ 	result = SCAN_FAIL;
+ 	start_pte = pte_offset_map_lock(mm, pmd, haddr, &ptl);
+ 	if (!start_pte)		/* mmap_lock + page lock should prevent this */
+-		goto drop_hpage;
++		goto drop_folio;
+ 
+ 	/* step 1: check all mapped PTEs are to the right huge page */
+ 	for (i = 0, addr = haddr, pte = start_pte;
+@@ -1567,7 +1562,7 @@ int collapse_pte_mapped_thp(struct mm_st
+ 		 * Note that uprobe, debugger, or MAP_PRIVATE may change the
+ 		 * page table, but the new page will not be a subpage of hpage.
+ 		 */
+-		if (hpage + i != page)
++		if (folio_page(folio, i) != page)
+ 			goto abort;
+ 	}
+ 
+@@ -1582,7 +1577,7 @@ int collapse_pte_mapped_thp(struct mm_st
+ 	 * page_table_lock) ptl nests inside pml. The less time we hold pml,
+ 	 * the better; but userfaultfd's mfill_atomic_pte() on a private VMA
+ 	 * inserts a valid as-if-COWed PTE without even looking up page cache.
+-	 * So page lock of hpage does not protect from it, so we must not drop
++	 * So page lock of folio does not protect from it, so we must not drop
+ 	 * ptl before pgt_pmd is removed, so uffd private needs pml taken now.
+ 	 */
+ 	if (userfaultfd_armed(vma) && !(vma->vm_flags & VM_SHARED))
+@@ -1606,7 +1601,7 @@ int collapse_pte_mapped_thp(struct mm_st
+ 			continue;
+ 		/*
+ 		 * We dropped ptl after the first scan, to do the mmu_notifier:
+-		 * page lock stops more PTEs of the hpage being faulted in, but
++		 * page lock stops more PTEs of the folio being faulted in, but
+ 		 * does not stop write faults COWing anon copies from existing
+ 		 * PTEs; and does not stop those being swapped out or migrated.
+ 		 */
+@@ -1615,7 +1610,7 @@ int collapse_pte_mapped_thp(struct mm_st
+ 			goto abort;
+ 		}
+ 		page = vm_normal_page(vma, addr, ptent);
+-		if (hpage + i != page)
++		if (folio_page(folio, i) != page)
+ 			goto abort;
+ 
+ 		/*
+@@ -1634,8 +1629,8 @@ int collapse_pte_mapped_thp(struct mm_st
+ 
+ 	/* step 3: set proper refcount and mm_counters. */
+ 	if (nr_ptes) {
+-		page_ref_sub(hpage, nr_ptes);
+-		add_mm_counter(mm, mm_counter_file(hpage), -nr_ptes);
++		folio_ref_sub(folio, nr_ptes);
++		add_mm_counter(mm, mm_counter_file(&folio->page), -nr_ptes);
+ 	}
+ 
+ 	/* step 4: remove empty page table */
+@@ -1659,14 +1654,14 @@ int collapse_pte_mapped_thp(struct mm_st
+ maybe_install_pmd:
+ 	/* step 5: install pmd entry */
+ 	result = install_pmd
+-			? set_huge_pmd(vma, haddr, pmd, hpage)
++			? set_huge_pmd(vma, haddr, pmd, &folio->page)
+ 			: SCAN_SUCCEED;
+-	goto drop_hpage;
++	goto drop_folio;
+ abort:
+ 	if (nr_ptes) {
+ 		flush_tlb_mm(mm);
+-		page_ref_sub(hpage, nr_ptes);
+-		add_mm_counter(mm, mm_counter_file(hpage), -nr_ptes);
++		folio_ref_sub(folio, nr_ptes);
++		add_mm_counter(mm, mm_counter_file(&folio->page), -nr_ptes);
+ 	}
+ 	if (start_pte)
+ 		pte_unmap_unlock(start_pte, ptl);
+@@ -1674,9 +1669,9 @@ abort:
+ 		spin_unlock(pml);
+ 	if (notified)
+ 		mmu_notifier_invalidate_range_end(&range);
+-drop_hpage:
+-	unlock_page(hpage);
+-	put_page(hpage);
++drop_folio:
++	folio_unlock(folio);
++	folio_put(folio);
+ 	return result;
  }
  
 _
