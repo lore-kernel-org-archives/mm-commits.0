@@ -2,34 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1633EC25B6F
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:48:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC7D7C25B6E
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:48:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234825AbjJYXsr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Oct 2023 19:48:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44970 "EHLO
+        id S231383AbjJYXss (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Oct 2023 19:48:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53730 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232710AbjJYXsV (ORCPT
+        with ESMTP id S232850AbjJYXsV (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:48:21 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 38CA81A7
-        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:48:10 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 069CCC433C8;
-        Wed, 25 Oct 2023 23:48:09 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD9061AE
+        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:48:14 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5779EC433CA;
+        Wed, 25 Oct 2023 23:48:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698277690;
-        bh=KrFk5m/+HeoBEXyisWwokDH5tvf/hkCY8FeOSPkEPNw=;
+        s=korg; t=1698277694;
+        bh=TG6U23diYsCAkPWcx3IsaVPaEea3u3/wqaCRXh/Dq7w=;
         h=Date:To:From:Subject:From;
-        b=fp05yL8vqahjm7Nq92qG5L4b/ZKNHvAmyKN/IMRrHZSDq9HJhzErVIr4pSJI0QpX9
-         kLfPtxipJj4d43AOPI56PMTbsKy9S0a+oSQcenNr0BPc7Otkf/un82GuaRp0H69EY6
-         CPRFU/69a36S5miXXANY7czDyNo+o4XJpqDA1tqM=
-Date:   Wed, 25 Oct 2023 16:48:09 -0700
-To:     mm-commits@vger.kernel.org, p.raghav@samsung.com,
-        konishi.ryusuke@gmail.com, agruenba@redhat.com,
-        willy@infradead.org, akpm@linux-foundation.org
+        b=AlWIzR8lav3hbFLDCmBHEdg12cyXNWnxgbsvg1KxRb0B5NgyOb/5IZlpx2etErWOT
+         1N/Q2Fj4ayNi6WBqvnS8WzNLz5oaFwy25xYCfrOeiROt5/4sDAuhIAMWXjQKjJZgIZ
+         vFK1+Ybyv/iLR1gLoMKwr0hCHbh6es1llA+tEgqc=
+Date:   Wed, 25 Oct 2023 16:48:13 -0700
+To:     mm-commits@vger.kernel.org, surenb@google.com, mhocko@suse.com,
+        brauner@kernel.org, kasong@tencent.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] ufs-use-ufs_get_locked_folio-in-ufs_alloc_lastblock.patch removed from -mm tree
-Message-Id: <20231025234810.069CCC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-oom_killer-simplify-oom-killer-info-dump-helper.patch removed from -mm tree
+Message-Id: <20231025234814.5779EC433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,90 +36,104 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: ufs: use ufs_get_locked_folio() in ufs_alloc_lastblock()
+     Subject: mm/oom_killer: simplify OOM killer info dump helper
 has been removed from the -mm tree.  Its filename was
-     ufs-use-ufs_get_locked_folio-in-ufs_alloc_lastblock.patch
+     mm-oom_killer-simplify-oom-killer-info-dump-helper.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: ufs: use ufs_get_locked_folio() in ufs_alloc_lastblock()
-Date: Mon, 16 Oct 2023 21:11:11 +0100
+From: Kairui Song <kasong@tencent.com>
+Subject: mm/oom_killer: simplify OOM killer info dump helper
+Date: Mon, 16 Oct 2023 19:31:03 +0800
 
-Switch to the folio APIs, saving one folio->page->folio conversion.
+There is only one caller wants to dump the kill victim info, so just let
+it call the standalone helper, no need to make the generic info dump
+helper take an extra argument for that.
 
-Link: https://lkml.kernel.org/r/20231016201114.1928083-25-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Andreas Gruenbacher <agruenba@redhat.com>
-Cc: Pankaj Raghav <p.raghav@samsung.com>
-Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Result of bloat-o-meter:
+./scripts/bloat-o-meter ./mm/oom_kill.old.o ./mm/oom_kill.o
+add/remove: 0/0 grow/shrink: 1/2 up/down: 131/-142 (-11)
+Function                                     old     new   delta
+oom_kill_process                             412     543    +131
+out_of_memory                               1422    1418      -4
+dump_header                                  562     424    -138
+Total: Before=21514, After=21503, chg -0.05%
+
+Link: https://lkml.kernel.org/r/20231016113103.86477-1-ryncsn@gmail.com
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/inode.c |   25 ++++++++++++-------------
- 1 file changed, 12 insertions(+), 13 deletions(-)
+ mm/oom_kill.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/fs/ufs/inode.c~ufs-use-ufs_get_locked_folio-in-ufs_alloc_lastblock
-+++ a/fs/ufs/inode.c
-@@ -1057,7 +1057,7 @@ static int ufs_alloc_lastblock(struct in
- 	struct ufs_sb_private_info *uspi = UFS_SB(sb)->s_uspi;
- 	unsigned i, end;
- 	sector_t lastfrag;
--	struct page *lastpage;
-+	struct folio *folio;
- 	struct buffer_head *bh;
- 	u64 phys64;
+--- a/mm/oom_kill.c~mm-oom_killer-simplify-oom-killer-info-dump-helper
++++ a/mm/oom_kill.c
+@@ -437,7 +437,7 @@ static void dump_tasks(struct oom_contro
+ 	}
+ }
  
-@@ -1068,18 +1068,17 @@ static int ufs_alloc_lastblock(struct in
+-static void dump_oom_summary(struct oom_control *oc, struct task_struct *victim)
++static void dump_oom_victim(struct oom_control *oc, struct task_struct *victim)
+ {
+ 	/* one line summary of the oom killer context. */
+ 	pr_info("oom-kill:constraint=%s,nodemask=%*pbl",
+@@ -449,7 +449,7 @@ static void dump_oom_summary(struct oom_
+ 		from_kuid(&init_user_ns, task_uid(victim)));
+ }
  
- 	lastfrag--;
+-static void dump_header(struct oom_control *oc, struct task_struct *p)
++static void dump_header(struct oom_control *oc)
+ {
+ 	pr_warn("%s invoked oom-killer: gfp_mask=%#x(%pGg), order=%d, oom_score_adj=%hd\n",
+ 		current->comm, oc->gfp_mask, &oc->gfp_mask, oc->order,
+@@ -467,8 +467,6 @@ static void dump_header(struct oom_contr
+ 	}
+ 	if (sysctl_oom_dump_tasks)
+ 		dump_tasks(oc);
+-	if (p)
+-		dump_oom_summary(oc, p);
+ }
  
--	lastpage = ufs_get_locked_page(mapping, lastfrag >>
-+	folio = ufs_get_locked_folio(mapping, lastfrag >>
- 				       (PAGE_SHIFT - inode->i_blkbits));
--       if (IS_ERR(lastpage)) {
--               err = -EIO;
--               goto out;
--       }
--
--       end = lastfrag & ((1 << (PAGE_SHIFT - inode->i_blkbits)) - 1);
--       bh = page_buffers(lastpage);
--       for (i = 0; i < end; ++i)
--               bh = bh->b_this_page;
-+	if (IS_ERR(folio)) {
-+		err = -EIO;
-+		goto out;
+ /*
+@@ -1029,8 +1027,10 @@ static void oom_kill_process(struct oom_
+ 	}
+ 	task_unlock(victim);
+ 
+-	if (__ratelimit(&oom_rs))
+-		dump_header(oc, victim);
++	if (__ratelimit(&oom_rs)) {
++		dump_header(oc);
++		dump_oom_victim(oc, victim);
 +	}
  
-+	end = lastfrag & ((1 << (PAGE_SHIFT - inode->i_blkbits)) - 1);
-+	bh = folio_buffers(folio);
-+	for (i = 0; i < end; ++i)
-+		bh = bh->b_this_page;
- 
-        err = ufs_getfrag_block(inode, lastfrag, bh, 1);
- 
-@@ -1095,7 +1094,7 @@ static int ufs_alloc_lastblock(struct in
- 		*/
- 	       set_buffer_uptodate(bh);
- 	       mark_buffer_dirty(bh);
--	       set_page_dirty(lastpage);
-+		folio_mark_dirty(folio);
-        }
- 
-        if (lastfrag >= UFS_IND_FRAGMENT) {
-@@ -1113,7 +1112,7 @@ static int ufs_alloc_lastblock(struct in
- 	       }
-        }
- out_unlock:
--       ufs_put_locked_page(lastpage);
-+       ufs_put_locked_folio(folio);
- out:
-        return err;
+ 	/*
+ 	 * Do we need to kill the entire memory cgroup?
+@@ -1072,7 +1072,7 @@ static void check_panic_on_oom(struct oo
+ 	/* Do not panic for oom kills triggered by sysrq */
+ 	if (is_sysrq_oom(oc))
+ 		return;
+-	dump_header(oc, NULL);
++	dump_header(oc);
+ 	panic("Out of memory: %s panic_on_oom is enabled\n",
+ 		sysctl_panic_on_oom == 2 ? "compulsory" : "system-wide");
  }
+@@ -1155,7 +1155,7 @@ bool out_of_memory(struct oom_control *o
+ 	select_bad_process(oc);
+ 	/* Found nothing?!?! */
+ 	if (!oc->chosen) {
+-		dump_header(oc, NULL);
++		dump_header(oc);
+ 		pr_warn("Out of memory and no killable processes...\n");
+ 		/*
+ 		 * If we got here due to an actual allocation at the
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from kasong@tencent.com are
 
 
