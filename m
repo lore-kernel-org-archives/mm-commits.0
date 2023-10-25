@@ -2,33 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC7D7C25B6E
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:48:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61AE6C27C46
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:48:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231383AbjJYXss (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Oct 2023 19:48:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53730 "EHLO
+        id S232850AbjJYXst (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Oct 2023 19:48:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44906 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232850AbjJYXsV (ORCPT
+        with ESMTP id S232801AbjJYXsV (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:48:21 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD9061AE
-        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:48:14 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5779EC433CA;
-        Wed, 25 Oct 2023 23:48:14 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06C181AA
+        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:48:13 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98118C433C8;
+        Wed, 25 Oct 2023 23:48:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698277694;
-        bh=TG6U23diYsCAkPWcx3IsaVPaEea3u3/wqaCRXh/Dq7w=;
+        s=korg; t=1698277692;
+        bh=0c6MEGDyJhpD+yZf7wERq/YjwQf/BzjfE8Jk1dGL2/8=;
         h=Date:To:From:Subject:From;
-        b=AlWIzR8lav3hbFLDCmBHEdg12cyXNWnxgbsvg1KxRb0B5NgyOb/5IZlpx2etErWOT
-         1N/Q2Fj4ayNi6WBqvnS8WzNLz5oaFwy25xYCfrOeiROt5/4sDAuhIAMWXjQKjJZgIZ
-         vFK1+Ybyv/iLR1gLoMKwr0hCHbh6es1llA+tEgqc=
-Date:   Wed, 25 Oct 2023 16:48:13 -0700
-To:     mm-commits@vger.kernel.org, surenb@google.com, mhocko@suse.com,
-        brauner@kernel.org, kasong@tencent.com, akpm@linux-foundation.org
+        b=Ns2lVpMYkNN20XAl651B88zDzyc/FgOakhYkCrFPsWSKIRtEb64zAh7n5VjJQuZp9
+         YvBxkIJ6yQcNu8ht0J5M7vXFEdYKHEKMiryUYwuIcq9XrImISfz+HM/Sd3IpmJ8H64
+         p3ClTJphxrdIAQJBDAMSuBRbsSySb3WsP12H5JoQ=
+Date:   Wed, 25 Oct 2023 16:48:11 -0700
+To:     mm-commits@vger.kernel.org, p.raghav@samsung.com,
+        konishi.ryusuke@gmail.com, agruenba@redhat.com,
+        willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-oom_killer-simplify-oom-killer-info-dump-helper.patch removed from -mm tree
-Message-Id: <20231025234814.5779EC433CA@smtp.kernel.org>
+Subject: [merged mm-stable] buffer-remove-folio_create_empty_buffers.patch removed from -mm tree
+Message-Id: <20231025234812.98118C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,104 +37,327 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/oom_killer: simplify OOM killer info dump helper
+     Subject: buffer: remove folio_create_empty_buffers()
 has been removed from the -mm tree.  Its filename was
-     mm-oom_killer-simplify-oom-killer-info-dump-helper.patch
+     buffer-remove-folio_create_empty_buffers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/oom_killer: simplify OOM killer info dump helper
-Date: Mon, 16 Oct 2023 19:31:03 +0800
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: buffer: remove folio_create_empty_buffers()
+Date: Mon, 16 Oct 2023 21:11:14 +0100
 
-There is only one caller wants to dump the kill victim info, so just let
-it call the standalone helper, no need to make the generic info dump
-helper take an extra argument for that.
+With all users converted, remove the old create_empty_buffers() and rename
+folio_create_empty_buffers() to create_empty_buffers().
 
-Result of bloat-o-meter:
-./scripts/bloat-o-meter ./mm/oom_kill.old.o ./mm/oom_kill.o
-add/remove: 0/0 grow/shrink: 1/2 up/down: 131/-142 (-11)
-Function                                     old     new   delta
-oom_kill_process                             412     543    +131
-out_of_memory                               1422    1418      -4
-dump_header                                  562     424    -138
-Total: Before=21514, After=21503, chg -0.05%
-
-Link: https://lkml.kernel.org/r/20231016113103.86477-1-ryncsn@gmail.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/20231016201114.1928083-28-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Andreas Gruenbacher <agruenba@redhat.com>
+Cc: Pankaj Raghav <p.raghav@samsung.com>
+Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ fs/buffer.c                 |   13 +++----------
+ fs/ext4/inode.c             |    6 +++---
+ fs/ext4/move_extent.c       |    4 ++--
+ fs/gfs2/aops.c              |    2 +-
+ fs/gfs2/bmap.c              |    2 +-
+ fs/gfs2/meta_io.c           |    2 +-
+ fs/gfs2/quota.c             |    2 +-
+ fs/mpage.c                  |    2 +-
+ fs/nilfs2/mdt.c             |    2 +-
+ fs/nilfs2/page.c            |    4 ++--
+ fs/nilfs2/segment.c         |    2 +-
+ fs/ntfs/aops.c              |    4 ++--
+ fs/ntfs/file.c              |    2 +-
+ fs/ntfs3/file.c             |    2 +-
+ fs/ocfs2/aops.c             |    2 +-
+ fs/reiserfs/inode.c         |    2 +-
+ fs/ufs/util.c               |    2 +-
+ include/linux/buffer_head.h |    4 +---
+ 18 files changed, 25 insertions(+), 34 deletions(-)
 
---- a/mm/oom_kill.c~mm-oom_killer-simplify-oom-killer-info-dump-helper
-+++ a/mm/oom_kill.c
-@@ -437,7 +437,7 @@ static void dump_tasks(struct oom_contro
- 	}
- }
- 
--static void dump_oom_summary(struct oom_control *oc, struct task_struct *victim)
-+static void dump_oom_victim(struct oom_control *oc, struct task_struct *victim)
+--- a/fs/buffer.c~buffer-remove-folio_create_empty_buffers
++++ a/fs/buffer.c
+@@ -1641,7 +1641,7 @@ EXPORT_SYMBOL(block_invalidate_folio);
+  * block_dirty_folio() via private_lock.  try_to_free_buffers
+  * is already excluded via the folio lock.
+  */
+-struct buffer_head *folio_create_empty_buffers(struct folio *folio,
++struct buffer_head *create_empty_buffers(struct folio *folio,
+ 		unsigned long blocksize, unsigned long b_state)
  {
- 	/* one line summary of the oom killer context. */
- 	pr_info("oom-kill:constraint=%s,nodemask=%*pbl",
-@@ -449,7 +449,7 @@ static void dump_oom_summary(struct oom_
- 		from_kuid(&init_user_ns, task_uid(victim)));
+ 	struct buffer_head *bh, *head, *tail;
+@@ -1672,13 +1672,6 @@ struct buffer_head *folio_create_empty_b
+ 
+ 	return head;
  }
+-EXPORT_SYMBOL(folio_create_empty_buffers);
+-
+-void create_empty_buffers(struct page *page,
+-			unsigned long blocksize, unsigned long b_state)
+-{
+-	folio_create_empty_buffers(page_folio(page), blocksize, b_state);
+-}
+ EXPORT_SYMBOL(create_empty_buffers);
  
--static void dump_header(struct oom_control *oc, struct task_struct *p)
-+static void dump_header(struct oom_control *oc)
- {
- 	pr_warn("%s invoked oom-killer: gfp_mask=%#x(%pGg), order=%d, oom_score_adj=%hd\n",
- 		current->comm, oc->gfp_mask, &oc->gfp_mask, oc->order,
-@@ -467,8 +467,6 @@ static void dump_header(struct oom_contr
- 	}
- 	if (sysctl_oom_dump_tasks)
- 		dump_tasks(oc);
--	if (p)
--		dump_oom_summary(oc, p);
+ /**
+@@ -1778,7 +1771,7 @@ static struct buffer_head *folio_create_
+ 
+ 	bh = folio_buffers(folio);
+ 	if (!bh)
+-		bh = folio_create_empty_buffers(folio,
++		bh = create_empty_buffers(folio,
+ 				1 << READ_ONCE(inode->i_blkbits), b_state);
+ 	return bh;
  }
+@@ -2681,7 +2674,7 @@ int block_truncate_page(struct address_s
  
- /*
-@@ -1029,8 +1027,10 @@ static void oom_kill_process(struct oom_
+ 	bh = folio_buffers(folio);
+ 	if (!bh)
+-		bh = folio_create_empty_buffers(folio, blocksize, 0);
++		bh = create_empty_buffers(folio, blocksize, 0);
+ 
+ 	/* Find the buffer that contains "offset" */
+ 	offset = offset_in_folio(folio, from);
+--- a/fs/ext4/inode.c~buffer-remove-folio_create_empty_buffers
++++ a/fs/ext4/inode.c
+@@ -1021,7 +1021,7 @@ static int ext4_block_write_begin(struct
+ 
+ 	head = folio_buffers(folio);
+ 	if (!head)
+-		head = folio_create_empty_buffers(folio, blocksize, 0);
++		head = create_empty_buffers(folio, blocksize, 0);
+ 	bbits = ilog2(blocksize);
+ 	block = (sector_t)folio->index << (PAGE_SHIFT - bbits);
+ 
+@@ -1151,7 +1151,7 @@ retry_grab:
+ 	 * starting the handle.
+ 	 */
+ 	if (!folio_buffers(folio))
+-		folio_create_empty_buffers(folio, inode->i_sb->s_blocksize, 0);
++		create_empty_buffers(folio, inode->i_sb->s_blocksize, 0);
+ 
+ 	folio_unlock(folio);
+ 
+@@ -3642,7 +3642,7 @@ static int __ext4_block_zero_page_range(
+ 
+ 	bh = folio_buffers(folio);
+ 	if (!bh)
+-		bh = folio_create_empty_buffers(folio, blocksize, 0);
++		bh = create_empty_buffers(folio, blocksize, 0);
+ 
+ 	/* Find the buffer that contains "offset" */
+ 	pos = blocksize;
+--- a/fs/ext4/move_extent.c~buffer-remove-folio_create_empty_buffers
++++ a/fs/ext4/move_extent.c
+@@ -184,7 +184,7 @@ mext_page_mkuptodate(struct folio *folio
+ 	blocksize = i_blocksize(inode);
+ 	head = folio_buffers(folio);
+ 	if (!head)
+-		head = folio_create_empty_buffers(folio, blocksize, 0);
++		head = create_empty_buffers(folio, blocksize, 0);
+ 
+ 	block = (sector_t)folio->index << (PAGE_SHIFT - inode->i_blkbits);
+ 	for (bh = head, block_start = 0; bh != head || !block_start;
+@@ -380,7 +380,7 @@ data_copy:
+ 	 * but keeping in mind that i_size will not change */
+ 	bh = folio_buffers(folio[0]);
+ 	if (!bh)
+-		bh = folio_create_empty_buffers(folio[0],
++		bh = create_empty_buffers(folio[0],
+ 				1 << orig_inode->i_blkbits, 0);
+ 	for (i = 0; i < data_offset_in_page; i++)
+ 		bh = bh->b_this_page;
+--- a/fs/gfs2/aops.c~buffer-remove-folio_create_empty_buffers
++++ a/fs/gfs2/aops.c
+@@ -130,7 +130,7 @@ static int __gfs2_jdata_write_folio(stru
+ 	if (folio_test_checked(folio)) {
+ 		folio_clear_checked(folio);
+ 		if (!folio_buffers(folio)) {
+-			folio_create_empty_buffers(folio,
++			create_empty_buffers(folio,
+ 					inode->i_sb->s_blocksize,
+ 					BIT(BH_Dirty)|BIT(BH_Uptodate));
+ 		}
+--- a/fs/gfs2/bmap.c~buffer-remove-folio_create_empty_buffers
++++ a/fs/gfs2/bmap.c
+@@ -71,7 +71,7 @@ static int gfs2_unstuffer_folio(struct g
+ 		struct buffer_head *bh = folio_buffers(folio);
+ 
+ 		if (!bh)
+-			bh = folio_create_empty_buffers(folio,
++			bh = create_empty_buffers(folio,
+ 				BIT(inode->i_blkbits), BIT(BH_Uptodate));
+ 
+ 		if (!buffer_mapped(bh))
+--- a/fs/gfs2/meta_io.c~buffer-remove-folio_create_empty_buffers
++++ a/fs/gfs2/meta_io.c
+@@ -134,7 +134,7 @@ struct buffer_head *gfs2_getbuf(struct g
+ 				mapping_gfp_mask(mapping) | __GFP_NOFAIL);
+ 		bh = folio_buffers(folio);
+ 		if (!bh)
+-			bh = folio_create_empty_buffers(folio,
++			bh = create_empty_buffers(folio,
+ 				sdp->sd_sb.sb_bsize, 0);
+ 	} else {
+ 		folio = __filemap_get_folio(mapping, index,
+--- a/fs/gfs2/quota.c~buffer-remove-folio_create_empty_buffers
++++ a/fs/gfs2/quota.c
+@@ -763,7 +763,7 @@ static int gfs2_write_buf_to_page(struct
+ 		return PTR_ERR(folio);
+ 	bh = folio_buffers(folio);
+ 	if (!bh)
+-		bh = folio_create_empty_buffers(folio, bsize, 0);
++		bh = create_empty_buffers(folio, bsize, 0);
+ 
+ 	for (;;) {
+ 		/* Find the beginning block within the folio */
+--- a/fs/mpage.c~buffer-remove-folio_create_empty_buffers
++++ a/fs/mpage.c
+@@ -119,7 +119,7 @@ static void map_buffer_to_folio(struct f
+ 			folio_mark_uptodate(folio);
+ 			return;
+ 		}
+-		head = folio_create_empty_buffers(folio, i_blocksize(inode), 0);
++		head = create_empty_buffers(folio, i_blocksize(inode), 0);
  	}
- 	task_unlock(victim);
  
--	if (__ratelimit(&oom_rs))
--		dump_header(oc, victim);
-+	if (__ratelimit(&oom_rs)) {
-+		dump_header(oc);
-+		dump_oom_victim(oc, victim);
-+	}
+ 	page_bh = head;
+--- a/fs/nilfs2/mdt.c~buffer-remove-folio_create_empty_buffers
++++ a/fs/nilfs2/mdt.c
+@@ -568,7 +568,7 @@ int nilfs_mdt_freeze_buffer(struct inode
+ 
+ 	bh_frozen = folio_buffers(folio);
+ 	if (!bh_frozen)
+-		bh_frozen = folio_create_empty_buffers(folio, 1 << blkbits, 0);
++		bh_frozen = create_empty_buffers(folio, 1 << blkbits, 0);
+ 
+ 	bh_frozen = get_nth_bh(bh_frozen, bh_offset(bh) >> blkbits);
+ 
+--- a/fs/nilfs2/page.c~buffer-remove-folio_create_empty_buffers
++++ a/fs/nilfs2/page.c
+@@ -34,7 +34,7 @@ static struct buffer_head *__nilfs_get_f
+ 	struct buffer_head *bh = folio_buffers(folio);
+ 
+ 	if (!bh)
+-		bh = folio_create_empty_buffers(folio, 1 << blkbits, b_state);
++		bh = create_empty_buffers(folio, 1 << blkbits, b_state);
+ 
+ 	first_block = (unsigned long)index << (PAGE_SHIFT - blkbits);
+ 	bh = get_nth_bh(bh, block - first_block);
+@@ -204,7 +204,7 @@ static void nilfs_copy_folio(struct foli
+ 	sbh = folio_buffers(src);
+ 	dbh = folio_buffers(dst);
+ 	if (!dbh)
+-		dbh = folio_create_empty_buffers(dst, sbh->b_size, 0);
++		dbh = create_empty_buffers(dst, sbh->b_size, 0);
+ 
+ 	if (copy_dirty)
+ 		mask |= BIT(BH_Dirty);
+--- a/fs/nilfs2/segment.c~buffer-remove-folio_create_empty_buffers
++++ a/fs/nilfs2/segment.c
+@@ -732,7 +732,7 @@ static size_t nilfs_lookup_dirty_data_bu
+ 		}
+ 		head = folio_buffers(folio);
+ 		if (!head)
+-			head = folio_create_empty_buffers(folio,
++			head = create_empty_buffers(folio,
+ 					i_blocksize(inode), 0);
+ 		folio_unlock(folio);
+ 
+--- a/fs/ntfs3/file.c~buffer-remove-folio_create_empty_buffers
++++ a/fs/ntfs3/file.c
+@@ -203,7 +203,7 @@ static int ntfs_zero_range(struct inode
+ 
+ 		head = folio_buffers(folio);
+ 		if (!head)
+-			head = folio_create_empty_buffers(folio, blocksize, 0);
++			head = create_empty_buffers(folio, blocksize, 0);
+ 
+ 		bh = head;
+ 		bh_off = 0;
+--- a/fs/ntfs/aops.c~buffer-remove-folio_create_empty_buffers
++++ a/fs/ntfs/aops.c
+@@ -189,7 +189,7 @@ static int ntfs_read_block(struct folio
+ 
+ 	head = folio_buffers(folio);
+ 	if (!head)
+-		head = folio_create_empty_buffers(folio, blocksize, 0);
++		head = create_empty_buffers(folio, blocksize, 0);
+ 	bh = head;
  
  	/*
- 	 * Do we need to kill the entire memory cgroup?
-@@ -1072,7 +1072,7 @@ static void check_panic_on_oom(struct oo
- 	/* Do not panic for oom kills triggered by sysrq */
- 	if (is_sysrq_oom(oc))
- 		return;
--	dump_header(oc, NULL);
-+	dump_header(oc);
- 	panic("Out of memory: %s panic_on_oom is enabled\n",
- 		sysctl_panic_on_oom == 2 ? "compulsory" : "system-wide");
+@@ -555,7 +555,7 @@ static int ntfs_write_block(struct folio
+ 	head = folio_buffers(folio);
+ 	if (!head) {
+ 		BUG_ON(!folio_test_uptodate(folio));
+-		head = folio_create_empty_buffers(folio, blocksize,
++		head = create_empty_buffers(folio, blocksize,
+ 				(1 << BH_Uptodate) | (1 << BH_Dirty));
+ 	}
+ 	bh = head;
+--- a/fs/ntfs/file.c~buffer-remove-folio_create_empty_buffers
++++ a/fs/ntfs/file.c
+@@ -625,7 +625,7 @@ do_next_folio:
+ 		 * create_empty_buffers() will create uptodate/dirty
+ 		 * buffers if the folio is uptodate/dirty.
+ 		 */
+-		head = folio_create_empty_buffers(folio, blocksize, 0);
++		head = create_empty_buffers(folio, blocksize, 0);
+ 	bh = head;
+ 	do {
+ 		VCN cdelta;
+--- a/fs/ocfs2/aops.c~buffer-remove-folio_create_empty_buffers
++++ a/fs/ocfs2/aops.c
+@@ -601,7 +601,7 @@ int ocfs2_map_page_blocks(struct page *p
+ 
+ 	head = folio_buffers(folio);
+ 	if (!head)
+-		head = folio_create_empty_buffers(folio, bsize, 0);
++		head = create_empty_buffers(folio, bsize, 0);
+ 
+ 	for (bh = head, block_start = 0; bh != head || !block_start;
+ 	     bh = bh->b_this_page, block_start += bsize) {
+--- a/fs/reiserfs/inode.c~buffer-remove-folio_create_empty_buffers
++++ a/fs/reiserfs/inode.c
+@@ -2539,7 +2539,7 @@ static int reiserfs_write_full_folio(str
+ 	 */
+ 	head = folio_buffers(folio);
+ 	if (!head)
+-		head = folio_create_empty_buffers(folio, s->s_blocksize,
++		head = create_empty_buffers(folio, s->s_blocksize,
+ 				     (1 << BH_Dirty) | (1 << BH_Uptodate));
+ 
+ 	/*
+--- a/fs/ufs/util.c~buffer-remove-folio_create_empty_buffers
++++ a/fs/ufs/util.c
+@@ -264,6 +264,6 @@ struct folio *ufs_get_locked_folio(struc
+ 		}
+ 	}
+ 	if (!folio_buffers(folio))
+-		folio_create_empty_buffers(folio, 1 << inode->i_blkbits, 0);
++		create_empty_buffers(folio, 1 << inode->i_blkbits, 0);
+ 	return folio;
  }
-@@ -1155,7 +1155,7 @@ bool out_of_memory(struct oom_control *o
- 	select_bad_process(oc);
- 	/* Found nothing?!?! */
- 	if (!oc->chosen) {
--		dump_header(oc, NULL);
-+		dump_header(oc);
- 		pr_warn("Out of memory and no killable processes...\n");
- 		/*
- 		 * If we got here due to an actual allocation at the
+--- a/include/linux/buffer_head.h~buffer-remove-folio_create_empty_buffers
++++ a/include/linux/buffer_head.h
+@@ -201,9 +201,7 @@ struct buffer_head *folio_alloc_buffers(
+ 					gfp_t gfp);
+ struct buffer_head *alloc_page_buffers(struct page *page, unsigned long size,
+ 		bool retry);
+-void create_empty_buffers(struct page *, unsigned long,
+-			unsigned long b_state);
+-struct buffer_head *folio_create_empty_buffers(struct folio *folio,
++struct buffer_head *create_empty_buffers(struct folio *folio,
+ 		unsigned long blocksize, unsigned long b_state);
+ void end_buffer_read_sync(struct buffer_head *bh, int uptodate);
+ void end_buffer_write_sync(struct buffer_head *bh, int uptodate);
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
 
