@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89BD6C25B6E
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:50:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AD90C25B70
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:50:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234911AbjJYXuM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Oct 2023 19:50:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38312 "EHLO
+        id S234852AbjJYXuN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Oct 2023 19:50:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53670 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234936AbjJYXsz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:48:55 -0400
+        with ESMTP id S232935AbjJYXtA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:49:00 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D1E41AC
-        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:48:53 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 194B1C433C8;
-        Wed, 25 Oct 2023 23:48:53 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FDC9D7A
+        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:48:55 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E1D1C433C7;
+        Wed, 25 Oct 2023 23:48:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698277733;
-        bh=7quDETlaKNpp1CXzM5EJkpwztcLHBHdqQvkIT9NlKBA=;
+        s=korg; t=1698277735;
+        bh=7zgeugRBNMsd5pomnchP8UDNzXcofZxPksqCQbWtSz8=;
         h=Date:To:From:Subject:From;
-        b=x9EA9jlo56UJhnwHXES0/5tw0vSJSV5NZQ+okFIcJ8l8Ja40WaaRPq/WDCCZP43fr
-         QkZr6vvaiN6fjrHkej2AYqB01ab/ec27U2rcN7MaiSqgyZjBrPBED9ju9n9225oJ/V
-         lgcBNC/k8ipVXuRQUhh7xAV4lfanELPSN5+Fz8RY=
-Date:   Wed, 25 Oct 2023 16:48:52 -0700
+        b=QvuamV/sFjp+f2Mi2LvMrXv6f88GIMPXjuCOGROyJ7BQ2bjM3J7teIqE3QsqHac+6
+         oo+jVlurfAn8nqZUam7K2D/lkOKzyicDB+gnXEdRyZZBK5hiI7j3rpu4znQG2Nx1th
+         z0lxoTyar7lUXyTzT2r9PKvb0DmVeyyQ8pXyo1/0=
+Date:   Wed, 25 Oct 2023 16:48:54 -0700
 To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
         patrick.wang.shcn@gmail.com, catalin.marinas@arm.com,
         liushixin2@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-kmemleak-fix-print-format-of-pointer-in-pr_debug.patch removed from -mm tree
-Message-Id: <20231025234853.194B1C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kmemleak-use-mem_pool_free-to-free-object.patch removed from -mm tree
+Message-Id: <20231025234855.0E1D1C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,172 +37,84 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/kmemleak: fix print format of pointer in pr_debug()
+     Subject: mm: kmemleak: use mem_pool_free() to free object
 has been removed from the -mm tree.  Its filename was
-     mm-kmemleak-fix-print-format-of-pointer-in-pr_debug.patch
+     mm-kmemleak-use-mem_pool_free-to-free-object.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Liu Shixin <liushixin2@huawei.com>
-Subject: mm/kmemleak: fix print format of pointer in pr_debug()
-Date: Wed, 18 Oct 2023 18:29:48 +0800
+Subject: mm: kmemleak: use mem_pool_free() to free object
+Date: Wed, 18 Oct 2023 18:29:50 +0800
 
-With 0x%p, the pointer will be hashed and print (____ptrval____) instead. 
-And with 0x%pa, the pointer can be successfully printed but with duplicate
-prefixes, which looks like:
+The kmemleak object is allocated by mem_pool_alloc(), which could be from
+slab or mem_pool[], so it's not suitable using __kmem_cache_free() to free
+the object, use __mem_pool_free() instead.
 
- kmemleak: kmemleak_free(0x(____ptrval____))
- kmemleak: kmemleak_free_percpu(0x(____ptrval____))
- kmemleak: kmemleak_free_part_phys(0x0x0000000a1af86000)
-
-Use 0x%px instead of 0x%p or 0x%pa to print the pointer. Then the print
-will be like:
-
- kmemleak: kmemleak_free(0xffff9111c145b020)
- kmemleak: kmemleak_free_percpu(0x00000000000333b0)
- kmemleak: kmemleak_free_part_phys(0x0000000a1af80000)
-
-Link: https://lkml.kernel.org/r/20231018102952.3339837-4-liushixin2@huawei.com
+Link: https://lkml.kernel.org/r/20231018102952.3339837-6-liushixin2@huawei.com
+Fixes: 0647398a8c7b ("mm: kmemleak: simple memory allocation pool for kmemleak objects")
 Signed-off-by: Liu Shixin <liushixin2@huawei.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Patrick Wang <patrick.wang.shcn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ mm/kmemleak.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-fix-print-format-of-pointer-in-pr_debug
+--- a/mm/kmemleak.c~mm-kmemleak-use-mem_pool_free-to-free-object
 +++ a/mm/kmemleak.c
-@@ -975,7 +975,7 @@ static void object_no_scan(unsigned long
- void __ref kmemleak_alloc(const void *ptr, size_t size, int min_count,
- 			  gfp_t gfp)
+@@ -668,8 +668,8 @@ static struct kmemleak_object *__alloc_o
+ 	return object;
+ }
+ 
+-static void __link_object(struct kmemleak_object *object, unsigned long ptr,
+-			  size_t size, int min_count, bool is_phys)
++static int __link_object(struct kmemleak_object *object, unsigned long ptr,
++			 size_t size, int min_count, bool is_phys)
  {
--	pr_debug("%s(0x%p, %zu, %d)\n", __func__, ptr, size, min_count);
-+	pr_debug("%s(0x%px, %zu, %d)\n", __func__, ptr, size, min_count);
  
- 	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
- 		create_object((unsigned long)ptr, size, min_count, gfp);
-@@ -996,7 +996,7 @@ void __ref kmemleak_alloc_percpu(const v
+ 	struct kmemleak_object *parent;
+@@ -711,14 +711,15 @@ static void __link_object(struct kmemlea
+ 			 * be freed while the kmemleak_lock is held.
+ 			 */
+ 			dump_object_info(parent);
+-			kmem_cache_free(object_cache, object);
+-			return;
++			return -EEXIST;
+ 		}
+ 	}
+ 	rb_link_node(&object->rb_node, rb_parent, link);
+ 	rb_insert_color(&object->rb_node, is_phys ? &object_phys_tree_root :
+ 					  &object_tree_root);
+ 	list_add_tail_rcu(&object->object_list, &object_list);
++
++	return 0;
+ }
+ 
+ /*
+@@ -731,14 +732,17 @@ static void __create_object(unsigned lon
  {
- 	unsigned int cpu;
- 
--	pr_debug("%s(0x%p, %zu)\n", __func__, ptr, size);
-+	pr_debug("%s(0x%px, %zu)\n", __func__, ptr, size);
- 
- 	/*
- 	 * Percpu allocations are only scanned and not reported as leaks
-@@ -1020,7 +1020,7 @@ EXPORT_SYMBOL_GPL(kmemleak_alloc_percpu)
-  */
- void __ref kmemleak_vmalloc(const struct vm_struct *area, size_t size, gfp_t gfp)
- {
--	pr_debug("%s(0x%p, %zu)\n", __func__, area, size);
-+	pr_debug("%s(0x%px, %zu)\n", __func__, area, size);
- 
- 	/*
- 	 * A min_count = 2 is needed because vm_struct contains a reference to
-@@ -1043,7 +1043,7 @@ EXPORT_SYMBOL_GPL(kmemleak_vmalloc);
-  */
- void __ref kmemleak_free(const void *ptr)
- {
--	pr_debug("%s(0x%p)\n", __func__, ptr);
-+	pr_debug("%s(0x%px)\n", __func__, ptr);
- 
- 	if (kmemleak_free_enabled && ptr && !IS_ERR(ptr))
- 		delete_object_full((unsigned long)ptr);
-@@ -1061,7 +1061,7 @@ EXPORT_SYMBOL_GPL(kmemleak_free);
-  */
- void __ref kmemleak_free_part(const void *ptr, size_t size)
- {
--	pr_debug("%s(0x%p)\n", __func__, ptr);
-+	pr_debug("%s(0x%px)\n", __func__, ptr);
- 
- 	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
- 		delete_object_part((unsigned long)ptr, size, false);
-@@ -1079,7 +1079,7 @@ void __ref kmemleak_free_percpu(const vo
- {
- 	unsigned int cpu;
- 
--	pr_debug("%s(0x%p)\n", __func__, ptr);
-+	pr_debug("%s(0x%px)\n", __func__, ptr);
- 
- 	if (kmemleak_free_enabled && ptr && !IS_ERR(ptr))
- 		for_each_possible_cpu(cpu)
-@@ -1100,7 +1100,7 @@ void __ref kmemleak_update_trace(const v
  	struct kmemleak_object *object;
  	unsigned long flags;
++	int ret;
  
--	pr_debug("%s(0x%p)\n", __func__, ptr);
-+	pr_debug("%s(0x%px)\n", __func__, ptr);
- 
- 	if (!kmemleak_enabled || IS_ERR_OR_NULL(ptr))
+ 	object = __alloc_object(gfp);
+ 	if (!object)
  		return;
-@@ -1131,7 +1131,7 @@ EXPORT_SYMBOL(kmemleak_update_trace);
-  */
- void __ref kmemleak_not_leak(const void *ptr)
- {
--	pr_debug("%s(0x%p)\n", __func__, ptr);
-+	pr_debug("%s(0x%px)\n", __func__, ptr);
  
- 	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
- 		make_gray_object((unsigned long)ptr);
-@@ -1149,7 +1149,7 @@ EXPORT_SYMBOL(kmemleak_not_leak);
-  */
- void __ref kmemleak_ignore(const void *ptr)
- {
--	pr_debug("%s(0x%p)\n", __func__, ptr);
-+	pr_debug("%s(0x%px)\n", __func__, ptr);
+ 	raw_spin_lock_irqsave(&kmemleak_lock, flags);
+-	__link_object(object, ptr, size, min_count, is_phys);
++	ret = __link_object(object, ptr, size, min_count, is_phys);
+ 	raw_spin_unlock_irqrestore(&kmemleak_lock, flags);
++	if (ret)
++		mem_pool_free(object);
+ }
  
- 	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
- 		make_black_object((unsigned long)ptr, false);
-@@ -1169,7 +1169,7 @@ EXPORT_SYMBOL(kmemleak_ignore);
-  */
- void __ref kmemleak_scan_area(const void *ptr, size_t size, gfp_t gfp)
- {
--	pr_debug("%s(0x%p)\n", __func__, ptr);
-+	pr_debug("%s(0x%px)\n", __func__, ptr);
- 
- 	if (kmemleak_enabled && ptr && size && !IS_ERR(ptr))
- 		add_scan_area((unsigned long)ptr, size, gfp);
-@@ -1187,7 +1187,7 @@ EXPORT_SYMBOL(kmemleak_scan_area);
-  */
- void __ref kmemleak_no_scan(const void *ptr)
- {
--	pr_debug("%s(0x%p)\n", __func__, ptr);
-+	pr_debug("%s(0x%px)\n", __func__, ptr);
- 
- 	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
- 		object_no_scan((unsigned long)ptr);
-@@ -1203,7 +1203,7 @@ EXPORT_SYMBOL(kmemleak_no_scan);
-  */
- void __ref kmemleak_alloc_phys(phys_addr_t phys, size_t size, gfp_t gfp)
- {
--	pr_debug("%s(0x%pa, %zu)\n", __func__, &phys, size);
-+	pr_debug("%s(0x%px, %zu)\n", __func__, &phys, size);
- 
- 	if (kmemleak_enabled)
- 		/*
-@@ -1223,7 +1223,7 @@ EXPORT_SYMBOL(kmemleak_alloc_phys);
-  */
- void __ref kmemleak_free_part_phys(phys_addr_t phys, size_t size)
- {
--	pr_debug("%s(0x%pa)\n", __func__, &phys);
-+	pr_debug("%s(0x%px)\n", __func__, &phys);
- 
- 	if (kmemleak_enabled)
- 		delete_object_part((unsigned long)phys, size, true);
-@@ -1237,7 +1237,7 @@ EXPORT_SYMBOL(kmemleak_free_part_phys);
-  */
- void __ref kmemleak_ignore_phys(phys_addr_t phys)
- {
--	pr_debug("%s(0x%pa)\n", __func__, &phys);
-+	pr_debug("%s(0x%px)\n", __func__, &phys);
- 
- 	if (kmemleak_enabled)
- 		make_black_object((unsigned long)phys, true);
+ /* Create kmemleak object which allocated with virtual address. */
 _
 
 Patches currently in -mm which might be from liushixin2@huawei.com are
