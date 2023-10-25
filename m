@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5728AC0032E
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:50:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE4B1C25B6B
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:50:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235029AbjJYXup (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S234479AbjJYXup (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 25 Oct 2023 19:50:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38090 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53738 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229863AbjJYXtc (ORCPT
+        with ESMTP id S230264AbjJYXtc (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:49:32 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8837C10F1
-        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:49:07 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 570BAC433C8;
-        Wed, 25 Oct 2023 23:49:07 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A97719D
+        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:49:08 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 490B4C433C7;
+        Wed, 25 Oct 2023 23:49:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698277747;
-        bh=bG/rbBllF28bUR7TCmdyooku5nVrPOjlD0vtvRXAiiI=;
+        s=korg; t=1698277748;
+        bh=3+gaS3rBE2ywxANL0keH7Ek0e6iW3JEIIx0qbdL7wN0=;
         h=Date:To:From:Subject:From;
-        b=DMvHY75H5tPhC3tAdjsnTCMkD5ChYsD/g83eAnqLQDZtg2VBWFIENmS+Ic6TP5TJn
-         TrI08rtr3TyAQXqd/6lmLGlAoDwN5VUY/k3CRdNUv8/V3B+63yX2UsLJ6orcEfp3H1
-         Y3LGOkMlLRWGbdBJ+hUuFijJ31KIi6ONP5A61DkQ=
-Date:   Wed, 25 Oct 2023 16:49:06 -0700
+        b=ZtHUaSiTrGJrwTjWC13fMjKsV5jqwh6ku5JJ0iiz1I224XzfbJ8A65/9nkYczxh6F
+         tztvWE6YMnXr71cN3VAkji6IqrpvV6dXV45GCPPqmq0mOwN7XQJful2Nr8fmUiFEDG
+         +Nr8GGVFzhLj4bBkOGscm5n/O1lqIHlcWmAdmd2g=
+Date:   Wed, 25 Oct 2023 16:49:07 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        wangkefeng.wang@huawei.com, shy828301@gmail.com, riel@surriel.com,
-        vishal.moola@gmail.com, akpm@linux-foundation.org
+        rdunlap@infradead.org, James.Bottomley@HansenPartnership.com,
+        m.muzzammilashraf@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-khugepaged-convert-collapse_pte_mapped_thp-to-use-folios.patch removed from -mm tree
-Message-Id: <20231025234907.570BAC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-fixed-multiple-typos-in-multiple-files.patch removed from -mm tree
+Message-Id: <20231025234908.490B4C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,170 +37,90 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/khugepaged: convert collapse_pte_mapped_thp() to use folios
+     Subject: mm: fix multiple typos in multiple files
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-convert-collapse_pte_mapped_thp-to-use-folios.patch
+     mm-fixed-multiple-typos-in-multiple-files.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm/khugepaged: convert collapse_pte_mapped_thp() to use folios
-Date: Fri, 20 Oct 2023 11:33:31 -0700
+From: Muhammad Muzammil <m.muzzammilashraf@gmail.com>
+Subject: mm: fix multiple typos in multiple files
+Date: Mon, 23 Oct 2023 17:44:05 +0500
 
-This removes 2 calls to compound_head() and helps convert khugepaged to
-use folios throughout.
-
-Previously, if the address passed to collapse_pte_mapped_thp()
-corresponded to a tail page, the scan would fail immediately. Using
-filemap_lock_folio() we get the corresponding folio back and try to
-operate on the folio instead.
-
-Link: https://lkml.kernel.org/r/20231020183331.10770-6-vishal.moola@gmail.com
-Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Reviewed-by: Rik van Riel <riel@surriel.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Link: https://lkml.kernel.org/r/20231023124405.36981-1-m.muzzammilashraf@gmail.com
+Signed-off-by: Muhammad Muzammil <m.muzzammilashraf@gmail.com>
+Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muhammad Muzammil <m.muzzammilashraf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   45 ++++++++++++++++++++-------------------------
- 1 file changed, 20 insertions(+), 25 deletions(-)
+ mm/debug_vm_pgtable.c |    4 ++--
+ mm/internal.h         |    2 +-
+ mm/memcontrol.c       |    4 ++--
+ mm/mmap.c             |    2 +-
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-convert-collapse_pte_mapped_thp-to-use-folios
-+++ a/mm/khugepaged.c
-@@ -1477,7 +1477,7 @@ int collapse_pte_mapped_thp(struct mm_st
- 	bool notified = false;
- 	unsigned long haddr = addr & HPAGE_PMD_MASK;
- 	struct vm_area_struct *vma = vma_lookup(mm, haddr);
--	struct page *hpage;
-+	struct folio *folio;
- 	pte_t *start_pte, *pte;
- 	pmd_t *pmd, pgt_pmd;
- 	spinlock_t *pml = NULL, *ptl;
-@@ -1510,19 +1510,14 @@ int collapse_pte_mapped_thp(struct mm_st
- 	if (userfaultfd_wp(vma))
- 		return SCAN_PTE_UFFD_WP;
- 
--	hpage = find_lock_page(vma->vm_file->f_mapping,
-+	folio = filemap_lock_folio(vma->vm_file->f_mapping,
- 			       linear_page_index(vma, haddr));
--	if (!hpage)
-+	if (IS_ERR(folio))
- 		return SCAN_PAGE_NULL;
- 
--	if (!PageHead(hpage)) {
--		result = SCAN_FAIL;
--		goto drop_hpage;
--	}
--
--	if (compound_order(hpage) != HPAGE_PMD_ORDER) {
-+	if (folio_order(folio) != HPAGE_PMD_ORDER) {
- 		result = SCAN_PAGE_COMPOUND;
--		goto drop_hpage;
-+		goto drop_folio;
- 	}
- 
- 	result = find_pmd_or_thp_or_none(mm, haddr, &pmd);
-@@ -1536,13 +1531,13 @@ int collapse_pte_mapped_thp(struct mm_st
- 		 */
- 		goto maybe_install_pmd;
- 	default:
--		goto drop_hpage;
-+		goto drop_folio;
- 	}
- 
- 	result = SCAN_FAIL;
- 	start_pte = pte_offset_map_lock(mm, pmd, haddr, &ptl);
- 	if (!start_pte)		/* mmap_lock + page lock should prevent this */
--		goto drop_hpage;
-+		goto drop_folio;
- 
- 	/* step 1: check all mapped PTEs are to the right huge page */
- 	for (i = 0, addr = haddr, pte = start_pte;
-@@ -1567,7 +1562,7 @@ int collapse_pte_mapped_thp(struct mm_st
- 		 * Note that uprobe, debugger, or MAP_PRIVATE may change the
- 		 * page table, but the new page will not be a subpage of hpage.
- 		 */
--		if (hpage + i != page)
-+		if (folio_page(folio, i) != page)
- 			goto abort;
- 	}
- 
-@@ -1582,7 +1577,7 @@ int collapse_pte_mapped_thp(struct mm_st
- 	 * page_table_lock) ptl nests inside pml. The less time we hold pml,
- 	 * the better; but userfaultfd's mfill_atomic_pte() on a private VMA
- 	 * inserts a valid as-if-COWed PTE without even looking up page cache.
--	 * So page lock of hpage does not protect from it, so we must not drop
-+	 * So page lock of folio does not protect from it, so we must not drop
- 	 * ptl before pgt_pmd is removed, so uffd private needs pml taken now.
+--- a/mm/debug_vm_pgtable.c~mm-fixed-multiple-typos-in-multiple-files
++++ a/mm/debug_vm_pgtable.c
+@@ -1322,8 +1322,8 @@ static int __init debug_vm_pgtable(void)
+ 	 * true irrespective of the starting protection value for a
+ 	 * given page table entry.
+ 	 *
+-	 * Protection based vm_flags combinatins are always linear
+-	 * and increasing i.e starting from VM_NONE and going upto
++	 * Protection based vm_flags combinations are always linear
++	 * and increasing i.e starting from VM_NONE and going up to
+ 	 * (VM_SHARED | READ | WRITE | EXEC).
  	 */
- 	if (userfaultfd_armed(vma) && !(vma->vm_flags & VM_SHARED))
-@@ -1606,7 +1601,7 @@ int collapse_pte_mapped_thp(struct mm_st
- 			continue;
- 		/*
- 		 * We dropped ptl after the first scan, to do the mmu_notifier:
--		 * page lock stops more PTEs of the hpage being faulted in, but
-+		 * page lock stops more PTEs of the folio being faulted in, but
- 		 * does not stop write faults COWing anon copies from existing
- 		 * PTEs; and does not stop those being swapped out or migrated.
- 		 */
-@@ -1615,7 +1610,7 @@ int collapse_pte_mapped_thp(struct mm_st
- 			goto abort;
- 		}
- 		page = vm_normal_page(vma, addr, ptent);
--		if (hpage + i != page)
-+		if (folio_page(folio, i) != page)
- 			goto abort;
+ #define VM_FLAGS_START	(VM_NONE)
+--- a/mm/internal.h~mm-fixed-multiple-typos-in-multiple-files
++++ a/mm/internal.h
+@@ -592,7 +592,7 @@ extern bool mlock_future_ok(struct mm_st
+  * range.
+  * "fully mapped" means all the pages of folio is associated with the page
+  * table of range while this function just check whether the folio range is
+- * within the range [start, end). Funcation caller nees to do page table
++ * within the range [start, end). Function caller needs to do page table
+  * check if it cares about the page table association.
+  *
+  * Typical usage (like mlock or madvise) is:
+--- a/mm/memcontrol.c~mm-fixed-multiple-typos-in-multiple-files
++++ a/mm/memcontrol.c
+@@ -819,7 +819,7 @@ void __mod_memcg_lruvec_state(struct lru
+ 	memcg = pn->memcg;
  
- 		/*
-@@ -1634,8 +1629,8 @@ int collapse_pte_mapped_thp(struct mm_st
- 
- 	/* step 3: set proper refcount and mm_counters. */
- 	if (nr_ptes) {
--		page_ref_sub(hpage, nr_ptes);
--		add_mm_counter(mm, mm_counter_file(hpage), -nr_ptes);
-+		folio_ref_sub(folio, nr_ptes);
-+		add_mm_counter(mm, mm_counter_file(&folio->page), -nr_ptes);
- 	}
- 
- 	/* step 4: remove empty page table */
-@@ -1659,14 +1654,14 @@ int collapse_pte_mapped_thp(struct mm_st
- maybe_install_pmd:
- 	/* step 5: install pmd entry */
- 	result = install_pmd
--			? set_huge_pmd(vma, haddr, pmd, hpage)
-+			? set_huge_pmd(vma, haddr, pmd, &folio->page)
- 			: SCAN_SUCCEED;
--	goto drop_hpage;
-+	goto drop_folio;
- abort:
- 	if (nr_ptes) {
- 		flush_tlb_mm(mm);
--		page_ref_sub(hpage, nr_ptes);
--		add_mm_counter(mm, mm_counter_file(hpage), -nr_ptes);
-+		folio_ref_sub(folio, nr_ptes);
-+		add_mm_counter(mm, mm_counter_file(&folio->page), -nr_ptes);
- 	}
- 	if (start_pte)
- 		pte_unmap_unlock(start_pte, ptl);
-@@ -1674,9 +1669,9 @@ abort:
- 		spin_unlock(pml);
- 	if (notified)
- 		mmu_notifier_invalidate_range_end(&range);
--drop_hpage:
--	unlock_page(hpage);
--	put_page(hpage);
-+drop_folio:
-+	folio_unlock(folio);
-+	folio_put(folio);
- 	return result;
- }
- 
+ 	/*
+-	 * The caller from rmap relay on disabled preemption becase they never
++	 * The caller from rmap relies on disabled preemption because they never
+ 	 * update their counter from in-interrupt context. For these two
+ 	 * counters we check that the update is never performed from an
+ 	 * interrupt context while other caller need to have disabled interrupt.
+@@ -8044,7 +8044,7 @@ static struct cftype memsw_files[] = {
+  *
+  * This doesn't check for specific headroom, and it is not atomic
+  * either. But with zswap, the size of the allocation is only known
+- * once compression has occured, and this optimistic pre-check avoids
++ * once compression has occurred, and this optimistic pre-check avoids
+  * spending cycles on compression when there is already no room left
+  * or zswap is disabled altogether somewhere in the hierarchy.
+  */
+--- a/mm/mmap.c~mm-fixed-multiple-typos-in-multiple-files
++++ a/mm/mmap.c
+@@ -1223,7 +1223,7 @@ unsigned long do_mmap(struct file *file,
+ 	 * Does the application expect PROT_READ to imply PROT_EXEC?
+ 	 *
+ 	 * (the exception is when the underlying filesystem is noexec
+-	 *  mounted, in which case we dont add PROT_EXEC.)
++	 *  mounted, in which case we don't add PROT_EXEC.)
+ 	 */
+ 	if ((prot & PROT_READ) && (current->personality & READ_IMPLIES_EXEC))
+ 		if (!(file && path_noexec(&file->f_path)))
 _
 
-Patches currently in -mm which might be from vishal.moola@gmail.com are
+Patches currently in -mm which might be from m.muzzammilashraf@gmail.com are
 
 
