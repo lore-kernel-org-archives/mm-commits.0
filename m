@@ -2,33 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE65CC0032E
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:40:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3FCCC25B6E
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:47:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229632AbjJYXk3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Oct 2023 19:40:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41190 "EHLO
+        id S229596AbjJYXrn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Oct 2023 19:47:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46024 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229583AbjJYXk2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:40:28 -0400
+        with ESMTP id S229573AbjJYXrm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:47:42 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0545013A
-        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:40:27 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DD52C433C8;
-        Wed, 25 Oct 2023 23:40:26 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB73992
+        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:47:40 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70F6DC433C8;
+        Wed, 25 Oct 2023 23:47:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698277226;
-        bh=1Fu9+wCnGdSqfV8/TGjNO268mr/LpgDNvoaca5FJI4U=;
+        s=korg; t=1698277660;
+        bh=nbKPfsfER4EnkCEbBP7ygBLSYScyUFOKfZQ1gYM0gik=;
         h=Date:To:From:Subject:From;
-        b=PMhHppHgdE1LCFU67kTmZxU4NZ0GxdELGsiN/91K3dDFhw8aovRyuWbtSYpieg3Mi
-         E4lIdhkovTHNYHJ7EsGsi5GgANBR/29IXwd7zjmVZw+XwSQESqKu1zaj0mK9CPCCo5
-         bQkFNqGHsRaAU8skhXCSCIgjVglXrJT2FzaKURnM=
-Date:   Wed, 25 Oct 2023 16:40:25 -0700
-To:     mm-commits@vger.kernel.org, hughd@google.com,
+        b=NS27G217BqVO1MAtbguVdLdi+RewSrzFLZDDPBtHB5tBtd/DzXQZsxK4RbY6OZrjg
+         KPrSSY02mB8M/ucry9Noa1Yr2zYEwpQIYeBIpvv9iPFCMftGWGyTV4EPBWj14k9K5c
+         5JCPPthTIWw5HJCDAtTpxEAzlx0x4w5wHziNb1z4=
+Date:   Wed, 25 Oct 2023 16:47:39 -0700
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mhocko@kernel.org,
+        mgorman@techsingularity.net, cl@linux.com, ying.huang@intel.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mempolicy-migration-attempt-to-match-interleave-nodes-fix.patch removed from -mm tree
-Message-Id: <20231025234026.8DD52C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-fix-draining-remote-pageset.patch removed from -mm tree
+Message-Id: <20231025234740.70F6DC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,81 +37,90 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mempolicy: migration attempt to match interleave nodes: fix
+     Subject: mm: fix draining remote pageset
 has been removed from the -mm tree.  Its filename was
-     mempolicy-migration-attempt-to-match-interleave-nodes-fix.patch
+     mm-fix-draining-remote-pageset.patch
 
-This patch was dropped because it was folded into mempolicy-migration-attempt-to-match-interleave-nodes.patch
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mempolicy: migration attempt to match interleave nodes: fix
-Date: Mon, 23 Oct 2023 23:50:42 -0700 (PDT)
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm: fix draining remote pageset
+Date: Fri, 11 Aug 2023 17:08:19 +0800
 
-mm-unstable commit edd33b8807a1 ("mempolicy: migration attempt to match
-interleave nodes") added a second vma_iter search to do_mbind(), to
-determine the interleave index to be used in the MPOL_INTERLEAVE case.
+If there is no memory allocation/freeing in the PCP (Per-CPU Pageset) of a
+remote zone (zone in remote NUMA node) after some time (3 seconds for
+now), the pages of the PCP of the remote zone will be drained to avoid
+memory wastage.
 
-But sadly it added it just after the mmap_write_unlock(), leaving this new
-VMA search unprotected: and so syzbot reports suspicious RCU usage from
-lib/maple_tree.c:856.
+This behavior was introduced in the commit 4ae7c03943fc ("[PATCH]
+Periodically drain non local pagesets") and the commit 4037d452202e ("Move
+remote node draining out of slab allocators")
 
-This could be fixed with an rcu_read_lock/unlock() pair (per Liam); but
-since we have been relying on the mmap_lock up to this point, it's
-slightly better to extend it over the new search too, for a well-defined
-result consistent with the policy this mbind() is establishing (rather
-than whatever might follow once the mmap_lock is dropped).
+But, after the commit 7cc36bbddde5 ("vmstat: on-demand vmstat workers
+V8"), the vmstat updater worker which is used to drain the PCP of remote
+zones may not be re-queued when we are waiting for the timeout
+(pcp->expire != 0) if there are no vmstat changes on this CPU, for
+example, when the CPU goes idle or runs user space only workloads.  This
+may cause the pages of a remote zone be kept in PCP of this CPU for long
+time.  So that, the page reclaiming of the remote zone may be triggered
+prematurely.  This isn't a severe problem in practice, because the PCP of
+the remote zone will be drained if some memory are allocated/freed again
+on this CPU.  And, the PCP will eventually be drained during the direct
+reclaiming if necessary.
 
-Link: https://lkml.kernel.org/r/3311d544-fb05-a7f1-1b74-16aa0f6cd4fe@google.com
-Fixes: edd33b8807a1 ("mempolicy: migration attempt to match interleave nodes")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reported-by: syzbot+79fcba037b6df73756d3@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/linux-mm/000000000000c05f1b0608657fde@google.com/
+Anyway, the problem still deserves a fix via guaranteeing that the vmstat
+updater worker will always be re-queued when we are waiting for the
+timeout.  In effect, this restores the original behavior before the commit
+7cc36bbddde5.
+
+We can reproduce the bug via allocating/freeing pages from a remote zone
+then go idle as follows.  And the patch can fix it.
+
+- Run some workloads, use `numactl` to bind CPU to node 0 and memory to
+  node 1.  So the PCP of the CPU on node 0 for zone on node 1 will be
+  filled.
+
+- After workloads finish, idle for 60s
+
+- Check /proc/zoneinfo
+
+With the original kernel, the number of pages in the PCP of the CPU on
+node 0 for zone on node 1 is non-zero after idle.  With the patched
+kernel, it becomes 0 after idle.  That is, we avoid to keep pages in the
+remote PCP during idle.
+
+Link: https://lkml.kernel.org/r/20231007062356.187621-1-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20230811090819.60845-1-ying.huang@intel.com
+Fixes: 7cc36bbddde5 ("vmstat: on-demand vmstat workers V8")
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Christoph Lameter <cl@linux.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/vmstat.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/mempolicy.c~mempolicy-migration-attempt-to-match-interleave-nodes-fix
-+++ a/mm/mempolicy.c
-@@ -1291,8 +1291,6 @@ static long do_mbind(unsigned long start
- 		}
- 	}
- 
--	mmap_write_unlock(mm);
--
- 	if (!err && !list_empty(&pagelist)) {
- 		/* Convert MPOL_DEFAULT's NULL to task or default policy */
- 		if (!new) {
-@@ -1334,7 +1332,11 @@ static long do_mbind(unsigned long start
- 				mmpol.ilx -= page->index >> order;
+--- a/mm/vmstat.c~mm-fix-draining-remote-pageset
++++ a/mm/vmstat.c
+@@ -857,8 +857,10 @@ static int refresh_cpu_vm_stats(bool do_
+ 				continue;
  			}
- 		}
-+	}
  
-+	mmap_write_unlock(mm);
-+
-+	if (!err && !list_empty(&pagelist)) {
- 		nr_failed |= migrate_pages(&pagelist,
- 				alloc_migration_target_by_mpol, NULL,
- 				(unsigned long)&mmpol, MIGRATE_SYNC,
+-			if (__this_cpu_dec_return(pcp->expire))
++			if (__this_cpu_dec_return(pcp->expire)) {
++				changes++;
+ 				continue;
++			}
+ 
+ 			if (__this_cpu_read(pcp->count)) {
+ 				drain_zone_pages(zone, this_cpu_ptr(pcp));
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-ext4-add-__gfp_nowarn-to-gfp_nowait-in-readahead.patch
-mm-mlock-avoid-folio_within_range-on-ksm-pages.patch
-hugetlbfs-drop-shared-numa-mempolicy-pretence.patch
-kernfs-drop-shared-numa-mempolicy-hooks.patch
-mempolicy-fix-migrate_pages2-syscall-return-nr_failed.patch
-mempolicy-trivia-delete-those-ancient-pr_debugs.patch
-mempolicy-trivia-slightly-more-consistent-naming.patch
-mempolicy-trivia-use-pgoff_t-in-shared-mempolicy-tree.patch
-mempolicy-mpol_shared_policy_init-without-pseudo-vma.patch
-mempolicy-remove-confusing-mpol_mf_lazy-dead-code.patch
-mm-add-page_rmappable_folio-wrapper.patch
-mempolicy-alloc_pages_mpol-for-numa-policy-without-vma.patch
-mempolicy-mmap_lock-is-not-needed-while-migrating-folios.patch
-mempolicy-migration-attempt-to-match-interleave-nodes.patch
 
