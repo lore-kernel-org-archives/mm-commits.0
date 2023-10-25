@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72C68C25B6B
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:47:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B73EC25B6B
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:47:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229877AbjJYXrq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Oct 2023 19:47:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46044 "EHLO
+        id S230281AbjJYXrv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Oct 2023 19:47:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46054 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229573AbjJYXrp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:47:45 -0400
+        with ESMTP id S229990AbjJYXrq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:47:46 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C96513D
-        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:47:43 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8480CC433CC;
-        Wed, 25 Oct 2023 23:47:42 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E40D182
+        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:47:44 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE4F4C433C8;
+        Wed, 25 Oct 2023 23:47:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698277662;
-        bh=bOVU05ZdKctIe+jU1f/lDg1vP3WAaK4G84848xYgEwc=;
+        s=korg; t=1698277663;
+        bh=Punbq/zZYY4q5x+Zy5ND1uj5psPFDFR99DH5c31nPew=;
         h=Date:To:From:Subject:From;
-        b=nEAmoBqayOEiLolyHZ3rfHQi+lt3YjRtAcz0zZB8kdhOMs6QNiPLvobMaG11V5M2i
-         cw0S5Pk7uMv/XWp0jB4f0QhP/0312vM23f+pxuAhQ2q/8ub8cK01cFGPMy3S2i6WRZ
-         yHsASJ/9o+c41N9+e8D9MvX8Czdj+xcNUUnoBsDc=
-Date:   Wed, 25 Oct 2023 16:47:41 -0700
+        b=PTprQkpohOFgP8qS8HnoPIthuZV6GWbu/URl4GBQQmUn02Ia8LTuOvZwQL0Qfq/aH
+         ZZOF/2QO24WSzRft7WLsllN8Iy0HvTYxAe4Ho/5hC/gGMZgIq5UhVeUvVmQp7igeMR
+         Uh+vD37OFEmIHDQtxp3r9Fmx5rnsfi+CXG1EeDtw=
+Date:   Wed, 25 Oct 2023 16:47:43 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         usama.arif@bytedance.com, songmuchun@bytedance.com,
         senozhatsky@chromium.org, rientjes@google.com, osalvador@suse.de,
@@ -33,8 +33,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org,
         david@redhat.com, anshuman.khandual@arm.com, 21cnbao@gmail.com,
         mike.kravetz@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] hugetlb-restructure-pool-allocations.patch removed from -mm tree
-Message-Id: <20231025234742.8480CC433CC@smtp.kernel.org>
+Subject: [merged mm-stable] hugetlb-perform-vmemmap-optimization-on-a-list-of-pages.patch removed from -mm tree
+Message-Id: <20231025234743.AE4F4C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,38 +42,33 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: hugetlb: restructure pool allocations
+     Subject: hugetlb: perform vmemmap optimization on a list of pages
 has been removed from the -mm tree.  Its filename was
-     hugetlb-restructure-pool-allocations.patch
+     hugetlb-perform-vmemmap-optimization-on-a-list-of-pages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: restructure pool allocations
-Date: Wed, 18 Oct 2023 19:31:04 -0700
+Subject: hugetlb: perform vmemmap optimization on a list of pages
+Date: Wed, 18 Oct 2023 19:31:05 -0700
 
-Allocation of a hugetlb page for the hugetlb pool is done by the routine
-alloc_pool_huge_page.  This routine will allocate contiguous pages from a
-low level allocator, prep the pages for usage as a hugetlb page and then
-add the resulting hugetlb page to the pool.
+When adding hugetlb pages to the pool, we first create a list of the
+allocated pages before adding to the pool.  Pass this list of pages to a
+new routine hugetlb_vmemmap_optimize_folios() for vmemmap optimization.
 
-In the 'prep' stage, optional vmemmap optimization is done.  For
-performance reasons we want to perform vmemmap optimization on multiple
-hugetlb pages at once.  To do this, restructure the hugetlb pool
-allocation code such that vmemmap optimization can be isolated and later
-batched.
+Due to significant differences in vmemmmap initialization for bootmem
+allocated hugetlb pages, a new routine prep_and_add_bootmem_folios is
+created.
 
-The code to allocate hugetlb pages from bootmem was also modified to
-allow batching.
+We also modify the routine vmemmap_should_optimize() to check for pages
+that are already optimized.  There are code paths that might request
+vmemmap optimization twice and we want to make sure this is not attempted.
 
-No functional changes, only code restructure.
-
-Link: https://lkml.kernel.org/r/20231019023113.345257-3-mike.kravetz@oracle.com
+Link: https://lkml.kernel.org/r/20231019023113.345257-4-mike.kravetz@oracle.com
 Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Tested-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Barry Song <21cnbao@gmail.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -86,330 +81,145 @@ Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
 Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Usama Arif <usama.arif@bytedance.com>
 Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |  180 ++++++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 141 insertions(+), 39 deletions(-)
+ mm/hugetlb.c         |   43 +++++++++++++++++++++++++++++++++--------
+ mm/hugetlb_vmemmap.c |   11 ++++++++++
+ mm/hugetlb_vmemmap.h |    5 ++++
+ 3 files changed, 51 insertions(+), 8 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-restructure-pool-allocations
+--- a/mm/hugetlb.c~hugetlb-perform-vmemmap-optimization-on-a-list-of-pages
 +++ a/mm/hugetlb.c
-@@ -1996,16 +1996,21 @@ static void __prep_account_new_huge_page
- 	h->nr_huge_pages_node[nid]++;
+@@ -2282,6 +2282,9 @@ static void prep_and_add_allocated_folio
+ 	unsigned long flags;
+ 	struct folio *folio, *tmp_f;
+ 
++	/* Send list for bulk vmemmap optimization processing */
++	hugetlb_vmemmap_optimize_folios(h, folio_list);
++
+ 	/* Add all new pool pages to free lists in one lock cycle */
+ 	spin_lock_irqsave(&hugetlb_lock, flags);
+ 	list_for_each_entry_safe(folio, tmp_f, folio_list, lru) {
+@@ -3344,6 +3347,35 @@ static void __init hugetlb_folio_init_vm
+ 	prep_compound_head((struct page *)folio, huge_page_order(h));
  }
  
--static void __prep_new_hugetlb_folio(struct hstate *h, struct folio *folio)
-+static void init_new_hugetlb_folio(struct hstate *h, struct folio *folio)
- {
- 	folio_set_hugetlb(folio);
--	hugetlb_vmemmap_optimize(h, &folio->page);
- 	INIT_LIST_HEAD(&folio->lru);
- 	hugetlb_set_folio_subpool(folio, NULL);
- 	set_hugetlb_cgroup(folio, NULL);
- 	set_hugetlb_cgroup_rsvd(folio, NULL);
- }
- 
-+static void __prep_new_hugetlb_folio(struct hstate *h, struct folio *folio)
-+{
-+	init_new_hugetlb_folio(h, folio);
-+	hugetlb_vmemmap_optimize(h, &folio->page);
-+}
-+
- static void prep_new_hugetlb_folio(struct hstate *h, struct folio *folio, int nid)
- {
- 	__prep_new_hugetlb_folio(h, folio);
-@@ -2202,16 +2207,9 @@ retry:
- 	return page_folio(page);
- }
- 
--/*
-- * Common helper to allocate a fresh hugetlb page. All specific allocators
-- * should use this function to get new hugetlb pages
-- *
-- * Note that returned page is 'frozen':  ref count of head page and all tail
-- * pages is zero.
-- */
--static struct folio *alloc_fresh_hugetlb_folio(struct hstate *h,
--		gfp_t gfp_mask, int nid, nodemask_t *nmask,
--		nodemask_t *node_alloc_noretry)
-+static struct folio *__alloc_fresh_hugetlb_folio(struct hstate *h,
-+				gfp_t gfp_mask, int nid, nodemask_t *nmask,
-+				nodemask_t *node_alloc_noretry)
- {
- 	struct folio *folio;
- 	bool retry = false;
-@@ -2224,6 +2222,7 @@ retry:
- 				nid, nmask, node_alloc_noretry);
- 	if (!folio)
- 		return NULL;
-+
- 	if (hstate_is_gigantic(h)) {
- 		if (!prep_compound_gigantic_folio(folio, huge_page_order(h))) {
- 			/*
-@@ -2238,32 +2237,81 @@ retry:
- 			return NULL;
- 		}
- 	}
--	prep_new_hugetlb_folio(h, folio, folio_nid(folio));
- 
- 	return folio;
- }
- 
-+static struct folio *only_alloc_fresh_hugetlb_folio(struct hstate *h,
-+		gfp_t gfp_mask, int nid, nodemask_t *nmask,
-+		nodemask_t *node_alloc_noretry)
-+{
-+	struct folio *folio;
-+
-+	folio = __alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask,
-+						node_alloc_noretry);
-+	if (folio)
-+		init_new_hugetlb_folio(h, folio);
-+	return folio;
-+}
-+
- /*
-- * Allocates a fresh page to the hugetlb allocator pool in the node interleaved
-- * manner.
-+ * Common helper to allocate a fresh hugetlb page. All specific allocators
-+ * should use this function to get new hugetlb pages
-+ *
-+ * Note that returned page is 'frozen':  ref count of head page and all tail
-+ * pages is zero.
-  */
--static int alloc_pool_huge_page(struct hstate *h, nodemask_t *nodes_allowed,
--				nodemask_t *node_alloc_noretry)
-+static struct folio *alloc_fresh_hugetlb_folio(struct hstate *h,
-+		gfp_t gfp_mask, int nid, nodemask_t *nmask,
-+		nodemask_t *node_alloc_noretry)
- {
- 	struct folio *folio;
--	int nr_nodes, node;
-+
-+	folio = __alloc_fresh_hugetlb_folio(h, gfp_mask, nid, nmask,
-+						node_alloc_noretry);
-+	if (!folio)
-+		return NULL;
-+
-+	prep_new_hugetlb_folio(h, folio, folio_nid(folio));
-+	return folio;
-+}
-+
-+static void prep_and_add_allocated_folios(struct hstate *h,
++static void __init prep_and_add_bootmem_folios(struct hstate *h,
 +					struct list_head *folio_list)
 +{
 +	unsigned long flags;
 +	struct folio *folio, *tmp_f;
 +
++	/* Send list for bulk vmemmap optimization processing */
++	hugetlb_vmemmap_optimize_folios(h, folio_list);
++
 +	/* Add all new pool pages to free lists in one lock cycle */
 +	spin_lock_irqsave(&hugetlb_lock, flags);
 +	list_for_each_entry_safe(folio, tmp_f, folio_list, lru) {
++		if (!folio_test_hugetlb_vmemmap_optimized(folio)) {
++			/*
++			 * If HVO fails, initialize all tail struct pages
++			 * We do not worry about potential long lock hold
++			 * time as this is early in boot and there should
++			 * be no contention.
++			 */
++			hugetlb_folio_init_tail_vmemmap(folio,
++					HUGETLB_VMEMMAP_RESERVE_PAGES,
++					pages_per_huge_page(h));
++		}
 +		__prep_account_new_huge_page(h, folio_nid(folio));
 +		enqueue_hugetlb_folio(h, folio);
 +	}
 +	spin_unlock_irqrestore(&hugetlb_lock, flags);
 +}
 +
-+/*
-+ * Allocates a fresh hugetlb page in a node interleaved manner.  The page
-+ * will later be added to the appropriate hugetlb pool.
-+ */
-+static struct folio *alloc_pool_huge_folio(struct hstate *h,
-+					nodemask_t *nodes_allowed,
-+					nodemask_t *node_alloc_noretry)
-+{
- 	gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
-+	int nr_nodes, node;
- 
- 	for_each_node_mask_to_alloc(h, nr_nodes, node, nodes_allowed) {
--		folio = alloc_fresh_hugetlb_folio(h, gfp_mask, node,
-+		struct folio *folio;
-+
-+		folio = only_alloc_fresh_hugetlb_folio(h, gfp_mask, node,
- 					nodes_allowed, node_alloc_noretry);
--		if (folio) {
--			free_huge_folio(folio); /* free it into the hugepage allocator */
--			return 1;
--		}
-+		if (folio)
-+			return folio;
- 	}
- 
--	return 0;
-+	return NULL;
- }
- 
  /*
-@@ -3302,25 +3350,35 @@ static void __init hugetlb_folio_init_vm
-  */
- static void __init gather_bootmem_prealloc(void)
- {
-+	LIST_HEAD(folio_list);
- 	struct huge_bootmem_page *m;
-+	struct hstate *h = NULL, *prev_h = NULL;
- 
- 	list_for_each_entry(m, &huge_boot_pages, list) {
- 		struct page *page = virt_to_page(m);
- 		struct folio *folio = (void *)page;
--		struct hstate *h = m->hstate;
-+
-+		h = m->hstate;
-+		/*
-+		 * It is possible to have multiple huge page sizes (hstates)
-+		 * in this list.  If so, process each size separately.
-+		 */
-+		if (h != prev_h && prev_h != NULL)
-+			prep_and_add_allocated_folios(prev_h, &folio_list);
-+		prev_h = h;
+  * Put bootmem huge pages into the standard lists after mem_map is up.
+  * Note: This only applies to gigantic (order > MAX_ORDER) pages.
+@@ -3364,7 +3396,7 @@ static void __init gather_bootmem_preall
+ 		 * in this list.  If so, process each size separately.
+ 		 */
+ 		if (h != prev_h && prev_h != NULL)
+-			prep_and_add_allocated_folios(prev_h, &folio_list);
++			prep_and_add_bootmem_folios(prev_h, &folio_list);
+ 		prev_h = h;
  
  		VM_BUG_ON(!hstate_is_gigantic(h));
- 		WARN_ON(folio_ref_count(folio) != 1);
+@@ -3372,12 +3404,7 @@ static void __init gather_bootmem_preall
  
  		hugetlb_folio_init_vmemmap(folio, h,
  					   HUGETLB_VMEMMAP_RESERVE_PAGES);
--		prep_new_hugetlb_folio(h, folio, folio_nid(folio));
-+		__prep_new_hugetlb_folio(h, folio);
- 		/* If HVO fails, initialize all tail struct pages */
- 		if (!HPageVmemmapOptimized(&folio->page))
- 			hugetlb_folio_init_tail_vmemmap(folio,
- 						HUGETLB_VMEMMAP_RESERVE_PAGES,
- 						pages_per_huge_page(h));
--		free_huge_folio(folio); /* add to the hugepage allocator */
-+		list_add(&folio->lru, &folio_list);
+-		__prep_new_hugetlb_folio(h, folio);
+-		/* If HVO fails, initialize all tail struct pages */
+-		if (!HPageVmemmapOptimized(&folio->page))
+-			hugetlb_folio_init_tail_vmemmap(folio,
+-						HUGETLB_VMEMMAP_RESERVE_PAGES,
+-						pages_per_huge_page(h));
++		init_new_hugetlb_folio(h, folio);
+ 		list_add(&folio->lru, &folio_list);
  
  		/*
- 		 * We need to restore the 'stolen' pages to totalram_pages
-@@ -3330,6 +3388,8 @@ static void __init gather_bootmem_preall
- 		adjust_managed_page_count(page, pages_per_huge_page(h));
+@@ -3389,7 +3416,7 @@ static void __init gather_bootmem_preall
  		cond_resched();
  	}
-+
-+	prep_and_add_allocated_folios(h, &folio_list);
+ 
+-	prep_and_add_allocated_folios(h, &folio_list);
++	prep_and_add_bootmem_folios(h, &folio_list);
  }
  
  static void __init hugetlb_hstate_alloc_pages_onenode(struct hstate *h, int nid)
-@@ -3363,9 +3423,22 @@ static void __init hugetlb_hstate_alloc_
- 	h->max_huge_pages_node[nid] = i;
+--- a/mm/hugetlb_vmemmap.c~hugetlb-perform-vmemmap-optimization-on-a-list-of-pages
++++ a/mm/hugetlb_vmemmap.c
+@@ -483,6 +483,9 @@ int hugetlb_vmemmap_restore(const struct
+ /* Return true iff a HugeTLB whose vmemmap should and can be optimized. */
+ static bool vmemmap_should_optimize(const struct hstate *h, const struct page *head)
+ {
++	if (HPageVmemmapOptimized((struct page *)head))
++		return false;
++
+ 	if (!READ_ONCE(vmemmap_optimize_enabled))
+ 		return false;
+ 
+@@ -572,6 +575,14 @@ void hugetlb_vmemmap_optimize(const stru
+ 		SetHPageVmemmapOptimized(head);
  }
  
-+/*
-+ * NOTE: this routine is called in different contexts for gigantic and
-+ * non-gigantic pages.
-+ * - For gigantic pages, this is called early in the boot process and
-+ *   pages are allocated from memblock allocated or something similar.
-+ *   Gigantic pages are actually added to pools later with the routine
-+ *   gather_bootmem_prealloc.
-+ * - For non-gigantic pages, this is called later in the boot process after
-+ *   all of mm is up and functional.  Pages are allocated from buddy and
-+ *   then added to hugetlb pools.
-+ */
- static void __init hugetlb_hstate_alloc_pages(struct hstate *h)
- {
- 	unsigned long i;
++void hugetlb_vmemmap_optimize_folios(struct hstate *h, struct list_head *folio_list)
++{
 +	struct folio *folio;
-+	LIST_HEAD(folio_list);
- 	nodemask_t *node_alloc_noretry;
- 	bool node_specific_alloc = false;
- 
-@@ -3407,14 +3480,25 @@ static void __init hugetlb_hstate_alloc_
- 
- 	for (i = 0; i < h->max_huge_pages; ++i) {
- 		if (hstate_is_gigantic(h)) {
-+			/*
-+			 * gigantic pages not added to list as they are not
-+			 * added to pools now.
-+			 */
- 			if (!alloc_bootmem_huge_page(h, NUMA_NO_NODE))
- 				break;
--		} else if (!alloc_pool_huge_page(h,
--					 &node_states[N_MEMORY],
--					 node_alloc_noretry))
--			break;
-+		} else {
-+			folio = alloc_pool_huge_folio(h, &node_states[N_MEMORY],
-+							node_alloc_noretry);
-+			if (!folio)
-+				break;
-+			list_add(&folio->lru, &folio_list);
-+		}
- 		cond_resched();
- 	}
 +
-+	/* list will be empty if hstate_is_gigantic */
-+	prep_and_add_allocated_folios(h, &folio_list);
++	list_for_each_entry(folio, folio_list, lru)
++		hugetlb_vmemmap_optimize(h, &folio->page);
++}
 +
- 	if (i < h->max_huge_pages) {
- 		char buf[32];
+ static struct ctl_table hugetlb_vmemmap_sysctls[] = {
+ 	{
+ 		.procname	= "hugetlb_optimize_vmemmap",
+--- a/mm/hugetlb_vmemmap.h~hugetlb-perform-vmemmap-optimization-on-a-list-of-pages
++++ a/mm/hugetlb_vmemmap.h
+@@ -20,6 +20,7 @@
+ #ifdef CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP
+ int hugetlb_vmemmap_restore(const struct hstate *h, struct page *head);
+ void hugetlb_vmemmap_optimize(const struct hstate *h, struct page *head);
++void hugetlb_vmemmap_optimize_folios(struct hstate *h, struct list_head *folio_list);
  
-@@ -3548,7 +3632,9 @@ found:
- static int set_max_huge_pages(struct hstate *h, unsigned long count, int nid,
- 			      nodemask_t *nodes_allowed)
+ static inline unsigned int hugetlb_vmemmap_size(const struct hstate *h)
  {
--	unsigned long min_count, ret;
-+	unsigned long min_count;
-+	unsigned long allocated;
-+	struct folio *folio;
- 	LIST_HEAD(page_list);
- 	NODEMASK_ALLOC(nodemask_t, node_alloc_noretry, GFP_KERNEL);
+@@ -48,6 +49,10 @@ static inline void hugetlb_vmemmap_optim
+ {
+ }
  
-@@ -3625,7 +3711,8 @@ static int set_max_huge_pages(struct hst
- 			break;
- 	}
- 
--	while (count > persistent_huge_pages(h)) {
-+	allocated = 0;
-+	while (count > (persistent_huge_pages(h) + allocated)) {
- 		/*
- 		 * If this allocation races such that we no longer need the
- 		 * page, free_huge_folio will handle it by freeing the page
-@@ -3636,15 +3723,32 @@ static int set_max_huge_pages(struct hst
- 		/* yield cpu to avoid soft lockup */
- 		cond_resched();
- 
--		ret = alloc_pool_huge_page(h, nodes_allowed,
-+		folio = alloc_pool_huge_folio(h, nodes_allowed,
- 						node_alloc_noretry);
--		spin_lock_irq(&hugetlb_lock);
--		if (!ret)
-+		if (!folio) {
-+			prep_and_add_allocated_folios(h, &page_list);
-+			spin_lock_irq(&hugetlb_lock);
- 			goto out;
-+		}
++static inline void hugetlb_vmemmap_optimize_folios(struct hstate *h, struct list_head *folio_list)
++{
++}
 +
-+		list_add(&folio->lru, &page_list);
-+		allocated++;
- 
- 		/* Bail for signals. Probably ctrl-c from user */
--		if (signal_pending(current))
-+		if (signal_pending(current)) {
-+			prep_and_add_allocated_folios(h, &page_list);
-+			spin_lock_irq(&hugetlb_lock);
- 			goto out;
-+		}
-+
-+		spin_lock_irq(&hugetlb_lock);
-+	}
-+
-+	/* Add allocated pages to the pool */
-+	if (!list_empty(&page_list)) {
-+		spin_unlock_irq(&hugetlb_lock);
-+		prep_and_add_allocated_folios(h, &page_list);
-+		spin_lock_irq(&hugetlb_lock);
- 	}
- 
- 	/*
-@@ -3670,8 +3774,6 @@ static int set_max_huge_pages(struct hst
- 	 * Collect pages to be removed on list without dropping lock
- 	 */
- 	while (min_count < persistent_huge_pages(h)) {
--		struct folio *folio;
--
- 		folio = remove_pool_hugetlb_folio(h, nodes_allowed, 0);
- 		if (!folio)
- 			break;
+ static inline unsigned int hugetlb_vmemmap_optimizable_size(const struct hstate *h)
+ {
+ 	return 0;
 _
 
 Patches currently in -mm which might be from mike.kravetz@oracle.com are
