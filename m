@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A798C25B6B
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:50:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64760C25B6E
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:50:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234955AbjJYXua (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S234101AbjJYXua (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 25 Oct 2023 19:50:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44980 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34178 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234959AbjJYXtQ (ORCPT
+        with ESMTP id S234957AbjJYXtQ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:49:16 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EBFBF10E4
-        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:49:05 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86AF1C433C7;
-        Wed, 25 Oct 2023 23:49:05 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0056510E2
+        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:49:04 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 931C6C433CA;
+        Wed, 25 Oct 2023 23:49:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698277745;
-        bh=CEly+PxuSnoJrMWQZH8qmqZWc3Bip+VYYnBj1u2UeVw=;
+        s=korg; t=1698277744;
+        bh=t9pBm9a4pOZKPL0lFaWV1wi87YPgSa15IIh2i5dAAnw=;
         h=Date:To:From:Subject:From;
-        b=cvWYAcdorgCNKMK+LYJa4c2jvQTw4rwi7KKfdo7b58AMrc/eB3ivr8Wm3NiklWFKQ
-         I7vKBODOJb/KLwi4hxfzKnf8Q6FdvR8z8Cm9Vwk41I67IYvdD3i0muvJmjqyyU6vo3
-         /7D2GVgfZqUVKrzWJX0j8CDzHKQT2nDc+WqSQPy8=
+        b=qyMjWTEfiSlncdC+9ocq0YOIuK2YjI06PhAjpPKG8Xrxe+398IXXvQlGo9fU7kWZa
+         u0qdGPFk1hzcPl7d91rJFN0+BBdgBQo0A2mI+2x4s52ZNREf5aJSWzCH4mv1IRMyLH
+         FYAl5JMyCfjg8RU3+8LXO4b+7gdqwFvpkX6oUa/k=
 Date:   Wed, 25 Oct 2023 16:49:04 -0700
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        wangkefeng.wang@huawei.com, shy828301@gmail.com, david@redhat.com,
+        wangkefeng.wang@huawei.com, shy828301@gmail.com, riel@surriel.com,
         vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-khugepaged-convert-is_refcount_suitable-to-use-folios.patch removed from -mm tree
-Message-Id: <20231025234905.86AF1C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-khugepaged-convert-hpage_collapse_scan_pmd-to-use-folios.patch removed from -mm tree
+Message-Id: <20231025234904.931C6C433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,77 +37,107 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/khugepaged: convert is_refcount_suitable() to use folios
+     Subject: mm/khugepaged: convert hpage_collapse_scan_pmd() to use folios
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-convert-is_refcount_suitable-to-use-folios.patch
+     mm-khugepaged-convert-hpage_collapse_scan_pmd-to-use-folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
-Subject: mm/khugepaged: convert is_refcount_suitable() to use folios
-Date: Fri, 20 Oct 2023 11:33:29 -0700
+Subject: mm/khugepaged: convert hpage_collapse_scan_pmd() to use folios
+Date: Fri, 20 Oct 2023 11:33:28 -0700
 
-Both callers of is_refcount_suitable() have been converted to use
-folios, so convert it to take in a folio. Both callers only operate on
-head pages of folios so mapcount/refcount conversions here are trivial.
+Replaces 5 calls to compound_head(), and removes 1385 bytes of kernel
+text.
 
-Removes 3 calls to compound head, and removes 315 bytes of kernel text.
-
-Link: https://lkml.kernel.org/r/20231020183331.10770-4-vishal.moola@gmail.com
+Link: https://lkml.kernel.org/r/20231020183331.10770-3-vishal.moola@gmail.com
 Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Rik van Riel <riel@surriel.com>
 Reviewed-by: Yang Shi <shy828301@gmail.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/khugepaged.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-convert-is_refcount_suitable-to-use-folios
+--- a/mm/khugepaged.c~mm-khugepaged-convert-hpage_collapse_scan_pmd-to-use-folios
 +++ a/mm/khugepaged.c
-@@ -524,15 +524,15 @@ static void release_pte_pages(pte_t *pte
- 	}
- }
+@@ -1248,6 +1248,7 @@ static int hpage_collapse_scan_pmd(struc
+ 	int result = SCAN_FAIL, referenced = 0;
+ 	int none_or_zero = 0, shared = 0;
+ 	struct page *page = NULL;
++	struct folio *folio = NULL;
+ 	unsigned long _address;
+ 	spinlock_t *ptl;
+ 	int node = NUMA_NO_NODE, unmapped = 0;
+@@ -1334,29 +1335,28 @@ static int hpage_collapse_scan_pmd(struc
+ 			}
+ 		}
  
--static bool is_refcount_suitable(struct page *page)
-+static bool is_refcount_suitable(struct folio *folio)
- {
- 	int expected_refcount;
- 
--	expected_refcount = total_mapcount(page);
--	if (PageSwapCache(page))
--		expected_refcount += compound_nr(page);
-+	expected_refcount = folio_mapcount(folio);
-+	if (folio_test_swapcache(folio))
-+		expected_refcount += folio_nr_pages(folio);
- 
--	return page_count(page) == expected_refcount;
-+	return folio_ref_count(folio) == expected_refcount;
- }
- 
- static int __collapse_huge_page_isolate(struct vm_area_struct *vma,
-@@ -625,7 +625,7 @@ static int __collapse_huge_page_isolate(
- 		 * but not from this process. The other process cannot write to
- 		 * the page, only trigger CoW.
+-		page = compound_head(page);
+-
++		folio = page_folio(page);
+ 		/*
+ 		 * Record which node the original page is from and save this
+ 		 * information to cc->node_load[].
+ 		 * Khugepaged will allocate hugepage from the node has the max
+ 		 * hit record.
  		 */
--		if (!is_refcount_suitable(&folio->page)) {
-+		if (!is_refcount_suitable(folio)) {
- 			folio_unlock(folio);
- 			result = SCAN_PAGE_COUNT;
- 			goto out;
+-		node = page_to_nid(page);
++		node = folio_nid(folio);
+ 		if (hpage_collapse_scan_abort(node, cc)) {
+ 			result = SCAN_SCAN_ABORT;
+ 			goto out_unmap;
+ 		}
+ 		cc->node_load[node]++;
+-		if (!PageLRU(page)) {
++		if (!folio_test_lru(folio)) {
+ 			result = SCAN_PAGE_LRU;
+ 			goto out_unmap;
+ 		}
+-		if (PageLocked(page)) {
++		if (folio_test_locked(folio)) {
+ 			result = SCAN_PAGE_LOCK;
+ 			goto out_unmap;
+ 		}
+-		if (!PageAnon(page)) {
++		if (!folio_test_anon(folio)) {
+ 			result = SCAN_PAGE_ANON;
+ 			goto out_unmap;
+ 		}
 @@ -1371,7 +1371,7 @@ static int hpage_collapse_scan_pmd(struc
  		 * has excessive GUP pins (i.e. 512).  Anyway the same check
  		 * will be done again later the risk seems low.
  		 */
--		if (!is_refcount_suitable(&folio->page)) {
-+		if (!is_refcount_suitable(folio)) {
+-		if (!is_refcount_suitable(page)) {
++		if (!is_refcount_suitable(&folio->page)) {
  			result = SCAN_PAGE_COUNT;
  			goto out_unmap;
  		}
+@@ -1381,8 +1381,8 @@ static int hpage_collapse_scan_pmd(struc
+ 		 * enough young pte to justify collapsing the page
+ 		 */
+ 		if (cc->is_khugepaged &&
+-		    (pte_young(pteval) || page_is_young(page) ||
+-		     PageReferenced(page) || mmu_notifier_test_young(vma->vm_mm,
++		    (pte_young(pteval) || folio_test_young(folio) ||
++		     folio_test_referenced(folio) || mmu_notifier_test_young(vma->vm_mm,
+ 								     address)))
+ 			referenced++;
+ 	}
+@@ -1404,7 +1404,7 @@ out_unmap:
+ 		*mmap_locked = false;
+ 	}
+ out:
+-	trace_mm_khugepaged_scan_pmd(mm, page, writable, referenced,
++	trace_mm_khugepaged_scan_pmd(mm, &folio->page, writable, referenced,
+ 				     none_or_zero, result, unmapped);
+ 	return result;
+ }
 _
 
 Patches currently in -mm which might be from vishal.moola@gmail.com are
