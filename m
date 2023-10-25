@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8A35C25B6E
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:48:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D194C0032E
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:48:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230241AbjJYXsF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Oct 2023 19:48:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52042 "EHLO
+        id S230466AbjJYXsH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Oct 2023 19:48:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44934 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230348AbjJYXry (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:47:54 -0400
+        with ESMTP id S231218AbjJYXsE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:48:04 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D6EF0183
-        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:47:52 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2481C433CB;
-        Wed, 25 Oct 2023 23:47:52 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46943192
+        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:47:56 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14EB3C433CA;
+        Wed, 25 Oct 2023 23:47:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698277672;
-        bh=bUAn3xAlERILcbrkqPxRKYP36QyXZEhiKc0pSpj/fMw=;
+        s=korg; t=1698277676;
+        bh=W2aQXg7UINkNkQ5nBEQ9pqP+t3S0AEuJODIu+Q4MS/Y=;
         h=Date:To:From:Subject:From;
-        b=E/zf3B7sKd+F6ZBN/LRdff/ZKfOut1qfW9J0X6z9Kds+mZ0iIuUdtre9P7BcrEay4
-         ibCECZKbsVsQFVEi2pN05F9PtuVeqwueFxto5BByl/OEnMZalUmRR8l6+jA8RvKZXG
-         RwTeoNPDwxp+NSShaHXlNSvqRp/lg0O5Rfwyvz+U=
-Date:   Wed, 25 Oct 2023 16:47:52 -0700
+        b=NXZPVHilRVM0t0jVxkNJHocnMvtm8kCJjusvX4HMSqSISZoI1YO2B6nT7i8ALU+mH
+         4bb7U6iolM7DqUzzCtpE0jQWmxD1NrSUjIJdKq4pFUx4Of4uJz9YIJcGEaKAACTe1a
+         sy/t1JDNJPXg4n82AoPhELrZwvBFcCzpg0DWHIbA=
+Date:   Wed, 25 Oct 2023 16:47:55 -0700
 To:     mm-commits@vger.kernel.org, p.raghav@samsung.com,
         konishi.ryusuke@gmail.com, agruenba@redhat.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] ext4-convert-to-folio_create_empty_buffers.patch removed from -mm tree
-Message-Id: <20231025234752.A2481C433CB@smtp.kernel.org>
+Subject: [merged mm-stable] gfs2-convert-gfs2_getjdatabuf-to-use-a-folio.patch removed from -mm tree
+Message-Id: <20231025234756.14EB3C433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,98 +37,68 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: ext4: convert to folio_create_empty_buffers
+     Subject: gfs2: convert gfs2_getjdatabuf to use a folio
 has been removed from the -mm tree.  Its filename was
-     ext4-convert-to-folio_create_empty_buffers.patch
+     gfs2-convert-gfs2_getjdatabuf-to-use-a-folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: ext4: convert to folio_create_empty_buffers
-Date: Mon, 16 Oct 2023 21:10:51 +0100
+Subject: gfs2: convert gfs2_getjdatabuf to use a folio
+Date: Mon, 16 Oct 2023 21:10:55 +0100
 
-Remove an unnecessary folio->page->folio conversion and take advantage of
-the new return value from folio_create_empty_buffers().
+Use the folio APIs, saving four hidden calls to compound_head().
 
-Link: https://lkml.kernel.org/r/20231016201114.1928083-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231016201114.1928083-9-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Pankaj Raghav <p.raghav@samsung.com>
-Cc: Andreas Gruenbacher <agruenba@redhat.com>
+Reviewed-by: Andreas Gruenbacher <agruenba@redhat.com>
+Cc: Pankaj Raghav <p.raghav@samsung.com>
 Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/inode.c       |   14 +++++---------
- fs/ext4/move_extent.c |   11 +++++------
- 2 files changed, 10 insertions(+), 15 deletions(-)
+ fs/gfs2/meta_io.c |   22 ++++++++--------------
+ 1 file changed, 8 insertions(+), 14 deletions(-)
 
---- a/fs/ext4/inode.c~ext4-convert-to-folio_create_empty_buffers
-+++ a/fs/ext4/inode.c
-@@ -1020,10 +1020,8 @@ static int ext4_block_write_begin(struct
- 	BUG_ON(from > to);
+--- a/fs/gfs2/meta_io.c~gfs2-convert-gfs2_getjdatabuf-to-use-a-folio
++++ a/fs/gfs2/meta_io.c
+@@ -400,26 +400,20 @@ static struct buffer_head *gfs2_getjdata
+ {
+ 	struct address_space *mapping = ip->i_inode.i_mapping;
+ 	struct gfs2_sbd *sdp = GFS2_SB(&ip->i_inode);
+-	struct page *page;
++	struct folio *folio;
+ 	struct buffer_head *bh;
+ 	unsigned int shift = PAGE_SHIFT - sdp->sd_sb.sb_bsize_shift;
+ 	unsigned long index = blkno >> shift; /* convert block to page */
+ 	unsigned int bufnum = blkno - (index << shift);
  
- 	head = folio_buffers(folio);
--	if (!head) {
--		create_empty_buffers(&folio->page, blocksize, 0);
--		head = folio_buffers(folio);
+-	page = find_get_page_flags(mapping, index, FGP_LOCK|FGP_ACCESSED);
+-	if (!page)
++	folio = __filemap_get_folio(mapping, index, FGP_LOCK | FGP_ACCESSED, 0);
++	if (IS_ERR(folio))
+ 		return NULL;
+-	if (!page_has_buffers(page)) {
+-		unlock_page(page);
+-		put_page(page);
+-		return NULL;
 -	}
-+	if (!head)
-+		head = folio_create_empty_buffers(folio, blocksize, 0);
- 	bbits = ilog2(blocksize);
- 	block = (sector_t)folio->index << (PAGE_SHIFT - bbits);
+-	/* Locate header for our buffer within our page */
+-	for (bh = page_buffers(page); bufnum--; bh = bh->b_this_page)
+-		/* Do nothing */;
+-	get_bh(bh);
+-	unlock_page(page);
+-	put_page(page);
++	bh = folio_buffers(folio);
++	if (bh)
++		bh = get_nth_bh(bh, bufnum);
++	folio_unlock(folio);
++	folio_put(folio);
+ 	return bh;
+ }
  
-@@ -1153,7 +1151,7 @@ retry_grab:
- 	 * starting the handle.
- 	 */
- 	if (!folio_buffers(folio))
--		create_empty_buffers(&folio->page, inode->i_sb->s_blocksize, 0);
-+		folio_create_empty_buffers(folio, inode->i_sb->s_blocksize, 0);
- 
- 	folio_unlock(folio);
- 
-@@ -3643,10 +3641,8 @@ static int __ext4_block_zero_page_range(
- 	iblock = index << (PAGE_SHIFT - inode->i_sb->s_blocksize_bits);
- 
- 	bh = folio_buffers(folio);
--	if (!bh) {
--		create_empty_buffers(&folio->page, blocksize, 0);
--		bh = folio_buffers(folio);
--	}
-+	if (!bh)
-+		bh = folio_create_empty_buffers(folio, blocksize, 0);
- 
- 	/* Find the buffer that contains "offset" */
- 	pos = blocksize;
---- a/fs/ext4/move_extent.c~ext4-convert-to-folio_create_empty_buffers
-+++ a/fs/ext4/move_extent.c
-@@ -183,10 +183,8 @@ mext_page_mkuptodate(struct folio *folio
- 
- 	blocksize = i_blocksize(inode);
- 	head = folio_buffers(folio);
--	if (!head) {
--		create_empty_buffers(&folio->page, blocksize, 0);
--		head = folio_buffers(folio);
--	}
-+	if (!head)
-+		head = folio_create_empty_buffers(folio, blocksize, 0);
- 
- 	block = (sector_t)folio->index << (PAGE_SHIFT - inode->i_blkbits);
- 	for (bh = head, block_start = 0; bh != head || !block_start;
-@@ -380,9 +378,10 @@ data_copy:
- 	}
- 	/* Perform all necessary steps similar write_begin()/write_end()
- 	 * but keeping in mind that i_size will not change */
--	if (!folio_buffers(folio[0]))
--		create_empty_buffers(&folio[0]->page, 1 << orig_inode->i_blkbits, 0);
- 	bh = folio_buffers(folio[0]);
-+	if (!bh)
-+		bh = folio_create_empty_buffers(folio[0],
-+				1 << orig_inode->i_blkbits, 0);
- 	for (i = 0; i < data_offset_in_page; i++)
- 		bh = bh->b_this_page;
- 	for (i = 0; i < block_len_in_page; i++) {
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
