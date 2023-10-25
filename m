@@ -2,37 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB8A5C25B70
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1E1EC25B6F
 	for <mm-commits@archiver.kernel.org>; Wed, 25 Oct 2023 23:50:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234957AbjJYXub (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Oct 2023 19:50:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34166 "EHLO
+        id S233766AbjJYXuc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Oct 2023 19:50:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34204 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233766AbjJYXtQ (ORCPT
+        with ESMTP id S234963AbjJYXtQ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Oct 2023 19:49:16 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF96110D9
-        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:49:01 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5402C433C8;
-        Wed, 25 Oct 2023 23:49:01 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D978D10EB
+        for <mm-commits@vger.kernel.org>; Wed, 25 Oct 2023 16:49:06 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79764C433CA;
+        Wed, 25 Oct 2023 23:49:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698277741;
-        bh=jIrfE5yJ4dQwQM2Q+iRAEk2ZqDpU7GF7L8xibDxWSk8=;
+        s=korg; t=1698277746;
+        bh=2paGaYdDjLx8NrTjRK6qPFWzHFIST+ICRRj5TIBkLl8=;
         h=Date:To:From:Subject:From;
-        b=Ud4Docr9gTWvOc0sc6Gz1/yj85AkzxpReiGZ7bBoZbuVZLVpfDYbYRu/zbZfR33ee
-         kzGiusSvIkF55CrLHlnPQtOYbd65j4EmGqI0dmqXRbkffHSeuFsBXd71N7q7Lwm6Dv
-         2CzBEQ14Af8tYQhlJyHOzl981xG3vBTNTxPwanOA=
-Date:   Wed, 25 Oct 2023 16:49:01 -0700
-To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
-        willy@infradead.org, vbabka@suse.cz, rppt@kernel.org,
-        osalvador@suse.de, mingo@kernel.org, mhocko@suse.com,
-        mgorman@techsingularity.net, hannes@cmpxchg.org, david@redhat.com,
-        aneesh.kumar@linux.ibm.com, zhengqi.arch@bytedance.com,
-        akpm@linux-foundation.org
+        b=ACzwfZNV6bghMrO7tSFHm2wiZQ6fMsdJ7CCuW1RS7Hx63/L1D+Mqp+uQG0U6C7df3
+         Ak7WUVXpsSCVdOB7rV62cHzsHkOOhmjfJR3gApY3iAgtzfc2+DQOyXrcAdKM+Px1K7
+         FUo4ABokyovdD+cdkxY2Zaz1ncTlf4kBMhGPxWXg=
+Date:   Wed, 25 Oct 2023 16:49:05 -0700
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        wangkefeng.wang@huawei.com, shy828301@gmail.com, riel@surriel.com,
+        vishal.moola@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory_hotplug-drop-memoryless-node-from-fallback-lists.patch removed from -mm tree
-Message-Id: <20231025234901.B5402C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-khugepaged-convert-alloc_charge_hpage-to-use-folios.patch removed from -mm tree
+Message-Id: <20231025234906.79764C433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,76 +37,116 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm: memory_hotplug: drop memoryless node from fallback lists
+     Subject: mm/khugepaged: convert alloc_charge_hpage() to use folios
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-drop-memoryless-node-from-fallback-lists.patch
+     mm-khugepaged-convert-alloc_charge_hpage-to-use-folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: memory_hotplug: drop memoryless node from fallback lists
-Date: Thu, 19 Oct 2023 18:43:55 +0800
+From: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Subject: mm/khugepaged: convert alloc_charge_hpage() to use folios
+Date: Fri, 20 Oct 2023 11:33:30 -0700
 
-In offline_pages(), if a node becomes memoryless, we will clear its
-N_MEMORY state by calling node_states_clear_node().  But we do this
-after rebuilding the zonelists by calling build_all_zonelists(), which
-will cause this memoryless node to still be in the fallback nodes
-(node_order[]) of other nodes.
+Also remove count_memcg_page_event now that its last caller no longer uses
+it and reword hpage_collapse_alloc_page() to hpage_collapse_alloc_folio().
 
-To drop memoryless nodes from fallback nodes in this case, just call
-node_states_clear_node() before calling build_all_zonelists().
+This removes 1 call to compound_head() and helps convert khugepaged to
+use folios throughout.
 
-In this way, we will not try to allocate pages from memoryless node0,
-then the panic mentioned in [1] will also be fixed.  Even though this
-problem has been solved by dropping the NODE_MIN_SIZE constrain in x86
-[2], it would be better to fix it in the core MM as well.
-
-https://lore.kernel.org/all/20230212110305.93670-1-zhengqi.arch@bytedance.com/ [1]
-https://lore.kernel.org/all/20231017062215.171670-1-rppt@kernel.org/ [2]
-
-Link: https://lkml.kernel.org/r/9f1dbe7ee1301c7163b2770e32954ff5e3ecf2c4.1697711415.git.zhengqi.arch@bytedance.com
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Ingo Molnar <mingo@kernel.org>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20231020183331.10770-5-vishal.moola@gmail.com
+Signed-off-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Reviewed-by: Rik van Riel <riel@surriel.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ include/linux/memcontrol.h |   14 --------------
+ mm/khugepaged.c            |   17 ++++++++++-------
+ 2 files changed, 10 insertions(+), 21 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-drop-memoryless-node-from-fallback-lists
-+++ a/mm/memory_hotplug.c
-@@ -2012,12 +2012,16 @@ int __ref offline_pages(unsigned long st
- 	/* reinitialise watermarks and update pcp limits */
- 	init_per_zone_wmark_min();
+--- a/include/linux/memcontrol.h~mm-khugepaged-convert-alloc_charge_hpage-to-use-folios
++++ a/include/linux/memcontrol.h
+@@ -1087,15 +1087,6 @@ static inline void count_memcg_events(st
+ 	local_irq_restore(flags);
+ }
  
-+	/*
-+	 * Make sure to mark the node as memory-less before rebuilding the zone
-+	 * list. Otherwise this node would still appear in the fallback lists.
-+	 */
-+	node_states_clear_node(node, &arg);
- 	if (!populated_zone(zone)) {
- 		zone_pcp_reset(zone);
- 		build_all_zonelists(NULL);
+-static inline void count_memcg_page_event(struct page *page,
+-					  enum vm_event_item idx)
+-{
+-	struct mem_cgroup *memcg = page_memcg(page);
+-
+-	if (memcg)
+-		count_memcg_events(memcg, idx, 1);
+-}
+-
+ static inline void count_memcg_folio_events(struct folio *folio,
+ 		enum vm_event_item idx, unsigned long nr)
+ {
+@@ -1598,11 +1589,6 @@ static inline void __count_memcg_events(
+ {
+ }
+ 
+-static inline void count_memcg_page_event(struct page *page,
+-					  int idx)
+-{
+-}
+-
+ static inline void count_memcg_folio_events(struct folio *folio,
+ 		enum vm_event_item idx, unsigned long nr)
+ {
+--- a/mm/khugepaged.c~mm-khugepaged-convert-alloc_charge_hpage-to-use-folios
++++ a/mm/khugepaged.c
+@@ -888,16 +888,16 @@ static int hpage_collapse_find_target_no
+ }
+ #endif
+ 
+-static bool hpage_collapse_alloc_page(struct page **hpage, gfp_t gfp, int node,
++static bool hpage_collapse_alloc_folio(struct folio **folio, gfp_t gfp, int node,
+ 				      nodemask_t *nmask)
+ {
+-	*hpage = __alloc_pages(gfp, HPAGE_PMD_ORDER, node, nmask);
+-	if (unlikely(!*hpage)) {
++	*folio = __folio_alloc(gfp, HPAGE_PMD_ORDER, node, nmask);
++
++	if (unlikely(!*folio)) {
+ 		count_vm_event(THP_COLLAPSE_ALLOC_FAILED);
+ 		return false;
  	}
  
--	node_states_clear_node(node, &arg);
- 	if (arg.status_change_nid >= 0) {
- 		kcompactd_stop(node);
- 		kswapd_stop(node);
+-	folio_prep_large_rmappable((struct folio *)*hpage);
+ 	count_vm_event(THP_COLLAPSE_ALLOC);
+ 	return true;
+ }
+@@ -1064,17 +1064,20 @@ static int alloc_charge_hpage(struct pag
+ 	int node = hpage_collapse_find_target_node(cc);
+ 	struct folio *folio;
+ 
+-	if (!hpage_collapse_alloc_page(hpage, gfp, node, &cc->alloc_nmask))
++	if (!hpage_collapse_alloc_folio(&folio, gfp, node, &cc->alloc_nmask)) {
++		*hpage = NULL;
+ 		return SCAN_ALLOC_HUGE_PAGE_FAIL;
++	}
+ 
+-	folio = page_folio(*hpage);
+ 	if (unlikely(mem_cgroup_charge(folio, mm, gfp))) {
+ 		folio_put(folio);
+ 		*hpage = NULL;
+ 		return SCAN_CGROUP_CHARGE_FAIL;
+ 	}
+-	count_memcg_page_event(*hpage, THP_COLLAPSE_ALLOC);
+ 
++	count_memcg_folio_events(folio, THP_COLLAPSE_ALLOC, 1);
++
++	*hpage = folio_page(folio, 0);
+ 	return SCAN_SUCCEED;
+ }
+ 
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from vishal.moola@gmail.com are
 
 
