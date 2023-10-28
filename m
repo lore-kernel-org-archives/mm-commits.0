@@ -2,35 +2,37 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1422C25B48
-	for <mm-commits@archiver.kernel.org>; Thu, 26 Oct 2023 20:12:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E372C25B67
+	for <mm-commits@archiver.kernel.org>; Sat, 28 Oct 2023 03:08:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231546AbjJZUM3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 26 Oct 2023 16:12:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37984 "EHLO
+        id S233093AbjJ1DIb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 27 Oct 2023 23:08:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38416 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231710AbjJZUM2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 26 Oct 2023 16:12:28 -0400
+        with ESMTP id S229507AbjJ1DI0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 27 Oct 2023 23:08:26 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9C0E129
-        for <mm-commits@vger.kernel.org>; Thu, 26 Oct 2023 13:12:26 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39B02C433C7;
-        Thu, 26 Oct 2023 20:12:26 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 997A893
+        for <mm-commits@vger.kernel.org>; Fri, 27 Oct 2023 20:08:24 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F467C433C8;
+        Sat, 28 Oct 2023 03:08:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698351146;
-        bh=GYr+So4Gs9wynbi4FE3yNMEoUCzfMvC+LgEqP/SB7dQ=;
+        s=korg; t=1698462504;
+        bh=TS7rUDadNxVId5ddOH6YmuEkJLYgK5yfKA4iuzcQ17w=;
         h=Date:To:From:Subject:From;
-        b=DyZu7fBL/ZHi4QK6tE53WchTp/9I9ICIy/kqTZm40iHx5VqTmTenRVvm0a8NuV67y
-         4/z7W+nnE7EALN0/OGPvGXDnxAJSvOnJqOLaA31g7OSuB8nbpuCUUzBTcjkJ5aiETL
-         RlH0a07X+JCaIuS6LxelxzrrxU3OGrZFNYsE/zmY=
-Date:   Thu, 26 Oct 2023 13:12:25 -0700
-To:     mm-commits@vger.kernel.org, tj@kernel.org, shuah@kernel.org,
-        riel@surriel.com, lizefan.x@bytedance.com, hannes@cmpxchg.org,
-        cerasuolodomenico@gmail.com, nphamcs@gmail.com,
+        b=UDk5wWorwVPaaQ0zjkVmAnlK+TnKrj8X0t1JS20NNPvuSoLJyEj1tn0CeZ0op0gZn
+         tc5sqOZ+5taNAQ5E1T91Qb69UNd+udBEFtF+64Bnjp1fWX8QV/USIgIUfXrSWdPy8M
+         xEop7IljU5YPGCM3m6wQxJyTBj68bxA8f5OaO7hI=
+Date:   Fri, 27 Oct 2023 20:08:22 -0700
+To:     mm-commits@vger.kernel.org, xiehuan09@gmail.com,
+        woodrow.shen@sifive.com, paul.walmsley@sifive.com,
+        palmer@rivosinc.com, kbingham@kernel.org, jan.kiszka@siemens.com,
+        development@efficientek.com, aou@eecs.berkeley.edu,
+        ajones@ventanamicro.com, debug@rivosinc.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-add-a-sanity-check-for-zswap.patch added to mm-unstable branch
-Message-Id: <20231026201226.39B02C433C7@smtp.kernel.org>
+Subject: + scripts-gdb-add-lx_current-support-for-riscv.patch added to mm-nonmm-unstable branch
+Message-Id: <20231028030824.1F467C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: add a sanity check for zswap
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-add-a-sanity-check-for-zswap.patch
+     Subject: scripts/gdb: add lx_current support for riscv
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     scripts-gdb-add-lx_current-support-for-riscv.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-add-a-sanity-check-for-zswap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-add-lx_current-support-for-riscv.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -61,120 +63,75 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nhat Pham <nphamcs@gmail.com>
-Subject: selftests: add a sanity check for zswap
-Date: Fri, 20 Oct 2023 15:20:09 -0700
+From: Deepak Gupta <debug@rivosinc.com>
+Subject: scripts/gdb: add lx_current support for riscv
+Date: Thu, 26 Oct 2023 16:38:23 -0700
 
-We recently encountered a bug that makes all zswap store attempt fail. 
-Specifically, after:
+csr_sscratch CSR holds current task_struct address when hart is in user
+space.  Trap handler on entry spills csr_sscratch into "tp" (x2) register
+and zeroes out csr_sscratch CSR.  Trap handler on exit reloads "tp" with
+expected user mode value and place current task_struct address again in
+csr_sscratch CSR.
 
-"141fdeececb3 mm/zswap: delay the initialization of zswap"
+This patch assumes "tp" is pointing to task_struct. If value in
+csr_sscratch is numerically greater than "tp" then it assumes csr_sscratch
+is correct address of current task_struct. This logic holds when
+   - hart is in user space, "tp" will be less than csr_sscratch.
+   - hart is in kernel space but not in trap handler, "tp" will be more
+     than csr_sscratch (csr_sscratch being equal to 0).
+   - hart is executing trap handler
+       - "tp" is still pointing to user mode but csr_sscratch contains
+          ptr to task_struct. Thus numerically higher.
+       - "tp" is  pointing to task_struct but csr_sscratch now contains
+          either 0 or numerically smaller value (transiently holds
+          user mode tp)
 
-if we build a kernel with zswap disabled by default, then enabled after
-the swapfile is set up, the zswap tree will not be initialized.  As a
-result, all zswap store calls will be short-circuited.  We have to perform
-another swapon to get zswap working properly again.
-
-Fortunately, this issue has since been fixed by the patch that kills
-frontswap:
-
-"42c06a0e8ebe mm: kill frontswap"
-
-which performs zswap_swapon() unconditionally, i.e always initializing
-the zswap tree.
-
-This test add a sanity check that ensure zswap storing works as
-intended.
-
-Link: https://lkml.kernel.org/r/20231020222009.2358953-1-nphamcs@gmail.com
-Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Acked-by: Rik van Riel <riel@surriel.com>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Zefan Li <lizefan.x@bytedance.com>
+Link: https://lkml.kernel.org/r/20231026233837.612405-1-debug@rivosinc.com
+Signed-off-by: Deepak Gupta <debug@rivosinc.com>
+Reviewed-by: Andrew Jones <ajones@ventanamicro.com>
+Reviewed-by: Palmer Dabbelt <palmer@rivosinc.com>
+Acked-by: Palmer Dabbelt <palmer@rivosinc.com>
+Tested-by: Hsieh-Tseng Shen <woodrow.shen@sifive.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Glenn Washburn <development@efficientek.com>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Jeff Xie <xiehuan09@gmail.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Palmer Dabbelt <palmer@rivosinc.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/test_zswap.c |   48 ++++++++++++++++++
- 1 file changed, 48 insertions(+)
+ scripts/gdb/linux/cpus.py |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
---- a/tools/testing/selftests/cgroup/test_zswap.c~selftests-add-a-sanity-check-for-zswap
-+++ a/tools/testing/selftests/cgroup/test_zswap.c
-@@ -55,6 +55,11 @@ static int get_zswap_written_back_pages(
- 	return read_int("/sys/kernel/debug/zswap/written_back_pages", value);
- }
- 
-+static long get_zswpout(const char *cgroup)
-+{
-+	return cg_read_key_long(cgroup, "memory.stat", "zswpout ");
-+}
+--- a/scripts/gdb/linux/cpus.py~scripts-gdb-add-lx_current-support-for-riscv
++++ a/scripts/gdb/linux/cpus.py
+@@ -179,6 +179,21 @@ def get_current_task(cpu):
+         else:
+             raise gdb.GdbError("Sorry, obtaining the current task is not allowed "
+                                "while running in userspace(EL0)")
++    elif utils.is_target_arch("riscv"):
++        current_tp = gdb.parse_and_eval("$tp")
++        scratch_reg = gdb.parse_and_eval("$sscratch")
 +
- static int allocate_bytes(const char *cgroup, void *arg)
- {
- 	size_t size = (size_t)arg;
-@@ -69,6 +74,48 @@ static int allocate_bytes(const char *cg
- }
- 
- /*
-+ * Sanity test to check that pages are written into zswap.
-+ */
-+static int test_zswap_usage(const char *root)
-+{
-+	long zswpout_before, zswpout_after;
-+	int ret = KSFT_FAIL;
-+	char *test_group;
++        # by default tp points to current task
++        current_task = current_tp.cast(task_ptr_type)
 +
-+	/* Set up */
-+	test_group = cg_name(root, "no_shrink_test");
-+	if (!test_group)
-+		goto out;
-+	if (cg_create(test_group))
-+		goto out;
-+	if (cg_write(test_group, "memory.max", "1M"))
-+		goto out;
++        # scratch register is set 0 in trap handler after entering kernel.
++        # When hart is in user mode, scratch register is pointing to task_struct.
++        # and tp is used by user mode. So when scratch register holds larger value
++        # (negative address as ulong is larger value) than tp, then use scratch register.
++        if (scratch_reg.cast(utils.get_ulong_type()) > current_tp.cast(utils.get_ulong_type())):
++            current_task = scratch_reg.cast(task_ptr_type)
 +
-+	zswpout_before = get_zswpout(test_group);
-+	if (zswpout_before < 0) {
-+		ksft_print_msg("Failed to get zswpout\n");
-+		goto out;
-+	}
-+
-+	/* Allocate more than memory.max to push memory into zswap */
-+	if (cg_run(test_group, allocate_bytes, (void *)MB(4)))
-+		goto out;
-+
-+	/* Verify that pages come into zswap */
-+	zswpout_after = get_zswpout(test_group);
-+	if (zswpout_after <= zswpout_before) {
-+		ksft_print_msg("zswpout does not increase after test program\n");
-+		goto out;
-+	}
-+	ret = KSFT_PASS;
-+
-+out:
-+	cg_destroy(test_group);
-+	free(test_group);
-+	return ret;
-+}
-+
-+/*
-  * When trying to store a memcg page in zswap, if the memcg hits its memory
-  * limit in zswap, writeback should not be triggered.
-  *
-@@ -235,6 +282,7 @@ struct zswap_test {
- 	int (*fn)(const char *root);
- 	const char *name;
- } tests[] = {
-+	T(test_zswap_usage),
- 	T(test_no_kmem_bypass),
- 	T(test_no_invasive_cgroup_shrink),
- };
++        return current_task.dereference()
+     else:
+         raise gdb.GdbError("Sorry, obtaining the current task is not yet "
+                            "supported with this arch")
 _
 
-Patches currently in -mm which might be from nphamcs@gmail.com are
+Patches currently in -mm which might be from debug@rivosinc.com are
 
-zswap-export-compression-failure-stats.patch
-selftests-add-a-sanity-check-for-zswap.patch
+scripts-gdb-add-lx_current-support-for-riscv.patch
 
