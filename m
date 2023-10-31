@@ -2,35 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD029C4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 31 Oct 2023 15:10:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CAAAC4167D
+	for <mm-commits@archiver.kernel.org>; Tue, 31 Oct 2023 17:10:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231645AbjJaPKO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 31 Oct 2023 11:10:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52010 "EHLO
+        id S236476AbjJaRKI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 31 Oct 2023 13:10:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40204 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231630AbjJaPKO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Oct 2023 11:10:14 -0400
+        with ESMTP id S1347015AbjJaRJx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Oct 2023 13:09:53 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C65D9F
-        for <mm-commits@vger.kernel.org>; Tue, 31 Oct 2023 08:10:11 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1147EC433C8;
-        Tue, 31 Oct 2023 15:10:11 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB969107;
+        Tue, 31 Oct 2023 10:09:44 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E314C433C8;
+        Tue, 31 Oct 2023 17:09:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698765011;
-        bh=NhG4/pn+WAyHidUumJRPcoVfC8ks5A0aXb36U7zxKmE=;
+        s=korg; t=1698772184;
+        bh=m86oyc3bRDX2IeOM23fQkXV6Q0RvIJ6t2FflEZWLCyU=;
         h=Date:To:From:Subject:From;
-        b=HE98HW7dNScCBxHPSthkpCTPK4RUzUJBjlG3ROYSLFAu/NCDqpYSqZH3nm19xl+4A
-         AVcSQCPYPdWVx7FKrJZKjf1qcHEfitxUa/+sqiDD98cNRALCIU93HPv+WHVo3Kx9x3
-         0mgEe2kv+rDSe641FPdCM5egtapOhXI1ykBoy7/8=
-Date:   Tue, 31 Oct 2023 08:10:10 -0700
-To:     mm-commits@vger.kernel.org, p.raghav@samsung.com,
-        mcgrof@kernel.org, kbingham@kernel.org, jan.kiszka@siemens.com,
-        da.gomez@samsung.com, cleger@rivosinc.com,
+        b=0mH5iQbdUvH/2cfnKK5zkLZ/6fRNWwq65Jk/TsmcNyZyJgYjQGurWuvmOTnXmIj4Q
+         bLfWSeGBUdn1N6h/Icb6+ahZP8KoOSCueNqi4cGXygRxutKHeSSuTeTOIUBiOc9haS
+         whlCqHGn6RxC0uJ38KT87r470GOwdx6AcIffLBHc=
+Date:   Tue, 31 Oct 2023 10:09:43 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-gdb-fix-usage-of-mod_text-not-defined-when-config_modules=n.patch added to mm-nonmm-unstable branch
-Message-Id: <20231031151011.1147EC433C8@smtp.kernel.org>
+Subject: + mm-damon-sysfs-update-monitoring-target-regions-for-online-input-commit.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231031170944.4E314C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,14 +36,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: fix usage of MOD_TEXT not defined when CONFIG_MODULES=n
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-gdb-fix-usage-of-mod_text-not-defined-when-config_modules=n.patch
+     Subject: mm/damon/sysfs: update monitoring target regions for online input commit
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-sysfs-update-monitoring-target-regions-for-online-input-commit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-fix-usage-of-mod_text-not-defined-when-config_modules=n.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-update-monitoring-target-regions-for-online-input-commit.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -61,60 +59,109 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Clément Léger <cleger@rivosinc.com>
-Subject: scripts/gdb: fix usage of MOD_TEXT not defined when CONFIG_MODULES=n
-Date: Tue, 31 Oct 2023 13:49:04 +0000
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs: update monitoring target regions for online input commit
+Date: Tue, 31 Oct 2023 17:01:31 +0000
 
-MOD_TEXT is only defined if CONFIG_MODULES=y which lead to loading failure
-of the gdb scripts when kernel is built without CONFIG_MODULES=y:
+When user input is committed online, DAMON sysfs interface is ignoring the
+user input for the monitoring target regions.  Such request is valid and
+useful for fixed monitoring target regions-based monitoring ops like
+'paddr' or 'fvaddr'.
 
-Reading symbols from vmlinux...
-Traceback (most recent call last):
-  File "/foo/vmlinux-gdb.py", line 25, in <module>
-    import linux.constants
-  File "/foo/scripts/gdb/linux/constants.py", line 14, in <module>
-    LX_MOD_TEXT = gdb.parse_and_eval("MOD_TEXT")
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-gdb.error: No symbol "MOD_TEXT" in current context.
+Update the region boundaries as user specified, too.  Note that the
+monitoring results of the regions that overlap between the latest
+monitoring target regions and the new target regions are preserved.
 
-Add a conditional check on CONFIG_MODULES to fix this error.
+Treat empty monitoring target regions user request as a request to just
+make no change to the monitoring target regions.  Otherwise, users should
+set the monitoring target regions same to current one for every online
+input commit, and it could be challenging for dynamic monitoring target
+regions update DAMON ops like 'vaddr'.  If the user really need to remove
+all monitoring target regions, they can simply remove the target and then
+create the target again with empty target regions.
 
-Link: https://lkml.kernel.org/r/20231031134848.119391-1-da.gomez@samsung.com
-Fixes: b4aff7513df3 ("scripts/gdb: use mem instead of core_layout to get the module address")
-Signed-off-by: Clément Léger <cleger@rivosinc.com>
-Tested-by: Daniel Gomez <da.gomez@samsung.com>
-Signed-off-by: Daniel Gomez <da.gomez@samsung.com>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Kieran Bingham <kbingham@kernel.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Pankaj Raghav <p.raghav@samsung.com>
+Link: https://lkml.kernel.org/r/20231031170131.46972-1-sj@kernel.org
+Fixes: da87878010e5 ("mm/damon/sysfs: support online inputs update")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>	[5.19+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/constants.py.in |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/damon/sysfs.c |   47 ++++++++++++++++++++++++++++-----------------
+ 1 file changed, 30 insertions(+), 17 deletions(-)
 
---- a/scripts/gdb/linux/constants.py.in~scripts-gdb-fix-usage-of-mod_text-not-defined-when-config_modules=n
-+++ a/scripts/gdb/linux/constants.py.in
-@@ -66,10 +66,11 @@ LX_GDBPARSED(IRQD_LEVEL)
- LX_GDBPARSED(IRQ_HIDDEN)
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-update-monitoring-target-regions-for-online-input-commit
++++ a/mm/damon/sysfs.c
+@@ -1150,34 +1150,47 @@ destroy_targets_out:
+ 	return err;
+ }
  
- /* linux/module.h */
--LX_GDBPARSED(MOD_TEXT)
--LX_GDBPARSED(MOD_DATA)
--LX_GDBPARSED(MOD_RODATA)
--LX_GDBPARSED(MOD_RO_AFTER_INIT)
-+if IS_BUILTIN(CONFIG_MODULES):
-+    LX_GDBPARSED(MOD_TEXT)
-+    LX_GDBPARSED(MOD_DATA)
-+    LX_GDBPARSED(MOD_RODATA)
-+    LX_GDBPARSED(MOD_RO_AFTER_INIT)
+-static int damon_sysfs_update_target(struct damon_target *target,
+-		struct damon_ctx *ctx,
+-		struct damon_sysfs_target *sys_target)
++static int damon_sysfs_update_target_pid(struct damon_target *target, int pid)
+ {
+-	struct pid *pid;
+-	struct damon_region *r, *next;
+-
+-	if (!damon_target_has_pid(ctx))
+-		return 0;
++	struct pid *pid_new;
  
- /* linux/mount.h */
- LX_VALUE(MNT_NOSUID)
+-	pid = find_get_pid(sys_target->pid);
+-	if (!pid)
++	pid_new = find_get_pid(pid);
++	if (!pid_new)
+ 		return -EINVAL;
+ 
+-	/* no change to the target */
+-	if (pid == target->pid) {
+-		put_pid(pid);
++	if (pid_new == target->pid) {
++		put_pid(pid_new);
+ 		return 0;
+ 	}
+ 
+-	/* remove old monitoring results and update the target's pid */
+-	damon_for_each_region_safe(r, next, target)
+-		damon_destroy_region(r, target);
+ 	put_pid(target->pid);
+-	target->pid = pid;
++	target->pid = pid_new;
+ 	return 0;
+ }
+ 
++static int damon_sysfs_update_target(struct damon_target *target,
++		struct damon_ctx *ctx,
++		struct damon_sysfs_target *sys_target)
++{
++	int err;
++
++	if (damon_target_has_pid(ctx)) {
++		err = damon_sysfs_update_target_pid(target, sys_target->pid);
++		if (err)
++			return err;
++	}
++
++	/*
++	 * Do monitoring target region boundary update only if one or more
++	 * regions are set by the user.  This is for keeping current monitoring
++	 * target results and range easier, especially for dynamic monitoring
++	 * target regions update ops like 'vaddr'.
++	 */
++	if (sys_target->regions->nr)
++		err = damon_sysfs_set_regions(target, sys_target->regions);
++	return err;
++}
++
+ static int damon_sysfs_set_targets(struct damon_ctx *ctx,
+ 		struct damon_sysfs_targets *sysfs_targets)
+ {
 _
 
-Patches currently in -mm which might be from cleger@rivosinc.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-scripts-gdb-fix-usage-of-mod_text-not-defined-when-config_modules=n.patch
+mm-damon-sysfs-remove-requested-targets-when-online-commit-inputs.patch
+mm-damon-sysfs-remove-requested-targets-when-online-commit-inputs-fix.patch
+mm-damon-sysfs-update-monitoring-target-regions-for-online-input-commit.patch
 
