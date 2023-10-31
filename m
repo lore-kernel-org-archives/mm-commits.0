@@ -2,33 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77F83C4332F
-	for <mm-commits@archiver.kernel.org>; Mon, 30 Oct 2023 19:45:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4CDAC4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 31 Oct 2023 15:02:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229688AbjJ3Tpq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 30 Oct 2023 15:45:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47624 "EHLO
+        id S1344388AbjJaPCX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 31 Oct 2023 11:02:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58788 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229726AbjJ3Tpp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 30 Oct 2023 15:45:45 -0400
+        with ESMTP id S1344312AbjJaPCW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Oct 2023 11:02:22 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58A8FBD
-        for <mm-commits@vger.kernel.org>; Mon, 30 Oct 2023 12:45:43 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E03BBC433C8;
-        Mon, 30 Oct 2023 19:45:42 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B90FFE4
+        for <mm-commits@vger.kernel.org>; Tue, 31 Oct 2023 08:02:20 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57740C433C8;
+        Tue, 31 Oct 2023 15:02:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698695143;
-        bh=Int8nkYCAAiND6QODdR0gMAmow52GFAonxICWvjaHRc=;
+        s=korg; t=1698764540;
+        bh=s3JVWSPiCuM/yUaYlBTUBdtuRBUEkRhfrW8NWJt2pIU=;
         h=Date:To:From:Subject:From;
-        b=Kl/c9xsGJ7caCe8SjxllrHO7fwmk3fVvkIvlGAAT3TOU9/xiEsINTN0dddcmzEqi9
-         mCqHupZveeVqIApPyRagm3zObGSUhZY7yG1GN5Pzz01g1OWj0Jj4duo67JMKOBWbdA
-         o0Wo555pS3FWryTjbI2OdiEdu2Q5sPh7dOxvFr/w=
-Date:   Mon, 30 Oct 2023 12:45:42 -0700
-To:     mm-commits@vger.kernel.org, sj@kernel.org,
-        akpm@linux-foundation.org
+        b=SNK6XcCuinmaXCkPfp08nnuobx0fPQJA1r4qg69ysg53lv9N5JpDNfNrAHtSWXR7z
+         sbcG81fuQQo9CfFw+N6sux7p8ZsTPrmjPt5GkO9XLm9y6DRwHNbxhjjspwb74bguxv
+         iJlbW4L+V5Ucjg2yVYfzQEgmT6b+nuAiE2A1yyro=
+Date:   Tue, 31 Oct 2023 08:02:19 -0700
+To:     mm-commits@vger.kernel.org, tomeu@tomeuvizoso.net,
+        stephen@networkplumber.org, quic_bjorande@quicinc.com,
+        kuba@kernel.org, konrad.dybcio@linaro.org, heiko@sntech.de,
+        axboe@kernel.dk, bagasdotme@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-remove-requested-targets-when-online-commit-inputs-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231030194542.E03BBC433C8@smtp.kernel.org>
+Subject: + mailmap-add-address-mapping-for-tomeu-vizoso.patch added to mm-nonmm-unstable branch
+Message-Id: <20231031150220.57740C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,14 +38,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/sysfs: fix unnecessary monitoring results removal when online-commit inputs
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-sysfs-remove-requested-targets-when-online-commit-inputs-fix.patch
+     Subject: .mailmap: add address mapping for Tomeu Vizoso
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     mailmap-add-address-mapping-for-tomeu-vizoso.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-remove-requested-targets-when-online-commit-inputs-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-add-address-mapping-for-tomeu-vizoso.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,104 +61,42 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: fix unnecessary monitoring results removal when online-commit inputs
-Date: Sat, 28 Oct 2023 21:33:53 +0000
+From: Bagas Sanjaya <bagasdotme@gmail.com>
+Subject: .mailmap: add address mapping for Tomeu Vizoso
+Date: Tue, 31 Oct 2023 08:40:00 +0700
 
-Commit db27869df6ed ("mm/damon/sysfs: remove requested targets when
-online-commit inputs") of mm-hotfixes-unstable tree[1] makes all targets
-to removed and then added again based on the user input, for online-commit
-inputs.  The commit says it is inefficient but ok as below:
+He's no longer working in Collabora (and his email address there bounces).
+Map it to his personal address.
 
-    This could cause unnecessary memory dealloc and realloc operations,
-    but this is not a hot code path.  Also, note that damon_target is
-    stateless, and hence no data is lost
-
-But that's not true.  'struct target' is containing the monitoring results
-('->regions_list').  As a result, the patch makes all previous monitoring
-results to be removed for every online-commit inputs.  Fix it by removing
-targets only when really changed or removal is requested.
-
-[1] https://lore.kernel.org/damon/20231022210735.46409-2-sj@kernel.org/
-
-Link: https://lkml.kernel.org/r/20231028213353.45397-1-sj@kernel.org
-Fixes: db27869df6ed ("mm/damon/sysfs: remove requested targets when online-commit inputs") # mm-hotfixes-unstable
-Signed-off-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20231031014009.22765-2-bagasdotme@gmail.com
+Signed-off-by: Bagas Sanjaya <bagasdotme@gmail.com>
+Cc: Bjorn Andersson <quic_bjorande@quicinc.com>
+Cc: Heiko Stuebner <heiko@sntech.de>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Konrad Dybcio <konrad.dybcio@linaro.org>
+Cc: Stephen Hemminger <stephen@networkplumber.org>
+Cc: Tomeu Vizoso <tomeu@tomeuvizoso.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   44 +++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 39 insertions(+), 5 deletions(-)
+ .mailmap |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-remove-requested-targets-when-online-commit-inputs-fix
-+++ a/mm/damon/sysfs.c
-@@ -1150,23 +1150,57 @@ destroy_targets_out:
- 	return err;
- }
- 
-+static int damon_sysfs_update_target(struct damon_target *target,
-+		struct damon_ctx *ctx,
-+		struct damon_sysfs_target *sys_target)
-+{
-+	struct pid *pid;
-+	struct damon_region *r, *next;
-+
-+	if (!damon_target_has_pid(ctx))
-+		return 0;
-+
-+	pid = find_get_pid(sys_target->pid);
-+	if (!pid)
-+		return -EINVAL;
-+
-+	/* no change to the target */
-+	if (pid == target->pid) {
-+		put_pid(pid);
-+		return 0;
-+	}
-+
-+	/* remove old monitoring results and update the target's pid */
-+	damon_for_each_region_safe(r, next, target)
-+		damon_destroy_region(r, target);
-+	put_pid(target->pid);
-+	target->pid = pid;
-+	return 0;
-+}
-+
- static int damon_sysfs_set_targets(struct damon_ctx *ctx,
- 		struct damon_sysfs_targets *sysfs_targets)
- {
- 	struct damon_target *t, *next;
--	int i, err;
-+	int i = 0, err;
- 
- 	/* Multiple physical address space monitoring targets makes no sense */
- 	if (ctx->ops.id == DAMON_OPS_PADDR && sysfs_targets->nr > 1)
- 		return -EINVAL;
- 
- 	damon_for_each_target_safe(t, next, ctx) {
--		if (damon_target_has_pid(ctx))
--			put_pid(t->pid);
--		damon_destroy_target(t);
-+		if (i < sysfs_targets->nr) {
-+			damon_sysfs_update_target(t, ctx,
-+					sysfs_targets->targets_arr[i]);
-+		} else {
-+			if (damon_target_has_pid(ctx))
-+				put_pid(t->pid);
-+			damon_destroy_target(t);
-+		}
-+		i++;
- 	}
- 
--	for (i = 0; i < sysfs_targets->nr; i++) {
-+	for (; i < sysfs_targets->nr; i++) {
- 		struct damon_sysfs_target *st = sysfs_targets->targets_arr[i];
- 
- 		err = damon_sysfs_add_target(st, ctx);
+--- a/.mailmap~mailmap-add-address-mapping-for-tomeu-vizoso
++++ a/.mailmap
+@@ -569,6 +569,7 @@ Takashi YOSHII <takashi.yoshii.zj@renesa
+ Tamizh Chelvam Raja <quic_tamizhr@quicinc.com> <tamizhr@codeaurora.org>
+ Taniya Das <quic_tdas@quicinc.com> <tdas@codeaurora.org>
+ Tejun Heo <htejun@gmail.com>
++Tomeu Vizoso <tomeu@tomeuvizoso.net> <tomeu.vizoso@collabora.com>
+ Thomas Graf <tgraf@suug.ch>
+ Thomas Körper <socketcan@esd.eu> <thomas.koerper@esd.eu>
+ Thomas Pedersen <twp@codeaurora.org>
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from bagasdotme@gmail.com are
 
-mm-damon-sysfs-remove-requested-targets-when-online-commit-inputs.patch
-mm-damon-sysfs-remove-requested-targets-when-online-commit-inputs-fix.patch
+mailmap-map-benjamin-poiriers-address.patch
+mailmap-add-address-mapping-for-tomeu-vizoso.patch
 
