@@ -2,35 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1A5AC4332F
-	for <mm-commits@archiver.kernel.org>; Wed,  1 Nov 2023 19:47:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D30BC4167B
+	for <mm-commits@archiver.kernel.org>; Wed,  1 Nov 2023 19:47:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347374AbjKATrb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 1 Nov 2023 15:47:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38726 "EHLO
+        id S1347371AbjKATrc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 1 Nov 2023 15:47:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38740 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347364AbjKATra (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Nov 2023 15:47:30 -0400
+        with ESMTP id S1347370AbjKATrb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Nov 2023 15:47:31 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2E50DA
-        for <mm-commits@vger.kernel.org>; Wed,  1 Nov 2023 12:47:24 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33BD6C433C7;
-        Wed,  1 Nov 2023 19:47:24 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D31F10F
+        for <mm-commits@vger.kernel.org>; Wed,  1 Nov 2023 12:47:25 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D8AFC433C9;
+        Wed,  1 Nov 2023 19:47:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698868044;
-        bh=EmRMFZIh94m8ymORVltsCo9aX9KLcD4tovMgMSwWkFU=;
+        s=korg; t=1698868045;
+        bh=/3+A4Y42sVqu4Giq9jG2mV++Np1/km3hoBn83IOcgXQ=;
         h=Date:To:From:Subject:From;
-        b=RCAvmkYzWm3QDsTtGIzdrenjZARc3LPHDrkAk2YXZbTrH2RU61Mvz5tWL004efR+X
-         voPiOSFHLngfbNjaQ7FY3AQvvkzYfQtJ42jqA2wHib2qC7AzFqbQZ2i3m0yVKLON7c
-         bIXGk7bBKRtwgu4Z+KpvB3WgQG9tgYapISGiAsBA=
-Date:   Wed, 01 Nov 2023 12:47:23 -0700
-To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
-        junxiao.bi@oracle.com, joseph.qi@linux.alibaba.com,
-        jlbec@evilplan.org, ghe@suse.com, gechangwei@live.cn,
-        jindui71@gmail.com, akpm@linux-foundation.org
+        b=tX2z3XA9s2quUXtBGhZA0ezJIHDo5PB6HidMuiOvyoBz28wAKnCOWpjosglzPygo7
+         Z0267LHtIsumiLU9Ud11iTc2OKc1bvUtmhQO5OuAfcn7EnbeCbOP0L+ckIYvlrbuNs
+         pUpjtJPT6usdwKVqjioROAke/TvdfjcUHaGutW5k=
+Date:   Wed, 01 Nov 2023 12:47:24 -0700
+To:     mm-commits@vger.kernel.org, ebiederm@xmission.com, oleg@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-replace-bug_on-at-ocfs2_num_free_extents-with-ocfs2_error.patch removed from -mm tree
-Message-Id: <20231101194724.33BD6C433C7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] do_io_accounting-use-__for_each_thread.patch removed from -mm tree
+Message-Id: <20231101194725.1D8AFC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,63 +36,66 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: ocfs2: replace BUG_ON() at ocfs2_num_free_extents() with ocfs2_error()
+     Subject: do_io_accounting: use __for_each_thread()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-replace-bug_on-at-ocfs2_num_free_extents-with-ocfs2_error.patch
+     do_io_accounting-use-__for_each_thread.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jia Rui <jindui71@gmail.com>
-Subject: ocfs2: replace BUG_ON() at ocfs2_num_free_extents() with ocfs2_error()
-Date: Thu, 19 Oct 2023 03:18:11 +0800
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: do_io_accounting: use __for_each_thread()
+Date: Mon, 23 Oct 2023 17:33:43 +0200
 
-The BUG_ON() at ocfs2_num_free_extents() handles the error that
-l_tree_deepth of leaf extent block just read form disk is invalid.  This
-error is mostly caused by file system metadata corruption on the disk. 
-There is no need to call BUG_ON() to handle such errors.  We can return
-error code, since the caller can deal with errors from
-ocfs2_num_free_extents().  Also, we should make the file system read-only
-to avoid the damage from expanding.
+Rather than while_each_thread() which should be avoided when possible.
 
-Therefore, BUG_ON() is removed and ocfs2_error() is called instead.
+This makes the code more clear and allows the next change.
 
-Link: https://lkml.kernel.org/r/20231018191811.412458-1-jindui71@gmail.com
-Signed-off-by: Jia Rui <jindui71@gmail.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/20231023153343.GA4629@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ fs/proc/base.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
---- a/fs/ocfs2/alloc.c~ocfs2-replace-bug_on-at-ocfs2_num_free_extents-with-ocfs2_error
-+++ a/fs/ocfs2/alloc.c
-@@ -967,7 +967,14 @@ int ocfs2_num_free_extents(struct ocfs2_
- 		el = &eb->h_list;
+--- a/fs/proc/base.c~do_io_accounting-use-__for_each_thread
++++ a/fs/proc/base.c
+@@ -2972,7 +2972,7 @@ static const struct file_operations proc
+ #ifdef CONFIG_TASK_IO_ACCOUNTING
+ static int do_io_accounting(struct task_struct *task, struct seq_file *m, int whole)
+ {
+-	struct task_io_accounting acct = task->ioac;
++	struct task_io_accounting acct;
+ 	unsigned long flags;
+ 	int result;
+ 
+@@ -2986,14 +2986,18 @@ static int do_io_accounting(struct task_
  	}
  
--	BUG_ON(el->l_tree_depth != 0);
-+	if (el->l_tree_depth != 0) {
-+		retval = ocfs2_error(ocfs2_metadata_cache_get_super(et->et_ci),
-+				"Owner %llu has leaf extent block %llu with an invalid l_tree_depth of %u\n",
-+				(unsigned long long)ocfs2_metadata_cache_owner(et->et_ci),
-+				(unsigned long long)last_eb_blk,
-+				le16_to_cpu(el->l_tree_depth));
-+		goto bail;
-+	}
+ 	if (whole && lock_task_sighand(task, &flags)) {
+-		struct task_struct *t = task;
++		struct signal_struct *sig = task->signal;
++		struct task_struct *t;
  
- 	retval = le16_to_cpu(el->l_count) - le16_to_cpu(el->l_next_free_rec);
- bail:
+-		task_io_accounting_add(&acct, &task->signal->ioac);
+-		while_each_thread(task, t)
++		acct = sig->ioac;
++		__for_each_thread(sig, t)
+ 			task_io_accounting_add(&acct, &t->ioac);
+ 
+ 		unlock_task_sighand(task, &flags);
++	} else {
++		acct = task->ioac;
+ 	}
++
+ 	seq_printf(m,
+ 		   "rchar: %llu\n"
+ 		   "wchar: %llu\n"
 _
 
-Patches currently in -mm which might be from jindui71@gmail.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 
