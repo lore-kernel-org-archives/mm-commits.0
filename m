@@ -2,33 +2,37 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EC6BC4332F
-	for <mm-commits@archiver.kernel.org>; Wed,  1 Nov 2023 19:35:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA2DEC4167B
+	for <mm-commits@archiver.kernel.org>; Wed,  1 Nov 2023 19:39:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347111AbjKATfq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 1 Nov 2023 15:35:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57106 "EHLO
+        id S1345926AbjKATjM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 1 Nov 2023 15:39:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48282 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345600AbjKATfp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Nov 2023 15:35:45 -0400
+        with ESMTP id S1345932AbjKATjK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Nov 2023 15:39:10 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E961E12D
-        for <mm-commits@vger.kernel.org>; Wed,  1 Nov 2023 12:35:36 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B46BAC116B7;
-        Wed,  1 Nov 2023 19:35:36 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2EC51111
+        for <mm-commits@vger.kernel.org>; Wed,  1 Nov 2023 12:39:05 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE1CCC433CD;
+        Wed,  1 Nov 2023 19:39:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698867336;
-        bh=H00ze1sQcRFOwOu4C7GYCQR+ABr4pK0MPLhkahkU0UQ=;
+        s=korg; t=1698867544;
+        bh=Rucqa5VCKE0D17dT/3yMoRid8k6y5vZQT44JNGEh600=;
         h=Date:To:From:Subject:From;
-        b=tlVPTdzZ4raKYFG9LbFYeCOqO61iGylN1aZcOhGIQtPxXvJxnbA2X0CK0l5tjHKE/
-         cJMQQ7zne2H0UGBWecm1/JglZPzXJ/JTz3SNjMFblUmntt9qT4Lia5vyj0tq4UMdXs
-         cXCFHgMsOtc+D5fJJQybg7J8Bctk+botGgGIoAnI=
-Date:   Wed, 01 Nov 2023 12:35:34 -0700
-To:     mm-commits@vger.kernel.org, sj@kernel.org,
+        b=1MJnUdiUpEPmyyPJlh0f/PuYLdt8liby+P0QtxzbtXeB5B5KeWH0k8cNLZZuOxQsf
+         hx+qgBq0/u8cGFTKfuRhS2fhwsEx+Tzdk7KSQBxyQZ4islx5O5Zwcd/nM/0HXVRmu6
+         QkPmgia9FyjDBAN/E+ypGrO3iNab4QfeXxYdfJlI=
+Date:   Wed, 01 Nov 2023 12:39:02 -0700
+To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
+        vitaly.wool@konsulko.com, sjenning@redhat.com, shakeelb@google.com,
+        senozhatsky@chromium.org, roman.gushchin@linux.dev,
+        muchun.song@linux.dev, mhocko@kernel.org, hannes@cmpxchg.org,
+        ddstreet@ieee.org, cerasuolodomenico@gmail.com, nphamcs@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-damon-sysfs-remove-requested-targets-when-online-commit-inputs-fix.patch removed from -mm tree
-Message-Id: <20231101193536.B46BAC116B7@smtp.kernel.org>
+Subject: [merged mm-stable] zswap-export-compression-failure-stats.patch removed from -mm tree
+Message-Id: <20231101193904.BE1CCC433CD@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,111 +40,80 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs: fix unnecessary monitoring results removal when online-commit inputs
+     Subject: zswap: export compression failure stats
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-remove-requested-targets-when-online-commit-inputs-fix.patch
+     zswap-export-compression-failure-stats.patch
 
-This patch was dropped because it was folded into mm-damon-sysfs-remove-requested-targets-when-online-commit-inputs.patch
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: fix unnecessary monitoring results removal when online-commit inputs
-Date: Sat, 28 Oct 2023 21:33:53 +0000
+From: Nhat Pham <nphamcs@gmail.com>
+Subject: zswap: export compression failure stats
+Date: Tue, 24 Oct 2023 16:45:09 -0700
 
-Commit db27869df6ed ("mm/damon/sysfs: remove requested targets when
-online-commit inputs") of mm-hotfixes-unstable tree[1] makes all targets
-to removed and then added again based on the user input, for online-commit
-inputs.  The commit says it is inefficient but ok as below:
+During a zswap store attempt, the compression algorithm could fail (for
+e.g due to the page containing incompressible random data).  This is not
+tracked in any of existing zswap counters, making it hard to monitor for
+and investigate.  We have run into this problem several times in our
+internal investigations on zswap store failures.
 
-    This could cause unnecessary memory dealloc and realloc operations,
-    but this is not a hot code path.  Also, note that damon_target is
-    stateless, and hence no data is lost
+This patch adds a dedicated debugfs counter for compression algorithm
+failures.
 
-But that's not true.  'struct target' is containing the monitoring results
-('->regions_list').  As a result, the patch makes all previous monitoring
-results to be removed for every online-commit inputs.  Fix it by removing
-targets only when really changed or removal is requested.
-
-[1] https://lore.kernel.org/damon/20231022210735.46409-2-sj@kernel.org/
-
-Link: https://lkml.kernel.org/r/20231028213353.45397-1-sj@kernel.org
-Fixes: db27869df6ed ("mm/damon/sysfs: remove requested targets when online-commit inputs") # mm-hotfixes-unstable
-Signed-off-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20231024234509.2680539-1-nphamcs@gmail.com
+Signed-off-by: Nhat Pham <nphamcs@gmail.com>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   44 +++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 39 insertions(+), 5 deletions(-)
+ mm/zswap.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-remove-requested-targets-when-online-commit-inputs-fix
-+++ a/mm/damon/sysfs.c
-@@ -1150,23 +1150,57 @@ destroy_targets_out:
- 	return err;
- }
+--- a/mm/zswap.c~zswap-export-compression-failure-stats
++++ a/mm/zswap.c
+@@ -62,6 +62,8 @@ static u64 zswap_pool_limit_hit;
+ static u64 zswap_written_back_pages;
+ /* Store failed due to a reclaim failure after pool limit was reached */
+ static u64 zswap_reject_reclaim_fail;
++/* Store failed due to compression algorithm failure */
++static u64 zswap_reject_compress_fail;
+ /* Compressed page was too big for the allocator to (optimally) store */
+ static u64 zswap_reject_compress_poor;
+ /* Store failed because underlying allocator could not get memory */
+@@ -1312,8 +1314,10 @@ bool zswap_store(struct folio *folio)
+ 	ret = crypto_wait_req(crypto_acomp_compress(acomp_ctx->req), &acomp_ctx->wait);
+ 	dlen = acomp_ctx->req->dlen;
  
-+static int damon_sysfs_update_target(struct damon_target *target,
-+		struct damon_ctx *ctx,
-+		struct damon_sysfs_target *sys_target)
-+{
-+	struct pid *pid;
-+	struct damon_region *r, *next;
-+
-+	if (!damon_target_has_pid(ctx))
-+		return 0;
-+
-+	pid = find_get_pid(sys_target->pid);
-+	if (!pid)
-+		return -EINVAL;
-+
-+	/* no change to the target */
-+	if (pid == target->pid) {
-+		put_pid(pid);
-+		return 0;
+-	if (ret)
++	if (ret) {
++		zswap_reject_compress_fail++;
+ 		goto put_dstmem;
 +	}
-+
-+	/* remove old monitoring results and update the target's pid */
-+	damon_for_each_region_safe(r, next, target)
-+		damon_destroy_region(r, target);
-+	put_pid(target->pid);
-+	target->pid = pid;
-+	return 0;
-+}
-+
- static int damon_sysfs_set_targets(struct damon_ctx *ctx,
- 		struct damon_sysfs_targets *sysfs_targets)
- {
- 	struct damon_target *t, *next;
--	int i, err;
-+	int i = 0, err;
  
- 	/* Multiple physical address space monitoring targets makes no sense */
- 	if (ctx->ops.id == DAMON_OPS_PADDR && sysfs_targets->nr > 1)
- 		return -EINVAL;
- 
- 	damon_for_each_target_safe(t, next, ctx) {
--		if (damon_target_has_pid(ctx))
--			put_pid(t->pid);
--		damon_destroy_target(t);
-+		if (i < sysfs_targets->nr) {
-+			damon_sysfs_update_target(t, ctx,
-+					sysfs_targets->targets_arr[i]);
-+		} else {
-+			if (damon_target_has_pid(ctx))
-+				put_pid(t->pid);
-+			damon_destroy_target(t);
-+		}
-+		i++;
- 	}
- 
--	for (i = 0; i < sysfs_targets->nr; i++) {
-+	for (; i < sysfs_targets->nr; i++) {
- 		struct damon_sysfs_target *st = sysfs_targets->targets_arr[i];
- 
- 		err = damon_sysfs_add_target(st, ctx);
+ 	/* store */
+ 	zpool = zswap_find_zpool(entry);
+@@ -1553,6 +1557,8 @@ static int zswap_debugfs_init(void)
+ 			   zswap_debugfs_root, &zswap_reject_alloc_fail);
+ 	debugfs_create_u64("reject_kmemcache_fail", 0444,
+ 			   zswap_debugfs_root, &zswap_reject_kmemcache_fail);
++	debugfs_create_u64("reject_compress_fail", 0444,
++			   zswap_debugfs_root, &zswap_reject_compress_fail);
+ 	debugfs_create_u64("reject_compress_poor", 0444,
+ 			   zswap_debugfs_root, &zswap_reject_compress_poor);
+ 	debugfs_create_u64("written_back_pages", 0444,
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from nphamcs@gmail.com are
 
-mm-damon-sysfs-remove-requested-targets-when-online-commit-inputs.patch
-mm-damon-sysfs-update-monitoring-target-regions-for-online-input-commit.patch
 
