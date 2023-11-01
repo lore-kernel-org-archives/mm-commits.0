@@ -2,33 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CAAAC4167D
-	for <mm-commits@archiver.kernel.org>; Tue, 31 Oct 2023 17:10:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D82AFC4167D
+	for <mm-commits@archiver.kernel.org>; Wed,  1 Nov 2023 14:47:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236476AbjJaRKI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 31 Oct 2023 13:10:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40204 "EHLO
+        id S229731AbjKAOrY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 1 Nov 2023 10:47:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44306 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347015AbjJaRJx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 31 Oct 2023 13:09:53 -0400
+        with ESMTP id S236825AbjKAOrQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Nov 2023 10:47:16 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB969107;
-        Tue, 31 Oct 2023 10:09:44 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E314C433C8;
-        Tue, 31 Oct 2023 17:09:44 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58858ED;
+        Wed,  1 Nov 2023 07:47:09 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8DDAC433C8;
+        Wed,  1 Nov 2023 14:47:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1698772184;
-        bh=m86oyc3bRDX2IeOM23fQkXV6Q0RvIJ6t2FflEZWLCyU=;
+        s=korg; t=1698850028;
+        bh=Xm89NC+amGfYEXaZSFGCBxwP6pgJOCCd0/pyk05JZDM=;
         h=Date:To:From:Subject:From;
-        b=0mH5iQbdUvH/2cfnKK5zkLZ/6fRNWwq65Jk/TsmcNyZyJgYjQGurWuvmOTnXmIj4Q
-         bLfWSeGBUdn1N6h/Icb6+ahZP8KoOSCueNqi4cGXygRxutKHeSSuTeTOIUBiOc9haS
-         whlCqHGn6RxC0uJ38KT87r470GOwdx6AcIffLBHc=
-Date:   Tue, 31 Oct 2023 10:09:43 -0700
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org, sj@kernel.org,
+        b=0naWA6IWgVaV13cFeMvgDublpP9+2jK0PzIDc8FIH+Zs7j/I7ng2yS3o6COL/e54/
+         RwllEwkKV3rCXvQx0CuadyMLX/0HZGarwiTktNdjQlHBh2TJ34Yg8YHH10fizCPyMs
+         pMcdjKNes4uEFrIVF+x2g8W5vzb4nGUNsJh2Inmw=
+Date:   Wed, 01 Nov 2023 07:47:08 -0700
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        Kuan-Ying.Lee@mediatek.com, kbingham@kernel.org,
+        jan.kiszka@siemens.com, ben.wolsieffer@hefring.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-update-monitoring-target-regions-for-online-input-commit.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231031170944.4E314C433C8@smtp.kernel.org>
+Subject: + scripts-gdb-vmalloc-disable-on-no-mmu.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231101144708.D8DDAC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +38,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/sysfs: update monitoring target regions for online input commit
+     Subject: scripts/gdb/vmalloc: disable on no-MMU
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-sysfs-update-monitoring-target-regions-for-online-input-commit.patch
+     scripts-gdb-vmalloc-disable-on-no-mmu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-update-monitoring-target-regions-for-online-input-commit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-vmalloc-disable-on-no-mmu.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,109 +61,75 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: update monitoring target regions for online input commit
-Date: Tue, 31 Oct 2023 17:01:31 +0000
+From: Ben Wolsieffer <ben.wolsieffer@hefring.com>
+Subject: scripts/gdb/vmalloc: disable on no-MMU
+Date: Tue, 31 Oct 2023 16:22:36 -0400
 
-When user input is committed online, DAMON sysfs interface is ignoring the
-user input for the monitoring target regions.  Such request is valid and
-useful for fixed monitoring target regions-based monitoring ops like
-'paddr' or 'fvaddr'.
+vmap_area does not exist on no-MMU, therefore the GDB scripts fail to
+load:
 
-Update the region boundaries as user specified, too.  Note that the
-monitoring results of the regions that overlap between the latest
-monitoring target regions and the new target regions are preserved.
+Traceback (most recent call last):
+  File "<...>/vmlinux-gdb.py", line 51, in <module>
+    import linux.vmalloc
+  File "<...>/scripts/gdb/linux/vmalloc.py", line 14, in <module>
+    vmap_area_ptr_type = vmap_area_type.get_type().pointer()
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<...>/scripts/gdb/linux/utils.py", line 28, in get_type
+    self._type = gdb.lookup_type(self._name)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+gdb.error: No struct type named vmap_area.
 
-Treat empty monitoring target regions user request as a request to just
-make no change to the monitoring target regions.  Otherwise, users should
-set the monitoring target regions same to current one for every online
-input commit, and it could be challenging for dynamic monitoring target
-regions update DAMON ops like 'vaddr'.  If the user really need to remove
-all monitoring target regions, they can simply remove the target and then
-create the target again with empty target regions.
+To fix this, disable the command and add an informative error message if
+CONFIG_MMU is not defined, following the example of lx-slabinfo.
 
-Link: https://lkml.kernel.org/r/20231031170131.46972-1-sj@kernel.org
-Fixes: da87878010e5 ("mm/damon/sysfs: support online inputs update")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org>	[5.19+]
+Link: https://lkml.kernel.org/r/20231031202235.2655333-2-ben.wolsieffer@hefring.com
+Fixes: 852622bf3616 ("scripts/gdb/vmalloc: add vmallocinfo support")
+Signed-off-by: Ben Wolsieffer <ben.wolsieffer@hefring.com>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   47 ++++++++++++++++++++++++++++-----------------
- 1 file changed, 30 insertions(+), 17 deletions(-)
+ scripts/gdb/linux/constants.py.in |    1 +
+ scripts/gdb/linux/vmalloc.py      |    8 ++++++--
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-update-monitoring-target-regions-for-online-input-commit
-+++ a/mm/damon/sysfs.c
-@@ -1150,34 +1150,47 @@ destroy_targets_out:
- 	return err;
- }
+--- a/scripts/gdb/linux/constants.py.in~scripts-gdb-vmalloc-disable-on-no-mmu
++++ a/scripts/gdb/linux/constants.py.in
+@@ -157,3 +157,4 @@ LX_CONFIG(CONFIG_STACKDEPOT)
+ LX_CONFIG(CONFIG_PAGE_OWNER)
+ LX_CONFIG(CONFIG_SLUB_DEBUG)
+ LX_CONFIG(CONFIG_SLAB_FREELIST_HARDENED)
++LX_CONFIG(CONFIG_MMU)
+--- a/scripts/gdb/linux/vmalloc.py~scripts-gdb-vmalloc-disable-on-no-mmu
++++ a/scripts/gdb/linux/vmalloc.py
+@@ -10,8 +10,9 @@ import gdb
+ import re
+ from linux import lists, utils, stackdepot, constants, mm
  
--static int damon_sysfs_update_target(struct damon_target *target,
--		struct damon_ctx *ctx,
--		struct damon_sysfs_target *sys_target)
-+static int damon_sysfs_update_target_pid(struct damon_target *target, int pid)
- {
--	struct pid *pid;
--	struct damon_region *r, *next;
--
--	if (!damon_target_has_pid(ctx))
--		return 0;
-+	struct pid *pid_new;
+-vmap_area_type = utils.CachedType('struct vmap_area')
+-vmap_area_ptr_type = vmap_area_type.get_type().pointer()
++if constants.LX_CONFIG_MMU:
++    vmap_area_type = utils.CachedType('struct vmap_area')
++    vmap_area_ptr_type = vmap_area_type.get_type().pointer()
  
--	pid = find_get_pid(sys_target->pid);
--	if (!pid)
-+	pid_new = find_get_pid(pid);
-+	if (!pid_new)
- 		return -EINVAL;
+ def is_vmalloc_addr(x):
+     pg_ops = mm.page_ops().ops
+@@ -25,6 +26,9 @@ class LxVmallocInfo(gdb.Command):
+         super(LxVmallocInfo, self).__init__("lx-vmallocinfo", gdb.COMMAND_DATA)
  
--	/* no change to the target */
--	if (pid == target->pid) {
--		put_pid(pid);
-+	if (pid_new == target->pid) {
-+		put_pid(pid_new);
- 		return 0;
- 	}
- 
--	/* remove old monitoring results and update the target's pid */
--	damon_for_each_region_safe(r, next, target)
--		damon_destroy_region(r, target);
- 	put_pid(target->pid);
--	target->pid = pid;
-+	target->pid = pid_new;
- 	return 0;
- }
- 
-+static int damon_sysfs_update_target(struct damon_target *target,
-+		struct damon_ctx *ctx,
-+		struct damon_sysfs_target *sys_target)
-+{
-+	int err;
+     def invoke(self, arg, from_tty):
++        if not constants.LX_CONFIG_MMU:
++            raise gdb.GdbError("Requires MMU support")
 +
-+	if (damon_target_has_pid(ctx)) {
-+		err = damon_sysfs_update_target_pid(target, sys_target->pid);
-+		if (err)
-+			return err;
-+	}
-+
-+	/*
-+	 * Do monitoring target region boundary update only if one or more
-+	 * regions are set by the user.  This is for keeping current monitoring
-+	 * target results and range easier, especially for dynamic monitoring
-+	 * target regions update ops like 'vaddr'.
-+	 */
-+	if (sys_target->regions->nr)
-+		err = damon_sysfs_set_regions(target, sys_target->regions);
-+	return err;
-+}
-+
- static int damon_sysfs_set_targets(struct damon_ctx *ctx,
- 		struct damon_sysfs_targets *sysfs_targets)
- {
+         vmap_area_list = gdb.parse_and_eval('vmap_area_list')
+         for vmap_area in lists.list_for_each_entry(vmap_area_list, vmap_area_ptr_type, "list"):
+             if not vmap_area['vm']:
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from ben.wolsieffer@hefring.com are
 
-mm-damon-sysfs-remove-requested-targets-when-online-commit-inputs.patch
-mm-damon-sysfs-remove-requested-targets-when-online-commit-inputs-fix.patch
-mm-damon-sysfs-update-monitoring-target-regions-for-online-input-commit.patch
+scripts-gdb-vmalloc-disable-on-no-mmu.patch
 
