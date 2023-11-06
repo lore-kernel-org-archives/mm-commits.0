@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77D2AC4167B
-	for <mm-commits@archiver.kernel.org>; Mon,  6 Nov 2023 17:28:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E20F2C4167B
+	for <mm-commits@archiver.kernel.org>; Mon,  6 Nov 2023 17:28:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231699AbjKFR2I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 6 Nov 2023 12:28:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40778 "EHLO
+        id S231767AbjKFR2P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 6 Nov 2023 12:28:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58572 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232924AbjKFR2H (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Nov 2023 12:28:07 -0500
+        with ESMTP id S232891AbjKFR2L (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Nov 2023 12:28:11 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A48E2D49
-        for <mm-commits@vger.kernel.org>; Mon,  6 Nov 2023 09:28:04 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E9E6C433C8;
-        Mon,  6 Nov 2023 17:28:04 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2E06125
+        for <mm-commits@vger.kernel.org>; Mon,  6 Nov 2023 09:28:08 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CAFDC433C9;
+        Mon,  6 Nov 2023 17:28:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1699291684;
-        bh=6gegyPzLa/5kOVxkUeQjmcuL1lEHHxCgiJNjMKJW6rA=;
+        s=korg; t=1699291688;
+        bh=mMed4leIE8gUHsMIIwFLnhBQbEYPOni1YfXtQtk1R44=;
         h=Date:To:From:Subject:From;
-        b=sE9mmre11xU6qlbaxZjunHXtxs89QRgS+TiB9hkr0fR0g1S57Gh+IvVDdJMWUzzxi
-         09sOLSI4SYmQnG8XO22Aqv/HFAhG9iBWi1DR9Ekl0OSgjfRV/ickwsgfBcq/1VF/1V
-         XX1NarDFxoynmvpfHSYZIqGc1NbERzjv4BNj75mQ=
-Date:   Mon, 06 Nov 2023 09:28:03 -0800
+        b=SgKzj4xMp2URxPtZCM6YBgUkUiPi78uRag9jWCFc4S/4Ixgn/IHAhgUM0zYl5J6LG
+         JUvXLlRFE+cJge9wq472bB+PDGwOikyp1gFFyOqD6oz0xZjk/5S8HzTEFtt+b4Smj8
+         elcnz88s0VSnAaKm7x91otK9upy3KzYJzYa0HZf4=
+Date:   Mon, 06 Nov 2023 09:28:07 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org, surenb@google.com,
         peterz@infradead.org, npiggin@gmail.com, mst@redhat.com,
         mjguzik@gmail.com, michael.christie@oracle.com,
@@ -31,8 +31,8 @@ To:     mm-commits@vger.kernel.org, willy@infradead.org, surenb@google.com,
         corbet@lwn.net, brauner@kernel.org, zhangpeng.00@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + radix-tree-test-suite-align-kmem_cache_alloc_bulk-with-kernel-behavior.patch added to mm-unstable branch
-Message-Id: <20231106172804.3E9E6C433C8@smtp.kernel.org>
+Subject: + maple_tree-update-the-documentation-of-maple-tree.patch added to mm-unstable branch
+Message-Id: <20231106172808.5CAFDC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,12 +40,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix tree test suite: align kmem_cache_alloc_bulk() with kernel behavior.
+     Subject: maple_tree: update the documentation of maple tree
 has been added to the -mm mm-unstable branch.  Its filename is
-     radix-tree-test-suite-align-kmem_cache_alloc_bulk-with-kernel-behavior.patch
+     maple_tree-update-the-documentation-of-maple-tree.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/radix-tree-test-suite-align-kmem_cache_alloc_bulk-with-kernel-behavior.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-update-the-documentation-of-maple-tree.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,14 +64,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peng Zhang <zhangpeng.00@bytedance.com>
-Subject: radix tree test suite: align kmem_cache_alloc_bulk() with kernel behavior.
-Date: Fri, 27 Oct 2023 11:38:39 +0800
+Subject: maple_tree: update the documentation of maple tree
+Date: Fri, 27 Oct 2023 11:38:41 +0800
 
-When kmem_cache_alloc_bulk() fails to allocate, leave the freed pointers
-in the array.  This enables a more accurate simulation of the kernel's
-behavior and allows for testing potential double-free scenarios.
+Introduce the new interface mtree_dup() in the documentation.
 
-Link: https://lkml.kernel.org/r/20231027033845.90608-5-zhangpeng.00@bytedance.com
+Link: https://lkml.kernel.org/r/20231027033845.90608-7-zhangpeng.00@bytedance.com
 Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -87,103 +85,29 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/linux.c |   45 +++++++++++++++++++++--------
- 1 file changed, 33 insertions(+), 12 deletions(-)
+ Documentation/core-api/maple_tree.rst |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/tools/testing/radix-tree/linux.c~radix-tree-test-suite-align-kmem_cache_alloc_bulk-with-kernel-behavior
-+++ a/tools/testing/radix-tree/linux.c
-@@ -93,13 +93,9 @@ void *kmem_cache_alloc_lru(struct kmem_c
- 	return p;
- }
+--- a/Documentation/core-api/maple_tree.rst~maple_tree-update-the-documentation-of-maple-tree
++++ a/Documentation/core-api/maple_tree.rst
+@@ -81,6 +81,9 @@ section.
+ Sometimes it is necessary to ensure the next call to store to a maple tree does
+ not allocate memory, please see :ref:`maple-tree-advanced-api` for this use case.
  
--void kmem_cache_free_locked(struct kmem_cache *cachep, void *objp)
-+void __kmem_cache_free_locked(struct kmem_cache *cachep, void *objp)
- {
- 	assert(objp);
--	uatomic_dec(&nr_allocated);
--	uatomic_dec(&cachep->nr_allocated);
--	if (kmalloc_verbose)
--		printf("Freeing %p to slab\n", objp);
- 	if (cachep->nr_objs > 10 || cachep->align) {
- 		memset(objp, POISON_FREE, cachep->size);
- 		free(objp);
-@@ -111,6 +107,15 @@ void kmem_cache_free_locked(struct kmem_
- 	}
- }
- 
-+void kmem_cache_free_locked(struct kmem_cache *cachep, void *objp)
-+{
-+	uatomic_dec(&nr_allocated);
-+	uatomic_dec(&cachep->nr_allocated);
-+	if (kmalloc_verbose)
-+		printf("Freeing %p to slab\n", objp);
-+	__kmem_cache_free_locked(cachep, objp);
-+}
++You can use mtree_dup() to duplicate an entire maple tree. It is a more
++efficient way than inserting all elements one by one into a new tree.
 +
- void kmem_cache_free(struct kmem_cache *cachep, void *objp)
- {
- 	pthread_mutex_lock(&cachep->lock);
-@@ -141,18 +146,17 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 	if (kmalloc_verbose)
- 		pr_debug("Bulk alloc %lu\n", size);
- 
--	if (!(gfp & __GFP_DIRECT_RECLAIM)) {
--		if (cachep->non_kernel < size)
--			return 0;
--
--		cachep->non_kernel -= size;
--	}
--
- 	pthread_mutex_lock(&cachep->lock);
- 	if (cachep->nr_objs >= size) {
- 		struct radix_tree_node *node;
- 
- 		for (i = 0; i < size; i++) {
-+			if (!(gfp & __GFP_DIRECT_RECLAIM)) {
-+				if (!cachep->non_kernel)
-+					break;
-+				cachep->non_kernel--;
-+			}
-+
- 			node = cachep->objs;
- 			cachep->nr_objs--;
- 			cachep->objs = node->parent;
-@@ -163,11 +167,19 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 	} else {
- 		pthread_mutex_unlock(&cachep->lock);
- 		for (i = 0; i < size; i++) {
-+			if (!(gfp & __GFP_DIRECT_RECLAIM)) {
-+				if (!cachep->non_kernel)
-+					break;
-+				cachep->non_kernel--;
-+			}
-+
- 			if (cachep->align) {
- 				posix_memalign(&p[i], cachep->align,
- 					       cachep->size);
- 			} else {
- 				p[i] = malloc(cachep->size);
-+				if (!p[i])
-+					break;
- 			}
- 			if (cachep->ctor)
- 				cachep->ctor(p[i]);
-@@ -176,6 +188,15 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 		}
- 	}
- 
-+	if (i < size) {
-+		size = i;
-+		pthread_mutex_lock(&cachep->lock);
-+		for (i = 0; i < size; i++)
-+			__kmem_cache_free_locked(cachep, p[i]);
-+		pthread_mutex_unlock(&cachep->lock);
-+		return 0;
-+	}
-+
- 	for (i = 0; i < size; i++) {
- 		uatomic_inc(&nr_allocated);
- 		uatomic_inc(&cachep->nr_allocated);
+ Finally, you can remove all entries from a maple tree by calling
+ mtree_destroy().  If the maple tree entries are pointers, you may wish to free
+ the entries first.
+@@ -112,6 +115,7 @@ Takes ma_lock internally:
+  * mtree_insert()
+  * mtree_insert_range()
+  * mtree_erase()
++ * mtree_dup()
+  * mtree_destroy()
+  * mt_set_in_rcu()
+  * mt_clear_in_rcu()
 _
 
 Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
