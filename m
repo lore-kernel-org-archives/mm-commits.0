@@ -2,37 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35BBDC4332F
-	for <mm-commits@archiver.kernel.org>; Mon,  6 Nov 2023 17:28:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11F28C4332F
+	for <mm-commits@archiver.kernel.org>; Mon,  6 Nov 2023 17:34:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232975AbjKFR20 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 6 Nov 2023 12:28:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50190 "EHLO
+        id S229567AbjKFReK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 6 Nov 2023 12:34:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50012 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232912AbjKFR2T (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Nov 2023 12:28:19 -0500
+        with ESMTP id S229837AbjKFReJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Nov 2023 12:34:09 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C09B3F3
-        for <mm-commits@vger.kernel.org>; Mon,  6 Nov 2023 09:28:16 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EA18C433C8;
-        Mon,  6 Nov 2023 17:28:16 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0741B7
+        for <mm-commits@vger.kernel.org>; Mon,  6 Nov 2023 09:34:06 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BED7C433C8;
+        Mon,  6 Nov 2023 17:34:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1699291696;
-        bh=jGqsDqGiV7lMVnni78q3O0VJ7UhN7Z8t+7gAwrKtGHc=;
+        s=korg; t=1699292046;
+        bh=eKI80cUgWVHEjyPaoH9Mny2pqSxxFfh4un01LIorv+4=;
         h=Date:To:From:Subject:From;
-        b=eyx+9rSYpessTOlNwNDdFFGA9R+55oTUnZykBeW7mFoEzXsEnie5PzkwDmr8zXlca
-         Vbr53jAjs3Y4fNw4u/Mpozh0+Gc2HtwOLLBcUyoeaZ78JA/Y+5fmDmqRfTaqkdqOAR
-         PTFbVZwqf12yuRPPSTwuwYJe3ATnRIKgMlLefUhI=
-Date:   Mon, 06 Nov 2023 09:28:15 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org, surenb@google.com,
-        peterz@infradead.org, npiggin@gmail.com, mst@redhat.com,
-        mjguzik@gmail.com, michael.christie@oracle.com,
-        mathieu.desnoyers@efficios.com, Liam.Howlett@oracle.com,
-        corbet@lwn.net, brauner@kernel.org, zhangpeng.00@bytedance.com,
-        akpm@linux-foundation.org
+        b=mwINdhoR/WY4uoQhwkVAvpBMy+mNjk2N26DHharNyKBJGmOZQTcwzG6R8fraFNVPg
+         DP38PlbXicUP9YRYL3NMXpr7zhe7FH8w1HdFWE6nVKW1I1j2UWcxFAvecDDodh65EX
+         Pf47XJmcjlkMmoVAKIHuHPXyO0RqS19RD8d3xuSw=
+Date:   Mon, 06 Nov 2023 09:34:05 -0800
+To:     mm-commits@vger.kernel.org, akpm@linux-foundation.org,
+        Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + fork-use-__mt_dup-to-duplicate-maple-tree-in-dup_mmap.patch added to mm-unstable branch
-Message-Id: <20231106172816.5EA18C433C8@smtp.kernel.org>
+Subject: + maple_tree-remove-unnecessary-default-labels-from-switch-statements.patch added to mm-unstable branch
+Message-Id: <20231106173406.8BED7C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fork: use __mt_dup() to duplicate maple tree in dup_mmap()
+     Subject: maple_tree: remove unnecessary default labels from switch statements
 has been added to the -mm mm-unstable branch.  Its filename is
-     fork-use-__mt_dup-to-duplicate-maple-tree-in-dup_mmap.patch
+     maple_tree-remove-unnecessary-default-labels-from-switch-statements.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fork-use-__mt_dup-to-duplicate-maple-tree-in-dup_mmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-remove-unnecessary-default-labels-from-switch-statements.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -63,285 +59,140 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peng Zhang <zhangpeng.00@bytedance.com>
-Subject: fork: use __mt_dup() to duplicate maple tree in dup_mmap()
-Date: Fri, 27 Oct 2023 11:38:45 +0800
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: maple_tree: remove unnecessary default labels from switch statements
+Date: Wed, 1 Nov 2023 13:16:18 -0400
 
-In dup_mmap(), using __mt_dup() to duplicate the old maple tree and then
-directly replacing the entries of VMAs in the new maple tree can result in
-better performance.  __mt_dup() uses DFS pre-order to duplicate the maple
-tree, so it is efficient.
+Patch series "maple_tree: iterator state changes".
 
-The average time complexity of __mt_dup() is O(n), where n is the number
-of VMAs.  The proof of the time complexity is provided in the commit log
-that introduces __mt_dup().  After duplicating the maple tree, each
-element is traversed and replaced (ignoring the cases of deletion, which
-are rare).  Since it is only a replacement operation for each element,
-this process is also O(n).
+These patches have some general cleanup and a change to separate the maple
+state status tracking from the maple state node.
 
-Analyzing the exact time complexity of the previous algorithm is
-challenging because each insertion can involve appending to a node,
-pushing data to adjacent nodes, or even splitting nodes.  The frequency of
-each action is difficult to calculate.  The worst-case scenario for a
-single insertion is when the tree undergoes splitting at every level.  If
-we consider each insertion as the worst-case scenario, we can determine
-that the upper bound of the time complexity is O(n*log(n)), although this
-is a loose upper bound.  However, based on the test data, it appears that
-the actual time complexity is likely to be O(n).
+The maple state status change allows for walks to continue from previous
+places when the status needs to be recorded to make logical sense for the
+next call to the maple state.  For instance, it allows for prev/next to
+function in a way that better resembles the linked list.  It also allows
+switch statements to be used to detect missed states during compile, and
+the addition of fast-path "active" state is cleaner as an enum.
 
-As the entire maple tree is duplicated using __mt_dup(), if dup_mmap()
-fails, there will be a portion of VMAs that have not been duplicated in
-the maple tree.  To handle this, we mark the failure point with
-XA_ZERO_ENTRY.  In exit_mmap(), if this marker is encountered, stop
-releasing VMAs that have not been duplicated after this point.
+While making the status change, perf showed some very small (one line)
+functions that were not inlined even with the inline key word.  Making
+these small functions __always_inline is less expensive according to perf.
+As part of that change, some inlines have been dropped from larger
+functions.
 
-There is a "spawn" in byte-unixbench[1], which can be used to test the
-performance of fork().  I modified it slightly to make it work with
-different number of VMAs.
+Perf also showed that the commonly used mas_for_each() iterator was
+spending a lot of time finding the end of the node.  This series
+introduces caching of the end of the node in the maple state (and updating
+it during writes).  This caching along with the inline changes yielded at
+23.25% improvement on the BENCH_MAS_FOR_EACH maple tree test framework
+benchmark.
 
-Below are the test results.  The first row shows the number of VMAs.  The
-second and third rows show the number of fork() calls per ten seconds,
-corresponding to next-20231006 and the this patchset, respectively.  The
-test results were obtained with CPU binding to avoid scheduler load
-balancing that could cause unstable results.  There are still some
-fluctuations in the test results, but at least they are better than the
-original performance.
+I've also included a change to mtree_range_walk and mtree_lookup_walk to
+take advantage of Peng's change [1] to the initial pivot setup.
 
-21     121   221    421    821    1621   3221   6421   12821  25621  51221
-112100 76261 54227  34035  20195  11112  6017   3161   1606   802    393
-114558 83067 65008  45824  28751  16072  8922   4747   2436   1233   599
-2.19%  8.92% 19.88% 34.64% 42.37% 44.64% 48.28% 50.17% 51.68% 53.74% 52.42%
+mmtests did not produce any significant gains.
 
-[1] https://github.com/kdlucas/byte-unixbench/tree/master
+[1] https://lore.kernel.org/all/20230711035444.526-1-zhangpeng.00@bytedance.com/T/#u
 
-Link: https://lkml.kernel.org/r/20231027033845.90608-11-zhangpeng.00@bytedance.com
-Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
-Suggested-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michael S. Tsirkin <mst@redhat.com>
-Cc: Mike Christie <michael.christie@oracle.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+
+This patch (of 12):
+
+Removing the default types from the switch statements will cause compile
+warnings on missing cases.
+
+Link: https://lkml.kernel.org/r/20231101171629.3612299-2-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   11 +++++++++++
- kernel/fork.c      |   40 +++++++++++++++++++++++++++++-----------
- mm/internal.h      |   11 -----------
- mm/memory.c        |    7 ++++++-
- mm/mmap.c          |    9 ++++++---
- 5 files changed, 52 insertions(+), 26 deletions(-)
+ lib/maple_tree.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
---- a/include/linux/mm.h~fork-use-__mt_dup-to-duplicate-maple-tree-in-dup_mmap
-+++ a/include/linux/mm.h
-@@ -994,6 +994,17 @@ static inline int vma_iter_bulk_alloc(st
- 	return mas_expected_entries(&vmi->mas, count);
+--- a/lib/maple_tree.c~maple_tree-remove-unnecessary-default-labels-from-switch-statements
++++ a/lib/maple_tree.c
+@@ -771,7 +771,6 @@ static inline void mte_set_pivot(struct
+ 
+ 	BUG_ON(piv >= mt_pivots[type]);
+ 	switch (type) {
+-	default:
+ 	case maple_range_64:
+ 	case maple_leaf_64:
+ 		node->mr64.pivot[piv] = val;
+@@ -795,7 +794,6 @@ static inline void mte_set_pivot(struct
+ static inline void __rcu **ma_slots(struct maple_node *mn, enum maple_type mt)
+ {
+ 	switch (mt) {
+-	default:
+ 	case maple_arange_64:
+ 		return mn->ma64.slot;
+ 	case maple_range_64:
+@@ -804,6 +802,8 @@ static inline void __rcu **ma_slots(stru
+ 	case maple_dense:
+ 		return mn->slot;
+ 	}
++
++	return NULL;
  }
  
-+static inline int vma_iter_clear_gfp(struct vma_iterator *vmi,
-+			unsigned long start, unsigned long end, gfp_t gfp)
-+{
-+	__mas_set_range(&vmi->mas, start, end - 1);
-+	mas_store_gfp(&vmi->mas, NULL, gfp);
-+	if (unlikely(mas_is_err(&vmi->mas)))
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+
- /* Free any unused preallocations */
- static inline void vma_iter_free(struct vma_iterator *vmi)
- {
---- a/kernel/fork.c~fork-use-__mt_dup-to-duplicate-maple-tree-in-dup_mmap
-+++ a/kernel/fork.c
-@@ -650,7 +650,6 @@ static __latent_entropy int dup_mmap(str
- 	int retval;
- 	unsigned long charge = 0;
- 	LIST_HEAD(uf);
--	VMA_ITERATOR(old_vmi, oldmm, 0);
- 	VMA_ITERATOR(vmi, mm, 0);
- 
- 	uprobe_start_dup_mmap();
-@@ -678,16 +677,22 @@ static __latent_entropy int dup_mmap(str
- 		goto out;
- 	khugepaged_fork(mm, oldmm);
- 
--	retval = vma_iter_bulk_alloc(&vmi, oldmm->map_count);
--	if (retval)
-+	/* Use __mt_dup() to efficiently build an identical maple tree. */
-+	retval = __mt_dup(&oldmm->mm_mt, &mm->mm_mt, GFP_KERNEL);
-+	if (unlikely(retval))
- 		goto out;
- 
- 	mt_clear_in_rcu(vmi.mas.tree);
--	for_each_vma(old_vmi, mpnt) {
-+	for_each_vma(vmi, mpnt) {
- 		struct file *file;
- 
- 		vma_start_write(mpnt);
- 		if (mpnt->vm_flags & VM_DONTCOPY) {
-+			retval = vma_iter_clear_gfp(&vmi, mpnt->vm_start,
-+						    mpnt->vm_end, GFP_KERNEL);
-+			if (retval)
-+				goto loop_out;
-+
- 			vm_stat_account(mm, mpnt->vm_flags, -vma_pages(mpnt));
- 			continue;
+ static inline bool mt_write_locked(const struct maple_tree *mt)
+@@ -7002,7 +7002,6 @@ static void mt_dump_range(unsigned long
+ 		else
+ 			pr_info("%.*s%lx-%lx: ", depth * 2, spaces, min, max);
+ 		break;
+-	default:
+ 	case mt_dump_dec:
+ 		if (min == max)
+ 			pr_info("%.*s%lu: ", depth * 2, spaces, min);
+@@ -7042,7 +7041,6 @@ static void mt_dump_range64(const struct
+ 		case mt_dump_hex:
+ 			pr_cont("%p %lX ", node->slot[i], node->pivot[i]);
+ 			break;
+-		default:
+ 		case mt_dump_dec:
+ 			pr_cont("%p %lu ", node->slot[i], node->pivot[i]);
  		}
-@@ -749,9 +754,11 @@ static __latent_entropy int dup_mmap(str
- 		if (is_vm_hugetlb_page(tmp))
- 			hugetlb_dup_vma_private(tmp);
- 
--		/* Link the vma into the MT */
--		if (vma_iter_bulk_store(&vmi, tmp))
--			goto fail_nomem_vmi_store;
-+		/*
-+		 * Link the vma into the MT. After using __mt_dup(), memory
-+		 * allocation is not necessary here, so it cannot fail.
-+		 */
-+		vma_iter_bulk_store(&vmi, tmp);
- 
- 		mm->map_count++;
- 		if (!(tmp->vm_flags & VM_WIPEONFORK))
-@@ -760,15 +767,28 @@ static __latent_entropy int dup_mmap(str
- 		if (tmp->vm_ops && tmp->vm_ops->open)
- 			tmp->vm_ops->open(tmp);
- 
--		if (retval)
-+		if (retval) {
-+			mpnt = vma_next(&vmi);
- 			goto loop_out;
-+		}
- 	}
- 	/* a new mm has just been created */
- 	retval = arch_dup_mmap(oldmm, mm);
- loop_out:
- 	vma_iter_free(&vmi);
--	if (!retval)
-+	if (!retval) {
- 		mt_set_in_rcu(vmi.mas.tree);
-+	} else if (mpnt) {
-+		/*
-+		 * The entire maple tree has already been duplicated. If the
-+		 * mmap duplication fails, mark the failure point with
-+		 * XA_ZERO_ENTRY. In exit_mmap(), if this marker is encountered,
-+		 * stop releasing VMAs that have not been duplicated after this
-+		 * point.
-+		 */
-+		mas_set_range(&vmi.mas, mpnt->vm_start, mpnt->vm_end - 1);
-+		mas_store(&vmi.mas, XA_ZERO_ENTRY);
-+	}
- out:
- 	mmap_write_unlock(mm);
- 	flush_tlb_mm(oldmm);
-@@ -778,8 +798,6 @@ fail_uprobe_end:
- 	uprobe_end_dup_mmap();
- 	return retval;
- 
--fail_nomem_vmi_store:
--	unlink_anon_vmas(tmp);
- fail_nomem_anon_vma_fork:
- 	mpol_put(vma_policy(tmp));
- fail_nomem_policy:
---- a/mm/internal.h~fork-use-__mt_dup-to-duplicate-maple-tree-in-dup_mmap
-+++ a/mm/internal.h
-@@ -1154,17 +1154,6 @@ static inline void vma_iter_clear(struct
- 	mas_store_prealloc(&vmi->mas, NULL);
- }
- 
--static inline int vma_iter_clear_gfp(struct vma_iterator *vmi,
--			unsigned long start, unsigned long end, gfp_t gfp)
--{
--	__mas_set_range(&vmi->mas, start, end - 1);
--	mas_store_gfp(&vmi->mas, NULL, gfp);
--	if (unlikely(mas_is_err(&vmi->mas)))
--		return -ENOMEM;
--
--	return 0;
--}
--
- static inline struct vm_area_struct *vma_iter_load(struct vma_iterator *vmi)
- {
- 	return mas_walk(&vmi->mas);
---- a/mm/memory.c~fork-use-__mt_dup-to-duplicate-maple-tree-in-dup_mmap
-+++ a/mm/memory.c
-@@ -374,6 +374,8 @@ void free_pgtables(struct mmu_gather *tl
- 		 * be 0.  This will underflow and is okay.
- 		 */
- 		next = mas_find(mas, ceiling - 1);
-+		if (unlikely(xa_is_zero(next)))
-+			next = NULL;
- 
- 		/*
- 		 * Hide vma from rmap and truncate_pagecache before freeing
-@@ -395,6 +397,8 @@ void free_pgtables(struct mmu_gather *tl
- 			       && !is_vm_hugetlb_page(next)) {
- 				vma = next;
- 				next = mas_find(mas, ceiling - 1);
-+				if (unlikely(xa_is_zero(next)))
-+					next = NULL;
- 				if (mm_wr_locked)
- 					vma_start_write(vma);
- 				unlink_anon_vmas(vma);
-@@ -1743,7 +1747,8 @@ void unmap_vmas(struct mmu_gather *tlb,
- 		unmap_single_vma(tlb, vma, start, end, &details,
- 				 mm_wr_locked);
- 		hugetlb_zap_end(vma, &details);
--	} while ((vma = mas_find(mas, tree_end - 1)) != NULL);
-+		vma = mas_find(mas, tree_end - 1);
-+	} while (vma && likely(!xa_is_zero(vma)));
- 	mmu_notifier_invalidate_range_end(&range);
- }
- 
---- a/mm/mmap.c~fork-use-__mt_dup-to-duplicate-maple-tree-in-dup_mmap
-+++ a/mm/mmap.c
-@@ -3294,10 +3294,11 @@ void exit_mmap(struct mm_struct *mm)
- 	arch_exit_mmap(mm);
- 
- 	vma = mas_find(&mas, ULONG_MAX);
--	if (!vma) {
-+	if (!vma || unlikely(xa_is_zero(vma))) {
- 		/* Can happen if dup_mmap() received an OOM */
- 		mmap_read_unlock(mm);
--		return;
-+		mmap_write_lock(mm);
-+		goto destroy;
- 	}
- 
- 	lru_add_drain();
-@@ -3332,11 +3333,13 @@ void exit_mmap(struct mm_struct *mm)
- 		remove_vma(vma, true);
- 		count++;
- 		cond_resched();
--	} while ((vma = mas_find(&mas, ULONG_MAX)) != NULL);
-+		vma = mas_find(&mas, ULONG_MAX);
-+	} while (vma && likely(!xa_is_zero(vma)));
- 
- 	BUG_ON(count != mm->map_count);
- 
- 	trace_exit_mmap(mm);
-+destroy:
- 	__mt_destroy(&mm->mm_mt);
- 	mmap_write_unlock(mm);
- 	vm_unacct_memory(nr_accounted);
+@@ -7072,7 +7070,6 @@ static void mt_dump_range64(const struct
+ 				pr_err("node %p last (%lx) > max (%lx) at pivot %d!\n",
+ 					node, last, max, i);
+ 				break;
+-			default:
+ 			case mt_dump_dec:
+ 				pr_err("node %p last (%lu) > max (%lu) at pivot %d!\n",
+ 					node, last, max, i);
+@@ -7097,7 +7094,6 @@ static void mt_dump_arange64(const struc
+ 		case mt_dump_hex:
+ 			pr_cont("%lx ", node->gap[i]);
+ 			break;
+-		default:
+ 		case mt_dump_dec:
+ 			pr_cont("%lu ", node->gap[i]);
+ 		}
+@@ -7108,7 +7104,6 @@ static void mt_dump_arange64(const struc
+ 		case mt_dump_hex:
+ 			pr_cont("%p %lX ", node->slot[i], node->pivot[i]);
+ 			break;
+-		default:
+ 		case mt_dump_dec:
+ 			pr_cont("%p %lu ", node->slot[i], node->pivot[i]);
+ 		}
 _
 
-Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
-maple_tree-add-mt_free_one-and-mt_attr-helpers.patch
-maple_tree-introduce-mtreemas_lock_nested.patch
-maple_tree-introduce-interfaces-__mt_dup-and-mtree_dup.patch
-radix-tree-test-suite-align-kmem_cache_alloc_bulk-with-kernel-behavior.patch
-maple_tree-add-test-for-mtree_dup.patch
-maple_tree-update-the-documentation-of-maple-tree.patch
-maple_tree-skip-other-tests-when-bench-is-enabled.patch
-maple_tree-update-check_forking-and-bench_forking.patch
-maple_tree-preserve-the-tree-attributes-when-destroying-maple-tree.patch
-fork-use-__mt_dup-to-duplicate-maple-tree-in-dup_mmap.patch
+maple_tree-remove-unnecessary-default-labels-from-switch-statements.patch
+maple_tree-make-mas_erase-more-robust.patch
+maple_tree-move-debug-check-to-__mas_set_range.patch
+maple_tree-add-end-of-node-tracking-to-the-maple-state.patch
+maple_tree-use-cached-node-end-in-mas_next.patch
+maple_tree-use-cached-node-end-in-mas_destroy.patch
+maple_tree-clean-up-inlines-for-some-functions.patch
+maple_tree-separate-ma_state-node-from-status.patch
+maple_tree-separate-ma_state-node-from-status-fix-1.patch
+maple_tree-separate-ma_state-node-from-status-fix-2.patch
+maple_tree-remove-mas_searchable.patch
+maple_tree-use-maple-state-end-for-write-operations.patch
+maple_tree-dont-find-node-end-in-mtree_lookup_walk.patch
+maple_tree-mtree_range_walk-clean-up.patch
 
