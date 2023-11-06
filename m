@@ -2,63 +2,94 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E2CDC4167B
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Nov 2023 07:13:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37B19C4167B
+	for <mm-commits@archiver.kernel.org>; Mon,  6 Nov 2023 16:14:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345322AbjKCHNk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Nov 2023 03:13:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40328 "EHLO
+        id S229642AbjKFQOj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 6 Nov 2023 11:14:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46418 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345245AbjKCHNj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Nov 2023 03:13:39 -0400
+        with ESMTP id S232350AbjKFQOj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Nov 2023 11:14:39 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5D59191;
-        Fri,  3 Nov 2023 00:13:37 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 6203AC433C9;
-        Fri,  3 Nov 2023 07:13:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1698995617;
-        bh=MQT82r4Df4VbpEn4+AjOR7ZgYSOP9JYKc2JSesENocg=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=suH1Dji7H5eE2G/wFko2aLLviNfHVxYbgftH84bq4IYSZPPQbm0sEMnd7bbDz0bLZ
-         0m73ohAv33DjPyiULX5OMWy+629JVvUa4t6SOJ9Q0EK9AL64lgp5WZO9vxtUH2Usym
-         EZWsXktk+VBunI5CdWu/0ntj2yD3DAKBe6oISsSpc45aKKApordX9CKenUFv5XegOx
-         fMGhbAI3lvVy/o9GDrS5l9w4573p/38p22Nl9/8I4nouGbcb1Ux9geKu19WJeAcNB1
-         /VYxbIHIEdRa0BUpztognGKldaotEN89qBK6wzE9t5WKq9m+nHm+Dj2oiPhb8vwi0q
-         njskEZ+Hmn/xQ==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 517B7EAB08A;
-        Fri,  3 Nov 2023 07:13:37 +0000 (UTC)
-Subject: Re: [GIT PULL] Non MM updates for 6.8-rc1
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <20231102143341.9e83402cf087ba82e2b4760c@linux-foundation.org>
-References: <20231102143341.9e83402cf087ba82e2b4760c@linux-foundation.org>
-X-PR-Tracked-List-Id: <mm-commits.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20231102143341.9e83402cf087ba82e2b4760c@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-stable-2023-11-02-14-08
-X-PR-Tracked-Commit-Id: 6620999f0d41e4fd6f047727936a964c3399d249
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 8f6f76a6a29f36d2f3e4510d0bde5046672f6924
-Message-Id: <169899561732.26157.6831376075881574476.pr-tracker-bot@kernel.org>
-Date:   Fri, 03 Nov 2023 07:13:37 +0000
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE7CE191
+        for <mm-commits@vger.kernel.org>; Mon,  6 Nov 2023 08:14:36 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D3F2C433C8;
+        Mon,  6 Nov 2023 16:14:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1699287276;
+        bh=+zf+n1lyD0xBmoXXvqnIQanypHhzXmKStM9kAI+tbyg=;
+        h=Date:To:From:Subject:From;
+        b=hU3zinnMnpS4dFDm2tv55fs2bbaBEiB8ReI3GnL7EuRmwWTAos5xF3+2JI8k0zFiR
+         3KFZ7gx88iu8usRFHQo7mrMX9TgNvJ/rJtLSbAQiztsDP7NJnJWNaA5eUdbydsl45/
+         sPJ/OGbJLQAt6hjXqp42lAsmJ4OTKufXwN3QLdww=
+Date:   Mon, 06 Nov 2023 08:14:35 -0800
+To:     mm-commits@vger.kernel.org, sj@kernel.org,
+        dan.carpenter@linaro.org, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-damon-sysfs-eliminate-potential-uninitialized-variable-warning.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231106161436.4D3F2C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-The pull request you sent on Thu, 2 Nov 2023 14:33:41 -0700:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-nonmm-stable-2023-11-02-14-08
+The patch titled
+     Subject: mm/damon/sysfs: eliminate potential uninitialized variable warning
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-sysfs-eliminate-potential-uninitialized-variable-warning.patch
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/8f6f76a6a29f36d2f3e4510d0bde5046672f6924
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-eliminate-potential-uninitialized-variable-warning.patch
 
-Thank you!
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Dan Carpenter <dan.carpenter@linaro.org>
+Subject: mm/damon/sysfs: eliminate potential uninitialized variable warning
+Date: Mon, 6 Nov 2023 17:07:40 +0300
+
+The "err" variable is not initialized if damon_target_has_pid(ctx) is
+false and sys_target->regions->nr is zero.
+
+Link: https://lkml.kernel.org/r/739e6aaf-a634-4e33-98a8-16546379ec9f@moroto.mountain
+Fixes: 0bcd216c4741 ("mm/damon/sysfs: update monitoring target regions for online input commit")
+Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/damon/sysfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-eliminate-potential-uninitialized-variable-warning
++++ a/mm/damon/sysfs.c
+@@ -1172,7 +1172,7 @@ static int damon_sysfs_update_target(str
+ 		struct damon_ctx *ctx,
+ 		struct damon_sysfs_target *sys_target)
+ {
+-	int err;
++	int err = 0;
+ 
+ 	if (damon_target_has_pid(ctx)) {
+ 		err = damon_sysfs_update_target_pid(target, sys_target->pid);
+_
+
+Patches currently in -mm which might be from dan.carpenter@linaro.org are
+
+mm-damon-sysfs-eliminate-potential-uninitialized-variable-warning.patch
+
