@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F23C9C4332F
-	for <mm-commits@archiver.kernel.org>; Mon,  6 Nov 2023 17:34:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B6A7C0018A
+	for <mm-commits@archiver.kernel.org>; Mon,  6 Nov 2023 17:34:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231812AbjKFRed (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 6 Nov 2023 12:34:33 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49066 "EHLO
+        id S231817AbjKFRee (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 6 Nov 2023 12:34:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49110 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231819AbjKFReb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Nov 2023 12:34:31 -0500
+        with ESMTP id S231913AbjKFRed (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Nov 2023 12:34:33 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 555EFD69
-        for <mm-commits@vger.kernel.org>; Mon,  6 Nov 2023 09:34:28 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA549C433CA;
-        Mon,  6 Nov 2023 17:34:27 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63DC8D70
+        for <mm-commits@vger.kernel.org>; Mon,  6 Nov 2023 09:34:30 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0169C433C8;
+        Mon,  6 Nov 2023 17:34:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1699292068;
-        bh=/muvX9YxGXrztxjsUvbAubhDMPSDK01JfP/ZUfAkR7s=;
+        s=korg; t=1699292070;
+        bh=VXZ6g6Y87kiM7DIF5r/M1IZ+uAq1X/5lLObwtYkM4CE=;
         h=Date:To:From:Subject:From;
-        b=zH1NoPaqwwu8JsvsnOn6fysGQgKLNGeTQ7G3EPg6Yfw4/nygrB/3ZnhC+VDhY4yzG
-         ilFobG7UdBPtiPpLrs5TWJVFH9iFFszXFCpkqKX4LR13xpQ+n17IBYZmgOQHmXcmPC
-         aMudrPDM7yBZ/Cp5VbmshCKUugRbNBJlIulagJ/M=
-Date:   Mon, 06 Nov 2023 09:34:27 -0800
+        b=mH1LFaNa4fn+rH3nyRX0eo/Eux3mLoGGtLUNwLV/61IU44cACuLBvAwE2GVBOXsGx
+         0sqd/rvUdPYCiUbJjS69KHCykyWpSy/SL5iCnjNSx02RhV+5wJxr81XcH1xn7rCUQw
+         tUu11nNNqIhZu8UDkYgk2UGH3acJ0lyzKc+1/9F4=
+Date:   Mon, 06 Nov 2023 09:34:29 -0800
 To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
         Liam.Howlett@oracle.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-remove-mas_searchable.patch added to mm-unstable branch
-Message-Id: <20231106173427.EA549C433CA@smtp.kernel.org>
+Subject: + maple_tree-use-maple-state-end-for-write-operations.patch added to mm-unstable branch
+Message-Id: <20231106173429.F0169C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: remove mas_searchable()
+     Subject: maple_tree: use maple state end for write operations
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-remove-mas_searchable.patch
+     maple_tree-use-maple-state-end-for-write-operations.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-remove-mas_searchable.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-use-maple-state-end-for-write-operations.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,150 +60,200 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: remove mas_searchable()
-Date: Wed, 1 Nov 2023 13:16:26 -0400
+Subject: maple_tree: use maple state end for write operations
+Date: Wed, 1 Nov 2023 13:16:27 -0400
 
-Now that the status of the maple state is outside of the node, the
-mas_searchable() function can be dropped for easier open-coding of what is
-going on.
+ma_wr_state was previously tracking the end of the node for writing. 
+Since the implementation of the ma_state end tracking, this is duplicated
+work.  This patch removes the maple write state tracking of the end of the
+node and uses the maple state end instead.
 
-Link: https://lkml.kernel.org/r/20231101171629.3612299-10-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20231101171629.3612299-11-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Peng Zhang <zhangpeng.00@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c                 |   66 +++++++----------------------
- tools/testing/radix-tree/maple.c |    4 +
- 2 files changed, 19 insertions(+), 51 deletions(-)
+ include/linux/maple_tree.h |    1 
+ lib/maple_tree.c           |   46 ++++++++++++++++++-----------------
+ 2 files changed, 24 insertions(+), 23 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-remove-mas_searchable
+--- a/include/linux/maple_tree.h~maple_tree-use-maple-state-end-for-write-operations
++++ a/include/linux/maple_tree.h
+@@ -441,7 +441,6 @@ struct ma_wr_state {
+ 	unsigned long r_max;		/* range max */
+ 	enum maple_type type;		/* mas->node type */
+ 	unsigned char offset_end;	/* The offset where the write ends */
+-	unsigned char node_end;		/* mas->node end */
+ 	unsigned long *pivots;		/* mas->node->pivots pointer */
+ 	unsigned long end_piv;		/* The pivot at the offset end */
+ 	void __rcu **slots;		/* mas->node->slots pointer */
+--- a/lib/maple_tree.c~maple_tree-use-maple-state-end-for-write-operations
 +++ a/lib/maple_tree.c
-@@ -285,17 +285,6 @@ static inline bool mas_is_underflow(stru
- 	return mas->status == ma_underflow;
- }
- 
--static inline bool mas_searchable(struct ma_state *mas)
--{
--	if (mas_is_none(mas))
--		return false;
--
--	if (mas_is_ptr(mas))
--		return false;
--
--	return true;
--}
--
- static __always_inline struct maple_node *mte_to_node(
- 		const struct maple_enode *entry)
- {
-@@ -6022,12 +6011,11 @@ static __always_inline bool mas_find_set
- 
+@@ -2158,11 +2158,11 @@ static noinline_for_kasan void mas_store
  	}
  
--	if (unlikely(!mas_searchable(mas))) {
--		if (unlikely(mas_is_ptr(mas)))
--			goto ptr_out_of_range;
-+	if (unlikely(mas_is_ptr(mas)))
-+		goto ptr_out_of_range;
+ 	slot = offset_end + 1;
+-	if (slot > wr_mas->node_end)
++	if (slot > mas->end)
+ 		goto b_end;
  
-+	if (unlikely(mas_is_none(mas)))
- 		return true;
--	}
+ 	/* Copy end data to the end of the node. */
+-	mas_mab_cp(mas, slot, wr_mas->node_end + 1, b_node, ++b_end);
++	mas_mab_cp(mas, slot, mas->end + 1, b_node, ++b_end);
+ 	b_node->b_end--;
+ 	return;
  
- 	if (mas->index == max)
- 		return true;
-@@ -6154,20 +6142,18 @@ static bool mas_find_rev_setup(struct ma
- 			return true;
- 	}
+@@ -2253,8 +2253,8 @@ static inline void mas_wr_node_walk(stru
  
--	if (unlikely(!mas_searchable(mas))) {
--		if (mas_is_ptr(mas))
--			goto none;
-+	if (unlikely(mas_is_ptr(mas)))
-+		goto none;
+ 	wr_mas->node = mas_mn(wr_mas->mas);
+ 	wr_mas->pivots = ma_pivots(wr_mas->node, wr_mas->type);
+-	count = wr_mas->node_end = ma_data_end(wr_mas->node, wr_mas->type,
+-					       wr_mas->pivots, mas->max);
++	count = mas->end = ma_data_end(wr_mas->node, wr_mas->type,
++				       wr_mas->pivots, mas->max);
+ 	offset = mas->offset;
  
--		if (mas_is_none(mas)) {
--			/*
--			 * Walked to the location, and there was nothing so the
--			 * previous location is 0.
--			 */
--			mas->last = mas->index = 0;
--			mas->status = ma_root;
--			*entry = mas_root(mas);
--			return true;
--		}
-+	if (unlikely(mas_is_none(mas))) {
-+		/*
-+		 * Walked to the location, and there was nothing so the previous
-+		 * location is 0.
-+		 */
-+		mas->last = mas->index = 0;
-+		mas->status = ma_root;
-+		*entry = mas_root(mas);
-+		return true;
- 	}
+ 	while (offset < count && mas->index > wr_mas->pivots[offset])
+@@ -3904,10 +3904,10 @@ static inline int mas_wr_spanning_store(
  
- active:
-@@ -6897,7 +6883,7 @@ retry:
- 	if (entry)
- 		goto unlock;
+ 	memset(&b_node, 0, sizeof(struct maple_big_node));
+ 	/* Copy l_mas and store the value in b_node. */
+-	mas_store_b_node(&l_wr_mas, &b_node, l_wr_mas.node_end);
++	mas_store_b_node(&l_wr_mas, &b_node, l_mas.end);
+ 	/* Copy r_mas into b_node. */
+-	if (r_mas.offset <= r_wr_mas.node_end)
+-		mas_mab_cp(&r_mas, r_mas.offset, r_wr_mas.node_end,
++	if (r_mas.offset <= r_mas.end)
++		mas_mab_cp(&r_mas, r_mas.offset, r_mas.end,
+ 			   &b_node, b_node.b_end + 1);
+ 	else
+ 		b_node.b_end++;
+@@ -3949,7 +3949,7 @@ static inline bool mas_wr_node_store(str
+ 	if (mas->last == wr_mas->end_piv)
+ 		offset_end++; /* don't copy this offset */
+ 	else if (unlikely(wr_mas->r_max == ULONG_MAX))
+-		mas_bulk_rebalance(mas, wr_mas->node_end, wr_mas->type);
++		mas_bulk_rebalance(mas, mas->end, wr_mas->type);
  
--	while (mas_searchable(&mas) && (mas.last < max)) {
-+	while (mas_is_active(&mas) && (mas.last < max)) {
- 		entry = mas_next_entry(&mas, max);
- 		if (likely(entry && !xa_is_zero(entry)))
- 			break;
-@@ -6979,26 +6965,6 @@ unsigned int mt_nr_allocated(void)
- 	return kmem_cache_nr_allocated(maple_node_cache);
- }
- 
--/*
-- * mas_dead_node() - Check if the maple state is pointing to a dead node.
-- * @mas: The maple state
-- * @index: The index to restore in @mas.
-- *
-- * Used in test code.
-- * Return: 1 if @mas has been reset to MAS_START, 0 otherwise.
-- */
--static inline int mas_dead_node(struct ma_state *mas, unsigned long index)
--{
--	if (unlikely(!mas_searchable(mas) || mas_is_start(mas)))
--		return 0;
--
--	if (likely(!mte_dead_node(mas->node)))
--		return 0;
--
--	mas_rewalk(mas, index);
--	return 1;
--}
--
- void mt_cache_shrink(void)
- {
- }
-@@ -7550,7 +7516,7 @@ void mt_validate(struct maple_tree *mt)
- 	MA_STATE(mas, mt, 0, 0);
- 	rcu_read_lock();
- 	mas_start(&mas);
--	if (!mas_searchable(&mas))
-+	if (!mas_is_active(&mas))
+ 	/* set up node. */
+ 	if (in_rcu) {
+@@ -3985,12 +3985,12 @@ static inline bool mas_wr_node_store(str
+ 	 * this range wrote to the end of the node or it overwrote the rest of
+ 	 * the data
+ 	 */
+-	if (offset_end > wr_mas->node_end)
++	if (offset_end > mas->end)
  		goto done;
  
- 	while (!mte_is_leaf(mas.node))
---- a/tools/testing/radix-tree/maple.c~maple_tree-remove-mas_searchable
-+++ a/tools/testing/radix-tree/maple.c
-@@ -974,8 +974,10 @@ retry:
- 	if (likely(mas->offset != MAPLE_NODE_SLOTS))
- 		entry = mas_get_slot(mas, mas->offset);
+ 	dst_offset = mas->offset + 1;
+ 	/* Copy to the end of node if necessary. */
+-	copy_size = wr_mas->node_end - offset_end + 1;
++	copy_size = mas->end - offset_end + 1;
+ 	memcpy(dst_slots + dst_offset, wr_mas->slots + offset_end,
+ 	       sizeof(void *) * copy_size);
+ 	memcpy(dst_pivots + dst_offset, wr_mas->pivots + offset_end,
+@@ -4077,10 +4077,10 @@ static inline void mas_wr_extend_null(st
+ 	} else {
+ 		/* Check next slot(s) if we are overwriting the end */
+ 		if ((mas->last == wr_mas->end_piv) &&
+-		    (wr_mas->node_end != wr_mas->offset_end) &&
++		    (mas->end != wr_mas->offset_end) &&
+ 		    !wr_mas->slots[wr_mas->offset_end + 1]) {
+ 			wr_mas->offset_end++;
+-			if (wr_mas->offset_end == wr_mas->node_end)
++			if (wr_mas->offset_end == mas->end)
+ 				mas->last = mas->max;
+ 			else
+ 				mas->last = wr_mas->pivots[wr_mas->offset_end];
+@@ -4105,11 +4105,11 @@ static inline void mas_wr_extend_null(st
  
--	if (mas_dead_node(mas, index))
-+	if (mas_is_active(mas) && mte_dead_node(mas->node)) {
-+		mas_set(mas, index);
- 		goto retry;
-+	}
+ static inline void mas_wr_end_piv(struct ma_wr_state *wr_mas)
+ {
+-	while ((wr_mas->offset_end < wr_mas->node_end) &&
++	while ((wr_mas->offset_end < wr_mas->mas->end) &&
+ 	       (wr_mas->mas->last > wr_mas->pivots[wr_mas->offset_end]))
+ 		wr_mas->offset_end++;
  
- 	return entry;
+-	if (wr_mas->offset_end < wr_mas->node_end)
++	if (wr_mas->offset_end < wr_mas->mas->end)
+ 		wr_mas->end_piv = wr_mas->pivots[wr_mas->offset_end];
+ 	else
+ 		wr_mas->end_piv = wr_mas->mas->max;
+@@ -4121,7 +4121,7 @@ static inline void mas_wr_end_piv(struct
+ static inline unsigned char mas_wr_new_end(struct ma_wr_state *wr_mas)
+ {
+ 	struct ma_state *mas = wr_mas->mas;
+-	unsigned char new_end = wr_mas->node_end + 2;
++	unsigned char new_end = mas->end + 2;
+ 
+ 	new_end -= wr_mas->offset_end - mas->offset;
+ 	if (wr_mas->r_min == mas->index)
+@@ -4155,10 +4155,10 @@ static inline bool mas_wr_append(struct
+ 	if (mt_in_rcu(mas->tree))
+ 		return false;
+ 
+-	if (mas->offset != wr_mas->node_end)
++	if (mas->offset != mas->end)
+ 		return false;
+ 
+-	end = wr_mas->node_end;
++	end = mas->end;
+ 	if (mas->offset != end)
+ 		return false;
+ 
+@@ -4210,7 +4210,7 @@ static void mas_wr_bnode(struct ma_wr_st
+ 	trace_ma_write(__func__, wr_mas->mas, 0, wr_mas->entry);
+ 	memset(&b_node, 0, sizeof(struct maple_big_node));
+ 	mas_store_b_node(wr_mas, &b_node, wr_mas->offset_end);
+-	mas_commit_b_node(wr_mas, &b_node, wr_mas->node_end);
++	mas_commit_b_node(wr_mas, &b_node, wr_mas->mas->end);
  }
+ 
+ static inline void mas_wr_modify(struct ma_wr_state *wr_mas)
+@@ -4238,7 +4238,7 @@ static inline void mas_wr_modify(struct
+ 	if (mas_wr_append(wr_mas, new_end))
+ 		return;
+ 
+-	if (new_end == wr_mas->node_end && mas_wr_slot_store(wr_mas))
++	if (new_end == mas->end && mas_wr_slot_store(wr_mas))
+ 		return;
+ 
+ 	if (mas_wr_node_store(wr_mas, new_end))
+@@ -5044,6 +5044,7 @@ int mas_empty_area(struct ma_state *mas,
+ 	unsigned char offset;
+ 	unsigned long *pivots;
+ 	enum maple_type mt;
++	struct maple_node *node;
+ 
+ 	if (min > max)
+ 		return -EINVAL;
+@@ -5074,13 +5075,14 @@ int mas_empty_area(struct ma_state *mas,
+ 	if (unlikely(offset == MAPLE_NODE_SLOTS))
+ 		return -EBUSY;
+ 
++	node = mas_mn(mas);
+ 	mt = mte_node_type(mas->node);
+-	pivots = ma_pivots(mas_mn(mas), mt);
++	pivots = ma_pivots(node, mt);
+ 	min = mas_safe_min(mas, pivots, offset);
+ 	if (mas->index < min)
+ 		mas->index = min;
+ 	mas->last = mas->index + size - 1;
+-	mas->end = mas_data_end(mas);
++	mas->end = ma_data_end(node, mt, pivots, mas->max);
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(mas_empty_area);
+@@ -7588,7 +7590,7 @@ void mas_wr_dump(const struct ma_wr_stat
+ 	pr_err("WR_MAS: node=%p r_min=%lx r_max=%lx\n",
+ 	       wr_mas->node, wr_mas->r_min, wr_mas->r_max);
+ 	pr_err("        type=%u off_end=%u, node_end=%u, end_piv=%lx\n",
+-	       wr_mas->type, wr_mas->offset_end, wr_mas->node_end,
++	       wr_mas->type, wr_mas->offset_end, wr_mas->mas->end,
+ 	       wr_mas->end_piv);
+ }
+ EXPORT_SYMBOL_GPL(mas_wr_dump);
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
