@@ -2,33 +2,37 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6A38C4332F
-	for <mm-commits@archiver.kernel.org>; Mon,  6 Nov 2023 23:26:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0DB8C4332F
+	for <mm-commits@archiver.kernel.org>; Tue,  7 Nov 2023 15:35:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233541AbjKFX0f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 6 Nov 2023 18:26:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54860 "EHLO
+        id S234471AbjKGPfT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Nov 2023 10:35:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38266 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234123AbjKFX0T (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Nov 2023 18:26:19 -0500
+        with ESMTP id S235254AbjKGPfS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Nov 2023 10:35:18 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 81ACC210C
-        for <mm-commits@vger.kernel.org>; Mon,  6 Nov 2023 15:21:06 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC843C433CB;
-        Mon,  6 Nov 2023 23:21:05 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DCA709E
+        for <mm-commits@vger.kernel.org>; Tue,  7 Nov 2023 07:35:16 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70268C433C8;
+        Tue,  7 Nov 2023 15:35:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1699312866;
-        bh=mwCmaID51aOFBrlcbkqpbknHCPmADLrQEueodg1CD3k=;
+        s=korg; t=1699371316;
+        bh=p5xJr7Hj+1mxiPoYOYAI5K/8uvuLwcIAkHTNeB41HWg=;
         h=Date:To:From:Subject:From;
-        b=FkWDde5WTtG42CxLv3wvZTGj5Jq+7B2mvSIo8FcFacxXrVM7v4d2ja7ncXiwT6QJa
-         A9Wz22mR9BeM8JreFfsZCp7uOZEMPOpijWoI+ViWlRGeVt74iojqHbo1wOs1Cmeajj
-         6lamvY8wzI/aUiQXs8pAYfVyjqUcoDNDNGr4Fhgc=
-Date:   Mon, 06 Nov 2023 15:21:05 -0800
-To:     mm-commits@vger.kernel.org, konishi.ryusuke@gmail.com,
-        airlied@redhat.com, pstanner@redhat.com, akpm@linux-foundation.org
+        b=k4yGsa3C6baJemqxvVFNLs0MIP59u7W3SfiAmQ0UJIVkiZVhKvwFDSxkUkZM1TMv7
+         x7pGJqCMYc86Ke3q+nG1RaXJNz/8FDoFm7mr9eVitU2Aj9lBGRRtHDsOao7T2Y000U
+         +Ou5uiOz5PoHK01HadUqJd5SUIJvwpWzXE9Ap1Jo=
+Date:   Tue, 07 Nov 2023 07:35:15 -0800
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
+        osalvador@suse.de, mhocko@suse.com, Jonathan.Cameron@huawei.com,
+        jmoyer@redhat.com, fan.ni@samsung.com, david@redhat.com,
+        dave.jiang@intel.com, dave.hansen@linux.intel.com,
+        dan.j.williams@intel.com, aneesh.kumar@linux.ibm.com,
+        vishal.l.verma@intel.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-nilfs2-use-standard-array-copy-function.patch added to mm-nonmm-unstable branch
-Message-Id: <20231106232105.EC843C433CB@smtp.kernel.org>
+Subject: + mm-memory_hotplug-replace-an-open-coded-kmemdup-in-add_memory_resource.patch added to mm-unstable branch
+Message-Id: <20231107153516.70268C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/nilfs2: use standard array-copy-function
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     fs-nilfs2-use-standard-array-copy-function.patch
+     Subject: mm/memory_hotplug: replace an open-coded kmemdup() in add_memory_resource()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memory_hotplug-replace-an-open-coded-kmemdup-in-add_memory_resource.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-nilfs2-use-standard-array-copy-function.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-replace-an-open-coded-kmemdup-in-add_memory_resource.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,60 +63,85 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Philipp Stanner <pstanner@redhat.com>
-Subject: fs/nilfs2: use standard array-copy-function
-Date: Tue, 7 Nov 2023 07:44:16 +0900
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: mm/memory_hotplug: replace an open-coded kmemdup() in add_memory_resource()
+Date: Tue, 07 Nov 2023 00:22:41 -0700
 
-ioctl.c utilizes memdup_user() to copy a userspace array.  An overflow
-check is performed manually before the function's invocation.
+Patch series "mm: use memmap_on_memory semantics for dax/kmem", v10.
 
-The new function memdup_array_user() standardizes copying userspace
-arrays, thus, improving readability by making it more clear that an array
-is being copied.  Additionally, it also performs an overflow check.
+The dax/kmem driver can potentially hot-add large amounts of memory
+originating from CXL memory expanders, or NVDIMMs, or other 'device
+memories'.  There is a chance there isn't enough regular system memory
+available to fit the memmap for this new memory.  It's therefore
+desirable, if all other conditions are met, for the kmem managed memory to
+place its memmap on the newly added memory itself.
 
-Remove the (now redundant) manual overflow-check and replace memdup_user()
-with memdup_array_user().
+The main hurdle for accomplishing this for kmem is that memmap_on_memory
+can only be done if the memory being added is equal to the size of one
+memblock.  To overcome this, allow the hotplug code to split an
+add_memory() request into memblock-sized chunks, and try_remove_memory()
+to also expect and handle such a scenario.
 
-In addition, improve the grammar of the comment above
-memdup_array_user().
+Patch 1 replaces an open-coded kmemdup()
 
-Link: https://lkml.kernel.org/r/20231106224416.3055-1-konishi.ryusuke@gmail.com
-Signed-off-by: Philipp Stanner <pstanner@redhat.com>
-Link: https://lkml.kernel.org/r/20231103184831.99406-2-pstanner@redhat.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Suggested-by: Dave Airlie <airlied@redhat.com>
+Patch 2 teaches the memory_hotplug code to allow for splitting
+add_memory() and remove_memory() requests over memblock sized chunks.
+
+Patch 3 allows the dax region drivers to request memmap_on_memory
+semantics. CXL dax regions default this to 'on', all others default to
+off to keep existing behavior unchanged.
+
+
+This patch (of 3):
+
+A review of the memmap_on_memory modifications to add_memory_resource()
+revealed an instance of an open-coded kmemdup().  Replace it with
+kmemdup().
+
+Link: https://lkml.kernel.org/r/20231107-vv-kmem_memmap-v10-0-1253ec050ed0@intel.com
+Link: https://lkml.kernel.org/r/20231107-vv-kmem_memmap-v10-1-1253ec050ed0@intel.com
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Fan Ni <fan.ni@samsung.com>
+Reported-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/ioctl.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ mm/memory_hotplug.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/fs/nilfs2/ioctl.c~fs-nilfs2-use-standard-array-copy-function
-+++ a/fs/nilfs2/ioctl.c
-@@ -872,16 +872,14 @@ static int nilfs_ioctl_clean_segments(st
- 	nsegs = argv[4].v_nmembs;
- 	if (argv[4].v_size != argsz[4])
- 		goto out;
--	if (nsegs > UINT_MAX / sizeof(__u64))
--		goto out;
- 
- 	/*
- 	 * argv[4] points to segment numbers this ioctl cleans.  We
--	 * use kmalloc() for its buffer because memory used for the
--	 * segment numbers is enough small.
-+	 * use kmalloc() for its buffer because the memory used for the
-+	 * segment numbers is small enough.
- 	 */
--	kbufs[4] = memdup_user((void __user *)(unsigned long)argv[4].v_base,
--			       nsegs * sizeof(__u64));
-+	kbufs[4] = memdup_array_user((void __user *)(unsigned long)argv[4].v_base,
-+				     nsegs, sizeof(__u64));
- 	if (IS_ERR(kbufs[4])) {
- 		ret = PTR_ERR(kbufs[4]);
- 		goto out;
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-replace-an-open-coded-kmemdup-in-add_memory_resource
++++ a/mm/memory_hotplug.c
+@@ -1439,13 +1439,13 @@ int __ref add_memory_resource(int nid, s
+ 	if (mhp_flags & MHP_MEMMAP_ON_MEMORY) {
+ 		if (mhp_supports_memmap_on_memory(size)) {
+ 			mhp_altmap.free = memory_block_memmap_on_memory_pages();
+-			params.altmap = kmalloc(sizeof(struct vmem_altmap), GFP_KERNEL);
++			params.altmap = kmemdup(&mhp_altmap,
++						sizeof(struct vmem_altmap),
++						GFP_KERNEL);
+ 			if (!params.altmap) {
+ 				ret = -ENOMEM;
+ 				goto error;
+ 			}
+-
+-			memcpy(params.altmap, &mhp_altmap, sizeof(mhp_altmap));
+ 		}
+ 		/* fallback to not using altmap  */
+ 	}
 _
 
-Patches currently in -mm which might be from pstanner@redhat.com are
+Patches currently in -mm which might be from vishal.l.verma@intel.com are
 
-fs-nilfs2-use-standard-array-copy-function.patch
+mm-memory_hotplug-replace-an-open-coded-kmemdup-in-add_memory_resource.patch
+mm-memory_hotplug-split-memmap_on_memory-requests-across-memblocks.patch
+dax-kmem-allow-kmem-to-add-memory-with-memmap_on_memory.patch
 
