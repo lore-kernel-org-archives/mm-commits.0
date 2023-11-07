@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EEB9BC4332F
-	for <mm-commits@archiver.kernel.org>; Tue,  7 Nov 2023 15:44:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0357C4167D
+	for <mm-commits@archiver.kernel.org>; Tue,  7 Nov 2023 16:26:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235372AbjKGPoj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Nov 2023 10:44:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60862 "EHLO
+        id S235428AbjKGQ0x (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Nov 2023 11:26:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37106 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235056AbjKGPoj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Nov 2023 10:44:39 -0500
+        with ESMTP id S235509AbjKGQ0g (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Nov 2023 11:26:36 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4EFC594
-        for <mm-commits@vger.kernel.org>; Tue,  7 Nov 2023 07:44:37 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE7A8C433C8;
-        Tue,  7 Nov 2023 15:44:36 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 397295FE7
+        for <mm-commits@vger.kernel.org>; Tue,  7 Nov 2023 08:23:07 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C45A7C433C8;
+        Tue,  7 Nov 2023 16:23:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1699371877;
-        bh=WFjNYTmGIcDMJ968z+7oNL5bv+1WUEmoa9VisEvD9UM=;
+        s=korg; t=1699374186;
+        bh=a8atUMZNXkH4ejclG+dGsarPm9rgeDXAPEo24YW7R5Q=;
         h=Date:To:From:Subject:From;
-        b=JuY0oLUHl65u9qvuLM5ElXp8SzTYvzPLOTT2ZS9Vb+Y7H53OFNz02RSbMt3eFnn1C
-         IOqQPDptpmwnqkGDk2azUpNrNX7DvUdWXSeTzIjXIlStoitfuqO9cF2gvQoCc/DJW3
-         UjbePw8NDNtJmnwyi9hh2v+H7nNOW6n3giDbUUh4=
-Date:   Tue, 07 Nov 2023 07:44:36 -0800
-To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
-        mirq-linux@rere.qmqm.pl, avagin@google.com,
-        akpm@linux-foundation.org
+        b=a1V4F+4V/2dk+8ajFaAYa1VdJf/KGb//p58OQBaaVbb9DvtqfXkDgcfGz6Ohf2sch
+         XH1ddW6pMmmTPQT8wxrV9L5i+O19r3ki9tvRSnTUEjfHO3vXjP8pTWg0nDTwY/dPq9
+         kcIvHmC0KWg0J0IsYVRZ/8UZILxquosJL8reYySE=
+Date:   Tue, 07 Nov 2023 08:23:06 -0800
+To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
+        david@redhat.com, abaci@linux.alibaba.com,
+        jiapeng.chong@linux.alibaba.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-check-that-pagemap_scan-returns-correct-categories.patch added to mm-unstable branch
-Message-Id: <20231107154436.DE7A8C433C8@smtp.kernel.org>
+Subject: + maple_tree-remove-unused-function.patch added to mm-unstable branch
+Message-Id: <20231107162306.C45A7C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/mm: check that PAGEMAP_SCAN returns correct categories
+     Subject: maple_tree: remove unused function
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-check-that-pagemap_scan-returns-correct-categories.patch
+     maple_tree-remove-unused-function.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-check-that-pagemap_scan-returns-correct-categories.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-remove-unused-function.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,107 +60,68 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrei Vagin <avagin@google.com>
-Subject: selftests/mm: check that PAGEMAP_SCAN returns correct categories
-Date: Mon, 6 Nov 2023 14:09:59 -0800
+From: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
+Subject: maple_tree: remove unused function
+Date: Fri, 27 Oct 2023 16:49:44 +0800
 
-Right now, tests read page flags from /proc/pid/pagemap files.  With this
-change, tests will check that PAGEMAP_SCAN return correct information too.
+The function are defined in the maple_tree.c file, but not called
+elsewhere, so delete the unused function.
 
-Link: https://lkml.kernel.org/r/20231106220959.296568-2-avagin@google.com
-Signed-off-by: Andrei Vagin <avagin@google.com>
-Reviewed-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Tested-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Michał Mirosław <mirq-linux@rere.qmqm.pl>
+lib/maple_tree.c:689:29: warning: unused function 'mas_pivot'.
+
+Link: https://lkml.kernel.org/r/20231027084944.24888-1-jiapeng.chong@linux.alibaba.com
+Signed-off-by: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
+Reported-by: Abaci Robot <abaci@linux.alibaba.com>
+Closes: https://bugzilla.openanolis.cn/show_bug.cgi?id=7064
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/vm_util.c |   53 +++++++++++++++++++++++--
- 1 file changed, 50 insertions(+), 3 deletions(-)
+ lib/maple_tree.c |   29 -----------------------------
+ 1 file changed, 29 deletions(-)
 
---- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-check-that-pagemap_scan-returns-correct-categories
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -4,6 +4,7 @@
- #include <dirent.h>
- #include <sys/ioctl.h>
- #include <linux/userfaultfd.h>
-+#include <linux/fs.h>
- #include <sys/syscall.h>
- #include <unistd.h>
- #include "../kselftest.h"
-@@ -28,19 +29,65 @@ uint64_t pagemap_get_entry(int fd, char
- 	return entry;
+--- a/lib/maple_tree.c~maple_tree-remove-unused-function
++++ a/lib/maple_tree.c
+@@ -685,35 +685,6 @@ static inline unsigned long *ma_gaps(str
  }
  
-+static uint64_t pagemap_scan_get_categories(int fd, char *start)
-+{
-+	struct pm_scan_arg arg;
-+	struct page_region r;
-+	long ret;
-+
-+	arg.start = (uintptr_t)start;
-+	arg.end = (uintptr_t)(start + psize());
-+	arg.vec = (uintptr_t)&r;
-+	arg.vec_len = 1;
-+	arg.flags = 0;
-+	arg.size = sizeof(struct pm_scan_arg);
-+	arg.max_pages = 0;
-+	arg.category_inverted = 0;
-+	arg.category_mask = 0;
-+	arg.category_anyof_mask = PAGE_IS_WPALLOWED | PAGE_IS_WRITTEN | PAGE_IS_FILE |
-+				  PAGE_IS_PRESENT | PAGE_IS_SWAPPED | PAGE_IS_PFNZERO |
-+				  PAGE_IS_HUGE | PAGE_IS_SOFT_DIRTY;
-+	arg.return_mask = arg.category_anyof_mask;
-+
-+	ret = ioctl(fd, PAGEMAP_SCAN, &arg);
-+	if (ret < 0)
-+		ksft_exit_fail_msg("PAGEMAP_SCAN failed: %s\n", strerror(errno));
-+	if (ret == 0)
-+		return 0;
-+	return r.categories;
-+}
-+
-+static bool page_entry_is(int fd, char *start, char *desc,
-+			  uint64_t pagemap_flags, uint64_t pagescan_flags)
-+{
-+	bool m, s;
-+
-+	m = pagemap_get_entry(fd, start) & pagemap_flags;
-+	s = pagemap_scan_get_categories(fd, start) & pagescan_flags;
-+	if (m == s)
-+		return m;
-+
-+	ksft_exit_fail_msg(
-+		"read and ioctl return unmatched results for %s: %d %d", desc, m, s);
-+	return m;
-+}
-+
- bool pagemap_is_softdirty(int fd, char *start)
- {
--	return pagemap_get_entry(fd, start) & PM_SOFT_DIRTY;
-+	return page_entry_is(fd, start, "soft-dirty",
-+				PM_SOFT_DIRTY, PAGE_IS_SOFT_DIRTY);
- }
- 
- bool pagemap_is_swapped(int fd, char *start)
- {
--	return pagemap_get_entry(fd, start) & PM_SWAP;
-+	return page_entry_is(fd, start, "swap", PM_SWAP, PAGE_IS_SWAPPED);
- }
- 
- bool pagemap_is_populated(int fd, char *start)
- {
--	return pagemap_get_entry(fd, start) & (PM_PRESENT | PM_SWAP);
-+	return page_entry_is(fd, start, "populated",
-+				PM_PRESENT | PM_SWAP,
-+				PAGE_IS_PRESENT | PAGE_IS_SWAPPED);
- }
- 
- unsigned long pagemap_get_pfn(int fd, char *start)
+ /*
+- * mas_pivot() - Get the pivot at @piv of the maple encoded node.
+- * @mas: The maple state.
+- * @piv: The pivot.
+- *
+- * Return: the pivot at @piv of @mn.
+- */
+-static inline unsigned long mas_pivot(struct ma_state *mas, unsigned char piv)
+-{
+-	struct maple_node *node = mas_mn(mas);
+-	enum maple_type type = mte_node_type(mas->node);
+-
+-	if (MAS_WARN_ON(mas, piv >= mt_pivots[type])) {
+-		mas_set_err(mas, -EIO);
+-		return 0;
+-	}
+-
+-	switch (type) {
+-	case maple_arange_64:
+-		return node->ma64.pivot[piv];
+-	case maple_range_64:
+-	case maple_leaf_64:
+-		return node->mr64.pivot[piv];
+-	case maple_dense:
+-		return 0;
+-	}
+-	return 0;
+-}
+-
+-/*
+  * mas_safe_pivot() - get the pivot at @piv or mas->max.
+  * @mas: The maple state
+  * @pivots: The pointer to the maple node pivots
 _
 
-Patches currently in -mm which might be from avagin@google.com are
+Patches currently in -mm which might be from jiapeng.chong@linux.alibaba.com are
 
-fs-proc-task_mmu-report-soft_dirty-bits-through-the-pagemap_scan-ioctl.patch
-selftests-mm-check-that-pagemap_scan-returns-correct-categories.patch
+maple_tree-remove-unused-function.patch
 
