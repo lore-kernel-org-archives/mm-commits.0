@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C061BC001B2
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Nov 2023 21:11:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48361C04E85
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Nov 2023 21:11:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231961AbjKHVLr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 8 Nov 2023 16:11:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55082 "EHLO
+        id S232052AbjKHVLs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Nov 2023 16:11:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55086 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231976AbjKHVLn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Nov 2023 16:11:43 -0500
+        with ESMTP id S231990AbjKHVLo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Nov 2023 16:11:44 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADAA62587;
-        Wed,  8 Nov 2023 13:11:41 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49C0EC433C8;
-        Wed,  8 Nov 2023 21:11:41 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7DB52588;
+        Wed,  8 Nov 2023 13:11:42 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75E57C433CB;
+        Wed,  8 Nov 2023 21:11:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1699477901;
-        bh=XnYgYTnAQMzeWLt09qDwgRFdx0ODRBNDlyt7kMGFjKI=;
+        s=korg; t=1699477902;
+        bh=pXDjQLZ/pDAhio6rHbOW6MPww+X7qH/3hziBLffO+AQ=;
         h=Date:To:From:Subject:From;
-        b=P4xgE/Xusu0xKMNtC9owxvbUJ/nP//mvp9UuX/jTHAiEbRwnSMOA0qF8kGazV0jmR
-         0ufAhXqgTgKwQWcq7vsYYNpv6sv8sFaNODZB9lOouHm9++kSiU+/icqTKatSTTu1hd
-         yS9MF+/+JV236wNyWuStfNm+nZpeyVD8iI9MNUKQ=
-Date:   Wed, 08 Nov 2023 13:11:40 -0800
+        b=19LxuJ9/W5edWtWBLYyZEmvJ+MDjx4S2Zr1rUuCwUUawivhgeQjPBXqEEg7gkl0ZO
+         oeT8LyRjNxXa/XnWQeVTSq505O5fWif9czkwxOk4DDnMI+DS5Y9g1HnG+0mHWi73Uy
+         MhytA90Z2uhzCYnT5f5hexpgTYFPkRmNGM4/FTGU=
+Date:   Wed, 08 Nov 2023 13:11:41 -0800
 To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
         naoya.horiguchi@nec.com, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-isolate_page-to-mf_isolate_folio.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231108211141.49C0EC433C8@smtp.kernel.org>
+Subject: + mm-remove-invalidate_inode_page.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231108211142.75E57C433CB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: convert isolate_page() to mf_isolate_folio()
+     Subject: mm: remove invalidate_inode_page()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-convert-isolate_page-to-mf_isolate_folio.patch
+     mm-remove-invalidate_inode_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-isolate_page-to-mf_isolate_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-invalidate_inode_page.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -61,85 +61,60 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: convert isolate_page() to mf_isolate_folio()
-Date: Wed, 8 Nov 2023 18:28:08 +0000
+Subject: mm: remove invalidate_inode_page()
+Date: Wed, 8 Nov 2023 18:28:09 +0000
 
-The only caller now has a folio, so pass it in and operate on it.  Saves
-many page->folio conversions and introduces only one folio->page
-conversion when calling isolate_movable_page().
+All callers are now converted to call mapping_evict_folio().
 
-Link: https://lkml.kernel.org/r/20231108182809.602073-6-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231108182809.602073-7-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: <stable@vger.kernel.org>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ mm/internal.h |    1 -
+ mm/truncate.c |   11 ++---------
+ 2 files changed, 2 insertions(+), 10 deletions(-)
 
---- a/mm/memory-failure.c~mm-convert-isolate_page-to-mf_isolate_folio
-+++ a/mm/memory-failure.c
-@@ -2602,37 +2602,37 @@ unlock_mutex:
- }
- EXPORT_SYMBOL(unpoison_memory);
+--- a/mm/internal.h~mm-remove-invalidate_inode_page
++++ a/mm/internal.h
+@@ -139,7 +139,6 @@ int truncate_inode_folio(struct address_
+ bool truncate_inode_partial_folio(struct folio *folio, loff_t start,
+ 		loff_t end);
+ long mapping_evict_folio(struct address_space *mapping, struct folio *folio);
+-long invalidate_inode_page(struct page *page);
+ unsigned long mapping_try_invalidate(struct address_space *mapping,
+ 		pgoff_t start, pgoff_t end, unsigned long *nr_failed);
  
--static bool isolate_page(struct page *page, struct list_head *pagelist)
-+static bool mf_isolate_folio(struct folio *folio, struct list_head *pagelist)
- {
- 	bool isolated = false;
- 
--	if (PageHuge(page)) {
--		isolated = isolate_hugetlb(page_folio(page), pagelist);
-+	if (folio_test_hugetlb(folio)) {
-+		isolated = isolate_hugetlb(folio, pagelist);
- 	} else {
--		bool lru = !__PageMovable(page);
-+		bool lru = !__folio_test_movable(folio);
- 
- 		if (lru)
--			isolated = isolate_lru_page(page);
-+			isolated = folio_isolate_lru(folio);
- 		else
--			isolated = isolate_movable_page(page,
-+			isolated = isolate_movable_page(&folio->page,
- 							ISOLATE_UNEVICTABLE);
- 
- 		if (isolated) {
--			list_add(&page->lru, pagelist);
-+			list_add(&folio->lru, pagelist);
- 			if (lru)
--				inc_node_page_state(page, NR_ISOLATED_ANON +
--						    page_is_file_lru(page));
-+				node_stat_add_folio(folio, NR_ISOLATED_ANON +
-+						    folio_is_file_lru(folio));
- 		}
- 	}
- 
- 	/*
--	 * If we succeed to isolate the page, we grabbed another refcount on
--	 * the page, so we can safely drop the one we got from get_any_page().
--	 * If we failed to isolate the page, it means that we cannot go further
-+	 * If we succeed to isolate the folio, we grabbed another refcount on
-+	 * the folio, so we can safely drop the one we got from get_any_page().
-+	 * If we failed to isolate the folio, it means that we cannot go further
- 	 * and we will return an error, so drop the reference we got from
- 	 * get_any_page() as well.
- 	 */
--	put_page(page);
-+	folio_put(folio);
- 	return isolated;
+--- a/mm/truncate.c~mm-remove-invalidate_inode_page
++++ a/mm/truncate.c
+@@ -294,13 +294,6 @@ long mapping_evict_folio(struct address_
+ 	return remove_mapping(mapping, folio);
  }
  
-@@ -2686,7 +2686,7 @@ static int soft_offline_in_use_page(stru
- 		return 0;
- 	}
+-long invalidate_inode_page(struct page *page)
+-{
+-	struct folio *folio = page_folio(page);
+-
+-	return mapping_evict_folio(folio_mapping(folio), folio);
+-}
+-
+ /**
+  * truncate_inode_pages_range - truncate range of pages specified by start & end byte offsets
+  * @mapping: mapping to truncate
+@@ -559,9 +552,9 @@ unsigned long invalidate_mapping_pages(s
+ EXPORT_SYMBOL(invalidate_mapping_pages);
  
--	if (isolate_page(&folio->page, &pagelist)) {
-+	if (mf_isolate_folio(folio, &pagelist)) {
- 		ret = migrate_pages(&pagelist, alloc_migration_target, NULL,
- 			(unsigned long)&mtc, MIGRATE_SYNC, MR_MEMORY_FAILURE, NULL);
- 		if (!ret) {
+ /*
+- * This is like invalidate_inode_page(), except it ignores the page's
++ * This is like mapping_evict_folio(), except it ignores the folio's
+  * refcount.  We do this because invalidate_inode_pages2() needs stronger
+- * invalidation guarantees, and cannot afford to leave pages behind because
++ * invalidation guarantees, and cannot afford to leave folios behind because
+  * shrink_page_list() has a temp ref on them, or because they're transiently
+  * sitting in the folio_add_lru() caches.
+  */
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
