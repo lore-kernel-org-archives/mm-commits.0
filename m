@@ -2,34 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67677C4332F
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Nov 2023 21:38:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88394C4332F
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Nov 2023 21:44:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229659AbjKHViK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 8 Nov 2023 16:38:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42412 "EHLO
+        id S229551AbjKHVo4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Nov 2023 16:44:56 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41514 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229460AbjKHViK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Nov 2023 16:38:10 -0500
+        with ESMTP id S229460AbjKHVo4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Nov 2023 16:44:56 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B9082585;
-        Wed,  8 Nov 2023 13:38:08 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96991C433C7;
-        Wed,  8 Nov 2023 21:38:07 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0AE442586
+        for <mm-commits@vger.kernel.org>; Wed,  8 Nov 2023 13:44:54 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7342CC433C8;
+        Wed,  8 Nov 2023 21:44:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1699479487;
-        bh=DkcbZ14ggYljHfcY8c5IurlhO1Ib6tvnd33/p5AVtgM=;
+        s=korg; t=1699479893;
+        bh=fOGxChVR/bSghbCDPX6FHIg7ncfcw9p6VtegVM6DH+I=;
         h=Date:To:From:Subject:From;
-        b=jawgpUcBuaqZcNQjHVImOzLsN5KAUNMvdosdoHwUF84tedungUzr+IGOCtQtKJAza
-         xJfoC0XbhkqkXrirFtxTT6E5QoeqCr6JVcHKWBSpVvxtAxlGtSKwJehAL04K+tp1ME
-         t5an0L5UIBl917n3KqukvBortVC1AvzC6PXfPLI4=
-Date:   Wed, 08 Nov 2023 13:38:06 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        stable@vger.kernel.org, riel@surriel.com, hannes@cmpxchg.org,
-        shr@devkernel.io, akpm@linux-foundation.org
+        b=vTW5b7+UfdZcdf91BF3Gcb6HYbC95dU5ZKbBtclW5b5zrV7A/uX29UFq1MjXSA/Nx
+         kCAcA7pFbWAixoQ4B6LikKRO/IJAUmC4CFxpXMENhOEjYCj/6GrkGOHfQ0Yz33CaiH
+         RSlxyz6/02P/4rWZul/zGzJ4NObedKSeMr2JfBeI=
+Date:   Wed, 08 Nov 2023 13:44:52 -0800
+To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
+        shakeelb@google.com, roman.gushchin@linux.dev,
+        muchun.song@linux.dev, mhocko@kernel.org, hannes@cmpxchg.org,
+        jackmanb@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-for-negative-counter-nr_file_hugepages-v3.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231108213807.96991C433C7@smtp.kernel.org>
+Subject: + mm-page_alloc-dedupe-some-memcg-uncharging-logic.patch added to mm-unstable branch
+Message-Id: <20231108214453.7342CC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,14 +38,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-fix-for-negative-counter-nr_file_hugepages-v3
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-for-negative-counter-nr_file_hugepages-v3.patch
+     Subject: mm/page_alloc: dedupe some memcg uncharging logic
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-page_alloc-dedupe-some-memcg-uncharging-logic.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-for-negative-counter-nr_file_hugepages-v3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-dedupe-some-memcg-uncharging-logic.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -60,54 +61,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Stefan Roesch <shr@devkernel.io>
-Subject: mm-fix-for-negative-counter-nr_file_hugepages-v3
-Date: Wed, 8 Nov 2023 09:15:17 -0800
+From: Brendan Jackman <jackmanb@google.com>
+Subject: mm/page_alloc: dedupe some memcg uncharging logic
+Date: Wed, 8 Nov 2023 16:49:20 +0000
 
-test for folio_test_pmd_mappable()
+The duplication makes it seem like some work is required before uncharging
+in the !PageHWPoison case.  But it isn't, so we can simplify the code a
+little.
 
-Link: https://lkml.kernel.org/r/20231108171517.2436103-1-shr@devkernel.io
-Signed-off-by: Stefan Roesch <shr@devkernel.io>
-Co-debugged-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: <stable@vger.kernel.org>
+Note the PageMemcgKmem check is redundant, but I've left it in as it
+avoids an unnecessary function call.
+
+Link: https://lkml.kernel.org/r/20231108164920.3401565-1-jackmanb@google.com
+Signed-off-by: Brendan Jackman <jackmanb@google.com>
+Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ mm/page_alloc.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
---- a/mm/huge_memory.c~mm-fix-for-negative-counter-nr_file_hugepages-v3
-+++ a/mm/huge_memory.c
-@@ -2769,13 +2769,15 @@ int split_huge_page_to_list(struct page
- 			int nr = folio_nr_pages(folio);
+--- a/mm/page_alloc.c~mm-page_alloc-dedupe-some-memcg-uncharging-logic
++++ a/mm/page_alloc.c
+@@ -1086,13 +1086,11 @@ static __always_inline bool free_pages_p
+ 	trace_mm_page_free(page, order);
+ 	kmsan_free_page(page, order);
  
- 			xas_split(&xas, folio, folio_order(folio));
--			if (folio_test_swapbacked(folio)) {
--				__lruvec_stat_mod_folio(folio, NR_SHMEM_THPS,
--							-nr);
--			} else if (folio_test_pmd_mappable(folio)) {
--				__lruvec_stat_mod_folio(folio, NR_FILE_THPS,
--							-nr);
--				filemap_nr_thps_dec(mapping);
-+			if (folio_test_pmd_mappable(folio)) {
-+				if (folio_test_swapbacked(folio)) {
-+					__lruvec_stat_mod_folio(folio,
-+							NR_SHMEM_THPS, -nr);
-+				} else {
-+					__lruvec_stat_mod_folio(folio,
-+							NR_FILE_THPS, -nr);
-+					filemap_nr_thps_dec(mapping);
-+				}
- 			}
- 		}
- 
++	if (memcg_kmem_online() && PageMemcgKmem(page))
++		__memcg_kmem_uncharge_page(page, order);
++
+ 	if (unlikely(PageHWPoison(page)) && !order) {
+-		/*
+-		 * Do not let hwpoison pages hit pcplists/buddy
+-		 * Untie memcg state and reset page's owner
+-		 */
+-		if (memcg_kmem_online() && PageMemcgKmem(page))
+-			__memcg_kmem_uncharge_page(page, order);
++		/* Do not let hwpoison pages hit pcplists/buddy */
+ 		reset_page_owner(page, order);
+ 		page_table_check_free(page, order);
+ 		return false;
+@@ -1123,8 +1121,6 @@ static __always_inline bool free_pages_p
+ 	}
+ 	if (PageMappingFlags(page))
+ 		page->mapping = NULL;
+-	if (memcg_kmem_online() && PageMemcgKmem(page))
+-		__memcg_kmem_uncharge_page(page, order);
+ 	if (is_check_pages_enabled()) {
+ 		if (free_page_is_bad(page))
+ 			bad++;
 _
 
-Patches currently in -mm which might be from shr@devkernel.io are
+Patches currently in -mm which might be from jackmanb@google.com are
 
-mm-fix-for-negative-counter-nr_file_hugepages.patch
-mm-fix-for-negative-counter-nr_file_hugepages-v3.patch
+mm-page_alloc-dedupe-some-memcg-uncharging-logic.patch
 
