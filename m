@@ -2,33 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38E86C4332F
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Nov 2023 19:53:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48BA8C4167D
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Nov 2023 21:11:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229555AbjKHTxQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 8 Nov 2023 14:53:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39092 "EHLO
+        id S230391AbjKHVLj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Nov 2023 16:11:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33418 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229473AbjKHTxQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Nov 2023 14:53:16 -0500
+        with ESMTP id S230380AbjKHVLj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Nov 2023 16:11:39 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA606211B
-        for <mm-commits@vger.kernel.org>; Wed,  8 Nov 2023 11:53:13 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 853EAC433C7;
-        Wed,  8 Nov 2023 19:53:13 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EECED2586;
+        Wed,  8 Nov 2023 13:11:36 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D6C3C433C8;
+        Wed,  8 Nov 2023 21:11:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1699473193;
-        bh=OYXO6a+hKpusKSzQUFfkmSjIZJEs/f/i1t2eq3Xou6s=;
+        s=korg; t=1699477896;
+        bh=RNPYp2RRvbKeBv0MVRQJLUBZC01uqKTtPVlOjv9y+FM=;
         h=Date:To:From:Subject:From;
-        b=rs2JPhhni8sSzVpgZr5k5Fsl54l0PzIaRwA+rQKyszQvJL1x6/oP+asCQ9o5FG+s9
-         fkh8N1dg+8CKFmU0w/+Di3aUd9rjXXQVEcYDFP20cL8IDLqmfIyoTDpw0opz/pZcpE
-         fXnUESdUF9l1UBq6+imot7v0/lockbVSZZcLpoHI=
-Date:   Wed, 08 Nov 2023 11:53:12 -0800
-To:     mm-commits@vger.kernel.org, zhangpeng.00@bytedance.com,
-        Liam.Howlett@oracle.com, akpm@linux-foundation.org
+        b=TwZt8JyfqIAf8cX8Gj2ANhJZxa09ybRJcpfn1LBdGDmhXglG5ErC2+shXbf59CYC1
+         DcDMo3kGCoxd3kuoHeFwzhuey9uPXc3JGb9N3AbvZ4C9O4FHBs81hGHp881oPIB+tJ
+         LhcdLFwwxrMDVz3Thtnb8D/ab4ljVmNIcL2oiOjs=
+Date:   Wed, 08 Nov 2023 13:11:35 -0800
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        naoya.horiguchi@nec.com, willy@infradead.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-mtree_range_walk-clean-up.patch added to mm-unstable branch
-Message-Id: <20231108195313.853EAC433C7@smtp.kernel.org>
+Subject: + mm-make-mapping_evict_folio-the-preferred-way-to-evict-clean-folios.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231108211136.8D6C3C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,14 +37,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: mtree_range_walk() clean up
-has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-mtree_range_walk-clean-up.patch
+     Subject: mm: make mapping_evict_folio() the preferred way to evict clean folios
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-make-mapping_evict_folio-the-preferred-way-to-evict-clean-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-mtree_range_walk-clean-up.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-mapping_evict_folio-the-preferred-way-to-evict-clean-folios.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,97 +60,112 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: mtree_range_walk() clean up
-Date: Wed, 1 Nov 2023 13:16:29 -0400
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: make mapping_evict_folio() the preferred way to evict clean folios
+Date: Wed, 8 Nov 2023 18:28:04 +0000
 
-mtree_range_walk() needed to be updated to avoid checking if there was a
-pivot value.  On closer examination, the code could avoid setting min or
-max in certain scenarios.  The commit removes the extra check for
-pivot[offset] before setting max and only sets max when necessary.  It
-also only sets min if it is necessary by checking offset 0 prior to the
-loop (as it has always done).
+Patch series "Fix fault handler's handling of poisoned tail pages".
 
-The commit also drops a dead node check since the end of the node will
-return the array size when the last slot is occupied (by a potential reuse
-in a dead node).  The data will be discarded later if the node is marked
-dead.
+Since introducing the ability to have large folios in the page cache, it's
+been possible to have a hwpoisoned tail page returned from the fault
+handler.  We handle this situation poorly; failing to remove the affected
+page from use.
 
-Benchmarking these changes results in an increase in performance of 5.45%
-using the BENCH_WALK in the maple tree test code.
+This isn't a minimal patch to fix it, it's a full conversion of all the
+code surrounding it.
 
-Link: https://lkml.kernel.org/r/20231101171629.3612299-13-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Peng Zhang <zhangpeng.00@bytedance.com>
+
+This patch (of 6):
+
+invalidate_inode_page() does very little beyond calling
+mapping_evict_folio().  Move the check for mapping being NULL into
+mapping_evict_folio() and make it available to the rest of the MM for use
+in the next few patches.
+
+Link: https://lkml.kernel.org/r/20231108182809.602073-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231108182809.602073-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   27 ++++++++++++---------------
- 1 file changed, 12 insertions(+), 15 deletions(-)
+ mm/internal.h |    1 +
+ mm/truncate.c |   33 ++++++++++++++++-----------------
+ 2 files changed, 17 insertions(+), 17 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-mtree_range_walk-clean-up
-+++ a/lib/maple_tree.c
-@@ -2806,32 +2806,29 @@ static inline void *mtree_range_walk(str
- 	min = mas->min;
- 	max = mas->max;
- 	do {
--		offset = 0;
- 		last = next;
- 		node = mte_to_node(next);
- 		type = mte_node_type(next);
- 		pivots = ma_pivots(node, type);
- 		end = ma_data_end(node, type, pivots, max);
--		if (unlikely(ma_dead_node(node)))
--			goto dead_node;
--
--		if (pivots[offset] >= mas->index) {
--			prev_max = max;
--			prev_min = min;
--			max = pivots[offset];
-+		prev_min = min;
-+		prev_max = max;
-+		if (pivots[0] >= mas->index) {
-+			offset = 0;
-+			max = pivots[0];
- 			goto next;
- 		}
+--- a/mm/internal.h~mm-make-mapping_evict_folio-the-preferred-way-to-evict-clean-folios
++++ a/mm/internal.h
+@@ -138,6 +138,7 @@ void filemap_free_folio(struct address_s
+ int truncate_inode_folio(struct address_space *mapping, struct folio *folio);
+ bool truncate_inode_partial_folio(struct folio *folio, loff_t start,
+ 		loff_t end);
++long mapping_evict_folio(struct address_space *mapping, struct folio *folio);
+ long invalidate_inode_page(struct page *page);
+ unsigned long mapping_try_invalidate(struct address_space *mapping,
+ 		pgoff_t start, pgoff_t end, unsigned long *nr_failed);
+--- a/mm/truncate.c~mm-make-mapping_evict_folio-the-preferred-way-to-evict-clean-folios
++++ a/mm/truncate.c
+@@ -266,9 +266,22 @@ int generic_error_remove_page(struct add
+ }
+ EXPORT_SYMBOL(generic_error_remove_page);
  
--		do {
-+		offset = 1;
-+		while (offset < end) {
-+			if (pivots[offset] >= mas->index) {
-+				max = pivots[offset];
-+				break;
-+			}
- 			offset++;
--		} while ((offset < end) && (pivots[offset] < mas->index));
-+		}
+-static long mapping_evict_folio(struct address_space *mapping,
+-		struct folio *folio)
++/**
++ * mapping_evict_folio() - Remove an unused folio from the page-cache.
++ * @mapping: The mapping this folio belongs to.
++ * @folio: The folio to remove.
++ *
++ * Safely remove one folio from the page cache.
++ * It only drops clean, unused folios.
++ *
++ * Context: Folio must be locked.
++ * Return: The number of pages successfully removed.
++ */
++long mapping_evict_folio(struct address_space *mapping, struct folio *folio)
+ {
++	/* The page may have been truncated before it was locked */
++	if (!mapping)
++		return 0;
+ 	if (folio_test_dirty(folio) || folio_test_writeback(folio))
+ 		return 0;
+ 	/* The refcount will be elevated if any page in the folio is mapped */
+@@ -281,25 +294,11 @@ static long mapping_evict_folio(struct a
+ 	return remove_mapping(mapping, folio);
+ }
  
--		prev_min = min;
- 		min = pivots[offset - 1] + 1;
--		prev_max = max;
--		if (likely(offset < end && pivots[offset]))
--			max = pivots[offset];
--
- next:
- 		slots = ma_slots(node, type);
- 		next = mt_slot(mas->tree, slots, offset);
+-/**
+- * invalidate_inode_page() - Remove an unused page from the pagecache.
+- * @page: The page to remove.
+- *
+- * Safely invalidate one page from its pagecache mapping.
+- * It only drops clean, unused pages.
+- *
+- * Context: Page must be locked.
+- * Return: The number of pages successfully removed.
+- */
+ long invalidate_inode_page(struct page *page)
+ {
+ 	struct folio *folio = page_folio(page);
+-	struct address_space *mapping = folio_mapping(folio);
+ 
+-	/* The page may have been truncated before it was locked */
+-	if (!mapping)
+-		return 0;
+-	return mapping_evict_folio(mapping, folio);
++	return mapping_evict_folio(folio_mapping(folio), folio);
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-maple_tree-remove-unnecessary-default-labels-from-switch-statements.patch
-maple_tree-make-mas_erase-more-robust.patch
-maple_tree-move-debug-check-to-__mas_set_range.patch
-maple_tree-add-end-of-node-tracking-to-the-maple-state.patch
-maple_tree-use-cached-node-end-in-mas_next.patch
-maple_tree-use-cached-node-end-in-mas_destroy.patch
-maple_tree-clean-up-inlines-for-some-functions.patch
-maple_tree-separate-ma_state-node-from-status.patch
-maple_tree-separate-ma_state-node-from-status-fix-1.patch
-maple_tree-separate-ma_state-node-from-status-fix-2.patch
-maple_tree-remove-mas_searchable.patch
-maple_tree-use-maple-state-end-for-write-operations.patch
-maple_tree-dont-find-node-end-in-mtree_lookup_walk.patch
-maple_tree-mtree_range_walk-clean-up.patch
+mm-make-mapping_evict_folio-the-preferred-way-to-evict-clean-folios.patch
+mm-convert-__do_fault-to-use-a-folio.patch
+mm-use-mapping_evict_folio-in-truncate_error_page.patch
+mm-convert-soft_offline_in_use_page-to-use-a-folio.patch
+mm-convert-isolate_page-to-mf_isolate_folio.patch
+mm-remove-invalidate_inode_page.patch
 
