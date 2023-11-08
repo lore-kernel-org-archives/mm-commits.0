@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A694C4167B
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Nov 2023 21:30:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79A89C4332F
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Nov 2023 21:30:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229460AbjKHVaD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 8 Nov 2023 16:30:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54652 "EHLO
+        id S230329AbjKHVaH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Nov 2023 16:30:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54660 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229885AbjKHVaC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Nov 2023 16:30:02 -0500
+        with ESMTP id S229885AbjKHVaD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Nov 2023 16:30:03 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C87F1BE2
-        for <mm-commits@vger.kernel.org>; Wed,  8 Nov 2023 13:30:00 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB6ABC433C7;
-        Wed,  8 Nov 2023 21:29:59 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 870662588
+        for <mm-commits@vger.kernel.org>; Wed,  8 Nov 2023 13:30:01 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21D08C433C8;
+        Wed,  8 Nov 2023 21:30:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1699479000;
-        bh=4T7+q7VkeAnC4QlmenSWCZmWfdsWPjRBD91kr69dnR8=;
+        s=korg; t=1699479001;
+        bh=duWLok5oslAtJJmQ1WESPhePEzdbE2DBMmvwGwPITmg=;
         h=Date:To:From:Subject:From;
-        b=La7xQtmYv5Fv5cHf7XVjIHuW5s28rPw03hANyc8Kv4uSt+qwHc3J7GOwWjmGLMg8I
-         UdVUDauTFY3id56hTx0PPeYfQlhsf2ogWaoFYwx8rUHhDnexHg4Aua55P8KJSxCwov
-         sLCLh9BLbJePQjZLpFFijYeqQCiQ3tBGwvBKBaL8=
-Date:   Wed, 08 Nov 2023 13:29:59 -0800
+        b=lmBfzb9CIMSdyLzCnGfXBwc4ASAwQqqd9Jts4ASBnOfhdG8txzS2o4F/KI5EbXyRQ
+         mOVmP6suKzALxknfj/g1nNvZ/Sev4Jlk1Yc6MA2QfvW1as6OmluYULxV7wBq0XMzE9
+         HFSQp5W0K1uWMKdP59Y4yIiv74wePDNqPKVQ0sFA=
+Date:   Wed, 08 Nov 2023 13:30:00 -0800
 To:     mm-commits@vger.kernel.org, sfrench@samba.org, dhowells@redhat.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + afs-do-not-test-the-return-value-of-folio_start_writeback.patch added to mm-unstable branch
-Message-Id: <20231108212959.EB6ABC433C7@smtp.kernel.org>
+Subject: + smb-do-not-test-the-return-value-of-folio_start_writeback.patch added to mm-unstable branch
+Message-Id: <20231108213001.21D08C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: afs: do not test the return value of folio_start_writeback()
+     Subject: smb: do not test the return value of folio_start_writeback()
 has been added to the -mm mm-unstable branch.  Its filename is
-     afs-do-not-test-the-return-value-of-folio_start_writeback.patch
+     smb-do-not-test-the-return-value-of-folio_start_writeback.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/afs-do-not-test-the-return-value-of-folio_start_writeback.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/smb-do-not-test-the-return-value-of-folio_start_writeback.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,44 +60,44 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: afs: do not test the return value of folio_start_writeback()
-Date: Wed, 8 Nov 2023 20:46:03 +0000
+Subject: smb: do not test the return value of folio_start_writeback()
+Date: Wed, 8 Nov 2023 20:46:04 +0000
 
 In preparation for removing the return value entirely, stop testing it
-in afs.
+in smb.
 
-Link: https://lkml.kernel.org/r/20231108204605.745109-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231108204605.745109-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: David Howells <dhowells@redhat.com>
 Cc: Steve French <sfrench@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/write.c |    6 ++----
+ fs/smb/client/file.c |    6 ++----
  1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/fs/afs/write.c~afs-do-not-test-the-return-value-of-folio_start_writeback
-+++ a/fs/afs/write.c
-@@ -559,8 +559,7 @@ static void afs_extend_writeback(struct
- 
+--- a/fs/smb/client/file.c~smb-do-not-test-the-return-value-of-folio_start_writeback
++++ a/fs/smb/client/file.c
+@@ -2706,8 +2706,7 @@ static void cifs_extend_writeback(struct
+ 			 */
  			if (!folio_clear_dirty_for_io(folio))
- 				BUG();
+ 				WARN_ON(1);
 -			if (folio_start_writeback(folio))
--				BUG();
+-				WARN_ON(1);
 +			folio_start_writeback(folio);
- 			afs_folio_start_fscache(caching, folio);
  
  			*_count -= folio_nr_pages(folio);
-@@ -595,8 +594,7 @@ static ssize_t afs_write_back_from_locke
+ 			folio_unlock(folio);
+@@ -2742,8 +2741,7 @@ static ssize_t cifs_write_back_from_lock
+ 	int rc;
  
- 	_enter(",%lx,%llx-%llx", folio_index(folio), start, end);
- 
+ 	/* The folio should be locked, dirty and not undergoing writeback. */
 -	if (folio_start_writeback(folio))
--		BUG();
+-		WARN_ON(1);
 +	folio_start_writeback(folio);
- 	afs_folio_start_fscache(caching, folio);
  
  	count -= folio_nr_pages(folio);
+ 	len = folio_size(folio);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
