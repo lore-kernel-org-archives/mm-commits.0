@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1C0FC4332F
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Nov 2023 21:54:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB695C4332F
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Nov 2023 21:57:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230107AbjKIVy5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Nov 2023 16:54:57 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35754 "EHLO
+        id S229971AbjKIV5V (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Nov 2023 16:57:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42674 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234657AbjKIVy4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Nov 2023 16:54:56 -0500
+        with ESMTP id S229629AbjKIV5V (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Nov 2023 16:57:21 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4FAD1FF6
-        for <mm-commits@vger.kernel.org>; Thu,  9 Nov 2023 13:54:50 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37B4BC433C8;
-        Thu,  9 Nov 2023 21:54:50 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 329893AA8
+        for <mm-commits@vger.kernel.org>; Thu,  9 Nov 2023 13:57:19 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB049C433C8;
+        Thu,  9 Nov 2023 21:57:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1699566890;
-        bh=B97C/oEGxNG3ytgMOXKjHdcYU7nDp+bvGsv/UnEhetY=;
+        s=korg; t=1699567038;
+        bh=br4DZZXr9DlHreKB+Bn9u4foCOQ3bdZYIe/WX3KzaWM=;
         h=Date:To:From:Subject:From;
-        b=zz00ld0jok4He4GSRy/G8ymBjhTCKy0jrEJROtkQR7HAjFbYQJENcR0n+I1jIo1Hc
-         OMbl2+JBB/xRsiv9b8kwRVBXLSTFbGTBGDkU3noi5N/EFUgkZ2V5d9x+kKC0byW3qT
-         syyWup/54Ase9EP+xV69RYEziCFEXp4bgK0OdK0c=
-Date:   Thu, 09 Nov 2023 13:54:49 -0800
-To:     mm-commits@vger.kernel.org, tytso@mit.edu, djwong@kernel.org,
-        agruenba@redhat.com, adilger.kernel@dilger.ca, willy@infradead.org,
-        akpm@linux-foundation.org
+        b=tua5cqqXYATIkF424SlgDtuJP+YqIh+Xc9odphbzKt2O/+vgs4fKAA3damIWyzZna
+         OQPd47jUjZxB6FSRNY0kxa6DFA/ZPE/mATNYkBZZaS1r4kn0Sub6JxaZ79DY+tk6fA
+         O/lYG76l/iuGPhiC7F/YokRslVa+W5G1qfVk8PWY=
+Date:   Thu, 09 Nov 2023 13:57:18 -0800
+To:     mm-commits@vger.kernel.org, p.raghav@samsung.com,
+        mcgrof@kernel.org, konishi.ryusuke@gmail.com, hare@suse.de,
+        willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + gfs2-convert-stuffed_readpage-to-stuffed_read_folio.patch added to mm-unstable branch
-Message-Id: <20231109215450.37B4BC433C8@smtp.kernel.org>
+Subject: + buffer-return-bool-from-grow_dev_folio.patch added to mm-unstable branch
+Message-Id: <20231109215718.BB049C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: gfs2: convert stuffed_readpage() to stuffed_read_folio()
+     Subject: buffer: return bool from grow_dev_folio()
 has been added to the -mm mm-unstable branch.  Its filename is
-     gfs2-convert-stuffed_readpage-to-stuffed_read_folio.patch
+     buffer-return-bool-from-grow_dev_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/gfs2-convert-stuffed_readpage-to-stuffed_read_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buffer-return-bool-from-grow_dev_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -61,95 +61,151 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: gfs2: convert stuffed_readpage() to stuffed_read_folio()
-Date: Tue, 7 Nov 2023 21:26:42 +0000
+Subject: buffer: return bool from grow_dev_folio()
+Date: Thu, 9 Nov 2023 21:06:02 +0000
 
-Use folio_fill_tail() to implement the unstuffing and folio_end_read() to
-simultaneously mark the folio uptodate and unlock it.  Unifies a couple of
-code paths.
+Patch series "More buffer_head cleanups", v2.
 
-Link: https://lkml.kernel.org/r/20231107212643.3490372-4-willy@infradead.org
+The first patch is a left-over from last cycle.  The rest fix "obvious"
+block size > PAGE_SIZE problems.  I haven't tested with a large block size
+setup (but I have done an ext4 xfstests run).
+
+
+This patch (of 7):
+
+Rename grow_dev_page() to grow_dev_folio() and make it return a bool. 
+Document what that bool means; it's more subtle than it first appears. 
+Also rename the 'failed' label to 'unlock' beacuse it's not exactly
+'failed'.  It just hasn't succeeded.
+
+Link: https://lkml.kernel.org/r/20231109210608.2252323-2-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Andreas Gruenbacher <agruenba@redhat.com>
-Cc: Darrick J. Wong <djwong@kernel.org>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Hannes Reinecke <hare@suse.de>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Pankaj Raghav <p.raghav@samsung.com>
+Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/aops.c |   37 +++++++++++++++++--------------------
- 1 file changed, 17 insertions(+), 20 deletions(-)
+ fs/buffer.c |   50 +++++++++++++++++++++++++-------------------------
+ 1 file changed, 25 insertions(+), 25 deletions(-)
 
---- a/fs/gfs2/aops.c~gfs2-convert-stuffed_readpage-to-stuffed_read_folio
-+++ a/fs/gfs2/aops.c
-@@ -403,18 +403,18 @@ static int gfs2_jdata_writepages(struct
+--- a/fs/buffer.c~buffer-return-bool-from-grow_dev_folio
++++ a/fs/buffer.c
+@@ -1024,40 +1024,43 @@ static sector_t folio_init_buffers(struc
  }
  
- /**
-- * stuffed_readpage - Fill in a Linux folio with stuffed file data
-+ * stuffed_read_folio - Fill in a Linux folio with stuffed file data
-  * @ip: the inode
-  * @folio: the folio
+ /*
+- * Create the page-cache page that contains the requested block.
++ * Create the page-cache folio that contains the requested block.
   *
-  * Returns: errno
+  * This is used purely for blockdev mappings.
++ *
++ * Returns false if we have a 'permanent' failure.  Returns true if
++ * we succeeded, or the caller should retry.
   */
--static int stuffed_readpage(struct gfs2_inode *ip, struct folio *folio)
-+static int stuffed_read_folio(struct gfs2_inode *ip, struct folio *folio)
+-static int
+-grow_dev_page(struct block_device *bdev, sector_t block,
+-	      pgoff_t index, int size, int sizebits, gfp_t gfp)
++static bool grow_dev_folio(struct block_device *bdev, sector_t block,
++		pgoff_t index, unsigned size, int sizebits, gfp_t gfp)
  {
--	struct buffer_head *dibh;
--	size_t i_size = i_size_read(&ip->i_inode);
--	void *data;
--	int error;
-+	struct buffer_head *dibh = NULL;
-+	size_t dsize = i_size_read(&ip->i_inode);
-+	void *from = NULL;
-+	int error = 0;
+ 	struct inode *inode = bdev->bd_inode;
+ 	struct folio *folio;
+ 	struct buffer_head *bh;
+-	sector_t end_block;
+-	int ret = 0;
++	sector_t end_block = 0;
+ 
+ 	folio = __filemap_get_folio(inode->i_mapping, index,
+ 			FGP_LOCK | FGP_ACCESSED | FGP_CREAT, gfp);
+ 	if (IS_ERR(folio))
+-		return PTR_ERR(folio);
++		return false;
+ 
+ 	bh = folio_buffers(folio);
+ 	if (bh) {
+ 		if (bh->b_size == size) {
+ 			end_block = folio_init_buffers(folio, bdev,
+ 					(sector_t)index << sizebits, size);
+-			goto done;
++			goto unlock;
+ 		}
++
++		/* Caller should retry if this call fails */
++		end_block = ~0ULL;
+ 		if (!try_to_free_buffers(folio))
+-			goto failed;
++			goto unlock;
+ 	}
+ 
+-	ret = -ENOMEM;
+ 	bh = folio_alloc_buffers(folio, size, gfp | __GFP_ACCOUNT);
+ 	if (!bh)
+-		goto failed;
++		goto unlock;
  
  	/*
- 	 * Due to the order of unstuffing files and ->fault(), we can be
-@@ -422,22 +422,20 @@ static int stuffed_readpage(struct gfs2_
- 	 * so we need to supply one here. It doesn't happen often.
- 	 */
- 	if (unlikely(folio->index)) {
--		folio_zero_range(folio, 0, folio_size(folio));
--		folio_mark_uptodate(folio);
--		return 0;
-+		dsize = 0;
-+	} else {
-+		error = gfs2_meta_inode_buffer(ip, &dibh);
-+		if (error)
-+			goto out;
-+		from = dibh->b_data + sizeof(struct gfs2_dinode);
- 	}
- 
--	error = gfs2_meta_inode_buffer(ip, &dibh);
--	if (error)
--		return error;
--
--	data = dibh->b_data + sizeof(struct gfs2_dinode);
--	memcpy_to_folio(folio, 0, data, i_size);
--	folio_zero_range(folio, i_size, folio_size(folio) - i_size);
-+	folio_fill_tail(folio, 0, from, dsize);
- 	brelse(dibh);
--	folio_mark_uptodate(folio);
-+out:
-+	folio_end_read(folio, error == 0);
- 
--	return 0;
-+	return error;
+ 	 * Link the folio to the buffers and initialise them.  Take the
+@@ -1069,20 +1072,19 @@ grow_dev_page(struct block_device *bdev,
+ 	end_block = folio_init_buffers(folio, bdev,
+ 			(sector_t)index << sizebits, size);
+ 	spin_unlock(&inode->i_mapping->private_lock);
+-done:
+-	ret = (block < end_block) ? 1 : -ENXIO;
+-failed:
++unlock:
+ 	folio_unlock(folio);
+ 	folio_put(folio);
+-	return ret;
++	return block < end_block;
  }
  
- /**
-@@ -456,8 +454,7 @@ static int gfs2_read_folio(struct file *
- 	    (i_blocksize(inode) == PAGE_SIZE && !folio_buffers(folio))) {
- 		error = iomap_read_folio(folio, &gfs2_iomap_ops);
- 	} else if (gfs2_is_stuffed(ip)) {
--		error = stuffed_readpage(ip, folio);
--		folio_unlock(folio);
-+		error = stuffed_read_folio(ip, folio);
- 	} else {
- 		error = mpage_read_folio(folio, gfs2_block_map);
+ /*
+- * Create buffers for the specified block device block's page.  If
+- * that page was dirty, the buffers are set dirty also.
++ * Create buffers for the specified block device block's folio.  If
++ * that folio was dirty, the buffers are set dirty also.  Returns false
++ * if we've hit a permanent error.
+  */
+-static int
+-grow_buffers(struct block_device *bdev, sector_t block, int size, gfp_t gfp)
++static bool grow_buffers(struct block_device *bdev, sector_t block,
++		unsigned size, gfp_t gfp)
+ {
+ 	pgoff_t index;
+ 	int sizebits;
+@@ -1099,11 +1101,11 @@ grow_buffers(struct block_device *bdev,
+ 			"device %pg\n",
+ 			__func__, (unsigned long long)block,
+ 			bdev);
+-		return -EIO;
++		return false;
  	}
+ 
+-	/* Create a page with the proper size buffers.. */
+-	return grow_dev_page(bdev, block, index, size, sizebits, gfp);
++	/* Create a folio with the proper size buffers */
++	return grow_dev_folio(bdev, block, index, size, sizebits, gfp);
+ }
+ 
+ static struct buffer_head *
+@@ -1124,14 +1126,12 @@ __getblk_slow(struct block_device *bdev,
+ 
+ 	for (;;) {
+ 		struct buffer_head *bh;
+-		int ret;
+ 
+ 		bh = __find_get_block(bdev, block, size);
+ 		if (bh)
+ 			return bh;
+ 
+-		ret = grow_buffers(bdev, block, size, gfp);
+-		if (ret < 0)
++		if (!grow_buffers(bdev, block, size, gfp))
+ 			return NULL;
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
@@ -167,4 +223,11 @@ mm-use-mapping_evict_folio-in-truncate_error_page.patch
 mm-convert-soft_offline_in_use_page-to-use-a-folio.patch
 mm-convert-isolate_page-to-mf_isolate_folio.patch
 mm-remove-invalidate_inode_page.patch
+buffer-return-bool-from-grow_dev_folio.patch
+buffer-calculate-block-number-inside-folio_init_buffers.patch
+buffer-fix-grow_buffers-for-block-size-page_size.patch
+buffer-cast-block-to-loff_t-before-shifting-it.patch
+buffer-fix-various-functions-for-block-size-page_size.patch
+buffer-handle-large-folios-in-__block_write_begin_int.patch
+buffer-fix-more-functions-for-block-size-page_size.patch
 
