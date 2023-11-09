@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB695C4332F
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Nov 2023 21:57:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6ABFC4167D
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Nov 2023 21:57:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229971AbjKIV5V (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Nov 2023 16:57:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42674 "EHLO
+        id S230107AbjKIV5X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Nov 2023 16:57:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42688 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229629AbjKIV5V (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Nov 2023 16:57:21 -0500
+        with ESMTP id S229629AbjKIV5W (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Nov 2023 16:57:22 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 329893AA8
-        for <mm-commits@vger.kernel.org>; Thu,  9 Nov 2023 13:57:19 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB049C433C8;
-        Thu,  9 Nov 2023 21:57:18 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44C3B30D1
+        for <mm-commits@vger.kernel.org>; Thu,  9 Nov 2023 13:57:20 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D88C4C433C9;
+        Thu,  9 Nov 2023 21:57:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1699567038;
-        bh=br4DZZXr9DlHreKB+Bn9u4foCOQ3bdZYIe/WX3KzaWM=;
+        s=korg; t=1699567039;
+        bh=shK/ZIwMCmoMfU1+a/E3xwmdtws67zK73ouwzauKeLQ=;
         h=Date:To:From:Subject:From;
-        b=tua5cqqXYATIkF424SlgDtuJP+YqIh+Xc9odphbzKt2O/+vgs4fKAA3damIWyzZna
-         OQPd47jUjZxB6FSRNY0kxa6DFA/ZPE/mATNYkBZZaS1r4kn0Sub6JxaZ79DY+tk6fA
-         O/lYG76l/iuGPhiC7F/YokRslVa+W5G1qfVk8PWY=
-Date:   Thu, 09 Nov 2023 13:57:18 -0800
+        b=B8v2Ve4YjufO6XEKeQtElCBI6TZ6MSGvV7S0OTwxEI8ygsUdiRs6EgpLVg8EQO13w
+         MYaojVO7y++TqweOoFhYIcmvk2KLJk5SsDFGfvt38dvoVZTaX0jmsX+qaVMvTvbFEz
+         6grMyR0lAcYZcU/tH9+hiDDHSzZVaZblXl0fjwIY=
+Date:   Thu, 09 Nov 2023 13:57:19 -0800
 To:     mm-commits@vger.kernel.org, p.raghav@samsung.com,
         mcgrof@kernel.org, konishi.ryusuke@gmail.com, hare@suse.de,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + buffer-return-bool-from-grow_dev_folio.patch added to mm-unstable branch
-Message-Id: <20231109215718.BB049C433C8@smtp.kernel.org>
+Subject: + buffer-calculate-block-number-inside-folio_init_buffers.patch added to mm-unstable branch
+Message-Id: <20231109215719.D88C4C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: buffer: return bool from grow_dev_folio()
+     Subject: buffer: calculate block number inside folio_init_buffers()
 has been added to the -mm mm-unstable branch.  Its filename is
-     buffer-return-bool-from-grow_dev_folio.patch
+     buffer-calculate-block-number-inside-folio_init_buffers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buffer-return-bool-from-grow_dev_folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buffer-calculate-block-number-inside-folio_init_buffers.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -61,151 +61,81 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: buffer: return bool from grow_dev_folio()
-Date: Thu, 9 Nov 2023 21:06:02 +0000
+Subject: buffer: calculate block number inside folio_init_buffers()
+Date: Thu, 9 Nov 2023 21:06:03 +0000
 
-Patch series "More buffer_head cleanups", v2.
+The calculation of block from index doesn't work for devices with a block
+size larger than PAGE_SIZE as we end up shifting by a negative number. 
+Instead, calculate the number of the first block from the folio's position
+in the block device.  We no longer need to pass sizebits to
+grow_dev_folio().
 
-The first patch is a left-over from last cycle.  The rest fix "obvious"
-block size > PAGE_SIZE problems.  I haven't tested with a large block size
-setup (but I have done an ext4 xfstests run).
-
-
-This patch (of 7):
-
-Rename grow_dev_page() to grow_dev_folio() and make it return a bool. 
-Document what that bool means; it's more subtle than it first appears. 
-Also rename the 'failed' label to 'unlock' beacuse it's not exactly
-'failed'.  It just hasn't succeeded.
-
-Link: https://lkml.kernel.org/r/20231109210608.2252323-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231109210608.2252323-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Pankaj Raghav <p.raghav@samsung.com>
 Cc: Hannes Reinecke <hare@suse.de>
 Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Pankaj Raghav <p.raghav@samsung.com>
 Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |   50 +++++++++++++++++++++++++-------------------------
- 1 file changed, 25 insertions(+), 25 deletions(-)
+ fs/buffer.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
---- a/fs/buffer.c~buffer-return-bool-from-grow_dev_folio
+--- a/fs/buffer.c~buffer-calculate-block-number-inside-folio_init_buffers
 +++ a/fs/buffer.c
-@@ -1024,40 +1024,43 @@ static sector_t folio_init_buffers(struc
- }
+@@ -995,11 +995,12 @@ static sector_t blkdev_max_block(struct
+  * Initialise the state of a blockdev folio's buffers.
+  */ 
+ static sector_t folio_init_buffers(struct folio *folio,
+-		struct block_device *bdev, sector_t block, int size)
++		struct block_device *bdev, unsigned size)
+ {
+ 	struct buffer_head *head = folio_buffers(folio);
+ 	struct buffer_head *bh = head;
+ 	bool uptodate = folio_test_uptodate(folio);
++	sector_t block = div_u64(folio_pos(folio), size);
+ 	sector_t end_block = blkdev_max_block(bdev, size);
  
- /*
-- * Create the page-cache page that contains the requested block.
-+ * Create the page-cache folio that contains the requested block.
-  *
-  * This is used purely for blockdev mappings.
-+ *
-+ * Returns false if we have a 'permanent' failure.  Returns true if
-+ * we succeeded, or the caller should retry.
+ 	do {
+@@ -1032,7 +1033,7 @@ static sector_t folio_init_buffers(struc
+  * we succeeded, or the caller should retry.
   */
--static int
--grow_dev_page(struct block_device *bdev, sector_t block,
--	      pgoff_t index, int size, int sizebits, gfp_t gfp)
-+static bool grow_dev_folio(struct block_device *bdev, sector_t block,
-+		pgoff_t index, unsigned size, int sizebits, gfp_t gfp)
+ static bool grow_dev_folio(struct block_device *bdev, sector_t block,
+-		pgoff_t index, unsigned size, int sizebits, gfp_t gfp)
++		pgoff_t index, unsigned size, gfp_t gfp)
  {
  	struct inode *inode = bdev->bd_inode;
  	struct folio *folio;
- 	struct buffer_head *bh;
--	sector_t end_block;
--	int ret = 0;
-+	sector_t end_block = 0;
- 
- 	folio = __filemap_get_folio(inode->i_mapping, index,
- 			FGP_LOCK | FGP_ACCESSED | FGP_CREAT, gfp);
- 	if (IS_ERR(folio))
--		return PTR_ERR(folio);
-+		return false;
- 
+@@ -1047,8 +1048,7 @@ static bool grow_dev_folio(struct block_
  	bh = folio_buffers(folio);
  	if (bh) {
  		if (bh->b_size == size) {
- 			end_block = folio_init_buffers(folio, bdev,
- 					(sector_t)index << sizebits, size);
--			goto done;
-+			goto unlock;
+-			end_block = folio_init_buffers(folio, bdev,
+-					(sector_t)index << sizebits, size);
++			end_block = folio_init_buffers(folio, bdev, size);
+ 			goto unlock;
  		}
-+
-+		/* Caller should retry if this call fails */
-+		end_block = ~0ULL;
- 		if (!try_to_free_buffers(folio))
--			goto failed;
-+			goto unlock;
- 	}
  
--	ret = -ENOMEM;
- 	bh = folio_alloc_buffers(folio, size, gfp | __GFP_ACCOUNT);
- 	if (!bh)
--		goto failed;
-+		goto unlock;
- 
- 	/*
- 	 * Link the folio to the buffers and initialise them.  Take the
-@@ -1069,20 +1072,19 @@ grow_dev_page(struct block_device *bdev,
- 	end_block = folio_init_buffers(folio, bdev,
- 			(sector_t)index << sizebits, size);
+@@ -1069,8 +1069,7 @@ static bool grow_dev_folio(struct block_
+ 	 */
+ 	spin_lock(&inode->i_mapping->private_lock);
+ 	link_dev_buffers(folio, bh);
+-	end_block = folio_init_buffers(folio, bdev,
+-			(sector_t)index << sizebits, size);
++	end_block = folio_init_buffers(folio, bdev, size);
  	spin_unlock(&inode->i_mapping->private_lock);
--done:
--	ret = (block < end_block) ? 1 : -ENXIO;
--failed:
-+unlock:
+ unlock:
  	folio_unlock(folio);
- 	folio_put(folio);
--	return ret;
-+	return block < end_block;
- }
- 
- /*
-- * Create buffers for the specified block device block's page.  If
-- * that page was dirty, the buffers are set dirty also.
-+ * Create buffers for the specified block device block's folio.  If
-+ * that folio was dirty, the buffers are set dirty also.  Returns false
-+ * if we've hit a permanent error.
-  */
--static int
--grow_buffers(struct block_device *bdev, sector_t block, int size, gfp_t gfp)
-+static bool grow_buffers(struct block_device *bdev, sector_t block,
-+		unsigned size, gfp_t gfp)
- {
- 	pgoff_t index;
- 	int sizebits;
-@@ -1099,11 +1101,11 @@ grow_buffers(struct block_device *bdev,
- 			"device %pg\n",
- 			__func__, (unsigned long long)block,
- 			bdev);
--		return -EIO;
-+		return false;
+@@ -1105,7 +1104,7 @@ static bool grow_buffers(struct block_de
  	}
  
--	/* Create a page with the proper size buffers.. */
--	return grow_dev_page(bdev, block, index, size, sizebits, gfp);
-+	/* Create a folio with the proper size buffers */
-+	return grow_dev_folio(bdev, block, index, size, sizebits, gfp);
+ 	/* Create a folio with the proper size buffers */
+-	return grow_dev_folio(bdev, block, index, size, sizebits, gfp);
++	return grow_dev_folio(bdev, block, index, size, gfp);
  }
  
  static struct buffer_head *
-@@ -1124,14 +1126,12 @@ __getblk_slow(struct block_device *bdev,
- 
- 	for (;;) {
- 		struct buffer_head *bh;
--		int ret;
- 
- 		bh = __find_get_block(bdev, block, size);
- 		if (bh)
- 			return bh;
- 
--		ret = grow_buffers(bdev, block, size, gfp);
--		if (ret < 0)
-+		if (!grow_buffers(bdev, block, size, gfp))
- 			return NULL;
- 	}
- }
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
