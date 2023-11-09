@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CD70C4167B
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Nov 2023 21:54:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1C0FC4332F
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Nov 2023 21:54:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231508AbjKIVyv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Nov 2023 16:54:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35646 "EHLO
+        id S230107AbjKIVy5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Nov 2023 16:54:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35754 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230107AbjKIVyv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Nov 2023 16:54:51 -0500
+        with ESMTP id S234657AbjKIVy4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Nov 2023 16:54:56 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63ECD1FE5
-        for <mm-commits@vger.kernel.org>; Thu,  9 Nov 2023 13:54:49 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 006A9C433C8;
-        Thu,  9 Nov 2023 21:54:48 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4FAD1FF6
+        for <mm-commits@vger.kernel.org>; Thu,  9 Nov 2023 13:54:50 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37B4BC433C8;
+        Thu,  9 Nov 2023 21:54:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1699566889;
-        bh=cohAtUw+S7EP11FrzCkGCWAfi6ZRUDzfRgsd5ESW1yo=;
+        s=korg; t=1699566890;
+        bh=B97C/oEGxNG3ytgMOXKjHdcYU7nDp+bvGsv/UnEhetY=;
         h=Date:To:From:Subject:From;
-        b=H2p7iR8gfJfhU5U0ZSIwnhZozBtg907Dvd0+Gx9Wy/dLYgZ3gvvhm+9knbaN35xhI
-         nx20zje22f6Wx++OmGXPR+FjcFhJksoigoctugYKRdSeqZEtt/xMp+jqod7B4XclQK
-         nrWHusaoUIPzHu4uW677HtHjs3h71AHWWtICZjjs=
-Date:   Thu, 09 Nov 2023 13:54:48 -0800
+        b=zz00ld0jok4He4GSRy/G8ymBjhTCKy0jrEJROtkQR7HAjFbYQJENcR0n+I1jIo1Hc
+         OMbl2+JBB/xRsiv9b8kwRVBXLSTFbGTBGDkU3noi5N/EFUgkZ2V5d9x+kKC0byW3qT
+         syyWup/54Ase9EP+xV69RYEziCFEXp4bgK0OdK0c=
+Date:   Thu, 09 Nov 2023 13:54:49 -0800
 To:     mm-commits@vger.kernel.org, tytso@mit.edu, djwong@kernel.org,
         agruenba@redhat.com, adilger.kernel@dilger.ca, willy@infradead.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-folio_fill_tail-and-use-it-in-iomap.patch added to mm-unstable branch
-Message-Id: <20231109215449.006A9C433C8@smtp.kernel.org>
+Subject: + gfs2-convert-stuffed_readpage-to-stuffed_read_folio.patch added to mm-unstable branch
+Message-Id: <20231109215450.37B4BC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add folio_fill_tail() and use it in iomap
+     Subject: gfs2: convert stuffed_readpage() to stuffed_read_folio()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-folio_fill_tail-and-use-it-in-iomap.patch
+     gfs2-convert-stuffed_readpage-to-stuffed_read_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-folio_fill_tail-and-use-it-in-iomap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/gfs2-convert-stuffed_readpage-to-stuffed_read_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -61,13 +61,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: add folio_fill_tail() and use it in iomap
-Date: Tue, 7 Nov 2023 21:26:41 +0000
+Subject: gfs2: convert stuffed_readpage() to stuffed_read_folio()
+Date: Tue, 7 Nov 2023 21:26:42 +0000
 
-The iomap code was limited to PAGE_SIZE bytes; generalise it to cover
-an arbitrary-sized folio, and move it to be a common helper.
+Use folio_fill_tail() to implement the unstuffing and folio_end_read() to
+simultaneously mark the folio uptodate and unlock it.  Unifies a couple of
+code paths.
 
-Link: https://lkml.kernel.org/r/20231107212643.3490372-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231107212643.3490372-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Cc: Andreas Gruenbacher <agruenba@redhat.com>
@@ -76,90 +77,79 @@ Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/iomap/buffered-io.c  |   14 ++------------
- include/linux/highmem.h |   38 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 40 insertions(+), 12 deletions(-)
+ fs/gfs2/aops.c |   37 +++++++++++++++++--------------------
+ 1 file changed, 17 insertions(+), 20 deletions(-)
 
---- a/fs/iomap/buffered-io.c~mm-add-folio_fill_tail-and-use-it-in-iomap
-+++ a/fs/iomap/buffered-io.c
-@@ -305,28 +305,18 @@ static int iomap_read_inline_data(const
- {
- 	const struct iomap *iomap = iomap_iter_srcmap(iter);
- 	size_t size = i_size_read(iter->inode) - iomap->offset;
--	size_t poff = offset_in_page(iomap->offset);
- 	size_t offset = offset_in_folio(folio, iomap->offset);
--	void *addr;
- 
- 	if (folio_test_uptodate(folio))
- 		return 0;
- 
--	if (WARN_ON_ONCE(size > PAGE_SIZE - poff))
--		return -EIO;
--	if (WARN_ON_ONCE(size > PAGE_SIZE -
--			 offset_in_page(iomap->inline_data)))
--		return -EIO;
- 	if (WARN_ON_ONCE(size > iomap->length))
- 		return -EIO;
- 	if (offset > 0)
- 		ifs_alloc(iter->inode, folio, iter->flags);
- 
--	addr = kmap_local_folio(folio, offset);
--	memcpy(addr, iomap->inline_data, size);
--	memset(addr + size, 0, PAGE_SIZE - poff - size);
--	kunmap_local(addr);
--	iomap_set_range_uptodate(folio, offset, PAGE_SIZE - poff);
-+	folio_fill_tail(folio, offset, iomap->inline_data, size);
-+	iomap_set_range_uptodate(folio, offset, folio_size(folio) - offset);
- 	return 0;
- }
- 
---- a/include/linux/highmem.h~mm-add-folio_fill_tail-and-use-it-in-iomap
-+++ a/include/linux/highmem.h
-@@ -522,6 +522,44 @@ static inline __must_check void *folio_z
+--- a/fs/gfs2/aops.c~gfs2-convert-stuffed_readpage-to-stuffed_read_folio
++++ a/fs/gfs2/aops.c
+@@ -403,18 +403,18 @@ static int gfs2_jdata_writepages(struct
  }
  
  /**
-+ * folio_fill_tail - Copy some data to a folio and pad with zeroes.
-+ * @folio: The destination folio.
-+ * @offset: The offset into @folio at which to start copying.
-+ * @from: The data to copy.
-+ * @len: How many bytes of data to copy.
-+ *
-+ * This function is most useful for filesystems which support inline data.
-+ * When they want to copy data from the inode into the page cache, this
-+ * function does everything for them.  It supports large folios even on
-+ * HIGHMEM configurations.
-+ */
-+static inline void folio_fill_tail(struct folio *folio, size_t offset,
-+		const char *from, size_t len)
-+{
-+	char *to = kmap_local_folio(folio, offset);
-+
-+	VM_BUG_ON(offset + len > folio_size(folio));
-+
-+	if (folio_test_highmem(folio)) {
-+		size_t max = PAGE_SIZE - offset_in_page(offset);
-+
-+		while (len > max) {
-+			memcpy(to, from, max);
-+			kunmap_local(to);
-+			len -= max;
-+			from += max;
-+			offset += max;
-+			max = PAGE_SIZE;
-+			to = kmap_local_folio(folio, offset);
-+		}
-+	}
-+
-+	memcpy(to, from, len);
-+	to = folio_zero_tail(folio, offset, to);
-+	kunmap_local(to);
-+}
-+
-+/**
-  * memcpy_from_file_folio - Copy some bytes from a file folio.
-  * @to: The destination buffer.
-  * @folio: The folio to copy from.
+- * stuffed_readpage - Fill in a Linux folio with stuffed file data
++ * stuffed_read_folio - Fill in a Linux folio with stuffed file data
+  * @ip: the inode
+  * @folio: the folio
+  *
+  * Returns: errno
+  */
+-static int stuffed_readpage(struct gfs2_inode *ip, struct folio *folio)
++static int stuffed_read_folio(struct gfs2_inode *ip, struct folio *folio)
+ {
+-	struct buffer_head *dibh;
+-	size_t i_size = i_size_read(&ip->i_inode);
+-	void *data;
+-	int error;
++	struct buffer_head *dibh = NULL;
++	size_t dsize = i_size_read(&ip->i_inode);
++	void *from = NULL;
++	int error = 0;
+ 
+ 	/*
+ 	 * Due to the order of unstuffing files and ->fault(), we can be
+@@ -422,22 +422,20 @@ static int stuffed_readpage(struct gfs2_
+ 	 * so we need to supply one here. It doesn't happen often.
+ 	 */
+ 	if (unlikely(folio->index)) {
+-		folio_zero_range(folio, 0, folio_size(folio));
+-		folio_mark_uptodate(folio);
+-		return 0;
++		dsize = 0;
++	} else {
++		error = gfs2_meta_inode_buffer(ip, &dibh);
++		if (error)
++			goto out;
++		from = dibh->b_data + sizeof(struct gfs2_dinode);
+ 	}
+ 
+-	error = gfs2_meta_inode_buffer(ip, &dibh);
+-	if (error)
+-		return error;
+-
+-	data = dibh->b_data + sizeof(struct gfs2_dinode);
+-	memcpy_to_folio(folio, 0, data, i_size);
+-	folio_zero_range(folio, i_size, folio_size(folio) - i_size);
++	folio_fill_tail(folio, 0, from, dsize);
+ 	brelse(dibh);
+-	folio_mark_uptodate(folio);
++out:
++	folio_end_read(folio, error == 0);
+ 
+-	return 0;
++	return error;
+ }
+ 
+ /**
+@@ -456,8 +454,7 @@ static int gfs2_read_folio(struct file *
+ 	    (i_blocksize(inode) == PAGE_SIZE && !folio_buffers(folio))) {
+ 		error = iomap_read_folio(folio, &gfs2_iomap_ops);
+ 	} else if (gfs2_is_stuffed(ip)) {
+-		error = stuffed_readpage(ip, folio);
+-		folio_unlock(folio);
++		error = stuffed_read_folio(ip, folio);
+ 	} else {
+ 		error = mpage_read_folio(folio, gfs2_block_map);
+ 	}
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
