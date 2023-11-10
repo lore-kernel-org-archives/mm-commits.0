@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 816C4C4167B
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Nov 2023 22:50:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7549AC4167B
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Nov 2023 17:41:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229726AbjKIWuK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Nov 2023 17:50:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47692 "EHLO
+        id S229616AbjKJRlh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 10 Nov 2023 12:41:37 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46426 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229587AbjKIWuK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Nov 2023 17:50:10 -0500
+        with ESMTP id S229761AbjKJRlf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Nov 2023 12:41:35 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A7A13AA4
-        for <mm-commits@vger.kernel.org>; Thu,  9 Nov 2023 14:50:08 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E237C433C9;
-        Thu,  9 Nov 2023 22:50:07 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E128446C7
+        for <mm-commits@vger.kernel.org>; Fri, 10 Nov 2023 09:25:51 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FEA6C433C7;
+        Fri, 10 Nov 2023 17:25:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1699570207;
-        bh=5s/ddPMnSn0hDI75/bJPW3CPwJErkhGWG9U2IkKZFCM=;
+        s=korg; t=1699637150;
+        bh=VECGFibGvOYsCrLbglEKRjfYoOez7AtB9larab/iV+c=;
         h=Date:To:From:Subject:From;
-        b=XmMl6bniRUyy7O6v0GM9tE2/94OEZiqOm0kbZ/eHmSPnfom6FkJqVNpipODwimHw9
-         zcrJVsHU83dOne4XcPXBBVQihToZuU7V3dWNe4+99g9DjDBi4vXkEKSd00e1nFKVns
-         f39q6hbU4WPoj7lRFOOQlVT4TzeoX//9THEvl/y0=
-Date:   Thu, 09 Nov 2023 14:50:06 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org, tytso@mit.edu,
-        djwong@kernel.org, agruenba@redhat.com, adilger.kernel@dilger.ca,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=JGomhXJTnkrPehS/3RNDgAeY35Z4tBH3cleiKl9RIrNJ11EUgcYSgu2OYm6MW+Skj
+         GPu/R+V4Ho2dwe02z6y27LtuNryDNu6AnAX+hqg447sh9nV/DvOrjir/9mMTGqUKo/
+         doJ4qBwQaVGq/pzPbUTGhUIpZi1U3TTK7/+d8eBs=
+Date:   Fri, 10 Nov 2023 09:25:50 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        gregory.price@memverge.com, david@redhat.com,
+        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-folio_fill_tail-and-use-it-in-iomap-fix.patch added to mm-unstable branch
-Message-Id: <20231109225007.9E237C433C9@smtp.kernel.org>
+Subject: + mm-task_mmu-use-a-folio-in-smaps_account.patch added to mm-unstable branch
+Message-Id: <20231110172550.9FEA6C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-add-folio_fill_tail-and-use-it-in-iomap-fix
+     Subject: mm: task_mmu: use a folio in smaps_account()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-folio_fill_tail-and-use-it-in-iomap-fix.patch
+     mm-task_mmu-use-a-folio-in-smaps_account.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-folio_fill_tail-and-use-it-in-iomap-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-task_mmu-use-a-folio-in-smaps_account.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,41 +60,73 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-add-folio_fill_tail-and-use-it-in-iomap-fix
-Date: Thu Nov  9 02:42:04 PM PST 2023
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: task_mmu: use a folio in smaps_account()
+Date: Fri, 10 Nov 2023 11:33:22 +0800
 
-fix folio_fill_tail(), per Andreas Gruenbacher
+Replace seven implicit calls to compound_head() with one page_folio().
 
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Andreas Gruenbacher <agruenba@redhat.com>
-Cc: Darrick J. Wong <djwong@kernel.org>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Link: https://lkml.kernel.org/r/20231110033324.2455523-6-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Gregory Price <gregory.price@memverge.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/highmem.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/task_mmu.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
---- a/include/linux/highmem.h~mm-add-folio_fill_tail-and-use-it-in-iomap-fix
-+++ a/include/linux/highmem.h
-@@ -555,7 +555,7 @@ static inline void folio_fill_tail(struc
+--- a/fs/proc/task_mmu.c~mm-task_mmu-use-a-folio-in-smaps_account
++++ a/fs/proc/task_mmu.c
+@@ -445,23 +445,25 @@ static void smaps_account(struct mem_siz
+ {
+ 	int i, nr = compound ? compound_nr(page) : 1;
+ 	unsigned long size = nr * PAGE_SIZE;
++	struct folio *folio = page_folio(page);
+ 
+ 	/*
+ 	 * First accumulate quantities that depend only on |size| and the type
+ 	 * of the compound page.
+ 	 */
+-	if (PageAnon(page)) {
++	if (folio_test_anon(folio)) {
+ 		mss->anonymous += size;
+-		if (!PageSwapBacked(page) && !dirty && !PageDirty(page))
++		if (!folio_test_swapbacked(folio) && !dirty &&
++		    !folio_test_dirty(folio))
+ 			mss->lazyfree += size;
  	}
  
- 	memcpy(to, from, len);
--	to = folio_zero_tail(folio, offset, to);
-+	to = folio_zero_tail(folio, offset + len, to + len);
- 	kunmap_local(to);
- }
+-	if (PageKsm(page))
++	if (folio_test_ksm(folio))
+ 		mss->ksm += size;
  
+ 	mss->resident += size;
+ 	/* Accumulate the size in pages that have been accessed. */
+-	if (young || page_is_young(page) || PageReferenced(page))
++	if (young || folio_test_young(folio) || folio_test_referenced(folio))
+ 		mss->referenced += size;
+ 
+ 	/*
+@@ -479,7 +481,7 @@ static void smaps_account(struct mem_siz
+ 	 * especially for migration entries.  Treat regular migration entries
+ 	 * as mapcount == 1.
+ 	 */
+-	if ((page_count(page) == 1) || migration) {
++	if ((folio_ref_count(folio) == 1) || migration) {
+ 		smaps_page_accumulate(mss, page, size, size << PSS_SHIFT, dirty,
+ 			locked, true);
+ 		return;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-fix-for-negative-counter-nr_file_hugepages-fix.patch
-mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
-mm-add-folio_zero_tail-and-use-it-in-ext4-fix.patch
-mm-add-folio_fill_tail-and-use-it-in-iomap-fix.patch
-kernel-reboot-explicitly-notify-if-halt-occurred-instead-of-power-off-fix.patch
+fs-proc-page-remove-unneeded-pagetail-pageslab-check.patch
+fs-proc-page-use-a-folio-in-stable_page_flags.patch
+fs-proc-page-respect-folio-head-page-flag-placement.patch
+mm-huge_memory-use-more-folio-api-in-__split_huge_page_tail.patch
+mm-task_mmu-use-a-folio-in-smaps_account.patch
+mm-task_mmu-use-a-folio-in-clear_refs_pte_range.patch
+page_idle-kill-page-idle-and-young-wrapper.patch
 
