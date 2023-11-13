@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21BADC4332F
-	for <mm-commits@archiver.kernel.org>; Mon, 13 Nov 2023 16:34:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC1C2C4332F
+	for <mm-commits@archiver.kernel.org>; Mon, 13 Nov 2023 16:42:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229847AbjKMQeN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Nov 2023 11:34:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57474 "EHLO
+        id S229873AbjKMQmK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Nov 2023 11:42:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56464 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229820AbjKMQeM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Nov 2023 11:34:12 -0500
+        with ESMTP id S229454AbjKMQmJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Nov 2023 11:42:09 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A62EF2
-        for <mm-commits@vger.kernel.org>; Mon, 13 Nov 2023 08:34:09 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11827C433C7;
-        Mon, 13 Nov 2023 16:34:09 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C98A10EC
+        for <mm-commits@vger.kernel.org>; Mon, 13 Nov 2023 08:42:06 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6ECEC433C7;
+        Mon, 13 Nov 2023 16:42:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1699893249;
-        bh=KpaUHavetVqItN+zJXE3ckpTSsK5ne0aKo7WWMt7f3Y=;
+        s=korg; t=1699893725;
+        bh=hgjTkJM40AWhdkAfZCsnDzdQadqBhdWRDRupfMtWmPs=;
         h=Date:To:From:Subject:From;
-        b=CGooIWQaerHvHRqRBwSU4Oz4vob79NzQFJURAjnSDJq+jOiH9mTiFNmaLahrhjxeE
-         DBPiWOsW3Il1jElhNN1Yu/4HQeAiEyU/uQ7G4vzHU1XxJfHJndvxlIYq27l2rJZxmb
-         cU7B9iwMePKNefAqD51E8OSPWTUrfssnUPgA5KVg=
-Date:   Mon, 13 Nov 2023 08:34:08 -0800
-To:     mm-commits@vger.kernel.org, phillip@squashfs.org.uk,
-        akpm@linux-foundation.org
+        b=GZAkCKeAIxKedpmZqVdXTL5ufHUq3kAqLzQtt71QGD+kKQVUJiJ4SBHq4BUIEBLZi
+         1vT7huq3rur214K9rI/Ht7Sxme+oVnigfo4sGm60GE+Jd9trS92UEovo/YEhn3UzMr
+         p61NV/D7DAkFpsMFwOzhx26lNPm1xSq7HQXmF3Bo=
+Date:   Mon, 13 Nov 2023 08:42:05 -0800
+To:     mm-commits@vger.kernel.org, david@redhat.com, ardb@kernel.org,
+        lukas.bulwahn@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-fix-variable-overflow-triggered-by-sysbot.patch added to mm-nonmm-unstable branch
-Message-Id: <20231113163409.11827C433C7@smtp.kernel.org>
+Subject: + mmap-remove-the-ia64-specific-vma-expansion-implementation.patch added to mm-unstable branch
+Message-Id: <20231113164205.D6ECEC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,14 +36,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Squashfs: fix variable overflow triggered by sysbot
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-fix-variable-overflow-triggered-by-sysbot.patch
+     Subject: mmap: remove the IA64-specific vma expansion implementation
+has been added to the -mm mm-unstable branch.  Its filename is
+     mmap-remove-the-ia64-specific-vma-expansion-implementation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-fix-variable-overflow-triggered-by-sysbot.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmap-remove-the-ia64-specific-vma-expansion-implementation.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,59 +59,74 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Phillip Lougher <phillip@squashfs.org.uk>
-Subject: Squashfs: fix variable overflow triggered by sysbot
-Date: Mon, 13 Nov 2023 16:09:01 +0000
+From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Subject: mmap: remove the IA64-specific vma expansion implementation
+Date: Mon, 13 Nov 2023 13:47:28 +0100
 
-Sysbot reports a slab out of bounds write in squashfs_readahead().
+With commit cf8e8658100d ("arch: Remove Itanium (IA-64) architecture"),
+there is no need to keep the IA64-specific vma expansion.
 
-This is ultimately caused by a file reporting an (infeasibly) large file
-size (1407374883553280 bytes) with the minimum block size of 4K.
+Clean up the IA64-specific vma expansion implementation.
 
-This causes variable overflow.
-
-Link: https://lkml.kernel.org/r/20231113160901.6444-1-phillip@squashfs.org.uk
-Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
-Reported-by: syzbot+604424eb051c2f696163@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/000000000000b1fda20609ede0d1@google.com/
+Link: https://lkml.kernel.org/r/20231113124728.3974-1-lukas.bulwahn@gmail.com
+Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/file.c        |    3 ++-
- fs/squashfs/file_direct.c |    6 +++---
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ mm/mmap.c |   37 +------------------------------------
+ 1 file changed, 1 insertion(+), 36 deletions(-)
 
---- a/fs/squashfs/file.c~squashfs-fix-variable-overflow-triggered-by-sysbot
-+++ a/fs/squashfs/file.c
-@@ -544,7 +544,8 @@ static void squashfs_readahead(struct re
- 	struct squashfs_page_actor *actor;
- 	unsigned int nr_pages = 0;
- 	struct page **pages;
--	int i, file_end = i_size_read(inode) >> msblk->block_log;
-+	int i;
-+	loff_t file_end = i_size_read(inode) >> msblk->block_log;
- 	unsigned int max_pages = 1UL << shift;
+--- a/mm/mmap.c~mmap-remove-the-ia64-specific-vma-expansion-implementation
++++ a/mm/mmap.c
+@@ -2207,42 +2207,7 @@ struct vm_area_struct *find_extend_vma_l
+ }
+ #endif
  
- 	readahead_expand(ractl, start, (len | mask) + 1);
---- a/fs/squashfs/file_direct.c~squashfs-fix-variable-overflow-triggered-by-sysbot
-+++ a/fs/squashfs/file_direct.c
-@@ -26,10 +26,10 @@ int squashfs_readpage_block(struct page
- 	struct inode *inode = target_page->mapping->host;
- 	struct squashfs_sb_info *msblk = inode->i_sb->s_fs_info;
+-/*
+- * IA64 has some horrid mapping rules: it can expand both up and down,
+- * but with various special rules.
+- *
+- * We'll get rid of this architecture eventually, so the ugliness is
+- * temporary.
+- */
+-#ifdef CONFIG_IA64
+-static inline bool vma_expand_ok(struct vm_area_struct *vma, unsigned long addr)
+-{
+-	return REGION_NUMBER(addr) == REGION_NUMBER(vma->vm_start) &&
+-		REGION_OFFSET(addr) < RGN_MAP_LIMIT;
+-}
+-
+-/*
+- * IA64 stacks grow down, but there's a special register backing store
+- * that can grow up. Only sequentially, though, so the new address must
+- * match vm_end.
+- */
+-static inline int vma_expand_up(struct vm_area_struct *vma, unsigned long addr)
+-{
+-	if (!vma_expand_ok(vma, addr))
+-		return -EFAULT;
+-	if (vma->vm_end != (addr & PAGE_MASK))
+-		return -EFAULT;
+-	return expand_upwards(vma, addr);
+-}
+-
+-static inline bool vma_expand_down(struct vm_area_struct *vma, unsigned long addr)
+-{
+-	if (!vma_expand_ok(vma, addr))
+-		return -EFAULT;
+-	return expand_downwards(vma, addr);
+-}
+-
+-#elif defined(CONFIG_STACK_GROWSUP)
++#if defined(CONFIG_STACK_GROWSUP)
  
--	int file_end = (i_size_read(inode) - 1) >> PAGE_SHIFT;
-+	loff_t file_end = (i_size_read(inode) - 1) >> PAGE_SHIFT;
- 	int mask = (1 << (msblk->block_log - PAGE_SHIFT)) - 1;
--	int start_index = target_page->index & ~mask;
--	int end_index = start_index | mask;
-+	loff_t start_index = target_page->index & ~mask;
-+	loff_t end_index = start_index | mask;
- 	int i, n, pages, bytes, res = -ENOMEM;
- 	struct page **page;
- 	struct squashfs_page_actor *actor;
+ #define vma_expand_up(vma,addr) expand_upwards(vma, addr)
+ #define vma_expand_down(vma, addr) (-EFAULT)
 _
 
-Patches currently in -mm which might be from phillip@squashfs.org.uk are
+Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
 
-squashfs-fix-variable-overflow-triggered-by-sysbot.patch
+mmap-remove-the-ia64-specific-vma-expansion-implementation.patch
 
