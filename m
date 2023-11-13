@@ -2,93 +2,116 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B9A4C4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Nov 2023 19:46:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21BADC4332F
+	for <mm-commits@archiver.kernel.org>; Mon, 13 Nov 2023 16:34:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230108AbjKJTqL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 10 Nov 2023 14:46:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52994 "EHLO
+        id S229847AbjKMQeN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Nov 2023 11:34:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57474 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236072AbjKJTp2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Nov 2023 14:45:28 -0500
+        with ESMTP id S229820AbjKMQeM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Nov 2023 11:34:12 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9BA5F9643
-        for <mm-commits@vger.kernel.org>; Fri, 10 Nov 2023 10:21:22 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 487C2C43140;
-        Fri, 10 Nov 2023 18:20:11 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A62EF2
+        for <mm-commits@vger.kernel.org>; Mon, 13 Nov 2023 08:34:09 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11827C433C7;
+        Mon, 13 Nov 2023 16:34:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1699640411;
-        bh=Xnmk4OFfsKqw4+dEiYrdpRniiY/95gbngefzOeU4hWI=;
+        s=korg; t=1699893249;
+        bh=KpaUHavetVqItN+zJXE3ckpTSsK5ne0aKo7WWMt7f3Y=;
         h=Date:To:From:Subject:From;
-        b=cQp5CZ50sTYsbDxiwXdaIVMCycTjO+GObrtKnC7QOWgGaBI9foM+Bf93lZE6T9bTi
-         tE6w/Vohhud0UJOG/DoiPp499q2U9ObHm7d3LCaqkQQpMvMzAQcJ/1/6k2JiqUEDvr
-         Y7vx+RwBZP/qzhGXsihvnjHB3V9oG3Z09LRVMG+k=
-Date:   Fri, 10 Nov 2023 10:20:10 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        gregory.price@memverge.com, david@redhat.com,
-        wangkefeng.wang@huawei.com, akpm@linux-foundation.org
+        b=CGooIWQaerHvHRqRBwSU4Oz4vob79NzQFJURAjnSDJq+jOiH9mTiFNmaLahrhjxeE
+         DBPiWOsW3Il1jElhNN1Yu/4HQeAiEyU/uQ7G4vzHU1XxJfHJndvxlIYq27l2rJZxmb
+         cU7B9iwMePKNefAqD51E8OSPWTUrfssnUPgA5KVg=
+Date:   Mon, 13 Nov 2023 08:34:08 -0800
+To:     mm-commits@vger.kernel.org, phillip@squashfs.org.uk,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [nacked] mm-huge_memory-use-more-folio-api-in-__split_huge_page_tail.patch removed from -mm tree
-Message-Id: <20231110182011.487C2C43140@smtp.kernel.org>
+Subject: + squashfs-fix-variable-overflow-triggered-by-sysbot.patch added to mm-nonmm-unstable branch
+Message-Id: <20231113163409.11827C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: mm: huge_memory: use more folio api in __split_huge_page_tail()
-has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-use-more-folio-api-in-__split_huge_page_tail.patch
+The patch titled
+     Subject: Squashfs: fix variable overflow triggered by sysbot
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     squashfs-fix-variable-overflow-triggered-by-sysbot.patch
 
-This patch was dropped because it was nacked
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-fix-variable-overflow-triggered-by-sysbot.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: huge_memory: use more folio api in __split_huge_page_tail()
-Date: Fri, 10 Nov 2023 11:33:21 +0800
+From: Phillip Lougher <phillip@squashfs.org.uk>
+Subject: Squashfs: fix variable overflow triggered by sysbot
+Date: Mon, 13 Nov 2023 16:09:01 +0000
 
-Use more folio APIs to save six compound_head() calls in
-__split_huge_page_tail().
+Sysbot reports a slab out of bounds write in squashfs_readahead().
 
-Link: https://lkml.kernel.org/r/20231110033324.2455523-5-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Gregory Price <gregory.price@memverge.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+This is ultimately caused by a file reporting an (infeasibly) large file
+size (1407374883553280 bytes) with the minimum block size of 4K.
+
+This causes variable overflow.
+
+Link: https://lkml.kernel.org/r/20231113160901.6444-1-phillip@squashfs.org.uk
+Signed-off-by: Phillip Lougher <phillip@squashfs.org.uk>
+Reported-by: syzbot+604424eb051c2f696163@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/000000000000b1fda20609ede0d1@google.com/
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/squashfs/file.c        |    3 ++-
+ fs/squashfs/file_direct.c |    6 +++---
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-use-more-folio-api-in-__split_huge_page_tail
-+++ a/mm/huge_memory.c
-@@ -2509,13 +2509,13 @@ static void __split_huge_page_tail(struc
- 	clear_compound_head(page_tail);
+--- a/fs/squashfs/file.c~squashfs-fix-variable-overflow-triggered-by-sysbot
++++ a/fs/squashfs/file.c
+@@ -544,7 +544,8 @@ static void squashfs_readahead(struct re
+ 	struct squashfs_page_actor *actor;
+ 	unsigned int nr_pages = 0;
+ 	struct page **pages;
+-	int i, file_end = i_size_read(inode) >> msblk->block_log;
++	int i;
++	loff_t file_end = i_size_read(inode) >> msblk->block_log;
+ 	unsigned int max_pages = 1UL << shift;
  
- 	/* Finally unfreeze refcount. Additional reference from page cache. */
--	page_ref_unfreeze(page_tail, 1 + (!PageAnon(head) ||
--					  PageSwapCache(head)));
-+	page_ref_unfreeze(page_tail, 1 + (!folio_test_anon(folio) ||
-+					  folio_test_swapcache(folio)));
+ 	readahead_expand(ractl, start, (len | mask) + 1);
+--- a/fs/squashfs/file_direct.c~squashfs-fix-variable-overflow-triggered-by-sysbot
++++ a/fs/squashfs/file_direct.c
+@@ -26,10 +26,10 @@ int squashfs_readpage_block(struct page
+ 	struct inode *inode = target_page->mapping->host;
+ 	struct squashfs_sb_info *msblk = inode->i_sb->s_fs_info;
  
--	if (page_is_young(head))
--		set_page_young(page_tail);
--	if (page_is_idle(head))
--		set_page_idle(page_tail);
-+	if (folio_test_young(folio))
-+		folio_set_young(new_folio);
-+	if (folio_test_idle(folio))
-+		folio_set_idle(new_folio);
- 
- 	folio_xchg_last_cpupid(new_folio, folio_last_cpupid(folio));
- 
+-	int file_end = (i_size_read(inode) - 1) >> PAGE_SHIFT;
++	loff_t file_end = (i_size_read(inode) - 1) >> PAGE_SHIFT;
+ 	int mask = (1 << (msblk->block_log - PAGE_SHIFT)) - 1;
+-	int start_index = target_page->index & ~mask;
+-	int end_index = start_index | mask;
++	loff_t start_index = target_page->index & ~mask;
++	loff_t end_index = start_index | mask;
+ 	int i, n, pages, bytes, res = -ENOMEM;
+ 	struct page **page;
+ 	struct squashfs_page_actor *actor;
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from phillip@squashfs.org.uk are
 
-mm-task_mmu-use-a-folio-in-smaps_account.patch
-mm-task_mmu-use-a-folio-in-clear_refs_pte_range.patch
-page_idle-kill-page-idle-and-young-wrapper.patch
+squashfs-fix-variable-overflow-triggered-by-sysbot.patch
 
