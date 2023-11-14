@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12AC1C46CC7
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Nov 2023 23:12:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0465C4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Nov 2023 23:22:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231784AbjKNXMU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 14 Nov 2023 18:12:20 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60964 "EHLO
+        id S231617AbjKNXW4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 14 Nov 2023 18:22:56 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46212 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231518AbjKNXMT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2023 18:12:19 -0500
+        with ESMTP id S230364AbjKNXWz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2023 18:22:55 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3AA3D9
-        for <mm-commits@vger.kernel.org>; Tue, 14 Nov 2023 15:12:16 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81E09C433C8;
-        Tue, 14 Nov 2023 23:12:16 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2140DE
+        for <mm-commits@vger.kernel.org>; Tue, 14 Nov 2023 15:22:50 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73FFDC433C8;
+        Tue, 14 Nov 2023 23:22:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700003536;
-        bh=b1JOmO3QKF4szU71c4tUqpzTvL1EU3ivKCpWceQU2IU=;
+        s=korg; t=1700004170;
+        bh=33YrZsJKBaG5VnKmHwSZREGsWE3buMF39M6R4eWRErI=;
         h=Date:To:From:Subject:From;
-        b=fbKcsd6GxGuGNLFO+ep/vQ3xk0Dbiw5VAbkLbcjq1rCYCgY/91+JSDj/8oxTYmPS5
-         pflbmC2taEoaIe30EZ7q4+xI5iU1h8In7vtMHKsqGImvZln1hNGEZzLN3XaRlGtFxE
-         E2d+Pp3JdiBUjZpYn3x8W7HYyi6xxc6JqPZ7jPqY=
-Date:   Tue, 14 Nov 2023 15:12:15 -0800
-To:     mm-commits@vger.kernel.org, joe@perches.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=QgGFGGV2dB4G9Fwi67vF23LxUqEeUdKyCJSVaAI+2lZ5NGORRdR2YLXpyQ058Hlsu
+         pjgVgqms6hCTsDDCgM7hc2R+dGeKG57g4q2VS14DTPXW0nG3mzCNw70RxWMtkcMsjs
+         4Z4tQnVQgX0fYA/Sl7NlwwMw2Kxw69fQYgp/BXDE=
+Date:   Tue, 14 Nov 2023 15:22:49 -0800
+To:     mm-commits@vger.kernel.org, konishi.ryusuke@gmail.com,
+        willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-add-andrew-morton-for-lib.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231114231216.81E09C433C8@smtp.kernel.org>
+Subject: + nilfs2-add-nilfs_end_folio_io.patch added to mm-nonmm-unstable branch
+Message-Id: <20231114232250.73FFDC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,14 +36,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add Andrew Morton for lib/*
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-add-andrew-morton-for-lib.patch
+     Subject: nilfs2: add nilfs_end_folio_io()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     nilfs2-add-nilfs_end_folio_io.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-andrew-morton-for-lib.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-add-nilfs_end_folio_io.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,43 +59,156 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: MAINTAINERS: add Andrew Morton for lib/*
-Date: Tue Nov 14 03:02:04 PM PST 2023
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: nilfs2: add nilfs_end_folio_io()
+Date: Tue, 14 Nov 2023 17:44:17 +0900
 
-Add myself as the fallthough maintainer for material under lib/.
+Patch series "nilfs2: Folio conversions for file paths".
 
-Cc: Joe Perches <joe@perches.com>
+This series advances page->folio conversions for a wide range of nilfs2,
+including its file operations, block routines, and the log writer's
+writeback routines.  It doesn't cover large folios support, but it saves a
+lot of hidden compound_head() calls while preserving the existing support
+range behavior.
+
+The original series in post [1] also covered directory-related page->folio
+conversions, but that was put on hold because a regression was found in
+testing, so this is an excerpt from the first half of the original post.
+
+[1] https://lkml.kernel.org/r/20231106173903.1734114-1-willy@infradead.org
+
+I tested this series in both 32-bit and 64-bit environments, switching
+between normal and small block sizes.  I also reviewed all changes in all
+patches to ensure they do not break existing behavior.  There were no
+problems.
+
+
+This patch (of 20):
+
+This is the folio counterpart of the existing nilfs_end_page_io() which is
+retained as a wrapper of nilfs_end_folio_io().  Replaces nine hidden calls
+to compound_head() with one.
+
+Link: https://lkml.kernel.org/r/20231114084436.2755-1-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20231114084436.2755-2-konishi.ryusuke@gmail.com
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    7 +++++++
- 1 file changed, 7 insertions(+)
+ fs/nilfs2/segment.c |   36 ++++++++++++++++++++++--------------
+ 1 file changed, 22 insertions(+), 14 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-andrew-morton-for-lib
-+++ a/MAINTAINERS
-@@ -12209,6 +12209,13 @@ F:	include/linux/nd.h
- F:	include/uapi/linux/ndctl.h
- F:	tools/testing/nvdimm/
+--- a/fs/nilfs2/segment.c~nilfs2-add-nilfs_end_folio_io
++++ a/fs/nilfs2/segment.c
+@@ -1739,17 +1739,18 @@ static int nilfs_segctor_write(struct ni
+ 	return ret;
+ }
  
-+LIBRARY CODE
-+M:	Andrew Morton <akpm@linux-foundation.org>
-+L:	linux-kernel@vger.kernel.org
-+S:	Supported
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-nonmm-unstable
-+F:	lib/*
+-static void nilfs_end_page_io(struct page *page, int err)
++static void nilfs_end_folio_io(struct folio *folio, int err)
+ {
+-	if (!page)
++	if (!folio)
+ 		return;
+ 
+-	if (buffer_nilfs_node(page_buffers(page)) && !PageWriteback(page)) {
++	if (buffer_nilfs_node(folio_buffers(folio)) &&
++			!folio_test_writeback(folio)) {
+ 		/*
+ 		 * For b-tree node pages, this function may be called twice
+ 		 * or more because they might be split in a segment.
+ 		 */
+-		if (PageDirty(page)) {
++		if (folio_test_dirty(folio)) {
+ 			/*
+ 			 * For pages holding split b-tree node buffers, dirty
+ 			 * flag on the buffers may be cleared discretely.
+@@ -1757,24 +1758,31 @@ static void nilfs_end_page_io(struct pag
+ 			 * remaining buffers, and it must be cancelled if
+ 			 * all the buffers get cleaned later.
+ 			 */
+-			lock_page(page);
+-			if (nilfs_page_buffers_clean(page))
+-				__nilfs_clear_page_dirty(page);
+-			unlock_page(page);
++			folio_lock(folio);
++			if (nilfs_page_buffers_clean(&folio->page))
++				__nilfs_clear_page_dirty(&folio->page);
++			folio_unlock(folio);
+ 		}
+ 		return;
+ 	}
+ 
+ 	if (!err) {
+-		if (!nilfs_page_buffers_clean(page))
+-			__set_page_dirty_nobuffers(page);
+-		ClearPageError(page);
++		if (!nilfs_page_buffers_clean(&folio->page))
++			filemap_dirty_folio(folio->mapping, folio);
++		folio_clear_error(folio);
+ 	} else {
+-		__set_page_dirty_nobuffers(page);
+-		SetPageError(page);
++		filemap_dirty_folio(folio->mapping, folio);
++		folio_set_error(folio);
+ 	}
+ 
+-	end_page_writeback(page);
++	folio_end_writeback(folio);
++}
 +
- LICENSES and SPDX stuff
- M:	Thomas Gleixner <tglx@linutronix.de>
- M:	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
++static void nilfs_end_page_io(struct page *page, int err)
++{
++	if (!page)
++		return;
++	nilfs_end_folio_io(page_folio(page), err);
+ }
+ 
+ static void nilfs_abort_logs(struct list_head *logs, int err)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-fix-for-negative-counter-nr_file_hugepages-fix.patch
-maintainers-add-andrew-morton-for-lib.patch
-mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
-mm-add-folio_zero_tail-and-use-it-in-ext4-fix.patch
-mm-add-folio_fill_tail-and-use-it-in-iomap-fix.patch
-kernel-reboot-explicitly-notify-if-halt-occurred-instead-of-power-off-fix.patch
+mm-add-folio_zero_tail-and-use-it-in-ext4.patch
+mm-add-folio_fill_tail-and-use-it-in-iomap.patch
+gfs2-convert-stuffed_readpage-to-stuffed_read_folio.patch
+mm-remove-test_set_page_writeback.patch
+afs-do-not-test-the-return-value-of-folio_start_writeback.patch
+smb-do-not-test-the-return-value-of-folio_start_writeback.patch
+mm-return-void-from-folio_start_writeback-and-related-functions.patch
+mm-make-mapping_evict_folio-the-preferred-way-to-evict-clean-folios.patch
+mm-convert-__do_fault-to-use-a-folio.patch
+mm-use-mapping_evict_folio-in-truncate_error_page.patch
+mm-convert-soft_offline_in_use_page-to-use-a-folio.patch
+mm-convert-isolate_page-to-mf_isolate_folio.patch
+mm-remove-invalidate_inode_page.patch
+buffer-return-bool-from-grow_dev_folio.patch
+buffer-calculate-block-number-inside-folio_init_buffers.patch
+buffer-fix-grow_buffers-for-block-size-page_size.patch
+buffer-cast-block-to-loff_t-before-shifting-it.patch
+buffer-fix-various-functions-for-block-size-page_size.patch
+buffer-handle-large-folios-in-__block_write_begin_int.patch
+buffer-fix-more-functions-for-block-size-page_size.patch
+gfp-include-__gfp_nowarn-in-gfp_nowait.patch
+nilfs2-add-nilfs_end_folio_io.patch
+nilfs2-convert-nilfs_abort_logs-to-use-folios.patch
+nilfs2-convert-nilfs_segctor_complete_write-to-use-folios.patch
+nilfs2-convert-nilfs_forget_buffer-to-use-a-folio.patch
+nilfs2-convert-to-nilfs_folio_buffers_clean.patch
+nilfs2-convert-nilfs_writepage-to-use-a-folio.patch
+nilfs2-convert-nilfs_mdt_write_page-to-use-a-folio.patch
+nilfs2-convert-to-nilfs_clear_folio_dirty.patch
+nilfs2-convert-to-__nilfs_clear_folio_dirty.patch
+nilfs2-convert-nilfs_segctor_prepare_write-to-use-folios.patch
+nilfs2-convert-nilfs_page_mkwrite-to-use-a-folio.patch
+nilfs2-convert-nilfs_mdt_create_block-to-use-a-folio.patch
+nilfs2-convert-nilfs_mdt_submit_block-to-use-a-folio.patch
+nilfs2-convert-nilfs_gccache_submit_read_data-to-use-a-folio.patch
+nilfs2-convert-nilfs_btnode_create_block-to-use-a-folio.patch
+nilfs2-convert-nilfs_btnode_submit_block-to-use-a-folio.patch
+nilfs2-convert-nilfs_btnode_delete-to-use-a-folio.patch
+nilfs2-convert-nilfs_btnode_prepare_change_key-to-use-a-folio.patch
+nilfs2-convert-nilfs_btnode_commit_change_key-to-use-a-folio.patch
+nilfs2-convert-nilfs_btnode_abort_change_key-to-use-a-folio.patch
 
