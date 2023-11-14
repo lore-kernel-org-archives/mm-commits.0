@@ -2,86 +2,127 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15888C4332F
-	for <mm-commits@archiver.kernel.org>; Mon, 13 Nov 2023 17:31:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 666C3C4167D
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Nov 2023 22:53:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229549AbjKMRbj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Nov 2023 12:31:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59426 "EHLO
+        id S232511AbjKNWx4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 14 Nov 2023 17:53:56 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42238 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229454AbjKMRbi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Nov 2023 12:31:38 -0500
+        with ESMTP id S232322AbjKNWx4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2023 17:53:56 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2C111A5
-        for <mm-commits@vger.kernel.org>; Mon, 13 Nov 2023 09:31:35 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A200C433C8;
-        Mon, 13 Nov 2023 17:31:35 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 649BCE0
+        for <mm-commits@vger.kernel.org>; Tue, 14 Nov 2023 14:53:50 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 020DFC433C8;
+        Tue, 14 Nov 2023 22:53:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1699896695;
-        bh=h9GiXMk8a50z5oqTi3S/SRz4jNutpQ4amZTbw6d2ZxU=;
+        s=korg; t=1700002430;
+        bh=Dv5xn1YHKlDCPnSp59I3nSmSJuFTEdHSYzd80QEBJy8=;
         h=Date:To:From:Subject:From;
-        b=JLCufR/nr9MjzSC0VVHlo2LvxVe6cXMx7SuM5uHx55PLvCXJMt8hB4Y+OR59br3i+
-         WyhMiNwkoADhw36770626xvIi0HkqJC/DhGcqSU7Q/tcGT2iU9Vxlqzqn9vcZd+5jg
-         zetv0ZSIM/kJOAyGeQGfcA0Nexle2GyUb2UkQPNk=
-Date:   Mon, 13 Nov 2023 09:31:34 -0800
+        b=c4jvmPfsnPetTkmHz17Bj5WT1S/bAlamaDhZqGjCXgjKdKXf45lIjBbsdmLEsCbmw
+         K2hHkZchZZCBqVXjZsqxUZmVKuf+IGlvVaI2pW0tD5jW4rswPwn5cI9Np7NumokOae
+         n2hGKK/wj8fRT3iNlgegZOqJMWu05qmz7Pc1+CYg=
+Date:   Tue, 14 Nov 2023 14:53:49 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        p.raghav@samsung.com, mcgrof@kernel.org, lkp@intel.com,
-        konishi.ryusuke@gmail.com, hare@suse.de, akpm@linux-foundation.org,
-        akpm@linux-foundation.org
+        ryan.roberts@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [withdrawn] buffer-fix-grow_buffers-for-block-size-page_size-fix.patch removed from -mm tree
-Message-Id: <20231113173135.2A200C433C8@smtp.kernel.org>
+Subject: + mm-more-ptep_get-conversion.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231114225350.020DFC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The quilt patch titled
-     Subject: buffer-fix-grow_buffers-for-block-size-page_size-fix
-has been removed from the -mm tree.  Its filename was
-     buffer-fix-grow_buffers-for-block-size-page_size-fix.patch
+The patch titled
+     Subject: mm: more ptep_get() conversion
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-more-ptep_get-conversion.patch
 
-This patch was dropped because it was withdrawn
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-more-ptep_get-conversion.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: buffer-fix-grow_buffers-for-block-size-page_size-fix
-Date: Mon Nov 13 09:08:21 AM PST 2023
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: mm: more ptep_get() conversion
+Date: Tue, 14 Nov 2023 15:49:45 +0000
 
-hexagon wants __muloti4 so use a shift
+Commit c33c794828f2 ("mm: ptep_get() conversion") converted all (non-arch)
+call sites to use ptep_get() instead of doing a direct dereference of the
+pte.  Full rationale can be found in that commit's log.
 
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202311121240.AN8GbAbe-lkp@intel.com/
-Cc: Hannes Reinecke <hare@suse.de>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Pankaj Raghav <p.raghav@samsung.com>
-Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Since then, three new call sites have snuck in, which directly dereference
+the pte, so let's fix those up.
+
+Unfortunately there is no reliable automated mechanism to catch these; I'm
+relying on a combination of Coccinelle (which throws up a lot of false
+positives) and some compiler magic to force a compiler error on
+dereference (While this approach finds dereferences, it also yields a
+non-booting kernel so can't be committed).
+
+Link: https://lkml.kernel.org/r/20231114154945.490401-1-ryan.roberts@arm.com
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/filemap.c     |    2 +-
+ mm/ksm.c         |    2 +-
+ mm/userfaultfd.c |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/fs/buffer.c~buffer-fix-grow_buffers-for-block-size-page_size-fix
-+++ a/fs/buffer.c
-@@ -1099,7 +1099,7 @@ static bool grow_buffers(struct block_de
+--- a/mm/filemap.c~mm-more-ptep_get-conversion
++++ a/mm/filemap.c
+@@ -3443,7 +3443,7 @@ static vm_fault_t filemap_map_folio_rang
+ 		 * handled in the specific fault path, and it'll prohibit the
+ 		 * fault-around logic.
+ 		 */
+-		if (!pte_none(vmf->pte[count]))
++		if (!pte_none(ptep_get(&vmf->pte[count])))
+ 			goto skip;
+ 
+ 		count++;
+--- a/mm/ksm.c~mm-more-ptep_get-conversion
++++ a/mm/ksm.c
+@@ -468,7 +468,7 @@ static int break_ksm_pmd_entry(pmd_t *pm
+ 			page = pfn_swap_entry_to_page(entry);
  	}
- 
- 	/* Create a folio with the proper size buffers */
--	return grow_dev_folio(bdev, block, pos / PAGE_SIZE, size, gfp);
-+	return grow_dev_folio(bdev, block, pos >> PAGE_SHIFT, size, gfp);
+ 	/* return 1 if the page is an normal ksm page or KSM-placed zero page */
+-	ret = (page && PageKsm(page)) || is_ksm_zero_pte(*pte);
++	ret = (page && PageKsm(page)) || is_ksm_zero_pte(ptent);
+ 	pte_unmap_unlock(pte, ptl);
+ 	return ret;
  }
+--- a/mm/userfaultfd.c~mm-more-ptep_get-conversion
++++ a/mm/userfaultfd.c
+@@ -312,7 +312,7 @@ static int mfill_atomic_pte_poison(pmd_t
  
- static struct buffer_head *
+ 	ret = -EEXIST;
+ 	/* Refuse to overwrite any PTE, even a PTE marker (e.g. UFFD WP). */
+-	if (!pte_none(*dst_pte))
++	if (!pte_none(ptep_get(dst_pte)))
+ 		goto out_unlock;
+ 
+ 	set_pte_at(dst_mm, dst_addr, dst_pte, _dst_pte);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
-mm-fix-for-negative-counter-nr_file_hugepages-fix.patch
-mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
-mm-add-folio_zero_tail-and-use-it-in-ext4-fix.patch
-mm-add-folio_fill_tail-and-use-it-in-iomap-fix.patch
-kernel-reboot-explicitly-notify-if-halt-occurred-instead-of-power-off-fix.patch
+mm-more-ptep_get-conversion.patch
 
