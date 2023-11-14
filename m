@@ -2,33 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CFB7FC4167D
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Nov 2023 23:23:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F141AC47DBE
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Nov 2023 23:26:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234127AbjKNXXb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 14 Nov 2023 18:23:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52534 "EHLO
+        id S229796AbjKNX0K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 14 Nov 2023 18:26:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43200 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234204AbjKNXX1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2023 18:23:27 -0500
+        with ESMTP id S231518AbjKNX0J (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2023 18:26:09 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87B50E1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Nov 2023 15:23:23 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C4F7C433CB;
-        Tue, 14 Nov 2023 23:23:23 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC826D6
+        for <mm-commits@vger.kernel.org>; Tue, 14 Nov 2023 15:26:06 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69C0FC433C8;
+        Tue, 14 Nov 2023 23:26:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700004203;
-        bh=IhQpWT38dwBHdYl2bK26k6ez8Lkqy1I6OX1LJEgCP60=;
+        s=korg; t=1700004366;
+        bh=P36D7wLwLgfeL0Vw6MkyPX1cfCpysxE1b8OpTZbB+iU=;
         h=Date:To:From:Subject:From;
-        b=c43KxiKfNTi7K6jiMLoO/qeWIne+VZGS2PLQiyxy+j06Ryw5cMkVpwVG5d5KqQVc2
-         2KGFQzYIZvBAIVa6ImK6B98m73JxFMO4zJ6W74O0U7zCRLZ3G1KJT6vo+oRlfCJUuo
-         rlFWO49fApHXbAIIOcnHgVF+PXRMA6Q8O62FYDAY=
-Date:   Tue, 14 Nov 2023 15:23:22 -0800
-To:     mm-commits@vger.kernel.org, konishi.ryusuke@gmail.com,
-        willy@infradead.org, akpm@linux-foundation.org
+        b=zt76cqR9GYfap9UvsKAdIT83ibn+znYDGXsDeu7ve2cQ30V8UNv09rdrySMkoK+0y
+         cnEldfkoUlXa8TuS1iVvnEJ5tHhbLqyFFRTMK2f/C/y+XexqdBOmU4NLJSspzMl0lS
+         xMy0AGf//6mwfTOV4kb7RPotW7/kXibxs4pLj7f4=
+Date:   Tue, 14 Nov 2023 15:26:05 -0800
+To:     mm-commits@vger.kernel.org, rick.p.edgecombe@intel.com,
+        corbet@lwn.net, akpm@linux-foundation.org,
+        anshuman.khandual@arm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-convert-nilfs_btnode_commit_change_key-to-use-a-folio.patch added to mm-nonmm-unstable branch
-Message-Id: <20231114232323.1C4F7C433CB@smtp.kernel.org>
+Subject: + documentation-mm-drop-pte_bad-descriptions-from-arch-page-table-helpers.patch added to mm-unstable branch
+Message-Id: <20231114232606.69C0FC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,14 +37,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: convert nilfs_btnode_commit_change_key to use a folio
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-convert-nilfs_btnode_commit_change_key-to-use-a-folio.patch
+     Subject: Documentation/mm: drop pte_bad() descriptions from arch page table helpers
+has been added to the -mm mm-unstable branch.  Its filename is
+     documentation-mm-drop-pte_bad-descriptions-from-arch-page-table-helpers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-nilfs_btnode_commit_change_key-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-mm-drop-pte_bad-descriptions-from-arch-page-table-helpers.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,97 +60,38 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: nilfs2: convert nilfs_btnode_commit_change_key to use a folio
-Date: Tue, 14 Nov 2023 17:44:35 +0900
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: Documentation/mm: drop pte_bad() descriptions from arch page table helpers
+Date: Tue, 14 Nov 2023 12:04:56 +0530
 
-Saves one call to compound_head().
+pte_bad() never existed unlike similar helpers at PMU, PUD, and PGD level.
+This was added erroneously and hence should be dropped instead.
 
-Link: https://lkml.kernel.org/r/20231114084436.2755-20-konishi.ryusuke@gmail.com
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Link: https://lkml.kernel.org/r/20231114063456.339652-1-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Rick Edgecombe <rick.p.edgecombe@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/btnode.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ Documentation/mm/arch_pgtable_helpers.rst |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/fs/nilfs2/btnode.c~nilfs2-convert-nilfs_btnode_commit_change_key-to-use-a-folio
-+++ a/fs/nilfs2/btnode.c
-@@ -238,15 +238,15 @@ void nilfs_btnode_commit_change_key(stru
- {
- 	struct buffer_head *obh = ctxt->bh, *nbh = ctxt->newbh;
- 	__u64 oldkey = ctxt->oldkey, newkey = ctxt->newkey;
--	struct page *opage;
-+	struct folio *ofolio;
- 
- 	if (oldkey == newkey)
- 		return;
- 
- 	if (nbh == NULL) {	/* blocksize == pagesize */
--		opage = obh->b_page;
--		if (unlikely(oldkey != opage->index))
--			NILFS_PAGE_BUG(opage,
-+		ofolio = obh->b_folio;
-+		if (unlikely(oldkey != ofolio->index))
-+			NILFS_PAGE_BUG(&ofolio->page,
- 				       "invalid oldkey %lld (newkey=%lld)",
- 				       (unsigned long long)oldkey,
- 				       (unsigned long long)newkey);
-@@ -257,8 +257,8 @@ void nilfs_btnode_commit_change_key(stru
- 		__xa_set_mark(&btnc->i_pages, newkey, PAGECACHE_TAG_DIRTY);
- 		xa_unlock_irq(&btnc->i_pages);
- 
--		opage->index = obh->b_blocknr = newkey;
--		unlock_page(opage);
-+		ofolio->index = obh->b_blocknr = newkey;
-+		folio_unlock(ofolio);
- 	} else {
- 		nilfs_copy_buffer(nbh, obh);
- 		mark_buffer_dirty(nbh);
+--- a/Documentation/mm/arch_pgtable_helpers.rst~documentation-mm-drop-pte_bad-descriptions-from-arch-page-table-helpers
++++ a/Documentation/mm/arch_pgtable_helpers.rst
+@@ -18,8 +18,6 @@ PTE Page Table Helpers
+ +---------------------------+--------------------------------------------------+
+ | pte_same                  | Tests whether both PTE entries are the same      |
+ +---------------------------+--------------------------------------------------+
+-| pte_bad                   | Tests a non-table mapped PTE                     |
+-+---------------------------+--------------------------------------------------+
+ | pte_present               | Tests a valid mapped PTE                         |
+ +---------------------------+--------------------------------------------------+
+ | pte_young                 | Tests a young PTE                                |
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-mm-add-folio_zero_tail-and-use-it-in-ext4.patch
-mm-add-folio_fill_tail-and-use-it-in-iomap.patch
-gfs2-convert-stuffed_readpage-to-stuffed_read_folio.patch
-mm-remove-test_set_page_writeback.patch
-afs-do-not-test-the-return-value-of-folio_start_writeback.patch
-smb-do-not-test-the-return-value-of-folio_start_writeback.patch
-mm-return-void-from-folio_start_writeback-and-related-functions.patch
-mm-make-mapping_evict_folio-the-preferred-way-to-evict-clean-folios.patch
-mm-convert-__do_fault-to-use-a-folio.patch
-mm-use-mapping_evict_folio-in-truncate_error_page.patch
-mm-convert-soft_offline_in_use_page-to-use-a-folio.patch
-mm-convert-isolate_page-to-mf_isolate_folio.patch
-mm-remove-invalidate_inode_page.patch
-buffer-return-bool-from-grow_dev_folio.patch
-buffer-calculate-block-number-inside-folio_init_buffers.patch
-buffer-fix-grow_buffers-for-block-size-page_size.patch
-buffer-cast-block-to-loff_t-before-shifting-it.patch
-buffer-fix-various-functions-for-block-size-page_size.patch
-buffer-handle-large-folios-in-__block_write_begin_int.patch
-buffer-fix-more-functions-for-block-size-page_size.patch
-gfp-include-__gfp_nowarn-in-gfp_nowait.patch
-nilfs2-add-nilfs_end_folio_io.patch
-nilfs2-convert-nilfs_abort_logs-to-use-folios.patch
-nilfs2-convert-nilfs_segctor_complete_write-to-use-folios.patch
-nilfs2-convert-nilfs_forget_buffer-to-use-a-folio.patch
-nilfs2-convert-to-nilfs_folio_buffers_clean.patch
-nilfs2-convert-nilfs_writepage-to-use-a-folio.patch
-nilfs2-convert-nilfs_mdt_write_page-to-use-a-folio.patch
-nilfs2-convert-to-nilfs_clear_folio_dirty.patch
-nilfs2-convert-to-__nilfs_clear_folio_dirty.patch
-nilfs2-convert-nilfs_segctor_prepare_write-to-use-folios.patch
-nilfs2-convert-nilfs_page_mkwrite-to-use-a-folio.patch
-nilfs2-convert-nilfs_mdt_create_block-to-use-a-folio.patch
-nilfs2-convert-nilfs_mdt_submit_block-to-use-a-folio.patch
-nilfs2-convert-nilfs_gccache_submit_read_data-to-use-a-folio.patch
-nilfs2-convert-nilfs_btnode_create_block-to-use-a-folio.patch
-nilfs2-convert-nilfs_btnode_submit_block-to-use-a-folio.patch
-nilfs2-convert-nilfs_btnode_delete-to-use-a-folio.patch
-nilfs2-convert-nilfs_btnode_prepare_change_key-to-use-a-folio.patch
-nilfs2-convert-nilfs_btnode_commit_change_key-to-use-a-folio.patch
-nilfs2-convert-nilfs_btnode_abort_change_key-to-use-a-folio.patch
+documentation-mm-drop-pte_bad-descriptions-from-arch-page-table-helpers.patch
 
