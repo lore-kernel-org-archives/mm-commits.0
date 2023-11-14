@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9D0AC4167D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D5BCC07EB9
 	for <mm-commits@archiver.kernel.org>; Tue, 14 Nov 2023 23:23:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234107AbjKNXXX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 14 Nov 2023 18:23:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52436 "EHLO
+        id S234167AbjKNXXW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 14 Nov 2023 18:23:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52432 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234209AbjKNXXV (ORCPT
+        with ESMTP id S234204AbjKNXXV (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2023 18:23:21 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14DACE3
-        for <mm-commits@vger.kernel.org>; Tue, 14 Nov 2023 15:23:15 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87FC1C433CB;
-        Tue, 14 Nov 2023 23:23:14 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4131ADF
+        for <mm-commits@vger.kernel.org>; Tue, 14 Nov 2023 15:23:13 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D446CC433C9;
+        Tue, 14 Nov 2023 23:23:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700004194;
-        bh=6EVziVJ2nAny6DElU/G2MVvOV7zy4q/AxweQsUemcBg=;
+        s=korg; t=1700004192;
+        bh=EIgASdRGFtulAEfAFD0XucnXnbqzdOd8ETKdf1qHNT8=;
         h=Date:To:From:Subject:From;
-        b=LmFgZyBZAjnUjD6N96+biQtrmGQMGL4wnBS5LKRdMdfzQSDt+bePd3Z0u68/Fd1DN
-         9kyA2dGRnjTUYHVocq9Z7Rwh7e2uP5g0eE7AB9DpgPjWkvipeYS/AfXOtBUpBxxa/4
-         l2d4445tTyQ6/HPQrt7r04Q/0HnRUuTALKHn47UU=
-Date:   Tue, 14 Nov 2023 15:23:13 -0800
+        b=iQtJijaio4J3suQnBm68b4z8GsPP7ODPhRIdZaEuqFqjo4R2hNxnlu7xZzxy0UTii
+         m2IPkIOzWv+kM1mMwIDXJKr/oDOxg3Woer8ghTeFDNSCatBsYvorVTBLPwfDDbxAYP
+         VzH+r5KtibV39WcgdDKl3/AWUsmYRN/9Ew2JP1EM=
+Date:   Tue, 14 Nov 2023 15:23:12 -0800
 To:     mm-commits@vger.kernel.org, konishi.ryusuke@gmail.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-convert-nilfs_gccache_submit_read_data-to-use-a-folio.patch added to mm-nonmm-unstable branch
-Message-Id: <20231114232314.87FC1C433CB@smtp.kernel.org>
+Subject: + nilfs2-convert-nilfs_mdt_submit_block-to-use-a-folio.patch added to mm-nonmm-unstable branch
+Message-Id: <20231114232312.D446CC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: convert nilfs_gccache_submit_read_data to use a folio
+     Subject: nilfs2: convert nilfs_mdt_submit_block to use a folio
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-convert-nilfs_gccache_submit_read_data-to-use-a-folio.patch
+     nilfs2-convert-nilfs_mdt_submit_block-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-nilfs_gccache_submit_read_data-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-nilfs_mdt_submit_block-to-use-a-folio.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,33 +60,33 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: nilfs2: convert nilfs_gccache_submit_read_data to use a folio
-Date: Tue, 14 Nov 2023 17:44:30 +0900
+Subject: nilfs2: convert nilfs_mdt_submit_block to use a folio
+Date: Tue, 14 Nov 2023 17:44:29 +0900
 
 Saves two calls to compound_head().
 
-Link: https://lkml.kernel.org/r/20231114084436.2755-15-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20231114084436.2755-14-konishi.ryusuke@gmail.com
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/gcinode.c |    4 ++--
+ fs/nilfs2/mdt.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/nilfs2/gcinode.c~nilfs2-convert-nilfs_gccache_submit_read_data-to-use-a-folio
-+++ a/fs/nilfs2/gcinode.c
-@@ -98,8 +98,8 @@ int nilfs_gccache_submit_read_data(struc
+--- a/fs/nilfs2/mdt.c~nilfs2-convert-nilfs_mdt_submit_block-to-use-a-folio
++++ a/fs/nilfs2/mdt.c
+@@ -158,8 +158,8 @@ nilfs_mdt_submit_block(struct inode *ino
  	*out_bh = bh;
  
-  failed:
+  failed_bh:
 -	unlock_page(bh->b_page);
 -	put_page(bh->b_page);
 +	folio_unlock(bh->b_folio);
 +	folio_put(bh->b_folio);
- 	if (unlikely(err))
- 		brelse(bh);
- 	return err;
+ 	brelse(bh);
+  failed:
+ 	return ret;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
