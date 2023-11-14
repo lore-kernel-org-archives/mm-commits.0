@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67E77C4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Nov 2023 23:23:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55F5EC07EB9
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Nov 2023 23:23:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234180AbjKNXXN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 14 Nov 2023 18:23:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54372 "EHLO
+        id S234097AbjKNXXO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 14 Nov 2023 18:23:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55726 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234107AbjKNXXJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2023 18:23:09 -0500
+        with ESMTP id S234167AbjKNXXM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2023 18:23:12 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3341CDC
-        for <mm-commits@vger.kernel.org>; Tue, 14 Nov 2023 15:23:06 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3F92C433C8;
-        Tue, 14 Nov 2023 23:23:05 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B39EE3
+        for <mm-commits@vger.kernel.org>; Tue, 14 Nov 2023 15:23:08 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0219C433C9;
+        Tue, 14 Nov 2023 23:23:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700004185;
-        bh=Pw1PT23ZUuYvxWUsYLnu1hdnyLbODmuwx0Qaxn/oH34=;
+        s=korg; t=1700004188;
+        bh=cbMC8D1bzEWhtSLsZqL8MxOqyKSKqiNiTdGXs3T1zZA=;
         h=Date:To:From:Subject:From;
-        b=iTUunqKdv3GW6QoffHrzgYJ59WfSCeYi+NKkxhZBCn6W8FZXQUusASb87sYTbIy3o
-         WZXtjxXrQOTJsYTjbkq9/76sREHjOmh/+m2mPnT+O6BRMk5f3FMI3oBtCseKq5NnOk
-         9wqjyDoqN58JfRWPUzOq9Dki8ESN+88lCIFwKJSk=
-Date:   Tue, 14 Nov 2023 15:23:05 -0800
+        b=Ax0m5w+5xKRcpKPEu8GetCb8BCMWqfRqgHzsX/NHXh97ZCGguvIZPOr+EoCJap4vj
+         9ho4DHq/D3dtSUAmyOujpMsWjNG/I3CdPyySnDv2VfFJSdGED6372lOGHS0mzxekWO
+         C82muADT1bA5HhWSjT2llLuEJGzAFsQu9c2s8biE=
+Date:   Tue, 14 Nov 2023 15:23:07 -0800
 To:     mm-commits@vger.kernel.org, konishi.ryusuke@gmail.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-convert-to-__nilfs_clear_folio_dirty.patch added to mm-nonmm-unstable branch
-Message-Id: <20231114232305.C3F92C433C8@smtp.kernel.org>
+Subject: + nilfs2-convert-nilfs_segctor_prepare_write-to-use-folios.patch added to mm-nonmm-unstable branch
+Message-Id: <20231114232307.F0219C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: convert to __nilfs_clear_folio_dirty()
+     Subject: nilfs2: convert nilfs_segctor_prepare_write to use folios
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-convert-to-__nilfs_clear_folio_dirty.patch
+     nilfs2-convert-nilfs_segctor_prepare_write-to-use-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-to-__nilfs_clear_folio_dirty.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-nilfs_segctor_prepare_write-to-use-folios.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,97 +60,120 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: nilfs2: convert to __nilfs_clear_folio_dirty()
-Date: Tue, 14 Nov 2023 17:44:25 +0900
+Subject: nilfs2: convert nilfs_segctor_prepare_write to use folios
+Date: Tue, 14 Nov 2023 17:44:26 +0900
 
-All callers now have a folio, so convert to pass a folio.  No caller uses
-the return value, so make it return void.  Removes a couple of hidden
-calls to compound_head().
+Use the new folio APIs, saving 17 hidden calls to compound_head().
 
-Link: https://lkml.kernel.org/r/20231114084436.2755-10-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20231114084436.2755-11-konishi.ryusuke@gmail.com
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/page.c    |   19 ++++++++++---------
- fs/nilfs2/page.h    |    2 +-
- fs/nilfs2/segment.c |    2 +-
- 3 files changed, 12 insertions(+), 11 deletions(-)
+ fs/nilfs2/segment.c |   58 +++++++++++++++++++++---------------------
+ 1 file changed, 29 insertions(+), 29 deletions(-)
 
---- a/fs/nilfs2/page.c~nilfs2-convert-to-__nilfs_clear_folio_dirty
-+++ a/fs/nilfs2/page.c
-@@ -82,7 +82,7 @@ void nilfs_forget_buffer(struct buffer_h
- 	lock_buffer(bh);
- 	set_mask_bits(&bh->b_state, clear_bits, 0);
- 	if (nilfs_folio_buffers_clean(folio))
--		__nilfs_clear_page_dirty(&folio->page);
-+		__nilfs_clear_folio_dirty(folio);
- 
- 	bh->b_blocknr = -1;
- 	folio_clear_uptodate(folio);
-@@ -428,7 +428,7 @@ void nilfs_clear_folio_dirty(struct foli
- 		} while (bh = bh->b_this_page, bh != head);
- 	}
- 
--	__nilfs_clear_page_dirty(&folio->page);
-+	__nilfs_clear_folio_dirty(folio);
- }
- 
- unsigned int nilfs_page_count_clean_buffers(struct page *page,
-@@ -458,22 +458,23 @@ unsigned int nilfs_page_count_clean_buff
-  * 2) Some B-tree operations like insertion or deletion may dispose buffers
-  *    in dirty state, and this needs to cancel the dirty state of their pages.
-  */
--int __nilfs_clear_page_dirty(struct page *page)
-+void __nilfs_clear_folio_dirty(struct folio *folio)
- {
--	struct address_space *mapping = page->mapping;
-+	struct address_space *mapping = folio->mapping;
- 
- 	if (mapping) {
- 		xa_lock_irq(&mapping->i_pages);
--		if (test_bit(PG_dirty, &page->flags)) {
--			__xa_clear_mark(&mapping->i_pages, page_index(page),
-+		if (folio_test_dirty(folio)) {
-+			__xa_clear_mark(&mapping->i_pages, folio->index,
- 					     PAGECACHE_TAG_DIRTY);
- 			xa_unlock_irq(&mapping->i_pages);
--			return clear_page_dirty_for_io(page);
-+			folio_clear_dirty_for_io(folio);
-+			return;
- 		}
- 		xa_unlock_irq(&mapping->i_pages);
--		return 0;
-+		return;
- 	}
--	return TestClearPageDirty(page);
-+	folio_clear_dirty(folio);
- }
- 
- /**
---- a/fs/nilfs2/page.h~nilfs2-convert-to-__nilfs_clear_folio_dirty
-+++ a/fs/nilfs2/page.h
-@@ -30,7 +30,7 @@ BUFFER_FNS(NILFS_Checked, nilfs_checked)
- BUFFER_FNS(NILFS_Redirected, nilfs_redirected)	/* redirected to a copy */
- 
- 
--int __nilfs_clear_page_dirty(struct page *);
-+void __nilfs_clear_folio_dirty(struct folio *);
- 
- struct buffer_head *nilfs_grab_buffer(struct inode *, struct address_space *,
- 				      unsigned long, unsigned long);
---- a/fs/nilfs2/segment.c~nilfs2-convert-to-__nilfs_clear_folio_dirty
+--- a/fs/nilfs2/segment.c~nilfs2-convert-nilfs_segctor_prepare_write-to-use-folios
 +++ a/fs/nilfs2/segment.c
-@@ -1760,7 +1760,7 @@ static void nilfs_end_folio_io(struct fo
- 			 */
- 			folio_lock(folio);
- 			if (nilfs_folio_buffers_clean(folio))
--				__nilfs_clear_page_dirty(&folio->page);
-+				__nilfs_clear_folio_dirty(folio);
- 			folio_unlock(folio);
- 		}
+@@ -1665,39 +1665,39 @@ static int nilfs_segctor_assign(struct n
+ 	return 0;
+ }
+ 
+-static void nilfs_begin_page_io(struct page *page)
++static void nilfs_begin_folio_io(struct folio *folio)
+ {
+-	if (!page || PageWriteback(page))
++	if (!folio || folio_test_writeback(folio))
+ 		/*
+ 		 * For split b-tree node pages, this function may be called
+ 		 * twice.  We ignore the 2nd or later calls by this check.
+ 		 */
  		return;
+ 
+-	lock_page(page);
+-	clear_page_dirty_for_io(page);
+-	set_page_writeback(page);
+-	unlock_page(page);
++	folio_lock(folio);
++	folio_clear_dirty_for_io(folio);
++	folio_start_writeback(folio);
++	folio_unlock(folio);
+ }
+ 
+ static void nilfs_segctor_prepare_write(struct nilfs_sc_info *sci)
+ {
+ 	struct nilfs_segment_buffer *segbuf;
+-	struct page *bd_page = NULL, *fs_page = NULL;
++	struct folio *bd_folio = NULL, *fs_folio = NULL;
+ 
+ 	list_for_each_entry(segbuf, &sci->sc_segbufs, sb_list) {
+ 		struct buffer_head *bh;
+ 
+ 		list_for_each_entry(bh, &segbuf->sb_segsum_buffers,
+ 				    b_assoc_buffers) {
+-			if (bh->b_page != bd_page) {
+-				if (bd_page) {
+-					lock_page(bd_page);
+-					clear_page_dirty_for_io(bd_page);
+-					set_page_writeback(bd_page);
+-					unlock_page(bd_page);
++			if (bh->b_folio != bd_folio) {
++				if (bd_folio) {
++					folio_lock(bd_folio);
++					folio_clear_dirty_for_io(bd_folio);
++					folio_start_writeback(bd_folio);
++					folio_unlock(bd_folio);
+ 				}
+-				bd_page = bh->b_page;
++				bd_folio = bh->b_folio;
+ 			}
+ 		}
+ 
+@@ -1705,28 +1705,28 @@ static void nilfs_segctor_prepare_write(
+ 				    b_assoc_buffers) {
+ 			set_buffer_async_write(bh);
+ 			if (bh == segbuf->sb_super_root) {
+-				if (bh->b_page != bd_page) {
+-					lock_page(bd_page);
+-					clear_page_dirty_for_io(bd_page);
+-					set_page_writeback(bd_page);
+-					unlock_page(bd_page);
+-					bd_page = bh->b_page;
++				if (bh->b_folio != bd_folio) {
++					folio_lock(bd_folio);
++					folio_clear_dirty_for_io(bd_folio);
++					folio_start_writeback(bd_folio);
++					folio_unlock(bd_folio);
++					bd_folio = bh->b_folio;
+ 				}
+ 				break;
+ 			}
+-			if (bh->b_page != fs_page) {
+-				nilfs_begin_page_io(fs_page);
+-				fs_page = bh->b_page;
++			if (bh->b_folio != fs_folio) {
++				nilfs_begin_folio_io(fs_folio);
++				fs_folio = bh->b_folio;
+ 			}
+ 		}
+ 	}
+-	if (bd_page) {
+-		lock_page(bd_page);
+-		clear_page_dirty_for_io(bd_page);
+-		set_page_writeback(bd_page);
+-		unlock_page(bd_page);
++	if (bd_folio) {
++		folio_lock(bd_folio);
++		folio_clear_dirty_for_io(bd_folio);
++		folio_start_writeback(bd_folio);
++		folio_unlock(bd_folio);
+ 	}
+-	nilfs_begin_page_io(fs_page);
++	nilfs_begin_folio_io(fs_folio);
+ }
+ 
+ static int nilfs_segctor_write(struct nilfs_sc_info *sci,
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
