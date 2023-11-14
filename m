@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0934EC07EBA
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Nov 2023 23:23:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93FEDC4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Nov 2023 23:23:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234196AbjKNXXY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 14 Nov 2023 18:23:24 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55810 "EHLO
+        id S234211AbjKNXXa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 14 Nov 2023 18:23:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52472 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234127AbjKNXXW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2023 18:23:22 -0500
+        with ESMTP id S234189AbjKNXXX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2023 18:23:23 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6CE40EB
-        for <mm-commits@vger.kernel.org>; Tue, 14 Nov 2023 15:23:18 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04FD0C433C7;
-        Tue, 14 Nov 2023 23:23:17 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16A39D6
+        for <mm-commits@vger.kernel.org>; Tue, 14 Nov 2023 15:23:20 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8291C433C8;
+        Tue, 14 Nov 2023 23:23:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700004198;
-        bh=DqKIk1elu4BTI0qCUQ9yLeBuK6T8jNRvt1A8rd0L71M=;
+        s=korg; t=1700004199;
+        bh=RZcbYvZftW2YIabycJbqUvgswTUNdaOIg59Y4F6O1uk=;
         h=Date:To:From:Subject:From;
-        b=F2ExckuZrTBVFCT6vh1Pr7KFetZ5Eaj8fTUdTUQO+iknbP6uh+WCC5VhNp+QOIlh6
-         WqcTLjyZgX4oshNsuZcvoLjQJgTZ+sA4peNKiNZbiL9Ip6YzZU5Hz4xyxlnWlv8ZQU
-         BqJ0RjYdDhXSMF3DeJkYbqbaZQvXz2DvaPGKBh6M=
-Date:   Tue, 14 Nov 2023 15:23:17 -0800
+        b=U5QfoJDBvkuKlLF2Yn+caEk9HrEhkk9QZMPC7HnnOQahYNVjsFk4FCFxpu6XHmgiN
+         Bqq0X/PwP/4gUO/dDWOQHCHB/TEbxyIgKoR1rW0+ttjyp71AIjTdePJOXs8kprpqsv
+         hyOFChsM4E7qj0IAiGlrn2ZintKGE65v5TnTtdb8=
+Date:   Tue, 14 Nov 2023 15:23:19 -0800
 To:     mm-commits@vger.kernel.org, konishi.ryusuke@gmail.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-convert-nilfs_btnode_submit_block-to-use-a-folio.patch added to mm-nonmm-unstable branch
-Message-Id: <20231114232318.04FD0C433C7@smtp.kernel.org>
+Subject: + nilfs2-convert-nilfs_btnode_delete-to-use-a-folio.patch added to mm-nonmm-unstable branch
+Message-Id: <20231114232319.A8291C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: convert nilfs_btnode_submit_block to use a folio
+     Subject: nilfs2: convert nilfs_btnode_delete to use a folio
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-convert-nilfs_btnode_submit_block-to-use-a-folio.patch
+     nilfs2-convert-nilfs_btnode_delete-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-nilfs_btnode_submit_block-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-nilfs_btnode_delete-to-use-a-folio.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,51 +60,51 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: nilfs2: convert nilfs_btnode_submit_block to use a folio
-Date: Tue, 14 Nov 2023 17:44:32 +0900
+Subject: nilfs2: convert nilfs_btnode_delete to use a folio
+Date: Tue, 14 Nov 2023 17:44:33 +0900
 
-Saves two calls to compound_head().
+Saves six calls to compound_head().
 
-Link: https://lkml.kernel.org/r/20231114084436.2755-17-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20231114084436.2755-18-konishi.ryusuke@gmail.com
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/btnode.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/nilfs2/btnode.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
---- a/fs/nilfs2/btnode.c~nilfs2-convert-nilfs_btnode_submit_block-to-use-a-folio
+--- a/fs/nilfs2/btnode.c~nilfs2-convert-nilfs_btnode_delete-to-use-a-folio
 +++ a/fs/nilfs2/btnode.c
-@@ -75,7 +75,7 @@ int nilfs_btnode_submit_block(struct add
+@@ -145,19 +145,19 @@ out_locked:
+ void nilfs_btnode_delete(struct buffer_head *bh)
  {
- 	struct buffer_head *bh;
- 	struct inode *inode = btnc->host;
--	struct page *page;
-+	struct folio *folio;
- 	int err;
+ 	struct address_space *mapping;
+-	struct page *page = bh->b_page;
+-	pgoff_t index = page_index(page);
++	struct folio *folio = bh->b_folio;
++	pgoff_t index = folio->index;
+ 	int still_dirty;
  
- 	bh = nilfs_grab_buffer(inode, btnc, blocknr, BIT(BH_NILFS_Node));
-@@ -83,7 +83,7 @@ int nilfs_btnode_submit_block(struct add
- 		return -ENOMEM;
+-	get_page(page);
+-	lock_page(page);
+-	wait_on_page_writeback(page);
++	folio_get(folio);
++	folio_lock(folio);
++	folio_wait_writeback(folio);
  
- 	err = -EEXIST; /* internal code */
--	page = bh->b_page;
-+	folio = bh->b_folio;
- 
- 	if (buffer_uptodate(bh) || buffer_dirty(bh))
- 		goto found;
-@@ -130,8 +130,8 @@ found:
- 	*pbh = bh;
- 
- out_locked:
+ 	nilfs_forget_buffer(bh);
+-	still_dirty = PageDirty(page);
+-	mapping = page->mapping;
 -	unlock_page(page);
 -	put_page(page);
++	still_dirty = folio_test_dirty(folio);
++	mapping = folio->mapping;
 +	folio_unlock(folio);
 +	folio_put(folio);
- 	return err;
- }
  
+ 	if (!still_dirty && mapping)
+ 		invalidate_inode_pages2_range(mapping, index, index);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
