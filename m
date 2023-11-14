@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 040EFC4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Nov 2023 23:23:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C69BC4167D
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Nov 2023 23:23:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231518AbjKNXXC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 14 Nov 2023 18:23:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46258 "EHLO
+        id S230364AbjKNXXD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 14 Nov 2023 18:23:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46262 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234004AbjKNXW6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2023 18:22:58 -0500
+        with ESMTP id S234039AbjKNXW7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2023 18:22:59 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 581E4DD
-        for <mm-commits@vger.kernel.org>; Tue, 14 Nov 2023 15:22:54 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E611FC433C8;
-        Tue, 14 Nov 2023 23:22:53 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27876DE
+        for <mm-commits@vger.kernel.org>; Tue, 14 Nov 2023 15:22:56 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6C72C433C9;
+        Tue, 14 Nov 2023 23:22:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700004174;
-        bh=YHPWQ6z+uhhffxLGPb5PEqdwjpIiXLTQgqNxUYr5SSc=;
+        s=korg; t=1700004175;
+        bh=ngIE8mRYrTElWeogxO1NLISXbkr4eNpJ5dRfLznnfjM=;
         h=Date:To:From:Subject:From;
-        b=jffM0j38ZmclfpMFcGDzmXBpPlfdlsUuwT3DVdYZ+DvLAqDT+prGCaW87Nqe7gqhy
-         PryVl0gCrt8wBIJthvxn4rT/bogHLm2qaYkAvcxxEf9D+4LHrw/9rlJn8KBU197Nc/
-         ZlTazMDTapDSi2r0NHEjgu/vzzf/bObTh8DlFPRM=
-Date:   Tue, 14 Nov 2023 15:22:53 -0800
+        b=nNpadgDOkGwtArNKlIFePDuNEsUklPR5T6yM1ntTIZjoWazmaepcLEig3WgxJz79K
+         xPT02QwNnH52gXQiLOY0UVdrgAgPJ/VwGKY13iG+WXNOv+1TBdS4AvKn8G6NLQ2d/Y
+         W7J9je97buIvl/5FcPIlhj4odT9pgisEXFgcCfeI=
+Date:   Tue, 14 Nov 2023 15:22:55 -0800
 To:     mm-commits@vger.kernel.org, konishi.ryusuke@gmail.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-convert-nilfs_segctor_complete_write-to-use-folios.patch added to mm-nonmm-unstable branch
-Message-Id: <20231114232253.E611FC433C8@smtp.kernel.org>
+Subject: + nilfs2-convert-nilfs_forget_buffer-to-use-a-folio.patch added to mm-nonmm-unstable branch
+Message-Id: <20231114232255.B6C72C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: convert nilfs_segctor_complete_write to use folios
+     Subject: nilfs2: convert nilfs_forget_buffer to use a folio
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-convert-nilfs_segctor_complete_write-to-use-folios.patch
+     nilfs2-convert-nilfs_forget_buffer-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-nilfs_segctor_complete_write-to-use-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-nilfs_forget_buffer-to-use-a-folio.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,119 +60,48 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: nilfs2: convert nilfs_segctor_complete_write to use folios
-Date: Tue, 14 Nov 2023 17:44:19 +0900
+Subject: nilfs2: convert nilfs_forget_buffer to use a folio
+Date: Tue, 14 Nov 2023 17:44:20 +0900
 
-Use the new folio APIs, saving five calls to compound_head().  This
-includes the last callers of nilfs_end_page_io(), so remove that too.
+Save two hidden calls to compound_head().
 
-Link: https://lkml.kernel.org/r/20231114084436.2755-4-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20231114084436.2755-5-konishi.ryusuke@gmail.com
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segment.c |   49 ++++++++++++++++++------------------------
- 1 file changed, 21 insertions(+), 28 deletions(-)
+ fs/nilfs2/page.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/fs/nilfs2/segment.c~nilfs2-convert-nilfs_segctor_complete_write-to-use-folios
-+++ a/fs/nilfs2/segment.c
-@@ -1778,13 +1778,6 @@ static void nilfs_end_folio_io(struct fo
- 	folio_end_writeback(folio);
+--- a/fs/nilfs2/page.c~nilfs2-convert-nilfs_forget_buffer-to-use-a-folio
++++ a/fs/nilfs2/page.c
+@@ -73,7 +73,7 @@ struct buffer_head *nilfs_grab_buffer(st
+  */
+ void nilfs_forget_buffer(struct buffer_head *bh)
+ {
+-	struct page *page = bh->b_page;
++	struct folio *folio = bh->b_folio;
+ 	const unsigned long clear_bits =
+ 		(BIT(BH_Uptodate) | BIT(BH_Dirty) | BIT(BH_Mapped) |
+ 		 BIT(BH_Async_Write) | BIT(BH_NILFS_Volatile) |
+@@ -81,12 +81,12 @@ void nilfs_forget_buffer(struct buffer_h
+ 
+ 	lock_buffer(bh);
+ 	set_mask_bits(&bh->b_state, clear_bits, 0);
+-	if (nilfs_page_buffers_clean(page))
+-		__nilfs_clear_page_dirty(page);
++	if (nilfs_page_buffers_clean(&folio->page))
++		__nilfs_clear_page_dirty(&folio->page);
+ 
+ 	bh->b_blocknr = -1;
+-	ClearPageUptodate(page);
+-	ClearPageMappedToDisk(page);
++	folio_clear_uptodate(folio);
++	folio_clear_mappedtodisk(folio);
+ 	unlock_buffer(bh);
+ 	brelse(bh);
  }
- 
--static void nilfs_end_page_io(struct page *page, int err)
--{
--	if (!page)
--		return;
--	nilfs_end_folio_io(page_folio(page), err);
--}
--
- static void nilfs_abort_logs(struct list_head *logs, int err)
- {
- 	struct nilfs_segment_buffer *segbuf;
-@@ -1867,7 +1860,7 @@ static void nilfs_set_next_segment(struc
- static void nilfs_segctor_complete_write(struct nilfs_sc_info *sci)
- {
- 	struct nilfs_segment_buffer *segbuf;
--	struct page *bd_page = NULL, *fs_page = NULL;
-+	struct folio *bd_folio = NULL, *fs_folio = NULL;
- 	struct the_nilfs *nilfs = sci->sc_super->s_fs_info;
- 	int update_sr = false;
- 
-@@ -1878,21 +1871,21 @@ static void nilfs_segctor_complete_write
- 				    b_assoc_buffers) {
- 			set_buffer_uptodate(bh);
- 			clear_buffer_dirty(bh);
--			if (bh->b_page != bd_page) {
--				if (bd_page)
--					end_page_writeback(bd_page);
--				bd_page = bh->b_page;
-+			if (bh->b_folio != bd_folio) {
-+				if (bd_folio)
-+					folio_end_writeback(bd_folio);
-+				bd_folio = bh->b_folio;
- 			}
- 		}
- 		/*
--		 * We assume that the buffers which belong to the same page
-+		 * We assume that the buffers which belong to the same folio
- 		 * continue over the buffer list.
--		 * Under this assumption, the last BHs of pages is
--		 * identifiable by the discontinuity of bh->b_page
--		 * (page != fs_page).
-+		 * Under this assumption, the last BHs of folios is
-+		 * identifiable by the discontinuity of bh->b_folio
-+		 * (folio != fs_folio).
- 		 *
- 		 * For B-tree node blocks, however, this assumption is not
--		 * guaranteed.  The cleanup code of B-tree node pages needs
-+		 * guaranteed.  The cleanup code of B-tree node folios needs
- 		 * special care.
- 		 */
- 		list_for_each_entry(bh, &segbuf->sb_payload_buffers,
-@@ -1905,16 +1898,16 @@ static void nilfs_segctor_complete_write
- 
- 			set_mask_bits(&bh->b_state, clear_bits, set_bits);
- 			if (bh == segbuf->sb_super_root) {
--				if (bh->b_page != bd_page) {
--					end_page_writeback(bd_page);
--					bd_page = bh->b_page;
-+				if (bh->b_folio != bd_folio) {
-+					folio_end_writeback(bd_folio);
-+					bd_folio = bh->b_folio;
- 				}
- 				update_sr = true;
- 				break;
- 			}
--			if (bh->b_page != fs_page) {
--				nilfs_end_page_io(fs_page, 0);
--				fs_page = bh->b_page;
-+			if (bh->b_folio != fs_folio) {
-+				nilfs_end_folio_io(fs_folio, 0);
-+				fs_folio = bh->b_folio;
- 			}
- 		}
- 
-@@ -1928,13 +1921,13 @@ static void nilfs_segctor_complete_write
- 		}
- 	}
- 	/*
--	 * Since pages may continue over multiple segment buffers,
--	 * end of the last page must be checked outside of the loop.
-+	 * Since folios may continue over multiple segment buffers,
-+	 * end of the last folio must be checked outside of the loop.
- 	 */
--	if (bd_page)
--		end_page_writeback(bd_page);
-+	if (bd_folio)
-+		folio_end_writeback(bd_folio);
- 
--	nilfs_end_page_io(fs_page, 0);
-+	nilfs_end_folio_io(fs_folio, 0);
- 
- 	nilfs_drop_collected_inodes(&sci->sc_dirty_files);
- 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
