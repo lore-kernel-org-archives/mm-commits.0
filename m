@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98E49C07EB9
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Nov 2023 23:23:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84712C41535
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Nov 2023 23:23:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234189AbjKNXXa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 14 Nov 2023 18:23:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52488 "EHLO
+        id S234202AbjKNXXb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 14 Nov 2023 18:23:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52544 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234127AbjKNXXZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2023 18:23:25 -0500
+        with ESMTP id S234209AbjKNXX3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 14 Nov 2023 18:23:29 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6D64DE
-        for <mm-commits@vger.kernel.org>; Tue, 14 Nov 2023 15:23:21 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6448AC433C8;
-        Tue, 14 Nov 2023 23:23:21 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27EF8DD
+        for <mm-commits@vger.kernel.org>; Tue, 14 Nov 2023 15:23:25 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6611C433C7;
+        Tue, 14 Nov 2023 23:23:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700004201;
-        bh=uSvY4BbJ0CLk3Ot3FcJuZeDOfl6oqNaY+iV3+vGI62Y=;
+        s=korg; t=1700004204;
+        bh=MeHU+T8NF460hSxEoM01lQeGbJJ2G7uzEsUMnnFz6Fk=;
         h=Date:To:From:Subject:From;
-        b=i7hhuwND7KMqWOgxHHUfqxLpczITuryaLNX+VwmjQoJX+0t1gyYw6Uq9AOZDilh96
-         kFmMo+WWa/tVEDJanGh7jqDCI6CNhenXu9LtwXC9emh5ryDFygn9zBCkLmzhrq/g30
-         ZfQf5Ndr8vDUB3H0SqMapBexZCJ13uGjpfZoUHQM=
-Date:   Tue, 14 Nov 2023 15:23:20 -0800
+        b=aHYtlqKRsj2bzGnhPikxGplUcGjyubm6gfpwZcUSgm67SSkrcBbpytYajcIYnLSqY
+         3uUTEw/YK7uzy9kjUxchFFNPm2Bskm4Oj9ZNxwVeLJ7bNIdLI9/9mvY86nEpjLKr+I
+         7rbvAxjrMM1FnyWbr74GE9+Qik6IrapvQfVPADvs=
+Date:   Tue, 14 Nov 2023 15:23:24 -0800
 To:     mm-commits@vger.kernel.org, konishi.ryusuke@gmail.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-convert-nilfs_btnode_prepare_change_key-to-use-a-folio.patch added to mm-nonmm-unstable branch
-Message-Id: <20231114232321.6448AC433C8@smtp.kernel.org>
+Subject: + nilfs2-convert-nilfs_btnode_abort_change_key-to-use-a-folio.patch added to mm-nonmm-unstable branch
+Message-Id: <20231114232324.B6611C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: convert nilfs_btnode_prepare_change_key to use a folio
+     Subject: nilfs2: convert nilfs_btnode_abort_change_key to use a folio
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-convert-nilfs_btnode_prepare_change_key-to-use-a-folio.patch
+     nilfs2-convert-nilfs_btnode_abort_change_key-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-nilfs_btnode_prepare_change_key-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-nilfs_btnode_abort_change_key-to-use-a-folio.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,71 +60,31 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: nilfs2: convert nilfs_btnode_prepare_change_key to use a folio
-Date: Tue, 14 Nov 2023 17:44:34 +0900
+Subject: nilfs2: convert nilfs_btnode_abort_change_key to use a folio
+Date: Tue, 14 Nov 2023 17:44:36 +0900
 
-Saves three calls to compound_head().
+Saves one call to compound_head().
 
-Link: https://lkml.kernel.org/r/20231114084436.2755-19-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20231114084436.2755-21-konishi.ryusuke@gmail.com
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/btnode.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ fs/nilfs2/btnode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/nilfs2/btnode.c~nilfs2-convert-nilfs_btnode_prepare_change_key-to-use-a-folio
+--- a/fs/nilfs2/btnode.c~nilfs2-convert-nilfs_btnode_abort_change_key-to-use-a-folio
 +++ a/fs/nilfs2/btnode.c
-@@ -185,23 +185,23 @@ int nilfs_btnode_prepare_change_key(stru
- 	ctxt->newbh = NULL;
+@@ -284,7 +284,7 @@ void nilfs_btnode_abort_change_key(struc
  
- 	if (inode->i_blkbits == PAGE_SHIFT) {
--		struct page *opage = obh->b_page;
--		lock_page(opage);
-+		struct folio *ofolio = obh->b_folio;
-+		folio_lock(ofolio);
- retry:
- 		/* BUG_ON(oldkey != obh->b_folio->index); */
--		if (unlikely(oldkey != opage->index))
--			NILFS_PAGE_BUG(opage,
-+		if (unlikely(oldkey != ofolio->index))
-+			NILFS_PAGE_BUG(&ofolio->page,
- 				       "invalid oldkey %lld (newkey=%lld)",
- 				       (unsigned long long)oldkey,
- 				       (unsigned long long)newkey);
- 
- 		xa_lock_irq(&btnc->i_pages);
--		err = __xa_insert(&btnc->i_pages, newkey, opage, GFP_NOFS);
-+		err = __xa_insert(&btnc->i_pages, newkey, ofolio, GFP_NOFS);
- 		xa_unlock_irq(&btnc->i_pages);
+ 	if (nbh == NULL) {	/* blocksize == pagesize */
+ 		xa_erase_irq(&btnc->i_pages, newkey);
+-		unlock_page(ctxt->bh->b_page);
++		folio_unlock(ctxt->bh->b_folio);
+ 	} else {
  		/*
--		 * Note: page->index will not change to newkey until
-+		 * Note: folio->index will not change to newkey until
- 		 * nilfs_btnode_commit_change_key() will be called.
--		 * To protect the page in intermediate state, the page lock
-+		 * To protect the folio in intermediate state, the folio lock
- 		 * is held.
- 		 */
- 		if (!err)
-@@ -213,7 +213,7 @@ retry:
- 		if (!err)
- 			goto retry;
- 		/* fallback to copy mode */
--		unlock_page(opage);
-+		folio_unlock(ofolio);
- 	}
- 
- 	nbh = nilfs_btnode_create_block(btnc, newkey);
-@@ -225,7 +225,7 @@ retry:
- 	return 0;
- 
-  failed_unlock:
--	unlock_page(obh->b_page);
-+	folio_unlock(obh->b_folio);
- 	return err;
- }
- 
+ 		 * When canceling a buffer that a prepare operation has
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
