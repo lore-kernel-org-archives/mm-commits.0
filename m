@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E9AAC5ACB2
-	for <mm-commits@archiver.kernel.org>; Wed, 15 Nov 2023 22:40:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4698EC2BB3F
+	for <mm-commits@archiver.kernel.org>; Wed, 15 Nov 2023 22:41:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233754AbjKOWkB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 15 Nov 2023 17:40:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44688 "EHLO
+        id S235627AbjKOWlv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 15 Nov 2023 17:41:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51494 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229592AbjKOWkA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2023 17:40:00 -0500
+        with ESMTP id S233786AbjKOWlu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2023 17:41:50 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16FC898
-        for <mm-commits@vger.kernel.org>; Wed, 15 Nov 2023 14:39:57 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A853EC433C8;
-        Wed, 15 Nov 2023 22:39:56 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADFC61A1
+        for <mm-commits@vger.kernel.org>; Wed, 15 Nov 2023 14:41:46 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 450B3C433C9;
+        Wed, 15 Nov 2023 22:41:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700087996;
-        bh=LLVPwbkCT3L+Ez9wGQLBXlXi5hpXSEgo5t0wLpuaHZA=;
+        s=korg; t=1700088106;
+        bh=TqEhKsNIFV1mD14OzjrbYJceXOe6HlUyPindjSGQIlE=;
         h=Date:To:From:Subject:From;
-        b=Nbz2lG1oIB0aJbczPk2UK6m5qKqVNpvBkSaU7ZMuhyZ4YlKMZCiEqFKaSYChnWII/
-         Lt/OzP1qfkj7PMhMYQfk8aVdgR/gOh+RB6ve5BPGAif+es+zXTKgIyX889HSSs+Ip3
-         gAUhka980hPk1KP/lsEEUc5gN2sBp0t6bT0Q0cLk=
-Date:   Wed, 15 Nov 2023 14:39:56 -0800
-To:     mm-commits@vger.kernel.org, phillip@squashfs.org.uk,
-        eadavis@qq.com, akpm@linux-foundation.org
+        b=LymshScrbFlAK3h3ZC94mqX6WLitWOU2n24juV9z/FvKjxqHvV3XTgrHFlM71zOt3
+         df676V28Cq+ZNpFhROMZwCPZ3MS1yF6IKzi9sGqDXZfuxtB2dU8NN60FfDxFzrDqVs
+         4aPng9rjrU23pC/yn+F5Bi3m5xS34bMY6WpqOV1Q=
+Date:   Wed, 15 Nov 2023 14:41:45 -0800
+To:     mm-commits@vger.kernel.org, minchan@kernel.org,
+        senozhatsky@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + squashfs-fix-oob-in-squashfs_readahead.patch added to mm-nonmm-unstable branch
-Message-Id: <20231115223956.A853EC433C8@smtp.kernel.org>
+Subject: + zram-split-memory-tracking-and-ac-time-tracking.patch added to mm-unstable branch
+Message-Id: <20231115224146.450B3C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,14 +36,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: squashfs: fix oob in squashfs_readahead
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     squashfs-fix-oob-in-squashfs_readahead.patch
+     Subject: zram: split memory-tracking and ac-time tracking
+has been added to the -mm mm-unstable branch.  Its filename is
+     zram-split-memory-tracking-and-ac-time-tracking.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-fix-oob-in-squashfs_readahead.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-split-memory-tracking-and-ac-time-tracking.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,122 +59,157 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Edward Adam Davis <eadavis@qq.com>
-Subject: squashfs: fix oob in squashfs_readahead
-Date: Wed, 15 Nov 2023 12:05:35 +0800
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: split memory-tracking and ac-time tracking
+Date: Wed, 15 Nov 2023 11:42:12 +0900
 
-[Syz log]
-SQUASHFS error: Failed to read block 0x6fc: -5
-SQUASHFS error: Unable to read metadata cache entry [6fa]
-SQUASHFS error: Unable to read metadata cache entry [6fa]
-SQUASHFS error: Unable to read metadata cache entry [6fa]
-==================================================================
-BUG: KASAN: slab-out-of-bounds in __readahead_batch include/linux/pagemap.h:1364 [inline]
-BUG: KASAN: slab-out-of-bounds in squashfs_readahead+0x9a6/0x20d0 fs/squashfs/file.c:569
-Write of size 8 at addr ffff88801e393648 by task syz-executor100/5067
+ZRAM_MEMORY_TRACKING enables two features:
+- per-entry ac-time tracking
+- debugfs interface
 
-CPU: 1 PID: 5067 Comm: syz-executor100 Not tainted 6.6.0-syzkaller-15156-g13d88ac54ddd #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/09/2023
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:88 [inline]
- dump_stack_lvl+0x1e7/0x2d0 lib/dump_stack.c:106
- print_address_description mm/kasan/report.c:364 [inline]
- print_report+0x163/0x540 mm/kasan/report.c:475
- kasan_report+0x142/0x170 mm/kasan/report.c:588
- __readahead_batch include/linux/pagemap.h:1364 [inline]
- squashfs_readahead+0x9a6/0x20d0 fs/squashfs/file.c:569
- read_pages+0x183/0x830 mm/readahead.c:160
- page_cache_ra_unbounded+0x68e/0x7c0 mm/readahead.c:269
- page_cache_sync_readahead include/linux/pagemap.h:1266 [inline]
- filemap_get_pages+0x49c/0x2080 mm/filemap.c:2497
- filemap_read+0x42b/0x10b0 mm/filemap.c:2593
- __kernel_read+0x425/0x8b0 fs/read_write.c:428
- integrity_kernel_read+0xb0/0xf0 security/integrity/iint.c:221
- ima_calc_file_hash_tfm security/integrity/ima/ima_crypto.c:485 [inline]
- ima_calc_file_shash security/integrity/ima/ima_crypto.c:516 [inline]
- ima_calc_file_hash+0xad1/0x1b30 security/integrity/ima/ima_crypto.c:573
- ima_collect_measurement+0x554/0xb30 security/integrity/ima/ima_api.c:290
- process_measurement+0x1373/0x21c0 security/integrity/ima/ima_main.c:359
- ima_file_check+0xf1/0x170 security/integrity/ima/ima_main.c:557
- do_open fs/namei.c:3624 [inline]
- path_openat+0x2893/0x3280 fs/namei.c:3779
+The latter one is the reason why memory-tracking depends on DEBUG_FS,
+while the former one is used far beyond debugging these days.  Namely
+ac-time is used for fine-grained writeback of idle entries (pages).
 
-[Bug]
-path_openat() called open_last_lookups() before calling do_open() and
-open_last_lookups() will eventually call squashfs_read_inode() to set
-inode->i_size, but before setting i_size, it is necessary to obtain file_size
-from the disk.
+Move ac-time tracking under its own config option so that it can be
+enabled (along with writeback) on systems without DEBUG_FS.
 
-However, during the value retrieval process, the length of the value retrieved
-from the disk was greater than output->length, resulting(-EIO) in the failure of
-squashfs_read_data(), further leading to i_size has not been initialized,
-i.e. its value is 0.
-
-This resulted in the failure of squashfs_read_data(), where "SQUASHFS error:
-Failed to read block 0x6fc: -5" was output in the syz log.
-This also resulted in the failure of squashfs_cache_get(), outputting "SQUASHFS
-error: Unable to read metadata cache entry [6fa]" in the syz log.
-
-[Fix]
-Before performing a read ahead operation in squashfs_read_folio() and
-squashfs_readahead(), check if i_size is not 0 before continuing.
-
-Optimize the return value of squashfs_read_data() and return -EFBIG when the
-length is greater than output->length(or (index + length) >
-msblk->bytes_used).
-
-Link: https://lkml.kernel.org/r/tencent_35864B36740976B766CA3CC936A496AA3609@qq.com
-Fixes: f268eedddf35 ("squashfs: extend "page actor" to handle missing pages")
-Signed-off-by: Edward Adam Davis <eadavis@qq.com>
-Reported-by: syzbot+604424eb051c2f696163@syzkaller.appspotmail.com
-Tested-by: syzbot+604424eb051c2f696163@syzkaller.appspotmail.com
-Cc: Phillip Lougher <phillip@squashfs.org.uk>
+Link: https://lkml.kernel.org/r/20231115024223.4133148-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/squashfs/block.c |    2 +-
- fs/squashfs/file.c  |    8 ++++++++
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ Documentation/admin-guide/blockdev/zram.rst |    2 -
+ drivers/block/zram/Kconfig                  |   11 ++++++-
+ drivers/block/zram/zram_drv.c               |   27 ++++++++----------
+ drivers/block/zram/zram_drv.h               |    2 -
+ 4 files changed, 25 insertions(+), 17 deletions(-)
 
---- a/fs/squashfs/block.c~squashfs-fix-oob-in-squashfs_readahead
-+++ a/fs/squashfs/block.c
-@@ -323,7 +323,7 @@ int squashfs_read_data(struct super_bloc
- 	}
- 	if (length < 0 || length > output->length ||
- 			(index + length) > msblk->bytes_used) {
--		res = -EIO;
-+		res = length < 0 ? -EIO : -EFBIG;
- 		goto out;
- 	}
+--- a/Documentation/admin-guide/blockdev/zram.rst~zram-split-memory-tracking-and-ac-time-tracking
++++ a/Documentation/admin-guide/blockdev/zram.rst
+@@ -328,7 +328,7 @@ as idle::
+ From now on, any pages on zram are idle pages. The idle mark
+ will be removed until someone requests access of the block.
+ IOW, unless there is access request, those pages are still idle pages.
+-Additionally, when CONFIG_ZRAM_MEMORY_TRACKING is enabled pages can be
++Additionally, when CONFIG_ZRAM_TRACK_ENTRY_ACTIME is enabled pages can be
+ marked as idle based on how long (in seconds) it's been since they were
+ last accessed::
  
---- a/fs/squashfs/file.c~squashfs-fix-oob-in-squashfs_readahead
-+++ a/fs/squashfs/file.c
-@@ -461,6 +461,11 @@ static int squashfs_read_folio(struct fi
- 	TRACE("Entered squashfs_readpage, page index %lx, start block %llx\n",
- 				page->index, squashfs_i(inode)->start);
+--- a/drivers/block/zram/Kconfig~zram-split-memory-tracking-and-ac-time-tracking
++++ a/drivers/block/zram/Kconfig
+@@ -69,9 +69,18 @@ config ZRAM_WRITEBACK
  
-+	if (!file_end) {
-+		res = -EINVAL;
-+		goto out;
-+	}
+ 	 See Documentation/admin-guide/blockdev/zram.rst for more information.
+ 
++config ZRAM_TRACK_ENTRY_ACTIME
++	bool "Track access time of zram entries"
++	depends on ZRAM
++	help
++	  With this feature zram tracks access time of every stored
++	  entry (page), which can be used for a more fine-grained IDLE
++	  pages writeback.
 +
- 	if (page->index >= ((i_size_read(inode) + PAGE_SIZE - 1) >>
- 					PAGE_SHIFT))
- 		goto out;
-@@ -548,6 +553,9 @@ static void squashfs_readahead(struct re
- 	loff_t file_end = i_size_read(inode) >> msblk->block_log;
- 	unsigned int max_pages = 1UL << shift;
+ config ZRAM_MEMORY_TRACKING
+ 	bool "Track zRam block status"
+ 	depends on ZRAM && DEBUG_FS
++	select ZRAM_TRACK_ENTRY_ACTIME
+ 	help
+ 	  With this feature, admin can track the state of allocated blocks
+ 	  of zRAM. Admin could see the information via
+@@ -86,4 +95,4 @@ config ZRAM_MULTI_COMP
+ 	  This will enable multi-compression streams, so that ZRAM can
+ 	  re-compress pages using a potentially slower but more effective
+ 	  compression algorithm. Note, that IDLE page recompression
+-	  requires ZRAM_MEMORY_TRACKING.
++	  requires ZRAM_TRACK_ENTRY_ACTIME.
+--- a/drivers/block/zram/zram_drv.c~zram-split-memory-tracking-and-ac-time-tracking
++++ a/drivers/block/zram/zram_drv.c
+@@ -174,6 +174,14 @@ static inline u32 zram_get_priority(stru
+ 	return prio & ZRAM_COMP_PRIORITY_MASK;
+ }
  
-+	if (!file_end)
-+		return;
++static void zram_accessed(struct zram *zram, u32 index)
++{
++	zram_clear_flag(zram, index, ZRAM_IDLE);
++#ifdef CONFIG_ZRAM_TRACK_ENTRY_ACTIME
++	zram->table[index].ac_time = ktime_get_boottime();
++#endif
++}
 +
- 	readahead_expand(ractl, start, (len | mask) + 1);
+ static inline void update_used_max(struct zram *zram,
+ 					const unsigned long pages)
+ {
+@@ -293,8 +301,9 @@ static void mark_idle(struct zram *zram,
+ 		zram_slot_lock(zram, index);
+ 		if (zram_allocated(zram, index) &&
+ 				!zram_test_flag(zram, index, ZRAM_UNDER_WB)) {
+-#ifdef CONFIG_ZRAM_MEMORY_TRACKING
+-			is_idle = !cutoff || ktime_after(cutoff, zram->table[index].ac_time);
++#ifdef ZRAM_TRACK_ENTRY_ACTIME
++			is_idle = !cutoff || ktime_after(cutoff,
++							 zram->table[index].ac_time);
+ #endif
+ 			if (is_idle)
+ 				zram_set_flag(zram, index, ZRAM_IDLE);
+@@ -317,7 +326,7 @@ static ssize_t idle_store(struct device
+ 		 */
+ 		u64 age_sec;
  
- 	pages = kmalloc_array(max_pages, sizeof(void *), GFP_KERNEL);
+-		if (IS_ENABLED(CONFIG_ZRAM_MEMORY_TRACKING) && !kstrtoull(buf, 0, &age_sec))
++		if (IS_ENABLED(CONFIG_ZRAM_TRACK_ENTRY_ACTIME) && !kstrtoull(buf, 0, &age_sec))
+ 			cutoff_time = ktime_sub(ktime_get_boottime(),
+ 					ns_to_ktime(age_sec * NSEC_PER_SEC));
+ 		else
+@@ -841,12 +850,6 @@ static void zram_debugfs_destroy(void)
+ 	debugfs_remove_recursive(zram_debugfs_root);
+ }
+ 
+-static void zram_accessed(struct zram *zram, u32 index)
+-{
+-	zram_clear_flag(zram, index, ZRAM_IDLE);
+-	zram->table[index].ac_time = ktime_get_boottime();
+-}
+-
+ static ssize_t read_block_state(struct file *file, char __user *buf,
+ 				size_t count, loff_t *ppos)
+ {
+@@ -930,10 +933,6 @@ static void zram_debugfs_unregister(stru
+ #else
+ static void zram_debugfs_create(void) {};
+ static void zram_debugfs_destroy(void) {};
+-static void zram_accessed(struct zram *zram, u32 index)
+-{
+-	zram_clear_flag(zram, index, ZRAM_IDLE);
+-};
+ static void zram_debugfs_register(struct zram *zram) {};
+ static void zram_debugfs_unregister(struct zram *zram) {};
+ #endif
+@@ -1254,7 +1253,7 @@ static void zram_free_page(struct zram *
+ {
+ 	unsigned long handle;
+ 
+-#ifdef CONFIG_ZRAM_MEMORY_TRACKING
++#ifdef CONFIG_ZRAM_TRACK_ENTRY_ACTIME
+ 	zram->table[index].ac_time = 0;
+ #endif
+ 	if (zram_test_flag(zram, index, ZRAM_IDLE))
+--- a/drivers/block/zram/zram_drv.h~zram-split-memory-tracking-and-ac-time-tracking
++++ a/drivers/block/zram/zram_drv.h
+@@ -69,7 +69,7 @@ struct zram_table_entry {
+ 		unsigned long element;
+ 	};
+ 	unsigned long flags;
+-#ifdef CONFIG_ZRAM_MEMORY_TRACKING
++#ifdef CONFIG_ZRAM_TRACK_ENTRY_ACTIME
+ 	ktime_t ac_time;
+ #endif
+ };
 _
 
-Patches currently in -mm which might be from eadavis@qq.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-squashfs-fix-oob-in-squashfs_readahead.patch
+zram-split-memory-tracking-and-ac-time-tracking.patch
+zram-tweak-writeback-config-help.patch
 
