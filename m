@@ -2,34 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA9A4C2BB3F
-	for <mm-commits@archiver.kernel.org>; Wed, 15 Nov 2023 23:28:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1326C072A2
+	for <mm-commits@archiver.kernel.org>; Wed, 15 Nov 2023 23:30:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229692AbjKOX2D (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 15 Nov 2023 18:28:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38234 "EHLO
+        id S229807AbjKOXas (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 15 Nov 2023 18:30:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60202 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229679AbjKOX2C (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2023 18:28:02 -0500
+        with ESMTP id S229679AbjKOXaq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2023 18:30:46 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52CBE18B
-        for <mm-commits@vger.kernel.org>; Wed, 15 Nov 2023 15:27:59 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3705C433C8;
-        Wed, 15 Nov 2023 23:27:58 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BCBC18B
+        for <mm-commits@vger.kernel.org>; Wed, 15 Nov 2023 15:30:43 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC34FC433C8;
+        Wed, 15 Nov 2023 23:30:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700090878;
-        bh=YNXBgitmn8D2V/Lk2ImpbLSlFFU62B7Uj9tVzp3HKco=;
+        s=korg; t=1700091043;
+        bh=IVgbCkJpORgykvSqtB7iNu3MliOC5AQ55r3WAQpo5Gg=;
         h=Date:To:From:Subject:From;
-        b=2h4n/jevYSljW84z+teUTpzIOSJxqOWNs3kRuOImWZtcmyg34iaLn3Ud3w5PqPPgf
-         WnJPgKsi2uQJAaEi42COmy0m/XOSY6I1QC5mFfHDa0lUz26aAuW5H0yoTUrIGYQWaM
-         x6yxRfigKux1J8S47YGv/Q2p5sN3UYcAV+fR/Y3s=
-Date:   Wed, 15 Nov 2023 15:27:58 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org, shr@devkernel.io,
-        riel@surriel.com, hannes@cmpxchg.org, david@redhat.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=2UXOEaI2DUikLm6RnsoCSDZvZ3EuTYaLnaWc1XT/5DDRId5jwFk65b/eXff5ZZ1+G
+         hjBtWzoLnfWPxG8+E7N3tMgUvygaC/5VNzedyRVDCkju6C1sUVerPXMYjTCw5G76sv
+         5ALIZQ7tC6+NM51jgacbyNUETEGLowlFDPUxiR5I=
+Date:   Wed, 15 Nov 2023 15:30:42 -0800
+To:     mm-commits@vger.kernel.org, sj@kernel.org,
+        dan.carpenter@linaro.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-fix-for-negative-counter-nr_file_hugepages-fix.patch removed from -mm tree
-Message-Id: <20231115232758.D3705C433C8@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-sysfs-eliminate-potential-uninitialized-variable-warning.patch removed from -mm tree
+Message-Id: <20231115233042.DC34FC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,49 +36,44 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm-fix-for-negative-counter-nr_file_hugepages-fix
+     Subject: mm/damon/sysfs: eliminate potential uninitialized variable warning
 has been removed from the -mm tree.  Its filename was
-     mm-fix-for-negative-counter-nr_file_hugepages-fix.patch
+     mm-damon-sysfs-eliminate-potential-uninitialized-variable-warning.patch
 
-This patch was dropped because it was folded into mm-fix-for-negative-counter-nr_file_hugepages.patch
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-fix-for-negative-counter-nr_file_hugepages-fix
-Date: Mon Nov  6 11:44:47 AM PST 2023
+From: Dan Carpenter <dan.carpenter@linaro.org>
+Subject: mm/damon/sysfs: eliminate potential uninitialized variable warning
+Date: Mon, 6 Nov 2023 17:07:40 +0300
 
-whitespace fix
+The "err" variable is not initialized if damon_target_has_pid(ctx) is
+false and sys_target->regions->nr is zero.
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Stefan Roesch <shr@devkernel.io>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/739e6aaf-a634-4e33-98a8-16546379ec9f@moroto.mountain
+Fixes: 0bcd216c4741 ("mm/damon/sysfs: update monitoring target regions for online input commit")
+Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/damon/sysfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-fix-for-negative-counter-nr_file_hugepages-fix
-+++ a/mm/huge_memory.c
-@@ -2773,7 +2773,6 @@ int split_huge_page_to_list(struct page
- 				__lruvec_stat_mod_folio(folio, NR_SHMEM_THPS,
- 							-nr);
- 			} else if (folio_test_pmd_mappable(folio)) {
--
- 				__lruvec_stat_mod_folio(folio, NR_FILE_THPS,
- 							-nr);
- 				filemap_nr_thps_dec(mapping);
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-eliminate-potential-uninitialized-variable-warning
++++ a/mm/damon/sysfs.c
+@@ -1172,7 +1172,7 @@ static int damon_sysfs_update_target(str
+ 		struct damon_ctx *ctx,
+ 		struct damon_sysfs_target *sys_target)
+ {
+-	int err;
++	int err = 0;
+ 
+ 	if (damon_target_has_pid(ctx)) {
+ 		err = damon_sysfs_update_target_pid(target, sys_target->pid);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dan.carpenter@linaro.org are
 
-mm-fix-for-negative-counter-nr_file_hugepages.patch
-maintainers-add-andrew-morton-for-lib.patch
-mm-memoryc-zap_pte_range-print-bad-swap-entry.patch
-mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
-mm-add-folio_zero_tail-and-use-it-in-ext4-fix.patch
-mm-add-folio_fill_tail-and-use-it-in-iomap-fix.patch
-kernel-reboot-explicitly-notify-if-halt-occurred-instead-of-power-off-fix.patch
 
