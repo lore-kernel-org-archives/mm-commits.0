@@ -2,35 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FC39C2BB3F
-	for <mm-commits@archiver.kernel.org>; Wed, 15 Nov 2023 22:18:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E9AAC5ACB2
+	for <mm-commits@archiver.kernel.org>; Wed, 15 Nov 2023 22:40:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235593AbjKOWSW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 15 Nov 2023 17:18:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35414 "EHLO
+        id S233754AbjKOWkB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 15 Nov 2023 17:40:01 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44688 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234678AbjKOWSW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2023 17:18:22 -0500
+        with ESMTP id S229592AbjKOWkA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 15 Nov 2023 17:40:00 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14494195
-        for <mm-commits@vger.kernel.org>; Wed, 15 Nov 2023 14:18:19 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8AB17C433C9;
-        Wed, 15 Nov 2023 22:18:18 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16FC898
+        for <mm-commits@vger.kernel.org>; Wed, 15 Nov 2023 14:39:57 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A853EC433C8;
+        Wed, 15 Nov 2023 22:39:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700086698;
-        bh=18kOx6b+lX89W8Uy9vaMEGQsnVOk5oNB6SJ6L2o3KJY=;
+        s=korg; t=1700087996;
+        bh=LLVPwbkCT3L+Ez9wGQLBXlXi5hpXSEgo5t0wLpuaHZA=;
         h=Date:To:From:Subject:From;
-        b=ndUmoHK1sUS2azZmZGzXAz+P7Wu/MKfJZklMB9c5PVmcOWU2qoUviyW1U7y6rVYYM
-         wgBg3mOS6rW5mfbux8yZypxY2ZmZ+fS+C2TcCPTLsHnF3UJu2Its528qSl3pbb+qwX
-         qnOriZvx02aL5gLsOl34y7bdw0D3Dlzkdy5ZeWmg=
-Date:   Wed, 15 Nov 2023 14:18:17 -0800
-To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
-        patrick.wang.shcn@gmail.com, geert+renesas@glider.be,
-        catalin.marinas@arm.com, liushixin2@huawei.com,
-        akpm@linux-foundation.org
+        b=Nbz2lG1oIB0aJbczPk2UK6m5qKqVNpvBkSaU7ZMuhyZ4YlKMZCiEqFKaSYChnWII/
+         Lt/OzP1qfkj7PMhMYQfk8aVdgR/gOh+RB6ve5BPGAif+es+zXTKgIyX889HSSs+Ip3
+         gAUhka980hPk1KP/lsEEUc5gN2sBp0t6bT0Q0cLk=
+Date:   Wed, 15 Nov 2023 14:39:56 -0800
+To:     mm-commits@vger.kernel.org, phillip@squashfs.org.uk,
+        eadavis@qq.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmemleak-move-set_track_prepare-outside-raw_spinlocks.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231115221818.8AB17C433C9@smtp.kernel.org>
+Subject: + squashfs-fix-oob-in-squashfs_readahead.patch added to mm-nonmm-unstable branch
+Message-Id: <20231115223956.A853EC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,14 +36,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/kmemleak: move set_track_prepare() outside raw_spinlocks
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-kmemleak-move-set_track_prepare-outside-raw_spinlocks.patch
+     Subject: squashfs: fix oob in squashfs_readahead
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     squashfs-fix-oob-in-squashfs_readahead.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-move-set_track_prepare-outside-raw_spinlocks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/squashfs-fix-oob-in-squashfs_readahead.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -61,54 +59,122 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Liu Shixin <liushixin2@huawei.com>
-Subject: mm/kmemleak: move set_track_prepare() outside raw_spinlocks
-Date: Wed, 15 Nov 2023 16:21:38 +0800
+From: Edward Adam Davis <eadavis@qq.com>
+Subject: squashfs: fix oob in squashfs_readahead
+Date: Wed, 15 Nov 2023 12:05:35 +0800
 
-set_track_prepare() will call __alloc_pages() which attempts to acquire
-zone->lock(spinlocks), so move it outside object->lock(raw_spinlocks)
-because it's not right to acquire spinlocks while holding raw_spinlocks in
-RT mode.
+[Syz log]
+SQUASHFS error: Failed to read block 0x6fc: -5
+SQUASHFS error: Unable to read metadata cache entry [6fa]
+SQUASHFS error: Unable to read metadata cache entry [6fa]
+SQUASHFS error: Unable to read metadata cache entry [6fa]
+==================================================================
+BUG: KASAN: slab-out-of-bounds in __readahead_batch include/linux/pagemap.h:1364 [inline]
+BUG: KASAN: slab-out-of-bounds in squashfs_readahead+0x9a6/0x20d0 fs/squashfs/file.c:569
+Write of size 8 at addr ffff88801e393648 by task syz-executor100/5067
 
-Link: https://lkml.kernel.org/r/20231115082138.2649870-3-liushixin2@huawei.com
-Signed-off-by: Liu Shixin <liushixin2@huawei.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Patrick Wang <patrick.wang.shcn@gmail.com>
+CPU: 1 PID: 5067 Comm: syz-executor100 Not tainted 6.6.0-syzkaller-15156-g13d88ac54ddd #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/09/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e7/0x2d0 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:364 [inline]
+ print_report+0x163/0x540 mm/kasan/report.c:475
+ kasan_report+0x142/0x170 mm/kasan/report.c:588
+ __readahead_batch include/linux/pagemap.h:1364 [inline]
+ squashfs_readahead+0x9a6/0x20d0 fs/squashfs/file.c:569
+ read_pages+0x183/0x830 mm/readahead.c:160
+ page_cache_ra_unbounded+0x68e/0x7c0 mm/readahead.c:269
+ page_cache_sync_readahead include/linux/pagemap.h:1266 [inline]
+ filemap_get_pages+0x49c/0x2080 mm/filemap.c:2497
+ filemap_read+0x42b/0x10b0 mm/filemap.c:2593
+ __kernel_read+0x425/0x8b0 fs/read_write.c:428
+ integrity_kernel_read+0xb0/0xf0 security/integrity/iint.c:221
+ ima_calc_file_hash_tfm security/integrity/ima/ima_crypto.c:485 [inline]
+ ima_calc_file_shash security/integrity/ima/ima_crypto.c:516 [inline]
+ ima_calc_file_hash+0xad1/0x1b30 security/integrity/ima/ima_crypto.c:573
+ ima_collect_measurement+0x554/0xb30 security/integrity/ima/ima_api.c:290
+ process_measurement+0x1373/0x21c0 security/integrity/ima/ima_main.c:359
+ ima_file_check+0xf1/0x170 security/integrity/ima/ima_main.c:557
+ do_open fs/namei.c:3624 [inline]
+ path_openat+0x2893/0x3280 fs/namei.c:3779
+
+[Bug]
+path_openat() called open_last_lookups() before calling do_open() and
+open_last_lookups() will eventually call squashfs_read_inode() to set
+inode->i_size, but before setting i_size, it is necessary to obtain file_size
+from the disk.
+
+However, during the value retrieval process, the length of the value retrieved
+from the disk was greater than output->length, resulting(-EIO) in the failure of
+squashfs_read_data(), further leading to i_size has not been initialized,
+i.e. its value is 0.
+
+This resulted in the failure of squashfs_read_data(), where "SQUASHFS error:
+Failed to read block 0x6fc: -5" was output in the syz log.
+This also resulted in the failure of squashfs_cache_get(), outputting "SQUASHFS
+error: Unable to read metadata cache entry [6fa]" in the syz log.
+
+[Fix]
+Before performing a read ahead operation in squashfs_read_folio() and
+squashfs_readahead(), check if i_size is not 0 before continuing.
+
+Optimize the return value of squashfs_read_data() and return -EFBIG when the
+length is greater than output->length(or (index + length) >
+msblk->bytes_used).
+
+Link: https://lkml.kernel.org/r/tencent_35864B36740976B766CA3CC936A496AA3609@qq.com
+Fixes: f268eedddf35 ("squashfs: extend "page actor" to handle missing pages")
+Signed-off-by: Edward Adam Davis <eadavis@qq.com>
+Reported-by: syzbot+604424eb051c2f696163@syzkaller.appspotmail.com
+Tested-by: syzbot+604424eb051c2f696163@syzkaller.appspotmail.com
+Cc: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/squashfs/block.c |    2 +-
+ fs/squashfs/file.c  |    8 ++++++++
+ 2 files changed, 9 insertions(+), 1 deletion(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-move-set_track_prepare-outside-raw_spinlocks
-+++ a/mm/kmemleak.c
-@@ -1152,6 +1152,7 @@ EXPORT_SYMBOL_GPL(kmemleak_free_percpu);
- void __ref kmemleak_update_trace(const void *ptr)
- {
- 	struct kmemleak_object *object;
-+	depot_stack_handle_t trace_handle;
- 	unsigned long flags;
- 
- 	pr_debug("%s(0x%px)\n", __func__, ptr);
-@@ -1168,8 +1169,9 @@ void __ref kmemleak_update_trace(const v
- 		return;
+--- a/fs/squashfs/block.c~squashfs-fix-oob-in-squashfs_readahead
++++ a/fs/squashfs/block.c
+@@ -323,7 +323,7 @@ int squashfs_read_data(struct super_bloc
+ 	}
+ 	if (length < 0 || length > output->length ||
+ 			(index + length) > msblk->bytes_used) {
+-		res = -EIO;
++		res = length < 0 ? -EIO : -EFBIG;
+ 		goto out;
  	}
  
-+	trace_handle = set_track_prepare();
- 	raw_spin_lock_irqsave(&object->lock, flags);
--	object->trace_handle = set_track_prepare();
-+	object->trace_handle = trace_handle;
- 	raw_spin_unlock_irqrestore(&object->lock, flags);
+--- a/fs/squashfs/file.c~squashfs-fix-oob-in-squashfs_readahead
++++ a/fs/squashfs/file.c
+@@ -461,6 +461,11 @@ static int squashfs_read_folio(struct fi
+ 	TRACE("Entered squashfs_readpage, page index %lx, start block %llx\n",
+ 				page->index, squashfs_i(inode)->start);
  
- 	put_object(object);
++	if (!file_end) {
++		res = -EINVAL;
++		goto out;
++	}
++
+ 	if (page->index >= ((i_size_read(inode) + PAGE_SIZE - 1) >>
+ 					PAGE_SHIFT))
+ 		goto out;
+@@ -548,6 +553,9 @@ static void squashfs_readahead(struct re
+ 	loff_t file_end = i_size_read(inode) >> msblk->block_log;
+ 	unsigned int max_pages = 1UL << shift;
+ 
++	if (!file_end)
++		return;
++
+ 	readahead_expand(ractl, start, (len | mask) + 1);
+ 
+ 	pages = kmalloc_array(max_pages, sizeof(void *), GFP_KERNEL);
 _
 
-Patches currently in -mm which might be from liushixin2@huawei.com are
+Patches currently in -mm which might be from eadavis@qq.com are
 
-revert-mm-kmemleak-move-the-initialisation-of-object-to-__link_object.patch
-mm-kmemleak-move-set_track_prepare-outside-raw_spinlocks.patch
-mm-vmscan-try-to-reclaim-swapcache-pages-if-no-swap-space.patch
-mm-vmscan-try-to-reclaim-swapcache-pages-if-no-swap-space-v6.patch
+squashfs-fix-oob-in-squashfs_readahead.patch
 
