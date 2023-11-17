@@ -2,110 +2,64 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36CF4C072A2
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Nov 2023 22:08:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 018DDC54FB9
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Nov 2023 22:30:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231533AbjKQWIx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 17 Nov 2023 17:08:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33790 "EHLO
+        id S1346294AbjKQWaO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 17 Nov 2023 17:30:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44732 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230379AbjKQWIw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2023 17:08:52 -0500
+        with ESMTP id S1346312AbjKQWaL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2023 17:30:11 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93B03B8;
-        Fri, 17 Nov 2023 14:08:49 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20F67C433C8;
-        Fri, 17 Nov 2023 22:08:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700258929;
-        bh=NEOWloWUbotUNY8eU+l2lgEi5xBr0yxPu9X40CLvS6I=;
-        h=Date:From:To:Cc:Subject:From;
-        b=KFTQrG8kWtIKss8EwcmegRotfexaBOlduqxE5Bty+bMXAT7k03g34KsNbdLjWaAWr
-         ri2KBCd9BQy0WiC7DE0NCNgmVwGwgiZmuGC1b/IT4Sk5qjveC5ZYRH3O5nZnoy43EB
-         xXWH/NBF5nzXn2UCUiguVPrTPDvvEac8OPSS37FY=
-Date:   Fri, 17 Nov 2023 14:08:48 -0800
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org,
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CB8119A0;
+        Fri, 17 Nov 2023 14:30:01 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id CCC04C433C9;
+        Fri, 17 Nov 2023 22:30:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1700260200;
+        bh=W3POoEqWruz4t3RlcQpQsz8k5ZJCPvfD3+dkOL94Zeg=;
+        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+        b=VMMD74HxJx7ukoRSXz7fXxE/2IzCR+shkBgGsddpyrxW41pSbCSPuaeG3VbIt347h
+         34aBWtHVhg7l8Vv2SU6kw+EdycL1W9tNUgFmY5vemV+S+PrGNIA8IjNcCpq8DUUBu5
+         ccIeZVxRr3AFWj4ruX5GoKYbO/56URGie54VN2O+Htgwwcu+oKt9V6mLTrQ7MEtKeQ
+         4Vlh/AKCvd0e6IlCftoEfJWTD1PwG8vbiIHhrqYYy8xA36rOFGIbF/BtgDSewR0t/e
+         uIEla6ZQLSBxCbFpkCsg0Q/p9EBjsBXKLqMdx4mTLGM4/vYfMGs/70Lhoog4KY1Epz
+         rhcdIBvA1Q2mQ==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id B74EBC4316B;
+        Fri, 17 Nov 2023 22:30:00 +0000 (UTC)
+Subject: Re: [GIT PULL] hotfixes for 6.7-rc2
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <20231117140848.02adcf56c301bb3ab85ae75a@linux-foundation.org>
+References: <20231117140848.02adcf56c301bb3ab85ae75a@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20231117140848.02adcf56c301bb3ab85ae75a@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-11-17-14-04
+X-PR-Tracked-Commit-Id: afccb0804fc74ac2f6737af6a139632606cb461d
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 12ee72fe01e45a9586b9d130c5501763818c8efc
+Message-Id: <170026020074.3356.3062483078962425112.pr-tracker-bot@kernel.org>
+Date:   Fri, 17 Nov 2023 22:30:00 +0000
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        mm-commits@vger.kernel.org, linux-mm@kvack.org,
         linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.7-rc2
-Message-Id: <20231117140848.02adcf56c301bb3ab85ae75a@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+The pull request you sent on Fri, 17 Nov 2023 14:08:48 -0800:
 
-Linus, please merge this batch of hotfixes, thanks.
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-11-17-14-04
 
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/12ee72fe01e45a9586b9d130c5501763818c8efc
 
-The following changes since commit b85ea95d086471afb4ad062012a4d73cd328fa86:
+Thank you!
 
-  Linux 6.7-rc1 (2023-11-12 16:19:07 -0800)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-11-17-14-04
-
-for you to fetch changes up to afccb0804fc74ac2f6737af6a139632606cb461d:
-
-  mm: more ptep_get() conversion (2023-11-15 15:30:09 -0800)
-
-----------------------------------------------------------------
-Thirteen hotfixes.  Seven are cc:stable and the remainder pertain to
-post-6.6 issues or aren't considered suitable for backporting.
-
-----------------------------------------------------------------
-Breno Leitao (2):
-      selftests/mm: restore number of hugepages
-      selftests/mm: add hugetlb_fault_after_madv to .gitignore
-
-Dan Carpenter (1):
-      mm/damon/sysfs: eliminate potential uninitialized variable warning
-
-Helge Deller (1):
-      parisc: fix mmap_base calculation when stack grows upwards
-
-Hyeongtak Ji (1):
-      mm/damon/core.c: avoid unintentional filtering out of schemes
-
-Muhammad Usama Anjum (2):
-      selftests: mm: skip whole test instead of failure
-      selftests: mm: fix some build warnings
-
-Roman Gushchin (1):
-      mm: kmem: drop __GFP_NOFAIL when allocating objcg vectors
-
-Ryan Roberts (1):
-      mm: more ptep_get() conversion
-
-SeongJae Park (3):
-      mm/damon/sysfs: check error from damon_sysfs_update_target()
-      mm/damon/sysfs-schemes: handle tried regions sysfs directory allocation failure
-      mm/damon/sysfs-schemes: handle tried region directory allocation failure
-
-Stefan Roesch (1):
-      mm: fix for negative counter: nr_file_hugepages
-
- arch/parisc/Kconfig                        |  6 +++---
- arch/parisc/include/asm/elf.h              | 10 +---------
- arch/parisc/include/asm/processor.h        |  2 ++
- arch/parisc/kernel/sys_parisc.c            |  2 +-
- mm/damon/core.c                            |  2 +-
- mm/damon/sysfs-schemes.c                   |  5 +++++
- mm/damon/sysfs.c                           |  6 ++++--
- mm/filemap.c                               |  2 +-
- mm/huge_memory.c                           | 16 +++++++++-------
- mm/ksm.c                                   |  2 +-
- mm/memcontrol.c                            |  3 ++-
- mm/userfaultfd.c                           |  2 +-
- mm/util.c                                  | 10 ++++++++++
- tools/testing/selftests/mm/.gitignore      |  1 +
- tools/testing/selftests/mm/pagemap_ioctl.c | 23 ++++++++++++-----------
- tools/testing/selftests/mm/run_vmtests.sh  |  3 +++
- 16 files changed, 57 insertions(+), 38 deletions(-)
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
