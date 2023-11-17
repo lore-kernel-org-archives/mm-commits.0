@@ -2,35 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04ACFC197A0
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Nov 2023 15:36:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0167C072A2
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Nov 2023 17:30:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230383AbjKQPgj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 17 Nov 2023 10:36:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58920 "EHLO
+        id S231533AbjKQRau (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 17 Nov 2023 12:30:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58874 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230379AbjKQPgj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2023 10:36:39 -0500
+        with ESMTP id S230186AbjKQRau (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2023 12:30:50 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB6E8127;
-        Fri, 17 Nov 2023 07:36:35 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 285DAC433C8;
-        Fri, 17 Nov 2023 15:36:35 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4C7690
+        for <mm-commits@vger.kernel.org>; Fri, 17 Nov 2023 09:30:46 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 652CBC433C8;
+        Fri, 17 Nov 2023 17:30:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700235395;
-        bh=wXakN8pMOWsk0ZXqndIFqKlC9dd0Fuq6EXWTvhojRfQ=;
+        s=korg; t=1700242246;
+        bh=smHc/AipauYgBePN1pXGX6FP19ypC1zy5G0HEcxwkQs=;
         h=Date:To:From:Subject:From;
-        b=ql6qVPMV2s+iFM7wRpQW0V2vPIekA0r08CqAn1O0ICPEo6KsruOyeYMN3kBax68xI
-         OIWLvLmMbQlyS62xBTF0LofkF5ZRuCuA0ga23jFMffjof4v7TzAAkdGggy25Iv8tjP
-         NkgRp7+bcROmS7U/bdIoB88md+cDHi0/DvoA+D6A=
-Date:   Fri, 17 Nov 2023 07:36:34 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        stable@vger.kernel.org, kirill.shutemov@linux.intel.com,
-        jose.pekkarinen@foxhound.fi, jannh@google.com, hughd@google.com,
-        akpm@linux-foundation.org
+        b=WOOvQdj4sbiTF2eTZJkJEGL8fMsS62HWSseq2GugAboj8Z/gfP4y5oPH9B73cH2R1
+         1iuEGD4Am7UKR3L5Pmo8N/3ewj1PSQtA9izhbD6sx266D+ll65mAv2mHG4O1bMB2a0
+         14+ib2xoq7Nq3VEs+KsJWOUgigV+8Gs81EEjrktw=
+Date:   Fri, 17 Nov 2023 09:30:45 -0800
+To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-oops-when-filemap_map_pmd-without-prealloc_pte.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231117153635.285DAC433C8@smtp.kernel.org>
+Subject: + memory-failure-use-a-folio-in-me_pagecache_clean.patch added to mm-unstable branch
+Message-Id: <20231117173046.652CBC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,14 +36,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix oops when filemap_map_pmd() without prealloc_pte
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-oops-when-filemap_map_pmd-without-prealloc_pte.patch
+     Subject: memory-failure: use a folio in me_pagecache_clean()
+has been added to the -mm mm-unstable branch.  Its filename is
+     memory-failure-use-a-folio-in-me_pagecache_clean.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-oops-when-filemap_map_pmd-without-prealloc_pte.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memory-failure-use-a-folio-in-me_pagecache_clean.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -61,62 +59,126 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: fix oops when filemap_map_pmd() without prealloc_pte
-Date: Fri, 17 Nov 2023 00:49:18 -0800 (PST)
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: memory-failure: use a folio in me_pagecache_clean()
+Date: Fri, 17 Nov 2023 16:14:42 +0000
 
-syzbot reports oops in lockdep's __lock_acquire(), called from
-__pte_offset_map_lock() called from filemap_map_pages(); or when I run the
-repro, the oops comes in pmd_install(), called from filemap_map_pmd()
-called from filemap_map_pages(), just before the __pte_offset_map_lock().
+Patch series "Convert aops->error_remove_page to ->error_remove_folio".
 
-The problem is that filemap_map_pmd() has been assuming that when it finds
-pmd_none(), a page table has already been prepared in prealloc_pte; and
-indeed do_fault_around() has been careful to preallocate one there, when
-it finds pmd_none(): but what if *pmd became none in between?
+This is a memory-failure patch series which converts a lot of uses of page
+APIs into folio APIs with the usual benefits.  
 
-My 6.6 mods in mm/khugepaged.c, avoiding mmap_lock for write, have made it
-easy for *pmd to be cleared while servicing a page fault; but even before
-those, a huge *pmd might be zapped while a fault is serviced.
 
-The difference in symptomatic stack traces comes from the "memory model"
-in use: pmd_install() uses pmd_populate() uses page_to_pfn(): in some
-models that is strict, and will oops on the NULL prealloc_pte; in other
-models, it will construct a bogus value to be populated into *pmd, then
-__pte_offset_map_lock() oops when trying to access split ptlock pointer
-(or some other symptom in normal case of ptlock embedded not pointer).
+This patch (of 6):
 
-Link: https://lore.kernel.org/linux-mm/20231115065506.19780-1-jose.pekkarinen@foxhound.fi/
-Link: https://lkml.kernel.org/r/6ed0c50c-78ef-0719-b3c5-60c0c010431c@google.com
-Fixes: f9ce0be71d1f ("mm: Cleanup faultaround and finish_fault() codepaths")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reported-and-tested-by: syzbot+89edd67979b52675ddec@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/linux-mm/0000000000005e44550608a0806c@google.com/
-Cc: Jann Horn <jannh@google.com>,
-Cc: José Pekkarinen <jose.pekkarinen@foxhound.fi>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: <stable@vger.kernel.org>    [5.12+]
+Replaces three hidden calls to compound_head() with one visible one.
+Fix up a few comments while I'm modifying this function.
+
+Link: https://lkml.kernel.org/r/20231117161447.2461643-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231117161447.2461643-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory-failure.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
---- a/mm/filemap.c~mm-fix-oops-when-filemap_map_pmd-without-prealloc_pte
-+++ a/mm/filemap.c
-@@ -3371,7 +3371,7 @@ static bool filemap_map_pmd(struct vm_fa
- 		}
+--- a/mm/memory-failure.c~memory-failure-use-a-folio-in-me_pagecache_clean
++++ a/mm/memory-failure.c
+@@ -1014,6 +1014,7 @@ static int me_unknown(struct page_state
+  */
+ static int me_pagecache_clean(struct page_state *ps, struct page *p)
+ {
++	struct folio *folio = page_folio(p);
+ 	int ret;
+ 	struct address_space *mapping;
+ 	bool extra_pins;
+@@ -1021,10 +1022,10 @@ static int me_pagecache_clean(struct pag
+ 	delete_from_lru_cache(p);
+ 
+ 	/*
+-	 * For anonymous pages we're done the only reference left
++	 * For anonymous folios the only reference left
+ 	 * should be the one m_f() holds.
+ 	 */
+-	if (PageAnon(p)) {
++	if (folio_test_anon(folio)) {
+ 		ret = MF_RECOVERED;
+ 		goto out;
  	}
+@@ -1036,11 +1037,9 @@ static int me_pagecache_clean(struct pag
+ 	 * has a reference, because it could be file system metadata
+ 	 * and that's not safe to truncate.
+ 	 */
+-	mapping = page_mapping(p);
++	mapping = folio_mapping(folio);
+ 	if (!mapping) {
+-		/*
+-		 * Page has been teared down in the meanwhile
+-		 */
++		/* Folio has been torn down in the meantime */
+ 		ret = MF_FAILED;
+ 		goto out;
+ 	}
+@@ -1061,7 +1060,7 @@ static int me_pagecache_clean(struct pag
+ 		ret = MF_FAILED;
  
--	if (pmd_none(*vmf->pmd))
-+	if (pmd_none(*vmf->pmd) && vmf->prealloc_pte)
- 		pmd_install(mm, vmf->pmd, &vmf->prealloc_pte);
+ out:
+-	unlock_page(p);
++	folio_unlock(folio);
  
- 	return false;
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-fix-oops-when-filemap_map_pmd-without-prealloc_pte.patch
+mm-add-folio_zero_tail-and-use-it-in-ext4.patch
+mm-add-folio_fill_tail-and-use-it-in-iomap.patch
+gfs2-convert-stuffed_readpage-to-stuffed_read_folio.patch
+mm-remove-test_set_page_writeback.patch
+afs-do-not-test-the-return-value-of-folio_start_writeback.patch
+smb-do-not-test-the-return-value-of-folio_start_writeback.patch
+mm-return-void-from-folio_start_writeback-and-related-functions.patch
+mm-make-mapping_evict_folio-the-preferred-way-to-evict-clean-folios.patch
+mm-convert-__do_fault-to-use-a-folio.patch
+mm-use-mapping_evict_folio-in-truncate_error_page.patch
+mm-convert-soft_offline_in_use_page-to-use-a-folio.patch
+mm-convert-isolate_page-to-mf_isolate_folio.patch
+mm-remove-invalidate_inode_page.patch
+buffer-return-bool-from-grow_dev_folio.patch
+buffer-calculate-block-number-inside-folio_init_buffers.patch
+buffer-fix-grow_buffers-for-block-size-page_size.patch
+buffer-cast-block-to-loff_t-before-shifting-it.patch
+buffer-fix-various-functions-for-block-size-page_size.patch
+buffer-handle-large-folios-in-__block_write_begin_int.patch
+buffer-fix-more-functions-for-block-size-page_size.patch
+gfp-include-__gfp_nowarn-in-gfp_nowait.patch
+memory-failure-use-a-folio-in-me_pagecache_clean.patch
+memory-failure-use-a-folio-in-me_pagecache_dirty.patch
+memory-failure-convert-delete_from_lru_cache-to-take-a-folio.patch
+memory-failure-use-a-folio-in-me_huge_page.patch
+memory-failure-convert-truncate_error_page-to-truncate_error_folio.patch
+fs-convert-error_remove_page-to-error_remove_folio.patch
+nilfs2-add-nilfs_end_folio_io.patch
+nilfs2-convert-nilfs_abort_logs-to-use-folios.patch
+nilfs2-convert-nilfs_segctor_complete_write-to-use-folios.patch
+nilfs2-convert-nilfs_forget_buffer-to-use-a-folio.patch
+nilfs2-convert-to-nilfs_folio_buffers_clean.patch
+nilfs2-convert-nilfs_writepage-to-use-a-folio.patch
+nilfs2-convert-nilfs_mdt_write_page-to-use-a-folio.patch
+nilfs2-convert-to-nilfs_clear_folio_dirty.patch
+nilfs2-convert-to-__nilfs_clear_folio_dirty.patch
+nilfs2-convert-nilfs_segctor_prepare_write-to-use-folios.patch
+nilfs2-convert-nilfs_page_mkwrite-to-use-a-folio.patch
+nilfs2-convert-nilfs_mdt_create_block-to-use-a-folio.patch
+nilfs2-convert-nilfs_mdt_submit_block-to-use-a-folio.patch
+nilfs2-convert-nilfs_gccache_submit_read_data-to-use-a-folio.patch
+nilfs2-convert-nilfs_btnode_create_block-to-use-a-folio.patch
+nilfs2-convert-nilfs_btnode_submit_block-to-use-a-folio.patch
+nilfs2-convert-nilfs_btnode_delete-to-use-a-folio.patch
+nilfs2-convert-nilfs_btnode_prepare_change_key-to-use-a-folio.patch
+nilfs2-convert-nilfs_btnode_commit_change_key-to-use-a-folio.patch
+nilfs2-convert-nilfs_btnode_abort_change_key-to-use-a-folio.patch
 
