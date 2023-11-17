@@ -2,169 +2,110 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E9E1C54FB9
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Nov 2023 18:20:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36CF4C072A2
+	for <mm-commits@archiver.kernel.org>; Fri, 17 Nov 2023 22:08:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230383AbjKQSUb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 17 Nov 2023 13:20:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47310 "EHLO
+        id S231533AbjKQWIx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 17 Nov 2023 17:08:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33790 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229535AbjKQSUa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2023 13:20:30 -0500
+        with ESMTP id S230379AbjKQWIw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2023 17:08:52 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BAC68AA
-        for <mm-commits@vger.kernel.org>; Fri, 17 Nov 2023 10:20:26 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58E8CC433C7;
-        Fri, 17 Nov 2023 18:20:26 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93B03B8;
+        Fri, 17 Nov 2023 14:08:49 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20F67C433C8;
+        Fri, 17 Nov 2023 22:08:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700245226;
-        bh=odk66iIWbVdjrb1LOYvbkF08juTYzLae5D6hUmmq8TQ=;
-        h=Date:To:From:Subject:From;
-        b=LjtZQFfSh2jvsUuLwJfaBrRuK9re4XA1KqcIZmkZ8ZYHXQLTxG3aFOdQb+yfOA4TQ
-         mzBS1ByzKJ6mzptl4anOa2qHBqAu9fTwfksMUABhwQnR4qIrApjXTo5AS5tRu2dGnE
-         PVXqFZDfQ6AhsL4qrnQy2BPdhOK14yY/dvu08bWA=
-Date:   Fri, 17 Nov 2023 10:20:25 -0800
-To:     mm-commits@vger.kernel.org, ryan.roberts@arm.com,
-        avagin@google.com, akpm@linux-foundation.org
+        s=korg; t=1700258929;
+        bh=NEOWloWUbotUNY8eU+l2lgEi5xBr0yxPu9X40CLvS6I=;
+        h=Date:From:To:Cc:Subject:From;
+        b=KFTQrG8kWtIKss8EwcmegRotfexaBOlduqxE5Bty+bMXAT7k03g34KsNbdLjWaAWr
+         ri2KBCd9BQy0WiC7DE0NCNgmVwGwgiZmuGC1b/IT4Sk5qjveC5ZYRH3O5nZnoy43EB
+         xXWH/NBF5nzXn2UCUiguVPrTPDvvEac8OPSS37FY=
+Date:   Fri, 17 Nov 2023 14:08:48 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-check-that-pagemap_scan-returns-correct-categories-fix.patch added to mm-unstable branch
-Message-Id: <20231117182026.58E8CC433C7@smtp.kernel.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.7-rc2
+Message-Id: <20231117140848.02adcf56c301bb3ab85ae75a@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: selftests/mm: don't fail if pagemap_scan isn't supported
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-check-that-pagemap_scan-returns-correct-categories-fix.patch
+Linus, please merge this batch of hotfixes, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-check-that-pagemap_scan-returns-correct-categories-fix.patch
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following changes since commit b85ea95d086471afb4ad062012a4d73cd328fa86:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+  Linux 6.7-rc1 (2023-11-12 16:19:07 -0800)
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+are available in the Git repository at:
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-11-17-14-04
 
-------------------------------------------------------
-From: Andrei Vagin <avagin@google.com>
-Subject: selftests/mm: don't fail if pagemap_scan isn't supported
-Date: Fri, 17 Nov 2023 10:11:27 -0800
+for you to fetch changes up to afccb0804fc74ac2f6737af6a139632606cb461d:
 
-This change allows to run tests on old kernels.
+  mm: more ptep_get() conversion (2023-11-15 15:30:09 -0800)
 
-Link: https://lkml.kernel.org/r/20231117181127.2574897-1-avagin@google.com
-Reported-by: Ryan Roberts <ryan.roberts@arm.com>
-Closes: https://lore.kernel.org/lkml/696a0a99-eb42-4e13-be14-58a88c9c33f7@arm.com/
-Signed-off-by: Andrei Vagin <avagin@google.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+----------------------------------------------------------------
+Thirteen hotfixes.  Seven are cc:stable and the remainder pertain to
+post-6.6 issues or aren't considered suitable for backporting.
 
- tools/testing/selftests/mm/vm_util.c |   51 +++++++++++++++++++------
- 1 file changed, 39 insertions(+), 12 deletions(-)
+----------------------------------------------------------------
+Breno Leitao (2):
+      selftests/mm: restore number of hugepages
+      selftests/mm: add hugetlb_fault_after_madv to .gitignore
 
---- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-check-that-pagemap_scan-returns-correct-categories-fix
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -29,15 +29,13 @@ uint64_t pagemap_get_entry(int fd, char
- 	return entry;
- }
- 
--static uint64_t pagemap_scan_get_categories(int fd, char *start)
-+static uint64_t __pagemap_scan_get_categories(int fd, char *start, struct page_region *r)
- {
- 	struct pm_scan_arg arg;
--	struct page_region r;
--	long ret;
- 
- 	arg.start = (uintptr_t)start;
- 	arg.end = (uintptr_t)(start + psize());
--	arg.vec = (uintptr_t)&r;
-+	arg.vec = (uintptr_t)r;
- 	arg.vec_len = 1;
- 	arg.flags = 0;
- 	arg.size = sizeof(struct pm_scan_arg);
-@@ -49,7 +47,15 @@ static uint64_t pagemap_scan_get_categor
- 				  PAGE_IS_HUGE | PAGE_IS_SOFT_DIRTY;
- 	arg.return_mask = arg.category_anyof_mask;
- 
--	ret = ioctl(fd, PAGEMAP_SCAN, &arg);
-+	return ioctl(fd, PAGEMAP_SCAN, &arg);
-+}
-+
-+static uint64_t pagemap_scan_get_categories(int fd, char *start)
-+{
-+	struct page_region r;
-+	long ret;
-+
-+	ret = __pagemap_scan_get_categories(fd, start, &r);
- 	if (ret < 0)
- 		ksft_exit_fail_msg("PAGEMAP_SCAN failed: %s\n", strerror(errno));
- 	if (ret == 0)
-@@ -57,18 +63,39 @@ static uint64_t pagemap_scan_get_categor
- 	return r.categories;
- }
- 
-+/* `start` is any valid address. */
-+static bool pagemap_scan_supported(int fd, char *start)
-+{
-+	static int supported = -1;
-+	int ret;
-+
-+	if (supported != -1)
-+		return supported;
-+
-+	/* Provide an invalid address in order to trigger EFAULT. */
-+	ret = __pagemap_scan_get_categories(fd, start, (struct page_region *) ~0UL);
-+	if (ret == 0)
-+		ksft_exit_fail_msg("PAGEMAP_SCAN succedded unexpectedly\n");
-+
-+	supported = errno == EFAULT;
-+
-+	return supported;
-+}
-+
- static bool page_entry_is(int fd, char *start, char *desc,
- 			  uint64_t pagemap_flags, uint64_t pagescan_flags)
- {
--	bool m, s;
-+	bool m = pagemap_get_entry(fd, start) & pagemap_flags;
-+
-+	if (pagemap_scan_supported(fd, start)) {
-+		bool s = pagemap_scan_get_categories(fd, start) & pagescan_flags;
- 
--	m = pagemap_get_entry(fd, start) & pagemap_flags;
--	s = pagemap_scan_get_categories(fd, start) & pagescan_flags;
--	if (m == s)
--		return m;
-+		if (m == s)
-+			return m;
- 
--	ksft_exit_fail_msg(
--		"read and ioctl return unmatched results for %s: %d %d", desc, m, s);
-+		ksft_exit_fail_msg(
-+			"read and ioctl return unmatched results for %s: %d %d", desc, m, s);
-+	}
- 	return m;
- }
- 
-_
+Dan Carpenter (1):
+      mm/damon/sysfs: eliminate potential uninitialized variable warning
 
-Patches currently in -mm which might be from avagin@google.com are
+Helge Deller (1):
+      parisc: fix mmap_base calculation when stack grows upwards
 
-fs-proc-task_mmu-report-soft_dirty-bits-through-the-pagemap_scan-ioctl.patch
-fs-proc-task_mmu-report-soft_dirty-bits-through-the-pagemap_scan-ioctl-v3.patch
-selftests-mm-check-that-pagemap_scan-returns-correct-categories.patch
-selftests-mm-check-that-pagemap_scan-returns-correct-categories-fix.patch
+Hyeongtak Ji (1):
+      mm/damon/core.c: avoid unintentional filtering out of schemes
+
+Muhammad Usama Anjum (2):
+      selftests: mm: skip whole test instead of failure
+      selftests: mm: fix some build warnings
+
+Roman Gushchin (1):
+      mm: kmem: drop __GFP_NOFAIL when allocating objcg vectors
+
+Ryan Roberts (1):
+      mm: more ptep_get() conversion
+
+SeongJae Park (3):
+      mm/damon/sysfs: check error from damon_sysfs_update_target()
+      mm/damon/sysfs-schemes: handle tried regions sysfs directory allocation failure
+      mm/damon/sysfs-schemes: handle tried region directory allocation failure
+
+Stefan Roesch (1):
+      mm: fix for negative counter: nr_file_hugepages
+
+ arch/parisc/Kconfig                        |  6 +++---
+ arch/parisc/include/asm/elf.h              | 10 +---------
+ arch/parisc/include/asm/processor.h        |  2 ++
+ arch/parisc/kernel/sys_parisc.c            |  2 +-
+ mm/damon/core.c                            |  2 +-
+ mm/damon/sysfs-schemes.c                   |  5 +++++
+ mm/damon/sysfs.c                           |  6 ++++--
+ mm/filemap.c                               |  2 +-
+ mm/huge_memory.c                           | 16 +++++++++-------
+ mm/ksm.c                                   |  2 +-
+ mm/memcontrol.c                            |  3 ++-
+ mm/userfaultfd.c                           |  2 +-
+ mm/util.c                                  | 10 ++++++++++
+ tools/testing/selftests/mm/.gitignore      |  1 +
+ tools/testing/selftests/mm/pagemap_ioctl.c | 23 ++++++++++++-----------
+ tools/testing/selftests/mm/run_vmtests.sh  |  3 +++
+ 16 files changed, 57 insertions(+), 38 deletions(-)
 
