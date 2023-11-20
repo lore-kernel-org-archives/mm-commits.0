@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E930C2BB3F
-	for <mm-commits@archiver.kernel.org>; Mon, 20 Nov 2023 18:03:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AABEC197A0
+	for <mm-commits@archiver.kernel.org>; Mon, 20 Nov 2023 18:03:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231659AbjKTSDj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 20 Nov 2023 13:03:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51778 "EHLO
+        id S232502AbjKTSDm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 20 Nov 2023 13:03:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51790 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231132AbjKTSDi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2023 13:03:38 -0500
+        with ESMTP id S231132AbjKTSDk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2023 13:03:40 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50B52A7
-        for <mm-commits@vger.kernel.org>; Mon, 20 Nov 2023 10:03:35 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D91C4C433CA;
-        Mon, 20 Nov 2023 18:03:34 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0DE7EA7
+        for <mm-commits@vger.kernel.org>; Mon, 20 Nov 2023 10:03:37 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F27AC433C9;
+        Mon, 20 Nov 2023 18:03:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700503414;
-        bh=jeg7F6GCybra2Dz/qiIrQXzLbRQ9XBaxhx7yB4WhGgE=;
+        s=korg; t=1700503416;
+        bh=Y7lIVV9W9WsJC0Q9/yze9jCEImo/TaZWBVwlBk5Rs5Q=;
         h=Date:To:From:Subject:From;
-        b=RP7+enz6qNqIk5oqHkHvs4OIT69q5uyrwNW//9yt5e74qOODXkJbJ6wpm7UdiO2/2
-         B5HfMHvCUfG75I3RVjUmNi8SINq3deQQDqqA0TXusXoLH3tXOD1EMMKtHisUaXC9p4
-         o9n7kecUGjJZchz+yCERsQ9ghFiYS4pQ/qMFvV/U=
-Date:   Mon, 20 Nov 2023 10:03:34 -0800
+        b=Fa8YyrWiAMXM6h2e9Ou/fKo9wl8YNbb537g+nr2yG68GrogHjtdEWMqG5tiaRnQMR
+         LOK4Ujf4E5aBmrWGs6ibg0WcwwjjineMSSFmG4O6BHfflrW39qQSVZSrKOhfUKwbku
+         LYY4ckJ5/OaE4QsuBw1wticcpDSsmOvMLoJVuuSU=
+Date:   Mon, 20 Nov 2023 10:03:36 -0800
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, osalvador@suse.de,
         glider@google.com, eugenis@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-stackdepot-check-disabled-flag-when-fetching.patch added to mm-unstable branch
-Message-Id: <20231120180334.D91C4C433CA@smtp.kernel.org>
+Subject: + lib-stackdepot-simplify-__stack_depot_save.patch added to mm-unstable branch
+Message-Id: <20231120180336.9F27AC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,12 +38,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/stackdepot: check disabled flag when fetching
+     Subject: lib/stackdepot: simplify __stack_depot_save
 has been added to the -mm mm-unstable branch.  Its filename is
-     lib-stackdepot-check-disabled-flag-when-fetching.patch
+     lib-stackdepot-simplify-__stack_depot_save.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-check-disabled-flag-when-fetching.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-simplify-__stack_depot_save.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,13 +62,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: lib/stackdepot: check disabled flag when fetching
-Date: Mon, 20 Nov 2023 18:47:00 +0100
+Subject: lib/stackdepot: simplify __stack_depot_save
+Date: Mon, 20 Nov 2023 18:47:01 +0100
 
-Do not try fetching a stack trace from the stack depot if the
-stack_depot_disabled flag is enabled.
+The retval local variable in __stack_depot_save has the union type
+handle_parts, but the function never uses anything but the union's handle
+field.
 
-Link: https://lkml.kernel.org/r/c3bfa3b7ab00b2e48ab75a3fbb9c67555777cb08.1700502145.git.andreyknvl@google.com
+Define retval simply as depot_stack_handle_t to simplify the code.
+
+Link: https://lkml.kernel.org/r/3b0763c8057a1cf2f200ff250a5f9580ee36a28c.1700502145.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -79,20 +82,41 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/stackdepot.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/stackdepot.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/lib/stackdepot.c~lib-stackdepot-check-disabled-flag-when-fetching
+--- a/lib/stackdepot.c~lib-stackdepot-simplify-__stack_depot_save
 +++ a/lib/stackdepot.c
-@@ -483,7 +483,7 @@ unsigned int stack_depot_fetch(depot_sta
- 	 */
- 	kmsan_unpoison_memory(entries, sizeof(*entries));
+@@ -366,7 +366,7 @@ depot_stack_handle_t __stack_depot_save(
+ 					gfp_t alloc_flags, bool can_alloc)
+ {
+ 	struct stack_record *found = NULL, **bucket;
+-	union handle_parts retval = { .handle = 0 };
++	depot_stack_handle_t handle = 0;
+ 	struct page *page = NULL;
+ 	void *prealloc = NULL;
+ 	unsigned long flags;
+@@ -383,7 +383,7 @@ depot_stack_handle_t __stack_depot_save(
+ 	nr_entries = filter_irq_stacks(entries, nr_entries);
  
--	if (!handle)
-+	if (!handle || stack_depot_disabled)
- 		return 0;
+ 	if (unlikely(nr_entries == 0) || stack_depot_disabled)
+-		goto fast_exit;
++		return 0;
  
- 	if (parts.pool_index > pool_index_cached) {
+ 	hash = hash_stack(entries, nr_entries);
+ 	bucket = &stack_table[hash & stack_hash_mask];
+@@ -449,9 +449,8 @@ exit:
+ 		free_pages((unsigned long)prealloc, DEPOT_POOL_ORDER);
+ 	}
+ 	if (found)
+-		retval.handle = found->handle.handle;
+-fast_exit:
+-	return retval.handle;
++		handle = found->handle.handle;
++	return handle;
+ }
+ EXPORT_SYMBOL_GPL(__stack_depot_save);
+ 
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
