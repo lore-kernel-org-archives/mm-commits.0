@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E0FBC54FB9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C7C9C2BB3F
 	for <mm-commits@archiver.kernel.org>; Mon, 20 Nov 2023 20:08:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229632AbjKTUIs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229751AbjKTUIs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 20 Nov 2023 15:08:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42916 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42908 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229721AbjKTUIq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2023 15:08:46 -0500
+        with ESMTP id S229632AbjKTUIo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2023 15:08:44 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D619FBE
-        for <mm-commits@vger.kernel.org>; Mon, 20 Nov 2023 12:08:42 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7158DC433CA;
-        Mon, 20 Nov 2023 20:08:42 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1666383
+        for <mm-commits@vger.kernel.org>; Mon, 20 Nov 2023 12:08:41 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A761BC433C8;
+        Mon, 20 Nov 2023 20:08:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700510922;
-        bh=Ofd5jKomgAlhtxlT+phw084xKETbrgsSn4gEs+EsAl0=;
+        s=korg; t=1700510920;
+        bh=6wOkdRQw6sZMHVDnKeP418VPQBEB5InL0U76hujoync=;
         h=Date:To:From:Subject:From;
-        b=odEKBQnpM1z8c7yzrOhyzf7XFBsHstgI7z3dqtVrJVQMOm4n1W1oMtsrq+n8dA2rc
-         dysgWsQNo41wp8DcsPo2R3kzVeBgzekYs7j+a5MdRUB5bosNMYJ3vTFdoPMS4EeCHr
-         fNmqoCrQbSNIoCLsOI8hBvf/Zsk0I87+jwarGg48=
-Date:   Mon, 20 Nov 2023 12:08:41 -0800
+        b=utU8j6siThUSw7WkpgKKFr46HiDsEkdv9r5PUjRO1Vq7TSYClo+g8J9CmxSpb0GmJ
+         GmYJYxUea1br3mNyGv1RYTQKEgo0RmGkS5ULHPM7g68mI90goHgwQxs7m7E2tCefsY
+         sTKLz4lZ6IpZQ/JeyKwr437GYvrdd0jN8xd6dcaE=
+Date:   Mon, 20 Nov 2023 12:08:39 -0800
 To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
         dan.carpenter@linaro.org, zhangpeng.00@bytedance.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-simplify-mas_leaf_set_meta.patch added to mm-unstable branch
-Message-Id: <20231120200842.7158DC433CA@smtp.kernel.org>
+Subject: + maple_tree-delete-one-of-the-two-identical-checks.patch added to mm-unstable branch
+Message-Id: <20231120200840.A761BC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: maple_tree: simplify mas_leaf_set_meta()
+     Subject: maple_tree: delete one of the two identical checks
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-simplify-mas_leaf_set_meta.patch
+     maple_tree-delete-one-of-the-two-identical-checks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-simplify-mas_leaf_set_meta.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-delete-one-of-the-two-identical-checks.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -61,73 +61,33 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Peng Zhang <zhangpeng.00@bytedance.com>
-Subject: maple_tree: simplify mas_leaf_set_meta()
-Date: Mon, 20 Nov 2023 15:09:37 +0800
+Subject: maple_tree: delete one of the two identical checks
+Date: Mon, 20 Nov 2023 15:09:36 +0800
 
-Now it seems that the incoming 'end' is already pointing to the last item,
-so we can simplify this function, considering only whether the last slot
-is being used.  This has passed the maple tree test suite.
+There are two identical checks, delete one of them.
 
-Link: https://lkml.kernel.org/r/20231120070937.35481-6-zhangpeng.00@bytedance.com
+Link: https://lkml.kernel.org/r/20231120070937.35481-5-zhangpeng.00@bytedance.com
 Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Dan Carpenter <dan.carpenter@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   22 ++++------------------
- 1 file changed, 4 insertions(+), 18 deletions(-)
+ lib/maple_tree.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-simplify-mas_leaf_set_meta
+--- a/lib/maple_tree.c~maple_tree-delete-one-of-the-two-identical-checks
 +++ a/lib/maple_tree.c
-@@ -1964,27 +1964,13 @@ complete:
+@@ -4117,9 +4117,6 @@ static inline bool mas_wr_append(struct
+ 	if (mt_in_rcu(mas->tree))
+ 		return false;
  
- /*
-  * mas_leaf_set_meta() - Set the metadata of a leaf if possible.
-- * @mas: The maple state
-  * @node: The maple node
-- * @pivots: pointer to the maple node pivots
-  * @mt: The maple type
-- * @end: The assumed end
-- *
-- * Note, end may be incremented within this function but not modified at the
-- * source.  This is fine since the metadata is the last thing to be stored in a
-- * node during a write.
-+ * @end: The node end
-  */
--static inline void mas_leaf_set_meta(struct ma_state *mas,
--		struct maple_node *node, unsigned long *pivots,
-+static inline void mas_leaf_set_meta(struct maple_node *node,
- 		enum maple_type mt, unsigned char end)
- {
--	/* There is no room for metadata already */
--	if (mt_pivots[mt] <= end)
--		return;
+-	if (mas->offset != mas->end)
+-		return false;
 -
--	if (pivots[end] && pivots[end] < mas->max)
--		end++;
--
- 	if (end < mt_slots[mt] - 1)
- 		ma_set_meta(node, mt, 0, end);
- }
-@@ -2041,7 +2027,7 @@ static inline void mab_mas_cp(struct map
- 
- 		ma_set_meta(node, mt, offset, end);
- 	} else {
--		mas_leaf_set_meta(mas, node, pivots, mt, end);
-+		mas_leaf_set_meta(node, mt, end);
- 	}
- }
- 
-@@ -3962,7 +3948,7 @@ static inline bool mas_wr_node_store(str
- 		dst_pivots[new_end] = mas->max;
- 
- done:
--	mas_leaf_set_meta(mas, newnode, dst_pivots, maple_leaf_64, new_end);
-+	mas_leaf_set_meta(newnode, maple_leaf_64, new_end);
- 	if (in_rcu) {
- 		struct maple_enode *old_enode = mas->node;
- 
+ 	end = mas->end;
+ 	if (mas->offset != end)
+ 		return false;
 _
 
 Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
