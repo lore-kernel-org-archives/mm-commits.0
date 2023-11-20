@@ -2,37 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA4D8C197A0
-	for <mm-commits@archiver.kernel.org>; Mon, 20 Nov 2023 18:32:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C97ECC2BB3F
+	for <mm-commits@archiver.kernel.org>; Mon, 20 Nov 2023 18:45:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232045AbjKTScM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 20 Nov 2023 13:32:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54728 "EHLO
+        id S230229AbjKTSph (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 20 Nov 2023 13:45:37 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55130 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229497AbjKTScL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2023 13:32:11 -0500
+        with ESMTP id S229676AbjKTSpg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2023 13:45:36 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70F0292
-        for <mm-commits@vger.kernel.org>; Mon, 20 Nov 2023 10:32:08 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10BC8C433C8;
-        Mon, 20 Nov 2023 18:32:08 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B60EAD9;
+        Mon, 20 Nov 2023 10:45:31 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40098C433C8;
+        Mon, 20 Nov 2023 18:45:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700505128;
-        bh=BQ0d7n/VUttSQsWiyp5hYg1Awgrddg4tNTeI02VmjkY=;
+        s=korg; t=1700505931;
+        bh=GpGpYdLDLb75GhDzghkpoSPZZujs8criHAgHLPp4cXw=;
         h=Date:To:From:Subject:From;
-        b=nHpubDxjOOwqsdENgpLuLd0WJoOQ5QnVWuhQFUNJlkOT5VQskNGhXQrbx4kvT2AE9
-         2xNcZKwT3GZhWVPpzF6kJNCTH/4N1k+Yq44Zw+yBpAVH0/TEJ7C2RxKPDHETvEI3TS
-         V4VuSxtVrYM1yMheUl6AbGZ+xcB7ssRZ5D+Gxys4=
-Date:   Mon, 20 Nov 2023 10:32:07 -0800
-To:     mm-commits@vger.kernel.org, osalvador@suse.de, mhocko@suse.com,
-        lkp@intel.com, hca@linux.ibm.com, gor@linux.ibm.com,
-        gerald.schaefer@linux.ibm.com, david@redhat.com,
-        anshuman.khandual@arm.com, aneesh.kumar@linux.ibm.com,
-        agordeev@linux.ibm.com, sumanthk@linux.ibm.com,
+        b=Hnmov+UQbxWh0RNbNFyyv+rYgmhX1IrwFZSOH3GlhM101H+FYOb31WGkn+JPBvOWh
+         fRBPn/P1oig+gyp00dRXTC0LNDw7UGeyDD+iqNNn7pT5FPBpV0QypoAfIhRwvSKrTR
+         OpPxSCFLNKVaUhl+akfq907A6HAjlKJ87T/cYXqI=
+Date:   Mon, 20 Nov 2023 10:45:30 -0800
+To:     mm-commits@vger.kernel.org, v.narang@samsung.com,
+        stable@vger.kernel.org, masahiroy@kernel.org,
+        maninder1.s@samsung.com, hca@linux.ibm.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-use-vmem_altmap-code-without-config_zone_device.patch added to mm-unstable branch
-Message-Id: <20231120183208.10BC8C433C8@smtp.kernel.org>
+Subject: + checkstack-fix-printed-address.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231120184531.40098C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,14 +38,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use vmem_altmap code without CONFIG_ZONE_DEVICE
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-use-vmem_altmap-code-without-config_zone_device.patch
+     Subject: checkstack: fix printed address
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     checkstack-fix-printed-address.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-vmem_altmap-code-without-config_zone_device.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkstack-fix-printed-address.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -63,143 +61,69 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sumanth Korikkar <sumanthk@linux.ibm.com>
-Subject: mm: use vmem_altmap code without CONFIG_ZONE_DEVICE
-Date: Mon, 20 Nov 2023 15:53:54 +0100
+From: Heiko Carstens <hca@linux.ibm.com>
+Subject: checkstack: fix printed address
+Date: Mon, 20 Nov 2023 19:37:17 +0100
 
-vmem_altmap_free() and vmem_altmap_offset() could be utlized without
-CONFIG_ZONE_DEVICE enabled.  For example,
-mm/memory_hotplug.c:__add_pages() relies on that.  The altmap is no longer
-restricted to ZONE_DEVICE handling, but instead depends on
-CONFIG_SPARSEMEM_VMEMMAP.
+All addresses printed by checkstack have an extra incorrect 0 appended at
+the end.
 
-When CONFIG_SPARSEMEM_VMEMMAP is disabled, these functions are defined as
-inline stubs, ensuring compatibility with configurations that do not use
-sparsemem vmemmap.  Without it, lkp reported the following:
+This was introduced with commit 677f1410e058 ("scripts/checkstack.pl: don't
+display $dre as different entity"): since then the address is taken from
+the line which contains the function name, instead of the line which
+contains stack consumption. E.g. on s390:
 
-ld: arch/x86/mm/init_64.o: in function `remove_pagetable':
-init_64.c:(.meminit.text+0xfc7): undefined reference to
-`vmem_altmap_free'
+0000000000100a30 <do_one_initcall>:
+...
+  100a44:       e3 f0 ff 70 ff 71       lay     %r15,-144(%r15)
 
-Link: https://lkml.kernel.org/r/20231120145354.308999-4-sumanthk@linux.ibm.com
-Signed-off-by: Sumanth Korikkar <sumanthk@linux.ibm.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202311180545.VeyRXEDq-lkp@intel.com/
-Reviewed-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
+So the used regex which matches spaces and hexadecimal numbers to extract
+an address now matches a different substring. Subsequently replacing spaces
+with 0 appends a zero at the and, instead of replacing leading spaces.
+
+Fix this by using the proper regex, and simplify the code a bit.
+
+Link: https://lkml.kernel.org/r/20231120183719.2188479-2-hca@linux.ibm.com
+Fixes: 677f1410e058 ("scripts/checkstack.pl: don't display $dre as different entity")
+Signed-off-by: Heiko Carstens <hca@linux.ibm.com>
+Cc: Maninder Singh <maninder1.s@samsung.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Vaneet Narang <v.narang@samsung.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memremap.h |   12 ------------
- include/linux/mm.h       |   26 ++++++++++++++++++++++++++
- mm/memremap.c            |   14 +-------------
- 3 files changed, 27 insertions(+), 25 deletions(-)
+ scripts/checkstack.pl |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
---- a/include/linux/memremap.h~mm-use-vmem_altmap-code-without-config_zone_device
-+++ a/include/linux/memremap.h
-@@ -196,8 +196,6 @@ struct dev_pagemap *get_dev_pagemap(unsi
- 		struct dev_pagemap *pgmap);
- bool pgmap_pfn_valid(struct dev_pagemap *pgmap, unsigned long pfn);
- 
--unsigned long vmem_altmap_offset(struct vmem_altmap *altmap);
--void vmem_altmap_free(struct vmem_altmap *altmap, unsigned long nr_pfns);
- unsigned long memremap_compat_align(void);
- #else
- static inline void *devm_memremap_pages(struct device *dev,
-@@ -228,16 +226,6 @@ static inline bool pgmap_pfn_valid(struc
- 	return false;
- }
- 
--static inline unsigned long vmem_altmap_offset(struct vmem_altmap *altmap)
--{
--	return 0;
--}
+--- a/scripts/checkstack.pl~checkstack-fix-printed-address
++++ a/scripts/checkstack.pl
+@@ -139,15 +139,11 @@ $total_size = 0;
+ while (my $line = <STDIN>) {
+ 	if ($line =~ m/$funcre/) {
+ 		$func = $1;
+-		next if $line !~ m/^($xs*)/;
++		next if $line !~ m/^($x*)/;
+ 		if ($total_size > $min_stack) {
+ 			push @stack, "$intro$total_size\n";
+ 		}
 -
--static inline void vmem_altmap_free(struct vmem_altmap *altmap,
--		unsigned long nr_pfns)
--{
--}
+-		$addr = $1;
+-		$addr =~ s/ /0/g;
+-		$addr = "0x$addr";
 -
- /* when memremap_pages() is disabled all archs can remap a single page */
- static inline unsigned long memremap_compat_align(void)
- {
---- a/include/linux/mm.h~mm-use-vmem_altmap-code-without-config_zone_device
-+++ a/include/linux/mm.h
-@@ -3871,6 +3871,32 @@ void vmemmap_free(unsigned long start, u
- 		struct vmem_altmap *altmap);
- #endif
- 
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
-+static inline unsigned long vmem_altmap_offset(struct vmem_altmap *altmap)
-+{
-+	/* number of pfns from base where pfn_to_page() is valid */
-+	if (altmap)
-+		return altmap->reserve + altmap->free;
-+	return 0;
-+}
-+
-+static inline void vmem_altmap_free(struct vmem_altmap *altmap,
-+				    unsigned long nr_pfns)
-+{
-+	altmap->alloc -= nr_pfns;
-+}
-+#else
-+static inline unsigned long vmem_altmap_offset(struct vmem_altmap *altmap)
-+{
-+	return 0;
-+}
-+
-+static inline void vmem_altmap_free(struct vmem_altmap *altmap,
-+				    unsigned long nr_pfns)
-+{
-+}
-+#endif
-+
- #define VMEMMAP_RESERVE_NR	2
- #ifdef CONFIG_ARCH_WANT_OPTIMIZE_DAX_VMEMMAP
- static inline bool __vmemmap_can_optimize(struct vmem_altmap *altmap,
---- a/mm/memremap.c~mm-use-vmem_altmap-code-without-config_zone_device
-+++ a/mm/memremap.c
-@@ -7,6 +7,7 @@
- #include <linux/memremap.h>
- #include <linux/pfn_t.h>
- #include <linux/swap.h>
-+#include <linux/mm.h>
- #include <linux/mmzone.h>
- #include <linux/swapops.h>
- #include <linux/types.h>
-@@ -422,19 +423,6 @@ void devm_memunmap_pages(struct device *
- }
- EXPORT_SYMBOL_GPL(devm_memunmap_pages);
- 
--unsigned long vmem_altmap_offset(struct vmem_altmap *altmap)
--{
--	/* number of pfns from base where pfn_to_page() is valid */
--	if (altmap)
--		return altmap->reserve + altmap->free;
--	return 0;
--}
--
--void vmem_altmap_free(struct vmem_altmap *altmap, unsigned long nr_pfns)
--{
--	altmap->alloc -= nr_pfns;
--}
--
- /**
-  * get_dev_pagemap() - take a new live reference on the dev_pagemap for @pfn
-  * @pfn: page frame number to lookup page_map
++		$addr = "0x$1";
+ 		$intro = "$addr $func [$file]:";
+ 		my $padlen = 56 - length($intro);
+ 		while ($padlen > 0) {
 _
 
-Patches currently in -mm which might be from sumanthk@linux.ibm.com are
+Patches currently in -mm which might be from hca@linux.ibm.com are
 
-mm-memory_hotplug-add-missing-mem_hotplug_lock.patch
-mm-memory_hotplug-fix-error-handling-in-add_memory_resource.patch
-mm-use-vmem_altmap-code-without-config_zone_device.patch
+checkstack-fix-printed-address.patch
+checkstack-sort-output-by-size-and-function-name.patch
+checkstack-allow-to-pass-minstacksize-parameter.patch
+arch-remove-arch_thread_stack_allocator.patch
+arch-remove-arch_task_struct_allocator.patch
+arch-remove-arch_task_struct_on_stack.patch
 
