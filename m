@@ -2,64 +2,167 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 018DDC54FB9
-	for <mm-commits@archiver.kernel.org>; Fri, 17 Nov 2023 22:30:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CD40C197A0
+	for <mm-commits@archiver.kernel.org>; Mon, 20 Nov 2023 17:39:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346294AbjKQWaO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 17 Nov 2023 17:30:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44732 "EHLO
+        id S234359AbjKTRjd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 20 Nov 2023 12:39:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35550 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346312AbjKQWaL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 17 Nov 2023 17:30:11 -0500
+        with ESMTP id S234303AbjKTRjE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2023 12:39:04 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CB8119A0;
-        Fri, 17 Nov 2023 14:30:01 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id CCC04C433C9;
-        Fri, 17 Nov 2023 22:30:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1700260200;
-        bh=W3POoEqWruz4t3RlcQpQsz8k5ZJCPvfD3+dkOL94Zeg=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=VMMD74HxJx7ukoRSXz7fXxE/2IzCR+shkBgGsddpyrxW41pSbCSPuaeG3VbIt347h
-         34aBWtHVhg7l8Vv2SU6kw+EdycL1W9tNUgFmY5vemV+S+PrGNIA8IjNcCpq8DUUBu5
-         ccIeZVxRr3AFWj4ruX5GoKYbO/56URGie54VN2O+Htgwwcu+oKt9V6mLTrQ7MEtKeQ
-         4Vlh/AKCvd0e6IlCftoEfJWTD1PwG8vbiIHhrqYYy8xA36rOFGIbF/BtgDSewR0t/e
-         uIEla6ZQLSBxCbFpkCsg0Q/p9EBjsBXKLqMdx4mTLGM4/vYfMGs/70Lhoog4KY1Epz
-         rhcdIBvA1Q2mQ==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id B74EBC4316B;
-        Fri, 17 Nov 2023 22:30:00 +0000 (UTC)
-Subject: Re: [GIT PULL] hotfixes for 6.7-rc2
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <20231117140848.02adcf56c301bb3ab85ae75a@linux-foundation.org>
-References: <20231117140848.02adcf56c301bb3ab85ae75a@linux-foundation.org>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20231117140848.02adcf56c301bb3ab85ae75a@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-11-17-14-04
-X-PR-Tracked-Commit-Id: afccb0804fc74ac2f6737af6a139632606cb461d
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 12ee72fe01e45a9586b9d130c5501763818c8efc
-Message-Id: <170026020074.3356.3062483078962425112.pr-tracker-bot@kernel.org>
-Date:   Fri, 17 Nov 2023 22:30:00 +0000
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        mm-commits@vger.kernel.org, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E89C171D
+        for <mm-commits@vger.kernel.org>; Mon, 20 Nov 2023 09:38:40 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 064FEC433C7;
+        Mon, 20 Nov 2023 17:38:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1700501920;
+        bh=2ceBkoVdLX6jxuTQ7xtXulJMuVKWo+Alm3IF73c4rpY=;
+        h=Date:To:From:Subject:From;
+        b=zihbTuArZnhxTCOy9TGBBArdbbGYw+zZtZS72TLDqbWUTTwfUVKK5Af6gdyJ6oWV/
+         X6mVxV5KCcVY1eYknqDjzmz21c8xzWrKGKdffRSAee03FNc5EhqMzll+GNY1ihKs1x
+         VgwpHLCI+y+OhFKue6c8yzfjWjLCWOh3xwxmRTqQ=
+Date:   Mon, 20 Nov 2023 09:38:39 -0800
+To:     mm-commits@vger.kernel.org, serge@hallyn.com,
+        phillip@squashfs.org.uk, corbet@lwn.net, bagasdotme@gmail.com,
+        amiculas@cisco.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + docs-filesystems-document-the-squashfs-specific-mount-options.patch added to mm-nonmm-unstable branch
+Message-Id: <20231120173840.064FEC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-The pull request you sent on Fri, 17 Nov 2023 14:08:48 -0800:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-11-17-14-04
+The patch titled
+     Subject: docs: filesystems: document the squashfs specific mount options
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     docs-filesystems-document-the-squashfs-specific-mount-options.patch
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/12ee72fe01e45a9586b9d130c5501763818c8efc
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-filesystems-document-the-squashfs-specific-mount-options.patch
 
-Thank you!
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Ariel Miculas <amiculas@cisco.com>
+Subject: docs: filesystems: document the squashfs specific mount options
+Date: Fri, 17 Nov 2023 18:12:14 +0200
+
+When SQUASHFS_CHOICE_DECOMP_BY_MOUNT is set, the "threads" mount option
+can be used to specify the decompression mode: single-threaded,
+multi-threaded, percpu or the number of threads used for decompression. 
+When SQUASHFS_CHOICE_DECOMP_BY_MOUNT is not set, SQUASHFS_DECOMP_MULTI and
+SQUASHFS_MOUNT_DECOMP_THREADS are both set, the "threads" option can also
+be used to specify the number of threads used for decompression.  This
+mount option is only mentioned in fs/squashfs/Kconfig, which makes it
+difficult to find.
+
+Another mount option available is "errors", which can be configured to
+panic the kernel when squashfs errors are encountered.
+
+Add both these options to the squashfs documentation, making them more
+noticeable.
+
+Link: https://lkml.kernel.org/r/20231117161215.140282-1-amiculas@cisco.com
+Signed-off-by: Ariel Miculas <amiculas@cisco.com>
+Reviewed-by: Bagas Sanjaya <bagasdotme@gmail.com>
+Reviewed-by: Phillip Lougher <phillip@squashfs.org.uk>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Serge Hallyn <serge@hallyn.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ Documentation/filesystems/squashfs.rst |   60 +++++++++++++++++++++++
+ 1 file changed, 60 insertions(+)
+
+--- a/Documentation/filesystems/squashfs.rst~docs-filesystems-document-the-squashfs-specific-mount-options
++++ a/Documentation/filesystems/squashfs.rst
+@@ -64,6 +64,66 @@ obtained from this site also.
+ The squashfs-tools development tree is now located on kernel.org
+ 	git://git.kernel.org/pub/scm/fs/squashfs/squashfs-tools.git
+ 
++2.1 Mount options
++-----------------
++===================    =========================================================
++errors=%s              Specify whether squashfs errors trigger a kernel panic
++                       or not
++
++		       ==========  =============================================
++                         continue  errors don't trigger a panic (default)
++                            panic  trigger a panic when errors are encountered,
++                                   similar to several other filesystems (e.g.
++                                   btrfs, ext4, f2fs, GFS2, jfs, ntfs, ubifs)
++
++                                   This allows a kernel dump to be saved,
++                                   useful for analyzing and debugging the
++                                   corruption.
++                       ==========  =============================================
++threads=%s             Select the decompression mode or the number of threads
++
++                       If SQUASHFS_CHOICE_DECOMP_BY_MOUNT is set:
++
++		       ==========  =============================================
++                           single  use single-threaded decompression (default)
++
++                                   Only one block (data or metadata) can be
++                                   decompressed at any one time. This limits
++                                   CPU and memory usage to a minimum, but it
++                                   also gives poor performance on parallel I/O
++                                   workloads when using multiple CPU machines
++                                   due to waiting on decompressor availability.
++                            multi  use up to two parallel decompressors per core
++
++                                   If you have a parallel I/O workload and your
++                                   system has enough memory, using this option
++                                   may improve overall I/O performance. It
++                                   dynamically allocates decompressors on a
++                                   demand basis.
++                           percpu  use a maximum of one decompressor per core
++
++                                   It uses percpu variables to ensure
++                                   decompression is load-balanced across the
++                                   cores.
++                        1|2|3|...  configure the number of threads used for
++                                   decompression
++
++                                   The upper limit is num_online_cpus() * 2.
++                       ==========  =============================================
++
++                       If SQUASHFS_CHOICE_DECOMP_BY_MOUNT is **not** set and
++                       SQUASHFS_DECOMP_MULTI, SQUASHFS_MOUNT_DECOMP_THREADS are
++                       both set:
++
++		       ==========  =============================================
++                          2|3|...  configure the number of threads used for
++                                   decompression
++
++                                   The upper limit is num_online_cpus() * 2.
++                       ==========  =============================================
++
++===================    =========================================================
++
+ 3. Squashfs Filesystem Design
+ -----------------------------
+ 
+_
+
+Patches currently in -mm which might be from amiculas@cisco.com are
+
+docs-filesystems-document-the-squashfs-specific-mount-options.patch
+
