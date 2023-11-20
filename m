@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C25F0C2BB3F
-	for <mm-commits@archiver.kernel.org>; Mon, 20 Nov 2023 18:03:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A420C197A0
+	for <mm-commits@archiver.kernel.org>; Mon, 20 Nov 2023 18:03:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233821AbjKTSDr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 20 Nov 2023 13:03:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59412 "EHLO
+        id S232661AbjKTSDs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 20 Nov 2023 13:03:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59422 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232661AbjKTSDn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2023 13:03:43 -0500
+        with ESMTP id S233752AbjKTSDp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2023 13:03:45 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C4D6A4
-        for <mm-commits@vger.kernel.org>; Mon, 20 Nov 2023 10:03:40 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05D86C433C7;
-        Mon, 20 Nov 2023 18:03:39 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 21D39AC
+        for <mm-commits@vger.kernel.org>; Mon, 20 Nov 2023 10:03:42 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1CA3C433CA;
+        Mon, 20 Nov 2023 18:03:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700503420;
-        bh=9vyQrX0luNBOue9LScjSuHGYqI8fP2T36r9/0mlBISQ=;
+        s=korg; t=1700503421;
+        bh=UTwiwn24yL5/0GWaUbd0y2IS0idezNfi7I31MF8229Y=;
         h=Date:To:From:Subject:From;
-        b=oSrlmpzITBsNGRZRjyXXh6qAiKZGm4jepAn32DxElNf9khVo+/2AYkDBgfPw70brD
-         yh0L026v9v+WTakuARmVj9agTlypARR8x+cdRviNIl5Ss7ov02vt35lxiXsONqotT2
-         /4wwVFPGU9N9z9kmwG3ZwyoxC9p7gBVubH0DY9Tg=
-Date:   Mon, 20 Nov 2023 10:03:39 -0800
+        b=s03jPNIyrbs8rpB2OeX9mqDEHTT3IDrJVO/TlisKlDnnh4rhaccIOBgQu93WO2Hak
+         JsAKk56o8EtbVdFEdojiFia9LqLU5EkQpQ1sMmwxkJLE31oXJWIQScH/rKlR06VHPb
+         LOQl6IiSVSjR/ck+NN7/ZX5lRNUC7cTolATTA3eM=
+Date:   Mon, 20 Nov 2023 10:03:41 -0800
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, osalvador@suse.de,
         glider@google.com, eugenis@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-stackdepot-add-depot_fetch_stack-helper.patch added to mm-unstable branch
-Message-Id: <20231120180340.05D86C433C7@smtp.kernel.org>
+Subject: + lib-stackdepot-use-fixed-sized-slots-for-stack-records.patch added to mm-unstable branch
+Message-Id: <20231120180341.B1CA3C433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,12 +38,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/stackdepot: add depot_fetch_stack helper
+     Subject: lib/stackdepot: use fixed-sized slots for stack records
 has been added to the -mm mm-unstable branch.  Its filename is
-     lib-stackdepot-add-depot_fetch_stack-helper.patch
+     lib-stackdepot-use-fixed-sized-slots-for-stack-records.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-add-depot_fetch_stack-helper.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-use-fixed-sized-slots-for-stack-records.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,18 +62,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: lib/stackdepot: add depot_fetch_stack helper
-Date: Mon, 20 Nov 2023 18:47:03 +0100
+Subject: lib/stackdepot: use fixed-sized slots for stack records
+Date: Mon, 20 Nov 2023 18:47:04 +0100
 
-Add a helper depot_fetch_stack function that fetches the pointer to a
-stack record.
+Instead of storing stack records in stack depot pools one right after
+another, use fixed-sized slots.
 
-With this change, all static depot_* functions now operate on stack pools
-and the exported stack_depot_* functions operate on the hash table.
+Add a new Kconfig option STACKDEPOT_MAX_FRAMES that allows to select the
+size of the slot in frames.  Use 64 as the default value, which is the
+maximum stack trace size both KASAN and KMSAN use right now.
 
-Link: https://lkml.kernel.org/r/170d8c202f29dc8e3d5491ee074d1e9e029a46db.1700502145.git.andreyknvl@google.com
+Also add descriptions for other stack depot Kconfig options.
+
+This is preparatory patch for implementing the eviction of stack records
+from the stack depot.
+
+Link: https://lkml.kernel.org/r/dce7d030a99ff61022509665187fac45b0827298.1700502145.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Marco Elver <elver@google.com>
@@ -82,84 +88,71 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/stackdepot.c |   45 ++++++++++++++++++++++++++++-----------------
- 1 file changed, 28 insertions(+), 17 deletions(-)
+ lib/Kconfig      |   10 ++++++++++
+ lib/stackdepot.c |   13 +++++++++----
+ 2 files changed, 19 insertions(+), 4 deletions(-)
 
---- a/lib/stackdepot.c~lib-stackdepot-add-depot_fetch_stack-helper
+--- a/lib/Kconfig~lib-stackdepot-use-fixed-sized-slots-for-stack-records
++++ a/lib/Kconfig
+@@ -713,10 +713,20 @@ config ARCH_STACKWALK
+ config STACKDEPOT
+ 	bool
+ 	select STACKTRACE
++	help
++	  Stack depot: stack trace storage that avoids duplication
+ 
+ config STACKDEPOT_ALWAYS_INIT
+ 	bool
+ 	select STACKDEPOT
++	help
++	  Always initialize stack depot during early boot
++
++config STACKDEPOT_MAX_FRAMES
++	int "Maximum number of frames in trace saved in stack depot"
++	range 1 256
++	default 64
++	depends on STACKDEPOT
+ 
+ config REF_TRACKER
+ 	bool
+--- a/lib/stackdepot.c~lib-stackdepot-use-fixed-sized-slots-for-stack-records
 +++ a/lib/stackdepot.c
-@@ -310,6 +310,7 @@ depot_alloc_stack(unsigned long *entries
- 	stack->handle.extra = 0;
- 	memcpy(stack->entries, entries, flex_array_size(stack, entries, size));
- 	pool_offset += required_size;
-+
- 	/*
- 	 * Let KMSAN know the stored stack record is initialized. This shall
- 	 * prevent false positive reports if instrumented code accesses it.
-@@ -319,6 +320,32 @@ depot_alloc_stack(unsigned long *entries
- 	return stack;
- }
+@@ -58,9 +58,12 @@ struct stack_record {
+ 	u32 hash;			/* Hash in the hash table */
+ 	u32 size;			/* Number of stored frames */
+ 	union handle_parts handle;
+-	unsigned long entries[];	/* Variable-sized array of frames */
++	unsigned long entries[CONFIG_STACKDEPOT_MAX_FRAMES];	/* Frames */
+ };
  
-+static struct stack_record *depot_fetch_stack(depot_stack_handle_t handle)
-+{
-+	union handle_parts parts = { .handle = handle };
-+	/*
-+	 * READ_ONCE pairs with potential concurrent write in
-+	 * depot_alloc_stack().
-+	 */
-+	int pool_index_cached = READ_ONCE(pool_index);
-+	void *pool;
-+	size_t offset = parts.offset << DEPOT_STACK_ALIGN;
-+	struct stack_record *stack;
++#define DEPOT_STACK_RECORD_SIZE \
++	ALIGN(sizeof(struct stack_record), 1 << DEPOT_STACK_ALIGN)
 +
-+	if (parts.pool_index > pool_index_cached) {
-+		WARN(1, "pool index %d out of bounds (%d) for stack id %08x\n",
-+		     parts.pool_index, pool_index_cached, handle);
-+		return NULL;
-+	}
-+
-+	pool = stack_pools[parts.pool_index];
-+	if (!pool)
-+		return NULL;
-+
-+	stack = pool + offset;
-+	return stack;
-+}
-+
- /* Calculates the hash for a stack. */
- static inline u32 hash_stack(unsigned long *entries, unsigned int size)
+ static bool stack_depot_disabled;
+ static bool __stack_depot_early_init_requested __initdata = IS_ENABLED(CONFIG_STACKDEPOT_ALWAYS_INIT);
+ static bool __stack_depot_early_init_passed __initdata;
+@@ -264,9 +267,7 @@ static struct stack_record *
+ depot_alloc_stack(unsigned long *entries, int size, u32 hash, void **prealloc)
  {
-@@ -462,14 +489,6 @@ EXPORT_SYMBOL_GPL(stack_depot_save);
- unsigned int stack_depot_fetch(depot_stack_handle_t handle,
- 			       unsigned long **entries)
- {
--	union handle_parts parts = { .handle = handle };
--	/*
--	 * READ_ONCE pairs with potential concurrent write in
--	 * depot_alloc_stack.
--	 */
--	int pool_index_cached = READ_ONCE(pool_index);
--	void *pool;
--	size_t offset = parts.offset << DEPOT_STACK_ALIGN;
  	struct stack_record *stack;
+-	size_t required_size = struct_size(stack, entries, size);
+-
+-	required_size = ALIGN(required_size, 1 << DEPOT_STACK_ALIGN);
++	size_t required_size = DEPOT_STACK_RECORD_SIZE;
  
- 	*entries = NULL;
-@@ -482,15 +501,7 @@ unsigned int stack_depot_fetch(depot_sta
- 	if (!handle || stack_depot_disabled)
- 		return 0;
+ 	/* Check if there is not enough space in the current pool. */
+ 	if (unlikely(pool_offset + required_size > DEPOT_POOL_SIZE)) {
+@@ -301,6 +302,10 @@ depot_alloc_stack(unsigned long *entries
+ 	if (stack_pools[pool_index] == NULL)
+ 		return NULL;
  
--	if (parts.pool_index > pool_index_cached) {
--		WARN(1, "pool index %d out of bounds (%d) for stack id %08x\n",
--			parts.pool_index, pool_index_cached, handle);
--		return 0;
--	}
--	pool = stack_pools[parts.pool_index];
--	if (!pool)
--		return 0;
--	stack = pool + offset;
-+	stack = depot_fetch_stack(handle);
- 
- 	*entries = stack->entries;
- 	return stack->size;
++	/* Limit number of saved frames to CONFIG_STACKDEPOT_MAX_FRAMES. */
++	if (size > CONFIG_STACKDEPOT_MAX_FRAMES)
++		size = CONFIG_STACKDEPOT_MAX_FRAMES;
++
+ 	/* Save the stack trace. */
+ 	stack = stack_pools[pool_index] + pool_offset;
+ 	stack->hash = hash;
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
