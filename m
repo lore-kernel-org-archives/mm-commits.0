@@ -2,33 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CE38C5AE5B
-	for <mm-commits@archiver.kernel.org>; Mon, 20 Nov 2023 18:52:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9D56C2BB3F
+	for <mm-commits@archiver.kernel.org>; Mon, 20 Nov 2023 20:02:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230229AbjKTSwi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 20 Nov 2023 13:52:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38042 "EHLO
+        id S229497AbjKTUCP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 20 Nov 2023 15:02:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44268 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232057AbjKTSwg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2023 13:52:36 -0500
+        with ESMTP id S229689AbjKTUCO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2023 15:02:14 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D1FCCD
-        for <mm-commits@vger.kernel.org>; Mon, 20 Nov 2023 10:52:33 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E64D0C433C7;
-        Mon, 20 Nov 2023 18:52:32 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE634BE
+        for <mm-commits@vger.kernel.org>; Mon, 20 Nov 2023 12:02:10 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B513C433C8;
+        Mon, 20 Nov 2023 20:02:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700506353;
-        bh=KZU7iaTc29poDubq1gqtzqF5D1FUb8PPxPobvgQc9CQ=;
+        s=korg; t=1700510530;
+        bh=4R2Hqef/lBEVXTL7PTv3MFyycRKQ23T9rDbyXg7dUXs=;
         h=Date:To:From:Subject:From;
-        b=L21yt9cblC5XfYQPVKa9q7hsLpuhDbVxyKzRD8M6ddYMe6wVSX8P9/ZCj8emA6KwU
-         GrOq5Dx7yM4shJhcfJ+qnU2pvLIVJ52W7njOwrEC/roqgXrNt0a2ajVLNXMIXifBib
-         D4t9h2PhOEUcWTYZGpgNr7a3IlEq/LCsGOWqX6sY=
-Date:   Mon, 20 Nov 2023 10:52:32 -0800
-To:     mm-commits@vger.kernel.org, ira.weiny@intel.com,
-        fabio.maria.de.francesco@linux.intel.com, akpm@linux-foundation.org
+        b=ek0RnKUToZ/tBENJM2uRk7F07WFCEwRFvTABesZxFf0JhgEu7bHojiOxADln4pWRI
+         A0il7XjEEOsRZ4u2mEim/i8NsPR4tndihLrZgbe37mvqmPsFeCn097en/9z003XVi5
+         Z0uQy4Vhew7N3XIsmWxysQ3Hzz0znSHSNRH+AOA0=
+Date:   Mon, 20 Nov 2023 12:02:09 -0800
+To:     mm-commits@vger.kernel.org, zhouchengming@bytedance.com,
+        yi.zhang@redhat.com, kbusch@kernel.org, guazhang@redhat.com,
+        axboe@kernel.dk, ming.lei@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_poison-replace-kmap_atomic-with-kmap_local_page.patch added to mm-unstable branch
-Message-Id: <20231120185232.E64D0C433C7@smtp.kernel.org>
+Subject: + lib-group_cpusc-avoid-to-acquire-cpu-hotplug-lock-in-group_cpus_evenly.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231120200210.6B513C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,14 +37,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_poison: replace kmap_atomic() with kmap_local_page()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_poison-replace-kmap_atomic-with-kmap_local_page.patch
+     Subject: lib/group_cpus.c: avoid acquiring cpu hotplug lock in group_cpus_evenly
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     lib-group_cpusc-avoid-to-acquire-cpu-hotplug-lock-in-group_cpus_evenly.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_poison-replace-kmap_atomic-with-kmap_local_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-group_cpusc-avoid-to-acquire-cpu-hotplug-lock-in-group_cpus_evenly.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,80 +60,99 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Fabio M. De Francesco" <fabio.maria.de.francesco@linux.intel.com>
-Subject: mm/page_poison: replace kmap_atomic() with kmap_local_page()
-Date: Mon, 20 Nov 2023 15:28:23 +0100
+From: Ming Lei <ming.lei@redhat.com>
+Subject: lib/group_cpus.c: avoid acquiring cpu hotplug lock in group_cpus_evenly
+Date: Mon, 20 Nov 2023 16:35:59 +0800
 
-kmap_atomic() has been deprecated in favor of kmap_local_page().
+group_cpus_evenly() could be part of storage driver's error handler, such
+as nvme driver, when may happen during CPU hotplug, in which storage queue
+has to drain its pending IOs because all CPUs associated with the queue
+are offline and the queue is becoming inactive.  And handling IO needs
+error handler to provide forward progress.
 
-Therefore, replace kmap_atomic() with kmap_local_page().
+Then deadlock is caused:
 
-kmap_atomic() is implemented like a kmap_local_page() which also disables
-page-faults and preemption (the latter only in !PREEMPT_RT kernels).  The
-kernel virtual addresses returned by these two API are only valid in the
-context of the callers (i.e., they cannot be handed to other threads).
+1) inside CPU hotplug handler, CPU hotplug lock is held, and blk-mq's
+   handler is waiting for inflight IO
 
-With kmap_local_page() the mappings are per thread and CPU local like in
-kmap_atomic(); however, they can handle page-faults and can be called from
-any context (including interrupts).  The tasks that call kmap_local_page()
-can be preempted and, when they are scheduled to run again, the kernel
-virtual addresses are restored and are still valid.
+2) error handler is waiting for CPU hotplug lock
 
-The code blocks between the mappings and un-mappings do not rely on the
-above-mentioned side effects of kmap_atomic(), so that mere replacements
-of the old API with the new one is all that they require (i.e., there is
-no need to explicitly call pagefault_disable() and/or preempt_disable()).
+3) inflight IO can't be completed in blk-mq's CPU hotplug handler
+   because error handling can't provide forward progress.
 
-Link: https://lkml.kernel.org/r/20231120142836.7219-1-fabio.maria.de.francesco@linux.intel.com
-Signed-off-by: Fabio M. De Francesco <fabio.maria.de.francesco@linux.intel.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
+Solve the deadlock by not holding CPU hotplug lock in group_cpus_evenly(),
+in which two stage spreads are taken: 1) the 1st stage is over all present
+CPUs; 2) the end stage is over all other CPUs.
+
+Turns out the two stage spread just needs consistent 'cpu_present_mask',
+and remove the CPU hotplug lock by storing it into one local cache.  This
+way doesn't change correctness, because all CPUs are still covered.
+
+Link: https://lkml.kernel.org/r/20231120083559.285174-1-ming.lei@redhat.com
+Signed-off-by: Ming Lei <ming.lei@redhat.com>
+Reported-by: Yi Zhang <yi.zhang@redhat.com>
+Reported-by: Guangwu Zhang <guazhang@redhat.com>
+Tested-by: Guangwu Zhang <guazhang@redhat.com>
+Reviewed-by: Chengming Zhou <zhouchengming@bytedance.com>
+Reviewed-by: Jens Axboe <axboe@kernel.dk>
+Cc: Keith Busch <kbusch@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_poison.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ lib/group_cpus.c |   22 ++++++++++++++++------
+ 1 file changed, 16 insertions(+), 6 deletions(-)
 
---- a/mm/page_poison.c~mm-page_poison-replace-kmap_atomic-with-kmap_local_page
-+++ a/mm/page_poison.c
-@@ -21,13 +21,13 @@ early_param("page_poison", early_page_po
+--- a/lib/group_cpus.c~lib-group_cpusc-avoid-to-acquire-cpu-hotplug-lock-in-group_cpus_evenly
++++ a/lib/group_cpus.c
+@@ -366,13 +366,25 @@ struct cpumask *group_cpus_evenly(unsign
+ 	if (!masks)
+ 		goto fail_node_to_cpumask;
  
- static void poison_page(struct page *page)
- {
--	void *addr = kmap_atomic(page);
-+	void *addr = kmap_local_page(page);
+-	/* Stabilize the cpumasks */
+-	cpus_read_lock();
+ 	build_node_to_cpumask(node_to_cpumask);
  
- 	/* KASAN still think the page is in-use, so skip it. */
- 	kasan_disable_current();
- 	memset(kasan_reset_tag(addr), PAGE_POISON, PAGE_SIZE);
- 	kasan_enable_current();
--	kunmap_atomic(addr);
-+	kunmap_local(addr);
- }
++	/*
++	 * Make a local cache of 'cpu_present_mask', so the two stages
++	 * spread can observe consistent 'cpu_present_mask' without holding
++	 * cpu hotplug lock, then we can reduce deadlock risk with cpu
++	 * hotplug code.
++	 *
++	 * Here CPU hotplug may happen when reading `cpu_present_mask`, and
++	 * we can live with the case because it only affects that hotplug
++	 * CPU is handled in the 1st or 2nd stage, and either way is correct
++	 * from API user viewpoint since 2-stage spread is sort of
++	 * optimization.
++	 */
++	cpumask_copy(npresmsk, data_race(cpu_present_mask));
++
+ 	/* grouping present CPUs first */
+ 	ret = __group_cpus_evenly(curgrp, numgrps, node_to_cpumask,
+-				  cpu_present_mask, nmsk, masks);
++				  npresmsk, nmsk, masks);
+ 	if (ret < 0)
+ 		goto fail_build_affinity;
+ 	nr_present = ret;
+@@ -387,15 +399,13 @@ struct cpumask *group_cpus_evenly(unsign
+ 		curgrp = 0;
+ 	else
+ 		curgrp = nr_present;
+-	cpumask_andnot(npresmsk, cpu_possible_mask, cpu_present_mask);
++	cpumask_andnot(npresmsk, cpu_possible_mask, npresmsk);
+ 	ret = __group_cpus_evenly(curgrp, numgrps, node_to_cpumask,
+ 				  npresmsk, nmsk, masks);
+ 	if (ret >= 0)
+ 		nr_others = ret;
  
- void __kernel_poison_pages(struct page *page, int n)
-@@ -77,7 +77,7 @@ static void unpoison_page(struct page *p
- {
- 	void *addr;
+  fail_build_affinity:
+-	cpus_read_unlock();
+-
+ 	if (ret >= 0)
+ 		WARN_ON(nr_present + nr_others < numgrps);
  
--	addr = kmap_atomic(page);
-+	addr = kmap_local_page(page);
- 	kasan_disable_current();
- 	/*
- 	 * Page poisoning when enabled poisons each and every page
-@@ -86,7 +86,7 @@ static void unpoison_page(struct page *p
- 	 */
- 	check_poison_mem(page, kasan_reset_tag(addr), PAGE_SIZE);
- 	kasan_enable_current();
--	kunmap_atomic(addr);
-+	kunmap_local(addr);
- }
- 
- void __kernel_unpoison_pages(struct page *page, int n)
 _
 
-Patches currently in -mm which might be from fabio.maria.de.francesco@linux.intel.com are
+Patches currently in -mm which might be from ming.lei@redhat.com are
 
-mm-memory-use-kmap_local_page-in-__wp_page_copy_user.patch
-mm-mempool-replace-kmap_atomic-with-kmap_local_page.patch
-mm-page_poison-replace-kmap_atomic-with-kmap_local_page.patch
+lib-group_cpusc-avoid-to-acquire-cpu-hotplug-lock-in-group_cpus_evenly.patch
 
