@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9D56C2BB3F
-	for <mm-commits@archiver.kernel.org>; Mon, 20 Nov 2023 20:02:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E326C197A0
+	for <mm-commits@archiver.kernel.org>; Mon, 20 Nov 2023 20:08:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229497AbjKTUCP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 20 Nov 2023 15:02:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44268 "EHLO
+        id S229561AbjKTUIj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 20 Nov 2023 15:08:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45318 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229689AbjKTUCO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2023 15:02:14 -0500
+        with ESMTP id S229476AbjKTUIj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2023 15:08:39 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE634BE
-        for <mm-commits@vger.kernel.org>; Mon, 20 Nov 2023 12:02:10 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B513C433C8;
-        Mon, 20 Nov 2023 20:02:10 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2AC283
+        for <mm-commits@vger.kernel.org>; Mon, 20 Nov 2023 12:08:35 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80906C433C9;
+        Mon, 20 Nov 2023 20:08:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700510530;
-        bh=4R2Hqef/lBEVXTL7PTv3MFyycRKQ23T9rDbyXg7dUXs=;
+        s=korg; t=1700510915;
+        bh=Dm/FdIXzTd6VkJtc2chpWUMEAbVYpfL17wcLN0+D3dE=;
         h=Date:To:From:Subject:From;
-        b=ek0RnKUToZ/tBENJM2uRk7F07WFCEwRFvTABesZxFf0JhgEu7bHojiOxADln4pWRI
-         A0il7XjEEOsRZ4u2mEim/i8NsPR4tndihLrZgbe37mvqmPsFeCn097en/9z003XVi5
-         Z0uQy4Vhew7N3XIsmWxysQ3Hzz0znSHSNRH+AOA0=
-Date:   Mon, 20 Nov 2023 12:02:09 -0800
-To:     mm-commits@vger.kernel.org, zhouchengming@bytedance.com,
-        yi.zhang@redhat.com, kbusch@kernel.org, guazhang@redhat.com,
-        axboe@kernel.dk, ming.lei@redhat.com, akpm@linux-foundation.org
+        b=W334C2WTdjrtf//hzZE2s+mdpGB/sfr7enZwDtRRSLw7CF1hVXxLk9spWKd3Rt65P
+         8zsJzMjZOsRrShetAXZwVZxtduuFAVsT8FNehfg1TrwWX5MPK3E0Htz8ifv4TSx4L9
+         TDCEH8s8zYB1CbWxmGSZJPJf+UV+uXIsyNKi0o/Q=
+Date:   Mon, 20 Nov 2023 12:08:34 -0800
+To:     mm-commits@vger.kernel.org, Liam.Howlett@oracle.com,
+        dan.carpenter@linaro.org, zhangpeng.00@bytedance.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-group_cpusc-avoid-to-acquire-cpu-hotplug-lock-in-group_cpus_evenly.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231120200210.6B513C433C8@smtp.kernel.org>
+Subject: + maple_tree-move-the-check-forward-to-avoid-static-check-warning.patch added to mm-unstable branch
+Message-Id: <20231120200835.80906C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,14 +37,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/group_cpus.c: avoid acquiring cpu hotplug lock in group_cpus_evenly
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     lib-group_cpusc-avoid-to-acquire-cpu-hotplug-lock-in-group_cpus_evenly.patch
+     Subject: maple_tree: move the check forward to avoid static check warning
+has been added to the -mm mm-unstable branch.  Its filename is
+     maple_tree-move-the-check-forward-to-avoid-static-check-warning.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-group_cpusc-avoid-to-acquire-cpu-hotplug-lock-in-group_cpus_evenly.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-move-the-check-forward-to-avoid-static-check-warning.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -60,99 +60,70 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ming Lei <ming.lei@redhat.com>
-Subject: lib/group_cpus.c: avoid acquiring cpu hotplug lock in group_cpus_evenly
-Date: Mon, 20 Nov 2023 16:35:59 +0800
+From: Peng Zhang <zhangpeng.00@bytedance.com>
+Subject: maple_tree: move the check forward to avoid static check warning
+Date: Mon, 20 Nov 2023 15:09:33 +0800
 
-group_cpus_evenly() could be part of storage driver's error handler, such
-as nvme driver, when may happen during CPU hotplug, in which storage queue
-has to drain its pending IOs because all CPUs associated with the queue
-are offline and the queue is becoming inactive.  And handling IO needs
-error handler to provide forward progress.
+Patch series "Some cleanups of maple tree", v2.
 
-Then deadlock is caused:
+These are some small cleanups of maple tree.
 
-1) inside CPU hotplug handler, CPU hotplug lock is held, and blk-mq's
-   handler is waiting for inflight IO
 
-2) error handler is waiting for CPU hotplug lock
+This patch (of 5):
 
-3) inflight IO can't be completed in blk-mq's CPU hotplug handler
-   because error handling can't provide forward progress.
+Put the check for gap before its reference to avoid Smatch static check
+warnings.  This is not a bug, it's just a validation program.  Even with
+this change, Smatch may still generate warnings because MT_BUG_ON()
+doesn't necessarily stop the program.  It may require fixing Smatch itself
+to avoid these warnings.
 
-Solve the deadlock by not holding CPU hotplug lock in group_cpus_evenly(),
-in which two stage spreads are taken: 1) the 1st stage is over all present
-CPUs; 2) the end stage is over all other CPUs.
-
-Turns out the two stage spread just needs consistent 'cpu_present_mask',
-and remove the CPU hotplug lock by storing it into one local cache.  This
-way doesn't change correctness, because all CPUs are still covered.
-
-Link: https://lkml.kernel.org/r/20231120083559.285174-1-ming.lei@redhat.com
-Signed-off-by: Ming Lei <ming.lei@redhat.com>
-Reported-by: Yi Zhang <yi.zhang@redhat.com>
-Reported-by: Guangwu Zhang <guazhang@redhat.com>
-Tested-by: Guangwu Zhang <guazhang@redhat.com>
-Reviewed-by: Chengming Zhou <zhouchengming@bytedance.com>
-Reviewed-by: Jens Axboe <axboe@kernel.dk>
-Cc: Keith Busch <kbusch@kernel.org>
+Link: https://lkml.kernel.org/r/20231120070937.35481-1-zhangpeng.00@bytedance.com
+Link: https://lkml.kernel.org/r/20231120070937.35481-2-zhangpeng.00@bytedance.com
+Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
+Reported-by: Dan Carpenter <dan.carpenter@linaro.org>
+Closes: http://lists.infradead.org/pipermail/maple-tree/2023-November/003046.html
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/group_cpus.c |   22 ++++++++++++++++------
- 1 file changed, 16 insertions(+), 6 deletions(-)
+ lib/maple_tree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/group_cpus.c~lib-group_cpusc-avoid-to-acquire-cpu-hotplug-lock-in-group_cpus_evenly
-+++ a/lib/group_cpus.c
-@@ -366,13 +366,25 @@ struct cpumask *group_cpus_evenly(unsign
- 	if (!masks)
- 		goto fail_node_to_cpumask;
+--- a/lib/maple_tree.c~maple_tree-move-the-check-forward-to-avoid-static-check-warning
++++ a/lib/maple_tree.c
+@@ -7249,6 +7249,7 @@ static void mas_validate_gaps(struct ma_
  
--	/* Stabilize the cpumasks */
--	cpus_read_lock();
- 	build_node_to_cpumask(node_to_cpumask);
+ counted:
+ 	if (mt == maple_arange_64) {
++		MT_BUG_ON(mas->tree, !gaps);
+ 		offset = ma_meta_gap(node, mt);
+ 		if (offset > i) {
+ 			pr_err("gap offset %p[%u] is invalid\n", node, offset);
+@@ -7261,7 +7262,6 @@ counted:
+ 			MT_BUG_ON(mas->tree, 1);
+ 		}
  
-+	/*
-+	 * Make a local cache of 'cpu_present_mask', so the two stages
-+	 * spread can observe consistent 'cpu_present_mask' without holding
-+	 * cpu hotplug lock, then we can reduce deadlock risk with cpu
-+	 * hotplug code.
-+	 *
-+	 * Here CPU hotplug may happen when reading `cpu_present_mask`, and
-+	 * we can live with the case because it only affects that hotplug
-+	 * CPU is handled in the 1st or 2nd stage, and either way is correct
-+	 * from API user viewpoint since 2-stage spread is sort of
-+	 * optimization.
-+	 */
-+	cpumask_copy(npresmsk, data_race(cpu_present_mask));
-+
- 	/* grouping present CPUs first */
- 	ret = __group_cpus_evenly(curgrp, numgrps, node_to_cpumask,
--				  cpu_present_mask, nmsk, masks);
-+				  npresmsk, nmsk, masks);
- 	if (ret < 0)
- 		goto fail_build_affinity;
- 	nr_present = ret;
-@@ -387,15 +399,13 @@ struct cpumask *group_cpus_evenly(unsign
- 		curgrp = 0;
- 	else
- 		curgrp = nr_present;
--	cpumask_andnot(npresmsk, cpu_possible_mask, cpu_present_mask);
-+	cpumask_andnot(npresmsk, cpu_possible_mask, npresmsk);
- 	ret = __group_cpus_evenly(curgrp, numgrps, node_to_cpumask,
- 				  npresmsk, nmsk, masks);
- 	if (ret >= 0)
- 		nr_others = ret;
- 
-  fail_build_affinity:
--	cpus_read_unlock();
--
- 	if (ret >= 0)
- 		WARN_ON(nr_present + nr_others < numgrps);
- 
+-		MT_BUG_ON(mas->tree, !gaps);
+ 		for (i++ ; i < mt_slot_count(mte); i++) {
+ 			if (gaps[i] != 0) {
+ 				pr_err("gap %p[%u] beyond node limit != 0\n",
 _
 
-Patches currently in -mm which might be from ming.lei@redhat.com are
+Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
 
-lib-group_cpusc-avoid-to-acquire-cpu-hotplug-lock-in-group_cpus_evenly.patch
+maple_tree-add-mt_free_one-and-mt_attr-helpers.patch
+maple_tree-introduce-mtreemas_lock_nested.patch
+maple_tree-introduce-interfaces-__mt_dup-and-mtree_dup.patch
+radix-tree-test-suite-align-kmem_cache_alloc_bulk-with-kernel-behavior.patch
+maple_tree-add-test-for-mtree_dup.patch
+maple_tree-update-the-documentation-of-maple-tree.patch
+maple_tree-skip-other-tests-when-bench-is-enabled.patch
+maple_tree-update-check_forking-and-bench_forking.patch
+maple_tree-preserve-the-tree-attributes-when-destroying-maple-tree.patch
+fork-use-__mt_dup-to-duplicate-maple-tree-in-dup_mmap.patch
+maple_tree-move-the-check-forward-to-avoid-static-check-warning.patch
+maple_tree-avoid-ascending-when-mas-min-is-also-the-parents-minimum.patch
+maple_tree-remove-an-unused-parameter-for-ma_meta_end.patch
+maple_tree-delete-one-of-the-two-identical-checks.patch
+maple_tree-simplify-mas_leaf_set_meta.patch
 
