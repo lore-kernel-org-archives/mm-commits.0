@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A420C197A0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D43E9C5AD4C
 	for <mm-commits@archiver.kernel.org>; Mon, 20 Nov 2023 18:03:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232661AbjKTSDs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S233752AbjKTSDs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 20 Nov 2023 13:03:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59422 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59432 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233752AbjKTSDp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2023 13:03:45 -0500
+        with ESMTP id S233806AbjKTSDr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2023 13:03:47 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 21D39AC
-        for <mm-commits@vger.kernel.org>; Mon, 20 Nov 2023 10:03:42 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1CA3C433CA;
-        Mon, 20 Nov 2023 18:03:41 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3128FA7
+        for <mm-commits@vger.kernel.org>; Mon, 20 Nov 2023 10:03:44 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1EC8C433C8;
+        Mon, 20 Nov 2023 18:03:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700503421;
-        bh=UTwiwn24yL5/0GWaUbd0y2IS0idezNfi7I31MF8229Y=;
+        s=korg; t=1700503423;
+        bh=imGH4ObGf08AjHcC29LWLzfUQaBcMI87MxElRMxQ30U=;
         h=Date:To:From:Subject:From;
-        b=s03jPNIyrbs8rpB2OeX9mqDEHTT3IDrJVO/TlisKlDnnh4rhaccIOBgQu93WO2Hak
-         JsAKk56o8EtbVdFEdojiFia9LqLU5EkQpQ1sMmwxkJLE31oXJWIQScH/rKlR06VHPb
-         LOQl6IiSVSjR/ck+NN7/ZX5lRNUC7cTolATTA3eM=
-Date:   Mon, 20 Nov 2023 10:03:41 -0800
+        b=J4NOpXG0GIgYcguzxWtnU7PflVYMbqKV1VI2OCpYroBs9rM3vixcsfXcTMvBl0aUI
+         O0VCiLCq5PR//QZwGWPJUY8dhg8UvR+IXDS4/tOK/0XipU+H9c5yjk08RGdzXKCfA0
+         d9KZrQ3x2BcVTNdV0so+XkCm6lP0nQ+6VDOBV5is=
+Date:   Mon, 20 Nov 2023 10:03:43 -0800
 To:     mm-commits@vger.kernel.org, vbabka@suse.cz, osalvador@suse.de,
         glider@google.com, eugenis@google.com, elver@google.com,
         dvyukov@google.com, andreyknvl@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-stackdepot-use-fixed-sized-slots-for-stack-records.patch added to mm-unstable branch
-Message-Id: <20231120180341.B1CA3C433CA@smtp.kernel.org>
+Subject: + lib-stackdepot-fix-and-clean-up-atomic-annotations.patch added to mm-unstable branch
+Message-Id: <20231120180343.C1EC8C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,12 +38,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/stackdepot: use fixed-sized slots for stack records
+     Subject: lib/stackdepot: fix and clean-up atomic annotations
 has been added to the -mm mm-unstable branch.  Its filename is
-     lib-stackdepot-use-fixed-sized-slots-for-stack-records.patch
+     lib-stackdepot-fix-and-clean-up-atomic-annotations.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-use-fixed-sized-slots-for-stack-records.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-fix-and-clean-up-atomic-annotations.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,24 +62,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: lib/stackdepot: use fixed-sized slots for stack records
-Date: Mon, 20 Nov 2023 18:47:04 +0100
+Subject: lib/stackdepot: fix and clean-up atomic annotations
+Date: Mon, 20 Nov 2023 18:47:05 +0100
 
-Instead of storing stack records in stack depot pools one right after
-another, use fixed-sized slots.
+Drop smp_load_acquire from next_pool_required in depot_init_pool, as both
+depot_init_pool and the all smp_store_release's to this variable are
+executed under the stack depot lock.
 
-Add a new Kconfig option STACKDEPOT_MAX_FRAMES that allows to select the
-size of the slot in frames.  Use 64 as the default value, which is the
-maximum stack trace size both KASAN and KMSAN use right now.
+Also simplify and clean up comments accompanying the use of atomic
+accesses in the stack depot code.
 
-Also add descriptions for other stack depot Kconfig options.
-
-This is preparatory patch for implementing the eviction of stack records
-from the stack depot.
-
-Link: https://lkml.kernel.org/r/dce7d030a99ff61022509665187fac45b0827298.1700502145.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/c118ef044d8db80248d9e1f14592c72e8429e9d9.1700502145.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Alexander Potapenko <glider@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Marco Elver <elver@google.com>
@@ -88,71 +83,97 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig      |   10 ++++++++++
- lib/stackdepot.c |   13 +++++++++----
- 2 files changed, 19 insertions(+), 4 deletions(-)
+ lib/stackdepot.c |   29 ++++++++++++++---------------
+ 1 file changed, 14 insertions(+), 15 deletions(-)
 
---- a/lib/Kconfig~lib-stackdepot-use-fixed-sized-slots-for-stack-records
-+++ a/lib/Kconfig
-@@ -713,10 +713,20 @@ config ARCH_STACKWALK
- config STACKDEPOT
- 	bool
- 	select STACKTRACE
-+	help
-+	  Stack depot: stack trace storage that avoids duplication
- 
- config STACKDEPOT_ALWAYS_INIT
- 	bool
- 	select STACKDEPOT
-+	help
-+	  Always initialize stack depot during early boot
-+
-+config STACKDEPOT_MAX_FRAMES
-+	int "Maximum number of frames in trace saved in stack depot"
-+	range 1 256
-+	default 64
-+	depends on STACKDEPOT
- 
- config REF_TRACKER
- 	bool
---- a/lib/stackdepot.c~lib-stackdepot-use-fixed-sized-slots-for-stack-records
+--- a/lib/stackdepot.c~lib-stackdepot-fix-and-clean-up-atomic-annotations
 +++ a/lib/stackdepot.c
-@@ -58,9 +58,12 @@ struct stack_record {
- 	u32 hash;			/* Hash in the hash table */
- 	u32 size;			/* Number of stored frames */
- 	union handle_parts handle;
--	unsigned long entries[];	/* Variable-sized array of frames */
-+	unsigned long entries[CONFIG_STACKDEPOT_MAX_FRAMES];	/* Frames */
- };
+@@ -231,10 +231,10 @@ static void depot_init_pool(void **preal
+ 	/*
+ 	 * If the next pool is already initialized or the maximum number of
+ 	 * pools is reached, do not use the preallocated memory.
+-	 * smp_load_acquire() here pairs with smp_store_release() below and
+-	 * in depot_alloc_stack().
++	 * Access next_pool_required non-atomically, as there are no concurrent
++	 * write accesses to this variable.
+ 	 */
+-	if (!smp_load_acquire(&next_pool_required))
++	if (!next_pool_required)
+ 		return;
  
-+#define DEPOT_STACK_RECORD_SIZE \
-+	ALIGN(sizeof(struct stack_record), 1 << DEPOT_STACK_ALIGN)
-+
- static bool stack_depot_disabled;
- static bool __stack_depot_early_init_requested __initdata = IS_ENABLED(CONFIG_STACKDEPOT_ALWAYS_INIT);
- static bool __stack_depot_early_init_passed __initdata;
-@@ -264,9 +267,7 @@ static struct stack_record *
- depot_alloc_stack(unsigned long *entries, int size, u32 hash, void **prealloc)
+ 	/* Check if the current pool is not yet allocated. */
+@@ -255,8 +255,8 @@ static void depot_init_pool(void **preal
+ 		 * At this point, either the next pool is initialized or the
+ 		 * maximum number of pools is reached. In either case, take
+ 		 * note that initializing another pool is not required.
+-		 * This smp_store_release pairs with smp_load_acquire() above
+-		 * and in stack_depot_save().
++		 * smp_store_release() pairs with smp_load_acquire() in
++		 * stack_depot_save().
+ 		 */
+ 		smp_store_release(&next_pool_required, 0);
+ 	}
+@@ -279,7 +279,7 @@ depot_alloc_stack(unsigned long *entries
+ 
+ 		/*
+ 		 * Move on to the next pool.
+-		 * WRITE_ONCE pairs with potential concurrent read in
++		 * WRITE_ONCE() pairs with potential concurrent read in
+ 		 * stack_depot_fetch().
+ 		 */
+ 		WRITE_ONCE(pool_index, pool_index + 1);
+@@ -287,8 +287,8 @@ depot_alloc_stack(unsigned long *entries
+ 		/*
+ 		 * If the maximum number of pools is not reached, take note
+ 		 * that the next pool needs to initialized.
+-		 * smp_store_release() here pairs with smp_load_acquire() in
+-		 * stack_depot_save() and depot_init_pool().
++		 * smp_store_release() pairs with smp_load_acquire() in
++		 * stack_depot_save().
+ 		 */
+ 		if (pool_index + 1 < DEPOT_MAX_POOLS)
+ 			smp_store_release(&next_pool_required, 1);
+@@ -329,7 +329,7 @@ static struct stack_record *depot_fetch_
  {
- 	struct stack_record *stack;
--	size_t required_size = struct_size(stack, entries, size);
--
--	required_size = ALIGN(required_size, 1 << DEPOT_STACK_ALIGN);
-+	size_t required_size = DEPOT_STACK_RECORD_SIZE;
+ 	union handle_parts parts = { .handle = handle };
+ 	/*
+-	 * READ_ONCE pairs with potential concurrent write in
++	 * READ_ONCE() pairs with potential concurrent write in
+ 	 * depot_alloc_stack().
+ 	 */
+ 	int pool_index_cached = READ_ONCE(pool_index);
+@@ -419,8 +419,7 @@ depot_stack_handle_t __stack_depot_save(
  
- 	/* Check if there is not enough space in the current pool. */
- 	if (unlikely(pool_offset + required_size > DEPOT_POOL_SIZE)) {
-@@ -301,6 +302,10 @@ depot_alloc_stack(unsigned long *entries
- 	if (stack_pools[pool_index] == NULL)
- 		return NULL;
- 
-+	/* Limit number of saved frames to CONFIG_STACKDEPOT_MAX_FRAMES. */
-+	if (size > CONFIG_STACKDEPOT_MAX_FRAMES)
-+		size = CONFIG_STACKDEPOT_MAX_FRAMES;
-+
- 	/* Save the stack trace. */
- 	stack = stack_pools[pool_index] + pool_offset;
- 	stack->hash = hash;
+ 	/*
+ 	 * Fast path: look the stack trace up without locking.
+-	 * The smp_load_acquire() here pairs with smp_store_release() to
+-	 * |bucket| below.
++	 * smp_load_acquire() pairs with smp_store_release() to |bucket| below.
+ 	 */
+ 	found = find_stack(smp_load_acquire(bucket), entries, nr_entries, hash);
+ 	if (found)
+@@ -430,8 +429,8 @@ depot_stack_handle_t __stack_depot_save(
+ 	 * Check if another stack pool needs to be initialized. If so, allocate
+ 	 * the memory now - we won't be able to do that under the lock.
+ 	 *
+-	 * The smp_load_acquire() here pairs with smp_store_release() to
+-	 * |next_pool_inited| in depot_alloc_stack() and depot_init_pool().
++	 * smp_load_acquire() pairs with smp_store_release() in
++	 * depot_alloc_stack() and depot_init_pool().
+ 	 */
+ 	if (unlikely(can_alloc && smp_load_acquire(&next_pool_required))) {
+ 		/*
+@@ -457,8 +456,8 @@ depot_stack_handle_t __stack_depot_save(
+ 		if (new) {
+ 			new->next = *bucket;
+ 			/*
+-			 * This smp_store_release() pairs with
+-			 * smp_load_acquire() from |bucket| above.
++			 * smp_store_release() pairs with smp_load_acquire()
++			 * from |bucket| above.
+ 			 */
+ 			smp_store_release(bucket, new);
+ 			found = new;
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
