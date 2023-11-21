@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FD1CC2BB3F
-	for <mm-commits@archiver.kernel.org>; Mon, 20 Nov 2023 20:13:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DF8AC61D92
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Nov 2023 16:39:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229759AbjKTUNf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 20 Nov 2023 15:13:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50880 "EHLO
+        id S233556AbjKUQjI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 21 Nov 2023 11:39:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33254 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229539AbjKTUNe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 20 Nov 2023 15:13:34 -0500
+        with ESMTP id S234001AbjKUQjH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Nov 2023 11:39:07 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41E4CCC
-        for <mm-commits@vger.kernel.org>; Mon, 20 Nov 2023 12:13:31 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1E12C433C7;
-        Mon, 20 Nov 2023 20:13:30 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 88AC218C
+        for <mm-commits@vger.kernel.org>; Tue, 21 Nov 2023 08:39:03 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25464C433C8;
+        Tue, 21 Nov 2023 16:39:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700511210;
-        bh=HKPK9G2UufCGaDNARaDvMc40FXc58638jJSncDXAC/c=;
+        s=korg; t=1700584743;
+        bh=mdntPZ5h1PWzY8u5q/j7A5ai/UL0Bx7bcm1bqj8j3ic=;
         h=Date:To:From:Subject:From;
-        b=UHI3m/WIbAwMB8AOSGzmvbKUn2Ch44tFBqymbZoXZXYx6kkV5C2fMEWwxBflXvsfS
-         qGvAGmxqnADbb2FAESlEcfz+DEX97YW91x+G9TKKIsmZLzp3D2YO7kkvGwQT432Kt5
-         kiay4o9//frjD+a+97aHlLp0U+dBIqB+F/H1q3i0=
-Date:   Mon, 20 Nov 2023 12:13:30 -0800
-To:     mm-commits@vger.kernel.org, davidgow@google.com,
-        brendanhiggins@google.com, sj@kernel.org, akpm@linux-foundation.org
+        b=GLlB/hUKOVc5VsW2povjXg1Um901cVSDXuhADIqJLM1sJNCpSbQ75ZmFTe41qdY27
+         NwNEL/Z+Tcjur9df2tfPTwmcVmf3D2cFmuZiGZhn+Nzn1VSpyteI+BiTVZA3pRXkRT
+         SN0BSHCJFJZLEv7yntph23RLTpCSh9ibvq72YbPI=
+Date:   Tue, 21 Nov 2023 08:39:02 -0800
+To:     mm-commits@vger.kernel.org, ebiederm@xmission.com, oleg@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-test-test-damon_split_region_ats-access-rate-copying.patch added to mm-unstable branch
-Message-Id: <20231120201330.D1E12C433C7@smtp.kernel.org>
+Subject: + __ptrace_unlink-kill-the-obsolete-fixme-code.patch added to mm-nonmm-unstable branch
+Message-Id: <20231121163903.25464C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,14 +36,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/core-test: test damon_split_region_at()'s access rate copying
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-core-test-test-damon_split_region_ats-access-rate-copying.patch
+     Subject: __ptrace_unlink: kill the obsolete "FIXME" code
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     __ptrace_unlink-kill-the-obsolete-fixme-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-test-test-damon_split_region_ats-access-rate-copying.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/__ptrace_unlink-kill-the-obsolete-fixme-code.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,60 +59,53 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core-test: test damon_split_region_at()'s access rate copying
-Date: Sun, 19 Nov 2023 17:15:29 +0000
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: __ptrace_unlink: kill the obsolete "FIXME" code
+Date: Tue, 21 Nov 2023 17:26:50 +0100
 
-damon_split_region_at() should set access rate related fields of the
-resulting regions same.  It may forgotten, and actually there was the
-mistake before.  Test it with the unit test case for the function.
+The corner case described by the comment is no longer possible after the
+commit 7b3c36fc4c23 ("ptrace: fix task_join_group_stop() for the case when
+current is traced"), task_join_group_stop() ensures that the new thread
+has the correct signr in JOBCTL_STOP_SIGMASK regardless of ptrace.
 
-Link: https://lkml.kernel.org/r/20231119171529.66863-2-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Brendan Higgins <brendanhiggins@google.com>
-Cc: David Gow <davidgow@google.com>
+Link: https://lkml.kernel.org/r/20231121162650.GA6635@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core-test.h |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ kernel/ptrace.c |   13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
---- a/mm/damon/core-test.h~mm-damon-core-test-test-damon_split_region_ats-access-rate-copying
-+++ a/mm/damon/core-test.h
-@@ -122,18 +122,25 @@ static void damon_test_split_at(struct k
- {
- 	struct damon_ctx *c = damon_new_ctx();
- 	struct damon_target *t;
--	struct damon_region *r;
-+	struct damon_region *r, *r_new;
+--- a/kernel/ptrace.c~__ptrace_unlink-kill-the-obsolete-fixme-code
++++ a/kernel/ptrace.c
+@@ -145,20 +145,9 @@ void __ptrace_unlink(struct task_struct
+ 	 */
+ 	if (!(child->flags & PF_EXITING) &&
+ 	    (child->signal->flags & SIGNAL_STOP_STOPPED ||
+-	     child->signal->group_stop_count)) {
++	     child->signal->group_stop_count))
+ 		child->jobctl |= JOBCTL_STOP_PENDING;
  
- 	t = damon_new_target();
- 	r = damon_new_region(0, 100);
-+	r->nr_accesses_bp = 420000;
-+	r->nr_accesses = 42;
-+	r->last_nr_accesses = 15;
- 	damon_add_region(r, t);
- 	damon_split_region_at(t, r, 25);
- 	KUNIT_EXPECT_EQ(test, r->ar.start, 0ul);
- 	KUNIT_EXPECT_EQ(test, r->ar.end, 25ul);
- 
--	r = damon_next_region(r);
--	KUNIT_EXPECT_EQ(test, r->ar.start, 25ul);
--	KUNIT_EXPECT_EQ(test, r->ar.end, 100ul);
-+	r_new = damon_next_region(r);
-+	KUNIT_EXPECT_EQ(test, r_new->ar.start, 25ul);
-+	KUNIT_EXPECT_EQ(test, r_new->ar.end, 100ul);
-+
-+	KUNIT_EXPECT_EQ(test, r->nr_accesses_bp, r_new->nr_accesses_bp);
-+	KUNIT_EXPECT_EQ(test, r->nr_accesses, r_new->nr_accesses);
-+	KUNIT_EXPECT_EQ(test, r->last_nr_accesses, r_new->last_nr_accesses);
- 
- 	damon_free_target(t);
- 	damon_destroy_ctx(c);
+-		/*
+-		 * This is only possible if this thread was cloned by the
+-		 * traced task running in the stopped group, set the signal
+-		 * for the future reports.
+-		 * FIXME: we should change ptrace_init_task() to handle this
+-		 * case.
+-		 */
+-		if (!(child->jobctl & JOBCTL_STOP_SIGMASK))
+-			child->jobctl |= SIGSTOP;
+-	}
+-
+ 	/*
+ 	 * If transition to TASK_STOPPED is pending or in TASK_TRACED, kick
+ 	 * @child in the butt.  Note that @resume should be used iff @child
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-mm-damon-core-copy-nr_accesses-when-splitting-region.patch
-mm-damon-core-test-test-damon_split_region_ats-access-rate-copying.patch
+introduce-for_other_threadsp-t.patch
+simplify-force_sig_info_to_task-kill-recalc_sigpending_and_wake.patch
+__ptrace_unlink-kill-the-obsolete-fixme-code.patch
 
