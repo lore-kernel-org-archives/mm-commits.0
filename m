@@ -2,33 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DF8AC61D92
-	for <mm-commits@archiver.kernel.org>; Tue, 21 Nov 2023 16:39:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CED4C61D97
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Nov 2023 23:01:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233556AbjKUQjI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 21 Nov 2023 11:39:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33254 "EHLO
+        id S229514AbjKUXBw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 21 Nov 2023 18:01:52 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46548 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234001AbjKUQjH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Nov 2023 11:39:07 -0500
+        with ESMTP id S234736AbjKUXBw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Nov 2023 18:01:52 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 88AC218C
-        for <mm-commits@vger.kernel.org>; Tue, 21 Nov 2023 08:39:03 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25464C433C8;
-        Tue, 21 Nov 2023 16:39:03 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6218590
+        for <mm-commits@vger.kernel.org>; Tue, 21 Nov 2023 15:01:47 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 000CDC433C8;
+        Tue, 21 Nov 2023 23:01:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700584743;
-        bh=mdntPZ5h1PWzY8u5q/j7A5ai/UL0Bx7bcm1bqj8j3ic=;
+        s=korg; t=1700607707;
+        bh=XE2dATS3YPZixBonCIsOqz4WLl+JYCQIcOYfq2HMxTI=;
         h=Date:To:From:Subject:From;
-        b=GLlB/hUKOVc5VsW2povjXg1Um901cVSDXuhADIqJLM1sJNCpSbQ75ZmFTe41qdY27
-         NwNEL/Z+Tcjur9df2tfPTwmcVmf3D2cFmuZiGZhn+Nzn1VSpyteI+BiTVZA3pRXkRT
-         SN0BSHCJFJZLEv7yntph23RLTpCSh9ibvq72YbPI=
-Date:   Tue, 21 Nov 2023 08:39:02 -0800
-To:     mm-commits@vger.kernel.org, ebiederm@xmission.com, oleg@redhat.com,
-        akpm@linux-foundation.org
+        b=w990NDv998JhqX9W1scbap6vmPr6XgXHf1laer7ol9xyDGe5Dvjb825eINJmNisRc
+         O4JR28d/tzVofjKdZ5ZTQs7ToAQgjXrp3209PUdKSPl3ZCkjinAjSkyA/BWiOrD7H7
+         uB0c+L497fUMKo1lC029QoiPSr6AIso+ti5Per6I=
+Date:   Tue, 21 Nov 2023 15:01:46 -0800
+To:     mm-commits@vger.kernel.org, vishal.moola@gmail.com,
+        hca@linux.ibm.com, gerald.schaefer@linux.ibm.com,
+        agordeev@linux.ibm.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + __ptrace_unlink-kill-the-obsolete-fixme-code.patch added to mm-nonmm-unstable branch
-Message-Id: <20231121163903.25464C433C8@smtp.kernel.org>
+Subject: + pgtable-fix-s390-ptdesc-field-comments.patch added to mm-unstable branch
+Message-Id: <20231121230147.000CDC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,14 +37,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: __ptrace_unlink: kill the obsolete "FIXME" code
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     __ptrace_unlink-kill-the-obsolete-fixme-code.patch
+     Subject: pgtable: fix s390 ptdesc field comments
+has been added to the -mm mm-unstable branch.  Its filename is
+     pgtable-fix-s390-ptdesc-field-comments.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/__ptrace_unlink-kill-the-obsolete-fixme-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/pgtable-fix-s390-ptdesc-field-comments.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,53 +60,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: __ptrace_unlink: kill the obsolete "FIXME" code
-Date: Tue, 21 Nov 2023 17:26:50 +0100
+From: Alexander Gordeev <agordeev@linux.ibm.com>
+Subject: pgtable: fix s390 ptdesc field comments
+Date: Tue, 21 Nov 2023 20:43:49 +0100
 
-The corner case described by the comment is no longer possible after the
-commit 7b3c36fc4c23 ("ptrace: fix task_join_group_stop() for the case when
-current is traced"), task_join_group_stop() ensures that the new thread
-has the correct signr in JOBCTL_STOP_SIGMASK regardless of ptrace.
+Patch series "minor ptdesc updates", v3.
 
-Link: https://lkml.kernel.org/r/20231121162650.GA6635@redhat.com
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
+
+This patch (of 2):
+
+Since commit d08d4e7cd6bf ("s390/mm: use full 4KB page for 2KB PTE") there
+is no fragmented page tracking on s390.  Fix the corresponding comments.
+
+Link: https://lkml.kernel.org/r/cover.1700594815.git.agordeev@linux.ibm.com
+Link: https://lkml.kernel.org/r/2eead241f3a45bed26c7911cf66bded1e35670b8.1700594815.git.agordeev@linux.ibm.com
+Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Suggested-by: Heiko Carstens <hca@linux.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |   13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+ include/linux/mm_types.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/kernel/ptrace.c~__ptrace_unlink-kill-the-obsolete-fixme-code
-+++ a/kernel/ptrace.c
-@@ -145,20 +145,9 @@ void __ptrace_unlink(struct task_struct
- 	 */
- 	if (!(child->flags & PF_EXITING) &&
- 	    (child->signal->flags & SIGNAL_STOP_STOPPED ||
--	     child->signal->group_stop_count)) {
-+	     child->signal->group_stop_count))
- 		child->jobctl |= JOBCTL_STOP_PENDING;
- 
--		/*
--		 * This is only possible if this thread was cloned by the
--		 * traced task running in the stopped group, set the signal
--		 * for the future reports.
--		 * FIXME: we should change ptrace_init_task() to handle this
--		 * case.
--		 */
--		if (!(child->jobctl & JOBCTL_STOP_SIGMASK))
--			child->jobctl |= SIGSTOP;
--	}
--
- 	/*
- 	 * If transition to TASK_STOPPED is pending or in TASK_TRACED, kick
- 	 * @child in the butt.  Note that @resume should be used iff @child
+--- a/include/linux/mm_types.h~pgtable-fix-s390-ptdesc-field-comments
++++ a/include/linux/mm_types.h
+@@ -401,11 +401,11 @@ FOLIO_MATCH(compound_head, _head_2a);
+  * @pmd_huge_pte:     Protected by ptdesc->ptl, used for THPs.
+  * @__page_mapping:   Aliases with page->mapping. Unused for page tables.
+  * @pt_mm:            Used for x86 pgds.
+- * @pt_frag_refcount: For fragmented page table tracking. Powerpc and s390 only.
++ * @pt_frag_refcount: For fragmented page table tracking. Powerpc only.
+  * @_pt_pad_2:        Padding to ensure proper alignment.
+  * @ptl:              Lock for the page table.
+  * @__page_type:      Same as page->page_type. Unused for page tables.
+- * @_refcount:        Same as page refcount. Used for s390 page tables.
++ * @_refcount:        Same as page refcount.
+  * @pt_memcg_data:    Memcg data. Tracked for page tables here.
+  *
+  * This struct overlays struct page for now. Do not modify without a good
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from agordeev@linux.ibm.com are
 
-introduce-for_other_threadsp-t.patch
-simplify-force_sig_info_to_task-kill-recalc_sigpending_and_wake.patch
-__ptrace_unlink-kill-the-obsolete-fixme-code.patch
+pgtable-fix-s390-ptdesc-field-comments.patch
+pgtable-rename-ptdesc-_refcount-field-to-__page_refcount.patch
 
