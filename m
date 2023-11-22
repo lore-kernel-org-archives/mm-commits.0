@@ -2,34 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15384C27C40
-	for <mm-commits@archiver.kernel.org>; Wed, 22 Nov 2023 21:47:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06B89C27C40
+	for <mm-commits@archiver.kernel.org>; Wed, 22 Nov 2023 21:52:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344416AbjKVVri (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 22 Nov 2023 16:47:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58824 "EHLO
+        id S232064AbjKVVwm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 22 Nov 2023 16:52:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52672 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235216AbjKVVri (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Nov 2023 16:47:38 -0500
+        with ESMTP id S231623AbjKVVwl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Nov 2023 16:52:41 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7AF0CA9;
-        Wed, 22 Nov 2023 13:47:34 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BADCC433C8;
-        Wed, 22 Nov 2023 21:47:34 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AEF371B3
+        for <mm-commits@vger.kernel.org>; Wed, 22 Nov 2023 13:52:37 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4645AC433C7;
+        Wed, 22 Nov 2023 21:52:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700689654;
-        bh=Bmjdv91puLAvFx9mmbLU/75H09mDUEUw9NSYD1epyT8=;
+        s=korg; t=1700689957;
+        bh=lDZBYlFd+rTSs8vJs9wb6tf+zmn+/ik6CYJTak3hCCs=;
         h=Date:To:From:Subject:From;
-        b=pqTJrY99pm6OxmtjY0QdbZDNyhwGJ7g5X8i+Hu3hk0LN3WWZ61veRfYfXxewWQS3W
-         U67gv5UF71chLaQO/5r88HrLuDnH5g9G9Pj768OPsl+0LraSobQghM+fg8ZZkp1FGj
-         Ak4QTBLKP1SqQsHey2Opdwsdip5IQF+fSBCXxlrw=
-Date:   Wed, 22 Nov 2023 13:47:33 -0800
-To:     mm-commits@vger.kernel.org, surenb@google.com,
-        stable@vger.kernel.org, mhocko@suse.com, gaoxu2@hihonor.com,
+        b=jO9sDL6nHwcsuCROQxv8bbwhLmmbusr65h7QAteybpCzQzb2g9GPfbblR7gIKB4jY
+         gxzLjNMbVsNig5jVH7QE8m4Z/HvdKOY72q+gtxAi+SDxdmqlwRhbZLzdGCIwJ/3Uv1
+         1J4yEnix+sX4edRsfwvRMdAjC60lZEVXHCdlspmM=
+Date:   Wed, 22 Nov 2023 13:52:36 -0800
+To:     mm-commits@vger.kernel.org, fancer.lancer@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmoom_reaper-avoid-run-queue_oom_reaper-if-task-is-not-oom.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231122214734.0BADCC433C8@smtp.kernel.org>
+Subject: + mm-mm_initc-append-newline-to-the-unavailable-ranges-log-message.patch added to mm-unstable branch
+Message-Id: <20231122215237.4645AC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,14 +36,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,oom_reaper: avoid run queue_oom_reaper if task is not oom
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mmoom_reaper-avoid-run-queue_oom_reaper-if-task-is-not-oom.patch
+     Subject: mm/mm_init.c: append newline to the unavailable ranges log-message
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-mm_initc-append-newline-to-the-unavailable-ranges-log-message.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmoom_reaper-avoid-run-queue_oom_reaper-if-task-is-not-oom.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_initc-append-newline-to-the-unavailable-ranges-log-message.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -60,71 +59,37 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: gaoxu <gaoxu2@hihonor.com>
-Subject: mm,oom_reaper: avoid run queue_oom_reaper if task is not oom
-Date: Wed, 22 Nov 2023 12:46:44 +0000
+From: Serge Semin <fancer.lancer@gmail.com>
+Subject: mm/mm_init.c: append newline to the unavailable ranges log-message
+Date: Wed, 22 Nov 2023 21:24:04 +0300
 
-queue_oom_reaper() tests and sets tsk->signal->oom_mm->flags.  However, it
-is necessary to check if 'tsk' is an OOM victim before executing
-'queue_oom_reaper' because the variable may be NULL.
+Based on the init_unavailable_range() method and it's callee semantics no
+multi-line info messages are intended to be printed to the console.  Thus
+append the '\n' symbol to the respective info string.
 
-We encountered such an issue, and the log is as follows:
-[3701:11_see]Out of memory: Killed process 3154 (system_server)
-total-vm:23662044kB, anon-rss:0kB, file-rss:0kB, shmem-rss:0kB,
-UID:1000 pgtables:4056kB oom_score_adj:-900
-[3701:11_see][RB/E]rb_sreason_str_set: sreason_str set null_pointer
-[3701:11_see][RB/E]rb_sreason_str_set: sreason_str set unknown_addr
-[3701:11_see]Unable to handle kernel NULL pointer dereference at virtual
-address 0000000000000328
-[3701:11_see]user pgtable: 4k pages, 39-bit VAs, pgdp=3D00000000821de000
-[3701:11_see][0000000000000328] pgd=3D0000000000000000,
-p4d=3D0000000000000000,pud=3D0000000000000000
-[3701:11_see]tracing off
-[3701:11_see]Internal error: Oops: 96000005 [#1] PREEMPT SMP
-[3701:11_see]Call trace:
-[3701:11_see] queue_oom_reaper+0x30/0x170
-[3701:11_see] __oom_kill_process+0x590/0x860
-[3701:11_see] oom_kill_process+0x140/0x274
-[3701:11_see] out_of_memory+0x2f4/0x54c
-[3701:11_see] __alloc_pages_slowpath+0x5d8/0xaac
-[3701:11_see] __alloc_pages+0x774/0x800
-[3701:11_see] wp_page_copy+0xc4/0x116c
-[3701:11_see] do_wp_page+0x4bc/0x6fc
-[3701:11_see] handle_pte_fault+0x98/0x2a8
-[3701:11_see] __handle_mm_fault+0x368/0x700
-[3701:11_see] do_handle_mm_fault+0x160/0x2cc
-[3701:11_see] do_page_fault+0x3e0/0x818
-[3701:11_see] do_mem_abort+0x68/0x17c
-[3701:11_see] el0_da+0x3c/0xa0
-[3701:11_see] el0t_64_sync_handler+0xc4/0xec
-[3701:11_see] el0t_64_sync+0x1b4/0x1b8
-[3701:11_see]tracing off
-
-Link: https://lkml.kernel.org/r/400d13bddb524ef6af37cb2220808c75@hihonor.com
-Signed-off-by: Gao Xu <gaoxu2@hihonor.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20231122182419.30633-7-fancer.lancer@gmail.com
+Signed-off-by: Serge Semin <fancer.lancer@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    2 +-
+ mm/mm_init.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/oom_kill.c~mmoom_reaper-avoid-run-queue_oom_reaper-if-task-is-not-oom
-+++ a/mm/oom_kill.c
-@@ -984,7 +984,7 @@ static void __oom_kill_process(struct ta
+--- a/mm/mm_init.c~mm-mm_initc-append-newline-to-the-unavailable-ranges-log-message
++++ a/mm/mm_init.c
+@@ -827,7 +827,7 @@ static void __init init_unavailable_rang
  	}
- 	rcu_read_unlock();
  
--	if (can_oom_reap)
-+	if (can_oom_reap && tsk_is_oom_victim(victim))
- 		queue_oom_reaper(victim);
+ 	if (pgcnt)
+-		pr_info("On node %d, zone %s: %lld pages in unavailable ranges",
++		pr_info("On node %d, zone %s: %lld pages in unavailable ranges\n",
+ 			node, zone_names[zone], pgcnt);
+ }
  
- 	mmdrop(mm);
 _
 
-Patches currently in -mm which might be from gaoxu2@hihonor.com are
+Patches currently in -mm which might be from fancer.lancer@gmail.com are
 
-mmoom_reaper-avoid-run-queue_oom_reaper-if-task-is-not-oom.patch
+mm-mm_initc-extend-init-unavailable-range-doc-info.patch
+mm-mm_initc-append-newline-to-the-unavailable-ranges-log-message.patch
 
