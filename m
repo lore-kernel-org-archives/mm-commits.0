@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9464CC61DF4
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Nov 2023 19:34:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E547C61D97
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Nov 2023 19:35:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345969AbjKXTeq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Nov 2023 14:34:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58906 "EHLO
+        id S1345973AbjKXTe7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Nov 2023 14:34:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46484 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345941AbjKXTeq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Nov 2023 14:34:46 -0500
+        with ESMTP id S1345941AbjKXTe6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Nov 2023 14:34:58 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A54391AB
-        for <mm-commits@vger.kernel.org>; Fri, 24 Nov 2023 11:34:52 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36A8DC433C7;
-        Fri, 24 Nov 2023 19:34:52 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 881C6127
+        for <mm-commits@vger.kernel.org>; Fri, 24 Nov 2023 11:35:05 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23DDCC433C8;
+        Fri, 24 Nov 2023 19:35:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700854492;
-        bh=x3EOuTQk6hexIolApgKB9CvIO70IZIpYNugNjwHoDUQ=;
+        s=korg; t=1700854505;
+        bh=GW5qKYc1+vWQ2SL/ULM546cmqjxkgJu5w8nn38MtrxA=;
         h=Date:To:From:Subject:From;
-        b=Zyisbiq7SV0vkezgATCNbOzOtavSr/CSa+OesJYs1wnk16I/XeD4cFEXziyAyOf8I
-         13tOYAeUIs8NeexXaGeZMl0KUaVw28WDNC/2wtlzlf9Yv80pEeSJUEUIsXWZCM5xJb
-         00pdpgEnvXnVpRtRxzSy9w4snceMLEH/4vHcaDqM=
-Date:   Fri, 24 Nov 2023 11:34:51 -0800
+        b=AtxAKdOBefwbdjo0E0oB85ux6nAejAfNsEmyOoW/YqJm0Ck5HjqjyIQPYwI3sIgsc
+         zjjJrv0jdzyf30iMvRJpqDgWnVjmFxguolzSwphyxhjCNwb6MRCHlkx2d1UYSEC6qY
+         vgpo+6QOKW1mAg33QFkx4FgmkNsSv0/oitKo6h9Y=
+Date:   Fri, 24 Nov 2023 11:35:04 -0800
 To:     mm-commits@vger.kernel.org, yang.yang29@zte.com.cn,
         mhocko@suse.com, jiang.xuexin@zte.com.cn, hughd@google.com,
         hannes@cmpxchg.org, wang.yong12@zte.com.cn,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + =utf-8bw1bbveniigxpbnv4lw5lehrdbw0sig9vbtpkdw1wx3rhc2tzigfkzcbyc3mgzgv0ywlszwqgaw5mb3jtyxrpb24gchjpbnrpbmc==.patch added to mm-unstable branch
-Message-Id: <20231124193452.36A8DC433C7@smtp.kernel.org>
+Subject: + mm-oom-dump_tasks-add-rss-detailed-information-printing.patch added to mm-unstable branch
+Message-Id: <20231124193505.23DDCC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,10 +40,10 @@ X-Mailing-List: mm-commits@vger.kernel.org
 The patch titled
      Subject: mm, oom:dump_tasks add rss detailed information printing
 has been added to the -mm mm-unstable branch.  Its filename is
-     =utf-8bw1bbveniigxpbnv4lw5lehrdbw0sig9vbtpkdw1wx3rhc2tzigfkzcbyc3mgzgv0ywlszwqgaw5mb3jtyxrpb24gchjpbnrpbmc==.patch
+     mm-oom-dump_tasks-add-rss-detailed-information-printing.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/=utf-8bw1bbveniigxpbnv4lw5lehrdbw0sig9vbtpkdw1wx3rhc2tzigfkzcbyc3mgzgv0ywlszwqgaw5mb3jtyxrpb24gchjpbnrpbmc==.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-oom-dump_tasks-add-rss-detailed-information-printing.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -96,7 +96,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/oom_kill.c |    7 ++++---
  1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/oom_kill.c~=utf-8bw1bbveniigxpbnv4lw5lehrdbw0sig9vbtpkdw1wx3rhc2tzigfkzcbyc3mgzgv0ywlszwqgaw5mb3jtyxrpb24gchjpbnrpbmc==
+--- a/mm/oom_kill.c~mm-oom-dump_tasks-add-rss-detailed-information-printing
 +++ a/mm/oom_kill.c
 @@ -399,10 +399,11 @@ static int dump_task(struct task_struct
  		return 0;
@@ -125,5 +125,5 @@ _
 
 Patches currently in -mm which might be from wang.yong12@zte.com.cn are
 
-=utf-8bw1bbveniigxpbnv4lw5lehrdbw0sig9vbtpkdw1wx3rhc2tzigfkzcbyc3mgzgv0ywlszwqgaw5mb3jtyxrpb24gchjpbnrpbmc==.patch
+mm-oom-dump_tasks-add-rss-detailed-information-printing.patch
 
