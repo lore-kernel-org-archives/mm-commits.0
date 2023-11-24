@@ -2,34 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 526B5C61D97
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Nov 2023 18:53:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A1FEC61DF4
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Nov 2023 19:17:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345782AbjKXSxV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Nov 2023 13:53:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56256 "EHLO
+        id S231536AbjKXTRJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Nov 2023 14:17:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47738 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345717AbjKXSxU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Nov 2023 13:53:20 -0500
+        with ESMTP id S230200AbjKXTRI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Nov 2023 14:17:08 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E5401FD7
-        for <mm-commits@vger.kernel.org>; Fri, 24 Nov 2023 10:53:26 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 029D3C433CA;
-        Fri, 24 Nov 2023 18:53:25 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72E4530EB
+        for <mm-commits@vger.kernel.org>; Fri, 24 Nov 2023 11:17:13 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03A59C433C7;
+        Fri, 24 Nov 2023 19:17:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700852006;
-        bh=dN9EuxLLWLdovt20JfL1UXoUMuM3Lyfm94gyIUdwJ3c=;
+        s=korg; t=1700853433;
+        bh=WyDuDLHWNEbuVtRq4hhdbxv5QspdQUgX/vsD2Ce+dSc=;
         h=Date:To:From:Subject:From;
-        b=0itDGJomuPNRJgZXo/ZxnQqluh3NddXYK6DXtVZwwXaJnPtTV6/fVjXZwsGcRggmQ
-         CtHGTpjsxzBVZzc4gXgK805lgodZOfKmGt3tr4P2MVL7EdFfcme9QOWShLe7CQrnsS
-         skLKfzS89U8MLvkb6XkNnPgCRxF3EzTQzB5jY9TA=
-Date:   Fri, 24 Nov 2023 10:53:25 -0800
-To:     mm-commits@vger.kernel.org, rppt@kernel.org,
-        axelrasmussen@google.com, aarcange@redhat.com, peterx@redhat.com,
+        b=OHGEZaVYSYTaM5ALAz5nLmIL3bTlz5cF+qlyEgYp1ybuGZ790Kx3k2v5uBn3E8RIf
+         JYkOTBKBYddOEkmZY5YMWdIe+U2kBgCUnQ2ihVXkkB19CHppAkkh/xJDxVEznPi0Rw
+         ceWisARhGhUe8hcjyEXNpd6P0bNnIJwSl9sFHmPA=
+Date:   Fri, 24 Nov 2023 11:17:12 -0800
+To:     mm-commits@vger.kernel.org, shakeelb@google.com,
+        rostedt@goodmis.org, roman.gushchin@linux.dev,
+        muchun.song@linux.dev, mhocko@suse.com, mhiramat@kernel.org,
+        hannes@cmpxchg.org, ddrokosov@salutedevices.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kconfig-make-userfaultfd-a-menuconfig.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231124185326.029D3C433CA@smtp.kernel.org>
+Subject: + mm-memcg-print-out-cgroup-ino-in-the-memcg-tracepoints.patch added to mm-unstable branch
+Message-Id: <20231124191713.03A59C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,14 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/Kconfig: make userfaultfd a menuconfig
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-kconfig-make-userfaultfd-a-menuconfig.patch
+     Subject: mm: memcg: print out cgroup ino in the memcg tracepoints
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memcg-print-out-cgroup-ino-in-the-memcg-tracepoints.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kconfig-make-userfaultfd-a-menuconfig.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-print-out-cgroup-ino-in-the-memcg-tracepoints.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -60,71 +62,196 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/Kconfig: make userfaultfd a menuconfig
-Date: Thu, 23 Nov 2023 17:42:04 -0500
+From: Dmitry Rokosov <ddrokosov@salutedevices.com>
+Subject: mm: memcg: print out cgroup ino in the memcg tracepoints
+Date: Thu, 23 Nov 2023 22:39:36 +0300
 
-PTE_MARKER_UFFD_WP is a subconfig for userfaultfd.  To make it clear,
-switch to use menuconfig for userfaultfd.
+Patch series "mm: memcg: improve vmscan tracepoints", v3.
 
-Link: https://lkml.kernel.org/r/20231123224204.1060152-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Peter Xu <peterx@redhat.com>
+The motivation behind this commit is to enhance the traceability and
+understanding of memcg events.  By integrating the function cgroup_ino()
+into the existing memcg tracepoints, this patch series introduces a new
+tracepoint template for the begin() and end() events.  It utilizes a new
+entry field ino to store the cgroup ino, enabling developers to easily
+identify the cgroup associated with a specific memcg tracepoint event. 
+
+Additionally, this patch series introduces new shrink_memcg tracepoints to
+facilitate non-direct memcg reclaim tracing and debugging.  
+
+
+This patch (of 2):
+
+Sometimes, it becomes necessary to determine the memcg tracepoint event
+that has occurred.  This is particularly relevant in scenarios involving a
+large cgroup hierarchy, where users may wish to trace the process of
+reclamation within a specific cgroup(s) by applying a filter.
+
+The function cgroup_ino() is a useful tool for this purpose.  To integrate
+cgroup_ino() into the existing memcg tracepoints, this patch introduces a
+new tracepoint template for the begin() and end() events.
+
+Link: https://lkml.kernel.org/r/20231123193937.11628-1-ddrokosov@salutedevices.com
+Link: https://lkml.kernel.org/r/20231123193937.11628-2-ddrokosov@salutedevices.com
+Signed-off-by: Dmitry Rokosov <ddrokosov@salutedevices.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ include/trace/events/vmscan.h |   73 ++++++++++++++++++++++++++------
+ mm/vmscan.c                   |   10 ++--
+ 2 files changed, 66 insertions(+), 17 deletions(-)
 
---- a/mm/Kconfig~mm-kconfig-make-userfaultfd-a-menuconfig
-+++ a/mm/Kconfig
-@@ -1201,13 +1201,6 @@ config ANON_VMA_NAME
- 	  area from being merged with adjacent virtual memory areas due to the
- 	  difference in their name.
+--- a/include/trace/events/vmscan.h~mm-memcg-print-out-cgroup-ino-in-the-memcg-tracepoints
++++ a/include/trace/events/vmscan.h
+@@ -141,19 +141,45 @@ DEFINE_EVENT(mm_vmscan_direct_reclaim_be
+ );
  
--config USERFAULTFD
--	bool "Enable userfaultfd() system call"
--	depends on MMU
--	help
--	  Enable the userfaultfd() system call that allows to intercept and
--	  handle page faults in userland.
--
- config HAVE_ARCH_USERFAULTFD_WP
- 	bool
- 	help
-@@ -1218,6 +1211,14 @@ config HAVE_ARCH_USERFAULTFD_MINOR
- 	help
- 	  Arch has userfaultfd minor fault support
+ #ifdef CONFIG_MEMCG
+-DEFINE_EVENT(mm_vmscan_direct_reclaim_begin_template, mm_vmscan_memcg_reclaim_begin,
  
-+menuconfig USERFAULTFD
-+	bool "Enable userfaultfd() system call"
-+	depends on MMU
-+	help
-+	  Enable the userfaultfd() system call that allows to intercept and
-+	  handle page faults in userland.
+-	TP_PROTO(int order, gfp_t gfp_flags),
++DECLARE_EVENT_CLASS(mm_vmscan_memcg_reclaim_begin_template,
+ 
+-	TP_ARGS(order, gfp_flags)
++	TP_PROTO(int order, gfp_t gfp_flags, const struct mem_cgroup *memcg),
 +
-+if USERFAULTFD
- config PTE_MARKER_UFFD_WP
- 	bool "Userfaultfd write protection support for shmem/hugetlbfs"
- 	default y
-@@ -1227,6 +1228,7 @@ config PTE_MARKER_UFFD_WP
- 	  Allows to create marker PTEs for userfaultfd write protection
- 	  purposes.  It is required to enable userfaultfd write protection on
- 	  file-backed memory types like shmem and hugetlbfs.
-+endif # USERFAULTFD
++	TP_ARGS(order, gfp_flags, memcg),
++
++	TP_STRUCT__entry(
++		__field(int, order)
++		__field(unsigned long, gfp_flags)
++		__field(ino_t, ino)
++	),
++
++	TP_fast_assign(
++		__entry->order = order;
++		__entry->gfp_flags = (__force unsigned long)gfp_flags;
++		__entry->ino = cgroup_ino(memcg->css.cgroup);
++	),
++
++	TP_printk("order=%d gfp_flags=%s memcg=%ld",
++		__entry->order,
++		show_gfp_flags(__entry->gfp_flags),
++		__entry->ino)
+ );
  
- # multi-gen LRU {
- config LRU_GEN
+-DEFINE_EVENT(mm_vmscan_direct_reclaim_begin_template, mm_vmscan_memcg_softlimit_reclaim_begin,
++DEFINE_EVENT(mm_vmscan_memcg_reclaim_begin_template, mm_vmscan_memcg_reclaim_begin,
+ 
+-	TP_PROTO(int order, gfp_t gfp_flags),
++	TP_PROTO(int order, gfp_t gfp_flags, const struct mem_cgroup *memcg),
+ 
+-	TP_ARGS(order, gfp_flags)
++	TP_ARGS(order, gfp_flags, memcg)
+ );
++
++DEFINE_EVENT(mm_vmscan_memcg_reclaim_begin_template, mm_vmscan_memcg_softlimit_reclaim_begin,
++
++	TP_PROTO(int order, gfp_t gfp_flags, const struct mem_cgroup *memcg),
++
++	TP_ARGS(order, gfp_flags, memcg)
++);
++
+ #endif /* CONFIG_MEMCG */
+ 
+ DECLARE_EVENT_CLASS(mm_vmscan_direct_reclaim_end_template,
+@@ -181,19 +207,42 @@ DEFINE_EVENT(mm_vmscan_direct_reclaim_en
+ );
+ 
+ #ifdef CONFIG_MEMCG
+-DEFINE_EVENT(mm_vmscan_direct_reclaim_end_template, mm_vmscan_memcg_reclaim_end,
+ 
+-	TP_PROTO(unsigned long nr_reclaimed),
++DECLARE_EVENT_CLASS(mm_vmscan_memcg_reclaim_end_template,
+ 
+-	TP_ARGS(nr_reclaimed)
++	TP_PROTO(unsigned long nr_reclaimed, const struct mem_cgroup *memcg),
++
++	TP_ARGS(nr_reclaimed, memcg),
++
++	TP_STRUCT__entry(
++		__field(unsigned long, nr_reclaimed)
++		__field(ino_t, ino)
++	),
++
++	TP_fast_assign(
++		__entry->nr_reclaimed = nr_reclaimed;
++		__entry->ino = cgroup_ino(memcg->css.cgroup);
++	),
++
++	TP_printk("nr_reclaimed=%lu memcg=%ld",
++		__entry->nr_reclaimed,
++		__entry->ino)
+ );
+ 
+-DEFINE_EVENT(mm_vmscan_direct_reclaim_end_template, mm_vmscan_memcg_softlimit_reclaim_end,
++DEFINE_EVENT(mm_vmscan_memcg_reclaim_end_template, mm_vmscan_memcg_reclaim_end,
+ 
+-	TP_PROTO(unsigned long nr_reclaimed),
++	TP_PROTO(unsigned long nr_reclaimed, const struct mem_cgroup *memcg),
+ 
+-	TP_ARGS(nr_reclaimed)
++	TP_ARGS(nr_reclaimed, memcg)
+ );
++
++DEFINE_EVENT(mm_vmscan_memcg_reclaim_end_template, mm_vmscan_memcg_softlimit_reclaim_end,
++
++	TP_PROTO(unsigned long nr_reclaimed, const struct mem_cgroup *memcg),
++
++	TP_ARGS(nr_reclaimed, memcg)
++);
++
+ #endif /* CONFIG_MEMCG */
+ 
+ TRACE_EVENT(mm_shrink_slab_start,
+--- a/mm/vmscan.c~mm-memcg-print-out-cgroup-ino-in-the-memcg-tracepoints
++++ a/mm/vmscan.c
+@@ -6415,8 +6415,8 @@ unsigned long mem_cgroup_shrink_node(str
+ 	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
+ 			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
+ 
+-	trace_mm_vmscan_memcg_softlimit_reclaim_begin(sc.order,
+-						      sc.gfp_mask);
++	trace_mm_vmscan_memcg_softlimit_reclaim_begin(sc.order, sc.gfp_mask,
++						      memcg);
+ 
+ 	/*
+ 	 * NOTE: Although we can get the priority field, using it
+@@ -6427,7 +6427,7 @@ unsigned long mem_cgroup_shrink_node(str
+ 	 */
+ 	shrink_lruvec(lruvec, &sc);
+ 
+-	trace_mm_vmscan_memcg_softlimit_reclaim_end(sc.nr_reclaimed);
++	trace_mm_vmscan_memcg_softlimit_reclaim_end(sc.nr_reclaimed, memcg);
+ 
+ 	*nr_scanned = sc.nr_scanned;
+ 
+@@ -6461,13 +6461,13 @@ unsigned long try_to_free_mem_cgroup_pag
+ 	struct zonelist *zonelist = node_zonelist(numa_node_id(), sc.gfp_mask);
+ 
+ 	set_task_reclaim_state(current, &sc.reclaim_state);
+-	trace_mm_vmscan_memcg_reclaim_begin(0, sc.gfp_mask);
++	trace_mm_vmscan_memcg_reclaim_begin(0, sc.gfp_mask, memcg);
+ 	noreclaim_flag = memalloc_noreclaim_save();
+ 
+ 	nr_reclaimed = do_try_to_free_pages(zonelist, &sc);
+ 
+ 	memalloc_noreclaim_restore(noreclaim_flag);
+-	trace_mm_vmscan_memcg_reclaim_end(nr_reclaimed);
++	trace_mm_vmscan_memcg_reclaim_end(nr_reclaimed, memcg);
+ 	set_task_reclaim_state(current, NULL);
+ 
+ 	return nr_reclaimed;
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from ddrokosov@salutedevices.com are
 
-mm-pagemap-fix-ioctlpagemap_scan-on-vma-check.patch
-mm-pagemap-fix-wr-protect-even-if-pm_scan_wp_matching-not-set.patch
-mm-selftests-fix-pagemap_ioctl-memory-map-test.patch
-mm-kconfig-make-userfaultfd-a-menuconfig.patch
-fs-kconfig-make-hugetlbfs-a-menuconfig.patch
+mm-memcg-print-out-cgroup-ino-in-the-memcg-tracepoints.patch
+mm-memcg-introduce-new-event-to-trace-shrink_memcg.patch
 
