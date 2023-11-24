@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF044C61DF4
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Nov 2023 19:32:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13B12C61D97
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Nov 2023 19:32:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345969AbjKXTby (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Nov 2023 14:31:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51652 "EHLO
+        id S1345971AbjKXTb5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Nov 2023 14:31:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51662 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345941AbjKXTby (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Nov 2023 14:31:54 -0500
+        with ESMTP id S1345941AbjKXTb4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Nov 2023 14:31:56 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 738D41FE6
-        for <mm-commits@vger.kernel.org>; Fri, 24 Nov 2023 11:32:00 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06432C433C7;
-        Fri, 24 Nov 2023 19:31:59 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92ABE1FE6
+        for <mm-commits@vger.kernel.org>; Fri, 24 Nov 2023 11:32:02 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F687C433C8;
+        Fri, 24 Nov 2023 19:32:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700854320;
-        bh=LSsYWoRPH1W6asHTO5KxgVBMBeHfXU4ukC35KVwdFBU=;
+        s=korg; t=1700854322;
+        bh=jyfnAhnbc/ByNW/iVUeXgZx9APN5CMVzL28EGz4OV10=;
         h=Date:To:From:Subject:From;
-        b=XTCpHq99O3Z/GqRIsEmQpzhpdpdcErGg0W4vBqEmfL823AmGuTcYTiKb8iKP/nHL3
-         oogFJBQoyId/j9q7M4tYV8PNQllM0QLMMAoddaV2enw6DIC1nA4R/clUdAcqr5kfng
-         ITq+Otwk/2SVXvqH1I59B/fipNtxjEd/HAjZInyc=
-Date:   Fri, 24 Nov 2023 11:31:59 -0800
+        b=VOfJbEKEfQEWVTe9wAbcZI8xXEUS6hFLKnRbZzD4xzzZtdwiBMVHOBvTle5STbiqI
+         hI1BmvfDOBdceR3M3ejbF666X4VcLD9MF4MbWsi/HNgXcHEAXVtW6xFjwVBtEcLhiJ
+         pYeQGxN46P4iTmwSTp+ukM5Cq2vluGfjcHK99LfA=
+Date:   Fri, 24 Nov 2023 11:32:01 -0800
 To:     mm-commits@vger.kernel.org, takahiro.akashi@linaro.org,
         ebiederm@xmission.com, bhe@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + resource-add-walk_system_ram_res_rev.patch added to mm-nonmm-unstable branch
-Message-Id: <20231124193200.06432C433C7@smtp.kernel.org>
+Subject: + kexec_file-load-kernel-at-top-of-system-ram-if-required.patch added to mm-nonmm-unstable branch
+Message-Id: <20231124193202.2F687C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: resource: add walk_system_ram_res_rev()
+     Subject: kexec_file: load kernel at top of system RAM if required
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     resource-add-walk_system_ram_res_rev.patch
+     kexec_file-load-kernel-at-top-of-system-ram-if-required.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/resource-add-walk_system_ram_res_rev.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec_file-load-kernel-at-top-of-system-ram-if-required.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,113 +60,98 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: resource: add walk_system_ram_res_rev()
-Date: Wed, 15 Nov 2023 21:00:27 +0800
+Subject: kexec_file: load kernel at top of system RAM if required
+Date: Tue, 14 Nov 2023 17:16:58 +0800
 
-This function, being a variant of walk_system_ram_res() introduced in
-commit 8c86e70acead ("resource: provide new functions to walk through
-resources"), walks through a list of all the resources of System RAM in
-reversed order, i.e., from higher to lower.
+Patch series "kexec_file: Load kernel at top of system RAM if required".
 
-It will be used in kexec_file code to load kernel, initrd etc when
-preparing kexec reboot.
+Justification:
+==============
 
-Link: https://lkml.kernel.org/r/ZVTA6z/06cLnWKUz@MiWiFi-R3L-srv
-Signed-off-by: AKASHI Takahiro <takahiro.akashi@linaro.org>
+Kexec_load interface has been doing top down searching and loading
+kernel/initrd/purgtory etc to prepare for kexec reboot.  In that way, the
+benefits are that it avoids to consume and fragment limited low memory
+which satisfy DMA buffer allocation and big chunk of continuous memory
+during system init; and avoids to stir with BIOS/FW reserved or occupied
+areas, or corner case handling/work around/quirk occupied areas when doing
+system init.  By the way, the top-down searching and loading of kexec-ed
+kernel is done in user space utility code.
+
+For kexec_file loading, even if kexec_buf.top_down is 'true', it's simply
+ignored.  It calls walk_system_ram_res() directly to go through all
+resources of System RAM bottom up, to find an available memory region,
+then call locate_mem_hole_callback() to allocate memory in that found
+memory region from top to down.  This is not expected and inconsistent
+with kexec_load.
+
+Implementation
+===============
+
+In patch 1, introduce a new function walk_system_ram_res_rev() which is a
+variant of walk_system_ram_res(), it walks through a list of all the
+resources of System RAM in reversed order, i.e., from higher to lower.
+
+In patch 2, check if kexec_buf.top_down is 'true' in
+kexec_walk_resources(), if yes, call walk_system_ram_res_rev() to find
+memory region of system RAM from top to down to load kernel/initrd etc.
+
+Background information: ======================= And I ever tried this in
+the past in a different way, please see below link.  In the post, I tried
+to adjust struct sibling linking code, replace the the singly linked list
+with list_head so that walk_system_ram_res_rev() can be implemented in a
+much easier way.  Finally I failed. 
+https://lore.kernel.org/all/20180718024944.577-4-bhe@redhat.com/
+
+This time, I picked up the patch from AKASHI Takahiro's old post and made
+some change to take as the current patch 1:
+https://lists.infradead.org/pipermail/linux-arm-kernel/2017-September/531456.html
+
+
+This patch (of 2):
+
+Kexec_load interface has been doing top down searching and loading
+kernel/initrd/purgtory etc to prepare for kexec reboot.  In that way, the
+benefits are that it avoids to consume and fragment limited low memory
+which satisfy DMA buffer allocation and big chunk of continuous memory
+during system init; and avoids to stir with BIOS/FW reserved or occupied
+areas, or corner case handling/work around/quirk occupied areas when doing
+system init.  By the way, the top-down searching and loading of kexec-ed
+kernel is done in user space utility code.
+
+For kexec_file loading, even if kexec_buf.top_down is 'true', it's simply
+ignored.  It calls walk_system_ram_res() directly to go through all
+resources of System RAM bottom up, to find an available memory region,
+then call locate_mem_hole_callback() to allocate memory in that found
+memory region from top to down.  This is not expected and inconsistent
+with kexec_load.
+
+Here check if kexec_buf.top_down is 'true' in kexec_walk_resources(), if
+yes, call the newly added walk_system_ram_res_rev() to find memory region
+of system RAM from top to down to load kernel/initrd etc.
+
+Link: https://lkml.kernel.org/r/20231114091658.228030-1-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20231114091658.228030-3-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
+Cc: AKASHI Takahiro <takahiro.akashi@linaro.org>
+Cc: Baoquan He <bhe@redhat.com>
 Cc: Eric Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ioport.h |    3 ++
- kernel/resource.c      |   57 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 60 insertions(+)
+ kernel/kexec_file.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/ioport.h~resource-add-walk_system_ram_res_rev
-+++ a/include/linux/ioport.h
-@@ -331,6 +331,9 @@ extern int
- walk_system_ram_res(u64 start, u64 end, void *arg,
- 		    int (*func)(struct resource *, void *));
- extern int
-+walk_system_ram_res_rev(u64 start, u64 end, void *arg,
-+			int (*func)(struct resource *, void *));
-+extern int
- walk_iomem_res_desc(unsigned long desc, unsigned long flags, u64 start, u64 end,
- 		    void *arg, int (*func)(struct resource *, void *));
- 
---- a/kernel/resource.c~resource-add-walk_system_ram_res_rev
-+++ a/kernel/resource.c
-@@ -27,6 +27,8 @@
- #include <linux/mount.h>
- #include <linux/resource_ext.h>
- #include <uapi/linux/magic.h>
-+#include <linux/string.h>
-+#include <linux/vmalloc.h>
- #include <asm/io.h>
- 
- 
-@@ -430,6 +432,61 @@ int walk_system_ram_res(u64 start, u64 e
+--- a/kernel/kexec_file.c~kexec_file-load-kernel-at-top-of-system-ram-if-required
++++ a/kernel/kexec_file.c
+@@ -592,6 +592,8 @@ static int kexec_walk_resources(struct k
+ 					   IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY,
+ 					   crashk_res.start, crashk_res.end,
+ 					   kbuf, func);
++	else if (kbuf->top_down)
++		return walk_system_ram_res_rev(0, ULONG_MAX, kbuf, func);
+ 	else
+ 		return walk_system_ram_res(0, ULONG_MAX, kbuf, func);
  }
- 
- /*
-+ * This function, being a variant of walk_system_ram_res(), calls the @func
-+ * callback against all memory ranges of type System RAM which are marked as
-+ * IORESOURCE_SYSTEM_RAM and IORESOUCE_BUSY in reversed order, i.e., from
-+ * higher to lower.
-+ */
-+int walk_system_ram_res_rev(u64 start, u64 end, void *arg,
-+				int (*func)(struct resource *, void *))
-+{
-+	struct resource res, *rams;
-+	int rams_size = 16, i;
-+	unsigned long flags;
-+	int ret = -1;
-+
-+	/* create a list */
-+	rams = kvcalloc(rams_size, sizeof(struct resource), GFP_KERNEL);
-+	if (!rams)
-+		return ret;
-+
-+	flags = IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
-+	i = 0;
-+	while ((start < end) &&
-+		(!find_next_iomem_res(start, end, flags, IORES_DESC_NONE, &res))) {
-+		if (i >= rams_size) {
-+			/* re-alloc */
-+			struct resource *rams_new;
-+
-+			rams_new = kvrealloc(rams, rams_size * sizeof(struct resource),
-+					     (rams_size + 16) * sizeof(struct resource),
-+					     GFP_KERNEL);
-+			if (!rams_new)
-+				goto out;
-+
-+			rams = rams_new;
-+			rams_size += 16;
-+		}
-+
-+		rams[i].start = res.start;
-+		rams[i++].end = res.end;
-+
-+		start = res.end + 1;
-+	}
-+
-+	/* go reverse */
-+	for (i--; i >= 0; i--) {
-+		ret = (*func)(&rams[i], arg);
-+		if (ret)
-+			break;
-+	}
-+
-+out:
-+	kvfree(rams);
-+	return ret;
-+}
-+
-+/*
-  * This function calls the @func callback against all memory ranges, which
-  * are ranges marked as IORESOURCE_MEM and IORESOUCE_BUSY.
-  */
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
