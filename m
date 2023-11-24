@@ -2,128 +2,112 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E547C61D97
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Nov 2023 19:35:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33B94C61DF4
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Nov 2023 19:38:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345973AbjKXTe7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Nov 2023 14:34:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46484 "EHLO
+        id S230200AbjKXTiB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Nov 2023 14:38:01 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49710 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345941AbjKXTe6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Nov 2023 14:34:58 -0500
+        with ESMTP id S229557AbjKXTiB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Nov 2023 14:38:01 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 881C6127
-        for <mm-commits@vger.kernel.org>; Fri, 24 Nov 2023 11:35:05 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23DDCC433C8;
-        Fri, 24 Nov 2023 19:35:05 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD96593
+        for <mm-commits@vger.kernel.org>; Fri, 24 Nov 2023 11:38:07 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 427D7C433C7;
+        Fri, 24 Nov 2023 19:38:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700854505;
-        bh=GW5qKYc1+vWQ2SL/ULM546cmqjxkgJu5w8nn38MtrxA=;
+        s=korg; t=1700854687;
+        bh=DP5NUUdB7xET5l6lwH7jM7TLniHfbNE/zFe/XD/9GvE=;
         h=Date:To:From:Subject:From;
-        b=AtxAKdOBefwbdjo0E0oB85ux6nAejAfNsEmyOoW/YqJm0Ck5HjqjyIQPYwI3sIgsc
-         zjjJrv0jdzyf30iMvRJpqDgWnVjmFxguolzSwphyxhjCNwb6MRCHlkx2d1UYSEC6qY
-         vgpo+6QOKW1mAg33QFkx4FgmkNsSv0/oitKo6h9Y=
-Date:   Fri, 24 Nov 2023 11:35:04 -0800
-To:     mm-commits@vger.kernel.org, yang.yang29@zte.com.cn,
-        mhocko@suse.com, jiang.xuexin@zte.com.cn, hughd@google.com,
-        hannes@cmpxchg.org, wang.yong12@zte.com.cn,
+        b=ZdHCEggDoNB33fYCkL3ws255VeIUGnjuT6dE/pw93s3n+XrUB/dAjK/lg2NJ3Q8WG
+         FdhKQfBTXgLwao4fDlgGPShHdt1csKT0qBkkN7McHMD7by7FgOqbY72RYSaK7K0YHs
+         BOZcl1y8BsnyCPcBZHnKBGSb4jPU3yW07sVOI38I=
+Date:   Fri, 24 Nov 2023 11:38:06 -0800
+To:     mm-commits@vger.kernel.org, surenb@google.com,
+        stable@vger.kernel.org, mhocko@suse.com, gaoxu2@hihonor.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-oom-dump_tasks-add-rss-detailed-information-printing.patch added to mm-unstable branch
-Message-Id: <20231124193505.23DDCC433C8@smtp.kernel.org>
+Subject: [nacked] mmoom_reaper-avoid-run-queue_oom_reaper-if-task-is-not-oom.patch removed from -mm tree
+Message-Id: <20231124193807.427D7C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm, oom:dump_tasks add rss detailed information printing
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-oom-dump_tasks-add-rss-detailed-information-printing.patch
+The quilt patch titled
+     Subject: mm,oom_reaper: avoid run queue_oom_reaper if task is not oom
+has been removed from the -mm tree.  Its filename was
+     mmoom_reaper-avoid-run-queue_oom_reaper-if-task-is-not-oom.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-oom-dump_tasks-add-rss-detailed-information-printing.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Yong Wang <wang.yong12@zte.com.cn>
-Subject: mm, oom:dump_tasks add rss detailed information printing
-Date: Thu, 23 Nov 2023 18:40:18 +0800 (CST)
+From: gaoxu <gaoxu2@hihonor.com>
+Subject: mm,oom_reaper: avoid run queue_oom_reaper if task is not oom
+Date: Wed, 22 Nov 2023 12:46:44 +0000
 
-When the system is under oom, it prints out the RSS information of each
-process.  However, we don't know the size of rss_anon, rss_file, and
-rss_shmem.
+queue_oom_reaper() tests and sets tsk->signal->oom_mm->flags.  However, it
+is necessary to check if 'tsk' is an OOM victim before executing
+'queue_oom_reaper' because the variable may be NULL.
 
-To distinguish the memory occupied by anonymous or file mappings
-or shmem, could help us identify the root cause of the oom.
+We encountered such an issue, and the log is as follows:
+[3701:11_see]Out of memory: Killed process 3154 (system_server)
+total-vm:23662044kB, anon-rss:0kB, file-rss:0kB, shmem-rss:0kB,
+UID:1000 pgtables:4056kB oom_score_adj:-900
+[3701:11_see][RB/E]rb_sreason_str_set: sreason_str set null_pointer
+[3701:11_see][RB/E]rb_sreason_str_set: sreason_str set unknown_addr
+[3701:11_see]Unable to handle kernel NULL pointer dereference at virtual
+address 0000000000000328
+[3701:11_see]user pgtable: 4k pages, 39-bit VAs, pgdp=3D00000000821de000
+[3701:11_see][0000000000000328] pgd=3D0000000000000000,
+p4d=3D0000000000000000,pud=3D0000000000000000
+[3701:11_see]tracing off
+[3701:11_see]Internal error: Oops: 96000005 [#1] PREEMPT SMP
+[3701:11_see]Call trace:
+[3701:11_see] queue_oom_reaper+0x30/0x170
+[3701:11_see] __oom_kill_process+0x590/0x860
+[3701:11_see] oom_kill_process+0x140/0x274
+[3701:11_see] out_of_memory+0x2f4/0x54c
+[3701:11_see] __alloc_pages_slowpath+0x5d8/0xaac
+[3701:11_see] __alloc_pages+0x774/0x800
+[3701:11_see] wp_page_copy+0xc4/0x116c
+[3701:11_see] do_wp_page+0x4bc/0x6fc
+[3701:11_see] handle_pte_fault+0x98/0x2a8
+[3701:11_see] __handle_mm_fault+0x368/0x700
+[3701:11_see] do_handle_mm_fault+0x160/0x2cc
+[3701:11_see] do_page_fault+0x3e0/0x818
+[3701:11_see] do_mem_abort+0x68/0x17c
+[3701:11_see] el0_da+0x3c/0xa0
+[3701:11_see] el0t_64_sync_handler+0xc4/0xec
+[3701:11_see] el0t_64_sync+0x1b4/0x1b8
+[3701:11_see]tracing off
 
-So this patch adds RSS details, which refers to the /proc/<pid>/status[1].
-It can help us know more about process memory usage.
-
-Example of oom including the new rss_* fields:
-[ 1630.902466] Tasks state (memory values in pages):
-[ 1630.902870] [  pid  ]   uid  tgid total_vm      rss rss_anon rss_file rss_shmem pgtables_bytes swapents oom_score_adj name
-[ 1630.903619] [    149]     0   149      486      288        0      288         0    36864        0             0 ash
-[ 1630.904210] [    156]     0   156   153531   153345   153345        0         0  1269760        0             0 mm_test
-
-[1] commit 8cee852ec53f ("mm, procfs: breakdown RSS for anon, shmem and file in /proc/pid/status").
-
-Link: https://lkml.kernel.org/r/202311231840181856667@zte.com.cn
-Signed-off-by: Yong Wang <wang.yong12@zte.com.cn>
-Reviewed-by: Yang Yang <yang.yang29@zte.com.cn>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Xuexin Jiang <jiang.xuexin@zte.com.cn>
+Link: https://lkml.kernel.org/r/400d13bddb524ef6af37cb2220808c75@hihonor.com
+Signed-off-by: Gao Xu <gaoxu2@hihonor.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/oom_kill.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/oom_kill.c~mm-oom-dump_tasks-add-rss-detailed-information-printing
+--- a/mm/oom_kill.c~mmoom_reaper-avoid-run-queue_oom_reaper-if-task-is-not-oom
 +++ a/mm/oom_kill.c
-@@ -399,10 +399,11 @@ static int dump_task(struct task_struct
- 		return 0;
+@@ -984,7 +984,7 @@ static void __oom_kill_process(struct ta
  	}
+ 	rcu_read_unlock();
  
--	pr_info("[%7d] %5d %5d %8lu %8lu %8ld %8lu         %5hd %s\n",
-+	pr_info("[%7d] %5d %5d %8lu %8lu %8lu %8lu %9lu %8ld %8lu         %5hd %s\n",
- 		task->pid, from_kuid(&init_user_ns, task_uid(task)),
- 		task->tgid, task->mm->total_vm, get_mm_rss(task->mm),
--		mm_pgtables_bytes(task->mm),
-+		get_mm_counter(task->mm, MM_ANONPAGES), get_mm_counter(task->mm, MM_FILEPAGES),
-+		get_mm_counter(task->mm, MM_SHMEMPAGES), mm_pgtables_bytes(task->mm),
- 		get_mm_counter(task->mm, MM_SWAPENTS),
- 		task->signal->oom_score_adj, task->comm);
- 	task_unlock(task);
-@@ -423,7 +424,7 @@ static int dump_task(struct task_struct
- static void dump_tasks(struct oom_control *oc)
- {
- 	pr_info("Tasks state (memory values in pages):\n");
--	pr_info("[  pid  ]   uid  tgid total_vm      rss pgtables_bytes swapents oom_score_adj name\n");
-+	pr_info("[  pid  ]   uid  tgid total_vm      rss rss_anon rss_file rss_shmem pgtables_bytes swapents oom_score_adj name\n");
+-	if (can_oom_reap)
++	if (can_oom_reap && tsk_is_oom_victim(victim))
+ 		queue_oom_reaper(victim);
  
- 	if (is_memcg_oom(oc))
- 		mem_cgroup_scan_tasks(oc->memcg, dump_task, oc);
+ 	mmdrop(mm);
 _
 
-Patches currently in -mm which might be from wang.yong12@zte.com.cn are
+Patches currently in -mm which might be from gaoxu2@hihonor.com are
 
-mm-oom-dump_tasks-add-rss-detailed-information-printing.patch
 
