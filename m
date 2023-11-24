@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A1FEC61DF4
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Nov 2023 19:17:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F70AC61D97
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Nov 2023 19:17:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231536AbjKXTRJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230200AbjKXTRJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 24 Nov 2023 14:17:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47738 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47742 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230200AbjKXTRI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Nov 2023 14:17:08 -0500
+        with ESMTP id S1345799AbjKXTRJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Nov 2023 14:17:09 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72E4530EB
-        for <mm-commits@vger.kernel.org>; Fri, 24 Nov 2023 11:17:13 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03A59C433C7;
-        Fri, 24 Nov 2023 19:17:12 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A699C30F2
+        for <mm-commits@vger.kernel.org>; Fri, 24 Nov 2023 11:17:15 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43B27C433C9;
+        Fri, 24 Nov 2023 19:17:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700853433;
-        bh=WyDuDLHWNEbuVtRq4hhdbxv5QspdQUgX/vsD2Ce+dSc=;
+        s=korg; t=1700853435;
+        bh=6azo6O/TqzQGSffGWlwVsePHxoNVoH9vPhUaCZab5/M=;
         h=Date:To:From:Subject:From;
-        b=OHGEZaVYSYTaM5ALAz5nLmIL3bTlz5cF+qlyEgYp1ybuGZ790Kx3k2v5uBn3E8RIf
-         JYkOTBKBYddOEkmZY5YMWdIe+U2kBgCUnQ2ihVXkkB19CHppAkkh/xJDxVEznPi0Rw
-         ceWisARhGhUe8hcjyEXNpd6P0bNnIJwSl9sFHmPA=
-Date:   Fri, 24 Nov 2023 11:17:12 -0800
+        b=RqzFZ8+a1gC5BYHy3xkTl0+7C43yspQg/4k8jPZ5QWT8qh2kXpwuZhfiJ3j3YrWzD
+         e+LGJ4i2MYlseE7Gh6VBNm4MJYS6a4h5yGUtOFeVS/39NM1gi5T6xPXaCNwlfWktvr
+         TWDijjoa6R5f8U6SPfkdX0uSTymAAeScAS1KzKS8=
+Date:   Fri, 24 Nov 2023 11:17:14 -0800
 To:     mm-commits@vger.kernel.org, shakeelb@google.com,
         rostedt@goodmis.org, roman.gushchin@linux.dev,
         muchun.song@linux.dev, mhocko@suse.com, mhiramat@kernel.org,
         hannes@cmpxchg.org, ddrokosov@salutedevices.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-print-out-cgroup-ino-in-the-memcg-tracepoints.patch added to mm-unstable branch
-Message-Id: <20231124191713.03A59C433C7@smtp.kernel.org>
+Subject: + mm-memcg-introduce-new-event-to-trace-shrink_memcg.patch added to mm-unstable branch
+Message-Id: <20231124191715.43B27C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,12 +39,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcg: print out cgroup ino in the memcg tracepoints
+     Subject: mm: memcg: introduce new event to trace shrink_memcg
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-print-out-cgroup-ino-in-the-memcg-tracepoints.patch
+     mm-memcg-introduce-new-event-to-trace-shrink_memcg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-print-out-cgroup-ino-in-the-memcg-tracepoints.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-introduce-new-event-to-trace-shrink_memcg.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -63,35 +63,32 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Dmitry Rokosov <ddrokosov@salutedevices.com>
-Subject: mm: memcg: print out cgroup ino in the memcg tracepoints
-Date: Thu, 23 Nov 2023 22:39:36 +0300
+Subject: mm: memcg: introduce new event to trace shrink_memcg
+Date: Thu, 23 Nov 2023 22:39:37 +0300
 
-Patch series "mm: memcg: improve vmscan tracepoints", v3.
+The shrink_memcg flow plays a crucial role in memcg reclamation. 
+Currently, it is not possible to trace this point from non-direct reclaim
+paths.  However, direct reclaim has its own tracepoint, so there is no
+issue there.  In certain cases, when debugging memcg pressure, developers
+may need to identify all potential requests for memcg reclamation
+including kswapd().  The patchset introduces the tracepoints
+mm_vmscan_memcg_shrink_{begin|end}() to address this problem.
 
-The motivation behind this commit is to enhance the traceability and
-understanding of memcg events.  By integrating the function cgroup_ino()
-into the existing memcg tracepoints, this patch series introduces a new
-tracepoint template for the begin() and end() events.  It utilizes a new
-entry field ino to store the cgroup ino, enabling developers to easily
-identify the cgroup associated with a specific memcg tracepoint event. 
+Example of output in the kswapd context (non-direct reclaim):
+    kswapd0-39      [001] .....   240.356378: mm_vmscan_memcg_shrink_begin: order=0 gfp_flags=GFP_KERNEL memcg=16
+    kswapd0-39      [001] .....   240.356396: mm_vmscan_memcg_shrink_end: nr_reclaimed=0 memcg=16
+    kswapd0-39      [001] .....   240.356420: mm_vmscan_memcg_shrink_begin: order=0 gfp_flags=GFP_KERNEL memcg=16
+    kswapd0-39      [001] .....   240.356454: mm_vmscan_memcg_shrink_end: nr_reclaimed=1 memcg=16
+    kswapd0-39      [001] .....   240.356479: mm_vmscan_memcg_shrink_begin: order=0 gfp_flags=GFP_KERNEL memcg=16
+    kswapd0-39      [001] .....   240.356506: mm_vmscan_memcg_shrink_end: nr_reclaimed=4 memcg=16
+    kswapd0-39      [001] .....   240.356525: mm_vmscan_memcg_shrink_begin: order=0 gfp_flags=GFP_KERNEL memcg=16
+    kswapd0-39      [001] .....   240.356593: mm_vmscan_memcg_shrink_end: nr_reclaimed=11 memcg=16
+    kswapd0-39      [001] .....   240.356614: mm_vmscan_memcg_shrink_begin: order=0 gfp_flags=GFP_KERNEL memcg=16
+    kswapd0-39      [001] .....   240.356738: mm_vmscan_memcg_shrink_end: nr_reclaimed=25 memcg=16
+    kswapd0-39      [001] .....   240.356790: mm_vmscan_memcg_shrink_begin: order=0 gfp_flags=GFP_KERNEL memcg=16
+    kswapd0-39      [001] .....   240.357125: mm_vmscan_memcg_shrink_end: nr_reclaimed=53 memcg=16
 
-Additionally, this patch series introduces new shrink_memcg tracepoints to
-facilitate non-direct memcg reclaim tracing and debugging.  
-
-
-This patch (of 2):
-
-Sometimes, it becomes necessary to determine the memcg tracepoint event
-that has occurred.  This is particularly relevant in scenarios involving a
-large cgroup hierarchy, where users may wish to trace the process of
-reclamation within a specific cgroup(s) by applying a filter.
-
-The function cgroup_ino() is a useful tool for this purpose.  To integrate
-cgroup_ino() into the existing memcg tracepoints, this patch introduces a
-new tracepoint template for the begin() and end() events.
-
-Link: https://lkml.kernel.org/r/20231123193937.11628-1-ddrokosov@salutedevices.com
-Link: https://lkml.kernel.org/r/20231123193937.11628-2-ddrokosov@salutedevices.com
+Link: https://lkml.kernel.org/r/20231123193937.11628-3-ddrokosov@salutedevices.com
 Signed-off-by: Dmitry Rokosov <ddrokosov@salutedevices.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
@@ -103,151 +100,71 @@ Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/vmscan.h |   73 ++++++++++++++++++++++++++------
- mm/vmscan.c                   |   10 ++--
- 2 files changed, 66 insertions(+), 17 deletions(-)
+ include/trace/events/vmscan.h |   22 ++++++++++++++++++++++
+ mm/vmscan.c                   |    7 +++++++
+ 2 files changed, 29 insertions(+)
 
---- a/include/trace/events/vmscan.h~mm-memcg-print-out-cgroup-ino-in-the-memcg-tracepoints
+--- a/include/trace/events/vmscan.h~mm-memcg-introduce-new-event-to-trace-shrink_memcg
 +++ a/include/trace/events/vmscan.h
-@@ -141,19 +141,45 @@ DEFINE_EVENT(mm_vmscan_direct_reclaim_be
+@@ -180,6 +180,17 @@ DEFINE_EVENT(mm_vmscan_memcg_reclaim_beg
+ 	TP_ARGS(order, gfp_flags, memcg)
  );
  
- #ifdef CONFIG_MEMCG
--DEFINE_EVENT(mm_vmscan_direct_reclaim_begin_template, mm_vmscan_memcg_reclaim_begin,
- 
--	TP_PROTO(int order, gfp_t gfp_flags),
-+DECLARE_EVENT_CLASS(mm_vmscan_memcg_reclaim_begin_template,
- 
--	TP_ARGS(order, gfp_flags)
-+	TP_PROTO(int order, gfp_t gfp_flags, const struct mem_cgroup *memcg),
-+
-+	TP_ARGS(order, gfp_flags, memcg),
-+
-+	TP_STRUCT__entry(
-+		__field(int, order)
-+		__field(unsigned long, gfp_flags)
-+		__field(ino_t, ino)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->order = order;
-+		__entry->gfp_flags = (__force unsigned long)gfp_flags;
-+		__entry->ino = cgroup_ino(memcg->css.cgroup);
-+	),
-+
-+	TP_printk("order=%d gfp_flags=%s memcg=%ld",
-+		__entry->order,
-+		show_gfp_flags(__entry->gfp_flags),
-+		__entry->ino)
- );
- 
--DEFINE_EVENT(mm_vmscan_direct_reclaim_begin_template, mm_vmscan_memcg_softlimit_reclaim_begin,
-+DEFINE_EVENT(mm_vmscan_memcg_reclaim_begin_template, mm_vmscan_memcg_reclaim_begin,
- 
--	TP_PROTO(int order, gfp_t gfp_flags),
-+	TP_PROTO(int order, gfp_t gfp_flags, const struct mem_cgroup *memcg),
- 
--	TP_ARGS(order, gfp_flags)
-+	TP_ARGS(order, gfp_flags, memcg)
- );
-+
-+DEFINE_EVENT(mm_vmscan_memcg_reclaim_begin_template, mm_vmscan_memcg_softlimit_reclaim_begin,
++DEFINE_EVENT(mm_vmscan_memcg_reclaim_begin_template, mm_vmscan_memcg_shrink_begin,
 +
 +	TP_PROTO(int order, gfp_t gfp_flags, const struct mem_cgroup *memcg),
 +
 +	TP_ARGS(order, gfp_flags, memcg)
 +);
++
++#else
++
++#define trace_mm_vmscan_memcg_shrink_begin(...)
 +
  #endif /* CONFIG_MEMCG */
  
  DECLARE_EVENT_CLASS(mm_vmscan_direct_reclaim_end_template,
-@@ -181,19 +207,42 @@ DEFINE_EVENT(mm_vmscan_direct_reclaim_en
+@@ -243,6 +254,17 @@ DEFINE_EVENT(mm_vmscan_memcg_reclaim_end
+ 	TP_ARGS(nr_reclaimed, memcg)
  );
  
- #ifdef CONFIG_MEMCG
--DEFINE_EVENT(mm_vmscan_direct_reclaim_end_template, mm_vmscan_memcg_reclaim_end,
- 
--	TP_PROTO(unsigned long nr_reclaimed),
-+DECLARE_EVENT_CLASS(mm_vmscan_memcg_reclaim_end_template,
- 
--	TP_ARGS(nr_reclaimed)
-+	TP_PROTO(unsigned long nr_reclaimed, const struct mem_cgroup *memcg),
-+
-+	TP_ARGS(nr_reclaimed, memcg),
-+
-+	TP_STRUCT__entry(
-+		__field(unsigned long, nr_reclaimed)
-+		__field(ino_t, ino)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->nr_reclaimed = nr_reclaimed;
-+		__entry->ino = cgroup_ino(memcg->css.cgroup);
-+	),
-+
-+	TP_printk("nr_reclaimed=%lu memcg=%ld",
-+		__entry->nr_reclaimed,
-+		__entry->ino)
- );
- 
--DEFINE_EVENT(mm_vmscan_direct_reclaim_end_template, mm_vmscan_memcg_softlimit_reclaim_end,
-+DEFINE_EVENT(mm_vmscan_memcg_reclaim_end_template, mm_vmscan_memcg_reclaim_end,
- 
--	TP_PROTO(unsigned long nr_reclaimed),
-+	TP_PROTO(unsigned long nr_reclaimed, const struct mem_cgroup *memcg),
- 
--	TP_ARGS(nr_reclaimed)
-+	TP_ARGS(nr_reclaimed, memcg)
- );
-+
-+DEFINE_EVENT(mm_vmscan_memcg_reclaim_end_template, mm_vmscan_memcg_softlimit_reclaim_end,
++DEFINE_EVENT(mm_vmscan_memcg_reclaim_end_template, mm_vmscan_memcg_shrink_end,
 +
 +	TP_PROTO(unsigned long nr_reclaimed, const struct mem_cgroup *memcg),
 +
 +	TP_ARGS(nr_reclaimed, memcg)
 +);
 +
++#else
++
++#define trace_mm_vmscan_memcg_shrink_end(...)
++
  #endif /* CONFIG_MEMCG */
  
  TRACE_EVENT(mm_shrink_slab_start,
---- a/mm/vmscan.c~mm-memcg-print-out-cgroup-ino-in-the-memcg-tracepoints
+--- a/mm/vmscan.c~mm-memcg-introduce-new-event-to-trace-shrink_memcg
 +++ a/mm/vmscan.c
-@@ -6415,8 +6415,8 @@ unsigned long mem_cgroup_shrink_node(str
- 	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
- 			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
+@@ -5788,6 +5788,10 @@ static void shrink_node_memcgs(pg_data_t
+ 		 */
+ 		cond_resched();
  
--	trace_mm_vmscan_memcg_softlimit_reclaim_begin(sc.order,
--						      sc.gfp_mask);
-+	trace_mm_vmscan_memcg_softlimit_reclaim_begin(sc.order, sc.gfp_mask,
-+						      memcg);
++		trace_mm_vmscan_memcg_shrink_begin(sc->order,
++						   sc->gfp_mask,
++						   memcg);
++
+ 		mem_cgroup_calculate_protection(target_memcg, memcg);
  
- 	/*
- 	 * NOTE: Although we can get the priority field, using it
-@@ -6427,7 +6427,7 @@ unsigned long mem_cgroup_shrink_node(str
- 	 */
- 	shrink_lruvec(lruvec, &sc);
+ 		if (mem_cgroup_below_min(target_memcg, memcg)) {
+@@ -5818,6 +5822,9 @@ static void shrink_node_memcgs(pg_data_t
+ 		shrink_slab(sc->gfp_mask, pgdat->node_id, memcg,
+ 			    sc->priority);
  
--	trace_mm_vmscan_memcg_softlimit_reclaim_end(sc.nr_reclaimed);
-+	trace_mm_vmscan_memcg_softlimit_reclaim_end(sc.nr_reclaimed, memcg);
- 
- 	*nr_scanned = sc.nr_scanned;
- 
-@@ -6461,13 +6461,13 @@ unsigned long try_to_free_mem_cgroup_pag
- 	struct zonelist *zonelist = node_zonelist(numa_node_id(), sc.gfp_mask);
- 
- 	set_task_reclaim_state(current, &sc.reclaim_state);
--	trace_mm_vmscan_memcg_reclaim_begin(0, sc.gfp_mask);
-+	trace_mm_vmscan_memcg_reclaim_begin(0, sc.gfp_mask, memcg);
- 	noreclaim_flag = memalloc_noreclaim_save();
- 
- 	nr_reclaimed = do_try_to_free_pages(zonelist, &sc);
- 
- 	memalloc_noreclaim_restore(noreclaim_flag);
--	trace_mm_vmscan_memcg_reclaim_end(nr_reclaimed);
-+	trace_mm_vmscan_memcg_reclaim_end(nr_reclaimed, memcg);
- 	set_task_reclaim_state(current, NULL);
- 
- 	return nr_reclaimed;
++		trace_mm_vmscan_memcg_shrink_end(sc->nr_reclaimed - reclaimed,
++						 memcg);
++
+ 		/* Record the group's reclaim efficiency */
+ 		if (!sc->proactive)
+ 			vmpressure(sc->gfp_mask, memcg, false,
 _
 
 Patches currently in -mm which might be from ddrokosov@salutedevices.com are
