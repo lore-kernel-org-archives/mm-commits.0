@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33703C61DF4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9064AC636BD
 	for <mm-commits@archiver.kernel.org>; Fri, 24 Nov 2023 17:45:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230104AbjKXRpR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229741AbjKXRpR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 24 Nov 2023 12:45:17 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43306 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43326 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229741AbjKXRpM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Nov 2023 12:45:12 -0500
+        with ESMTP id S231173AbjKXRpO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Nov 2023 12:45:14 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 176F1171D
-        for <mm-commits@vger.kernel.org>; Fri, 24 Nov 2023 09:45:19 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8094C433C8;
-        Fri, 24 Nov 2023 17:45:18 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01BE0D56
+        for <mm-commits@vger.kernel.org>; Fri, 24 Nov 2023 09:45:21 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 965FCC433C7;
+        Fri, 24 Nov 2023 17:45:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700847918;
-        bh=nBjymJ9e1GQYxv5ws6PEjD+dnGXqV/W9H3d8czPWkCU=;
+        s=korg; t=1700847920;
+        bh=drd/x6fVtQ9ExzyoVaIryM/wuDxpFC3hALUA0og4B8U=;
         h=Date:To:From:Subject:From;
-        b=DwKYZn4P35ykkZ7rgXH09GJK/0U2wNY4WhnkzJ/RAQ6PRHDECPnqbyi46kn36bHCh
-         Q57+/CGCUceVfj8gfoCgzyyfyaY70PaytmVvIuib6CMQahdkoNy7T53Ua0oMjFmYL7
-         qtzgjqIFDIKBGyzDqqrKmRMP8NQGiQH2HlOmnYaA=
-Date:   Fri, 24 Nov 2023 09:45:18 -0800
+        b=cZdzw4Lu+C4Ec4SKCkgvOg2MTmA5YxM0AyXxYQmhkGv/pAH6ii/ywLV7/p90SyjK2
+         DpRve2YPXXMVaLteaJgjNdqFXdqBlO3EAwjTORL8YqnPxdWmhyXnZnPIrc9rn1NHiM
+         VCnApU6NaLvxcDpSx7PBcrQpbhYmuEo1we8bMWe4=
+Date:   Fri, 24 Nov 2023 09:45:20 -0800
 To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         tudor.ambarus@linaro.org, tsbogend@alpha.franken.de,
         sfr@canb.auug.org.au, richard@nod.at, richard.henderson@linaro.org,
@@ -35,8 +35,8 @@ To:     mm-commits@vger.kernel.org, ysato@users.sourceforge.jp,
         dinguyen@kernel.org, davem@davemloft.net, dalias@libc.org,
         chengzhihao1@huawei.com, arnd@arndb.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-sta2x11-include-header-for-sta2x11_get_instance-prototype.patch added to mm-nonmm-unstable branch
-Message-Id: <20231124174518.A8094C433C8@smtp.kernel.org>
+Subject: + usb-fsl-mph-dr-of-mark-fsl_usb2_mpc5121_init-static.patch added to mm-nonmm-unstable branch
+Message-Id: <20231124174520.965FCC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,12 +44,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: sta2x11: include header for sta2x11_get_instance() prototype
+     Subject: usb: fsl-mph-dr-of: mark fsl_usb2_mpc5121_init() static
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     x86-sta2x11-include-header-for-sta2x11_get_instance-prototype.patch
+     usb-fsl-mph-dr-of-mark-fsl_usb2_mpc5121_init-static.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-sta2x11-include-header-for-sta2x11_get_instance-prototype.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/usb-fsl-mph-dr-of-mark-fsl_usb2_mpc5121_init-static.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -68,23 +68,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: x86: sta2x11: include header for sta2x11_get_instance() prototype
-Date: Thu, 23 Nov 2023 12:05:04 +0100
+Subject: usb: fsl-mph-dr-of: mark fsl_usb2_mpc5121_init() static
+Date: Thu, 23 Nov 2023 12:05:05 +0100
 
-sta2x11_get_instance() is a global function declared in asm/sta2x11.h, but
-this header is not included before the definition, causing a warning:
+This function is only called locally and should always have been static:
 
-arch/x86/pci/sta2x11-fixup.c:95:26: error: no previous prototype for 'sta2x11_get_instance' [-Werror=missing-prototypes]
+drivers/usb/host/fsl-mph-dr-of.c:291:5: error: no previous prototype for 'fsl_usb2_mpc5121_init' [-Werror=missing-prototypes]
 
-Add the missing #include.
-
-Link: https://lkml.kernel.org/r/20231123110506.707903-5-arnd@kernel.org
-Fixes: 83125a3a189e ("x86, platform: Initial support for sta2x11 I/O hub")
+Link: https://lkml.kernel.org/r/20231123110506.707903-6-arnd@kernel.org
+Fixes: 230f7ede6c2f ("USB: add USB EHCI support for MPC5121 SoC")
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Cc: Dinh Nguyen <dinguyen@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Cc: Kees Cook <keescook@chromium.org>
@@ -106,19 +103,20 @@ Cc: Zhihao Cheng <chengzhihao1@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/pci/sta2x11-fixup.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/usb/host/fsl-mph-dr-of.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/x86/pci/sta2x11-fixup.c~x86-sta2x11-include-header-for-sta2x11_get_instance-prototype
-+++ a/arch/x86/pci/sta2x11-fixup.c
-@@ -14,6 +14,7 @@
- #include <linux/dma-map-ops.h>
- #include <linux/swiotlb.h>
- #include <asm/iommu.h>
-+#include <asm/sta2x11.h>
+--- a/drivers/usb/host/fsl-mph-dr-of.c~usb-fsl-mph-dr-of-mark-fsl_usb2_mpc5121_init-static
++++ a/drivers/usb/host/fsl-mph-dr-of.c
+@@ -288,7 +288,7 @@ static void fsl_usb2_mph_dr_of_remove(st
+ #define PHYCTRL_LSFE		(1 << 1)	/* Line State Filter Enable */
+ #define PHYCTRL_PXE		(1 << 0)	/* PHY oscillator enable */
  
- #define STA2X11_SWIOTLB_SIZE (4*1024*1024)
- 
+-int fsl_usb2_mpc5121_init(struct platform_device *pdev)
++static int fsl_usb2_mpc5121_init(struct platform_device *pdev)
+ {
+ 	struct fsl_usb2_platform_data *pdata = dev_get_platdata(&pdev->dev);
+ 	struct clk *clk;
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
