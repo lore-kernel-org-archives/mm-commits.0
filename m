@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA026C61DF4
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Nov 2023 19:24:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF044C61DF4
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Nov 2023 19:32:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346008AbjKXTYO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Nov 2023 14:24:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39388 "EHLO
+        id S1345969AbjKXTby (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Nov 2023 14:31:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51652 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345799AbjKXTYL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Nov 2023 14:24:11 -0500
+        with ESMTP id S1345941AbjKXTby (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Nov 2023 14:31:54 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D17731BD2
-        for <mm-commits@vger.kernel.org>; Fri, 24 Nov 2023 11:24:17 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F4DDC433CA;
-        Fri, 24 Nov 2023 19:24:17 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 738D41FE6
+        for <mm-commits@vger.kernel.org>; Fri, 24 Nov 2023 11:32:00 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06432C433C7;
+        Fri, 24 Nov 2023 19:31:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1700853857;
-        bh=fiGuR9HbExzcS8qmHzwZYurDHlzoM6HMK14Suwf0LDQ=;
+        s=korg; t=1700854320;
+        bh=LSsYWoRPH1W6asHTO5KxgVBMBeHfXU4ukC35KVwdFBU=;
         h=Date:To:From:Subject:From;
-        b=wtLWvdPLKot6Bkn85E3PBu8a3EZvNTEnflIcYaqQNPzC7RVavXlzfpxqcxDuiZzQf
-         QV2h1YnQf94GncmUZf0Ldz0rqFm/q5VC5Tz/qCUCwymPbWmBQUnv1YR3Y01x7Hzkzk
-         53a3ThdUDN6gldUQ2zQSZ5zf/rjXqKfgWSqqGPJw=
-Date:   Fri, 24 Nov 2023 11:24:16 -0800
-To:     mm-commits@vger.kernel.org, linux@rasmusvillemoes.dk,
-        andriy.shevchenko@linux.intel.com, akpm@linux-foundation.org
+        b=XTCpHq99O3Z/GqRIsEmQpzhpdpdcErGg0W4vBqEmfL823AmGuTcYTiKb8iKP/nHL3
+         oogFJBQoyId/j9q7M4tYV8PNQllM0QLMMAoddaV2enw6DIC1nA4R/clUdAcqr5kfng
+         ITq+Otwk/2SVXvqH1I59B/fipNtxjEd/HAjZInyc=
+Date:   Fri, 24 Nov 2023 11:31:59 -0800
+To:     mm-commits@vger.kernel.org, takahiro.akashi@linaro.org,
+        ebiederm@xmission.com, bhe@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-list_lru-update-kernel-documentation-to-follow-the-requirements.patch added to mm-unstable branch
-Message-Id: <20231124192417.6F4DDC433CA@smtp.kernel.org>
+Subject: + resource-add-walk_system_ram_res_rev.patch added to mm-nonmm-unstable branch
+Message-Id: <20231124193200.06432C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,14 +36,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: list_lru: Update kernel documentation to follow the requirements
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-list_lru-update-kernel-documentation-to-follow-the-requirements.patch
+     Subject: resource: add walk_system_ram_res_rev()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     resource-add-walk_system_ram_res_rev.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-list_lru-update-kernel-documentation-to-follow-the-requirements.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/resource-add-walk_system_ram_res_rev.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,143 +59,118 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: mm: list_lru: Update kernel documentation to follow the requirements
-Date: Thu, 23 Nov 2023 19:23:17 +0200
+From: Baoquan He <bhe@redhat.com>
+Subject: resource: add walk_system_ram_res_rev()
+Date: Wed, 15 Nov 2023 21:00:27 +0800
 
-kernel-doc is not happy about documentation in list_lru.h:
+This function, being a variant of walk_system_ram_res() introduced in
+commit 8c86e70acead ("resource: provide new functions to walk through
+resources"), walks through a list of all the resources of System RAM in
+reversed order, i.e., from higher to lower.
 
-list_lru.h:90: warning: Function parameter or member 'lru' not described in 'list_lru_add'
-list_lru.h:90: warning: Excess function parameter 'list_lru' description in 'list_lru_add'
-list_lru.h:90: warning: No description found for return value of 'list_lru_add'
-list_lru.h:103: warning: Function parameter or member 'lru' not described in 'list_lru_del'
-list_lru.h:103: warning: Excess function parameter 'list_lru' description in 'list_lru_del'
-list_lru.h:103: warning: No description found for return value of 'list_lru_del'
-list_lru.h:116: warning: No description found for return value of 'list_lru_count_one'
-list_lru.h:168: warning: No description found for return value of 'list_lru_walk_one'
-list_lru.h:185: warning: No description found for return value of 'list_lru_walk_one_irq'
+It will be used in kexec_file code to load kernel, initrd etc when
+preparing kexec reboot.
 
-Fix the documentation accordingly.
-
-While at it, fix the references to the parameters in functions
-inside the long descriptions, on which the above script is not
-complaining (yet?).
-
-Link: https://lkml.kernel.org/r/20231123172320.2434780-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Link: https://lkml.kernel.org/r/ZVTA6z/06cLnWKUz@MiWiFi-R3L-srv
+Signed-off-by: AKASHI Takahiro <takahiro.akashi@linaro.org>
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list_lru.h |   36 +++++++++++++++++++-----------------
- 1 file changed, 19 insertions(+), 17 deletions(-)
+ include/linux/ioport.h |    3 ++
+ kernel/resource.c      |   57 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 60 insertions(+)
 
---- a/include/linux/list_lru.h~mm-list_lru-update-kernel-documentation-to-follow-the-requirements
-+++ a/include/linux/list_lru.h
-@@ -73,7 +73,7 @@ void memcg_reparent_list_lrus(struct mem
+--- a/include/linux/ioport.h~resource-add-walk_system_ram_res_rev
++++ a/include/linux/ioport.h
+@@ -331,6 +331,9 @@ extern int
+ walk_system_ram_res(u64 start, u64 end, void *arg,
+ 		    int (*func)(struct resource *, void *));
+ extern int
++walk_system_ram_res_rev(u64 start, u64 end, void *arg,
++			int (*func)(struct resource *, void *));
++extern int
+ walk_iomem_res_desc(unsigned long desc, unsigned long flags, u64 start, u64 end,
+ 		    void *arg, int (*func)(struct resource *, void *));
  
- /**
-  * list_lru_add: add an element to the lru list's tail
-- * @list_lru: the lru pointer
-+ * @lru: the lru pointer
-  * @item: the item to be added.
-  *
-  * If the element is already part of a list, this function returns doing
-@@ -83,22 +83,22 @@ void memcg_reparent_list_lrus(struct mem
-  * the caller organize itself in a way that elements can be in more than
-  * one type of list, it is up to the caller to fully remove the item from
-  * the previous list (with list_lru_del() for instance) before moving it
-- * to @list_lru
-+ * to @lru.
-  *
-- * Return value: true if the list was updated, false otherwise
-+ * Return: true if the list was updated, false otherwise
-  */
- bool list_lru_add(struct list_lru *lru, struct list_head *item);
+--- a/kernel/resource.c~resource-add-walk_system_ram_res_rev
++++ a/kernel/resource.c
+@@ -27,6 +27,8 @@
+ #include <linux/mount.h>
+ #include <linux/resource_ext.h>
+ #include <uapi/linux/magic.h>
++#include <linux/string.h>
++#include <linux/vmalloc.h>
+ #include <asm/io.h>
  
- /**
-  * list_lru_del: delete an element to the lru list
-- * @list_lru: the lru pointer
-+ * @lru: the lru pointer
-  * @item: the item to be deleted.
-  *
-- * This function works analogously as list_lru_add in terms of list
-+ * This function works analogously as list_lru_add() in terms of list
-  * manipulation. The comments about an element already pertaining to
-- * a list are also valid for list_lru_del.
-+ * a list are also valid for list_lru_del().
-  *
-- * Return value: true if the list was updated, false otherwise
-+ * Return: true if the list was updated, false otherwise
-  */
- bool list_lru_del(struct list_lru *lru, struct list_head *item);
  
-@@ -108,9 +108,11 @@ bool list_lru_del(struct list_lru *lru,
-  * @nid: the node id to count from.
-  * @memcg: the cgroup to count from.
-  *
-- * Always return a non-negative number, 0 for empty lists. There is no
-- * guarantee that the list is not updated while the count is being computed.
-- * Callers that want such a guarantee need to provide an outer lock.
-+ * There is no guarantee that the list is not updated while the count is being
-+ * computed. Callers that want such a guarantee need to provide an outer lock.
-+ *
-+ * Return: 0 for empty lists, otherwise the number of objects
-+ * currently held by @lru.
-  */
- unsigned long list_lru_count_one(struct list_lru *lru,
- 				 int nid, struct mem_cgroup *memcg);
-@@ -141,7 +143,7 @@ typedef enum lru_status (*list_lru_walk_
- 		struct list_lru_one *list, spinlock_t *lock, void *cb_arg);
+@@ -430,6 +432,61 @@ int walk_system_ram_res(u64 start, u64 e
+ }
  
- /**
-- * list_lru_walk_one: walk a list_lru, isolating and disposing freeable items.
-+ * list_lru_walk_one: walk a @lru, isolating and disposing freeable items.
-  * @lru: the lru pointer.
-  * @nid: the node id to scan from.
-  * @memcg: the cgroup to scan from.
-@@ -150,24 +152,24 @@ typedef enum lru_status (*list_lru_walk_
-  * @cb_arg: opaque type that will be passed to @isolate
-  * @nr_to_walk: how many items to scan.
-  *
-- * This function will scan all elements in a particular list_lru, calling the
-+ * This function will scan all elements in a particular @lru, calling the
-  * @isolate callback for each of those items, along with the current list
-  * spinlock and a caller-provided opaque. The @isolate callback can choose to
-  * drop the lock internally, but *must* return with the lock held. The callback
-- * will return an enum lru_status telling the list_lru infrastructure what to
-+ * will return an enum lru_status telling the @lru infrastructure what to
-  * do with the object being scanned.
-  *
-- * Please note that nr_to_walk does not mean how many objects will be freed,
-+ * Please note that @nr_to_walk does not mean how many objects will be freed,
-  * just how many objects will be scanned.
-  *
-- * Return value: the number of objects effectively removed from the LRU.
-+ * Return: the number of objects effectively removed from the LRU.
+ /*
++ * This function, being a variant of walk_system_ram_res(), calls the @func
++ * callback against all memory ranges of type System RAM which are marked as
++ * IORESOURCE_SYSTEM_RAM and IORESOUCE_BUSY in reversed order, i.e., from
++ * higher to lower.
++ */
++int walk_system_ram_res_rev(u64 start, u64 end, void *arg,
++				int (*func)(struct resource *, void *))
++{
++	struct resource res, *rams;
++	int rams_size = 16, i;
++	unsigned long flags;
++	int ret = -1;
++
++	/* create a list */
++	rams = kvcalloc(rams_size, sizeof(struct resource), GFP_KERNEL);
++	if (!rams)
++		return ret;
++
++	flags = IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
++	i = 0;
++	while ((start < end) &&
++		(!find_next_iomem_res(start, end, flags, IORES_DESC_NONE, &res))) {
++		if (i >= rams_size) {
++			/* re-alloc */
++			struct resource *rams_new;
++
++			rams_new = kvrealloc(rams, rams_size * sizeof(struct resource),
++					     (rams_size + 16) * sizeof(struct resource),
++					     GFP_KERNEL);
++			if (!rams_new)
++				goto out;
++
++			rams = rams_new;
++			rams_size += 16;
++		}
++
++		rams[i].start = res.start;
++		rams[i++].end = res.end;
++
++		start = res.end + 1;
++	}
++
++	/* go reverse */
++	for (i--; i >= 0; i--) {
++		ret = (*func)(&rams[i], arg);
++		if (ret)
++			break;
++	}
++
++out:
++	kvfree(rams);
++	return ret;
++}
++
++/*
+  * This function calls the @func callback against all memory ranges, which
+  * are ranges marked as IORESOURCE_MEM and IORESOUCE_BUSY.
   */
- unsigned long list_lru_walk_one(struct list_lru *lru,
- 				int nid, struct mem_cgroup *memcg,
- 				list_lru_walk_cb isolate, void *cb_arg,
- 				unsigned long *nr_to_walk);
- /**
-- * list_lru_walk_one_irq: walk a list_lru, isolating and disposing freeable items.
-+ * list_lru_walk_one_irq: walk a @lru, isolating and disposing freeable items.
-  * @lru: the lru pointer.
-  * @nid: the node id to scan from.
-  * @memcg: the cgroup to scan from.
-@@ -176,7 +178,7 @@ unsigned long list_lru_walk_one(struct l
-  * @cb_arg: opaque type that will be passed to @isolate
-  * @nr_to_walk: how many items to scan.
-  *
-- * Same as @list_lru_walk_one except that the spinlock is acquired with
-+ * Same as list_lru_walk_one() except that the spinlock is acquired with
-  * spin_lock_irq().
-  */
- unsigned long list_lru_walk_one_irq(struct list_lru *lru,
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from bhe@redhat.com are
 
-mm-list_lru-update-kernel-documentation-to-follow-the-requirements.patch
+resource-add-walk_system_ram_res_rev.patch
+kexec_file-load-kernel-at-top-of-system-ram-if-required.patch
 
