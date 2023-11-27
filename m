@@ -2,36 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 053F0C4167B
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Nov 2023 18:50:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 901B4C4167B
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Nov 2023 19:51:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229554AbjK0St4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Nov 2023 13:49:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54074 "EHLO
+        id S231830AbjK0TvJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Nov 2023 14:51:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34580 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229531AbjK0Sty (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Nov 2023 13:49:54 -0500
+        with ESMTP id S232732AbjK0TvH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Nov 2023 14:51:07 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B3F4D4C
-        for <mm-commits@vger.kernel.org>; Mon, 27 Nov 2023 10:50:00 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1AC0DC433C8;
-        Mon, 27 Nov 2023 18:50:00 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF2A31B6
+        for <mm-commits@vger.kernel.org>; Mon, 27 Nov 2023 11:51:12 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68338C433C7;
+        Mon, 27 Nov 2023 19:51:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701111000;
-        bh=0Pmvs3nhFaQlLKGQxy5zzTne7je7EpAYJvEcCuxCu7k=;
+        s=korg; t=1701114672;
+        bh=URQSBqKP8BnOL/9w2pt/xvThUFuxdwzA0EYjE/yjQII=;
         h=Date:To:From:Subject:From;
-        b=jXXMp/eKhs8eTt4EbPzrDr2CqXIXhyCtWVvj5fOLVQHVtjaNRGJSfZ4BFdCT2u8wA
-         sY8v0HnivXcdzgLFhQe9n7swtshif2DVenOirkdgi3Dxdt3hx+Fku4LJP7Oo3H/SyU
-         Qfu4la6EPoEllm3ZVTOqDZAnaEqs4iPIr1piWs7w=
-Date:   Mon, 27 Nov 2023 10:49:59 -0800
-To:     mm-commits@vger.kernel.org, qun-wei.lin@mediatek.com,
-        oleg@redhat.com, matthias.bgg@gmail.com,
-        chinwen.chang@mediatek.com,
-        angelogioacchino.delregno@collabora.com, andreyknvl@google.com,
-        Kuan-Ying.Lee@mediatek.com, akpm@linux-foundation.org
+        b=0somvN2JKkWOzIp1wf6CP78Xr49QYz8zhmQ81AoSDT08c7V4guK6PrDjVmRhtHYFk
+         uy9Ek9PBihZMomNIhaE4uyWhs6jETikB+rf9ttdWewNpEoQYCx8/Zg7xOBxb+Tbi5P
+         JwZHWsYAaYnlNdi+YwqVFXS7c0sDOpuj6NcuRoK4=
+Date:   Mon, 27 Nov 2023 11:51:11 -0800
+To:     mm-commits@vger.kernel.org, catalin.marinas@arm.com,
+        longman@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-gdb-remove-exception-handling-and-refine-print-format.patch added to mm-nonmm-unstable branch
-Message-Id: <20231127185000.1AC0DC433C8@smtp.kernel.org>
+Subject: + mm-kmemleak-add-cond_resched-to-kmemleak_free_percpu.patch added to mm-unstable branch
+Message-Id: <20231127195112.68338C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,14 +36,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: remove exception handling and refine print format
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-gdb-remove-exception-handling-and-refine-print-format.patch
+     Subject: mm/kmemleak: add cond_resched() to kmemleak_free_percpu()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-kmemleak-add-cond_resched-to-kmemleak_free_percpu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-remove-exception-handling-and-refine-print-format.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-add-cond_resched-to-kmemleak_free_percpu.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -62,123 +59,146 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Subject: scripts/gdb: remove exception handling and refine print format
-Date: Mon, 27 Nov 2023 15:04:03 +0800
+From: Waiman Long <longman@redhat.com>
+Subject: mm/kmemleak: add cond_resched() to kmemleak_free_percpu()
+Date: Mon, 27 Nov 2023 14:41:53 -0500
 
-1. When we crash on a page, we want to check what happened on this
-   page instead of skipping this page by try-except block.  Thus, removing
-   the try-except block.
+It was found that on systems with large number of CPUs, the following soft
+lockup splat might sometimes happen:
 
-2. Remove redundant comma and print the task name properly.
+[ 2656.001617] watchdog: BUG: soft lockup - CPU#364 stuck for 21s! [ksoftirqd/364:2206]
+  :
+[ 2656.141194] RIP: 0010:_raw_spin_unlock_irqrestore+0x3d/0x70
+  :
+ 2656.241214] Call Trace:
+[ 2656.243971]  <IRQ>
+[ 2656.246237]  ? show_trace_log_lvl+0x1c4/0x2df
+[ 2656.251152]  ? show_trace_log_lvl+0x1c4/0x2df
+[ 2656.256066]  ? kmemleak_free_percpu+0x11f/0x1f0
+[ 2656.261173]  ? watchdog_timer_fn+0x379/0x470
+[ 2656.265984]  ? __pfx_watchdog_timer_fn+0x10/0x10
+[ 2656.271179]  ? __hrtimer_run_queues+0x5f3/0xd00
+[ 2656.276283]  ? __pfx___hrtimer_run_queues+0x10/0x10
+[ 2656.281783]  ? ktime_get_update_offsets_now+0x95/0x2c0
+[ 2656.287573]  ? ktime_get_update_offsets_now+0xdd/0x2c0
+[ 2656.293380]  ? hrtimer_interrupt+0x2e9/0x780
+[ 2656.298221]  ? __sysvec_apic_timer_interrupt+0x184/0x640
+[ 2656.304211]  ? sysvec_apic_timer_interrupt+0x8e/0xc0
+[ 2656.309807]  </IRQ>
+[ 2656.312169]  <TASK>
+[ 2656.326110]  kmemleak_free_percpu+0x11f/0x1f0
+[ 2656.331015]  free_percpu.part.0+0x1b/0xe70
+[ 2656.335635]  free_vfsmnt+0xb9/0x100
+[ 2656.339567]  rcu_do_batch+0x3c8/0xe30
+[ 2656.363693]  rcu_core+0x3de/0x5a0
+[ 2656.367433]  __do_softirq+0x2d0/0x9a8
+[ 2656.381119]  run_ksoftirqd+0x36/0x60
+[ 2656.385145]  smpboot_thread_fn+0x556/0x910
+[ 2656.394971]  kthread+0x2a4/0x350
+[ 2656.402826]  ret_from_fork+0x29/0x50
+[ 2656.406861]  </TASK>
 
-Link: https://lkml.kernel.org/r/20231127070404.4192-4-Kuan-Ying.Lee@mediatek.com
-Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>
-Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
-Cc: Chinwen Chang <chinwen.chang@mediatek.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Qun-Wei Lin <qun-wei.lin@mediatek.com>
+Fix this by adding a cond_resched() call in the percpu freeing loop
+and defer the freeing of percpu kmemleak objects to a workqueue if it
+is being called from a non-task context.
+
+Link: https://lkml.kernel.org/r/20231127194153.289626-1-longman@redhat.com
+Signed-off-by: Waiman Long <longman@redhat.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/page_owner.py |   60 +++++++++++++-----------------
- scripts/gdb/linux/slab.py       |    3 -
- 2 files changed, 27 insertions(+), 36 deletions(-)
+ mm/kmemleak.c |   59 ++++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 52 insertions(+), 7 deletions(-)
 
---- a/scripts/gdb/linux/page_owner.py~scripts-gdb-remove-exception-handling-and-refine-print-format
-+++ a/scripts/gdb/linux/page_owner.py
-@@ -122,27 +122,24 @@ class DumpPageOwner(gdb.Command):
-         if not (page_ext['flags'] & (1 << PAGE_EXT_OWNER_ALLOCATED)):
-             gdb.write("page_owner is not allocated\n")
+--- a/mm/kmemleak.c~mm-kmemleak-add-cond_resched-to-kmemleak_free_percpu
++++ a/mm/kmemleak.c
+@@ -168,6 +168,14 @@ struct kmemleak_object {
+ 	char comm[TASK_COMM_LEN];	/* executable name */
+ };
  
--        try:
--            page_owner = self.get_page_owner(page_ext)
--            gdb.write("Page last allocated via order %d, gfp_mask: 0x%x, pid: %d, tgid: %d (%s), ts %u ns, free_ts %u ns\n" %\
--                    (page_owner["order"], page_owner["gfp_mask"],\
--                    page_owner["pid"], page_owner["tgid"], page_owner["comm"],\
--                    page_owner["ts_nsec"], page_owner["free_ts_nsec"]))
--            gdb.write("PFN: %d, Flags: 0x%x\n" % (pfn, page['flags']))
--            if page_owner["handle"] == 0:
--                gdb.write('page_owner allocation stack trace missing\n')
--            else:
--                stackdepot.stack_depot_print(page_owner["handle"])
--
--            if page_owner["free_handle"] == 0:
--                gdb.write('page_owner free stack trace missing\n')
--            else:
--                gdb.write('page last free stack trace:\n')
--                stackdepot.stack_depot_print(page_owner["free_handle"])
--            if page_owner['last_migrate_reason'] != -1:
--                gdb.write('page has been migrated, last migrate reason: %s\n' % self.migrate_reason_names[page_owner['last_migrate_reason']])
--        except:
--            gdb.write("\n")
-+        page_owner = self.get_page_owner(page_ext)
-+        gdb.write("Page last allocated via order %d, gfp_mask: 0x%x, pid: %d, tgid: %d (%s), ts %u ns, free_ts %u ns\n" %\
-+                (page_owner["order"], page_owner["gfp_mask"],\
-+                page_owner["pid"], page_owner["tgid"], page_owner["comm"].string(),\
-+                page_owner["ts_nsec"], page_owner["free_ts_nsec"]))
-+        gdb.write("PFN: %d, Flags: 0x%x\n" % (pfn, page['flags']))
-+        if page_owner["handle"] == 0:
-+            gdb.write('page_owner allocation stack trace missing\n')
-+        else:
-+            stackdepot.stack_depot_print(page_owner["handle"])
++/*
++ * A percpu address to be submitted to a workqueue for being freed.
++ */
++struct kmemleak_percpu_addr {
++	struct work_struct work;
++	const void __percpu *ptr;
++};
 +
-+        if page_owner["free_handle"] == 0:
-+            gdb.write('page_owner free stack trace missing\n')
-+        else:
-+            gdb.write('page last free stack trace:\n')
-+            stackdepot.stack_depot_print(page_owner["free_handle"])
-+        if page_owner['last_migrate_reason'] != -1:
-+            gdb.write('page has been migrated, last migrate reason: %s\n' % self.migrate_reason_names[page_owner['last_migrate_reason']])
+ /* flag representing the memory block allocation status */
+ #define OBJECT_ALLOCATED	(1 << 0)
+ /* flag set after the first reporting of an unreference object */
+@@ -1120,23 +1128,60 @@ void __ref kmemleak_free_part(const void
+ }
+ EXPORT_SYMBOL_GPL(kmemleak_free_part);
  
-     def read_page_owner(self):
-         pfn = self.min_pfn
-@@ -173,18 +170,13 @@ class DumpPageOwner(gdb.Command):
-                 pfn += 1
-                 continue
++static void __kmemleak_free_percpu(const void __percpu *ptr)
++{
++	unsigned int cpu;
++
++	for_each_possible_cpu(cpu) {
++		delete_object_full((unsigned long)per_cpu_ptr(ptr, cpu));
++		if (in_task())
++			cond_resched();
++	}
++}
++
++/*
++ * Work function for deferred freeing of kmemleak objects associated with
++ * a freed percpu memory block.
++ */
++static void kmemleak_free_percpu_workfn(struct work_struct *work)
++{
++	struct kmemleak_percpu_addr *addr;
++
++	addr = container_of(work, struct kmemleak_percpu_addr, work);
++	__kmemleak_free_percpu(addr->ptr);
++	kfree(addr);
++}
++
+ /**
+  * kmemleak_free_percpu - unregister a previously registered __percpu object
+  * @ptr:	__percpu pointer to beginning of the object
+  *
+  * This function is called from the kernel percpu allocator when an object
+- * (memory block) is freed (free_percpu).
++ * (memory block) is freed (free_percpu). Since this function is inherently
++ * slow especially on systems with a large number of CPUs, defer the actual
++ * removal of kmemleak objects associated with the percpu pointer to a
++ * workqueue if it is not in a task context.
+  */
+ void __ref kmemleak_free_percpu(const void __percpu *ptr)
+ {
+-	unsigned int cpu;
+-
+ 	pr_debug("%s(0x%px)\n", __func__, ptr);
  
--            try:
--                page_owner = self.get_page_owner(page_ext)
--                gdb.write("Page allocated via order %d, gfp_mask: 0x%x, pid: %d, tgid: %d (%s), ts %u ns, free_ts %u ns\n" %\
--                        (page_owner["order"], page_owner["gfp_mask"],\
--                        page_owner["pid"], page_owner["tgid"], page_owner["comm"],\
--                        page_owner["ts_nsec"], page_owner["free_ts_nsec"]))
--                gdb.write("PFN: %d, Flags: 0x%x\n" % (pfn, page['flags']))
--                stackdepot.stack_depot_print(page_owner["handle"])
--                pfn += (1 << page_owner["order"])
--                continue
--            except:
--                gdb.write("\n")
--            pfn += 1
-+            page_owner = self.get_page_owner(page_ext)
-+            gdb.write("Page allocated via order %d, gfp_mask: 0x%x, pid: %d, tgid: %d (%s), ts %u ns, free_ts %u ns\n" %\
-+                    (page_owner["order"], page_owner["gfp_mask"],\
-+                    page_owner["pid"], page_owner["tgid"], page_owner["comm"].string(),\
-+                    page_owner["ts_nsec"], page_owner["free_ts_nsec"]))
-+            gdb.write("PFN: %d, Flags: 0x%x\n" % (pfn, page['flags']))
-+            stackdepot.stack_depot_print(page_owner["handle"])
-+            pfn += (1 << page_owner["order"])
+-	if (kmemleak_free_enabled && ptr && !IS_ERR(ptr))
+-		for_each_possible_cpu(cpu)
+-			delete_object_full((unsigned long)per_cpu_ptr(ptr,
+-								      cpu));
++	if (!kmemleak_free_enabled || !ptr || IS_ERR(ptr))
++		return;
++
++	if (!in_task()) {
++		struct kmemleak_percpu_addr *addr;
++
++		addr = kzalloc(sizeof(*addr), GFP_ATOMIC);
++		if (addr) {
++			INIT_WORK(&addr->work, kmemleak_free_percpu_workfn);
++			addr->ptr = ptr;
++			queue_work(system_long_wq, &addr->work);
++			return;
++		}
++		/* Fallback to do direct deletion */
++	}
++	__kmemleak_free_percpu(ptr);
+ }
+ EXPORT_SYMBOL_GPL(kmemleak_free_percpu);
  
- DumpPageOwner()
---- a/scripts/gdb/linux/slab.py~scripts-gdb-remove-exception-handling-and-refine-print-format
-+++ a/scripts/gdb/linux/slab.py
-@@ -228,8 +228,7 @@ def slabtrace(alloc, cache_name):
-             nr_cpu = gdb.parse_and_eval('__num_online_cpus')['counter']
-             if nr_cpu > 1:
-                 gdb.write(" cpus=")
--                for i in loc['cpus']:
--                    gdb.write("%d," % i)
-+                gdb.write(','.join(str(cpu) for cpu in loc['cpus']))
-         gdb.write("\n")
-         if constants.LX_CONFIG_STACKDEPOT:
-             if loc['handle']:
 _
 
-Patches currently in -mm which might be from Kuan-Ying.Lee@mediatek.com are
+Patches currently in -mm which might be from longman@redhat.com are
 
-scripts-gdb-tasks-fix-lx-ps-command-error.patch
-scripts-gdb-stackdepot-rename-pool_index_cached-to-pools_num.patch
-scripts-gdb-remove-exception-handling-and-refine-print-format.patch
+mm-kmemleak-add-cond_resched-to-kmemleak_free_percpu.patch
 
