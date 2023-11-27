@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8930C4167B
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Nov 2023 20:32:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3A2FC4167B
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Nov 2023 20:32:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231704AbjK0Uco (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Nov 2023 15:32:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47788 "EHLO
+        id S232022AbjK0Uct (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Nov 2023 15:32:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47810 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230330AbjK0Uco (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Nov 2023 15:32:44 -0500
+        with ESMTP id S230330AbjK0Uct (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Nov 2023 15:32:49 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 495E9BD
-        for <mm-commits@vger.kernel.org>; Mon, 27 Nov 2023 12:32:50 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC36BC433C7;
-        Mon, 27 Nov 2023 20:32:49 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9DD8E94
+        for <mm-commits@vger.kernel.org>; Mon, 27 Nov 2023 12:32:53 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35CEEC433C9;
+        Mon, 27 Nov 2023 20:32:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701117169;
-        bh=Tmnm8fsecdB2YlEDHp1M3hzQWAytjpvjoI8kpkH/zbU=;
+        s=korg; t=1701117173;
+        bh=yhCzhodqF53wjjlyCzitYejgGsFjlTNs7wTqqeY7gbo=;
         h=Date:To:From:Subject:From;
-        b=Pgtv6l60A3/jeXVcDkA+qmXUVs/2Vom22urnTBecbQHv/Eu3hLZ9Bg2syctXrYo+m
-         Ye24wu6EJQTK9ZAcuhx/1NSNpzrz9Er9S3ouXtKirt9U5kmMl051yEajRa6O+UHcAQ
-         DUyTktoo/DEihGybmvdXirt09aEbLjTztOqhCOt8=
-Date:   Mon, 27 Nov 2023 12:32:48 -0800
+        b=U/QeNISh14YXkfOZHw0IPBxJWwIDDVQ8DdlvRqtUVkKtir2EBL0vrGk0XAj62zPle
+         jFKwr5UqT7AAM/3AZ4COhdXu3FxzUXoLVXkDU3cWJ59pIQ0BC9tIXUS9ipT8LGoRw4
+         aD3mi9m/Qp6gVkDQIe6jQDVVqoLMjQA2KXeIhE3Y=
+Date:   Mon, 27 Nov 2023 12:32:52 -0800
 To:     mm-commits@vger.kernel.org, shakeelb@google.com,
         roman.gushchin@linux.dev, muchun.song@linux.dev, mhocko@kernel.org,
         hannes@cmpxchg.org, ddrokosov@salutedevices.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + samples-introduce-new-samples-subdir-for-cgroup.patch added to mm-unstable branch
-Message-Id: <20231127203249.DC36BC433C7@smtp.kernel.org>
+Subject: + samples-cgroup-introduce-memcg-memoryevents-listener.patch added to mm-unstable branch
+Message-Id: <20231127203253.35CEEC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,12 +38,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: samples: introduce new samples subdir for cgroup
+     Subject: samples/cgroup: introduce memcg memory.events listener
 has been added to the -mm mm-unstable branch.  Its filename is
-     samples-introduce-new-samples-subdir-for-cgroup.patch
+     samples-cgroup-introduce-memcg-memoryevents-listener.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-introduce-new-samples-subdir-for-cgroup.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-cgroup-introduce-memcg-memoryevents-listener.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,32 +62,43 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Dmitry Rokosov <ddrokosov@salutedevices.com>
-Subject: samples: introduce new samples subdir for cgroup
-Date: Thu, 23 Nov 2023 10:19:43 +0300
+Subject: samples/cgroup: introduce memcg memory.events listener
+Date: Thu, 23 Nov 2023 10:19:44 +0300
 
-Patch series "samples: introduce cgroup events listeners", v3.
+This is a simple listener for memory events that handles counter changes
+in runtime.  It can be set up for a specific memory cgroup v2.
 
-To begin with, this patch series relocates the cgroup example code to the
-samples/cgroup directory, which is the appropriate location for such code
-snippets.
+The output example:
+=====
+$ /tmp/memcg_event_listener test
+Initialized MEMCG events with counters:
+MEMCG events:
+	low: 0
+	high: 0
+	max: 0
+	oom: 0
+	oom_kill: 0
+	oom_group_kill: 0
+Started monitoring memory events from '/sys/fs/cgroup/test/memory.events'...
+Received event in /sys/fs/cgroup/test/memory.events:
+*** 1 MEMCG oom_kill event, change counter 0 => 1
+Received event in /sys/fs/cgroup/test/memory.events:
+*** 1 MEMCG oom_kill event, change counter 1 => 2
+Received event in /sys/fs/cgroup/test/memory.events:
+*** 1 MEMCG oom_kill event, change counter 2 => 3
+Received event in /sys/fs/cgroup/test/memory.events:
+*** 1 MEMCG oom_kill event, change counter 3 => 4
+Received event in /sys/fs/cgroup/test/memory.events:
+*** 2 MEMCG max events, change counter 0 => 2
+Received event in /sys/fs/cgroup/test/memory.events:
+*** 8 MEMCG max events, change counter 2 => 10
+*** 1 MEMCG oom event, change counter 0 => 1
+Received event in /sys/fs/cgroup/test/memory.events:
+*** 1 MEMCG oom_kill event, change counter 4 => 5
+^CExiting memcg event listener...
+=====
 
-Furthermore, a new memcg events listener is introduced.  This listener is
-a simple yet effective tool for monitoring memory events and managing
-counter changes during runtime.
-
-Additionally, as per Andrew Morton's suggestion, a helpful reminder
-comment is included in the memcontrol implementation.  This comment serves
-to ensure that the samples code is updated whenever new events are added.
-
-
-This patch (of 3):
-
-Move the cgroup_event_listener for cgroup v1 to the samples directory. 
-This suggestion was proposed by Andrew Morton during the discussion [1].
-
-Link: https://lore.kernel.org/all/20231106140934.3f5d4960141562fe8da53906@linux-foundation.org/ [1]
-Link: https://lkml.kernel.org/r/20231123071945.25811-1-ddrokosov@salutedevices.com
-Link: https://lkml.kernel.org/r/20231123071945.25811-2-ddrokosov@salutedevices.com
+Link: https://lkml.kernel.org/r/20231123071945.25811-3-ddrokosov@salutedevices.com
 Signed-off-by: Dmitry Rokosov <ddrokosov@salutedevices.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -97,70 +108,352 @@ Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS             |    1 +
- samples/Kconfig         |    6 ++++++
- samples/Makefile        |    1 +
- samples/cgroup/Makefile |    5 +++++
- tools/cgroup/Makefile   |   11 -----------
- 5 files changed, 13 insertions(+), 11 deletions(-)
+ samples/cgroup/Makefile               |    2 
+ samples/cgroup/memcg_event_listener.c |  330 ++++++++++++++++++++++++
+ 2 files changed, 331 insertions(+), 1 deletion(-)
 
---- a/MAINTAINERS~samples-introduce-new-samples-subdir-for-cgroup
-+++ a/MAINTAINERS
-@@ -5352,6 +5352,7 @@ L:	linux-mm@kvack.org
- S:	Maintained
- F:	mm/memcontrol.c
- F:	mm/swap_cgroup.c
-+F:	samples/cgroup/*
- F:	tools/testing/selftests/cgroup/memcg_protection.m
- F:	tools/testing/selftests/cgroup/test_hugetlb_memcg.c
- F:	tools/testing/selftests/cgroup/test_kmem.c
---- /dev/null
+--- a/samples/cgroup/Makefile~samples-cgroup-introduce-memcg-memoryevents-listener
 +++ a/samples/cgroup/Makefile
-@@ -0,0 +1,5 @@
-+# SPDX-License-Identifier: GPL-2.0
-+
-+userprogs-always-y += cgroup_event_listener
-+
-+userccflags += -I usr/include
---- a/samples/Kconfig~samples-introduce-new-samples-subdir-for-cgroup
-+++ a/samples/Kconfig
-@@ -285,6 +285,12 @@ config SAMPLE_KMEMLEAK
-           Build a sample program which have explicitly leaks memory to test
-           kmemleak
+@@ -1,5 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0
  
-+config SAMPLE_CGROUP
-+	bool "Build cgroup sample code"
-+	depends on CGROUPS && CC_CAN_LINK && HEADERS_INSTALL
-+	help
-+	  Build samples that demonstrate the usage of the cgroup API.
+-userprogs-always-y += cgroup_event_listener
++userprogs-always-y += cgroup_event_listener memcg_event_listener
+ 
+ userccflags += -I usr/include
+--- /dev/null
++++ a/samples/cgroup/memcg_event_listener.c
+@@ -0,0 +1,330 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * memcg_event_listener.c - Simple listener of memcg memory.events
++ *
++ * Copyright (c) 2023, SaluteDevices. All Rights Reserved.
++ *
++ * Author: Dmitry Rokosov <ddrokosov@salutedevices.com>
++ */
 +
- source "samples/rust/Kconfig"
- 
- endif # SAMPLES
---- a/samples/Makefile~samples-introduce-new-samples-subdir-for-cgroup
-+++ a/samples/Makefile
-@@ -3,6 +3,7 @@
- 
- subdir-$(CONFIG_SAMPLE_AUXDISPLAY)	+= auxdisplay
- subdir-$(CONFIG_SAMPLE_ANDROID_BINDERFS) += binderfs
-+subdir-$(CONFIG_SAMPLE_CGROUP) += cgroup
- obj-$(CONFIG_SAMPLE_CONFIGFS)		+= configfs/
- obj-$(CONFIG_SAMPLE_CONNECTOR)		+= connector/
- obj-$(CONFIG_SAMPLE_FANOTIFY_ERROR)	+= fanotify/
---- a/tools/cgroup/Makefile
-+++ /dev/null
-@@ -1,11 +0,0 @@
--# SPDX-License-Identifier: GPL-2.0
--# Makefile for cgroup tools
--
--CFLAGS = -Wall -Wextra
--
--all: cgroup_event_listener
--%: %.c
--	$(CC) $(CFLAGS) -o $@ $^
--
--clean:
--	$(RM) cgroup_event_listener
++#include <err.h>
++#include <errno.h>
++#include <limits.h>
++#include <poll.h>
++#include <stdbool.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sys/inotify.h>
++#include <unistd.h>
++
++#define MEMCG_EVENTS "memory.events"
++
++/* Size of buffer to use when reading inotify events */
++#define INOTIFY_BUFFER_SIZE 8192
++
++#define INOTIFY_EVENT_NEXT(event, length) ({         \
++	(length) -= sizeof(*(event)) + (event)->len; \
++	(event)++;                                   \
++})
++
++#define INOTIFY_EVENT_OK(event, length) ((length) >= (ssize_t)sizeof(*(event)))
++
++#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
++
++struct memcg_counters {
++	long low;
++	long high;
++	long max;
++	long oom;
++	long oom_kill;
++	long oom_group_kill;
++};
++
++struct memcg_events {
++	struct memcg_counters counters;
++	char path[PATH_MAX];
++	int inotify_fd;
++	int inotify_wd;
++};
++
++static void print_memcg_counters(const struct memcg_counters *counters)
++{
++	printf("MEMCG events:\n");
++	printf("\tlow: %ld\n", counters->low);
++	printf("\thigh: %ld\n", counters->high);
++	printf("\tmax: %ld\n", counters->max);
++	printf("\toom: %ld\n", counters->oom);
++	printf("\toom_kill: %ld\n", counters->oom_kill);
++	printf("\toom_group_kill: %ld\n", counters->oom_group_kill);
++}
++
++static int get_memcg_counter(char *line, const char *name, long *counter)
++{
++	size_t len = strlen(name);
++	char *endptr;
++	long tmp;
++
++	if (memcmp(line, name, len)) {
++		warnx("Counter line %s has wrong name, %s is expected",
++		      line, name);
++		return -EINVAL;
++	}
++
++	/* skip the whitespace delimiter */
++	len += 1;
++
++	errno = 0;
++	tmp = strtol(&line[len], &endptr, 10);
++	if (((tmp == LONG_MAX || tmp == LONG_MIN) && errno == ERANGE) ||
++	    (errno && !tmp)) {
++		warnx("Failed to parse: %s", &line[len]);
++		return -ERANGE;
++	}
++
++	if (endptr == &line[len]) {
++		warnx("Not digits were found in line %s", &line[len]);
++		return -EINVAL;
++	}
++
++	if (!(*endptr == '\0' || (*endptr == '\n' && *++endptr == '\0'))) {
++		warnx("Further characters after number: %s", endptr);
++		return -EINVAL;
++	}
++
++	*counter = tmp;
++
++	return 0;
++}
++
++static int read_memcg_events(struct memcg_events *events, bool show_diff)
++{
++	FILE *fp = fopen(events->path, "re");
++	size_t i;
++	int ret = 0;
++	bool any_new_events = false;
++	char *line = NULL;
++	size_t len = 0;
++	struct memcg_counters new_counters;
++	struct memcg_counters *counters = &events->counters;
++	struct {
++		const char *name;
++		long *new;
++		long *old;
++	} map[] = {
++		{
++			.name = "low",
++			.new = &new_counters.low,
++			.old = &counters->low,
++		},
++		{
++			.name = "high",
++			.new = &new_counters.high,
++			.old = &counters->high,
++		},
++		{
++			.name = "max",
++			.new = &new_counters.max,
++			.old = &counters->max,
++		},
++		{
++			.name = "oom",
++			.new = &new_counters.oom,
++			.old = &counters->oom,
++		},
++		{
++			.name = "oom_kill",
++			.new = &new_counters.oom_kill,
++			.old = &counters->oom_kill,
++		},
++		{
++			.name = "oom_group_kill",
++			.new = &new_counters.oom_group_kill,
++			.old = &counters->oom_group_kill,
++		},
++	};
++
++	if (!fp) {
++		warn("Failed to open memcg events file %s", events->path);
++		return -EBADF;
++	}
++
++	/* Read new values for memcg counters */
++	for (i = 0; i < ARRAY_SIZE(map); ++i) {
++		ssize_t nread;
++
++		errno = 0;
++		nread = getline(&line, &len, fp);
++		if (nread == -1) {
++			if (errno) {
++				warn("Failed to read line for counter %s",
++				     map[i].name);
++				ret = -EIO;
++				goto exit;
++			}
++
++			break;
++		}
++
++		ret = get_memcg_counter(line, map[i].name, map[i].new);
++		if (ret) {
++			warnx("Failed to get counter value from line %s", line);
++			goto exit;
++		}
++	}
++
++	for (i = 0; i < ARRAY_SIZE(map); ++i) {
++		long diff;
++
++		if (*map[i].new > *map[i].old) {
++			diff = *map[i].new - *map[i].old;
++
++			if (show_diff)
++				printf("*** %ld MEMCG %s event%s, "
++				       "change counter %ld => %ld\n",
++				       diff, map[i].name,
++				       (diff == 1) ? "" : "s",
++				       *map[i].old, *map[i].new);
++
++			*map[i].old += diff;
++			any_new_events = true;
++		}
++	}
++
++	if (show_diff && !any_new_events)
++		printf("*** No new untracked memcg events available\n");
++
++exit:
++	free(line);
++	fclose(fp);
++
++	return ret;
++}
++
++static void process_memcg_events(struct memcg_events *events,
++				 struct inotify_event *event)
++{
++	int ret;
++
++	if (events->inotify_wd != event->wd) {
++		warnx("Unknown inotify event %d, should be %d", event->wd,
++		      events->inotify_wd);
++		return;
++	}
++
++	printf("Received event in %s:\n", events->path);
++
++	if (!(event->mask & IN_MODIFY)) {
++		warnx("No IN_MODIFY event, skip it");
++		return;
++	}
++
++	ret = read_memcg_events(events, /* show_diff = */true);
++	if (ret)
++		warnx("Can't read memcg events");
++}
++
++static void monitor_events(struct memcg_events *events)
++{
++	struct pollfd fds[1];
++	int ret;
++
++	printf("Started monitoring memory events from '%s'...\n", events->path);
++
++	fds[0].fd = events->inotify_fd;
++	fds[0].events = POLLIN;
++
++	for (;;) {
++		ret = poll(fds, ARRAY_SIZE(fds), -1);
++		if (ret < 0 && errno != EAGAIN)
++			err(EXIT_FAILURE, "Can't poll memcg events (%d)", ret);
++
++		if (fds[0].revents & POLLERR)
++			err(EXIT_FAILURE, "Got POLLERR during monitor events");
++
++		if (fds[0].revents & POLLIN) {
++			struct inotify_event *event;
++			char buffer[INOTIFY_BUFFER_SIZE];
++			ssize_t length;
++
++			length = read(fds[0].fd, buffer, INOTIFY_BUFFER_SIZE);
++			if (length <= 0)
++				continue;
++
++			event = (struct inotify_event *)buffer;
++			while (INOTIFY_EVENT_OK(event, length)) {
++				process_memcg_events(events, event);
++				event = INOTIFY_EVENT_NEXT(event, length);
++			}
++		}
++	}
++}
++
++static int initialize_memcg_events(struct memcg_events *events,
++				   const char *cgroup)
++{
++	int ret;
++
++	memset(events, 0, sizeof(struct memcg_events));
++
++	ret = snprintf(events->path, PATH_MAX,
++		       "/sys/fs/cgroup/%s/memory.events", cgroup);
++	if (ret >= PATH_MAX) {
++		warnx("Path to cgroup memory.events is too long");
++		return -EMSGSIZE;
++	} else if (ret < 0) {
++		warn("Can't generate cgroup event full name");
++		return ret;
++	}
++
++	ret = read_memcg_events(events, /* show_diff = */false);
++	if (ret) {
++		warnx("Failed to read initial memcg events state (%d)", ret);
++		return ret;
++	}
++
++	events->inotify_fd = inotify_init();
++	if (events->inotify_fd < 0) {
++		warn("Failed to setup new inotify device");
++		return -EMFILE;
++	}
++
++	events->inotify_wd = inotify_add_watch(events->inotify_fd,
++					       events->path, IN_MODIFY);
++	if (events->inotify_wd < 0) {
++		warn("Couldn't add monitor in dir %s", events->path);
++		return -EIO;
++	}
++
++	printf("Initialized MEMCG events with counters:\n");
++	print_memcg_counters(&events->counters);
++
++	return 0;
++}
++
++static void cleanup_memcg_events(struct memcg_events *events)
++{
++	inotify_rm_watch(events->inotify_fd, events->inotify_wd);
++	close(events->inotify_fd);
++}
++
++int main(int argc, const char **argv)
++{
++	struct memcg_events events;
++	ssize_t ret;
++
++	if (argc != 2)
++		errx(EXIT_FAILURE, "Usage: %s <cgroup>", argv[0]);
++
++	ret = initialize_memcg_events(&events, argv[1]);
++	if (ret)
++		errx(EXIT_FAILURE, "Can't initialize memcg events (%zd)", ret);
++
++	monitor_events(&events);
++
++	cleanup_memcg_events(&events);
++
++	printf("Exiting memcg event listener...\n");
++
++	return EXIT_SUCCESS;
++}
 _
 
 Patches currently in -mm which might be from ddrokosov@salutedevices.com are
