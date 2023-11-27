@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1069BC46CA0
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Nov 2023 17:07:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BDD8CC4167B
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Nov 2023 17:08:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231626AbjK0RHr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Nov 2023 12:07:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44436 "EHLO
+        id S234632AbjK0RHw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Nov 2023 12:07:52 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44478 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231803AbjK0RHq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Nov 2023 12:07:46 -0500
+        with ESMTP id S234384AbjK0RHs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Nov 2023 12:07:48 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D027310D2
-        for <mm-commits@vger.kernel.org>; Mon, 27 Nov 2023 09:07:52 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 689D7C433C7;
-        Mon, 27 Nov 2023 17:07:52 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6EB8310D2
+        for <mm-commits@vger.kernel.org>; Mon, 27 Nov 2023 09:07:54 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F418C433C8;
+        Mon, 27 Nov 2023 17:07:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701104872;
-        bh=Lg6hrdSs8ZzPA6ir9mLRF8ENWdwDi2Hihj+YeylIrPE=;
+        s=korg; t=1701104874;
+        bh=grGr0EFWG/7xOW/7M5CvJ/184DKESwsyNhEA93THjGM=;
         h=Date:To:From:Subject:From;
-        b=ux7aRPLF2S3teCfzVjNCdo7xF5J/Wc6oflhaTlde9DZkyw/7Y1l/JbDqo4CoyYdtt
-         9GW94UlyIp92eMVRtCny50tJWlXKsXso9OYSGKyDUzsO9jna2sURega2pIA4/Gfw9W
-         ho1KF3obiuPGbk9RGwCq9U1+u5qr+BiwTjfqhGQI=
-Date:   Mon, 27 Nov 2023 09:07:51 -0800
+        b=1zZkjsyDIDOZE5yIoMXSexebheqwC1yIEnVOPhttYE3JjmDv1DTGE4vrbD31ieo2a
+         nFtd0BlF7IqYu1YiW21K5q6ApHEEjeS7Evf6qlljt60bE+K/iEXkH3Slrm+yNNWhPj
+         Ay+bsO7/iRUmy39Z4PbZ3KQpCW1t/7xWQUratoFU=
+Date:   Mon, 27 Nov 2023 09:07:53 -0800
 To:     mm-commits@vger.kernel.org, konishi.ryusuke@gmail.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-remove-page_address-from-nilfs_add_link.patch added to mm-nonmm-unstable branch
-Message-Id: <20231127170752.689D7C433C7@smtp.kernel.org>
+Subject: + nilfs2-remove-page_address-from-nilfs_delete_entry.patch added to mm-nonmm-unstable branch
+Message-Id: <20231127170754.0F418C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: remove page_address() from nilfs_add_link
+     Subject: nilfs2: remove page_address() from nilfs_delete_entry
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-remove-page_address-from-nilfs_add_link.patch
+     nilfs2-remove-page_address-from-nilfs_delete_entry.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-remove-page_address-from-nilfs_add_link.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-remove-page_address-from-nilfs_delete_entry.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,32 +60,42 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: nilfs2: remove page_address() from nilfs_add_link
-Date: Mon, 27 Nov 2023 23:30:23 +0900
+Subject: nilfs2: remove page_address() from nilfs_delete_entry
+Date: Mon, 27 Nov 2023 23:30:24 +0900
 
-In preparation for removing kmap from directory handling, use
-offset_in_page() to calculate 'from'.  Matches ext2.
+In preparation for removing kmap from directory handling, mask the
+directory entry pointer to discover the start address of the page. 
+Matches ext2.
 
-Link: https://lkml.kernel.org/r/20231127143036.2425-5-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20231127143036.2425-6-konishi.ryusuke@gmail.com
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/dir.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nilfs2/dir.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/nilfs2/dir.c~nilfs2-remove-page_address-from-nilfs_add_link
+--- a/fs/nilfs2/dir.c~nilfs2-remove-page_address-from-nilfs_delete_entry
 +++ a/fs/nilfs2/dir.c
-@@ -493,7 +493,7 @@ int nilfs_add_link(struct dentry *dentry
- 	return -EINVAL;
- 
- got_it:
--	from = (char *)de - (char *)page_address(page);
-+	from = offset_in_page(de);
- 	to = from + rec_len;
+@@ -531,7 +531,7 @@ int nilfs_delete_entry(struct nilfs_dir_
+ {
+ 	struct address_space *mapping = page->mapping;
+ 	struct inode *inode = mapping->host;
+-	char *kaddr = page_address(page);
++	char *kaddr = (char *)((unsigned long)dir & PAGE_MASK);
+ 	unsigned int from, to;
+ 	struct nilfs_dir_entry *de, *pde = NULL;
+ 	int err;
+@@ -551,7 +551,7 @@ int nilfs_delete_entry(struct nilfs_dir_
+ 		de = nilfs_next_entry(de);
+ 	}
+ 	if (pde)
+-		from = (char *)pde - (char *)page_address(page);
++		from = (char *)pde - kaddr;
+ 	lock_page(page);
  	err = nilfs_prepare_chunk(page, from, to);
- 	if (err)
+ 	BUG_ON(err);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
