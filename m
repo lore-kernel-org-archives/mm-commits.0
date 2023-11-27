@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21B68C07D5A
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB960C46CA0
 	for <mm-commits@archiver.kernel.org>; Mon, 27 Nov 2023 17:22:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229631AbjK0RWk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229634AbjK0RWk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 27 Nov 2023 12:22:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44318 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44358 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234473AbjK0RHn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Nov 2023 12:07:43 -0500
+        with ESMTP id S234564AbjK0RHp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Nov 2023 12:07:45 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49C5C10D1
-        for <mm-commits@vger.kernel.org>; Mon, 27 Nov 2023 09:07:49 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF58CC433C8;
-        Mon, 27 Nov 2023 17:07:48 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B39510D1
+        for <mm-commits@vger.kernel.org>; Mon, 27 Nov 2023 09:07:51 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABD50C433C7;
+        Mon, 27 Nov 2023 17:07:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701104869;
-        bh=dOD6s75oBGWD7wwN14Lb/h+6j/2mJitehuXz54YRTb8=;
+        s=korg; t=1701104870;
+        bh=kQnSqnapRHpn+PPVcxUL+MVCyO52WClBmW4OMmVBoeo=;
         h=Date:To:From:Subject:From;
-        b=ZCp5ODlyAhpk34DTtdlYPoPFC3lQw6KR+ihayHHhP+kadLC7ZRT0rWRkT8I66JMas
-         /fF8oi+0YgHAftlkhTmg2MXHuGlxQYnFxQQ89StcxH0imN2B2Vtx/b4FevWo1WggRl
-         ljeYJXFusaTI6TBqWkF4TJV+S69bJafqreBR+XKc=
-Date:   Mon, 27 Nov 2023 09:07:48 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        konishi.ryusuke@gmail.com, akpm@linux-foundation.org
+        b=2mFetfHQjHX2GFlycuZ5NIg+XDDHw75n16MT7pDCCfHg6K+V39XF7gLxP8aIfCFJM
+         TpN/yCWCZP713Y5e6NQqQdQc6rW+2S6g0wixp5KQhPhGUsYX9SNvfalS0DV0XwCuT+
+         R7uHqTIsqmsJcSnTbDRgsLJaS3ssvGlOGZdNMWqY=
+Date:   Mon, 27 Nov 2023 09:07:50 -0800
+To:     mm-commits@vger.kernel.org, konishi.ryusuke@gmail.com,
+        willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-eliminate-staggered-calls-to-kunmap-in-nilfs_rename.patch added to mm-nonmm-unstable branch
-Message-Id: <20231127170748.DF58CC433C8@smtp.kernel.org>
+Subject: + nilfs2-remove-page_address-from-nilfs_set_link.patch added to mm-nonmm-unstable branch
+Message-Id: <20231127170750.ABD50C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: eliminate staggered calls to kunmap in nilfs_rename
+     Subject: nilfs2: remove page_address() from nilfs_set_link
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-eliminate-staggered-calls-to-kunmap-in-nilfs_rename.patch
+     nilfs2-remove-page_address-from-nilfs_set_link.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-eliminate-staggered-calls-to-kunmap-in-nilfs_rename.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-remove-page_address-from-nilfs_set_link.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,56 +59,97 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: eliminate staggered calls to kunmap in nilfs_rename
-Date: Mon, 27 Nov 2023 23:30:21 +0900
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: nilfs2: remove page_address() from nilfs_set_link
+Date: Mon, 27 Nov 2023 23:30:22 +0900
 
-In nilfs_rename(), calls to nilfs_put_page() to release pages obtained
-with nilfs_find_entry() or nilfs_dotdot() are alternated in the normal
-path.
+In preparation for removing kmap from directory handling, use
+offset_in_page() to calculate 'from'.  Matches ext2.
 
-When replacing the kernel memory mapping method from kmap to
-kmap_local_{page,folio}, this violates the constraint on the calling order
-of kunmap_local().
-
-Swap the order of nilfs_put_page calls where the kmap sections of multiple
-pages overlap so that they are nested, allowing direct replacement of
-nilfs_put_page() -> unmap_and_put_page().
-
-Without this reordering, that replacement will cause a kernel WARNING in
-kunmap_local_indexed() on architectures with high memory mapping.
-
-Link: https://lkml.kernel.org/r/20231127143036.2425-3-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20231127143036.2425-4-konishi.ryusuke@gmail.com
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/namei.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/nilfs2/dir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/nilfs2/namei.c~nilfs2-eliminate-staggered-calls-to-kunmap-in-nilfs_rename
-+++ a/fs/nilfs2/namei.c
-@@ -411,13 +411,14 @@ static int nilfs_rename(struct mnt_idmap
- 	inode_set_ctime_current(old_inode);
- 
- 	nilfs_delete_entry(old_de, old_page);
--	nilfs_put_page(old_page);
- 
- 	if (dir_de) {
- 		nilfs_set_link(old_inode, dir_de, dir_page, new_dir);
- 		nilfs_put_page(dir_page);
- 		drop_nlink(old_dir);
- 	}
-+	nilfs_put_page(old_page);
-+
- 	nilfs_mark_inode_dirty(old_dir);
- 	nilfs_mark_inode_dirty(old_inode);
- 
+--- a/fs/nilfs2/dir.c~nilfs2-remove-page_address-from-nilfs_set_link
++++ a/fs/nilfs2/dir.c
+@@ -410,7 +410,7 @@ ino_t nilfs_inode_by_name(struct inode *
+ void nilfs_set_link(struct inode *dir, struct nilfs_dir_entry *de,
+ 		    struct page *page, struct inode *inode)
+ {
+-	unsigned int from = (char *)de - (char *)page_address(page);
++	unsigned int from = offset_in_page(de);
+ 	unsigned int to = from + nilfs_rec_len_from_disk(de->rec_len);
+ 	struct address_space *mapping = page->mapping;
+ 	int err;
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-nilfs2-move-page-release-outside-of-nilfs_delete_entry-and-nilfs_set_link.patch
-nilfs2-eliminate-staggered-calls-to-kunmap-in-nilfs_rename.patch
+mm-add-folio_zero_tail-and-use-it-in-ext4.patch
+mm-add-folio_fill_tail-and-use-it-in-iomap.patch
+gfs2-convert-stuffed_readpage-to-stuffed_read_folio.patch
+mm-remove-test_set_page_writeback.patch
+afs-do-not-test-the-return-value-of-folio_start_writeback.patch
+smb-do-not-test-the-return-value-of-folio_start_writeback.patch
+mm-return-void-from-folio_start_writeback-and-related-functions.patch
+mm-make-mapping_evict_folio-the-preferred-way-to-evict-clean-folios.patch
+mm-convert-__do_fault-to-use-a-folio.patch
+mm-use-mapping_evict_folio-in-truncate_error_page.patch
+mm-convert-soft_offline_in_use_page-to-use-a-folio.patch
+mm-convert-isolate_page-to-mf_isolate_folio.patch
+mm-remove-invalidate_inode_page.patch
+buffer-return-bool-from-grow_dev_folio.patch
+buffer-calculate-block-number-inside-folio_init_buffers.patch
+buffer-fix-grow_buffers-for-block-size-page_size.patch
+buffer-cast-block-to-loff_t-before-shifting-it.patch
+buffer-fix-various-functions-for-block-size-page_size.patch
+buffer-handle-large-folios-in-__block_write_begin_int.patch
+buffer-fix-more-functions-for-block-size-page_size.patch
+gfp-include-__gfp_nowarn-in-gfp_nowait.patch
+memory-failure-use-a-folio-in-me_pagecache_clean.patch
+memory-failure-use-a-folio-in-me_pagecache_dirty.patch
+memory-failure-convert-delete_from_lru_cache-to-take-a-folio.patch
+memory-failure-use-a-folio-in-me_huge_page.patch
+memory-failure-convert-truncate_error_page-to-truncate_error_folio.patch
+fs-convert-error_remove_page-to-error_remove_folio.patch
+nilfs2-add-nilfs_end_folio_io.patch
+nilfs2-convert-nilfs_abort_logs-to-use-folios.patch
+nilfs2-convert-nilfs_segctor_complete_write-to-use-folios.patch
+nilfs2-convert-nilfs_forget_buffer-to-use-a-folio.patch
+nilfs2-convert-to-nilfs_folio_buffers_clean.patch
+nilfs2-convert-nilfs_writepage-to-use-a-folio.patch
+nilfs2-convert-nilfs_mdt_write_page-to-use-a-folio.patch
+nilfs2-convert-to-nilfs_clear_folio_dirty.patch
+nilfs2-convert-to-__nilfs_clear_folio_dirty.patch
+nilfs2-convert-nilfs_segctor_prepare_write-to-use-folios.patch
+nilfs2-convert-nilfs_page_mkwrite-to-use-a-folio.patch
+nilfs2-convert-nilfs_mdt_create_block-to-use-a-folio.patch
+nilfs2-convert-nilfs_mdt_submit_block-to-use-a-folio.patch
+nilfs2-convert-nilfs_gccache_submit_read_data-to-use-a-folio.patch
+nilfs2-convert-nilfs_btnode_create_block-to-use-a-folio.patch
+nilfs2-convert-nilfs_btnode_submit_block-to-use-a-folio.patch
+nilfs2-convert-nilfs_btnode_delete-to-use-a-folio.patch
+nilfs2-convert-nilfs_btnode_prepare_change_key-to-use-a-folio.patch
+nilfs2-convert-nilfs_btnode_commit_change_key-to-use-a-folio.patch
+nilfs2-convert-nilfs_btnode_abort_change_key-to-use-a-folio.patch
+nilfs2-remove-page_address-from-nilfs_set_link.patch
+nilfs2-remove-page_address-from-nilfs_add_link.patch
+nilfs2-remove-page_address-from-nilfs_delete_entry.patch
+nilfs2-return-the-mapped-address-from-nilfs_get_page.patch
+nilfs2-pass-the-mapped-address-to-nilfs_check_page.patch
+nilfs2-switch-to-kmap_local-for-directory-handling.patch
+nilfs2-add-nilfs_get_folio.patch
+nilfs2-convert-nilfs_readdir-to-use-a-folio.patch
+nilfs2-convert-nilfs_find_entry-to-use-a-folio.patch
+nilfs2-convert-nilfs_rename-to-use-folios.patch
+nilfs2-convert-nilfs_add_link-to-use-a-folio.patch
+nilfs2-convert-nilfs_empty_dir-to-use-a-folio.patch
+nilfs2-convert-nilfs_make_empty-to-use-a-folio.patch
+nilfs2-convert-nilfs_prepare_chunk-and-nilfs_commit_chunk-to-folios.patch
+nilfs2-convert-nilfs_page_bug-to-nilfs_folio_bug.patch
 
