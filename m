@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B906C0755A
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Nov 2023 17:08:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50B13C07E98
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Nov 2023 17:08:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234034AbjK0RIC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Nov 2023 12:08:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42238 "EHLO
+        id S232243AbjK0RIE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Nov 2023 12:08:04 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33890 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234627AbjK0RH5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Nov 2023 12:07:57 -0500
+        with ESMTP id S234384AbjK0RID (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Nov 2023 12:08:03 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9AD5010E6
-        for <mm-commits@vger.kernel.org>; Mon, 27 Nov 2023 09:08:03 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37304C433C9;
-        Mon, 27 Nov 2023 17:08:03 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6868310D2
+        for <mm-commits@vger.kernel.org>; Mon, 27 Nov 2023 09:08:09 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05FFBC433C7;
+        Mon, 27 Nov 2023 17:08:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701104883;
-        bh=T55p+qXHKiFU4zRibk9i6qXfSyUsYYyADb6IFq6F3Ak=;
+        s=korg; t=1701104889;
+        bh=EJI06RPIIcFMQN3OLjCzWMTfa/1p32LbUW0TGlDIXV8=;
         h=Date:To:From:Subject:From;
-        b=1nYlU1ZXHw1pAZAkwMx9oyCR9YgjWUOSHYYxh7SpJ0X14E8Bb1+JpT1aq23HSzEky
-         711Cgg70KcTLVzIPKND1M2unUgnrprVfPxDxaI9ztKyyAguFDEYvYONlhLElhPso8l
-         8dbeIkZp3EnfXiGlTmpu5icCgi+XrsMJaQhar8gE=
-Date:   Mon, 27 Nov 2023 09:08:02 -0800
+        b=rtxeL8B7ENqlF//W+DYg+sR4lerrD6YLYMDK5qe/6C9OguxGXlttqX4x5NTu+WJ0i
+         dPBPxMMfbI5o9ThcR+ac4Xy70htNO6Vba8yGlDbBnHqip1peyl4g+XbaSZ+nYIvK2k
+         beU/41s93Zwm2ykJlJzIjbgjM2/zw7ywMI7oISw8=
+Date:   Mon, 27 Nov 2023 09:08:08 -0800
 To:     mm-commits@vger.kernel.org, konishi.ryusuke@gmail.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-convert-nilfs_readdir-to-use-a-folio.patch added to mm-nonmm-unstable branch
-Message-Id: <20231127170803.37304C433C9@smtp.kernel.org>
+Subject: + nilfs2-convert-nilfs_add_link-to-use-a-folio.patch added to mm-nonmm-unstable branch
+Message-Id: <20231127170809.05FFBC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: convert nilfs_readdir to use a folio
+     Subject: nilfs2: convert nilfs_add_link() to use a folio
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-convert-nilfs_readdir-to-use-a-folio.patch
+     nilfs2-convert-nilfs_add_link-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-nilfs_readdir-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-nilfs_add_link-to-use-a-folio.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,59 +60,101 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: nilfs2: convert nilfs_readdir to use a folio
-Date: Mon, 27 Nov 2023 23:30:29 +0900
+Subject: nilfs2: convert nilfs_add_link() to use a folio
+Date: Mon, 27 Nov 2023 23:30:32 +0900
 
-Use the new folio APIs to remove calls to compound_head().
+Remove six calls to compound_head() by using the folio API.
 
-Link: https://lkml.kernel.org/r/20231127143036.2425-11-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20231127143036.2425-14-konishi.ryusuke@gmail.com
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/dir.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/nilfs2/dir.c |   31 ++++++++++++++-----------------
+ 1 file changed, 14 insertions(+), 17 deletions(-)
 
---- a/fs/nilfs2/dir.c~nilfs2-convert-nilfs_readdir-to-use-a-folio
+--- a/fs/nilfs2/dir.c~nilfs2-convert-nilfs_add_link-to-use-a-folio
 +++ a/fs/nilfs2/dir.c
-@@ -284,9 +284,9 @@ static int nilfs_readdir(struct file *fi
- 	for ( ; n < npages; n++, offset = 0) {
- 		char *kaddr, *limit;
- 		struct nilfs_dir_entry *de;
--		struct page *page;
-+		struct folio *folio;
+@@ -439,30 +439,28 @@ int nilfs_add_link(struct dentry *dentry
+ 	unsigned int chunk_size = nilfs_chunk_size(dir);
+ 	unsigned int reclen = NILFS_DIR_REC_LEN(namelen);
+ 	unsigned short rec_len, name_len;
+-	struct page *page = NULL;
++	struct folio *folio = NULL;
+ 	struct nilfs_dir_entry *de;
+ 	unsigned long npages = dir_pages(dir);
+ 	unsigned long n;
+-	char *kaddr;
+-	unsigned int from, to;
++	size_t from, to;
+ 	int err;
  
--		kaddr = nilfs_get_page(inode, n, &page);
-+		kaddr = nilfs_get_folio(inode, n, &folio);
- 		if (IS_ERR(kaddr)) {
- 			nilfs_error(sb, "bad page in #%lu", inode->i_ino);
- 			ctx->pos += PAGE_SIZE - offset;
-@@ -298,7 +298,7 @@ static int nilfs_readdir(struct file *fi
- 		for ( ; (char *)de <= limit; de = nilfs_next_entry(de)) {
- 			if (de->rec_len == 0) {
- 				nilfs_error(sb, "zero-length directory entry");
--				unmap_and_put_page(page, kaddr);
-+				folio_release_kmap(folio, kaddr);
- 				return -EIO;
- 			}
- 			if (de->inode) {
-@@ -311,13 +311,13 @@ static int nilfs_readdir(struct file *fi
+ 	/*
+ 	 * We take care of directory expansion in the same loop.
+-	 * This code plays outside i_size, so it locks the page
++	 * This code plays outside i_size, so it locks the folio
+ 	 * to protect that region.
+ 	 */
+ 	for (n = 0; n <= npages; n++) {
++		char *kaddr = nilfs_get_folio(dir, n, &folio);
+ 		char *dir_end;
  
- 				if (!dir_emit(ctx, de->name, de->name_len,
- 						le64_to_cpu(de->inode), t)) {
--					unmap_and_put_page(page, kaddr);
-+					folio_release_kmap(folio, kaddr);
- 					return 0;
- 				}
- 			}
- 			ctx->pos += nilfs_rec_len_from_disk(de->rec_len);
+-		kaddr = nilfs_get_page(dir, n, &page);
+-		err = PTR_ERR(kaddr);
+ 		if (IS_ERR(kaddr))
+-			goto out;
+-		lock_page(page);
++			return PTR_ERR(kaddr);
++		folio_lock(folio);
+ 		dir_end = kaddr + nilfs_last_byte(dir, n);
+ 		de = (struct nilfs_dir_entry *)kaddr;
+-		kaddr += PAGE_SIZE - reclen;
++		kaddr += folio_size(folio) - reclen;
+ 		while ((char *)de <= kaddr) {
+ 			if ((char *)de == dir_end) {
+ 				/* We hit i_size */
+@@ -489,16 +487,16 @@ int nilfs_add_link(struct dentry *dentry
+ 				goto got_it;
+ 			de = (struct nilfs_dir_entry *)((char *)de + rec_len);
  		}
+-		unlock_page(page);
 -		unmap_and_put_page(page, kaddr);
++		folio_unlock(folio);
 +		folio_release_kmap(folio, kaddr);
  	}
- 	return 0;
+ 	BUG();
+ 	return -EINVAL;
+ 
+ got_it:
+-	from = offset_in_page(de);
++	from = offset_in_folio(folio, de);
+ 	to = from + rec_len;
+-	err = nilfs_prepare_chunk(page, from, to);
++	err = nilfs_prepare_chunk(&folio->page, from, to);
+ 	if (err)
+ 		goto out_unlock;
+ 	if (de->inode) {
+@@ -513,16 +511,15 @@ got_it:
+ 	memcpy(de->name, name, namelen);
+ 	de->inode = cpu_to_le64(inode->i_ino);
+ 	nilfs_set_de_type(de, inode);
+-	nilfs_commit_chunk(page, page->mapping, from, to);
++	nilfs_commit_chunk(&folio->page, folio->mapping, from, to);
+ 	inode_set_mtime_to_ts(dir, inode_set_ctime_current(dir));
+ 	nilfs_mark_inode_dirty(dir);
+ 	/* OFFSET_CACHE */
+ out_put:
+-	unmap_and_put_page(page, de);
+-out:
++	folio_release_kmap(folio, de);
+ 	return err;
+ out_unlock:
+-	unlock_page(page);
++	folio_unlock(folio);
+ 	goto out_put;
  }
+ 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
