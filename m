@@ -2,33 +2,36 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB960C46CA0
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Nov 2023 17:22:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5556C4167B
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Nov 2023 18:49:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229634AbjK0RWk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Nov 2023 12:22:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44358 "EHLO
+        id S230020AbjK0Stk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Nov 2023 13:49:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33508 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234564AbjK0RHp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Nov 2023 12:07:45 -0500
+        with ESMTP id S229531AbjK0Stk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Nov 2023 13:49:40 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B39510D1
-        for <mm-commits@vger.kernel.org>; Mon, 27 Nov 2023 09:07:51 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABD50C433C7;
-        Mon, 27 Nov 2023 17:07:50 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 490831A1
+        for <mm-commits@vger.kernel.org>; Mon, 27 Nov 2023 10:49:46 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5695C433C7;
+        Mon, 27 Nov 2023 18:49:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701104870;
-        bh=kQnSqnapRHpn+PPVcxUL+MVCyO52WClBmW4OMmVBoeo=;
+        s=korg; t=1701110985;
+        bh=eDD4RiFZ/2PuQHKi7IYy3i2cl6GWj12gtqEoBidSLMc=;
         h=Date:To:From:Subject:From;
-        b=2mFetfHQjHX2GFlycuZ5NIg+XDDHw75n16MT7pDCCfHg6K+V39XF7gLxP8aIfCFJM
-         TpN/yCWCZP713Y5e6NQqQdQc6rW+2S6g0wixp5KQhPhGUsYX9SNvfalS0DV0XwCuT+
-         R7uHqTIsqmsJcSnTbDRgsLJaS3ssvGlOGZdNMWqY=
-Date:   Mon, 27 Nov 2023 09:07:50 -0800
-To:     mm-commits@vger.kernel.org, konishi.ryusuke@gmail.com,
-        willy@infradead.org, akpm@linux-foundation.org
+        b=UUUVuk9bAC2ErZ84PRpy/pBdoKI7fLApWobHdLthPPwWiyNLwVGnLSJUn7/khpo4b
+         xtDW8IK/3kXua/OpZ8t86F/tInw6VQoAA8W/GKuEeZGXIG2rJhpSkrzI06JW2H2LPO
+         KlS3CKtBHKKzM441slVa5cdk9FiQbU1IS1PLxx88=
+Date:   Mon, 27 Nov 2023 10:49:45 -0800
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        qun-wei.lin@mediatek.com, oleg@redhat.com, matthias.bgg@gmail.com,
+        chinwen.chang@mediatek.com,
+        angelogioacchino.delregno@collabora.com, andreyknvl@google.com,
+        Kuan-Ying.Lee@mediatek.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-remove-page_address-from-nilfs_set_link.patch added to mm-nonmm-unstable branch
-Message-Id: <20231127170750.ABD50C433C7@smtp.kernel.org>
+Subject: + scripts-gdb-tasks-fix-lx-ps-command-error.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231127184945.D5695C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,14 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: remove page_address() from nilfs_set_link
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-remove-page_address-from-nilfs_set_link.patch
+     Subject: scripts/gdb/tasks: fix lx-ps command error
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     scripts-gdb-tasks-fix-lx-ps-command-error.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-remove-page_address-from-nilfs_set_link.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-tasks-fix-lx-ps-command-error.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,97 +62,71 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: nilfs2: remove page_address() from nilfs_set_link
-Date: Mon, 27 Nov 2023 23:30:22 +0900
+From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Subject: scripts/gdb/tasks: fix lx-ps command error
+Date: Mon, 27 Nov 2023 15:04:01 +0800
 
-In preparation for removing kmap from directory handling, use
-offset_in_page() to calculate 'from'.  Matches ext2.
+Since commit 8e1f385104ac ("kill task_struct->thread_group") remove
+the thread_group, we will encounter below issue.
 
-Link: https://lkml.kernel.org/r/20231127143036.2425-4-konishi.ryusuke@gmail.com
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+(gdb) lx-ps
+      TASK          PID    COMM
+0xffff800086503340   0   swapper/0
+Python Exception <class 'gdb.error'>: There is no member named thread_group.
+Error occurred in Python: There is no member named thread_group.
+
+We use signal->thread_head to iterate all threads instead.
+
+Link: https://lkml.kernel.org/r/20231127070404.4192-2-Kuan-Ying.Lee@mediatek.com
+Fixes: 8e1f385104ac ("kill task_struct->thread_group")
+Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
+Cc: Chinwen Chang <chinwen.chang@mediatek.com>
+Cc: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Qun-Wei Lin <qun-wei.lin@mediatek.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: <stable@vger.kernel.org>
+Cc: Andrey Konovalov <andreyknvl@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/dir.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/gdb/linux/tasks.py |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
---- a/fs/nilfs2/dir.c~nilfs2-remove-page_address-from-nilfs_set_link
-+++ a/fs/nilfs2/dir.c
-@@ -410,7 +410,7 @@ ino_t nilfs_inode_by_name(struct inode *
- void nilfs_set_link(struct inode *dir, struct nilfs_dir_entry *de,
- 		    struct page *page, struct inode *inode)
- {
--	unsigned int from = (char *)de - (char *)page_address(page);
-+	unsigned int from = offset_in_page(de);
- 	unsigned int to = from + nilfs_rec_len_from_disk(de->rec_len);
- 	struct address_space *mapping = page->mapping;
- 	int err;
+--- a/scripts/gdb/linux/tasks.py~scripts-gdb-tasks-fix-lx-ps-command-error
++++ a/scripts/gdb/linux/tasks.py
+@@ -13,7 +13,7 @@
+ 
+ import gdb
+ 
+-from linux import utils
++from linux import utils, lists
+ 
+ 
+ task_type = utils.CachedType("struct task_struct")
+@@ -25,13 +25,9 @@ def task_lists():
+     t = g = init_task
+ 
+     while True:
+-        while True:
+-            yield t
+-
+-            t = utils.container_of(t['thread_group']['next'],
+-                                   task_ptr_type, "thread_group")
+-            if t == g:
+-                break
++        thread_head = t['signal']['thread_head']
++        for thread in lists.list_for_each_entry(thread_head, task_ptr_type, 'thread_node'):
++            yield thread
+ 
+         t = g = utils.container_of(g['tasks']['next'],
+                                    task_ptr_type, "tasks")
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from Kuan-Ying.Lee@mediatek.com are
 
-mm-add-folio_zero_tail-and-use-it-in-ext4.patch
-mm-add-folio_fill_tail-and-use-it-in-iomap.patch
-gfs2-convert-stuffed_readpage-to-stuffed_read_folio.patch
-mm-remove-test_set_page_writeback.patch
-afs-do-not-test-the-return-value-of-folio_start_writeback.patch
-smb-do-not-test-the-return-value-of-folio_start_writeback.patch
-mm-return-void-from-folio_start_writeback-and-related-functions.patch
-mm-make-mapping_evict_folio-the-preferred-way-to-evict-clean-folios.patch
-mm-convert-__do_fault-to-use-a-folio.patch
-mm-use-mapping_evict_folio-in-truncate_error_page.patch
-mm-convert-soft_offline_in_use_page-to-use-a-folio.patch
-mm-convert-isolate_page-to-mf_isolate_folio.patch
-mm-remove-invalidate_inode_page.patch
-buffer-return-bool-from-grow_dev_folio.patch
-buffer-calculate-block-number-inside-folio_init_buffers.patch
-buffer-fix-grow_buffers-for-block-size-page_size.patch
-buffer-cast-block-to-loff_t-before-shifting-it.patch
-buffer-fix-various-functions-for-block-size-page_size.patch
-buffer-handle-large-folios-in-__block_write_begin_int.patch
-buffer-fix-more-functions-for-block-size-page_size.patch
-gfp-include-__gfp_nowarn-in-gfp_nowait.patch
-memory-failure-use-a-folio-in-me_pagecache_clean.patch
-memory-failure-use-a-folio-in-me_pagecache_dirty.patch
-memory-failure-convert-delete_from_lru_cache-to-take-a-folio.patch
-memory-failure-use-a-folio-in-me_huge_page.patch
-memory-failure-convert-truncate_error_page-to-truncate_error_folio.patch
-fs-convert-error_remove_page-to-error_remove_folio.patch
-nilfs2-add-nilfs_end_folio_io.patch
-nilfs2-convert-nilfs_abort_logs-to-use-folios.patch
-nilfs2-convert-nilfs_segctor_complete_write-to-use-folios.patch
-nilfs2-convert-nilfs_forget_buffer-to-use-a-folio.patch
-nilfs2-convert-to-nilfs_folio_buffers_clean.patch
-nilfs2-convert-nilfs_writepage-to-use-a-folio.patch
-nilfs2-convert-nilfs_mdt_write_page-to-use-a-folio.patch
-nilfs2-convert-to-nilfs_clear_folio_dirty.patch
-nilfs2-convert-to-__nilfs_clear_folio_dirty.patch
-nilfs2-convert-nilfs_segctor_prepare_write-to-use-folios.patch
-nilfs2-convert-nilfs_page_mkwrite-to-use-a-folio.patch
-nilfs2-convert-nilfs_mdt_create_block-to-use-a-folio.patch
-nilfs2-convert-nilfs_mdt_submit_block-to-use-a-folio.patch
-nilfs2-convert-nilfs_gccache_submit_read_data-to-use-a-folio.patch
-nilfs2-convert-nilfs_btnode_create_block-to-use-a-folio.patch
-nilfs2-convert-nilfs_btnode_submit_block-to-use-a-folio.patch
-nilfs2-convert-nilfs_btnode_delete-to-use-a-folio.patch
-nilfs2-convert-nilfs_btnode_prepare_change_key-to-use-a-folio.patch
-nilfs2-convert-nilfs_btnode_commit_change_key-to-use-a-folio.patch
-nilfs2-convert-nilfs_btnode_abort_change_key-to-use-a-folio.patch
-nilfs2-remove-page_address-from-nilfs_set_link.patch
-nilfs2-remove-page_address-from-nilfs_add_link.patch
-nilfs2-remove-page_address-from-nilfs_delete_entry.patch
-nilfs2-return-the-mapped-address-from-nilfs_get_page.patch
-nilfs2-pass-the-mapped-address-to-nilfs_check_page.patch
-nilfs2-switch-to-kmap_local-for-directory-handling.patch
-nilfs2-add-nilfs_get_folio.patch
-nilfs2-convert-nilfs_readdir-to-use-a-folio.patch
-nilfs2-convert-nilfs_find_entry-to-use-a-folio.patch
-nilfs2-convert-nilfs_rename-to-use-folios.patch
-nilfs2-convert-nilfs_add_link-to-use-a-folio.patch
-nilfs2-convert-nilfs_empty_dir-to-use-a-folio.patch
-nilfs2-convert-nilfs_make_empty-to-use-a-folio.patch
-nilfs2-convert-nilfs_prepare_chunk-and-nilfs_commit_chunk-to-folios.patch
-nilfs2-convert-nilfs_page_bug-to-nilfs_folio_bug.patch
+scripts-gdb-tasks-fix-lx-ps-command-error.patch
+scripts-gdb-stackdepot-rename-pool_index_cached-to-pools_num.patch
+scripts-gdb-remove-exception-handling-and-refine-print-format.patch
 
