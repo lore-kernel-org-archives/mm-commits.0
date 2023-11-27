@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 901B4C4167B
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Nov 2023 19:51:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCB44C4167B
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Nov 2023 20:31:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231830AbjK0TvJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Nov 2023 14:51:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34580 "EHLO
+        id S233633AbjK0Uaw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Nov 2023 15:30:52 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46200 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232732AbjK0TvH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Nov 2023 14:51:07 -0500
+        with ESMTP id S233778AbjK0Uaf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Nov 2023 15:30:35 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF2A31B6
-        for <mm-commits@vger.kernel.org>; Mon, 27 Nov 2023 11:51:12 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68338C433C7;
-        Mon, 27 Nov 2023 19:51:12 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 21A88D6D
+        for <mm-commits@vger.kernel.org>; Mon, 27 Nov 2023 12:29:27 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A92E8C433C9;
+        Mon, 27 Nov 2023 20:29:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701114672;
-        bh=URQSBqKP8BnOL/9w2pt/xvThUFuxdwzA0EYjE/yjQII=;
+        s=korg; t=1701116966;
+        bh=yTB7rj7OoYk1syfVEW/BOhqKH8fDw5ilzNfl2J/6hiU=;
         h=Date:To:From:Subject:From;
-        b=0somvN2JKkWOzIp1wf6CP78Xr49QYz8zhmQ81AoSDT08c7V4guK6PrDjVmRhtHYFk
-         uy9Ek9PBihZMomNIhaE4uyWhs6jETikB+rf9ttdWewNpEoQYCx8/Zg7xOBxb+Tbi5P
-         JwZHWsYAaYnlNdi+YwqVFXS7c0sDOpuj6NcuRoK4=
-Date:   Mon, 27 Nov 2023 11:51:11 -0800
-To:     mm-commits@vger.kernel.org, catalin.marinas@arm.com,
-        longman@redhat.com, akpm@linux-foundation.org
+        b=j/3mrwZl/SWr7dy4jJ9Mc/OZurptTqyZwUoowyRS/+d3neHIYVYvkl+g0peNMpyMp
+         4HifR2pZC9EttxJlal9U+GLBrK6DXe87zqaa9rRcHzZWCwCIWvbQLvaR8ej06uDOXE
+         yag0mUy+cPhzG2OVeV7h1Or7s7wo0rkWiewyiZUk=
+Date:   Mon, 27 Nov 2023 12:29:25 -0800
+To:     mm-commits@vger.kernel.org, sj@kernel.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmemleak-add-cond_resched-to-kmemleak_free_percpu.patch added to mm-unstable branch
-Message-Id: <20231127195112.68338C433C7@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-add-timeout-for-update_schemes_tried_regions.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231127202926.A92E8C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,14 +36,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/kmemleak: add cond_resched() to kmemleak_free_percpu()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-kmemleak-add-cond_resched-to-kmemleak_free_percpu.patch
+     Subject: mm/damon/sysfs-schemes: add timeout for update_schemes_tried_regions
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-sysfs-schemes-add-timeout-for-update_schemes_tried_regions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-add-cond_resched-to-kmemleak_free_percpu.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-add-timeout-for-update_schemes_tried_regions.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,146 +59,120 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: mm/kmemleak: add cond_resched() to kmemleak_free_percpu()
-Date: Mon, 27 Nov 2023 14:41:53 -0500
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs-schemes: add timeout for update_schemes_tried_regions
+Date: Fri, 24 Nov 2023 21:38:40 +0000
 
-It was found that on systems with large number of CPUs, the following soft
-lockup splat might sometimes happen:
+If a scheme is set to not applied to any monitoring target region for any
+reasons including the target access pattern, quota, filters, or
+watermarks, writing 'update_schemes_tried_regions' to 'state' DAMON sysfs
+file can indefinitely hang.  Fix the case by implementing a timeout for
+the operation.  The time limit is two apply intervals of each scheme.
 
-[ 2656.001617] watchdog: BUG: soft lockup - CPU#364 stuck for 21s! [ksoftirqd/364:2206]
-  :
-[ 2656.141194] RIP: 0010:_raw_spin_unlock_irqrestore+0x3d/0x70
-  :
- 2656.241214] Call Trace:
-[ 2656.243971]  <IRQ>
-[ 2656.246237]  ? show_trace_log_lvl+0x1c4/0x2df
-[ 2656.251152]  ? show_trace_log_lvl+0x1c4/0x2df
-[ 2656.256066]  ? kmemleak_free_percpu+0x11f/0x1f0
-[ 2656.261173]  ? watchdog_timer_fn+0x379/0x470
-[ 2656.265984]  ? __pfx_watchdog_timer_fn+0x10/0x10
-[ 2656.271179]  ? __hrtimer_run_queues+0x5f3/0xd00
-[ 2656.276283]  ? __pfx___hrtimer_run_queues+0x10/0x10
-[ 2656.281783]  ? ktime_get_update_offsets_now+0x95/0x2c0
-[ 2656.287573]  ? ktime_get_update_offsets_now+0xdd/0x2c0
-[ 2656.293380]  ? hrtimer_interrupt+0x2e9/0x780
-[ 2656.298221]  ? __sysvec_apic_timer_interrupt+0x184/0x640
-[ 2656.304211]  ? sysvec_apic_timer_interrupt+0x8e/0xc0
-[ 2656.309807]  </IRQ>
-[ 2656.312169]  <TASK>
-[ 2656.326110]  kmemleak_free_percpu+0x11f/0x1f0
-[ 2656.331015]  free_percpu.part.0+0x1b/0xe70
-[ 2656.335635]  free_vfsmnt+0xb9/0x100
-[ 2656.339567]  rcu_do_batch+0x3c8/0xe30
-[ 2656.363693]  rcu_core+0x3de/0x5a0
-[ 2656.367433]  __do_softirq+0x2d0/0x9a8
-[ 2656.381119]  run_ksoftirqd+0x36/0x60
-[ 2656.385145]  smpboot_thread_fn+0x556/0x910
-[ 2656.394971]  kthread+0x2a4/0x350
-[ 2656.402826]  ret_from_fork+0x29/0x50
-[ 2656.406861]  </TASK>
-
-Fix this by adding a cond_resched() call in the percpu freeing loop
-and defer the freeing of percpu kmemleak objects to a workqueue if it
-is being called from a non-task context.
-
-Link: https://lkml.kernel.org/r/20231127194153.289626-1-longman@redhat.com
-Signed-off-by: Waiman Long <longman@redhat.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Link: https://lkml.kernel.org/r/20231124213840.39157-1-sj@kernel.org
+Fixes: 4d4e41b68299 ("mm/damon/sysfs-schemes: do not update tried regions more than one DAMON snapshot")
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |   59 ++++++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 52 insertions(+), 7 deletions(-)
+ mm/damon/sysfs-schemes.c |   49 ++++++++++++++++++++++++++++++++-----
+ 1 file changed, 43 insertions(+), 6 deletions(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-add-cond_resched-to-kmemleak_free_percpu
-+++ a/mm/kmemleak.c
-@@ -168,6 +168,14 @@ struct kmemleak_object {
- 	char comm[TASK_COMM_LEN];	/* executable name */
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-add-timeout-for-update_schemes_tried_regions
++++ a/mm/damon/sysfs-schemes.c
+@@ -139,6 +139,13 @@ static const struct kobj_type damon_sysf
+  * damon_sysfs_before_damos_apply() understands the situation by showing the
+  * 'finished' status and do nothing.
+  *
++ * If DAMOS is not applied to any region due to any reasons including the
++ * access pattern, the watermarks, the quotas, and the filters,
++ * ->before_damos_apply() will not be called back.  Until the situation is
++ * changed, the update will not be finished.  To avoid this,
++ * damon_sysfs_after_sampling() set the status as 'finished' if more than two
++ * apply intervals of the scheme is passed while the state is 'idle'.
++ *
+  *  Finally, the tried regions request handling finisher function
+  *  (damon_sysfs_schemes_update_regions_stop()) unregisters the callbacks.
+  */
+@@ -154,6 +161,7 @@ struct damon_sysfs_scheme_regions {
+ 	int nr_regions;
+ 	unsigned long total_bytes;
+ 	enum damos_sysfs_regions_upd_status upd_status;
++	unsigned long upd_timeout_jiffies;
  };
  
-+/*
-+ * A percpu address to be submitted to a workqueue for being freed.
-+ */
-+struct kmemleak_percpu_addr {
-+	struct work_struct work;
-+	const void __percpu *ptr;
-+};
-+
- /* flag representing the memory block allocation status */
- #define OBJECT_ALLOCATED	(1 << 0)
- /* flag set after the first reporting of an unreference object */
-@@ -1120,23 +1128,60 @@ void __ref kmemleak_free_part(const void
+ static struct damon_sysfs_scheme_regions *
+@@ -1854,7 +1862,9 @@ static int damon_sysfs_after_sampling(st
+ 	for (i = 0; i < sysfs_schemes->nr; i++) {
+ 		sysfs_regions = sysfs_schemes->schemes_arr[i]->tried_regions;
+ 		if (sysfs_regions->upd_status ==
+-				DAMOS_TRIED_REGIONS_UPD_STARTED)
++				DAMOS_TRIED_REGIONS_UPD_STARTED ||
++				time_after(jiffies,
++					sysfs_regions->upd_timeout_jiffies))
+ 			sysfs_regions->upd_status =
+ 				DAMOS_TRIED_REGIONS_UPD_FINISHED;
+ 	}
+@@ -1885,14 +1895,41 @@ int damon_sysfs_schemes_clear_regions(
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(kmemleak_free_part);
  
-+static void __kmemleak_free_percpu(const void __percpu *ptr)
++static struct damos *damos_sysfs_nth_scheme(int n, struct damon_ctx *ctx)
 +{
-+	unsigned int cpu;
++	struct damos *scheme;
++	int i = 0;
 +
-+	for_each_possible_cpu(cpu) {
-+		delete_object_full((unsigned long)per_cpu_ptr(ptr, cpu));
-+		if (in_task())
-+			cond_resched();
++	damon_for_each_scheme(scheme, ctx) {
++		if (i == n)
++			return scheme;
++		i++;
 +	}
++	return NULL;
 +}
 +
-+/*
-+ * Work function for deferred freeing of kmemleak objects associated with
-+ * a freed percpu memory block.
-+ */
-+static void kmemleak_free_percpu_workfn(struct work_struct *work)
-+{
-+	struct kmemleak_percpu_addr *addr;
-+
-+	addr = container_of(work, struct kmemleak_percpu_addr, work);
-+	__kmemleak_free_percpu(addr->ptr);
-+	kfree(addr);
-+}
-+
- /**
-  * kmemleak_free_percpu - unregister a previously registered __percpu object
-  * @ptr:	__percpu pointer to beginning of the object
-  *
-  * This function is called from the kernel percpu allocator when an object
-- * (memory block) is freed (free_percpu).
-+ * (memory block) is freed (free_percpu). Since this function is inherently
-+ * slow especially on systems with a large number of CPUs, defer the actual
-+ * removal of kmemleak objects associated with the percpu pointer to a
-+ * workqueue if it is not in a task context.
-  */
- void __ref kmemleak_free_percpu(const void __percpu *ptr)
+ static void damos_tried_regions_init_upd_status(
+-		struct damon_sysfs_schemes *sysfs_schemes)
++		struct damon_sysfs_schemes *sysfs_schemes,
++		struct damon_ctx *ctx)
  {
--	unsigned int cpu;
--
- 	pr_debug("%s(0x%px)\n", __func__, ptr);
+ 	int i;
++	struct damos *scheme;
++	struct damon_sysfs_scheme_regions *sysfs_regions;
  
--	if (kmemleak_free_enabled && ptr && !IS_ERR(ptr))
--		for_each_possible_cpu(cpu)
--			delete_object_full((unsigned long)per_cpu_ptr(ptr,
--								      cpu));
-+	if (!kmemleak_free_enabled || !ptr || IS_ERR(ptr))
-+		return;
-+
-+	if (!in_task()) {
-+		struct kmemleak_percpu_addr *addr;
-+
-+		addr = kzalloc(sizeof(*addr), GFP_ATOMIC);
-+		if (addr) {
-+			INIT_WORK(&addr->work, kmemleak_free_percpu_workfn);
-+			addr->ptr = ptr;
-+			queue_work(system_long_wq, &addr->work);
-+			return;
+-	for (i = 0; i < sysfs_schemes->nr; i++)
+-		sysfs_schemes->schemes_arr[i]->tried_regions->upd_status =
+-			DAMOS_TRIED_REGIONS_UPD_IDLE;
++	for (i = 0; i < sysfs_schemes->nr; i++) {
++		sysfs_regions = sysfs_schemes->schemes_arr[i]->tried_regions;
++		scheme = damos_sysfs_nth_scheme(i, ctx);
++		if (!scheme) {
++			sysfs_regions->upd_status =
++				DAMOS_TRIED_REGIONS_UPD_FINISHED;
++			continue;
 +		}
-+		/* Fallback to do direct deletion */
++		sysfs_regions->upd_status = DAMOS_TRIED_REGIONS_UPD_IDLE;
++		sysfs_regions->upd_timeout_jiffies = jiffies +
++			2 * usecs_to_jiffies(scheme->apply_interval_us ?
++					scheme->apply_interval_us :
++					ctx->attrs.sample_interval);
 +	}
-+	__kmemleak_free_percpu(ptr);
  }
- EXPORT_SYMBOL_GPL(kmemleak_free_percpu);
  
+ /* Called from damon_sysfs_cmd_request_callback under damon_sysfs_lock */
+@@ -1902,7 +1939,7 @@ int damon_sysfs_schemes_update_regions_s
+ {
+ 	damon_sysfs_schemes_clear_regions(sysfs_schemes, ctx);
+ 	damon_sysfs_schemes_for_damos_callback = sysfs_schemes;
+-	damos_tried_regions_init_upd_status(sysfs_schemes);
++	damos_tried_regions_init_upd_status(sysfs_schemes, ctx);
+ 	damos_regions_upd_total_bytes_only = total_bytes_only;
+ 	ctx->callback.before_damos_apply = damon_sysfs_before_damos_apply;
+ 	ctx->callback.after_sampling = damon_sysfs_after_sampling;
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-kmemleak-add-cond_resched-to-kmemleak_free_percpu.patch
+mm-damon-core-copy-nr_accesses-when-splitting-region.patch
+mm-damon-sysfs-schemes-add-timeout-for-update_schemes_tried_regions.patch
+mm-damon-core-test-test-damon_split_region_ats-access-rate-copying.patch
 
