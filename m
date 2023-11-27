@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71F0CC07D5A
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Nov 2023 17:09:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7FB5C46CA0
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Nov 2023 17:09:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234627AbjK0RJL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Nov 2023 12:09:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56944 "EHLO
+        id S234631AbjK0RJN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 27 Nov 2023 12:09:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56482 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234794AbjK0RI7 (ORCPT
+        with ESMTP id S234803AbjK0RI7 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Nov 2023 12:08:59 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE8C485
-        for <mm-commits@vger.kernel.org>; Mon, 27 Nov 2023 09:08:12 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74682C433CB;
-        Mon, 27 Nov 2023 17:08:12 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5003E1A7
+        for <mm-commits@vger.kernel.org>; Mon, 27 Nov 2023 09:08:16 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E05F6C433C7;
+        Mon, 27 Nov 2023 17:08:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701104892;
-        bh=AlJSsnrOQy8IE/LJQX5NLVkHrHTaHVP43v5K0I9Gf8g=;
+        s=korg; t=1701104896;
+        bh=CxeEmnh24kibTts3q+VT0pW2logVwBXNcbRsLp5UO/o=;
         h=Date:To:From:Subject:From;
-        b=FkRm0Hrt9jaBZO+kGLSF21VbefcBhER+KvRviErUhNyUNjpk8WOq8MaMGHUFaxKG9
-         sY0P1MFB9R92a/MfoTSebocm4xFuo4S8UUFpwHeWCB+40xqfURlFOucW/bNwly4tW7
-         ZnE3Pahs8McTTCmk+w8gRJqK8hOpv+WeHjWABVtM=
-Date:   Mon, 27 Nov 2023 09:08:11 -0800
+        b=R1WJGsuyANdp5n7bpaWrHFkF1xa1VjsO55egW/FilwzTmTyhkoo4pW4/gmUIaD7F+
+         hSl0B9Pw0DDgBUK3aRsz0MqUM+bc7jkqgrG0QsCwqV0ou/jeZNF6lKJzO6EkVJ6M6a
+         OwEZTpjYWkfezUnFrhHFAIvWYeMta+obSX6ypbVg=
+Date:   Mon, 27 Nov 2023 09:08:15 -0800
 To:     mm-commits@vger.kernel.org, konishi.ryusuke@gmail.com,
         willy@infradead.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-convert-nilfs_make_empty-to-use-a-folio.patch added to mm-nonmm-unstable branch
-Message-Id: <20231127170812.74682C433CB@smtp.kernel.org>
+Subject: + nilfs2-convert-nilfs_page_bug-to-nilfs_folio_bug.patch added to mm-nonmm-unstable branch
+Message-Id: <20231127170815.E05F6C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: convert nilfs_make_empty() to use a folio
+     Subject: nilfs2: convert nilfs_page_bug() to nilfs_folio_bug()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-convert-nilfs_make_empty-to-use-a-folio.patch
+     nilfs2-convert-nilfs_page_bug-to-nilfs_folio_bug.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-nilfs_make_empty-to-use-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-nilfs_page_bug-to-nilfs_folio_bug.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,65 +60,124 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: nilfs2: convert nilfs_make_empty() to use a folio
-Date: Mon, 27 Nov 2023 23:30:34 +0900
+Subject: nilfs2: convert nilfs_page_bug() to nilfs_folio_bug()
+Date: Mon, 27 Nov 2023 23:30:36 +0900
 
-Remove two calls to compound_head() and switch from kmap_atomic to
-kmap_local.
+All callers have a folio now, so convert it.
 
-Link: https://lkml.kernel.org/r/20231127143036.2425-16-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20231127143036.2425-18-konishi.ryusuke@gmail.com
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/dir.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ fs/nilfs2/btnode.c |    4 ++--
+ fs/nilfs2/page.c   |   25 +++++++++++++------------
+ fs/nilfs2/page.h   |    6 +++---
+ 3 files changed, 18 insertions(+), 17 deletions(-)
 
---- a/fs/nilfs2/dir.c~nilfs2-convert-nilfs_make_empty-to-use-a-folio
-+++ a/fs/nilfs2/dir.c
-@@ -559,21 +559,21 @@ out:
- int nilfs_make_empty(struct inode *inode, struct inode *parent)
- {
- 	struct address_space *mapping = inode->i_mapping;
--	struct page *page = grab_cache_page(mapping, 0);
-+	struct folio *folio = filemap_grab_folio(mapping, 0);
- 	unsigned int chunk_size = nilfs_chunk_size(inode);
- 	struct nilfs_dir_entry *de;
- 	int err;
- 	void *kaddr;
- 
--	if (!page)
--		return -ENOMEM;
-+	if (IS_ERR(folio))
-+		return PTR_ERR(folio);
- 
--	err = nilfs_prepare_chunk(page, 0, chunk_size);
-+	err = nilfs_prepare_chunk(&folio->page, 0, chunk_size);
- 	if (unlikely(err)) {
--		unlock_page(page);
-+		folio_unlock(folio);
- 		goto fail;
- 	}
--	kaddr = kmap_atomic(page);
-+	kaddr = kmap_local_folio(folio, 0);
- 	memset(kaddr, 0, chunk_size);
- 	de = (struct nilfs_dir_entry *)kaddr;
- 	de->name_len = 1;
-@@ -588,10 +588,10 @@ int nilfs_make_empty(struct inode *inode
- 	de->inode = cpu_to_le64(parent->i_ino);
- 	memcpy(de->name, "..\0", 4);
- 	nilfs_set_de_type(de, inode);
--	kunmap_atomic(kaddr);
--	nilfs_commit_chunk(page, mapping, 0, chunk_size);
-+	kunmap_local(kaddr);
-+	nilfs_commit_chunk(&folio->page, mapping, 0, chunk_size);
- fail:
--	put_page(page);
-+	folio_put(folio);
- 	return err;
+--- a/fs/nilfs2/btnode.c~nilfs2-convert-nilfs_page_bug-to-nilfs_folio_bug
++++ a/fs/nilfs2/btnode.c
+@@ -190,7 +190,7 @@ int nilfs_btnode_prepare_change_key(stru
+ retry:
+ 		/* BUG_ON(oldkey != obh->b_folio->index); */
+ 		if (unlikely(oldkey != ofolio->index))
+-			NILFS_PAGE_BUG(&ofolio->page,
++			NILFS_FOLIO_BUG(ofolio,
+ 				       "invalid oldkey %lld (newkey=%lld)",
+ 				       (unsigned long long)oldkey,
+ 				       (unsigned long long)newkey);
+@@ -246,7 +246,7 @@ void nilfs_btnode_commit_change_key(stru
+ 	if (nbh == NULL) {	/* blocksize == pagesize */
+ 		ofolio = obh->b_folio;
+ 		if (unlikely(oldkey != ofolio->index))
+-			NILFS_PAGE_BUG(&ofolio->page,
++			NILFS_FOLIO_BUG(ofolio,
+ 				       "invalid oldkey %lld (newkey=%lld)",
+ 				       (unsigned long long)oldkey,
+ 				       (unsigned long long)newkey);
+--- a/fs/nilfs2/page.c~nilfs2-convert-nilfs_page_bug-to-nilfs_folio_bug
++++ a/fs/nilfs2/page.c
+@@ -150,29 +150,30 @@ bool nilfs_folio_buffers_clean(struct fo
+ 	return true;
  }
  
+-void nilfs_page_bug(struct page *page)
++void nilfs_folio_bug(struct folio *folio)
+ {
++	struct buffer_head *bh, *head;
+ 	struct address_space *m;
+ 	unsigned long ino;
+ 
+-	if (unlikely(!page)) {
+-		printk(KERN_CRIT "NILFS_PAGE_BUG(NULL)\n");
++	if (unlikely(!folio)) {
++		printk(KERN_CRIT "NILFS_FOLIO_BUG(NULL)\n");
+ 		return;
+ 	}
+ 
+-	m = page->mapping;
++	m = folio->mapping;
+ 	ino = m ? m->host->i_ino : 0;
+ 
+-	printk(KERN_CRIT "NILFS_PAGE_BUG(%p): cnt=%d index#=%llu flags=0x%lx "
++	printk(KERN_CRIT "NILFS_FOLIO_BUG(%p): cnt=%d index#=%llu flags=0x%lx "
+ 	       "mapping=%p ino=%lu\n",
+-	       page, page_ref_count(page),
+-	       (unsigned long long)page->index, page->flags, m, ino);
++	       folio, folio_ref_count(folio),
++	       (unsigned long long)folio->index, folio->flags, m, ino);
+ 
+-	if (page_has_buffers(page)) {
+-		struct buffer_head *bh, *head;
++	head = folio_buffers(folio);
++	if (head) {
+ 		int i = 0;
+ 
+-		bh = head = page_buffers(page);
++		bh = head;
+ 		do {
+ 			printk(KERN_CRIT
+ 			       " BH[%d] %p: cnt=%d block#=%llu state=0x%lx\n",
+@@ -258,7 +259,7 @@ repeat:
+ 
+ 		folio_lock(folio);
+ 		if (unlikely(!folio_test_dirty(folio)))
+-			NILFS_PAGE_BUG(&folio->page, "inconsistent dirty state");
++			NILFS_FOLIO_BUG(folio, "inconsistent dirty state");
+ 
+ 		dfolio = filemap_grab_folio(dmap, folio->index);
+ 		if (unlikely(IS_ERR(dfolio))) {
+@@ -268,7 +269,7 @@ repeat:
+ 			break;
+ 		}
+ 		if (unlikely(!folio_buffers(folio)))
+-			NILFS_PAGE_BUG(&folio->page,
++			NILFS_FOLIO_BUG(folio,
+ 				       "found empty page in dat page cache");
+ 
+ 		nilfs_copy_folio(dfolio, folio, true);
+--- a/fs/nilfs2/page.h~nilfs2-convert-nilfs_page_bug-to-nilfs_folio_bug
++++ a/fs/nilfs2/page.h
+@@ -37,7 +37,7 @@ struct buffer_head *nilfs_grab_buffer(st
+ void nilfs_forget_buffer(struct buffer_head *);
+ void nilfs_copy_buffer(struct buffer_head *, struct buffer_head *);
+ bool nilfs_folio_buffers_clean(struct folio *);
+-void nilfs_page_bug(struct page *);
++void nilfs_folio_bug(struct folio *);
+ 
+ int nilfs_copy_dirty_pages(struct address_space *, struct address_space *);
+ void nilfs_copy_back_pages(struct address_space *, struct address_space *);
+@@ -49,7 +49,7 @@ unsigned long nilfs_find_uncommitted_ext
+ 					    sector_t start_blk,
+ 					    sector_t *blkoff);
+ 
+-#define NILFS_PAGE_BUG(page, m, a...) \
+-	do { nilfs_page_bug(page); BUG(); } while (0)
++#define NILFS_FOLIO_BUG(folio, m, a...) \
++	do { nilfs_folio_bug(folio); BUG(); } while (0)
+ 
+ #endif /* _NILFS_PAGE_H */
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
