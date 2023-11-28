@@ -2,111 +2,186 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06FD8C4167B
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Nov 2023 21:01:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9375CC07E97
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Nov 2023 23:43:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229531AbjK0VBB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 27 Nov 2023 16:01:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46210 "EHLO
+        id S229526AbjK1XnK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Nov 2023 18:43:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43492 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231928AbjK0VA7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 27 Nov 2023 16:00:59 -0500
+        with ESMTP id S229970AbjK1XnK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Nov 2023 18:43:10 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 120F1191
-        for <mm-commits@vger.kernel.org>; Mon, 27 Nov 2023 13:01:05 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C46CC433B8;
-        Mon, 27 Nov 2023 21:01:04 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 649C9172E
+        for <mm-commits@vger.kernel.org>; Tue, 28 Nov 2023 15:43:16 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5B59C433C7;
+        Tue, 28 Nov 2023 23:43:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701118864;
-        bh=bvba14KlPnmOvPRGAIlDKpivBPBHShXgp3C4FZgZ66E=;
+        s=korg; t=1701214995;
+        bh=+GwPPZeYk7QbWLg2d4d0BJ+8zn12wxU1HbGBizOLcV8=;
         h=Date:To:From:Subject:From;
-        b=RTsA2bj/kb06tQ+mThuKwrgfD2Lxibzh64UyBfyILruCaHr1FnuiPxLL7Fj7XL6yZ
-         xPqQwriSVooOWkwUuix0EZHT7bwo1aoS+zcbLHjgJRFGPbg1y3UA9BXaoDNxA2R3/8
-         mDI76+D7ojlFWk9K5rocQuE3se0pOpr7jJRMNKOw=
-Date:   Mon, 27 Nov 2023 13:01:04 -0800
-To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
-        vitaly.wool@konsulko.com, sjenning@redhat.com, shuah@kernel.org,
-        shakeelb@google.com, roman.gushchin@linux.dev, nphamcs@gmail.com,
-        muchun.song@linux.dev, mhocko@kernel.org, hannes@cmpxchg.org,
-        ddstreet@ieee.org, chrisl@kernel.org, cerasuolodomenico@gmail.com,
-        akpm@linux-foundation.org, akpm@linux-foundation.org
+        b=NUSlA4M+OYf1Le3wMGqMo2iTFvT9eh7Z30N/3uZaqxsr8Be4suPrFGFpaYpQZxERN
+         lVzPX6G9zz4zIW7b79AI63jNIiuoUgCedCrMJwOusGA43bdTcWsAfZDeY19vJ4pH+c
+         VMQF7yRR/5VHwEs84p6feOAgJNRrQDOUIxTnbxqI=
+Date:   Tue, 28 Nov 2023 15:43:15 -0800
+To:     mm-commits@vger.kernel.org, catalin.marinas@arm.com,
+        longman@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zswap-shrinks-zswap-pool-based-on-memory-pressure-fix.patch added to mm-unstable branch
-Message-Id: <20231127210104.9C46CC433B8@smtp.kernel.org>
+Subject: [to-be-updated] mm-kmemleak-add-cond_resched-to-kmemleak_free_percpu.patch removed from -mm tree
+Message-Id: <20231128234315.D5B59C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: zswap-shrinks-zswap-pool-based-on-memory-pressure-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     zswap-shrinks-zswap-pool-based-on-memory-pressure-fix.patch
+The quilt patch titled
+     Subject: mm/kmemleak: add cond_resched() to kmemleak_free_percpu()
+has been removed from the -mm tree.  Its filename was
+     mm-kmemleak-add-cond_resched-to-kmemleak_free_percpu.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zswap-shrinks-zswap-pool-based-on-memory-pressure-fix.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: zswap-shrinks-zswap-pool-based-on-memory-pressure-fix
-Date: Mon Nov 27 12:52:45 PM PST 2023
+From: Waiman Long <longman@redhat.com>
+Subject: mm/kmemleak: add cond_resched() to kmemleak_free_percpu()
+Date: Mon, 27 Nov 2023 14:41:53 -0500
 
-fix CONFIG_ZSWAP=n build
+It was found that on systems with large number of CPUs, the following soft
+lockup splat might sometimes happen:
 
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+[ 2656.001617] watchdog: BUG: soft lockup - CPU#364 stuck for 21s! [ksoftirqd/364:2206]
+  :
+[ 2656.141194] RIP: 0010:_raw_spin_unlock_irqrestore+0x3d/0x70
+  :
+ 2656.241214] Call Trace:
+[ 2656.243971]  <IRQ>
+[ 2656.246237]  ? show_trace_log_lvl+0x1c4/0x2df
+[ 2656.251152]  ? show_trace_log_lvl+0x1c4/0x2df
+[ 2656.256066]  ? kmemleak_free_percpu+0x11f/0x1f0
+[ 2656.261173]  ? watchdog_timer_fn+0x379/0x470
+[ 2656.265984]  ? __pfx_watchdog_timer_fn+0x10/0x10
+[ 2656.271179]  ? __hrtimer_run_queues+0x5f3/0xd00
+[ 2656.276283]  ? __pfx___hrtimer_run_queues+0x10/0x10
+[ 2656.281783]  ? ktime_get_update_offsets_now+0x95/0x2c0
+[ 2656.287573]  ? ktime_get_update_offsets_now+0xdd/0x2c0
+[ 2656.293380]  ? hrtimer_interrupt+0x2e9/0x780
+[ 2656.298221]  ? __sysvec_apic_timer_interrupt+0x184/0x640
+[ 2656.304211]  ? sysvec_apic_timer_interrupt+0x8e/0xc0
+[ 2656.309807]  </IRQ>
+[ 2656.312169]  <TASK>
+[ 2656.326110]  kmemleak_free_percpu+0x11f/0x1f0
+[ 2656.331015]  free_percpu.part.0+0x1b/0xe70
+[ 2656.335635]  free_vfsmnt+0xb9/0x100
+[ 2656.339567]  rcu_do_batch+0x3c8/0xe30
+[ 2656.363693]  rcu_core+0x3de/0x5a0
+[ 2656.367433]  __do_softirq+0x2d0/0x9a8
+[ 2656.381119]  run_ksoftirqd+0x36/0x60
+[ 2656.385145]  smpboot_thread_fn+0x556/0x910
+[ 2656.394971]  kthread+0x2a4/0x350
+[ 2656.402826]  ret_from_fork+0x29/0x50
+[ 2656.406861]  </TASK>
+
+Fix this by adding a cond_resched() call in the percpu freeing loop
+and defer the freeing of percpu kmemleak objects to a workqueue if it
+is being called from a non-task context.
+
+Link: https://lkml.kernel.org/r/20231127194153.289626-1-longman@redhat.com
+Signed-off-by: Waiman Long <longman@redhat.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/zswap.h |    1 +
- 1 file changed, 1 insertion(+)
+ mm/kmemleak.c |   59 ++++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 52 insertions(+), 7 deletions(-)
 
---- a/include/linux/zswap.h~zswap-shrinks-zswap-pool-based-on-memory-pressure-fix
-+++ a/include/linux/zswap.h
-@@ -54,6 +54,7 @@ static inline void zswap_swapon(int type
- static inline void zswap_swapoff(int type) {}
- static inline void zswap_memcg_offline_cleanup(struct mem_cgroup *memcg) {}
- static inline void zswap_lruvec_init(struct lruvec *lruvec) {}
-+static inline void zswap_lruvec_state_init(struct lruvec *lruvec) {}
- static inline void zswap_lruvec_swapin(struct page *page) {}
- #endif
+--- a/mm/kmemleak.c~mm-kmemleak-add-cond_resched-to-kmemleak_free_percpu
++++ a/mm/kmemleak.c
+@@ -168,6 +168,14 @@ struct kmemleak_object {
+ 	char comm[TASK_COMM_LEN];	/* executable name */
+ };
+ 
++/*
++ * A percpu address to be submitted to a workqueue for being freed.
++ */
++struct kmemleak_percpu_addr {
++	struct work_struct work;
++	const void __percpu *ptr;
++};
++
+ /* flag representing the memory block allocation status */
+ #define OBJECT_ALLOCATED	(1 << 0)
+ /* flag set after the first reporting of an unreference object */
+@@ -1120,23 +1128,60 @@ void __ref kmemleak_free_part(const void
+ }
+ EXPORT_SYMBOL_GPL(kmemleak_free_part);
+ 
++static void __kmemleak_free_percpu(const void __percpu *ptr)
++{
++	unsigned int cpu;
++
++	for_each_possible_cpu(cpu) {
++		delete_object_full((unsigned long)per_cpu_ptr(ptr, cpu));
++		if (in_task())
++			cond_resched();
++	}
++}
++
++/*
++ * Work function for deferred freeing of kmemleak objects associated with
++ * a freed percpu memory block.
++ */
++static void kmemleak_free_percpu_workfn(struct work_struct *work)
++{
++	struct kmemleak_percpu_addr *addr;
++
++	addr = container_of(work, struct kmemleak_percpu_addr, work);
++	__kmemleak_free_percpu(addr->ptr);
++	kfree(addr);
++}
++
+ /**
+  * kmemleak_free_percpu - unregister a previously registered __percpu object
+  * @ptr:	__percpu pointer to beginning of the object
+  *
+  * This function is called from the kernel percpu allocator when an object
+- * (memory block) is freed (free_percpu).
++ * (memory block) is freed (free_percpu). Since this function is inherently
++ * slow especially on systems with a large number of CPUs, defer the actual
++ * removal of kmemleak objects associated with the percpu pointer to a
++ * workqueue if it is not in a task context.
+  */
+ void __ref kmemleak_free_percpu(const void __percpu *ptr)
+ {
+-	unsigned int cpu;
+-
+ 	pr_debug("%s(0x%px)\n", __func__, ptr);
+ 
+-	if (kmemleak_free_enabled && ptr && !IS_ERR(ptr))
+-		for_each_possible_cpu(cpu)
+-			delete_object_full((unsigned long)per_cpu_ptr(ptr,
+-								      cpu));
++	if (!kmemleak_free_enabled || !ptr || IS_ERR(ptr))
++		return;
++
++	if (!in_task()) {
++		struct kmemleak_percpu_addr *addr;
++
++		addr = kzalloc(sizeof(*addr), GFP_ATOMIC);
++		if (addr) {
++			INIT_WORK(&addr->work, kmemleak_free_percpu_workfn);
++			addr->ptr = ptr;
++			queue_work(system_long_wq, &addr->work);
++			return;
++		}
++		/* Fallback to do direct deletion */
++	}
++	__kmemleak_free_percpu(ptr);
+ }
+ EXPORT_SYMBOL_GPL(kmemleak_free_percpu);
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from longman@redhat.com are
 
-maintainers-add-andrew-morton-for-lib.patch
-mm-memoryc-zap_pte_range-print-bad-swap-entry.patch
-mm-shmem-fix-race-in-shmem_undo_range-w-thp-fix.patch
-mm-add-folio_zero_tail-and-use-it-in-ext4-fix.patch
-mm-add-folio_fill_tail-and-use-it-in-iomap-fix.patch
-zswap-shrinks-zswap-pool-based-on-memory-pressure-fix.patch
-kernel-reboot-explicitly-notify-if-halt-occurred-instead-of-power-off-fix.patch
 
