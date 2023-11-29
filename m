@@ -2,33 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3E73C4167B
-	for <mm-commits@archiver.kernel.org>; Wed, 29 Nov 2023 01:14:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0245AC4167B
+	for <mm-commits@archiver.kernel.org>; Wed, 29 Nov 2023 01:40:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229880AbjK2BOr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Nov 2023 20:14:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41778 "EHLO
+        id S229880AbjK2BkZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Nov 2023 20:40:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48974 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229526AbjK2BOq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Nov 2023 20:14:46 -0500
+        with ESMTP id S229839AbjK2BkZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Nov 2023 20:40:25 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 38B0210C0
-        for <mm-commits@vger.kernel.org>; Tue, 28 Nov 2023 17:14:53 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C539FC433C8;
-        Wed, 29 Nov 2023 01:14:52 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A24D8198D
+        for <mm-commits@vger.kernel.org>; Tue, 28 Nov 2023 17:40:31 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32FBDC433C7;
+        Wed, 29 Nov 2023 01:40:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701220492;
-        bh=ys25ROXqFvV6zVFeSWNPyQTuAK4HKqDqt0O0G6GgtLs=;
+        s=korg; t=1701222031;
+        bh=vk1GimauotcvclsfAjyZA+PXWn5D5Qy1HTAlW8WsXzs=;
         h=Date:To:From:Subject:From;
-        b=ekwW9nZY+zIngJ0uQUB8e0LQYYcZKwBe+NYMxDxlPvz6k4or6MnG11NaQsGbwN4EK
-         7MlTJpTV0dGCzpjc2BfnlBmNA3QyE7PmXNgM6yJ73MGFe41CUXfSJ/6L4GG5ryzNo1
-         g5MIDm7psaApKrYrbA+Y9v1cKGGmHJWh09C7U2TY=
-Date:   Tue, 28 Nov 2023 17:14:52 -0800
-To:     mm-commits@vger.kernel.org, minchan@kernel.org,
-        senozhatsky@chromium.org, akpm@linux-foundation.org
+        b=seGuCzYnRg278X2L/YvG8ZwKLTxqwDSw+Hwb7DXBJwJL5/+nobtIJovnERmiqr1Kc
+         0uVNZzICwkol4833XLfGgkxg36F6H/RTkVSETvh4BB4scOPZSpd4pKB5wQSFgKT+3l
+         o+C01GqUgX2B+MzTDabbteNO939bKLVh2Tye4Kjo=
+Date:   Tue, 28 Nov 2023 17:40:30 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        naresh.kamboju@linaro.org, nathan@kernel.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-use-kmap_local_page.patch added to mm-unstable branch
-Message-Id: <20231129011452.C539FC433C8@smtp.kernel.org>
+Subject: + buffer-fix-grow_buffers-for-block-size-page_size-fix.patch added to mm-unstable branch
+Message-Id: <20231129014031.32FBDC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: use kmap_local_page()
+     Subject: buffer: add cast in grow_buffers() to avoid a multiplication libcall
 has been added to the -mm mm-unstable branch.  Its filename is
-     zram-use-kmap_local_page.patch
+     buffer-fix-grow_buffers-for-block-size-page_size-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-use-kmap_local_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buffer-fix-grow_buffers-for-block-size-page_size-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,114 +60,58 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: use kmap_local_page()
-Date: Tue, 28 Nov 2023 17:22:07 +0900
+From: Nathan Chancellor <nathan@kernel.org>
+Subject: buffer: add cast in grow_buffers() to avoid a multiplication libcall
+Date: Tue, 28 Nov 2023 16:55:43 -0700
 
-Use kmap_local_page() instead of kmap_atomic() which has been
-deprecated.
+When building with clang after commit 697607935295 ("buffer: fix
+grow_buffers() for block size > PAGE_SIZE"), there is an error at link
+time due to the generation of a 128-bit multiplication libcall:
 
-Link: https://lkml.kernel.org/r/20231128083845.848008-1-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Minchan Kim <minchan@kernel.org>
+  ld.lld: error: undefined symbol: __muloti4
+  >>> referenced by buffer.c:0 (fs/buffer.c:0)
+  >>>               fs/buffer.o:(bdev_getblk) in archive vmlinux.a
+
+Due to the width mismatch between the factors and the sign mismatch
+between the factors and the result, clang generates IR that performs
+this overflow check with 65-bit signed multiplication and LLVM does not
+improve on it during optimization, so the 65-bit multiplication is
+extended to 128-bit during legalization, resulting in the libcall on
+most targets.
+
+To avoid the initial situation that causes clang to generate the
+problematic IR, cast size (which is an 'unsigned int') to the same
+type/width as block (which is currently a 'u64'/'unsigned long long').
+GCC appears to already do this internally because there is no binary
+difference with the cast for arm, arm64, riscv, or x86_64.
+
+Link: https://github.com/ClangBuiltLinux/linux/issues/1958
+Link: https://github.com/llvm/llvm-project/issues/38013
+Link: https://lkml.kernel.org/r/20231128-avoid-muloti4-grow_buffers-v1-1-bc3d0f0ec483@kernel.org
+Signed-off-by: Nathan Chancellor <nathan@kernel.org>
+Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
+Closes: https://lore.kernel.org/CA+G9fYuA_PTd7R2NsBvtNb7qjwp4avHpCmWi4=OmY4jndDcQYA@mail.gmail.com/
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ fs/buffer.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-use-kmap_local_page
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1321,9 +1321,9 @@ static int zram_read_from_zspool(struct
- 		void *mem;
- 
- 		value = handle ? zram_get_element(zram, index) : 0;
--		mem = kmap_atomic(page);
-+		mem = kmap_local_page(page);
- 		zram_fill_page(mem, PAGE_SIZE, value);
--		kunmap_atomic(mem);
-+		kunmap_local(mem);
- 		return 0;
- 	}
- 
-@@ -1336,14 +1336,14 @@ static int zram_read_from_zspool(struct
- 
- 	src = zs_map_object(zram->mem_pool, handle, ZS_MM_RO);
- 	if (size == PAGE_SIZE) {
--		dst = kmap_atomic(page);
-+		dst = kmap_local_page(page);
- 		memcpy(dst, src, PAGE_SIZE);
--		kunmap_atomic(dst);
-+		kunmap_local(dst);
- 		ret = 0;
- 	} else {
--		dst = kmap_atomic(page);
-+		dst = kmap_local_page(page);
- 		ret = zcomp_decompress(zstrm, src, size, dst);
--		kunmap_atomic(dst);
-+		kunmap_local(dst);
- 		zcomp_stream_put(zram->comps[prio]);
- 	}
- 	zs_unmap_object(zram->mem_pool, handle);
-@@ -1416,21 +1416,21 @@ static int zram_write_page(struct zram *
- 	unsigned long element = 0;
- 	enum zram_pageflags flags = 0;
- 
--	mem = kmap_atomic(page);
-+	mem = kmap_local_page(page);
- 	if (page_same_filled(mem, &element)) {
--		kunmap_atomic(mem);
-+		kunmap_local(mem);
- 		/* Free memory associated with this sector now. */
- 		flags = ZRAM_SAME;
- 		atomic64_inc(&zram->stats.same_pages);
- 		goto out;
- 	}
--	kunmap_atomic(mem);
-+	kunmap_local(mem);
- 
- compress_again:
- 	zstrm = zcomp_stream_get(zram->comps[ZRAM_PRIMARY_COMP]);
--	src = kmap_atomic(page);
-+	src = kmap_local_page(page);
- 	ret = zcomp_compress(zstrm, src, &comp_len);
--	kunmap_atomic(src);
-+	kunmap_local(src);
- 
- 	if (unlikely(ret)) {
- 		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
-@@ -1494,10 +1494,10 @@ compress_again:
- 
- 	src = zstrm->buffer;
- 	if (comp_len == PAGE_SIZE)
--		src = kmap_atomic(page);
-+		src = kmap_local_page(page);
- 	memcpy(dst, src, comp_len);
- 	if (comp_len == PAGE_SIZE)
--		kunmap_atomic(src);
-+		kunmap_local(src);
- 
- 	zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
- 	zs_unmap_object(zram->mem_pool, handle);
-@@ -1614,9 +1614,9 @@ static int zram_recompress(struct zram *
- 
- 		num_recomps++;
- 		zstrm = zcomp_stream_get(zram->comps[prio]);
--		src = kmap_atomic(page);
-+		src = kmap_local_page(page);
- 		ret = zcomp_compress(zstrm, src, &comp_len_new);
--		kunmap_atomic(src);
-+		kunmap_local(src);
- 
- 		if (ret) {
- 			zcomp_stream_put(zram->comps[prio]);
+--- a/fs/buffer.c~buffer-fix-grow_buffers-for-block-size-page_size-fix
++++ a/fs/buffer.c
+@@ -1091,7 +1091,7 @@ static bool grow_buffers(struct block_de
+ 	 * Check for a block which lies outside our maximum possible
+ 	 * pagecache index.
+ 	 */
+-	if (check_mul_overflow(block, size, &pos) || pos > MAX_LFS_FILESIZE) {
++	if (check_mul_overflow(block, (sector_t)size, &pos) || pos > MAX_LFS_FILESIZE) {
+ 		printk(KERN_ERR "%s: requested out-of-range block %llu for device %pg\n",
+ 			__func__, (unsigned long long)block,
+ 			bdev);
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from nathan@kernel.org are
 
-zram-split-memory-tracking-and-ac-time-tracking.patch
-zram-split-memory-tracking-and-ac-time-tracking-v2.patch
-zram-tweak-writeback-config-help.patch
-zram-use-kmap_local_page.patch
-checkpatch-do-not-require-an-empty-line-before-error-injection.patch
+buffer-fix-grow_buffers-for-block-size-page_size-fix.patch
 
