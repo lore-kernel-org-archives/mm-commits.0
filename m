@@ -2,34 +2,37 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47685C4167B
-	for <mm-commits@archiver.kernel.org>; Wed, 29 Nov 2023 02:20:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C393C4167B
+	for <mm-commits@archiver.kernel.org>; Wed, 29 Nov 2023 02:42:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229885AbjK2CUg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Nov 2023 21:20:36 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40020 "EHLO
+        id S230251AbjK2Clw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Nov 2023 21:41:52 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58238 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229880AbjK2CUf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Nov 2023 21:20:35 -0500
+        with ESMTP id S229526AbjK2Clv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Nov 2023 21:41:51 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC8B11707
-        for <mm-commits@vger.kernel.org>; Tue, 28 Nov 2023 18:20:41 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67064C433C7;
-        Wed, 29 Nov 2023 02:20:41 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 813FF1707
+        for <mm-commits@vger.kernel.org>; Tue, 28 Nov 2023 18:41:56 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C5C5C433C8;
+        Wed, 29 Nov 2023 02:41:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701224441;
-        bh=RTxuWdi1/LCtzbmokIryT1ODO4z9Qm5C67VW5nW3x5M=;
+        s=korg; t=1701225716;
+        bh=Jw5/uHtMjpnAX8D6DDpXgDFoPqEEwlmLwMLmcgm36w4=;
         h=Date:To:From:Subject:From;
-        b=tstrP7S4kfDvWAN+PiHTJjj/7CqOcMf94mk+V8xF7BOvz7gKGJlnYjxiEvTgtJvgR
-         mZWzc1qKqZhXS3isERB7a1M/OLpdybWl0gxnfQRJfLKuFVL77MPIXaPz31MU0nA7ix
-         bpP8ldGMm+Lcc+n/8+4ZmNdkGQAHW21sHa7vPuKc=
-Date:   Tue, 28 Nov 2023 18:20:40 -0800
-To:     mm-commits@vger.kernel.org, ignat@cloudflare.com,
-        eric_devolder@yahoo.com, agordeev@linux.ibm.com, bhe@redhat.com,
-        akpm@linux-foundation.org
+        b=dyDRV8onIHN9+t9yUyakHLHYCvy7vKRo12oVYRKkseMbbUVYZ41gZHBXPwFnmR7iC
+         C6xYQq4qCGf/kjdtGbF988OQ0omuBFjNCclOsrVrGuMaRsNUwy+IIDJJdUg/GSpmRU
+         Et0mKwpAxne1b0MENCQt5MLAdgi/vJeBrKs4ae6w=
+Date:   Tue, 28 Nov 2023 18:41:55 -0800
+To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
+        vitaly.wool@konsulko.com, sjenning@redhat.com, shuah@kernel.org,
+        shakeelb@google.com, roman.gushchin@linux.dev,
+        muchun.song@linux.dev, mhocko@kernel.org, hannes@cmpxchg.org,
+        ddstreet@ieee.org, chrisl@kernel.org, cerasuolodomenico@gmail.com,
+        nphamcs@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernel-kconfigkexec-drop-select-of-kexec-for-crash_dump.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231129022041.67064C433C7@smtp.kernel.org>
+Subject: + list_lru-allows-explicit-memcg-and-numa-node-selection.patch added to mm-unstable branch
+Message-Id: <20231129024156.0C5C5C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/Kconfig.kexec: drop select of KEXEC for CRASH_DUMP
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kernel-kconfigkexec-drop-select-of-kexec-for-crash_dump.patch
+     Subject: list_lru: allows explicit memcg and NUMA node selection
+has been added to the -mm mm-unstable branch.  Its filename is
+     list_lru-allows-explicit-memcg-and-numa-node-selection.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-kconfigkexec-drop-select-of-kexec-for-crash_dump.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/list_lru-allows-explicit-memcg-and-numa-node-selection.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -60,96 +63,529 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: kernel/Kconfig.kexec: drop select of KEXEC for CRASH_DUMP
-Date: Tue, 28 Nov 2023 13:44:57 +0800
+From: Nhat Pham <nphamcs@gmail.com>
+Subject: list_lru: allows explicit memcg and NUMA node selection
+Date: Mon, 27 Nov 2023 15:45:55 -0800
 
-Ignat Korchagin complained that a potential config regression was
-introduced by commit 89cde455915f ("kexec: consolidate kexec and crash
-options into kernel/Kconfig.kexec").  Before the commit, CONFIG_CRASH_DUMP
-has no dependency on CONFIG_KEXEC.  After the commit, CRASH_DUMP selects
-KEXEC.  That enforces system to have CONFIG_KEXEC=y as long as
-CONFIG_CRASH_DUMP=Y which people may not want.
+Patch series "workload-specific and memory pressure-driven zswap
+writeback", v7.
 
-In Ignat's case, he sets CONFIG_CRASH_DUMP=y, CONFIG_KEXEC_FILE=y and
-CONFIG_KEXEC=n because kexec_load interface could have security issue if
-kernel/initrd has no chance to be signed and verified.
+There are currently several issues with zswap writeback:
 
-CRASH_DUMP has select of KEXEC because Eric, author of above commit, met a
-LKP report of build failure when posting patch of earlier version.  Please
-see below link to get detail of the LKP report:
+1. There is only a single global LRU for zswap, making it impossible to
+   perform worload-specific shrinking - an memcg under memory pressure
+   cannot determine which pages in the pool it owns, and often ends up
+   writing pages from other memcgs. This issue has been previously
+   observed in practice and mitigated by simply disabling
+   memcg-initiated shrinking:
 
-    https://lore.kernel.org/all/3e8eecd1-a277-2cfb-690e-5de2eb7b988e@oracle.com/T/#u
+   https://lore.kernel.org/all/20230530232435.3097106-1-nphamcs@gmail.com/T/#u
 
-In fact, that LKP report is triggered because arm's <asm/kexec.h> is
-wrapped in CONFIG_KEXEC ifdeffery scope.  That is wrong.  CONFIG_KEXEC
-controls the enabling/disabling of kexec_load interface, but not kexec
-feature.  Removing the wrongly added CONFIG_KEXEC ifdeffery scope in
-<asm/kexec.h> of arm allows us to drop the select KEXEC for CRASH_DUMP. 
-Meanwhile, change arch/arm/kernel/Makefile to let machine_kexec.o
-relocate_kernel.o depend on KEXEC_CORE.
+   But this solution leaves a lot to be desired, as we still do not
+   have an avenue for an memcg to free up its own memory locked up in
+   the zswap pool.
 
-Link: https://lkml.kernel.org/r/20231128054457.659452-1-bhe@redhat.com
-Fixes: commit 89cde455915f ("kexec: consolidate kexec and crash options into kernel/Kconfig.kexec")
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Reported-by: Ignat Korchagin <ignat@cloudflare.com>
-Tested-by: Ignat Korchagin <ignat@cloudflare.com>	[compile-time only]
-Tested-by: Alexander Gordeev <agordeev@linux.ibm.com>
-Reviewed-by: Eric DeVolder <eric_devolder@yahoo.com>
-Tested-by: Eric DeVolder <eric_devolder@yahoo.com>
+2. We only shrink the zswap pool when the user-defined limit is hit.
+   This means that if we set the limit too high, cold data that are
+   unlikely to be used again will reside in the pool, wasting precious
+   memory. It is hard to predict how much zswap space will be needed
+   ahead of time, as this depends on the workload (specifically, on
+   factors such as memory access patterns and compressibility of the
+   memory pages).
+
+This patch series solves these issues by separating the global zswap LRU
+into per-memcg and per-NUMA LRUs, and performs workload-specific (i.e
+memcg- and NUMA-aware) zswap writeback under memory pressure.  The new
+shrinker does not have any parameter that must be tuned by the user, and
+can be opted in or out on a per-memcg basis.
+
+As a proof of concept, we ran the following synthetic benchmark: build the
+linux kernel in a memory-limited cgroup, and allocate some cold data in
+tmpfs to see if the shrinker could write them out and improved the overall
+performance.  Depending on the amount of cold data generated, we observe
+from 14% to 35% reduction in kernel CPU time used in the kernel builds.
+
+
+This patch (of 6):
+
+The interface of list_lru is based on the assumption that the list node
+and the data it represents belong to the same allocated on the correct
+node/memcg.  While this assumption is valid for existing slab objects LRU
+such as dentries and inodes, it is undocumented, and rather inflexible for
+certain potential list_lru users (such as the upcoming zswap shrinker and
+the THP shrinker).  It has caused us a lot of issues during our
+development.
+
+This patch changes list_lru interface so that the caller must explicitly
+specify numa node and memcg when adding and removing objects.  The old
+list_lru_add() and list_lru_del() are renamed to list_lru_add_obj() and
+list_lru_del_obj(), respectively.
+
+It also extends the list_lru API with a new function, list_lru_putback,
+which undoes a previous list_lru_isolate call.  Unlike list_lru_add, it
+does not increment the LRU node count (as list_lru_isolate does not
+decrement the node count).  list_lru_putback also allows for explicit
+memcg and NUMA node selection.
+
+Link: https://lkml.kernel.org/r/20231127234600.2971029-1-nphamcs@gmail.com
+Link: https://lkml.kernel.org/r/20231127234600.2971029-2-nphamcs@gmail.com
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/kexec.h |    4 ----
- arch/arm/kernel/Makefile     |    2 +-
- kernel/Kconfig.kexec         |    1 -
- 3 files changed, 1 insertion(+), 6 deletions(-)
+ drivers/android/binder_alloc.c |    7 +---
+ fs/dcache.c                    |    8 ++--
+ fs/gfs2/quota.c                |    6 +--
+ fs/inode.c                     |    4 +-
+ fs/nfs/nfs42xattr.c            |    8 ++--
+ fs/nfsd/filecache.c            |    4 +-
+ fs/xfs/xfs_buf.c               |    6 +--
+ fs/xfs/xfs_dquot.c             |    2 -
+ fs/xfs/xfs_qm.c                |    2 -
+ include/linux/list_lru.h       |   54 +++++++++++++++++++++++++++++--
+ mm/list_lru.c                  |   48 ++++++++++++++++++++++-----
+ mm/workingset.c                |    4 +-
+ 12 files changed, 117 insertions(+), 36 deletions(-)
 
---- a/arch/arm/include/asm/kexec.h~kernel-kconfigkexec-drop-select-of-kexec-for-crash_dump
-+++ a/arch/arm/include/asm/kexec.h
-@@ -2,8 +2,6 @@
- #ifndef _ARM_KEXEC_H
- #define _ARM_KEXEC_H
+--- a/drivers/android/binder_alloc.c~list_lru-allows-explicit-memcg-and-numa-node-selection
++++ a/drivers/android/binder_alloc.c
+@@ -234,7 +234,7 @@ static int binder_update_page_range(stru
+ 		if (page->page_ptr) {
+ 			trace_binder_alloc_lru_start(alloc, index);
  
--#ifdef CONFIG_KEXEC
+-			on_lru = list_lru_del(&binder_alloc_lru, &page->lru);
++			on_lru = list_lru_del_obj(&binder_alloc_lru, &page->lru);
+ 			WARN_ON(!on_lru);
+ 
+ 			trace_binder_alloc_lru_end(alloc, index);
+@@ -285,7 +285,7 @@ free_range:
+ 
+ 		trace_binder_free_lru_start(alloc, index);
+ 
+-		ret = list_lru_add(&binder_alloc_lru, &page->lru);
++		ret = list_lru_add_obj(&binder_alloc_lru, &page->lru);
+ 		WARN_ON(!ret);
+ 
+ 		trace_binder_free_lru_end(alloc, index);
+@@ -848,7 +848,7 @@ void binder_alloc_deferred_release(struc
+ 			if (!alloc->pages[i].page_ptr)
+ 				continue;
+ 
+-			on_lru = list_lru_del(&binder_alloc_lru,
++			on_lru = list_lru_del_obj(&binder_alloc_lru,
+ 					      &alloc->pages[i].lru);
+ 			page_addr = alloc->buffer + i * PAGE_SIZE;
+ 			binder_alloc_debug(BINDER_DEBUG_BUFFER_ALLOC,
+@@ -1287,4 +1287,3 @@ int binder_alloc_copy_from_buffer(struct
+ 	return binder_alloc_do_buffer_copy(alloc, false, buffer, buffer_offset,
+ 					   dest, bytes);
+ }
 -
- /* Maximum physical address we can use pages from */
- #define KEXEC_SOURCE_MEMORY_LIMIT (-1UL)
- /* Maximum address we can reach in physical address mode */
-@@ -82,6 +80,4 @@ static inline struct page *boot_pfn_to_p
+--- a/fs/dcache.c~list_lru-allows-explicit-memcg-and-numa-node-selection
++++ a/fs/dcache.c
+@@ -428,7 +428,8 @@ static void d_lru_add(struct dentry *den
+ 	this_cpu_inc(nr_dentry_unused);
+ 	if (d_is_negative(dentry))
+ 		this_cpu_inc(nr_dentry_negative);
+-	WARN_ON_ONCE(!list_lru_add(&dentry->d_sb->s_dentry_lru, &dentry->d_lru));
++	WARN_ON_ONCE(!list_lru_add_obj(
++			&dentry->d_sb->s_dentry_lru, &dentry->d_lru));
+ }
  
- #endif /* __ASSEMBLY__ */
+ static void d_lru_del(struct dentry *dentry)
+@@ -438,7 +439,8 @@ static void d_lru_del(struct dentry *den
+ 	this_cpu_dec(nr_dentry_unused);
+ 	if (d_is_negative(dentry))
+ 		this_cpu_dec(nr_dentry_negative);
+-	WARN_ON_ONCE(!list_lru_del(&dentry->d_sb->s_dentry_lru, &dentry->d_lru));
++	WARN_ON_ONCE(!list_lru_del_obj(
++			&dentry->d_sb->s_dentry_lru, &dentry->d_lru));
+ }
  
--#endif /* CONFIG_KEXEC */
--
- #endif /* _ARM_KEXEC_H */
---- a/arch/arm/kernel/Makefile~kernel-kconfigkexec-drop-select-of-kexec-for-crash_dump
-+++ a/arch/arm/kernel/Makefile
-@@ -59,7 +59,7 @@ obj-$(CONFIG_FUNCTION_TRACER)	+= entry-f
- obj-$(CONFIG_DYNAMIC_FTRACE)	+= ftrace.o insn.o patch.o
- obj-$(CONFIG_FUNCTION_GRAPH_TRACER)	+= ftrace.o insn.o patch.o
- obj-$(CONFIG_JUMP_LABEL)	+= jump_label.o insn.o patch.o
--obj-$(CONFIG_KEXEC)		+= machine_kexec.o relocate_kernel.o
-+obj-$(CONFIG_KEXEC_CORE)	+= machine_kexec.o relocate_kernel.o
- # Main staffs in KPROBES are in arch/arm/probes/ .
- obj-$(CONFIG_KPROBES)		+= patch.o insn.o
- obj-$(CONFIG_OABI_COMPAT)	+= sys_oabi-compat.o
---- a/kernel/Kconfig.kexec~kernel-kconfigkexec-drop-select-of-kexec-for-crash_dump
-+++ a/kernel/Kconfig.kexec
-@@ -99,7 +99,6 @@ config CRASH_DUMP
- 	depends on ARCH_SUPPORTS_KEXEC
- 	select CRASH_CORE
- 	select KEXEC_CORE
--	select KEXEC
- 	help
- 	  Generate crash dump after being started by kexec.
- 	  This should be normally only set in special crash dump kernels
+ static void d_shrink_del(struct dentry *dentry)
+@@ -1240,7 +1242,7 @@ static enum lru_status dentry_lru_isolat
+ 		 *
+ 		 * This is guaranteed by the fact that all LRU management
+ 		 * functions are intermediated by the LRU API calls like
+-		 * list_lru_add and list_lru_del. List movement in this file
++		 * list_lru_add_obj and list_lru_del_obj. List movement in this file
+ 		 * only ever occur through this functions or through callbacks
+ 		 * like this one, that are called from the LRU API.
+ 		 *
+--- a/fs/gfs2/quota.c~list_lru-allows-explicit-memcg-and-numa-node-selection
++++ a/fs/gfs2/quota.c
+@@ -271,7 +271,7 @@ static struct gfs2_quota_data *gfs2_qd_s
+ 		if (qd->qd_sbd != sdp)
+ 			continue;
+ 		if (lockref_get_not_dead(&qd->qd_lockref)) {
+-			list_lru_del(&gfs2_qd_lru, &qd->qd_lru);
++			list_lru_del_obj(&gfs2_qd_lru, &qd->qd_lru);
+ 			return qd;
+ 		}
+ 	}
+@@ -344,7 +344,7 @@ static void qd_put(struct gfs2_quota_dat
+ 	}
+ 
+ 	qd->qd_lockref.count = 0;
+-	list_lru_add(&gfs2_qd_lru, &qd->qd_lru);
++	list_lru_add_obj(&gfs2_qd_lru, &qd->qd_lru);
+ 	spin_unlock(&qd->qd_lockref.lock);
+ }
+ 
+@@ -1517,7 +1517,7 @@ void gfs2_quota_cleanup(struct gfs2_sbd
+ 		lockref_mark_dead(&qd->qd_lockref);
+ 		spin_unlock(&qd->qd_lockref.lock);
+ 
+-		list_lru_del(&gfs2_qd_lru, &qd->qd_lru);
++		list_lru_del_obj(&gfs2_qd_lru, &qd->qd_lru);
+ 		list_add(&qd->qd_lru, &dispose);
+ 	}
+ 	spin_unlock(&qd_lock);
+--- a/fs/inode.c~list_lru-allows-explicit-memcg-and-numa-node-selection
++++ a/fs/inode.c
+@@ -464,7 +464,7 @@ static void __inode_add_lru(struct inode
+ 	if (!mapping_shrinkable(&inode->i_data))
+ 		return;
+ 
+-	if (list_lru_add(&inode->i_sb->s_inode_lru, &inode->i_lru))
++	if (list_lru_add_obj(&inode->i_sb->s_inode_lru, &inode->i_lru))
+ 		this_cpu_inc(nr_unused);
+ 	else if (rotate)
+ 		inode->i_state |= I_REFERENCED;
+@@ -482,7 +482,7 @@ void inode_add_lru(struct inode *inode)
+ 
+ static void inode_lru_list_del(struct inode *inode)
+ {
+-	if (list_lru_del(&inode->i_sb->s_inode_lru, &inode->i_lru))
++	if (list_lru_del_obj(&inode->i_sb->s_inode_lru, &inode->i_lru))
+ 		this_cpu_dec(nr_unused);
+ }
+ 
+--- a/fs/nfsd/filecache.c~list_lru-allows-explicit-memcg-and-numa-node-selection
++++ a/fs/nfsd/filecache.c
+@@ -322,7 +322,7 @@ nfsd_file_check_writeback(struct nfsd_fi
+ static bool nfsd_file_lru_add(struct nfsd_file *nf)
+ {
+ 	set_bit(NFSD_FILE_REFERENCED, &nf->nf_flags);
+-	if (list_lru_add(&nfsd_file_lru, &nf->nf_lru)) {
++	if (list_lru_add_obj(&nfsd_file_lru, &nf->nf_lru)) {
+ 		trace_nfsd_file_lru_add(nf);
+ 		return true;
+ 	}
+@@ -331,7 +331,7 @@ static bool nfsd_file_lru_add(struct nfs
+ 
+ static bool nfsd_file_lru_remove(struct nfsd_file *nf)
+ {
+-	if (list_lru_del(&nfsd_file_lru, &nf->nf_lru)) {
++	if (list_lru_del_obj(&nfsd_file_lru, &nf->nf_lru)) {
+ 		trace_nfsd_file_lru_del(nf);
+ 		return true;
+ 	}
+--- a/fs/nfs/nfs42xattr.c~list_lru-allows-explicit-memcg-and-numa-node-selection
++++ a/fs/nfs/nfs42xattr.c
+@@ -132,7 +132,7 @@ nfs4_xattr_entry_lru_add(struct nfs4_xat
+ 	lru = (entry->flags & NFS4_XATTR_ENTRY_EXTVAL) ?
+ 	    &nfs4_xattr_large_entry_lru : &nfs4_xattr_entry_lru;
+ 
+-	return list_lru_add(lru, &entry->lru);
++	return list_lru_add_obj(lru, &entry->lru);
+ }
+ 
+ static bool
+@@ -143,7 +143,7 @@ nfs4_xattr_entry_lru_del(struct nfs4_xat
+ 	lru = (entry->flags & NFS4_XATTR_ENTRY_EXTVAL) ?
+ 	    &nfs4_xattr_large_entry_lru : &nfs4_xattr_entry_lru;
+ 
+-	return list_lru_del(lru, &entry->lru);
++	return list_lru_del_obj(lru, &entry->lru);
+ }
+ 
+ /*
+@@ -349,7 +349,7 @@ nfs4_xattr_cache_unlink(struct inode *in
+ 
+ 	oldcache = nfsi->xattr_cache;
+ 	if (oldcache != NULL) {
+-		list_lru_del(&nfs4_xattr_cache_lru, &oldcache->lru);
++		list_lru_del_obj(&nfs4_xattr_cache_lru, &oldcache->lru);
+ 		oldcache->inode = NULL;
+ 	}
+ 	nfsi->xattr_cache = NULL;
+@@ -474,7 +474,7 @@ nfs4_xattr_get_cache(struct inode *inode
+ 			kref_get(&cache->ref);
+ 			nfsi->xattr_cache = cache;
+ 			cache->inode = inode;
+-			list_lru_add(&nfs4_xattr_cache_lru, &cache->lru);
++			list_lru_add_obj(&nfs4_xattr_cache_lru, &cache->lru);
+ 		}
+ 
+ 		spin_unlock(&inode->i_lock);
+--- a/fs/xfs/xfs_buf.c~list_lru-allows-explicit-memcg-and-numa-node-selection
++++ a/fs/xfs/xfs_buf.c
+@@ -169,7 +169,7 @@ xfs_buf_stale(
+ 
+ 	atomic_set(&bp->b_lru_ref, 0);
+ 	if (!(bp->b_state & XFS_BSTATE_DISPOSE) &&
+-	    (list_lru_del(&bp->b_target->bt_lru, &bp->b_lru)))
++	    (list_lru_del_obj(&bp->b_target->bt_lru, &bp->b_lru)))
+ 		atomic_dec(&bp->b_hold);
+ 
+ 	ASSERT(atomic_read(&bp->b_hold) >= 1);
+@@ -1047,7 +1047,7 @@ xfs_buf_rele(
+ 		 * buffer for the LRU and clear the (now stale) dispose list
+ 		 * state flag
+ 		 */
+-		if (list_lru_add(&bp->b_target->bt_lru, &bp->b_lru)) {
++		if (list_lru_add_obj(&bp->b_target->bt_lru, &bp->b_lru)) {
+ 			bp->b_state &= ~XFS_BSTATE_DISPOSE;
+ 			atomic_inc(&bp->b_hold);
+ 		}
+@@ -1060,7 +1060,7 @@ xfs_buf_rele(
+ 		 * was on was the disposal list
+ 		 */
+ 		if (!(bp->b_state & XFS_BSTATE_DISPOSE)) {
+-			list_lru_del(&bp->b_target->bt_lru, &bp->b_lru);
++			list_lru_del_obj(&bp->b_target->bt_lru, &bp->b_lru);
+ 		} else {
+ 			ASSERT(list_empty(&bp->b_lru));
+ 		}
+--- a/fs/xfs/xfs_dquot.c~list_lru-allows-explicit-memcg-and-numa-node-selection
++++ a/fs/xfs/xfs_dquot.c
+@@ -1064,7 +1064,7 @@ xfs_qm_dqput(
+ 		struct xfs_quotainfo	*qi = dqp->q_mount->m_quotainfo;
+ 		trace_xfs_dqput_free(dqp);
+ 
+-		if (list_lru_add(&qi->qi_lru, &dqp->q_lru))
++		if (list_lru_add_obj(&qi->qi_lru, &dqp->q_lru))
+ 			XFS_STATS_INC(dqp->q_mount, xs_qm_dquot_unused);
+ 	}
+ 	xfs_dqunlock(dqp);
+--- a/fs/xfs/xfs_qm.c~list_lru-allows-explicit-memcg-and-numa-node-selection
++++ a/fs/xfs/xfs_qm.c
+@@ -171,7 +171,7 @@ xfs_qm_dqpurge(
+ 	 * hits zero, so it really should be on the freelist here.
+ 	 */
+ 	ASSERT(!list_empty(&dqp->q_lru));
+-	list_lru_del(&qi->qi_lru, &dqp->q_lru);
++	list_lru_del_obj(&qi->qi_lru, &dqp->q_lru);
+ 	XFS_STATS_DEC(dqp->q_mount, xs_qm_dquot_unused);
+ 
+ 	xfs_qm_dqdestroy(dqp);
+--- a/include/linux/list_lru.h~list_lru-allows-explicit-memcg-and-numa-node-selection
++++ a/include/linux/list_lru.h
+@@ -75,6 +75,8 @@ void memcg_reparent_list_lrus(struct mem
+  * list_lru_add: add an element to the lru list's tail
+  * @lru: the lru pointer
+  * @item: the item to be added.
++ * @nid: the node id of the sublist to add the item to.
++ * @memcg: the cgroup of the sublist to add the item to.
+  *
+  * If the element is already part of a list, this function returns doing
+  * nothing. Therefore the caller does not need to keep state about whether or
+@@ -87,12 +89,28 @@ void memcg_reparent_list_lrus(struct mem
+  *
+  * Return: true if the list was updated, false otherwise
+  */
+-bool list_lru_add(struct list_lru *lru, struct list_head *item);
++bool list_lru_add(struct list_lru *lru, struct list_head *item, int nid,
++		    struct mem_cgroup *memcg);
+ 
+ /**
+- * list_lru_del: delete an element to the lru list
++ * list_lru_add_obj: add an element to the lru list's tail
++ * @lru: the lru pointer
++ * @item: the item to be added.
++ *
++ * This function is similar to list_lru_add(), but the NUMA node and the
++ * memcg of the sublist is determined by @item list_head. This assumption is
++ * valid for slab objects LRU such as dentries, inodes, etc.
++ *
++ * Return value: true if the list was updated, false otherwise
++ */
++bool list_lru_add_obj(struct list_lru *lru, struct list_head *item);
++
++/**
++ * list_lru_del: delete an element from the lru list
+  * @lru: the lru pointer
+  * @item: the item to be deleted.
++ * @nid: the node id of the sublist to delete the item from.
++ * @memcg: the cgroup of the sublist to delete the item from.
+  *
+  * This function works analogously as list_lru_add() in terms of list
+  * manipulation. The comments about an element already pertaining to
+@@ -100,7 +118,21 @@ bool list_lru_add(struct list_lru *lru,
+  *
+  * Return: true if the list was updated, false otherwise
+  */
+-bool list_lru_del(struct list_lru *lru, struct list_head *item);
++bool list_lru_del(struct list_lru *lru, struct list_head *item, int nid,
++		    struct mem_cgroup *memcg);
++
++/**
++ * list_lru_del_obj: delete an element from the lru list
++ * @lru: the lru pointer
++ * @item: the item to be deleted.
++ *
++ * This function is similar to list_lru_del(), but the NUMA node and the
++ * memcg of the sublist is determined by @item list_head. This assumption is
++ * valid for slab objects LRU such as dentries, inodes, etc.
++ *
++ * Return value: true if the list was updated, false otherwise.
++ */
++bool list_lru_del_obj(struct list_lru *lru, struct list_head *item);
+ 
+ /**
+  * list_lru_count_one: return the number of objects currently held by @lru
+@@ -138,6 +170,22 @@ static inline unsigned long list_lru_cou
+ void list_lru_isolate(struct list_lru_one *list, struct list_head *item);
+ void list_lru_isolate_move(struct list_lru_one *list, struct list_head *item,
+ 			   struct list_head *head);
++/**
++ * list_lru_putback: undo list_lru_isolate
++ * @lru: the lru pointer.
++ * @item: the item to put back.
++ * @nid: the node id of the sublist to put the item back to.
++ * @memcg: the cgroup of the sublist to put the item back to.
++ *
++ * Put back an isolated item into its original LRU. Note that unlike
++ * list_lru_add, this does not increment the node LRU count (as
++ * list_lru_isolate does not originally decrement this count).
++ *
++ * Since we might have dropped the LRU lock in between, recompute list_lru_one
++ * from the node's id and memcg.
++ */
++void list_lru_putback(struct list_lru *lru, struct list_head *item, int nid,
++		      struct mem_cgroup *memcg);
+ 
+ typedef enum lru_status (*list_lru_walk_cb)(struct list_head *item,
+ 		struct list_lru_one *list, spinlock_t *lock, void *cb_arg);
+--- a/mm/list_lru.c~list_lru-allows-explicit-memcg-and-numa-node-selection
++++ a/mm/list_lru.c
+@@ -116,21 +116,19 @@ list_lru_from_kmem(struct list_lru *lru,
+ }
+ #endif /* CONFIG_MEMCG_KMEM */
+ 
+-bool list_lru_add(struct list_lru *lru, struct list_head *item)
++bool list_lru_add(struct list_lru *lru, struct list_head *item, int nid,
++		    struct mem_cgroup *memcg)
+ {
+-	int nid = page_to_nid(virt_to_page(item));
+ 	struct list_lru_node *nlru = &lru->node[nid];
+-	struct mem_cgroup *memcg;
+ 	struct list_lru_one *l;
+ 
+ 	spin_lock(&nlru->lock);
+ 	if (list_empty(item)) {
+-		l = list_lru_from_kmem(lru, nid, item, &memcg);
++		l = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(memcg));
+ 		list_add_tail(item, &l->list);
+ 		/* Set shrinker bit if the first element was added */
+ 		if (!l->nr_items++)
+-			set_shrinker_bit(memcg, nid,
+-					 lru_shrinker_id(lru));
++			set_shrinker_bit(memcg, nid, lru_shrinker_id(lru));
+ 		nlru->nr_items++;
+ 		spin_unlock(&nlru->lock);
+ 		return true;
+@@ -140,15 +138,25 @@ bool list_lru_add(struct list_lru *lru,
+ }
+ EXPORT_SYMBOL_GPL(list_lru_add);
+ 
+-bool list_lru_del(struct list_lru *lru, struct list_head *item)
++bool list_lru_add_obj(struct list_lru *lru, struct list_head *item)
+ {
+ 	int nid = page_to_nid(virt_to_page(item));
++	struct mem_cgroup *memcg = list_lru_memcg_aware(lru) ?
++		mem_cgroup_from_slab_obj(item) : NULL;
++
++	return list_lru_add(lru, item, nid, memcg);
++}
++EXPORT_SYMBOL_GPL(list_lru_add_obj);
++
++bool list_lru_del(struct list_lru *lru, struct list_head *item, int nid,
++		    struct mem_cgroup *memcg)
++{
+ 	struct list_lru_node *nlru = &lru->node[nid];
+ 	struct list_lru_one *l;
+ 
+ 	spin_lock(&nlru->lock);
+ 	if (!list_empty(item)) {
+-		l = list_lru_from_kmem(lru, nid, item, NULL);
++		l = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(memcg));
+ 		list_del_init(item);
+ 		l->nr_items--;
+ 		nlru->nr_items--;
+@@ -160,6 +168,16 @@ bool list_lru_del(struct list_lru *lru,
+ }
+ EXPORT_SYMBOL_GPL(list_lru_del);
+ 
++bool list_lru_del_obj(struct list_lru *lru, struct list_head *item)
++{
++	int nid = page_to_nid(virt_to_page(item));
++	struct mem_cgroup *memcg = list_lru_memcg_aware(lru) ?
++		mem_cgroup_from_slab_obj(item) : NULL;
++
++	return list_lru_del(lru, item, nid, memcg);
++}
++EXPORT_SYMBOL_GPL(list_lru_del_obj);
++
+ void list_lru_isolate(struct list_lru_one *list, struct list_head *item)
+ {
+ 	list_del_init(item);
+@@ -175,6 +193,20 @@ void list_lru_isolate_move(struct list_l
+ }
+ EXPORT_SYMBOL_GPL(list_lru_isolate_move);
+ 
++void list_lru_putback(struct list_lru *lru, struct list_head *item, int nid,
++		      struct mem_cgroup *memcg)
++{
++	struct list_lru_one *list =
++		list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(memcg));
++
++	if (list_empty(item)) {
++		list_add_tail(item, &list->list);
++		if (!list->nr_items++)
++			set_shrinker_bit(memcg, nid, lru_shrinker_id(lru));
++	}
++}
++EXPORT_SYMBOL_GPL(list_lru_putback);
++
+ unsigned long list_lru_count_one(struct list_lru *lru,
+ 				 int nid, struct mem_cgroup *memcg)
+ {
+--- a/mm/workingset.c~list_lru-allows-explicit-memcg-and-numa-node-selection
++++ a/mm/workingset.c
+@@ -615,12 +615,12 @@ void workingset_update_node(struct xa_no
+ 
+ 	if (node->count && node->count == node->nr_values) {
+ 		if (list_empty(&node->private_list)) {
+-			list_lru_add(&shadow_nodes, &node->private_list);
++			list_lru_add_obj(&shadow_nodes, &node->private_list);
+ 			__inc_lruvec_kmem_state(node, WORKINGSET_NODES);
+ 		}
+ 	} else {
+ 		if (!list_empty(&node->private_list)) {
+-			list_lru_del(&shadow_nodes, &node->private_list);
++			list_lru_del_obj(&shadow_nodes, &node->private_list);
+ 			__dec_lruvec_kmem_state(node, WORKINGSET_NODES);
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from nphamcs@gmail.com are
 
-drivers-base-cpu-crash-data-showing-should-depends-on-kexec_core.patch
-kernel-kconfigkexec-drop-select-of-kexec-for-crash_dump.patch
-resource-add-walk_system_ram_res_rev.patch
-kexec_file-load-kernel-at-top-of-system-ram-if-required.patch
+list_lru-allows-explicit-memcg-and-numa-node-selection.patch
+memcontrol-add-a-new-function-to-traverse-online-only-memcg-hierarchy.patch
+zswap-shrinks-zswap-pool-based-on-memory-pressure.patch
 
