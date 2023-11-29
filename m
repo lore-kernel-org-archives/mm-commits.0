@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97100C4167B
-	for <mm-commits@archiver.kernel.org>; Wed, 29 Nov 2023 02:42:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8F9DC07E98
+	for <mm-commits@archiver.kernel.org>; Wed, 29 Nov 2023 02:42:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234835AbjK2CmI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230361AbjK2CmI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 28 Nov 2023 21:42:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55958 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55964 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230361AbjK2CmC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Nov 2023 21:42:02 -0500
+        with ESMTP id S234682AbjK2CmH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Nov 2023 21:42:07 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 661041707
-        for <mm-commits@vger.kernel.org>; Tue, 28 Nov 2023 18:42:08 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0064C433CB;
-        Wed, 29 Nov 2023 02:42:07 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A265198D
+        for <mm-commits@vger.kernel.org>; Tue, 28 Nov 2023 18:42:11 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B56BC433C7;
+        Wed, 29 Nov 2023 02:42:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701225728;
-        bh=jb4AtzigHdbd212vQqGPuwv+zmXtsbjGxFnV7fPD7y8=;
+        s=korg; t=1701225730;
+        bh=UBoIlUMxQ1Tm95e8opsec6Lm3B6Oc2nrqF/+TlDWyCs=;
         h=Date:To:From:Subject:From;
-        b=u4RYSAxdz2QP81Zd08XBIdDictgnzcPE67hsPds1vAR1EUiX7MjMzz+LZptJiZ37W
-         WP2abUhMkNQGUWiOG8N5Gf2KlNVoA6/0JgM51njs9WOkG2Ej7t3ICnwLKUGiRkRgtG
-         SKsj7SzKskyvSHHhI1Z1j8KTgdVJunTyklfFNf0I=
-Date:   Tue, 28 Nov 2023 18:42:06 -0800
+        b=Kb9TV6rPLXxe22ycvRjERY4923UMcf0sJn7/2W8yKy9td7a61CD/3gi9UydiQH7OX
+         IkWO5OQeEtpjQbFaYhg8bHtEWtT4MPPLegHBLELeWTi6RbXZS31sDNY1LY8vQLaLdw
+         dLcNXlth6Ita9E1OaBS2gCrkxxyZZiiWtvrpsCYg=
+Date:   Tue, 28 Nov 2023 18:42:10 -0800
 To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
         vitaly.wool@konsulko.com, sjenning@redhat.com, shuah@kernel.org,
         shakeelb@google.com, roman.gushchin@linux.dev, nphamcs@gmail.com,
@@ -31,8 +31,8 @@ To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
         ddstreet@ieee.org, chrisl@kernel.org, cerasuolodomenico@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-add-per-memcg-zswap-writeback-stat.patch added to mm-unstable branch
-Message-Id: <20231129024207.F0064C433CB@smtp.kernel.org>
+Subject: + selftests-cgroup-update-per-memcg-zswap-writeback-selftest.patch added to mm-unstable branch
+Message-Id: <20231129024210.9B56BC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,12 +40,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcg: add per-memcg zswap writeback stat
+     Subject: selftests: cgroup: update per-memcg zswap writeback selftest
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-add-per-memcg-zswap-writeback-stat.patch
+     selftests-cgroup-update-per-memcg-zswap-writeback-selftest.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-add-per-memcg-zswap-writeback-stat.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-cgroup-update-per-memcg-zswap-writeback-selftest.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -64,16 +64,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Subject: mm: memcg: add per-memcg zswap writeback stat
-Date: Mon, 27 Nov 2023 15:45:58 -0800
+Subject: selftests: cgroup: update per-memcg zswap writeback selftest
+Date: Mon, 27 Nov 2023 15:45:59 -0800
 
-Since zswap now writes back pages from memcg-specific LRUs, we now need a
-new stat to show writebacks count for each memcg.
+The memcg-zswap self test is updated to adjust to the behavior change
+implemented by commit 87730b165089 ("zswap: make shrinking memcg-aware"),
+where zswap performs writeback for specific memcg.
 
-Link: https://lkml.kernel.org/r/20231127234600.2971029-5-nphamcs@gmail.com
+Link: https://lkml.kernel.org/r/20231127234600.2971029-6-nphamcs@gmail.com
 Signed-off-by: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
 Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Suggested-by: Nhat Pham <nphamcs@gmail.com>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: Dan Streetman <ddstreet@ieee.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -88,54 +88,122 @@ Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vm_event_item.h |    1 +
- mm/memcontrol.c               |    1 +
- mm/vmstat.c                   |    1 +
- mm/zswap.c                    |    3 +++
- 4 files changed, 6 insertions(+)
+ tools/testing/selftests/cgroup/test_zswap.c |   74 ++++++++++++------
+ 1 file changed, 50 insertions(+), 24 deletions(-)
 
---- a/include/linux/vm_event_item.h~mm-memcg-add-per-memcg-zswap-writeback-stat
-+++ a/include/linux/vm_event_item.h
-@@ -142,6 +142,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- #ifdef CONFIG_ZSWAP
- 		ZSWPIN,
- 		ZSWPOUT,
-+		ZSWP_WB,
- #endif
- #ifdef CONFIG_X86
- 		DIRECT_MAP_LEVEL2_SPLIT,
---- a/mm/memcontrol.c~mm-memcg-add-per-memcg-zswap-writeback-stat
-+++ a/mm/memcontrol.c
-@@ -703,6 +703,7 @@ static const unsigned int memcg_vm_event
- #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
- 	ZSWPIN,
- 	ZSWPOUT,
-+	ZSWP_WB,
- #endif
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	THP_FAULT_ALLOC,
---- a/mm/vmstat.c~mm-memcg-add-per-memcg-zswap-writeback-stat
-+++ a/mm/vmstat.c
-@@ -1401,6 +1401,7 @@ const char * const vmstat_text[] = {
- #ifdef CONFIG_ZSWAP
- 	"zswpin",
- 	"zswpout",
-+	"zswp_wb",
- #endif
- #ifdef CONFIG_X86
- 	"direct_map_level2_splits",
---- a/mm/zswap.c~mm-memcg-add-per-memcg-zswap-writeback-stat
-+++ a/mm/zswap.c
-@@ -754,6 +754,9 @@ static enum lru_status shrink_memcg_cb(s
- 	}
- 	zswap_written_back_pages++;
+--- a/tools/testing/selftests/cgroup/test_zswap.c~selftests-cgroup-update-per-memcg-zswap-writeback-selftest
++++ a/tools/testing/selftests/cgroup/test_zswap.c
+@@ -50,9 +50,9 @@ static int get_zswap_stored_pages(size_t
+ 	return read_int("/sys/kernel/debug/zswap/stored_pages", value);
+ }
  
-+	if (entry->objcg)
-+		count_objcg_event(entry->objcg, ZSWP_WB);
+-static int get_zswap_written_back_pages(size_t *value)
++static int get_cg_wb_count(const char *cg)
+ {
+-	return read_int("/sys/kernel/debug/zswap/written_back_pages", value);
++	return cg_read_key_long(cg, "memory.stat", "zswp_wb");
+ }
+ 
+ static long get_zswpout(const char *cgroup)
+@@ -73,6 +73,24 @@ static int allocate_bytes(const char *cg
+ 	return 0;
+ }
+ 
++static char *setup_test_group_1M(const char *root, const char *name)
++{
++	char *group_name = cg_name(root, name);
 +
- 	/*
- 	 * Writeback started successfully, the page now belongs to the
- 	 * swapcache. Drop the entry from zswap - unless invalidate already
++	if (!group_name)
++		return NULL;
++	if (cg_create(group_name))
++		goto fail;
++	if (cg_write(group_name, "memory.max", "1M")) {
++		cg_destroy(group_name);
++		goto fail;
++	}
++	return group_name;
++fail:
++	free(group_name);
++	return NULL;
++}
++
+ /*
+  * Sanity test to check that pages are written into zswap.
+  */
+@@ -117,43 +135,51 @@ out:
+ 
+ /*
+  * When trying to store a memcg page in zswap, if the memcg hits its memory
+- * limit in zswap, writeback should not be triggered.
+- *
+- * This was fixed with commit 0bdf0efa180a("zswap: do not shrink if cgroup may
+- * not zswap"). Needs to be revised when a per memcg writeback mechanism is
+- * implemented.
++ * limit in zswap, writeback should affect only the zswapped pages of that
++ * memcg.
+  */
+ static int test_no_invasive_cgroup_shrink(const char *root)
+ {
+-	size_t written_back_before, written_back_after;
+ 	int ret = KSFT_FAIL;
+-	char *test_group;
++	size_t control_allocation_size = MB(10);
++	char *control_allocation, *wb_group = NULL, *control_group = NULL;
+ 
+ 	/* Set up */
+-	test_group = cg_name(root, "no_shrink_test");
+-	if (!test_group)
++	wb_group = setup_test_group_1M(root, "per_memcg_wb_test1");
++	if (!wb_group)
++		return KSFT_FAIL;
++	if (cg_write(wb_group, "memory.zswap.max", "10K"))
+ 		goto out;
+-	if (cg_create(test_group))
+-		goto out;
+-	if (cg_write(test_group, "memory.max", "1M"))
++	control_group = setup_test_group_1M(root, "per_memcg_wb_test2");
++	if (!control_group)
+ 		goto out;
+-	if (cg_write(test_group, "memory.zswap.max", "10K"))
++
++	/* Push some test_group2 memory into zswap */
++	if (cg_enter_current(control_group))
+ 		goto out;
+-	if (get_zswap_written_back_pages(&written_back_before))
++	control_allocation = malloc(control_allocation_size);
++	for (int i = 0; i < control_allocation_size; i += 4095)
++		control_allocation[i] = 'a';
++	if (cg_read_key_long(control_group, "memory.stat", "zswapped") < 1)
+ 		goto out;
+ 
+-	/* Allocate 10x memory.max to push memory into zswap */
+-	if (cg_run(test_group, allocate_bytes, (void *)MB(10)))
++	/* Allocate 10x memory.max to push wb_group memory into zswap and trigger wb */
++	if (cg_run(wb_group, allocate_bytes, (void *)MB(10)))
+ 		goto out;
+ 
+-	/* Verify that no writeback happened because of the memcg allocation */
+-	if (get_zswap_written_back_pages(&written_back_after))
+-		goto out;
+-	if (written_back_after == written_back_before)
++	/* Verify that only zswapped memory from gwb_group has been written back */
++	if (get_cg_wb_count(wb_group) > 0 && get_cg_wb_count(control_group) == 0)
+ 		ret = KSFT_PASS;
+ out:
+-	cg_destroy(test_group);
+-	free(test_group);
++	cg_enter_current(root);
++	if (control_group) {
++		cg_destroy(control_group);
++		free(control_group);
++	}
++	cg_destroy(wb_group);
++	free(wb_group);
++	if (control_allocation)
++		free(control_allocation);
+ 	return ret;
+ }
+ 
 _
 
 Patches currently in -mm which might be from cerasuolodomenico@gmail.com are
