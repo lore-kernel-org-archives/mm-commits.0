@@ -2,37 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7626C07CA9
-	for <mm-commits@archiver.kernel.org>; Wed, 29 Nov 2023 02:42:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91EAEC4167B
+	for <mm-commits@archiver.kernel.org>; Wed, 29 Nov 2023 02:51:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1376770AbjK2CmK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Nov 2023 21:42:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55998 "EHLO
+        id S229880AbjK2CvD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Nov 2023 21:51:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46454 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1376768AbjK2CmJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Nov 2023 21:42:09 -0500
+        with ESMTP id S230479AbjK2CvC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Nov 2023 21:51:02 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F35A819B7
-        for <mm-commits@vger.kernel.org>; Tue, 28 Nov 2023 18:42:12 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84DA7C433CC;
-        Wed, 29 Nov 2023 02:42:12 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0DC4E1988
+        for <mm-commits@vger.kernel.org>; Tue, 28 Nov 2023 18:51:09 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A463DC433C7;
+        Wed, 29 Nov 2023 02:51:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701225732;
-        bh=oHDiO8/TN+Niw93Ehnl9nkrOCo3W8me7TsZ+tVvARwE=;
+        s=korg; t=1701226268;
+        bh=e5O01ivMNPaneqtJ8xznJegReBzKI7yXt84Ij+6BtGA=;
         h=Date:To:From:Subject:From;
-        b=E3T31ZBLCoRtIoBusLS6w0y3ZxO70m5JBv1Bsnsghl8u5/07yAcxBaMEZz1it108a
-         GAbM3GBVBEZ4au1INgXSxYNNcNdzlaXsI0hVsFqu+37ooBDVrM4zTW/8uAWSmuW78P
-         H3YbVwnJCuzs4hb7AvWH00XsjcZmSm/rwzsusdFo=
-Date:   Tue, 28 Nov 2023 18:42:12 -0800
-To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
-        vitaly.wool@konsulko.com, sjenning@redhat.com, shuah@kernel.org,
-        shakeelb@google.com, roman.gushchin@linux.dev,
-        muchun.song@linux.dev, mhocko@kernel.org, hannes@cmpxchg.org,
-        ddstreet@ieee.org, chrisl@kernel.org, cerasuolodomenico@gmail.com,
-        nphamcs@gmail.com, akpm@linux-foundation.org
+        b=qL2GgzUyma4pb9J/SQbzYpUEgzZjEl8ZfC55lPCV84H++8dB9J8rGuqWkYCy7ZI5Z
+         eerTOdx1/Yt6md35kV+VINicmuPyrKAEGQLvYS+SOWAgxTtwJ4U3+JWlxgtDVCNXnq
+         wMDWGZH2uMc9bUB18WjiCaM9lGW4O1JpSnU4Prn4=
+Date:   Tue, 28 Nov 2023 18:51:08 -0800
+To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
+        ryabinin.a.a@gmail.com, glider@google.com, dvyukov@google.com,
+        andreyknvl@gmail.com, juntong.deng@outlook.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + zswap-shrinks-zswap-pool-based-on-memory-pressure.patch added to mm-unstable branch
-Message-Id: <20231129024212.84DA7C433CC@smtp.kernel.org>
+Subject: + kasan-record-and-report-more-information.patch added to mm-unstable branch
+Message-Id: <20231129025108.A463DC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,12 +38,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zswap: shrink zswap pool based on memory pressure
+     Subject: kasan: record and report more information
 has been added to the -mm mm-unstable branch.  Its filename is
-     zswap-shrinks-zswap-pool-based-on-memory-pressure.patch
+     kasan-record-and-report-more-information.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zswap-shrinks-zswap-pool-based-on-memory-pressure.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-record-and-report-more-information.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -63,493 +61,231 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nhat Pham <nphamcs@gmail.com>
-Subject: zswap: shrink zswap pool based on memory pressure
-Date: Mon, 27 Nov 2023 15:46:00 -0800
+From: Juntong Deng <juntong.deng@outlook.com>
+Subject: kasan: record and report more information
+Date: Mon, 27 Nov 2023 21:17:31 +0000
 
-Currently, we only shrink the zswap pool when the user-defined limit is
-hit.  This means that if we set the limit too high, cold data that are
-unlikely to be used again will reside in the pool, wasting precious
-memory.  It is hard to predict how much zswap space will be needed ahead
-of time, as this depends on the workload (specifically, on factors such as
-memory access patterns and compressibility of the memory pages).
+Record and report more information to help us find the cause of the bug
+and to help us correlate the error with other system events.
 
-This patch implements a memcg- and NUMA-aware shrinker for zswap, that is
-initiated when there is memory pressure.  The shrinker does not have any
-parameter that must be tuned by the user, and can be opted in or out on a
-per-memcg basis.
+This patch adds recording and showing CPU number and timestamp at
+allocation and free (controlled by CONFIG_KASAN_EXTRA_INFO).  The
+timestamps in the report use the same format and source as printk.
 
-Furthermore, to make it more robust for many workloads and prevent
-overshrinking (i.e evicting warm pages that might be refaulted into
-memory), we build in the following heuristics:
+Error occurrence timestamp is already implicit in the printk log, and CPU
+number is already shown by dump_stack_lvl, so there is no need to add it.
 
-* Estimate the number of warm pages residing in zswap, and attempt to
-  protect this region of the zswap LRU.
-* Scale the number of freeable objects by an estimate of the memory
-  saving factor. The better zswap compresses the data, the fewer pages
-  we will evict to swap (as we will otherwise incur IO for relatively
-  small memory saving).
-* During reclaim, if the shrinker encounters a page that is also being
-  brought into memory, the shrinker will cautiously terminate its
-  shrinking action, as this is a sign that it is touching the warmer
-  region of the zswap LRU.
+In order to record CPU number and timestamp at allocation and free,
+corresponding members need to be added to the relevant data structures,
+which will lead to increased memory consumption.
 
-As a proof of concept, we ran the following synthetic benchmark: build the
-linux kernel in a memory-limited cgroup, and allocate some cold data in
-tmpfs to see if the shrinker could write them out and improved the overall
-performance.  Depending on the amount of cold data generated, we observe
-from 14% to 35% reduction in kernel CPU time used in the kernel builds.
+In Generic KASAN, members are added to struct kasan_track.  Since in most
+cases, alloc meta is stored in the redzone and free meta is stored in the
+object or the redzone, memory consumption will not increase much.
 
-Link: https://lkml.kernel.org/r/20231127234600.2971029-7-nphamcs@gmail.com
-Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+In SW_TAGS KASAN and HW_TAGS KASAN, members are added to struct
+kasan_stack_ring_entry.  Memory consumption increases as the size of
+struct kasan_stack_ring_entry increases (this part of the memory is
+allocated by memblock), but since this is configurable, it is up to the
+user to choose.
+
+Link: https://lkml.kernel.org/r/VI1P193MB0752BD991325D10E4AB1913599BDA@VI1P193MB0752.EURP193.PROD.OUTLOOK.COM
+Signed-off-by: Juntong Deng <juntong.deng@outlook.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/zswap.rst |    7 
- include/linux/mmzone.h                 |    2 
- include/linux/zswap.h                  |   25 ++-
- mm/mmzone.c                            |    1 
- mm/swap_state.c                        |    2 
- mm/zswap.c                             |  177 ++++++++++++++++++++++-
- 6 files changed, 208 insertions(+), 6 deletions(-)
+ lib/Kconfig.kasan      |   21 +++++++++++++++++++++
+ mm/kasan/common.c      |    8 ++++++++
+ mm/kasan/kasan.h       |    8 ++++++++
+ mm/kasan/report.c      |   12 ++++++++++++
+ mm/kasan/report_tags.c |   15 +++++++++++++++
+ mm/kasan/tags.c        |   15 +++++++++++++++
+ 6 files changed, 79 insertions(+)
 
---- a/Documentation/admin-guide/mm/zswap.rst~zswap-shrinks-zswap-pool-based-on-memory-pressure
-+++ a/Documentation/admin-guide/mm/zswap.rst
-@@ -153,6 +153,13 @@ attribute, e. g.::
+--- a/lib/Kconfig.kasan~kasan-record-and-report-more-information
++++ a/lib/Kconfig.kasan
+@@ -207,4 +207,25 @@ config KASAN_MODULE_TEST
+ 	  A part of the KASAN test suite that is not integrated with KUnit.
+ 	  Incompatible with Hardware Tag-Based KASAN.
  
- Setting this parameter to 100 will disable the hysteresis.
- 
-+When there is a sizable amount of cold memory residing in the zswap pool, it
-+can be advantageous to proactively write these cold pages to swap and reclaim
-+the memory for other use cases. By default, the zswap shrinker is disabled.
-+User can enable it as follows:
++config KASAN_EXTRA_INFO
++	bool "Record and report more information"
++	depends on KASAN
++	help
++	  Record and report more information to help us find the cause of the
++	  bug and to help us correlate the error with other system events.
 +
-+  echo Y > /sys/module/zswap/parameters/shrinker_enabled
++	  Currently, the CPU number and timestamp are additionally
++	  recorded for each heap block at allocation and free time, and
++	  8 bytes will be added to each metadata structure that records
++	  allocation or free information.
 +
- A debugfs interface is provided for various statistic about pool size, number
- of pages stored, same-value filled pages and various counters for the reasons
- pages are rejected.
---- a/include/linux/mmzone.h~zswap-shrinks-zswap-pool-based-on-memory-pressure
-+++ a/include/linux/mmzone.h
-@@ -22,6 +22,7 @@
- #include <linux/mm_types.h>
- #include <linux/page-flags.h>
- #include <linux/local_lock.h>
-+#include <linux/zswap.h>
- #include <asm/page.h>
++	  In Generic KASAN, each kmalloc-8 and kmalloc-16 object will add
++	  16 bytes of additional memory consumption, and each kmalloc-32
++	  object will add 8 bytes of additional memory consumption, not
++	  affecting other larger objects.
++
++	  In SW_TAGS KASAN and HW_TAGS KASAN, depending on the stack_ring_size
++	  boot parameter, it will add 8 * stack_ring_size bytes of additional
++	  memory consumption.
++
+ endif # KASAN
+--- a/mm/kasan/common.c~kasan-record-and-report-more-information
++++ a/mm/kasan/common.c
+@@ -20,6 +20,7 @@
+ #include <linux/module.h>
+ #include <linux/printk.h>
+ #include <linux/sched.h>
++#include <linux/sched/clock.h>
+ #include <linux/sched/task_stack.h>
+ #include <linux/slab.h>
+ #include <linux/stackdepot.h>
+@@ -49,6 +50,13 @@ depot_stack_handle_t kasan_save_stack(gf
  
- /* Free memory management - zoned buddy allocator.  */
-@@ -641,6 +642,7 @@ struct lruvec {
- #ifdef CONFIG_MEMCG
- 	struct pglist_data *pgdat;
- #endif
-+	struct zswap_lruvec_state zswap_lruvec_state;
+ void kasan_set_track(struct kasan_track *track, gfp_t flags)
+ {
++#ifdef CONFIG_KASAN_EXTRA_INFO
++	u32 cpu = raw_smp_processor_id();
++	u64 ts_nsec = local_clock();
++
++	track->cpu = cpu;
++	track->timestamp = ts_nsec >> 3;
++#endif /* CONFIG_KASAN_EXTRA_INFO */
+ 	track->pid = current->pid;
+ 	track->stack = kasan_save_stack(flags,
+ 			STACK_DEPOT_FLAG_CAN_ALLOC | STACK_DEPOT_FLAG_GET);
+--- a/mm/kasan/kasan.h~kasan-record-and-report-more-information
++++ a/mm/kasan/kasan.h
+@@ -187,6 +187,10 @@ static inline bool kasan_requires_meta(v
+ struct kasan_track {
+ 	u32 pid;
+ 	depot_stack_handle_t stack;
++#ifdef CONFIG_KASAN_EXTRA_INFO
++	u64 cpu:20;
++	u64 timestamp:44;
++#endif /* CONFIG_KASAN_EXTRA_INFO */
  };
  
- /* Isolate for asynchronous migration */
---- a/include/linux/zswap.h~zswap-shrinks-zswap-pool-based-on-memory-pressure
-+++ a/include/linux/zswap.h
-@@ -5,20 +5,40 @@
- #include <linux/types.h>
- #include <linux/mm_types.h>
- 
-+struct lruvec;
-+
- extern u64 zswap_pool_total_size;
- extern atomic_t zswap_stored_pages;
- 
- #ifdef CONFIG_ZSWAP
- 
-+struct zswap_lruvec_state {
-+	/*
-+	 * Number of pages in zswap that should be protected from the shrinker.
-+	 * This number is an estimate of the following counts:
-+	 *
-+	 * a) Recent page faults.
-+	 * b) Recent insertion to the zswap LRU. This includes new zswap stores,
-+	 *    as well as recent zswap LRU rotations.
-+	 *
-+	 * These pages are likely to be warm, and might incur IO if the are written
-+	 * to swap.
-+	 */
-+	atomic_long_t nr_zswap_protected;
-+};
-+
- bool zswap_store(struct folio *folio);
- bool zswap_load(struct folio *folio);
- void zswap_invalidate(int type, pgoff_t offset);
- void zswap_swapon(int type);
- void zswap_swapoff(int type);
- void zswap_memcg_offline_cleanup(struct mem_cgroup *memcg);
--
-+void zswap_lruvec_state_init(struct lruvec *lruvec);
-+void zswap_lruvec_swapin(struct page *page);
- #else
- 
-+struct zswap_lruvec_state {};
-+
- static inline bool zswap_store(struct folio *folio)
- {
- 	return false;
-@@ -33,7 +53,8 @@ static inline void zswap_invalidate(int
- static inline void zswap_swapon(int type) {}
- static inline void zswap_swapoff(int type) {}
- static inline void zswap_memcg_offline_cleanup(struct mem_cgroup *memcg) {}
--
-+static inline void zswap_lruvec_state_init(struct lruvec *lruvec) {}
-+static inline void zswap_lruvec_swapin(struct page *page) {}
- #endif
- 
- #endif /* _LINUX_ZSWAP_H */
---- a/mm/mmzone.c~zswap-shrinks-zswap-pool-based-on-memory-pressure
-+++ a/mm/mmzone.c
-@@ -78,6 +78,7 @@ void lruvec_init(struct lruvec *lruvec)
- 
- 	memset(lruvec, 0, sizeof(struct lruvec));
- 	spin_lock_init(&lruvec->lru_lock);
-+	zswap_lruvec_state_init(lruvec);
- 
- 	for_each_lru(lru)
- 		INIT_LIST_HEAD(&lruvec->lists[lru]);
---- a/mm/swap_state.c~zswap-shrinks-zswap-pool-based-on-memory-pressure
-+++ a/mm/swap_state.c
-@@ -687,6 +687,7 @@ skip:
- 					&page_allocated, false);
- 	if (unlikely(page_allocated))
- 		swap_readpage(page, false, NULL);
-+	zswap_lruvec_swapin(page);
- 	return page;
- }
- 
-@@ -862,6 +863,7 @@ skip:
- 					&page_allocated, false);
- 	if (unlikely(page_allocated))
- 		swap_readpage(page, false, NULL);
-+	zswap_lruvec_swapin(page);
- 	return page;
- }
- 
---- a/mm/zswap.c~zswap-shrinks-zswap-pool-based-on-memory-pressure
-+++ a/mm/zswap.c
-@@ -148,6 +148,10 @@ module_param_named(exclusive_loads, zswa
- /* Number of zpools in zswap_pool (empirically determined for scalability) */
- #define ZSWAP_NR_ZPOOLS 32
- 
-+/* Enable/disable memory pressure-based shrinker. */
-+static bool zswap_shrinker_enabled;
-+module_param_named(shrinker_enabled, zswap_shrinker_enabled, bool, 0644);
-+
- /*********************************
- * data structures
- **********************************/
-@@ -177,6 +181,8 @@ struct zswap_pool {
- 	char tfm_name[CRYPTO_MAX_ALG_NAME];
- 	struct list_lru list_lru;
- 	struct mem_cgroup *next_shrink;
-+	struct shrinker *shrinker;
-+	atomic_t nr_stored;
+ enum kasan_report_type {
+@@ -278,6 +282,10 @@ struct kasan_stack_ring_entry {
+ 	u32 pid;
+ 	depot_stack_handle_t stack;
+ 	bool is_free;
++#ifdef CONFIG_KASAN_EXTRA_INFO
++	u64 cpu:20;
++	u64 timestamp:44;
++#endif /* CONFIG_KASAN_EXTRA_INFO */
  };
  
- /*
-@@ -275,17 +281,26 @@ static bool zswap_can_accept(void)
- 			DIV_ROUND_UP(zswap_pool_total_size, PAGE_SIZE);
- }
+ struct kasan_stack_ring {
+--- a/mm/kasan/report.c~kasan-record-and-report-more-information
++++ a/mm/kasan/report.c
+@@ -262,7 +262,19 @@ static void print_error_description(stru
  
-+static u64 get_zswap_pool_size(struct zswap_pool *pool)
-+{
-+	u64 pool_size = 0;
-+	int i;
-+
-+	for (i = 0; i < ZSWAP_NR_ZPOOLS; i++)
-+		pool_size += zpool_get_total_size(pool->zpools[i]);
-+
-+	return pool_size;
-+}
-+
- static void zswap_update_total_size(void)
+ static void print_track(struct kasan_track *track, const char *prefix)
  {
- 	struct zswap_pool *pool;
- 	u64 total = 0;
--	int i;
- 
- 	rcu_read_lock();
- 
- 	list_for_each_entry_rcu(pool, &zswap_pools, list)
--		for (i = 0; i < ZSWAP_NR_ZPOOLS; i++)
--			total += zpool_get_total_size(pool->zpools[i]);
-+		total += get_zswap_pool_size(pool);
- 
- 	rcu_read_unlock();
- 
-@@ -339,12 +354,33 @@ static void zswap_entry_cache_free(struc
- }
- 
- /*********************************
-+* zswap lruvec functions
-+**********************************/
-+void zswap_lruvec_state_init(struct lruvec *lruvec)
-+{
-+	atomic_long_set(&lruvec->zswap_lruvec_state.nr_zswap_protected, 0);
-+}
++#ifdef CONFIG_KASAN_EXTRA_INFO
++	u64 ts_nsec = track->timestamp;
++	unsigned long rem_usec;
 +
-+void zswap_lruvec_swapin(struct page *page)
-+{
-+	struct lruvec *lruvec;
++	ts_nsec <<= 3;
++	rem_usec = do_div(ts_nsec, NSEC_PER_SEC) / 1000;
 +
-+	if (page) {
-+		lruvec = folio_lruvec(page_folio(page));
-+		atomic_long_inc(&lruvec->zswap_lruvec_state.nr_zswap_protected);
-+	}
-+}
-+
-+/*********************************
- * lru functions
- **********************************/
- static void zswap_lru_add(struct list_lru *list_lru, struct zswap_entry *entry)
- {
-+	atomic_long_t *nr_zswap_protected;
-+	unsigned long lru_size, old, new;
- 	int nid = entry_to_nid(entry);
- 	struct mem_cgroup *memcg;
-+	struct lruvec *lruvec;
- 
- 	/*
- 	 * Note that it is safe to use rcu_read_lock() here, even in the face of
-@@ -362,6 +398,19 @@ static void zswap_lru_add(struct list_lr
- 	memcg = mem_cgroup_from_entry(entry);
- 	/* will always succeed */
- 	list_lru_add(list_lru, &entry->lru, nid, memcg);
-+
-+	/* Update the protection area */
-+	lru_size = list_lru_count_one(list_lru, nid, memcg);
-+	lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
-+	nr_zswap_protected = &lruvec->zswap_lruvec_state.nr_zswap_protected;
-+	old = atomic_long_inc_return(nr_zswap_protected);
-+	/*
-+	 * Decay to avoid overflow and adapt to changing workloads.
-+	 * This is based on LRU reclaim cost decaying heuristics.
-+	 */
-+	do {
-+		new = old > lru_size / 4 ? old / 2 : old;
-+	} while (!atomic_long_try_cmpxchg(nr_zswap_protected, &old, new));
- 	rcu_read_unlock();
- }
- 
-@@ -383,6 +432,7 @@ static void zswap_lru_putback(struct lis
- 	int nid = entry_to_nid(entry);
- 	spinlock_t *lock = &list_lru->node[nid].lock;
- 	struct mem_cgroup *memcg;
-+	struct lruvec *lruvec;
- 
- 	rcu_read_lock();
- 	memcg = mem_cgroup_from_entry(entry);
-@@ -390,6 +440,10 @@ static void zswap_lru_putback(struct lis
- 	/* we cannot use list_lru_add here, because it increments node's lru count */
- 	list_lru_putback(list_lru, &entry->lru, nid, memcg);
- 	spin_unlock(lock);
-+
-+	lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(entry_to_nid(entry)));
-+	/* increment the protection area to account for the LRU rotation. */
-+	atomic_long_inc(&lruvec->zswap_lruvec_state.nr_zswap_protected);
- 	rcu_read_unlock();
- }
- 
-@@ -479,6 +533,7 @@ static void zswap_free_entry(struct zswa
- 	else {
- 		zswap_lru_del(&entry->pool->list_lru, entry);
- 		zpool_free(zswap_find_zpool(entry), entry->handle);
-+		atomic_dec(&entry->pool->nr_stored);
- 		zswap_pool_put(entry->pool);
- 	}
- 	zswap_entry_cache_free(entry);
-@@ -521,6 +576,95 @@ static struct zswap_entry *zswap_entry_f
- }
- 
- /*********************************
-+* shrinker functions
-+**********************************/
-+static enum lru_status shrink_memcg_cb(struct list_head *item, struct list_lru_one *l,
-+				       spinlock_t *lock, void *arg);
-+
-+static unsigned long zswap_shrinker_scan(struct shrinker *shrinker,
-+		struct shrink_control *sc)
-+{
-+	struct lruvec *lruvec = mem_cgroup_lruvec(sc->memcg, NODE_DATA(sc->nid));
-+	unsigned long shrink_ret, nr_protected, lru_size;
-+	struct zswap_pool *pool = shrinker->private_data;
-+	bool encountered_page_in_swapcache = false;
-+
-+	nr_protected =
-+		atomic_long_read(&lruvec->zswap_lruvec_state.nr_zswap_protected);
-+	lru_size = list_lru_shrink_count(&pool->list_lru, sc);
-+
-+	/*
-+	 * Abort if the shrinker is disabled or if we are shrinking into the
-+	 * protected region.
-+	 */
-+	if (!zswap_shrinker_enabled || nr_protected >= lru_size - sc->nr_to_scan) {
-+		sc->nr_scanned = 0;
-+		return SHRINK_STOP;
-+	}
-+
-+	shrink_ret = list_lru_shrink_walk(&pool->list_lru, sc, &shrink_memcg_cb,
-+		&encountered_page_in_swapcache);
-+
-+	if (encountered_page_in_swapcache)
-+		return SHRINK_STOP;
-+
-+	return shrink_ret ? shrink_ret : SHRINK_STOP;
-+}
-+
-+static unsigned long zswap_shrinker_count(struct shrinker *shrinker,
-+		struct shrink_control *sc)
-+{
-+	struct zswap_pool *pool = shrinker->private_data;
-+	struct mem_cgroup *memcg = sc->memcg;
-+	struct lruvec *lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(sc->nid));
-+	unsigned long nr_backing, nr_stored, nr_freeable, nr_protected;
-+
-+#ifdef CONFIG_MEMCG_KMEM
-+	cgroup_rstat_flush(memcg->css.cgroup);
-+	nr_backing = memcg_page_state(memcg, MEMCG_ZSWAP_B) >> PAGE_SHIFT;
-+	nr_stored = memcg_page_state(memcg, MEMCG_ZSWAPPED);
++	pr_err("%s by task %u on cpu %d at %lu.%06lus:\n",
++			prefix, track->pid, track->cpu,
++			(unsigned long)ts_nsec, rem_usec);
 +#else
-+	/* use pool stats instead of memcg stats */
-+	nr_backing = get_zswap_pool_size(pool) >> PAGE_SHIFT;
-+	nr_stored = atomic_read(&pool->nr_stored);
-+#endif
-+
-+	if (!zswap_shrinker_enabled || !nr_stored)
-+		return 0;
-+
-+	nr_protected =
-+		atomic_long_read(&lruvec->zswap_lruvec_state.nr_zswap_protected);
-+	nr_freeable = list_lru_shrink_count(&pool->list_lru, sc);
-+	/*
-+	 * Subtract the lru size by an estimate of the number of pages
-+	 * that should be protected.
-+	 */
-+	nr_freeable = nr_freeable > nr_protected ? nr_freeable - nr_protected : 0;
-+
-+	/*
-+	 * Scale the number of freeable pages by the memory saving factor.
-+	 * This ensures that the better zswap compresses memory, the fewer
-+	 * pages we will evict to swap (as it will otherwise incur IO for
-+	 * relatively small memory saving).
-+	 */
-+	return mult_frac(nr_freeable, nr_backing, nr_stored);
-+}
-+
-+static void zswap_alloc_shrinker(struct zswap_pool *pool)
+ 	pr_err("%s by task %u:\n", prefix, track->pid);
++#endif /* CONFIG_KASAN_EXTRA_INFO */
+ 	if (track->stack)
+ 		stack_depot_print(track->stack);
+ 	else
+--- a/mm/kasan/report_tags.c~kasan-record-and-report-more-information
++++ a/mm/kasan/report_tags.c
+@@ -27,6 +27,15 @@ static const char *get_common_bug_type(s
+ 	return "invalid-access";
+ }
+ 
++#ifdef CONFIG_KASAN_EXTRA_INFO
++static void kasan_complete_extra_report_info(struct kasan_track *track,
++					 struct kasan_stack_ring_entry *entry)
 +{
-+	pool->shrinker =
-+		shrinker_alloc(SHRINKER_NUMA_AWARE | SHRINKER_MEMCG_AWARE, "mm-zswap");
-+	if (!pool->shrinker)
-+		return;
-+
-+	pool->shrinker->private_data = pool;
-+	pool->shrinker->scan_objects = zswap_shrinker_scan;
-+	pool->shrinker->count_objects = zswap_shrinker_count;
-+	pool->shrinker->batch = 0;
-+	pool->shrinker->seeks = DEFAULT_SEEKS;
++	track->cpu = entry->cpu;
++	track->timestamp = entry->timestamp;
 +}
++#endif /* CONFIG_KASAN_EXTRA_INFO */
 +
-+/*********************************
- * per-cpu code
- **********************************/
- static DEFINE_PER_CPU(u8 *, zswap_dstmem);
-@@ -715,6 +859,7 @@ static enum lru_status shrink_memcg_cb(s
- 				       spinlock_t *lock, void *arg)
+ void kasan_complete_mode_report_info(struct kasan_report_info *info)
  {
- 	struct zswap_entry *entry = container_of(item, struct zswap_entry, lru);
-+	bool *encountered_page_in_swapcache = (bool *)arg;
- 	struct zswap_tree *tree;
- 	pgoff_t swpoffset;
- 	enum lru_status ret = LRU_REMOVED_RETRY;
-@@ -750,6 +895,17 @@ static enum lru_status shrink_memcg_cb(s
- 		zswap_reject_reclaim_fail++;
- 		zswap_lru_putback(&entry->pool->list_lru, entry);
- 		ret = LRU_RETRY;
-+
-+		/*
-+		 * Encountering a page already in swap cache is a sign that we are shrinking
-+		 * into the warmer region. We should terminate shrinking (if we're in the dynamic
-+		 * shrinker context).
-+		 */
-+		if (writeback_result == -EEXIST && encountered_page_in_swapcache) {
-+			ret = LRU_SKIP;
-+			*encountered_page_in_swapcache = true;
-+		}
-+
- 		goto put_unlock;
+ 	unsigned long flags;
+@@ -73,6 +82,9 @@ void kasan_complete_mode_report_info(str
+ 
+ 			info->free_track.pid = entry->pid;
+ 			info->free_track.stack = entry->stack;
++#ifdef CONFIG_KASAN_EXTRA_INFO
++			kasan_complete_extra_report_info(&info->free_track, entry);
++#endif /* CONFIG_KASAN_EXTRA_INFO */
+ 			free_found = true;
+ 
+ 			/*
+@@ -88,6 +100,9 @@ void kasan_complete_mode_report_info(str
+ 
+ 			info->alloc_track.pid = entry->pid;
+ 			info->alloc_track.stack = entry->stack;
++#ifdef CONFIG_KASAN_EXTRA_INFO
++			kasan_complete_extra_report_info(&info->alloc_track, entry);
++#endif /* CONFIG_KASAN_EXTRA_INFO */
+ 			alloc_found = true;
+ 
+ 			/*
+--- a/mm/kasan/tags.c~kasan-record-and-report-more-information
++++ a/mm/kasan/tags.c
+@@ -13,6 +13,7 @@
+ #include <linux/memblock.h>
+ #include <linux/memory.h>
+ #include <linux/mm.h>
++#include <linux/sched/clock.h>
+ #include <linux/stackdepot.h>
+ #include <linux/static_key.h>
+ #include <linux/string.h>
+@@ -93,6 +94,17 @@ void __init kasan_init_tags(void)
  	}
- 	zswap_written_back_pages++;
-@@ -889,6 +1045,11 @@ static struct zswap_pool *zswap_pool_cre
- 				       &pool->node);
- 	if (ret)
- 		goto error;
+ }
+ 
++#ifdef CONFIG_KASAN_EXTRA_INFO
++static void save_extra_info(struct kasan_stack_ring_entry *entry)
++{
++	u32 cpu = raw_smp_processor_id();
++	u64 ts_nsec = local_clock();
 +
-+	zswap_alloc_shrinker(pool);
-+	if (!pool->shrinker)
-+		goto error;
++	entry->cpu = cpu;
++	entry->timestamp = ts_nsec >> 3;
++}
++#endif /* CONFIG_KASAN_EXTRA_INFO */
 +
- 	pr_debug("using %s compressor\n", pool->tfm_name);
+ static void save_stack_info(struct kmem_cache *cache, void *object,
+ 			gfp_t gfp_flags, bool is_free)
+ {
+@@ -128,6 +140,9 @@ next:
+ 	entry->pid = current->pid;
+ 	entry->stack = stack;
+ 	entry->is_free = is_free;
++#ifdef CONFIG_KASAN_EXTRA_INFO
++	save_extra_info(entry);
++#endif /* CONFIG_KASAN_EXTRA_INFO */
  
- 	/* being the current pool takes 1 ref; this func expects the
-@@ -896,13 +1057,19 @@ static struct zswap_pool *zswap_pool_cre
- 	 */
- 	kref_init(&pool->kref);
- 	INIT_LIST_HEAD(&pool->list);
--	list_lru_init_memcg(&pool->list_lru, NULL);
-+	if (list_lru_init_memcg(&pool->list_lru, pool->shrinker))
-+		goto lru_fail;
-+	shrinker_register(pool->shrinker);
- 	INIT_WORK(&pool->shrink_work, shrink_worker);
-+	atomic_set(&pool->nr_stored, 0);
- 
- 	zswap_pool_debug("created", pool);
- 
- 	return pool;
- 
-+lru_fail:
-+	list_lru_destroy(&pool->list_lru);
-+	shrinker_free(pool->shrinker);
- error:
- 	if (pool->acomp_ctx)
- 		free_percpu(pool->acomp_ctx);
-@@ -960,6 +1127,7 @@ static void zswap_pool_destroy(struct zs
- 
- 	zswap_pool_debug("destroying", pool);
- 
-+	shrinker_free(pool->shrinker);
- 	cpuhp_state_remove_instance(CPUHP_MM_ZSWP_POOL_PREPARE, &pool->node);
- 	free_percpu(pool->acomp_ctx);
- 	list_lru_destroy(&pool->list_lru);
-@@ -1511,6 +1679,7 @@ insert_entry:
- 	if (entry->length) {
- 		INIT_LIST_HEAD(&entry->lru);
- 		zswap_lru_add(&entry->pool->list_lru, entry);
-+		atomic_inc(&entry->pool->nr_stored);
- 	}
- 	spin_unlock(&tree->lock);
+ 	entry->ptr = object;
  
 _
 
-Patches currently in -mm which might be from nphamcs@gmail.com are
+Patches currently in -mm which might be from juntong.deng@outlook.com are
 
-list_lru-allows-explicit-memcg-and-numa-node-selection.patch
-memcontrol-add-a-new-function-to-traverse-online-only-memcg-hierarchy.patch
-zswap-shrinks-zswap-pool-based-on-memory-pressure.patch
+kasan-improve-free-meta-storage-in-generic-kasan.patch
+kasan-improve-free-meta-storage-in-generic-kasan-v3.patch
+kasan-record-and-report-more-information.patch
 
