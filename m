@@ -2,37 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE2A7C46CA0
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Nov 2023 23:59:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3E73C4167B
+	for <mm-commits@archiver.kernel.org>; Wed, 29 Nov 2023 01:14:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1376640AbjK1X7B (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Nov 2023 18:59:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56996 "EHLO
+        id S229880AbjK2BOr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Nov 2023 20:14:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41778 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1376662AbjK1X67 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Nov 2023 18:58:59 -0500
+        with ESMTP id S229526AbjK2BOq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Nov 2023 20:14:46 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C3ED198D
-        for <mm-commits@vger.kernel.org>; Tue, 28 Nov 2023 15:59:05 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD329C433C7;
-        Tue, 28 Nov 2023 23:59:04 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 38B0210C0
+        for <mm-commits@vger.kernel.org>; Tue, 28 Nov 2023 17:14:53 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C539FC433C8;
+        Wed, 29 Nov 2023 01:14:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701215945;
-        bh=FiV+9VDzgsXd4+6oInddmRhFDuKAtbA1acUFfDr8zXM=;
+        s=korg; t=1701220492;
+        bh=ys25ROXqFvV6zVFeSWNPyQTuAK4HKqDqt0O0G6GgtLs=;
         h=Date:To:From:Subject:From;
-        b=K9fGD3iJiNfVNaV0TnFDpmFYfMB/CDysO2UV0AqzmJl9TDmKOUgrIcoCgG0f57Mek
-         s70+INyIyqWSZdzycs2ClKgH6FY+EnptSxIkv3RXWjLALf/+v1veTWjgpoz0zJ1nW8
-         5gzmqZn42rbbgh1FWhswP71NrbBcIGozs+HCAqTU=
-Date:   Tue, 28 Nov 2023 15:59:04 -0800
-To:     mm-commits@vger.kernel.org, osalvador@suse.de, mhocko@suse.com,
-        hca@linux.ibm.com, gor@linux.ibm.com,
-        gerald.schaefer@linux.ibm.com, david@redhat.com,
-        anshuman.khandual@arm.com, aneesh.kumar@linux.ibm.com,
-        agordeev@linux.ibm.com, sumanthk@linux.ibm.com,
-        akpm@linux-foundation.org
+        b=ekwW9nZY+zIngJ0uQUB8e0LQYYcZKwBe+NYMxDxlPvz6k4or6MnG11NaQsGbwN4EK
+         7MlTJpTV0dGCzpjc2BfnlBmNA3QyE7PmXNgM6yJ73MGFe41CUXfSJ/6L4GG5ryzNo1
+         g5MIDm7psaApKrYrbA+Y9v1cKGGmHJWh09C7U2TY=
+Date:   Tue, 28 Nov 2023 17:14:52 -0800
+To:     mm-commits@vger.kernel.org, minchan@kernel.org,
+        senozhatsky@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-mm-implement-mem_prepare_online-mem_finish_offline-notifiers.patch added to mm-unstable branch
-Message-Id: <20231128235904.DD329C433C7@smtp.kernel.org>
+Subject: + zram-use-kmap_local_page.patch added to mm-unstable branch
+Message-Id: <20231129011452.C539FC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390/mm: implement MEM_PREPARE_ONLINE/MEM_FINISH_OFFLINE notifiers
+     Subject: zram: use kmap_local_page()
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-mm-implement-mem_prepare_online-mem_finish_offline-notifiers.patch
+     zram-use-kmap_local_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-mm-implement-mem_prepare_online-mem_finish_offline-notifiers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-use-kmap_local_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -63,129 +59,114 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Sumanth Korikkar <sumanthk@linux.ibm.com>
-Subject: s390/mm: implement MEM_PREPARE_ONLINE/MEM_FINISH_OFFLINE notifiers
-Date: Tue, 28 Nov 2023 16:52:26 +0100
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: use kmap_local_page()
+Date: Tue, 28 Nov 2023 17:22:07 +0900
 
-MEM_PREPARE_ONLINE memory notifier makes memory block physical accessible
-via sclp assign command.  The notifier ensures self-contained memory maps
-are accessible and hence enabling the "memmap on memory" on s390.
+Use kmap_local_page() instead of kmap_atomic() which has been
+deprecated.
 
-MEM_FINISH_OFFLINE memory notifier shifts the memory block to an
-inaccessible state via sclp unassign command.
-
-Implementation considerations:
-* When MHP_MEMMAP_ON_MEMORY is disabled, the system retains the old
-  behavior. This means the memory map is allocated from default memory.
-* If MACHINE_HAS_EDAT1 is unavailable, MHP_MEMMAP_ON_MEMORY is
-  automatically disabled. This ensures that vmemmap pagetables do not
-  consume additional memory from the default memory allocator.
-* The MEM_GOING_ONLINE notifier has been modified to perform no
-  operation, as MEM_PREPARE_ONLINE already executes the sclp assign
-  command.
-* The MEM_CANCEL_ONLINE/MEM_OFFLINE notifier now performs no operation, as
-  MEM_FINISH_OFFLINE already executes the sclp unassign command.
-
-Link: https://lkml.kernel.org/r/20231128155227.1315063-5-sumanthk@linux.ibm.com
-Signed-off-by: Sumanth Korikkar <sumanthk@linux.ibm.com>
-Reviewed-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20231128083845.848008-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/char/sclp_cmd.c |   41 ++++++++++++++++++++++++++++-----
- 1 file changed, 35 insertions(+), 6 deletions(-)
+ drivers/block/zram/zram_drv.c |   30 +++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
 
---- a/drivers/s390/char/sclp_cmd.c~s390-mm-implement-mem_prepare_online-mem_finish_offline-notifiers
-+++ a/drivers/s390/char/sclp_cmd.c
-@@ -18,6 +18,7 @@
- #include <linux/mm.h>
- #include <linux/mmzone.h>
- #include <linux/memory.h>
-+#include <linux/memory_hotplug.h>
- #include <linux/module.h>
- #include <asm/ctlreg.h>
- #include <asm/chpid.h>
-@@ -26,6 +27,7 @@
- #include <asm/sclp.h>
- #include <asm/numa.h>
- #include <asm/facility.h>
-+#include <asm/page-states.h>
+--- a/drivers/block/zram/zram_drv.c~zram-use-kmap_local_page
++++ a/drivers/block/zram/zram_drv.c
+@@ -1321,9 +1321,9 @@ static int zram_read_from_zspool(struct
+ 		void *mem;
  
- #include "sclp.h"
+ 		value = handle ? zram_get_element(zram, index) : 0;
+-		mem = kmap_atomic(page);
++		mem = kmap_local_page(page);
+ 		zram_fill_page(mem, PAGE_SIZE, value);
+-		kunmap_atomic(mem);
++		kunmap_local(mem);
+ 		return 0;
+ 	}
  
-@@ -340,13 +342,38 @@ static int sclp_mem_notifier(struct noti
- 		if (contains_standby_increment(start, start + size))
- 			rc = -EPERM;
- 		break;
--	case MEM_GOING_ONLINE:
-+	case MEM_PREPARE_ONLINE:
-+		/*
-+		 * Access the altmap_start_pfn and altmap_nr_pages fields
-+		 * within the struct memory_notify specifically when dealing
-+		 * with only MEM_PREPARE_ONLINE/MEM_FINISH_OFFLINE notifiers.
-+		 *
-+		 * When altmap is in use, take the specified memory range
-+		 * online, which includes the altmap.
-+		 */
-+		if (arg->altmap_nr_pages) {
-+			start = PFN_PHYS(arg->altmap_start_pfn);
-+			size += PFN_PHYS(arg->altmap_nr_pages);
-+		}
- 		rc = sclp_mem_change_state(start, size, 1);
-+		if (rc || !arg->altmap_nr_pages)
-+			break;
-+		/*
-+		 * Set CMMA state to nodat here, since the struct page memory
-+		 * at the beginning of the memory block will not go through the
-+		 * buddy allocator later.
-+		 */
-+		__arch_set_page_nodat((void *)__va(start), arg->altmap_nr_pages);
- 		break;
--	case MEM_CANCEL_ONLINE:
--		sclp_mem_change_state(start, size, 0);
--		break;
--	case MEM_OFFLINE:
-+	case MEM_FINISH_OFFLINE:
-+		/*
-+		 * When altmap is in use, take the specified memory range
-+		 * offline, which includes the altmap.
-+		 */
-+		if (arg->altmap_nr_pages) {
-+			start = PFN_PHYS(arg->altmap_start_pfn);
-+			size += PFN_PHYS(arg->altmap_nr_pages);
-+		}
- 		sclp_mem_change_state(start, size, 0);
- 		break;
- 	default:
-@@ -397,7 +424,9 @@ static void __init add_memory_merged(u16
- 	if (!size)
- 		goto skip_add;
- 	for (addr = start; addr < start + size; addr += block_size)
--		add_memory(0, addr, block_size, MHP_NONE);
-+		add_memory(0, addr, block_size,
-+			   MACHINE_HAS_EDAT1 ?
-+			   MHP_MEMMAP_ON_MEMORY | MHP_OFFLINE_INACCESSIBLE : MHP_NONE);
- skip_add:
- 	first_rn = rn;
- 	num = 1;
+@@ -1336,14 +1336,14 @@ static int zram_read_from_zspool(struct
+ 
+ 	src = zs_map_object(zram->mem_pool, handle, ZS_MM_RO);
+ 	if (size == PAGE_SIZE) {
+-		dst = kmap_atomic(page);
++		dst = kmap_local_page(page);
+ 		memcpy(dst, src, PAGE_SIZE);
+-		kunmap_atomic(dst);
++		kunmap_local(dst);
+ 		ret = 0;
+ 	} else {
+-		dst = kmap_atomic(page);
++		dst = kmap_local_page(page);
+ 		ret = zcomp_decompress(zstrm, src, size, dst);
+-		kunmap_atomic(dst);
++		kunmap_local(dst);
+ 		zcomp_stream_put(zram->comps[prio]);
+ 	}
+ 	zs_unmap_object(zram->mem_pool, handle);
+@@ -1416,21 +1416,21 @@ static int zram_write_page(struct zram *
+ 	unsigned long element = 0;
+ 	enum zram_pageflags flags = 0;
+ 
+-	mem = kmap_atomic(page);
++	mem = kmap_local_page(page);
+ 	if (page_same_filled(mem, &element)) {
+-		kunmap_atomic(mem);
++		kunmap_local(mem);
+ 		/* Free memory associated with this sector now. */
+ 		flags = ZRAM_SAME;
+ 		atomic64_inc(&zram->stats.same_pages);
+ 		goto out;
+ 	}
+-	kunmap_atomic(mem);
++	kunmap_local(mem);
+ 
+ compress_again:
+ 	zstrm = zcomp_stream_get(zram->comps[ZRAM_PRIMARY_COMP]);
+-	src = kmap_atomic(page);
++	src = kmap_local_page(page);
+ 	ret = zcomp_compress(zstrm, src, &comp_len);
+-	kunmap_atomic(src);
++	kunmap_local(src);
+ 
+ 	if (unlikely(ret)) {
+ 		zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
+@@ -1494,10 +1494,10 @@ compress_again:
+ 
+ 	src = zstrm->buffer;
+ 	if (comp_len == PAGE_SIZE)
+-		src = kmap_atomic(page);
++		src = kmap_local_page(page);
+ 	memcpy(dst, src, comp_len);
+ 	if (comp_len == PAGE_SIZE)
+-		kunmap_atomic(src);
++		kunmap_local(src);
+ 
+ 	zcomp_stream_put(zram->comps[ZRAM_PRIMARY_COMP]);
+ 	zs_unmap_object(zram->mem_pool, handle);
+@@ -1614,9 +1614,9 @@ static int zram_recompress(struct zram *
+ 
+ 		num_recomps++;
+ 		zstrm = zcomp_stream_get(zram->comps[prio]);
+-		src = kmap_atomic(page);
++		src = kmap_local_page(page);
+ 		ret = zcomp_compress(zstrm, src, &comp_len_new);
+-		kunmap_atomic(src);
++		kunmap_local(src);
+ 
+ 		if (ret) {
+ 			zcomp_stream_put(zram->comps[prio]);
 _
 
-Patches currently in -mm which might be from sumanthk@linux.ibm.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-mm-memory_hotplug-add-missing-mem_hotplug_lock.patch
-mm-memory_hotplug-fix-error-handling-in-add_memory_resource.patch
-mm-use-vmem_altmap-code-without-config_zone_device.patch
-mm-memory_hotplug-introduce-mem_prepare_online-mem_finish_offline-notifiers.patch
-s390-mm-allocate-vmemmap-pages-from-self-contained-memory-range.patch
-s390-sclp-remove-unhandled-memory-notifier-type.patch
-s390-mm-implement-mem_prepare_online-mem_finish_offline-notifiers.patch
-s390-enable-mhp_memmap_on_memory.patch
+zram-split-memory-tracking-and-ac-time-tracking.patch
+zram-split-memory-tracking-and-ac-time-tracking-v2.patch
+zram-tweak-writeback-config-help.patch
+zram-use-kmap_local_page.patch
+checkpatch-do-not-require-an-empty-line-before-error-injection.patch
 
