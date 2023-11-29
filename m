@@ -2,395 +2,158 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EFE8C10DAA
-	for <mm-commits@archiver.kernel.org>; Wed, 29 Nov 2023 03:58:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE065C4167B
+	for <mm-commits@archiver.kernel.org>; Wed, 29 Nov 2023 17:52:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1376856AbjK2D6L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Nov 2023 22:58:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38030 "EHLO
+        id S230081AbjK2Rw3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 29 Nov 2023 12:52:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37032 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234871AbjK2D6J (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 28 Nov 2023 22:58:09 -0500
+        with ESMTP id S229501AbjK2Rw2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Nov 2023 12:52:28 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3D68F19BA
-        for <mm-commits@vger.kernel.org>; Tue, 28 Nov 2023 19:58:15 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD0BDC433C8;
-        Wed, 29 Nov 2023 03:58:14 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31A7ECA
+        for <mm-commits@vger.kernel.org>; Wed, 29 Nov 2023 09:52:34 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C25D8C433C9;
+        Wed, 29 Nov 2023 17:52:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701230294;
-        bh=sT/nh44dXXGWUpkoiy3DSFTtW2sBrE78n9LFtFzmql0=;
+        s=korg; t=1701280353;
+        bh=YOIaRSyjfhDGgdqf1LK2n3/BNr3kvrIT7eT9FgT2S58=;
         h=Date:To:From:Subject:From;
-        b=w9Ax7/jyO6KQZ4R0aBgOkZh7EG+N7u9ZHpqp+MQ2VENOcArvWTNvsV2HnDXiVU8Ii
-         Lp4nXQc2koQmqmjON6mgbKnEou2hIm/pzcSxfXyC08PeeObODLU6StBw3obNsHUlNH
-         MtCTnFZ/YIbwDEJ0W9ZL/WHbjzWHDB9UYe9jnLMI=
-Date:   Tue, 28 Nov 2023 19:58:14 -0800
-To:     mm-commits@vger.kernel.org, weixugc@google.com, tj@kernel.org,
-        shakeelb@google.com, roman.gushchin@linux.dev,
-        muchun.song@linux.dev, mkoutny@suse.com, mhocko@kernel.org,
-        longman@redhat.com, ivan@cloudflare.com, hannes@cmpxchg.org,
-        gthelen@google.com, chrisl@kernel.org, cerasuolodomenico@gmail.com,
-        yosryahmed@google.com, akpm@linux-foundation.org
+        b=XIkm5Hu/vIL57oj7OvEJ8A0wp8aMVd+02hoDeiRPbRVU0ayvy5r33bXpCn152nhzh
+         wJadqtKhDepVf7o/owa/UHRECmWy8c/0NpVcvDROeXY493ER5CCYz6/OQtVo1wuecY
+         gsWpIi34/4Cf0I1S4STPfHF31Zi75Iy66FxpxLBg=
+Date:   Wed, 29 Nov 2023 09:52:33 -0800
+To:     mm-commits@vger.kernel.org, shakeelb@google.com,
+        rostedt@goodmis.org, roman.gushchin@linux.dev,
+        muchun.song@linux.dev, mhocko@suse.com, mhiramat@kernel.org,
+        hannes@cmpxchg.org, ddrokosov@salutedevices.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-restore-subtree-stats-flushing.patch added to mm-unstable branch
-Message-Id: <20231129035814.CD0BDC433C8@smtp.kernel.org>
+Subject: [to-be-updated] mm-memcg-introduce-new-event-to-trace-shrink_memcg.patch removed from -mm tree
+Message-Id: <20231129175233.C25D8C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: mm: memcg: restore subtree stats flushing
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-restore-subtree-stats-flushing.patch
+The quilt patch titled
+     Subject: mm: memcg: introduce new event to trace shrink_memcg
+has been removed from the -mm tree.  Its filename was
+     mm-memcg-introduce-new-event-to-trace-shrink_memcg.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-restore-subtree-stats-flushing.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: memcg: restore subtree stats flushing
-Date: Wed, 29 Nov 2023 03:21:53 +0000
+From: Dmitry Rokosov <ddrokosov@salutedevices.com>
+Subject: mm: memcg: introduce new event to trace shrink_memcg
+Date: Thu, 23 Nov 2023 22:39:37 +0300
 
-Stats flushing for memcg currently follows the following rules:
-- Always flush the entire memcg hierarchy (i.e. flush the root).
-- Only one flusher is allowed at a time. If someone else tries to flush
-  concurrently, they skip and return immediately.
-- A periodic flusher flushes all the stats every 2 seconds.
+The shrink_memcg flow plays a crucial role in memcg reclamation. 
+Currently, it is not possible to trace this point from non-direct reclaim
+paths.  However, direct reclaim has its own tracepoint, so there is no
+issue there.  In certain cases, when debugging memcg pressure, developers
+may need to identify all potential requests for memcg reclamation
+including kswapd().  The patchset introduces the tracepoints
+mm_vmscan_memcg_shrink_{begin|end}() to address this problem.
 
-The reason this approach is followed is because all flushes are serialized
-by a global rstat spinlock.  On the memcg side, flushing is invoked from
-userspace reads as well as in-kernel flushers (e.g.  reclaim, refault,
-etc).  This approach aims to avoid serializing all flushers on the global
-lock, which can cause a significant performance hit under high
-concurrency.
+Example of output in the kswapd context (non-direct reclaim):
+    kswapd0-39      [001] .....   240.356378: mm_vmscan_memcg_shrink_begin: order=0 gfp_flags=GFP_KERNEL memcg=16
+    kswapd0-39      [001] .....   240.356396: mm_vmscan_memcg_shrink_end: nr_reclaimed=0 memcg=16
+    kswapd0-39      [001] .....   240.356420: mm_vmscan_memcg_shrink_begin: order=0 gfp_flags=GFP_KERNEL memcg=16
+    kswapd0-39      [001] .....   240.356454: mm_vmscan_memcg_shrink_end: nr_reclaimed=1 memcg=16
+    kswapd0-39      [001] .....   240.356479: mm_vmscan_memcg_shrink_begin: order=0 gfp_flags=GFP_KERNEL memcg=16
+    kswapd0-39      [001] .....   240.356506: mm_vmscan_memcg_shrink_end: nr_reclaimed=4 memcg=16
+    kswapd0-39      [001] .....   240.356525: mm_vmscan_memcg_shrink_begin: order=0 gfp_flags=GFP_KERNEL memcg=16
+    kswapd0-39      [001] .....   240.356593: mm_vmscan_memcg_shrink_end: nr_reclaimed=11 memcg=16
+    kswapd0-39      [001] .....   240.356614: mm_vmscan_memcg_shrink_begin: order=0 gfp_flags=GFP_KERNEL memcg=16
+    kswapd0-39      [001] .....   240.356738: mm_vmscan_memcg_shrink_end: nr_reclaimed=25 memcg=16
+    kswapd0-39      [001] .....   240.356790: mm_vmscan_memcg_shrink_begin: order=0 gfp_flags=GFP_KERNEL memcg=16
+    kswapd0-39      [001] .....   240.357125: mm_vmscan_memcg_shrink_end: nr_reclaimed=53 memcg=16
 
-This approach has the following problems:
-- Occasionally a userspace read of the stats of a non-root cgroup will
-  be too expensive as it has to flush the entire hierarchy [1].
-- Sometimes the stats accuracy are compromised if there is an ongoing
-  flush, and we skip and return before the subtree of interest is
-  actually flushed, yielding stale stats (by up to 2s due to periodic
-  flushing). This is more visible when reading stats from userspace,
-  but can also affect in-kernel flushers.
-
-The latter problem is particulary a concern when userspace reads stats
-after an event occurs, but gets stats from before the event. Examples:
-- When memory usage / pressure spikes, a userspace OOM handler may look
-  at the stats of different memcgs to select a victim based on various
-  heuristics (e.g. how much private memory will be freed by killing
-  this). Reading stale stats from before the usage spike in this case
-  may cause a wrongful OOM kill.
-- A proactive reclaimer may read the stats after writing to
-  memory.reclaim to measure the success of the reclaim operation. Stale
-  stats from before reclaim may give a false negative.
-- Reading the stats of a parent and a child memcg may be inconsistent
-  (child larger than parent), if the flush doesn't happen when the
-  parent is read, but happens when the child is read.
-
-As for in-kernel flushers, they will occasionally get stale stats.  No
-regressions are currently known from this, but if there are regressions,
-they would be very difficult to debug and link to the source of the
-problem.
-
-This patch aims to fix these problems by restoring subtree flushing, and
-removing the unified/coalesced flushing logic that skips flushing if there
-is an ongoing flush.  This change would introduce a significant regression
-with global stats flushing thresholds.  With per-memcg stats flushing
-thresholds, this seems to perform really well.  The thresholds protect the
-underlying lock from unnecessary contention.
-
-Add a mutex to protect the underlying rstat lock from excessive memcg
-flushing.  The thresholds are re-checked after the mutex is grabbed to
-make sure that a concurrent flush did not already get the subtree we are
-trying to flush.  A call to cgroup_rstat_flush() is not cheap, even if
-there are no pending updates.
-
-This patch was tested in two ways to ensure the latency of flushing is
-up to bar, on a machine with 384 cpus:
-- A synthetic test with 5000 concurrent workers in 500 cgroups doing
-  allocations and reclaim, as well as 1000 readers for memory.stat
-  (variation of [2]). No regressions were noticed in the total runtime.
-  Note that significant regressions in this test are observed with
-  global stats thresholds, but not with per-memcg thresholds.
-
-- A synthetic stress test for concurrently reading memcg stats while
-  memory allocation/freeing workers are running in the background,
-  provided by Wei Xu [3]. With 250k threads reading the stats every
-  100ms in 50k cgroups, 99.9% of reads take <= 50us. Less than 0.01%
-  of reads take more than 1ms, and no reads take more than 100ms.
-
-[1] https://lore.kernel.org/lkml/CABWYdi0c6__rh-K7dcM_pkf9BJdTRtAU08M43KO9ME4-dsgfoQ@mail.gmail.com/
-[2] https://lore.kernel.org/lkml/CAJD7tka13M-zVZTyQJYL1iUAYvuQ1fcHbCjcOBZcz6POYTV-4g@mail.gmail.com/
-[3] https://lore.kernel.org/lkml/CAAPL-u9D2b=iF5Lf_cRnKxUfkiEe0AMDTu6yhrUAzX0b6a6rDg@mail.gmail.com/
-
-Link: https://lkml.kernel.org/r/20231129032154.3710765-6-yosryahmed@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Tested-by: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Ivan Babrou <ivan@cloudflare.com>
+Link: https://lkml.kernel.org/r/20231123193937.11628-3-ddrokosov@salutedevices.com
+Signed-off-by: Dmitry Rokosov <ddrokosov@salutedevices.com>
+Acked-by: Shakeel Butt <shakeelb@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutny <mkoutny@suse.com>
+Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Wei Xu <weixugc@google.com>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    8 +--
- mm/memcontrol.c            |   75 +++++++++++++++++++++--------------
- mm/vmscan.c                |    2 
- mm/workingset.c            |   10 +++-
- 4 files changed, 58 insertions(+), 37 deletions(-)
+ include/trace/events/vmscan.h |   22 ++++++++++++++++++++++
+ mm/vmscan.c                   |    7 +++++++
+ 2 files changed, 29 insertions(+)
 
---- a/include/linux/memcontrol.h~mm-memcg-restore-subtree-stats-flushing
-+++ a/include/linux/memcontrol.h
-@@ -1050,8 +1050,8 @@ static inline unsigned long lruvec_page_
- 	return x;
- }
+--- a/include/trace/events/vmscan.h~mm-memcg-introduce-new-event-to-trace-shrink_memcg
++++ a/include/trace/events/vmscan.h
+@@ -180,6 +180,17 @@ DEFINE_EVENT(mm_vmscan_memcg_reclaim_beg
+ 	TP_ARGS(order, gfp_flags, memcg)
+ );
  
--void mem_cgroup_flush_stats(void);
--void mem_cgroup_flush_stats_ratelimited(void);
-+void mem_cgroup_flush_stats(struct mem_cgroup *memcg);
-+void mem_cgroup_flush_stats_ratelimited(struct mem_cgroup *memcg);
- 
- void __mod_memcg_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
- 			      int val);
-@@ -1566,11 +1566,11 @@ static inline unsigned long lruvec_page_
- 	return node_page_state(lruvec_pgdat(lruvec), idx);
- }
- 
--static inline void mem_cgroup_flush_stats(void)
-+static inline void mem_cgroup_flush_stats(struct mem_cgroup *memcg)
- {
- }
- 
--static inline void mem_cgroup_flush_stats_ratelimited(void)
-+static inline void mem_cgroup_flush_stats_ratelimited(struct mem_cgroup *memcg)
- {
- }
- 
---- a/mm/memcontrol.c~mm-memcg-restore-subtree-stats-flushing
-+++ a/mm/memcontrol.c
-@@ -670,7 +670,6 @@ struct memcg_vmstats {
-  */
- static void flush_memcg_stats_dwork(struct work_struct *w);
- static DECLARE_DEFERRABLE_WORK(stats_flush_dwork, flush_memcg_stats_dwork);
--static atomic_t stats_flush_ongoing = ATOMIC_INIT(0);
- static u64 flush_last_time;
- 
- #define FLUSH_TIME (2UL*HZ)
-@@ -731,35 +730,47 @@ static inline void memcg_rstat_updated(s
- 	}
- }
- 
--static void do_flush_stats(void)
-+static void do_flush_stats(struct mem_cgroup *memcg)
- {
--	/*
--	 * We always flush the entire tree, so concurrent flushers can just
--	 * skip. This avoids a thundering herd problem on the rstat global lock
--	 * from memcg flushers (e.g. reclaim, refault, etc).
--	 */
--	if (atomic_read(&stats_flush_ongoing) ||
--	    atomic_xchg(&stats_flush_ongoing, 1))
--		return;
--
--	WRITE_ONCE(flush_last_time, jiffies_64);
--
--	cgroup_rstat_flush(root_mem_cgroup->css.cgroup);
-+	if (mem_cgroup_is_root(memcg))
-+		WRITE_ONCE(flush_last_time, jiffies_64);
- 
--	atomic_set(&stats_flush_ongoing, 0);
-+	cgroup_rstat_flush(memcg->css.cgroup);
- }
- 
--void mem_cgroup_flush_stats(void)
-+/*
-+ * mem_cgroup_flush_stats - flush the stats of a memory cgroup subtree
-+ * @memcg: root of the subtree to flush
-+ *
-+ * Flushing is serialized by the underlying global rstat lock. There is also a
-+ * minimum amount of work to be done even if there are no stat updates to flush.
-+ * Hence, we only flush the stats if the updates delta exceeds a threshold. This
-+ * avoids unnecessary work and contention on the underlying lock.
-+ */
-+void mem_cgroup_flush_stats(struct mem_cgroup *memcg)
- {
--	if (memcg_should_flush_stats(root_mem_cgroup))
--		do_flush_stats();
-+	static DEFINE_MUTEX(memcg_stats_flush_mutex);
++DEFINE_EVENT(mm_vmscan_memcg_reclaim_begin_template, mm_vmscan_memcg_shrink_begin,
 +
-+	if (mem_cgroup_disabled())
-+		return;
++	TP_PROTO(int order, gfp_t gfp_flags, const struct mem_cgroup *memcg),
 +
-+	if (!memcg)
-+		memcg = root_mem_cgroup;
++	TP_ARGS(order, gfp_flags, memcg)
++);
 +
-+	if (memcg_should_flush_stats(memcg)) {
-+		mutex_lock(&memcg_stats_flush_mutex);
-+		/* Check again after locking, another flush may have occurred */
-+		if (memcg_should_flush_stats(memcg))
-+			do_flush_stats(memcg);
-+		mutex_unlock(&memcg_stats_flush_mutex);
-+	}
- }
- 
--void mem_cgroup_flush_stats_ratelimited(void)
-+void mem_cgroup_flush_stats_ratelimited(struct mem_cgroup *memcg)
- {
- 	/* Only flush if the periodic flusher is one full cycle late */
- 	if (time_after64(jiffies_64, READ_ONCE(flush_last_time) + 2*FLUSH_TIME))
--		mem_cgroup_flush_stats();
-+		mem_cgroup_flush_stats(memcg);
- }
- 
- static void flush_memcg_stats_dwork(struct work_struct *w)
-@@ -768,7 +779,7 @@ static void flush_memcg_stats_dwork(stru
- 	 * Deliberately ignore memcg_should_flush_stats() here so that flushing
- 	 * in latency-sensitive paths is as cheap as possible.
- 	 */
--	do_flush_stats();
-+	do_flush_stats(root_mem_cgroup);
- 	queue_delayed_work(system_unbound_wq, &stats_flush_dwork, FLUSH_TIME);
- }
- 
-@@ -1664,7 +1675,7 @@ static void memcg_stat_format(struct mem
- 	 *
- 	 * Current memory state:
- 	 */
--	mem_cgroup_flush_stats();
-+	mem_cgroup_flush_stats(memcg);
- 
- 	for (i = 0; i < ARRAY_SIZE(memory_stats); i++) {
- 		u64 size;
-@@ -4214,7 +4225,7 @@ static int memcg_numa_stat_show(struct s
- 	int nid;
- 	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
- 
--	mem_cgroup_flush_stats();
-+	mem_cgroup_flush_stats(memcg);
- 
- 	for (stat = stats; stat < stats + ARRAY_SIZE(stats); stat++) {
- 		seq_printf(m, "%s=%lu", stat->name,
-@@ -4295,7 +4306,7 @@ static void memcg1_stat_format(struct me
- 
- 	BUILD_BUG_ON(ARRAY_SIZE(memcg1_stat_names) != ARRAY_SIZE(memcg1_stats));
- 
--	mem_cgroup_flush_stats();
-+	mem_cgroup_flush_stats(memcg);
- 
- 	for (i = 0; i < ARRAY_SIZE(memcg1_stats); i++) {
- 		unsigned long nr;
-@@ -4791,7 +4802,7 @@ void mem_cgroup_wb_stats(struct bdi_writ
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(wb->memcg_css);
- 	struct mem_cgroup *parent;
- 
--	mem_cgroup_flush_stats();
-+	mem_cgroup_flush_stats(memcg);
- 
- 	*pdirty = memcg_page_state(memcg, NR_FILE_DIRTY);
- 	*pwriteback = memcg_page_state(memcg, NR_WRITEBACK);
-@@ -6886,7 +6897,7 @@ static int memory_numa_stat_show(struct
- 	int i;
- 	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
- 
--	mem_cgroup_flush_stats();
-+	mem_cgroup_flush_stats(memcg);
- 
- 	for (i = 0; i < ARRAY_SIZE(memory_stats); i++) {
- 		int nid;
-@@ -8117,7 +8128,11 @@ bool obj_cgroup_may_zswap(struct obj_cgr
- 			break;
- 		}
- 
--		cgroup_rstat_flush(memcg->css.cgroup);
-+		/*
-+		 * mem_cgroup_flush_stats() ignores small changes. Use
-+		 * do_flush_stats() directly to get accurate stats for charging.
-+		 */
-+		do_flush_stats(memcg);
- 		pages = memcg_page_state(memcg, MEMCG_ZSWAP_B) / PAGE_SIZE;
- 		if (pages < max)
- 			continue;
-@@ -8182,8 +8197,10 @@ void obj_cgroup_uncharge_zswap(struct ob
- static u64 zswap_current_read(struct cgroup_subsys_state *css,
- 			      struct cftype *cft)
- {
--	cgroup_rstat_flush(css->cgroup);
--	return memcg_page_state(mem_cgroup_from_css(css), MEMCG_ZSWAP_B);
-+	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
++#else
 +
-+	mem_cgroup_flush_stats(memcg);
-+	return memcg_page_state(memcg, MEMCG_ZSWAP_B);
- }
++#define trace_mm_vmscan_memcg_shrink_begin(...)
++
+ #endif /* CONFIG_MEMCG */
  
- static int zswap_max_show(struct seq_file *m, void *v)
---- a/mm/vmscan.c~mm-memcg-restore-subtree-stats-flushing
+ DECLARE_EVENT_CLASS(mm_vmscan_direct_reclaim_end_template,
+@@ -243,6 +254,17 @@ DEFINE_EVENT(mm_vmscan_memcg_reclaim_end
+ 	TP_ARGS(nr_reclaimed, memcg)
+ );
+ 
++DEFINE_EVENT(mm_vmscan_memcg_reclaim_end_template, mm_vmscan_memcg_shrink_end,
++
++	TP_PROTO(unsigned long nr_reclaimed, const struct mem_cgroup *memcg),
++
++	TP_ARGS(nr_reclaimed, memcg)
++);
++
++#else
++
++#define trace_mm_vmscan_memcg_shrink_end(...)
++
+ #endif /* CONFIG_MEMCG */
+ 
+ TRACE_EVENT(mm_shrink_slab_start,
+--- a/mm/vmscan.c~mm-memcg-introduce-new-event-to-trace-shrink_memcg
 +++ a/mm/vmscan.c
-@@ -2226,7 +2226,7 @@ static void prepare_scan_control(pg_data
- 	 * Flush the memory cgroup stats, so that we read accurate per-memcg
- 	 * lruvec stats for heuristics.
- 	 */
--	mem_cgroup_flush_stats();
-+	mem_cgroup_flush_stats(sc->target_mem_cgroup);
+@@ -5788,6 +5788,10 @@ static void shrink_node_memcgs(pg_data_t
+ 		 */
+ 		cond_resched();
  
- 	/*
- 	 * Determine the scan balance between anon and file LRUs.
---- a/mm/workingset.c~mm-memcg-restore-subtree-stats-flushing
-+++ a/mm/workingset.c
-@@ -464,8 +464,12 @@ bool workingset_test_recent(void *shadow
++		trace_mm_vmscan_memcg_shrink_begin(sc->order,
++						   sc->gfp_mask,
++						   memcg);
++
+ 		mem_cgroup_calculate_protection(target_memcg, memcg);
  
- 	rcu_read_unlock();
+ 		if (mem_cgroup_below_min(target_memcg, memcg)) {
+@@ -5818,6 +5822,9 @@ static void shrink_node_memcgs(pg_data_t
+ 		shrink_slab(sc->gfp_mask, pgdat->node_id, memcg,
+ 			    sc->priority);
  
--	/* Flush stats (and potentially sleep) outside the RCU read section */
--	mem_cgroup_flush_stats_ratelimited();
-+	/*
-+	 * Flush stats (and potentially sleep) outside the RCU read section.
-+	 * XXX: With per-memcg flushing and thresholding, is ratelimiting
-+	 * still needed here?
-+	 */
-+	mem_cgroup_flush_stats_ratelimited(eviction_memcg);
- 
- 	eviction_lruvec = mem_cgroup_lruvec(eviction_memcg, pgdat);
- 	refault = atomic_long_read(&eviction_lruvec->nonresident_age);
-@@ -676,7 +680,7 @@ static unsigned long count_shadow_nodes(
- 		struct lruvec *lruvec;
- 		int i;
- 
--		mem_cgroup_flush_stats();
-+		mem_cgroup_flush_stats(sc->memcg);
- 		lruvec = mem_cgroup_lruvec(sc->memcg, NODE_DATA(sc->nid));
- 		for (pages = 0, i = 0; i < NR_LRU_LISTS; i++)
- 			pages += lruvec_page_state_local(lruvec,
++		trace_mm_vmscan_memcg_shrink_end(sc->nr_reclaimed - reclaimed,
++						 memcg);
++
+ 		/* Record the group's reclaim efficiency */
+ 		if (!sc->proactive)
+ 			vmpressure(sc->gfp_mask, memcg, false,
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from ddrokosov@salutedevices.com are
 
-mm-memcg-change-flush_next_time-to-flush_last_time.patch
-mm-memcg-move-vmstats-structs-definition-above-flushing-code.patch
-mm-memcg-make-stats-flushing-threshold-per-memcg.patch
-mm-workingset-move-the-stats-flush-into-workingset_test_recent.patch
-mm-memcg-restore-subtree-stats-flushing.patch
+samples-introduce-new-samples-subdir-for-cgroup.patch
+samples-cgroup-introduce-memcg-memoryevents-listener.patch
+mm-memcg-add-reminder-comment-for-the-memcg-v2-events.patch
 
