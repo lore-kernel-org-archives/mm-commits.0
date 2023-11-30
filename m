@@ -2,34 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6379EC4167B
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Nov 2023 16:26:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36831C4167B
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Nov 2023 16:30:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232107AbjK3Q0U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 30 Nov 2023 11:26:20 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46686 "EHLO
+        id S232161AbjK3Qa1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 30 Nov 2023 11:30:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46136 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232052AbjK3Q0R (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2023 11:26:17 -0500
+        with ESMTP id S232132AbjK3QaW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2023 11:30:22 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5579F198
-        for <mm-commits@vger.kernel.org>; Thu, 30 Nov 2023 08:26:23 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC04CC433C9;
-        Thu, 30 Nov 2023 16:26:22 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B1709D50
+        for <mm-commits@vger.kernel.org>; Thu, 30 Nov 2023 08:30:26 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47291C433C7;
+        Thu, 30 Nov 2023 16:30:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701361583;
-        bh=j006kdzFKYHevfbhCLbx5FKFwrzYaTZpyPgMi4CJtTo=;
+        s=korg; t=1701361826;
+        bh=f9njBJlV4fap9Zx3UlH18YBLmnXE/fKn0kkPpoyhsAw=;
         h=Date:To:From:Subject:From;
-        b=v0kc1mZwOSlsbs3jjwzzEwovcE5Eg8RpCdApQRZb1wEOZP06Pt4y9KvGdGN05E34T
-         rHePoTCBsD7pRLAkzMtm+sex/MJkpII15lYByisL52YLRqhEtO0x/pZ33NnQBzzINO
-         0+8CImRA7YGeXwwYSmYZRrn6JW/fKeu7xk87Isx8=
-Date:   Thu, 30 Nov 2023 08:26:22 -0800
-To:     mm-commits@vger.kernel.org, tsbogend@alpha.franken.de,
-        sfr@rothwell.id.au, davem@davemloft.net, arnd@arndb.de,
+        b=buCuIvsosZTNkvNzQJCJEyMGyL3Wgmg4n5/vyi70w3ava9l3jajDR7X52MlXsjgWb
+         e/0nUqHpIdZbx86+JXu2xzwuloU46Y2gR2vZWmOU1vuh1YNt3n12RyeSc2VAXAJbwt
+         BOsz++lNSsJrbdz9fIGCR+KDXIxRbFBnRc98wEcE=
+Date:   Thu, 30 Nov 2023 08:30:25 -0800
+To:     mm-commits@vger.kernel.org, u.kleine-koenig@pengutronix.de,
+        mchehab@kernel.org, lukas.bulwahn@gmail.com,
+        hverkuil-cisco@xs4all.nl, crope@iki.fi, bagasdotme@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + arch-turn-off-werror-for-architectures-with-known-warnings.patch added to mm-nonmm-unstable branch
-Message-Id: <20231130162622.EC04CC433C9@smtp.kernel.org>
+Subject: + maintainers-drop-antti-palosaari.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231130163026.47291C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,14 +38,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch: turn off -Werror for architectures with known warnings
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     arch-turn-off-werror-for-architectures-with-known-warnings.patch
+     Subject: MAINTAINERS: drop Antti Palosaari
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maintainers-drop-antti-palosaari.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch-turn-off-werror-for-architectures-with-known-warnings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-drop-antti-palosaari.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -60,136 +61,549 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Arnd Bergmann" <arnd@arndb.de>
-Subject: arch: turn off -Werror for architectures with known warnings
-Date: Thu, 30 Nov 2023 09:07:38 +0100
+From: Bagas Sanjaya <bagasdotme@gmail.com>
+Subject: MAINTAINERS: drop Antti Palosaari
+Date: Thu, 30 Nov 2023 15:38:48 +0700
 
-A couple of architectures enable -Werror for their own files regardless of
-CONFIG_WERROR but also have known warnings that fail the build with
--Wmissing-prototypes enabled by default:
+He is currently inactive (last message from him is two years ago [1]). 
+His media tree [2] is also dormant (latest activity is 6 years ago), yet
+his site is still online [3].
 
-arch/alpha/lib/memcpy.c:153:8: error: no previous prototype for 'memcpy' [-Werror=missing-prototypes]
-arch/alpha/kernel/irq.c:96:1: error: no previous prototype for 'handle_irq' [-Werror=missing-prototypes]
-arch/mips/kernel/signal.c:673:17: error: no previous prototype for ‘sys_rt_sigreturn’ [-Werror=missing-prototypes]
-arch/mips/kernel/signal.c:636:17: error: no previous prototype for ‘sys_sigreturn’ [-Werror=missing-prototypes]
-arch/mips/kernel/syscall.c:51:16: error: no previous prototype for ‘sysm_pipe’ [-Werror=missing-prototypes]
-arch/mips/mm/fault.c:323:17: error: no previous prototype for ‘do_page_fault’ [-Werror=missing-prototypes]
-arch/sparc/vdso/vma.c:246:12: warning: no previous prototype for ‘init_vdso_image’ [-Wmissing-prototypes]v
-arch/sparc/vdso/vdso32/../vclock_gettime.c:343:1: warning: no previous prototype for ‘__vdso_gettimeofday_stick’ [-Wmissing-prototypes]
-arch/sparc/vdso/vclock_gettime.c:343:1: warning: no previous prototype for ‘__vdso_gettimeofday_stick’ [-Wmissing-prototypes]
-arch/sparc/prom/p1275.c:52:6: warning: no previous prototype for ‘prom_cif_init’ [-Wmissing-prototypes]
-arch/sparc/prom/misc_64.c:165:5: warning: no previous prototype for ‘prom_get_mmu_ihandle’ [-Wmissing-prototypes]
+Drop him from MAINTAINERS and add CREDITS entry for him. We thank him
+for maintaining various DVB drivers.
 
-This appears to be an artifact from the times when this architecture code
-was better maintained that most device drivers and before CONFIG_WERROR
-was added.  Now it just gets in the way, so remove all of these.
+[1]: https://lore.kernel.org/all/660772b3-0597-02db-ed94-c6a9be04e8e8@iki.fi/
+[2]: https://git.linuxtv.org/anttip/media_tree.git/
+[3]: https://palosaari.fi/linux/
 
-Powerpc and x86 both still have their own Kconfig options to enable
--Werror for some of their files.  These architectures are better
-maintained than most and the options are easy to disable, so leave those
-untouched.
-
-Link: https://lkml.kernel.org/r/4be73872-c1f5-4c31-8201-712c19290a22@app.fastmail.com
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reported-by: Stephen Rothwell <sfr@rothwell.id.au>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Link: https://lkml.kernel.org/r/20231130083848.5396-1-bagasdotme@gmail.com
+Signed-off-by: Bagas Sanjaya <bagasdotme@gmail.com>
+Acked-by: Antti Palosaari <crope@iki.fi>
+Cc: Hans Verkuil <hverkuil-cisco@xs4all.nl>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/lib/Makefile    |    1 -
- arch/alpha/mm/Makefile     |    2 --
- arch/mips/Kbuild           |    6 ------
- arch/sparc/kernel/Makefile |    1 -
- arch/sparc/lib/Makefile    |    1 -
- arch/sparc/mm/Makefile     |    1 -
- arch/sparc/prom/Makefile   |    1 -
- 7 files changed, 13 deletions(-)
+ CREDITS     |    8 ++
+ MAINTAINERS |  179 ++++++++++----------------------------------------
+ 2 files changed, 45 insertions(+), 142 deletions(-)
 
---- a/arch/alpha/lib/Makefile~arch-turn-off-werror-for-architectures-with-known-warnings
-+++ a/arch/alpha/lib/Makefile
-@@ -4,7 +4,6 @@
- #
+--- a/CREDITS~maintainers-drop-antti-palosaari
++++ a/CREDITS
+@@ -2944,6 +2944,14 @@ D: IPX development and support
+ N: Venkatesh Pallipadi (Venki)
+ D: x86/HPET
  
- asflags-y := $(KBUILD_CFLAGS)
--ccflags-y := -Werror
++N: Antti Palosaari
++E: crope@iki.fi
++D: Various DVB drivers
++W: https://palosaari.fi/linux/
++S: Yliopistokatu 1 D 513
++S: FI-90570 Oulu
++S: FINLAND
++
+ N: Kyungmin Park
+ E: kyungmin.park@samsung.com
+ D: Samsung S5Pv210 and Exynos4210 mobile platforms
+--- a/MAINTAINERS~maintainers-drop-antti-palosaari
++++ a/MAINTAINERS
+@@ -171,13 +171,10 @@ S:	Supported
+ F:	drivers/soc/fujitsu/a64fx-diag.c
  
- # Many of these routines have implementations tuned for ev6.
- # Choose them iff we're targeting ev6 specifically.
---- a/arch/alpha/mm/Makefile~arch-turn-off-werror-for-architectures-with-known-warnings
-+++ a/arch/alpha/mm/Makefile
-@@ -3,6 +3,4 @@
- # Makefile for the linux alpha-specific parts of the memory manager.
- #
+ A8293 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/dvb-frontends/a8293*
  
--ccflags-y := -Werror
--
- obj-y	:= init.o fault.o
---- a/arch/mips/Kbuild~arch-turn-off-werror-for-architectures-with-known-warnings
-+++ a/arch/mips/Kbuild
-@@ -1,10 +1,4 @@
- # SPDX-License-Identifier: GPL-2.0
--# Fail on warnings - also for files referenced in subdirs
--# -Werror can be disabled for specific files using:
--# CFLAGS_<file.o> := -Wno-error
--ifeq ($(W),)
--subdir-ccflags-y := -Werror
--endif
+ AACRAID SCSI RAID DRIVER
+@@ -576,23 +573,17 @@ F:	drivers/iio/accel/adxl372_i2c.c
+ F:	drivers/iio/accel/adxl372_spi.c
  
- # platform specific definitions
- include $(srctree)/arch/mips/Kbuild.platforms
---- a/arch/sparc/kernel/Makefile~arch-turn-off-werror-for-architectures-with-known-warnings
-+++ a/arch/sparc/kernel/Makefile
-@@ -5,7 +5,6 @@
- #
+ AF9013 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/dvb-frontends/af9013*
  
- asflags-y := -ansi
--ccflags-y := -Werror
+ AF9033 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/dvb-frontends/af9033*
  
- # Undefine sparc when processing vmlinux.lds - it is used
- # And teach CPP we are doing $(BITS) builds (for this case)
---- a/arch/sparc/lib/Makefile~arch-turn-off-werror-for-architectures-with-known-warnings
-+++ a/arch/sparc/lib/Makefile
-@@ -3,7 +3,6 @@
- #
+ AFFS FILE SYSTEM
+@@ -650,13 +641,10 @@ F:	fs/aio.c
+ F:	include/linux/*aio*.h
  
- asflags-y := -ansi -DST_DIV0=0x02
--ccflags-y := -Werror
+ AIRSPY MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/usb/airspy/
  
- lib-$(CONFIG_SPARC32) += ashrdi3.o
- lib-$(CONFIG_SPARC32) += memcpy.o memset.o
---- a/arch/sparc/mm/Makefile~arch-turn-off-werror-for-architectures-with-known-warnings
-+++ a/arch/sparc/mm/Makefile
-@@ -3,7 +3,6 @@
- #
+ ALACRITECH GIGABIT ETHERNET DRIVER
+@@ -5605,13 +5593,10 @@ F:	Documentation/driver-api/media/driver
+ F:	drivers/media/pci/cx88/
  
- asflags-y := -ansi
--ccflags-y := -Werror
+ CXD2820R MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/dvb-frontends/cxd2820r*
  
- obj-$(CONFIG_SPARC64)   += ultra.o tlb.o tsb.o
- obj-y                   += fault_$(BITS).o
---- a/arch/sparc/prom/Makefile~arch-turn-off-werror-for-architectures-with-known-warnings
-+++ a/arch/sparc/prom/Makefile
-@@ -3,7 +3,6 @@
- # Linux.
- #
- asflags := -ansi
--ccflags := -Werror
+ CXGB3 ETHERNET DRIVER (CXGB3)
+@@ -5724,13 +5709,10 @@ F:	Documentation/devicetree/bindings/inp
+ F:	drivers/input/keyboard/cypress-sf.c
  
- lib-y                 := bootstr_$(BITS).o
- lib-y                 += init_$(BITS).o
+ CYPRESS_FIRMWARE MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/common/cypress_firmware*
+ 
+ CYTTSP TOUCHSCREEN DRIVER
+@@ -7320,53 +7302,38 @@ T:	git git://linuxtv.org/media_tree.git
+ F:	drivers/media/pci/dt3155/
+ 
+ DVB_USB_AF9015 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/usb/dvb-usb-v2/af9015*
+ 
+ DVB_USB_AF9035 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/usb/dvb-usb-v2/af9035*
+ 
+ DVB_USB_ANYSEE MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/usb/dvb-usb-v2/anysee*
+ 
+ DVB_USB_AU6610 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/usb/dvb-usb-v2/au6610*
+ 
+ DVB_USB_CE6230 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/usb/dvb-usb-v2/ce6230*
+ 
+ DVB_USB_CXUSB MEDIA DRIVER
+@@ -7380,22 +7347,17 @@ T:	git git://linuxtv.org/media_tree.git
+ F:	drivers/media/usb/dvb-usb/cxusb*
+ 
+ DVB_USB_EC168 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/usb/dvb-usb-v2/ec168*
+ 
+ DVB_USB_GL861 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/usb/dvb-usb-v2/gl861*
+ 
+ DVB_USB_MXL111SF MEDIA DRIVER
+@@ -7409,23 +7371,18 @@ T:	git git://linuxtv.org/mkrufky/mxl111s
+ F:	drivers/media/usb/dvb-usb-v2/mxl111sf*
+ 
+ DVB_USB_RTL28XXU MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/usb/dvb-usb-v2/rtl28xxu*
+ 
+ DVB_USB_V2 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+ W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/usb/dvb-usb-v2/dvb_usb*
+ F:	drivers/media/usb/dvb-usb-v2/usb_urb.c
+ 
+@@ -7467,13 +7424,10 @@ F:	Documentation/devicetree/bindings/inp
+ F:	drivers/input/misc/e3x0-button.c
+ 
+ E4000 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/tuners/e4000*
+ 
+ EARTH_PT1 MEDIA DRIVER
+@@ -7489,13 +7443,10 @@ S:	Odd Fixes
+ F:	drivers/media/pci/pt3/
+ 
+ EC100 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/dvb-frontends/ec100*
+ 
+ ECRYPT FILE SYSTEM
+@@ -8113,13 +8064,10 @@ F:	drivers/media/tuners/fc0011.c
+ F:	drivers/media/tuners/fc0011.h
+ 
+ FC2580 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/tuners/fc2580*
+ 
+ FCOE SUBSYSTEM (libfc, libfcoe, fcoe)
+@@ -9249,13 +9197,10 @@ F:	include/trace/events/habanalabs.h
+ F:	include/uapi/drm/habanalabs_accel.h
+ 
+ HACKRF MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/usb/hackrf/
+ 
+ HANDSHAKE UPCALL FOR TRANSPORT LAYER SECURITY
+@@ -11328,13 +11273,10 @@ F:	Documentation/hwmon/it87.rst
+ F:	drivers/hwmon/it87.c
+ 
+ IT913X MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/tuners/it913x*
+ 
+ ITE IT66121 HDMI BRIDGE DRIVER
+@@ -12694,13 +12636,10 @@ W:	http://www.tazenda.demon.co.uk/phil/l
+ F:	arch/m68k/hp300/
+ 
+ M88DS3103 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/dvb-frontends/m88ds3103*
+ 
+ M88RS2000 MEDIA DRIVER
+@@ -14594,20 +14533,16 @@ F:	include/asm-generic/tlb.h
+ F:	mm/mmu_gather.c
+ 
+ MN88472 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+ F:	drivers/media/dvb-frontends/mn88472*
+ 
+ MN88473 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+ F:	drivers/media/dvb-frontends/mn88473*
+ 
+@@ -14695,23 +14630,17 @@ S:	Orphan
+ F:	drivers/platform/x86/msi-wmi.c
+ 
+ MSI001 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/tuners/msi001*
+ 
+ MSI2500 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/usb/msi2500/
+ 
+ MSTAR INTERRUPT CONTROLLER DRIVER
+@@ -17782,13 +17711,10 @@ F:	drivers/bus/fsl-mc/
+ F:	include/uapi/linux/fsl_mc.h
+ 
+ QT1010 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/tuners/qt1010*
+ 
+ QUALCOMM ATH12K WIRELESS DRIVER
+@@ -18841,33 +18767,24 @@ S:	Maintained
+ F:	drivers/tty/rpmsg_tty.c
+ 
+ RTL2830 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/dvb-frontends/rtl2830*
+ 
+ RTL2832 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/dvb-frontends/rtl2832*
+ 
+ RTL2832_SDR MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/dvb-frontends/rtl2832_sdr*
+ 
+ RTL8180 WIRELESS DRIVER
+@@ -19677,13 +19594,10 @@ F:	drivers/media/platform/renesas/sh_vou
+ F:	include/media/drv-intf/sh_vou.h
+ 
+ SI2157 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/tuners/si2157*
+ 
+ SI2165 MEDIA DRIVER
+@@ -19695,13 +19609,10 @@ Q:	http://patchwork.linuxtv.org/project/
+ F:	drivers/media/dvb-frontends/si2165*
+ 
+ SI2168 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/dvb-frontends/si2168*
+ 
+ SI470X FM RADIO RECEIVER I2C DRIVER
+@@ -21203,33 +21114,24 @@ W:	http://tcp-lp-mod.sourceforge.net/
+ F:	net/ipv4/tcp_lp.c
+ 
+ TDA10071 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/dvb-frontends/tda10071*
+ 
+ TDA18212 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/tuners/tda18212*
+ 
+ TDA18218 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/tuners/tda18218*
+ 
+ TDA18250 MEDIA DRIVER
+@@ -22165,13 +22067,10 @@ F:	include/uapi/linux/serial_core.h
+ F:	include/uapi/linux/tty.h
+ 
+ TUA9001 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org
+-W:	http://palosaari.fi/linux/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+ F:	drivers/media/tuners/tua9001*
+ 
+ TULIP NETWORK DRIVERS
+@@ -24116,20 +24015,16 @@ S:	Orphan
+ F:	drivers/net/wireless/zydas/zd1211rw/
+ 
+ ZD1301 MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org/
+-W:	http://palosaari.fi/linux/
+ Q:	https://patchwork.linuxtv.org/project/linux-media/list/
+ F:	drivers/media/usb/dvb-usb-v2/zd1301*
+ 
+ ZD1301_DEMOD MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-S:	Maintained
++S:	Orphan
+ W:	https://linuxtv.org/
+-W:	http://palosaari.fi/linux/
+ Q:	https://patchwork.linuxtv.org/project/linux-media/list/
+ F:	drivers/media/dvb-frontends/zd1301_demod*
+ 
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from bagasdotme@gmail.com are
 
-kexec-fix-kexec_file-dependencies.patch
-kexec-select-crypto-from-kexec_file-instead-of-depending-on-it.patch
-kexec-fix-kexec_file-dependencies-fix.patch
-arch-turn-off-werror-for-architectures-with-known-warnings.patch
-ida-make-ida_dump-static.patch
-jffs2-mark-__jffs2_dbg_superblock_counts-static.patch
-sched-fair-move-unused-stub-functions-to-header.patch
-x86-sta2x11-include-header-for-sta2x11_get_instance-prototype.patch
-usb-fsl-mph-dr-of-mark-fsl_usb2_mpc5121_init-static.patch
-makefileextrawarn-turn-on-missing-prototypes-globally.patch
+maintainers-drop-antti-palosaari.patch
 
