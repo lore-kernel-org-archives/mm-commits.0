@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F29FC4167B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D401C10F09
 	for <mm-commits@archiver.kernel.org>; Thu, 30 Nov 2023 23:39:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377304AbjK3Xiy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1377305AbjK3Xiy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 30 Nov 2023 18:38:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53840 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53812 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377312AbjK3Xiu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2023 18:38:50 -0500
+        with ESMTP id S1377314AbjK3Xiv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2023 18:38:51 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 679A31708
-        for <mm-commits@vger.kernel.org>; Thu, 30 Nov 2023 15:38:53 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1951C433C9;
-        Thu, 30 Nov 2023 23:38:52 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49468170C
+        for <mm-commits@vger.kernel.org>; Thu, 30 Nov 2023 15:38:54 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 163A6C433C8;
+        Thu, 30 Nov 2023 23:38:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701387533;
-        bh=/KTHx7B8KbxYo9JYJWCd8UYzal88T30CpsN+iEKqhRQ=;
+        s=korg; t=1701387534;
+        bh=GydJbi3s9laq5WnHN1pH1cHd+yXhqCUn4AjOce48mW4=;
         h=Date:To:From:Subject:From;
-        b=mbpT249XIL3tF2iq53YMyzBrFJHf6cP6dgI9wA8L3opGBCkm8C+rvCrvYU5E487nD
-         +sB7dz9VNrM/+CelZn+yBv6LVAVU9yNn2gR6TwZ9Cxug/LO//yXzE8c5OpxkF9+mys
-         O/Ym4LMw94SCQjDTxTnW4EBfnpZk9yLWlr+G1+xY=
-Date:   Thu, 30 Nov 2023 15:38:52 -0800
+        b=xSdbzUxNUTVW1gIkROhnwhdke3CffJbIIZP6eIVeg4uXUH1fcoesmn+5WhrKR79q2
+         XoKFyMEHETDIdsaXCfvnIbmOIseJjLGHT4r4epPjSp7cu8ztYp9LozAGVAWhyuGKWr
+         lnRIjbjCl2eFeQfXVnyWzO/7C3Cs1SogSZUaiefU=
+Date:   Thu, 30 Nov 2023 15:38:53 -0800
 To:     mm-commits@vger.kernel.org, bcain@quicinc.com, arnd@arndb.de,
         nathan@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hexagon-irq-add-prototype-for-arch_do_irq.patch added to mm-nonmm-unstable branch
-Message-Id: <20231130233852.F1951C433C9@smtp.kernel.org>
+Subject: + hexagon-traps-remove-sys_syscall.patch added to mm-nonmm-unstable branch
+Message-Id: <20231130233854.163A6C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hexagon: irq: add prototype for arch_do_IRQ()
+     Subject: hexagon: traps: remove sys_syscall()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     hexagon-irq-add-prototype-for-arch_do_irq.patch
+     hexagon-traps-remove-sys_syscall.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hexagon-irq-add-prototype-for-arch_do_irq.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hexagon-traps-remove-sys_syscall.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,42 +60,47 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Nathan Chancellor <nathan@kernel.org>
-Subject: hexagon: irq: add prototype for arch_do_IRQ()
-Date: Thu, 30 Nov 2023 15:58:30 -0700
+Subject: hexagon: traps: remove sys_syscall()
+Date: Thu, 30 Nov 2023 15:58:31 -0700
 
 Clang warns:
 
-  arch/hexagon/kernel/vm_events.c:83:6: warning: no previous prototype for function 'arch_do_IRQ' [-Wmissing-prototypes]
-     83 | void arch_do_IRQ(struct pt_regs *regs)
+  arch/hexagon/kernel/traps.c:335:6: warning: no previous prototype for function 'sys_syscall' [-Wmissing-prototypes]
+    335 | long sys_syscall(void)
         |      ^
-  arch/hexagon/kernel/vm_events.c:83:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
-     83 | void arch_do_IRQ(struct pt_regs *regs)
+  arch/hexagon/kernel/traps.c:335:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+    335 | long sys_syscall(void)
         | ^
         | static
 
-This function is only called from assembly but the irq header is a
-reasonable place to put a prototype to silence the warning.
+This function is not used anywhere, so remove it.
 
-Link: https://lkml.kernel.org/r/20231130-hexagon-missing-prototypes-v1-17-5c34714afe9e@kernel.org
+Link: https://lkml.kernel.org/r/20231130-hexagon-missing-prototypes-v1-18-5c34714afe9e@kernel.org
 Signed-off-by: Nathan Chancellor <nathan@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Brian Cain <bcain@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/hexagon/include/asm/irq.h |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/hexagon/kernel/traps.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
---- a/arch/hexagon/include/asm/irq.h~hexagon-irq-add-prototype-for-arch_do_irq
-+++ a/arch/hexagon/include/asm/irq.h
-@@ -20,4 +20,7 @@
+--- a/arch/hexagon/kernel/traps.c~hexagon-traps-remove-sys_syscall
++++ a/arch/hexagon/kernel/traps.c
+@@ -331,13 +331,6 @@ void do_genex(struct pt_regs *regs)
+ 	}
+ }
  
- #include <asm-generic/irq.h>
- 
-+struct pt_regs;
-+void arch_do_IRQ(struct pt_regs *);
-+
- #endif
+-/* Indirect system call dispatch */
+-long sys_syscall(void)
+-{
+-	printk(KERN_ERR "sys_syscall invoked!\n");
+-	return -ENOSYS;
+-}
+-
+ void do_trap0(struct pt_regs *regs)
+ {
+ 	syscall_fn syscall;
 _
 
 Patches currently in -mm which might be from nathan@kernel.org are
