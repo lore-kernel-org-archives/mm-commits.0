@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A77B2C10F04
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Nov 2023 22:23:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A6BAC10DCE
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Nov 2023 22:23:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377157AbjK3WXX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 30 Nov 2023 17:23:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37878 "EHLO
+        id S1377144AbjK3WXY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 30 Nov 2023 17:23:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37762 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377159AbjK3WXW (ORCPT
+        with ESMTP id S1377160AbjK3WXW (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2023 17:23:22 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0C2F1703
-        for <mm-commits@vger.kernel.org>; Thu, 30 Nov 2023 14:23:21 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A2F4C433C7;
-        Thu, 30 Nov 2023 22:23:21 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B353170D
+        for <mm-commits@vger.kernel.org>; Thu, 30 Nov 2023 14:23:23 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABDACC433CB;
+        Thu, 30 Nov 2023 22:23:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701383001;
-        bh=tUtM7agKTouUsDl+J7hxREFntNUePrDrd9fdKnjhBXw=;
+        s=korg; t=1701383002;
+        bh=VLltF9Jb+og5siHlhgC7AA53hnxAAXzqV27mO6/PWSg=;
         h=Date:To:From:Subject:From;
-        b=UhwjFizeene64NFsuWiu8NZ+Q4wyHB5aYPAFEA6ne+dAL1xJvtLeoLGpTrDmN0jiT
-         s3qMsay3MgsIWApG1ESX3eWA8mXcv5TzNfGrPc7uSP4LT4ofW025Vczm2Rd118I7M+
-         KAhwCh4OUSpeJv8am+OzdBnpLv/8WuvMlGBFQ3aU=
-Date:   Thu, 30 Nov 2023 14:23:20 -0800
+        b=q7u3XoPhQrRB9MTe5aB4DEhYss7A48MUCV/No7s/dfzkZvnSQkuSryWqb1NoIorVa
+         s6ULyK7b0AWVG2coTylOGScMm8/BaphAH7WEDvYK/uIBcC4a0GJhPpgDrwI/BeOx2u
+         5GlqTt3/l6y+y7UU+LbGEKzylbIB57mKiscCwPsM=
+Date:   Thu, 30 Nov 2023 14:23:22 -0800
 To:     mm-commits@vger.kernel.org, shuah@kernel.org, davidgow@google.com,
         corbet@lwn.net, brendanhiggins@google.com, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-test-add-a-unit-test-for-the-feedback-loop-algorithm.patch added to mm-unstable branch
-Message-Id: <20231130222321.7A2F4C433C7@smtp.kernel.org>
+Subject: + selftests-damon-test-quota-goals-directory.patch added to mm-unstable branch
+Message-Id: <20231130222322.ABDACC433CB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/core-test: add a unit test for the feedback loop algorithm
+     Subject: selftests/damon: test quota goals directory
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-core-test-add-a-unit-test-for-the-feedback-loop-algorithm.patch
+     selftests-damon-test-quota-goals-directory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-test-add-a-unit-test-for-the-feedback-loop-algorithm.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-test-quota-goals-directory.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -61,14 +61,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core-test: add a unit test for the feedback loop algorithm
-Date: Thu, 30 Nov 2023 02:36:48 +0000
+Subject: selftests/damon: test quota goals directory
+Date: Thu, 30 Nov 2023 02:36:49 +0000
 
-Implement a simple kunit test for testing the behavior of the feedback
-loop algorithm for the aim-oriented feedback-friven DAMOS aggressiveness
-auto tuning.
+Add DAMON selftests for testing creation/existence of quota goals
+directories and files, and simple valid input writes.
 
-Link: https://lkml.kernel.org/r/20231130023652.50284-6-sj@kernel.org
+Link: https://lkml.kernel.org/r/20231130023652.50284-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendanhiggins@google.com>
 Cc: David Gow <davidgow@google.com>
@@ -77,57 +76,52 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core-test.h |   32 ++++++++++++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
+ tools/testing/selftests/damon/sysfs.sh |   27 +++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
---- a/mm/damon/core-test.h~mm-damon-core-test-add-a-unit-test-for-the-feedback-loop-algorithm
-+++ a/mm/damon/core-test.h
-@@ -446,6 +446,37 @@ static void damos_test_filter_out(struct
- 	damos_free_filter(f);
+--- a/tools/testing/selftests/damon/sysfs.sh~selftests-damon-test-quota-goals-directory
++++ a/tools/testing/selftests/damon/sysfs.sh
+@@ -150,6 +150,32 @@ test_weights()
+ 	ensure_file "$weights_dir/age_permil" "exist" "600"
  }
  
-+static void damon_test_feed_loop_next_input(struct kunit *test)
++test_goal()
 +{
-+	unsigned long last_input = 900000, current_score = 200;
-+
-+	/*
-+	 * If current score is lower than the goal, which is always 10,000
-+	 * (read the comment on damon_feed_loop_next_input()'s comment), next
-+	 * input should be higher than the last input.
-+	 */
-+	KUNIT_EXPECT_GT(test,
-+			damon_feed_loop_next_input(last_input, current_score),
-+			last_input);
-+
-+	/*
-+	 * If current score is higher than the goal, next input should be lower
-+	 * than the last input.
-+	 */
-+	current_score = 250000000;
-+	KUNIT_EXPECT_LT(test,
-+			damon_feed_loop_next_input(last_input, current_score),
-+			last_input);
-+
-+	/*
-+	 * The next input depends on the distance between the current score and
-+	 * the goal
-+	 */
-+	KUNIT_EXPECT_GT(test,
-+			damon_feed_loop_next_input(last_input, 200),
-+			damon_feed_loop_next_input(last_input, 2000));
++	goal_dir=$1
++	ensure_dir "$goal_dir" "exist"
++	ensure_file "$goal_dir/target_value" "exist" "600"
++	ensure_file "$goal_dir/current_value" "exist" "600"
 +}
 +
- static struct kunit_case damon_test_cases[] = {
- 	KUNIT_CASE(damon_test_target),
- 	KUNIT_CASE(damon_test_regions),
-@@ -461,6 +492,7 @@ static struct kunit_case damon_test_case
- 	KUNIT_CASE(damon_test_moving_sum),
- 	KUNIT_CASE(damos_test_new_filter),
- 	KUNIT_CASE(damos_test_filter_out),
-+	KUNIT_CASE(damon_test_feed_loop_next_input),
- 	{},
- };
++test_goals()
++{
++	goals_dir=$1
++	ensure_dir "$goals_dir" "exist"
++	ensure_file "$goals_dir/nr_goals" "exist" "600"
++
++	ensure_write_succ  "$goals_dir/nr_goals" "1" "valid input"
++	test_goal "$goals_dir/0"
++
++	ensure_write_succ  "$goals_dir/nr_goals" "2" "valid input"
++	test_goal "$goals_dir/0"
++	test_goal "$goals_dir/1"
++
++	ensure_write_succ  "$goals_dir/nr_goals" "0" "valid input"
++	ensure_dir "$goals_dir/0" "not_exist"
++	ensure_dir "$goals_dir/1" "not_exist"
++}
++
+ test_quotas()
+ {
+ 	quotas_dir=$1
+@@ -158,6 +184,7 @@ test_quotas()
+ 	ensure_file "$quotas_dir/bytes" "exist" 600
+ 	ensure_file "$quotas_dir/reset_interval_ms" "exist" 600
+ 	test_weights "$quotas_dir/weights"
++	test_goals "$quotas_dir/goals"
+ }
  
+ test_access_pattern()
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
