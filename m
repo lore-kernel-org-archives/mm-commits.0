@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABB1CC10F04
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4DBDC10DCE
 	for <mm-commits@archiver.kernel.org>; Thu, 30 Nov 2023 23:38:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377277AbjK3Xif (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1377287AbjK3Xif (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 30 Nov 2023 18:38:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48540 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48552 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377287AbjK3Xie (ORCPT
+        with ESMTP id S1377288AbjK3Xie (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2023 18:38:34 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 106AB10DC
-        for <mm-commits@vger.kernel.org>; Thu, 30 Nov 2023 15:38:40 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1181C433CA;
-        Thu, 30 Nov 2023 23:38:39 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3170C10E4
+        for <mm-commits@vger.kernel.org>; Thu, 30 Nov 2023 15:38:41 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3E0FC433C8;
+        Thu, 30 Nov 2023 23:38:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701387519;
-        bh=fjZTvgI7GCNscrRuer6XFbNe8rKKcSmoILgsW/aR51s=;
+        s=korg; t=1701387520;
+        bh=5g0TscAves4ueH3fnDRbtWu+XzFe0ptTuzFASB2zeVs=;
         h=Date:To:From:Subject:From;
-        b=sANAkaje0owdMvU2MkOx78Ayw2biUQk5t3sICAGp4cmbdVYOEc0TV3WTw9Em2+v/u
-         QWRyGMHQZoQDCk/IMLV+/2ZD/LKoweWzVzSU3LI5A5s4yryddnBBRPYHXmSMEP8NSt
-         cNPvQmpP3lOGBaXvzc9+ZGZw8bR402UScWNrri9Y=
-Date:   Thu, 30 Nov 2023 15:38:39 -0800
+        b=Afo3f89IWl0VuhXCBiLkEN0001tAeHvPrxJsNGNAad7okzi0JSEozmqu45vfzsFip
+         oyNQXvQDw76Q/0u7ng2CTg2U2MvYVXMA6Sow/RpqCEeyYeBgmlRD07/2KIMuS2KLAW
+         X5C/la5hSFv2oYcmc8CHcU4Y3bRXbQYNm11FfjnI=
+Date:   Thu, 30 Nov 2023 15:38:40 -0800
 To:     mm-commits@vger.kernel.org, bcain@quicinc.com, arnd@arndb.de,
         nathan@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hexagon-vm_fault-mark-do_page_fault-as-static.patch added to mm-nonmm-unstable branch
-Message-Id: <20231130233839.A1181C433CA@smtp.kernel.org>
+Subject: + hexagon-vm_fault-include-asm-vm_faulth-for-prototypes.patch added to mm-nonmm-unstable branch
+Message-Id: <20231130233840.C3E0FC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hexagon: vm_fault: mark do_page_fault() as static
+     Subject: hexagon: vm_fault: include asm/vm_fault.h for prototypes
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     hexagon-vm_fault-mark-do_page_fault-as-static.patch
+     hexagon-vm_fault-include-asm-vm_faulth-for-prototypes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hexagon-vm_fault-mark-do_page_fault-as-static.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hexagon-vm_fault-include-asm-vm_faulth-for-prototypes.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,43 +60,56 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Nathan Chancellor <nathan@kernel.org>
-Subject: hexagon: vm_fault: mark do_page_fault() as static
-Date: Thu, 30 Nov 2023 15:58:18 -0700
+Subject: hexagon: vm_fault: include asm/vm_fault.h for prototypes
+Date: Thu, 30 Nov 2023 15:58:19 -0700
 
 Clang warns:
 
-  arch/hexagon/mm/vm_fault.c:36:6: warning: no previous prototype for function 'do_page_fault' [-Wmissing-prototypes]
-     36 | void do_page_fault(unsigned long address, long cause, struct pt_regs *regs)
+  arch/hexagon/mm/vm_fault.c:157:6: warning: no previous prototype for function 'read_protection_fault' [-Wmissing-prototypes]
+    157 | void read_protection_fault(struct pt_regs *regs)
         |      ^
-  arch/hexagon/mm/vm_fault.c:36:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
-     36 | void do_page_fault(unsigned long address, long cause, struct pt_regs *regs)
+  arch/hexagon/mm/vm_fault.c:157:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+    157 | void read_protection_fault(struct pt_regs *regs)
+        | ^
+        | static
+  arch/hexagon/mm/vm_fault.c:164:6: warning: no previous prototype for function 'write_protection_fault' [-Wmissing-prototypes]
+    164 | void write_protection_fault(struct pt_regs *regs)
+        |      ^
+  arch/hexagon/mm/vm_fault.c:164:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+    164 | void write_protection_fault(struct pt_regs *regs)
+        | ^
+        | static
+  arch/hexagon/mm/vm_fault.c:171:6: warning: no previous prototype for function 'execute_protection_fault' [-Wmissing-prototypes]
+    171 | void execute_protection_fault(struct pt_regs *regs)
+        |      ^
+  arch/hexagon/mm/vm_fault.c:171:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+    171 | void execute_protection_fault(struct pt_regs *regs)
         | ^
         | static
 
-This function is not used outside of this translation unit, so mark it
-as static.
+The prototypes for these functions are defined in asm/vm_fault.h, so
+include it to pick them up and silence the warnings.
 
-Link: https://lkml.kernel.org/r/20231130-hexagon-missing-prototypes-v1-5-5c34714afe9e@kernel.org
+Link: https://lkml.kernel.org/r/20231130-hexagon-missing-prototypes-v1-6-5c34714afe9e@kernel.org
 Signed-off-by: Nathan Chancellor <nathan@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Brian Cain <bcain@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/hexagon/mm/vm_fault.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/hexagon/mm/vm_fault.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/hexagon/mm/vm_fault.c~hexagon-vm_fault-mark-do_page_fault-as-static
+--- a/arch/hexagon/mm/vm_fault.c~hexagon-vm_fault-include-asm-vm_faulth-for-prototypes
 +++ a/arch/hexagon/mm/vm_fault.c
-@@ -33,7 +33,7 @@
- /*
-  * Canonical page fault handler
+@@ -12,6 +12,7 @@
   */
--void do_page_fault(unsigned long address, long cause, struct pt_regs *regs)
-+static void do_page_fault(unsigned long address, long cause, struct pt_regs *regs)
- {
- 	struct vm_area_struct *vma;
- 	struct mm_struct *mm = current->mm;
+ 
+ #include <asm/traps.h>
++#include <asm/vm_fault.h>
+ #include <linux/uaccess.h>
+ #include <linux/mm.h>
+ #include <linux/sched/signal.h>
 _
 
 Patches currently in -mm which might be from nathan@kernel.org are
