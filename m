@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77F2DC10DCE
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Nov 2023 22:23:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 271B5C4167B
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Nov 2023 22:23:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377162AbjK3WX3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 30 Nov 2023 17:23:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33924 "EHLO
+        id S1377147AbjK3WXe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 30 Nov 2023 17:23:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33970 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377150AbjK3WXW (ORCPT
+        with ESMTP id S1377137AbjK3WXW (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2023 17:23:22 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B3D41715
-        for <mm-commits@vger.kernel.org>; Thu, 30 Nov 2023 14:23:24 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C76B2C433CA;
-        Thu, 30 Nov 2023 22:23:23 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50BDA171C
+        for <mm-commits@vger.kernel.org>; Thu, 30 Nov 2023 14:23:25 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5650C433C8;
+        Thu, 30 Nov 2023 22:23:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701383003;
-        bh=qB6K3s4oikiDTPcw2wl4u4leCrCZWIXUagPurnNZ+i8=;
+        s=korg; t=1701383005;
+        bh=EQKIA+4px2lWvm2gy4DiLIWdCYdEuZluHpNeor7fGuo=;
         h=Date:To:From:Subject:From;
-        b=0jnWK4Wi4SHH7E99ba/DxCt+cYwHalsPC3HLY7zjI+eYX+BsFCvH/QKhz1ywGJZud
-         NvrWIztPj/47t3LUpdWuqQGZpCi9GQf1RC1dCoTIsuYnHq2EXMxBsidlRu+xabPZNp
-         DCmFI1W11lNdFC96XkctC7wetjQdHH3/bF+Jn11M=
-Date:   Thu, 30 Nov 2023 14:23:23 -0800
+        b=AvcrL8iGTXvUTfvv5AUrcagnEdosMGJuLsV2T6gaFWy7XUY5eUIOvezwtwEW0wtNm
+         8XsdP8tkWh5gZwE3gyqEx2vCuiyyZm5TX26P9YOpudejlBwbjrfwBKRtUTJU+/fy9W
+         aUEVvnHIgYNtxb9chKEtZzB1cV8mS6RDpD7tVIAw=
+Date:   Thu, 30 Nov 2023 14:23:24 -0800
 To:     mm-commits@vger.kernel.org, shuah@kernel.org, davidgow@google.com,
         corbet@lwn.net, brendanhiggins@google.com, sj@kernel.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-design-document-damos-quota-auto-tuning.patch added to mm-unstable branch
-Message-Id: <20231130222323.C76B2C433CA@smtp.kernel.org>
+Subject: + docs-abi-damon-document-damos-quota-goals.patch added to mm-unstable branch
+Message-Id: <20231130222324.E5650C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,12 +37,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Docs/mm/damon/design: document DAMOS quota auto tuning
+     Subject: Docs/ABI/damon: document DAMOS quota goals
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-mm-damon-design-document-damos-quota-auto-tuning.patch
+     docs-abi-damon-document-damos-quota-goals.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-document-damos-quota-auto-tuning.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-document-damos-quota-goals.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -61,12 +61,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: document DAMOS quota auto tuning
-Date: Thu, 30 Nov 2023 02:36:50 +0000
+Subject: Docs/ABI/damon: document DAMOS quota goals
+Date: Thu, 30 Nov 2023 02:36:51 +0000
 
-Document the DAMOS quota auto tuning feature on the design document.
+Update DAMON ABI document for the newly added DAMON sysfs files and inputs
+for DAMOS quota goals.
 
-Link: https://lkml.kernel.org/r/20231130023652.50284-8-sj@kernel.org
+Link: https://lkml.kernel.org/r/20231130023652.50284-9-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendanhiggins@google.com>
 Cc: David Gow <davidgow@google.com>
@@ -75,29 +76,58 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ Documentation/ABI/testing/sysfs-kernel-mm-damon |   33 +++++++++++---
+ 1 file changed, 27 insertions(+), 6 deletions(-)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-damos-quota-auto-tuning
-+++ a/Documentation/mm/damon/design.rst
-@@ -346,6 +346,17 @@ the weight will be respected are up to t
- implementation.
+--- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-document-damos-quota-goals
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
+@@ -25,12 +25,14 @@ Description:	Writing 'on' or 'off' to th
+ 		stops, respectively.  Reading the file returns the keywords
+ 		based on the current status.  Writing 'commit' to this file
+ 		makes the kdamond reads the user inputs in the sysfs files
+-		except 'state' again.  Writing 'update_schemes_stats' to the
+-		file updates contents of schemes stats files of the kdamond.
+-		Writing 'update_schemes_tried_regions' to the file updates
+-		contents of 'tried_regions' directory of every scheme directory
+-		of this kdamond.  Writing 'update_schemes_tried_bytes' to the
+-		file updates only '.../tried_regions/total_bytes' files of this
++		except 'state' again.  Writing 'commit_schemes_quota_goals' to
++		this file makes the kdamond reads the quota goal files again.
++		Writing 'update_schemes_stats' to the file updates contents of
++		schemes stats files of the kdamond.  Writing
++		'update_schemes_tried_regions' to the file updates contents of
++		'tried_regions' directory of every scheme directory of this
++		kdamond.  Writing 'update_schemes_tried_bytes' to the file
++		updates only '.../tried_regions/total_bytes' files of this
+ 		kdamond.  Writing 'clear_schemes_tried_regions' to the file
+ 		removes contents of the 'tried_regions' directory.
  
+@@ -212,6 +214,25 @@ Contact:	SeongJae Park <sj@kernel.org>
+ Description:	Writing to and reading from this file sets and gets the quotas
+ 		charge reset interval of the scheme in milliseconds.
  
-+Aim-oriented Feedback-driven Auto-tuning
-+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/goals/nr_goals
++Date:		Nov 2023
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing a number 'N' to this file creates the number of
++		directories for setting automatic tuning of the scheme's
++		aggressiveness named '0' to 'N-1' under the goals/ directory.
 +
-+Automatic feedback-driven quota tuning.  Instead of setting the absolute quota
-+value, users can repeatedly provide numbers representing how much of their goal
-+for the scheme is achieved as feedback.  DAMOS then automatically tunes the
-+aggressiveness (the quota) of the corresponding scheme.  For example, if DAMOS
-+is under achieving the goal, DAMOS automatically increases the quota.  If DAMOS
-+is over achieving the goal, it decreases the quota.
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/goals/<G>/target_value
++Date:		Nov 2023
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the target
++		value of the goal metric.
 +
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/goals/<G>/current_value
++Date:		Nov 2023
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Writing to and reading from this file sets and gets the current
++		value of the goal metric.
 +
- .. _damon_design_damos_watermarks:
- 
- Watermarks
+ What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/weights/sz_permil
+ Date:		Mar 2022
+ Contact:	SeongJae Park <sj@kernel.org>
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
