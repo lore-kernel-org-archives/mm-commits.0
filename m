@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06724C10F04
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E004AC10DCE
 	for <mm-commits@archiver.kernel.org>; Thu, 30 Nov 2023 23:39:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377288AbjK3Xiv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 30 Nov 2023 18:38:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53770 "EHLO
+        id S1377292AbjK3Xiw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 30 Nov 2023 18:38:52 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53812 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377302AbjK3Xim (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2023 18:38:42 -0500
+        with ESMTP id S1377307AbjK3Xiu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2023 18:38:50 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFFD510E2
-        for <mm-commits@vger.kernel.org>; Thu, 30 Nov 2023 15:38:47 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E5F1C433C7;
-        Thu, 30 Nov 2023 23:38:47 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5494A10FC
+        for <mm-commits@vger.kernel.org>; Thu, 30 Nov 2023 15:38:52 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1B70C433C7;
+        Thu, 30 Nov 2023 23:38:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701387527;
-        bh=r9qKQWgU74w2cXIz1Ld9OlX3zmHQH+DGAvWRb0eWJ5I=;
+        s=korg; t=1701387532;
+        bh=Q1oJfwOQGxlRzof27UfE8L0kmBYVhHBywKP/HAeEU6I=;
         h=Date:To:From:Subject:From;
-        b=Nn/2XBnBNd4TGZ6vdjQrWoEa0M6cYmKMgpqE3/Nvle1pUkIaeYUf8XFq/hm5f7Uxl
-         B/5svLDseurQth52S7ykBujpZjV3Xm3v0r3G0sAJPoaGfSF08XRFBEjervIt0cXFY+
-         z2UG2PB389npI4JquYifkvtieRBtvBDQslv/+VU0=
-Date:   Thu, 30 Nov 2023 15:38:47 -0800
+        b=QBUeEmkDKU/ZyH5BvkB9muEkFfY1wH2kUu1Vqrsq3JaTkT2eT0WwgyRBlKjLuU8DE
+         Uwuz1m9lRhczkIwKesvkjKp3yMkKHMaeWIVuFLGkeguNb3mORhNmy41kqG8DuRty1j
+         mBmw6D875c2IY8bGRv2hgTvruoTXV+OZl4LicOkQ=
+Date:   Thu, 30 Nov 2023 15:38:51 -0800
 To:     mm-commits@vger.kernel.org, bcain@quicinc.com, arnd@arndb.de,
         nathan@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hexagon-reset-include-linux-rebooth-for-prototypes.patch added to mm-nonmm-unstable branch
-Message-Id: <20231130233847.8E5F1C433C7@smtp.kernel.org>
+Subject: + hexagon-vm_events-remove-unused-dummy_handler.patch added to mm-nonmm-unstable branch
+Message-Id: <20231130233851.E1B70C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hexagon: reset: include linux/reboot.h for prototypes
+     Subject: hexagon: vm_events: remove unused dummy_handler()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     hexagon-reset-include-linux-rebooth-for-prototypes.patch
+     hexagon-vm_events-remove-unused-dummy_handler.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hexagon-reset-include-linux-rebooth-for-prototypes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hexagon-vm_events-remove-unused-dummy_handler.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,54 +60,47 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Nathan Chancellor <nathan@kernel.org>
-Subject: hexagon: reset: include linux/reboot.h for prototypes
-Date: Thu, 30 Nov 2023 15:58:25 -0700
+Subject: hexagon: vm_events: remove unused dummy_handler()
+Date: Thu, 30 Nov 2023 15:58:29 -0700
 
-Clang warns about missing prototypes that are declared in this header:
+Clang warns:
 
-  arch/hexagon/kernel/reset.c:9:6: warning: no previous prototype for function 'machine_power_off' [-Wmissing-prototypes]
-      9 | void machine_power_off(void)
+  arch/hexagon/kernel/vm_events.c:76:6: warning: no previous prototype for function 'dummy_handler' [-Wmissing-prototypes]
+     76 | void dummy_handler(struct pt_regs *regs)
         |      ^
-  arch/hexagon/kernel/reset.c:9:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
-      9 | void machine_power_off(void)
+  arch/hexagon/kernel/vm_events.c:76:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+     76 | void dummy_handler(struct pt_regs *regs)
         | ^
         | static
-  arch/hexagon/kernel/reset.c:15:6: warning: no previous prototype for function 'machine_halt' [-Wmissing-prototypes]
-     15 | void machine_halt(void)
-        |      ^
-  arch/hexagon/kernel/reset.c:15:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
-     15 | void machine_halt(void)
-        | ^
-        | static
-  arch/hexagon/kernel/reset.c:19:6: warning: no previous prototype for function 'machine_restart' [-Wmissing-prototypes]
-     19 | void machine_restart(char *cmd)
-        |      ^
-  arch/hexagon/kernel/reset.c:19:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
-     19 | void machine_restart(char *cmd)
-        | ^
-        | static
-  3 warnings generated.
 
-Link: https://lkml.kernel.org/r/20231130-hexagon-missing-prototypes-v1-12-5c34714afe9e@kernel.org
+This function appears to be entirely unused, so remove it.
+
+Link: https://lkml.kernel.org/r/20231130-hexagon-missing-prototypes-v1-16-5c34714afe9e@kernel.org
 Signed-off-by: Nathan Chancellor <nathan@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Brian Cain <bcain@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/hexagon/kernel/reset.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/hexagon/kernel/vm_events.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
---- a/arch/hexagon/kernel/reset.c~hexagon-reset-include-linux-rebooth-for-prototypes
-+++ a/arch/hexagon/kernel/reset.c
-@@ -3,6 +3,7 @@
-  * Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
-  */
+--- a/arch/hexagon/kernel/vm_events.c~hexagon-vm_events-remove-unused-dummy_handler
++++ a/arch/hexagon/kernel/vm_events.c
+@@ -73,13 +73,6 @@ void show_regs(struct pt_regs *regs)
+ 		pt_psp(regs), pt_badva(regs), ints_enabled(regs));
+ }
  
-+#include <linux/reboot.h>
- #include <linux/smp.h>
- #include <asm/hexagon_vm.h>
- 
+-void dummy_handler(struct pt_regs *regs)
+-{
+-	unsigned int elr = pt_elr(regs);
+-	printk(KERN_ERR "Unimplemented handler; ELR=0x%08x\n", elr);
+-}
+-
+-
+ void arch_do_IRQ(struct pt_regs *regs)
+ {
+ 	int irq = pt_cause(regs);
 _
 
 Patches currently in -mm which might be from nathan@kernel.org are
