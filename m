@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 869DCC46CA0
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Nov 2023 23:38:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07DC8C4167B
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Nov 2023 23:38:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377259AbjK3Xic (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 30 Nov 2023 18:38:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41574 "EHLO
+        id S1377289AbjK3Xif (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 30 Nov 2023 18:38:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48530 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377277AbjK3Xib (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2023 18:38:31 -0500
+        with ESMTP id S1377277AbjK3Xic (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2023 18:38:32 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE6D710DC
-        for <mm-commits@vger.kernel.org>; Thu, 30 Nov 2023 15:38:37 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79FA3C433C9;
-        Thu, 30 Nov 2023 23:38:37 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07C4710E2
+        for <mm-commits@vger.kernel.org>; Thu, 30 Nov 2023 15:38:39 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99790C433C7;
+        Thu, 30 Nov 2023 23:38:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701387517;
-        bh=bNc8iWbK6VBjQ2+c/BVB9rt5vAMbu1ntnaeoo2aV6fs=;
+        s=korg; t=1701387518;
+        bh=ZNkkNCen4uGrP5Odtow28fZLJPgrLvMQjBswlCzw8g0=;
         h=Date:To:From:Subject:From;
-        b=DS1uxF9XTIqadfKg/yzE3tBNYTwBvRGFLwMNnr8L5OxSCSNP8DYfn3T2kKg6/uan+
-         G6iJtU2YT/9v3fbR5A7TgRQ1R8UGS6KhJOk+K9iMcGf557tJRYVgJqoT7xTecNAfHo
-         Me+vb7hObe2JYEFoINWfWkAZIXVJo063BpYOR9Lc=
-Date:   Thu, 30 Nov 2023 15:38:37 -0800
+        b=irXrRf3YAX6kGZbB1wY4+T2txVzeISyVITZ7NooIzFLCtuNwQNgTRmPBbQLSZA0jy
+         3d6FularDxOQQLxHqbtz6/49i1pb8BI6EwQhCcvrtbuxKc5/vXwX0X8rKlz+m+ommJ
+         bLp+iuIPIZwiNBB5zSv2KjkHYlq9B7NNLPPUzQ9I=
+Date:   Thu, 30 Nov 2023 15:38:38 -0800
 To:     mm-commits@vger.kernel.org, bcain@quicinc.com, arnd@arndb.de,
         nathan@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hexagon-mm-include-asm-setuph-for-setup_arch_memorys-prototype.patch added to mm-nonmm-unstable branch
-Message-Id: <20231130233837.79FA3C433C9@smtp.kernel.org>
+Subject: + hexagon-smp-mark-handle_ipi-and-start_secondary-as-static.patch added to mm-nonmm-unstable branch
+Message-Id: <20231130233838.99790C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hexagon: mm: include asm/setup.h for setup_arch_memory()'s prototype
+     Subject: hexagon: smp: mark handle_ipi() and start_secondary() as static
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     hexagon-mm-include-asm-setuph-for-setup_arch_memorys-prototype.patch
+     hexagon-smp-mark-handle_ipi-and-start_secondary-as-static.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hexagon-mm-include-asm-setuph-for-setup_arch_memorys-prototype.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hexagon-smp-mark-handle_ipi-and-start_secondary-as-static.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,41 +60,60 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Nathan Chancellor <nathan@kernel.org>
-Subject: hexagon: mm: include asm/setup.h for setup_arch_memory()'s prototype
-Date: Thu, 30 Nov 2023 15:58:16 -0700
+Subject: hexagon: smp: mark handle_ipi() and start_secondary() as static
+Date: Thu, 30 Nov 2023 15:58:17 -0700
 
 Clang warns:
 
-  arch/hexagon/mm/init.c:138:13: warning: no previous prototype for function 'setup_arch_memory' [-Wmissing-prototypes]
-    138 | void __init setup_arch_memory(void)
+  arch/hexagon/kernel/smp.c:82:13: warning: no previous prototype for function 'handle_ipi' [-Wmissing-prototypes]
+     82 | irqreturn_t handle_ipi(int irq, void *desc)
         |             ^
-  arch/hexagon/mm/init.c:138:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
-    138 | void __init setup_arch_memory(void)
+  arch/hexagon/kernel/smp.c:82:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+     82 | irqreturn_t handle_ipi(int irq, void *desc)
         | ^
         | static
+  arch/hexagon/kernel/smp.c:127:6: warning: no previous prototype for function 'start_secondary' [-Wmissing-prototypes]
+    127 | void start_secondary(void)
+        |      ^
+  arch/hexagon/kernel/smp.c:127:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+    127 | void start_secondary(void)
+        | ^
+        | static
+  2 warnings generated.
 
-The prototype is in asm/setup.h, include it to clear up the warning.
+These functions are not used outside of this translation unit, so mark
+them as static.
 
-Link: https://lkml.kernel.org/r/20231130-hexagon-missing-prototypes-v1-3-5c34714afe9e@kernel.org
+Link: https://lkml.kernel.org/r/20231130-hexagon-missing-prototypes-v1-4-5c34714afe9e@kernel.org
 Signed-off-by: Nathan Chancellor <nathan@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Brian Cain <bcain@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/hexagon/mm/init.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/hexagon/kernel/smp.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/hexagon/mm/init.c~hexagon-mm-include-asm-setuph-for-setup_arch_memorys-prototype
-+++ a/arch/hexagon/mm/init.c
-@@ -12,6 +12,7 @@
- #include <linux/highmem.h>
- #include <asm/tlb.h>
- #include <asm/sections.h>
-+#include <asm/setup.h>
- #include <asm/vm_mmu.h>
+--- a/arch/hexagon/kernel/smp.c~hexagon-smp-mark-handle_ipi-and-start_secondary-as-static
++++ a/arch/hexagon/kernel/smp.c
+@@ -79,7 +79,7 @@ void smp_vm_unmask_irq(void *info)
+  * Specifically, first arg is irq, second is the irq_desc.
+  */
  
- /*
+-irqreturn_t handle_ipi(int irq, void *desc)
++static irqreturn_t handle_ipi(int irq, void *desc)
+ {
+ 	int cpu = smp_processor_id();
+ 	struct ipi_data *ipi = &per_cpu(ipi_data, cpu);
+@@ -124,7 +124,7 @@ void __init smp_prepare_boot_cpu(void)
+  * to point to current thread info
+  */
+ 
+-void start_secondary(void)
++static void start_secondary(void)
+ {
+ 	unsigned long thread_ptr;
+ 	unsigned int cpu, irq;
 _
 
 Patches currently in -mm which might be from nathan@kernel.org are
