@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55FE6C4167B
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Nov 2023 23:38:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06724C10F04
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Nov 2023 23:39:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377313AbjK3Xiu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 30 Nov 2023 18:38:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48616 "EHLO
+        id S1377288AbjK3Xiv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 30 Nov 2023 18:38:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53770 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377299AbjK3Xil (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2023 18:38:41 -0500
+        with ESMTP id S1377302AbjK3Xim (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2023 18:38:42 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B16510DC
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFFD510E2
         for <mm-commits@vger.kernel.org>; Thu, 30 Nov 2023 15:38:47 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 724E8C433CC;
-        Thu, 30 Nov 2023 23:38:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E5F1C433C7;
+        Thu, 30 Nov 2023 23:38:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701387526;
-        bh=C/qxjNnyK1iBWn08V0E9CXLS0PR7ZCZGOCgPoIn82lQ=;
+        s=korg; t=1701387527;
+        bh=r9qKQWgU74w2cXIz1Ld9OlX3zmHQH+DGAvWRb0eWJ5I=;
         h=Date:To:From:Subject:From;
-        b=QkSWQEB2hV893cK+6brwdGWWFD+K6yRHWw4+sXYvP3muVfru4XGCZ3DxdKI1KKo5E
-         BZmhjxs1FFiDeZl3tx/JVBAayf90Y86SCp+YQTkzDBYNiihhHTW9Ot9adOaS3A9TSN
-         zzveRdKhxUQ/h8+lyYghiiARdZrqL2cyAOhpGhww=
-Date:   Thu, 30 Nov 2023 15:38:45 -0800
+        b=Nn/2XBnBNd4TGZ6vdjQrWoEa0M6cYmKMgpqE3/Nvle1pUkIaeYUf8XFq/hm5f7Uxl
+         B/5svLDseurQth52S7ykBujpZjV3Xm3v0r3G0sAJPoaGfSF08XRFBEjervIt0cXFY+
+         z2UG2PB389npI4JquYifkvtieRBtvBDQslv/+VU0=
+Date:   Thu, 30 Nov 2023 15:38:47 -0800
 To:     mm-commits@vger.kernel.org, bcain@quicinc.com, arnd@arndb.de,
         nathan@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hexagon-signal-switch-to-syscall_define0-for-sys_rt_sigreturn.patch added to mm-nonmm-unstable branch
-Message-Id: <20231130233846.724E8C433CC@smtp.kernel.org>
+Subject: + hexagon-reset-include-linux-rebooth-for-prototypes.patch added to mm-nonmm-unstable branch
+Message-Id: <20231130233847.8E5F1C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hexagon: signal: switch to SYSCALL_DEFINE0 for sys_rt_sigreturn()
+     Subject: hexagon: reset: include linux/reboot.h for prototypes
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     hexagon-signal-switch-to-syscall_define0-for-sys_rt_sigreturn.patch
+     hexagon-reset-include-linux-rebooth-for-prototypes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hexagon-signal-switch-to-syscall_define0-for-sys_rt_sigreturn.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hexagon-reset-include-linux-rebooth-for-prototypes.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,44 +60,54 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Nathan Chancellor <nathan@kernel.org>
-Subject: hexagon: signal: switch to SYSCALL_DEFINE0 for sys_rt_sigreturn()
-Date: Thu, 30 Nov 2023 15:58:24 -0700
+Subject: hexagon: reset: include linux/reboot.h for prototypes
+Date: Thu, 30 Nov 2023 15:58:25 -0700
 
-Clang warns:
+Clang warns about missing prototypes that are declared in this header:
 
-  arch/hexagon/kernel/signal.c:223:16: warning: no previous prototype for function 'sys_rt_sigreturn' [-Wmissing-prototypes]
-    223 | asmlinkage int sys_rt_sigreturn(void)
-        |                ^
-  arch/hexagon/kernel/signal.c:223:12: note: declare 'static' if the function is not intended to be used outside of this translation unit
-    223 | asmlinkage int sys_rt_sigreturn(void)
-        |            ^
-        |            static
-  1 warning generated.
+  arch/hexagon/kernel/reset.c:9:6: warning: no previous prototype for function 'machine_power_off' [-Wmissing-prototypes]
+      9 | void machine_power_off(void)
+        |      ^
+  arch/hexagon/kernel/reset.c:9:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+      9 | void machine_power_off(void)
+        | ^
+        | static
+  arch/hexagon/kernel/reset.c:15:6: warning: no previous prototype for function 'machine_halt' [-Wmissing-prototypes]
+     15 | void machine_halt(void)
+        |      ^
+  arch/hexagon/kernel/reset.c:15:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+     15 | void machine_halt(void)
+        | ^
+        | static
+  arch/hexagon/kernel/reset.c:19:6: warning: no previous prototype for function 'machine_restart' [-Wmissing-prototypes]
+     19 | void machine_restart(char *cmd)
+        |      ^
+  arch/hexagon/kernel/reset.c:19:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+     19 | void machine_restart(char *cmd)
+        | ^
+        | static
+  3 warnings generated.
 
-Switch to the SYSCALL_DEFINE0() macro, which automatically declares a
-prototype.
-
-Link: https://lkml.kernel.org/r/20231130-hexagon-missing-prototypes-v1-11-5c34714afe9e@kernel.org
+Link: https://lkml.kernel.org/r/20231130-hexagon-missing-prototypes-v1-12-5c34714afe9e@kernel.org
 Signed-off-by: Nathan Chancellor <nathan@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Brian Cain <bcain@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/hexagon/kernel/signal.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/hexagon/kernel/reset.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/hexagon/kernel/signal.c~hexagon-signal-switch-to-syscall_define0-for-sys_rt_sigreturn
-+++ a/arch/hexagon/kernel/signal.c
-@@ -220,7 +220,7 @@ no_restart:
-  * Architecture-specific wrappers for signal-related system calls
+--- a/arch/hexagon/kernel/reset.c~hexagon-reset-include-linux-rebooth-for-prototypes
++++ a/arch/hexagon/kernel/reset.c
+@@ -3,6 +3,7 @@
+  * Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
   */
  
--asmlinkage int sys_rt_sigreturn(void)
-+SYSCALL_DEFINE0(rt_sigreturn)
- {
- 	struct pt_regs *regs = current_pt_regs();
- 	struct rt_sigframe __user *frame;
++#include <linux/reboot.h>
+ #include <linux/smp.h>
+ #include <asm/hexagon_vm.h>
+ 
 _
 
 Patches currently in -mm which might be from nathan@kernel.org are
