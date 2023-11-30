@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07DC8C4167B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABB1CC10F04
 	for <mm-commits@archiver.kernel.org>; Thu, 30 Nov 2023 23:38:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377289AbjK3Xif (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1377277AbjK3Xif (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 30 Nov 2023 18:38:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48530 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48540 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377277AbjK3Xic (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2023 18:38:32 -0500
+        with ESMTP id S1377287AbjK3Xie (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2023 18:38:34 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07C4710E2
-        for <mm-commits@vger.kernel.org>; Thu, 30 Nov 2023 15:38:39 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99790C433C7;
-        Thu, 30 Nov 2023 23:38:38 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 106AB10DC
+        for <mm-commits@vger.kernel.org>; Thu, 30 Nov 2023 15:38:40 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1181C433CA;
+        Thu, 30 Nov 2023 23:38:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701387518;
-        bh=ZNkkNCen4uGrP5Odtow28fZLJPgrLvMQjBswlCzw8g0=;
+        s=korg; t=1701387519;
+        bh=fjZTvgI7GCNscrRuer6XFbNe8rKKcSmoILgsW/aR51s=;
         h=Date:To:From:Subject:From;
-        b=irXrRf3YAX6kGZbB1wY4+T2txVzeISyVITZ7NooIzFLCtuNwQNgTRmPBbQLSZA0jy
-         3d6FularDxOQQLxHqbtz6/49i1pb8BI6EwQhCcvrtbuxKc5/vXwX0X8rKlz+m+ommJ
-         bLp+iuIPIZwiNBB5zSv2KjkHYlq9B7NNLPPUzQ9I=
-Date:   Thu, 30 Nov 2023 15:38:38 -0800
+        b=sANAkaje0owdMvU2MkOx78Ayw2biUQk5t3sICAGp4cmbdVYOEc0TV3WTw9Em2+v/u
+         QWRyGMHQZoQDCk/IMLV+/2ZD/LKoweWzVzSU3LI5A5s4yryddnBBRPYHXmSMEP8NSt
+         cNPvQmpP3lOGBaXvzc9+ZGZw8bR402UScWNrri9Y=
+Date:   Thu, 30 Nov 2023 15:38:39 -0800
 To:     mm-commits@vger.kernel.org, bcain@quicinc.com, arnd@arndb.de,
         nathan@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hexagon-smp-mark-handle_ipi-and-start_secondary-as-static.patch added to mm-nonmm-unstable branch
-Message-Id: <20231130233838.99790C433C7@smtp.kernel.org>
+Subject: + hexagon-vm_fault-mark-do_page_fault-as-static.patch added to mm-nonmm-unstable branch
+Message-Id: <20231130233839.A1181C433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hexagon: smp: mark handle_ipi() and start_secondary() as static
+     Subject: hexagon: vm_fault: mark do_page_fault() as static
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     hexagon-smp-mark-handle_ipi-and-start_secondary-as-static.patch
+     hexagon-vm_fault-mark-do_page_fault-as-static.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hexagon-smp-mark-handle_ipi-and-start_secondary-as-static.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hexagon-vm_fault-mark-do_page_fault-as-static.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,60 +60,43 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Nathan Chancellor <nathan@kernel.org>
-Subject: hexagon: smp: mark handle_ipi() and start_secondary() as static
-Date: Thu, 30 Nov 2023 15:58:17 -0700
+Subject: hexagon: vm_fault: mark do_page_fault() as static
+Date: Thu, 30 Nov 2023 15:58:18 -0700
 
 Clang warns:
 
-  arch/hexagon/kernel/smp.c:82:13: warning: no previous prototype for function 'handle_ipi' [-Wmissing-prototypes]
-     82 | irqreturn_t handle_ipi(int irq, void *desc)
-        |             ^
-  arch/hexagon/kernel/smp.c:82:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
-     82 | irqreturn_t handle_ipi(int irq, void *desc)
-        | ^
-        | static
-  arch/hexagon/kernel/smp.c:127:6: warning: no previous prototype for function 'start_secondary' [-Wmissing-prototypes]
-    127 | void start_secondary(void)
+  arch/hexagon/mm/vm_fault.c:36:6: warning: no previous prototype for function 'do_page_fault' [-Wmissing-prototypes]
+     36 | void do_page_fault(unsigned long address, long cause, struct pt_regs *regs)
         |      ^
-  arch/hexagon/kernel/smp.c:127:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
-    127 | void start_secondary(void)
+  arch/hexagon/mm/vm_fault.c:36:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+     36 | void do_page_fault(unsigned long address, long cause, struct pt_regs *regs)
         | ^
         | static
-  2 warnings generated.
 
-These functions are not used outside of this translation unit, so mark
-them as static.
+This function is not used outside of this translation unit, so mark it
+as static.
 
-Link: https://lkml.kernel.org/r/20231130-hexagon-missing-prototypes-v1-4-5c34714afe9e@kernel.org
+Link: https://lkml.kernel.org/r/20231130-hexagon-missing-prototypes-v1-5-5c34714afe9e@kernel.org
 Signed-off-by: Nathan Chancellor <nathan@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Brian Cain <bcain@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/hexagon/kernel/smp.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/hexagon/mm/vm_fault.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/hexagon/kernel/smp.c~hexagon-smp-mark-handle_ipi-and-start_secondary-as-static
-+++ a/arch/hexagon/kernel/smp.c
-@@ -79,7 +79,7 @@ void smp_vm_unmask_irq(void *info)
-  * Specifically, first arg is irq, second is the irq_desc.
+--- a/arch/hexagon/mm/vm_fault.c~hexagon-vm_fault-mark-do_page_fault-as-static
++++ a/arch/hexagon/mm/vm_fault.c
+@@ -33,7 +33,7 @@
+ /*
+  * Canonical page fault handler
   */
- 
--irqreturn_t handle_ipi(int irq, void *desc)
-+static irqreturn_t handle_ipi(int irq, void *desc)
+-void do_page_fault(unsigned long address, long cause, struct pt_regs *regs)
++static void do_page_fault(unsigned long address, long cause, struct pt_regs *regs)
  {
- 	int cpu = smp_processor_id();
- 	struct ipi_data *ipi = &per_cpu(ipi_data, cpu);
-@@ -124,7 +124,7 @@ void __init smp_prepare_boot_cpu(void)
-  * to point to current thread info
-  */
- 
--void start_secondary(void)
-+static void start_secondary(void)
- {
- 	unsigned long thread_ptr;
- 	unsigned int cpu, irq;
+ 	struct vm_area_struct *vma;
+ 	struct mm_struct *mm = current->mm;
 _
 
 Patches currently in -mm which might be from nathan@kernel.org are
