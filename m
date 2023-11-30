@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1648EC46CA0
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Nov 2023 23:39:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F29FC4167B
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Nov 2023 23:39:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377298AbjK3Xiw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 30 Nov 2023 18:38:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53774 "EHLO
+        id S1377304AbjK3Xiy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 30 Nov 2023 18:38:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53840 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377292AbjK3Xim (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2023 18:38:42 -0500
+        with ESMTP id S1377312AbjK3Xiu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Nov 2023 18:38:50 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC86210F3
-        for <mm-commits@vger.kernel.org>; Thu, 30 Nov 2023 15:38:48 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B42BC433CA;
-        Thu, 30 Nov 2023 23:38:48 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 679A31708
+        for <mm-commits@vger.kernel.org>; Thu, 30 Nov 2023 15:38:53 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1951C433C9;
+        Thu, 30 Nov 2023 23:38:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701387528;
-        bh=ZwEZSqGxq4w9vdLh/tX99hURcKiaGUOnM0vbUuTEEhM=;
+        s=korg; t=1701387533;
+        bh=/KTHx7B8KbxYo9JYJWCd8UYzal88T30CpsN+iEKqhRQ=;
         h=Date:To:From:Subject:From;
-        b=vWBsJRCKFIW51zjf2yRpUNodPbxLz1jyzPMia73+tB6QJXklSqxc1CWQ709sY1RId
-         y3OjoZ0XSNdsoU2kkwMtteZGAuPE7i6NiDZ7KdfVUNrlWiZqfSez6tEMcu8ABOXjl2
-         56Mqf8T8dDQjLla+63AUHH379FAV/xGp2oV0ztmQ=
-Date:   Thu, 30 Nov 2023 15:38:48 -0800
+        b=mbpT249XIL3tF2iq53YMyzBrFJHf6cP6dgI9wA8L3opGBCkm8C+rvCrvYU5E487nD
+         +sB7dz9VNrM/+CelZn+yBv6LVAVU9yNn2gR6TwZ9Cxug/LO//yXzE8c5OpxkF9+mys
+         O/Ym4LMw94SCQjDTxTnW4EBfnpZk9yLWlr+G1+xY=
+Date:   Thu, 30 Nov 2023 15:38:52 -0800
 To:     mm-commits@vger.kernel.org, bcain@quicinc.com, arnd@arndb.de,
         nathan@kernel.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + hexagon-process-include-linux-cpuh-for-arch_cpu_idle-prototype.patch added to mm-nonmm-unstable branch
-Message-Id: <20231130233848.9B42BC433CA@smtp.kernel.org>
+Subject: + hexagon-irq-add-prototype-for-arch_do_irq.patch added to mm-nonmm-unstable branch
+Message-Id: <20231130233852.F1951C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hexagon: process: include linux/cpu.h for arch_cpu_idle() prototype
+     Subject: hexagon: irq: add prototype for arch_do_IRQ()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     hexagon-process-include-linux-cpuh-for-arch_cpu_idle-prototype.patch
+     hexagon-irq-add-prototype-for-arch_do_irq.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hexagon-process-include-linux-cpuh-for-arch_cpu_idle-prototype.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hexagon-irq-add-prototype-for-arch_do_irq.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,42 +60,42 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Nathan Chancellor <nathan@kernel.org>
-Subject: hexagon: process: include linux/cpu.h for arch_cpu_idle() prototype
-Date: Thu, 30 Nov 2023 15:58:26 -0700
+Subject: hexagon: irq: add prototype for arch_do_IRQ()
+Date: Thu, 30 Nov 2023 15:58:30 -0700
 
 Clang warns:
 
-  arch/hexagon/kernel/process.c:43:6: warning: no previous prototype for function 'arch_cpu_idle' [-Wmissing-prototypes]
-     43 | void arch_cpu_idle(void)
+  arch/hexagon/kernel/vm_events.c:83:6: warning: no previous prototype for function 'arch_do_IRQ' [-Wmissing-prototypes]
+     83 | void arch_do_IRQ(struct pt_regs *regs)
         |      ^
-  arch/hexagon/kernel/process.c:43:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
-     43 | void arch_cpu_idle(void)
+  arch/hexagon/kernel/vm_events.c:83:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+     83 | void arch_do_IRQ(struct pt_regs *regs)
         | ^
         | static
 
-This prototype is declared in include/linux/cpu.h, include it in
-process.c to clear up the warning.
+This function is only called from assembly but the irq header is a
+reasonable place to put a prototype to silence the warning.
 
-Link: https://lkml.kernel.org/r/20231130-hexagon-missing-prototypes-v1-13-5c34714afe9e@kernel.org
+Link: https://lkml.kernel.org/r/20231130-hexagon-missing-prototypes-v1-17-5c34714afe9e@kernel.org
 Signed-off-by: Nathan Chancellor <nathan@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Brian Cain <bcain@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/hexagon/kernel/process.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/hexagon/include/asm/irq.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/arch/hexagon/kernel/process.c~hexagon-process-include-linux-cpuh-for-arch_cpu_idle-prototype
-+++ a/arch/hexagon/kernel/process.c
-@@ -5,6 +5,7 @@
-  * Copyright (c) 2010-2012, The Linux Foundation. All rights reserved.
-  */
+--- a/arch/hexagon/include/asm/irq.h~hexagon-irq-add-prototype-for-arch_do_irq
++++ a/arch/hexagon/include/asm/irq.h
+@@ -20,4 +20,7 @@
  
-+#include <linux/cpu.h>
- #include <linux/sched.h>
- #include <linux/sched/debug.h>
- #include <linux/sched/task.h>
+ #include <asm-generic/irq.h>
+ 
++struct pt_regs;
++void arch_do_IRQ(struct pt_regs *);
++
+ #endif
 _
 
 Patches currently in -mm which might be from nathan@kernel.org are
