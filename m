@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CDCBCC10DC3
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Dec 2023 19:22:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74964C46CA0
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Dec 2023 19:22:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233420AbjLDTWC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 4 Dec 2023 14:22:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60070 "EHLO
+        id S233277AbjLDTWD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 4 Dec 2023 14:22:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60092 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233522AbjLDTWA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Dec 2023 14:22:00 -0500
+        with ESMTP id S233555AbjLDTWB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Dec 2023 14:22:01 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A02CC113
-        for <mm-commits@vger.kernel.org>; Mon,  4 Dec 2023 11:22:03 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DFB9C433CA;
-        Mon,  4 Dec 2023 19:22:03 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54DE5E6
+        for <mm-commits@vger.kernel.org>; Mon,  4 Dec 2023 11:22:05 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8F05C433C8;
+        Mon,  4 Dec 2023 19:22:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701717723;
-        bh=kj1LpQyC1bQeFrscP1wkAGWRxatnHsDuCz9IEQ9iyBE=;
+        s=korg; t=1701717725;
+        bh=evvykxnOhiSmTKP8X+uP9KPv71+Q7gZBoO+WIX4m5BU=;
         h=Date:To:From:Subject:From;
-        b=HqiTZO8k8JUVpfbEo8Hv+tacf0cqUQRvHjXdRf8PvB4ZvkwbVvNc18DnJDrDLJqki
-         YiK9wNYutsKoKR6EPKJyMsuA+sZ+AJ/1OmWG2FuV5EYCuQeC/N4wt8G6qfPmrJ6OkH
-         yIfEBYWDvBNoG/yn6dClve27Ra5f5T+ABBErC04Q=
-Date:   Mon, 04 Dec 2023 11:22:02 -0800
+        b=xga8EfdtbAcCJ0kswBp8GAb+7jiLsP4Sq5nA521YNaFJ+xtmnbmysjs41tmjlz6wc
+         oKJ9wDPsyH3udOrEMgtNWLtfR+ZLLbxV8nXlY+jAZTS1RsesYwxFbulhbeUgMTlgmU
+         /zEDQkSfsna6giw25Fovz9DnTLEAu2VUSWH28hQA=
+Date:   Mon, 04 Dec 2023 11:22:04 -0800
 To:     mm-commits@vger.kernel.org, tsbogend@alpha.franken.de,
         sfr@rothwell.id.au, arnd@arndb.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mips-smp-fix-setup_profiling_timer-prototype.patch added to mm-nonmm-unstable branch
-Message-Id: <20231204192203.3DFB9C433CA@smtp.kernel.org>
+Subject: + mips-kexec-include-linux-rebooth.patch added to mm-nonmm-unstable branch
+Message-Id: <20231204192204.E8F05C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mips: smp: fix setup_profiling_timer() prototype
+     Subject: mips: kexec: include linux/reboot.h
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mips-smp-fix-setup_profiling_timer-prototype.patch
+     mips-kexec-include-linux-rebooth.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-smp-fix-setup_profiling_timer-prototype.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-kexec-include-linux-rebooth.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,50 +60,35 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: mips: smp: fix setup_profiling_timer() prototype
-Date: Mon, 4 Dec 2023 12:57:09 +0100
+Subject: mips: kexec: include linux/reboot.h
+Date: Mon, 4 Dec 2023 12:57:10 +0100
 
-The function is unconditionally defined in smp.c but is conditionally
-declared in a header that is not included here.
+Two functions are provided for kexec, but the mips implementation is
+missing the corresponding #include statment:
 
-arch/mips/kernel/smp.c:473:5: error: no previous prototype for 'setup_profiling_timer' [-Werror=missing-prototypes]
+arch/mips/kernel/machine_kexec.c:136:1: error: no previous prototype for 'machine_shutdown' [-Werror=missing-prototypes]
+arch/mips/kernel/machine_kexec.c:152:1: error: no previous prototype for 'machine_crash_shutdown' [-Werror=missing-prototypes]
 
-Add the missing #include and #ifdef to match the declaration.
-
-Link: https://lkml.kernel.org/r/20231204115710.2247097-20-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20231204115710.2247097-21-arnd@kernel.org
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Stephen Rothwell <sfr@rothwell.id.au>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/smp.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/mips/kernel/machine_kexec.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/mips/kernel/smp.c~mips-smp-fix-setup_profiling_timer-prototype
-+++ a/arch/mips/kernel/smp.c
-@@ -10,6 +10,7 @@
+--- a/arch/mips/kernel/machine_kexec.c~mips-kexec-include-linux-rebooth
++++ a/arch/mips/kernel/machine_kexec.c
+@@ -8,6 +8,7 @@
+ #include <linux/mm.h>
  #include <linux/delay.h>
- #include <linux/init.h>
- #include <linux/interrupt.h>
-+#include <linux/profile.h>
- #include <linux/smp.h>
- #include <linux/spinlock.h>
- #include <linux/threads.h>
-@@ -468,11 +469,13 @@ int __cpu_up(unsigned int cpu, struct ta
- 	return 0;
- }
+ #include <linux/libfdt.h>
++#include <linux/reboot.h>
  
-+#ifdef CONFIG_PROFILING
- /* Not really SMP stuff ... */
- int setup_profiling_timer(unsigned int multiplier)
- {
- 	return 0;
- }
-+#endif
- 
- static void flush_tlb_all_ipi(void *info)
- {
+ #include <asm/cacheflush.h>
+ #include <asm/page.h>
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
