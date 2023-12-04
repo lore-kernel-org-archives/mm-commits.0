@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46BA7C4167B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3AF3C10DC3
 	for <mm-commits@archiver.kernel.org>; Mon,  4 Dec 2023 19:21:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232731AbjLDTVh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232543AbjLDTVh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 4 Dec 2023 14:21:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47370 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47368 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232543AbjLDTVg (ORCPT
+        with ESMTP id S232466AbjLDTVg (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Dec 2023 14:21:36 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2362FA
-        for <mm-commits@vger.kernel.org>; Mon,  4 Dec 2023 11:21:42 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50594C433C9;
-        Mon,  4 Dec 2023 19:21:42 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA584E6
+        for <mm-commits@vger.kernel.org>; Mon,  4 Dec 2023 11:21:40 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4AAD5C433C7;
+        Mon,  4 Dec 2023 19:21:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701717702;
-        bh=dQVeMIKNu2413xwsfWsLI1/kU8KMhwr+6T1XLXx8mqM=;
+        s=korg; t=1701717700;
+        bh=YvNKum/9IJqtyggy/DQHVucZrDIOH3WHAjdCSXGx1cM=;
         h=Date:To:From:Subject:From;
-        b=L6Fp98xL4ffmgM4JpMyNIU6ScIa9J+fO/AYFSnmAJz5pXk/cGEzrtdTpKGD1PDbpb
-         5BIrfAi7HlhJJqeaciHKx7n+Y1Mb6eoqVNO9UnbD/1GSYnhPrlWSxFcgb/yzA4HHoQ
-         vQYW4qtQ7znZaxjXROFVguQaETE+GhDo8z6eLonQ=
-Date:   Mon, 04 Dec 2023 11:21:41 -0800
+        b=jPKuYMeFzArrL8IkoM38F+JsZsQdi0pHIWyj5/fm1WlMSMI+bGA0ACfYXv/IEt4V2
+         SUFLDL9sm+e1248GODM2pVU3ohmXUXxjDC0tFoEhx03ID9QBCervDDqGvgSqAal6Vv
+         RcpGzMgxsVyFT4qGgsKhq7R1f4dcS4cT2/6MRJBI=
+Date:   Mon, 04 Dec 2023 11:21:39 -0800
 To:     mm-commits@vger.kernel.org, tsbogend@alpha.franken.de,
         sfr@rothwell.id.au, arnd@arndb.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mips-unhide-uasm_in_compat_space_p-declaration.patch added to mm-nonmm-unstable branch
-Message-Id: <20231204192142.50594C433C9@smtp.kernel.org>
+Subject: + mips-move-jump_label_apply_nops-declaration-to-header.patch added to mm-nonmm-unstable branch
+Message-Id: <20231204192140.4AAD5C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mips: unhide uasm_in_compat_space_p() declaration
+     Subject: mips: move jump_label_apply_nops() declaration to header
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mips-unhide-uasm_in_compat_space_p-declaration.patch
+     mips-move-jump_label_apply_nops-declaration-to-header.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-unhide-uasm_in_compat_space_p-declaration.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-move-jump_label_apply_nops-declaration-to-header.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,38 +60,49 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: mips: unhide uasm_in_compat_space_p() declaration
-Date: Mon, 4 Dec 2023 12:56:59 +0100
+Subject: mips: move jump_label_apply_nops() declaration to header
+Date: Mon, 4 Dec 2023 12:56:58 +0100
 
-uasm_in_compat_space_p() has a conditional declaration but is defined
-unconditionally because of another local user, which causes a warning:
+Instead of an extern declaration in the C file with the caller, move it to
+an appropriate header, avoiding
 
-arch/mips/mm/uasm.c:421:5: error: no previous prototype for 'uasm_in_compat_space_p' [-Werror=missing-prototypes]
+arch/mips/kernel/jump_label.c:93:6: error: no previous prototype for 'jump_label_apply_nops' [-Werror=missing-prototypes]
 
-Make the declaration unconditional to avoid this.
-
-Link: https://lkml.kernel.org/r/20231204115710.2247097-10-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20231204115710.2247097-9-arnd@kernel.org
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Stephen Rothwell <sfr@rothwell.id.au>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/uasm.h |    2 --
- 1 file changed, 2 deletions(-)
+ arch/mips/include/asm/jump_label.h |    3 +++
+ arch/mips/kernel/module.c          |    3 +--
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
---- a/arch/mips/include/asm/uasm.h~mips-unhide-uasm_in_compat_space_p-declaration
-+++ a/arch/mips/include/asm/uasm.h
-@@ -193,9 +193,7 @@ struct uasm_label {
+--- a/arch/mips/include/asm/jump_label.h~mips-move-jump_label_apply_nops-declaration-to-header
++++ a/arch/mips/include/asm/jump_label.h
+@@ -15,6 +15,9 @@
+ #include <linux/types.h>
+ #include <asm/isa-rev.h>
  
- void uasm_build_label(struct uasm_label **lab, u32 *addr,
- 			int lid);
--#ifdef CONFIG_64BIT
- int uasm_in_compat_space_p(long addr);
--#endif
- int uasm_rel_hi(long val);
- int uasm_rel_lo(long val);
- void UASM_i_LA_mostly(u32 **buf, unsigned int rs, long addr);
++struct module;
++extern void jump_label_apply_nops(struct module *mod);
++
+ #define JUMP_LABEL_NOP_SIZE 4
+ 
+ #ifdef CONFIG_64BIT
+--- a/arch/mips/kernel/module.c~mips-move-jump_label_apply_nops-declaration-to-header
++++ a/arch/mips/kernel/module.c
+@@ -20,8 +20,7 @@
+ #include <linux/kernel.h>
+ #include <linux/spinlock.h>
+ #include <linux/jump_label.h>
+-
+-extern void jump_label_apply_nops(struct module *mod);
++#include <asm/jump_label.h>
+ 
+ struct mips_hi16 {
+ 	struct mips_hi16 *next;
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
