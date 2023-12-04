@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F266C4167B
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Dec 2023 19:22:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 296CAC10DC3
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Dec 2023 19:22:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232847AbjLDTVv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 4 Dec 2023 14:21:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59864 "EHLO
+        id S233384AbjLDTVw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 4 Dec 2023 14:21:52 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59838 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233384AbjLDTVr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Dec 2023 14:21:47 -0500
+        with ESMTP id S233459AbjLDTVv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Dec 2023 14:21:51 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39AEFFF
-        for <mm-commits@vger.kernel.org>; Mon,  4 Dec 2023 11:21:52 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB757C433C9;
-        Mon,  4 Dec 2023 19:21:51 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 78626116
+        for <mm-commits@vger.kernel.org>; Mon,  4 Dec 2023 11:21:56 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18B05C433C9;
+        Mon,  4 Dec 2023 19:21:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701717711;
-        bh=jXzg5BHVXbX82MSmaKtiKKfTxudgmHNEew0YSPyyENI=;
+        s=korg; t=1701717716;
+        bh=EFKvSNeo5Car3TXV8jms2cZY9j6ROYX/2PP+ZERLHNI=;
         h=Date:To:From:Subject:From;
-        b=CrHMWbpg+lE47pJngLIIq3GXV64T0fEmQXMnt+mDjRZa/G8v3FmmqMKUTaVN7G5iz
-         zJh5b0867d+O9N40MiSqQHNuRM0sQyW7ywI8HacnMDHsnHVJgjuQBUeF3zXGePayAW
-         1O7w8HUdN25NBpzFO3jyJhUV4pUhnKkzeF2bP54M=
-Date:   Mon, 04 Dec 2023 11:21:51 -0800
+        b=0kIQK7yl/TU+Rr+NsSLLd6LDE3qzYnUpT2D+Wi6DQoIRjTrkv3wzUeIAwlBfUlZ0R
+         zsNTWeIXFCW7dy8UbV3jhuohFLfvTpGvBgZelddhie5pNb8D4ZcdsHQRGlvEYjBk35
+         wotrO26jc5UxiL46Q6JCaDTKVIep8zd5rm07syac=
+Date:   Mon, 04 Dec 2023 11:21:55 -0800
 To:     mm-commits@vger.kernel.org, tsbogend@alpha.franken.de,
         sfr@rothwell.id.au, arnd@arndb.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mips-add-missing-declarations.patch added to mm-nonmm-unstable branch
-Message-Id: <20231204192151.CB757C433C9@smtp.kernel.org>
+Subject: + mips-mt-include-asm-mips_mth.patch added to mm-nonmm-unstable branch
+Message-Id: <20231204192156.18B05C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mips: add missing declarations
+     Subject: mips: mt: include asm/mips_mt.h
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mips-add-missing-declarations.patch
+     mips-mt-include-asm-mips_mth.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-add-missing-declarations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-mt-include-asm-mips_mth.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,57 +60,35 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: mips: add missing declarations
-Date: Mon, 4 Dec 2023 12:57:03 +0100
+Subject: mips: mt: include asm/mips_mt.h
+Date: Mon, 4 Dec 2023 12:57:05 +0100
 
-These are three more functions that are only called from assembler and
-only need a declaration to avoid the -Wmissing-prototypes warnings:
+These two functions have a global prototype but the header is not included
+before the function definitions:
 
-arch/mips/kernel/signal.c:904:17: error: no previous prototype for 'do_notify_resume' [-Werror=missing-prototypes]
-arch/mips/kernel/traps.c:370:6: error: no previous prototype for 'show_registers' [-Werror=missing-prototypes]
-arch/mips/kernel/smp.c:352:17: error: no previous prototype for 'start_secondary' [-Werror=missing-prototypes]
+arch/mips/kernel/mips-mt.c:50:6: error: no previous prototype for 'mips_mt_regdump' [-Werror=missing-prototypes]
+arch/mips/kernel/mips-mt.c:159:6: error: no previous prototype for 'mips_mt_set_cpuoptions' [-Werror=missing-prototypes]
 
-Link: https://lkml.kernel.org/r/20231204115710.2247097-14-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20231204115710.2247097-16-arnd@kernel.org
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Stephen Rothwell <sfr@rothwell.id.au>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/processor.h |    2 ++
- arch/mips/include/asm/signal.h    |    1 +
- arch/mips/include/asm/smp.h       |    2 ++
- 3 files changed, 5 insertions(+)
+ arch/mips/kernel/mips-mt.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/mips/include/asm/processor.h~mips-add-missing-declarations
-+++ a/arch/mips/include/asm/processor.h
-@@ -402,4 +402,6 @@ extern int mips_set_process_fp_mode(stru
- #define GET_FP_MODE(task)		mips_get_process_fp_mode(task)
- #define SET_FP_MODE(task,value)		mips_set_process_fp_mode(task, value)
+--- a/arch/mips/kernel/mips-mt.c~mips-mt-include-asm-mips_mth
++++ a/arch/mips/kernel/mips-mt.c
+@@ -19,6 +19,7 @@
+ #include <asm/mipsmtregs.h>
+ #include <asm/r4kcache.h>
+ #include <asm/cacheflush.h>
++#include <asm/mips_mt.h>
  
-+void show_registers(struct pt_regs *regs);
-+
- #endif /* _ASM_PROCESSOR_H */
---- a/arch/mips/include/asm/signal.h~mips-add-missing-declarations
-+++ a/arch/mips/include/asm/signal.h
-@@ -31,5 +31,6 @@ extern struct mips_abi mips_abi_32;
+ int vpelimit;
  
- extern int protected_save_fp_context(void __user *sc);
- extern int protected_restore_fp_context(void __user *sc);
-+void do_notify_resume(struct pt_regs *regs, void *unused, __u32 thread_info_flags);
- 
- #endif /* _ASM_SIGNAL_H */
---- a/arch/mips/include/asm/smp.h~mips-add-missing-declarations
-+++ a/arch/mips/include/asm/smp.h
-@@ -63,6 +63,8 @@ extern asmlinkage void smp_bootstrap(voi
- 
- extern void calculate_cpu_foreign_map(void);
- 
-+asmlinkage void start_secondary(void);
-+
- /*
-  * this function sends a 'reschedule' IPI to another CPU.
-  * it goes straight through and wastes no time serializing
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
