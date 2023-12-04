@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81FD8C10DC1
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Dec 2023 19:21:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3723CC4167B
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Dec 2023 19:21:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231516AbjLDTV2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 4 Dec 2023 14:21:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42140 "EHLO
+        id S232271AbjLDTVc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 4 Dec 2023 14:21:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42158 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231462AbjLDTV2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Dec 2023 14:21:28 -0500
+        with ESMTP id S231462AbjLDTVa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Dec 2023 14:21:30 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8EDB2F0
-        for <mm-commits@vger.kernel.org>; Mon,  4 Dec 2023 11:21:34 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C868C433C8;
-        Mon,  4 Dec 2023 19:21:34 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 951EACA
+        for <mm-commits@vger.kernel.org>; Mon,  4 Dec 2023 11:21:36 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3412CC433C7;
+        Mon,  4 Dec 2023 19:21:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701717694;
-        bh=UOH9BESXqVPP3Z+jacBHAy5m1f+zJmGXjwK7A1aAP/k=;
+        s=korg; t=1701717696;
+        bh=O21DXAV9IYwgGuBrS7f5OKZZ3U+ZOTkCNMzTteegHJo=;
         h=Date:To:From:Subject:From;
-        b=u7jl9/evlUd8dT4rZfF/Kak+E39gOfqGHnGJ2fMqh79uDdWaZ7HLmGCTFKJbaYACz
-         KjElYFdvjE0NO5CS9vKTZqb4w81NXNv5vMjP3nX+vsFgQ5YEC8BStJtcBfAr4Wt6Ey
-         DmYbr+qK5elszdzE5bSsnlxwp1aPLb7IWf6UbFEw=
-Date:   Mon, 04 Dec 2023 11:21:33 -0800
+        b=xOfeH6ss39JuTFboMClnyf/X+9b69Z0pIreT3HXXFyJSRNkD8ORvmTRaCUec2g2KS
+         PVOCr3QS0s/KjqAzU1bR5NccAd/q2/BsqhUQ2t77pQb9MfmaYwSFs68alUXalUMErv
+         8CL3XDZckgH7MLzqTSdATNvnL5qUFwSyFM3dWYeg=
+Date:   Mon, 04 Dec 2023 11:21:35 -0800
 To:     mm-commits@vger.kernel.org, tsbogend@alpha.franken.de,
         sfr@rothwell.id.au, arnd@arndb.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mips-signal-move-sigcontext-declarations-to-header.patch added to mm-nonmm-unstable branch
-Message-Id: <20231204192134.2C868C433C8@smtp.kernel.org>
+Subject: + mips-mark-local-function-static-if-possible.patch added to mm-nonmm-unstable branch
+Message-Id: <20231204192136.3412CC433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mips: signal: move sigcontext declarations to header
+     Subject: mips: mark local function static if possible
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mips-signal-move-sigcontext-declarations-to-header.patch
+     mips-mark-local-function-static-if-possible.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-signal-move-sigcontext-declarations-to-header.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-mark-local-function-static-if-possible.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,48 +60,48 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: mips: signal: move sigcontext declarations to header
-Date: Mon, 4 Dec 2023 12:56:55 +0100
+Subject: mips: mark local function static if possible
+Date: Mon, 4 Dec 2023 12:56:56 +0100
 
-Function declarations should be in a shared header to ensure the
-prototypes match the definition:
+These two functions are global but have no extern prototypes or other
+callers, so it's best to mark them as static, avoiding these warnings:
 
-arch/mips/kernel/signal.c:439:5: error: no previous prototype for 'setup_sigcontext' [-Werror=missing-prototypes]
-arch/mips/kernel/signal.c:516:5: error: no previous prototype for 'restore_sigcontext' [-Werror=missing-prototypes]
+arch/mips/kernel/mips-cm.c:204:13: error: no previous prototype for '__mips_cm_l2sync_phys_base' [-Werror=missing-prototypes]
+arch/mips/mm/c-r4k.c:1827:12: error: no previous prototype for 'r4k_cache_init_pm' [-Werror=missing-prototypes]
 
-Link: https://lkml.kernel.org/r/20231204115710.2247097-6-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20231204115710.2247097-7-arnd@kernel.org
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Stephen Rothwell <sfr@rothwell.id.au>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/signal-common.h |    3 +++
- arch/mips/kernel/signal_n32.c    |    3 ---
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ arch/mips/kernel/mips-cm.c |    2 +-
+ arch/mips/mm/c-r4k.c       |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/mips/kernel/signal-common.h~mips-signal-move-sigcontext-declarations-to-header
-+++ a/arch/mips/kernel/signal-common.h
-@@ -40,4 +40,7 @@ _restore_fp_context(void __user *fpregs,
- extern asmlinkage int _save_msa_all_upper(void __user *buf);
- extern asmlinkage int _restore_msa_all_upper(void __user *buf);
+--- a/arch/mips/kernel/mips-cm.c~mips-mark-local-function-static-if-possible
++++ a/arch/mips/kernel/mips-cm.c
+@@ -201,7 +201,7 @@ phys_addr_t __mips_cm_phys_base(void)
+ phys_addr_t mips_cm_phys_base(void)
+ 	__attribute__((weak, alias("__mips_cm_phys_base")));
  
-+extern int setup_sigcontext(struct pt_regs *, struct sigcontext __user *);
-+extern int restore_sigcontext(struct pt_regs *, struct sigcontext __user *);
-+
- #endif	/* __SIGNAL_COMMON_H */
---- a/arch/mips/kernel/signal_n32.c~mips-signal-move-sigcontext-declarations-to-header
-+++ a/arch/mips/kernel/signal_n32.c
-@@ -33,9 +33,6 @@
-  */
- #define __NR_N32_restart_syscall	6214
+-phys_addr_t __mips_cm_l2sync_phys_base(void)
++static phys_addr_t __mips_cm_l2sync_phys_base(void)
+ {
+ 	u32 base_reg;
  
--extern int setup_sigcontext(struct pt_regs *, struct sigcontext __user *);
--extern int restore_sigcontext(struct pt_regs *, struct sigcontext __user *);
--
- struct ucontextn32 {
- 	u32		    uc_flags;
- 	s32		    uc_link;
+--- a/arch/mips/mm/c-r4k.c~mips-mark-local-function-static-if-possible
++++ a/arch/mips/mm/c-r4k.c
+@@ -1828,7 +1828,7 @@ static struct notifier_block r4k_cache_p
+ 	.notifier_call = r4k_cache_pm_notifier,
+ };
+ 
+-int __init r4k_cache_init_pm(void)
++static int __init r4k_cache_init_pm(void)
+ {
+ 	return cpu_pm_register_notifier(&r4k_cache_pm_notifier_block);
+ }
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
