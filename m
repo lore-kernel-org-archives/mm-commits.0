@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FCC6C10DC3
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B47BC46CA0
 	for <mm-commits@archiver.kernel.org>; Mon,  4 Dec 2023 19:21:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232908AbjLDTVn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 4 Dec 2023 14:21:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47402 "EHLO
+        id S232466AbjLDTVo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 4 Dec 2023 14:21:44 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59818 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233108AbjLDTVk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Dec 2023 14:21:40 -0500
+        with ESMTP id S232847AbjLDTVn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Dec 2023 14:21:43 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9126CFA
-        for <mm-commits@vger.kernel.org>; Mon,  4 Dec 2023 11:21:46 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 315ECC433CA;
-        Mon,  4 Dec 2023 19:21:46 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A796116
+        for <mm-commits@vger.kernel.org>; Mon,  4 Dec 2023 11:21:49 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC996C433C7;
+        Mon,  4 Dec 2023 19:21:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701717706;
-        bh=drbqGCzkHrQJr6z+rfr2CG1Elo+EJYf7Gr/xJ08nS2U=;
+        s=korg; t=1701717708;
+        bh=f0Uii3UsAa4WbouebBfeosWF0vl2muu2mAgEnu9sYVs=;
         h=Date:To:From:Subject:From;
-        b=xGHjODfKbsDS0FpTK08HawyzicRn1jrJZ7wdXeVUfiBsMSa0nTHDW08xms7VeClcx
-         a0cOTEZnDX/lfGPxwYIxPS0nkC0N9NbidC/ZSdEFvp/pYrPymhzCJ16OXKKr9QPYEd
-         0xiHJERyxZiEJlz+1O0T8BcGX19zdiuZBFfIwGwg=
-Date:   Mon, 04 Dec 2023 11:21:45 -0800
+        b=GCSTedWlabXUh5atZ3xevNeMUW8ohWfI3y7sWup33C2/rQ2EGFwEpHWEiA+ykl/PS
+         UTqMy37cvGN/UlYIgDYxSAIJA96CqzClwR2NBFwSBCEgXvGMNdwVw9EVUIOkQ8NAgq
+         h1oJdHWIATXVGAm2vHVkwCT403uAz1+4be9M2ywg=
+Date:   Mon, 04 Dec 2023 11:21:48 -0800
 To:     mm-commits@vger.kernel.org, tsbogend@alpha.franken.de,
         sfr@rothwell.id.au, arnd@arndb.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mips-fix-tlb_init-prototype.patch added to mm-nonmm-unstable branch
-Message-Id: <20231204192146.315ECC433CA@smtp.kernel.org>
+Subject: + mips-move-cache-declarations-into-header.patch added to mm-nonmm-unstable branch
+Message-Id: <20231204192148.CC996C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mips: fix tlb_init() prototype
+     Subject: mips: move cache declarations into header
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mips-fix-tlb_init-prototype.patch
+     mips-move-cache-declarations-into-header.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-fix-tlb_init-prototype.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-move-cache-declarations-into-header.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,69 +60,116 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: mips: fix tlb_init() prototype
-Date: Mon, 4 Dec 2023 12:57:01 +0100
+Subject: mips: move cache declarations into header
+Date: Mon, 4 Dec 2023 12:57:02 +0100
 
-There are two definitions for tlb_init(), but no global declaration:
+Some of the cache functions are declared only for their callers, e.g.
 
-arch/mips/mm/tlb-r4k.c:552:6: error: no previous prototype for 'tlb_init' [-Werror=missing-prototypes]
-arch/mips/mm/tlb-r3k.c:244:6: error: no previous prototype for 'tlb_init' [-Werror=missing-prototypes]
+arch/mips/mm/c-r3k.c:28:15: error: no previous prototype for 'r3k_cache_size' [-Werror=missing-prototypes]
+arch/mips/mm/c-r3k.c:63:15: error: no previous prototype for 'r3k_cache_lsize' [-Werror=missing-prototypes]
+arch/mips/mm/c-r4k.c:1703:6: error: no previous prototype for 'r4k_cache_init' [-Werror=missing-prototypes]
+arch/mips/mm/sc-mips.c:255:5: error: no previous prototype for 'mips_sc_init' [-Werror=missing-prototypes]
 
-Move the declaration to asm/setup.h and included it as needed.
+Move all the declarations to asm/cache.h and asm/r4kcache.h where they
+can be seen by the function definitions.
 
-Link: https://lkml.kernel.org/r/20231204115710.2247097-12-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20231204115710.2247097-13-arnd@kernel.org
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Stephen Rothwell <sfr@rothwell.id.au>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/setup.h |    1 +
- arch/mips/kernel/traps.c      |    2 --
- arch/mips/mm/tlb-r3k.c        |    1 +
- arch/mips/mm/tlb-r4k.c        |    1 +
- 4 files changed, 3 insertions(+), 2 deletions(-)
+ arch/mips/include/asm/cache.h    |    6 ++++++
+ arch/mips/include/asm/r4kcache.h |    4 ++++
+ arch/mips/kernel/cpu-probe.c     |    1 -
+ arch/mips/kernel/cpu-r3k-probe.c |    1 -
+ arch/mips/mm/c-r4k.c             |    4 ----
+ arch/mips/mm/cache.c             |    6 ------
+ 6 files changed, 10 insertions(+), 12 deletions(-)
 
---- a/arch/mips/include/asm/setup.h~mips-fix-tlb_init-prototype
-+++ a/arch/mips/include/asm/setup.h
-@@ -27,5 +27,6 @@ extern unsigned long ebase;
- extern unsigned int hwrena;
- extern void per_cpu_trap_init(bool);
- extern void cpu_cache_init(void);
-+extern void tlb_init(void);
+--- a/arch/mips/include/asm/cache.h~mips-move-cache-declarations-into-header
++++ a/arch/mips/include/asm/cache.h
+@@ -17,5 +17,11 @@
+ #define __read_mostly __section(".data..read_mostly")
  
- #endif /* __SETUP_H */
---- a/arch/mips/kernel/traps.c~mips-fix-tlb_init-prototype
-+++ a/arch/mips/kernel/traps.c
-@@ -2157,8 +2157,6 @@ void *set_vi_handler(int n, vi_handler_t
- 	return set_vi_srs_handler(n, addr, 0);
+ extern void cache_noop(void);
++extern void r3k_cache_init(void);
++extern unsigned long r3k_cache_size(unsigned long);
++extern unsigned long r3k_cache_lsize(unsigned long);
++extern void r4k_cache_init(void);
++extern void octeon_cache_init(void);
++extern void au1x00_fixup_config_od(void);
+ 
+ #endif /* _ASM_CACHE_H */
+--- a/arch/mips/include/asm/r4kcache.h~mips-move-cache-declarations-into-header
++++ a/arch/mips/include/asm/r4kcache.h
+@@ -24,6 +24,10 @@
+ #include <asm/mmzone.h>
+ #include <asm/unroll.h>
+ 
++extern void r5k_sc_init(void);
++extern void rm7k_sc_init(void);
++extern int mips_sc_init(void);
++
+ extern void (*r4k_blast_dcache)(void);
+ extern void (*r4k_blast_icache)(void);
+ 
+--- a/arch/mips/kernel/cpu-probe.c~mips-move-cache-declarations-into-header
++++ a/arch/mips/kernel/cpu-probe.c
+@@ -179,7 +179,6 @@ void __init check_bugs32(void)
+ static inline int cpu_has_confreg(void)
+ {
+ #ifdef CONFIG_CPU_R3000
+-	extern unsigned long r3k_cache_size(unsigned long);
+ 	unsigned long size1, size2;
+ 	unsigned long cfg = read_c0_conf();
+ 
+--- a/arch/mips/kernel/cpu-r3k-probe.c~mips-move-cache-declarations-into-header
++++ a/arch/mips/kernel/cpu-r3k-probe.c
+@@ -42,7 +42,6 @@ void __init check_bugs32(void)
+ static inline int cpu_has_confreg(void)
+ {
+ #ifdef CONFIG_CPU_R3000
+-	extern unsigned long r3k_cache_size(unsigned long);
+ 	unsigned long size1, size2;
+ 	unsigned long cfg = read_c0_conf();
+ 
+--- a/arch/mips/mm/cache.c~mips-move-cache-declarations-into-header
++++ a/arch/mips/mm/cache.c
+@@ -206,19 +206,13 @@ static inline void setup_protection_map(
+ void cpu_cache_init(void)
+ {
+ 	if (cpu_has_3k_cache) {
+-		extern void __weak r3k_cache_init(void);
+-
+ 		r3k_cache_init();
+ 	}
+ 	if (cpu_has_4k_cache) {
+-		extern void __weak r4k_cache_init(void);
+-
+ 		r4k_cache_init();
+ 	}
+ 
+ 	if (cpu_has_octeon_cache) {
+-		extern void __weak octeon_cache_init(void);
+-
+ 		octeon_cache_init();
+ 	}
+ 
+--- a/arch/mips/mm/c-r4k.c~mips-move-cache-declarations-into-header
++++ a/arch/mips/mm/c-r4k.c
+@@ -1485,10 +1485,6 @@ static void loongson3_sc_init(void)
+ 	return;
  }
  
--extern void tlb_init(void);
+-extern int r5k_sc_init(void);
+-extern int rm7k_sc_init(void);
+-extern int mips_sc_init(void);
 -
- /*
-  * Timer interrupt
-  */
---- a/arch/mips/mm/tlb-r3k.c~mips-fix-tlb_init-prototype
-+++ a/arch/mips/mm/tlb-r3k.c
-@@ -23,6 +23,7 @@
- #include <asm/io.h>
- #include <asm/bootinfo.h>
- #include <asm/cpu.h>
-+#include <asm/setup.h>
- #include <asm/tlbex.h>
- 
- #undef DEBUG_TLB
---- a/arch/mips/mm/tlb-r4k.c~mips-fix-tlb_init-prototype
-+++ a/arch/mips/mm/tlb-r4k.c
-@@ -24,6 +24,7 @@
- #include <asm/tlb.h>
- #include <asm/tlbex.h>
- #include <asm/tlbmisc.h>
-+#include <asm/setup.h>
- 
- /*
-  * LOONGSON-2 has a 4 entry itlb which is a subset of jtlb, LOONGSON-3 has
+ static void setup_scache(void)
+ {
+ 	struct cpuinfo_mips *c = &current_cpu_data;
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
