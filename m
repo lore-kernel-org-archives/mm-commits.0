@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86044C4167B
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Dec 2023 19:22:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4109C4167B
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Dec 2023 19:22:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233492AbjLDTV5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 4 Dec 2023 14:21:57 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59994 "EHLO
+        id S233573AbjLDTWB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 4 Dec 2023 14:22:01 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60034 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233203AbjLDTVx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Dec 2023 14:21:53 -0500
+        with ESMTP id S233426AbjLDTVz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Dec 2023 14:21:55 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 97E30E6
-        for <mm-commits@vger.kernel.org>; Mon,  4 Dec 2023 11:21:59 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 370C3C433C8;
-        Mon,  4 Dec 2023 19:21:59 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91446109
+        for <mm-commits@vger.kernel.org>; Mon,  4 Dec 2023 11:22:01 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F76BC433CA;
+        Mon,  4 Dec 2023 19:22:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701717719;
-        bh=1wFZsrN1AYLCVd9klUV8bBJbTVNLJ1dOWugGBmjc5t4=;
+        s=korg; t=1701717721;
+        bh=Zr+lN9xajfCPeZY6yGCBEjLS5knrLBIPU/1EMqUswMg=;
         h=Date:To:From:Subject:From;
-        b=qMu6WUfLSAjj8jYxD+l+NBWldv7pqdGY8xmWnek4kOtvX/Abeuo4xmZHjvaJdx9ln
-         5sygbJefeAfZJi2yCGNeeZLzey7uaBDcnvs3oAqIseuXVEXIl9zHZo/Bil3QclHawI
-         qTX0W8LhD7ad5JtsaDtvDWHsSlmhcSEqB+ddoF2s=
-Date:   Mon, 04 Dec 2023 11:21:58 -0800
+        b=wvT8i3HnW280iq+h74Hldix1TlIBmHsGbRapZwECkJk7whw3mNgY/TcvG4/JIPwTq
+         c8lYYjDVLXvP1MbukSpOMv8tCyoqrwME25kgGAgyzA6I0Xz7+4JPZPrgIyOtSv4rVv
+         Hja5RYSF6LvdzI3sHFeV/abn+1PHMlVgLRFahZgY=
+Date:   Mon, 04 Dec 2023 11:22:00 -0800
 To:     mm-commits@vger.kernel.org, tsbogend@alpha.franken.de,
         sfr@rothwell.id.au, arnd@arndb.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mips-suspend-include-linux-suspendh-as-needed.patch added to mm-nonmm-unstable branch
-Message-Id: <20231204192159.370C3C433C8@smtp.kernel.org>
+Subject: + mips-hide-conditionally-unused-functions.patch added to mm-nonmm-unstable branch
+Message-Id: <20231204192201.2F76BC433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mips: suspend: include linux/suspend.h as needed
+     Subject: mips: hide conditionally unused functions
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mips-suspend-include-linux-suspendh-as-needed.patch
+     mips-hide-conditionally-unused-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-suspend-include-linux-suspendh-as-needed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-hide-conditionally-unused-functions.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,47 +60,66 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: mips: suspend: include linux/suspend.h as needed
-Date: Mon, 4 Dec 2023 12:57:07 +0100
+Subject: mips: hide conditionally unused functions
+Date: Mon, 4 Dec 2023 12:57:08 +0100
 
-A couple of functions are defined by the architecture and declared in
-linux/suspend.h, but mips is lacking the corresponding #include statement
-before the definition:
+A couple of functions are defined unconditionally but have a conditional
+declaration:
 
-arch/mips/power/cpu.c:16:6: warning: no previous prototype for 'save_processor_state' [-Wmissing-prototypes]
-arch/mips/power/cpu.c:26:6: warning: no previous prototype for 'restore_processor_state' [-Wmissing-prototypes]
-arch/mips/power/cpu.c:36:5: warning: no previous prototype for 'pfn_is_nosave' [-Wmissing-prototypes]
-arch/mips/power/hibernate.c:6:5: warning: no previous prototype for 'swsusp_arch_resume' [-Wmissing-prototypes]
+arch/mips/mm/tlb-r4k.c:461:12: error: no previous prototype for 'add_temporary_entry' [-Werror=missing-prototypes]
+arch/mips/mm/pgtable-64.c:92:7: error: no previous prototype for 'mk_pmd' [-Werror=missing-prototypes]
+arch/mips/mm/pgtable-64.c:101:6: error: no previous prototype for 'set_pmd_at' [-Werror=missing-prototypes]
 
-Link: https://lkml.kernel.org/r/20231204115710.2247097-18-arnd@kernel.org
+Since there are no callers in these configurations, add the same #ifdef
+checks around the definitions.
+
+Link: https://lkml.kernel.org/r/20231204115710.2247097-19-arnd@kernel.org
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Stephen Rothwell <sfr@rothwell.id.au>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/power/cpu.c       |    1 +
- arch/mips/power/hibernate.c |    1 +
- 2 files changed, 2 insertions(+)
+ arch/mips/mm/pgtable-64.c |    2 ++
+ arch/mips/mm/tlb-r4k.c    |    2 ++
+ 2 files changed, 4 insertions(+)
 
---- a/arch/mips/power/cpu.c~mips-suspend-include-linux-suspendh-as-needed
-+++ a/arch/mips/power/cpu.c
-@@ -6,6 +6,7 @@
-  * Author: Hu Hongbing <huhb@lemote.com>
-  *	   Wu Zhangjin <wuzhangjin@gmail.com>
-  */
-+#include <linux/suspend.h>
- #include <asm/sections.h>
- #include <asm/fpu.h>
- #include <asm/dsp.h>
---- a/arch/mips/power/hibernate.c~mips-suspend-include-linux-suspendh-as-needed
-+++ a/arch/mips/power/hibernate.c
-@@ -1,4 +1,5 @@
- // SPDX-License-Identifier: GPL-2.0
-+#include <linux/suspend.h>
- #include <asm/tlbflush.h>
+--- a/arch/mips/mm/pgtable-64.c~mips-hide-conditionally-unused-functions
++++ a/arch/mips/mm/pgtable-64.c
+@@ -89,6 +89,7 @@ void pud_init(void *addr)
+ }
+ #endif
  
- extern int restore_image(void);
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ pmd_t mk_pmd(struct page *page, pgprot_t prot)
+ {
+ 	pmd_t pmd;
+@@ -103,6 +104,7 @@ void set_pmd_at(struct mm_struct *mm, un
+ {
+ 	*pmdp = pmd;
+ }
++#endif
+ 
+ void __init pagetable_init(void)
+ {
+--- a/arch/mips/mm/tlb-r4k.c~mips-hide-conditionally-unused-functions
++++ a/arch/mips/mm/tlb-r4k.c
+@@ -458,6 +458,7 @@ EXPORT_SYMBOL(has_transparent_hugepage);
+ 
+ int temp_tlb_entry;
+ 
++#ifndef CONFIG_64BIT
+ __init int add_temporary_entry(unsigned long entrylo0, unsigned long entrylo1,
+ 			       unsigned long entryhi, unsigned long pagemask)
+ {
+@@ -496,6 +497,7 @@ out:
+ 	local_irq_restore(flags);
+ 	return ret;
+ }
++#endif
+ 
+ static int ntlb;
+ static int __init set_ntlb(char *str)
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
