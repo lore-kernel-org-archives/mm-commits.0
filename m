@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3AF3C10DC3
-	for <mm-commits@archiver.kernel.org>; Mon,  4 Dec 2023 19:21:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC72FC4167B
+	for <mm-commits@archiver.kernel.org>; Mon,  4 Dec 2023 19:21:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232543AbjLDTVh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 4 Dec 2023 14:21:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47368 "EHLO
+        id S232772AbjLDTVm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 4 Dec 2023 14:21:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47380 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232466AbjLDTVg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Dec 2023 14:21:36 -0500
+        with ESMTP id S232466AbjLDTVi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 4 Dec 2023 14:21:38 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA584E6
-        for <mm-commits@vger.kernel.org>; Mon,  4 Dec 2023 11:21:40 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4AAD5C433C7;
-        Mon,  4 Dec 2023 19:21:40 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 659F2AC
+        for <mm-commits@vger.kernel.org>; Mon,  4 Dec 2023 11:21:44 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04EAFC433C8;
+        Mon,  4 Dec 2023 19:21:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701717700;
-        bh=YvNKum/9IJqtyggy/DQHVucZrDIOH3WHAjdCSXGx1cM=;
+        s=korg; t=1701717704;
+        bh=YoaAleCnnGuaMOQC4bCrvCD+hsWqMqwB4h4dR0tghCg=;
         h=Date:To:From:Subject:From;
-        b=jPKuYMeFzArrL8IkoM38F+JsZsQdi0pHIWyj5/fm1WlMSMI+bGA0ACfYXv/IEt4V2
-         SUFLDL9sm+e1248GODM2pVU3ohmXUXxjDC0tFoEhx03ID9QBCervDDqGvgSqAal6Vv
-         RcpGzMgxsVyFT4qGgsKhq7R1f4dcS4cT2/6MRJBI=
-Date:   Mon, 04 Dec 2023 11:21:39 -0800
+        b=rC9MdAtSKisZN0neRDgggCQg22ci8p0OnYToo0hWsgnivSA1hgVZ62SfiGClIGDdz
+         ih4IPfQx5bauWSoe0VQX+xRus8mMIL5sQ3J9ZW5xs9NF/YIMyMOozw5u+rlETDUQhp
+         7SKeDSEP5jAJwZ9GpyMiszB0HALQMq5v/sPasMyo=
+Date:   Mon, 04 Dec 2023 11:21:43 -0800
 To:     mm-commits@vger.kernel.org, tsbogend@alpha.franken.de,
         sfr@rothwell.id.au, arnd@arndb.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mips-move-jump_label_apply_nops-declaration-to-header.patch added to mm-nonmm-unstable branch
-Message-Id: <20231204192140.4AAD5C433C7@smtp.kernel.org>
+Subject: + mips-fix-setup_zero_pages-prototype.patch added to mm-nonmm-unstable branch
+Message-Id: <20231204192144.04EAFC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mips: move jump_label_apply_nops() declaration to header
+     Subject: mips: fix setup_zero_pages() prototype
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mips-move-jump_label_apply_nops-declaration-to-header.patch
+     mips-fix-setup_zero_pages-prototype.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-move-jump_label_apply_nops-declaration-to-header.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-fix-setup_zero_pages-prototype.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,49 +60,57 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: mips: move jump_label_apply_nops() declaration to header
-Date: Mon, 4 Dec 2023 12:56:58 +0100
+Subject: mips: fix setup_zero_pages() prototype
+Date: Mon, 4 Dec 2023 12:57:00 +0100
 
-Instead of an extern declaration in the C file with the caller, move it to
-an appropriate header, avoiding
+setup_zero_pages() has a local declaration in a platform specific header,
+but that is not seen in the file it is defined in:
 
-arch/mips/kernel/jump_label.c:93:6: error: no previous prototype for 'jump_label_apply_nops' [-Werror=missing-prototypes]
+arch/mips/mm/init.c:60:6: error: no previous prototype for 'setup_zero_pages' [-Werror=missing-prototypes]
 
-Link: https://lkml.kernel.org/r/20231204115710.2247097-9-arnd@kernel.org
+Move it to the corresponding global header and include that where needed.
+
+Link: https://lkml.kernel.org/r/20231204115710.2247097-11-arnd@kernel.org
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Stephen Rothwell <sfr@rothwell.id.au>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/jump_label.h |    3 +++
- arch/mips/kernel/module.c          |    3 +--
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ arch/mips/include/asm/mach-loongson64/mmzone.h |    1 -
+ arch/mips/include/asm/mmzone.h                 |    2 ++
+ arch/mips/mm/init.c                            |    1 +
+ 3 files changed, 3 insertions(+), 1 deletion(-)
 
---- a/arch/mips/include/asm/jump_label.h~mips-move-jump_label_apply_nops-declaration-to-header
-+++ a/arch/mips/include/asm/jump_label.h
-@@ -15,6 +15,9 @@
- #include <linux/types.h>
- #include <asm/isa-rev.h>
+--- a/arch/mips/include/asm/mach-loongson64/mmzone.h~mips-fix-setup_zero_pages-prototype
++++ a/arch/mips/include/asm/mach-loongson64/mmzone.h
+@@ -18,7 +18,6 @@ extern struct pglist_data *__node_data[]
  
-+struct module;
-+extern void jump_label_apply_nops(struct module *mod);
+ #define NODE_DATA(n)		(__node_data[n])
+ 
+-extern void setup_zero_pages(void);
+ extern void __init prom_init_numa_memory(void);
+ 
+ #endif /* _ASM_MACH_MMZONE_H */
+--- a/arch/mips/include/asm/mmzone.h~mips-fix-setup_zero_pages-prototype
++++ a/arch/mips/include/asm/mmzone.h
+@@ -20,4 +20,6 @@
+ #define nid_to_addrbase(nid) 0
+ #endif
+ 
++extern void setup_zero_pages(void);
 +
- #define JUMP_LABEL_NOP_SIZE 4
- 
- #ifdef CONFIG_64BIT
---- a/arch/mips/kernel/module.c~mips-move-jump_label_apply_nops-declaration-to-header
-+++ a/arch/mips/kernel/module.c
-@@ -20,8 +20,7 @@
- #include <linux/kernel.h>
- #include <linux/spinlock.h>
- #include <linux/jump_label.h>
--
--extern void jump_label_apply_nops(struct module *mod);
-+#include <asm/jump_label.h>
- 
- struct mips_hi16 {
- 	struct mips_hi16 *next;
+ #endif /* _ASM_MMZONE_H_ */
+--- a/arch/mips/mm/init.c~mips-fix-setup_zero_pages-prototype
++++ a/arch/mips/mm/init.c
+@@ -38,6 +38,7 @@
+ #include <asm/dma.h>
+ #include <asm/maar.h>
+ #include <asm/mmu_context.h>
++#include <asm/mmzone.h>
+ #include <asm/sections.h>
+ #include <asm/pgalloc.h>
+ #include <asm/tlb.h>
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
