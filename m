@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE1F5C10DCE
-	for <mm-commits@archiver.kernel.org>; Tue,  5 Dec 2023 19:56:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF735C4167B
+	for <mm-commits@archiver.kernel.org>; Tue,  5 Dec 2023 19:58:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231680AbjLET4k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Dec 2023 14:56:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59074 "EHLO
+        id S235130AbjLET55 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Dec 2023 14:57:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52972 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230162AbjLET4k (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Dec 2023 14:56:40 -0500
+        with ESMTP id S235073AbjLET5y (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Dec 2023 14:57:54 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D4C3183
-        for <mm-commits@vger.kernel.org>; Tue,  5 Dec 2023 11:56:46 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA404C433C7;
-        Tue,  5 Dec 2023 19:56:45 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1E77D40
+        for <mm-commits@vger.kernel.org>; Tue,  5 Dec 2023 11:57:59 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F830C433C7;
+        Tue,  5 Dec 2023 19:57:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701806205;
-        bh=oRjSvUKa3h6+Xwx2QBLYNmablMNDWIxrG8uPobm1FX8=;
+        s=korg; t=1701806279;
+        bh=dxuKDTDwD9RwDH5we2vwB67vtEArTOZK8YmDjBpU+OI=;
         h=Date:To:From:Subject:From;
-        b=Aiv9oPnwdgK7uL4C6MxPtvhk9J4DuRMii/obgQGoytoqxZNTFypN+SUV7/5b5hltN
-         CacYlQw78C1cOXUhnsQe1PjI0DJ2oPe5kzMej9dD4Gw+BenLIYyzr4ckekzsXUYsiw
-         V9816EgbVtThUKw27JCVLmr1tTFAbkvfIpqrV0Ug=
-Date:   Tue, 05 Dec 2023 11:56:45 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        zeming@nfschina.com, akpm@linux-foundation.org
+        b=sqj/n4bwvDLfeGJPS5lSR5ZGpPkOBpAkNWOsCcnZx13SWlkMZsZqZD6cqvN252KAE
+         WnHyr+/2y4wAYfjIpJkqcMZefAzH9xgRnqPctuOgfjXkfNAgIHboXfC8G4Bkk6njwU
+         U+MvD+pKP/jdcaeExToiwoJUHcgIID6gfng+vWZA=
+Date:   Tue, 05 Dec 2023 11:57:58 -0800
+To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com,
+        songmuchun@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filemap-remove-unnecessary-iitialization-of-ret.patch added to mm-unstable branch
-Message-Id: <20231205195645.BA404C433C7@smtp.kernel.org>
+Subject: + mm-hugetlb_vmemmap-add-check-of-config_memory_hotplug-back.patch added to mm-unstable branch
+Message-Id: <20231205195759.5F830C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: filemap: remove unnecessary iitialization of ret
+     Subject: mm: hugetlb_vmemmap: add check of CONFIG_MEMORY_HOTPLUG back
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-filemap-remove-unnecessary-iitialization-of-ret.patch
+     mm-hugetlb_vmemmap-add-check-of-config_memory_hotplug-back.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-remove-unnecessary-iitialization-of-ret.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-add-check-of-config_memory_hotplug-back.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,36 +59,41 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Li zeming <zeming@nfschina.com>
-Subject: mm: filemap: remove unnecessary iitialization of ret
-Date: Tue, 5 Dec 2023 10:29:54 +0800
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: hugetlb_vmemmap: add check of CONFIG_MEMORY_HOTPLUG back
+Date: Tue, 5 Dec 2023 11:05:30 +0800
 
-The ret variable can be defined without assigning a value, as it is
-assigned before use.
+The compiler will optimize the code as much as possible if we add the
+check of CONFIG_MEMORY_HOTPLUG back.
 
-Link: https://lkml.kernel.org/r/20231205022954.101045-1-zeming@nfschina.com
-Signed-off-by: Li zeming <zeming@nfschina.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20231205030530.3802-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
+ mm/hugetlb_vmemmap.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/filemap.c~mm-filemap-remove-unnecessary-iitialization-of-ret
-+++ a/mm/filemap.c
-@@ -1623,7 +1623,7 @@ EXPORT_SYMBOL_GPL(__folio_lock_killable)
- static int __folio_lock_async(struct folio *folio, struct wait_page_queue *wait)
- {
- 	struct wait_queue_head *q = folio_waitqueue(folio);
--	int ret = 0;
-+	int ret;
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-add-check-of-config_memory_hotplug-back
++++ a/mm/hugetlb_vmemmap.c
+@@ -119,7 +119,7 @@ static int vmemmap_pmd_entry(pmd_t *pmd,
+ 	 *   +--+ |                        |
+ 	 *        +------------------------+
+ 	 */
+-	if (unlikely(!vmemmap_walk->nr_walked)) {
++	if (IS_ENABLED(CONFIG_MEMORY_HOTPLUG) && unlikely(!vmemmap_walk->nr_walked)) {
+ 		struct page *page = head ? head + pte_index(addr) :
+ 				    pte_page(ptep_get(pte_offset_kernel(pmd, addr)));
  
- 	wait->folio = folio;
- 	wait->bit_nr = PG_locked;
 _
 
-Patches currently in -mm which might be from zeming@nfschina.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm-filemap-remove-unnecessary-iitialization-of-ret.patch
+mm-pagewalk-assert-write-mmap-lock-only-for-walking-the-user-page-tables.patch
+mm-hugetlb_vmemmap-use-walk_page_range_novma-to-simplify-the-code.patch
+mm-hugetlb_vmemmap-move-pagevmemmapselfhosted-check-to-split_vmemmap_huge_pmd.patch
+mm-hugetlb_vmemmap-convert-page-to-folio.patch
+mm-hugetlb_vmemmap-add-check-of-config_memory_hotplug-back.patch
+mm-hugetlb_vmemmap-move-mmap-lock-to-vmemmap_remap_range.patch
 
