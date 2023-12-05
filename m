@@ -2,37 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77EA1C4167B
-	for <mm-commits@archiver.kernel.org>; Tue,  5 Dec 2023 19:48:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7516CC4167B
+	for <mm-commits@archiver.kernel.org>; Tue,  5 Dec 2023 19:52:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231313AbjLETs1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Dec 2023 14:48:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36200 "EHLO
+        id S230106AbjLETwh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Dec 2023 14:52:37 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39784 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229483AbjLETsZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Dec 2023 14:48:25 -0500
+        with ESMTP id S229710AbjLETwg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 5 Dec 2023 14:52:36 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9AA4C9
-        for <mm-commits@vger.kernel.org>; Tue,  5 Dec 2023 11:48:31 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67970C433CA;
-        Tue,  5 Dec 2023 19:48:31 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3529183
+        for <mm-commits@vger.kernel.org>; Tue,  5 Dec 2023 11:52:42 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45AF8C433C8;
+        Tue,  5 Dec 2023 19:52:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701805711;
-        bh=FDJ0BVwTYCy9n5hrXWgy701AicNQqc1MZ9bhSXa6zzE=;
+        s=korg; t=1701805962;
+        bh=QVXvq0jBevRqQKWoMgEHTbfc4Hdd0jnKjvcE3KOH1TI=;
         h=Date:To:From:Subject:From;
-        b=LTpOMxRp55UnfphhUqEULiGGUu6YXxyBYvhX3bfmnIeC0dc1Fb0F8Xl/vVcQDDFgp
-         NQRwPmns9x9YcepA6Xb0dDtoKghDTc1PUnKPMvqPHH2+0tOSf8TYTP4uCmb6lEOeJI
-         ccHzvxlWep7bRjvj0okX/JPbu5VhSGxBYfI+9nTc=
-Date:   Tue, 05 Dec 2023 11:48:30 -0800
-To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
-        vitaly.wool@konsulko.com, sjenning@redhat.com, shuah@kernel.org,
-        shakeelb@google.com, roman.gushchin@linux.dev,
-        muchun.song@linux.dev, mhocko@kernel.org, hannes@cmpxchg.org,
-        ddstreet@ieee.org, chrisl@kernel.org, cerasuolodomenico@gmail.com,
-        bagasdotme@gmail.com, nphamcs@gmail.com, akpm@linux-foundation.org
+        b=ZE3Oakye5YkO1XQgAkKMgtqaIaNGaZk9ug6L68ryyirlObQgTD9xHYcAgh5NWkVgO
+         taMZTTjImOZOcq+V5ez+UH59BzmHvGTUE6YiyAC570ZfSf2/fK4orVGiM3gMIcs/lj
+         +hGXWi0q5JiDvvVPoR6/ADRd0g62bBlksl6pSwUU=
+Date:   Tue, 05 Dec 2023 11:52:41 -0800
+To:     mm-commits@vger.kernel.org, dmaluka@chromium.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-add-per-memcg-zswap-writeback-stat-fix.patch added to mm-unstable branch
-Message-Id: <20231205194831.67970C433CA@smtp.kernel.org>
+Subject: + mm-thp-add-config_transparent_hugepage_never-option.patch added to mm-unstable branch
+Message-Id: <20231205195242.45AF8C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcg: add per-memcg zswap writeback stat (fix)
+     Subject: mm/thp: add CONFIG_TRANSPARENT_HUGEPAGE_NEVER option
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-add-per-memcg-zswap-writeback-stat-fix.patch
+     mm-thp-add-config_transparent_hugepage_never-option.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-add-per-memcg-zswap-writeback-stat-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-thp-add-config_transparent_hugepage_never-option.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -63,90 +59,71 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nhat Pham <nphamcs@gmail.com>
-Subject: mm: memcg: add per-memcg zswap writeback stat (fix)
-Date: Tue, 5 Dec 2023 11:33:07 -0800
+From: Dmytro Maluka <dmaluka@chromium.org>
+Subject: mm/thp: add CONFIG_TRANSPARENT_HUGEPAGE_NEVER option
+Date: Tue, 5 Dec 2023 18:02:44 +0100
 
-Rename ZSWP_WB to ZSWPWB to better match the existing counters naming
-scheme.
+Currently enabling THP support (CONFIG_TRANSPARENT_HUGEPAGE) requires
+enabling either CONFIG_TRANSPARENT_HUGEPAGE_ALWAYS or
+CONFIG_TRANSPARENT_HUGEPAGE_MADVISE, which both cause khugepaged starting
+by default at kernel bootup.  Add the third choice
+CONFIG_TRANSPARENT_HUGEPAGE_NEVER, in line with the existing kernel
+command line setting transparent_hugepage=never, to disable THP by default
+(in particular, to prevent starting khugepaged by default) but still allow
+enabling it at runtime via sysfs.
 
-Link: https://lkml.kernel.org/r/20231205193307.2432803-1-nphamcs@gmail.com
-Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Bagas Sanjaya <bagasdotme@gmail.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Rationale: khugepaged has its own non-negligible memory cost even if it is
+not used by any applications, since it bumps up vm.min_free_kbytes to its
+own required minimum in set_recommended_min_free_kbytes().  For example,
+on a machine with 4GB RAM, with 3 mm zones and pageblock_order ==
+MAX_ORDER, starting khugepaged causes vm.min_free_kbytes increase from 8MB
+to 132MB.
+
+So if we use THP on machines with e.g.  >=8GB of memory for better
+performance, but avoid using it on lower-memory machines to avoid its
+memory overhead, then for the same reason we also want to avoid even
+starting khugepaged on those <8GB machines.  So with
+CONFIG_TRANSPARENT_HUGEPAGE_NEVER we can use the same kernel image on both
+>=8GB and <8GB machines, with THP support enabled but khugepaged not
+started by default.  The userspace can then decide to enable THP via sysfs
+if needed, based on the total amount of memory.
+
+This could also be achieved with the existing transparent_hugepage=never
+setting in the kernel command line instead.  But it seems cleaner to avoid
+tweaking the command line for such a basic setting.
+
+P.S. I see that CONFIG_TRANSPARENT_HUGEPAGE_NEVER was already proposed
+in the past [1] but without an explanation of the purpose.
+
+[1] https://lore.kernel.org/all/202211301651462590168@zte.com.cn/
+
+Link: https://lkml.kernel.org/r/20231205170244.2746210-1-dmaluka@chromium.org
+Link: https://lore.kernel.org/all/20231204163254.2636289-1-dmaluka@chromium.org/
+Signed-off-by: Dmytro Maluka <dmaluka@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vm_event_item.h |    2 +-
- mm/memcontrol.c               |    2 +-
- mm/vmstat.c                   |    2 +-
- mm/zswap.c                    |    4 ++--
- 4 files changed, 5 insertions(+), 5 deletions(-)
+ mm/Kconfig |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/include/linux/vm_event_item.h~mm-memcg-add-per-memcg-zswap-writeback-stat-fix
-+++ a/include/linux/vm_event_item.h
-@@ -142,7 +142,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- #ifdef CONFIG_ZSWAP
- 		ZSWPIN,
- 		ZSWPOUT,
--		ZSWP_WB,
-+		ZSWPWB,
- #endif
- #ifdef CONFIG_X86
- 		DIRECT_MAP_LEVEL2_SPLIT,
---- a/mm/memcontrol.c~mm-memcg-add-per-memcg-zswap-writeback-stat-fix
-+++ a/mm/memcontrol.c
-@@ -703,7 +703,7 @@ static const unsigned int memcg_vm_event
- #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
- 	ZSWPIN,
- 	ZSWPOUT,
--	ZSWP_WB,
-+	ZSWPWB,
- #endif
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	THP_FAULT_ALLOC,
---- a/mm/vmstat.c~mm-memcg-add-per-memcg-zswap-writeback-stat-fix
-+++ a/mm/vmstat.c
-@@ -1401,7 +1401,7 @@ const char * const vmstat_text[] = {
- #ifdef CONFIG_ZSWAP
- 	"zswpin",
- 	"zswpout",
--	"zswp_wb",
-+	"zswpwb",
- #endif
- #ifdef CONFIG_X86
- 	"direct_map_level2_splits",
---- a/mm/zswap.c~mm-memcg-add-per-memcg-zswap-writeback-stat-fix
-+++ a/mm/zswap.c
-@@ -761,9 +761,9 @@ static enum lru_status shrink_memcg_cb(s
- 	zswap_written_back_pages++;
+--- a/mm/Kconfig~mm-thp-add-config_transparent_hugepage_never-option
++++ a/mm/Kconfig
+@@ -873,6 +873,12 @@ choice
+ 	  madvise(MADV_HUGEPAGE) but it won't risk to increase the
+ 	  memory footprint of applications without a guaranteed
+ 	  benefit.
++
++	config TRANSPARENT_HUGEPAGE_NEVER
++		bool "never"
++	help
++	  Disable Transparent Hugepage by default. It can still be
++	  enabled at runtime via sysfs.
+ endchoice
  
- 	if (entry->objcg)
--		count_objcg_event(entry->objcg, ZSWP_WB);
-+		count_objcg_event(entry->objcg, ZSWPWB);
- 
--	count_vm_event(ZSWP_WB);
-+	count_vm_event(ZSWPWB);
- 	/*
- 	 * Writeback started successfully, the page now belongs to the
- 	 * swapcache. Drop the entry from zswap - unless invalidate already
+ config THP_SWAP
 _
 
-Patches currently in -mm which might be from nphamcs@gmail.com are
+Patches currently in -mm which might be from dmaluka@chromium.org are
 
-list_lru-allows-explicit-memcg-and-numa-node-selection.patch
-memcontrol-implement-mem_cgroup_tryget_online.patch
-mm-memcg-add-per-memcg-zswap-writeback-stat-fix.patch
-zswap-shrinks-zswap-pool-based-on-memory-pressure.patch
+mm-thp-add-config_transparent_hugepage_never-option.patch
 
