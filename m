@@ -2,37 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 676B7C4167B
-	for <mm-commits@archiver.kernel.org>; Wed,  6 Dec 2023 22:33:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DDC7FC4167B
+	for <mm-commits@archiver.kernel.org>; Wed,  6 Dec 2023 22:36:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229552AbjLFWdH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 6 Dec 2023 17:33:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47090 "EHLO
+        id S229616AbjLFWgU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 6 Dec 2023 17:36:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49928 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229500AbjLFWdG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Dec 2023 17:33:06 -0500
+        with ESMTP id S229500AbjLFWgU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Dec 2023 17:36:20 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27D5ED46
-        for <mm-commits@vger.kernel.org>; Wed,  6 Dec 2023 14:33:13 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA12BC433C7;
-        Wed,  6 Dec 2023 22:33:12 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0233CD59
+        for <mm-commits@vger.kernel.org>; Wed,  6 Dec 2023 14:36:26 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9219FC433CA;
+        Wed,  6 Dec 2023 22:36:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701901992;
-        bh=z7+pG/AymqY14FDoPhdoCihJY4mfrnPUZJ3hLsFsXNU=;
+        s=korg; t=1701902185;
+        bh=+sZLN3sPXELwsK8HcqaiU4e+OzTI3449XPlmZPjS2HI=;
         h=Date:To:From:Subject:From;
-        b=2YFAox8R4evNCRJgxnF8Vwgh/yvJEYRSbTQwRyGpzkurRwz8jxd10vz+Uo1CGeqjt
-         ceWel/ppVORQpyAJJBP0uSLXMEGBJjkFqYfZNNrgs3kt9YWY2VZWhNUcDpr1JaWUrX
-         qT07Tr2W8ifN+9142DnH+8ouCxabqjW8wPYex/XE=
-Date:   Wed, 06 Dec 2023 14:33:11 -0800
-To:     mm-commits@vger.kernel.org, weixugc@google.com, tj@kernel.org,
-        shakeelb@google.com, roman.gushchin@linux.dev,
-        muchun.song@linux.dev, mkoutny@suse.com, mhocko@kernel.org,
-        longman@redhat.com, ivan@cloudflare.com, hannes@cmpxchg.org,
-        gthelen@google.com, chrisl@kernel.org, cerasuolodomenico@gmail.com,
-        yosryahmed@google.com, akpm@linux-foundation.org
+        b=gUD1OrOQwmRvshpszSBtnIOUJx8xk0HG1ZM6ILTDZho1SyuLHtFQNf2PILcOrruSO
+         2V/PQQul35RPWfEj0fryvcKW/gDVxAP4Z96cf4dvJfGDi9H6InadUJh715CE0/ZA2v
+         sbwQPzjYQN68eWYp5oY8W3fEMS2qoeFHxGyLUdgM=
+Date:   Wed, 06 Dec 2023 14:36:24 -0800
+To:     mm-commits@vger.kernel.org, jschoenh@amazon.de, jgowans@amazon.com,
+        gregkh@linuxfoundation.org, corbet@lwn.net, graf@amazon.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-restore-subtree-stats-flushing-fix-2.patch added to mm-unstable branch
-Message-Id: <20231206223312.AA12BC433C7@smtp.kernel.org>
+Subject: + initramfs-expose-retained-initrd-as-sysfs-file.patch added to mm-nonmm-unstable branch
+Message-Id: <20231206223625.9219FC433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,14 +37,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcg: remove stats flushing mutex
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-restore-subtree-stats-flushing-fix-2.patch
+     Subject: initramfs: expose retained initrd as sysfs file
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     initramfs-expose-retained-initrd-as-sysfs-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-restore-subtree-stats-flushing-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/initramfs-expose-retained-initrd-as-sysfs-file.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -63,74 +60,109 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: memcg: remove stats flushing mutex
-Date: Mon, 4 Dec 2023 23:43:29 +0000
+From: Alexander Graf <graf@amazon.com>
+Subject: initramfs: expose retained initrd as sysfs file
+Date: Wed, 6 Dec 2023 21:33:23 +0000
 
-The mutex was intended to make the waiters sleep instead of spin, and such
-that we can check the update thresholds again after acquiring the mutex. 
-However, the mutex has a risk of priority inversion, especially since the
-underlying rstat lock can de dropped while the mutex is held.
+When the kernel command line option "retain_initrd" is set, we do not free
+the initrd memory.  However, we also don't expose it to anyone for
+consumption.  That leaves us in a weird situation where the only user of
+this feature is ppc64 and arm64 specific kexec tooling.
 
-Synthetic testing with high concurrency of flushers shows no regressions
-without the mutex, so remove it.
+To make it more generally useful, this patch adds a kobject to the
+firmware object that contains the initrd context when "retain_initrd" is
+set.  That way, we can access the initrd any time after boot from user
+space and for example hand it into kexec as --initrd parameter if we want
+to reboot the same initrd.  Or inspect it directly locally.
 
-Link: https://lkml.kernel.org/r/CAJD7tkZgP3m-VVPn+fF_YuvXeQYK=tZZjJHj=dzD=CcSSpp2qg@mail.gmail.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Suggested-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Shakeel Butt <shakeelb@google.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Ivan Babrou <ivan@cloudflare.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutny <mkoutny@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Wei Xu <weixugc@google.com>
+With this patch applied, there is a new /sys/firmware/initrd file when the
+kernel was booted with an initrd and "retain_initrd" command line option
+is set.
+
+Link: https://lkml.kernel.org/r/20231206213323.78233-1-graf@amazon.com
+Signed-off-by: Alexander Graf <graf@amazon.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: James Gowans <jgowans@amazon.com>
+Cc: Jan H. Schönherr <jschoenh@amazon.de>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ Documentation/ABI/testing/sysfs-firmware-initrd |    8 ++++++
+ Documentation/admin-guide/kernel-parameters.txt |    5 ++-
+ init/initramfs.c                                |   18 +++++++++++++-
+ 3 files changed, 28 insertions(+), 3 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-restore-subtree-stats-flushing-fix-2
-+++ a/mm/memcontrol.c
-@@ -749,21 +749,14 @@ static void do_flush_stats(struct mem_cg
-  */
- void mem_cgroup_flush_stats(struct mem_cgroup *memcg)
+--- /dev/null
++++ a/Documentation/ABI/testing/sysfs-firmware-initrd
+@@ -0,0 +1,8 @@
++What:		/sys/firmware/initrd
++Date:		December 2023
++Contact:	Alexander Graf <graf@amazon.com>
++Description:
++		When the kernel was booted with an initrd and the
++		"retain_initrd" option is set on the kernel command
++		line, /sys/firmware/initrd contains the contents of the
++		initrd that the kernel was booted with.
+--- a/Documentation/admin-guide/kernel-parameters.txt~initramfs-expose-retained-initrd-as-sysfs-file
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -2438,7 +2438,7 @@
+ 			between unregistering the boot console and initializing
+ 			the real console.
+ 
+-	keepinitrd	[HW,ARM]
++	keepinitrd	[HW,ARM] See retain_initrd.
+ 
+ 	kernelcore=	[KNL,X86,IA-64,PPC]
+ 			Format: nn[KMGTPE] | nn% | "mirror"
+@@ -5580,7 +5580,8 @@
+ 			Useful for devices that are detected asynchronously
+ 			(e.g. USB and MMC devices).
+ 
+-	retain_initrd	[RAM] Keep initrd memory after extraction
++	retain_initrd	[RAM] Keep initrd memory after extraction. After boot, it will
++			be accessible via /sys/firmware/initrd.
+ 
+ 	retbleed=	[X86] Control mitigation of RETBleed (Arbitrary
+ 			Speculative Code Execution with Return Instructions)
+--- a/init/initramfs.c~initramfs-expose-retained-initrd-as-sysfs-file
++++ a/init/initramfs.c
+@@ -574,6 +574,16 @@ extern unsigned long __initramfs_size;
+ #include <linux/initrd.h>
+ #include <linux/kexec.h>
+ 
++static ssize_t raw_read(struct file *file, struct kobject *kobj,
++			struct bin_attribute *attr, char *buf,
++			loff_t pos, size_t count)
++{
++	memcpy(buf, attr->private + pos, count);
++	return count;
++}
++
++static BIN_ATTR(initrd, 0440, raw_read, NULL, 0);
++
+ void __init reserve_initrd_mem(void)
  {
--	static DEFINE_MUTEX(memcg_stats_flush_mutex);
--
- 	if (mem_cgroup_disabled())
- 		return;
+ 	phys_addr_t start;
+@@ -715,8 +725,14 @@ done:
+ 	 * If the initrd region is overlapped with crashkernel reserved region,
+ 	 * free only memory that is not part of crashkernel region.
+ 	 */
+-	if (!do_retain_initrd && initrd_start && !kexec_free_initrd())
++	if (!do_retain_initrd && initrd_start && !kexec_free_initrd()) {
+ 		free_initrd_mem(initrd_start, initrd_end);
++	} else if (do_retain_initrd) {
++		bin_attr_initrd.size = initrd_end - initrd_start;
++		bin_attr_initrd.private = (void *)initrd_start;
++		if (sysfs_create_bin_file(firmware_kobj, &bin_attr_initrd))
++			pr_err("Failed to create initrd sysfs file");
++	}
+ 	initrd_start = 0;
+ 	initrd_end = 0;
  
- 	if (!memcg)
- 		memcg = root_mem_cgroup;
- 
--	if (memcg_should_flush_stats(memcg)) {
--		mutex_lock(&memcg_stats_flush_mutex);
--		/* Check again after locking, another flush may have occurred */
--		if (memcg_should_flush_stats(memcg))
--			do_flush_stats(memcg);
--		mutex_unlock(&memcg_stats_flush_mutex);
--	}
-+	if (memcg_should_flush_stats(memcg))
-+		do_flush_stats(memcg);
- }
- 
- void mem_cgroup_flush_stats_ratelimited(struct mem_cgroup *memcg)
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from graf@amazon.com are
 
-mm-memcg-change-flush_next_time-to-flush_last_time.patch
-mm-memcg-move-vmstats-structs-definition-above-flushing-code.patch
-mm-memcg-make-stats-flushing-threshold-per-memcg.patch
-mm-workingset-move-the-stats-flush-into-workingset_test_recent.patch
-mm-memcg-restore-subtree-stats-flushing.patch
-mm-memcg-restore-subtree-stats-flushing-fix-2.patch
+initramfs-expose-retained-initrd-as-sysfs-file.patch
 
