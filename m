@@ -2,369 +2,132 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 377E3C10DCE
-	for <mm-commits@archiver.kernel.org>; Wed,  6 Dec 2023 20:19:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E27C6C4167B
+	for <mm-commits@archiver.kernel.org>; Wed,  6 Dec 2023 20:50:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1442850AbjLFUSv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 6 Dec 2023 15:18:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42418 "EHLO
+        id S1379581AbjLFUuw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 6 Dec 2023 15:50:52 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40724 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1442871AbjLFUSt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Dec 2023 15:18:49 -0500
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A823AD1
-        for <mm-commits@vger.kernel.org>; Wed,  6 Dec 2023 12:18:55 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43CAFC433C9;
-        Wed,  6 Dec 2023 20:18:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701893935;
-        bh=9PTMr4wY1Dq/VroKj2oP56L1ub7nATVaamyGcDJg1EE=;
-        h=Date:To:From:Subject:From;
-        b=n5gbUIxrl14rLOCyeS98R9qV9E/hUkPqP+ZlCSd586IhXz2+7ETDNgr0bIfQ97Syt
-         poOPcHFQR5OJ712yYVhu70dtsXiGFxmaM+tPNSDvasek4FCkKMRcLL6l7z8rPKzCq9
-         +lNlpffya4qZPIe6fvy0YZIzTDQAfw/wZNYrWrk8=
-Date:   Wed, 06 Dec 2023 12:18:54 -0800
-To:     mm-commits@vger.kernel.org, zhangpeng362@huawei.com,
-        willy@infradead.org, viro@zeniv.linux.org.uk, shuah@kernel.org,
-        ryan.roberts@arm.com, rppt@kernel.org, peterx@redhat.com,
-        ngeoffray@google.com, mhocko@suse.com, lokeshgidra@google.com,
-        Liam.Howlett@oracle.com, kaleshsingh@google.com, jannh@google.com,
-        hughd@google.com, david@redhat.com, brauner@kernel.org,
-        bgeffon@google.com, axelrasmussen@google.com, aarcange@redhat.com,
-        surenb@google.com, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-uffdio_move-ioctl-test.patch added to mm-unstable branch
-Message-Id: <20231206201855.43CAFC433C9@smtp.kernel.org>
+        with ESMTP id S1379478AbjLFUuv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Dec 2023 15:50:51 -0500
+Received: from mail-pl1-x62b.google.com (mail-pl1-x62b.google.com [IPv6:2607:f8b0:4864:20::62b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04977193
+        for <mm-commits@vger.kernel.org>; Wed,  6 Dec 2023 12:50:58 -0800 (PST)
+Received: by mail-pl1-x62b.google.com with SMTP id d9443c01a7336-1d048d38881so1458375ad.2
+        for <mm-commits@vger.kernel.org>; Wed, 06 Dec 2023 12:50:57 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1701895857; x=1702500657; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=e0PGdm9Ictq3O5Yxv8fQKKJtmMXP3/9LG+B0JyKdbWc=;
+        b=Plh6qrvtATQ/Xju3ycl1hgPNB7t0/xTh45OFt3B0MHrmECQIlHkNjuuVVkNFsa+fFM
+         fFvTpupaoxWkt4cJ5yDJxzeJKnTR8g8pa++NCTC754UYLvhWvOY/G1rI5uGe7gTjAJ+z
+         KQhzPHVB18Y+lO50/CCqCdWer6Bw7y8xn73i4=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1701895857; x=1702500657;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=e0PGdm9Ictq3O5Yxv8fQKKJtmMXP3/9LG+B0JyKdbWc=;
+        b=JL8ellwhqWdCTeqtOfxSciNbVokwgyWlSeWyfKPXgFQ0TRMQHOoYEk+38KN8DLdB0b
+         afMxgrlAZvgETqCx0USQYjR65DRqPsVxAcfXtTZY1Pyj0j7R0kXJ2Axh75aII54PWjII
+         ozO8rP69d7e6nlhGVpJ/hLe5VwYvw3Yxx0HauEQVYK4dssmUuCDFGwr4qZZ52Bs8PEfC
+         Wv6Sj8eV9U7az1TdEjhDjPbeIIk7vrGvhIy52+Jqi9jjESBtlwDncpsGpjP/4BR2ymzA
+         oBXvhg3r67ZqeVMPNVHmlWu/m2AHRWuJfEuAkfT/hCj4uIKTJpjLALtzB8eOrwvyOFJC
+         aorw==
+X-Gm-Message-State: AOJu0Yz2wEh+HDhTM0zxweO+OiO8CVfWDJW0sCASOYRjZpUeOUY3TFTQ
+        INQ67p0rFYhkBpqlLCbmxWd9LQ==
+X-Google-Smtp-Source: AGHT+IED+XjRzzjoVmJkrXEo8PRkDvH0uDI5LCRADjVStjZUc+krrCVThhVxHvndJuuAuy/1qC1Gzg==
+X-Received: by 2002:a17:902:d389:b0:1d0:4cde:6e2b with SMTP id e9-20020a170902d38900b001d04cde6e2bmr1287126pld.57.1701895857484;
+        Wed, 06 Dec 2023 12:50:57 -0800 (PST)
+Received: from www.outflux.net (198-0-35-241-static.hfc.comcastbusiness.net. [198.0.35.241])
+        by smtp.gmail.com with ESMTPSA id e9-20020a170902744900b001cff026df52sm230376plt.221.2023.12.06.12.50.56
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 06 Dec 2023 12:50:56 -0800 (PST)
+Date:   Wed, 6 Dec 2023 12:50:56 -0800
+From:   Kees Cook <keescook@chromium.org>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, ebiederm@xmission.com,
+        adobriyan@gmail.com
+Subject: Re: + elf-maintainers-specifically-mention-elf.patch added to
+ mm-hotfixes-unstable branch
+Message-ID: <202312061250.525031ED@keescook>
+References: <20231206175845.EF303C433C7@smtp.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20231206175845.EF303C433C7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Wed, Dec 06, 2023 at 09:58:45AM -0800, Andrew Morton wrote:
+> 
+> The patch titled
+>      Subject: ELF, MAINTAINERS: specifically mention ELF
+> has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+>      elf-maintainers-specifically-mention-elf.patch
 
-The patch titled
-     Subject: selftests/mm: add UFFDIO_MOVE ioctl test
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-add-uffdio_move-ioctl-test.patch
+FWIW, I've snagged this via the execve tree.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-uffdio_move-ioctl-test.patch
+-Kees
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> 
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/elf-maintainers-specifically-mention-elf.patch
+> 
+> This patch will later appear in the mm-hotfixes-unstable branch at
+>     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> 
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+> 
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> 
+> The -mm tree is included into linux-next via the mm-everything
+> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there every 2-3 working days
+> 
+> ------------------------------------------------------
+> From: Alexey Dobriyan <adobriyan@gmail.com>
+> Subject: ELF, MAINTAINERS: specifically mention ELF
+> Date: Wed, 6 Dec 2023 12:21:42 +0300
+> 
+> People complain when I miss people in Cc.
+> 
+> Link: https://lkml.kernel.org/r/2cb0891e-d7c0-4939-bb5f-282812de6078@p183
+> Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+> Cc: Eric Biederman <ebiederm@xmission.com>
+> Cc: Kees Cook <keescook@chromium.org>
+> 
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  MAINTAINERS |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> --- a/MAINTAINERS~elf-maintainers-specifically-mention-elf
+> +++ a/MAINTAINERS
+> @@ -7880,7 +7880,7 @@ F:	include/uapi/linux/mdio.h
+>  F:	include/uapi/linux/mii.h
+>  F:	net/core/of_net.c
+>  
+> -EXEC & BINFMT API
+> +EXEC & BINFMT API, ELF
+>  R:	Eric Biederman <ebiederm@xmission.com>
+>  R:	Kees Cook <keescook@chromium.org>
+>  L:	linux-mm@kvack.org
+> _
+> 
+> Patches currently in -mm which might be from adobriyan@gmail.com are
+> 
+> elf-maintainers-specifically-mention-elf.patch
+> 
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: selftests/mm: add UFFDIO_MOVE ioctl test
-Date: Wed, 6 Dec 2023 02:36:59 -0800
-
-Add tests for new UFFDIO_MOVE ioctl which uses uffd to move source into
-destination buffer while checking the contents of both after the move. 
-After the operation the content of the destination buffer should match the
-original source buffer's content while the source buffer should be zeroed.
-Separate tests are designed for PMD aligned and unaligned cases because
-they utilize different code paths in the kernel.
-
-Link: https://lkml.kernel.org/r/20231206103702.3873743-6-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Nicolas Geoffray <ngeoffray@google.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: ZhangPeng <zhangpeng362@huawei.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- tools/testing/selftests/mm/uffd-common.c     |   24 ++
- tools/testing/selftests/mm/uffd-common.h     |    1 
- tools/testing/selftests/mm/uffd-unit-tests.c |  189 +++++++++++++++++
- 3 files changed, 214 insertions(+)
-
---- a/tools/testing/selftests/mm/uffd-common.c~selftests-mm-add-uffdio_move-ioctl-test
-+++ a/tools/testing/selftests/mm/uffd-common.c
-@@ -631,6 +631,30 @@ int copy_page(int ufd, unsigned long off
- 	return __copy_page(ufd, offset, false, wp);
- }
- 
-+int move_page(int ufd, unsigned long offset, unsigned long len)
-+{
-+	struct uffdio_move uffdio_move;
-+
-+	if (offset + len > nr_pages * page_size)
-+		err("unexpected offset %lu and length %lu\n", offset, len);
-+	uffdio_move.dst = (unsigned long) area_dst + offset;
-+	uffdio_move.src = (unsigned long) area_src + offset;
-+	uffdio_move.len = len;
-+	uffdio_move.mode = UFFDIO_MOVE_MODE_ALLOW_SRC_HOLES;
-+	uffdio_move.move = 0;
-+	if (ioctl(ufd, UFFDIO_MOVE, &uffdio_move)) {
-+		/* real retval in uffdio_move.move */
-+		if (uffdio_move.move != -EEXIST)
-+			err("UFFDIO_MOVE error: %"PRId64,
-+			    (int64_t)uffdio_move.move);
-+		wake_range(ufd, uffdio_move.dst, len);
-+	} else if (uffdio_move.move != len) {
-+		err("UFFDIO_MOVE error: %"PRId64, (int64_t)uffdio_move.move);
-+	} else
-+		return 1;
-+	return 0;
-+}
-+
- int uffd_open_dev(unsigned int flags)
- {
- 	int fd, uffd;
---- a/tools/testing/selftests/mm/uffd-common.h~selftests-mm-add-uffdio_move-ioctl-test
-+++ a/tools/testing/selftests/mm/uffd-common.h
-@@ -119,6 +119,7 @@ void wp_range(int ufd, __u64 start, __u6
- void uffd_handle_page_fault(struct uffd_msg *msg, struct uffd_args *args);
- int __copy_page(int ufd, unsigned long offset, bool retry, bool wp);
- int copy_page(int ufd, unsigned long offset, bool wp);
-+int move_page(int ufd, unsigned long offset, unsigned long len);
- void *uffd_poll_thread(void *arg);
- 
- int uffd_open_dev(unsigned int flags);
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-add-uffdio_move-ioctl-test
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -23,6 +23,9 @@
- #define  MEM_ALL  (MEM_ANON | MEM_SHMEM | MEM_SHMEM_PRIVATE | \
- 		   MEM_HUGETLB | MEM_HUGETLB_PRIVATE)
- 
-+#define ALIGN_UP(x, align_to) \
-+	((__typeof__(x))((((unsigned long)(x)) + ((align_to)-1)) & ~((align_to)-1)))
-+
- struct mem_type {
- 	const char *name;
- 	unsigned int mem_flag;
-@@ -1064,6 +1067,178 @@ static void uffd_poison_test(uffd_test_a
- 	uffd_test_pass();
- }
- 
-+static void
-+uffd_move_handle_fault_common(struct uffd_msg *msg, struct uffd_args *args,
-+			      unsigned long len)
-+{
-+	unsigned long offset;
-+
-+	if (msg->event != UFFD_EVENT_PAGEFAULT)
-+		err("unexpected msg event %u", msg->event);
-+
-+	if (msg->arg.pagefault.flags &
-+	    (UFFD_PAGEFAULT_FLAG_WP | UFFD_PAGEFAULT_FLAG_MINOR | UFFD_PAGEFAULT_FLAG_WRITE))
-+		err("unexpected fault type %llu", msg->arg.pagefault.flags);
-+
-+	offset = (char *)(unsigned long)msg->arg.pagefault.address - area_dst;
-+	offset &= ~(len-1);
-+
-+	if (move_page(uffd, offset, len))
-+		args->missing_faults++;
-+}
-+
-+static void uffd_move_handle_fault(struct uffd_msg *msg,
-+				   struct uffd_args *args)
-+{
-+	uffd_move_handle_fault_common(msg, args, page_size);
-+}
-+
-+static void uffd_move_pmd_handle_fault(struct uffd_msg *msg,
-+				       struct uffd_args *args)
-+{
-+	uffd_move_handle_fault_common(msg, args, read_pmd_pagesize());
-+}
-+
-+static void
-+uffd_move_test_common(uffd_test_args_t *targs, unsigned long chunk_size,
-+		      void (*handle_fault)(struct uffd_msg *msg, struct uffd_args *args))
-+{
-+	unsigned long nr;
-+	pthread_t uffd_mon;
-+	char c;
-+	unsigned long long count;
-+	struct uffd_args args = { 0 };
-+	char *orig_area_src, *orig_area_dst;
-+	unsigned long step_size, step_count;
-+	unsigned long src_offs = 0;
-+	unsigned long dst_offs = 0;
-+
-+	/* Prevent source pages from being mapped more than once */
-+	if (madvise(area_src, nr_pages * page_size, MADV_DONTFORK))
-+		err("madvise(MADV_DONTFORK) failure");
-+
-+	if (uffd_register(uffd, area_dst, nr_pages * page_size,
-+			  true, false, false))
-+		err("register failure");
-+
-+	args.handle_fault = handle_fault;
-+	if (pthread_create(&uffd_mon, NULL, uffd_poll_thread, &args))
-+		err("uffd_poll_thread create");
-+
-+	step_size = chunk_size / page_size;
-+	step_count = nr_pages / step_size;
-+
-+	if (chunk_size > page_size) {
-+		char *aligned_src = ALIGN_UP(area_src, chunk_size);
-+		char *aligned_dst = ALIGN_UP(area_dst, chunk_size);
-+
-+		if (aligned_src != area_src || aligned_dst != area_dst) {
-+			src_offs = (aligned_src - area_src) / page_size;
-+			dst_offs = (aligned_dst - area_dst) / page_size;
-+			step_count--;
-+		}
-+		orig_area_src = area_src;
-+		orig_area_dst = area_dst;
-+		area_src = aligned_src;
-+		area_dst = aligned_dst;
-+	}
-+
-+	/*
-+	 * Read each of the pages back using the UFFD-registered mapping. We
-+	 * expect that the first time we touch a page, it will result in a missing
-+	 * fault. uffd_poll_thread will resolve the fault by moving source
-+	 * page to destination.
-+	 */
-+	for (nr = 0; nr < step_count * step_size; nr += step_size) {
-+		unsigned long i;
-+
-+		/* Check area_src content */
-+		for (i = 0; i < step_size; i++) {
-+			count = *area_count(area_src, nr + i);
-+			if (count != count_verify[src_offs + nr + i])
-+				err("nr %lu source memory invalid %llu %llu\n",
-+				    nr + i, count, count_verify[src_offs + nr + i]);
-+		}
-+
-+		/* Faulting into area_dst should move the page or the huge page */
-+		for (i = 0; i < step_size; i++) {
-+			count = *area_count(area_dst, nr + i);
-+			if (count != count_verify[dst_offs + nr + i])
-+				err("nr %lu memory corruption %llu %llu\n",
-+				    nr, count, count_verify[dst_offs + nr + i]);
-+		}
-+
-+		/* Re-check area_src content which should be empty */
-+		for (i = 0; i < step_size; i++) {
-+			count = *area_count(area_src, nr + i);
-+			if (count != 0)
-+				err("nr %lu move failed %llu %llu\n",
-+				    nr, count, count_verify[src_offs + nr + i]);
-+		}
-+	}
-+	if (step_size > page_size) {
-+		area_src = orig_area_src;
-+		area_dst = orig_area_dst;
-+	}
-+
-+	if (write(pipefd[1], &c, sizeof(c)) != sizeof(c))
-+		err("pipe write");
-+	if (pthread_join(uffd_mon, NULL))
-+		err("join() failed");
-+
-+	if (args.missing_faults != step_count || args.minor_faults != 0)
-+		uffd_test_fail("stats check error");
-+	else
-+		uffd_test_pass();
-+}
-+
-+static void uffd_move_test(uffd_test_args_t *targs)
-+{
-+	uffd_move_test_common(targs, page_size, uffd_move_handle_fault);
-+}
-+
-+static void uffd_move_pmd_test(uffd_test_args_t *targs)
-+{
-+	uffd_move_test_common(targs, read_pmd_pagesize(),
-+			      uffd_move_pmd_handle_fault);
-+}
-+
-+static int prevent_hugepages(const char **errmsg)
-+{
-+	/* This should be done before source area is populated */
-+	if (madvise(area_src, nr_pages * page_size, MADV_NOHUGEPAGE)) {
-+		/* Ignore only if CONFIG_TRANSPARENT_HUGEPAGE=n */
-+		if (errno != EINVAL) {
-+			if (errmsg)
-+				*errmsg = "madvise(MADV_NOHUGEPAGE) failed";
-+			return -errno;
-+		}
-+	}
-+	return 0;
-+}
-+
-+static int request_hugepages(const char **errmsg)
-+{
-+	/* This should be done before source area is populated */
-+	if (madvise(area_src, nr_pages * page_size, MADV_HUGEPAGE)) {
-+		if (errmsg) {
-+			*errmsg = (errno == EINVAL) ?
-+				"CONFIG_TRANSPARENT_HUGEPAGE is not set" :
-+				"madvise(MADV_HUGEPAGE) failed";
-+		}
-+		return -errno;
-+	}
-+	return 0;
-+}
-+
-+struct uffd_test_case_ops uffd_move_test_case_ops = {
-+	.post_alloc = prevent_hugepages,
-+};
-+
-+struct uffd_test_case_ops uffd_move_test_pmd_case_ops = {
-+	.post_alloc = request_hugepages,
-+};
-+
- /*
-  * Test the returned uffdio_register.ioctls with different register modes.
-  * Note that _UFFDIO_ZEROPAGE is tested separately in the zeropage test.
-@@ -1142,6 +1317,20 @@ uffd_test_case_t uffd_tests[] = {
- 		.uffd_feature_required = 0,
- 	},
- 	{
-+		.name = "move",
-+		.uffd_fn = uffd_move_test,
-+		.mem_targets = MEM_ANON,
-+		.uffd_feature_required = UFFD_FEATURE_MOVE,
-+		.test_case_ops = &uffd_move_test_case_ops,
-+	},
-+	{
-+		.name = "move-pmd",
-+		.uffd_fn = uffd_move_pmd_test,
-+		.mem_targets = MEM_ANON,
-+		.uffd_feature_required = UFFD_FEATURE_MOVE,
-+		.test_case_ops = &uffd_move_test_pmd_case_ops,
-+	},
-+	{
- 		.name = "wp-fork",
- 		.uffd_fn = uffd_wp_fork_test,
- 		.mem_targets = MEM_ALL,
-_
-
-Patches currently in -mm which might be from surenb@google.com are
-
-selftests-mm-call-uffd_test_ctx_clear-at-the-end-of-the-test.patch
-selftests-mm-add-uffd_test_case_ops-to-allow-test-case-specific-operations.patch
-selftests-mm-add-uffdio_move-ioctl-test.patch
-
+-- 
+Kees Cook
