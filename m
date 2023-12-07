@@ -2,35 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CDB4C4167B
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Dec 2023 22:20:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E037AC4167B
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Dec 2023 22:23:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1444099AbjLGWT6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 7 Dec 2023 17:19:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58710 "EHLO
+        id S1443998AbjLGWXg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 7 Dec 2023 17:23:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39638 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1444112AbjLGWTw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Dec 2023 17:19:52 -0500
+        with ESMTP id S1444070AbjLGWXg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Dec 2023 17:23:36 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A8221715
-        for <mm-commits@vger.kernel.org>; Thu,  7 Dec 2023 14:19:59 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09F73C433C8;
-        Thu,  7 Dec 2023 22:19:59 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B7B210DE
+        for <mm-commits@vger.kernel.org>; Thu,  7 Dec 2023 14:23:41 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C03DDC433C8;
+        Thu,  7 Dec 2023 22:23:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701987599;
-        bh=d4fgaeesyZNg+CHAiTmZHHJ7vDGQvfhPYc7Ak8Eyq9k=;
+        s=korg; t=1701987820;
+        bh=Mea32QGKTMA8D2z2tR0Las6SAqIvfWwlSvCnbrWTVbs=;
         h=Date:To:From:Subject:From;
-        b=AolrR5TsqtiIykQWSUJZFsySoD7UVY52g3ZNNu9s7LpIkAjBQ9olr2kMeJ3VRtNeT
-         j7fnDh6ncYt769q2Mu85M+QG/z0aYKb4zANKEtS1x4LmEbn4gheKeYJKYJeDaNd3TB
-         XN7dYkfoF2lFXaypxyzN4KK5KOnQzi+TBzwSK0Ag=
-Date:   Thu, 07 Dec 2023 14:19:58 -0800
-To:     mm-commits@vger.kernel.org, stephen.smalley.work@gmail.com,
-        peterz@infradead.org, paul@paul-moore.com, omosnace@redhat.com,
-        david@redhat.com, wangkefeng.wang@huawei.com,
+        b=U/daogCmLgrKZmAFqJPiAM8sI39sF3fU2wNKwwPi1luy09iD1nl2dqpmzcC4Kafoh
+         RLw8hXcEctZ3mWveztmS+DUCHDeT02N9Wv8MuYL76Npj2yU5nv2G8fQJkhFwDCmQuu
+         0kOkXvSQ1+UEGj68MGnfm9WTjVmaKrtdvA6f2huk=
+Date:   Thu, 07 Dec 2023 14:23:40 -0800
+To:     mm-commits@vger.kernel.org, npache@redhat.com, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-vma-heap-bounds-checking.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231207221959.09F73C433C8@smtp.kernel.org>
+Subject: + selftests-mm-cow-print-ksft-header-before-printing-anything-else.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231207222340.C03DDC433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,12 +36,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix VMA heap bounds checking
+     Subject: selftests/mm: cow: print ksft header before printing anything else
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-vma-heap-bounds-checking.patch
+     selftests-mm-cow-print-ksft-header-before-printing-anything-else.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-vma-heap-bounds-checking.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-cow-print-ksft-header-before-printing-anything-else.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -61,73 +59,91 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: fix VMA heap bounds checking
-Date: Thu, 7 Dec 2023 23:25:25 +0800
+From: David Hildenbrand <david@redhat.com>
+Subject: selftests/mm: cow: print ksft header before printing anything else
+Date: Wed, 6 Dec 2023 11:35:58 +0100
 
-After converting selinux to VMA heap check helper, the gcl triggers an
-execheap SELinux denial, which is caused by a changed logic check.
+Doing a ksft_print_msg() before the ksft_print_header() seems to confuse
+the ksft framework in a strange way: running the test on the cmdline
+results in the expected output.
 
-Previously selinux only checked that the VMA range was within the VMA heap
-range, and the implementation checks the intersection between the two
-ranges, but the corner case (vm_end=start_brk, brk=vm_start) isn't handled
-correctly.
+But piping the output somewhere else, results in some odd output,
+whereby we repeatedly get the same info printed:
+	# [INFO] detected THP size: 2048 KiB
+	# [INFO] detected hugetlb page size: 2048 KiB
+	# [INFO] detected hugetlb page size: 1048576 KiB
+	# [INFO] huge zeropage is enabled
+	TAP version 13
+	1..190
+	# [INFO] Anonymous memory tests in private mappings
+	# [RUN] Basic COW after fork() ... with base page
+	# [INFO] detected THP size: 2048 KiB
+	# [INFO] detected hugetlb page size: 2048 KiB
+	# [INFO] detected hugetlb page size: 1048576 KiB
+	# [INFO] huge zeropage is enabled
+	TAP version 13
+	1..190
+	# [INFO] Anonymous memory tests in private mappings
+	# [RUN] Basic COW after fork() ... with base page
+	ok 1 No leak from parent into child
+	# [RUN] Basic COW after fork() ... with swapped out base page
+	# [INFO] detected THP size: 2048 KiB
+	# [INFO] detected hugetlb page size: 2048 KiB
+	# [INFO] detected hugetlb page size: 1048576 KiB
+	# [INFO] huge zeropage is enabled
 
-Since commit 11250fd12eb8 ("mm: factor out VMA stack and heap checks") was
-only a function extraction, it seems that the issue was introduced by
-commit 0db0c01b53a1 ("procfs: fix /proc/<pid>/maps heap check").  Let's
-fix above corner cases, meanwhile, correct the wrong indentation of the
-stack and heap check helpers.
+Doing the ksft_print_header() first seems to resolve that and gives us
+the output we expect:
+	TAP version 13
+	# [INFO] detected THP size: 2048 KiB
+	# [INFO] detected hugetlb page size: 2048 KiB
+	# [INFO] detected hugetlb page size: 1048576 KiB
+	# [INFO] huge zeropage is enabled
+	1..190
+	# [INFO] Anonymous memory tests in private mappings
+	# [RUN] Basic COW after fork() ... with base page
+	ok 1 No leak from parent into child
+	# [RUN] Basic COW after fork() ... with swapped out base page
+	ok 2 No leak from parent into child
+	# [RUN] Basic COW after fork() ... with THP
+	ok 3 No leak from parent into child
+	# [RUN] Basic COW after fork() ... with swapped-out THP
+	ok 4 No leak from parent into child
+	# [RUN] Basic COW after fork() ... with PTE-mapped THP
+	ok 5 No leak from parent into child
 
-Fixes: 11250fd12eb8 ("mm: factor out VMA stack and heap checks")
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reported-by: Ondrej Mosnacek <omosnace@redhat.com>
-Closes: https://lore.kernel.org/selinux/CAFqZXNv0SVT0fkOK6neP9AXbj3nxJ61JAY4+zJzvxqJaeuhbFw@mail.gmail.com/
-Tested-by: Ondrej Mosnacek <omosnace@redhat.com>
-Link: https://lkml.kernel.org/r/20231207152525.2607420-1-wangkefeng.wang@huawei.com
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Paul Moore <paul@paul-moore.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Stephen Smalley <stephen.smalley.work@gmail.com>
+Link: https://lkml.kernel.org/r/20231206103558.38040-1-david@redhat.com
+Fixes: f4b5fd6946e2 ("selftests/vm: anon_cow: THP tests")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reported-by: Nico Pache <npache@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ tools/testing/selftests/mm/cow.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-fix-vma-heap-bounds-checking
-+++ a/include/linux/mm.h
-@@ -886,8 +886,8 @@ static inline bool vma_is_anonymous(stru
-  */
- static inline bool vma_is_initial_heap(const struct vm_area_struct *vma)
+--- a/tools/testing/selftests/mm/cow.c~selftests-mm-cow-print-ksft-header-before-printing-anything-else
++++ a/tools/testing/selftests/mm/cow.c
+@@ -1680,6 +1680,8 @@ int main(int argc, char **argv)
  {
--       return vma->vm_start <= vma->vm_mm->brk &&
--		vma->vm_end >= vma->vm_mm->start_brk;
-+	return vma->vm_start < vma->vm_mm->brk &&
-+		vma->vm_end > vma->vm_mm->start_brk;
- }
+ 	int err;
  
- /*
-@@ -901,8 +901,8 @@ static inline bool vma_is_initial_stack(
- 	 * its "stack".  It's not even well-defined for programs written
- 	 * languages like Go.
- 	 */
--       return vma->vm_start <= vma->vm_mm->start_stack &&
--	       vma->vm_end >= vma->vm_mm->start_stack;
-+	return vma->vm_start <= vma->vm_mm->start_stack &&
-+		vma->vm_end >= vma->vm_mm->start_stack;
- }
++	ksft_print_header();
++
+ 	pagesize = getpagesize();
+ 	thpsize = read_pmd_pagesize();
+ 	if (thpsize)
+@@ -1689,7 +1691,6 @@ int main(int argc, char **argv)
+ 						    ARRAY_SIZE(hugetlbsizes));
+ 	detect_huge_zeropage();
  
- static inline bool vma_is_temporary_stack(struct vm_area_struct *vma)
+-	ksft_print_header();
+ 	ksft_set_plan(ARRAY_SIZE(anon_test_cases) * tests_per_anon_test_case() +
+ 		      ARRAY_SIZE(anon_thp_test_cases) * tests_per_anon_thp_test_case() +
+ 		      ARRAY_SIZE(non_anon_test_cases) * tests_per_non_anon_test_case());
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-fix-vma-heap-bounds-checking.patch
-mm-ksm-use-more-folio-api-in-ksm_might_need_to_copy.patch
-mm-memory-use-a-folio-in-validate_page_before_insert.patch
-mm-memory-rename-page_copy_prealloc-to-folio_prealloc.patch
-mm-memory-use-a-folio-in-do_cow_fault.patch
-mm-memory-use-folio_prealloc-in-wp_page_copy.patch
-mm-huge_memory-use-more-folio-api-in-__split_huge_page_tail.patch
+selftests-mm-cow-print-ksft-header-before-printing-anything-else.patch
 
