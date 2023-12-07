@@ -2,35 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 773DDC10F05
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Dec 2023 00:13:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E0EAC10F07
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Dec 2023 00:13:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1441805AbjLGANS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 6 Dec 2023 19:13:18 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46426 "EHLO
+        id S1441834AbjLGANT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 6 Dec 2023 19:13:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46452 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1441832AbjLGANN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Dec 2023 19:13:13 -0500
+        with ESMTP id S1441852AbjLGANR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Dec 2023 19:13:17 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0028FB2
-        for <mm-commits@vger.kernel.org>; Wed,  6 Dec 2023 16:13:19 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92F85C433C9;
-        Thu,  7 Dec 2023 00:13:19 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B24ED1
+        for <mm-commits@vger.kernel.org>; Wed,  6 Dec 2023 16:13:23 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9905AC433CA;
+        Thu,  7 Dec 2023 00:13:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701907999;
-        bh=9Gl8yYnygPeS7BsCcvm6fzKaTHUJXtlkXR2XJtQUeWo=;
+        s=korg; t=1701908002;
+        bh=Q89/B2Wd7CDV/OOh178wJC2rHiK/4ZzpxmMIcqh94NY=;
         h=Date:To:From:Subject:From;
-        b=g1KA0CBSb1cRkX/+NPkS4FNNCS7dp4U10go0nSbauFLVBbEPZKUGeEZeG/Cn9fjLg
-         Fmc3k/1O19dp933QsQXiMrfcNgy+lBrAklP2BDm5VDw3i2RtHNpTVwCEo8Tdq2NulJ
-         Jk8afrvK+2cki42Y4ZAfSXpABsS8xfWPad/xMJmA=
-Date:   Wed, 06 Dec 2023 16:13:19 -0800
-To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
-        patrick.wang.shcn@gmail.com, geert+renesas@glider.be,
-        catalin.marinas@arm.com, liushixin2@huawei.com,
+        b=ILowlN8DIdPImMGOXC3XjX7JYUR7tW8Uef3MEGHimCy4S2lAzMUfXEug3cfvvbYB3
+         qTa05+qnO94qRb7WRgdeA7xX+5M1I7twFEj227ZYMUWhk0JOeKSai+S5M7lzmDEgkA
+         DTHJuToKBZPEP0R6T0AD1IF/D+6WiAHUtmT7Mm9M=
+Date:   Wed, 06 Dec 2023 16:13:22 -0800
+To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
+        david@redhat.com, avagin@gmail.com, peterx@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-kmemleak-move-set_track_prepare-outside-raw_spinlocks.patch removed from -mm tree
-Message-Id: <20231207001319.92F85C433C9@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-pagemap-fix-ioctlpagemap_scan-on-vma-check.patch removed from -mm tree
+Message-Id: <20231207001322.9905AC433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,60 +37,105 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/kmemleak: move set_track_prepare() outside raw_spinlocks
+     Subject: mm/pagemap: fix ioctl(PAGEMAP_SCAN) on vma check
 has been removed from the -mm tree.  Its filename was
-     mm-kmemleak-move-set_track_prepare-outside-raw_spinlocks.patch
+     mm-pagemap-fix-ioctlpagemap_scan-on-vma-check.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Liu Shixin <liushixin2@huawei.com>
-Subject: mm/kmemleak: move set_track_prepare() outside raw_spinlocks
-Date: Wed, 15 Nov 2023 16:21:38 +0800
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/pagemap: fix ioctl(PAGEMAP_SCAN) on vma check
+Date: Thu, 16 Nov 2023 15:15:45 -0500
 
-set_track_prepare() will call __alloc_pages() which attempts to acquire
-zone->lock(spinlocks), so move it outside object->lock(raw_spinlocks)
-because it's not right to acquire spinlocks while holding raw_spinlocks in
-RT mode.
+Patch series "mm/pagemap: A few fixes to the recent PAGEMAP_SCAN".
 
-Link: https://lkml.kernel.org/r/20231115082138.2649870-3-liushixin2@huawei.com
-Signed-off-by: Liu Shixin <liushixin2@huawei.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Patrick Wang <patrick.wang.shcn@gmail.com>
+This series should fix two known reports from syzbot on the new
+PAGEMAP_SCAN ioctl():
+
+https://lore.kernel.org/all/000000000000b0e576060a30ee3b@google.com/
+https://lore.kernel.org/all/000000000000773fa7060a31e2cc@google.com/
+
+The 3rd patch is something I found when testing these patches.
+
+
+This patch (of 3):
+
+The new ioctl(PAGEMAP_SCAN) relies on vma wr-protect capability provided
+by userfault, however in the vma test it didn't explicitly require the vma
+to have wr-protect function enabled, even if PM_SCAN_WP_MATCHING flag is
+set.
+
+It means the pagemap code can now apply uffd-wp bit to a page in the vma
+even if not registered to userfaultfd at all.
+
+Then in whatever way as long as the pte got written and page fault
+resolved, we'll apply the write bit even if uffd-wp bit is set.  We'll see
+a pte that has both UFFD_WP and WRITE bit set.  Anything later that looks
+up the pte for uffd-wp bit will trigger the warning:
+
+WARNING: CPU: 1 PID: 5071 at arch/x86/include/asm/pgtable.h:403 pte_uffd_wp arch/x86/include/asm/pgtable.h:403 [inline]
+
+Fix it by doing proper check over the vma attributes when
+PM_SCAN_WP_MATCHING is specified.
+
+Link: https://lkml.kernel.org/r/20231116201547.536857-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20231116201547.536857-2-peterx@redhat.com
+Fixes: 52526ca7fdb9 ("fs/proc/task_mmu: implement IOCTL to get and optionally clear info about PTEs")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reported-by: syzbot+e94c5aaf7890901ebf9b@syzkaller.appspotmail.com
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Andrei Vagin <avagin@gmail.com>
+Reviewed-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/proc/task_mmu.c |   24 ++++++++++++++++++++----
+ 1 file changed, 20 insertions(+), 4 deletions(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-move-set_track_prepare-outside-raw_spinlocks
-+++ a/mm/kmemleak.c
-@@ -1152,6 +1152,7 @@ EXPORT_SYMBOL_GPL(kmemleak_free_percpu);
- void __ref kmemleak_update_trace(const void *ptr)
- {
- 	struct kmemleak_object *object;
-+	depot_stack_handle_t trace_handle;
- 	unsigned long flags;
+--- a/fs/proc/task_mmu.c~mm-pagemap-fix-ioctlpagemap_scan-on-vma-check
++++ a/fs/proc/task_mmu.c
+@@ -1982,15 +1982,31 @@ static int pagemap_scan_test_walk(unsign
+ 	struct pagemap_scan_private *p = walk->private;
+ 	struct vm_area_struct *vma = walk->vma;
+ 	unsigned long vma_category = 0;
++	bool wp_allowed = userfaultfd_wp_async(vma) &&
++	    userfaultfd_wp_use_markers(vma);
  
- 	pr_debug("%s(0x%px)\n", __func__, ptr);
-@@ -1168,8 +1169,9 @@ void __ref kmemleak_update_trace(const v
- 		return;
- 	}
+-	if (userfaultfd_wp_async(vma) && userfaultfd_wp_use_markers(vma))
+-		vma_category |= PAGE_IS_WPALLOWED;
+-	else if (p->arg.flags & PM_SCAN_CHECK_WPASYNC)
+-		return -EPERM;
++	if (!wp_allowed) {
++		/* User requested explicit failure over wp-async capability */
++		if (p->arg.flags & PM_SCAN_CHECK_WPASYNC)
++			return -EPERM;
++		/*
++		 * User requires wr-protect, and allows silently skipping
++		 * unsupported vmas.
++		 */
++		if (p->arg.flags & PM_SCAN_WP_MATCHING)
++			return 1;
++		/*
++		 * Then the request doesn't involve wr-protects at all,
++		 * fall through to the rest checks, and allow vma walk.
++		 */
++	}
  
-+	trace_handle = set_track_prepare();
- 	raw_spin_lock_irqsave(&object->lock, flags);
--	object->trace_handle = set_track_prepare();
-+	object->trace_handle = trace_handle;
- 	raw_spin_unlock_irqrestore(&object->lock, flags);
+ 	if (vma->vm_flags & VM_PFNMAP)
+ 		return 1;
  
- 	put_object(object);
++	if (wp_allowed)
++		vma_category |= PAGE_IS_WPALLOWED;
++
+ 	if (!pagemap_scan_is_interesting_vma(vma_category, p))
+ 		return 1;
+ 
 _
 
-Patches currently in -mm which might be from liushixin2@huawei.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-mm-vmscan-try-to-reclaim-swapcache-pages-if-no-swap-space.patch
-mm-vmscan-try-to-reclaim-swapcache-pages-if-no-swap-space-v6.patch
+fs-kconfig-make-hugetlbfs-a-menuconfig.patch
+mm-gup-fix-follow_devmap_pd-on-page==null-handling.patch
 
