@@ -2,35 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 244BFC10F05
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0B04C10DC1
 	for <mm-commits@archiver.kernel.org>; Thu,  7 Dec 2023 00:13:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1442960AbjLGANu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 6 Dec 2023 19:13:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45840 "EHLO
+        id S1441989AbjLGANv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 6 Dec 2023 19:13:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42626 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1442100AbjLGANl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Dec 2023 19:13:41 -0500
+        with ESMTP id S1442121AbjLGANn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Dec 2023 19:13:43 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6FB018D
-        for <mm-commits@vger.kernel.org>; Wed,  6 Dec 2023 16:13:40 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55B12C433CB;
-        Thu,  7 Dec 2023 00:13:40 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E0E5D44
+        for <mm-commits@vger.kernel.org>; Wed,  6 Dec 2023 16:13:42 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66915C433C9;
+        Thu,  7 Dec 2023 00:13:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701908020;
-        bh=mgFw7RaTm1lcY60xz6d+lo7vpMdcswH1BF5kMAYGGt0=;
+        s=korg; t=1701908022;
+        bh=8rObhyz2GiO3e4eCGKjogu6D8v/6AkbKTQXgUnPz54c=;
         h=Date:To:From:Subject:From;
-        b=sJYcW/71VDjSE/zOxw/F2WxK5RnbZyvSfC++thosR5skzcNrBgmLFnrhFitJJwMtD
-         Vgmc3HgwOYsz6i/f6RHVf5vzWG9FStBxMQqFgMJJhZEESWP+uRUsRHBAoD5fyTEnEf
-         qGhk0BZCA7ZZf5h6n6QVcVuQYV3YhdfOSfoD6bb0=
-Date:   Wed, 06 Dec 2023 16:13:39 -0800
-To:     mm-commits@vger.kernel.org, rdunlap@infradead.org,
-        linux@rasmusvillemoes.dk, herbert@gondor.apana.org.au,
-        damian.muszynski@intel.com, andriy.shevchenko@linux.intel.com,
-        akpm@linux-foundation.org
+        b=FSFvibCGdsQ+1SUmxiHDAjp375rR5MyvnabTLfk4BZhLjUfkcqKAf8OsPvK5uXuy/
+         vHgkTFtuUudOvTq0/BHTLQbO6k6KIr0xER5vEqwvU+Cdbw7zst1Vbr5lfroq1wnqSh
+         Q3Vw2PI8HRP0gpD9fqPqbilPyUPxKXfLqrdjtKQA=
+Date:   Wed, 06 Dec 2023 16:13:41 -0800
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        konishi.ryusuke@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] units-add-missing-header.patch removed from -mm tree
-Message-Id: <20231207001340.55B12C433CB@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nilfs2-fix-missing-error-check-for-sb_set_blocksize-call.patch removed from -mm tree
+Message-Id: <20231207001342.66915C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,46 +36,92 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: units: add missing header
+     Subject: nilfs2: fix missing error check for sb_set_blocksize call
 has been removed from the -mm tree.  Its filename was
-     units-add-missing-header.patch
+     nilfs2-fix-missing-error-check-for-sb_set_blocksize-call.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: units: add missing header
-Date: Tue, 28 Nov 2023 19:44:03 +0200
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: fix missing error check for sb_set_blocksize call
+Date: Wed, 29 Nov 2023 23:15:47 +0900
 
-BITS_PER_BYTE is defined in bits.h.
+When mounting a filesystem image with a block size larger than the page
+size, nilfs2 repeatedly outputs long error messages with stack traces to
+the kernel log, such as the following:
 
-Link: https://lkml.kernel.org/r/20231128174404.393393-1-andriy.shevchenko@linux.intel.com
-Fixes: e8eed5f7366f ("units: Add BYTES_PER_*BIT")
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Damian Muszynski <damian.muszynski@intel.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+ getblk(): invalid block size 8192 requested
+ logical block size: 512
+ ...
+ Call Trace:
+  dump_stack_lvl+0x92/0xd4
+  dump_stack+0xd/0x10
+  bdev_getblk+0x33a/0x354
+  __breadahead+0x11/0x80
+  nilfs_search_super_root+0xe2/0x704 [nilfs2]
+  load_nilfs+0x72/0x504 [nilfs2]
+  nilfs_mount+0x30f/0x518 [nilfs2]
+  legacy_get_tree+0x1b/0x40
+  vfs_get_tree+0x18/0xc4
+  path_mount+0x786/0xa88
+  __ia32_sys_mount+0x147/0x1a8
+  __do_fast_syscall_32+0x56/0xc8
+  do_fast_syscall_32+0x29/0x58
+  do_SYSENTER_32+0x15/0x18
+  entry_SYSENTER_32+0x98/0xf1
+ ...
+
+This overloads the system logger.  And to make matters worse, it sometimes
+crashes the kernel with a memory access violation.
+
+This is because the return value of the sb_set_blocksize() call, which
+should be checked for errors, is not checked.
+
+The latter issue is due to out-of-buffer memory being accessed based on a
+large block size that caused sb_set_blocksize() to fail for buffers read
+with the initial minimum block size that remained unupdated in the
+super_block structure.
+
+Since nilfs2 mkfs tool does not accept block sizes larger than the system
+page size, this has been overlooked.  However, it is possible to create
+this situation by intentionally modifying the tool or by passing a
+filesystem image created on a system with a large page size to a system
+with a smaller page size and mounting it.
+
+Fix this issue by inserting the expected error handling for the call to
+sb_set_blocksize().
+
+Link: https://lkml.kernel.org/r/20231129141547.4726-1-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/units.h |    1 +
- 1 file changed, 1 insertion(+)
+ fs/nilfs2/the_nilfs.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---- a/include/linux/units.h~units-add-missing-header
-+++ a/include/linux/units.h
-@@ -2,6 +2,7 @@
- #ifndef _LINUX_UNITS_H
- #define _LINUX_UNITS_H
+--- a/fs/nilfs2/the_nilfs.c~nilfs2-fix-missing-error-check-for-sb_set_blocksize-call
++++ a/fs/nilfs2/the_nilfs.c
+@@ -716,7 +716,11 @@ int init_nilfs(struct the_nilfs *nilfs,
+ 			goto failed_sbh;
+ 		}
+ 		nilfs_release_super_block(nilfs);
+-		sb_set_blocksize(sb, blocksize);
++		if (!sb_set_blocksize(sb, blocksize)) {
++			nilfs_err(sb, "bad blocksize %d", blocksize);
++			err = -EINVAL;
++			goto out;
++		}
  
-+#include <linux/bits.h>
- #include <linux/math.h>
- 
- /* Metric prefixes in accordance with Système international (d'unités) */
+ 		err = nilfs_load_super_block(nilfs, sb, blocksize, &sbp);
+ 		if (err)
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
-mm-list_lru-update-kernel-documentation-to-follow-the-requirements.patch
+nilfs2-move-page-release-outside-of-nilfs_delete_entry-and-nilfs_set_link.patch
+nilfs2-eliminate-staggered-calls-to-kunmap-in-nilfs_rename.patch
 
