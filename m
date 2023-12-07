@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA3EDC10DC1
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Dec 2023 00:14:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A364AC10F05
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Dec 2023 00:14:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1442120AbjLGAOF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 6 Dec 2023 19:14:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42608 "EHLO
+        id S1442955AbjLGAOE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 6 Dec 2023 19:14:04 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42684 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1442038AbjLGANt (ORCPT
+        with ESMTP id S1442958AbjLGANt (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Dec 2023 19:13:49 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C14AAD72
-        for <mm-commits@vger.kernel.org>; Wed,  6 Dec 2023 16:13:47 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D325C433CB;
-        Thu,  7 Dec 2023 00:13:47 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 151EFC9
+        for <mm-commits@vger.kernel.org>; Wed,  6 Dec 2023 16:13:49 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D830EC433CA;
+        Thu,  7 Dec 2023 00:13:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701908027;
-        bh=OXyyZjXHuVBzSNd6xhzYBujd1k8HzwdZSK3FzeE40pk=;
+        s=korg; t=1701908028;
+        bh=QjMBuDT4uRoDenV6E0rTvrTpcYWGfpIRrDnUHe0wwsg=;
         h=Date:To:From:Subject:From;
-        b=kRcUjPwBVGFkTGyOjwXLYFx5ApWb8XU28JbLFP3kO5LM8MFYog2k+xjfE2rXtxMGu
-         //3TNHxpI2g1UvQHS45uOsx0Lgqe0zV1wYVsRZqRkoeqLs0aXMQUwiguk6lLJWQK59
-         cpVEQEYQTR33hBFBaA3KO89WQQKxg2pPVGnSyaHI=
-Date:   Wed, 06 Dec 2023 16:13:47 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        konishi.ryusuke@gmail.com, akpm@linux-foundation.org
+        b=t/13e0gUb5N5nds3/82h4Q6KmyHWWi32X800S9lev09r6Ai3ZBJEHS5klUvjvb9ww
+         gPiRJ7YgDv5FjF1mLmzB6pBlbVhWNz4QLDNKa9sFMh08lA9GFLX6X//ZoW1e/8R2LV
+         HOAj1JYtuvqQoMSTC99ta4DDiVUB/ZNIf8HM/bV4=
+Date:   Wed, 06 Dec 2023 16:13:48 -0800
+To:     mm-commits@vger.kernel.org, falcon@tinylab.org,
+        wangjiexun@tinylab.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] nilfs2-prevent-warning-in-nilfs_sufile_set_segment_usage.patch removed from -mm tree
-Message-Id: <20231207001347.8D325C433CB@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-madvise-add-cond_resched-in-madvise_cold_or_pageout_pte_range.patch removed from -mm tree
+Message-Id: <20231207001348.D830EC433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,122 +36,220 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: nilfs2: prevent WARNING in nilfs_sufile_set_segment_usage()
+     Subject: mm/madvise: add cond_resched() in madvise_cold_or_pageout_pte_range()
 has been removed from the -mm tree.  Its filename was
-     nilfs2-prevent-warning-in-nilfs_sufile_set_segment_usage.patch
+     mm-madvise-add-cond_resched-in-madvise_cold_or_pageout_pte_range.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: prevent WARNING in nilfs_sufile_set_segment_usage()
-Date: Tue, 5 Dec 2023 17:59:47 +0900
+From: Jiexun Wang <wangjiexun@tinylab.org>
+Subject: mm/madvise: add cond_resched() in madvise_cold_or_pageout_pte_range()
+Date: Thu, 21 Sep 2023 20:27:51 +0800
 
-If nilfs2 reads a disk image with corrupted segment usage metadata, and
-its segment usage information is marked as an error for the segment at the
-write location, nilfs_sufile_set_segment_usage() can trigger WARN_ONs
-during log writing.
+I conducted real-time testing and observed that
+madvise_cold_or_pageout_pte_range() causes significant latency under
+memory pressure, which can be effectively reduced by adding cond_resched()
+within the loop.
 
-Segments newly allocated for writing with nilfs_sufile_alloc() will not
-have this error flag set, but this unexpected situation will occur if the
-segment indexed by either nilfs->ns_segnum or nilfs->ns_nextnum (active
-segment) was marked in error.
+I tested on the LicheePi 4A board using Cylictest for latency testing and
+Ftrace for latency tracing.  The board uses TH1520 processor and has a
+memory size of 8GB.  The kernel version is 6.5.0 with the PREEMPT_RT patch
+applied.
 
-Fix this issue by inserting a sanity check to treat it as a file system
-corruption.
+The script I tested is as follows:
 
-Since error returns are not allowed during the execution phase where
-nilfs_sufile_set_segment_usage() is used, this inserts the sanity check
-into nilfs_sufile_mark_dirty() which pre-reads the buffer containing the
-segment usage record to be updated and sets it up in a dirty state for
-writing.
+echo wakeup_rt > /sys/kernel/tracing/current_tracer
+echo 1 > /sys/kernel/tracing/tracing_on
+echo 0 > /sys/kernel/tracing/tracing_max_latency
+stress-ng --vm 8 --vm-bytes 2G &
+cyclictest --mlockall --smp --priority=99 --distance=0 --duration=30m
+echo 0 > /sys/kernel/tracing/tracing_on
+cat /sys/kernel/tracing/trace 
 
-In addition, nilfs_sufile_set_segment_usage() is also called when
-canceling log writing and undoing segment usage update, so in order to
-avoid issuing the same kernel warning in that case, in case of
-cancellation, avoid checking the error flag in
-nilfs_sufile_set_segment_usage().
+The tracing results before modification are as follows:
 
-Link: https://lkml.kernel.org/r/20231205085947.4431-1-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: syzbot+14e9f834f6ddecece094@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=14e9f834f6ddecece094
-Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Cc: <stable@vger.kernel.org>
+# tracer: wakeup_rt
+#
+# wakeup_rt latency trace v1.1.5 on 6.5.0-rt6-r1208-00003-g999d221864bf
+# --------------------------------------------------------------------
+# latency: 2552 us, #6/6, CPU#3 | (M:preempt_rt VP:0, KP:0, SP:0 HP:0 #P:4)
+#    -----------------
+#    | task: cyclictest-196 (uid:0 nice:0 policy:1 rt_prio:99)
+#    -----------------
+#
+#                    _--------=> CPU#
+#                   / _-------=> irqs-off/BH-disabled
+#                  | / _------=> need-resched
+#                  || / _-----=> need-resched-lazy
+#                  ||| / _----=> hardirq/softirq
+#                  |||| / _---=> preempt-depth
+#                  ||||| / _--=> preempt-lazy-depth
+#                  |||||| / _-=> migrate-disable
+#                  ||||||| /     delay
+#  cmd     pid     |||||||| time  |   caller
+#     \   /        ||||||||  \    |    /
+stress-n-206       3dn.h512    2us :      206:120:R   + [003]     196:  0:R cyclictest
+stress-n-206       3dn.h512    7us : <stack trace>
+ => __ftrace_trace_stack
+ => __trace_stack
+ => probe_wakeup
+ => ttwu_do_activate
+ => try_to_wake_up
+ => wake_up_process
+ => hrtimer_wakeup
+ => __hrtimer_run_queues
+ => hrtimer_interrupt
+ => riscv_timer_interrupt
+ => handle_percpu_devid_irq
+ => generic_handle_domain_irq
+ => riscv_intc_irq
+ => handle_riscv_irq
+ => do_irq
+stress-n-206       3dn.h512    9us#: 0
+stress-n-206       3d...3.. 2544us : __schedule
+stress-n-206       3d...3.. 2545us :      206:120:R ==> [003]     196:  0:R cyclictest
+stress-n-206       3d...3.. 2551us : <stack trace>
+ => __ftrace_trace_stack
+ => __trace_stack
+ => probe_wakeup_sched_switch
+ => __schedule
+ => preempt_schedule
+ => migrate_enable
+ => rt_spin_unlock
+ => madvise_cold_or_pageout_pte_range
+ => walk_pgd_range
+ => __walk_page_range
+ => walk_page_range
+ => madvise_pageout
+ => madvise_vma_behavior
+ => do_madvise
+ => sys_madvise
+ => do_trap_ecall_u
+ => ret_from_exception
+
+The tracing results after modification are as follows:
+
+# tracer: wakeup_rt
+#
+# wakeup_rt latency trace v1.1.5 on 6.5.0-rt6-r1208-00004-gca3876fc69a6-dirty
+# --------------------------------------------------------------------
+# latency: 1689 us, #6/6, CPU#0 | (M:preempt_rt VP:0, KP:0, SP:0 HP:0 #P:4)
+#    -----------------
+#    | task: cyclictest-217 (uid:0 nice:0 policy:1 rt_prio:99)
+#    -----------------
+#
+#                    _--------=> CPU#
+#                   / _-------=> irqs-off/BH-disabled
+#                  | / _------=> need-resched
+#                  || / _-----=> need-resched-lazy
+#                  ||| / _----=> hardirq/softirq
+#                  |||| / _---=> preempt-depth
+#                  ||||| / _--=> preempt-lazy-depth
+#                  |||||| / _-=> migrate-disable
+#                  ||||||| /     delay
+#  cmd     pid     |||||||| time  |   caller
+#     \   /        ||||||||  \    |    /
+stress-n-232       0dn.h413    1us+:      232:120:R   + [000]     217:  0:R cyclictest
+stress-n-232       0dn.h413   12us : <stack trace>
+ => __ftrace_trace_stack
+ => __trace_stack
+ => probe_wakeup
+ => ttwu_do_activate
+ => try_to_wake_up
+ => wake_up_process
+ => hrtimer_wakeup
+ => __hrtimer_run_queues
+ => hrtimer_interrupt
+ => riscv_timer_interrupt
+ => handle_percpu_devid_irq
+ => generic_handle_domain_irq
+ => riscv_intc_irq
+ => handle_riscv_irq
+ => do_irq
+stress-n-232       0dn.h413   19us#: 0
+stress-n-232       0d...3.. 1671us : __schedule
+stress-n-232       0d...3.. 1676us+:      232:120:R ==> [000]     217:  0:R cyclictest
+stress-n-232       0d...3.. 1687us : <stack trace>
+ => __ftrace_trace_stack
+ => __trace_stack
+ => probe_wakeup_sched_switch
+ => __schedule
+ => preempt_schedule
+ => migrate_enable
+ => free_unref_page_list
+ => release_pages
+ => free_pages_and_swap_cache
+ => tlb_batch_pages_flush
+ => tlb_flush_mmu
+ => unmap_page_range
+ => unmap_vmas
+ => unmap_region
+ => do_vmi_align_munmap.constprop.0
+ => do_vmi_munmap
+ => __vm_munmap
+ => sys_munmap
+ => do_trap_ecall_u
+ => ret_from_exception
+
+After the modification, the cause of maximum latency is no longer
+madvise_cold_or_pageout_pte_range(), so this modification can reduce the
+latency caused by madvise_cold_or_pageout_pte_range().
+
+
+Currently the madvise_cold_or_pageout_pte_range() function exhibits
+significant latency under memory pressure, which can be effectively
+reduced by adding cond_resched() within the loop.
+
+When the batch_count reaches SWAP_CLUSTER_MAX, we reschedule
+the task to ensure fairness and avoid long lock holding times.
+
+Link: https://lkml.kernel.org/r/85363861af65fac66c7a98c251906afc0d9c8098.1695291046.git.wangjiexun@tinylab.org
+Signed-off-by: Jiexun Wang <wangjiexun@tinylab.org>
+Cc: Zhangjin Wu <falcon@tinylab.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/sufile.c |   42 +++++++++++++++++++++++++++++++++++-------
- 1 file changed, 35 insertions(+), 7 deletions(-)
+ mm/madvise.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
---- a/fs/nilfs2/sufile.c~nilfs2-prevent-warning-in-nilfs_sufile_set_segment_usage
-+++ a/fs/nilfs2/sufile.c
-@@ -501,15 +501,38 @@ int nilfs_sufile_mark_dirty(struct inode
+--- a/mm/madvise.c~mm-madvise-add-cond_resched-in-madvise_cold_or_pageout_pte_range
++++ a/mm/madvise.c
+@@ -335,6 +335,7 @@ static int madvise_cold_or_pageout_pte_r
+ 	struct folio *folio = NULL;
+ 	LIST_HEAD(folio_list);
+ 	bool pageout_anon_only_filter;
++	unsigned int batch_count = 0;
  
- 	down_write(&NILFS_MDT(sufile)->mi_sem);
- 	ret = nilfs_sufile_get_segment_usage_block(sufile, segnum, 0, &bh);
--	if (!ret) {
--		mark_buffer_dirty(bh);
--		nilfs_mdt_mark_dirty(sufile);
--		kaddr = kmap_atomic(bh->b_page);
--		su = nilfs_sufile_block_get_segment_usage(sufile, segnum, bh, kaddr);
-+	if (ret)
-+		goto out_sem;
-+
-+	kaddr = kmap_atomic(bh->b_page);
-+	su = nilfs_sufile_block_get_segment_usage(sufile, segnum, bh, kaddr);
-+	if (unlikely(nilfs_segment_usage_error(su))) {
-+		struct the_nilfs *nilfs = sufile->i_sb->s_fs_info;
-+
-+		kunmap_atomic(kaddr);
-+		brelse(bh);
-+		if (nilfs_segment_is_active(nilfs, segnum)) {
-+			nilfs_error(sufile->i_sb,
-+				    "active segment %llu is erroneous",
-+				    (unsigned long long)segnum);
-+		} else {
-+			/*
-+			 * Segments marked erroneous are never allocated by
-+			 * nilfs_sufile_alloc(); only active segments, ie,
-+			 * the segments indexed by ns_segnum or ns_nextnum,
-+			 * can be erroneous here.
-+			 */
-+			WARN_ON_ONCE(1);
+ 	if (fatal_signal_pending(current))
+ 		return -EINTR;
+@@ -416,6 +417,7 @@ huge_unlock:
+ regular_folio:
+ #endif
+ 	tlb_change_page_size(tlb, PAGE_SIZE);
++restart:
+ 	start_pte = pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+ 	if (!start_pte)
+ 		return 0;
+@@ -424,6 +426,15 @@ regular_folio:
+ 	for (; addr < end; pte++, addr += PAGE_SIZE) {
+ 		ptent = ptep_get(pte);
+ 
++		if (++batch_count == SWAP_CLUSTER_MAX) {
++			batch_count = 0;
++			if (need_resched()) {
++				pte_unmap_unlock(start_pte, ptl);
++				cond_resched();
++				goto restart;
++			}
 +		}
-+		ret = -EIO;
-+	} else {
- 		nilfs_segment_usage_set_dirty(su);
- 		kunmap_atomic(kaddr);
-+		mark_buffer_dirty(bh);
-+		nilfs_mdt_mark_dirty(sufile);
- 		brelse(bh);
- 	}
-+out_sem:
- 	up_write(&NILFS_MDT(sufile)->mi_sem);
- 	return ret;
- }
-@@ -536,9 +559,14 @@ int nilfs_sufile_set_segment_usage(struc
- 
- 	kaddr = kmap_atomic(bh->b_page);
- 	su = nilfs_sufile_block_get_segment_usage(sufile, segnum, bh, kaddr);
--	WARN_ON(nilfs_segment_usage_error(su));
--	if (modtime)
-+	if (modtime) {
-+		/*
-+		 * Check segusage error and set su_lastmod only when updating
-+		 * this entry with a valid timestamp, not for cancellation.
-+		 */
-+		WARN_ON_ONCE(nilfs_segment_usage_error(su));
- 		su->su_lastmod = cpu_to_le64(modtime);
-+	}
- 	su->su_nblocks = cpu_to_le32(nblocks);
- 	kunmap_atomic(kaddr);
++
+ 		if (pte_none(ptent))
+ 			continue;
  
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from wangjiexun@tinylab.org are
 
-nilfs2-move-page-release-outside-of-nilfs_delete_entry-and-nilfs_set_link.patch
-nilfs2-eliminate-staggered-calls-to-kunmap-in-nilfs_rename.patch
 
