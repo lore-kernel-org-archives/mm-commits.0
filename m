@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3DF1C46CA3
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Dec 2023 22:05:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01099C46CA0
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Dec 2023 22:05:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235318AbjLGWEy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 7 Dec 2023 17:04:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41888 "EHLO
+        id S232106AbjLGWEx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 7 Dec 2023 17:04:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41872 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235307AbjLGWEj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Dec 2023 17:04:39 -0500
+        with ESMTP id S231928AbjLGWEf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Dec 2023 17:04:35 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C44CB10E3
-        for <mm-commits@vger.kernel.org>; Thu,  7 Dec 2023 14:04:44 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 593A3C433CC;
-        Thu,  7 Dec 2023 22:04:44 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E395A98
+        for <mm-commits@vger.kernel.org>; Thu,  7 Dec 2023 14:04:39 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7725BC433CA;
+        Thu,  7 Dec 2023 22:04:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701986684;
-        bh=LGUBHqZovsyE/P2YkdwdVwPMu9AGORMBy5jtvmZbEZo=;
+        s=korg; t=1701986679;
+        bh=w97cFVhtAkprJQmeV65sPcFrAvL/nsRINwMmzeiwGMY=;
         h=Date:To:From:Subject:From;
-        b=k+yAvHWjt3FWIWTtJ+TN94hzXA2ZBSYm+OfTMU9kOL//9DGB2+WrqumA1qT3iAXHS
-         hHsbAKIhWz+DWYE+wP0bWYluyFU7H8Ci3SwzQ8fGJ9W41zMoYCoutiKDuw7txvgMBm
-         ATbeKE+AzCkYpTqwMum0ZVZs0M8Uo1bcRFUAM2dE=
-Date:   Thu, 07 Dec 2023 14:04:43 -0800
+        b=LCgrYrRsnoda7v3OVuPoyeUg5uXpsDBaMg93lgjHd0Oy0PTyO2AhuW0bVugpiFNWV
+         O1Xyfv1pOsQmVLNAJ8VIChHfe753AF9kLbi96SbDDBJoeXCpteYVYPRSxbZaqNjiVU
+         ECaAN4iAYWvxqHiBvkF37caLZ342+s7ZhMGbC1TQ=
+Date:   Thu, 07 Dec 2023 14:04:38 -0800
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, yuzhao@google.com,
         ying.huang@intel.com, willy@infradead.org,
         wangkefeng.wang@huawei.com, v-songbaohua@oppo.com, vbabka@suse.cz,
@@ -34,8 +34,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com, yuzhao@google.com,
         anshuman.khandual@arm.com, ryan.roberts@arm.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-cow-generalize-do_run_with_thp-helper.patch added to mm-unstable branch
-Message-Id: <20231207220444.593A3C433CC@smtp.kernel.org>
+Subject: + selftests-mm-factor-out-thp-settings-management.patch added to mm-unstable branch
+Message-Id: <20231207220439.7725BC433CA@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/mm/cow: generalize do_run_with_thp() helper
+     Subject: selftests/mm: factor out thp settings management
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-cow-generalize-do_run_with_thp-helper.patch
+     selftests-mm-factor-out-thp-settings-management.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-cow-generalize-do_run_with_thp-helper.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-factor-out-thp-settings-management.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,24 +67,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: selftests/mm/cow: generalize do_run_with_thp() helper
-Date: Thu, 7 Dec 2023 16:12:10 +0000
+Subject: selftests/mm: factor out thp settings management
+Date: Thu, 7 Dec 2023 16:12:07 +0000
 
-do_run_with_thp() prepares (PMD-sized) THP memory into different states
-before running tests.  With the introduction of multi-size THP, we would
-like to reuse this logic to also test those smaller THP sizes.  So let's
-add a thpsize parameter which tells the function what size THP it should
-operate on.
+The khugepaged test has a useful framework for save/restore/pop/push of
+all thp settings via the sysfs interface.  This will be useful to
+explicitly control multi-size THP settings in other tests, so let's move
+it out of khugepaged and into its own thp_settings.[c|h] utility.
 
-A separate commit will utilize this change to add new tests for multi-size
-THP, where available.
-
-Link: https://lkml.kernel.org/r/20231207161211.2374093-10-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20231207161211.2374093-7-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Tested-by: Alistair Popple <apopple@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Tested-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Tested-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Barry Song <v-songbaohua@oppo.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -103,273 +99,892 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/cow.c |  121 ++++++++++++++++-------------
- 1 file changed, 67 insertions(+), 54 deletions(-)
+ tools/testing/selftests/mm/Makefile       |    4 
+ tools/testing/selftests/mm/khugepaged.c   |  346 +-------------------
+ tools/testing/selftests/mm/thp_settings.c |  296 +++++++++++++++++
+ tools/testing/selftests/mm/thp_settings.h |   71 ++++
+ 4 files changed, 391 insertions(+), 326 deletions(-)
 
---- a/tools/testing/selftests/mm/cow.c~selftests-mm-cow-generalize-do_run_with_thp-helper
-+++ a/tools/testing/selftests/mm/cow.c
-@@ -32,7 +32,7 @@
+--- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-factor-out-thp-settings-management
++++ a/tools/testing/selftests/mm/khugepaged.c
+@@ -22,13 +22,13 @@
+ #include "linux/magic.h"
  
- static size_t pagesize;
- static int pagemap_fd;
--static size_t thpsize;
-+static size_t pmdsize;
- static int nr_hugetlbsizes;
- static size_t hugetlbsizes[10];
- static int gup_fd;
-@@ -734,7 +734,7 @@ enum thp_run {
- 	THP_RUN_PARTIAL_SHARED,
+ #include "vm_util.h"
++#include "thp_settings.h"
+ 
+ #define BASE_ADDR ((void *)(1UL << 30))
+ static unsigned long hpage_pmd_size;
+ static unsigned long page_size;
+ static int hpage_pmd_nr;
+ 
+-#define THP_SYSFS "/sys/kernel/mm/transparent_hugepage/"
+ #define PID_SMAPS "/proc/self/smaps"
+ #define TEST_FILE "collapse_test_file"
+ 
+@@ -71,78 +71,7 @@ struct file_info {
  };
  
--static void do_run_with_thp(test_fn fn, enum thp_run thp_run)
-+static void do_run_with_thp(test_fn fn, enum thp_run thp_run, size_t thpsize)
- {
- 	char *mem, *mmap_mem, *tmp, *mremap_mem = MAP_FAILED;
- 	size_t size, mmap_size, mremap_size;
-@@ -759,11 +759,11 @@ static void do_run_with_thp(test_fn fn,
- 	}
+ static struct file_info finfo;
+-
+-enum thp_enabled {
+-	THP_ALWAYS,
+-	THP_MADVISE,
+-	THP_NEVER,
+-};
+-
+-static const char *thp_enabled_strings[] = {
+-	"always",
+-	"madvise",
+-	"never",
+-	NULL
+-};
+-
+-enum thp_defrag {
+-	THP_DEFRAG_ALWAYS,
+-	THP_DEFRAG_DEFER,
+-	THP_DEFRAG_DEFER_MADVISE,
+-	THP_DEFRAG_MADVISE,
+-	THP_DEFRAG_NEVER,
+-};
+-
+-static const char *thp_defrag_strings[] = {
+-	"always",
+-	"defer",
+-	"defer+madvise",
+-	"madvise",
+-	"never",
+-	NULL
+-};
+-
+-enum shmem_enabled {
+-	SHMEM_ALWAYS,
+-	SHMEM_WITHIN_SIZE,
+-	SHMEM_ADVISE,
+-	SHMEM_NEVER,
+-	SHMEM_DENY,
+-	SHMEM_FORCE,
+-};
+-
+-static const char *shmem_enabled_strings[] = {
+-	"always",
+-	"within_size",
+-	"advise",
+-	"never",
+-	"deny",
+-	"force",
+-	NULL
+-};
+-
+-struct khugepaged_settings {
+-	bool defrag;
+-	unsigned int alloc_sleep_millisecs;
+-	unsigned int scan_sleep_millisecs;
+-	unsigned int max_ptes_none;
+-	unsigned int max_ptes_swap;
+-	unsigned int max_ptes_shared;
+-	unsigned long pages_to_scan;
+-};
+-
+-struct settings {
+-	enum thp_enabled thp_enabled;
+-	enum thp_defrag thp_defrag;
+-	enum shmem_enabled shmem_enabled;
+-	bool use_zero_page;
+-	struct khugepaged_settings khugepaged;
+-	unsigned long read_ahead_kb;
+-};
+-
+-static struct settings saved_settings;
+ static bool skip_settings_restore;
+-
+ static int exit_status;
  
- 	/*
--	 * Try to populate a THP. Touch the first sub-page and test if we get
--	 * another sub-page populated automatically.
-+	 * Try to populate a THP. Touch the first sub-page and test if
-+	 * we get the last sub-page populated automatically.
- 	 */
- 	mem[0] = 0;
--	if (!pagemap_is_populated(pagemap_fd, mem + pagesize)) {
-+	if (!pagemap_is_populated(pagemap_fd, mem + thpsize - pagesize)) {
- 		ksft_test_result_skip("Did not get a THP populated\n");
- 		goto munmap;
- 	}
-@@ -773,12 +773,14 @@ static void do_run_with_thp(test_fn fn,
- 	switch (thp_run) {
- 	case THP_RUN_PMD:
- 	case THP_RUN_PMD_SWAPOUT:
-+		assert(thpsize == pmdsize);
- 		break;
- 	case THP_RUN_PTE:
- 	case THP_RUN_PTE_SWAPOUT:
- 		/*
- 		 * Trigger PTE-mapping the THP by temporarily mapping a single
--		 * subpage R/O.
-+		 * subpage R/O. This is a noop if the THP is not pmdsize (and
-+		 * therefore already PTE-mapped).
- 		 */
- 		ret = mprotect(mem + pagesize, pagesize, PROT_READ);
- 		if (ret) {
-@@ -875,52 +877,60 @@ munmap:
- 		munmap(mremap_mem, mremap_size);
+ static void success(const char *msg)
+@@ -161,226 +90,13 @@ static void skip(const char *msg)
+ 	printf(" \e[33m%s\e[0m\n", msg);
  }
  
--static void run_with_thp(test_fn fn, const char *desc)
-+static void run_with_thp(test_fn fn, const char *desc, size_t size)
+-static int read_file(const char *path, char *buf, size_t buflen)
+-{
+-	int fd;
+-	ssize_t numread;
+-
+-	fd = open(path, O_RDONLY);
+-	if (fd == -1)
+-		return 0;
+-
+-	numread = read(fd, buf, buflen - 1);
+-	if (numread < 1) {
+-		close(fd);
+-		return 0;
+-	}
+-
+-	buf[numread] = '\0';
+-	close(fd);
+-
+-	return (unsigned int) numread;
+-}
+-
+-static int write_file(const char *path, const char *buf, size_t buflen)
+-{
+-	int fd;
+-	ssize_t numwritten;
+-
+-	fd = open(path, O_WRONLY);
+-	if (fd == -1) {
+-		printf("open(%s)\n", path);
+-		exit(EXIT_FAILURE);
+-		return 0;
+-	}
+-
+-	numwritten = write(fd, buf, buflen - 1);
+-	close(fd);
+-	if (numwritten < 1) {
+-		printf("write(%s)\n", buf);
+-		exit(EXIT_FAILURE);
+-		return 0;
+-	}
+-
+-	return (unsigned int) numwritten;
+-}
+-
+-static int read_string(const char *name, const char *strings[])
+-{
+-	char path[PATH_MAX];
+-	char buf[256];
+-	char *c;
+-	int ret;
+-
+-	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
+-	if (ret >= PATH_MAX) {
+-		printf("%s: Pathname is too long\n", __func__);
+-		exit(EXIT_FAILURE);
+-	}
+-
+-	if (!read_file(path, buf, sizeof(buf))) {
+-		perror(path);
+-		exit(EXIT_FAILURE);
+-	}
+-
+-	c = strchr(buf, '[');
+-	if (!c) {
+-		printf("%s: Parse failure\n", __func__);
+-		exit(EXIT_FAILURE);
+-	}
+-
+-	c++;
+-	memmove(buf, c, sizeof(buf) - (c - buf));
+-
+-	c = strchr(buf, ']');
+-	if (!c) {
+-		printf("%s: Parse failure\n", __func__);
+-		exit(EXIT_FAILURE);
+-	}
+-	*c = '\0';
+-
+-	ret = 0;
+-	while (strings[ret]) {
+-		if (!strcmp(strings[ret], buf))
+-			return ret;
+-		ret++;
+-	}
+-
+-	printf("Failed to parse %s\n", name);
+-	exit(EXIT_FAILURE);
+-}
+-
+-static void write_string(const char *name, const char *val)
+-{
+-	char path[PATH_MAX];
+-	int ret;
+-
+-	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
+-	if (ret >= PATH_MAX) {
+-		printf("%s: Pathname is too long\n", __func__);
+-		exit(EXIT_FAILURE);
+-	}
+-
+-	if (!write_file(path, val, strlen(val) + 1)) {
+-		perror(path);
+-		exit(EXIT_FAILURE);
+-	}
+-}
+-
+-static const unsigned long _read_num(const char *path)
+-{
+-	char buf[21];
+-
+-	if (read_file(path, buf, sizeof(buf)) < 0) {
+-		perror("read_file(read_num)");
+-		exit(EXIT_FAILURE);
+-	}
+-
+-	return strtoul(buf, NULL, 10);
+-}
+-
+-static const unsigned long read_num(const char *name)
+-{
+-	char path[PATH_MAX];
+-	int ret;
+-
+-	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
+-	if (ret >= PATH_MAX) {
+-		printf("%s: Pathname is too long\n", __func__);
+-		exit(EXIT_FAILURE);
+-	}
+-	return _read_num(path);
+-}
+-
+-static void _write_num(const char *path, unsigned long num)
+-{
+-	char buf[21];
+-
+-	sprintf(buf, "%ld", num);
+-	if (!write_file(path, buf, strlen(buf) + 1)) {
+-		perror(path);
+-		exit(EXIT_FAILURE);
+-	}
+-}
+-
+-static void write_num(const char *name, unsigned long num)
+-{
+-	char path[PATH_MAX];
+-	int ret;
+-
+-	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
+-	if (ret >= PATH_MAX) {
+-		printf("%s: Pathname is too long\n", __func__);
+-		exit(EXIT_FAILURE);
+-	}
+-	_write_num(path, num);
+-}
+-
+-static void write_settings(struct settings *settings)
+-{
+-	struct khugepaged_settings *khugepaged = &settings->khugepaged;
+-
+-	write_string("enabled", thp_enabled_strings[settings->thp_enabled]);
+-	write_string("defrag", thp_defrag_strings[settings->thp_defrag]);
+-	write_string("shmem_enabled",
+-			shmem_enabled_strings[settings->shmem_enabled]);
+-	write_num("use_zero_page", settings->use_zero_page);
+-
+-	write_num("khugepaged/defrag", khugepaged->defrag);
+-	write_num("khugepaged/alloc_sleep_millisecs",
+-			khugepaged->alloc_sleep_millisecs);
+-	write_num("khugepaged/scan_sleep_millisecs",
+-			khugepaged->scan_sleep_millisecs);
+-	write_num("khugepaged/max_ptes_none", khugepaged->max_ptes_none);
+-	write_num("khugepaged/max_ptes_swap", khugepaged->max_ptes_swap);
+-	write_num("khugepaged/max_ptes_shared", khugepaged->max_ptes_shared);
+-	write_num("khugepaged/pages_to_scan", khugepaged->pages_to_scan);
+-
+-	if (file_ops && finfo.type == VMA_FILE)
+-		_write_num(finfo.dev_queue_read_ahead_path,
+-			   settings->read_ahead_kb);
+-}
+-
+-#define MAX_SETTINGS_DEPTH 4
+-static struct settings settings_stack[MAX_SETTINGS_DEPTH];
+-static int settings_index;
+-
+-static struct settings *current_settings(void)
+-{
+-	if (!settings_index) {
+-		printf("Fail: No settings set");
+-		exit(EXIT_FAILURE);
+-	}
+-	return settings_stack + settings_index - 1;
+-}
+-
+-static void push_settings(struct settings *settings)
+-{
+-	if (settings_index >= MAX_SETTINGS_DEPTH) {
+-		printf("Fail: Settings stack exceeded");
+-		exit(EXIT_FAILURE);
+-	}
+-	settings_stack[settings_index++] = *settings;
+-	write_settings(current_settings());
+-}
+-
+-static void pop_settings(void)
+-{
+-	if (settings_index <= 0) {
+-		printf("Fail: Settings stack empty");
+-		exit(EXIT_FAILURE);
+-	}
+-	--settings_index;
+-	write_settings(current_settings());
+-}
+-
+ static void restore_settings_atexit(void)
  {
--	ksft_print_msg("[RUN] %s ... with THP\n", desc);
--	do_run_with_thp(fn, THP_RUN_PMD);
-+	ksft_print_msg("[RUN] %s ... with THP (%zu kB)\n",
-+		desc, size / 1024);
-+	do_run_with_thp(fn, THP_RUN_PMD, size);
- }
- 
--static void run_with_thp_swap(test_fn fn, const char *desc)
-+static void run_with_thp_swap(test_fn fn, const char *desc, size_t size)
- {
--	ksft_print_msg("[RUN] %s ... with swapped-out THP\n", desc);
--	do_run_with_thp(fn, THP_RUN_PMD_SWAPOUT);
-+	ksft_print_msg("[RUN] %s ... with swapped-out THP (%zu kB)\n",
-+		desc, size / 1024);
-+	do_run_with_thp(fn, THP_RUN_PMD_SWAPOUT, size);
- }
- 
--static void run_with_pte_mapped_thp(test_fn fn, const char *desc)
-+static void run_with_pte_mapped_thp(test_fn fn, const char *desc, size_t size)
- {
--	ksft_print_msg("[RUN] %s ... with PTE-mapped THP\n", desc);
--	do_run_with_thp(fn, THP_RUN_PTE);
-+	ksft_print_msg("[RUN] %s ... with PTE-mapped THP (%zu kB)\n",
-+		desc, size / 1024);
-+	do_run_with_thp(fn, THP_RUN_PTE, size);
- }
- 
--static void run_with_pte_mapped_thp_swap(test_fn fn, const char *desc)
-+static void run_with_pte_mapped_thp_swap(test_fn fn, const char *desc, size_t size)
- {
--	ksft_print_msg("[RUN] %s ... with swapped-out, PTE-mapped THP\n", desc);
--	do_run_with_thp(fn, THP_RUN_PTE_SWAPOUT);
-+	ksft_print_msg("[RUN] %s ... with swapped-out, PTE-mapped THP (%zu kB)\n",
-+		desc, size / 1024);
-+	do_run_with_thp(fn, THP_RUN_PTE_SWAPOUT, size);
- }
- 
--static void run_with_single_pte_of_thp(test_fn fn, const char *desc)
-+static void run_with_single_pte_of_thp(test_fn fn, const char *desc, size_t size)
- {
--	ksft_print_msg("[RUN] %s ... with single PTE of THP\n", desc);
--	do_run_with_thp(fn, THP_RUN_SINGLE_PTE);
-+	ksft_print_msg("[RUN] %s ... with single PTE of THP (%zu kB)\n",
-+		desc, size / 1024);
-+	do_run_with_thp(fn, THP_RUN_SINGLE_PTE, size);
- }
- 
--static void run_with_single_pte_of_thp_swap(test_fn fn, const char *desc)
-+static void run_with_single_pte_of_thp_swap(test_fn fn, const char *desc, size_t size)
- {
--	ksft_print_msg("[RUN] %s ... with single PTE of swapped-out THP\n", desc);
--	do_run_with_thp(fn, THP_RUN_SINGLE_PTE_SWAPOUT);
-+	ksft_print_msg("[RUN] %s ... with single PTE of swapped-out THP (%zu kB)\n",
-+		desc, size / 1024);
-+	do_run_with_thp(fn, THP_RUN_SINGLE_PTE_SWAPOUT, size);
- }
- 
--static void run_with_partial_mremap_thp(test_fn fn, const char *desc)
-+static void run_with_partial_mremap_thp(test_fn fn, const char *desc, size_t size)
- {
--	ksft_print_msg("[RUN] %s ... with partially mremap()'ed THP\n", desc);
--	do_run_with_thp(fn, THP_RUN_PARTIAL_MREMAP);
-+	ksft_print_msg("[RUN] %s ... with partially mremap()'ed THP (%zu kB)\n",
-+		desc, size / 1024);
-+	do_run_with_thp(fn, THP_RUN_PARTIAL_MREMAP, size);
- }
- 
--static void run_with_partial_shared_thp(test_fn fn, const char *desc)
-+static void run_with_partial_shared_thp(test_fn fn, const char *desc, size_t size)
- {
--	ksft_print_msg("[RUN] %s ... with partially shared THP\n", desc);
--	do_run_with_thp(fn, THP_RUN_PARTIAL_SHARED);
-+	ksft_print_msg("[RUN] %s ... with partially shared THP (%zu kB)\n",
-+		desc, size / 1024);
-+	do_run_with_thp(fn, THP_RUN_PARTIAL_SHARED, size);
- }
- 
- static void run_with_hugetlb(test_fn fn, const char *desc, size_t hugetlbsize)
-@@ -1091,15 +1101,15 @@ static void run_anon_test_case(struct te
- 
- 	run_with_base_page(test_case->fn, test_case->desc);
- 	run_with_base_page_swap(test_case->fn, test_case->desc);
--	if (thpsize) {
--		run_with_thp(test_case->fn, test_case->desc);
--		run_with_thp_swap(test_case->fn, test_case->desc);
--		run_with_pte_mapped_thp(test_case->fn, test_case->desc);
--		run_with_pte_mapped_thp_swap(test_case->fn, test_case->desc);
--		run_with_single_pte_of_thp(test_case->fn, test_case->desc);
--		run_with_single_pte_of_thp_swap(test_case->fn, test_case->desc);
--		run_with_partial_mremap_thp(test_case->fn, test_case->desc);
--		run_with_partial_shared_thp(test_case->fn, test_case->desc);
-+	if (pmdsize) {
-+		run_with_thp(test_case->fn, test_case->desc, pmdsize);
-+		run_with_thp_swap(test_case->fn, test_case->desc, pmdsize);
-+		run_with_pte_mapped_thp(test_case->fn, test_case->desc, pmdsize);
-+		run_with_pte_mapped_thp_swap(test_case->fn, test_case->desc, pmdsize);
-+		run_with_single_pte_of_thp(test_case->fn, test_case->desc, pmdsize);
-+		run_with_single_pte_of_thp_swap(test_case->fn, test_case->desc, pmdsize);
-+		run_with_partial_mremap_thp(test_case->fn, test_case->desc, pmdsize);
-+		run_with_partial_shared_thp(test_case->fn, test_case->desc, pmdsize);
- 	}
- 	for (i = 0; i < nr_hugetlbsizes; i++)
- 		run_with_hugetlb(test_case->fn, test_case->desc,
-@@ -1120,7 +1130,7 @@ static int tests_per_anon_test_case(void
- {
- 	int tests = 2 + nr_hugetlbsizes;
- 
--	if (thpsize)
-+	if (pmdsize)
- 		tests += 8;
- 	return tests;
- }
-@@ -1329,7 +1339,7 @@ static void run_anon_thp_test_cases(void
- {
- 	int i;
- 
--	if (!thpsize)
-+	if (!pmdsize)
+ 	if (skip_settings_restore)
  		return;
  
- 	ksft_print_msg("[INFO] Anonymous THP tests\n");
-@@ -1338,13 +1348,13 @@ static void run_anon_thp_test_cases(void
- 		struct test_case const *test_case = &anon_thp_test_cases[i];
+ 	printf("Restore THP and khugepaged settings...");
+-	write_settings(&saved_settings);
++	thp_restore_settings();
+ 	success("OK");
  
- 		ksft_print_msg("[RUN] %s\n", test_case->desc);
--		do_run_with_thp(test_case->fn, THP_RUN_PMD);
-+		do_run_with_thp(test_case->fn, THP_RUN_PMD, pmdsize);
- 	}
- }
- 
- static int tests_per_anon_thp_test_case(void)
+ 	skip_settings_restore = true;
+@@ -395,27 +111,9 @@ static void restore_settings(int sig)
+ static void save_settings(void)
  {
--	return thpsize ? 1 : 0;
-+	return pmdsize ? 1 : 0;
- }
+ 	printf("Save THP and khugepaged settings...");
+-	saved_settings = (struct settings) {
+-		.thp_enabled = read_string("enabled", thp_enabled_strings),
+-		.thp_defrag = read_string("defrag", thp_defrag_strings),
+-		.shmem_enabled =
+-			read_string("shmem_enabled", shmem_enabled_strings),
+-		.use_zero_page = read_num("use_zero_page"),
+-	};
+-	saved_settings.khugepaged = (struct khugepaged_settings) {
+-		.defrag = read_num("khugepaged/defrag"),
+-		.alloc_sleep_millisecs =
+-			read_num("khugepaged/alloc_sleep_millisecs"),
+-		.scan_sleep_millisecs =
+-			read_num("khugepaged/scan_sleep_millisecs"),
+-		.max_ptes_none = read_num("khugepaged/max_ptes_none"),
+-		.max_ptes_swap = read_num("khugepaged/max_ptes_swap"),
+-		.max_ptes_shared = read_num("khugepaged/max_ptes_shared"),
+-		.pages_to_scan = read_num("khugepaged/pages_to_scan"),
+-	};
+ 	if (file_ops && finfo.type == VMA_FILE)
+-		saved_settings.read_ahead_kb =
+-				_read_num(finfo.dev_queue_read_ahead_path);
++		thp_set_read_ahead_path(finfo.dev_queue_read_ahead_path);
++	thp_save_settings();
  
- typedef void (*non_anon_test_fn)(char *mem, const char *smem, size_t size);
-@@ -1419,7 +1429,7 @@ static void run_with_huge_zeropage(non_a
- 	}
+ 	success("OK");
  
- 	/* For alignment purposes, we need twice the thp size. */
--	mmap_size = 2 * thpsize;
-+	mmap_size = 2 * pmdsize;
- 	mmap_mem = mmap(NULL, mmap_size, PROT_READ | PROT_WRITE,
- 			MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
- 	if (mmap_mem == MAP_FAILED) {
-@@ -1434,11 +1444,11 @@ static void run_with_huge_zeropage(non_a
- 	}
- 
- 	/* We need a THP-aligned memory area. */
--	mem = (char *)(((uintptr_t)mmap_mem + thpsize) & ~(thpsize - 1));
--	smem = (char *)(((uintptr_t)mmap_smem + thpsize) & ~(thpsize - 1));
-+	mem = (char *)(((uintptr_t)mmap_mem + pmdsize) & ~(pmdsize - 1));
-+	smem = (char *)(((uintptr_t)mmap_smem + pmdsize) & ~(pmdsize - 1));
- 
--	ret = madvise(mem, thpsize, MADV_HUGEPAGE);
--	ret |= madvise(smem, thpsize, MADV_HUGEPAGE);
-+	ret = madvise(mem, pmdsize, MADV_HUGEPAGE);
-+	ret |= madvise(smem, pmdsize, MADV_HUGEPAGE);
- 	if (ret) {
- 		ksft_test_result_fail("MADV_HUGEPAGE failed\n");
- 		goto munmap;
-@@ -1457,7 +1467,7 @@ static void run_with_huge_zeropage(non_a
- 		goto munmap;
- 	}
- 
--	fn(mem, smem, thpsize);
-+	fn(mem, smem, pmdsize);
- munmap:
- 	munmap(mmap_mem, mmap_size);
- 	if (mmap_smem != MAP_FAILED)
-@@ -1650,7 +1660,7 @@ static void run_non_anon_test_case(struc
- 	run_with_zeropage(test_case->fn, test_case->desc);
- 	run_with_memfd(test_case->fn, test_case->desc);
- 	run_with_tmpfile(test_case->fn, test_case->desc);
--	if (thpsize)
-+	if (pmdsize)
- 		run_with_huge_zeropage(test_case->fn, test_case->desc);
- 	for (i = 0; i < nr_hugetlbsizes; i++)
- 		run_with_memfd_hugetlb(test_case->fn, test_case->desc,
-@@ -1671,7 +1681,7 @@ static int tests_per_non_anon_test_case(
+@@ -798,7 +496,7 @@ static void __madvise_collapse(const cha
+ 			       struct mem_ops *ops, bool expect)
  {
- 	int tests = 3 + nr_hugetlbsizes;
+ 	int ret;
+-	struct settings settings = *current_settings();
++	struct thp_settings settings = *thp_current_settings();
  
--	if (thpsize)
-+	if (pmdsize)
- 		tests += 1;
- 	return tests;
+ 	printf("%s...", msg);
+ 
+@@ -808,7 +506,7 @@ static void __madvise_collapse(const cha
+ 	 */
+ 	settings.thp_enabled = THP_NEVER;
+ 	settings.shmem_enabled = SHMEM_NEVER;
+-	push_settings(&settings);
++	thp_push_settings(&settings);
+ 
+ 	/* Clear VM_NOHUGEPAGE */
+ 	madvise(p, nr_hpages * hpage_pmd_size, MADV_HUGEPAGE);
+@@ -820,7 +518,7 @@ static void __madvise_collapse(const cha
+ 	else
+ 		success("OK");
+ 
+-	pop_settings();
++	thp_pop_settings();
  }
-@@ -1681,10 +1691,13 @@ int main(int argc, char **argv)
- 	int err;
  
- 	pagesize = getpagesize();
--	thpsize = read_pmd_pagesize();
--	if (thpsize)
-+	pmdsize = read_pmd_pagesize();
-+	if (pmdsize) {
-+		ksft_print_msg("[INFO] detected PMD size: %zu KiB\n",
-+			       pmdsize / 1024);
- 		ksft_print_msg("[INFO] detected THP size: %zu KiB\n",
--			       thpsize / 1024);
-+			       pmdsize / 1024);
+ static void madvise_collapse(const char *msg, char *p, int nr_hpages,
+@@ -850,13 +548,13 @@ static bool wait_for_scan(const char *ms
+ 	madvise(p, nr_hpages * hpage_pmd_size, MADV_HUGEPAGE);
+ 
+ 	/* Wait until the second full_scan completed */
+-	full_scans = read_num("khugepaged/full_scans") + 2;
++	full_scans = thp_read_num("khugepaged/full_scans") + 2;
+ 
+ 	printf("%s...", msg);
+ 	while (timeout--) {
+ 		if (ops->check_huge(p, nr_hpages))
+ 			break;
+-		if (read_num("khugepaged/full_scans") >= full_scans)
++		if (thp_read_num("khugepaged/full_scans") >= full_scans)
+ 			break;
+ 		printf(".");
+ 		usleep(TICK);
+@@ -911,11 +609,11 @@ static bool is_tmpfs(struct mem_ops *ops
+ 
+ static void alloc_at_fault(void)
+ {
+-	struct settings settings = *current_settings();
++	struct thp_settings settings = *thp_current_settings();
+ 	char *p;
+ 
+ 	settings.thp_enabled = THP_ALWAYS;
+-	push_settings(&settings);
++	thp_push_settings(&settings);
+ 
+ 	p = alloc_mapping(1);
+ 	*p = 1;
+@@ -925,7 +623,7 @@ static void alloc_at_fault(void)
+ 	else
+ 		fail("Fail");
+ 
+-	pop_settings();
++	thp_pop_settings();
+ 
+ 	madvise(p, page_size, MADV_DONTNEED);
+ 	printf("Split huge PMD on MADV_DONTNEED...");
+@@ -973,11 +671,11 @@ static void collapse_single_pte_entry(st
+ static void collapse_max_ptes_none(struct collapse_context *c, struct mem_ops *ops)
+ {
+ 	int max_ptes_none = hpage_pmd_nr / 2;
+-	struct settings settings = *current_settings();
++	struct thp_settings settings = *thp_current_settings();
+ 	void *p;
+ 
+ 	settings.khugepaged.max_ptes_none = max_ptes_none;
+-	push_settings(&settings);
++	thp_push_settings(&settings);
+ 
+ 	p = ops->setup_area(1);
+ 
+@@ -1002,7 +700,7 @@ static void collapse_max_ptes_none(struc
+ 	}
+ skip:
+ 	ops->cleanup_area(p, hpage_pmd_size);
+-	pop_settings();
++	thp_pop_settings();
+ }
+ 
+ static void collapse_swapin_single_pte(struct collapse_context *c, struct mem_ops *ops)
+@@ -1033,7 +731,7 @@ out:
+ 
+ static void collapse_max_ptes_swap(struct collapse_context *c, struct mem_ops *ops)
+ {
+-	int max_ptes_swap = read_num("khugepaged/max_ptes_swap");
++	int max_ptes_swap = thp_read_num("khugepaged/max_ptes_swap");
+ 	void *p;
+ 
+ 	p = ops->setup_area(1);
+@@ -1250,11 +948,11 @@ static void collapse_fork_compound(struc
+ 			fail("Fail");
+ 		ops->fault(p, 0, page_size);
+ 
+-		write_num("khugepaged/max_ptes_shared", hpage_pmd_nr - 1);
++		thp_write_num("khugepaged/max_ptes_shared", hpage_pmd_nr - 1);
+ 		c->collapse("Collapse PTE table full of compound pages in child",
+ 			    p, 1, ops, true);
+-		write_num("khugepaged/max_ptes_shared",
+-			  current_settings()->khugepaged.max_ptes_shared);
++		thp_write_num("khugepaged/max_ptes_shared",
++			  thp_current_settings()->khugepaged.max_ptes_shared);
+ 
+ 		validate_memory(p, 0, hpage_pmd_size);
+ 		ops->cleanup_area(p, hpage_pmd_size);
+@@ -1275,7 +973,7 @@ static void collapse_fork_compound(struc
+ 
+ static void collapse_max_ptes_shared(struct collapse_context *c, struct mem_ops *ops)
+ {
+-	int max_ptes_shared = read_num("khugepaged/max_ptes_shared");
++	int max_ptes_shared = thp_read_num("khugepaged/max_ptes_shared");
+ 	int wstatus;
+ 	void *p;
+ 
+@@ -1443,7 +1141,7 @@ static void parse_test_type(int argc, co
+ 
+ int main(int argc, const char **argv)
+ {
+-	struct settings default_settings = {
++	struct thp_settings default_settings = {
+ 		.thp_enabled = THP_MADVISE,
+ 		.thp_defrag = THP_DEFRAG_ALWAYS,
+ 		.shmem_enabled = SHMEM_ADVISE,
+@@ -1484,7 +1182,7 @@ int main(int argc, const char **argv)
+ 	default_settings.khugepaged.pages_to_scan = hpage_pmd_nr * 8;
+ 
+ 	save_settings();
+-	push_settings(&default_settings);
++	thp_push_settings(&default_settings);
+ 
+ 	alloc_at_fault();
+ 
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-factor-out-thp-settings-management
++++ a/tools/testing/selftests/mm/Makefile
+@@ -117,8 +117,8 @@ TEST_FILES += va_high_addr_switch.sh
+ 
+ include ../lib.mk
+ 
+-$(TEST_GEN_PROGS): vm_util.c
+-$(TEST_GEN_FILES): vm_util.c
++$(TEST_GEN_PROGS): vm_util.c thp_settings.c
++$(TEST_GEN_FILES): vm_util.c thp_settings.c
+ 
+ $(OUTPUT)/uffd-stress: uffd-common.c
+ $(OUTPUT)/uffd-unit-tests: uffd-common.c
+--- /dev/null
++++ a/tools/testing/selftests/mm/thp_settings.c
+@@ -0,0 +1,296 @@
++// SPDX-License-Identifier: GPL-2.0
++#include <fcntl.h>
++#include <limits.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
++
++#include "thp_settings.h"
++
++#define THP_SYSFS "/sys/kernel/mm/transparent_hugepage/"
++#define MAX_SETTINGS_DEPTH 4
++static struct thp_settings settings_stack[MAX_SETTINGS_DEPTH];
++static int settings_index;
++static struct thp_settings saved_settings;
++static char dev_queue_read_ahead_path[PATH_MAX];
++
++static const char * const thp_enabled_strings[] = {
++	"always",
++	"madvise",
++	"never",
++	NULL
++};
++
++static const char * const thp_defrag_strings[] = {
++	"always",
++	"defer",
++	"defer+madvise",
++	"madvise",
++	"never",
++	NULL
++};
++
++static const char * const shmem_enabled_strings[] = {
++	"always",
++	"within_size",
++	"advise",
++	"never",
++	"deny",
++	"force",
++	NULL
++};
++
++int read_file(const char *path, char *buf, size_t buflen)
++{
++	int fd;
++	ssize_t numread;
++
++	fd = open(path, O_RDONLY);
++	if (fd == -1)
++		return 0;
++
++	numread = read(fd, buf, buflen - 1);
++	if (numread < 1) {
++		close(fd);
++		return 0;
 +	}
- 	nr_hugetlbsizes = detect_hugetlb_page_sizes(hugetlbsizes,
- 						    ARRAY_SIZE(hugetlbsizes));
- 	detect_huge_zeropage();
++
++	buf[numread] = '\0';
++	close(fd);
++
++	return (unsigned int) numread;
++}
++
++int write_file(const char *path, const char *buf, size_t buflen)
++{
++	int fd;
++	ssize_t numwritten;
++
++	fd = open(path, O_WRONLY);
++	if (fd == -1) {
++		printf("open(%s)\n", path);
++		exit(EXIT_FAILURE);
++		return 0;
++	}
++
++	numwritten = write(fd, buf, buflen - 1);
++	close(fd);
++	if (numwritten < 1) {
++		printf("write(%s)\n", buf);
++		exit(EXIT_FAILURE);
++		return 0;
++	}
++
++	return (unsigned int) numwritten;
++}
++
++const unsigned long read_num(const char *path)
++{
++	char buf[21];
++
++	if (read_file(path, buf, sizeof(buf)) < 0) {
++		perror("read_file()");
++		exit(EXIT_FAILURE);
++	}
++
++	return strtoul(buf, NULL, 10);
++}
++
++void write_num(const char *path, unsigned long num)
++{
++	char buf[21];
++
++	sprintf(buf, "%ld", num);
++	if (!write_file(path, buf, strlen(buf) + 1)) {
++		perror(path);
++		exit(EXIT_FAILURE);
++	}
++}
++
++int thp_read_string(const char *name, const char * const strings[])
++{
++	char path[PATH_MAX];
++	char buf[256];
++	char *c;
++	int ret;
++
++	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
++	if (ret >= PATH_MAX) {
++		printf("%s: Pathname is too long\n", __func__);
++		exit(EXIT_FAILURE);
++	}
++
++	if (!read_file(path, buf, sizeof(buf))) {
++		perror(path);
++		exit(EXIT_FAILURE);
++	}
++
++	c = strchr(buf, '[');
++	if (!c) {
++		printf("%s: Parse failure\n", __func__);
++		exit(EXIT_FAILURE);
++	}
++
++	c++;
++	memmove(buf, c, sizeof(buf) - (c - buf));
++
++	c = strchr(buf, ']');
++	if (!c) {
++		printf("%s: Parse failure\n", __func__);
++		exit(EXIT_FAILURE);
++	}
++	*c = '\0';
++
++	ret = 0;
++	while (strings[ret]) {
++		if (!strcmp(strings[ret], buf))
++			return ret;
++		ret++;
++	}
++
++	printf("Failed to parse %s\n", name);
++	exit(EXIT_FAILURE);
++}
++
++void thp_write_string(const char *name, const char *val)
++{
++	char path[PATH_MAX];
++	int ret;
++
++	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
++	if (ret >= PATH_MAX) {
++		printf("%s: Pathname is too long\n", __func__);
++		exit(EXIT_FAILURE);
++	}
++
++	if (!write_file(path, val, strlen(val) + 1)) {
++		perror(path);
++		exit(EXIT_FAILURE);
++	}
++}
++
++const unsigned long thp_read_num(const char *name)
++{
++	char path[PATH_MAX];
++	int ret;
++
++	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
++	if (ret >= PATH_MAX) {
++		printf("%s: Pathname is too long\n", __func__);
++		exit(EXIT_FAILURE);
++	}
++	return read_num(path);
++}
++
++void thp_write_num(const char *name, unsigned long num)
++{
++	char path[PATH_MAX];
++	int ret;
++
++	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
++	if (ret >= PATH_MAX) {
++		printf("%s: Pathname is too long\n", __func__);
++		exit(EXIT_FAILURE);
++	}
++	write_num(path, num);
++}
++
++void thp_read_settings(struct thp_settings *settings)
++{
++	*settings = (struct thp_settings) {
++		.thp_enabled = thp_read_string("enabled", thp_enabled_strings),
++		.thp_defrag = thp_read_string("defrag", thp_defrag_strings),
++		.shmem_enabled =
++			thp_read_string("shmem_enabled", shmem_enabled_strings),
++		.use_zero_page = thp_read_num("use_zero_page"),
++	};
++	settings->khugepaged = (struct khugepaged_settings) {
++		.defrag = thp_read_num("khugepaged/defrag"),
++		.alloc_sleep_millisecs =
++			thp_read_num("khugepaged/alloc_sleep_millisecs"),
++		.scan_sleep_millisecs =
++			thp_read_num("khugepaged/scan_sleep_millisecs"),
++		.max_ptes_none = thp_read_num("khugepaged/max_ptes_none"),
++		.max_ptes_swap = thp_read_num("khugepaged/max_ptes_swap"),
++		.max_ptes_shared = thp_read_num("khugepaged/max_ptes_shared"),
++		.pages_to_scan = thp_read_num("khugepaged/pages_to_scan"),
++	};
++	if (dev_queue_read_ahead_path[0])
++		settings->read_ahead_kb = read_num(dev_queue_read_ahead_path);
++}
++
++void thp_write_settings(struct thp_settings *settings)
++{
++	struct khugepaged_settings *khugepaged = &settings->khugepaged;
++
++	thp_write_string("enabled", thp_enabled_strings[settings->thp_enabled]);
++	thp_write_string("defrag", thp_defrag_strings[settings->thp_defrag]);
++	thp_write_string("shmem_enabled",
++			shmem_enabled_strings[settings->shmem_enabled]);
++	thp_write_num("use_zero_page", settings->use_zero_page);
++
++	thp_write_num("khugepaged/defrag", khugepaged->defrag);
++	thp_write_num("khugepaged/alloc_sleep_millisecs",
++			khugepaged->alloc_sleep_millisecs);
++	thp_write_num("khugepaged/scan_sleep_millisecs",
++			khugepaged->scan_sleep_millisecs);
++	thp_write_num("khugepaged/max_ptes_none", khugepaged->max_ptes_none);
++	thp_write_num("khugepaged/max_ptes_swap", khugepaged->max_ptes_swap);
++	thp_write_num("khugepaged/max_ptes_shared", khugepaged->max_ptes_shared);
++	thp_write_num("khugepaged/pages_to_scan", khugepaged->pages_to_scan);
++
++	if (dev_queue_read_ahead_path[0])
++		write_num(dev_queue_read_ahead_path, settings->read_ahead_kb);
++}
++
++struct thp_settings *thp_current_settings(void)
++{
++	if (!settings_index) {
++		printf("Fail: No settings set");
++		exit(EXIT_FAILURE);
++	}
++	return settings_stack + settings_index - 1;
++}
++
++void thp_push_settings(struct thp_settings *settings)
++{
++	if (settings_index >= MAX_SETTINGS_DEPTH) {
++		printf("Fail: Settings stack exceeded");
++		exit(EXIT_FAILURE);
++	}
++	settings_stack[settings_index++] = *settings;
++	thp_write_settings(thp_current_settings());
++}
++
++void thp_pop_settings(void)
++{
++	if (settings_index <= 0) {
++		printf("Fail: Settings stack empty");
++		exit(EXIT_FAILURE);
++	}
++	--settings_index;
++	thp_write_settings(thp_current_settings());
++}
++
++void thp_restore_settings(void)
++{
++	thp_write_settings(&saved_settings);
++}
++
++void thp_save_settings(void)
++{
++	thp_read_settings(&saved_settings);
++}
++
++void thp_set_read_ahead_path(char *path)
++{
++	if (!path) {
++		dev_queue_read_ahead_path[0] = '\0';
++		return;
++	}
++
++	strncpy(dev_queue_read_ahead_path, path,
++		sizeof(dev_queue_read_ahead_path));
++	dev_queue_read_ahead_path[sizeof(dev_queue_read_ahead_path) - 1] = '\0';
++}
+--- /dev/null
++++ a/tools/testing/selftests/mm/thp_settings.h
+@@ -0,0 +1,71 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef __THP_SETTINGS_H__
++#define __THP_SETTINGS_H__
++
++#include <stdbool.h>
++#include <stddef.h>
++#include <stdint.h>
++
++enum thp_enabled {
++	THP_ALWAYS,
++	THP_MADVISE,
++	THP_NEVER,
++};
++
++enum thp_defrag {
++	THP_DEFRAG_ALWAYS,
++	THP_DEFRAG_DEFER,
++	THP_DEFRAG_DEFER_MADVISE,
++	THP_DEFRAG_MADVISE,
++	THP_DEFRAG_NEVER,
++};
++
++enum shmem_enabled {
++	SHMEM_ALWAYS,
++	SHMEM_WITHIN_SIZE,
++	SHMEM_ADVISE,
++	SHMEM_NEVER,
++	SHMEM_DENY,
++	SHMEM_FORCE,
++};
++
++struct khugepaged_settings {
++	bool defrag;
++	unsigned int alloc_sleep_millisecs;
++	unsigned int scan_sleep_millisecs;
++	unsigned int max_ptes_none;
++	unsigned int max_ptes_swap;
++	unsigned int max_ptes_shared;
++	unsigned long pages_to_scan;
++};
++
++struct thp_settings {
++	enum thp_enabled thp_enabled;
++	enum thp_defrag thp_defrag;
++	enum shmem_enabled shmem_enabled;
++	bool use_zero_page;
++	struct khugepaged_settings khugepaged;
++	unsigned long read_ahead_kb;
++};
++
++int read_file(const char *path, char *buf, size_t buflen);
++int write_file(const char *path, const char *buf, size_t buflen);
++const unsigned long read_num(const char *path);
++void write_num(const char *path, unsigned long num);
++
++int thp_read_string(const char *name, const char * const strings[]);
++void thp_write_string(const char *name, const char *val);
++const unsigned long thp_read_num(const char *name);
++void thp_write_num(const char *name, unsigned long num);
++
++void thp_write_settings(struct thp_settings *settings);
++void thp_read_settings(struct thp_settings *settings);
++struct thp_settings *thp_current_settings(void);
++void thp_push_settings(struct thp_settings *settings);
++void thp_pop_settings(void);
++void thp_restore_settings(void);
++void thp_save_settings(void);
++
++void thp_set_read_ahead_path(char *path);
++
++#endif /* __THP_SETTINGS_H__ */
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
