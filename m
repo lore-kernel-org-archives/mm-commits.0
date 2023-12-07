@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6BEEC4167B
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Dec 2023 22:05:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4424C4167B
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Dec 2023 22:12:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235307AbjLGWEz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 7 Dec 2023 17:04:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38302 "EHLO
+        id S232106AbjLGWMg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 7 Dec 2023 17:12:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34218 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235331AbjLGWEv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Dec 2023 17:04:51 -0500
+        with ESMTP id S231830AbjLGWMe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Dec 2023 17:12:34 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 313E110F9
-        for <mm-commits@vger.kernel.org>; Thu,  7 Dec 2023 14:04:46 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2B33C433C8;
-        Thu,  7 Dec 2023 22:04:45 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C2DF98
+        for <mm-commits@vger.kernel.org>; Thu,  7 Dec 2023 14:12:40 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CE94C433C8;
+        Thu,  7 Dec 2023 22:12:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701986685;
-        bh=fME7+Qw/SrdTXMyPxdxhPhJ9U2Y2r7tQnlaR5ZgzGso=;
+        s=korg; t=1701987160;
+        bh=YR7vGM7CzV0hLAhbPiBTsVDqU9rHHHSp0q3PCOUAq64=;
         h=Date:To:From:Subject:From;
-        b=Zm7rdL4HdrNOuSRt7pnW9Bs/LI73ZHVZjM8i0Jo+q7p1BrXidRqtYrbmFGKV0B/eR
-         tmqN5PU13SX70nHx/P7TcW3LEeNOXvASuTIb45h6OW2qF6QhthxyWmxuc6YH3HzwLr
-         wkJWjmXZ0ymiGC7jN5hybFRckFakV7qFlPhakAz4=
-Date:   Thu, 07 Dec 2023 14:04:45 -0800
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, yuzhao@google.com,
-        ying.huang@intel.com, willy@infradead.org,
-        wangkefeng.wang@huawei.com, v-songbaohua@oppo.com, vbabka@suse.cz,
-        shy828301@gmail.com, rientjes@google.com, mcgrof@kernel.org,
-        kirill.shutemov@linux.intel.com, jhubbard@nvidia.com,
-        itaru.kitayama@gmail.com, hughd@google.com, fengwei.yin@intel.com,
-        david@redhat.com, catalin.marinas@arm.com, apopple@nvidia.com,
-        anshuman.khandual@arm.com, ryan.roberts@arm.com,
-        akpm@linux-foundation.org
+        b=kUmtJxqR5CmXokefT/2roa6FZHU8MVgoK/6ZcvTknewJzE/AaCJ8j8FVT05IawivK
+         hzBCBM06t+PqmUbA8kpz8QiDdPNfJtyY0AQ9N0Crr+zFJGgBW6aa28URbYIbi0TUVS
+         omLLhIf53Wh2Rbw62ulXqjZ3xB0fMdQKtE6UjN9g=
+Date:   Thu, 07 Dec 2023 14:12:39 -0800
+To:     mm-commits@vger.kernel.org, yosryahmed@google.com,
+        vitaly.wool@konsulko.com, tj@kernel.org, sjenning@redhat.com,
+        shakeelb@google.com, senozhatsky@chromium.org, rppt@kernel.org,
+        roman.gushchin@linux.dev, muchun.song@linux.dev, mhocko@kernel.org,
+        lizefan.x@bytedance.com, konrad.wilk@oracle.com, hughd@google.com,
+        hannes@cmpxchg.org, ddstreet@ieee.org, david@ixit.cz,
+        corbet@lwn.net, chrisl@kernel.org, cerasuolodomenico@gmail.com,
+        nphamcs@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-cow-add-tests-for-anonymous-multi-size-thp.patch added to mm-unstable branch
-Message-Id: <20231207220445.C2B33C433C8@smtp.kernel.org>
+Subject: + zswap-memcontrol-implement-zswap-writeback-disabling.patch added to mm-unstable branch
+Message-Id: <20231207221240.0CE94C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +42,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/mm/cow: add tests for anonymous multi-size THP
+     Subject: zswap: memcontrol: implement zswap writeback disabling
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-cow-add-tests-for-anonymous-multi-size-thp.patch
+     zswap-memcontrol-implement-zswap-writeback-disabling.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-cow-add-tests-for-anonymous-multi-size-thp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zswap-memcontrol-implement-zswap-writeback-disabling.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,193 +65,312 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: selftests/mm/cow: add tests for anonymous multi-size THP
-Date: Thu, 7 Dec 2023 16:12:11 +0000
+From: Nhat Pham <nphamcs@gmail.com>
+Subject: zswap: memcontrol: implement zswap writeback disabling
+Date: Thu, 7 Dec 2023 11:24:06 -0800
 
-Add tests similar to the existing PMD-sized THP tests, but which operate
-on memory backed by (PTE-mapped) multi-size THP.  This reuses all the
-existing infrastructure.  If the test suite detects that multi-size THP is
-not supported by the kernel, the new tests are skipped.
+During our experiment with zswap, we sometimes observe swap IOs due to
+occasional zswap store failures and writebacks-to-swap.  These swapping
+IOs prevent many users who cannot tolerate swapping from adopting zswap to
+save memory and improve performance where possible.
 
-Link: https://lkml.kernel.org/r/20231207161211.2374093-11-ryan.roberts@arm.com
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Tested-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Tested-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Barry Song <v-songbaohua@oppo.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
+This patch adds the option to disable this behavior entirely: do not
+writeback to backing swapping device when a zswap store attempt fail, and
+do not write pages in the zswap pool back to the backing swap device (both
+when the pool is full, and when the new zswap shrinker is called).
+
+This new behavior can be opted-in/out on a per-cgroup basis via a new
+cgroup file.  By default, writebacks to swap device is enabled, which is
+the previous behavior.  Initially, writeback is enabled for the root
+cgroup, and a newly created cgroup will inherit the current setting of its
+parent.
+
+Note that this is subtly different from setting memory.swap.max to 0, as
+it still allows for pages to be stored in the zswap pool (which itself
+consumes swap space in its current form).
+
+This patch should be applied on top of the zswap shrinker series:
+
+https://lore.kernel.org/linux-mm/20231130194023.4102148-1-nphamcs@gmail.com/
+
+as it also disables the zswap shrinker, a major source of zswap
+writebacks.
+
+Link: https://lkml.kernel.org/r/20231207192406.3809579-1-nphamcs@gmail.com
+Signed-off-by: Nhat Pham <nphamcs@gmail.com>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: David Heidelberg <david@ixit.cz>
+Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Itaru Kitayama <itaru.kitayama@gmail.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yin Fengwei <fengwei.yin@intel.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/cow.c |   84 ++++++++++++++++++++++++-----
- 1 file changed, 72 insertions(+), 12 deletions(-)
+ Documentation/admin-guide/cgroup-v2.rst |   12 ++++++
+ Documentation/admin-guide/mm/zswap.rst  |    6 +++
+ include/linux/memcontrol.h              |   12 ++++++
+ include/linux/zswap.h                   |    6 +++
+ mm/memcontrol.c                         |   38 ++++++++++++++++++++++
+ mm/page_io.c                            |    6 +++
+ mm/shmem.c                              |    3 -
+ mm/zswap.c                              |   13 ++++++-
+ 8 files changed, 92 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/mm/cow.c~selftests-mm-cow-add-tests-for-anonymous-multi-size-thp
-+++ a/tools/testing/selftests/mm/cow.c
-@@ -29,15 +29,49 @@
- #include "../../../../mm/gup_test.h"
- #include "../kselftest.h"
- #include "vm_util.h"
-+#include "thp_settings.h"
+--- a/Documentation/admin-guide/cgroup-v2.rst~zswap-memcontrol-implement-zswap-writeback-disabling
++++ a/Documentation/admin-guide/cgroup-v2.rst
+@@ -1679,6 +1679,18 @@ PAGE_SIZE multiple when read back.
+ 	limit, it will refuse to take any more stores before existing
+ 	entries fault back in or are written out to disk.
  
- static size_t pagesize;
- static int pagemap_fd;
- static size_t pmdsize;
-+static int nr_thpsizes;
-+static size_t thpsizes[20];
- static int nr_hugetlbsizes;
- static size_t hugetlbsizes[10];
- static int gup_fd;
- static bool has_huge_zeropage;
++  memory.zswap.writeback
++	A read-write single value file. The default value is "1". The
++	initial value of the root cgroup is 1, and when a new cgroup is
++	created, it inherits the current value of its parent.
++
++	When this is set to 0, all swapping attempts to swapping devices
++	are disabled. This included both zswap writebacks, and swapping due
++	to zswap store failure.
++
++	Note that this is subtly different from setting memory.swap.max to
++	0, as it still allows for pages to be written to the zswap pool.
++
+   memory.pressure
+ 	A read-only nested-keyed file.
  
-+static int sz2ord(size_t size)
-+{
-+	return __builtin_ctzll(size / pagesize);
-+}
+--- a/Documentation/admin-guide/mm/zswap.rst~zswap-memcontrol-implement-zswap-writeback-disabling
++++ a/Documentation/admin-guide/mm/zswap.rst
+@@ -153,6 +153,12 @@ attribute, e. g.::
+ 
+ Setting this parameter to 100 will disable the hysteresis.
+ 
++Some users cannot tolerate the swapping that comes with zswap store failures
++and zswap writebacks. Swapping can be disabled entirely (without disabling
++zswap itself) on a cgroup-basis as follows:
 +
-+static int detect_thp_sizes(size_t sizes[], int max)
-+{
-+	int count = 0;
-+	unsigned long orders;
-+	size_t kb;
-+	int i;
++	echo 0 > /sys/fs/cgroup/<cgroup-name>/memory.zswap.writeback
 +
-+	/* thp not supported at all. */
-+	if (!pmdsize)
-+		return 0;
+ When there is a sizable amount of cold memory residing in the zswap pool, it
+ can be advantageous to proactively write these cold pages to swap and reclaim
+ the memory for other use cases. By default, the zswap shrinker is disabled.
+--- a/include/linux/memcontrol.h~zswap-memcontrol-implement-zswap-writeback-disabling
++++ a/include/linux/memcontrol.h
+@@ -219,6 +219,12 @@ struct mem_cgroup {
+ 
+ #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
+ 	unsigned long zswap_max;
 +
-+	orders = 1UL << sz2ord(pmdsize);
-+	orders |= thp_supported_orders();
-+
-+	for (i = 0; orders && count < max; i++) {
-+		if (!(orders & (1UL << i)))
-+			continue;
-+		orders &= ~(1UL << i);
-+		kb = (pagesize >> 10) << i;
-+		sizes[count++] = kb * 1024;
-+		ksft_print_msg("[INFO] detected THP size: %zu KiB\n", kb);
-+	}
-+
-+	return count;
-+}
-+
- static void detect_huge_zeropage(void)
++	/*
++	 * Prevent pages from this memcg from being written back from zswap to
++	 * swap, and from being swapped out on zswap store failures.
++	 */
++	bool zswap_writeback;
+ #endif
+ 
+ 	unsigned long soft_limit;
+@@ -1941,6 +1947,7 @@ static inline void count_objcg_event(str
+ bool obj_cgroup_may_zswap(struct obj_cgroup *objcg);
+ void obj_cgroup_charge_zswap(struct obj_cgroup *objcg, size_t size);
+ void obj_cgroup_uncharge_zswap(struct obj_cgroup *objcg, size_t size);
++bool mem_cgroup_zswap_writeback_enabled(struct mem_cgroup *memcg);
+ #else
+ static inline bool obj_cgroup_may_zswap(struct obj_cgroup *objcg)
  {
- 	int fd = open("/sys/kernel/mm/transparent_hugepage/use_zero_page",
-@@ -1101,15 +1135,27 @@ static void run_anon_test_case(struct te
- 
- 	run_with_base_page(test_case->fn, test_case->desc);
- 	run_with_base_page_swap(test_case->fn, test_case->desc);
--	if (pmdsize) {
--		run_with_thp(test_case->fn, test_case->desc, pmdsize);
--		run_with_thp_swap(test_case->fn, test_case->desc, pmdsize);
--		run_with_pte_mapped_thp(test_case->fn, test_case->desc, pmdsize);
--		run_with_pte_mapped_thp_swap(test_case->fn, test_case->desc, pmdsize);
--		run_with_single_pte_of_thp(test_case->fn, test_case->desc, pmdsize);
--		run_with_single_pte_of_thp_swap(test_case->fn, test_case->desc, pmdsize);
--		run_with_partial_mremap_thp(test_case->fn, test_case->desc, pmdsize);
--		run_with_partial_shared_thp(test_case->fn, test_case->desc, pmdsize);
-+	for (i = 0; i < nr_thpsizes; i++) {
-+		size_t size = thpsizes[i];
-+		struct thp_settings settings = *thp_current_settings();
-+
-+		settings.hugepages[sz2ord(pmdsize)].enabled = THP_NEVER;
-+		settings.hugepages[sz2ord(size)].enabled = THP_ALWAYS;
-+		thp_push_settings(&settings);
-+
-+		if (size == pmdsize) {
-+			run_with_thp(test_case->fn, test_case->desc, size);
-+			run_with_thp_swap(test_case->fn, test_case->desc, size);
-+		}
-+
-+		run_with_pte_mapped_thp(test_case->fn, test_case->desc, size);
-+		run_with_pte_mapped_thp_swap(test_case->fn, test_case->desc, size);
-+		run_with_single_pte_of_thp(test_case->fn, test_case->desc, size);
-+		run_with_single_pte_of_thp_swap(test_case->fn, test_case->desc, size);
-+		run_with_partial_mremap_thp(test_case->fn, test_case->desc, size);
-+		run_with_partial_shared_thp(test_case->fn, test_case->desc, size);
-+
-+		thp_pop_settings();
- 	}
- 	for (i = 0; i < nr_hugetlbsizes; i++)
- 		run_with_hugetlb(test_case->fn, test_case->desc,
-@@ -1130,8 +1176,9 @@ static int tests_per_anon_test_case(void
+@@ -1954,6 +1961,11 @@ static inline void obj_cgroup_uncharge_z
+ 					     size_t size)
  {
- 	int tests = 2 + nr_hugetlbsizes;
+ }
++static inline bool mem_cgroup_zswap_writeback_enabled(struct mem_cgroup *memcg)
++{
++	/* if zswap is disabled, do not block pages going to the swapping device */
++	return true;
++}
+ #endif
  
-+	tests += 6 * nr_thpsizes;
- 	if (pmdsize)
--		tests += 8;
-+		tests += 2;
- 	return tests;
+ #endif /* _LINUX_MEMCONTROL_H */
+--- a/include/linux/zswap.h~zswap-memcontrol-implement-zswap-writeback-disabling
++++ a/include/linux/zswap.h
+@@ -35,6 +35,7 @@ void zswap_swapoff(int type);
+ void zswap_memcg_offline_cleanup(struct mem_cgroup *memcg);
+ void zswap_lruvec_state_init(struct lruvec *lruvec);
+ void zswap_page_swapin(struct page *page);
++bool is_zswap_enabled(void);
+ #else
+ 
+ struct zswap_lruvec_state {};
+@@ -55,6 +56,11 @@ static inline void zswap_swapoff(int typ
+ static inline void zswap_memcg_offline_cleanup(struct mem_cgroup *memcg) {}
+ static inline void zswap_lruvec_state_init(struct lruvec *lruvec) {}
+ static inline void zswap_page_swapin(struct page *page) {}
++
++static inline bool is_zswap_enabled(void)
++{
++	return false;
++}
+ #endif
+ 
+ #endif /* _LINUX_ZSWAP_H */
+--- a/mm/memcontrol.c~zswap-memcontrol-implement-zswap-writeback-disabling
++++ a/mm/memcontrol.c
+@@ -5538,6 +5538,8 @@ mem_cgroup_css_alloc(struct cgroup_subsy
+ 	WRITE_ONCE(memcg->soft_limit, PAGE_COUNTER_MAX);
+ #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
+ 	memcg->zswap_max = PAGE_COUNTER_MAX;
++	WRITE_ONCE(memcg->zswap_writeback,
++		!parent || READ_ONCE(parent->zswap_writeback));
+ #endif
+ 	page_counter_set_high(&memcg->swap, PAGE_COUNTER_MAX);
+ 	if (parent) {
+@@ -8166,6 +8168,12 @@ void obj_cgroup_uncharge_zswap(struct ob
+ 	rcu_read_unlock();
  }
  
-@@ -1689,15 +1736,23 @@ static int tests_per_non_anon_test_case(
- int main(int argc, char **argv)
++bool mem_cgroup_zswap_writeback_enabled(struct mem_cgroup *memcg)
++{
++	/* if zswap is disabled, do not block pages going to the swapping device */
++	return !is_zswap_enabled() || !memcg || READ_ONCE(memcg->zswap_writeback);
++}
++
+ static u64 zswap_current_read(struct cgroup_subsys_state *css,
+ 			      struct cftype *cft)
  {
- 	int err;
-+	struct thp_settings default_settings;
+@@ -8198,6 +8206,31 @@ static ssize_t zswap_max_write(struct ke
+ 	return nbytes;
+ }
  
- 	pagesize = getpagesize();
- 	pmdsize = read_pmd_pagesize();
- 	if (pmdsize) {
-+		/* Only if THP is supported. */
-+		thp_read_settings(&default_settings);
-+		default_settings.hugepages[sz2ord(pmdsize)].enabled = THP_INHERIT;
-+		thp_save_settings();
-+		thp_push_settings(&default_settings);
++static int zswap_writeback_show(struct seq_file *m, void *v)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
 +
- 		ksft_print_msg("[INFO] detected PMD size: %zu KiB\n",
- 			       pmdsize / 1024);
--		ksft_print_msg("[INFO] detected THP size: %zu KiB\n",
--			       pmdsize / 1024);
++	seq_printf(m, "%d\n", READ_ONCE(memcg->zswap_writeback));
++	return 0;
++}
 +
-+		nr_thpsizes = detect_thp_sizes(thpsizes, ARRAY_SIZE(thpsizes));
++static ssize_t zswap_writeback_write(struct kernfs_open_file *of,
++				char *buf, size_t nbytes, loff_t off)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
++	int zswap_writeback;
++	ssize_t parse_ret = kstrtoint(strstrip(buf), 0, &zswap_writeback);
++
++	if (parse_ret)
++		return parse_ret;
++
++	if (zswap_writeback != 0 && zswap_writeback != 1)
++		return -EINVAL;
++
++	WRITE_ONCE(memcg->zswap_writeback, zswap_writeback);
++	return nbytes;
++}
++
+ static struct cftype zswap_files[] = {
+ 	{
+ 		.name = "zswap.current",
+@@ -8210,6 +8243,11 @@ static struct cftype zswap_files[] = {
+ 		.seq_show = zswap_max_show,
+ 		.write = zswap_max_write,
+ 	},
++	{
++		.name = "zswap.writeback",
++		.seq_show = zswap_writeback_show,
++		.write = zswap_writeback_write,
++	},
+ 	{ }	/* terminate */
+ };
+ #endif /* CONFIG_MEMCG_KMEM && CONFIG_ZSWAP */
+--- a/mm/page_io.c~zswap-memcontrol-implement-zswap-writeback-disabling
++++ a/mm/page_io.c
+@@ -201,6 +201,12 @@ int swap_writepage(struct page *page, st
+ 		folio_end_writeback(folio);
+ 		return 0;
  	}
 +
- 	nr_hugetlbsizes = detect_hugetlb_page_sizes(hugetlbsizes,
- 						    ARRAY_SIZE(hugetlbsizes));
- 	detect_huge_zeropage();
-@@ -1716,6 +1771,11 @@ int main(int argc, char **argv)
- 	run_anon_thp_test_cases();
- 	run_non_anon_test_cases();
- 
-+	if (pmdsize) {
-+		/* Only if THP is supported. */
-+		thp_restore_settings();
++	if (!mem_cgroup_zswap_writeback_enabled(folio_memcg(folio))) {
++		folio_mark_dirty(folio);
++		return AOP_WRITEPAGE_ACTIVATE;
 +	}
 +
- 	err = ksft_get_fail_cnt();
- 	if (err)
- 		ksft_exit_fail_msg("%d out of %d tests failed\n",
+ 	__swap_writepage(&folio->page, wbc);
+ 	return 0;
+ }
+--- a/mm/shmem.c~zswap-memcontrol-implement-zswap-writeback-disabling
++++ a/mm/shmem.c
+@@ -1514,8 +1514,7 @@ static int shmem_writepage(struct page *
+ 
+ 		mutex_unlock(&shmem_swaplist_mutex);
+ 		BUG_ON(folio_mapped(folio));
+-		swap_writepage(&folio->page, wbc);
+-		return 0;
++		return swap_writepage(&folio->page, wbc);
+ 	}
+ 
+ 	mutex_unlock(&shmem_swaplist_mutex);
+--- a/mm/zswap.c~zswap-memcontrol-implement-zswap-writeback-disabling
++++ a/mm/zswap.c
+@@ -153,6 +153,11 @@ static bool zswap_shrinker_enabled = IS_
+ 		CONFIG_ZSWAP_SHRINKER_DEFAULT_ON);
+ module_param_named(shrinker_enabled, zswap_shrinker_enabled, bool, 0644);
+ 
++bool is_zswap_enabled(void)
++{
++	return zswap_enabled;
++}
++
+ /*********************************
+ * data structures
+ **********************************/
+@@ -596,7 +601,8 @@ static unsigned long zswap_shrinker_scan
+ 	struct zswap_pool *pool = shrinker->private_data;
+ 	bool encountered_page_in_swapcache = false;
+ 
+-	if (!zswap_shrinker_enabled) {
++	if (!zswap_shrinker_enabled ||
++			!mem_cgroup_zswap_writeback_enabled(sc->memcg)) {
+ 		sc->nr_scanned = 0;
+ 		return SHRINK_STOP;
+ 	}
+@@ -637,7 +643,7 @@ static unsigned long zswap_shrinker_coun
+ 	struct lruvec *lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(sc->nid));
+ 	unsigned long nr_backing, nr_stored, nr_freeable, nr_protected;
+ 
+-	if (!zswap_shrinker_enabled)
++	if (!zswap_shrinker_enabled || !mem_cgroup_zswap_writeback_enabled(memcg))
+ 		return 0;
+ 
+ #ifdef CONFIG_MEMCG_KMEM
+@@ -956,6 +962,9 @@ static int shrink_memcg(struct mem_cgrou
+ 	struct zswap_pool *pool;
+ 	int nid, shrunk = 0;
+ 
++	if (!mem_cgroup_zswap_writeback_enabled(memcg))
++		return -EINVAL;
++
+ 	/*
+ 	 * Skip zombies because their LRUs are reparented and we would be
+ 	 * reclaiming from the parent instead of the dead memcg.
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from nphamcs@gmail.com are
 
-mm-readahead-do-not-allow-order-1-folio.patch
-mm-allow-deferred-splitting-of-arbitrary-anon-large-folios.patch
-mm-non-pmd-mappable-large-folios-for-folio_add_new_anon_rmap.patch
-mm-thp-introduce-multi-size-thp-sysfs-interface.patch
-mm-thp-support-allocation-of-anonymous-multi-size-thp.patch
-selftests-mm-kugepaged-restore-thp-settings-at-exit.patch
-selftests-mm-factor-out-thp-settings-management.patch
-selftests-mm-support-multi-size-thp-interface-in-thp_settings.patch
-selftests-mm-khugepaged-enlighten-for-multi-size-thp.patch
-selftests-mm-cow-generalize-do_run_with_thp-helper.patch
-selftests-mm-cow-add-tests-for-anonymous-multi-size-thp.patch
+list_lru-allows-explicit-memcg-and-numa-node-selection.patch
+memcontrol-implement-mem_cgroup_tryget_online.patch
+zswap-make-shrinking-memcg-aware-fix.patch
+zswap-make-shrinking-memcg-aware-fix-2.patch
+mm-memcg-add-per-memcg-zswap-writeback-stat-fix.patch
+zswap-shrinks-zswap-pool-based-on-memory-pressure.patch
+zswap-shrinks-zswap-pool-based-on-memory-pressure-fix.patch
+zswap-memcontrol-implement-zswap-writeback-disabling.patch
 
