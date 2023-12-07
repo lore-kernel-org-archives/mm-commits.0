@@ -2,35 +2,33 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21A8CC4167B
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Dec 2023 00:14:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA3EDC10DC1
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Dec 2023 00:14:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1442959AbjLGAOD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 6 Dec 2023 19:14:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45836 "EHLO
+        id S1442120AbjLGAOF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 6 Dec 2023 19:14:05 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42608 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1442955AbjLGANt (ORCPT
+        with ESMTP id S1442038AbjLGANt (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Dec 2023 19:13:49 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C32D4D6D
-        for <mm-commits@vger.kernel.org>; Wed,  6 Dec 2023 16:13:44 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 906C4C433CA;
-        Thu,  7 Dec 2023 00:13:44 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C14AAD72
+        for <mm-commits@vger.kernel.org>; Wed,  6 Dec 2023 16:13:47 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D325C433CB;
+        Thu,  7 Dec 2023 00:13:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701908024;
-        bh=leflEmKPfZ/o8ZBaPV7donMFkd7+lm2AJDslWAXycBc=;
+        s=korg; t=1701908027;
+        bh=OXyyZjXHuVBzSNd6xhzYBujd1k8HzwdZSK3FzeE40pk=;
         h=Date:To:From:Subject:From;
-        b=NyuXpf0O67z92XnJLCPnXo4XX8R5oI6YouBKvV6TeRR6vBou14DHxmO0fj0q8F/Dz
-         GO8qe47/KieZKFP1hyW6vznBi8PlggAx4WJAzAIjLgwRere/a6VIBnNR4lI34JlVeW
-         WVESNYk0hhY+TXv3XfIKF2/VIuqrcZusi8ZDbq4k=
-Date:   Wed, 06 Dec 2023 16:13:44 -0800
-To:     mm-commits@vger.kernel.org, u.kleine-koenig@pengutronix.de,
-        mchehab@kernel.org, lukas.bulwahn@gmail.com,
-        hverkuil-cisco@xs4all.nl, crope@iki.fi, bagasdotme@gmail.com,
-        akpm@linux-foundation.org
+        b=kRcUjPwBVGFkTGyOjwXLYFx5ApWb8XU28JbLFP3kO5LM8MFYog2k+xjfE2rXtxMGu
+         //3TNHxpI2g1UvQHS45uOsx0Lgqe0zV1wYVsRZqRkoeqLs0aXMQUwiguk6lLJWQK59
+         cpVEQEYQTR33hBFBaA3KO89WQQKxg2pPVGnSyaHI=
+Date:   Wed, 06 Dec 2023 16:13:47 -0800
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        konishi.ryusuke@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-drop-antti-palosaari.patch removed from -mm tree
-Message-Id: <20231207001344.906C4C433CA@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nilfs2-prevent-warning-in-nilfs_sufile_set_segment_usage.patch removed from -mm tree
+Message-Id: <20231207001347.8D325C433CB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,556 +36,122 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: drop Antti Palosaari
+     Subject: nilfs2: prevent WARNING in nilfs_sufile_set_segment_usage()
 has been removed from the -mm tree.  Its filename was
-     maintainers-drop-antti-palosaari.patch
+     nilfs2-prevent-warning-in-nilfs_sufile_set_segment_usage.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Bagas Sanjaya <bagasdotme@gmail.com>
-Subject: MAINTAINERS: drop Antti Palosaari
-Date: Thu, 30 Nov 2023 15:38:48 +0700
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: prevent WARNING in nilfs_sufile_set_segment_usage()
+Date: Tue, 5 Dec 2023 17:59:47 +0900
 
-He is currently inactive (last message from him is two years ago [1]). 
-His media tree [2] is also dormant (latest activity is 6 years ago), yet
-his site is still online [3].
+If nilfs2 reads a disk image with corrupted segment usage metadata, and
+its segment usage information is marked as an error for the segment at the
+write location, nilfs_sufile_set_segment_usage() can trigger WARN_ONs
+during log writing.
 
-Drop him from MAINTAINERS and add CREDITS entry for him. We thank him
-for maintaining various DVB drivers.
+Segments newly allocated for writing with nilfs_sufile_alloc() will not
+have this error flag set, but this unexpected situation will occur if the
+segment indexed by either nilfs->ns_segnum or nilfs->ns_nextnum (active
+segment) was marked in error.
 
-[1]: https://lore.kernel.org/all/660772b3-0597-02db-ed94-c6a9be04e8e8@iki.fi/
-[2]: https://git.linuxtv.org/anttip/media_tree.git/
-[3]: https://palosaari.fi/linux/
+Fix this issue by inserting a sanity check to treat it as a file system
+corruption.
 
-Link: https://lkml.kernel.org/r/20231130083848.5396-1-bagasdotme@gmail.com
-Signed-off-by: Bagas Sanjaya <bagasdotme@gmail.com>
-Acked-by: Antti Palosaari <crope@iki.fi>
-Cc: Hans Verkuil <hverkuil-cisco@xs4all.nl>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+Since error returns are not allowed during the execution phase where
+nilfs_sufile_set_segment_usage() is used, this inserts the sanity check
+into nilfs_sufile_mark_dirty() which pre-reads the buffer containing the
+segment usage record to be updated and sets it up in a dirty state for
+writing.
+
+In addition, nilfs_sufile_set_segment_usage() is also called when
+canceling log writing and undoing segment usage update, so in order to
+avoid issuing the same kernel warning in that case, in case of
+cancellation, avoid checking the error flag in
+nilfs_sufile_set_segment_usage().
+
+Link: https://lkml.kernel.org/r/20231205085947.4431-1-konishi.ryusuke@gmail.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: syzbot+14e9f834f6ddecece094@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=14e9f834f6ddecece094
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- CREDITS     |    8 ++
- MAINTAINERS |  179 ++++++++++----------------------------------------
- 2 files changed, 45 insertions(+), 142 deletions(-)
+ fs/nilfs2/sufile.c |   42 +++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 35 insertions(+), 7 deletions(-)
 
---- a/CREDITS~maintainers-drop-antti-palosaari
-+++ a/CREDITS
-@@ -2944,6 +2944,14 @@ D: IPX development and support
- N: Venkatesh Pallipadi (Venki)
- D: x86/HPET
+--- a/fs/nilfs2/sufile.c~nilfs2-prevent-warning-in-nilfs_sufile_set_segment_usage
++++ a/fs/nilfs2/sufile.c
+@@ -501,15 +501,38 @@ int nilfs_sufile_mark_dirty(struct inode
  
-+N: Antti Palosaari
-+E: crope@iki.fi
-+D: Various DVB drivers
-+W: https://palosaari.fi/linux/
-+S: Yliopistokatu 1 D 513
-+S: FI-90570 Oulu
-+S: FINLAND
+ 	down_write(&NILFS_MDT(sufile)->mi_sem);
+ 	ret = nilfs_sufile_get_segment_usage_block(sufile, segnum, 0, &bh);
+-	if (!ret) {
+-		mark_buffer_dirty(bh);
+-		nilfs_mdt_mark_dirty(sufile);
+-		kaddr = kmap_atomic(bh->b_page);
+-		su = nilfs_sufile_block_get_segment_usage(sufile, segnum, bh, kaddr);
++	if (ret)
++		goto out_sem;
 +
- N: Kyungmin Park
- E: kyungmin.park@samsung.com
- D: Samsung S5Pv210 and Exynos4210 mobile platforms
---- a/MAINTAINERS~maintainers-drop-antti-palosaari
-+++ a/MAINTAINERS
-@@ -171,13 +171,10 @@ S:	Supported
- F:	drivers/soc/fujitsu/a64fx-diag.c
++	kaddr = kmap_atomic(bh->b_page);
++	su = nilfs_sufile_block_get_segment_usage(sufile, segnum, bh, kaddr);
++	if (unlikely(nilfs_segment_usage_error(su))) {
++		struct the_nilfs *nilfs = sufile->i_sb->s_fs_info;
++
++		kunmap_atomic(kaddr);
++		brelse(bh);
++		if (nilfs_segment_is_active(nilfs, segnum)) {
++			nilfs_error(sufile->i_sb,
++				    "active segment %llu is erroneous",
++				    (unsigned long long)segnum);
++		} else {
++			/*
++			 * Segments marked erroneous are never allocated by
++			 * nilfs_sufile_alloc(); only active segments, ie,
++			 * the segments indexed by ns_segnum or ns_nextnum,
++			 * can be erroneous here.
++			 */
++			WARN_ON_ONCE(1);
++		}
++		ret = -EIO;
++	} else {
+ 		nilfs_segment_usage_set_dirty(su);
+ 		kunmap_atomic(kaddr);
++		mark_buffer_dirty(bh);
++		nilfs_mdt_mark_dirty(sufile);
+ 		brelse(bh);
+ 	}
++out_sem:
+ 	up_write(&NILFS_MDT(sufile)->mi_sem);
+ 	return ret;
+ }
+@@ -536,9 +559,14 @@ int nilfs_sufile_set_segment_usage(struc
  
- A8293 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/dvb-frontends/a8293*
- 
- AACRAID SCSI RAID DRIVER
-@@ -576,23 +573,17 @@ F:	drivers/iio/accel/adxl372_i2c.c
- F:	drivers/iio/accel/adxl372_spi.c
- 
- AF9013 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/dvb-frontends/af9013*
- 
- AF9033 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/dvb-frontends/af9033*
- 
- AFFS FILE SYSTEM
-@@ -650,13 +641,10 @@ F:	fs/aio.c
- F:	include/linux/*aio*.h
- 
- AIRSPY MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/usb/airspy/
- 
- ALACRITECH GIGABIT ETHERNET DRIVER
-@@ -5605,13 +5593,10 @@ F:	Documentation/driver-api/media/driver
- F:	drivers/media/pci/cx88/
- 
- CXD2820R MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/dvb-frontends/cxd2820r*
- 
- CXGB3 ETHERNET DRIVER (CXGB3)
-@@ -5724,13 +5709,10 @@ F:	Documentation/devicetree/bindings/inp
- F:	drivers/input/keyboard/cypress-sf.c
- 
- CYPRESS_FIRMWARE MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/common/cypress_firmware*
- 
- CYTTSP TOUCHSCREEN DRIVER
-@@ -7320,53 +7302,38 @@ T:	git git://linuxtv.org/media_tree.git
- F:	drivers/media/pci/dt3155/
- 
- DVB_USB_AF9015 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/usb/dvb-usb-v2/af9015*
- 
- DVB_USB_AF9035 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/usb/dvb-usb-v2/af9035*
- 
- DVB_USB_ANYSEE MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/usb/dvb-usb-v2/anysee*
- 
- DVB_USB_AU6610 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/usb/dvb-usb-v2/au6610*
- 
- DVB_USB_CE6230 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/usb/dvb-usb-v2/ce6230*
- 
- DVB_USB_CXUSB MEDIA DRIVER
-@@ -7380,22 +7347,17 @@ T:	git git://linuxtv.org/media_tree.git
- F:	drivers/media/usb/dvb-usb/cxusb*
- 
- DVB_USB_EC168 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/usb/dvb-usb-v2/ec168*
- 
- DVB_USB_GL861 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/usb/dvb-usb-v2/gl861*
- 
- DVB_USB_MXL111SF MEDIA DRIVER
-@@ -7409,23 +7371,18 @@ T:	git git://linuxtv.org/mkrufky/mxl111s
- F:	drivers/media/usb/dvb-usb-v2/mxl111sf*
- 
- DVB_USB_RTL28XXU MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/usb/dvb-usb-v2/rtl28xxu*
- 
- DVB_USB_V2 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
- W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/usb/dvb-usb-v2/dvb_usb*
- F:	drivers/media/usb/dvb-usb-v2/usb_urb.c
- 
-@@ -7467,13 +7424,10 @@ F:	Documentation/devicetree/bindings/inp
- F:	drivers/input/misc/e3x0-button.c
- 
- E4000 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/tuners/e4000*
- 
- EARTH_PT1 MEDIA DRIVER
-@@ -7489,13 +7443,10 @@ S:	Odd Fixes
- F:	drivers/media/pci/pt3/
- 
- EC100 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/dvb-frontends/ec100*
- 
- ECRYPT FILE SYSTEM
-@@ -8113,13 +8064,10 @@ F:	drivers/media/tuners/fc0011.c
- F:	drivers/media/tuners/fc0011.h
- 
- FC2580 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/tuners/fc2580*
- 
- FCOE SUBSYSTEM (libfc, libfcoe, fcoe)
-@@ -9249,13 +9197,10 @@ F:	include/trace/events/habanalabs.h
- F:	include/uapi/drm/habanalabs_accel.h
- 
- HACKRF MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/usb/hackrf/
- 
- HANDSHAKE UPCALL FOR TRANSPORT LAYER SECURITY
-@@ -11328,13 +11273,10 @@ F:	Documentation/hwmon/it87.rst
- F:	drivers/hwmon/it87.c
- 
- IT913X MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/tuners/it913x*
- 
- ITE IT66121 HDMI BRIDGE DRIVER
-@@ -12694,13 +12636,10 @@ W:	http://www.tazenda.demon.co.uk/phil/l
- F:	arch/m68k/hp300/
- 
- M88DS3103 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/dvb-frontends/m88ds3103*
- 
- M88RS2000 MEDIA DRIVER
-@@ -14594,20 +14533,16 @@ F:	include/asm-generic/tlb.h
- F:	mm/mmu_gather.c
- 
- MN88472 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
- F:	drivers/media/dvb-frontends/mn88472*
- 
- MN88473 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
- F:	drivers/media/dvb-frontends/mn88473*
- 
-@@ -14695,23 +14630,17 @@ S:	Orphan
- F:	drivers/platform/x86/msi-wmi.c
- 
- MSI001 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/tuners/msi001*
- 
- MSI2500 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/usb/msi2500/
- 
- MSTAR INTERRUPT CONTROLLER DRIVER
-@@ -17782,13 +17711,10 @@ F:	drivers/bus/fsl-mc/
- F:	include/uapi/linux/fsl_mc.h
- 
- QT1010 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/tuners/qt1010*
- 
- QUALCOMM ATH12K WIRELESS DRIVER
-@@ -18841,33 +18767,24 @@ S:	Maintained
- F:	drivers/tty/rpmsg_tty.c
- 
- RTL2830 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/dvb-frontends/rtl2830*
- 
- RTL2832 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/dvb-frontends/rtl2832*
- 
- RTL2832_SDR MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/dvb-frontends/rtl2832_sdr*
- 
- RTL8180 WIRELESS DRIVER
-@@ -19677,13 +19594,10 @@ F:	drivers/media/platform/renesas/sh_vou
- F:	include/media/drv-intf/sh_vou.h
- 
- SI2157 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/tuners/si2157*
- 
- SI2165 MEDIA DRIVER
-@@ -19695,13 +19609,10 @@ Q:	http://patchwork.linuxtv.org/project/
- F:	drivers/media/dvb-frontends/si2165*
- 
- SI2168 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/dvb-frontends/si2168*
- 
- SI470X FM RADIO RECEIVER I2C DRIVER
-@@ -21203,33 +21114,24 @@ W:	http://tcp-lp-mod.sourceforge.net/
- F:	net/ipv4/tcp_lp.c
- 
- TDA10071 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/dvb-frontends/tda10071*
- 
- TDA18212 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/tuners/tda18212*
- 
- TDA18218 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/tuners/tda18218*
- 
- TDA18250 MEDIA DRIVER
-@@ -22164,13 +22066,10 @@ F:	include/uapi/linux/serial_core.h
- F:	include/uapi/linux/tty.h
- 
- TUA9001 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org
--W:	http://palosaari.fi/linux/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
--T:	git git://linuxtv.org/anttip/media_tree.git
- F:	drivers/media/tuners/tua9001*
- 
- TULIP NETWORK DRIVERS
-@@ -24115,20 +24014,16 @@ S:	Orphan
- F:	drivers/net/wireless/zydas/zd1211rw/
- 
- ZD1301 MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org/
--W:	http://palosaari.fi/linux/
- Q:	https://patchwork.linuxtv.org/project/linux-media/list/
- F:	drivers/media/usb/dvb-usb-v2/zd1301*
- 
- ZD1301_DEMOD MEDIA DRIVER
--M:	Antti Palosaari <crope@iki.fi>
- L:	linux-media@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- W:	https://linuxtv.org/
--W:	http://palosaari.fi/linux/
- Q:	https://patchwork.linuxtv.org/project/linux-media/list/
- F:	drivers/media/dvb-frontends/zd1301_demod*
+ 	kaddr = kmap_atomic(bh->b_page);
+ 	su = nilfs_sufile_block_get_segment_usage(sufile, segnum, bh, kaddr);
+-	WARN_ON(nilfs_segment_usage_error(su));
+-	if (modtime)
++	if (modtime) {
++		/*
++		 * Check segusage error and set su_lastmod only when updating
++		 * this entry with a valid timestamp, not for cancellation.
++		 */
++		WARN_ON_ONCE(nilfs_segment_usage_error(su));
+ 		su->su_lastmod = cpu_to_le64(modtime);
++	}
+ 	su->su_nblocks = cpu_to_le32(nblocks);
+ 	kunmap_atomic(kaddr);
  
 _
 
-Patches currently in -mm which might be from bagasdotme@gmail.com are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
+nilfs2-move-page-release-outside-of-nilfs_delete_entry-and-nilfs_set_link.patch
+nilfs2-eliminate-staggered-calls-to-kunmap-in-nilfs_rename.patch
 
