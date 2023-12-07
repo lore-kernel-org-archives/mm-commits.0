@@ -2,34 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E0EAC10F07
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Dec 2023 00:13:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32179C10DC1
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Dec 2023 00:13:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1441834AbjLGANT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 6 Dec 2023 19:13:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46452 "EHLO
+        id S1441832AbjLGANS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 6 Dec 2023 19:13:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46438 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1441852AbjLGANR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Dec 2023 19:13:17 -0500
+        with ESMTP id S1441850AbjLGANP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Dec 2023 19:13:15 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B24ED1
-        for <mm-commits@vger.kernel.org>; Wed,  6 Dec 2023 16:13:23 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9905AC433CA;
-        Thu,  7 Dec 2023 00:13:22 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 67204CA
+        for <mm-commits@vger.kernel.org>; Wed,  6 Dec 2023 16:13:21 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E145DC433C9;
+        Thu,  7 Dec 2023 00:13:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701908002;
-        bh=Q89/B2Wd7CDV/OOh178wJC2rHiK/4ZzpxmMIcqh94NY=;
+        s=korg; t=1701908001;
+        bh=/mWrXNTqgQ5u6N9IXWplosQeL0+gPDrCbYOGTXqnRjc=;
         h=Date:To:From:Subject:From;
-        b=ILowlN8DIdPImMGOXC3XjX7JYUR7tW8Uef3MEGHimCy4S2lAzMUfXEug3cfvvbYB3
-         qTa05+qnO94qRb7WRgdeA7xX+5M1I7twFEj227ZYMUWhk0JOeKSai+S5M7lzmDEgkA
-         DTHJuToKBZPEP0R6T0AD1IF/D+6WiAHUtmT7Mm9M=
-Date:   Wed, 06 Dec 2023 16:13:22 -0800
-To:     mm-commits@vger.kernel.org, usama.anjum@collabora.com,
-        david@redhat.com, avagin@gmail.com, peterx@redhat.com,
-        akpm@linux-foundation.org
+        b=nCTBCjsTPjKyl5y9Wm5Xuh3baO/gJ2JRWcc7fsma3Mfzzrapopc87nn03qFxWwkEu
+         NNL1OsaZHnTpk1WY8tfeOpcSub0kmXAzAeY2sr5kBIqR7pTUPC3DnC+svjbtq2fAgp
+         mzMBoxDSuvt7/uO9wQbdBRfNSI1BagJHX8brtfW0=
+Date:   Wed, 06 Dec 2023 16:13:20 -0800
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, shakeelb@google.com,
+        rientjes@google.com, muchun.song@linux.dev, mhocko@kernel.org,
+        hannes@cmpxchg.org, erhard_f@mailbox.org, dennis@kernel.org,
+        roman.gushchin@linux.dev, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-pagemap-fix-ioctlpagemap_scan-on-vma-check.patch removed from -mm tree
-Message-Id: <20231207001322.9905AC433CA@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-kmem-properly-initialize-local-objcg-variable-in-current_obj_cgroup.patch removed from -mm tree
+Message-Id: <20231207001320.E145DC433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -37,105 +38,144 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: mm/pagemap: fix ioctl(PAGEMAP_SCAN) on vma check
+     Subject: mm: kmem: properly initialize local objcg variable in current_obj_cgroup()
 has been removed from the -mm tree.  Its filename was
-     mm-pagemap-fix-ioctlpagemap_scan-on-vma-check.patch
+     mm-kmem-properly-initialize-local-objcg-variable-in-current_obj_cgroup.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/pagemap: fix ioctl(PAGEMAP_SCAN) on vma check
-Date: Thu, 16 Nov 2023 15:15:45 -0500
+From: Roman Gushchin <roman.gushchin@linux.dev>
+Subject: mm: kmem: properly initialize local objcg variable in current_obj_cgroup()
+Date: Wed, 15 Nov 2023 18:51:09 -0800
 
-Patch series "mm/pagemap: A few fixes to the recent PAGEMAP_SCAN".
+Erhard reported that the 6.7-rc1 kernel panics on boot if being
+built with clang-16. The problem was not reproducible with gcc.
 
-This series should fix two known reports from syzbot on the new
-PAGEMAP_SCAN ioctl():
+[    5.975049] general protection fault, probably for non-canonical address 0xf555515555555557: 0000 [#1] SMP KASAN PTI
+[    5.976422] KASAN: maybe wild-memory-access in range [0xaaaaaaaaaaaaaab8-0xaaaaaaaaaaaaaabf]
+[    5.977475] CPU: 3 PID: 1 Comm: systemd Not tainted 6.7.0-rc1-Zen3 #77
+[    5.977860] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1ubuntu1.1 04/01/2014
+[    5.977860] RIP: 0010:obj_cgroup_charge_pages+0x27/0x2d5
+[    5.977860] Code: 90 90 90 55 41 57 41 56 41 55 41 54 53 89 d5 41 89 f6 49 89 ff 48 b8 00 00 00 00 00 fc ff df 49 83 c7 10 4d3
+[    5.977860] RSP: 0018:ffffc9000001fb18 EFLAGS: 00010a02
+[    5.977860] RAX: dffffc0000000000 RBX: aaaaaaaaaaaaaaaa RCX: ffff8883eb9a8b08
+[    5.977860] RDX: 0000000000000005 RSI: 0000000000400cc0 RDI: aaaaaaaaaaaaaaaa
+[    5.977860] RBP: 0000000000000005 R08: 3333333333333333 R09: 0000000000000000
+[    5.977860] R10: 0000000000000000 R11: 0000000000000000 R12: ffff8883eb9a8b18
+[    5.977860] R13: 1555555555555557 R14: 0000000000400cc0 R15: aaaaaaaaaaaaaaba
+[    5.977860] FS:  00007f2976438b40(0000) GS:ffff8883eb980000(0000) knlGS:0000000000000000
+[    5.977860] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    5.977860] CR2: 00007f29769e0060 CR3: 0000000107222003 CR4: 0000000000370eb0
+[    5.977860] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[    5.977860] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[    5.977860] Call Trace:
+[    5.977860]  <TASK>
+[    5.977860]  ? __die_body+0x16/0x75
+[    5.977860]  ? die_addr+0x4a/0x70
+[    5.977860]  ? exc_general_protection+0x1c9/0x2d0
+[    5.977860]  ? cgroup_mkdir+0x455/0x9fb
+[    5.977860]  ? __x64_sys_mkdir+0x69/0x80
+[    5.977860]  ? asm_exc_general_protection+0x26/0x30
+[    5.977860]  ? obj_cgroup_charge_pages+0x27/0x2d5
+[    5.977860]  obj_cgroup_charge+0x114/0x1ab
+[    5.977860]  pcpu_alloc+0x1a6/0xa65
+[    5.977860]  ? mem_cgroup_css_alloc+0x1eb/0x1140
+[    5.977860]  ? cgroup_apply_control_enable+0x26b/0x7c0
+[    5.977860]  mem_cgroup_css_alloc+0x23f/0x1140
+[    5.977860]  cgroup_apply_control_enable+0x26b/0x7c0
+[    5.977860]  ? cgroup_kn_set_ugid+0x2d/0x1a0
+[    5.977860]  cgroup_mkdir+0x455/0x9fb
+[    5.977860]  ? __cfi_cgroup_mkdir+0x10/0x10
+[    5.977860]  kernfs_iop_mkdir+0x130/0x170
+[    5.977860]  vfs_mkdir+0x405/0x530
+[    5.977860]  do_mkdirat+0x188/0x1f0
+[    5.977860]  __x64_sys_mkdir+0x69/0x80
+[    5.977860]  do_syscall_64+0x7d/0x100
+[    5.977860]  ? do_syscall_64+0x89/0x100
+[    5.977860]  ? do_syscall_64+0x89/0x100
+[    5.977860]  ? do_syscall_64+0x89/0x100
+[    5.977860]  ? do_syscall_64+0x89/0x100
+[    5.977860]  entry_SYSCALL_64_after_hwframe+0x4b/0x53
+[    5.977860] RIP: 0033:0x7f297671defb
+[    5.977860] Code: 8b 05 39 7f 0d 00 bb ff ff ff ff 64 c7 00 16 00 00 00 e9 61 ff ff ff e8 23 0c 02 00 0f 1f 00 f3 0f 1e fa b88
+[    5.977860] RSP: 002b:00007ffee6242bb8 EFLAGS: 00000246 ORIG_RAX: 0000000000000053
+[    5.977860] RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f297671defb
+[    5.977860] RDX: 0000000000000000 RSI: 00000000000001ed RDI: 000055c6b449f0e0
+[    5.977860] RBP: 00007ffee6242bf0 R08: 000000000000000e R09: 0000000000000000
+[    5.977860] R10: 0000000000000000 R11: 0000000000000246 R12: 000055c6b445db80
+[    5.977860] R13: 00000000000003a0 R14: 00007f2976a68651 R15: 00000000000003a0
+[    5.977860]  </TASK>
+[    5.977860] Modules linked in:
+[    6.014095] ---[ end trace 0000000000000000 ]---
+[    6.014701] RIP: 0010:obj_cgroup_charge_pages+0x27/0x2d5
+[    6.015348] Code: 90 90 90 55 41 57 41 56 41 55 41 54 53 89 d5 41 89 f6 49 89 ff 48 b8 00 00 00 00 00 fc ff df 49 83 c7 10 4d3
+[    6.017575] RSP: 0018:ffffc9000001fb18 EFLAGS: 00010a02
+[    6.018255] RAX: dffffc0000000000 RBX: aaaaaaaaaaaaaaaa RCX: ffff8883eb9a8b08
+[    6.019120] RDX: 0000000000000005 RSI: 0000000000400cc0 RDI: aaaaaaaaaaaaaaaa
+[    6.019983] RBP: 0000000000000005 R08: 3333333333333333 R09: 0000000000000000
+[    6.020849] R10: 0000000000000000 R11: 0000000000000000 R12: ffff8883eb9a8b18
+[    6.021747] R13: 1555555555555557 R14: 0000000000400cc0 R15: aaaaaaaaaaaaaaba
+[    6.022609] FS:  00007f2976438b40(0000) GS:ffff8883eb980000(0000) knlGS:0000000000000000
+[    6.023593] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    6.024296] CR2: 00007f29769e0060 CR3: 0000000107222003 CR4: 0000000000370eb0
+[    6.025279] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[    6.026139] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[    6.027000] Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
 
-https://lore.kernel.org/all/000000000000b0e576060a30ee3b@google.com/
-https://lore.kernel.org/all/000000000000773fa7060a31e2cc@google.com/
+Actually the problem is caused by uninitialized local variable in
+current_obj_cgroup().  If the root memory cgroup is set as an active
+memory cgroup for a charging scope (as in the trace, where systemd tries
+to create the first non-root cgroup, so the parent cgroup is the root
+cgroup), the "for" loop is skipped and uninitialized objcg is returned,
+causing a panic down the accounting stack.
 
-The 3rd patch is something I found when testing these patches.
+The fix is trivial: initialize the objcg variable to NULL unconditionally
+before the "for" loop.
 
-
-This patch (of 3):
-
-The new ioctl(PAGEMAP_SCAN) relies on vma wr-protect capability provided
-by userfault, however in the vma test it didn't explicitly require the vma
-to have wr-protect function enabled, even if PM_SCAN_WP_MATCHING flag is
-set.
-
-It means the pagemap code can now apply uffd-wp bit to a page in the vma
-even if not registered to userfaultfd at all.
-
-Then in whatever way as long as the pte got written and page fault
-resolved, we'll apply the write bit even if uffd-wp bit is set.  We'll see
-a pte that has both UFFD_WP and WRITE bit set.  Anything later that looks
-up the pte for uffd-wp bit will trigger the warning:
-
-WARNING: CPU: 1 PID: 5071 at arch/x86/include/asm/pgtable.h:403 pte_uffd_wp arch/x86/include/asm/pgtable.h:403 [inline]
-
-Fix it by doing proper check over the vma attributes when
-PM_SCAN_WP_MATCHING is specified.
-
-Link: https://lkml.kernel.org/r/20231116201547.536857-1-peterx@redhat.com
-Link: https://lkml.kernel.org/r/20231116201547.536857-2-peterx@redhat.com
-Fixes: 52526ca7fdb9 ("fs/proc/task_mmu: implement IOCTL to get and optionally clear info about PTEs")
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reported-by: syzbot+e94c5aaf7890901ebf9b@syzkaller.appspotmail.com
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Andrei Vagin <avagin@gmail.com>
-Reviewed-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+[vbabka@suse.cz: remove redundant assignment]
+  Link: https://lkml.kernel.org/r/4bd106d5-c3e3-6731-9a74-cff81e2392de@suse.cz
+Link: https://lkml.kernel.org/r/20231116025109.3775055-1-roman.gushchin@linux.dev
+Fixes: e86828e5446d ("mm: kmem: scoped objcg protection")
+Signed-off-by: Roman Gushchin (Cruise) <roman.gushchin@linux.dev>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: Erhard Furtner <erhard_f@mailbox.org>
+Closes: https://github.com/ClangBuiltLinux/linux/issues/1959
+Tested-by:  Erhard Furtner <erhard_f@mailbox.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Shakeel Butt <shakeelb@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   24 ++++++++++++++++++++----
- 1 file changed, 20 insertions(+), 4 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/proc/task_mmu.c~mm-pagemap-fix-ioctlpagemap_scan-on-vma-check
-+++ a/fs/proc/task_mmu.c
-@@ -1982,15 +1982,31 @@ static int pagemap_scan_test_walk(unsign
- 	struct pagemap_scan_private *p = walk->private;
- 	struct vm_area_struct *vma = walk->vma;
- 	unsigned long vma_category = 0;
-+	bool wp_allowed = userfaultfd_wp_async(vma) &&
-+	    userfaultfd_wp_use_markers(vma);
+--- a/mm/memcontrol.c~mm-kmem-properly-initialize-local-objcg-variable-in-current_obj_cgroup
++++ a/mm/memcontrol.c
+@@ -3166,6 +3166,7 @@ __always_inline struct obj_cgroup *curre
+ 	return NULL;
  
--	if (userfaultfd_wp_async(vma) && userfaultfd_wp_use_markers(vma))
--		vma_category |= PAGE_IS_WPALLOWED;
--	else if (p->arg.flags & PM_SCAN_CHECK_WPASYNC)
--		return -EPERM;
-+	if (!wp_allowed) {
-+		/* User requested explicit failure over wp-async capability */
-+		if (p->arg.flags & PM_SCAN_CHECK_WPASYNC)
-+			return -EPERM;
-+		/*
-+		 * User requires wr-protect, and allows silently skipping
-+		 * unsupported vmas.
-+		 */
-+		if (p->arg.flags & PM_SCAN_WP_MATCHING)
-+			return 1;
-+		/*
-+		 * Then the request doesn't involve wr-protects at all,
-+		 * fall through to the rest checks, and allow vma walk.
-+		 */
-+	}
+ from_memcg:
++	objcg = NULL;
+ 	for (; !mem_cgroup_is_root(memcg); memcg = parent_mem_cgroup(memcg)) {
+ 		/*
+ 		 * Memcg pointer is protected by scope (see set_active_memcg())
+@@ -3176,7 +3177,6 @@ from_memcg:
+ 		objcg = rcu_dereference_check(memcg->objcg, 1);
+ 		if (likely(objcg))
+ 			break;
+-		objcg = NULL;
+ 	}
  
- 	if (vma->vm_flags & VM_PFNMAP)
- 		return 1;
- 
-+	if (wp_allowed)
-+		vma_category |= PAGE_IS_WPALLOWED;
-+
- 	if (!pagemap_scan_is_interesting_vma(vma_category, p))
- 		return 1;
- 
+ 	return objcg;
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from roman.gushchin@linux.dev are
 
-fs-kconfig-make-hugetlbfs-a-menuconfig.patch
-mm-gup-fix-follow_devmap_pd-on-page==null-handling.patch
 
