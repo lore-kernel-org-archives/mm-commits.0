@@ -2,33 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53DFBC10F07
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5081C4167B
 	for <mm-commits@archiver.kernel.org>; Thu,  7 Dec 2023 00:13:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1442031AbjLGANe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1442082AbjLGANe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 6 Dec 2023 19:13:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43666 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46540 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1442082AbjLGAN2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Dec 2023 19:13:28 -0500
+        with ESMTP id S1441939AbjLGAN3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Dec 2023 19:13:29 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0CB1ED51
-        for <mm-commits@vger.kernel.org>; Wed,  6 Dec 2023 16:13:35 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C3EAC433C7;
-        Thu,  7 Dec 2023 00:13:34 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A1F9AC
+        for <mm-commits@vger.kernel.org>; Wed,  6 Dec 2023 16:13:36 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C372C433C9;
+        Thu,  7 Dec 2023 00:13:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701908014;
-        bh=0bklYcwDDDVtCUTpgSRe+OfXY1AVYlhhd1Ci0Ll7Lz8=;
+        s=korg; t=1701908015;
+        bh=MQyeeFXqwjSCAPyWLht7tZ/ymCHXbfxE9OqxIN/q7Vw=;
         h=Date:To:From:Subject:From;
-        b=ZlGS4Wj1WYn6qr0uh1pK5viwchWIku28WtAvieMTtY/vo27f3jlNvbuRv9go81p/J
-         uJEDA7venagg5qeKr3/OYx2VBcwvsz28eLcoUxNrDWslcLhjhV6Go30ZwJrPeJQ+Bn
-         pRwNK+Po+gK3JYvGCfl+p02EkDyAwFB4YilxuMg8=
-Date:   Wed, 06 Dec 2023 16:13:34 -0800
-To:     mm-commits@vger.kernel.org, shuah@kernel.org, jsavitz@redhat.com,
-        david@redhat.com, npache@redhat.com, akpm@linux-foundation.org
+        b=1HDolLS/klFeZATzIaFSbgKFEo4zNjPXrRwdvl+fO0UpKoP2MPYbJxTY6ADSBnEck
+         i1etBOgnHlwywpZiKgT2xeMqp2T/t+h4vVDVFgt/2qrPVpAVFF/vzxSNf8/I8VUK3N
+         FGUOa+lVCK1NG1epNyt6dax5NAHzA8o9bZH99LFc=
+Date:   Wed, 06 Dec 2023 16:13:35 -0800
+To:     mm-commits@vger.kernel.org, rppt@kernel.org,
+        axelrasmussen@google.com, aarcange@redhat.com, peterx@redhat.com,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] selftests-mm-prevent-duplicate-runs-caused-by-test_gen_progs.patch removed from -mm tree
-Message-Id: <20231207001334.9C3EAC433C7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-kconfig-make-userfaultfd-a-menuconfig.patch removed from -mm tree
+Message-Id: <20231207001335.9C372C433C9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,61 +37,76 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: selftests/mm: prevent duplicate runs caused by TEST_GEN_PROGS
+     Subject: mm/Kconfig: make userfaultfd a menuconfig
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-prevent-duplicate-runs-caused-by-test_gen_progs.patch
+     mm-kconfig-make-userfaultfd-a-menuconfig.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Nico Pache <npache@redhat.com>
-Subject: selftests/mm: prevent duplicate runs caused by TEST_GEN_PROGS
-Date: Mon, 20 Nov 2023 15:29:08 -0700
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/Kconfig: make userfaultfd a menuconfig
+Date: Thu, 23 Nov 2023 17:42:04 -0500
 
-Commit 05f1edac8009 ("selftests/mm: run all tests from run_vmtests.sh")
-fixed the inconsistency caused by tests being defined as TEST_GEN_PROGS. 
-This issue was leading to tests not being executed via run_vmtests.sh and
-furthermore some tests running twice due to the kselftests wrapper also
-executing them.
+PTE_MARKER_UFFD_WP is a subconfig for userfaultfd.  To make it clear,
+switch to use menuconfig for userfaultfd.
 
-Fix the definition of two tests (soft-dirty and pagemap_ioctl) that are
-still incorrectly defined.
-
-Link: https://lkml.kernel.org/r/20231120222908.28559-1-npache@redhat.com
-Signed-off-by: Nico Pache <npache@redhat.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Joel Savitz <jsavitz@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20231123224204.1060152-1-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/Kconfig |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-prevent-duplicate-runs-caused-by-test_gen_progs
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -60,7 +60,7 @@ TEST_GEN_FILES += mrelease_test
- TEST_GEN_FILES += mremap_dontunmap
- TEST_GEN_FILES += mremap_test
- TEST_GEN_FILES += on-fault-limit
--TEST_GEN_PROGS += pagemap_ioctl
-+TEST_GEN_FILES += pagemap_ioctl
- TEST_GEN_FILES += thuge-gen
- TEST_GEN_FILES += transhuge-stress
- TEST_GEN_FILES += uffd-stress
-@@ -72,7 +72,7 @@ TEST_GEN_FILES += mdwe_test
- TEST_GEN_FILES += hugetlb_fault_after_madv
+--- a/mm/Kconfig~mm-kconfig-make-userfaultfd-a-menuconfig
++++ a/mm/Kconfig
+@@ -1201,13 +1201,6 @@ config ANON_VMA_NAME
+ 	  area from being merged with adjacent virtual memory areas due to the
+ 	  difference in their name.
  
- ifneq ($(ARCH),arm64)
--TEST_GEN_PROGS += soft-dirty
-+TEST_GEN_FILES += soft-dirty
- endif
+-config USERFAULTFD
+-	bool "Enable userfaultfd() system call"
+-	depends on MMU
+-	help
+-	  Enable the userfaultfd() system call that allows to intercept and
+-	  handle page faults in userland.
+-
+ config HAVE_ARCH_USERFAULTFD_WP
+ 	bool
+ 	help
+@@ -1218,6 +1211,14 @@ config HAVE_ARCH_USERFAULTFD_MINOR
+ 	help
+ 	  Arch has userfaultfd minor fault support
  
- ifeq ($(ARCH),x86_64)
++menuconfig USERFAULTFD
++	bool "Enable userfaultfd() system call"
++	depends on MMU
++	help
++	  Enable the userfaultfd() system call that allows to intercept and
++	  handle page faults in userland.
++
++if USERFAULTFD
+ config PTE_MARKER_UFFD_WP
+ 	bool "Userfaultfd write protection support for shmem/hugetlbfs"
+ 	default y
+@@ -1227,6 +1228,7 @@ config PTE_MARKER_UFFD_WP
+ 	  Allows to create marker PTEs for userfaultfd write protection
+ 	  purposes.  It is required to enable userfaultfd write protection on
+ 	  file-backed memory types like shmem and hugetlbfs.
++endif # USERFAULTFD
+ 
+ # multi-gen LRU {
+ config LRU_GEN
 _
 
-Patches currently in -mm which might be from npache@redhat.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-selftests-mm-dont-run-ksm_functional_tests-twice.patch
+fs-kconfig-make-hugetlbfs-a-menuconfig.patch
+mm-gup-fix-follow_devmap_pd-on-page==null-handling.patch
 
