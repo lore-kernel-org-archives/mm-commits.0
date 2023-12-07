@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 266F3C4167B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF5D7C10DCE
 	for <mm-commits@archiver.kernel.org>; Thu,  7 Dec 2023 22:05:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235374AbjLGWEw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 7 Dec 2023 17:04:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41886 "EHLO
+        id S235303AbjLGWEx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 7 Dec 2023 17:04:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41878 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235303AbjLGWEh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Dec 2023 17:04:37 -0500
+        with ESMTP id S232106AbjLGWEf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Dec 2023 17:04:35 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33CFA10DA
-        for <mm-commits@vger.kernel.org>; Thu,  7 Dec 2023 14:04:43 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7255C43391;
-        Thu,  7 Dec 2023 22:04:42 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B241E122
+        for <mm-commits@vger.kernel.org>; Thu,  7 Dec 2023 14:04:41 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C315C433CD;
+        Thu,  7 Dec 2023 22:04:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701986682;
-        bh=mzppvEK0QLOCABD3sojSyhNWDfdtH6pm5KdfeabKzew=;
+        s=korg; t=1701986681;
+        bh=93WBrmDot8YGGzYnSzLvu1wH2FITYNtNSIc5bwuOmtg=;
         h=Date:To:From:Subject:From;
-        b=VCJ/zqOyHO1QYcXmS6ayB5ZueZex8nZaaspzpGvd+FMxTU3troGtfzNSWt5PVp+bJ
-         mhS0VwcThRNo2st0D0g6aDJnwqeCi0Fiy4MwMnmyUwQZ5u7mgkI7HwrVd8lQkSAGXr
-         X2TAUD4IK98WX4Mwy4EKAMZi6zlJ9kaIy+ny8A/0=
-Date:   Thu, 07 Dec 2023 14:04:42 -0800
+        b=DI34LPmCFblYKCUSRgoA4wzx3F1sQVpARCtQC01MEqa+lDxLAiFBNUeb1uvs6YONq
+         nPOGMDrYgjvGEpoG9KHN1osgdmZB6scoMeeLesaBnFflkQK4XwdbRbq0J5RQAnM0cE
+         HCd2A0aFumh+95/s4fmkRqQOoErFU34EGnjJuZ3c=
+Date:   Thu, 07 Dec 2023 14:04:40 -0800
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, yuzhao@google.com,
         ying.huang@intel.com, willy@infradead.org,
         wangkefeng.wang@huawei.com, v-songbaohua@oppo.com, vbabka@suse.cz,
@@ -34,8 +34,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com, yuzhao@google.com,
         anshuman.khandual@arm.com, ryan.roberts@arm.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-khugepaged-enlighten-for-multi-size-thp.patch added to mm-unstable branch
-Message-Id: <20231207220442.C7255C43391@smtp.kernel.org>
+Subject: + selftests-mm-support-multi-size-thp-interface-in-thp_settings.patch added to mm-unstable branch
+Message-Id: <20231207220441.4C315C433CD@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/mm/khugepaged: enlighten for multi-size THP
+     Subject: selftests/mm: support multi-size THP interface in thp_settings
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-khugepaged-enlighten-for-multi-size-thp.patch
+     selftests-mm-support-multi-size-thp-interface-in-thp_settings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-khugepaged-enlighten-for-multi-size-thp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-support-multi-size-thp-interface-in-thp_settings.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,28 +67,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: selftests/mm/khugepaged: enlighten for multi-size THP
-Date: Thu, 7 Dec 2023 16:12:09 +0000
+Subject: selftests/mm: support multi-size THP interface in thp_settings
+Date: Thu, 7 Dec 2023 16:12:08 +0000
 
-The `collapse_max_ptes_none` test was previously failing when a THP size
-less than PMD-size had enabled="always".  The root cause is because the
-test faults in 1 page less than the threshold it set for collapsing.  But
-when THP is enabled always, we "over allocate" and therefore the threshold
-is passed, and collapse unexpectedly succeeds.
+Save and restore the new per-size hugepage enabled setting, if available
+on the running kernel.
 
-Solve this by enlightening khugepaged selftest.  Add a command line option
-to pass in the desired THP size that should be used for all anonymous
-allocations.  The harness will then explicitly configure a THP size as
-requested and modify the `collapse_max_ptes_none` test so that it faults
-in the threshold minus the number of pages in the configured THP size.  If
-no command line option is provided, default to order 0, as per previous
-behaviour.
+Since the number of per-size directories is not fixed, solve this as
+simply as possible by catering for a maximum number in the thp_settings
+struct (20).  Each array index is the order.  The value of THP_NEVER is
+changed to 0 so that all of these new settings default to THP_NEVER and
+the user only needs to fill in the ones they want to enable.
 
-I chose to use an order in the command line interface, since this makes
-the interface agnostic of base page size, making it easier to invoke from
-run_vmtests.sh.
-
-Link: https://lkml.kernel.org/r/20231207161211.2374093-9-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20231207161211.2374093-8-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
 Tested-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Tested-by: John Hubbard <jhubbard@nvidia.com>
@@ -112,153 +103,173 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/khugepaged.c   |   48 +++++++++++++++-----
- tools/testing/selftests/mm/run_vmtests.sh |    2 
- 2 files changed, 39 insertions(+), 11 deletions(-)
+ tools/testing/selftests/mm/khugepaged.c   |    3 +
+ tools/testing/selftests/mm/thp_settings.c |   55 +++++++++++++++++++-
+ tools/testing/selftests/mm/thp_settings.h |   11 +++-
+ 3 files changed, 67 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-khugepaged-enlighten-for-multi-size-thp
+--- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-support-multi-size-thp-interface-in-thp_settings
 +++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -28,6 +28,7 @@
- static unsigned long hpage_pmd_size;
- static unsigned long page_size;
- static int hpage_pmd_nr;
-+static int anon_order;
+@@ -1141,6 +1141,7 @@ static void parse_test_type(int argc, co
  
- #define PID_SMAPS "/proc/self/smaps"
- #define TEST_FILE "collapse_test_file"
-@@ -607,6 +608,11 @@ static bool is_tmpfs(struct mem_ops *ops
- 	return ops == &__file_ops && finfo.type == VMA_SHMEM;
- }
- 
-+static bool is_anon(struct mem_ops *ops)
-+{
-+	return ops == &__anon_ops;
-+}
-+
- static void alloc_at_fault(void)
+ int main(int argc, const char **argv)
  {
- 	struct thp_settings settings = *thp_current_settings();
-@@ -673,6 +679,7 @@ static void collapse_max_ptes_none(struc
- 	int max_ptes_none = hpage_pmd_nr / 2;
- 	struct thp_settings settings = *thp_current_settings();
- 	void *p;
-+	int fault_nr_pages = is_anon(ops) ? 1 << anon_order : 1;
- 
- 	settings.khugepaged.max_ptes_none = max_ptes_none;
- 	thp_push_settings(&settings);
-@@ -686,10 +693,10 @@ static void collapse_max_ptes_none(struc
- 		goto skip;
- 	}
- 
--	ops->fault(p, 0, (hpage_pmd_nr - max_ptes_none - 1) * page_size);
-+	ops->fault(p, 0, (hpage_pmd_nr - max_ptes_none - fault_nr_pages) * page_size);
- 	c->collapse("Maybe collapse with max_ptes_none exceeded", p, 1,
- 		    ops, !c->enforce_pte_scan_limits);
--	validate_memory(p, 0, (hpage_pmd_nr - max_ptes_none - 1) * page_size);
-+	validate_memory(p, 0, (hpage_pmd_nr - max_ptes_none - fault_nr_pages) * page_size);
- 
- 	if (c->enforce_pte_scan_limits) {
- 		ops->fault(p, 0, (hpage_pmd_nr - max_ptes_none) * page_size);
-@@ -1076,7 +1083,7 @@ static void madvise_retracted_page_table
- 
- static void usage(void)
- {
--	fprintf(stderr, "\nUsage: ./khugepaged <test type> [dir]\n\n");
-+	fprintf(stderr, "\nUsage: ./khugepaged [OPTIONS] <test type> [dir]\n\n");
- 	fprintf(stderr, "\t<test type>\t: <context>:<mem_type>\n");
- 	fprintf(stderr, "\t<context>\t: [all|khugepaged|madvise]\n");
- 	fprintf(stderr, "\t<mem_type>\t: [all|anon|file|shmem]\n");
-@@ -1085,15 +1092,34 @@ static void usage(void)
- 	fprintf(stderr,	"\tCONFIG_READ_ONLY_THP_FOR_FS=y\n");
- 	fprintf(stderr, "\n\tif [dir] is a (sub)directory of a tmpfs mount, tmpfs must be\n");
- 	fprintf(stderr,	"\tmounted with huge=madvise option for khugepaged tests to work\n");
-+	fprintf(stderr,	"\n\tSupported Options:\n");
-+	fprintf(stderr,	"\t\t-h: This help message.\n");
-+	fprintf(stderr,	"\t\t-s: mTHP size, expressed as page order.\n");
-+	fprintf(stderr,	"\t\t    Defaults to 0. Use this size for anon allocations.\n");
- 	exit(1);
- }
- 
--static void parse_test_type(int argc, const char **argv)
-+static void parse_test_type(int argc, char **argv)
- {
-+	int opt;
- 	char *buf;
- 	const char *token;
- 
--	if (argc == 1) {
-+	while ((opt = getopt(argc, argv, "s:h")) != -1) {
-+		switch (opt) {
-+		case 's':
-+			anon_order = atoi(optarg);
-+			break;
-+		case 'h':
-+		default:
-+			usage();
-+		}
-+	}
-+
-+	argv += optind;
-+	argc -= optind;
-+
-+	if (argc == 0) {
- 		/* Backwards compatibility */
- 		khugepaged_context =  &__khugepaged_context;
- 		madvise_context =  &__madvise_context;
-@@ -1101,7 +1127,7 @@ static void parse_test_type(int argc, co
- 		return;
- 	}
- 
--	buf = strdup(argv[1]);
-+	buf = strdup(argv[0]);
- 	token = strsep(&buf, ":");
- 
- 	if (!strcmp(token, "all")) {
-@@ -1135,11 +1161,13 @@ static void parse_test_type(int argc, co
- 	if (!file_ops)
- 		return;
- 
--	if (argc != 3)
-+	if (argc != 2)
- 		usage();
-+
-+	get_finfo(argv[1]);
- }
- 
--int main(int argc, const char **argv)
-+int main(int argc, char **argv)
- {
- 	int hpage_pmd_order;
++	int hpage_pmd_order;
  	struct thp_settings default_settings = {
-@@ -1164,9 +1192,6 @@ int main(int argc, const char **argv)
+ 		.thp_enabled = THP_MADVISE,
+ 		.thp_defrag = THP_DEFRAG_ALWAYS,
+@@ -1175,11 +1176,13 @@ int main(int argc, const char **argv)
+ 		exit(EXIT_FAILURE);
+ 	}
+ 	hpage_pmd_nr = hpage_pmd_size / page_size;
++	hpage_pmd_order = __builtin_ctz(hpage_pmd_nr);
  
- 	parse_test_type(argc, argv);
- 
--	if (file_ops)
--		get_finfo(argv[2]);
--
- 	setbuf(stdout, NULL);
- 
- 	page_size = getpagesize();
-@@ -1183,6 +1208,7 @@ int main(int argc, const char **argv)
+ 	default_settings.khugepaged.max_ptes_none = hpage_pmd_nr - 1;
+ 	default_settings.khugepaged.max_ptes_swap = hpage_pmd_nr / 8;
  	default_settings.khugepaged.max_ptes_shared = hpage_pmd_nr / 2;
  	default_settings.khugepaged.pages_to_scan = hpage_pmd_nr * 8;
- 	default_settings.hugepages[hpage_pmd_order].enabled = THP_INHERIT;
-+	default_settings.hugepages[anon_order].enabled = THP_ALWAYS;
++	default_settings.hugepages[hpage_pmd_order].enabled = THP_INHERIT;
  
  	save_settings();
  	thp_push_settings(&default_settings);
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-khugepaged-enlighten-for-multi-size-thp
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -357,6 +357,8 @@ CATEGORY="cow" run_test ./cow
+--- a/tools/testing/selftests/mm/thp_settings.c~selftests-mm-support-multi-size-thp-interface-in-thp_settings
++++ a/tools/testing/selftests/mm/thp_settings.c
+@@ -16,9 +16,10 @@ static struct thp_settings saved_setting
+ static char dev_queue_read_ahead_path[PATH_MAX];
  
- CATEGORY="thp" run_test ./khugepaged
+ static const char * const thp_enabled_strings[] = {
++	"never",
+ 	"always",
++	"inherit",
+ 	"madvise",
+-	"never",
+ 	NULL
+ };
  
-+CATEGORY="thp" run_test ./khugepaged -s 2
+@@ -198,6 +199,10 @@ void thp_write_num(const char *name, uns
+ 
+ void thp_read_settings(struct thp_settings *settings)
+ {
++	unsigned long orders = thp_supported_orders();
++	char path[PATH_MAX];
++	int i;
 +
- CATEGORY="thp" run_test ./transhuge-stress -d 20
+ 	*settings = (struct thp_settings) {
+ 		.thp_enabled = thp_read_string("enabled", thp_enabled_strings),
+ 		.thp_defrag = thp_read_string("defrag", thp_defrag_strings),
+@@ -218,11 +223,26 @@ void thp_read_settings(struct thp_settin
+ 	};
+ 	if (dev_queue_read_ahead_path[0])
+ 		settings->read_ahead_kb = read_num(dev_queue_read_ahead_path);
++
++	for (i = 0; i < NR_ORDERS; i++) {
++		if (!((1 << i) & orders)) {
++			settings->hugepages[i].enabled = THP_NEVER;
++			continue;
++		}
++		snprintf(path, PATH_MAX, "hugepages-%ukB/enabled",
++			(getpagesize() >> 10) << i);
++		settings->hugepages[i].enabled =
++			thp_read_string(path, thp_enabled_strings);
++	}
+ }
  
- CATEGORY="thp" run_test ./split_huge_page_test
+ void thp_write_settings(struct thp_settings *settings)
+ {
+ 	struct khugepaged_settings *khugepaged = &settings->khugepaged;
++	unsigned long orders = thp_supported_orders();
++	char path[PATH_MAX];
++	int enabled;
++	int i;
+ 
+ 	thp_write_string("enabled", thp_enabled_strings[settings->thp_enabled]);
+ 	thp_write_string("defrag", thp_defrag_strings[settings->thp_defrag]);
+@@ -242,6 +262,15 @@ void thp_write_settings(struct thp_setti
+ 
+ 	if (dev_queue_read_ahead_path[0])
+ 		write_num(dev_queue_read_ahead_path, settings->read_ahead_kb);
++
++	for (i = 0; i < NR_ORDERS; i++) {
++		if (!((1 << i) & orders))
++			continue;
++		snprintf(path, PATH_MAX, "hugepages-%ukB/enabled",
++			(getpagesize() >> 10) << i);
++		enabled = settings->hugepages[i].enabled;
++		thp_write_string(path, thp_enabled_strings[enabled]);
++	}
+ }
+ 
+ struct thp_settings *thp_current_settings(void)
+@@ -294,3 +323,27 @@ void thp_set_read_ahead_path(char *path)
+ 		sizeof(dev_queue_read_ahead_path));
+ 	dev_queue_read_ahead_path[sizeof(dev_queue_read_ahead_path) - 1] = '\0';
+ }
++
++unsigned long thp_supported_orders(void)
++{
++	unsigned long orders = 0;
++	char path[PATH_MAX];
++	char buf[256];
++	int ret;
++	int i;
++
++	for (i = 0; i < NR_ORDERS; i++) {
++		ret = snprintf(path, PATH_MAX, THP_SYSFS "hugepages-%ukB/enabled",
++			(getpagesize() >> 10) << i);
++		if (ret >= PATH_MAX) {
++			printf("%s: Pathname is too long\n", __func__);
++			exit(EXIT_FAILURE);
++		}
++
++		ret = read_file(path, buf, sizeof(buf));
++		if (ret)
++			orders |= 1UL << i;
++	}
++
++	return orders;
++}
+--- a/tools/testing/selftests/mm/thp_settings.h~selftests-mm-support-multi-size-thp-interface-in-thp_settings
++++ a/tools/testing/selftests/mm/thp_settings.h
+@@ -7,9 +7,10 @@
+ #include <stdint.h>
+ 
+ enum thp_enabled {
++	THP_NEVER,
+ 	THP_ALWAYS,
++	THP_INHERIT,
+ 	THP_MADVISE,
+-	THP_NEVER,
+ };
+ 
+ enum thp_defrag {
+@@ -29,6 +30,12 @@ enum shmem_enabled {
+ 	SHMEM_FORCE,
+ };
+ 
++#define NR_ORDERS 20
++
++struct hugepages_settings {
++	enum thp_enabled enabled;
++};
++
+ struct khugepaged_settings {
+ 	bool defrag;
+ 	unsigned int alloc_sleep_millisecs;
+@@ -46,6 +53,7 @@ struct thp_settings {
+ 	bool use_zero_page;
+ 	struct khugepaged_settings khugepaged;
+ 	unsigned long read_ahead_kb;
++	struct hugepages_settings hugepages[NR_ORDERS];
+ };
+ 
+ int read_file(const char *path, char *buf, size_t buflen);
+@@ -67,5 +75,6 @@ void thp_restore_settings(void);
+ void thp_save_settings(void);
+ 
+ void thp_set_read_ahead_path(char *path);
++unsigned long thp_supported_orders(void);
+ 
+ #endif /* __THP_SETTINGS_H__ */
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
