@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B726DC10DCE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6ECBC46CA0
 	for <mm-commits@archiver.kernel.org>; Thu,  7 Dec 2023 21:47:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231896AbjLGVqx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 7 Dec 2023 16:46:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58670 "EHLO
+        id S231928AbjLGVqy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 7 Dec 2023 16:46:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58680 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232053AbjLGVqm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Dec 2023 16:46:42 -0500
+        with ESMTP id S235274AbjLGVqw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Dec 2023 16:46:52 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 682D61716
-        for <mm-commits@vger.kernel.org>; Thu,  7 Dec 2023 13:46:48 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 050FEC433C9;
-        Thu,  7 Dec 2023 21:46:47 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1581171C
+        for <mm-commits@vger.kernel.org>; Thu,  7 Dec 2023 13:46:49 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72207C433C8;
+        Thu,  7 Dec 2023 21:46:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701985608;
-        bh=64bQj6zFDZOgMJnmWkdjtu12pULtFk/O0Y8t/QieHwk=;
+        s=korg; t=1701985609;
+        bh=cb6OkXmUGJDQwqEXYwG+06ZB77FI6/Yop3Wrvy+jN+8=;
         h=Date:To:From:Subject:From;
-        b=aqxd2IyliVR3fcameZCnG4yRMpVhJqjNHguh83dBIU4gCW6WYCxazNsD73T3f0Nbg
-         xb/qVSkUVRGhcvofqxwtGygbv72Z4YP7JeF/drG+2syVXyPFd9mLa8hDDDmj8BsPcF
-         aXwXECvAVO7kxxbLO4YUxBCN5mfUNGj4hXiNzi5g=
-Date:   Thu, 07 Dec 2023 13:46:46 -0800
+        b=yrOetT9txH4devf7K1HIALj4H+ObeKXvoJNQ7sWEdxQC47NaELEQCCfISvpPsLT49
+         oOuKra7O2JGgnO58kQYGfkgH+bmi9rPEdDB651AzlZQpoRabcBBi6uorZDapMhhmU0
+         0xMUxv5pWq4RECJgIbsipKVOUN7/Ra22P0nQxD4o=
+Date:   Thu, 07 Dec 2023 13:46:47 -0800
 To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
         ming.lei@redhat.com, linux@rasmusvillemoes.dk,
         andriy.shevchenko@linux.intel.com, yury.norov@gmail.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-cgroup_cpusc-dont-zero-cpumasks-in-group_cpus_evenly-on-allocation.patch added to mm-nonmm-unstable branch
-Message-Id: <20231207214648.050FEC433C9@smtp.kernel.org>
+Subject: + lib-group_cpusc-drop-unneeded-cpumask_empty-call-in-__group_cpus_evenly.patch added to mm-nonmm-unstable branch
+Message-Id: <20231207214649.72207C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,12 +38,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/cgroup_cpus.c: don't zero cpumasks in group_cpus_evenly() on allocation
+     Subject: lib/group_cpus.c: drop unneeded cpumask_empty() call in __group_cpus_evenly()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-cgroup_cpusc-dont-zero-cpumasks-in-group_cpus_evenly-on-allocation.patch
+     lib-group_cpusc-drop-unneeded-cpumask_empty-call-in-__group_cpus_evenly.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-cgroup_cpusc-dont-zero-cpumasks-in-group_cpus_evenly-on-allocation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-group_cpusc-drop-unneeded-cpumask_empty-call-in-__group_cpus_evenly.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -62,14 +62,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yury Norov <yury.norov@gmail.com>
-Subject: lib/cgroup_cpus.c: don't zero cpumasks in group_cpus_evenly() on allocation
-Date: Thu, 7 Dec 2023 12:38:59 -0800
+Subject: lib/group_cpus.c: drop unneeded cpumask_empty() call in __group_cpus_evenly()
+Date: Thu, 7 Dec 2023 12:39:00 -0800
 
-nmsk and npresmsk are both allocated with zalloc_cpumask_var(), but they
-are initialized by copying later in the code, and so may be allocated
-uninitialized.
+The function is called twice. First time it's called with
+cpumask_present as a parameter, which can't be empty. Second time it's
+called with a mask created with cpumask_andnot(), which returns false if
+the result is an empty mask.
 
-Link: https://lkml.kernel.org/r/20231207203900.859776-6-yury.norov@gmail.com
+We can safely drop redundant cpumask_empty() call from the
+__group_cpus_evenly() and save few cycles.
+
+Link: https://lkml.kernel.org/r/20231207203900.859776-7-yury.norov@gmail.com
 Signed-off-by: Yury Norov <yury.norov@gmail.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Ming Lei <ming.lei@redhat.com>
@@ -78,24 +82,39 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/group_cpus.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/group_cpus.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
---- a/lib/group_cpus.c~lib-cgroup_cpusc-dont-zero-cpumasks-in-group_cpus_evenly-on-allocation
+--- a/lib/group_cpus.c~lib-group_cpusc-drop-unneeded-cpumask_empty-call-in-__group_cpus_evenly
 +++ a/lib/group_cpus.c
-@@ -347,10 +347,10 @@ struct cpumask *group_cpus_evenly(unsign
- 	int ret = -ENOMEM;
- 	struct cpumask *masks = NULL;
+@@ -252,9 +252,6 @@ static int __group_cpus_evenly(unsigned
+ 	nodemask_t nodemsk = NODE_MASK_NONE;
+ 	struct node_groups *node_groups;
  
--	if (!zalloc_cpumask_var(&nmsk, GFP_KERNEL))
-+	if (!alloc_cpumask_var(&nmsk, GFP_KERNEL))
- 		return NULL;
+-	if (cpumask_empty(cpu_mask))
+-		return 0;
+-
+ 	nodes = get_nodes_in_cpumask(node_to_cpumask, cpu_mask, &nodemsk);
  
--	if (!zalloc_cpumask_var(&npresmsk, GFP_KERNEL))
-+	if (!alloc_cpumask_var(&npresmsk, GFP_KERNEL))
- 		goto fail_nmsk;
+ 	/*
+@@ -394,9 +391,14 @@ struct cpumask *group_cpus_evenly(unsign
+ 		curgrp = 0;
+ 	else
+ 		curgrp = nr_present;
+-	cpumask_andnot(npresmsk, cpu_possible_mask, npresmsk);
+-	ret = __group_cpus_evenly(curgrp, numgrps, node_to_cpumask,
+-				  npresmsk, nmsk, masks);
++
++	if (cpumask_andnot(npresmsk, cpu_possible_mask, npresmsk))
++		/* If npresmsk is not empty */
++		ret = __group_cpus_evenly(curgrp, numgrps, node_to_cpumask,
++					  npresmsk, nmsk, masks);
++	else
++		ret = 0;
++
+ 	if (ret >= 0)
+ 		nr_others = ret;
  
- 	node_to_cpumask = alloc_node_to_cpumask();
 _
 
 Patches currently in -mm which might be from yury.norov@gmail.com are
