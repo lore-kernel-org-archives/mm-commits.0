@@ -2,33 +2,34 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED321C4167B
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Dec 2023 18:27:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A91CBC4167B
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Dec 2023 18:28:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229852AbjLGS11 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 7 Dec 2023 13:27:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40418 "EHLO
+        id S232742AbjLGS2u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 7 Dec 2023 13:28:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34608 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229806AbjLGS10 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Dec 2023 13:27:26 -0500
+        with ESMTP id S230191AbjLGS2u (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Dec 2023 13:28:50 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED80A10E7
-        for <mm-commits@vger.kernel.org>; Thu,  7 Dec 2023 10:27:32 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C70CC433C7;
-        Thu,  7 Dec 2023 18:27:32 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18A54170C
+        for <mm-commits@vger.kernel.org>; Thu,  7 Dec 2023 10:28:56 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AAF43C433C8;
+        Thu,  7 Dec 2023 18:28:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701973652;
-        bh=gpZ6lp0UN6Hd7/8ER33ysvYXWz2LxGI17HucZiBUb1w=;
+        s=korg; t=1701973735;
+        bh=rDBY+pvXwsqSmFyBKF8DotxrOlLCYTzbuK51FbPBbOk=;
         h=Date:To:From:Subject:From;
-        b=xyw+J/w0Hv08rht/M0zpFgYWHaQ3X+9wU8w8bF9yxHTq707/Db6VqWZzsqqC3JS/u
-         Ux+l5hHPS4jD8AcBEMgflaI5hI5pMZvva05q4342LOtOhz3M5Vu/3k/Vyw2lu3LWpU
-         Intqs4kLWEKcIEC9q1LR4F0/3pnjuw5//7aLFac8=
-Date:   Thu, 07 Dec 2023 10:27:31 -0800
-To:     mm-commits@vger.kernel.org, lkp@intel.com, eric_devolder@yahoo.com,
-        bhe@redhat.com, akpm@linux-foundation.org
+        b=Ce39zLqO6hyrZA0in2Wc9dsUrud9tJ+mwhBNfTO+UhUoLkJkv8XnXe7LzG1d6MIgm
+         /nYaiL2EIxas+g0rXnwMxZy9sHtuC/HI5Cr9u5PUY6iOImstX1Fp9iemRXCmVjREXJ
+         L6ldiNN+0EoCF0K9HfQ3TkOLNkd+MKGa8ieDt0s8=
+Date:   Thu, 07 Dec 2023 10:28:55 -0800
+To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
+        rdunlap@infradead.org, ignat@cloudflare.com,
+        agordeev@linux.ibm.com, bhe@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [withdrawn] kexec_core-change-dependency-of-object-files.patch removed from -mm tree
-Message-Id: <20231207182732.7C70CC433C7@smtp.kernel.org>
+Subject: [folded-merged] kexec-drop-dependency-on-arch_supports_kexec-from-crash_dump-fix-1.patch removed from -mm tree
+Message-Id: <20231207182855.AAF43C433C8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -36,111 +37,110 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The quilt patch titled
-     Subject: kexec_core: change dependency of object files
+     Subject: riscv, crash: don't export some symbols when CONFIG_MMU=n
 has been removed from the -mm tree.  Its filename was
-     kexec_core-change-dependency-of-object-files.patch
+     kexec-drop-dependency-on-arch_supports_kexec-from-crash_dump-fix-1.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it was folded into kexec-drop-dependency-on-arch_supports_kexec-from-crash_dump.patch
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: kexec_core: change dependency of object files
-Date: Fri, 1 Dec 2023 14:03:25 +0800
+Subject: riscv, crash: don't export some symbols when CONFIG_MMU=n
+Date: Mon, 4 Dec 2023 10:19:36 +0800
 
-When dropping the select of KEXEC for CRASH_DUMP, compiling error will be
-triggered if below config items are set on some architectures.
-
-===
+When dropping select of KEXEC and dependency on ARCH_SUPPORTS_KEXEC
+from CRASH_DUMP, compiling error is reported when below config items are
+set:
+-----------------------
 CONFIG_CRASH_CORE=y
 CONFIG_KEXEC_CORE=y
 CONFIG_CRASH_DUMP=y
-===
+......
+-----------------------
 
-E.g the building error on loongarch:
----------------------------------------------------------------
-loongarch64-linux-ld: kernel/kexec_core.o: in function `.L209':
->> kexec_core.c:(.text+0x1660): undefined reference to `machine_kexec_cleanup'
-   loongarch64-linux-ld: kernel/kexec_core.o: in function `.L287':
->> kexec_core.c:(.text+0x1c5c): undefined reference to `machine_crash_shutdown'
->> loongarch64-linux-ld: kexec_core.c:(.text+0x1c64): undefined reference to `machine_kexec'
-   loongarch64-linux-ld: kernel/kexec_core.o: in function `.L2^B5':
->> kexec_core.c:(.text+0x2090): undefined reference to `machine_shutdown'
-   loongarch64-linux-ld: kexec_core.c:(.text+0x20a0): undefined reference to `machine_kexec'
----------------------------------------------------------------
+-------------------------------------------------------------------------------------------------
+arch/riscv/kernel/crash_core.c:8:27: error: 'VA_BITS' undeclared (first use in this function)
+ 8 |         VMCOREINFO_NUMBER(VA_BITS);
+   |                           ^~~~~~~
+include/linux/crash_core.h:78:64: note: in definition of macro 'VMCOREINFO_NUMBER'
+78 |         vmcoreinfo_append_str("NUMBER(%s)=%ld\n", #name, (long)name)
+   |                                                                ^~~~
 
-The reason is that currently in arch/loongarch/kernel/Makefile, building
-machine_kexec.o relocate_kernel.o depends on CONFIG_KEXEC.  So the
-building of the two object files is skipped because CONFIG_KEXEC=n in that
-case.
+arch/riscv/kernel/crash_core.c:14:64: error: 'VMEMMAP_START' undeclared (first use in this function)
+14 |         vmcoreinfo_append_str("NUMBER(VMEMMAP_START)=0x%lx\n", VMEMMAP_START);
+   |                                                                ^~~~~~~~~~~~~
+arch/riscv/kernel/crash_core.c:15:62: error: 'VMEMMAP_END' undeclared (first use in this function); did you mean 'MEMREMAP_ENC'?
+15 |         vmcoreinfo_append_str("NUMBER(VMEMMAP_END)=0x%lx\n", VMEMMAP_END);
+   |                                                              ^~~~~~~~~~~
+   |                                                              MEMREMAP_ENC
+arch/riscv/kernel/crash_core.c:17:64: error: 'MODULES_VADDR' undeclared (first use in this function)
+17 |         vmcoreinfo_append_str("NUMBER(MODULES_VADDR)=0x%lx\n", MODULES_VADDR);
+   |                                                                ^~~~~~~~~~~~~
+arch/riscv/kernel/crash_core.c:18:62: error: 'MODULES_END' undeclared (first use in this function)
+18 |         vmcoreinfo_append_str("NUMBER(MODULES_END)=0x%lx\n", MODULES_END);
+-------------------------------------------------------------------------------------------------
 
-And this situation exists in m68k, mips and sh ARCH too.
+Currently, riscv's ARCH_SUPPORTS_KEXEC has dependency on MMU. Before
+dropping ARCH_SUPPORTS_KEXEC, disabling CONFIG_MMU will unset
+CONFIG_CRASH_DUMP, CONFIG_KEXEC_CORE, CONFIG_CRASH_CORE. Hence
+crash_core related codes won't be compiled.
 
-Here, changing the dependency of machine_kexec.o relocate_kernel.o to
-CONFIG_KEXEC_CORE for all relevant architectures.
+---------------------
+arch/riscv/Kconfig:
+config ARCH_SUPPORTS_KEXEC
+        def_bool MMU
+---------------------
 
-Link: https://lkml.kernel.org/r/20231201060325.26940-1-bhe@redhat.com
+After dropping ARCH_SUPPORTS_KEXEC, CONFIG_CRASH_DUMP, CONFIG_KEXEC_CORE,
+CONFIG_CRASH_CORE can be set independently of CONFIG_MMU. However, there
+are several macro definitions, such as VA_BITS, VMEMMAP_START, VMEMMAP_END,
+MODULES_VADDR, MODULES_END are only available when CONFIG_MMU=y. Then
+compiling errors are triggered.
+
+Here, add CONFIG_MMU ifdeffery in arch_crash_save_vmcoreinfo() to export
+those symbols when CONFIG_MMU is enabled.
+
+Link: https://lkml.kernel.org/r/ZW03ODUKGGhP1ZGU@MiWiFi-R3L-srv
 Signed-off-by: Baoquan He <bhe@redhat.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202311300946.kHE9Iu71-lkp@intel.com/
-Cc: Eric DeVolder <eric_devolder@yahoo.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Ignat Korchagin <ignat@cloudflare.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/loongarch/kernel/Makefile |    2 +-
- arch/m68k/kernel/Makefile      |    2 +-
- arch/mips/kernel/Makefile      |    2 +-
- arch/sh/kernel/Makefile        |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ arch/riscv/kernel/crash_core.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/arch/loongarch/kernel/Makefile~kexec_core-change-dependency-of-object-files
-+++ a/arch/loongarch/kernel/Makefile
-@@ -57,7 +57,7 @@ obj-$(CONFIG_MAGIC_SYSRQ)	+= sysrq.o
+--- a/arch/riscv/kernel/crash_core.c~kexec-drop-dependency-on-arch_supports_kexec-from-crash_dump-fix-1
++++ a/arch/riscv/kernel/crash_core.c
+@@ -5,18 +5,20 @@
  
- obj-$(CONFIG_RELOCATABLE)	+= relocate.o
+ void arch_crash_save_vmcoreinfo(void)
+ {
+-	VMCOREINFO_NUMBER(VA_BITS);
+ 	VMCOREINFO_NUMBER(phys_ram_base);
  
--obj-$(CONFIG_KEXEC)		+= machine_kexec.o relocate_kernel.o
-+obj-$(CONFIG_KEXEC_CORE)	+= machine_kexec.o relocate_kernel.o
- obj-$(CONFIG_CRASH_DUMP)	+= crash_dump.o
- 
- obj-$(CONFIG_UNWINDER_GUESS)	+= unwind_guess.o
---- a/arch/m68k/kernel/Makefile~kexec_core-change-dependency-of-object-files
-+++ a/arch/m68k/kernel/Makefile
-@@ -25,7 +25,7 @@ obj-$(CONFIG_PCI) += pcibios.o
- 
- obj-$(CONFIG_M68K_NONCOHERENT_DMA) += dma.o
- 
--obj-$(CONFIG_KEXEC)		+= machine_kexec.o relocate_kernel.o
-+obj-$(CONFIG_KEXEC_CORE)	+= machine_kexec.o relocate_kernel.o
- obj-$(CONFIG_BOOTINFO_PROC)	+= bootinfo_proc.o
- obj-$(CONFIG_UBOOT)		+= uboot.o
- 
---- a/arch/mips/kernel/Makefile~kexec_core-change-dependency-of-object-files
-+++ a/arch/mips/kernel/Makefile
-@@ -90,7 +90,7 @@ obj-$(CONFIG_GPIO_TXX9)		+= gpio_txx9.o
- 
- obj-$(CONFIG_RELOCATABLE)	+= relocate.o
- 
--obj-$(CONFIG_KEXEC)		+= machine_kexec.o relocate_kernel.o crash.o
-+obj-$(CONFIG_KEXEC_CORE)	+= machine_kexec.o relocate_kernel.o crash.o
- obj-$(CONFIG_CRASH_DUMP)	+= crash_dump.o
- obj-$(CONFIG_EARLY_PRINTK)	+= early_printk.o
- obj-$(CONFIG_EARLY_PRINTK_8250)	+= early_printk_8250.o
---- a/arch/sh/kernel/Makefile~kexec_core-change-dependency-of-object-files
-+++ a/arch/sh/kernel/Makefile
-@@ -33,7 +33,7 @@ obj-$(CONFIG_SMP)		+= smp.o
- obj-$(CONFIG_SH_STANDARD_BIOS)	+= sh_bios.o
- obj-$(CONFIG_KGDB)		+= kgdb.o
- obj-$(CONFIG_MODULES)		+= sh_ksyms_32.o module.o
--obj-$(CONFIG_KEXEC)		+= machine_kexec.o relocate_kernel.o
-+obj-$(CONFIG_KEXEC_CORE)	+= machine_kexec.o relocate_kernel.o
- obj-$(CONFIG_CRASH_DUMP)	+= crash_dump.o
- obj-$(CONFIG_STACKTRACE)	+= stacktrace.o
- obj-$(CONFIG_IO_TRAPPED)	+= io_trapped.o
+ 	vmcoreinfo_append_str("NUMBER(PAGE_OFFSET)=0x%lx\n", PAGE_OFFSET);
+ 	vmcoreinfo_append_str("NUMBER(VMALLOC_START)=0x%lx\n", VMALLOC_START);
+ 	vmcoreinfo_append_str("NUMBER(VMALLOC_END)=0x%lx\n", VMALLOC_END);
++#ifdef CONFIG_MMU
++	VMCOREINFO_NUMBER(VA_BITS);
+ 	vmcoreinfo_append_str("NUMBER(VMEMMAP_START)=0x%lx\n", VMEMMAP_START);
+ 	vmcoreinfo_append_str("NUMBER(VMEMMAP_END)=0x%lx\n", VMEMMAP_END);
+ #ifdef CONFIG_64BIT
+ 	vmcoreinfo_append_str("NUMBER(MODULES_VADDR)=0x%lx\n", MODULES_VADDR);
+ 	vmcoreinfo_append_str("NUMBER(MODULES_END)=0x%lx\n", MODULES_END);
+ #endif
++#endif
+ 	vmcoreinfo_append_str("NUMBER(KERNEL_LINK_ADDR)=0x%lx\n", KERNEL_LINK_ADDR);
+ 	vmcoreinfo_append_str("NUMBER(va_kernel_pa_offset)=0x%lx\n",
+ 						kernel_map.va_kernel_pa_offset);
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
 
-kexec-drop-dependency-on-arch_supports_kexec-from-crash_dump-fix-1.patch
+kexec-drop-dependency-on-arch_supports_kexec-from-crash_dump.patch
 kexec-drop-dependency-on-arch_supports_kexec-from-crash_dump-fix-2.patch
 riscv-fix-vmallc_start-definition.patch
 resource-add-walk_system_ram_res_rev.patch
