@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4E51C10DC3
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Dec 2023 22:05:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3DF1C46CA3
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Dec 2023 22:05:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231928AbjLGWEy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S235318AbjLGWEy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 7 Dec 2023 17:04:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41858 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41888 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1443998AbjLGWEc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Dec 2023 17:04:32 -0500
+        with ESMTP id S235307AbjLGWEj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Dec 2023 17:04:39 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9652410D8
-        for <mm-commits@vger.kernel.org>; Thu,  7 Dec 2023 14:04:38 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 325C4C433C8;
-        Thu,  7 Dec 2023 22:04:38 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C44CB10E3
+        for <mm-commits@vger.kernel.org>; Thu,  7 Dec 2023 14:04:44 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 593A3C433CC;
+        Thu,  7 Dec 2023 22:04:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1701986678;
-        bh=8/cZcpK3H4nKtpWJJOMz0kWXr3Lpx//Xvwi96lQaZhA=;
+        s=korg; t=1701986684;
+        bh=LGUBHqZovsyE/P2YkdwdVwPMu9AGORMBy5jtvmZbEZo=;
         h=Date:To:From:Subject:From;
-        b=Cgc6ACv2EMcXUe7G4UGtc4XKWBSLz1geRv5klOTkz5+vF40kHeB9PArytmUgxC6xy
-         OlP0TvbsgHXE1H2SI9d2BSHr9cxKuOUcPrWoh3cUslHGDjfsk7hgqExl4eug41hQPc
-         /gtRD3OhW8AF1eH287FE8MU21wBQiKBTDmtVx6gs=
-Date:   Thu, 07 Dec 2023 14:04:37 -0800
+        b=k+yAvHWjt3FWIWTtJ+TN94hzXA2ZBSYm+OfTMU9kOL//9DGB2+WrqumA1qT3iAXHS
+         hHsbAKIhWz+DWYE+wP0bWYluyFU7H8Ci3SwzQ8fGJ9W41zMoYCoutiKDuw7txvgMBm
+         ATbeKE+AzCkYpTqwMum0ZVZs0M8Uo1bcRFUAM2dE=
+Date:   Thu, 07 Dec 2023 14:04:43 -0800
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, yuzhao@google.com,
         ying.huang@intel.com, willy@infradead.org,
         wangkefeng.wang@huawei.com, v-songbaohua@oppo.com, vbabka@suse.cz,
@@ -34,8 +34,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com, yuzhao@google.com,
         anshuman.khandual@arm.com, ryan.roberts@arm.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-kugepaged-restore-thp-settings-at-exit.patch added to mm-unstable branch
-Message-Id: <20231207220438.325C4C433C8@smtp.kernel.org>
+Subject: + selftests-mm-cow-generalize-do_run_with_thp-helper.patch added to mm-unstable branch
+Message-Id: <20231207220444.593A3C433CC@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,12 +43,12 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/mm/kugepaged: restore thp settings at exit
+     Subject: selftests/mm/cow: generalize do_run_with_thp() helper
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-kugepaged-restore-thp-settings-at-exit.patch
+     selftests-mm-cow-generalize-do_run_with_thp-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-kugepaged-restore-thp-settings-at-exit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-cow-generalize-do_run_with_thp-helper.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,23 +67,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: selftests/mm/kugepaged: restore thp settings at exit
-Date: Thu, 7 Dec 2023 16:12:06 +0000
+Subject: selftests/mm/cow: generalize do_run_with_thp() helper
+Date: Thu, 7 Dec 2023 16:12:10 +0000
 
-Previously, the saved thp settings would be restored upon a signal or at
-the natural end of the test suite.  But there are some tests that directly
-call exit() upon failure.  In this case, the thp settings were not being
-restored, which could then influence other tests.
+do_run_with_thp() prepares (PMD-sized) THP memory into different states
+before running tests.  With the introduction of multi-size THP, we would
+like to reuse this logic to also test those smaller THP sizes.  So let's
+add a thpsize parameter which tells the function what size THP it should
+operate on.
 
-Fix this by installing an atexit() handler to do the actual restore.  The
-signal handler can now just call exit() and the atexit handler is invoked.
+A separate commit will utilize this change to add new tests for multi-size
+THP, where available.
 
-Link: https://lkml.kernel.org/r/20231207161211.2374093-6-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20231207161211.2374093-10-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Tested-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Tested-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Barry Song <v-songbaohua@oppo.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -102,48 +103,273 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/khugepaged.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ tools/testing/selftests/mm/cow.c |  121 ++++++++++++++++-------------
+ 1 file changed, 67 insertions(+), 54 deletions(-)
 
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-kugepaged-restore-thp-settings-at-exit
-+++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -374,18 +374,22 @@ static void pop_settings(void)
- 	write_settings(current_settings());
- }
+--- a/tools/testing/selftests/mm/cow.c~selftests-mm-cow-generalize-do_run_with_thp-helper
++++ a/tools/testing/selftests/mm/cow.c
+@@ -32,7 +32,7 @@
  
--static void restore_settings(int sig)
-+static void restore_settings_atexit(void)
+ static size_t pagesize;
+ static int pagemap_fd;
+-static size_t thpsize;
++static size_t pmdsize;
+ static int nr_hugetlbsizes;
+ static size_t hugetlbsizes[10];
+ static int gup_fd;
+@@ -734,7 +734,7 @@ enum thp_run {
+ 	THP_RUN_PARTIAL_SHARED,
+ };
+ 
+-static void do_run_with_thp(test_fn fn, enum thp_run thp_run)
++static void do_run_with_thp(test_fn fn, enum thp_run thp_run, size_t thpsize)
  {
- 	if (skip_settings_restore)
--		goto out;
-+		return;
+ 	char *mem, *mmap_mem, *tmp, *mremap_mem = MAP_FAILED;
+ 	size_t size, mmap_size, mremap_size;
+@@ -759,11 +759,11 @@ static void do_run_with_thp(test_fn fn,
+ 	}
  
- 	printf("Restore THP and khugepaged settings...");
- 	write_settings(&saved_settings);
- 	success("OK");
--	if (sig)
--		exit(EXIT_FAILURE);
--out:
--	exit(exit_status);
-+
-+	skip_settings_restore = true;
-+}
-+
-+static void restore_settings(int sig)
-+{
-+	/* exit() will invoke the restore_settings_atexit handler. */
-+	exit(sig ? EXIT_FAILURE : exit_status);
+ 	/*
+-	 * Try to populate a THP. Touch the first sub-page and test if we get
+-	 * another sub-page populated automatically.
++	 * Try to populate a THP. Touch the first sub-page and test if
++	 * we get the last sub-page populated automatically.
+ 	 */
+ 	mem[0] = 0;
+-	if (!pagemap_is_populated(pagemap_fd, mem + pagesize)) {
++	if (!pagemap_is_populated(pagemap_fd, mem + thpsize - pagesize)) {
+ 		ksft_test_result_skip("Did not get a THP populated\n");
+ 		goto munmap;
+ 	}
+@@ -773,12 +773,14 @@ static void do_run_with_thp(test_fn fn,
+ 	switch (thp_run) {
+ 	case THP_RUN_PMD:
+ 	case THP_RUN_PMD_SWAPOUT:
++		assert(thpsize == pmdsize);
+ 		break;
+ 	case THP_RUN_PTE:
+ 	case THP_RUN_PTE_SWAPOUT:
+ 		/*
+ 		 * Trigger PTE-mapping the THP by temporarily mapping a single
+-		 * subpage R/O.
++		 * subpage R/O. This is a noop if the THP is not pmdsize (and
++		 * therefore already PTE-mapped).
+ 		 */
+ 		ret = mprotect(mem + pagesize, pagesize, PROT_READ);
+ 		if (ret) {
+@@ -875,52 +877,60 @@ munmap:
+ 		munmap(mremap_mem, mremap_size);
  }
  
- static void save_settings(void)
-@@ -415,6 +419,7 @@ static void save_settings(void)
+-static void run_with_thp(test_fn fn, const char *desc)
++static void run_with_thp(test_fn fn, const char *desc, size_t size)
+ {
+-	ksft_print_msg("[RUN] %s ... with THP\n", desc);
+-	do_run_with_thp(fn, THP_RUN_PMD);
++	ksft_print_msg("[RUN] %s ... with THP (%zu kB)\n",
++		desc, size / 1024);
++	do_run_with_thp(fn, THP_RUN_PMD, size);
+ }
  
- 	success("OK");
+-static void run_with_thp_swap(test_fn fn, const char *desc)
++static void run_with_thp_swap(test_fn fn, const char *desc, size_t size)
+ {
+-	ksft_print_msg("[RUN] %s ... with swapped-out THP\n", desc);
+-	do_run_with_thp(fn, THP_RUN_PMD_SWAPOUT);
++	ksft_print_msg("[RUN] %s ... with swapped-out THP (%zu kB)\n",
++		desc, size / 1024);
++	do_run_with_thp(fn, THP_RUN_PMD_SWAPOUT, size);
+ }
  
-+	atexit(restore_settings_atexit);
- 	signal(SIGTERM, restore_settings);
- 	signal(SIGINT, restore_settings);
- 	signal(SIGHUP, restore_settings);
+-static void run_with_pte_mapped_thp(test_fn fn, const char *desc)
++static void run_with_pte_mapped_thp(test_fn fn, const char *desc, size_t size)
+ {
+-	ksft_print_msg("[RUN] %s ... with PTE-mapped THP\n", desc);
+-	do_run_with_thp(fn, THP_RUN_PTE);
++	ksft_print_msg("[RUN] %s ... with PTE-mapped THP (%zu kB)\n",
++		desc, size / 1024);
++	do_run_with_thp(fn, THP_RUN_PTE, size);
+ }
+ 
+-static void run_with_pte_mapped_thp_swap(test_fn fn, const char *desc)
++static void run_with_pte_mapped_thp_swap(test_fn fn, const char *desc, size_t size)
+ {
+-	ksft_print_msg("[RUN] %s ... with swapped-out, PTE-mapped THP\n", desc);
+-	do_run_with_thp(fn, THP_RUN_PTE_SWAPOUT);
++	ksft_print_msg("[RUN] %s ... with swapped-out, PTE-mapped THP (%zu kB)\n",
++		desc, size / 1024);
++	do_run_with_thp(fn, THP_RUN_PTE_SWAPOUT, size);
+ }
+ 
+-static void run_with_single_pte_of_thp(test_fn fn, const char *desc)
++static void run_with_single_pte_of_thp(test_fn fn, const char *desc, size_t size)
+ {
+-	ksft_print_msg("[RUN] %s ... with single PTE of THP\n", desc);
+-	do_run_with_thp(fn, THP_RUN_SINGLE_PTE);
++	ksft_print_msg("[RUN] %s ... with single PTE of THP (%zu kB)\n",
++		desc, size / 1024);
++	do_run_with_thp(fn, THP_RUN_SINGLE_PTE, size);
+ }
+ 
+-static void run_with_single_pte_of_thp_swap(test_fn fn, const char *desc)
++static void run_with_single_pte_of_thp_swap(test_fn fn, const char *desc, size_t size)
+ {
+-	ksft_print_msg("[RUN] %s ... with single PTE of swapped-out THP\n", desc);
+-	do_run_with_thp(fn, THP_RUN_SINGLE_PTE_SWAPOUT);
++	ksft_print_msg("[RUN] %s ... with single PTE of swapped-out THP (%zu kB)\n",
++		desc, size / 1024);
++	do_run_with_thp(fn, THP_RUN_SINGLE_PTE_SWAPOUT, size);
+ }
+ 
+-static void run_with_partial_mremap_thp(test_fn fn, const char *desc)
++static void run_with_partial_mremap_thp(test_fn fn, const char *desc, size_t size)
+ {
+-	ksft_print_msg("[RUN] %s ... with partially mremap()'ed THP\n", desc);
+-	do_run_with_thp(fn, THP_RUN_PARTIAL_MREMAP);
++	ksft_print_msg("[RUN] %s ... with partially mremap()'ed THP (%zu kB)\n",
++		desc, size / 1024);
++	do_run_with_thp(fn, THP_RUN_PARTIAL_MREMAP, size);
+ }
+ 
+-static void run_with_partial_shared_thp(test_fn fn, const char *desc)
++static void run_with_partial_shared_thp(test_fn fn, const char *desc, size_t size)
+ {
+-	ksft_print_msg("[RUN] %s ... with partially shared THP\n", desc);
+-	do_run_with_thp(fn, THP_RUN_PARTIAL_SHARED);
++	ksft_print_msg("[RUN] %s ... with partially shared THP (%zu kB)\n",
++		desc, size / 1024);
++	do_run_with_thp(fn, THP_RUN_PARTIAL_SHARED, size);
+ }
+ 
+ static void run_with_hugetlb(test_fn fn, const char *desc, size_t hugetlbsize)
+@@ -1091,15 +1101,15 @@ static void run_anon_test_case(struct te
+ 
+ 	run_with_base_page(test_case->fn, test_case->desc);
+ 	run_with_base_page_swap(test_case->fn, test_case->desc);
+-	if (thpsize) {
+-		run_with_thp(test_case->fn, test_case->desc);
+-		run_with_thp_swap(test_case->fn, test_case->desc);
+-		run_with_pte_mapped_thp(test_case->fn, test_case->desc);
+-		run_with_pte_mapped_thp_swap(test_case->fn, test_case->desc);
+-		run_with_single_pte_of_thp(test_case->fn, test_case->desc);
+-		run_with_single_pte_of_thp_swap(test_case->fn, test_case->desc);
+-		run_with_partial_mremap_thp(test_case->fn, test_case->desc);
+-		run_with_partial_shared_thp(test_case->fn, test_case->desc);
++	if (pmdsize) {
++		run_with_thp(test_case->fn, test_case->desc, pmdsize);
++		run_with_thp_swap(test_case->fn, test_case->desc, pmdsize);
++		run_with_pte_mapped_thp(test_case->fn, test_case->desc, pmdsize);
++		run_with_pte_mapped_thp_swap(test_case->fn, test_case->desc, pmdsize);
++		run_with_single_pte_of_thp(test_case->fn, test_case->desc, pmdsize);
++		run_with_single_pte_of_thp_swap(test_case->fn, test_case->desc, pmdsize);
++		run_with_partial_mremap_thp(test_case->fn, test_case->desc, pmdsize);
++		run_with_partial_shared_thp(test_case->fn, test_case->desc, pmdsize);
+ 	}
+ 	for (i = 0; i < nr_hugetlbsizes; i++)
+ 		run_with_hugetlb(test_case->fn, test_case->desc,
+@@ -1120,7 +1130,7 @@ static int tests_per_anon_test_case(void
+ {
+ 	int tests = 2 + nr_hugetlbsizes;
+ 
+-	if (thpsize)
++	if (pmdsize)
+ 		tests += 8;
+ 	return tests;
+ }
+@@ -1329,7 +1339,7 @@ static void run_anon_thp_test_cases(void
+ {
+ 	int i;
+ 
+-	if (!thpsize)
++	if (!pmdsize)
+ 		return;
+ 
+ 	ksft_print_msg("[INFO] Anonymous THP tests\n");
+@@ -1338,13 +1348,13 @@ static void run_anon_thp_test_cases(void
+ 		struct test_case const *test_case = &anon_thp_test_cases[i];
+ 
+ 		ksft_print_msg("[RUN] %s\n", test_case->desc);
+-		do_run_with_thp(test_case->fn, THP_RUN_PMD);
++		do_run_with_thp(test_case->fn, THP_RUN_PMD, pmdsize);
+ 	}
+ }
+ 
+ static int tests_per_anon_thp_test_case(void)
+ {
+-	return thpsize ? 1 : 0;
++	return pmdsize ? 1 : 0;
+ }
+ 
+ typedef void (*non_anon_test_fn)(char *mem, const char *smem, size_t size);
+@@ -1419,7 +1429,7 @@ static void run_with_huge_zeropage(non_a
+ 	}
+ 
+ 	/* For alignment purposes, we need twice the thp size. */
+-	mmap_size = 2 * thpsize;
++	mmap_size = 2 * pmdsize;
+ 	mmap_mem = mmap(NULL, mmap_size, PROT_READ | PROT_WRITE,
+ 			MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+ 	if (mmap_mem == MAP_FAILED) {
+@@ -1434,11 +1444,11 @@ static void run_with_huge_zeropage(non_a
+ 	}
+ 
+ 	/* We need a THP-aligned memory area. */
+-	mem = (char *)(((uintptr_t)mmap_mem + thpsize) & ~(thpsize - 1));
+-	smem = (char *)(((uintptr_t)mmap_smem + thpsize) & ~(thpsize - 1));
++	mem = (char *)(((uintptr_t)mmap_mem + pmdsize) & ~(pmdsize - 1));
++	smem = (char *)(((uintptr_t)mmap_smem + pmdsize) & ~(pmdsize - 1));
+ 
+-	ret = madvise(mem, thpsize, MADV_HUGEPAGE);
+-	ret |= madvise(smem, thpsize, MADV_HUGEPAGE);
++	ret = madvise(mem, pmdsize, MADV_HUGEPAGE);
++	ret |= madvise(smem, pmdsize, MADV_HUGEPAGE);
+ 	if (ret) {
+ 		ksft_test_result_fail("MADV_HUGEPAGE failed\n");
+ 		goto munmap;
+@@ -1457,7 +1467,7 @@ static void run_with_huge_zeropage(non_a
+ 		goto munmap;
+ 	}
+ 
+-	fn(mem, smem, thpsize);
++	fn(mem, smem, pmdsize);
+ munmap:
+ 	munmap(mmap_mem, mmap_size);
+ 	if (mmap_smem != MAP_FAILED)
+@@ -1650,7 +1660,7 @@ static void run_non_anon_test_case(struc
+ 	run_with_zeropage(test_case->fn, test_case->desc);
+ 	run_with_memfd(test_case->fn, test_case->desc);
+ 	run_with_tmpfile(test_case->fn, test_case->desc);
+-	if (thpsize)
++	if (pmdsize)
+ 		run_with_huge_zeropage(test_case->fn, test_case->desc);
+ 	for (i = 0; i < nr_hugetlbsizes; i++)
+ 		run_with_memfd_hugetlb(test_case->fn, test_case->desc,
+@@ -1671,7 +1681,7 @@ static int tests_per_non_anon_test_case(
+ {
+ 	int tests = 3 + nr_hugetlbsizes;
+ 
+-	if (thpsize)
++	if (pmdsize)
+ 		tests += 1;
+ 	return tests;
+ }
+@@ -1681,10 +1691,13 @@ int main(int argc, char **argv)
+ 	int err;
+ 
+ 	pagesize = getpagesize();
+-	thpsize = read_pmd_pagesize();
+-	if (thpsize)
++	pmdsize = read_pmd_pagesize();
++	if (pmdsize) {
++		ksft_print_msg("[INFO] detected PMD size: %zu KiB\n",
++			       pmdsize / 1024);
+ 		ksft_print_msg("[INFO] detected THP size: %zu KiB\n",
+-			       thpsize / 1024);
++			       pmdsize / 1024);
++	}
+ 	nr_hugetlbsizes = detect_hugetlb_page_sizes(hugetlbsizes,
+ 						    ARRAY_SIZE(hugetlbsizes));
+ 	detect_huge_zeropage();
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
