@@ -2,171 +2,63 @@ Return-Path: <mm-commits-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF210C46CA3
-	for <mm-commits@archiver.kernel.org>; Fri,  8 Dec 2023 02:54:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AF53C4167B
+	for <mm-commits@archiver.kernel.org>; Fri,  8 Dec 2023 17:08:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1573087AbjLHCyj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 7 Dec 2023 21:54:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46544 "EHLO
+        id S233731AbjLHRIZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 8 Dec 2023 12:08:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54110 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235701AbjLHCxs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Dec 2023 21:53:48 -0500
+        with ESMTP id S235982AbjLHRIX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Dec 2023 12:08:23 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 327101BF6;
-        Thu,  7 Dec 2023 18:53:42 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEC98C433CA;
-        Fri,  8 Dec 2023 02:53:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1702004022;
-        bh=zlhh6P8Mx1zQnoxef6SBwM9ERT2cHE9T+a5LrdiDy0s=;
-        h=Date:From:To:Cc:Subject:From;
-        b=UGbKTtPpCj+yAL9sSSDPshkLiG2NhR9HOtITnJf+VRNAzRASnBJyw1eofaAl+1W4q
-         UV5piPNJkbpEtRuDCDbRsixcU6XOwq2eMXvAI87BeSmLu+8Z71B/ob405sqoLFfKi4
-         p3ZJZMPBG3oSHfvZtlUjJasgVrifKQNoQBFSiv/U=
-Date:   Thu, 7 Dec 2023 18:53:41 -0800
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linuxfoundation.org>
-Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.7-rc5
-Message-Id: <20231207185341.570f240a4f51d820c08c9e0b@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D744199B;
+        Fri,  8 Dec 2023 09:08:30 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 36764C433C7;
+        Fri,  8 Dec 2023 17:08:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1702055310;
+        bh=60Vpjx7/NhWAxeON2bh84Ga6PFDLeO8+JRTVS2fg/ko=;
+        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+        b=juchQTLjMkmJ/9aNcFBz5fGJfORSxKxzX3pBvnmp7TN8tSijA1pYSssiJRMCpcnbM
+         vVbmZmCSYqkW2TUsd848ULWpz5WhEq2JGuYxJKt/AR1KGRG0uNQR2xlka0M9ZJK3W4
+         64W/nq3blaFQDDRAKzUDydt7xvvRcbJYRrOhqlYfpJKhxPt7SYGdn8Y/7qbNwE0Fj8
+         kk3kV/zlW/uhdkvXUAepVOyeFEFmDunKedSxVTBkGfZU/QsX+17A75sseAEa6SoV3Y
+         ZfsQVF3dxmXEoL4mjdKv6317ezwM5CUkKfiaDcttMkeeNu7ptmxrT3m3gXk3jni6+h
+         ziGlIln0nd/zw==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 25E82C04DD9;
+        Fri,  8 Dec 2023 17:08:30 +0000 (UTC)
+Subject: Re: [GIT PULL] hotfixes for 6.7-rc5
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <20231207185341.570f240a4f51d820c08c9e0b@linux-foundation.org>
+References: <20231207185341.570f240a4f51d820c08c9e0b@linux-foundation.org>
+X-PR-Tracked-List-Id: <mm-commits.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20231207185341.570f240a4f51d820c08c9e0b@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-12-07-18-47
+X-PR-Tracked-Commit-Id: b2f557a21bc8fffdcd65794eda8a854e024999f3
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 8e819a7623f19534bce6d53678b581c167b5b079
+Message-Id: <170205531014.9242.8107782711761982831.pr-tracker-bot@kernel.org>
+Date:   Fri, 08 Dec 2023 17:08:30 +0000
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Linus Torvalds <torvalds@linuxfoundation.org>, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+The pull request you sent on Thu, 7 Dec 2023 18:53:41 -0800:
 
-Linus, please merge this batch of hotfixes, thanks.
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-12-07-18-47
 
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/8e819a7623f19534bce6d53678b581c167b5b079
 
-The following changes since commit 5b7ad877e4d81f8904ce83982b1ba5c6e83deccb:
+Thank you!
 
-  Merge tag 'afs-fixes-20231124' of git://git.kernel.org/pub/scm/linux/kernel/git/dhowells/linux-fs (2023-11-24 10:40:03 -0800)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-12-07-18-47
-
-for you to fetch changes up to b2f557a21bc8fffdcd65794eda8a854e024999f3:
-
-  mm/madvise: add cond_resched() in madvise_cold_or_pageout_pte_range() (2023-12-06 16:12:50 -0800)
-
-----------------------------------------------------------------
-31 hotfixes.  10 of these address pre-6.6 issues and are marked cc:stable.
-The remainder address post-6.6 issues or aren't considered serious enough
-to justify backporting.
-
-----------------------------------------------------------------
-Andrew Morton (2):
-      MAINTAINERS: add Andrew Morton for lib/*
-      mm/memory.c:zap_pte_range() print bad swap entry
-
-Andy Shevchenko (1):
-      units: add missing header
-
-Bagas Sanjaya (1):
-      MAINTAINERS: drop Antti Palosaari
-
-Baoquan He (2):
-      drivers/base/cpu: crash data showing should depends on KEXEC_CORE
-      kernel/Kconfig.kexec: drop select of KEXEC for CRASH_DUMP
-
-Chester Lin (1):
-      .mailmap: add a new address mapping for Chester Lin
-
-Florian Fainelli (1):
-      scripts/gdb: fix lx-device-list-bus and lx-device-list-class
-
-Heiko Carstens (1):
-      checkstack: fix printed address
-
-Hugh Dickins (1):
-      mm: fix oops when filemap_map_pmd() without prealloc_pte
-
-Jiexun Wang (1):
-      mm/madvise: add cond_resched() in madvise_cold_or_pageout_pte_range()
-
-Kuan-Ying Lee (1):
-      scripts/gdb/tasks: fix lx-ps command error
-
-Liu Shixin (2):
-      Revert "mm/kmemleak: move the initialisation of object to __link_object"
-      mm/kmemleak: move set_track_prepare() outside raw_spinlocks
-
-Lizhi Xu (1):
-      squashfs: squashfs_read_data need to check if the length is 0
-
-Mike Kravetz (1):
-      hugetlb: fix null-ptr-deref in hugetlb_vma_lock_write
-
-Ming Lei (1):
-      lib/group_cpus.c: avoid acquiring cpu hotplug lock in group_cpus_evenly
-
-Nico Pache (1):
-      selftests/mm: prevent duplicate runs caused by TEST_GEN_PROGS
-
-Peter Xu (4):
-      mm/pagemap: fix ioctl(PAGEMAP_SCAN) on vma check
-      mm/pagemap: fix wr-protect even if PM_SCAN_WP_MATCHING not set
-      mm/selftests: fix pagemap_ioctl memory map test
-      mm/Kconfig: make userfaultfd a menuconfig
-
-Roman Gushchin (1):
-      mm: kmem: properly initialize local objcg variable in current_obj_cgroup()
-
-Ryusuke Konishi (2):
-      nilfs2: fix missing error check for sb_set_blocksize call
-      nilfs2: prevent WARNING in nilfs_sufile_set_segment_usage()
-
-SeongJae Park (2):
-      mm/damon/core: copy nr_accesses when splitting region
-      mm/damon/sysfs-schemes: add timeout for update_schemes_tried_regions
-
-Sidhartha Kumar (1):
-      mm/hugetlb: have CONFIG_HUGETLB_PAGE select CONFIG_XARRAY_MULTI
-
-Su Hui (1):
-      highmem: fix a memory copy problem in memcpy_from_folio
-
-Sumanth Korikkar (2):
-      mm/memory_hotplug: add missing mem_hotplug_lock
-      mm/memory_hotplug: fix error handling in add_memory_resource()
-
- .mailmap                                   |   1 +
- CREDITS                                    |   8 ++
- MAINTAINERS                                | 186 +++++++----------------------
- arch/arm/include/asm/kexec.h               |   4 -
- arch/arm/kernel/Makefile                   |   2 +-
- drivers/base/cpu.c                         |   6 +-
- drivers/base/memory.c                      |  18 ++-
- fs/Kconfig                                 |   1 +
- fs/nilfs2/sufile.c                         |  42 +++++--
- fs/nilfs2/the_nilfs.c                      |   6 +-
- fs/proc/task_mmu.c                         |  26 +++-
- fs/squashfs/block.c                        |   2 +-
- include/linux/highmem.h                    |   2 +-
- include/linux/hugetlb.h                    |   5 +-
- include/linux/units.h                      |   1 +
- kernel/Kconfig.kexec                       |   1 -
- lib/group_cpus.c                           |  22 +++-
- mm/Kconfig                                 |  16 +--
- mm/damon/core.c                            |   1 +
- mm/damon/sysfs-schemes.c                   |  49 +++++++-
- mm/filemap.c                               |   2 +-
- mm/hugetlb.c                               |   7 ++
- mm/kmemleak.c                              |  40 ++++---
- mm/madvise.c                               |  11 ++
- mm/memcontrol.c                            |   2 +-
- mm/memory.c                                |   1 +
- mm/memory_hotplug.c                        |  15 ++-
- scripts/checkstack.pl                      |   8 +-
- scripts/gdb/linux/device.py                |  16 +--
- scripts/gdb/linux/tasks.py                 |  18 ++-
- tools/testing/selftests/mm/Makefile        |   4 +-
- tools/testing/selftests/mm/pagemap_ioctl.c |   9 +-
- 32 files changed, 282 insertions(+), 250 deletions(-)
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
