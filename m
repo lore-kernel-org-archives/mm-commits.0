@@ -1,64 +1,146 @@
-Return-Path: <mm-commits-owner@vger.kernel.org>
-X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
-	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AF53C4167B
-	for <mm-commits@archiver.kernel.org>; Fri,  8 Dec 2023 17:08:33 +0000 (UTC)
-Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233731AbjLHRIZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 8 Dec 2023 12:08:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54110 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235982AbjLHRIX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 8 Dec 2023 12:08:23 -0500
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D744199B;
-        Fri,  8 Dec 2023 09:08:30 -0800 (PST)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 36764C433C7;
-        Fri,  8 Dec 2023 17:08:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1702055310;
-        bh=60Vpjx7/NhWAxeON2bh84Ga6PFDLeO8+JRTVS2fg/ko=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=juchQTLjMkmJ/9aNcFBz5fGJfORSxKxzX3pBvnmp7TN8tSijA1pYSssiJRMCpcnbM
-         vVbmZmCSYqkW2TUsd848ULWpz5WhEq2JGuYxJKt/AR1KGRG0uNQR2xlka0M9ZJK3W4
-         64W/nq3blaFQDDRAKzUDydt7xvvRcbJYRrOhqlYfpJKhxPt7SYGdn8Y/7qbNwE0Fj8
-         kk3kV/zlW/uhdkvXUAepVOyeFEFmDunKedSxVTBkGfZU/QsX+17A75sseAEa6SoV3Y
-         ZfsQVF3dxmXEoL4mjdKv6317ezwM5CUkKfiaDcttMkeeNu7ptmxrT3m3gXk3jni6+h
-         ziGlIln0nd/zw==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 25E82C04DD9;
-        Fri,  8 Dec 2023 17:08:30 +0000 (UTC)
-Subject: Re: [GIT PULL] hotfixes for 6.7-rc5
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <20231207185341.570f240a4f51d820c08c9e0b@linux-foundation.org>
-References: <20231207185341.570f240a4f51d820c08c9e0b@linux-foundation.org>
-X-PR-Tracked-List-Id: <mm-commits.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20231207185341.570f240a4f51d820c08c9e0b@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-12-07-18-47
-X-PR-Tracked-Commit-Id: b2f557a21bc8fffdcd65794eda8a854e024999f3
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 8e819a7623f19534bce6d53678b581c167b5b079
-Message-Id: <170205531014.9242.8107782711761982831.pr-tracker-bot@kernel.org>
-Date:   Fri, 08 Dec 2023 17:08:30 +0000
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Linus Torvalds <torvalds@linuxfoundation.org>, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 451D041C78;
+	Fri,  8 Dec 2023 19:39:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eZcvJfoX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0389C433C7;
+	Fri,  8 Dec 2023 19:39:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1702064366;
+	bh=kPBvzTdNHZ5UUoNbEQYpmT2MvnD4IFeMO1rJZk1A5Gk=;
+	h=Date:To:From:Subject:From;
+	b=eZcvJfoXazIGD1ZqGmTDcA4hKTXBqAdBcGS/TDhscn7wuPxTEt5NIp/BehSnrt8Ne
+	 dyw/RtGSfC0sM9HGTJi6IG5vV2UWVGvcvCHsTGFbtbN6F10YqHLPKpkVPgFURcY1rl
+	 qG8DEOhgz19ZDo5f9Rlt6Z11MSmz4O1mO7uxYZ2M=
+Date: Fri, 08 Dec 2023 11:39:25 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,changbin.du@intel.com,acsjakub@amazon.de,sj@kernel.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-damon-core-make-damon_start-waits-until-kdamond_fn-starts.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231208193925.E0389C433C7@smtp.kernel.org>
 Precedence: bulk
-Reply-To: linux-kernel@vger.kernel.org
-List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
+List-Id: <mm-commits.vger.kernel.org>
+List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
+List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
-The pull request you sent on Thu, 7 Dec 2023 18:53:41 -0800:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-12-07-18-47
+The patch titled
+     Subject: mm/damon/core: make damon_start() waits until kdamond_fn() starts
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-core-make-damon_start-waits-until-kdamond_fn-starts.patch
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/8e819a7623f19534bce6d53678b581c167b5b079
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-make-damon_start-waits-until-kdamond_fn-starts.patch
 
-Thank you!
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: make damon_start() waits until kdamond_fn() starts
+Date: Fri, 8 Dec 2023 17:50:18 +0000
+
+The cleanup tasks of kdamond threads including reset of corresponding
+DAMON context's ->kdamond field and decrease of global nr_running_ctxs
+counter is supposed to be executed by kdamond_fn().  However, commit
+0f91d13366a4 ("mm/damon: simplify stop mechanism") made neither
+damon_start() nor damon_stop() ensure the corresponding kdamond has
+started the execution of kdamond_fn().
+
+As a result, the cleanup can be skipped if damon_stop() is called fast
+enough after the previous damon_start().  Especially the skipped reset
+of ->kdamond could cause a use-after-free.
+
+Fix it by waiting for start of kdamond_fn() execution from
+damon_start().
+
+Link: https://lkml.kernel.org/r/20231208175018.63880-1-sj@kernel.org
+Fixes: 0f91d13366a4 ("mm/damon: simplify stop mechanism")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Reported-by: Jakub Acs <acsjakub@amazon.de>
+Cc: Changbin Du <changbin.du@intel.com>
+Cc: Jakub Acs <acsjakub@amazon.de>
+Cc: <stable@vger.kernel.org> # 5.15.x
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/damon.h |    2 ++
+ mm/damon/core.c       |    6 ++++++
+ 2 files changed, 8 insertions(+)
+
+--- a/include/linux/damon.h~mm-damon-core-make-damon_start-waits-until-kdamond_fn-starts
++++ a/include/linux/damon.h
+@@ -559,6 +559,8 @@ struct damon_ctx {
+ 	 * update
+ 	 */
+ 	unsigned long next_ops_update_sis;
++	/* for waiting until the execution of the kdamond_fn is started */
++	struct completion kdamond_started;
+ 
+ /* public: */
+ 	struct task_struct *kdamond;
+--- a/mm/damon/core.c~mm-damon-core-make-damon_start-waits-until-kdamond_fn-starts
++++ a/mm/damon/core.c
+@@ -445,6 +445,8 @@ struct damon_ctx *damon_new_ctx(void)
+ 	if (!ctx)
+ 		return NULL;
+ 
++	init_completion(&ctx->kdamond_started);
++
+ 	ctx->attrs.sample_interval = 5 * 1000;
+ 	ctx->attrs.aggr_interval = 100 * 1000;
+ 	ctx->attrs.ops_update_interval = 60 * 1000 * 1000;
+@@ -668,11 +670,14 @@ static int __damon_start(struct damon_ct
+ 	mutex_lock(&ctx->kdamond_lock);
+ 	if (!ctx->kdamond) {
+ 		err = 0;
++		reinit_completion(&ctx->kdamond_started);
+ 		ctx->kdamond = kthread_run(kdamond_fn, ctx, "kdamond.%d",
+ 				nr_running_ctxs);
+ 		if (IS_ERR(ctx->kdamond)) {
+ 			err = PTR_ERR(ctx->kdamond);
+ 			ctx->kdamond = NULL;
++		} else {
++			wait_for_completion(&ctx->kdamond_started);
+ 		}
+ 	}
+ 	mutex_unlock(&ctx->kdamond_lock);
+@@ -1433,6 +1438,7 @@ static int kdamond_fn(void *data)
+ 
+ 	pr_debug("kdamond (%d) starts\n", current->pid);
+ 
++	complete(&ctx->kdamond_started);
+ 	kdamond_init_intervals_sis(ctx);
+ 
+ 	if (ctx->ops.init)
+_
+
+Patches currently in -mm which might be from sj@kernel.org are
+
+mm-damon-core-make-damon_start-waits-until-kdamond_fn-starts.patch
+mm-damon-core-test-test-damon_split_region_ats-access-rate-copying.patch
+mm-damon-core-implement-goal-oriented-feedback-driven-quota-auto-tuning.patch
+mm-damon-core-implement-goal-oriented-feedback-driven-quota-auto-tuning-fix.patch
+mm-damon-sysfs-schemes-implement-files-for-scheme-quota-goals-setup.patch
+mm-damon-sysfs-schemes-commit-damos-quota-goals-user-input-to-damos.patch
+mm-damon-sysfs-schemes-implement-a-command-for-scheme-quota-goals-only-commit.patch
+mm-damon-core-test-add-a-unit-test-for-the-feedback-loop-algorithm.patch
+selftests-damon-test-quota-goals-directory.patch
+docs-mm-damon-design-document-damos-quota-auto-tuning.patch
+docs-abi-damon-document-damos-quota-goals.patch
+docs-admin-guide-mm-damon-usage-document-for-quota-goals.patch
+
