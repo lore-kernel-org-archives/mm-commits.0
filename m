@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CA67481D4;
-	Fri,  8 Dec 2023 19:53:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5050E51C27;
+	Fri,  8 Dec 2023 19:54:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LfYE3V1r"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEF7DC433C8;
-	Fri,  8 Dec 2023 19:53:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QswnY6c7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1911EC433C9;
+	Fri,  8 Dec 2023 19:54:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702065239;
-	bh=I1VnRCEKoW1i9i3+g1aKH6rlt4cc0b7gneFXx1rFgiA=;
+	s=korg; t=1702065242;
+	bh=W/0w88m1eVgDuI2fQ+Ew+4Pwe9ZPkg7eiBV2+dRT6oM=;
 	h=Date:To:From:Subject:From;
-	b=LfYE3V1rWX4o9HLH6+YsWM8ZzN3aJ0ze8rJKamipgwCu2HXqkFA8LWWfxJT1s6MXC
-	 xwN+unAKnL8AHgbzgaiNtmypRFLjgjSx4iDTklMo0h9qY+aw2dEKLnpBHi5Yrpkn4v
-	 fJ7hAe9uZW97wA+OQXHN5ljBdhb+FNcHZlocYYII=
-Date: Fri, 08 Dec 2023 11:53:59 -0800
+	b=QswnY6c7dlBaeGq429zkWQFH32nwn2Y3AWS/V8Q8K+pQuRPNqMCWoE4qANdSXAlxs
+	 Si15K8zAaL6J0HK9nm8Y+yFFUzA5KxMil656cOz/5+cjSfAfj2b5akiv1ePklLPN2l
+	 +nCZ9Px6Rn0e6sgpa4jrDKtHS2AmH1QmsTh510Y4=
+Date: Fri, 08 Dec 2023 11:54:01 -0800
 To: mm-commits@vger.kernel.org,tjmercier@google.com,stable@vger.kernel.org,ryncsn@gmail.com,quic_charante@quicinc.com,kaleshsingh@google.com,jaroslav.pulchart@gooddata.com,hdanton@sina.com,yuzhao@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-fix-underprotected-page-cache.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231208195359.AEF7DC433C8@smtp.kernel.org>
+Subject: + mm-mglru-try-to-stop-at-high-watermarks.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231208195402.1911EC433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mglru: fix underprotected page cache
+     Subject: mm/mglru: try to stop at high watermarks
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-mglru-fix-underprotected-page-cache.patch
+     mm-mglru-try-to-stop-at-high-watermarks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-fix-underprotected-page-cache.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-try-to-stop-at-high-watermarks.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,128 +51,143 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yu Zhao <yuzhao@google.com>
-Subject: mm/mglru: fix underprotected page cache
-Date: Thu, 7 Dec 2023 23:14:04 -0700
+Subject: mm/mglru: try to stop at high watermarks
+Date: Thu, 7 Dec 2023 23:14:05 -0700
 
-Unmapped folios accessed through file descriptors can be underprotected. 
-Those folios are added to the oldest generation based on:
+The initial MGLRU patchset didn't include the memcg LRU support, and it
+relied on should_abort_scan(), added by commit f76c83378851 ("mm:
+multi-gen LRU: optimize multiple memcgs"), to "backoff to avoid
+overshooting their aggregate reclaim target by too much".
 
-1. The fact that they are less costly to reclaim (no need to walk the
-   rmap and flush the TLB) and have less impact on performance (don't
-   cause major PFs and can be non-blocking if needed again).
-2. The observation that they are likely to be single-use. E.g., for
-   client use cases like Android, its apps parse configuration files
-   and store the data in heap (anon); for server use cases like MySQL,
-   it reads from InnoDB files and holds the cached data for tables in
-   buffer pools (anon).
+Later on when the memcg LRU was added, should_abort_scan() was deemed
+unnecessary, and the test results [1] showed no side effects after it was
+removed by commit a579086c99ed ("mm: multi-gen LRU: remove eviction
+fairness safeguard").
 
-However, the oldest generation can be very short lived, and if so, it
-doesn't provide the PID controller with enough time to respond to a surge
-of refaults.  (Note that the PID controller uses weighted refaults and
-those from evicted generations only take a half of the whole weight.) In
-other words, for a short lived generation, the moving average smooths out
-the spike quickly.
+However, that test used memory.reclaim, which sets nr_to_reclaim to
+SWAP_CLUSTER_MAX.  So it can overshoot only by SWAP_CLUSTER_MAX-1 pages,
+i.e., from nr_reclaimed=nr_to_reclaim-1 to
+nr_reclaimed=nr_to_reclaim+SWAP_CLUSTER_MAX-1.  Compared with the batch
+size kswapd sets to nr_to_reclaim, SWAP_CLUSTER_MAX is tiny.  Therefore
+that test isn't able to reproduce the worst case scenario, i.e., kswapd
+overshooting GBs on large systems and "consuming 100% CPU" (see the Closes
+tag).
 
-To fix the problem:
-1. For folios that are already on LRU, if they can be beyond the
-   tracking range of tiers, i.e., five accesses through file
-   descriptors, move them to the second oldest generation to give them
-   more time to age. (Note that tiers are used by the PID controller
-   to statistically determine whether folios accessed multiple times
-   through file descriptors are worth protecting.)
-2. When adding unmapped folios to LRU, adjust the placement of them so
-   that they are not too close to the tail. The effect of this is
-   similar to the above.
+Bring back a simplified version of should_abort_scan() on top of the memcg
+LRU, so that kswapd stops when all eligible zones are above their
+respective high watermarks plus a small delta to lower the chance of
+KSWAPD_HIGH_WMARK_HIT_QUICKLY.  Note that this only applies to order-0
+reclaim, meaning compaction-induced reclaim can still run wild (which is a
+different problem).
 
 On Android, launching 55 apps sequentially:
-                           Before     After      Change
-  workingset_refault_anon  25641024   25598972   0%
-  workingset_refault_file  115016834  106178438  -8%
+           Before     After      Change
+  pgpgin   838377172  802955040  -4%
+  pgpgout  38037080   34336300   -10%
 
-Link: https://lkml.kernel.org/r/20231208061407.2125867-1-yuzhao@google.com
-Fixes: ac35a4902374 ("mm: multi-gen LRU: minimal implementation")
+[1] https://lore.kernel.org/20221222041905.2431096-1-yuzhao@google.com/
+
+Link: https://lkml.kernel.org/r/20231208061407.2125867-2-yuzhao@google.com
+Fixes: a579086c99ed ("mm: multi-gen LRU: remove eviction fairness safeguard")
 Signed-off-by: Yu Zhao <yuzhao@google.com>
 Reported-by: Charan Teja Kalla <quic_charante@quicinc.com>
+Reported-by: Jaroslav Pulchart <jaroslav.pulchart@gooddata.com>
+Closes: https://lore.kernel.org/CAK8fFZ4DY+GtBA40Pm7Nn5xCHy+51w3sfxPqkqpqakSXYyX+Wg@mail.gmail.com/
+Tested-by: Jaroslav Pulchart <jaroslav.pulchart@gooddata.com>
 Tested-by: Kalesh Singh <kaleshsingh@google.com>
-Cc: T.J. Mercier <tjmercier@google.com>
-Cc: Kairui Song <ryncsn@gmail.com>
 Cc: Hillf Danton <hdanton@sina.com>
-Cc: Jaroslav Pulchart <jaroslav.pulchart@gooddata.com>
+Cc: Kairui Song <ryncsn@gmail.com>
+Cc: T.J. Mercier <tjmercier@google.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |   23 ++++++++++++++---------
- mm/vmscan.c               |    2 +-
- mm/workingset.c           |    6 +++---
- 3 files changed, 18 insertions(+), 13 deletions(-)
+ mm/vmscan.c |   36 ++++++++++++++++++++++++++++--------
+ 1 file changed, 28 insertions(+), 8 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-mglru-fix-underprotected-page-cache
-+++ a/include/linux/mm_inline.h
-@@ -232,22 +232,27 @@ static inline bool lru_gen_add_folio(str
- 	if (folio_test_unevictable(folio) || !lrugen->enabled)
- 		return false;
- 	/*
--	 * There are three common cases for this page:
--	 * 1. If it's hot, e.g., freshly faulted in or previously hot and
--	 *    migrated, add it to the youngest generation.
--	 * 2. If it's cold but can't be evicted immediately, i.e., an anon page
--	 *    not in swapcache or a dirty page pending writeback, add it to the
--	 *    second oldest generation.
--	 * 3. Everything else (clean, cold) is added to the oldest generation.
-+	 * There are four common cases for this page:
-+	 * 1. If it's hot, i.e., freshly faulted in, add it to the youngest
-+	 *    generation, and it's protected over the rest below.
-+	 * 2. If it can't be evicted immediately, i.e., a dirty page pending
-+	 *    writeback, add it to the second youngest generation.
-+	 * 3. If it should be evicted first, e.g., cold and clean from
-+	 *    folio_rotate_reclaimable(), add it to the oldest generation.
-+	 * 4. Everything else falls between 2 & 3 above and is added to the
-+	 *    second oldest generation if it's considered inactive, or the
-+	 *    oldest generation otherwise. See lru_gen_is_active().
- 	 */
- 	if (folio_test_active(folio))
- 		seq = lrugen->max_seq;
- 	else if ((type == LRU_GEN_ANON && !folio_test_swapcache(folio)) ||
- 		 (folio_test_reclaim(folio) &&
- 		  (folio_test_dirty(folio) || folio_test_writeback(folio))))
--		seq = lrugen->min_seq[type] + 1;
--	else
-+		seq = lrugen->max_seq - 1;
-+	else if (reclaiming || lrugen->min_seq[type] + MIN_NR_GENS >= lrugen->max_seq)
- 		seq = lrugen->min_seq[type];
-+	else
-+		seq = lrugen->min_seq[type] + 1;
- 
- 	gen = lru_gen_from_seq(seq);
- 	flags = (gen + 1UL) << LRU_GEN_PGOFF;
---- a/mm/vmscan.c~mm-mglru-fix-underprotected-page-cache
+--- a/mm/vmscan.c~mm-mglru-try-to-stop-at-high-watermarks
 +++ a/mm/vmscan.c
-@@ -4232,7 +4232,7 @@ static bool sort_folio(struct lruvec *lr
+@@ -4648,20 +4648,41 @@ static long get_nr_to_scan(struct lruvec
+ 	return try_to_inc_max_seq(lruvec, max_seq, sc, can_swap, false) ? -1 : 0;
+ }
+ 
+-static unsigned long get_nr_to_reclaim(struct scan_control *sc)
++static bool should_abort_scan(struct lruvec *lruvec, struct scan_control *sc)
+ {
++	int i;
++	enum zone_watermarks mark;
++
+ 	/* don't abort memcg reclaim to ensure fairness */
+ 	if (!root_reclaim(sc))
+-		return -1;
++		return false;
++
++	if (sc->nr_reclaimed >= max(sc->nr_to_reclaim, compact_gap(sc->order)))
++		return true;
++
++	/* check the order to exclude compaction-induced reclaim */
++	if (!current_is_kswapd() || sc->order)
++		return false;
++
++	mark = sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING ?
++	       WMARK_PROMO : WMARK_HIGH;
++
++	for (i = 0; i <= sc->reclaim_idx; i++) {
++		struct zone *zone = lruvec_pgdat(lruvec)->node_zones + i;
++		unsigned long size = wmark_pages(zone, mark) + MIN_LRU_BATCH;
++
++		if (managed_zone(zone) && !zone_watermark_ok(zone, 0, size, sc->reclaim_idx, 0))
++			return false;
++	}
+ 
+-	return max(sc->nr_to_reclaim, compact_gap(sc->order));
++	/* kswapd should abort if all eligible zones are safe */
++	return true;
+ }
+ 
+ static bool try_to_shrink_lruvec(struct lruvec *lruvec, struct scan_control *sc)
+ {
+ 	long nr_to_scan;
+ 	unsigned long scanned = 0;
+-	unsigned long nr_to_reclaim = get_nr_to_reclaim(sc);
+ 	int swappiness = get_swappiness(lruvec, sc);
+ 
+ 	/* clean file folios are more likely to exist */
+@@ -4683,7 +4704,7 @@ static bool try_to_shrink_lruvec(struct
+ 		if (scanned >= nr_to_scan)
+ 			break;
+ 
+-		if (sc->nr_reclaimed >= nr_to_reclaim)
++		if (should_abort_scan(lruvec, sc))
+ 			break;
+ 
+ 		cond_resched();
+@@ -4744,7 +4765,6 @@ static void shrink_many(struct pglist_da
+ 	struct lru_gen_folio *lrugen;
+ 	struct mem_cgroup *memcg;
+ 	const struct hlist_nulls_node *pos;
+-	unsigned long nr_to_reclaim = get_nr_to_reclaim(sc);
+ 
+ 	bin = first_bin = get_random_u32_below(MEMCG_NR_BINS);
+ restart:
+@@ -4777,7 +4797,7 @@ restart:
+ 
+ 		rcu_read_lock();
+ 
+-		if (sc->nr_reclaimed >= nr_to_reclaim)
++		if (should_abort_scan(lruvec, sc))
+ 			break;
  	}
  
- 	/* protected */
--	if (tier > tier_idx) {
-+	if (tier > tier_idx || refs == BIT(LRU_REFS_WIDTH)) {
- 		int hist = lru_hist_from_seq(lrugen->min_seq[type]);
+@@ -4788,7 +4808,7 @@ restart:
  
- 		gen = folio_inc_gen(lruvec, folio, false);
---- a/mm/workingset.c~mm-mglru-fix-underprotected-page-cache
-+++ a/mm/workingset.c
-@@ -313,10 +313,10 @@ static void lru_gen_refault(struct folio
- 	 * 1. For pages accessed through page tables, hotter pages pushed out
- 	 *    hot pages which refaulted immediately.
- 	 * 2. For pages accessed multiple times through file descriptors,
--	 *    numbers of accesses might have been out of the range.
-+	 *    they would have been protected by sort_folio().
- 	 */
--	if (lru_gen_in_fault() || refs == BIT(LRU_REFS_WIDTH)) {
--		folio_set_workingset(folio);
-+	if (lru_gen_in_fault() || refs >= BIT(LRU_REFS_WIDTH) - 1) {
-+		set_mask_bits(&folio->flags, 0, LRU_REFS_MASK | BIT(PG_workingset));
- 		mod_lruvec_state(lruvec, WORKINGSET_RESTORE_BASE + type, delta);
- 	}
- unlock:
+ 	mem_cgroup_put(memcg);
+ 
+-	if (sc->nr_reclaimed >= nr_to_reclaim)
++	if (!is_a_nulls(pos))
+ 		return;
+ 
+ 	/* restart if raced with lru_gen_rotate_memcg() */
 _
 
 Patches currently in -mm which might be from yuzhao@google.com are
