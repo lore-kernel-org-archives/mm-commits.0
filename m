@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B98641C8E
-	for <mm-commits@vger.kernel.org>; Fri,  8 Dec 2023 19:55:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02E7541C78
+	for <mm-commits@vger.kernel.org>; Fri,  8 Dec 2023 20:09:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aYvxdl32"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3580BC433C7;
-	Fri,  8 Dec 2023 19:55:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i3moxSez"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7716EC433C8;
+	Fri,  8 Dec 2023 20:09:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702065344;
-	bh=PfZ49dfITMSk6tJfHts/Nvkg4IeU/h1kZLtKaPlI1TU=;
+	s=korg; t=1702066149;
+	bh=YXa0UuKVwRKcPAI4JproqfrcSrj+T7g3YMOgjqeAUNc=;
 	h=Date:To:From:Subject:From;
-	b=aYvxdl32DIq4Zh0nQQcTufSApztpOME+kyrhIX52yF4FDrHBgLHKfcLd3fy/69Oui
-	 sKYpz2NJn5rcFAXCugVb0mWH9sdWrnYa8fbxsq5qJGZDE+L7U1aCzvLE0gckrwDnCV
-	 2eGTCj9I3iVL0GLRp7pktaoFUAdtNqk/bKHkr8SM=
-Date: Fri, 08 Dec 2023 11:55:43 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,Liam.Howlett@oracle.com,abaci@linux.alibaba.com,jiapeng.chong@linux.alibaba.com,akpm@linux-foundation.org
+	b=i3moxSezF4AIFCDWR2iK80tIG33xfvds1Va666J+O+BJv870LPSB78mqmsJIZFzh4
+	 m7bZADEKfrmXHywgxagW0/OVXOceu2crwNgIhNTer/SuIRvCLbEKCzSVMkD0PkyoAZ
+	 jXToXF58lzYVaGunwYl1piI1vP+SBQkmCJ84y28w=
+Date: Fri, 08 Dec 2023 12:09:08 -0800
+To: mm-commits@vger.kernel.org,jschoenh@amazon.de,jgowans@amazon.com,gregkh@linuxfoundation.org,corbet@lwn.net,bagasdotme@gmail.com,graf@amazon.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-fix-warning-comparing-pointer-to-0.patch added to mm-unstable branch
-Message-Id: <20231208195544.3580BC433C7@smtp.kernel.org>
+Subject: + initramfs-expose-retained-initrd-as-sysfs-file.patch added to mm-nonmm-unstable branch
+Message-Id: <20231208200909.7716EC433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: Fix warning comparing pointer to 0
-has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-fix-warning-comparing-pointer-to-0.patch
+     Subject: initramfs: expose retained initrd as sysfs file
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     initramfs-expose-retained-initrd-as-sysfs-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-fix-warning-comparing-pointer-to-0.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/initramfs-expose-retained-initrd-as-sysfs-file.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,59 +50,110 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
-Subject: maple_tree: Fix warning comparing pointer to 0
-Date: Fri, 8 Dec 2023 10:04:50 +0800
+From: Alexander Graf <graf@amazon.com>
+Subject: initramfs: expose retained initrd as sysfs file
+Date: Thu, 7 Dec 2023 23:56:54 +0000
 
-Avoid pointer type value compared with 0 to make code clear.
+When the kernel command line option "retain_initrd" is set, we do not free
+the initrd memory.  However, we also don't expose it to anyone for
+consumption.  That leaves us in a weird situation where the only user of
+this feature is ppc64 and arm64 specific kexec tooling.
 
-./tools/testing/radix-tree/maple.c:34142:15-16: WARNING comparing pointer to 0.
+To make it more generally useful, this patch adds a kobject to the
+firmware object that contains the initrd context when "retain_initrd" is
+set.  That way, we can access the initrd any time after boot from user
+space and for example hand it into kexec as --initrd parameter if we want
+to reboot the same initrd.  Or inspect it directly locally.
 
-Link: https://lkml.kernel.org/r/20231208020450.7003-1-jiapeng.chong@linux.alibaba.com
-Reported-by: Abaci Robot <abaci@linux.alibaba.com>
-Closes: https://bugzilla.openanolis.cn/show_bug.cgi?id=7696
-Signed-off-by: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+With this patch applied, there is a new /sys/firmware/initrd file when the
+kernel was booted with an initrd and "retain_initrd" command line option
+is set.
+
+Link: https://lkml.kernel.org/r/20231207235654.16622-1-graf@amazon.com
+Signed-off-by: Alexander Graf <graf@amazon.com>
+Tested-by: Bagas Sanjaya <bagasdotme@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: James Gowans <jgowans@amazon.com>
+Cc: Jan H. Schönherr <jschoenh@amazon.de>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/maple.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/ABI/testing/sysfs-firmware-initrd |    8 ++++++
+ Documentation/admin-guide/kernel-parameters.txt |    5 ++-
+ init/initramfs.c                                |   18 +++++++++++++-
+ 3 files changed, 28 insertions(+), 3 deletions(-)
 
---- a/tools/testing/radix-tree/maple.c~maple_tree-fix-warning-comparing-pointer-to-0
-+++ a/tools/testing/radix-tree/maple.c
-@@ -34139,7 +34139,7 @@ STORE, 140501948112896, 140501948116991,
- 	mt_init_flags(mt, MT_FLAGS_ALLOC_RANGE);
- 	check_erase2_testset(mt, set27, ARRAY_SIZE(set27));
- 	rcu_barrier();
--	MT_BUG_ON(mt, 0 != mtree_load(mt, 140415537422336));
-+	MT_BUG_ON(mt, NULL != mtree_load(mt, 140415537422336));
- 	mt_set_non_kernel(0);
- 	mt_validate(mt);
- 	mtree_destroy(mt);
-@@ -34263,7 +34263,7 @@ STORE, 140501948112896, 140501948116991,
- 	mt_init_flags(mt, MT_FLAGS_ALLOC_RANGE);
- 	check_erase2_testset(mt, set37, ARRAY_SIZE(set37));
- 	rcu_barrier();
--	MT_BUG_ON(mt, 0 != mtree_load(mt, 94637033459712));
-+	MT_BUG_ON(mt, NULL != mtree_load(mt, 94637033459712));
- 	mt_validate(mt);
- 	mtree_destroy(mt);
+--- /dev/null
++++ a/Documentation/ABI/testing/sysfs-firmware-initrd
+@@ -0,0 +1,8 @@
++What:		/sys/firmware/initrd
++Date:		December 2023
++Contact:	Alexander Graf <graf@amazon.com>
++Description:
++		When the kernel was booted with an initrd and the
++		"retain_initrd" option is set on the kernel command
++		line, /sys/firmware/initrd contains the contents of the
++		initrd that the kernel was booted with.
+--- a/Documentation/admin-guide/kernel-parameters.txt~initramfs-expose-retained-initrd-as-sysfs-file
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -2438,7 +2438,7 @@
+ 			between unregistering the boot console and initializing
+ 			the real console.
  
-@@ -34271,7 +34271,7 @@ STORE, 140501948112896, 140501948116991,
- 	mt_init_flags(mt, MT_FLAGS_ALLOC_RANGE);
- 	check_erase2_testset(mt, set38, ARRAY_SIZE(set38));
- 	rcu_barrier();
--	MT_BUG_ON(mt, 0 != mtree_load(mt, 94637033459712));
-+	MT_BUG_ON(mt, NULL != mtree_load(mt, 94637033459712));
- 	mt_validate(mt);
- 	mtree_destroy(mt);
+-	keepinitrd	[HW,ARM]
++	keepinitrd	[HW,ARM] See retain_initrd.
+ 
+ 	kernelcore=	[KNL,X86,IA-64,PPC]
+ 			Format: nn[KMGTPE] | nn% | "mirror"
+@@ -5580,7 +5580,8 @@
+ 			Useful for devices that are detected asynchronously
+ 			(e.g. USB and MMC devices).
+ 
+-	retain_initrd	[RAM] Keep initrd memory after extraction
++	retain_initrd	[RAM] Keep initrd memory after extraction. After boot, it will
++			be accessible via /sys/firmware/initrd.
+ 
+ 	retbleed=	[X86] Control mitigation of RETBleed (Arbitrary
+ 			Speculative Code Execution with Return Instructions)
+--- a/init/initramfs.c~initramfs-expose-retained-initrd-as-sysfs-file
++++ a/init/initramfs.c
+@@ -574,6 +574,16 @@ extern unsigned long __initramfs_size;
+ #include <linux/initrd.h>
+ #include <linux/kexec.h>
+ 
++static ssize_t raw_read(struct file *file, struct kobject *kobj,
++			struct bin_attribute *attr, char *buf,
++			loff_t pos, size_t count)
++{
++	memcpy(buf, attr->private + pos, count);
++	return count;
++}
++
++static BIN_ATTR(initrd, 0440, raw_read, NULL, 0);
++
+ void __init reserve_initrd_mem(void)
+ {
+ 	phys_addr_t start;
+@@ -715,8 +725,14 @@ done:
+ 	 * If the initrd region is overlapped with crashkernel reserved region,
+ 	 * free only memory that is not part of crashkernel region.
+ 	 */
+-	if (!do_retain_initrd && initrd_start && !kexec_free_initrd())
++	if (!do_retain_initrd && initrd_start && !kexec_free_initrd()) {
+ 		free_initrd_mem(initrd_start, initrd_end);
++	} else if (do_retain_initrd && initrd_start) {
++		bin_attr_initrd.size = initrd_end - initrd_start;
++		bin_attr_initrd.private = (void *)initrd_start;
++		if (sysfs_create_bin_file(firmware_kobj, &bin_attr_initrd))
++			pr_err("Failed to create initrd sysfs file");
++	}
+ 	initrd_start = 0;
+ 	initrd_end = 0;
  
 _
 
-Patches currently in -mm which might be from jiapeng.chong@linux.alibaba.com are
+Patches currently in -mm which might be from graf@amazon.com are
 
-maple_tree-remove-unused-function.patch
-maple_tree-fix-warning-comparing-pointer-to-0.patch
+initramfs-expose-retained-initrd-as-sysfs-file.patch
 
