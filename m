@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33E48134B2
-	for <mm-commits@vger.kernel.org>; Sun, 10 Dec 2023 18:31:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDD986FAD
+	for <mm-commits@vger.kernel.org>; Sun, 10 Dec 2023 18:31:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vZhFBMbD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EBD9C433C7;
-	Sun, 10 Dec 2023 18:31:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B7Yzvo3+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DB2AC433C8;
+	Sun, 10 Dec 2023 18:31:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702233066;
-	bh=BzhVFLft7yXKtuVBRhso5qrkBsL6VAZb1hT+gO/XMzc=;
+	s=korg; t=1702233099;
+	bh=6JOwzx5Jpgw9GFcnCH2chek2fU8m8cxO9ms/X7tCPGY=;
 	h=Date:To:From:Subject:From;
-	b=vZhFBMbDAAqCqN6+sH1cc/1PEeXHgX/Gsn/phRge+IvIYZjnrVyfkt8JRIAd2PtZm
-	 H51wbGjbzqSziANZSMiRfjyhOmOJ328ZO3m2pPN0L7+5SeR83dy8Pv9YV4ikAhQ4uu
-	 tTYxExAeC23aUNA3rQrjs+lbLaQY9NaYFZIcQN5E=
-Date: Sun, 10 Dec 2023 10:31:05 -0800
-To: mm-commits@vger.kernel.org,nicolas@fjasle.eu,nathan@kernel.org,masahiroy@kernel.org,klondike@klondike.es,rdunlap@infradead.org,akpm@linux-foundation.org
+	b=B7Yzvo3+s0LdfH0L3unI3x0nTjledwbkVnXm7mXUfEEjNeSSBOvpWBXuWV5Jmh2uu
+	 jwPye0DuJxncRMi/qmLhtTyqvFDzy++gMp0uwg3RR7kmz072j+K/K0vQorKjEMb2ty
+	 Kx5x4b4sNbHtfgYCLTi++Kph3k2Vj8CXU74gUWUo=
+Date: Sun, 10 Dec 2023 10:31:38 -0800
+To: mm-commits@vger.kernel.org,Liam.Howlett@oracle.com,rdunlap@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + usr-kconfig-fix-typos-of-its.patch added to mm-nonmm-unstable branch
-Message-Id: <20231210183106.7EBD9C433C7@smtp.kernel.org>
+Subject: + maple_tree-fix-typos-spellos-etc.patch added to mm-unstable branch
+Message-Id: <20231210183139.1DB2AC433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: usr/Kconfig: fix typos of "its"
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     usr-kconfig-fix-typos-of-its.patch
+     Subject: maple_tree: fix typos/spellos etc.
+has been added to the -mm mm-unstable branch.  Its filename is
+     maple_tree-fix-typos-spellos-etc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/usr-kconfig-fix-typos-of-its.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-fix-typos-spellos-etc.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -51,44 +51,56 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Randy Dunlap <rdunlap@infradead.org>
-Subject: usr/Kconfig: fix typos of "its"
-Date: Sat, 9 Dec 2023 21:34:29 -0800
+Subject: maple_tree: fix typos/spellos etc.
+Date: Sat, 9 Dec 2023 22:38:39 -0800
 
-Use "Its" or "its" for possessive instead of "it's" (contraction
-for "it is").
+Fix typos/grammar and spellos in documentation.
 
-Link: https://lkml.kernel.org/r/20231210053429.23146-1-rdunlap@infradead.org
-Fixes: db2aa7fd15e8 ("initramfs: allow again choice of the embedded initram compression algorithm")
+Link: https://lkml.kernel.org/r/20231210063839.29967-1-rdunlap@infradead.org
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reviewed-by: Nicolas Schier <nicolas@fjasle.eu>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: "Francisco Blas Izquierdo Riera (klondike)" <klondike@klondike.es>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- usr/Kconfig |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ lib/maple_tree.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/usr/Kconfig~usr-kconfig-fix-typos-of-its
-+++ a/usr/Kconfig
-@@ -185,9 +185,9 @@ config INITRAMFS_COMPRESSION_LZO
- 	bool "LZO"
- 	depends on RD_LZO
- 	help
--	  It's compression ratio is the second poorest amongst the choices. The
--	  kernel size is about 10% bigger than gzip. Despite that, it's
--	  decompression speed is the second fastest and it's compression speed
-+	  Its compression ratio is the second poorest amongst the choices. The
-+	  kernel size is about 10% bigger than gzip. Despite that, its
-+	  decompression speed is the second fastest and its compression speed
- 	  is quite fast too.
+--- a/lib/maple_tree.c~maple_tree-fix-typos-spellos-etc
++++ a/lib/maple_tree.c
+@@ -16,8 +16,8 @@
+  * and are simply the slot index + the minimum of the node.
+  *
+  * In regular B-Tree terms, pivots are called keys.  The term pivot is used to
+- * indicate that the tree is specifying ranges,  Pivots may appear in the
+- * subtree with an entry attached to the value where as keys are unique to a
++ * indicate that the tree is specifying ranges.  Pivots may appear in the
++ * subtree with an entry attached to the value whereas keys are unique to a
+  * specific position of a B-tree.  Pivot values are inclusive of the slot with
+  * the same index.
+  *
+@@ -2500,7 +2500,7 @@ static inline void mast_set_split_parent
+ }
  
- 	  If you choose this, keep in mind that you may need to install the lzop
+ /*
+- * mas_topiary_node() - Dispose of a singe node
++ * mas_topiary_node() - Dispose of a single node
+  * @mas: The maple state for pushing nodes
+  * @enode: The encoded maple node
+  * @in_rcu: If the tree is in rcu mode
+@@ -5481,7 +5481,7 @@ int mas_preallocate(struct ma_state *mas
+ 		goto ask_now;
+ 	}
+ 
+-	/* New root needs a singe node */
++	/* New root needs a single node */
+ 	if (unlikely(mte_is_root(mas->node)))
+ 		goto ask_now;
+ 
 _
 
 Patches currently in -mm which might be from rdunlap@infradead.org are
 
+maple_tree-fix-typos-spellos-etc.patch
 rapidio-tsi721-fix-kernel-doc-warnings.patch
 freevxfs-bmap-fix-kernel-doc-warnings.patch
 freevxfs-immed-fix-kernel-doc-param-name.patch
