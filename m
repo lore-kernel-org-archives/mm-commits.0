@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDD986FAD
-	for <mm-commits@vger.kernel.org>; Sun, 10 Dec 2023 18:31:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B59FA18E15;
+	Sun, 10 Dec 2023 19:45:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B7Yzvo3+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DB2AC433C8;
-	Sun, 10 Dec 2023 18:31:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S29zuS3D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A52EC433C7;
+	Sun, 10 Dec 2023 19:45:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702233099;
-	bh=6JOwzx5Jpgw9GFcnCH2chek2fU8m8cxO9ms/X7tCPGY=;
+	s=korg; t=1702237504;
+	bh=UjCNOaCv5IfaUocRoPmuY+RrbQwaS7t+y4B+15o6yDU=;
 	h=Date:To:From:Subject:From;
-	b=B7Yzvo3+s0LdfH0L3unI3x0nTjledwbkVnXm7mXUfEEjNeSSBOvpWBXuWV5Jmh2uu
-	 jwPye0DuJxncRMi/qmLhtTyqvFDzy++gMp0uwg3RR7kmz072j+K/K0vQorKjEMb2ty
-	 Kx5x4b4sNbHtfgYCLTi++Kph3k2Vj8CXU74gUWUo=
-Date: Sun, 10 Dec 2023 10:31:38 -0800
-To: mm-commits@vger.kernel.org,Liam.Howlett@oracle.com,rdunlap@infradead.org,akpm@linux-foundation.org
+	b=S29zuS3Dl4i3BfQogpR1RHXppmI6C4z9E+XQRLcgh7gam5EB0sO5cltR36ZfWJusV
+	 hQA7g8M1dyNxJ3dOriZaHGmcA9B/4y9GTMeZgJwtZU3u8AQMV7Ft6F3jjOWfEY88wQ
+	 gSYgqMwo9EzD9WhkVkgMh4He983s6oN3UIlvrzKw=
+Date: Sun, 10 Dec 2023 11:45:03 -0800
+To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,stable@vger.kernel.org,shuah@kernel.org,peterz@infradead.org,peterx@redhat.com,nathan@kernel.org,david@redhat.com,corbet@lwn.net,anders.roxell@linaro.org,jhubbard@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-fix-typos-spellos-etc.patch added to mm-unstable branch
-Message-Id: <20231210183139.1DB2AC433C8@smtp.kernel.org>
+Subject: + revert-selftests-error-out-if-kernel-header-files-are-not-yet-built.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231210194504.1A52EC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: fix typos/spellos etc.
-has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-fix-typos-spellos-etc.patch
+     Subject: Revert "selftests: error out if kernel header files are not yet built"
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     revert-selftests-error-out-if-kernel-header-files-are-not-yet-built.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-fix-typos-spellos-etc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-selftests-error-out-if-kernel-header-files-are-not-yet-built.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,61 +50,158 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: maple_tree: fix typos/spellos etc.
-Date: Sat, 9 Dec 2023 22:38:39 -0800
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: Revert "selftests: error out if kernel header files are not yet built"
+Date: Fri, 8 Dec 2023 18:01:44 -0800
 
-Fix typos/grammar and spellos in documentation.
+This reverts commit 9fc96c7c19df ("selftests: error out if kernel header
+files are not yet built").
 
-Link: https://lkml.kernel.org/r/20231210063839.29967-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+It turns out that requiring the kernel headers to be built as a
+prerequisite to building selftests, does not work in many cases. For
+example, Peter Zijlstra writes:
+
+"My biggest beef with the whole thing is that I simply do not want to use
+'make headers', it doesn't work for me.
+
+I have a ton of output directories and I don't care to build tools into
+the output dirs, in fact some of them flat out refuse to work that way
+(bpf comes to mind)." [1]
+
+Therefore, stop erroring out on the selftests build. Additional patches
+will be required in order to change over to not requiring the kernel
+headers.
+
+[1] https://lore.kernel.org/20231208221007.GO28727@noisy.programming.kicks-ass.net
+
+Link: https://lkml.kernel.org/r/20231209020144.244759-1-jhubbard@nvidia.com
+Fixes: 9fc96c7c19df ("selftests: error out if kernel header files are not yet built")
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Anders Roxell <anders.roxell@linaro.org>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ tools/testing/selftests/Makefile |   21 ---------------
+ tools/testing/selftests/lib.mk   |   40 ++---------------------------
+ 2 files changed, 4 insertions(+), 57 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-fix-typos-spellos-etc
-+++ a/lib/maple_tree.c
-@@ -16,8 +16,8 @@
-  * and are simply the slot index + the minimum of the node.
-  *
-  * In regular B-Tree terms, pivots are called keys.  The term pivot is used to
-- * indicate that the tree is specifying ranges,  Pivots may appear in the
-- * subtree with an entry attached to the value where as keys are unique to a
-+ * indicate that the tree is specifying ranges.  Pivots may appear in the
-+ * subtree with an entry attached to the value whereas keys are unique to a
-  * specific position of a B-tree.  Pivot values are inclusive of the slot with
-  * the same index.
-  *
-@@ -2500,7 +2500,7 @@ static inline void mast_set_split_parent
- }
+--- a/tools/testing/selftests/lib.mk~revert-selftests-error-out-if-kernel-header-files-are-not-yet-built
++++ a/tools/testing/selftests/lib.mk
+@@ -44,26 +44,10 @@ endif
+ selfdir = $(realpath $(dir $(filter %/lib.mk,$(MAKEFILE_LIST))))
+ top_srcdir = $(selfdir)/../../..
  
- /*
-- * mas_topiary_node() - Dispose of a singe node
-+ * mas_topiary_node() - Dispose of a single node
-  * @mas: The maple state for pushing nodes
-  * @enode: The encoded maple node
-  * @in_rcu: If the tree is in rcu mode
-@@ -5481,7 +5481,7 @@ int mas_preallocate(struct ma_state *mas
- 		goto ask_now;
- 	}
+-ifeq ("$(origin O)", "command line")
+-  KBUILD_OUTPUT := $(O)
++ifeq ($(KHDR_INCLUDES),)
++KHDR_INCLUDES := -isystem $(top_srcdir)/usr/include
+ endif
  
--	/* New root needs a singe node */
-+	/* New root needs a single node */
- 	if (unlikely(mte_is_root(mas->node)))
- 		goto ask_now;
+-ifneq ($(KBUILD_OUTPUT),)
+-  # Make's built-in functions such as $(abspath ...), $(realpath ...) cannot
+-  # expand a shell special character '~'. We use a somewhat tedious way here.
+-  abs_objtree := $(shell cd $(top_srcdir) && mkdir -p $(KBUILD_OUTPUT) && cd $(KBUILD_OUTPUT) && pwd)
+-  $(if $(abs_objtree),, \
+-    $(error failed to create output directory "$(KBUILD_OUTPUT)"))
+-  # $(realpath ...) resolves symlinks
+-  abs_objtree := $(realpath $(abs_objtree))
+-  KHDR_DIR := ${abs_objtree}/usr/include
+-else
+-  abs_srctree := $(shell cd $(top_srcdir) && pwd)
+-  KHDR_DIR := ${abs_srctree}/usr/include
+-endif
+-
+-KHDR_INCLUDES := -isystem $(KHDR_DIR)
+-
+ # The following are built by lib.mk common compile rules.
+ # TEST_CUSTOM_PROGS should be used by tests that require
+ # custom build rule and prevent common build rule use.
+@@ -74,25 +58,7 @@ TEST_GEN_PROGS := $(patsubst %,$(OUTPUT)
+ TEST_GEN_PROGS_EXTENDED := $(patsubst %,$(OUTPUT)/%,$(TEST_GEN_PROGS_EXTENDED))
+ TEST_GEN_FILES := $(patsubst %,$(OUTPUT)/%,$(TEST_GEN_FILES))
  
+-all: kernel_header_files $(TEST_GEN_PROGS) $(TEST_GEN_PROGS_EXTENDED) \
+-     $(TEST_GEN_FILES)
+-
+-kernel_header_files:
+-	@ls $(KHDR_DIR)/linux/*.h >/dev/null 2>/dev/null;                      \
+-	if [ $$? -ne 0 ]; then                                                 \
+-            RED='\033[1;31m';                                                  \
+-            NOCOLOR='\033[0m';                                                 \
+-            echo;                                                              \
+-            echo -e "$${RED}error$${NOCOLOR}: missing kernel header files.";   \
+-            echo "Please run this and try again:";                             \
+-            echo;                                                              \
+-            echo "    cd $(top_srcdir)";                                       \
+-            echo "    make headers";                                           \
+-            echo;                                                              \
+-	    exit 1; \
+-	fi
+-
+-.PHONY: kernel_header_files
++all: $(TEST_GEN_PROGS) $(TEST_GEN_PROGS_EXTENDED) $(TEST_GEN_FILES)
+ 
+ define RUN_TESTS
+ 	BASE_DIR="$(selfdir)";			\
+--- a/tools/testing/selftests/Makefile~revert-selftests-error-out-if-kernel-header-files-are-not-yet-built
++++ a/tools/testing/selftests/Makefile
+@@ -155,12 +155,10 @@ ifneq ($(KBUILD_OUTPUT),)
+   abs_objtree := $(realpath $(abs_objtree))
+   BUILD := $(abs_objtree)/kselftest
+   KHDR_INCLUDES := -isystem ${abs_objtree}/usr/include
+-  KHDR_DIR := ${abs_objtree}/usr/include
+ else
+   BUILD := $(CURDIR)
+   abs_srctree := $(shell cd $(top_srcdir) && pwd)
+   KHDR_INCLUDES := -isystem ${abs_srctree}/usr/include
+-  KHDR_DIR := ${abs_srctree}/usr/include
+   DEFAULT_INSTALL_HDR_PATH := 1
+ endif
+ 
+@@ -174,7 +172,7 @@ export KHDR_INCLUDES
+ # all isn't the first target in the file.
+ .DEFAULT_GOAL := all
+ 
+-all: kernel_header_files
++all:
+ 	@ret=1;							\
+ 	for TARGET in $(TARGETS); do				\
+ 		BUILD_TARGET=$$BUILD/$$TARGET;			\
+@@ -185,23 +183,6 @@ all: kernel_header_files
+ 		ret=$$((ret * $$?));				\
+ 	done; exit $$ret;
+ 
+-kernel_header_files:
+-	@ls $(KHDR_DIR)/linux/*.h >/dev/null 2>/dev/null;                          \
+-	if [ $$? -ne 0 ]; then                                                     \
+-            RED='\033[1;31m';                                                  \
+-            NOCOLOR='\033[0m';                                                 \
+-            echo;                                                              \
+-            echo -e "$${RED}error$${NOCOLOR}: missing kernel header files.";   \
+-            echo "Please run this and try again:";                             \
+-            echo;                                                              \
+-            echo "    cd $(top_srcdir)";                                       \
+-            echo "    make headers";                                           \
+-            echo;                                                              \
+-	    exit 1;                                                                \
+-	fi
+-
+-.PHONY: kernel_header_files
+-
+ run_tests: all
+ 	@for TARGET in $(TARGETS); do \
+ 		BUILD_TARGET=$$BUILD/$$TARGET;	\
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
-maple_tree-fix-typos-spellos-etc.patch
-rapidio-tsi721-fix-kernel-doc-warnings.patch
-freevxfs-bmap-fix-kernel-doc-warnings.patch
-freevxfs-immed-fix-kernel-doc-param-name.patch
-freevxfs-lookup-fix-function-params-kernel-doc.patch
-init-kconfig-move-more-items-into-the-expert-menu.patch
-usr-kconfig-fix-typos-of-its.patch
+revert-selftests-error-out-if-kernel-header-files-are-not-yet-built.patch
 
