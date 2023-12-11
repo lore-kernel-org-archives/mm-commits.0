@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3023933DE
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:54:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2ED933D8A
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:54:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bTWzkXPU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F03B6C433C8;
-	Mon, 11 Dec 2023 00:54:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KDKafisV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECB29C433C7;
+	Mon, 11 Dec 2023 00:54:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702256076;
-	bh=lphdBWDx2gl0ZLn6fj8amJpUTpE2dNPiQB9frhTjOhs=;
+	s=korg; t=1702256077;
+	bh=6gAjm20ClpYMhlLhik66PUMvr0Q8f27vkv3Cmpbt6pQ=;
 	h=Date:To:From:Subject:From;
-	b=bTWzkXPUjmVk6f0CqyjfFot9txdbe9MZiJeWsjsgH4S0nMwOsWfbKclcOh02nsn0o
-	 lO0zFYA6mqAkuTJNo8IWj8QloiUvasA7iUd4TbTWyLkJslhXWo7lx0jvhkyOdJLIgu
-	 DnvziH86RnOTPhlQJ97X1ebgS96zaDHfD1qVL6L4=
-Date: Sun, 10 Dec 2023 16:54:35 -0800
+	b=KDKafisVGcBdJffw1XgZT/H7PyGDQm8ZWUOReV0HJByXcR0Zm+JvAcoWiU5Gq7x2v
+	 mL/mpK9HOXXyPTQQHjXIaQmcagaBlqHeU7degFfoDg2POhD6lb63vxoTbbV3ujitOO
+	 f/OiEaLFfustfrHO90ctBYGMAiOwYNzJvT6wQtk4=
+Date: Sun, 10 Dec 2023 16:54:36 -0800
 To: mm-commits@vger.kernel.org,naoya.horiguchi@nec.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memory-failure-convert-delete_from_lru_cache-to-take-a-folio.patch removed from -mm tree
-Message-Id: <20231211005435.F03B6C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] memory-failure-use-a-folio-in-me_huge_page.patch removed from -mm tree
+Message-Id: <20231211005436.ECB29C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,94 +27,66 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memory-failure: convert delete_from_lru_cache() to take a folio
+     Subject: memory-failure: use a folio in me_huge_page()
 has been removed from the -mm tree.  Its filename was
-     memory-failure-convert-delete_from_lru_cache-to-take-a-folio.patch
+     memory-failure-use-a-folio-in-me_huge_page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: memory-failure: convert delete_from_lru_cache() to take a folio
-Date: Fri, 17 Nov 2023 16:14:44 +0000
+Subject: memory-failure: use a folio in me_huge_page()
+Date: Fri, 17 Nov 2023 16:14:45 +0000
 
-All three callers now have a folio; pass it in instead of the page.
-Saves five calls to compound_head().
+This function was already explicitly calling compound_head();
+unfortunately the compiler can't know that and elide the redundant calls
+to compound_head() buried in page_mapping(), unlock_page(), etc.  Switch
+to using a folio, which does let us elide these calls.
 
-Link: https://lkml.kernel.org/r/20231117161447.2461643-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231117161447.2461643-5-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ mm/memory-failure.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/memory-failure.c~memory-failure-convert-delete_from_lru_cache-to-take-a-folio
+--- a/mm/memory-failure.c~memory-failure-use-a-folio-in-me_huge_page
 +++ a/mm/memory-failure.c
-@@ -902,26 +902,26 @@ static const char * const action_page_ty
-  * The page count will stop it from being freed by unpoison.
-  * Stress tests should be aware of this memory leak problem.
+@@ -1182,25 +1182,25 @@ static int me_swapcache_clean(struct pag
   */
--static int delete_from_lru_cache(struct page *p)
-+static int delete_from_lru_cache(struct folio *folio)
+ static int me_huge_page(struct page_state *ps, struct page *p)
  {
--	if (isolate_lru_page(p)) {
-+	if (folio_isolate_lru(folio)) {
- 		/*
- 		 * Clear sensible page flags, so that the buddy system won't
--		 * complain when the page is unpoison-and-freed.
-+		 * complain when the folio is unpoison-and-freed.
- 		 */
--		ClearPageActive(p);
--		ClearPageUnevictable(p);
-+		folio_clear_active(folio);
-+		folio_clear_unevictable(folio);
- 
- 		/*
- 		 * Poisoned page might never drop its ref count to 0 so we have
- 		 * to uncharge it manually from its memcg.
- 		 */
--		mem_cgroup_uncharge(page_folio(p));
-+		mem_cgroup_uncharge(folio);
- 
- 		/*
--		 * drop the page count elevated by isolate_lru_page()
-+		 * drop the refcount elevated by folio_isolate_lru()
- 		 */
--		put_page(p);
-+		folio_put(folio);
- 		return 0;
- 	}
- 	return -EIO;
-@@ -1019,7 +1019,7 @@ static int me_pagecache_clean(struct pag
++	struct folio *folio = page_folio(p);
+ 	int res;
+-	struct page *hpage = compound_head(p);
  	struct address_space *mapping;
- 	bool extra_pins;
+ 	bool extra_pins = false;
  
--	delete_from_lru_cache(p);
-+	delete_from_lru_cache(folio);
- 
- 	/*
- 	 * For anonymous folios the only reference left
-@@ -1146,7 +1146,7 @@ static int me_swapcache_dirty(struct pag
- 	/* Trigger EIO in shmem: */
- 	folio_clear_uptodate(folio);
- 
--	ret = delete_from_lru_cache(p) ? MF_FAILED : MF_DELAYED;
-+	ret = delete_from_lru_cache(folio) ? MF_FAILED : MF_DELAYED;
- 	folio_unlock(folio);
- 
- 	if (ret == MF_DELAYED)
-@@ -1165,7 +1165,7 @@ static int me_swapcache_clean(struct pag
- 
- 	delete_from_swap_cache(folio);
- 
--	ret = delete_from_lru_cache(p) ? MF_FAILED : MF_RECOVERED;
-+	ret = delete_from_lru_cache(folio) ? MF_FAILED : MF_RECOVERED;
- 	folio_unlock(folio);
- 
- 	if (has_extra_refcount(ps, p, false))
+-	mapping = page_mapping(hpage);
++	mapping = folio_mapping(folio);
+ 	if (mapping) {
+-		res = truncate_error_page(hpage, page_to_pfn(p), mapping);
++		res = truncate_error_page(&folio->page, page_to_pfn(p), mapping);
+ 		/* The page is kept in page cache. */
+ 		extra_pins = true;
+-		unlock_page(hpage);
++		folio_unlock(folio);
+ 	} else {
+-		unlock_page(hpage);
++		folio_unlock(folio);
+ 		/*
+ 		 * migration entry prevents later access on error hugepage,
+ 		 * so we can free and dissolve it into buddy to save healthy
+ 		 * subpages.
+ 		 */
+-		put_page(hpage);
++		folio_put(folio);
+ 		if (__page_handle_poison(p) >= 0) {
+ 			page_ref_inc(p);
+ 			res = MF_RECOVERED;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
