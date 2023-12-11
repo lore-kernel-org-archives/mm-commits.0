@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3CB57493
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:23:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0C877493
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:23:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k73jBGlV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC93AC433C9;
-	Mon, 11 Dec 2023 01:23:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2vPa221b"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB2AEC433C9;
+	Mon, 11 Dec 2023 01:23:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702257785;
-	bh=P6pCBEQkbZloqPx6/LCkWYZdwT20vm9d560Ft7IDpPs=;
+	s=korg; t=1702257786;
+	bh=/AM8J2tsvMw+ZFW4B7qTrwClpl0D0w+SFsGGeUAWjlk=;
 	h=Date:To:From:Subject:From;
-	b=k73jBGlV3JSlkFdAQg4iJyDIcOVSV4JxSFnwmcH1V4gS89qZyowg3FAOsAj2EVl3z
-	 dyRGJdZafaL6qtvpdbeC37R+lG8uolGJXd6ofQ1tRIM/BwuI28zdrJ3CCZtNwqw+Kd
-	 q0y9ZFyk7wSFsRMXxPKi3laCB5+At5WlLi5MQq+8=
-Date: Sun, 10 Dec 2023 17:23:05 -0800
-To: mm-commits@vger.kernel.org,v.narang@samsung.com,masahiroy@kernel.org,maninder1.s@samsung.com,hca@linux.ibm.com,akpm@linux-foundation.org
+	b=2vPa221b1PlcBS9JfqovLmqZw4hEdeCGx6EtfuiRVvGxxpOkCZ5CZnsKbX77FmWxC
+	 xTQFgR/qIVQS/CoSKbepAbpkmHmE+QS5hIYqgdCgMwYSF/fsXIUogYMonVOKLZBIv0
+	 kAJ46Xvqcrg36bQuiZOi19imPgiMiSdkgZGIaeLs=
+Date: Sun, 10 Dec 2023 17:23:06 -0800
+To: mm-commits@vger.kernel.org,ebiederm@xmission.com,oleg@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] checkstack-allow-to-pass-minstacksize-parameter.patch removed from -mm tree
-Message-Id: <20231211012305.AC93AC433C9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] __ptrace_unlink-kill-the-obsolete-fixme-code.patch removed from -mm tree
+Message-Id: <20231211012306.AB2AEC433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,68 +27,58 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: checkstack: allow to pass MINSTACKSIZE parameter
+     Subject: __ptrace_unlink: kill the obsolete "FIXME" code
 has been removed from the -mm tree.  Its filename was
-     checkstack-allow-to-pass-minstacksize-parameter.patch
+     __ptrace_unlink-kill-the-obsolete-fixme-code.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Heiko Carstens <hca@linux.ibm.com>
-Subject: checkstack: allow to pass MINSTACKSIZE parameter
-Date: Mon, 20 Nov 2023 19:37:19 +0100
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: __ptrace_unlink: kill the obsolete "FIXME" code
+Date: Tue, 21 Nov 2023 17:26:50 +0100
 
-The checkstack script omits all functions with a stack usage of less than
-100 bytes.  However the script already has support for a parameter which
-allows to override the default, but it cannot be set with
+The corner case described by the comment is no longer possible after the
+commit 7b3c36fc4c23 ("ptrace: fix task_join_group_stop() for the case when
+current is traced"), task_join_group_stop() ensures that the new thread
+has the correct signr in JOBCTL_STOP_SIGMASK regardless of ptrace.
 
-$ make checkstack
-
-Add a MINSTACKSIZE parameter which allows to change the default. This might
-be useful in order to print the stack usage of all functions, or only those
-with large stack usage:
-
-$ make checkstack MINSTACKSIZE=0
-$ make checkstack MINSTACKSIZE=800
-
-Link: https://lkml.kernel.org/r/20231120183719.2188479-4-hca@linux.ibm.com
-Signed-off-by: Heiko Carstens <hca@linux.ibm.com>
-Cc: Maninder Singh <maninder1.s@samsung.com>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Vaneet Narang <v.narang@samsung.com>
+Link: https://lkml.kernel.org/r/20231121162650.GA6635@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ kernel/ptrace.c |   13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
---- a/Makefile~checkstack-allow-to-pass-minstacksize-parameter
-+++ a/Makefile
-@@ -1576,7 +1576,8 @@ help:
- 	 echo  '                    (default: $(INSTALL_HDR_PATH))'; \
- 	 echo  ''
- 	@echo  'Static analysers:'
--	@echo  '  checkstack      - Generate a list of stack hogs'
-+	@echo  '  checkstack      - Generate a list of stack hogs and consider all functions'
-+	@echo  '                    with a stack size larger than MINSTACKSIZE (default: 100)'
- 	@echo  '  versioncheck    - Sanity check on version.h usage'
- 	@echo  '  includecheck    - Check for duplicate included header files'
- 	@echo  '  export_report   - List the usages of all exported symbols'
-@@ -2016,9 +2017,10 @@ CHECKSTACK_ARCH := $(SUBARCH)
- else
- CHECKSTACK_ARCH := $(ARCH)
- endif
-+MINSTACKSIZE	?= 100
- checkstack:
- 	$(OBJDUMP) -d vmlinux $$(find . -name '*.ko') | \
--	$(PERL) $(srctree)/scripts/checkstack.pl $(CHECKSTACK_ARCH)
-+	$(PERL) $(srctree)/scripts/checkstack.pl $(CHECKSTACK_ARCH) $(MINSTACKSIZE)
+--- a/kernel/ptrace.c~__ptrace_unlink-kill-the-obsolete-fixme-code
++++ a/kernel/ptrace.c
+@@ -145,20 +145,9 @@ void __ptrace_unlink(struct task_struct
+ 	 */
+ 	if (!(child->flags & PF_EXITING) &&
+ 	    (child->signal->flags & SIGNAL_STOP_STOPPED ||
+-	     child->signal->group_stop_count)) {
++	     child->signal->group_stop_count))
+ 		child->jobctl |= JOBCTL_STOP_PENDING;
  
- kernelrelease:
- 	@$(filechk_kernel.release)
+-		/*
+-		 * This is only possible if this thread was cloned by the
+-		 * traced task running in the stopped group, set the signal
+-		 * for the future reports.
+-		 * FIXME: we should change ptrace_init_task() to handle this
+-		 * case.
+-		 */
+-		if (!(child->jobctl & JOBCTL_STOP_SIGMASK))
+-			child->jobctl |= SIGSTOP;
+-	}
+-
+ 	/*
+ 	 * If transition to TASK_STOPPED is pending or in TASK_TRACED, kick
+ 	 * @child in the butt.  Note that @resume should be used iff @child
 _
 
-Patches currently in -mm which might be from hca@linux.ibm.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 
