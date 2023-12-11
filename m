@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9095A7493
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:22:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70A5C7493
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:22:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HhqMQoBV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A367C433C8;
-	Mon, 11 Dec 2023 01:22:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CZzKbIlr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F404C433C8;
+	Mon, 11 Dec 2023 01:22:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702257774;
-	bh=T8G7ceybXixhQyVmXDBOXxWDFMdm+gSSbm0RNf8PTdU=;
+	s=korg; t=1702257775;
+	bh=7QVEkzEHKq0LJDKGXeOl+jhk40Ee4aS0R1yfwcBJFAc=;
 	h=Date:To:From:Subject:From;
-	b=HhqMQoBVRhRgITw0FDbGJZC8V9IPls06gW2TNZtwdX2o7vCXvHoNrBG2iA6AqY6Ix
-	 26nm1jmMg9CER15kveuCm3CTXXqb8e/dHIGoFnWbYemZo4cPEAJHqkWANt0Fhtp3cp
-	 K/EwudmHTUOwM0H7OjVWGb3g6s5qmmCVKk3Q/dG4=
-Date: Sun, 10 Dec 2023 17:22:53 -0800
+	b=CZzKbIlrESidNiXvSeNp3Lp+JtzSs6xx6f/jx1bBss1u2b7lyfFUzCf2z5fZqxAhK
+	 QXqoe5XgdkSXJNrbz9EeA/lMuSQZtqn96K6JSZq+Pn3fn16KDcCk1ppMAVKlDkoDsI
+	 kvK4jY5GJ7u2BZjYBvibDU55x9F7eQOgQY7W1Hps=
+Date: Sun, 10 Dec 2023 17:22:54 -0800
 To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] nilfs2-convert-nilfs_btnode_submit_block-to-use-a-folio.patch removed from -mm tree
-Message-Id: <20231211012254.5A367C433C8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] nilfs2-convert-nilfs_btnode_delete-to-use-a-folio.patch removed from -mm tree
+Message-Id: <20231211012255.3F404C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,60 +27,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nilfs2: convert nilfs_btnode_submit_block to use a folio
+     Subject: nilfs2: convert nilfs_btnode_delete to use a folio
 has been removed from the -mm tree.  Its filename was
-     nilfs2-convert-nilfs_btnode_submit_block-to-use-a-folio.patch
+     nilfs2-convert-nilfs_btnode_delete-to-use-a-folio.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: nilfs2: convert nilfs_btnode_submit_block to use a folio
-Date: Tue, 14 Nov 2023 17:44:32 +0900
+Subject: nilfs2: convert nilfs_btnode_delete to use a folio
+Date: Tue, 14 Nov 2023 17:44:33 +0900
 
-Saves two calls to compound_head().
+Saves six calls to compound_head().
 
-Link: https://lkml.kernel.org/r/20231114084436.2755-17-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20231114084436.2755-18-konishi.ryusuke@gmail.com
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/btnode.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/nilfs2/btnode.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
---- a/fs/nilfs2/btnode.c~nilfs2-convert-nilfs_btnode_submit_block-to-use-a-folio
+--- a/fs/nilfs2/btnode.c~nilfs2-convert-nilfs_btnode_delete-to-use-a-folio
 +++ a/fs/nilfs2/btnode.c
-@@ -75,7 +75,7 @@ int nilfs_btnode_submit_block(struct add
+@@ -145,19 +145,19 @@ out_locked:
+ void nilfs_btnode_delete(struct buffer_head *bh)
  {
- 	struct buffer_head *bh;
- 	struct inode *inode = btnc->host;
--	struct page *page;
-+	struct folio *folio;
- 	int err;
+ 	struct address_space *mapping;
+-	struct page *page = bh->b_page;
+-	pgoff_t index = page_index(page);
++	struct folio *folio = bh->b_folio;
++	pgoff_t index = folio->index;
+ 	int still_dirty;
  
- 	bh = nilfs_grab_buffer(inode, btnc, blocknr, BIT(BH_NILFS_Node));
-@@ -83,7 +83,7 @@ int nilfs_btnode_submit_block(struct add
- 		return -ENOMEM;
+-	get_page(page);
+-	lock_page(page);
+-	wait_on_page_writeback(page);
++	folio_get(folio);
++	folio_lock(folio);
++	folio_wait_writeback(folio);
  
- 	err = -EEXIST; /* internal code */
--	page = bh->b_page;
-+	folio = bh->b_folio;
- 
- 	if (buffer_uptodate(bh) || buffer_dirty(bh))
- 		goto found;
-@@ -130,8 +130,8 @@ found:
- 	*pbh = bh;
- 
- out_locked:
+ 	nilfs_forget_buffer(bh);
+-	still_dirty = PageDirty(page);
+-	mapping = page->mapping;
 -	unlock_page(page);
 -	put_page(page);
++	still_dirty = folio_test_dirty(folio);
++	mapping = folio->mapping;
 +	folio_unlock(folio);
 +	folio_put(folio);
- 	return err;
- }
  
+ 	if (!still_dirty && mapping)
+ 		invalidate_inode_pages2_range(mapping, index, index);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
