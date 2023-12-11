@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 147561FB8
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:53:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30D7C17E2
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:53:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vP9xq2JV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2D41C433C9;
-	Mon, 11 Dec 2023 00:53:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PTDbbi1C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEE15C433C7;
+	Mon, 11 Dec 2023 00:53:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702256037;
-	bh=8U+8gb1tmUhocXkAAxQX/jR2ODxv373IUyV4tirx+cQ=;
+	s=korg; t=1702256036;
+	bh=0Ma7+2qJFkwYCAebeWVlVvzAb3b8VRyxYmopOAYAXSQ=;
 	h=Date:To:From:Subject:From;
-	b=vP9xq2JVWMaeAGn736NgEtDYM8GaBpClsnYX6OF+WoLjJhtmnRHMJJXYnN8QNUqqu
-	 amtEkpXhQqlx9utmDtyuq8bY8E3wlS2qRoQkgBWc6UVWw1Saoh9oDFyhmMaPa21d7l
-	 0M71DUZCzXchyqUUb/Tufw5yqLP33ZXjf3wKwuvM=
-Date: Sun, 10 Dec 2023 16:53:57 -0800
+	b=PTDbbi1CumAsFOklvDGDCJ5vBle3HRD30QFsFSrH4T8XmorNvzZkSAwcsbPlybQ5C
+	 bitRR+2uBEx8pv9sXmga6fTwOv/HPCJbEduAc7x/fPBwFenXWrT6Ewl4P2O7RpVz7v
+	 +Nq78m6YDOZd50c8ovDX7Z3lxTonkcvRomAT7Mco=
+Date: Sun, 10 Dec 2023 16:53:56 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,peterz@infradead.org,npiggin@gmail.com,mst@redhat.com,mjguzik@gmail.com,michael.christie@oracle.com,mathieu.desnoyers@efficios.com,Liam.Howlett@oracle.com,corbet@lwn.net,brauner@kernel.org,zhangpeng.00@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-preserve-the-tree-attributes-when-destroying-maple-tree.patch removed from -mm tree
-Message-Id: <20231211005357.D2D41C433C9@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-update-check_forking-and-bench_forking.patch removed from -mm tree
+Message-Id: <20231211005356.AEE15C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,23 +27,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: preserve the tree attributes when destroying maple tree
+     Subject: maple_tree: update check_forking() and bench_forking()
 has been removed from the -mm tree.  Its filename was
-     maple_tree-preserve-the-tree-attributes-when-destroying-maple-tree.patch
+     maple_tree-update-check_forking-and-bench_forking.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Peng Zhang <zhangpeng.00@bytedance.com>
-Subject: maple_tree: preserve the tree attributes when destroying maple tree
-Date: Fri, 27 Oct 2023 11:38:44 +0800
+Subject: maple_tree: update check_forking() and bench_forking()
+Date: Fri, 27 Oct 2023 11:38:43 +0800
 
-When destroying maple tree, preserve its attributes and then turn it into
-an empty tree.  This allows it to be reused without needing to be
-reinitialized.
+Updated check_forking() and bench_forking() to use __mt_dup() to duplicate
+maple tree.
 
-Link: https://lkml.kernel.org/r/20231027033845.90608-10-zhangpeng.00@bytedance.com
+Link: https://lkml.kernel.org/r/20231027033845.90608-9-zhangpeng.00@bytedance.com
 Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -59,20 +58,199 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/test_maple_tree.c       |  117 ++++++++++++++++------------------
+ tools/include/linux/rwsem.h |    4 +
+ 2 files changed, 62 insertions(+), 59 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-preserve-the-tree-attributes-when-destroying-maple-tree
-+++ a/lib/maple_tree.c
-@@ -6763,7 +6763,7 @@ void __mt_destroy(struct maple_tree *mt)
- 	if (xa_is_node(root))
- 		mte_destroy_walk(root, mt);
- 
--	mt->ma_flags = 0;
-+	mt->ma_flags = mt_attr(mt);
+--- a/lib/test_maple_tree.c~maple_tree-update-check_forking-and-bench_forking
++++ a/lib/test_maple_tree.c
+@@ -1834,47 +1834,48 @@ static noinline void __init bench_mas_pr
  }
- EXPORT_SYMBOL_GPL(__mt_destroy);
+ #endif
+ /* check_forking - simulate the kernel forking sequence with the tree. */
+-static noinline void __init check_forking(struct maple_tree *mt)
++static noinline void __init check_forking(void)
+ {
+-
+-	struct maple_tree newmt;
+-	int i, nr_entries = 134;
++	struct maple_tree mt, newmt;
++	int i, nr_entries = 134, ret;
+ 	void *val;
+-	MA_STATE(mas, mt, 0, 0);
+-	MA_STATE(newmas, mt, 0, 0);
+-	struct rw_semaphore newmt_lock;
++	MA_STATE(mas, &mt, 0, 0);
++	MA_STATE(newmas, &newmt, 0, 0);
++	struct rw_semaphore mt_lock, newmt_lock;
  
++	init_rwsem(&mt_lock);
+ 	init_rwsem(&newmt_lock);
+ 
+-	for (i = 0; i <= nr_entries; i++)
+-		mtree_store_range(mt, i*10, i*10 + 5,
+-				  xa_mk_value(i), GFP_KERNEL);
++	mt_init_flags(&mt, MT_FLAGS_ALLOC_RANGE | MT_FLAGS_LOCK_EXTERN);
++	mt_set_external_lock(&mt, &mt_lock);
+ 
+-	mt_set_non_kernel(99999);
+ 	mt_init_flags(&newmt, MT_FLAGS_ALLOC_RANGE | MT_FLAGS_LOCK_EXTERN);
+ 	mt_set_external_lock(&newmt, &newmt_lock);
+-	newmas.tree = &newmt;
+-	mas_reset(&newmas);
+-	mas_reset(&mas);
+-	down_write(&newmt_lock);
+-	mas.index = 0;
+-	mas.last = 0;
+-	if (mas_expected_entries(&newmas, nr_entries)) {
++
++	down_write(&mt_lock);
++	for (i = 0; i <= nr_entries; i++) {
++		mas_set_range(&mas, i*10, i*10 + 5);
++		mas_store_gfp(&mas, xa_mk_value(i), GFP_KERNEL);
++	}
++
++	down_write_nested(&newmt_lock, SINGLE_DEPTH_NESTING);
++	ret = __mt_dup(&mt, &newmt, GFP_KERNEL);
++	if (ret) {
+ 		pr_err("OOM!");
+ 		BUG_ON(1);
+ 	}
+-	rcu_read_lock();
+-	mas_for_each(&mas, val, ULONG_MAX) {
+-		newmas.index = mas.index;
+-		newmas.last = mas.last;
++
++	mas_set(&newmas, 0);
++	mas_for_each(&newmas, val, ULONG_MAX)
+ 		mas_store(&newmas, val);
+-	}
+-	rcu_read_unlock();
++
+ 	mas_destroy(&newmas);
++	mas_destroy(&mas);
+ 	mt_validate(&newmt);
+-	mt_set_non_kernel(0);
+ 	__mt_destroy(&newmt);
++	__mt_destroy(&mt);
+ 	up_write(&newmt_lock);
++	up_write(&mt_lock);
+ }
+ 
+ static noinline void __init check_iteration(struct maple_tree *mt)
+@@ -1977,49 +1978,51 @@ static noinline void __init check_mas_st
+ }
+ 
+ #if defined(BENCH_FORK)
+-static noinline void __init bench_forking(struct maple_tree *mt)
++static noinline void __init bench_forking(void)
+ {
+-
+-	struct maple_tree newmt;
+-	int i, nr_entries = 134, nr_fork = 80000;
++	struct maple_tree mt, newmt;
++	int i, nr_entries = 134, nr_fork = 80000, ret;
+ 	void *val;
+-	MA_STATE(mas, mt, 0, 0);
+-	MA_STATE(newmas, mt, 0, 0);
+-	struct rw_semaphore newmt_lock;
++	MA_STATE(mas, &mt, 0, 0);
++	MA_STATE(newmas, &newmt, 0, 0);
++	struct rw_semaphore mt_lock, newmt_lock;
+ 
++	init_rwsem(&mt_lock);
+ 	init_rwsem(&newmt_lock);
+-	mt_set_external_lock(&newmt, &newmt_lock);
+ 
+-	for (i = 0; i <= nr_entries; i++)
+-		mtree_store_range(mt, i*10, i*10 + 5,
+-				  xa_mk_value(i), GFP_KERNEL);
++	mt_init_flags(&mt, MT_FLAGS_ALLOC_RANGE | MT_FLAGS_LOCK_EXTERN);
++	mt_set_external_lock(&mt, &mt_lock);
++
++	down_write(&mt_lock);
++	for (i = 0; i <= nr_entries; i++) {
++		mas_set_range(&mas, i*10, i*10 + 5);
++		mas_store_gfp(&mas, xa_mk_value(i), GFP_KERNEL);
++	}
+ 
+ 	for (i = 0; i < nr_fork; i++) {
+-		mt_set_non_kernel(99999);
+-		mt_init_flags(&newmt, MT_FLAGS_ALLOC_RANGE);
+-		newmas.tree = &newmt;
+-		mas_reset(&newmas);
+-		mas_reset(&mas);
+-		mas.index = 0;
+-		mas.last = 0;
+-		rcu_read_lock();
+-		down_write(&newmt_lock);
+-		if (mas_expected_entries(&newmas, nr_entries)) {
+-			printk("OOM!");
++		mt_init_flags(&newmt,
++			      MT_FLAGS_ALLOC_RANGE | MT_FLAGS_LOCK_EXTERN);
++		mt_set_external_lock(&newmt, &newmt_lock);
++
++		down_write_nested(&newmt_lock, SINGLE_DEPTH_NESTING);
++		ret = __mt_dup(&mt, &newmt, GFP_KERNEL);
++		if (ret) {
++			pr_err("OOM!");
+ 			BUG_ON(1);
+ 		}
+-		mas_for_each(&mas, val, ULONG_MAX) {
+-			newmas.index = mas.index;
+-			newmas.last = mas.last;
++
++		mas_set(&newmas, 0);
++		mas_for_each(&newmas, val, ULONG_MAX)
+ 			mas_store(&newmas, val);
+-		}
++
+ 		mas_destroy(&newmas);
+-		rcu_read_unlock();
+ 		mt_validate(&newmt);
+-		mt_set_non_kernel(0);
+ 		__mt_destroy(&newmt);
+ 		up_write(&newmt_lock);
+ 	}
++	mas_destroy(&mas);
++	__mt_destroy(&mt);
++	up_write(&mt_lock);
+ }
+ #endif
+ 
+@@ -3615,9 +3618,7 @@ static int __init maple_tree_seed(void)
+ #endif
+ #if defined(BENCH_FORK)
+ #define BENCH
+-	mt_init_flags(&tree, MT_FLAGS_ALLOC_RANGE);
+-	bench_forking(&tree);
+-	mtree_destroy(&tree);
++	bench_forking();
+ 	goto skip;
+ #endif
+ #if defined(BENCH_MT_FOR_EACH)
+@@ -3650,9 +3651,7 @@ static int __init maple_tree_seed(void)
+ 	check_iteration(&tree);
+ 	mtree_destroy(&tree);
+ 
+-	mt_init_flags(&tree, MT_FLAGS_ALLOC_RANGE);
+-	check_forking(&tree);
+-	mtree_destroy(&tree);
++	check_forking();
+ 
+ 	mt_init_flags(&tree, MT_FLAGS_ALLOC_RANGE);
+ 	check_mas_store_gfp(&tree);
+--- a/tools/include/linux/rwsem.h~maple_tree-update-check_forking-and-bench_forking
++++ a/tools/include/linux/rwsem.h
+@@ -37,4 +37,8 @@ static inline int up_write(struct rw_sem
+ {
+ 	return pthread_rwlock_unlock(&sem->lock);
+ }
++
++#define down_read_nested(sem, subclass)		down_read(sem)
++#define down_write_nested(sem, subclass)	down_write(sem)
++
+ #endif /* _TOOLS_RWSEM_H */
 _
 
 Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
