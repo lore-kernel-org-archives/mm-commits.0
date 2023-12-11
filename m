@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2ED933D8A
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:54:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F0093C27
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:54:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KDKafisV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECB29C433C7;
-	Mon, 11 Dec 2023 00:54:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oAu4OxHL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED1DDC433C7;
+	Mon, 11 Dec 2023 00:54:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702256077;
-	bh=6gAjm20ClpYMhlLhik66PUMvr0Q8f27vkv3Cmpbt6pQ=;
+	s=korg; t=1702256078;
+	bh=XwCIKiWkNpcrn1kgLyfB390TP0PCSiN5PY/tpPNM5q8=;
 	h=Date:To:From:Subject:From;
-	b=KDKafisVGcBdJffw1XgZT/H7PyGDQm8ZWUOReV0HJByXcR0Zm+JvAcoWiU5Gq7x2v
-	 mL/mpK9HOXXyPTQQHjXIaQmcagaBlqHeU7degFfoDg2POhD6lb63vxoTbbV3ujitOO
-	 f/OiEaLFfustfrHO90ctBYGMAiOwYNzJvT6wQtk4=
-Date: Sun, 10 Dec 2023 16:54:36 -0800
+	b=oAu4OxHLCvQ3vrrbbCVRpmR1J7jPwDMoXjH0IM7RMZCX2szKHoIYiI8mxQ5vQSJRc
+	 YnWGdjFFKIyXet8Sx2/LAc2N8qgMBQqm5s3IYMajpS9i41nBOLXidwzvou4mztKFIY
+	 F7f0u+KlcZnkFYVBL22r/6JojfOL00zPz7A7OYAA=
+Date: Sun, 10 Dec 2023 16:54:37 -0800
 To: mm-commits@vger.kernel.org,naoya.horiguchi@nec.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memory-failure-use-a-folio-in-me_huge_page.patch removed from -mm tree
-Message-Id: <20231211005436.ECB29C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] memory-failure-convert-truncate_error_page-to-truncate_error_folio.patch removed from -mm tree
+Message-Id: <20231211005437.ED1DDC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,66 +27,68 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memory-failure: use a folio in me_huge_page()
+     Subject: memory-failure: convert truncate_error_page to truncate_error_folio
 has been removed from the -mm tree.  Its filename was
-     memory-failure-use-a-folio-in-me_huge_page.patch
+     memory-failure-convert-truncate_error_page-to-truncate_error_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: memory-failure: use a folio in me_huge_page()
-Date: Fri, 17 Nov 2023 16:14:45 +0000
+Subject: memory-failure: convert truncate_error_page to truncate_error_folio
+Date: Fri, 17 Nov 2023 16:14:46 +0000
 
-This function was already explicitly calling compound_head();
-unfortunately the compiler can't know that and elide the redundant calls
-to compound_head() buried in page_mapping(), unlock_page(), etc.  Switch
-to using a folio, which does let us elide these calls.
+Both callers now have a folio, so pass it in.  Nothing downstream was
+expecting a tail page; that's asserted in generic_error_remove_page(), for
+example.
 
-Link: https://lkml.kernel.org/r/20231117161447.2461643-5-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231117161447.2461643-6-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/memory-failure.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/mm/memory-failure.c~memory-failure-use-a-folio-in-me_huge_page
+--- a/mm/memory-failure.c~memory-failure-convert-truncate_error_page-to-truncate_error_folio
 +++ a/mm/memory-failure.c
-@@ -1182,25 +1182,25 @@ static int me_swapcache_clean(struct pag
-  */
- static int me_huge_page(struct page_state *ps, struct page *p)
- {
-+	struct folio *folio = page_folio(p);
- 	int res;
--	struct page *hpage = compound_head(p);
- 	struct address_space *mapping;
- 	bool extra_pins = false;
+@@ -927,14 +927,13 @@ static int delete_from_lru_cache(struct
+ 	return -EIO;
+ }
  
--	mapping = page_mapping(hpage);
-+	mapping = folio_mapping(folio);
+-static int truncate_error_page(struct page *p, unsigned long pfn,
++static int truncate_error_page(struct folio *folio, unsigned long pfn,
+ 				struct address_space *mapping)
+ {
+-	struct folio *folio = page_folio(p);
+ 	int ret = MF_FAILED;
+ 
+ 	if (mapping->a_ops->error_remove_page) {
+-		int err = mapping->a_ops->error_remove_page(mapping, p);
++		int err = mapping->a_ops->error_remove_page(mapping, &folio->page);
+ 
+ 		if (err != 0)
+ 			pr_info("%#lx: Failed to punch page: %d\n", pfn, err);
+@@ -1055,7 +1054,7 @@ static int me_pagecache_clean(struct pag
+ 	 *
+ 	 * Open: to take i_rwsem or not for this? Right now we don't.
+ 	 */
+-	ret = truncate_error_page(p, page_to_pfn(p), mapping);
++	ret = truncate_error_page(folio, page_to_pfn(p), mapping);
+ 	if (has_extra_refcount(ps, p, extra_pins))
+ 		ret = MF_FAILED;
+ 
+@@ -1189,7 +1188,7 @@ static int me_huge_page(struct page_stat
+ 
+ 	mapping = folio_mapping(folio);
  	if (mapping) {
--		res = truncate_error_page(hpage, page_to_pfn(p), mapping);
-+		res = truncate_error_page(&folio->page, page_to_pfn(p), mapping);
+-		res = truncate_error_page(&folio->page, page_to_pfn(p), mapping);
++		res = truncate_error_page(folio, page_to_pfn(p), mapping);
  		/* The page is kept in page cache. */
  		extra_pins = true;
--		unlock_page(hpage);
-+		folio_unlock(folio);
- 	} else {
--		unlock_page(hpage);
-+		folio_unlock(folio);
- 		/*
- 		 * migration entry prevents later access on error hugepage,
- 		 * so we can free and dissolve it into buddy to save healthy
- 		 * subpages.
- 		 */
--		put_page(hpage);
-+		folio_put(folio);
- 		if (__page_handle_poison(p) >= 0) {
- 			page_ref_inc(p);
- 			res = MF_RECOVERED;
+ 		folio_unlock(folio);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
