@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20CCE79DF
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:22:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69B597493
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:22:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cv8GkXvs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0AF4C433C8;
-	Mon, 11 Dec 2023 01:22:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gUapvqjc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD405C433C9;
+	Mon, 11 Dec 2023 01:22:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702257764;
-	bh=pm3iBG9JbLfb2NJjqKMbUedrbhLaWinO6XaJluhLWwQ=;
+	s=korg; t=1702257765;
+	bh=1Ctn5s3sp+8Oeo5oolYHmbkmOagalDBjLYF2I/DhN+o=;
 	h=Date:To:From:Subject:From;
-	b=cv8GkXvsKqIm0ihE8efZ0I9ijg9qHTag/hWVRog9e3pkTCac0CyPKIaaApsbNRRAM
-	 C7iei/1OCyciTYn82RSOdPTThkOYoFCURsKbVWFrJUJgoWRig7ePwWOyooTs/4VqOe
-	 3nnoxrWKFiTPwla1gYy4PuO/t3U+iKIIfkhpDTaU=
-Date: Sun, 10 Dec 2023 17:22:43 -0800
+	b=gUapvqjcXpGB/MEdDvOu0yMQErKt0cIY2cjImZurlVgo96l8zhzSbhnzMhm9N8Ea+
+	 Km/loUgb8KahE5vkkbYXRqnzYg7wc78RdnHVOpwZ/Scgg4slQy0R8hGTNSoRzpyb5Z
+	 gsCv6HDfeH3T8p7LTn5+ACA1BLgGaVwNGYy0kGw0=
+Date: Sun, 10 Dec 2023 17:22:44 -0800
 To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] nilfs2-convert-to-nilfs_folio_buffers_clean.patch removed from -mm tree
-Message-Id: <20231211012243.E0AF4C433C8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] nilfs2-convert-nilfs_writepage-to-use-a-folio.patch removed from -mm tree
+Message-Id: <20231211012244.DD405C433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,106 +27,58 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nilfs2: convert to nilfs_folio_buffers_clean()
+     Subject: nilfs2: convert nilfs_writepage() to use a folio
 has been removed from the -mm tree.  Its filename was
-     nilfs2-convert-to-nilfs_folio_buffers_clean.patch
+     nilfs2-convert-nilfs_writepage-to-use-a-folio.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: nilfs2: convert to nilfs_folio_buffers_clean()
-Date: Tue, 14 Nov 2023 17:44:21 +0900
+Subject: nilfs2: convert nilfs_writepage() to use a folio
+Date: Tue, 14 Nov 2023 17:44:22 +0900
 
-All callers of nilfs_page_buffers_clean() now have a folio, so convert it
-to take a folio.  While I'm at it, make it return a bool.
+Convert the incoming page to a folio.  Replaces three calls to
+compound_head() with one.
 
-Link: https://lkml.kernel.org/r/20231114084436.2755-6-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20231114084436.2755-7-konishi.ryusuke@gmail.com
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/page.c    |   18 +++++++++---------
- fs/nilfs2/page.h    |    2 +-
- fs/nilfs2/segment.c |    4 ++--
- 3 files changed, 12 insertions(+), 12 deletions(-)
+ fs/nilfs2/inode.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/fs/nilfs2/page.c~nilfs2-convert-to-nilfs_folio_buffers_clean
-+++ a/fs/nilfs2/page.c
-@@ -81,7 +81,7 @@ void nilfs_forget_buffer(struct buffer_h
+--- a/fs/nilfs2/inode.c~nilfs2-convert-nilfs_writepage-to-use-a-folio
++++ a/fs/nilfs2/inode.c
+@@ -175,7 +175,8 @@ static int nilfs_writepages(struct addre
  
- 	lock_buffer(bh);
- 	set_mask_bits(&bh->b_state, clear_bits, 0);
--	if (nilfs_page_buffers_clean(&folio->page))
-+	if (nilfs_folio_buffers_clean(folio))
- 		__nilfs_clear_page_dirty(&folio->page);
- 
- 	bh->b_blocknr = -1;
-@@ -131,23 +131,23 @@ void nilfs_copy_buffer(struct buffer_hea
- }
- 
- /**
-- * nilfs_page_buffers_clean - check if a page has dirty buffers or not.
-- * @page: page to be checked
-+ * nilfs_folio_buffers_clean - Check if a folio has dirty buffers or not.
-+ * @folio: Folio to be checked.
-  *
-- * nilfs_page_buffers_clean() returns zero if the page has dirty buffers.
-- * Otherwise, it returns non-zero value.
-+ * nilfs_folio_buffers_clean() returns false if the folio has dirty buffers.
-+ * Otherwise, it returns true.
-  */
--int nilfs_page_buffers_clean(struct page *page)
-+bool nilfs_folio_buffers_clean(struct folio *folio)
+ static int nilfs_writepage(struct page *page, struct writeback_control *wbc)
  {
- 	struct buffer_head *bh, *head;
+-	struct inode *inode = page->mapping->host;
++	struct folio *folio = page_folio(page);
++	struct inode *inode = folio->mapping->host;
+ 	int err;
  
--	bh = head = page_buffers(page);
-+	bh = head = folio_buffers(folio);
- 	do {
- 		if (buffer_dirty(bh))
--			return 0;
-+			return false;
- 		bh = bh->b_this_page;
- 	} while (bh != head);
--	return 1;
-+	return true;
- }
- 
- void nilfs_page_bug(struct page *page)
---- a/fs/nilfs2/page.h~nilfs2-convert-to-nilfs_folio_buffers_clean
-+++ a/fs/nilfs2/page.h
-@@ -36,7 +36,7 @@ struct buffer_head *nilfs_grab_buffer(st
- 				      unsigned long, unsigned long);
- void nilfs_forget_buffer(struct buffer_head *);
- void nilfs_copy_buffer(struct buffer_head *, struct buffer_head *);
--int nilfs_page_buffers_clean(struct page *);
-+bool nilfs_folio_buffers_clean(struct folio *);
- void nilfs_page_bug(struct page *);
- 
- int nilfs_copy_dirty_pages(struct address_space *, struct address_space *);
---- a/fs/nilfs2/segment.c~nilfs2-convert-to-nilfs_folio_buffers_clean
-+++ a/fs/nilfs2/segment.c
-@@ -1759,7 +1759,7 @@ static void nilfs_end_folio_io(struct fo
- 			 * all the buffers get cleaned later.
- 			 */
- 			folio_lock(folio);
--			if (nilfs_page_buffers_clean(&folio->page))
-+			if (nilfs_folio_buffers_clean(folio))
- 				__nilfs_clear_page_dirty(&folio->page);
- 			folio_unlock(folio);
- 		}
-@@ -1767,7 +1767,7 @@ static void nilfs_end_folio_io(struct fo
+ 	if (sb_rdonly(inode->i_sb)) {
+@@ -186,12 +187,12 @@ static int nilfs_writepage(struct page *
+ 		 * So, here we simply discard this dirty page.
+ 		 */
+ 		nilfs_clear_dirty_page(page, false);
+-		unlock_page(page);
++		folio_unlock(folio);
+ 		return -EROFS;
  	}
  
- 	if (!err) {
--		if (!nilfs_page_buffers_clean(&folio->page))
-+		if (!nilfs_folio_buffers_clean(folio))
- 			filemap_dirty_folio(folio->mapping, folio);
- 		folio_clear_error(folio);
- 	} else {
+-	redirty_page_for_writepage(wbc, page);
+-	unlock_page(page);
++	folio_redirty_for_writepage(wbc, folio);
++	folio_unlock(folio);
+ 
+ 	if (wbc->sync_mode == WB_SYNC_ALL) {
+ 		err = nilfs_construct_segment(inode->i_sb);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
