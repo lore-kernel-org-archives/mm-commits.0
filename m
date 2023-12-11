@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A07D753B6
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:55:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAB3D53B6
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:55:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f8SHAjpD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DD89C433C8;
-	Mon, 11 Dec 2023 00:55:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n1lgkqbV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DAE3C433C7;
+	Mon, 11 Dec 2023 00:55:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702256129;
-	bh=FapqNPX7Ddcc8SPBlmDNDSGVjBp3xyDJGXN62Flk1GY=;
+	s=korg; t=1702256130;
+	bh=Qfzs92D9n56CWne+3Ia1YYgahlbJ6avXFQee0sgEsM0=;
 	h=Date:To:From:Subject:From;
-	b=f8SHAjpDLXKCbZnHEAJlgxH4q4AVzDnKf6My3H9pdu0vZftUJW2Pzx84FrK6RznjA
-	 V+3NHhonBMXh5+NV+UqW4888m8uNrMe9SDw208IOVK/G1Di626lI53/FPJEL27g5lq
-	 Lu+WmvBrAaIvUyNt5ki84WGWlhljKqltbKZHDr+A=
-Date: Sun, 10 Dec 2023 16:55:28 -0800
-To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,mhocko@suse.com,jiang.xuexin@zte.com.cn,hughd@google.com,hannes@cmpxchg.org,wang.yong12@zte.com.cn,akpm@linux-foundation.org
+	b=n1lgkqbVwK8wyBuEoaQuc9k/M0RxlgBMSESxRoysPhyxC8omuikWR2BuMalALiCj8
+	 gS0gUW1QIRbaUNtGhAjNOB2ra3tZsKxGspjy5X0oS2sOFw7oPVBbcF9PGIo+mkcEG/
+	 lfeqD9OqlK3h/XeW5KSJrlvmmCV0Y2xdTLZvNRZ4=
+Date: Sun, 10 Dec 2023 16:55:29 -0800
+To: mm-commits@vger.kernel.org,sjenning@redhat.com,nphamcs@gmail.com,ira.weiny@intel.com,ddstreet@ieee.org,chrisl@kernel.org,fabio.maria.de.francesco@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-oom-dump_tasks-add-rss-detailed-information-printing.patch removed from -mm tree
-Message-Id: <20231211005529.6DD89C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zswap-replace-kmap_atomic-with-kmap_local_page.patch removed from -mm tree
+Message-Id: <20231211005530.8DAE3C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,76 +27,89 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm, oom:dump_tasks add rss detailed information printing
+     Subject: mm/zswap: replace kmap_atomic() with kmap_local_page()
 has been removed from the -mm tree.  Its filename was
-     mm-oom-dump_tasks-add-rss-detailed-information-printing.patch
+     mm-zswap-replace-kmap_atomic-with-kmap_local_page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yong Wang <wang.yong12@zte.com.cn>
-Subject: mm, oom:dump_tasks add rss detailed information printing
-Date: Thu, 23 Nov 2023 18:40:18 +0800 (CST)
+From: "Fabio M. De Francesco" <fabio.maria.de.francesco@linux.intel.com>
+Subject: mm/zswap: replace kmap_atomic() with kmap_local_page()
+Date: Mon, 27 Nov 2023 16:55:21 +0100
 
-When the system is under oom, it prints out the RSS information of each
-process.  However, we don't know the size of rss_anon, rss_file, and
-rss_shmem.
+kmap_atomic() has been deprecated in favor of kmap_local_page().
 
-To distinguish the memory occupied by anonymous or file mappings
-or shmem, could help us identify the root cause of the oom.
+Therefore, replace kmap_atomic() with kmap_local_page() in
+zswap.c.
 
-So this patch adds RSS details, which refers to the /proc/<pid>/status[1].
-It can help us know more about process memory usage.
+kmap_atomic() is implemented like a kmap_local_page() which also disables
+page-faults and preemption (the latter only in !PREEMPT_RT kernels).  The
+kernel virtual addresses returned by these two API are only valid in the
+context of the callers (i.e., they cannot be handed to other threads).
 
-Example of oom including the new rss_* fields:
-[ 1630.902466] Tasks state (memory values in pages):
-[ 1630.902870] [  pid  ]   uid  tgid total_vm      rss rss_anon rss_file rss_shmem pgtables_bytes swapents oom_score_adj name
-[ 1630.903619] [    149]     0   149      486      288        0      288         0    36864        0             0 ash
-[ 1630.904210] [    156]     0   156   153531   153345   153345        0         0  1269760        0             0 mm_test
+With kmap_local_page() the mappings are per thread and CPU local like in
+kmap_atomic(); however, they can handle page-faults and can be called from
+any context (including interrupts).  The tasks that call kmap_local_page()
+can be preempted and, when they are scheduled to run again, the kernel
+virtual addresses are restored and are still valid.
 
-[1] commit 8cee852ec53f ("mm, procfs: breakdown RSS for anon, shmem and file in /proc/pid/status").
+In mm/zswap.c, the blocks of code between the mappings and un-mappings do
+not depend on the above-mentioned side effects of kmap_atomic(), so that
+the mere replacements of the old API with the new one is all that is
+required (i.e., there is no need to explicitly call pagefault_disable()
+and/or preempt_disable()).
 
-Link: https://lkml.kernel.org/r/202311231840181856667@zte.com.cn
-Signed-off-by: Yong Wang <wang.yong12@zte.com.cn>
-Reviewed-by: Yang Yang <yang.yang29@zte.com.cn>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Xuexin Jiang <jiang.xuexin@zte.com.cn>
-Cc: Michal Hocko <mhocko@suse.com>
+Link: https://lkml.kernel.org/r/20231127160058.586446-1-fabio.maria.de.francesco@linux.intel.com
+Signed-off-by: Fabio M. De Francesco <fabio.maria.de.francesco@linux.intel.com>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Acked-by: Chris Li <chrisl@kernel.org> (Google)
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Dan Streetman <ddstreet@ieee.org> 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/zswap.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/oom_kill.c~mm-oom-dump_tasks-add-rss-detailed-information-printing
-+++ a/mm/oom_kill.c
-@@ -399,10 +399,11 @@ static int dump_task(struct task_struct
- 		return 0;
+--- a/mm/zswap.c~mm-zswap-replace-kmap_atomic-with-kmap_local_page
++++ a/mm/zswap.c
+@@ -1267,16 +1267,16 @@ bool zswap_store(struct folio *folio)
  	}
  
--	pr_info("[%7d] %5d %5d %8lu %8lu %8ld %8lu         %5hd %s\n",
-+	pr_info("[%7d] %5d %5d %8lu %8lu %8lu %8lu %9lu %8ld %8lu         %5hd %s\n",
- 		task->pid, from_kuid(&init_user_ns, task_uid(task)),
- 		task->tgid, task->mm->total_vm, get_mm_rss(task->mm),
--		mm_pgtables_bytes(task->mm),
-+		get_mm_counter(task->mm, MM_ANONPAGES), get_mm_counter(task->mm, MM_FILEPAGES),
-+		get_mm_counter(task->mm, MM_SHMEMPAGES), mm_pgtables_bytes(task->mm),
- 		get_mm_counter(task->mm, MM_SWAPENTS),
- 		task->signal->oom_score_adj, task->comm);
- 	task_unlock(task);
-@@ -423,7 +424,7 @@ static int dump_task(struct task_struct
- static void dump_tasks(struct oom_control *oc)
- {
- 	pr_info("Tasks state (memory values in pages):\n");
--	pr_info("[  pid  ]   uid  tgid total_vm      rss pgtables_bytes swapents oom_score_adj name\n");
-+	pr_info("[  pid  ]   uid  tgid total_vm      rss rss_anon rss_file rss_shmem pgtables_bytes swapents oom_score_adj name\n");
+ 	if (zswap_same_filled_pages_enabled) {
+-		src = kmap_atomic(page);
++		src = kmap_local_page(page);
+ 		if (zswap_is_page_same_filled(src, &value)) {
+-			kunmap_atomic(src);
++			kunmap_local(src);
+ 			entry->swpentry = swp_entry(type, offset);
+ 			entry->length = 0;
+ 			entry->value = value;
+ 			atomic_inc(&zswap_same_filled_pages);
+ 			goto insert_entry;
+ 		}
+-		kunmap_atomic(src);
++		kunmap_local(src);
+ 	}
  
- 	if (is_memcg_oom(oc))
- 		mem_cgroup_scan_tasks(oc->memcg, dump_task, oc);
+ 	if (!zswap_non_same_filled_pages_enabled)
+@@ -1422,9 +1422,9 @@ bool zswap_load(struct folio *folio)
+ 	spin_unlock(&tree->lock);
+ 
+ 	if (!entry->length) {
+-		dst = kmap_atomic(page);
++		dst = kmap_local_page(page);
+ 		zswap_fill_page(dst, entry->value);
+-		kunmap_atomic(dst);
++		kunmap_local(dst);
+ 		ret = true;
+ 		goto stats;
+ 	}
 _
 
-Patches currently in -mm which might be from wang.yong12@zte.com.cn are
+Patches currently in -mm which might be from fabio.maria.de.francesco@linux.intel.com are
 
 
