@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADC394D582
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 17:23:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97D184D582
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 17:23:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g7QEmZZE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66FB8C433C8;
-	Mon, 11 Dec 2023 17:23:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ux9qOtSK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16598C433C8;
+	Mon, 11 Dec 2023 17:23:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702315422;
-	bh=ZO5YdQQpbAZs1B5req6L0CpAr18VKmyWTW2evntAIw4=;
+	s=korg; t=1702315424;
+	bh=ZdUbg/mDfKDSW8/W+oR6E2EhgL79yOKSLhzLuDC9hoI=;
 	h=Date:To:From:Subject:From;
-	b=g7QEmZZEaJQCrNYHTmhAouaq2W5Ya7xfx659bJ2pe1/jyWVG1PTNHsfloyjh2fmHa
-	 3MhrJoUUEZYMdAvJfC3FJShDcvvKTtqY5lhtYAGgQaCrSbBdDgDQqDikq8GeraXBG7
-	 vGZn2o6c9YLHnwUkx/INwnfB0sw3irCqDfSJoZBA=
-Date: Mon, 11 Dec 2023 09:23:41 -0800
-To: mm-commits@vger.kernel.org,rcampbell@nvidia.com,willy@infradead.org,akpm@linux-foundation.org
+	b=ux9qOtSKnLz6y3fm7L0ZGoPJJdL/bd8gj+VJhg+jpvKQLgbazhwC4ncKrOpK28uFd
+	 flr1Mu8zpd4kW0NwaPkhAzc5jDpD1nD1HnId3QzvnHTYBgHd05Gj/1w0AArQ63dOyP
+	 f8/s9YPcJaEUrxa2HYFRcQN/6iske4XAgmUj3/cE=
+Date: Mon, 11 Dec 2023 09:23:43 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-stale-example-from-comment.patch added to mm-unstable branch
-Message-Id: <20231211172342.66FB8C433C8@smtp.kernel.org>
+Subject: + mm-remove-references-to-page_add_new_anon_rmap-in-comments.patch added to mm-unstable branch
+Message-Id: <20231211172344.16598C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove stale example from comment
+     Subject: mm: remove references to page_add_new_anon_rmap in comments
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-stale-example-from-comment.patch
+     mm-remove-references-to-page_add_new_anon_rmap-in-comments.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-stale-example-from-comment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-references-to-page_add_new_anon_rmap-in-comments.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,49 +51,33 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove stale example from comment
-Date: Mon, 11 Dec 2023 16:22:10 +0000
+Subject: mm: remove references to page_add_new_anon_rmap in comments
+Date: Mon, 11 Dec 2023 16:22:11 +0000
 
-folio_add_new_anon_rmap() no longer works this way, so just remove the
-entire example.
+Refer to folio_add_new_anon_rmap() instead.
 
-Link: https://lkml.kernel.org/r/20231211162214.2146080-6-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231211162214.2146080-7-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memremap.c |   18 ++++--------------
- 1 file changed, 4 insertions(+), 14 deletions(-)
+ mm/rmap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memremap.c~mm-remove-stale-example-from-comment
-+++ a/mm/memremap.c
-@@ -473,21 +473,11 @@ void free_zone_device_page(struct page *
- 		__ClearPageAnonExclusive(page);
- 
- 	/*
--	 * When a device managed page is freed, the page->mapping field
-+	 * When a device managed page is freed, the folio->mapping field
- 	 * may still contain a (stale) mapping value. For example, the
--	 * lower bits of page->mapping may still identify the page as an
--	 * anonymous page. Ultimately, this entire field is just stale
--	 * and wrong, and it will cause errors if not cleared.  One
--	 * example is:
--	 *
--	 *  migrate_vma_pages()
--	 *    migrate_vma_insert_page()
--	 *      page_add_new_anon_rmap()
--	 *        __page_set_anon_rmap()
--	 *          ...checks page->mapping, via PageAnon(page) call,
--	 *            and incorrectly concludes that the page is an
--	 *            anonymous page. Therefore, it incorrectly,
--	 *            silently fails to set up the new anon rmap.
-+	 * lower bits of folio->mapping may still identify the folio as an
-+	 * anonymous folio. Ultimately, this entire field is just stale
-+	 * and wrong, and it will cause errors if not cleared.
+--- a/mm/rmap.c~mm-remove-references-to-page_add_new_anon_rmap-in-comments
++++ a/mm/rmap.c
+@@ -1231,9 +1231,9 @@ static void __page_check_anon_rmap(struc
+ 	 * We have exclusion against page_add_anon_rmap because the caller
+ 	 * always holds the page locked.
  	 *
- 	 * For other types of ZONE_DEVICE pages, migration is either
- 	 * handled differently or not done at all, so there is no need
+-	 * We have exclusion against page_add_new_anon_rmap because those pages
++	 * We have exclusion against folio_add_new_anon_rmap because those pages
+ 	 * are initially only visible via the pagetables, and the pte is locked
+-	 * over the call to page_add_new_anon_rmap.
++	 * over the call to folio_add_new_anon_rmap.
+ 	 */
+ 	VM_BUG_ON_FOLIO(folio_anon_vma(folio)->root != vma->anon_vma->root,
+ 			folio);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
