@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F18E7493
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:23:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2A8C7493
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:23:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KTndx/BZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69B88C433C7;
-	Mon, 11 Dec 2023 01:23:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XDUU007Y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6ADB1C433C9;
+	Mon, 11 Dec 2023 01:23:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702257812;
-	bh=ka33ExXaw6bCv/IJvFe1h4LisEVjjg7BnxUsTVSc8P8=;
+	s=korg; t=1702257813;
+	bh=8cxTTdvQ7Y3Y2x5goVBy4N3eSI/0o+Fj317D04YhML4=;
 	h=Date:To:From:Subject:From;
-	b=KTndx/BZm+1A856oJ4Ba+2XzR9ejK3iC9N0jyG9NfhFsYMqEiSz0KDronfwi3E7+E
-	 PdbKDI6siEUzB/8u2X74Gs/b02S23L86CPuZBn9rxBwYn3k8rwKWNouWvK3QtrqGrn
-	 a66gTsoyMqpL6gnIczjgS9osAHTq0R+//pAhAq5U=
-Date: Sun, 10 Dec 2023 17:23:31 -0800
+	b=XDUU007YSnKdsSdSlLsWL/TYN3w4zm0DNZQQiFnl7llQfl20rb3pXZWEqMTrzJyox
+	 yeOD+qa3SFG3PSd+AwGYG0LzdJMMz7h4UTZAAxZGHVyVRwhj2ypvvyjyc/SfAxu9jf
+	 xCZU+XdjuR9i94ZwEh0OfpXoVVFXTTVwUCjX/zc8=
+Date: Sun, 10 Dec 2023 17:23:32 -0800
 To: mm-commits@vger.kernel.org,tsbogend@alpha.franken.de,sfr@rothwell.id.au,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] mips-decompress-fix-add-missing-prototypes.patch removed from -mm tree
-Message-Id: <20231211012332.69B88C433C7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] mips-add-asm-syscallsh-header.patch removed from -mm tree
+Message-Id: <20231211012333.6ADB1C433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,135 +27,152 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mips: decompress: fix add missing prototypes
+     Subject: mips: add asm/syscalls.h header
 has been removed from the -mm tree.  Its filename was
-     mips-decompress-fix-add-missing-prototypes.patch
+     mips-add-asm-syscallsh-header.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: mips: decompress: fix add missing prototypes
-Date: Mon, 4 Dec 2023 12:56:51 +0100
+Subject: mips: add asm/syscalls.h header
+Date: Mon, 4 Dec 2023 12:56:52 +0100
 
-Patch series "mips: address -Wmissing-prototypes warnings".
+System call prototypes are generally in linux/syscalls.h, but there are a
+couple of mips specific entry points that are missing there:
 
-Address the -Wmissing-prototypes warnings that showed up in mips as the
-last major architecture after my patch to enable the option everywhere.
+arch/mips/kernel/signal.c:636:17: error: no previous prototype for 'sys_sigreturn' [-Werror=missing-prototypes]
+arch/mips/kernel/signal.c:673:17: error: no previous prototype for 'sys_rt_sigreturn' [-Werror=missing-prototypes]
+arch/mips/kernel/syscall.c:51:16: error: no previous prototype for 'sysm_pipe' [-Werror=missing-prototypes]
+arch/mips/kernel/mips-mt-fpaff.c:65:17: error: no previous prototype for 'mipsmt_sys_sched_setaffinity' [-Werror=missing-prototypes]
+arch/mips/kernel/mips-mt-fpaff.c:157:17: error: no previous prototype for 'mipsmt_sys_sched_getaffinity' [-Werror=missing-prototypes]
 
+Add these to a new asm/syscalls.h as we have in other architectures.
 
-This patch (of 20):
-
-The mips decompressor has some string functions defined locally that are
-not declared in the right place:
-
-arch/mips/boot/compressed/dbg.c:12:13: error: no previous prototype for 'putc' [-Werror=missing-prototypes]
-arch/mips/boot/compressed/dbg.c:16:6: error: no previous prototype for 'puts' [-Werror=missing-prototypes]
-arch/mips/boot/compressed/dbg.c:26:6: error: no previous prototype for 'puthex' [-Werror=missing-prototypes]
-arch/mips/boot/compressed/string.c:11:7: error: no previous prototype for 'memcpy' [-Werror=missing-prototypes]
-arch/mips/boot/compressed/string.c:22:7: error: no previous prototype for 'memset' [-Werror=missing-prototypes]
-arch/mips/boot/compressed/string.c:32:15: error: no previous prototype for 'memmove' [-Werror=missing-prototypes]
-arch/mips/boot/compressed/decompress.c:43:6: error: no previous prototype for 'error' [-Werror=missing-prototypes]
-arch/mips/boot/compressed/decompress.c:91:6: error: no previous prototype for 'decompress_kernel' [-Werror=missing-prototypes]
-
-Include the string.h header where needed and add a decompress.h header to
-have shared prototypes for the rest.
-
-Link: https://lkml.kernel.org/r/20231204115710.2247097-1-arnd@kernel.org
-Link: https://lkml.kernel.org/r/20231204115710.2247097-2-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20231204115710.2247097-3-arnd@kernel.org
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Stephen Rothwell <sfr@rothwell.id.au>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/boot/compressed/dbg.c        |    2 +
- arch/mips/boot/compressed/decompress.c |   16 +--------------
- arch/mips/boot/compressed/decompress.h |   24 +++++++++++++++++++++++
- arch/mips/boot/compressed/string.c     |    1 
- 4 files changed, 29 insertions(+), 14 deletions(-)
+ arch/mips/include/asm/syscalls.h |   33 +++++++++++++++++++++++++++++
+ arch/mips/kernel/linux32.c       |    1 
+ arch/mips/kernel/mips-mt-fpaff.c |    1 
+ arch/mips/kernel/signal.c        |    1 
+ arch/mips/kernel/signal32.c      |    1 
+ arch/mips/kernel/signal_n32.c    |    1 
+ arch/mips/kernel/signal_o32.c    |    1 
+ arch/mips/kernel/syscall.c       |    1 
+ 8 files changed, 40 insertions(+)
 
---- a/arch/mips/boot/compressed/dbg.c~mips-decompress-fix-add-missing-prototypes
-+++ a/arch/mips/boot/compressed/dbg.c
-@@ -9,6 +9,8 @@
- #include <linux/compiler.h>
- #include <linux/types.h>
- 
-+#include "decompress.h"
-+
- void __weak putc(char c)
- {
- }
---- a/arch/mips/boot/compressed/decompress.c~mips-decompress-fix-add-missing-prototypes
-+++ a/arch/mips/boot/compressed/decompress.c
-@@ -19,6 +19,8 @@
- #include <asm/unaligned.h>
- #include <asm-generic/vmlinux.lds.h>
- 
-+#include "decompress.h"
-+
- /*
-  * These two variables specify the free mem region
-  * that can be used for temporary malloc area
-@@ -26,20 +28,6 @@
- unsigned long free_mem_ptr;
- unsigned long free_mem_end_ptr;
- 
--/* The linker tells us where the image is. */
--extern unsigned char __image_begin[], __image_end[];
--
--/* debug interfaces  */
--#ifdef CONFIG_DEBUG_ZBOOT
--extern void puts(const char *s);
--extern void puthex(unsigned long long val);
--#else
--#define puts(s) do {} while (0)
--#define puthex(val) do {} while (0)
--#endif
--
--extern char __appended_dtb[];
--
- void error(char *x)
- {
- 	puts("\n\n");
 --- /dev/null
-+++ a/arch/mips/boot/compressed/decompress.h
-@@ -0,0 +1,24 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#ifndef _DECOMPRESSOR_H
-+#define _DECOMPRESSOR_H
++++ a/arch/mips/include/asm/syscalls.h
+@@ -0,0 +1,33 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++#ifndef _ASM_MIPS_SYSCALLS_H
++#define _ASM_MIPS_SYSCALLS_H
 +
-+/* The linker tells us where the image is. */
-+extern unsigned char __image_begin[], __image_end[];
++#include <linux/linkage.h>
++#include <linux/compat.h>
 +
-+/* debug interfaces  */
-+#ifdef CONFIG_DEBUG_ZBOOT
-+extern void putc(char c);
-+extern void puts(const char *s);
-+extern void puthex(unsigned long long val);
-+#else
-+#define putc(s) do {} while (0)
-+#define puts(s) do {} while (0)
-+#define puthex(val) do {} while (0)
++asmlinkage void sys_sigreturn(void);
++asmlinkage void sys_rt_sigreturn(void);
++asmlinkage int sysm_pipe(void);
++asmlinkage long mipsmt_sys_sched_setaffinity(pid_t pid, unsigned int len,
++                                     unsigned long __user *user_mask_ptr);
++asmlinkage long mipsmt_sys_sched_getaffinity(pid_t pid, unsigned int len,
++                                     unsigned long __user *user_mask_ptr);
++asmlinkage long sys32_fallocate(int fd, int mode, unsigned offset_a2,
++				unsigned offset_a3, unsigned len_a4,
++				unsigned len_a5);
++asmlinkage long sys32_fadvise64_64(int fd, int __pad,
++				   unsigned long a2, unsigned long a3,
++				   unsigned long a4, unsigned long a5,
++				   int flags);
++asmlinkage ssize_t sys32_readahead(int fd, u32 pad0, u64 a2, u64 a3,
++				   size_t count);
++asmlinkage long sys32_sync_file_range(int fd, int __pad,
++				      unsigned long a2, unsigned long a3,
++				      unsigned long a4, unsigned long a5,
++				      int flags);
++asmlinkage void sys32_rt_sigreturn(void);
++asmlinkage void sys32_sigreturn(void);
++asmlinkage int sys32_sigsuspend(compat_sigset_t __user *uset);
++asmlinkage void sysn32_rt_sigreturn(void);
++
 +#endif
-+
-+extern char __appended_dtb[];
-+
-+void error(char *x);
-+void decompress_kernel(unsigned long boot_heap_start);
-+
-+#endif
---- a/arch/mips/boot/compressed/string.c~mips-decompress-fix-add-missing-prototypes
-+++ a/arch/mips/boot/compressed/string.c
-@@ -7,6 +7,7 @@
+--- a/arch/mips/kernel/linux32.c~mips-add-asm-syscallsh-header
++++ a/arch/mips/kernel/linux32.c
+@@ -42,6 +42,7 @@
+ #include <linux/uaccess.h>
+ #include <asm/mmu_context.h>
+ #include <asm/mman.h>
++#include <asm/syscalls.h>
  
- #include <linux/compiler_attributes.h>
+ #ifdef __MIPSEB__
+ #define merge_64(r1, r2) ((((r1) & 0xffffffffUL) << 32) + ((r2) & 0xffffffffUL))
+--- a/arch/mips/kernel/mips-mt-fpaff.c~mips-add-asm-syscallsh-header
++++ a/arch/mips/kernel/mips-mt-fpaff.c
+@@ -15,6 +15,7 @@
+ #include <linux/security.h>
  #include <linux/types.h>
-+#include <asm/string.h>
+ #include <linux/uaccess.h>
++#include <asm/syscalls.h>
  
- void *memcpy(void *dest, const void *src, size_t n)
- {
+ /*
+  * CPU mask used to set process affinity for MT VPEs/TCs with FPUs
+--- a/arch/mips/kernel/signal32.c~mips-add-asm-syscallsh-header
++++ a/arch/mips/kernel/signal32.c
+@@ -18,6 +18,7 @@
+ #include <asm/compat-signal.h>
+ #include <linux/uaccess.h>
+ #include <asm/unistd.h>
++#include <asm/syscalls.h>
+ 
+ #include "signal-common.h"
+ 
+--- a/arch/mips/kernel/signal.c~mips-add-asm-syscallsh-header
++++ a/arch/mips/kernel/signal.c
+@@ -38,6 +38,7 @@
+ #include <asm/dsp.h>
+ #include <asm/inst.h>
+ #include <asm/msa.h>
++#include <asm/syscalls.h>
+ 
+ #include "signal-common.h"
+ 
+--- a/arch/mips/kernel/signal_n32.c~mips-add-asm-syscallsh-header
++++ a/arch/mips/kernel/signal_n32.c
+@@ -24,6 +24,7 @@
+ #include <asm/ucontext.h>
+ #include <asm/fpu.h>
+ #include <asm/cpu-features.h>
++#include <asm/syscalls.h>
+ 
+ #include "signal-common.h"
+ 
+--- a/arch/mips/kernel/signal_o32.c~mips-add-asm-syscallsh-header
++++ a/arch/mips/kernel/signal_o32.c
+@@ -19,6 +19,7 @@
+ #include <asm/dsp.h>
+ #include <asm/sim.h>
+ #include <asm/unistd.h>
++#include <asm/syscalls.h>
+ 
+ #include "signal-common.h"
+ 
+--- a/arch/mips/kernel/syscall.c~mips-add-asm-syscallsh-header
++++ a/arch/mips/kernel/syscall.c
+@@ -39,6 +39,7 @@
+ #include <asm/shmparam.h>
+ #include <asm/sync.h>
+ #include <asm/sysmips.h>
++#include <asm/syscalls.h>
+ #include <asm/switch_to.h>
+ 
+ /*
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
