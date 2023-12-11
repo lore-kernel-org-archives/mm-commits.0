@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 513F93C21
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:54:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 532C43C21
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:54:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z36GW0Ep"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B7EDC433C7;
-	Mon, 11 Dec 2023 00:54:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qw9UF1RL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D7C6C433C8;
+	Mon, 11 Dec 2023 00:54:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702256073;
-	bh=ei+tbcoqgivKOGJNbvba8iReBmBxym2D3mZ7EbHV+ek=;
+	s=korg; t=1702256074;
+	bh=yZYPaWa/RPrvTMA/T1BFNihMiRgdGpsMhbqsDsBky3w=;
 	h=Date:To:From:Subject:From;
-	b=Z36GW0EpK20anfnPQ20HTMXeBw3GusbsBjLy4FG3Yt3Xv+4jc6Pe2wrWQjKExLrMN
-	 oS7gCbWxQFmlJi9/bk1fF7nONKeHZaz/5xqMnZPj9hx3pY19u0bCAKyqh+3qdc8Yod
-	 4U92SFdWdXTQDrKq//WnXUA4YlgrsUmAD5ty63sU=
-Date: Sun, 10 Dec 2023 16:54:32 -0800
-To: mm-commits@vger.kernel.org,minchan@kernel.org,dmaluka@chromium.org,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=qw9UF1RLywMh33ax0lTj/lH/9d3DEq5cIcZiLcqy9RwBr9AtXMuoecuVL63lryx2w
+	 OPrOaJe/BlaesKZPDlHaU/760r9pTUSIkuUdJ5LOOQLBUjPCYlw/JAxS/K4f3PGnsE
+	 XxCGJ0vY+le/yFVnAuyElNbjDfTgiBf8+jH1Gkfo=
+Date: Sun, 10 Dec 2023 16:54:33 -0800
+To: mm-commits@vger.kernel.org,naoya.horiguchi@nec.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-tweak-writeback-config-help.patch removed from -mm tree
-Message-Id: <20231211005433.1B7EDC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] memory-failure-use-a-folio-in-me_pagecache_clean.patch removed from -mm tree
+Message-Id: <20231211005434.1D7C6C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,46 +27,129 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: tweak writeback config help
+     Subject: memory-failure: use a folio in me_pagecache_clean()
 has been removed from the -mm tree.  Its filename was
-     zram-tweak-writeback-config-help.patch
+     memory-failure-use-a-folio-in-me_pagecache_clean.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: tweak writeback config help
-Date: Wed, 15 Nov 2023 11:42:13 +0900
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: memory-failure: use a folio in me_pagecache_clean()
+Date: Fri, 17 Nov 2023 16:14:42 +0000
 
-Writeback is for incompressible and idle zram pages.
+Patch series "Convert aops->error_remove_page to ->error_remove_folio".
 
-Link: https://lkml.kernel.org/r/20231115024223.4133148-2-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Dmytro Maluka <dmaluka@chromium.org>
+This is a memory-failure patch series which converts a lot of uses of page
+APIs into folio APIs with the usual benefits.  
+
+
+This patch (of 6):
+
+Replaces three hidden calls to compound_head() with one visible one.
+Fix up a few comments while I'm modifying this function.
+
+Link: https://lkml.kernel.org/r/20231117161447.2461643-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231117161447.2461643-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/Kconfig |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory-failure.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
---- a/drivers/block/zram/Kconfig~zram-tweak-writeback-config-help
-+++ a/drivers/block/zram/Kconfig
-@@ -59,8 +59,8 @@ config ZRAM_WRITEBACK
-        bool "Write back incompressible or idle page to backing device"
-        depends on ZRAM
-        help
--	 With incompressible page, there is no memory saving to keep it
--	 in memory. Instead, write it out to backing device.
-+	 This lets zram entries (incompressible or idle pages) be written
-+	 back to a backing device, helping save memory.
- 	 For this feature, admin should set up backing device via
- 	 /sys/block/zramX/backing_dev.
+--- a/mm/memory-failure.c~memory-failure-use-a-folio-in-me_pagecache_clean
++++ a/mm/memory-failure.c
+@@ -1014,6 +1014,7 @@ static int me_unknown(struct page_state
+  */
+ static int me_pagecache_clean(struct page_state *ps, struct page *p)
+ {
++	struct folio *folio = page_folio(p);
+ 	int ret;
+ 	struct address_space *mapping;
+ 	bool extra_pins;
+@@ -1021,10 +1022,10 @@ static int me_pagecache_clean(struct pag
+ 	delete_from_lru_cache(p);
  
+ 	/*
+-	 * For anonymous pages we're done the only reference left
++	 * For anonymous folios the only reference left
+ 	 * should be the one m_f() holds.
+ 	 */
+-	if (PageAnon(p)) {
++	if (folio_test_anon(folio)) {
+ 		ret = MF_RECOVERED;
+ 		goto out;
+ 	}
+@@ -1036,11 +1037,9 @@ static int me_pagecache_clean(struct pag
+ 	 * has a reference, because it could be file system metadata
+ 	 * and that's not safe to truncate.
+ 	 */
+-	mapping = page_mapping(p);
++	mapping = folio_mapping(folio);
+ 	if (!mapping) {
+-		/*
+-		 * Page has been teared down in the meanwhile
+-		 */
++		/* Folio has been torn down in the meantime */
+ 		ret = MF_FAILED;
+ 		goto out;
+ 	}
+@@ -1061,7 +1060,7 @@ static int me_pagecache_clean(struct pag
+ 		ret = MF_FAILED;
+ 
+ out:
+-	unlock_page(p);
++	folio_unlock(folio);
+ 
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from willy@infradead.org are
 
-checkpatch-do-not-require-an-empty-line-before-error-injection.patch
+buffer-return-bool-from-grow_dev_folio.patch
+buffer-calculate-block-number-inside-folio_init_buffers.patch
+buffer-fix-grow_buffers-for-block-size-page_size.patch
+buffer-cast-block-to-loff_t-before-shifting-it.patch
+buffer-fix-various-functions-for-block-size-page_size.patch
+buffer-handle-large-folios-in-__block_write_begin_int.patch
+buffer-fix-more-functions-for-block-size-page_size.patch
+nilfs2-add-nilfs_end_folio_io.patch
+nilfs2-convert-nilfs_abort_logs-to-use-folios.patch
+nilfs2-convert-nilfs_segctor_complete_write-to-use-folios.patch
+nilfs2-convert-nilfs_forget_buffer-to-use-a-folio.patch
+nilfs2-convert-to-nilfs_folio_buffers_clean.patch
+nilfs2-convert-nilfs_writepage-to-use-a-folio.patch
+nilfs2-convert-nilfs_mdt_write_page-to-use-a-folio.patch
+nilfs2-convert-to-nilfs_clear_folio_dirty.patch
+nilfs2-convert-to-__nilfs_clear_folio_dirty.patch
+nilfs2-convert-nilfs_segctor_prepare_write-to-use-folios.patch
+nilfs2-convert-nilfs_page_mkwrite-to-use-a-folio.patch
+nilfs2-convert-nilfs_mdt_create_block-to-use-a-folio.patch
+nilfs2-convert-nilfs_mdt_submit_block-to-use-a-folio.patch
+nilfs2-convert-nilfs_gccache_submit_read_data-to-use-a-folio.patch
+nilfs2-convert-nilfs_btnode_create_block-to-use-a-folio.patch
+nilfs2-convert-nilfs_btnode_submit_block-to-use-a-folio.patch
+nilfs2-convert-nilfs_btnode_delete-to-use-a-folio.patch
+nilfs2-convert-nilfs_btnode_prepare_change_key-to-use-a-folio.patch
+nilfs2-convert-nilfs_btnode_commit_change_key-to-use-a-folio.patch
+nilfs2-convert-nilfs_btnode_abort_change_key-to-use-a-folio.patch
+nilfs2-remove-page_address-from-nilfs_set_link.patch
+nilfs2-remove-page_address-from-nilfs_add_link.patch
+nilfs2-remove-page_address-from-nilfs_delete_entry.patch
+nilfs2-return-the-mapped-address-from-nilfs_get_page.patch
+nilfs2-pass-the-mapped-address-to-nilfs_check_page.patch
+nilfs2-switch-to-kmap_local-for-directory-handling.patch
+nilfs2-add-nilfs_get_folio.patch
+nilfs2-convert-nilfs_readdir-to-use-a-folio.patch
+nilfs2-convert-nilfs_find_entry-to-use-a-folio.patch
+nilfs2-convert-nilfs_rename-to-use-folios.patch
+nilfs2-convert-nilfs_add_link-to-use-a-folio.patch
+nilfs2-convert-nilfs_empty_dir-to-use-a-folio.patch
+nilfs2-convert-nilfs_make_empty-to-use-a-folio.patch
+nilfs2-convert-nilfs_prepare_chunk-and-nilfs_commit_chunk-to-folios.patch
+nilfs2-convert-nilfs_page_bug-to-nilfs_folio_bug.patch
 
