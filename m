@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B86DE5246
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:55:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BADCD5246
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:55:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NRn4dPTd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85D52C433C7;
-	Mon, 11 Dec 2023 00:55:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jmbcjLJp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89AEDC433C7;
+	Mon, 11 Dec 2023 00:55:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702256131;
-	bh=3nUWAF0q25G6dMrSg9Uz204RbKzrW26SYIhjGFdYfFI=;
+	s=korg; t=1702256132;
+	bh=1wnVQr6AvBNqtmtoldxJF5BzLMSTgWu1dMrGtKzVS4M=;
 	h=Date:To:From:Subject:From;
-	b=NRn4dPTdM+t/fCNI8J93ebhSahpJ+GsXSf4gv85EddM3o9wKx8piXmQPWrbCKXpjI
-	 S6rre6j9OxHZXSJl1PeiQNFrNzzltqBL7WG2cvS+2VEof2ZswGBmhwN9Cj5piQvJUy
-	 8J3oFlZMpUFT+3iIFRojhDGfXeraTqSa8Y8NDP48=
-Date: Sun, 10 Dec 2023 16:55:31 -0800
-To: mm-commits@vger.kernel.org,ira.weiny@intel.com,fabio.maria.de.francesco@linux.intel.com,akpm@linux-foundation.org
+	b=jmbcjLJpVY/UeuYgFHR88eB4sjf/yn2y8o7IuVxY1XyP2HTp+HwnV8xhbDMWkLgbr
+	 SGgmxKwGinXeioXatxsThdBgNBTzQGBFIJ0pbw5ubCUcC3lcckpMePPmRY4/p33ndQ
+	 QkomiFqx5lWtz1XwG7HNfn4EAC17t1empki+FV3A=
+Date: Sun, 10 Dec 2023 16:55:32 -0800
+To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,mike.kravetz@oracle.com,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swapfile-replace-kmap_atomic-with-kmap_local_page.patch removed from -mm tree
-Message-Id: <20231211005531.85D52C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-pagewalk-assert-write-mmap-lock-only-for-walking-the-user-page-tables.patch removed from -mm tree
+Message-Id: <20231211005532.89AEDC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,147 +27,87 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/swapfile: replace kmap_atomic() with kmap_local_page()
+     Subject: mm: pagewalk: assert write mmap lock only for walking the user page tables
 has been removed from the -mm tree.  Its filename was
-     mm-swapfile-replace-kmap_atomic-with-kmap_local_page.patch
+     mm-pagewalk-assert-write-mmap-lock-only-for-walking-the-user-page-tables.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Fabio M. De Francesco" <fabio.maria.de.francesco@linux.intel.com>
-Subject: mm/swapfile: replace kmap_atomic() with kmap_local_page()
-Date: Mon, 27 Nov 2023 16:54:37 +0100
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: pagewalk: assert write mmap lock only for walking the user page tables
+Date: Mon, 27 Nov 2023 16:46:42 +0800
 
-kmap_atomic() has been deprecated in favor of kmap_local_page().
+The 8782fb61cc848 ("mm: pagewalk: Fix race between unmap and page walker")
+introduces an assertion to walk_page_range_novma() to make all the users
+of page table walker is safe.  However, the race only exists for walking
+the user page tables.  And it is ridiculous to hold a particular user mmap
+write lock against the changes of the kernel page tables.  So only assert
+at least mmap read lock when walking the kernel page tables.  And some
+users matching this case could downgrade to a mmap read lock to relief the
+contention of mmap lock of init_mm, it will be nicer in hugetlb (only
+holding mmap read lock) in the next patch.
 
-Therefore, replace kmap_atomic() with kmap_local_page() in swapfile.c.
-
-kmap_atomic() is implemented like a kmap_local_page() which also disables
-page-faults and preemption (the latter only in !PREEMPT_RT kernels).  The
-kernel virtual addresses returned by these two API are only valid in the
-context of the callers (i.e., they cannot be handed to other threads).
-
-With kmap_local_page() the mappings are per thread and CPU local like in
-kmap_atomic(); however, they can handle page-faults and can be called from
-any context (including interrupts).  The tasks that call kmap_local_page()
-can be preempted and, when they are scheduled to run again, the kernel
-virtual addresses are restored and are still valid.
-
-In mm/swapfile.c, the blocks of code between the mappings and un-mappings
-do not depend on the above-mentioned side effects of kmap_atomic(), so
-that the mere replacements of the old API with the new one is all that is
-required (i.e., there is no need to explicitly call pagefault_disable()
-and/or preempt_disable()).
-
-Link: https://lkml.kernel.org/r/20231127155452.586387-1-fabio.maria.de.francesco@linux.intel.com
-Signed-off-by: Fabio M. De Francesco <fabio.maria.de.francesco@linux.intel.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
+Link: https://lkml.kernel.org/r/20231127084645.27017-2-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   34 +++++++++++++++++-----------------
- 1 file changed, 17 insertions(+), 17 deletions(-)
+ mm/pagewalk.c |   29 ++++++++++++++++++++++++++++-
+ 1 file changed, 28 insertions(+), 1 deletion(-)
 
---- a/mm/swapfile.c~mm-swapfile-replace-kmap_atomic-with-kmap_local_page
-+++ a/mm/swapfile.c
-@@ -1495,9 +1495,9 @@ int swp_swapcount(swp_entry_t entry)
+--- a/mm/pagewalk.c~mm-pagewalk-assert-write-mmap-lock-only-for-walking-the-user-page-tables
++++ a/mm/pagewalk.c
+@@ -539,6 +539,11 @@ int walk_page_range(struct mm_struct *mm
+  * not backed by VMAs. Because 'unusual' entries may be walked this function
+  * will also not lock the PTEs for the pte_entry() callback. This is useful for
+  * walking the kernel pages tables or page tables for firmware.
++ *
++ * Note: Be careful to walk the kernel pages tables, the caller may be need to
++ * take other effective approache (mmap lock may be insufficient) to prevent
++ * the intermediate kernel page tables belonging to the specified address range
++ * from being freed (e.g. memory hot-remove).
+  */
+ int walk_page_range_novma(struct mm_struct *mm, unsigned long start,
+ 			  unsigned long end, const struct mm_walk_ops *ops,
+@@ -556,7 +561,29 @@ int walk_page_range_novma(struct mm_stru
+ 	if (start >= end || !walk.mm)
+ 		return -EINVAL;
  
- 	do {
- 		page = list_next_entry(page, lru);
--		map = kmap_atomic(page);
-+		map = kmap_local_page(page);
- 		tmp_count = map[offset];
--		kunmap_atomic(map);
-+		kunmap_local(map);
+-	mmap_assert_write_locked(walk.mm);
++	/*
++	 * 1) For walking the user virtual address space:
++	 *
++	 * The mmap lock protects the page walker from changes to the page
++	 * tables during the walk.  However a read lock is insufficient to
++	 * protect those areas which don't have a VMA as munmap() detaches
++	 * the VMAs before downgrading to a read lock and actually tearing
++	 * down PTEs/page tables. In which case, the mmap write lock should
++	 * be hold.
++	 *
++	 * 2) For walking the kernel virtual address space:
++	 *
++	 * The kernel intermediate page tables usually do not be freed, so
++	 * the mmap map read lock is sufficient. But there are some exceptions.
++	 * E.g. memory hot-remove. In which case, the mmap lock is insufficient
++	 * to prevent the intermediate kernel pages tables belonging to the
++	 * specified address range from being freed. The caller should take
++	 * other actions to prevent this race.
++	 */
++	if (mm == &init_mm)
++		mmap_assert_locked(walk.mm);
++	else
++		mmap_assert_write_locked(walk.mm);
  
- 		count += (tmp_count & ~COUNT_CONTINUED) * n;
- 		n *= (SWAP_CONT_MAX + 1);
-@@ -3477,9 +3477,9 @@ int add_swap_count_continuation(swp_entr
- 		if (!(count & COUNT_CONTINUED))
- 			goto out_unlock_cont;
- 
--		map = kmap_atomic(list_page) + offset;
-+		map = kmap_local_page(list_page) + offset;
- 		count = *map;
--		kunmap_atomic(map);
-+		kunmap_local(map);
- 
- 		/*
- 		 * If this continuation count now has some space in it,
-@@ -3529,7 +3529,7 @@ static bool swap_count_continued(struct
- 	spin_lock(&si->cont_lock);
- 	offset &= ~PAGE_MASK;
- 	page = list_next_entry(head, lru);
--	map = kmap_atomic(page) + offset;
-+	map = kmap_local_page(page) + offset;
- 
- 	if (count == SWAP_MAP_MAX)	/* initial increment from swap_map */
- 		goto init_map;		/* jump over SWAP_CONT_MAX checks */
-@@ -3539,27 +3539,27 @@ static bool swap_count_continued(struct
- 		 * Think of how you add 1 to 999
- 		 */
- 		while (*map == (SWAP_CONT_MAX | COUNT_CONTINUED)) {
--			kunmap_atomic(map);
-+			kunmap_local(map);
- 			page = list_next_entry(page, lru);
- 			BUG_ON(page == head);
--			map = kmap_atomic(page) + offset;
-+			map = kmap_local_page(page) + offset;
- 		}
- 		if (*map == SWAP_CONT_MAX) {
--			kunmap_atomic(map);
-+			kunmap_local(map);
- 			page = list_next_entry(page, lru);
- 			if (page == head) {
- 				ret = false;	/* add count continuation */
- 				goto out;
- 			}
--			map = kmap_atomic(page) + offset;
-+			map = kmap_local_page(page) + offset;
- init_map:		*map = 0;		/* we didn't zero the page */
- 		}
- 		*map += 1;
--		kunmap_atomic(map);
-+		kunmap_local(map);
- 		while ((page = list_prev_entry(page, lru)) != head) {
--			map = kmap_atomic(page) + offset;
-+			map = kmap_local_page(page) + offset;
- 			*map = COUNT_CONTINUED;
--			kunmap_atomic(map);
-+			kunmap_local(map);
- 		}
- 		ret = true;			/* incremented */
- 
-@@ -3569,21 +3569,21 @@ init_map:		*map = 0;		/* we didn't zero
- 		 */
- 		BUG_ON(count != COUNT_CONTINUED);
- 		while (*map == COUNT_CONTINUED) {
--			kunmap_atomic(map);
-+			kunmap_local(map);
- 			page = list_next_entry(page, lru);
- 			BUG_ON(page == head);
--			map = kmap_atomic(page) + offset;
-+			map = kmap_local_page(page) + offset;
- 		}
- 		BUG_ON(*map == 0);
- 		*map -= 1;
- 		if (*map == 0)
- 			count = 0;
--		kunmap_atomic(map);
-+		kunmap_local(map);
- 		while ((page = list_prev_entry(page, lru)) != head) {
--			map = kmap_atomic(page) + offset;
-+			map = kmap_local_page(page) + offset;
- 			*map = SWAP_CONT_MAX | count;
- 			count = COUNT_CONTINUED;
--			kunmap_atomic(map);
-+			kunmap_local(map);
- 		}
- 		ret = count == COUNT_CONTINUED;
- 	}
+ 	return walk_pgd_range(start, end, &walk);
+ }
 _
 
-Patches currently in -mm which might be from fabio.maria.de.francesco@linux.intel.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
+mm-hugetlb_vmemmap-add-check-of-config_memory_hotplug-back.patch
+mm-hugetlb_vmemmap-move-mmap-lock-to-vmemmap_remap_range.patch
 
