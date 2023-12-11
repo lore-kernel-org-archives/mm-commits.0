@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01CC923B5
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:54:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BE1A23B5
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:54:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VI8Zv+tX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF263C433C8;
-	Mon, 11 Dec 2023 00:54:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zAjz9XwC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 436BCC433C8;
+	Mon, 11 Dec 2023 00:54:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702256050;
-	bh=JExE+DXTpyC6sG1uo1H18Qbt1pU1uH7R8nYdh5bK5tw=;
+	s=korg; t=1702256052;
+	bh=WQjZYCYW/qsoCTLiZ2rSwnmCYR0Gau/g+0rwUsJfAb4=;
 	h=Date:To:From:Subject:From;
-	b=VI8Zv+tXPxkaZZLTBdmfPlmwPK+vQTln6ovvHRPE9I0oMMI0uaUE9naPMZjRtpk08
-	 5LwGtR+M4aQYGukaj48SmvDVqmLLBMlPTtFWm90qYHEslk0JJIpdIoG0s9QksDu/xu
-	 6IP+QLOyTwmLGTb3XXweQp6GgPOna95K9XwrWCEI=
-Date: Sun, 10 Dec 2023 16:54:10 -0800
-To: mm-commits@vger.kernel.org,tytso@mit.edu,djwong@kernel.org,agruenba@redhat.com,willy@infradead.org,akpm@linux-foundation.org
+	b=zAjz9XwCwH8BfuiqLxISwD6WSdYy/mo1GP3sVf6LiCgmJh48r0kI3vXJPZ4nND3bF
+	 /AKuGPfLVjjRBpjB0tAUKriHYzTLMZo0Ywfyy/l/1Lpyzk4vlf39yRwGJ+pp6hWC5y
+	 q+S2r6bB/FoATJMj9kXXN/hbeDN2Qo36haZ+J2fo=
+Date: Sun, 10 Dec 2023 16:54:11 -0800
+To: mm-commits@vger.kernel.org,tytso@mit.edu,djwong@kernel.org,agruenba@redhat.com,adilger.kernel@dilger.ca,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-folio_zero_tail-and-use-it-in-ext4.patch removed from -mm tree
-Message-Id: <20231211005410.BF263C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-folio_fill_tail-and-use-it-in-iomap.patch removed from -mm tree
+Message-Id: <20231211005412.436BCC433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,107 +27,110 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: add folio_zero_tail() and use it in ext4
+     Subject: mm: add folio_fill_tail() and use it in iomap
 has been removed from the -mm tree.  Its filename was
-     mm-add-folio_zero_tail-and-use-it-in-ext4.patch
+     mm-add-folio_fill_tail-and-use-it-in-iomap.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: add folio_zero_tail() and use it in ext4
-Date: Tue, 7 Nov 2023 21:26:40 +0000
+Subject: mm: add folio_fill_tail() and use it in iomap
+Date: Tue, 7 Nov 2023 21:26:41 +0000
 
-Patch series "Add folio_zero_tail() and folio_fill_tail()".
+The iomap code was limited to PAGE_SIZE bytes; generalise it to cover
+an arbitrary-sized folio, and move it to be a common helper.
 
-I'm trying to make it easier for filesystems with tailpacking / stuffing /
-inline data to use folios.  The primary function here is
-folio_fill_tail().  You give it a pointer to memory where the data
-currently is, and it takes care of copying it into the folio at that
-offset.  That works for gfs2 & iomap.  Then There's Ext4.  Rather than gin
-up some kind of specialist "Here's a two pointers to two blocks of memory"
-routine, just let it do its current thing, and let it call
-folio_zero_tail(), which is also called by folio_fill_tail().
-
-Other filesystems can be converted later; these ones seemed like good
-examples as they're already partly or completely converted to folios.
-
-
-This patch (of 3):
-
-Instead of unmapping the folio after copying the data to it, then mapping
-it again to zero the tail, provide folio_zero_tail() to zero the tail of
-an already-mapped folio.
-
-[akpm@linux-foundation.org: fix kerneldoc argument ordering]
-Link: https://lkml.kernel.org/r/20231107212643.3490372-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20231107212643.3490372-2-willy@infradead.org
+[akpm@linux-foundation.org: fix folio_fill_tail(), per Andreas Gruenbacher]
+Link: https://lkml.kernel.org/r/20231107212643.3490372-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Andreas Gruenbacher <agruenba@redhat.com>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Cc: Darrick J. Wong <djwong@kernel.org>
 Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Andreas Gruenbacher <agruenba@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/inline.c        |    3 +--
+ fs/iomap/buffered-io.c  |   14 ++------------
  include/linux/highmem.h |   38 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 39 insertions(+), 2 deletions(-)
+ 2 files changed, 40 insertions(+), 12 deletions(-)
 
---- a/fs/ext4/inline.c~mm-add-folio_zero_tail-and-use-it-in-ext4
-+++ a/fs/ext4/inline.c
-@@ -502,9 +502,8 @@ static int ext4_read_inline_folio(struct
- 	BUG_ON(len > PAGE_SIZE);
- 	kaddr = kmap_local_folio(folio, 0);
- 	ret = ext4_read_inline_data(inode, kaddr, len, &iloc);
--	flush_dcache_folio(folio);
-+	kaddr = folio_zero_tail(folio, len, kaddr + len);
- 	kunmap_local(kaddr);
--	folio_zero_segment(folio, len, folio_size(folio));
- 	folio_mark_uptodate(folio);
- 	brelse(iloc.bh);
+--- a/fs/iomap/buffered-io.c~mm-add-folio_fill_tail-and-use-it-in-iomap
++++ a/fs/iomap/buffered-io.c
+@@ -305,28 +305,18 @@ static int iomap_read_inline_data(const
+ {
+ 	const struct iomap *iomap = iomap_iter_srcmap(iter);
+ 	size_t size = i_size_read(iter->inode) - iomap->offset;
+-	size_t poff = offset_in_page(iomap->offset);
+ 	size_t offset = offset_in_folio(folio, iomap->offset);
+-	void *addr;
  
---- a/include/linux/highmem.h~mm-add-folio_zero_tail-and-use-it-in-ext4
+ 	if (folio_test_uptodate(folio))
+ 		return 0;
+ 
+-	if (WARN_ON_ONCE(size > PAGE_SIZE - poff))
+-		return -EIO;
+-	if (WARN_ON_ONCE(size > PAGE_SIZE -
+-			 offset_in_page(iomap->inline_data)))
+-		return -EIO;
+ 	if (WARN_ON_ONCE(size > iomap->length))
+ 		return -EIO;
+ 	if (offset > 0)
+ 		ifs_alloc(iter->inode, folio, iter->flags);
+ 
+-	addr = kmap_local_folio(folio, offset);
+-	memcpy(addr, iomap->inline_data, size);
+-	memset(addr + size, 0, PAGE_SIZE - poff - size);
+-	kunmap_local(addr);
+-	iomap_set_range_uptodate(folio, offset, PAGE_SIZE - poff);
++	folio_fill_tail(folio, offset, iomap->inline_data, size);
++	iomap_set_range_uptodate(folio, offset, folio_size(folio) - offset);
+ 	return 0;
+ }
+ 
+--- a/include/linux/highmem.h~mm-add-folio_fill_tail-and-use-it-in-iomap
 +++ a/include/linux/highmem.h
-@@ -484,6 +484,44 @@ static inline void memcpy_to_folio(struc
+@@ -522,6 +522,44 @@ static inline __must_check void *folio_z
  }
  
  /**
-+ * folio_zero_tail - Zero the tail of a folio.
-+ * @folio: The folio to zero.
-+ * @offset: The byte offset in the folio to start zeroing at.
-+ * @kaddr: The address the folio is currently mapped to.
++ * folio_fill_tail - Copy some data to a folio and pad with zeroes.
++ * @folio: The destination folio.
++ * @offset: The offset into @folio at which to start copying.
++ * @from: The data to copy.
++ * @len: How many bytes of data to copy.
 + *
-+ * If you have already used kmap_local_folio() to map a folio, written
-+ * some data to it and now need to zero the end of the folio (and flush
-+ * the dcache), you can use this function.  If you do not have the
-+ * folio kmapped (eg the folio has been partially populated by DMA),
-+ * use folio_zero_range() or folio_zero_segment() instead.
-+ *
-+ * Return: An address which can be passed to kunmap_local().
++ * This function is most useful for filesystems which support inline data.
++ * When they want to copy data from the inode into the page cache, this
++ * function does everything for them.  It supports large folios even on
++ * HIGHMEM configurations.
 + */
-+static inline __must_check void *folio_zero_tail(struct folio *folio,
-+		size_t offset, void *kaddr)
++static inline void folio_fill_tail(struct folio *folio, size_t offset,
++		const char *from, size_t len)
 +{
-+	size_t len = folio_size(folio) - offset;
++	char *to = kmap_local_folio(folio, offset);
++
++	VM_BUG_ON(offset + len > folio_size(folio));
 +
 +	if (folio_test_highmem(folio)) {
 +		size_t max = PAGE_SIZE - offset_in_page(offset);
 +
 +		while (len > max) {
-+			memset(kaddr, 0, max);
-+			kunmap_local(kaddr);
++			memcpy(to, from, max);
++			kunmap_local(to);
 +			len -= max;
++			from += max;
 +			offset += max;
 +			max = PAGE_SIZE;
-+			kaddr = kmap_local_folio(folio, offset);
++			to = kmap_local_folio(folio, offset);
 +		}
 +	}
 +
-+	memset(kaddr, 0, len);
-+	flush_dcache_folio(folio);
-+
-+	return kaddr;
++	memcpy(to, from, len);
++	to = folio_zero_tail(folio, offset + len, to + len);
++	kunmap_local(to);
 +}
 +
 +/**
