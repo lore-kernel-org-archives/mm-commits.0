@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67C721FC6
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:53:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AE681FC6
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:53:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DUvFRQYg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29495C433C9;
-	Mon, 11 Dec 2023 00:53:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jUiNj8Ry"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E439C433C8;
+	Mon, 11 Dec 2023 00:53:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702256032;
-	bh=1C2+O1efXqLcWlXaLkEshT7vaAvQrtXAqWbuLRUg4G8=;
+	s=korg; t=1702256033;
+	bh=qgwg8uTLzz1vTcuFaIZazePHATY2MsdjTfCtIw8fsJA=;
 	h=Date:To:From:Subject:From;
-	b=DUvFRQYgsmKEl21QT41OvxOEdtnIQ2L9JEdznEpJQqCgaU3yEsCGQDwYSyLFx2XDk
-	 O2lWNI06EWeMWa46vzK73vjN1tlaZkEWt+SSO2mks2/S6Y/MN//PAVWEeX+DoAHNBI
-	 MSEPbRKnzThTPvPlLAuAMusd2CoBDms798dM7Bt4=
-Date: Sun, 10 Dec 2023 16:53:51 -0800
+	b=jUiNj8RyV/SIZJjsEBMd+9SEsHDQfjHAFIPO/7zwPBWMpr6kak4WBvZupg7K610jk
+	 EQZ0TKgcWCVhRFLBzWu5ZHGaxtv9zII5WffxxH54prebFqG8wJPTbOo6b3Lj9kthwD
+	 guOs9uUbU2zqHP6BckQhFsUBrWeXDJtalbrnSTW4=
+Date: Sun, 10 Dec 2023 16:53:52 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,peterz@infradead.org,npiggin@gmail.com,mst@redhat.com,mjguzik@gmail.com,michael.christie@oracle.com,mathieu.desnoyers@efficios.com,Liam.Howlett@oracle.com,corbet@lwn.net,brauner@kernel.org,zhangpeng.00@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] radix-tree-test-suite-align-kmem_cache_alloc_bulk-with-kernel-behavior.patch removed from -mm tree
-Message-Id: <20231211005352.29495C433C9@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-add-test-for-mtree_dup.patch removed from -mm tree
+Message-Id: <20231211005353.4E439C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,23 +27,25 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: radix tree test suite: align kmem_cache_alloc_bulk() with kernel behavior.
+     Subject: maple_tree: add test for mtree_dup()
 has been removed from the -mm tree.  Its filename was
-     radix-tree-test-suite-align-kmem_cache_alloc_bulk-with-kernel-behavior.patch
+     maple_tree-add-test-for-mtree_dup.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Peng Zhang <zhangpeng.00@bytedance.com>
-Subject: radix tree test suite: align kmem_cache_alloc_bulk() with kernel behavior.
-Date: Fri, 27 Oct 2023 11:38:39 +0800
+Subject: maple_tree: add test for mtree_dup()
+Date: Fri, 27 Oct 2023 11:38:40 +0800
 
-When kmem_cache_alloc_bulk() fails to allocate, leave the freed pointers
-in the array.  This enables a more accurate simulation of the kernel's
-behavior and allows for testing potential double-free scenarios.
+Add test for mtree_dup().
 
-Link: https://lkml.kernel.org/r/20231027033845.90608-5-zhangpeng.00@bytedance.com
+Test by duplicating different maple trees and then comparing the two
+trees.  Includes tests for duplicating full trees and memory allocation
+failures on different nodes.
+
+Link: https://lkml.kernel.org/r/20231027033845.90608-6-zhangpeng.00@bytedance.com
 Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -59,103 +61,386 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/linux.c |   45 +++++++++++++++++++++--------
- 1 file changed, 33 insertions(+), 12 deletions(-)
+ tools/testing/radix-tree/maple.c |  361 +++++++++++++++++++++++++++++
+ 1 file changed, 361 insertions(+)
 
---- a/tools/testing/radix-tree/linux.c~radix-tree-test-suite-align-kmem_cache_alloc_bulk-with-kernel-behavior
-+++ a/tools/testing/radix-tree/linux.c
-@@ -93,13 +93,9 @@ void *kmem_cache_alloc_lru(struct kmem_c
- 	return p;
+--- a/tools/testing/radix-tree/maple.c~maple_tree-add-test-for-mtree_dup
++++ a/tools/testing/radix-tree/maple.c
+@@ -35857,6 +35857,363 @@ static noinline void __init check_locky(
+ 	mt_clear_in_rcu(mt);
  }
  
--void kmem_cache_free_locked(struct kmem_cache *cachep, void *objp)
-+void __kmem_cache_free_locked(struct kmem_cache *cachep, void *objp)
- {
- 	assert(objp);
--	uatomic_dec(&nr_allocated);
--	uatomic_dec(&cachep->nr_allocated);
--	if (kmalloc_verbose)
--		printf("Freeing %p to slab\n", objp);
- 	if (cachep->nr_objs > 10 || cachep->align) {
- 		memset(objp, POISON_FREE, cachep->size);
- 		free(objp);
-@@ -111,6 +107,15 @@ void kmem_cache_free_locked(struct kmem_
- 	}
- }
- 
-+void kmem_cache_free_locked(struct kmem_cache *cachep, void *objp)
++/*
++ * Compares two nodes except for the addresses stored in the nodes.
++ * Returns zero if they are the same, otherwise returns non-zero.
++ */
++static int __init compare_node(struct maple_enode *enode_a,
++			       struct maple_enode *enode_b)
 +{
-+	uatomic_dec(&nr_allocated);
-+	uatomic_dec(&cachep->nr_allocated);
-+	if (kmalloc_verbose)
-+		printf("Freeing %p to slab\n", objp);
-+	__kmem_cache_free_locked(cachep, objp);
++	struct maple_node *node_a, *node_b;
++	struct maple_node a, b;
++	void **slots_a, **slots_b; /* Do not use the rcu tag. */
++	enum maple_type type;
++	int i;
++
++	if (((unsigned long)enode_a & MAPLE_NODE_MASK) !=
++	    ((unsigned long)enode_b & MAPLE_NODE_MASK)) {
++		pr_err("The lower 8 bits of enode are different.\n");
++		return -1;
++	}
++
++	type = mte_node_type(enode_a);
++	node_a = mte_to_node(enode_a);
++	node_b = mte_to_node(enode_b);
++	a = *node_a;
++	b = *node_b;
++
++	/* Do not compare addresses. */
++	if (ma_is_root(node_a) || ma_is_root(node_b)) {
++		a.parent = (struct maple_pnode *)((unsigned long)a.parent &
++						  MA_ROOT_PARENT);
++		b.parent = (struct maple_pnode *)((unsigned long)b.parent &
++						  MA_ROOT_PARENT);
++	} else {
++		a.parent = (struct maple_pnode *)((unsigned long)a.parent &
++						  MAPLE_NODE_MASK);
++		b.parent = (struct maple_pnode *)((unsigned long)b.parent &
++						  MAPLE_NODE_MASK);
++	}
++
++	if (a.parent != b.parent) {
++		pr_err("The lower 8 bits of parents are different. %p %p\n",
++			a.parent, b.parent);
++		return -1;
++	}
++
++	/*
++	 * If it is a leaf node, the slots do not contain the node address, and
++	 * no special processing of slots is required.
++	 */
++	if (ma_is_leaf(type))
++		goto cmp;
++
++	slots_a = ma_slots(&a, type);
++	slots_b = ma_slots(&b, type);
++
++	for (i = 0; i < mt_slots[type]; i++) {
++		if (!slots_a[i] && !slots_b[i])
++			break;
++
++		if (!slots_a[i] || !slots_b[i]) {
++			pr_err("The number of slots is different.\n");
++			return -1;
++		}
++
++		/* Do not compare addresses in slots. */
++		((unsigned long *)slots_a)[i] &= MAPLE_NODE_MASK;
++		((unsigned long *)slots_b)[i] &= MAPLE_NODE_MASK;
++	}
++
++cmp:
++	/*
++	 * Compare all contents of two nodes, including parent (except address),
++	 * slots (except address), pivots, gaps and metadata.
++	 */
++	return memcmp(&a, &b, sizeof(struct maple_node));
 +}
 +
- void kmem_cache_free(struct kmem_cache *cachep, void *objp)
- {
- 	pthread_mutex_lock(&cachep->lock);
-@@ -141,18 +146,17 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 	if (kmalloc_verbose)
- 		pr_debug("Bulk alloc %lu\n", size);
- 
--	if (!(gfp & __GFP_DIRECT_RECLAIM)) {
--		if (cachep->non_kernel < size)
--			return 0;
--
--		cachep->non_kernel -= size;
--	}
--
- 	pthread_mutex_lock(&cachep->lock);
- 	if (cachep->nr_objs >= size) {
- 		struct radix_tree_node *node;
- 
- 		for (i = 0; i < size; i++) {
-+			if (!(gfp & __GFP_DIRECT_RECLAIM)) {
-+				if (!cachep->non_kernel)
-+					break;
-+				cachep->non_kernel--;
-+			}
++/*
++ * Compare two trees and return 0 if they are the same, non-zero otherwise.
++ */
++static int __init compare_tree(struct maple_tree *mt_a, struct maple_tree *mt_b)
++{
++	MA_STATE(mas_a, mt_a, 0, 0);
++	MA_STATE(mas_b, mt_b, 0, 0);
 +
- 			node = cachep->objs;
- 			cachep->nr_objs--;
- 			cachep->objs = node->parent;
-@@ -163,11 +167,19 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 	} else {
- 		pthread_mutex_unlock(&cachep->lock);
- 		for (i = 0; i < size; i++) {
-+			if (!(gfp & __GFP_DIRECT_RECLAIM)) {
-+				if (!cachep->non_kernel)
-+					break;
-+				cachep->non_kernel--;
-+			}
++	if (mt_a->ma_flags != mt_b->ma_flags) {
++		pr_err("The flags of the two trees are different.\n");
++		return -1;
++	}
 +
- 			if (cachep->align) {
- 				posix_memalign(&p[i], cachep->align,
- 					       cachep->size);
- 			} else {
- 				p[i] = malloc(cachep->size);
-+				if (!p[i])
-+					break;
- 			}
- 			if (cachep->ctor)
- 				cachep->ctor(p[i]);
-@@ -176,6 +188,15 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 		}
- 	}
- 
-+	if (i < size) {
-+		size = i;
-+		pthread_mutex_lock(&cachep->lock);
-+		for (i = 0; i < size; i++)
-+			__kmem_cache_free_locked(cachep, p[i]);
-+		pthread_mutex_unlock(&cachep->lock);
++	mas_dfs_preorder(&mas_a);
++	mas_dfs_preorder(&mas_b);
++
++	if (mas_is_ptr(&mas_a) || mas_is_ptr(&mas_b)) {
++		if (!(mas_is_ptr(&mas_a) && mas_is_ptr(&mas_b))) {
++			pr_err("One is MAS_ROOT and the other is not.\n");
++			return -1;
++		}
 +		return 0;
 +	}
 +
- 	for (i = 0; i < size; i++) {
- 		uatomic_inc(&nr_allocated);
- 		uatomic_inc(&cachep->nr_allocated);
++	while (!mas_is_none(&mas_a) || !mas_is_none(&mas_b)) {
++
++		if (mas_is_none(&mas_a) || mas_is_none(&mas_b)) {
++			pr_err("One is MAS_NONE and the other is not.\n");
++			return -1;
++		}
++
++		if (mas_a.min != mas_b.min ||
++		    mas_a.max != mas_b.max) {
++			pr_err("mas->min, mas->max do not match.\n");
++			return -1;
++		}
++
++		if (compare_node(mas_a.node, mas_b.node)) {
++			pr_err("The contents of nodes %p and %p are different.\n",
++			       mas_a.node, mas_b.node);
++			mt_dump(mt_a, mt_dump_dec);
++			mt_dump(mt_b, mt_dump_dec);
++			return -1;
++		}
++
++		mas_dfs_preorder(&mas_a);
++		mas_dfs_preorder(&mas_b);
++	}
++
++	return 0;
++}
++
++static __init void mas_subtree_max_range(struct ma_state *mas)
++{
++	unsigned long limit = mas->max;
++	MA_STATE(newmas, mas->tree, 0, 0);
++	void *entry;
++
++	mas_for_each(mas, entry, limit) {
++		if (mas->last - mas->index >=
++		    newmas.last - newmas.index) {
++			newmas = *mas;
++		}
++	}
++
++	*mas = newmas;
++}
++
++/*
++ * build_full_tree() - Build a full tree.
++ * @mt: The tree to build.
++ * @flags: Use @flags to build the tree.
++ * @height: The height of the tree to build.
++ *
++ * Build a tree with full leaf nodes and internal nodes. Note that the height
++ * should not exceed 3, otherwise it will take a long time to build.
++ * Return: zero if the build is successful, non-zero if it fails.
++ */
++static __init int build_full_tree(struct maple_tree *mt, unsigned int flags,
++		int height)
++{
++	MA_STATE(mas, mt, 0, 0);
++	unsigned long step;
++	int ret = 0, cnt = 1;
++	enum maple_type type;
++
++	mt_init_flags(mt, flags);
++	mtree_insert_range(mt, 0, ULONG_MAX, xa_mk_value(5), GFP_KERNEL);
++
++	mtree_lock(mt);
++
++	while (1) {
++		mas_set(&mas, 0);
++		if (mt_height(mt) < height) {
++			mas.max = ULONG_MAX;
++			goto store;
++		}
++
++		while (1) {
++			mas_dfs_preorder(&mas);
++			if (mas_is_none(&mas))
++				goto unlock;
++
++			type = mte_node_type(mas.node);
++			if (mas_data_end(&mas) + 1 < mt_slots[type]) {
++				mas_set(&mas, mas.min);
++				goto store;
++			}
++		}
++store:
++		mas_subtree_max_range(&mas);
++		step = mas.last - mas.index;
++		if (step < 1) {
++			ret = -1;
++			goto unlock;
++		}
++
++		step /= 2;
++		mas.last = mas.index + step;
++		mas_store_gfp(&mas, xa_mk_value(5),
++				GFP_KERNEL);
++		++cnt;
++	}
++unlock:
++	mtree_unlock(mt);
++
++	MT_BUG_ON(mt, mt_height(mt) != height);
++	/* pr_info("height:%u number of elements:%d\n", mt_height(mt), cnt); */
++	return ret;
++}
++
++static noinline void __init check_mtree_dup(struct maple_tree *mt)
++{
++	DEFINE_MTREE(new);
++	int i, j, ret, count = 0;
++	unsigned int rand_seed = 17, rand;
++
++	/* store a value at [0, 0] */
++	mt_init_flags(mt, 0);
++	mtree_store_range(mt, 0, 0, xa_mk_value(0), GFP_KERNEL);
++	ret = mtree_dup(mt, &new, GFP_KERNEL);
++	MT_BUG_ON(&new, ret);
++	mt_validate(&new);
++	if (compare_tree(mt, &new))
++		MT_BUG_ON(&new, 1);
++
++	mtree_destroy(mt);
++	mtree_destroy(&new);
++
++	/* The two trees have different attributes. */
++	mt_init_flags(mt, 0);
++	mt_init_flags(&new, MT_FLAGS_ALLOC_RANGE);
++	ret = mtree_dup(mt, &new, GFP_KERNEL);
++	MT_BUG_ON(&new, ret != -EINVAL);
++	mtree_destroy(mt);
++	mtree_destroy(&new);
++
++	/* The new tree is not empty */
++	mt_init_flags(mt, 0);
++	mt_init_flags(&new, 0);
++	mtree_store(&new, 5, xa_mk_value(5), GFP_KERNEL);
++	ret = mtree_dup(mt, &new, GFP_KERNEL);
++	MT_BUG_ON(&new, ret != -EINVAL);
++	mtree_destroy(mt);
++	mtree_destroy(&new);
++
++	/* Test for duplicating full trees. */
++	for (i = 1; i <= 3; i++) {
++		ret = build_full_tree(mt, 0, i);
++		MT_BUG_ON(mt, ret);
++		mt_init_flags(&new, 0);
++
++		ret = mtree_dup(mt, &new, GFP_KERNEL);
++		MT_BUG_ON(&new, ret);
++		mt_validate(&new);
++		if (compare_tree(mt, &new))
++			MT_BUG_ON(&new, 1);
++
++		mtree_destroy(mt);
++		mtree_destroy(&new);
++	}
++
++	for (i = 1; i <= 3; i++) {
++		ret = build_full_tree(mt, MT_FLAGS_ALLOC_RANGE, i);
++		MT_BUG_ON(mt, ret);
++		mt_init_flags(&new, MT_FLAGS_ALLOC_RANGE);
++
++		ret = mtree_dup(mt, &new, GFP_KERNEL);
++		MT_BUG_ON(&new, ret);
++		mt_validate(&new);
++		if (compare_tree(mt, &new))
++			MT_BUG_ON(&new, 1);
++
++		mtree_destroy(mt);
++		mtree_destroy(&new);
++	}
++
++	/* Test for normal duplicating. */
++	for (i = 0; i < 1000; i += 3) {
++		if (i & 1) {
++			mt_init_flags(mt, 0);
++			mt_init_flags(&new, 0);
++		} else {
++			mt_init_flags(mt, MT_FLAGS_ALLOC_RANGE);
++			mt_init_flags(&new, MT_FLAGS_ALLOC_RANGE);
++		}
++
++		for (j = 0; j < i; j++) {
++			mtree_store_range(mt, j * 10, j * 10 + 5,
++					  xa_mk_value(j), GFP_KERNEL);
++		}
++
++		ret = mtree_dup(mt, &new, GFP_KERNEL);
++		MT_BUG_ON(&new, ret);
++		mt_validate(&new);
++		if (compare_tree(mt, &new))
++			MT_BUG_ON(&new, 1);
++
++		mtree_destroy(mt);
++		mtree_destroy(&new);
++	}
++
++	/* Test memory allocation failed. */
++	mt_init_flags(mt, MT_FLAGS_ALLOC_RANGE);
++	for (i = 0; i < 30; i += 3) {
++		mtree_store_range(mt, j * 10, j * 10 + 5,
++					  xa_mk_value(j), GFP_KERNEL);
++	}
++
++	/* Failed at the first node. */
++	mt_init_flags(&new, MT_FLAGS_ALLOC_RANGE);
++	mt_set_non_kernel(0);
++	ret = mtree_dup(mt, &new, GFP_NOWAIT);
++	mt_set_non_kernel(0);
++	MT_BUG_ON(&new, ret != -ENOMEM);
++	mtree_destroy(mt);
++	mtree_destroy(&new);
++
++	/* Random maple tree fails at a random node. */
++	for (i = 0; i < 1000; i += 3) {
++		if (i & 1) {
++			mt_init_flags(mt, 0);
++			mt_init_flags(&new, 0);
++		} else {
++			mt_init_flags(mt, MT_FLAGS_ALLOC_RANGE);
++			mt_init_flags(&new, MT_FLAGS_ALLOC_RANGE);
++		}
++
++		for (j = 0; j < i; j++) {
++			mtree_store_range(mt, j * 10, j * 10 + 5,
++					  xa_mk_value(j), GFP_KERNEL);
++		}
++		/*
++		 * The rand() library function is not used, so we can generate
++		 * the same random numbers on any platform.
++		 */
++		rand_seed = rand_seed * 1103515245 + 12345;
++		rand = rand_seed / 65536 % 128;
++		mt_set_non_kernel(rand);
++
++		ret = mtree_dup(mt, &new, GFP_NOWAIT);
++		mt_set_non_kernel(0);
++		if (ret != 0) {
++			MT_BUG_ON(&new, ret != -ENOMEM);
++			count++;
++			mtree_destroy(mt);
++			continue;
++		}
++
++		mt_validate(&new);
++		if (compare_tree(mt, &new))
++			MT_BUG_ON(&new, 1);
++
++		mtree_destroy(mt);
++		mtree_destroy(&new);
++	}
++
++	/* pr_info("mtree_dup() fail %d times\n", count); */
++	BUG_ON(!count);
++}
++
+ extern void test_kmem_cache_bulk(void);
+ 
+ void farmer_tests(void)
+@@ -35904,6 +36261,10 @@ void farmer_tests(void)
+ 	check_null_expand(&tree);
+ 	mtree_destroy(&tree);
+ 
++	mt_init_flags(&tree, 0);
++	check_mtree_dup(&tree);
++	mtree_destroy(&tree);
++
+ 	/* RCU testing */
+ 	mt_init_flags(&tree, 0);
+ 	check_erase_testset(&tree);
 _
 
 Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
