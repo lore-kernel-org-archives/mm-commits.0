@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7F247493
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:23:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F18E7493
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:23:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2NbXYxyL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71EDCC433C8;
-	Mon, 11 Dec 2023 01:23:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KTndx/BZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69B88C433C7;
+	Mon, 11 Dec 2023 01:23:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702257811;
-	bh=/X8um1BwWD/Tc64zdfGixUNCX9jTP/0aFA337a9+iIk=;
+	s=korg; t=1702257812;
+	bh=ka33ExXaw6bCv/IJvFe1h4LisEVjjg7BnxUsTVSc8P8=;
 	h=Date:To:From:Subject:From;
-	b=2NbXYxyLsv2lNPFi2RsyDdbD52VjewK2beRx2RLPVm47t7eN2vXbZjbRxrSC0Nt54
-	 vekd9mh9NOeU+IS+hRDmTT3W2FvUzbvjs1KcbUKKLDLAqUvk1tfjjptJ09F1UZuSOW
-	 TJHNbRcrKV5qoGfKVMSMEYr2emeH7GPXYm/j7Cb0=
-Date: Sun, 10 Dec 2023 17:23:30 -0800
-To: mm-commits@vger.kernel.org,svens@linux.ibm.com,sth@linux.ibm.com,hoeppner@linux.ibm.com,hca@linux.ibm.com,gor@linux.ibm.com,borntraeger@linux.ibm.com,arnd@arndb.de,agordeev@linux.ibm.com,nathan@kernel.org,akpm@linux-foundation.org
+	b=KTndx/BZm+1A856oJ4Ba+2XzR9ejK3iC9N0jyG9NfhFsYMqEiSz0KDronfwi3E7+E
+	 PdbKDI6siEUzB/8u2X74Gs/b02S23L86CPuZBn9rxBwYn3k8rwKWNouWvK3QtrqGrn
+	 a66gTsoyMqpL6gnIczjgS9osAHTq0R+//pAhAq5U=
+Date: Sun, 10 Dec 2023 17:23:31 -0800
+To: mm-commits@vger.kernel.org,tsbogend@alpha.franken.de,sfr@rothwell.id.au,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] s390-traps-only-define-is_valid_bugaddr-under-config_generic_bug.patch removed from -mm tree
-Message-Id: <20231211012331.71EDCC433C8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] mips-decompress-fix-add-missing-prototypes.patch removed from -mm tree
+Message-Id: <20231211012332.69B88C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,63 +27,141 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: s390/traps: only define is_valid_bugaddr() under CONFIG_GENERIC_BUG
+     Subject: mips: decompress: fix add missing prototypes
 has been removed from the -mm tree.  Its filename was
-     s390-traps-only-define-is_valid_bugaddr-under-config_generic_bug.patch
+     mips-decompress-fix-add-missing-prototypes.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Nathan Chancellor <nathan@kernel.org>
-Subject: s390/traps: only define is_valid_bugaddr() under CONFIG_GENERIC_BUG
-Date: Thu, 30 Nov 2023 17:22:33 -0700
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mips: decompress: fix add missing prototypes
+Date: Mon, 4 Dec 2023 12:56:51 +0100
 
-When building with -Wmissing-prototypes without CONFIG_GENERIC_BUG, there
-is a warning about a missing prototype for is_valid_bugaddr():
+Patch series "mips: address -Wmissing-prototypes warnings".
 
-  arch/s390/kernel/traps.c:46:5: warning: no previous prototype for 'is_valid_bugaddr' [-Wmissing-prototypes]
-     46 | int is_valid_bugaddr(unsigned long addr)
-        |     ^~~~~~~~~~~~~~~~
+Address the -Wmissing-prototypes warnings that showed up in mips as the
+last major architecture after my patch to enable the option everywhere.
 
-The prototype is only declared with CONFIG_GENERIC_BUG, so only define the
-function under the same condition to clear up the warning, which matches
-other architectures.
 
-Link: https://lkml.kernel.org/r/20231130-s390-missing-prototypes-v1-2-799d3cf07fb7@kernel.org
-Signed-off-by: Nathan Chancellor <nathan@kernel.org>
-Reviewed-by: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Jan Höppner <hoeppner@linux.ibm.com>
-Cc: Stefan Haberland <sth@linux.ibm.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+This patch (of 20):
+
+The mips decompressor has some string functions defined locally that are
+not declared in the right place:
+
+arch/mips/boot/compressed/dbg.c:12:13: error: no previous prototype for 'putc' [-Werror=missing-prototypes]
+arch/mips/boot/compressed/dbg.c:16:6: error: no previous prototype for 'puts' [-Werror=missing-prototypes]
+arch/mips/boot/compressed/dbg.c:26:6: error: no previous prototype for 'puthex' [-Werror=missing-prototypes]
+arch/mips/boot/compressed/string.c:11:7: error: no previous prototype for 'memcpy' [-Werror=missing-prototypes]
+arch/mips/boot/compressed/string.c:22:7: error: no previous prototype for 'memset' [-Werror=missing-prototypes]
+arch/mips/boot/compressed/string.c:32:15: error: no previous prototype for 'memmove' [-Werror=missing-prototypes]
+arch/mips/boot/compressed/decompress.c:43:6: error: no previous prototype for 'error' [-Werror=missing-prototypes]
+arch/mips/boot/compressed/decompress.c:91:6: error: no previous prototype for 'decompress_kernel' [-Werror=missing-prototypes]
+
+Include the string.h header where needed and add a decompress.h header to
+have shared prototypes for the rest.
+
+Link: https://lkml.kernel.org/r/20231204115710.2247097-1-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20231204115710.2247097-2-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Stephen Rothwell <sfr@rothwell.id.au>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/traps.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/mips/boot/compressed/dbg.c        |    2 +
+ arch/mips/boot/compressed/decompress.c |   16 +--------------
+ arch/mips/boot/compressed/decompress.h |   24 +++++++++++++++++++++++
+ arch/mips/boot/compressed/string.c     |    1 
+ 4 files changed, 29 insertions(+), 14 deletions(-)
 
---- a/arch/s390/kernel/traps.c~s390-traps-only-define-is_valid_bugaddr-under-config_generic_bug
-+++ a/arch/s390/kernel/traps.c
-@@ -43,10 +43,12 @@ static inline void __user *get_trap_ip(s
- 	return (void __user *) (address - (regs->int_code >> 16));
- }
+--- a/arch/mips/boot/compressed/dbg.c~mips-decompress-fix-add-missing-prototypes
++++ a/arch/mips/boot/compressed/dbg.c
+@@ -9,6 +9,8 @@
+ #include <linux/compiler.h>
+ #include <linux/types.h>
  
-+#ifdef CONFIG_GENERIC_BUG
- int is_valid_bugaddr(unsigned long addr)
++#include "decompress.h"
++
+ void __weak putc(char c)
  {
- 	return 1;
  }
-+#endif
+--- a/arch/mips/boot/compressed/decompress.c~mips-decompress-fix-add-missing-prototypes
++++ a/arch/mips/boot/compressed/decompress.c
+@@ -19,6 +19,8 @@
+ #include <asm/unaligned.h>
+ #include <asm-generic/vmlinux.lds.h>
  
- void do_report_trap(struct pt_regs *regs, int si_signo, int si_code, char *str)
++#include "decompress.h"
++
+ /*
+  * These two variables specify the free mem region
+  * that can be used for temporary malloc area
+@@ -26,20 +28,6 @@
+ unsigned long free_mem_ptr;
+ unsigned long free_mem_end_ptr;
+ 
+-/* The linker tells us where the image is. */
+-extern unsigned char __image_begin[], __image_end[];
+-
+-/* debug interfaces  */
+-#ifdef CONFIG_DEBUG_ZBOOT
+-extern void puts(const char *s);
+-extern void puthex(unsigned long long val);
+-#else
+-#define puts(s) do {} while (0)
+-#define puthex(val) do {} while (0)
+-#endif
+-
+-extern char __appended_dtb[];
+-
+ void error(char *x)
+ {
+ 	puts("\n\n");
+--- /dev/null
++++ a/arch/mips/boot/compressed/decompress.h
+@@ -0,0 +1,24 @@
++// SPDX-License-Identifier: GPL-2.0
++#ifndef _DECOMPRESSOR_H
++#define _DECOMPRESSOR_H
++
++/* The linker tells us where the image is. */
++extern unsigned char __image_begin[], __image_end[];
++
++/* debug interfaces  */
++#ifdef CONFIG_DEBUG_ZBOOT
++extern void putc(char c);
++extern void puts(const char *s);
++extern void puthex(unsigned long long val);
++#else
++#define putc(s) do {} while (0)
++#define puts(s) do {} while (0)
++#define puthex(val) do {} while (0)
++#endif
++
++extern char __appended_dtb[];
++
++void error(char *x);
++void decompress_kernel(unsigned long boot_heap_start);
++
++#endif
+--- a/arch/mips/boot/compressed/string.c~mips-decompress-fix-add-missing-prototypes
++++ a/arch/mips/boot/compressed/string.c
+@@ -7,6 +7,7 @@
+ 
+ #include <linux/compiler_attributes.h>
+ #include <linux/types.h>
++#include <asm/string.h>
+ 
+ void *memcpy(void *dest, const void *src, size_t n)
  {
 _
 
-Patches currently in -mm which might be from nathan@kernel.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-buffer-fix-grow_buffers-for-block-size-page_size-fix.patch
+kexec-fix-kexec_file-dependencies.patch
+kexec-fix-kexec_file-dependencies-fix.patch
+kexec-select-crypto-from-kexec_file-instead-of-depending-on-it.patch
+makefileextrawarn-turn-on-missing-prototypes-globally.patch
 
