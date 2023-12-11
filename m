@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C26B7493
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:23:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 170A87493
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:23:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fjsQN58i"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBBE4C433C8;
-	Mon, 11 Dec 2023 01:23:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lWXkENWZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4BB0C433C8;
+	Mon, 11 Dec 2023 01:23:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702257788;
-	bh=+JHU9MazyyqsXgGpMivoFhvfqOj6K6rFkwh9xwGOqSw=;
+	s=korg; t=1702257789;
+	bh=CYH8GDer8MkjNlBhx20rL9TOa7ufRgPRckvyT/tr1T0=;
 	h=Date:To:From:Subject:From;
-	b=fjsQN58ivU8Tyg+Kqw9w1kqPNpmvjTkTEcRMoar0jgP3uw/CthEVPALnC/maHVhqm
-	 ysOBnYbiG5EUGQ2JgDBi9MjOuMQlczvjvienTY2NMuYmwcbS2rQM+MANfofzSGntee
-	 hOsva2EvYJeDs6CzKqOmtX7TvCV4S99WOp4tgqJU=
-Date: Sun, 10 Dec 2023 17:23:08 -0800
-To: mm-commits@vger.kernel.org,ebiederm@xmission.com,bhe@redhat.com,ubizjak@gmail.com,akpm@linux-foundation.org
+	b=lWXkENWZBDwQKXn1CP/bKe/xuXCpinVZlfOfGKBXDvbVFePMOpQtLlrJwBy3BJ3rh
+	 f0oV4MZfrlTix4bXVeVAvL4BPKgH1kgiAkkNFjM05zOCJiNauTkuxEUkN48WCmYwwo
+	 aBkkeW51iRhKhO+g4TdEdCvRKOujVVxYlGuPuC3Y=
+Date: Sun, 10 Dec 2023 17:23:09 -0800
+To: mm-commits@vger.kernel.org,tsbogend@alpha.franken.de,sfr@rothwell.id.au,davem@davemloft.net,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kexec-use-atomic_try_cmpxchg-in-crash_kexec.patch removed from -mm tree
-Message-Id: <20231211012308.CBBE4C433C8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] arch-turn-off-werror-for-architectures-with-known-warnings.patch removed from -mm tree
+Message-Id: <20231211012309.D4BB0C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,51 +27,138 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kexec: use atomic_try_cmpxchg in crash_kexec
+     Subject: arch: turn off -Werror for architectures with known warnings
 has been removed from the -mm tree.  Its filename was
-     kexec-use-atomic_try_cmpxchg-in-crash_kexec.patch
+     arch-turn-off-werror-for-architectures-with-known-warnings.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Uros Bizjak <ubizjak@gmail.com>
-Subject: kexec: use atomic_try_cmpxchg in crash_kexec
-Date: Tue, 14 Nov 2023 17:12:01 +0100
+From: "Arnd Bergmann" <arnd@arndb.de>
+Subject: arch: turn off -Werror for architectures with known warnings
+Date: Thu, 30 Nov 2023 09:07:38 +0100
 
-Use atomic_try_cmpxchg instead of cmpxchg (*ptr, old, new) == old in
-crash_kexec().  x86 CMPXCHG instruction returns success in ZF flag,
-so this change saves a compare after cmpxchg.
+A couple of architectures enable -Werror for their own files regardless of
+CONFIG_WERROR but also have known warnings that fail the build with
+-Wmissing-prototypes enabled by default:
 
-No functional change intended.
+arch/alpha/lib/memcpy.c:153:8: error: no previous prototype for 'memcpy' [-Werror=missing-prototypes]
+arch/alpha/kernel/irq.c:96:1: error: no previous prototype for 'handle_irq' [-Werror=missing-prototypes]
+arch/mips/kernel/signal.c:673:17: error: no previous prototype for ‘sys_rt_sigreturn’ [-Werror=missing-prototypes]
+arch/mips/kernel/signal.c:636:17: error: no previous prototype for ‘sys_sigreturn’ [-Werror=missing-prototypes]
+arch/mips/kernel/syscall.c:51:16: error: no previous prototype for ‘sysm_pipe’ [-Werror=missing-prototypes]
+arch/mips/mm/fault.c:323:17: error: no previous prototype for ‘do_page_fault’ [-Werror=missing-prototypes]
+arch/sparc/vdso/vma.c:246:12: warning: no previous prototype for ‘init_vdso_image’ [-Wmissing-prototypes]v
+arch/sparc/vdso/vdso32/../vclock_gettime.c:343:1: warning: no previous prototype for ‘__vdso_gettimeofday_stick’ [-Wmissing-prototypes]
+arch/sparc/vdso/vclock_gettime.c:343:1: warning: no previous prototype for ‘__vdso_gettimeofday_stick’ [-Wmissing-prototypes]
+arch/sparc/prom/p1275.c:52:6: warning: no previous prototype for ‘prom_cif_init’ [-Wmissing-prototypes]
+arch/sparc/prom/misc_64.c:165:5: warning: no previous prototype for ‘prom_get_mmu_ihandle’ [-Wmissing-prototypes]
 
-Link: https://lkml.kernel.org/r/20231114161228.108516-1-ubizjak@gmail.com
-Signed-off-by: Uros Bizjak <ubizjak@gmail.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
+This appears to be an artifact from the times when this architecture code
+was better maintained that most device drivers and before CONFIG_WERROR
+was added.  Now it just gets in the way, so remove all of these.
+
+Powerpc and x86 both still have their own Kconfig options to enable
+-Werror for some of their files.  These architectures are better
+maintained than most and the options are easy to disable, so leave those
+untouched.
+
+Link: https://lkml.kernel.org/r/4be73872-c1f5-4c31-8201-712c19290a22@app.fastmail.com
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reported-by: Stephen Rothwell <sfr@rothwell.id.au>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_core.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/alpha/lib/Makefile    |    1 -
+ arch/alpha/mm/Makefile     |    2 --
+ arch/mips/Kbuild           |    6 ------
+ arch/sparc/kernel/Makefile |    1 -
+ arch/sparc/lib/Makefile    |    1 -
+ arch/sparc/mm/Makefile     |    1 -
+ arch/sparc/prom/Makefile   |    1 -
+ 7 files changed, 13 deletions(-)
 
---- a/kernel/kexec_core.c~kexec-use-atomic_try_cmpxchg-in-crash_kexec
-+++ a/kernel/kexec_core.c
-@@ -1063,9 +1063,10 @@ __bpf_kfunc void crash_kexec(struct pt_r
- 	 * panic().  Otherwise parallel calls of panic() and crash_kexec()
- 	 * may stop each other.  To exclude them, we use panic_cpu here too.
- 	 */
-+	old_cpu = PANIC_CPU_INVALID;
- 	this_cpu = raw_smp_processor_id();
--	old_cpu = atomic_cmpxchg(&panic_cpu, PANIC_CPU_INVALID, this_cpu);
--	if (old_cpu == PANIC_CPU_INVALID) {
-+
-+	if (atomic_try_cmpxchg(&panic_cpu, &old_cpu, this_cpu)) {
- 		/* This is the 1st CPU which comes here, so go ahead. */
- 		__crash_kexec(regs);
+--- a/arch/alpha/lib/Makefile~arch-turn-off-werror-for-architectures-with-known-warnings
++++ a/arch/alpha/lib/Makefile
+@@ -4,7 +4,6 @@
+ #
  
+ asflags-y := $(KBUILD_CFLAGS)
+-ccflags-y := -Werror
+ 
+ # Many of these routines have implementations tuned for ev6.
+ # Choose them iff we're targeting ev6 specifically.
+--- a/arch/alpha/mm/Makefile~arch-turn-off-werror-for-architectures-with-known-warnings
++++ a/arch/alpha/mm/Makefile
+@@ -3,6 +3,4 @@
+ # Makefile for the linux alpha-specific parts of the memory manager.
+ #
+ 
+-ccflags-y := -Werror
+-
+ obj-y	:= init.o fault.o
+--- a/arch/mips/Kbuild~arch-turn-off-werror-for-architectures-with-known-warnings
++++ a/arch/mips/Kbuild
+@@ -1,10 +1,4 @@
+ # SPDX-License-Identifier: GPL-2.0
+-# Fail on warnings - also for files referenced in subdirs
+-# -Werror can be disabled for specific files using:
+-# CFLAGS_<file.o> := -Wno-error
+-ifeq ($(W),)
+-subdir-ccflags-y := -Werror
+-endif
+ 
+ # platform specific definitions
+ include $(srctree)/arch/mips/Kbuild.platforms
+--- a/arch/sparc/kernel/Makefile~arch-turn-off-werror-for-architectures-with-known-warnings
++++ a/arch/sparc/kernel/Makefile
+@@ -5,7 +5,6 @@
+ #
+ 
+ asflags-y := -ansi
+-ccflags-y := -Werror
+ 
+ # Undefine sparc when processing vmlinux.lds - it is used
+ # And teach CPP we are doing $(BITS) builds (for this case)
+--- a/arch/sparc/lib/Makefile~arch-turn-off-werror-for-architectures-with-known-warnings
++++ a/arch/sparc/lib/Makefile
+@@ -3,7 +3,6 @@
+ #
+ 
+ asflags-y := -ansi -DST_DIV0=0x02
+-ccflags-y := -Werror
+ 
+ lib-$(CONFIG_SPARC32) += ashrdi3.o
+ lib-$(CONFIG_SPARC32) += memcpy.o memset.o
+--- a/arch/sparc/mm/Makefile~arch-turn-off-werror-for-architectures-with-known-warnings
++++ a/arch/sparc/mm/Makefile
+@@ -3,7 +3,6 @@
+ #
+ 
+ asflags-y := -ansi
+-ccflags-y := -Werror
+ 
+ obj-$(CONFIG_SPARC64)   += ultra.o tlb.o tsb.o
+ obj-y                   += fault_$(BITS).o
+--- a/arch/sparc/prom/Makefile~arch-turn-off-werror-for-architectures-with-known-warnings
++++ a/arch/sparc/prom/Makefile
+@@ -3,7 +3,6 @@
+ # Linux.
+ #
+ asflags := -ansi
+-ccflags := -Werror
+ 
+ lib-y                 := bootstr_$(BITS).o
+ lib-y                 += init_$(BITS).o
 _
 
-Patches currently in -mm which might be from ubizjak@gmail.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
+kexec-fix-kexec_file-dependencies.patch
+kexec-fix-kexec_file-dependencies-fix.patch
+kexec-select-crypto-from-kexec_file-instead-of-depending-on-it.patch
+makefileextrawarn-turn-on-missing-prototypes-globally.patch
 
