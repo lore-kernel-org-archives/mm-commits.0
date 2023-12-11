@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 532C43C21
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:54:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C5DC4407
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:54:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qw9UF1RL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D7C6C433C8;
-	Mon, 11 Dec 2023 00:54:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1CjN6NEl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14AADC433C7;
+	Mon, 11 Dec 2023 00:54:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702256074;
-	bh=yZYPaWa/RPrvTMA/T1BFNihMiRgdGpsMhbqsDsBky3w=;
+	s=korg; t=1702256075;
+	bh=28KAAB8ZfIRPybwzOx8o+qB6BfwlwgY9OSJKZyOYlSg=;
 	h=Date:To:From:Subject:From;
-	b=qw9UF1RLywMh33ax0lTj/lH/9d3DEq5cIcZiLcqy9RwBr9AtXMuoecuVL63lryx2w
-	 OPrOaJe/BlaesKZPDlHaU/760r9pTUSIkuUdJ5LOOQLBUjPCYlw/JAxS/K4f3PGnsE
-	 XxCGJ0vY+le/yFVnAuyElNbjDfTgiBf8+jH1Gkfo=
-Date: Sun, 10 Dec 2023 16:54:33 -0800
+	b=1CjN6NEltxOor8xH2Ej4nrw9Hh1l0H0oh821fbE2oosozs9CPMVdMCqjluWuAe5do
+	 nwqS+mBfr2etMn00vd2kl01fmaJy1hGu4kKtKbKQsq98J2h0K7o2/tgHbuGQkQBQhi
+	 ef9JF1i/4ByngfUZJEd9I/u2QY+8d4GvXybF5be0=
+Date: Sun, 10 Dec 2023 16:54:34 -0800
 To: mm-commits@vger.kernel.org,naoya.horiguchi@nec.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memory-failure-use-a-folio-in-me_pagecache_clean.patch removed from -mm tree
-Message-Id: <20231211005434.1D7C6C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] memory-failure-use-a-folio-in-me_pagecache_dirty.patch removed from -mm tree
+Message-Id: <20231211005435.14AADC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,85 +27,51 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memory-failure: use a folio in me_pagecache_clean()
+     Subject: memory-failure: use a folio in me_pagecache_dirty()
 has been removed from the -mm tree.  Its filename was
-     memory-failure-use-a-folio-in-me_pagecache_clean.patch
+     memory-failure-use-a-folio-in-me_pagecache_dirty.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: memory-failure: use a folio in me_pagecache_clean()
-Date: Fri, 17 Nov 2023 16:14:42 +0000
-
-Patch series "Convert aops->error_remove_page to ->error_remove_folio".
-
-This is a memory-failure patch series which converts a lot of uses of page
-APIs into folio APIs with the usual benefits.  
-
-
-This patch (of 6):
+Subject: memory-failure: use a folio in me_pagecache_dirty()
+Date: Fri, 17 Nov 2023 16:14:43 +0000
 
 Replaces three hidden calls to compound_head() with one visible one.
-Fix up a few comments while I'm modifying this function.
 
-Link: https://lkml.kernel.org/r/20231117161447.2461643-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20231117161447.2461643-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231117161447.2461643-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ mm/memory-failure.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/memory-failure.c~memory-failure-use-a-folio-in-me_pagecache_clean
+--- a/mm/memory-failure.c~memory-failure-use-a-folio-in-me_pagecache_dirty
 +++ a/mm/memory-failure.c
-@@ -1014,6 +1014,7 @@ static int me_unknown(struct page_state
+@@ -1138,15 +1138,16 @@ static int me_pagecache_dirty(struct pag
   */
- static int me_pagecache_clean(struct page_state *ps, struct page *p)
+ static int me_swapcache_dirty(struct page_state *ps, struct page *p)
  {
 +	struct folio *folio = page_folio(p);
  	int ret;
- 	struct address_space *mapping;
- 	bool extra_pins;
-@@ -1021,10 +1022,10 @@ static int me_pagecache_clean(struct pag
- 	delete_from_lru_cache(p);
+ 	bool extra_pins = false;
  
- 	/*
--	 * For anonymous pages we're done the only reference left
-+	 * For anonymous folios the only reference left
- 	 * should be the one m_f() holds.
- 	 */
--	if (PageAnon(p)) {
-+	if (folio_test_anon(folio)) {
- 		ret = MF_RECOVERED;
- 		goto out;
- 	}
-@@ -1036,11 +1037,9 @@ static int me_pagecache_clean(struct pag
- 	 * has a reference, because it could be file system metadata
- 	 * and that's not safe to truncate.
- 	 */
--	mapping = page_mapping(p);
-+	mapping = folio_mapping(folio);
- 	if (!mapping) {
--		/*
--		 * Page has been teared down in the meanwhile
--		 */
-+		/* Folio has been torn down in the meantime */
- 		ret = MF_FAILED;
- 		goto out;
- 	}
-@@ -1061,7 +1060,7 @@ static int me_pagecache_clean(struct pag
- 		ret = MF_FAILED;
+-	ClearPageDirty(p);
++	folio_clear_dirty(folio);
+ 	/* Trigger EIO in shmem: */
+-	ClearPageUptodate(p);
++	folio_clear_uptodate(folio);
  
- out:
+ 	ret = delete_from_lru_cache(p) ? MF_FAILED : MF_DELAYED;
 -	unlock_page(p);
 +	folio_unlock(folio);
  
- 	return ret;
- }
+ 	if (ret == MF_DELAYED)
+ 		extra_pins = true;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
