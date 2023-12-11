@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2A8C7493
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:23:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 964177493
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:23:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XDUU007Y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6ADB1C433C9;
-	Mon, 11 Dec 2023 01:23:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vE0cJTUe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 611CCC433C9;
+	Mon, 11 Dec 2023 01:23:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702257813;
-	bh=8cxTTdvQ7Y3Y2x5goVBy4N3eSI/0o+Fj317D04YhML4=;
+	s=korg; t=1702257814;
+	bh=MncEUAXNrOx+isBtUJVzTm66Y6HkmPr872nuQguAOsU=;
 	h=Date:To:From:Subject:From;
-	b=XDUU007YSnKdsSdSlLsWL/TYN3w4zm0DNZQQiFnl7llQfl20rb3pXZWEqMTrzJyox
-	 yeOD+qa3SFG3PSd+AwGYG0LzdJMMz7h4UTZAAxZGHVyVRwhj2ypvvyjyc/SfAxu9jf
-	 xCZU+XdjuR9i94ZwEh0OfpXoVVFXTTVwUCjX/zc8=
-Date: Sun, 10 Dec 2023 17:23:32 -0800
+	b=vE0cJTUeZ0jH46uOGY5vYHZqY96cgGYCF+FOVuROrOjZopQogE7OFuDTnJcVR3/n4
+	 E7akBL36YsK4Jx7Nu5B/EJJvENr1ekyXpE+IYv3xR5S/64ASe3eqvffoZOvVGnVpBt
+	 L3GlFyZznlkpe/Hb3Ey4/j977v5vzb/ZBCYmyLAI=
+Date: Sun, 10 Dec 2023 17:23:33 -0800
 To: mm-commits@vger.kernel.org,tsbogend@alpha.franken.de,sfr@rothwell.id.au,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] mips-add-asm-syscallsh-header.patch removed from -mm tree
-Message-Id: <20231211012333.6ADB1C433C9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] mips-add-missing-declarations-for-trap-handlers.patch removed from -mm tree
+Message-Id: <20231211012334.611CCC433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,152 +27,118 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mips: add asm/syscalls.h header
+     Subject: mips: add missing declarations for trap handlers
 has been removed from the -mm tree.  Its filename was
-     mips-add-asm-syscallsh-header.patch
+     mips-add-missing-declarations-for-trap-handlers.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: mips: add asm/syscalls.h header
-Date: Mon, 4 Dec 2023 12:56:52 +0100
+Subject: mips: add missing declarations for trap handlers
+Date: Mon, 4 Dec 2023 12:56:53 +0100
 
-System call prototypes are generally in linux/syscalls.h, but there are a
-couple of mips specific entry points that are missing there:
+These exception handlers are all called from assembly code, so they don't
+normally need a declaration, but without one we now get warnings:
 
-arch/mips/kernel/signal.c:636:17: error: no previous prototype for 'sys_sigreturn' [-Werror=missing-prototypes]
-arch/mips/kernel/signal.c:673:17: error: no previous prototype for 'sys_rt_sigreturn' [-Werror=missing-prototypes]
-arch/mips/kernel/syscall.c:51:16: error: no previous prototype for 'sysm_pipe' [-Werror=missing-prototypes]
-arch/mips/kernel/mips-mt-fpaff.c:65:17: error: no previous prototype for 'mipsmt_sys_sched_setaffinity' [-Werror=missing-prototypes]
-arch/mips/kernel/mips-mt-fpaff.c:157:17: error: no previous prototype for 'mipsmt_sys_sched_getaffinity' [-Werror=missing-prototypes]
+arch/mips/mm/fault.c:323:17: error: no previous prototype for 'do_page_fault' [-Werror=missing-prototypes]
+arch/mips/kernel/traps.c:447:17: error: no previous prototype for 'do_be' [-Werror=missing-prototypes]
+arch/mips/kernel/traps.c:752:17: error: no previous prototype for 'do_ov' [-Werror=missing-prototypes]
+arch/mips/kernel/traps.c:874:17: error: no previous prototype for 'do_fpe' [-Werror=missing-prototypes]
+arch/mips/kernel/traps.c:1027:17: error: no previous prototype for 'do_bp' [-Werror=missing-prototypes]
+arch/mips/kernel/traps.c:1114:17: error: no previous prototype for 'do_tr' [-Werror=missing-prototypes]
+arch/mips/kernel/traps.c:1151:17: error: no previous prototype for 'do_ri' [-Werror=missing-prototypes]
+arch/mips/kernel/traps.c:1402:17: error: no previous prototype for 'do_cpu' [-Werror=missing-prototypes]
+arch/mips/kernel/traps.c:1507:17: error: no previous prototype for 'do_msa_fpe' [-Werror=missing-prototypes]
+arch/mips/kernel/traps.c:1527:17: error: no previous prototype for 'do_msa' [-Werror=missing-prototypes]
+arch/mips/kernel/traps.c:1548:17: error: no previous prototype for 'do_mdmx' [-Werror=missing-prototypes]
+arch/mips/kernel/traps.c:1560:17: error: no previous prototype for 'do_watch' [-Werror=missing-prototypes]
+arch/mips/kernel/traps.c:1587:17: error: no previous prototype for 'do_mcheck' [-Werror=missing-prototypes]
+arch/mips/kernel/traps.c:1612:17: error: no previous prototype for 'do_mt' [-Werror=missing-prototypes]
+arch/mips/kernel/traps.c:1648:17: error: no previous prototype for 'do_dsp' [-Werror=missing-prototypes]
+arch/mips/kernel/traps.c:1656:17: error: no previous prototype for 'do_reserved' [-Werror=missing-prototypes]
+arch/mips/kernel/traps.c:1832:17: error: no previous prototype for 'cache_parity_error' [-Werror=missing-prototypes]
+arch/mips/kernel/traps.c:1880:17: error: no previous prototype for 'do_ftlb' [-Werror=missing-prototypes]
+arch/mips/kernel/traps.c:1909:17: error: no previous prototype for 'do_gsexc' [-Werror=missing-prototypes]
+arch/mips/kernel/traps.c:1944:6: error: no previous prototype for 'ejtag_exception_handler' [-Werror=missing-prototypes]
+arch/mips/kernel/traps.c:1989:17: error: no previous prototype for 'nmi_exception_handler' [-Werror=missing-prototypes]
+arch/mips/kernel/unaligned.c:1516:17: error: no previous prototype for 'do_ade' [-Werror=missing-prototypes]
 
-Add these to a new asm/syscalls.h as we have in other architectures.
-
-Link: https://lkml.kernel.org/r/20231204115710.2247097-3-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20231204115710.2247097-4-arnd@kernel.org
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Stephen Rothwell <sfr@rothwell.id.au>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/syscalls.h |   33 +++++++++++++++++++++++++++++
- arch/mips/kernel/linux32.c       |    1 
- arch/mips/kernel/mips-mt-fpaff.c |    1 
- arch/mips/kernel/signal.c        |    1 
- arch/mips/kernel/signal32.c      |    1 
- arch/mips/kernel/signal_n32.c    |    1 
- arch/mips/kernel/signal_o32.c    |    1 
- arch/mips/kernel/syscall.c       |    1 
- 8 files changed, 40 insertions(+)
+ arch/mips/include/asm/traps.h |   24 ++++++++++++++++++++++++
+ arch/mips/kernel/r4k-bugs64.c |    1 +
+ arch/mips/kernel/unaligned.c  |    1 +
+ arch/mips/mm/fault.c          |    1 +
+ 4 files changed, 27 insertions(+)
 
---- /dev/null
-+++ a/arch/mips/include/asm/syscalls.h
-@@ -0,0 +1,33 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+#ifndef _ASM_MIPS_SYSCALLS_H
-+#define _ASM_MIPS_SYSCALLS_H
+--- a/arch/mips/include/asm/traps.h~mips-add-missing-declarations-for-trap-handlers
++++ a/arch/mips/include/asm/traps.h
+@@ -39,4 +39,28 @@ extern char except_vec_nmi[];
+ 	register_nmi_notifier(&fn##_nb);				\
+ })
+ 
++asmlinkage void do_ade(struct pt_regs *regs);
++asmlinkage void do_be(struct pt_regs *regs);
++asmlinkage void do_ov(struct pt_regs *regs);
++asmlinkage void do_fpe(struct pt_regs *regs, unsigned long fcr31);
++asmlinkage void do_bp(struct pt_regs *regs);
++asmlinkage void do_tr(struct pt_regs *regs);
++asmlinkage void do_ri(struct pt_regs *regs);
++asmlinkage void do_cpu(struct pt_regs *regs);
++asmlinkage void do_msa_fpe(struct pt_regs *regs, unsigned int msacsr);
++asmlinkage void do_msa(struct pt_regs *regs);
++asmlinkage void do_mdmx(struct pt_regs *regs);
++asmlinkage void do_watch(struct pt_regs *regs);
++asmlinkage void do_mcheck(struct pt_regs *regs);
++asmlinkage void do_mt(struct pt_regs *regs);
++asmlinkage void do_dsp(struct pt_regs *regs);
++asmlinkage void do_reserved(struct pt_regs *regs);
++asmlinkage void do_ftlb(void);
++asmlinkage void do_gsexc(struct pt_regs *regs, u32 diag1);
++asmlinkage void do_daddi_ov(struct pt_regs *regs);
 +
-+#include <linux/linkage.h>
-+#include <linux/compat.h>
++asmlinkage void cache_parity_error(void);
++asmlinkage void ejtag_exception_handler(struct pt_regs *regs);
++asmlinkage void __noreturn nmi_exception_handler(struct pt_regs *regs);
 +
-+asmlinkage void sys_sigreturn(void);
-+asmlinkage void sys_rt_sigreturn(void);
-+asmlinkage int sysm_pipe(void);
-+asmlinkage long mipsmt_sys_sched_setaffinity(pid_t pid, unsigned int len,
-+                                     unsigned long __user *user_mask_ptr);
-+asmlinkage long mipsmt_sys_sched_getaffinity(pid_t pid, unsigned int len,
-+                                     unsigned long __user *user_mask_ptr);
-+asmlinkage long sys32_fallocate(int fd, int mode, unsigned offset_a2,
-+				unsigned offset_a3, unsigned len_a4,
-+				unsigned len_a5);
-+asmlinkage long sys32_fadvise64_64(int fd, int __pad,
-+				   unsigned long a2, unsigned long a3,
-+				   unsigned long a4, unsigned long a5,
-+				   int flags);
-+asmlinkage ssize_t sys32_readahead(int fd, u32 pad0, u64 a2, u64 a3,
-+				   size_t count);
-+asmlinkage long sys32_sync_file_range(int fd, int __pad,
-+				      unsigned long a2, unsigned long a3,
-+				      unsigned long a4, unsigned long a5,
-+				      int flags);
-+asmlinkage void sys32_rt_sigreturn(void);
-+asmlinkage void sys32_sigreturn(void);
-+asmlinkage int sys32_sigsuspend(compat_sigset_t __user *uset);
-+asmlinkage void sysn32_rt_sigreturn(void);
-+
-+#endif
---- a/arch/mips/kernel/linux32.c~mips-add-asm-syscallsh-header
-+++ a/arch/mips/kernel/linux32.c
-@@ -42,6 +42,7 @@
- #include <linux/uaccess.h>
- #include <asm/mmu_context.h>
- #include <asm/mman.h>
-+#include <asm/syscalls.h>
- 
- #ifdef __MIPSEB__
- #define merge_64(r1, r2) ((((r1) & 0xffffffffUL) << 32) + ((r2) & 0xffffffffUL))
---- a/arch/mips/kernel/mips-mt-fpaff.c~mips-add-asm-syscallsh-header
-+++ a/arch/mips/kernel/mips-mt-fpaff.c
-@@ -15,6 +15,7 @@
- #include <linux/security.h>
- #include <linux/types.h>
- #include <linux/uaccess.h>
-+#include <asm/syscalls.h>
- 
- /*
-  * CPU mask used to set process affinity for MT VPEs/TCs with FPUs
---- a/arch/mips/kernel/signal32.c~mips-add-asm-syscallsh-header
-+++ a/arch/mips/kernel/signal32.c
-@@ -18,6 +18,7 @@
- #include <asm/compat-signal.h>
- #include <linux/uaccess.h>
- #include <asm/unistd.h>
-+#include <asm/syscalls.h>
- 
- #include "signal-common.h"
- 
---- a/arch/mips/kernel/signal.c~mips-add-asm-syscallsh-header
-+++ a/arch/mips/kernel/signal.c
-@@ -38,6 +38,7 @@
- #include <asm/dsp.h>
- #include <asm/inst.h>
- #include <asm/msa.h>
-+#include <asm/syscalls.h>
- 
- #include "signal-common.h"
- 
---- a/arch/mips/kernel/signal_n32.c~mips-add-asm-syscallsh-header
-+++ a/arch/mips/kernel/signal_n32.c
-@@ -24,6 +24,7 @@
- #include <asm/ucontext.h>
+ #endif /* _ASM_TRAPS_H */
+--- a/arch/mips/kernel/r4k-bugs64.c~mips-add-missing-declarations-for-trap-handlers
++++ a/arch/mips/kernel/r4k-bugs64.c
+@@ -14,6 +14,7 @@
  #include <asm/fpu.h>
- #include <asm/cpu-features.h>
-+#include <asm/syscalls.h>
+ #include <asm/mipsregs.h>
+ #include <asm/setup.h>
++#include <asm/traps.h>
  
- #include "signal-common.h"
+ static char bug64hit[] __initdata =
+ 	"reliable operation impossible!\n%s";
+--- a/arch/mips/kernel/unaligned.c~mips-add-missing-declarations-for-trap-handlers
++++ a/arch/mips/kernel/unaligned.c
+@@ -91,6 +91,7 @@
+ #include <asm/inst.h>
+ #include <asm/unaligned-emul.h>
+ #include <asm/mmu_context.h>
++#include <asm/traps.h>
+ #include <linux/uaccess.h>
  
---- a/arch/mips/kernel/signal_o32.c~mips-add-asm-syscallsh-header
-+++ a/arch/mips/kernel/signal_o32.c
-@@ -19,6 +19,7 @@
- #include <asm/dsp.h>
- #include <asm/sim.h>
- #include <asm/unistd.h>
-+#include <asm/syscalls.h>
+ #include "access-helper.h"
+--- a/arch/mips/mm/fault.c~mips-add-missing-declarations-for-trap-handlers
++++ a/arch/mips/mm/fault.c
+@@ -26,6 +26,7 @@
+ #include <asm/mmu_context.h>
+ #include <asm/ptrace.h>
+ #include <asm/highmem.h>		/* For VMALLOC_END */
++#include <asm/traps.h>
+ #include <linux/kdebug.h>
  
- #include "signal-common.h"
- 
---- a/arch/mips/kernel/syscall.c~mips-add-asm-syscallsh-header
-+++ a/arch/mips/kernel/syscall.c
-@@ -39,6 +39,7 @@
- #include <asm/shmparam.h>
- #include <asm/sync.h>
- #include <asm/sysmips.h>
-+#include <asm/syscalls.h>
- #include <asm/switch_to.h>
- 
- /*
+ int show_unhandled_signals = 1;
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
