@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E02FD2569
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:54:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D04C02569
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:54:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="071RpWYE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A33FCC433C7;
-	Mon, 11 Dec 2023 00:54:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="myzPN7q7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CA07C433C9;
+	Mon, 11 Dec 2023 00:54:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702256060;
-	bh=iyj016/FeCHg7TCYrXq8EzHcBzmSA0h2nQOUSF2K6nc=;
+	s=korg; t=1702256061;
+	bh=Kmp0uPK5+ZA5XACYQxxmwj58oxOiKyyLvJaPbsjdX94=;
 	h=Date:To:From:Subject:From;
-	b=071RpWYEelPUElbV3QVgZPG2RcHZEGQr63WRxGcHEOGQeMHal+FoeQeJNSauF5q6L
-	 /E1/p6+31PfMkMH/PG62vYkK4EGtHzKnNjLYzFgNpPRjuT0p1xmLvrLqMPNQW4F+/j
-	 N++bOkgmR018gNTe9DFM9NbfGkohLpc+IJsTQH+c=
-Date: Sun, 10 Dec 2023 16:54:20 -0800
+	b=myzPN7q7B9KgHoW3z95N2iUIji0mbLoxxW+e4ILeGBpIwEmle2K7AMtQkKkw2TfNF
+	 hHjnD8fnbKKRwDDw68r/tn1AXJuGoiQr+Z0818vIX5sENPmxd+/3Pckd5K8sYWs75T
+	 21T8JddGAv8sE2xRhTIPH8+n89RaxQoazioxr+cc=
+Date: Sun, 10 Dec 2023 16:54:21 -0800
 To: mm-commits@vger.kernel.org,naoya.horiguchi@nec.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-use-mapping_evict_folio-in-truncate_error_page.patch removed from -mm tree
-Message-Id: <20231211005420.A33FCC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-convert-soft_offline_in_use_page-to-use-a-folio.patch removed from -mm tree
+Message-Id: <20231211005421.9CA07C433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,53 +27,92 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: use mapping_evict_folio() in truncate_error_page()
+     Subject: mm: convert soft_offline_in_use_page() to use a folio
 has been removed from the -mm tree.  Its filename was
-     mm-use-mapping_evict_folio-in-truncate_error_page.patch
+     mm-convert-soft_offline_in_use_page-to-use-a-folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: use mapping_evict_folio() in truncate_error_page()
-Date: Wed, 8 Nov 2023 18:28:06 +0000
+Subject: mm: convert soft_offline_in_use_page() to use a folio
+Date: Wed, 8 Nov 2023 18:28:07 +0000
 
-We already have the folio and the mapping, so replace the call to
-invalidate_inode_page() with mapping_evict_folio().
+Replace the existing head-page logic with folio logic.
 
-Link: https://lkml.kernel.org/r/20231108182809.602073-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231108182809.602073-5-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory-failure.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
---- a/mm/memory-failure.c~mm-use-mapping_evict_folio-in-truncate_error_page
+--- a/mm/memory-failure.c~mm-convert-soft_offline_in_use_page-to-use-a-folio
 +++ a/mm/memory-failure.c
-@@ -930,10 +930,10 @@ static int delete_from_lru_cache(struct
- static int truncate_error_page(struct page *p, unsigned long pfn,
- 				struct address_space *mapping)
+@@ -2645,40 +2645,40 @@ static int soft_offline_in_use_page(stru
  {
-+	struct folio *folio = page_folio(p);
- 	int ret = MF_FAILED;
+ 	long ret = 0;
+ 	unsigned long pfn = page_to_pfn(page);
+-	struct page *hpage = compound_head(page);
++	struct folio *folio = page_folio(page);
+ 	char const *msg_page[] = {"page", "hugepage"};
+-	bool huge = PageHuge(page);
++	bool huge = folio_test_hugetlb(folio);
+ 	LIST_HEAD(pagelist);
+ 	struct migration_target_control mtc = {
+ 		.nid = NUMA_NO_NODE,
+ 		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
+ 	};
  
- 	if (mapping->a_ops->error_remove_page) {
--		struct folio *folio = page_folio(p);
- 		int err = mapping->a_ops->error_remove_page(mapping, p);
+-	if (!huge && PageTransHuge(hpage)) {
++	if (!huge && folio_test_large(folio)) {
+ 		if (try_to_split_thp_page(page)) {
+ 			pr_info("soft offline: %#lx: thp split failed\n", pfn);
+ 			return -EBUSY;
+ 		}
+-		hpage = page;
++		folio = page_folio(page);
+ 	}
  
- 		if (err != 0)
-@@ -947,7 +947,7 @@ static int truncate_error_page(struct pa
- 		 * If the file system doesn't support it just invalidate
- 		 * This fails on dirty or anything with private pages
+-	lock_page(page);
++	folio_lock(folio);
+ 	if (!huge)
+-		wait_on_page_writeback(page);
++		folio_wait_writeback(folio);
+ 	if (PageHWPoison(page)) {
+-		unlock_page(page);
+-		put_page(page);
++		folio_unlock(folio);
++		folio_put(folio);
+ 		pr_info("soft offline: %#lx page already poisoned\n", pfn);
+ 		return 0;
+ 	}
+ 
+-	if (!huge && PageLRU(page) && !PageSwapCache(page))
++	if (!huge && folio_test_lru(folio) && !folio_test_swapcache(folio))
+ 		/*
+ 		 * Try to invalidate first. This should work for
+ 		 * non dirty unmapped page cache pages.
  		 */
--		if (invalidate_inode_page(p))
-+		if (mapping_evict_folio(mapping, folio))
- 			ret = MF_RECOVERED;
- 		else
- 			pr_info("%#lx: Failed to invalidate\n",	pfn);
+-		ret = invalidate_inode_page(page);
+-	unlock_page(page);
++		ret = mapping_evict_folio(folio_mapping(folio), folio);
++	folio_unlock(folio);
+ 
+ 	if (ret) {
+ 		pr_info("soft_offline: %#lx: invalidated\n", pfn);
+@@ -2686,7 +2686,7 @@ static int soft_offline_in_use_page(stru
+ 		return 0;
+ 	}
+ 
+-	if (isolate_page(hpage, &pagelist)) {
++	if (isolate_page(&folio->page, &pagelist)) {
+ 		ret = migrate_pages(&pagelist, alloc_migration_target, NULL,
+ 			(unsigned long)&mtc, MIGRATE_SYNC, MR_MEMORY_FAILURE, NULL);
+ 		if (!ret) {
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
