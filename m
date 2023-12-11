@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C62D47493
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:22:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE0D97493
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:22:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ECwVbmtC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 908AEC433C8;
-	Mon, 11 Dec 2023 01:22:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YRrSFAJZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A85CC433C7;
+	Mon, 11 Dec 2023 01:22:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702257769;
-	bh=adH8+nEgo/BFM7hQL5FIk2OC+g1ZB++uURpfvvGJWUQ=;
+	s=korg; t=1702257770;
+	bh=sLpoUQBPqMTAugE5eRZt8p8mDsk+fibV7BrDB65kz9E=;
 	h=Date:To:From:Subject:From;
-	b=ECwVbmtCzhdjdCN1fCb6AazR/4fpA5DJbQpJlEhDu2gwcjwVhladQrqwIQKw7rJ9N
-	 T8X1FQmGFAbtHXD1KiovcIMqXzIceCfJH7FXQHMPzKyhaiFRwCXlIBY/amfekMOods
-	 4rCNDdhor+ZQQZdS6CC2hXz1zViNaM7rzdZPvOFQ=
-Date: Sun, 10 Dec 2023 17:22:49 -0800
+	b=YRrSFAJZW5Ci7RTKYkItOMYvLtYR96cj6Wwgtt9ijNNKyrpiD0dkSUgknax6F0HJb
+	 fIEECXJXPU+ygkW3Av6ysKKEA0eFUbhYZHoRH2dMQaz1DBuyUH9iXeEhT8C7/h4cVw
+	 P9JwELN4DBS6s3zM389OIqMAgaUtTHj04I9NH+20=
+Date: Sun, 10 Dec 2023 17:22:50 -0800
 To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] nilfs2-convert-nilfs_page_mkwrite-to-use-a-folio.patch removed from -mm tree
-Message-Id: <20231211012249.908AEC433C8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] nilfs2-convert-nilfs_mdt_create_block-to-use-a-folio.patch removed from -mm tree
+Message-Id: <20231211012250.8A85CC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,101 +27,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nilfs2: convert nilfs_page_mkwrite() to use a folio
+     Subject: nilfs2: convert nilfs_mdt_create_block to use a folio
 has been removed from the -mm tree.  Its filename was
-     nilfs2-convert-nilfs_page_mkwrite-to-use-a-folio.patch
+     nilfs2-convert-nilfs_mdt_create_block-to-use-a-folio.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: nilfs2: convert nilfs_page_mkwrite() to use a folio
-Date: Tue, 14 Nov 2023 17:44:27 +0900
+Subject: nilfs2: convert nilfs_mdt_create_block to use a folio
+Date: Tue, 14 Nov 2023 17:44:28 +0900
 
-Using the new folio APIs saves seven hidden calls to compound_head().
+Saves two calls to compound_head().
 
-Link: https://lkml.kernel.org/r/20231114084436.2755-12-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20231114084436.2755-13-konishi.ryusuke@gmail.com
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/file.c |   28 +++++++++++++++-------------
- 1 file changed, 15 insertions(+), 13 deletions(-)
+ fs/nilfs2/mdt.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/nilfs2/file.c~nilfs2-convert-nilfs_page_mkwrite-to-use-a-folio
-+++ a/fs/nilfs2/file.c
-@@ -45,34 +45,36 @@ int nilfs_sync_file(struct file *file, l
- static vm_fault_t nilfs_page_mkwrite(struct vm_fault *vmf)
- {
- 	struct vm_area_struct *vma = vmf->vma;
--	struct page *page = vmf->page;
-+	struct folio *folio = page_folio(vmf->page);
- 	struct inode *inode = file_inode(vma->vm_file);
- 	struct nilfs_transaction_info ti;
-+	struct buffer_head *bh, *head;
- 	int ret = 0;
- 
- 	if (unlikely(nilfs_near_disk_full(inode->i_sb->s_fs_info)))
- 		return VM_FAULT_SIGBUS; /* -ENOSPC */
- 
- 	sb_start_pagefault(inode->i_sb);
--	lock_page(page);
--	if (page->mapping != inode->i_mapping ||
--	    page_offset(page) >= i_size_read(inode) || !PageUptodate(page)) {
--		unlock_page(page);
-+	folio_lock(folio);
-+	if (folio->mapping != inode->i_mapping ||
-+	    folio_pos(folio) >= i_size_read(inode) ||
-+	    !folio_test_uptodate(folio)) {
-+		folio_unlock(folio);
- 		ret = -EFAULT;	/* make the VM retry the fault */
- 		goto out;
+--- a/fs/nilfs2/mdt.c~nilfs2-convert-nilfs_mdt_create_block-to-use-a-folio
++++ a/fs/nilfs2/mdt.c
+@@ -97,8 +97,8 @@ static int nilfs_mdt_create_block(struct
  	}
  
- 	/*
--	 * check to see if the page is mapped already (no holes)
-+	 * check to see if the folio is mapped already (no holes)
- 	 */
--	if (PageMappedToDisk(page))
-+	if (folio_test_mappedtodisk(folio))
- 		goto mapped;
+  failed_bh:
+-	unlock_page(bh->b_page);
+-	put_page(bh->b_page);
++	folio_unlock(bh->b_folio);
++	folio_put(bh->b_folio);
+ 	brelse(bh);
  
--	if (page_has_buffers(page)) {
--		struct buffer_head *bh, *head;
-+	head = folio_buffers(folio);
-+	if (head) {
- 		int fully_mapped = 1;
- 
--		bh = head = page_buffers(page);
-+		bh = head;
- 		do {
- 			if (!buffer_mapped(bh)) {
- 				fully_mapped = 0;
-@@ -81,11 +83,11 @@ static vm_fault_t nilfs_page_mkwrite(str
- 		} while (bh = bh->b_this_page, bh != head);
- 
- 		if (fully_mapped) {
--			SetPageMappedToDisk(page);
-+			folio_set_mappedtodisk(folio);
- 			goto mapped;
- 		}
- 	}
--	unlock_page(page);
-+	folio_unlock(folio);
- 
- 	/*
- 	 * fill hole blocks
-@@ -105,7 +107,7 @@ static vm_fault_t nilfs_page_mkwrite(str
- 	nilfs_transaction_commit(inode->i_sb);
- 
-  mapped:
--	wait_for_stable_page(page);
-+	folio_wait_stable(folio);
-  out:
- 	sb_end_pagefault(inode->i_sb);
- 	return vmf_fs_error(ret);
+  failed_unlock:
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
