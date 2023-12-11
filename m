@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6721323A1
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:54:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D3CC23A1
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:54:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H4zjWgJW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F126C433CA;
-	Mon, 11 Dec 2023 00:54:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IO+qzPnT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59565C433C8;
+	Mon, 11 Dec 2023 00:54:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702256040;
-	bh=nXwbJJAwvrvMxEsSVv5l+ud7oWL/FG6c/fLFhP98iFo=;
+	s=korg; t=1702256041;
+	bh=pR+Kj7Mt7/g9donTY2Mb7iOnH2gT5QHzL7DnIYNa0cE=;
 	h=Date:To:From:Subject:From;
-	b=H4zjWgJWZJjqKxS8lS3FuX16NWPQcNo4tmYAxqOUn+r34zba4v+d477t6NbxESXoG
-	 55LLjGPUiM30r/j5fHQ2AFDCStafbch1AozPMSv7S2n/svA6xGwj277gIXTFFTuiuo
-	 X/5EO1dB9OWBYquQlKwq7LYzgOXvGSF96My7iTgo=
-Date: Sun, 10 Dec 2023 16:53:59 -0800
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,shy828301@gmail.com,apopple@nvidia.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=IO+qzPnTT28w89T9KBaOzoalOgx+6NT6y5cRqWTvp5ZLiVepJgw+3klbzBY5N9fiF
+	 TwsoP+5lBLQ2drSh2H5/t9KsQzQWlBWHu0yi9ID0VXhMhs1x30HuPCKsUrafC+j/7h
+	 uSlZy/ZoW9FU0zcnZ2aRBqYo/bF/E+jYpEh7b7Tc=
+Date: Sun, 10 Dec 2023 16:54:00 -0800
+To: mm-commits@vger.kernel.org,zhoubinbin@loongson.cn,tglx@linutronix.de,rppt@kernel.org,peterz@infradead.org,mingo@redhat.com,maobibo@loongson.cn,luto@kernel.org,kernel@xen0n.name,hpa@zytor.com,dave.hansen@linux.intel.com,chenhuacai@kernel.org,chenfeiyang@loongson.cn,bp@alien8.de,zhiguangni01@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-batch-tlb-flush-when-splitting-a-pte-mapped-thp.patch removed from -mm tree
-Message-Id: <20231211005400.2F126C433CA@smtp.kernel.org>
+Subject: [merged mm-stable] numa-optimize-detection-of-memory-with-no-node-id-assigned-by-firmware.patch removed from -mm tree
+Message-Id: <20231211005401.59565C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,86 +27,206 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: huge_memory: batch tlb flush when splitting a pte-mapped THP
+     Subject: NUMA: optimize detection of memory with no node id assigned by firmware
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-batch-tlb-flush-when-splitting-a-pte-mapped-thp.patch
+     numa-optimize-detection-of-memory-with-no-node-id-assigned-by-firmware.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: huge_memory: batch tlb flush when splitting a pte-mapped THP
-Date: Mon, 30 Oct 2023 09:11:47 +0800
+From: Liam Ni <zhiguangni01@gmail.com>
+Subject: NUMA: optimize detection of memory with no node id assigned by firmware
+Date: Thu, 26 Oct 2023 10:03:29 +0800
 
-I can observe an obvious tlb flush hotspot when splitting a pte-mapped THP
-on my ARM64 server, and the distribution of this hotspot is as follows:
+Sanity check that makes sure the nodes cover all memory loops over
+numa_meminfo to count the pages that have node id assigned by the
+firmware, then loops again over memblock.memory to find the total amount
+of memory and in the end checks that the difference between the total
+memory and memory that covered by nodes is less than some threshold. 
+Worse, the loop over numa_meminfo calls __absent_pages_in_range() that
+also partially traverses memblock.memory.
 
-   - 16.85% split_huge_page_to_list
-      + 7.80% down_write
-      - 7.49% try_to_migrate
-         - 7.48% rmap_walk_anon
-              7.23% ptep_clear_flush
-      + 1.52% __split_huge_page
+It's much simpler and more efficient to have a single traversal of
+memblock.memory that verifies that amount of memory not covered by nodes
+is less than a threshold.
 
-The reason is that the split_huge_page_to_list() will build migration
-entries for each subpage of a pte-mapped Anon THP by try_to_migrate(), or
-unmap for file THP, and it will clear and tlb flush for each subpage's
-pte.  Moreover, the split_huge_page_to_list() will set TTU_SPLIT_HUGE_PMD
-flag to ensure the THP is already a pte-mapped THP before splitting it to
-some normal pages.
+Introduce memblock_validate_numa_coverage() that does exactly that and use
+it instead of numa_meminfo_cover_memory().
 
-Actually, there is no need to flush tlb for each subpage immediately,
-instead we can batch tlb flush for the pte-mapped THP to improve the
-performance.
-
-After this patch, we can see the batch tlb flush can improve the latency
-obviously when running thpscale.
-
-                             k6.5-base                   patched
-Amean     fault-both-1      1071.17 (   0.00%)      901.83 *  15.81%*
-Amean     fault-both-3      2386.08 (   0.00%)     1865.32 *  21.82%*
-Amean     fault-both-5      2851.10 (   0.00%)     2273.84 *  20.25%*
-Amean     fault-both-7      3679.91 (   0.00%)     2881.66 *  21.69%*
-Amean     fault-both-12     5916.66 (   0.00%)     4369.55 *  26.15%*
-Amean     fault-both-18     7981.36 (   0.00%)     6303.57 *  21.02%*
-Amean     fault-both-24    10950.79 (   0.00%)     8752.56 *  20.07%*
-Amean     fault-both-30    14077.35 (   0.00%)    10170.01 *  27.76%*
-Amean     fault-both-32    13061.57 (   0.00%)    11630.08 *  10.96%*
-
-Link: https://lkml.kernel.org/r/431d9fb6823036369dcb1d3b2f63732f01df21a7.1698488264.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Link: https://lkml.kernel.org/r/20231026020329.327329-1-zhiguangni01@gmail.com
+Signed-off-by: Liam Ni <zhiguangni01@gmail.com>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Bibo Mao <maobibo@loongson.cn>
+Cc: Binbin Zhou <zhoubinbin@loongson.cn>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Feiyang Chen <chenfeiyang@loongson.cn>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: WANG Xuerui <kernel@xen0n.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/loongarch/kernel/numa.c |   28 ---------------------------
+ arch/x86/mm/numa.c           |   34 +--------------------------------
+ include/linux/memblock.h     |    1 
+ mm/memblock.c                |   34 +++++++++++++++++++++++++++++++++
+ 4 files changed, 38 insertions(+), 59 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-batch-tlb-flush-when-splitting-a-pte-mapped-thp
-+++ a/mm/huge_memory.c
-@@ -2379,7 +2379,7 @@ void vma_adjust_trans_huge(struct vm_are
- static void unmap_folio(struct folio *folio)
+--- a/arch/loongarch/kernel/numa.c~numa-optimize-detection-of-memory-with-no-node-id-assigned-by-firmware
++++ a/arch/loongarch/kernel/numa.c
+@@ -226,32 +226,6 @@ static void __init node_mem_init(unsigne
+ 
+ #ifdef CONFIG_ACPI_NUMA
+ 
+-/*
+- * Sanity check to catch more bad NUMA configurations (they are amazingly
+- * common).  Make sure the nodes cover all memory.
+- */
+-static bool __init numa_meminfo_cover_memory(const struct numa_meminfo *mi)
+-{
+-	int i;
+-	u64 numaram, biosram;
+-
+-	numaram = 0;
+-	for (i = 0; i < mi->nr_blks; i++) {
+-		u64 s = mi->blk[i].start >> PAGE_SHIFT;
+-		u64 e = mi->blk[i].end >> PAGE_SHIFT;
+-
+-		numaram += e - s;
+-		numaram -= __absent_pages_in_range(mi->blk[i].nid, s, e);
+-		if ((s64)numaram < 0)
+-			numaram = 0;
+-	}
+-	max_pfn = max_low_pfn;
+-	biosram = max_pfn - absent_pages_in_range(0, max_pfn);
+-
+-	BUG_ON((s64)(biosram - numaram) >= (1 << (20 - PAGE_SHIFT)));
+-	return true;
+-}
+-
+ static void __init add_node_intersection(u32 node, u64 start, u64 size, u32 type)
  {
- 	enum ttu_flags ttu_flags = TTU_RMAP_LOCKED | TTU_SPLIT_HUGE_PMD |
--		TTU_SYNC;
-+		TTU_SYNC | TTU_BATCH_FLUSH;
+ 	static unsigned long num_physpages;
+@@ -396,7 +370,7 @@ int __init init_numa_memory(void)
+ 		return -EINVAL;
  
- 	VM_BUG_ON_FOLIO(!folio_test_large(folio), folio);
+ 	init_node_memblock();
+-	if (numa_meminfo_cover_memory(&numa_meminfo) == false)
++	if (!memblock_validate_numa_coverage(SZ_1M))
+ 		return -EINVAL;
  
-@@ -2392,6 +2392,8 @@ static void unmap_folio(struct folio *fo
- 		try_to_migrate(folio, ttu_flags);
- 	else
- 		try_to_unmap(folio, ttu_flags | TTU_IGNORE_MLOCK);
+ 	for_each_node_mask(node, node_possible_map) {
+--- a/arch/x86/mm/numa.c~numa-optimize-detection-of-memory-with-no-node-id-assigned-by-firmware
++++ a/arch/x86/mm/numa.c
+@@ -450,37 +450,6 @@ int __node_distance(int from, int to)
+ EXPORT_SYMBOL(__node_distance);
+ 
+ /*
+- * Sanity check to catch more bad NUMA configurations (they are amazingly
+- * common).  Make sure the nodes cover all memory.
+- */
+-static bool __init numa_meminfo_cover_memory(const struct numa_meminfo *mi)
+-{
+-	u64 numaram, e820ram;
+-	int i;
+-
+-	numaram = 0;
+-	for (i = 0; i < mi->nr_blks; i++) {
+-		u64 s = mi->blk[i].start >> PAGE_SHIFT;
+-		u64 e = mi->blk[i].end >> PAGE_SHIFT;
+-		numaram += e - s;
+-		numaram -= __absent_pages_in_range(mi->blk[i].nid, s, e);
+-		if ((s64)numaram < 0)
+-			numaram = 0;
+-	}
+-
+-	e820ram = max_pfn - absent_pages_in_range(0, max_pfn);
+-
+-	/* We seem to lose 3 pages somewhere. Allow 1M of slack. */
+-	if ((s64)(e820ram - numaram) >= (1 << (20 - PAGE_SHIFT))) {
+-		printk(KERN_ERR "NUMA: nodes only cover %LuMB of your %LuMB e820 RAM. Not used.\n",
+-		       (numaram << PAGE_SHIFT) >> 20,
+-		       (e820ram << PAGE_SHIFT) >> 20);
+-		return false;
+-	}
+-	return true;
+-}
+-
+-/*
+  * Mark all currently memblock-reserved physical memory (which covers the
+  * kernel's own memory ranges) as hot-unswappable.
+  */
+@@ -585,7 +554,8 @@ static int __init numa_register_memblks(
+ 			return -EINVAL;
+ 		}
+ 	}
+-	if (!numa_meminfo_cover_memory(mi))
 +
-+	try_to_unmap_flush();
++	if (!memblock_validate_numa_coverage(SZ_1M))
+ 		return -EINVAL;
+ 
+ 	/* Finally register nodes. */
+--- a/include/linux/memblock.h~numa-optimize-detection-of-memory-with-no-node-id-assigned-by-firmware
++++ a/include/linux/memblock.h
+@@ -123,6 +123,7 @@ int memblock_physmem_add(phys_addr_t bas
+ void memblock_trim_memory(phys_addr_t align);
+ bool memblock_overlaps_region(struct memblock_type *type,
+ 			      phys_addr_t base, phys_addr_t size);
++bool memblock_validate_numa_coverage(unsigned long threshold_bytes);
+ int memblock_mark_hotplug(phys_addr_t base, phys_addr_t size);
+ int memblock_clear_hotplug(phys_addr_t base, phys_addr_t size);
+ int memblock_mark_mirror(phys_addr_t base, phys_addr_t size);
+--- a/mm/memblock.c~numa-optimize-detection-of-memory-with-no-node-id-assigned-by-firmware
++++ a/mm/memblock.c
+@@ -735,6 +735,40 @@ int __init_memblock memblock_add(phys_ad
  }
  
- static void remap_page(struct folio *folio, unsigned long nr)
+ /**
++ * memblock_validate_numa_coverage - check if amount of memory with
++ * no node ID assigned is less than a threshold
++ * @threshold_bytes: maximal number of pages that can have unassigned node
++ * ID (in bytes).
++ *
++ * A buggy firmware may report memory that does not belong to any node.
++ * Check if amount of such memory is below @threshold_bytes.
++ *
++ * Return: true on success, false on failure.
++ */
++bool __init_memblock memblock_validate_numa_coverage(unsigned long threshold_bytes)
++{
++	unsigned long nr_pages = 0;
++	unsigned long start_pfn, end_pfn, mem_size_mb;
++	int nid, i;
++
++	/* calculate lose page */
++	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid) {
++		if (nid == NUMA_NO_NODE)
++			nr_pages += end_pfn - start_pfn;
++	}
++
++	if ((nr_pages << PAGE_SHIFT) >= threshold_bytes) {
++		mem_size_mb = memblock_phys_mem_size() >> 20;
++		pr_err("NUMA: no nodes coverage for %luMB of %luMB RAM\n",
++		       (nr_pages << PAGE_SHIFT) >> 20, mem_size_mb);
++		return false;
++	}
++
++	return true;
++}
++
++
++/**
+  * memblock_isolate_range - isolate given range into disjoint memblocks
+  * @type: memblock type to isolate range for
+  * @base: base of range to isolate
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from zhiguangni01@gmail.com are
 
 
