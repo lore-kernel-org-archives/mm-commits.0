@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8063679D8
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:22:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48C0579D8
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:22:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qDecIYdQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E966BC433C9;
-	Mon, 11 Dec 2023 01:22:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1AFjLJX3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F567C433C7;
+	Mon, 11 Dec 2023 01:22:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702257757;
-	bh=UzPbRlUIdBYTuL2GrDhXeP3oK5gYYOvDX9bLkFFAvH0=;
+	s=korg; t=1702257758;
+	bh=0IxeXOSto+FGxCS+J3M9CfHH7SbOtqzjM50kJBGYwAM=;
 	h=Date:To:From:Subject:From;
-	b=qDecIYdQ9sfgLPVpExShDwSCv18M2fH12gt5K0TcLx740OOcPd9BOt/0vbDPRll0x
-	 1kDGswMhdWh297i2VU9n1FC7jRymzVeosbQ4HEpl3+rP0a5V1aGScoWPOVO1sfdWkG
-	 kvkp8edRG7Hva1FJhMzSUoOycWLiJRJJHCVOP2/g=
-Date: Sun, 10 Dec 2023 17:22:36 -0800
-To: mm-commits@vger.kernel.org,ebiederm@xmission.com,brauner@kernel.org,oleg@redhat.com,akpm@linux-foundation.org
+	b=1AFjLJX32BIe+c7YT2Thoalli9zGmSIe5S/VEeQVpdYe349v0xBjPzYRAzml1QwRT
+	 FBYd/cNyu6m26O+p1Y7PTy/ZQoWZZLmhZ8VUTjT85RYyf7+nJ11lkAkpNh7QY+qgua
+	 U0nT4iaUi3r4noIQ2hYXJBzkqz++1sxmAN98s9Vk=
+Date: Sun, 10 Dec 2023 17:22:37 -0800
+To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,airlied@redhat.com,pstanner@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] introduce-for_other_threadsp-t.patch removed from -mm tree
-Message-Id: <20231211012236.E966BC433C9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] fs-nilfs2-use-standard-array-copy-function.patch removed from -mm tree
+Message-Id: <20231211012238.0F567C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,106 +27,67 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: introduce for_other_threads(p, t)
+     Subject: fs/nilfs2: use standard array-copy-function
 has been removed from the -mm tree.  Its filename was
-     introduce-for_other_threadsp-t.patch
+     fs-nilfs2-use-standard-array-copy-function.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: introduce for_other_threads(p, t)
-Date: Mon, 30 Oct 2023 16:57:10 +0100
+From: Philipp Stanner <pstanner@redhat.com>
+Subject: fs/nilfs2: use standard array-copy-function
+Date: Tue, 7 Nov 2023 07:44:16 +0900
 
-Cosmetic, but imho it makes the usage look more clear and simple, the new
-helper doesn't require to initialize "t".
+ioctl.c utilizes memdup_user() to copy a userspace array.  An overflow
+check is performed manually before the function's invocation.
 
-After this change while_each_thread() has only 3 users, and it is only
-used in the do/while loops.
+The new function memdup_array_user() standardizes copying userspace
+arrays, thus, improving readability by making it more clear that an array
+is being copied.  Additionally, it also performs an overflow check.
 
-Link: https://lkml.kernel.org/r/20231030155710.GA9095@redhat.com
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Reviewed-by: Christian Brauner <brauner@kernel.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Remove the (now redundant) manual overflow-check and replace memdup_user()
+with memdup_array_user().
+
+In addition, improve the grammar of the comment above
+memdup_array_user().
+
+Link: https://lkml.kernel.org/r/20231106224416.3055-1-konishi.ryusuke@gmail.com
+Signed-off-by: Philipp Stanner <pstanner@redhat.com>
+Link: https://lkml.kernel.org/r/20231103184831.99406-2-pstanner@redhat.com
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Suggested-by: Dave Airlie <airlied@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c                    |    3 +--
- include/linux/sched/signal.h |    3 +++
- kernel/signal.c              |   11 ++++-------
- 3 files changed, 8 insertions(+), 9 deletions(-)
+ fs/nilfs2/ioctl.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
---- a/fs/exec.c~introduce-for_other_threadsp-t
-+++ a/fs/exec.c
-@@ -1578,11 +1578,10 @@ static void check_unsafe_exec(struct lin
- 	 * will be able to manipulate the current directory, etc.
- 	 * It would be nice to force an unshare instead...
+--- a/fs/nilfs2/ioctl.c~fs-nilfs2-use-standard-array-copy-function
++++ a/fs/nilfs2/ioctl.c
+@@ -872,16 +872,14 @@ static int nilfs_ioctl_clean_segments(st
+ 	nsegs = argv[4].v_nmembs;
+ 	if (argv[4].v_size != argsz[4])
+ 		goto out;
+-	if (nsegs > UINT_MAX / sizeof(__u64))
+-		goto out;
+ 
+ 	/*
+ 	 * argv[4] points to segment numbers this ioctl cleans.  We
+-	 * use kmalloc() for its buffer because memory used for the
+-	 * segment numbers is enough small.
++	 * use kmalloc() for its buffer because the memory used for the
++	 * segment numbers is small enough.
  	 */
--	t = p;
- 	n_fs = 1;
- 	spin_lock(&p->fs->lock);
- 	rcu_read_lock();
--	while_each_thread(p, t) {
-+	for_other_threads(p, t) {
- 		if (t->fs == p->fs)
- 			n_fs++;
- 	}
---- a/include/linux/sched/signal.h~introduce-for_other_threadsp-t
-+++ a/include/linux/sched/signal.h
-@@ -646,6 +646,9 @@ extern bool current_is_single_threaded(v
- #define while_each_thread(g, t) \
- 	while ((t = next_thread(t)) != g)
- 
-+#define for_other_threads(p, t)	\
-+	for (t = p; (t = next_thread(t)) != p; )
-+
- #define __for_each_thread(signal, t)	\
- 	list_for_each_entry_rcu(t, &(signal)->thread_head, thread_node, \
- 		lockdep_is_held(&tasklist_lock))
---- a/kernel/signal.c~introduce-for_other_threadsp-t
-+++ a/kernel/signal.c
-@@ -1376,12 +1376,12 @@ int force_sig_info(struct kernel_siginfo
-  */
- int zap_other_threads(struct task_struct *p)
- {
--	struct task_struct *t = p;
-+	struct task_struct *t;
- 	int count = 0;
- 
- 	p->signal->group_stop_count = 0;
- 
--	while_each_thread(p, t) {
-+	for_other_threads(p, t) {
- 		task_clear_jobctl_pending(t, JOBCTL_PENDING_MASK);
- 		/* Don't require de_thread to wait for the vhost_worker */
- 		if ((t->flags & (PF_IO_WORKER | PF_USER_WORKER)) != PF_USER_WORKER)
-@@ -2465,12 +2465,10 @@ static bool do_signal_stop(int signr)
- 			sig->group_exit_code = signr;
- 
- 		sig->group_stop_count = 0;
--
- 		if (task_set_jobctl_pending(current, signr | gstop))
- 			sig->group_stop_count++;
- 
--		t = current;
--		while_each_thread(current, t) {
-+		for_other_threads(current, t) {
- 			/*
- 			 * Setting state to TASK_STOPPED for a group
- 			 * stop is always done with the siglock held,
-@@ -2966,8 +2964,7 @@ static void retarget_shared_pending(stru
- 	if (sigisemptyset(&retarget))
- 		return;
- 
--	t = tsk;
--	while_each_thread(tsk, t) {
-+	for_other_threads(tsk, t) {
- 		if (t->flags & PF_EXITING)
- 			continue;
- 
+-	kbufs[4] = memdup_user((void __user *)(unsigned long)argv[4].v_base,
+-			       nsegs * sizeof(__u64));
++	kbufs[4] = memdup_array_user((void __user *)(unsigned long)argv[4].v_base,
++				     nsegs, sizeof(__u64));
+ 	if (IS_ERR(kbufs[4])) {
+ 		ret = PTR_ERR(kbufs[4]);
+ 		goto out;
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from pstanner@redhat.com are
 
 
