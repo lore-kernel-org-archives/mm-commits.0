@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB188257F
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:54:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D982B23C4
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:54:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oHEDmZIP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A49EAC433C8;
-	Mon, 11 Dec 2023 00:54:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mCvsZmVU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4F69C433C8;
+	Mon, 11 Dec 2023 00:54:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702256058;
-	bh=b2f7zAhvwJj0mo04LGmzqTFZTJgPeElLZngXYawGW9k=;
+	s=korg; t=1702256059;
+	bh=Xf6nDUm7daw4YOK7gdwLyqjz4ZNoDFboORR3Ae8PcYs=;
 	h=Date:To:From:Subject:From;
-	b=oHEDmZIPsCBNHblH8oV3EAiH+/eJeOPtobWoYGR5ipoyec75yR/zxI33uWhr21ZUJ
-	 DWmJnl1CnWpq94N/78f48lIc2bmiGY6yd7GVx0EGXfdc2N5JY0TCmuL+01CDYYjwLd
-	 PLSX6SMGPZyz9e0KK6q6i1OUijF+GZM6bCmn/MMQ=
-Date: Sun, 10 Dec 2023 16:54:18 -0800
+	b=mCvsZmVUiVazWs9gaeQBoSli4eGZ697XrHM2uquF8mCSdQnHdzAsVh4enPrB5iBvj
+	 15+ak/SjuNqonOQggdwznU+vBq9sU3SuBCy4RRzmB1VZ2O8z47mVwbodPB8vr1TJg9
+	 mc6t1UXoWcDxV5Ls/zdRxW+Iym6ASkE2ZqXYsY7k=
+Date: Sun, 10 Dec 2023 16:54:19 -0800
 To: mm-commits@vger.kernel.org,naoya.horiguchi@nec.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-make-mapping_evict_folio-the-preferred-way-to-evict-clean-folios.patch removed from -mm tree
-Message-Id: <20231211005418.A49EAC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-convert-__do_fault-to-use-a-folio.patch removed from -mm tree
+Message-Id: <20231211005419.A4F69C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,111 +27,84 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: make mapping_evict_folio() the preferred way to evict clean folios
+     Subject: mm: convert __do_fault() to use a folio
 has been removed from the -mm tree.  Its filename was
-     mm-make-mapping_evict_folio-the-preferred-way-to-evict-clean-folios.patch
+     mm-convert-__do_fault-to-use-a-folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: make mapping_evict_folio() the preferred way to evict clean folios
-Date: Wed, 8 Nov 2023 18:28:04 +0000
+Subject: mm: convert __do_fault() to use a folio
+Date: Wed, 8 Nov 2023 18:28:05 +0000
 
-Patch series "Fix fault handler's handling of poisoned tail pages".
+Convert vmf->page to a folio as soon as we're going to use it.  This fixes
+a bug if the fault handler returns a tail page with hardware poison; tail
+pages have an invalid page->index, so we would fail to unmap the page from
+the page tables.  We actually have to unmap the entire folio (or
+mapping_evict_folio() will fail), so use unmap_mapping_folio() instead.
 
-Since introducing the ability to have large folios in the page cache, it's
-been possible to have a hwpoisoned tail page returned from the fault
-handler.  We handle this situation poorly; failing to remove the affected
-page from use.
+This also saves various calls to compound_head() hidden in lock_page(),
+put_page(), etc.
 
-This isn't a minimal patch to fix it, it's a full conversion of all the
-code surrounding it.
-
-
-This patch (of 6):
-
-invalidate_inode_page() does very little beyond calling
-mapping_evict_folio().  Move the check for mapping being NULL into
-mapping_evict_folio() and make it available to the rest of the MM for use
-in the next few patches.
-
-Link: https://lkml.kernel.org/r/20231108182809.602073-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20231108182809.602073-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231108182809.602073-3-willy@infradead.org
+Fixes: 793917d997df ("mm/readahead: Add large folio readahead")
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    1 +
- mm/truncate.c |   33 ++++++++++++++++-----------------
- 2 files changed, 17 insertions(+), 17 deletions(-)
+ mm/memory.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
---- a/mm/internal.h~mm-make-mapping_evict_folio-the-preferred-way-to-evict-clean-folios
-+++ a/mm/internal.h
-@@ -138,6 +138,7 @@ void filemap_free_folio(struct address_s
- int truncate_inode_folio(struct address_space *mapping, struct folio *folio);
- bool truncate_inode_partial_folio(struct folio *folio, loff_t start,
- 		loff_t end);
-+long mapping_evict_folio(struct address_space *mapping, struct folio *folio);
- long invalidate_inode_page(struct page *page);
- unsigned long mapping_try_invalidate(struct address_space *mapping,
- 		pgoff_t start, pgoff_t end, unsigned long *nr_failed);
---- a/mm/truncate.c~mm-make-mapping_evict_folio-the-preferred-way-to-evict-clean-folios
-+++ a/mm/truncate.c
-@@ -266,9 +266,22 @@ int generic_error_remove_page(struct add
- }
- EXPORT_SYMBOL(generic_error_remove_page);
- 
--static long mapping_evict_folio(struct address_space *mapping,
--		struct folio *folio)
-+/**
-+ * mapping_evict_folio() - Remove an unused folio from the page-cache.
-+ * @mapping: The mapping this folio belongs to.
-+ * @folio: The folio to remove.
-+ *
-+ * Safely remove one folio from the page cache.
-+ * It only drops clean, unused folios.
-+ *
-+ * Context: Folio must be locked.
-+ * Return: The number of pages successfully removed.
-+ */
-+long mapping_evict_folio(struct address_space *mapping, struct folio *folio)
+--- a/mm/memory.c~mm-convert-__do_fault-to-use-a-folio
++++ a/mm/memory.c
+@@ -4245,6 +4245,7 @@ oom:
+ static vm_fault_t __do_fault(struct vm_fault *vmf)
  {
-+	/* The page may have been truncated before it was locked */
-+	if (!mapping)
-+		return 0;
- 	if (folio_test_dirty(folio) || folio_test_writeback(folio))
- 		return 0;
- 	/* The refcount will be elevated if any page in the folio is mapped */
-@@ -281,25 +294,11 @@ static long mapping_evict_folio(struct a
- 	return remove_mapping(mapping, folio);
+ 	struct vm_area_struct *vma = vmf->vma;
++	struct folio *folio;
+ 	vm_fault_t ret;
+ 
+ 	/*
+@@ -4273,27 +4274,26 @@ static vm_fault_t __do_fault(struct vm_f
+ 			    VM_FAULT_DONE_COW)))
+ 		return ret;
+ 
++	folio = page_folio(vmf->page);
+ 	if (unlikely(PageHWPoison(vmf->page))) {
+-		struct page *page = vmf->page;
+ 		vm_fault_t poisonret = VM_FAULT_HWPOISON;
+ 		if (ret & VM_FAULT_LOCKED) {
+-			if (page_mapped(page))
+-				unmap_mapping_pages(page_mapping(page),
+-						    page->index, 1, false);
+-			/* Retry if a clean page was removed from the cache. */
+-			if (invalidate_inode_page(page))
++			if (page_mapped(vmf->page))
++				unmap_mapping_folio(folio);
++			/* Retry if a clean folio was removed from the cache. */
++			if (mapping_evict_folio(folio->mapping, folio))
+ 				poisonret = VM_FAULT_NOPAGE;
+-			unlock_page(page);
++			folio_unlock(folio);
+ 		}
+-		put_page(page);
++		folio_put(folio);
+ 		vmf->page = NULL;
+ 		return poisonret;
+ 	}
+ 
+ 	if (unlikely(!(ret & VM_FAULT_LOCKED)))
+-		lock_page(vmf->page);
++		folio_lock(folio);
+ 	else
+-		VM_BUG_ON_PAGE(!PageLocked(vmf->page), vmf->page);
++		VM_BUG_ON_PAGE(!folio_test_locked(folio), vmf->page);
+ 
+ 	return ret;
  }
- 
--/**
-- * invalidate_inode_page() - Remove an unused page from the pagecache.
-- * @page: The page to remove.
-- *
-- * Safely invalidate one page from its pagecache mapping.
-- * It only drops clean, unused pages.
-- *
-- * Context: Page must be locked.
-- * Return: The number of pages successfully removed.
-- */
- long invalidate_inode_page(struct page *page)
- {
- 	struct folio *folio = page_folio(page);
--	struct address_space *mapping = folio_mapping(folio);
- 
--	/* The page may have been truncated before it was locked */
--	if (!mapping)
--		return 0;
--	return mapping_evict_folio(mapping, folio);
-+	return mapping_evict_folio(folio_mapping(folio), folio);
- }
- 
- /**
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
