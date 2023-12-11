@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9527E7493
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:23:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F2067493
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:23:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h+J18zpL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 621D6C433C8;
-	Mon, 11 Dec 2023 01:23:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P4BADmnu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68137C433CA;
+	Mon, 11 Dec 2023 01:23:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702257817;
-	bh=oYp2oi2VXiUbXJY6GGi1kbGEqjdtePHwHlhyR7HlLTA=;
+	s=korg; t=1702257818;
+	bh=Fo0n3kLqIcAjdS8ET5nJ1YQqBxS63QY9vQPRnMuOxU0=;
 	h=Date:To:From:Subject:From;
-	b=h+J18zpLfvPxLQ91cc9JsPuWarqm8dE0cKLb7SzYiA3n2v/1Cys0qlLRl2TFISUtn
-	 YXHbsmi6fcqIZEau+OEpedNrYf6Wr65jG8Z8BUX9XATOpuuIAxRwh4vEUy//bxj1iC
-	 Fm9bY0bGW3vFpG5Zv2VJz0Baz0jZ+V7ZO8F761wo=
-Date: Sun, 10 Dec 2023 17:23:36 -0800
+	b=P4BADmnu7cdmO7XuOdozBH5a/VFChHijYpE1ule1NsJ7OoxaJ8NxqYPoSSnO1aGPa
+	 kmALi13po5a7HJ7HhhHiK5RmQh+ho+C2acL7Nt75ehx3zkdw2f3cTrbaCHYX60YR2a
+	 armC+cZrcbnuZRW1oWmd1E+fG6WavBZloDo/GGcM=
+Date: Sun, 10 Dec 2023 17:23:37 -0800
 To: mm-commits@vger.kernel.org,tsbogend@alpha.franken.de,sfr@rothwell.id.au,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] mips-mark-local-function-static-if-possible.patch removed from -mm tree
-Message-Id: <20231211012337.621D6C433C8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] mips-move-build_tlb_refill_handler-prototype.patch removed from -mm tree
+Message-Id: <20231211012338.68137C433CA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,57 +27,74 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mips: mark local function static if possible
+     Subject: mips: move build_tlb_refill_handler() prototype
 has been removed from the -mm tree.  Its filename was
-     mips-mark-local-function-static-if-possible.patch
+     mips-move-build_tlb_refill_handler-prototype.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: mips: mark local function static if possible
-Date: Mon, 4 Dec 2023 12:56:56 +0100
+Subject: mips: move build_tlb_refill_handler() prototype
+Date: Mon, 4 Dec 2023 12:56:57 +0100
 
-These two functions are global but have no extern prototypes or other
-callers, so it's best to mark them as static, avoiding these warnings:
+Instead of having a declaration for each caller, have one that is shared
+with the function definition, which avoids a warning:
 
-arch/mips/kernel/mips-cm.c:204:13: error: no previous prototype for '__mips_cm_l2sync_phys_base' [-Werror=missing-prototypes]
-arch/mips/mm/c-r4k.c:1827:12: error: no previous prototype for 'r4k_cache_init_pm' [-Werror=missing-prototypes]
+arch/mips/mm/tlbex.c:2547:6: error: no previous prototype for 'build_tlb_refill_handler' [-Werror=missing-prototypes]
 
-Link: https://lkml.kernel.org/r/20231204115710.2247097-7-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20231204115710.2247097-8-arnd@kernel.org
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Stephen Rothwell <sfr@rothwell.id.au>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/mips-cm.c |    2 +-
- arch/mips/mm/c-r4k.c       |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/mips/include/asm/tlbex.h |    1 +
+ arch/mips/mm/tlb-r3k.c        |    3 +--
+ arch/mips/mm/tlb-r4k.c        |    3 +--
+ 3 files changed, 3 insertions(+), 4 deletions(-)
 
---- a/arch/mips/kernel/mips-cm.c~mips-mark-local-function-static-if-possible
-+++ a/arch/mips/kernel/mips-cm.c
-@@ -201,7 +201,7 @@ phys_addr_t __mips_cm_phys_base(void)
- phys_addr_t mips_cm_phys_base(void)
- 	__attribute__((weak, alias("__mips_cm_phys_base")));
+--- a/arch/mips/include/asm/tlbex.h~mips-move-build_tlb_refill_handler-prototype
++++ a/arch/mips/include/asm/tlbex.h
+@@ -23,6 +23,7 @@ void build_update_entries(u32 **p, unsig
+ void build_tlb_write_entry(u32 **p, struct uasm_label **l,
+ 			   struct uasm_reloc **r,
+ 			   enum tlb_write_entry wmode);
++void build_tlb_refill_handler(void);
  
--phys_addr_t __mips_cm_l2sync_phys_base(void)
-+static phys_addr_t __mips_cm_l2sync_phys_base(void)
- {
- 	u32 base_reg;
+ extern void handle_tlbl(void);
+ extern char handle_tlbl_end[];
+--- a/arch/mips/mm/tlb-r3k.c~mips-move-build_tlb_refill_handler-prototype
++++ a/arch/mips/mm/tlb-r3k.c
+@@ -23,11 +23,10 @@
+ #include <asm/io.h>
+ #include <asm/bootinfo.h>
+ #include <asm/cpu.h>
++#include <asm/tlbex.h>
  
---- a/arch/mips/mm/c-r4k.c~mips-mark-local-function-static-if-possible
-+++ a/arch/mips/mm/c-r4k.c
-@@ -1828,7 +1828,7 @@ static struct notifier_block r4k_cache_p
- 	.notifier_call = r4k_cache_pm_notifier,
- };
+ #undef DEBUG_TLB
  
--int __init r4k_cache_init_pm(void)
-+static int __init r4k_cache_init_pm(void)
- {
- 	return cpu_pm_register_notifier(&r4k_cache_pm_notifier_block);
- }
+-extern void build_tlb_refill_handler(void);
+-
+ /* CP0 hazard avoidance. */
+ #define BARRIER				\
+ 	__asm__ __volatile__(		\
+--- a/arch/mips/mm/tlb-r4k.c~mips-move-build_tlb_refill_handler-prototype
++++ a/arch/mips/mm/tlb-r4k.c
+@@ -22,10 +22,9 @@
+ #include <asm/hazards.h>
+ #include <asm/mmu_context.h>
+ #include <asm/tlb.h>
++#include <asm/tlbex.h>
+ #include <asm/tlbmisc.h>
+ 
+-extern void build_tlb_refill_handler(void);
+-
+ /*
+  * LOONGSON-2 has a 4 entry itlb which is a subset of jtlb, LOONGSON-3 has
+  * a 4 entry itlb and a 4 entry dtlb which are subsets of jtlb. Unfortunately,
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
