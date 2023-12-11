@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1ADE97493
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:23:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FAF37493
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:23:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rXVfDkvk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBCB1C433C9;
-	Mon, 11 Dec 2023 01:23:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IagEkMNr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFFE4C433CA;
+	Mon, 11 Dec 2023 01:23:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702257780;
-	bh=weW5/a45x9l0mlRXJHg9wu6zuyPu+rdGb8dKXbsOV+M=;
+	s=korg; t=1702257782;
+	bh=3CorcGpjPjsFTSv8MyeuwN9UNshpUmGBXRPp6ODwiP8=;
 	h=Date:To:From:Subject:From;
-	b=rXVfDkvkrW1oDX6EwuorDjPiZGR0jI95cIWNytvNB0YM/qWuyspjkIJ8DU8HTweoR
-	 wHRLvjlKuzD8oRulYXJRc6xch3+YDrhzWEU8Rc6Vg9eE0qPv+SdBAW62Hs1V5tGKTE
-	 treuk01tcbs00EfQ+D0K4+cHUpVliApZDW85ELrg=
-Date: Sun, 10 Dec 2023 17:23:00 -0800
-To: mm-commits@vger.kernel.org,npiggin@gmail.com,mpe@ellerman.id.au,arnd@arndb.de,hca@linux.ibm.com,akpm@linux-foundation.org
+	b=IagEkMNr03OV/+MkgoZRJvIrz9/VUUJSjmwCzxMa2HVmEk/MiSC0ftzjeeJk4qhLk
+	 f/YQLM9050aoxOFI5bXMVJbGxDb6VwioX/wAKByKwBP8gFNhohV0jAPe3p7SbCgUdo
+	 SMvNSsvLXlvKzWglYl9kW5ZvVJMR/wyZLgpzKtCM=
+Date: Sun, 10 Dec 2023 17:23:01 -0800
+To: mm-commits@vger.kernel.org,lukas.bulwahn@gmail.com,joe@perches.com,dwaipayanray1@gmail.com,apw@canonical.com,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] arch-remove-arch_task_struct_on_stack.patch removed from -mm tree
-Message-Id: <20231211012300.DBCB1C433C9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] checkpatch-do-not-require-an-empty-line-before-error-injection.patch removed from -mm tree
+Message-Id: <20231211012301.DFFE4C433CA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,125 +27,46 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: arch: remove ARCH_TASK_STRUCT_ON_STACK
+     Subject: checkpatch: do not require an empty line before error injection
 has been removed from the -mm tree.  Its filename was
-     arch-remove-arch_task_struct_on_stack.patch
+     checkpatch-do-not-require-an-empty-line-before-error-injection.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Heiko Carstens <hca@linux.ibm.com>
-Subject: arch: remove ARCH_TASK_STRUCT_ON_STACK
-Date: Thu, 16 Nov 2023 14:36:38 +0100
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: checkpatch: do not require an empty line before error injection
+Date: Thu, 9 Nov 2023 16:51:38 +0900
 
-IA-64 was the only architecture which selected ARCH_TASK_STRUCT_ON_STACK.
-IA-64 was removed with commit cf8e8658100d ("arch: Remove Itanium (IA-64)
-architecture"). Therefore remove support for ARCH_TASK_STRUCT_ON_STACK
-as well.
+ALLOW_ERROR_INJECTION macro (just like EXPORT_SYMBOL) can immediately
+follow a function it annotates.
 
-Note: this also reveals a potential bug in powerpc code, which makes use of
-__init_task_data without selecting ARCH_TASK_STRUCT_ON_STACK which makes
-__init_task_data a no-op. This is broken since commit d11ed3ab3166 ("Expand
-INIT_TASK() in init/init_task.c and remove") from 2018 and needs to be
-addressed separately.
-
-Link: https://lkml.kernel.org/r/20231116133638.1636277-4-hca@linux.ibm.com
-Signed-off-by: Heiko Carstens <hca@linux.ibm.com>
-Reviewed-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
+Link: https://lkml.kernel.org/r/20231109075147.2779461-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com> (maintainer:CHECKPATCH)
+Cc: Dwaipayan Ray <dwaipayanray1@gmail.com> (reviewer:CHECKPATCH)
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig                 |    4 ----
- arch/powerpc/kexec/core_64.c |    3 +--
- include/linux/init_task.h    |    7 -------
- include/linux/sched.h        |    2 --
- init/init_task.c             |   10 ++--------
- 5 files changed, 3 insertions(+), 23 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/Kconfig~arch-remove-arch_task_struct_on_stack
-+++ a/arch/Kconfig
-@@ -301,10 +301,6 @@ config ARCH_HAS_DMA_CLEAR_UNCACHED
- config ARCH_HAS_CPU_FINALIZE_INIT
- 	bool
- 
--# Select if arch init_task must go in the __init_task_data section
--config ARCH_TASK_STRUCT_ON_STACK
--	bool
--
- config HAVE_ARCH_THREAD_STRUCT_WHITELIST
- 	bool
- 	help
---- a/arch/powerpc/kexec/core_64.c~arch-remove-arch_task_struct_on_stack
-+++ a/arch/powerpc/kexec/core_64.c
-@@ -283,8 +283,7 @@ static void kexec_prepare_cpus(void)
-  * We could use a smaller stack if we don't care about anything using
-  * current, but that audit has not been performed.
-  */
--static union thread_union kexec_stack __init_task_data =
--	{ };
-+static union thread_union kexec_stack = { };
- 
- /*
-  * For similar reasons to the stack above, the kexecing CPU needs to be on a
---- a/include/linux/init_task.h~arch-remove-arch_task_struct_on_stack
-+++ a/include/linux/init_task.h
-@@ -37,13 +37,6 @@ extern struct cred init_cred;
- 
- #define INIT_TASK_COMM "swapper"
- 
--/* Attach to the init_task data structure for proper alignment */
--#ifdef CONFIG_ARCH_TASK_STRUCT_ON_STACK
--#define __init_task_data __section(".data..init_task")
--#else
--#define __init_task_data /**/
--#endif
--
- /* Attach to the thread_info data structure for proper alignment */
- #define __init_thread_info __section(".data..init_thread_info")
- 
---- a/include/linux/sched.h~arch-remove-arch_task_struct_on_stack
-+++ a/include/linux/sched.h
-@@ -1955,9 +1955,7 @@ extern void ia64_set_curr_task(int cpu,
- void yield(void);
- 
- union thread_union {
--#ifndef CONFIG_ARCH_TASK_STRUCT_ON_STACK
- 	struct task_struct task;
--#endif
- #ifndef CONFIG_THREAD_INFO_IN_TASK
- 	struct thread_info thread_info;
- #endif
---- a/init/init_task.c~arch-remove-arch_task_struct_on_stack
-+++ a/init/init_task.c
-@@ -51,8 +51,7 @@ static struct sighand_struct init_sighan
- };
- 
- #ifdef CONFIG_SHADOW_CALL_STACK
--unsigned long init_shadow_call_stack[SCS_SIZE / sizeof(long)]
--		__init_task_data = {
-+unsigned long init_shadow_call_stack[SCS_SIZE / sizeof(long)] = {
- 	[(SCS_SIZE / sizeof(long)) - 1] = SCS_END_MAGIC
- };
- #endif
-@@ -61,12 +60,7 @@ unsigned long init_shadow_call_stack[SCS
-  * Set up the first task table, touch at your own risk!. Base=0,
-  * limit=0x1fffff (=2MB)
-  */
--struct task_struct init_task
--#ifdef CONFIG_ARCH_TASK_STRUCT_ON_STACK
--	__init_task_data
--#endif
--	__aligned(L1_CACHE_BYTES)
--= {
-+struct task_struct init_task __aligned(L1_CACHE_BYTES) = {
- #ifdef CONFIG_THREAD_INFO_IN_TASK
- 	.thread_info	= INIT_THREAD_INFO(init_task),
- 	.stack_refcount	= REFCOUNT_INIT(1),
+--- a/scripts/checkpatch.pl~checkpatch-do-not-require-an-empty-line-before-error-injection
++++ a/scripts/checkpatch.pl
+@@ -4054,7 +4054,7 @@ sub process {
+ 		if ($prevline =~ /^[\+ ]};?\s*$/ &&
+ 		    $line =~ /^\+/ &&
+ 		    !($line =~ /^\+\s*$/ ||
+-		      $line =~ /^\+\s*(?:EXPORT_SYMBOL|early_param)/ ||
++		      $line =~ /^\+\s*(?:EXPORT_SYMBOL|early_param|ALLOW_ERROR_INJECTION)/ ||
+ 		      $line =~ /^\+\s*MODULE_/i ||
+ 		      $line =~ /^\+\s*\#\s*(?:end|elif|else)/ ||
+ 		      $line =~ /^\+[a-z_]*init/ ||
 _
 
-Patches currently in -mm which might be from hca@linux.ibm.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
 
