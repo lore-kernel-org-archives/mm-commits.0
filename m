@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 173B64421
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:54:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83FA64421
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:54:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a0MBzLmH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D33F1C433C7;
-	Mon, 11 Dec 2023 00:54:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xiiOAUBr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EE70C433C7;
+	Mon, 11 Dec 2023 00:54:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702256078;
-	bh=CimxSrT1OxATocWfTCa96sQal6p7tdOWtVTjOmkn7P4=;
+	s=korg; t=1702256080;
+	bh=g6mN4qFsLrIEncrLJThx4QW9nbMe3XL5h6BfmYCl7fc=;
 	h=Date:To:From:Subject:From;
-	b=a0MBzLmHCsb2z25RG7rg9zu1AMuy7Qlr+oqYAawYcUPboda6QFJ/jxGgrXbHq64yg
-	 Gh9pYwueBYeS+Cq/8eNF1TNrEeSXnx+TrDPYYzUntp+K2yb5GKkYt/4R4onBE7AeOS
-	 o/sz34wVAmy1ExHcwkuXYBv6bJrPT1rsAqbt14mM=
-Date: Sun, 10 Dec 2023 16:54:38 -0800
-To: mm-commits@vger.kernel.org,naoya.horiguchi@nec.com,willy@infradead.org,akpm@linux-foundation.org
+	b=xiiOAUBrZ54ewjUJtn95UJkitYPh1nyzeRmFvDelOnlanquiKbEfwu/GwdCEzSNyx
+	 FfTYOeSRUaZRiDgWySPt4nHJ9jKbHdUinmBYXuNmMM3S91fUTA3T3+rMWAPoa72sWb
+	 bssOZLNcK+tjpzycVr0ubgHqDaCur9efVo5mNKNk=
+Date: Sun, 10 Dec 2023 16:54:39 -0800
+To: mm-commits@vger.kernel.org,catalin.marinas@arm.com,jim.cromie@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] fs-convert-error_remove_page-to-error_remove_folio.patch removed from -mm tree
-Message-Id: <20231211005438.D33F1C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] kmemleak-drop-age-increasing-from-leak-record.patch removed from -mm tree
+Message-Id: <20231211005440.4EE70C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,480 +27,100 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fs: convert error_remove_page to error_remove_folio
+     Subject: kmemleak: drop (age <increasing>) from leak record
 has been removed from the -mm tree.  Its filename was
-     fs-convert-error_remove_page-to-error_remove_folio.patch
+     kmemleak-drop-age-increasing-from-leak-record.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: fs: convert error_remove_page to error_remove_folio
-Date: Fri, 17 Nov 2023 16:14:47 +0000
+From: Jim Cromie <jim.cromie@gmail.com>
+Subject: kmemleak: drop (age <increasing>) from leak record
+Date: Thu, 16 Nov 2023 15:43:17 -0700
 
-There were already assertions that we were not passing a tail page to
-error_remove_page(), so make the compiler enforce that by converting
-everything to pass and use a folio.
+Patch series "tweak kmemleak report format".
 
-Link: https://lkml.kernel.org/r/20231117161447.2461643-7-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+These 2 patches make minor changes to the report:
+
+1st strips "age <increasing>" from output.  This makes the output
+idempotent; unchanging until a new leak is reported.
+
+2nd adds the backtrace.checksum to the "backtrace:" line.  This lets a
+user see repeats without actually reading the whole backtrace.  So now
+the backtrace line looks like this:
+
+  backtrace (crc 603070071):
+
+I surveyed for un-wanted effects upon users:
+
+Syzkaller parses kmemleak in executor/common_linux.h:
+static void check_leaks(char** frames, int nframes)
+
+It just counts occurrences of "unreferenced object", specifically it
+does not look for "age", nor would it choke on "crc" being added.
+
+github has 3 repos with "kmemleak" mentioned, all are moribund.
+gitlab has 0 hits on "kmemleak".
+
+
+This patch (of 2):
+
+Displaying age is pretty, but counter-productive; it changes with
+current-time, so it surrenders idempotency of the output, which breaks
+simple hash-based cataloging of the records by the user.
+
+The trouble: sequential reads, wo new leaks, get new results:
+
+  :#> sum /sys/kernel/debug/kmemleak
+  53439    74 /sys/kernel/debug/kmemleak
+  :#> sum /sys/kernel/debug/kmemleak
+  59066    74 /sys/kernel/debug/kmemleak
+
+and age is why (nothing else changes):
+
+  :#> grep -v age /sys/kernel/debug/kmemleak | sum
+  58894    67
+  :#> grep -v age /sys/kernel/debug/kmemleak | sum
+  58894    67
+
+Since jiffies is already printed in the "comm" line, age adds nothing.
+
+Notably, syzkaller reads kmemleak only for "unreferenced object", and
+won't care about this reform of age-ism.  A few moribund github repos
+mention it, but don't compile.
+
+Link: https://lkml.kernel.org/r/20231116224318.124209-1-jim.cromie@gmail.com
+Link: https://lkml.kernel.org/r/20231116224318.124209-2-jim.cromie@gmail.com
+Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/locking.rst |    4 ++--
- Documentation/filesystems/vfs.rst     |    6 +++---
- block/fops.c                          |    2 +-
- fs/afs/write.c                        |    2 +-
- fs/bcachefs/fs.c                      |    2 +-
- fs/btrfs/inode.c                      |    2 +-
- fs/ceph/addr.c                        |    4 ++--
- fs/ext2/inode.c                       |    2 +-
- fs/ext4/inode.c                       |    6 +++---
- fs/f2fs/compress.c                    |    2 +-
- fs/f2fs/inode.c                       |    2 +-
- fs/gfs2/aops.c                        |    4 ++--
- fs/hugetlbfs/inode.c                  |    6 +++---
- fs/nfs/file.c                         |    2 +-
- fs/ntfs/aops.c                        |    6 +++---
- fs/ocfs2/aops.c                       |    2 +-
- fs/xfs/xfs_aops.c                     |    2 +-
- fs/zonefs/file.c                      |    2 +-
- include/linux/fs.h                    |    2 +-
- include/linux/mm.h                    |    3 ++-
- mm/memory-failure.c                   |   10 +++++-----
- mm/shmem.c                            |    6 +++---
- mm/truncate.c                         |    9 ++++-----
- 23 files changed, 44 insertions(+), 44 deletions(-)
+ mm/kmemleak.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/block/fops.c~fs-convert-error_remove_page-to-error_remove_folio
-+++ a/block/fops.c
-@@ -500,7 +500,7 @@ const struct address_space_operations de
- 	.readahead		= blkdev_readahead,
- 	.writepages		= blkdev_writepages,
- 	.is_partially_uptodate  = iomap_is_partially_uptodate,
--	.error_remove_page	= generic_error_remove_page,
-+	.error_remove_folio	= generic_error_remove_folio,
- 	.migrate_folio		= filemap_migrate_folio,
- };
- #endif /* CONFIG_BUFFER_HEAD */
---- a/Documentation/filesystems/locking.rst~fs-convert-error_remove_page-to-error_remove_folio
-+++ a/Documentation/filesystems/locking.rst
-@@ -261,7 +261,7 @@ prototypes::
- 			struct folio *src, enum migrate_mode);
- 	int (*launder_folio)(struct folio *);
- 	bool (*is_partially_uptodate)(struct folio *, size_t from, size_t count);
--	int (*error_remove_page)(struct address_space *, struct page *);
-+	int (*error_remove_folio)(struct address_space *, struct folio *);
- 	int (*swap_activate)(struct swap_info_struct *sis, struct file *f, sector_t *span)
- 	int (*swap_deactivate)(struct file *);
- 	int (*swap_rw)(struct kiocb *iocb, struct iov_iter *iter);
-@@ -287,7 +287,7 @@ direct_IO:
- migrate_folio:		yes (both)
- launder_folio:		yes
- is_partially_uptodate:	yes
--error_remove_page:	yes
-+error_remove_folio:	yes
- swap_activate:		no
- swap_deactivate:	no
- swap_rw:		yes, unlocks
---- a/Documentation/filesystems/vfs.rst~fs-convert-error_remove_page-to-error_remove_folio
-+++ a/Documentation/filesystems/vfs.rst
-@@ -823,7 +823,7 @@ cache in your filesystem.  The following
- 		bool (*is_partially_uptodate) (struct folio *, size_t from,
- 					       size_t count);
- 		void (*is_dirty_writeback)(struct folio *, bool *, bool *);
--		int (*error_remove_page) (struct mapping *mapping, struct page *page);
-+		int (*error_remove_folio)(struct mapping *mapping, struct folio *);
- 		int (*swap_activate)(struct swap_info_struct *sis, struct file *f, sector_t *span)
- 		int (*swap_deactivate)(struct file *);
- 		int (*swap_rw)(struct kiocb *iocb, struct iov_iter *iter);
-@@ -1034,8 +1034,8 @@ cache in your filesystem.  The following
- 	VM if a folio should be treated as dirty or writeback for the
- 	purposes of stalling.
+--- a/mm/kmemleak.c~kmemleak-drop-age-increasing-from-leak-record
++++ a/mm/kmemleak.c
+@@ -355,14 +355,12 @@ static void print_unreferenced(struct se
+ 	int i;
+ 	unsigned long *entries;
+ 	unsigned int nr_entries;
+-	unsigned int msecs_age = jiffies_to_msecs(jiffies - object->jiffies);
  
--``error_remove_page``
--	normally set to generic_error_remove_page if truncation is ok
-+``error_remove_folio``
-+	normally set to generic_error_remove_folio if truncation is ok
- 	for this address space.  Used for memory failure handling.
- 	Setting this implies you deal with pages going away under you,
- 	unless you have them locked or reference counts increased.
---- a/fs/afs/write.c~fs-convert-error_remove_page-to-error_remove_folio
-+++ a/fs/afs/write.c
-@@ -242,7 +242,7 @@ static void afs_kill_pages(struct addres
- 		folio_clear_uptodate(folio);
- 		folio_end_writeback(folio);
- 		folio_lock(folio);
--		generic_error_remove_page(mapping, &folio->page);
-+		generic_error_remove_folio(mapping, folio);
- 		folio_unlock(folio);
- 		folio_put(folio);
+ 	nr_entries = stack_depot_fetch(object->trace_handle, &entries);
+ 	warn_or_seq_printf(seq, "unreferenced object 0x%08lx (size %zu):\n",
+ 			  object->pointer, object->size);
+-	warn_or_seq_printf(seq, "  comm \"%s\", pid %d, jiffies %lu (age %d.%03ds)\n",
+-			   object->comm, object->pid, object->jiffies,
+-			   msecs_age / 1000, msecs_age % 1000);
++	warn_or_seq_printf(seq, "  comm \"%s\", pid %d, jiffies %lu\n",
++			   object->comm, object->pid, object->jiffies);
+ 	hex_dump_object(seq, object);
+ 	warn_or_seq_printf(seq, "  backtrace:\n");
  
---- a/fs/bcachefs/fs.c~fs-convert-error_remove_page-to-error_remove_folio
-+++ a/fs/bcachefs/fs.c
-@@ -1103,7 +1103,7 @@ static const struct address_space_operat
- #ifdef CONFIG_MIGRATION
- 	.migrate_folio	= filemap_migrate_folio,
- #endif
--	.error_remove_page = generic_error_remove_page,
-+	.error_remove_folio = generic_error_remove_folio,
- };
- 
- struct bcachefs_fid {
---- a/fs/btrfs/inode.c~fs-convert-error_remove_page-to-error_remove_folio
-+++ a/fs/btrfs/inode.c
-@@ -10930,7 +10930,7 @@ static const struct address_space_operat
- 	.release_folio	= btrfs_release_folio,
- 	.migrate_folio	= btrfs_migrate_folio,
- 	.dirty_folio	= filemap_dirty_folio,
--	.error_remove_page = generic_error_remove_page,
-+	.error_remove_folio = generic_error_remove_folio,
- 	.swap_activate	= btrfs_swap_activate,
- 	.swap_deactivate = btrfs_swap_deactivate,
- };
---- a/fs/ceph/addr.c~fs-convert-error_remove_page-to-error_remove_folio
-+++ a/fs/ceph/addr.c
-@@ -907,8 +907,8 @@ static void writepages_finish(struct cep
- 			doutc(cl, "unlocking %p\n", page);
- 
- 			if (remove_page)
--				generic_error_remove_page(inode->i_mapping,
--							  page);
-+				generic_error_remove_folio(inode->i_mapping,
-+							  page_folio(page));
- 
- 			unlock_page(page);
- 		}
---- a/fs/ext2/inode.c~fs-convert-error_remove_page-to-error_remove_folio
-+++ a/fs/ext2/inode.c
-@@ -969,7 +969,7 @@ const struct address_space_operations ex
- 	.writepages		= ext2_writepages,
- 	.migrate_folio		= buffer_migrate_folio,
- 	.is_partially_uptodate	= block_is_partially_uptodate,
--	.error_remove_page	= generic_error_remove_page,
-+	.error_remove_folio	= generic_error_remove_folio,
- };
- 
- static const struct address_space_operations ext2_dax_aops = {
---- a/fs/ext4/inode.c~fs-convert-error_remove_page-to-error_remove_folio
-+++ a/fs/ext4/inode.c
-@@ -3564,7 +3564,7 @@ static const struct address_space_operat
- 	.direct_IO		= noop_direct_IO,
- 	.migrate_folio		= buffer_migrate_folio,
- 	.is_partially_uptodate  = block_is_partially_uptodate,
--	.error_remove_page	= generic_error_remove_page,
-+	.error_remove_folio	= generic_error_remove_folio,
- 	.swap_activate		= ext4_iomap_swap_activate,
- };
- 
-@@ -3581,7 +3581,7 @@ static const struct address_space_operat
- 	.direct_IO		= noop_direct_IO,
- 	.migrate_folio		= buffer_migrate_folio_norefs,
- 	.is_partially_uptodate  = block_is_partially_uptodate,
--	.error_remove_page	= generic_error_remove_page,
-+	.error_remove_folio	= generic_error_remove_folio,
- 	.swap_activate		= ext4_iomap_swap_activate,
- };
- 
-@@ -3598,7 +3598,7 @@ static const struct address_space_operat
- 	.direct_IO		= noop_direct_IO,
- 	.migrate_folio		= buffer_migrate_folio,
- 	.is_partially_uptodate  = block_is_partially_uptodate,
--	.error_remove_page	= generic_error_remove_page,
-+	.error_remove_folio	= generic_error_remove_folio,
- 	.swap_activate		= ext4_iomap_swap_activate,
- };
- 
---- a/fs/f2fs/compress.c~fs-convert-error_remove_page-to-error_remove_folio
-+++ a/fs/f2fs/compress.c
-@@ -1944,7 +1944,7 @@ void f2fs_invalidate_compress_pages(stru
- 				continue;
- 			}
- 
--			generic_error_remove_page(mapping, &folio->page);
-+			generic_error_remove_folio(mapping, folio);
- 			folio_unlock(folio);
- 		}
- 		folio_batch_release(&fbatch);
---- a/fs/f2fs/inode.c~fs-convert-error_remove_page-to-error_remove_folio
-+++ a/fs/f2fs/inode.c
-@@ -600,7 +600,7 @@ make_now:
- #ifdef CONFIG_F2FS_FS_COMPRESSION
- 		inode->i_mapping->a_ops = &f2fs_compress_aops;
- 		/*
--		 * generic_error_remove_page only truncates pages of regular
-+		 * generic_error_remove_folio only truncates pages of regular
- 		 * inode
- 		 */
- 		inode->i_mode |= S_IFREG;
---- a/fs/gfs2/aops.c~fs-convert-error_remove_page-to-error_remove_folio
-+++ a/fs/gfs2/aops.c
-@@ -745,7 +745,7 @@ static const struct address_space_operat
- 	.bmap = gfs2_bmap,
- 	.migrate_folio = filemap_migrate_folio,
- 	.is_partially_uptodate = iomap_is_partially_uptodate,
--	.error_remove_page = generic_error_remove_page,
-+	.error_remove_folio = generic_error_remove_folio,
- };
- 
- static const struct address_space_operations gfs2_jdata_aops = {
-@@ -758,7 +758,7 @@ static const struct address_space_operat
- 	.invalidate_folio = gfs2_invalidate_folio,
- 	.release_folio = gfs2_release_folio,
- 	.is_partially_uptodate = block_is_partially_uptodate,
--	.error_remove_page = generic_error_remove_page,
-+	.error_remove_folio = generic_error_remove_folio,
- };
- 
- void gfs2_set_aops(struct inode *inode)
---- a/fs/hugetlbfs/inode.c~fs-convert-error_remove_page-to-error_remove_folio
-+++ a/fs/hugetlbfs/inode.c
-@@ -1129,8 +1129,8 @@ static int hugetlbfs_migrate_folio(struc
- #define hugetlbfs_migrate_folio NULL
- #endif
- 
--static int hugetlbfs_error_remove_page(struct address_space *mapping,
--				struct page *page)
-+static int hugetlbfs_error_remove_folio(struct address_space *mapping,
-+				struct folio *folio)
- {
- 	return 0;
- }
-@@ -1277,7 +1277,7 @@ static const struct address_space_operat
- 	.write_end	= hugetlbfs_write_end,
- 	.dirty_folio	= noop_dirty_folio,
- 	.migrate_folio  = hugetlbfs_migrate_folio,
--	.error_remove_page	= hugetlbfs_error_remove_page,
-+	.error_remove_folio	= hugetlbfs_error_remove_folio,
- };
- 
- 
---- a/fs/nfs/file.c~fs-convert-error_remove_page-to-error_remove_folio
-+++ a/fs/nfs/file.c
-@@ -567,7 +567,7 @@ const struct address_space_operations nf
- 	.migrate_folio = nfs_migrate_folio,
- 	.launder_folio = nfs_launder_folio,
- 	.is_dirty_writeback = nfs_check_dirty_writeback,
--	.error_remove_page = generic_error_remove_page,
-+	.error_remove_folio = generic_error_remove_folio,
- 	.swap_activate = nfs_swap_activate,
- 	.swap_deactivate = nfs_swap_deactivate,
- 	.swap_rw = nfs_swap_rw,
---- a/fs/ntfs/aops.c~fs-convert-error_remove_page-to-error_remove_folio
-+++ a/fs/ntfs/aops.c
-@@ -1644,7 +1644,7 @@ const struct address_space_operations nt
- 	.bmap		= ntfs_bmap,
- 	.migrate_folio	= buffer_migrate_folio,
- 	.is_partially_uptodate = block_is_partially_uptodate,
--	.error_remove_page = generic_error_remove_page,
-+	.error_remove_folio = generic_error_remove_folio,
- };
- 
- /*
-@@ -1658,7 +1658,7 @@ const struct address_space_operations nt
- #endif /* NTFS_RW */
- 	.migrate_folio	= buffer_migrate_folio,
- 	.is_partially_uptodate = block_is_partially_uptodate,
--	.error_remove_page = generic_error_remove_page,
-+	.error_remove_folio = generic_error_remove_folio,
- };
- 
- /*
-@@ -1673,7 +1673,7 @@ const struct address_space_operations nt
- #endif /* NTFS_RW */
- 	.migrate_folio	= buffer_migrate_folio,
- 	.is_partially_uptodate	= block_is_partially_uptodate,
--	.error_remove_page = generic_error_remove_page,
-+	.error_remove_folio = generic_error_remove_folio,
- };
- 
- #ifdef NTFS_RW
---- a/fs/ocfs2/aops.c~fs-convert-error_remove_page-to-error_remove_folio
-+++ a/fs/ocfs2/aops.c
-@@ -2480,5 +2480,5 @@ const struct address_space_operations oc
- 	.release_folio		= ocfs2_release_folio,
- 	.migrate_folio		= buffer_migrate_folio,
- 	.is_partially_uptodate	= block_is_partially_uptodate,
--	.error_remove_page	= generic_error_remove_page,
-+	.error_remove_folio	= generic_error_remove_folio,
- };
---- a/fs/xfs/xfs_aops.c~fs-convert-error_remove_page-to-error_remove_folio
-+++ a/fs/xfs/xfs_aops.c
-@@ -584,7 +584,7 @@ const struct address_space_operations xf
- 	.bmap			= xfs_vm_bmap,
- 	.migrate_folio		= filemap_migrate_folio,
- 	.is_partially_uptodate  = iomap_is_partially_uptodate,
--	.error_remove_page	= generic_error_remove_page,
-+	.error_remove_folio	= generic_error_remove_folio,
- 	.swap_activate		= xfs_iomap_swapfile_activate,
- };
- 
---- a/fs/zonefs/file.c~fs-convert-error_remove_page-to-error_remove_folio
-+++ a/fs/zonefs/file.c
-@@ -180,7 +180,7 @@ const struct address_space_operations zo
- 	.invalidate_folio	= iomap_invalidate_folio,
- 	.migrate_folio		= filemap_migrate_folio,
- 	.is_partially_uptodate	= iomap_is_partially_uptodate,
--	.error_remove_page	= generic_error_remove_page,
-+	.error_remove_folio	= generic_error_remove_folio,
- 	.swap_activate		= zonefs_swap_activate,
- };
- 
---- a/include/linux/fs.h~fs-convert-error_remove_page-to-error_remove_folio
-+++ a/include/linux/fs.h
-@@ -434,7 +434,7 @@ struct address_space_operations {
- 	bool (*is_partially_uptodate) (struct folio *, size_t from,
- 			size_t count);
- 	void (*is_dirty_writeback) (struct folio *, bool *dirty, bool *wb);
--	int (*error_remove_page)(struct address_space *, struct page *);
-+	int (*error_remove_folio)(struct address_space *, struct folio *);
- 
- 	/* swapfile support */
- 	int (*swap_activate)(struct swap_info_struct *sis, struct file *file,
---- a/include/linux/mm.h~fs-convert-error_remove_page-to-error_remove_folio
-+++ a/include/linux/mm.h
-@@ -2384,7 +2384,8 @@ extern void truncate_pagecache(struct in
- extern void truncate_setsize(struct inode *inode, loff_t newsize);
- void pagecache_isize_extended(struct inode *inode, loff_t from, loff_t to);
- void truncate_pagecache_range(struct inode *inode, loff_t offset, loff_t end);
--int generic_error_remove_page(struct address_space *mapping, struct page *page);
-+int generic_error_remove_folio(struct address_space *mapping,
-+		struct folio *folio);
- 
- struct vm_area_struct *lock_mm_and_find_vma(struct mm_struct *mm,
- 		unsigned long address, struct pt_regs *regs);
---- a/mm/memory-failure.c~fs-convert-error_remove_page-to-error_remove_folio
-+++ a/mm/memory-failure.c
-@@ -927,13 +927,13 @@ static int delete_from_lru_cache(struct
- 	return -EIO;
- }
- 
--static int truncate_error_page(struct folio *folio, unsigned long pfn,
-+static int truncate_error_folio(struct folio *folio, unsigned long pfn,
- 				struct address_space *mapping)
- {
- 	int ret = MF_FAILED;
- 
--	if (mapping->a_ops->error_remove_page) {
--		int err = mapping->a_ops->error_remove_page(mapping, &folio->page);
-+	if (mapping->a_ops->error_remove_folio) {
-+		int err = mapping->a_ops->error_remove_folio(mapping, folio);
- 
- 		if (err != 0)
- 			pr_info("%#lx: Failed to punch page: %d\n", pfn, err);
-@@ -1054,7 +1054,7 @@ static int me_pagecache_clean(struct pag
- 	 *
- 	 * Open: to take i_rwsem or not for this? Right now we don't.
- 	 */
--	ret = truncate_error_page(folio, page_to_pfn(p), mapping);
-+	ret = truncate_error_folio(folio, page_to_pfn(p), mapping);
- 	if (has_extra_refcount(ps, p, extra_pins))
- 		ret = MF_FAILED;
- 
-@@ -1188,7 +1188,7 @@ static int me_huge_page(struct page_stat
- 
- 	mapping = folio_mapping(folio);
- 	if (mapping) {
--		res = truncate_error_page(folio, page_to_pfn(p), mapping);
-+		res = truncate_error_folio(folio, page_to_pfn(p), mapping);
- 		/* The page is kept in page cache. */
- 		extra_pins = true;
- 		folio_unlock(folio);
---- a/mm/shmem.c~fs-convert-error_remove_page-to-error_remove_folio
-+++ a/mm/shmem.c
-@@ -4445,8 +4445,8 @@ static void __init shmem_destroy_inodeca
- }
- 
- /* Keep the page in page cache instead of truncating it */
--static int shmem_error_remove_page(struct address_space *mapping,
--				   struct page *page)
-+static int shmem_error_remove_folio(struct address_space *mapping,
-+				   struct folio *folio)
- {
- 	return 0;
- }
-@@ -4461,7 +4461,7 @@ const struct address_space_operations sh
- #ifdef CONFIG_MIGRATION
- 	.migrate_folio	= migrate_folio,
- #endif
--	.error_remove_page = shmem_error_remove_page,
-+	.error_remove_folio = shmem_error_remove_folio,
- };
- EXPORT_SYMBOL(shmem_aops);
- 
---- a/mm/truncate.c~fs-convert-error_remove_page-to-error_remove_folio
-+++ a/mm/truncate.c
-@@ -250,10 +250,9 @@ bool truncate_inode_partial_folio(struct
- /*
-  * Used to get rid of pages on hardware memory corruption.
-  */
--int generic_error_remove_page(struct address_space *mapping, struct page *page)
-+int generic_error_remove_folio(struct address_space *mapping,
-+		struct folio *folio)
- {
--	VM_BUG_ON_PAGE(PageTail(page), page);
--
- 	if (!mapping)
- 		return -EINVAL;
- 	/*
-@@ -262,9 +261,9 @@ int generic_error_remove_page(struct add
- 	 */
- 	if (!S_ISREG(mapping->host->i_mode))
- 		return -EIO;
--	return truncate_inode_folio(mapping, page_folio(page));
-+	return truncate_inode_folio(mapping, folio);
- }
--EXPORT_SYMBOL(generic_error_remove_page);
-+EXPORT_SYMBOL(generic_error_remove_folio);
- 
- /**
-  * mapping_evict_folio() - Remove an unused folio from the page-cache.
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from jim.cromie@gmail.com are
 
-buffer-return-bool-from-grow_dev_folio.patch
-buffer-calculate-block-number-inside-folio_init_buffers.patch
-buffer-fix-grow_buffers-for-block-size-page_size.patch
-buffer-cast-block-to-loff_t-before-shifting-it.patch
-buffer-fix-various-functions-for-block-size-page_size.patch
-buffer-handle-large-folios-in-__block_write_begin_int.patch
-buffer-fix-more-functions-for-block-size-page_size.patch
-nilfs2-add-nilfs_end_folio_io.patch
-nilfs2-convert-nilfs_abort_logs-to-use-folios.patch
-nilfs2-convert-nilfs_segctor_complete_write-to-use-folios.patch
-nilfs2-convert-nilfs_forget_buffer-to-use-a-folio.patch
-nilfs2-convert-to-nilfs_folio_buffers_clean.patch
-nilfs2-convert-nilfs_writepage-to-use-a-folio.patch
-nilfs2-convert-nilfs_mdt_write_page-to-use-a-folio.patch
-nilfs2-convert-to-nilfs_clear_folio_dirty.patch
-nilfs2-convert-to-__nilfs_clear_folio_dirty.patch
-nilfs2-convert-nilfs_segctor_prepare_write-to-use-folios.patch
-nilfs2-convert-nilfs_page_mkwrite-to-use-a-folio.patch
-nilfs2-convert-nilfs_mdt_create_block-to-use-a-folio.patch
-nilfs2-convert-nilfs_mdt_submit_block-to-use-a-folio.patch
-nilfs2-convert-nilfs_gccache_submit_read_data-to-use-a-folio.patch
-nilfs2-convert-nilfs_btnode_create_block-to-use-a-folio.patch
-nilfs2-convert-nilfs_btnode_submit_block-to-use-a-folio.patch
-nilfs2-convert-nilfs_btnode_delete-to-use-a-folio.patch
-nilfs2-convert-nilfs_btnode_prepare_change_key-to-use-a-folio.patch
-nilfs2-convert-nilfs_btnode_commit_change_key-to-use-a-folio.patch
-nilfs2-convert-nilfs_btnode_abort_change_key-to-use-a-folio.patch
-nilfs2-remove-page_address-from-nilfs_set_link.patch
-nilfs2-remove-page_address-from-nilfs_add_link.patch
-nilfs2-remove-page_address-from-nilfs_delete_entry.patch
-nilfs2-return-the-mapped-address-from-nilfs_get_page.patch
-nilfs2-pass-the-mapped-address-to-nilfs_check_page.patch
-nilfs2-switch-to-kmap_local-for-directory-handling.patch
-nilfs2-add-nilfs_get_folio.patch
-nilfs2-convert-nilfs_readdir-to-use-a-folio.patch
-nilfs2-convert-nilfs_find_entry-to-use-a-folio.patch
-nilfs2-convert-nilfs_rename-to-use-folios.patch
-nilfs2-convert-nilfs_add_link-to-use-a-folio.patch
-nilfs2-convert-nilfs_empty_dir-to-use-a-folio.patch
-nilfs2-convert-nilfs_make_empty-to-use-a-folio.patch
-nilfs2-convert-nilfs_prepare_chunk-and-nilfs_commit_chunk-to-folios.patch
-nilfs2-convert-nilfs_page_bug-to-nilfs_folio_bug.patch
 
