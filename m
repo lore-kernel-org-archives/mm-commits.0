@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 148244692
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3E9A468D
 	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:55:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h8Z2Ex8m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D467FC433C7;
-	Mon, 11 Dec 2023 00:55:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UrJomjVS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C13B1C433C7;
+	Mon, 11 Dec 2023 00:55:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702256111;
-	bh=c16imL+alUO/IYjwyxjiBY3NMO+UaDn6DDt8pV5NKD4=;
+	s=korg; t=1702256112;
+	bh=FZZFKHRmWrlcTMEkJ0G92OUqvtSrK2fIl0/Mt7Xlrg8=;
 	h=Date:To:From:Subject:From;
-	b=h8Z2Ex8m2xPXT4Nk3r1oPhsInZpxxhYubgyLA5EwiC5jRiNilHi9o7Z5RUQ4Is3My
-	 FkK4T0Mwg8bhZjRJ3tm7Lqiq+Y6lxdHhftlKxc7YItCd35HAD2jh17QByrVVGSYJBZ
-	 UK/Pm4tk81Mvow3CaNv/NEwQosi8t7GC/5tkNpOM=
-Date: Sun, 10 Dec 2023 16:55:11 -0800
+	b=UrJomjVSvYn66wghy2/VBYUco+zK1g1amVs+XbtkwCk5LowGIQStpYt1Q+QNLTZGH
+	 viYyePiciLKkpD9paVaQprJ4PlnQH3u8Bf8lxwyUYpcKViXXpWkewUbEsbJo8rlbNG
+	 M1q0gh4s6T7ShGr72Zg2RuOeeY4enr7sHKvDmfBw=
+Date: Sun, 10 Dec 2023 16:55:12 -0800
 To: mm-commits@vger.kernel.org,ira.weiny@intel.com,fabio.maria.de.francesco@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory-use-kmap_local_page-in-__wp_page_copy_user.patch removed from -mm tree
-Message-Id: <20231211005511.D467FC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mempool-replace-kmap_atomic-with-kmap_local_page.patch removed from -mm tree
+Message-Id: <20231211005512.C13B1C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,63 +27,75 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory: use kmap_local_page() in __wp_page_copy_user()
+     Subject: mm/mempool: replace kmap_atomic() with kmap_local_page()
 has been removed from the -mm tree.  Its filename was
-     mm-memory-use-kmap_local_page-in-__wp_page_copy_user.patch
+     mm-mempool-replace-kmap_atomic-with-kmap_local_page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Fabio M. De Francesco" <fabio.maria.de.francesco@linux.intel.com>
-Subject: mm/memory: use kmap_local_page() in __wp_page_copy_user()
-Date: Mon, 20 Nov 2023 15:24:05 +0100
+Subject: mm/mempool: replace kmap_atomic() with kmap_local_page()
+Date: Mon, 20 Nov 2023 15:26:31 +0100
 
-kmap_atomic() has been deprecated in favor of kmap_local_{folio,page}.
+kmap_atomic() has been deprecated in favor of kmap_local_page().
 
-Therefore, replace kmap_atomic() with kmap_local_page in
-__wp_page_copy_user().
+Therefore, replace kmap_atomic() with kmap_local_page().
 
-kmap_atomic() disables preemption in !PREEMPT_RT kernels and
-unconditionally disables also page-faults.  My limited knowledge of the
-implementation of __wp_page_copy_user() makes me think that the latter
-side effect is still needed here, but kmap_local_page() is implemented not
-to disable page-faults.
+kmap_atomic() is implemented like a kmap_local_page() which also disables
+page-faults and preemption (the latter only in !PREEMPT_RT kernels).  The
+kernel virtual addresses returned by these two API are only valid in the
+context of the callers (i.e., they cannot be handed to other threads).
 
-So, in addition to the conversion to local mapping, add explicit
-pagefault_disable() / pagefault_enable() between mapping and un-mapping.
+With kmap_local_page() the mappings are per thread and CPU local like in
+kmap_atomic(); however, they can handle page-faults and can be called from
+any context (including interrupts).  The tasks that call kmap_local_page()
+can be preempted and, when they are scheduled to run again, the kernel
+virtual addresses are restored and are still valid.
 
-Link: https://lkml.kernel.org/r/20231120142418.6977-1-fmdefrancesco@gmail.com
+The code blocks between the mappings and un-mappings don't rely on the
+above-mentioned side effects of kmap_atomic(), so that mere replacements
+of the old API with the new one is all that they require (i.e., there is
+no need to explicitly call pagefault_disable() and/or preempt_disable()).
+
+Link: https://lkml.kernel.org/r/20231120142640.7077-1-fabio.maria.de.francesco@linux.intel.com
 Signed-off-by: Fabio M. De Francesco <fabio.maria.de.francesco@linux.intel.com>
 Cc: Ira Weiny <ira.weiny@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/mempool.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/memory.c~mm-memory-use-kmap_local_page-in-__wp_page_copy_user
-+++ a/mm/memory.c
-@@ -2841,7 +2841,8 @@ static inline int __wp_page_copy_user(st
- 	 * just copying from the original user address. If that
- 	 * fails, we just zero-fill it. Live with it.
- 	 */
--	kaddr = kmap_atomic(dst);
-+	kaddr = kmap_local_page(dst);
-+	pagefault_disable();
- 	uaddr = (void __user *)(addr & PAGE_MASK);
+--- a/mm/mempool.c~mm-mempool-replace-kmap_atomic-with-kmap_local_page
++++ a/mm/mempool.c
+@@ -64,10 +64,10 @@ static void check_element(mempool_t *poo
+ 	} else if (pool->free == mempool_free_pages) {
+ 		/* Mempools backed by page allocator */
+ 		int order = (int)(long)pool->pool_data;
+-		void *addr = kmap_atomic((struct page *)element);
++		void *addr = kmap_local_page((struct page *)element);
  
- 	/*
-@@ -2909,7 +2910,8 @@ warn:
- pte_unlock:
- 	if (vmf->pte)
- 		pte_unmap_unlock(vmf->pte, vmf->ptl);
--	kunmap_atomic(kaddr);
-+	pagefault_enable();
-+	kunmap_local(kaddr);
- 	flush_dcache_page(dst);
+ 		__check_element(pool, addr, 1UL << (PAGE_SHIFT + order));
+-		kunmap_atomic(addr);
++		kunmap_local(addr);
+ 	}
+ }
  
- 	return ret;
+@@ -89,10 +89,10 @@ static void poison_element(mempool_t *po
+ 	} else if (pool->alloc == mempool_alloc_pages) {
+ 		/* Mempools backed by page allocator */
+ 		int order = (int)(long)pool->pool_data;
+-		void *addr = kmap_atomic((struct page *)element);
++		void *addr = kmap_local_page((struct page *)element);
+ 
+ 		__poison_element(addr, 1UL << (PAGE_SHIFT + order));
+-		kunmap_atomic(addr);
++		kunmap_local(addr);
+ 	}
+ }
+ #else /* CONFIG_DEBUG_SLAB || CONFIG_SLUB_DEBUG_ON */
 _
 
 Patches currently in -mm which might be from fabio.maria.de.francesco@linux.intel.com are
