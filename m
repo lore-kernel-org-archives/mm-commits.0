@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1982346BE
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:55:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 223AB46BE
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:55:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XeXH4LxA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7874C433C8;
-	Mon, 11 Dec 2023 00:55:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RGoLiVwY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1CF3C433C7;
+	Mon, 11 Dec 2023 00:55:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702256105;
-	bh=u3sIAaDQM9kN+BomxixjIGUh3seIrT+UyAFmRfkbDkQ=;
+	s=korg; t=1702256107;
+	bh=ny9YhWarg4KC14cFxAer70UlGh+QrXiq/nreQljnKRI=;
 	h=Date:To:From:Subject:From;
-	b=XeXH4LxAKSSuqqCmD4oiN9sWNoW9VAbC8V+bDOWtRGexp9csuZT7tNBt8RdsoxXPm
-	 EopZfgOUHLRAFDOm6+rSJrgUNeG2uw0xpjNaMS7q4eMfKJLNg2G+O17DsfnsBrqttP
-	 ktZcGdJp7z+aFj4bbGOyFfQh9BYDWNu0x28wT4C8=
-Date: Sun, 10 Dec 2023 16:55:05 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,osalvador@suse.de,glider@google.com,feng.tang@intel.com,eugenis@google.com,elver@google.com,dvyukov@google.com,42.hyeyoo@gmail.com,andreyknvl@google.com,akpm@linux-foundation.org
+	b=RGoLiVwYXhBWhazObO/bxAbWBQLDFO1411S28k1sqP9m8vYnXTo3i9GsrHFgXEiUh
+	 ci7I9swILlPlu+ojBIe+cNeE8vIsMVJ8XfFX1D/s+mX1neo1tJHcw/9buUyebwYco3
+	 9k+A+eL3R/rBvZWgAdSFnQcsRq8MaFCo4ebFmBtE=
+Date: Sun, 10 Dec 2023 16:55:06 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,osalvador@suse.de,glider@google.com,eugenis@google.com,elver@google.com,dvyukov@google.com,andreyknvl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] slub-kasan-improve-interaction-of-kasan-and-slub_debug-poisoning.patch removed from -mm tree
-Message-Id: <20231211005505.D7874C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] kasan-use-stack_depot_put-for-generic-mode.patch removed from -mm tree
+Message-Id: <20231211005506.E1CF3C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,124 +27,169 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: slub, kasan: improve interaction of KASAN and slub_debug poisoning
+     Subject: kasan: use stack_depot_put for Generic mode
 has been removed from the -mm tree.  Its filename was
-     slub-kasan-improve-interaction-of-kasan-and-slub_debug-poisoning.patch
+     kasan-use-stack_depot_put-for-generic-mode.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: slub, kasan: improve interaction of KASAN and slub_debug poisoning
-Date: Thu, 23 Nov 2023 00:12:02 +0100
+Subject: kasan: use stack_depot_put for Generic mode
+Date: Mon, 20 Nov 2023 18:47:19 +0100
 
-When both KASAN and slub_debug are enabled, when a free object is being
-prepared in setup_object, slub_debug poisons the object data before KASAN
-initializes its per-object metadata.
+Evict alloc/free stack traces from the stack depot for Generic KASAN once
+they are evicted from the quaratine.
 
-Right now, in setup_object, KASAN only initializes the alloc metadata,
-which is always stored outside of the object.  slub_debug is aware of this
-and it skips poisoning and checking that memory area.
+For auxiliary stack traces, evict the oldest stack trace once a new one is
+saved (KASAN only keeps references to the last two).
 
-However, with the following patch in this series, KASAN also starts
-initializing its free medata in setup_object.  As this metadata might be
-stored within the object, this initialization might overwrite the
-slub_debug poisoning.  This leads to slub_debug reports.
+Also evict all saved stack traces on krealloc.
 
-Thus, skip checking slub_debug poisoning of the object data area that
-overlaps with the in-object KASAN free metadata.
+To avoid double-evicting and mis-evicting stack traces (in case KASAN's
+metadata was corrupted), reset KASAN's per-object metadata that stores
+stack depot handles when the object is initialized and when it's evicted
+from the quarantine.
 
-Also make slub_debug poisoning of tail kmalloc redzones more precise when
-KASAN is enabled: slub_debug can still poison and check the tail kmalloc
-allocation area that comes after the KASAN free metadata.
+Note that stack_depot_put is no-op if the handle is 0.
 
-Link: https://lkml.kernel.org/r/20231122231202.121277-1-andrey.konovalov@linux.dev
+Link: https://lkml.kernel.org/r/5cef104d9b842899489b4054fe8d1339a71acee0.1700502145.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Tested-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Feng Tang <feng.tang@intel.com>
-Cc: Marco Elver <elver@google.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   41 ++++++++++++++++++++++++++---------------
- 1 file changed, 26 insertions(+), 15 deletions(-)
+ mm/kasan/common.c     |    3 ++-
+ mm/kasan/generic.c    |   22 ++++++++++++++++++----
+ mm/kasan/quarantine.c |   26 ++++++++++++++++++++------
+ 3 files changed, 40 insertions(+), 11 deletions(-)
 
---- a/mm/slub.c~slub-kasan-improve-interaction-of-kasan-and-slub_debug-poisoning
-+++ a/mm/slub.c
-@@ -870,20 +870,20 @@ static inline void set_orig_size(struct
- 				void *object, unsigned int orig_size)
+--- a/mm/kasan/common.c~kasan-use-stack_depot_put-for-generic-mode
++++ a/mm/kasan/common.c
+@@ -50,7 +50,8 @@ depot_stack_handle_t kasan_save_stack(gf
+ void kasan_set_track(struct kasan_track *track, gfp_t flags)
  {
- 	void *p = kasan_reset_tag(object);
-+	unsigned int kasan_meta_size;
+ 	track->pid = current->pid;
+-	track->stack = kasan_save_stack(flags, STACK_DEPOT_FLAG_CAN_ALLOC);
++	track->stack = kasan_save_stack(flags,
++			STACK_DEPOT_FLAG_CAN_ALLOC | STACK_DEPOT_FLAG_GET);
+ }
  
- 	if (!slub_debug_orig_size(s))
+ #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
+--- a/mm/kasan/generic.c~kasan-use-stack_depot_put-for-generic-mode
++++ a/mm/kasan/generic.c
+@@ -449,10 +449,14 @@ struct kasan_free_meta *kasan_get_free_m
+ void kasan_init_object_meta(struct kmem_cache *cache, const void *object)
+ {
+ 	struct kasan_alloc_meta *alloc_meta;
++	struct kasan_free_meta *free_meta;
+ 
+ 	alloc_meta = kasan_get_alloc_meta(cache, object);
+ 	if (alloc_meta)
+ 		__memset(alloc_meta, 0, sizeof(*alloc_meta));
++	free_meta = kasan_get_free_meta(cache, object);
++	if (free_meta)
++		__memset(free_meta, 0, sizeof(*free_meta));
+ }
+ 
+ size_t kasan_metadata_size(struct kmem_cache *cache, bool in_object)
+@@ -489,18 +493,20 @@ static void __kasan_record_aux_stack(voi
+ 	if (!alloc_meta)
  		return;
  
--#ifdef CONFIG_KASAN_GENERIC
- 	/*
--	 * KASAN could save its free meta data in object's data area at
--	 * offset 0, if the size is larger than 'orig_size', it will
--	 * overlap the data redzone in [orig_size+1, object_size], and
--	 * the check should be skipped.
-+	 * KASAN can save its free meta data inside of the object at offset 0.
-+	 * If this meta data size is larger than 'orig_size', it will overlap
-+	 * the data redzone in [orig_size+1, object_size]. Thus, we adjust
-+	 * 'orig_size' to be as at least as big as KASAN's meta data.
- 	 */
--	if (kasan_metadata_size(s, true) > orig_size)
--		orig_size = s->object_size;
--#endif
-+	kasan_meta_size = kasan_metadata_size(s, true);
-+	if (kasan_meta_size > orig_size)
-+		orig_size = kasan_meta_size;
++	stack_depot_put(alloc_meta->aux_stack[1]);
+ 	alloc_meta->aux_stack[1] = alloc_meta->aux_stack[0];
+ 	alloc_meta->aux_stack[0] = kasan_save_stack(0, depot_flags);
+ }
  
- 	p += get_info_end(s);
- 	p += sizeof(struct track) * 2;
-@@ -1192,7 +1192,7 @@ static int check_object(struct kmem_cach
+ void kasan_record_aux_stack(void *addr)
  {
- 	u8 *p = object;
- 	u8 *endobject = object + s->object_size;
--	unsigned int orig_size;
-+	unsigned int orig_size, kasan_meta_size;
+-	return __kasan_record_aux_stack(addr, STACK_DEPOT_FLAG_CAN_ALLOC);
++	return __kasan_record_aux_stack(addr,
++			STACK_DEPOT_FLAG_CAN_ALLOC | STACK_DEPOT_FLAG_GET);
+ }
  
- 	if (s->flags & SLAB_RED_ZONE) {
- 		if (!check_bytes_and_report(s, slab, object, "Left Redzone",
-@@ -1222,12 +1222,23 @@ static int check_object(struct kmem_cach
- 	}
+ void kasan_record_aux_stack_noalloc(void *addr)
+ {
+-	return __kasan_record_aux_stack(addr, 0);
++	return __kasan_record_aux_stack(addr, STACK_DEPOT_FLAG_GET);
+ }
  
- 	if (s->flags & SLAB_POISON) {
--		if (val != SLUB_RED_ACTIVE && (s->flags & __OBJECT_POISON) &&
--			(!check_bytes_and_report(s, slab, p, "Poison", p,
--					POISON_FREE, s->object_size - 1) ||
--			 !check_bytes_and_report(s, slab, p, "End Poison",
--				p + s->object_size - 1, POISON_END, 1)))
--			return 0;
-+		if (val != SLUB_RED_ACTIVE && (s->flags & __OBJECT_POISON)) {
-+			/*
-+			 * KASAN can save its free meta data inside of the
-+			 * object at offset 0. Thus, skip checking the part of
-+			 * the redzone that overlaps with the meta data.
-+			 */
-+			kasan_meta_size = kasan_metadata_size(s, true);
-+			if (kasan_meta_size < s->object_size - 1 &&
-+			    !check_bytes_and_report(s, slab, p, "Poison",
-+					p + kasan_meta_size, POISON_FREE,
-+					s->object_size - kasan_meta_size - 1))
-+				return 0;
-+			if (kasan_meta_size < s->object_size &&
-+			    !check_bytes_and_report(s, slab, p, "End Poison",
-+					p + s->object_size - 1, POISON_END, 1))
-+				return 0;
-+		}
- 		/*
- 		 * check_pad_bytes cleans up on its own.
- 		 */
+ void kasan_save_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
+@@ -508,8 +514,16 @@ void kasan_save_alloc_info(struct kmem_c
+ 	struct kasan_alloc_meta *alloc_meta;
+ 
+ 	alloc_meta = kasan_get_alloc_meta(cache, object);
+-	if (alloc_meta)
+-		kasan_set_track(&alloc_meta->alloc_track, flags);
++	if (!alloc_meta)
++		return;
++
++	/* Evict previous stack traces (might exist for krealloc). */
++	stack_depot_put(alloc_meta->alloc_track.stack);
++	stack_depot_put(alloc_meta->aux_stack[0]);
++	stack_depot_put(alloc_meta->aux_stack[1]);
++	__memset(alloc_meta, 0, sizeof(*alloc_meta));
++
++	kasan_set_track(&alloc_meta->alloc_track, flags);
+ }
+ 
+ void kasan_save_free_info(struct kmem_cache *cache, void *object)
+--- a/mm/kasan/quarantine.c~kasan-use-stack_depot_put-for-generic-mode
++++ a/mm/kasan/quarantine.c
+@@ -143,11 +143,22 @@ static void *qlink_to_object(struct qlis
+ static void qlink_free(struct qlist_node *qlink, struct kmem_cache *cache)
+ {
+ 	void *object = qlink_to_object(qlink, cache);
+-	struct kasan_free_meta *meta = kasan_get_free_meta(cache, object);
++	struct kasan_alloc_meta *alloc_meta = kasan_get_alloc_meta(cache, object);
++	struct kasan_free_meta *free_meta = kasan_get_free_meta(cache, object);
+ 	unsigned long flags;
+ 
+-	if (IS_ENABLED(CONFIG_SLAB))
+-		local_irq_save(flags);
++	if (alloc_meta) {
++		stack_depot_put(alloc_meta->alloc_track.stack);
++		stack_depot_put(alloc_meta->aux_stack[0]);
++		stack_depot_put(alloc_meta->aux_stack[1]);
++		__memset(alloc_meta, 0, sizeof(*alloc_meta));
++	}
++
++	if (free_meta &&
++	    *(u8 *)kasan_mem_to_shadow(object) == KASAN_SLAB_FREETRACK) {
++		stack_depot_put(free_meta->free_track.stack);
++		free_meta->free_track.stack = 0;
++	}
+ 
+ 	/*
+ 	 * If init_on_free is enabled and KASAN's free metadata is stored in
+@@ -157,14 +168,17 @@ static void qlink_free(struct qlist_node
+ 	 */
+ 	if (slab_want_init_on_free(cache) &&
+ 	    cache->kasan_info.free_meta_offset == 0)
+-		memzero_explicit(meta, sizeof(*meta));
++		memzero_explicit(free_meta, sizeof(*free_meta));
+ 
+ 	/*
+-	 * As the object now gets freed from the quarantine, assume that its
+-	 * free track is no longer valid.
++	 * As the object now gets freed from the quarantine,
++	 * take note that its free track is no longer exists.
+ 	 */
+ 	*(u8 *)kasan_mem_to_shadow(object) = KASAN_SLAB_FREE;
+ 
++	if (IS_ENABLED(CONFIG_SLAB))
++		local_irq_save(flags);
++
+ 	___cache_free(cache, object, _THIS_IP_);
+ 
+ 	if (IS_ENABLED(CONFIG_SLAB))
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
