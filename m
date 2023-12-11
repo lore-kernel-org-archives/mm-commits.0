@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84C154D5B3
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 17:23:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1393F4E1AD
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 17:37:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F4wTrtnj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15F86C433C8;
-	Mon, 11 Dec 2023 17:23:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mGU9kr+5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87E92C433C8;
+	Mon, 11 Dec 2023 17:37:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702315429;
-	bh=GgTQpQg+99XM9ZW6+IVbHr/ZyWzjR3c0jJUyO8IkT7c=;
+	s=korg; t=1702316242;
+	bh=IOBLem/mSToOHTit24TuoYR1AYomL0LKN+fQtY8Zb7g=;
 	h=Date:To:From:Subject:From;
-	b=F4wTrtnjza+TVeiObykAduczHgyHilMslXkP1yRZeLvJqNNhSD8vp1idMUIrezWma
-	 81l/paezXbSSNb4S5e7pzaP4CekUEP0TGEKeaNyYb5hFWCK+SzZNuD5JxYOdMGNyLk
-	 YpSvi4dHfGQX88UHx8nNA25Z8ceOiNvoqvPosQ7g=
-Date: Mon, 11 Dec 2023 09:23:48 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
+	b=mGU9kr+5WulyBWVqapRYPaaLMaUVSwskT0a3y6Shp3aCmL2vd6pfrytyzMn9BAMq9
+	 2WJzmbE7TS7n/T4KlxSlR1WCaR0rCmccao+r8kir+loaeFlyZxnLKmXg1HYSLZgfd9
+	 CqoLqXjyLazYWBN6WFA9j/HVvX090yW4TNBeDw/4=
+Date: Mon, 11 Dec 2023 09:37:21 -0800
+To: mm-commits@vger.kernel.org,lkp@intel.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-page_add_new_anon_rmap-and-lru_cache_add_inactive_or_unevictable.patch added to mm-unstable branch
-Message-Id: <20231211172349.15F86C433C8@smtp.kernel.org>
+Subject: + mm-thp-introduce-multi-size-thp-sysfs-interface-fix.patch added to mm-unstable branch
+Message-Id: <20231211173722.87E92C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove page_add_new_anon_rmap and lru_cache_add_inactive_or_unevictable
+     Subject: mm: thp: Fix build warning when CONFIG_SYSFS is disabled
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-page_add_new_anon_rmap-and-lru_cache_add_inactive_or_unevictable.patch
+     mm-thp-introduce-multi-size-thp-sysfs-interface-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-page_add_new_anon_rmap-and-lru_cache_add_inactive_or_unevictable.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-thp-introduce-multi-size-thp-sysfs-interface-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -50,93 +50,57 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove page_add_new_anon_rmap and lru_cache_add_inactive_or_unevictable
-Date: Mon, 11 Dec 2023 16:22:14 +0000
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: mm: thp: Fix build warning when CONFIG_SYSFS is disabled
+Date: Mon, 11 Dec 2023 12:53:20 +0000
 
-All callers have now been converted to folio_add_new_anon_rmap() and
-folio_add_lru_vma() so we can remove the wrapper.
+huge_anon_orders_lock is used only to serialize sysfs writers.  So move
+its definition so that it is within the CONFIG_SYSFS ifdefery to suppress
+"defined but not used" warning when sysfs is disabled.
 
-Link: https://lkml.kernel.org/r/20231211162214.2146080-10-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20231211125320.3997543-1-ryan.roberts@arm.com
+Fixes: fe2c9313a8c0 ("mm: thp: Introduce multi-size THP sysfs interface")
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202312111916.YbsHxKPq-lkp@intel.com/
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    2 --
- include/linux/swap.h |    3 ---
- mm/folio-compat.c    |   16 ----------------
- 3 files changed, 21 deletions(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/rmap.h~mm-remove-page_add_new_anon_rmap-and-lru_cache_add_inactive_or_unevictable
-+++ a/include/linux/rmap.h
-@@ -197,8 +197,6 @@ typedef int __bitwise rmap_t;
- void folio_move_anon_rmap(struct folio *, struct vm_area_struct *);
- void page_add_anon_rmap(struct page *, struct vm_area_struct *,
- 		unsigned long address, rmap_t flags);
--void page_add_new_anon_rmap(struct page *, struct vm_area_struct *,
--		unsigned long address);
- void folio_add_new_anon_rmap(struct folio *, struct vm_area_struct *,
- 		unsigned long address);
- void page_add_file_rmap(struct page *, struct vm_area_struct *,
---- a/include/linux/swap.h~mm-remove-page_add_new_anon_rmap-and-lru_cache_add_inactive_or_unevictable
-+++ a/include/linux/swap.h
-@@ -397,9 +397,6 @@ void folio_deactivate(struct folio *foli
- void folio_mark_lazyfree(struct folio *folio);
- extern void swap_setup(void);
+--- a/mm/huge_memory.c~mm-thp-introduce-multi-size-thp-sysfs-interface-fix
++++ a/mm/huge_memory.c
+@@ -77,7 +77,6 @@ unsigned long huge_zero_pfn __read_mostl
+ unsigned long huge_anon_orders_always __read_mostly;
+ unsigned long huge_anon_orders_madvise __read_mostly;
+ unsigned long huge_anon_orders_inherit __read_mostly;
+-static DEFINE_SPINLOCK(huge_anon_orders_lock);
  
--extern void lru_cache_add_inactive_or_unevictable(struct page *page,
--						struct vm_area_struct *vma);
--
- /* linux/mm/vmscan.c */
- extern unsigned long zone_reclaimable_pages(struct zone *zone);
- extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
---- a/mm/folio-compat.c~mm-remove-page_add_new_anon_rmap-and-lru_cache_add_inactive_or_unevictable
-+++ a/mm/folio-compat.c
-@@ -77,12 +77,6 @@ bool redirty_page_for_writepage(struct w
- }
- EXPORT_SYMBOL(redirty_page_for_writepage);
+ unsigned long __thp_vma_allowable_orders(struct vm_area_struct *vma,
+ 					 unsigned long vm_flags, bool smaps,
+@@ -442,6 +441,7 @@ static const struct attribute_group huge
  
--void lru_cache_add_inactive_or_unevictable(struct page *page,
--		struct vm_area_struct *vma)
--{
--	folio_add_lru_vma(page_folio(page), vma);
--}
--
- int add_to_page_cache_lru(struct page *page, struct address_space *mapping,
- 		pgoff_t index, gfp_t gfp)
- {
-@@ -122,13 +116,3 @@ void putback_lru_page(struct page *page)
- {
- 	folio_putback_lru(page_folio(page));
- }
--
--#ifdef CONFIG_MMU
--void page_add_new_anon_rmap(struct page *page, struct vm_area_struct *vma,
--		unsigned long address)
--{
--	VM_BUG_ON_PAGE(PageTail(page), page);
--
--	return folio_add_new_anon_rmap((struct folio *)page, vma, address);
--}
--#endif
+ static void hugepage_exit_sysfs(struct kobject *hugepage_kobj);
+ static void thpsize_release(struct kobject *kobj);
++static DEFINE_SPINLOCK(huge_anon_orders_lock);
+ static LIST_HEAD(thpsize_list);
+ 
+ struct thpsize {
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
-buffer-return-bool-from-grow_dev_folio.patch
-buffer-calculate-block-number-inside-folio_init_buffers.patch
-buffer-fix-grow_buffers-for-block-size-page_size.patch
-buffer-cast-block-to-loff_t-before-shifting-it.patch
-buffer-fix-various-functions-for-block-size-page_size.patch
-buffer-handle-large-folios-in-__block_write_begin_int.patch
-buffer-fix-more-functions-for-block-size-page_size.patch
-mm-convert-ksm_might_need_to_copy-to-work-on-folios.patch
-mm-simplify-the-assertions-in-unuse_pte.patch
-mm-convert-unuse_pte-to-use-a-folio-throughout.patch
-mm-remove-some-calls-to-page_add_new_anon_rmap.patch
-mm-remove-stale-example-from-comment.patch
-mm-remove-references-to-page_add_new_anon_rmap-in-comments.patch
-mm-convert-migrate_vma_insert_page-to-use-a-folio.patch
-mm-convert-collapse_huge_page-to-use-a-folio.patch
-mm-remove-page_add_new_anon_rmap-and-lru_cache_add_inactive_or_unevictable.patch
+mm-readahead-do-not-allow-order-1-folio.patch
+mm-allow-deferred-splitting-of-arbitrary-anon-large-folios.patch
+mm-non-pmd-mappable-large-folios-for-folio_add_new_anon_rmap.patch
+mm-thp-introduce-multi-size-thp-sysfs-interface.patch
+mm-thp-introduce-multi-size-thp-sysfs-interface-fix.patch
+mm-thp-support-allocation-of-anonymous-multi-size-thp.patch
+selftests-mm-kugepaged-restore-thp-settings-at-exit.patch
+selftests-mm-factor-out-thp-settings-management.patch
+selftests-mm-support-multi-size-thp-interface-in-thp_settings.patch
+selftests-mm-khugepaged-enlighten-for-multi-size-thp.patch
+selftests-mm-cow-generalize-do_run_with_thp-helper.patch
+selftests-mm-cow-add-tests-for-anonymous-multi-size-thp.patch
 
