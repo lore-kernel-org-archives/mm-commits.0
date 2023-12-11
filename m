@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 223AB46BE
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:55:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6176E4421
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:55:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RGoLiVwY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1CF3C433C7;
-	Mon, 11 Dec 2023 00:55:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hKMFrPdY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D80A2C433CA;
+	Mon, 11 Dec 2023 00:55:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
 	s=korg; t=1702256107;
-	bh=ny9YhWarg4KC14cFxAer70UlGh+QrXiq/nreQljnKRI=;
+	bh=eJZjL8nkJw0Ht6AuRkQY/L8kM8YsCM5RDDv/1f6TkHU=;
 	h=Date:To:From:Subject:From;
-	b=RGoLiVwYXhBWhazObO/bxAbWBQLDFO1411S28k1sqP9m8vYnXTo3i9GsrHFgXEiUh
-	 ci7I9swILlPlu+ojBIe+cNeE8vIsMVJ8XfFX1D/s+mX1neo1tJHcw/9buUyebwYco3
-	 9k+A+eL3R/rBvZWgAdSFnQcsRq8MaFCo4ebFmBtE=
-Date: Sun, 10 Dec 2023 16:55:06 -0800
+	b=hKMFrPdYUCnAVjGFC/d0K5yz+0U8SUIGU1QMAT1m6C1i1HO9kcZiL9rQlGnQ/pzNL
+	 olRZkv3PPECBOXZ7YFu/eEuVo7kjNGR2OiqgUxIDdDy+h/DFsA0QEfTYKg4MY/6w3L
+	 QfLwMJ5I52Eq0cMm1STaeVBkk9Q9gmqIwDIKcgII=
+Date: Sun, 10 Dec 2023 16:55:07 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,osalvador@suse.de,glider@google.com,eugenis@google.com,elver@google.com,dvyukov@google.com,andreyknvl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kasan-use-stack_depot_put-for-generic-mode.patch removed from -mm tree
-Message-Id: <20231211005506.E1CF3C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] lib-stackdepot-adjust-depot_pools_cap-for-kmsan.patch removed from -mm tree
+Message-Id: <20231211005507.D80A2C433CA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,169 +27,65 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kasan: use stack_depot_put for Generic mode
+     Subject: lib/stackdepot: adjust DEPOT_POOLS_CAP for KMSAN
 has been removed from the -mm tree.  Its filename was
-     kasan-use-stack_depot_put-for-generic-mode.patch
+     lib-stackdepot-adjust-depot_pools_cap-for-kmsan.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: use stack_depot_put for Generic mode
-Date: Mon, 20 Nov 2023 18:47:19 +0100
+Subject: lib/stackdepot: adjust DEPOT_POOLS_CAP for KMSAN
+Date: Mon, 20 Nov 2023 18:47:20 +0100
 
-Evict alloc/free stack traces from the stack depot for Generic KASAN once
-they are evicted from the quaratine.
+KMSAN is frequently used in fuzzing scenarios and thus saves a lot of
+stack traces.  As KMSAN does not support evicting stack traces from the
+stack depot, the stack depot capacity might be reached quickly with large
+stack records.
 
-For auxiliary stack traces, evict the oldest stack trace once a new one is
-saved (KASAN only keeps references to the last two).
+Adjust the maximum number of stack depot pools for this case.
 
-Also evict all saved stack traces on krealloc.
+The average size of a stack trace saved into the stack depot is ~16
+frames.  Thus, adjust the maximum pools number accordingly to keep the
+maximum number of stack traces that can be saved into the stack depot
+similar to the one that was allowed before the stack trace eviction
+changes.
 
-To avoid double-evicting and mis-evicting stack traces (in case KASAN's
-metadata was corrupted), reset KASAN's per-object metadata that stores
-stack depot handles when the object is initialized and when it's evicted
-from the quarantine.
-
-Note that stack_depot_put is no-op if the handle is 0.
-
-Link: https://lkml.kernel.org/r/5cef104d9b842899489b4054fe8d1339a71acee0.1700502145.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/301a115cf7ce8ddb42ef6de9151c2bb76ba728fc.1700502145.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c     |    3 ++-
- mm/kasan/generic.c    |   22 ++++++++++++++++++----
- mm/kasan/quarantine.c |   26 ++++++++++++++++++++------
- 3 files changed, 40 insertions(+), 11 deletions(-)
+ lib/stackdepot.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/mm/kasan/common.c~kasan-use-stack_depot_put-for-generic-mode
-+++ a/mm/kasan/common.c
-@@ -50,7 +50,8 @@ depot_stack_handle_t kasan_save_stack(gf
- void kasan_set_track(struct kasan_track *track, gfp_t flags)
- {
- 	track->pid = current->pid;
--	track->stack = kasan_save_stack(flags, STACK_DEPOT_FLAG_CAN_ALLOC);
-+	track->stack = kasan_save_stack(flags,
-+			STACK_DEPOT_FLAG_CAN_ALLOC | STACK_DEPOT_FLAG_GET);
- }
- 
- #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
---- a/mm/kasan/generic.c~kasan-use-stack_depot_put-for-generic-mode
-+++ a/mm/kasan/generic.c
-@@ -449,10 +449,14 @@ struct kasan_free_meta *kasan_get_free_m
- void kasan_init_object_meta(struct kmem_cache *cache, const void *object)
- {
- 	struct kasan_alloc_meta *alloc_meta;
-+	struct kasan_free_meta *free_meta;
- 
- 	alloc_meta = kasan_get_alloc_meta(cache, object);
- 	if (alloc_meta)
- 		__memset(alloc_meta, 0, sizeof(*alloc_meta));
-+	free_meta = kasan_get_free_meta(cache, object);
-+	if (free_meta)
-+		__memset(free_meta, 0, sizeof(*free_meta));
- }
- 
- size_t kasan_metadata_size(struct kmem_cache *cache, bool in_object)
-@@ -489,18 +493,20 @@ static void __kasan_record_aux_stack(voi
- 	if (!alloc_meta)
- 		return;
- 
-+	stack_depot_put(alloc_meta->aux_stack[1]);
- 	alloc_meta->aux_stack[1] = alloc_meta->aux_stack[0];
- 	alloc_meta->aux_stack[0] = kasan_save_stack(0, depot_flags);
- }
- 
- void kasan_record_aux_stack(void *addr)
- {
--	return __kasan_record_aux_stack(addr, STACK_DEPOT_FLAG_CAN_ALLOC);
-+	return __kasan_record_aux_stack(addr,
-+			STACK_DEPOT_FLAG_CAN_ALLOC | STACK_DEPOT_FLAG_GET);
- }
- 
- void kasan_record_aux_stack_noalloc(void *addr)
- {
--	return __kasan_record_aux_stack(addr, 0);
-+	return __kasan_record_aux_stack(addr, STACK_DEPOT_FLAG_GET);
- }
- 
- void kasan_save_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
-@@ -508,8 +514,16 @@ void kasan_save_alloc_info(struct kmem_c
- 	struct kasan_alloc_meta *alloc_meta;
- 
- 	alloc_meta = kasan_get_alloc_meta(cache, object);
--	if (alloc_meta)
--		kasan_set_track(&alloc_meta->alloc_track, flags);
-+	if (!alloc_meta)
-+		return;
-+
-+	/* Evict previous stack traces (might exist for krealloc). */
-+	stack_depot_put(alloc_meta->alloc_track.stack);
-+	stack_depot_put(alloc_meta->aux_stack[0]);
-+	stack_depot_put(alloc_meta->aux_stack[1]);
-+	__memset(alloc_meta, 0, sizeof(*alloc_meta));
-+
-+	kasan_set_track(&alloc_meta->alloc_track, flags);
- }
- 
- void kasan_save_free_info(struct kmem_cache *cache, void *object)
---- a/mm/kasan/quarantine.c~kasan-use-stack_depot_put-for-generic-mode
-+++ a/mm/kasan/quarantine.c
-@@ -143,11 +143,22 @@ static void *qlink_to_object(struct qlis
- static void qlink_free(struct qlist_node *qlink, struct kmem_cache *cache)
- {
- 	void *object = qlink_to_object(qlink, cache);
--	struct kasan_free_meta *meta = kasan_get_free_meta(cache, object);
-+	struct kasan_alloc_meta *alloc_meta = kasan_get_alloc_meta(cache, object);
-+	struct kasan_free_meta *free_meta = kasan_get_free_meta(cache, object);
- 	unsigned long flags;
- 
--	if (IS_ENABLED(CONFIG_SLAB))
--		local_irq_save(flags);
-+	if (alloc_meta) {
-+		stack_depot_put(alloc_meta->alloc_track.stack);
-+		stack_depot_put(alloc_meta->aux_stack[0]);
-+		stack_depot_put(alloc_meta->aux_stack[1]);
-+		__memset(alloc_meta, 0, sizeof(*alloc_meta));
-+	}
-+
-+	if (free_meta &&
-+	    *(u8 *)kasan_mem_to_shadow(object) == KASAN_SLAB_FREETRACK) {
-+		stack_depot_put(free_meta->free_track.stack);
-+		free_meta->free_track.stack = 0;
-+	}
- 
- 	/*
- 	 * If init_on_free is enabled and KASAN's free metadata is stored in
-@@ -157,14 +168,17 @@ static void qlink_free(struct qlist_node
- 	 */
- 	if (slab_want_init_on_free(cache) &&
- 	    cache->kasan_info.free_meta_offset == 0)
--		memzero_explicit(meta, sizeof(*meta));
-+		memzero_explicit(free_meta, sizeof(*free_meta));
- 
- 	/*
--	 * As the object now gets freed from the quarantine, assume that its
--	 * free track is no longer valid.
-+	 * As the object now gets freed from the quarantine,
-+	 * take note that its free track is no longer exists.
- 	 */
- 	*(u8 *)kasan_mem_to_shadow(object) = KASAN_SLAB_FREE;
- 
-+	if (IS_ENABLED(CONFIG_SLAB))
-+		local_irq_save(flags);
-+
- 	___cache_free(cache, object, _THIS_IP_);
- 
- 	if (IS_ENABLED(CONFIG_SLAB))
+--- a/lib/stackdepot.c~lib-stackdepot-adjust-depot_pools_cap-for-kmsan
++++ a/lib/stackdepot.c
+@@ -41,7 +41,17 @@
+ #define DEPOT_OFFSET_BITS (DEPOT_POOL_ORDER + PAGE_SHIFT - DEPOT_STACK_ALIGN)
+ #define DEPOT_POOL_INDEX_BITS (DEPOT_HANDLE_BITS - DEPOT_OFFSET_BITS - \
+ 			       STACK_DEPOT_EXTRA_BITS)
++#if IS_ENABLED(CONFIG_KMSAN) && CONFIG_STACKDEPOT_MAX_FRAMES >= 32
++/*
++ * KMSAN is frequently used in fuzzing scenarios and thus saves a lot of stack
++ * traces. As KMSAN does not support evicting stack traces from the stack
++ * depot, the stack depot capacity might be reached quickly with large stack
++ * records. Adjust the maximum number of stack depot pools for this case.
++ */
++#define DEPOT_POOLS_CAP (8192 * (CONFIG_STACKDEPOT_MAX_FRAMES / 16))
++#else
+ #define DEPOT_POOLS_CAP 8192
++#endif
+ #define DEPOT_MAX_POOLS \
+ 	(((1LL << (DEPOT_POOL_INDEX_BITS)) < DEPOT_POOLS_CAP) ? \
+ 	 (1LL << (DEPOT_POOL_INDEX_BITS)) : DEPOT_POOLS_CAP)
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
