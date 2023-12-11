@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D3CC23A1
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:54:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE4B21FC9
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:54:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IO+qzPnT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59565C433C8;
-	Mon, 11 Dec 2023 00:54:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TFizaU0e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85E99C433C9;
+	Mon, 11 Dec 2023 00:54:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702256041;
-	bh=pR+Kj7Mt7/g9donTY2Mb7iOnH2gT5QHzL7DnIYNa0cE=;
+	s=korg; t=1702256042;
+	bh=kmnJspM6SkjpjTpFVsy+bvXpPGJn10SVbG2At53TFfA=;
 	h=Date:To:From:Subject:From;
-	b=IO+qzPnTT28w89T9KBaOzoalOgx+6NT6y5cRqWTvp5ZLiVepJgw+3klbzBY5N9fiF
-	 TwsoP+5lBLQ2drSh2H5/t9KsQzQWlBWHu0yi9ID0VXhMhs1x30HuPCKsUrafC+j/7h
-	 uSlZy/ZoW9FU0zcnZ2aRBqYo/bF/E+jYpEh7b7Tc=
-Date: Sun, 10 Dec 2023 16:54:00 -0800
-To: mm-commits@vger.kernel.org,zhoubinbin@loongson.cn,tglx@linutronix.de,rppt@kernel.org,peterz@infradead.org,mingo@redhat.com,maobibo@loongson.cn,luto@kernel.org,kernel@xen0n.name,hpa@zytor.com,dave.hansen@linux.intel.com,chenhuacai@kernel.org,chenfeiyang@loongson.cn,bp@alien8.de,zhiguangni01@gmail.com,akpm@linux-foundation.org
+	b=TFizaU0e99PELQOXbJIoAFGaiHR1hEM0piirh2IHNkLL9JiVB617qZAwmzZPTa6Ly
+	 EzRprN7Q2yn2fmPkBBFgf8sA14QeMxbgCsQs8SbBE8zUEVS9C7C6qz/Og/lvIz697/
+	 iGzNo68K2bXX3DE7ldOtpZrIchoWNYgrw8S2WBOk=
+Date: Sun, 10 Dec 2023 16:54:02 -0800
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,osalvador@suse.de,mhocko@suse.com,Jonathan.Cameron@huawei.com,jmoyer@redhat.com,fan.ni@samsung.com,david@redhat.com,dave.jiang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,aneesh.kumar@linux.ibm.com,vishal.l.verma@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] numa-optimize-detection-of-memory-with-no-node-id-assigned-by-firmware.patch removed from -mm tree
-Message-Id: <20231211005401.59565C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memory_hotplug-replace-an-open-coded-kmemdup-in-add_memory_resource.patch removed from -mm tree
+Message-Id: <20231211005402.85E99C433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,206 +27,90 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: NUMA: optimize detection of memory with no node id assigned by firmware
+     Subject: mm/memory_hotplug: replace an open-coded kmemdup() in add_memory_resource()
 has been removed from the -mm tree.  Its filename was
-     numa-optimize-detection-of-memory-with-no-node-id-assigned-by-firmware.patch
+     mm-memory_hotplug-replace-an-open-coded-kmemdup-in-add_memory_resource.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Liam Ni <zhiguangni01@gmail.com>
-Subject: NUMA: optimize detection of memory with no node id assigned by firmware
-Date: Thu, 26 Oct 2023 10:03:29 +0800
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: mm/memory_hotplug: replace an open-coded kmemdup() in add_memory_resource()
+Date: Tue, 07 Nov 2023 00:22:41 -0700
 
-Sanity check that makes sure the nodes cover all memory loops over
-numa_meminfo to count the pages that have node id assigned by the
-firmware, then loops again over memblock.memory to find the total amount
-of memory and in the end checks that the difference between the total
-memory and memory that covered by nodes is less than some threshold. 
-Worse, the loop over numa_meminfo calls __absent_pages_in_range() that
-also partially traverses memblock.memory.
+Patch series "mm: use memmap_on_memory semantics for dax/kmem", v10.
 
-It's much simpler and more efficient to have a single traversal of
-memblock.memory that verifies that amount of memory not covered by nodes
-is less than a threshold.
+The dax/kmem driver can potentially hot-add large amounts of memory
+originating from CXL memory expanders, or NVDIMMs, or other 'device
+memories'.  There is a chance there isn't enough regular system memory
+available to fit the memmap for this new memory.  It's therefore
+desirable, if all other conditions are met, for the kmem managed memory to
+place its memmap on the newly added memory itself.
 
-Introduce memblock_validate_numa_coverage() that does exactly that and use
-it instead of numa_meminfo_cover_memory().
+The main hurdle for accomplishing this for kmem is that memmap_on_memory
+can only be done if the memory being added is equal to the size of one
+memblock.  To overcome this, allow the hotplug code to split an
+add_memory() request into memblock-sized chunks, and try_remove_memory()
+to also expect and handle such a scenario.
 
-Link: https://lkml.kernel.org/r/20231026020329.327329-1-zhiguangni01@gmail.com
-Signed-off-by: Liam Ni <zhiguangni01@gmail.com>
-Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Bibo Mao <maobibo@loongson.cn>
-Cc: Binbin Zhou <zhoubinbin@loongson.cn>
-Cc: Borislav Petkov <bp@alien8.de>
+Patch 1 replaces an open-coded kmemdup()
+
+Patch 2 teaches the memory_hotplug code to allow for splitting
+add_memory() and remove_memory() requests over memblock sized chunks.
+
+Patch 3 allows the dax region drivers to request memmap_on_memory
+semantics. CXL dax regions default this to 'on', all others default to
+off to keep existing behavior unchanged.
+
+
+This patch (of 3):
+
+A review of the memmap_on_memory modifications to add_memory_resource()
+revealed an instance of an open-coded kmemdup().  Replace it with
+kmemdup().
+
+Link: https://lkml.kernel.org/r/20231107-vv-kmem_memmap-v10-0-1253ec050ed0@intel.com
+Link: https://lkml.kernel.org/r/20231107-vv-kmem_memmap-v10-1-1253ec050ed0@intel.com
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Fan Ni <fan.ni@samsung.com>
+Reported-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Feiyang Chen <chenfeiyang@loongson.cn>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: WANG Xuerui <kernel@xen0n.name>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/loongarch/kernel/numa.c |   28 ---------------------------
- arch/x86/mm/numa.c           |   34 +--------------------------------
- include/linux/memblock.h     |    1 
- mm/memblock.c                |   34 +++++++++++++++++++++++++++++++++
- 4 files changed, 38 insertions(+), 59 deletions(-)
+ mm/memory_hotplug.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/arch/loongarch/kernel/numa.c~numa-optimize-detection-of-memory-with-no-node-id-assigned-by-firmware
-+++ a/arch/loongarch/kernel/numa.c
-@@ -226,32 +226,6 @@ static void __init node_mem_init(unsigne
- 
- #ifdef CONFIG_ACPI_NUMA
- 
--/*
-- * Sanity check to catch more bad NUMA configurations (they are amazingly
-- * common).  Make sure the nodes cover all memory.
-- */
--static bool __init numa_meminfo_cover_memory(const struct numa_meminfo *mi)
--{
--	int i;
--	u64 numaram, biosram;
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-replace-an-open-coded-kmemdup-in-add_memory_resource
++++ a/mm/memory_hotplug.c
+@@ -1439,13 +1439,13 @@ int __ref add_memory_resource(int nid, s
+ 	if (mhp_flags & MHP_MEMMAP_ON_MEMORY) {
+ 		if (mhp_supports_memmap_on_memory(size)) {
+ 			mhp_altmap.free = memory_block_memmap_on_memory_pages();
+-			params.altmap = kmalloc(sizeof(struct vmem_altmap), GFP_KERNEL);
++			params.altmap = kmemdup(&mhp_altmap,
++						sizeof(struct vmem_altmap),
++						GFP_KERNEL);
+ 			if (!params.altmap) {
+ 				ret = -ENOMEM;
+ 				goto error;
+ 			}
 -
--	numaram = 0;
--	for (i = 0; i < mi->nr_blks; i++) {
--		u64 s = mi->blk[i].start >> PAGE_SHIFT;
--		u64 e = mi->blk[i].end >> PAGE_SHIFT;
--
--		numaram += e - s;
--		numaram -= __absent_pages_in_range(mi->blk[i].nid, s, e);
--		if ((s64)numaram < 0)
--			numaram = 0;
--	}
--	max_pfn = max_low_pfn;
--	biosram = max_pfn - absent_pages_in_range(0, max_pfn);
--
--	BUG_ON((s64)(biosram - numaram) >= (1 << (20 - PAGE_SHIFT)));
--	return true;
--}
--
- static void __init add_node_intersection(u32 node, u64 start, u64 size, u32 type)
- {
- 	static unsigned long num_physpages;
-@@ -396,7 +370,7 @@ int __init init_numa_memory(void)
- 		return -EINVAL;
- 
- 	init_node_memblock();
--	if (numa_meminfo_cover_memory(&numa_meminfo) == false)
-+	if (!memblock_validate_numa_coverage(SZ_1M))
- 		return -EINVAL;
- 
- 	for_each_node_mask(node, node_possible_map) {
---- a/arch/x86/mm/numa.c~numa-optimize-detection-of-memory-with-no-node-id-assigned-by-firmware
-+++ a/arch/x86/mm/numa.c
-@@ -450,37 +450,6 @@ int __node_distance(int from, int to)
- EXPORT_SYMBOL(__node_distance);
- 
- /*
-- * Sanity check to catch more bad NUMA configurations (they are amazingly
-- * common).  Make sure the nodes cover all memory.
-- */
--static bool __init numa_meminfo_cover_memory(const struct numa_meminfo *mi)
--{
--	u64 numaram, e820ram;
--	int i;
--
--	numaram = 0;
--	for (i = 0; i < mi->nr_blks; i++) {
--		u64 s = mi->blk[i].start >> PAGE_SHIFT;
--		u64 e = mi->blk[i].end >> PAGE_SHIFT;
--		numaram += e - s;
--		numaram -= __absent_pages_in_range(mi->blk[i].nid, s, e);
--		if ((s64)numaram < 0)
--			numaram = 0;
--	}
--
--	e820ram = max_pfn - absent_pages_in_range(0, max_pfn);
--
--	/* We seem to lose 3 pages somewhere. Allow 1M of slack. */
--	if ((s64)(e820ram - numaram) >= (1 << (20 - PAGE_SHIFT))) {
--		printk(KERN_ERR "NUMA: nodes only cover %LuMB of your %LuMB e820 RAM. Not used.\n",
--		       (numaram << PAGE_SHIFT) >> 20,
--		       (e820ram << PAGE_SHIFT) >> 20);
--		return false;
--	}
--	return true;
--}
--
--/*
-  * Mark all currently memblock-reserved physical memory (which covers the
-  * kernel's own memory ranges) as hot-unswappable.
-  */
-@@ -585,7 +554,8 @@ static int __init numa_register_memblks(
- 			return -EINVAL;
+-			memcpy(params.altmap, &mhp_altmap, sizeof(mhp_altmap));
  		}
+ 		/* fallback to not using altmap  */
  	}
--	if (!numa_meminfo_cover_memory(mi))
-+
-+	if (!memblock_validate_numa_coverage(SZ_1M))
- 		return -EINVAL;
- 
- 	/* Finally register nodes. */
---- a/include/linux/memblock.h~numa-optimize-detection-of-memory-with-no-node-id-assigned-by-firmware
-+++ a/include/linux/memblock.h
-@@ -123,6 +123,7 @@ int memblock_physmem_add(phys_addr_t bas
- void memblock_trim_memory(phys_addr_t align);
- bool memblock_overlaps_region(struct memblock_type *type,
- 			      phys_addr_t base, phys_addr_t size);
-+bool memblock_validate_numa_coverage(unsigned long threshold_bytes);
- int memblock_mark_hotplug(phys_addr_t base, phys_addr_t size);
- int memblock_clear_hotplug(phys_addr_t base, phys_addr_t size);
- int memblock_mark_mirror(phys_addr_t base, phys_addr_t size);
---- a/mm/memblock.c~numa-optimize-detection-of-memory-with-no-node-id-assigned-by-firmware
-+++ a/mm/memblock.c
-@@ -735,6 +735,40 @@ int __init_memblock memblock_add(phys_ad
- }
- 
- /**
-+ * memblock_validate_numa_coverage - check if amount of memory with
-+ * no node ID assigned is less than a threshold
-+ * @threshold_bytes: maximal number of pages that can have unassigned node
-+ * ID (in bytes).
-+ *
-+ * A buggy firmware may report memory that does not belong to any node.
-+ * Check if amount of such memory is below @threshold_bytes.
-+ *
-+ * Return: true on success, false on failure.
-+ */
-+bool __init_memblock memblock_validate_numa_coverage(unsigned long threshold_bytes)
-+{
-+	unsigned long nr_pages = 0;
-+	unsigned long start_pfn, end_pfn, mem_size_mb;
-+	int nid, i;
-+
-+	/* calculate lose page */
-+	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid) {
-+		if (nid == NUMA_NO_NODE)
-+			nr_pages += end_pfn - start_pfn;
-+	}
-+
-+	if ((nr_pages << PAGE_SHIFT) >= threshold_bytes) {
-+		mem_size_mb = memblock_phys_mem_size() >> 20;
-+		pr_err("NUMA: no nodes coverage for %luMB of %luMB RAM\n",
-+		       (nr_pages << PAGE_SHIFT) >> 20, mem_size_mb);
-+		return false;
-+	}
-+
-+	return true;
-+}
-+
-+
-+/**
-  * memblock_isolate_range - isolate given range into disjoint memblocks
-  * @type: memblock type to isolate range for
-  * @base: base of range to isolate
 _
 
-Patches currently in -mm which might be from zhiguangni01@gmail.com are
+Patches currently in -mm which might be from vishal.l.verma@intel.com are
 
 
