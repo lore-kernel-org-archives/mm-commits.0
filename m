@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C3C223A1
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:54:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8FB923C4
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:54:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zoXHdu74"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE60BC433C8;
-	Mon, 11 Dec 2023 00:54:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jvd9BQks"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2803C433C9;
+	Mon, 11 Dec 2023 00:54:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702256055;
-	bh=qd/E/G958crxWoU8QEWnR/oFEHClqH3G8P+Ese5d2ng=;
+	s=korg; t=1702256056;
+	bh=Zo1owNxL5Ki54CFUjSeStmUaitCIltfdyyruGHYuIsg=;
 	h=Date:To:From:Subject:From;
-	b=zoXHdu746uPoNE6BG7XT5ZaRaATY35ge2R3EsJjtE6K5eQFC+tY4WCvilQM4J/1dB
-	 5iR94yQVJj3SadqhRnETRsrHmU3JCNQDs5hDpZIdO4SWXsQJAHd1OQrEIaRtizKTMj
-	 T8b2ZCmmvVHUWvsIdO4vPNuzXdmRFJIrXeW1N3kg=
-Date: Sun, 10 Dec 2023 16:54:15 -0800
+	b=jvd9BQksm7aQNNfCi9WZ/WNx5AV+4kfCkOSHq8gfK13sjOCkE7IuNa1pHIsGFIbgY
+	 DjBmO8KAe9p4bcJSWU/surgvQs68q+tUbSSM0Z/Jrs6Lq2+PLyadbzruz97qDnb5vW
+	 wmFjlGk+TVtwhgMnK8BNLVf54Ln1q8k6SBd9zzFs=
+Date: Sun, 10 Dec 2023 16:54:16 -0800
 To: mm-commits@vger.kernel.org,sfrench@samba.org,dhowells@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] afs-do-not-test-the-return-value-of-folio_start_writeback.patch removed from -mm tree
-Message-Id: <20231211005415.BE60BC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] smb-do-not-test-the-return-value-of-folio_start_writeback.patch removed from -mm tree
+Message-Id: <20231211005416.B2803C433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,53 +27,53 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: afs: do not test the return value of folio_start_writeback()
+     Subject: smb: do not test the return value of folio_start_writeback()
 has been removed from the -mm tree.  Its filename was
-     afs-do-not-test-the-return-value-of-folio_start_writeback.patch
+     smb-do-not-test-the-return-value-of-folio_start_writeback.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: afs: do not test the return value of folio_start_writeback()
-Date: Wed, 8 Nov 2023 20:46:03 +0000
+Subject: smb: do not test the return value of folio_start_writeback()
+Date: Wed, 8 Nov 2023 20:46:04 +0000
 
 In preparation for removing the return value entirely, stop testing it
-in afs.
+in smb.
 
-Link: https://lkml.kernel.org/r/20231108204605.745109-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231108204605.745109-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: David Howells <dhowells@redhat.com>
 Cc: Steve French <sfrench@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/write.c |    6 ++----
+ fs/smb/client/file.c |    6 ++----
  1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/fs/afs/write.c~afs-do-not-test-the-return-value-of-folio_start_writeback
-+++ a/fs/afs/write.c
-@@ -559,8 +559,7 @@ static void afs_extend_writeback(struct
- 
+--- a/fs/smb/client/file.c~smb-do-not-test-the-return-value-of-folio_start_writeback
++++ a/fs/smb/client/file.c
+@@ -2706,8 +2706,7 @@ static void cifs_extend_writeback(struct
+ 			 */
  			if (!folio_clear_dirty_for_io(folio))
- 				BUG();
+ 				WARN_ON(1);
 -			if (folio_start_writeback(folio))
--				BUG();
+-				WARN_ON(1);
 +			folio_start_writeback(folio);
- 			afs_folio_start_fscache(caching, folio);
  
  			*_count -= folio_nr_pages(folio);
-@@ -595,8 +594,7 @@ static ssize_t afs_write_back_from_locke
+ 			folio_unlock(folio);
+@@ -2742,8 +2741,7 @@ static ssize_t cifs_write_back_from_lock
+ 	int rc;
  
- 	_enter(",%lx,%llx-%llx", folio_index(folio), start, end);
- 
+ 	/* The folio should be locked, dirty and not undergoing writeback. */
 -	if (folio_start_writeback(folio))
--		BUG();
+-		WARN_ON(1);
 +	folio_start_writeback(folio);
- 	afs_folio_start_fscache(caching, folio);
  
  	count -= folio_nr_pages(folio);
+ 	len = folio_size(folio);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
