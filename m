@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93B89468D
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:55:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81B24468D
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:55:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q6DbaAS8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DF71C433C8;
-	Mon, 11 Dec 2023 00:55:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wPgpWeZn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F278C433C7;
+	Mon, 11 Dec 2023 00:55:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702256118;
-	bh=3Tvm+ovhNX3Wj21J8PRu++TjhTRMdTtds2Zr0Cxm1LQ=;
+	s=korg; t=1702256119;
+	bh=eyRwvAbQfc/Nfx/4U1WyUlD2cuh3hwLOE7m2KeV49DE=;
 	h=Date:To:From:Subject:From;
-	b=q6DbaAS8rlAKTSJhtJ8APFG673fqlc/t6tKo/3/DLZ9d2Wsuns/xyo3JJL3kurr9z
-	 Koxd2z1GKShTwn872ifrYrDuSR/Hu43Ab9vkJpx9rjonTN+lxxL2Qbnv4nHilQac09
-	 UMt+QAGvIXfcnhjp/wPMv3IeGLli/Brq/MrvhTWg=
-Date: Sun, 10 Dec 2023 16:55:17 -0800
-To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,hca@linux.ibm.com,gerald.schaefer@linux.ibm.com,agordeev@linux.ibm.com,akpm@linux-foundation.org
+	b=wPgpWeZnFU6+DN66nI+rC7tWjcnC2QMWAIr5mEkZPYFmz7EKjNTKfhmpPmDakYt6+
+	 3k/AUeK42yYVrun3UyNsOLxaYyuvN/FgFfhjTW5bvnZPt+uzYEfXd/Su9odbnwRU+C
+	 WyhUdkDH6WYfOnvqjSuHTos80jXTRr40W1kZP6t0=
+Date: Sun, 10 Dec 2023 16:55:18 -0800
+To: mm-commits@vger.kernel.org,rppt@kernel.org,fancer.lancer@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] pgtable-rename-ptdesc-_refcount-field-to-__page_refcount.patch removed from -mm tree
-Message-Id: <20231211005518.5DF71C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mm_initc-extend-init-unavailable-range-doc-info.patch removed from -mm tree
+Message-Id: <20231211005519.4F278C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,63 +27,47 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: pgtable: rename ptdesc _refcount field to __page_refcount
+     Subject: mm/mm_init.c: extend init unavailable range doc info
 has been removed from the -mm tree.  Its filename was
-     pgtable-rename-ptdesc-_refcount-field-to-__page_refcount.patch
+     mm-mm_initc-extend-init-unavailable-range-doc-info.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Alexander Gordeev <agordeev@linux.ibm.com>
-Subject: pgtable: rename ptdesc _refcount field to __page_refcount
-Date: Tue, 21 Nov 2023 20:43:50 +0100
+From: Serge Semin <fancer.lancer@gmail.com>
+Subject: mm/mm_init.c: extend init unavailable range doc info
+Date: Wed, 22 Nov 2023 21:24:03 +0300
 
-Rename ptdesc _refcount field to __page_refcount similar to the other
-unused page fields.
+Besides of the already described reasons the pages backended memory holes
+might be persistent due to having memory mapped IO spaces behind those
+ranges in the framework of flatmem kernel config.  Add such note to the
+init_unavailable_range() method kdoc in order to point out to one more
+reason of having the function executed for such regions.
 
-Link: https://lkml.kernel.org/r/982bdc652ba79a606c3d01c905766e7e076b3315.1700594815.git.agordeev@linux.ibm.com
-Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
-Suggested-by: Vishal Moola <vishal.moola@gmail.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
+[fancer.lancer@gmail.com: update per Mike]
+  Link: https://lkml.kernel.org/r/20231202111855.18392-1-fancer.lancer@gmail.com
+Link: https://lkml.kernel.org/r/20231122182419.30633-6-fancer.lancer@gmail.com
+Signed-off-by: Serge Semin <fancer.lancer@gmail.com>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/mm_init.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/mm_types.h~pgtable-rename-ptdesc-_refcount-field-to-__page_refcount
-+++ a/include/linux/mm_types.h
-@@ -405,7 +405,7 @@ FOLIO_MATCH(compound_head, _head_2a);
-  * @_pt_pad_2:        Padding to ensure proper alignment.
-  * @ptl:              Lock for the page table.
-  * @__page_type:      Same as page->page_type. Unused for page tables.
-- * @_refcount:        Same as page refcount.
-+ * @__page_refcount:  Same as page refcount.
-  * @pt_memcg_data:    Memcg data. Tracked for page tables here.
+--- a/mm/mm_init.c~mm-mm_initc-extend-init-unavailable-range-doc-info
++++ a/mm/mm_init.c
+@@ -796,6 +796,7 @@ overlap_memmap_init(unsigned long zone,
+  * - physical memory bank size is not necessarily the exact multiple of the
+  *   arbitrary section size
+  * - early reserved memory may not be listed in memblock.memory
++ * - non-memory regions covered by the contigious flatmem mapping
+  * - memory layouts defined with memmap= kernel parameter may not align
+  *   nicely with memmap sections
   *
-  * This struct overlays struct page for now. Do not modify without a good
-@@ -438,7 +438,7 @@ struct ptdesc {
- #endif
- 	};
- 	unsigned int __page_type;
--	atomic_t _refcount;
-+	atomic_t __page_refcount;
- #ifdef CONFIG_MEMCG
- 	unsigned long pt_memcg_data;
- #endif
-@@ -452,7 +452,7 @@ TABLE_MATCH(compound_head, _pt_pad_1);
- TABLE_MATCH(mapping, __page_mapping);
- TABLE_MATCH(rcu_head, pt_rcu_head);
- TABLE_MATCH(page_type, __page_type);
--TABLE_MATCH(_refcount, _refcount);
-+TABLE_MATCH(_refcount, __page_refcount);
- #ifdef CONFIG_MEMCG
- TABLE_MATCH(memcg_data, pt_memcg_data);
- #endif
 _
 
-Patches currently in -mm which might be from agordeev@linux.ibm.com are
+Patches currently in -mm which might be from fancer.lancer@gmail.com are
 
 
