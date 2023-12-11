@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 457067493
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:23:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4697A7493
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:23:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sSRed+Cy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0EF0BC433C8;
-	Mon, 11 Dec 2023 01:23:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="px8+rK6F"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 117F1C433C8;
+	Mon, 11 Dec 2023 01:23:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702257829;
-	bh=2sLooo5c4ch3BCJ+RSKysIFc+EiFdkmUJedIh6kAzgU=;
+	s=korg; t=1702257830;
+	bh=ezXaH5x1M3ZvFi/NGoGFlrP8YOyagk/b+3x+X9tn500=;
 	h=Date:To:From:Subject:From;
-	b=sSRed+Cyo76SwmeKU86o56XrV4JLCZHqSA6LGxOrqbr6Y2DOjvAgj72ZoN+EKBZEZ
-	 cfC9w0Rair69SmbRdG5BMLx/8cMUHepohfbFP7RoPDHD8+CpebY0XkawsFNbz4BGBt
-	 1bfyRQClxBmf/C1OvvmVLYzkSj148JHKoot3Gtpo=
-Date: Sun, 10 Dec 2023 17:23:48 -0800
+	b=px8+rK6Fmhf1Aqrx+/Wfc9CP6vcsuVAjwqBYzlFF3vJOR5P3MEjbKHLZ1ewOjf1Ms
+	 coh+1xnt5E5PD1bzfEcQTK3iCjoE/7IfLkn+oafZXc4zdYdd846wlpF+cA1BJOEoNV
+	 85qPEw3C8Hx+hr+NNdoNyfRRaHgk6jCl1WtH6SVU=
+Date: Sun, 10 Dec 2023 17:23:49 -0800
 To: mm-commits@vger.kernel.org,tsbogend@alpha.franken.de,sfr@rothwell.id.au,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] mips-hide-conditionally-unused-functions.patch removed from -mm tree
-Message-Id: <20231211012349.0EF0BC433C8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] mips-smp-fix-setup_profiling_timer-prototype.patch removed from -mm tree
+Message-Id: <20231211012350.117F1C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,75 +27,59 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mips: hide conditionally unused functions
+     Subject: mips: smp: fix setup_profiling_timer() prototype
 has been removed from the -mm tree.  Its filename was
-     mips-hide-conditionally-unused-functions.patch
+     mips-smp-fix-setup_profiling_timer-prototype.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: mips: hide conditionally unused functions
-Date: Mon, 4 Dec 2023 12:57:08 +0100
+Subject: mips: smp: fix setup_profiling_timer() prototype
+Date: Mon, 4 Dec 2023 12:57:09 +0100
 
-A couple of functions are defined unconditionally but have a conditional
-declaration:
+The function is unconditionally defined in smp.c but is conditionally
+declared in a header that is not included here.
 
-arch/mips/mm/tlb-r4k.c:461:12: error: no previous prototype for 'add_temporary_entry' [-Werror=missing-prototypes]
-arch/mips/mm/pgtable-64.c:92:7: error: no previous prototype for 'mk_pmd' [-Werror=missing-prototypes]
-arch/mips/mm/pgtable-64.c:101:6: error: no previous prototype for 'set_pmd_at' [-Werror=missing-prototypes]
+arch/mips/kernel/smp.c:473:5: error: no previous prototype for 'setup_profiling_timer' [-Werror=missing-prototypes]
 
-Since there are no callers in these configurations, add the same #ifdef
-checks around the definitions.
+Add the missing #include and #ifdef to match the declaration.
 
-Link: https://lkml.kernel.org/r/20231204115710.2247097-19-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20231204115710.2247097-20-arnd@kernel.org
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Stephen Rothwell <sfr@rothwell.id.au>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/mm/pgtable-64.c |    2 ++
- arch/mips/mm/tlb-r4k.c    |    2 ++
- 2 files changed, 4 insertions(+)
+ arch/mips/kernel/smp.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/arch/mips/mm/pgtable-64.c~mips-hide-conditionally-unused-functions
-+++ a/arch/mips/mm/pgtable-64.c
-@@ -89,6 +89,7 @@ void pud_init(void *addr)
+--- a/arch/mips/kernel/smp.c~mips-smp-fix-setup_profiling_timer-prototype
++++ a/arch/mips/kernel/smp.c
+@@ -10,6 +10,7 @@
+ #include <linux/delay.h>
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
++#include <linux/profile.h>
+ #include <linux/smp.h>
+ #include <linux/spinlock.h>
+ #include <linux/threads.h>
+@@ -468,11 +469,13 @@ int __cpu_up(unsigned int cpu, struct ta
+ 	return 0;
  }
- #endif
  
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- pmd_t mk_pmd(struct page *page, pgprot_t prot)
++#ifdef CONFIG_PROFILING
+ /* Not really SMP stuff ... */
+ int setup_profiling_timer(unsigned int multiplier)
  {
- 	pmd_t pmd;
-@@ -103,6 +104,7 @@ void set_pmd_at(struct mm_struct *mm, un
- {
- 	*pmdp = pmd;
- }
-+#endif
- 
- void __init pagetable_init(void)
- {
---- a/arch/mips/mm/tlb-r4k.c~mips-hide-conditionally-unused-functions
-+++ a/arch/mips/mm/tlb-r4k.c
-@@ -458,6 +458,7 @@ EXPORT_SYMBOL(has_transparent_hugepage);
- 
- int temp_tlb_entry;
- 
-+#ifndef CONFIG_64BIT
- __init int add_temporary_entry(unsigned long entrylo0, unsigned long entrylo1,
- 			       unsigned long entryhi, unsigned long pagemask)
- {
-@@ -496,6 +497,7 @@ out:
- 	local_irq_restore(flags);
- 	return ret;
+ 	return 0;
  }
 +#endif
  
- static int ntlb;
- static int __init set_ntlb(char *str)
+ static void flush_tlb_all_ipi(void *info)
+ {
 _
 
 Patches currently in -mm which might be from arnd@arndb.de are
