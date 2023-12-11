@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 066FD184C
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:53:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10B83184C
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 00:53:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DVvlIh+p"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9EEAC433C9;
-	Mon, 11 Dec 2023 00:53:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WraEyaqc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7D75C433C7;
+	Mon, 11 Dec 2023 00:53:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702256028;
-	bh=y4dwQeEGMBD7Nvtha3D3cjVkOZkafy2XqvX6Yku5gSc=;
+	s=korg; t=1702256029;
+	bh=apuAnmPmQhc1nuDvZKGDlC9py+sVD5yrO7UNLDXu7lM=;
 	h=Date:To:From:Subject:From;
-	b=DVvlIh+pupQGbPsSxiDx6xPfb7zgMvhcRvyVpl48BX58SljjU8wm/vKVcMIddg6I7
-	 2gs1hHuwGAD1X+AkrDI8DzZVv0viNDgD88g69ug1iwDsYWGCalJXe9m3UGeuCMTSbd
-	 u/uYLKR60vnRj2/GOmqfl1HXit3dQ3VNdrzSxM/M=
-Date: Sun, 10 Dec 2023 16:53:48 -0800
+	b=WraEyaqc57vGf4hpg/cIi6aNhkC99nmnrn17y8QaZJrGIxen4fYhrsT/mOiIcH19h
+	 0tYGrf6HX1xglDq4fpzlXcbOjIPMBMkDvaCx0ni50mBnq2Cx6hal9385vlwhtySy9s
+	 FB6Wuu64HulS1o3bX9Yk7qNNq/WWUcyzy5ptPCQs=
+Date: Sun, 10 Dec 2023 16:53:49 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,peterz@infradead.org,npiggin@gmail.com,mst@redhat.com,mjguzik@gmail.com,michael.christie@oracle.com,mathieu.desnoyers@efficios.com,Liam.Howlett@oracle.com,corbet@lwn.net,brauner@kernel.org,zhangpeng.00@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-add-mt_free_one-and-mt_attr-helpers.patch removed from -mm tree
-Message-Id: <20231211005348.B9EEAC433C9@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-introduce-mtreemas_lock_nested.patch removed from -mm tree
+Message-Id: <20231211005349.C7D75C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,67 +27,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: add mt_free_one() and mt_attr() helpers
+     Subject: maple_tree: introduce {mtree,mas}_lock_nested()
 has been removed from the -mm tree.  Its filename was
-     maple_tree-add-mt_free_one-and-mt_attr-helpers.patch
+     maple_tree-introduce-mtreemas_lock_nested.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Peng Zhang <zhangpeng.00@bytedance.com>
-Subject: maple_tree: add mt_free_one() and mt_attr() helpers
-Date: Fri, 27 Oct 2023 11:38:36 +0800
+Subject: maple_tree: introduce {mtree,mas}_lock_nested()
+Date: Fri, 27 Oct 2023 11:38:37 +0800
 
-Patch series "Introduce __mt_dup() to improve the performance of fork()", v7.
+In some cases, nested locks may be needed, so {mtree,mas}_lock_nested is
+introduced.  For example, when duplicating maple tree, we need to hold the
+locks of two trees, in which case nested locks are needed.
 
-This series introduces __mt_dup() to improve the performance of fork(). 
-During the duplication process of mmap, all VMAs are traversed and
-inserted one by one into the new maple tree, causing the maple tree to be
-rebalanced multiple times.  Balancing the maple tree is a costly
-operation.  To duplicate VMAs more efficiently, mtree_dup() and __mt_dup()
-are introduced for the maple tree.  They can efficiently duplicate a maple
-tree.
+At the same time, add the definition of spin_lock_nested() in tools for
+testing.
 
-Here are some algorithmic details about {mtree,__mt}_dup().  We perform a
-DFS pre-order traversal of all nodes in the source maple tree.  During
-this process, we fully copy the nodes from the source tree to the new
-tree.  This involves memory allocation, and when encountering a new node,
-if it is a non-leaf node, all its child nodes are allocated at once.
-
-This idea was originally from Liam R.  Howlett's Maple Tree Work email,
-and I added some of my own ideas to implement it.  Some previous
-discussions can be found in [1].  For a more detailed analysis of the
-algorithm, please refer to the logs for patch [3/10] and patch [10/10].
-
-There is a "spawn" in byte-unixbench[2], which can be used to test the
-performance of fork().  I modified it slightly to make it work with
-different number of VMAs.
-
-Below are the test results.  The first row shows the number of VMAs.  The
-second and third rows show the number of fork() calls per ten seconds,
-corresponding to next-20231006 and the this patchset, respectively.  The
-test results were obtained with CPU binding to avoid scheduler load
-balancing that could cause unstable results.  There are still some
-fluctuations in the test results, but at least they are better than the
-original performance.
-
-21     121   221    421    821    1621   3221   6421   12821  25621  51221
-112100 76261 54227  34035  20195  11112  6017   3161   1606   802    393
-114558 83067 65008  45824  28751  16072  8922   4747   2436   1233   599
-2.19%  8.92% 19.88% 34.64% 42.37% 44.64% 48.28% 50.17% 51.68% 53.74% 52.42%
-
-Thanks to Liam and Matthew for the review.
-
-
-This patch (of 10):
-
-Add two helpers:
-1. mt_free_one(), used to free a maple node.
-2. mt_attr(), used to obtain the attributes of maple tree.
-
-Link: https://lkml.kernel.org/r/20231027033845.90608-1-zhangpeng.00@bytedance.com
-Link: https://lkml.kernel.org/r/20231027033845.90608-2-zhangpeng.00@bytedance.com
+Link: https://lkml.kernel.org/r/20231027033845.90608-3-zhangpeng.00@bytedance.com
 Signed-off-by: Peng Zhang <zhangpeng.00@bytedance.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -103,44 +62,40 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ include/linux/maple_tree.h     |    4 ++++
+ tools/include/linux/spinlock.h |    1 +
+ 2 files changed, 5 insertions(+)
 
---- a/lib/maple_tree.c~maple_tree-add-mt_free_one-and-mt_attr-helpers
-+++ a/lib/maple_tree.c
-@@ -165,6 +165,11 @@ static inline int mt_alloc_bulk(gfp_t gf
- 	return kmem_cache_alloc_bulk(maple_node_cache, gfp, size, nodes);
- }
+--- a/include/linux/maple_tree.h~maple_tree-introduce-mtreemas_lock_nested
++++ a/include/linux/maple_tree.h
+@@ -256,6 +256,8 @@ struct maple_tree {
+ 	struct maple_tree name = MTREE_INIT(name, 0)
  
-+static inline void mt_free_one(struct maple_node *node)
-+{
-+	kmem_cache_free(maple_node_cache, node);
-+}
-+
- static inline void mt_free_bulk(size_t size, void __rcu **nodes)
- {
- 	kmem_cache_free_bulk(maple_node_cache, size, (void **)nodes);
-@@ -205,6 +210,11 @@ static unsigned int mas_mt_height(struct
- 	return mt_height(mas->tree);
- }
+ #define mtree_lock(mt)		spin_lock((&(mt)->ma_lock))
++#define mtree_lock_nested(mas, subclass) \
++		spin_lock_nested((&(mt)->ma_lock), subclass)
+ #define mtree_unlock(mt)	spin_unlock((&(mt)->ma_lock))
  
-+static inline unsigned int mt_attr(struct maple_tree *mt)
-+{
-+	return mt->ma_flags & ~MT_FLAGS_HEIGHT_MASK;
-+}
-+
- static inline enum maple_type mte_node_type(const struct maple_enode *entry)
- {
- 	return ((unsigned long)entry >> MAPLE_NODE_TYPE_SHIFT) &
-@@ -5573,7 +5583,7 @@ void mas_destroy(struct ma_state *mas)
- 			mt_free_bulk(count, (void __rcu **)&node->slot[1]);
- 			total -= count;
- 		}
--		kmem_cache_free(maple_node_cache, node);
-+		mt_free_one(ma_mnode_ptr(node));
- 		total--;
- 	}
+ /*
+@@ -406,6 +408,8 @@ struct ma_wr_state {
+ };
  
+ #define mas_lock(mas)           spin_lock(&((mas)->tree->ma_lock))
++#define mas_lock_nested(mas, subclass) \
++		spin_lock_nested(&((mas)->tree->ma_lock), subclass)
+ #define mas_unlock(mas)         spin_unlock(&((mas)->tree->ma_lock))
+ 
+ 
+--- a/tools/include/linux/spinlock.h~maple_tree-introduce-mtreemas_lock_nested
++++ a/tools/include/linux/spinlock.h
+@@ -11,6 +11,7 @@
+ #define spin_lock_init(x)	pthread_mutex_init(x, NULL)
+ 
+ #define spin_lock(x)			pthread_mutex_lock(x)
++#define spin_lock_nested(x, subclass)	pthread_mutex_lock(x)
+ #define spin_unlock(x)			pthread_mutex_unlock(x)
+ #define spin_lock_bh(x)			pthread_mutex_lock(x)
+ #define spin_unlock_bh(x)		pthread_mutex_unlock(x)
 _
 
 Patches currently in -mm which might be from zhangpeng.00@bytedance.com are
