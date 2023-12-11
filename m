@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 170A87493
-	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:23:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 091747493
+	for <mm-commits@vger.kernel.org>; Mon, 11 Dec 2023 01:23:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lWXkENWZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4BB0C433C8;
-	Mon, 11 Dec 2023 01:23:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S8CsZ+r0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7590C433C7;
+	Mon, 11 Dec 2023 01:23:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702257789;
-	bh=CYH8GDer8MkjNlBhx20rL9TOa7ufRgPRckvyT/tr1T0=;
+	s=korg; t=1702257790;
+	bh=N6ivMekfX3pI117YR24nfWhnSYFERTYTSddU80xeMo8=;
 	h=Date:To:From:Subject:From;
-	b=lWXkENWZBDwQKXn1CP/bKe/xuXCpinVZlfOfGKBXDvbVFePMOpQtLlrJwBy3BJ3rh
-	 f0oV4MZfrlTix4bXVeVAvL4BPKgH1kgiAkkNFjM05zOCJiNauTkuxEUkN48WCmYwwo
-	 aBkkeW51iRhKhO+g4TdEdCvRKOujVVxYlGuPuC3Y=
-Date: Sun, 10 Dec 2023 17:23:09 -0800
-To: mm-commits@vger.kernel.org,tsbogend@alpha.franken.de,sfr@rothwell.id.au,davem@davemloft.net,arnd@arndb.de,akpm@linux-foundation.org
+	b=S8CsZ+r0otu4AG+ti51IgvWydFwOKSKCobxuDLtPzjkGXX09oZ2J+YeUZLBZlcAix
+	 cOYYm5gUQ++tUzHhCXapsgM29KNenglA92z748UwcXUs8jm6mz0vICkKGL3QEFqB8/
+	 vkxtPd9BPsoTr+YZI5oAhR78awPlIvPOt7C1GdVk=
+Date: Sun, 10 Dec 2023 17:23:10 -0800
+To: mm-commits@vger.kernel.org,bcain@quicinc.com,arnd@arndb.de,nathan@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] arch-turn-off-werror-for-architectures-with-known-warnings.patch removed from -mm tree
-Message-Id: <20231211012309.D4BB0C433C8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] hexagon-uaccess-remove-clear_user_hexagon.patch removed from -mm tree
+Message-Id: <20231211012310.C7590C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,138 +27,68 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: arch: turn off -Werror for architectures with known warnings
+     Subject: hexagon: uaccess: remove clear_user_hexagon()
 has been removed from the -mm tree.  Its filename was
-     arch-turn-off-werror-for-architectures-with-known-warnings.patch
+     hexagon-uaccess-remove-clear_user_hexagon.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Arnd Bergmann" <arnd@arndb.de>
-Subject: arch: turn off -Werror for architectures with known warnings
-Date: Thu, 30 Nov 2023 09:07:38 +0100
+From: Nathan Chancellor <nathan@kernel.org>
+Subject: hexagon: uaccess: remove clear_user_hexagon()
+Date: Thu, 30 Nov 2023 15:58:14 -0700
 
-A couple of architectures enable -Werror for their own files regardless of
-CONFIG_WERROR but also have known warnings that fail the build with
--Wmissing-prototypes enabled by default:
+Patch series "hexagon: Fix up instances of -Wmissing-prototypes".
 
-arch/alpha/lib/memcpy.c:153:8: error: no previous prototype for 'memcpy' [-Werror=missing-prototypes]
-arch/alpha/kernel/irq.c:96:1: error: no previous prototype for 'handle_irq' [-Werror=missing-prototypes]
-arch/mips/kernel/signal.c:673:17: error: no previous prototype for ‘sys_rt_sigreturn’ [-Werror=missing-prototypes]
-arch/mips/kernel/signal.c:636:17: error: no previous prototype for ‘sys_sigreturn’ [-Werror=missing-prototypes]
-arch/mips/kernel/syscall.c:51:16: error: no previous prototype for ‘sysm_pipe’ [-Werror=missing-prototypes]
-arch/mips/mm/fault.c:323:17: error: no previous prototype for ‘do_page_fault’ [-Werror=missing-prototypes]
-arch/sparc/vdso/vma.c:246:12: warning: no previous prototype for ‘init_vdso_image’ [-Wmissing-prototypes]v
-arch/sparc/vdso/vdso32/../vclock_gettime.c:343:1: warning: no previous prototype for ‘__vdso_gettimeofday_stick’ [-Wmissing-prototypes]
-arch/sparc/vdso/vclock_gettime.c:343:1: warning: no previous prototype for ‘__vdso_gettimeofday_stick’ [-Wmissing-prototypes]
-arch/sparc/prom/p1275.c:52:6: warning: no previous prototype for ‘prom_cif_init’ [-Wmissing-prototypes]
-arch/sparc/prom/misc_64.c:165:5: warning: no previous prototype for ‘prom_get_mmu_ihandle’ [-Wmissing-prototypes]
+This series fixes all the instances of -Wmissing-prototypes in
+arch/hexagon, as it is about to be enabled globally in a default build.
 
-This appears to be an artifact from the times when this architecture code
-was better maintained that most device drivers and before CONFIG_WERROR
-was added.  Now it just gets in the way, so remove all of these.
 
-Powerpc and x86 both still have their own Kconfig options to enable
--Werror for some of their files.  These architectures are better
-maintained than most and the options are easy to disable, so leave those
-untouched.
+This patch (of 19):
 
-Link: https://lkml.kernel.org/r/4be73872-c1f5-4c31-8201-712c19290a22@app.fastmail.com
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reported-by: Stephen Rothwell <sfr@rothwell.id.au>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Clang warns:
+
+  arch/hexagon/mm/uaccess.c:39:15: warning: no previous prototype for function 'clear_user_hexagon' [-Wmissing-prototypes]
+     39 | unsigned long clear_user_hexagon(void __user *dest, unsigned long count)
+        |               ^
+  arch/hexagon/mm/uaccess.c:39:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+     39 | unsigned long clear_user_hexagon(void __user *dest, unsigned long count)
+        | ^
+        | static
+  1 warning generated.
+
+This function appears to have been unused since it was introduced in
+commit 7567746e1c0d ("Hexagon: Add user access functions"), so remove it.
+
+Link: https://lkml.kernel.org/r/20231130-hexagon-missing-prototypes-v1-0-5c34714afe9e@kernel.org
+Link: https://lkml.kernel.org/r/20231130-hexagon-missing-prototypes-v1-1-5c34714afe9e@kernel.org
+Signed-off-by: Nathan Chancellor <nathan@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Brian Cain <bcain@quicinc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/lib/Makefile    |    1 -
- arch/alpha/mm/Makefile     |    2 --
- arch/mips/Kbuild           |    6 ------
- arch/sparc/kernel/Makefile |    1 -
- arch/sparc/lib/Makefile    |    1 -
- arch/sparc/mm/Makefile     |    1 -
- arch/sparc/prom/Makefile   |    1 -
- 7 files changed, 13 deletions(-)
+ arch/hexagon/mm/uaccess.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
---- a/arch/alpha/lib/Makefile~arch-turn-off-werror-for-architectures-with-known-warnings
-+++ a/arch/alpha/lib/Makefile
-@@ -4,7 +4,6 @@
- #
+--- a/arch/hexagon/mm/uaccess.c~hexagon-uaccess-remove-clear_user_hexagon
++++ a/arch/hexagon/mm/uaccess.c
+@@ -35,11 +35,3 @@ __kernel_size_t __clear_user_hexagon(voi
  
- asflags-y := $(KBUILD_CFLAGS)
--ccflags-y := -Werror
- 
- # Many of these routines have implementations tuned for ev6.
- # Choose them iff we're targeting ev6 specifically.
---- a/arch/alpha/mm/Makefile~arch-turn-off-werror-for-architectures-with-known-warnings
-+++ a/arch/alpha/mm/Makefile
-@@ -3,6 +3,4 @@
- # Makefile for the linux alpha-specific parts of the memory manager.
- #
- 
--ccflags-y := -Werror
+ 	return count;
+ }
 -
- obj-y	:= init.o fault.o
---- a/arch/mips/Kbuild~arch-turn-off-werror-for-architectures-with-known-warnings
-+++ a/arch/mips/Kbuild
-@@ -1,10 +1,4 @@
- # SPDX-License-Identifier: GPL-2.0
--# Fail on warnings - also for files referenced in subdirs
--# -Werror can be disabled for specific files using:
--# CFLAGS_<file.o> := -Wno-error
--ifeq ($(W),)
--subdir-ccflags-y := -Werror
--endif
- 
- # platform specific definitions
- include $(srctree)/arch/mips/Kbuild.platforms
---- a/arch/sparc/kernel/Makefile~arch-turn-off-werror-for-architectures-with-known-warnings
-+++ a/arch/sparc/kernel/Makefile
-@@ -5,7 +5,6 @@
- #
- 
- asflags-y := -ansi
--ccflags-y := -Werror
- 
- # Undefine sparc when processing vmlinux.lds - it is used
- # And teach CPP we are doing $(BITS) builds (for this case)
---- a/arch/sparc/lib/Makefile~arch-turn-off-werror-for-architectures-with-known-warnings
-+++ a/arch/sparc/lib/Makefile
-@@ -3,7 +3,6 @@
- #
- 
- asflags-y := -ansi -DST_DIV0=0x02
--ccflags-y := -Werror
- 
- lib-$(CONFIG_SPARC32) += ashrdi3.o
- lib-$(CONFIG_SPARC32) += memcpy.o memset.o
---- a/arch/sparc/mm/Makefile~arch-turn-off-werror-for-architectures-with-known-warnings
-+++ a/arch/sparc/mm/Makefile
-@@ -3,7 +3,6 @@
- #
- 
- asflags-y := -ansi
--ccflags-y := -Werror
- 
- obj-$(CONFIG_SPARC64)   += ultra.o tlb.o tsb.o
- obj-y                   += fault_$(BITS).o
---- a/arch/sparc/prom/Makefile~arch-turn-off-werror-for-architectures-with-known-warnings
-+++ a/arch/sparc/prom/Makefile
-@@ -3,7 +3,6 @@
- # Linux.
- #
- asflags := -ansi
--ccflags := -Werror
- 
- lib-y                 := bootstr_$(BITS).o
- lib-y                 += init_$(BITS).o
+-unsigned long clear_user_hexagon(void __user *dest, unsigned long count)
+-{
+-	if (!access_ok(dest, count))
+-		return count;
+-	else
+-		return __clear_user_hexagon(dest, count);
+-}
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from nathan@kernel.org are
 
-kexec-fix-kexec_file-dependencies.patch
-kexec-fix-kexec_file-dependencies-fix.patch
-kexec-select-crypto-from-kexec_file-instead-of-depending-on-it.patch
-makefileextrawarn-turn-on-missing-prototypes-globally.patch
+buffer-fix-grow_buffers-for-block-size-page_size-fix.patch
 
