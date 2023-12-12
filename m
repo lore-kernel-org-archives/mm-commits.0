@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3E8A7F55D
-	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2023 18:59:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBA7C7F55D
+	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2023 18:59:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rnjSnnKZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D6F6C433C8;
-	Tue, 12 Dec 2023 18:59:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="y09BBJQi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CDDEC433C9;
+	Tue, 12 Dec 2023 18:59:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702407544;
-	bh=JQFOX0Hi6t6JgYOkK8GLE4hGebTrgfgcLkBkSfQ+wp8=;
+	s=korg; t=1702407545;
+	bh=AT3PHuq84GbAVCPHrS1+044GeZ3IjoD8q6BaN4yUzMI=;
 	h=Date:To:From:Subject:From;
-	b=rnjSnnKZaF/oKxBy3O9GL/Q2x0aLX4h/1ohvp0x3w16J0COoFm7FkJwtDVUU52mi1
-	 g04WRL/LApcKtvtN4K0i/+ILVDwBrsipi0MY8pbHhM8KoJUHn052+AulwZ+BfbFiFO
-	 bFbXlpPuT2+d7FZdiEM7ienorQim1+1RXVKaZ93M=
-Date: Tue, 12 Dec 2023 10:59:03 -0800
+	b=y09BBJQiOBnIQSzxBnNTzteSpPkcUJfIlDiVvy6uTda++Rc3Jpfu4aVrbE3VO8F5n
+	 d7AM4ZTpl453X5Lv+polpSmbmtuSoREAHYf+70xSm6KZXesZC/yOLHNdfPMAo+F2Dr
+	 tZcoKjSyyHll5iF1bFZtxTM+GnQZPLXccrj7c/0Y=
+Date: Tue, 12 Dec 2023 10:59:04 -0800
 To: mm-commits@vger.kernel.org,zhangpeng.00@bytedance.com,Liam.Howlett@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-use-cached-node-end-in-mas_destroy.patch removed from -mm tree
-Message-Id: <20231212185904.5D6F6C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-clean-up-inlines-for-some-functions.patch removed from -mm tree
+Message-Id: <20231212185905.4CDDEC433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,41 +27,305 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: use cached node end in mas_destroy()
+     Subject: maple_tree: clean up inlines for some functions
 has been removed from the -mm tree.  Its filename was
-     maple_tree-use-cached-node-end-in-mas_destroy.patch
+     maple_tree-clean-up-inlines-for-some-functions.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: use cached node end in mas_destroy()
-Date: Wed, 1 Nov 2023 13:16:23 -0400
+Subject: maple_tree: clean up inlines for some functions
+Date: Wed, 1 Nov 2023 13:16:24 -0400
 
-The node end is set during the walk, so use the resulting end instead of
-re-fetching it.
+There are a few functions which were inlined but are somewhat too large to
+inline, so remove the inline key word.
 
-Link: https://lkml.kernel.org/r/20231101171629.3612299-7-Liam.Howlett@oracle.com
+There are also several very small functions which are used in critical
+code sections which gcc was not inlining, so make this more strict and use
+__always_line for these functions.
+
+Link: https://lkml.kernel.org/r/20231101171629.3612299-8-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Peng Zhang <zhangpeng.00@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/maple_tree.c |   78 ++++++++++++++++++++++-----------------------
+ 1 file changed, 39 insertions(+), 39 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-use-cached-node-end-in-mas_destroy
+--- a/lib/maple_tree.c~maple_tree-clean-up-inlines-for-some-functions
 +++ a/lib/maple_tree.c
-@@ -5576,7 +5576,7 @@ void mas_destroy(struct ma_state *mas)
+@@ -217,23 +217,24 @@ static inline unsigned int mt_attr(struc
+ 	return mt->ma_flags & ~MT_FLAGS_HEIGHT_MASK;
+ }
  
- 		mas_start(mas);
- 		mtree_range_walk(mas);
--		end = mas_data_end(mas) + 1;
-+		end = mas->end + 1;
- 		if (end < mt_min_slot_count(mas->node) - 1)
- 			mas_destroy_rebalance(mas, end);
+-static inline enum maple_type mte_node_type(const struct maple_enode *entry)
++static __always_inline enum maple_type mte_node_type(
++		const struct maple_enode *entry)
+ {
+ 	return ((unsigned long)entry >> MAPLE_NODE_TYPE_SHIFT) &
+ 		MAPLE_NODE_TYPE_MASK;
+ }
  
+-static inline bool ma_is_dense(const enum maple_type type)
++static __always_inline bool ma_is_dense(const enum maple_type type)
+ {
+ 	return type < maple_leaf_64;
+ }
+ 
+-static inline bool ma_is_leaf(const enum maple_type type)
++static __always_inline bool ma_is_leaf(const enum maple_type type)
+ {
+ 	return type < maple_range_64;
+ }
+ 
+-static inline bool mte_is_leaf(const struct maple_enode *entry)
++static __always_inline bool mte_is_leaf(const struct maple_enode *entry)
+ {
+ 	return ma_is_leaf(mte_node_type(entry));
+ }
+@@ -242,7 +243,7 @@ static inline bool mte_is_leaf(const str
+  * We also reserve values with the bottom two bits set to '10' which are
+  * below 4096
+  */
+-static inline bool mt_is_reserved(const void *entry)
++static __always_inline bool mt_is_reserved(const void *entry)
+ {
+ 	return ((unsigned long)entry < MAPLE_RESERVED_RANGE) &&
+ 		xa_is_internal(entry);
+@@ -295,7 +296,8 @@ static inline bool mas_searchable(struct
+ 	return true;
+ }
+ 
+-static inline struct maple_node *mte_to_node(const struct maple_enode *entry)
++static __always_inline struct maple_node *mte_to_node(
++		const struct maple_enode *entry)
+ {
+ 	return (struct maple_node *)((unsigned long)entry & ~MAPLE_NODE_MASK);
+ }
+@@ -372,12 +374,12 @@ static inline bool mte_has_null(const st
+ 	return (unsigned long)node & MAPLE_ENODE_NULL;
+ }
+ 
+-static inline bool ma_is_root(struct maple_node *node)
++static __always_inline bool ma_is_root(struct maple_node *node)
+ {
+ 	return ((unsigned long)node->parent & MA_ROOT_PARENT);
+ }
+ 
+-static inline bool mte_is_root(const struct maple_enode *node)
++static __always_inline bool mte_is_root(const struct maple_enode *node)
+ {
+ 	return ma_is_root(mte_to_node(node));
+ }
+@@ -387,7 +389,7 @@ static inline bool mas_is_root_limits(co
+ 	return !mas->min && mas->max == ULONG_MAX;
+ }
+ 
+-static inline bool mt_is_alloc(struct maple_tree *mt)
++static __always_inline bool mt_is_alloc(struct maple_tree *mt)
+ {
+ 	return (mt->ma_flags & MT_FLAGS_ALLOC_RANGE);
+ }
+@@ -526,11 +528,12 @@ void mas_set_parent(struct ma_state *mas
+  *
+  * Return: The slot in the parent node where @enode resides.
+  */
+-static inline unsigned int mte_parent_slot(const struct maple_enode *enode)
++static __always_inline
++unsigned int mte_parent_slot(const struct maple_enode *enode)
+ {
+ 	unsigned long val = (unsigned long)mte_to_node(enode)->parent;
+ 
+-	if (val & MA_ROOT_PARENT)
++	if (unlikely(val & MA_ROOT_PARENT))
+ 		return 0;
+ 
+ 	/*
+@@ -546,7 +549,8 @@ static inline unsigned int mte_parent_sl
+  *
+  * Return: The parent maple node.
+  */
+-static inline struct maple_node *mte_parent(const struct maple_enode *enode)
++static __always_inline
++struct maple_node *mte_parent(const struct maple_enode *enode)
+ {
+ 	return (void *)((unsigned long)
+ 			(mte_to_node(enode)->parent) & ~MAPLE_NODE_MASK);
+@@ -558,7 +562,7 @@ static inline struct maple_node *mte_par
+  *
+  * Return: true if dead, false otherwise.
+  */
+-static inline bool ma_dead_node(const struct maple_node *node)
++static __always_inline bool ma_dead_node(const struct maple_node *node)
+ {
+ 	struct maple_node *parent;
+ 
+@@ -574,7 +578,7 @@ static inline bool ma_dead_node(const st
+  *
+  * Return: true if dead, false otherwise.
+  */
+-static inline bool mte_dead_node(const struct maple_enode *enode)
++static __always_inline bool mte_dead_node(const struct maple_enode *enode)
+ {
+ 	struct maple_node *parent, *node;
+ 
+@@ -730,7 +734,7 @@ static inline unsigned long mas_pivot(st
+  * Return: The pivot at @piv within the limit of the @pivots array, @mas->max
+  * otherwise.
+  */
+-static inline unsigned long
++static __always_inline unsigned long
+ mas_safe_pivot(const struct ma_state *mas, unsigned long *pivots,
+ 	       unsigned char piv, enum maple_type type)
+ {
+@@ -812,20 +816,20 @@ static inline bool mt_write_locked(const
+ 		lockdep_is_held(&mt->ma_lock);
+ }
+ 
+-static inline bool mt_locked(const struct maple_tree *mt)
++static __always_inline bool mt_locked(const struct maple_tree *mt)
+ {
+ 	return mt_external_lock(mt) ? mt_lock_is_held(mt) :
+ 		lockdep_is_held(&mt->ma_lock);
+ }
+ 
+-static inline void *mt_slot(const struct maple_tree *mt,
++static __always_inline void *mt_slot(const struct maple_tree *mt,
+ 		void __rcu **slots, unsigned char offset)
+ {
+ 	return rcu_dereference_check(slots[offset], mt_locked(mt));
+ }
+ 
+-static inline void *mt_slot_locked(struct maple_tree *mt, void __rcu **slots,
+-				   unsigned char offset)
++static __always_inline void *mt_slot_locked(struct maple_tree *mt,
++		void __rcu **slots, unsigned char offset)
+ {
+ 	return rcu_dereference_protected(slots[offset], mt_write_locked(mt));
+ }
+@@ -837,8 +841,8 @@ static inline void *mt_slot_locked(struc
+  *
+  * Return: The entry stored in @slots at the @offset.
+  */
+-static inline void *mas_slot_locked(struct ma_state *mas, void __rcu **slots,
+-				       unsigned char offset)
++static __always_inline void *mas_slot_locked(struct ma_state *mas,
++		void __rcu **slots, unsigned char offset)
+ {
+ 	return mt_slot_locked(mas->tree, slots, offset);
+ }
+@@ -851,8 +855,8 @@ static inline void *mas_slot_locked(stru
+  *
+  * Return: The entry stored in @slots at the @offset
+  */
+-static inline void *mas_slot(struct ma_state *mas, void __rcu **slots,
+-			     unsigned char offset)
++static __always_inline void *mas_slot(struct ma_state *mas, void __rcu **slots,
++		unsigned char offset)
+ {
+ 	return mt_slot(mas->tree, slots, offset);
+ }
+@@ -863,7 +867,7 @@ static inline void *mas_slot(struct ma_s
+  *
+  * Return: The pointer to the root of the tree
+  */
+-static inline void *mas_root(struct ma_state *mas)
++static __always_inline void *mas_root(struct ma_state *mas)
+ {
+ 	return rcu_dereference_check(mas->tree->ma_root, mt_locked(mas->tree));
+ }
+@@ -1437,10 +1441,8 @@ retry:
+  * Uses metadata to find the end of the data when possible.
+  * Return: The zero indexed last slot with data (may be null).
+  */
+-static inline unsigned char ma_data_end(struct maple_node *node,
+-					enum maple_type type,
+-					unsigned long *pivots,
+-					unsigned long max)
++static __always_inline unsigned char ma_data_end(struct maple_node *node,
++		enum maple_type type, unsigned long *pivots, unsigned long max)
+ {
+ 	unsigned char offset;
+ 
+@@ -4344,7 +4346,7 @@ exists:
+ 
+ }
+ 
+-static inline void mas_rewalk(struct ma_state *mas, unsigned long index)
++static __always_inline void mas_rewalk(struct ma_state *mas, unsigned long index)
+ {
+ retry:
+ 	mas_set(mas, index);
+@@ -4353,7 +4355,7 @@ retry:
+ 		goto retry;
+ }
+ 
+-static inline bool mas_rewalk_if_dead(struct ma_state *mas,
++static __always_inline bool mas_rewalk_if_dead(struct ma_state *mas,
+ 		struct maple_node *node, const unsigned long index)
+ {
+ 	if (unlikely(ma_dead_node(node))) {
+@@ -4372,7 +4374,7 @@ static inline bool mas_rewalk_if_dead(st
+  * The prev node value will be mas->node[mas->offset] or MAS_NONE.
+  * Return: 1 if the node is dead, 0 otherwise.
+  */
+-static inline int mas_prev_node(struct ma_state *mas, unsigned long min)
++static int mas_prev_node(struct ma_state *mas, unsigned long min)
+ {
+ 	enum maple_type mt;
+ 	int offset, level;
+@@ -4533,8 +4535,8 @@ underflow:
+  * The next value will be mas->node[mas->offset] or MAS_NONE.
+  * Return: 1 on dead node, 0 otherwise.
+  */
+-static inline int mas_next_node(struct ma_state *mas, struct maple_node *node,
+-				unsigned long max)
++static int mas_next_node(struct ma_state *mas, struct maple_node *node,
++		unsigned long max)
+ {
+ 	unsigned long min;
+ 	unsigned long *pivots;
+@@ -5664,7 +5666,7 @@ int mas_expected_entries(struct ma_state
+ }
+ EXPORT_SYMBOL_GPL(mas_expected_entries);
+ 
+-static inline bool mas_next_setup(struct ma_state *mas, unsigned long max,
++static bool mas_next_setup(struct ma_state *mas, unsigned long max,
+ 		void **entry)
+ {
+ 	bool was_none = mas_is_none(mas);
+@@ -5780,8 +5782,7 @@ void *mt_next(struct maple_tree *mt, uns
+ }
+ EXPORT_SYMBOL_GPL(mt_next);
+ 
+-static inline bool mas_prev_setup(struct ma_state *mas, unsigned long min,
+-		void **entry)
++static bool mas_prev_setup(struct ma_state *mas, unsigned long min, void **entry)
+ {
+ 	if (unlikely(mas->index <= min)) {
+ 		mas->node = MAS_UNDERFLOW;
+@@ -5930,8 +5931,7 @@ EXPORT_SYMBOL_GPL(mas_pause);
+  *
+  * Returns: True if entry is the answer, false otherwise.
+  */
+-static inline bool mas_find_setup(struct ma_state *mas, unsigned long max,
+-		void **entry)
++static __always_inline bool mas_find_setup(struct ma_state *mas, unsigned long max, void **entry)
+ {
+ 	if (mas_is_active(mas)) {
+ 		if (mas->last < max)
+@@ -6047,7 +6047,7 @@ EXPORT_SYMBOL_GPL(mas_find_range);
+  *
+  * Returns: True if entry is the answer, false otherwise.
+  */
+-static inline bool mas_find_rev_setup(struct ma_state *mas, unsigned long min,
++static bool mas_find_rev_setup(struct ma_state *mas, unsigned long min,
+ 		void **entry)
+ {
+ 	if (mas_is_active(mas)) {
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
