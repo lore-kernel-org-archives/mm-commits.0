@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24C0D63C11
-	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2023 20:29:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36C7064123;
+	Tue, 12 Dec 2023 20:34:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GyebpgEP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95733C433C7;
-	Tue, 12 Dec 2023 20:29:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1K2HCihu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5860C433C9;
+	Tue, 12 Dec 2023 20:34:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702412965;
-	bh=F0bEnvGeg0GOKWZzEcrFje+Pl2zWSuNfqk3iY2HblwI=;
+	s=korg; t=1702413269;
+	bh=tmt0FjNaq/q6u3w2lxIqDvGWMUBF4H829IZx4p53IEg=;
 	h=Date:To:From:Subject:From;
-	b=GyebpgEP5XoQJD7W9WlQYImU681w0HzM1t0wa2hZbMKYCRLnspX75zKyDDWdOyRGf
-	 u3UZwbGMKo2wQFx/qcU7bc5HDdJZ8rZoCEC7hCY96w6XUiNScWjtUVZX3GtXuKyZPI
-	 rg7IebFeCCGiJbYy3K+EZOU8Lkozjskn4auxqI/4=
-Date: Tue, 12 Dec 2023 12:29:25 -0800
-To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=1K2HCihusOjTXiJgzIn+FM+DQPi38h8TjcGij18ODtFXJMGdOueuiIvyVrFBgzAZK
+	 LyfpDFMAAz7ZieSAl/nnH6mvHXHW83wi5cM7YwLqfL2hyH1C1Ee4MQLqGSLhXjCuZ0
+	 kpzH+cIhP9pyl5DMByzkYcZwU9xDfJLbOGwr8gSk=
+Date: Tue, 12 Dec 2023 12:34:29 -0800
+To: mm-commits@vger.kernel.org,zhangpeng.00@bytedance.com,willy@infradead.org,stable@vger.kernel.org,Liam.Howlett@oracle.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-add-a-test-for-update_schemes_tried_regions-hang-bug.patch added to mm-unstable branch
-Message-Id: <20231212202925.95733C433C7@smtp.kernel.org>
+Subject: + maple_tree-do-not-preallocate-nodes-for-slot-stores.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231212203429.A5860C433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon: add a test for update_schemes_tried_regions hang bug
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-damon-add-a-test-for-update_schemes_tried_regions-hang-bug.patch
+     Subject: maple_tree: do not preallocate nodes for slot stores
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maple_tree-do-not-preallocate-nodes-for-slot-stores.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-add-a-test-for-update_schemes_tried_regions-hang-bug.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-do-not-preallocate-nodes-for-slot-stores.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,80 +50,63 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon: add a test for update_schemes_tried_regions hang bug
-Date: Tue, 12 Dec 2023 19:48:10 +0000
+From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Subject: maple_tree: do not preallocate nodes for slot stores
+Date: Tue, 12 Dec 2023 11:46:40 -0800
 
-Add a test for reproducing the update_schemes_tried_{regions,bytes}
-command-causing indefinite hang bug that fixed by commit 7d6fa31a2fd7
-("mm/damon/sysfs-schemes: add timeout for update_schemes_tried_regions"),
-to avoid mistakenly re-introducing the bug.  Refer to the fix commit for
-more details of the bug.
+mas_preallocate() defaults to requesting 1 node for preallocation and then
+,depending on the type of store, will update the request variable.  There
+isn't a check for a slot store type, so slot stores are preallocating the
+default 1 node.  Slot stores do not require any additional nodes, so add a
+check for the slot store case that will bypass node_count_gfp().  Update
+the tests to reflect that slot stores do not require allocations.
 
-Link: https://lkml.kernel.org/r/20231212194810.54457-6-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
+User visible effects of this bug include increased memory usage from the
+unneeded node that was allocated.
+
+Link: https://lkml.kernel.org/r/20231212194640.217966-1-sidhartha.kumar@oracle.com
+Fixes: 0b8bb544b1a7 ("maple_tree: update mas_preallocate() testing")
+Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Peng Zhang <zhangpeng.00@bytedance.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/Makefile                                   |    1 
- tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_hang.py |   33 ++++++++++
- 2 files changed, 34 insertions(+)
+ lib/maple_tree.c                 |    6 ++++++
+ tools/testing/radix-tree/maple.c |    2 +-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/damon/Makefile~selftests-damon-add-a-test-for-update_schemes_tried_regions-hang-bug
-+++ a/tools/testing/selftests/damon/Makefile
-@@ -10,6 +10,7 @@ TEST_PROGS += debugfs_empty_targets.sh d
- TEST_PROGS += debugfs_duplicate_context_creation.sh
- TEST_PROGS += debugfs_rm_non_contexts.sh
- TEST_PROGS += sysfs.sh sysfs_update_removed_scheme_dir.sh
-+TEST_PROGS += sysfs_update_schemes_tried_regions_hang.py
- TEST_PROGS += sysfs_update_schemes_tried_regions_wss_estimation.py
- TEST_PROGS += reclaim.sh lru_sort.sh
+--- a/lib/maple_tree.c~maple_tree-do-not-preallocate-nodes-for-slot-stores
++++ a/lib/maple_tree.c
+@@ -5501,6 +5501,12 @@ int mas_preallocate(struct ma_state *mas
  
---- /dev/null
-+++ a/tools/testing/selftests/damon/sysfs_update_schemes_tried_regions_hang.py
-@@ -0,0 +1,33 @@
-+#!/usr/bin/env python3
-+# SPDX-License-Identifier: GPL-2.0
+ 	mas_wr_end_piv(&wr_mas);
+ 	node_size = mas_wr_new_end(&wr_mas);
 +
-+import subprocess
-+import time
++	/* Slot store, does not require additional nodes */
++	if ((node_size == mas->end) && ((!mt_in_rcu(mas->tree))
++		|| (wr_mas.offset_end - mas->offset == 1)))
++		return 0;
 +
-+import _damon_sysfs
-+
-+def main():
-+    proc = subprocess.Popen(['sleep', '2'])
-+    kdamonds = _damon_sysfs.Kdamonds([_damon_sysfs.Kdamond(
-+            contexts=[_damon_sysfs.DamonCtx(
-+                ops='vaddr',
-+                targets=[_damon_sysfs.DamonTarget(pid=proc.pid)],
-+                schemes=[_damon_sysfs.Damos(
-+                    access_pattern=_damon_sysfs.DamosAccessPattern(
-+                        nr_accesses=[200, 200]))] # schemes
-+                )] # contexts
-+            )]) # kdamonds
-+
-+    err = kdamonds.start()
-+    if err != None:
-+        print('kdmaond start failed: %s' % err)
-+        exit(1)
-+
-+    while proc.poll() == None:
-+        err = kdamonds.kdamonds[0].update_schemes_tried_bytes()
-+        if err != None:
-+            print('tried bytes update failed: %s' % err)
-+            exit(1)
-+
-+if __name__ == '__main__':
-+    main()
+ 	if (node_size >= mt_slots[wr_mas.type]) {
+ 		/* Split, worst case for now. */
+ 		request = 1 + mas_mt_height(mas) * 2;
+--- a/tools/testing/radix-tree/maple.c~maple_tree-do-not-preallocate-nodes-for-slot-stores
++++ a/tools/testing/radix-tree/maple.c
+@@ -35538,7 +35538,7 @@ static noinline void __init check_preall
+ 	MT_BUG_ON(mt, mas_preallocate(&mas, ptr, GFP_KERNEL) != 0);
+ 	allocated = mas_allocated(&mas);
+ 	height = mas_mt_height(&mas);
+-	MT_BUG_ON(mt, allocated != 1);
++	MT_BUG_ON(mt, allocated != 0);
+ 	mas_store_prealloc(&mas, ptr);
+ 	MT_BUG_ON(mt, mas_allocated(&mas) != 0);
+ 
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
 
-mm-damon-core-make-damon_start-waits-until-kdamond_fn-starts.patch
-selftests-damon-implement-a-python-module-for-test-purpose-damon-sysfs-controls.patch
-selftests-damon-_damon_sysfs-implement-kdamonds-start-function.patch
-selftests-damon-_damon_sysfs-implement-updat_schemes_tried_bytes-command.patch
-selftests-damon-add-a-test-for-update_schemes_tried_regions-sysfs-command.patch
-selftests-damon-add-a-test-for-update_schemes_tried_regions-hang-bug.patch
+maple_tree-do-not-preallocate-nodes-for-slot-stores.patch
 
