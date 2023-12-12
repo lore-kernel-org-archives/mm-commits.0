@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CEA7210FB
-	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2023 18:51:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80151210FB
+	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2023 18:53:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jWJw8Y51"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C625AC433C7;
-	Tue, 12 Dec 2023 18:51:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Qs69Q3f5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06596C433C8;
+	Tue, 12 Dec 2023 18:53:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702407109;
-	bh=cxm7bsYgmAPTg/ZxWHULrXUXuvldN/qYdZwLPLQu/XU=;
+	s=korg; t=1702407200;
+	bh=7R9Z8gUxKti9H5yGnUzL0xbjYPNv06rYqu3v7+L0ChA=;
 	h=Date:To:From:Subject:From;
-	b=jWJw8Y510pOQMUBjKcMch0LCBVA/x4S91ogJkikSGQikqE+PbY9fvzo6dNzfBAB8i
-	 uZb3DzNRW1PTEjHVBptDDPZCZf/CA56qeeE3VNrRwD7lLvURtX0n3M9Nuz3YCWVyZW
-	 BM5f8IUnwzRntsxgCNHhi922ICSqUteknYWWSo9o=
-Date: Tue, 12 Dec 2023 10:51:48 -0800
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,vitaly.wool@konsulko.com,sjenning@redhat.com,shuah@kernel.org,shakeelb@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,ddstreet@ieee.org,chrisl@kernel.org,chengming.zhou@linux.dev,cerasuolodomenico@gmail.com,bagasdotme@gmail.com,nphamcs@gmail.com,akpm@linux-foundation.org
+	b=Qs69Q3f5UzMoZjZcDqCqGwEJOXX5/f+xSX75U6I88Qgx/YwumEZ6eZHCr1BeGfEmJ
+	 7R+oqnaCKRHt6MBK0tLsp/c9TesEnmC1YawL66KI6knB0TIGSslfABak1EHh8i/2yv
+	 rgUna1yfVDRObI6jNP+N/2mvswnl683joEZiFHGM=
+Date: Tue, 12 Dec 2023 10:53:19 -0800
+To: mm-commits@vger.kernel.org,shuah@kernel.org,davidgow@google.com,corbet@lwn.net,brendanhiggins@google.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] zswap-shrinks-zswap-pool-based-on-memory-pressure-fix.patch removed from -mm tree
-Message-Id: <20231212185149.C625AC433C7@smtp.kernel.org>
+Subject: [folded-merged] mm-damon-core-implement-goal-oriented-feedback-driven-quota-auto-tuning-fix.patch removed from -mm tree
+Message-Id: <20231212185320.06596C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,100 +27,72 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zswap: shrinks zswap pool based on memory pressure (fix)
+     Subject: mm/damon: document get_score_arg field of struct damos_quota
 has been removed from the -mm tree.  Its filename was
-     zswap-shrinks-zswap-pool-based-on-memory-pressure-fix.patch
+     mm-damon-core-implement-goal-oriented-feedback-driven-quota-auto-tuning-fix.patch
 
-This patch was dropped because it was folded into zswap-shrinks-zswap-pool-based-on-memory-pressure.patch
+This patch was dropped because it was folded into mm-damon-core-implement-goal-oriented-feedback-driven-quota-auto-tuning.patch
 
 ------------------------------------------------------
-From: Nhat Pham <nphamcs@gmail.com>
-Subject: zswap: shrinks zswap pool based on memory pressure (fix)
-Date: Wed, 6 Dec 2023 11:44:56 -0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon: document get_score_arg field of struct damos_quota
+Date: Mon, 4 Dec 2023 17:01:06 +0000
 
-Check shrinker enablement early, and use a less costly stat flushing.
+Commit 99b36eab9c05 ("mm/damon/core: implement goal-oriented
+feedback-driven quota auto-tuning") on mm-unstable missed documenting
+'get_score_arg' field of 'struct damos_quota' on the kernel-doc comment. 
+Fix it.
 
-Link: https://lkml.kernel.org/r/20231206194456.3234203-1-nphamcs@gmail.com
-Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Suggested-by: Yosry Ahmed <yosryahmed@google.com>
-Suggested-by: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Bagas Sanjaya <bagasdotme@gmail.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Shakeel Butt <shakeelb@google.com>
+Link: https://lkml.kernel.org/r/20231204170106.60992-1-sj@kernel.org
+Fixes: 99b36eab9c05 ("mm/damon/core: implement goal-oriented feedback-driven quota auto-tuning") on mm-unstable
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Brendan Higgins <brendanhiggins@google.com>
+Cc: David Gow <davidgow@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Shuah Khan <shuah@kernel.org>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ include/linux/damon.h |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/mm/zswap.c~zswap-shrinks-zswap-pool-based-on-memory-pressure-fix
-+++ a/mm/zswap.c
-@@ -596,13 +596,17 @@ static unsigned long zswap_shrinker_scan
- 	struct zswap_pool *pool = shrinker->private_data;
- 	bool encountered_page_in_swapcache = false;
- 
-+	if (!zswap_shrinker_enabled) {
-+		sc->nr_scanned = 0;
-+		return SHRINK_STOP;
-+	}
-+
- 	nr_protected =
- 		atomic_long_read(&lruvec->zswap_lruvec_state.nr_zswap_protected);
- 	lru_size = list_lru_shrink_count(&pool->list_lru, sc);
- 
- 	/*
--	 * Abort if the shrinker is disabled or if we are shrinking into the
--	 * protected region.
-+	 * Abort if we are shrinking into the protected region.
- 	 *
- 	 * This short-circuiting is necessary because if we have too many multiple
- 	 * concurrent reclaimers getting the freeable zswap object counts at the
-@@ -611,7 +615,7 @@ static unsigned long zswap_shrinker_scan
- 	 * objects (i.e the reclaimers will reclaim into the protected area of the
- 	 * zswap LRU).
- 	 */
--	if (!zswap_shrinker_enabled || nr_protected >= lru_size - sc->nr_to_scan) {
-+	if (nr_protected >= lru_size - sc->nr_to_scan) {
- 		sc->nr_scanned = 0;
- 		return SHRINK_STOP;
- 	}
-@@ -633,8 +637,11 @@ static unsigned long zswap_shrinker_coun
- 	struct lruvec *lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(sc->nid));
- 	unsigned long nr_backing, nr_stored, nr_freeable, nr_protected;
- 
-+	if (!zswap_shrinker_enabled)
-+		return 0;
-+
- #ifdef CONFIG_MEMCG_KMEM
--	cgroup_rstat_flush(memcg->css.cgroup);
-+	mem_cgroup_flush_stats();
- 	nr_backing = memcg_page_state(memcg, MEMCG_ZSWAP_B) >> PAGE_SHIFT;
- 	nr_stored = memcg_page_state(memcg, MEMCG_ZSWAPPED);
- #else
-@@ -643,7 +650,7 @@ static unsigned long zswap_shrinker_coun
- 	nr_stored = atomic_read(&pool->nr_stored);
- #endif
- 
--	if (!zswap_shrinker_enabled || !nr_stored)
-+	if (!nr_stored)
- 		return 0;
- 
- 	nr_protected =
+--- a/include/linux/damon.h~mm-damon-core-implement-goal-oriented-feedback-driven-quota-auto-tuning-fix
++++ a/include/linux/damon.h
+@@ -137,6 +137,7 @@ enum damos_action {
+  * @weight_age:		Weight of the region's age for prioritization.
+  *
+  * @get_score:		Feedback function for self-tuning quota.
++ * @get_score_arg:	Parameter for @get_score
+  *
+  * To avoid consuming too much CPU time or IO resources for applying the
+  * &struct damos->action to large memory, DAMON allows users to set time and/or
+@@ -156,10 +157,10 @@ enum damos_action {
+  * &weight_nr_accesses, and &weight_age, because monitoring operations are
+  * encouraged to respect those.
+  *
+- * If @get_score function pointer is set, DAMON calls it back and get the
+- * return value of it for every @reset_interval.  Then, DAMON adjusts the
+- * effective quota using the return value as a feedback score to the current
+- * quota, using its internal feedback loop algorithm.
++ * If @get_score function pointer is set, DAMON calls it back with
++ * @get_score_arg and get the return value of it for every @reset_interval.
++ * Then, DAMON adjusts the effective quota using the return value as a feedback
++ * score to the current quota, using its internal feedback loop algorithm.
+  *
+  * The feedback loop algorithem assumes the quota input and the feedback score
+  * output are in a positive proportional relationship, and the goal of the
 _
 
-Patches currently in -mm which might be from nphamcs@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-list_lru-allows-explicit-memcg-and-numa-node-selection.patch
-memcontrol-implement-mem_cgroup_tryget_online.patch
-zswap-shrinks-zswap-pool-based-on-memory-pressure.patch
-zswap-memcontrol-implement-zswap-writeback-disabling.patch
+mm-damon-core-make-damon_start-waits-until-kdamond_fn-starts.patch
+mm-damon-core-implement-goal-oriented-feedback-driven-quota-auto-tuning.patch
+mm-damon-sysfs-schemes-implement-files-for-scheme-quota-goals-setup.patch
+mm-damon-sysfs-schemes-commit-damos-quota-goals-user-input-to-damos.patch
+mm-damon-sysfs-schemes-implement-a-command-for-scheme-quota-goals-only-commit.patch
+mm-damon-core-test-add-a-unit-test-for-the-feedback-loop-algorithm.patch
+selftests-damon-test-quota-goals-directory.patch
+docs-mm-damon-design-document-damos-quota-auto-tuning.patch
+docs-abi-damon-document-damos-quota-goals.patch
+docs-admin-guide-mm-damon-usage-document-for-quota-goals.patch
 
