@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D78347B3A4
-	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2023 16:56:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D631C210FB
+	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2023 18:46:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Rre0IJ6I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42622C433C8;
-	Tue, 12 Dec 2023 16:56:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B1xv1TjN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 766DFC433C8;
+	Tue, 12 Dec 2023 18:46:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702400179;
-	bh=0GzNzliUsqR7d69u3sdL29HOkzHNjC6n0EhCXaWTYz0=;
+	s=korg; t=1702406780;
+	bh=VCrPBxOlrxT+zuP6BjssVd8Z50kwrl5xcWay3Ni1b5g=;
 	h=Date:To:From:Subject:From;
-	b=Rre0IJ6I8dsHAxditvW1PZWuKu+wlQFES0qYNxjmgf5ncnV7459LH16NVFFUT+oq/
-	 PqOtstrkV7To4fqBdalDywthWQzqtmt5LCy6G/ragfvnfyGf/YL8om0e5lcK/hcI+a
-	 C7JlDJKG/TfqEPQ/QmVMu+Rl5hahfjql0VlHan+o=
-Date: Tue, 12 Dec 2023 08:56:18 -0800
-To: mm-commits@vger.kernel.org,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
+	b=B1xv1TjNnc7+2FbJtnHpzgdOu33V3eZEG5ON4GGB4CKmPTrF47MmC8/v+BgVDkL2Q
+	 OkcobtMcNRAKrSRM5D175n6eNvUsRCSZECFY/Fh5ytd9qibcRuNkucQkC/BUmJ/2oi
+	 ySw4wQha3OUycbiunrSwgYgxjG+FMIwGOApg7m3Q=
+Date: Tue, 12 Dec 2023 10:46:19 -0800
+To: mm-commits@vger.kernel.org,zhangpeng.00@bytedance.com,Liam.Howlett@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-pageanonexclusive-assertions-in-unuse_pte.patch added to mm-unstable branch
-Message-Id: <20231212165619.42622C433C8@smtp.kernel.org>
+Subject: [folded-merged] maple_tree-separate-ma_state-node-from-status-fix-1.patch removed from -mm tree
+Message-Id: <20231212184620.766DFC433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -26,77 +26,142 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm: remove PageAnonExclusive assertions in unuse_pte()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-pageanonexclusive-assertions-in-unuse_pte.patch
+The quilt patch titled
+     Subject: maple_tree: fix comments about MAS_*
+has been removed from the -mm tree.  Its filename was
+     maple_tree-separate-ma_state-node-from-status-fix-1.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-pageanonexclusive-assertions-in-unuse_pte.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was folded into maple_tree-separate-ma_state-node-from-status.patch
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove PageAnonExclusive assertions in unuse_pte()
-Date: Tue, 12 Dec 2023 16:48:13 +0000
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: maple_tree: fix comments about MAS_*
+Date: Mon, 6 Nov 2023 10:41:24 -0500
 
-The page in question is either freshly allocated or known to be in
-the swap cache; these assertions are not particularly useful.
+Missed some documentation changes when separating the nodes from the
+status of the maple state.
 
-Link: https://lkml.kernel.org/r/20231212164813.2540119-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20231106154124.614247-1-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Peng Zhang <zhangpeng.00@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    4 ----
- 1 file changed, 4 deletions(-)
+ lib/maple_tree.c |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
---- a/mm/swapfile.c~mm-remove-pageanonexclusive-assertions-in-unuse_pte
-+++ a/mm/swapfile.c
-@@ -1788,10 +1788,6 @@ static int unuse_pte(struct vm_area_stru
- 	 */
- 	arch_swap_restore(entry, page_folio(page));
+--- a/lib/maple_tree.c~maple_tree-separate-ma_state-node-from-status-fix-1
++++ a/lib/maple_tree.c
+@@ -2228,12 +2228,10 @@ static inline bool mas_next_sibling(stru
+ }
  
--	/* See do_swap_page() */
--	BUG_ON(!PageAnon(page) && PageMappedToDisk(page));
--	BUG_ON(PageAnon(page) && PageAnonExclusive(page));
--
- 	dec_mm_counter(vma->vm_mm, MM_SWAPENTS);
- 	inc_mm_counter(vma->vm_mm, MM_ANONPAGES);
- 	get_page(page);
+ /*
+- * mte_node_or_node() - Return the encoded node or MAS_NONE.
++ * mte_node_or_none() - Set the enode and state.
+  * @enode: The encoded maple node.
+  *
+- * Shorthand to avoid setting %NULLs in the tree or maple_subtree_state.
+- *
+- * Return: @enode or MAS_NONE
++ * Set the node to the enode and the status.
+  */
+ static inline void mas_node_or_none(struct ma_state *mas,
+ 		struct maple_enode *enode)
+@@ -4377,11 +4375,13 @@ static __always_inline bool mas_rewalk_i
+ 
+ /*
+  * mas_prev_node() - Find the prev non-null entry at the same level in the
+- * tree.  The prev value will be mas->node[mas->offset] or MAS_NONE.
++ * tree.  The prev value will be mas->node[mas->offset] or the status will be
++ * ma_none.
+  * @mas: The maple state
+  * @min: The lower limit to search
+  *
+- * The prev node value will be mas->node[mas->offset] or MAS_NONE.
++ * The prev node value will be mas->node[mas->offset] or the status will be
++ * ma_none.
+  * Return: 1 if the node is dead, 0 otherwise.
+  */
+ static int mas_prev_node(struct ma_state *mas, unsigned long min)
+@@ -4903,7 +4903,7 @@ done:
+  * @mas: The maple state.
+  *
+  * mas->index and mas->last will be set to the range if there is a value.  If
+- * mas->node is MAS_NONE, reset to mas_start
++ * mas->status is ma_none, reset to ma_start
+  *
+  * Return: the entry at the location or %NULL.
+  */
+@@ -5870,7 +5870,7 @@ static bool mas_prev_setup(struct ma_sta
+  * @min: The minimum value to check.
+  *
+  * Must hold rcu_read_lock or the write lock.
+- * Will reset mas to MAS_START if the node is MAS_NONE.  Will stop on not
++ * Will reset mas to ma_start if the status is ma_none.  Will stop on not
+  * searchable nodes.
+  *
+  * Return: the previous value or %NULL.
+@@ -5893,7 +5893,7 @@ EXPORT_SYMBOL_GPL(mas_prev);
+  *
+  * Sets @mas->index and @mas->last to the range.
+  * Must hold rcu_read_lock or the write lock.
+- * Will reset mas to MAS_START if the node is MAS_NONE.  Will stop on not
++ * Will reset mas to ma_start if the node is ma_none.  Will stop on not
+  * searchable nodes.
+  *
+  * Return: the previous value or %NULL.
+@@ -6049,7 +6049,7 @@ ptr_out_of_range:
+  *
+  * Must hold rcu_read_lock or the write lock.
+  * If an entry exists, last and index are updated accordingly.
+- * May set @mas->node to MAS_NONE.
++ * May set @mas->status to ma_overflow.
+  *
+  * Return: The entry or %NULL.
+  */
+@@ -6076,7 +6076,7 @@ EXPORT_SYMBOL_GPL(mas_find);
+  *
+  * Must hold rcu_read_lock or the write lock.
+  * If an entry exists, last and index are updated accordingly.
+- * May set @mas->node to MAS_NONE.
++ * May set @mas->status to ma_overflow.
+  *
+  * Return: The entry or %NULL.
+  */
+@@ -6190,7 +6190,7 @@ none:
+  *
+  * Must hold rcu_read_lock or the write lock.
+  * If an entry exists, last and index are updated accordingly.
+- * May set @mas->node to MAS_NONE.
++ * May set @mas->status to ma_underflow.
+  *
+  * Return: The entry or %NULL.
+  */
+@@ -6216,7 +6216,7 @@ EXPORT_SYMBOL_GPL(mas_find_rev);
+  *
+  * Must hold rcu_read_lock or the write lock.
+  * If an entry exists, last and index are updated accordingly.
+- * May set @mas->node to MAS_NONE.
++ * May set @mas->status to ma_underflow.
+  *
+  * Return: The entry or %NULL.
+  */
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
-buffer-return-bool-from-grow_dev_folio.patch
-buffer-calculate-block-number-inside-folio_init_buffers.patch
-buffer-fix-grow_buffers-for-block-size-page_size.patch
-buffer-cast-block-to-loff_t-before-shifting-it.patch
-buffer-fix-various-functions-for-block-size-page_size.patch
-buffer-handle-large-folios-in-__block_write_begin_int.patch
-buffer-fix-more-functions-for-block-size-page_size.patch
-mm-convert-ksm_might_need_to_copy-to-work-on-folios.patch
-mm-remove-pageanonexclusive-assertions-in-unuse_pte.patch
-mm-convert-unuse_pte-to-use-a-folio-throughout.patch
-mm-remove-some-calls-to-page_add_new_anon_rmap.patch
-mm-remove-stale-example-from-comment.patch
-mm-remove-references-to-page_add_new_anon_rmap-in-comments.patch
-mm-convert-migrate_vma_insert_page-to-use-a-folio.patch
-mm-convert-collapse_huge_page-to-use-a-folio.patch
-mm-remove-page_add_new_anon_rmap-and-lru_cache_add_inactive_or_unevictable.patch
+maple_tree-remove-unnecessary-default-labels-from-switch-statements.patch
+maple_tree-make-mas_erase-more-robust.patch
+maple_tree-move-debug-check-to-__mas_set_range.patch
+maple_tree-add-end-of-node-tracking-to-the-maple-state.patch
+maple_tree-use-cached-node-end-in-mas_next.patch
+maple_tree-use-cached-node-end-in-mas_destroy.patch
+maple_tree-clean-up-inlines-for-some-functions.patch
+maple_tree-separate-ma_state-node-from-status.patch
+maple_tree-separate-ma_state-node-from-status-fix-2.patch
+maple_tree-separate-ma_state-node-from-status-fix.patch
+maple_tree-remove-mas_searchable.patch
+maple_tree-use-maple-state-end-for-write-operations.patch
+maple_tree-dont-find-node-end-in-mtree_lookup_walk.patch
+maple_tree-mtree_range_walk-clean-up.patch
 
