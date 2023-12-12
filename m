@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 085BB7E785
-	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2023 18:46:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75AFB210FB
+	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2023 18:46:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GzHGZu4Q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B02ECC433C9;
-	Tue, 12 Dec 2023 18:46:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EVepw5no"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0639CC433C7;
+	Tue, 12 Dec 2023 18:46:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702406781;
-	bh=BpUMlFvtX+65cJBVLNz0B+VKKfr6aOuoe68nOVsP7Vk=;
+	s=korg; t=1702406783;
+	bh=lGsGOlcJiYQXR2ChfXsFNPTTFXUmSu1mAim4st93krk=;
 	h=Date:To:From:Subject:From;
-	b=GzHGZu4Qeb/LkQPmw1XiL4/r+dWm0i9v8FvaQX/DmqN5EvmXtkUXdivKQeDG9CUuJ
-	 czTOIbwyiw1w0RiDgtCEJCuYil9OOOq6I9xvpja1v+PWrTFnOvNjhUf8Rx+Mckd5Bl
-	 OXw/Em22El6CB3dKXyncNLxOJdPy4/qtLZmUjam0=
-Date: Tue, 12 Dec 2023 10:46:21 -0800
-To: mm-commits@vger.kernel.org,zhangpeng.00@bytedance.com,Liam.Howlett@oracle.com,akpm@linux-foundation.org
+	b=EVepw5nowFNYGKQdS5JsEQxW1LPcCSgFQetUaqBXmlYBNi9DNN08whTuZ3ZzQe6Qs
+	 7GMU+CAf7DqstM3ovEEIEOr26zhgNcTxRMdvb6Wk7A/jfQnIvOhsgSMa3AuV1n/r6F
+	 WOtDjWBFob7P2H4sEp5L6eF/n1w7lXff1g78wJeg=
+Date: Tue, 12 Dec 2023 10:46:22 -0800
+To: mm-commits@vger.kernel.org,zhangpeng.00@bytedance.com,lkft@linaro.org,Liam.Howlett@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] maple_tree-separate-ma_state-node-from-status-fix-2.patch removed from -mm tree
-Message-Id: <20231212184621.B02ECC433C9@smtp.kernel.org>
+Subject: [folded-merged] maple_tree-separate-ma_state-node-from-status-fix.patch removed from -mm tree
+Message-Id: <20231212184623.0639CC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,61 +27,114 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: update forking to separate maple state and node
+     Subject: maple_tree: fix mas_prev() state separation code
 has been removed from the -mm tree.  Its filename was
-     maple_tree-separate-ma_state-node-from-status-fix-2.patch
+     maple_tree-separate-ma_state-node-from-status-fix.patch
 
 This patch was dropped because it was folded into maple_tree-separate-ma_state-node-from-status.patch
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: update forking to separate maple state and node
-Date: Mon, 6 Nov 2023 10:45:51 -0500
+Subject: maple_tree: fix mas_prev() state separation code
+Date: Thu, 7 Dec 2023 14:33:19 -0500
 
-Just a small change to the forking code after rebasing the maple status
-changes on top.
+mas_prev() was setting the ma_underflow condition when the limit was
+reached and not when the limit was attempting to go lower.  This resulted
+in the incorrect behaviour on subsequent actions.
 
-Link: https://lkml.kernel.org/r/20231106154551.615042-1-Liam.Howlett@oracle.com
+This commit fixes the status setting to only set ma_underflow when the
+lower limit is attempted to be decremented, and modifies the testing to
+ensure that's the case.
+
+Link: https://lkml.kernel.org/r/20231207193319.4025462-1-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reported-by: Linux Kernel Functional Testing <lkft@linaro.org>
+Closes: https://lore.kernel.org/all/CA+G9fYs-j2FYZSFSVZj48mgoM9gQd4-7M2mu2Ez3D1DqDdW2bQ@mail.gmail.com/
 Cc: Peng Zhang <zhangpeng.00@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c                 |    2 +-
- tools/testing/radix-tree/maple.c |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ lib/maple_tree.c      |   16 ++++++++++++----
+ lib/test_maple_tree.c |    9 +++++++--
+ 2 files changed, 19 insertions(+), 6 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-separate-ma_state-node-from-status-fix-2
+--- a/lib/maple_tree.c~maple_tree-separate-ma_state-node-from-status-fix
 +++ a/lib/maple_tree.c
-@@ -6693,7 +6693,7 @@ static inline void mas_dup_build(struct
+@@ -4498,6 +4498,9 @@ again:
+ 		mas->last = mas->index - 1;
+ 		mas->index = mas_safe_min(mas, pivots, mas->offset);
+ 	} else  {
++		if (mas->index <= min)
++			goto underflow;
++
+ 		if (mas_prev_node(mas, min)) {
+ 			mas_rewalk(mas, save_point);
+ 			goto retry;
+@@ -4518,15 +4521,15 @@ again:
+ 	if (unlikely(mas_rewalk_if_dead(mas, node, save_point)))
+ 		goto retry;
  
- 	node = mt_alloc_one(gfp);
- 	if (!node) {
--		new_mas->node = MAS_NONE;
-+		new_mas->status = ma_none;
- 		mas_set_err(mas, -ENOMEM);
- 		return;
+-	if (mas->index <= min)
+-		mas->status = ma_underflow;
+ 
+ 	if (likely(entry))
+ 		return entry;
+ 
+ 	if (!empty) {
+-		if (mas_is_underflow(mas))
++		if (mas->index <= min) {
++			mas->status = ma_underflow;
+ 			return NULL;
++		}
+ 
+ 		goto again;
  	}
---- a/tools/testing/radix-tree/maple.c~maple_tree-separate-ma_state-node-from-status-fix-2
-+++ a/tools/testing/radix-tree/maple.c
-@@ -35956,7 +35956,7 @@ static int __init compare_tree(struct ma
+@@ -4662,7 +4665,7 @@ retry:
+ 		if (unlikely(mas_rewalk_if_dead(mas, node, save_point)))
+ 			goto retry;
  
- 	if (mas_is_ptr(&mas_a) || mas_is_ptr(&mas_b)) {
- 		if (!(mas_is_ptr(&mas_a) && mas_is_ptr(&mas_b))) {
--			pr_err("One is MAS_ROOT and the other is not.\n");
-+			pr_err("One is ma_root and the other is not.\n");
- 			return -1;
+-		if (pivot >= max) {
++		if (pivot >= max) { /* Was at the limit, next will extend beyond */
+ 			mas->status = ma_overflow;
+ 			return NULL;
  		}
- 		return 0;
-@@ -35965,7 +35965,7 @@ static int __init compare_tree(struct ma
- 	while (!mas_is_none(&mas_a) || !mas_is_none(&mas_b)) {
+@@ -4677,6 +4680,11 @@ again:
+ 		else
+ 			mas->last = mas->max;
+ 	} else  {
++		if (mas->last >= max) {
++			mas->status = ma_overflow;
++			return NULL;
++		}
++
+ 		if (mas_next_node(mas, node, max)) {
+ 			mas_rewalk(mas, save_point);
+ 			goto retry;
+--- a/lib/test_maple_tree.c~maple_tree-separate-ma_state-node-from-status-fix
++++ a/lib/test_maple_tree.c
+@@ -3280,8 +3280,8 @@ static noinline void __init check_state_
+ 	MT_BUG_ON(mt, mas.last != 0x1500);
+ 	MT_BUG_ON(mt, !mas_is_active(&mas));
  
- 		if (mas_is_none(&mas_a) || mas_is_none(&mas_b)) {
--			pr_err("One is MAS_NONE and the other is not.\n");
-+			pr_err("One is ma_none and the other is not.\n");
- 			return -1;
- 		}
+-	/* next:active ->active */
+-	entry = mas_next(&mas, ULONG_MAX);
++	/* next:active ->active (spanning limit) */
++	entry = mas_next(&mas, 0x2100);
+ 	MT_BUG_ON(mt, entry != ptr2);
+ 	MT_BUG_ON(mt, mas.index != 0x2000);
+ 	MT_BUG_ON(mt, mas.last != 0x2500);
+@@ -3346,6 +3346,11 @@ static noinline void __init check_state_
+ 	MT_BUG_ON(mt, entry != ptr);
+ 	MT_BUG_ON(mt, mas.index != 0x1000);
+ 	MT_BUG_ON(mt, mas.last != 0x1500);
++	MT_BUG_ON(mt, !mas_is_active(&mas)); /* spanning limit */
++	entry = mas_prev(&mas, 0x1200); /* underflow */
++	MT_BUG_ON(mt, entry != NULL);
++	MT_BUG_ON(mt, mas.index != 0x1000);
++	MT_BUG_ON(mt, mas.last != 0x1500);
+ 	MT_BUG_ON(mt, !mas_is_underflow(&mas));
  
+ 	/* prev:underflow -> underflow (lower limit) spanning end range */
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
@@ -94,7 +147,6 @@ maple_tree-use-cached-node-end-in-mas_next.patch
 maple_tree-use-cached-node-end-in-mas_destroy.patch
 maple_tree-clean-up-inlines-for-some-functions.patch
 maple_tree-separate-ma_state-node-from-status.patch
-maple_tree-separate-ma_state-node-from-status-fix.patch
 maple_tree-remove-mas_searchable.patch
 maple_tree-use-maple-state-end-for-write-operations.patch
 maple_tree-dont-find-node-end-in-mtree_lookup_walk.patch
