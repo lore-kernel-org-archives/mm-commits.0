@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39BEF80028
-	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2023 18:59:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EF3080028
+	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2023 18:59:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FedLjRQo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 045ECC433CA;
-	Tue, 12 Dec 2023 18:59:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Pk3PTTI7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08197C433C7;
+	Tue, 12 Dec 2023 18:59:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702407590;
-	bh=g2ubnVrFG6KwjBI/ZbS4lBHmDn5ER83h17Zvfv6ru9c=;
+	s=korg; t=1702407591;
+	bh=q8sk1fLmM9BbOMeyCeeQmZmYDYgoL5p5W03aCAzfgK8=;
 	h=Date:To:From:Subject:From;
-	b=FedLjRQoLxRURrbbN92t8Jjon+QW47Lcils12NQCoqKN3spqE+uUcvnsvICtbK3Le
-	 2ZkPdC++dpDEYg3Bv/Y8n147G4E8zAv94onLhbIwn0z1RmNPxto6mk8LFDfz7beZ2g
-	 2KYcpf31n1OAj0KlW0COoLVGYfvXExDS6lwyMwLU=
-Date: Tue, 12 Dec 2023 10:59:49 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,zeming@nfschina.com,akpm@linux-foundation.org
+	b=Pk3PTTI7RceW7RmPBFQywyck3J0A1nHqnzV2GK2vqs0p/hXaK/UIvy81K7CxSPNIY
+	 e0giVcjUbDeUSou0sOQoUja8eL7KGCjmVL3mJkYkNP66eHlo/7adydOUqVHkofAnp5
+	 p8FRb0l5FT3tvPCofB/zqxJxlzcGMpWZ0PhfTtaI=
+Date: Tue, 12 Dec 2023 10:59:50 -0800
+To: mm-commits@vger.kernel.org,mike.kravetz@oracle.com,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-filemap-remove-unnecessary-iitialization-of-ret.patch removed from -mm tree
-Message-Id: <20231212185950.045ECC433CA@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb_vmemmap-add-check-of-config_memory_hotplug-back.patch removed from -mm tree
+Message-Id: <20231212185951.08197C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,43 +27,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: filemap: remove unnecessary iitialization of ret
+     Subject: mm: hugetlb_vmemmap: add check of CONFIG_MEMORY_HOTPLUG back
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-remove-unnecessary-iitialization-of-ret.patch
+     mm-hugetlb_vmemmap-add-check-of-config_memory_hotplug-back.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Li zeming <zeming@nfschina.com>
-Subject: mm: filemap: remove unnecessary iitialization of ret
-Date: Tue, 5 Dec 2023 10:29:54 +0800
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: hugetlb_vmemmap: add check of CONFIG_MEMORY_HOTPLUG back
+Date: Tue, 5 Dec 2023 11:05:30 +0800
 
-The ret variable can be defined without assigning a value, as it is
-assigned before use.
+The compiler will optimize the code as much as possible if we add the
+check of CONFIG_MEMORY_HOTPLUG back.
 
-Link: https://lkml.kernel.org/r/20231205022954.101045-1-zeming@nfschina.com
-Signed-off-by: Li zeming <zeming@nfschina.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20231205030530.3802-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
+ mm/hugetlb_vmemmap.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/filemap.c~mm-filemap-remove-unnecessary-iitialization-of-ret
-+++ a/mm/filemap.c
-@@ -1623,7 +1623,7 @@ EXPORT_SYMBOL_GPL(__folio_lock_killable)
- static int __folio_lock_async(struct folio *folio, struct wait_page_queue *wait)
- {
- 	struct wait_queue_head *q = folio_waitqueue(folio);
--	int ret = 0;
-+	int ret;
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-add-check-of-config_memory_hotplug-back
++++ a/mm/hugetlb_vmemmap.c
+@@ -119,7 +119,7 @@ static int vmemmap_pmd_entry(pmd_t *pmd,
+ 	 *   +--+ |                        |
+ 	 *        +------------------------+
+ 	 */
+-	if (unlikely(!vmemmap_walk->nr_walked)) {
++	if (IS_ENABLED(CONFIG_MEMORY_HOTPLUG) && unlikely(!vmemmap_walk->nr_walked)) {
+ 		struct page *page = head ? head + pte_index(addr) :
+ 				    pte_page(ptep_get(pte_offset_kernel(pmd, addr)));
  
- 	wait->folio = folio;
- 	wait->bit_nr = PG_locked;
 _
 
-Patches currently in -mm which might be from zeming@nfschina.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
 
