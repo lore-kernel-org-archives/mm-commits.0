@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A9AC7765B
-	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2023 16:22:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D93767765B
+	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2023 16:23:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eaYQRrwx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E30D9C433C7;
-	Tue, 12 Dec 2023 16:22:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R3/aWPlK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C186C433C7;
+	Tue, 12 Dec 2023 16:23:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702398122;
-	bh=qwbBw6a8S5NTRUmtE3OUB5ZYmvaQzQIV/3VVopfb+zU=;
+	s=korg; t=1702398232;
+	bh=kCYg9q55mFcm1m9yvp37imGZIyjDYMlOE20+Pl+Rmks=;
 	h=Date:To:From:Subject:From;
-	b=eaYQRrwxtdUC4Td+N646WazELQiKxNnm5D9lgwQBHAwcp2SGn579uIno04pJXffY2
-	 1NPoq6k6/MLriaBkTH572mvmAJMh52j8UuoCj7pzCXJUAzp/Ago8OpQi8hyCFDfID/
-	 OdVBC+t+chVUY66QLaqWHDnTC7Wm+Nr9zAoFCjtw=
-Date: Tue, 12 Dec 2023 08:22:01 -0800
-To: mm-commits@vger.kernel.org,ebiederm@xmission.com,ytcoode@gmail.com,akpm@linux-foundation.org
+	b=R3/aWPlK2Lf2C4sNgva2O88Mn1KTzmvgC2BoxSCcc9tK6vy8DlnknSZVtKZy662uE
+	 WT+qvHVMPoGsNW5f3krkbb6HLJui3hUYGQEYGsKHLDYksDsIFzlT/F0rJCuni9Ng6G
+	 IBHN7tfjoD0QVH25z/pcn77PBfJCzu/5+41EvnlI=
+Date: Tue, 12 Dec 2023 08:23:51 -0800
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,mingo@redhat.com,hpa@zytor.com,horms@kernel.org,dave.hansen@linux.intel.com,bp@alien8.de,bhe@redhat.com,bhelgaas@google.com,ytcoode@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kexec-use-align-macro-instead-of-open-coding-it.patch added to mm-nonmm-unstable branch
-Message-Id: <20231212162201.E30D9C433C7@smtp.kernel.org>
+Subject: + x86-kexec-simplify-the-logic-of-mem_region_callback.patch added to mm-nonmm-unstable branch
+Message-Id: <20231212162352.1C186C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kexec: use ALIGN macro instead of open-coding it
+     Subject: x86/kexec: simplify the logic of mem_region_callback()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kexec-use-align-macro-instead-of-open-coding-it.patch
+     x86-kexec-simplify-the-logic-of-mem_region_callback.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-use-align-macro-instead-of-open-coding-it.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-kexec-simplify-the-logic-of-mem_region_callback.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,44 +51,50 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yuntao Wang <ytcoode@gmail.com>
-Subject: kexec: use ALIGN macro instead of open-coding it
-Date: Tue, 12 Dec 2023 22:27:06 +0800
+Subject: x86/kexec: simplify the logic of mem_region_callback()
+Date: Tue, 12 Dec 2023 23:05:06 +0800
 
-Use ALIGN macro instead of open-coding it to improve code readability.
+The expression `mstart + resource_size(res) - 1` is actually equivalent to
+`res->end`, simplify the logic of this function to improve readability.
 
-Link: https://lkml.kernel.org/r/20231212142706.25149-1-ytcoode@gmail.com
+Link: https://lkml.kernel.org/r/20231212150506.31711-1-ytcoode@gmail.com
 Signed-off-by: Yuntao Wang <ytcoode@gmail.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Simon Horman <horms@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/kernel/machine_kexec_64.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/kernel/kexec_core.c~kexec-use-align-macro-instead-of-open-coding-it
-+++ a/kernel/kexec_core.c
-@@ -432,7 +432,7 @@ static struct page *kimage_alloc_crash_c
+--- a/arch/x86/kernel/machine_kexec_64.c~x86-kexec-simplify-the-logic-of-mem_region_callback
++++ a/arch/x86/kernel/machine_kexec_64.c
+@@ -42,12 +42,9 @@ struct init_pgtable_data {
+ static int mem_region_callback(struct resource *res, void *arg)
+ {
+ 	struct init_pgtable_data *data = arg;
+-	unsigned long mstart, mend;
  
- 	pages = NULL;
- 	size = (1 << order) << PAGE_SHIFT;
--	hole_start = (image->control_page + (size - 1)) & ~(size - 1);
-+	hole_start = ALIGN(image->control_page, size);
- 	hole_end   = hole_start + size - 1;
- 	while (hole_end <= crashk_res.end) {
- 		unsigned long i;
-@@ -449,7 +449,7 @@ static struct page *kimage_alloc_crash_c
- 			mend   = mstart + image->segment[i].memsz - 1;
- 			if ((hole_end >= mstart) && (hole_start <= mend)) {
- 				/* Advance the hole to the end of the segment */
--				hole_start = (mend + (size - 1)) & ~(size - 1);
-+				hole_start = ALIGN(mend, size);
- 				hole_end   = hole_start + size - 1;
- 				break;
- 			}
+-	mstart = res->start;
+-	mend = mstart + resource_size(res) - 1;
+-
+-	return kernel_ident_mapping_init(data->info, data->level4p, mstart, mend);
++	return kernel_ident_mapping_init(data->info, data->level4p,
++					 res->start, res->end);
+ }
+ 
+ static int
 _
 
 Patches currently in -mm which might be from ytcoode@gmail.com are
 
 crash_core-fix-the-check-for-whether-crashkernel-is-from-high-memory.patch
 kexec-use-align-macro-instead-of-open-coding-it.patch
+x86-kexec-simplify-the-logic-of-mem_region_callback.patch
 
