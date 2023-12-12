@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0698210FB
-	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2023 18:54:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C602C7F55D
+	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2023 18:58:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n2V3tyPi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57801C433C7;
-	Tue, 12 Dec 2023 18:54:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Gg9s/T7Z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27A3FC433C7;
+	Tue, 12 Dec 2023 18:58:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702407255;
-	bh=67auzDNFn3MnFlsT+eH+x5LXqd4MN89kVeseyGq7q84=;
+	s=korg; t=1702407539;
+	bh=oXR/GWJutM2rZkT/+xmUcK95dtPS2oEcrIWzqWX/4T8=;
 	h=Date:To:From:Subject:From;
-	b=n2V3tyPigbIOfcgW4L725LwKMdRQcZm9xdpe4G34F9jsPlZNWpP/En9uEhQyb14pL
-	 KLp70dm03q1y0ccTj6SGTAS4YM/D2q9R80K845gx8h9CHfI8YzFPNk39DWLcxXAxQX
-	 HDK9Xexq2Xeaa2/yhtL8e6ptG0F21c9JE2malR6Q=
-Date: Tue, 12 Dec 2023 10:54:14 -0800
-To: mm-commits@vger.kernel.org,longman@redhat.com,catalin.marinas@arm.com,akpm@linux-foundation.org
+	b=Gg9s/T7ZwVOzu90wlN/teqHhZHj+PMROOjroj91bGpG61vf8/ffCPjjMHZlADcS9H
+	 lv6MSM1I1KhJI/NoxjfvfXPU2KGlAwbzrjEoGt49Ey3QNoTi3FvIB11YALM9yNnPgn
+	 FaLsMY0Eq+agxndocsA4yEVOzi5R43A+ccHvZes8=
+Date: Tue, 12 Dec 2023 10:58:58 -0800
+To: mm-commits@vger.kernel.org,akpm@linux-foundation.org,Liam.Howlett@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] kmemleak-avoid-rcu-stalls-when-freeing-metadata-for-per-cpu-pointers-v2.patch removed from -mm tree
-Message-Id: <20231212185415.57801C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-remove-unnecessary-default-labels-from-switch-statements.patch removed from -mm tree
+Message-Id: <20231212185859.27A3FC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,46 +27,134 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kmemleak-avoid-rcu-stalls-when-freeing-metadata-for-per-cpu-pointers-v2
+     Subject: maple_tree: remove unnecessary default labels from switch statements
 has been removed from the -mm tree.  Its filename was
-     kmemleak-avoid-rcu-stalls-when-freeing-metadata-for-per-cpu-pointers-v2.patch
+     maple_tree-remove-unnecessary-default-labels-from-switch-statements.patch
 
-This patch was dropped because it was folded into kmemleak-avoid-rcu-stalls-when-freeing-metadata-for-per-cpu-pointers.patch
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: kmemleak-avoid-rcu-stalls-when-freeing-metadata-for-per-cpu-pointers-v2
-Date: Wed, 6 Dec 2023 11:44:14 +0000
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: maple_tree: remove unnecessary default labels from switch statements
+Date: Wed, 1 Nov 2023 13:16:18 -0400
 
-update the comment to include the *_percpu() callbacks, not just the *_phys()
+Patch series "maple_tree: iterator state changes".
 
-Link: https://lkml.kernel.org/r/20231206114414.2085824-1-catalin.marinas@arm.com
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Reported-by: Waiman Long <longman@redhat.com>
-Reviewed-by: Waiman Long <longman@redhat.com>
-Link: https://lore.kernel.org/r/20231127194153.289626-1-longman@redhat.com
+These patches have some general cleanup and a change to separate the maple
+state status tracking from the maple state node.
+
+The maple state status change allows for walks to continue from previous
+places when the status needs to be recorded to make logical sense for the
+next call to the maple state.  For instance, it allows for prev/next to
+function in a way that better resembles the linked list.  It also allows
+switch statements to be used to detect missed states during compile, and
+the addition of fast-path "active" state is cleaner as an enum.
+
+While making the status change, perf showed some very small (one line)
+functions that were not inlined even with the inline key word.  Making
+these small functions __always_inline is less expensive according to perf.
+As part of that change, some inlines have been dropped from larger
+functions.
+
+Perf also showed that the commonly used mas_for_each() iterator was
+spending a lot of time finding the end of the node.  This series
+introduces caching of the end of the node in the maple state (and updating
+it during writes).  This caching along with the inline changes yielded at
+23.25% improvement on the BENCH_MAS_FOR_EACH maple tree test framework
+benchmark.
+
+I've also included a change to mtree_range_walk and mtree_lookup_walk to
+take advantage of Peng's change [1] to the initial pivot setup.
+
+mmtests did not produce any significant gains.
+
+[1] https://lore.kernel.org/all/20230711035444.526-1-zhangpeng.00@bytedance.com/T/#u
+
+
+This patch (of 12):
+
+Removing the default types from the switch statements will cause compile
+warnings on missing cases.
+
+Link: https://lkml.kernel.org/r/20231101171629.3612299-2-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/maple_tree.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
---- a/mm/kmemleak.c~kmemleak-avoid-rcu-stalls-when-freeing-metadata-for-per-cpu-pointers-v2
-+++ a/mm/kmemleak.c
-@@ -21,8 +21,8 @@
-  *   red black trees used to look-up metadata based on a pointer to the
-  *   corresponding memory block. The kmemleak_object structures are added to
-  *   the object_list and the object tree root in the create_object() function
-- *   called from the kmemleak_alloc() (or kmemleak_alloc_phys()) callback and
-- *   removed in delete_object() called from the kmemleak_free() callback
-+ *   called from the kmemleak_alloc{,_phys,_percpu}() callback and removed in
-+ *   delete_object() called from the kmemleak_free{,_phys,_percpu}() callback
-  * - kmemleak_object.lock (raw_spinlock_t): protects a kmemleak_object.
-  *   Accesses to the metadata (e.g. count) are protected by this lock. Note
-  *   that some members of this structure may be protected by other means
+--- a/lib/maple_tree.c~maple_tree-remove-unnecessary-default-labels-from-switch-statements
++++ a/lib/maple_tree.c
+@@ -771,7 +771,6 @@ static inline void mte_set_pivot(struct
+ 
+ 	BUG_ON(piv >= mt_pivots[type]);
+ 	switch (type) {
+-	default:
+ 	case maple_range_64:
+ 	case maple_leaf_64:
+ 		node->mr64.pivot[piv] = val;
+@@ -795,7 +794,6 @@ static inline void mte_set_pivot(struct
+ static inline void __rcu **ma_slots(struct maple_node *mn, enum maple_type mt)
+ {
+ 	switch (mt) {
+-	default:
+ 	case maple_arange_64:
+ 		return mn->ma64.slot;
+ 	case maple_range_64:
+@@ -804,6 +802,8 @@ static inline void __rcu **ma_slots(stru
+ 	case maple_dense:
+ 		return mn->slot;
+ 	}
++
++	return NULL;
+ }
+ 
+ static inline bool mt_write_locked(const struct maple_tree *mt)
+@@ -7002,7 +7002,6 @@ static void mt_dump_range(unsigned long
+ 		else
+ 			pr_info("%.*s%lx-%lx: ", depth * 2, spaces, min, max);
+ 		break;
+-	default:
+ 	case mt_dump_dec:
+ 		if (min == max)
+ 			pr_info("%.*s%lu: ", depth * 2, spaces, min);
+@@ -7042,7 +7041,6 @@ static void mt_dump_range64(const struct
+ 		case mt_dump_hex:
+ 			pr_cont("%p %lX ", node->slot[i], node->pivot[i]);
+ 			break;
+-		default:
+ 		case mt_dump_dec:
+ 			pr_cont("%p %lu ", node->slot[i], node->pivot[i]);
+ 		}
+@@ -7072,7 +7070,6 @@ static void mt_dump_range64(const struct
+ 				pr_err("node %p last (%lx) > max (%lx) at pivot %d!\n",
+ 					node, last, max, i);
+ 				break;
+-			default:
+ 			case mt_dump_dec:
+ 				pr_err("node %p last (%lu) > max (%lu) at pivot %d!\n",
+ 					node, last, max, i);
+@@ -7097,7 +7094,6 @@ static void mt_dump_arange64(const struc
+ 		case mt_dump_hex:
+ 			pr_cont("%lx ", node->gap[i]);
+ 			break;
+-		default:
+ 		case mt_dump_dec:
+ 			pr_cont("%lu ", node->gap[i]);
+ 		}
+@@ -7108,7 +7104,6 @@ static void mt_dump_arange64(const struc
+ 		case mt_dump_hex:
+ 			pr_cont("%p %lX ", node->slot[i], node->pivot[i]);
+ 			break;
+-		default:
+ 		case mt_dump_dec:
+ 			pr_cont("%p %lu ", node->slot[i], node->pivot[i]);
+ 		}
 _
 
-Patches currently in -mm which might be from catalin.marinas@arm.com are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
-kmemleak-avoid-rcu-stalls-when-freeing-metadata-for-per-cpu-pointers.patch
 
