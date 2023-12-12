@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90A2B80031
-	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2023 18:59:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 632BC80032
+	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2023 18:59:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b1EflIJf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22D1DC433C7;
-	Tue, 12 Dec 2023 18:59:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jLcEVtl4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E175C433C7;
+	Tue, 12 Dec 2023 18:59:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702407574;
-	bh=6V4N4Ggp5oDXbr5wUO+MQpqWf5E6tBhGPlqC1WLjy5E=;
+	s=korg; t=1702407575;
+	bh=jopc8QRCefz1xVhQ4nNdWVKANfg4FXj39w5pxS3oHC8=;
 	h=Date:To:From:Subject:From;
-	b=b1EflIJfKIQgz+1PuNgm/foohzAM6Jkb/MzjDxSl/uLThO6iS907LA+Xn1PLMncvq
-	 gXB6ox6XpBJcvSreDe+THxY9IKS+B/UR8ZOUNDiyHX1V4dwwzsE7jgwMnztniTLevY
-	 U1zDVCphlz47EeGWZTj46KatTyXjmeA+hAzC2RI0=
-Date: Tue, 12 Dec 2023 10:59:33 -0800
+	b=jLcEVtl4KwjZVTBuI4U8dZfnc4E5L9BT93eHyDKMvYEcdiH31PaKNDnqug9C8l+E8
+	 gMN3lrr5LG8ESlZ/Qeu0s1GMaTNKns1zukD3Va7JtgOXiwzjsflolSgScrKVmo1Ozt
+	 we0ytGPjDBAhNHRqi9IKBtgjQcZ3tIxru/3utPPk=
+Date: Tue, 12 Dec 2023 10:59:34 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,davidgow@google.com,corbet@lwn.net,brendanhiggins@google.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-damon-test-quota-goals-directory.patch removed from -mm tree
-Message-Id: <20231212185934.22D1DC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] docs-mm-damon-design-document-damos-quota-auto-tuning.patch removed from -mm tree
+Message-Id: <20231212185935.2E175C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,22 +27,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/damon: test quota goals directory
+     Subject: Docs/mm/damon/design: document DAMOS quota auto tuning
 has been removed from the -mm tree.  Its filename was
-     selftests-damon-test-quota-goals-directory.patch
+     docs-mm-damon-design-document-damos-quota-auto-tuning.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon: test quota goals directory
-Date: Thu, 30 Nov 2023 02:36:49 +0000
+Subject: Docs/mm/damon/design: document DAMOS quota auto tuning
+Date: Thu, 30 Nov 2023 02:36:50 +0000
 
-Add DAMON selftests for testing creation/existence of quota goals
-directories and files, and simple valid input writes.
+Document the DAMOS quota auto tuning feature on the design document.
 
-Link: https://lkml.kernel.org/r/20231130023652.50284-7-sj@kernel.org
+Link: https://lkml.kernel.org/r/20231130023652.50284-8-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendanhiggins@google.com>
 Cc: David Gow <davidgow@google.com>
@@ -51,52 +50,29 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/sysfs.sh |   27 +++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ Documentation/mm/damon/design.rst |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
---- a/tools/testing/selftests/damon/sysfs.sh~selftests-damon-test-quota-goals-directory
-+++ a/tools/testing/selftests/damon/sysfs.sh
-@@ -150,6 +150,32 @@ test_weights()
- 	ensure_file "$weights_dir/age_permil" "exist" "600"
- }
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-damos-quota-auto-tuning
++++ a/Documentation/mm/damon/design.rst
+@@ -346,6 +346,17 @@ the weight will be respected are up to t
+ implementation.
  
-+test_goal()
-+{
-+	goal_dir=$1
-+	ensure_dir "$goal_dir" "exist"
-+	ensure_file "$goal_dir/target_value" "exist" "600"
-+	ensure_file "$goal_dir/current_value" "exist" "600"
-+}
-+
-+test_goals()
-+{
-+	goals_dir=$1
-+	ensure_dir "$goals_dir" "exist"
-+	ensure_file "$goals_dir/nr_goals" "exist" "600"
-+
-+	ensure_write_succ  "$goals_dir/nr_goals" "1" "valid input"
-+	test_goal "$goals_dir/0"
-+
-+	ensure_write_succ  "$goals_dir/nr_goals" "2" "valid input"
-+	test_goal "$goals_dir/0"
-+	test_goal "$goals_dir/1"
-+
-+	ensure_write_succ  "$goals_dir/nr_goals" "0" "valid input"
-+	ensure_dir "$goals_dir/0" "not_exist"
-+	ensure_dir "$goals_dir/1" "not_exist"
-+}
-+
- test_quotas()
- {
- 	quotas_dir=$1
-@@ -158,6 +184,7 @@ test_quotas()
- 	ensure_file "$quotas_dir/bytes" "exist" 600
- 	ensure_file "$quotas_dir/reset_interval_ms" "exist" 600
- 	test_weights "$quotas_dir/weights"
-+	test_goals "$quotas_dir/goals"
- }
  
- test_access_pattern()
++Aim-oriented Feedback-driven Auto-tuning
++^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++
++Automatic feedback-driven quota tuning.  Instead of setting the absolute quota
++value, users can repeatedly provide numbers representing how much of their goal
++for the scheme is achieved as feedback.  DAMOS then automatically tunes the
++aggressiveness (the quota) of the corresponding scheme.  For example, if DAMOS
++is under achieving the goal, DAMOS automatically increases the quota.  If DAMOS
++is over achieving the goal, it decreases the quota.
++
++
+ .. _damon_design_damos_watermarks:
+ 
+ Watermarks
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
