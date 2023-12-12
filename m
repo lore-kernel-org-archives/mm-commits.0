@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20B6B80028
-	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2023 18:59:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA10C80028
+	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2023 18:59:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uYyx8/rY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBCE6C433C9;
-	Tue, 12 Dec 2023 18:59:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JSk+gXS2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84086C433C8;
+	Tue, 12 Dec 2023 18:59:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702407586;
-	bh=oYEf/s1yXA67V85x3ShSPYvKP6cDoOXPoXPJ2wkC5Ok=;
+	s=korg; t=1702407587;
+	bh=VLUAPWioCO19rRkCPt4z3Rb9X11vu5eiS5o9NqFxXmQ=;
 	h=Date:To:From:Subject:From;
-	b=uYyx8/rYH+gs50/AYqr93wpagDJbl+qdZNsVMo4JHhE8nW0UiklCZwRYg6kT473Zt
-	 xbhkolue10jvmeABaQ8kPEjBzaSrQYDn3tYyB0x2olkQANIlEnq7m/Y9KcFhl7/o//
-	 cY94bWpZ7fnRwj1TqvCo0WGC06Qq++vTgvBCj7tQ=
-Date: Tue, 12 Dec 2023 10:59:45 -0800
-To: mm-commits@vger.kernel.org,longman@redhat.com,catalin.marinas@arm.com,akpm@linux-foundation.org
+	b=JSk+gXS22SVmyayKYESbCRk1xxq47p9epj7nvxy7/ycLhR4k5ADruJeqW1g91jt7W
+	 QgftOiWgwdTgT6XBp4xAFp67fc1q2QyK7/WmjNo9vab6iUiOX3fINlZD9ooBFy1lCt
+	 i59ZDd2JlvHJE3Mw2VLQLWd8eFQ9YP9fXfXDxBqY=
+Date: Tue, 12 Dec 2023 10:59:46 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kmemleak-avoid-rcu-stalls-when-freeing-metadata-for-per-cpu-pointers.patch removed from -mm tree
-Message-Id: <20231212185945.DBCE6C433C9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memory-use-more-folio-api-in-__split_huge_page_tail.patch removed from -mm tree
+Message-Id: <20231212185947.84086C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,567 +27,55 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kmemleak: avoid RCU stalls when freeing metadata for per-CPU pointers
+     Subject: mm: huge_memory: use more folio api in __split_huge_page_tail()
 has been removed from the -mm tree.  Its filename was
-     kmemleak-avoid-rcu-stalls-when-freeing-metadata-for-per-cpu-pointers.patch
+     mm-huge_memory-use-more-folio-api-in-__split_huge_page_tail.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: kmemleak: avoid RCU stalls when freeing metadata for per-CPU pointers
-Date: Fri, 1 Dec 2023 19:08:29 +0000
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: huge_memory: use more folio api in __split_huge_page_tail()
+Date: Fri, 10 Nov 2023 11:33:21 +0800
 
-On systems with large number of CPUs, the following soft lockup splat
-might sometimes happen:
+Use more folio APIs to save six compound_head() calls in
+__split_huge_page_tail().
 
-[ 2656.001617] watchdog: BUG: soft lockup - CPU#364 stuck for 21s! [ksoftirqd/364:2206]
-  :
-[ 2656.141194] RIP: 0010:_raw_spin_unlock_irqrestore+0x3d/0x70
-  :
- 2656.241214] Call Trace:
-[ 2656.243971]  <IRQ>
-[ 2656.246237]  ? show_trace_log_lvl+0x1c4/0x2df
-[ 2656.251152]  ? show_trace_log_lvl+0x1c4/0x2df
-[ 2656.256066]  ? kmemleak_free_percpu+0x11f/0x1f0
-[ 2656.261173]  ? watchdog_timer_fn+0x379/0x470
-[ 2656.265984]  ? __pfx_watchdog_timer_fn+0x10/0x10
-[ 2656.271179]  ? __hrtimer_run_queues+0x5f3/0xd00
-[ 2656.276283]  ? __pfx___hrtimer_run_queues+0x10/0x10
-[ 2656.281783]  ? ktime_get_update_offsets_now+0x95/0x2c0
-[ 2656.287573]  ? ktime_get_update_offsets_now+0xdd/0x2c0
-[ 2656.293380]  ? hrtimer_interrupt+0x2e9/0x780
-[ 2656.298221]  ? __sysvec_apic_timer_interrupt+0x184/0x640
-[ 2656.304211]  ? sysvec_apic_timer_interrupt+0x8e/0xc0
-[ 2656.309807]  </IRQ>
-[ 2656.312169]  <TASK>
-[ 2656.326110]  kmemleak_free_percpu+0x11f/0x1f0
-[ 2656.331015]  free_percpu.part.0+0x1b/0xe70
-[ 2656.335635]  free_vfsmnt+0xb9/0x100
-[ 2656.339567]  rcu_do_batch+0x3c8/0xe30
-[ 2656.363693]  rcu_core+0x3de/0x5a0
-[ 2656.367433]  __do_softirq+0x2d0/0x9a8
-[ 2656.381119]  run_ksoftirqd+0x36/0x60
-[ 2656.385145]  smpboot_thread_fn+0x556/0x910
-[ 2656.394971]  kthread+0x2a4/0x350
-[ 2656.402826]  ret_from_fork+0x29/0x50
-[ 2656.406861]  </TASK>
-
-The issue is caused by kmemleak registering each per_cpu_ptr()
-corresponding to the __percpu pointer.  This is unnecessary since such
-individual per-CPU pointers are not tracked anyway.  Create a new
-object_percpu_tree_root rbtree that stores a single __percpu pointer
-together with an OBJECT_PERCPU flag for the kmemleak metadata.  Scanning
-needs to be done for all per_cpu_ptr() pointers with a cond_resched()
-between each CPU iteration to avoid RCU stalls.
-
-[catalin.marinas@arm.com: update comment]
-  Link: https://lkml.kernel.org/r/20231206114414.2085824-1-catalin.marinas@arm.com
-  Link: https://lore.kernel.org/r/20231127194153.289626-1-longman@redhat.comLink: https://lkml.kernel.org/r/20231201190829.825856-1-catalin.marinas@arm.com
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Reported-by: Waiman Long <longman@redhat.com>
-Closes: https://lore.kernel.org/r/20231127194153.289626-1-longman@redhat.com
-Reviewed-by: Waiman Long <longman@redhat.com>
+Link: https://lkml.kernel.org/r/20231110033324.2455523-5-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |  178 ++++++++++++++++++++++++++----------------------
- 1 file changed, 97 insertions(+), 81 deletions(-)
+ mm/huge_memory.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/kmemleak.c~kmemleak-avoid-rcu-stalls-when-freeing-metadata-for-per-cpu-pointers
-+++ a/mm/kmemleak.c
-@@ -14,17 +14,15 @@
-  * The following locks and mutexes are used by kmemleak:
-  *
-  * - kmemleak_lock (raw_spinlock_t): protects the object_list as well as
-- *   del_state modifications and accesses to the object_tree_root (or
-- *   object_phys_tree_root). The object_list is the main list holding the
-- *   metadata (struct kmemleak_object) for the allocated memory blocks.
-- *   The object_tree_root and object_phys_tree_root are red
-- *   black trees used to look-up metadata based on a pointer to the
-- *   corresponding memory block. The object_phys_tree_root is for objects
-- *   allocated with physical address. The kmemleak_object structures are
-- *   added to the object_list and object_tree_root (or object_phys_tree_root)
-- *   in the create_object() function called from the kmemleak_alloc() (or
-- *   kmemleak_alloc_phys()) callback and removed in delete_object() called from
-- *   the kmemleak_free() callback
-+ *   del_state modifications and accesses to the object trees
-+ *   (object_tree_root, object_phys_tree_root, object_percpu_tree_root). The
-+ *   object_list is the main list holding the metadata (struct
-+ *   kmemleak_object) for the allocated memory blocks. The object trees are
-+ *   red black trees used to look-up metadata based on a pointer to the
-+ *   corresponding memory block. The kmemleak_object structures are added to
-+ *   the object_list and the object tree root in the create_object() function
-+ *   called from the kmemleak_alloc{,_phys,_percpu}() callback and removed in
-+ *   delete_object() called from the kmemleak_free{,_phys,_percpu}() callback
-  * - kmemleak_object.lock (raw_spinlock_t): protects a kmemleak_object.
-  *   Accesses to the metadata (e.g. count) are protected by this lock. Note
-  *   that some members of this structure may be protected by other means
-@@ -178,6 +176,8 @@ struct kmemleak_object {
- #define OBJECT_FULL_SCAN	(1 << 3)
- /* flag set for object allocated with physical address */
- #define OBJECT_PHYS		(1 << 4)
-+/* flag set for per-CPU pointers */
-+#define OBJECT_PERCPU		(1 << 5)
+--- a/mm/huge_memory.c~mm-huge_memory-use-more-folio-api-in-__split_huge_page_tail
++++ a/mm/huge_memory.c
+@@ -2509,13 +2509,13 @@ static void __split_huge_page_tail(struc
+ 	clear_compound_head(page_tail);
  
- /* set when __remove_object() called */
- #define DELSTATE_REMOVED	(1 << 0)
-@@ -206,6 +206,8 @@ static LIST_HEAD(mem_pool_free_list);
- static struct rb_root object_tree_root = RB_ROOT;
- /* search tree for object (with OBJECT_PHYS flag) boundaries */
- static struct rb_root object_phys_tree_root = RB_ROOT;
-+/* search tree for object (with OBJECT_PERCPU flag) boundaries */
-+static struct rb_root object_percpu_tree_root = RB_ROOT;
- /* protecting the access to object_list, object_tree_root (or object_phys_tree_root) */
- static DEFINE_RAW_SPINLOCK(kmemleak_lock);
+ 	/* Finally unfreeze refcount. Additional reference from page cache. */
+-	page_ref_unfreeze(page_tail, 1 + (!PageAnon(head) ||
+-					  PageSwapCache(head)));
++	page_ref_unfreeze(page_tail, 1 + (!folio_test_anon(folio) ||
++					  folio_test_swapcache(folio)));
  
-@@ -298,7 +300,7 @@ static void hex_dump_object(struct seq_f
- 	const u8 *ptr = (const u8 *)object->pointer;
- 	size_t len;
+-	if (page_is_young(head))
+-		set_page_young(page_tail);
+-	if (page_is_idle(head))
+-		set_page_idle(page_tail);
++	if (folio_test_young(folio))
++		folio_set_young(new_folio);
++	if (folio_test_idle(folio))
++		folio_set_idle(new_folio);
  
--	if (WARN_ON_ONCE(object->flags & OBJECT_PHYS))
-+	if (WARN_ON_ONCE(object->flags & (OBJECT_PHYS | OBJECT_PERCPU)))
- 		return;
+ 	folio_xchg_last_cpupid(new_folio, folio_last_cpupid(folio));
  
- 	/* limit the number of lines to HEX_MAX_LINES */
-@@ -390,6 +392,15 @@ static void dump_object_info(struct kmem
- 		stack_depot_print(object->trace_handle);
- }
- 
-+static struct rb_root *object_tree(unsigned long objflags)
-+{
-+	if (objflags & OBJECT_PHYS)
-+		return &object_phys_tree_root;
-+	if (objflags & OBJECT_PERCPU)
-+		return &object_percpu_tree_root;
-+	return &object_tree_root;
-+}
-+
- /*
-  * Look-up a memory block metadata (kmemleak_object) in the object search
-  * tree based on a pointer value. If alias is 0, only values pointing to the
-@@ -397,10 +408,9 @@ static void dump_object_info(struct kmem
-  * when calling this function.
-  */
- static struct kmemleak_object *__lookup_object(unsigned long ptr, int alias,
--					       bool is_phys)
-+					       unsigned int objflags)
- {
--	struct rb_node *rb = is_phys ? object_phys_tree_root.rb_node :
--			     object_tree_root.rb_node;
-+	struct rb_node *rb = object_tree(objflags)->rb_node;
- 	unsigned long untagged_ptr = (unsigned long)kasan_reset_tag((void *)ptr);
- 
- 	while (rb) {
-@@ -429,7 +439,7 @@ static struct kmemleak_object *__lookup_
- /* Look-up a kmemleak object which allocated with virtual address. */
- static struct kmemleak_object *lookup_object(unsigned long ptr, int alias)
- {
--	return __lookup_object(ptr, alias, false);
-+	return __lookup_object(ptr, alias, 0);
- }
- 
- /*
-@@ -542,14 +552,14 @@ static void put_object(struct kmemleak_o
-  * Look up an object in the object search tree and increase its use_count.
-  */
- static struct kmemleak_object *__find_and_get_object(unsigned long ptr, int alias,
--						     bool is_phys)
-+						     unsigned int objflags)
- {
- 	unsigned long flags;
- 	struct kmemleak_object *object;
- 
- 	rcu_read_lock();
- 	raw_spin_lock_irqsave(&kmemleak_lock, flags);
--	object = __lookup_object(ptr, alias, is_phys);
-+	object = __lookup_object(ptr, alias, objflags);
- 	raw_spin_unlock_irqrestore(&kmemleak_lock, flags);
- 
- 	/* check whether the object is still available */
-@@ -563,19 +573,16 @@ static struct kmemleak_object *__find_an
- /* Look up and get an object which allocated with virtual address. */
- static struct kmemleak_object *find_and_get_object(unsigned long ptr, int alias)
- {
--	return __find_and_get_object(ptr, alias, false);
-+	return __find_and_get_object(ptr, alias, 0);
- }
- 
- /*
-- * Remove an object from the object_tree_root (or object_phys_tree_root)
-- * and object_list. Must be called with the kmemleak_lock held _if_ kmemleak
-- * is still enabled.
-+ * Remove an object from its object tree and object_list. Must be called with
-+ * the kmemleak_lock held _if_ kmemleak is still enabled.
-  */
- static void __remove_object(struct kmemleak_object *object)
- {
--	rb_erase(&object->rb_node, object->flags & OBJECT_PHYS ?
--				   &object_phys_tree_root :
--				   &object_tree_root);
-+	rb_erase(&object->rb_node, object_tree(object->flags));
- 	if (!(object->del_state & DELSTATE_NO_DELETE))
- 		list_del_rcu(&object->object_list);
- 	object->del_state |= DELSTATE_REMOVED;
-@@ -583,11 +590,11 @@ static void __remove_object(struct kmeml
- 
- static struct kmemleak_object *__find_and_remove_object(unsigned long ptr,
- 							int alias,
--							bool is_phys)
-+							unsigned int objflags)
- {
- 	struct kmemleak_object *object;
- 
--	object = __lookup_object(ptr, alias, is_phys);
-+	object = __lookup_object(ptr, alias, objflags);
- 	if (object)
- 		__remove_object(object);
- 
-@@ -595,19 +602,18 @@ static struct kmemleak_object *__find_an
- }
- 
- /*
-- * Look up an object in the object search tree and remove it from both
-- * object_tree_root (or object_phys_tree_root) and object_list. The
-- * returned object's use_count should be at least 1, as initially set
-- * by create_object().
-+ * Look up an object in the object search tree and remove it from both object
-+ * tree root and object_list. The returned object's use_count should be at
-+ * least 1, as initially set by create_object().
-  */
- static struct kmemleak_object *find_and_remove_object(unsigned long ptr, int alias,
--						      bool is_phys)
-+						      unsigned int objflags)
- {
- 	unsigned long flags;
- 	struct kmemleak_object *object;
- 
- 	raw_spin_lock_irqsave(&kmemleak_lock, flags);
--	object = __find_and_remove_object(ptr, alias, is_phys);
-+	object = __find_and_remove_object(ptr, alias, objflags);
- 	raw_spin_unlock_irqrestore(&kmemleak_lock, flags);
- 
- 	return object;
-@@ -678,7 +684,7 @@ static struct kmemleak_object *__alloc_o
- }
- 
- static int __link_object(struct kmemleak_object *object, unsigned long ptr,
--			 size_t size, int min_count, bool is_phys)
-+			 size_t size, int min_count, unsigned int objflags)
- {
- 
- 	struct kmemleak_object *parent;
-@@ -686,7 +692,7 @@ static int __link_object(struct kmemleak
- 	unsigned long untagged_ptr;
- 	unsigned long untagged_objp;
- 
--	object->flags = OBJECT_ALLOCATED | (is_phys ? OBJECT_PHYS : 0);
-+	object->flags = OBJECT_ALLOCATED | objflags;
- 	object->pointer = ptr;
- 	object->size = kfence_ksize((void *)ptr) ?: size;
- 	object->min_count = min_count;
-@@ -697,12 +703,11 @@ static int __link_object(struct kmemleak
- 	 * Only update min_addr and max_addr with object
- 	 * storing virtual address.
- 	 */
--	if (!is_phys) {
-+	if (!(objflags & (OBJECT_PHYS | OBJECT_PERCPU))) {
- 		min_addr = min(min_addr, untagged_ptr);
- 		max_addr = max(max_addr, untagged_ptr + size);
- 	}
--	link = is_phys ? &object_phys_tree_root.rb_node :
--		&object_tree_root.rb_node;
-+	link = &object_tree(objflags)->rb_node;
- 	rb_parent = NULL;
- 	while (*link) {
- 		rb_parent = *link;
-@@ -724,8 +729,7 @@ static int __link_object(struct kmemleak
- 		}
- 	}
- 	rb_link_node(&object->rb_node, rb_parent, link);
--	rb_insert_color(&object->rb_node, is_phys ? &object_phys_tree_root :
--					  &object_tree_root);
-+	rb_insert_color(&object->rb_node, object_tree(objflags));
- 	list_add_tail_rcu(&object->object_list, &object_list);
- 
- 	return 0;
-@@ -733,11 +737,10 @@ static int __link_object(struct kmemleak
- 
- /*
-  * Create the metadata (struct kmemleak_object) corresponding to an allocated
-- * memory block and add it to the object_list and object_tree_root (or
-- * object_phys_tree_root).
-+ * memory block and add it to the object_list and object tree.
-  */
- static void __create_object(unsigned long ptr, size_t size,
--				int min_count, gfp_t gfp, bool is_phys)
-+				int min_count, gfp_t gfp, unsigned int objflags)
- {
- 	struct kmemleak_object *object;
- 	unsigned long flags;
-@@ -748,7 +751,7 @@ static void __create_object(unsigned lon
- 		return;
- 
- 	raw_spin_lock_irqsave(&kmemleak_lock, flags);
--	ret = __link_object(object, ptr, size, min_count, is_phys);
-+	ret = __link_object(object, ptr, size, min_count, objflags);
- 	raw_spin_unlock_irqrestore(&kmemleak_lock, flags);
- 	if (ret)
- 		mem_pool_free(object);
-@@ -758,14 +761,21 @@ static void __create_object(unsigned lon
- static void create_object(unsigned long ptr, size_t size,
- 			  int min_count, gfp_t gfp)
- {
--	__create_object(ptr, size, min_count, gfp, false);
-+	__create_object(ptr, size, min_count, gfp, 0);
- }
- 
- /* Create kmemleak object which allocated with physical address. */
- static void create_object_phys(unsigned long ptr, size_t size,
- 			       int min_count, gfp_t gfp)
- {
--	__create_object(ptr, size, min_count, gfp, true);
-+	__create_object(ptr, size, min_count, gfp, OBJECT_PHYS);
-+}
-+
-+/* Create kmemleak object corresponding to a per-CPU allocation. */
-+static void create_object_percpu(unsigned long ptr, size_t size,
-+				 int min_count, gfp_t gfp)
-+{
-+	__create_object(ptr, size, min_count, gfp, OBJECT_PERCPU);
- }
- 
- /*
-@@ -792,11 +802,11 @@ static void __delete_object(struct kmeml
-  * Look up the metadata (struct kmemleak_object) corresponding to ptr and
-  * delete it.
-  */
--static void delete_object_full(unsigned long ptr)
-+static void delete_object_full(unsigned long ptr, unsigned int objflags)
- {
- 	struct kmemleak_object *object;
- 
--	object = find_and_remove_object(ptr, 0, false);
-+	object = find_and_remove_object(ptr, 0, objflags);
- 	if (!object) {
- #ifdef DEBUG
- 		kmemleak_warn("Freeing unknown object at 0x%08lx\n",
-@@ -812,7 +822,8 @@ static void delete_object_full(unsigned
-  * delete it. If the memory block is partially freed, the function may create
-  * additional metadata for the remaining parts of the block.
-  */
--static void delete_object_part(unsigned long ptr, size_t size, bool is_phys)
-+static void delete_object_part(unsigned long ptr, size_t size,
-+			       unsigned int objflags)
- {
- 	struct kmemleak_object *object, *object_l, *object_r;
- 	unsigned long start, end, flags;
-@@ -826,7 +837,7 @@ static void delete_object_part(unsigned
- 		goto out;
- 
- 	raw_spin_lock_irqsave(&kmemleak_lock, flags);
--	object = __find_and_remove_object(ptr, 1, is_phys);
-+	object = __find_and_remove_object(ptr, 1, objflags);
- 	if (!object) {
- #ifdef DEBUG
- 		kmemleak_warn("Partially freeing unknown object at 0x%08lx (size %zu)\n",
-@@ -844,11 +855,11 @@ static void delete_object_part(unsigned
- 	end = object->pointer + object->size;
- 	if ((ptr > start) &&
- 	    !__link_object(object_l, start, ptr - start,
--			   object->min_count, is_phys))
-+			   object->min_count, objflags))
- 		object_l = NULL;
- 	if ((ptr + size < end) &&
- 	    !__link_object(object_r, ptr + size, end - ptr - size,
--			   object->min_count, is_phys))
-+			   object->min_count, objflags))
- 		object_r = NULL;
- 
- unlock:
-@@ -879,11 +890,11 @@ static void paint_it(struct kmemleak_obj
- 	raw_spin_unlock_irqrestore(&object->lock, flags);
- }
- 
--static void paint_ptr(unsigned long ptr, int color, bool is_phys)
-+static void paint_ptr(unsigned long ptr, int color, unsigned int objflags)
- {
- 	struct kmemleak_object *object;
- 
--	object = __find_and_get_object(ptr, 0, is_phys);
-+	object = __find_and_get_object(ptr, 0, objflags);
- 	if (!object) {
- 		kmemleak_warn("Trying to color unknown object at 0x%08lx as %s\n",
- 			      ptr,
-@@ -901,16 +912,16 @@ static void paint_ptr(unsigned long ptr,
-  */
- static void make_gray_object(unsigned long ptr)
- {
--	paint_ptr(ptr, KMEMLEAK_GREY, false);
-+	paint_ptr(ptr, KMEMLEAK_GREY, 0);
- }
- 
- /*
-  * Mark the object as black-colored so that it is ignored from scans and
-  * reporting.
-  */
--static void make_black_object(unsigned long ptr, bool is_phys)
-+static void make_black_object(unsigned long ptr, unsigned int objflags)
- {
--	paint_ptr(ptr, KMEMLEAK_BLACK, is_phys);
-+	paint_ptr(ptr, KMEMLEAK_BLACK, objflags);
- }
- 
- /*
-@@ -1046,8 +1057,6 @@ EXPORT_SYMBOL_GPL(kmemleak_alloc);
- void __ref kmemleak_alloc_percpu(const void __percpu *ptr, size_t size,
- 				 gfp_t gfp)
- {
--	unsigned int cpu;
--
- 	pr_debug("%s(0x%px, %zu)\n", __func__, ptr, size);
- 
- 	/*
-@@ -1055,9 +1064,7 @@ void __ref kmemleak_alloc_percpu(const v
- 	 * (min_count is set to 0).
- 	 */
- 	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
--		for_each_possible_cpu(cpu)
--			create_object((unsigned long)per_cpu_ptr(ptr, cpu),
--				      size, 0, gfp);
-+		create_object_percpu((unsigned long)ptr, size, 0, gfp);
- }
- EXPORT_SYMBOL_GPL(kmemleak_alloc_percpu);
- 
-@@ -1098,7 +1105,7 @@ void __ref kmemleak_free(const void *ptr
- 	pr_debug("%s(0x%px)\n", __func__, ptr);
- 
- 	if (kmemleak_free_enabled && ptr && !IS_ERR(ptr))
--		delete_object_full((unsigned long)ptr);
-+		delete_object_full((unsigned long)ptr, 0);
- }
- EXPORT_SYMBOL_GPL(kmemleak_free);
- 
-@@ -1116,7 +1123,7 @@ void __ref kmemleak_free_part(const void
- 	pr_debug("%s(0x%px)\n", __func__, ptr);
- 
- 	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
--		delete_object_part((unsigned long)ptr, size, false);
-+		delete_object_part((unsigned long)ptr, size, 0);
- }
- EXPORT_SYMBOL_GPL(kmemleak_free_part);
- 
-@@ -1129,14 +1136,10 @@ EXPORT_SYMBOL_GPL(kmemleak_free_part);
-  */
- void __ref kmemleak_free_percpu(const void __percpu *ptr)
- {
--	unsigned int cpu;
--
- 	pr_debug("%s(0x%px)\n", __func__, ptr);
- 
- 	if (kmemleak_free_enabled && ptr && !IS_ERR(ptr))
--		for_each_possible_cpu(cpu)
--			delete_object_full((unsigned long)per_cpu_ptr(ptr,
--								      cpu));
-+		delete_object_full((unsigned long)ptr, OBJECT_PERCPU);
- }
- EXPORT_SYMBOL_GPL(kmemleak_free_percpu);
- 
-@@ -1206,7 +1209,7 @@ void __ref kmemleak_ignore(const void *p
- 	pr_debug("%s(0x%px)\n", __func__, ptr);
- 
- 	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
--		make_black_object((unsigned long)ptr, false);
-+		make_black_object((unsigned long)ptr, 0);
- }
- EXPORT_SYMBOL(kmemleak_ignore);
- 
-@@ -1280,7 +1283,7 @@ void __ref kmemleak_free_part_phys(phys_
- 	pr_debug("%s(0x%px)\n", __func__, &phys);
- 
- 	if (kmemleak_enabled)
--		delete_object_part((unsigned long)phys, size, true);
-+		delete_object_part((unsigned long)phys, size, OBJECT_PHYS);
- }
- EXPORT_SYMBOL(kmemleak_free_part_phys);
- 
-@@ -1294,7 +1297,7 @@ void __ref kmemleak_ignore_phys(phys_add
- 	pr_debug("%s(0x%px)\n", __func__, &phys);
- 
- 	if (kmemleak_enabled)
--		make_black_object((unsigned long)phys, true);
-+		make_black_object((unsigned long)phys, OBJECT_PHYS);
- }
- EXPORT_SYMBOL(kmemleak_ignore_phys);
- 
-@@ -1305,7 +1308,7 @@ static bool update_checksum(struct kmeml
- {
- 	u32 old_csum = object->checksum;
- 
--	if (WARN_ON_ONCE(object->flags & OBJECT_PHYS))
-+	if (WARN_ON_ONCE(object->flags & (OBJECT_PHYS | OBJECT_PERCPU)))
- 		return false;
- 
- 	kasan_disable_current();
-@@ -1461,7 +1464,6 @@ static void scan_object(struct kmemleak_
- {
- 	struct kmemleak_scan_area *area;
- 	unsigned long flags;
--	void *obj_ptr;
- 
- 	/*
- 	 * Once the object->lock is acquired, the corresponding memory block
-@@ -1474,14 +1476,27 @@ static void scan_object(struct kmemleak_
- 		/* already freed object */
- 		goto out;
- 
--	obj_ptr = object->flags & OBJECT_PHYS ?
--		  __va((phys_addr_t)object->pointer) :
--		  (void *)object->pointer;
-+	if (object->flags & OBJECT_PERCPU) {
-+		unsigned int cpu;
-+
-+		for_each_possible_cpu(cpu) {
-+			void *start = per_cpu_ptr((void __percpu *)object->pointer, cpu);
-+			void *end = start + object->size;
- 
--	if (hlist_empty(&object->area_list) ||
-+			scan_block(start, end, object);
-+
-+			raw_spin_unlock_irqrestore(&object->lock, flags);
-+			cond_resched();
-+			raw_spin_lock_irqsave(&object->lock, flags);
-+			if (!(object->flags & OBJECT_ALLOCATED))
-+				break;
-+		}
-+	} else if (hlist_empty(&object->area_list) ||
- 	    object->flags & OBJECT_FULL_SCAN) {
--		void *start = obj_ptr;
--		void *end = obj_ptr + object->size;
-+		void *start = object->flags & OBJECT_PHYS ?
-+				__va((phys_addr_t)object->pointer) :
-+				(void *)object->pointer;
-+		void *end = start + object->size;
- 		void *next;
- 
- 		do {
-@@ -1496,11 +1511,12 @@ static void scan_object(struct kmemleak_
- 			cond_resched();
- 			raw_spin_lock_irqsave(&object->lock, flags);
- 		} while (object->flags & OBJECT_ALLOCATED);
--	} else
-+	} else {
- 		hlist_for_each_entry(area, &object->area_list, node)
- 			scan_block((void *)area->start,
- 				   (void *)(area->start + area->size),
- 				   object);
-+	}
- out:
- 	raw_spin_unlock_irqrestore(&object->lock, flags);
- }
 _
 
-Patches currently in -mm which might be from catalin.marinas@arm.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
+mm-fix-vma-heap-bounds-checking.patch
 
