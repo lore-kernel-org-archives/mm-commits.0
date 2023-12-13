@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 268F568296
-	for <mm-commits@vger.kernel.org>; Wed, 13 Dec 2023 19:49:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 074FC68296
+	for <mm-commits@vger.kernel.org>; Wed, 13 Dec 2023 19:49:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ywq1MwOc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A75CC433C8;
-	Wed, 13 Dec 2023 19:49:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z8GrROdI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A91AC433C8;
+	Wed, 13 Dec 2023 19:49:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702496970;
-	bh=j9W0HXmc0Lm55nCpRVPtFRwvwOm6ESY4paj1RQIdXyY=;
+	s=korg; t=1702496972;
+	bh=Y6fgMSoYK4hz5diY2PXGKSeeYS8JaZMMBrU+S3FlJEA=;
 	h=Date:To:From:Subject:From;
-	b=ywq1MwOcVSeNmCre3eo0Dx5fJgIuAg1FQxSmsKHAXawbbn0qB1MbVNMaoEtY8JHV5
-	 GnCYXwUrT1vEE57j+U7mvYUuHUwOJXbWQeN9CSbJWrOzCebXTtCkDqUoS1XCPnHboG
-	 LSWqBBQ7Mz6/Xdjn5z5A1komV6L19LGXsQsrbcNs=
-Date: Wed, 13 Dec 2023 11:49:30 -0800
+	b=z8GrROdIr1NlittSh14FiQzPRFfJu2IeMjTvEUUeMEVF5cOGj/9NXr6c3EGVLI3OF
+	 RAOZQ4dHxeNpV7Hdf6Xg/XDlaL2lyDxubh4c6f7r9jpbqkukLIChVWOhTLN0+sf7Nk
+	 zpyGfhdDnj573UnlxPm3gvQQS4Z+pytGE0qz2Hh8=
+Date: Wed, 13 Dec 2023 11:49:31 -0800
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-test-test-max_nr_accesses-overflow-caused-divide-by-zero.patch added to mm-unstable branch
-Message-Id: <20231213194930.9A75CC433C8@smtp.kernel.org>
+Subject: + docs-mm-damon-design-place-execution-model-and-data-structures-at-the-beginning.patch added to mm-unstable branch
+Message-Id: <20231213194932.7A91AC433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core-test: test max_nr_accesses overflow caused divide-by-zero
+     Subject: Docs/mm/damon/design: place execution model and data structures at the beginning
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-core-test-test-max_nr_accesses-overflow-caused-divide-by-zero.patch
+     docs-mm-damon-design-place-execution-model-and-data-structures-at-the-beginning.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-test-test-max_nr_accesses-overflow-caused-divide-by-zero.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-place-execution-model-and-data-structures-at-the-beginning.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,50 +51,61 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core-test: test max_nr_accesses overflow caused divide-by-zero
-Date: Wed, 13 Dec 2023 19:03:34 +0000
+Subject: Docs/mm/damon/design: place execution model and data structures at the beginning
+Date: Wed, 13 Dec 2023 19:03:35 +0000
 
-Commit 35f5d94187a6 ("mm/damon: implement a function for max nr_accesses
-safe calculation") has fixed an overflow bug that could cause
-divide-by-zero.  Add a kunit test for the bug to ensure similar bugs are
-not introduced again.
+The execution model and data structures section at the end of the design
+document is briefly explaining how DAMON works overall.  Knowing that
+first may help better drawing the overall picture.  It may also help
+better understanding following detailed sections.  Move it to the
+beginning of the document.
 
-Link: https://lkml.kernel.org/r/20231213190338.54146-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20231213190338.54146-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core-test.h |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ Documentation/mm/damon/design.rst |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
---- a/mm/damon/core-test.h~mm-damon-core-test-test-max_nr_accesses-overflow-caused-divide-by-zero
-+++ a/mm/damon/core-test.h
-@@ -302,6 +302,16 @@ static void damon_test_set_regions(struc
- 	damon_destroy_target(t);
- }
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-place-execution-model-and-data-structures-at-the-beginning
++++ a/Documentation/mm/damon/design.rst
+@@ -5,6 +5,18 @@ Design
+ ======
  
-+static void damon_test_nr_accesses_to_accesses_bp(struct kunit *test)
-+{
-+	struct damon_attrs attrs = {
-+		.sample_interval = 10,
-+		.aggr_interval = ((unsigned long)UINT_MAX + 1) * 10
-+	};
+ 
++.. _damon_design_execution_model_and_data_structures:
 +
-+	KUNIT_EXPECT_EQ(test, damon_nr_accesses_to_accesses_bp(123, &attrs), 0);
-+}
++Execution Model and Data Structures
++===================================
 +
- static void damon_test_update_monitoring_result(struct kunit *test)
- {
- 	struct damon_attrs old_attrs = {
-@@ -487,6 +497,7 @@ static struct kunit_case damon_test_case
- 	KUNIT_CASE(damon_test_split_regions_of),
- 	KUNIT_CASE(damon_test_ops_registration),
- 	KUNIT_CASE(damon_test_set_regions),
-+	KUNIT_CASE(damon_test_nr_accesses_to_accesses_bp),
- 	KUNIT_CASE(damon_test_update_monitoring_result),
- 	KUNIT_CASE(damon_test_set_attrs),
- 	KUNIT_CASE(damon_test_moving_sum),
++The monitoring-related information including the monitoring request
++specification and DAMON-based operation schemes are stored in a data structure
++called DAMON ``context``.  DAMON executes each context with a kernel thread
++called ``kdamond``.  Multiple kdamonds could run in parallel, for different
++types of monitoring.
++
++
+ Overall Architecture
+ ====================
+ 
+@@ -490,15 +502,3 @@ modules for proactive reclamation and LR
+ more detail, please read the usage documents for those
+ (:doc:`/admin-guide/mm/damon/reclaim` and
+ :doc:`/admin-guide/mm/damon/lru_sort`).
+-
+-
+-.. _damon_design_execution_model_and_data_structures:
+-
+-Execution Model and Data Structures
+-===================================
+-
+-The monitoring-related information including the monitoring request
+-specification and DAMON-based operation schemes are stored in a data structure
+-called DAMON ``context``.  DAMON executes each context with a kernel thread
+-called ``kdamond``.  Multiple kdamonds could run in parallel, for different
+-types of monitoring.
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
