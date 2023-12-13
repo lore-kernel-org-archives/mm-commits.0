@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16F5D1EB31
-	for <mm-commits@vger.kernel.org>; Wed, 13 Dec 2023 20:34:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DFB62207D
+	for <mm-commits@vger.kernel.org>; Wed, 13 Dec 2023 21:09:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bKJscmBU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8173EC433C7;
-	Wed, 13 Dec 2023 20:34:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h1/IzvZh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F0D7C433C9;
+	Wed, 13 Dec 2023 21:09:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702499665;
-	bh=+0qxICMOiThTDhbb1sIcGxAOKdB4YhlRr6UYp+vsPo4=;
+	s=korg; t=1702501767;
+	bh=xhGOgVvwp5NtBV8+ZEWRnhdo6UfU9Htq/63Xv91ABPw=;
 	h=Date:To:From:Subject:From;
-	b=bKJscmBUxBCZWix6H99Z/PeUDVDBIGThOx2RAQgh/9G4f1unxAheveVuJLnNM6PKu
-	 l7z5+gFF/SFK9h+eMkUF6LGCGt4n2rRyFm8OsN/88aQyZTHwxYq8BYNBKEJGIVegrX
-	 eBOE93Y4l75iBn5/RX6R0XGzBOOf37mFcljN8Pe8=
-Date: Wed, 13 Dec 2023 12:34:25 -0800
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,vitaly.wool@konsulko.com,sjenning@redhat.com,nphamcs@gmail.com,hannes@cmpxchg.org,ddstreet@ieee.org,chriscli@google.com,zhouchengming@bytedance.com,akpm@linux-foundation.org
+	b=h1/IzvZhPL86CGj46+mWV9GxDZlpZjN0N7p0rx9Kn4GPlfepUzrqTaYZrzjOCG8Yy
+	 K1Ldq6IMv3pgyFnZIg8EP795cQ+SBN1Az7ybLPB9Iy4ZFJTjyVDu2ourC5CjO0hu4M
+	 iEVBeSvGsObvyt9c3ZvF1UP4qmaUsuqpd5dcW2l0=
+Date: Wed, 13 Dec 2023 13:09:26 -0800
+To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,Liam.Howlett@oracle.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-cleanup-zswap_reclaim_entry.patch added to mm-unstable branch
-Message-Id: <20231213203425.8173EC433C7@smtp.kernel.org>
+Subject: + lib-maple_treec-fix-build-error-due-to-hotfix-alteration.patch added to mm-unstable branch
+Message-Id: <20231213210927.1F0D7C433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zswap: cleanup zswap_reclaim_entry()
+     Subject: lib/maple_tree.c: fix build error due to hotfix alteration
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-cleanup-zswap_reclaim_entry.patch
+     lib-maple_treec-fix-build-error-due-to-hotfix-alteration.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-cleanup-zswap_reclaim_entry.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-maple_treec-fix-build-error-due-to-hotfix-alteration.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -50,92 +50,41 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Chengming Zhou <zhouchengming@bytedance.com>
-Subject: mm/zswap: cleanup zswap_reclaim_entry()
-Date: Wed, 13 Dec 2023 04:18:02 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib/maple_tree.c: fix build error due to hotfix alteration
+Date: Wed Dec 13 12:59:49 PM PST 2023
 
-Also after the common decompress part goes to __zswap_load(), we can
-cleanup the zswap_reclaim_entry() a little.
+Commit 0de56e38b307 ("maple_tree: use maple state end for write
+operations") was broken by a later patch "maple_tree: do not preallocate
+nodes for slot stores".  But the later patch was scheduled ahead of
+0de56e38b307, for 6.7-rc.
 
-Link: https://lkml.kernel.org/r/20231213-zswap-dstmem-v1-5-896763369d04@bytedance.com
-Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
-Cc: Chris Li <chriscli@google.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+This fixlet undoes the damage.
+
+Fixes: 0de56e38b307 ("maple_tree: use maple state end for write operations")
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   23 +++++------------------
- 1 file changed, 5 insertions(+), 18 deletions(-)
+ lib/maple_tree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/zswap.c~mm-zswap-cleanup-zswap_reclaim_entry
-+++ a/mm/zswap.c
-@@ -1449,7 +1449,6 @@ static int zswap_writeback_entry(struct
- 	struct page *page;
- 	struct mempolicy *mpol;
- 	bool page_was_allocated;
--	int ret;
- 	struct writeback_control wbc = {
- 		.sync_mode = WB_SYNC_NONE,
- 	};
-@@ -1458,16 +1457,13 @@ static int zswap_writeback_entry(struct
- 	mpol = get_task_policy(current);
- 	page = __read_swap_cache_async(swpentry, GFP_KERNEL, mpol,
- 				NO_INTERLEAVE_INDEX, &page_was_allocated, true);
--	if (!page) {
--		ret = -ENOMEM;
--		goto fail;
--	}
-+	if (!page)
-+		return -ENOMEM;
+--- a/lib/maple_tree.c~lib-maple_treec-fix-build-error-due-to-hotfix-alteration
++++ a/lib/maple_tree.c
+@@ -5477,7 +5477,7 @@ int mas_preallocate(struct ma_state *mas
+ 	node_size = mas_wr_new_end(&wr_mas);
  
- 	/* Found an existing page, we raced with load/swapin */
- 	if (!page_was_allocated) {
- 		put_page(page);
--		ret = -EEXIST;
--		goto fail;
-+		return -EEXIST;
- 	}
- 
- 	/*
-@@ -1481,8 +1477,7 @@ static int zswap_writeback_entry(struct
- 	if (zswap_rb_search(&tree->rbroot, swp_offset(entry->swpentry)) != entry) {
- 		spin_unlock(&tree->lock);
- 		delete_from_swap_cache(page_folio(page));
--		ret = -ENOMEM;
--		goto fail;
-+		return -ENOMEM;
- 	}
- 	spin_unlock(&tree->lock);
- 
-@@ -1498,15 +1493,7 @@ static int zswap_writeback_entry(struct
- 	__swap_writepage(page, &wbc);
- 	put_page(page);
- 
--	return ret;
--
--fail:
--	/*
--	 * If we get here because the page is already in swapcache, a
--	 * load may be happening concurrently. It is safe and okay to
--	 * not free the entry. It is also okay to return !0.
--	 */
--	return ret;
-+	return 0;
- }
- 
- static int zswap_is_page_same_filled(void *ptr, unsigned long *value)
+ 	/* Slot store, does not require additional nodes */
+-	if (node_size == wr_mas.node_end) {
++	if (node_size == mas->end) {
+ 		/* reuse node */
+ 		if (!mt_in_rcu(mas->tree))
+ 			return 0;
 _
 
-Patches currently in -mm which might be from zhouchengming@bytedance.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-zswap-reuse-dstmem-when-decompress.patch
-mm-zswap-change-dstmem-size-to-one-page.patch
-mm-zswap-refactor-out-__zswap_load.patch
-mm-zswap-cleanup-zswap_load.patch
-mm-zswap-cleanup-zswap_reclaim_entry.patch
+lib-maple_treec-fix-build-error-due-to-hotfix-alteration.patch
+mm-memcg-restore-subtree-stats-flushing-fix.patch
 
