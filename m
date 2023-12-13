@@ -1,153 +1,158 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CAA766113;
-	Wed, 13 Dec 2023 01:21:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IDAUHaEU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56D20C433C7;
-	Wed, 13 Dec 2023 01:21:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702430461;
-	bh=Ogjh4trmb2qhbfxEjRfqgKEnVgKAWQ7vdX+VV1t5OP8=;
-	h=Date:To:From:Subject:From;
-	b=IDAUHaEUbP+tNycfrhMb5TuCzq6Cc4VS+lQapXku22I2K9/n/EZGvcX1KUWQqNW/6
-	 5VnZXmeBTWJAcOwk/yJ6SSjQrZt6O7SPZlOKAq9DypskRXxNKcBWHTBNzYNqvbPC66
-	 AM2J+fnVNu9FsfDMVB/LmRqbqYOIzsz3sD2X7KI8=
-Date: Tue, 12 Dec 2023 17:21:00 -0800
-To: mm-commits@vger.kernel.org,tjmercier@google.com,stable@vger.kernel.org,ryncsn@gmail.com,quic_charante@quicinc.com,kaleshsingh@google.com,jaroslav.pulchart@gooddata.com,hdanton@sina.com,yuzhao@google.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-mglru-reclaim-offlined-memcgs-harder.patch removed from -mm tree
-Message-Id: <20231213012101.56D20C433C7@smtp.kernel.org>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B63F026AC7
+	for <mm-commits@vger.kernel.org>; Wed, 13 Dec 2023 14:44:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 839EDC433C8;
+	Wed, 13 Dec 2023 14:43:59 +0000 (UTC)
+Date: Wed, 13 Dec 2023 09:44:43 -0500
+From: Steven Rostedt <rostedt@goodmis.org>
+To: Bixuan Cui <cuibixuan@vivo.com>
+Cc: akpm@linux-foundation.org, mm-commits@vger.kernel.org,
+ mhiramat@kernel.org, mathieu.desnoyers@efficios.com,
+ opensource.kernel@vivo.com
+Subject: Re: [PATCH -next v2 1/2] mm: shrinker: add new event to trace
+ shrink count
+Message-ID: <20231213094443.010889a4@gandalf.local.home>
+In-Reply-To: <20231213063330.3208-2-cuibixuan@vivo.com>
+References: <20231213063330.3208-1-cuibixuan@vivo.com>
+	<20231213063330.3208-2-cuibixuan@vivo.com>
+X-Mailer: Claws Mail 3.19.1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+
+On Tue, 12 Dec 2023 22:33:29 -0800
+Bixuan Cui <cuibixuan@vivo.com> wrote:
+
+> From: cuibixuan <cuibixuan@vivo.com>
+> 
+> do_shrink_slab() calculates the freeable memory through shrinker->count_objects(),
+> and then reclaims the memory through shrinker->scan_objects(). When reclaiming
+> memory, shrinker->count_objects() takes a certain amount of time:
+> 
+> 	Fun               spend(us)
+> 	ext4_es_count     4302
+> 	ext4_es_scan      12
+> 	super_cache_count 4195
+> 	super_cache_scan  2103
+> 
+> Therefore, adding the trace event to count_objects() can more accurately
+> obtain the time taken for slab memory recycling.
+> 
+> Example of output:
+>          kswapd0-103     [003] .....  1098.317942: mm_shrink_count_start: kfree_rcu_shrink_count.cfi_jt+0x0/0x8 00000000c540ff51: nid: 0
+>          kswapd0-103     [003] .....  1098.317951: mm_shrink_count_end: kfree_rcu_shrink_count.cfi_jt+0x0/0x8 00000000c540ff51: nid: 0 freeable:36
+> 
+> Signed-off-by: Bixuan Cui <cuibixuan@vivo.com>
+> ---
+>  include/trace/events/vmscan.h | 49 +++++++++++++++++++++++++++++++++++
+>  mm/shrinker.c                 |  4 +++
+>  2 files changed, 53 insertions(+)
+> 
+> diff --git a/include/trace/events/vmscan.h b/include/trace/events/vmscan.h
+> index 1a488c30afa5..406faa5591c1 100644
+> --- a/include/trace/events/vmscan.h
+> +++ b/include/trace/events/vmscan.h
+> @@ -196,6 +196,55 @@ DEFINE_EVENT(mm_vmscan_direct_reclaim_end_template, mm_vmscan_memcg_softlimit_re
+>  );
+>  #endif /* CONFIG_MEMCG */
+>  
+> +TRACE_EVENT(mm_shrink_count_start,
+> +	TP_PROTO(struct shrinker *shr, struct shrink_control *sc),
+> +
+> +	TP_ARGS(shr, sc),
+> +
+> +	TP_STRUCT__entry(
+> +		__field(struct shrinker *, shr)
+> +		__field(void *, shrink)
+> +		__field(int, nid)
+> +	),
+> +
+> +	TP_fast_assign(
+> +		__entry->shr = shr;
+> +		__entry->shrink = shr->count_objects;
+> +		__entry->nid = sc->nid;
+> +	),
+> +
+> +	TP_printk("%pS %p: nid: %d",
+> +		__entry->shrink,
+> +		__entry->shr,
+> +		__entry->nid)
+> +);
+> +
+> +TRACE_EVENT(mm_shrink_count_end,
+> +	TP_PROTO(struct shrinker *shr, struct shrink_control *sc, long freeable),
+> +
+> +	TP_ARGS(shr, sc, freeable),
+> +
+> +	TP_STRUCT__entry(
+> +		__field(struct shrinker *, shr)
+> +		__field(void *, shrink)
+
+> +		__field(int, nid)
+
+int :  4 bytes
+
+> +		__field(long, freeable)
+
+long: 8 bytes
 
 
-The quilt patch titled
-     Subject: mm/mglru: reclaim offlined memcgs harder
-has been removed from the -mm tree.  Its filename was
-     mm-mglru-reclaim-offlined-memcgs-harder.patch
+You may want to swap the above, otherwise you added a hole in the trace
+event. The compiler will add 4 bytes of padding between 'nid' and
+'freeable'. That is, if you change it to:
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+	TP_STRUCT__entry(
+		__field(struct shrinker *, shr)
+		__field(void *, shrink)
+		__field(long, freeable)
+		__field(int, nid)
 
-------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm/mglru: reclaim offlined memcgs harder
-Date: Thu, 7 Dec 2023 23:14:07 -0700
+You will save 4 bytes per event in the ring buffer.
 
-In the effort to reduce zombie memcgs [1], it was discovered that the
-memcg LRU doesn't apply enough pressure on offlined memcgs.  Specifically,
-instead of rotating them to the tail of the current generation
-(MEMCG_LRU_TAIL) for a second attempt, it moves them to the next
-generation (MEMCG_LRU_YOUNG) after the first attempt.
+-- Steve
 
-Not applying enough pressure on offlined memcgs can cause them to build
-up, and this can be particularly harmful to memory-constrained systems.
 
-On Pixel 8 Pro, launching apps for 50 cycles:
-                 Before  After  Change
-  Zombie memcgs  45      35     -22%
 
-[1] https://lore.kernel.org/CABdmKX2M6koq4Q0Cmp_-=wbP0Qa190HdEGGaHfxNS05gAkUtPA@mail.gmail.com/
-
-Link: https://lkml.kernel.org/r/20231208061407.2125867-4-yuzhao@google.com
-Fixes: e4dde56cd208 ("mm: multi-gen LRU: per-node lru_gen_folio lists")
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Reported-by: T.J. Mercier <tjmercier@google.com>
-Tested-by: T.J. Mercier <tjmercier@google.com>
-Cc: Charan Teja Kalla <quic_charante@quicinc.com>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Jaroslav Pulchart <jaroslav.pulchart@gooddata.com>
-Cc: Kairui Song <ryncsn@gmail.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/mmzone.h |    8 ++++----
- mm/vmscan.c            |   24 ++++++++++++++++--------
- 2 files changed, 20 insertions(+), 12 deletions(-)
-
---- a/include/linux/mmzone.h~mm-mglru-reclaim-offlined-memcgs-harder
-+++ a/include/linux/mmzone.h
-@@ -519,10 +519,10 @@ void lru_gen_look_around(struct page_vma
-  * 1. Exceeding the soft limit, which triggers MEMCG_LRU_HEAD;
-  * 2. The first attempt to reclaim a memcg below low, which triggers
-  *    MEMCG_LRU_TAIL;
-- * 3. The first attempt to reclaim a memcg below reclaimable size threshold,
-- *    which triggers MEMCG_LRU_TAIL;
-- * 4. The second attempt to reclaim a memcg below reclaimable size threshold,
-- *    which triggers MEMCG_LRU_YOUNG;
-+ * 3. The first attempt to reclaim a memcg offlined or below reclaimable size
-+ *    threshold, which triggers MEMCG_LRU_TAIL;
-+ * 4. The second attempt to reclaim a memcg offlined or below reclaimable size
-+ *    threshold, which triggers MEMCG_LRU_YOUNG;
-  * 5. Attempting to reclaim a memcg below min, which triggers MEMCG_LRU_YOUNG;
-  * 6. Finishing the aging on the eviction path, which triggers MEMCG_LRU_YOUNG;
-  * 7. Offlining a memcg, which triggers MEMCG_LRU_OLD.
---- a/mm/vmscan.c~mm-mglru-reclaim-offlined-memcgs-harder
-+++ a/mm/vmscan.c
-@@ -4598,7 +4598,12 @@ static bool should_run_aging(struct lruv
- 	}
- 
- 	/* try to scrape all its memory if this memcg was deleted */
--	*nr_to_scan = mem_cgroup_online(memcg) ? (total >> sc->priority) : total;
-+	if (!mem_cgroup_online(memcg)) {
-+		*nr_to_scan = total;
-+		return false;
-+	}
-+
-+	*nr_to_scan = total >> sc->priority;
- 
- 	/*
- 	 * The aging tries to be lazy to reduce the overhead, while the eviction
-@@ -4719,14 +4724,9 @@ static int shrink_one(struct lruvec *lru
- 	bool success;
- 	unsigned long scanned = sc->nr_scanned;
- 	unsigned long reclaimed = sc->nr_reclaimed;
--	int seg = lru_gen_memcg_seg(lruvec);
- 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 
--	/* see the comment on MEMCG_NR_GENS */
--	if (!lruvec_is_sizable(lruvec, sc))
--		return seg != MEMCG_LRU_TAIL ? MEMCG_LRU_TAIL : MEMCG_LRU_YOUNG;
--
- 	mem_cgroup_calculate_protection(NULL, memcg);
- 
- 	if (mem_cgroup_below_min(NULL, memcg))
-@@ -4734,7 +4734,7 @@ static int shrink_one(struct lruvec *lru
- 
- 	if (mem_cgroup_below_low(NULL, memcg)) {
- 		/* see the comment on MEMCG_NR_GENS */
--		if (seg != MEMCG_LRU_TAIL)
-+		if (lru_gen_memcg_seg(lruvec) != MEMCG_LRU_TAIL)
- 			return MEMCG_LRU_TAIL;
- 
- 		memcg_memory_event(memcg, MEMCG_LOW);
-@@ -4750,7 +4750,15 @@ static int shrink_one(struct lruvec *lru
- 
- 	flush_reclaim_state(sc);
- 
--	return success ? MEMCG_LRU_YOUNG : 0;
-+	if (success && mem_cgroup_online(memcg))
-+		return MEMCG_LRU_YOUNG;
-+
-+	if (!success && lruvec_is_sizable(lruvec, sc))
-+		return 0;
-+
-+	/* one retry if offlined or too small */
-+	return lru_gen_memcg_seg(lruvec) != MEMCG_LRU_TAIL ?
-+	       MEMCG_LRU_TAIL : MEMCG_LRU_YOUNG;
- }
- 
- #ifdef CONFIG_MEMCG
-_
-
-Patches currently in -mm which might be from yuzhao@google.com are
-
+> +	),
+> +
+> +	TP_fast_assign(
+> +		__entry->shr = shr;
+> +		__entry->shrink = shr->count_objects;
+> +		__entry->nid = sc->nid;
+> +		__entry->freeable = freeable;
+> +	),
+> +
+> +	TP_printk("%pS %p: nid: %d freeable:%ld",
+> +		__entry->shrink,
+> +		__entry->shr,
+> +		__entry->nid,
+> +		__entry->freeable)
+> +);
+> +
+>  TRACE_EVENT(mm_shrink_slab_start,
+>  	TP_PROTO(struct shrinker *shr, struct shrink_control *sc,
+>  		long nr_objects_to_shrink, unsigned long cache_items,
+> diff --git a/mm/shrinker.c b/mm/shrinker.c
+> index dd91eab43ed3..d0c7bf61db61 100644
+> --- a/mm/shrinker.c
+> +++ b/mm/shrinker.c
+> @@ -379,7 +379,11 @@ static unsigned long do_shrink_slab(struct shrink_control *shrinkctl,
+>  					  : SHRINK_BATCH;
+>  	long scanned = 0, next_deferred;
+>  
+> +	trace_mm_shrink_count_start(shrinker, shrinkctl);
+> +
+>  	freeable = shrinker->count_objects(shrinker, shrinkctl);
+> +
+> +	trace_mm_shrink_count_end(shrinker, shrinkctl, freeable);
+>  	if (freeable == 0 || freeable == SHRINK_EMPTY)
+>  		return freeable;
+>  
 
