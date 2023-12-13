@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62233745C3
-	for <mm-commits@vger.kernel.org>; Wed, 13 Dec 2023 19:49:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBE046829A
+	for <mm-commits@vger.kernel.org>; Wed, 13 Dec 2023 19:49:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OTg85Pbx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF20CC433C7;
-	Wed, 13 Dec 2023 19:49:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d/pSpnt5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78A23C433C8;
+	Wed, 13 Dec 2023 19:49:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702496975;
-	bh=kHxQUlOCtydNloc0e65XeffnHEHKS6ELMAJBFKVubhk=;
+	s=korg; t=1702496977;
+	bh=JROJqHxJYqyKkCHniaXOgVs04mi1w4jI+bcSFXcXG4E=;
 	h=Date:To:From:Subject:From;
-	b=OTg85PbxtuIeqiJ1NKKImu8JrudeGFJjlTPlMJ46UaatHXgCHC/KFtW8ZZeHmLgI0
-	 biyu5WaFFwPDLSXNL9BOvM4oNo584zP5FKWy9QMo1dAtipcnA5+eoITA0YfGd0GJIe
-	 XLPGGc43bJy3rh8wOidxzmc1FBPR3vMw/lvQkKHc=
-Date: Wed, 13 Dec 2023 11:49:35 -0800
+	b=d/pSpnt5ZpbcdtUK3pTqcVkmZUmo2jhl/YMSJsgcAtPcyaUQ6Wi2w7Tp58hMjuhwd
+	 e95AxE3HbV3CcFNcx91S0CUr+L9GcVSIEB2UpDHaP5JQsj39I5kafeVBR7JYJgb9Rg
+	 seq+vFJG3FuF3mXIkl4MvyKIOCx7SJsQT+Wu2QbQ=
+Date: Wed, 13 Dec 2023 11:49:36 -0800
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-usage-add-links-to-sysfs-files-hierarchy.patch added to mm-unstable branch
-Message-Id: <20231213194935.CF20CC433C7@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-use-a-list-for-state-sysfs-file-input-commands.patch added to mm-unstable branch
+Message-Id: <20231213194937.78A23C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: add links to sysfs files hierarchy
+     Subject: Docs/admin-guide/mm/damon/usage: use a list for 'state' sysfs file input commands
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-admin-guide-mm-damon-usage-add-links-to-sysfs-files-hierarchy.patch
+     docs-admin-guide-mm-damon-usage-use-a-list-for-state-sysfs-file-input-commands.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-add-links-to-sysfs-files-hierarchy.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-use-a-list-for-state-sysfs-file-input-commands.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,202 +51,76 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: add links to sysfs files hierarchy
-Date: Wed, 13 Dec 2023 19:03:37 +0000
+Subject: Docs/admin-guide/mm/damon/usage: use a list for 'state' sysfs file input commands
+Date: Wed, 13 Dec 2023 19:03:38 +0000
 
-'Sysfs Files Hierarchy' section of DAMON usage document shows whole
-picture of the interface.  Then sections for detailed explanation of the
-files follow.  Due to the amount of the files, navigating between the
-whole picture and the section for specific files sometimes require no
-subtle amount of scrolling.  Add links from the whole picture to the
-dedicated sections for making the navigation easier.
+There are eight command inputs for 'state' DAMON sysfs file, and those are
+verbosely explained in multiple paragraphs.  It is not easy to find
+explanation of specific command, and getting whole picture of supported
+commands.  Replace the paragraphs with a list.
 
-Link: https://lkml.kernel.org/r/20231213190338.54146-6-sj@kernel.org
+Link: https://lkml.kernel.org/r/20231213190338.54146-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |   68 ++++++++++++-----
- 1 file changed, 48 insertions(+), 20 deletions(-)
+ Documentation/admin-guide/mm/damon/usage.rst |   43 ++++++++---------
+ 1 file changed, 21 insertions(+), 22 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-add-links-to-sysfs-files-hierarchy
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-use-a-list-for-state-sysfs-file-input-commands
 +++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -59,43 +59,47 @@ Files Hierarchy
- The files hierarchy of DAMON sysfs interface is shown below.  In the below
- figure, parents-children relations are represented with indentations, each
- directory is having ``/`` suffix, and files in each directory are separated by
--comma (","). ::
-+comma (",").
+@@ -130,30 +130,29 @@ In each kdamond directory, two files (``
+ (``contexts``) exist.
  
--    /sys/kernel/mm/damon/admin
--    │ kdamonds/nr_kdamonds
--    │ │ 0/state,pid
--    │ │ │ contexts/nr_contexts
--    │ │ │ │ 0/avail_operations,operations
--    │ │ │ │ │ monitoring_attrs/
-+.. parsed-literal::
-+
-+    :ref:`/sys/kernel/mm/damon <sysfs_root>`/admin
-+    │ :ref:`kdamonds <sysfs_kdamonds>`/nr_kdamonds
-+    │ │ :ref:`0 <sysfs_kdamond>`/state,pid
-+    │ │ │ :ref:`contexts <sysfs_contexts>`/nr_contexts
-+    │ │ │ │ :ref:`0 <sysfs_context>`/avail_operations,operations
-+    │ │ │ │ │ :ref:`monitoring_attrs <sysfs_monitoring_attrs>`/
-     │ │ │ │ │ │ intervals/sample_us,aggr_us,update_us
-     │ │ │ │ │ │ nr_regions/min,max
--    │ │ │ │ │ targets/nr_targets
--    │ │ │ │ │ │ 0/pid_target
--    │ │ │ │ │ │ │ regions/nr_regions
--    │ │ │ │ │ │ │ │ 0/start,end
-+    │ │ │ │ │ :ref:`targets <sysfs_targets>`/nr_targets
-+    │ │ │ │ │ │ :ref:`0 <sysfs_target>`/pid_target
-+    │ │ │ │ │ │ │ :ref:`regions <sysfs_regions>`/nr_regions
-+    │ │ │ │ │ │ │ │ :ref:`0 <sysfs_region>`/start,end
-     │ │ │ │ │ │ │ │ ...
-     │ │ │ │ │ │ ...
--    │ │ │ │ │ schemes/nr_schemes
--    │ │ │ │ │ │ 0/action,apply_interval_us
--    │ │ │ │ │ │ │ access_pattern/
-+    │ │ │ │ │ :ref:`schemes <sysfs_schemes>`/nr_schemes
-+    │ │ │ │ │ │ :ref:`0 <sysfs_scheme>`/action,apply_interval_us
-+    │ │ │ │ │ │ │ :ref:`access_pattern <sysfs_access_pattern>`/
-     │ │ │ │ │ │ │ │ sz/min,max
-     │ │ │ │ │ │ │ │ nr_accesses/min,max
-     │ │ │ │ │ │ │ │ age/min,max
--    │ │ │ │ │ │ │ quotas/ms,bytes,reset_interval_ms
-+    │ │ │ │ │ │ │ :ref:`quotas <sysfs_quotas>`/ms,bytes,reset_interval_ms
-     │ │ │ │ │ │ │ │ weights/sz_permil,nr_accesses_permil,age_permil
--    │ │ │ │ │ │ │ │ goals/nr_goals
-+    │ │ │ │ │ │ │ │ :ref:`goals <sysfs_schemes_quota_goals>`/nr_goals
-     │ │ │ │ │ │ │ │ │ 0/target_value,current_value
--    │ │ │ │ │ │ │ watermarks/metric,interval_us,high,mid,low
--    │ │ │ │ │ │ │ filters/nr_filters
-+    │ │ │ │ │ │ │ :ref:`watermarks <sysfs_watermarks>`/metric,interval_us,high,mid,low
-+    │ │ │ │ │ │ │ :ref:`filters <sysfs_filters>`/nr_filters
-     │ │ │ │ │ │ │ │ 0/type,matching,memcg_id
--    │ │ │ │ │ │ │ stats/nr_tried,sz_tried,nr_applied,sz_applied,qt_exceeds
--    │ │ │ │ │ │ │ tried_regions/total_bytes
-+    │ │ │ │ │ │ │ :ref:`stats <sysfs_schemes_stats>`/nr_tried,sz_tried,nr_applied,sz_applied,qt_exceeds
-+    │ │ │ │ │ │ │ :ref:`tried_regions <sysfs_schemes_tried_regions>`/total_bytes
-     │ │ │ │ │ │ │ │ 0/start,end,nr_accesses,age
-     │ │ │ │ │ │ │ │ ...
-     │ │ │ │ │ │ ...
-     │ │ │ │ ...
-     │ │ ...
+ Reading ``state`` returns ``on`` if the kdamond is currently running, or
+-``off`` if it is not running.  Writing ``on`` or ``off`` makes the kdamond be
+-in the state.
++``off`` if it is not running.
  
-+.. _sysfs_root:
-+
- Root
- ----
+-Writing ``commit`` to the ``state`` file makes kdamond reads the
+-user inputs in the sysfs files except ``state`` file again.  Writing
+-``commit_schemes_quota_goals`` to the ``state`` file makes kdamond reads the
+-DAMON-based operation schemes' :ref:`quota goals <sysfs_schemes_quota_goals>`
+-of the kdamond.
++Users can write below commands for the kdamond to the ``state`` file.
  
-@@ -104,6 +108,8 @@ has one directory named ``admin``.  The
- privileged user space programs' control of DAMON.  User space tools or daemons
- having the root permission could use this directory.
+-Writing ``update_schemes_stats`` to ``state`` file updates the
+-contents of stats files for each DAMON-based operation scheme of the kdamond.
+-For details of the stats, please refer to :ref:`stats section
+-<sysfs_schemes_stats>`.
+-
+-Writing ``update_schemes_tried_regions`` to ``state`` file updates the
+-DAMON-based operation scheme action tried regions directory for each
+-DAMON-based operation scheme of the kdamond.  Writing
+-``update_schemes_tried_bytes`` to ``state`` file updates only
+-``.../tried_regions/total_bytes`` files.  Writing
+-``clear_schemes_tried_regions`` to ``state`` file clears the DAMON-based
+-operating scheme action tried regions directory for each DAMON-based operation
+-scheme of the kdamond.  For details of the DAMON-based operation scheme action
+-tried regions directory, please refer to :ref:`tried_regions section
+-<sysfs_schemes_tried_regions>`.
++- ``on``: Start running.
++- ``off``: Stop running.
++- ``commit``: Read the user inputs in the sysfs files except ``state`` file
++  again.
++- ``commit_schemes_quota_goals``: Read the DAMON-based operation schemes'
++  :ref:`quota goals <sysfs_schemes_quota_goals>`.
++- ``update_schemes_stats``: Update the contents of stats files for each
++  DAMON-based operation scheme of the kdamond.  For details of the stats,
++  please refer to :ref:`stats section <sysfs_schemes_stats>`.
++- ``update_schemes_tried_regions``: Update the DAMON-based operation scheme
++  action tried regions directory for each DAMON-based operation scheme of the
++  kdamond.  For details of the DAMON-based operation scheme action tried
++  regions directory, please refer to
++  :ref:`tried_regions section <sysfs_schemes_tried_regions>`.
++- ``update_schemes_tried_bytes``: Update only ``.../tried_regions/total_bytes``
++  files.
++- ``clear_schemes_tried_regions``: Clear the DAMON-based operating scheme
++  action tried regions directory for each DAMON-based operation scheme of the
++  kdamond.
  
-+.. _sysfs_kdamonds:
-+
- kdamonds/
- ---------
- 
-@@ -154,6 +160,8 @@ If the state is ``on``, reading ``pid``
- ``contexts`` directory contains files for controlling the monitoring contexts
- that this kdamond will execute.
- 
-+.. _sysfs_contexts:
-+
- kdamonds/<N>/contexts/
- ----------------------
- 
-@@ -214,6 +222,8 @@ writing to and rading from the files.
- For more details about the intervals and monitoring regions range, please refer
- to the Design document (:doc:`/mm/damon/design`).
- 
-+.. _sysfs_targets:
-+
- contexts/<N>/targets/
- ---------------------
- 
-@@ -221,6 +231,8 @@ In the beginning, this directory has onl
- number (``N``) to the file creates the number of child directories named ``0``
- to ``N-1``.  Each directory represents each monitoring target.
- 
-+.. _sysfs_target:
-+
- targets/<N>/
- ------------
- 
-@@ -255,6 +267,8 @@ In the beginning, this directory has onl
- number (``N``) to the file creates the number of child directories named ``0``
- to ``N-1``.  Each directory represents each initial monitoring target region.
- 
-+.. _sysfs_region:
-+
- regions/<N>/
- ------------
- 
-@@ -265,6 +279,8 @@ region by writing to and reading from th
- Each region should not overlap with others.  ``end`` of directory ``N`` should
- be equal or smaller than ``start`` of directory ``N+1``.
- 
-+.. _sysfs_schemes:
-+
- contexts/<N>/schemes/
- ---------------------
- 
-@@ -276,6 +292,8 @@ In the beginning, this directory has onl
- number (``N``) to the file creates the number of child directories named ``0``
- to ``N-1``.  Each directory represents each DAMON-based operation scheme.
- 
-+.. _sysfs_scheme:
-+
- schemes/<N>/
- ------------
- 
-@@ -310,6 +328,8 @@ Note that support of each action depends
- The ``apply_interval_us`` file is for setting and getting the scheme's
- :ref:`apply_interval <damon_design_damos>` in microseconds.
- 
-+.. _sysfs_access_pattern:
-+
- schemes/<N>/access_pattern/
- ---------------------------
- 
-@@ -323,6 +343,8 @@ to and reading from the ``min`` and ``ma
- ``nr_accesses``, and ``age`` directories, respectively.  Note that the ``min``
- and the ``max`` form a closed interval.
- 
-+.. _sysfs_quotas:
-+
- schemes/<N>/quotas/
- -------------------
- 
-@@ -369,6 +391,8 @@ metrics for the values.  Note that users
- ``commit_schemes_quota_goals`` to the ``state`` file of the :ref:`kdamond
- directory <sysfs_kdamond>` to pass the feedback to DAMON.
- 
-+.. _sysfs_watermarks:
-+
- schemes/<N>/watermarks/
- -----------------------
- 
-@@ -388,6 +412,8 @@ as below.
- 
- The ``interval`` should written in microseconds unit.
- 
-+.. _sysfs_filters:
-+
- schemes/<N>/filters/
- --------------------
- 
-@@ -483,6 +509,8 @@ and query-like efficient data access mon
- latter use case, in particular, users can set the ``action`` as ``stat`` and
- set the ``access pattern`` as their interested pattern that they want to query.
- 
-+.. _sysfs_schemes_tried_region:
-+
- tried_regions/<N>/
- ------------------
+ If the state is ``on``, reading ``pid`` shows the pid of the kdamond thread.
  
 _
 
