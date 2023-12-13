@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 438778183A
-	for <mm-commits@vger.kernel.org>; Wed, 13 Dec 2023 23:12:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8524A8183A
+	for <mm-commits@vger.kernel.org>; Wed, 13 Dec 2023 23:12:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IcVf86HK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F564C433C8;
-	Wed, 13 Dec 2023 23:12:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cH4COznD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D399C433C7;
+	Wed, 13 Dec 2023 23:12:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702509137;
-	bh=Hayc4SiCHmefvVbvfaM0GvPGmE7lqrQf9EGxNqdojm8=;
+	s=korg; t=1702509139;
+	bh=Xo3DkkBxLiGsU/7oUCPQaE0DOQVTzOIsu37LgZTbUXM=;
 	h=Date:To:From:Subject:From;
-	b=IcVf86HKew5yf5tnRH4ONk5bruNf1LAwnvpjz/EEz2doXS2ruiV/Xgfc6TCoUUpM5
-	 56ZIsu5g/c98yQE2gcIyNkF1o4RqbNB9IR3OB5QSFaagJsIJnkRNLQKaDeVnPYbNuu
-	 9DNFkhKcQT8LnScf6Qu5nVqleT4OdCMFK4m3r/0E=
-Date: Wed, 13 Dec 2023 15:12:16 -0800
+	b=cH4COznD7xi0z0xGmJemZ1tzWLaBdZMs4mLarhbdLEo/d3zONiaSMsez8knQfy24l
+	 Se6Kr2DzgPQ0MtNCcnoRwuUDZvRUPySVvN1FWOfmw5bvm5qpsiGl0WxufQufkMJkpI
+	 kFA5y/UT0peUtMMh0hDwK9t4F48FsOzZ3mEZnyBw=
+Date: Wed, 13 Dec 2023 15:12:18 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-return-a-folio-from-read_swap_cache_async.patch added to mm-unstable branch
-Message-Id: <20231213231217.0F564C433C8@smtp.kernel.org>
+Subject: + mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio.patch added to mm-unstable branch
+Message-Id: <20231213231219.4D399C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: return a folio from read_swap_cache_async()
+     Subject: mm: convert swap_cluster_readahead and swap_vma_readahead to return a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-return-a-folio-from-read_swap_cache_async.patch
+     mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-return-a-folio-from-read_swap_cache_async.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,123 +51,143 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: return a folio from read_swap_cache_async()
-Date: Wed, 13 Dec 2023 21:58:41 +0000
+Subject: mm: convert swap_cluster_readahead and swap_vma_readahead to return a folio
+Date: Wed, 13 Dec 2023 21:58:42 +0000
 
-The only two callers simply call put_page() on the page returned, so
-they're happier calling folio_put().  Saves two calls to compound_head().
+shmem_swapin_cluster() immediately converts the page back to a folio, and
+swapin_readahead() may as well call folio_file_page() once instead of
+having each function call it.
 
-Link: https://lkml.kernel.org/r/20231213215842.671461-13-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231213215842.671461-14-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c    |   22 +++++++++++-----------
- mm/swap.h       |    7 +++----
- mm/swap_state.c |    8 ++++----
- 3 files changed, 18 insertions(+), 19 deletions(-)
+ mm/shmem.c      |    8 +++-----
+ mm/swap.h       |    6 +++---
+ mm/swap_state.c |   21 ++++++++++-----------
+ 3 files changed, 16 insertions(+), 19 deletions(-)
 
---- a/mm/madvise.c~mm-return-a-folio-from-read_swap_cache_async
-+++ a/mm/madvise.c
-@@ -180,7 +180,7 @@ static int swapin_walk_pmd_entry(pmd_t *
- 	for (addr = start; addr < end; addr += PAGE_SIZE) {
- 		pte_t pte;
- 		swp_entry_t entry;
--		struct page *page;
-+		struct folio *folio;
- 
- 		if (!ptep++) {
- 			ptep = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
-@@ -198,10 +198,10 @@ static int swapin_walk_pmd_entry(pmd_t *
- 		pte_unmap_unlock(ptep, ptl);
- 		ptep = NULL;
- 
--		page = read_swap_cache_async(entry, GFP_HIGHUSER_MOVABLE,
-+		folio = read_swap_cache_async(entry, GFP_HIGHUSER_MOVABLE,
- 					     vma, addr, &splug);
--		if (page)
--			put_page(page);
-+		if (folio)
-+			folio_put(folio);
- 	}
- 
- 	if (ptep)
-@@ -223,17 +223,17 @@ static void shmem_swapin_range(struct vm
+--- a/mm/shmem.c~mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio
++++ a/mm/shmem.c
+@@ -1569,15 +1569,13 @@ static struct folio *shmem_swapin_cluste
  {
- 	XA_STATE(xas, &mapping->i_pages, linear_page_index(vma, start));
- 	pgoff_t end_index = linear_page_index(vma, end) - 1;
+ 	struct mempolicy *mpol;
+ 	pgoff_t ilx;
 -	struct page *page;
 +	struct folio *folio;
- 	struct swap_iocb *splug = NULL;
  
- 	rcu_read_lock();
--	xas_for_each(&xas, page, end_index) {
-+	xas_for_each(&xas, folio, end_index) {
- 		unsigned long addr;
- 		swp_entry_t entry;
+ 	mpol = shmem_get_pgoff_policy(info, index, 0, &ilx);
+-	page = swap_cluster_readahead(swap, gfp, mpol, ilx);
++	folio = swap_cluster_readahead(swap, gfp, mpol, ilx);
+ 	mpol_cond_put(mpol);
  
--		if (!xa_is_value(page))
-+		if (!xa_is_value(folio))
- 			continue;
--		entry = radix_to_swp_entry(page);
-+		entry = radix_to_swp_entry(folio);
- 		/* There might be swapin error entries in shmem mapping. */
- 		if (non_swap_entry(entry))
- 			continue;
-@@ -243,10 +243,10 @@ static void shmem_swapin_range(struct vm
- 		xas_pause(&xas);
- 		rcu_read_unlock();
+-	if (!page)
+-		return NULL;
+-	return page_folio(page);
++	return folio;
+ }
  
--		page = read_swap_cache_async(entry, mapping_gfp_mask(mapping),
-+		folio = read_swap_cache_async(entry, mapping_gfp_mask(mapping),
- 					     vma, addr, &splug);
--		if (page)
--			put_page(page);
-+		if (folio)
-+			folio_put(folio);
- 
- 		rcu_read_lock();
- 	}
---- a/mm/swap.h~mm-return-a-folio-from-read_swap_cache_async
+ /*
+--- a/mm/swap.h~mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio
 +++ a/mm/swap.h
-@@ -46,10 +46,9 @@ struct folio *swap_cache_get_folio(swp_e
- struct folio *filemap_get_incore_folio(struct address_space *mapping,
- 		pgoff_t index);
- 
--struct page *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
--				   struct vm_area_struct *vma,
--				   unsigned long addr,
--				   struct swap_iocb **plug);
-+struct folio *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
-+		struct vm_area_struct *vma, unsigned long addr,
-+		struct swap_iocb **plug);
+@@ -52,8 +52,8 @@ struct folio *read_swap_cache_async(swp_
  struct folio *__read_swap_cache_async(swp_entry_t entry, gfp_t gfp_flags,
  		struct mempolicy *mpol, pgoff_t ilx, bool *new_page_allocated,
  		bool skip_if_exists);
---- a/mm/swap_state.c~mm-return-a-folio-from-read_swap_cache_async
-+++ a/mm/swap_state.c
-@@ -533,9 +533,9 @@ fail_put_swap:
-  * __read_swap_cache_async() call them and swap_read_folio() holds the
-  * swap cache folio lock.
-  */
--struct page *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
--				   struct vm_area_struct *vma,
--				   unsigned long addr, struct swap_iocb **plug)
-+struct folio *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
-+		struct vm_area_struct *vma, unsigned long addr,
-+		struct swap_iocb **plug)
- {
- 	bool page_allocated;
- 	struct mempolicy *mpol;
-@@ -549,7 +549,7 @@ struct page *read_swap_cache_async(swp_e
+-struct page *swap_cluster_readahead(swp_entry_t entry, gfp_t flag,
+-				    struct mempolicy *mpol, pgoff_t ilx);
++struct folio *swap_cluster_readahead(swp_entry_t entry, gfp_t flag,
++		struct mempolicy *mpol, pgoff_t ilx);
+ struct page *swapin_readahead(swp_entry_t entry, gfp_t flag,
+ 			      struct vm_fault *vmf);
  
- 	if (page_allocated)
- 		swap_read_folio(folio, false, plug);
+@@ -80,7 +80,7 @@ static inline void show_swap_cache_info(
+ {
+ }
+ 
+-static inline struct page *swap_cluster_readahead(swp_entry_t entry,
++static inline struct folio *swap_cluster_readahead(swp_entry_t entry,
+ 			gfp_t gfp_mask, struct mempolicy *mpol, pgoff_t ilx)
+ {
+ 	return NULL;
+--- a/mm/swap_state.c~mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio
++++ a/mm/swap_state.c
+@@ -620,7 +620,7 @@ static unsigned long swapin_nr_pages(uns
+  * @mpol: NUMA memory allocation policy to be applied
+  * @ilx: NUMA interleave index, for use only when MPOL_INTERLEAVE
+  *
+- * Returns the struct page for entry and addr, after queueing swapin.
++ * Returns the struct folio for entry and addr, after queueing swapin.
+  *
+  * Primitive swap readahead code. We simply read an aligned block of
+  * (1 << page_cluster) entries in the swap area. This method is chosen
+@@ -631,7 +631,7 @@ static unsigned long swapin_nr_pages(uns
+  * are used for every page of the readahead: neighbouring pages on swap
+  * are fairly likely to have been swapped out from the same node.
+  */
+-struct page *swap_cluster_readahead(swp_entry_t entry, gfp_t gfp_mask,
++struct folio *swap_cluster_readahead(swp_entry_t entry, gfp_t gfp_mask,
+ 				    struct mempolicy *mpol, pgoff_t ilx)
+ {
+ 	struct folio *folio;
+@@ -683,7 +683,7 @@ skip:
+ 	if (unlikely(page_allocated))
+ 		swap_read_folio(folio, false, NULL);
+ 	zswap_folio_swapin(folio);
 -	return folio_file_page(folio, swp_offset(entry));
 +	return folio;
  }
  
- static unsigned int __swapin_nr_pages(unsigned long prev_offset,
+ int init_swap_address_space(unsigned int type, unsigned long nr_pages)
+@@ -787,7 +787,7 @@ static void swap_ra_info(struct vm_fault
+  * @targ_ilx: NUMA interleave index, for use only when MPOL_INTERLEAVE
+  * @vmf: fault information
+  *
+- * Returns the struct page for entry and addr, after queueing swapin.
++ * Returns the struct folio for entry and addr, after queueing swapin.
+  *
+  * Primitive swap readahead code. We simply read in a few pages whose
+  * virtual addresses are around the fault address in the same vma.
+@@ -795,9 +795,8 @@ static void swap_ra_info(struct vm_fault
+  * Caller must hold read mmap_lock if vmf->vma is not NULL.
+  *
+  */
+-static struct page *swap_vma_readahead(swp_entry_t targ_entry, gfp_t gfp_mask,
+-				       struct mempolicy *mpol, pgoff_t targ_ilx,
+-				       struct vm_fault *vmf)
++static struct folio *swap_vma_readahead(swp_entry_t targ_entry, gfp_t gfp_mask,
++		struct mempolicy *mpol, pgoff_t targ_ilx, struct vm_fault *vmf)
+ {
+ 	struct blk_plug plug;
+ 	struct swap_iocb *splug = NULL;
+@@ -859,7 +858,7 @@ skip:
+ 	if (unlikely(page_allocated))
+ 		swap_read_folio(folio, false, NULL);
+ 	zswap_folio_swapin(folio);
+-	return folio_file_page(folio, swp_offset(entry));
++	return folio;
+ }
+ 
+ /**
+@@ -879,14 +878,14 @@ struct page *swapin_readahead(swp_entry_
+ {
+ 	struct mempolicy *mpol;
+ 	pgoff_t ilx;
+-	struct page *page;
++	struct folio *folio;
+ 
+ 	mpol = get_vma_policy(vmf->vma, vmf->address, 0, &ilx);
+-	page = swap_use_vma_readahead() ?
++	folio = swap_use_vma_readahead() ?
+ 		swap_vma_readahead(entry, gfp_mask, mpol, ilx, vmf) :
+ 		swap_cluster_readahead(entry, gfp_mask, mpol, ilx);
+ 	mpol_cond_put(mpol);
+-	return page;
++	return folio_file_page(folio, swp_offset(entry));
+ }
+ 
+ #ifdef CONFIG_SYSFS
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
