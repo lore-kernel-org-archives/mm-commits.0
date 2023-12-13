@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DFB62207D
-	for <mm-commits@vger.kernel.org>; Wed, 13 Dec 2023 21:09:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E8D28183A
+	for <mm-commits@vger.kernel.org>; Wed, 13 Dec 2023 23:11:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h1/IzvZh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F0D7C433C9;
-	Wed, 13 Dec 2023 21:09:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZJY5mpeT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88B4CC433C7;
+	Wed, 13 Dec 2023 23:11:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702501767;
-	bh=xhGOgVvwp5NtBV8+ZEWRnhdo6UfU9Htq/63Xv91ABPw=;
+	s=korg; t=1702509114;
+	bh=l6+bQ8vhi/sMiP48BsO8PWdbLYYM8/qBpxNPoI6RbdI=;
 	h=Date:To:From:Subject:From;
-	b=h1/IzvZhPL86CGj46+mWV9GxDZlpZjN0N7p0rx9Kn4GPlfepUzrqTaYZrzjOCG8Yy
-	 K1Ldq6IMv3pgyFnZIg8EP795cQ+SBN1Az7ybLPB9Iy4ZFJTjyVDu2ourC5CjO0hu4M
-	 iEVBeSvGsObvyt9c3ZvF1UP4qmaUsuqpd5dcW2l0=
-Date: Wed, 13 Dec 2023 13:09:26 -0800
-To: mm-commits@vger.kernel.org,sidhartha.kumar@oracle.com,Liam.Howlett@oracle.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=ZJY5mpeTFxKUnm/+1+RZz02ODZEA1ptxIrXamQffVFUgjH5h/44lQELHrtFqrpVHX
+	 z1SLu8uLOSD92MGwk1kxAysHkJQh5x78r5FPMakDohBz4Jm4HSQ/jwJ6oFwsjRsgkV
+	 EZFXYo6DoxOKzthL8MUHmnvQw+UOqSNZF1Vsm9u4=
+Date: Wed, 13 Dec 2023 15:11:54 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-maple_treec-fix-build-error-due-to-hotfix-alteration.patch added to mm-unstable branch
-Message-Id: <20231213210927.1F0D7C433C9@smtp.kernel.org>
+Subject: + mm-return-the-folio-from-__read_swap_cache_async.patch added to mm-unstable branch
+Message-Id: <20231213231154.88B4CC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/maple_tree.c: fix build error due to hotfix alteration
+     Subject: mm: return the folio from __read_swap_cache_async()
 has been added to the -mm mm-unstable branch.  Its filename is
-     lib-maple_treec-fix-build-error-due-to-hotfix-alteration.patch
+     mm-return-the-folio-from-__read_swap_cache_async.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-maple_treec-fix-build-error-due-to-hotfix-alteration.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-return-the-folio-from-__read_swap_cache_async.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -50,41 +50,409 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib/maple_tree.c: fix build error due to hotfix alteration
-Date: Wed Dec 13 12:59:49 PM PST 2023
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: return the folio from __read_swap_cache_async()
+Date: Wed, 13 Dec 2023 21:58:30 +0000
 
-Commit 0de56e38b307 ("maple_tree: use maple state end for write
-operations") was broken by a later patch "maple_tree: do not preallocate
-nodes for slot stores".  But the later patch was scheduled ahead of
-0de56e38b307, for 6.7-rc.
+Patch series "More swap folio conversions".
 
-This fixlet undoes the damage.
+These all seem like fairly straightforward conversions to me.  A lot of
+compound_head() calls get removed.  And page_swap_info(), which is nice.
 
-Fixes: 0de56e38b307 ("maple_tree: use maple state end for write operations")
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+
+This patch (of 13):
+
+Move the folio->page conversion into the callers that actually want that. 
+Most of the callers are happier with the folio anyway.  If the
+page_allocated boolean is set, the folio allocated is of order-0, so it is
+safe to pass the page directly to swap_readpage().
+
+Link: https://lkml.kernel.org/r/20231213215842.671461-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231213215842.671461-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/zswap.h |    4 +-
+ mm/swap.h             |    7 +--
+ mm/swap_state.c       |   75 ++++++++++++++++++----------------------
+ mm/zswap.c            |   46 ++++++++++++------------
+ 4 files changed, 63 insertions(+), 69 deletions(-)
 
---- a/lib/maple_tree.c~lib-maple_treec-fix-build-error-due-to-hotfix-alteration
-+++ a/lib/maple_tree.c
-@@ -5477,7 +5477,7 @@ int mas_preallocate(struct ma_state *mas
- 	node_size = mas_wr_new_end(&wr_mas);
+--- a/include/linux/zswap.h~mm-return-the-folio-from-__read_swap_cache_async
++++ a/include/linux/zswap.h
+@@ -34,7 +34,7 @@ void zswap_swapon(int type);
+ void zswap_swapoff(int type);
+ void zswap_memcg_offline_cleanup(struct mem_cgroup *memcg);
+ void zswap_lruvec_state_init(struct lruvec *lruvec);
+-void zswap_page_swapin(struct page *page);
++void zswap_folio_swapin(struct folio *folio);
+ bool is_zswap_enabled(void);
+ #else
  
- 	/* Slot store, does not require additional nodes */
--	if (node_size == wr_mas.node_end) {
-+	if (node_size == mas->end) {
- 		/* reuse node */
- 		if (!mt_in_rcu(mas->tree))
- 			return 0;
+@@ -55,7 +55,7 @@ static inline void zswap_swapon(int type
+ static inline void zswap_swapoff(int type) {}
+ static inline void zswap_memcg_offline_cleanup(struct mem_cgroup *memcg) {}
+ static inline void zswap_lruvec_state_init(struct lruvec *lruvec) {}
+-static inline void zswap_page_swapin(struct page *page) {}
++static inline void zswap_folio_swapin(struct folio *folio) {}
+ 
+ static inline bool is_zswap_enabled(void)
+ {
+--- a/mm/swap.h~mm-return-the-folio-from-__read_swap_cache_async
++++ a/mm/swap.h
+@@ -49,10 +49,9 @@ struct page *read_swap_cache_async(swp_e
+ 				   struct vm_area_struct *vma,
+ 				   unsigned long addr,
+ 				   struct swap_iocb **plug);
+-struct page *__read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
+-				     struct mempolicy *mpol, pgoff_t ilx,
+-				     bool *new_page_allocated,
+-				     bool skip_if_exists);
++struct folio *__read_swap_cache_async(swp_entry_t entry, gfp_t gfp_flags,
++		struct mempolicy *mpol, pgoff_t ilx, bool *new_page_allocated,
++		bool skip_if_exists);
+ struct page *swap_cluster_readahead(swp_entry_t entry, gfp_t flag,
+ 				    struct mempolicy *mpol, pgoff_t ilx);
+ struct page *swapin_readahead(swp_entry_t entry, gfp_t flag,
+--- a/mm/swap_state.c~mm-return-the-folio-from-__read_swap_cache_async
++++ a/mm/swap_state.c
+@@ -410,14 +410,12 @@ struct folio *filemap_get_incore_folio(s
+ 	return folio;
+ }
+ 
+-struct page *__read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
+-				     struct mempolicy *mpol, pgoff_t ilx,
+-				     bool *new_page_allocated,
+-				     bool skip_if_exists)
++struct folio *__read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
++		struct mempolicy *mpol, pgoff_t ilx, bool *new_page_allocated,
++		bool skip_if_exists)
+ {
+ 	struct swap_info_struct *si;
+ 	struct folio *folio;
+-	struct page *page;
+ 	void *shadow = NULL;
+ 
+ 	*new_page_allocated = false;
+@@ -434,10 +432,8 @@ struct page *__read_swap_cache_async(swp
+ 		 */
+ 		folio = filemap_get_folio(swap_address_space(entry),
+ 						swp_offset(entry));
+-		if (!IS_ERR(folio)) {
+-			page = folio_file_page(folio, swp_offset(entry));
+-			goto got_page;
+-		}
++		if (!IS_ERR(folio))
++			goto got_folio;
+ 
+ 		/*
+ 		 * Just skip read ahead for unused swap slot.
+@@ -451,7 +447,7 @@ struct page *__read_swap_cache_async(swp
+ 			goto fail_put_swap;
+ 
+ 		/*
+-		 * Get a new page to read into from swap.  Allocate it now,
++		 * Get a new folio to read into from swap.  Allocate it now,
+ 		 * before marking swap_map SWAP_HAS_CACHE, when -EEXIST will
+ 		 * cause any racers to loop around until we add it to cache.
+ 		 */
+@@ -487,13 +483,13 @@ struct page *__read_swap_cache_async(swp
+ 		 * stumble across a swap_map entry whose SWAP_HAS_CACHE
+ 		 * has not yet been cleared.  Or race against another
+ 		 * __read_swap_cache_async(), which has set SWAP_HAS_CACHE
+-		 * in swap_map, but not yet added its page to swap cache.
++		 * in swap_map, but not yet added its folio to swap cache.
+ 		 */
+ 		schedule_timeout_uninterruptible(1);
+ 	}
+ 
+ 	/*
+-	 * The swap entry is ours to swap in. Prepare the new page.
++	 * The swap entry is ours to swap in. Prepare the new folio.
+ 	 */
+ 
+ 	__folio_set_locked(folio);
+@@ -514,10 +510,9 @@ struct page *__read_swap_cache_async(swp
+ 	/* Caller will initiate read into locked folio */
+ 	folio_add_lru(folio);
+ 	*new_page_allocated = true;
+-	page = &folio->page;
+-got_page:
++got_folio:
+ 	put_swap_device(si);
+-	return page;
++	return folio;
+ 
+ fail_unlock:
+ 	put_swap_folio(folio, entry);
+@@ -545,16 +540,16 @@ struct page *read_swap_cache_async(swp_e
+ 	bool page_allocated;
+ 	struct mempolicy *mpol;
+ 	pgoff_t ilx;
+-	struct page *page;
++	struct folio *folio;
+ 
+ 	mpol = get_vma_policy(vma, addr, 0, &ilx);
+-	page = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
++	folio = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
+ 					&page_allocated, false);
+ 	mpol_cond_put(mpol);
+ 
+ 	if (page_allocated)
+-		swap_readpage(page, false, plug);
+-	return page;
++		swap_readpage(&folio->page, false, plug);
++	return folio_file_page(folio, swp_offset(entry));
+ }
+ 
+ static unsigned int __swapin_nr_pages(unsigned long prev_offset,
+@@ -639,7 +634,7 @@ static unsigned long swapin_nr_pages(uns
+ struct page *swap_cluster_readahead(swp_entry_t entry, gfp_t gfp_mask,
+ 				    struct mempolicy *mpol, pgoff_t ilx)
+ {
+-	struct page *page;
++	struct folio *folio;
+ 	unsigned long entry_offset = swp_offset(entry);
+ 	unsigned long offset = entry_offset;
+ 	unsigned long start_offset, end_offset;
+@@ -664,31 +659,31 @@ struct page *swap_cluster_readahead(swp_
+ 	blk_start_plug(&plug);
+ 	for (offset = start_offset; offset <= end_offset ; offset++) {
+ 		/* Ok, do the async read-ahead now */
+-		page = __read_swap_cache_async(
++		folio = __read_swap_cache_async(
+ 				swp_entry(swp_type(entry), offset),
+ 				gfp_mask, mpol, ilx, &page_allocated, false);
+-		if (!page)
++		if (!folio)
+ 			continue;
+ 		if (page_allocated) {
+-			swap_readpage(page, false, &splug);
++			swap_readpage(&folio->page, false, &splug);
+ 			if (offset != entry_offset) {
+-				SetPageReadahead(page);
++				folio_set_readahead(folio);
+ 				count_vm_event(SWAP_RA);
+ 			}
+ 		}
+-		put_page(page);
++		folio_put(folio);
+ 	}
+ 	blk_finish_plug(&plug);
+ 	swap_read_unplug(splug);
+ 	lru_add_drain();	/* Push any new pages onto the LRU now */
+ skip:
+ 	/* The page was likely read above, so no need for plugging here */
+-	page = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
++	folio = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
+ 					&page_allocated, false);
+ 	if (unlikely(page_allocated))
+-		swap_readpage(page, false, NULL);
+-	zswap_page_swapin(page);
+-	return page;
++		swap_readpage(&folio->page, false, NULL);
++	zswap_folio_swapin(folio);
++	return folio_file_page(folio, swp_offset(entry));
+ }
+ 
+ int init_swap_address_space(unsigned int type, unsigned long nr_pages)
+@@ -806,7 +801,7 @@ static struct page *swap_vma_readahead(s
+ {
+ 	struct blk_plug plug;
+ 	struct swap_iocb *splug = NULL;
+-	struct page *page;
++	struct folio *folio;
+ 	pte_t *pte = NULL, pentry;
+ 	unsigned long addr;
+ 	swp_entry_t entry;
+@@ -839,18 +834,18 @@ static struct page *swap_vma_readahead(s
+ 			continue;
+ 		pte_unmap(pte);
+ 		pte = NULL;
+-		page = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
++		folio = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
+ 						&page_allocated, false);
+-		if (!page)
++		if (!folio)
+ 			continue;
+ 		if (page_allocated) {
+-			swap_readpage(page, false, &splug);
++			swap_readpage(&folio->page, false, &splug);
+ 			if (i != ra_info.offset) {
+-				SetPageReadahead(page);
++				folio_set_readahead(folio);
+ 				count_vm_event(SWAP_RA);
+ 			}
+ 		}
+-		put_page(page);
++		folio_put(folio);
+ 	}
+ 	if (pte)
+ 		pte_unmap(pte);
+@@ -858,13 +853,13 @@ static struct page *swap_vma_readahead(s
+ 	swap_read_unplug(splug);
+ 	lru_add_drain();
+ skip:
+-	/* The page was likely read above, so no need for plugging here */
+-	page = __read_swap_cache_async(targ_entry, gfp_mask, mpol, targ_ilx,
++	/* The folio was likely read above, so no need for plugging here */
++	folio = __read_swap_cache_async(targ_entry, gfp_mask, mpol, targ_ilx,
+ 					&page_allocated, false);
+ 	if (unlikely(page_allocated))
+-		swap_readpage(page, false, NULL);
+-	zswap_page_swapin(page);
+-	return page;
++		swap_readpage(&folio->page, false, NULL);
++	zswap_folio_swapin(folio);
++	return folio_file_page(folio, swp_offset(entry));
+ }
+ 
+ /**
+--- a/mm/zswap.c~mm-return-the-folio-from-__read_swap_cache_async
++++ a/mm/zswap.c
+@@ -373,12 +373,12 @@ void zswap_lruvec_state_init(struct lruv
+ 	atomic_long_set(&lruvec->zswap_lruvec_state.nr_zswap_protected, 0);
+ }
+ 
+-void zswap_page_swapin(struct page *page)
++void zswap_folio_swapin(struct folio *folio)
+ {
+ 	struct lruvec *lruvec;
+ 
+-	if (page) {
+-		lruvec = folio_lruvec(page_folio(page));
++	if (folio) {
++		lruvec = folio_lruvec(folio);
+ 		atomic_long_inc(&lruvec->zswap_lruvec_state.nr_zswap_protected);
+ 	}
+ }
+@@ -1431,14 +1431,14 @@ static void __zswap_load(struct zswap_en
+ * writeback code
+ **********************************/
+ /*
+- * Attempts to free an entry by adding a page to the swap cache,
+- * decompressing the entry data into the page, and issuing a
+- * bio write to write the page back to the swap device.
++ * Attempts to free an entry by adding a folio to the swap cache,
++ * decompressing the entry data into the folio, and issuing a
++ * bio write to write the folio back to the swap device.
+  *
+- * This can be thought of as a "resumed writeback" of the page
++ * This can be thought of as a "resumed writeback" of the folio
+  * to the swap device.  We are basically resuming the same swap
+  * writeback path that was intercepted with the zswap_store()
+- * in the first place.  After the page has been decompressed into
++ * in the first place.  After the folio has been decompressed into
+  * the swap cache, the compressed version stored by zswap can be
+  * freed.
+  */
+@@ -1446,23 +1446,23 @@ static int zswap_writeback_entry(struct
+ 				 struct zswap_tree *tree)
+ {
+ 	swp_entry_t swpentry = entry->swpentry;
+-	struct page *page;
++	struct folio *folio;
+ 	struct mempolicy *mpol;
+ 	bool page_was_allocated;
+ 	struct writeback_control wbc = {
+ 		.sync_mode = WB_SYNC_NONE,
+ 	};
+ 
+-	/* try to allocate swap cache page */
++	/* try to allocate swap cache folio */
+ 	mpol = get_task_policy(current);
+-	page = __read_swap_cache_async(swpentry, GFP_KERNEL, mpol,
++	folio = __read_swap_cache_async(swpentry, GFP_KERNEL, mpol,
+ 				NO_INTERLEAVE_INDEX, &page_was_allocated, true);
+-	if (!page)
++	if (!folio)
+ 		return -ENOMEM;
+ 
+-	/* Found an existing page, we raced with load/swapin */
++	/* Found an existing folio, we raced with load/swapin */
+ 	if (!page_was_allocated) {
+-		put_page(page);
++		folio_put(folio);
+ 		return -EEXIST;
+ 	}
+ 
+@@ -1471,27 +1471,27 @@ static int zswap_writeback_entry(struct
+ 	 * concurrent swapping to and from the slot. Verify that the
+ 	 * swap entry hasn't been invalidated and recycled behind our
+ 	 * backs (our zswap_entry reference doesn't prevent that), to
+-	 * avoid overwriting a new swap page with old compressed data.
++	 * avoid overwriting a new swap folio with old compressed data.
+ 	 */
+ 	spin_lock(&tree->lock);
+ 	if (zswap_rb_search(&tree->rbroot, swp_offset(entry->swpentry)) != entry) {
+ 		spin_unlock(&tree->lock);
+-		delete_from_swap_cache(page_folio(page));
++		delete_from_swap_cache(folio);
+ 		return -ENOMEM;
+ 	}
+ 	spin_unlock(&tree->lock);
+ 
+-	__zswap_load(entry, page);
++	__zswap_load(entry, &folio->page);
+ 
+-	/* page is up to date */
+-	SetPageUptodate(page);
++	/* folio is up to date */
++	folio_mark_uptodate(folio);
+ 
+ 	/* move it to the tail of the inactive list after end_writeback */
+-	SetPageReclaim(page);
++	folio_set_reclaim(folio);
+ 
+ 	/* start writeback */
+-	__swap_writepage(page, &wbc);
+-	put_page(page);
++	__swap_writepage(&folio->page, &wbc);
++	folio_put(folio);
+ 
+ 	return 0;
+ }
+@@ -1637,7 +1637,7 @@ bool zswap_store(struct folio *folio)
+ 
+ 	dst = acomp_ctx->dstmem;
+ 	sg_init_table(&input, 1);
+-	sg_set_page(&input, page, PAGE_SIZE, 0);
++	sg_set_page(&input, &folio->page, PAGE_SIZE, 0);
+ 
+ 	sg_init_one(&output, dst, PAGE_SIZE);
+ 	acomp_request_set_params(acomp_ctx->req, &input, &output, PAGE_SIZE, dlen);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from willy@infradead.org are
 
-lib-maple_treec-fix-build-error-due-to-hotfix-alteration.patch
-mm-memcg-restore-subtree-stats-flushing-fix.patch
+buffer-return-bool-from-grow_dev_folio.patch
+buffer-calculate-block-number-inside-folio_init_buffers.patch
+buffer-fix-grow_buffers-for-block-size-page_size.patch
+buffer-cast-block-to-loff_t-before-shifting-it.patch
+buffer-fix-various-functions-for-block-size-page_size.patch
+buffer-handle-large-folios-in-__block_write_begin_int.patch
+buffer-fix-more-functions-for-block-size-page_size.patch
+mm-convert-ksm_might_need_to_copy-to-work-on-folios.patch
+mm-remove-pageanonexclusive-assertions-in-unuse_pte.patch
+mm-convert-unuse_pte-to-use-a-folio-throughout.patch
+mm-remove-some-calls-to-page_add_new_anon_rmap.patch
+mm-remove-stale-example-from-comment.patch
+mm-remove-references-to-page_add_new_anon_rmap-in-comments.patch
+mm-convert-migrate_vma_insert_page-to-use-a-folio.patch
+mm-convert-collapse_huge_page-to-use-a-folio.patch
+mm-remove-page_add_new_anon_rmap-and-lru_cache_add_inactive_or_unevictable.patch
+mm-return-the-folio-from-__read_swap_cache_async.patch
+mm-pass-a-folio-to-__swap_writepage.patch
+mm-pass-a-folio-to-swap_writepage_fs.patch
+mm-pass-a-folio-to-swap_writepage_bdev_sync.patch
+mm-pass-a-folio-to-swap_writepage_bdev_async.patch
+mm-pass-a-folio-to-swap_readpage_fs.patch
+mm-pass-a-folio-to-swap_readpage_bdev_sync.patch
+mm-pass-a-folio-to-swap_readpage_bdev_async.patch
+mm-convert-swap_page_sector-to-swap_folio_sector.patch
+mm-convert-swap_readpage-to-swap_read_folio.patch
+mm-remove-page_swap_info.patch
+mm-return-a-folio-from-read_swap_cache_async.patch
+mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio.patch
 
