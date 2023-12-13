@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7657A65A78
-	for <mm-commits@vger.kernel.org>; Tue, 12 Dec 2023 20:53:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78ACBA53
+	for <mm-commits@vger.kernel.org>; Wed, 13 Dec 2023 01:13:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U5wHerTN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0790C433CB;
-	Tue, 12 Dec 2023 20:53:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rW2VLIV+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE6F5C433C7;
+	Wed, 13 Dec 2023 01:13:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702414413;
-	bh=nJA3mNx9FVUZWIv2rJAlH3ZZoVxc6IQQIerTrJY2rSo=;
+	s=korg; t=1702430034;
+	bh=SiSzfM3GW8a0ndOKlIwpzlLTyUiPMkPEbj41As9M1EY=;
 	h=Date:To:From:Subject:From;
-	b=U5wHerTN1JJy3Ij0cAO3Q85DU6kRy/AlBHbY3SHjbAyWT7pYmfv6EKJdpudUSt9XW
-	 ZQsaEWn2+MekFWiEQ+5lebNq5AE8egB5C2mppUvaxSX7gSPGn6SzIdytiVJPNJUyVh
-	 k3TNeHLXWyW/wYfA4/kW91HEoQCY/GG+VYLgVV4c=
-Date: Tue, 12 Dec 2023 12:53:32 -0800
-To: mm-commits@vger.kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,cuibixuan@vivo.com,akpm@linux-foundation.org
+	b=rW2VLIV+wtgTa+AoD3f7qO4Lx+szSwA7DiT49Q0LKH3VqYyTVGuC8xI7rLQE8OVus
+	 CBKXjzEOCrpE93Fg4nOvZtpVsBfZmnWLiqK3WG+pVpDpel8AqHobPKx8QcQps9Gryn
+	 3IMUsAR07fUSVq3T1xOBcsRwumzCTUIhYwZxXGWo=
+Date: Tue, 12 Dec 2023 17:13:54 -0800
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,npache@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-add-new-event-to-trace-shrink-lru.patch added to mm-unstable branch
-Message-Id: <20231212205332.E0790C433CB@smtp.kernel.org>
+Subject: + kunit-kasan_test-disable-fortify-string-checker-on-kmalloc_oob_memset.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231213011354.DE6F5C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: vmscan: add new event to trace shrink lru
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-add-new-event-to-trace-shrink-lru.patch
+     Subject: kunit: kasan_test: disable fortify string checker on kmalloc_oob_memset
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     kunit-kasan_test-disable-fortify-string-checker-on-kmalloc_oob_memset.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-add-new-event-to-trace-shrink-lru.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kunit-kasan_test-disable-fortify-string-checker-on-kmalloc_oob_memset.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,129 +50,120 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Bixuan Cui <cuibixuan@vivo.com>
-Subject: mm: vmscan: add new event to trace shrink lru
-Date: Mon, 11 Dec 2023 19:26:40 -0800
+From: Nico Pache <npache@redhat.com>
+Subject: kunit: kasan_test: disable fortify string checker on kmalloc_oob_memset
+Date: Tue, 12 Dec 2023 16:26:59 -0700
 
-Add a new event to calculate the
-shrink_inactive_list()/shrink_active_list() execution time.
+Similar to commit 09c6304e38e4 ("kasan: test: fix compatibility with
+FORTIFY_SOURCE") the kernel is panicing in kmalloc_oob_memset_*.
 
-Example of output:
-         kswapd0-103     [007] .....  1098.353020: mm_vmscan_lru_shrink_active_start: nid=0
-         kswapd0-103     [007] .....  1098.353040: mm_vmscan_lru_shrink_active_end: nid=0 nr_taken=32 nr_active=0 nr_deactivated=32 nr_referenced=0 priority=6 flags=RECLAIM_WB_FILE|RECLAIM_WB_ASYNC
-         kswapd0-103     [007] .....  1098.353040: mm_vmscan_lru_shrink_inactive_start: nid=0
-         kswapd0-103     [007] .....  1098.353094: mm_vmscan_lru_shrink_inactive_end: nid=0 nr_scanned=32 nr_reclaimed=0 nr_dirty=0 nr_writeback=0 nr_congested=0 nr_immediate=0 nr_activate_anon=0 nr_activate_file=0 nr_ref_keep=32 nr_unmap_fail=0 priority=6 flags=RECLAIM_WB_ANON|RECLAIM_WB_ASYNC
-         kswapd0-103     [007] .....  1098.353094: mm_vmscan_lru_shrink_inactive_start: nid=0
-         kswapd0-103     [007] .....  1098.353162: mm_vmscan_lru_shrink_inactive_end: nid=0 nr_scanned=32 nr_reclaimed=21 nr_dirty=0 nr_writeback=0 nr_congested=0 nr_immediate=0 nr_activate_anon=0 nr_activate_file=0 nr_ref_keep=11 nr_unmap_fail=0 priority=6 flags=RECLAIM_WB_FILE|RECLAIM_WB_ASYNC
+This is due to the `ptr` not being hidden from the optimizer which would
+disable the runtime fortify string checker.
 
-Link: https://lkml.kernel.org/r/20231212032640.6968-3-cuibixuan@vivo.com
-Signed-off-by: Bixuan Cui <cuibixuan@vivo.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+kernel BUG at lib/string_helpers.c:1048!
+Call Trace:
+[<00000000272502e2>] fortify_panic+0x2a/0x30
+([<00000000272502de>] fortify_panic+0x26/0x30)
+[<001bffff817045c4>] kmalloc_oob_memset_2+0x22c/0x230 [kasan_test]
+
+Hide the `ptr` variable from the optimizer to fix the kernel panic.  Also
+define a size2 variable and hide that as well.  This cleans up the code
+and follows the same convention as other tests.
+
+Link: https://lkml.kernel.org/r/20231212232659.18839-1-npache@redhat.com
+Signed-off-by: Nico Pache <npache@redhat.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/vmscan.h |   38 ++++++++++++++++++++++++++++++--
- mm/vmscan.c                   |    8 +++++-
- 2 files changed, 42 insertions(+), 4 deletions(-)
+ mm/kasan/kasan_test.c |   20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
 
---- a/include/trace/events/vmscan.h~mm-vmscan-add-new-event-to-trace-shrink-lru
-+++ a/include/trace/events/vmscan.h
-@@ -395,7 +395,24 @@ TRACE_EVENT(mm_vmscan_write_folio,
- 		show_reclaim_flags(__entry->reclaim_flags))
- );
+--- a/mm/kasan/kasan_test.c~kunit-kasan_test-disable-fortify-string-checker-on-kmalloc_oob_memset
++++ a/mm/kasan/kasan_test.c
+@@ -493,14 +493,17 @@ static void kmalloc_oob_memset_2(struct
+ {
+ 	char *ptr;
+ 	size_t size = 128 - KASAN_GRANULE_SIZE;
++	size_t size2 = 2;
  
--TRACE_EVENT(mm_vmscan_lru_shrink_inactive,
-+TRACE_EVENT(mm_vmscan_lru_shrink_inactive_start,
-+
-+	TP_PROTO(int nid),
-+
-+	TP_ARGS(nid),
-+
-+	TP_STRUCT__entry(
-+		__field(int, nid)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->nid = nid;
-+	),
-+
-+	TP_printk("nid=%d", __entry->nid)
-+);
-+
-+TRACE_EVENT(mm_vmscan_lru_shrink_inactive_end,
+ 	KASAN_TEST_NEEDS_CHECKED_MEMINTRINSICS(test);
  
- 	TP_PROTO(int nid,
- 		unsigned long nr_scanned, unsigned long nr_reclaimed,
-@@ -446,7 +463,24 @@ TRACE_EVENT(mm_vmscan_lru_shrink_inactiv
- 		show_reclaim_flags(__entry->reclaim_flags))
- );
+ 	ptr = kmalloc(size, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
  
--TRACE_EVENT(mm_vmscan_lru_shrink_active,
-+TRACE_EVENT(mm_vmscan_lru_shrink_active_start,
-+
-+	TP_PROTO(int nid),
-+
-+	TP_ARGS(nid),
-+
-+	TP_STRUCT__entry(
-+		__field(int, nid)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->nid = nid;
-+	),
-+
-+	TP_printk("nid=%d", __entry->nid)
-+);
-+
-+TRACE_EVENT(mm_vmscan_lru_shrink_active_end,
- 
- 	TP_PROTO(int nid, unsigned long nr_taken,
- 		unsigned long nr_active, unsigned long nr_deactivated,
---- a/mm/vmscan.c~mm-vmscan-add-new-event-to-trace-shrink-lru
-+++ a/mm/vmscan.c
-@@ -1882,6 +1882,8 @@ static unsigned long shrink_inactive_lis
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 	bool stalled = false;
- 
-+	trace_mm_vmscan_lru_shrink_inactive_start(pgdat->node_id);
-+
- 	while (unlikely(too_many_isolated(pgdat, file, sc))) {
- 		if (stalled)
- 			return 0;
-@@ -1966,7 +1968,7 @@ static unsigned long shrink_inactive_lis
- 	if (file)
- 		sc->nr.file_taken += nr_taken;
- 
--	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
-+	trace_mm_vmscan_lru_shrink_inactive_end(pgdat->node_id,
- 			nr_scanned, nr_reclaimed, &stat, sc->priority, file);
- 	return nr_reclaimed;
++	OPTIMIZER_HIDE_VAR(ptr);
+ 	OPTIMIZER_HIDE_VAR(size);
+-	KUNIT_EXPECT_KASAN_FAIL(test, memset(ptr + size - 1, 0, 2));
++	OPTIMIZER_HIDE_VAR(size2);
++	KUNIT_EXPECT_KASAN_FAIL(test, memset(ptr + size - 1, 0, size2));
+ 	kfree(ptr);
  }
-@@ -2004,6 +2006,8 @@ static void shrink_active_list(unsigned
- 	int file = is_file_lru(lru);
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
  
-+	trace_mm_vmscan_lru_shrink_active_start(pgdat->node_id);
-+
- 	lru_add_drain();
+@@ -508,14 +511,17 @@ static void kmalloc_oob_memset_4(struct
+ {
+ 	char *ptr;
+ 	size_t size = 128 - KASAN_GRANULE_SIZE;
++	size_t size2 = 4;
  
- 	spin_lock_irq(&lruvec->lru_lock);
-@@ -2083,7 +2087,7 @@ static void shrink_active_list(unsigned
- 		lru_note_cost(lruvec, file, 0, nr_rotated);
- 	mem_cgroup_uncharge_list(&l_active);
- 	free_unref_page_list(&l_active);
--	trace_mm_vmscan_lru_shrink_active(pgdat->node_id, nr_taken, nr_activate,
-+	trace_mm_vmscan_lru_shrink_active_end(pgdat->node_id, nr_taken, nr_activate,
- 			nr_deactivate, nr_rotated, sc->priority, file);
+ 	KASAN_TEST_NEEDS_CHECKED_MEMINTRINSICS(test);
+ 
+ 	ptr = kmalloc(size, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+ 
++	OPTIMIZER_HIDE_VAR(ptr);
+ 	OPTIMIZER_HIDE_VAR(size);
+-	KUNIT_EXPECT_KASAN_FAIL(test, memset(ptr + size - 3, 0, 4));
++	OPTIMIZER_HIDE_VAR(size2);
++	KUNIT_EXPECT_KASAN_FAIL(test, memset(ptr + size - 3, 0, size2));
+ 	kfree(ptr);
+ }
+ 
+@@ -523,14 +529,17 @@ static void kmalloc_oob_memset_8(struct
+ {
+ 	char *ptr;
+ 	size_t size = 128 - KASAN_GRANULE_SIZE;
++	size_t size2 = 8;
+ 
+ 	KASAN_TEST_NEEDS_CHECKED_MEMINTRINSICS(test);
+ 
+ 	ptr = kmalloc(size, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+ 
++	OPTIMIZER_HIDE_VAR(ptr);
+ 	OPTIMIZER_HIDE_VAR(size);
+-	KUNIT_EXPECT_KASAN_FAIL(test, memset(ptr + size - 7, 0, 8));
++	OPTIMIZER_HIDE_VAR(size2);
++	KUNIT_EXPECT_KASAN_FAIL(test, memset(ptr + size - 7, 0, size2));
+ 	kfree(ptr);
+ }
+ 
+@@ -538,14 +547,17 @@ static void kmalloc_oob_memset_16(struct
+ {
+ 	char *ptr;
+ 	size_t size = 128 - KASAN_GRANULE_SIZE;
++	size_t size2 = 16;
+ 
+ 	KASAN_TEST_NEEDS_CHECKED_MEMINTRINSICS(test);
+ 
+ 	ptr = kmalloc(size, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+ 
++	OPTIMIZER_HIDE_VAR(ptr);
+ 	OPTIMIZER_HIDE_VAR(size);
+-	KUNIT_EXPECT_KASAN_FAIL(test, memset(ptr + size - 15, 0, 16));
++	OPTIMIZER_HIDE_VAR(size2);
++	KUNIT_EXPECT_KASAN_FAIL(test, memset(ptr + size - 15, 0, size2));
+ 	kfree(ptr);
  }
  
 _
 
-Patches currently in -mm which might be from cuibixuan@vivo.com are
+Patches currently in -mm which might be from npache@redhat.com are
 
-mm-shrinker-add-new-event-to-trace-shrink-count.patch
-mm-vmscan-add-new-event-to-trace-shrink-lru.patch
+kunit-kasan_test-disable-fortify-string-checker-on-kmalloc_oob_memset.patch
 
