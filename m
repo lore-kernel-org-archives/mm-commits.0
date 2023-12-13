@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A5AF20E7;
-	Wed, 13 Dec 2023 01:20:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87E5F20E7;
+	Wed, 13 Dec 2023 01:21:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X+nJlZd2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 435B4C433CA;
-	Wed, 13 Dec 2023 01:20:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NHScEVAT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52996C433C9;
+	Wed, 13 Dec 2023 01:21:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702430459;
-	bh=KehDN4nhWyPy2fXuF5ABf74N4tbaM3vK19IHJgp2JOA=;
+	s=korg; t=1702430460;
+	bh=HxGrJfE/7Ci6s36PXUy9P/OZDyfDtP+jwuAQkpA4+bU=;
 	h=Date:To:From:Subject:From;
-	b=X+nJlZd2c3GUJBiHPQfB218mkFT7dqXjJ+i3CoenZQAi9G21fzEC8lgPd5+Vu/8sh
-	 H8h6MSIGC/Kk9G1ycjIQeJKDH7OIBzerjUGvdD08qEa5olk657Qgl/rSVRcycBG9C9
-	 h7DPqv0r69bS4WXN2ivQx9iv5kaXqsf/GsXjlmxs=
-Date: Tue, 12 Dec 2023 17:20:58 -0800
+	b=NHScEVATVqPMSt2udnsFLxv2nDY5Dzgz80I8InbdEWCFqkGPwBqr7qNkOfWAtHz/t
+	 i5990TGvrZjZFgRAbI0gyX+PClTk/xEklAv/IJqYpzMtngGoD7tXUWwtuCMOjZw9vW
+	 LXE+OrY5bpLKbQLzMA9b9SJI32+S39qj3U70WMh4=
+Date: Tue, 12 Dec 2023 17:20:59 -0800
 To: mm-commits@vger.kernel.org,tjmercier@google.com,stable@vger.kernel.org,ryncsn@gmail.com,quic_charante@quicinc.com,kaleshsingh@google.com,jaroslav.pulchart@gooddata.com,hdanton@sina.com,yuzhao@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-mglru-try-to-stop-at-high-watermarks.patch removed from -mm tree
-Message-Id: <20231213012059.435B4C433CA@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-mglru-respect-min_ttl_ms-with-memcgs.patch removed from -mm tree
+Message-Id: <20231213012100.52996C433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,152 +27,223 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mglru: try to stop at high watermarks
+     Subject: mm/mglru: respect min_ttl_ms with memcgs
 has been removed from the -mm tree.  Its filename was
-     mm-mglru-try-to-stop-at-high-watermarks.patch
+     mm-mglru-respect-min_ttl_ms-with-memcgs.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Yu Zhao <yuzhao@google.com>
-Subject: mm/mglru: try to stop at high watermarks
-Date: Thu, 7 Dec 2023 23:14:05 -0700
+Subject: mm/mglru: respect min_ttl_ms with memcgs
+Date: Thu, 7 Dec 2023 23:14:06 -0700
 
-The initial MGLRU patchset didn't include the memcg LRU support, and it
-relied on should_abort_scan(), added by commit f76c83378851 ("mm:
-multi-gen LRU: optimize multiple memcgs"), to "backoff to avoid
-overshooting their aggregate reclaim target by too much".
+While investigating kswapd "consuming 100% CPU" [1] (also see "mm/mglru:
+try to stop at high watermarks"), it was discovered that the memcg LRU can
+breach the thrashing protection imposed by min_ttl_ms.
 
-Later on when the memcg LRU was added, should_abort_scan() was deemed
-unnecessary, and the test results [1] showed no side effects after it was
-removed by commit a579086c99ed ("mm: multi-gen LRU: remove eviction
-fairness safeguard").
+Before the memcg LRU:
+  kswapd()
+    shrink_node_memcgs()
+      mem_cgroup_iter()
+        inc_max_seq()  // always hit a different memcg
+    lru_gen_age_node()
+      mem_cgroup_iter()
+        check the timestamp of the oldest generation
 
-However, that test used memory.reclaim, which sets nr_to_reclaim to
-SWAP_CLUSTER_MAX.  So it can overshoot only by SWAP_CLUSTER_MAX-1 pages,
-i.e., from nr_reclaimed=nr_to_reclaim-1 to
-nr_reclaimed=nr_to_reclaim+SWAP_CLUSTER_MAX-1.  Compared with the batch
-size kswapd sets to nr_to_reclaim, SWAP_CLUSTER_MAX is tiny.  Therefore
-that test isn't able to reproduce the worst case scenario, i.e., kswapd
-overshooting GBs on large systems and "consuming 100% CPU" (see the Closes
-tag).
+After the memcg LRU:
+  kswapd()
+    shrink_many()
+      restart:
+        iterate the memcg LRU:
+          inc_max_seq()  // occasionally hit the same memcg
+          if raced with lru_gen_rotate_memcg():
+            goto restart
+    lru_gen_age_node()
+      mem_cgroup_iter()
+        check the timestamp of the oldest generation
 
-Bring back a simplified version of should_abort_scan() on top of the memcg
-LRU, so that kswapd stops when all eligible zones are above their
-respective high watermarks plus a small delta to lower the chance of
-KSWAPD_HIGH_WMARK_HIT_QUICKLY.  Note that this only applies to order-0
-reclaim, meaning compaction-induced reclaim can still run wild (which is a
-different problem).
+Specifically, when the restart happens in shrink_many(), it needs to stick
+with the (memcg LRU) generation it began with.  In other words, it should
+neither re-read memcg_lru->seq nor age an lruvec of a different
+generation.  Otherwise it can hit the same memcg multiple times without
+giving lru_gen_age_node() a chance to check the timestamp of that memcg's
+oldest generation (against min_ttl_ms).
 
-On Android, launching 55 apps sequentially:
-           Before     After      Change
-  pgpgin   838377172  802955040  -4%
-  pgpgout  38037080   34336300   -10%
+[1] https://lore.kernel.org/CAK8fFZ4DY+GtBA40Pm7Nn5xCHy+51w3sfxPqkqpqakSXYyX+Wg@mail.gmail.com/
 
-[1] https://lore.kernel.org/20221222041905.2431096-1-yuzhao@google.com/
-
-Link: https://lkml.kernel.org/r/20231208061407.2125867-2-yuzhao@google.com
-Fixes: a579086c99ed ("mm: multi-gen LRU: remove eviction fairness safeguard")
+Link: https://lkml.kernel.org/r/20231208061407.2125867-3-yuzhao@google.com
+Fixes: e4dde56cd208 ("mm: multi-gen LRU: per-node lru_gen_folio lists")
 Signed-off-by: Yu Zhao <yuzhao@google.com>
-Reported-by: Charan Teja Kalla <quic_charante@quicinc.com>
-Reported-by: Jaroslav Pulchart <jaroslav.pulchart@gooddata.com>
-Closes: https://lore.kernel.org/CAK8fFZ4DY+GtBA40Pm7Nn5xCHy+51w3sfxPqkqpqakSXYyX+Wg@mail.gmail.com/
-Tested-by: Jaroslav Pulchart <jaroslav.pulchart@gooddata.com>
-Tested-by: Kalesh Singh <kaleshsingh@google.com>
+Tested-by: T.J. Mercier <tjmercier@google.com>
+Cc: Charan Teja Kalla <quic_charante@quicinc.com>
 Cc: Hillf Danton <hdanton@sina.com>
+Cc: Jaroslav Pulchart <jaroslav.pulchart@gooddata.com>
 Cc: Kairui Song <ryncsn@gmail.com>
-Cc: T.J. Mercier <tjmercier@google.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   36 ++++++++++++++++++++++++++++--------
- 1 file changed, 28 insertions(+), 8 deletions(-)
+ include/linux/mmzone.h |   30 +++++++++++++++++-------------
+ mm/vmscan.c            |   30 ++++++++++++++++--------------
+ 2 files changed, 33 insertions(+), 27 deletions(-)
 
---- a/mm/vmscan.c~mm-mglru-try-to-stop-at-high-watermarks
+--- a/include/linux/mmzone.h~mm-mglru-respect-min_ttl_ms-with-memcgs
++++ a/include/linux/mmzone.h
+@@ -505,33 +505,37 @@ void lru_gen_look_around(struct page_vma
+  * the old generation, is incremented when all its bins become empty.
+  *
+  * There are four operations:
+- * 1. MEMCG_LRU_HEAD, which moves an memcg to the head of a random bin in its
++ * 1. MEMCG_LRU_HEAD, which moves a memcg to the head of a random bin in its
+  *    current generation (old or young) and updates its "seg" to "head";
+- * 2. MEMCG_LRU_TAIL, which moves an memcg to the tail of a random bin in its
++ * 2. MEMCG_LRU_TAIL, which moves a memcg to the tail of a random bin in its
+  *    current generation (old or young) and updates its "seg" to "tail";
+- * 3. MEMCG_LRU_OLD, which moves an memcg to the head of a random bin in the old
++ * 3. MEMCG_LRU_OLD, which moves a memcg to the head of a random bin in the old
+  *    generation, updates its "gen" to "old" and resets its "seg" to "default";
+- * 4. MEMCG_LRU_YOUNG, which moves an memcg to the tail of a random bin in the
++ * 4. MEMCG_LRU_YOUNG, which moves a memcg to the tail of a random bin in the
+  *    young generation, updates its "gen" to "young" and resets its "seg" to
+  *    "default".
+  *
+  * The events that trigger the above operations are:
+  * 1. Exceeding the soft limit, which triggers MEMCG_LRU_HEAD;
+- * 2. The first attempt to reclaim an memcg below low, which triggers
++ * 2. The first attempt to reclaim a memcg below low, which triggers
+  *    MEMCG_LRU_TAIL;
+- * 3. The first attempt to reclaim an memcg below reclaimable size threshold,
++ * 3. The first attempt to reclaim a memcg below reclaimable size threshold,
+  *    which triggers MEMCG_LRU_TAIL;
+- * 4. The second attempt to reclaim an memcg below reclaimable size threshold,
++ * 4. The second attempt to reclaim a memcg below reclaimable size threshold,
+  *    which triggers MEMCG_LRU_YOUNG;
+- * 5. Attempting to reclaim an memcg below min, which triggers MEMCG_LRU_YOUNG;
++ * 5. Attempting to reclaim a memcg below min, which triggers MEMCG_LRU_YOUNG;
+  * 6. Finishing the aging on the eviction path, which triggers MEMCG_LRU_YOUNG;
+- * 7. Offlining an memcg, which triggers MEMCG_LRU_OLD.
++ * 7. Offlining a memcg, which triggers MEMCG_LRU_OLD.
+  *
+- * Note that memcg LRU only applies to global reclaim, and the round-robin
+- * incrementing of their max_seq counters ensures the eventual fairness to all
+- * eligible memcgs. For memcg reclaim, it still relies on mem_cgroup_iter().
++ * Notes:
++ * 1. Memcg LRU only applies to global reclaim, and the round-robin incrementing
++ *    of their max_seq counters ensures the eventual fairness to all eligible
++ *    memcgs. For memcg reclaim, it still relies on mem_cgroup_iter().
++ * 2. There are only two valid generations: old (seq) and young (seq+1).
++ *    MEMCG_NR_GENS is set to three so that when reading the generation counter
++ *    locklessly, a stale value (seq-1) does not wraparound to young.
+  */
+-#define MEMCG_NR_GENS	2
++#define MEMCG_NR_GENS	3
+ #define MEMCG_NR_BINS	8
+ 
+ struct lru_gen_memcg {
+--- a/mm/vmscan.c~mm-mglru-respect-min_ttl_ms-with-memcgs
 +++ a/mm/vmscan.c
-@@ -4648,20 +4648,41 @@ static long get_nr_to_scan(struct lruvec
- 	return try_to_inc_max_seq(lruvec, max_seq, sc, can_swap, false) ? -1 : 0;
+@@ -4089,6 +4089,9 @@ static void lru_gen_rotate_memcg(struct
+ 	else
+ 		VM_WARN_ON_ONCE(true);
+ 
++	WRITE_ONCE(lruvec->lrugen.seg, seg);
++	WRITE_ONCE(lruvec->lrugen.gen, new);
++
+ 	hlist_nulls_del_rcu(&lruvec->lrugen.list);
+ 
+ 	if (op == MEMCG_LRU_HEAD || op == MEMCG_LRU_OLD)
+@@ -4099,9 +4102,6 @@ static void lru_gen_rotate_memcg(struct
+ 	pgdat->memcg_lru.nr_memcgs[old]--;
+ 	pgdat->memcg_lru.nr_memcgs[new]++;
+ 
+-	lruvec->lrugen.gen = new;
+-	WRITE_ONCE(lruvec->lrugen.seg, seg);
+-
+ 	if (!pgdat->memcg_lru.nr_memcgs[old] && old == get_memcg_gen(pgdat->memcg_lru.seq))
+ 		WRITE_ONCE(pgdat->memcg_lru.seq, pgdat->memcg_lru.seq + 1);
+ 
+@@ -4124,11 +4124,11 @@ void lru_gen_online_memcg(struct mem_cgr
+ 
+ 		gen = get_memcg_gen(pgdat->memcg_lru.seq);
+ 
++		lruvec->lrugen.gen = gen;
++
+ 		hlist_nulls_add_tail_rcu(&lruvec->lrugen.list, &pgdat->memcg_lru.fifo[gen][bin]);
+ 		pgdat->memcg_lru.nr_memcgs[gen]++;
+ 
+-		lruvec->lrugen.gen = gen;
+-
+ 		spin_unlock_irq(&pgdat->memcg_lru.lock);
+ 	}
  }
+@@ -4635,7 +4635,7 @@ static long get_nr_to_scan(struct lruvec
+ 	DEFINE_MAX_SEQ(lruvec);
  
--static unsigned long get_nr_to_reclaim(struct scan_control *sc)
-+static bool should_abort_scan(struct lruvec *lruvec, struct scan_control *sc)
- {
-+	int i;
-+	enum zone_watermarks mark;
-+
- 	/* don't abort memcg reclaim to ensure fairness */
- 	if (!root_reclaim(sc))
--		return -1;
-+		return false;
-+
-+	if (sc->nr_reclaimed >= max(sc->nr_to_reclaim, compact_gap(sc->order)))
-+		return true;
-+
-+	/* check the order to exclude compaction-induced reclaim */
-+	if (!current_is_kswapd() || sc->order)
-+		return false;
-+
-+	mark = sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING ?
-+	       WMARK_PROMO : WMARK_HIGH;
-+
-+	for (i = 0; i <= sc->reclaim_idx; i++) {
-+		struct zone *zone = lruvec_pgdat(lruvec)->node_zones + i;
-+		unsigned long size = wmark_pages(zone, mark) + MIN_LRU_BATCH;
-+
-+		if (managed_zone(zone) && !zone_watermark_ok(zone, 0, size, sc->reclaim_idx, 0))
-+			return false;
-+	}
+ 	if (mem_cgroup_below_min(sc->target_mem_cgroup, memcg))
+-		return 0;
++		return -1;
  
--	return max(sc->nr_to_reclaim, compact_gap(sc->order));
-+	/* kswapd should abort if all eligible zones are safe */
-+	return true;
- }
- 
- static bool try_to_shrink_lruvec(struct lruvec *lruvec, struct scan_control *sc)
- {
- 	long nr_to_scan;
- 	unsigned long scanned = 0;
--	unsigned long nr_to_reclaim = get_nr_to_reclaim(sc);
- 	int swappiness = get_swappiness(lruvec, sc);
- 
- 	/* clean file folios are more likely to exist */
-@@ -4683,7 +4704,7 @@ static bool try_to_shrink_lruvec(struct
- 		if (scanned >= nr_to_scan)
- 			break;
- 
--		if (sc->nr_reclaimed >= nr_to_reclaim)
-+		if (should_abort_scan(lruvec, sc))
- 			break;
- 
+ 	if (!should_run_aging(lruvec, max_seq, sc, can_swap, &nr_to_scan))
+ 		return nr_to_scan;
+@@ -4710,7 +4710,7 @@ static bool try_to_shrink_lruvec(struct
  		cond_resched();
-@@ -4744,7 +4765,6 @@ static void shrink_many(struct pglist_da
- 	struct lru_gen_folio *lrugen;
- 	struct mem_cgroup *memcg;
- 	const struct hlist_nulls_node *pos;
--	unsigned long nr_to_reclaim = get_nr_to_reclaim(sc);
- 
- 	bin = first_bin = get_random_u32_below(MEMCG_NR_BINS);
- restart:
-@@ -4777,7 +4797,7 @@ restart:
- 
- 		rcu_read_lock();
- 
--		if (sc->nr_reclaimed >= nr_to_reclaim)
-+		if (should_abort_scan(lruvec, sc))
- 			break;
  	}
  
-@@ -4788,7 +4808,7 @@ restart:
+-	/* whether try_to_inc_max_seq() was successful */
++	/* whether this lruvec should be rotated */
+ 	return nr_to_scan < 0;
+ }
  
- 	mem_cgroup_put(memcg);
+@@ -4764,13 +4764,13 @@ static void shrink_many(struct pglist_da
+ 	struct lruvec *lruvec;
+ 	struct lru_gen_folio *lrugen;
+ 	struct mem_cgroup *memcg;
+-	const struct hlist_nulls_node *pos;
++	struct hlist_nulls_node *pos;
  
--	if (sc->nr_reclaimed >= nr_to_reclaim)
-+	if (!is_a_nulls(pos))
++	gen = get_memcg_gen(READ_ONCE(pgdat->memcg_lru.seq));
+ 	bin = first_bin = get_random_u32_below(MEMCG_NR_BINS);
+ restart:
+ 	op = 0;
+ 	memcg = NULL;
+-	gen = get_memcg_gen(READ_ONCE(pgdat->memcg_lru.seq));
+ 
+ 	rcu_read_lock();
+ 
+@@ -4781,6 +4781,10 @@ restart:
+ 		}
+ 
+ 		mem_cgroup_put(memcg);
++		memcg = NULL;
++
++		if (gen != READ_ONCE(lrugen->gen))
++			continue;
+ 
+ 		lruvec = container_of(lrugen, struct lruvec, lrugen);
+ 		memcg = lruvec_memcg(lruvec);
+@@ -4865,16 +4869,14 @@ static void set_initial_priority(struct
+ 	if (sc->priority != DEF_PRIORITY || sc->nr_to_reclaim < MIN_LRU_BATCH)
  		return;
+ 	/*
+-	 * Determine the initial priority based on ((total / MEMCG_NR_GENS) >>
+-	 * priority) * reclaimed_to_scanned_ratio = nr_to_reclaim, where the
+-	 * estimated reclaimed_to_scanned_ratio = inactive / total.
++	 * Determine the initial priority based on
++	 * (total >> priority) * reclaimed_to_scanned_ratio = nr_to_reclaim,
++	 * where reclaimed_to_scanned_ratio = inactive / total.
+ 	 */
+ 	reclaimable = node_page_state(pgdat, NR_INACTIVE_FILE);
+ 	if (get_swappiness(lruvec, sc))
+ 		reclaimable += node_page_state(pgdat, NR_INACTIVE_ANON);
  
- 	/* restart if raced with lru_gen_rotate_memcg() */
+-	reclaimable /= MEMCG_NR_GENS;
+-
+ 	/* round down reclaimable and round up sc->nr_to_reclaim */
+ 	priority = fls_long(reclaimable) - 1 - fls_long(sc->nr_to_reclaim - 1);
+ 
 _
 
 Patches currently in -mm which might be from yuzhao@google.com are
