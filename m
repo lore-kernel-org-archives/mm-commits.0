@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EE598183A
-	for <mm-commits@vger.kernel.org>; Wed, 13 Dec 2023 23:12:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97E508183A
+	for <mm-commits@vger.kernel.org>; Wed, 13 Dec 2023 23:12:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wFM+jHkQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8078C433C8;
-	Wed, 13 Dec 2023 23:12:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DpJrUMLQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F14BC433C7;
+	Wed, 13 Dec 2023 23:12:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702509124;
-	bh=bSUREbSSiMTgAfUUKpTMcHwRTVRICQsDqGGrYJK6xDM=;
+	s=korg; t=1702509126;
+	bh=P0Nyj7KFCoXZosvZkWX0AE2YTAGMMxGajTwokFh30TM=;
 	h=Date:To:From:Subject:From;
-	b=wFM+jHkQLZt1zrO56vA9qvARuiqOapQ1LqSjAVSBVNLPhBEyqVLZRoxE8lYQd6SXe
-	 D8Co6lgjyPiDsYn15bJXNMhXzaOjKomLaz5zxO/X3Ft8LntVrCd9u6zq1WEATqq73z
-	 hvFjAYC6pUBb5E1KdCRibpaZdGCgZF3uNYs82g4M=
-Date: Wed, 13 Dec 2023 15:12:04 -0800
+	b=DpJrUMLQOH63cC+VET+QuD9QKpQsGME0y+p1NlVY9N8uvs0GrsygeONXfOVA14+kc
+	 kdueQNb3yIcB5NVGx1/zZAQd5adUquevReBktkgd3Crp+BfVQctxIouTeZ6AwW45yX
+	 lNYYzM4c2ykR13jvOJTvulRSSPNjf/L4UygIVgC8=
+Date: Wed, 13 Dec 2023 15:12:05 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pass-a-folio-to-swap_readpage_fs.patch added to mm-unstable branch
-Message-Id: <20231213231204.A8078C433C8@smtp.kernel.org>
+Subject: + mm-pass-a-folio-to-swap_readpage_bdev_sync.patch added to mm-unstable branch
+Message-Id: <20231213231206.4F14BC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: pass a folio to swap_readpage_fs()
+     Subject: mm: pass a folio to swap_readpage_bdev_sync()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-pass-a-folio-to-swap_readpage_fs.patch
+     mm-pass-a-folio-to-swap_readpage_bdev_sync.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pass-a-folio-to-swap_readpage_fs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pass-a-folio-to-swap_readpage_bdev_sync.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,57 +51,50 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: pass a folio to swap_readpage_fs()
-Date: Wed, 13 Dec 2023 21:58:35 +0000
+Subject: mm: pass a folio to swap_readpage_bdev_sync()
+Date: Wed, 13 Dec 2023 21:58:36 +0000
 
-Saves a call to compound_head().
+Make it plain that this takes the head page (which before this point
+was just an assumption, but is now enforced by the compiler).
 
-Link: https://lkml.kernel.org/r/20231213215842.671461-7-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231213215842.671461-8-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ mm/page_io.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/page_io.c~mm-pass-a-folio-to-swap_readpage_fs
+--- a/mm/page_io.c~mm-pass-a-folio-to-swap_readpage_bdev_sync
 +++ a/mm/page_io.c
-@@ -426,12 +426,11 @@ static void sio_read_complete(struct kio
- 	mempool_free(sio, sio_pool);
+@@ -460,15 +460,15 @@ static void swap_readpage_fs(struct foli
+ 		*plug = sio;
  }
  
--static void swap_readpage_fs(struct page *page,
--			     struct swap_iocb **plug)
-+static void swap_readpage_fs(struct folio *folio, struct swap_iocb **plug)
+-static void swap_readpage_bdev_sync(struct page *page,
++static void swap_readpage_bdev_sync(struct folio *folio,
+ 		struct swap_info_struct *sis)
  {
--	struct swap_info_struct *sis = page_swap_info(page);
-+	struct swap_info_struct *sis = swp_swap_info(folio->swap);
- 	struct swap_iocb *sio = NULL;
--	loff_t pos = page_file_offset(page);
-+	loff_t pos = folio_file_pos(folio);
+ 	struct bio_vec bv;
+ 	struct bio bio;
  
- 	if (plug)
- 		sio = *plug;
-@@ -450,8 +449,8 @@ static void swap_readpage_fs(struct page
- 		sio->pages = 0;
- 		sio->len = 0;
- 	}
--	bvec_set_page(&sio->bvec[sio->pages], page, thp_size(page), 0);
--	sio->len += thp_size(page);
-+	bvec_set_folio(&sio->bvec[sio->pages], folio, folio_size(folio), 0);
-+	sio->len += folio_size(folio);
- 	sio->pages += 1;
- 	if (sio->pages == ARRAY_SIZE(sio->bvec) || !plug) {
- 		swap_read_unplug(sio);
-@@ -521,7 +520,7 @@ void swap_readpage(struct page *page, bo
- 		folio_mark_uptodate(folio);
- 		folio_unlock(folio);
+ 	bio_init(&bio, sis->bdev, &bv, 1, REQ_OP_READ);
+-	bio.bi_iter.bi_sector = swap_page_sector(page);
+-	__bio_add_page(&bio, page, thp_size(page), 0);
++	bio.bi_iter.bi_sector = swap_page_sector(&folio->page);
++	bio_add_folio_nofail(&bio, folio, folio_size(folio), 0);
+ 	/*
+ 	 * Keep this task valid during swap readpage because the oom killer may
+ 	 * attempt to access it in the page fault retry time check.
+@@ -522,7 +522,7 @@ void swap_readpage(struct page *page, bo
  	} else if (data_race(sis->flags & SWP_FS_OPS)) {
--		swap_readpage_fs(page, plug);
-+		swap_readpage_fs(folio, plug);
+ 		swap_readpage_fs(folio, plug);
  	} else if (synchronous || (sis->flags & SWP_SYNCHRONOUS_IO)) {
- 		swap_readpage_bdev_sync(page, sis);
+-		swap_readpage_bdev_sync(page, sis);
++		swap_readpage_bdev_sync(folio, sis);
  	} else {
+ 		swap_readpage_bdev_async(page, sis);
+ 	}
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
