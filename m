@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 630F817C3;
-	Wed, 13 Dec 2023 01:20:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4841917C3
+	for <mm-commits@vger.kernel.org>; Wed, 13 Dec 2023 01:20:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FwDQxx1D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0837C433C8;
-	Wed, 13 Dec 2023 01:20:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zCd9wW7D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07D99C433C7;
+	Wed, 13 Dec 2023 01:20:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702430446;
-	bh=m5+dRLdY8iZv9/v6DO+7/k/g4Le28xhlR1GtSEm+RJw=;
+	s=korg; t=1702430448;
+	bh=45h6S2jNPdsh70vBLrchnUBs1xgVPMcS50F1PvvHEWE=;
 	h=Date:To:From:Subject:From;
-	b=FwDQxx1DFV2HR1PTfKEyVwrbRi2ZCVOK7Ax8kW12P7JSXWqacjy4X7paz33KtdK/A
-	 NbvjTiVCT/lCAIySX5zUKCWDnNRBqBLkvjS1CESQJjgneEQjbFpm7BLUgXnoFhtYUT
-	 mFf7EYdBe1E2UuEkEyJAeFi1GRu7BmhZdTeALIbI=
-Date: Tue, 12 Dec 2023 17:20:46 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,changbin.du@intel.com,acsjakub@amazon.de,sj@kernel.org,akpm@linux-foundation.org
+	b=zCd9wW7DVfQ+ORfyGWskXW/jX9hzDjz8bKBmtDjJ4wZXCNvo1bmXGiXRgx3lc6sLT
+	 NfyIPSPFLSCaj8Zm8biJHhRReK1IxBFqFubTPxB1LaO5ClC8CYtWD0u4BhjtdG1JJ7
+	 ADdXJAweGK9EUZUR44HfJBn65v5p4cGJZ6e3gqKk=
+Date: Tue, 12 Dec 2023 17:20:47 -0800
+To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,lkp@intel.com,ignat@cloudflare.com,eric_devolder@yahoo.com,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-damon-core-make-damon_start-waits-until-kdamond_fn-starts.patch removed from -mm tree
-Message-Id: <20231213012046.C0837C433C8@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] loongarch-kexec-change-dependency-of-object-files.patch removed from -mm tree
+Message-Id: <20231213012048.07D99C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,98 +27,116 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: make damon_start() waits until kdamond_fn() starts
+     Subject: loongarch, kexec: change dependency of object files
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-make-damon_start-waits-until-kdamond_fn-starts.patch
+     loongarch-kexec-change-dependency-of-object-files.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: make damon_start() waits until kdamond_fn() starts
-Date: Fri, 8 Dec 2023 17:50:18 +0000
+From: Baoquan He <bhe@redhat.com>
+Subject: loongarch, kexec: change dependency of object files
+Date: Fri, 8 Dec 2023 15:30:32 +0800
 
-The cleanup tasks of kdamond threads including reset of corresponding
-DAMON context's ->kdamond field and decrease of global nr_running_ctxs
-counter is supposed to be executed by kdamond_fn().  However, commit
-0f91d13366a4 ("mm/damon: simplify stop mechanism") made neither
-damon_start() nor damon_stop() ensure the corresponding kdamond has
-started the execution of kdamond_fn().
+Patch series "kexec: fix the incorrect ifdeffery and dependency of
+CONFIG_KEXEC".
 
-As a result, the cleanup can be skipped if damon_stop() is called fast
-enough after the previous damon_start().  Especially the skipped reset
-of ->kdamond could cause a use-after-free.
+The select of KEXEC for CRASH_DUMP in kernel/Kconfig.kexec will be
+dropped, then compiling errors will be triggered if below config items are
+set:
 
-Fix it by waiting for start of kdamond_fn() execution from
-damon_start().
+===
+CONFIG_CRASH_CORE=y
+CONFIG_KEXEC_CORE=y
+CONFIG_CRASH_DUMP=y
+===
 
-Link: https://lkml.kernel.org/r/20231208175018.63880-1-sj@kernel.org
-Fixes: 0f91d13366a4 ("mm/damon: simplify stop mechanism")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Reported-by: Jakub Acs <acsjakub@amazon.de>
-Cc: Changbin Du <changbin.du@intel.com>
-Cc: Jakub Acs <acsjakub@amazon.de>
-Cc: <stable@vger.kernel.org> # 5.15.x
+E.g on mips, below link error are seen:
+--------------------------------------------------------------------
+mipsel-linux-ld: kernel/kexec_core.o: in function `kimage_free':
+kernel/kexec_core.c:(.text+0x2200): undefined reference to `machine_kexec_cleanup'
+mipsel-linux-ld: kernel/kexec_core.o: in function `__crash_kexec':
+kernel/kexec_core.c:(.text+0x2480): undefined reference to `machine_crash_shutdown'
+mipsel-linux-ld: kernel/kexec_core.c:(.text+0x2488): undefined reference to `machine_kexec'
+mipsel-linux-ld: kernel/kexec_core.o: in function `kernel_kexec':
+kernel/kexec_core.c:(.text+0x29b8): undefined reference to `machine_shutdown'
+mipsel-linux-ld: kernel/kexec_core.c:(.text+0x29c0): undefined reference to `machine_kexec'
+--------------------------------------------------------------------
+
+Here, change the incorrect dependency of building kexec_core related
+object files, and the ifdeffery on architectures from CONFIG_KEXEC to
+CONFIG_KEXEC_CORE.
+
+Testing:
+========
+Passed on mips and loognarch with the LKP reproducer.
+
+
+This patch (of 5):
+
+Currently, in arch/loongarch/kernel/Makefile, building machine_kexec.o
+relocate_kernel.o depends on CONFIG_KEXEC.
+
+Whereas, since we will drop the select of KEXEC for CRASH_DUMP in
+kernel/Kconfig.kexec, compiling error will be triggered if below config
+items are set:
+
+===
+CONFIG_CRASH_CORE=y
+CONFIG_KEXEC_CORE=y
+CONFIG_CRASH_DUMP=y
+===
+
+---------------------------------------------------------------
+loongarch64-linux-ld: kernel/kexec_core.o: in function `.L209':
+>> kexec_core.c:(.text+0x1660): undefined reference to `machine_kexec_cleanup'
+   loongarch64-linux-ld: kernel/kexec_core.o: in function `.L287':
+>> kexec_core.c:(.text+0x1c5c): undefined reference to `machine_crash_shutdown'
+>> loongarch64-linux-ld: kexec_core.c:(.text+0x1c64): undefined reference to `machine_kexec'
+   loongarch64-linux-ld: kernel/kexec_core.o: in function `.L2^B5':
+>> kexec_core.c:(.text+0x2090): undefined reference to `machine_shutdown'
+   loongarch64-linux-ld: kexec_core.c:(.text+0x20a0): undefined reference to `machine_kexec'
+---------------------------------------------------------------
+
+Here, change the dependency of machine_kexec.o relocate_kernel.o to
+CONFIG_KEXEC_CORE can fix above building error.
+
+Link: https://lkml.kernel.org/r/20231208073036.7884-1-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20231208073036.7884-2-bhe@redhat.com
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202311300946.kHE9Iu71-lkp@intel.com/
+Cc: Eric DeVolder <eric_devolder@yahoo.com>
+Cc: Ignat Korchagin <ignat@cloudflare.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    2 ++
- mm/damon/core.c       |    6 ++++++
- 2 files changed, 8 insertions(+)
+ arch/loongarch/kernel/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/damon.h~mm-damon-core-make-damon_start-waits-until-kdamond_fn-starts
-+++ a/include/linux/damon.h
-@@ -559,6 +559,8 @@ struct damon_ctx {
- 	 * update
- 	 */
- 	unsigned long next_ops_update_sis;
-+	/* for waiting until the execution of the kdamond_fn is started */
-+	struct completion kdamond_started;
+--- a/arch/loongarch/kernel/Makefile~loongarch-kexec-change-dependency-of-object-files
++++ a/arch/loongarch/kernel/Makefile
+@@ -57,7 +57,7 @@ obj-$(CONFIG_MAGIC_SYSRQ)	+= sysrq.o
  
- /* public: */
- 	struct task_struct *kdamond;
---- a/mm/damon/core.c~mm-damon-core-make-damon_start-waits-until-kdamond_fn-starts
-+++ a/mm/damon/core.c
-@@ -445,6 +445,8 @@ struct damon_ctx *damon_new_ctx(void)
- 	if (!ctx)
- 		return NULL;
+ obj-$(CONFIG_RELOCATABLE)	+= relocate.o
  
-+	init_completion(&ctx->kdamond_started);
-+
- 	ctx->attrs.sample_interval = 5 * 1000;
- 	ctx->attrs.aggr_interval = 100 * 1000;
- 	ctx->attrs.ops_update_interval = 60 * 1000 * 1000;
-@@ -668,11 +670,14 @@ static int __damon_start(struct damon_ct
- 	mutex_lock(&ctx->kdamond_lock);
- 	if (!ctx->kdamond) {
- 		err = 0;
-+		reinit_completion(&ctx->kdamond_started);
- 		ctx->kdamond = kthread_run(kdamond_fn, ctx, "kdamond.%d",
- 				nr_running_ctxs);
- 		if (IS_ERR(ctx->kdamond)) {
- 			err = PTR_ERR(ctx->kdamond);
- 			ctx->kdamond = NULL;
-+		} else {
-+			wait_for_completion(&ctx->kdamond_started);
- 		}
- 	}
- 	mutex_unlock(&ctx->kdamond_lock);
-@@ -1433,6 +1438,7 @@ static int kdamond_fn(void *data)
+-obj-$(CONFIG_KEXEC)		+= machine_kexec.o relocate_kernel.o
++obj-$(CONFIG_KEXEC_CORE)	+= machine_kexec.o relocate_kernel.o
+ obj-$(CONFIG_CRASH_DUMP)	+= crash_dump.o
  
- 	pr_debug("kdamond (%d) starts\n", current->pid);
- 
-+	complete(&ctx->kdamond_started);
- 	kdamond_init_intervals_sis(ctx);
- 
- 	if (ctx->ops.init)
+ obj-$(CONFIG_UNWINDER_GUESS)	+= unwind_guess.o
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from bhe@redhat.com are
 
-selftests-damon-implement-a-python-module-for-test-purpose-damon-sysfs-controls.patch
-selftests-damon-_damon_sysfs-implement-kdamonds-start-function.patch
-selftests-damon-_damon_sysfs-implement-updat_schemes_tried_bytes-command.patch
-selftests-damon-add-a-test-for-update_schemes_tried_regions-sysfs-command.patch
-selftests-damon-add-a-test-for-update_schemes_tried_regions-hang-bug.patch
+kexec_file-add-kexec_file-flag-to-control-debug-printing.patch
+kexec_file-print-out-debugging-message-if-required.patch
+kexec_file-x86-print-out-debugging-message-if-required.patch
+kexec_file-arm64-print-out-debugging-message-if-required.patch
+kexec_file-ricv-print-out-debugging-message-if-required.patch
+kexec_file-power-print-out-debugging-message-if-required.patch
+kexec_file-parisc-print-out-debugging-message-if-required.patch
+riscv-kexec-fix-the-ifdeffery-for-aflags_kexec_relocateo.patch
 
