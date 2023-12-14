@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 279016E58E
-	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 22:43:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2549C6DCE8
+	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 22:43:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sv4nW9/f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76104C433C7;
-	Thu, 14 Dec 2023 22:43:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qSU1/ymF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC2A8C433C8;
+	Thu, 14 Dec 2023 22:43:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702593834;
-	bh=7pW6Gn2N3MvIegdAQZKhuA6OFet1RWnY8197aqBs0L8=;
+	s=korg; t=1702593835;
+	bh=aeaj9gXx8MdLfhRRCdGKrIeWpssc2NyBoRuvQFmZ8Q4=;
 	h=Date:To:From:Subject:From;
-	b=Sv4nW9/fe7NSDANSgxpvVxDs1wff8lKxnr+ccSWC0/eh42E6Rog0Ng4k1EuHO0N6M
-	 hQeC/lkoMdMaC1YiqyoRjQVUffT9msr8Y2HyLiJaE6Ph09yC/tjEvhy7jWMWpO1XVK
-	 pXatVyWcOYcGrz6DSda0+donpK1M0DXP6ttqzgOU=
-Date: Thu, 14 Dec 2023 14:43:53 -0800
+	b=qSU1/ymFClG/3MOkYKkwMQBZx+MPMQSO60zQhkFQ8TjuZS5EiokhYbQ4gfh0B3FLQ
+	 grqGWAUu09PlRc4bUzZSMk7QoT7bwvZqcxZhlPK5BSlFIzKeff1fxE5+4eyzk4a32/
+	 jH6yZv8z5BdAplQ6StClv0oSH8F98iaOAQPIYkZY=
+Date: Thu, 14 Dec 2023 14:43:55 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-cpumf-unpoison-stcctm-output-buffer.patch added to mm-unstable branch
-Message-Id: <20231214224354.76104C433C7@smtp.kernel.org>
+Subject: + s390-diag-unpoison-diag224-output-buffer.patch added to mm-unstable branch
+Message-Id: <20231214224355.AC2A8C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: s390/cpumf: unpoison STCCTM output buffer
+     Subject: s390/diag: unpoison diag224() output buffer
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-cpumf-unpoison-stcctm-output-buffer.patch
+     s390-diag-unpoison-diag224-output-buffer.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-cpumf-unpoison-stcctm-output-buffer.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-diag-unpoison-diag224-output-buffer.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,18 +51,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: s390/cpumf: unpoison STCCTM output buffer
-Date: Thu, 14 Dec 2023 00:24:44 +0100
+Subject: s390/diag: unpoison diag224() output buffer
+Date: Thu, 14 Dec 2023 00:24:45 +0100
 
-stcctm() uses the "Q" constraint for dest, therefore KMSAN does not
-understand that it fills multiple doublewords pointed to by dest, not just
-one.  This results in false positives.
+Diagnose 224 stores 4k bytes, which cannot be deduced from the inline
+assembly constraints. This leads to KMSAN false positives.
 
-Unpoison the whole dest manually with kmsan_unpoison_memory().
+Unpoison the output buffer manually with kmsan_unpoison_memory().
 
-Link: https://lkml.kernel.org/r/20231213233605.661251-25-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20231213233605.661251-26-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
-Reported-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -83,31 +82,27 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/cpu_mf.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/s390/kernel/diag.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/arch/s390/include/asm/cpu_mf.h~s390-cpumf-unpoison-stcctm-output-buffer
-+++ a/arch/s390/include/asm/cpu_mf.h
-@@ -10,6 +10,7 @@
- #define _ASM_S390_CPU_MF_H
- 
- #include <linux/errno.h>
+--- a/arch/s390/kernel/diag.c~s390-diag-unpoison-diag224-output-buffer
++++ a/arch/s390/kernel/diag.c
+@@ -9,6 +9,7 @@
+ #include <linux/export.h>
+ #include <linux/init.h>
+ #include <linux/cpu.h>
 +#include <linux/kmsan-checks.h>
- #include <asm/asm-extable.h>
- #include <asm/facility.h>
- 
-@@ -239,6 +240,11 @@ static __always_inline int stcctm(enum s
- 		: "=d" (cc)
- 		: "Q" (*dest), "d" (range), "i" (set)
- 		: "cc", "memory");
-+	/*
-+	 * If cc == 2, less than RANGE counters are stored, but it's not easy
-+	 * to tell how many. Always unpoison the whole range for simplicity.
-+	 */
-+	kmsan_unpoison_memory(dest, range * sizeof(u64));
- 	return cc;
+ #include <linux/seq_file.h>
+ #include <linux/debugfs.h>
+ #include <linux/vmalloc.h>
+@@ -255,6 +256,7 @@ int diag224(void *ptr)
+ 		"1:\n"
+ 		EX_TABLE(0b,1b)
+ 		: "+d" (rc) :"d" (0), "d" (addr) : "memory");
++	kmsan_unpoison_memory(ptr, PAGE_SIZE);
+ 	return rc;
  }
- 
+ EXPORT_SYMBOL(diag224);
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
