@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A1786D1D6
-	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 22:43:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 112D066ADA
+	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 22:43:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1P2r4xdr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3660C433C8;
-	Thu, 14 Dec 2023 22:43:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SiWID054"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 524D1C433C7;
+	Thu, 14 Dec 2023 22:43:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702593827;
-	bh=nE0PaTvN9faawp+4qR+shijRdZMnVVhqlNLYks2eQHg=;
+	s=korg; t=1702593829;
+	bh=k0Ibum9YUxGdBppGqQYbJtsxsrY5mYpmnB99XW9++5k=;
 	h=Date:To:From:Subject:From;
-	b=1P2r4xdrwFb0xD16K3UUXeE6gotuECSEzAvAnKDxsnGcukpHsY+bzz+gvtsqZaQXA
-	 3d0M14VzUYkwT/uCMKJCKVyTF5oRE4sYSR9GKHWl8pvrVaoK2hOIeShseelRgZUBoj
-	 cWPzfPF8cz/0/rk9GG+1nLwHNkdBxOAGFFyE1cGY=
-Date: Thu, 14 Dec 2023 14:43:47 -0800
+	b=SiWID0546Rg1qIXduzsOKTuOKRLqJU+REGxOcsYDB+E5GtFY5hXg904+t4hcbNaM8
+	 deHIF5bpWhOQESIMCjXQinFLlsU0sahofNSsvSmPjIA8uRGj3eLmgI6/Jx/7op7orc
+	 1TiPPwQYj+tr5kvPGv0ZeUKgMDNVRJADO1u3Ufcs=
+Date: Thu, 14 Dec 2023 14:43:48 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-turn-off-kmsan-for-boot-vdso-and-purgatory.patch added to mm-unstable branch
-Message-Id: <20231214224347.D3660C433C8@smtp.kernel.org>
+Subject: + s390-use-a-larger-stack-for-kmsan.patch added to mm-unstable branch
+Message-Id: <20231214224349.524D1C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: s390: turn off KMSAN for boot, vdso and purgatory
+     Subject: s390: use a larger stack for KMSAN
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-turn-off-kmsan-for-boot-vdso-and-purgatory.patch
+     s390-use-a-larger-stack-for-kmsan.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-turn-off-kmsan-for-boot-vdso-and-purgatory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-use-a-larger-stack-for-kmsan.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,13 +51,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: s390: turn off KMSAN for boot, vdso and purgatory
-Date: Thu, 14 Dec 2023 00:24:39 +0100
+Subject: s390: use a larger stack for KMSAN
+Date: Thu, 14 Dec 2023 00:24:40 +0100
 
-All other sanitizers are disabled for these components as well.  While at
-it, add a comment to boot and purgatory.
+Adjust the stack size for the KMSAN-enabled kernel like it was done for
+the KASAN-enabled one in commit 7fef92ccadd7 ("s390/kasan: double the
+stack size").  Both tools have similar requirements.
 
-Link: https://lkml.kernel.org/r/20231213233605.661251-20-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20231213233605.661251-21-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
 Reviewed-by: Alexander Gordeev <agordeev@linux.ibm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
@@ -80,76 +81,32 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/boot/Makefile          |    2 ++
- arch/s390/kernel/vdso32/Makefile |    3 ++-
- arch/s390/kernel/vdso64/Makefile |    3 ++-
- arch/s390/purgatory/Makefile     |    2 ++
- 4 files changed, 8 insertions(+), 2 deletions(-)
+ arch/s390/Makefile                  |    2 +-
+ arch/s390/include/asm/thread_info.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/s390/boot/Makefile~s390-turn-off-kmsan-for-boot-vdso-and-purgatory
-+++ a/arch/s390/boot/Makefile
-@@ -3,11 +3,13 @@
- # Makefile for the linux s390-specific parts of the memory manager.
- #
+--- a/arch/s390/include/asm/thread_info.h~s390-use-a-larger-stack-for-kmsan
++++ a/arch/s390/include/asm/thread_info.h
+@@ -16,7 +16,7 @@
+ /*
+  * General size of kernel stacks
+  */
+-#ifdef CONFIG_KASAN
++#if defined(CONFIG_KASAN) || defined(CONFIG_KMSAN)
+ #define THREAD_SIZE_ORDER 4
+ #else
+ #define THREAD_SIZE_ORDER 2
+--- a/arch/s390/Makefile~s390-use-a-larger-stack-for-kmsan
++++ a/arch/s390/Makefile
+@@ -34,7 +34,7 @@ KBUILD_CFLAGS_DECOMPRESSOR += $(if $(CON
+ KBUILD_CFLAGS_DECOMPRESSOR += $(if $(CONFIG_CC_NO_ARRAY_BOUNDS),-Wno-array-bounds)
  
-+# Tooling runtimes are unavailable and cannot be linked for early boot code
- KCOV_INSTRUMENT := n
- GCOV_PROFILE := n
- UBSAN_SANITIZE := n
- KASAN_SANITIZE := n
- KCSAN_SANITIZE := n
-+KMSAN_SANITIZE := n
+ UTS_MACHINE	:= s390x
+-STACK_SIZE	:= $(if $(CONFIG_KASAN),65536,16384)
++STACK_SIZE	:= $(if $(CONFIG_KASAN),65536,$(if $(CONFIG_KMSAN),65536,16384))
+ CHECKFLAGS	+= -D__s390__ -D__s390x__
  
- KBUILD_AFLAGS := $(KBUILD_AFLAGS_DECOMPRESSOR)
- KBUILD_CFLAGS := $(KBUILD_CFLAGS_DECOMPRESSOR)
---- a/arch/s390/kernel/vdso32/Makefile~s390-turn-off-kmsan-for-boot-vdso-and-purgatory
-+++ a/arch/s390/kernel/vdso32/Makefile
-@@ -32,11 +32,12 @@ obj-y += vdso32_wrapper.o
- targets += vdso32.lds
- CPPFLAGS_vdso32.lds += -P -C -U$(ARCH)
- 
--# Disable gcov profiling, ubsan and kasan for VDSO code
-+# Disable gcov profiling, ubsan, kasan and kmsan for VDSO code
- GCOV_PROFILE := n
- UBSAN_SANITIZE := n
- KASAN_SANITIZE := n
- KCSAN_SANITIZE := n
-+KMSAN_SANITIZE := n
- 
- # Force dependency (incbin is bad)
- $(obj)/vdso32_wrapper.o : $(obj)/vdso32.so
---- a/arch/s390/kernel/vdso64/Makefile~s390-turn-off-kmsan-for-boot-vdso-and-purgatory
-+++ a/arch/s390/kernel/vdso64/Makefile
-@@ -36,11 +36,12 @@ obj-y += vdso64_wrapper.o
- targets += vdso64.lds
- CPPFLAGS_vdso64.lds += -P -C -U$(ARCH)
- 
--# Disable gcov profiling, ubsan and kasan for VDSO code
-+# Disable gcov profiling, ubsan, kasan and kmsan for VDSO code
- GCOV_PROFILE := n
- UBSAN_SANITIZE := n
- KASAN_SANITIZE := n
- KCSAN_SANITIZE := n
-+KMSAN_SANITIZE := n
- 
- # Force dependency (incbin is bad)
- $(obj)/vdso64_wrapper.o : $(obj)/vdso64.so
---- a/arch/s390/purgatory/Makefile~s390-turn-off-kmsan-for-boot-vdso-and-purgatory
-+++ a/arch/s390/purgatory/Makefile
-@@ -15,11 +15,13 @@ CFLAGS_sha256.o := -D__DISABLE_EXPORTS -
- $(obj)/mem.o: $(srctree)/arch/s390/lib/mem.S FORCE
- 	$(call if_changed_rule,as_o_S)
- 
-+# Tooling runtimes are unavailable and cannot be linked for purgatory code
- KCOV_INSTRUMENT := n
- GCOV_PROFILE := n
- UBSAN_SANITIZE := n
- KASAN_SANITIZE := n
- KCSAN_SANITIZE := n
-+KMSAN_SANITIZE := n
- 
- KBUILD_CFLAGS := -fno-strict-aliasing -Wall -Wstrict-prototypes
- KBUILD_CFLAGS += -Wno-pointer-sign -Wno-sign-compare
+ export LD_BFD
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
