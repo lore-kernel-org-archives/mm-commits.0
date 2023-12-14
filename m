@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82D706E595
-	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 22:43:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDD3A6DD03
+	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 22:43:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a0qg4ynN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1F1DC433C7;
-	Thu, 14 Dec 2023 22:43:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1qfJH/um"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B349C433C9;
+	Thu, 14 Dec 2023 22:43:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702593836;
-	bh=zAimei0hYfLd6PIMv3D1wuzoA5Qu5Zfh4NW4+AGddvI=;
+	s=korg; t=1702593838;
+	bh=t3/51EBjuLR7+RajxQoLwxegyOMA1r2BzZLrPdumk6E=;
 	h=Date:To:From:Subject:From;
-	b=a0qg4ynNxY/2p12txTOa5GelAX9AyUxUyL31IZ45dXmPeMIE8GfprOlj9vnFQevoO
-	 v0rYXk+txt3rrLyQk3YFgJ7iKvpkNWEtl0SGGgv4uRCA+A+/4bbaenrmTaNA9INMG+
-	 1pZTI8ymjKDguEedZxXKrU/3EmFNpYETGlTt1VFo=
-Date: Thu, 14 Dec 2023 14:43:56 -0800
+	b=1qfJH/umb2rvPDVP7ES0wSR3yUbcOvWaZRk0/b2969EjUfh0cBMdhlIwmllTbqsIh
+	 ULTDj4lyDvaUwcoCHFBy4WEMw+OkYK7ABSSZZWFOo1QSPEppGsKOWfy+rtCyha2I/9
+	 eX9ZbmOqH8xai8r2M8rzbXEDwSAfkWwTYkkIIpbc=
+Date: Thu, 14 Dec 2023 14:43:57 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-ftrace-unpoison-ftrace_regs-in-kprobe_ftrace_handler.patch added to mm-unstable branch
-Message-Id: <20231214224356.D1F1DC433C7@smtp.kernel.org>
+Subject: + s390-irqflags-do-not-instrument-arch_local_irq_-with-kmsan.patch added to mm-unstable branch
+Message-Id: <20231214224358.1B349C433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: s390/ftrace: unpoison ftrace_regs in kprobe_ftrace_handler()
+     Subject: s390/irqflags: ddo not instrument arch_local_irq_*() with KMSAN
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-ftrace-unpoison-ftrace_regs-in-kprobe_ftrace_handler.patch
+     s390-irqflags-do-not-instrument-arch_local_irq_-with-kmsan.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-ftrace-unpoison-ftrace_regs-in-kprobe_ftrace_handler.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-irqflags-do-not-instrument-arch_local_irq_-with-kmsan.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,21 +51,37 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: s390/ftrace: unpoison ftrace_regs in kprobe_ftrace_handler()
-Date: Thu, 14 Dec 2023 00:24:46 +0100
+Subject: s390/irqflags: ddo not instrument arch_local_irq_*() with KMSAN
+Date: Thu, 14 Dec 2023 00:24:47 +0100
 
-s390 uses assembly code to initialize ftrace_regs and call
-kprobe_ftrace_handler().  Therefore, from the KMSAN's point of view,
-ftrace_regs is poisoned on kprobe_ftrace_handler() entry.  This causes
-KMSAN warnings when running the ftrace testsuite.
+KMSAN generates the following false positives on s390x:
 
-Fix by trusting the assembly code and always unpoisoning ftrace_regs in
-kprobe_ftrace_handler().
+[    6.063666] DEBUG_LOCKS_WARN_ON(lockdep_hardirqs_enabled())
+[         ...]
+[    6.577050] Call Trace:
+[    6.619637]  [<000000000690d2de>] check_flags+0x1fe/0x210
+[    6.665411] ([<000000000690d2da>] check_flags+0x1fa/0x210)
+[    6.707478]  [<00000000006cec1a>] lock_acquire+0x2ca/0xce0
+[    6.749959]  [<00000000069820ea>] _raw_spin_lock_irqsave+0xea/0x190
+[    6.794912]  [<00000000041fc988>] __stack_depot_save+0x218/0x5b0
+[    6.838420]  [<000000000197affe>] __msan_poison_alloca+0xfe/0x1a0
+[    6.882985]  [<0000000007c5827c>] start_kernel+0x70c/0xd50
+[    6.927454]  [<0000000000100036>] startup_continue+0x36/0x40
 
-Link: https://lkml.kernel.org/r/20231213233605.661251-27-iii@linux.ibm.com
+Between trace_hardirqs_on() and `stosm __mask, 3` lockdep thinks that
+interrupts are on, but on the CPU they are still off.  KMSAN
+instrumentation takes spinlocks, giving lockdep a chance to see and
+complain about this discrepancy.
+
+KMSAN instrumentation is inserted in order to poison the __mask variable. 
+Disable instrumentation in the respective functions.  They are very small
+and it's easy to see that no important metadata updates are lost because
+of this.
+
+Link: https://lkml.kernel.org/r/20231213233605.661251-28-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -85,27 +101,59 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/ftrace.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/s390/include/asm/irqflags.h |   18 +++++++++++++++---
+ drivers/s390/char/sclp.c         |    2 +-
+ 2 files changed, 16 insertions(+), 4 deletions(-)
 
---- a/arch/s390/kernel/ftrace.c~s390-ftrace-unpoison-ftrace_regs-in-kprobe_ftrace_handler
-+++ a/arch/s390/kernel/ftrace.c
-@@ -13,6 +13,7 @@
- #include <linux/ftrace.h>
- #include <linux/kernel.h>
- #include <linux/types.h>
-+#include <linux/kmsan-checks.h>
- #include <linux/kprobes.h>
- #include <trace/syscall.h>
- #include <asm/asm-offsets.h>
-@@ -300,6 +301,7 @@ void kprobe_ftrace_handler(unsigned long
- 	if (bit < 0)
- 		return;
+--- a/arch/s390/include/asm/irqflags.h~s390-irqflags-do-not-instrument-arch_local_irq_-with-kmsan
++++ a/arch/s390/include/asm/irqflags.h
+@@ -37,12 +37,19 @@ static __always_inline void __arch_local
+ 	asm volatile("ssm   %0" : : "Q" (flags) : "memory");
+ }
  
-+	kmsan_unpoison_memory(fregs, sizeof(*fregs));
- 	regs = ftrace_get_regs(fregs);
- 	p = get_kprobe((kprobe_opcode_t *)ip);
- 	if (!regs || unlikely(!p) || kprobe_disabled(p))
+-static __always_inline unsigned long arch_local_save_flags(void)
++#ifdef CONFIG_KMSAN
++#define ARCH_LOCAL_IRQ_ATTRIBUTES \
++	noinline notrace __no_sanitize_memory __maybe_unused
++#else
++#define ARCH_LOCAL_IRQ_ATTRIBUTES __always_inline
++#endif
++
++static ARCH_LOCAL_IRQ_ATTRIBUTES unsigned long arch_local_save_flags(void)
+ {
+ 	return __arch_local_irq_stnsm(0xff);
+ }
+ 
+-static __always_inline unsigned long arch_local_irq_save(void)
++static ARCH_LOCAL_IRQ_ATTRIBUTES unsigned long arch_local_irq_save(void)
+ {
+ 	return __arch_local_irq_stnsm(0xfc);
+ }
+@@ -52,7 +59,12 @@ static __always_inline void arch_local_i
+ 	arch_local_irq_save();
+ }
+ 
+-static __always_inline void arch_local_irq_enable(void)
++static ARCH_LOCAL_IRQ_ATTRIBUTES void arch_local_irq_enable_external(void)
++{
++	__arch_local_irq_stosm(0x01);
++}
++
++static ARCH_LOCAL_IRQ_ATTRIBUTES void arch_local_irq_enable(void)
+ {
+ 	__arch_local_irq_stosm(0x03);
+ }
+--- a/drivers/s390/char/sclp.c~s390-irqflags-do-not-instrument-arch_local_irq_-with-kmsan
++++ a/drivers/s390/char/sclp.c
+@@ -736,7 +736,7 @@ sclp_sync_wait(void)
+ 	cr0_sync.val = cr0.val & ~CR0_IRQ_SUBCLASS_MASK;
+ 	cr0_sync.val |= 1UL << (63 - 54);
+ 	local_ctl_load(0, &cr0_sync);
+-	__arch_local_irq_stosm(0x01);
++	arch_local_irq_enable_external();
+ 	/* Loop until driver state indicates finished request */
+ 	while (sclp_running_state != sclp_running_state_idle) {
+ 		/* Check for expired request timer */
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
