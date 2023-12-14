@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6B28347A1
-	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 22:43:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0417B347A1
+	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 22:43:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q/OoKefh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36AA0C433C9;
-	Thu, 14 Dec 2023 22:43:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q4YY2bx2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66F21C433C8;
+	Thu, 14 Dec 2023 22:43:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702593807;
-	bh=Pdw9mnnCvSoRuxDOe2IidI02x6AKtktPeNmplS0adrQ=;
+	s=korg; t=1702593808;
+	bh=A88Eke33NUpH+zr8lhLrzbyGFPstcwvOMxdmyY8XHFI=;
 	h=Date:To:From:Subject:From;
-	b=Q/OoKefh+Ae9wTfHSOY9XNFuu+1TCbAc/GPqueuX3KETB3TrHZqSxcd3NI7MCsHlY
-	 QIF5+phqrS3tqHJ76ChiKngQTtHv/tE4WWPcHBhbCnKvgGs2nHsbMiWt6kVaZ1X84v
-	 n47KLXp5gY5zsXefMqJejfxiwXImXiiM1X0xaQAg=
-Date: Thu, 14 Dec 2023 14:43:26 -0800
+	b=q4YY2bx2ZmwJF8CL1Uvf9bNAcjFxgVZ215L/4Tw/J4j0DdD+V7hmPPFRNuMxSxkKL
+	 n44LckhCdSAkd6DGfjCwlwNgLMNdI1xyfEapEapWhR5MmXPzS3mMiXyfCtWMmu75F1
+	 s8UCJpDDAQAZJwJbacdD8pEdueUXXgYoC4WhqFqs=
+Date: Thu, 14 Dec 2023 14:43:27 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-disable-kmsan-when-deferred_struct_page_init-is-enabled.patch added to mm-unstable branch
-Message-Id: <20231214224327.36AA0C433C9@smtp.kernel.org>
+Subject: + kmsan-increase-the-maximum-store-size-to-4096.patch added to mm-unstable branch
+Message-Id: <20231214224328.66F21C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kmsan: disable KMSAN when DEFERRED_STRUCT_PAGE_INIT is enabled
+     Subject: kmsan: increase the maximum store size to 4096
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-disable-kmsan-when-deferred_struct_page_init-is-enabled.patch
+     kmsan-increase-the-maximum-store-size-to-4096.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-disable-kmsan-when-deferred_struct_page_init-is-enabled.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-increase-the-maximum-store-size-to-4096.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,19 +51,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: kmsan: disable KMSAN when DEFERRED_STRUCT_PAGE_INIT is enabled
-Date: Thu, 14 Dec 2023 00:24:23 +0100
+Subject: kmsan: increase the maximum store size to 4096
+Date: Thu, 14 Dec 2023 00:24:24 +0100
 
-KMSAN relies on memblock returning all available pages to it (see
-kmsan_memblock_free_pages()).  It partitions these pages into 3
-categories: pages available to the buddy allocator, shadow pages and
-origin pages.  This partitioning is static.
+The inline assembly block in s390's chsc() stores that much.
 
-If new pages appear after kmsan_init_runtime(), it is considered an error.
-DEFERRED_STRUCT_PAGE_INIT causes this, so mark it as incompatible with
-KMSAN.
-
-Link: https://lkml.kernel.org/r/20231213233605.661251-4-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20231213233605.661251-5-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -86,19 +79,26 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ mm/kmsan/instrumentation.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/mm/Kconfig~kmsan-disable-kmsan-when-deferred_struct_page_init-is-enabled
-+++ a/mm/Kconfig
-@@ -1005,6 +1005,7 @@ config DEFERRED_STRUCT_PAGE_INIT
- 	depends on SPARSEMEM
- 	depends on !NEED_PER_CPU_KM
- 	depends on 64BIT
-+	depends on !KMSAN
- 	select PADATA
- 	help
- 	  Ordinarily all struct pages are initialised during early boot in a
+--- a/mm/kmsan/instrumentation.c~kmsan-increase-the-maximum-store-size-to-4096
++++ a/mm/kmsan/instrumentation.c
+@@ -110,11 +110,10 @@ void __msan_instrument_asm_store(void *a
+ 
+ 	ua_flags = user_access_save();
+ 	/*
+-	 * Most of the accesses are below 32 bytes. The two exceptions so far
+-	 * are clwb() (64 bytes) and FPU state (512 bytes).
+-	 * It's unlikely that the assembly will touch more than 512 bytes.
++	 * Most of the accesses are below 32 bytes. The exceptions so far are
++	 * clwb() (64 bytes), FPU state (512 bytes) and chsc() (4096 bytes).
+ 	 */
+-	if (size > 512) {
++	if (size > 4096) {
+ 		WARN_ONCE(1, "assembly store size too big: %ld\n", size);
+ 		size = 8;
+ 	}
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
