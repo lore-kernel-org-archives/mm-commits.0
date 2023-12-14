@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B75D06AB83
-	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 22:43:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03D1F6ABB5
+	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 22:43:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Dyb2knEF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34382C433C8;
-	Thu, 14 Dec 2023 22:43:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SqMhP7mn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6923DC433C7;
+	Thu, 14 Dec 2023 22:43:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702593812;
-	bh=3c1ly9ym4IvvTu7+/NgcmyMH68hsJNJcaJlDiQt5jic=;
+	s=korg; t=1702593813;
+	bh=RZxw2tP7U7qeMnjcJIe6I+mXxFdCdobG1IiJyYqTzpE=;
 	h=Date:To:From:Subject:From;
-	b=Dyb2knEFCzz947NpgcHz61RhjrZQawFeoLEjAmtBHuqIgHwAvbH0DIIr0rOKk/w6y
-	 ZSlvqhod0j07hdLLjb0maAmfZygGpVVJ/ZJOqHJ/9g6ZdLyNZi0qpym3cwfDFI8itt
-	 E6ElAyiH1VU9pZMizHcrKswFZU3BKuV6Dhgui8HA=
-Date: Thu, 14 Dec 2023 14:43:31 -0800
+	b=SqMhP7mnvHMrMsAjeLca4WCl7MP4R62iV1AK+4x/Q3cPCqTh8ropA4LcEcFxEunkQ
+	 FznS1HBRB/5O+Xniw8gptzA0K1gBqg819xhe8BlXv2e46kxbVcQQytj6vSk8MOaEqR
+	 p/avEV1Vbkx3LS1xLiE8HWdso6xE7CtCzsoWorbw=
+Date: Thu, 14 Dec 2023 14:43:32 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-remove-a-useless-assignment-from-kmsan_vmap_pages_range_noflush.patch added to mm-unstable branch
-Message-Id: <20231214224332.34382C433C8@smtp.kernel.org>
+Subject: + kmsan-remove-an-x86-specific-include-from-kmsanh.patch added to mm-unstable branch
+Message-Id: <20231214224333.6923DC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kmsan: remove a useless assignment from kmsan_vmap_pages_range_noflush()
+     Subject: kmsan: remove an x86-specific #include from kmsan.h
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-remove-a-useless-assignment-from-kmsan_vmap_pages_range_noflush.patch
+     kmsan-remove-an-x86-specific-include-from-kmsanh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-remove-a-useless-assignment-from-kmsan_vmap_pages_range_noflush.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-remove-an-x86-specific-include-from-kmsanh.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,23 +51,25 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: kmsan: remove a useless assignment from kmsan_vmap_pages_range_noflush()
-Date: Thu, 14 Dec 2023 00:24:27 +0100
+Subject: kmsan: remove an x86-specific #include from kmsan.h
+Date: Thu, 14 Dec 2023 00:24:28 +0100
 
-The value assigned to prot is immediately overwritten on the next line
-with PAGE_KERNEL.  The right hand side of the assignment has no
-side-effects.
+Replace the x86-specific asm/pgtable_64_types.h #include with the
+linux/pgtable.h one, which all architectures have.
 
-Link: https://lkml.kernel.org/r/20231213233605.661251-8-iii@linux.ibm.com
-Fixes: b073d7f8aee4 ("mm: kmsan: maintain KMSAN metadata for page operations")
+While at it, sort the headers alphabetically for the sake of consistency
+with other KMSAN code.
+
+Link: https://lkml.kernel.org/r/20231213233605.661251-9-iii@linux.ibm.com
+Fixes: f80be4571b19 ("kmsan: add KMSAN runtime core")
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
-Suggested-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Suggested-by: Heiko Carstens <hca@linux.ibm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Marco Elver <elver@google.com>
@@ -82,19 +84,30 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/shadow.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/kmsan/kmsan.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/kmsan/shadow.c~kmsan-remove-a-useless-assignment-from-kmsan_vmap_pages_range_noflush
-+++ a/mm/kmsan/shadow.c
-@@ -243,7 +243,6 @@ int kmsan_vmap_pages_range_noflush(unsig
- 		s_pages[i] = shadow_page_for(pages[i]);
- 		o_pages[i] = origin_page_for(pages[i]);
- 	}
--	prot = __pgprot(pgprot_val(prot) | _PAGE_NX);
- 	prot = PAGE_KERNEL;
+--- a/mm/kmsan/kmsan.h~kmsan-remove-an-x86-specific-include-from-kmsanh
++++ a/mm/kmsan/kmsan.h
+@@ -10,14 +10,14 @@
+ #ifndef __MM_KMSAN_KMSAN_H
+ #define __MM_KMSAN_KMSAN_H
  
- 	origin_start = vmalloc_meta((void *)start, KMSAN_META_ORIGIN);
+-#include <asm/pgtable_64_types.h>
+ #include <linux/irqflags.h>
++#include <linux/mm.h>
++#include <linux/nmi.h>
++#include <linux/pgtable.h>
++#include <linux/printk.h>
+ #include <linux/sched.h>
+ #include <linux/stackdepot.h>
+ #include <linux/stacktrace.h>
+-#include <linux/nmi.h>
+-#include <linux/mm.h>
+-#include <linux/printk.h>
+ 
+ #define KMSAN_ALLOCA_MAGIC_ORIGIN 0xabcd0100
+ #define KMSAN_CHAIN_MAGIC_ORIGIN 0xabcd0200
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
