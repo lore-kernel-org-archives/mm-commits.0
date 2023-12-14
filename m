@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84C36671FF
-	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 21:50:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C54622C699
+	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 21:50:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cN5SPVSN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AAF8CC433C9;
-	Thu, 14 Dec 2023 21:50:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DmWv78at"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF872C433C8;
+	Thu, 14 Dec 2023 21:50:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702590629;
-	bh=1Fphm+pWW56QJYId+dISDi7d9v/WiwF4J+SLKXg2Ovs=;
+	s=korg; t=1702590631;
+	bh=sAKAmMxnNUXf8R7h7Tyy8vNtYbSQgYHw1Dc3bE6+gx4=;
 	h=Date:To:From:Subject:From;
-	b=cN5SPVSNNlGq4HzmnbkL41VBzQ7GSWfTh8vgtq0RixjMZDIUO9nfEbbF6dSPMOKZG
-	 jXn1TU7W0q1XRKQf86fLF+aAVkohxsSdWKkB3ffUc7Cuxia98KUHwxqRmxU0pq/6zd
-	 w1mQcEVNtSrvE94n7CC+FxWAM3z+Kt+SFkPGAxp8=
-Date: Thu, 14 Dec 2023 13:50:27 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,tsbogend@alpha.franken.de,jiaxun.yang@flygoat.com,bot@kernelci.org,arnd@arndb.de,akpm@linux-foundation.org
+	b=DmWv78atKHM+9TdbhmUv+/8TDI1W50xzYaO09OZ7ToNicdvJoKLbZJt9/8rPjTlVm
+	 Eq/tRp5ANq3tGxMePJ/wOBbSDQcEkZtHcY7Wy1owrNroE1j1s1CdPF280CfjwNiTpx
+	 vJTBiJ4M+NEIvBHJoA6MsrE625iWUl99nF0e/GCY=
+Date: Thu, 14 Dec 2023 13:50:29 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,tsbogend@alpha.franken.de,jiaxun.yang@flygoat.com,bot@kernelci.org,arnd@arndb.de,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mips-fix-r3k_cache_init-build-regression.patch added to mm-nonmm-unstable branch
-Message-Id: <20231214215029.AAF8CC433C9@smtp.kernel.org>
+Subject: + mips-fix-r3k_cache_init-build-regression-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20231214215030.DF872C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mips: fix r3k_cache_init build regression
+     Subject: mips-fix-r3k_cache_init-build-regression-fix
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mips-fix-r3k_cache_init-build-regression.patch
+     mips-fix-r3k_cache_init-build-regression-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-fix-r3k_cache_init-build-regression.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-fix-r3k_cache_init-build-regression-fix.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -50,61 +50,51 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mips: fix r3k_cache_init build regression
-Date: Thu, 14 Dec 2023 20:54:47 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mips-fix-r3k_cache_init-build-regression-fix
+Date: Thu Dec 14 01:46:21 PM PST 2023
 
-My earlier patch removed __weak function declarations that used to be
-turned into wild branches by the linker, instead causing a link failure
-when the called functions are unavailable:
+fix whitespace while we're in there
 
-mips-linux-ld: arch/mips/mm/cache.o: in function `cpu_cache_init':
-cache.c:(.text+0x670): undefined reference to `r3k_cache_init'
-
-The __weak method seems suboptimal, so rather than putting that back, make
-the function calls conditional on the Kconfig symbol that controls the
-compilation.
-
-Link: https://lkml.kernel.org/r/20231214205506.310402-1-arnd@kernel.org
-Fixes: 66445677f01e ("mips: move cache declarations into header")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reported-by: kernelci.org bot <bot@kernelci.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
+Cc: kernelci.org bot <bot@kernelci.org>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/mm/cache.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/mips/mm/cache.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
---- a/arch/mips/mm/cache.c~mips-fix-r3k_cache_init-build-regression
+--- a/arch/mips/mm/cache.c~mips-fix-r3k_cache_init-build-regression-fix
 +++ a/arch/mips/mm/cache.c
-@@ -205,14 +205,14 @@ static inline void setup_protection_map(
+@@ -205,16 +205,13 @@ static inline void setup_protection_map(
  
  void cpu_cache_init(void)
  {
--	if (cpu_has_3k_cache) {
-+	if (IS_ENABLED(CONFIG_CPU_R3000) && cpu_has_3k_cache) {
+-	if (IS_ENABLED(CONFIG_CPU_R3000) && cpu_has_3k_cache) {
++	if (IS_ENABLED(CONFIG_CPU_R3000) && cpu_has_3k_cache)
  		r3k_cache_init();
- 	}
--	if (cpu_has_4k_cache) {
-+	if (IS_ENABLED(CONFIG_CPU_R4K_CACHE_TLB) && cpu_has_4k_cache) {
+-	}
+-	if (IS_ENABLED(CONFIG_CPU_R4K_CACHE_TLB) && cpu_has_4k_cache) {
++	if (IS_ENABLED(CONFIG_CPU_R4K_CACHE_TLB) && cpu_has_4k_cache)
  		r4k_cache_init();
- 	}
+-	}
  
--	if (cpu_has_octeon_cache) {
-+	if (IS_ENABLED(CONFIG_CPU_CAVIUM_OCTEON) && cpu_has_octeon_cache) {
+-	if (IS_ENABLED(CONFIG_CPU_CAVIUM_OCTEON) && cpu_has_octeon_cache) {
++	if (IS_ENABLED(CONFIG_CPU_CAVIUM_OCTEON) && cpu_has_octeon_cache)
  		octeon_cache_init();
- 	}
+-	}
  
+ 	setup_protection_map();
+ }
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kexec-fix-kexec_file-dependencies.patch
-kexec-fix-kexec_file-dependencies-fix.patch
-kexec-select-crypto-from-kexec_file-instead-of-depending-on-it.patch
-mips-fix-r3k_cache_init-build-regression.patch
-makefileextrawarn-turn-on-missing-prototypes-globally.patch
+lib-maple_treec-fix-build-error-due-to-hotfix-alteration.patch
+mm-list_lruc-remove-unused-list_lru_from_kmem.patch
+mm-memcg-restore-subtree-stats-flushing-fix.patch
+mips-fix-r3k_cache_init-build-regression-fix.patch
 
