@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86873347A1
-	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 22:43:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B75D06AB83
+	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 22:43:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nJu3kG5I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBE51C433C8;
-	Thu, 14 Dec 2023 22:43:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Dyb2knEF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34382C433C8;
+	Thu, 14 Dec 2023 22:43:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702593811;
-	bh=IPr+Nt+kybBXoR+HRbjjV1N5LcdOChE2N96gLhWIO7Q=;
+	s=korg; t=1702593812;
+	bh=3c1ly9ym4IvvTu7+/NgcmyMH68hsJNJcaJlDiQt5jic=;
 	h=Date:To:From:Subject:From;
-	b=nJu3kG5IYc+fs1dxvP+rJh69riyiuXwfTDopfirddTO45dALESqj6PWfRBqqof8TW
-	 tqYfcbBJ9Xiy1TIcYHq5N5Z2dx2a/NbhBrtTeuWWHw7ORgb8QunFEolyw5E23hazzB
-	 msvwbGy0i379Oom5YIb8SelY7KoNcp/xp0GxvSHM=
-Date: Thu, 14 Dec 2023 14:43:30 -0800
+	b=Dyb2knEFCzz947NpgcHz61RhjrZQawFeoLEjAmtBHuqIgHwAvbH0DIIr0rOKk/w6y
+	 ZSlvqhod0j07hdLLjb0maAmfZygGpVVJ/ZJOqHJ/9g6ZdLyNZi0qpym3cwfDFI8itt
+	 E6ElAyiH1VU9pZMizHcrKswFZU3BKuV6Dhgui8HA=
+Date: Thu, 14 Dec 2023 14:43:31 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-fix-kmsan_copy_to_user-on-arches-with-overlapping-address-spaces.patch added to mm-unstable branch
-Message-Id: <20231214224330.EBE51C433C8@smtp.kernel.org>
+Subject: + kmsan-remove-a-useless-assignment-from-kmsan_vmap_pages_range_noflush.patch added to mm-unstable branch
+Message-Id: <20231214224332.34382C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kmsan: fix kmsan_copy_to_user() on arches with overlapping address spaces
+     Subject: kmsan: remove a useless assignment from kmsan_vmap_pages_range_noflush()
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-fix-kmsan_copy_to_user-on-arches-with-overlapping-address-spaces.patch
+     kmsan-remove-a-useless-assignment-from-kmsan_vmap_pages_range_noflush.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-fix-kmsan_copy_to_user-on-arches-with-overlapping-address-spaces.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-remove-a-useless-assignment-from-kmsan_vmap_pages_range_noflush.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,16 +51,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: kmsan: fix kmsan_copy_to_user() on arches with overlapping address spaces
-Date: Thu, 14 Dec 2023 00:24:26 +0100
+Subject: kmsan: remove a useless assignment from kmsan_vmap_pages_range_noflush()
+Date: Thu, 14 Dec 2023 00:24:27 +0100
 
-Comparing pointers with TASK_SIZE does not make sense when kernel and
-userspace overlap.  Assume that we are handling user memory access in this
-case.
+The value assigned to prot is immediately overwritten on the next line
+with PAGE_KERNEL.  The right hand side of the assignment has no
+side-effects.
 
-Link: https://lkml.kernel.org/r/20231213233605.661251-7-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20231213233605.661251-8-iii@linux.ibm.com
+Fixes: b073d7f8aee4 ("mm: kmsan: maintain KMSAN metadata for page operations")
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
-Reported-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Suggested-by: Alexander Gordeev <agordeev@linux.ibm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -81,21 +82,19 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/hooks.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/kmsan/shadow.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/kmsan/hooks.c~kmsan-fix-kmsan_copy_to_user-on-arches-with-overlapping-address-spaces
-+++ a/mm/kmsan/hooks.c
-@@ -267,7 +267,8 @@ void kmsan_copy_to_user(void __user *to,
- 		return;
+--- a/mm/kmsan/shadow.c~kmsan-remove-a-useless-assignment-from-kmsan_vmap_pages_range_noflush
++++ a/mm/kmsan/shadow.c
+@@ -243,7 +243,6 @@ int kmsan_vmap_pages_range_noflush(unsig
+ 		s_pages[i] = shadow_page_for(pages[i]);
+ 		o_pages[i] = origin_page_for(pages[i]);
+ 	}
+-	prot = __pgprot(pgprot_val(prot) | _PAGE_NX);
+ 	prot = PAGE_KERNEL;
  
- 	ua_flags = user_access_save();
--	if ((u64)to < TASK_SIZE) {
-+	if (!IS_ENABLED(CONFIG_ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE) ||
-+	    (u64)to < TASK_SIZE) {
- 		/* This is a user memory access, check it. */
- 		kmsan_internal_check_memory((void *)from, to_copy - left, to,
- 					    REASON_COPY_TO_USER);
+ 	origin_start = vmalloc_meta((void *)start, KMSAN_META_ORIGIN);
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
