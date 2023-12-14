@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C54622C699
-	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 21:50:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DF3E671F0;
+	Thu, 14 Dec 2023 22:11:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DmWv78at"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF872C433C8;
-	Thu, 14 Dec 2023 21:50:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hE5lHGYY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EC0DC433C9;
+	Thu, 14 Dec 2023 22:11:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702590631;
-	bh=sAKAmMxnNUXf8R7h7Tyy8vNtYbSQgYHw1Dc3bE6+gx4=;
+	s=korg; t=1702591910;
+	bh=byCIK2SlJ3fEq4IHA/cAEE7apALNRAEb6xm01Aa2nbk=;
 	h=Date:To:From:Subject:From;
-	b=DmWv78atKHM+9TdbhmUv+/8TDI1W50xzYaO09OZ7ToNicdvJoKLbZJt9/8rPjTlVm
-	 Eq/tRp5ANq3tGxMePJ/wOBbSDQcEkZtHcY7Wy1owrNroE1j1s1CdPF280CfjwNiTpx
-	 vJTBiJ4M+NEIvBHJoA6MsrE625iWUl99nF0e/GCY=
-Date: Thu, 14 Dec 2023 13:50:29 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,tsbogend@alpha.franken.de,jiaxun.yang@flygoat.com,bot@kernelci.org,arnd@arndb.de,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=hE5lHGYYcYG/VYfnR2zQ+WBZ0QAKlPE/+Xewgx6vcmeq8hAq8lgEzUcM7zdPU8Pdw
+	 mZP2q7g4Sti3RH51cRrv4kUy52mjSCNBrnRJ/MSRLnaxmeOHnzLhLkO3SJPSKgzcqW
+	 BX+iQznlbTYsPCS1f7A83n7MNjdcAltFERpZgrDs=
+Date: Thu, 14 Dec 2023 14:11:49 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,shakeelb@google.com,n-horiguchi@ah.jp.nec.com,kirill.shutemov@linux.intel.com,hannes@cmpxchg.org,david@redhat.com,quic_charante@quicinc.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mips-fix-r3k_cache_init-build-regression-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20231214215030.DF872C433C8@smtp.kernel.org>
+Subject: + mm-migrate-high-order-folios-in-swap-cache-correctly.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231214221150.7EC0DC433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mips-fix-r3k_cache_init-build-regression-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mips-fix-r3k_cache_init-build-regression-fix.patch
+     Subject: mm: migrate high-order folios in swap cache correctly
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-migrate-high-order-folios-in-swap-cache-correctly.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-fix-r3k_cache_init-build-regression-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-high-order-folios-in-swap-cache-correctly.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,51 +50,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mips-fix-r3k_cache_init-build-regression-fix
-Date: Thu Dec 14 01:46:21 PM PST 2023
+From: Charan Teja Kalla <quic_charante@quicinc.com>
+Subject: mm: migrate high-order folios in swap cache correctly
+Date: Thu, 14 Dec 2023 04:58:41 +0000
 
-fix whitespace while we're in there
+Large folios occupy N consecutive entries in the swap cache instead of
+using multi-index entries like the page cache.  However, if a large folio
+is re-added to the LRU list, it can be migrated.  The migration code was
+not aware of the difference between the swap cache and the page cache and
+assumed that a single xas_store() would be sufficient.
 
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
-Cc: kernelci.org bot <bot@kernelci.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Zi Yan <ziy@nvidia.com>
+This leaves potentially many stale pointers to the now-migrated folio in
+the swap cache, which can lead to almost arbitrary data corruption in the
+future.  This can also manifest as infinite loops with the RCU read lock
+held.
+
+[willy@infradead.org: modifications to the changelog & tweaked the fix]
+Fixes: 3417013e0d183be ("mm/migrate: Add folio_migrate_mapping()")
+Link: https://lkml.kernel.org/r/20231214045841.961776-1-willy@infradead.org
+Signed-off-by: Charan Teja Kalla <quic_charante@quicinc.com>
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reported-by: Charan Teja Kalla <quic_charante@quicinc.com>
+  Closes: https://lkml.kernel.org/r/1700569840-17327-1-git-send-email-quic_charante@quicinc.com
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/mm/cache.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ mm/migrate.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/arch/mips/mm/cache.c~mips-fix-r3k_cache_init-build-regression-fix
-+++ a/arch/mips/mm/cache.c
-@@ -205,16 +205,13 @@ static inline void setup_protection_map(
+--- a/mm/migrate.c~mm-migrate-high-order-folios-in-swap-cache-correctly
++++ a/mm/migrate.c
+@@ -405,6 +405,7 @@ int folio_migrate_mapping(struct address
+ 	int dirty;
+ 	int expected_count = folio_expected_refs(mapping, folio) + extra_count;
+ 	long nr = folio_nr_pages(folio);
++	long entries, i;
  
- void cpu_cache_init(void)
- {
--	if (IS_ENABLED(CONFIG_CPU_R3000) && cpu_has_3k_cache) {
-+	if (IS_ENABLED(CONFIG_CPU_R3000) && cpu_has_3k_cache)
- 		r3k_cache_init();
--	}
--	if (IS_ENABLED(CONFIG_CPU_R4K_CACHE_TLB) && cpu_has_4k_cache) {
-+	if (IS_ENABLED(CONFIG_CPU_R4K_CACHE_TLB) && cpu_has_4k_cache)
- 		r4k_cache_init();
--	}
+ 	if (!mapping) {
+ 		/* Anonymous page without mapping */
+@@ -442,8 +443,10 @@ int folio_migrate_mapping(struct address
+ 			folio_set_swapcache(newfolio);
+ 			newfolio->private = folio_get_private(folio);
+ 		}
++		entries = nr;
+ 	} else {
+ 		VM_BUG_ON_FOLIO(folio_test_swapcache(folio), folio);
++		entries = 1;
+ 	}
  
--	if (IS_ENABLED(CONFIG_CPU_CAVIUM_OCTEON) && cpu_has_octeon_cache) {
-+	if (IS_ENABLED(CONFIG_CPU_CAVIUM_OCTEON) && cpu_has_octeon_cache)
- 		octeon_cache_init();
--	}
+ 	/* Move dirty while page refs frozen and newpage not yet exposed */
+@@ -453,7 +456,11 @@ int folio_migrate_mapping(struct address
+ 		folio_set_dirty(newfolio);
+ 	}
  
- 	setup_protection_map();
- }
+-	xas_store(&xas, newfolio);
++	/* Swap cache still stores N entries instead of a high-order entry */
++	for (i = 0; i < entries; i++) {
++		xas_store(&xas, newfolio);
++		xas_next(&xas);
++	}
+ 
+ 	/*
+ 	 * Drop cache reference from old page by unfreezing
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from quic_charante@quicinc.com are
 
-lib-maple_treec-fix-build-error-due-to-hotfix-alteration.patch
-mm-list_lruc-remove-unused-list_lru_from_kmem.patch
-mm-memcg-restore-subtree-stats-flushing-fix.patch
-mips-fix-r3k_cache_init-build-regression-fix.patch
+mm-sparsemem-fix-race-in-accessing-memory_section-usage.patch
+mm-sparsemem-fix-race-in-accessing-memory_section-usage-v2.patch
+mm-migrate-high-order-folios-in-swap-cache-correctly.patch
 
