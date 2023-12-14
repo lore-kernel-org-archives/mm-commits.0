@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 867EB208BD
-	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 18:59:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D3DF208BD
+	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 18:59:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tb65361N"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7700C433C7;
-	Thu, 14 Dec 2023 18:59:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q5j+9SVt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C17F2C433C9;
+	Thu, 14 Dec 2023 18:59:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702580352;
-	bh=pU+COAyqf3z+Y1n6PbKwzcMb9ZEif+Fcbq59GBuGjYQ=;
+	s=korg; t=1702580354;
+	bh=AJNx+SomW2DeTaNVRDacbJxYMC0tyUk4wmsLLmG+tvc=;
 	h=Date:To:From:Subject:From;
-	b=tb65361NEEaIUFl0jkE88BBRiOWm4BfFX0kTYOXitRez+pkbb1RX06vv1lWC1GXYK
-	 JOKXYpdll7iISqJzOmCg+A6zmH+Yfv4y3DwhzJYo4PlcNkJ3ht2lIBvq+VvjFGKu0t
-	 nxT9cEkCWCuWjXopTNvl1SnIiDxPMzKZx7sMYefA=
-Date: Thu, 14 Dec 2023 10:59:12 -0800
+	b=Q5j+9SVtNUYH34sQbQYFpnJYuOcoTT7W8iZHsRt+ccXAg9f1ueCgsp/catX8GULkv
+	 Vp9OjnfRPwFrDtU7HzK0WWQshHz3SSXpZ9JY5L/DedIYsAO55+V/95Ju3gYmEWthK6
+	 +sSQKl3DSM4ZmdaHRBdyJmk+DxaEPFCbmhEHMZwE=
+Date: Thu, 14 Dec 2023 10:59:14 -0800
 To: mm-commits@vger.kernel.org,vgoyal@redhat.com,tiwai@suse.de,tglx@linutronix.de,sourabhjain@linux.ibm.com,seanjc@google.com,mingo@redhat.com,lijiang@redhat.com,hpa@zytor.com,hbathini@linux.ibm.com,eric.devolder@oracle.com,dyoung@redhat.com,dave.hansen@linux.intel.com,bp@alien8.de,bhe@redhat.com,ytcoode@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-crash-remove-the-unused-image-parameter-from-prepare_elf_headers.patch added to mm-nonmm-unstable branch
-Message-Id: <20231214185912.C7700C433C7@smtp.kernel.org>
+Subject: + x86-crash-use-sz_1m-macro-instead-of-hardcoded-value.patch added to mm-nonmm-unstable branch
+Message-Id: <20231214185914.C17F2C433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/crash: remove the unused image parameter from prepare_elf_headers()
+     Subject: x86/crash: use SZ_1M macro instead of hardcoded value
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     x86-crash-remove-the-unused-image-parameter-from-prepare_elf_headers.patch
+     x86-crash-use-sz_1m-macro-instead-of-hardcoded-value.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-crash-remove-the-unused-image-parameter-from-prepare_elf_headers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-crash-use-sz_1m-macro-instead-of-hardcoded-value.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,21 +51,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yuntao Wang <ytcoode@gmail.com>
-Subject: x86/crash: remove the unused image parameter from prepare_elf_headers()
-Date: Fri, 15 Dec 2023 00:38:40 +0800
+Subject: x86/crash: use SZ_1M macro instead of hardcoded value
+Date: Fri, 15 Dec 2023 00:38:41 +0800
 
-Patch series "Some cleanups and fixes".
+Use SZ_1M macro instead of hardcoded 1<<20 to make code more readable.
 
-This series includes two cleanups and one fix for the crash code.
-
-
-This patch (of 3):
-
-The image parameter is no longer in use, remove it.  Also, tidy up the
-code formatting.
-
-Link: https://lkml.kernel.org/r/20231214163842.129139-1-ytcoode@gmail.com
-Link: https://lkml.kernel.org/r/20231214163842.129139-2-ytcoode@gmail.com
+Link: https://lkml.kernel.org/r/20231214163842.129139-3-ytcoode@gmail.com
 Signed-off-by: Yuntao Wang <ytcoode@gmail.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Borislav Petkov (AMD) <bp@alien8.de>
@@ -84,49 +75,20 @@ Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/crash.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/x86/kernel/crash.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/x86/kernel/crash.c~x86-crash-remove-the-unused-image-parameter-from-prepare_elf_headers
+--- a/arch/x86/kernel/crash.c~x86-crash-use-sz_1m-macro-instead-of-hardcoded-value
 +++ a/arch/x86/kernel/crash.c
-@@ -198,8 +198,8 @@ static int prepare_elf64_ram_headers_cal
- }
+@@ -170,7 +170,7 @@ static int elf_header_exclude_ranges(str
+ 	int ret = 0;
  
- /* Prepare elf headers. Return addr and size */
--static int prepare_elf_headers(struct kimage *image, void **addr,
--					unsigned long *sz, unsigned long *nr_mem_ranges)
-+static int prepare_elf_headers(void **addr, unsigned long *sz,
-+			       unsigned long *nr_mem_ranges)
- {
- 	struct crash_mem *cmem;
- 	int ret;
-@@ -221,7 +221,7 @@ static int prepare_elf_headers(struct ki
- 	*nr_mem_ranges = cmem->nr_ranges;
- 
- 	/* By default prepare 64bit headers */
--	ret =  crash_prepare_elf64_headers(cmem, IS_ENABLED(CONFIG_X86_64), addr, sz);
-+	ret = crash_prepare_elf64_headers(cmem, IS_ENABLED(CONFIG_X86_64), addr, sz);
- 
- out:
- 	vfree(cmem);
-@@ -349,7 +349,7 @@ int crash_load_segments(struct kimage *i
- 				  .buf_max = ULONG_MAX, .top_down = false };
- 
- 	/* Prepare elf headers and add a segment */
--	ret = prepare_elf_headers(image, &kbuf.buffer, &kbuf.bufsz, &pnum);
-+	ret = prepare_elf_headers(&kbuf.buffer, &kbuf.bufsz, &pnum);
+ 	/* Exclude the low 1M because it is always reserved */
+-	ret = crash_exclude_mem_range(cmem, 0, (1<<20)-1);
++	ret = crash_exclude_mem_range(cmem, 0, SZ_1M - 1);
  	if (ret)
  		return ret;
  
-@@ -452,7 +452,7 @@ void arch_crash_handle_hotplug_event(str
- 	 * Create the new elfcorehdr reflecting the changes to CPU and/or
- 	 * memory resources.
- 	 */
--	if (prepare_elf_headers(image, &elfbuf, &elfsz, &nr_mem_ranges)) {
-+	if (prepare_elf_headers(&elfbuf, &elfsz, &nr_mem_ranges)) {
- 		pr_err("unable to create new elfcorehdr");
- 		goto out;
- 	}
 _
 
 Patches currently in -mm which might be from ytcoode@gmail.com are
