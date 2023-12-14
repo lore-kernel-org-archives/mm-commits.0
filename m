@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 696326DCE5
-	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 22:43:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B69686DD0B
+	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 22:43:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iA7pyvqO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FEBAC433C8;
-	Thu, 14 Dec 2023 22:43:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wk0aebHu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 586B9C433C7;
+	Thu, 14 Dec 2023 22:43:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702593820;
-	bh=u/FjXkpMF5WmICWd6YilQLzKKL3f5jafn0KEe0fUlVA=;
+	s=korg; t=1702593821;
+	bh=PPUD1IFtFJSWEvYiACQI2ezu39kn75ukRpWDio9TZIw=;
 	h=Date:To:From:Subject:From;
-	b=iA7pyvqOFrWQ89/Ry3iiypbZ8wL+zomt3J8LusHaBJ5fdXSc5ueEUaDkLGRZHLtST
-	 aBy1ycCBjUbEgt4i3z2RbMCF2FZHiQe+188cl5V6bGRAnrraR2n645tiQHzCTAvFjA
-	 tNby/XFyE6jXPFZd9etIJw0+Qgy4iRS1+d9bNkYg=
-Date: Thu, 14 Dec 2023 14:43:39 -0800
+	b=wk0aebHulxEhDsmqzJYqTuMaX86ppxqZyQ0wdR31lB9stT05kZgpELO1RKiFbAKgG
+	 8IYW5M4SRN4wDr2WmSDI191uGGRcaTOV53xMUS469XOhpOXB3kc6/a2CKAQ47u+3TP
+	 6uUTl60+SBS19iRUb0AykRIDsr3w0a2kkxvjH6Xk=
+Date: Thu, 14 Dec 2023 14:43:40 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kmsan-use-align_down-in-kmsan_get_metadata.patch added to mm-unstable branch
-Message-Id: <20231214224340.1FEBAC433C8@smtp.kernel.org>
+Subject: + mm-slub-let-kmsan-access-metadata.patch added to mm-unstable branch
+Message-Id: <20231214224341.586B9C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kmsan: use ALIGN_DOWN() in kmsan_get_metadata()
+     Subject: mm: slub: let KMSAN access metadata
 has been added to the -mm mm-unstable branch.  Its filename is
-     kmsan-use-align_down-in-kmsan_get_metadata.patch
+     mm-slub-let-kmsan-access-metadata.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kmsan-use-align_down-in-kmsan_get_metadata.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-slub-let-kmsan-access-metadata.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,18 +51,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: kmsan: use ALIGN_DOWN() in kmsan_get_metadata()
-Date: Thu, 14 Dec 2023 00:24:33 +0100
+Subject: mm: slub: let KMSAN access metadata
+Date: Thu, 14 Dec 2023 00:24:34 +0100
 
-Improve the readability by replacing the custom aligning logic with
-ALIGN_DOWN().  Unlike other places where a similar sequence is used, there
-is no size parameter that needs to be adjusted, so the standard macro
-fits.
+Building the kernel with CONFIG_SLUB_DEBUG and CONFIG_KMSAN causes KMSAN
+to complain about touching redzones in kfree().
 
-Link: https://lkml.kernel.org/r/20231213233605.661251-14-iii@linux.ibm.com
+Fix by extending the existing KASAN-related metadata_access_enable() and
+metadata_access_disable() functions to KMSAN.
+
+Link: https://lkml.kernel.org/r/20231213233605.661251-15-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -78,33 +80,27 @@ Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmsan/shadow.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ mm/slub.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/kmsan/shadow.c~kmsan-use-align_down-in-kmsan_get_metadata
-+++ a/mm/kmsan/shadow.c
-@@ -123,14 +123,12 @@ return_dummy:
-  */
- void *kmsan_get_metadata(void *address, bool is_origin)
+--- a/mm/slub.c~mm-slub-let-kmsan-access-metadata
++++ a/mm/slub.c
+@@ -700,10 +700,12 @@ static int disable_higher_order_debug;
+ static inline void metadata_access_enable(void)
  {
--	u64 addr = (u64)address, pad, off;
-+	u64 addr = (u64)address, off;
- 	struct page *page;
- 	void *ret;
+ 	kasan_disable_current();
++	kmsan_disable_current();
+ }
  
--	if (is_origin && !IS_ALIGNED(addr, KMSAN_ORIGIN_SIZE)) {
--		pad = addr % KMSAN_ORIGIN_SIZE;
--		addr -= pad;
--	}
-+	if (is_origin)
-+		addr = ALIGN_DOWN(addr, KMSAN_ORIGIN_SIZE);
- 	address = (void *)addr;
- 	if (kmsan_internal_is_vmalloc_addr(address) ||
- 	    kmsan_internal_is_module_addr(address))
+ static inline void metadata_access_disable(void)
+ {
++	kmsan_enable_current();
+ 	kasan_enable_current();
+ }
+ 
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
