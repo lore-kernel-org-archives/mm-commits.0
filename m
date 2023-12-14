@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5B1D6D1B8
-	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 19:47:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84C36671FF
+	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 21:50:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZBEBHaLa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D96D1C433C9;
-	Thu, 14 Dec 2023 19:47:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cN5SPVSN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AAF8CC433C9;
+	Thu, 14 Dec 2023 21:50:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702583272;
-	bh=E7vYeIcVpbAmI9kq7dTp1SkYbR3rZgPg+wkhoYKJFQo=;
+	s=korg; t=1702590629;
+	bh=1Fphm+pWW56QJYId+dISDi7d9v/WiwF4J+SLKXg2Ovs=;
 	h=Date:To:From:Subject:From;
-	b=ZBEBHaLaVjkHmreMHtSXQiJaewYNufagoLjnIzraGjkMvITeVPshcmyY0tZoN9+19
-	 xnZIcdB4wSCwclPyzt0lFpC88jJnQfrYaC0lY9r+O9SFFuzQZHXpL0Nw9RHcvyL0Ng
-	 6lub10BrsaxcKg4gG/YwBC88fGYo9iwcHvERQrjs=
-Date: Thu, 14 Dec 2023 11:47:52 -0800
-To: mm-commits@vger.kernel.org,ira.weiny@intel.com,fabio.maria.de.francesco@linux.intel.com,akpm@linux-foundation.org
+	b=cN5SPVSNNlGq4HzmnbkL41VBzQ7GSWfTh8vgtq0RixjMZDIUO9nfEbbF6dSPMOKZG
+	 jXn1TU7W0q1XRKQf86fLF+aAVkohxsSdWKkB3ffUc7Cuxia98KUHwxqRmxU0pq/6zd
+	 w1mQcEVNtSrvE94n7CC+FxWAM3z+Kt+SFkPGAxp8=
+Date: Thu, 14 Dec 2023 13:50:27 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,tsbogend@alpha.franken.de,jiaxun.yang@flygoat.com,bot@kernelci.org,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-replace-kmap-with-kmap_local_page.patch added to mm-unstable branch
-Message-Id: <20231214194752.D96D1C433C9@smtp.kernel.org>
+Subject: + mips-fix-r3k_cache_init-build-regression.patch added to mm-nonmm-unstable branch
+Message-Id: <20231214215029.AAF8CC433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory: replace kmap() with kmap_local_page()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-replace-kmap-with-kmap_local_page.patch
+     Subject: mips: fix r3k_cache_init build regression
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     mips-fix-r3k_cache_init-build-regression.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-replace-kmap-with-kmap_local_page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-fix-r3k_cache_init-build-regression.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,66 +50,61 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Fabio M. De Francesco" <fabio.maria.de.francesco@linux.intel.com>
-Subject: mm/memory: replace kmap() with kmap_local_page()
-Date: Thu, 14 Dec 2023 09:10:04 +0100
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mips: fix r3k_cache_init build regression
+Date: Thu, 14 Dec 2023 20:54:47 +0000
 
-kmap() has been deprecated in favor of kmap_local_page().
+My earlier patch removed __weak function declarations that used to be
+turned into wild branches by the linker, instead causing a link failure
+when the called functions are unavailable:
 
-Therefore, replace kmap() with kmap_local_page() in mm/memory.c.
+mips-linux-ld: arch/mips/mm/cache.o: in function `cpu_cache_init':
+cache.c:(.text+0x670): undefined reference to `r3k_cache_init'
 
-There are two main problems with kmap(): (1) It comes with an overhead as
-the mapping space is restricted and protected by a global lock for
-synchronization and (2) it also requires global TLB invalidation when the
-kmap's pool wraps and it might block when the mapping space is fully
-utilized until a slot becomes available.
+The __weak method seems suboptimal, so rather than putting that back, make
+the function calls conditional on the Kconfig symbol that controls the
+compilation.
 
-With kmap_local_page() the mappings are per thread, CPU local, can take
-page-faults, and can be called from any context (including interrupts). 
-It is faster than kmap() in kernels with HIGHMEM enabled.  The tasks can
-be preempted and, when they are scheduled to run again, the kernel virtual
-addresses are restored and still valid.
-
-Obviously, thread locality implies that the kernel virtual addresses
-returned by kmap_local_page() are only valid in the context of the callers
-(i.e., they cannot be handed to other threads).
-
-The use of kmap_local_page() in mm/memory.c does not break the
-above-mentioned assumption, so it is allowed and preferred.
-
-Link: https://lkml.kernel.org/r/20231214081039.1919328-1-fabio.maria.de.francesco@linux.intel.com
-Signed-off-by: Fabio M. De Francesco <fabio.maria.de.francesco@linux.intel.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
+Link: https://lkml.kernel.org/r/20231214205506.310402-1-arnd@kernel.org
+Fixes: 66445677f01e ("mips: move cache declarations into header")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reported-by: kernelci.org bot <bot@kernelci.org>
+Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ arch/mips/mm/cache.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/memory.c~mm-memory-replace-kmap-with-kmap_local_page
-+++ a/mm/memory.c
-@@ -5944,7 +5944,7 @@ static int __access_remote_vm(struct mm_
- 			if (bytes > PAGE_SIZE-offset)
- 				bytes = PAGE_SIZE-offset;
+--- a/arch/mips/mm/cache.c~mips-fix-r3k_cache_init-build-regression
++++ a/arch/mips/mm/cache.c
+@@ -205,14 +205,14 @@ static inline void setup_protection_map(
  
--			maddr = kmap(page);
-+			maddr = kmap_local_page(page);
- 			if (write) {
- 				copy_to_user_page(vma, page, addr,
- 						  maddr + offset, buf, bytes);
-@@ -5953,8 +5953,7 @@ static int __access_remote_vm(struct mm_
- 				copy_from_user_page(vma, page, addr,
- 						    buf, maddr + offset, bytes);
- 			}
--			kunmap(page);
--			put_page(page);
-+			unmap_and_put_page(page, maddr);
- 		}
- 		len -= bytes;
- 		buf += bytes;
+ void cpu_cache_init(void)
+ {
+-	if (cpu_has_3k_cache) {
++	if (IS_ENABLED(CONFIG_CPU_R3000) && cpu_has_3k_cache) {
+ 		r3k_cache_init();
+ 	}
+-	if (cpu_has_4k_cache) {
++	if (IS_ENABLED(CONFIG_CPU_R4K_CACHE_TLB) && cpu_has_4k_cache) {
+ 		r4k_cache_init();
+ 	}
+ 
+-	if (cpu_has_octeon_cache) {
++	if (IS_ENABLED(CONFIG_CPU_CAVIUM_OCTEON) && cpu_has_octeon_cache) {
+ 		octeon_cache_init();
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from fabio.maria.de.francesco@linux.intel.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-memory-replace-kmap-with-kmap_local_page.patch
+kexec-fix-kexec_file-dependencies.patch
+kexec-fix-kexec_file-dependencies-fix.patch
+kexec-select-crypto-from-kexec_file-instead-of-depending-on-it.patch
+mips-fix-r3k_cache_init-build-regression.patch
+makefileextrawarn-turn-on-missing-prototypes-globally.patch
 
