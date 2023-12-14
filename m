@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAB4C6ABB5
-	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 22:43:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03F676A023
+	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 22:43:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rtJSwlR1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C8D8C433C8;
-	Thu, 14 Dec 2023 22:43:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="exWaT5SS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 417D5C433CA;
+	Thu, 14 Dec 2023 22:43:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702593832;
-	bh=WLk9m3x9be/gFSbymzMpqvHduKFSBk0DS9Y8J4macCQ=;
+	s=korg; t=1702593833;
+	bh=bpRczGftcvb+L/H2o7ZwwHiYWdp6YI7tk8b8Ib7j43o=;
 	h=Date:To:From:Subject:From;
-	b=rtJSwlR109WuCLSTqJn8MRAylLXBVMW5LYv8psUc8v8xNvBU25mvXb4ML12h3W7dJ
-	 C3xReMHBxuov/HEnR9x4rR62NRmXuPv6l/FFNGDIZcOHHEZAQuKHyl61zMo45cQw7C
-	 wUs4RoplQwrBsWqYseY3rbOgYmtaAyOqUrEIyTo4=
-Date: Thu, 14 Dec 2023 14:43:51 -0800
+	b=exWaT5SS/hb/Ti+SlPQe71tpMsW1lKEg7EeGn3yIzAW9sSFe7v3+joizE5WqgurWM
+	 c4sD7DPjEDdIqDiPC7m6a0g4BSdIfvZ0zg1Yw+MGW+BJjiACLRmHhvP0/ye5YDaVzt
+	 OdGbmc/gUl6dwb1dWl9NnhhKnBaQNiZhTIq36IuY=
+Date: Thu, 14 Dec 2023 14:43:52 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-checksum-add-a-kmsan-check.patch added to mm-unstable branch
-Message-Id: <20231214224352.0C8D8C433C8@smtp.kernel.org>
+Subject: + s390-cpacf-unpoison-the-results-of-cpacf_trng.patch added to mm-unstable branch
+Message-Id: <20231214224353.417D5C433CA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: s390/checksum: add a KMSAN check
+     Subject: s390/cpacf: unpoison the results of cpacf_trng()
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-checksum-add-a-kmsan-check.patch
+     s390-cpacf-unpoison-the-results-of-cpacf_trng.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-checksum-add-a-kmsan-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-cpacf-unpoison-the-results-of-cpacf_trng.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,16 +51,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: s390/checksum: add a KMSAN check
-Date: Thu, 14 Dec 2023 00:24:42 +0100
+Subject: s390/cpacf: unpoison the results of cpacf_trng()
+Date: Thu, 14 Dec 2023 00:24:43 +0100
 
-Add a KMSAN check to the CKSM inline assembly, similar to how it was done
-for ASAN in commit e42ac7789df6 ("s390/checksum: always use cksm
-instruction").
+Prevent KMSAN from complaining about buffers filled by cpacf_trng() being
+uninitialized.
 
-Link: https://lkml.kernel.org/r/20231213233605.661251-23-iii@linux.ibm.com
+Link: https://lkml.kernel.org/r/20231213233605.661251-24-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
-Acked-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Tested-by: Alexander Gordeev <agordeev@linux.ibm.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -81,27 +80,28 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/checksum.h |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/s390/include/asm/cpacf.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/arch/s390/include/asm/checksum.h~s390-checksum-add-a-kmsan-check
-+++ a/arch/s390/include/asm/checksum.h
-@@ -13,6 +13,7 @@
- #define _S390_CHECKSUM_H
+--- a/arch/s390/include/asm/cpacf.h~s390-cpacf-unpoison-the-results-of-cpacf_trng
++++ a/arch/s390/include/asm/cpacf.h
+@@ -12,6 +12,7 @@
+ #define _ASM_S390_CPACF_H
  
- #include <linux/kasan-checks.h>
+ #include <asm/facility.h>
 +#include <linux/kmsan-checks.h>
- #include <linux/in6.h>
  
  /*
-@@ -35,6 +36,7 @@ static inline __wsum csum_partial(const
- 	};
+  * Instruction opcodes for the CPACF instructions
+@@ -473,6 +474,8 @@ static inline void cpacf_trng(u8 *ucbuf,
+ 		: [ucbuf] "+&d" (u.pair), [cbuf] "+&d" (c.pair)
+ 		: [fc] "K" (CPACF_PRNO_TRNG), [opc] "i" (CPACF_PRNO)
+ 		: "cc", "memory", "0");
++	kmsan_unpoison_memory(ucbuf, ucbuf_len);
++	kmsan_unpoison_memory(cbuf, cbuf_len);
+ }
  
- 	kasan_check_read(buff, len);
-+	kmsan_check_memory(buff, len);
- 	asm volatile(
- 		"0:	cksm	%[sum],%[rp]\n"
- 		"	jo	0b\n"
+ /**
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
