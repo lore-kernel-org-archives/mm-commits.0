@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03F676A023
-	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 22:43:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 279016E58E
+	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 22:43:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="exWaT5SS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 417D5C433CA;
-	Thu, 14 Dec 2023 22:43:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sv4nW9/f"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76104C433C7;
+	Thu, 14 Dec 2023 22:43:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702593833;
-	bh=bpRczGftcvb+L/H2o7ZwwHiYWdp6YI7tk8b8Ib7j43o=;
+	s=korg; t=1702593834;
+	bh=7pW6Gn2N3MvIegdAQZKhuA6OFet1RWnY8197aqBs0L8=;
 	h=Date:To:From:Subject:From;
-	b=exWaT5SS/hb/Ti+SlPQe71tpMsW1lKEg7EeGn3yIzAW9sSFe7v3+joizE5WqgurWM
-	 c4sD7DPjEDdIqDiPC7m6a0g4BSdIfvZ0zg1Yw+MGW+BJjiACLRmHhvP0/ye5YDaVzt
-	 OdGbmc/gUl6dwb1dWl9NnhhKnBaQNiZhTIq36IuY=
-Date: Thu, 14 Dec 2023 14:43:52 -0800
+	b=Sv4nW9/fe7NSDANSgxpvVxDs1wff8lKxnr+ccSWC0/eh42E6Rog0Ng4k1EuHO0N6M
+	 hQeC/lkoMdMaC1YiqyoRjQVUffT9msr8Y2HyLiJaE6Ph09yC/tjEvhy7jWMWpO1XVK
+	 pXatVyWcOYcGrz6DSda0+donpK1M0DXP6ttqzgOU=
+Date: Thu, 14 Dec 2023 14:43:53 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,svens@linux.ibm.com,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,penberg@kernel.org,mhiramat@kernel.org,mark.rutland@arm.com,iamjoonsoo.kim@lge.com,hca@linux.ibm.com,gor@linux.ibm.com,glider@google.com,elver@google.com,dvyukov@google.com,cl@linux.com,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,42.hyeyoo@gmail.com,iii@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-cpacf-unpoison-the-results-of-cpacf_trng.patch added to mm-unstable branch
-Message-Id: <20231214224353.417D5C433CA@smtp.kernel.org>
+Subject: + s390-cpumf-unpoison-stcctm-output-buffer.patch added to mm-unstable branch
+Message-Id: <20231214224354.76104C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: s390/cpacf: unpoison the results of cpacf_trng()
+     Subject: s390/cpumf: unpoison STCCTM output buffer
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-cpacf-unpoison-the-results-of-cpacf_trng.patch
+     s390-cpumf-unpoison-stcctm-output-buffer.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-cpacf-unpoison-the-results-of-cpacf_trng.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-cpumf-unpoison-stcctm-output-buffer.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,16 +51,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ilya Leoshkevich <iii@linux.ibm.com>
-Subject: s390/cpacf: unpoison the results of cpacf_trng()
-Date: Thu, 14 Dec 2023 00:24:43 +0100
+Subject: s390/cpumf: unpoison STCCTM output buffer
+Date: Thu, 14 Dec 2023 00:24:44 +0100
 
-Prevent KMSAN from complaining about buffers filled by cpacf_trng() being
-uninitialized.
+stcctm() uses the "Q" constraint for dest, therefore KMSAN does not
+understand that it fills multiple doublewords pointed to by dest, not just
+one.  This results in false positives.
 
-Link: https://lkml.kernel.org/r/20231213233605.661251-24-iii@linux.ibm.com
+Unpoison the whole dest manually with kmsan_unpoison_memory().
+
+Link: https://lkml.kernel.org/r/20231213233605.661251-25-iii@linux.ibm.com
 Signed-off-by: Ilya Leoshkevich <iii@linux.ibm.com>
-Tested-by: Alexander Gordeev <agordeev@linux.ibm.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
+Reported-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -80,28 +83,31 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/cpacf.h |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/s390/include/asm/cpu_mf.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/arch/s390/include/asm/cpacf.h~s390-cpacf-unpoison-the-results-of-cpacf_trng
-+++ a/arch/s390/include/asm/cpacf.h
-@@ -12,6 +12,7 @@
- #define _ASM_S390_CPACF_H
+--- a/arch/s390/include/asm/cpu_mf.h~s390-cpumf-unpoison-stcctm-output-buffer
++++ a/arch/s390/include/asm/cpu_mf.h
+@@ -10,6 +10,7 @@
+ #define _ASM_S390_CPU_MF_H
  
- #include <asm/facility.h>
+ #include <linux/errno.h>
 +#include <linux/kmsan-checks.h>
+ #include <asm/asm-extable.h>
+ #include <asm/facility.h>
  
- /*
-  * Instruction opcodes for the CPACF instructions
-@@ -473,6 +474,8 @@ static inline void cpacf_trng(u8 *ucbuf,
- 		: [ucbuf] "+&d" (u.pair), [cbuf] "+&d" (c.pair)
- 		: [fc] "K" (CPACF_PRNO_TRNG), [opc] "i" (CPACF_PRNO)
- 		: "cc", "memory", "0");
-+	kmsan_unpoison_memory(ucbuf, ucbuf_len);
-+	kmsan_unpoison_memory(cbuf, cbuf_len);
+@@ -239,6 +240,11 @@ static __always_inline int stcctm(enum s
+ 		: "=d" (cc)
+ 		: "Q" (*dest), "d" (range), "i" (set)
+ 		: "cc", "memory");
++	/*
++	 * If cc == 2, less than RANGE counters are stored, but it's not easy
++	 * to tell how many. Always unpoison the whole range for simplicity.
++	 */
++	kmsan_unpoison_memory(dest, range * sizeof(u64));
+ 	return cc;
  }
  
- /**
 _
 
 Patches currently in -mm which might be from iii@linux.ibm.com are
