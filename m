@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2F9A3399F
-	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 18:47:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 867EB208BD
+	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 18:59:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kBq00ojB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2080FC433C8;
-	Thu, 14 Dec 2023 18:47:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tb65361N"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7700C433C7;
+	Thu, 14 Dec 2023 18:59:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702579641;
-	bh=heV5czI55j+jdV14fAhGAMzaS0dzMJK89nidZlWSTX0=;
+	s=korg; t=1702580352;
+	bh=pU+COAyqf3z+Y1n6PbKwzcMb9ZEif+Fcbq59GBuGjYQ=;
 	h=Date:To:From:Subject:From;
-	b=kBq00ojBgKdnRcweYmwXuFqB70RdlHrjPlOjPECNg+rMep73DIZIJyeH/NETRUFQR
-	 2q3sU/zPmHn6En12CQfm8a+WlEeAkacxha0d2HTPWnJt8Q/eHr9gcqAaYm/65gdOSK
-	 ESCDeh6fy9ajk6FcJU4xTWuU68RruO7/w6QUT1tc=
-Date: Thu, 14 Dec 2023 10:47:19 -0800
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,npache@redhat.com,akpm@linux-foundation.org
+	b=tb65361NEEaIUFl0jkE88BBRiOWm4BfFX0kTYOXitRez+pkbb1RX06vv1lWC1GXYK
+	 JOKXYpdll7iISqJzOmCg+A6zmH+Yfv4y3DwhzJYo4PlcNkJ3ht2lIBvq+VvjFGKu0t
+	 nxT9cEkCWCuWjXopTNvl1SnIiDxPMzKZx7sMYefA=
+Date: Thu, 14 Dec 2023 10:59:12 -0800
+To: mm-commits@vger.kernel.org,vgoyal@redhat.com,tiwai@suse.de,tglx@linutronix.de,sourabhjain@linux.ibm.com,seanjc@google.com,mingo@redhat.com,lijiang@redhat.com,hpa@zytor.com,hbathini@linux.ibm.com,eric.devolder@oracle.com,dyoung@redhat.com,dave.hansen@linux.intel.com,bp@alien8.de,bhe@redhat.com,ytcoode@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kunit-kasan_test-disable-fortify-string-checker-on-kmalloc_oob_memset-v2.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231214184721.2080FC433C8@smtp.kernel.org>
+Subject: + x86-crash-remove-the-unused-image-parameter-from-prepare_elf_headers.patch added to mm-nonmm-unstable branch
+Message-Id: <20231214185912.C7700C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kunit: kasan_test: disable fortify string checker on kmalloc_oob_memset
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kunit-kasan_test-disable-fortify-string-checker-on-kmalloc_oob_memset-v2.patch
+     Subject: x86/crash: remove the unused image parameter from prepare_elf_headers()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     x86-crash-remove-the-unused-image-parameter-from-prepare_elf_headers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kunit-kasan_test-disable-fortify-string-checker-on-kmalloc_oob_memset-v2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-crash-remove-the-unused-image-parameter-from-prepare_elf_headers.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,111 +50,90 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nico Pache <npache@redhat.com>
-Subject: kunit: kasan_test: disable fortify string checker on kmalloc_oob_memset
-Date: Thu, 14 Dec 2023 09:44:23 -0700
+From: Yuntao Wang <ytcoode@gmail.com>
+Subject: x86/crash: remove the unused image parameter from prepare_elf_headers()
+Date: Fri, 15 Dec 2023 00:38:40 +0800
 
-address review comments from Andrey
+Patch series "Some cleanups and fixes".
 
-Link: https://lkml.kernel.org/r/20231214164423.6202-1-npache@redhat.com
-Signed-off-by: Nico Pache <npache@redhat.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+This series includes two cleanups and one fix for the crash code.
+
+
+This patch (of 3):
+
+The image parameter is no longer in use, remove it.  Also, tidy up the
+code formatting.
+
+Link: https://lkml.kernel.org/r/20231214163842.129139-1-ytcoode@gmail.com
+Link: https://lkml.kernel.org/r/20231214163842.129139-2-ytcoode@gmail.com
+Signed-off-by: Yuntao Wang <ytcoode@gmail.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Eric DeVolder <eric.devolder@oracle.com>
+Cc: Hari Bathini <hbathini@linux.ibm.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Lianbo Jiang <lijiang@redhat.com>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan_test.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ arch/x86/kernel/crash.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/kasan/kasan_test.c~kunit-kasan_test-disable-fortify-string-checker-on-kmalloc_oob_memset-v2
-+++ a/mm/kasan/kasan_test.c
-@@ -493,7 +493,7 @@ static void kmalloc_oob_memset_2(struct
- {
- 	char *ptr;
- 	size_t size = 128 - KASAN_GRANULE_SIZE;
--	size_t size2 = 2;
-+	size_t memset_size = 2;
- 
- 	KASAN_TEST_NEEDS_CHECKED_MEMINTRINSICS(test);
- 
-@@ -502,8 +502,8 @@ static void kmalloc_oob_memset_2(struct
- 
- 	OPTIMIZER_HIDE_VAR(ptr);
- 	OPTIMIZER_HIDE_VAR(size);
--	OPTIMIZER_HIDE_VAR(size2);
--	KUNIT_EXPECT_KASAN_FAIL(test, memset(ptr + size - 1, 0, size2));
-+	OPTIMIZER_HIDE_VAR(memset_size);
-+	KUNIT_EXPECT_KASAN_FAIL(test, memset(ptr + size - 1, 0, memset_size));
- 	kfree(ptr);
+--- a/arch/x86/kernel/crash.c~x86-crash-remove-the-unused-image-parameter-from-prepare_elf_headers
++++ a/arch/x86/kernel/crash.c
+@@ -198,8 +198,8 @@ static int prepare_elf64_ram_headers_cal
  }
  
-@@ -511,7 +511,7 @@ static void kmalloc_oob_memset_4(struct
+ /* Prepare elf headers. Return addr and size */
+-static int prepare_elf_headers(struct kimage *image, void **addr,
+-					unsigned long *sz, unsigned long *nr_mem_ranges)
++static int prepare_elf_headers(void **addr, unsigned long *sz,
++			       unsigned long *nr_mem_ranges)
  {
- 	char *ptr;
- 	size_t size = 128 - KASAN_GRANULE_SIZE;
--	size_t size2 = 4;
-+	size_t memset_size = 4;
+ 	struct crash_mem *cmem;
+ 	int ret;
+@@ -221,7 +221,7 @@ static int prepare_elf_headers(struct ki
+ 	*nr_mem_ranges = cmem->nr_ranges;
  
- 	KASAN_TEST_NEEDS_CHECKED_MEMINTRINSICS(test);
+ 	/* By default prepare 64bit headers */
+-	ret =  crash_prepare_elf64_headers(cmem, IS_ENABLED(CONFIG_X86_64), addr, sz);
++	ret = crash_prepare_elf64_headers(cmem, IS_ENABLED(CONFIG_X86_64), addr, sz);
  
-@@ -520,8 +520,8 @@ static void kmalloc_oob_memset_4(struct
+ out:
+ 	vfree(cmem);
+@@ -349,7 +349,7 @@ int crash_load_segments(struct kimage *i
+ 				  .buf_max = ULONG_MAX, .top_down = false };
  
- 	OPTIMIZER_HIDE_VAR(ptr);
- 	OPTIMIZER_HIDE_VAR(size);
--	OPTIMIZER_HIDE_VAR(size2);
--	KUNIT_EXPECT_KASAN_FAIL(test, memset(ptr + size - 3, 0, size2));
-+	OPTIMIZER_HIDE_VAR(memset_size);
-+	KUNIT_EXPECT_KASAN_FAIL(test, memset(ptr + size - 3, 0, memset_size));
- 	kfree(ptr);
- }
+ 	/* Prepare elf headers and add a segment */
+-	ret = prepare_elf_headers(image, &kbuf.buffer, &kbuf.bufsz, &pnum);
++	ret = prepare_elf_headers(&kbuf.buffer, &kbuf.bufsz, &pnum);
+ 	if (ret)
+ 		return ret;
  
-@@ -529,7 +529,7 @@ static void kmalloc_oob_memset_8(struct
- {
- 	char *ptr;
- 	size_t size = 128 - KASAN_GRANULE_SIZE;
--	size_t size2 = 8;
-+	size_t memset_size = 8;
- 
- 	KASAN_TEST_NEEDS_CHECKED_MEMINTRINSICS(test);
- 
-@@ -538,8 +538,8 @@ static void kmalloc_oob_memset_8(struct
- 
- 	OPTIMIZER_HIDE_VAR(ptr);
- 	OPTIMIZER_HIDE_VAR(size);
--	OPTIMIZER_HIDE_VAR(size2);
--	KUNIT_EXPECT_KASAN_FAIL(test, memset(ptr + size - 7, 0, size2));
-+	OPTIMIZER_HIDE_VAR(memset_size);
-+	KUNIT_EXPECT_KASAN_FAIL(test, memset(ptr + size - 7, 0, memset_size));
- 	kfree(ptr);
- }
- 
-@@ -547,7 +547,7 @@ static void kmalloc_oob_memset_16(struct
- {
- 	char *ptr;
- 	size_t size = 128 - KASAN_GRANULE_SIZE;
--	size_t size2 = 16;
-+	size_t memset_size = 16;
- 
- 	KASAN_TEST_NEEDS_CHECKED_MEMINTRINSICS(test);
- 
-@@ -556,8 +556,8 @@ static void kmalloc_oob_memset_16(struct
- 
- 	OPTIMIZER_HIDE_VAR(ptr);
- 	OPTIMIZER_HIDE_VAR(size);
--	OPTIMIZER_HIDE_VAR(size2);
--	KUNIT_EXPECT_KASAN_FAIL(test, memset(ptr + size - 15, 0, size2));
-+	OPTIMIZER_HIDE_VAR(memset_size);
-+	KUNIT_EXPECT_KASAN_FAIL(test, memset(ptr + size - 15, 0, memset_size));
- 	kfree(ptr);
- }
- 
+@@ -452,7 +452,7 @@ void arch_crash_handle_hotplug_event(str
+ 	 * Create the new elfcorehdr reflecting the changes to CPU and/or
+ 	 * memory resources.
+ 	 */
+-	if (prepare_elf_headers(image, &elfbuf, &elfsz, &nr_mem_ranges)) {
++	if (prepare_elf_headers(&elfbuf, &elfsz, &nr_mem_ranges)) {
+ 		pr_err("unable to create new elfcorehdr");
+ 		goto out;
+ 	}
 _
 
-Patches currently in -mm which might be from npache@redhat.com are
+Patches currently in -mm which might be from ytcoode@gmail.com are
 
-kunit-kasan_test-disable-fortify-string-checker-on-kmalloc_oob_memset.patch
-kunit-kasan_test-disable-fortify-string-checker-on-kmalloc_oob_memset-v2.patch
+kexec-use-align-macro-instead-of-open-coding-it.patch
+x86-kexec-simplify-the-logic-of-mem_region_callback.patch
+x86-crash-remove-the-unused-image-parameter-from-prepare_elf_headers.patch
+x86-crash-use-sz_1m-macro-instead-of-hardcoded-value.patch
+crash_core-fix-and-simplify-the-logic-of-crash_exclude_mem_range.patch
 
