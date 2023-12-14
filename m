@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D3DF208BD
-	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 18:59:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16C71208BD
+	for <mm-commits@vger.kernel.org>; Thu, 14 Dec 2023 18:59:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q5j+9SVt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C17F2C433C9;
-	Thu, 14 Dec 2023 18:59:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MmsMtK6I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B58B0C433C8;
+	Thu, 14 Dec 2023 18:59:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702580354;
-	bh=AJNx+SomW2DeTaNVRDacbJxYMC0tyUk4wmsLLmG+tvc=;
+	s=korg; t=1702580356;
+	bh=oSrQ2gaRv4hosj47944WysGvFBFhnd5yJFXw8sxt3Xo=;
 	h=Date:To:From:Subject:From;
-	b=Q5j+9SVtNUYH34sQbQYFpnJYuOcoTT7W8iZHsRt+ccXAg9f1ueCgsp/catX8GULkv
-	 Vp9OjnfRPwFrDtU7HzK0WWQshHz3SSXpZ9JY5L/DedIYsAO55+V/95Ju3gYmEWthK6
-	 +sSQKl3DSM4ZmdaHRBdyJmk+DxaEPFCbmhEHMZwE=
-Date: Thu, 14 Dec 2023 10:59:14 -0800
+	b=MmsMtK6IJLKKGrvcWUKkWgC8GsndUYgZPQaPpLfNAhogpaaIu1NyykI+hDIO6e+Jl
+	 BiMW5YjJbfPBL7u+hgmZJt7ZUvaXFiQr4EBn/1fmDBh3KWd8gGtgR3nLn18XggnIwD
+	 sYFltPc3CmFSvnEq1A3tKedyYMPEhDz9s4zbbxEw=
+Date: Thu, 14 Dec 2023 10:59:16 -0800
 To: mm-commits@vger.kernel.org,vgoyal@redhat.com,tiwai@suse.de,tglx@linutronix.de,sourabhjain@linux.ibm.com,seanjc@google.com,mingo@redhat.com,lijiang@redhat.com,hpa@zytor.com,hbathini@linux.ibm.com,eric.devolder@oracle.com,dyoung@redhat.com,dave.hansen@linux.intel.com,bp@alien8.de,bhe@redhat.com,ytcoode@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-crash-use-sz_1m-macro-instead-of-hardcoded-value.patch added to mm-nonmm-unstable branch
-Message-Id: <20231214185914.C17F2C433C9@smtp.kernel.org>
+Subject: + crash_core-fix-and-simplify-the-logic-of-crash_exclude_mem_range.patch added to mm-nonmm-unstable branch
+Message-Id: <20231214185916.B58B0C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/crash: use SZ_1M macro instead of hardcoded value
+     Subject: crash_core: fix and simplify the logic of crash_exclude_mem_range()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     x86-crash-use-sz_1m-macro-instead-of-hardcoded-value.patch
+     crash_core-fix-and-simplify-the-logic-of-crash_exclude_mem_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-crash-use-sz_1m-macro-instead-of-hardcoded-value.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash_core-fix-and-simplify-the-logic-of-crash_exclude_mem_range.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,12 +51,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yuntao Wang <ytcoode@gmail.com>
-Subject: x86/crash: use SZ_1M macro instead of hardcoded value
-Date: Fri, 15 Dec 2023 00:38:41 +0800
+Subject: crash_core: fix and simplify the logic of crash_exclude_mem_range()
+Date: Fri, 15 Dec 2023 00:38:42 +0800
 
-Use SZ_1M macro instead of hardcoded 1<<20 to make code more readable.
+The purpose of crash_exclude_mem_range() is to remove all memory ranges
+that overlap with [mstart-mend].  However, the current logic only removes
+the first overlapping memory range.
 
-Link: https://lkml.kernel.org/r/20231214163842.129139-3-ytcoode@gmail.com
+Commit a2e9a95d2190 ("kexec: Improve & fix crash_exclude_mem_range() to
+handle overlapping ranges") attempted to address this issue, but it did
+not fix all error cases.
+
+Let's fix and simplify the logic of crash_exclude_mem_range().
+
+Link: https://lkml.kernel.org/r/20231214163842.129139-4-ytcoode@gmail.com
 Signed-off-by: Yuntao Wang <ytcoode@gmail.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Borislav Petkov (AMD) <bp@alien8.de>
@@ -75,19 +83,112 @@ Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/crash.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/crash_core.c |   70 +++++++++++-------------------------------
+ 1 file changed, 19 insertions(+), 51 deletions(-)
 
---- a/arch/x86/kernel/crash.c~x86-crash-use-sz_1m-macro-instead-of-hardcoded-value
-+++ a/arch/x86/kernel/crash.c
-@@ -170,7 +170,7 @@ static int elf_header_exclude_ranges(str
- 	int ret = 0;
+--- a/kernel/crash_core.c~crash_core-fix-and-simplify-the-logic-of-crash_exclude_mem_range
++++ a/kernel/crash_core.c
+@@ -567,9 +567,8 @@ int crash_prepare_elf64_headers(struct c
+ int crash_exclude_mem_range(struct crash_mem *mem,
+ 			    unsigned long long mstart, unsigned long long mend)
+ {
+-	int i, j;
++	int i;
+ 	unsigned long long start, end, p_start, p_end;
+-	struct range temp_range = {0, 0};
  
- 	/* Exclude the low 1M because it is always reserved */
--	ret = crash_exclude_mem_range(cmem, 0, (1<<20)-1);
-+	ret = crash_exclude_mem_range(cmem, 0, SZ_1M - 1);
- 	if (ret)
- 		return ret;
+ 	for (i = 0; i < mem->nr_ranges; i++) {
+ 		start = mem->ranges[i].start;
+@@ -577,72 +576,41 @@ int crash_exclude_mem_range(struct crash
+ 		p_start = mstart;
+ 		p_end = mend;
+ 
+-		if (mstart > end || mend < start)
++		if (p_start > end || p_end < start)
+ 			continue;
+ 
+ 		/* Truncate any area outside of range */
+-		if (mstart < start)
++		if (p_start < start)
+ 			p_start = start;
+-		if (mend > end)
++		if (p_end > end)
+ 			p_end = end;
+ 
+ 		/* Found completely overlapping range */
+ 		if (p_start == start && p_end == end) {
+-			mem->ranges[i].start = 0;
+-			mem->ranges[i].end = 0;
+-			if (i < mem->nr_ranges - 1) {
+-				/* Shift rest of the ranges to left */
+-				for (j = i; j < mem->nr_ranges - 1; j++) {
+-					mem->ranges[j].start =
+-						mem->ranges[j+1].start;
+-					mem->ranges[j].end =
+-							mem->ranges[j+1].end;
+-				}
+-
+-				/*
+-				 * Continue to check if there are another overlapping ranges
+-				 * from the current position because of shifting the above
+-				 * mem ranges.
+-				 */
+-				i--;
+-				mem->nr_ranges--;
+-				continue;
+-			}
++			memmove(&mem->ranges[i], &mem->ranges[i + 1],
++				(mem->nr_ranges - (i + 1)) * sizeof(mem->ranges[i]));
++			i--;
+ 			mem->nr_ranges--;
+-			return 0;
+-		}
+-
+-		if (p_start > start && p_end < end) {
++		} else if (p_start > start && p_end < end) {
+ 			/* Split original range */
++			if (mem->nr_ranges >= mem->max_nr_ranges)
++				return -ENOMEM;
++
++			memmove(&mem->ranges[i + 2], &mem->ranges[i + 1],
++				(mem->nr_ranges - (i + 1)) * sizeof(mem->ranges[i]));
++
+ 			mem->ranges[i].end = p_start - 1;
+-			temp_range.start = p_end + 1;
+-			temp_range.end = end;
++			mem->ranges[i + 1].start = p_end + 1;
++			mem->ranges[i + 1].end = end;
++
++			i++;
++			mem->nr_ranges++;
+ 		} else if (p_start != start)
+ 			mem->ranges[i].end = p_start - 1;
+ 		else
+ 			mem->ranges[i].start = p_end + 1;
+-		break;
+-	}
+-
+-	/* If a split happened, add the split to array */
+-	if (!temp_range.end)
+-		return 0;
+-
+-	/* Split happened */
+-	if (i == mem->max_nr_ranges - 1)
+-		return -ENOMEM;
+-
+-	/* Location where new range should go */
+-	j = i + 1;
+-	if (j < mem->nr_ranges) {
+-		/* Move over all ranges one slot towards the end */
+-		for (i = mem->nr_ranges - 1; i >= j; i--)
+-			mem->ranges[i + 1] = mem->ranges[i];
+ 	}
+ 
+-	mem->ranges[j].start = temp_range.start;
+-	mem->ranges[j].end = temp_range.end;
+-	mem->nr_ranges++;
+ 	return 0;
+ }
  
 _
 
