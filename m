@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 276F53FE45
-	for <mm-commits@vger.kernel.org>; Fri, 15 Dec 2023 19:25:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9AAA4596D
+	for <mm-commits@vger.kernel.org>; Fri, 15 Dec 2023 20:01:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EEx/mp0F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7154C433C8;
-	Fri, 15 Dec 2023 19:25:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wTdF7RBh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B7B8C433C8;
+	Fri, 15 Dec 2023 20:01:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702668339;
-	bh=Zj3ibHL0WdmSNpy4+MlTYeg5kzHQLCdoPts7xRxuITs=;
+	s=korg; t=1702670487;
+	bh=G+lLRyN5MsPuZ7TIalgzjxUawf6MK/GAKivT/5nIiB8=;
 	h=Date:To:From:Subject:From;
-	b=EEx/mp0FE2W/xJU+ivMAthNGFXkPsgOXTps4yL2gauxU4ajJ9RlmplFJv2aO5UEq9
-	 f0sfZZqm6J8L/3j3BqnsXI+U/v9eHdwR/+9i+yvhX/0K8wYKRy2cL1PsSCEglAV6UZ
-	 XBaK0Z718Q+ZWThTKQkLAzox4ONnnqDzoapQ7bIQ=
-Date: Fri, 15 Dec 2023 11:25:39 -0800
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,ying.huang@intel.com,wangkefeng.wang@huawei.com,vbabka@suse.cz,shakeelb@google.com,sachinp@linux.ibm.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,mgorman@techsingularity.net,hannes@cmpxchg.org,liushixin2@huawei.com,akpm@linux-foundation.org
+	b=wTdF7RBh24eFJqe3cANlSAOO8YOs/9Uu14tFELy3mYul+R4pCVelbArmFHWPl8+5A
+	 /kSr4JLjbtQLXwY8CCm38TTODXfV3tXUPa3vrZIPEjoe/EUYc2bkrm11lTN9XARLKo
+	 yhhhKJicw1y3ElD8Qflhfg9mRIvsVMl0YIer91d0=
+Date: Fri, 15 Dec 2023 12:01:26 -0800
+To: mm-commits@vger.kernel.org,dan.carpenter@linaro.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vmscan-try-to-reclaim-swapcache-pages-if-no-swap-space.patch removed from -mm tree
-Message-Id: <20231215192539.A7154C433C8@smtp.kernel.org>
+Subject: + mm-convert-ksm_might_need_to_copy-to-work-on-folios-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20231215200127.6B7B8C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -26,163 +26,97 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: vmscan: try to reclaim swapcache pages if no swap space
-has been removed from the -mm tree.  Its filename was
-     mm-vmscan-try-to-reclaim-swapcache-pages-if-no-swap-space.patch
+The patch titled
+     Subject: mm-convert-ksm_might_need_to_copy-to-work-on-folios-fix
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     mm-convert-ksm_might_need_to_copy-to-work-on-folios-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-ksm_might_need_to_copy-to-work-on-folios-fix.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Liu Shixin <liushixin2@huawei.com>
-Subject: mm: vmscan: try to reclaim swapcache pages if no swap space
-Date: Wed, 30 Aug 2023 11:56:00 +0800
+From: Matthew Wilcox <willy@infradead.org>
+Subject: mm-convert-ksm_might_need_to_copy-to-work-on-folios-fix
+Date: Wed, 13 Dec 2023 15:37:25 +0000
 
-When spaces of swap devices are exhausted, only file pages can be
-reclaimed.  But there are still some swapcache pages in anon lru list. 
-This can lead to a premature out-of-memory.
+The patch 6faef19bdfcc: "mm: convert ksm_might_need_to_copy() to work
+on folios" from Dec 11, 2023 (linux-next), leads to the following
+Smatch static checker warning:
 
-The problem is found with such step:
+ 	mm/memory.c:4118 do_swap_page()
+ 	error: 'folio' dereferencing possible ERR_PTR()
 
- Firstly, set a 9MB disk swap space, then create a cgroup with 10MB
- memory limit, then runs an program to allocates about 15MB memory.
-
-The problem occurs occasionally, which may need about 100 times [1].
-
-Fix it by checking number of swapcache pages in can_reclaim_anon_pages(). 
-If the number is not zero, return true and set swapcache_only to 1.  When
-scan anon lru list in swapcache_only mode, non-swapcache pages will be
-skipped to isolate in order to accelerate reclaim efficiency.
-
-However, in swapcache_only mode, the scan count still increased when scan
-non-swapcache pages because there are large number of non-swapcache pages
-and rare swapcache pages in swapcache_only mode, and if the non-swapcache
-is skipped and do not count, the scan of pages in isolate_lru_folios() can
-eventually lead to hung task, just as Sachin reported [2].
-
-By the way, since there are enough times of memory reclaim before OOM, it
-is not need to isolate too much swapcache pages in one times.
-
-[1]. https://lore.kernel.org/lkml/CAJD7tkZAfgncV+KbKr36=eDzMnT=9dZOT0dpMWcurHLr6Do+GA@mail.gmail.com/
-[2]. https://lore.kernel.org/linux-mm/CAJD7tkafz_2XAuqE8tGLPEcpLngewhUo=5US14PAtSM9tLBUQg@mail.gmail.com/
-
-[liushixin2@huawei.com: fix NULL pointing derefence and hung task problem reported by Sachin]
-  Link: https://lkml.kernel.org/r/20230915083417.3190512-1-liushixin2@huawei.com
-Link: https://lore.kernel.org/lkml/CAJD7tkZAfgncV+KbKr36=eDzMnT=9dZOT0dpMWcurHLr6Do+GA@mail.gmail.com/
-Link: https://lkml.kernel.org/r/20230830035600.1656792-1-liushixin2@huawei.com
-Signed-off-by: Liu Shixin <liushixin2@huawei.com>
-Tested-by: Yosry Ahmed <yosryahmed@google.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Sachin Sant <sachinp@linux.ibm.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/ZXnPtblC6A1IkyAB@casper.infradead.org
+Signed-off-by: Matthew Wilcox <willy@infradead.org>
+Reported-by:  Dan Carpenter <dan.carpenter@linaro.org>
+Closes: https://lkml.kernel.org/r/a07e5aad-2b09-4966-b486-4791619dceae@moroto.mountain
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    6 ++++++
- mm/memcontrol.c      |    8 ++++++++
- mm/vmscan.c          |   24 ++++++++++++++++++++++++
- 3 files changed, 38 insertions(+)
+ mm/memory.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/swap.h~mm-vmscan-try-to-reclaim-swapcache-pages-if-no-swap-space
-+++ a/include/linux/swap.h
-@@ -655,6 +655,7 @@ static inline void mem_cgroup_uncharge_s
- }
- 
- extern long mem_cgroup_get_nr_swap_pages(struct mem_cgroup *memcg);
-+extern long mem_cgroup_get_nr_swapcache_pages(struct mem_cgroup *memcg);
- extern bool mem_cgroup_swap_full(struct folio *folio);
- #else
- static inline void mem_cgroup_swapout(struct folio *folio, swp_entry_t entry)
-@@ -677,6 +678,11 @@ static inline long mem_cgroup_get_nr_swa
- 	return get_nr_swap_pages();
- }
- 
-+static inline long mem_cgroup_get_nr_swapcache_pages(struct mem_cgroup *memcg)
-+{
-+	return total_swapcache_pages();
-+}
-+
- static inline bool mem_cgroup_swap_full(struct folio *folio)
- {
- 	return vm_swap_full();
---- a/mm/memcontrol.c~mm-vmscan-try-to-reclaim-swapcache-pages-if-no-swap-space
-+++ a/mm/memcontrol.c
-@@ -7898,6 +7898,14 @@ long mem_cgroup_get_nr_swap_pages(struct
- 	return nr_swap_pages;
- }
- 
-+long mem_cgroup_get_nr_swapcache_pages(struct mem_cgroup *memcg)
-+{
-+	if (mem_cgroup_disabled())
-+		return total_swapcache_pages();
-+
-+	return memcg_page_state(memcg, NR_SWAPCACHE);
-+}
-+
- bool mem_cgroup_swap_full(struct folio *folio)
- {
- 	struct mem_cgroup *memcg;
---- a/mm/vmscan.c~mm-vmscan-try-to-reclaim-swapcache-pages-if-no-swap-space
-+++ a/mm/vmscan.c
-@@ -136,6 +136,9 @@ struct scan_control {
- 	/* Always discard instead of demoting to lower tier memory */
- 	unsigned int no_demotion:1;
- 
-+	/* Swap space is exhausted, only reclaim swapcache for anon LRU */
-+	unsigned int swapcache_only:1;
-+
- 	/* Allocation order */
- 	s8 order;
- 
-@@ -319,10 +322,22 @@ static inline bool can_reclaim_anon_page
- 		 */
- 		if (get_nr_swap_pages() > 0)
- 			return true;
-+		/* Is there any swapcache pages to reclaim? */
-+		if (total_swapcache_pages() > 0) {
-+			if (sc)
-+				sc->swapcache_only = 1;
-+			return true;
-+		}
- 	} else {
- 		/* Is the memcg below its swap limit? */
- 		if (mem_cgroup_get_nr_swap_pages(memcg) > 0)
- 			return true;
-+		/* Is there any swapcache pages in memcg to reclaim? */
-+		if (mem_cgroup_get_nr_swapcache_pages(memcg) > 0) {
-+			if (sc)
-+				sc->swapcache_only = 1;
-+			return true;
-+		}
- 	}
- 
- 	/*
-@@ -1646,6 +1661,15 @@ static unsigned long isolate_lru_folios(
- 		 */
- 		scan += nr_pages;
- 
-+		/*
-+		 * Count non-swapcache too because the swapcache pages may
-+		 * be rare and it takes too much times here if not count
-+		 * the non-swapcache pages.
-+		 */
-+		if (unlikely(sc->swapcache_only && !is_file_lru(lru) &&
-+		    !folio_test_swapcache(folio)))
-+			goto move;
-+
- 		if (!folio_test_lru(folio))
- 			goto move;
- 		if (!sc->may_unmap && folio_mapped(folio))
+--- a/mm/memory.c~mm-convert-ksm_might_need_to_copy-to-work-on-folios-fix
++++ a/mm/memory.c
+@@ -3945,9 +3945,11 @@ vm_fault_t do_swap_page(struct vm_fault
+ 		folio = ksm_might_need_to_copy(folio, vma, vmf->address);
+ 		if (unlikely(!folio)) {
+ 			ret = VM_FAULT_OOM;
++			folio = swapcache;
+ 			goto out_page;
+ 		} else if (unlikely(folio == ERR_PTR(-EHWPOISON))) {
+ 			ret = VM_FAULT_HWPOISON;
++			folio = swapcache;
+ 			goto out_page;
+ 		}
+ 		page = folio_page(folio, 0);
 _
 
-Patches currently in -mm which might be from liushixin2@huawei.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
+buffer-return-bool-from-grow_dev_folio.patch
+buffer-calculate-block-number-inside-folio_init_buffers.patch
+buffer-fix-grow_buffers-for-block-size-page_size.patch
+buffer-cast-block-to-loff_t-before-shifting-it.patch
+buffer-fix-various-functions-for-block-size-page_size.patch
+buffer-handle-large-folios-in-__block_write_begin_int.patch
+buffer-fix-more-functions-for-block-size-page_size.patch
+mm-convert-ksm_might_need_to_copy-to-work-on-folios.patch
+mm-remove-pageanonexclusive-assertions-in-unuse_pte.patch
+mm-convert-unuse_pte-to-use-a-folio-throughout.patch
+mm-remove-some-calls-to-page_add_new_anon_rmap.patch
+mm-remove-stale-example-from-comment.patch
+mm-remove-references-to-page_add_new_anon_rmap-in-comments.patch
+mm-convert-migrate_vma_insert_page-to-use-a-folio.patch
+mm-convert-collapse_huge_page-to-use-a-folio.patch
+mm-remove-page_add_new_anon_rmap-and-lru_cache_add_inactive_or_unevictable.patch
+mm-return-the-folio-from-__read_swap_cache_async.patch
+mm-pass-a-folio-to-__swap_writepage.patch
+mm-pass-a-folio-to-swap_writepage_fs.patch
+mm-pass-a-folio-to-swap_writepage_bdev_sync.patch
+mm-pass-a-folio-to-swap_writepage_bdev_async.patch
+mm-pass-a-folio-to-swap_readpage_fs.patch
+mm-pass-a-folio-to-swap_readpage_bdev_sync.patch
+mm-pass-a-folio-to-swap_readpage_bdev_async.patch
+mm-convert-swap_page_sector-to-swap_folio_sector.patch
+mm-convert-swap_readpage-to-swap_read_folio.patch
+mm-remove-page_swap_info.patch
+mm-return-a-folio-from-read_swap_cache_async.patch
+mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio.patch
+mm-convert-ksm_might_need_to_copy-to-work-on-folios-fix.patch
 
