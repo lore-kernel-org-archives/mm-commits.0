@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9962E1E4A4
-	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 17:23:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 597D15BF8A
+	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 17:23:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u0BNKTBR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08623C433C8;
-	Mon, 18 Dec 2023 17:23:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IgolhBJd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9AD5C433C7;
+	Mon, 18 Dec 2023 17:23:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702920196;
-	bh=qrq5+eKoSUDOe/Wp93nOaWJV05N7DYUfyPNPY4V1Dls=;
+	s=korg; t=1702920199;
+	bh=C+qymn2jFPU3ambG9MWrE94hGAMVJauVSSgjITp1Prg=;
 	h=Date:To:From:Subject:From;
-	b=u0BNKTBRL++gOSQ3enuiIZ6MOfkhevmOP7fQXkAS+cERAwstwo08jl+wfOPMAHaru
-	 pxr8rx46gY5+6x3fHVJv0TQ5/afDgAWSPUwsRBzu+XkPo4PyOS/cYEGADNhuGj4nW2
-	 kK0jKc5YPSSuyuBnlMpdaHdX93EXE9ybEj0WoN0I=
-Date: Mon, 18 Dec 2023 09:23:15 -0800
+	b=IgolhBJdXOIRZUXHrc/P+wy2bhs32/WeJ8YDiEVU75csTPRMIhyVE+dC96WSBHW34
+	 YO2zKbI23kqBHoLamGNf11zXGieuks5NassCxLlsoVhw5KbXkSQG9NaVWuZnqpbYsi
+	 X1gDFOG/rhe6IAj3qwveISRTwFt5dQ1DUtt30/BU=
+Date: Mon, 18 Dec 2023 09:23:19 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,yuzenghui@huawei.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vincenzo.frascino@arm.com,suzuki.poulose@arm.com,shy828301@gmail.com,ryabinin.a.a@gmail.com,oliver.upton@linux.dev,maz@kernel.org,mark.rutland@arm.com,jhubbard@nvidia.com,james.morse@arm.com,glider@google.com,dvyukov@google.com,david@redhat.com,catalin.marinas@arm.com,ardb@kernel.org,apopple@nvidia.com,anshuman.khandual@arm.com,andreyknvl@gmail.com,21cnbao@gmail.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-mm-set_pte-new-layer-to-manage-contig-bit.patch added to mm-unstable branch
-Message-Id: <20231218172316.08623C433C8@smtp.kernel.org>
+Subject: + arm64-mm-set_ptes-set_pte_at-new-layer-to-manage-contig-bit.patch added to mm-unstable branch
+Message-Id: <20231218172319.B9AD5C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64/mm: set_pte(): new layer to manage contig bit
+     Subject: arm64/mm: set_ptes()/set_pte_at(): new layer to manage contig bit
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-mm-set_pte-new-layer-to-manage-contig-bit.patch
+     arm64-mm-set_ptes-set_pte_at-new-layer-to-manage-contig-bit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-set_pte-new-layer-to-manage-contig-bit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-set_ptes-set_pte_at-new-layer-to-manage-contig-bit.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,8 +51,8 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: arm64/mm: set_pte(): new layer to manage contig bit
-Date: Mon, 18 Dec 2023 10:50:48 +0000
+Subject: arm64/mm: set_ptes()/set_pte_at(): new layer to manage contig bit
+Date: Mon, 18 Dec 2023 10:50:49 +0000
 
 Create a new layer for the in-table PTE manipulation APIs.  For now, The
 existing API is prefixed with double underscore to become the arch-private
@@ -66,7 +66,13 @@ first ensure those users use the private API directly so that the future
 contig-bit manipulations in the public API do not interfere with those
 existing uses.
 
-Link: https://lkml.kernel.org/r/20231218105100.172635-5-ryan.roberts@arm.com
+set_pte_at() is a core macro that forwards to set_ptes() (with nr=1). 
+Instead of creating a __set_pte_at() internal macro, convert all arch
+users to use set_ptes()/__set_ptes() directly, as appropriate.  Callers in
+hugetlb may benefit from calling __set_ptes() once for their whole range
+rather than managing their own loop.  This is left for future improvement.
+
+Link: https://lkml.kernel.org/r/20231218105100.172635-6-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
 Tested-by: John Hubbard <jhubbard@nvidia.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -95,148 +101,130 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |   12 ++++++++----
- arch/arm64/kernel/efi.c          |    2 +-
- arch/arm64/mm/fixmap.c           |    2 +-
- arch/arm64/mm/kasan_init.c       |    4 ++--
- arch/arm64/mm/mmu.c              |    2 +-
- arch/arm64/mm/pageattr.c         |    2 +-
- arch/arm64/mm/trans_pgd.c        |    4 ++--
- 7 files changed, 16 insertions(+), 12 deletions(-)
+ arch/arm64/include/asm/pgtable.h |   10 +++++-----
+ arch/arm64/kernel/mte.c          |    2 +-
+ arch/arm64/kvm/guest.c           |    2 +-
+ arch/arm64/mm/fault.c            |    2 +-
+ arch/arm64/mm/hugetlbpage.c      |   10 +++++-----
+ 5 files changed, 13 insertions(+), 13 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~arm64-mm-set_pte-new-layer-to-manage-contig-bit
+--- a/arch/arm64/include/asm/pgtable.h~arm64-mm-set_ptes-set_pte_at-new-layer-to-manage-contig-bit
 +++ a/arch/arm64/include/asm/pgtable.h
-@@ -93,7 +93,8 @@ static inline pteval_t __phys_to_pte_val
- 	__pte(__phys_to_pte_val((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
- 
- #define pte_none(pte)		(!pte_val(pte))
--#define pte_clear(mm,addr,ptep)	set_pte(ptep, __pte(0))
-+#define pte_clear(mm, addr, ptep) \
-+				__set_pte(ptep, __pte(0))
- #define pte_page(pte)		(pfn_to_page(pte_pfn(pte)))
- 
- /*
-@@ -261,7 +262,7 @@ static inline pte_t pte_mkdevmap(pte_t p
- 	return set_pte_bit(pte, __pgprot(PTE_DEVMAP | PTE_SPECIAL));
+@@ -342,9 +342,9 @@ static inline void __sync_cache_and_tags
+ 		mte_sync_tags(pte, nr_pages);
  }
  
--static inline void set_pte(pte_t *ptep, pte_t pte)
-+static inline void __set_pte(pte_t *ptep, pte_t pte)
+-static inline void set_ptes(struct mm_struct *mm,
+-			    unsigned long __always_unused addr,
+-			    pte_t *ptep, pte_t pte, unsigned int nr)
++static inline void __set_ptes(struct mm_struct *mm,
++			      unsigned long __always_unused addr,
++			      pte_t *ptep, pte_t pte, unsigned int nr)
  {
- 	WRITE_ONCE(*ptep, pte);
- 
-@@ -350,7 +351,7 @@ static inline void set_ptes(struct mm_st
- 
- 	for (;;) {
- 		__check_safe_pte_update(mm, ptep, pte);
--		set_pte(ptep, pte);
-+		__set_pte(ptep, pte);
- 		if (--nr == 0)
- 			break;
- 		ptep++;
-@@ -534,7 +535,7 @@ static inline void __set_pte_at(struct m
- {
+ 	page_table_check_ptes_set(mm, ptep, pte, nr);
  	__sync_cache_and_tags(pte, nr);
- 	__check_safe_pte_update(mm, ptep, pte);
--	set_pte(ptep, pte);
-+	__set_pte(ptep, pte);
- }
- 
- static inline void set_pmd_at(struct mm_struct *mm, unsigned long addr,
-@@ -1118,6 +1119,9 @@ extern pte_t ptep_modify_prot_start(stru
- extern void ptep_modify_prot_commit(struct vm_area_struct *vma,
- 				    unsigned long addr, pte_t *ptep,
- 				    pte_t old_pte, pte_t new_pte);
-+
-+#define set_pte					__set_pte
-+
- #endif /* !__ASSEMBLY__ */
- 
- #endif /* __ASM_PGTABLE_H */
---- a/arch/arm64/kernel/efi.c~arm64-mm-set_pte-new-layer-to-manage-contig-bit
-+++ a/arch/arm64/kernel/efi.c
-@@ -111,7 +111,7 @@ static int __init set_permissions(pte_t
- 		pte = set_pte_bit(pte, __pgprot(PTE_PXN));
- 	else if (system_supports_bti_kernel() && spd->has_bti)
- 		pte = set_pte_bit(pte, __pgprot(PTE_GP));
--	set_pte(ptep, pte);
-+	__set_pte(ptep, pte);
- 	return 0;
- }
- 
---- a/arch/arm64/mm/fixmap.c~arm64-mm-set_pte-new-layer-to-manage-contig-bit
-+++ a/arch/arm64/mm/fixmap.c
-@@ -121,7 +121,7 @@ void __set_fixmap(enum fixed_addresses i
- 	ptep = fixmap_pte(addr);
- 
- 	if (pgprot_val(flags)) {
--		set_pte(ptep, pfn_pte(phys >> PAGE_SHIFT, flags));
-+		__set_pte(ptep, pfn_pte(phys >> PAGE_SHIFT, flags));
- 	} else {
- 		pte_clear(&init_mm, addr, ptep);
- 		flush_tlb_kernel_range(addr, addr+PAGE_SIZE);
---- a/arch/arm64/mm/kasan_init.c~arm64-mm-set_pte-new-layer-to-manage-contig-bit
-+++ a/arch/arm64/mm/kasan_init.c
-@@ -112,7 +112,7 @@ static void __init kasan_pte_populate(pm
- 		if (!early)
- 			memset(__va(page_phys), KASAN_SHADOW_INIT, PAGE_SIZE);
- 		next = addr + PAGE_SIZE;
--		set_pte(ptep, pfn_pte(__phys_to_pfn(page_phys), PAGE_KERNEL));
-+		__set_pte(ptep, pfn_pte(__phys_to_pfn(page_phys), PAGE_KERNEL));
- 	} while (ptep++, addr = next, addr != end && pte_none(READ_ONCE(*ptep)));
- }
- 
-@@ -266,7 +266,7 @@ static void __init kasan_init_shadow(voi
- 	 * so we should make sure that it maps the zero page read-only.
- 	 */
- 	for (i = 0; i < PTRS_PER_PTE; i++)
--		set_pte(&kasan_early_shadow_pte[i],
-+		__set_pte(&kasan_early_shadow_pte[i],
- 			pfn_pte(sym_to_pfn(kasan_early_shadow_page),
- 				PAGE_KERNEL_RO));
- 
---- a/arch/arm64/mm/mmu.c~arm64-mm-set_pte-new-layer-to-manage-contig-bit
-+++ a/arch/arm64/mm/mmu.c
-@@ -178,7 +178,7 @@ static void init_pte(pmd_t *pmdp, unsign
- 	do {
- 		pte_t old_pte = READ_ONCE(*ptep);
- 
--		set_pte(ptep, pfn_pte(__phys_to_pfn(phys), prot));
-+		__set_pte(ptep, pfn_pte(__phys_to_pfn(phys), prot));
- 
- 		/*
- 		 * After the PTE entry has been populated once, we
---- a/arch/arm64/mm/pageattr.c~arm64-mm-set_pte-new-layer-to-manage-contig-bit
-+++ a/arch/arm64/mm/pageattr.c
-@@ -41,7 +41,7 @@ static int change_page_range(pte_t *ptep
- 	pte = clear_pte_bit(pte, cdata->clear_mask);
- 	pte = set_pte_bit(pte, cdata->set_mask);
- 
--	set_pte(ptep, pte);
-+	__set_pte(ptep, pte);
- 	return 0;
- }
- 
---- a/arch/arm64/mm/trans_pgd.c~arm64-mm-set_pte-new-layer-to-manage-contig-bit
-+++ a/arch/arm64/mm/trans_pgd.c
-@@ -41,7 +41,7 @@ static void _copy_pte(pte_t *dst_ptep, p
- 		 * read only (code, rodata). Clear the RDONLY bit from
- 		 * the temporary mappings we use during restore.
- 		 */
--		set_pte(dst_ptep, pte_mkwrite_novma(pte));
-+		__set_pte(dst_ptep, pte_mkwrite_novma(pte));
- 	} else if ((debug_pagealloc_enabled() ||
- 		   is_kfence_address((void *)addr)) && !pte_none(pte)) {
- 		/*
-@@ -55,7 +55,7 @@ static void _copy_pte(pte_t *dst_ptep, p
- 		 */
- 		BUG_ON(!pfn_valid(pte_pfn(pte)));
- 
--		set_pte(dst_ptep, pte_mkpresent(pte_mkwrite_novma(pte)));
-+		__set_pte(dst_ptep, pte_mkpresent(pte_mkwrite_novma(pte)));
+@@ -358,7 +358,6 @@ static inline void set_ptes(struct mm_st
+ 		pte_val(pte) += PAGE_SIZE;
  	}
  }
+-#define set_ptes set_ptes
  
+ /*
+  * Huge pte definitions.
+@@ -1067,7 +1066,7 @@ static inline void arch_swap_restore(swp
+ #endif /* CONFIG_ARM64_MTE */
+ 
+ /*
+- * On AArch64, the cache coherency is handled via the set_pte_at() function.
++ * On AArch64, the cache coherency is handled via the __set_ptes() function.
+  */
+ static inline void update_mmu_cache_range(struct vm_fault *vmf,
+ 		struct vm_area_struct *vma, unsigned long addr, pte_t *ptep,
+@@ -1121,6 +1120,7 @@ extern void ptep_modify_prot_commit(stru
+ 				    pte_t old_pte, pte_t new_pte);
+ 
+ #define set_pte					__set_pte
++#define set_ptes				__set_ptes
+ 
+ #endif /* !__ASSEMBLY__ */
+ 
+--- a/arch/arm64/kernel/mte.c~arm64-mm-set_ptes-set_pte_at-new-layer-to-manage-contig-bit
++++ a/arch/arm64/kernel/mte.c
+@@ -67,7 +67,7 @@ int memcmp_pages(struct page *page1, str
+ 	/*
+ 	 * If the page content is identical but at least one of the pages is
+ 	 * tagged, return non-zero to avoid KSM merging. If only one of the
+-	 * pages is tagged, set_pte_at() may zero or change the tags of the
++	 * pages is tagged, __set_ptes() may zero or change the tags of the
+ 	 * other page via mte_sync_tags().
+ 	 */
+ 	if (page_mte_tagged(page1) || page_mte_tagged(page2))
+--- a/arch/arm64/kvm/guest.c~arm64-mm-set_ptes-set_pte_at-new-layer-to-manage-contig-bit
++++ a/arch/arm64/kvm/guest.c
+@@ -1072,7 +1072,7 @@ int kvm_vm_ioctl_mte_copy_tags(struct kv
+ 		} else {
+ 			/*
+ 			 * Only locking to serialise with a concurrent
+-			 * set_pte_at() in the VMM but still overriding the
++			 * __set_ptes() in the VMM but still overriding the
+ 			 * tags, hence ignoring the return value.
+ 			 */
+ 			try_page_mte_tagging(page);
+--- a/arch/arm64/mm/fault.c~arm64-mm-set_ptes-set_pte_at-new-layer-to-manage-contig-bit
++++ a/arch/arm64/mm/fault.c
+@@ -205,7 +205,7 @@ static void show_pte(unsigned long addr)
+  *
+  * It needs to cope with hardware update of the accessed/dirty state by other
+  * agents in the system and can safely skip the __sync_icache_dcache() call as,
+- * like set_pte_at(), the PTE is never changed from no-exec to exec here.
++ * like __set_ptes(), the PTE is never changed from no-exec to exec here.
+  *
+  * Returns whether or not the PTE actually changed.
+  */
+--- a/arch/arm64/mm/hugetlbpage.c~arm64-mm-set_ptes-set_pte_at-new-layer-to-manage-contig-bit
++++ a/arch/arm64/mm/hugetlbpage.c
+@@ -254,12 +254,12 @@ void set_huge_pte_at(struct mm_struct *m
+ 
+ 	if (!pte_present(pte)) {
+ 		for (i = 0; i < ncontig; i++, ptep++, addr += pgsize)
+-			set_pte_at(mm, addr, ptep, pte);
++			__set_ptes(mm, addr, ptep, pte, 1);
+ 		return;
+ 	}
+ 
+ 	if (!pte_cont(pte)) {
+-		set_pte_at(mm, addr, ptep, pte);
++		__set_ptes(mm, addr, ptep, pte, 1);
+ 		return;
+ 	}
+ 
+@@ -270,7 +270,7 @@ void set_huge_pte_at(struct mm_struct *m
+ 	clear_flush(mm, addr, ptep, pgsize, ncontig);
+ 
+ 	for (i = 0; i < ncontig; i++, ptep++, addr += pgsize, pfn += dpfn)
+-		set_pte_at(mm, addr, ptep, pfn_pte(pfn, hugeprot));
++		__set_ptes(mm, addr, ptep, pfn_pte(pfn, hugeprot), 1);
+ }
+ 
+ pte_t *huge_pte_alloc(struct mm_struct *mm, struct vm_area_struct *vma,
+@@ -478,7 +478,7 @@ int huge_ptep_set_access_flags(struct vm
+ 
+ 	hugeprot = pte_pgprot(pte);
+ 	for (i = 0; i < ncontig; i++, ptep++, addr += pgsize, pfn += dpfn)
+-		set_pte_at(mm, addr, ptep, pfn_pte(pfn, hugeprot));
++		__set_ptes(mm, addr, ptep, pfn_pte(pfn, hugeprot), 1);
+ 
+ 	return 1;
+ }
+@@ -507,7 +507,7 @@ void huge_ptep_set_wrprotect(struct mm_s
+ 	pfn = pte_pfn(pte);
+ 
+ 	for (i = 0; i < ncontig; i++, ptep++, addr += pgsize, pfn += dpfn)
+-		set_pte_at(mm, addr, ptep, pfn_pte(pfn, hugeprot));
++		__set_ptes(mm, addr, ptep, pfn_pte(pfn, hugeprot), 1);
+ }
+ 
+ pte_t huge_ptep_clear_flush(struct vm_area_struct *vma,
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
