@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0166A8470
-	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 18:44:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9E148470
+	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 18:44:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aGwxzCtZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68D13C433C7;
-	Mon, 18 Dec 2023 18:44:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZoFzQKrO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 597EFC433C7;
+	Mon, 18 Dec 2023 18:44:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702925048;
-	bh=rSJixzcJ7zC488N1zKDODJ/UPHFvAAmBboOeRQern2w=;
+	s=korg; t=1702925050;
+	bh=xWc0WdgX1m8PcOEHnhsrLuRB6U+g1fz79rPhprAXaSE=;
 	h=Date:To:From:Subject:From;
-	b=aGwxzCtZ/JEu+R85ZCfmGUVEWJm0BRis8wb3J2ROXLsB7U9swiPQBivn5edsiqSOF
-	 yb4C2sMyK1WLc3/619pzoRTPVjWteJoBq2Wy7EUZSLdE/7lBQueYaI3TnCmCypudUS
-	 /+WVng46K9d5PbyYm/I7hOui/Dcftf+xeVoea/1A=
-Date: Mon, 18 Dec 2023 10:44:07 -0800
+	b=ZoFzQKrOQMjB8naBN9amV0pjD7A3JboCCfyrFp9SBHUuYDNrO3YgUrWVfizjafjdb
+	 hmTxHOT+VpTkZJO+bVB3h36PVDdCPPkHe4p26VDb41veDG8jmfk/XINHfxhnqeVVeS
+	 4plAl5vqpz7596QRtprVqTEuZwLEyg8RfmlNKIyw=
+Date: Mon, 18 Dec 2023 10:44:09 -0800
 To: mm-commits@vger.kernel.org,hch@lst.de,axboe@kernel.dk,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-remove-clean_page_buffers.patch added to mm-unstable branch
-Message-Id: <20231218184408.68D13C433C7@smtp.kernel.org>
+Subject: + fs-convert-clean_buffers-to-take-a-folio.patch added to mm-unstable branch
+Message-Id: <20231218184410.597EFC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs: remove clean_page_buffers()
+     Subject: fs: convert clean_buffers() to take a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     fs-remove-clean_page_buffers.patch
+     fs-convert-clean_buffers-to-take-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-remove-clean_page_buffers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-convert-clean_buffers-to-take-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,70 +51,62 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: fs: remove clean_page_buffers()
-Date: Fri, 15 Dec 2023 20:02:32 +0000
+Subject: fs: convert clean_buffers() to take a folio
+Date: Fri, 15 Dec 2023 20:02:33 +0000
 
-Patch series "Clean up the writeback paths".
+The only caller already has a folio, so pass it in and use it throughout. 
+Saves two calls to compound_head().
 
-Most of these patches verge on the trivial, converting filesystems that
-just use block_write_full_page() to use mpage_writepages().  But as we saw
-with Christoph's earlier patchset, there can be some "interesting"
-gotchas, and I clearly haven't tested the majority of filesystems I've
-touched here.
-
-Patches 3 & 4 get rid of a lot of stack usage on architectures with larger
-page sizes; 1024 bytes on 64-bit systems with 64KiB pages.  It starts to
-open the door to larger folio sizes on all architectures, but it's
-certainly not enough yet.
-
-Patch 14 is kind of trivial, but it's nice to get that simplification in.
-
-
-This patch (of 14):
-
-This function has been unused since the removal of bdev_write_page().
-
-Link: https://lkml.kernel.org/r/20231215200245.748418-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20231215200245.748418-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231215200245.748418-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mpage.c                  |   10 ----------
- include/linux/buffer_head.h |    1 -
- 2 files changed, 11 deletions(-)
+ fs/mpage.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/fs/mpage.c~fs-remove-clean_page_buffers
+--- a/fs/mpage.c~fs-convert-clean_buffers-to-take-a-folio
 +++ a/fs/mpage.c
-@@ -455,16 +455,6 @@ static void clean_buffers(struct page *p
- 		try_to_free_buffers(page_folio(page));
+@@ -430,13 +430,13 @@ struct mpage_data {
+  * We have our BIO, so we can now mark the buffers clean.  Make
+  * sure to only clean buffers which we know we'll be writing.
+  */
+-static void clean_buffers(struct page *page, unsigned first_unmapped)
++static void clean_buffers(struct folio *folio, unsigned first_unmapped)
+ {
+ 	unsigned buffer_counter = 0;
+-	struct buffer_head *bh, *head;
+-	if (!page_has_buffers(page))
++	struct buffer_head *bh, *head = folio_buffers(folio);
++
++	if (!head)
+ 		return;
+-	head = page_buffers(page);
+ 	bh = head;
+ 
+ 	do {
+@@ -451,8 +451,8 @@ static void clean_buffers(struct page *p
+ 	 * read_folio would fail to serialize with the bh and it would read from
+ 	 * disk before we reach the platter.
+ 	 */
+-	if (buffer_heads_over_limit && PageUptodate(page))
+-		try_to_free_buffers(page_folio(page));
++	if (buffer_heads_over_limit && folio_test_uptodate(folio))
++		try_to_free_buffers(folio);
  }
  
--/*
-- * For situations where we want to clean all buffers attached to a page.
-- * We don't need to calculate how many buffers are attached to the page,
-- * we just need to specify a number larger than the maximum number of buffers.
-- */
--void clean_page_buffers(struct page *page)
--{
--	clean_buffers(page, ~0U);
--}
--
  static int __mpage_writepage(struct folio *folio, struct writeback_control *wbc,
- 		      void *data)
- {
---- a/include/linux/buffer_head.h~fs-remove-clean_page_buffers
-+++ a/include/linux/buffer_head.h
-@@ -270,7 +270,6 @@ int generic_write_end(struct file *, str
- 				loff_t, unsigned, unsigned,
- 				struct page *, void *);
- void folio_zero_new_buffers(struct folio *folio, size_t from, size_t to);
--void clean_page_buffers(struct page *page);
- int cont_write_begin(struct file *, struct address_space *, loff_t,
- 			unsigned, struct page **, void **,
- 			get_block_t *, loff_t *);
+@@ -615,7 +615,7 @@ alloc_new:
+ 		goto alloc_new;
+ 	}
+ 
+-	clean_buffers(&folio->page, first_unmapped);
++	clean_buffers(folio, first_unmapped);
+ 
+ 	BUG_ON(folio_test_writeback(folio));
+ 	folio_start_writeback(folio);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
