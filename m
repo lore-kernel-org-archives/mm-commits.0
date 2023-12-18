@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 393114FF6D;
-	Mon, 18 Dec 2023 16:57:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 109EA42392
+	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 16:57:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="baaNSpTm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAFEBC433CA;
-	Mon, 18 Dec 2023 16:57:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WT+x56XV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83477C433C8;
+	Mon, 18 Dec 2023 16:57:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702918640;
-	bh=HMfDRbbKf/Z1qSYNpK7m51Uxc5432zh6p5Jh4TaL/Fo=;
+	s=korg; t=1702918642;
+	bh=2vyAbzTMuYuA9IzBYQ+faqGVv9GdOnhAMdsjeU2gdhU=;
 	h=Date:To:From:Subject:From;
-	b=baaNSpTmsV5i9VjBQB9d4ghPwFzr2StFZWkteKA79p2S3yCurCjO9ELJCGw1mgBDC
-	 OSgk/BhsmZJm8Mx//7Gci6DltuQ0xb6+wEOm8+4fL1G5BavUq3OjL0Oy2A0YuzLcHM
-	 5rCcjCyREuOs758juLvovI7sVNfDxMZLJO1EZZnI=
-Date: Mon, 18 Dec 2023 08:57:19 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,n-horiguchi@ah.jp.nec.com,dan.j.williams@intel.com,willy@infradead.org,akpm@linux-foundation.org
+	b=WT+x56XVXbkzBtK9G1aQaj/NJUwFxqPXVjZebDMB7i8GIm9+UD78Q+G84pZyEmH9D
+	 ifY+dP+6Hniu3hpHUN2xBvOELadN0rv8Jw9wttIfyXit/wJh4/bctAC9J5Q1lb3AQP
+	 ggcrYkcRk4sK/vNMpY3PxLrS5czWOqpqnZ2wDUbE=
+Date: Mon, 18 Dec 2023 08:57:21 -0800
+To: mm-commits@vger.kernel.org,n-horiguchi@ah.jp.nec.com,dan.j.williams@intel.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-cast-index-to-loff_t-before-shifting-it.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231218165720.BAFEBC433CA@smtp.kernel.org>
+Subject: + mailmap-add-an-old-address-for-naoya-horiguchi.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231218165722.83477C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory-failure: cast index to loff_t before shifting it
+     Subject: mailmap: add an old address for Naoya Horiguchi
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-memory-failure-cast-index-to-loff_t-before-shifting-it.patch
+     mailmap-add-an-old-address-for-naoya-horiguchi.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-cast-index-to-loff_t-before-shifting-it.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-add-an-old-address-for-naoya-horiguchi.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,36 +51,31 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/memory-failure: cast index to loff_t before shifting it
-Date: Mon, 18 Dec 2023 13:58:37 +0000
+Subject: mailmap: add an old address for Naoya Horiguchi
+Date: Mon, 18 Dec 2023 14:03:28 +0000
 
-On 32-bit systems, we'll lose the top bits of index because arithmetic
-will be performed in unsigned long instead of unsigned long long.  This
-affects files over 4GB in size.
+This address now bounces, remap it to a current address.
 
-Link: https://lkml.kernel.org/r/20231218135837.3310403-4-willy@infradead.org
-Fixes: 6100e34b2526 ("mm, memory_failure: Teach memory_failure() about dev_pagemap pages")
+Link: https://lkml.kernel.org/r/20231218140328.3313474-1-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .mailmap |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/memory-failure.c~mm-memory-failure-cast-index-to-loff_t-before-shifting-it
-+++ a/mm/memory-failure.c
-@@ -1704,7 +1704,7 @@ static void unmap_and_kill(struct list_h
- 		 * mapping being torn down is communicated in siginfo, see
- 		 * kill_proc()
- 		 */
--		loff_t start = (index << PAGE_SHIFT) & ~(size - 1);
-+		loff_t start = ((loff_t)index << PAGE_SHIFT) & ~(size - 1);
- 
- 		unmap_mapping_range(mapping, start, size, 0);
- 	}
+--- a/.mailmap~mailmap-add-an-old-address-for-naoya-horiguchi
++++ a/.mailmap
+@@ -429,6 +429,7 @@ Muna Sinada <quic_msinada@quicinc.com> <
+ Murali Nalajala <quic_mnalajal@quicinc.com> <mnalajal@codeaurora.org>
+ Mythri P K <mythripk@ti.com>
+ Nadia Yvette Chambers <nyc@holomorphy.com> William Lee Irwin III <wli@holomorphy.com>
++Naoya Horiguchi <naoya.horiguchi@nec.com> <n-horiguchi@ah.jp.nec.com>
+ Nathan Chancellor <nathan@kernel.org> <natechancellor@gmail.com>
+ Neeraj Upadhyay <quic_neeraju@quicinc.com> <neeraju@codeaurora.org>
+ Neil Armstrong <neil.armstrong@linaro.org> <narmstrong@baylibre.com>
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
