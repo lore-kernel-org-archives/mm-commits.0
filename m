@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D1BA125C8
-	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 17:23:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D72765BFB9
+	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 18:25:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YPz09Uj3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0A87C433C7;
-	Mon, 18 Dec 2023 17:23:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wg89OZo0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E767C433C8;
+	Mon, 18 Dec 2023 18:25:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702920229;
-	bh=qlRtpmUEu9xzSYvyBWLEA68SKl7gW3BsJOpYLFKpBqU=;
+	s=korg; t=1702923947;
+	bh=LfXYTPWJIuwj370VOVXEFxiuhLOwCcLV5K8nmKybQss=;
 	h=Date:To:From:Subject:From;
-	b=YPz09Uj3v202MpdIE5atm/2rvj6eeD//+H9aL53vig1xzgALUmUzlneT2Kdy5nrE3
-	 OFthMdLaGIHSmFAeIWqI7PQ9THOspYr52iTuaOENlTBQ27U/7ON+n1J1OtwbeTcUg5
-	 P7Ml5ajLLSWACx/2MlRwT7H+vJMx26rNZaahFcEU=
-Date: Mon, 18 Dec 2023 09:23:49 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,yuzenghui@huawei.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vincenzo.frascino@arm.com,suzuki.poulose@arm.com,shy828301@gmail.com,ryabinin.a.a@gmail.com,oliver.upton@linux.dev,maz@kernel.org,mark.rutland@arm.com,jhubbard@nvidia.com,james.morse@arm.com,glider@google.com,dvyukov@google.com,david@redhat.com,catalin.marinas@arm.com,ardb@kernel.org,apopple@nvidia.com,anshuman.khandual@arm.com,andreyknvl@gmail.com,21cnbao@gmail.com,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=wg89OZo0vibHiL8iKLNh4JHa4tNb+ep8S9Rdx2744VJHMd5b/n2VLNqV1vNUP/V0s
+	 Wp7mEUmS9siqAtWWOe2w8acckHYu1qJAoMOq0ASSIzyo00LziJylQSp6pMhpttlzp3
+	 /iyN4VG8B0G9ifqaVfuaQNUJDAN//57u37piLMIU=
+Date: Mon, 18 Dec 2023 10:25:46 -0800
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,mingo@redhat.com,hpa@zytor.com,ebiederm@xmission.com,dave.hansen@linux.intel.com,corbet@lwn.net,bp@alien8.de,bhe@redhat.com,ytcoode@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-mm-implement-clear_ptes-to-optimize-exit-munmap-dontneed.patch added to mm-unstable branch
-Message-Id: <20231218172349.D0A87C433C7@smtp.kernel.org>
+Subject: + kexec-modify-the-meaning-of-the-end-parameter-in-kimage_is_destination_range.patch added to mm-nonmm-unstable branch
+Message-Id: <20231218182547.4E767C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64/mm: implement clear_ptes() to optimize exit, munmap, dontneed
-has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-mm-implement-clear_ptes-to-optimize-exit-munmap-dontneed.patch
+     Subject: kexec: modify the meaning of the end parameter in kimage_is_destination_range()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kexec-modify-the-meaning-of-the-end-parameter-in-kimage_is_destination_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-implement-clear_ptes-to-optimize-exit-munmap-dontneed.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-modify-the-meaning-of-the-end-parameter-in-kimage_is_destination_range.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,247 +50,83 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: arm64/mm: implement clear_ptes() to optimize exit, munmap, dontneed
-Date: Mon, 18 Dec 2023 10:51:00 +0000
+From: Yuntao Wang <ytcoode@gmail.com>
+Subject: kexec: modify the meaning of the end parameter in kimage_is_destination_range()
+Date: Sun, 17 Dec 2023 11:35:26 +0800
 
-With the core-mm changes in place to batch-clear ptes during
-zap_pte_range(), we can take advantage of this in arm64 to greatly reduce
-the number of tlbis we have to issue, and recover the lost performance in
-exit, munmap and madvise(DONTNEED) incured when adding support for
-transparent contiguous ptes.
+The end parameter received by kimage_is_destination_range() should be the
+last valid byte address of the target memory segment plus 1.  However, in
+the locate_mem_hole_bottom_up() and locate_mem_hole_top_down() functions,
+the corresponding value passed to kimage_is_destination_range() is the
+last valid byte address of the target memory segment, which is 1 less.
 
-If we are clearing a whole contpte range, we can elide first unfolding
-that range and save the tlbis.  We just clear the whole range.
+There are two ways to fix this bug.  We can either correct the logic of
+the locate_mem_hole_bottom_up() and locate_mem_hole_top_down() functions,
+or we can fix kimage_is_destination_range() by making the end parameter
+represent the last valid byte address of the target memory segment.  Here,
+we choose the second approach.
 
-The following microbenchmark results demonstate the effect of this change
-on madvise(DONTNEED) performance for large pte-mapped folios. 
-madvise(dontneed) is called for each page of a 1G populated mapping and
-the total time is measured.  100 iterations per run, 8 runs performed on
-both Apple M2 (VM) and Ampere Altra (bare metal).  Tests performed for
-case where 1G memory is comprised of pte-mapped order-9 folios.  Negative
-is faster, positive is slower, compared to baseline upon which the series
-is based:
+Due to the modification to kimage_is_destination_range(), we also need to
+adjust its callers, such as kimage_alloc_normal_control_pages() and
+kimage_alloc_page().
 
-| dontneed      |    Apple M2 VM    |    Ampere Altra   |
-| order-9       |-------------------|-------------------|
-| (pte-map)     |    mean |   stdev |    mean |   stdev |
-|---------------|---------|---------|---------|---------|
-| baseline      |    0.0% |    7.9% |    0.0% |    0.0% |
-| before-change |   -1.3% |    7.0% |   13.0% |    0.0% |
-| after-change  |   -9.9% |    0.9% |   14.1% |    0.0% |
-
-The memory is initially all contpte-mapped and has to be unfolded (which
-requires tlbi for the whole block) when the first page is touched (since
-the test is madvise-ing 1 page at a time).  Ampere Altra has high cost for
-tlbi; this is why cost increases there.
-
-The following microbenchmark results demonstate the recovery (and overall
-improvement) of munmap performance for large pte-mapped folios.  munmap is
-called for a 1G populated mapping and the function runtime is measured. 
-100 iterations per run, 8 runs performed on both Apple M2 (VM) and Ampere
-Altra (bare metal).  Tests performed for case where 1G memory is comprised
-of pte-mapped order-9 folios.  Negative is faster, positive is slower,
-compared to baseline upon which the series is based:
-
-| munmap        |    Apple M2 VM    |    Ampere Altra   |
-| order-9       |-------------------|-------------------|
-| (pte-map)     |    mean |   stdev |    mean |   stdev |
-|---------------|---------|---------|---------|---------|
-| baseline      |    0.0% |    6.4% |    0.0% |    0.1% |
-| before-change |   43.3% |    1.9% |  375.2% |    0.0% |
-| after-change  |   -6.0% |    1.4% |   -0.6% |    0.2% |
-
-Link: https://lkml.kernel.org/r/20231218105100.172635-17-ryan.roberts@arm.com
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Tested-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: James Morse <james.morse@arm.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Marc Zyngier <maz@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Oliver Upton <oliver.upton@linux.dev>
-Cc: Suzuki Poulouse <suzuki.poulose@arm.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Zenghui Yu <yuzenghui@huawei.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20231217033528.303333-2-ytcoode@gmail.com
+Signed-off-by: Yuntao Wang <ytcoode@gmail.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |   42 +++++++++++++++++++++++++++
- arch/arm64/mm/contpte.c          |   45 +++++++++++++++++++++++++++++
- 2 files changed, 87 insertions(+)
+ kernel/kexec_core.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~arm64-mm-implement-clear_ptes-to-optimize-exit-munmap-dontneed
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -953,6 +953,29 @@ static inline pte_t __ptep_get_and_clear
- 	return pte;
- }
+--- a/kernel/kexec_core.c~kexec-modify-the-meaning-of-the-end-parameter-in-kimage_is_destination_range
++++ a/kernel/kexec_core.c
+@@ -278,8 +278,8 @@ int kimage_is_destination_range(struct k
+ 		unsigned long mstart, mend;
  
-+static inline pte_t __clear_ptes(struct mm_struct *mm,
-+				 unsigned long address, pte_t *ptep,
-+				 unsigned int nr, int full)
-+{
-+	pte_t orig_pte = __ptep_get_and_clear(mm, address, ptep);
-+	unsigned int i;
-+	pte_t pte;
-+
-+	for (i = 1; i < nr; i++) {
-+		address += PAGE_SIZE;
-+		ptep++;
-+		pte = __ptep_get_and_clear(mm, address, ptep);
-+
-+		if (pte_dirty(pte))
-+			orig_pte = pte_mkdirty(orig_pte);
-+
-+		if (pte_young(pte))
-+			orig_pte = pte_mkyoung(orig_pte);
-+	}
-+
-+	return orig_pte;
-+}
-+
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- #define __HAVE_ARCH_PMDP_HUGE_GET_AND_CLEAR
- static inline pmd_t pmdp_huge_get_and_clear(struct mm_struct *mm,
-@@ -1151,6 +1174,8 @@ extern pte_t contpte_ptep_get(pte_t *pte
- extern pte_t contpte_ptep_get_lockless(pte_t *orig_ptep);
- extern void contpte_set_ptes(struct mm_struct *mm, unsigned long addr,
- 				pte_t *ptep, pte_t pte, unsigned int nr);
-+extern pte_t contpte_clear_ptes(struct mm_struct *mm, unsigned long addr,
-+				pte_t *ptep, unsigned int nr, int full);
- extern int contpte_ptep_test_and_clear_young(struct vm_area_struct *vma,
- 				unsigned long addr, pte_t *ptep);
- extern int contpte_ptep_clear_flush_young(struct vm_area_struct *vma,
-@@ -1279,6 +1304,22 @@ static inline void pte_clear(struct mm_s
- 	__pte_clear(mm, addr, ptep);
- }
+ 		mstart = image->segment[i].mem;
+-		mend = mstart + image->segment[i].memsz;
+-		if ((end > mstart) && (start < mend))
++		mend = mstart + image->segment[i].memsz - 1;
++		if ((end >= mstart) && (start <= mend))
+ 			return 1;
+ 	}
  
-+#define clear_ptes clear_ptes
-+static inline pte_t clear_ptes(struct mm_struct *mm,
-+				unsigned long addr, pte_t *ptep,
-+				unsigned int nr, int full)
-+{
-+	pte_t pte;
-+
-+	if (nr == 1) {
-+		contpte_try_unfold(mm, addr, ptep, __ptep_get(ptep));
-+		pte = __ptep_get_and_clear(mm, addr, ptep);
-+	} else
-+		pte = contpte_clear_ptes(mm, addr, ptep, nr, full);
-+
-+	return pte;
-+}
-+
- #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
- static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
- 				unsigned long addr, pte_t *ptep)
-@@ -1366,6 +1407,7 @@ static inline int ptep_set_access_flags(
- #define set_pte					__set_pte
- #define set_ptes				__set_ptes
- #define pte_clear				__pte_clear
-+#define clear_ptes				__clear_ptes
- #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
- #define ptep_get_and_clear			__ptep_get_and_clear
- #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
---- a/arch/arm64/mm/contpte.c~arm64-mm-implement-clear_ptes-to-optimize-exit-munmap-dontneed
-+++ a/arch/arm64/mm/contpte.c
-@@ -293,6 +293,51 @@ void contpte_set_ptes(struct mm_struct *
- }
- EXPORT_SYMBOL(contpte_set_ptes);
+@@ -372,7 +372,7 @@ static struct page *kimage_alloc_normal_
+ 		pfn   = page_to_boot_pfn(pages);
+ 		epfn  = pfn + count;
+ 		addr  = pfn << PAGE_SHIFT;
+-		eaddr = epfn << PAGE_SHIFT;
++		eaddr = (epfn << PAGE_SHIFT) - 1;
+ 		if ((epfn >= (KEXEC_CONTROL_MEMORY_LIMIT >> PAGE_SHIFT)) ||
+ 			      kimage_is_destination_range(image, addr, eaddr)) {
+ 			list_add(&pages->lru, &extra_pages);
+@@ -718,7 +718,7 @@ static struct page *kimage_alloc_page(st
  
-+pte_t contpte_clear_ptes(struct mm_struct *mm, unsigned long addr, pte_t *ptep,
-+					unsigned int nr, int full)
-+{
-+	/*
-+	 * If we cover a partial contpte block at the beginning or end of the
-+	 * batch, unfold if currently folded. This makes it safe to clear some
-+	 * of the entries while keeping others. contpte blocks in the middle of
-+	 * the range, which are fully covered don't need to be unfolded because
-+	 * we will clear the full block.
-+	 */
-+
-+	unsigned int i;
-+	pte_t pte;
-+	pte_t tail;
-+
-+	if (!mm_is_user(mm))
-+		return __clear_ptes(mm, addr, ptep, nr, full);
-+
-+	if (ptep != contpte_align_down(ptep) || nr < CONT_PTES)
-+		contpte_try_unfold(mm, addr, ptep, __ptep_get(ptep));
-+
-+	if (ptep + nr != contpte_align_down(ptep + nr))
-+		contpte_try_unfold(mm, addr + PAGE_SIZE * (nr - 1),
-+				   ptep + nr - 1,
-+				   __ptep_get(ptep + nr - 1));
-+
-+	pte = __ptep_get_and_clear(mm, addr, ptep);
-+
-+	for (i = 1; i < nr; i++) {
-+		addr += PAGE_SIZE;
-+		ptep++;
-+
-+		tail = __ptep_get_and_clear(mm, addr, ptep);
-+
-+		if (pte_dirty(tail))
-+			pte = pte_mkdirty(pte);
-+
-+		if (pte_young(tail))
-+			pte = pte_mkyoung(pte);
-+	}
-+
-+	return pte;
-+}
-+EXPORT_SYMBOL(contpte_clear_ptes);
-+
- int contpte_ptep_test_and_clear_young(struct vm_area_struct *vma,
- 					unsigned long addr, pte_t *ptep)
- {
+ 		/* If the page is not a destination page use it */
+ 		if (!kimage_is_destination_range(image, addr,
+-						  addr + PAGE_SIZE))
++						  addr + PAGE_SIZE - 1))
+ 			break;
+ 
+ 		/*
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from ytcoode@gmail.com are
 
-mm-allow-deferred-splitting-of-arbitrary-anon-large-folios.patch
-mm-non-pmd-mappable-large-folios-for-folio_add_new_anon_rmap.patch
-mm-thp-introduce-multi-size-thp-sysfs-interface.patch
-mm-thp-introduce-multi-size-thp-sysfs-interface-fix.patch
-mm-thp-support-allocation-of-anonymous-multi-size-thp.patch
-mm-thp-support-allocation-of-anonymous-multi-size-thp-fix.patch
-selftests-mm-kugepaged-restore-thp-settings-at-exit.patch
-selftests-mm-factor-out-thp-settings-management.patch
-selftests-mm-support-multi-size-thp-interface-in-thp_settings.patch
-selftests-mm-khugepaged-enlighten-for-multi-size-thp.patch
-selftests-mm-cow-generalize-do_run_with_thp-helper.patch
-selftests-mm-cow-add-tests-for-anonymous-multi-size-thp.patch
-mm-thp-batch-collapse-pmd-with-set_ptes.patch
-mm-batch-copy-pte-ranges-during-fork.patch
-mm-batch-clear-pte-ranges-during-zap_pte_range.patch
-arm64-mm-set_pte-new-layer-to-manage-contig-bit.patch
-arm64-mm-set_ptes-set_pte_at-new-layer-to-manage-contig-bit.patch
-arm64-mm-pte_clear-new-layer-to-manage-contig-bit.patch
-arm64-mm-ptep_get_and_clear-new-layer-to-manage-contig-bit.patch
-arm64-mm-ptep_test_and_clear_young-new-layer-to-manage-contig-bit.patch
-arm64-mm-ptep_clear_flush_young-new-layer-to-manage-contig-bit.patch
-arm64-mm-ptep_set_wrprotect-new-layer-to-manage-contig-bit.patch
-arm64-mm-ptep_set_access_flags-new-layer-to-manage-contig-bit.patch
-arm64-mm-ptep_get-new-layer-to-manage-contig-bit.patch
-arm64-mm-split-__flush_tlb_range-to-elide-trailing-dsb.patch
-arm64-mm-wire-up-pte_cont-for-user-mappings.patch
-arm64-mm-implement-new-helpers-to-optimize-fork.patch
-arm64-mm-implement-clear_ptes-to-optimize-exit-munmap-dontneed.patch
-selftests-mm-log-run_vmtestssh-results-in-tap-format.patch
+kexec-use-align-macro-instead-of-open-coding-it.patch
+x86-kexec-simplify-the-logic-of-mem_region_callback.patch
+x86-crash-remove-the-unused-image-parameter-from-prepare_elf_headers.patch
+x86-crash-use-sz_1m-macro-instead-of-hardcoded-value.patch
+crash_core-fix-and-simplify-the-logic-of-crash_exclude_mem_range.patch
+x86-crash-fix-potential-cmem-ranges-array-overflow.patch
+kexec-modify-the-meaning-of-the-end-parameter-in-kimage_is_destination_range.patch
+kexec_file-fix-incorrect-temp_start-value-in-locate_mem_hole_top_down.patch
 
