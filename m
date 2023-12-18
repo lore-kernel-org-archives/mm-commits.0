@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 806231E4A3;
-	Mon, 18 Dec 2023 16:57:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 393114FF6D;
+	Mon, 18 Dec 2023 16:57:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aI6GQq45"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E68AAC433C8;
-	Mon, 18 Dec 2023 16:57:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="baaNSpTm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAFEBC433CA;
+	Mon, 18 Dec 2023 16:57:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702918638;
-	bh=NRpfLi+uhll/A+bkzUytlkIQ3XK8J8E+auoDCHiWBR0=;
+	s=korg; t=1702918640;
+	bh=HMfDRbbKf/Z1qSYNpK7m51Uxc5432zh6p5Jh4TaL/Fo=;
 	h=Date:To:From:Subject:From;
-	b=aI6GQq45+VolMI5oLP4GYZ9iHQ7tuVVKPO3+sNcNJ4BZ1E0Z4aQz4LgFLq2jFTCs8
-	 6SH8kboBUCRyUdQOC+LYFZG+FKQNk12bPUAHzAyK7DxG1dBnFmKA4PUprC+yQJJUU9
-	 eUZrBJwPlb+e8z7Yf/4UalIbJB56rD09Wl0XjPNo=
-Date: Mon, 18 Dec 2023 08:57:17 -0800
+	b=baaNSpTmsV5i9VjBQB9d4ghPwFzr2StFZWkteKA79p2S3yCurCjO9ELJCGw1mgBDC
+	 OSgk/BhsmZJm8Mx//7Gci6DltuQ0xb6+wEOm8+4fL1G5BavUq3OjL0Oy2A0YuzLcHM
+	 5rCcjCyREuOs758juLvovI7sVNfDxMZLJO1EZZnI=
+Date: Mon, 18 Dec 2023 08:57:19 -0800
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,n-horiguchi@ah.jp.nec.com,dan.j.williams@intel.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-check-the-mapcount-of-the-precise-page.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231218165717.E68AAC433C8@smtp.kernel.org>
+Subject: + mm-memory-failure-cast-index-to-loff_t-before-shifting-it.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231218165720.BAFEBC433CA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory-failure: check the mapcount of the precise page
+     Subject: mm/memory-failure: cast index to loff_t before shifting it
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-memory-failure-check-the-mapcount-of-the-precise-page.patch
+     mm-memory-failure-cast-index-to-loff_t-before-shifting-it.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-check-the-mapcount-of-the-precise-page.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-cast-index-to-loff_t-before-shifting-it.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,15 +51,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/memory-failure: check the mapcount of the precise page
-Date: Mon, 18 Dec 2023 13:58:36 +0000
+Subject: mm/memory-failure: cast index to loff_t before shifting it
+Date: Mon, 18 Dec 2023 13:58:37 +0000
 
-A process may map only some of the pages in a folio, and might be missed
-if it maps the poisoned page but not the head page.  Or it might be
-unnecessarily hit if it maps the head page, but not the poisoned page.
+On 32-bit systems, we'll lose the top bits of index because arithmetic
+will be performed in unsigned long instead of unsigned long long.  This
+affects files over 4GB in size.
 
-Link: https://lkml.kernel.org/r/20231218135837.3310403-3-willy@infradead.org
-Fixes: 7af446a841a2 ("HWPOISON, hugetlb: enable error handling path for hugepage")
+Link: https://lkml.kernel.org/r/20231218135837.3310403-4-willy@infradead.org
+Fixes: 6100e34b2526 ("mm, memory_failure: Teach memory_failure() about dev_pagemap pages")
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
@@ -67,33 +67,20 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memory-failure.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-check-the-mapcount-of-the-precise-page
+--- a/mm/memory-failure.c~mm-memory-failure-cast-index-to-loff_t-before-shifting-it
 +++ a/mm/memory-failure.c
-@@ -1570,7 +1570,7 @@ static bool hwpoison_user_mappings(struc
- 	 * This check implies we don't kill processes if their pages
- 	 * are in the swap cache early. Those are always late kills.
- 	 */
--	if (!page_mapped(hpage))
-+	if (!page_mapped(p))
- 		return true;
+@@ -1704,7 +1704,7 @@ static void unmap_and_kill(struct list_h
+ 		 * mapping being torn down is communicated in siginfo, see
+ 		 * kill_proc()
+ 		 */
+-		loff_t start = (index << PAGE_SHIFT) & ~(size - 1);
++		loff_t start = ((loff_t)index << PAGE_SHIFT) & ~(size - 1);
  
- 	if (PageSwapCache(p)) {
-@@ -1621,10 +1621,10 @@ static bool hwpoison_user_mappings(struc
- 		try_to_unmap(folio, ttu);
+ 		unmap_mapping_range(mapping, start, size, 0);
  	}
- 
--	unmap_success = !page_mapped(hpage);
-+	unmap_success = !page_mapped(p);
- 	if (!unmap_success)
- 		pr_err("%#lx: failed to unmap page (mapcount=%d)\n",
--		       pfn, page_mapcount(hpage));
-+		       pfn, page_mapcount(p));
- 
- 	/*
- 	 * try_to_unmap() might put mlocked page in lru cache, so call
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
