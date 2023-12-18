@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EBDA5A853
-	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 17:23:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F2735D733
+	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 17:23:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HDXZ7MPc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD5B3C433C7;
-	Mon, 18 Dec 2023 17:23:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="McrtdRFv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B769CC433C8;
+	Mon, 18 Dec 2023 17:23:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702920203;
-	bh=7cuFfQD+sa/UZfWN35a/wDptaUfMOYp81XgrKn9+oF0=;
+	s=korg; t=1702920205;
+	bh=jH14gfROaJTHgameVP3YRz2dXAlnK1L/pDBUMZVxCoo=;
 	h=Date:To:From:Subject:From;
-	b=HDXZ7MPc9ufiSyi+yy01xGq+RBVM7b+KrdMG3W/H4Eo4hxnnQ5SzzBBjOg5Vtm0xL
-	 YI99EKZ86iby027jAe3b7k3SUydhMiJqWuyxMsOIWGUTSurBqj7bSTpVdxkWZUJE3b
-	 VbacDiNZ6Ci2ud3pqybYLOy5suuBDn2BB1HmRw7c=
-Date: Mon, 18 Dec 2023 09:23:22 -0800
+	b=McrtdRFv0L5c9lxLGYdsAZPnkDplsg8hCU6GV6WMVjm4reEsPXrZbe8ldvcErkBO7
+	 ShKA9RMP6tpRvO8WknWHWb6LEBlclT9I24iUa9mTjoI5tuv6fsIIsKX6MAGbaIYyhO
+	 XOJqKq+vYXhnrsab68h5lX1hPAJF7cG27mnCMcaI=
+Date: Mon, 18 Dec 2023 09:23:25 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,yuzenghui@huawei.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vincenzo.frascino@arm.com,suzuki.poulose@arm.com,shy828301@gmail.com,ryabinin.a.a@gmail.com,oliver.upton@linux.dev,maz@kernel.org,mark.rutland@arm.com,jhubbard@nvidia.com,james.morse@arm.com,glider@google.com,dvyukov@google.com,david@redhat.com,catalin.marinas@arm.com,ardb@kernel.org,apopple@nvidia.com,anshuman.khandual@arm.com,andreyknvl@gmail.com,21cnbao@gmail.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-mm-pte_clear-new-layer-to-manage-contig-bit.patch added to mm-unstable branch
-Message-Id: <20231218172322.DD5B3C433C7@smtp.kernel.org>
+Subject: + arm64-mm-ptep_get_and_clear-new-layer-to-manage-contig-bit.patch added to mm-unstable branch
+Message-Id: <20231218172325.B769CC433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64/mm: pte_clear(): new layer to manage contig bit
+     Subject: arm64/mm: ptep_get_and_clear(): new layer to manage contig bit
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-mm-pte_clear-new-layer-to-manage-contig-bit.patch
+     arm64-mm-ptep_get_and_clear-new-layer-to-manage-contig-bit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-pte_clear-new-layer-to-manage-contig-bit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-ptep_get_and_clear-new-layer-to-manage-contig-bit.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,8 +51,8 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: arm64/mm: pte_clear(): new layer to manage contig bit
-Date: Mon, 18 Dec 2023 10:50:50 +0000
+Subject: arm64/mm: ptep_get_and_clear(): new layer to manage contig bit
+Date: Mon, 18 Dec 2023 10:50:51 +0000
 
 Create a new layer for the in-table PTE manipulation APIs.  For now, The
 existing API is prefixed with double underscore to become the arch-private
@@ -66,7 +66,7 @@ first ensure those users use the private API directly so that the future
 contig-bit manipulations in the public API do not interfere with those
 existing uses.
 
-Link: https://lkml.kernel.org/r/20231218105100.172635-7-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20231218105100.172635-8-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
 Tested-by: John Hubbard <jhubbard@nvidia.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -95,64 +95,60 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |    3 ++-
- arch/arm64/mm/fixmap.c           |    2 +-
- arch/arm64/mm/hugetlbpage.c      |    2 +-
- arch/arm64/mm/mmu.c              |    2 +-
- 4 files changed, 5 insertions(+), 4 deletions(-)
+ arch/arm64/include/asm/pgtable.h |    5 +++--
+ arch/arm64/mm/hugetlbpage.c      |    6 +++---
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~arm64-mm-pte_clear-new-layer-to-manage-contig-bit
+--- a/arch/arm64/include/asm/pgtable.h~arm64-mm-ptep_get_and_clear-new-layer-to-manage-contig-bit
 +++ a/arch/arm64/include/asm/pgtable.h
-@@ -93,7 +93,7 @@ static inline pteval_t __phys_to_pte_val
- 	__pte(__phys_to_pte_val((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
+@@ -941,8 +941,7 @@ static inline int pmdp_test_and_clear_yo
+ }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
- #define pte_none(pte)		(!pte_val(pte))
--#define pte_clear(mm, addr, ptep) \
-+#define __pte_clear(mm, addr, ptep) \
- 				__set_pte(ptep, __pte(0))
- #define pte_page(pte)		(pfn_to_page(pte_pfn(pte)))
- 
-@@ -1121,6 +1121,7 @@ extern void ptep_modify_prot_commit(stru
- 
+-#define __HAVE_ARCH_PTEP_GET_AND_CLEAR
+-static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
++static inline pte_t __ptep_get_and_clear(struct mm_struct *mm,
+ 				       unsigned long address, pte_t *ptep)
+ {
+ 	pte_t pte = __pte(xchg_relaxed(&pte_val(*ptep), 0));
+@@ -1122,6 +1121,8 @@ extern void ptep_modify_prot_commit(stru
  #define set_pte					__set_pte
  #define set_ptes				__set_ptes
-+#define pte_clear				__pte_clear
+ #define pte_clear				__pte_clear
++#define __HAVE_ARCH_PTEP_GET_AND_CLEAR
++#define ptep_get_and_clear			__ptep_get_and_clear
  
  #endif /* !__ASSEMBLY__ */
  
---- a/arch/arm64/mm/fixmap.c~arm64-mm-pte_clear-new-layer-to-manage-contig-bit
-+++ a/arch/arm64/mm/fixmap.c
-@@ -123,7 +123,7 @@ void __set_fixmap(enum fixed_addresses i
- 	if (pgprot_val(flags)) {
- 		__set_pte(ptep, pfn_pte(phys >> PAGE_SHIFT, flags));
- 	} else {
--		pte_clear(&init_mm, addr, ptep);
-+		__pte_clear(&init_mm, addr, ptep);
- 		flush_tlb_kernel_range(addr, addr+PAGE_SIZE);
- 	}
- }
---- a/arch/arm64/mm/hugetlbpage.c~arm64-mm-pte_clear-new-layer-to-manage-contig-bit
+--- a/arch/arm64/mm/hugetlbpage.c~arm64-mm-ptep_get_and_clear-new-layer-to-manage-contig-bit
 +++ a/arch/arm64/mm/hugetlbpage.c
-@@ -400,7 +400,7 @@ void huge_pte_clear(struct mm_struct *mm
- 	ncontig = num_contig_ptes(sz, &pgsize);
+@@ -188,7 +188,7 @@ static pte_t get_clear_contig(struct mm_
+ 	unsigned long i;
+ 
+ 	for (i = 0; i < ncontig; i++, addr += pgsize, ptep++) {
+-		pte_t pte = ptep_get_and_clear(mm, addr, ptep);
++		pte_t pte = __ptep_get_and_clear(mm, addr, ptep);
+ 
+ 		/*
+ 		 * If HW_AFDBM is enabled, then the HW could turn on
+@@ -236,7 +236,7 @@ static void clear_flush(struct mm_struct
+ 	unsigned long i, saddr = addr;
  
  	for (i = 0; i < ncontig; i++, addr += pgsize, ptep++)
--		pte_clear(mm, addr, ptep);
-+		__pte_clear(mm, addr, ptep);
+-		ptep_clear(mm, addr, ptep);
++		__ptep_get_and_clear(mm, addr, ptep);
+ 
+ 	flush_tlb_range(&vma, saddr, addr);
  }
+@@ -411,7 +411,7 @@ pte_t huge_ptep_get_and_clear(struct mm_
+ 	pte_t orig_pte = ptep_get(ptep);
  
- pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
---- a/arch/arm64/mm/mmu.c~arm64-mm-pte_clear-new-layer-to-manage-contig-bit
-+++ a/arch/arm64/mm/mmu.c
-@@ -859,7 +859,7 @@ static void unmap_hotplug_pte_range(pmd_
- 			continue;
+ 	if (!pte_cont(orig_pte))
+-		return ptep_get_and_clear(mm, addr, ptep);
++		return __ptep_get_and_clear(mm, addr, ptep);
  
- 		WARN_ON(!pte_present(pte));
--		pte_clear(&init_mm, addr, ptep);
-+		__pte_clear(&init_mm, addr, ptep);
- 		flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
- 		if (free_mapped)
- 			free_hotplug_page_range(pte_page(pte),
+ 	ncontig = find_num_contig(mm, addr, ptep, &pgsize);
+ 
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
