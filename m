@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 548EF374CD
-	for <mm-commits@vger.kernel.org>; Sat, 16 Dec 2023 22:53:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8626D42042
+	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 16:19:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c6wNEWm2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5DE5C433C8;
-	Sat, 16 Dec 2023 22:53:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N8sEeg73"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEB62C433C7;
+	Mon, 18 Dec 2023 16:19:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702767187;
-	bh=8jduTL1l5MgTLGnp9CUc8XIH4xDoDMyeMMvKekd4Rcc=;
+	s=korg; t=1702916346;
+	bh=NF/9MRx0Qw3C2pgLz/2KrMWJmGkLnIYtu5alw926NXA=;
 	h=Date:To:From:Subject:From;
-	b=c6wNEWm2WciZrpk+4dfezeTg0NL9sEkS2Yqd9iBw+h7lY11LPcdcywaeE6PQxy8pZ
-	 iwmCsJoQXEwjBx7sLrsdLbys0kwFR5BThZHHrfophkLU6PaGxp1qpuakLrwf0+p3rr
-	 omJg1focmGC7NDIkueerdLiWWuNw+le/sysTR+7M=
-Date: Sat, 16 Dec 2023 14:53:07 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,yajun.deng@linux.dev,akpm@linux-foundation.org
+	b=N8sEeg73VirbhHpJsVnZjeMYN/1BKt1W7fmPmF38j8Q+hMep6IFPOFlPGxqneiD3b
+	 SXeDNf7AT5RcVzyAvgZB0KQRz9naF4/3Pz/3pzyIJAQukOLYxAHKacdrezTM0SnXPP
+	 kGwrIQdPsspz+BPKyB2sJCAR9+cMIWIzZhadkAUU=
+Date: Mon, 18 Dec 2023 08:19:06 -0800
+To: mm-commits@vger.kernel.org,jschoenh@amazon.de,jgowans@amazon.com,gregkh@linuxfoundation.org,corbet@lwn.net,bagasdotme@gmail.com,graf@amazon.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-simplify-__free_pages_ok.patch added to mm-unstable branch
-Message-Id: <20231216225307.B5DE5C433C8@smtp.kernel.org>
+Subject: [merged] initramfs-expose-retained-initrd-as-sysfs-file.patch removed from -mm tree
+Message-Id: <20231218161906.DEB62C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -26,74 +26,117 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm: page_alloc: Simplify __free_pages_ok()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-simplify-__free_pages_ok.patch
+The quilt patch titled
+     Subject: initramfs: expose retained initrd as sysfs file
+has been removed from the -mm tree.  Its filename was
+     initramfs-expose-retained-initrd-as-sysfs-file.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-simplify-__free_pages_ok.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yajun Deng <yajun.deng@linux.dev>
-Subject: mm: page_alloc: Simplify __free_pages_ok()
-Date: Sat, 16 Dec 2023 11:05:03 +0800
+From: Alexander Graf <graf@amazon.com>
+Subject: initramfs: expose retained initrd as sysfs file
+Date: Thu, 7 Dec 2023 23:56:54 +0000
 
-There is redundant code in __free_pages_ok(). Use free_one_page()
-simplify it.
+When the kernel command line option "retain_initrd" is set, we do not free
+the initrd memory.  However, we also don't expose it to anyone for
+consumption.  That leaves us in a weird situation where the only user of
+this feature is ppc64 and arm64 specific kexec tooling.
 
-Link: https://lkml.kernel.org/r/20231216030503.2126130-1-yajun.deng@linux.dev
-Signed-off-by: Yajun Deng <yajun.deng@linux.dev>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+To make it more generally useful, this patch adds a kobject to the
+firmware object that contains the initrd context when "retain_initrd" is
+set.  That way, we can access the initrd any time after boot from user
+space and for example hand it into kexec as --initrd parameter if we want
+to reboot the same initrd.  Or inspect it directly locally.
+
+With this patch applied, there is a new /sys/firmware/initrd file when the
+kernel was booted with an initrd and "retain_initrd" command line option
+is set.
+
+Link: https://lkml.kernel.org/r/20231207235654.16622-1-graf@amazon.com
+Signed-off-by: Alexander Graf <graf@amazon.com>
+Tested-by: Bagas Sanjaya <bagasdotme@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: James Gowans <jgowans@amazon.com>
+Cc: Jan H. Schönherr <jschoenh@amazon.de>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+ Documentation/ABI/testing/sysfs-firmware-initrd |    8 ++++++
+ Documentation/admin-guide/kernel-parameters.txt |    5 ++-
+ init/initramfs.c                                |   18 +++++++++++++-
+ 3 files changed, 28 insertions(+), 3 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-simplify-__free_pages_ok
-+++ a/mm/page_alloc.c
-@@ -1255,7 +1255,6 @@ static void free_one_page(struct zone *z
- static void __free_pages_ok(struct page *page, unsigned int order,
- 			    fpi_t fpi_flags)
+--- /dev/null
++++ a/Documentation/ABI/testing/sysfs-firmware-initrd
+@@ -0,0 +1,8 @@
++What:		/sys/firmware/initrd
++Date:		December 2023
++Contact:	Alexander Graf <graf@amazon.com>
++Description:
++		When the kernel was booted with an initrd and the
++		"retain_initrd" option is set on the kernel command
++		line, /sys/firmware/initrd contains the contents of the
++		initrd that the kernel was booted with.
+--- a/Documentation/admin-guide/kernel-parameters.txt~initramfs-expose-retained-initrd-as-sysfs-file
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -2438,7 +2438,7 @@
+ 			between unregistering the boot console and initializing
+ 			the real console.
+ 
+-	keepinitrd	[HW,ARM]
++	keepinitrd	[HW,ARM] See retain_initrd.
+ 
+ 	kernelcore=	[KNL,X86,IA-64,PPC]
+ 			Format: nn[KMGTPE] | nn% | "mirror"
+@@ -5580,7 +5580,8 @@
+ 			Useful for devices that are detected asynchronously
+ 			(e.g. USB and MMC devices).
+ 
+-	retain_initrd	[RAM] Keep initrd memory after extraction
++	retain_initrd	[RAM] Keep initrd memory after extraction. After boot, it will
++			be accessible via /sys/firmware/initrd.
+ 
+ 	retbleed=	[X86] Control mitigation of RETBleed (Arbitrary
+ 			Speculative Code Execution with Return Instructions)
+--- a/init/initramfs.c~initramfs-expose-retained-initrd-as-sysfs-file
++++ a/init/initramfs.c
+@@ -574,6 +574,16 @@ extern unsigned long __initramfs_size;
+ #include <linux/initrd.h>
+ #include <linux/kexec.h>
+ 
++static ssize_t raw_read(struct file *file, struct kobject *kobj,
++			struct bin_attribute *attr, char *buf,
++			loff_t pos, size_t count)
++{
++	memcpy(buf, attr->private + pos, count);
++	return count;
++}
++
++static BIN_ATTR(initrd, 0440, raw_read, NULL, 0);
++
+ void __init reserve_initrd_mem(void)
  {
--	unsigned long flags;
- 	int migratetype;
- 	unsigned long pfn = page_to_pfn(page);
- 	struct zone *zone = page_zone(page);
-@@ -1270,13 +1269,7 @@ static void __free_pages_ok(struct page
+ 	phys_addr_t start;
+@@ -715,8 +725,14 @@ done:
+ 	 * If the initrd region is overlapped with crashkernel reserved region,
+ 	 * free only memory that is not part of crashkernel region.
  	 */
- 	migratetype = get_pfnblock_migratetype(page, pfn);
+-	if (!do_retain_initrd && initrd_start && !kexec_free_initrd())
++	if (!do_retain_initrd && initrd_start && !kexec_free_initrd()) {
+ 		free_initrd_mem(initrd_start, initrd_end);
++	} else if (do_retain_initrd && initrd_start) {
++		bin_attr_initrd.size = initrd_end - initrd_start;
++		bin_attr_initrd.private = (void *)initrd_start;
++		if (sysfs_create_bin_file(firmware_kobj, &bin_attr_initrd))
++			pr_err("Failed to create initrd sysfs file");
++	}
+ 	initrd_start = 0;
+ 	initrd_end = 0;
  
--	spin_lock_irqsave(&zone->lock, flags);
--	if (unlikely(has_isolate_pageblock(zone) ||
--		is_migrate_isolate(migratetype))) {
--		migratetype = get_pfnblock_migratetype(page, pfn);
--	}
--	__free_one_page(page, pfn, zone, order, migratetype, fpi_flags);
--	spin_unlock_irqrestore(&zone->lock, flags);
-+	free_one_page(zone, page, pfn, order, migratetype, fpi_flags);
- 
- 	__count_vm_events(PGFREE, 1 << order);
- }
 _
 
-Patches currently in -mm which might be from yajun.deng@linux.dev are
+Patches currently in -mm which might be from graf@amazon.com are
 
-mm-page_alloc-simplify-__free_pages_ok.patch
 
