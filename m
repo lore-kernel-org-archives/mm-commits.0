@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 883015BF90
-	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 17:23:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9962E1E4A4
+	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 17:23:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OPSUCeCW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3798C433C8;
-	Mon, 18 Dec 2023 17:23:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u0BNKTBR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08623C433C8;
+	Mon, 18 Dec 2023 17:23:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702920193;
-	bh=iY1GMGEEoxgK7INYnw1F/7WvyNJOKi7uMOo3QQCHiLk=;
+	s=korg; t=1702920196;
+	bh=qrq5+eKoSUDOe/Wp93nOaWJV05N7DYUfyPNPY4V1Dls=;
 	h=Date:To:From:Subject:From;
-	b=OPSUCeCW3KBP0BkA0vsEPi/mVNJFC5A3hk76PfWc6BT0nA0+g8gpgJVXwmEe+XXYH
-	 VWHNAuArJbwk0Vxxn1dEcfe7jWQMXPBqNOpO3FhyAnU6/WuISw9Su8HsynS0NzXhGK
-	 Fa3mttXg4+QNP7DmJsJfx+LQOj6PXhVYVLT7G/30=
-Date: Mon, 18 Dec 2023 09:23:12 -0800
+	b=u0BNKTBRL++gOSQ3enuiIZ6MOfkhevmOP7fQXkAS+cERAwstwo08jl+wfOPMAHaru
+	 pxr8rx46gY5+6x3fHVJv0TQ5/afDgAWSPUwsRBzu+XkPo4PyOS/cYEGADNhuGj4nW2
+	 kK0jKc5YPSSuyuBnlMpdaHdX93EXE9ybEj0WoN0I=
+Date: Mon, 18 Dec 2023 09:23:15 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,yuzenghui@huawei.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vincenzo.frascino@arm.com,suzuki.poulose@arm.com,shy828301@gmail.com,ryabinin.a.a@gmail.com,oliver.upton@linux.dev,maz@kernel.org,mark.rutland@arm.com,jhubbard@nvidia.com,james.morse@arm.com,glider@google.com,dvyukov@google.com,david@redhat.com,catalin.marinas@arm.com,ardb@kernel.org,apopple@nvidia.com,anshuman.khandual@arm.com,andreyknvl@gmail.com,21cnbao@gmail.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-batch-clear-pte-ranges-during-zap_pte_range.patch added to mm-unstable branch
-Message-Id: <20231218172312.E3798C433C8@smtp.kernel.org>
+Subject: + arm64-mm-set_pte-new-layer-to-manage-contig-bit.patch added to mm-unstable branch
+Message-Id: <20231218172316.08623C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: batch-clear PTE ranges during zap_pte_range()
+     Subject: arm64/mm: set_pte(): new layer to manage contig bit
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-batch-clear-pte-ranges-during-zap_pte_range.patch
+     arm64-mm-set_pte-new-layer-to-manage-contig-bit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-batch-clear-pte-ranges-during-zap_pte_range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-set_pte-new-layer-to-manage-contig-bit.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,91 +51,22 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm: batch-clear PTE ranges during zap_pte_range()
-Date: Mon, 18 Dec 2023 10:50:47 +0000
+Subject: arm64/mm: set_pte(): new layer to manage contig bit
+Date: Mon, 18 Dec 2023 10:50:48 +0000
 
-Convert zap_pte_range() to copy a batch of ptes in one go.  A given batch
-is determined by the architecture (see pte_batch_remaining()), and maps a
-physically contiguous block of memory, all belonging to the same folio.  A
-pte batch is cleared using the new helper, clear_ptes().
+Create a new layer for the in-table PTE manipulation APIs.  For now, The
+existing API is prefixed with double underscore to become the arch-private
+API and the public API is just a simple wrapper that calls the private
+API.
 
-The primary motivation for this change is to reduce the number of tlb
-maintenance operations that the arm64 backend has to perform during exit
-and other syscalls that cause zap_pte_range() (e.g.  munmap,
-madvise(DONTNEED), etc.), as it is about to add transparent support for
-the "contiguous bit" in its ptes.  By clearing ptes using the new
-clear_ptes() API, the backend doesn't have to perform an expensive unfold
-operation when a PTE being cleared is part of a contpte block.  Instead it
-can just clear the whole block immediately.
+The public API implementation will subsequently be used to transparently
+manipulate the contiguous bit where appropriate.  But since there are
+already some contig-aware users (e.g.  hugetlb, kernel mapper), we must
+first ensure those users use the private API directly so that the future
+contig-bit manipulations in the public API do not interfere with those
+existing uses.
 
-This code is very performance sensitive, and a significant amount of
-effort has been put into not regressing performance for the order-0 folio
-case.  By default, pte_batch_remaining() always returns 1, which enables
-the compiler to simplify the extra loops that are added for batching and
-produce code that is equivalent (and equally performant) as the previous
-implementation.
-
-This change addresses the core-mm refactoring only, and introduces
-clear_ptes() with a default implementation that calls
-ptep_get_and_clear_full() for each pte in the range.  Note that this API
-returns the pte at the beginning of the batch, but with the dirty and
-young bits set if ANY of the ptes in the cleared batch had those bits set;
-this information is applied to the folio by the core-mm.  Given the batch
-is guaranteed to cover only a single folio, collapsing this state does not
-lose any useful information.
-
-A separate change will implement clear_ptes() in the arm64 backend to
-realize the performance improvement as part of the work to enable contpte
-mappings.
-
-The following microbenchmark results demonstate that there is no
-madvise(dontneed) performance regression (and actually an improvement in
-some cases) after this patch.  madvise(dontneed) is called for each page
-of a 1G populated mapping and the total time is measured.  100 iterations
-per run, 8 runs performed on both Apple M2 (VM) and Ampere Altra (bare
-metal).  Tests performed for case where 1G memory is comprised of order-0
-folios and case where comprised of pte-mapped order-9 folios.  Negative is
-faster, positive is slower, compared to baseline upon which the series is
-based:
-
-| Apple M2 VM   | order-0 (pte-map) | order-9 (pte-map) |
-| dontneed      |-------------------|-------------------|
-| microbench    |    mean |   stdev |    mean |   stdev |
-|---------------|---------|---------|---------|---------|
-| baseline      |    0.0% |    7.5% |    0.0% |    7.9% |
-| after-change  |   -9.6% |    3.1% |   -4.9% |    8.1% |
-
-| Ampere Altra  | order-0 (pte-map) | order-9 (pte-map) |
-| dontneed      |-------------------|-------------------|
-| microbench    |    mean |   stdev |    mean |   stdev |
-|---------------|---------|---------|---------|---------|
-| baseline      |    0.0% |    0.1% |    0.0% |    0.0% |
-| after-change  |   -0.2% |    0.1% |   -0.1% |    0.0% |
-
-The following microbenchmark results demonstate that there is no munmap
-performance regression (and actually an improvement in some cases) after
-this patch.  munmap is called for a 1G populated mapping and the time to
-execute the function is measured.  100 iterations per run, 8 runs
-performed on both Apple M2 (VM) and Ampere Altra (bare metal).  Tests
-performed for case where 1G memory is comprised of order-0 folios and case
-where comprised of pte-mapped order-9 folios.  Negative is faster,
-positive is slower, compared to baseline upon which the series is based:
-
-| Apple M2 VM   | order-0 (pte-map) | order-9 (pte-map) |
-| munmap        |-------------------|-------------------|
-| microbench    |    mean |   stdev |    mean |   stdev |
-|---------------|---------|---------|---------|---------|
-| baseline      |    0.0% |    3.8% |    0.0% |    6.4% |
-| after-change  |   -1.9% |    0.2% |   -4.7% |    0.8% |
-
-| Ampere Altra  | order-0 (pte-map) | order-9 (pte-map) |
-| munmap        |-------------------|-------------------|
-| microbench    |    mean |   stdev |    mean |   stdev |
-|---------------|---------|---------|---------|---------|
-| baseline      |    0.0% |    0.9% |    0.0% |    0.1% |
-| after-change  |   -0.2% |    0.6% |   -3.2% |    0.2% |
-
-Link: https://lkml.kernel.org/r/20231218105100.172635-4-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20231218105100.172635-5-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
 Tested-by: John Hubbard <jhubbard@nvidia.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -164,236 +95,148 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/tlb.h |   11 ++++++
- include/linux/pgtable.h   |   43 ++++++++++++++++++++++++
- mm/memory.c               |   64 +++++++++++++++++++++++++-----------
- mm/mmu_gather.c           |   15 ++++++++
- 4 files changed, 115 insertions(+), 18 deletions(-)
+ arch/arm64/include/asm/pgtable.h |   12 ++++++++----
+ arch/arm64/kernel/efi.c          |    2 +-
+ arch/arm64/mm/fixmap.c           |    2 +-
+ arch/arm64/mm/kasan_init.c       |    4 ++--
+ arch/arm64/mm/mmu.c              |    2 +-
+ arch/arm64/mm/pageattr.c         |    2 +-
+ arch/arm64/mm/trans_pgd.c        |    4 ++--
+ 7 files changed, 16 insertions(+), 12 deletions(-)
 
---- a/include/asm-generic/tlb.h~mm-batch-clear-pte-ranges-during-zap_pte_range
-+++ a/include/asm-generic/tlb.h
-@@ -75,6 +75,10 @@
-  *    boolean indicating if the queue is (now) full and a call to
-  *    tlb_flush_mmu() is required.
-  *
-+ *    tlb_reserve_space() attempts to preallocate space for nr pages and returns
-+ *    the minimum garanteed number of pages that can be queued without overflow,
-+ *    which may be more or less than requested.
-+ *
-  *    tlb_remove_page() and tlb_remove_page_size() imply the call to
-  *    tlb_flush_mmu() when required and has no return value.
-  *
-@@ -263,6 +267,7 @@ struct mmu_gather_batch {
- extern bool __tlb_remove_page_size(struct mmu_gather *tlb,
- 				   struct encoded_page *page,
- 				   int page_size);
-+extern unsigned int tlb_reserve_space(struct mmu_gather *tlb, unsigned int nr);
+--- a/arch/arm64/include/asm/pgtable.h~arm64-mm-set_pte-new-layer-to-manage-contig-bit
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -93,7 +93,8 @@ static inline pteval_t __phys_to_pte_val
+ 	__pte(__phys_to_pte_val((phys_addr_t)(pfn) << PAGE_SHIFT) | pgprot_val(prot))
  
- #ifdef CONFIG_SMP
- /*
-@@ -273,6 +278,12 @@ extern bool __tlb_remove_page_size(struc
- extern void tlb_flush_rmaps(struct mmu_gather *tlb, struct vm_area_struct *vma);
- #endif
- 
-+#else
-+static inline unsigned int tlb_reserve_space(struct mmu_gather *tlb,
-+					     unsigned int nr)
-+{
-+	return 1;
-+}
- #endif
+ #define pte_none(pte)		(!pte_val(pte))
+-#define pte_clear(mm,addr,ptep)	set_pte(ptep, __pte(0))
++#define pte_clear(mm, addr, ptep) \
++				__set_pte(ptep, __pte(0))
+ #define pte_page(pte)		(pfn_to_page(pte_pfn(pte)))
  
  /*
---- a/include/linux/pgtable.h~mm-batch-clear-pte-ranges-during-zap_pte_range
-+++ a/include/linux/pgtable.h
-@@ -601,6 +601,49 @@ static inline pte_t ptep_get_and_clear_f
- }
- #endif
- 
-+#ifndef clear_ptes
-+struct mm_struct;
-+/**
-+ * clear_ptes - Clear a consecutive range of ptes and return the previous value.
-+ * @mm: Address space that the ptes map.
-+ * @address: Address corresponding to the first pte to clear.
-+ * @ptep: Page table pointer for the first entry.
-+ * @nr: Number of ptes to clear.
-+ * @full: True if systematically clearing all ptes for the address space.
-+ *
-+ * A batched version of ptep_get_and_clear_full(), which returns the old pte
-+ * value for the first pte in the range, but with young and/or dirty set if any
-+ * of the ptes in the range were young or dirty.
-+ *
-+ * May be overridden by the architecture, else implemented as a loop over
-+ * ptep_get_and_clear_full().
-+ *
-+ * Context: The caller holds the page table lock. The PTEs are all in the same
-+ * PMD.
-+ */
-+static inline pte_t clear_ptes(struct mm_struct *mm,
-+				unsigned long address, pte_t *ptep,
-+				unsigned int nr, int full)
-+{
-+	unsigned int i;
-+	pte_t pte;
-+	pte_t orig_pte = ptep_get_and_clear_full(mm, address, ptep, full);
-+
-+	for (i = 1; i < nr; i++) {
-+		address += PAGE_SIZE;
-+		ptep++;
-+		pte = ptep_get_and_clear_full(mm, address, ptep, full);
-+
-+		if (pte_dirty(pte))
-+			orig_pte = pte_mkdirty(orig_pte);
-+
-+		if (pte_young(pte))
-+			orig_pte = pte_mkyoung(orig_pte);
-+	}
-+
-+	return orig_pte;
-+}
-+#endif
- 
- /*
-  * If two threads concurrently fault at the same page, the thread that
---- a/mm/memory.c~mm-batch-clear-pte-ranges-during-zap_pte_range
-+++ a/mm/memory.c
-@@ -1447,6 +1447,7 @@ static unsigned long zap_pte_range(struc
- 	pte_t *start_pte;
- 	pte_t *pte;
- 	swp_entry_t entry;
-+	int nr;
- 
- 	tlb_change_page_size(tlb, PAGE_SIZE);
- 	init_rss_vec(rss);
-@@ -1459,6 +1460,9 @@ static unsigned long zap_pte_range(struc
- 	do {
- 		pte_t ptent = ptep_get(pte);
- 		struct page *page;
-+		int i;
-+
-+		nr = 1;
- 
- 		if (pte_none(ptent))
- 			continue;
-@@ -1467,43 +1471,67 @@ static unsigned long zap_pte_range(struc
- 			break;
- 
- 		if (pte_present(ptent)) {
--			unsigned int delay_rmap;
-+			unsigned int delay_rmap = 0;
-+			struct folio *folio;
-+			bool full = false;
-+
-+			/*
-+			 * tlb_gather always has at least one slot so avoid call
-+			 * to tlb_reserve_space() when pte_batch_remaining() is
-+			 * a compile-time constant 1 (default).
-+			 */
-+			nr = pte_batch_remaining(ptent, addr, end);
-+			if (unlikely(nr > 1))
-+				nr = min_t(int, nr, tlb_reserve_space(tlb, nr));
- 
- 			page = vm_normal_page(vma, addr, ptent);
- 			if (unlikely(!should_zap_page(details, page)))
- 				continue;
--			ptent = ptep_get_and_clear_full(mm, addr, pte,
--							tlb->fullmm);
-+			ptent = clear_ptes(mm, addr, pte, nr, tlb->fullmm);
- 			arch_check_zapped_pte(vma, ptent);
--			tlb_remove_tlb_entry(tlb, pte, addr);
--			zap_install_uffd_wp_if_needed(vma, addr, pte, details,
--						      ptent);
-+
-+			for (i = 0; i < nr; i++) {
-+				unsigned long subaddr = addr + PAGE_SIZE * i;
-+
-+				tlb_remove_tlb_entry(tlb, &pte[i], subaddr);
-+				zap_install_uffd_wp_if_needed(vma, subaddr,
-+						&pte[i], details, ptent);
-+			}
- 			if (unlikely(!page)) {
- 				ksm_might_unmap_zero_page(mm, ptent);
- 				continue;
- 			}
- 
--			delay_rmap = 0;
--			if (!PageAnon(page)) {
-+			folio = page_folio(page);
-+			if (!folio_test_anon(folio)) {
- 				if (pte_dirty(ptent)) {
--					set_page_dirty(page);
-+					folio_mark_dirty(folio);
- 					if (tlb_delay_rmap(tlb)) {
- 						delay_rmap = 1;
- 						force_flush = 1;
- 					}
- 				}
- 				if (pte_young(ptent) && likely(vma_has_recency(vma)))
--					mark_page_accessed(page);
-+					folio_mark_accessed(folio);
- 			}
--			rss[mm_counter(page)]--;
--			if (!delay_rmap) {
--				page_remove_rmap(page, vma, false);
--				if (unlikely(page_mapcount(page) < 0))
--					print_bad_pte(vma, addr, ptent, page);
-+			rss[mm_counter(page)] -= nr;
-+			for (i = 0; i < nr; i++, page++) {
-+				if (!delay_rmap) {
-+					page_remove_rmap(page, vma, false);
-+					if (unlikely(page_mapcount(page) < 0))
-+						print_bad_pte(vma, addr, ptent, page);
-+				}
-+
-+				/*
-+				 * nr calculated based on available space, so
-+				 * can only be full on final iteration.
-+				 */
-+				VM_WARN_ON(full);
-+				full = __tlb_remove_page(tlb, page, delay_rmap);
- 			}
--			if (unlikely(__tlb_remove_page(tlb, page, delay_rmap))) {
-+			if (unlikely(full)) {
- 				force_flush = 1;
--				addr += PAGE_SIZE;
-+				addr += PAGE_SIZE * nr;
- 				break;
- 			}
- 			continue;
-@@ -1557,7 +1585,7 @@ static unsigned long zap_pte_range(struc
- 		}
- 		pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
- 		zap_install_uffd_wp_if_needed(vma, addr, pte, details, ptent);
--	} while (pte++, addr += PAGE_SIZE, addr != end);
-+	} while (pte += nr, addr += PAGE_SIZE * nr, addr != end);
- 
- 	add_mm_rss_vec(mm, rss);
- 	arch_leave_lazy_mmu_mode();
---- a/mm/mmu_gather.c~mm-batch-clear-pte-ranges-during-zap_pte_range
-+++ a/mm/mmu_gather.c
-@@ -47,6 +47,21 @@ static bool tlb_next_batch(struct mmu_ga
- 	return true;
+@@ -261,7 +262,7 @@ static inline pte_t pte_mkdevmap(pte_t p
+ 	return set_pte_bit(pte, __pgprot(PTE_DEVMAP | PTE_SPECIAL));
  }
  
-+unsigned int tlb_reserve_space(struct mmu_gather *tlb, unsigned int nr)
-+{
-+	struct mmu_gather_batch *batch = tlb->active;
-+	unsigned int nr_alloc = batch->max - batch->nr;
-+
-+	while (nr_alloc < nr) {
-+		if (!tlb_next_batch(tlb))
-+			break;
-+		nr_alloc += tlb->active->max;
-+	}
-+
-+	tlb->active = batch;
-+	return nr_alloc;
-+}
-+
- #ifdef CONFIG_SMP
- static void tlb_flush_rmap_batch(struct mmu_gather_batch *batch, struct vm_area_struct *vma)
+-static inline void set_pte(pte_t *ptep, pte_t pte)
++static inline void __set_pte(pte_t *ptep, pte_t pte)
  {
+ 	WRITE_ONCE(*ptep, pte);
+ 
+@@ -350,7 +351,7 @@ static inline void set_ptes(struct mm_st
+ 
+ 	for (;;) {
+ 		__check_safe_pte_update(mm, ptep, pte);
+-		set_pte(ptep, pte);
++		__set_pte(ptep, pte);
+ 		if (--nr == 0)
+ 			break;
+ 		ptep++;
+@@ -534,7 +535,7 @@ static inline void __set_pte_at(struct m
+ {
+ 	__sync_cache_and_tags(pte, nr);
+ 	__check_safe_pte_update(mm, ptep, pte);
+-	set_pte(ptep, pte);
++	__set_pte(ptep, pte);
+ }
+ 
+ static inline void set_pmd_at(struct mm_struct *mm, unsigned long addr,
+@@ -1118,6 +1119,9 @@ extern pte_t ptep_modify_prot_start(stru
+ extern void ptep_modify_prot_commit(struct vm_area_struct *vma,
+ 				    unsigned long addr, pte_t *ptep,
+ 				    pte_t old_pte, pte_t new_pte);
++
++#define set_pte					__set_pte
++
+ #endif /* !__ASSEMBLY__ */
+ 
+ #endif /* __ASM_PGTABLE_H */
+--- a/arch/arm64/kernel/efi.c~arm64-mm-set_pte-new-layer-to-manage-contig-bit
++++ a/arch/arm64/kernel/efi.c
+@@ -111,7 +111,7 @@ static int __init set_permissions(pte_t
+ 		pte = set_pte_bit(pte, __pgprot(PTE_PXN));
+ 	else if (system_supports_bti_kernel() && spd->has_bti)
+ 		pte = set_pte_bit(pte, __pgprot(PTE_GP));
+-	set_pte(ptep, pte);
++	__set_pte(ptep, pte);
+ 	return 0;
+ }
+ 
+--- a/arch/arm64/mm/fixmap.c~arm64-mm-set_pte-new-layer-to-manage-contig-bit
++++ a/arch/arm64/mm/fixmap.c
+@@ -121,7 +121,7 @@ void __set_fixmap(enum fixed_addresses i
+ 	ptep = fixmap_pte(addr);
+ 
+ 	if (pgprot_val(flags)) {
+-		set_pte(ptep, pfn_pte(phys >> PAGE_SHIFT, flags));
++		__set_pte(ptep, pfn_pte(phys >> PAGE_SHIFT, flags));
+ 	} else {
+ 		pte_clear(&init_mm, addr, ptep);
+ 		flush_tlb_kernel_range(addr, addr+PAGE_SIZE);
+--- a/arch/arm64/mm/kasan_init.c~arm64-mm-set_pte-new-layer-to-manage-contig-bit
++++ a/arch/arm64/mm/kasan_init.c
+@@ -112,7 +112,7 @@ static void __init kasan_pte_populate(pm
+ 		if (!early)
+ 			memset(__va(page_phys), KASAN_SHADOW_INIT, PAGE_SIZE);
+ 		next = addr + PAGE_SIZE;
+-		set_pte(ptep, pfn_pte(__phys_to_pfn(page_phys), PAGE_KERNEL));
++		__set_pte(ptep, pfn_pte(__phys_to_pfn(page_phys), PAGE_KERNEL));
+ 	} while (ptep++, addr = next, addr != end && pte_none(READ_ONCE(*ptep)));
+ }
+ 
+@@ -266,7 +266,7 @@ static void __init kasan_init_shadow(voi
+ 	 * so we should make sure that it maps the zero page read-only.
+ 	 */
+ 	for (i = 0; i < PTRS_PER_PTE; i++)
+-		set_pte(&kasan_early_shadow_pte[i],
++		__set_pte(&kasan_early_shadow_pte[i],
+ 			pfn_pte(sym_to_pfn(kasan_early_shadow_page),
+ 				PAGE_KERNEL_RO));
+ 
+--- a/arch/arm64/mm/mmu.c~arm64-mm-set_pte-new-layer-to-manage-contig-bit
++++ a/arch/arm64/mm/mmu.c
+@@ -178,7 +178,7 @@ static void init_pte(pmd_t *pmdp, unsign
+ 	do {
+ 		pte_t old_pte = READ_ONCE(*ptep);
+ 
+-		set_pte(ptep, pfn_pte(__phys_to_pfn(phys), prot));
++		__set_pte(ptep, pfn_pte(__phys_to_pfn(phys), prot));
+ 
+ 		/*
+ 		 * After the PTE entry has been populated once, we
+--- a/arch/arm64/mm/pageattr.c~arm64-mm-set_pte-new-layer-to-manage-contig-bit
++++ a/arch/arm64/mm/pageattr.c
+@@ -41,7 +41,7 @@ static int change_page_range(pte_t *ptep
+ 	pte = clear_pte_bit(pte, cdata->clear_mask);
+ 	pte = set_pte_bit(pte, cdata->set_mask);
+ 
+-	set_pte(ptep, pte);
++	__set_pte(ptep, pte);
+ 	return 0;
+ }
+ 
+--- a/arch/arm64/mm/trans_pgd.c~arm64-mm-set_pte-new-layer-to-manage-contig-bit
++++ a/arch/arm64/mm/trans_pgd.c
+@@ -41,7 +41,7 @@ static void _copy_pte(pte_t *dst_ptep, p
+ 		 * read only (code, rodata). Clear the RDONLY bit from
+ 		 * the temporary mappings we use during restore.
+ 		 */
+-		set_pte(dst_ptep, pte_mkwrite_novma(pte));
++		__set_pte(dst_ptep, pte_mkwrite_novma(pte));
+ 	} else if ((debug_pagealloc_enabled() ||
+ 		   is_kfence_address((void *)addr)) && !pte_none(pte)) {
+ 		/*
+@@ -55,7 +55,7 @@ static void _copy_pte(pte_t *dst_ptep, p
+ 		 */
+ 		BUG_ON(!pfn_valid(pte_pfn(pte)));
+ 
+-		set_pte(dst_ptep, pte_mkpresent(pte_mkwrite_novma(pte)));
++		__set_pte(dst_ptep, pte_mkpresent(pte_mkwrite_novma(pte)));
+ 	}
+ }
+ 
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
