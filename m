@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8ED27145A
-	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 17:23:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58E425BFA6
+	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 17:23:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ScHIRLMW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21B81C433C8;
-	Mon, 18 Dec 2023 17:23:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZUoW/Uqv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8F7DC433CA;
+	Mon, 18 Dec 2023 17:23:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702920214;
-	bh=8Wd53mIvXQ/0LTbs36FCZlaTV5jp9vY77ZFDhv291yY=;
+	s=korg; t=1702920216;
+	bh=PpNfliEb8Tiod6BndQX4OK26hPSEGD8r/pGrPUIkq2c=;
 	h=Date:To:From:Subject:From;
-	b=ScHIRLMWqGHOsckKdIHAh7IfZ6xBEcbVpUCJxgLV8fYo5oTJc/GuxzbMZXWZJhVrG
-	 uHMOmTpkQHcaERHmaFVSHYGIcNfZkdbM1HrpLlOzWVmPE+Ps0MwfDSFpD0KU5opWgE
-	 5KXHAIAeE759TSCVQVkA/tZi52r1CU+fQPx2Bk/k=
-Date: Mon, 18 Dec 2023 09:23:33 -0800
+	b=ZUoW/Uqv+PTeK/wfZqmgiC+F2cAnrJP10bvxHZZfCaDOXUlWJyiXa+YnQcxzTQSjF
+	 FSCLSnViCc2K1H/2HI9LVaywZRA5H3EJw01WFDq91cg4MvHX5257ckiHgJ/np6RViX
+	 /2Uxc5V3OuzA6g8FRLDQBIrM6+a/3vPsDNMq5BFQ=
+Date: Mon, 18 Dec 2023 09:23:36 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,yuzenghui@huawei.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vincenzo.frascino@arm.com,suzuki.poulose@arm.com,shy828301@gmail.com,ryabinin.a.a@gmail.com,oliver.upton@linux.dev,maz@kernel.org,mark.rutland@arm.com,jhubbard@nvidia.com,james.morse@arm.com,glider@google.com,dvyukov@google.com,david@redhat.com,catalin.marinas@arm.com,ardb@kernel.org,apopple@nvidia.com,anshuman.khandual@arm.com,andreyknvl@gmail.com,21cnbao@gmail.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-mm-ptep_set_access_flags-new-layer-to-manage-contig-bit.patch added to mm-unstable branch
-Message-Id: <20231218172334.21B81C433C8@smtp.kernel.org>
+Subject: + arm64-mm-ptep_get-new-layer-to-manage-contig-bit.patch added to mm-unstable branch
+Message-Id: <20231218172336.C8F7DC433CA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64/mm: ptep_set_access_flags(): new layer to manage contig bit
+     Subject: arm64/mm: ptep_get(): new layer to manage contig bit
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-mm-ptep_set_access_flags-new-layer-to-manage-contig-bit.patch
+     arm64-mm-ptep_get-new-layer-to-manage-contig-bit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-ptep_set_access_flags-new-layer-to-manage-contig-bit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-ptep_get-new-layer-to-manage-contig-bit.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,8 +51,8 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: arm64/mm: ptep_set_access_flags(): new layer to manage contig bit
-Date: Mon, 18 Dec 2023 10:50:55 +0000
+Subject: arm64/mm: ptep_get(): new layer to manage contig bit
+Date: Mon, 18 Dec 2023 10:50:56 +0000
 
 Create a new layer for the in-table PTE manipulation APIs.  For now, The
 existing API is prefixed with double underscore to become the arch-private
@@ -66,7 +66,15 @@ first ensure those users use the private API directly so that the future
 contig-bit manipulations in the public API do not interfere with those
 existing uses.
 
-Link: https://lkml.kernel.org/r/20231218105100.172635-12-ryan.roberts@arm.com
+arm64 did not previously define an arch-specific ptep_get(), so override
+the default version in the arch code, and also define the private
+__ptep_get() version.  Currently they both do the same thing that the
+default version does (READ_ONCE()).  Some arch users (hugetlb) were
+already using ptep_get() so convert those to the private API.  While other
+callsites were doing direct READ_ONCE(), so convert those to use the
+appropriate (public/private) API too.
+
+Link: https://lkml.kernel.org/r/20231218105100.172635-13-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
 Tested-by: John Hubbard <jhubbard@nvidia.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -95,77 +103,270 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |   10 ++++++----
- arch/arm64/mm/fault.c            |    6 +++---
- arch/arm64/mm/hugetlbpage.c      |    2 +-
- 3 files changed, 10 insertions(+), 8 deletions(-)
+ arch/arm64/include/asm/pgtable.h |   12 +++++++++---
+ arch/arm64/kernel/efi.c          |    2 +-
+ arch/arm64/mm/fault.c            |    4 ++--
+ arch/arm64/mm/hugetlbpage.c      |   18 +++++++++---------
+ arch/arm64/mm/kasan_init.c       |    2 +-
+ arch/arm64/mm/mmu.c              |   12 ++++++------
+ arch/arm64/mm/pageattr.c         |    4 ++--
+ arch/arm64/mm/trans_pgd.c        |    2 +-
+ 8 files changed, 31 insertions(+), 25 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~arm64-mm-ptep_set_access_flags-new-layer-to-manage-contig-bit
+--- a/arch/arm64/include/asm/pgtable.h~arm64-mm-ptep_get-new-layer-to-manage-contig-bit
 +++ a/arch/arm64/include/asm/pgtable.h
-@@ -312,7 +312,7 @@ static inline void __check_safe_pte_upda
- 
- 	/*
- 	 * Check for potential race with hardware updates of the pte
--	 * (ptep_set_access_flags safely changes valid ptes without going
-+	 * (__ptep_set_access_flags safely changes valid ptes without going
- 	 * through an invalid entry).
- 	 */
- 	VM_WARN_ONCE(!pte_young(pte),
-@@ -842,8 +842,7 @@ static inline pmd_t pmd_modify(pmd_t pmd
- 	return pte_pmd(pte_modify(pmd_pte(pmd), newprot));
+@@ -276,6 +276,11 @@ static inline void __set_pte(pte_t *ptep
+ 	}
  }
  
--#define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
--extern int ptep_set_access_flags(struct vm_area_struct *vma,
-+extern int __ptep_set_access_flags(struct vm_area_struct *vma,
- 				 unsigned long address, pte_t *ptep,
- 				 pte_t entry, int dirty);
++static inline pte_t __ptep_get(pte_t *ptep)
++{
++	return READ_ONCE(*ptep);
++}
++
+ extern void __sync_icache_dcache(pte_t pteval);
+ bool pgattr_change_is_safe(u64 old, u64 new);
  
-@@ -853,7 +852,8 @@ static inline int pmdp_set_access_flags(
- 					unsigned long address, pmd_t *pmdp,
- 					pmd_t entry, int dirty)
+@@ -303,7 +308,7 @@ static inline void __check_safe_pte_upda
+ 	if (!IS_ENABLED(CONFIG_DEBUG_VM))
+ 		return;
+ 
+-	old_pte = READ_ONCE(*ptep);
++	old_pte = __ptep_get(ptep);
+ 
+ 	if (!pte_valid(old_pte) || !pte_valid(pte))
+ 		return;
+@@ -893,7 +898,7 @@ static inline int __ptep_test_and_clear_
  {
--	return ptep_set_access_flags(vma, address, (pte_t *)pmdp, pmd_pte(entry), dirty);
-+	return __ptep_set_access_flags(vma, address, (pte_t *)pmdp,
-+							pmd_pte(entry), dirty);
- }
+ 	pte_t old_pte, pte;
  
- static inline int pud_devmap(pud_t pud)
-@@ -1122,6 +1122,8 @@ extern void ptep_modify_prot_commit(stru
- #define ptep_clear_flush_young			__ptep_clear_flush_young
- #define __HAVE_ARCH_PTEP_SET_WRPROTECT
- #define ptep_set_wrprotect			__ptep_set_wrprotect
-+#define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
-+#define ptep_set_access_flags			__ptep_set_access_flags
+-	pte = READ_ONCE(*ptep);
++	pte = __ptep_get(ptep);
+ 	do {
+ 		old_pte = pte;
+ 		pte = pte_mkold(pte);
+@@ -966,7 +971,7 @@ static inline void __ptep_set_wrprotect(
+ {
+ 	pte_t old_pte, pte;
  
- #endif /* !__ASSEMBLY__ */
+-	pte = READ_ONCE(*ptep);
++	pte = __ptep_get(ptep);
+ 	do {
+ 		old_pte = pte;
+ 		pte = pte_wrprotect(pte);
+@@ -1111,6 +1116,7 @@ extern void ptep_modify_prot_commit(stru
+ 				    unsigned long addr, pte_t *ptep,
+ 				    pte_t old_pte, pte_t new_pte);
  
---- a/arch/arm64/mm/fault.c~arm64-mm-ptep_set_access_flags-new-layer-to-manage-contig-bit
++#define ptep_get				__ptep_get
+ #define set_pte					__set_pte
+ #define set_ptes				__set_ptes
+ #define pte_clear				__pte_clear
+--- a/arch/arm64/kernel/efi.c~arm64-mm-ptep_get-new-layer-to-manage-contig-bit
++++ a/arch/arm64/kernel/efi.c
+@@ -103,7 +103,7 @@ static int __init set_permissions(pte_t
+ {
+ 	struct set_perm_data *spd = data;
+ 	const efi_memory_desc_t *md = spd->md;
+-	pte_t pte = READ_ONCE(*ptep);
++	pte_t pte = __ptep_get(ptep);
+ 
+ 	if (md->attribute & EFI_MEMORY_RO)
+ 		pte = set_pte_bit(pte, __pgprot(PTE_RDONLY));
+--- a/arch/arm64/mm/fault.c~arm64-mm-ptep_get-new-layer-to-manage-contig-bit
 +++ a/arch/arm64/mm/fault.c
-@@ -209,9 +209,9 @@ static void show_pte(unsigned long addr)
-  *
-  * Returns whether or not the PTE actually changed.
-  */
--int ptep_set_access_flags(struct vm_area_struct *vma,
--			  unsigned long address, pte_t *ptep,
--			  pte_t entry, int dirty)
-+int __ptep_set_access_flags(struct vm_area_struct *vma,
-+			    unsigned long address, pte_t *ptep,
-+			    pte_t entry, int dirty)
+@@ -191,7 +191,7 @@ static void show_pte(unsigned long addr)
+ 		if (!ptep)
+ 			break;
+ 
+-		pte = READ_ONCE(*ptep);
++		pte = __ptep_get(ptep);
+ 		pr_cont(", pte=%016llx", pte_val(pte));
+ 		pte_unmap(ptep);
+ 	} while(0);
+@@ -214,7 +214,7 @@ int __ptep_set_access_flags(struct vm_ar
+ 			    pte_t entry, int dirty)
  {
  	pteval_t old_pteval, pteval;
- 	pte_t pte = READ_ONCE(*ptep);
---- a/arch/arm64/mm/hugetlbpage.c~arm64-mm-ptep_set_access_flags-new-layer-to-manage-contig-bit
-+++ a/arch/arm64/mm/hugetlbpage.c
-@@ -459,7 +459,7 @@ int huge_ptep_set_access_flags(struct vm
- 	pte_t orig_pte;
+-	pte_t pte = READ_ONCE(*ptep);
++	pte_t pte = __ptep_get(ptep);
  
- 	if (!pte_cont(pte))
--		return ptep_set_access_flags(vma, addr, ptep, pte, dirty);
-+		return __ptep_set_access_flags(vma, addr, ptep, pte, dirty);
+ 	if (pte_same(pte, entry))
+ 		return 0;
+--- a/arch/arm64/mm/hugetlbpage.c~arm64-mm-ptep_get-new-layer-to-manage-contig-bit
++++ a/arch/arm64/mm/hugetlbpage.c
+@@ -152,14 +152,14 @@ pte_t huge_ptep_get(pte_t *ptep)
+ {
+ 	int ncontig, i;
+ 	size_t pgsize;
+-	pte_t orig_pte = ptep_get(ptep);
++	pte_t orig_pte = __ptep_get(ptep);
+ 
+ 	if (!pte_present(orig_pte) || !pte_cont(orig_pte))
+ 		return orig_pte;
+ 
+ 	ncontig = num_contig_ptes(page_size(pte_page(orig_pte)), &pgsize);
+ 	for (i = 0; i < ncontig; i++, ptep++) {
+-		pte_t pte = ptep_get(ptep);
++		pte_t pte = __ptep_get(ptep);
+ 
+ 		if (pte_dirty(pte))
+ 			orig_pte = pte_mkdirty(orig_pte);
+@@ -184,7 +184,7 @@ static pte_t get_clear_contig(struct mm_
+ 			     unsigned long pgsize,
+ 			     unsigned long ncontig)
+ {
+-	pte_t orig_pte = ptep_get(ptep);
++	pte_t orig_pte = __ptep_get(ptep);
+ 	unsigned long i;
+ 
+ 	for (i = 0; i < ncontig; i++, addr += pgsize, ptep++) {
+@@ -408,7 +408,7 @@ pte_t huge_ptep_get_and_clear(struct mm_
+ {
+ 	int ncontig;
+ 	size_t pgsize;
+-	pte_t orig_pte = ptep_get(ptep);
++	pte_t orig_pte = __ptep_get(ptep);
+ 
+ 	if (!pte_cont(orig_pte))
+ 		return __ptep_get_and_clear(mm, addr, ptep);
+@@ -431,11 +431,11 @@ static int __cont_access_flags_changed(p
+ {
+ 	int i;
+ 
+-	if (pte_write(pte) != pte_write(ptep_get(ptep)))
++	if (pte_write(pte) != pte_write(__ptep_get(ptep)))
+ 		return 1;
+ 
+ 	for (i = 0; i < ncontig; i++) {
+-		pte_t orig_pte = ptep_get(ptep + i);
++		pte_t orig_pte = __ptep_get(ptep + i);
+ 
+ 		if (pte_dirty(pte) != pte_dirty(orig_pte))
+ 			return 1;
+@@ -492,7 +492,7 @@ void huge_ptep_set_wrprotect(struct mm_s
+ 	size_t pgsize;
+ 	pte_t pte;
+ 
+-	if (!pte_cont(READ_ONCE(*ptep))) {
++	if (!pte_cont(__ptep_get(ptep))) {
+ 		__ptep_set_wrprotect(mm, addr, ptep);
+ 		return;
+ 	}
+@@ -517,7 +517,7 @@ pte_t huge_ptep_clear_flush(struct vm_ar
+ 	size_t pgsize;
+ 	int ncontig;
+ 
+-	if (!pte_cont(READ_ONCE(*ptep)))
++	if (!pte_cont(__ptep_get(ptep)))
+ 		return ptep_clear_flush(vma, addr, ptep);
  
  	ncontig = find_num_contig(mm, addr, ptep, &pgsize);
- 	dpfn = pgsize >> PAGE_SHIFT;
+@@ -550,7 +550,7 @@ pte_t huge_ptep_modify_prot_start(struct
+ 		 * when the permission changes from executable to non-executable
+ 		 * in cases where cpu is affected with errata #2645198.
+ 		 */
+-		if (pte_user_exec(READ_ONCE(*ptep)))
++		if (pte_user_exec(__ptep_get(ptep)))
+ 			return huge_ptep_clear_flush(vma, addr, ptep);
+ 	}
+ 	return huge_ptep_get_and_clear(vma->vm_mm, addr, ptep);
+--- a/arch/arm64/mm/kasan_init.c~arm64-mm-ptep_get-new-layer-to-manage-contig-bit
++++ a/arch/arm64/mm/kasan_init.c
+@@ -113,7 +113,7 @@ static void __init kasan_pte_populate(pm
+ 			memset(__va(page_phys), KASAN_SHADOW_INIT, PAGE_SIZE);
+ 		next = addr + PAGE_SIZE;
+ 		__set_pte(ptep, pfn_pte(__phys_to_pfn(page_phys), PAGE_KERNEL));
+-	} while (ptep++, addr = next, addr != end && pte_none(READ_ONCE(*ptep)));
++	} while (ptep++, addr = next, addr != end && pte_none(__ptep_get(ptep)));
+ }
+ 
+ static void __init kasan_pmd_populate(pud_t *pudp, unsigned long addr,
+--- a/arch/arm64/mm/mmu.c~arm64-mm-ptep_get-new-layer-to-manage-contig-bit
++++ a/arch/arm64/mm/mmu.c
+@@ -176,7 +176,7 @@ static void init_pte(pmd_t *pmdp, unsign
+ 
+ 	ptep = pte_set_fixmap_offset(pmdp, addr);
+ 	do {
+-		pte_t old_pte = READ_ONCE(*ptep);
++		pte_t old_pte = __ptep_get(ptep);
+ 
+ 		__set_pte(ptep, pfn_pte(__phys_to_pfn(phys), prot));
+ 
+@@ -185,7 +185,7 @@ static void init_pte(pmd_t *pmdp, unsign
+ 		 * only allow updates to the permission attributes.
+ 		 */
+ 		BUG_ON(!pgattr_change_is_safe(pte_val(old_pte),
+-					      READ_ONCE(pte_val(*ptep))));
++					      pte_val(__ptep_get(ptep))));
+ 
+ 		phys += PAGE_SIZE;
+ 	} while (ptep++, addr += PAGE_SIZE, addr != end);
+@@ -854,7 +854,7 @@ static void unmap_hotplug_pte_range(pmd_
+ 
+ 	do {
+ 		ptep = pte_offset_kernel(pmdp, addr);
+-		pte = READ_ONCE(*ptep);
++		pte = __ptep_get(ptep);
+ 		if (pte_none(pte))
+ 			continue;
+ 
+@@ -987,7 +987,7 @@ static void free_empty_pte_table(pmd_t *
+ 
+ 	do {
+ 		ptep = pte_offset_kernel(pmdp, addr);
+-		pte = READ_ONCE(*ptep);
++		pte = __ptep_get(ptep);
+ 
+ 		/*
+ 		 * This is just a sanity check here which verifies that
+@@ -1006,7 +1006,7 @@ static void free_empty_pte_table(pmd_t *
+ 	 */
+ 	ptep = pte_offset_kernel(pmdp, 0UL);
+ 	for (i = 0; i < PTRS_PER_PTE; i++) {
+-		if (!pte_none(READ_ONCE(ptep[i])))
++		if (!pte_none(__ptep_get(&ptep[i])))
+ 			return;
+ 	}
+ 
+@@ -1475,7 +1475,7 @@ pte_t ptep_modify_prot_start(struct vm_a
+ 		 * when the permission changes from executable to non-executable
+ 		 * in cases where cpu is affected with errata #2645198.
+ 		 */
+-		if (pte_user_exec(READ_ONCE(*ptep)))
++		if (pte_user_exec(ptep_get(ptep)))
+ 			return ptep_clear_flush(vma, addr, ptep);
+ 	}
+ 	return ptep_get_and_clear(vma->vm_mm, addr, ptep);
+--- a/arch/arm64/mm/pageattr.c~arm64-mm-ptep_get-new-layer-to-manage-contig-bit
++++ a/arch/arm64/mm/pageattr.c
+@@ -36,7 +36,7 @@ bool can_set_direct_map(void)
+ static int change_page_range(pte_t *ptep, unsigned long addr, void *data)
+ {
+ 	struct page_change_data *cdata = data;
+-	pte_t pte = READ_ONCE(*ptep);
++	pte_t pte = __ptep_get(ptep);
+ 
+ 	pte = clear_pte_bit(pte, cdata->clear_mask);
+ 	pte = set_pte_bit(pte, cdata->set_mask);
+@@ -245,5 +245,5 @@ bool kernel_page_present(struct page *pa
+ 		return true;
+ 
+ 	ptep = pte_offset_kernel(pmdp, addr);
+-	return pte_valid(READ_ONCE(*ptep));
++	return pte_valid(__ptep_get(ptep));
+ }
+--- a/arch/arm64/mm/trans_pgd.c~arm64-mm-ptep_get-new-layer-to-manage-contig-bit
++++ a/arch/arm64/mm/trans_pgd.c
+@@ -33,7 +33,7 @@ static void *trans_alloc(struct trans_pg
+ 
+ static void _copy_pte(pte_t *dst_ptep, pte_t *src_ptep, unsigned long addr)
+ {
+-	pte_t pte = READ_ONCE(*src_ptep);
++	pte_t pte = __ptep_get(src_ptep);
+ 
+ 	if (pte_valid(pte)) {
+ 		/*
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
