@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88CEF5D74E
-	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 17:23:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF0F071444
+	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 17:23:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BkUIIt0O"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8A68C433C8;
-	Mon, 18 Dec 2023 17:23:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kddJd4V4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB19AC433C7;
+	Mon, 18 Dec 2023 17:23:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702920210;
-	bh=zwNcSH43GIAfNNQX5xYniAbWeiZ1aHJHQwwQh4Hl1Zk=;
+	s=korg; t=1702920212;
+	bh=AR+Hg+mqixf9WUP6shoBeBIxjiQ7uZPNeHZpBGS0U4Y=;
 	h=Date:To:From:Subject:From;
-	b=BkUIIt0Oy9TdHHfzMricR9ncvSJzRAly4X2S2KcGbCMx+jax1F8g8viVRyFj3Woww
-	 zIoepi9h6jp6L+Q2DRolEtgM8aPy2E6ePEPGwd17j9vzjWll5nD67lk3WT8p7zsQGG
-	 7sIcKNthcRnV33iaxP3uEfln3ZKrXwNUKtW1aBJA=
-Date: Mon, 18 Dec 2023 09:23:29 -0800
+	b=kddJd4V4OaVUatj2/CMnuaYpdP0YbAdw7q4ji9jnPzVCTOOzjxsWyyzPjXL1BFO3N
+	 MsUIWGG0UDtu3yFUdhPqn0t1ieO0PVNpL+Yu9+y6q0t3O9E4v06J22pT9FvYJh2rj8
+	 xfzrG4rzzh9OE12ElMl3+PRXNrB+a9GPmp4l4le8=
+Date: Mon, 18 Dec 2023 09:23:31 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,yuzenghui@huawei.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vincenzo.frascino@arm.com,suzuki.poulose@arm.com,shy828301@gmail.com,ryabinin.a.a@gmail.com,oliver.upton@linux.dev,maz@kernel.org,mark.rutland@arm.com,jhubbard@nvidia.com,james.morse@arm.com,glider@google.com,dvyukov@google.com,david@redhat.com,catalin.marinas@arm.com,ardb@kernel.org,apopple@nvidia.com,anshuman.khandual@arm.com,andreyknvl@gmail.com,21cnbao@gmail.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-mm-ptep_clear_flush_young-new-layer-to-manage-contig-bit.patch added to mm-unstable branch
-Message-Id: <20231218172329.E8A68C433C8@smtp.kernel.org>
+Subject: + arm64-mm-ptep_set_wrprotect-new-layer-to-manage-contig-bit.patch added to mm-unstable branch
+Message-Id: <20231218172331.EB19AC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64/mm: ptep_clear_flush_young(): new layer to manage contig bit
+     Subject: arm64/mm: ptep_set_wrprotect(): new layer to manage contig bit
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-mm-ptep_clear_flush_young-new-layer-to-manage-contig-bit.patch
+     arm64-mm-ptep_set_wrprotect-new-layer-to-manage-contig-bit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-ptep_clear_flush_young-new-layer-to-manage-contig-bit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-ptep_set_wrprotect-new-layer-to-manage-contig-bit.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,8 +51,8 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: arm64/mm: ptep_clear_flush_young(): new layer to manage contig bit
-Date: Mon, 18 Dec 2023 10:50:53 +0000
+Subject: arm64/mm: ptep_set_wrprotect(): new layer to manage contig bit
+Date: Mon, 18 Dec 2023 10:50:54 +0000
 
 Create a new layer for the in-table PTE manipulation APIs.  For now, The
 existing API is prefixed with double underscore to become the arch-private
@@ -66,7 +66,7 @@ first ensure those users use the private API directly so that the future
 contig-bit manipulations in the public API do not interfere with those
 existing uses.
 
-Link: https://lkml.kernel.org/r/20231218105100.172635-10-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20231218105100.172635-11-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
 Tested-by: John Hubbard <jhubbard@nvidia.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -95,38 +95,55 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ arch/arm64/include/asm/pgtable.h |   10 ++++++----
+ arch/arm64/mm/hugetlbpage.c      |    2 +-
+ 2 files changed, 7 insertions(+), 5 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~arm64-mm-ptep_clear_flush_young-new-layer-to-manage-contig-bit
+--- a/arch/arm64/include/asm/pgtable.h~arm64-mm-ptep_set_wrprotect-new-layer-to-manage-contig-bit
 +++ a/arch/arm64/include/asm/pgtable.h
-@@ -138,7 +138,7 @@ static inline pteval_t __phys_to_pte_val
-  * so that we don't erroneously return false for pages that have been
-  * remapped as PROT_NONE but are yet to be flushed from the TLB.
-  * Note that we can't make any assumptions based on the state of the access
-- * flag, since ptep_clear_flush_young() elides a DSB when invalidating the
-+ * flag, since __ptep_clear_flush_young() elides a DSB when invalidating the
-  * TLB.
+@@ -958,11 +958,11 @@ static inline pmd_t pmdp_huge_get_and_cl
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+ /*
+- * ptep_set_wrprotect - mark read-only while trasferring potential hardware
++ * __ptep_set_wrprotect - mark read-only while trasferring potential hardware
+  * dirty status (PTE_DBM && !PTE_RDONLY) to the software PTE_DIRTY bit.
   */
- #define pte_accessible(mm, pte)	\
-@@ -904,8 +904,7 @@ static inline int __ptep_test_and_clear_
- 	return pte_young(pte);
+-#define __HAVE_ARCH_PTEP_SET_WRPROTECT
+-static inline void ptep_set_wrprotect(struct mm_struct *mm, unsigned long address, pte_t *ptep)
++static inline void __ptep_set_wrprotect(struct mm_struct *mm,
++					unsigned long address, pte_t *ptep)
+ {
+ 	pte_t old_pte, pte;
+ 
+@@ -980,7 +980,7 @@ static inline void ptep_set_wrprotect(st
+ static inline void pmdp_set_wrprotect(struct mm_struct *mm,
+ 				      unsigned long address, pmd_t *pmdp)
+ {
+-	ptep_set_wrprotect(mm, address, (pte_t *)pmdp);
++	__ptep_set_wrprotect(mm, address, (pte_t *)pmdp);
  }
  
--#define __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
--static inline int ptep_clear_flush_young(struct vm_area_struct *vma,
-+static inline int __ptep_clear_flush_young(struct vm_area_struct *vma,
- 					 unsigned long address, pte_t *ptep)
- {
- 	int young = __ptep_test_and_clear_young(vma, address, ptep);
-@@ -1119,6 +1118,8 @@ extern void ptep_modify_prot_commit(stru
- #define ptep_get_and_clear			__ptep_get_and_clear
- #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
+ #define pmdp_establish pmdp_establish
+@@ -1120,6 +1120,8 @@ extern void ptep_modify_prot_commit(stru
  #define ptep_test_and_clear_young		__ptep_test_and_clear_young
-+#define __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
-+#define ptep_clear_flush_young			__ptep_clear_flush_young
+ #define __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
+ #define ptep_clear_flush_young			__ptep_clear_flush_young
++#define __HAVE_ARCH_PTEP_SET_WRPROTECT
++#define ptep_set_wrprotect			__ptep_set_wrprotect
  
  #endif /* !__ASSEMBLY__ */
+ 
+--- a/arch/arm64/mm/hugetlbpage.c~arm64-mm-ptep_set_wrprotect-new-layer-to-manage-contig-bit
++++ a/arch/arm64/mm/hugetlbpage.c
+@@ -493,7 +493,7 @@ void huge_ptep_set_wrprotect(struct mm_s
+ 	pte_t pte;
+ 
+ 	if (!pte_cont(READ_ONCE(*ptep))) {
+-		ptep_set_wrprotect(mm, addr, ptep);
++		__ptep_set_wrprotect(mm, addr, ptep);
+ 		return;
+ 	}
  
 _
 
