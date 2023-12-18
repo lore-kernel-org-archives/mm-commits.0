@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7C231E529
-	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 18:44:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68E3D1DDF8
+	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 18:44:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T6estiZ6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20068C433C7;
-	Mon, 18 Dec 2023 18:44:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tZF0b/TA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C91DCC433C9;
+	Mon, 18 Dec 2023 18:44:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702925057;
-	bh=2u8YUsUpzh6nx/uVtVkpJoi974SMnQxTAFKNrCfvkBk=;
+	s=korg; t=1702925058;
+	bh=jO2QsCzt7XbnOTQEEj4+TJM1Fb01JJ5EhI+u72sk3BA=;
 	h=Date:To:From:Subject:From;
-	b=T6estiZ6wivpkda8JoRUWHNbis1jlqF+xQY8Mhvs4Vk983HYzSIKYcj4ryZgnJ6nr
-	 KmA4WoUvVz3NqYQCIrmKIv/sVpYjORwqxT8cXqbhDiJ6ErcQKLzXohA5W0vhmZoIAA
-	 HPPKx3wOG2kkAtZWjI760tqV583kT5l31WiJPhQ0=
-Date: Mon, 18 Dec 2023 10:44:16 -0800
+	b=tZF0b/TAcPXN7KfvDbeaDSUfPOPVZlSd+WQXprMnxHjikZ8y9QxuI4V1EmkIXvPNd
+	 u9ZkxRWiwqPY2ihg+Xavgk3jpmaMoCAUQcEwxWFrczQIpzbcFXruT92WuOvDpFZek7
+	 S8IgGSiLJWPM3MSiMuJxQjnxJDa4qDKuYMKinrs0=
+Date: Mon, 18 Dec 2023 10:44:18 -0800
 To: mm-commits@vger.kernel.org,hch@lst.de,axboe@kernel.dk,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + bfs-remove-writepage-implementation.patch added to mm-unstable branch
-Message-Id: <20231218184417.20068C433C7@smtp.kernel.org>
+Subject: + hfs-really-remove-hfs_writepage.patch added to mm-unstable branch
+Message-Id: <20231218184418.C91DCC433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: bfs: remove writepage implementation
+     Subject: hfs: really remove hfs_writepage
 has been added to the -mm mm-unstable branch.  Its filename is
-     bfs-remove-writepage-implementation.patch
+     hfs-really-remove-hfs_writepage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bfs-remove-writepage-implementation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hfs-really-remove-hfs_writepage.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,57 +51,48 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: bfs: remove writepage implementation
-Date: Fri, 15 Dec 2023 20:02:37 +0000
+Subject: hfs: really remove hfs_writepage
+Date: Fri, 15 Dec 2023 20:02:38 +0000
 
-If the filesystem implements migrate_folio and writepages, there is no
-need for a writepage implementation.
+The earlier commit to remove hfs_writepage only removed it from one of the
+aops.  Remove it from the btree_aops as well.
 
-Link: https://lkml.kernel.org/r/20231215200245.748418-7-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231215200245.748418-8-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Jens Axboe <axboe@kernel.dk>
 Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/bfs/file.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ fs/hfs/inode.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
---- a/fs/bfs/file.c~bfs-remove-writepage-implementation
-+++ a/fs/bfs/file.c
-@@ -11,6 +11,7 @@
-  */
+--- a/fs/hfs/inode.c~hfs-really-remove-hfs_writepage
++++ a/fs/hfs/inode.c
+@@ -29,11 +29,6 @@ static const struct inode_operations hfs
  
- #include <linux/fs.h>
-+#include <linux/mpage.h>
- #include <linux/buffer_head.h>
- #include "bfs.h"
+ #define HFS_VALID_MODE_BITS  (S_IFREG | S_IFDIR | S_IRWXUGO)
  
-@@ -150,9 +151,10 @@ out:
- 	return err;
- }
- 
--static int bfs_writepage(struct page *page, struct writeback_control *wbc)
-+static int bfs_writepages(struct address_space *mapping,
-+		struct writeback_control *wbc)
+-static int hfs_writepage(struct page *page, struct writeback_control *wbc)
+-{
+-	return block_write_full_page(page, hfs_get_block, wbc);
+-}
+-
+ static int hfs_read_folio(struct file *file, struct folio *folio)
  {
--	return block_write_full_page(page, bfs_get_block, wbc);
-+	return mpage_writepages(mapping, wbc, bfs_get_block);
- }
- 
- static int bfs_read_folio(struct file *file, struct folio *folio)
-@@ -190,9 +192,10 @@ const struct address_space_operations bf
+ 	return block_read_full_folio(folio, hfs_get_block);
+@@ -162,9 +157,10 @@ const struct address_space_operations hf
  	.dirty_folio	= block_dirty_folio,
  	.invalidate_folio = block_invalidate_folio,
- 	.read_folio	= bfs_read_folio,
--	.writepage	= bfs_writepage,
-+	.writepages	= bfs_writepages,
- 	.write_begin	= bfs_write_begin,
+ 	.read_folio	= hfs_read_folio,
+-	.writepage	= hfs_writepage,
++	.writepages	= hfs_writepages,
+ 	.write_begin	= hfs_write_begin,
  	.write_end	= generic_write_end,
 +	.migrate_folio	= buffer_migrate_folio,
- 	.bmap		= bfs_bmap,
+ 	.bmap		= hfs_bmap,
+ 	.release_folio	= hfs_release_folio,
  };
- 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
