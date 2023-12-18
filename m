@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 082F05D746
-	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 18:44:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A23005D733
+	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 18:44:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BUsEZaA6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 806CFC433C8;
-	Mon, 18 Dec 2023 18:44:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bBBTB87R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22727C433C9;
+	Mon, 18 Dec 2023 18:44:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702925060;
-	bh=QiA2OlbICjz9FA1CDZMJq/UnP1eiSPjKzAC4bXEHCi4=;
+	s=korg; t=1702925062;
+	bh=URmmNCPgaAoIIWUAiD0JIO9/oEMO/otm1g2xOaBbffg=;
 	h=Date:To:From:Subject:From;
-	b=BUsEZaA6WVW1y+5Nb5IFALPyhzXNdB6oxhrm0UTHZVAMw/wzvNmASE4Q5k3HEiRrj
-	 qiGFA9kkp87htfhuCan+mJatC+GpVjOcnAtaH9oDKkIMlrzYG8majUD2H1j6XvIRQA
-	 6tzhI8NIRv9PIuwXemif/yu+Ua4q+L0zfcUzxjNU=
-Date: Mon, 18 Dec 2023 10:44:19 -0800
+	b=bBBTB87R4bxHZsTw7rYCXKwvLQdPE8bHNHw/yrQncsOfnzD5zUyl8TovfojmBDJn/
+	 5j3QFxGCHShVvfwKjAqhKqbgXGddWFiBjWsRpy0vBObZjNtQb5uWOvrWShhNnucIwk
+	 ySTbtWDxNavYM8yCwQ0Pf81iPbaXxSJJXG6ymtgw=
+Date: Mon, 18 Dec 2023 10:44:21 -0800
 To: mm-commits@vger.kernel.org,hch@lst.de,axboe@kernel.dk,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hfsplus-really-remove-hfsplus_writepage.patch added to mm-unstable branch
-Message-Id: <20231218184420.806CFC433C8@smtp.kernel.org>
+Subject: + minix-remove-writepage-implementation.patch added to mm-unstable branch
+Message-Id: <20231218184422.22727C433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hfsplus: really remove hfsplus_writepage
+     Subject: minix: remove writepage implementation
 has been added to the -mm mm-unstable branch.  Its filename is
-     hfsplus-really-remove-hfsplus_writepage.patch
+     minix-remove-writepage-implementation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hfsplus-really-remove-hfsplus_writepage.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/minix-remove-writepage-implementation.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,47 +51,56 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: hfsplus: really remove hfsplus_writepage
-Date: Fri, 15 Dec 2023 20:02:39 +0000
+Subject: minix: remove writepage implementation
+Date: Fri, 15 Dec 2023 20:02:40 +0000
 
-The earlier commit to remove hfsplus_writepage only removed it from one of
-the aops.  Remove it from the btree_aops as well.
+If the filesystem implements migrate_folio and writepages, there is no
+need for a writepage implementation.
 
-Link: https://lkml.kernel.org/r/20231215200245.748418-9-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231215200245.748418-10-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Jens Axboe <axboe@kernel.dk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/inode.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ fs/minix/inode.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/fs/hfsplus/inode.c~hfsplus-really-remove-hfsplus_writepage
-+++ a/fs/hfsplus/inode.c
-@@ -28,11 +28,6 @@ static int hfsplus_read_folio(struct fil
- 	return block_read_full_folio(folio, hfsplus_get_block);
+--- a/fs/minix/inode.c~minix-remove-writepage-implementation
++++ a/fs/minix/inode.c
+@@ -17,6 +17,7 @@
+ #include <linux/slab.h>
+ #include <linux/init.h>
+ #include <linux/highuid.h>
++#include <linux/mpage.h>
+ #include <linux/vfs.h>
+ #include <linux/writeback.h>
+ 
+@@ -397,9 +398,10 @@ static int minix_get_block(struct inode
+ 		return V2_minix_get_block(inode, block, bh_result, create);
  }
  
--static int hfsplus_writepage(struct page *page, struct writeback_control *wbc)
--{
--	return block_write_full_page(page, hfsplus_get_block, wbc);
--}
--
- static void hfsplus_write_failed(struct address_space *mapping, loff_t to)
+-static int minix_writepage(struct page *page, struct writeback_control *wbc)
++static int minix_writepages(struct address_space *mapping,
++		struct writeback_control *wbc)
  {
- 	struct inode *inode = mapping->host;
-@@ -159,9 +154,10 @@ const struct address_space_operations hf
+-	return block_write_full_page(page, minix_get_block, wbc);
++	return mpage_writepages(mapping, wbc, minix_get_block);
+ }
+ 
+ static int minix_read_folio(struct file *file, struct folio *folio)
+@@ -444,9 +446,10 @@ static const struct address_space_operat
  	.dirty_folio	= block_dirty_folio,
  	.invalidate_folio = block_invalidate_folio,
- 	.read_folio	= hfsplus_read_folio,
--	.writepage	= hfsplus_writepage,
-+	.writepages	= hfsplus_writepages,
- 	.write_begin	= hfsplus_write_begin,
- 	.write_end	= generic_write_end,
-+	.migrate_folio	= buffer_migrate_folio,
- 	.bmap		= hfsplus_bmap,
- 	.release_folio	= hfsplus_release_folio,
+ 	.read_folio = minix_read_folio,
+-	.writepage = minix_writepage,
++	.writepages = minix_writepages,
+ 	.write_begin = minix_write_begin,
+ 	.write_end = generic_write_end,
++	.migrate_folio = buffer_migrate_folio,
+ 	.bmap = minix_bmap,
+ 	.direct_IO = noop_direct_IO
  };
 _
 
