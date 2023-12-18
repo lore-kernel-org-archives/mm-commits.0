@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F2735D733
-	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 17:23:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90FCC1DA2F
+	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 17:23:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="McrtdRFv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B769CC433C8;
-	Mon, 18 Dec 2023 17:23:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2s/ModJl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02E62C433C7;
+	Mon, 18 Dec 2023 17:23:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702920205;
-	bh=jH14gfROaJTHgameVP3YRz2dXAlnK1L/pDBUMZVxCoo=;
+	s=korg; t=1702920208;
+	bh=m4S+JS//o/oekMz2JT4zl8tN9ja5G6OGFKN2Ir1I/io=;
 	h=Date:To:From:Subject:From;
-	b=McrtdRFv0L5c9lxLGYdsAZPnkDplsg8hCU6GV6WMVjm4reEsPXrZbe8ldvcErkBO7
-	 ShKA9RMP6tpRvO8WknWHWb6LEBlclT9I24iUa9mTjoI5tuv6fsIIsKX6MAGbaIYyhO
-	 XOJqKq+vYXhnrsab68h5lX1hPAJF7cG27mnCMcaI=
-Date: Mon, 18 Dec 2023 09:23:25 -0800
+	b=2s/ModJlA9FbneGECO70d04qMV6D/61j7odqvbn7bfgK/rJZYvNLA3aqQEF+7bWlx
+	 kUyzyq8yFQORWU4VmS9iyI4o8MrKo/+ocR7uDW+N5C/fVd25OTkrFAyr8PMj4RAka8
+	 yHkes6NbhQj5TzcvPtTPGxlcbpaTe8knmzFeH0LY=
+Date: Mon, 18 Dec 2023 09:23:27 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,yuzenghui@huawei.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vincenzo.frascino@arm.com,suzuki.poulose@arm.com,shy828301@gmail.com,ryabinin.a.a@gmail.com,oliver.upton@linux.dev,maz@kernel.org,mark.rutland@arm.com,jhubbard@nvidia.com,james.morse@arm.com,glider@google.com,dvyukov@google.com,david@redhat.com,catalin.marinas@arm.com,ardb@kernel.org,apopple@nvidia.com,anshuman.khandual@arm.com,andreyknvl@gmail.com,21cnbao@gmail.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-mm-ptep_get_and_clear-new-layer-to-manage-contig-bit.patch added to mm-unstable branch
-Message-Id: <20231218172325.B769CC433C8@smtp.kernel.org>
+Subject: + arm64-mm-ptep_test_and_clear_young-new-layer-to-manage-contig-bit.patch added to mm-unstable branch
+Message-Id: <20231218172328.02E62C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64/mm: ptep_get_and_clear(): new layer to manage contig bit
+     Subject: arm64/mm: ptep_test_and_clear_young(): new layer to manage contig bit
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-mm-ptep_get_and_clear-new-layer-to-manage-contig-bit.patch
+     arm64-mm-ptep_test_and_clear_young-new-layer-to-manage-contig-bit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-ptep_get_and_clear-new-layer-to-manage-contig-bit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-ptep_test_and_clear_young-new-layer-to-manage-contig-bit.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,8 +51,8 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: arm64/mm: ptep_get_and_clear(): new layer to manage contig bit
-Date: Mon, 18 Dec 2023 10:50:51 +0000
+Subject: arm64/mm: ptep_test_and_clear_young(): new layer to manage contig bit
+Date: Mon, 18 Dec 2023 10:50:52 +0000
 
 Create a new layer for the in-table PTE manipulation APIs.  For now, The
 existing API is prefixed with double underscore to become the arch-private
@@ -66,7 +66,7 @@ first ensure those users use the private API directly so that the future
 contig-bit manipulations in the public API do not interfere with those
 existing uses.
 
-Link: https://lkml.kernel.org/r/20231218105100.172635-8-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20231218105100.172635-9-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
 Tested-by: John Hubbard <jhubbard@nvidia.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -95,59 +95,60 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |    5 +++--
- arch/arm64/mm/hugetlbpage.c      |    6 +++---
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ arch/arm64/include/asm/pgtable.h |   18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~arm64-mm-ptep_get_and_clear-new-layer-to-manage-contig-bit
+--- a/arch/arm64/include/asm/pgtable.h~arm64-mm-ptep_test_and_clear_young-new-layer-to-manage-contig-bit
 +++ a/arch/arm64/include/asm/pgtable.h
-@@ -941,8 +941,7 @@ static inline int pmdp_test_and_clear_yo
+@@ -887,8 +887,9 @@ static inline bool pud_user_accessible_p
+ /*
+  * Atomic pte/pmd modifications.
+  */
+-#define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
+-static inline int __ptep_test_and_clear_young(pte_t *ptep)
++static inline int __ptep_test_and_clear_young(struct vm_area_struct *vma,
++					      unsigned long address,
++					      pte_t *ptep)
+ {
+ 	pte_t old_pte, pte;
+ 
+@@ -903,18 +904,11 @@ static inline int __ptep_test_and_clear_
+ 	return pte_young(pte);
+ }
+ 
+-static inline int ptep_test_and_clear_young(struct vm_area_struct *vma,
+-					    unsigned long address,
+-					    pte_t *ptep)
+-{
+-	return __ptep_test_and_clear_young(ptep);
+-}
+-
+ #define __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
+ static inline int ptep_clear_flush_young(struct vm_area_struct *vma,
+ 					 unsigned long address, pte_t *ptep)
+ {
+-	int young = ptep_test_and_clear_young(vma, address, ptep);
++	int young = __ptep_test_and_clear_young(vma, address, ptep);
+ 
+ 	if (young) {
+ 		/*
+@@ -937,7 +931,7 @@ static inline int pmdp_test_and_clear_yo
+ 					    unsigned long address,
+ 					    pmd_t *pmdp)
+ {
+-	return ptep_test_and_clear_young(vma, address, (pte_t *)pmdp);
++	return __ptep_test_and_clear_young(vma, address, (pte_t *)pmdp);
  }
  #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
--#define __HAVE_ARCH_PTEP_GET_AND_CLEAR
--static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
-+static inline pte_t __ptep_get_and_clear(struct mm_struct *mm,
- 				       unsigned long address, pte_t *ptep)
- {
- 	pte_t pte = __pte(xchg_relaxed(&pte_val(*ptep), 0));
-@@ -1122,6 +1121,8 @@ extern void ptep_modify_prot_commit(stru
- #define set_pte					__set_pte
- #define set_ptes				__set_ptes
+@@ -1123,6 +1117,8 @@ extern void ptep_modify_prot_commit(stru
  #define pte_clear				__pte_clear
-+#define __HAVE_ARCH_PTEP_GET_AND_CLEAR
-+#define ptep_get_and_clear			__ptep_get_and_clear
+ #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
+ #define ptep_get_and_clear			__ptep_get_and_clear
++#define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
++#define ptep_test_and_clear_young		__ptep_test_and_clear_young
  
  #endif /* !__ASSEMBLY__ */
- 
---- a/arch/arm64/mm/hugetlbpage.c~arm64-mm-ptep_get_and_clear-new-layer-to-manage-contig-bit
-+++ a/arch/arm64/mm/hugetlbpage.c
-@@ -188,7 +188,7 @@ static pte_t get_clear_contig(struct mm_
- 	unsigned long i;
- 
- 	for (i = 0; i < ncontig; i++, addr += pgsize, ptep++) {
--		pte_t pte = ptep_get_and_clear(mm, addr, ptep);
-+		pte_t pte = __ptep_get_and_clear(mm, addr, ptep);
- 
- 		/*
- 		 * If HW_AFDBM is enabled, then the HW could turn on
-@@ -236,7 +236,7 @@ static void clear_flush(struct mm_struct
- 	unsigned long i, saddr = addr;
- 
- 	for (i = 0; i < ncontig; i++, addr += pgsize, ptep++)
--		ptep_clear(mm, addr, ptep);
-+		__ptep_get_and_clear(mm, addr, ptep);
- 
- 	flush_tlb_range(&vma, saddr, addr);
- }
-@@ -411,7 +411,7 @@ pte_t huge_ptep_get_and_clear(struct mm_
- 	pte_t orig_pte = ptep_get(ptep);
- 
- 	if (!pte_cont(orig_pte))
--		return ptep_get_and_clear(mm, addr, ptep);
-+		return __ptep_get_and_clear(mm, addr, ptep);
- 
- 	ncontig = find_num_contig(mm, addr, ptep, &pgsize);
  
 _
 
