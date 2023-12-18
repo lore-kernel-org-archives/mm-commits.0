@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D410C2904
-	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 18:37:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FC3E481BD
+	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 18:38:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kr3S3Mvk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EBB4C433C8;
-	Mon, 18 Dec 2023 18:37:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ynC7Wc1C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D389EC433C9;
+	Mon, 18 Dec 2023 18:38:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702924637;
-	bh=J85bpHj6UJDvA21qycu6d8ydjHzle9hDSSfonTQRP6U=;
+	s=korg; t=1702924687;
+	bh=UwH7s0354QPlLK10QxpTBQyZVzJpGaWpf2/ySkvOVz0=;
 	h=Date:To:From:Subject:From;
-	b=kr3S3Mvkur78dnl4Kb9OD0uhD3a5h9TfOvD3XD9Szf65LE1Z272OBP1NuTij41tyO
-	 fnngbgR+td8vsno1a2c2837vJS3c+khSx+3dgEieGJ63L0Fz157zXsyUSwnih2w0wk
-	 TrEzjrh6qdQqBdk0VsL6D+zxbX0B9PVLm43tGspU=
-Date: Mon, 18 Dec 2023 10:37:16 -0800
-To: mm-commits@vger.kernel.org,tangyouling@kylinos.cn,chenhuacai@loongson.cn,youling.tang@outlook.com,akpm@linux-foundation.org
+	b=ynC7Wc1CCWe/yPDvOPMH0EM8EJXTPbNIdOy+c8lMp73MUlZEN6ku8XWB7DBpXu6Eu
+	 NowxM07Qv5NnST1MXaHen3EtBV+f/jBmpNzsKDI8arqreEfChTRmwAzwFJ6CiQPbPf
+	 xBuGxVtXNQYK+klXObUQRJllxfxB/8AFo17cQTwc=
+Date: Mon, 18 Dec 2023 10:38:07 -0800
+To: mm-commits@vger.kernel.org,glaubitz@physik.fu-berlin.de,chenhuacai@loongson.cn,tangyouling@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-decodecode-add-support-for-loongarch.patch added to mm-nonmm-unstable branch
-Message-Id: <20231218183717.4EBB4C433C8@smtp.kernel.org>
+Subject: + checkstack-add-loongarch-support-for-scripts-checkstackpl.patch added to mm-nonmm-unstable branch
+Message-Id: <20231218183807.D389EC433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scripts/decodecode: add support for LoongArch
+     Subject: checkstack: add loongarch support for scripts/checkstack.pl
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-decodecode-add-support-for-loongarch.patch
+     checkstack-add-loongarch-support-for-scripts-checkstackpl.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-decodecode-add-support-for-loongarch.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkstack-add-loongarch-support-for-scripts-checkstackpl.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -50,71 +50,48 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Youling Tang <youling.tang@outlook.com>
-Subject: scripts/decodecode: add support for LoongArch
-Date: Sat, 16 Dec 2023 14:51:28 +0800
+From: Youling Tang <tangyouling@kylinos.cn>
+Subject: checkstack: add loongarch support for scripts/checkstack.pl
+Date: Sat, 16 Dec 2023 14:40:54 +0800
 
+scripts/checkstack.pl lacks support for the loongarch architecture.  Add
+support to detect "addi.{w,d} $sp, $sp, -FRAME_SIZE" stack frame
+generation instruction.
 
-An example how to invoke decodecode for loongarch64:
-$ echo 'Code: 380839f6  380831f9  28412bae  <24000ca6>
-  004081ad  0014cb50  004083e8  02bff34c  58008e91' | \
-  ARCH=loongarch CROSS_COMPILE=loongarch64-linux-gnu- \
-  ./scripts/decodecode
-Code: 380839f6 380831f9 28412bae <24000ca6> 004081ad 0014cb50 004083e8 02bff34c 58008e91
-All code
-========
-   0:	380839f6 	ldx.w       	$fp, $t3, $t2
-   4:	380831f9 	ldx.w       	$s2, $t3, $t0
-   8:	28412bae 	ld.h        	$t2, $s6, 74(0x4a)
-   c:*	24000ca6 	ldptr.w     	$a2, $a1, 12(0xc)		<-- trapping instruction
-  10:	004081ad 	slli.w      	$t1, $t1, 0x0
-  14:	0014cb50 	and         	$t4, $s3, $t6
-  18:	004083e8 	slli.w      	$a4, $s8, 0x0
-  1c:	02bff34c 	addi.w      	$t0, $s3, -4(0xffc)
-  20:	58008e91 	beq         	$t8, $t5, 140(0x8c)	# 0xac
-
-Code starting with the faulting instruction
-===========================================
-   0:	24000ca6 	ldptr.w     	$a2, $a1, 12(0xc)
-   4:	004081ad 	slli.w      	$t1, $t1, 0x0
-   8:	0014cb50 	and         	$t4, $s3, $t6
-   c:	004083e8 	slli.w      	$a4, $s8, 0x0
-  10:	02bff34c 	addi.w      	$t0, $s3, -4(0xffc)
-  14:	58008e91 	beq         	$t8, $t5, 140(0x8c)	# 0xa0
-
-Link: https://lkml.kernel.org/r/MW4PR84MB3145B99B9677BB7887BB26CD8192A@MW4PR84MB3145.NAMPRD84.PROD.OUTLOOK.COM
+Link: https://lkml.kernel.org/r/MW4PR84MB314514273F0B7DBCC5E35A978192A@MW4PR84MB3145.NAMPRD84.PROD.OUTLOOK.COM
 Signed-off-by: Youling Tang <tangyouling@kylinos.cn>
 Acked-by: Huacai Chen <chenhuacai@loongson.cn>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/decodecode |    5 +++++
- 1 file changed, 5 insertions(+)
+ scripts/checkstack.pl |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/scripts/decodecode~scripts-decodecode-add-support-for-loongarch
-+++ a/scripts/decodecode
-@@ -67,6 +67,7 @@ if [ -z "$ARCH" ]; then
-     case `uname -m` in
- 	aarch64*) ARCH=arm64 ;;
- 	arm*) ARCH=arm ;;
-+	loongarch*) ARCH=loongarch ;;
-     esac
- fi
- 
-@@ -98,6 +99,10 @@ disas() {
- 		${CROSS_COMPILE}strip $t.o
- 	fi
- 
-+	if [ "$ARCH" = "loongarch" ]; then
-+		${CROSS_COMPILE}strip $t.o
-+	fi
-+
- 	if [ $pc_sub -ne 0 ]; then
- 		if [ $PC ]; then
- 			adj_vma=$(( $PC - $pc_sub ))
+--- a/scripts/checkstack.pl~checkstack-add-loongarch-support-for-scripts-checkstackpl
++++ a/scripts/checkstack.pl
+@@ -16,6 +16,7 @@
+ #	sparc port by Martin Habets <errandir_news@mph.eclipse.co.uk>
+ #	ppc64le port by Breno Leitao <leitao@debian.org>
+ #	riscv port by Wadim Mueller <wafgo01@gmail.com>
++#	loongarch port by Youling Tang <tangyouling@kylinos.cn>
+ #
+ #	Usage:
+ #	objdump -d vmlinux | scripts/checkstack.pl [arch]
+@@ -104,6 +105,9 @@ my (@stack, $re, $dre, $sub, $x, $xs, $f
+ 	} elsif ($arch =~ /^riscv(64)?$/) {
+ 		#ffffffff8036e868:	c2010113          	addi	sp,sp,-992
+ 		$re = qr/.*addi.*sp,sp,-(([0-9]{2}|[3-9])[0-9]{2})/o;
++	} elsif ($arch =~ /^loongarch(32|64)?$/) {
++		#9000000000224708:	02ff4063		addi.d  $sp, $sp, -48(0xfd0)
++		$re = qr/.*addi\..*sp, .*sp, -([0-9]{1,8}).*/o;
+ 	} else {
+ 		print("wrong or unknown architecture \"$arch\"\n");
+ 		exit
 _
 
-Patches currently in -mm which might be from youling.tang@outlook.com are
+Patches currently in -mm which might be from tangyouling@kylinos.cn are
 
 scripts-decodecode-add-support-for-loongarch.patch
+checkstack-add-loongarch-support-for-scripts-checkstackpl.patch
 
