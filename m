@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF0F071444
-	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 17:23:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8ED27145A
+	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 17:23:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kddJd4V4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB19AC433C7;
-	Mon, 18 Dec 2023 17:23:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ScHIRLMW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21B81C433C8;
+	Mon, 18 Dec 2023 17:23:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702920212;
-	bh=AR+Hg+mqixf9WUP6shoBeBIxjiQ7uZPNeHZpBGS0U4Y=;
+	s=korg; t=1702920214;
+	bh=8Wd53mIvXQ/0LTbs36FCZlaTV5jp9vY77ZFDhv291yY=;
 	h=Date:To:From:Subject:From;
-	b=kddJd4V4OaVUatj2/CMnuaYpdP0YbAdw7q4ji9jnPzVCTOOzjxsWyyzPjXL1BFO3N
-	 MsUIWGG0UDtu3yFUdhPqn0t1ieO0PVNpL+Yu9+y6q0t3O9E4v06J22pT9FvYJh2rj8
-	 xfzrG4rzzh9OE12ElMl3+PRXNrB+a9GPmp4l4le8=
-Date: Mon, 18 Dec 2023 09:23:31 -0800
+	b=ScHIRLMWqGHOsckKdIHAh7IfZ6xBEcbVpUCJxgLV8fYo5oTJc/GuxzbMZXWZJhVrG
+	 uHMOmTpkQHcaERHmaFVSHYGIcNfZkdbM1HrpLlOzWVmPE+Ps0MwfDSFpD0KU5opWgE
+	 5KXHAIAeE759TSCVQVkA/tZi52r1CU+fQPx2Bk/k=
+Date: Mon, 18 Dec 2023 09:23:33 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,yuzenghui@huawei.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vincenzo.frascino@arm.com,suzuki.poulose@arm.com,shy828301@gmail.com,ryabinin.a.a@gmail.com,oliver.upton@linux.dev,maz@kernel.org,mark.rutland@arm.com,jhubbard@nvidia.com,james.morse@arm.com,glider@google.com,dvyukov@google.com,david@redhat.com,catalin.marinas@arm.com,ardb@kernel.org,apopple@nvidia.com,anshuman.khandual@arm.com,andreyknvl@gmail.com,21cnbao@gmail.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-mm-ptep_set_wrprotect-new-layer-to-manage-contig-bit.patch added to mm-unstable branch
-Message-Id: <20231218172331.EB19AC433C7@smtp.kernel.org>
+Subject: + arm64-mm-ptep_set_access_flags-new-layer-to-manage-contig-bit.patch added to mm-unstable branch
+Message-Id: <20231218172334.21B81C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64/mm: ptep_set_wrprotect(): new layer to manage contig bit
+     Subject: arm64/mm: ptep_set_access_flags(): new layer to manage contig bit
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-mm-ptep_set_wrprotect-new-layer-to-manage-contig-bit.patch
+     arm64-mm-ptep_set_access_flags-new-layer-to-manage-contig-bit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-ptep_set_wrprotect-new-layer-to-manage-contig-bit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-ptep_set_access_flags-new-layer-to-manage-contig-bit.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,8 +51,8 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: arm64/mm: ptep_set_wrprotect(): new layer to manage contig bit
-Date: Mon, 18 Dec 2023 10:50:54 +0000
+Subject: arm64/mm: ptep_set_access_flags(): new layer to manage contig bit
+Date: Mon, 18 Dec 2023 10:50:55 +0000
 
 Create a new layer for the in-table PTE manipulation APIs.  For now, The
 existing API is prefixed with double underscore to become the arch-private
@@ -66,7 +66,7 @@ first ensure those users use the private API directly so that the future
 contig-bit manipulations in the public API do not interfere with those
 existing uses.
 
-Link: https://lkml.kernel.org/r/20231218105100.172635-11-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20231218105100.172635-12-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
 Tested-by: John Hubbard <jhubbard@nvidia.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -96,55 +96,76 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  arch/arm64/include/asm/pgtable.h |   10 ++++++----
+ arch/arm64/mm/fault.c            |    6 +++---
  arch/arm64/mm/hugetlbpage.c      |    2 +-
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ 3 files changed, 10 insertions(+), 8 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~arm64-mm-ptep_set_wrprotect-new-layer-to-manage-contig-bit
+--- a/arch/arm64/include/asm/pgtable.h~arm64-mm-ptep_set_access_flags-new-layer-to-manage-contig-bit
 +++ a/arch/arm64/include/asm/pgtable.h
-@@ -958,11 +958,11 @@ static inline pmd_t pmdp_huge_get_and_cl
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+@@ -312,7 +312,7 @@ static inline void __check_safe_pte_upda
  
- /*
-- * ptep_set_wrprotect - mark read-only while trasferring potential hardware
-+ * __ptep_set_wrprotect - mark read-only while trasferring potential hardware
-  * dirty status (PTE_DBM && !PTE_RDONLY) to the software PTE_DIRTY bit.
-  */
--#define __HAVE_ARCH_PTEP_SET_WRPROTECT
--static inline void ptep_set_wrprotect(struct mm_struct *mm, unsigned long address, pte_t *ptep)
-+static inline void __ptep_set_wrprotect(struct mm_struct *mm,
-+					unsigned long address, pte_t *ptep)
- {
- 	pte_t old_pte, pte;
- 
-@@ -980,7 +980,7 @@ static inline void ptep_set_wrprotect(st
- static inline void pmdp_set_wrprotect(struct mm_struct *mm,
- 				      unsigned long address, pmd_t *pmdp)
- {
--	ptep_set_wrprotect(mm, address, (pte_t *)pmdp);
-+	__ptep_set_wrprotect(mm, address, (pte_t *)pmdp);
+ 	/*
+ 	 * Check for potential race with hardware updates of the pte
+-	 * (ptep_set_access_flags safely changes valid ptes without going
++	 * (__ptep_set_access_flags safely changes valid ptes without going
+ 	 * through an invalid entry).
+ 	 */
+ 	VM_WARN_ONCE(!pte_young(pte),
+@@ -842,8 +842,7 @@ static inline pmd_t pmd_modify(pmd_t pmd
+ 	return pte_pmd(pte_modify(pmd_pte(pmd), newprot));
  }
  
- #define pmdp_establish pmdp_establish
-@@ -1120,6 +1120,8 @@ extern void ptep_modify_prot_commit(stru
- #define ptep_test_and_clear_young		__ptep_test_and_clear_young
- #define __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
+-#define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
+-extern int ptep_set_access_flags(struct vm_area_struct *vma,
++extern int __ptep_set_access_flags(struct vm_area_struct *vma,
+ 				 unsigned long address, pte_t *ptep,
+ 				 pte_t entry, int dirty);
+ 
+@@ -853,7 +852,8 @@ static inline int pmdp_set_access_flags(
+ 					unsigned long address, pmd_t *pmdp,
+ 					pmd_t entry, int dirty)
+ {
+-	return ptep_set_access_flags(vma, address, (pte_t *)pmdp, pmd_pte(entry), dirty);
++	return __ptep_set_access_flags(vma, address, (pte_t *)pmdp,
++							pmd_pte(entry), dirty);
+ }
+ 
+ static inline int pud_devmap(pud_t pud)
+@@ -1122,6 +1122,8 @@ extern void ptep_modify_prot_commit(stru
  #define ptep_clear_flush_young			__ptep_clear_flush_young
-+#define __HAVE_ARCH_PTEP_SET_WRPROTECT
-+#define ptep_set_wrprotect			__ptep_set_wrprotect
+ #define __HAVE_ARCH_PTEP_SET_WRPROTECT
+ #define ptep_set_wrprotect			__ptep_set_wrprotect
++#define __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
++#define ptep_set_access_flags			__ptep_set_access_flags
  
  #endif /* !__ASSEMBLY__ */
  
---- a/arch/arm64/mm/hugetlbpage.c~arm64-mm-ptep_set_wrprotect-new-layer-to-manage-contig-bit
+--- a/arch/arm64/mm/fault.c~arm64-mm-ptep_set_access_flags-new-layer-to-manage-contig-bit
++++ a/arch/arm64/mm/fault.c
+@@ -209,9 +209,9 @@ static void show_pte(unsigned long addr)
+  *
+  * Returns whether or not the PTE actually changed.
+  */
+-int ptep_set_access_flags(struct vm_area_struct *vma,
+-			  unsigned long address, pte_t *ptep,
+-			  pte_t entry, int dirty)
++int __ptep_set_access_flags(struct vm_area_struct *vma,
++			    unsigned long address, pte_t *ptep,
++			    pte_t entry, int dirty)
+ {
+ 	pteval_t old_pteval, pteval;
+ 	pte_t pte = READ_ONCE(*ptep);
+--- a/arch/arm64/mm/hugetlbpage.c~arm64-mm-ptep_set_access_flags-new-layer-to-manage-contig-bit
 +++ a/arch/arm64/mm/hugetlbpage.c
-@@ -493,7 +493,7 @@ void huge_ptep_set_wrprotect(struct mm_s
- 	pte_t pte;
+@@ -459,7 +459,7 @@ int huge_ptep_set_access_flags(struct vm
+ 	pte_t orig_pte;
  
- 	if (!pte_cont(READ_ONCE(*ptep))) {
--		ptep_set_wrprotect(mm, addr, ptep);
-+		__ptep_set_wrprotect(mm, addr, ptep);
- 		return;
- 	}
+ 	if (!pte_cont(pte))
+-		return ptep_set_access_flags(vma, addr, ptep, pte, dirty);
++		return __ptep_set_access_flags(vma, addr, ptep, pte, dirty);
  
+ 	ncontig = find_num_contig(mm, addr, ptep, &pgsize);
+ 	dpfn = pgsize >> PAGE_SHIFT;
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
