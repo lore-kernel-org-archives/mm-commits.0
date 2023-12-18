@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 143D14237E
-	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 17:09:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA1C44FF6C
+	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 17:09:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ptzs8bO2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76A1AC433C8;
-	Mon, 18 Dec 2023 17:09:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pXEBKMI/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4AF51C433C7;
+	Mon, 18 Dec 2023 17:09:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702919395;
-	bh=C5wXVqWHJAqVZM9/6Ov9AzKLR5yQlSJe9D9cXuuw3VQ=;
+	s=korg; t=1702919397;
+	bh=CMq+sBIf0hsbFqt7DJvLUdyUhKVM88FNjJ0l3cMAGpY=;
 	h=Date:To:From:Subject:From;
-	b=ptzs8bO2Ah52Yr9FNR1N4Q8ec25q7IW9MfWuq9EiE3uiKY35cnzlPBHqSX0d/yJbe
-	 pHTpZxBbZf6pK7Ba0ed6yEnrDmGVt5djAzjbnTMwbBER36ce76bciJkduLRUlNo5No
-	 p5DuNU3Kp8lil5KoYYEKtcbWjORGVC61AdzjOMXE=
-Date: Mon, 18 Dec 2023 09:09:54 -0800
+	b=pXEBKMI/m96c/jCzYgoCmWC0yaiFBnjawowQx7ZHnzXc+dIkqkIxCvXKQcDnz1uQY
+	 qEjgt6HmEx5bk1Hw4X3hOdbVD/bzMQHOLwVzxB9N5B9SEPqAR/TM/LDj+Rqn4wWVyw
+	 dn0KWQ0+WoLeZVdpgGdqJj+9XBHXH3NXYZnX/rI0=
+Date: Mon, 18 Dec 2023 09:09:56 -0800
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,vitaly.wool@konsulko.com,sjenning@redhat.com,nphamcs@gmail.com,hannes@cmpxchg.org,ddstreet@ieee.org,chrisl@kernel.org,zhouchengming@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-refactor-out-__zswap_load.patch added to mm-unstable branch
-Message-Id: <20231218170955.76A1AC433C8@smtp.kernel.org>
+Subject: + mm-zswap-cleanup-zswap_load.patch added to mm-unstable branch
+Message-Id: <20231218170957.4AF51C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zswap: refactor out __zswap_load()
+     Subject: mm/zswap: cleanup zswap_load()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-refactor-out-__zswap_load.patch
+     mm-zswap-cleanup-zswap_load.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-refactor-out-__zswap_load.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-cleanup-zswap_load.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,158 +51,69 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Chengming Zhou <zhouchengming@bytedance.com>
-Subject: mm/zswap: refactor out __zswap_load()
-Date: Mon, 18 Dec 2023 11:50:33 +0000
+Subject: mm/zswap: cleanup zswap_load()
+Date: Mon, 18 Dec 2023 11:50:34 +0000
 
-The zswap_load() and zswap_writeback_entry() have the same part that
-decompress the data from zswap_entry to page, so refactor out the common
-part as __zswap_load(entry, page).
+After the common decompress part goes to __zswap_load(), we can cleanup
+the zswap_load() a little.
 
-Link: https://lkml.kernel.org/r/20231213-zswap-dstmem-v3-3-4eac09b94ece@bytedance.com
+Link: https://lkml.kernel.org/r/20231213-zswap-dstmem-v3-4-4eac09b94ece@bytedance.com
 Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
 Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: Dan Streetman <ddstreet@ieee.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Seth Jennings <sjenning@redhat.com>
 Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   92 +++++++++++++++++----------------------------------
- 1 file changed, 32 insertions(+), 60 deletions(-)
+ mm/zswap.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-refactor-out-__zswap_load
+--- a/mm/zswap.c~mm-zswap-cleanup-zswap_load
 +++ a/mm/zswap.c
-@@ -1392,6 +1392,35 @@ static int zswap_enabled_param_set(const
- 	return ret;
- }
- 
-+static void __zswap_load(struct zswap_entry *entry, struct page *page)
-+{
-+	struct zpool *zpool = zswap_find_zpool(entry);
-+	struct scatterlist input, output;
-+	struct crypto_acomp_ctx *acomp_ctx;
-+	u8 *src;
-+
-+	acomp_ctx = raw_cpu_ptr(entry->pool->acomp_ctx);
-+	mutex_lock(acomp_ctx->mutex);
-+
-+	src = zpool_map_handle(zpool, entry->handle, ZPOOL_MM_RO);
-+	if (!zpool_can_sleep_mapped(zpool)) {
-+		memcpy(acomp_ctx->dstmem, src, entry->length);
-+		src = acomp_ctx->dstmem;
-+		zpool_unmap_handle(zpool, entry->handle);
-+	}
-+
-+	sg_init_one(&input, src, entry->length);
-+	sg_init_table(&output, 1);
-+	sg_set_page(&output, page, PAGE_SIZE, 0);
-+	acomp_request_set_params(acomp_ctx->req, &input, &output, entry->length, PAGE_SIZE);
-+	BUG_ON(crypto_wait_req(crypto_acomp_decompress(acomp_ctx->req), &acomp_ctx->wait));
-+	BUG_ON(acomp_ctx->req->dlen != PAGE_SIZE);
-+	mutex_unlock(acomp_ctx->mutex);
-+
-+	if (zpool_can_sleep_mapped(zpool))
-+		zpool_unmap_handle(zpool, entry->handle);
-+}
-+
- /*********************************
- * writeback code
- **********************************/
-@@ -1413,12 +1442,7 @@ static int zswap_writeback_entry(struct
- 	swp_entry_t swpentry = entry->swpentry;
- 	struct page *page;
- 	struct mempolicy *mpol;
--	struct scatterlist input, output;
--	struct crypto_acomp_ctx *acomp_ctx;
--	struct zpool *pool = zswap_find_zpool(entry);
- 	bool page_was_allocated;
--	u8 *src;
--	unsigned int dlen;
- 	int ret;
- 	struct writeback_control wbc = {
- 		.sync_mode = WB_SYNC_NONE,
-@@ -1456,31 +1480,7 @@ static int zswap_writeback_entry(struct
- 	}
- 	spin_unlock(&tree->lock);
- 
--	/* decompress */
--	acomp_ctx = raw_cpu_ptr(entry->pool->acomp_ctx);
--	dlen = PAGE_SIZE;
--	mutex_lock(acomp_ctx->mutex);
--
--	src = zpool_map_handle(pool, entry->handle, ZPOOL_MM_RO);
--	if (!zpool_can_sleep_mapped(pool)) {
--		memcpy(acomp_ctx->dstmem, src, entry->length);
--		src = acomp_ctx->dstmem;
--		zpool_unmap_handle(pool, entry->handle);
--	}
--
--	sg_init_one(&input, src, entry->length);
--	sg_init_table(&output, 1);
--	sg_set_page(&output, page, PAGE_SIZE, 0);
--	acomp_request_set_params(acomp_ctx->req, &input, &output, entry->length, dlen);
--	ret = crypto_wait_req(crypto_acomp_decompress(acomp_ctx->req), &acomp_ctx->wait);
--	dlen = acomp_ctx->req->dlen;
--	mutex_unlock(acomp_ctx->mutex);
--
--	if (zpool_can_sleep_mapped(pool))
--		zpool_unmap_handle(pool, entry->handle);
--
--	BUG_ON(ret);
--	BUG_ON(dlen != PAGE_SIZE);
-+	__zswap_load(entry, page);
- 
- 	/* page is up to date */
- 	SetPageUptodate(page);
-@@ -1753,11 +1753,7 @@ bool zswap_load(struct folio *folio)
- 	struct page *page = &folio->page;
+@@ -1754,7 +1754,6 @@ bool zswap_load(struct folio *folio)
  	struct zswap_tree *tree = zswap_trees[type];
  	struct zswap_entry *entry;
--	struct scatterlist input, output;
--	struct crypto_acomp_ctx *acomp_ctx;
--	u8 *src, *dst;
--	struct zpool *zpool;
--	unsigned int dlen;
-+	u8 *dst;
- 	bool ret;
+ 	u8 *dst;
+-	bool ret;
  
  	VM_WARN_ON_ONCE(!folio_test_locked(folio));
-@@ -1779,31 +1775,7 @@ bool zswap_load(struct folio *folio)
- 		goto stats;
+ 
+@@ -1771,19 +1770,16 @@ bool zswap_load(struct folio *folio)
+ 		dst = kmap_local_page(page);
+ 		zswap_fill_page(dst, entry->value);
+ 		kunmap_local(dst);
+-		ret = true;
+-		goto stats;
++	} else {
++		__zswap_load(entry, page);
  	}
  
--	zpool = zswap_find_zpool(entry);
--
--	/* decompress */
--	dlen = PAGE_SIZE;
--	acomp_ctx = raw_cpu_ptr(entry->pool->acomp_ctx);
--	mutex_lock(acomp_ctx->mutex);
--
--	src = zpool_map_handle(zpool, entry->handle, ZPOOL_MM_RO);
--	if (!zpool_can_sleep_mapped(zpool)) {
--		memcpy(acomp_ctx->dstmem, src, entry->length);
--		src = acomp_ctx->dstmem;
--		zpool_unmap_handle(zpool, entry->handle);
--	}
--
--	sg_init_one(&input, src, entry->length);
--	sg_init_table(&output, 1);
--	sg_set_page(&output, page, PAGE_SIZE, 0);
--	acomp_request_set_params(acomp_ctx->req, &input, &output, entry->length, dlen);
--	if (crypto_wait_req(crypto_acomp_decompress(acomp_ctx->req), &acomp_ctx->wait))
--		WARN_ON(1);
--	mutex_unlock(acomp_ctx->mutex);
--
--	if (zpool_can_sleep_mapped(zpool))
--		zpool_unmap_handle(zpool, entry->handle);
--
-+	__zswap_load(entry, page);
- 	ret = true;
- stats:
+-	__zswap_load(entry, page);
+-	ret = true;
+-stats:
  	count_vm_event(ZSWPIN);
+ 	if (entry->objcg)
+ 		count_objcg_event(entry->objcg, ZSWPIN);
+ 
+ 	spin_lock(&tree->lock);
+-	if (ret && zswap_exclusive_loads_enabled) {
++	if (zswap_exclusive_loads_enabled) {
+ 		zswap_invalidate_entry(tree, entry);
+ 		folio_mark_dirty(folio);
+ 	} else if (entry->length) {
+@@ -1793,7 +1789,7 @@ stats:
+ 	zswap_entry_put(tree, entry);
+ 	spin_unlock(&tree->lock);
+ 
+-	return ret;
++	return true;
+ }
+ 
+ void zswap_invalidate(int type, pgoff_t offset)
 _
 
 Patches currently in -mm which might be from zhouchengming@bytedance.com are
