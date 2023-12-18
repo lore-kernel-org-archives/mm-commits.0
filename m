@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 109EA42392
-	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 16:57:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A7EC49894
+	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 16:58:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WT+x56XV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83477C433C8;
-	Mon, 18 Dec 2023 16:57:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KlGpEFF9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59883C433C9;
+	Mon, 18 Dec 2023 16:58:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702918642;
-	bh=2vyAbzTMuYuA9IzBYQ+faqGVv9GdOnhAMdsjeU2gdhU=;
+	s=korg; t=1702918719;
+	bh=qw325+wxNuvVbLK2RDkqX6Z2y7rWtkRcpgDYv7j2S1A=;
 	h=Date:To:From:Subject:From;
-	b=WT+x56XVXbkzBtK9G1aQaj/NJUwFxqPXVjZebDMB7i8GIm9+UD78Q+G84pZyEmH9D
-	 ifY+dP+6Hniu3hpHUN2xBvOELadN0rv8Jw9wttIfyXit/wJh4/bctAC9J5Q1lb3AQP
-	 ggcrYkcRk4sK/vNMpY3PxLrS5czWOqpqnZ2wDUbE=
-Date: Mon, 18 Dec 2023 08:57:21 -0800
-To: mm-commits@vger.kernel.org,n-horiguchi@ah.jp.nec.com,dan.j.williams@intel.com,willy@infradead.org,akpm@linux-foundation.org
+	b=KlGpEFF9dT12I5x3sW40xm9xWER4R+DvVYs/Z4WqBNdKE9vVyCoDq55uNu+6x/JfM
+	 es0hzFWtJrH0Em3/b7+/J9NA73w4xZZP9Sv4xrEUrKHsp3+3TWMyikRFZnbXtGB2A7
+	 3VHO4QXvNr2Dk+0u2kUogwIofsVNHP7B80lfAlYo=
+Date: Mon, 18 Dec 2023 08:58:38 -0800
+To: mm-commits@vger.kernel.org,ryabinin.a.a@gmail.com,bp@alien8.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-add-an-old-address-for-naoya-horiguchi.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231218165722.83477C433C8@smtp.kernel.org>
+Subject: + ubsan-use-the-kernel-panic-message-markers.patch added to mm-unstable branch
+Message-Id: <20231218165839.59883C433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mailmap: add an old address for Naoya Horiguchi
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mailmap-add-an-old-address-for-naoya-horiguchi.patch
+     Subject: UBSAN: use the kernel panic message markers
+has been added to the -mm mm-unstable branch.  Its filename is
+     ubsan-use-the-kernel-panic-message-markers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-add-an-old-address-for-naoya-horiguchi.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ubsan-use-the-kernel-panic-message-markers.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,68 +50,48 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mailmap: add an old address for Naoya Horiguchi
-Date: Mon, 18 Dec 2023 14:03:28 +0000
+From: "Borislav Petkov (AMD)" <bp@alien8.de>
+Subject: UBSAN: use the kernel panic message markers
+Date: Mon, 18 Dec 2023 14:53:39 +0100
 
-This address now bounces, remap it to a current address.
+Use the same splat markers as panic does for easier matching by external
+tools scanning kernel dmesg for splats.
 
-Link: https://lkml.kernel.org/r/20231218140328.3313474-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Link: https://lkml.kernel.org/r/20231218135339.23209-1-bp@alien8.de
+Signed-off-by: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+ lib/ubsan.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/.mailmap~mailmap-add-an-old-address-for-naoya-horiguchi
-+++ a/.mailmap
-@@ -429,6 +429,7 @@ Muna Sinada <quic_msinada@quicinc.com> <
- Murali Nalajala <quic_mnalajal@quicinc.com> <mnalajal@codeaurora.org>
- Mythri P K <mythripk@ti.com>
- Nadia Yvette Chambers <nyc@holomorphy.com> William Lee Irwin III <wli@holomorphy.com>
-+Naoya Horiguchi <naoya.horiguchi@nec.com> <n-horiguchi@ah.jp.nec.com>
- Nathan Chancellor <nathan@kernel.org> <natechancellor@gmail.com>
- Neeraj Upadhyay <quic_neeraju@quicinc.com> <neeraju@codeaurora.org>
- Neil Armstrong <neil.armstrong@linaro.org> <narmstrong@baylibre.com>
+--- a/lib/ubsan.c~ubsan-use-the-kernel-panic-message-markers
++++ a/lib/ubsan.c
+@@ -204,8 +204,8 @@ static void ubsan_prologue(struct source
+ {
+ 	current->in_ubsan++;
+ 
+-	pr_err("========================================"
+-		"========================================\n");
++	pr_warn(CUT_HERE);
++
+ 	pr_err("UBSAN: %s in %s:%d:%d\n", reason, loc->file_name,
+ 		loc->line & LINE_MASK, loc->column & COLUMN_MASK);
+ 
+@@ -215,8 +215,7 @@ static void ubsan_prologue(struct source
+ static void ubsan_epilogue(void)
+ {
+ 	dump_stack();
+-	pr_err("========================================"
+-		"========================================\n");
++	pr_warn("---[ end trace ]---\n");
+ 
+ 	current->in_ubsan--;
+ 
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from bp@alien8.de are
 
-mm-memory-failure-pass-the-folio-and-the-page-to-collect_procs.patch
-mm-memory-failure-check-the-mapcount-of-the-precise-page.patch
-mm-memory-failure-cast-index-to-loff_t-before-shifting-it.patch
-mailmap-add-an-old-address-for-naoya-horiguchi.patch
-buffer-return-bool-from-grow_dev_folio.patch
-buffer-calculate-block-number-inside-folio_init_buffers.patch
-buffer-fix-grow_buffers-for-block-size-page_size.patch
-buffer-cast-block-to-loff_t-before-shifting-it.patch
-buffer-fix-various-functions-for-block-size-page_size.patch
-buffer-handle-large-folios-in-__block_write_begin_int.patch
-buffer-fix-more-functions-for-block-size-page_size.patch
-mm-convert-ksm_might_need_to_copy-to-work-on-folios.patch
-mm-convert-ksm_might_need_to_copy-to-work-on-folios-fix.patch
-mm-remove-pageanonexclusive-assertions-in-unuse_pte.patch
-mm-convert-unuse_pte-to-use-a-folio-throughout.patch
-mm-remove-some-calls-to-page_add_new_anon_rmap.patch
-mm-remove-stale-example-from-comment.patch
-mm-remove-references-to-page_add_new_anon_rmap-in-comments.patch
-mm-convert-migrate_vma_insert_page-to-use-a-folio.patch
-mm-convert-collapse_huge_page-to-use-a-folio.patch
-mm-remove-page_add_new_anon_rmap-and-lru_cache_add_inactive_or_unevictable.patch
-mm-return-the-folio-from-__read_swap_cache_async.patch
-mm-pass-a-folio-to-__swap_writepage.patch
-mm-pass-a-folio-to-swap_writepage_fs.patch
-mm-pass-a-folio-to-swap_writepage_bdev_sync.patch
-mm-pass-a-folio-to-swap_writepage_bdev_async.patch
-mm-pass-a-folio-to-swap_readpage_fs.patch
-mm-pass-a-folio-to-swap_readpage_bdev_sync.patch
-mm-pass-a-folio-to-swap_readpage_bdev_async.patch
-mm-convert-swap_page_sector-to-swap_folio_sector.patch
-mm-convert-swap_readpage-to-swap_read_folio.patch
-mm-remove-page_swap_info.patch
-mm-return-a-folio-from-read_swap_cache_async.patch
-mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio.patch
+ubsan-use-the-kernel-panic-message-markers.patch
 
