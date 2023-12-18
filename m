@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7857C42042
-	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 16:59:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85952498B4
+	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 17:09:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f6ea/9sx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED75AC433C8;
-	Mon, 18 Dec 2023 16:59:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WTx0sJGT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8662C433C7;
+	Mon, 18 Dec 2023 17:09:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702918783;
-	bh=ydhaw8JpPssFrV507RCVfRfy63vHRfZofJ5A2ZjUZ3Y=;
+	s=korg; t=1702919391;
+	bh=rzGbyj4TGuWBUeRKeoaoEqJDqn75zCwQK6EqTnxh1ww=;
 	h=Date:To:From:Subject:From;
-	b=f6ea/9sxkN414PIl3CGvXU12cnPYGoEY55fJNlsO5X+6SbGJiMdJQAuomwWO+I6w0
-	 yv0FkjoJ2Tlx3UcVWdG8TFdRiDwYBlEzHJNXMfFnXl/RI6+NDP4z31HThzfODQ6/Mf
-	 WBpzXhfR0u4WMK0mhl4SV8Rqmt71K1N7CPtg6ki8=
-Date: Mon, 18 Dec 2023 08:59:42 -0800
-To: mm-commits@vger.kernel.org,ohad@wizery.com,mathieu.poirier@linaro.org,baolin.wang@linux.alibaba.com,andersson@kernel.org,bagasdotme@gmail.com,akpm@linux-foundation.org
+	b=WTx0sJGThR8cNMlQnDrOdqBuxptokP42+rhFWzwd7UsWzVoOzwV0QQzFATT1j0vSj
+	 N7dgx3xPaD0wrmntlahxjlJ3d3/MokcdDqIeJpOhOO/7CGbdL5QOzvzlXX0RLvS5yJ
+	 0tpNYjBrlwfnA9xzIxFLIubwY5j6dvpGEXOJnmzE=
+Date: Mon, 18 Dec 2023 09:09:51 -0800
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,vitaly.wool@konsulko.com,sjenning@redhat.com,nphamcs@gmail.com,hannes@cmpxchg.org,ddstreet@ieee.org,chrisl@kernel.org,zhouchengming@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-remove-ohad-ben-cohen-from-hwspinlock-subsystem.patch added to mm-nonmm-unstable branch
-Message-Id: <20231218165942.ED75AC433C8@smtp.kernel.org>
+Subject: + mm-zswap-change-dstmem-size-to-one-page.patch added to mm-unstable branch
+Message-Id: <20231218170951.C8662C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: remove Ohad Ben-Cohen from hwspinlock subsystem
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     maintainers-remove-ohad-ben-cohen-from-hwspinlock-subsystem.patch
+     Subject: mm/zswap: change dstmem size to one page
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-zswap-change-dstmem-size-to-one-page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-remove-ohad-ben-cohen-from-hwspinlock-subsystem.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-change-dstmem-size-to-one-page.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,71 +50,89 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Bagas Sanjaya <bagasdotme@gmail.com>
-Subject: MAINTAINERS: remove Ohad Ben-Cohen from hwspinlock subsystem
-Date: Mon, 18 Dec 2023 20:28:31 +0700
+From: Chengming Zhou <zhouchengming@bytedance.com>
+Subject: mm/zswap: change dstmem size to one page
+Date: Mon, 18 Dec 2023 11:50:31 +0000
 
-Commit 62c46d55688894 ("MAINTAINERS: Removing Ohad from remoteproc/rpmsg
-maintenance") removes his MAINTAINERS entry in regards to remoteproc
-subsystem due to his inactivity (the last commit with his Signed-off-by is
-99c429cb4e628e ("remoteproc/wkup_m3: Use MODULE_DEVICE_TABLE to export
-alias") which is authored in 2015 and his last LKML message prior to
-62c46d55688894 was [1]).
+Patch series "mm/zswap: dstmem reuse optimizations and cleanups", v3.
 
-Remove also his MAINTAINERS entry for hwspinlock subsystem as there is no
-point of Cc'ing maintainers who never respond in a long time.
+The problem this series tries to optimize is that zswap_load() and
+zswap_writeback_entry() have to malloc a temporary memory to support
+!zpool_can_sleep_mapped().  We can avoid it by reusing the percpu
+crypto_acomp_ctx->dstmem, which is also used by zswap_store() and
+protected by the same percpu crypto_acomp_ctx->mutex.
 
-[1]: https://lore.kernel.org/r/CAK=Wgbbcyi36ef1-PV8VS=M6nFoQnFGUDWy6V7OCnkt0dDrtfg@mail.gmail.com/
 
-Link: https://lkml.kernel.org/r/20231218132830.5104-2-bagasdotme@gmail.com
-Signed-off-by: Bagas Sanjaya <bagasdotme@gmail.com>
-Acked-by: Ohad Ben Cohen <ohad@wizery.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Bjorn Andersson <andersson@kernel.org>
-Cc: Mathieu Poirier <mathieu.poirier@linaro.org>
+This patch (of 6):
+
+Change the dstmem size from 2 * PAGE_SIZE to only one page since we only
+need at most one page when compress, and the "dlen" is also PAGE_SIZE in
+acomp_request_set_params().  If the output size > PAGE_SIZE we don't wanna
+store the output in zswap anyway.
+
+So change it to one page, and delete the stale comment.
+
+There is not any history about the reason why we needed 2 pages, it has
+been 2 * PAGE_SIZE since the time zswap was first merged.
+
+According to Yosry and Nhat, one potential reason is that we used to store
+a zswap header containing the swap entry in the compressed page for
+writeback purposes, but we don't do that anymore.
+
+This patch works good in kernel build testing even when the input data
+doesn't compress at all (i.e.  dlen == PAGE_SIZE), which we can see from
+the bpftrace tool:
+
+bpftrace -e 'k:zpool_malloc {@[(uint32)arg1==4096]=count()}'
+@[1]: 2
+@[0]: 12011430
+
+Link: https://lkml.kernel.org/r/20231213-zswap-dstmem-v3-0-4eac09b94ece@bytedance.com
+Link: https://lkml.kernel.org/r/20231213-zswap-dstmem-v3-1-4eac09b94ece@bytedance.com
+Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
+Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Chengming Zhou <zhouchengming@bytedance.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- CREDITS     |    3 +++
- MAINTAINERS |    4 +---
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ mm/zswap.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/CREDITS~maintainers-remove-ohad-ben-cohen-from-hwspinlock-subsystem
-+++ a/CREDITS
-@@ -323,6 +323,9 @@ N: Ohad Ben Cohen
- E: ohad@wizery.com
- D: Remote Processor (remoteproc) subsystem
- D: Remote Processor Messaging (rpmsg) subsystem
-+D: Hardware spinlock (hwspinlock) subsystem
-+D: OMAP hwspinlock driver
-+D: OMAP remoteproc driver
+--- a/mm/zswap.c~mm-zswap-change-dstmem-size-to-one-page
++++ a/mm/zswap.c
+@@ -707,7 +707,7 @@ static int zswap_dstmem_prepare(unsigned
+ 	struct mutex *mutex;
+ 	u8 *dst;
  
- N: Krzysztof Benedyczak
- E: golbi@mat.uni.torun.pl
---- a/MAINTAINERS~maintainers-remove-ohad-ben-cohen-from-hwspinlock-subsystem
-+++ a/MAINTAINERS
-@@ -9258,7 +9258,6 @@ F:	drivers/char/hw_random/
- F:	include/linux/hw_random.h
+-	dst = kmalloc_node(PAGE_SIZE * 2, GFP_KERNEL, cpu_to_node(cpu));
++	dst = kmalloc_node(PAGE_SIZE, GFP_KERNEL, cpu_to_node(cpu));
+ 	if (!dst)
+ 		return -ENOMEM;
  
- HARDWARE SPINLOCK CORE
--M:	Ohad Ben-Cohen <ohad@wizery.com>
- M:	Bjorn Andersson <andersson@kernel.org>
- R:	Baolin Wang <baolin.wang7@gmail.com>
- L:	linux-remoteproc@vger.kernel.org
-@@ -15693,9 +15692,8 @@ F:	Documentation/devicetree/bindings/gpi
- F:	drivers/gpio/gpio-omap.c
+@@ -1657,8 +1657,7 @@ bool zswap_store(struct folio *folio)
+ 	sg_init_table(&input, 1);
+ 	sg_set_page(&input, page, PAGE_SIZE, 0);
  
- OMAP HARDWARE SPINLOCK SUPPORT
--M:	Ohad Ben-Cohen <ohad@wizery.com>
- L:	linux-omap@vger.kernel.org
--S:	Maintained
-+S:	Orphan
- F:	drivers/hwspinlock/omap_hwspinlock.c
- 
- OMAP HS MMC SUPPORT
+-	/* zswap_dstmem is of size (PAGE_SIZE * 2). Reflect same in sg_list */
+-	sg_init_one(&output, dst, PAGE_SIZE * 2);
++	sg_init_one(&output, dst, PAGE_SIZE);
+ 	acomp_request_set_params(acomp_ctx->req, &input, &output, PAGE_SIZE, dlen);
+ 	/*
+ 	 * it maybe looks a little bit silly that we send an asynchronous request,
 _
 
-Patches currently in -mm which might be from bagasdotme@gmail.com are
+Patches currently in -mm which might be from zhouchengming@bytedance.com are
 
-maintainers-remove-ohad-ben-cohen-from-hwspinlock-subsystem.patch
+mm-zswap-change-dstmem-size-to-one-page.patch
+mm-zswap-reuse-dstmem-when-decompress.patch
+mm-zswap-refactor-out-__zswap_load.patch
+mm-zswap-cleanup-zswap_load.patch
+mm-zswap-cleanup-zswap_writeback_entry.patch
+mm-zswap-directly-use-percpu-mutex-and-buffer-in-load-store.patch
 
