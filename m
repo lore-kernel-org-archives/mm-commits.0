@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9E148470
-	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 18:44:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 502131EA7D
+	for <mm-commits@vger.kernel.org>; Mon, 18 Dec 2023 18:44:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZoFzQKrO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 597EFC433C7;
-	Mon, 18 Dec 2023 18:44:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rJEM/K9r"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00B02C433C8;
+	Mon, 18 Dec 2023 18:44:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1702925050;
-	bh=xWc0WdgX1m8PcOEHnhsrLuRB6U+g1fz79rPhprAXaSE=;
+	s=korg; t=1702925052;
+	bh=zHhhj6kEFkhYsTuqukrRW64HCOUSrrvxx3ib3x8rgR8=;
 	h=Date:To:From:Subject:From;
-	b=ZoFzQKrOQMjB8naBN9amV0pjD7A3JboCCfyrFp9SBHUuYDNrO3YgUrWVfizjafjdb
-	 hmTxHOT+VpTkZJO+bVB3h36PVDdCPPkHe4p26VDb41veDG8jmfk/XINHfxhnqeVVeS
-	 4plAl5vqpz7596QRtprVqTEuZwLEyg8RfmlNKIyw=
-Date: Mon, 18 Dec 2023 10:44:09 -0800
+	b=rJEM/K9rDxzFweCQJdYsh+CXpdlQ00Fip6hVEKJMcrFB6DU1j2qWJpBg7Kx3qyhOs
+	 Ir21PwP1/cm64s7cCulfyVfCWfVY4yXhy1e40RFN0lJBow0/ymLEGZ7hWGOU9wArWA
+	 NvohpGJIMkfV9Z4J6bni0xu0NUQHJlsIZzpJ/cC4=
+Date: Mon, 18 Dec 2023 10:44:11 -0800
 To: mm-commits@vger.kernel.org,hch@lst.de,axboe@kernel.dk,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-convert-clean_buffers-to-take-a-folio.patch added to mm-unstable branch
-Message-Id: <20231218184410.597EFC433C7@smtp.kernel.org>
+Subject: + fs-reduce-stack-usage-in-__mpage_writepage.patch added to mm-unstable branch
+Message-Id: <20231218184412.00B02C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs: convert clean_buffers() to take a folio
+     Subject: fs: reduce stack usage in __mpage_writepage
 has been added to the -mm mm-unstable branch.  Its filename is
-     fs-convert-clean_buffers-to-take-a-folio.patch
+     fs-reduce-stack-usage-in-__mpage_writepage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-convert-clean_buffers-to-take-a-folio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-reduce-stack-usage-in-__mpage_writepage.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,62 +51,96 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: fs: convert clean_buffers() to take a folio
-Date: Fri, 15 Dec 2023 20:02:33 +0000
+Subject: fs: reduce stack usage in __mpage_writepage
+Date: Fri, 15 Dec 2023 20:02:34 +0000
 
-The only caller already has a folio, so pass it in and use it throughout. 
-Saves two calls to compound_head().
+Some architectures support a very large PAGE_SIZE, so instead of the 8
+pointers we see with a 4kB PAGE_SIZE, we can see 128 pointers with 64kB or
+so many on Hexagon that it trips compiler warnings about exceeding stack
+frame size.
 
-Link: https://lkml.kernel.org/r/20231215200245.748418-3-willy@infradead.org
+All we're doing with this array is checking for block contiguity, which we
+can as well do by remembering the address of the first block in the page
+and checking this block is at the appropriate offset from that address.
+
+Link: https://lkml.kernel.org/r/20231215200245.748418-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mpage.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ fs/mpage.c |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
---- a/fs/mpage.c~fs-convert-clean_buffers-to-take-a-folio
+--- a/fs/mpage.c~fs-reduce-stack-usage-in-__mpage_writepage
 +++ a/fs/mpage.c
-@@ -430,13 +430,13 @@ struct mpage_data {
-  * We have our BIO, so we can now mark the buffers clean.  Make
-  * sure to only clean buffers which we know we'll be writing.
-  */
--static void clean_buffers(struct page *page, unsigned first_unmapped)
-+static void clean_buffers(struct folio *folio, unsigned first_unmapped)
- {
- 	unsigned buffer_counter = 0;
--	struct buffer_head *bh, *head;
--	if (!page_has_buffers(page))
-+	struct buffer_head *bh, *head = folio_buffers(folio);
-+
-+	if (!head)
- 		return;
--	head = page_buffers(page);
- 	bh = head;
- 
- 	do {
-@@ -451,8 +451,8 @@ static void clean_buffers(struct page *p
- 	 * read_folio would fail to serialize with the bh and it would read from
- 	 * disk before we reach the platter.
+@@ -466,7 +466,7 @@ static int __mpage_writepage(struct foli
+ 	const unsigned blocks_per_page = PAGE_SIZE >> blkbits;
+ 	sector_t last_block;
+ 	sector_t block_in_file;
+-	sector_t blocks[MAX_BUF_PER_PAGE];
++	sector_t first_block;
+ 	unsigned page_block;
+ 	unsigned first_unmapped = blocks_per_page;
+ 	struct block_device *bdev = NULL;
+@@ -504,10 +504,12 @@ static int __mpage_writepage(struct foli
+ 			if (!buffer_dirty(bh) || !buffer_uptodate(bh))
+ 				goto confused;
+ 			if (page_block) {
+-				if (bh->b_blocknr != blocks[page_block-1] + 1)
++				if (bh->b_blocknr != first_block + page_block)
+ 					goto confused;
++			} else {
++				first_block = bh->b_blocknr;
+ 			}
+-			blocks[page_block++] = bh->b_blocknr;
++			page_block++;
+ 			boundary = buffer_boundary(bh);
+ 			if (boundary) {
+ 				boundary_block = bh->b_blocknr;
+@@ -556,10 +558,12 @@ static int __mpage_writepage(struct foli
+ 			boundary_bdev = map_bh.b_bdev;
+ 		}
+ 		if (page_block) {
+-			if (map_bh.b_blocknr != blocks[page_block-1] + 1)
++			if (map_bh.b_blocknr != first_block + page_block)
+ 				goto confused;
++		} else {
++			first_block = map_bh.b_blocknr;
+ 		}
+-		blocks[page_block++] = map_bh.b_blocknr;
++		page_block++;
+ 		boundary = buffer_boundary(&map_bh);
+ 		bdev = map_bh.b_bdev;
+ 		if (block_in_file == last_block)
+@@ -591,7 +595,7 @@ page_is_mapped:
+ 	/*
+ 	 * This page will go to BIO.  Do we need to send this BIO off first?
  	 */
--	if (buffer_heads_over_limit && PageUptodate(page))
--		try_to_free_buffers(page_folio(page));
-+	if (buffer_heads_over_limit && folio_test_uptodate(folio))
-+		try_to_free_buffers(folio);
- }
+-	if (bio && mpd->last_block_in_bio != blocks[0] - 1)
++	if (bio && mpd->last_block_in_bio != first_block - 1)
+ 		bio = mpage_bio_submit_write(bio);
  
- static int __mpage_writepage(struct folio *folio, struct writeback_control *wbc,
-@@ -615,7 +615,7 @@ alloc_new:
- 		goto alloc_new;
+ alloc_new:
+@@ -599,7 +603,7 @@ alloc_new:
+ 		bio = bio_alloc(bdev, BIO_MAX_VECS,
+ 				REQ_OP_WRITE | wbc_to_write_flags(wbc),
+ 				GFP_NOFS);
+-		bio->bi_iter.bi_sector = blocks[0] << (blkbits - 9);
++		bio->bi_iter.bi_sector = first_block << (blkbits - 9);
+ 		wbc_init_bio(wbc, bio);
  	}
  
--	clean_buffers(&folio->page, first_unmapped);
-+	clean_buffers(folio, first_unmapped);
+@@ -627,7 +631,7 @@ alloc_new:
+ 					boundary_block, 1 << blkbits);
+ 		}
+ 	} else {
+-		mpd->last_block_in_bio = blocks[blocks_per_page - 1];
++		mpd->last_block_in_bio = first_block + blocks_per_page - 1;
+ 	}
+ 	goto out;
  
- 	BUG_ON(folio_test_writeback(folio));
- 	folio_start_writeback(folio);
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
