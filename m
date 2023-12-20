@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B38084F204
-	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 23:03:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF78B4F212
+	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 23:03:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nKBwo7EP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D0D8C433CA;
-	Wed, 20 Dec 2023 23:03:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DsxaBlUp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 764A0C433C7;
+	Wed, 20 Dec 2023 23:03:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703113414;
-	bh=8cpHTF0/oCY/EwGMuOttDyk6FVYEfHtCiXMC1kCmas0=;
+	s=korg; t=1703113415;
+	bh=jlWmF7xnbTMgD0bedqvT73P5lxFuW6svSmj/pLY/vTg=;
 	h=Date:To:From:Subject:From;
-	b=nKBwo7EPLgNAvI/9TUYv23MGI75XZ3ontuBWywNyqtO1XW+TK/zlrcrMeU8MZsvYP
-	 Vgy5LrMyAOPn8jDOwXlnmKAmfUGJoC1xfYQCixHAvw7cxxywqiTCEquVYEoKjwtx44
-	 /DLD/j6ZMiFzlVwGY/xIAXGxvmA475Co+E0rHlps=
-Date: Wed, 20 Dec 2023 15:03:33 -0800
-To: mm-commits@vger.kernel.org,nathan@kernel.org,joe@perches.com,conor@kernel.org,bhe@redhat.com,akpm@linux-foundation.org
+	b=DsxaBlUpbi//pTGi7S73dOjmhwCpv1I2S095iAvzUS4SqlxsiMWoZK2POV8oxrMKs
+	 r0mEmHj54QkrG/mBzJuD6nnIxqgNs1OJnzM0krefVeRGI5BWx9xZ2V20f/AwpNo8k2
+	 a+buhOT2m0KQe/5WJ9U+kZd1+lAIU3tiV9q/hnqg=
+Date: Wed, 20 Dec 2023 15:03:34 -0800
+To: mm-commits@vger.kernel.org,paul.walmsley@sifive.com,palmer@dabbelt.com,mick@ics.forth.gr,changbin.du@intel.com,aou@eecs.berkeley.edu,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kexec_file-parisc-print-out-debugging-message-if-required.patch removed from -mm tree
-Message-Id: <20231220230334.7D0D8C433CA@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] riscv-kexec-fix-the-ifdeffery-for-aflags_kexec_relocateo.patch removed from -mm tree
+Message-Id: <20231220230335.764A0C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,66 +27,53 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kexec_file, parisc: print out debugging message if required
+     Subject: riscv, kexec: fix the ifdeffery for AFLAGS_kexec_relocate.o
 has been removed from the -mm tree.  Its filename was
-     kexec_file-parisc-print-out-debugging-message-if-required.patch
+     riscv-kexec-fix-the-ifdeffery-for-aflags_kexec_relocateo.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: kexec_file, parisc: print out debugging message if required
-Date: Wed, 13 Dec 2023 13:57:47 +0800
+Subject: riscv, kexec: fix the ifdeffery for AFLAGS_kexec_relocate.o
+Date: Fri, 1 Dec 2023 14:25:38 +0800
 
-Then when specifying '-d' for kexec_file_load interface, loaded locations
-of kernel/initrd/cmdline etc can be printed out to help debug.
+This was introduced in commit fba8a8674f68 ("RISC-V: Add kexec
+support").
 
-Here replace pr_debug() with the newly added kexec_dprintk() in kexec_file
-loading related codes.
+It should work on CONFIG_KEXEC_CORE, but not CONFIG_KEXEC only, since
+we could set CONFIG_KEXEC_FILE=y and CONFIG_KEXEC=N, or only set
+CONFIG_CRASH_DUMP=y and disable both CONFIG_KEXEC and CONFIG_KEXEC_FILE.
+In these cases, the AFLAGS won't take effect with the current ifdeffery
+for AFLAGS_kexec_relocate.o.
 
-Link: https://lkml.kernel.org/r/20231213055747.61826-8-bhe@redhat.com
+So fix it now.
+
+Link: https://lkml.kernel.org/r/20231201062538.27240-1-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
-Cc: Conor Dooley <conor@kernel.org>
-Cc: Joe Perches <joe@perches.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Changbin Du <changbin.du@intel.com>
+Cc: Nick Kossifidis <mick@ics.forth.gr>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/kernel/kexec_file.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/riscv/kernel/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/parisc/kernel/kexec_file.c~kexec_file-parisc-print-out-debugging-message-if-required
-+++ a/arch/parisc/kernel/kexec_file.c
-@@ -38,8 +38,8 @@ static void *elf_load(struct kimage *ima
- 	for (i = 0; i < image->nr_segments; i++)
- 		image->segment[i].mem = __pa(image->segment[i].mem);
+--- a/arch/riscv/kernel/Makefile~riscv-kexec-fix-the-ifdeffery-for-aflags_kexec_relocateo
++++ a/arch/riscv/kernel/Makefile
+@@ -11,7 +11,7 @@ endif
+ CFLAGS_syscall_table.o	+= $(call cc-option,-Wno-override-init,)
+ CFLAGS_compat_syscall_table.o += $(call cc-option,-Wno-override-init,)
  
--	pr_debug("Loaded the kernel at 0x%lx, entry at 0x%lx\n",
--		 kernel_load_addr, image->start);
-+	kexec_dprintk("Loaded the kernel at 0x%lx, entry at 0x%lx\n",
-+		      kernel_load_addr, image->start);
+-ifdef CONFIG_KEXEC
++ifdef CONFIG_KEXEC_CORE
+ AFLAGS_kexec_relocate.o := -mcmodel=medany $(call cc-option,-mno-relax)
+ endif
  
- 	if (initrd != NULL) {
- 		kbuf.buffer = initrd;
-@@ -51,7 +51,7 @@ static void *elf_load(struct kimage *ima
- 		if (ret)
- 			goto out;
- 
--		pr_debug("Loaded initrd at 0x%lx\n", kbuf.mem);
-+		kexec_dprintk("Loaded initrd at 0x%lx\n", kbuf.mem);
- 		image->arch.initrd_start = kbuf.mem;
- 		image->arch.initrd_end = kbuf.mem + initrd_len;
- 	}
-@@ -68,7 +68,7 @@ static void *elf_load(struct kimage *ima
- 		if (ret)
- 			goto out;
- 
--		pr_debug("Loaded cmdline at 0x%lx\n", kbuf.mem);
-+		kexec_dprintk("Loaded cmdline at 0x%lx\n", kbuf.mem);
- 		image->arch.cmdline = kbuf.mem;
- 	}
- out:
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
