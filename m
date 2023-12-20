@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A5151D6A6;
-	Wed, 20 Dec 2023 21:47:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B146B1D6A6;
+	Wed, 20 Dec 2023 21:47:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G5zlR/+I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 912B4C433CA;
-	Wed, 20 Dec 2023 21:47:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bcGSDzIB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76CB2C433CA;
+	Wed, 20 Dec 2023 21:47:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703108835;
-	bh=ZkHZmTSBSis0aY33L6Auk8UW7uAWgBgWxhWskaqgfF8=;
+	s=korg; t=1703108836;
+	bh=jHy9CO2D6femDX9poeN61ivC2qjBG3Ghcv/4Max6mU8=;
 	h=Date:To:From:Subject:From;
-	b=G5zlR/+IYBIGgp4SCuVtSctAaONIKnh4O6yTe7RA7ulcZqms2rp+lYSe7/43X+ltB
-	 IurFjFbb9U8fYgDnyhnJl9QQJaZ+NyOflHAD9tP0WEJ32RwfnRmzFUepBIou/n3rVF
-	 y8zhIRhURwahnhlSp/d8YI7U8JRaNj6WtXkp7YQE=
+	b=bcGSDzIBx/OcA6i/OQ8o2Si7G4PA1vWga4qN0TBsC7VWdptsJ9V4CUbcQ8SFcPiRC
+	 rqbu31B4AY9QuFuFCPM0tEDq6NrLYM+hjDsOWZakhXWuN+4bTNzJZnhQmcegEeCa5P
+	 WNI5M96ynh831twEgNUTTcFN4NMyR3lU8TGn45AI=
 Date: Wed, 20 Dec 2023 13:47:15 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,shakeelb@google.com,n-horiguchi@ah.jp.nec.com,kirill.shutemov@linux.intel.com,hannes@cmpxchg.org,david@redhat.com,quic_charante@quicinc.com,akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,rppt@kernel.org,James.Bottomley@HansenPartnership.com,bot@kernelci.org,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-migrate-high-order-folios-in-swap-cache-correctly.patch removed from -mm tree
-Message-Id: <20231220214715.912B4C433CA@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] selftests-secretmem-floor-the-memory-size-to-the-multiple-of-page_size.patch removed from -mm tree
+Message-Id: <20231220214716.76CB2C433CA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,86 +27,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: migrate high-order folios in swap cache correctly
+     Subject: selftests: secretmem: floor the memory size to the multiple of page_size
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-high-order-folios-in-swap-cache-correctly.patch
+     selftests-secretmem-floor-the-memory-size-to-the-multiple-of-page_size.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Charan Teja Kalla <quic_charante@quicinc.com>
-Subject: mm: migrate high-order folios in swap cache correctly
-Date: Thu, 14 Dec 2023 04:58:41 +0000
+From: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Subject: selftests: secretmem: floor the memory size to the multiple of page_size
+Date: Thu, 14 Dec 2023 15:19:30 +0500
 
-Large folios occupy N consecutive entries in the swap cache instead of
-using multi-index entries like the page cache.  However, if a large folio
-is re-added to the LRU list, it can be migrated.  The migration code was
-not aware of the difference between the swap cache and the page cache and
-assumed that a single xas_store() would be sufficient.
+The "locked-in-memory size" limit per process can be non-multiple of
+page_size.  The mmap() fails if we try to allocate locked-in-memory with
+same size as the allowed limit if it isn't multiple of the page_size
+because mmap() rounds off the memory size to be allocated to next multiple
+of page_size.
 
-This leaves potentially many stale pointers to the now-migrated folio in
-the swap cache, which can lead to almost arbitrary data corruption in the
-future.  This can also manifest as infinite loops with the RCU read lock
-held.
+Fix this by flooring the length to be allocated with mmap() to the
+previous multiple of the page_size.
 
-[willy@infradead.org: modifications to the changelog & tweaked the fix]
-Fixes: 3417013e0d18 ("mm/migrate: Add folio_migrate_mapping()")
-Link: https://lkml.kernel.org/r/20231214045841.961776-1-willy@infradead.org
-Signed-off-by: Charan Teja Kalla <quic_charante@quicinc.com>
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reported-by: Charan Teja Kalla <quic_charante@quicinc.com>
-Closes: https://lkml.kernel.org/r/1700569840-17327-1-git-send-email-quic_charante@quicinc.com
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Shakeel Butt <shakeelb@google.com>
+This was getting triggered on KernelCI regularly because of different
+ulimit settings which wasn't multiple of the page_size.  Find logs
+here: https://linux.kernelci.org/test/plan/id/657654bd8e81e654fae13532/
+The bug in was present from the time test was first added.
+
+Link: https://lkml.kernel.org/r/20231214101931.1155586-1-usama.anjum@collabora.com
+Fixes: 76fe17ef588a ("secretmem: test: add basic selftest for memfd_secret(2)")
+Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Reported-by: "kernelci.org bot" <bot@kernelci.org>
+Closes: https://linux.kernelci.org/test/plan/id/657654bd8e81e654fae13532/
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/memfd_secret.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/migrate.c~mm-migrate-high-order-folios-in-swap-cache-correctly
-+++ a/mm/migrate.c
-@@ -405,6 +405,7 @@ int folio_migrate_mapping(struct address
- 	int dirty;
- 	int expected_count = folio_expected_refs(mapping, folio) + extra_count;
- 	long nr = folio_nr_pages(folio);
-+	long entries, i;
+--- a/tools/testing/selftests/mm/memfd_secret.c~selftests-secretmem-floor-the-memory-size-to-the-multiple-of-page_size
++++ a/tools/testing/selftests/mm/memfd_secret.c
+@@ -62,6 +62,9 @@ static void test_mlock_limit(int fd)
+ 	char *mem;
  
- 	if (!mapping) {
- 		/* Anonymous page without mapping */
-@@ -442,8 +443,10 @@ int folio_migrate_mapping(struct address
- 			folio_set_swapcache(newfolio);
- 			newfolio->private = folio_get_private(folio);
- 		}
-+		entries = nr;
- 	} else {
- 		VM_BUG_ON_FOLIO(folio_test_swapcache(folio), folio);
-+		entries = 1;
- 	}
- 
- 	/* Move dirty while page refs frozen and newpage not yet exposed */
-@@ -453,7 +456,11 @@ int folio_migrate_mapping(struct address
- 		folio_set_dirty(newfolio);
- 	}
- 
--	xas_store(&xas, newfolio);
-+	/* Swap cache still stores N entries instead of a high-order entry */
-+	for (i = 0; i < entries; i++) {
-+		xas_store(&xas, newfolio);
-+		xas_next(&xas);
-+	}
- 
- 	/*
- 	 * Drop cache reference from old page by unfreezing
+ 	len = mlock_limit_cur;
++	if (len % page_size != 0)
++		len = (len/page_size) * page_size;
++
+ 	mem = mmap(NULL, len, prot, mode, fd, 0);
+ 	if (mem == MAP_FAILED) {
+ 		fail("unable to mmap secret memory\n");
 _
 
-Patches currently in -mm which might be from quic_charante@quicinc.com are
+Patches currently in -mm which might be from usama.anjum@collabora.com are
 
-mm-sparsemem-fix-race-in-accessing-memory_section-usage.patch
-mm-sparsemem-fix-race-in-accessing-memory_section-usage-v2.patch
 
