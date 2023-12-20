@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 420B64778C
-	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 17:41:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 411B448788
+	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 17:43:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gu42ZiU+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1F1EC433C7;
-	Wed, 20 Dec 2023 17:41:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0hXfhNhy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85B6BC433C8;
+	Wed, 20 Dec 2023 17:43:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703094070;
-	bh=YDwkqE5ZpJ5LKlOJXqeVs5zuRJOjZOmWWjEcNPJwaUw=;
+	s=korg; t=1703094201;
+	bh=CK6Btq2xgKdAGmwx/Faq42eGVOzh8dsvQ2LRqZ4HgSk=;
 	h=Date:To:From:Subject:From;
-	b=gu42ZiU+hWS2fOTpLxjcv+94ronOPLi4evzoKGSEHYDYvtwxWX+ChpiVc8gy7fiUl
-	 FF2DXfpLbVrT8/DMUnSVmL/bC1yCYlw8+Gtz0AGQmxhaKFrzW09+5L6DZi2tAky36E
-	 +DpcU80GJQ0pGqt1sojr40D0tTsfLdudbUnSD1ps=
-Date: Wed, 20 Dec 2023 09:41:09 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,shy828301@gmail.com,shakeelb@google.com,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=0hXfhNhyrEShvtsfEZSQX8fD6Q4f1CEjT010aTCxgjBvR27d8ab0EaJFhxWr/eft3
+	 PZUnJXaHACCsm7qF2EZJHXcEFPxNktgBmcXh7BsDtyKJ4hmQ0Ou2IcpMSwlj25VrZF
+	 a270DAEKz906/hEz9vSOm5uni7FvadtckGNHj3DE=
+Date: Wed, 20 Dec 2023 09:43:21 -0800
+To: mm-commits@vger.kernel.org,rdunlap@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-fix-split-queue-list-crash-when-large-folio-migration.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231220174109.F1F1EC433C7@smtp.kernel.org>
+Subject: + stacktrace-fix-kernel-doc-typo.patch added to mm-nonmm-unstable branch
+Message-Id: <20231220174321.85B6BC433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcg: fix split queue list crash when large folio migration
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-memcg-fix-split-queue-list-crash-when-large-folio-migration.patch
+     Subject: stacktrace: fix kernel-doc typo
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     stacktrace-fix-kernel-doc-typo.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-fix-split-queue-list-crash-when-large-folio-migration.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/stacktrace-fix-kernel-doc-typo.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,113 +50,45 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: memcg: fix split queue list crash when large folio migration
-Date: Wed, 20 Dec 2023 14:51:40 +0800
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: stacktrace: fix kernel-doc typo
+Date: Tue, 19 Dec 2023 21:49:45 -0800
 
-When running autonuma with enabling multi-size THP, I encountered the
-following kernel crash issue:
+Change @task to @tsk to prevent kernel-doc warnings:
 
-[  134.290216] list_del corruption. prev->next should be fffff9ad42e1c490,
-but was dead000000000100. (prev=fffff9ad42399890)
-[  134.290877] kernel BUG at lib/list_debug.c:62!
-[  134.291052] invalid opcode: 0000 [#1] PREEMPT SMP NOPTI
-[  134.291210] CPU: 56 PID: 8037 Comm: numa01 Kdump: loaded Tainted:
-G            E      6.7.0-rc4+ #20
-[  134.291649] RIP: 0010:__list_del_entry_valid_or_report+0x97/0xb0
-......
-[  134.294252] Call Trace:
-[  134.294362]  <TASK>
-[  134.294440]  ? die+0x33/0x90
-[  134.294561]  ? do_trap+0xe0/0x110
-......
-[  134.295681]  ? __list_del_entry_valid_or_report+0x97/0xb0
-[  134.295842]  folio_undo_large_rmappable+0x99/0x100
-[  134.296003]  destroy_large_folio+0x68/0x70
-[  134.296172]  migrate_folio_move+0x12e/0x260
-[  134.296264]  ? __pfx_remove_migration_pte+0x10/0x10
-[  134.296389]  migrate_pages_batch+0x495/0x6b0
-[  134.296523]  migrate_pages+0x1d0/0x500
-[  134.296646]  ? __pfx_alloc_misplaced_dst_folio+0x10/0x10
-[  134.296799]  migrate_misplaced_folio+0x12d/0x2b0
-[  134.296953]  do_numa_page+0x1f4/0x570
-[  134.297121]  __handle_mm_fault+0x2b0/0x6c0
-[  134.297254]  handle_mm_fault+0x107/0x270
-[  134.300897]  do_user_addr_fault+0x167/0x680
-[  134.304561]  exc_page_fault+0x65/0x140
-[  134.307919]  asm_exc_page_fault+0x22/0x30
+kernel/stacktrace.c:138: warning: Excess function parameter 'task' description in 'stack_trace_save_tsk'
+kernel/stacktrace.c:138: warning: Function parameter or member 'tsk' not described in 'stack_trace_save_tsk'
 
-The reason for the crash is that, the commit 85ce2c517ade ("memcontrol:
-only transfer the memcg data for migration") removed the charging and
-uncharging operations of the migration folios and cleared the memcg data
-of the old folio.
-
-During the subsequent release process of the old large folio in
-destroy_large_folio(), if the large folio needs to be removed from the
-split queue, an incorrect split queue can be obtained (which is
-pgdat->deferred_split_queue) because the old folio's memcg is NULL now. 
-This can lead to list operations being performed under the wrong split
-queue lock protection, resulting in a list crash as above.
-
-After the migration, the old folio is going to be freed, so we can remove
-it from the split queue in mem_cgroup_migrate() a bit earlier before
-clearing the memcg data to avoid getting incorrect split queue.
-
-Link: https://lkml.kernel.org/r/61273e5e9b490682388377c20f52d19de4a80460.1703054559.git.baolin.wang@linux.alibaba.com
-Fixes: 85ce2c517ade ("memcontrol: only transfer the memcg data for migration")
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20231220054945.17663-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- mm/memcontrol.c  |   11 +++++++++++
- 2 files changed, 12 insertions(+), 1 deletion(-)
+ kernel/stacktrace.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-memcg-fix-split-queue-list-crash-when-large-folio-migration
-+++ a/mm/huge_memory.c
-@@ -2823,7 +2823,7 @@ void folio_undo_large_rmappable(struct f
- 	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
- 	if (!list_empty(&folio->_deferred_list)) {
- 		ds_queue->split_queue_len--;
--		list_del(&folio->_deferred_list);
-+		list_del_init(&folio->_deferred_list);
- 	}
- 	spin_unlock_irqrestore(&ds_queue->split_queue_lock, flags);
- }
---- a/mm/memcontrol.c~mm-memcg-fix-split-queue-list-crash-when-large-folio-migration
-+++ a/mm/memcontrol.c
-@@ -7543,6 +7543,17 @@ void mem_cgroup_migrate(struct folio *ol
+--- a/kernel/stacktrace.c~stacktrace-fix-kernel-doc-typo
++++ a/kernel/stacktrace.c
+@@ -126,7 +126,7 @@ EXPORT_SYMBOL_GPL(stack_trace_save);
  
- 	/* Transfer the charge and the css ref */
- 	commit_charge(new, memcg);
-+	/*
-+	 * If the old folio a large folio and is in the split queue, it needs
-+	 * to be removed from the split queue now, in case getting an incorrect
-+	 * split queue in destroy_large_folio() after the memcg of the old folio
-+	 * is cleared.
-+	 *
-+	 * In addition, the old folio is about to be freed after migration, so
-+	 * removing from the split queue a bit earlier seems reasonable.
-+	 */
-+	if (folio_test_large(old) && folio_test_large_rmappable(old))
-+		folio_undo_large_rmappable(old);
- 	old->memcg_data = 0;
- }
- 
+ /**
+  * stack_trace_save_tsk - Save a task stack trace into a storage array
+- * @task:	The task to examine
++ * @tsk:	The task to examine
+  * @store:	Pointer to storage array
+  * @size:	Size of the storage array
+  * @skipnr:	Number of entries to skip at the start of the stack trace
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-mm-memcg-fix-split-queue-list-crash-when-large-folio-migration.patch
-mm-migrate-fix-getting-incorrect-page-mapping-during-page-migration.patch
+maple_tree-fix-typos-spellos-etc.patch
+gfp-gfp_typesh-fix-typos-punctuation.patch
+rapidio-tsi721-fix-kernel-doc-warnings.patch
+freevxfs-bmap-fix-kernel-doc-warnings.patch
+freevxfs-immed-fix-kernel-doc-param-name.patch
+freevxfs-lookup-fix-function-params-kernel-doc.patch
+init-kconfig-move-more-items-into-the-expert-menu.patch
+usr-kconfig-fix-typos-of-its.patch
+stacktrace-fix-kernel-doc-typo.patch
 
