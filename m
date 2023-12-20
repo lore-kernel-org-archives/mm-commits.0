@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B39A481C3
-	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 21:47:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8745481C3
+	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 21:47:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PDQVLdp9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 490FCC433C7;
-	Wed, 20 Dec 2023 21:47:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wLmoEDZN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7959AC433C8;
+	Wed, 20 Dec 2023 21:47:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703108831;
-	bh=crZumqYTt7qVmVRwP+tlguVwuP8+/edxkqbKusdb1OQ=;
+	s=korg; t=1703108832;
+	bh=VRctkeqGGCj+I1WpsdTmKTzjGjBl0Qsy//7hAs5cwgg=;
 	h=Date:To:From:Subject:From;
-	b=PDQVLdp9Mc3Y+tPNcGLqTgk4AA7XrUF2TvwfIOYJbkm0/Sj82mN468wljoG14eh5D
-	 tuyhKN069CA5DTc0a8unt+xQe+yRKmib1vu42MYCypN1amMrhsJISFKmwhfa+bNaw1
-	 vLmvxBiENnfr2ZfTRWEu/J0V5oKT6UnA0lb+Rqb4=
-Date: Wed, 20 Dec 2023 13:47:10 -0800
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,svens@linux.ibm.com,peterz@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,mingo@redhat.com,hpa@zytor.com,herbert@gondor.apana.org.au,hca@linux.ibm.com,gor@linux.ibm.com,eric_devolder@yahoo.com,davem@davemloft.net,dave.hansen@linux.intel.com,conor@kernel.org,christophe.leroy@csgroup.eu,bp@alien8.de,borntraeger@linux.ibm.com,bhe@redhat.com,ardb@kernel.org,aou@eecs.berkeley.edu,agordeev@linux.ibm.com,arnd@arndb.de,akpm@linux-foundation.org
+	b=wLmoEDZNSF0B6gKucs0lqgNh72/S4ekF12gIZKnNxOUGJ7+ylntLhiFGhGuiSnGHi
+	 c6q3PwRCYwS8KViVDQQzw4HwhNhKyXOS8ofaaM7+N1I+QPymjBIxgobPe+vYZHMSGv
+	 7isQtWdLORTCPKEyWESkitkFpYRiwCRDWqTJZuYA=
+Date: Wed, 20 Dec 2023 13:47:11 -0800
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,npache@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] kexec-select-crypto-from-kexec_file-instead-of-depending-on-it.patch removed from -mm tree
-Message-Id: <20231220214711.490FCC433C7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] kunit-kasan_test-disable-fortify-string-checker-on-kmalloc_oob_memset.patch removed from -mm tree
+Message-Id: <20231220214712.7959AC433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,81 +27,130 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kexec: select CRYPTO from KEXEC_FILE instead of depending on it
+     Subject: kunit: kasan_test: disable fortify string checker on kmalloc_oob_memset
 has been removed from the -mm tree.  Its filename was
-     kexec-select-crypto-from-kexec_file-instead-of-depending-on-it.patch
+     kunit-kasan_test-disable-fortify-string-checker-on-kmalloc_oob_memset.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: kexec: select CRYPTO from KEXEC_FILE instead of depending on it
-Date: Mon, 23 Oct 2023 13:01:55 +0200
+From: Nico Pache <npache@redhat.com>
+Subject: kunit: kasan_test: disable fortify string checker on kmalloc_oob_memset
+Date: Tue, 12 Dec 2023 16:26:59 -0700
 
-All other users of crypto code use 'select' instead of 'depends on', so do
-the same thing with KEXEC_FILE for consistency.
+Similar to commit 09c6304e38e4 ("kasan: test: fix compatibility with
+FORTIFY_SOURCE") the kernel is panicing in kmalloc_oob_memset_*.
 
-In practice this makes very little difference as kernels with kexec
-support are very likely to also include some other feature that already
-selects both crypto and crypto_sha256, but being consistent here helps for
-usability as well as to avoid potential circular dependencies.
+This is due to the `ptr` not being hidden from the optimizer which would
+disable the runtime fortify string checker.
 
-This reverts the dependency back to what it was originally before commit
-74ca317c26a3f ("kexec: create a new config option CONFIG_KEXEC_FILE for
-new syscall"), which changed changed it with the comment "This should be
-safer as "select" is not recursive", but that appears to have been done in
-error, as "select" is indeed recursive, and there are no other
-dependencies that prevent CRYPTO_SHA256 from being selected here.
+kernel BUG at lib/string_helpers.c:1048!
+Call Trace:
+[<00000000272502e2>] fortify_panic+0x2a/0x30
+([<00000000272502de>] fortify_panic+0x26/0x30)
+[<001bffff817045c4>] kmalloc_oob_memset_2+0x22c/0x230 [kasan_test]
 
-Link: https://lkml.kernel.org/r/20231023110308.1202042-2-arnd@kernel.org
-Fixes: 74ca317c26a3f ("kexec: create a new config option CONFIG_KEXEC_FILE for new syscall")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Eric DeVolder <eric_devolder@yahoo.com>
-Tested-by: Eric DeVolder <eric_devolder@yahoo.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Conor Dooley <conor@kernel.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
+Hide the `ptr` variable from the optimizer to fix the kernel panic.  Also
+define a memset_size variable and hide that as well.  This cleans up the
+code and follows the same convention as other tests.
+
+[npache@redhat.com: address review comments from Andrey]
+  Link: https://lkml.kernel.org/r/20231214164423.6202-1-npache@redhat.com
+Link: https://lkml.kernel.org/r/20231212232659.18839-1-npache@redhat.com
+Signed-off-by: Nico Pache <npache@redhat.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/Kconfig.kexec |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/kasan/kasan_test.c |   20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
 
---- a/kernel/Kconfig.kexec~kexec-select-crypto-from-kexec_file-instead-of-depending-on-it
-+++ a/kernel/Kconfig.kexec
-@@ -36,7 +36,8 @@ config KEXEC
- config KEXEC_FILE
- 	bool "Enable kexec file based system call"
- 	depends on ARCH_SUPPORTS_KEXEC_FILE
--	depends on CRYPTO_SHA256=y || !ARCH_SUPPORTS_KEXEC_PURGATORY
-+	select CRYPTO
-+	select CRYPTO_SHA256
- 	select KEXEC_CORE
- 	help
- 	  This is new version of kexec system call. This system call is
+--- a/mm/kasan/kasan_test.c~kunit-kasan_test-disable-fortify-string-checker-on-kmalloc_oob_memset
++++ a/mm/kasan/kasan_test.c
+@@ -493,14 +493,17 @@ static void kmalloc_oob_memset_2(struct
+ {
+ 	char *ptr;
+ 	size_t size = 128 - KASAN_GRANULE_SIZE;
++	size_t memset_size = 2;
+ 
+ 	KASAN_TEST_NEEDS_CHECKED_MEMINTRINSICS(test);
+ 
+ 	ptr = kmalloc(size, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+ 
++	OPTIMIZER_HIDE_VAR(ptr);
+ 	OPTIMIZER_HIDE_VAR(size);
+-	KUNIT_EXPECT_KASAN_FAIL(test, memset(ptr + size - 1, 0, 2));
++	OPTIMIZER_HIDE_VAR(memset_size);
++	KUNIT_EXPECT_KASAN_FAIL(test, memset(ptr + size - 1, 0, memset_size));
+ 	kfree(ptr);
+ }
+ 
+@@ -508,14 +511,17 @@ static void kmalloc_oob_memset_4(struct
+ {
+ 	char *ptr;
+ 	size_t size = 128 - KASAN_GRANULE_SIZE;
++	size_t memset_size = 4;
+ 
+ 	KASAN_TEST_NEEDS_CHECKED_MEMINTRINSICS(test);
+ 
+ 	ptr = kmalloc(size, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+ 
++	OPTIMIZER_HIDE_VAR(ptr);
+ 	OPTIMIZER_HIDE_VAR(size);
+-	KUNIT_EXPECT_KASAN_FAIL(test, memset(ptr + size - 3, 0, 4));
++	OPTIMIZER_HIDE_VAR(memset_size);
++	KUNIT_EXPECT_KASAN_FAIL(test, memset(ptr + size - 3, 0, memset_size));
+ 	kfree(ptr);
+ }
+ 
+@@ -523,14 +529,17 @@ static void kmalloc_oob_memset_8(struct
+ {
+ 	char *ptr;
+ 	size_t size = 128 - KASAN_GRANULE_SIZE;
++	size_t memset_size = 8;
+ 
+ 	KASAN_TEST_NEEDS_CHECKED_MEMINTRINSICS(test);
+ 
+ 	ptr = kmalloc(size, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+ 
++	OPTIMIZER_HIDE_VAR(ptr);
+ 	OPTIMIZER_HIDE_VAR(size);
+-	KUNIT_EXPECT_KASAN_FAIL(test, memset(ptr + size - 7, 0, 8));
++	OPTIMIZER_HIDE_VAR(memset_size);
++	KUNIT_EXPECT_KASAN_FAIL(test, memset(ptr + size - 7, 0, memset_size));
+ 	kfree(ptr);
+ }
+ 
+@@ -538,14 +547,17 @@ static void kmalloc_oob_memset_16(struct
+ {
+ 	char *ptr;
+ 	size_t size = 128 - KASAN_GRANULE_SIZE;
++	size_t memset_size = 16;
+ 
+ 	KASAN_TEST_NEEDS_CHECKED_MEMINTRINSICS(test);
+ 
+ 	ptr = kmalloc(size, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+ 
++	OPTIMIZER_HIDE_VAR(ptr);
+ 	OPTIMIZER_HIDE_VAR(size);
+-	KUNIT_EXPECT_KASAN_FAIL(test, memset(ptr + size - 15, 0, 16));
++	OPTIMIZER_HIDE_VAR(memset_size);
++	KUNIT_EXPECT_KASAN_FAIL(test, memset(ptr + size - 15, 0, memset_size));
+ 	kfree(ptr);
+ }
+ 
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from npache@redhat.com are
 
-mips-fix-r3k_cache_init-build-regression.patch
-makefileextrawarn-turn-on-missing-prototypes-globally.patch
 
