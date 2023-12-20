@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D71E4A988
-	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 22:39:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73B114B126
+	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 22:48:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CXg3uSa6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB55AC433C8;
-	Wed, 20 Dec 2023 22:39:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S7taVzNW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E87CAC433C8;
+	Wed, 20 Dec 2023 22:48:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703111970;
-	bh=f1PDSbpcfcWLh9+Yt81YcXgO2lFKbTWYsaZLlZB8Iak=;
+	s=korg; t=1703112538;
+	bh=yhVZPgllnA/4wvKiS02kYmUsdDeALFc2/gNlMb9ZMyg=;
 	h=Date:To:From:Subject:From;
-	b=CXg3uSa6N4ebExIM6kVuUhTtLZojw4dn6K384enRxAtfpcRRowVpiZ4X4Tsa800LG
-	 14fVNvSq2eb+qdKz3VoaSNdCtRBR2nTib4mgZ0gxyzmWHHC02tPHLtYU3IjX1lONKn
-	 WAU9rv+7QBK5hdyao0HgmOe9guXxkEP0nndGOYDg=
-Date: Wed, 20 Dec 2023 14:39:30 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,ying.huang@intel.com,willy@infradead.org,wangkefeng.wang@huawei.com,v-songbaohua@oppo.com,vbabka@suse.cz,shy828301@gmail.com,rientjes@google.com,mcgrof@kernel.org,kirill.shutemov@linux.intel.com,jhubbard@nvidia.com,itaru.kitayama@gmail.com,hughd@google.com,fengwei.yin@intel.com,david@redhat.com,catalin.marinas@arm.com,apopple@nvidia.com,anshuman.khandual@arm.com,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=S7taVzNWT0ufCmpNk00nEd53+C1bVJTpiuz5Loxl9XMjrxiZnVOH5E0mY6m0LjLnq
+	 Xaf36uTkdL7gWortdwetxUa3soVEpwXuo4zXX6F1r9MZRD8qTQAMWgZbGnlb7ffNtw
+	 A6oVFXqy/gM+If86K+vuSLUaIOd35eSKcqBfDsUY=
+Date: Wed, 20 Dec 2023 14:48:57 -0800
+To: mm-commits@vger.kernel.org,nphamcs@gmail.com,lkp@intel.com,hannes@cmpxchg.org,bagasdotme@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-thp-support-allocation-of-anonymous-multi-size-thp-fix.patch removed from -mm tree
-Message-Id: <20231220223930.DB55AC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-list_lruc-remove-unused-list_lru_from_kmem.patch removed from -mm tree
+Message-Id: <20231220224857.E87CAC433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,98 +27,82 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: resolve some multi-size THP review nits
+     Subject: mm/list_lru.c: remove unused list_lru_from_kmem()
 has been removed from the -mm tree.  Its filename was
-     mm-thp-support-allocation-of-anonymous-multi-size-thp-fix.patch
+     mm-list_lruc-remove-unused-list_lru_from_kmem.patch
 
-This patch was dropped because it was folded into mm-thp-support-allocation-of-anonymous-multi-size-thp.patch
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm: resolve some multi-size THP review nits
-Date: Thu, 14 Dec 2023 16:02:51 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/list_lru.c: remove unused list_lru_from_kmem()
+Date: Thu Dec 14 07:32:58 AM PST 2023
 
-Tidy code based on review feedback for final version of multi-size THP:
-
- - Comment added to explain alloc_anon_folio() error protocol
- - ifdefery simplified for alloc_anon_folio()
-
-Link: https://lkml.kernel.org/r/20231214160251.3574571-1-ryan.roberts@arm.com
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Barry Song <v-songbaohua@oppo.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Itaru Kitayama <itaru.kitayama@gmail.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Yin Fengwei <fengwei.yin@intel.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Fixes: 0a97c01cd20bb ("list_lru: allow explicit memcg and NUMA node selection)
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202312141318.q8b5yrAq-lkp@intel.com/
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ mm/list_lru.c |   31 -------------------------------
+ 1 file changed, 31 deletions(-)
 
---- a/mm/memory.c~mm-thp-support-allocation-of-anonymous-multi-size-thp-fix
-+++ a/mm/memory.c
-@@ -4137,9 +4137,9 @@ static bool pte_range_none(pte_t *pte, i
- 	return true;
- }
- 
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- static struct folio *alloc_anon_folio(struct vm_fault *vmf)
- {
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	struct vm_area_struct *vma = vmf->vma;
- 	unsigned long orders;
- 	struct folio *folio;
-@@ -4199,12 +4199,9 @@ static struct folio *alloc_anon_folio(st
+--- a/mm/list_lru.c~mm-list_lruc-remove-unused-list_lru_from_kmem
++++ a/mm/list_lru.c
+@@ -59,28 +59,6 @@ list_lru_from_memcg_idx(struct list_lru
  	}
- 
- fallback:
--	return vma_alloc_zeroed_movable_folio(vma, vmf->address);
+ 	return &lru->node[nid].lru;
+ }
+-
+-static inline struct list_lru_one *
+-list_lru_from_kmem(struct list_lru *lru, int nid, void *ptr,
+-		   struct mem_cgroup **memcg_ptr)
+-{
+-	struct list_lru_node *nlru = &lru->node[nid];
+-	struct list_lru_one *l = &nlru->lru;
+-	struct mem_cgroup *memcg = NULL;
+-
+-	if (!list_lru_memcg_aware(lru))
+-		goto out;
+-
+-	memcg = mem_cgroup_from_slab_obj(ptr);
+-	if (!memcg)
+-		goto out;
+-
+-	l = list_lru_from_memcg_idx(lru, nid, memcg_kmem_id(memcg));
+-out:
+-	if (memcg_ptr)
+-		*memcg_ptr = memcg;
+-	return l;
 -}
--#else
--#define alloc_anon_folio(vmf) \
--		vma_alloc_zeroed_movable_folio((vmf)->vma, (vmf)->address)
- #endif
-+	return vma_alloc_zeroed_movable_folio(vmf->vma, vmf->address);
-+}
+ #else
+ static void list_lru_register(struct list_lru *lru)
+ {
+@@ -105,15 +83,6 @@ list_lru_from_memcg_idx(struct list_lru
+ {
+ 	return &lru->node[nid].lru;
+ }
+-
+-static inline struct list_lru_one *
+-list_lru_from_kmem(struct list_lru *lru, int nid, void *ptr,
+-		   struct mem_cgroup **memcg_ptr)
+-{
+-	if (memcg_ptr)
+-		*memcg_ptr = NULL;
+-	return &lru->node[nid].lru;
+-}
+ #endif /* CONFIG_MEMCG_KMEM */
  
- /*
-  * We enter with non-exclusive mmap_lock (to exclude vma changes,
-@@ -4260,6 +4257,7 @@ static vm_fault_t do_anonymous_page(stru
- 	/* Allocate our own private page. */
- 	if (unlikely(anon_vma_prepare(vma)))
- 		goto oom;
-+	/* Returns NULL on OOM or ERR_PTR(-EAGAIN) if we must retry the fault */
- 	folio = alloc_anon_folio(vmf);
- 	if (IS_ERR(folio))
- 		return 0;
+ bool list_lru_add(struct list_lru *lru, struct list_head *item, int nid,
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-allow-deferred-splitting-of-arbitrary-anon-large-folios.patch
-mm-non-pmd-mappable-large-folios-for-folio_add_new_anon_rmap.patch
-mm-thp-introduce-multi-size-thp-sysfs-interface.patch
-mm-thp-support-allocation-of-anonymous-multi-size-thp.patch
-selftests-mm-kugepaged-restore-thp-settings-at-exit.patch
-selftests-mm-factor-out-thp-settings-management.patch
-selftests-mm-support-multi-size-thp-interface-in-thp_settings.patch
-selftests-mm-khugepaged-enlighten-for-multi-size-thp.patch
-selftests-mm-cow-generalize-do_run_with_thp-helper.patch
-selftests-mm-cow-add-tests-for-anonymous-multi-size-thp.patch
-selftests-mm-log-run_vmtestssh-results-in-tap-format.patch
+maintainers-remove-hugetlb-maintainer-mike-kravetz-fix.patch
+mips-fix-r3k_cache_init-build-regression-fix.patch
 
