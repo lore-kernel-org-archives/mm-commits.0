@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96C6F1D6A6;
-	Wed, 20 Dec 2023 21:47:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D38AB495CA;
+	Wed, 20 Dec 2023 21:47:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w8YWUeNC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61C74C433C8;
-	Wed, 20 Dec 2023 21:47:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TPdL7rAy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49677C433C8;
+	Wed, 20 Dec 2023 21:47:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703108837;
-	bh=2H0Iif7JGSEjhq2V+F2fNAOea7lSmjertOU8i69pM4U=;
+	s=korg; t=1703108838;
+	bh=0AH4MZlykVJT3c7nAhhNQ7Vb02qTXOV/d9NUwqqISts=;
 	h=Date:To:From:Subject:From;
-	b=w8YWUeNCq+lqh0FsnVFSCfm0ykAHTtfF7tUz4t+ZZs1RcKyNnIn+vES2mnC3Rs15D
-	 wUZJd/tIvfxKdaewEFUyxGIUZyzhLUg6JEhnhlzUHYsTOfnJcZqF4ho2DH/KBc8uIz
-	 Q1UDD16/eP3lZPOjRDiijPEo8K9Tt/Vh63HDdvfE=
-Date: Wed, 20 Dec 2023 13:47:16 -0800
+	b=TPdL7rAyxLUdSP6EI9sFtYMEr6RE0v0F9Lihi28dB4OfjXT7xH18T4pQIM1E1Gwj1
+	 AJBRURCPs1jPcVqI3BVbEfYMkXen2NBbn/sCn8oCK/jfTH92dWrPi0iQ9HhssnWxTE
+	 41ln6Jc7GLFwldfe8GKjGYD7y7XL03b3VzW1/JE0=
+Date: Wed, 20 Dec 2023 13:47:17 -0800
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,n-horiguchi@ah.jp.nec.com,dan.j.williams@intel.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-memory-failure-pass-the-folio-and-the-page-to-collect_procs.patch removed from -mm tree
-Message-Id: <20231220214717.61C74C433C8@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-memory-failure-check-the-mapcount-of-the-precise-page.patch removed from -mm tree
+Message-Id: <20231220214718.49677C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,38 +27,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory-failure: pass the folio and the page to collect_procs()
+     Subject: mm/memory-failure: check the mapcount of the precise page
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-pass-the-folio-and-the-page-to-collect_procs.patch
+     mm-memory-failure-check-the-mapcount-of-the-precise-page.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/memory-failure: pass the folio and the page to collect_procs()
-Date: Mon, 18 Dec 2023 13:58:35 +0000
+Subject: mm/memory-failure: check the mapcount of the precise page
+Date: Mon, 18 Dec 2023 13:58:36 +0000
 
-Patch series "Three memory-failure fixes".
+A process may map only some of the pages in a folio, and might be missed
+if it maps the poisoned page but not the head page.  Or it might be
+unnecessarily hit if it maps the head page, but not the poisoned page.
 
-I've been looking at the memory-failure code and I believe I have found
-three bugs that need fixing -- one going all the way back to 2010!  I'll
-have more patches later to use folios more extensively but didn't want
-these bugfixes to get caught up in that.
-
-
-This patch (of 3):
-
-Both collect_procs_anon() and collect_procs_file() iterate over the VMA
-interval trees looking for a single pgoff, so it is wrong to look for the
-pgoff of the head page as is currently done.  However, it is also wrong to
-look at page->mapping of the precise page as this is invalid for tail
-pages.  Clear up the confusion by passing both the folio and the precise
-page to collect_procs().
-
-Link: https://lkml.kernel.org/r/20231218135837.3310403-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20231218135837.3310403-2-willy@infradead.org
-Fixes: 415c64c1453a ("mm/memory-failure: split thp earlier in memory error handling")
+Link: https://lkml.kernel.org/r/20231218135837.3310403-3-willy@infradead.org
+Fixes: 7af446a841a2 ("HWPOISON, hugetlb: enable error handling path for hugepage")
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
@@ -66,81 +52,33 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   25 ++++++++++++-------------
- 1 file changed, 12 insertions(+), 13 deletions(-)
+ mm/memory-failure.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-pass-the-folio-and-the-page-to-collect_procs
+--- a/mm/memory-failure.c~mm-memory-failure-check-the-mapcount-of-the-precise-page
 +++ a/mm/memory-failure.c
-@@ -595,10 +595,9 @@ struct task_struct *task_early_kill(stru
- /*
-  * Collect processes when the error hit an anonymous page.
-  */
--static void collect_procs_anon(struct page *page, struct list_head *to_kill,
--				int force_early)
-+static void collect_procs_anon(struct folio *folio, struct page *page,
-+		struct list_head *to_kill, int force_early)
- {
--	struct folio *folio = page_folio(page);
- 	struct vm_area_struct *vma;
- 	struct task_struct *tsk;
- 	struct anon_vma *av;
-@@ -633,12 +632,12 @@ static void collect_procs_anon(struct pa
- /*
-  * Collect processes when the error hit a file mapped page.
-  */
--static void collect_procs_file(struct page *page, struct list_head *to_kill,
--				int force_early)
-+static void collect_procs_file(struct folio *folio, struct page *page,
-+		struct list_head *to_kill, int force_early)
- {
- 	struct vm_area_struct *vma;
- 	struct task_struct *tsk;
--	struct address_space *mapping = page->mapping;
-+	struct address_space *mapping = folio->mapping;
- 	pgoff_t pgoff;
- 
- 	i_mmap_lock_read(mapping);
-@@ -704,17 +703,17 @@ static void collect_procs_fsdax(struct p
- /*
-  * Collect the processes who have the corrupted page mapped to kill.
-  */
--static void collect_procs(struct page *page, struct list_head *tokill,
--				int force_early)
-+static void collect_procs(struct folio *folio, struct page *page,
-+		struct list_head *tokill, int force_early)
- {
--	if (!page->mapping)
-+	if (!folio->mapping)
- 		return;
- 	if (unlikely(PageKsm(page)))
- 		collect_procs_ksm(page, tokill, force_early);
- 	else if (PageAnon(page))
--		collect_procs_anon(page, tokill, force_early);
-+		collect_procs_anon(folio, page, tokill, force_early);
- 	else
--		collect_procs_file(page, tokill, force_early);
-+		collect_procs_file(folio, page, tokill, force_early);
- }
- 
- struct hwpoison_walk {
-@@ -1602,7 +1601,7 @@ static bool hwpoison_user_mappings(struc
- 	 * mapped in dirty form.  This has to be done before try_to_unmap,
- 	 * because ttu takes the rmap data structures down.
+@@ -1570,7 +1570,7 @@ static bool hwpoison_user_mappings(struc
+ 	 * This check implies we don't kill processes if their pages
+ 	 * are in the swap cache early. Those are always late kills.
  	 */
--	collect_procs(hpage, &tokill, flags & MF_ACTION_REQUIRED);
-+	collect_procs(folio, p, &tokill, flags & MF_ACTION_REQUIRED);
+-	if (!page_mapped(hpage))
++	if (!page_mapped(p))
+ 		return true;
  
- 	if (PageHuge(hpage) && !PageAnon(hpage)) {
- 		/*
-@@ -1772,7 +1771,7 @@ static int mf_generic_kill_procs(unsigne
- 	 * SIGBUS (i.e. MF_MUST_KILL)
- 	 */
- 	flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
--	collect_procs(&folio->page, &to_kill, true);
-+	collect_procs(folio, &folio->page, &to_kill, true);
+ 	if (PageSwapCache(p)) {
+@@ -1621,10 +1621,10 @@ static bool hwpoison_user_mappings(struc
+ 		try_to_unmap(folio, ttu);
+ 	}
  
- 	unmap_and_kill(&to_kill, pfn, folio->mapping, folio->index, flags);
- unlock:
+-	unmap_success = !page_mapped(hpage);
++	unmap_success = !page_mapped(p);
+ 	if (!unmap_success)
+ 		pr_err("%#lx: failed to unmap page (mapcount=%d)\n",
+-		       pfn, page_mapcount(hpage));
++		       pfn, page_mapcount(p));
+ 
+ 	/*
+ 	 * try_to_unmap() might put mlocked page in lru cache, so call
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
