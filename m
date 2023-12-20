@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88EB5ECC
-	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 00:06:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6462D567C
+	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 00:38:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qumNRYvf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 544E5C433C8;
-	Wed, 20 Dec 2023 00:06:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iTU1C0li"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5B53C433C9;
+	Wed, 20 Dec 2023 00:38:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703030765;
-	bh=+hhZikrlcB3T63LMMa6k1WEL/XWyeD0V0XZCGywR8GA=;
+	s=korg; t=1703032700;
+	bh=+knbYP5AcrcY7AV8rdG9m58yO7TNgnAFAGmAkiw29ks=;
 	h=Date:To:From:Subject:From;
-	b=qumNRYvfbjXw+LZyH4CHs+upxrtehUDr620WtHAII/FdQsZhVSKkiIYpnb8eo++Ya
-	 kLEAcxBthNvknunFjPqFNokvzffvbd2KaGZkpgqCJ98zjFXmeYeK5IFYzsyKfWdlHA
-	 Hpmwr2ij2b8PAs8GocV7nDXuElK7FBCrgULD9ryo=
-Date: Tue, 19 Dec 2023 16:06:04 -0800
-To: mm-commits@vger.kernel.org,ryabinin.a.a@gmail.com,leitao@debian.org,glider@google.com,eugenis@google.com,elver@google.com,dvyukov@google.com,alobakin@pm.me,andreyknvl@google.com,akpm@linux-foundation.org
+	b=iTU1C0liNMHvYD+GXBUlrUH1z+IfPcCwCNIhBmrNHv5NPqYTIK17n1QS5Kq46Dl2R
+	 IfkkAFUPbACBVVi9SJrh93g71sKRTo/fk7sptBwoS0FWswBPiZjCQTAe/4Hx+L5Z/P
+	 5Xv3CS0KhdX+8AmqXkWOO6fcUc31S5Vz4ixizSMM=
+Date: Tue, 19 Dec 2023 16:38:20 -0800
+To: mm-commits@vger.kernel.org,zhao_lei1@hoperun.com,zhang.zhengming@h3c.com,surenb@google.com,rppt@kernel.org,rafael@kernel.org,kunyu@nfschina.com,gregkh@linuxfoundation.org,nabijaczleweli@nabijaczleweli.xyz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + io_uring-use-mempool-kasan-hook.patch added to mm-unstable branch
-Message-Id: <20231220000605.544E5C433C8@smtp.kernel.org>
+Subject: + kernel-relay-remove-=utf-8qrelay=5ffile=5fsplice=5fr=-=utf-8bzwfkiokakg===-dead-code-doesnt-work.patch added to mm-nonmm-unstable branch
+Message-Id: <20231220003820.B5B53C433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: io_uring: use mempool KASAN hook
-has been added to the -mm mm-unstable branch.  Its filename is
-     io_uring-use-mempool-kasan-hook.patch
+     Subject: kernel: relay: remove relay_file_splice_read  dead code, doesn't work
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kernel-relay-remove-=utf-8qrelay=5ffile=5fsplice=5fr=-=utf-8bzwfkiokakg===-dead-code-doesnt-work.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/io_uring-use-mempool-kasan-hook.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-relay-remove-=utf-8qrelay=5ffile=5fsplice=5fr=-=utf-8bzwfkiokakg===-dead-code-doesnt-work.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,67 +50,262 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: io_uring: use mempool KASAN hook
-Date: Tue, 19 Dec 2023 23:29:05 +0100
+From: Ahelenia Ziemiańska <nabijaczleweli@nabijaczleweli.xyz>
+Subject: kernel: relay: remove relay_file_splice_read  dead code, doesn't work
+Date: Tue, 19 Dec 2023 23:24:14 +0100
 
-Use the proper kasan_mempool_unpoison_object hook for unpoisoning cached
-objects.
+Documentation/filesystems/relay.rst says to use
+	return debugfs_create_file(filename, mode, parent, buf,
+	                           &relay_file_operations);
+and this is the only way relay_file_operations is used.
 
-A future change might also update io_uring to check the return value of
-kasan_mempool_poison_object to prevent double-free and invalid-free bugs. 
-This proves to be non-trivial with the current way io_uring caches
-objects, so this is left out-of-scope of this series.
+Thus: debugfs_create_file(&relay_file_operations)
+   -> __debugfs_create_file(&debugfs_full_proxy_file_operations,
+                            &relay_file_operations)
+   -> dentry{inode: {i_fop: &debugfs_full_proxy_file_operations},
+             d_fsdata: &relay_file_operations
+                       | DEBUGFS_FSDATA_IS_REAL_FOPS_BIT}
 
-Link: https://lkml.kernel.org/r/eca18d6cbf676ed784f1a1f209c386808a8087c5.1703024586.git.andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Alexander Lobakin <alobakin@pm.me>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Breno Leitao <leitao@debian.org>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Marco Elver <elver@google.com>
+debugfs_full_proxy_file_operations.open is full_proxy_open, which extracts
+the &relay_file_operations from the dentry, and allocates via
+__full_proxy_fops_init() new fops, with trivial wrappers around release,
+llseek, read, write, poll, and unlocked_ioctl, then replaces the fops on
+the opened file therewith.
+
+Naturally, all thusly-created debugfs files have .splice_read = NULL. 
+This was introduced in commit 49d200deaa68 ("debugfs: prevent access to
+removed files' private data") from 2016-03-22.
+
+AFAICT, relay_file_operations is the only struct file_operations used for
+debugfs which defines a .splice_read callback.  Hooking it up with
+
+>	diff --git a/fs/debugfs/file.c b/fs/debugfs/file.c
+>	index 5063434be0fc..952fcf5b2afa 100644
+>	--- a/fs/debugfs/file.c
+>	+++ b/fs/debugfs/file.c
+>	@@ -328,6 +328,11 @@ FULL_PROXY_FUNC(write, ssize_t, filp,
+>	 			loff_t *ppos),
+>	 		ARGS(filp, buf, size, ppos));
+>
+>	+FULL_PROXY_FUNC(splice_read, long, in,
+>	+		PROTO(struct file *in, loff_t *ppos, struct pipe_inode_info *pipe,
+>	+			size_t len, unsigned int flags),
+>	+		ARGS(in, ppos, pipe, len, flags));
+>	+
+>	 FULL_PROXY_FUNC(unlocked_ioctl, long, filp,
+>	 		PROTO(struct file *filp, unsigned int cmd, unsigned long arg),
+>	 		ARGS(filp, cmd, arg));
+>	@@ -382,6 +387,8 @@ static void __full_proxy_fops_init(struct file_operations *proxy_fops,
+>	 		proxy_fops->write = full_proxy_write;
+>	 	if (real_fops->poll)
+>	 		proxy_fops->poll = full_proxy_poll;
+>	+	if (real_fops->splice_read)
+>	+		proxy_fops->splice_read = full_proxy_splice_read;
+>	 	if (real_fops->unlocked_ioctl)
+>	 		proxy_fops->unlocked_ioctl = full_proxy_unlocked_ioctl;
+>	 }
+
+shows it just doesn't work, and splicing always instantly returns empty
+(subsequent reads actually return the contents).
+
+No-one noticed it became dead code in 2016, who knows if it worked back
+then. Clearly no-one cares; just delete it.
+
+Link: https://lkml.kernel.org/r/dtexwpw6zcdx7dkx3xj5gyjp5syxmyretdcbcdtvrnukd4vvuh@tarta.nabijaczleweli.xyz
+Signed-off-by: Ahelenia Ziemiańska <nabijaczleweli@nabijaczleweli.xyz>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Li kunyu <kunyu@nfschina.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Rafael J. Wysocki <rafael@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Zhang Zhengming <zhang.zhengming@h3c.com>
+Cc: Zhao Lei <zhao_lei1@hoperun.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- io_uring/alloc_cache.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/relay.c |  162 -----------------------------------------------
+ 1 file changed, 162 deletions(-)
 
---- a/io_uring/alloc_cache.h~io_uring-use-mempool-kasan-hook
-+++ a/io_uring/alloc_cache.h
-@@ -33,7 +33,7 @@ static inline struct io_cache_entry *io_
- 		struct io_cache_entry *entry;
+--- a/kernel/relay.c~kernel-relay-remove-=utf-8qrelay=5ffile=5fsplice=5fr=-=utf-8bzwfkiokakg===-dead-code-doesnt-work
++++ a/kernel/relay.c
+@@ -1073,167 +1073,6 @@ static ssize_t relay_file_read(struct fi
+ 	return written;
+ }
  
- 		entry = container_of(cache->list.next, struct io_cache_entry, node);
--		kasan_unpoison_range(entry, cache->elem_size);
-+		kasan_mempool_unpoison_object(entry, cache->elem_size);
- 		cache->list.next = cache->list.next->next;
- 		cache->nr_cached--;
- 		return entry;
+-static void relay_consume_bytes(struct rchan_buf *rbuf, int bytes_consumed)
+-{
+-	rbuf->bytes_consumed += bytes_consumed;
+-
+-	if (rbuf->bytes_consumed >= rbuf->chan->subbuf_size) {
+-		relay_subbufs_consumed(rbuf->chan, rbuf->cpu, 1);
+-		rbuf->bytes_consumed %= rbuf->chan->subbuf_size;
+-	}
+-}
+-
+-static void relay_pipe_buf_release(struct pipe_inode_info *pipe,
+-				   struct pipe_buffer *buf)
+-{
+-	struct rchan_buf *rbuf;
+-
+-	rbuf = (struct rchan_buf *)page_private(buf->page);
+-	relay_consume_bytes(rbuf, buf->private);
+-}
+-
+-static const struct pipe_buf_operations relay_pipe_buf_ops = {
+-	.release	= relay_pipe_buf_release,
+-	.try_steal	= generic_pipe_buf_try_steal,
+-	.get		= generic_pipe_buf_get,
+-};
+-
+-static void relay_page_release(struct splice_pipe_desc *spd, unsigned int i)
+-{
+-}
+-
+-/*
+- *	subbuf_splice_actor - splice up to one subbuf's worth of data
+- */
+-static ssize_t subbuf_splice_actor(struct file *in,
+-			       loff_t *ppos,
+-			       struct pipe_inode_info *pipe,
+-			       size_t len,
+-			       unsigned int flags,
+-			       int *nonpad_ret)
+-{
+-	unsigned int pidx, poff, total_len, subbuf_pages, nr_pages;
+-	struct rchan_buf *rbuf = in->private_data;
+-	unsigned int subbuf_size = rbuf->chan->subbuf_size;
+-	uint64_t pos = (uint64_t) *ppos;
+-	uint32_t alloc_size = (uint32_t) rbuf->chan->alloc_size;
+-	size_t read_start = (size_t) do_div(pos, alloc_size);
+-	size_t read_subbuf = read_start / subbuf_size;
+-	size_t padding = rbuf->padding[read_subbuf];
+-	size_t nonpad_end = read_subbuf * subbuf_size + subbuf_size - padding;
+-	struct page *pages[PIPE_DEF_BUFFERS];
+-	struct partial_page partial[PIPE_DEF_BUFFERS];
+-	struct splice_pipe_desc spd = {
+-		.pages = pages,
+-		.nr_pages = 0,
+-		.nr_pages_max = PIPE_DEF_BUFFERS,
+-		.partial = partial,
+-		.ops = &relay_pipe_buf_ops,
+-		.spd_release = relay_page_release,
+-	};
+-	ssize_t ret;
+-
+-	if (rbuf->subbufs_produced == rbuf->subbufs_consumed)
+-		return 0;
+-	if (splice_grow_spd(pipe, &spd))
+-		return -ENOMEM;
+-
+-	/*
+-	 * Adjust read len, if longer than what is available
+-	 */
+-	if (len > (subbuf_size - read_start % subbuf_size))
+-		len = subbuf_size - read_start % subbuf_size;
+-
+-	subbuf_pages = rbuf->chan->alloc_size >> PAGE_SHIFT;
+-	pidx = (read_start / PAGE_SIZE) % subbuf_pages;
+-	poff = read_start & ~PAGE_MASK;
+-	nr_pages = min_t(unsigned int, subbuf_pages, spd.nr_pages_max);
+-
+-	for (total_len = 0; spd.nr_pages < nr_pages; spd.nr_pages++) {
+-		unsigned int this_len, this_end, private;
+-		unsigned int cur_pos = read_start + total_len;
+-
+-		if (!len)
+-			break;
+-
+-		this_len = min_t(unsigned long, len, PAGE_SIZE - poff);
+-		private = this_len;
+-
+-		spd.pages[spd.nr_pages] = rbuf->page_array[pidx];
+-		spd.partial[spd.nr_pages].offset = poff;
+-
+-		this_end = cur_pos + this_len;
+-		if (this_end >= nonpad_end) {
+-			this_len = nonpad_end - cur_pos;
+-			private = this_len + padding;
+-		}
+-		spd.partial[spd.nr_pages].len = this_len;
+-		spd.partial[spd.nr_pages].private = private;
+-
+-		len -= this_len;
+-		total_len += this_len;
+-		poff = 0;
+-		pidx = (pidx + 1) % subbuf_pages;
+-
+-		if (this_end >= nonpad_end) {
+-			spd.nr_pages++;
+-			break;
+-		}
+-	}
+-
+-	ret = 0;
+-	if (!spd.nr_pages)
+-		goto out;
+-
+-	ret = *nonpad_ret = splice_to_pipe(pipe, &spd);
+-	if (ret < 0 || ret < total_len)
+-		goto out;
+-
+-        if (read_start + ret == nonpad_end)
+-                ret += padding;
+-
+-out:
+-	splice_shrink_spd(&spd);
+-	return ret;
+-}
+-
+-static ssize_t relay_file_splice_read(struct file *in,
+-				      loff_t *ppos,
+-				      struct pipe_inode_info *pipe,
+-				      size_t len,
+-				      unsigned int flags)
+-{
+-	ssize_t spliced;
+-	int ret;
+-	int nonpad_ret = 0;
+-
+-	ret = 0;
+-	spliced = 0;
+-
+-	while (len && !spliced) {
+-		ret = subbuf_splice_actor(in, ppos, pipe, len, flags, &nonpad_ret);
+-		if (ret < 0)
+-			break;
+-		else if (!ret) {
+-			if (flags & SPLICE_F_NONBLOCK)
+-				ret = -EAGAIN;
+-			break;
+-		}
+-
+-		*ppos += ret;
+-		if (ret > len)
+-			len = 0;
+-		else
+-			len -= ret;
+-		spliced += nonpad_ret;
+-		nonpad_ret = 0;
+-	}
+-
+-	if (spliced)
+-		return spliced;
+-
+-	return ret;
+-}
+ 
+ const struct file_operations relay_file_operations = {
+ 	.open		= relay_file_open,
+@@ -1242,6 +1081,5 @@ const struct file_operations relay_file_
+ 	.read		= relay_file_read,
+ 	.llseek		= no_llseek,
+ 	.release	= relay_file_release,
+-	.splice_read	= relay_file_splice_read,
+ };
+ EXPORT_SYMBOL_GPL(relay_file_operations);
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from nabijaczleweli@nabijaczleweli.xyz are
 
-kasan-rename-kasan_slab_free_mempool-to-kasan_mempool_poison_object.patch
-kasan-move-kasan_mempool_poison_object.patch
-kasan-document-kasan_mempool_poison_object.patch
-kasan-add-return-value-for-kasan_mempool_poison_object.patch
-kasan-introduce-kasan_mempool_unpoison_object.patch
-kasan-introduce-kasan_mempool_poison_pages.patch
-kasan-introduce-kasan_mempool_unpoison_pages.patch
-kasan-clean-up-__kasan_mempool_poison_object.patch
-kasan-save-free-stack-traces-for-slab-mempools.patch
-kasan-clean-up-and-rename-____kasan_kmalloc.patch
-kasan-introduce-poison_kmalloc_large_redzone.patch
-kasan-save-alloc-stack-traces-for-mempool.patch
-mempool-skip-slub_debug-poisoning-when-kasan-is-enabled.patch
-mempool-use-new-mempool-kasan-hooks.patch
-mempool-introduce-mempool_use_prealloc_only.patch
-kasan-add-mempool-tests.patch
-kasan-rename-pagealloc-tests.patch
-kasan-reorder-tests.patch
-kasan-rename-and-document-kasan_unpoison_object_data.patch
-skbuff-use-mempool-kasan-hooks.patch
-io_uring-use-mempool-kasan-hook.patch
+kernel-relay-remove-=utf-8qrelay=5ffile=5fsplice=5fr=-=utf-8bzwfkiokakg===-dead-code-doesnt-work.patch
 
