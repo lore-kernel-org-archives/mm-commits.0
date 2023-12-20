@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD687482C5
-	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 17:56:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6402482C5
+	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 18:11:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oVycDVXM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25A02C433CB;
-	Wed, 20 Dec 2023 17:56:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cBr4xNhZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25AA6C433C8;
+	Wed, 20 Dec 2023 18:11:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703095001;
-	bh=lZ0P/v65juZ4LnkJzDFQ7rHZ4bpuDxkfeLlN+56213k=;
+	s=korg; t=1703095898;
+	bh=3dLUB3diKJgrbe9iFK8//tNtd1rqpRAvmvIw6czQm6w=;
 	h=Date:To:From:Subject:From;
-	b=oVycDVXMWUxuvyjvGxK6hFrqwdvK5UF8cDMkcgN07cxAYfnLqqUqofPnwhc78OWCK
-	 +MKCkvAjKnLvSQMVgLYlpyb6Xkkn7SK4tZu6yh8S7bAP1xTzHJR2er68vE4Vkv9ijh
-	 DQ2zf98R3DJHDEaUEpmYK2BixPQDZmZmYcjFbqEA=
-Date: Wed, 20 Dec 2023 09:56:40 -0800
-To: mm-commits@vger.kernel.org,jiajun.xie.sh@gmail.com,akpm@linux-foundation.org
+	b=cBr4xNhZACHYW+XtAAKHWCdnYiNdybG3OBFPq4NkjH7U7NA/U/CjALFQf4CIYo1pD
+	 gQJvPfaxxH0MvG26bfBaQrBqlCADfesqvIUlSc71eg+whSQ3IlM3alGp5PgaFpm4oJ
+	 6GoKoKBJXlfUOJoIwdJk1R1cUpFBP4tqSokwAttI=
+Date: Wed, 20 Dec 2023 10:11:37 -0800
+To: mm-commits@vger.kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,cuibixuan@vivo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-unmap_mapping_range-high-bits-shift-bug.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231220175641.25A02C433CB@smtp.kernel.org>
+Subject: + mm-shrinker-add-new-event-to-trace-shrink-count.patch added to mm-unstable branch
+Message-Id: <20231220181138.25AA6C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix unmap_mapping_range high bits shift bug
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-unmap_mapping_range-high-bits-shift-bug.patch
+     Subject: mm: shrinker: add new event to trace shrink count
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-shrinker-add-new-event-to-trace-shrink-count.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-unmap_mapping_range-high-bits-shift-bug.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinker-add-new-event-to-trace-shrink-count.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,54 +50,172 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jiajun Xie <jiajun.xie.sh@gmail.com>
-Subject: mm: fix unmap_mapping_range high bits shift bug
-Date: Wed, 20 Dec 2023 13:28:39 +0800
+From: Bixuan Cui <cuibixuan@vivo.com>
+Subject: mm: shrinker: add new event to trace shrink count
+Date: Tue, 19 Dec 2023 17:21:22 -0800
 
-The bug happens when highest bit of holebegin is 1, suppose holebegin is
-0x8000000111111000, after shift, hba would be 0xfff8000000111111, then
-vma_interval_tree_foreach would look it up fail or leads to the wrong
-result.
+Patch series "Make memory reclamation measurable", v4.
 
-error call seq e.g.:
-- mmap(..., offset=0x8000000111111000)
-  |- syscall(mmap, ... unsigned long, off):
-     |- ksys_mmap_pgoff( ... , off >> PAGE_SHIFT);
+When the system memory is low, kswapd reclaims the memory. The key steps
+of memory reclamation include
+1.shrink_lruvec
+  * shrink_active_list, moves folios from the active LRU to the inactive LRU
+  * shrink_inactive_list, shrink lru from inactive LRU list
+2.shrink_slab
+  * shrinker->count_objects(), calculates the freeable memory
+  * shrinker->scan_objects(), reclaims the slab memory
 
-  here pgoff is correctly shifted to 0x8000000111111,
-  but pass 0x8000000111111000 as holebegin to unmap
-  would then cause terrible result, as shown below:
+The existing tracers in the vmscan are as follows:
 
-- unmap_mapping_range(..., loff_t const holebegin)
-  |- pgoff_t hba = holebegin >> PAGE_SHIFT;
-          /* hba = 0xfff8000000111111 unexpectedly */
+--do_try_to_free_pages
+--shrink_zones
+--trace_mm_vmscan_node_reclaim_begin (tracer)
+--shrink_node
+--shrink_node_memcgs
+  --trace_mm_vmscan_memcg_shrink_begin (tracer)
+  --shrink_lruvec
+    --shrink_list
+      --shrink_active_list
+	  --trace_mm_vmscan_lru_shrink_active (tracer)
+      --shrink_inactive_list
+	  --trace_mm_vmscan_lru_shrink_inactive (tracer)
+    --shrink_active_list
+  --shrink_slab
+    --do_shrink_slab
+    --shrinker->count_objects()
+    --trace_mm_shrink_slab_start (tracer)
+    --shrinker->scan_objects()
+    --trace_mm_shrink_slab_end (tracer)
+  --trace_mm_vmscan_memcg_shrink_end (tracer)
+--trace_mm_vmscan_node_reclaim_end (tracer)
 
-Turn holebegin to unsigned first fixes the bug.
+If we get the duration and quantity of shrink lru and slab,
+then we can measure the memory recycling, as follows
 
-Link: https://lkml.kernel.org/r/20231220052839.26970-1-jiajun.xie.sh@gmail.com
-Signed-off-by: Jiajun Xie <jiajun.xie.sh@gmail.com>
+Measuring memory reclamation with bpf:
+  LRU FILE:
+	CPU COMM 	ShrinkActive(us) ShrinkInactive(us)  Reclaim(page)
+	7   kswapd0	 	26		51		32
+	7   kswapd0		52		47		13
+  SLAB:
+	CPU COMM 		OBJ_NAME		Count_Dur(us) Freeable(page) Scan_Dur(us) Reclaim(page)
+	 1  kswapd0		super_cache_scan.cfi_jt     2		    341		   3225		128
+	 7  kswapd0		super_cache_scan.cfi_jt     0		    2247	   8524		1024
+	 7  kswapd0	        super_cache_scan.cfi_jt     2367	    0		   0		0
+
+For this, add the new tracer to shrink_active_list/shrink_inactive_list
+and shrinker->count_objects().
+
+
+This patch (of 4):
+
+do_shrink_slab() calculates the freeable memory through
+shrinker->count_objects(), and then reclaims the memory through
+shrinker->scan_objects().  When reclaiming memory,
+shrinker->count_objects() takes a certain amount of time:
+
+	Fun               spend(us)
+	ext4_es_count     4302
+	ext4_es_scan      12
+	super_cache_count 4195
+	super_cache_scan  2103
+
+Therefore, adding the trace event to count_objects() can more accurately
+obtain the time taken for slab memory recycling.
+
+Example of output:
+         kswapd0-103     [003] .....  1098.317942: mm_shrink_count_start: kfree_rcu_shrink_count.cfi_jt+0x0/0x8 00000000c540ff51: nid: 0
+         kswapd0-103     [003] .....  1098.317951: mm_shrink_count_end: kfree_rcu_shrink_count.cfi_jt+0x0/0x8 00000000c540ff51: nid: 0 freeable:36
+
+Link: https://lkml.kernel.org/r/20231220012123.2787-1-cuibixuan@vivo.com
+Link: https://lkml.kernel.org/r/20231220012123.2787-2-cuibixuan@vivo.com
+Signed-off-by: Bixuan Cui <cuibixuan@vivo.com>
+Reviewed-by: Steven Rostedt <rostedt@goodmis.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/trace/events/vmscan.h |   49 ++++++++++++++++++++++++++++++++
+ mm/shrinker.c                 |    4 ++
+ 2 files changed, 53 insertions(+)
 
---- a/mm/memory.c~mm-fix-unmap_mapping_range-high-bits-shift-bug
-+++ a/mm/memory.c
-@@ -3624,8 +3624,8 @@ EXPORT_SYMBOL_GPL(unmap_mapping_pages);
- void unmap_mapping_range(struct address_space *mapping,
- 		loff_t const holebegin, loff_t const holelen, int even_cows)
- {
--	pgoff_t hba = holebegin >> PAGE_SHIFT;
--	pgoff_t hlen = (holelen + PAGE_SIZE - 1) >> PAGE_SHIFT;
-+	pgoff_t hba = (pgoff_t)(holebegin) >> PAGE_SHIFT;
-+	pgoff_t hlen = ((pgoff_t)(holelen) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+--- a/include/trace/events/vmscan.h~mm-shrinker-add-new-event-to-trace-shrink-count
++++ a/include/trace/events/vmscan.h
+@@ -196,6 +196,55 @@ DEFINE_EVENT(mm_vmscan_direct_reclaim_en
+ );
+ #endif /* CONFIG_MEMCG */
  
- 	/* Check for overflow. */
- 	if (sizeof(holelen) > sizeof(hlen)) {
++TRACE_EVENT(mm_shrink_count_start,
++	TP_PROTO(struct shrinker *shr, struct shrink_control *sc),
++
++	TP_ARGS(shr, sc),
++
++	TP_STRUCT__entry(
++		__field(struct shrinker *, shr)
++		__field(void *, shrink)
++		__field(int, nid)
++	),
++
++	TP_fast_assign(
++		__entry->shr = shr;
++		__entry->shrink = shr->count_objects;
++		__entry->nid = sc->nid;
++	),
++
++	TP_printk("%pS %p: nid: %d",
++		__entry->shrink,
++		__entry->shr,
++		__entry->nid)
++);
++
++TRACE_EVENT(mm_shrink_count_end,
++	TP_PROTO(struct shrinker *shr, struct shrink_control *sc, long freeable),
++
++	TP_ARGS(shr, sc, freeable),
++
++	TP_STRUCT__entry(
++		__field(struct shrinker *, shr)
++		__field(void *, shrink)
++		__field(long, freeable)
++		__field(int, nid)
++	),
++
++	TP_fast_assign(
++		__entry->shr = shr;
++		__entry->shrink = shr->count_objects;
++		__entry->freeable = freeable;
++		__entry->nid = sc->nid;
++	),
++
++	TP_printk("%pS %p: nid: %d freeable:%ld",
++		__entry->shrink,
++		__entry->shr,
++		__entry->nid,
++		__entry->freeable)
++);
++
+ TRACE_EVENT(mm_shrink_slab_start,
+ 	TP_PROTO(struct shrinker *shr, struct shrink_control *sc,
+ 		long nr_objects_to_shrink, unsigned long cache_items,
+--- a/mm/shrinker.c~mm-shrinker-add-new-event-to-trace-shrink-count
++++ a/mm/shrinker.c
+@@ -379,7 +379,11 @@ static unsigned long do_shrink_slab(stru
+ 					  : SHRINK_BATCH;
+ 	long scanned = 0, next_deferred;
+ 
++	trace_mm_shrink_count_start(shrinker, shrinkctl);
++
+ 	freeable = shrinker->count_objects(shrinker, shrinkctl);
++
++	trace_mm_shrink_count_end(shrinker, shrinkctl, freeable);
+ 	if (freeable == 0 || freeable == SHRINK_EMPTY)
+ 		return freeable;
+ 
 _
 
-Patches currently in -mm which might be from jiajun.xie.sh@gmail.com are
+Patches currently in -mm which might be from cuibixuan@vivo.com are
 
-mm-fix-unmap_mapping_range-high-bits-shift-bug.patch
+mm-shrinker-add-new-event-to-trace-shrink-count.patch
+mm-vmscan-add-new-event-to-trace-shrink-lru.patch
 
