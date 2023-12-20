@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C82A04C622
-	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 22:49:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCE5A4C61B
+	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 22:49:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k8bFAzc4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D4F1C433C9;
-	Wed, 20 Dec 2023 22:49:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v7uR2lW4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 589EFC433C8;
+	Wed, 20 Dec 2023 22:49:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703112542;
-	bh=nIvTvuddtFbf/DEj5j/WIBj2B+9OymlOSVuRJXxrNCE=;
+	s=korg; t=1703112543;
+	bh=Ir2JczMG3dagc6bkDRPi4E5+RhJ/mCyGO5smY+Qukdc=;
 	h=Date:To:From:Subject:From;
-	b=k8bFAzc45pXCyWk4pr+0cKhWPNJq96Bx5Pl/kjcGXzts4i8tyfXSccgIjtXxBnN6n
-	 e1bCNhWe17N6MfZxD7dkwpswgqidfcsk5kaSMxYTWUelTCfZKCaKfptLB0DdORpx9K
-	 npMi4dwBof3c+9y8z4I4gOleBE9mB4ZDszDEwTvg=
-Date: Wed, 20 Dec 2023 14:49:01 -0800
+	b=v7uR2lW4gu2Q6iYtUhK4M9kHYToduVf+4MHrOKQhZMwgW6RmjpYDBZ5uozMpjrSUh
+	 W5AHzwhxbeUn5dMWunl/owiqifkEx2IdVbkBHwnuY8guq5gf/xjGMp9AMwf1fTkMZ9
+	 hhIWaae7zjHVniDSH/9OImCMY3p1VqGvn1UjS7I8=
+Date: Wed, 20 Dec 2023 14:49:02 -0800
 To: mm-commits@vger.kernel.org,weixugc@google.com,tj@kernel.org,shakeelb@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,longman@redhat.com,ivan@cloudflare.com,hannes@cmpxchg.org,gthelen@google.com,chrisl@kernel.org,cerasuolodomenico@gmail.com,yosryahmed@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-workingset-move-the-stats-flush-into-workingset_test_recent.patch removed from -mm tree
-Message-Id: <20231220224902.3D4F1C433C9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcg-restore-subtree-stats-flushing.patch removed from -mm tree
+Message-Id: <20231220224903.589EFC433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,39 +27,89 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: workingset: move the stats flush into workingset_test_recent()
+     Subject: mm: memcg: restore subtree stats flushing
 has been removed from the -mm tree.  Its filename was
-     mm-workingset-move-the-stats-flush-into-workingset_test_recent.patch
+     mm-memcg-restore-subtree-stats-flushing.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: workingset: move the stats flush into workingset_test_recent()
-Date: Wed, 29 Nov 2023 03:21:52 +0000
+Subject: mm: memcg: restore subtree stats flushing
+Date: Wed, 29 Nov 2023 03:21:53 +0000
 
-The workingset code flushes the stats in workingset_refault() to get
-accurate stats of the eviction memcg.  In preparation for more scoped
-flushed and passing the eviction memcg to the flush call, move the call to
-workingset_test_recent() where we have a pointer to the eviction memcg.
+Stats flushing for memcg currently follows the following rules:
+- Always flush the entire memcg hierarchy (i.e. flush the root).
+- Only one flusher is allowed at a time. If someone else tries to flush
+  concurrently, they skip and return immediately.
+- A periodic flusher flushes all the stats every 2 seconds.
 
-The flush call is sleepable, and cannot be made in an rcu read section. 
-Hence, minimize the rcu read section by also moving it into
-workingset_test_recent().  Furthermore, instead of holding the rcu read
-lock throughout workingset_test_recent(), only hold it briefly to get a
-ref on the eviction memcg.  This allows us to make the flush call after we
-get the eviction memcg.
+The reason this approach is followed is because all flushes are serialized
+by a global rstat spinlock.  On the memcg side, flushing is invoked from
+userspace reads as well as in-kernel flushers (e.g.  reclaim, refault,
+etc).  This approach aims to avoid serializing all flushers on the global
+lock, which can cause a significant performance hit under high
+concurrency.
 
-As for workingset_refault(), nothing else there appears to be protected by
-rcu.  The memcg of the faulted folio (which is not necessarily the same as
-the eviction memcg) is protected by the folio lock, which is held from all
-callsites.  Add a VM_BUG_ON() to make sure this doesn't change from under
-us.
+This approach has the following problems:
+- Occasionally a userspace read of the stats of a non-root cgroup will
+  be too expensive as it has to flush the entire hierarchy [1].
+- Sometimes the stats accuracy are compromised if there is an ongoing
+  flush, and we skip and return before the subtree of interest is
+  actually flushed, yielding stale stats (by up to 2s due to periodic
+  flushing). This is more visible when reading stats from userspace,
+  but can also affect in-kernel flushers.
 
-No functional change intended.
+The latter problem is particulary a concern when userspace reads stats
+after an event occurs, but gets stats from before the event. Examples:
+- When memory usage / pressure spikes, a userspace OOM handler may look
+  at the stats of different memcgs to select a victim based on various
+  heuristics (e.g. how much private memory will be freed by killing
+  this). Reading stale stats from before the usage spike in this case
+  may cause a wrongful OOM kill.
+- A proactive reclaimer may read the stats after writing to
+  memory.reclaim to measure the success of the reclaim operation. Stale
+  stats from before reclaim may give a false negative.
+- Reading the stats of a parent and a child memcg may be inconsistent
+  (child larger than parent), if the flush doesn't happen when the
+  parent is read, but happens when the child is read.
 
-Link: https://lkml.kernel.org/r/20231129032154.3710765-5-yosryahmed@google.com
+As for in-kernel flushers, they will occasionally get stale stats.  No
+regressions are currently known from this, but if there are regressions,
+they would be very difficult to debug and link to the source of the
+problem.
+
+This patch aims to fix these problems by restoring subtree flushing, and
+removing the unified/coalesced flushing logic that skips flushing if there
+is an ongoing flush.  This change would introduce a significant regression
+with global stats flushing thresholds.  With per-memcg stats flushing
+thresholds, this seems to perform really well.  The thresholds protect the
+underlying lock from unnecessary contention.
+
+This patch was tested in two ways to ensure the latency of flushing is
+up to par, on a machine with 384 cpus:
+
+- A synthetic test with 5000 concurrent workers in 500 cgroups doing
+  allocations and reclaim, as well as 1000 readers for memory.stat
+  (variation of [2]). No regressions were noticed in the total runtime.
+  Note that significant regressions in this test are observed with
+  global stats thresholds, but not with per-memcg thresholds.
+
+- A synthetic stress test for concurrently reading memcg stats while
+  memory allocation/freeing workers are running in the background,
+  provided by Wei Xu [3]. With 250k threads reading the stats every
+  100ms in 50k cgroups, 99.9% of reads take <= 50us. Less than 0.01%
+  of reads take more than 1ms, and no reads take more than 100ms.
+
+[1] https://lore.kernel.org/lkml/CABWYdi0c6__rh-K7dcM_pkf9BJdTRtAU08M43KO9ME4-dsgfoQ@mail.gmail.com/
+[2] https://lore.kernel.org/lkml/CAJD7tka13M-zVZTyQJYL1iUAYvuQ1fcHbCjcOBZcz6POYTV-4g@mail.gmail.com/
+[3] https://lore.kernel.org/lkml/CAAPL-u9D2b=iF5Lf_cRnKxUfkiEe0AMDTu6yhrUAzX0b6a6rDg@mail.gmail.com/
+
+[akpm@linux-foundation.org: fix mm/zswap.c]
+[yosryahmed@google.com: remove stats flushing mutex]
+  Link: https://lkml.kernel.org/r/CAJD7tkZgP3m-VVPn+fF_YuvXeQYK=tZZjJHj=dzD=CcSSpp2qg@mail.gmail.com
+Link: https://lkml.kernel.org/r/20231129032154.3710765-6-yosryahmed@google.com
 Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
 Tested-by: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
 Acked-by: Shakeel Butt <shakeelb@google.com>
@@ -77,97 +127,238 @@ Cc: Wei Xu <weixugc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/workingset.c |   36 ++++++++++++++++++++++++------------
- 1 file changed, 24 insertions(+), 12 deletions(-)
+ include/linux/memcontrol.h |    8 ++--
+ mm/memcontrol.c            |   68 ++++++++++++++++++++---------------
+ mm/vmscan.c                |    2 -
+ mm/workingset.c            |   10 +++--
+ mm/zswap.c                 |    2 -
+ 5 files changed, 52 insertions(+), 38 deletions(-)
 
---- a/mm/workingset.c~mm-workingset-move-the-stats-flush-into-workingset_test_recent
-+++ a/mm/workingset.c
-@@ -425,8 +425,16 @@ bool workingset_test_recent(void *shadow
- 	struct pglist_data *pgdat;
- 	unsigned long eviction;
+--- a/include/linux/memcontrol.h~mm-memcg-restore-subtree-stats-flushing
++++ a/include/linux/memcontrol.h
+@@ -1051,8 +1051,8 @@ static inline unsigned long lruvec_page_
+ 	return x;
+ }
  
--	if (lru_gen_enabled())
--		return lru_gen_test_recent(shadow, file, &eviction_lruvec, &eviction, workingset);
-+	rcu_read_lock();
-+
-+	if (lru_gen_enabled()) {
-+		bool recent = lru_gen_test_recent(shadow, file,
-+				&eviction_lruvec, &eviction, workingset);
-+
-+		rcu_read_unlock();
-+		return recent;
-+	}
-+
+-void mem_cgroup_flush_stats(void);
+-void mem_cgroup_flush_stats_ratelimited(void);
++void mem_cgroup_flush_stats(struct mem_cgroup *memcg);
++void mem_cgroup_flush_stats_ratelimited(struct mem_cgroup *memcg);
  
- 	unpack_shadow(shadow, &memcgid, &pgdat, &eviction, workingset);
- 	eviction <<= bucket_order;
-@@ -448,8 +456,16 @@ bool workingset_test_recent(void *shadow
- 	 * configurations instead.
+ void __mod_memcg_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
+ 			      int val);
+@@ -1563,11 +1563,11 @@ static inline unsigned long lruvec_page_
+ 	return node_page_state(lruvec_pgdat(lruvec), idx);
+ }
+ 
+-static inline void mem_cgroup_flush_stats(void)
++static inline void mem_cgroup_flush_stats(struct mem_cgroup *memcg)
+ {
+ }
+ 
+-static inline void mem_cgroup_flush_stats_ratelimited(void)
++static inline void mem_cgroup_flush_stats_ratelimited(struct mem_cgroup *memcg)
+ {
+ }
+ 
+--- a/mm/memcontrol.c~mm-memcg-restore-subtree-stats-flushing
++++ a/mm/memcontrol.c
+@@ -670,7 +670,6 @@ struct memcg_vmstats {
+  */
+ static void flush_memcg_stats_dwork(struct work_struct *w);
+ static DECLARE_DEFERRABLE_WORK(stats_flush_dwork, flush_memcg_stats_dwork);
+-static atomic_t stats_flush_ongoing = ATOMIC_INIT(0);
+ static u64 flush_last_time;
+ 
+ #define FLUSH_TIME (2UL*HZ)
+@@ -731,35 +730,40 @@ static inline void memcg_rstat_updated(s
+ 	}
+ }
+ 
+-static void do_flush_stats(void)
++static void do_flush_stats(struct mem_cgroup *memcg)
+ {
+-	/*
+-	 * We always flush the entire tree, so concurrent flushers can just
+-	 * skip. This avoids a thundering herd problem on the rstat global lock
+-	 * from memcg flushers (e.g. reclaim, refault, etc).
+-	 */
+-	if (atomic_read(&stats_flush_ongoing) ||
+-	    atomic_xchg(&stats_flush_ongoing, 1))
+-		return;
+-
+-	WRITE_ONCE(flush_last_time, jiffies_64);
+-
+-	cgroup_rstat_flush(root_mem_cgroup->css.cgroup);
++	if (mem_cgroup_is_root(memcg))
++		WRITE_ONCE(flush_last_time, jiffies_64);
+ 
+-	atomic_set(&stats_flush_ongoing, 0);
++	cgroup_rstat_flush(memcg->css.cgroup);
+ }
+ 
+-void mem_cgroup_flush_stats(void)
++/*
++ * mem_cgroup_flush_stats - flush the stats of a memory cgroup subtree
++ * @memcg: root of the subtree to flush
++ *
++ * Flushing is serialized by the underlying global rstat lock. There is also a
++ * minimum amount of work to be done even if there are no stat updates to flush.
++ * Hence, we only flush the stats if the updates delta exceeds a threshold. This
++ * avoids unnecessary work and contention on the underlying lock.
++ */
++void mem_cgroup_flush_stats(struct mem_cgroup *memcg)
+ {
+-	if (memcg_should_flush_stats(root_mem_cgroup))
+-		do_flush_stats();
++	if (mem_cgroup_disabled())
++		return;
++
++	if (!memcg)
++		memcg = root_mem_cgroup;
++
++	if (memcg_should_flush_stats(memcg))
++		do_flush_stats(memcg);
+ }
+ 
+-void mem_cgroup_flush_stats_ratelimited(void)
++void mem_cgroup_flush_stats_ratelimited(struct mem_cgroup *memcg)
+ {
+ 	/* Only flush if the periodic flusher is one full cycle late */
+ 	if (time_after64(jiffies_64, READ_ONCE(flush_last_time) + 2*FLUSH_TIME))
+-		mem_cgroup_flush_stats();
++		mem_cgroup_flush_stats(memcg);
+ }
+ 
+ static void flush_memcg_stats_dwork(struct work_struct *w)
+@@ -768,7 +772,7 @@ static void flush_memcg_stats_dwork(stru
+ 	 * Deliberately ignore memcg_should_flush_stats() here so that flushing
+ 	 * in latency-sensitive paths is as cheap as possible.
  	 */
- 	eviction_memcg = mem_cgroup_from_id(memcgid);
--	if (!mem_cgroup_disabled() && !eviction_memcg)
-+	if (!mem_cgroup_disabled() &&
-+	    (!eviction_memcg || !mem_cgroup_tryget(eviction_memcg))) {
-+		rcu_read_unlock();
- 		return false;
-+	}
+-	do_flush_stats();
++	do_flush_stats(root_mem_cgroup);
+ 	queue_delayed_work(system_unbound_wq, &stats_flush_dwork, FLUSH_TIME);
+ }
+ 
+@@ -1643,7 +1647,7 @@ static void memcg_stat_format(struct mem
+ 	 *
+ 	 * Current memory state:
+ 	 */
+-	mem_cgroup_flush_stats();
++	mem_cgroup_flush_stats(memcg);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(memory_stats); i++) {
+ 		u64 size;
+@@ -4193,7 +4197,7 @@ static int memcg_numa_stat_show(struct s
+ 	int nid;
+ 	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
+ 
+-	mem_cgroup_flush_stats();
++	mem_cgroup_flush_stats(memcg);
+ 
+ 	for (stat = stats; stat < stats + ARRAY_SIZE(stats); stat++) {
+ 		seq_printf(m, "%s=%lu", stat->name,
+@@ -4274,7 +4278,7 @@ static void memcg1_stat_format(struct me
+ 
+ 	BUILD_BUG_ON(ARRAY_SIZE(memcg1_stat_names) != ARRAY_SIZE(memcg1_stats));
+ 
+-	mem_cgroup_flush_stats();
++	mem_cgroup_flush_stats(memcg);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(memcg1_stats); i++) {
+ 		unsigned long nr;
+@@ -4770,7 +4774,7 @@ void mem_cgroup_wb_stats(struct bdi_writ
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(wb->memcg_css);
+ 	struct mem_cgroup *parent;
+ 
+-	mem_cgroup_flush_stats();
++	mem_cgroup_flush_stats(memcg);
+ 
+ 	*pdirty = memcg_page_state(memcg, NR_FILE_DIRTY);
+ 	*pwriteback = memcg_page_state(memcg, NR_WRITEBACK);
+@@ -6865,7 +6869,7 @@ static int memory_numa_stat_show(struct
+ 	int i;
+ 	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
+ 
+-	mem_cgroup_flush_stats();
++	mem_cgroup_flush_stats(memcg);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(memory_stats); i++) {
+ 		int nid;
+@@ -8096,7 +8100,11 @@ bool obj_cgroup_may_zswap(struct obj_cgr
+ 			break;
+ 		}
+ 
+-		cgroup_rstat_flush(memcg->css.cgroup);
++		/*
++		 * mem_cgroup_flush_stats() ignores small changes. Use
++		 * do_flush_stats() directly to get accurate stats for charging.
++		 */
++		do_flush_stats(memcg);
+ 		pages = memcg_page_state(memcg, MEMCG_ZSWAP_B) / PAGE_SIZE;
+ 		if (pages < max)
+ 			continue;
+@@ -8161,8 +8169,10 @@ void obj_cgroup_uncharge_zswap(struct ob
+ static u64 zswap_current_read(struct cgroup_subsys_state *css,
+ 			      struct cftype *cft)
+ {
+-	cgroup_rstat_flush(css->cgroup);
+-	return memcg_page_state(mem_cgroup_from_css(css), MEMCG_ZSWAP_B);
++	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
 +
-+	rcu_read_unlock();
-+
-+	/* Flush stats (and potentially sleep) outside the RCU read section */
-+	mem_cgroup_flush_stats_ratelimited();
++	mem_cgroup_flush_stats(memcg);
++	return memcg_page_state(memcg, MEMCG_ZSWAP_B);
+ }
+ 
+ static int zswap_max_show(struct seq_file *m, void *v)
+--- a/mm/vmscan.c~mm-memcg-restore-subtree-stats-flushing
++++ a/mm/vmscan.c
+@@ -2226,7 +2226,7 @@ static void prepare_scan_control(pg_data
+ 	 * Flush the memory cgroup stats, so that we read accurate per-memcg
+ 	 * lruvec stats for heuristics.
+ 	 */
+-	mem_cgroup_flush_stats();
++	mem_cgroup_flush_stats(sc->target_mem_cgroup);
+ 
+ 	/*
+ 	 * Determine the scan balance between anon and file LRUs.
+--- a/mm/workingset.c~mm-memcg-restore-subtree-stats-flushing
++++ a/mm/workingset.c
+@@ -464,8 +464,12 @@ bool workingset_test_recent(void *shadow
+ 
+ 	rcu_read_unlock();
+ 
+-	/* Flush stats (and potentially sleep) outside the RCU read section */
+-	mem_cgroup_flush_stats_ratelimited();
++	/*
++	 * Flush stats (and potentially sleep) outside the RCU read section.
++	 * XXX: With per-memcg flushing and thresholding, is ratelimiting
++	 * still needed here?
++	 */
++	mem_cgroup_flush_stats_ratelimited(eviction_memcg);
  
  	eviction_lruvec = mem_cgroup_lruvec(eviction_memcg, pgdat);
  	refault = atomic_long_read(&eviction_lruvec->nonresident_age);
-@@ -493,6 +509,7 @@ bool workingset_test_recent(void *shadow
- 		}
- 	}
+@@ -676,7 +680,7 @@ static unsigned long count_shadow_nodes(
+ 		struct lruvec *lruvec;
+ 		int i;
  
-+	mem_cgroup_put(eviction_memcg);
- 	return refault_distance <= workingset_size;
- }
+-		mem_cgroup_flush_stats();
++		mem_cgroup_flush_stats(sc->memcg);
+ 		lruvec = mem_cgroup_lruvec(sc->memcg, NODE_DATA(sc->nid));
+ 		for (pages = 0, i = 0; i < NR_LRU_LISTS; i++)
+ 			pages += lruvec_page_state_local(lruvec,
+--- a/mm/zswap.c~mm-memcg-restore-subtree-stats-flushing
++++ a/mm/zswap.c
+@@ -641,7 +641,7 @@ static unsigned long zswap_shrinker_coun
+ 		return 0;
  
-@@ -519,19 +536,16 @@ void workingset_refault(struct folio *fo
- 		return;
- 	}
- 
--	/* Flush stats (and potentially sleep) before holding RCU read lock */
--	mem_cgroup_flush_stats_ratelimited();
--
--	rcu_read_lock();
--
- 	/*
- 	 * The activation decision for this folio is made at the level
- 	 * where the eviction occurred, as that is where the LRU order
- 	 * during folio reclaim is being determined.
- 	 *
- 	 * However, the cgroup that will own the folio is the one that
--	 * is actually experiencing the refault event.
-+	 * is actually experiencing the refault event. Make sure the folio is
-+	 * locked to guarantee folio_memcg() stability throughout.
- 	 */
-+	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
- 	nr = folio_nr_pages(folio);
- 	memcg = folio_memcg(folio);
- 	pgdat = folio_pgdat(folio);
-@@ -540,7 +554,7 @@ void workingset_refault(struct folio *fo
- 	mod_lruvec_state(lruvec, WORKINGSET_REFAULT_BASE + file, nr);
- 
- 	if (!workingset_test_recent(shadow, file, &workingset))
--		goto out;
-+		return;
- 
- 	folio_set_active(folio);
- 	workingset_age_nonresident(lruvec, nr);
-@@ -556,8 +570,6 @@ void workingset_refault(struct folio *fo
- 		lru_note_cost_refault(folio);
- 		mod_lruvec_state(lruvec, WORKINGSET_RESTORE_BASE + file, nr);
- 	}
--out:
--	rcu_read_unlock();
- }
- 
- /**
+ #ifdef CONFIG_MEMCG_KMEM
+-	mem_cgroup_flush_stats();
++	mem_cgroup_flush_stats(memcg);
+ 	nr_backing = memcg_page_state(memcg, MEMCG_ZSWAP_B) >> PAGE_SHIFT;
+ 	nr_stored = memcg_page_state(memcg, MEMCG_ZSWAPPED);
+ #else
 _
 
 Patches currently in -mm which might be from yosryahmed@google.com are
