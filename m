@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCE5A4C61B
-	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 22:49:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 706734B126
+	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 22:49:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v7uR2lW4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 589EFC433C8;
-	Wed, 20 Dec 2023 22:49:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FMKzrVom"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D771BC433C7;
+	Wed, 20 Dec 2023 22:49:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703112543;
-	bh=Ir2JczMG3dagc6bkDRPi4E5+RhJ/mCyGO5smY+Qukdc=;
+	s=korg; t=1703112544;
+	bh=FcOPoF9Lg2L8kFMP9ReIODYhQmarARvBy4EE148VQrg=;
 	h=Date:To:From:Subject:From;
-	b=v7uR2lW4gu2Q6iYtUhK4M9kHYToduVf+4MHrOKQhZMwgW6RmjpYDBZ5uozMpjrSUh
-	 W5AHzwhxbeUn5dMWunl/owiqifkEx2IdVbkBHwnuY8guq5gf/xjGMp9AMwf1fTkMZ9
-	 hhIWaae7zjHVniDSH/9OImCMY3p1VqGvn1UjS7I8=
-Date: Wed, 20 Dec 2023 14:49:02 -0800
-To: mm-commits@vger.kernel.org,weixugc@google.com,tj@kernel.org,shakeelb@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,longman@redhat.com,ivan@cloudflare.com,hannes@cmpxchg.org,gthelen@google.com,chrisl@kernel.org,cerasuolodomenico@gmail.com,yosryahmed@google.com,akpm@linux-foundation.org
+	b=FMKzrVomYQZL7YCIrcyjA8sqp2f5L30tZFMDYf5WXIZZfWeku6MNbOefB5IhAXnIW
+	 YGy+UwI6MFz+S8jMNDbXzSRfAPal5VJNkrm3yv6ih+Bb82vrPEAsWjxyScmqezT+w7
+	 RMC+5f/wlFB58nujHwXHxB7s3n/RDnB0407OsEPY=
+Date: Wed, 20 Dec 2023 14:49:04 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,ying.huang@intel.com,willy@infradead.org,wangkefeng.wang@huawei.com,v-songbaohua@oppo.com,vbabka@suse.cz,shy828301@gmail.com,rientjes@google.com,mcgrof@kernel.org,kirill.shutemov@linux.intel.com,jhubbard@nvidia.com,itaru.kitayama@gmail.com,hughd@google.com,fengwei.yin@intel.com,david@redhat.com,catalin.marinas@arm.com,apopple@nvidia.com,anshuman.khandual@arm.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcg-restore-subtree-stats-flushing.patch removed from -mm tree
-Message-Id: <20231220224903.589EFC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-allow-deferred-splitting-of-arbitrary-anon-large-folios.patch removed from -mm tree
+Message-Id: <20231220224904.D771BC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,340 +27,162 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcg: restore subtree stats flushing
+     Subject: mm: allow deferred splitting of arbitrary anon large folios
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-restore-subtree-stats-flushing.patch
+     mm-allow-deferred-splitting-of-arbitrary-anon-large-folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: memcg: restore subtree stats flushing
-Date: Wed, 29 Nov 2023 03:21:53 +0000
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: mm: allow deferred splitting of arbitrary anon large folios
+Date: Thu, 7 Dec 2023 16:12:02 +0000
 
-Stats flushing for memcg currently follows the following rules:
-- Always flush the entire memcg hierarchy (i.e. flush the root).
-- Only one flusher is allowed at a time. If someone else tries to flush
-  concurrently, they skip and return immediately.
-- A periodic flusher flushes all the stats every 2 seconds.
+Patch series "Multi-size THP for anonymous memory", v9.
 
-The reason this approach is followed is because all flushes are serialized
-by a global rstat spinlock.  On the memcg side, flushing is invoked from
-userspace reads as well as in-kernel flushers (e.g.  reclaim, refault,
-etc).  This approach aims to avoid serializing all flushers on the global
-lock, which can cause a significant performance hit under high
-concurrency.
+A series to implement multi-size THP (mTHP) for anonymous memory
+(previously called "small-sized THP" and "large anonymous folios").
 
-This approach has the following problems:
-- Occasionally a userspace read of the stats of a non-root cgroup will
-  be too expensive as it has to flush the entire hierarchy [1].
-- Sometimes the stats accuracy are compromised if there is an ongoing
-  flush, and we skip and return before the subtree of interest is
-  actually flushed, yielding stale stats (by up to 2s due to periodic
-  flushing). This is more visible when reading stats from userspace,
-  but can also affect in-kernel flushers.
+The objective of this is to improve performance by allocating larger
+chunks of memory during anonymous page faults:
 
-The latter problem is particulary a concern when userspace reads stats
-after an event occurs, but gets stats from before the event. Examples:
-- When memory usage / pressure spikes, a userspace OOM handler may look
-  at the stats of different memcgs to select a victim based on various
-  heuristics (e.g. how much private memory will be freed by killing
-  this). Reading stale stats from before the usage spike in this case
-  may cause a wrongful OOM kill.
-- A proactive reclaimer may read the stats after writing to
-  memory.reclaim to measure the success of the reclaim operation. Stale
-  stats from before reclaim may give a false negative.
-- Reading the stats of a parent and a child memcg may be inconsistent
-  (child larger than parent), if the flush doesn't happen when the
-  parent is read, but happens when the child is read.
+1) Since SW (the kernel) is dealing with larger chunks of memory than base
+   pages, there are efficiency savings to be had; fewer page faults, batched PTE
+   and RMAP manipulation, reduced lru list, etc. In short, we reduce kernel
+   overhead. This should benefit all architectures.
+2) Since we are now mapping physically contiguous chunks of memory, we can take
+   advantage of HW TLB compression techniques. A reduction in TLB pressure
+   speeds up kernel and user space. arm64 systems have 2 mechanisms to coalesce
+   TLB entries; "the contiguous bit" (architectural) and HPA (uarch).
 
-As for in-kernel flushers, they will occasionally get stale stats.  No
-regressions are currently known from this, but if there are regressions,
-they would be very difficult to debug and link to the source of the
-problem.
+This version incorporates David's feedback on the core patches (#3, #4)
+and adds some RB and TB tags (see change log for details).
 
-This patch aims to fix these problems by restoring subtree flushing, and
-removing the unified/coalesced flushing logic that skips flushing if there
-is an ongoing flush.  This change would introduce a significant regression
-with global stats flushing thresholds.  With per-memcg stats flushing
-thresholds, this seems to perform really well.  The thresholds protect the
-underlying lock from unnecessary contention.
+By default, the existing behaviour (and performance) is maintained.  The
+user must explicitly enable multi-size THP to see the performance benefit.
+This is done via a new sysfs interface (as recommended by David
+Hildenbrand - thanks to David for the suggestion)!  This interface is
+inspired by the existing per-hugepage-size sysfs interface used by
+hugetlb, provides full backwards compatibility with the existing PMD-size
+THP interface, and provides a base for future extensibility.  See [9] for
+detailed discussion of the interface.
 
-This patch was tested in two ways to ensure the latency of flushing is
-up to par, on a machine with 384 cpus:
+This series is based on mm-unstable (715b67adf4c8).
 
-- A synthetic test with 5000 concurrent workers in 500 cgroups doing
-  allocations and reclaim, as well as 1000 readers for memory.stat
-  (variation of [2]). No regressions were noticed in the total runtime.
-  Note that significant regressions in this test are observed with
-  global stats thresholds, but not with per-memcg thresholds.
 
-- A synthetic stress test for concurrently reading memcg stats while
-  memory allocation/freeing workers are running in the background,
-  provided by Wei Xu [3]. With 250k threads reading the stats every
-  100ms in 50k cgroups, 99.9% of reads take <= 50us. Less than 0.01%
-  of reads take more than 1ms, and no reads take more than 100ms.
+Prerequisites
+=============
 
-[1] https://lore.kernel.org/lkml/CABWYdi0c6__rh-K7dcM_pkf9BJdTRtAU08M43KO9ME4-dsgfoQ@mail.gmail.com/
-[2] https://lore.kernel.org/lkml/CAJD7tka13M-zVZTyQJYL1iUAYvuQ1fcHbCjcOBZcz6POYTV-4g@mail.gmail.com/
-[3] https://lore.kernel.org/lkml/CAAPL-u9D2b=iF5Lf_cRnKxUfkiEe0AMDTu6yhrUAzX0b6a6rDg@mail.gmail.com/
+I'm removing this section on the basis that I don't believe what we were
+previously calling prerequisites are really prerequisites anymore.  We
+originally defined them when mTHP was a compile-time feature.  There is
+now a runtime control to opt-in to mTHP; when disabled, correctness and
+performance are as before.  When enabled, the code is still
+correct/robust, but in the absence of the one remaining item (compaction)
+there may be a performance impact in some corners.  See the old list in
+the v8 cover letter at [8].  And a longer explanation of my thinking here
+[10].
 
-[akpm@linux-foundation.org: fix mm/zswap.c]
-[yosryahmed@google.com: remove stats flushing mutex]
-  Link: https://lkml.kernel.org/r/CAJD7tkZgP3m-VVPn+fF_YuvXeQYK=tZZjJHj=dzD=CcSSpp2qg@mail.gmail.com
-Link: https://lkml.kernel.org/r/20231129032154.3710765-6-yosryahmed@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Tested-by: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Acked-by: Shakeel Butt <shakeelb@google.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Ivan Babrou <ivan@cloudflare.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutny <mkoutny@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Wei Xu <weixugc@google.com>
+SUMMARY: I don't think we should hold this series up, waiting for the
+items on the prerequisites list.  I believe this series should be ready
+now so hopefully can be added to mm-unstable for some testing, then
+fingers crossed for v6.8.
+
+
+Testing
+=======
+
+The series includes patches for mm selftests to enlighten the cow and
+khugepaged tests to explicitly test with multi-size THP, in the same way
+that PMD-sized THP is tested.  The new tests all pass, and no regressions
+are observed in the mm selftest suite.  I've also run my usual kernel
+compilation and java script benchmarks without any issues.
+
+Refer to my performance numbers posted with v6 [6].  (These are for
+multi-size THP only - they do not include the arm64 contpte follow-on
+series).
+
+John Hubbard at Nvidia has indicated dramatic 10x performance improvements
+for some workloads at [11].  (Observed using v6 of this series as well as
+the arm64 contpte series).
+
+Kefeng Wang at Huawei has also indicated he sees improvements at [12] although
+there are some latency regressions also.
+
+I've also checked that there is no regression in the write fault path when
+mTHP is disabled using a microbenchmark.  I ran it for a baseline kernel,
+as well as v8 and v9.  I repeated on Ampere Altra (bare metal) and Apple
+M2 (VM):
+
+|              |        m2 vm        |        altra        |
+|--------------|---------------------|---------------------|
+| kernel       |     mean |  std_rel |     mean |  std_rel |
+|--------------|----------|----------|----------|----------|
+| baseline     |   0.000% |   0.341% |   0.000% |   3.581% |
+| anonfolio-v8 |   0.005% |   0.272% |   5.068% |   1.128% |
+| anonfolio-v9 |  -0.013% |   0.442% |   0.107% |   1.788% |
+
+There is no measurable difference on M2, but altra has a slow down in v8
+which is fixed in v9 by moving the THP order check to be inline within
+thp_vma_allowable_orders(), as suggested by David.
+
+
+This patch (of 10):
+
+In preparation for the introduction of anonymous multi-size THP, we would
+like to be able to split them when they have unmapped subpages, in order
+to free those unused pages under memory pressure.  So remove the
+artificial requirement that the large folio needed to be at least
+PMD-sized.
+
+Link: https://lkml.kernel.org/r/20231207161211.2374093-1-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20231207161211.2374093-2-ryan.roberts@arm.com
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Reviewed-by: Yu Zhao <yuzhao@google.com>
+Reviewed-by: Yin Fengwei <fengwei.yin@intel.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Barry Song <v-songbaohua@oppo.com>
+Tested-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Tested-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Itaru Kitayama <itaru.kitayama@gmail.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    8 ++--
- mm/memcontrol.c            |   68 ++++++++++++++++++++---------------
- mm/vmscan.c                |    2 -
- mm/workingset.c            |   10 +++--
- mm/zswap.c                 |    2 -
- 5 files changed, 52 insertions(+), 38 deletions(-)
+ mm/rmap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-restore-subtree-stats-flushing
-+++ a/include/linux/memcontrol.h
-@@ -1051,8 +1051,8 @@ static inline unsigned long lruvec_page_
- 	return x;
- }
+--- a/mm/rmap.c~mm-allow-deferred-splitting-of-arbitrary-anon-large-folios
++++ a/mm/rmap.c
+@@ -1488,11 +1488,11 @@ void page_remove_rmap(struct page *page,
+ 		__lruvec_stat_mod_folio(folio, idx, -nr);
  
--void mem_cgroup_flush_stats(void);
--void mem_cgroup_flush_stats_ratelimited(void);
-+void mem_cgroup_flush_stats(struct mem_cgroup *memcg);
-+void mem_cgroup_flush_stats_ratelimited(struct mem_cgroup *memcg);
- 
- void __mod_memcg_lruvec_state(struct lruvec *lruvec, enum node_stat_item idx,
- 			      int val);
-@@ -1563,11 +1563,11 @@ static inline unsigned long lruvec_page_
- 	return node_page_state(lruvec_pgdat(lruvec), idx);
- }
- 
--static inline void mem_cgroup_flush_stats(void)
-+static inline void mem_cgroup_flush_stats(struct mem_cgroup *memcg)
- {
- }
- 
--static inline void mem_cgroup_flush_stats_ratelimited(void)
-+static inline void mem_cgroup_flush_stats_ratelimited(struct mem_cgroup *memcg)
- {
- }
- 
---- a/mm/memcontrol.c~mm-memcg-restore-subtree-stats-flushing
-+++ a/mm/memcontrol.c
-@@ -670,7 +670,6 @@ struct memcg_vmstats {
-  */
- static void flush_memcg_stats_dwork(struct work_struct *w);
- static DECLARE_DEFERRABLE_WORK(stats_flush_dwork, flush_memcg_stats_dwork);
--static atomic_t stats_flush_ongoing = ATOMIC_INIT(0);
- static u64 flush_last_time;
- 
- #define FLUSH_TIME (2UL*HZ)
-@@ -731,35 +730,40 @@ static inline void memcg_rstat_updated(s
+ 		/*
+-		 * Queue anon THP for deferred split if at least one
++		 * Queue anon large folio for deferred split if at least one
+ 		 * page of the folio is unmapped and at least one page
+ 		 * is still mapped.
+ 		 */
+-		if (folio_test_pmd_mappable(folio) && folio_test_anon(folio))
++		if (folio_test_large(folio) && folio_test_anon(folio))
+ 			if (!compound || nr < nr_pmdmapped)
+ 				deferred_split_folio(folio);
  	}
- }
- 
--static void do_flush_stats(void)
-+static void do_flush_stats(struct mem_cgroup *memcg)
- {
--	/*
--	 * We always flush the entire tree, so concurrent flushers can just
--	 * skip. This avoids a thundering herd problem on the rstat global lock
--	 * from memcg flushers (e.g. reclaim, refault, etc).
--	 */
--	if (atomic_read(&stats_flush_ongoing) ||
--	    atomic_xchg(&stats_flush_ongoing, 1))
--		return;
--
--	WRITE_ONCE(flush_last_time, jiffies_64);
--
--	cgroup_rstat_flush(root_mem_cgroup->css.cgroup);
-+	if (mem_cgroup_is_root(memcg))
-+		WRITE_ONCE(flush_last_time, jiffies_64);
- 
--	atomic_set(&stats_flush_ongoing, 0);
-+	cgroup_rstat_flush(memcg->css.cgroup);
- }
- 
--void mem_cgroup_flush_stats(void)
-+/*
-+ * mem_cgroup_flush_stats - flush the stats of a memory cgroup subtree
-+ * @memcg: root of the subtree to flush
-+ *
-+ * Flushing is serialized by the underlying global rstat lock. There is also a
-+ * minimum amount of work to be done even if there are no stat updates to flush.
-+ * Hence, we only flush the stats if the updates delta exceeds a threshold. This
-+ * avoids unnecessary work and contention on the underlying lock.
-+ */
-+void mem_cgroup_flush_stats(struct mem_cgroup *memcg)
- {
--	if (memcg_should_flush_stats(root_mem_cgroup))
--		do_flush_stats();
-+	if (mem_cgroup_disabled())
-+		return;
-+
-+	if (!memcg)
-+		memcg = root_mem_cgroup;
-+
-+	if (memcg_should_flush_stats(memcg))
-+		do_flush_stats(memcg);
- }
- 
--void mem_cgroup_flush_stats_ratelimited(void)
-+void mem_cgroup_flush_stats_ratelimited(struct mem_cgroup *memcg)
- {
- 	/* Only flush if the periodic flusher is one full cycle late */
- 	if (time_after64(jiffies_64, READ_ONCE(flush_last_time) + 2*FLUSH_TIME))
--		mem_cgroup_flush_stats();
-+		mem_cgroup_flush_stats(memcg);
- }
- 
- static void flush_memcg_stats_dwork(struct work_struct *w)
-@@ -768,7 +772,7 @@ static void flush_memcg_stats_dwork(stru
- 	 * Deliberately ignore memcg_should_flush_stats() here so that flushing
- 	 * in latency-sensitive paths is as cheap as possible.
- 	 */
--	do_flush_stats();
-+	do_flush_stats(root_mem_cgroup);
- 	queue_delayed_work(system_unbound_wq, &stats_flush_dwork, FLUSH_TIME);
- }
- 
-@@ -1643,7 +1647,7 @@ static void memcg_stat_format(struct mem
- 	 *
- 	 * Current memory state:
- 	 */
--	mem_cgroup_flush_stats();
-+	mem_cgroup_flush_stats(memcg);
- 
- 	for (i = 0; i < ARRAY_SIZE(memory_stats); i++) {
- 		u64 size;
-@@ -4193,7 +4197,7 @@ static int memcg_numa_stat_show(struct s
- 	int nid;
- 	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
- 
--	mem_cgroup_flush_stats();
-+	mem_cgroup_flush_stats(memcg);
- 
- 	for (stat = stats; stat < stats + ARRAY_SIZE(stats); stat++) {
- 		seq_printf(m, "%s=%lu", stat->name,
-@@ -4274,7 +4278,7 @@ static void memcg1_stat_format(struct me
- 
- 	BUILD_BUG_ON(ARRAY_SIZE(memcg1_stat_names) != ARRAY_SIZE(memcg1_stats));
- 
--	mem_cgroup_flush_stats();
-+	mem_cgroup_flush_stats(memcg);
- 
- 	for (i = 0; i < ARRAY_SIZE(memcg1_stats); i++) {
- 		unsigned long nr;
-@@ -4770,7 +4774,7 @@ void mem_cgroup_wb_stats(struct bdi_writ
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(wb->memcg_css);
- 	struct mem_cgroup *parent;
- 
--	mem_cgroup_flush_stats();
-+	mem_cgroup_flush_stats(memcg);
- 
- 	*pdirty = memcg_page_state(memcg, NR_FILE_DIRTY);
- 	*pwriteback = memcg_page_state(memcg, NR_WRITEBACK);
-@@ -6865,7 +6869,7 @@ static int memory_numa_stat_show(struct
- 	int i;
- 	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
- 
--	mem_cgroup_flush_stats();
-+	mem_cgroup_flush_stats(memcg);
- 
- 	for (i = 0; i < ARRAY_SIZE(memory_stats); i++) {
- 		int nid;
-@@ -8096,7 +8100,11 @@ bool obj_cgroup_may_zswap(struct obj_cgr
- 			break;
- 		}
- 
--		cgroup_rstat_flush(memcg->css.cgroup);
-+		/*
-+		 * mem_cgroup_flush_stats() ignores small changes. Use
-+		 * do_flush_stats() directly to get accurate stats for charging.
-+		 */
-+		do_flush_stats(memcg);
- 		pages = memcg_page_state(memcg, MEMCG_ZSWAP_B) / PAGE_SIZE;
- 		if (pages < max)
- 			continue;
-@@ -8161,8 +8169,10 @@ void obj_cgroup_uncharge_zswap(struct ob
- static u64 zswap_current_read(struct cgroup_subsys_state *css,
- 			      struct cftype *cft)
- {
--	cgroup_rstat_flush(css->cgroup);
--	return memcg_page_state(mem_cgroup_from_css(css), MEMCG_ZSWAP_B);
-+	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
-+
-+	mem_cgroup_flush_stats(memcg);
-+	return memcg_page_state(memcg, MEMCG_ZSWAP_B);
- }
- 
- static int zswap_max_show(struct seq_file *m, void *v)
---- a/mm/vmscan.c~mm-memcg-restore-subtree-stats-flushing
-+++ a/mm/vmscan.c
-@@ -2226,7 +2226,7 @@ static void prepare_scan_control(pg_data
- 	 * Flush the memory cgroup stats, so that we read accurate per-memcg
- 	 * lruvec stats for heuristics.
- 	 */
--	mem_cgroup_flush_stats();
-+	mem_cgroup_flush_stats(sc->target_mem_cgroup);
- 
- 	/*
- 	 * Determine the scan balance between anon and file LRUs.
---- a/mm/workingset.c~mm-memcg-restore-subtree-stats-flushing
-+++ a/mm/workingset.c
-@@ -464,8 +464,12 @@ bool workingset_test_recent(void *shadow
- 
- 	rcu_read_unlock();
- 
--	/* Flush stats (and potentially sleep) outside the RCU read section */
--	mem_cgroup_flush_stats_ratelimited();
-+	/*
-+	 * Flush stats (and potentially sleep) outside the RCU read section.
-+	 * XXX: With per-memcg flushing and thresholding, is ratelimiting
-+	 * still needed here?
-+	 */
-+	mem_cgroup_flush_stats_ratelimited(eviction_memcg);
- 
- 	eviction_lruvec = mem_cgroup_lruvec(eviction_memcg, pgdat);
- 	refault = atomic_long_read(&eviction_lruvec->nonresident_age);
-@@ -676,7 +680,7 @@ static unsigned long count_shadow_nodes(
- 		struct lruvec *lruvec;
- 		int i;
- 
--		mem_cgroup_flush_stats();
-+		mem_cgroup_flush_stats(sc->memcg);
- 		lruvec = mem_cgroup_lruvec(sc->memcg, NODE_DATA(sc->nid));
- 		for (pages = 0, i = 0; i < NR_LRU_LISTS; i++)
- 			pages += lruvec_page_state_local(lruvec,
---- a/mm/zswap.c~mm-memcg-restore-subtree-stats-flushing
-+++ a/mm/zswap.c
-@@ -641,7 +641,7 @@ static unsigned long zswap_shrinker_coun
- 		return 0;
- 
- #ifdef CONFIG_MEMCG_KMEM
--	mem_cgroup_flush_stats();
-+	mem_cgroup_flush_stats(memcg);
- 	nr_backing = memcg_page_state(memcg, MEMCG_ZSWAP_B) >> PAGE_SHIFT;
- 	nr_stored = memcg_page_state(memcg, MEMCG_ZSWAPPED);
- #else
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
+selftests-mm-log-run_vmtestssh-results-in-tap-format.patch
 
