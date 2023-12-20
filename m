@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 770B11EA7D
-	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 22:49:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80F634C3D4
+	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 22:49:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UBYOe2hL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB2A8C433C7;
-	Wed, 20 Dec 2023 22:48:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dY/mkV6e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AE44C433C7;
+	Wed, 20 Dec 2023 22:49:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703112540;
-	bh=Ub9Y3z/EYmsadoI5GNy5F3teXsZqg+0Fhx4qpqd90iA=;
+	s=korg; t=1703112541;
+	bh=VOiWmRY0jXKiy71+2KW++QXXHcdcj3mff7q+QGOfrgo=;
 	h=Date:To:From:Subject:From;
-	b=UBYOe2hLzFMZkwuxWCsvZLEnk6/CGEu80GBJEd26V05lnrvFTwzS3YoxDWwfG6g3M
-	 moOy3C7YLIkrdsJIWeanH8qxtvjqVRZu3qOPsRG0AZoLPrq/Ga0VvC/tkd9Bj81a/4
-	 N8oYFMa0KLl2GDeKZYURoB1rhNyr1nPsCVPAdkR0=
-Date: Wed, 20 Dec 2023 14:48:59 -0800
+	b=dY/mkV6enaGY4ZhDzEjz6l4E0TA+MePBJgEordDRHB/WMUzTFbYS900QTHzViLDp0
+	 Y1LtIH7jF78l3oW/v9UafaItD/irMwJHjA4wPbN1Ke+L3qD/0pTjq7QSjgJIm+w+qV
+	 9Atx7oy16/TQYW8Yr52rrctlzDcW/cXRFpUnAcec=
+Date: Wed, 20 Dec 2023 14:49:00 -0800
 To: mm-commits@vger.kernel.org,weixugc@google.com,tj@kernel.org,shakeelb@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,longman@redhat.com,ivan@cloudflare.com,hannes@cmpxchg.org,gthelen@google.com,chrisl@kernel.org,cerasuolodomenico@gmail.com,yosryahmed@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcg-move-vmstats-structs-definition-above-flushing-code.patch removed from -mm tree
-Message-Id: <20231220224859.EB2A8C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcg-make-stats-flushing-threshold-per-memcg.patch removed from -mm tree
+Message-Id: <20231220224901.2AE44C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,32 +27,133 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcg: move vmstats structs definition above flushing code
+     Subject: mm: memcg: make stats flushing threshold per-memcg
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-move-vmstats-structs-definition-above-flushing-code.patch
+     mm-memcg-make-stats-flushing-threshold-per-memcg.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: memcg: move vmstats structs definition above flushing code
-Date: Wed, 29 Nov 2023 03:21:50 +0000
+Subject: mm: memcg: make stats flushing threshold per-memcg
+Date: Wed, 29 Nov 2023 03:21:51 +0000
 
-The following patch will make use of those structs in the flushing code,
-so move their definitions (and a few other dependencies) a little bit up
-to reduce the diff noise in the following patch.
+A global counter for the magnitude of memcg stats update is maintained on
+the memcg side to avoid invoking rstat flushes when the pending updates
+are not significant.  This avoids unnecessary flushes, which are not very
+cheap even if there isn't a lot of stats to flush.  It also avoids
+unnecessary lock contention on the underlying global rstat lock.
 
-No functional change intended.
+Make this threshold per-memcg.  The scheme is followed where percpu (now
+also per-memcg) counters are incremented in the update path, and only
+propagated to per-memcg atomics when they exceed a certain threshold.
 
-Link: https://lkml.kernel.org/r/20231129032154.3710765-3-yosryahmed@google.com
+This provides two benefits: (a) On large machines with a lot of memcgs,
+the global threshold can be reached relatively fast, so guarding the
+underlying lock becomes less effective.  Making the threshold per-memcg
+avoids this.
+
+(b) Having a global threshold makes it hard to do subtree flushes, as we
+cannot reset the global counter except for a full flush.  Per-memcg
+counters removes this as a blocker from doing subtree flushes, which helps
+avoid unnecessary work when the stats of a small subtree are needed.
+
+Nothing is free, of course.  This comes at a cost: (a) A new per-cpu
+counter per memcg, consuming NR_CPUS * NR_MEMCGS * 4 bytes.  The extra
+memory usage is insigificant.
+
+(b) More work on the update side, although in the common case it will only
+be percpu counter updates.  The amount of work scales with the number of
+ancestors (i.e.  tree depth).  This is not a new concept, adding a cgroup
+to the rstat tree involves a parent loop, so is charging.  Testing results
+below show no significant regressions.
+
+(c) The error margin in the stats for the system as a whole increases from
+NR_CPUS * MEMCG_CHARGE_BATCH to NR_CPUS * MEMCG_CHARGE_BATCH * NR_MEMCGS. 
+This is probably fine because we have a similar per-memcg error in charges
+coming from percpu stocks, and we have a periodic flusher that makes sure
+we always flush all the stats every 2s anyway.
+
+This patch was tested to make sure no significant regressions are
+introduced on the update path as follows.  The following benchmarks were
+ran in a cgroup that is 2 levels deep (/sys/fs/cgroup/a/b/):
+
+(1) Running 22 instances of netperf on a 44 cpu machine with
+hyperthreading disabled. All instances are run in a level 2 cgroup, as
+well as netserver:
+  # netserver -6
+  # netperf -6 -H ::1 -l 60 -t TCP_SENDFILE -- -m 10K
+
+Averaging 20 runs, the numbers are as follows:
+Base: 40198.0 mbps
+Patched: 38629.7 mbps (-3.9%)
+
+The regression is minimal, especially for 22 instances in the same
+cgroup sharing all ancestors (so updating the same atomics).
+
+(2) will-it-scale page_fault tests. These tests (specifically
+per_process_ops in page_fault3 test) detected a 25.9% regression before
+for a change in the stats update path [1]. These are the
+numbers from 10 runs (+ is good) on a machine with 256 cpus:
+
+             LABEL            |     MEAN    |   MEDIAN    |   STDDEV   |
+------------------------------+-------------+-------------+-------------
+  page_fault1_per_process_ops |             |             |            |
+  (A) base                    | 270249.164  | 265437.000  | 13451.836  |
+  (B) patched                 | 261368.709  | 255725.000  | 13394.767  |
+                              | -3.29%      | -3.66%      |            |
+  page_fault1_per_thread_ops  |             |             |            |
+  (A) base                    | 242111.345  | 239737.000  | 10026.031  |
+  (B) patched                 | 237057.109  | 235305.000  | 9769.687   |
+                              | -2.09%      | -1.85%      |            |
+  page_fault1_scalability     |             |             |
+  (A) base                    | 0.034387    | 0.035168    | 0.0018283  |
+  (B) patched                 | 0.033988    | 0.034573    | 0.0018056  |
+                              | -1.16%      | -1.69%      |            |
+  page_fault2_per_process_ops |             |             |
+  (A) base                    | 203561.836  | 203301.000  | 2550.764   |
+  (B) patched                 | 197195.945  | 197746.000  | 2264.263   |
+                              | -3.13%      | -2.73%      |            |
+  page_fault2_per_thread_ops  |             |             |
+  (A) base                    | 171046.473  | 170776.000  | 1509.679   |
+  (B) patched                 | 166626.327  | 166406.000  | 768.753    |
+                              | -2.58%      | -2.56%      |            |
+  page_fault2_scalability     |             |             |
+  (A) base                    | 0.054026    | 0.053821    | 0.00062121 |
+  (B) patched                 | 0.053329    | 0.05306     | 0.00048394 |
+                              | -1.29%      | -1.41%      |            |
+  page_fault3_per_process_ops |             |             |
+  (A) base                    | 1295807.782 | 1297550.000 | 5907.585   |
+  (B) patched                 | 1275579.873 | 1273359.000 | 8759.160   |
+                              | -1.56%      | -1.86%      |            |
+  page_fault3_per_thread_ops  |             |             |
+  (A) base                    | 391234.164  | 390860.000  | 1760.720   |
+  (B) patched                 | 377231.273  | 376369.000  | 1874.971   |
+                              | -3.58%      | -3.71%      |            |
+  page_fault3_scalability     |             |             |
+  (A) base                    | 0.60369     | 0.60072     | 0.0083029  |
+  (B) patched                 | 0.61733     | 0.61544     | 0.009855   |
+                              | +2.26%      | +2.45%      |            |
+
+All regressions seem to be minimal, and within the normal variance for the
+benchmark.  The fix for [1] assumes that 3% is noise -- and there were no
+further practical complaints), so hopefully this means that such
+variations in these microbenchmarks do not reflect on practical workloads.
+
+(3) I also ran stress-ng in a nested cgroup and did not observe any
+obvious regressions.
+
+[1]https://lore.kernel.org/all/20190520063534.GB19312@shao2-debian/
+
+Link: https://lkml.kernel.org/r/20231129032154.3710765-4-yosryahmed@google.com
 Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
 Tested-by: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
 Acked-by: Shakeel Butt <shakeelb@google.com>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: Greg Thelen <gthelen@google.com>
 Cc: Ivan Babrou <ivan@cloudflare.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Michal Koutny <mkoutny@suse.com>
 Cc: Muchun Song <muchun.song@linux.dev>
@@ -63,173 +164,126 @@ Cc: Wei Xu <weixugc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |  148 +++++++++++++++++++++++-----------------------
- 1 file changed, 74 insertions(+), 74 deletions(-)
+ mm/memcontrol.c |   50 +++++++++++++++++++++++++++++++---------------
+ 1 file changed, 34 insertions(+), 16 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-move-vmstats-structs-definition-above-flushing-code
+--- a/mm/memcontrol.c~mm-memcg-make-stats-flushing-threshold-per-memcg
 +++ a/mm/memcontrol.c
-@@ -573,6 +573,80 @@ mem_cgroup_largest_soft_limit_node(struc
- 	return mz;
- }
+@@ -631,6 +631,9 @@ struct memcg_vmstats_percpu {
+ 	/* Cgroup1: threshold notifications & softlimit tree updates */
+ 	unsigned long		nr_page_events;
+ 	unsigned long		targets[MEM_CGROUP_NTARGETS];
++
++	/* Stats updates since the last flush */
++	unsigned int		stats_updates;
+ };
  
-+/* Subset of vm_event_item to report for memcg event stats */
-+static const unsigned int memcg_vm_event_stat[] = {
-+	PGPGIN,
-+	PGPGOUT,
-+	PGSCAN_KSWAPD,
-+	PGSCAN_DIRECT,
-+	PGSCAN_KHUGEPAGED,
-+	PGSTEAL_KSWAPD,
-+	PGSTEAL_DIRECT,
-+	PGSTEAL_KHUGEPAGED,
-+	PGFAULT,
-+	PGMAJFAULT,
-+	PGREFILL,
-+	PGACTIVATE,
-+	PGDEACTIVATE,
-+	PGLAZYFREE,
-+	PGLAZYFREED,
-+#if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
-+	ZSWPIN,
-+	ZSWPOUT,
-+	ZSWPWB,
-+#endif
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	THP_FAULT_ALLOC,
-+	THP_COLLAPSE_ALLOC,
-+	THP_SWPOUT,
-+	THP_SWPOUT_FALLBACK,
-+#endif
-+};
+ struct memcg_vmstats {
+@@ -645,6 +648,9 @@ struct memcg_vmstats {
+ 	/* Pending child counts during tree propagation */
+ 	long			state_pending[MEMCG_NR_STAT];
+ 	unsigned long		events_pending[NR_MEMCG_EVENTS];
 +
-+#define NR_MEMCG_EVENTS ARRAY_SIZE(memcg_vm_event_stat)
-+static int mem_cgroup_events_index[NR_VM_EVENT_ITEMS] __read_mostly;
-+
-+static void init_memcg_events(void)
-+{
-+	int i;
-+
-+	for (i = 0; i < NR_MEMCG_EVENTS; ++i)
-+		mem_cgroup_events_index[memcg_vm_event_stat[i]] = i + 1;
-+}
-+
-+static inline int memcg_events_index(enum vm_event_item idx)
-+{
-+	return mem_cgroup_events_index[idx] - 1;
-+}
-+
-+struct memcg_vmstats_percpu {
-+	/* Local (CPU and cgroup) page state & events */
-+	long			state[MEMCG_NR_STAT];
-+	unsigned long		events[NR_MEMCG_EVENTS];
-+
-+	/* Delta calculation for lockless upward propagation */
-+	long			state_prev[MEMCG_NR_STAT];
-+	unsigned long		events_prev[NR_MEMCG_EVENTS];
-+
-+	/* Cgroup1: threshold notifications & softlimit tree updates */
-+	unsigned long		nr_page_events;
-+	unsigned long		targets[MEM_CGROUP_NTARGETS];
-+};
-+
-+struct memcg_vmstats {
-+	/* Aggregated (CPU and subtree) page state & events */
-+	long			state[MEMCG_NR_STAT];
-+	unsigned long		events[NR_MEMCG_EVENTS];
-+
-+	/* Non-hierarchical (CPU aggregated) page state & events */
-+	long			state_local[MEMCG_NR_STAT];
-+	unsigned long		events_local[NR_MEMCG_EVENTS];
-+
-+	/* Pending child counts during tree propagation */
-+	long			state_pending[MEMCG_NR_STAT];
-+	unsigned long		events_pending[NR_MEMCG_EVENTS];
-+};
-+
++	/* Stats updates since the last flush */
++	atomic64_t		stats_updates;
+ };
+ 
  /*
-  * memcg and lruvec stats flushing
-  *
-@@ -684,80 +758,6 @@ static void flush_memcg_stats_dwork(stru
- 	queue_delayed_work(system_unbound_wq, &stats_flush_dwork, FLUSH_TIME);
+@@ -664,9 +670,7 @@ struct memcg_vmstats {
+  */
+ static void flush_memcg_stats_dwork(struct work_struct *w);
+ static DECLARE_DEFERRABLE_WORK(stats_flush_dwork, flush_memcg_stats_dwork);
+-static DEFINE_PER_CPU(unsigned int, stats_updates);
+ static atomic_t stats_flush_ongoing = ATOMIC_INIT(0);
+-static atomic_t stats_flush_threshold = ATOMIC_INIT(0);
+ static u64 flush_last_time;
+ 
+ #define FLUSH_TIME (2UL*HZ)
+@@ -693,26 +697,37 @@ static void memcg_stats_unlock(void)
+ 	preempt_enable_nested();
  }
  
--/* Subset of vm_event_item to report for memcg event stats */
--static const unsigned int memcg_vm_event_stat[] = {
--	PGPGIN,
--	PGPGOUT,
--	PGSCAN_KSWAPD,
--	PGSCAN_DIRECT,
--	PGSCAN_KHUGEPAGED,
--	PGSTEAL_KSWAPD,
--	PGSTEAL_DIRECT,
--	PGSTEAL_KHUGEPAGED,
--	PGFAULT,
--	PGMAJFAULT,
--	PGREFILL,
--	PGACTIVATE,
--	PGDEACTIVATE,
--	PGLAZYFREE,
--	PGLAZYFREED,
--#if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
--	ZSWPIN,
--	ZSWPOUT,
--	ZSWPWB,
--#endif
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	THP_FAULT_ALLOC,
--	THP_COLLAPSE_ALLOC,
--	THP_SWPOUT,
--	THP_SWPOUT_FALLBACK,
--#endif
--};
--
--#define NR_MEMCG_EVENTS ARRAY_SIZE(memcg_vm_event_stat)
--static int mem_cgroup_events_index[NR_VM_EVENT_ITEMS] __read_mostly;
--
--static void init_memcg_events(void)
--{
--	int i;
--
--	for (i = 0; i < NR_MEMCG_EVENTS; ++i)
--		mem_cgroup_events_index[memcg_vm_event_stat[i]] = i + 1;
--}
--
--static inline int memcg_events_index(enum vm_event_item idx)
--{
--	return mem_cgroup_events_index[idx] - 1;
--}
--
--struct memcg_vmstats_percpu {
--	/* Local (CPU and cgroup) page state & events */
--	long			state[MEMCG_NR_STAT];
--	unsigned long		events[NR_MEMCG_EVENTS];
--
--	/* Delta calculation for lockless upward propagation */
--	long			state_prev[MEMCG_NR_STAT];
--	unsigned long		events_prev[NR_MEMCG_EVENTS];
--
--	/* Cgroup1: threshold notifications & softlimit tree updates */
--	unsigned long		nr_page_events;
--	unsigned long		targets[MEM_CGROUP_NTARGETS];
--};
--
--struct memcg_vmstats {
--	/* Aggregated (CPU and subtree) page state & events */
--	long			state[MEMCG_NR_STAT];
--	unsigned long		events[NR_MEMCG_EVENTS];
--
--	/* Non-hierarchical (CPU aggregated) page state & events */
--	long			state_local[MEMCG_NR_STAT];
--	unsigned long		events_local[NR_MEMCG_EVENTS];
--
--	/* Pending child counts during tree propagation */
--	long			state_pending[MEMCG_NR_STAT];
--	unsigned long		events_pending[NR_MEMCG_EVENTS];
--};
--
- unsigned long memcg_page_state(struct mem_cgroup *memcg, int idx)
++
++static bool memcg_should_flush_stats(struct mem_cgroup *memcg)
++{
++	return atomic64_read(&memcg->vmstats->stats_updates) >
++		MEMCG_CHARGE_BATCH * num_online_cpus();
++}
++
+ static inline void memcg_rstat_updated(struct mem_cgroup *memcg, int val)
  {
- 	long x = READ_ONCE(memcg->vmstats->state[idx]);
++	int cpu = smp_processor_id();
+ 	unsigned int x;
+ 
+ 	if (!val)
+ 		return;
+ 
+-	cgroup_rstat_updated(memcg->css.cgroup, smp_processor_id());
++	cgroup_rstat_updated(memcg->css.cgroup, cpu);
++
++	for (; memcg; memcg = parent_mem_cgroup(memcg)) {
++		x = __this_cpu_add_return(memcg->vmstats_percpu->stats_updates,
++					  abs(val));
++
++		if (x < MEMCG_CHARGE_BATCH)
++			continue;
+ 
+-	x = __this_cpu_add_return(stats_updates, abs(val));
+-	if (x > MEMCG_CHARGE_BATCH) {
+ 		/*
+-		 * If stats_flush_threshold exceeds the threshold
+-		 * (>num_online_cpus()), cgroup stats update will be triggered
+-		 * in __mem_cgroup_flush_stats(). Increasing this var further
+-		 * is redundant and simply adds overhead in atomic update.
++		 * If @memcg is already flush-able, increasing stats_updates is
++		 * redundant. Avoid the overhead of the atomic update.
+ 		 */
+-		if (atomic_read(&stats_flush_threshold) <= num_online_cpus())
+-			atomic_add(x / MEMCG_CHARGE_BATCH, &stats_flush_threshold);
+-		__this_cpu_write(stats_updates, 0);
++		if (!memcg_should_flush_stats(memcg))
++			atomic64_add(x, &memcg->vmstats->stats_updates);
++		__this_cpu_write(memcg->vmstats_percpu->stats_updates, 0);
+ 	}
+ }
+ 
+@@ -731,13 +746,12 @@ static void do_flush_stats(void)
+ 
+ 	cgroup_rstat_flush(root_mem_cgroup->css.cgroup);
+ 
+-	atomic_set(&stats_flush_threshold, 0);
+ 	atomic_set(&stats_flush_ongoing, 0);
+ }
+ 
+ void mem_cgroup_flush_stats(void)
+ {
+-	if (atomic_read(&stats_flush_threshold) > num_online_cpus())
++	if (memcg_should_flush_stats(root_mem_cgroup))
+ 		do_flush_stats();
+ }
+ 
+@@ -751,8 +765,8 @@ void mem_cgroup_flush_stats_ratelimited(
+ static void flush_memcg_stats_dwork(struct work_struct *w)
+ {
+ 	/*
+-	 * Always flush here so that flushing in latency-sensitive paths is
+-	 * as cheap as possible.
++	 * Deliberately ignore memcg_should_flush_stats() here so that flushing
++	 * in latency-sensitive paths is as cheap as possible.
+ 	 */
+ 	do_flush_stats();
+ 	queue_delayed_work(system_unbound_wq, &stats_flush_dwork, FLUSH_TIME);
+@@ -5788,6 +5802,10 @@ static void mem_cgroup_css_rstat_flush(s
+ 			}
+ 		}
+ 	}
++	statc->stats_updates = 0;
++	/* We are in a per-cpu loop here, only do the atomic write once */
++	if (atomic64_read(&memcg->vmstats->stats_updates))
++		atomic64_set(&memcg->vmstats->stats_updates, 0);
+ }
+ 
+ #ifdef CONFIG_MMU
 _
 
 Patches currently in -mm which might be from yosryahmed@google.com are
