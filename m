@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E48E147A7C
-	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 18:13:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1DCA4AF80
+	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 21:41:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f0nS0HZD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FF5FC433C7;
-	Wed, 20 Dec 2023 18:13:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2IKeuNzF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21D3AC433C7;
+	Wed, 20 Dec 2023 21:41:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703095990;
-	bh=J3OUYQ4xNHdgcgzw1l/CyrGTZIY7bRp34eGKvs9f8T0=;
+	s=korg; t=1703108498;
+	bh=3AlHt8tF3p3xDZHILBG6fhyX+1LLd0AhQnRI3yxERUc=;
 	h=Date:To:From:Subject:From;
-	b=f0nS0HZDvKlDOqR2eUWLeqPGuN5OOrorOi8WdUNpfAyNSwlmHbIgrOVyszV9tL1QW
-	 DpsQV7ESbDOZ4K4c396mlEZx8ppa36Ep98E7zKN70Pn4hfTjFCYfEY+IIay72FzCkC
-	 xML9pYdrSFc2ANozR2Npa+M4QCOW58FY3zLmTxg0=
-Date: Wed, 20 Dec 2023 10:13:09 -0800
-To: mm-commits@vger.kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,cuibixuan@vivo.com,akpm@linux-foundation.org
+	b=2IKeuNzFo5+PS0k+r/8KU1BaNxFEu3pGBedCiU+h79iY1Xfe9YeBxEx+P7RROSoCf
+	 cndWClmpZ2xTQ/knFHBl1NrwP9tBKx0/29CTmzO8bhMg5s9vnmuUONb1hSk3Tb6yDw
+	 5qsEKj8hJerVj69YORVZmSIb1xC+Lr8O7++Wlv48=
+Date: Wed, 20 Dec 2023 13:41:37 -0800
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,svens@linux.ibm.com,peterz@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,mingo@redhat.com,hpa@zytor.com,herbert@gondor.apana.org.au,hca@linux.ibm.com,gor@linux.ibm.com,eric_devolder@yahoo.com,davem@davemloft.net,dave.hansen@linux.intel.com,conor@kernel.org,christophe.leroy@csgroup.eu,bp@alien8.de,borntraeger@linux.ibm.com,ardb@kernel.org,aou@eecs.berkeley.edu,agordeev@linux.ibm.com,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vmscan-add-new-event-to-trace-shrink-lru.patch removed from -mm tree
-Message-Id: <20231220181310.4FF5FC433C7@smtp.kernel.org>
+Subject: [folded-merged] kexec-fix-kexec_file-dependencies-fix.patch removed from -mm tree
+Message-Id: <20231220214138.21D3AC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,146 +27,66 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: vmscan: add new event to trace shrink lru
+     Subject: kexec-fix-kexec_file-dependencies-fix
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-add-new-event-to-trace-shrink-lru.patch
+     kexec-fix-kexec_file-dependencies-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was folded into kexec-fix-kexec_file-dependencies.patch
 
 ------------------------------------------------------
-From: Bixuan Cui <cuibixuan@vivo.com>
-Subject: mm: vmscan: add new event to trace shrink lru
-Date: Tue, 19 Dec 2023 17:21:23 -0800
+From: "Arnd Bergmann" <arnd@arndb.de>
+Subject: kexec-fix-kexec_file-dependencies-fix
+Date: Mon, 23 Oct 2023 18:04:06 +0200
 
-Add a new event to calculate the
-shrink_inactive_list()/shrink_active_list() execution time.
+fix riscv build
 
-Example of output:
-         kswapd0-103     [007] .....  1098.353020: mm_vmscan_lru_shrink_active_start: nid=0
-         kswapd0-103     [007] .....  1098.353040: mm_vmscan_lru_shrink_active_end: nid=0 nr_taken=32 nr_active=0 nr_deactivated=32 nr_referenced=0 priority=6 flags=RECLAIM_WB_FILE|RECLAIM_WB_ASYNC
-         kswapd0-103     [007] .....  1098.353040: mm_vmscan_lru_shrink_inactive_start: nid=0
-         kswapd0-103     [007] .....  1098.353094: mm_vmscan_lru_shrink_inactive_end: nid=0 nr_scanned=32 nr_reclaimed=0 nr_dirty=0 nr_writeback=0 nr_congested=0 nr_immediate=0 nr_activate_anon=0 nr_activate_file=0 nr_ref_keep=32 nr_unmap_fail=0 priority=6 flags=RECLAIM_WB_ANON|RECLAIM_WB_ASYNC
-         kswapd0-103     [007] .....  1098.353094: mm_vmscan_lru_shrink_inactive_start: nid=0
-         kswapd0-103     [007] .....  1098.353162: mm_vmscan_lru_shrink_inactive_end: nid=0 nr_scanned=32 nr_reclaimed=21 nr_dirty=0 nr_writeback=0 nr_congested=0 nr_immediate=0 nr_activate_anon=0 nr_activate_file=0 nr_ref_keep=11 nr_unmap_fail=0 priority=6 flags=RECLAIM_WB_FILE|RECLAIM_WB_ASYNC
-
-Link: https://lkml.kernel.org/r/20231220012123.2787-3-cuibixuan@vivo.com
-Signed-off-by: Bixuan Cui <cuibixuan@vivo.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Link: https://lkml.kernel.org/r/67ddd260-d424-4229-a815-e3fcfb864a77@app.fastmail.com
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Eric DeVolder <eric_devolder@yahoo.com>
+Tested-by: Eric DeVolder <eric_devolder@yahoo.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Conor Dooley <conor@kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/vmscan.h |   38 ++++++++++++++++++++++++++++++--
- mm/vmscan.c                   |   11 ++++++---
- 2 files changed, 44 insertions(+), 5 deletions(-)
+ arch/riscv/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/trace/events/vmscan.h~mm-vmscan-add-new-event-to-trace-shrink-lru
-+++ a/include/trace/events/vmscan.h
-@@ -395,7 +395,24 @@ TRACE_EVENT(mm_vmscan_write_folio,
- 		show_reclaim_flags(__entry->reclaim_flags))
- );
+--- a/arch/riscv/Kconfig~kexec-fix-kexec_file-dependencies-fix
++++ a/arch/riscv/Kconfig
+@@ -702,7 +702,7 @@ config ARCH_SELECTS_KEXEC_FILE
+ 	select KEXEC_ELF
  
--TRACE_EVENT(mm_vmscan_lru_shrink_inactive,
-+TRACE_EVENT(mm_vmscan_lru_shrink_inactive_start,
-+
-+	TP_PROTO(int nid),
-+
-+	TP_ARGS(nid),
-+
-+	TP_STRUCT__entry(
-+		__field(int, nid)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->nid = nid;
-+	),
-+
-+	TP_printk("nid=%d", __entry->nid)
-+);
-+
-+TRACE_EVENT(mm_vmscan_lru_shrink_inactive_end,
+ config ARCH_SUPPORTS_KEXEC_PURGATORY
+-	def_bool y
++	def_bool ARCH_SUPPORTS_KEXEC_FILE
  
- 	TP_PROTO(int nid,
- 		unsigned long nr_scanned, unsigned long nr_reclaimed,
-@@ -446,7 +463,24 @@ TRACE_EVENT(mm_vmscan_lru_shrink_inactiv
- 		show_reclaim_flags(__entry->reclaim_flags))
- );
- 
--TRACE_EVENT(mm_vmscan_lru_shrink_active,
-+TRACE_EVENT(mm_vmscan_lru_shrink_active_start,
-+
-+	TP_PROTO(int nid),
-+
-+	TP_ARGS(nid),
-+
-+	TP_STRUCT__entry(
-+		__field(int, nid)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->nid = nid;
-+	),
-+
-+	TP_printk("nid=%d", __entry->nid)
-+);
-+
-+TRACE_EVENT(mm_vmscan_lru_shrink_active_end,
- 
- 	TP_PROTO(int nid, unsigned long nr_taken,
- 		unsigned long nr_active, unsigned long nr_deactivated,
---- a/mm/vmscan.c~mm-vmscan-add-new-event-to-trace-shrink-lru
-+++ a/mm/vmscan.c
-@@ -1882,6 +1882,8 @@ static unsigned long shrink_inactive_lis
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 	bool stalled = false;
- 
-+	trace_mm_vmscan_lru_shrink_inactive_start(pgdat->node_id);
-+
- 	while (unlikely(too_many_isolated(pgdat, file, sc))) {
- 		if (stalled)
- 			return 0;
-@@ -1966,7 +1968,7 @@ static unsigned long shrink_inactive_lis
- 	if (file)
- 		sc->nr.file_taken += nr_taken;
- 
--	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
-+	trace_mm_vmscan_lru_shrink_inactive_end(pgdat->node_id,
- 			nr_scanned, nr_reclaimed, &stat, sc->priority, file);
- 	return nr_reclaimed;
- }
-@@ -2004,6 +2006,8 @@ static void shrink_active_list(unsigned
- 	int file = is_file_lru(lru);
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 
-+	trace_mm_vmscan_lru_shrink_active_start(pgdat->node_id);
-+
- 	lru_add_drain();
- 
- 	spin_lock_irq(&lruvec->lru_lock);
-@@ -2083,7 +2087,7 @@ static void shrink_active_list(unsigned
- 		lru_note_cost(lruvec, file, 0, nr_rotated);
- 	mem_cgroup_uncharge_list(&l_active);
- 	free_unref_page_list(&l_active);
--	trace_mm_vmscan_lru_shrink_active(pgdat->node_id, nr_taken, nr_activate,
-+	trace_mm_vmscan_lru_shrink_active_end(pgdat->node_id, nr_taken, nr_activate,
- 			nr_deactivate, nr_rotated, sc->priority, file);
- }
- 
-@@ -4500,9 +4504,10 @@ static int evict_folios(struct lruvec *l
- 	if (list_empty(&list))
- 		return scanned;
- retry:
-+	trace_mm_vmscan_lru_shrink_inactive_start(pgdat->node_id);
- 	reclaimed = shrink_folio_list(&list, pgdat, sc, &stat, false);
- 	sc->nr_reclaimed += reclaimed;
--	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
-+	trace_mm_vmscan_lru_shrink_inactive_end(pgdat->node_id,
- 			scanned, reclaimed, &stat, sc->priority,
- 			type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
- 
+ config ARCH_SUPPORTS_CRASH_DUMP
+ 	def_bool y
 _
 
-Patches currently in -mm which might be from cuibixuan@vivo.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
+kexec-fix-kexec_file-dependencies.patch
+kexec-select-crypto-from-kexec_file-instead-of-depending-on-it.patch
+mips-fix-r3k_cache_init-build-regression.patch
+makefileextrawarn-turn-on-missing-prototypes-globally.patch
 
