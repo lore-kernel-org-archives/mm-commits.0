@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E7704B143
-	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 22:39:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D71E4A988
+	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 22:39:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cWHriIiM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CCACC433D9;
-	Wed, 20 Dec 2023 22:39:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CXg3uSa6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB55AC433C8;
+	Wed, 20 Dec 2023 22:39:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703111941;
-	bh=ECbM5z3IgxB0vS+a0IJNfUecb0FCpD2gJZunwvG3ChI=;
+	s=korg; t=1703111970;
+	bh=f1PDSbpcfcWLh9+Yt81YcXgO2lFKbTWYsaZLlZB8Iak=;
 	h=Date:To:From:Subject:From;
-	b=cWHriIiMk1d3Bc4px/oOOdlFCxjOrXaS9DJl3Pd4VPcfRV6X6OANC9qYsBgvduv+w
-	 Orxmzn2s4lMKi/6rCGuJibImLOaxDMWvPkzeB+v16+UL0+P/37biHm83K5YY2drhDW
-	 4h8knWQ+mUMuKS4jgUd+ZKrV6mqHThKup8Kja5Rk=
-Date: Wed, 20 Dec 2023 14:39:00 -0800
-To: mm-commits@vger.kernel.org,lkp@intel.com,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=CXg3uSa6N4ebExIM6kVuUhTtLZojw4dn6K384enRxAtfpcRRowVpiZ4X4Tsa800LG
+	 14fVNvSq2eb+qdKz3VoaSNdCtRBR2nTib4mgZ0gxyzmWHHC02tPHLtYU3IjX1lONKn
+	 WAU9rv+7QBK5hdyao0HgmOe9guXxkEP0nndGOYDg=
+Date: Wed, 20 Dec 2023 14:39:30 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,ying.huang@intel.com,willy@infradead.org,wangkefeng.wang@huawei.com,v-songbaohua@oppo.com,vbabka@suse.cz,shy828301@gmail.com,rientjes@google.com,mcgrof@kernel.org,kirill.shutemov@linux.intel.com,jhubbard@nvidia.com,itaru.kitayama@gmail.com,hughd@google.com,fengwei.yin@intel.com,david@redhat.com,catalin.marinas@arm.com,apopple@nvidia.com,anshuman.khandual@arm.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-thp-introduce-multi-size-thp-sysfs-interface-fix.patch removed from -mm tree
-Message-Id: <20231220223901.6CCACC433D9@smtp.kernel.org>
+Subject: [folded-merged] mm-thp-support-allocation-of-anonymous-multi-size-thp-fix.patch removed from -mm tree
+Message-Id: <20231220223930.DB55AC433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,50 +27,85 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: thp: fix build warning when CONFIG_SYSFS is disabled
+     Subject: mm: resolve some multi-size THP review nits
 has been removed from the -mm tree.  Its filename was
-     mm-thp-introduce-multi-size-thp-sysfs-interface-fix.patch
+     mm-thp-support-allocation-of-anonymous-multi-size-thp-fix.patch
 
-This patch was dropped because it was folded into mm-thp-introduce-multi-size-thp-sysfs-interface.patch
+This patch was dropped because it was folded into mm-thp-support-allocation-of-anonymous-multi-size-thp.patch
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm: thp: fix build warning when CONFIG_SYSFS is disabled
-Date: Mon, 11 Dec 2023 12:53:20 +0000
+Subject: mm: resolve some multi-size THP review nits
+Date: Thu, 14 Dec 2023 16:02:51 +0000
 
-huge_anon_orders_lock is used only to serialize sysfs writers.  So move
-its definition so that it is within the CONFIG_SYSFS ifdefery to suppress
-"defined but not used" warning when sysfs is disabled.
+Tidy code based on review feedback for final version of multi-size THP:
 
-Link: https://lkml.kernel.org/r/20231211125320.3997543-1-ryan.roberts@arm.com
-Fixes: ("mm: thp: Introduce multi-size THP sysfs interface")
+ - Comment added to explain alloc_anon_folio() error protocol
+ - ifdefery simplified for alloc_anon_folio()
+
+Link: https://lkml.kernel.org/r/20231214160251.3574571-1-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202312111916.YbsHxKPq-lkp@intel.com/
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Barry Song <v-songbaohua@oppo.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Itaru Kitayama <itaru.kitayama@gmail.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Yin Fengwei <fengwei.yin@intel.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
---- a/mm/huge_memory.c~mm-thp-introduce-multi-size-thp-sysfs-interface-fix
-+++ a/mm/huge_memory.c
-@@ -77,7 +77,6 @@ unsigned long huge_zero_pfn __read_mostl
- unsigned long huge_anon_orders_always __read_mostly;
- unsigned long huge_anon_orders_madvise __read_mostly;
- unsigned long huge_anon_orders_inherit __read_mostly;
--static DEFINE_SPINLOCK(huge_anon_orders_lock);
+--- a/mm/memory.c~mm-thp-support-allocation-of-anonymous-multi-size-thp-fix
++++ a/mm/memory.c
+@@ -4137,9 +4137,9 @@ static bool pte_range_none(pte_t *pte, i
+ 	return true;
+ }
  
- unsigned long __thp_vma_allowable_orders(struct vm_area_struct *vma,
- 					 unsigned long vm_flags, bool smaps,
-@@ -442,6 +441,7 @@ static const struct attribute_group huge
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ static struct folio *alloc_anon_folio(struct vm_fault *vmf)
+ {
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	unsigned long orders;
+ 	struct folio *folio;
+@@ -4199,12 +4199,9 @@ static struct folio *alloc_anon_folio(st
+ 	}
  
- static void hugepage_exit_sysfs(struct kobject *hugepage_kobj);
- static void thpsize_release(struct kobject *kobj);
-+static DEFINE_SPINLOCK(huge_anon_orders_lock);
- static LIST_HEAD(thpsize_list);
+ fallback:
+-	return vma_alloc_zeroed_movable_folio(vma, vmf->address);
+-}
+-#else
+-#define alloc_anon_folio(vmf) \
+-		vma_alloc_zeroed_movable_folio((vmf)->vma, (vmf)->address)
+ #endif
++	return vma_alloc_zeroed_movable_folio(vmf->vma, vmf->address);
++}
  
- struct thpsize {
+ /*
+  * We enter with non-exclusive mmap_lock (to exclude vma changes,
+@@ -4260,6 +4257,7 @@ static vm_fault_t do_anonymous_page(stru
+ 	/* Allocate our own private page. */
+ 	if (unlikely(anon_vma_prepare(vma)))
+ 		goto oom;
++	/* Returns NULL on OOM or ERR_PTR(-EAGAIN) if we must retry the fault */
+ 	folio = alloc_anon_folio(vmf);
+ 	if (IS_ERR(folio))
+ 		return 0;
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
@@ -79,7 +114,6 @@ mm-allow-deferred-splitting-of-arbitrary-anon-large-folios.patch
 mm-non-pmd-mappable-large-folios-for-folio_add_new_anon_rmap.patch
 mm-thp-introduce-multi-size-thp-sysfs-interface.patch
 mm-thp-support-allocation-of-anonymous-multi-size-thp.patch
-mm-thp-support-allocation-of-anonymous-multi-size-thp-fix.patch
 selftests-mm-kugepaged-restore-thp-settings-at-exit.patch
 selftests-mm-factor-out-thp-settings-management.patch
 selftests-mm-support-multi-size-thp-interface-in-thp_settings.patch
