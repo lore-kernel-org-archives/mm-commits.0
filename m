@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 583874CE1B
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 452EB4CB4B
 	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 22:49:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XVeqQWvi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C88E7C433C8;
-	Wed, 20 Dec 2023 22:49:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Tqgolv+t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1E37C433CB;
+	Wed, 20 Dec 2023 22:49:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703112559;
-	bh=h3q8RJXPIcFJFQkxPl9LWcCEUb/zUTkyJwvt49m4rUQ=;
+	s=korg; t=1703112560;
+	bh=epHowD17s8hJ2l/AhVZHzcTurN3xIqKTljReolUt4eo=;
 	h=Date:To:From:Subject:From;
-	b=XVeqQWviJ4BwZKh66ZtRMKo2CkU8i73rTdFYH3n/q4SkAikHsQqwPoo41BXxUlqP3
-	 mT0wz7f60gqJKp429vk6abP9Fm7CTvLzUDR8+QFFPp/aXr5US6aPEb3YvStvDXNVly
-	 62yW9qFFHABMrQlmdAZfcK2K129yIvt8t34IL3p0=
-Date: Wed, 20 Dec 2023 14:49:19 -0800
+	b=Tqgolv+t832mfgCQn1Gy89u0Eba9rbS4a3vYXGJIntoNHHTedQRAVjSl76QA3XMSt
+	 bg3UqRvaytJYL8Prg0jdNixm5gy+B5U/LowRVDHPhNsW48eVhWptRZNzozihEgUUsb
+	 iwOWYqwcRnaLFKFwTWejhVi5dGgHIynsYThvmges=
+Date: Wed, 20 Dec 2023 14:49:20 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-damon-implement-a-python-module-for-test-purpose-damon-sysfs-controls.patch removed from -mm tree
-Message-Id: <20231220224919.C88E7C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-damon-_damon_sysfs-implement-kdamonds-start-function.patch removed from -mm tree
+Message-Id: <20231220224920.B1E37C433CB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,176 +27,290 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/damon: implement a python module for test-purpose DAMON sysfs controls
+     Subject: selftests/damon/_damon_sysfs: implement kdamonds start function
 has been removed from the -mm tree.  Its filename was
-     selftests-damon-implement-a-python-module-for-test-purpose-damon-sysfs-controls.patch
+     selftests-damon-_damon_sysfs-implement-kdamonds-start-function.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon: implement a python module for test-purpose DAMON sysfs controls
-Date: Tue, 12 Dec 2023 19:48:06 +0000
+Subject: selftests/damon/_damon_sysfs: implement kdamonds start function
+Date: Tue, 12 Dec 2023 19:48:07 +0000
 
-Patch series "selftests/damon: add Python-written DAMON functionality
-tests", v2.
+Extend the tests-writing-purpose DAMON sysfs control module to support the
+kdamonds start functionality.
 
-DAMON exports most of its functionality via its sysfs interface.  Hence
-most DAMON functionality tests could be implemented using the interface. 
-However, because the interfaces require simple but multiple operations for
-many controls, writing all such tests from the scratch could be repetitive
-and time consuming.
-
-Implement a minimum DAMON sysfs control module, and a couple of DAMON
-functionality tests using the control module.  The first test is for
-ensuring minimum accuracy of data access monitoring, and the second test
-is for finding if a previously found and fixed bug is introduced again.
-
-Note that the DAMON sysfs control module is only for avoiding duplicating
-code in tests.  For convenient and general control of DAMON, users should
-use DAMON user-space tools that developed for the purpose, such as
-damo[1].
-
-[1] https://github.com/damonitor/damo
-
-Patches Sequence
-----------------
-
-This patchset is constructed with five patches.  The first three patches
-implement a Python-written test implementation-purpose DAMON sysfs control
-module.  The implementation is incrementally done in the sequence of the
-basic data structure (first patch) first, kdamonds start command (second
-patch) next, and finally DAMOS tried bytes update command (third patch).
-
-Then two patches for implementing selftests using the module follows.  The
-fourth patch implements a basic functionality test of DAMON for working
-set estimation accuracy.  Finally, the fifth patch implements a corner
-case test for a previously found bug.
-
-
-This patch (of 5):
-
-Implement a python module for DAMON sysfs controls.  The module is aimed
-to be useful for writing DAMON functionality tests in future. 
-Nonetheless, this module is only representing a subset of DAMON sysfs
-files.  Following commits will implement more DAMON sysfs controls.
-
-Link: https://lkml.kernel.org/r/20231212194810.54457-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20231212194810.54457-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20231212194810.54457-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/_damon_sysfs.py |  102 ++++++++++++++++
- 1 file changed, 102 insertions(+)
+ tools/testing/selftests/damon/_damon_sysfs.py |  206 ++++++++++++++++
+ 1 file changed, 206 insertions(+)
 
---- /dev/null
+--- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-_damon_sysfs-implement-kdamonds-start-function
 +++ a/tools/testing/selftests/damon/_damon_sysfs.py
-@@ -0,0 +1,102 @@
-+# SPDX-License-Identifier: GPL-2.0
+@@ -1,5 +1,28 @@
+ # SPDX-License-Identifier: GPL-2.0
+ 
++import os
 +
-+class DamosAccessPattern:
-+    size = None
-+    nr_accesses = None
-+    age = None
-+    scheme = None
++sysfs_root = '/sys/kernel/mm/damon/admin'
 +
-+    def __init__(self, size=None, nr_accesses=None, age=None):
-+        self.size = size
-+        self.nr_accesses = nr_accesses
-+        self.age = age
++def write_file(path, string):
++    "Returns error string if failed, or None otherwise"
++    string = '%s' % string
++    try:
++        with open(path, 'w') as f:
++            f.write(string)
++    except Exception as e:
++        return '%s' % e
++    return None
 +
-+        if self.size == None:
-+            self.size = [0, 2**64 - 1]
-+        if self.nr_accesses == None:
-+            self.nr_accesses = [0, 2**64 - 1]
-+        if self.age == None:
-+            self.age = [0, 2**64 - 1]
++def read_file(path):
++    '''Returns the read content and error string.  The read content is None if
++    the reading failed'''
++    try:
++        with open(path, 'r') as f:
++            return f.read(), None
++    except Exception as e:
++        return None, '%s' % e
 +
-+class Damos:
-+    action = None
-+    access_pattern = None
-+    # todo: Support quotas, watermarks, stats, tried_regions
-+    idx = None
-+    context = None
+ class DamosAccessPattern:
+     size = None
+     nr_accesses = None
+@@ -18,6 +41,35 @@ class DamosAccessPattern:
+         if self.age == None:
+             self.age = [0, 2**64 - 1]
+ 
++    def sysfs_dir(self):
++        return os.path.join(self.scheme.sysfs_dir(), 'access_pattern')
 +
-+    def __init__(self, action='stat', access_pattern=DamosAccessPattern()):
-+        self.action = action
-+        self.access_pattern = access_pattern
-+        self.access_pattern.scheme = self
++    def stage(self):
++        err = write_file(
++                os.path.join(self.sysfs_dir(), 'sz', 'min'), self.size[0])
++        if err != None:
++            return err
++        err = write_file(
++                os.path.join(self.sysfs_dir(), 'sz', 'max'), self.size[1])
++        if err != None:
++            return err
++        err = write_file(os.path.join(self.sysfs_dir(), 'nr_accesses', 'min'),
++                self.nr_accesses[0])
++        if err != None:
++            return err
++        err = write_file(os.path.join(self.sysfs_dir(), 'nr_accesses', 'max'),
++                self.nr_accesses[1])
++        if err != None:
++            return err
++        err = write_file(
++                os.path.join(self.sysfs_dir(), 'age', 'min'), self.age[0])
++        if err != None:
++            return err
++        err = write_file(
++                os.path.join(self.sysfs_dir(), 'age', 'max'), self.age[1])
++        if err != None:
++            return err
 +
-+class DamonTarget:
-+    pid = None
-+    # todo: Support target regions if test is made
-+    idx = None
-+    context = None
+ class Damos:
+     action = None
+     access_pattern = None
+@@ -30,6 +82,39 @@ class Damos:
+         self.access_pattern = access_pattern
+         self.access_pattern.scheme = self
+ 
++    def sysfs_dir(self):
++        return os.path.join(
++                self.context.sysfs_dir(), 'schemes', '%d' % self.idx)
 +
-+    def __init__(self, pid):
-+        self.pid = pid
++    def stage(self):
++        err = write_file(os.path.join(self.sysfs_dir(), 'action'), self.action)
++        if err != None:
++            return err
++        err = self.access_pattern.stage()
++        if err != None:
++            return err
 +
-+class DamonAttrs:
-+    sample_us = None
-+    aggr_us = None
-+    update_us = None
-+    min_nr_regions = None
-+    max_nr_regions = None
-+    context = None
++        # disable quotas
++        err = write_file(os.path.join(self.sysfs_dir(), 'quotas', 'ms'), '0')
++        if err != None:
++            return err
++        err = write_file(
++                os.path.join(self.sysfs_dir(), 'quotas', 'bytes'), '0')
++        if err != None:
++            return err
 +
-+    def __init__(self, sample_us=5000, aggr_us=100000, update_us=1000000,
-+            min_nr_regions=10, max_nr_regions=1000):
-+        self.sample_us = sample_us
-+        self.aggr_us = aggr_us
-+        self.update_us = update_us
-+        self.min_nr_regions = min_nr_regions
-+        self.max_nr_regions = max_nr_regions
++        # disable watermarks
++        err = write_file(
++                os.path.join(self.sysfs_dir(), 'watermarks', 'metric'), 'none')
++        if err != None:
++            return err
 +
-+class DamonCtx:
-+    ops = None
-+    monitoring_attrs = None
-+    targets = None
-+    schemes = None
-+    kdamond = None
-+    idx = None
++        # disable filters
++        err = write_file(
++                os.path.join(self.sysfs_dir(), 'filters', 'nr_filters'), '0')
++        if err != None:
++            return err
 +
-+    def __init__(self, ops='paddr', monitoring_attrs=DamonAttrs(), targets=[],
-+            schemes=[]):
-+        self.ops = ops
-+        self.monitoring_attrs = monitoring_attrs
-+        self.monitoring_attrs.context = self
+ class DamonTarget:
+     pid = None
+     # todo: Support target regions if test is made
+@@ -39,6 +124,18 @@ class DamonTarget:
+     def __init__(self, pid):
+         self.pid = pid
+ 
++    def sysfs_dir(self):
++        return os.path.join(
++                self.context.sysfs_dir(), 'targets', '%d' % self.idx)
 +
-+        self.targets = targets
-+        for idx, target in enumerate(self.targets):
-+            target.idx = idx
-+            target.context = self
++    def stage(self):
++        err = write_file(
++                os.path.join(self.sysfs_dir(), 'regions', 'nr_regions'), '0')
++        if err != None:
++            return err
++        return write_file(
++                os.path.join(self.sysfs_dir(), 'pid_target'), self.pid)
 +
-+        self.schemes = schemes
-+        for idx, scheme in enumerate(self.schemes):
-+            scheme.idx = idx
-+            scheme.context = self
+ class DamonAttrs:
+     sample_us = None
+     aggr_us = None
+@@ -55,6 +152,40 @@ class DamonAttrs:
+         self.min_nr_regions = min_nr_regions
+         self.max_nr_regions = max_nr_regions
+ 
++    def interval_sysfs_dir(self):
++        return os.path.join(self.context.sysfs_dir(), 'monitoring_attrs',
++                'intervals')
 +
-+class Kdamond:
-+    state = None
-+    pid = None
-+    contexts = None
-+    idx = None      # index of this kdamond between siblings
-+    kdamonds = None # parent
++    def nr_regions_range_sysfs_dir(self):
++        return os.path.join(self.context.sysfs_dir(), 'monitoring_attrs',
++                'nr_regions')
 +
-+    def __init__(self, contexts=[]):
-+        self.contexts = contexts
-+        for idx, context in enumerate(self.contexts):
-+            context.idx = idx
-+            context.kdamond = self
++    def stage(self):
++        err = write_file(os.path.join(self.interval_sysfs_dir(), 'sample_us'),
++                self.sample_us)
++        if err != None:
++            return err
++        err = write_file(os.path.join(self.interval_sysfs_dir(), 'aggr_us'),
++                self.aggr_us)
++        if err != None:
++            return err
++        err = write_file(os.path.join(self.interval_sysfs_dir(), 'update_us'),
++                self.update_us)
++        if err != None:
++            return err
 +
-+class Kdamonds:
-+    kdamonds = []
++        err = write_file(
++                os.path.join(self.nr_regions_range_sysfs_dir(), 'min'),
++                self.min_nr_regions)
++        if err != None:
++            return err
 +
-+    def __init__(self, kdamonds=[]):
-+        self.kdamonds = kdamonds
-+        for idx, kdamond in enumerate(self.kdamonds):
-+            kdamond.idx = idx
-+            kdamond.kdamonds = self
++        err = write_file(
++                os.path.join(self.nr_regions_range_sysfs_dir(), 'max'),
++                self.max_nr_regions)
++        if err != None:
++            return err
++
+ class DamonCtx:
+     ops = None
+     monitoring_attrs = None
+@@ -79,6 +210,46 @@ class DamonCtx:
+             scheme.idx = idx
+             scheme.context = self
+ 
++    def sysfs_dir(self):
++        return os.path.join(self.kdamond.sysfs_dir(), 'contexts',
++                '%d' % self.idx)
++
++    def stage(self):
++        err = write_file(
++                os.path.join(self.sysfs_dir(), 'operations'), self.ops)
++        if err != None:
++            return err
++        err = self.monitoring_attrs.stage()
++        if err != None:
++            return err
++
++        nr_targets_file = os.path.join(
++                self.sysfs_dir(), 'targets', 'nr_targets')
++        content, err = read_file(nr_targets_file)
++        if err != None:
++            return err
++        if int(content) != len(self.targets):
++            err = write_file(nr_targets_file, '%d' % len(self.targets))
++            if err != None:
++                return err
++        for target in self.targets:
++            err = target.stage()
++            if err != None:
++                return err
++
++        nr_schemes_file = os.path.join(
++                self.sysfs_dir(), 'schemes', 'nr_schemes')
++        content, err = read_file(nr_schemes_file)
++        if int(content) != len(self.schemes):
++            err = write_file(nr_schemes_file, '%d' % len(self.schemes))
++            if err != None:
++                return err
++        for scheme in self.schemes:
++            err = scheme.stage()
++            if err != None:
++                return err
++        return None
++
+ class Kdamond:
+     state = None
+     pid = None
+@@ -92,6 +263,27 @@ class Kdamond:
+             context.idx = idx
+             context.kdamond = self
+ 
++    def sysfs_dir(self):
++        return os.path.join(self.kdamonds.sysfs_dir(), '%d' % self.idx)
++
++    def start(self):
++        nr_contexts_file = os.path.join(self.sysfs_dir(),
++                'contexts', 'nr_contexts')
++        content, err = read_file(nr_contexts_file)
++        if err != None:
++            return err
++        if int(content) != len(self.contexts):
++            err = write_file(nr_contexts_file, '%d' % len(self.contexts))
++            if err != None:
++                return err
++
++        for context in self.contexts:
++            err = context.stage()
++            if err != None:
++                return err
++        err = write_file(os.path.join(self.sysfs_dir(), 'state'), 'on')
++        return err
++
+ class Kdamonds:
+     kdamonds = []
+ 
+@@ -100,3 +292,17 @@ class Kdamonds:
+         for idx, kdamond in enumerate(self.kdamonds):
+             kdamond.idx = idx
+             kdamond.kdamonds = self
++
++    def sysfs_dir(self):
++        return os.path.join(sysfs_root, 'kdamonds')
++
++    def start(self):
++        err = write_file(os.path.join(self.sysfs_dir(),  'nr_kdamonds'),
++                '%s' % len(self.kdamonds))
++        if err != None:
++            return err
++        for kdamond in self.kdamonds:
++            err = kdamond.start()
++            if err != None:
++                return err
++        return None
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
