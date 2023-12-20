@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C8544421
-	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 00:58:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33DFACA47
+	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 01:01:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="koMlxRBH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75EEDC433C9;
-	Wed, 20 Dec 2023 00:58:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wsXuZBC/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 918FFC433C8;
+	Wed, 20 Dec 2023 01:01:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703033907;
-	bh=KTYdL1X3pArgYLLE8g4hgLWidq/3nh4uIe28hPV7YsE=;
+	s=korg; t=1703034072;
+	bh=YNWIKO7Nvexi9+TUypbMn3rXDrsuhdlPvQmK+jG0X3g=;
 	h=Date:To:From:Subject:From;
-	b=koMlxRBHCNGEE2XRJ4y3zI+pvdvs9etEVuW7SdicoizJFL7wC7AffUwhl3adeKHyI
-	 1gE0KDLsUno48fhXJJxCuDnNvnDgzTDA5C9HREXjLbj4LyJ5HShNXY/oD5q0QVPdCZ
-	 M8/A5TiYwxzxkMbRxM54e4Jb9RF2NvAbm+h9rnwY=
-Date: Tue, 19 Dec 2023 16:58:26 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,penguin-kernel@i-love.sakura.ne.jp,glider@google.com,eugenis@google.com,elver@google.com,dvyukov@google.com,andreyknvl@google.com,akpm@linux-foundation.org
+	b=wsXuZBC/8Lq/X7KQTViUFZZGG1Vyd+6nY+q+wlJol2pPzUOyrX6Q4bpLhcYM7pD2L
+	 J14/iPGCfUM+6XaCiwvKzSbYtwYXHf6iW8U1KXzRz8UM3tCJoghKuYKzS9P4nph9JF
+	 va+gegFdU4HVDyHYJsLecx59qBZk15QbV8YJ7/cg=
+Date: Tue, 19 Dec 2023 17:01:12 -0800
+To: mm-commits@vger.kernel.org,ryncsn@gmail.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-stackdepot-fix-comment-in-include-linux-stackdepoth.patch added to mm-nonmm-unstable branch
-Message-Id: <20231220005827.75EEDC433C9@smtp.kernel.org>
+Subject: + mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio-fix.patch added to mm-unstable branch
+Message-Id: <20231220010112.918FFC433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/stackdepot: fix comment in include/linux/stackdepot.h
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-stackdepot-fix-comment-in-include-linux-stackdepoth.patch
+     Subject: mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-fix-comment-in-include-linux-stackdepoth.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,66 +50,84 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: lib/stackdepot: fix comment in include/linux/stackdepot.h
-Date: Tue, 19 Dec 2023 22:19:53 +0100
+From: Matthew Wilcox <willy@infradead.org>
+Subject: mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio-fix
+Date: Wed, 20 Dec 2023 00:54:17 +0000
 
-As stack traces can now be evicted from the stack depot, remove the
-comment saying that they are never removed.
+avoid NULL pointer deref
 
-Link: https://lkml.kernel.org/r/0ebe712d91f8d302a8947d3c9e9123bc2b1b8440.1703020707.git.andreyknvl@google.com
-Fixes: 108be8def46e ("lib/stackdepot: allow users to evict stack traces")
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/ZYI7OcVlM1voKfBl@casper.infradead.org
+Signed-off-by: Matthew Wilcox <willy@infradead.org>
+Reported-by: Kairui Song <ryncsn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/stackdepot.h |    2 --
- 1 file changed, 2 deletions(-)
+ mm/swap_state.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/include/linux/stackdepot.h~lib-stackdepot-fix-comment-in-include-linux-stackdepoth
-+++ a/include/linux/stackdepot.h
-@@ -11,8 +11,6 @@
-  * SLUB_DEBUG needs 256 bytes per object for that). Since allocation and free
-  * stack traces often repeat, using stack depot allows to save about 100x space.
-  *
-- * Stack traces are never removed from the stack depot.
-- *
-  * Author: Alexander Potapenko <glider@google.com>
-  * Copyright (C) 2016 Google, Inc.
-  *
+--- a/mm/swap_state.c~mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio-fix
++++ a/mm/swap_state.c
+@@ -885,6 +885,9 @@ struct page *swapin_readahead(swp_entry_
+ 		swap_vma_readahead(entry, gfp_mask, mpol, ilx, vmf) :
+ 		swap_cluster_readahead(entry, gfp_mask, mpol, ilx);
+ 	mpol_cond_put(mpol);
++
++	if (!folio)
++		return NULL;
+ 	return folio_file_page(folio, swp_offset(entry));
+ }
+ 
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-kasan-rename-kasan_slab_free_mempool-to-kasan_mempool_poison_object.patch
-kasan-move-kasan_mempool_poison_object.patch
-kasan-document-kasan_mempool_poison_object.patch
-kasan-add-return-value-for-kasan_mempool_poison_object.patch
-kasan-introduce-kasan_mempool_unpoison_object.patch
-kasan-introduce-kasan_mempool_poison_pages.patch
-kasan-introduce-kasan_mempool_unpoison_pages.patch
-kasan-clean-up-__kasan_mempool_poison_object.patch
-kasan-save-free-stack-traces-for-slab-mempools.patch
-kasan-clean-up-and-rename-____kasan_kmalloc.patch
-kasan-introduce-poison_kmalloc_large_redzone.patch
-kasan-save-alloc-stack-traces-for-mempool.patch
-mempool-skip-slub_debug-poisoning-when-kasan-is-enabled.patch
-mempool-use-new-mempool-kasan-hooks.patch
-mempool-introduce-mempool_use_prealloc_only.patch
-kasan-add-mempool-tests.patch
-kasan-rename-pagealloc-tests.patch
-kasan-reorder-tests.patch
-kasan-rename-and-document-kasan_unpoison_object_data.patch
-skbuff-use-mempool-kasan-hooks.patch
-io_uring-use-mempool-kasan-hook.patch
-lib-stackdepot-add-printk_deferred_enter-exit-guards.patch
-kasan-handle-concurrent-kasan_record_aux_stack-calls.patch
-kasan-memset-free-track-in-qlink_free.patch
-lib-stackdepot-fix-comment-in-include-linux-stackdepoth.patch
+mm-memory-failure-pass-the-folio-and-the-page-to-collect_procs.patch
+mm-memory-failure-check-the-mapcount-of-the-precise-page.patch
+mm-memory-failure-cast-index-to-loff_t-before-shifting-it.patch
+mailmap-add-an-old-address-for-naoya-horiguchi.patch
+buffer-return-bool-from-grow_dev_folio.patch
+buffer-calculate-block-number-inside-folio_init_buffers.patch
+buffer-fix-grow_buffers-for-block-size-page_size.patch
+buffer-cast-block-to-loff_t-before-shifting-it.patch
+buffer-fix-various-functions-for-block-size-page_size.patch
+buffer-handle-large-folios-in-__block_write_begin_int.patch
+buffer-fix-more-functions-for-block-size-page_size.patch
+mm-convert-ksm_might_need_to_copy-to-work-on-folios.patch
+mm-convert-ksm_might_need_to_copy-to-work-on-folios-fix.patch
+mm-remove-pageanonexclusive-assertions-in-unuse_pte.patch
+mm-convert-unuse_pte-to-use-a-folio-throughout.patch
+mm-remove-some-calls-to-page_add_new_anon_rmap.patch
+mm-remove-stale-example-from-comment.patch
+mm-remove-references-to-page_add_new_anon_rmap-in-comments.patch
+mm-convert-migrate_vma_insert_page-to-use-a-folio.patch
+mm-convert-collapse_huge_page-to-use-a-folio.patch
+mm-remove-page_add_new_anon_rmap-and-lru_cache_add_inactive_or_unevictable.patch
+mm-return-the-folio-from-__read_swap_cache_async.patch
+mm-pass-a-folio-to-__swap_writepage.patch
+mm-pass-a-folio-to-swap_writepage_fs.patch
+mm-pass-a-folio-to-swap_writepage_bdev_sync.patch
+mm-pass-a-folio-to-swap_writepage_bdev_async.patch
+mm-pass-a-folio-to-swap_readpage_fs.patch
+mm-pass-a-folio-to-swap_readpage_bdev_sync.patch
+mm-pass-a-folio-to-swap_readpage_bdev_async.patch
+mm-convert-swap_page_sector-to-swap_folio_sector.patch
+mm-convert-swap_readpage-to-swap_read_folio.patch
+mm-remove-page_swap_info.patch
+mm-return-a-folio-from-read_swap_cache_async.patch
+mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio.patch
+mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio-fix.patch
+fs-remove-clean_page_buffers.patch
+fs-convert-clean_buffers-to-take-a-folio.patch
+fs-reduce-stack-usage-in-__mpage_writepage.patch
+fs-reduce-stack-usage-in-do_mpage_readpage.patch
+adfs-remove-writepage-implementation.patch
+bfs-remove-writepage-implementation.patch
+hfs-really-remove-hfs_writepage.patch
+hfsplus-really-remove-hfsplus_writepage.patch
+minix-remove-writepage-implementation.patch
+ocfs2-remove-writepage-implementation.patch
+sysv-remove-writepage-implementation.patch
+ufs-remove-writepage-implementation.patch
+fs-convert-block_write_full_page-to-block_write_full_folio.patch
+fs-remove-the-bh_end_io-argument-from-__block_write_full_folio.patch
 
