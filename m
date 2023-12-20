@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 017BA208A8
-	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 22:49:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 583874CE1B
+	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 22:49:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="arLn0zcq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE4EFC433C7;
-	Wed, 20 Dec 2023 22:49:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XVeqQWvi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C88E7C433C8;
+	Wed, 20 Dec 2023 22:49:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703112558;
-	bh=VrOCE+D151Opt3SokMZOROBzX6W1SaQgOMgTooLObWM=;
+	s=korg; t=1703112559;
+	bh=h3q8RJXPIcFJFQkxPl9LWcCEUb/zUTkyJwvt49m4rUQ=;
 	h=Date:To:From:Subject:From;
-	b=arLn0zcqgud57xV8DFHDmli46OxpVuAnpE9SGb7CAapT7UGhVm0sA4IQxEjquC3sU
-	 mnLSE7rDK2pJq2CARWjSSjuVkzd6gaMwqKB5yVry6gOgV5GxdKB4e6QaAwpl+tQ8cs
-	 3/dqMg5MnyvsllnYAlhZKDPza8cfNcfFVoJkHB/k=
-Date: Wed, 20 Dec 2023 14:49:18 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,Liam.Howlett@oracle.com,rdunlap@infradead.org,akpm@linux-foundation.org
+	b=XVeqQWviJ4BwZKh66ZtRMKo2CkU8i73rTdFYH3n/q4SkAikHsQqwPoo41BXxUlqP3
+	 mT0wz7f60gqJKp429vk6abP9Fm7CTvLzUDR8+QFFPp/aXr5US6aPEb3YvStvDXNVly
+	 62yW9qFFHABMrQlmdAZfcK2K129yIvt8t34IL3p0=
+Date: Wed, 20 Dec 2023 14:49:19 -0800
+To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-fix-typos-spellos-etc.patch removed from -mm tree
-Message-Id: <20231220224918.BE4EFC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-damon-implement-a-python-module-for-test-purpose-damon-sysfs-controls.patch removed from -mm tree
+Message-Id: <20231220224919.C88E7C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,71 +27,178 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: fix typos/spellos etc
+     Subject: selftests/damon: implement a python module for test-purpose DAMON sysfs controls
 has been removed from the -mm tree.  Its filename was
-     maple_tree-fix-typos-spellos-etc.patch
+     selftests-damon-implement-a-python-module-for-test-purpose-damon-sysfs-controls.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: maple_tree: fix typos/spellos etc
-Date: Sat, 9 Dec 2023 22:38:39 -0800
+From: SeongJae Park <sj@kernel.org>
+Subject: selftests/damon: implement a python module for test-purpose DAMON sysfs controls
+Date: Tue, 12 Dec 2023 19:48:06 +0000
 
-Fix typos/grammar and spellos in documentation.
+Patch series "selftests/damon: add Python-written DAMON functionality
+tests", v2.
 
-Link: https://lkml.kernel.org/r/20231210063839.29967-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+DAMON exports most of its functionality via its sysfs interface.  Hence
+most DAMON functionality tests could be implemented using the interface. 
+However, because the interfaces require simple but multiple operations for
+many controls, writing all such tests from the scratch could be repetitive
+and time consuming.
+
+Implement a minimum DAMON sysfs control module, and a couple of DAMON
+functionality tests using the control module.  The first test is for
+ensuring minimum accuracy of data access monitoring, and the second test
+is for finding if a previously found and fixed bug is introduced again.
+
+Note that the DAMON sysfs control module is only for avoiding duplicating
+code in tests.  For convenient and general control of DAMON, users should
+use DAMON user-space tools that developed for the purpose, such as
+damo[1].
+
+[1] https://github.com/damonitor/damo
+
+Patches Sequence
+----------------
+
+This patchset is constructed with five patches.  The first three patches
+implement a Python-written test implementation-purpose DAMON sysfs control
+module.  The implementation is incrementally done in the sequence of the
+basic data structure (first patch) first, kdamonds start command (second
+patch) next, and finally DAMOS tried bytes update command (third patch).
+
+Then two patches for implementing selftests using the module follows.  The
+fourth patch implements a basic functionality test of DAMON for working
+set estimation accuracy.  Finally, the fifth patch implements a corner
+case test for a previously found bug.
+
+
+This patch (of 5):
+
+Implement a python module for DAMON sysfs controls.  The module is aimed
+to be useful for writing DAMON functionality tests in future. 
+Nonetheless, this module is only representing a subset of DAMON sysfs
+files.  Following commits will implement more DAMON sysfs controls.
+
+Link: https://lkml.kernel.org/r/20231212194810.54457-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20231212194810.54457-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ tools/testing/selftests/damon/_damon_sysfs.py |  102 ++++++++++++++++
+ 1 file changed, 102 insertions(+)
 
---- a/lib/maple_tree.c~maple_tree-fix-typos-spellos-etc
-+++ a/lib/maple_tree.c
-@@ -16,8 +16,8 @@
-  * and are simply the slot index + the minimum of the node.
-  *
-  * In regular B-Tree terms, pivots are called keys.  The term pivot is used to
-- * indicate that the tree is specifying ranges,  Pivots may appear in the
-- * subtree with an entry attached to the value where as keys are unique to a
-+ * indicate that the tree is specifying ranges.  Pivots may appear in the
-+ * subtree with an entry attached to the value whereas keys are unique to a
-  * specific position of a B-tree.  Pivot values are inclusive of the slot with
-  * the same index.
-  *
-@@ -2500,7 +2500,7 @@ static inline void mast_set_split_parent
- }
- 
- /*
-- * mas_topiary_node() - Dispose of a singe node
-+ * mas_topiary_node() - Dispose of a single node
-  * @mas: The maple state for pushing nodes
-  * @enode: The encoded maple node
-  * @in_rcu: If the tree is in rcu mode
-@@ -5492,7 +5492,7 @@ int mas_preallocate(struct ma_state *mas
- 		goto ask_now;
- 	}
- 
--	/* New root needs a singe node */
-+	/* New root needs a single node */
- 	if (unlikely(mte_is_root(mas->node)))
- 		goto ask_now;
- 
+--- /dev/null
++++ a/tools/testing/selftests/damon/_damon_sysfs.py
+@@ -0,0 +1,102 @@
++# SPDX-License-Identifier: GPL-2.0
++
++class DamosAccessPattern:
++    size = None
++    nr_accesses = None
++    age = None
++    scheme = None
++
++    def __init__(self, size=None, nr_accesses=None, age=None):
++        self.size = size
++        self.nr_accesses = nr_accesses
++        self.age = age
++
++        if self.size == None:
++            self.size = [0, 2**64 - 1]
++        if self.nr_accesses == None:
++            self.nr_accesses = [0, 2**64 - 1]
++        if self.age == None:
++            self.age = [0, 2**64 - 1]
++
++class Damos:
++    action = None
++    access_pattern = None
++    # todo: Support quotas, watermarks, stats, tried_regions
++    idx = None
++    context = None
++
++    def __init__(self, action='stat', access_pattern=DamosAccessPattern()):
++        self.action = action
++        self.access_pattern = access_pattern
++        self.access_pattern.scheme = self
++
++class DamonTarget:
++    pid = None
++    # todo: Support target regions if test is made
++    idx = None
++    context = None
++
++    def __init__(self, pid):
++        self.pid = pid
++
++class DamonAttrs:
++    sample_us = None
++    aggr_us = None
++    update_us = None
++    min_nr_regions = None
++    max_nr_regions = None
++    context = None
++
++    def __init__(self, sample_us=5000, aggr_us=100000, update_us=1000000,
++            min_nr_regions=10, max_nr_regions=1000):
++        self.sample_us = sample_us
++        self.aggr_us = aggr_us
++        self.update_us = update_us
++        self.min_nr_regions = min_nr_regions
++        self.max_nr_regions = max_nr_regions
++
++class DamonCtx:
++    ops = None
++    monitoring_attrs = None
++    targets = None
++    schemes = None
++    kdamond = None
++    idx = None
++
++    def __init__(self, ops='paddr', monitoring_attrs=DamonAttrs(), targets=[],
++            schemes=[]):
++        self.ops = ops
++        self.monitoring_attrs = monitoring_attrs
++        self.monitoring_attrs.context = self
++
++        self.targets = targets
++        for idx, target in enumerate(self.targets):
++            target.idx = idx
++            target.context = self
++
++        self.schemes = schemes
++        for idx, scheme in enumerate(self.schemes):
++            scheme.idx = idx
++            scheme.context = self
++
++class Kdamond:
++    state = None
++    pid = None
++    contexts = None
++    idx = None      # index of this kdamond between siblings
++    kdamonds = None # parent
++
++    def __init__(self, contexts=[]):
++        self.contexts = contexts
++        for idx, context in enumerate(self.contexts):
++            context.idx = idx
++            context.kdamond = self
++
++class Kdamonds:
++    kdamonds = []
++
++    def __init__(self, kdamonds=[]):
++        self.kdamonds = kdamonds
++        for idx, kdamond in enumerate(self.kdamonds):
++            kdamond.idx = idx
++            kdamond.kdamonds = self
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-rapidio-tsi721-fix-kernel-doc-warnings.patch
-freevxfs-bmap-fix-kernel-doc-warnings.patch
-freevxfs-immed-fix-kernel-doc-param-name.patch
-freevxfs-lookup-fix-function-params-kernel-doc.patch
-init-kconfig-move-more-items-into-the-expert-menu.patch
-usr-kconfig-fix-typos-of-its.patch
-stacktrace-fix-kernel-doc-typo.patch
-nilfs2-cpfile-fix-some-kernel-doc-warnings.patch
 
