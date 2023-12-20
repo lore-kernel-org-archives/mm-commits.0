@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13BB54CB38
-	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 22:49:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FDC84CB38
+	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 22:49:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GniPjUNN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78C2EC433CA;
-	Wed, 20 Dec 2023 22:49:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SL2OmmTJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5B24C433C7;
+	Wed, 20 Dec 2023 22:49:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703112548;
-	bh=nbSPBAknixt4xb4fAxQ8sd/CP3jzsh6N56E731Sh+ag=;
+	s=korg; t=1703112549;
+	bh=5krbhG3KmoRvIZvPwEwq3mRqfx5beAU1c/caLKzCpPE=;
 	h=Date:To:From:Subject:From;
-	b=GniPjUNN4f75iHqfK7jwlM7QJkeDuLy23U7PrpcEAncBTXXgv/9LpuGmkBGy0395+
-	 HkHTNSjMmEbu8lyS/FNLz93m6etVtmDEGNOXcLKnX7ulH4VKvbA+Yzrfa6E1Y8GI+H
-	 FDh9ugkh4lmZ3IFfev9/0JBBEqZXsxijVVvx6Bw0=
-Date: Wed, 20 Dec 2023 14:49:06 -0800
+	b=SL2OmmTJhESvHLLNyCfbebC6+Grcmf0svNOjS8nkNW3CBDn+CM9tYw+UuXY8b81h9
+	 ngIZ/H7nEuPKXOet/K3chqOxqRvAbrwOdwGqZf3lioLVy0rCMqMr1cl0e0i2iGzu2f
+	 8i64ItamrrV+CEZwU8H2dW/FsAQEOPPnYsM6L+F0=
+Date: Wed, 20 Dec 2023 14:49:09 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,ying.huang@intel.com,willy@infradead.org,wangkefeng.wang@huawei.com,v-songbaohua@oppo.com,vbabka@suse.cz,shy828301@gmail.com,rientjes@google.com,mcgrof@kernel.org,kirill.shutemov@linux.intel.com,jhubbard@nvidia.com,itaru.kitayama@gmail.com,hughd@google.com,fengwei.yin@intel.com,david@redhat.com,catalin.marinas@arm.com,apopple@nvidia.com,anshuman.khandual@arm.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-thp-introduce-multi-size-thp-sysfs-interface.patch removed from -mm tree
-Message-Id: <20231220224908.78C2EC433CA@smtp.kernel.org>
+Subject: [merged mm-stable] mm-thp-support-allocation-of-anonymous-multi-size-thp.patch removed from -mm tree
+Message-Id: <20231220224909.D5B24C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,59 +27,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: thp: introduce multi-size THP sysfs interface
+     Subject: mm: thp: support allocation of anonymous multi-size THP
 has been removed from the -mm tree.  Its filename was
-     mm-thp-introduce-multi-size-thp-sysfs-interface.patch
+     mm-thp-support-allocation-of-anonymous-multi-size-thp.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm: thp: introduce multi-size THP sysfs interface
-Date: Thu, 7 Dec 2023 16:12:04 +0000
+Subject: mm: thp: support allocation of anonymous multi-size THP
+Date: Thu, 7 Dec 2023 16:12:05 +0000
 
-In preparation for adding support for anonymous multi-size THP, introduce
-new sysfs structure that will be used to control the new behaviours.  A
-new directory is added under transparent_hugepage for each supported THP
-size, and contains an `enabled` file, which can be set to "inherit" (to
-inherit the global setting), "always", "madvise" or "never".  For now, the
-kernel still only supports PMD-sized anonymous THP, so only 1 directory is
-populated.
+Introduce the logic to allow THP to be configured (through the new sysfs
+interface we just added) to allocate large folios to back anonymous
+memory, which are larger than the base page size but smaller than
+PMD-size.  We call this new THP extension "multi-size THP" (mTHP).
 
-The first half of the change converts transhuge_vma_suitable() and
-hugepage_vma_check() so that they take a bitfield of orders for which the
-user wants to determine support, and the functions filter out all the
-orders that can't be supported, given the current sysfs configuration and
-the VMA dimensions.  The resulting functions are renamed to
-thp_vma_suitable_orders() and thp_vma_allowable_orders() respectively. 
-Convenience functions that take a single, unencoded order and return a
-boolean are also defined as thp_vma_suitable_order() and
-thp_vma_allowable_order().
+mTHP continues to be PTE-mapped, but in many cases can still provide
+similar benefits to traditional PMD-sized THP: Page faults are
+significantly reduced (by a factor of e.g.  4, 8, 16, etc.  depending on
+the configured order), but latency spikes are much less prominent because
+the size of each page isn't as huge as the PMD-sized variant and there is
+less memory to clear in each page fault.  The number of per-page
+operations (e.g.  ref counting, rmap management, lru list management) are
+also significantly reduced since those ops now become per-folio.
 
-The second half of the change implements the new sysfs interface.  It has
-been done so that each supported THP size has a `struct thpsize`, which
-describes the relevant metadata and is itself a kobject.  This is pretty
-minimal for now, but should make it easy to add new per-thpsize files to
-the interface if needed in future (e.g.  per-size defrag).  Rather than
-keep the `enabled` state directly in the struct thpsize, I've elected to
-directly encode it into huge_anon_orders_[always|madvise|inherit]
-bitfields since this reduces the amount of work required in
-thp_vma_allowable_orders() which is called for every page fault.
+Some architectures also employ TLB compression mechanisms to squeeze more
+entries in when a set of PTEs are virtually and physically contiguous and
+approporiately aligned.  In this case, TLB misses will occur less often.
 
-See Documentation/admin-guide/mm/transhuge.rst, as modified by this
-commit, for details of how the new sysfs interface works.
+The new behaviour is disabled by default, but can be enabled at runtime by
+writing to /sys/kernel/mm/transparent_hugepage/hugepage-XXkb/enabled (see
+documentation in previous commit).  The long term aim is to change the
+default to include suitable lower orders, but there are some risks around
+internal fragmentation that need to be better understood first.
 
-[ryan.roberts@arm.com: fix build warning when CONFIG_SYSFS is disabled]
-  Link: https://lkml.kernel.org/r/20231211125320.3997543-1-ryan.roberts@arm.com
-Link: https://lkml.kernel.org/r/20231207161211.2374093-4-ryan.roberts@arm.com
+[ryan.roberts@arm.com: resolve some multi-size THP review nits]
+  Link: https://lkml.kernel.org/r/20231214160251.3574571-1-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20231207161211.2374093-5-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Reviewed-by: Barry Song <v-songbaohua@oppo.com>
 Tested-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Tested-by: John Hubbard <jhubbard@nvidia.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Barry Song <v-songbaohua@oppo.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: "Huang, Ying" <ying.huang@intel.com>
@@ -96,870 +89,186 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/transhuge.rst |   97 ++++++-
- Documentation/filesystems/proc.rst         |    6 
- fs/proc/task_mmu.c                         |    3 
- include/linux/huge_mm.h                    |  181 ++++++++++++--
- mm/huge_memory.c                           |  231 ++++++++++++++++---
- mm/khugepaged.c                            |   20 -
- mm/memory.c                                |    6 
- mm/page_vma_mapped.c                       |    3 
- 8 files changed, 459 insertions(+), 88 deletions(-)
+ include/linux/huge_mm.h |    6 +-
+ mm/memory.c             |  109 ++++++++++++++++++++++++++++++++++----
+ 2 files changed, 104 insertions(+), 11 deletions(-)
 
---- a/Documentation/admin-guide/mm/transhuge.rst~mm-thp-introduce-multi-size-thp-sysfs-interface
-+++ a/Documentation/admin-guide/mm/transhuge.rst
-@@ -45,10 +45,25 @@ components:
-    the two is using hugepages just because of the fact the TLB miss is
-    going to run faster.
- 
-+Modern kernels support "multi-size THP" (mTHP), which introduces the
-+ability to allocate memory in blocks that are bigger than a base page
-+but smaller than traditional PMD-size (as described above), in
-+increments of a power-of-2 number of pages. mTHP can back anonymous
-+memory (for example 16K, 32K, 64K, etc). These THPs continue to be
-+PTE-mapped, but in many cases can still provide similar benefits to
-+those outlined above: Page faults are significantly reduced (by a
-+factor of e.g. 4, 8, 16, etc), but latency spikes are much less
-+prominent because the size of each page isn't as huge as the PMD-sized
-+variant and there is less memory to clear in each page fault. Some
-+architectures also employ TLB compression mechanisms to squeeze more
-+entries in when a set of PTEs are virtually and physically contiguous
-+and approporiately aligned. In this case, TLB misses will occur less
-+often.
-+
- THP can be enabled system wide or restricted to certain tasks or even
- memory ranges inside task's address space. Unless THP is completely
- disabled, there is ``khugepaged`` daemon that scans memory and
--collapses sequences of basic pages into huge pages.
-+collapses sequences of basic pages into PMD-sized huge pages.
- 
- The THP behaviour is controlled via :ref:`sysfs <thp_sysfs>`
- interface and using madvise(2) and prctl(2) system calls.
-@@ -95,12 +110,40 @@ Global THP controls
- Transparent Hugepage Support for anonymous memory can be entirely disabled
- (mostly for debugging purposes) or only enabled inside MADV_HUGEPAGE
- regions (to avoid the risk of consuming more memory resources) or enabled
--system wide. This can be achieved with one of::
-+system wide. This can be achieved per-supported-THP-size with one of::
-+
-+	echo always >/sys/kernel/mm/transparent_hugepage/hugepages-<size>kB/enabled
-+	echo madvise >/sys/kernel/mm/transparent_hugepage/hugepages-<size>kB/enabled
-+	echo never >/sys/kernel/mm/transparent_hugepage/hugepages-<size>kB/enabled
-+
-+where <size> is the hugepage size being addressed, the available sizes
-+for which vary by system.
-+
-+For example::
-+
-+	echo always >/sys/kernel/mm/transparent_hugepage/hugepages-2048kB/enabled
-+
-+Alternatively it is possible to specify that a given hugepage size
-+will inherit the top-level "enabled" value::
-+
-+	echo inherit >/sys/kernel/mm/transparent_hugepage/hugepages-<size>kB/enabled
-+
-+For example::
-+
-+	echo inherit >/sys/kernel/mm/transparent_hugepage/hugepages-2048kB/enabled
-+
-+The top-level setting (for use with "inherit") can be set by issuing
-+one of the following commands::
- 
- 	echo always >/sys/kernel/mm/transparent_hugepage/enabled
- 	echo madvise >/sys/kernel/mm/transparent_hugepage/enabled
- 	echo never >/sys/kernel/mm/transparent_hugepage/enabled
- 
-+By default, PMD-sized hugepages have enabled="inherit" and all other
-+hugepage sizes have enabled="never". If enabling multiple hugepage
-+sizes, the kernel will select the most appropriate enabled size for a
-+given allocation.
-+
- It's also possible to limit defrag efforts in the VM to generate
- anonymous hugepages in case they're not immediately free to madvise
- regions or to never try to defrag memory and simply fallback to regular
-@@ -146,25 +189,34 @@ madvise
- never
- 	should be self-explanatory.
- 
--By default kernel tries to use huge zero page on read page fault to
--anonymous mapping. It's possible to disable huge zero page by writing 0
--or enable it back by writing 1::
-+By default kernel tries to use huge, PMD-mappable zero page on read
-+page fault to anonymous mapping. It's possible to disable huge zero
-+page by writing 0 or enable it back by writing 1::
- 
- 	echo 0 >/sys/kernel/mm/transparent_hugepage/use_zero_page
- 	echo 1 >/sys/kernel/mm/transparent_hugepage/use_zero_page
- 
--Some userspace (such as a test program, or an optimized memory allocation
--library) may want to know the size (in bytes) of a transparent hugepage::
-+Some userspace (such as a test program, or an optimized memory
-+allocation library) may want to know the size (in bytes) of a
-+PMD-mappable transparent hugepage::
- 
- 	cat /sys/kernel/mm/transparent_hugepage/hpage_pmd_size
- 
--khugepaged will be automatically started when
--transparent_hugepage/enabled is set to "always" or "madvise, and it'll
--be automatically shutdown if it's set to "never".
-+khugepaged will be automatically started when one or more hugepage
-+sizes are enabled (either by directly setting "always" or "madvise",
-+or by setting "inherit" while the top-level enabled is set to "always"
-+or "madvise"), and it'll be automatically shutdown when the last
-+hugepage size is disabled (either by directly setting "never", or by
-+setting "inherit" while the top-level enabled is set to "never").
- 
- Khugepaged controls
- -------------------
- 
-+.. note::
-+   khugepaged currently only searches for opportunities to collapse to
-+   PMD-sized THP and no attempt is made to collapse to other THP
-+   sizes.
-+
- khugepaged runs usually at low frequency so while one may not want to
- invoke defrag algorithms synchronously during the page faults, it
- should be worth invoking defrag at least in khugepaged. However it's
-@@ -282,19 +334,26 @@ force
- Need of application restart
- ===========================
- 
--The transparent_hugepage/enabled values and tmpfs mount option only affect
--future behavior. So to make them effective you need to restart any
--application that could have been using hugepages. This also applies to the
--regions registered in khugepaged.
-+The transparent_hugepage/enabled and
-+transparent_hugepage/hugepages-<size>kB/enabled values and tmpfs mount
-+option only affect future behavior. So to make them effective you need
-+to restart any application that could have been using hugepages. This
-+also applies to the regions registered in khugepaged.
- 
- Monitoring usage
- ================
- 
--The number of anonymous transparent huge pages currently used by the
-+.. note::
-+   Currently the below counters only record events relating to
-+   PMD-sized THP. Events relating to other THP sizes are not included.
-+
-+The number of PMD-sized anonymous transparent huge pages currently used by the
- system is available by reading the AnonHugePages field in ``/proc/meminfo``.
--To identify what applications are using anonymous transparent huge pages,
--it is necessary to read ``/proc/PID/smaps`` and count the AnonHugePages fields
--for each mapping.
-+To identify what applications are using PMD-sized anonymous transparent huge
-+pages, it is necessary to read ``/proc/PID/smaps`` and count the AnonHugePages
-+fields for each mapping. (Note that AnonHugePages only applies to traditional
-+PMD-sized THP for historical reasons and should have been called
-+AnonHugePmdMapped).
- 
- The number of file transparent huge pages mapped to userspace is available
- by reading ShmemPmdMapped and ShmemHugePages fields in ``/proc/meminfo``.
-@@ -413,7 +472,7 @@ for huge pages.
- Optimizing the applications
- ===========================
- 
--To be guaranteed that the kernel will map a 2M page immediately in any
-+To be guaranteed that the kernel will map a THP immediately in any
- memory region, the mmap region has to be hugepage naturally
- aligned. posix_memalign() can provide that guarantee.
- 
---- a/Documentation/filesystems/proc.rst~mm-thp-introduce-multi-size-thp-sysfs-interface
-+++ a/Documentation/filesystems/proc.rst
-@@ -528,9 +528,9 @@ replaced by copy-on-write) part of the u
- does not take into account swapped out page of underlying shmem objects.
- "Locked" indicates whether the mapping is locked in memory or not.
- 
--"THPeligible" indicates whether the mapping is eligible for allocating THP
--pages as well as the THP is PMD mappable or not - 1 if true, 0 otherwise.
--It just shows the current status.
-+"THPeligible" indicates whether the mapping is eligible for allocating
-+naturally aligned THP pages of any currently enabled size. 1 if true, 0
-+otherwise.
- 
- "VmFlags" field deserves a separate description. This member represents the
- kernel flags associated with the particular virtual memory area in two letter
---- a/fs/proc/task_mmu.c~mm-thp-introduce-multi-size-thp-sysfs-interface
-+++ a/fs/proc/task_mmu.c
-@@ -865,7 +865,8 @@ static int show_smap(struct seq_file *m,
- 	__show_smap(m, &mss, false);
- 
- 	seq_printf(m, "THPeligible:    %8u\n",
--		   hugepage_vma_check(vma, vma->vm_flags, true, false, true));
-+		   !!thp_vma_allowable_orders(vma, vma->vm_flags, true, false,
-+					      true, THP_ORDERS_ALL));
- 
- 	if (arch_pkeys_enabled())
- 		seq_printf(m, "ProtectionKey:  %8u\n", vma_pkey(vma));
---- a/include/linux/huge_mm.h~mm-thp-introduce-multi-size-thp-sysfs-interface
+--- a/include/linux/huge_mm.h~mm-thp-support-allocation-of-anonymous-multi-size-thp
 +++ a/include/linux/huge_mm.h
-@@ -67,6 +67,24 @@ extern struct kobj_attribute shmem_enabl
- #define HPAGE_PMD_ORDER (HPAGE_PMD_SHIFT-PAGE_SHIFT)
+@@ -68,9 +68,11 @@ extern struct kobj_attribute shmem_enabl
  #define HPAGE_PMD_NR (1<<HPAGE_PMD_ORDER)
  
-+/*
-+ * Mask of all large folio orders supported for anonymous THP.
-+ */
-+#define THP_ORDERS_ALL_ANON	BIT(PMD_ORDER)
-+
-+/*
-+ * Mask of all large folio orders supported for file THP.
-+ */
-+#define THP_ORDERS_ALL_FILE	(BIT(PMD_ORDER) | BIT(PUD_ORDER))
-+
-+/*
-+ * Mask of all large folio orders supported for THP.
-+ */
-+#define THP_ORDERS_ALL		(THP_ORDERS_ALL_ANON | THP_ORDERS_ALL_FILE)
-+
-+#define thp_vma_allowable_order(vma, vm_flags, smaps, in_pf, enforce_sysfs, order) \
-+	(!!thp_vma_allowable_orders(vma, vm_flags, smaps, in_pf, enforce_sysfs, BIT(order)))
-+
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- #define HPAGE_PMD_SHIFT PMD_SHIFT
- #define HPAGE_PMD_SIZE	((1UL) << HPAGE_PMD_SHIFT)
-@@ -77,45 +95,105 @@ extern struct kobj_attribute shmem_enabl
- #define HPAGE_PUD_MASK	(~(HPAGE_PUD_SIZE - 1))
- 
- extern unsigned long transparent_hugepage_flags;
-+extern unsigned long huge_anon_orders_always;
-+extern unsigned long huge_anon_orders_madvise;
-+extern unsigned long huge_anon_orders_inherit;
-+
-+static inline bool hugepage_global_enabled(void)
-+{
-+	return transparent_hugepage_flags &
-+			((1<<TRANSPARENT_HUGEPAGE_FLAG) |
-+			(1<<TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG));
-+}
-+
-+static inline bool hugepage_global_always(void)
-+{
-+	return transparent_hugepage_flags &
-+			(1<<TRANSPARENT_HUGEPAGE_FLAG);
-+}
-+
-+static inline bool hugepage_flags_enabled(void)
-+{
-+	/*
-+	 * We cover both the anon and the file-backed case here; we must return
-+	 * true if globally enabled, even when all anon sizes are set to never.
-+	 * So we don't need to look at huge_anon_orders_inherit.
-+	 */
-+	return hugepage_global_enabled() ||
-+	       huge_anon_orders_always ||
-+	       huge_anon_orders_madvise;
-+}
-+
-+static inline int highest_order(unsigned long orders)
-+{
-+	return fls_long(orders) - 1;
-+}
- 
--#define hugepage_flags_enabled()					       \
--	(transparent_hugepage_flags &				       \
--	 ((1<<TRANSPARENT_HUGEPAGE_FLAG) |		       \
--	  (1<<TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG)))
--#define hugepage_flags_always()				\
--	(transparent_hugepage_flags &			\
--	 (1<<TRANSPARENT_HUGEPAGE_FLAG))
-+static inline int next_order(unsigned long *orders, int prev)
-+{
-+	*orders &= ~BIT(prev);
-+	return highest_order(*orders);
-+}
+ /*
+- * Mask of all large folio orders supported for anonymous THP.
++ * Mask of all large folio orders supported for anonymous THP; all orders up to
++ * and including PMD_ORDER, except order-0 (which is not "huge") and order-1
++ * (which is a limitation of the THP implementation).
+  */
+-#define THP_ORDERS_ALL_ANON	BIT(PMD_ORDER)
++#define THP_ORDERS_ALL_ANON	((BIT(PMD_ORDER + 1) - 1) & ~(BIT(0) | BIT(1)))
  
  /*
-  * Do the below checks:
-  *   - For file vma, check if the linear page offset of vma is
-- *     HPAGE_PMD_NR aligned within the file.  The hugepage is
-- *     guaranteed to be hugepage-aligned within the file, but we must
-- *     check that the PMD-aligned addresses in the VMA map to
-- *     PMD-aligned offsets within the file, else the hugepage will
-- *     not be PMD-mappable.
-- *   - For all vmas, check if the haddr is in an aligned HPAGE_PMD_SIZE
-+ *     order-aligned within the file.  The hugepage is
-+ *     guaranteed to be order-aligned within the file, but we must
-+ *     check that the order-aligned addresses in the VMA map to
-+ *     order-aligned offsets within the file, else the hugepage will
-+ *     not be mappable.
-+ *   - For all vmas, check if the haddr is in an aligned hugepage
-  *     area.
-  */
--static inline bool transhuge_vma_suitable(struct vm_area_struct *vma,
--		unsigned long addr)
-+static inline bool thp_vma_suitable_order(struct vm_area_struct *vma,
-+		unsigned long addr, int order)
- {
-+	unsigned long hpage_size = PAGE_SIZE << order;
- 	unsigned long haddr;
- 
- 	/* Don't have to check pgoff for anonymous vma */
- 	if (!vma_is_anonymous(vma)) {
- 		if (!IS_ALIGNED((vma->vm_start >> PAGE_SHIFT) - vma->vm_pgoff,
--				HPAGE_PMD_NR))
-+				hpage_size >> PAGE_SHIFT))
- 			return false;
- 	}
- 
--	haddr = addr & HPAGE_PMD_MASK;
-+	haddr = ALIGN_DOWN(addr, hpage_size);
- 
--	if (haddr < vma->vm_start || haddr + HPAGE_PMD_SIZE > vma->vm_end)
-+	if (haddr < vma->vm_start || haddr + hpage_size > vma->vm_end)
- 		return false;
- 	return true;
+  * Mask of all large folio orders supported for file THP.
+--- a/mm/memory.c~mm-thp-support-allocation-of-anonymous-multi-size-thp
++++ a/mm/memory.c
+@@ -4125,6 +4125,84 @@ out_release:
+ 	return ret;
  }
  
-+/*
-+ * Filter the bitfield of input orders to the ones suitable for use in the vma.
-+ * See thp_vma_suitable_order().
-+ * All orders that pass the checks are returned as a bitfield.
-+ */
-+static inline unsigned long thp_vma_suitable_orders(struct vm_area_struct *vma,
-+		unsigned long addr, unsigned long orders)
++static bool pte_range_none(pte_t *pte, int nr_pages)
 +{
++	int i;
++
++	for (i = 0; i < nr_pages; i++) {
++		if (!pte_none(ptep_get_lockless(pte + i)))
++			return false;
++	}
++
++	return true;
++}
++
++static struct folio *alloc_anon_folio(struct vm_fault *vmf)
++{
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	struct vm_area_struct *vma = vmf->vma;
++	unsigned long orders;
++	struct folio *folio;
++	unsigned long addr;
++	pte_t *pte;
++	gfp_t gfp;
 +	int order;
 +
 +	/*
-+	 * Iterate over orders, highest to lowest, removing orders that don't
-+	 * meet alignment requirements from the set. Exit loop at first order
-+	 * that meets requirements, since all lower orders must also meet
-+	 * requirements.
++	 * If uffd is active for the vma we need per-page fault fidelity to
++	 * maintain the uffd semantics.
 +	 */
++	if (unlikely(userfaultfd_armed(vma)))
++		goto fallback;
 +
++	/*
++	 * Get a list of all the (large) orders below PMD_ORDER that are enabled
++	 * for this vma. Then filter out the orders that can't be allocated over
++	 * the faulting address and still be fully contained in the vma.
++	 */
++	orders = thp_vma_allowable_orders(vma, vma->vm_flags, false, true, true,
++					  BIT(PMD_ORDER) - 1);
++	orders = thp_vma_suitable_orders(vma, vmf->address, orders);
++
++	if (!orders)
++		goto fallback;
++
++	pte = pte_offset_map(vmf->pmd, vmf->address & PMD_MASK);
++	if (!pte)
++		return ERR_PTR(-EAGAIN);
++
++	/*
++	 * Find the highest order where the aligned range is completely
++	 * pte_none(). Note that all remaining orders will be completely
++	 * pte_none().
++	 */
 +	order = highest_order(orders);
-+
 +	while (orders) {
-+		if (thp_vma_suitable_order(vma, addr, order))
++		addr = ALIGN_DOWN(vmf->address, PAGE_SIZE << order);
++		if (pte_range_none(pte + pte_index(addr), 1 << order))
 +			break;
 +		order = next_order(&orders, order);
 +	}
 +
-+	return orders;
-+}
++	pte_unmap(pte);
 +
- static inline bool file_thp_enabled(struct vm_area_struct *vma)
- {
- 	struct inode *inode;
-@@ -130,8 +208,52 @@ static inline bool file_thp_enabled(stru
- 	       !inode_is_open_for_write(inode) && S_ISREG(inode->i_mode);
- }
- 
--bool hugepage_vma_check(struct vm_area_struct *vma, unsigned long vm_flags,
--			bool smaps, bool in_pf, bool enforce_sysfs);
-+unsigned long __thp_vma_allowable_orders(struct vm_area_struct *vma,
-+					 unsigned long vm_flags, bool smaps,
-+					 bool in_pf, bool enforce_sysfs,
-+					 unsigned long orders);
-+
-+/**
-+ * thp_vma_allowable_orders - determine hugepage orders that are allowed for vma
-+ * @vma:  the vm area to check
-+ * @vm_flags: use these vm_flags instead of vma->vm_flags
-+ * @smaps: whether answer will be used for smaps file
-+ * @in_pf: whether answer will be used by page fault handler
-+ * @enforce_sysfs: whether sysfs config should be taken into account
-+ * @orders: bitfield of all orders to consider
-+ *
-+ * Calculates the intersection of the requested hugepage orders and the allowed
-+ * hugepage orders for the provided vma. Permitted orders are encoded as a set
-+ * bit at the corresponding bit position (bit-2 corresponds to order-2, bit-3
-+ * corresponds to order-3, etc). Order-0 is never considered a hugepage order.
-+ *
-+ * Return: bitfield of orders allowed for hugepage in the vma. 0 if no hugepage
-+ * orders are allowed.
-+ */
-+static inline
-+unsigned long thp_vma_allowable_orders(struct vm_area_struct *vma,
-+				       unsigned long vm_flags, bool smaps,
-+				       bool in_pf, bool enforce_sysfs,
-+				       unsigned long orders)
-+{
-+	/* Optimization to check if required orders are enabled early. */
-+	if (enforce_sysfs && vma_is_anonymous(vma)) {
-+		unsigned long mask = READ_ONCE(huge_anon_orders_always);
-+
-+		if (vm_flags & VM_HUGEPAGE)
-+			mask |= READ_ONCE(huge_anon_orders_madvise);
-+		if (hugepage_global_always() ||
-+		    ((vm_flags & VM_HUGEPAGE) && hugepage_global_enabled()))
-+			mask |= READ_ONCE(huge_anon_orders_inherit);
-+
-+		orders &= mask;
-+		if (!orders)
-+			return 0;
-+	}
-+
-+	return __thp_vma_allowable_orders(vma, vm_flags, smaps, in_pf,
-+					  enforce_sysfs, orders);
-+}
- 
- #define transparent_hugepage_use_zero_page()				\
- 	(transparent_hugepage_flags &					\
-@@ -267,17 +389,24 @@ static inline bool folio_test_pmd_mappab
- 	return false;
- }
- 
--static inline bool transhuge_vma_suitable(struct vm_area_struct *vma,
--		unsigned long addr)
-+static inline bool thp_vma_suitable_order(struct vm_area_struct *vma,
-+		unsigned long addr, int order)
- {
- 	return false;
- }
- 
--static inline bool hugepage_vma_check(struct vm_area_struct *vma,
--				      unsigned long vm_flags, bool smaps,
--				      bool in_pf, bool enforce_sysfs)
-+static inline unsigned long thp_vma_suitable_orders(struct vm_area_struct *vma,
-+		unsigned long addr, unsigned long orders)
- {
--	return false;
-+	return 0;
-+}
-+
-+static inline unsigned long thp_vma_allowable_orders(struct vm_area_struct *vma,
-+					unsigned long vm_flags, bool smaps,
-+					bool in_pf, bool enforce_sysfs,
-+					unsigned long orders)
-+{
-+	return 0;
- }
- 
- static inline void folio_prep_large_rmappable(struct folio *folio) {}
---- a/mm/huge_memory.c~mm-thp-introduce-multi-size-thp-sysfs-interface
-+++ a/mm/huge_memory.c
-@@ -74,12 +74,23 @@ static unsigned long deferred_split_scan
- static atomic_t huge_zero_refcount;
- struct page *huge_zero_page __read_mostly;
- unsigned long huge_zero_pfn __read_mostly = ~0UL;
-+unsigned long huge_anon_orders_always __read_mostly;
-+unsigned long huge_anon_orders_madvise __read_mostly;
-+unsigned long huge_anon_orders_inherit __read_mostly;
-+
-+unsigned long __thp_vma_allowable_orders(struct vm_area_struct *vma,
-+					 unsigned long vm_flags, bool smaps,
-+					 bool in_pf, bool enforce_sysfs,
-+					 unsigned long orders)
-+{
-+	/* Check the intersection of requested and supported orders. */
-+	orders &= vma_is_anonymous(vma) ?
-+			THP_ORDERS_ALL_ANON : THP_ORDERS_ALL_FILE;
-+	if (!orders)
-+		return 0;
- 
--bool hugepage_vma_check(struct vm_area_struct *vma, unsigned long vm_flags,
--			bool smaps, bool in_pf, bool enforce_sysfs)
--{
- 	if (!vma->vm_mm)		/* vdso */
--		return false;
-+		return 0;
- 
- 	/*
- 	 * Explicitly disabled through madvise or prctl, or some
-@@ -88,16 +99,16 @@ bool hugepage_vma_check(struct vm_area_s
- 	 * */
- 	if ((vm_flags & VM_NOHUGEPAGE) ||
- 	    test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags))
--		return false;
-+		return 0;
- 	/*
- 	 * If the hardware/firmware marked hugepage support disabled.
- 	 */
- 	if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_UNSUPPORTED))
--		return false;
-+		return 0;
- 
- 	/* khugepaged doesn't collapse DAX vma, but page fault is fine. */
- 	if (vma_is_dax(vma))
--		return in_pf;
-+		return in_pf ? orders : 0;
- 
- 	/*
- 	 * khugepaged special VMA and hugetlb VMA.
-@@ -105,17 +116,29 @@ bool hugepage_vma_check(struct vm_area_s
- 	 * VM_MIXEDMAP set.
- 	 */
- 	if (!in_pf && !smaps && (vm_flags & VM_NO_KHUGEPAGED))
--		return false;
-+		return 0;
- 
- 	/*
--	 * Check alignment for file vma and size for both file and anon vma.
-+	 * Check alignment for file vma and size for both file and anon vma by
-+	 * filtering out the unsuitable orders.
- 	 *
- 	 * Skip the check for page fault. Huge fault does the check in fault
--	 * handlers. And this check is not suitable for huge PUD fault.
-+	 * handlers.
- 	 */
--	if (!in_pf &&
--	    !transhuge_vma_suitable(vma, (vma->vm_end - HPAGE_PMD_SIZE)))
--		return false;
-+	if (!in_pf) {
-+		int order = highest_order(orders);
-+		unsigned long addr;
-+
-+		while (orders) {
-+			addr = vma->vm_end - (PAGE_SIZE << order);
-+			if (thp_vma_suitable_order(vma, addr, order))
-+				break;
-+			order = next_order(&orders, order);
-+		}
-+
-+		if (!orders)
-+			return 0;
-+	}
- 
- 	/*
- 	 * Enabled via shmem mount options or sysfs settings.
-@@ -124,29 +147,33 @@ bool hugepage_vma_check(struct vm_area_s
- 	 */
- 	if (!in_pf && shmem_file(vma->vm_file))
- 		return shmem_is_huge(file_inode(vma->vm_file), vma->vm_pgoff,
--				     !enforce_sysfs, vma->vm_mm, vm_flags);
--
--	/* Enforce sysfs THP requirements as necessary */
--	if (enforce_sysfs &&
--	    (!hugepage_flags_enabled() || (!(vm_flags & VM_HUGEPAGE) &&
--					   !hugepage_flags_always())))
--		return false;
-+				     !enforce_sysfs, vma->vm_mm, vm_flags)
-+			? orders : 0;
- 
- 	if (!vma_is_anonymous(vma)) {
- 		/*
-+		 * Enforce sysfs THP requirements as necessary. Anonymous vmas
-+		 * were already handled in thp_vma_allowable_orders().
-+		 */
-+		if (enforce_sysfs &&
-+		    (!hugepage_global_enabled() || (!(vm_flags & VM_HUGEPAGE) &&
-+						    !hugepage_global_always())))
-+			return 0;
-+
-+		/*
- 		 * Trust that ->huge_fault() handlers know what they are doing
- 		 * in fault path.
- 		 */
- 		if (((in_pf || smaps)) && vma->vm_ops->huge_fault)
--			return true;
-+			return orders;
- 		/* Only regular file is valid in collapse path */
- 		if (((!in_pf || smaps)) && file_thp_enabled(vma))
--			return true;
--		return false;
-+			return orders;
-+		return 0;
- 	}
- 
- 	if (vma_is_temporary_stack(vma))
--		return false;
-+		return 0;
- 
- 	/*
- 	 * THPeligible bit of smaps should show 1 for proper VMAs even
-@@ -156,9 +183,9 @@ bool hugepage_vma_check(struct vm_area_s
- 	 * the first page fault.
- 	 */
- 	if (!vma->anon_vma)
--		return (smaps || in_pf);
-+		return (smaps || in_pf) ? orders : 0;
- 
--	return true;
-+	return orders;
- }
- 
- static bool get_huge_zero_page(void)
-@@ -412,9 +439,136 @@ static const struct attribute_group huge
- 	.attrs = hugepage_attr,
- };
- 
-+static void hugepage_exit_sysfs(struct kobject *hugepage_kobj);
-+static void thpsize_release(struct kobject *kobj);
-+static DEFINE_SPINLOCK(huge_anon_orders_lock);
-+static LIST_HEAD(thpsize_list);
-+
-+struct thpsize {
-+	struct kobject kobj;
-+	struct list_head node;
-+	int order;
-+};
-+
-+#define to_thpsize(kobj) container_of(kobj, struct thpsize, kobj)
-+
-+static ssize_t thpsize_enabled_show(struct kobject *kobj,
-+				    struct kobj_attribute *attr, char *buf)
-+{
-+	int order = to_thpsize(kobj)->order;
-+	const char *output;
-+
-+	if (test_bit(order, &huge_anon_orders_always))
-+		output = "[always] inherit madvise never";
-+	else if (test_bit(order, &huge_anon_orders_inherit))
-+		output = "always [inherit] madvise never";
-+	else if (test_bit(order, &huge_anon_orders_madvise))
-+		output = "always inherit [madvise] never";
-+	else
-+		output = "always inherit madvise [never]";
-+
-+	return sysfs_emit(buf, "%s\n", output);
-+}
-+
-+static ssize_t thpsize_enabled_store(struct kobject *kobj,
-+				     struct kobj_attribute *attr,
-+				     const char *buf, size_t count)
-+{
-+	int order = to_thpsize(kobj)->order;
-+	ssize_t ret = count;
-+
-+	if (sysfs_streq(buf, "always")) {
-+		spin_lock(&huge_anon_orders_lock);
-+		clear_bit(order, &huge_anon_orders_inherit);
-+		clear_bit(order, &huge_anon_orders_madvise);
-+		set_bit(order, &huge_anon_orders_always);
-+		spin_unlock(&huge_anon_orders_lock);
-+	} else if (sysfs_streq(buf, "inherit")) {
-+		spin_lock(&huge_anon_orders_lock);
-+		clear_bit(order, &huge_anon_orders_always);
-+		clear_bit(order, &huge_anon_orders_madvise);
-+		set_bit(order, &huge_anon_orders_inherit);
-+		spin_unlock(&huge_anon_orders_lock);
-+	} else if (sysfs_streq(buf, "madvise")) {
-+		spin_lock(&huge_anon_orders_lock);
-+		clear_bit(order, &huge_anon_orders_always);
-+		clear_bit(order, &huge_anon_orders_inherit);
-+		set_bit(order, &huge_anon_orders_madvise);
-+		spin_unlock(&huge_anon_orders_lock);
-+	} else if (sysfs_streq(buf, "never")) {
-+		spin_lock(&huge_anon_orders_lock);
-+		clear_bit(order, &huge_anon_orders_always);
-+		clear_bit(order, &huge_anon_orders_inherit);
-+		clear_bit(order, &huge_anon_orders_madvise);
-+		spin_unlock(&huge_anon_orders_lock);
-+	} else
-+		ret = -EINVAL;
-+
-+	return ret;
-+}
-+
-+static struct kobj_attribute thpsize_enabled_attr =
-+	__ATTR(enabled, 0644, thpsize_enabled_show, thpsize_enabled_store);
-+
-+static struct attribute *thpsize_attrs[] = {
-+	&thpsize_enabled_attr.attr,
-+	NULL,
-+};
-+
-+static const struct attribute_group thpsize_attr_group = {
-+	.attrs = thpsize_attrs,
-+};
-+
-+static const struct kobj_type thpsize_ktype = {
-+	.release = &thpsize_release,
-+	.sysfs_ops = &kobj_sysfs_ops,
-+};
-+
-+static struct thpsize *thpsize_create(int order, struct kobject *parent)
-+{
-+	unsigned long size = (PAGE_SIZE << order) / SZ_1K;
-+	struct thpsize *thpsize;
-+	int ret;
-+
-+	thpsize = kzalloc(sizeof(*thpsize), GFP_KERNEL);
-+	if (!thpsize)
-+		return ERR_PTR(-ENOMEM);
-+
-+	ret = kobject_init_and_add(&thpsize->kobj, &thpsize_ktype, parent,
-+				   "hugepages-%lukB", size);
-+	if (ret) {
-+		kfree(thpsize);
-+		return ERR_PTR(ret);
-+	}
-+
-+	ret = sysfs_create_group(&thpsize->kobj, &thpsize_attr_group);
-+	if (ret) {
-+		kobject_put(&thpsize->kobj);
-+		return ERR_PTR(ret);
-+	}
-+
-+	thpsize->order = order;
-+	return thpsize;
-+}
-+
-+static void thpsize_release(struct kobject *kobj)
-+{
-+	kfree(to_thpsize(kobj));
-+}
-+
- static int __init hugepage_init_sysfs(struct kobject **hugepage_kobj)
- {
- 	int err;
-+	struct thpsize *thpsize;
-+	unsigned long orders;
-+	int order;
-+
-+	/*
-+	 * Default to setting PMD-sized THP to inherit the global setting and
-+	 * disable all other sizes. powerpc's PMD_ORDER isn't a compile-time
-+	 * constant so we have to do this here.
-+	 */
-+	huge_anon_orders_inherit = BIT(PMD_ORDER);
- 
- 	*hugepage_kobj = kobject_create_and_add("transparent_hugepage", mm_kobj);
- 	if (unlikely(!*hugepage_kobj)) {
-@@ -434,8 +588,24 @@ static int __init hugepage_init_sysfs(st
- 		goto remove_hp_group;
- 	}
- 
-+	orders = THP_ORDERS_ALL_ANON;
-+	order = highest_order(orders);
++	/* Try allocating the highest of the remaining orders. */
++	gfp = vma_thp_gfp_mask(vma);
 +	while (orders) {
-+		thpsize = thpsize_create(order, *hugepage_kobj);
-+		if (IS_ERR(thpsize)) {
-+			pr_err("failed to create thpsize for order %d\n", order);
-+			err = PTR_ERR(thpsize);
-+			goto remove_all;
++		addr = ALIGN_DOWN(vmf->address, PAGE_SIZE << order);
++		folio = vma_alloc_folio(gfp, order, vma, addr, true);
++		if (folio) {
++			clear_huge_page(&folio->page, vmf->address, 1 << order);
++			return folio;
 +		}
-+		list_add(&thpsize->node, &thpsize_list);
 +		order = next_order(&orders, order);
 +	}
 +
- 	return 0;
- 
-+remove_all:
-+	hugepage_exit_sysfs(*hugepage_kobj);
-+	return err;
- remove_hp_group:
- 	sysfs_remove_group(*hugepage_kobj, &hugepage_attr_group);
- delete_obj:
-@@ -445,6 +615,13 @@ delete_obj:
- 
- static void __init hugepage_exit_sysfs(struct kobject *hugepage_kobj)
++fallback:
++#endif
++	return vma_alloc_zeroed_movable_folio(vmf->vma, vmf->address);
++}
++
+ /*
+  * We enter with non-exclusive mmap_lock (to exclude vma changes,
+  * but allow concurrent faults), and pte mapped but not yet locked.
+@@ -4134,9 +4212,12 @@ static vm_fault_t do_anonymous_page(stru
  {
-+	struct thpsize *thpsize, *tmp;
-+
-+	list_for_each_entry_safe(thpsize, tmp, &thpsize_list, node) {
-+		list_del(&thpsize->node);
-+		kobject_put(&thpsize->kobj);
-+	}
-+
- 	sysfs_remove_group(hugepage_kobj, &khugepaged_attr_group);
- 	sysfs_remove_group(hugepage_kobj, &hugepage_attr_group);
- 	kobject_put(hugepage_kobj);
-@@ -811,7 +988,7 @@ vm_fault_t do_huge_pmd_anonymous_page(st
+ 	bool uffd_wp = vmf_orig_pte_uffd_wp(vmf);
+ 	struct vm_area_struct *vma = vmf->vma;
++	unsigned long addr = vmf->address;
  	struct folio *folio;
- 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
+ 	vm_fault_t ret = 0;
++	int nr_pages = 1;
+ 	pte_t entry;
++	int i;
  
--	if (!transhuge_vma_suitable(vma, haddr))
-+	if (!thp_vma_suitable_order(vma, haddr, PMD_ORDER))
- 		return VM_FAULT_FALLBACK;
+ 	/* File mapping without ->vm_ops ? */
+ 	if (vma->vm_flags & VM_SHARED)
+@@ -4176,10 +4257,16 @@ static vm_fault_t do_anonymous_page(stru
+ 	/* Allocate our own private page. */
  	if (unlikely(anon_vma_prepare(vma)))
- 		return VM_FAULT_OOM;
---- a/mm/khugepaged.c~mm-thp-introduce-multi-size-thp-sysfs-interface
-+++ a/mm/khugepaged.c
-@@ -446,7 +446,8 @@ void khugepaged_enter_vma(struct vm_area
- {
- 	if (!test_bit(MMF_VM_HUGEPAGE, &vma->vm_mm->flags) &&
- 	    hugepage_flags_enabled()) {
--		if (hugepage_vma_check(vma, vm_flags, false, false, true))
-+		if (thp_vma_allowable_order(vma, vm_flags, false, false, true,
-+					    PMD_ORDER))
- 			__khugepaged_enter(vma->vm_mm);
+ 		goto oom;
+-	folio = vma_alloc_zeroed_movable_folio(vma, vmf->address);
++	/* Returns NULL on OOM or ERR_PTR(-EAGAIN) if we must retry the fault */
++	folio = alloc_anon_folio(vmf);
++	if (IS_ERR(folio))
++		return 0;
+ 	if (!folio)
+ 		goto oom;
+ 
++	nr_pages = folio_nr_pages(folio);
++	addr = ALIGN_DOWN(vmf->address, nr_pages * PAGE_SIZE);
++
+ 	if (mem_cgroup_charge(folio, vma->vm_mm, GFP_KERNEL))
+ 		goto oom_free_page;
+ 	folio_throttle_swaprate(folio, GFP_KERNEL);
+@@ -4196,12 +4283,15 @@ static vm_fault_t do_anonymous_page(stru
+ 	if (vma->vm_flags & VM_WRITE)
+ 		entry = pte_mkwrite(pte_mkdirty(entry), vma);
+ 
+-	vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd, vmf->address,
+-			&vmf->ptl);
++	vmf->pte = pte_offset_map_lock(vma->vm_mm, vmf->pmd, addr, &vmf->ptl);
+ 	if (!vmf->pte)
+ 		goto release;
+-	if (vmf_pte_changed(vmf)) {
+-		update_mmu_tlb(vma, vmf->address, vmf->pte);
++	if (nr_pages == 1 && vmf_pte_changed(vmf)) {
++		update_mmu_tlb(vma, addr, vmf->pte);
++		goto release;
++	} else if (nr_pages > 1 && !pte_range_none(vmf->pte, nr_pages)) {
++		for (i = 0; i < nr_pages; i++)
++			update_mmu_tlb(vma, addr + PAGE_SIZE * i, vmf->pte + i);
+ 		goto release;
  	}
- }
-@@ -922,16 +923,16 @@ static int hugepage_vma_revalidate(struc
- 	if (!vma)
- 		return SCAN_VMA_NULL;
  
--	if (!transhuge_vma_suitable(vma, address))
-+	if (!thp_vma_suitable_order(vma, address, PMD_ORDER))
- 		return SCAN_ADDRESS_RANGE;
--	if (!hugepage_vma_check(vma, vma->vm_flags, false, false,
--				cc->is_khugepaged))
-+	if (!thp_vma_allowable_order(vma, vma->vm_flags, false, false,
-+				     cc->is_khugepaged, PMD_ORDER))
- 		return SCAN_VMA_CHECK;
- 	/*
- 	 * Anon VMA expected, the address may be unmapped then
- 	 * remapped to file after khugepaged reaquired the mmap_lock.
- 	 *
--	 * hugepage_vma_check may return true for qualified file
-+	 * thp_vma_allowable_order may return true for qualified file
- 	 * vmas.
- 	 */
- 	if (expect_anon && (!(*vmap)->anon_vma || !vma_is_anonymous(*vmap)))
-@@ -1503,7 +1504,8 @@ int collapse_pte_mapped_thp(struct mm_st
- 	 * and map it by a PMD, regardless of sysfs THP settings. As such, let's
- 	 * analogously elide sysfs THP settings here.
- 	 */
--	if (!hugepage_vma_check(vma, vma->vm_flags, false, false, false))
-+	if (!thp_vma_allowable_order(vma, vma->vm_flags, false, false, false,
-+				     PMD_ORDER))
- 		return SCAN_VMA_CHECK;
+@@ -4216,16 +4306,17 @@ static vm_fault_t do_anonymous_page(stru
+ 		return handle_userfault(vmf, VM_UFFD_MISSING);
+ 	}
  
- 	/* Keep pmd pgtable for uffd-wp; see comment in retract_page_tables() */
-@@ -2368,7 +2370,8 @@ static unsigned int khugepaged_scan_mm_s
- 			progress++;
- 			break;
- 		}
--		if (!hugepage_vma_check(vma, vma->vm_flags, false, false, true)) {
-+		if (!thp_vma_allowable_order(vma, vma->vm_flags, false, false,
-+					     true, PMD_ORDER)) {
- skip:
- 			progress++;
- 			continue;
-@@ -2705,7 +2708,8 @@ int madvise_collapse(struct vm_area_stru
+-	inc_mm_counter(vma->vm_mm, MM_ANONPAGES);
+-	folio_add_new_anon_rmap(folio, vma, vmf->address);
++	folio_ref_add(folio, nr_pages - 1);
++	add_mm_counter(vma->vm_mm, MM_ANONPAGES, nr_pages);
++	folio_add_new_anon_rmap(folio, vma, addr);
+ 	folio_add_lru_vma(folio, vma);
+ setpte:
+ 	if (uffd_wp)
+ 		entry = pte_mkuffd_wp(entry);
+-	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, entry);
++	set_ptes(vma->vm_mm, addr, vmf->pte, entry, nr_pages);
  
- 	*prev = vma;
- 
--	if (!hugepage_vma_check(vma, vma->vm_flags, false, false, false))
-+	if (!thp_vma_allowable_order(vma, vma->vm_flags, false, false, false,
-+				     PMD_ORDER))
- 		return -EINVAL;
- 
- 	cc = kmalloc(sizeof(*cc), GFP_KERNEL);
---- a/mm/memory.c~mm-thp-introduce-multi-size-thp-sysfs-interface
-+++ a/mm/memory.c
-@@ -4322,7 +4322,7 @@ vm_fault_t do_set_pmd(struct vm_fault *v
- 	pmd_t entry;
- 	vm_fault_t ret = VM_FAULT_FALLBACK;
- 
--	if (!transhuge_vma_suitable(vma, haddr))
-+	if (!thp_vma_suitable_order(vma, haddr, PMD_ORDER))
- 		return ret;
- 
- 	page = compound_head(page);
-@@ -5116,7 +5116,7 @@ static vm_fault_t __handle_mm_fault(stru
- 		return VM_FAULT_OOM;
- retry_pud:
- 	if (pud_none(*vmf.pud) &&
--	    hugepage_vma_check(vma, vm_flags, false, true, true)) {
-+	    thp_vma_allowable_order(vma, vm_flags, false, true, true, PUD_ORDER)) {
- 		ret = create_huge_pud(&vmf);
- 		if (!(ret & VM_FAULT_FALLBACK))
- 			return ret;
-@@ -5150,7 +5150,7 @@ retry_pud:
- 		goto retry_pud;
- 
- 	if (pmd_none(*vmf.pmd) &&
--	    hugepage_vma_check(vma, vm_flags, false, true, true)) {
-+	    thp_vma_allowable_order(vma, vm_flags, false, true, true, PMD_ORDER)) {
- 		ret = create_huge_pmd(&vmf);
- 		if (!(ret & VM_FAULT_FALLBACK))
- 			return ret;
---- a/mm/page_vma_mapped.c~mm-thp-introduce-multi-size-thp-sysfs-interface
-+++ a/mm/page_vma_mapped.c
-@@ -268,7 +268,8 @@ restart:
- 			 * cleared *pmd but not decremented compound_mapcount().
- 			 */
- 			if ((pvmw->flags & PVMW_SYNC) &&
--			    transhuge_vma_suitable(vma, pvmw->address) &&
-+			    thp_vma_suitable_order(vma, pvmw->address,
-+						   PMD_ORDER) &&
- 			    (pvmw->nr_pages >= HPAGE_PMD_NR)) {
- 				spinlock_t *ptl = pmd_lock(mm, pvmw->pmd);
- 
+ 	/* No need to invalidate - it was non-present before */
+-	update_mmu_cache_range(vmf, vma, vmf->address, vmf->pte, 1);
++	update_mmu_cache_range(vmf, vma, addr, vmf->pte, nr_pages);
+ unlock:
+ 	if (vmf->pte)
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
