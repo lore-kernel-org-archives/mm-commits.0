@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4D827E2
-	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 00:05:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27ED1629
+	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 00:05:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YEJR+ZtV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46A8AC433C9;
-	Wed, 20 Dec 2023 00:05:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DdR7w+No"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E58E8C433C8;
+	Wed, 20 Dec 2023 00:05:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703030749;
-	bh=DUNNZaIsj4Kdvag0ciNOpfxKgI5en2bOxeKP7ANbUe4=;
+	s=korg; t=1703030751;
+	bh=ZiU5DKQLL7Md/i9EFbSsRM2Wf/EjWhSVoeLZPR1YwYA=;
 	h=Date:To:From:Subject:From;
-	b=YEJR+ZtV5sHwslvL+amK2tX7lYwxUEqvRPqEgV9hLs7dYo0PzBsijqrkPYhdYN/3E
-	 AvUn+9m2lXWF/GInIuN0PJZ4DRWHPR9AKo8ZfOnRbWWlZtqMmZi/J0JiUUWFaMSQLO
-	 qBSgM19zOeFZj9YglCL+uB6NPMl8WaKnDVLhUMlg=
-Date: Tue, 19 Dec 2023 16:05:48 -0800
+	b=DdR7w+NoBk6gWMgIloM3HkAVJdONi5Xikr3yCONcjbd1Ocxenkt8bJqIXBtypzDbn
+	 NC+VOCxc9bJOtD0ntVSJ1UV1CyGZM/vObHa80n7dpwt7Ku03lSOVi5TASl1NZfjZYy
+	 R2sZtW0MjzOlNxgVbdgRNVUBBm6kINGp5eGtrCho=
+Date: Tue, 19 Dec 2023 16:05:50 -0800
 To: mm-commits@vger.kernel.org,ryabinin.a.a@gmail.com,leitao@debian.org,glider@google.com,eugenis@google.com,elver@google.com,dvyukov@google.com,alobakin@pm.me,andreyknvl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mempool-skip-slub_debug-poisoning-when-kasan-is-enabled.patch added to mm-unstable branch
-Message-Id: <20231220000549.46A8AC433C9@smtp.kernel.org>
+Subject: + mempool-use-new-mempool-kasan-hooks.patch added to mm-unstable branch
+Message-Id: <20231220000550.E58E8C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mempool: skip slub_debug poisoning when KASAN is enabled
+     Subject: mempool: use new mempool KASAN hooks
 has been added to the -mm mm-unstable branch.  Its filename is
-     mempool-skip-slub_debug-poisoning-when-kasan-is-enabled.patch
+     mempool-use-new-mempool-kasan-hooks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mempool-skip-slub_debug-poisoning-when-kasan-is-enabled.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mempool-use-new-mempool-kasan-hooks.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,19 +51,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: mempool: skip slub_debug poisoning when KASAN is enabled
-Date: Tue, 19 Dec 2023 23:28:57 +0100
+Subject: mempool: use new mempool KASAN hooks
+Date: Tue, 19 Dec 2023 23:28:58 +0100
 
-With the changes in the following patch, KASAN starts saving its metadata
-within freed mempool elements.
+Update the mempool code to use the new mempool KASAN hooks.
 
-Thus, skip slub_debug poisoning and checking of mempool elements when
-KASAN is enabled.  Corruptions of freed mempool elements will be detected
-by KASAN anyway.
+Rely on the return value of kasan_mempool_poison_object and
+kasan_mempool_poison_pages to prevent double-free and invalid-free bugs.
 
-Link: https://lkml.kernel.org/r/98a4b1617e8ceeb266ef9a46f5e8c7f67a563ad2.1703024586.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/d36fc4a6865bdbd297cadb46b67641d436849f4c.1703024586.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-
 Cc: Alexander Lobakin <alobakin@pm.me>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
@@ -74,33 +71,56 @@ Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempool.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/mempool.c |   22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
---- a/mm/mempool.c~mempool-skip-slub_debug-poisoning-when-kasan-is-enabled
+--- a/mm/mempool.c~mempool-use-new-mempool-kasan-hooks
 +++ a/mm/mempool.c
-@@ -56,6 +56,10 @@ static void __check_element(mempool_t *p
+@@ -112,32 +112,34 @@ static inline void poison_element(mempoo
+ }
+ #endif /* CONFIG_DEBUG_SLAB || CONFIG_SLUB_DEBUG_ON */
  
- static void check_element(mempool_t *pool, void *element)
+-static __always_inline void kasan_poison_element(mempool_t *pool, void *element)
++static __always_inline bool kasan_poison_element(mempool_t *pool, void *element)
  {
-+	/* Skip checking: KASAN might save its metadata in the element. */
-+	if (kasan_enabled())
-+		return;
-+
- 	/* Mempools backed by slab allocator */
- 	if (pool->free == mempool_kfree) {
- 		__check_element(pool, element, (size_t)pool->pool_data);
-@@ -81,6 +85,10 @@ static void __poison_element(void *eleme
+ 	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc)
+-		kasan_mempool_poison_object(element);
++		return kasan_mempool_poison_object(element);
+ 	else if (pool->alloc == mempool_alloc_pages)
+-		kasan_poison_pages(element, (unsigned long)pool->pool_data,
+-				   false);
++		return kasan_mempool_poison_pages(element,
++						(unsigned long)pool->pool_data);
++	return true;
+ }
  
- static void poison_element(mempool_t *pool, void *element)
+ static void kasan_unpoison_element(mempool_t *pool, void *element)
  {
-+	/* Skip poisoning: KASAN might save its metadata in the element. */
-+	if (kasan_enabled())
-+		return;
-+
- 	/* Mempools backed by slab allocator */
- 	if (pool->alloc == mempool_kmalloc) {
- 		__poison_element(element, (size_t)pool->pool_data);
+ 	if (pool->alloc == mempool_kmalloc)
+-		kasan_unpoison_range(element, (size_t)pool->pool_data);
++		kasan_mempool_unpoison_object(element, (size_t)pool->pool_data);
+ 	else if (pool->alloc == mempool_alloc_slab)
+-		kasan_unpoison_range(element, kmem_cache_size(pool->pool_data));
++		kasan_mempool_unpoison_object(element,
++					      kmem_cache_size(pool->pool_data));
+ 	else if (pool->alloc == mempool_alloc_pages)
+-		kasan_unpoison_pages(element, (unsigned long)pool->pool_data,
+-				     false);
++		kasan_mempool_unpoison_pages(element,
++					     (unsigned long)pool->pool_data);
+ }
+ 
+ static __always_inline void add_element(mempool_t *pool, void *element)
+ {
+ 	BUG_ON(pool->curr_nr >= pool->min_nr);
+ 	poison_element(pool, element);
+-	kasan_poison_element(pool, element);
+-	pool->elements[pool->curr_nr++] = element;
++	if (kasan_poison_element(pool, element))
++		pool->elements[pool->curr_nr++] = element;
+ }
+ 
+ static void *remove_element(mempool_t *pool)
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
