@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5882910FA
-	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 00:05:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5ECF8ECC
+	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 00:05:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P4MeUCRT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B701DC433C8;
-	Wed, 20 Dec 2023 00:05:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KuWFyfqr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5A14C433C7;
+	Wed, 20 Dec 2023 00:05:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703030752;
-	bh=6oOIzPkdFMaLa9Te6nDe5JPKB/1jSBOmfrwFpcJINj8=;
+	s=korg; t=1703030754;
+	bh=e0+dhdEru1ibfJ212Xg1OR1NrtHafEZP8YEOmc9D2R4=;
 	h=Date:To:From:Subject:From;
-	b=P4MeUCRTWDNCX2LGlqP0w24pe1x9uHQCZenQoGBZWcFa6U1so7tGYfNd7eWqaEOzr
-	 s8BAWsBQb5PA1MVtwWGiczk2M+hL3JVd8MxiIKa2QHO/46JYn81rd42TnF3HnqdSWP
-	 knTi4HQ1OlymtthWBM5+Qpvv1EBzP7CCzcXdyFWg=
-Date: Tue, 19 Dec 2023 16:05:52 -0800
+	b=KuWFyfqrt/eVgruyWf54p2TbVOr+Lw9POXAm26CVy7nmI1qPgjvN67eaHT+Yi3cGb
+	 EdVvwiiJuwfLM/eHkWuvl3u2Kwt1HpQWYCTg9QO+cBeCOszsEkKZIu59xLIHCSeVpa
+	 zromtEa8QxnBNqg0n1PP6HlpVGTrS/3vbfUUt1A0=
+Date: Tue, 19 Dec 2023 16:05:54 -0800
 To: mm-commits@vger.kernel.org,ryabinin.a.a@gmail.com,leitao@debian.org,glider@google.com,eugenis@google.com,elver@google.com,dvyukov@google.com,alobakin@pm.me,andreyknvl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mempool-introduce-mempool_use_prealloc_only.patch added to mm-unstable branch
-Message-Id: <20231220000552.B701DC433C8@smtp.kernel.org>
+Subject: + kasan-add-mempool-tests.patch added to mm-unstable branch
+Message-Id: <20231220000554.C5A14C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mempool: introduce mempool_use_prealloc_only
+     Subject: kasan: add mempool tests
 has been added to the -mm mm-unstable branch.  Its filename is
-     mempool-introduce-mempool_use_prealloc_only.patch
+     kasan-add-mempool-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mempool-introduce-mempool_use_prealloc_only.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-add-mempool-tests.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,18 +51,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: mempool: introduce mempool_use_prealloc_only
-Date: Tue, 19 Dec 2023 23:28:59 +0100
+Subject: kasan: add mempool tests
+Date: Tue, 19 Dec 2023 23:29:00 +0100
 
-Introduce a new mempool_alloc_preallocated API that asks the mempool to
-only use the elements preallocated during the mempool's creation when
-allocating and to not attempt allocating new ones from the underlying
-allocator.
+Add KASAN tests for mempool.
 
-This API is required to test the KASAN poisoning/unpoisoning functionality
-in KASAN tests, but it might be also useful on its own.
-
-Link: https://lkml.kernel.org/r/a14d809dbdfd04cc33bcacc632fee2abd6b83c00.1703024586.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/5fd64732266be8287711b6408d86ffc78784be06.1703024586.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 
 Cc: Alexander Lobakin <alobakin@pm.me>
@@ -75,66 +69,351 @@ Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempool.h |    1 +
- mm/mempool.c            |   37 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 38 insertions(+)
+ mm/kasan/kasan_test.c |  319 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 319 insertions(+)
 
---- a/include/linux/mempool.h~mempool-introduce-mempool_use_prealloc_only
-+++ a/include/linux/mempool.h
-@@ -51,6 +51,7 @@ extern mempool_t *mempool_create_node(in
- extern int mempool_resize(mempool_t *pool, int new_min_nr);
- extern void mempool_destroy(mempool_t *pool);
- extern void *mempool_alloc(mempool_t *pool, gfp_t gfp_mask) __malloc;
-+extern void *mempool_alloc_preallocated(mempool_t *pool) __malloc;
- extern void mempool_free(void *element, mempool_t *pool);
+--- a/mm/kasan/kasan_test.c~kasan-add-mempool-tests
++++ a/mm/kasan/kasan_test.c
+@@ -13,6 +13,7 @@
+ #include <linux/io.h>
+ #include <linux/kasan.h>
+ #include <linux/kernel.h>
++#include <linux/mempool.h>
+ #include <linux/mm.h>
+ #include <linux/mman.h>
+ #include <linux/module.h>
+@@ -810,6 +811,312 @@ static void kmem_cache_bulk(struct kunit
+ 	kmem_cache_destroy(cache);
+ }
  
- /*
---- a/mm/mempool.c~mempool-introduce-mempool_use_prealloc_only
-+++ a/mm/mempool.c
-@@ -457,6 +457,43 @@ repeat_alloc:
- EXPORT_SYMBOL(mempool_alloc);
- 
- /**
-+ * mempool_alloc_preallocated - allocate an element from preallocated elements
-+ *                              belonging to a specific memory pool
-+ * @pool:      pointer to the memory pool which was allocated via
-+ *             mempool_create().
-+ *
-+ * This function is similar to mempool_alloc, but it only attempts allocating
-+ * an element from the preallocated elements. It does not sleep and immediately
-+ * returns if no preallocated elements are available.
-+ *
-+ * Return: pointer to the allocated element or %NULL if no elements are
-+ * available.
-+ */
-+void *mempool_alloc_preallocated(mempool_t *pool)
++static void *mempool_prepare_kmalloc(struct kunit *test, mempool_t *pool, size_t size)
 +{
-+	void *element;
-+	unsigned long flags;
++	int pool_size = 4;
++	int ret;
++	void *elem;
 +
-+	spin_lock_irqsave(&pool->lock, flags);
-+	if (likely(pool->curr_nr)) {
-+		element = remove_element(pool);
-+		spin_unlock_irqrestore(&pool->lock, flags);
-+		/* paired with rmb in mempool_free(), read comment there */
-+		smp_wmb();
-+		/*
-+		 * Update the allocation stack trace as this is more useful
-+		 * for debugging.
-+		 */
-+		kmemleak_update_trace(element);
-+		return element;
-+	}
-+	spin_unlock_irqrestore(&pool->lock, flags);
++	memset(pool, 0, sizeof(*pool));
++	ret = mempool_init_kmalloc_pool(pool, pool_size, size);
++	KUNIT_ASSERT_EQ(test, ret, 0);
 +
-+	return NULL;
++	/*
++	 * Allocate one element to prevent mempool from freeing elements to the
++	 * underlying allocator and instead make it add them to the element
++	 * list when the tests trigger double-free and invalid-free bugs.
++	 * This allows testing KASAN annotations in add_element().
++	 */
++	elem = mempool_alloc_preallocated(pool);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, elem);
++
++	return elem;
 +}
-+EXPORT_SYMBOL(mempool_alloc_preallocated);
 +
-+/**
-  * mempool_free - return an element to the pool.
-  * @element:   pool element pointer.
-  * @pool:      pointer to the memory pool which was allocated via
++static struct kmem_cache *mempool_prepare_slab(struct kunit *test, mempool_t *pool, size_t size)
++{
++	struct kmem_cache *cache;
++	int pool_size = 4;
++	int ret;
++
++	cache = kmem_cache_create("test_cache", size, 0, 0, NULL);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, cache);
++
++	memset(pool, 0, sizeof(*pool));
++	ret = mempool_init_slab_pool(pool, pool_size, cache);
++	KUNIT_ASSERT_EQ(test, ret, 0);
++
++	/*
++	 * Do not allocate one preallocated element, as we skip the double-free
++	 * and invalid-free tests for slab mempool for simplicity.
++	 */
++
++	return cache;
++}
++
++static void *mempool_prepare_page(struct kunit *test, mempool_t *pool, int order)
++{
++	int pool_size = 4;
++	int ret;
++	void *elem;
++
++	memset(pool, 0, sizeof(*pool));
++	ret = mempool_init_page_pool(pool, pool_size, order);
++	KUNIT_ASSERT_EQ(test, ret, 0);
++
++	elem = mempool_alloc_preallocated(pool);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, elem);
++
++	return elem;
++}
++
++static void mempool_oob_right_helper(struct kunit *test, mempool_t *pool, size_t size)
++{
++	char *elem;
++
++	elem = mempool_alloc_preallocated(pool);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, elem);
++
++	OPTIMIZER_HIDE_VAR(elem);
++
++	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
++		KUNIT_EXPECT_KASAN_FAIL(test,
++			((volatile char *)&elem[size])[0]);
++	else
++		KUNIT_EXPECT_KASAN_FAIL(test,
++			((volatile char *)&elem[round_up(size, KASAN_GRANULE_SIZE)])[0]);
++
++	mempool_free(elem, pool);
++}
++
++static void mempool_kmalloc_oob_right(struct kunit *test)
++{
++	mempool_t pool;
++	size_t size = 128 - KASAN_GRANULE_SIZE - 5;
++	void *extra_elem;
++
++	extra_elem = mempool_prepare_kmalloc(test, &pool, size);
++
++	mempool_oob_right_helper(test, &pool, size);
++
++	mempool_free(extra_elem, &pool);
++	mempool_exit(&pool);
++}
++
++static void mempool_kmalloc_large_oob_right(struct kunit *test)
++{
++	mempool_t pool;
++	size_t size = KMALLOC_MAX_CACHE_SIZE + 1;
++	void *extra_elem;
++
++	extra_elem = mempool_prepare_kmalloc(test, &pool, size);
++
++	mempool_oob_right_helper(test, &pool, size);
++
++	mempool_free(extra_elem, &pool);
++	mempool_exit(&pool);
++}
++
++static void mempool_slab_oob_right(struct kunit *test)
++{
++	mempool_t pool;
++	size_t size = 123;
++	struct kmem_cache *cache;
++
++	cache = mempool_prepare_slab(test, &pool, size);
++
++	mempool_oob_right_helper(test, &pool, size);
++
++	mempool_exit(&pool);
++	kmem_cache_destroy(cache);
++}
++
++/*
++ * Skip the out-of-bounds test for page mempool. With Generic KASAN, page
++ * allocations have no redzones, and thus the out-of-bounds detection is not
++ * guaranteed; see https://bugzilla.kernel.org/show_bug.cgi?id=210503. With
++ * the tag-based KASAN modes, the neighboring allocation might have the same
++ * tag; see https://bugzilla.kernel.org/show_bug.cgi?id=203505.
++ */
++
++static void mempool_uaf_helper(struct kunit *test, mempool_t *pool, bool page)
++{
++	char *elem, *ptr;
++
++	elem = mempool_alloc_preallocated(pool);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, elem);
++
++	mempool_free(elem, pool);
++
++	ptr = page ? page_address((struct page *)elem) : elem;
++	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr)[0]);
++}
++
++static void mempool_kmalloc_uaf(struct kunit *test)
++{
++	mempool_t pool;
++	size_t size = 128;
++	void *extra_elem;
++
++	extra_elem = mempool_prepare_kmalloc(test, &pool, size);
++
++	mempool_uaf_helper(test, &pool, false);
++
++	mempool_free(extra_elem, &pool);
++	mempool_exit(&pool);
++}
++
++static void mempool_kmalloc_large_uaf(struct kunit *test)
++{
++	mempool_t pool;
++	size_t size = KMALLOC_MAX_CACHE_SIZE + 1;
++	void *extra_elem;
++
++	/* page_alloc fallback is only implemented for SLUB. */
++	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_SLUB);
++
++	extra_elem = mempool_prepare_kmalloc(test, &pool, size);
++
++	mempool_uaf_helper(test, &pool, false);
++
++	mempool_free(extra_elem, &pool);
++	mempool_exit(&pool);
++}
++
++static void mempool_slab_uaf(struct kunit *test)
++{
++	mempool_t pool;
++	size_t size = 123;
++	struct kmem_cache *cache;
++
++	cache = mempool_prepare_slab(test, &pool, size);
++
++	mempool_uaf_helper(test, &pool, false);
++
++	mempool_exit(&pool);
++	kmem_cache_destroy(cache);
++}
++
++static void mempool_page_alloc_uaf(struct kunit *test)
++{
++	mempool_t pool;
++	int order = 2;
++	void *extra_elem;
++
++	extra_elem = mempool_prepare_page(test, &pool, order);
++
++	mempool_uaf_helper(test, &pool, true);
++
++	mempool_free(extra_elem, &pool);
++	mempool_exit(&pool);
++}
++
++static void mempool_double_free_helper(struct kunit *test, mempool_t *pool)
++{
++	char *elem;
++
++	elem = mempool_alloc_preallocated(pool);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, elem);
++
++	mempool_free(elem, pool);
++
++	KUNIT_EXPECT_KASAN_FAIL(test, mempool_free(elem, pool));
++}
++
++static void mempool_kmalloc_double_free(struct kunit *test)
++{
++	mempool_t pool;
++	size_t size = 128;
++	char *extra_elem;
++
++	extra_elem = mempool_prepare_kmalloc(test, &pool, size);
++
++	mempool_double_free_helper(test, &pool);
++
++	mempool_free(extra_elem, &pool);
++	mempool_exit(&pool);
++}
++
++static void mempool_kmalloc_large_double_free(struct kunit *test)
++{
++	mempool_t pool;
++	size_t size = KMALLOC_MAX_CACHE_SIZE + 1;
++	char *extra_elem;
++
++	/* page_alloc fallback is only implemented for SLUB. */
++	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_SLUB);
++
++	extra_elem = mempool_prepare_kmalloc(test, &pool, size);
++
++	mempool_double_free_helper(test, &pool);
++
++	mempool_free(extra_elem, &pool);
++	mempool_exit(&pool);
++}
++
++static void mempool_page_alloc_double_free(struct kunit *test)
++{
++	mempool_t pool;
++	int order = 2;
++	char *extra_elem;
++
++	extra_elem = mempool_prepare_page(test, &pool, order);
++
++	mempool_double_free_helper(test, &pool);
++
++	mempool_free(extra_elem, &pool);
++	mempool_exit(&pool);
++}
++
++static void mempool_kmalloc_invalid_free_helper(struct kunit *test, mempool_t *pool)
++{
++	char *elem;
++
++	elem = mempool_alloc_preallocated(pool);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, elem);
++
++	KUNIT_EXPECT_KASAN_FAIL(test, mempool_free(elem + 1, pool));
++
++	mempool_free(elem, pool);
++}
++
++static void mempool_kmalloc_invalid_free(struct kunit *test)
++{
++	mempool_t pool;
++	size_t size = 128;
++	char *extra_elem;
++
++	extra_elem = mempool_prepare_kmalloc(test, &pool, size);
++
++	mempool_kmalloc_invalid_free_helper(test, &pool);
++
++	mempool_free(extra_elem, &pool);
++	mempool_exit(&pool);
++}
++
++static void mempool_kmalloc_large_invalid_free(struct kunit *test)
++{
++	mempool_t pool;
++	size_t size = KMALLOC_MAX_CACHE_SIZE + 1;
++	char *extra_elem;
++
++	/* page_alloc fallback is only implemented for SLUB. */
++	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_SLUB);
++
++	extra_elem = mempool_prepare_kmalloc(test, &pool, size);
++
++	mempool_kmalloc_invalid_free_helper(test, &pool);
++
++	mempool_free(extra_elem, &pool);
++	mempool_exit(&pool);
++}
++
++/*
++ * Skip the invalid-free test for page mempool. The invalid-free detection only
++ * works for compound pages and mempool preallocates all page elements without
++ * the __GFP_COMP flag.
++ */
++
+ static char global_array[10];
+ 
+ static void kasan_global_oob_right(struct kunit *test)
+@@ -1550,6 +1857,18 @@ static struct kunit_case kasan_kunit_tes
+ 	KUNIT_CASE(kmem_cache_oob),
+ 	KUNIT_CASE(kmem_cache_accounted),
+ 	KUNIT_CASE(kmem_cache_bulk),
++	KUNIT_CASE(mempool_kmalloc_oob_right),
++	KUNIT_CASE(mempool_kmalloc_large_oob_right),
++	KUNIT_CASE(mempool_slab_oob_right),
++	KUNIT_CASE(mempool_kmalloc_uaf),
++	KUNIT_CASE(mempool_kmalloc_large_uaf),
++	KUNIT_CASE(mempool_slab_uaf),
++	KUNIT_CASE(mempool_page_alloc_uaf),
++	KUNIT_CASE(mempool_kmalloc_double_free),
++	KUNIT_CASE(mempool_kmalloc_large_double_free),
++	KUNIT_CASE(mempool_page_alloc_double_free),
++	KUNIT_CASE(mempool_kmalloc_invalid_free),
++	KUNIT_CASE(mempool_kmalloc_large_invalid_free),
+ 	KUNIT_CASE(kasan_global_oob_right),
+ 	KUNIT_CASE(kasan_global_oob_left),
+ 	KUNIT_CASE(kasan_stack_oob),
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
