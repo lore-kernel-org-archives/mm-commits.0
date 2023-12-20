@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8D1B4F5F2
-	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 23:03:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A6374F5FD
+	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 23:03:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v8AX6OPc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DE82C433C7;
-	Wed, 20 Dec 2023 23:03:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Iv1YBeSP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53A6DC433C9;
+	Wed, 20 Dec 2023 23:03:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703113416;
-	bh=diGnImF/a+iaJvbWIPUf6MFxEl+YgzkXOOfkfPrxvaU=;
+	s=korg; t=1703113417;
+	bh=RBqFwqmTCpNBYFS/ziCmzwkBKaUZbFOPPT2CzDExW9I=;
 	h=Date:To:From:Subject:From;
-	b=v8AX6OPcPtPqikjtNTDiqUECuFqxuS9iKKPkrjeMRB1bWSVezZxAfriAq546f+lt3
-	 cviPRT6vnAH490+cAia9Qmb3p5qezYt7OQpfG5nKjieIVGk5Wdt0YWfhQI8A6B3fjg
-	 xgBmw1kDqXnLHQAfxh/GdzuZoegFigDggzxxiMxM=
-Date: Wed, 20 Dec 2023 15:03:35 -0800
-To: mm-commits@vger.kernel.org,dvyukov@google.com,bp@alien8.de,andreyknvl@gmail.com,alex.popov@linux.com,mark.rutland@arm.com,akpm@linux-foundation.org
+	b=Iv1YBeSPRwyqaeXuI6Nf7408G/Vr/hopnLtR1nww5uGdyKk1fcSukr0mDV8O01TCG
+	 QQiMAyMueCrIXMiZImjZ/TDfCLbI5W/hh/rgRDpE+ytHiwIvLc9IiaHlNduWX+cjpp
+	 Q2bUQH0EM4gvFtEyQEKL/QJPJDOP13+fEe+LQKmw=
+Date: Wed, 20 Dec 2023 15:03:36 -0800
+To: mm-commits@vger.kernel.org,mporter@kernel.crashing.org,alex.bou9@gmail.com,rdunlap@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kcov-remove-stale-randomize_base-text.patch removed from -mm tree
-Message-Id: <20231220230336.6DE82C433C7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] rapidio-tsi721-fix-kernel-doc-warnings.patch removed from -mm tree
+Message-Id: <20231220230337.53A6DC433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,65 +27,320 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kcov: remove stale RANDOMIZE_BASE text
+     Subject: rapidio/tsi721: fix kernel-doc warnings
 has been removed from the -mm tree.  Its filename was
-     kcov-remove-stale-randomize_base-text.patch
+     rapidio-tsi721-fix-kernel-doc-warnings.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: kcov: remove stale RANDOMIZE_BASE text
-Date: Mon, 4 Dec 2023 17:18:07 +0000
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: rapidio/tsi721: fix kernel-doc warnings
+Date: Wed, 6 Dec 2023 09:55:28 -0800
 
-The Kconfig help text for CONFIG_KCOV describes that recorded PC values
-will not be stable across machines or reboots when RANDOMIZE_BASE is
-selected.  This was the case when KCOV was introduced in commit:
+Correct kernel-doc comments in tsi721.c and tsi721_dma.c to prevent
+warnings from scripts/kernel-doc.
 
-  5c9a8750a6409c63 ("kernel: add kcov code coverage")
+tsi721_dma.c:293: warning: expecting prototype for tsi721_omsg_msix(). Prototype was for tsi721_bdma_msix() instead
 
-However, this changed in commit:
+tsi721.c:215: warning: Function parameter or member 'data' not described in 'tsi721_cread_dma'
+tsi721.c:215: warning: Excess function parameter 'val' description in 'tsi721_cread_dma'
+tsi721.c:238: warning: Function parameter or member 'data' not described in 'tsi721_cwrite_dma'
+tsi721.c:238: warning: Excess function parameter 'val' description in 'tsi721_cwrite_dma'
+tsi721.c:2548: warning: Function parameter or member 'attr' not described in 'tsi721_query_mport'
+tsi721.c:2548: warning: Excess function parameter 'mbox' description in 'tsi721_query_mport'
+and 27 warnings like this one:
+tsi721.c:59: warning: No description found for return value of 'tsi721_lcread'
 
-  4983f0ab7ffaad1e ("kcov: make kcov work properly with KASLR enabled")
-
-Since that commit KCOV always subtracts the KASLR offset from PC values,
-which ensures that these are stable across machines and across reboots
-even when RANDOMIZE_BASE is selected.
-
-Unfortunately, that commit failed to update the Kconfig help text, which
-still suggests disabling RANDOMIZE_BASE even though this is no longer
-necessary.
-
-Remove the stale Kconfig text.
-
-Link: https://lkml.kernel.org/r/20231204171807.3313022-1-mark.rutland@arm.com
-Reported-by: Borislav Petkov <bp@alien8.de>
-Signed-off-by: Mark Rutland <mark.rutland@arm.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Alexander Popov <alex.popov@linux.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Link: https://lkml.kernel.org/r/20231206175528.16386-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Alexandre Bounine <alex.bou9@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/rapidio/devices/tsi721.c     |   67 +++++++++++++++++++------
+ drivers/rapidio/devices/tsi721_dma.c |    4 +
+ 2 files changed, 55 insertions(+), 16 deletions(-)
 
---- a/lib/Kconfig.debug~kcov-remove-stale-randomize_base-text
-+++ a/lib/Kconfig.debug
-@@ -2103,10 +2103,6 @@ config KCOV
- 	  KCOV exposes kernel code coverage information in a form suitable
- 	  for coverage-guided fuzzing (randomized testing).
+--- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-fix-kernel-doc-warnings
++++ a/drivers/rapidio/devices/tsi721.c
+@@ -51,8 +51,9 @@ static void tsi721_imsg_handler(struct t
+  * @len: Length (in bytes) of the maintenance transaction
+  * @data: Value to be read into
+  *
+- * Generates a local SREP space read. Returns %0 on
+- * success or %-EINVAL on failure.
++ * Generates a local SREP space read.
++ *
++ * Returns: %0 on success or %-EINVAL on failure.
+  */
+ static int tsi721_lcread(struct rio_mport *mport, int index, u32 offset,
+ 			 int len, u32 *data)
+@@ -75,8 +76,9 @@ static int tsi721_lcread(struct rio_mpor
+  * @len: Length (in bytes) of the maintenance transaction
+  * @data: Value to be written
+  *
+- * Generates a local write into SREP configuration space. Returns %0 on
+- * success or %-EINVAL on failure.
++ * Generates a local write into SREP configuration space.
++ *
++ * Returns: %0 on success or %-EINVAL on failure.
+  */
+ static int tsi721_lcwrite(struct rio_mport *mport, int index, u32 offset,
+ 			  int len, u32 data)
+@@ -104,7 +106,7 @@ static int tsi721_lcwrite(struct rio_mpo
+  * @do_wr: Operation flag (1 == MAINT_WR)
+  *
+  * Generates a RapidIO maintenance transaction (Read or Write).
+- * Returns %0 on success and %-EINVAL or %-EFAULT on failure.
++ * Returns: %0 on success and %-EINVAL or %-EFAULT on failure.
+  */
+ static int tsi721_maint_dma(struct tsi721_device *priv, u32 sys_size,
+ 			u16 destid, u8 hopcount, u32 offset, int len,
+@@ -205,10 +207,10 @@ err_out:
+  * @hopcount: Number of hops to target device
+  * @offset: Offset into configuration space
+  * @len: Length (in bytes) of the maintenance transaction
+- * @val: Location to be read into
++ * @data: Location to be read into
+  *
+  * Generates a RapidIO maintenance read transaction.
+- * Returns %0 on success and %-EINVAL or %-EFAULT on failure.
++ * Returns: %0 on success and %-EINVAL or %-EFAULT on failure.
+  */
+ static int tsi721_cread_dma(struct rio_mport *mport, int index, u16 destid,
+ 			u8 hopcount, u32 offset, int len, u32 *data)
+@@ -228,10 +230,10 @@ static int tsi721_cread_dma(struct rio_m
+  * @hopcount: Number of hops to target device
+  * @offset: Offset into configuration space
+  * @len: Length (in bytes) of the maintenance transaction
+- * @val: Value to be written
++ * @data: Value to be written
+  *
+  * Generates a RapidIO maintenance write transaction.
+- * Returns %0 on success and %-EINVAL or %-EFAULT on failure.
++ * Returns: %0 on success and %-EINVAL or %-EFAULT on failure.
+  */
+ static int tsi721_cwrite_dma(struct rio_mport *mport, int index, u16 destid,
+ 			 u8 hopcount, u32 offset, int len, u32 data)
+@@ -250,6 +252,8 @@ static int tsi721_cwrite_dma(struct rio_
+  * Handles inbound port-write interrupts. Copies PW message from an internal
+  * buffer into PW message FIFO and schedules deferred routine to process
+  * queued messages.
++ *
++ * Returns: %0
+  */
+ static int
+ tsi721_pw_handler(struct tsi721_device *priv)
+@@ -307,6 +311,8 @@ static void tsi721_pw_dpc(struct work_st
+  * tsi721_pw_enable - enable/disable port-write interface init
+  * @mport: Master port implementing the port write unit
+  * @enable:    1=enable; 0=disable port-write message handling
++ *
++ * Returns: %0
+  */
+ static int tsi721_pw_enable(struct rio_mport *mport, int enable)
+ {
+@@ -336,7 +342,9 @@ static int tsi721_pw_enable(struct rio_m
+  * @destid: Destination ID of target device
+  * @data: 16-bit info field of RapidIO doorbell
+  *
+- * Sends a RapidIO doorbell message. Always returns %0.
++ * Sends a RapidIO doorbell message.
++ *
++ * Returns: %0
+  */
+ static int tsi721_dsend(struct rio_mport *mport, int index,
+ 			u16 destid, u16 data)
+@@ -361,6 +369,8 @@ static int tsi721_dsend(struct rio_mport
+  * Handles inbound doorbell interrupts. Copies doorbell entry from an internal
+  * buffer into DB message FIFO and schedules deferred  routine to process
+  * queued DBs.
++ *
++ * Returns: %0
+  */
+ static int
+ tsi721_dbell_handler(struct tsi721_device *priv)
+@@ -453,6 +463,8 @@ static void tsi721_db_dpc(struct work_st
+  *
+  * Handles Tsi721 interrupts signaled using MSI and INTA. Checks reported
+  * interrupt events and calls an event-specific handler(s).
++ *
++ * Returns: %IRQ_HANDLED or %IRQ_NONE
+  */
+ static irqreturn_t tsi721_irqhandler(int irq, void *ptr)
+ {
+@@ -607,6 +619,8 @@ static void tsi721_interrupts_init(struc
+  * @ptr: Pointer to interrupt-specific data (tsi721_device structure)
+  *
+  * Handles outbound messaging interrupts signaled using MSI-X.
++ *
++ * Returns: %IRQ_HANDLED
+  */
+ static irqreturn_t tsi721_omsg_msix(int irq, void *ptr)
+ {
+@@ -624,6 +638,8 @@ static irqreturn_t tsi721_omsg_msix(int
+  * @ptr: Pointer to interrupt-specific data (tsi721_device structure)
+  *
+  * Handles inbound messaging interrupts signaled using MSI-X.
++ *
++ * Returns: %IRQ_HANDLED
+  */
+ static irqreturn_t tsi721_imsg_msix(int irq, void *ptr)
+ {
+@@ -641,6 +657,8 @@ static irqreturn_t tsi721_imsg_msix(int
+  * @ptr: Pointer to interrupt-specific data (tsi721_device structure)
+  *
+  * Handles Tsi721 interrupts from SRIO MAC.
++ *
++ * Returns: %IRQ_HANDLED
+  */
+ static irqreturn_t tsi721_srio_msix(int irq, void *ptr)
+ {
+@@ -663,6 +681,8 @@ static irqreturn_t tsi721_srio_msix(int
+  * Handles Tsi721 interrupts from SR2PC Channel.
+  * NOTE: At this moment services only one SR2PC channel associated with inbound
+  * doorbells.
++ *
++ * Returns: %IRQ_HANDLED
+  */
+ static irqreturn_t tsi721_sr2pc_ch_msix(int irq, void *ptr)
+ {
+@@ -689,6 +709,8 @@ static irqreturn_t tsi721_sr2pc_ch_msix(
+  * Registers MSI-X interrupt service routines for interrupts that are active
+  * immediately after mport initialization. Messaging interrupt service routines
+  * should be registered during corresponding open requests.
++ *
++ * Returns: %0 on success or -errno value on failure.
+  */
+ static int tsi721_request_msix(struct tsi721_device *priv)
+ {
+@@ -717,6 +739,8 @@ static int tsi721_request_msix(struct ts
+  *
+  * Configures MSI-X support for Tsi721. Supports only an exact number
+  * of requested vectors.
++ *
++ * Returns: %0 on success or -errno value on failure.
+  */
+ static int tsi721_enable_msix(struct tsi721_device *priv)
+ {
+@@ -1334,7 +1358,7 @@ static void tsi721_close_sr2pc_mapping(s
+  * @priv: pointer to tsi721 private data
+  *
+  * Initializes inbound port write handler.
+- * Returns %0 on success or %-ENOMEM on failure.
++ * Returns: %0 on success or %-ENOMEM on failure.
+  */
+ static int tsi721_port_write_init(struct tsi721_device *priv)
+ {
+@@ -1412,7 +1436,8 @@ static void tsi721_doorbell_free(struct
+  *
+  * Initialize BDMA channel allocated for RapidIO maintenance read/write
+  * request generation
+- * Returns %0 on success or %-ENOMEM on failure.
++ *
++ * Returns: %0 on success or %-ENOMEM on failure.
+  */
+ static int tsi721_bdma_maint_init(struct tsi721_device *priv)
+ {
+@@ -1662,6 +1687,8 @@ tsi721_omsg_interrupt_disable(struct tsi
+  * @mbox: Outbound mailbox
+  * @buffer: Message to add to outbound queue
+  * @len: Length of message
++ *
++ * Returns: %0 on success or -errno value on failure.
+  */
+ static int
+ tsi721_add_outb_message(struct rio_mport *mport, struct rio_dev *rdev, int mbox,
+@@ -1869,6 +1896,8 @@ no_sts_update:
+  * @dev_id: Device specific pointer to pass on event
+  * @mbox: Mailbox to open
+  * @entries: Number of entries in the outbound mailbox ring
++ *
++ * Returns: %0 on success or -errno value on failure.
+  */
+ static int tsi721_open_outb_mbox(struct rio_mport *mport, void *dev_id,
+ 				 int mbox, int entries)
+@@ -2156,6 +2185,8 @@ static void tsi721_imsg_handler(struct t
+  * @dev_id: Device specific pointer to pass on event
+  * @mbox: Mailbox to open
+  * @entries: Number of entries in the inbound mailbox ring
++ *
++ * Returns: %0 on success or -errno value on failure.
+  */
+ static int tsi721_open_inb_mbox(struct rio_mport *mport, void *dev_id,
+ 				int mbox, int entries)
+@@ -2409,6 +2440,8 @@ static void tsi721_close_inb_mbox(struct
+  * @mport: Master port implementing the Inbound Messaging Engine
+  * @mbox: Inbound mailbox number
+  * @buf: Buffer to add to inbound queue
++ *
++ * Returns: %0 on success or -errno value on failure.
+  */
+ static int tsi721_add_inb_buffer(struct rio_mport *mport, int mbox, void *buf)
+ {
+@@ -2439,7 +2472,7 @@ out:
+  * @mport: Master port implementing the Inbound Messaging Engine
+  * @mbox: Inbound mailbox number
+  *
+- * Returns pointer to the message on success or NULL on failure.
++ * Returns: pointer to the message on success or %NULL on failure.
+  */
+ static void *tsi721_get_inb_message(struct rio_mport *mport, int mbox)
+ {
+@@ -2507,6 +2540,8 @@ out:
+  * @priv: pointer to tsi721 private data
+  *
+  * Configures Tsi721 messaging engine.
++ *
++ * Returns: %0
+  */
+ static int tsi721_messages_init(struct tsi721_device *priv)
+ {
+@@ -2539,9 +2574,9 @@ static int tsi721_messages_init(struct t
+ /**
+  * tsi721_query_mport - Fetch inbound message from the Tsi721 MSG Queue
+  * @mport: Master port implementing the Inbound Messaging Engine
+- * @mbox: Inbound mailbox number
++ * @attr: mport device attributes
+  *
+- * Returns pointer to the message on success or NULL on failure.
++ * Returns: pointer to the message on success or %NULL on failure.
+  */
+ static int tsi721_query_mport(struct rio_mport *mport,
+ 			      struct rio_mport_attr *attr)
+@@ -2653,6 +2688,8 @@ static void tsi721_mport_release(struct
+  * @priv: pointer to tsi721 private data
+  *
+  * Configures Tsi721 as RapidIO master port.
++ *
++ * Returns: %0 on success or -errno value on failure.
+  */
+ static int tsi721_setup_mport(struct tsi721_device *priv)
+ {
+--- a/drivers/rapidio/devices/tsi721_dma.c~rapidio-tsi721-fix-kernel-doc-warnings
++++ a/drivers/rapidio/devices/tsi721_dma.c
+@@ -283,11 +283,13 @@ void tsi721_bdma_handler(struct tsi721_b
  
--	  If RANDOMIZE_BASE is enabled, PC values will not be stable across
--	  different machines and across reboots. If you need stable PC values,
--	  disable RANDOMIZE_BASE.
--
- 	  For more details, see Documentation/dev-tools/kcov.rst.
- 
- config KCOV_ENABLE_COMPARISONS
+ #ifdef CONFIG_PCI_MSI
+ /**
+- * tsi721_omsg_msix - MSI-X interrupt handler for BDMA channels
++ * tsi721_bdma_msix - MSI-X interrupt handler for BDMA channels
+  * @irq: Linux interrupt number
+  * @ptr: Pointer to interrupt-specific data (BDMA channel structure)
+  *
+  * Handles BDMA channel interrupts signaled using MSI-X.
++ *
++ * Returns: %IRQ_HANDLED
+  */
+ static irqreturn_t tsi721_bdma_msix(int irq, void *ptr)
+ {
 _
 
-Patches currently in -mm which might be from mark.rutland@arm.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
+stacktrace-fix-kernel-doc-typo.patch
+nilfs2-cpfile-fix-some-kernel-doc-warnings.patch
 
