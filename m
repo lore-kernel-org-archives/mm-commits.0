@@ -1,156 +1,115 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B98B74690
-	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 01:08:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBBB3E547;
+	Wed, 20 Dec 2023 02:53:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=quicinc.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=quicinc.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VMt75SIp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36454C433C8;
-	Wed, 20 Dec 2023 01:08:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703034497;
-	bh=oxpLGsT67NX7x2ODVbN5kTNIdzPV8X1uuiBibge5dAY=;
-	h=Date:To:From:Subject:From;
-	b=VMt75SIpYgV/PsV4DCY1+9mwhwzeEbERxij8oqu8PdgOABs5hdFd8ZYLYWBwbb7v/
-	 FkVPf6teMC5l8kGSqLISzsy3F+fCYMUwXQ2rJloOABeFQhko8w1tWtERhb3pUlxJOJ
-	 6wOYOP+FLY6Jk4RJsU34dVy0bhYthm5XuhTdqCRQ=
-Date: Tue, 19 Dec 2023 17:08:16 -0800
-To: mm-commits@vger.kernel.org,riel@surriel.com,hannes@cmpxchg.org,david@redhat.com,shr@devkernel.io,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-ksm-document-ksm-advisor-and-its-sysfs-knobs.patch added to mm-unstable branch
-Message-Id: <20231220010817.36454C433C8@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=quicinc.com header.i=@quicinc.com header.b="BbBb+ARD"
+Received: from pps.filterd (m0279870.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.17.1.24/8.17.1.24) with ESMTP id 3BK2DZBu003473;
+	Wed, 20 Dec 2023 02:52:53 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=quicinc.com; h=
+	message-id:date:mime-version:subject:to:references:from
+	:in-reply-to:content-type:content-transfer-encoding; s=
+	qcppdkim1; bh=Lu8QLKD3BJTpy8KehDX+u4mswZLOmdQldksIflIVy0I=; b=Bb
+	Bb+ARDXCfE2a2Js4aD1mhYzTmA/D+TCMRdbeIOXANVo7g7o+/BVlSNDbrQ1J/stE
+	1CEmrwkVBf3RvUpzjgLOoPABhdGi5UMfprMe+21t8tpIJZalBSm9ItOEeCau3oDo
+	49tE4xHWj/6dTqHfxn0uDRlDc+EjFHPEwuqcNpTCCKNTciXbKp6ldikeRwmWchlt
+	klp6GxipcolrfLX7mmaeI5M4795AFkCLhfM+FwyA7cy3aPJ53KlQf4/rpX2o04Du
+	kAUxuGWID7rHaryUxJAskPJcoF7wE2az6MbC86xy49j3cJAqAETv9Rj31DvRRtmh
+	A+qAJZyay4SVEuWQZbcA==
+Received: from nalasppmta05.qualcomm.com (Global_NAT1.qualcomm.com [129.46.96.20])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 3v35x7jq9q-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 20 Dec 2023 02:52:53 +0000 (GMT)
+Received: from nalasex01a.na.qualcomm.com (nalasex01a.na.qualcomm.com [10.47.209.196])
+	by NALASPPMTA05.qualcomm.com (8.17.1.5/8.17.1.5) with ESMTPS id 3BK2qqwF001449
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 20 Dec 2023 02:52:52 GMT
+Received: from [10.216.23.215] (10.80.80.8) by nalasex01a.na.qualcomm.com
+ (10.47.209.196) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1118.40; Tue, 19 Dec
+ 2023 18:52:49 -0800
+Message-ID: <ab0fa643-8c6b-d7b7-6d21-066e27469b9e@quicinc.com>
+Date: Wed, 20 Dec 2023 08:22:46 +0530
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.13.0
+Subject: Re: + mm-migrate-high-order-folios-in-swap-cache-correctly.patch
+ added to mm-hotfixes-unstable branch
+To: Andrew Morton <akpm@linux-foundation.org>, <mm-commits@vger.kernel.org>,
+        <willy@infradead.org>, <stable@vger.kernel.org>, <shakeelb@google.com>,
+        <n-horiguchi@ah.jp.nec.com>, <kirill.shutemov@linux.intel.com>,
+        <hannes@cmpxchg.org>, <david@redhat.com>
+References: <20231214221150.7EC0DC433C9@smtp.kernel.org>
+Content-Language: en-US
+From: Charan Teja Kalla <quic_charante@quicinc.com>
+In-Reply-To: <20231214221150.7EC0DC433C9@smtp.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: nasanex01a.na.qualcomm.com (10.52.223.231) To
+ nalasex01a.na.qualcomm.com (10.47.209.196)
+X-QCInternal: smtphost
+X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=5800 signatures=585085
+X-Proofpoint-GUID: 3zMrtp3iG33xerWCGxZAj3rwfkHy2gG7
+X-Proofpoint-ORIG-GUID: 3zMrtp3iG33xerWCGxZAj3rwfkHy2gG7
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.272,Aquarius:18.0.997,Hydra:6.0.619,FMLib:17.11.176.26
+ definitions=2023-12-09_01,2023-12-07_01,2023-05-22_02
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 bulkscore=0 adultscore=0
+ mlxscore=0 phishscore=0 malwarescore=0 suspectscore=0 mlxlogscore=847
+ lowpriorityscore=0 spamscore=0 clxscore=1011 priorityscore=1501
+ impostorscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.19.0-2311290000 definitions=main-2312200017
 
+Hi Andrew,
 
-The patch titled
-     Subject: mm/ksm: document ksm advisor and its sysfs knobs
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-ksm-document-ksm-advisor-and-its-sysfs-knobs.patch
+On 12/15/2023 3:41 AM, Andrew Morton wrote:
+> Large folios occupy N consecutive entries in the swap cache instead of
+> using multi-index entries like the page cache.  However, if a large folio
+> is re-added to the LRU list, it can be migrated.  The migration code was
+> not aware of the difference between the swap cache and the page cache and
+> assumed that a single xas_store() would be sufficient.
+> 
+> This leaves potentially many stale pointers to the now-migrated folio in
+> the swap cache, which can lead to almost arbitrary data corruption in the
+> future.  This can also manifest as infinite loops with the RCU read lock
+> held.
+> 
+> [willy@infradead.org: modifications to the changelog & tweaked the fix]
+> Fixes: 3417013e0d183be ("mm/migrate: Add folio_migrate_mapping()")
+> Link: https://lkml.kernel.org/r/20231214045841.961776-1-willy@infradead.org
+> Signed-off-by: Charan Teja Kalla <quic_charante@quicinc.com>
+> Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+> Reported-by: Charan Teja Kalla <quic_charante@quicinc.com>
+>   Closes: https://lkml.kernel.org/r/1700569840-17327-1-git-send-email-quic_charante@quicinc.com
+> Cc: David Hildenbrand <david@redhat.com>
+> Cc: Johannes Weiner <hannes@cmpxchg.org>
+> Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+> Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+> Cc: Shakeel Butt <shakeelb@google.com>
+> Cc: <stable@vger.kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ksm-document-ksm-advisor-and-its-sysfs-knobs.patch
+Errors were reported from checkpatch.pl.
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+1) Seems we have used 15chars of sha1.
+2) space before Closes:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Summary:
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Stefan Roesch <shr@devkernel.io>
-Subject: mm/ksm: document ksm advisor and its sysfs knobs
-Date: Mon, 18 Dec 2023 15:10:54 -0800
-
-This documents the KSM advisor and its new knobs in /sys/fs/kernel/mm.
-
-Link: https://lkml.kernel.org/r/20231218231054.1625219-5-shr@devkernel.io
-Signed-off-by: Stefan Roesch <shr@devkernel.io>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@surriel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- Documentation/admin-guide/mm/ksm.rst |   55 +++++++++++++++++++++++++
- 1 file changed, 55 insertions(+)
-
---- a/Documentation/admin-guide/mm/ksm.rst~mm-ksm-document-ksm-advisor-and-its-sysfs-knobs
-+++ a/Documentation/admin-guide/mm/ksm.rst
-@@ -80,6 +80,9 @@ pages_to_scan
-         how many pages to scan before ksmd goes to sleep
-         e.g. ``echo 100 > /sys/kernel/mm/ksm/pages_to_scan``.
- 
-+        The pages_to_scan value cannot be changed if ``advisor_mode`` has
-+        been set to scan-time.
-+
-         Default: 100 (chosen for demonstration purposes)
- 
- sleep_millisecs
-@@ -164,6 +167,29 @@ smart_scan
-         optimization is enabled.  The ``pages_skipped`` metric shows how
-         effective the setting is.
- 
-+advisor_mode
-+        The ``advisor_mode`` selects the current advisor. Two modes are
-+        supported: none and scan-time. The default is none. By setting
-+        ``advisor_mode`` to scan-time, the scan time advisor is enabled.
-+        The section about ``advisor`` explains in detail how the scan time
-+        advisor works.
-+
-+adivsor_max_cpu
-+        specifies the upper limit of the cpu percent usage of the ksmd
-+        background thread. The default is 70.
-+
-+advisor_target_scan_time
-+        specifies the target scan time in seconds to scan all the candidate
-+        pages. The default value is 200 seconds.
-+
-+advisor_min_pages_to_scan
-+        specifies the lower limit of the ``pages_to_scan`` parameter of the
-+        scan time advisor. The default is 500.
-+
-+adivsor_max_pages_to_scan
-+        specifies the upper limit of the ``pages_to_scan`` parameter of the
-+        scan time advisor. The default is 30000.
-+
- The effectiveness of KSM and MADV_MERGEABLE is shown in ``/sys/kernel/mm/ksm/``:
- 
- general_profit
-@@ -263,6 +289,35 @@ ksm_swpin_copy
- 	note that KSM page might be copied when swapping in because do_swap_page()
- 	cannot do all the locking needed to reconstitute a cross-anon_vma KSM page.
- 
-+Advisor
-+=======
-+
-+The number of candidate pages for KSM is dynamic. It can be often observed
-+that during the startup of an application more candidate pages need to be
-+processed. Without an advisor the ``pages_to_scan`` parameter needs to be
-+sized for the maximum number of candidate pages. The scan time advisor can
-+changes the ``pages_to_scan`` parameter based on demand.
-+
-+The advisor can be enabled, so KSM can automatically adapt to changes in the
-+number of candidate pages to scan. Two advisors are implemented: none and
-+scan-time. With none, no advisor is enabled. The default is none.
-+
-+The scan time advisor changes the ``pages_to_scan`` parameter based on the
-+observed scan times. The possible values for the ``pages_to_scan`` parameter is
-+limited by the ``advisor_max_cpu`` parameter. In addition there is also the
-+``advisor_target_scan_time`` parameter. This parameter sets the target time to
-+scan all the KSM candidate pages. The parameter ``advisor_target_scan_time``
-+decides how aggressive the scan time advisor scans candidate pages. Lower
-+values make the scan time advisor to scan more aggresively. This is the most
-+important parameter for the configuration of the scan time advisor.
-+
-+The initial value and the maximum value can be changed with
-+``advisor_min_pages_to_scan`` and ``advisor_max_pages_to_scan``. The default
-+values are sufficient for most workloads and use cases.
-+
-+The ``pages_to_scan`` parameter is re-calculated after a scan has been completed.
-+
-+
- --
- Izik Eidus,
- Hugh Dickins, 17 Nov 2009
-_
-
-Patches currently in -mm which might be from shr@devkernel.io are
-
-mm-ksm-add-ksm-advisor.patch
-mm-ksm-add-sysfs-knobs-for-advisor.patch
-mm-ksm-add-tracepoint-for-ksm-advisor.patch
-mm-ksm-document-ksm-advisor-and-its-sysfs-knobs.patch
-
+WARNING:BAD_FIXES_TAG: Please use correct Fixes: style 'Fixes: <12 chars
+of sha1> ("<title line>")' - ie: 'Fixes: 3417013e0d18 ("mm/migrate: Add
+folio_migrate_mapping()")'
+#21:
+--
+WARNING:BAD_REPORTED_BY_LINK: Reported-by: should be immediately
+followed by Closes: with a URL to the report
+#26:
