@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 706734B126
-	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 22:49:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BD934C627
+	for <mm-commits@vger.kernel.org>; Wed, 20 Dec 2023 22:49:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FMKzrVom"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D771BC433C7;
-	Wed, 20 Dec 2023 22:49:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V/dSuc04"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14DB6C433C7;
+	Wed, 20 Dec 2023 22:49:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703112544;
-	bh=FcOPoF9Lg2L8kFMP9ReIODYhQmarARvBy4EE148VQrg=;
+	s=korg; t=1703112546;
+	bh=5Zq6mRlmCk/YVEIs90ZbUtYiyy3/cvmy/fHTjMfE4RY=;
 	h=Date:To:From:Subject:From;
-	b=FMKzrVomYQZL7YCIrcyjA8sqp2f5L30tZFMDYf5WXIZZfWeku6MNbOefB5IhAXnIW
-	 YGy+UwI6MFz+S8jMNDbXzSRfAPal5VJNkrm3yv6ih+Bb82vrPEAsWjxyScmqezT+w7
-	 RMC+5f/wlFB58nujHwXHxB7s3n/RDnB0407OsEPY=
-Date: Wed, 20 Dec 2023 14:49:04 -0800
+	b=V/dSuc0450jIUSa6iouCRfx1f4m7aeH2rNOVns3cHVGAsEsrt9P22EmqNU2sUygFT
+	 Jf8XH9hiprLvabQZBZnH8jbsfROVl9KwhAXhOO+jToNQQVmFoWJhIAZHgvbtRipA9T
+	 hB+h6mCBU0tzxlNDtuW0+X52winIKoFXKs2SiCXI=
+Date: Wed, 20 Dec 2023 14:49:05 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,ying.huang@intel.com,willy@infradead.org,wangkefeng.wang@huawei.com,v-songbaohua@oppo.com,vbabka@suse.cz,shy828301@gmail.com,rientjes@google.com,mcgrof@kernel.org,kirill.shutemov@linux.intel.com,jhubbard@nvidia.com,itaru.kitayama@gmail.com,hughd@google.com,fengwei.yin@intel.com,david@redhat.com,catalin.marinas@arm.com,apopple@nvidia.com,anshuman.khandual@arm.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-allow-deferred-splitting-of-arbitrary-anon-large-folios.patch removed from -mm tree
-Message-Id: <20231220224904.D771BC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-non-pmd-mappable-large-folios-for-folio_add_new_anon_rmap.patch removed from -mm tree
+Message-Id: <20231220224906.14DB6C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,121 +27,27 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: allow deferred splitting of arbitrary anon large folios
+     Subject: mm: non-pmd-mappable, large folios for folio_add_new_anon_rmap()
 has been removed from the -mm tree.  Its filename was
-     mm-allow-deferred-splitting-of-arbitrary-anon-large-folios.patch
+     mm-non-pmd-mappable-large-folios-for-folio_add_new_anon_rmap.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: mm: allow deferred splitting of arbitrary anon large folios
-Date: Thu, 7 Dec 2023 16:12:02 +0000
+Subject: mm: non-pmd-mappable, large folios for folio_add_new_anon_rmap()
+Date: Thu, 7 Dec 2023 16:12:03 +0000
 
-Patch series "Multi-size THP for anonymous memory", v9.
+In preparation for supporting anonymous multi-size THP, improve
+folio_add_new_anon_rmap() to allow a non-pmd-mappable, large folio to be
+passed to it.  In this case, all contained pages are accounted using the
+order-0 folio (or base page) scheme.
 
-A series to implement multi-size THP (mTHP) for anonymous memory
-(previously called "small-sized THP" and "large anonymous folios").
-
-The objective of this is to improve performance by allocating larger
-chunks of memory during anonymous page faults:
-
-1) Since SW (the kernel) is dealing with larger chunks of memory than base
-   pages, there are efficiency savings to be had; fewer page faults, batched PTE
-   and RMAP manipulation, reduced lru list, etc. In short, we reduce kernel
-   overhead. This should benefit all architectures.
-2) Since we are now mapping physically contiguous chunks of memory, we can take
-   advantage of HW TLB compression techniques. A reduction in TLB pressure
-   speeds up kernel and user space. arm64 systems have 2 mechanisms to coalesce
-   TLB entries; "the contiguous bit" (architectural) and HPA (uarch).
-
-This version incorporates David's feedback on the core patches (#3, #4)
-and adds some RB and TB tags (see change log for details).
-
-By default, the existing behaviour (and performance) is maintained.  The
-user must explicitly enable multi-size THP to see the performance benefit.
-This is done via a new sysfs interface (as recommended by David
-Hildenbrand - thanks to David for the suggestion)!  This interface is
-inspired by the existing per-hugepage-size sysfs interface used by
-hugetlb, provides full backwards compatibility with the existing PMD-size
-THP interface, and provides a base for future extensibility.  See [9] for
-detailed discussion of the interface.
-
-This series is based on mm-unstable (715b67adf4c8).
-
-
-Prerequisites
-=============
-
-I'm removing this section on the basis that I don't believe what we were
-previously calling prerequisites are really prerequisites anymore.  We
-originally defined them when mTHP was a compile-time feature.  There is
-now a runtime control to opt-in to mTHP; when disabled, correctness and
-performance are as before.  When enabled, the code is still
-correct/robust, but in the absence of the one remaining item (compaction)
-there may be a performance impact in some corners.  See the old list in
-the v8 cover letter at [8].  And a longer explanation of my thinking here
-[10].
-
-SUMMARY: I don't think we should hold this series up, waiting for the
-items on the prerequisites list.  I believe this series should be ready
-now so hopefully can be added to mm-unstable for some testing, then
-fingers crossed for v6.8.
-
-
-Testing
-=======
-
-The series includes patches for mm selftests to enlighten the cow and
-khugepaged tests to explicitly test with multi-size THP, in the same way
-that PMD-sized THP is tested.  The new tests all pass, and no regressions
-are observed in the mm selftest suite.  I've also run my usual kernel
-compilation and java script benchmarks without any issues.
-
-Refer to my performance numbers posted with v6 [6].  (These are for
-multi-size THP only - they do not include the arm64 contpte follow-on
-series).
-
-John Hubbard at Nvidia has indicated dramatic 10x performance improvements
-for some workloads at [11].  (Observed using v6 of this series as well as
-the arm64 contpte series).
-
-Kefeng Wang at Huawei has also indicated he sees improvements at [12] although
-there are some latency regressions also.
-
-I've also checked that there is no regression in the write fault path when
-mTHP is disabled using a microbenchmark.  I ran it for a baseline kernel,
-as well as v8 and v9.  I repeated on Ampere Altra (bare metal) and Apple
-M2 (VM):
-
-|              |        m2 vm        |        altra        |
-|--------------|---------------------|---------------------|
-| kernel       |     mean |  std_rel |     mean |  std_rel |
-|--------------|----------|----------|----------|----------|
-| baseline     |   0.000% |   0.341% |   0.000% |   3.581% |
-| anonfolio-v8 |   0.005% |   0.272% |   5.068% |   1.128% |
-| anonfolio-v9 |  -0.013% |   0.442% |   0.107% |   1.788% |
-
-There is no measurable difference on M2, but altra has a slow down in v8
-which is fixed in v9 by moving the THP order check to be inline within
-thp_vma_allowable_orders(), as suggested by David.
-
-
-This patch (of 10):
-
-In preparation for the introduction of anonymous multi-size THP, we would
-like to be able to split them when they have unmapped subpages, in order
-to free those unused pages under memory pressure.  So remove the
-artificial requirement that the large folio needed to be at least
-PMD-sized.
-
-Link: https://lkml.kernel.org/r/20231207161211.2374093-1-ryan.roberts@arm.com
-Link: https://lkml.kernel.org/r/20231207161211.2374093-2-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20231207161211.2374093-3-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
 Reviewed-by: Yu Zhao <yuzhao@google.com>
 Reviewed-by: Yin Fengwei <fengwei.yin@intel.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Barry Song <v-songbaohua@oppo.com>
 Tested-by: Kefeng Wang <wangkefeng.wang@huawei.com>
@@ -155,31 +61,71 @@ Cc: Hugh Dickins <hughd@google.com>
 Cc: Itaru Kitayama <itaru.kitayama@gmail.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Yang Shi <shy828301@gmail.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/rmap.c |   28 ++++++++++++++++++++--------
+ 1 file changed, 20 insertions(+), 8 deletions(-)
 
---- a/mm/rmap.c~mm-allow-deferred-splitting-of-arbitrary-anon-large-folios
+--- a/mm/rmap.c~mm-non-pmd-mappable-large-folios-for-folio_add_new_anon_rmap
 +++ a/mm/rmap.c
-@@ -1488,11 +1488,11 @@ void page_remove_rmap(struct page *page,
- 		__lruvec_stat_mod_folio(folio, idx, -nr);
+@@ -1305,32 +1305,44 @@ void page_add_anon_rmap(struct page *pag
+  * This means the inc-and-test can be bypassed.
+  * The folio does not have to be locked.
+  *
+- * If the folio is large, it is accounted as a THP.  As the folio
++ * If the folio is pmd-mappable, it is accounted as a THP.  As the folio
+  * is new, it's assumed to be mapped exclusively by a single process.
+  */
+ void folio_add_new_anon_rmap(struct folio *folio, struct vm_area_struct *vma,
+ 		unsigned long address)
+ {
+-	int nr;
++	int nr = folio_nr_pages(folio);
  
- 		/*
--		 * Queue anon THP for deferred split if at least one
-+		 * Queue anon large folio for deferred split if at least one
- 		 * page of the folio is unmapped and at least one page
- 		 * is still mapped.
- 		 */
--		if (folio_test_pmd_mappable(folio) && folio_test_anon(folio))
-+		if (folio_test_large(folio) && folio_test_anon(folio))
- 			if (!compound || nr < nr_pmdmapped)
- 				deferred_split_folio(folio);
+-	VM_BUG_ON_VMA(address < vma->vm_start || address >= vma->vm_end, vma);
++	VM_BUG_ON_VMA(address < vma->vm_start ||
++			address + (nr << PAGE_SHIFT) > vma->vm_end, vma);
+ 	__folio_set_swapbacked(folio);
++	__folio_set_anon(folio, vma, address, true);
+ 
+-	if (likely(!folio_test_pmd_mappable(folio))) {
++	if (likely(!folio_test_large(folio))) {
+ 		/* increment count (starts at -1) */
+ 		atomic_set(&folio->_mapcount, 0);
+-		nr = 1;
++		SetPageAnonExclusive(&folio->page);
++	} else if (!folio_test_pmd_mappable(folio)) {
++		int i;
++
++		for (i = 0; i < nr; i++) {
++			struct page *page = folio_page(folio, i);
++
++			/* increment count (starts at -1) */
++			atomic_set(&page->_mapcount, 0);
++			SetPageAnonExclusive(page);
++		}
++
++		atomic_set(&folio->_nr_pages_mapped, nr);
+ 	} else {
+ 		/* increment count (starts at -1) */
+ 		atomic_set(&folio->_entire_mapcount, 0);
+ 		atomic_set(&folio->_nr_pages_mapped, COMPOUND_MAPPED);
+-		nr = folio_nr_pages(folio);
++		SetPageAnonExclusive(&folio->page);
+ 		__lruvec_stat_mod_folio(folio, NR_ANON_THPS, nr);
  	}
+ 
+ 	__lruvec_stat_mod_folio(folio, NR_ANON_MAPPED, nr);
+-	__folio_set_anon(folio, vma, address, true);
+-	SetPageAnonExclusive(&folio->page);
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
