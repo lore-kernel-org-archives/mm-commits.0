@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAA0278E7B
-	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 22:29:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E67878E7B
+	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 22:29:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VCmh130K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81BAEC433C8;
-	Thu, 21 Dec 2023 22:29:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="byga8G3j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92AB2C433C8;
+	Thu, 21 Dec 2023 22:29:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703197778;
-	bh=bourtB5cQ/ye6PhUPhQ422o/M9/hx4VwncuL52jwa5I=;
+	s=korg; t=1703197779;
+	bh=7W69T+wlIjSgxzIA+M/43GCt+VCfrMrKcJn4eru/+Kw=;
 	h=Date:To:From:Subject:From;
-	b=VCmh130KYuMaUNJ8m6emG0IzE7no4AS2GH3Ibj41gPHTjYkRgcSNMzSe/pTMw/OPd
-	 NGx5ks/ioskoqweWuy16ugzFy2dvq188fcM5mhhJQc+3gUPVTBI+YJDZWtiVHHAF2E
-	 pbYCvWQIDjarxbBuR9El0vQ2p6G3Olz+Uqz+7LcE=
-Date: Thu, 21 Dec 2023 14:29:37 -0800
+	b=byga8G3jO2u9/CfYhFL+kRN82qZGq8OhYPJrqOjyWuw7n5CdZsKFPR4OZjnneP2FC
+	 TVe44IqAxzURBc96VWa/1EnX4DLKNEripZC+I+tPzwjf1w3kupeKSFkuem5Jt20r7X
+	 aRn7m2ZbLHvOL0qakuEuDucGYZ+zh6nIEFWrFHPo=
+Date: Thu, 21 Dec 2023 14:29:39 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,songmuchun@bytedance.com,ryan.roberts@arm.com,peterx@redhat.com,muchun.song@linux.dev,hughd@google.com,fengwei.yin@intel.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-page_add_file_rmap-folio_add_file_rmap_pmd.patch added to mm-unstable branch
-Message-Id: <20231221222938.81BAEC433C8@smtp.kernel.org>
+Subject: + mm-migrate-page_add_file_rmap-folio_add_file_rmap_pte.patch added to mm-unstable branch
+Message-Id: <20231221222939.92AB2C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: page_add_file_rmap() -> folio_add_file_rmap_pmd()
+     Subject: mm/migrate: page_add_file_rmap() -> folio_add_file_rmap_pte()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memory-page_add_file_rmap-folio_add_file_rmap_pmd.patch
+     mm-migrate-page_add_file_rmap-folio_add_file_rmap_pte.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-page_add_file_rmap-folio_add_file_rmap_pmd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-page_add_file_rmap-folio_add_file_rmap_pte.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,13 +51,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/huge_memory: page_add_file_rmap() -> folio_add_file_rmap_pmd()
-Date: Wed, 20 Dec 2023 23:44:33 +0100
+Subject: mm/migrate: page_add_file_rmap() -> folio_add_file_rmap_pte()
+Date: Wed, 20 Dec 2023 23:44:34 +0100
 
-Let's convert remove_migration_pmd() and while at it, perform some folio
-conversion.
+Let's convert remove_migration_pte().
 
-Link: https://lkml.kernel.org/r/20231220224504.646757-10-david@redhat.com
+Link: https://lkml.kernel.org/r/20231220224504.646757-11-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Yin Fengwei <fengwei.yin@intel.com>
 Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
@@ -69,53 +68,20 @@ Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-page_add_file_rmap-folio_add_file_rmap_pmd
-+++ a/mm/huge_memory.c
-@@ -3577,6 +3577,7 @@ int set_pmd_migration_entry(struct page_
- 
- void remove_migration_pmd(struct page_vma_mapped_walk *pvmw, struct page *new)
- {
-+	struct folio *folio = page_folio(new);
- 	struct vm_area_struct *vma = pvmw->vma;
- 	struct mm_struct *mm = vma->vm_mm;
- 	unsigned long address = pvmw->address;
-@@ -3588,7 +3589,7 @@ void remove_migration_pmd(struct page_vm
- 		return;
- 
- 	entry = pmd_to_swp_entry(*pvmw->pmd);
--	get_page(new);
-+	folio_get(folio);
- 	pmde = mk_huge_pmd(new, READ_ONCE(vma->vm_page_prot));
- 	if (pmd_swp_soft_dirty(*pvmw->pmd))
- 		pmde = pmd_mksoft_dirty(pmde);
-@@ -3599,10 +3600,10 @@ void remove_migration_pmd(struct page_vm
- 	if (!is_migration_entry_young(entry))
- 		pmde = pmd_mkold(pmde);
- 	/* NOTE: this may contain setting soft-dirty on some archs */
--	if (PageDirty(new) && is_migration_entry_dirty(entry))
-+	if (folio_test_dirty(folio) && is_migration_entry_dirty(entry))
- 		pmde = pmd_mkdirty(pmde);
- 
--	if (PageAnon(new)) {
-+	if (folio_test_anon(folio)) {
- 		rmap_t rmap_flags = RMAP_COMPOUND;
- 
- 		if (!is_readable_migration_entry(entry))
-@@ -3610,9 +3611,9 @@ void remove_migration_pmd(struct page_vm
- 
- 		page_add_anon_rmap(new, vma, haddr, rmap_flags);
- 	} else {
--		page_add_file_rmap(new, vma, true);
-+		folio_add_file_rmap_pmd(folio, new, vma);
- 	}
--	VM_BUG_ON(pmd_write(pmde) && PageAnon(new) && !PageAnonExclusive(new));
-+	VM_BUG_ON(pmd_write(pmde) && folio_test_anon(folio) && !PageAnonExclusive(new));
- 	set_pmd_at(mm, haddr, pvmw->pmd, pmde);
- 
- 	/* No need to invalidate - it was non-present before */
+--- a/mm/migrate.c~mm-migrate-page_add_file_rmap-folio_add_file_rmap_pte
++++ a/mm/migrate.c
+@@ -262,7 +262,7 @@ static bool remove_migration_pte(struct
+ 				page_add_anon_rmap(new, vma, pvmw.address,
+ 						   rmap_flags);
+ 			else
+-				page_add_file_rmap(new, vma, false);
++				folio_add_file_rmap_pte(folio, new, vma);
+ 			set_pte_at(vma->vm_mm, pvmw.address, pvmw.pte, pte);
+ 		}
+ 		if (vma->vm_flags & VM_LOCKED)
 _
 
 Patches currently in -mm which might be from david@redhat.com are
