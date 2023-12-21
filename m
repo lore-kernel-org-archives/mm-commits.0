@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62FAC55E59
-	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 21:47:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80C8355E59
+	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 21:47:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UOKHJmhY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9122C433C8;
-	Thu, 21 Dec 2023 21:47:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yTiF7ZbF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E509FC433C9;
+	Thu, 21 Dec 2023 21:47:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703195264;
-	bh=Yx3aL6KJ1+m0mtofT//msHr++zViToyWAktwsTj17Zk=;
+	s=korg; t=1703195266;
+	bh=783OI0IguIS5J83ssRWbmg7YuxxxPmNU24z9iul0X8s=;
 	h=Date:To:From:Subject:From;
-	b=UOKHJmhYXeebIASIVBRR37SUfjyEGXpkN73kkL0zhyzT9jBvbRfvq6CDiPQJ0ZSTB
-	 gE/f9/vg5hsmS47a0dykflPXcjOppm2pYv677aXVV1+6ppGVfsrmHCtsZ+avAg1Kdj
-	 7P3De6E3xF6GDF4VXKucQ3UU8QX/+NUxF4cIKWp0=
-Date: Thu, 21 Dec 2023 13:47:43 -0800
+	b=yTiF7ZbFTXx8DE3BHkDTvYWtym75JzQJn/zKo0QueXyJutK/T92jBLtrk2n2oqX94
+	 sYDputU5Hhn76+QmUAd3hSkSylO8/KGYTZLtqU1E0rgX6H8iaAChF/Vm5xv5Z9hZpb
+	 A2/WLeb5UQga3mYaIvhdEY7nUOI2N79IDj6g49ZI=
+Date: Thu, 21 Dec 2023 13:47:44 -0800
 To: mm-commits@vger.kernel.org,ryabinin.a.a@gmail.com,juntong.deng@outlook.com,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-clean-up-kasan_cache_create.patch added to mm-unstable branch
-Message-Id: <20231221214744.B9122C433C8@smtp.kernel.org>
+Subject: + kasan-reuse-kasan_track-in-kasan_stack_ring_entry.patch added to mm-unstable branch
+Message-Id: <20231221214745.E509FC433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan: clean up kasan_cache_create
+     Subject: kasan: reuse kasan_track in kasan_stack_ring_entry
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-clean-up-kasan_cache_create.patch
+     kasan-reuse-kasan_track-in-kasan_stack_ring_entry.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-clean-up-kasan_cache_create.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-reuse-kasan_track-in-kasan_stack_ring_entry.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,134 +51,113 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: clean up kasan_cache_create
-Date: Thu, 21 Dec 2023 19:35:37 +0100
+Subject: kasan: reuse kasan_track in kasan_stack_ring_entry
+Date: Thu, 21 Dec 2023 19:35:38 +0100
 
-Reorganize the code to avoid nested if/else checks to improve the
-readability.
+Avoid duplicating fields of kasan_track in kasan_stack_ring_entry: reuse
+the structure.
 
-Also drop the confusing comments about KMALLOC_MAX_SIZE checks: they are
-relevant for both SLUB and SLAB (originally, the comments likely confused
-KMALLOC_MAX_SIZE with KMALLOC_MAX_CACHE_SIZE).
-
-Link: https://lkml.kernel.org/r/20231221183540.168428-1-andrey.konovalov@linux.dev
-Fixes: a5989d4ed40c ("kasan: improve free meta storage in Generic KASAN")
+Link: https://lkml.kernel.org/r/20231221183540.168428-2-andrey.konovalov@linux.dev
+Fixes: 5d4c6ac94694 ("kasan: record and report more information")
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Juntong Deng <juntong.deng@outlook.com>
-Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/generic.c |   67 +++++++++++++++++++++++++------------------
- 1 file changed, 39 insertions(+), 28 deletions(-)
+ mm/kasan/kasan.h       |    7 +------
+ mm/kasan/report_tags.c |   12 ++++++------
+ mm/kasan/tags.c        |   12 ++++++------
+ 3 files changed, 13 insertions(+), 18 deletions(-)
 
---- a/mm/kasan/generic.c~kasan-clean-up-kasan_cache_create
-+++ a/mm/kasan/generic.c
-@@ -382,16 +382,11 @@ void kasan_cache_create(struct kmem_cach
+--- a/mm/kasan/kasan.h~kasan-reuse-kasan_track-in-kasan_stack_ring_entry
++++ a/mm/kasan/kasan.h
+@@ -293,13 +293,8 @@ struct kasan_free_meta {
+ struct kasan_stack_ring_entry {
+ 	void *ptr;
+ 	size_t size;
+-	u32 pid;
+-	depot_stack_handle_t stack;
++	struct kasan_track track;
+ 	bool is_free;
+-#ifdef CONFIG_KASAN_EXTRA_INFO
+-	u64 cpu:20;
+-	u64 timestamp:44;
+-#endif /* CONFIG_KASAN_EXTRA_INFO */
+ };
  
- 	ok_size = *size;
+ struct kasan_stack_ring {
+--- a/mm/kasan/report_tags.c~kasan-reuse-kasan_track-in-kasan_stack_ring_entry
++++ a/mm/kasan/report_tags.c
+@@ -31,8 +31,8 @@ static const char *get_common_bug_type(s
+ static void kasan_complete_extra_report_info(struct kasan_track *track,
+ 					 struct kasan_stack_ring_entry *entry)
+ {
+-	track->cpu = entry->cpu;
+-	track->timestamp = entry->timestamp;
++	track->cpu = entry->track.cpu;
++	track->timestamp = entry->track.timestamp;
+ }
+ #endif /* CONFIG_KASAN_EXTRA_INFO */
  
--	/* Add alloc meta into redzone. */
-+	/* Add alloc meta into the redzone. */
- 	cache->kasan_info.alloc_meta_offset = *size;
- 	*size += sizeof(struct kasan_alloc_meta);
+@@ -80,8 +80,8 @@ void kasan_complete_mode_report_info(str
+ 			if (free_found)
+ 				break;
  
--	/*
--	 * If alloc meta doesn't fit, don't add it.
--	 * This can only happen with SLAB, as it has KMALLOC_MAX_SIZE equal
--	 * to KMALLOC_MAX_CACHE_SIZE and doesn't fall back to page_alloc for
--	 * larger sizes.
--	 */
-+	/* If alloc meta doesn't fit, don't add it. */
- 	if (*size > KMALLOC_MAX_SIZE) {
- 		cache->kasan_info.alloc_meta_offset = 0;
- 		*size = ok_size;
-@@ -402,36 +397,52 @@ void kasan_cache_create(struct kmem_cach
- 	orig_alloc_meta_offset = cache->kasan_info.alloc_meta_offset;
+-			info->free_track.pid = entry->pid;
+-			info->free_track.stack = entry->stack;
++			info->free_track.pid = entry->track.pid;
++			info->free_track.stack = entry->track.stack;
+ #ifdef CONFIG_KASAN_EXTRA_INFO
+ 			kasan_complete_extra_report_info(&info->free_track, entry);
+ #endif /* CONFIG_KASAN_EXTRA_INFO */
+@@ -98,8 +98,8 @@ void kasan_complete_mode_report_info(str
+ 			if (alloc_found)
+ 				break;
  
- 	/*
--	 * Add free meta into redzone when it's not possible to store
-+	 * Store free meta in the redzone when it's not possible to store
- 	 * it in the object. This is the case when:
- 	 * 1. Object is SLAB_TYPESAFE_BY_RCU, which means that it can
- 	 *    be touched after it was freed, or
- 	 * 2. Object has a constructor, which means it's expected to
--	 *    retain its content until the next allocation, or
--	 * 3. Object is too small and SLUB DEBUG is enabled. Avoid
--	 *    free meta that exceeds the object size corrupts the
--	 *    SLUB DEBUG metadata.
--	 * Otherwise cache->kasan_info.free_meta_offset = 0 is implied.
--	 * If the object is smaller than the free meta and SLUB DEBUG
--	 * is not enabled, it is still possible to store part of the
--	 * free meta in the object.
-+	 *    retain its content until the next allocation.
- 	 */
- 	if ((cache->flags & SLAB_TYPESAFE_BY_RCU) || cache->ctor) {
- 		cache->kasan_info.free_meta_offset = *size;
- 		*size += sizeof(struct kasan_free_meta);
--	} else if (cache->object_size < sizeof(struct kasan_free_meta)) {
--		if (__slub_debug_enabled()) {
--			cache->kasan_info.free_meta_offset = *size;
--			*size += sizeof(struct kasan_free_meta);
--		} else {
--			rem_free_meta_size = sizeof(struct kasan_free_meta) -
--									cache->object_size;
--			*size += rem_free_meta_size;
--			if (cache->kasan_info.alloc_meta_offset != 0)
--				cache->kasan_info.alloc_meta_offset += rem_free_meta_size;
--		}
-+		goto free_meta_added;
- 	}
+-			info->alloc_track.pid = entry->pid;
+-			info->alloc_track.stack = entry->stack;
++			info->alloc_track.pid = entry->track.pid;
++			info->alloc_track.stack = entry->track.stack;
+ #ifdef CONFIG_KASAN_EXTRA_INFO
+ 			kasan_complete_extra_report_info(&info->alloc_track, entry);
+ #endif /* CONFIG_KASAN_EXTRA_INFO */
+--- a/mm/kasan/tags.c~kasan-reuse-kasan_track-in-kasan_stack_ring_entry
++++ a/mm/kasan/tags.c
+@@ -100,8 +100,8 @@ static void save_extra_info(struct kasan
+ 	u32 cpu = raw_smp_processor_id();
+ 	u64 ts_nsec = local_clock();
  
-+	/*
-+	 * Otherwise, if the object is large enough to contain free meta,
-+	 * store it within the object.
-+	 */
-+	if (sizeof(struct kasan_free_meta) <= cache->object_size) {
-+		/* cache->kasan_info.free_meta_offset = 0 is implied. */
-+		goto free_meta_added;
-+	}
-+
-+	/*
-+	 * For smaller objects, store the beginning of free meta within the
-+	 * object and the end in the redzone. And thus shift the location of
-+	 * alloc meta to free up space for free meta.
-+	 * This is only possible when slub_debug is disabled, as otherwise
-+	 * the end of free meta will overlap with slub_debug metadata.
-+	 */
-+	if (!__slub_debug_enabled()) {
-+		rem_free_meta_size = sizeof(struct kasan_free_meta) -
-+							cache->object_size;
-+		*size += rem_free_meta_size;
-+		if (cache->kasan_info.alloc_meta_offset != 0)
-+			cache->kasan_info.alloc_meta_offset += rem_free_meta_size;
-+		goto free_meta_added;
-+	}
-+
-+	/*
-+	 * If the object is small and slub_debug is enabled, store free meta
-+	 * in the redzone after alloc meta.
-+	 */
-+	cache->kasan_info.free_meta_offset = *size;
-+	*size += sizeof(struct kasan_free_meta);
-+
-+free_meta_added:
- 	/* If free meta doesn't fit, don't add it. */
- 	if (*size > KMALLOC_MAX_SIZE) {
- 		cache->kasan_info.free_meta_offset = KASAN_NO_FREE_META;
-@@ -441,7 +452,7 @@ void kasan_cache_create(struct kmem_cach
+-	entry->cpu = cpu;
+-	entry->timestamp = ts_nsec >> 3;
++	entry->track.cpu = cpu;
++	entry->track.timestamp = ts_nsec >> 3;
+ }
+ #endif /* CONFIG_KASAN_EXTRA_INFO */
  
- 	/* Calculate size with optimal redzone. */
- 	optimal_size = cache->object_size + optimal_redzone(cache->object_size);
--	/* Limit it with KMALLOC_MAX_SIZE (relevant for SLAB only). */
-+	/* Limit it with KMALLOC_MAX_SIZE. */
- 	if (optimal_size > KMALLOC_MAX_SIZE)
- 		optimal_size = KMALLOC_MAX_SIZE;
- 	/* Use optimal size if the size with added metas is not large enough. */
+@@ -134,15 +134,15 @@ next:
+ 	if (!try_cmpxchg(&entry->ptr, &old_ptr, STACK_RING_BUSY_PTR))
+ 		goto next; /* Busy slot. */
+ 
+-	old_stack = entry->stack;
++	old_stack = entry->track.stack;
+ 
+ 	entry->size = cache->object_size;
+-	entry->pid = current->pid;
+-	entry->stack = stack;
+-	entry->is_free = is_free;
++	entry->track.pid = current->pid;
++	entry->track.stack = stack;
+ #ifdef CONFIG_KASAN_EXTRA_INFO
+ 	save_extra_info(entry);
+ #endif /* CONFIG_KASAN_EXTRA_INFO */
++	entry->is_free = is_free;
+ 
+ 	entry->ptr = object;
+ 
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
