@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E67878E7B
-	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 22:29:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AE4D78E6C
+	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 22:29:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="byga8G3j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92AB2C433C8;
-	Thu, 21 Dec 2023 22:29:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pn0mZ47Z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCD93C433C9;
+	Thu, 21 Dec 2023 22:29:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703197779;
-	bh=7W69T+wlIjSgxzIA+M/43GCt+VCfrMrKcJn4eru/+Kw=;
+	s=korg; t=1703197780;
+	bh=NbxwFkuuXpdna7Sa+VVH5JGrzuvPTkbxmVZ0lNwRSxE=;
 	h=Date:To:From:Subject:From;
-	b=byga8G3jO2u9/CfYhFL+kRN82qZGq8OhYPJrqOjyWuw7n5CdZsKFPR4OZjnneP2FC
-	 TVe44IqAxzURBc96VWa/1EnX4DLKNEripZC+I+tPzwjf1w3kupeKSFkuem5Jt20r7X
-	 aRn7m2ZbLHvOL0qakuEuDucGYZ+zh6nIEFWrFHPo=
-Date: Thu, 21 Dec 2023 14:29:39 -0800
+	b=pn0mZ47ZtHnfzJK2iX5bMZiS3OvNN1ViNPv27sWxQKtPpEPREp7/VbtGBZ0WrfLEa
+	 AHL3IW6v1WHYAVuKR/w/DtlCh9c90Ey4pinlUPQglAlwKom1PamYhhUiYVT13QZQwH
+	 yTzZu9gCKxWkwblxwYYI+rpptT1NR/2DDQ7Iuu2A=
+Date: Thu, 21 Dec 2023 14:29:40 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,songmuchun@bytedance.com,ryan.roberts@arm.com,peterx@redhat.com,muchun.song@linux.dev,hughd@google.com,fengwei.yin@intel.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate-page_add_file_rmap-folio_add_file_rmap_pte.patch added to mm-unstable branch
-Message-Id: <20231221222939.92AB2C433C8@smtp.kernel.org>
+Subject: + mm-userfaultfd-page_add_file_rmap-folio_add_file_rmap_pte.patch added to mm-unstable branch
+Message-Id: <20231221222940.BCD93C433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/migrate: page_add_file_rmap() -> folio_add_file_rmap_pte()
+     Subject: mm/userfaultfd: page_add_file_rmap() -> folio_add_file_rmap_pte()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-migrate-page_add_file_rmap-folio_add_file_rmap_pte.patch
+     mm-userfaultfd-page_add_file_rmap-folio_add_file_rmap_pte.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-page_add_file_rmap-folio_add_file_rmap_pte.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-page_add_file_rmap-folio_add_file_rmap_pte.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,12 +51,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/migrate: page_add_file_rmap() -> folio_add_file_rmap_pte()
-Date: Wed, 20 Dec 2023 23:44:34 +0100
+Subject: mm/userfaultfd: page_add_file_rmap() -> folio_add_file_rmap_pte()
+Date: Wed, 20 Dec 2023 23:44:35 +0100
 
-Let's convert remove_migration_pte().
+Let's convert mfill_atomic_install_pte().
 
-Link: https://lkml.kernel.org/r/20231220224504.646757-11-david@redhat.com
+Link: https://lkml.kernel.org/r/20231220224504.646757-12-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Yin Fengwei <fengwei.yin@intel.com>
 Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
@@ -68,20 +68,20 @@ Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
+ mm/userfaultfd.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/migrate.c~mm-migrate-page_add_file_rmap-folio_add_file_rmap_pte
-+++ a/mm/migrate.c
-@@ -262,7 +262,7 @@ static bool remove_migration_pte(struct
- 				page_add_anon_rmap(new, vma, pvmw.address,
- 						   rmap_flags);
- 			else
--				page_add_file_rmap(new, vma, false);
-+				folio_add_file_rmap_pte(folio, new, vma);
- 			set_pte_at(vma->vm_mm, pvmw.address, pvmw.pte, pte);
- 		}
- 		if (vma->vm_flags & VM_LOCKED)
+--- a/mm/userfaultfd.c~mm-userfaultfd-page_add_file_rmap-folio_add_file_rmap_pte
++++ a/mm/userfaultfd.c
+@@ -114,7 +114,7 @@ int mfill_atomic_install_pte(pmd_t *dst_
+ 		/* Usually, cache pages are already added to LRU */
+ 		if (newly_allocated)
+ 			folio_add_lru(folio);
+-		page_add_file_rmap(page, dst_vma, false);
++		folio_add_file_rmap_pte(folio, page, dst_vma);
+ 	} else {
+ 		folio_add_new_anon_rmap(folio, dst_vma, dst_addr);
+ 		folio_add_lru_vma(folio, dst_vma);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
