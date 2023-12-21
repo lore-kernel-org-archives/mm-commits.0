@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D647745DA
-	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 21:37:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA5E377620
+	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 21:37:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RfZ0fYYA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5788C433C9;
-	Thu, 21 Dec 2023 21:37:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fx0bTpOi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 271DEC433C7;
+	Thu, 21 Dec 2023 21:37:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703194677;
-	bh=p5DsyktNZpJOIiIN1fJJJNWrUvDgYsid5XjyDiOzgQs=;
+	s=korg; t=1703194678;
+	bh=g24Rd6GK6wkIRIXBuItTK0nCh7a6P+Wcc0XJXQxeDLw=;
 	h=Date:To:From:Subject:From;
-	b=RfZ0fYYAMK8/QuDEMgTSuDjF+b9a3n6gsBeWbjLCyVEX1k7gEAPintRfHt6keIGtO
-	 S+7hUiBSIKs+6RV1MpYp7jtDh+YA/TzKgDN7W+lKOsfIl9zQXAFK/DHd/JJIzYxK9X
-	 hb+XxGAzUWsK0DMpJcOjCcExEdhsZtpStraCvXg4=
-Date: Thu, 21 Dec 2023 13:37:55 -0800
+	b=Fx0bTpOiAt+MPlfNUCD3E97qpieFucxxV6QV3QFaxLiHOGjjf6rBMTE4u4o/OeLFP
+	 ByRO5w+JaJthSz75q9p3zy0Il9J72ye2/A1ZNxQHO7sSgNlxtSBw7GxhMycXmdJM9q
+	 7+HLqXXIS0mK5DkjO/vLO2RirKqwvtT+fkr6Un70=
+Date: Thu, 21 Dec 2023 13:37:56 -0800
 To: mm-commits@vger.kernel.org,ryabinin.a.a@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-improve-kasan_non_canonical_hook.patch added to mm-unstable branch
-Message-Id: <20231221213756.E5788C433C9@smtp.kernel.org>
+Subject: + kasan-clean-up-kasan_requires_meta.patch added to mm-unstable branch
+Message-Id: <20231221213758.271DEC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan: improve kasan_non_canonical_hook
+     Subject: kasan: clean up kasan_requires_meta
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-improve-kasan_non_canonical_hook.patch
+     kasan-clean-up-kasan_requires_meta.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-improve-kasan_non_canonical_hook.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-clean-up-kasan_requires_meta.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,18 +51,27 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: improve kasan_non_canonical_hook
-Date: Thu, 21 Dec 2023 21:04:45 +0100
+Subject: kasan: clean up kasan_requires_meta
+Date: Thu, 21 Dec 2023 21:04:46 +0100
 
-Make kasan_non_canonical_hook to be more sure in its report (i.e.  say
-"probably" instead of "maybe") if the address belongs to the shadow memory
-region for kernel addresses.
+Currently, for Generic KASAN mode, kasan_requires_meta is defined to
+return kasan_stack_collection_enabled.
 
-Also use the kasan_shadow_to_mem helper to calculate the original address.
+Even though the Generic mode does not support disabling stack trace
+collection, kasan_requires_meta was implemented in this way to make it
+easier to implement the disabling for the Generic mode in the future.
 
-Also improve the comments in kasan_non_canonical_hook.
+However, for the Generic mode, the per-object metadata also stores the
+quarantine link.  So even if disabling stack collection is implemented,
+the per-object metadata will still be required.
 
-Link: https://lkml.kernel.org/r/af94ef3cb26f8c065048b3158d9f20f6102bfaaa.1703188911.git.andreyknvl@google.com
+Fix kasan_requires_meta to return true for the Generic mode and update the
+related comments.
+
+This change does not fix any observable bugs but rather just brings the
+code to a cleaner state.
+
+Link: https://lkml.kernel.org/r/8086623407095ac1c82377a2107dcc5845f99cfa.1703188911.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
@@ -71,85 +80,42 @@ Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.h  |    6 ++++++
- mm/kasan/report.c |   34 ++++++++++++++++++++--------------
- 2 files changed, 26 insertions(+), 14 deletions(-)
+ mm/kasan/kasan.h |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
---- a/mm/kasan/kasan.h~kasan-improve-kasan_non_canonical_hook
+--- a/mm/kasan/kasan.h~kasan-clean-up-kasan_requires_meta
 +++ a/mm/kasan/kasan.h
-@@ -307,6 +307,12 @@ struct kasan_stack_ring {
+@@ -101,21 +101,21 @@ static inline bool kasan_sample_page_all
  
- #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
+ #ifdef CONFIG_KASAN_GENERIC
  
-+static __always_inline bool addr_in_shadow(const void *addr)
-+{
-+	return addr >= (void *)KASAN_SHADOW_START &&
-+		addr < (void *)KASAN_SHADOW_END;
-+}
-+
- #ifndef kasan_shadow_to_mem
- static inline const void *kasan_shadow_to_mem(const void *shadow_addr)
+-/* Generic KASAN uses per-object metadata to store stack traces. */
++/*
++ * Generic KASAN uses per-object metadata to store alloc and free stack traces
++ * and the quarantine link.
++ */
+ static inline bool kasan_requires_meta(void)
  {
---- a/mm/kasan/report.c~kasan-improve-kasan_non_canonical_hook
-+++ a/mm/kasan/report.c
-@@ -635,37 +635,43 @@ void kasan_report_async(void)
+-	/*
+-	 * Technically, Generic KASAN always collects stack traces right now.
+-	 * However, let's use kasan_stack_collection_enabled() in case the
+-	 * kasan.stacktrace command-line argument is changed to affect
+-	 * Generic KASAN.
+-	 */
+-	return kasan_stack_collection_enabled();
++	return true;
+ }
  
- #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- /*
-- * With CONFIG_KASAN_INLINE, accesses to bogus pointers (outside the high
-- * canonical half of the address space) cause out-of-bounds shadow memory reads
-- * before the actual access. For addresses in the low canonical half of the
-- * address space, as well as most non-canonical addresses, that out-of-bounds
-- * shadow memory access lands in the non-canonical part of the address space.
-- * Help the user figure out what the original bogus pointer was.
-+ * With compiler-based KASAN modes, accesses to bogus pointers (outside of the
-+ * mapped kernel address space regions) cause faults when KASAN tries to check
-+ * the shadow memory before the actual memory access. This results in cryptic
-+ * GPF reports, which are hard for users to interpret. This hook helps users to
-+ * figure out what the original bogus pointer was.
-  */
- void kasan_non_canonical_hook(unsigned long addr)
+ #else /* CONFIG_KASAN_GENERIC */
+ 
+-/* Tag-based KASAN modes do not use per-object metadata. */
++/*
++ * Tag-based KASAN modes do not use per-object metadata: they use the stack
++ * ring to store alloc and free stack traces and do not use qurantine.
++ */
+ static inline bool kasan_requires_meta(void)
  {
- 	unsigned long orig_addr;
- 	const char *bug_type;
- 
-+	/*
-+	 * All addresses that came as a result of the memory-to-shadow mapping
-+	 * (even for bogus pointers) must be >= KASAN_SHADOW_OFFSET.
-+	 */
- 	if (addr < KASAN_SHADOW_OFFSET)
- 		return;
- 
--	orig_addr = (addr - KASAN_SHADOW_OFFSET) << KASAN_SHADOW_SCALE_SHIFT;
-+	orig_addr = (unsigned long)kasan_shadow_to_mem((void *)addr);
-+
- 	/*
- 	 * For faults near the shadow address for NULL, we can be fairly certain
- 	 * that this is a KASAN shadow memory access.
--	 * For faults that correspond to shadow for low canonical addresses, we
--	 * can still be pretty sure - that shadow region is a fairly narrow
--	 * chunk of the non-canonical address space.
--	 * But faults that look like shadow for non-canonical addresses are a
--	 * really large chunk of the address space. In that case, we still
--	 * print the decoded address, but make it clear that this is not
--	 * necessarily what's actually going on.
-+	 * For faults that correspond to the shadow for low or high canonical
-+	 * addresses, we can still be pretty sure: these shadow regions are a
-+	 * fairly narrow chunk of the address space.
-+	 * But the shadow for non-canonical addresses is a really large chunk
-+	 * of the address space. For this case, we still print the decoded
-+	 * address, but make it clear that this is not necessarily what's
-+	 * actually going on.
- 	 */
- 	if (orig_addr < PAGE_SIZE)
- 		bug_type = "null-ptr-deref";
- 	else if (orig_addr < TASK_SIZE)
- 		bug_type = "probably user-memory-access";
-+	else if (addr_in_shadow((void *)addr))
-+		bug_type = "probably wild-memory-access";
- 	else
- 		bug_type = "maybe wild-memory-access";
- 	pr_alert("KASAN: %s in range [0x%016lx-0x%016lx]\n", bug_type,
+ 	return false;
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
