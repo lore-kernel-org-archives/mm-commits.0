@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41DC555E59
-	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 21:47:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94AE076DB6
+	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 21:49:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rgi6P6Fh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA735C433C7;
-	Thu, 21 Dec 2023 21:47:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZTqrOUZe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E53BC433C7;
+	Thu, 21 Dec 2023 21:49:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703195268;
-	bh=ewtK6pPaCNybJnVkQUZLhH4e2ppKX3Yxi2XWocCOENU=;
+	s=korg; t=1703195391;
+	bh=ajPl4IENX7FaV1M5cFzsKt+t45UxS9ZrM3iVaFnehIM=;
 	h=Date:To:From:Subject:From;
-	b=rgi6P6FhtflLtqejr5MUP5AV2A/8W1y2O6WaSEL4/eBJcoHDbBD6BWTCJSYqtsEKq
-	 P7EpKnP2sJUydm61fJrPyN+ekcfzkZU9vQkZn+HnU/+yooQt4ACnYV02KwWzNJbKi9
-	 Iz11qy6Rc+INvpG+kC86ofcFgsP1S8R5UTe1aQBI=
-Date: Thu, 21 Dec 2023 13:47:47 -0800
-To: mm-commits@vger.kernel.org,ryabinin.a.a@gmail.com,juntong.deng@outlook.com,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@google.com,akpm@linux-foundation.org
+	b=ZTqrOUZedBIJrgQHFK4Q8SgJfLpRCgD4/dOXTb23FEbRAIdjhH6nbFl2tWAUujTT2
+	 ORIJv0MBGZLHeEzWu2nwZm+iwqh9EwEY6wo4gq7Vausu81VSFrkqH0MvGNl3gln0a8
+	 sL69kVJNhCBJK+y8F3i9W39Dy7mrjRKRgEZPBZUw=
+Date: Thu, 21 Dec 2023 13:49:49 -0800
+To: mm-commits@vger.kernel.org,ryabinin.a.a@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-simplify-kasan_complete_mode_report_info-for-tag-based-modes.patch added to mm-unstable branch
-Message-Id: <20231221214748.CA735C433C7@smtp.kernel.org>
+Subject: + kasan-rename-and-document-kasan_unpoison_object_data-fix.patch added to mm-unstable branch
+Message-Id: <20231221214951.1E53BC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan: simplify kasan_complete_mode_report_info for tag-based modes
+     Subject: kasan: fix for "kasan: rename and document kasan_(un)poison_object_data"
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-simplify-kasan_complete_mode_report_info-for-tag-based-modes.patch
+     kasan-rename-and-document-kasan_unpoison_object_data-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-simplify-kasan_complete_mode_report_info-for-tag-based-modes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-rename-and-document-kasan_unpoison_object_data-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,72 +51,44 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: simplify kasan_complete_mode_report_info for tag-based modes
-Date: Thu, 21 Dec 2023 19:35:40 +0100
+Subject: kasan: fix for "kasan: rename and document kasan_(un)poison_object_data"
+Date: Thu, 21 Dec 2023 19:06:37 +0100
 
-memcpy the alloc/free tracks when collecting the information about a bad
-access instead of copying fields one by one.
+Update references to renamed functions in comments.
 
-Link: https://lkml.kernel.org/r/20231221183540.168428-4-andrey.konovalov@linux.dev
-Fixes: 5d4c6ac94694 ("kasan: record and report more information")
+Link: https://lkml.kernel.org/r/20231221180637.105098-1-andrey.konovalov@linux.dev
+Fixes: ac6b240e1ede ("kasan: rename and document kasan_(un)poison_object_data")
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Juntong Deng <juntong.deng@outlook.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report_tags.c |   23 ++++-------------------
- 1 file changed, 4 insertions(+), 19 deletions(-)
+ mm/kasan/shadow.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/kasan/report_tags.c~kasan-simplify-kasan_complete_mode_report_info-for-tag-based-modes
-+++ a/mm/kasan/report_tags.c
-@@ -27,15 +27,6 @@ static const char *get_common_bug_type(s
- 	return "invalid-access";
- }
+--- a/mm/kasan/shadow.c~kasan-rename-and-document-kasan_unpoison_object_data-fix
++++ a/mm/kasan/shadow.c
+@@ -130,7 +130,7 @@ void kasan_poison(const void *addr, size
  
--#ifdef CONFIG_KASAN_EXTRA_INFO
--static void kasan_complete_extra_report_info(struct kasan_track *track,
--					 struct kasan_stack_ring_entry *entry)
--{
--	track->cpu = entry->track.cpu;
--	track->timestamp = entry->track.timestamp;
--}
--#endif /* CONFIG_KASAN_EXTRA_INFO */
--
- void kasan_complete_mode_report_info(struct kasan_report_info *info)
- {
- 	unsigned long flags;
-@@ -80,11 +71,8 @@ void kasan_complete_mode_report_info(str
- 			if (free_found)
- 				break;
+ 	/*
+ 	 * Perform shadow offset calculation based on untagged address, as
+-	 * some of the callers (e.g. kasan_poison_object_data) pass tagged
++	 * some of the callers (e.g. kasan_poison_new_object) pass tagged
+ 	 * addresses to this function.
+ 	 */
+ 	addr = kasan_reset_tag(addr);
+@@ -170,7 +170,7 @@ void kasan_unpoison(const void *addr, si
  
--			info->free_track.pid = entry->track.pid;
--			info->free_track.stack = entry->track.stack;
--#ifdef CONFIG_KASAN_EXTRA_INFO
--			kasan_complete_extra_report_info(&info->free_track, entry);
--#endif /* CONFIG_KASAN_EXTRA_INFO */
-+			memcpy(&info->free_track, &entry->track,
-+			       sizeof(info->free_track));
- 			free_found = true;
- 
- 			/*
-@@ -98,11 +86,8 @@ void kasan_complete_mode_report_info(str
- 			if (alloc_found)
- 				break;
- 
--			info->alloc_track.pid = entry->track.pid;
--			info->alloc_track.stack = entry->track.stack;
--#ifdef CONFIG_KASAN_EXTRA_INFO
--			kasan_complete_extra_report_info(&info->alloc_track, entry);
--#endif /* CONFIG_KASAN_EXTRA_INFO */
-+			memcpy(&info->alloc_track, &entry->track,
-+			       sizeof(info->alloc_track));
- 			alloc_found = true;
- 
- 			/*
+ 	/*
+ 	 * Perform shadow offset calculation based on untagged address, as
+-	 * some of the callers (e.g. kasan_unpoison_object_data) pass tagged
++	 * some of the callers (e.g. kasan_unpoison_new_object) pass tagged
+ 	 * addresses to this function.
+ 	 */
+ 	addr = kasan_reset_tag(addr);
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
@@ -140,6 +112,7 @@ kasan-add-mempool-tests.patch
 kasan-rename-pagealloc-tests.patch
 kasan-reorder-tests.patch
 kasan-rename-and-document-kasan_unpoison_object_data.patch
+kasan-rename-and-document-kasan_unpoison_object_data-fix.patch
 skbuff-use-mempool-kasan-hooks.patch
 io_uring-use-mempool-kasan-hook.patch
 lib-stackdepot-add-printk_deferred_enter-exit-guards.patch
