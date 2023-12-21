@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF35878E80
-	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 22:29:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84D8178E64
+	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 22:29:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oqFy8kk2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8FE8C433C8;
-	Thu, 21 Dec 2023 22:29:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zhIaFIey"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0969BC433C7;
+	Thu, 21 Dec 2023 22:29:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703197786;
-	bh=qPCdQL8aJnvBIsANd8litciVaA2zTmy45eKflhLnCOA=;
+	s=korg; t=1703197788;
+	bh=t+eohWCYcSWujRhcZM09wDAhf4JuOiJte/W/vv9H2FU=;
 	h=Date:To:From:Subject:From;
-	b=oqFy8kk21Tz68ajEJk4oKPKBhly44IE7vj+V6L+1BMQGTpugJMhL7GWO9yeMoxeCg
-	 t20j4ZoFY33JukrZDlu3h3rm1q6FXxB2lCQJ1WHMakXkeyysPUpW57YRakNOps4buZ
-	 1pqbzZs9AL0y9okgCr8TDIBjBRMgtIJltJgTTBgM=
-Date: Thu, 21 Dec 2023 14:29:46 -0800
+	b=zhIaFIeytmAIsnXMfPQHFjpP6BpjbM5Oz//iq27nsT1b3L/FnAp5y+ClKiXl4qz3m
+	 /5ABq13+QzOyqOX9CJrkMOKck7oVbhUzTnoDPnZpXVA60U/syFJS8E7AU4e9vK3uXK
+	 dx05Fp2ekKmX/r1L1GCG8eYoO0rz1Mme1PfIKFG0=
+Date: Thu, 21 Dec 2023 14:29:47 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,songmuchun@bytedance.com,ryan.roberts@arm.com,peterx@redhat.com,muchun.song@linux.dev,hughd@google.com,fengwei.yin@intel.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-page_add_anon_rmap-folio_add_anon_rmap_pmd.patch added to mm-unstable branch
-Message-Id: <20231221222946.B8FE8C433C8@smtp.kernel.org>
+Subject: + mm-migrate-page_add_anon_rmap-folio_add_anon_rmap_pte.patch added to mm-unstable branch
+Message-Id: <20231221222948.0969BC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: page_add_anon_rmap() -> folio_add_anon_rmap_pmd()
+     Subject: mm/migrate: page_add_anon_rmap() -> folio_add_anon_rmap_pte()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memory-page_add_anon_rmap-folio_add_anon_rmap_pmd.patch
+     mm-migrate-page_add_anon_rmap-folio_add_anon_rmap_pte.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-page_add_anon_rmap-folio_add_anon_rmap_pmd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-page_add_anon_rmap-folio_add_anon_rmap_pte.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,13 +51,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/huge_memory: page_add_anon_rmap() -> folio_add_anon_rmap_pmd()
-Date: Wed, 20 Dec 2023 23:44:40 +0100
+Subject: mm/migrate: page_add_anon_rmap() -> folio_add_anon_rmap_pte()
+Date: Wed, 20 Dec 2023 23:44:41 +0100
 
-Let's convert remove_migration_pmd().  No need to set RMAP_COMPOUND, that
-we will remove soon.
+Let's convert remove_migration_pte().
 
-Link: https://lkml.kernel.org/r/20231220224504.646757-17-david@redhat.com
+Link: https://lkml.kernel.org/r/20231220224504.646757-18-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -69,26 +68,22 @@ Cc: Yin Fengwei <fengwei.yin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 ++--
+ mm/migrate.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-page_add_anon_rmap-folio_add_anon_rmap_pmd
-+++ a/mm/huge_memory.c
-@@ -3611,12 +3611,12 @@ void remove_migration_pmd(struct page_vm
- 		pmde = pmd_mkdirty(pmde);
- 
- 	if (folio_test_anon(folio)) {
--		rmap_t rmap_flags = RMAP_COMPOUND;
-+		rmap_t rmap_flags = RMAP_NONE;
- 
- 		if (!is_readable_migration_entry(entry))
- 			rmap_flags |= RMAP_EXCLUSIVE;
- 
--		page_add_anon_rmap(new, vma, haddr, rmap_flags);
-+		folio_add_anon_rmap_pmd(folio, new, vma, haddr, rmap_flags);
- 	} else {
- 		folio_add_file_rmap_pmd(folio, new, vma);
- 	}
+--- a/mm/migrate.c~mm-migrate-page_add_anon_rmap-folio_add_anon_rmap_pte
++++ a/mm/migrate.c
+@@ -259,8 +259,8 @@ static bool remove_migration_pte(struct
+ #endif
+ 		{
+ 			if (folio_test_anon(folio))
+-				page_add_anon_rmap(new, vma, pvmw.address,
+-						   rmap_flags);
++				folio_add_anon_rmap_pte(folio, new, vma,
++							pvmw.address, rmap_flags);
+ 			else
+ 				folio_add_file_rmap_pte(folio, new, vma);
+ 			set_pte_at(vma->vm_mm, pvmw.address, pvmw.pte, pte);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
