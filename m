@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AC6978E85
-	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 22:29:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4342378E85
+	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 22:29:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dAC4bJxl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C905DC433C8;
-	Thu, 21 Dec 2023 22:29:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nWlVqBLd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DA92C433C8;
+	Thu, 21 Dec 2023 22:29:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703197792;
-	bh=OqmHBo65DoBskRofT+Mb5Z6SIRhv7FGCZW27Fl7HlvI=;
+	s=korg; t=1703197794;
+	bh=xj7oin5s5rAJOCxyaNtSF8rmx0wVqaiJZnbcwoEqA/E=;
 	h=Date:To:From:Subject:From;
-	b=dAC4bJxlqskdwoSEnowjHRl+jqr0X3440d5LWBFBEj2UMFoupYo/+4ETVy80Qmcv9
-	 2k7r9ckJHO1BQXYLU4OS8N+StUdxyemVI+1n+zmXXh/y4zZeVsWwQAf2Xyr+/mQpLp
-	 I8C0EPFKjoYfsktrYKplKvKw6tGV46C9Ddofo2/g=
-Date: Thu, 21 Dec 2023 14:29:52 -0800
+	b=nWlVqBLdhDdXyAUv9/OjSW/4cYivYamS44ZDQO6U48I4ffejz5kZXEDvECeBdqamt
+	 qumfHRkvBVkmXDuhyu96k1oMNAtN4mlDUy1qm9XcWW8kjULR2CXKIqyJD9v/eMAL1/
+	 7lnXD5ySbzFquc5qRMPyT/iapDat7XrVVOUgZ4vU=
+Date: Thu, 21 Dec 2023 14:29:53 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,songmuchun@bytedance.com,ryan.roberts@arm.com,peterx@redhat.com,muchun.song@linux.dev,hughd@google.com,fengwei.yin@intel.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-remove-page_add_anon_rmap.patch added to mm-unstable branch
-Message-Id: <20231221222952.C905DC433C8@smtp.kernel.org>
+Subject: + mm-rmap-remove-rmap_compound.patch added to mm-unstable branch
+Message-Id: <20231221222954.0DA92C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: remove page_add_anon_rmap()
+     Subject: mm/rmap: remove RMAP_COMPOUND
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rmap-remove-page_add_anon_rmap.patch
+     mm-rmap-remove-rmap_compound.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-remove-page_add_anon_rmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-remove-rmap_compound.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,12 +51,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: remove page_add_anon_rmap()
-Date: Wed, 20 Dec 2023 23:44:45 +0100
+Subject: mm/rmap: remove RMAP_COMPOUND
+Date: Wed, 20 Dec 2023 23:44:46 +0100
 
-All users are gone, remove it and all traces.
+No longer used, let's remove it and clarify RMAP_NONE/RMAP_EXCLUSIVE a
+bit.
 
-Link: https://lkml.kernel.org/r/20231220224504.646757-22-david@redhat.com
+Link: https://lkml.kernel.org/r/20231220224504.646757-23-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -68,89 +69,48 @@ Cc: Yin Fengwei <fengwei.yin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    2 --
- mm/rmap.c            |   31 ++++---------------------------
- 2 files changed, 4 insertions(+), 29 deletions(-)
+ include/linux/rmap.h |   12 +++---------
+ mm/rmap.c            |    2 --
+ 2 files changed, 3 insertions(+), 11 deletions(-)
 
---- a/include/linux/rmap.h~mm-rmap-remove-page_add_anon_rmap
+--- a/include/linux/rmap.h~mm-rmap-remove-rmap_compound
 +++ a/include/linux/rmap.h
-@@ -239,8 +239,6 @@ void folio_add_anon_rmap_ptes(struct fol
- 	folio_add_anon_rmap_ptes(folio, page, 1, vma, address, flags)
- void folio_add_anon_rmap_pmd(struct folio *, struct page *,
- 		struct vm_area_struct *, unsigned long address, rmap_t flags);
--void page_add_anon_rmap(struct page *, struct vm_area_struct *,
--		unsigned long address, rmap_t flags);
- void folio_add_new_anon_rmap(struct folio *, struct vm_area_struct *,
- 		unsigned long address);
- void folio_add_file_rmap_ptes(struct folio *, struct page *, int nr_pages,
---- a/mm/rmap.c~mm-rmap-remove-page_add_anon_rmap
-+++ a/mm/rmap.c
-@@ -1270,7 +1270,7 @@ static void __page_check_anon_rmap(struc
- 	 * The page's anon-rmap details (mapping and index) are guaranteed to
- 	 * be set up correctly at this point.
- 	 *
--	 * We have exclusion against page_add_anon_rmap because the caller
-+	 * We have exclusion against folio_add_anon_rmap_*() because the caller
- 	 * always holds the page locked.
- 	 *
- 	 * We have exclusion against folio_add_new_anon_rmap because those pages
-@@ -1283,29 +1283,6 @@ static void __page_check_anon_rmap(struc
- 		       page);
- }
+@@ -177,21 +177,15 @@ struct anon_vma *folio_get_anon_vma(stru
+ typedef int __bitwise rmap_t;
  
--/**
-- * page_add_anon_rmap - add pte mapping to an anonymous page
-- * @page:	the page to add the mapping to
-- * @vma:	the vm area in which the mapping is added
-- * @address:	the user virtual address mapped
-- * @flags:	the rmap flags
-- *
-- * The caller needs to hold the pte lock, and the page must be locked in
-- * the anon_vma case: to serialize mapping,index checking after setting,
-- * and to ensure that PageAnon is not being upgraded racily to PageKsm
-- * (but PageKsm is never downgraded to PageAnon).
+ /*
+- * No special request: if the page is a subpage of a compound page, it is
+- * mapped via a PTE. The mapped (sub)page is possibly shared between processes.
++ * No special request: A mapped anonymous (sub)page is possibly shared between
++ * processes.
+  */
+ #define RMAP_NONE		((__force rmap_t)0)
+ 
+-/* The (sub)page is exclusive to a single process. */
++/* The anonymous (sub)page is exclusive to a single process. */
+ #define RMAP_EXCLUSIVE		((__force rmap_t)BIT(0))
+ 
+ /*
+- * The compound page is not mapped via PTEs, but instead via a single PMD and
+- * should be accounted accordingly.
 - */
--void page_add_anon_rmap(struct page *page, struct vm_area_struct *vma,
--		unsigned long address, rmap_t flags)
--{
--	struct folio *folio = page_folio(page);
+-#define RMAP_COMPOUND		((__force rmap_t)BIT(1))
 -
--	if (likely(!(flags & RMAP_COMPOUND)))
--		folio_add_anon_rmap_pte(folio, page, vma, address, flags);
--	else
--		folio_add_anon_rmap_pmd(folio, page, vma, address, flags);
--}
--
- static __always_inline void __folio_add_anon_rmap(struct folio *folio,
- 		struct page *page, int nr_pages, struct vm_area_struct *vma,
- 		unsigned long address, rmap_t flags, enum rmap_level level)
-@@ -1419,7 +1396,7 @@ void folio_add_anon_rmap_pmd(struct foli
-  * @vma:	the vm area in which the mapping is added
-  * @address:	the user virtual address mapped
-  *
-- * Like page_add_anon_rmap() but must only be called on *new* folios.
-+ * Like folio_add_anon_rmap_*() but must only be called on *new* folios.
-  * This means the inc-and-test can be bypassed.
-  * The folio does not have to be locked.
-  *
-@@ -1479,7 +1456,7 @@ static __always_inline void __folio_add_
- 	if (nr)
- 		__lruvec_stat_mod_folio(folio, NR_FILE_MAPPED, nr);
- 
--	/* See comments in page_add_anon_rmap() */
-+	/* See comments in folio_add_anon_rmap_*() */
- 	if (!folio_test_large(folio))
- 		mlock_vma_folio(folio, vma);
- }
-@@ -1593,7 +1570,7 @@ void page_remove_rmap(struct page *page,
- 
- 	/*
- 	 * It would be tidy to reset folio_test_anon mapping when fully
--	 * unmapped, but that might overwrite a racing page_add_anon_rmap
-+	 * unmapped, but that might overwrite a racing folio_add_anon_rmap_*()
- 	 * which increments mapcount after us but sets mapping before us:
- 	 * so leave the reset to free_pages_prepare, and remember that
- 	 * it's only reliable while mapped.
+-/*
+  * Internally, we're using an enum to specify the granularity. We make the
+  * compiler emit specialized code for each granularity.
+  */
+--- a/mm/rmap.c~mm-rmap-remove-rmap_compound
++++ a/mm/rmap.c
+@@ -2662,8 +2662,6 @@ void rmap_walk_locked(struct folio *foli
+  * The following two functions are for anonymous (private mapped) hugepages.
+  * Unlike common anonymous pages, anonymous hugepages have no accounting code
+  * and no lru code, because we handle hugepages differently from common pages.
+- *
+- * RMAP_COMPOUND is ignored.
+  */
+ void hugetlb_add_anon_rmap(struct folio *folio, struct vm_area_struct *vma,
+ 		unsigned long address, rmap_t flags)
 _
 
 Patches currently in -mm which might be from david@redhat.com are
