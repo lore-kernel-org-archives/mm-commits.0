@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13DB4B678
-	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 22:30:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7112B65184
+	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 22:30:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FsukIxk4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CEBA2C433C7;
-	Thu, 21 Dec 2023 22:30:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2dTYyApv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 395A1C433C8;
+	Thu, 21 Dec 2023 22:30:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703197807;
-	bh=vFLmHEoD+260qtXK2cLGCRhroY9RWFvD7bBnpWJfdlA=;
+	s=korg; t=1703197809;
+	bh=UNkIZFAjYAZmkHx9z+/r5SKLZXZJZM8moCfzGVBToQE=;
 	h=Date:To:From:Subject:From;
-	b=FsukIxk4NtGxFDawL1xs6K7Ml8yaZA2u1o7C56bPm65MqlEGzuLb0R4LDgckt0ASh
-	 A7pwsLyhIeIFg/1Oed2/ox3xPEBO/kMURfk39K07mPivJS3VcfC9tKkaeN67NVLwCC
-	 +vWBrzcl9VIkWPIl95R8pniJl8nrP3nYdthg0oPo=
-Date: Thu, 21 Dec 2023 14:30:07 -0800
+	b=2dTYyApvrIt7J3lfIsOAHDRnrwELaFrcW++4cD+nIZRw6a08/U20tLMUzeokNrCJp
+	 krlWFBXpQaJR0/iB9OTEMsVSifILda4o3L9XWW40LoJUkNfL+JqVpDQIUUVK7VunQl
+	 rMUd4YQJpG3MLdVTj7lwJ+wa+ngFGQk7Z+bsgBTY=
+Date: Thu, 21 Dec 2023 14:30:08 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,songmuchun@bytedance.com,ryan.roberts@arm.com,peterx@redhat.com,muchun.song@linux.dev,hughd@google.com,fengwei.yin@intel.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-convert-page_dup_file_rmap-to-folio_dup_file_rmap_.patch added to mm-unstable branch
-Message-Id: <20231221223007.CEBA2C433C7@smtp.kernel.org>
+Subject: + mm-rmap-introduce-folio_try_dup_anon_rmap_.patch added to mm-unstable branch
+Message-Id: <20231221223009.395A1C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: convert page_dup_file_rmap() to folio_dup_file_rmap_[pte|ptes|pmd]()
+     Subject: mm/rmap: introduce folio_try_dup_anon_rmap_[pte|ptes|pmd]()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rmap-convert-page_dup_file_rmap-to-folio_dup_file_rmap_.patch
+     mm-rmap-introduce-folio_try_dup_anon_rmap_.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-convert-page_dup_file_rmap-to-folio_dup_file_rmap_.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-introduce-folio_try_dup_anon_rmap_.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,17 +51,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: convert page_dup_file_rmap() to folio_dup_file_rmap_[pte|ptes|pmd]()
-Date: Wed, 20 Dec 2023 23:44:57 +0100
+Subject: mm/rmap: introduce folio_try_dup_anon_rmap_[pte|ptes|pmd]()
+Date: Wed, 20 Dec 2023 23:44:58 +0100
 
-Let's convert page_dup_file_rmap() like the other rmap functions.  As
-there is only a single caller, convert that single caller right away and
-remove page_dup_file_rmap().
+The last user of page_needs_cow_for_dma() and __page_dup_rmap() are gone,
+remove them.
 
-Add folio_dup_file_rmap_ptes() right away, we want to perform rmap baching
-during fork() soon.
+Add folio_try_dup_anon_rmap_ptes() right away, we want to perform rmap
+baching during fork() soon.
 
-Link: https://lkml.kernel.org/r/20231220224504.646757-34-david@redhat.com
+Link: https://lkml.kernel.org/r/20231220224504.646757-35-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -73,96 +72,202 @@ Cc: Yin Fengwei <fengwei.yin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   59 +++++++++++++++++++++++++++++++++++++----
- mm/memory.c          |    2 -
- 2 files changed, 55 insertions(+), 6 deletions(-)
+ include/linux/mm.h   |    6 -
+ include/linux/rmap.h |  150 ++++++++++++++++++++++++++++-------------
+ 2 files changed, 106 insertions(+), 50 deletions(-)
 
---- a/include/linux/rmap.h~mm-rmap-convert-page_dup_file_rmap-to-folio_dup_file_rmap_
-+++ a/include/linux/rmap.h
-@@ -308,6 +308,60 @@ static inline void hugetlb_remove_rmap(s
- 	atomic_dec(&folio->_entire_mapcount);
+--- a/include/linux/mm.h~mm-rmap-introduce-folio_try_dup_anon_rmap_
++++ a/include/linux/mm.h
+@@ -1975,12 +1975,6 @@ static inline bool folio_needs_cow_for_d
+ 	return folio_maybe_dma_pinned(folio);
  }
  
-+static __always_inline void __folio_dup_file_rmap(struct folio *folio,
-+		struct page *page, int nr_pages, enum rmap_level level)
-+{
+-static inline bool page_needs_cow_for_dma(struct vm_area_struct *vma,
+-					  struct page *page)
+-{
+-	return folio_needs_cow_for_dma(vma, page_folio(page));
+-}
+-
+ /**
+  * is_zero_page - Query if a page is a zero page
+  * @page: The page to query
+--- a/include/linux/rmap.h~mm-rmap-introduce-folio_try_dup_anon_rmap_
++++ a/include/linux/rmap.h
+@@ -362,68 +362,130 @@ static inline void folio_dup_file_rmap_p
+ #endif
+ }
+ 
+-static inline void __page_dup_rmap(struct page *page, bool compound)
++static __always_inline int __folio_try_dup_anon_rmap(struct folio *folio,
++		struct page *page, int nr_pages, struct vm_area_struct *src_vma,
++		enum rmap_level level)
+ {
+-	VM_WARN_ON(folio_test_hugetlb(page_folio(page)));
++	bool maybe_pinned;
++	int i;
+ 
+-	if (compound) {
+-		struct folio *folio = (struct folio *)page;
++	VM_WARN_ON_FOLIO(!folio_test_anon(folio), folio);
 +	__folio_rmap_sanity_checks(folio, page, nr_pages, level);
+ 
+-		VM_BUG_ON_PAGE(compound && !PageHead(page), page);
++	/*
++	 * If this folio may have been pinned by the parent process,
++	 * don't allow to duplicate the mappings but instead require to e.g.,
++	 * copy the subpage immediately for the child so that we'll always
++	 * guarantee the pinned folio won't be randomly replaced in the
++	 * future on write faults.
++	 */
++	maybe_pinned = likely(!folio_is_device_private(folio)) &&
++		       unlikely(folio_needs_cow_for_dma(src_vma, folio));
 +
++	/*
++	 * No need to check+clear for already shared PTEs/PMDs of the
++	 * folio. But if any page is PageAnonExclusive, we must fallback to
++	 * copying if the folio maybe pinned.
++	 */
 +	switch (level) {
 +	case RMAP_LEVEL_PTE:
++		if (unlikely(maybe_pinned)) {
++			for (i = 0; i < nr_pages; i++)
++				if (PageAnonExclusive(page + i))
++					return -EBUSY;
++		}
 +		do {
++			if (PageAnonExclusive(page))
++				ClearPageAnonExclusive(page);
 +			atomic_inc(&page->_mapcount);
 +		} while (page++, --nr_pages > 0);
 +		break;
 +	case RMAP_LEVEL_PMD:
-+		atomic_inc(&folio->_entire_mapcount);
++		if (PageAnonExclusive(page)) {
++			if (unlikely(maybe_pinned))
++				return -EBUSY;
++			ClearPageAnonExclusive(page);
++		}
+ 		atomic_inc(&folio->_entire_mapcount);
+-	} else {
+-		atomic_inc(&page->_mapcount);
 +		break;
-+	}
+ 	}
++	return 0;
 +}
 +
 +/**
-+ * folio_dup_file_rmap_ptes - duplicate PTE mappings of a page range of a folio
++ * folio_try_dup_anon_rmap_ptes - try duplicating PTE mappings of a page range
++ *				  of a folio
 + * @folio:	The folio to duplicate the mappings of
 + * @page:	The first page to duplicate the mappings of
 + * @nr_pages:	The number of pages of which the mapping will be duplicated
++ * @src_vma:	The vm area from which the mappings are duplicated
 + *
 + * The page range of the folio is defined by [page, page + nr_pages)
 + *
-+ * The caller needs to hold the page table lock.
++ * The caller needs to hold the page table lock and the
++ * vma->vma_mm->write_protect_seq.
++ *
++ * Duplicating the mappings can only fail if the folio may be pinned; device
++ * private folios cannot get pinned and consequently this function cannot fail
++ * for them.
++ *
++ * If duplicating the mappings succeeded, the duplicated PTEs have to be R/O in
++ * the parent and the child. They must *not* be writable after this call
++ * succeeded.
++ *
++ * Returns 0 if duplicating the mappings succeeded. Returns -EBUSY otherwise.
 + */
-+static inline void folio_dup_file_rmap_ptes(struct folio *folio,
-+		struct page *page, int nr_pages)
++static inline int folio_try_dup_anon_rmap_ptes(struct folio *folio,
++		struct page *page, int nr_pages, struct vm_area_struct *src_vma)
 +{
-+	__folio_dup_file_rmap(folio, page, nr_pages, RMAP_LEVEL_PTE);
-+}
-+#define folio_dup_file_rmap_pte(folio, page) \
-+	folio_dup_file_rmap_ptes(folio, page, 1)
-+
-+/**
-+ * folio_dup_file_rmap_pmd - duplicate a PMD mapping of a page range of a folio
++	return __folio_try_dup_anon_rmap(folio, page, nr_pages, src_vma,
++					 RMAP_LEVEL_PTE);
+ }
++#define folio_try_dup_anon_rmap_pte(folio, page, vma) \
++	folio_try_dup_anon_rmap_ptes(folio, page, 1, vma)
+ 
+ /**
+- * page_try_dup_anon_rmap - try duplicating a mapping of an already mapped
+- *			    anonymous page
+- * @page: the page to duplicate the mapping for
+- * @compound: the page is mapped as compound or as a small page
+- * @vma: the source vma
++ * folio_try_dup_anon_rmap_pmd - try duplicating a PMD mapping of a page range
++ *				 of a folio
 + * @folio:	The folio to duplicate the mapping of
 + * @page:	The first page to duplicate the mapping of
++ * @src_vma:	The vm area from which the mapping is duplicated
 + *
 + * The page range of the folio is defined by [page, page + HPAGE_PMD_NR)
-+ *
-+ * The caller needs to hold the page table lock.
-+ */
-+static inline void folio_dup_file_rmap_pmd(struct folio *folio,
-+		struct page *page)
+  *
+- * The caller needs to hold the PT lock and the vma->vma_mm->write_protect_seq.
++ * The caller needs to hold the page table lock and the
++ * vma->vma_mm->write_protect_seq.
+  *
+- * Duplicating the mapping can only fail if the page may be pinned; device
+- * private pages cannot get pinned and consequently this function cannot fail.
++ * Duplicating the mapping can only fail if the folio may be pinned; device
++ * private folios cannot get pinned and consequently this function cannot fail
++ * for them.
+  *
+- * If duplicating the mapping succeeds, the page has to be mapped R/O into
+- * the parent and the child. It must *not* get mapped writable after this call.
++ * If duplicating the mapping succeeds, the duplicated PMD has to be R/O in
++ * the parent and the child. They must *not* be writable after this call
++ * succeeded.
+  *
+  * Returns 0 if duplicating the mapping succeeded. Returns -EBUSY otherwise.
+  */
++static inline int folio_try_dup_anon_rmap_pmd(struct folio *folio,
++		struct page *page, struct vm_area_struct *src_vma)
 +{
 +#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	__folio_dup_file_rmap(folio, page, HPAGE_PMD_NR, RMAP_LEVEL_PTE);
++	return __folio_try_dup_anon_rmap(folio, page, HPAGE_PMD_NR, src_vma,
++					 RMAP_LEVEL_PMD);
 +#else
 +	WARN_ON_ONCE(true);
++	return -EBUSY;
 +#endif
 +}
 +
- static inline void __page_dup_rmap(struct page *page, bool compound)
+ static inline int page_try_dup_anon_rmap(struct page *page, bool compound,
+ 					 struct vm_area_struct *vma)
  {
- 	VM_WARN_ON(folio_test_hugetlb(page_folio(page)));
-@@ -322,11 +376,6 @@ static inline void __page_dup_rmap(struc
- 	}
+-	VM_BUG_ON_PAGE(!PageAnon(page), page);
+-
+-	/*
+-	 * No need to check+clear for already shared pages, including KSM
+-	 * pages.
+-	 */
+-	if (!PageAnonExclusive(page))
+-		goto dup;
+-
+-	/*
+-	 * If this page may have been pinned by the parent process,
+-	 * don't allow to duplicate the mapping but instead require to e.g.,
+-	 * copy the page immediately for the child so that we'll always
+-	 * guarantee the pinned page won't be randomly replaced in the
+-	 * future on write faults.
+-	 */
+-	if (likely(!is_device_private_page(page)) &&
+-	    unlikely(page_needs_cow_for_dma(vma, page)))
+-		return -EBUSY;
++	struct folio *folio = page_folio(page);
+ 
+-	ClearPageAnonExclusive(page);
+-	/*
+-	 * It's okay to share the anon page between both processes, mapping
+-	 * the page R/O into both processes.
+-	 */
+-dup:
+-	__page_dup_rmap(page, compound);
+-	return 0;
++	if (likely(!compound))
++		return folio_try_dup_anon_rmap_pte(folio, page, vma);
++	return folio_try_dup_anon_rmap_pmd(folio, page, vma);
  }
  
--static inline void page_dup_file_rmap(struct page *page, bool compound)
--{
--	__page_dup_rmap(page, compound);
--}
--
  /**
-  * page_try_dup_anon_rmap - try duplicating a mapping of an already mapped
-  *			    anonymous page
---- a/mm/memory.c~mm-rmap-convert-page_dup_file_rmap-to-folio_dup_file_rmap_
-+++ a/mm/memory.c
-@@ -965,7 +965,7 @@ copy_present_pte(struct vm_area_struct *
- 		rss[MM_ANONPAGES]++;
- 	} else if (page) {
- 		folio_get(folio);
--		page_dup_file_rmap(page, false);
-+		folio_dup_file_rmap_pte(folio, page);
- 		rss[mm_counter_file(page)]++;
- 	}
- 
 _
 
 Patches currently in -mm which might be from david@redhat.com are
