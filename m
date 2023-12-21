@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4379E6519C
-	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 22:29:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6DA579467
+	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 22:29:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m1V4NWrS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B132C433D9;
-	Thu, 21 Dec 2023 22:29:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GFlvSp5M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6216AC433C7;
+	Thu, 21 Dec 2023 22:29:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703197776;
-	bh=MfiCutJxnBbLe9CMMzjMvazS2vqPnsgbRdnBBlXF70U=;
+	s=korg; t=1703197777;
+	bh=AvPNlJT6wZbes/2WO7AsKAsapRYp1TJuC1EHrvjyAKg=;
 	h=Date:To:From:Subject:From;
-	b=m1V4NWrS5TuPWgON+U64pTTejOWGgGULlnx4+qi43qdnwuSnGGNtBwge/va3itdwd
-	 Lk1Tfm0cTS+c6BaJ0ky7lD+Fzbx8ImA9QLXailUXF/ogo17nHvUH95wXcFFjWMRl8t
-	 RQCgulGuj5CMCPFX/bffL1k2PB9tFtQNZvRVLn34=
-Date: Thu, 21 Dec 2023 14:29:35 -0800
+	b=GFlvSp5MLJNmIQvddC35cS7wrDykKNXTaBxnhOgKoa3TKe9svvCFcFGoJXFBxrk8z
+	 dy+jF9Ae0JvTvu08AKWAkNmxYIOJDIZB4kb1zg5P3qdWLT3V8Mmw4SLmR+J/D9fIH6
+	 2bArA/itPFJ9ebYeU7T8MgYH5OJYjQhEc7/zr4GM=
+Date: Thu, 21 Dec 2023 14:29:36 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,songmuchun@bytedance.com,ryan.roberts@arm.com,peterx@redhat.com,muchun.song@linux.dev,hughd@google.com,fengwei.yin@intel.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-convert-folio_add_file_rmap_range-into-folio_add_file_rmap_.patch added to mm-unstable branch
-Message-Id: <20231221222936.0B132C433D9@smtp.kernel.org>
+Subject: + mm-memory-page_add_file_rmap-folio_add_file_rmap_.patch added to mm-unstable branch
+Message-Id: <20231221222937.6216AC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: convert folio_add_file_rmap_range() into folio_add_file_rmap_[pte|ptes|pmd]()
+     Subject: mm/memory: page_add_file_rmap() -> folio_add_file_rmap_[pte|pmd]()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rmap-convert-folio_add_file_rmap_range-into-folio_add_file_rmap_.patch
+     mm-memory-page_add_file_rmap-folio_add_file_rmap_.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-convert-folio_add_file_rmap_range-into-folio_add_file_rmap_.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-page_add_file_rmap-folio_add_file_rmap_.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,34 +51,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: convert folio_add_file_rmap_range() into folio_add_file_rmap_[pte|ptes|pmd]()
-Date: Wed, 20 Dec 2023 23:44:31 +0100
+Subject: mm/memory: page_add_file_rmap() -> folio_add_file_rmap_[pte|pmd]()
+Date: Wed, 20 Dec 2023 23:44:32 +0100
 
-Let's get rid of the compound parameter and instead define explicitly
-which mappings we're adding.  That is more future proof, easier to read
-and harder to mess up.
+Let's convert insert_page_into_pte_locked() and do_set_pmd().  While at
+it, perform some folio conversion.
 
-Use an enum to express the granularity internally.  Make the compiler
-always special-case on the granularity by using __always_inline.  Replace
-the "compound" check by a switch-case that will be removed by the compiler
-completely.
-
-Add plenty of sanity checks with CONFIG_DEBUG_VM.  Replace the
-folio_test_pmd_mappable() check by a config check in the caller and sanity
-checks.  Convert the single user of folio_add_file_rmap_range().
-
-While at it, consistently use "int" instead of "unisgned int" in rmap code
-when dealing with mapcounts and the number of pages.
-
-This function design can later easily be extended to PUDs and to batch
-PMDs.  Note that for now we don't support anything bigger than PMD-sized
-folios (as we cleanly separated hugetlb handling).  Sanity checks will
-catch if that ever changes.
-
-Next up is removing page_remove_rmap() along with its "compound" parameter
-and smilarly converting all other rmap functions.
-
-Link: https://lkml.kernel.org/r/20231220224504.646757-8-david@redhat.com
+Link: https://lkml.kernel.org/r/20231220224504.646757-9-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Yin Fengwei <fengwei.yin@intel.com>
 Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
@@ -90,209 +69,64 @@ Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   46 ++++++++++++++++++++++-
- mm/memory.c          |    2 -
- mm/rmap.c            |   79 +++++++++++++++++++++++++----------------
- 3 files changed, 95 insertions(+), 32 deletions(-)
+ mm/memory.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
---- a/include/linux/rmap.h~mm-rmap-convert-folio_add_file_rmap_range-into-folio_add_file_rmap_
-+++ a/include/linux/rmap.h
-@@ -192,6 +192,44 @@ typedef int __bitwise rmap_t;
- #define RMAP_COMPOUND		((__force rmap_t)BIT(1))
- 
- /*
-+ * Internally, we're using an enum to specify the granularity. We make the
-+ * compiler emit specialized code for each granularity.
-+ */
-+enum rmap_level {
-+	RMAP_LEVEL_PTE = 0,
-+	RMAP_LEVEL_PMD,
-+};
-+
-+static inline void __folio_rmap_sanity_checks(struct folio *folio,
-+		struct page *page, int nr_pages, enum rmap_level level)
-+{
-+	/* hugetlb folios are handled separately. */
-+	VM_WARN_ON_FOLIO(folio_test_hugetlb(folio), folio);
-+	VM_WARN_ON_FOLIO(folio_test_large(folio) &&
-+			 !folio_test_large_rmappable(folio), folio);
-+
-+	VM_WARN_ON_ONCE(nr_pages <= 0);
-+	VM_WARN_ON_FOLIO(page_folio(page) != folio, folio);
-+	VM_WARN_ON_FOLIO(page_folio(page + nr_pages - 1) != folio, folio);
-+
-+	switch (level) {
-+	case RMAP_LEVEL_PTE:
-+		break;
-+	case RMAP_LEVEL_PMD:
-+		/*
-+		 * We don't support folios larger than a single PMD yet. So
-+		 * when RMAP_LEVEL_PMD is set, we assume that we are creating
-+		 * a single "entire" mapping of the folio.
-+		 */
-+		VM_WARN_ON_FOLIO(folio_nr_pages(folio) != HPAGE_PMD_NR, folio);
-+		VM_WARN_ON_FOLIO(nr_pages != HPAGE_PMD_NR, folio);
-+		break;
-+	default:
-+		VM_WARN_ON_ONCE(true);
-+	}
-+}
-+
-+/*
-  * rmap interfaces called when adding or removing pte of page
-  */
- void folio_move_anon_rmap(struct folio *, struct vm_area_struct *);
-@@ -201,8 +239,12 @@ void folio_add_new_anon_rmap(struct foli
- 		unsigned long address);
- void page_add_file_rmap(struct page *, struct vm_area_struct *,
- 		bool compound);
--void folio_add_file_rmap_range(struct folio *, struct page *, unsigned int nr,
--		struct vm_area_struct *, bool compound);
-+void folio_add_file_rmap_ptes(struct folio *, struct page *, int nr_pages,
-+		struct vm_area_struct *);
-+#define folio_add_file_rmap_pte(folio, page, vma) \
-+	folio_add_file_rmap_ptes(folio, page, 1, vma)
-+void folio_add_file_rmap_pmd(struct folio *, struct page *,
-+		struct vm_area_struct *);
- void page_remove_rmap(struct page *, struct vm_area_struct *,
- 		bool compound);
- 
---- a/mm/memory.c~mm-rmap-convert-folio_add_file_rmap_range-into-folio_add_file_rmap_
+--- a/mm/memory.c~mm-memory-page_add_file_rmap-folio_add_file_rmap_
 +++ a/mm/memory.c
-@@ -4515,7 +4515,7 @@ void set_pte_range(struct vm_fault *vmf,
- 		folio_add_lru_vma(folio, vma);
- 	} else {
- 		add_mm_counter(vma->vm_mm, mm_counter_file(page), nr);
--		folio_add_file_rmap_range(folio, page, nr, vma, false);
-+		folio_add_file_rmap_ptes(folio, page, nr, vma);
- 	}
- 	set_ptes(vma->vm_mm, addr, vmf->pte, entry, nr);
- 
---- a/mm/rmap.c~mm-rmap-convert-folio_add_file_rmap_range-into-folio_add_file_rmap_
-+++ a/mm/rmap.c
-@@ -1378,31 +1378,18 @@ void folio_add_new_anon_rmap(struct foli
- 	__lruvec_stat_mod_folio(folio, NR_ANON_MAPPED, nr);
- }
- 
--/**
-- * folio_add_file_rmap_range - add pte mapping to page range of a folio
-- * @folio:	The folio to add the mapping to
-- * @page:	The first page to add
-- * @nr_pages:	The number of pages which will be mapped
-- * @vma:	the vm area in which the mapping is added
-- * @compound:	charge the page as compound or small page
-- *
-- * The page range of folio is defined by [first_page, first_page + nr_pages)
-- *
-- * The caller needs to hold the pte lock.
-- */
--void folio_add_file_rmap_range(struct folio *folio, struct page *page,
--			unsigned int nr_pages, struct vm_area_struct *vma,
--			bool compound)
-+static __always_inline void __folio_add_file_rmap(struct folio *folio,
-+		struct page *page, int nr_pages, struct vm_area_struct *vma,
-+		enum rmap_level level)
+@@ -1859,12 +1859,14 @@ static int validate_page_before_insert(s
+ static int insert_page_into_pte_locked(struct vm_area_struct *vma, pte_t *pte,
+ 			unsigned long addr, struct page *page, pgprot_t prot)
  {
- 	atomic_t *mapped = &folio->_nr_pages_mapped;
--	unsigned int nr_pmdmapped = 0, first;
--	int nr = 0;
-+	int nr = 0, nr_pmdmapped = 0, first;
- 
--	VM_WARN_ON_FOLIO(folio_test_hugetlb(folio), folio);
--	VM_WARN_ON_FOLIO(compound && !folio_test_pmd_mappable(folio), folio);
-+	VM_WARN_ON_FOLIO(folio_test_anon(folio), folio);
-+	__folio_rmap_sanity_checks(folio, page, nr_pages, level);
- 
--	/* Is page being mapped by PTE? Is this its first map to be added? */
--	if (likely(!compound)) {
-+	switch (level) {
-+	case RMAP_LEVEL_PTE:
- 		do {
- 			first = atomic_inc_and_test(&page->_mapcount);
- 			if (first && folio_test_large(folio)) {
-@@ -1413,9 +1400,8 @@ void folio_add_file_rmap_range(struct fo
- 			if (first)
- 				nr++;
- 		} while (page++, --nr_pages > 0);
--	} else if (folio_test_pmd_mappable(folio)) {
--		/* That test is redundant: it's for safety or to optimize out */
--
-+		break;
-+	case RMAP_LEVEL_PMD:
- 		first = atomic_inc_and_test(&folio->_entire_mapcount);
- 		if (first) {
- 			nr = atomic_add_return_relaxed(COMPOUND_MAPPED, mapped);
-@@ -1430,6 +1416,7 @@ void folio_add_file_rmap_range(struct fo
- 				nr = 0;
- 			}
- 		}
-+		break;
- 	}
- 
- 	if (nr_pmdmapped)
-@@ -1444,6 +1431,43 @@ void folio_add_file_rmap_range(struct fo
++	struct folio *folio = page_folio(page);
++
+ 	if (!pte_none(ptep_get(pte)))
+ 		return -EBUSY;
+ 	/* Ok, finally just insert the thing.. */
+-	get_page(page);
++	folio_get(folio);
+ 	inc_mm_counter(vma->vm_mm, mm_counter_file(page));
+-	page_add_file_rmap(page, vma, false);
++	folio_add_file_rmap_pte(folio, page, vma);
+ 	set_pte_at(vma->vm_mm, addr, pte, mk_pte(page, prot));
+ 	return 0;
  }
+@@ -4409,6 +4411,7 @@ static void deposit_prealloc_pte(struct
  
- /**
-+ * folio_add_file_rmap_ptes - add PTE mappings to a page range of a folio
-+ * @folio:	The folio to add the mappings to
-+ * @page:	The first page to add
-+ * @nr_pages:	The number of pages that will be mapped using PTEs
-+ * @vma:	The vm area in which the mappings are added
-+ *
-+ * The page range of the folio is defined by [page, page + nr_pages)
-+ *
-+ * The caller needs to hold the page table lock.
-+ */
-+void folio_add_file_rmap_ptes(struct folio *folio, struct page *page,
-+		int nr_pages, struct vm_area_struct *vma)
-+{
-+	__folio_add_file_rmap(folio, page, nr_pages, vma, RMAP_LEVEL_PTE);
-+}
-+
-+/**
-+ * folio_add_file_rmap_pmd - add a PMD mapping to a page range of a folio
-+ * @folio:	The folio to add the mapping to
-+ * @page:	The first page to add
-+ * @vma:	The vm area in which the mapping is added
-+ *
-+ * The page range of the folio is defined by [page, page + HPAGE_PMD_NR)
-+ *
-+ * The caller needs to hold the page table lock.
-+ */
-+void folio_add_file_rmap_pmd(struct folio *folio, struct page *page,
-+		struct vm_area_struct *vma)
-+{
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	__folio_add_file_rmap(folio, page, HPAGE_PMD_NR, vma, RMAP_LEVEL_PMD);
-+#else
-+	WARN_ON_ONCE(true);
-+#endif
-+}
-+
-+/**
-  * page_add_file_rmap - add pte mapping to a file page
-  * @page:	the page to add the mapping to
-  * @vma:	the vm area in which the mapping is added
-@@ -1455,16 +1479,13 @@ void page_add_file_rmap(struct page *pag
- 		bool compound)
+ vm_fault_t do_set_pmd(struct vm_fault *vmf, struct page *page)
  {
- 	struct folio *folio = page_folio(page);
--	unsigned int nr_pages;
++	struct folio *folio = page_folio(page);
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+ 	unsigned long haddr = vmf->address & HPAGE_PMD_MASK;
+@@ -4418,8 +4421,7 @@ vm_fault_t do_set_pmd(struct vm_fault *v
+ 	if (!thp_vma_suitable_order(vma, haddr, PMD_ORDER))
+ 		return ret;
  
- 	VM_WARN_ON_ONCE_PAGE(compound && !PageTransHuge(page), page);
+-	page = compound_head(page);
+-	if (compound_order(page) != HPAGE_PMD_ORDER)
++	if (page != &folio->page || folio_order(folio) != HPAGE_PMD_ORDER)
+ 		return ret;
  
- 	if (likely(!compound))
--		nr_pages = 1;
-+		folio_add_file_rmap_pte(folio, page, vma);
- 	else
--		nr_pages = folio_nr_pages(folio);
--
--	folio_add_file_rmap_range(folio, page, nr_pages, vma, compound);
-+		folio_add_file_rmap_pmd(folio, page, vma);
- }
+ 	/*
+@@ -4428,7 +4430,7 @@ vm_fault_t do_set_pmd(struct vm_fault *v
+ 	 * check.  This kind of THP just can be PTE mapped.  Access to
+ 	 * the corrupted subpage should trigger SIGBUS as expected.
+ 	 */
+-	if (unlikely(PageHasHWPoisoned(page)))
++	if (unlikely(folio_test_has_hwpoisoned(folio)))
+ 		return ret;
  
- /**
+ 	/*
+@@ -4452,7 +4454,7 @@ vm_fault_t do_set_pmd(struct vm_fault *v
+ 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
+ 
+ 	add_mm_counter(vma->vm_mm, mm_counter_file(page), HPAGE_PMD_NR);
+-	page_add_file_rmap(page, vma, true);
++	folio_add_file_rmap_pmd(folio, page, vma);
+ 
+ 	/*
+ 	 * deposit and withdraw with pmd lock held
 _
 
 Patches currently in -mm which might be from david@redhat.com are
