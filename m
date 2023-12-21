@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CDD67762F
-	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 21:38:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B0E976DD0
+	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 21:38:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mWX7kCe3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94DC2C433C7;
-	Thu, 21 Dec 2023 21:38:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="neU96Lhm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFA34C433C8;
+	Thu, 21 Dec 2023 21:38:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703194685;
-	bh=JpSDMRlB0ad3fviL5D08JxLevWL0fGdY+HRTh0+vLWo=;
+	s=korg; t=1703194686;
+	bh=HaT9/z+mPhdfxmld4OV6dkgwn81VZ6QFnKBJtNIRFw0=;
 	h=Date:To:From:Subject:From;
-	b=mWX7kCe3AeXwmNgdcbHlXHnsiZWLP237jT72uyRKOJfVwiW6OVorE7r/upaGtmDRL
-	 FEcY+MyDma65jSDny6xiSq4Txrk25JTQHsHpMG/1frE5Po5j5HgVnqwC2x+QxdSD7c
-	 gfFYE1rpJw2SzP3luurnuuTixeS8s1MAsOd76Z5c=
-Date: Thu, 21 Dec 2023 13:38:04 -0800
+	b=neU96Lhm8hXqp4/oUbK8cXq6rd7FY4toADlJh70UKhHmb68ID+ESXttJK6sDez06V
+	 8laTPN6bLtMfzwd/mi9nojBj6CAE2ex5OkCUd5UAhu7GtRhYfSldyGuIQf6nuwHzTH
+	 jXaz+UekWopqcsidurhlJxKbZQGKyjPxFeC9X6TI=
+Date: Thu, 21 Dec 2023 13:38:05 -0800
 To: mm-commits@vger.kernel.org,ryabinin.a.a@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-remove-slub-checks-for-page_alloc-fallbacks-in-tests.patch added to mm-unstable branch
-Message-Id: <20231221213805.94DC2C433C7@smtp.kernel.org>
+Subject: + kasan-speed-up-match_all_mem_tag-test-for-sw_tags.patch added to mm-unstable branch
+Message-Id: <20231221213806.CFA34C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan: remove SLUB checks for page_alloc fallbacks in tests
+     Subject: kasan: speed up match_all_mem_tag test for SW_TAGS
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-remove-slub-checks-for-page_alloc-fallbacks-in-tests.patch
+     kasan-speed-up-match_all_mem_tag-test-for-sw_tags.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-remove-slub-checks-for-page_alloc-fallbacks-in-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-speed-up-match_all_mem_tag-test-for-sw_tags.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,19 +51,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: remove SLUB checks for page_alloc fallbacks in tests
-Date: Thu, 21 Dec 2023 21:04:52 +0100
+Subject: kasan: speed up match_all_mem_tag test for SW_TAGS
+Date: Thu, 21 Dec 2023 21:04:53 +0100
 
-A number of KASAN tests rely on the fact that calling kmalloc with a size
-larger than an order-1 page falls back onto page_alloc.
+Checking all 256 possible tag values in the match_all_mem_tag KASAN test
+is slow and produces 256 reports.  Instead, just check the first 8 and the
+last 8.
 
-This fallback was originally only implemented for SLUB, but since commit
-d6a71648dbc0 ("mm/slab: kmalloc: pass requests larger than order-1 page to
-page allocator"), it is also implemented for SLAB.
-
-Thus, drop the SLUB checks from the tests.
-
-Link: https://lkml.kernel.org/r/c82099b6fb365b6f4c2c21b112d4abb4dfd83e53.1703188911.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/6fe51262defd80cdc1150c42404977aafd1b6167.1703188911.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
@@ -72,106 +67,26 @@ Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan_test.c |   26 ++------------------------
- 1 file changed, 2 insertions(+), 24 deletions(-)
+ mm/kasan/kasan_test.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/mm/kasan/kasan_test.c~kasan-remove-slub-checks-for-page_alloc-fallbacks-in-tests
+--- a/mm/kasan/kasan_test.c~kasan-speed-up-match_all_mem_tag-test-for-sw_tags
 +++ a/mm/kasan/kasan_test.c
-@@ -215,7 +215,7 @@ static void kmalloc_node_oob_right(struc
+@@ -1797,6 +1797,14 @@ static void match_all_mem_tag(struct kun
  
- /*
-  * Check that KASAN detects an out-of-bounds access for a big object allocated
-- * via kmalloc(). But not as big as to trigger the page_alloc fallback for SLUB.
-+ * via kmalloc(). But not as big as to trigger the page_alloc fallback.
-  */
- static void kmalloc_big_oob_right(struct kunit *test)
- {
-@@ -233,8 +233,7 @@ static void kmalloc_big_oob_right(struct
- /*
-  * The kmalloc_large_* tests below use kmalloc() to allocate a memory chunk
-  * that does not fit into the largest slab cache and therefore is allocated via
-- * the page_alloc fallback for SLUB. SLAB has no such fallback, and thus these
-- * tests are not supported for it.
-+ * the page_alloc fallback.
-  */
+ 	/* For each possible tag value not matching the pointer tag. */
+ 	for (tag = KASAN_TAG_MIN; tag <= KASAN_TAG_KERNEL; tag++) {
++		/*
++		 * For Software Tag-Based KASAN, skip the majority of tag
++		 * values to avoid the test printing too many reports.
++		 */
++		if (IS_ENABLED(CONFIG_KASAN_SW_TAGS) &&
++		    tag >= KASAN_TAG_MIN + 8 && tag <= KASAN_TAG_KERNEL - 8)
++			continue;
++
+ 		if (tag == get_tag(ptr))
+ 			continue;
  
- static void kmalloc_large_oob_right(struct kunit *test)
-@@ -242,8 +241,6 @@ static void kmalloc_large_oob_right(stru
- 	char *ptr;
- 	size_t size = KMALLOC_MAX_CACHE_SIZE + 10;
- 
--	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_SLUB);
--
- 	ptr = kmalloc(size, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
- 
-@@ -258,8 +255,6 @@ static void kmalloc_large_uaf(struct kun
- 	char *ptr;
- 	size_t size = KMALLOC_MAX_CACHE_SIZE + 10;
- 
--	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_SLUB);
--
- 	ptr = kmalloc(size, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
- 	kfree(ptr);
-@@ -272,8 +267,6 @@ static void kmalloc_large_invalid_free(s
- 	char *ptr;
- 	size_t size = KMALLOC_MAX_CACHE_SIZE + 10;
- 
--	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_SLUB);
--
- 	ptr = kmalloc(size, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
- 
-@@ -407,18 +400,12 @@ static void krealloc_less_oob(struct kun
- 
- static void krealloc_large_more_oob(struct kunit *test)
- {
--	/* page_alloc fallback is only implemented for SLUB. */
--	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_SLUB);
--
- 	krealloc_more_oob_helper(test, KMALLOC_MAX_CACHE_SIZE + 201,
- 					KMALLOC_MAX_CACHE_SIZE + 235);
- }
- 
- static void krealloc_large_less_oob(struct kunit *test)
- {
--	/* page_alloc fallback is only implemented for SLUB. */
--	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_SLUB);
--
- 	krealloc_less_oob_helper(test, KMALLOC_MAX_CACHE_SIZE + 235,
- 					KMALLOC_MAX_CACHE_SIZE + 201);
- }
-@@ -1156,9 +1143,6 @@ static void mempool_kmalloc_large_uaf(st
- 	size_t size = KMALLOC_MAX_CACHE_SIZE + 1;
- 	void *extra_elem;
- 
--	/* page_alloc fallback is only implemented for SLUB. */
--	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_SLUB);
--
- 	extra_elem = mempool_prepare_kmalloc(test, &pool, size);
- 
- 	mempool_uaf_helper(test, &pool, false);
-@@ -1227,9 +1211,6 @@ static void mempool_kmalloc_large_double
- 	size_t size = KMALLOC_MAX_CACHE_SIZE + 1;
- 	char *extra_elem;
- 
--	/* page_alloc fallback is only implemented for SLUB. */
--	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_SLUB);
--
- 	extra_elem = mempool_prepare_kmalloc(test, &pool, size);
- 
- 	mempool_double_free_helper(test, &pool);
-@@ -1284,9 +1265,6 @@ static void mempool_kmalloc_large_invali
- 	size_t size = KMALLOC_MAX_CACHE_SIZE + 1;
- 	char *extra_elem;
- 
--	/* page_alloc fallback is only implemented for SLUB. */
--	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_SLUB);
--
- 	extra_elem = mempool_prepare_kmalloc(test, &pool, size);
- 
- 	mempool_kmalloc_invalid_free_helper(test, &pool);
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
