@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A83A7691C
-	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 22:29:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 806D678E86
+	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 22:29:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P8mjjMpe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C895C433C7;
-	Thu, 21 Dec 2023 22:29:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GbSV/CDM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7E62C433D9;
+	Thu, 21 Dec 2023 22:29:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703197773;
-	bh=prrIFgbdpfQuQa+nUy2cJ8iXxozctYzw5Bn2BaIPTIQ=;
+	s=korg; t=1703197774;
+	bh=74sMm7wHuxwPT91DJPkGtpORYJJS8+VGrIJCE3EcSXg=;
 	h=Date:To:From:Subject:From;
-	b=P8mjjMpeF1p/ValL9fzOIDXIYcjWPyHismtD2DTF2Ibr9726gasXTUbP8+u+TiDVW
-	 9OmD2L4hUEnXJqwV9Q+/bX0XM1lWcJPHEets7ICjv5Vp7EsuJzsCJa2Tbwyxqz7uxI
-	 1pmh3Qy5VglbmJlAOJRI0EQN1g7/WLb8b1hMBjZk=
-Date: Thu, 21 Dec 2023 14:29:33 -0800
+	b=GbSV/CDM/u/+lOHdkO3tS60NYOR/6cTp+JhMX4QSQoMAYoaCf69hFvYmRKcT/arOZ
+	 kt1L3AS97oMDrN2MI3Pr/yuV6rzOl17lXZEmWTkCejjmgNCWcmmOW4iydndzRrGJbt
+	 2guSjjcQEc07G2P8uBlKkOaqQ3T93Fq8t61WNHSs=
+Date: Thu, 21 Dec 2023 14:29:34 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,songmuchun@bytedance.com,ryan.roberts@arm.com,peterx@redhat.com,muchun.song@linux.dev,hughd@google.com,fengwei.yin@intel.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-introduce-and-use-hugetlb_try_share_anon_rmap.patch added to mm-unstable branch
-Message-Id: <20231221222933.9C895C433C7@smtp.kernel.org>
+Subject: + mm-rmap-add-hugetlb-sanity-checks-for-anon-rmap-handling.patch added to mm-unstable branch
+Message-Id: <20231221222934.D7E62C433D9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: introduce and use hugetlb_try_share_anon_rmap()
+     Subject: mm/rmap: add hugetlb sanity checks for anon rmap handling
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rmap-introduce-and-use-hugetlb_try_share_anon_rmap.patch
+     mm-rmap-add-hugetlb-sanity-checks-for-anon-rmap-handling.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-introduce-and-use-hugetlb_try_share_anon_rmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-add-hugetlb-sanity-checks-for-anon-rmap-handling.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,108 +51,64 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: introduce and use hugetlb_try_share_anon_rmap()
-Date: Wed, 20 Dec 2023 23:44:29 +0100
+Subject: mm/rmap: add hugetlb sanity checks for anon rmap handling
+Date: Wed, 20 Dec 2023 23:44:30 +0100
 
-hugetlb rmap handling differs quite a lot from "ordinary" rmap code.  For
-example, hugetlb currently only supports entire mappings, and treats any
-mapping as mapped using a single "logical PTE".  Let's move it out of the
-way so we can overhaul our "ordinary" rmap.  implementation/interface.
-
-So let's introduce and use hugetlb_try_dup_anon_rmap() to make all hugetlb
-handling use dedicated hugetlb_* rmap functions.
-
-Add sanity checks that we end up with the right folios in the right
+Let's make sure we end up with the right folios in the right functions
+when adding an anon rmap, just like we already do in the other rmap
 functions.
 
-Note that try_to_unmap_one() does not need care.  Easy to spot because
-among all that nasty hugetlb special-casing in that function, we're not
-using set_huge_pte_at() on the anon path -- well, and that code assumes
-that we would want to swapout.
-
-Link: https://lkml.kernel.org/r/20231220224504.646757-6-david@redhat.com
+Link: https://lkml.kernel.org/r/20231220224504.646757-7-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Yin Fengwei <fengwei.yin@intel.com>
 Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Peter Xu <peterx@redhat.com>
+Cc: Yin Fengwei <fengwei.yin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   25 +++++++++++++++++++++++++
- mm/rmap.c            |   15 ++++++++++-----
- 2 files changed, 35 insertions(+), 5 deletions(-)
+ mm/rmap.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/include/linux/rmap.h~mm-rmap-introduce-and-use-hugetlb_try_share_anon_rmap
-+++ a/include/linux/rmap.h
-@@ -227,6 +227,30 @@ static inline int hugetlb_try_dup_anon_r
- 	return 0;
- }
- 
-+/* See page_try_share_anon_rmap() */
-+static inline int hugetlb_try_share_anon_rmap(struct folio *folio)
-+{
-+	VM_WARN_ON_FOLIO(!folio_test_hugetlb(folio), folio);
-+	VM_WARN_ON_FOLIO(!folio_test_anon(folio), folio);
-+	VM_WARN_ON_FOLIO(!PageAnonExclusive(&folio->page), folio);
-+
-+	/* Paired with the memory barrier in try_grab_folio(). */
-+	if (IS_ENABLED(CONFIG_HAVE_FAST_GUP))
-+		smp_mb();
-+
-+	if (unlikely(folio_maybe_dma_pinned(folio)))
-+		return -EBUSY;
-+	ClearPageAnonExclusive(&folio->page);
-+
-+	/*
-+	 * This is conceptually a smp_wmb() paired with the smp_rmb() in
-+	 * gup_must_unshare().
-+	 */
-+	if (IS_ENABLED(CONFIG_HAVE_FAST_GUP))
-+		smp_mb__after_atomic();
-+	return 0;
-+}
-+
- static inline void hugetlb_add_file_rmap(struct folio *folio)
- {
- 	VM_WARN_ON_FOLIO(!folio_test_hugetlb(folio), folio);
-@@ -331,6 +355,7 @@ dup:
-  */
- static inline int page_try_share_anon_rmap(struct page *page)
- {
-+	VM_WARN_ON(folio_test_hugetlb(page_folio(page)));
- 	VM_BUG_ON_PAGE(!PageAnon(page) || !PageAnonExclusive(page), page);
- 
- 	/* device private pages cannot get pinned via GUP. */
---- a/mm/rmap.c~mm-rmap-introduce-and-use-hugetlb_try_share_anon_rmap
+--- a/mm/rmap.c~mm-rmap-add-hugetlb-sanity-checks-for-anon-rmap-handling
 +++ a/mm/rmap.c
-@@ -2149,13 +2149,18 @@ static bool try_to_migrate_one(struct fo
- 				       !anon_exclusive, subpage);
+@@ -1262,6 +1262,8 @@ void page_add_anon_rmap(struct page *pag
+ 	bool compound = flags & RMAP_COMPOUND;
+ 	bool first;
  
- 			/* See page_try_share_anon_rmap(): clear PTE first. */
--			if (anon_exclusive &&
--			    page_try_share_anon_rmap(subpage)) {
--				if (folio_test_hugetlb(folio))
-+			if (folio_test_hugetlb(folio)) {
-+				if (anon_exclusive &&
-+				    hugetlb_try_share_anon_rmap(folio)) {
- 					set_huge_pte_at(mm, address, pvmw.pte,
- 							pteval, hsz);
--				else
--					set_pte_at(mm, address, pvmw.pte, pteval);
-+					ret = false;
-+					page_vma_mapped_walk_done(&pvmw);
-+					break;
-+				}
-+			} else if (anon_exclusive &&
-+				   page_try_share_anon_rmap(subpage)) {
-+				set_pte_at(mm, address, pvmw.pte, pteval);
- 				ret = false;
- 				page_vma_mapped_walk_done(&pvmw);
- 				break;
++	VM_WARN_ON_FOLIO(folio_test_hugetlb(folio), folio);
++
+ 	/* Is page being mapped by PTE? Is this its first map to be added? */
+ 	if (likely(!compound)) {
+ 		first = atomic_inc_and_test(&page->_mapcount);
+@@ -1343,6 +1345,7 @@ void folio_add_new_anon_rmap(struct foli
+ {
+ 	int nr = folio_nr_pages(folio);
+ 
++	VM_WARN_ON_FOLIO(folio_test_hugetlb(folio), folio);
+ 	VM_BUG_ON_VMA(address < vma->vm_start ||
+ 			address + (nr << PAGE_SHIFT) > vma->vm_end, vma);
+ 	__folio_set_swapbacked(folio);
+@@ -2634,6 +2637,7 @@ void rmap_walk_locked(struct folio *foli
+ void hugetlb_add_anon_rmap(struct folio *folio, struct vm_area_struct *vma,
+ 		unsigned long address, rmap_t flags)
+ {
++	VM_WARN_ON_FOLIO(!folio_test_hugetlb(folio), folio);
+ 	VM_WARN_ON_FOLIO(!folio_test_anon(folio), folio);
+ 
+ 	atomic_inc(&folio->_entire_mapcount);
+@@ -2646,6 +2650,8 @@ void hugetlb_add_anon_rmap(struct folio
+ void hugetlb_add_new_anon_rmap(struct folio *folio,
+ 		struct vm_area_struct *vma, unsigned long address)
+ {
++	VM_WARN_ON_FOLIO(!folio_test_hugetlb(folio), folio);
++
+ 	BUG_ON(address < vma->vm_start || address >= vma->vm_end);
+ 	/* increment count (starts at -1) */
+ 	atomic_set(&folio->_entire_mapcount, 0);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
