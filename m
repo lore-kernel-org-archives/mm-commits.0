@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5660111719
-	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 22:35:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10AD51642B
+	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 22:39:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hUl61hMt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16206C433C8;
-	Thu, 21 Dec 2023 22:35:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vJ3u3se4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B24C4C433C8;
+	Thu, 21 Dec 2023 22:39:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703198152;
-	bh=/NkeAv0ndydkXWXgbWX2GDn55RALuyuEPQVFAhgHzWI=;
+	s=korg; t=1703198353;
+	bh=NhxyTRk+y+fRC1QfRgZ3LgABXis4U1WUGBKoZOVMky4=;
 	h=Date:To:From:Subject:From;
-	b=hUl61hMtP5eiAjqWDs2z9x+WC+q7FGh8t3KCeJoqnJBHwd2MN7jVVsqLom2hWMxnx
-	 fYB5PMmual+DYMzYf+GYz3hGhDqML6bXuOg67be7W3aNoAZwHxl3afo4usog26Shdi
-	 N4XARTtEZXcMcxLaOHGtO3IbNjyiQ2JZoitZNs6c=
-Date: Thu, 21 Dec 2023 14:35:51 -0800
-To: mm-commits@vger.kernel.org,pmladek@suse.com,lizhe.67@bytedance.com,lecopzer.chen@mediatek.com,kernelfans@gmail.com,john.ogness@linutronix.de,dianders@chromium.org,akpm@linux-foundation.org
+	b=vJ3u3se40ulcCg2EQ5MyETcPv0CxIJH6nLWKRs0LQd1OxnP2J8by9g5sjGyhJuVZa
+	 CgCOhV6gLO3tIxlS3eEk3cFAuQcehtychBAeAR9c9UFw4+FrT5XUJuBIvpMnwEaqOj
+	 xiNmMxVKiN/7oK+j0gHMNb4aj9/vgpztT3icVi64=
+Date: Thu, 21 Dec 2023 14:39:13 -0800
+To: mm-commits@vger.kernel.org,oliver.sang@intel.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + watchdog-if-panicking-and-we-dumped-everything-dont-re-enable-dumping.patch added to mm-nonmm-unstable branch
-Message-Id: <20231221223552.16206C433C8@smtp.kernel.org>
+Subject: + mm-convert-ksm_might_need_to_copy-to-work-on-folios-fix-fix.patch added to mm-unstable branch
+Message-Id: <20231221223913.B24C4C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: watchdog: if panicking and we dumped everything, don't re-enable dumping
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     watchdog-if-panicking-and-we-dumped-everything-dont-re-enable-dumping.patch
+     Subject: Fixup: mm: convert ksm_might_need_to_copy() to work on folios
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-convert-ksm_might_need_to_copy-to-work-on-folios-fix-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-if-panicking-and-we-dumped-everything-dont-re-enable-dumping.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-ksm_might_need_to_copy-to-work-on-folios-fix-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,56 +50,79 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Douglas Anderson <dianders@chromium.org>
-Subject: watchdog: if panicking and we dumped everything, don't re-enable dumping
-Date: Wed, 20 Dec 2023 13:15:37 -0800
+From: David Hildenbrand <david@redhat.com>
+Subject: Fixup: mm: convert ksm_might_need_to_copy() to work on folios
+Date: Thu, 21 Dec 2023 23:04:30 +0100
 
-If, as part of handling a hardlockup or softlockup, we've already dumped
-all CPUs and we're just about to panic, don't reenable dumping and give
-some other CPU a chance to hop in there and add some confusing logs right
-as the panic is happening.
+We must only adjust the page if the folio changed. Otherwise, if we
+had a large folio in the swapcache and the folio didn't change, we'd
+suddenly change the page to-be-mapped.
 
-Link: https://lkml.kernel.org/r/20231220131534.4.Id3a9c7ec2d7d83e4080da6f8662ba2226b40543f@changeid
-Signed-off-by: Douglas Anderson <dianders@chromium.org>
-Cc: John Ogness <john.ogness@linutronix.de>
-Cc: Lecopzer Chen <lecopzer.chen@mediatek.com>
-Cc: Li Zhe <lizhe.67@bytedance.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Pingfan Liu <kernelfans@gmail.com>
+Link: https://lkml.kernel.org/r/6a8f2110-fa91-4c10-9eae-88315309a6e3@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202312192319.fa8f5709-oliver.sang@intel.com
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/memory.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/kernel/watchdog.c~watchdog-if-panicking-and-we-dumped-everything-dont-re-enable-dumping
-+++ a/kernel/watchdog.c
-@@ -192,7 +192,8 @@ void watchdog_hardlockup_check(unsigned
- 
- 		if (sysctl_hardlockup_all_cpu_backtrace) {
- 			trigger_allbutcpu_cpu_backtrace(cpu);
--			clear_bit_unlock(0, &hard_lockup_nmi_warn);
-+			if (!hardlockup_panic)
-+				clear_bit_unlock(0, &hard_lockup_nmi_warn);
+--- a/mm/memory.c~mm-convert-ksm_might_need_to_copy-to-work-on-folios-fix-fix
++++ a/mm/memory.c
+@@ -3952,7 +3952,8 @@ vm_fault_t do_swap_page(struct vm_fault
+ 			folio = swapcache;
+ 			goto out_page;
  		}
+-		page = folio_page(folio, 0);
++		if (folio != swapcache)
++			page = folio_page(folio, 0);
  
- 		if (hardlockup_panic)
-@@ -548,7 +549,8 @@ static enum hrtimer_restart watchdog_tim
- 
- 		if (softlockup_all_cpu_backtrace) {
- 			trigger_allbutcpu_cpu_backtrace(smp_processor_id());
--			clear_bit_unlock(0, &soft_lockup_nmi_warn);
-+			if (!softlockup_panic)
-+				clear_bit_unlock(0, &soft_lockup_nmi_warn);
- 		}
- 
- 		add_taint(TAINT_SOFTLOCKUP, LOCKDEP_STILL_OK);
+ 		/*
+ 		 * If we want to map a page that's in the swapcache writable, we
 _
 
-Patches currently in -mm which might be from dianders@chromium.org are
+Patches currently in -mm which might be from david@redhat.com are
 
-watchdog-hardlockup-adopt-softlockup-logic-avoiding-double-dumps.patch
-watchdog-softlockup-use-printk_cpu_sync_get_irqsave-to-serialize-reporting.patch
-watchdog-hardlockup-use-printk_cpu_sync_get_irqsave-to-serialize-reporting.patch
-watchdog-if-panicking-and-we-dumped-everything-dont-re-enable-dumping.patch
+mm-convert-ksm_might_need_to_copy-to-work-on-folios-fix-fix.patch
+mm-rmap-rename-hugepage_add-to-hugetlb_add.patch
+mm-rmap-introduce-and-use-hugetlb_remove_rmap.patch
+mm-rmap-introduce-and-use-hugetlb_add_file_rmap.patch
+mm-rmap-introduce-and-use-hugetlb_try_dup_anon_rmap.patch
+mm-rmap-introduce-and-use-hugetlb_try_share_anon_rmap.patch
+mm-rmap-add-hugetlb-sanity-checks-for-anon-rmap-handling.patch
+mm-rmap-convert-folio_add_file_rmap_range-into-folio_add_file_rmap_.patch
+mm-memory-page_add_file_rmap-folio_add_file_rmap_.patch
+mm-huge_memory-page_add_file_rmap-folio_add_file_rmap_pmd.patch
+mm-migrate-page_add_file_rmap-folio_add_file_rmap_pte.patch
+mm-userfaultfd-page_add_file_rmap-folio_add_file_rmap_pte.patch
+mm-rmap-remove-page_add_file_rmap.patch
+mm-rmap-factor-out-adding-folio-mappings-into-__folio_add_rmap.patch
+mm-rmap-introduce-folio_add_anon_rmap_.patch
+mm-huge_memory-batch-rmap-operations-in-__split_huge_pmd_locked.patch
+mm-huge_memory-page_add_anon_rmap-folio_add_anon_rmap_pmd.patch
+mm-migrate-page_add_anon_rmap-folio_add_anon_rmap_pte.patch
+mm-ksm-page_add_anon_rmap-folio_add_anon_rmap_pte.patch
+mm-swapfile-page_add_anon_rmap-folio_add_anon_rmap_pte.patch
+mm-memory-page_add_anon_rmap-folio_add_anon_rmap_pte.patch
+mm-rmap-remove-page_add_anon_rmap.patch
+mm-rmap-remove-rmap_compound.patch
+mm-rmap-introduce-folio_remove_rmap_.patch
+kernel-events-uprobes-page_remove_rmap-folio_remove_rmap_pte.patch
+mm-huge_memory-page_remove_rmap-folio_remove_rmap_pmd.patch
+mm-khugepaged-page_remove_rmap-folio_remove_rmap_pte.patch
+mm-ksm-page_remove_rmap-folio_remove_rmap_pte.patch
+mm-memory-page_remove_rmap-folio_remove_rmap_pte.patch
+mm-migrate_device-page_remove_rmap-folio_remove_rmap_pte.patch
+mm-rmap-page_remove_rmap-folio_remove_rmap_pte.patch
+documentation-stop-referring-to-page_remove_rmap.patch
+mm-rmap-remove-page_remove_rmap.patch
+mm-rmap-convert-page_dup_file_rmap-to-folio_dup_file_rmap_.patch
+mm-rmap-introduce-folio_try_dup_anon_rmap_.patch
+mm-huge_memory-page_try_dup_anon_rmap-folio_try_dup_anon_rmap_pmd.patch
+mm-memory-page_try_dup_anon_rmap-folio_try_dup_anon_rmap_pte.patch
+mm-rmap-remove-page_try_dup_anon_rmap.patch
+mm-convert-page_try_share_anon_rmap-to-folio_try_share_anon_rmap_.patch
+mm-rmap-rename-compound_mapped-to-entirely_mapped.patch
+mm-remove-one-last-reference-to-page_add__rmap.patch
 
