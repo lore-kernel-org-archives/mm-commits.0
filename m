@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF0D078E64
-	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 22:29:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CAD078E85
+	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 22:29:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a8IeW+vs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55F52C433C7;
-	Thu, 21 Dec 2023 22:29:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="004ab1io"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C0E3C433C8;
+	Thu, 21 Dec 2023 22:29:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703197784;
-	bh=mR/K21m8yR8BsGqLRnIsA/5IblDgN5Jmm3nGCiiO340=;
+	s=korg; t=1703197785;
+	bh=ZRJdrtKLfgqEC7GTyVHkoGqEKXalyrh8uyie/1oPZY0=;
 	h=Date:To:From:Subject:From;
-	b=a8IeW+vs6tV1Hy/1y3jQgBg1mbgO1VrjG9AObFdirGkJ0TRdSw9ZmgvgFZOuon6jt
-	 LVig4QaaioLUB+qM8V5KFDDatTpAq9J9lYpx4eRRxKNcYFqV7ylxq9eOa0fXH8ZOX2
-	 qtRxNKv9oPBO0rgmusQFcUK3QiXjktZvuFR4u+rA=
-Date: Thu, 21 Dec 2023 14:29:43 -0800
+	b=004ab1ioL3HTgVkmJ9/R1/EWj0XvR0Pd8y2UNItc3Abu/S5OgqJ6k9t/aLjBvAQcb
+	 b5XvX88jq6CVha7T3xVRpqViZcYDrsuwrCTJRFp6U6AIXsj0NbI8Pv63K88EtNsbJo
+	 SDi6pIqrZYRVT8uABnySTyQgJ7jZQMvS9pZuVGsU=
+Date: Thu, 21 Dec 2023 14:29:45 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,songmuchun@bytedance.com,ryan.roberts@arm.com,peterx@redhat.com,muchun.song@linux.dev,hughd@google.com,fengwei.yin@intel.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-introduce-folio_add_anon_rmap_.patch added to mm-unstable branch
-Message-Id: <20231221222944.55F52C433C7@smtp.kernel.org>
+Subject: + mm-huge_memory-batch-rmap-operations-in-__split_huge_pmd_locked.patch added to mm-unstable branch
+Message-Id: <20231221222945.9C0E3C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: introduce folio_add_anon_rmap_[pte|ptes|pmd]()
+     Subject: mm/huge_memory: batch rmap operations in __split_huge_pmd_locked()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rmap-introduce-folio_add_anon_rmap_.patch
+     mm-huge_memory-batch-rmap-operations-in-__split_huge_pmd_locked.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-introduce-folio_add_anon_rmap_.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-batch-rmap-operations-in-__split_huge_pmd_locked.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,23 +51,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: introduce folio_add_anon_rmap_[pte|ptes|pmd]()
-Date: Wed, 20 Dec 2023 23:44:38 +0100
+Subject: mm/huge_memory: batch rmap operations in __split_huge_pmd_locked()
+Date: Wed, 20 Dec 2023 23:44:39 +0100
 
-Let's mimic what we did with folio_add_file_rmap_*() so we can similarly
-replace page_add_anon_rmap() next.
+Let's use folio_add_anon_rmap_ptes(), batching the rmap operations.
 
-Make the compiler always special-case on the granularity by using
-__always_inline.
+While at it, use more folio operations (but only in the code branch we're
+touching), use VM_WARN_ON_FOLIO(), and pass RMAP_EXCLUSIVE instead of
+manually setting PageAnonExclusive.
 
-For the PageAnonExclusive sanity checks, when adding a PMD mapping, we're
-now also checking each individual subpage covered by that PMD, instead of
-only the head page.
+We should never see non-anon pages on that branch: otherwise, the existing
+page_add_anon_rmap() call would have been flawed already.
 
-Note that the new functions ignore the RMAP_COMPOUND flag, which we will
-remove as soon as page_add_anon_rmap() is gone.
-
-Link: https://lkml.kernel.org/r/20231220224504.646757-15-david@redhat.com
+Link: https://lkml.kernel.org/r/20231220224504.646757-16-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Yin Fengwei <fengwei.yin@intel.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -79,177 +75,79 @@ Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    6 ++
- mm/rmap.c            |  122 +++++++++++++++++++++++++++--------------
- 2 files changed, 89 insertions(+), 39 deletions(-)
+ mm/huge_memory.c |   23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
---- a/include/linux/rmap.h~mm-rmap-introduce-folio_add_anon_rmap_
-+++ a/include/linux/rmap.h
-@@ -233,6 +233,12 @@ static inline void __folio_rmap_sanity_c
-  * rmap interfaces called when adding or removing pte of page
-  */
- void folio_move_anon_rmap(struct folio *, struct vm_area_struct *);
-+void folio_add_anon_rmap_ptes(struct folio *, struct page *, int nr_pages,
-+		struct vm_area_struct *, unsigned long address, rmap_t flags);
-+#define folio_add_anon_rmap_pte(folio, page, vma, address, flags) \
-+	folio_add_anon_rmap_ptes(folio, page, 1, vma, address, flags)
-+void folio_add_anon_rmap_pmd(struct folio *, struct page *,
-+		struct vm_area_struct *, unsigned long address, rmap_t flags);
- void page_add_anon_rmap(struct page *, struct vm_area_struct *,
- 		unsigned long address, rmap_t flags);
- void folio_add_new_anon_rmap(struct folio *, struct vm_area_struct *,
---- a/mm/rmap.c~mm-rmap-introduce-folio_add_anon_rmap_
-+++ a/mm/rmap.c
-@@ -1299,40 +1299,20 @@ void page_add_anon_rmap(struct page *pag
- 		unsigned long address, rmap_t flags)
+--- a/mm/huge_memory.c~mm-huge_memory-batch-rmap-operations-in-__split_huge_pmd_locked
++++ a/mm/huge_memory.c
+@@ -2398,6 +2398,7 @@ static void __split_huge_pmd_locked(stru
+ 		unsigned long haddr, bool freeze)
  {
- 	struct folio *folio = page_folio(page);
--	atomic_t *mapped = &folio->_nr_pages_mapped;
--	int nr = 0, nr_pmdmapped = 0;
--	bool compound = flags & RMAP_COMPOUND;
--	bool first;
--
--	VM_WARN_ON_FOLIO(folio_test_hugetlb(folio), folio);
--
--	/* Is page being mapped by PTE? Is this its first map to be added? */
--	if (likely(!compound)) {
--		first = atomic_inc_and_test(&page->_mapcount);
--		nr = first;
--		if (first && folio_test_large(folio)) {
--			nr = atomic_inc_return_relaxed(mapped);
--			nr = (nr < COMPOUND_MAPPED);
--		}
--	} else if (folio_test_pmd_mappable(folio)) {
--		/* That test is redundant: it's for safety or to optimize out */
+ 	struct mm_struct *mm = vma->vm_mm;
++	struct folio *folio;
+ 	struct page *page;
+ 	pgtable_t pgtable;
+ 	pmd_t old_pmd, _pmd;
+@@ -2493,16 +2494,18 @@ static void __split_huge_pmd_locked(stru
+ 		uffd_wp = pmd_swp_uffd_wp(old_pmd);
+ 	} else {
+ 		page = pmd_page(old_pmd);
++		folio = page_folio(page);
+ 		if (pmd_dirty(old_pmd)) {
+ 			dirty = true;
+-			SetPageDirty(page);
++			folio_set_dirty(folio);
+ 		}
+ 		write = pmd_write(old_pmd);
+ 		young = pmd_young(old_pmd);
+ 		soft_dirty = pmd_soft_dirty(old_pmd);
+ 		uffd_wp = pmd_uffd_wp(old_pmd);
  
--		first = atomic_inc_and_test(&folio->_entire_mapcount);
--		if (first) {
--			nr = atomic_add_return_relaxed(COMPOUND_MAPPED, mapped);
--			if (likely(nr < COMPOUND_MAPPED + COMPOUND_MAPPED)) {
--				nr_pmdmapped = folio_nr_pages(folio);
--				nr = nr_pmdmapped - (nr & FOLIO_PAGES_MAPPED);
--				/* Raced ahead of a remove and another add? */
--				if (unlikely(nr < 0))
--					nr = 0;
--			} else {
--				/* Raced ahead of a remove of COMPOUND_MAPPED */
--				nr = 0;
--			}
--		}
--	}
-+	if (likely(!(flags & RMAP_COMPOUND)))
-+		folio_add_anon_rmap_pte(folio, page, vma, address, flags);
-+	else
-+		folio_add_anon_rmap_pmd(folio, page, vma, address, flags);
-+}
-+
-+static __always_inline void __folio_add_anon_rmap(struct folio *folio,
-+		struct page *page, int nr_pages, struct vm_area_struct *vma,
-+		unsigned long address, rmap_t flags, enum rmap_level level)
-+{
-+	int i, nr, nr_pmdmapped = 0;
+-		VM_BUG_ON_PAGE(!page_count(page), page);
++		VM_WARN_ON_FOLIO(!folio_ref_count(folio), folio);
++		VM_WARN_ON_FOLIO(!folio_test_anon(folio), folio);
  
-+	nr = __folio_add_rmap(folio, page, nr_pages, level, &nr_pmdmapped);
- 	if (nr_pmdmapped)
- 		__lruvec_stat_mod_folio(folio, NR_ANON_THPS, nr_pmdmapped);
- 	if (nr)
-@@ -1346,18 +1326,34 @@ void page_add_anon_rmap(struct page *pag
- 		 * folio->index right when not given the address of the head
- 		 * page.
+ 		/*
+ 		 * Without "freeze", we'll simply split the PMD, propagating the
+@@ -2519,11 +2522,18 @@ static void __split_huge_pmd_locked(stru
+ 		 *
+ 		 * See page_try_share_anon_rmap(): invalidate PMD first.
  		 */
--		VM_WARN_ON_FOLIO(folio_test_large(folio) && !compound, folio);
-+		VM_WARN_ON_FOLIO(folio_test_large(folio) &&
-+				 level != RMAP_LEVEL_PMD, folio);
- 		__folio_set_anon(folio, vma, address,
- 				 !!(flags & RMAP_EXCLUSIVE));
- 	} else if (likely(!folio_test_ksm(folio))) {
- 		__page_check_anon_rmap(folio, page, vma, address);
- 	}
--	if (flags & RMAP_EXCLUSIVE)
--		SetPageAnonExclusive(page);
--	/* While PTE-mapping a THP we have a PMD and a PTE mapping. */
--	VM_WARN_ON_FOLIO((atomic_read(&page->_mapcount) > 0 ||
--			  (folio_test_large(folio) && folio_entire_mapcount(folio) > 1)) &&
--			 PageAnonExclusive(page), folio);
+-		anon_exclusive = PageAnon(page) && PageAnonExclusive(page);
++		anon_exclusive = PageAnonExclusive(page);
+ 		if (freeze && anon_exclusive && page_try_share_anon_rmap(page))
+ 			freeze = false;
+-		if (!freeze)
+-			page_ref_add(page, HPAGE_PMD_NR - 1);
++		if (!freeze) {
++			rmap_t rmap_flags = RMAP_NONE;
 +
-+	if (flags & RMAP_EXCLUSIVE) {
-+		switch (level) {
-+		case RMAP_LEVEL_PTE:
-+			for (i = 0; i < nr_pages; i++)
-+				SetPageAnonExclusive(page + i);
-+			break;
-+		case RMAP_LEVEL_PMD:
-+			SetPageAnonExclusive(page);
-+			break;
++			folio_ref_add(folio, HPAGE_PMD_NR - 1);
++			if (anon_exclusive)
++				rmap_flags |= RMAP_EXCLUSIVE;
++			folio_add_anon_rmap_ptes(folio, page, HPAGE_PMD_NR,
++						 vma, haddr, rmap_flags);
 +		}
-+	}
-+	for (i = 0; i < nr_pages; i++) {
-+		struct page *cur_page = page + i;
-+
-+		/* While PTE-mapping a THP we have a PMD and a PTE mapping. */
-+		VM_WARN_ON_FOLIO((atomic_read(&cur_page->_mapcount) > 0 ||
-+				  (folio_test_large(folio) &&
-+				   folio_entire_mapcount(folio) > 1)) &&
-+				 PageAnonExclusive(cur_page), folio);
-+	}
+ 	}
  
  	/*
- 	 * For large folio, only mlock it if it's fully mapped to VMA. It's
-@@ -1370,6 +1366,54 @@ void page_add_anon_rmap(struct page *pag
- }
- 
- /**
-+ * folio_add_anon_rmap_ptes - add PTE mappings to a page range of an anon folio
-+ * @folio:	The folio to add the mappings to
-+ * @page:	The first page to add
-+ * @nr_pages:	The number of pages which will be mapped
-+ * @vma:	The vm area in which the mappings are added
-+ * @address:	The user virtual address of the first page to map
-+ * @flags:	The rmap flags
-+ *
-+ * The page range of folio is defined by [first_page, first_page + nr_pages)
-+ *
-+ * The caller needs to hold the page table lock, and the page must be locked in
-+ * the anon_vma case: to serialize mapping,index checking after setting,
-+ * and to ensure that an anon folio is not being upgraded racily to a KSM folio
-+ * (but KSM folios are never downgraded).
-+ */
-+void folio_add_anon_rmap_ptes(struct folio *folio, struct page *page,
-+		int nr_pages, struct vm_area_struct *vma, unsigned long address,
-+		rmap_t flags)
-+{
-+	__folio_add_anon_rmap(folio, page, nr_pages, vma, address, flags,
-+			      RMAP_LEVEL_PTE);
-+}
-+
-+/**
-+ * folio_add_anon_rmap_pmd - add a PMD mapping to a page range of an anon folio
-+ * @folio:	The folio to add the mapping to
-+ * @page:	The first page to add
-+ * @vma:	The vm area in which the mapping is added
-+ * @address:	The user virtual address of the first page to map
-+ * @flags:	The rmap flags
-+ *
-+ * The page range of folio is defined by [first_page, first_page + HPAGE_PMD_NR)
-+ *
-+ * The caller needs to hold the page table lock, and the page must be locked in
-+ * the anon_vma case: to serialize mapping,index checking after setting.
-+ */
-+void folio_add_anon_rmap_pmd(struct folio *folio, struct page *page,
-+		struct vm_area_struct *vma, unsigned long address, rmap_t flags)
-+{
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	__folio_add_anon_rmap(folio, page, HPAGE_PMD_NR, vma, address, flags,
-+			      RMAP_LEVEL_PMD);
-+#else
-+	WARN_ON_ONCE(true);
-+#endif
-+}
-+
-+/**
-  * folio_add_new_anon_rmap - Add mapping to a new anonymous folio.
-  * @folio:	The folio to add the mapping to.
-  * @vma:	the vm area in which the mapping is added
+@@ -2566,8 +2576,6 @@ static void __split_huge_pmd_locked(stru
+ 			entry = mk_pte(page + i, READ_ONCE(vma->vm_page_prot));
+ 			if (write)
+ 				entry = pte_mkwrite(entry, vma);
+-			if (anon_exclusive)
+-				SetPageAnonExclusive(page + i);
+ 			if (!young)
+ 				entry = pte_mkold(entry);
+ 			/* NOTE: this may set soft-dirty too on some archs */
+@@ -2577,7 +2585,6 @@ static void __split_huge_pmd_locked(stru
+ 				entry = pte_mksoft_dirty(entry);
+ 			if (uffd_wp)
+ 				entry = pte_mkuffd_wp(entry);
+-			page_add_anon_rmap(page + i, vma, addr, RMAP_NONE);
+ 		}
+ 		VM_BUG_ON(!pte_none(ptep_get(pte)));
+ 		set_pte_at(mm, addr, pte, entry);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
