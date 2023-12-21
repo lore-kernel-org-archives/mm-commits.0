@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DA79156D0
-	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 22:30:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15DCF7949B
+	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 22:30:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xf57ZuJu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91A69C433C7;
-	Thu, 21 Dec 2023 22:30:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YFWZaTnl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D25E5C433C9;
+	Thu, 21 Dec 2023 22:30:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703197810;
-	bh=dpJ0QwY6ReDgKRsfzebRy8DFJdvmi0V/K1lOi3XykzI=;
+	s=korg; t=1703197811;
+	bh=YV2lwvg+ZTuOzXIeAIoFgLPhGPiwPkLcPu+adeCwyrc=;
 	h=Date:To:From:Subject:From;
-	b=Xf57ZuJuw1hTrxGxHndK0RYHk8xbPwvwSD5LNXiaxjEEO26dr8x6BtFEN+STAPA8p
-	 rRoFd78N4PiohflMetBh5ecXrq7ZBL6oJkHqm7BvB9NgbISTa3QgUR6TxhG3Kp1zHw
-	 Scy/uNRXPQrLcVSOBWT1Q/oGqIKi6j4oEiuS6yNQ=
-Date: Thu, 21 Dec 2023 14:30:09 -0800
+	b=YFWZaTnliMRp9pKR+ueF/wuWsZOJv/JF20T126cxdOAh3Sf7+ZOKJp2ufNyd6othA
+	 5NS7/HHuMXK+2aUMDz8cdA/1zakAiKg9vlerjVvn2wFnJKouhFyG/3pHAyNmz/3g0a
+	 zQi0mcI+n6E1fRcMdWh8TorokLYREGXW9hyGQF0Y=
+Date: Thu, 21 Dec 2023 14:30:11 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,songmuchun@bytedance.com,ryan.roberts@arm.com,peterx@redhat.com,muchun.song@linux.dev,hughd@google.com,fengwei.yin@intel.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-page_try_dup_anon_rmap-folio_try_dup_anon_rmap_pmd.patch added to mm-unstable branch
-Message-Id: <20231221223010.91A69C433C7@smtp.kernel.org>
+Subject: + mm-memory-page_try_dup_anon_rmap-folio_try_dup_anon_rmap_pte.patch added to mm-unstable branch
+Message-Id: <20231221223011.D25E5C433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: page_try_dup_anon_rmap() -> folio_try_dup_anon_rmap_pmd()
+     Subject: mm/memory: page_try_dup_anon_rmap() -> folio_try_dup_anon_rmap_pte()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memory-page_try_dup_anon_rmap-folio_try_dup_anon_rmap_pmd.patch
+     mm-memory-page_try_dup_anon_rmap-folio_try_dup_anon_rmap_pte.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-page_try_dup_anon_rmap-folio_try_dup_anon_rmap_pmd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-page_try_dup_anon_rmap-folio_try_dup_anon_rmap_pte.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,13 +51,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/huge_memory: page_try_dup_anon_rmap() -> folio_try_dup_anon_rmap_pmd()
-Date: Wed, 20 Dec 2023 23:44:59 +0100
+Subject: mm/memory: page_try_dup_anon_rmap() -> folio_try_dup_anon_rmap_pte()
+Date: Wed, 20 Dec 2023 23:45:00 +0100
 
-Let's convert copy_huge_pmd() and fixup the comment in copy_huge_pud(). 
-While at it, perform more folio conversion in copy_huge_pmd().
+Let's convert copy_nonpresent_pte().  While at it, perform some more folio
+conversion.
 
-Link: https://lkml.kernel.org/r/20231220224504.646757-36-david@redhat.com
+Link: https://lkml.kernel.org/r/20231220224504.646757-37-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -69,46 +69,49 @@ Cc: Yin Fengwei <fengwei.yin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ mm/memory.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-page_try_dup_anon_rmap-folio_try_dup_anon_rmap_pmd
-+++ a/mm/huge_memory.c
-@@ -1275,6 +1275,7 @@ int copy_huge_pmd(struct mm_struct *dst_
- {
- 	spinlock_t *dst_ptl, *src_ptl;
- 	struct page *src_page;
-+	struct folio *src_folio;
- 	pmd_t pmd;
- 	pgtable_t pgtable = NULL;
- 	int ret = -ENOMEM;
-@@ -1341,11 +1342,12 @@ int copy_huge_pmd(struct mm_struct *dst_
+--- a/mm/memory.c~mm-memory-page_try_dup_anon_rmap-folio_try_dup_anon_rmap_pte
++++ a/mm/memory.c
+@@ -785,6 +785,7 @@ copy_nonpresent_pte(struct mm_struct *ds
+ 	unsigned long vm_flags = dst_vma->vm_flags;
+ 	pte_t orig_pte = ptep_get(src_pte);
+ 	pte_t pte = orig_pte;
++	struct folio *folio;
+ 	struct page *page;
+ 	swp_entry_t entry = pte_to_swp_entry(orig_pte);
  
- 	src_page = pmd_page(pmd);
- 	VM_BUG_ON_PAGE(!PageHead(src_page), src_page);
-+	src_folio = page_folio(src_page);
+@@ -829,6 +830,7 @@ copy_nonpresent_pte(struct mm_struct *ds
+ 		}
+ 	} else if (is_device_private_entry(entry)) {
+ 		page = pfn_swap_entry_to_page(entry);
++		folio = page_folio(page);
  
--	get_page(src_page);
--	if (unlikely(page_try_dup_anon_rmap(src_page, true, src_vma))) {
-+	folio_get(src_folio);
-+	if (unlikely(folio_try_dup_anon_rmap_pmd(src_folio, src_page, src_vma))) {
- 		/* Page maybe pinned: split and retry the fault on PTEs. */
--		put_page(src_page);
-+		folio_put(src_folio);
- 		pte_free(dst_mm, pgtable);
- 		spin_unlock(src_ptl);
- 		spin_unlock(dst_ptl);
-@@ -1454,8 +1456,8 @@ int copy_huge_pud(struct mm_struct *dst_
- 	}
+ 		/*
+ 		 * Update rss count even for unaddressable pages, as
+@@ -839,10 +841,10 @@ copy_nonpresent_pte(struct mm_struct *ds
+ 		 * for unaddressable pages, at some point. But for now
+ 		 * keep things as they are.
+ 		 */
+-		get_page(page);
++		folio_get(folio);
+ 		rss[mm_counter(page)]++;
+ 		/* Cannot fail as these pages cannot get pinned. */
+-		BUG_ON(page_try_dup_anon_rmap(page, false, src_vma));
++		folio_try_dup_anon_rmap_pte(folio, page, src_vma);
  
- 	/*
--	 * TODO: once we support anonymous pages, use page_try_dup_anon_rmap()
--	 * and split if duplicating fails.
-+	 * TODO: once we support anonymous pages, use
-+	 * folio_try_dup_anon_rmap_*() and split if duplicating fails.
- 	 */
- 	pudp_set_wrprotect(src_mm, addr, src_pud);
- 	pud = pud_mkold(pud_wrprotect(pud));
+ 		/*
+ 		 * We do not preserve soft-dirty information, because so
+@@ -956,7 +958,7 @@ copy_present_pte(struct vm_area_struct *
+ 		 * future.
+ 		 */
+ 		folio_get(folio);
+-		if (unlikely(page_try_dup_anon_rmap(page, false, src_vma))) {
++		if (unlikely(folio_try_dup_anon_rmap_pte(folio, page, src_vma))) {
+ 			/* Page may be pinned, we have to copy. */
+ 			folio_put(folio);
+ 			return copy_present_page(dst_vma, src_vma, dst_pte, src_pte,
 _
 
 Patches currently in -mm which might be from david@redhat.com are
