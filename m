@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AE4D78E6C
-	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 22:29:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1098478E7B
+	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 22:29:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pn0mZ47Z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCD93C433C9;
-	Thu, 21 Dec 2023 22:29:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HX6SLkTN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBF00C433C7;
+	Thu, 21 Dec 2023 22:29:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703197780;
-	bh=NbxwFkuuXpdna7Sa+VVH5JGrzuvPTkbxmVZ0lNwRSxE=;
+	s=korg; t=1703197781;
+	bh=SUfJOP/9K9uWlO2U3wuqyd5i8fitt4EoGnRh4XEIztM=;
 	h=Date:To:From:Subject:From;
-	b=pn0mZ47ZtHnfzJK2iX5bMZiS3OvNN1ViNPv27sWxQKtPpEPREp7/VbtGBZ0WrfLEa
-	 AHL3IW6v1WHYAVuKR/w/DtlCh9c90Ey4pinlUPQglAlwKom1PamYhhUiYVT13QZQwH
-	 yTzZu9gCKxWkwblxwYYI+rpptT1NR/2DDQ7Iuu2A=
-Date: Thu, 21 Dec 2023 14:29:40 -0800
+	b=HX6SLkTNXDB4IGE97ZGrDPMJF6S4mm+sxx6o9YQfD9+kJSQv9KAukj/I/RNhhMSHQ
+	 YAzrbTuRitbdqy6rCNV0i7e1KVTYLP3AD5huCBsSiFz6/JGyEpl/olQvSm52Z3EVvA
+	 m2DG4aOuEh9lKwVhfx2Q5YwLAD+KSeC/T78iNAxo=
+Date: Thu, 21 Dec 2023 14:29:41 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,songmuchun@bytedance.com,ryan.roberts@arm.com,peterx@redhat.com,muchun.song@linux.dev,hughd@google.com,fengwei.yin@intel.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-userfaultfd-page_add_file_rmap-folio_add_file_rmap_pte.patch added to mm-unstable branch
-Message-Id: <20231221222940.BCD93C433C9@smtp.kernel.org>
+Subject: + mm-rmap-remove-page_add_file_rmap.patch added to mm-unstable branch
+Message-Id: <20231221222941.CBF00C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/userfaultfd: page_add_file_rmap() -> folio_add_file_rmap_pte()
+     Subject: mm/rmap: remove page_add_file_rmap()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-userfaultfd-page_add_file_rmap-folio_add_file_rmap_pte.patch
+     mm-rmap-remove-page_add_file_rmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-page_add_file_rmap-folio_add_file_rmap_pte.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-remove-page_add_file_rmap.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,12 +51,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/userfaultfd: page_add_file_rmap() -> folio_add_file_rmap_pte()
-Date: Wed, 20 Dec 2023 23:44:35 +0100
+Subject: mm/rmap: remove page_add_file_rmap()
+Date: Wed, 20 Dec 2023 23:44:36 +0100
 
-Let's convert mfill_atomic_install_pte().
+All users are gone, let's remove it.
 
-Link: https://lkml.kernel.org/r/20231220224504.646757-12-david@redhat.com
+Link: https://lkml.kernel.org/r/20231220224504.646757-13-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Yin Fengwei <fengwei.yin@intel.com>
 Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
@@ -68,20 +68,51 @@ Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/rmap.h |    2 --
+ mm/rmap.c            |   21 ---------------------
+ 2 files changed, 23 deletions(-)
 
---- a/mm/userfaultfd.c~mm-userfaultfd-page_add_file_rmap-folio_add_file_rmap_pte
-+++ a/mm/userfaultfd.c
-@@ -114,7 +114,7 @@ int mfill_atomic_install_pte(pmd_t *dst_
- 		/* Usually, cache pages are already added to LRU */
- 		if (newly_allocated)
- 			folio_add_lru(folio);
--		page_add_file_rmap(page, dst_vma, false);
-+		folio_add_file_rmap_pte(folio, page, dst_vma);
- 	} else {
- 		folio_add_new_anon_rmap(folio, dst_vma, dst_addr);
- 		folio_add_lru_vma(folio, dst_vma);
+--- a/include/linux/rmap.h~mm-rmap-remove-page_add_file_rmap
++++ a/include/linux/rmap.h
+@@ -237,8 +237,6 @@ void page_add_anon_rmap(struct page *, s
+ 		unsigned long address, rmap_t flags);
+ void folio_add_new_anon_rmap(struct folio *, struct vm_area_struct *,
+ 		unsigned long address);
+-void page_add_file_rmap(struct page *, struct vm_area_struct *,
+-		bool compound);
+ void folio_add_file_rmap_ptes(struct folio *, struct page *, int nr_pages,
+ 		struct vm_area_struct *);
+ #define folio_add_file_rmap_pte(folio, page, vma) \
+--- a/mm/rmap.c~mm-rmap-remove-page_add_file_rmap
++++ a/mm/rmap.c
+@@ -1468,27 +1468,6 @@ void folio_add_file_rmap_pmd(struct foli
+ }
+ 
+ /**
+- * page_add_file_rmap - add pte mapping to a file page
+- * @page:	the page to add the mapping to
+- * @vma:	the vm area in which the mapping is added
+- * @compound:	charge the page as compound or small page
+- *
+- * The caller needs to hold the pte lock.
+- */
+-void page_add_file_rmap(struct page *page, struct vm_area_struct *vma,
+-		bool compound)
+-{
+-	struct folio *folio = page_folio(page);
+-
+-	VM_WARN_ON_ONCE_PAGE(compound && !PageTransHuge(page), page);
+-
+-	if (likely(!compound))
+-		folio_add_file_rmap_pte(folio, page, vma);
+-	else
+-		folio_add_file_rmap_pmd(folio, page, vma);
+-}
+-
+-/**
+  * page_remove_rmap - take down pte mapping from a page
+  * @page:	page to remove mapping from
+  * @vma:	the vm area from which the mapping is removed
 _
 
 Patches currently in -mm which might be from david@redhat.com are
