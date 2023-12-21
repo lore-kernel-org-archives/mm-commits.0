@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9F4A77620
-	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 21:37:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E5DF76DC0
+	for <mm-commits@vger.kernel.org>; Thu, 21 Dec 2023 21:38:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EU1OGlSO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67D19C433C8;
-	Thu, 21 Dec 2023 21:37:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nkPVFQql"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F073C433C8;
+	Thu, 21 Dec 2023 21:38:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703194679;
-	bh=/95Fy3sMWCw82jzLpDoWjZ8medYPYI8pTxJhlqybWa4=;
+	s=korg; t=1703194680;
+	bh=52Vn9AUVbkFICqPgqoK9sMkib+JA6IS0jQ1JHyojr6o=;
 	h=Date:To:From:Subject:From;
-	b=EU1OGlSOedtm0aWLuMOiOQLBxjqQmeG5rpDBqns6yZNf0De/+yuG+KkMfR3Bf3JHJ
-	 X+FmuMyXwvtAEB105G5rBoR3MH5QVGLK4p6m8+3daX/zVkOOLXMQmTgTL5L4Nbv5UA
-	 VClodB31yDN+aQ8fE/o97gh9Sp3LuvEMTnijBh3Q=
-Date: Thu, 21 Dec 2023 13:37:58 -0800
+	b=nkPVFQqlliGfBLLJaT0UenE8HPrZP34Zwrq7yHLIVRXdfXbaBTrj11yFQ4nMOmaV8
+	 T4pR18+Wn9hWqN6JCBnwwF+jbHnAs21PnMr5+9U16sg+pGpwq5GXeOJKnX+PsLa3YH
+	 n0HLkrpIgCQpXHO2EyXdij+5xfpTz70XcbImr7Lk=
+Date: Thu, 21 Dec 2023 13:37:59 -0800
 To: mm-commits@vger.kernel.org,ryabinin.a.a@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-update-kasan_poison-documentation-comment.patch added to mm-unstable branch
-Message-Id: <20231221213759.67D19C433C8@smtp.kernel.org>
+Subject: + kasan-clean-up-is_kfence_address-checks.patch added to mm-unstable branch
+Message-Id: <20231221213800.7F073C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan: update kasan_poison documentation comment
+     Subject: kasan: clean up is_kfence_address checks
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-update-kasan_poison-documentation-comment.patch
+     kasan-clean-up-is_kfence_address-checks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-update-kasan_poison-documentation-comment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-clean-up-is_kfence_address-checks.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,16 +51,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: update kasan_poison documentation comment
-Date: Thu, 21 Dec 2023 21:04:47 +0100
+Subject: kasan: clean up is_kfence_address checks
+Date: Thu, 21 Dec 2023 21:04:48 +0100
 
-The comment for kasan_poison says that the size argument gets aligned by
-the function to KASAN_GRANULE_SIZE, which is wrong: the argument must be
-already aligned when it is passed to the function.
+1. Do not untag addresses that are passed to is_kfence_address: it
+   tolerates tagged addresses.
 
-Remove the invalid part of the comment.
+2. Move is_kfence_address checks from internal KASAN functions
+   (kasan_poison/unpoison, etc.) to external-facing ones.
 
-Link: https://lkml.kernel.org/r/992a302542059fc40d86ea560eac413ecb31b6a1.1703188911.git.andreyknvl@google.com
+   Note that kasan_poison/unpoison are never called outside of KASAN/slab
+   code anymore; the comment is wrong, so drop it.
+
+3. Simplify/reorganize the code around the updated checks.
+
+Link: https://lkml.kernel.org/r/1065732315ef4e141b6177d8f612232d4d5bc0ab.1703188911.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
@@ -69,19 +74,162 @@ Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.h |    2 --
- 1 file changed, 2 deletions(-)
+ mm/kasan/common.c |   26 +++++++++++++++++---------
+ mm/kasan/kasan.h  |   16 ++--------------
+ mm/kasan/shadow.c |   12 ------------
+ 3 files changed, 19 insertions(+), 35 deletions(-)
 
---- a/mm/kasan/kasan.h~kasan-update-kasan_poison-documentation-comment
+--- a/mm/kasan/common.c~kasan-clean-up-is_kfence_address-checks
++++ a/mm/kasan/common.c
+@@ -79,6 +79,9 @@ EXPORT_SYMBOL(kasan_disable_current);
+ 
+ void __kasan_unpoison_range(const void *address, size_t size)
+ {
++	if (is_kfence_address(address))
++		return;
++
+ 	kasan_unpoison(address, size, false);
+ }
+ 
+@@ -218,9 +221,6 @@ static inline bool poison_slab_object(st
+ 	tagged_object = object;
+ 	object = kasan_reset_tag(object);
+ 
+-	if (is_kfence_address(object))
+-		return false;
+-
+ 	if (unlikely(nearest_obj(cache, virt_to_slab(object), object) != object)) {
+ 		kasan_report_invalid_free(tagged_object, ip, KASAN_REPORT_INVALID_FREE);
+ 		return true;
+@@ -247,7 +247,12 @@ static inline bool poison_slab_object(st
+ bool __kasan_slab_free(struct kmem_cache *cache, void *object,
+ 				unsigned long ip, bool init)
+ {
+-	bool buggy_object = poison_slab_object(cache, object, ip, init);
++	bool buggy_object;
++
++	if (is_kfence_address(object))
++		return false;
++
++	buggy_object = poison_slab_object(cache, object, ip, init);
+ 
+ 	return buggy_object ? true : kasan_quarantine_put(cache, object);
+ }
+@@ -359,7 +364,7 @@ void * __must_check __kasan_kmalloc(stru
+ 	if (unlikely(object == NULL))
+ 		return NULL;
+ 
+-	if (is_kfence_address(kasan_reset_tag(object)))
++	if (is_kfence_address(object))
+ 		return (void *)object;
+ 
+ 	/* The object has already been unpoisoned by kasan_slab_alloc(). */
+@@ -417,7 +422,7 @@ void * __must_check __kasan_krealloc(con
+ 	if (unlikely(object == ZERO_SIZE_PTR))
+ 		return (void *)object;
+ 
+-	if (is_kfence_address(kasan_reset_tag(object)))
++	if (is_kfence_address(object))
+ 		return (void *)object;
+ 
+ 	/*
+@@ -483,6 +488,9 @@ bool __kasan_mempool_poison_object(void
+ 		return true;
+ 	}
+ 
++	if (is_kfence_address(ptr))
++		return false;
++
+ 	slab = folio_slab(folio);
+ 	return !poison_slab_object(slab->slab_cache, ptr, ip, false);
+ }
+@@ -492,9 +500,6 @@ void __kasan_mempool_unpoison_object(voi
+ 	struct slab *slab;
+ 	gfp_t flags = 0; /* Might be executing under a lock. */
+ 
+-	if (is_kfence_address(kasan_reset_tag(ptr)))
+-		return;
+-
+ 	slab = virt_to_slab(ptr);
+ 
+ 	/*
+@@ -507,6 +512,9 @@ void __kasan_mempool_unpoison_object(voi
+ 		return;
+ 	}
+ 
++	if (is_kfence_address(ptr))
++		return;
++
+ 	/* Unpoison the object and save alloc info for non-kmalloc() allocations. */
+ 	unpoison_slab_object(slab->slab_cache, ptr, size, flags);
+ 
+--- a/mm/kasan/kasan.h~kasan-clean-up-is_kfence_address-checks
 +++ a/mm/kasan/kasan.h
-@@ -513,8 +513,6 @@ static inline bool kasan_byte_accessible
-  * @size - range size, must be aligned to KASAN_GRANULE_SIZE
-  * @value - value that's written to metadata for the range
-  * @init - whether to initialize the memory range (only for hardware tag-based)
-- *
-- * The size gets aligned to KASAN_GRANULE_SIZE before marking the range.
-  */
- void kasan_poison(const void *addr, size_t size, u8 value, bool init);
+@@ -466,35 +466,23 @@ static inline u8 kasan_random_tag(void)
+ 
+ static inline void kasan_poison(const void *addr, size_t size, u8 value, bool init)
+ {
+-	addr = kasan_reset_tag(addr);
+-
+-	/* Skip KFENCE memory if called explicitly outside of sl*b. */
+-	if (is_kfence_address(addr))
+-		return;
+-
+ 	if (WARN_ON((unsigned long)addr & KASAN_GRANULE_MASK))
+ 		return;
+ 	if (WARN_ON(size & KASAN_GRANULE_MASK))
+ 		return;
+ 
+-	hw_set_mem_tag_range((void *)addr, size, value, init);
++	hw_set_mem_tag_range(kasan_reset_tag(addr), size, value, init);
+ }
+ 
+ static inline void kasan_unpoison(const void *addr, size_t size, bool init)
+ {
+ 	u8 tag = get_tag(addr);
+ 
+-	addr = kasan_reset_tag(addr);
+-
+-	/* Skip KFENCE memory if called explicitly outside of sl*b. */
+-	if (is_kfence_address(addr))
+-		return;
+-
+ 	if (WARN_ON((unsigned long)addr & KASAN_GRANULE_MASK))
+ 		return;
+ 	size = round_up(size, KASAN_GRANULE_SIZE);
+ 
+-	hw_set_mem_tag_range((void *)addr, size, tag, init);
++	hw_set_mem_tag_range(kasan_reset_tag(addr), size, tag, init);
+ }
+ 
+ static inline bool kasan_byte_accessible(const void *addr)
+--- a/mm/kasan/shadow.c~kasan-clean-up-is_kfence_address-checks
++++ a/mm/kasan/shadow.c
+@@ -135,10 +135,6 @@ void kasan_poison(const void *addr, size
+ 	 */
+ 	addr = kasan_reset_tag(addr);
+ 
+-	/* Skip KFENCE memory if called explicitly outside of sl*b. */
+-	if (is_kfence_address(addr))
+-		return;
+-
+ 	if (WARN_ON((unsigned long)addr & KASAN_GRANULE_MASK))
+ 		return;
+ 	if (WARN_ON(size & KASAN_GRANULE_MASK))
+@@ -175,14 +171,6 @@ void kasan_unpoison(const void *addr, si
+ 	 */
+ 	addr = kasan_reset_tag(addr);
+ 
+-	/*
+-	 * Skip KFENCE memory if called explicitly outside of sl*b. Also note
+-	 * that calls to ksize(), where size is not a multiple of machine-word
+-	 * size, would otherwise poison the invalid portion of the word.
+-	 */
+-	if (is_kfence_address(addr))
+-		return;
+-
+ 	if (WARN_ON((unsigned long)addr & KASAN_GRANULE_MASK))
+ 		return;
  
 _
 
