@@ -1,436 +1,186 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from out3-smtp.messagingengine.com (out3-smtp.messagingengine.com [66.111.4.27])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF9D679D4
-	for <mm-commits@vger.kernel.org>; Fri, 22 Dec 2023 06:26:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13DCE14A86
+	for <mm-commits@vger.kernel.org>; Fri, 22 Dec 2023 10:30:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZUc95eEF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70D05C433C9;
-	Fri, 22 Dec 2023 06:26:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703226400;
-	bh=cYsG0VZVfDg0M488uiuk7W3ZcaX+rsnw6rliMcT6Xmo=;
-	h=Date:To:From:Subject:From;
-	b=ZUc95eEF4vS6GbtJ/MLhsS4IgGS2lMcBvEcuNf6Nryi858N1TSWlEAOU0tGY5loo+
-	 yHhdnTrK4v9mrRkcCDsWQhpqstuOHsiy+Lol8kc4erl68STbwoajRhhmzMZuBM5gqA
-	 9yyg3cttqrSux5a492sSHo0sleLHH2JDpxAlDh/Q=
-Date: Thu, 21 Dec 2023 22:26:39 -0800
-To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,davem@davemloft.net,arnd@arndb.de,akpm@linux-foundation.org,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes.patch added to mm-nonmm-unstable branch
-Message-Id: <20231222062640.70D05C433C9@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="vKa2pZB3";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="4rJuWUBr"
+Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
+	by mailout.nyi.internal (Postfix) with ESMTP id D72755C014B;
+	Fri, 22 Dec 2023 05:30:05 -0500 (EST)
+Received: from imap51 ([10.202.2.101])
+  by compute5.internal (MEProxy); Fri, 22 Dec 2023 05:30:05 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+	:content-type:content-type:date:date:from:from:in-reply-to
+	:in-reply-to:message-id:mime-version:references:reply-to:subject
+	:subject:to:to; s=fm1; t=1703241005; x=1703327405; bh=81Rh20VAGj
+	K/U2Z+b/cph9clyKq2XEqLaWlA9qwrBBg=; b=vKa2pZB340iyqniX8m0NeVXojn
+	Wr8rSCbYoTMuMs+3NFxDv8Dy2O//UM2bbZqKjzIetM6O3+ruooT4fd5C8/AYb/Hs
+	KP7RqXMimGtHcInS40QB4XDem/10zon27dF1qOakXlK4ORhc3LYuhfOMCAXQjeY/
+	qcH9elMw2tJGxBZQKxhpz42HlmtGWf7iSxlxmjJo+BKqkojOdP14Y7IIn0NDZvKi
+	Pg5Kgu4FqUGFVX60Al67v+ImoSuFRWmVWftR3IUamOf9/mrrOsMBd9GrQUDPfQbI
+	9rDdQ9L6/8e7JE5c9xmh6MQXnEY2UTr1vS8SZ1yx7o3DGKCKtWLwYvl62xWQ==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:content-type:content-type:date:date
+	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+	:message-id:mime-version:references:reply-to:subject:subject:to
+	:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
+	fm2; t=1703241005; x=1703327405; bh=81Rh20VAGjK/U2Z+b/cph9clyKq2
+	XEqLaWlA9qwrBBg=; b=4rJuWUBrh1bmh/jDpe0eZ5IEs0L1ocChLn/38iWAQdIM
+	eOIOyd7W6MwCa4ACHVJ/KpGucMpxCUkYKIhs4i+uqfKyVfBbF/LCwO2Whih6eRWx
+	oxLr44KH1mIUI3MZxhD+EvAGu+D9ZRaZfZYjKQfUV6HAuW1iwrnA53NsUsoDwAzW
+	F+veGHf9iOrs5FhduQbwu44yTh3uDuop3lTf/z3VEfanoeKlRuYKAcTvRDZkynNR
+	cVKMJPwvbFoM5H4eHXEXZKMXivUuH4Sc4A6XJlxxToNl2+FLj25BPv/AtFU2fwnJ
+	DFsufaUB/KLW+kKEyWy+zN07svChPKXARUbScv/Fkw==
+X-ME-Sender: <xms:LWWFZdiGKjVooEbuGMLrU9IV44-6jnHHf3ugI5G3S1M9cIxmb3xq4g>
+    <xme:LWWFZSCWV7-2Oa9b63FGhxNjOsl_epd8aLIQxfLRsVcV0A-bQY3ENqeSvNyeabXDK
+    uJBKQNNKsrwloZpeZc>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvkedrvddujedgudehucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
+    cujfgurhepofgfggfkjghffffhvffutgesthdtredtreertdenucfhrhhomhepfdetrhhn
+    ugcuuegvrhhgmhgrnhhnfdcuoegrrhhnugesrghrnhgusgdruggvqeenucggtffrrghtth
+    gvrhhnpeffgeffuddtvdehffefleethfejjeegvdelffejieegueetledvtedtudelgfdu
+    gfenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpegrrh
+    hnugesrghrnhgusgdruggv
+X-ME-Proxy: <xmx:LWWFZdEDDEYYZonnNl3MJYIExy5pHl7K72D2dfjgarvD3Jf2cHbvag>
+    <xmx:LWWFZSTSGqb-wZzCSWOsTS9UTzsS83Uogihul24Ifi8pQoux2cXhiQ>
+    <xmx:LWWFZayVq_-LmJsKdN3BQ8GpuMbGRvupAifeB4Hxldj2qS22HQ9_Jg>
+    <xmx:LWWFZV8su7md0EMN0aHIkutT748qu-WKvLj8erN55fCINtyCVnKskQ>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.nyi.internal (Postfix, from userid 501)
+	id 2CE12B6008D; Fri, 22 Dec 2023 05:30:05 -0500 (EST)
+X-Mailer: MessagingEngine.com Webmail Interface
+User-Agent: Cyrus-JMAP/3.9.0-alpha0-1364-ga51d5fd3b7-fm-20231219.001-ga51d5fd3
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Message-Id: <ce68eb27-420b-467f-8b1a-e285b94bba79@app.fastmail.com>
+In-Reply-To: <20231222062640.70D05C433C9@smtp.kernel.org>
+References: <20231222062640.70D05C433C9@smtp.kernel.org>
+Date: Fri, 22 Dec 2023 10:29:28 +0000
+From: "Arnd Bergmann" <arnd@arndb.de>
+To: "Andrew Morton" <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
+ "Stephen Rothwell" <sfr@canb.auug.org.au>,
+ "David S . Miller" <davem@davemloft.net>,
+ "Andreas Larsson" <andreas@gaisler.com>
+Subject: Re: + arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes.patch added
+ to mm-nonmm-unstable branch
+Content-Type: text/plain
 
+On Fri, Dec 22, 2023, at 06:26, Andrew Morton wrote:
+> ------------------------------------------------------
+> From: Andrew Morton <akpm@linux-foundation.org>
+> Subject: sparc64: fix up fallout from enabling -Wmissing-prototypes
+> Date: Thu Dec 21 04:33:25 PM PST 2023
+>
+> Fix sparc64 allmodconfig build errors caused by enabling
+> -Wmissing-prototypes.
+>
+> - Symbols only used from assembly were given local prototypes
+>
+> - A couple of missing inclusions were added
+>
+> - Define some functions to be static
+>
+> - vmemmap_free() is only needed if CONFIG_MEMORY_HOTPLUG
+>
+> - add new arch/sparc/include/asm/irq_work.h for arch_irq_work_raise()
+>
+> - move prom_cif_init() prototype to header, fix longstanding
+>   prom_cif_init() borkage.
+>
+> - various function declarations were moved from .c into shared .h
+>
+> Fixes: c6345dfa6e3e ("Makefile.extrawarn: turn on missing-prototypes globally")
+> Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+> Cc: Arnd Bergmann <arnd@arndb.de>
+> Cc: "David S. Miller" <davem@davemloft.net>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-The patch titled
-     Subject: sparc64: fix up fallout from enabling -Wmissing-prototypes
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes.patch
+Thank you for addressing the warnings!
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes.patch
+I don't think there are any build errors after commit 0f0d2871e78d
+("arch: turn off -Werror for architectures with known warnings"),
+which you have merged already.
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+While I did consider fixing all the warnings reported by kernelci,
+I stopped once I got to configurations for rare hardware (mips and arc,
+which should have clean working defconfig and allmodconfig builds)
+and architectures that already had existing warnings and are not
+actively taken care of.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+We are currently discussing changes to the arch/sparc/ maintainership
+and Andreas Larsson has already volunteered to help out there, but
+we still need to set this up and hopefully get an Ack from Dave.
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> a/arch/sparc/vdso/vclock_gettime.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
+> +++ a/arch/sparc/vdso/vclock_gettime.c
+> @@ -250,6 +250,8 @@ notrace static int do_monotonic_coarse(s
+>  	return 0;
+>  }
+> 
+> +int __vdso_clock_gettime(clockid_t clock, struct __kernel_old_timespec *ts);
+> +
+>  notrace int
+>  __vdso_clock_gettime(clockid_t clock, struct __kernel_old_timespec *ts)
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+I already merged a patch in the asm-generic tree that addresses the
+vdso warnings across all architectures with a common declaration in
+include/vdso/gettime.h, but I had intentionally left arch/sparc and
+arch/um because there is a larger issue with their 32-bit VDSO
+implementation.
 
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sparc64: fix up fallout from enabling -Wmissing-prototypes
-Date: Thu Dec 21 04:33:25 PM PST 2023
+To fix this properly, the VDSO should be changed to add support for
+clock_gettime64() and use the same prototypes as the other
+architectures. I would prefer to either leave the exsiting warning
+here, or at least at an explicit #warning about the missing time64
+support like we have for the missing clone3() syscall on sparc and
+others. Both of these should be addressed eventually for long-term
+maintainability, but there are some more important patches that
+Andreas and others already have for sparc.
 
-Fix sparc64 allmodconfig build errors caused by enabling
--Wmissing-prototypes.
+> a/arch/sparc/kernel/asm-offsets.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
+> +++ a/arch/sparc/kernel/asm-offsets.c
+> @@ -19,6 +19,7 @@
+>  #include <asm/hibernate.h>
+> 
+>  #ifdef CONFIG_SPARC32
+> +int sparc32_foo(void);
+>  int sparc32_foo(void)
+>  {
+>  	DEFINE(AOFF_thread_fork_kpsr,
+> @@ -26,6 +27,7 @@ int sparc32_foo(void)
+>  	return 0;
+>  }
+>  #else
+> +int sparc64_foo(void);
+>  int sparc64_foo(void)
+>  {
+>  #ifdef CONFIG_HIBERNATION
+> @@ -45,6 +47,7 @@ int sparc64_foo(void)
+>  }
+>  #endif
+> 
+> +int foo(void);
+>  int foo(void)
+>  {
+>  	BLANK();
+> @@ -57,4 +60,3 @@ int foo(void)
+>  	/* DEFINE(NUM_USER_SEGMENTS, TASK_SIZE>>28); */
+>  	return 0;
+>  }
 
-- Symbols only used from assembly were given local prototypes
+These are fixed in the asm-generic tree by making the functions
+'static __used', same as on other architectures, so I would suggest
+dropping this hunk to avoid conflicts between the two patches.
 
-- A couple of missing inclusions were added
+The other changes look good to me. 
 
-- Define some functions to be static
-
-- vmemmap_free() is only needed if CONFIG_MEMORY_HOTPLUG
-
-- add new arch/sparc/include/asm/irq_work.h for arch_irq_work_raise()
-
-- move prom_cif_init() prototype to header, fix longstanding
-  prom_cif_init() borkage.
-
-- various function declarations were moved from .c into shared .h
-
-Fixes: c6345dfa6e3e ("Makefile.extrawarn: turn on missing-prototypes globally")
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: "David S. Miller" <davem@davemloft.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- arch/sparc/include/asm/floppy_64.h |    4 +++-
- arch/sparc/include/asm/irq_work.h  |   10 ++++++++++
- arch/sparc/include/asm/openprom.h  |    2 ++
- arch/sparc/kernel/adi_64.c         |    6 +++---
- arch/sparc/kernel/asm-offsets.c    |    4 +++-
- arch/sparc/kernel/pci_sun4v.c      |    2 +-
- arch/sparc/kernel/setup_64.c       |    2 +-
- arch/sparc/kernel/time_64.c        |    2 ++
- arch/sparc/kernel/traps_64.c       |    7 ++++---
- arch/sparc/kernel/uprobes.c        |    1 +
- arch/sparc/mm/init_64.c            |    2 ++
- arch/sparc/power/hibernate.c       |    1 +
- arch/sparc/prom/init_64.c          |    2 --
- arch/sparc/prom/misc_64.c          |    2 +-
- arch/sparc/prom/p1275.c            |    2 +-
- arch/sparc/vdso/vclock_gettime.c   |   10 ++++++++++
- arch/sparc/vdso/vma.c              |    2 +-
- drivers/mtd/maps/sun_uflash.c      |    2 +-
- drivers/sbus/char/bbc_i2c.c        |    3 ---
- drivers/sbus/char/bbc_i2c.h        |    3 +++
- 20 files changed, 50 insertions(+), 19 deletions(-)
-
---- a/arch/sparc/vdso/vclock_gettime.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/vdso/vclock_gettime.c
-@@ -250,6 +250,8 @@ notrace static int do_monotonic_coarse(s
- 	return 0;
- }
- 
-+int __vdso_clock_gettime(clockid_t clock, struct __kernel_old_timespec *ts);
-+
- notrace int
- __vdso_clock_gettime(clockid_t clock, struct __kernel_old_timespec *ts)
- {
-@@ -278,6 +280,9 @@ int
- clock_gettime(clockid_t, struct __kernel_old_timespec *)
- 	__attribute__((weak, alias("__vdso_clock_gettime")));
- 
-+int
-+__vdso_clock_gettime_stick(clockid_t clock, struct __kernel_old_timespec *ts);
-+
- notrace int
- __vdso_clock_gettime_stick(clockid_t clock, struct __kernel_old_timespec *ts)
- {
-@@ -303,6 +308,8 @@ __vdso_clock_gettime_stick(clockid_t clo
- 	return vdso_fallback_gettime(clock, ts);
- }
- 
-+int __vdso_gettimeofday(struct __kernel_old_timeval *tv, struct timezone *tz);
-+
- notrace int
- __vdso_gettimeofday(struct __kernel_old_timeval *tv, struct timezone *tz)
- {
-@@ -339,6 +346,9 @@ int
- gettimeofday(struct __kernel_old_timeval *, struct timezone *)
- 	__attribute__((weak, alias("__vdso_gettimeofday")));
- 
-+int
-+__vdso_gettimeofday_stick(struct __kernel_old_timeval *tv, struct timezone *tz);
-+
- notrace int
- __vdso_gettimeofday_stick(struct __kernel_old_timeval *tv, struct timezone *tz)
- {
---- a/arch/sparc/kernel/asm-offsets.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/kernel/asm-offsets.c
-@@ -19,6 +19,7 @@
- #include <asm/hibernate.h>
- 
- #ifdef CONFIG_SPARC32
-+int sparc32_foo(void);
- int sparc32_foo(void)
- {
- 	DEFINE(AOFF_thread_fork_kpsr,
-@@ -26,6 +27,7 @@ int sparc32_foo(void)
- 	return 0;
- }
- #else
-+int sparc64_foo(void);
- int sparc64_foo(void)
- {
- #ifdef CONFIG_HIBERNATION
-@@ -45,6 +47,7 @@ int sparc64_foo(void)
- }
- #endif
- 
-+int foo(void);
- int foo(void)
- {
- 	BLANK();
-@@ -57,4 +60,3 @@ int foo(void)
- 	/* DEFINE(NUM_USER_SEGMENTS, TASK_SIZE>>28); */
- 	return 0;
- }
--
---- a/arch/sparc/prom/misc_64.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/prom/misc_64.c
-@@ -162,7 +162,7 @@ unsigned char prom_get_idprom(char *idbu
- 	return 0xff;
- }
- 
--int prom_get_mmu_ihandle(void)
-+static int prom_get_mmu_ihandle(void)
- {
- 	phandle node;
- 	int ret;
---- a/arch/sparc/kernel/traps_64.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/kernel/traps_64.c
-@@ -22,6 +22,7 @@
- #include <linux/kdebug.h>
- #include <linux/ftrace.h>
- #include <linux/reboot.h>
-+#include <linux/cpu.h>
- #include <linux/gfp.h>
- #include <linux/context_tracking.h>
- 
-@@ -249,7 +250,7 @@ void sun4v_insn_access_exception_tl1(str
- 	sun4v_insn_access_exception(regs, addr, type_ctx);
- }
- 
--bool is_no_fault_exception(struct pt_regs *regs)
-+static bool is_no_fault_exception(struct pt_regs *regs)
- {
- 	unsigned char asi;
- 	u32 insn;
-@@ -2031,7 +2032,7 @@ static void sun4v_log_error(struct pt_re
- /* Handle memory corruption detected error which is vectored in
-  * through resumable error trap.
-  */
--void do_mcd_err(struct pt_regs *regs, struct sun4v_error_entry ent)
-+static void do_mcd_err(struct pt_regs *regs, struct sun4v_error_entry ent)
- {
- 	if (notify_die(DIE_TRAP, "MCD error", regs, 0, 0x34,
- 		       SIGSEGV) == NOTIFY_STOP)
-@@ -2149,7 +2150,7 @@ static unsigned long sun4v_get_vaddr(str
- /* Attempt to handle non-resumable errors generated from userspace.
-  * Returns true if the signal was handled, false otherwise.
-  */
--bool sun4v_nonresum_error_user_handled(struct pt_regs *regs,
-+static bool sun4v_nonresum_error_user_handled(struct pt_regs *regs,
- 				  struct sun4v_error_entry *ent) {
- 
- 	unsigned int attrs = ent->err_attrs;
---- a/arch/sparc/mm/init_64.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/mm/init_64.c
-@@ -2641,10 +2641,12 @@ int __meminit vmemmap_populate(unsigned
- 	return 0;
- }
- 
-+#ifdef CONFIG_MEMORY_HOTPLUG
- void vmemmap_free(unsigned long start, unsigned long end,
- 		struct vmem_altmap *altmap)
- {
- }
-+#endif
- #endif /* CONFIG_SPARSEMEM_VMEMMAP */
- 
- /* These are actually filled in at boot time by sun4{u,v}_pgprot_init() */
---- a/arch/sparc/vdso/vma.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/vdso/vma.c
-@@ -243,7 +243,7 @@ static int stick_patch(const struct vdso
-  * Allocate pages for the vdso and vvar, and copy in the vdso text from the
-  * kernel image.
-  */
--int __init init_vdso_image(const struct vdso_image *image,
-+static int __init init_vdso_image(const struct vdso_image *image,
- 			   struct vm_special_mapping *vdso_mapping, bool elf64)
- {
- 	int cnpages = (image->size) / PAGE_SIZE;
---- a/arch/sparc/kernel/setup_64.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/kernel/setup_64.c
-@@ -599,7 +599,7 @@ static void __init init_sparc64_elf_hwca
- 		pause_patch();
- }
- 
--void __init alloc_irqstack_bootmem(void)
-+static void __init alloc_irqstack_bootmem(void)
- {
- 	unsigned int i, node;
- 
---- a/arch/sparc/kernel/time_64.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/kernel/time_64.c
-@@ -35,6 +35,8 @@
- #include <linux/platform_device.h>
- #include <linux/ftrace.h>
- 
-+#include <linux/sched/clock.h>
-+
- #include <asm/oplib.h>
- #include <asm/timer.h>
- #include <asm/irq.h>
---- a/arch/sparc/power/hibernate.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/power/hibernate.c
-@@ -6,6 +6,7 @@
-  */
- 
- #include <linux/mm.h>
-+#include <linux/suspend.h>
- 
- #include <asm/hibernate.h>
- #include <asm/visasm.h>
---- a/arch/sparc/kernel/adi_64.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/kernel/adi_64.c
-@@ -121,7 +121,7 @@ adi_not_found:
- 		mdesc_release(hp);
- }
- 
--tag_storage_desc_t *find_tag_store(struct mm_struct *mm,
-+static tag_storage_desc_t *find_tag_store(struct mm_struct *mm,
- 				   struct vm_area_struct *vma,
- 				   unsigned long addr)
- {
-@@ -153,7 +153,7 @@ tag_storage_desc_t *find_tag_store(struc
- 	return tag_desc;
- }
- 
--tag_storage_desc_t *alloc_tag_store(struct mm_struct *mm,
-+static tag_storage_desc_t *alloc_tag_store(struct mm_struct *mm,
- 				    struct vm_area_struct *vma,
- 				    unsigned long addr)
- {
-@@ -296,7 +296,7 @@ out:
- 	return tag_desc;
- }
- 
--void del_tag_store(tag_storage_desc_t *tag_desc, struct mm_struct *mm)
-+static void del_tag_store(tag_storage_desc_t *tag_desc, struct mm_struct *mm)
- {
- 	unsigned long flags;
- 	unsigned char *tags = NULL;
---- /dev/null
-+++ a/arch/sparc/include/asm/irq_work.h
-@@ -0,0 +1,10 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+
-+#ifndef __ASM_SPARC_IRQ_WORK_H
-+#define __ASM_SPARC_IRQ_WORK_H
-+
-+#include <asm-generic/irq_work.h>
-+
-+extern void arch_irq_work_raise(void);
-+
-+#endif /* __ASM_SPARC_IRQ_WORK_H */
---- a/arch/sparc/include/asm/floppy_64.h~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/include/asm/floppy_64.h
-@@ -197,6 +197,7 @@ static void sun_fd_enable_dma(void)
- 	pdma_areasize = pdma_size;
- }
- 
-+irqreturn_t sparc_floppy_irq(int irq, void *dev_cookie);
- irqreturn_t sparc_floppy_irq(int irq, void *dev_cookie)
- {
- 	if (likely(doing_pdma)) {
-@@ -434,7 +435,8 @@ static int sun_pci_fd_eject(int drive)
- 	return -EINVAL;
- }
- 
--void sun_pci_fd_dma_callback(struct ebus_dma_info *p, int event, void *cookie)
-+static void
-+sun_pci_fd_dma_callback(struct ebus_dma_info *p, int event, void *cookie)
- {
- 	floppy_interrupt(0, NULL);
- }
---- a/arch/sparc/prom/init_64.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/prom/init_64.c
-@@ -27,8 +27,6 @@ phandle prom_chosen_node;
-  * It gets passed the pointer to the PROM vector.
-  */
- 
--extern void prom_cif_init(void *);
--
- void __init prom_init(void *cif_handler)
- {
- 	phandle node;
---- a/arch/sparc/prom/p1275.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/prom/p1275.c
-@@ -49,7 +49,7 @@ void p1275_cmd_direct(unsigned long *arg
- 	local_irq_restore(flags);
- }
- 
--void prom_cif_init(void *cif_handler, void *cif_stack)
-+void prom_cif_init(void *cif_handler)
- {
- 	p1275buf.prom_cif_handler = (void (*)(long *))cif_handler;
- }
---- a/arch/sparc/include/asm/openprom.h~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/include/asm/openprom.h
-@@ -275,6 +275,8 @@ struct linux_prom_pci_intmask {
- 	unsigned int interrupt;
- };
- 
-+extern void prom_cif_init(void *cif_handler);
-+
- #endif /* !(__ASSEMBLY__) */
- 
- #endif /* !(__SPARC_OPENPROM_H) */
---- a/arch/sparc/kernel/pci_sun4v.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/kernel/pci_sun4v.c
-@@ -256,7 +256,7 @@ range_alloc_fail:
- 	return NULL;
- }
- 
--unsigned long dma_4v_iotsb_bind(unsigned long devhandle,
-+static unsigned long dma_4v_iotsb_bind(unsigned long devhandle,
- 				unsigned long iotsb_num,
- 				struct pci_bus *bus_dev)
- {
---- a/arch/sparc/kernel/uprobes.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/kernel/uprobes.c
-@@ -234,6 +234,7 @@ int arch_uprobe_post_xol(struct arch_upr
- /* Handler for uprobe traps.  This is called from the traps table and
-  * triggers the proper die notification.
-  */
-+void uprobe_trap(struct pt_regs *regs, unsigned long trap_level);
- asmlinkage void uprobe_trap(struct pt_regs *regs,
- 			    unsigned long trap_level)
- {
---- a/drivers/sbus/char/bbc_i2c.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/drivers/sbus/char/bbc_i2c.c
-@@ -358,9 +358,6 @@ fail:
- 	return NULL;
- }
- 
--extern int bbc_envctrl_init(struct bbc_i2c_bus *bp);
--extern void bbc_envctrl_cleanup(struct bbc_i2c_bus *bp);
--
- static int bbc_i2c_probe(struct platform_device *op)
- {
- 	struct bbc_i2c_bus *bp;
---- a/drivers/sbus/char/bbc_i2c.h~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/drivers/sbus/char/bbc_i2c.h
-@@ -82,4 +82,7 @@ extern int bbc_i2c_readb(struct bbc_i2c_
- extern int bbc_i2c_write_buf(struct bbc_i2c_client *, char *buf, int len, int off);
- extern int bbc_i2c_read_buf(struct bbc_i2c_client *, char *buf, int len, int off);
- 
-+extern int bbc_envctrl_init(struct bbc_i2c_bus *bp);
-+extern void bbc_envctrl_cleanup(struct bbc_i2c_bus *bp);
-+
- #endif /* _BBC_I2C_H */
---- a/drivers/mtd/maps/sun_uflash.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/drivers/mtd/maps/sun_uflash.c
-@@ -47,7 +47,7 @@ struct map_info uflash_map_templ = {
- 	.bankwidth =	UFLASH_BUSWIDTH,
- };
- 
--int uflash_devinit(struct platform_device *op, struct device_node *dp)
-+static int uflash_devinit(struct platform_device *op, struct device_node *dp)
- {
- 	struct uflash_dev *up;
- 
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-maintainers-remove-hugetlb-maintainer-mike-kravetz-fix.patch
-arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes.patch
-
+      Arnd
