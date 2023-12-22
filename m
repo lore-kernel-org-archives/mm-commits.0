@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6577828E0A
-	for <mm-commits@vger.kernel.org>; Fri, 22 Dec 2023 17:59:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76B322C846
+	for <mm-commits@vger.kernel.org>; Fri, 22 Dec 2023 19:29:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z0M/O53x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99E3CC433C8;
-	Fri, 22 Dec 2023 17:59:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IQyAyTjQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7A5AC433C7;
+	Fri, 22 Dec 2023 19:29:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703267965;
-	bh=x+zW74/qNbfcvH+QyXJwH4OXbnb63LZFa1aFEuFrAaI=;
+	s=korg; t=1703273341;
+	bh=+c00j2mV+92yDuNwmXSuGSRSoFiflzXeb0BHHKL3xuI=;
 	h=Date:To:From:Subject:From;
-	b=z0M/O53xamMizI8kjzg/ONQwSxJgcf9NUbHAuZpnHlIYrtXgbc1pW11CHKwphZoud
-	 43ivLSMIp/Lzo0eRgTGzd8crytRuxmu0ltD/xJyjRfYUhgD8649jQdj2P3z2NUDThb
-	 g+03NweWd4XLxGJBkMGaSRw+Ervx19iHYKTJ7pCc=
-Date: Fri, 22 Dec 2023 09:59:24 -0800
-To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,davem@davemloft.net,arnd@arndb.de,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=IQyAyTjQWSorfrZI81UbyAPu8L8WGOSTXH9WWExot1/XPEMMnIsZ071j/ydkQYjRK
+	 KMXiywWXFqdHM1RuTxKRhkneOC1UJ/QzXhZ9VzRXtaXBoA1r6acoW3bp1Rn/3hAxsS
+	 PyMfMGbM1uI2rsbPUimB5hqh1UKxCzDh7OS1z50I=
+Date: Fri, 22 Dec 2023 11:29:01 -0800
+To: mm-commits@vger.kernel.org,rppt@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [withdrawn] arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes.patch removed from -mm tree
-Message-Id: <20231222175925.99E3CC433C8@smtp.kernel.org>
+Subject: + mm-remove-unnecessary-ia64-code-and-comment.patch added to mm-unstable branch
+Message-Id: <20231222192901.C7A5AC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -26,394 +26,159 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: sparc64: fix up fallout from enabling -Wmissing-prototypes
-has been removed from the -mm tree.  Its filename was
-     arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes.patch
+The patch titled
+     Subject: mm: remove unnecessary ia64 code and comment
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-remove-unnecessary-ia64-code-and-comment.patch
 
-This patch was dropped because it was withdrawn
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-unnecessary-ia64-code-and-comment.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sparc64: fix up fallout from enabling -Wmissing-prototypes
-Date: Thu Dec 21 04:33:25 PM PST 2023
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: remove unnecessary ia64 code and comment
+Date: Fri, 22 Dec 2023 15:02:03 +0800
 
-Fix sparc64 allmodconfig build errors caused by enabling
--Wmissing-prototypes.
+IA64 has gone with commit cf8e8658100d ("arch: Remove Itanium (IA-64)
+architecture"), remove unnecessary ia64 special mm code and comment too.
 
-- Symbols only used from assembly were given local prototypes
-
-- A couple of missing inclusions were added
-
-- Define some functions to be static
-
-- vmemmap_free() is only needed if CONFIG_MEMORY_HOTPLUG
-
-- add new arch/sparc/include/asm/irq_work.h for arch_irq_work_raise()
-
-- move prom_cif_init() prototype to header, fix longstanding
-  prom_cif_init() borkage.
-
-- various function declarations were moved from .c into shared .h
-
-Fixes: c6345dfa6e3e ("Makefile.extrawarn: turn on missing-prototypes globally")
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: "David S. Miller" <davem@davemloft.net>
+Link: https://lkml.kernel.org/r/20231222070203.2966980-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/floppy_64.h |    4 +++-
- arch/sparc/include/asm/irq_work.h  |   10 ++++++++++
- arch/sparc/include/asm/openprom.h  |    2 ++
- arch/sparc/kernel/adi_64.c         |    6 +++---
- arch/sparc/kernel/asm-offsets.c    |    4 +++-
- arch/sparc/kernel/pci_sun4v.c      |    2 +-
- arch/sparc/kernel/setup_64.c       |    2 +-
- arch/sparc/kernel/time_64.c        |    2 ++
- arch/sparc/kernel/traps_64.c       |    7 ++++---
- arch/sparc/kernel/uprobes.c        |    1 +
- arch/sparc/mm/init_64.c            |    2 ++
- arch/sparc/power/hibernate.c       |    1 +
- arch/sparc/prom/init_64.c          |    2 --
- arch/sparc/prom/misc_64.c          |    2 +-
- arch/sparc/prom/p1275.c            |    2 +-
- arch/sparc/vdso/vclock_gettime.c   |   10 ++++++++++
- arch/sparc/vdso/vma.c              |    2 +-
- drivers/mtd/maps/sun_uflash.c      |    2 +-
- drivers/sbus/char/bbc_i2c.c        |    3 ---
- drivers/sbus/char/bbc_i2c.h        |    3 +++
- 20 files changed, 50 insertions(+), 19 deletions(-)
+ mm/Kconfig      |    2 -
+ mm/memory.c     |    4 ---
+ mm/mm_init.c    |   48 ++++++++++++++++++----------------------------
+ mm/page_owner.c |    1 
+ 4 files changed, 21 insertions(+), 34 deletions(-)
 
---- a/arch/sparc/vdso/vclock_gettime.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/vdso/vclock_gettime.c
-@@ -250,6 +250,8 @@ notrace static int do_monotonic_coarse(s
- 	return 0;
+--- a/mm/Kconfig~mm-remove-unnecessary-ia64-code-and-comment
++++ a/mm/Kconfig
+@@ -770,7 +770,7 @@ config DEFAULT_MMAP_MIN_ADDR
+ 	  from userspace allocation.  Keeping a user from writing to low pages
+ 	  can help reduce the impact of kernel NULL pointer bugs.
+ 
+-	  For most ia64, ppc64 and x86 users with lots of address space
++	  For most ppc64 and x86 users with lots of address space
+ 	  a value of 65536 is reasonable and should cause no problems.
+ 	  On arm and other archs it should not be higher than 32768.
+ 	  Programs which use vm86 functionality or have some need to map
+--- a/mm/memory.c~mm-remove-unnecessary-ia64-code-and-comment
++++ a/mm/memory.c
+@@ -123,9 +123,7 @@ static bool vmf_orig_pte_uffd_wp(struct
+ /*
+  * A number of key systems in x86 including ioremap() rely on the assumption
+  * that high_memory defines the upper bound on direct map memory, then end
+- * of ZONE_NORMAL.  Under CONFIG_DISCONTIG this means that max_low_pfn and
+- * highstart_pfn must be the same; there must be no gap between ZONE_NORMAL
+- * and ZONE_HIGHMEM.
++ * of ZONE_NORMAL.
+  */
+ void *high_memory;
+ EXPORT_SYMBOL(high_memory);
+--- a/mm/mm_init.c~mm-remove-unnecessary-ia64-code-and-comment
++++ a/mm/mm_init.c
+@@ -1467,8 +1467,7 @@ void __init set_pageblock_order(void)
+ 
+ 	/*
+ 	 * Assume the largest contiguous order of interest is a huge page.
+-	 * This value may be variable depending on boot parameters on IA64 and
+-	 * powerpc.
++	 * This value may be variable depending on boot parameters on powerpc.
+ 	 */
+ 	pageblock_order = order;
  }
+@@ -1629,8 +1628,8 @@ void __init *memmap_alloc(phys_addr_t si
+ #ifdef CONFIG_FLATMEM
+ static void __init alloc_node_mem_map(struct pglist_data *pgdat)
+ {
+-	unsigned long __maybe_unused start = 0;
+-	unsigned long __maybe_unused offset = 0;
++	unsigned long start, offset, size, end;
++	struct page *map;
  
-+int __vdso_clock_gettime(clockid_t clock, struct __kernel_old_timespec *ts);
-+
- notrace int
- __vdso_clock_gettime(clockid_t clock, struct __kernel_old_timespec *ts)
- {
-@@ -278,6 +280,9 @@ int
- clock_gettime(clockid_t, struct __kernel_old_timespec *)
- 	__attribute__((weak, alias("__vdso_clock_gettime")));
+ 	/* Skip empty nodes */
+ 	if (!pgdat->node_spanned_pages)
+@@ -1638,33 +1637,24 @@ static void __init alloc_node_mem_map(st
  
-+int
-+__vdso_clock_gettime_stick(clockid_t clock, struct __kernel_old_timespec *ts);
-+
- notrace int
- __vdso_clock_gettime_stick(clockid_t clock, struct __kernel_old_timespec *ts)
- {
-@@ -303,6 +308,8 @@ __vdso_clock_gettime_stick(clockid_t clo
- 	return vdso_fallback_gettime(clock, ts);
- }
- 
-+int __vdso_gettimeofday(struct __kernel_old_timeval *tv, struct timezone *tz);
-+
- notrace int
- __vdso_gettimeofday(struct __kernel_old_timeval *tv, struct timezone *tz)
- {
-@@ -339,6 +346,9 @@ int
- gettimeofday(struct __kernel_old_timeval *, struct timezone *)
- 	__attribute__((weak, alias("__vdso_gettimeofday")));
- 
-+int
-+__vdso_gettimeofday_stick(struct __kernel_old_timeval *tv, struct timezone *tz);
-+
- notrace int
- __vdso_gettimeofday_stick(struct __kernel_old_timeval *tv, struct timezone *tz)
- {
---- a/arch/sparc/kernel/asm-offsets.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/kernel/asm-offsets.c
-@@ -19,6 +19,7 @@
- #include <asm/hibernate.h>
- 
- #ifdef CONFIG_SPARC32
-+int sparc32_foo(void);
- int sparc32_foo(void)
- {
- 	DEFINE(AOFF_thread_fork_kpsr,
-@@ -26,6 +27,7 @@ int sparc32_foo(void)
- 	return 0;
- }
- #else
-+int sparc64_foo(void);
- int sparc64_foo(void)
- {
- #ifdef CONFIG_HIBERNATION
-@@ -45,6 +47,7 @@ int sparc64_foo(void)
- }
- #endif
- 
-+int foo(void);
- int foo(void)
- {
- 	BLANK();
-@@ -57,4 +60,3 @@ int foo(void)
- 	/* DEFINE(NUM_USER_SEGMENTS, TASK_SIZE>>28); */
- 	return 0;
- }
+ 	start = pgdat->node_start_pfn & ~(MAX_ORDER_NR_PAGES - 1);
+ 	offset = pgdat->node_start_pfn - start;
+-	/* ia64 gets its own node_mem_map, before this, without bootmem */
+-	if (!pgdat->node_mem_map) {
+-		unsigned long size, end;
+-		struct page *map;
 -
---- a/arch/sparc/prom/misc_64.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/prom/misc_64.c
-@@ -162,7 +162,7 @@ unsigned char prom_get_idprom(char *idbu
- 	return 0xff;
- }
- 
--int prom_get_mmu_ihandle(void)
-+static int prom_get_mmu_ihandle(void)
- {
- 	phandle node;
- 	int ret;
---- a/arch/sparc/kernel/traps_64.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/kernel/traps_64.c
-@@ -22,6 +22,7 @@
- #include <linux/kdebug.h>
- #include <linux/ftrace.h>
- #include <linux/reboot.h>
-+#include <linux/cpu.h>
- #include <linux/gfp.h>
- #include <linux/context_tracking.h>
- 
-@@ -249,7 +250,7 @@ void sun4v_insn_access_exception_tl1(str
- 	sun4v_insn_access_exception(regs, addr, type_ctx);
- }
- 
--bool is_no_fault_exception(struct pt_regs *regs)
-+static bool is_no_fault_exception(struct pt_regs *regs)
- {
- 	unsigned char asi;
- 	u32 insn;
-@@ -2031,7 +2032,7 @@ static void sun4v_log_error(struct pt_re
- /* Handle memory corruption detected error which is vectored in
-  * through resumable error trap.
-  */
--void do_mcd_err(struct pt_regs *regs, struct sun4v_error_entry ent)
-+static void do_mcd_err(struct pt_regs *regs, struct sun4v_error_entry ent)
- {
- 	if (notify_die(DIE_TRAP, "MCD error", regs, 0, 0x34,
- 		       SIGSEGV) == NOTIFY_STOP)
-@@ -2149,7 +2150,7 @@ static unsigned long sun4v_get_vaddr(str
- /* Attempt to handle non-resumable errors generated from userspace.
-  * Returns true if the signal was handled, false otherwise.
-  */
--bool sun4v_nonresum_error_user_handled(struct pt_regs *regs,
-+static bool sun4v_nonresum_error_user_handled(struct pt_regs *regs,
- 				  struct sun4v_error_entry *ent) {
- 
- 	unsigned int attrs = ent->err_attrs;
---- a/arch/sparc/mm/init_64.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/mm/init_64.c
-@@ -2641,10 +2641,12 @@ int __meminit vmemmap_populate(unsigned
- 	return 0;
- }
- 
-+#ifdef CONFIG_MEMORY_HOTPLUG
- void vmemmap_free(unsigned long start, unsigned long end,
- 		struct vmem_altmap *altmap)
- {
- }
-+#endif
- #endif /* CONFIG_SPARSEMEM_VMEMMAP */
- 
- /* These are actually filled in at boot time by sun4{u,v}_pgprot_init() */
---- a/arch/sparc/vdso/vma.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/vdso/vma.c
-@@ -243,7 +243,7 @@ static int stick_patch(const struct vdso
-  * Allocate pages for the vdso and vvar, and copy in the vdso text from the
-  * kernel image.
-  */
--int __init init_vdso_image(const struct vdso_image *image,
-+static int __init init_vdso_image(const struct vdso_image *image,
- 			   struct vm_special_mapping *vdso_mapping, bool elf64)
- {
- 	int cnpages = (image->size) / PAGE_SIZE;
---- a/arch/sparc/kernel/setup_64.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/kernel/setup_64.c
-@@ -599,7 +599,7 @@ static void __init init_sparc64_elf_hwca
- 		pause_patch();
- }
- 
--void __init alloc_irqstack_bootmem(void)
-+static void __init alloc_irqstack_bootmem(void)
- {
- 	unsigned int i, node;
- 
---- a/arch/sparc/kernel/time_64.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/kernel/time_64.c
-@@ -35,6 +35,8 @@
- #include <linux/platform_device.h>
- #include <linux/ftrace.h>
- 
-+#include <linux/sched/clock.h>
-+
- #include <asm/oplib.h>
- #include <asm/timer.h>
- #include <asm/irq.h>
---- a/arch/sparc/power/hibernate.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/power/hibernate.c
-@@ -6,6 +6,7 @@
-  */
- 
- #include <linux/mm.h>
-+#include <linux/suspend.h>
- 
- #include <asm/hibernate.h>
- #include <asm/visasm.h>
---- a/arch/sparc/kernel/adi_64.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/kernel/adi_64.c
-@@ -121,7 +121,7 @@ adi_not_found:
- 		mdesc_release(hp);
- }
- 
--tag_storage_desc_t *find_tag_store(struct mm_struct *mm,
-+static tag_storage_desc_t *find_tag_store(struct mm_struct *mm,
- 				   struct vm_area_struct *vma,
- 				   unsigned long addr)
- {
-@@ -153,7 +153,7 @@ tag_storage_desc_t *find_tag_store(struc
- 	return tag_desc;
- }
- 
--tag_storage_desc_t *alloc_tag_store(struct mm_struct *mm,
-+static tag_storage_desc_t *alloc_tag_store(struct mm_struct *mm,
- 				    struct vm_area_struct *vma,
- 				    unsigned long addr)
- {
-@@ -296,7 +296,7 @@ out:
- 	return tag_desc;
- }
- 
--void del_tag_store(tag_storage_desc_t *tag_desc, struct mm_struct *mm)
-+static void del_tag_store(tag_storage_desc_t *tag_desc, struct mm_struct *mm)
- {
- 	unsigned long flags;
- 	unsigned char *tags = NULL;
---- /dev/null
-+++ a/arch/sparc/include/asm/irq_work.h
-@@ -0,0 +1,10 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+
-+#ifndef __ASM_SPARC_IRQ_WORK_H
-+#define __ASM_SPARC_IRQ_WORK_H
-+
-+#include <asm-generic/irq_work.h>
-+
-+extern void arch_irq_work_raise(void);
-+
-+#endif /* __ASM_SPARC_IRQ_WORK_H */
---- a/arch/sparc/include/asm/floppy_64.h~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/include/asm/floppy_64.h
-@@ -197,6 +197,7 @@ static void sun_fd_enable_dma(void)
- 	pdma_areasize = pdma_size;
- }
- 
-+irqreturn_t sparc_floppy_irq(int irq, void *dev_cookie);
- irqreturn_t sparc_floppy_irq(int irq, void *dev_cookie)
- {
- 	if (likely(doing_pdma)) {
-@@ -434,7 +435,8 @@ static int sun_pci_fd_eject(int drive)
- 	return -EINVAL;
- }
- 
--void sun_pci_fd_dma_callback(struct ebus_dma_info *p, int event, void *cookie)
-+static void
-+sun_pci_fd_dma_callback(struct ebus_dma_info *p, int event, void *cookie)
- {
- 	floppy_interrupt(0, NULL);
- }
---- a/arch/sparc/prom/init_64.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/prom/init_64.c
-@@ -27,8 +27,6 @@ phandle prom_chosen_node;
-  * It gets passed the pointer to the PROM vector.
-  */
- 
--extern void prom_cif_init(void *);
--
- void __init prom_init(void *cif_handler)
- {
- 	phandle node;
---- a/arch/sparc/prom/p1275.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/prom/p1275.c
-@@ -49,7 +49,7 @@ void p1275_cmd_direct(unsigned long *arg
- 	local_irq_restore(flags);
- }
- 
--void prom_cif_init(void *cif_handler, void *cif_stack)
-+void prom_cif_init(void *cif_handler)
- {
- 	p1275buf.prom_cif_handler = (void (*)(long *))cif_handler;
- }
---- a/arch/sparc/include/asm/openprom.h~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/include/asm/openprom.h
-@@ -275,6 +275,8 @@ struct linux_prom_pci_intmask {
- 	unsigned int interrupt;
- };
- 
-+extern void prom_cif_init(void *cif_handler);
-+
- #endif /* !(__ASSEMBLY__) */
- 
- #endif /* !(__SPARC_OPENPROM_H) */
---- a/arch/sparc/kernel/pci_sun4v.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/kernel/pci_sun4v.c
-@@ -256,7 +256,7 @@ range_alloc_fail:
- 	return NULL;
- }
- 
--unsigned long dma_4v_iotsb_bind(unsigned long devhandle,
-+static unsigned long dma_4v_iotsb_bind(unsigned long devhandle,
- 				unsigned long iotsb_num,
- 				struct pci_bus *bus_dev)
- {
---- a/arch/sparc/kernel/uprobes.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/arch/sparc/kernel/uprobes.c
-@@ -234,6 +234,7 @@ int arch_uprobe_post_xol(struct arch_upr
- /* Handler for uprobe traps.  This is called from the traps table and
-  * triggers the proper die notification.
-  */
-+void uprobe_trap(struct pt_regs *regs, unsigned long trap_level);
- asmlinkage void uprobe_trap(struct pt_regs *regs,
- 			    unsigned long trap_level)
- {
---- a/drivers/sbus/char/bbc_i2c.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/drivers/sbus/char/bbc_i2c.c
-@@ -358,9 +358,6 @@ fail:
- 	return NULL;
- }
- 
--extern int bbc_envctrl_init(struct bbc_i2c_bus *bp);
--extern void bbc_envctrl_cleanup(struct bbc_i2c_bus *bp);
--
- static int bbc_i2c_probe(struct platform_device *op)
- {
- 	struct bbc_i2c_bus *bp;
---- a/drivers/sbus/char/bbc_i2c.h~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/drivers/sbus/char/bbc_i2c.h
-@@ -82,4 +82,7 @@ extern int bbc_i2c_readb(struct bbc_i2c_
- extern int bbc_i2c_write_buf(struct bbc_i2c_client *, char *buf, int len, int off);
- extern int bbc_i2c_read_buf(struct bbc_i2c_client *, char *buf, int len, int off);
- 
-+extern int bbc_envctrl_init(struct bbc_i2c_bus *bp);
-+extern void bbc_envctrl_cleanup(struct bbc_i2c_bus *bp);
-+
- #endif /* _BBC_I2C_H */
---- a/drivers/mtd/maps/sun_uflash.c~arch-sparc-fix-up-fallout-from-enabling-wmissing-prototypes
-+++ a/drivers/mtd/maps/sun_uflash.c
-@@ -47,7 +47,7 @@ struct map_info uflash_map_templ = {
- 	.bankwidth =	UFLASH_BUSWIDTH,
- };
- 
--int uflash_devinit(struct platform_device *op, struct device_node *dp)
-+static int uflash_devinit(struct platform_device *op, struct device_node *dp)
- {
- 	struct uflash_dev *up;
- 
+-		/*
+-		 * The zone's endpoints aren't required to be MAX_ORDER
+-		 * aligned but the node_mem_map endpoints must be in order
+-		 * for the buddy allocator to function correctly.
+-		 */
+-		end = pgdat_end_pfn(pgdat);
+-		end = ALIGN(end, MAX_ORDER_NR_PAGES);
+-		size =  (end - start) * sizeof(struct page);
+-		map = memmap_alloc(size, SMP_CACHE_BYTES, MEMBLOCK_LOW_LIMIT,
+-				   pgdat->node_id, false);
+-		if (!map)
+-			panic("Failed to allocate %ld bytes for node %d memory map\n",
+-			      size, pgdat->node_id);
+-		pgdat->node_mem_map = map + offset;
+-	}
+-	pr_debug("%s: node %d, pgdat %08lx, node_mem_map %08lx\n",
+-				__func__, pgdat->node_id, (unsigned long)pgdat,
+-				(unsigned long)pgdat->node_mem_map);
+-#ifndef CONFIG_NUMA
+ 	/*
+-	 * With no DISCONTIG, the global mem_map is just set as node 0's
++	 * The zone's endpoints aren't required to be MAX_ORDER
++	 * aligned but the node_mem_map endpoints must be in order
++	 * for the buddy allocator to function correctly.
+ 	 */
++	end = ALIGN(pgdat_end_pfn(pgdat), MAX_ORDER_NR_PAGES);
++	size =  (end - start) * sizeof(struct page);
++	map = memmap_alloc(size, SMP_CACHE_BYTES, MEMBLOCK_LOW_LIMIT,
++			   pgdat->node_id, false);
++	if (!map)
++		panic("Failed to allocate %ld bytes for node %d memory map\n",
++		      size, pgdat->node_id);
++	pgdat->node_mem_map = map + offset;
++	pr_debug("%s: node %d, pgdat %08lx, node_mem_map %08lx\n",
++		 __func__, pgdat->node_id, (unsigned long)pgdat,
++		 (unsigned long)pgdat->node_mem_map);
++#ifndef CONFIG_NUMA
++	/* the global mem_map is just set as node 0's */
+ 	if (pgdat == NODE_DATA(0)) {
+ 		mem_map = NODE_DATA(0)->node_mem_map;
+ 		if (page_to_pfn(mem_map) != pgdat->node_start_pfn)
+--- a/mm/page_owner.c~mm-remove-unnecessary-ia64-code-and-comment
++++ a/mm/page_owner.c
+@@ -121,7 +121,6 @@ static noinline depot_stack_handle_t sav
+ 	 * Sometimes page metadata allocation tracking requires more
+ 	 * memory to be allocated:
+ 	 * - when new stack trace is saved to stack depot
+-	 * - when backtrace itself is calculated (ia64)
+ 	 */
+ 	if (current->in_page_owner)
+ 		return dummy_handle;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-maintainers-remove-hugetlb-maintainer-mike-kravetz-fix.patch
+mm-remove-unnecessary-ia64-code-and-comment.patch
 
