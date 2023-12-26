@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71EF5CA68;
-	Sun, 24 Dec 2023 18:09:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A405B1FA4
+	for <mm-commits@vger.kernel.org>; Tue, 26 Dec 2023 19:51:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="e2WJfnIx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4A74C433C7;
-	Sun, 24 Dec 2023 18:09:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZVN4HrHF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC93DC433C7;
+	Tue, 26 Dec 2023 19:51:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703441369;
-	bh=pOgImOSoffebFOw4XSLKTExJhYOUzeHEBmk5pqsdqRk=;
+	s=korg; t=1703620270;
+	bh=OcQkStVUKTjEQGckljc3AiaWg5F0ihPysxGS6JaCdSA=;
 	h=Date:To:From:Subject:From;
-	b=e2WJfnIxgIIIQ0tn/IqfuQbWDoMRMj7vKYndi6f4Q1uxy/XaPUlvePLZmz1oZe70Y
-	 Ox2Y41nNKtBU4xyMuqql7jOMmVPexYd37GioR4hLbRSlL15bF4HGtYY1zhmbp7x4jE
-	 k/yZHn6HD9+r+m+CebxBrGLXUihTMZpw5uiBmIo8=
-Date: Sun, 24 Dec 2023 10:09:28 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,yuzhao@google.com,akpm@linux-foundation.org
+	b=ZVN4HrHFzvTnvWWrQC3CE6NFjDwLJeIqfibauRG5Fit/7C0C5LRp2zj9vTUqH4UIB
+	 wX1SHqsX4v9zdxrDwiCNuE0+vId7l1gI7RsJ1LpEfYJB1EZvSHUFHyzZcRekzWV4Ew
+	 PtOeVnefyTYjVE/4Y9Wbwwr5v9adkJbn50SIj21Y=
+Date: Tue, 26 Dec 2023 11:51:09 -0800
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,vitaly.wool@konsulko.com,sjenning@redhat.com,nphamcs@gmail.com,hannes@cmpxchg.org,ddstreet@ieee.org,chrisl@kernel.org,zhouchengming@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-skip-special-vmas-in-lru_gen_look_around.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231224180928.E4A74C433C7@smtp.kernel.org>
+Subject: + mm-zswap-change-dstmem-size-to-one-page.patch added to mm-unstable branch
+Message-Id: <20231226195109.DC93DC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mglru: skip special VMAs in lru_gen_look_around()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-mglru-skip-special-vmas-in-lru_gen_look_around.patch
+     Subject: mm/zswap: change dstmem size to one page
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-zswap-change-dstmem-size-to-one-page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-skip-special-vmas-in-lru_gen_look_around.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-change-dstmem-size-to-one-page.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,77 +50,88 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm/mglru: skip special VMAs in lru_gen_look_around()
-Date: Fri, 22 Dec 2023 21:56:47 -0700
+From: Chengming Zhou <zhouchengming@bytedance.com>
+Subject: mm/zswap: change dstmem size to one page
+Date: Tue, 26 Dec 2023 15:54:08 +0000
 
-Special VMAs like VM_PFNMAP can contain anon pages from COW.  There isn't
-much profit in doing lookaround on them.  Besides, they can trigger the
-pte_special() warning in get_pte_pfn().
+Patch series "mm/zswap: dstmem reuse optimizations and cleanups", v4.
 
-Skip them in lru_gen_look_around().
+The problem this series tries to optimize is that zswap_load() and
+zswap_writeback_entry() have to malloc a temporary memory to support
+!zpool_can_sleep_mapped().  We can avoid it by reusing the percpu
+crypto_acomp_ctx->dstmem, which is also used by zswap_store() and
+protected by the same percpu crypto_acomp_ctx->mutex.
 
-Link: https://lkml.kernel.org/r/20231223045647.1566043-1-yuzhao@google.com
-Fixes: 018ee47f1489 ("mm: multi-gen LRU: exploit locality in rmap")
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Reported-by: syzbot+03fd9b3f71641f0ebf2d@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/000000000000f9ff00060d14c256@google.com/
-Cc: <stable@vger.kernel.org>
+
+This patch (of 6):
+
+Change the dstmem size from 2 * PAGE_SIZE to only one page since we only
+need at most one page when compress, and the "dlen" is also PAGE_SIZE in
+acomp_request_set_params().  If the output size > PAGE_SIZE we don't wanna
+store the output in zswap anyway.
+
+So change it to one page, and delete the stale comment.
+
+There is no any history about the reason why we needed 2 pages, it has
+been 2 * PAGE_SIZE since the time zswap was first merged.
+
+According to Yosry and Nhat, one potential reason is that we used to store
+a zswap header containing the swap entry in the compressed page for
+writeback purposes, but we don't do that anymore.
+
+This patch works good in kernel build testing even when the input data
+doesn't compress at all (i.e.  dlen == PAGE_SIZE), which we can see from
+the bpftrace tool:
+
+bpftrace -e 'k:zpool_malloc {@[(uint32)arg1==4096]=count()}'
+@[1]: 2
+@[0]: 12011430
+
+Link: https://lkml.kernel.org/r/20231213-zswap-dstmem-v4-0-f228b059dd89@bytedance.com
+Link: https://lkml.kernel.org/r/20231213-zswap-dstmem-v4-1-f228b059dd89@bytedance.com
+Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
+Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Acked-by: Chris Li <chrisl@kernel.org> (Google)
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ mm/zswap.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/mm/vmscan.c~mm-mglru-skip-special-vmas-in-lru_gen_look_around
-+++ a/mm/vmscan.c
-@@ -3955,6 +3955,7 @@ void lru_gen_look_around(struct page_vma
- 	int young = 0;
- 	pte_t *pte = pvmw->pte;
- 	unsigned long addr = pvmw->address;
-+	struct vm_area_struct *vma = pvmw->vma;
- 	struct folio *folio = pfn_folio(pvmw->pfn);
- 	bool can_swap = !folio_is_file_lru(folio);
- 	struct mem_cgroup *memcg = folio_memcg(folio);
-@@ -3969,11 +3970,15 @@ void lru_gen_look_around(struct page_vma
- 	if (spin_is_contended(pvmw->ptl))
- 		return;
+--- a/mm/zswap.c~mm-zswap-change-dstmem-size-to-one-page
++++ a/mm/zswap.c
+@@ -707,7 +707,7 @@ static int zswap_dstmem_prepare(unsigned
+ 	struct mutex *mutex;
+ 	u8 *dst;
  
-+	/* exclude special VMAs containing anon pages from COW */
-+	if (vma->vm_flags & VM_SPECIAL)
-+		return;
-+
- 	/* avoid taking the LRU lock under the PTL when possible */
- 	walk = current->reclaim_state ? current->reclaim_state->mm_walk : NULL;
+-	dst = kmalloc_node(PAGE_SIZE * 2, GFP_KERNEL, cpu_to_node(cpu));
++	dst = kmalloc_node(PAGE_SIZE, GFP_KERNEL, cpu_to_node(cpu));
+ 	if (!dst)
+ 		return -ENOMEM;
  
--	start = max(addr & PMD_MASK, pvmw->vma->vm_start);
--	end = min(addr | ~PMD_MASK, pvmw->vma->vm_end - 1) + 1;
-+	start = max(addr & PMD_MASK, vma->vm_start);
-+	end = min(addr | ~PMD_MASK, vma->vm_end - 1) + 1;
+@@ -1657,8 +1657,7 @@ bool zswap_store(struct folio *folio)
+ 	sg_init_table(&input, 1);
+ 	sg_set_page(&input, page, PAGE_SIZE, 0);
  
- 	if (end - start > MIN_LRU_BATCH * PAGE_SIZE) {
- 		if (addr - start < MIN_LRU_BATCH * PAGE_SIZE / 2)
-@@ -3998,7 +4003,7 @@ void lru_gen_look_around(struct page_vma
- 		unsigned long pfn;
- 		pte_t ptent = ptep_get(pte + i);
- 
--		pfn = get_pte_pfn(ptent, pvmw->vma, addr);
-+		pfn = get_pte_pfn(ptent, vma, addr);
- 		if (pfn == -1)
- 			continue;
- 
-@@ -4009,7 +4014,7 @@ void lru_gen_look_around(struct page_vma
- 		if (!folio)
- 			continue;
- 
--		if (!ptep_test_and_clear_young(pvmw->vma, addr, pte + i))
-+		if (!ptep_test_and_clear_young(vma, addr, pte + i))
- 			VM_WARN_ON_ONCE(true);
- 
- 		young++;
+-	/* zswap_dstmem is of size (PAGE_SIZE * 2). Reflect same in sg_list */
+-	sg_init_one(&output, dst, PAGE_SIZE * 2);
++	sg_init_one(&output, dst, PAGE_SIZE);
+ 	acomp_request_set_params(acomp_ctx->req, &input, &output, PAGE_SIZE, dlen);
+ 	/*
+ 	 * it maybe looks a little bit silly that we send an asynchronous request,
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from zhouchengming@bytedance.com are
 
-mm-mglru-skip-special-vmas-in-lru_gen_look_around.patch
+mm-zswap-change-dstmem-size-to-one-page.patch
+mm-zswap-reuse-dstmem-when-decompress.patch
+mm-zswap-refactor-out-__zswap_load.patch
+mm-zswap-cleanup-zswap_load.patch
+mm-zswap-cleanup-zswap_writeback_entry.patch
+mm-zswap-change-per-cpu-mutex-and-buffer-to-per-acomp_ctx.patch
 
