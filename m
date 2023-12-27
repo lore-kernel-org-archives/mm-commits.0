@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3B4547F54
-	for <mm-commits@vger.kernel.org>; Wed, 27 Dec 2023 20:41:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 343FD47776
+	for <mm-commits@vger.kernel.org>; Wed, 27 Dec 2023 20:41:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B9TdFHsn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 719DEC433C7;
-	Wed, 27 Dec 2023 20:41:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bvJP14pE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0F04C433C8;
+	Wed, 27 Dec 2023 20:41:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703709683;
-	bh=e4gVlg5eZ8SP0QC8cZgGyeL+8e7xBQoYF+W4BObDhI8=;
+	s=korg; t=1703709685;
+	bh=0FgABWh+zT4Pjsmb65DKy0Fc/LXs5paNM3Ylg5TeGbk=;
 	h=Date:To:From:Subject:From;
-	b=B9TdFHsn2Ljtc5/etRcCup43iwDrQRSs0QTpUOoQEUeG7KSWsJ0uUuyFzD1VnuGVo
-	 CsuLN7IGgTfDA/bQBBzCTFIR+Qx9Z3MTwdksQUjXsPYEVOKsopURZyM5mJ+l7EkF93
-	 VcNXjREcFfbzk1cpQEYVJc7MzrjGMDta+ewsFqTc=
-Date: Wed, 27 Dec 2023 12:41:22 -0800
+	b=bvJP14pEdtIrm9UlzdOYHYThF6f6czsSG5xTtT5AdY/T5ZLWfTFejPfPYcMj+Bv0i
+	 WBIs8D0bw2Pqifw5LMhjKFfzJ4TnWmC2Cu3gqjsqxmHUlAkvnCGZvecsrzL3acs9uF
+	 5XBzT/MhdlT89CchqANbhDKRDGdEAqFNk0s0MYOg=
+Date: Wed, 27 Dec 2023 12:41:24 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,lkp@intel.com,donettom@linux.vnet.ibm.com,aneesh.kumar@linux.ibm.com,kinseyho@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-add-dummy-pmd_dirty.patch added to mm-unstable branch
-Message-Id: <20231227204123.719DEC433C7@smtp.kernel.org>
+Subject: + mm-mglru-remove-config_transparent_hugepage.patch added to mm-unstable branch
+Message-Id: <20231227204124.F0F04C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mglru: add dummy pmd_dirty()
+     Subject: mm/mglru: remove CONFIG_TRANSPARENT_HUGEPAGE
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mglru-add-dummy-pmd_dirty.patch
+     mm-mglru-remove-config_transparent_hugepage.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-add-dummy-pmd_dirty.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-remove-config_transparent_hugepage.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,109 +51,84 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Kinsey Ho <kinseyho@google.com>
-Subject: mm/mglru: add dummy pmd_dirty()
-Date: Wed, 27 Dec 2023 14:12:04 +0000
+Subject: mm/mglru: remove CONFIG_TRANSPARENT_HUGEPAGE
+Date: Wed, 27 Dec 2023 14:12:05 +0000
 
-Add dummy pmd_dirty() for architectures that don't provide it.
-This is similar to commit 6617da8fb565 ("mm: add dummy pmd_young()
-for architectures not having it").
+Improve code readability by removing CONFIG_TRANSPARENT_HUGEPAGE,
+since the compiler should be able to automatically optimize out the
+code that promotes THPs during page table walks.
 
-Link: https://lkml.kernel.org/r/20231227141205.2200125-5-kinseyho@google.com
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202312210606.1Etqz3M4-lkp@intel.com/
-Closes: https://lore.kernel.org/oe-kbuild-all/202312210042.xQEiqlEh-lkp@intel.com/
+No functional changes.
+
+Link: https://lkml.kernel.org/r/20231227141205.2200125-6-kinseyho@google.com
 Signed-off-by: Kinsey Ho <kinseyho@google.com>
-Suggested-by: Yu Zhao <yuzhao@google.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Donet Tom <donettom@linux.vnet.ibm.com>
+Co-developed-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Tested-by: Donet Tom <donettom@linux.vnet.ibm.com>
+Acked-by: Yu Zhao <yuzhao@google.com>
+Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/loongarch/include/asm/pgtable.h |    1 +
- arch/mips/include/asm/pgtable.h      |    1 +
- arch/riscv/include/asm/pgtable.h     |    1 +
- arch/s390/include/asm/pgtable.h      |    1 +
- arch/sparc/include/asm/pgtable_64.h  |    1 +
- arch/x86/include/asm/pgtable.h       |    1 +
- include/linux/pgtable.h              |    7 +++++++
- 7 files changed, 13 insertions(+)
+ mm/vmscan.c |   12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
---- a/arch/loongarch/include/asm/pgtable.h~mm-mglru-add-dummy-pmd_dirty
-+++ a/arch/loongarch/include/asm/pgtable.h
-@@ -523,6 +523,7 @@ static inline pmd_t pmd_wrprotect(pmd_t
- 	return pmd;
+--- a/mm/vmscan.c~mm-mglru-remove-config_transparent_hugepage
++++ a/mm/vmscan.c
+@@ -3273,7 +3273,6 @@ static unsigned long get_pte_pfn(pte_t p
+ 	return pfn;
  }
  
-+#define pmd_dirty pmd_dirty
- static inline int pmd_dirty(pmd_t pmd)
+-#if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG)
+ static unsigned long get_pmd_pfn(pmd_t pmd, struct vm_area_struct *vma, unsigned long addr)
  {
- 	return !!(pmd_val(pmd) & (_PAGE_DIRTY | _PAGE_MODIFIED));
---- a/arch/mips/include/asm/pgtable.h~mm-mglru-add-dummy-pmd_dirty
-+++ a/arch/mips/include/asm/pgtable.h
-@@ -655,6 +655,7 @@ static inline pmd_t pmd_mkwrite_novma(pm
- 	return pmd;
+ 	unsigned long pfn = pmd_pfn(pmd);
+@@ -3291,7 +3290,6 @@ static unsigned long get_pmd_pfn(pmd_t p
+ 
+ 	return pfn;
+ }
+-#endif
+ 
+ static struct folio *get_pfn_folio(unsigned long pfn, struct mem_cgroup *memcg,
+ 				   struct pglist_data *pgdat, bool can_swap)
+@@ -3394,7 +3392,6 @@ restart:
+ 	return suitable_to_scan(total, young);
  }
  
-+#define pmd_dirty pmd_dirty
- static inline int pmd_dirty(pmd_t pmd)
+-#if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG)
+ static void walk_pmd_range_locked(pud_t *pud, unsigned long addr, struct vm_area_struct *vma,
+ 				  struct mm_walk *args, unsigned long *bitmap, unsigned long *first)
  {
- 	return !!(pmd_val(pmd) & _PAGE_MODIFIED);
---- a/arch/riscv/include/asm/pgtable.h~mm-mglru-add-dummy-pmd_dirty
-+++ a/arch/riscv/include/asm/pgtable.h
-@@ -673,6 +673,7 @@ static inline int pmd_write(pmd_t pmd)
- 	return pte_write(pmd_pte(pmd));
+@@ -3472,12 +3469,6 @@ next:
+ done:
+ 	*first = -1;
  }
+-#else
+-static void walk_pmd_range_locked(pud_t *pud, unsigned long addr, struct vm_area_struct *vma,
+-				  struct mm_walk *args, unsigned long *bitmap, unsigned long *first)
+-{
+-}
+-#endif
  
-+#define pmd_dirty pmd_dirty
- static inline int pmd_dirty(pmd_t pmd)
- {
- 	return pte_dirty(pmd_pte(pmd));
---- a/arch/s390/include/asm/pgtable.h~mm-mglru-add-dummy-pmd_dirty
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -770,6 +770,7 @@ static inline int pud_write(pud_t pud)
- 	return (pud_val(pud) & _REGION3_ENTRY_WRITE) != 0;
- }
+ static void walk_pmd_range(pud_t *pud, unsigned long start, unsigned long end,
+ 			   struct mm_walk *args)
+@@ -3513,7 +3504,6 @@ restart:
+ 			continue;
+ 		}
  
-+#define pmd_dirty pmd_dirty
- static inline int pmd_dirty(pmd_t pmd)
- {
- 	return (pmd_val(pmd) & _SEGMENT_ENTRY_DIRTY) != 0;
---- a/arch/sparc/include/asm/pgtable_64.h~mm-mglru-add-dummy-pmd_dirty
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -706,6 +706,7 @@ static inline unsigned long pmd_write(pm
- #define pud_write(pud)	pte_write(__pte(pud_val(pud)))
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+#define pmd_dirty pmd_dirty
- static inline unsigned long pmd_dirty(pmd_t pmd)
- {
- 	pte_t pte = __pte(pmd_val(pmd));
---- a/arch/x86/include/asm/pgtable.h~mm-mglru-add-dummy-pmd_dirty
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -141,6 +141,7 @@ static inline int pte_young(pte_t pte)
- 	return pte_flags(pte) & _PAGE_ACCESSED;
- }
- 
-+#define pmd_dirty pmd_dirty
- static inline bool pmd_dirty(pmd_t pmd)
- {
- 	return pmd_flags(pmd) & _PAGE_DIRTY_BITS;
---- a/include/linux/pgtable.h~mm-mglru-add-dummy-pmd_dirty
-+++ a/include/linux/pgtable.h
-@@ -184,6 +184,13 @@ static inline int pmd_young(pmd_t pmd)
- }
- #endif
- 
-+#ifndef pmd_dirty
-+static inline int pmd_dirty(pmd_t pmd)
-+{
-+	return 0;
-+}
-+#endif
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 		if (pmd_trans_huge(val)) {
+ 			unsigned long pfn = pmd_pfn(val);
+ 			struct pglist_data *pgdat = lruvec_pgdat(walk->lruvec);
+@@ -3532,7 +3522,7 @@ restart:
+ 			walk_pmd_range_locked(pud, addr, vma, args, bitmap, &first);
+ 			continue;
+ 		}
+-#endif
 +
- /*
-  * A facility to provide lazy MMU batching.  This allows PTE updates and
-  * page invalidations to be delayed until a call to leave lazy MMU mode
+ 		walk->mm_stats[MM_NONLEAF_TOTAL]++;
+ 
+ 		if (should_clear_pmd_young()) {
 _
 
 Patches currently in -mm which might be from kinseyho@google.com are
