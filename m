@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BEF3481A5
-	for <mm-commits@vger.kernel.org>; Wed, 27 Dec 2023 21:32:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 915F547F59
+	for <mm-commits@vger.kernel.org>; Wed, 27 Dec 2023 21:37:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SXF2Vv+k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D55EFC433C8;
-	Wed, 27 Dec 2023 21:32:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QBp+5A/D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E705C433C8;
+	Wed, 27 Dec 2023 21:37:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703712757;
-	bh=35QpjfQszparZ6GVM56YFAgX4byoCy3emPKvgvrH4x8=;
+	s=korg; t=1703713033;
+	bh=lsAzRxuzpbCFv74djAQyVG+NQOSfnCs4d2xCf9l7+hI=;
 	h=Date:To:From:Subject:From;
-	b=SXF2Vv+kMLiC7jiewZ+ehhTSLo+ctMeHnYlYz51Gazbmes2lhLZ4dIKdlSp/hh4VV
-	 uW1ExoEoYsDG+yK6Z7roBf0IOIYthCnB2bVKutgLODh2HqNtY0szUpUYDjT3O+SRAn
-	 OBwMBQzqZDwKkD2Tt4069ZF4jHPC3ROxmghdDM0c=
-Date: Wed, 27 Dec 2023 13:32:37 -0800
-To: mm-commits@vger.kernel.org,martin.krastev@broadcom.com,maaz.mombasawala@broadcom.com,ian.forbes@broadcom.com,florian.fainelli@broadcom.com,zack.rusin@broadcom.com,akpm@linux-foundation.org
+	b=QBp+5A/Dwxlh5LV2LSHlQIcPwos3xom8t1BFMq4OAlJWo6Y5ktZTpto29b66dMsN+
+	 T4fTRbSNWtpuZakhvATFCXhRA/azKjVyNJvdV662dNi20NizKRGmnBFPrkFyLmoUBC
+	 K/lRwL/S/veevtQX/egrVgB3rsE8k3F/Z3Ka6F9g=
+Date: Wed, 27 Dec 2023 13:37:12 -0800
+To: mm-commits@vger.kernel.org,quic_bjorande@quicinc.com,o.rempel@pengutronix.de,matttbe@kernel.org,matt@ranostay.sg,kuba@kernel.org,konrad.dybcio@linaro.org,jikos@kernel.org,heiko@sntech.de,othacehe@gnu.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-change-vmwarecom-addresses-to-broadcomcom.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231227213237.D55EFC433C8@smtp.kernel.org>
+Subject: + mailmap-add-entries-for-mathieu-othacehe.patch added to mm-hotfixes-unstable branch
+Message-Id: <20231227213713.3E705C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: change vmware.com addresses to broadcom.com
+     Subject: mailmap: add entries for Mathieu Othacehe
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-change-vmwarecom-addresses-to-broadcomcom.patch
+     mailmap-add-entries-for-mathieu-othacehe.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-change-vmwarecom-addresses-to-broadcomcom.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-add-entries-for-mathieu-othacehe.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -50,65 +50,42 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zack Rusin <zack.rusin@broadcom.com>
-Subject: MAINTAINERS: change vmware.com addresses to broadcom.com
-Date: Sun, 24 Dec 2023 00:20:36 -0500
+From: Mathieu Othacehe <othacehe@gnu.org>
+Subject: mailmap: add entries for Mathieu Othacehe
+Date: Sat, 23 Dec 2023 15:42:22 +0100
 
-Update the email addresses for vmwgfx and vmmouse to reflect the fact that
-VMware is now part of Broadcom.
+Add my gnu.org mail address.
 
-Add a .mailmap entry because the vmware.com address will start bouncing
-soon.
-
-Link: https://lkml.kernel.org/r/20231224052036.603621-1-zack.rusin@broadcom.com
-Signed-off-by: Zack Rusin <zack.rusin@broadcom.com>
-Acked-by: Florian Fainelli <florian.fainelli@broadcom.com>
-Cc: Ian Forbes <ian.forbes@broadcom.com>
-Cc: Martin Krastev <martin.krastev@broadcom.com>
-Cc: Maaz Mombasawala <maaz.mombasawala@broadcom.com>
+Link: https://lkml.kernel.org/r/20231223144226.25740-1-othacehe@gnu.org
+Signed-off-by: Mathieu Othacehe <othacehe@gnu.org>
+Cc: Bjorn Andersson <quic_bjorande@quicinc.com>
+Cc: Heiko Stuebner <heiko@sntech.de>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Jiri Kosina <jikos@kernel.org>
+Cc: Konrad Dybcio <konrad.dybcio@linaro.org>
+Cc: Matthieu Baerts <matttbe@kernel.org>
+Cc: Matt Ranostay <matt@ranostay.sg>
+Cc: Oleksij Rempel <o.rempel@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap    |    1 +
- MAINTAINERS |    9 ++++-----
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ .mailmap |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/.mailmap~maintainers-change-vmwarecom-addresses-to-broadcomcom
+--- a/.mailmap~mailmap-add-entries-for-mathieu-othacehe
 +++ a/.mailmap
-@@ -631,4 +631,5 @@ Wolfram Sang <wsa@kernel.org> <w.sang@pe
- Wolfram Sang <wsa@kernel.org> <wsa@the-dreams.de>
- Yakir Yang <kuankuan.y@gmail.com> <ykk@rock-chips.com>
- Yusuke Goda <goda.yusuke@renesas.com>
-+Zack Rusin <zack.rusin@broadcom.com> <zackr@vmware.com>
- Zhu Yanjun <zyjzyj2000@gmail.com> <yanjunz@nvidia.com>
---- a/MAINTAINERS~maintainers-change-vmwarecom-addresses-to-broadcomcom
-+++ a/MAINTAINERS
-@@ -6903,8 +6903,8 @@ T:	git git://anongit.freedesktop.org/drm
- F:	drivers/gpu/drm/vboxvideo/
- 
- DRM DRIVER FOR VMWARE VIRTUAL GPU
--M:	Zack Rusin <zackr@vmware.com>
--R:	VMware Graphics Reviewers <linux-graphics-maintainer@vmware.com>
-+M:	Zack Rusin <zack.rusin@broadcom.com>
-+R:	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
- L:	dri-devel@lists.freedesktop.org
- S:	Supported
- T:	git git://anongit.freedesktop.org/drm/drm-misc
-@@ -23202,9 +23202,8 @@ F:	drivers/misc/vmw_vmci/
- F:	include/linux/vmw_vmci*
- 
- VMWARE VMMOUSE SUBDRIVER
--M:	Zack Rusin <zackr@vmware.com>
--R:	VMware Graphics Reviewers <linux-graphics-maintainer@vmware.com>
--R:	VMware PV-Drivers Reviewers <pv-drivers@vmware.com>
-+M:	Zack Rusin <zack.rusin@broadcom.com>
-+R:	Broadcom internal kernel review list <bcm-kernel-feedback-list@broadcom.com>
- L:	linux-input@vger.kernel.org
- S:	Supported
- F:	drivers/input/mouse/vmmouse.c
+@@ -370,7 +370,7 @@ Martin Kepplinger <martink@posteo.de> <m
+ Martin Kepplinger <martink@posteo.de> <martin.kepplinger@puri.sm>
+ Martin Kepplinger <martink@posteo.de> <martin.kepplinger@theobroma-systems.com>
+ Martyna Szapar-Mudlaw <martyna.szapar-mudlaw@linux.intel.com> <martyna.szapar-mudlaw@intel.com>
+-Mathieu Othacehe <m.othacehe@gmail.com>
++Mathieu Othacehe <m.othacehe@gmail.com> <othacehe@gnu.org>
+ Mat Martineau <martineau@kernel.org> <mathew.j.martineau@linux.intel.com>
+ Mat Martineau <martineau@kernel.org> <mathewm@codeaurora.org>
+ Matthew Wilcox <willy@infradead.org> <matthew.r.wilcox@intel.com>
 _
 
-Patches currently in -mm which might be from zack.rusin@broadcom.com are
+Patches currently in -mm which might be from othacehe@gnu.org are
 
-maintainers-change-vmwarecom-addresses-to-broadcomcom.patch
+mailmap-add-entries-for-mathieu-othacehe.patch
 
