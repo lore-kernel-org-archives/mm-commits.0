@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4023481A3
-	for <mm-commits@vger.kernel.org>; Wed, 27 Dec 2023 22:03:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9CDC481A3
+	for <mm-commits@vger.kernel.org>; Wed, 27 Dec 2023 22:03:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cjDeddhi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D78BC433C7;
-	Wed, 27 Dec 2023 22:03:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xoI9482f"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CC98C433CA;
+	Wed, 27 Dec 2023 22:03:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703714582;
-	bh=dwwcO9Ld0rQLOKiAlZQC1jtiCV5iA+UyANu3B/C3+aw=;
+	s=korg; t=1703714583;
+	bh=AzVgEE8fcfQ1AmSFvYFu5r4GoO1w6k9qFf0W1Feqj4g=;
 	h=Date:To:From:Subject:From;
-	b=cjDeddhiqVe7+VdSw0+g+gBWl19iwCpcV4mAHnsWVRrXfpNgRcGCOHdv8M4Lz7MRt
-	 Z+hhPKm/Z28KbvvTYNmcmjNoXVmCsCFXibynyD0KXTW7KXVXzUTuF9vMDByLVskv1o
-	 ulVpEWSWgqp7e5WIPUHJ8f58888joulftity99Ms=
-Date: Wed, 27 Dec 2023 14:03:01 -0800
+	b=xoI9482ffvPqiEXfX19euo+F6iwJlSBsL66XyX7D6wMSaIJr6ZRWc4QPiMnr5MJnT
+	 SpkXfNcNnNjknN3RnXRs5kJo8NQbqLIVimmWuuaeLxTMYSpNxGA1dPiNYhtl4lMznv
+	 gq3ZHDIFcwpLkL4rAfKLTbGt21tpYuwHVKflymi4=
+Date: Wed, 27 Dec 2023 14:03:02 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,hannes@cmpxchg.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-inc-dec-lruvec-page-state-functions.patch added to mm-unstable branch
-Message-Id: <20231227220302.1D78BC433C7@smtp.kernel.org>
+Subject: + slab-convert-__kmalloc_large_node-and-free_large_kmalloc-to-use-folios.patch added to mm-unstable branch
+Message-Id: <20231227220303.3CC98C433CA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove inc/dec lruvec page state functions
+     Subject: slab: convert __kmalloc_large_node() and free_large_kmalloc() to use folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-inc-dec-lruvec-page-state-functions.patch
+     slab-convert-__kmalloc_large_node-and-free_large_kmalloc-to-use-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-inc-dec-lruvec-page-state-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/slab-convert-__kmalloc_large_node-and-free_large_kmalloc-to-use-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,70 +51,79 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove inc/dec lruvec page state functions
-Date: Fri, 22 Dec 2023 20:28:04 +0000
+Subject: slab: convert __kmalloc_large_node() and free_large_kmalloc() to use folios
+Date: Fri, 22 Dec 2023 20:28:05 +0000
 
-Patch series "Remove some lruvec page accounting functions".
+Add folio_alloc_node() to replace alloc_pages_node() and then use folio
+APIs throughout instead of converting back to pages.
 
-Some functions are now unused; remove them.  Make
-__mod_lruvec_page_state() unused and then remove it.
-
-
-This patch (of 4):
-
-All callers of these have been converted to their folio equivalents.
-
-Link: https://lkml.kernel.org/r/20231222202807.2135717-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20231222202807.2135717-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231222202807.2135717-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |   24 ------------------------
- 1 file changed, 24 deletions(-)
+ include/linux/gfp.h |    9 +++++++++
+ mm/slab_common.c    |   15 +++++++--------
+ 2 files changed, 16 insertions(+), 8 deletions(-)
 
---- a/include/linux/vmstat.h~mm-remove-inc-dec-lruvec-page-state-functions
-+++ a/include/linux/vmstat.h
-@@ -597,18 +597,6 @@ static inline void mod_lruvec_page_state
- 
- #endif /* CONFIG_MEMCG */
- 
--static inline void __inc_lruvec_page_state(struct page *page,
--					   enum node_stat_item idx)
--{
--	__mod_lruvec_page_state(page, idx, 1);
--}
--
--static inline void __dec_lruvec_page_state(struct page *page,
--					   enum node_stat_item idx)
--{
--	__mod_lruvec_page_state(page, idx, -1);
--}
--
- static inline void __lruvec_stat_mod_folio(struct folio *folio,
- 					   enum node_stat_item idx, int val)
- {
-@@ -627,18 +615,6 @@ static inline void __lruvec_stat_sub_fol
- 	__lruvec_stat_mod_folio(folio, idx, -folio_nr_pages(folio));
+--- a/include/linux/gfp.h~slab-convert-__kmalloc_large_node-and-free_large_kmalloc-to-use-folios
++++ a/include/linux/gfp.h
+@@ -247,6 +247,15 @@ struct folio *__folio_alloc_node(gfp_t g
+ 	return __folio_alloc(gfp, order, nid, NULL);
  }
  
--static inline void inc_lruvec_page_state(struct page *page,
--					 enum node_stat_item idx)
--{
--	mod_lruvec_page_state(page, idx, 1);
--}
--
--static inline void dec_lruvec_page_state(struct page *page,
--					 enum node_stat_item idx)
--{
--	mod_lruvec_page_state(page, idx, -1);
--}
--
- static inline void lruvec_stat_mod_folio(struct folio *folio,
- 					 enum node_stat_item idx, int val)
++static inline
++struct folio *folio_alloc_node(gfp_t gfp, unsigned int order, int nid)
++{
++	if (nid == NUMA_NO_NODE)
++		nid = numa_mem_id();
++
++	return __folio_alloc_node(gfp, order, nid);
++}
++
+ /*
+  * Allocate pages, preferring the node given as nid. When nid == NUMA_NO_NODE,
+  * prefer the current CPU's closest node. Otherwise node must be valid and
+--- a/mm/slab_common.c~slab-convert-__kmalloc_large_node-and-free_large_kmalloc-to-use-folios
++++ a/mm/slab_common.c
+@@ -979,9 +979,9 @@ void free_large_kmalloc(struct folio *fo
+ 	kasan_kfree_large(object);
+ 	kmsan_kfree_large(object);
+ 
+-	mod_lruvec_page_state(folio_page(folio, 0), NR_SLAB_UNRECLAIMABLE_B,
++	lruvec_stat_mod_folio(folio, NR_SLAB_UNRECLAIMABLE_B,
+ 			      -(PAGE_SIZE << order));
+-	__free_pages(folio_page(folio, 0), order);
++	folio_put(folio);
+ }
+ 
+ static void *__kmalloc_large_node(size_t size, gfp_t flags, int node);
+@@ -1137,18 +1137,17 @@ gfp_t kmalloc_fix_flags(gfp_t flags)
+ 
+ static void *__kmalloc_large_node(size_t size, gfp_t flags, int node)
  {
+-	struct page *page;
++	struct folio *folio;
+ 	void *ptr = NULL;
+ 	unsigned int order = get_order(size);
+ 
+ 	if (unlikely(flags & GFP_SLAB_BUG_MASK))
+ 		flags = kmalloc_fix_flags(flags);
+ 
+-	flags |= __GFP_COMP;
+-	page = alloc_pages_node(node, flags, order);
+-	if (page) {
+-		ptr = page_address(page);
+-		mod_lruvec_page_state(page, NR_SLAB_UNRECLAIMABLE_B,
++	folio = folio_alloc_node(flags, order, node);
++	if (folio) {
++		ptr = folio_address(folio);
++		lruvec_stat_mod_folio(folio, NR_SLAB_UNRECLAIMABLE_B,
+ 				      PAGE_SIZE << order);
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
