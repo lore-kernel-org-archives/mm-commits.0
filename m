@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B56263AF
-	for <mm-commits@vger.kernel.org>; Wed, 27 Dec 2023 21:39:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4023481A3
+	for <mm-commits@vger.kernel.org>; Wed, 27 Dec 2023 22:03:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VvOYTkSN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E815BC433C8;
-	Wed, 27 Dec 2023 21:39:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cjDeddhi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D78BC433C7;
+	Wed, 27 Dec 2023 22:03:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703713192;
-	bh=FAhHyrsVuptyFFT8P3SWkeRa8v6+yUcKqH8J05vIsD4=;
+	s=korg; t=1703714582;
+	bh=dwwcO9Ld0rQLOKiAlZQC1jtiCV5iA+UyANu3B/C3+aw=;
 	h=Date:To:From:Subject:From;
-	b=VvOYTkSN0qGpC5n4e6l2oeAJttruuFAesfWkG9dV8OdBT97cjZ/5EtvJHrku1EYuq
-	 FfO3G8BTNkispifzpD3u90nSb5hqegXwFmcFwF5axgK7jEUdHdACtqDPAmys2QCAaw
-	 7Tut5ZwMIHbO206Dpj20yqo3d6pk1Yb+sPOmtzqE=
-Date: Wed, 27 Dec 2023 13:39:51 -0800
-To: mm-commits@vger.kernel.org,naoya.horiguchi@nec.com,linmiaohe@huawei.com,david@redhat.com,nao.horiguchi@gmail.com,akpm@linux-foundation.org
+	b=cjDeddhiqVe7+VdSw0+g+gBWl19iwCpcV4mAHnsWVRrXfpNgRcGCOHdv8M4Lz7MRt
+	 Z+hhPKm/Z28KbvvTYNmcmjNoXVmCsCFXibynyD0KXTW7KXVXzUTuF9vMDByLVskv1o
+	 ulVpEWSWgqp7e5WIPUHJ8f58888joulftity99Ms=
+Date: Wed, 27 Dec 2023 14:03:01 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,hannes@cmpxchg.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-hand-over-hwpoison-maintainership-to-miaohe-lin-v2.patch added to mm-hotfixes-unstable branch
-Message-Id: <20231227213951.E815BC433C8@smtp.kernel.org>
+Subject: + mm-remove-inc-dec-lruvec-page-state-functions.patch added to mm-unstable branch
+Message-Id: <20231227220302.1D78BC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maintainers-hand-over-hwpoison-maintainership-to-miaohe-lin-v2
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-hand-over-hwpoison-maintainership-to-miaohe-lin-v2.patch
+     Subject: mm: remove inc/dec lruvec page state functions
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-remove-inc-dec-lruvec-page-state-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-hand-over-hwpoison-maintainership-to-miaohe-lin-v2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-inc-dec-lruvec-page-state-functions.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,35 +50,122 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Subject: maintainers-hand-over-hwpoison-maintainership-to-miaohe-lin-v2
-Date: Sat, 23 Dec 2023 12:11:15 +0900
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: remove inc/dec lruvec page state functions
+Date: Fri, 22 Dec 2023 20:28:04 +0000
 
-update to keep myself as a reviewer 
+Patch series "Remove some lruvec page accounting functions".
 
-Link: https://lkml.kernel.org/r/20231223031115.GA2883156@u2004
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
+Some functions are now unused; remove them.  Make
+__mod_lruvec_page_state() unused and then remove it.
+
+
+This patch (of 4):
+
+All callers of these have been converted to their folio equivalents.
+
+Link: https://lkml.kernel.org/r/20231222202807.2135717-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231222202807.2135717-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/vmstat.h |   24 ------------------------
+ 1 file changed, 24 deletions(-)
 
---- a/MAINTAINERS~maintainers-hand-over-hwpoison-maintainership-to-miaohe-lin-v2
-+++ a/MAINTAINERS
-@@ -9784,6 +9784,7 @@ F:	drivers/media/platform/st/sti/hva
+--- a/include/linux/vmstat.h~mm-remove-inc-dec-lruvec-page-state-functions
++++ a/include/linux/vmstat.h
+@@ -597,18 +597,6 @@ static inline void mod_lruvec_page_state
  
- HWPOISON MEMORY FAILURE HANDLING
- M:	Miaohe Lin <linmiaohe@huawei.com>
-+R:	Naoya Horiguchi <naoya.horiguchi@nec.com>
- L:	linux-mm@kvack.org
- S:	Maintained
- F:	mm/hwpoison-inject.c
+ #endif /* CONFIG_MEMCG */
+ 
+-static inline void __inc_lruvec_page_state(struct page *page,
+-					   enum node_stat_item idx)
+-{
+-	__mod_lruvec_page_state(page, idx, 1);
+-}
+-
+-static inline void __dec_lruvec_page_state(struct page *page,
+-					   enum node_stat_item idx)
+-{
+-	__mod_lruvec_page_state(page, idx, -1);
+-}
+-
+ static inline void __lruvec_stat_mod_folio(struct folio *folio,
+ 					   enum node_stat_item idx, int val)
+ {
+@@ -627,18 +615,6 @@ static inline void __lruvec_stat_sub_fol
+ 	__lruvec_stat_mod_folio(folio, idx, -folio_nr_pages(folio));
+ }
+ 
+-static inline void inc_lruvec_page_state(struct page *page,
+-					 enum node_stat_item idx)
+-{
+-	mod_lruvec_page_state(page, idx, 1);
+-}
+-
+-static inline void dec_lruvec_page_state(struct page *page,
+-					 enum node_stat_item idx)
+-{
+-	mod_lruvec_page_state(page, idx, -1);
+-}
+-
+ static inline void lruvec_stat_mod_folio(struct folio *folio,
+ 					 enum node_stat_item idx, int val)
+ {
 _
 
-Patches currently in -mm which might be from nao.horiguchi@gmail.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-maintainers-hand-over-hwpoison-maintainership-to-miaohe-lin-v2.patch
+buffer-return-bool-from-grow_dev_folio.patch
+buffer-calculate-block-number-inside-folio_init_buffers.patch
+buffer-fix-grow_buffers-for-block-size-page_size.patch
+buffer-cast-block-to-loff_t-before-shifting-it.patch
+buffer-fix-various-functions-for-block-size-page_size.patch
+buffer-handle-large-folios-in-__block_write_begin_int.patch
+buffer-fix-more-functions-for-block-size-page_size.patch
+mm-convert-ksm_might_need_to_copy-to-work-on-folios.patch
+mm-convert-ksm_might_need_to_copy-to-work-on-folios-fix.patch
+mm-remove-pageanonexclusive-assertions-in-unuse_pte.patch
+mm-convert-unuse_pte-to-use-a-folio-throughout.patch
+mm-remove-some-calls-to-page_add_new_anon_rmap.patch
+mm-remove-stale-example-from-comment.patch
+mm-remove-references-to-page_add_new_anon_rmap-in-comments.patch
+mm-convert-migrate_vma_insert_page-to-use-a-folio.patch
+mm-convert-collapse_huge_page-to-use-a-folio.patch
+mm-remove-page_add_new_anon_rmap-and-lru_cache_add_inactive_or_unevictable.patch
+mm-return-the-folio-from-__read_swap_cache_async.patch
+mm-pass-a-folio-to-__swap_writepage.patch
+mm-pass-a-folio-to-swap_writepage_fs.patch
+mm-pass-a-folio-to-swap_writepage_bdev_sync.patch
+mm-pass-a-folio-to-swap_writepage_bdev_async.patch
+mm-pass-a-folio-to-swap_readpage_fs.patch
+mm-pass-a-folio-to-swap_readpage_bdev_sync.patch
+mm-pass-a-folio-to-swap_readpage_bdev_async.patch
+mm-convert-swap_page_sector-to-swap_folio_sector.patch
+mm-convert-swap_readpage-to-swap_read_folio.patch
+mm-remove-page_swap_info.patch
+mm-return-a-folio-from-read_swap_cache_async.patch
+mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio.patch
+mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio-fix.patch
+fs-remove-clean_page_buffers.patch
+fs-convert-clean_buffers-to-take-a-folio.patch
+fs-reduce-stack-usage-in-__mpage_writepage.patch
+fs-reduce-stack-usage-in-do_mpage_readpage.patch
+adfs-remove-writepage-implementation.patch
+bfs-remove-writepage-implementation.patch
+hfs-really-remove-hfs_writepage.patch
+hfsplus-really-remove-hfsplus_writepage.patch
+minix-remove-writepage-implementation.patch
+ocfs2-remove-writepage-implementation.patch
+sysv-remove-writepage-implementation.patch
+ufs-remove-writepage-implementation.patch
+fs-convert-block_write_full_page-to-block_write_full_folio.patch
+fs-remove-the-bh_end_io-argument-from-__block_write_full_folio.patch
+mm-remove-inc-dec-lruvec-page-state-functions.patch
+slab-convert-__kmalloc_large_node-and-free_large_kmalloc-to-use-folios.patch
+mm-khugepaged-use-a-folio-more-in-collapse_file.patch
+mm-memcontrol-remove-__mod_lruvec_page_state.patch
 
