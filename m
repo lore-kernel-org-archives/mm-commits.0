@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31850F9D7
-	for <mm-commits@vger.kernel.org>; Thu, 28 Dec 2023 18:15:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27AD6F9D7
+	for <mm-commits@vger.kernel.org>; Thu, 28 Dec 2023 18:15:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YNu4+x6H"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 911F7C433C8;
-	Thu, 28 Dec 2023 18:15:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ucFLo39F"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90C86C433C7;
+	Thu, 28 Dec 2023 18:15:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703787337;
-	bh=QhVcWMaqDhgLGq1JxnrwCNin2FqzSJkvGKIhCDy2OZ4=;
+	s=korg; t=1703787338;
+	bh=SMBxfh1oICgLW94KhqopY2hPRG8adwKcn/8IRnNteSw=;
 	h=Date:To:From:Subject:From;
-	b=YNu4+x6HQUTgR4uY9gH1dUC/Wck01mdPsCxDfp+g7PnY5fm3PjWgYt6YAR5GUdld8
-	 fIwYbeEVikQUfAeTtFRajqseFsZq7Utpc0F21gF7mtPFNA0JdgcWAds/lYyPrxE+el
-	 W3+VtKNEb09dyRpKLS9rnQADFsFP2CUGGFA8/TNQ=
+	b=ucFLo39Fcsi781HKw0yKYSkNtfc3+esM6RTiqds3jVKhiUQg3jKHHcpmB8UvMS3o1
+	 Nqr2RUDtpmQ85RjzWmaRtcm6rS5/nfpjM0sGuPhh83qLvLzuCaVKAPHPu3sdkq4/gp
+	 a2f1AjgOgJqhvbkOeolGppCT1ofEGViVZN+3yuaE=
 Date: Thu, 28 Dec 2023 10:15:37 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,hannes@cmpxchg.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] slab-convert-__kmalloc_large_node-and-free_large_kmalloc-to-use-folios.patch removed from -mm tree
-Message-Id: <20231228181537.911F7C433C8@smtp.kernel.org>
+Subject: [to-be-updated] mm-khugepaged-use-a-folio-more-in-collapse_file.patch removed from -mm tree
+Message-Id: <20231228181538.90C86C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,87 +27,80 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: slab: convert __kmalloc_large_node() and free_large_kmalloc() to use folios
+     Subject: mm/khugepaged: use a folio more in collapse_file()
 has been removed from the -mm tree.  Its filename was
-     slab-convert-__kmalloc_large_node-and-free_large_kmalloc-to-use-folios.patch
+     mm-khugepaged-use-a-folio-more-in-collapse_file.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: slab: convert __kmalloc_large_node() and free_large_kmalloc() to use folios
-Date: Fri, 22 Dec 2023 20:28:05 +0000
+Subject: mm/khugepaged: use a folio more in collapse_file()
+Date: Fri, 22 Dec 2023 20:28:06 +0000
 
-Add folio_alloc_node() to replace alloc_pages_node() and then use folio
-APIs throughout instead of converting back to pages.
+This function is not yet fully converted to the folio API, but this
+removes a few uses of old APIs.
 
-Link: https://lkml.kernel.org/r/20231222202807.2135717-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231222202807.2135717-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    9 +++++++++
- mm/slab_common.c    |   15 +++++++--------
- 2 files changed, 16 insertions(+), 8 deletions(-)
+ mm/khugepaged.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/include/linux/gfp.h~slab-convert-__kmalloc_large_node-and-free_large_kmalloc-to-use-folios
-+++ a/include/linux/gfp.h
-@@ -247,6 +247,15 @@ struct folio *__folio_alloc_node(gfp_t g
- 	return __folio_alloc(gfp, order, nid, NULL);
- }
- 
-+static inline
-+struct folio *folio_alloc_node(gfp_t gfp, unsigned int order, int nid)
-+{
-+	if (nid == NUMA_NO_NODE)
-+		nid = numa_mem_id();
-+
-+	return __folio_alloc_node(gfp, order, nid);
-+}
-+
- /*
-  * Allocate pages, preferring the node given as nid. When nid == NUMA_NO_NODE,
-  * prefer the current CPU's closest node. Otherwise node must be valid and
---- a/mm/slab_common.c~slab-convert-__kmalloc_large_node-and-free_large_kmalloc-to-use-folios
-+++ a/mm/slab_common.c
-@@ -979,9 +979,9 @@ void free_large_kmalloc(struct folio *fo
- 	kasan_kfree_large(object);
- 	kmsan_kfree_large(object);
- 
--	mod_lruvec_page_state(folio_page(folio, 0), NR_SLAB_UNRECLAIMABLE_B,
-+	lruvec_stat_mod_folio(folio, NR_SLAB_UNRECLAIMABLE_B,
- 			      -(PAGE_SIZE << order));
--	__free_pages(folio_page(folio, 0), order);
-+	folio_put(folio);
- }
- 
- static void *__kmalloc_large_node(size_t size, gfp_t flags, int node);
-@@ -1137,18 +1137,17 @@ gfp_t kmalloc_fix_flags(gfp_t flags)
- 
- static void *__kmalloc_large_node(size_t size, gfp_t flags, int node)
- {
--	struct page *page;
-+	struct folio *folio;
- 	void *ptr = NULL;
- 	unsigned int order = get_order(size);
- 
- 	if (unlikely(flags & GFP_SLAB_BUG_MASK))
- 		flags = kmalloc_fix_flags(flags);
- 
--	flags |= __GFP_COMP;
--	page = alloc_pages_node(node, flags, order);
--	if (page) {
--		ptr = page_address(page);
--		mod_lruvec_page_state(page, NR_SLAB_UNRECLAIMABLE_B,
-+	folio = folio_alloc_node(flags, order, node);
-+	if (folio) {
-+		ptr = folio_address(folio);
-+		lruvec_stat_mod_folio(folio, NR_SLAB_UNRECLAIMABLE_B,
- 				      PAGE_SIZE << order);
+--- a/mm/khugepaged.c~mm-khugepaged-use-a-folio-more-in-collapse_file
++++ a/mm/khugepaged.c
+@@ -2122,23 +2122,23 @@ immap_locked:
+ 		xas_lock_irq(&xas);
  	}
  
+-	nr = thp_nr_pages(hpage);
++	folio = page_folio(hpage);
++	nr = folio_nr_pages(folio);
+ 	if (is_shmem)
+-		__mod_lruvec_page_state(hpage, NR_SHMEM_THPS, nr);
++		__lruvec_stat_mod_folio(folio, NR_SHMEM_THPS, nr);
+ 	else
+-		__mod_lruvec_page_state(hpage, NR_FILE_THPS, nr);
++		__lruvec_stat_mod_folio(folio, NR_FILE_THPS, nr);
+ 
+ 	if (nr_none) {
+-		__mod_lruvec_page_state(hpage, NR_FILE_PAGES, nr_none);
++		__lruvec_stat_mod_folio(folio, NR_FILE_PAGES, nr_none);
+ 		/* nr_none is always 0 for non-shmem. */
+-		__mod_lruvec_page_state(hpage, NR_SHMEM, nr_none);
++		__lruvec_stat_mod_folio(folio, NR_SHMEM, nr_none);
+ 	}
+ 
+ 	/*
+ 	 * Mark hpage as uptodate before inserting it into the page cache so
+ 	 * that it isn't mistaken for an fallocated but unwritten page.
+ 	 */
+-	folio = page_folio(hpage);
+ 	folio_mark_uptodate(folio);
+ 	folio_ref_add(folio, HPAGE_PMD_NR - 1);
+ 
+@@ -2148,7 +2148,7 @@ immap_locked:
+ 
+ 	/* Join all the small entries into a single multi-index entry. */
+ 	xas_set_order(&xas, start, HPAGE_PMD_ORDER);
+-	xas_store(&xas, hpage);
++	xas_store(&xas, folio);
+ 	WARN_ON_ONCE(xas_error(&xas));
+ 	xas_unlock_irq(&xas);
+ 
+@@ -2159,7 +2159,7 @@ immap_locked:
+ 	retract_page_tables(mapping, start);
+ 	if (cc && !cc->is_khugepaged)
+ 		result = SCAN_PTE_MAPPED_HUGEPAGE;
+-	unlock_page(hpage);
++	folio_unlock(folio);
+ 
+ 	/*
+ 	 * The collapse has succeeded, so free the old pages.
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
@@ -157,6 +150,5 @@ sysv-remove-writepage-implementation.patch
 ufs-remove-writepage-implementation.patch
 fs-convert-block_write_full_page-to-block_write_full_folio.patch
 fs-remove-the-bh_end_io-argument-from-__block_write_full_folio.patch
-mm-khugepaged-use-a-folio-more-in-collapse_file.patch
 mm-memcontrol-remove-__mod_lruvec_page_state.patch
 
