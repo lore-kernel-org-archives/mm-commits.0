@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28CE5D2E8
-	for <mm-commits@vger.kernel.org>; Thu, 28 Dec 2023 19:09:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4071101C6
+	for <mm-commits@vger.kernel.org>; Thu, 28 Dec 2023 19:12:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bseWQhO3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D877AC433C8;
-	Thu, 28 Dec 2023 19:08:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b0azJ+oa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51357C433C8;
+	Thu, 28 Dec 2023 19:12:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703790540;
-	bh=xXeEnhmGvLuZOeZH9r3ZxAaVAhcQVSyfQTPjq89qzBM=;
+	s=korg; t=1703790746;
+	bh=wqOdLNlq7keHCdAw9cfmsxNJl1ASiPyfaE8iftntAe0=;
 	h=Date:To:From:Subject:From;
-	b=bseWQhO39dp0HEc9mO7vV3t3PBok3XQjAyu9santPUfC/UzEH68mOg9FO3F7ECyUB
-	 s4JLtS9oaYgZ+IWANPNNQVwsd2vwy1FkSuZtMdfGeX3jEsYpesZd3Ay88EVPf+pJPv
-	 uL/oMuTFR5TVEElhcZQa7xwHrtfG6uoOQRnGkJyw=
-Date: Thu, 28 Dec 2023 11:08:59 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,hannes@cmpxchg.org,42.hyeyoo@gmail.com,willy@infradead.org,akpm@linux-foundation.org
+	b=b0azJ+oaQJ8gwVJAskQG18HtbbySJ/0Xfoov25BQhToloA6RLoSPlnWg+B54eFdVX
+	 +apxhqHzDKqyLtHY+5h5bDkgRj1qY2+77mIWi0gMhnQXldwpc0mjFo5sW6qFk+nzRH
+	 JQRhjZQD8uS3vcjIZlcNsrQiBXzE/dwOJ3gRiq30=
+Date: Thu, 28 Dec 2023 11:12:25 -0800
+To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,yosryahmed@google.com,v-songbaohua@oppo.com,vitaly.wool@konsulko.com,sjenning@redhat.com,senozhatsky@chromium.org,nphamcs@gmail.com,minchan@kernel.org,hannes@cmpxchg.org,ddstreet@ieee.org,chrisl@kernel.org,21cnbao@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-remove-__mod_lruvec_page_state.patch added to mm-unstable branch
-Message-Id: <20231228190859.D877AC433C8@smtp.kernel.org>
+Subject: + mm-zsmalloc-return-enospc-rather-than-einval-in-zs_malloc-while-size-is-too-large.patch added to mm-unstable branch
+Message-Id: <20231228191226.51357C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memcontrol: remove __mod_lruvec_page_state()
+     Subject: mm: zsmalloc: return -ENOSPC rather than -EINVAL in zs_malloc while size is too large
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcontrol-remove-__mod_lruvec_page_state.patch
+     mm-zsmalloc-return-enospc-rather-than-einval-in-zs_malloc-while-size-is-too-large.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-remove-__mod_lruvec_page_state.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zsmalloc-return-enospc-rather-than-einval-in-zs_malloc-while-size-is-too-large.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -50,187 +50,82 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/memcontrol: remove __mod_lruvec_page_state()
-Date: Thu, 28 Dec 2023 08:57:48 +0000
+From: Barry Song <21cnbao@gmail.com>
+Subject: mm: zsmalloc: return -ENOSPC rather than -EINVAL in zs_malloc while size is too large
+Date: Thu, 28 Dec 2023 19:18:02 +1300
 
-There are no more callers of __mod_lruvec_page_state(), so convert the
-implementation to __lruvec_stat_mod_folio(), removing two calls to
-compound_head() (one explicit, one hidden inside page_memcg()).
+This is the case the "compressed" data is larger than the original data,
+it is better to return -ENOSPC which can help zswap record a poor compr
+rather than an invalid request.  Then we get more friendly counting for
+reject_compress_poor in debugfs.
 
-Link: https://lkml.kernel.org/r/20231228085748.1083901-7-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
+ bool zswap_store(struct folio *folio)
+ {
+ 	...
+ 	ret = zpool_malloc(zpool, dlen, gfp, &handle);
+ 	if (ret == -ENOSPC) {
+ 		zswap_reject_compress_poor++;
+ 		goto put_dstmem;
+ 	}
+ 	if (ret) {
+ 		zswap_reject_alloc_fail++;
+ 		goto put_dstmem;
+ 	}
+ 	...
+ }
+
+Also, zbud_alloc() and z3fold_alloc() are returning ENOSPC in the same
+case, eg
+
+ static int z3fold_alloc(struct z3fold_pool *pool, size_t size, gfp_t gfp,
+ 			unsigned long *handle)
+ {
+ 	...
+ 	if (!size || (gfp & __GFP_HIGHMEM))
+ 		return -EINVAL;
+
+ 	if (size > PAGE_SIZE)
+ 		return -ENOSPC;
+ 	...
+ }
+
+Link: https://lkml.kernel.org/r/20231228061802.25280-1-v-songbaohua@oppo.com
+Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+Reviewed-by: Chengming Zhou <zhouchengming@bytedance.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Dan Streetman <ddstreet@ieee.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |   36 ++++++++++++++++++------------------
- mm/memcontrol.c        |    9 ++++-----
- 2 files changed, 22 insertions(+), 23 deletions(-)
+ mm/zsmalloc.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/include/linux/vmstat.h~mm-memcontrol-remove-__mod_lruvec_page_state
-+++ a/include/linux/vmstat.h
-@@ -556,19 +556,25 @@ static inline void mod_lruvec_state(stru
- 	local_irq_restore(flags);
- }
+--- a/mm/zsmalloc.c~mm-zsmalloc-return-enospc-rather-than-einval-in-zs_malloc-while-size-is-too-large
++++ a/mm/zsmalloc.c
+@@ -1364,9 +1364,12 @@ unsigned long zs_malloc(struct zs_pool *
+ 	int newfg;
+ 	struct zspage *zspage;
  
--void __mod_lruvec_page_state(struct page *page,
-+void __lruvec_stat_mod_folio(struct folio *folio,
- 			     enum node_stat_item idx, int val);
+-	if (unlikely(!size || size > ZS_MAX_ALLOC_SIZE))
++	if (unlikely(!size))
+ 		return (unsigned long)ERR_PTR(-EINVAL);
  
--static inline void mod_lruvec_page_state(struct page *page,
-+static inline void lruvec_stat_mod_folio(struct folio *folio,
- 					 enum node_stat_item idx, int val)
- {
- 	unsigned long flags;
- 
- 	local_irq_save(flags);
--	__mod_lruvec_page_state(page, idx, val);
-+	__lruvec_stat_mod_folio(folio, idx, val);
- 	local_irq_restore(flags);
- }
- 
-+static inline void mod_lruvec_page_state(struct page *page,
-+					 enum node_stat_item idx, int val)
-+{
-+	lruvec_stat_mod_folio(page_folio(page), idx, val);
-+}
++	if (unlikely(size > ZS_MAX_ALLOC_SIZE))
++		return (unsigned long)ERR_PTR(-ENOSPC);
 +
- #else
- 
- static inline void __mod_lruvec_state(struct lruvec *lruvec,
-@@ -583,10 +589,16 @@ static inline void mod_lruvec_state(stru
- 	mod_node_page_state(lruvec_pgdat(lruvec), idx, val);
- }
- 
--static inline void __mod_lruvec_page_state(struct page *page,
--					   enum node_stat_item idx, int val)
-+static inline void __lruvec_stat_mod_folio(struct folio *folio,
-+					 enum node_stat_item idx, int val)
- {
--	__mod_node_page_state(page_pgdat(page), idx, val);
-+	__mod_node_page_state(folio_pgdat(folio), idx, val);
-+}
-+
-+static inline void lruvec_stat_mod_folio(struct folio *folio,
-+					 enum node_stat_item idx, int val)
-+{
-+	mod_node_page_state(folio_pgdat(folio), idx, val);
- }
- 
- static inline void mod_lruvec_page_state(struct page *page,
-@@ -597,12 +609,6 @@ static inline void mod_lruvec_page_state
- 
- #endif /* CONFIG_MEMCG */
- 
--static inline void __lruvec_stat_mod_folio(struct folio *folio,
--					   enum node_stat_item idx, int val)
--{
--	__mod_lruvec_page_state(&folio->page, idx, val);
--}
--
- static inline void __lruvec_stat_add_folio(struct folio *folio,
- 					   enum node_stat_item idx)
- {
-@@ -615,12 +621,6 @@ static inline void __lruvec_stat_sub_fol
- 	__lruvec_stat_mod_folio(folio, idx, -folio_nr_pages(folio));
- }
- 
--static inline void lruvec_stat_mod_folio(struct folio *folio,
--					 enum node_stat_item idx, int val)
--{
--	mod_lruvec_page_state(&folio->page, idx, val);
--}
--
- static inline void lruvec_stat_add_folio(struct folio *folio,
- 					 enum node_stat_item idx)
- {
---- a/mm/memcontrol.c~mm-memcontrol-remove-__mod_lruvec_page_state
-+++ a/mm/memcontrol.c
-@@ -890,16 +890,15 @@ void __mod_lruvec_state(struct lruvec *l
- 		__mod_memcg_lruvec_state(lruvec, idx, val);
- }
- 
--void __mod_lruvec_page_state(struct page *page, enum node_stat_item idx,
-+void __lruvec_stat_mod_folio(struct folio *folio, enum node_stat_item idx,
- 			     int val)
- {
--	struct page *head = compound_head(page); /* rmap on tail pages */
- 	struct mem_cgroup *memcg;
--	pg_data_t *pgdat = page_pgdat(page);
-+	pg_data_t *pgdat = folio_pgdat(folio);
- 	struct lruvec *lruvec;
- 
- 	rcu_read_lock();
--	memcg = page_memcg(head);
-+	memcg = folio_memcg(folio);
- 	/* Untracked pages have no memcg, no lruvec. Update only the node */
- 	if (!memcg) {
- 		rcu_read_unlock();
-@@ -911,7 +910,7 @@ void __mod_lruvec_page_state(struct page
- 	__mod_lruvec_state(lruvec, idx, val);
- 	rcu_read_unlock();
- }
--EXPORT_SYMBOL(__mod_lruvec_page_state);
-+EXPORT_SYMBOL(__lruvec_stat_mod_folio);
- 
- void __mod_lruvec_kmem_state(void *p, enum node_stat_item idx, int val)
- {
+ 	handle = cache_alloc_handle(pool, gfp);
+ 	if (!handle)
+ 		return (unsigned long)ERR_PTR(-ENOMEM);
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from 21cnbao@gmail.com are
 
-buffer-return-bool-from-grow_dev_folio.patch
-buffer-calculate-block-number-inside-folio_init_buffers.patch
-buffer-fix-grow_buffers-for-block-size-page_size.patch
-buffer-cast-block-to-loff_t-before-shifting-it.patch
-buffer-fix-various-functions-for-block-size-page_size.patch
-buffer-handle-large-folios-in-__block_write_begin_int.patch
-buffer-fix-more-functions-for-block-size-page_size.patch
-mm-convert-ksm_might_need_to_copy-to-work-on-folios.patch
-mm-convert-ksm_might_need_to_copy-to-work-on-folios-fix.patch
-mm-remove-pageanonexclusive-assertions-in-unuse_pte.patch
-mm-convert-unuse_pte-to-use-a-folio-throughout.patch
-mm-remove-some-calls-to-page_add_new_anon_rmap.patch
-mm-remove-stale-example-from-comment.patch
-mm-remove-references-to-page_add_new_anon_rmap-in-comments.patch
-mm-convert-migrate_vma_insert_page-to-use-a-folio.patch
-mm-convert-collapse_huge_page-to-use-a-folio.patch
-mm-remove-page_add_new_anon_rmap-and-lru_cache_add_inactive_or_unevictable.patch
-mm-return-the-folio-from-__read_swap_cache_async.patch
-mm-pass-a-folio-to-__swap_writepage.patch
-mm-pass-a-folio-to-swap_writepage_fs.patch
-mm-pass-a-folio-to-swap_writepage_bdev_sync.patch
-mm-pass-a-folio-to-swap_writepage_bdev_async.patch
-mm-pass-a-folio-to-swap_readpage_fs.patch
-mm-pass-a-folio-to-swap_readpage_bdev_sync.patch
-mm-pass-a-folio-to-swap_readpage_bdev_async.patch
-mm-convert-swap_page_sector-to-swap_folio_sector.patch
-mm-convert-swap_readpage-to-swap_read_folio.patch
-mm-remove-page_swap_info.patch
-mm-return-a-folio-from-read_swap_cache_async.patch
-mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio.patch
-mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio-fix.patch
-fs-remove-clean_page_buffers.patch
-fs-convert-clean_buffers-to-take-a-folio.patch
-fs-reduce-stack-usage-in-__mpage_writepage.patch
-fs-reduce-stack-usage-in-do_mpage_readpage.patch
-adfs-remove-writepage-implementation.patch
-bfs-remove-writepage-implementation.patch
-hfs-really-remove-hfs_writepage.patch
-hfsplus-really-remove-hfsplus_writepage.patch
-minix-remove-writepage-implementation.patch
-ocfs2-remove-writepage-implementation.patch
-sysv-remove-writepage-implementation.patch
-ufs-remove-writepage-implementation.patch
-fs-convert-block_write_full_page-to-block_write_full_folio.patch
-fs-remove-the-bh_end_io-argument-from-__block_write_full_folio.patch
-mm-remove-inc-dec-lruvec-page-state-functions.patch
-slub-use-alloc_pages_node-in-alloc_slab_page.patch
-slub-use-folio-apis-in-free_large_kmalloc.patch
-slub-use-a-folio-in-__kmalloc_large_node.patch
-mm-khugepaged-use-a-folio-more-in-collapse_file.patch
-mm-memcontrol-remove-__mod_lruvec_page_state.patch
+mm-zsmalloc-return-enospc-rather-than-einval-in-zs_malloc-while-size-is-too-large.patch
 
