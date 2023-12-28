@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27AD6F9D7
-	for <mm-commits@vger.kernel.org>; Thu, 28 Dec 2023 18:15:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEBFEF9D7
+	for <mm-commits@vger.kernel.org>; Thu, 28 Dec 2023 18:15:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ucFLo39F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90C86C433C7;
-	Thu, 28 Dec 2023 18:15:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D8T+JQ7M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8809CC433C8;
+	Thu, 28 Dec 2023 18:15:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703787338;
-	bh=SMBxfh1oICgLW94KhqopY2hPRG8adwKcn/8IRnNteSw=;
+	s=korg; t=1703787339;
+	bh=LMnv/fL56OiC2LotNHV7gH4ciIrt9Aq3ZjKXddGHfqA=;
 	h=Date:To:From:Subject:From;
-	b=ucFLo39Fcsi781HKw0yKYSkNtfc3+esM6RTiqds3jVKhiUQg3jKHHcpmB8UvMS3o1
-	 Nqr2RUDtpmQ85RjzWmaRtcm6rS5/nfpjM0sGuPhh83qLvLzuCaVKAPHPu3sdkq4/gp
-	 a2f1AjgOgJqhvbkOeolGppCT1ofEGViVZN+3yuaE=
-Date: Thu, 28 Dec 2023 10:15:37 -0800
+	b=D8T+JQ7MaBldqry5K+/HHCevg0Yv4SSJqInnHqSxABFk7lr8sl2JjbtDWR8ZYtP5R
+	 m1kXOTYZp9s79Qvyi5QHEAR2FUWRWnVzHtvxTRbeEQvPORJoeYk94M7RsqudvlB6BH
+	 Lw1l7z4gQoOEriVf72ns+HTNcuLP7fLQIBKIsmD0=
+Date: Thu, 28 Dec 2023 10:15:38 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,hannes@cmpxchg.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-khugepaged-use-a-folio-more-in-collapse_file.patch removed from -mm tree
-Message-Id: <20231228181538.90C86C433C7@smtp.kernel.org>
+Subject: [to-be-updated] mm-memcontrol-remove-__mod_lruvec_page_state.patch removed from -mm tree
+Message-Id: <20231228181539.8809CC433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,80 +27,140 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/khugepaged: use a folio more in collapse_file()
+     Subject: mm/memcontrol: remove __mod_lruvec_page_state()
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-use-a-folio-more-in-collapse_file.patch
+     mm-memcontrol-remove-__mod_lruvec_page_state.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/khugepaged: use a folio more in collapse_file()
-Date: Fri, 22 Dec 2023 20:28:06 +0000
+Subject: mm/memcontrol: remove __mod_lruvec_page_state()
+Date: Fri, 22 Dec 2023 20:28:07 +0000
 
-This function is not yet fully converted to the folio API, but this
-removes a few uses of old APIs.
+There are no more callers of __mod_lruvec_page_state(), so convert the
+implementation to __lruvec_stat_mod_folio(), removing two calls to
+compound_head() (one explicit, one hidden inside page_memcg()).
 
-Link: https://lkml.kernel.org/r/20231222202807.2135717-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231222202807.2135717-5-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ include/linux/vmstat.h |   36 ++++++++++++++++++------------------
+ mm/memcontrol.c        |    9 ++++-----
+ 2 files changed, 22 insertions(+), 23 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-use-a-folio-more-in-collapse_file
-+++ a/mm/khugepaged.c
-@@ -2122,23 +2122,23 @@ immap_locked:
- 		xas_lock_irq(&xas);
- 	}
+--- a/include/linux/vmstat.h~mm-memcontrol-remove-__mod_lruvec_page_state
++++ a/include/linux/vmstat.h
+@@ -556,19 +556,25 @@ static inline void mod_lruvec_state(stru
+ 	local_irq_restore(flags);
+ }
  
--	nr = thp_nr_pages(hpage);
-+	folio = page_folio(hpage);
-+	nr = folio_nr_pages(folio);
- 	if (is_shmem)
--		__mod_lruvec_page_state(hpage, NR_SHMEM_THPS, nr);
-+		__lruvec_stat_mod_folio(folio, NR_SHMEM_THPS, nr);
- 	else
--		__mod_lruvec_page_state(hpage, NR_FILE_THPS, nr);
-+		__lruvec_stat_mod_folio(folio, NR_FILE_THPS, nr);
+-void __mod_lruvec_page_state(struct page *page,
++void __lruvec_stat_mod_folio(struct folio *folio,
+ 			     enum node_stat_item idx, int val);
  
- 	if (nr_none) {
--		__mod_lruvec_page_state(hpage, NR_FILE_PAGES, nr_none);
-+		__lruvec_stat_mod_folio(folio, NR_FILE_PAGES, nr_none);
- 		/* nr_none is always 0 for non-shmem. */
--		__mod_lruvec_page_state(hpage, NR_SHMEM, nr_none);
-+		__lruvec_stat_mod_folio(folio, NR_SHMEM, nr_none);
- 	}
+-static inline void mod_lruvec_page_state(struct page *page,
++static inline void lruvec_stat_mod_folio(struct folio *folio,
+ 					 enum node_stat_item idx, int val)
+ {
+ 	unsigned long flags;
  
- 	/*
- 	 * Mark hpage as uptodate before inserting it into the page cache so
- 	 * that it isn't mistaken for an fallocated but unwritten page.
- 	 */
--	folio = page_folio(hpage);
- 	folio_mark_uptodate(folio);
- 	folio_ref_add(folio, HPAGE_PMD_NR - 1);
+ 	local_irq_save(flags);
+-	__mod_lruvec_page_state(page, idx, val);
++	__lruvec_stat_mod_folio(folio, idx, val);
+ 	local_irq_restore(flags);
+ }
  
-@@ -2148,7 +2148,7 @@ immap_locked:
++static inline void mod_lruvec_page_state(struct page *page,
++					 enum node_stat_item idx, int val)
++{
++	lruvec_stat_mod_folio(page_folio(page), idx, val);
++}
++
+ #else
  
- 	/* Join all the small entries into a single multi-index entry. */
- 	xas_set_order(&xas, start, HPAGE_PMD_ORDER);
--	xas_store(&xas, hpage);
-+	xas_store(&xas, folio);
- 	WARN_ON_ONCE(xas_error(&xas));
- 	xas_unlock_irq(&xas);
+ static inline void __mod_lruvec_state(struct lruvec *lruvec,
+@@ -583,10 +589,16 @@ static inline void mod_lruvec_state(stru
+ 	mod_node_page_state(lruvec_pgdat(lruvec), idx, val);
+ }
  
-@@ -2159,7 +2159,7 @@ immap_locked:
- 	retract_page_tables(mapping, start);
- 	if (cc && !cc->is_khugepaged)
- 		result = SCAN_PTE_MAPPED_HUGEPAGE;
--	unlock_page(hpage);
-+	folio_unlock(folio);
+-static inline void __mod_lruvec_page_state(struct page *page,
+-					   enum node_stat_item idx, int val)
++static inline void __lruvec_stat_mod_folio(struct folio *folio,
++					 enum node_stat_item idx, int val)
+ {
+-	__mod_node_page_state(page_pgdat(page), idx, val);
++	__mod_node_page_state(folio_pgdat(folio), idx, val);
++}
++
++static inline void lruvec_stat_mod_folio(struct folio *folio,
++					 enum node_stat_item idx, int val)
++{
++	mod_node_page_state(folio_pgdat(folio), idx, val);
+ }
  
- 	/*
- 	 * The collapse has succeeded, so free the old pages.
+ static inline void mod_lruvec_page_state(struct page *page,
+@@ -597,12 +609,6 @@ static inline void mod_lruvec_page_state
+ 
+ #endif /* CONFIG_MEMCG */
+ 
+-static inline void __lruvec_stat_mod_folio(struct folio *folio,
+-					   enum node_stat_item idx, int val)
+-{
+-	__mod_lruvec_page_state(&folio->page, idx, val);
+-}
+-
+ static inline void __lruvec_stat_add_folio(struct folio *folio,
+ 					   enum node_stat_item idx)
+ {
+@@ -615,12 +621,6 @@ static inline void __lruvec_stat_sub_fol
+ 	__lruvec_stat_mod_folio(folio, idx, -folio_nr_pages(folio));
+ }
+ 
+-static inline void lruvec_stat_mod_folio(struct folio *folio,
+-					 enum node_stat_item idx, int val)
+-{
+-	mod_lruvec_page_state(&folio->page, idx, val);
+-}
+-
+ static inline void lruvec_stat_add_folio(struct folio *folio,
+ 					 enum node_stat_item idx)
+ {
+--- a/mm/memcontrol.c~mm-memcontrol-remove-__mod_lruvec_page_state
++++ a/mm/memcontrol.c
+@@ -890,16 +890,15 @@ void __mod_lruvec_state(struct lruvec *l
+ 		__mod_memcg_lruvec_state(lruvec, idx, val);
+ }
+ 
+-void __mod_lruvec_page_state(struct page *page, enum node_stat_item idx,
++void __lruvec_stat_mod_folio(struct folio *folio, enum node_stat_item idx,
+ 			     int val)
+ {
+-	struct page *head = compound_head(page); /* rmap on tail pages */
+ 	struct mem_cgroup *memcg;
+-	pg_data_t *pgdat = page_pgdat(page);
++	pg_data_t *pgdat = folio_pgdat(folio);
+ 	struct lruvec *lruvec;
+ 
+ 	rcu_read_lock();
+-	memcg = page_memcg(head);
++	memcg = folio_memcg(folio);
+ 	/* Untracked pages have no memcg, no lruvec. Update only the node */
+ 	if (!memcg) {
+ 		rcu_read_unlock();
+@@ -911,7 +910,7 @@ void __mod_lruvec_page_state(struct page
+ 	__mod_lruvec_state(lruvec, idx, val);
+ 	rcu_read_unlock();
+ }
+-EXPORT_SYMBOL(__mod_lruvec_page_state);
++EXPORT_SYMBOL(__lruvec_stat_mod_folio);
+ 
+ void __mod_lruvec_kmem_state(void *p, enum node_stat_item idx, int val)
+ {
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
@@ -150,5 +210,4 @@ sysv-remove-writepage-implementation.patch
 ufs-remove-writepage-implementation.patch
 fs-convert-block_write_full_page-to-block_write_full_folio.patch
 fs-remove-the-bh_end_io-argument-from-__block_write_full_folio.patch
-mm-memcontrol-remove-__mod_lruvec_page_state.patch
 
