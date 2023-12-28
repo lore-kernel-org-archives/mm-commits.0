@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82B12101C2
-	for <mm-commits@vger.kernel.org>; Thu, 28 Dec 2023 19:08:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 624EB101C2
+	for <mm-commits@vger.kernel.org>; Thu, 28 Dec 2023 19:08:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ibuhfjgv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEB96C433C8;
-	Thu, 28 Dec 2023 19:08:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E1Gvfb+e"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FAB3C433C7;
+	Thu, 28 Dec 2023 19:08:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703790534;
-	bh=G6rWRCARotW5cXytzSqk1EL6K9AudhQhptcC2cvaa+c=;
+	s=korg; t=1703790535;
+	bh=LOJW9qMLO7dpfda8gF+w2Dqwmi5wH/VUVltWqNhiqNo=;
 	h=Date:To:From:Subject:From;
-	b=ibuhfjgvvicCT021A/70VHqintL3nuDlqOj2NhHczJzUNv7GCbSg/lTz1C7cEVk1V
-	 qlcMxXF0E+fUYHSef9ctUYFKZJYPXW/h+zGt3Te/uaOUEOadsu50QhKM5x/LToIXuU
-	 gaxeAZiehqOH9gkL07aixMMe0mbEc6OjSSgZYWck=
-Date: Thu, 28 Dec 2023 11:08:53 -0800
+	b=E1Gvfb+ebHOnEdr7On1RaDpJ06fB5T0YN6dKOGD3PxKQ9/0j1xJSl5RW+/NIqiPcJ
+	 TOlrA/q5h4h6+FzjnMyHbac3+ZRJCA/g5IT9ATQ6kPqk5b8rrx8YeyAZCOxVgrmdd0
+	 LCNFuQ+rNUvSaQVgc5a44doAGH0jxlDXJPbIOaWo=
+Date: Thu, 28 Dec 2023 11:08:54 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,hannes@cmpxchg.org,42.hyeyoo@gmail.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-inc-dec-lruvec-page-state-functions.patch added to mm-unstable branch
-Message-Id: <20231228190853.DEB96C433C8@smtp.kernel.org>
+Subject: + slub-use-alloc_pages_node-in-alloc_slab_page.patch added to mm-unstable branch
+Message-Id: <20231228190855.1FAB3C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove inc/dec lruvec page state functions
+     Subject: slub: use alloc_pages_node() in alloc_slab_page()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-remove-inc-dec-lruvec-page-state-functions.patch
+     slub-use-alloc_pages_node-in-alloc_slab_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-inc-dec-lruvec-page-state-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/slub-use-alloc_pages_node-in-alloc_slab_page.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,21 +51,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove inc/dec lruvec page state functions
-Date: Thu, 28 Dec 2023 08:57:43 +0000
+Subject: slub: use alloc_pages_node() in alloc_slab_page()
+Date: Thu, 28 Dec 2023 08:57:44 +0000
 
-Patch series "Remove some lruvec page accounting functions", v2.
+For no apparent reason, we were open-coding alloc_pages_node() in this
+function.
 
-Some functions are now unused; remove them.  Make
-__mod_lruvec_page_state() unused and then remove it.
-
-
-This patch (of 6):
-
-All callers of these have been converted to their folio equivalents.
-
-Link: https://lkml.kernel.org/r/20231228085748.1083901-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20231228085748.1083901-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231228085748.1083901-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -73,49 +65,24 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |   24 ------------------------
- 1 file changed, 24 deletions(-)
+ mm/slub.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
---- a/include/linux/vmstat.h~mm-remove-inc-dec-lruvec-page-state-functions
-+++ a/include/linux/vmstat.h
-@@ -597,18 +597,6 @@ static inline void mod_lruvec_page_state
+--- a/mm/slub.c~slub-use-alloc_pages_node-in-alloc_slab_page
++++ a/mm/slub.c
+@@ -1877,11 +1877,7 @@ static inline struct slab *alloc_slab_pa
+ 	struct slab *slab;
+ 	unsigned int order = oo_order(oo);
  
- #endif /* CONFIG_MEMCG */
+-	if (node == NUMA_NO_NODE)
+-		folio = (struct folio *)alloc_pages(flags, order);
+-	else
+-		folio = (struct folio *)__alloc_pages_node(node, flags, order);
+-
++	folio = (struct folio *)alloc_pages_node(node, flags, order);
+ 	if (!folio)
+ 		return NULL;
  
--static inline void __inc_lruvec_page_state(struct page *page,
--					   enum node_stat_item idx)
--{
--	__mod_lruvec_page_state(page, idx, 1);
--}
--
--static inline void __dec_lruvec_page_state(struct page *page,
--					   enum node_stat_item idx)
--{
--	__mod_lruvec_page_state(page, idx, -1);
--}
--
- static inline void __lruvec_stat_mod_folio(struct folio *folio,
- 					   enum node_stat_item idx, int val)
- {
-@@ -627,18 +615,6 @@ static inline void __lruvec_stat_sub_fol
- 	__lruvec_stat_mod_folio(folio, idx, -folio_nr_pages(folio));
- }
- 
--static inline void inc_lruvec_page_state(struct page *page,
--					 enum node_stat_item idx)
--{
--	mod_lruvec_page_state(page, idx, 1);
--}
--
--static inline void dec_lruvec_page_state(struct page *page,
--					 enum node_stat_item idx)
--{
--	mod_lruvec_page_state(page, idx, -1);
--}
--
- static inline void lruvec_stat_mod_folio(struct folio *folio,
- 					 enum node_stat_item idx, int val)
- {
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
