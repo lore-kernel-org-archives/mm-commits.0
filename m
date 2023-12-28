@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 014DA101D4
-	for <mm-commits@vger.kernel.org>; Thu, 28 Dec 2023 19:08:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACB52101D4
+	for <mm-commits@vger.kernel.org>; Thu, 28 Dec 2023 19:08:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BzmKEf7l"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52532C433C7;
-	Thu, 28 Dec 2023 19:08:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DLd4mABJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70733C433C8;
+	Thu, 28 Dec 2023 19:08:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703790536;
-	bh=K5s+zodjwauyMNxnLRUHAFzpyzCuF5io62dseFlSCSs=;
+	s=korg; t=1703790537;
+	bh=IgmFrrB6YgCtoAICMgSSwIOM1IR5x2jtZB6nECXCOMk=;
 	h=Date:To:From:Subject:From;
-	b=BzmKEf7lGICvCAUjVB2iT1pxUeMwTc6UOQ/lfdXsv6FQ+l+r2Y2uQoxCJ8/9BcYq0
-	 QmsmBX4KlS4mgP5uUnXQJc9mxxkBQJMF880u3U+lCZfQRPXDf6OlEccivipJLH8ujW
-	 nObPz5QKU4xu3+HCi3SIG5xXYvzeP1hwARY7Y/gQ=
-Date: Thu, 28 Dec 2023 11:08:55 -0800
+	b=DLd4mABJZ8Dm1CL7ZwdVofVWwnG8LKA9fLmM2fSs4iSh2VT5ejvEQNcjgiORNqzNd
+	 wPLfCX+bQVqW5i4vaBz8hy0aBD8abIK04eXzV0biolTCiSVNUVrkeB9xpspENKJy4U
+	 eu2QklzF6aXLrNP34g3dLb0fxI/A9hXTIiYkHXuk=
+Date: Thu, 28 Dec 2023 11:08:56 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,hannes@cmpxchg.org,42.hyeyoo@gmail.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + slub-use-folio-apis-in-free_large_kmalloc.patch added to mm-unstable branch
-Message-Id: <20231228190856.52532C433C7@smtp.kernel.org>
+Subject: + slub-use-a-folio-in-__kmalloc_large_node.patch added to mm-unstable branch
+Message-Id: <20231228190857.70733C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: slub: use folio APIs in free_large_kmalloc()
+     Subject: slub: use a folio in __kmalloc_large_node
 has been added to the -mm mm-unstable branch.  Its filename is
-     slub-use-folio-apis-in-free_large_kmalloc.patch
+     slub-use-a-folio-in-__kmalloc_large_node.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/slub-use-folio-apis-in-free_large_kmalloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/slub-use-a-folio-in-__kmalloc_large_node.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,12 +51,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: slub: use folio APIs in free_large_kmalloc()
-Date: Thu, 28 Dec 2023 08:57:45 +0000
+Subject: slub: use a folio in __kmalloc_large_node
+Date: Thu, 28 Dec 2023 08:57:46 +0000
 
-Save a few calls to compound_head() by using the folio APIs directly.
+Mirror the code in free_large_kmalloc() and alloc_pages_node() and use a
+folio directly.  Avoid the use of folio_alloc() as that will set up an
+rmappable folio which we do not want here.
 
-Link: https://lkml.kernel.org/r/20231228085748.1083901-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231228085748.1083901-5-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -64,23 +66,35 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/slab_common.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/slab_common.c~slub-use-folio-apis-in-free_large_kmalloc
+--- a/mm/slab_common.c~slub-use-a-folio-in-__kmalloc_large_node
 +++ a/mm/slab_common.c
-@@ -979,9 +979,9 @@ void free_large_kmalloc(struct folio *fo
- 	kasan_kfree_large(object);
- 	kmsan_kfree_large(object);
+@@ -1137,7 +1137,7 @@ gfp_t kmalloc_fix_flags(gfp_t flags)
  
--	mod_lruvec_page_state(folio_page(folio, 0), NR_SLAB_UNRECLAIMABLE_B,
-+	lruvec_stat_mod_folio(folio, NR_SLAB_UNRECLAIMABLE_B,
- 			      -(PAGE_SIZE << order));
--	__free_pages(folio_page(folio, 0), order);
-+	folio_put(folio);
- }
+ static void *__kmalloc_large_node(size_t size, gfp_t flags, int node)
+ {
+-	struct page *page;
++	struct folio *folio;
+ 	void *ptr = NULL;
+ 	unsigned int order = get_order(size);
  
- static void *__kmalloc_large_node(size_t size, gfp_t flags, int node);
+@@ -1145,10 +1145,10 @@ static void *__kmalloc_large_node(size_t
+ 		flags = kmalloc_fix_flags(flags);
+ 
+ 	flags |= __GFP_COMP;
+-	page = alloc_pages_node(node, flags, order);
+-	if (page) {
+-		ptr = page_address(page);
+-		mod_lruvec_page_state(page, NR_SLAB_UNRECLAIMABLE_B,
++	folio = (struct folio *)alloc_pages_node(node, flags, order);
++	if (folio) {
++		ptr = folio_address(folio);
++		lruvec_stat_mod_folio(folio, NR_SLAB_UNRECLAIMABLE_B,
+ 				      PAGE_SIZE << order);
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
