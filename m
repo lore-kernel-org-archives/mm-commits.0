@@ -1,94 +1,80 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f42.google.com (mail-lf1-f42.google.com [209.85.167.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3344F49890;
-	Wed, 27 Dec 2023 23:03:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BDDE4409
+	for <mm-commits@vger.kernel.org>; Thu, 28 Dec 2023 00:36:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X6lQ9rRb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 769D0C433C8;
-	Wed, 27 Dec 2023 23:03:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703718235;
-	bh=LMCnPQNEAm1eJkpB/BPhB/Kmv2yP8E0Iiks2kfeTjaM=;
-	h=Date:From:To:Cc:Subject:From;
-	b=X6lQ9rRbmqoaDCHd556ftK8Cd5/WiccS63GCldlTvAuiEs7Y728adWRv4h3acxxyp
-	 RDLdWfccakM/tG0ilH+w5cSkx5iDvZJ4LLr5/118MkwsxxnybrdkSA9d8CsA5piGqv
-	 jKFZZwYOYAEBcyFoLwOF3RHpmgLGh68DdRzLrl7I=
-Date: Wed, 27 Dec 2023 15:03:54 -0800
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, linux-mm@kvack.org,
- linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.7
-Message-Id: <20231227150354.9437b5c792000b8eb22758e9@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VO5nOxIR"
+Received: by mail-lf1-f42.google.com with SMTP id 2adb3069b0e04-50e7e6283bdso2150558e87.1
+        for <mm-commits@vger.kernel.org>; Wed, 27 Dec 2023 16:36:36 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google; t=1703723795; x=1704328595; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=ZuhB8VHwVQmrv2O2PykI3H6Y0tt0rKki08G/rfRh77c=;
+        b=VO5nOxIRiLkalyxUowQieckgkyaaGx54F1ujZOdEQiceQzMkbTbJJlvX1MhyHzKdZc
+         sAEGuU0v70T8778W32CGgRdxcy5xPd/yV61knK5Q4E4ZKHY36/TnduHCB//Xxr1dtlRm
+         SYyZ2KdpWb1Pfu1QSxY89UkNYXPTeOanZsmxw=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1703723795; x=1704328595;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=ZuhB8VHwVQmrv2O2PykI3H6Y0tt0rKki08G/rfRh77c=;
+        b=cN9b882ZBdxgLyEJMV4KQatmvMkVWSDY1HtbGBH2/bxdJEO+GbguRBTH+ME7RzfrVR
+         UyicdBVVnhXS+YKFYJFdjeZDtvfmMiv/gqxsKoiEay4QqUBG2IcXPdKR6MP9rnDhhwht
+         gPv2qEl+ECh4qmjBxQwuejDbJQo4endgNcO1B6xjTSgdUcVZ6Qg2R3sj6nDOxDQKLYon
+         b5Kw74wJ9Q+JURck8Fqv9cHnRVd1r7W2jvwhC5p9PlDPK34CzuViXJHGb9xM7tDvPo0o
+         R5KPT8jXSrI08+7Ce7aKu/ML1EA35nFNCic8JJxGD+lgYB2kkQ1ptouvB03kcSKSi9Js
+         YY6Q==
+X-Gm-Message-State: AOJu0Yx0/x17sEp2XNF1XLJR4sSXQuL+fckcLZDe7K2FdTH07ns7Diam
+	7CObbm+gjqT1oFGPOFSsMeLiXGrj579Ld2kytNy9nZb73er2tg==
+X-Google-Smtp-Source: AGHT+IEUJLM3kCOUdyQ5g+tFWG5h+2ruJIgsZsTddWGaVxMYW2CD/OgyjrT9dOXNkcWgfOWGXKPMDw==
+X-Received: by 2002:a05:6512:60c:b0:50e:2a3a:c25 with SMTP id b12-20020a056512060c00b0050e2a3a0c25mr1726911lfe.211.1703723794780;
+        Wed, 27 Dec 2023 16:36:34 -0800 (PST)
+Received: from mail-ej1-f41.google.com (mail-ej1-f41.google.com. [209.85.218.41])
+        by smtp.gmail.com with ESMTPSA id zz15-20020a170907350f00b00a26c8c70069sm4972359ejb.48.2023.12.27.16.36.33
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 27 Dec 2023 16:36:33 -0800 (PST)
+Received: by mail-ej1-f41.google.com with SMTP id a640c23a62f3a-a2698cff486so680236866b.0
+        for <mm-commits@vger.kernel.org>; Wed, 27 Dec 2023 16:36:33 -0800 (PST)
+X-Received: by 2002:a17:906:254e:b0:a27:2f11:2928 with SMTP id
+ j14-20020a170906254e00b00a272f112928mr781979ejb.271.1703723793333; Wed, 27
+ Dec 2023 16:36:33 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+References: <20231227150354.9437b5c792000b8eb22758e9@linux-foundation.org>
+In-Reply-To: <20231227150354.9437b5c792000b8eb22758e9@linux-foundation.org>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Wed, 27 Dec 2023 16:36:16 -0800
+X-Gmail-Original-Message-ID: <CAHk-=wifOnmeJq+sn+2s-P46zw0SFEbw9BSCGgp2c5fYPtRPGw@mail.gmail.com>
+Message-ID: <CAHk-=wifOnmeJq+sn+2s-P46zw0SFEbw9BSCGgp2c5fYPtRPGw@mail.gmail.com>
+Subject: Re: [GIT PULL] hotfixes for 6.7
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, linux-mm@kvack.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
+On Wed, 27 Dec 2023 at 15:03, Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+> Baokun Li (1):
+>       mm/filemap: avoid buffered read/write race to read inconsistent data
 
-Linus, please merge this batch of hotfixes, thanks.
+Hmm. I wonder if we should have made the i_size_read/write helpers be
+smp_load_acquire/store_release()?
 
+The existing smp_wmb() are almost accidental, and aren't primarily
+about the inode size, but about the page/folio uptodate bit. I guess
+they work, but it's all a bit messy.
 
-The following changes since commit 4376807bf2d5371c3e00080c972be568c3f8a7d1:
+Which might *also* be better off with acquire/release, but we don't
+have those bitops, I guess. Oh well.
 
-  mm/mglru: reclaim offlined memcgs harder (2023-12-12 17:20:20 -0800)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2023-12-27-15-00
-
-for you to fetch changes up to 1803d0c5ee1a3bbee23db2336e21add067824f02:
-
-  mailmap: add an old address for Naoya Horiguchi (2023-12-20 13:46:20 -0800)
-
-----------------------------------------------------------------
-11 hotfixes.  7 are cc:stable and the other 4 address post-6.6 issues or
-are not considered backporting material.
-
-----------------------------------------------------------------
-Arnd Bergmann (2):
-      kexec: fix KEXEC_FILE dependencies
-      kexec: select CRYPTO from KEXEC_FILE instead of depending on it
-
-Baokun Li (1):
-      mm/filemap: avoid buffered read/write race to read inconsistent data
-
-Charan Teja Kalla (1):
-      mm: migrate high-order folios in swap cache correctly
-
-Matthew Wilcox (Oracle) (4):
-      mm/memory-failure: pass the folio and the page to collect_procs()
-      mm/memory-failure: check the mapcount of the precise page
-      mm/memory-failure: cast index to loff_t before shifting it
-      mailmap: add an old address for Naoya Horiguchi
-
-Muhammad Usama Anjum (1):
-      selftests: secretmem: floor the memory size to the multiple of page_size
-
-Nico Pache (1):
-      kunit: kasan_test: disable fortify string checker on kmalloc_oob_memset
-
-Sidhartha Kumar (1):
-      maple_tree: do not preallocate nodes for slot stores
-
- .mailmap                                  |  1 +
- arch/powerpc/Kconfig                      |  4 ++--
- arch/riscv/Kconfig                        |  4 +---
- arch/s390/Kconfig                         |  4 ++--
- arch/x86/Kconfig                          |  4 ++--
- kernel/Kconfig.kexec                      |  2 ++
- lib/maple_tree.c                          | 11 +++++++++++
- mm/filemap.c                              |  9 +++++++++
- mm/kasan/kasan_test.c                     | 20 +++++++++++++++----
- mm/memory-failure.c                       | 33 +++++++++++++++----------------
- mm/migrate.c                              |  9 ++++++++-
- tools/testing/radix-tree/maple.c          |  2 +-
- tools/testing/selftests/mm/memfd_secret.c |  3 +++
- 13 files changed, 74 insertions(+), 32 deletions(-)
-
+             Linus
