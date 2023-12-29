@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 736D613FEE
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:01:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 886FC13FF0
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:01:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jzlmBV0w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40A07C433C8;
-	Fri, 29 Dec 2023 20:01:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1sjcV3oW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DAFFC433C7;
+	Fri, 29 Dec 2023 20:01:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703880066;
-	bh=VmKHDijgKDYmySRrUDhgDeyP4WP4LeTCkH5ir1vC3j4=;
+	s=korg; t=1703880067;
+	bh=R6YVAmACCP3xyNmALHZ/q8lM3zlQYG8omCC6Wl+fxcQ=;
 	h=Date:To:From:Subject:From;
-	b=jzlmBV0wniTYu+ihxV7hZRmrxpUBYHQYUgQhHS7ALMbwa1F9/A9v/wtkQv2U3o7lp
-	 uctD8TEcqd5g6h+Hne4CPa2yF7rqYLmbrJrhprufGGPyZnUmke3cUxyPBpfvrQ8MwP
-	 Drw0TXRtsLisqhRhQMg2nAuidoOEtKgdFTqjFtoA=
-Date: Fri, 29 Dec 2023 12:01:05 -0800
-To: mm-commits@vger.kernel.org,shuah@kernel.org,peterx@redhat.com,jhubbard@nvidia.com,broonie@kernel.org,aishwarya.tcv@arm.com,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=1sjcV3oWbMyvNqAJ270rsxLvutM8nTFgMlCyKyFp8Jfxs8nnmzSdgAj2CxFS03P8c
+	 nuRLj65gtdHsNXLaGW4uAcfpgqLj52XnSbkcXugWiLVesyDeoj9nmm9sdyINosN3KA
+	 NfzUD2gVMyInqNwcoffKTxN0S1qO/v5/57h7bntk=
+Date: Fri, 29 Dec 2023 12:01:06 -0800
+To: mm-commits@vger.kernel.org,ryabinin.a.a@gmail.com,lkp@intel.com,jcmvbkbc@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,chris@zankel.net,andreyknvl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-log-run_vmtestssh-results-in-tap-format.patch removed from -mm tree
-Message-Id: <20231229200106.40A07C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] xtensa-kasan-define-kasan_shadow_end.patch removed from -mm tree
+Message-Id: <20231229200107.4DAFFC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,179 +27,52 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: log run_vmtests.sh results in TAP format
+     Subject: xtensa, kasan: define KASAN_SHADOW_END
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-log-run_vmtestssh-results-in-tap-format.patch
+     xtensa-kasan-define-kasan_shadow_end.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: selftests/mm: log run_vmtests.sh results in TAP format
-Date: Thu, 14 Dec 2023 16:24:34 +0000
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: xtensa, kasan: define KASAN_SHADOW_END
+Date: Mon, 25 Dec 2023 16:19:24 +0100
 
-When running tests on a CI system (e.g.  LAVA) it is useful to output test
-results in TAP (Test Anything Protocol) format so that the CI can parse
-the fine-grained results to show regressions.  Many of the mm selftest
-binaries already output using the TAP format.  And the kselftests runner
-(run_kselftest.sh) also uses the format.  CI systems such as LAVA can
-already handle nested TAP reports.  However, with the mm selftests we have
-3 levels of nesting (run_kselftest.sh -> run_vmtests.sh -> individual test
-binaries) and the middle level did not previously support TAP, which
-breaks the parser.
+Common KASAN code might rely on the definitions of the shadow mapping
+start, end, and size.  Define KASAN_SHADOW_END in addition to
+KASAN_SHADOW_START and KASAN_SHADOW_SIZE.
 
-Let's fix that by teaching run_vmtests.sh to output using the TAP format. 
-Ideally this would be opt-in via a command line argument to avoid the
-possibility of breaking anyone's existing scripts that might scrape the
-output.  However, it is not possible to pass arguments to tests invoked
-via run_kselftest.sh.  So I've implemented an opt-out option (-n), which
-will revert to the existing output format.
-
-Future changes to this file should be aware of 2 new conventions:
-
- - output that is part of the TAP reporting is piped through tap_output
- - general output is piped through tap_prefix
-
-Link: https://lkml.kernel.org/r/20231214162434.3580009-1-ryan.roberts@arm.com
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Reviewed-by: Mark Brown <broonie@kernel.org>
-Tested-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Aishwarya TCV <aishwarya.tcv@arm.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20231225151924.5422-1-andrey.konovalov@linux.dev
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202312240755.MqsWuTno-lkp@intel.com/
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/run_vmtests.sh |   51 +++++++++++++++-----
- 1 file changed, 39 insertions(+), 12 deletions(-)
+ arch/xtensa/include/asm/kasan.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-log-run_vmtestssh-results-in-tap-format
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -5,6 +5,7 @@
- # Kselftest framework requirement - SKIP code is 4.
- ksft_skip=4
+--- a/arch/xtensa/include/asm/kasan.h~xtensa-kasan-define-kasan_shadow_end
++++ a/arch/xtensa/include/asm/kasan.h
+@@ -18,6 +18,8 @@
+ #define KASAN_SHADOW_START (XCHAL_PAGE_TABLE_VADDR + XCHAL_PAGE_TABLE_SIZE)
+ /* Size of the shadow map */
+ #define KASAN_SHADOW_SIZE (-KASAN_START_VADDR >> KASAN_SHADOW_SCALE_SHIFT)
++/* End of the shadow map */
++#define KASAN_SHADOW_END (KASAN_SHADOW_START + KASAN_SHADOW_SIZE)
+ /* Offset for mem to shadow address transformation */
+ #define KASAN_SHADOW_OFFSET __XTENSA_UL_CONST(CONFIG_KASAN_SHADOW_OFFSET)
  
-+count_total=0
- count_pass=0
- count_fail=0
- count_skip=0
-@@ -17,6 +18,7 @@ usage: ${BASH_SOURCE[0]:-$0} [ options ]
-   -a: run all tests, including extra ones
-   -t: specify specific categories to tests to run
-   -h: display this message
-+  -n: disable TAP output
- 
- The default behavior is to run required tests only.  If -a is specified,
- will run all tests.
-@@ -77,12 +79,14 @@ EOF
- }
- 
- RUN_ALL=false
-+TAP_PREFIX="# "
- 
--while getopts "aht:" OPT; do
-+while getopts "aht:n" OPT; do
- 	case ${OPT} in
- 		"a") RUN_ALL=true ;;
- 		"h") usage ;;
- 		"t") VM_SELFTEST_ITEMS=${OPTARG} ;;
-+		"n") TAP_PREFIX= ;;
- 	esac
- done
- shift $((OPTIND -1))
-@@ -184,30 +188,52 @@ fi
- VADDR64=0
- echo "$ARCH64STR" | grep "$ARCH" &>/dev/null && VADDR64=1
- 
-+tap_prefix() {
-+	sed -e "s/^/${TAP_PREFIX}/"
-+}
-+
-+tap_output() {
-+	if [[ ! -z "$TAP_PREFIX" ]]; then
-+		read str
-+		echo $str
-+	fi
-+}
-+
-+pretty_name() {
-+	echo "$*" | sed -e 's/^\(bash \)\?\.\///'
-+}
-+
- # Usage: run_test [test binary] [arbitrary test arguments...]
- run_test() {
- 	if test_selected ${CATEGORY}; then
-+		local test=$(pretty_name "$*")
- 		local title="running $*"
- 		local sep=$(echo -n "$title" | tr "[:graph:][:space:]" -)
--		printf "%s\n%s\n%s\n" "$sep" "$title" "$sep"
-+		printf "%s\n%s\n%s\n" "$sep" "$title" "$sep" | tap_prefix
- 
--		"$@"
--		local ret=$?
-+		("$@" 2>&1) | tap_prefix
-+		local ret=${PIPESTATUS[0]}
-+		count_total=$(( count_total + 1 ))
- 		if [ $ret -eq 0 ]; then
- 			count_pass=$(( count_pass + 1 ))
--			echo "[PASS]"
-+			echo "[PASS]" | tap_prefix
-+			echo "ok ${count_total} ${test}" | tap_output
- 		elif [ $ret -eq $ksft_skip ]; then
- 			count_skip=$(( count_skip + 1 ))
--			echo "[SKIP]"
-+			echo "[SKIP]" | tap_prefix
-+			echo "ok ${count_total} ${test} # SKIP" | tap_output
- 			exitcode=$ksft_skip
- 		else
- 			count_fail=$(( count_fail + 1 ))
--			echo "[FAIL]"
-+			echo "[FAIL]" | tap_prefix
-+			echo "not ok ${count_total} ${test} # exit=$ret" | tap_output
- 			exitcode=1
- 		fi
- 	fi # test_selected
- }
- 
-+echo "TAP version 13" | tap_output
-+
- CATEGORY="hugetlb" run_test ./hugepage-mmap
- 
- shmmax=$(cat /proc/sys/kernel/shmmax)
-@@ -231,9 +257,9 @@ CATEGORY="hugetlb" run_test ./hugetlb_fa
- echo "$nr_hugepages_tmp" > /proc/sys/vm/nr_hugepages
- 
- if test_selected "hugetlb"; then
--	echo "NOTE: These hugetlb tests provide minimal coverage.  Use"
--	echo "      https://github.com/libhugetlbfs/libhugetlbfs.git for"
--	echo "      hugetlb regression testing."
-+	echo "NOTE: These hugetlb tests provide minimal coverage.  Use"	  | tap_prefix
-+	echo "      https://github.com/libhugetlbfs/libhugetlbfs.git for" | tap_prefix
-+	echo "      hugetlb regression testing."			  | tap_prefix
- fi
- 
- CATEGORY="mmap" run_test ./map_fixed_noreplace
-@@ -312,7 +338,7 @@ CATEGORY="hmm" run_test bash ./test_hmm.
- # MADV_POPULATE_READ and MADV_POPULATE_WRITE tests
- CATEGORY="madv_populate" run_test ./madv_populate
- 
--echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
-+(echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope 2>&1) | tap_prefix
- CATEGORY="memfd_secret" run_test ./memfd_secret
- 
- # KSM KSM_MERGE_TIME_HUGE_PAGES test with size of 100
-@@ -369,6 +395,7 @@ CATEGORY="mkdirty" run_test ./mkdirty
- 
- CATEGORY="mdwe" run_test ./mdwe_test
- 
--echo "SUMMARY: PASS=${count_pass} SKIP=${count_skip} FAIL=${count_fail}"
-+echo "SUMMARY: PASS=${count_pass} SKIP=${count_skip} FAIL=${count_fail}" | tap_prefix
-+echo "1..${count_total}" | tap_output
- 
- exit $exitcode
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
+kasan-stop-leaking-stack-trace-handles.patch
 
