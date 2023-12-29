@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45B7912B99
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 19:07:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1597912E46
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 19:07:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jGE/Ij6j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB254C433C8;
-	Fri, 29 Dec 2023 19:07:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tnLuMeCy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD3C3C433C7;
+	Fri, 29 Dec 2023 19:07:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703876841;
-	bh=XkE7oRTmBrwi1P6hVtpRpDzB8hUhb/NSxiY5QgThkUI=;
+	s=korg; t=1703876842;
+	bh=7GQ+gNxYbJbxH+Qs0UqggSyizuXAQeBsUBsdMhzPWyE=;
 	h=Date:To:From:Subject:From;
-	b=jGE/Ij6jtI3sSLlDgf74xMi4WfBXxQrpwG7IFyGtGJPWvWJK6GALHjPvH6eBmyhuw
-	 tpF7FRA90zuSs8lLe7Gwga8JFkSqpe/H8gcGca3+Psgsy+Ozk+Mxd2tvrPN6lMx34G
-	 AIAj2KnXjWRTwr3wMV9BKsrTKztGErylCvxoMoHY=
-Date: Fri, 29 Dec 2023 11:07:21 -0800
+	b=tnLuMeCylkEMixiWSMnV/FijfChX8fnGt4f+XNgyWKkStUPYTAfKWjimawUayYhDW
+	 okBZUZ6MCWY/qmW3bFOjBl82Uw8GmQLx1k/yYjs4t5eIQsvexRplS/AkhHgsPHJA04
+	 gLiJE1ruUNw4sYc0emBVxILrksWjcwUsjXPHTpqM=
+Date: Fri, 29 Dec 2023 11:07:22 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,shr@devkernel.io,joseph.qi@linux.alibaba.com,jefflexu@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-fix-arithmetic-for-bdi-min_ratio.patch removed from -mm tree
-Message-Id: <20231229190721.AB254C433C8@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-fix-arithmetic-for-max_prop_frac-when-setting-max_ratio.patch removed from -mm tree
+Message-Id: <20231229190722.CD3C3C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,52 +27,47 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: fix arithmetic for bdi min_ratio
+     Subject: mm: fix arithmetic for max_prop_frac when setting max_ratio
 has been removed from the -mm tree.  Its filename was
-     mm-fix-arithmetic-for-bdi-min_ratio.patch
+     mm-fix-arithmetic-for-max_prop_frac-when-setting-max_ratio.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Jingbo Xu <jefflexu@linux.alibaba.com>
-Subject: mm: fix arithmetic for bdi min_ratio
-Date: Tue, 19 Dec 2023 22:25:07 +0800
+Subject: mm: fix arithmetic for max_prop_frac when setting max_ratio
+Date: Tue, 19 Dec 2023 22:25:08 +0800
 
-Since now bdi->min_ratio is part per million, fix the wrong arithmetic. 
-Otherwise it will fail with -EINVAL when setting a reasonable min_ratio,
-as it tries to set min_ratio to (min_ratio * BDI_RATIO_SCALE) in
-percentage unit, which exceeds 100% anyway.
+Since now bdi->max_ratio is part per million, fix the wrong arithmetic for
+max_prop_frac when setting max_ratio.  Otherwise the miscalculated
+max_prop_frac will affect the incrementing of writeout completion count
+when max_ratio is not 100%.
 
-    # cat /sys/class/bdi/253\:0/min_ratio
-    0
-    # cat /sys/class/bdi/253\:0/max_ratio
-    100
-    # echo 1 > /sys/class/bdi/253\:0/min_ratio
-    -bash: echo: write error: Invalid argument
-
-Link: https://lkml.kernel.org/r/20231219142508.86265-2-jefflexu@linux.alibaba.com
-Fixes: 8021fb3232f2 ("mm: split off __bdi_set_min_ratio() function")
+Link: https://lkml.kernel.org/r/20231219142508.86265-3-jefflexu@linux.alibaba.com
+Fixes: efc3e6ad53ea ("mm: split off __bdi_set_max_ratio() function")
 Signed-off-by: Jingbo Xu <jefflexu@linux.alibaba.com>
-Reported-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Stefan Roesch <shr@devkernel.io>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/page-writeback.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/page-writeback.c~mm-fix-arithmetic-for-bdi-min_ratio
+--- a/mm/page-writeback.c~mm-fix-arithmetic-for-max_prop_frac-when-setting-max_ratio
 +++ a/mm/page-writeback.c
-@@ -692,7 +692,6 @@ static int __bdi_set_min_ratio(struct ba
+@@ -728,7 +728,8 @@ static int __bdi_set_max_ratio(struct ba
+ 		ret = -EINVAL;
+ 	} else {
+ 		bdi->max_ratio = max_ratio;
+-		bdi->max_prop_frac = (FPROP_FRAC_BASE * max_ratio) / 100;
++		bdi->max_prop_frac = (FPROP_FRAC_BASE * max_ratio) /
++						(100 * BDI_RATIO_SCALE);
+ 	}
+ 	spin_unlock_bh(&bdi_lock);
  
- 	if (min_ratio > 100 * BDI_RATIO_SCALE)
- 		return -EINVAL;
--	min_ratio *= BDI_RATIO_SCALE;
- 
- 	spin_lock_bh(&bdi_lock);
- 	if (min_ratio > bdi->max_ratio) {
 _
 
 Patches currently in -mm which might be from jefflexu@linux.alibaba.com are
