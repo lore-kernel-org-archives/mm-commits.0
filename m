@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6011613FF7
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:01:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69ED513FE6
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:01:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LfHwu/EK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28CACC433C8;
-	Fri, 29 Dec 2023 20:01:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0+8+36ql"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35D93C433C8;
+	Fri, 29 Dec 2023 20:01:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703880062;
-	bh=Lu4+er9IiNskEeIFpBFsAMvuCoQRkQltEB1dL4Qgsqo=;
+	s=korg; t=1703880063;
+	bh=Ulfzr/PmGt4YrtPyA9C9IMRCrqcsF7yCRGSrMfYEMg4=;
 	h=Date:To:From:Subject:From;
-	b=LfHwu/EKJugq4xK9sEqHOQfW3MXnjRdhWumLVBZI2Vud0HgAqE2+LoKsUFC3Ohzb8
-	 sooqEWqUbCMnKEP6Sm5CBnSFcpue4+YqS899Fyv2Kz5P2+i33KJw2yIJX3kURBRghl
-	 O0tseX976J86G4HPiPfIczq3EZaYJyCiFMWHJ4q0=
-Date: Fri, 29 Dec 2023 12:01:01 -0800
-To: mm-commits@vger.kernel.org,rafael@kernel.org,pavel@ucw.cz,haokexin@gmail.com,akpm@linux-foundation.org
+	b=0+8+36qliGZAmPRyUsbHpi1SmlAfmRCLa74HTVm2bpQ7GZrAM1UUBorq8mOrCQklP
+	 04wYubUfuoJ0Q/exTabbJUiweg9ed+s905ISfUpma0I17CkyCc6RwZNVun2uCRBr8x
+	 36+iaHiDCQ/INFwKscYiMX1Or8fzAjkilaJ47hHw=
+Date: Fri, 29 Dec 2023 12:01:02 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,songliubraving@fb.com,shy828301@gmail.com,linmiaohe@huawei.com,maskray@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-khugepaged-remove-redundant-try_to_freeze.patch removed from -mm tree
-Message-Id: <20231229200102.28CACC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-vm_exec-requirement-for-thp-eligibility.patch removed from -mm tree
+Message-Id: <20231229200103.35D93C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,69 +27,54 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/khugepaged: remove redundant try_to_freeze()
+     Subject: mm: remove VM_EXEC requirement for THP eligibility
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-remove-redundant-try_to_freeze.patch
+     mm-remove-vm_exec-requirement-for-thp-eligibility.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kevin Hao <haokexin@gmail.com>
-Subject: mm/khugepaged: remove redundant try_to_freeze()
-Date: Wed, 20 Dec 2023 07:17:53 +0800
+From: Fangrui Song <maskray@google.com>
+Subject: mm: remove VM_EXEC requirement for THP eligibility
+Date: Tue, 19 Dec 2023 21:41:23 -0800
 
-A freezable kernel thread can enter frozen state during freezing by either
-calling try_to_freeze() or using wait_event_freezable() and its variants. 
-However, there is no need to use both methods simultaneously.  The
-freezable wait variants have been used in khugepaged_wait_work() and
-khugepaged_alloc_sleep(), so remove this redundant try_to_freeze().
+Commit e6be37b2e7bd ("mm/huge_memory.c: add missing read-only THP checking
+in transparent_hugepage_enabled()") introduced the VM_EXEC requirement,
+which is not strictly needed.
 
-I used the following stress-ng command to generate some memory load on my
-Intel Alder Lake board (24 CPUs, 32G memory).
+lld's default --rosegment option and GNU ld's -z separate-code option
+(default on Linux/x86 since binutils 2.31) create a read-only PT_LOAD
+segment without the PF_X flag, which should be eligible for THP.
 
-	stress-ng --vm 48 --vm-bytes 90%
+Certain architectures support medium and large code models, where .lrodata
+may be placed in a separate read-only PT_LOAD segment, which should be
+eligible for THP as well.
 
-The worst freezing latency is:
-  Freezing user space processes                     
-  Freezing user space processes completed (elapsed 0.040 seconds)    
-  OOM killer disabled.    
-  Freezing remaining freezable tasks    
-  Freezing remaining freezable tasks completed (elapsed 0.001 seconds)
-
-Without the faked memory load, the freezing latency is:
-  Freezing user space processes
-  Freezing user space processes completed (elapsed 0.000 seconds)
-  OOM killer disabled.
-  Freezing remaining freezable tasks
-  Freezing remaining freezable tasks completed (elapsed 0.001 seconds)
-
-I didn't see any observable difference whether this patch is applied or not.
-
-Link: https://lkml.kernel.org/r/20231219231753.683171-1-haokexin@gmail.com
-Signed-off-by: Kevin Hao <haokexin@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Rafael J. Wysocki <rafael@kernel.org>
+Link: https://lkml.kernel.org/r/20231220054123.1266001-1-maskray@google.com
+Signed-off-by: Fangrui Song <maskray@google.com>
+Acked-by: Yang Shi <shy828301@gmail.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/huge_mm.h |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-remove-redundant-try_to_freeze
-+++ a/mm/khugepaged.c
-@@ -2499,7 +2499,7 @@ static void khugepaged_do_scan(struct co
- 	while (true) {
- 		cond_resched();
+--- a/include/linux/huge_mm.h~mm-remove-vm_exec-requirement-for-thp-eligibility
++++ a/include/linux/huge_mm.h
+@@ -206,7 +206,6 @@ static inline bool file_thp_enabled(stru
+ 	inode = vma->vm_file->f_inode;
  
--		if (unlikely(kthread_should_stop() || try_to_freeze()))
-+		if (unlikely(kthread_should_stop()))
- 			break;
+ 	return (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS)) &&
+-	       (vma->vm_flags & VM_EXEC) &&
+ 	       !inode_is_open_for_write(inode) && S_ISREG(inode->i_mode);
+ }
  
- 		spin_lock(&khugepaged_mm_lock);
 _
 
-Patches currently in -mm which might be from haokexin@gmail.com are
+Patches currently in -mm which might be from maskray@google.com are
 
-nilfs2-add-missing-set_freezable-for-freezable-kthread.patch
 
