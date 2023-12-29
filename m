@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D61713FF7
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:01:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6011613FF7
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:01:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fmJDRRbC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37DFEC433C8;
-	Fri, 29 Dec 2023 20:01:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LfHwu/EK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28CACC433C8;
+	Fri, 29 Dec 2023 20:01:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703880061;
-	bh=27SMcDTvgKW0W+TzU4KSBCQHqbQBzBpUjXIWVj1xYIc=;
+	s=korg; t=1703880062;
+	bh=Lu4+er9IiNskEeIFpBFsAMvuCoQRkQltEB1dL4Qgsqo=;
 	h=Date:To:From:Subject:From;
-	b=fmJDRRbChrBtXGJU5bG4OcCKKrioF1meWtGpYBJ/QlRfPEbGrmILwCfKR3F6WH2nQ
-	 RrEC8IAB5D6BywZnxLZi+KtlnuAXm+Yd6D5QHJ8CH7BIUUfoAvBeJKP/7JybjWcIuI
-	 iCiCE3gI4zglaBlTS6H90NGhSDpXamHf6qxEqsKk=
-Date: Fri, 29 Dec 2023 12:01:00 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,penguin-kernel@i-love.sakura.ne.jp,glider@google.com,eugenis@google.com,elver@google.com,dvyukov@google.com,andreyknvl@google.com,akpm@linux-foundation.org
+	b=LfHwu/EKJugq4xK9sEqHOQfW3MXnjRdhWumLVBZI2Vud0HgAqE2+LoKsUFC3Ohzb8
+	 sooqEWqUbCMnKEP6Sm5CBnSFcpue4+YqS899Fyv2Kz5P2+i33KJw2yIJX3kURBRghl
+	 O0tseX976J86G4HPiPfIczq3EZaYJyCiFMWHJ4q0=
+Date: Fri, 29 Dec 2023 12:01:01 -0800
+To: mm-commits@vger.kernel.org,rafael@kernel.org,pavel@ucw.cz,haokexin@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] lib-stackdepot-fix-comment-in-include-linux-stackdepoth.patch removed from -mm tree
-Message-Id: <20231229200101.37DFEC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-khugepaged-remove-redundant-try_to_freeze.patch removed from -mm tree
+Message-Id: <20231229200102.28CACC433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,50 +27,69 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/stackdepot: fix comment in include/linux/stackdepot.h
+     Subject: mm/khugepaged: remove redundant try_to_freeze()
 has been removed from the -mm tree.  Its filename was
-     lib-stackdepot-fix-comment-in-include-linux-stackdepoth.patch
+     mm-khugepaged-remove-redundant-try_to_freeze.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: lib/stackdepot: fix comment in include/linux/stackdepot.h
-Date: Tue, 19 Dec 2023 22:19:53 +0100
+From: Kevin Hao <haokexin@gmail.com>
+Subject: mm/khugepaged: remove redundant try_to_freeze()
+Date: Wed, 20 Dec 2023 07:17:53 +0800
 
-As stack traces can now be evicted from the stack depot, remove the
-comment saying that they are never removed.
+A freezable kernel thread can enter frozen state during freezing by either
+calling try_to_freeze() or using wait_event_freezable() and its variants. 
+However, there is no need to use both methods simultaneously.  The
+freezable wait variants have been used in khugepaged_wait_work() and
+khugepaged_alloc_sleep(), so remove this redundant try_to_freeze().
 
-Link: https://lkml.kernel.org/r/0ebe712d91f8d302a8947d3c9e9123bc2b1b8440.1703020707.git.andreyknvl@google.com
-Fixes: 108be8def46e ("lib/stackdepot: allow users to evict stack traces")
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+I used the following stress-ng command to generate some memory load on my
+Intel Alder Lake board (24 CPUs, 32G memory).
+
+	stress-ng --vm 48 --vm-bytes 90%
+
+The worst freezing latency is:
+  Freezing user space processes                     
+  Freezing user space processes completed (elapsed 0.040 seconds)    
+  OOM killer disabled.    
+  Freezing remaining freezable tasks    
+  Freezing remaining freezable tasks completed (elapsed 0.001 seconds)
+
+Without the faked memory load, the freezing latency is:
+  Freezing user space processes
+  Freezing user space processes completed (elapsed 0.000 seconds)
+  OOM killer disabled.
+  Freezing remaining freezable tasks
+  Freezing remaining freezable tasks completed (elapsed 0.001 seconds)
+
+I didn't see any observable difference whether this patch is applied or not.
+
+Link: https://lkml.kernel.org/r/20231219231753.683171-1-haokexin@gmail.com
+Signed-off-by: Kevin Hao <haokexin@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Rafael J. Wysocki <rafael@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/stackdepot.h |    2 --
- 1 file changed, 2 deletions(-)
+ mm/khugepaged.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/stackdepot.h~lib-stackdepot-fix-comment-in-include-linux-stackdepoth
-+++ a/include/linux/stackdepot.h
-@@ -11,8 +11,6 @@
-  * SLUB_DEBUG needs 256 bytes per object for that). Since allocation and free
-  * stack traces often repeat, using stack depot allows to save about 100x space.
-  *
-- * Stack traces are never removed from the stack depot.
-- *
-  * Author: Alexander Potapenko <glider@google.com>
-  * Copyright (C) 2016 Google, Inc.
-  *
+--- a/mm/khugepaged.c~mm-khugepaged-remove-redundant-try_to_freeze
++++ a/mm/khugepaged.c
+@@ -2499,7 +2499,7 @@ static void khugepaged_do_scan(struct co
+ 	while (true) {
+ 		cond_resched();
+ 
+-		if (unlikely(kthread_should_stop() || try_to_freeze()))
++		if (unlikely(kthread_should_stop()))
+ 			break;
+ 
+ 		spin_lock(&khugepaged_mm_lock);
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from haokexin@gmail.com are
 
-kasan-stop-leaking-stack-trace-handles.patch
+nilfs2-add-missing-set_freezable-for-freezable-kthread.patch
 
