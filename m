@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E1D01427F
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:01:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6895F13AED
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:01:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Rn/7MJTD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A727C433C8;
-	Fri, 29 Dec 2023 20:01:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ppeEoUXz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32F5AC433C8;
+	Fri, 29 Dec 2023 20:01:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703880112;
-	bh=1E1RfJfNwiCwhh5JZRigDN8rI8BCDjC+6pY3PIX8huo=;
+	s=korg; t=1703880113;
+	bh=4PC9SD0rMN4KbSsgz4zZTMuUI4btEVcmZ6wzg966V6o=;
 	h=Date:To:From:Subject:From;
-	b=Rn/7MJTDvBirEH+IS7DyT/6Z/soARWgHxfCBYqO3HMNI+S2wViVnd5Zz1g858pT1m
-	 QbT3tEzVhSAphobOvIvXWo1qhTeDwJMbdNkJCA+vivb+XxW9GBFrZl5v2hjyxBQQxA
-	 FHNXJzcB8BHGoXlEvFVQNG4jPBW8IQwMs+JMfafY=
-Date: Fri, 29 Dec 2023 12:01:51 -0800
+	b=ppeEoUXzHEUQmdNB52VH42hofDbgndWPQzHJLHbZal+GyhNuJHhq4OD9Ec8NLP7z5
+	 wAnRbp8QtXFc0PVBxB03Ixi3C2/KZ2xAqJBETrSArNvq5BsC47EXUrq5ppJl/XqdVK
+	 iq3w/nLBUaU/uUvMYhxAf+WfUv93/FDPBEZ1iaXA=
+Date: Fri, 29 Dec 2023 12:01:52 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,songmuchun@bytedance.com,ryan.roberts@arm.com,peterx@redhat.com,muchun.song@linux.dev,hughd@google.com,fengwei.yin@intel.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory-page_remove_rmap-folio_remove_rmap_pte.patch removed from -mm tree
-Message-Id: <20231229200152.2A727C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-migrate_device-page_remove_rmap-folio_remove_rmap_pte.patch removed from -mm tree
+Message-Id: <20231229200153.32F5AC433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,22 +27,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory: page_remove_rmap() -> folio_remove_rmap_pte()
+     Subject: mm/migrate_device: page_remove_rmap() -> folio_remove_rmap_pte()
 has been removed from the -mm tree.  Its filename was
-     mm-memory-page_remove_rmap-folio_remove_rmap_pte.patch
+     mm-migrate_device-page_remove_rmap-folio_remove_rmap_pte.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory: page_remove_rmap() -> folio_remove_rmap_pte()
-Date: Wed, 20 Dec 2023 23:44:52 +0100
+Subject: mm/migrate_device: page_remove_rmap() -> folio_remove_rmap_pte()
+Date: Wed, 20 Dec 2023 23:44:53 +0100
 
-Let's convert zap_pte_range() and closely-related tlb_flush_rmap_batch(). 
-While at it, perform some more folio conversion in zap_pte_range().
+Let's convert migrate_vma_collect_pmd().  While at it, perform more folio
+conversion.
 
-Link: https://lkml.kernel.org/r/20231220224504.646757-29-david@redhat.com
+Link: https://lkml.kernel.org/r/20231220224504.646757-30-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -54,100 +54,106 @@ Cc: Yin Fengwei <fengwei.yin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c     |   23 +++++++++++++----------
- mm/mmu_gather.c |    2 +-
- 2 files changed, 14 insertions(+), 11 deletions(-)
+ mm/migrate_device.c |   39 +++++++++++++++++++++------------------
+ 1 file changed, 21 insertions(+), 18 deletions(-)
 
---- a/mm/memory.c~mm-memory-page_remove_rmap-folio_remove_rmap_pte
-+++ a/mm/memory.c
-@@ -1434,6 +1434,7 @@ static unsigned long zap_pte_range(struc
- 	arch_enter_lazy_mmu_mode();
- 	do {
- 		pte_t ptent = ptep_get(pte);
+--- a/mm/migrate_device.c~mm-migrate_device-page_remove_rmap-folio_remove_rmap_pte
++++ a/mm/migrate_device.c
+@@ -107,6 +107,7 @@ again:
+ 
+ 	for (; addr < end; addr += PAGE_SIZE, ptep++) {
+ 		unsigned long mpfn = 0, pfn;
 +		struct folio *folio;
  		struct page *page;
+ 		swp_entry_t entry;
+ 		pte_t pte;
+@@ -168,41 +169,43 @@ again:
+ 		}
  
- 		if (pte_none(ptent))
-@@ -1459,21 +1460,22 @@ static unsigned long zap_pte_range(struc
- 				continue;
- 			}
+ 		/*
+-		 * By getting a reference on the page we pin it and that blocks
++		 * By getting a reference on the folio we pin it and that blocks
+ 		 * any kind of migration. Side effect is that it "freezes" the
+ 		 * pte.
+ 		 *
+-		 * We drop this reference after isolating the page from the lru
+-		 * for non device page (device page are not on the lru and thus
++		 * We drop this reference after isolating the folio from the lru
++		 * for non device folio (device folio are not on the lru and thus
+ 		 * can't be dropped from it).
+ 		 */
+-		get_page(page);
++		folio = page_folio(page);
++		folio_get(folio);
  
-+			folio = page_folio(page);
- 			delay_rmap = 0;
--			if (!PageAnon(page)) {
-+			if (!folio_test_anon(folio)) {
- 				if (pte_dirty(ptent)) {
--					set_page_dirty(page);
-+					folio_set_dirty(folio);
- 					if (tlb_delay_rmap(tlb)) {
- 						delay_rmap = 1;
- 						force_flush = 1;
- 					}
+ 		/*
+-		 * We rely on trylock_page() to avoid deadlock between
++		 * We rely on folio_trylock() to avoid deadlock between
+ 		 * concurrent migrations where each is waiting on the others
+-		 * page lock. If we can't immediately lock the page we fail this
++		 * folio lock. If we can't immediately lock the folio we fail this
+ 		 * migration as it is only best effort anyway.
+ 		 *
+-		 * If we can lock the page it's safe to set up a migration entry
+-		 * now. In the common case where the page is mapped once in a
++		 * If we can lock the folio it's safe to set up a migration entry
++		 * now. In the common case where the folio is mapped once in a
+ 		 * single process setting up the migration entry now is an
+ 		 * optimisation to avoid walking the rmap later with
+ 		 * try_to_migrate().
+ 		 */
+-		if (trylock_page(page)) {
++		if (folio_trylock(folio)) {
+ 			bool anon_exclusive;
+ 			pte_t swp_pte;
+ 
+ 			flush_cache_page(vma, addr, pte_pfn(pte));
+-			anon_exclusive = PageAnon(page) && PageAnonExclusive(page);
++			anon_exclusive = folio_test_anon(folio) &&
++					  PageAnonExclusive(page);
+ 			if (anon_exclusive) {
+ 				pte = ptep_clear_flush(vma, addr, ptep);
+ 
+ 				if (page_try_share_anon_rmap(page)) {
+ 					set_pte_at(mm, addr, ptep, pte);
+-					unlock_page(page);
+-					put_page(page);
++					folio_unlock(folio);
++					folio_put(folio);
+ 					mpfn = 0;
+ 					goto next;
  				}
- 				if (pte_young(ptent) && likely(vma_has_recency(vma)))
--					mark_page_accessed(page);
-+					folio_mark_accessed(folio);
- 			}
- 			rss[mm_counter(page)]--;
- 			if (!delay_rmap) {
--				page_remove_rmap(page, vma, false);
-+				folio_remove_rmap_pte(folio, page, vma);
- 				if (unlikely(page_mapcount(page) < 0))
- 					print_bad_pte(vma, addr, ptent, page);
- 			}
-@@ -1489,6 +1491,7 @@ static unsigned long zap_pte_range(struc
- 		if (is_device_private_entry(entry) ||
- 		    is_device_exclusive_entry(entry)) {
- 			page = pfn_swap_entry_to_page(entry);
-+			folio = page_folio(page);
- 			if (unlikely(!should_zap_page(details, page)))
- 				continue;
+@@ -214,7 +217,7 @@ again:
+ 
+ 			/* Set the dirty flag on the folio now the pte is gone. */
+ 			if (pte_dirty(pte))
+-				folio_mark_dirty(page_folio(page));
++				folio_mark_dirty(folio);
+ 
+ 			/* Setup special migration page table entry */
+ 			if (mpfn & MIGRATE_PFN_WRITE)
+@@ -248,16 +251,16 @@ again:
+ 
  			/*
-@@ -1500,8 +1503,8 @@ static unsigned long zap_pte_range(struc
- 			WARN_ON_ONCE(!vma_is_anonymous(vma));
- 			rss[mm_counter(page)]--;
- 			if (is_device_private_entry(entry))
--				page_remove_rmap(page, vma, false);
--			put_page(page);
-+				folio_remove_rmap_pte(folio, page, vma);
-+			folio_put(folio);
- 		} else if (!non_swap_entry(entry)) {
- 			/* Genuine swap entry, hence a private anon page */
- 			if (!should_zap_cows(details))
-@@ -3220,10 +3223,10 @@ static vm_fault_t wp_page_copy(struct vm
- 			 * threads.
- 			 *
- 			 * The critical issue is to order this
--			 * page_remove_rmap with the ptp_clear_flush above.
--			 * Those stores are ordered by (if nothing else,)
-+			 * folio_remove_rmap_pte() with the ptp_clear_flush
-+			 * above. Those stores are ordered by (if nothing else,)
- 			 * the barrier present in the atomic_add_negative
--			 * in page_remove_rmap.
-+			 * in folio_remove_rmap_pte();
- 			 *
- 			 * Then the TLB flush in ptep_clear_flush ensures that
- 			 * no process can access the old page before the
-@@ -3232,7 +3235,7 @@ static vm_fault_t wp_page_copy(struct vm
- 			 * mapcount is visible. So transitively, TLBs to
- 			 * old page will be flushed before it can be reused.
+ 			 * This is like regular unmap: we remove the rmap and
+-			 * drop page refcount. Page won't be freed, as we took
+-			 * a reference just above.
++			 * drop the folio refcount. The folio won't be freed, as
++			 * we took a reference just above.
  			 */
--			page_remove_rmap(vmf->page, vma, false);
-+			folio_remove_rmap_pte(old_folio, vmf->page, vma);
- 		}
- 
- 		/* Free the old page.. */
---- a/mm/mmu_gather.c~mm-memory-page_remove_rmap-folio_remove_rmap_pte
-+++ a/mm/mmu_gather.c
-@@ -55,7 +55,7 @@ static void tlb_flush_rmap_batch(struct
- 
- 		if (encoded_page_flags(enc)) {
- 			struct page *page = encoded_page_ptr(enc);
 -			page_remove_rmap(page, vma, false);
-+			folio_remove_rmap_pte(page_folio(page), page, vma);
+-			put_page(page);
++			folio_remove_rmap_pte(folio, page, vma);
++			folio_put(folio);
+ 
+ 			if (pte_present(pte))
+ 				unmapped++;
+ 		} else {
+-			put_page(page);
++			folio_put(folio);
+ 			mpfn = 0;
  		}
- 	}
- }
+ 
 _
 
 Patches currently in -mm which might be from david@redhat.com are
