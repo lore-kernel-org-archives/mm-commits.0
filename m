@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33EAB134BE
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:00:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE4FF134BE
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:00:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BIOevTaD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F00D4C433C7;
-	Fri, 29 Dec 2023 20:00:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VZhhGS/5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84EF4C433C8;
+	Fri, 29 Dec 2023 20:00:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703880001;
-	bh=HWgejYrsCAhXFJM3880AQ4GKxTvoOoJLOGejyvAQm8A=;
+	s=korg; t=1703880002;
+	bh=4C7vjIFtfoAdmkSKdjX7Vv3NjDaZxjPsP9pqlTBGQwg=;
 	h=Date:To:From:Subject:From;
-	b=BIOevTaDb0oATAYnWAAFqLf1a682lBQcVATGbxrKQexNq/uEwyC0xsKp+6g3pxmsG
-	 FjCmtUB5gz8Itfd1jnR044WIMgaUx8Li01EjTBiLqvYkBnOBkS1235sYlvaYkQiWYy
-	 kM1xsowAQg5gM29mPXZ50KwmR5zaiX0hR6YNIitA=
-Date: Fri, 29 Dec 2023 12:00:00 -0800
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,vitaly.wool@konsulko.com,sjenning@redhat.com,nphamcs@gmail.com,hannes@cmpxchg.org,ddstreet@ieee.org,chrisl@kernel.org,21cnbao@gmail.com,zhouchengming@bytedance.com,akpm@linux-foundation.org
+	b=VZhhGS/5uFLY5/d2rcp/nRzv9nlM1e0Bx/WhLRM1OhfaGmQJTyc27A8MUpIT+KMYr
+	 r102/gEUHvb+4cQ/t59Bdy0VjoxDAbh8EuMzb6r1UMECLEou0kx1Sg/zrYV/0YbO4T
+	 zqg/KoCZdiyojI1V4xYGS0qSP6aIZzS94B+8a7Yc=
+Date: Fri, 29 Dec 2023 12:00:01 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zswap-change-per-cpu-mutex-and-buffer-to-per-acomp_ctx.patch removed from -mm tree
-Message-Id: <20231229200000.F00D4C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-return-the-folio-from-__read_swap_cache_async.patch removed from -mm tree
+Message-Id: <20231229200002.84EF4C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,265 +27,405 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/zswap: change per-cpu mutex and buffer to per-acomp_ctx
+     Subject: mm: return the folio from __read_swap_cache_async()
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-change-per-cpu-mutex-and-buffer-to-per-acomp_ctx.patch
+     mm-return-the-folio-from-__read_swap_cache_async.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Chengming Zhou <zhouchengming@bytedance.com>
-Subject: mm/zswap: change per-cpu mutex and buffer to per-acomp_ctx
-Date: Thu, 28 Dec 2023 09:45:46 +0000
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: return the folio from __read_swap_cache_async()
+Date: Wed, 13 Dec 2023 21:58:30 +0000
 
-First of all, we need to rename acomp_ctx->dstmem field to buffer, since
-we are now using for purposes other than compression.
+Patch series "More swap folio conversions".
 
-Then we change per-cpu mutex and buffer to per-acomp_ctx, since them
-belong to the acomp_ctx and are necessary parts when used in the
-compress/decompress contexts.
+These all seem like fairly straightforward conversions to me.  A lot of
+compound_head() calls get removed.  And page_swap_info(), which is nice.
 
-So we can remove the old per-cpu mutex and dstmem.
 
-Link: https://lkml.kernel.org/r/20231213-zswap-dstmem-v5-5-9382162bbf05@bytedance.com
-Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
-Acked-by: Chris Li <chrisl@kernel.org> (Google)
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+This patch (of 13):
+
+Move the folio->page conversion into the callers that actually want that. 
+Most of the callers are happier with the folio anyway.  If the
+page_allocated boolean is set, the folio allocated is of order-0, so it is
+safe to pass the page directly to swap_readpage().
+
+Link: https://lkml.kernel.org/r/20231213215842.671461-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231213215842.671461-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpuhotplug.h |    1 
- mm/zswap.c                 |  104 +++++++++++------------------------
- 2 files changed, 33 insertions(+), 72 deletions(-)
+ include/linux/zswap.h |    4 +-
+ mm/swap.h             |    7 +--
+ mm/swap_state.c       |   75 ++++++++++++++++++----------------------
+ mm/zswap.c            |   58 +++++++++++++++---------------
+ 4 files changed, 69 insertions(+), 75 deletions(-)
 
---- a/include/linux/cpuhotplug.h~mm-zswap-change-per-cpu-mutex-and-buffer-to-per-acomp_ctx
-+++ a/include/linux/cpuhotplug.h
-@@ -124,7 +124,6 @@ enum cpuhp_state {
- 	CPUHP_ARM_BL_PREPARE,
- 	CPUHP_TRACE_RB_PREPARE,
- 	CPUHP_MM_ZS_PREPARE,
--	CPUHP_MM_ZSWP_MEM_PREPARE,
- 	CPUHP_MM_ZSWP_POOL_PREPARE,
- 	CPUHP_KVM_PPC_BOOK3S_PREPARE,
- 	CPUHP_ZCOMP_PREPARE,
---- a/mm/zswap.c~mm-zswap-change-per-cpu-mutex-and-buffer-to-per-acomp_ctx
-+++ a/mm/zswap.c
-@@ -161,8 +161,8 @@ struct crypto_acomp_ctx {
- 	struct crypto_acomp *acomp;
- 	struct acomp_req *req;
- 	struct crypto_wait wait;
--	u8 *dstmem;
--	struct mutex *mutex;
-+	u8 *buffer;
-+	struct mutex mutex;
- };
+--- a/include/linux/zswap.h~mm-return-the-folio-from-__read_swap_cache_async
++++ a/include/linux/zswap.h
+@@ -34,7 +34,7 @@ void zswap_swapon(int type);
+ void zswap_swapoff(int type);
+ void zswap_memcg_offline_cleanup(struct mem_cgroup *memcg);
+ void zswap_lruvec_state_init(struct lruvec *lruvec);
+-void zswap_page_swapin(struct page *page);
++void zswap_folio_swapin(struct folio *folio);
+ #else
  
- /*
-@@ -688,63 +688,26 @@ static void zswap_alloc_shrinker(struct
- /*********************************
- * per-cpu code
- **********************************/
--static DEFINE_PER_CPU(u8 *, zswap_dstmem);
--/*
-- * If users dynamically change the zpool type and compressor at runtime, i.e.
-- * zswap is running, zswap can have more than one zpool on one cpu, but they
-- * are sharing dtsmem. So we need this mutex to be per-cpu.
-- */
--static DEFINE_PER_CPU(struct mutex *, zswap_mutex);
--
--static int zswap_dstmem_prepare(unsigned int cpu)
--{
--	struct mutex *mutex;
--	u8 *dst;
--
--	dst = kmalloc_node(PAGE_SIZE * 2, GFP_KERNEL, cpu_to_node(cpu));
--	if (!dst)
--		return -ENOMEM;
--
--	mutex = kmalloc_node(sizeof(*mutex), GFP_KERNEL, cpu_to_node(cpu));
--	if (!mutex) {
--		kfree(dst);
--		return -ENOMEM;
--	}
--
--	mutex_init(mutex);
--	per_cpu(zswap_dstmem, cpu) = dst;
--	per_cpu(zswap_mutex, cpu) = mutex;
--	return 0;
--}
--
--static int zswap_dstmem_dead(unsigned int cpu)
--{
--	struct mutex *mutex;
--	u8 *dst;
--
--	mutex = per_cpu(zswap_mutex, cpu);
--	kfree(mutex);
--	per_cpu(zswap_mutex, cpu) = NULL;
--
--	dst = per_cpu(zswap_dstmem, cpu);
--	kfree(dst);
--	per_cpu(zswap_dstmem, cpu) = NULL;
--
--	return 0;
--}
--
- static int zswap_cpu_comp_prepare(unsigned int cpu, struct hlist_node *node)
- {
- 	struct zswap_pool *pool = hlist_entry(node, struct zswap_pool, node);
- 	struct crypto_acomp_ctx *acomp_ctx = per_cpu_ptr(pool->acomp_ctx, cpu);
- 	struct crypto_acomp *acomp;
- 	struct acomp_req *req;
-+	int ret;
-+
-+	mutex_init(&acomp_ctx->mutex);
-+
-+	acomp_ctx->buffer = kmalloc_node(PAGE_SIZE * 2, GFP_KERNEL, cpu_to_node(cpu));
-+	if (!acomp_ctx->buffer)
-+		return -ENOMEM;
+ struct zswap_lruvec_state {};
+@@ -54,7 +54,7 @@ static inline void zswap_swapon(int type
+ static inline void zswap_swapoff(int type) {}
+ static inline void zswap_memcg_offline_cleanup(struct mem_cgroup *memcg) {}
+ static inline void zswap_lruvec_state_init(struct lruvec *lruvec) {}
+-static inline void zswap_page_swapin(struct page *page) {}
++static inline void zswap_folio_swapin(struct folio *folio) {}
+ #endif
  
- 	acomp = crypto_alloc_acomp_node(pool->tfm_name, 0, 0, cpu_to_node(cpu));
- 	if (IS_ERR(acomp)) {
- 		pr_err("could not alloc crypto acomp %s : %ld\n",
- 				pool->tfm_name, PTR_ERR(acomp));
--		return PTR_ERR(acomp);
-+		ret = PTR_ERR(acomp);
-+		goto acomp_fail;
- 	}
- 	acomp_ctx->acomp = acomp;
- 
-@@ -752,8 +715,8 @@ static int zswap_cpu_comp_prepare(unsign
- 	if (!req) {
- 		pr_err("could not alloc crypto acomp_request %s\n",
- 		       pool->tfm_name);
--		crypto_free_acomp(acomp_ctx->acomp);
--		return -ENOMEM;
-+		ret = -ENOMEM;
-+		goto req_fail;
- 	}
- 	acomp_ctx->req = req;
- 
-@@ -766,10 +729,13 @@ static int zswap_cpu_comp_prepare(unsign
- 	acomp_request_set_callback(req, CRYPTO_TFM_REQ_MAY_BACKLOG,
- 				   crypto_req_done, &acomp_ctx->wait);
- 
--	acomp_ctx->mutex = per_cpu(zswap_mutex, cpu);
--	acomp_ctx->dstmem = per_cpu(zswap_dstmem, cpu);
--
- 	return 0;
-+
-+req_fail:
-+	crypto_free_acomp(acomp_ctx->acomp);
-+acomp_fail:
-+	kfree(acomp_ctx->buffer);
-+	return ret;
+ #endif /* _LINUX_ZSWAP_H */
+--- a/mm/swap.h~mm-return-the-folio-from-__read_swap_cache_async
++++ a/mm/swap.h
+@@ -49,10 +49,9 @@ struct page *read_swap_cache_async(swp_e
+ 				   struct vm_area_struct *vma,
+ 				   unsigned long addr,
+ 				   struct swap_iocb **plug);
+-struct page *__read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
+-				     struct mempolicy *mpol, pgoff_t ilx,
+-				     bool *new_page_allocated,
+-				     bool skip_if_exists);
++struct folio *__read_swap_cache_async(swp_entry_t entry, gfp_t gfp_flags,
++		struct mempolicy *mpol, pgoff_t ilx, bool *new_page_allocated,
++		bool skip_if_exists);
+ struct page *swap_cluster_readahead(swp_entry_t entry, gfp_t flag,
+ 				    struct mempolicy *mpol, pgoff_t ilx);
+ struct page *swapin_readahead(swp_entry_t entry, gfp_t flag,
+--- a/mm/swap_state.c~mm-return-the-folio-from-__read_swap_cache_async
++++ a/mm/swap_state.c
+@@ -410,14 +410,12 @@ struct folio *filemap_get_incore_folio(s
+ 	return folio;
  }
  
- static int zswap_cpu_comp_dead(unsigned int cpu, struct hlist_node *node)
-@@ -782,6 +748,7 @@ static int zswap_cpu_comp_dead(unsigned
- 			acomp_request_free(acomp_ctx->req);
- 		if (!IS_ERR_OR_NULL(acomp_ctx->acomp))
- 			crypto_free_acomp(acomp_ctx->acomp);
-+		kfree(acomp_ctx->buffer);
+-struct page *__read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
+-				     struct mempolicy *mpol, pgoff_t ilx,
+-				     bool *new_page_allocated,
+-				     bool skip_if_exists)
++struct folio *__read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
++		struct mempolicy *mpol, pgoff_t ilx, bool *new_page_allocated,
++		bool skip_if_exists)
+ {
+ 	struct swap_info_struct *si;
+ 	struct folio *folio;
+-	struct page *page;
+ 	void *shadow = NULL;
+ 
+ 	*new_page_allocated = false;
+@@ -434,10 +432,8 @@ struct page *__read_swap_cache_async(swp
+ 		 */
+ 		folio = filemap_get_folio(swap_address_space(entry),
+ 						swp_offset(entry));
+-		if (!IS_ERR(folio)) {
+-			page = folio_file_page(folio, swp_offset(entry));
+-			goto got_page;
+-		}
++		if (!IS_ERR(folio))
++			goto got_folio;
+ 
+ 		/*
+ 		 * Just skip read ahead for unused swap slot.
+@@ -451,7 +447,7 @@ struct page *__read_swap_cache_async(swp
+ 			goto fail_put_swap;
+ 
+ 		/*
+-		 * Get a new page to read into from swap.  Allocate it now,
++		 * Get a new folio to read into from swap.  Allocate it now,
+ 		 * before marking swap_map SWAP_HAS_CACHE, when -EEXIST will
+ 		 * cause any racers to loop around until we add it to cache.
+ 		 */
+@@ -487,13 +483,13 @@ struct page *__read_swap_cache_async(swp
+ 		 * stumble across a swap_map entry whose SWAP_HAS_CACHE
+ 		 * has not yet been cleared.  Or race against another
+ 		 * __read_swap_cache_async(), which has set SWAP_HAS_CACHE
+-		 * in swap_map, but not yet added its page to swap cache.
++		 * in swap_map, but not yet added its folio to swap cache.
+ 		 */
+ 		schedule_timeout_uninterruptible(1);
  	}
+ 
+ 	/*
+-	 * The swap entry is ours to swap in. Prepare the new page.
++	 * The swap entry is ours to swap in. Prepare the new folio.
+ 	 */
+ 
+ 	__folio_set_locked(folio);
+@@ -514,10 +510,9 @@ struct page *__read_swap_cache_async(swp
+ 	/* Caller will initiate read into locked folio */
+ 	folio_add_lru(folio);
+ 	*new_page_allocated = true;
+-	page = &folio->page;
+-got_page:
++got_folio:
+ 	put_swap_device(si);
+-	return page;
++	return folio;
+ 
+ fail_unlock:
+ 	put_swap_folio(folio, entry);
+@@ -545,16 +540,16 @@ struct page *read_swap_cache_async(swp_e
+ 	bool page_allocated;
+ 	struct mempolicy *mpol;
+ 	pgoff_t ilx;
+-	struct page *page;
++	struct folio *folio;
+ 
+ 	mpol = get_vma_policy(vma, addr, 0, &ilx);
+-	page = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
++	folio = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
+ 					&page_allocated, false);
+ 	mpol_cond_put(mpol);
+ 
+ 	if (page_allocated)
+-		swap_readpage(page, false, plug);
+-	return page;
++		swap_readpage(&folio->page, false, plug);
++	return folio_file_page(folio, swp_offset(entry));
+ }
+ 
+ static unsigned int __swapin_nr_pages(unsigned long prev_offset,
+@@ -639,7 +634,7 @@ static unsigned long swapin_nr_pages(uns
+ struct page *swap_cluster_readahead(swp_entry_t entry, gfp_t gfp_mask,
+ 				    struct mempolicy *mpol, pgoff_t ilx)
+ {
+-	struct page *page;
++	struct folio *folio;
+ 	unsigned long entry_offset = swp_offset(entry);
+ 	unsigned long offset = entry_offset;
+ 	unsigned long start_offset, end_offset;
+@@ -664,31 +659,31 @@ struct page *swap_cluster_readahead(swp_
+ 	blk_start_plug(&plug);
+ 	for (offset = start_offset; offset <= end_offset ; offset++) {
+ 		/* Ok, do the async read-ahead now */
+-		page = __read_swap_cache_async(
++		folio = __read_swap_cache_async(
+ 				swp_entry(swp_type(entry), offset),
+ 				gfp_mask, mpol, ilx, &page_allocated, false);
+-		if (!page)
++		if (!folio)
+ 			continue;
+ 		if (page_allocated) {
+-			swap_readpage(page, false, &splug);
++			swap_readpage(&folio->page, false, &splug);
+ 			if (offset != entry_offset) {
+-				SetPageReadahead(page);
++				folio_set_readahead(folio);
+ 				count_vm_event(SWAP_RA);
+ 			}
+ 		}
+-		put_page(page);
++		folio_put(folio);
+ 	}
+ 	blk_finish_plug(&plug);
+ 	swap_read_unplug(splug);
+ 	lru_add_drain();	/* Push any new pages onto the LRU now */
+ skip:
+ 	/* The page was likely read above, so no need for plugging here */
+-	page = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
++	folio = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
+ 					&page_allocated, false);
+ 	if (unlikely(page_allocated))
+-		swap_readpage(page, false, NULL);
+-	zswap_page_swapin(page);
+-	return page;
++		swap_readpage(&folio->page, false, NULL);
++	zswap_folio_swapin(folio);
++	return folio_file_page(folio, swp_offset(entry));
+ }
+ 
+ int init_swap_address_space(unsigned int type, unsigned long nr_pages)
+@@ -806,7 +801,7 @@ static struct page *swap_vma_readahead(s
+ {
+ 	struct blk_plug plug;
+ 	struct swap_iocb *splug = NULL;
+-	struct page *page;
++	struct folio *folio;
+ 	pte_t *pte = NULL, pentry;
+ 	unsigned long addr;
+ 	swp_entry_t entry;
+@@ -839,18 +834,18 @@ static struct page *swap_vma_readahead(s
+ 			continue;
+ 		pte_unmap(pte);
+ 		pte = NULL;
+-		page = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
++		folio = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
+ 						&page_allocated, false);
+-		if (!page)
++		if (!folio)
+ 			continue;
+ 		if (page_allocated) {
+-			swap_readpage(page, false, &splug);
++			swap_readpage(&folio->page, false, &splug);
+ 			if (i != ra_info.offset) {
+-				SetPageReadahead(page);
++				folio_set_readahead(folio);
+ 				count_vm_event(SWAP_RA);
+ 			}
+ 		}
+-		put_page(page);
++		folio_put(folio);
+ 	}
+ 	if (pte)
+ 		pte_unmap(pte);
+@@ -858,13 +853,13 @@ static struct page *swap_vma_readahead(s
+ 	swap_read_unplug(splug);
+ 	lru_add_drain();
+ skip:
+-	/* The page was likely read above, so no need for plugging here */
+-	page = __read_swap_cache_async(targ_entry, gfp_mask, mpol, targ_ilx,
++	/* The folio was likely read above, so no need for plugging here */
++	folio = __read_swap_cache_async(targ_entry, gfp_mask, mpol, targ_ilx,
+ 					&page_allocated, false);
+ 	if (unlikely(page_allocated))
+-		swap_readpage(page, false, NULL);
+-	zswap_page_swapin(page);
+-	return page;
++		swap_readpage(&folio->page, false, NULL);
++	zswap_folio_swapin(folio);
++	return folio_file_page(folio, swp_offset(entry));
+ }
+ 
+ /**
+--- a/mm/zswap.c~mm-return-the-folio-from-__read_swap_cache_async
++++ a/mm/zswap.c
+@@ -368,12 +368,12 @@ void zswap_lruvec_state_init(struct lruv
+ 	atomic_long_set(&lruvec->zswap_lruvec_state.nr_zswap_protected, 0);
+ }
+ 
+-void zswap_page_swapin(struct page *page)
++void zswap_folio_swapin(struct folio *folio)
+ {
+ 	struct lruvec *lruvec;
+ 
+-	if (page) {
+-		lruvec = folio_lruvec(page_folio(page));
++	if (folio) {
++		lruvec = folio_lruvec(folio);
+ 		atomic_long_inc(&lruvec->zswap_lruvec_state.nr_zswap_protected);
+ 	}
+ }
+@@ -1383,14 +1383,14 @@ static void __zswap_load(struct zswap_en
+ * writeback code
+ **********************************/
+ /*
+- * Attempts to free an entry by adding a page to the swap cache,
+- * decompressing the entry data into the page, and issuing a
+- * bio write to write the page back to the swap device.
++ * Attempts to free an entry by adding a folio to the swap cache,
++ * decompressing the entry data into the folio, and issuing a
++ * bio write to write the folio back to the swap device.
+  *
+- * This can be thought of as a "resumed writeback" of the page
++ * This can be thought of as a "resumed writeback" of the folio
+  * to the swap device.  We are basically resuming the same swap
+  * writeback path that was intercepted with the zswap_store()
+- * in the first place.  After the page has been decompressed into
++ * in the first place.  After the folio has been decompressed into
+  * the swap cache, the compressed version stored by zswap can be
+  * freed.
+  */
+@@ -1398,56 +1398,56 @@ static int zswap_writeback_entry(struct
+ 				 struct zswap_tree *tree)
+ {
+ 	swp_entry_t swpentry = entry->swpentry;
+-	struct page *page;
++	struct folio *folio;
+ 	struct mempolicy *mpol;
+-	bool page_was_allocated;
++	bool folio_was_allocated;
+ 	struct writeback_control wbc = {
+ 		.sync_mode = WB_SYNC_NONE,
+ 	};
+ 
+-	/* try to allocate swap cache page */
++	/* try to allocate swap cache folio */
+ 	mpol = get_task_policy(current);
+-	page = __read_swap_cache_async(swpentry, GFP_KERNEL, mpol,
+-				NO_INTERLEAVE_INDEX, &page_was_allocated, true);
+-	if (!page)
++	folio = __read_swap_cache_async(swpentry, GFP_KERNEL, mpol,
++				NO_INTERLEAVE_INDEX, &folio_was_allocated, true);
++	if (!folio)
+ 		return -ENOMEM;
+ 
+ 	/*
+-	 * Found an existing page, we raced with load/swapin. We generally
+-	 * writeback cold pages from zswap, and swapin means the page just
+-	 * became hot. Skip this page and let the caller find another one.
++	 * Found an existing folio, we raced with load/swapin. We generally
++	 * writeback cold folios from zswap, and swapin means the folio just
++	 * became hot. Skip this folio and let the caller find another one.
+ 	 */
+-	if (!page_was_allocated) {
+-		put_page(page);
++	if (!folio_was_allocated) {
++		folio_put(folio);
+ 		return -EEXIST;
+ 	}
+ 
+ 	/*
+-	 * Page is locked, and the swapcache is now secured against
++	 * folio is locked, and the swapcache is now secured against
+ 	 * concurrent swapping to and from the slot. Verify that the
+ 	 * swap entry hasn't been invalidated and recycled behind our
+ 	 * backs (our zswap_entry reference doesn't prevent that), to
+-	 * avoid overwriting a new swap page with old compressed data.
++	 * avoid overwriting a new swap folio with old compressed data.
+ 	 */
+ 	spin_lock(&tree->lock);
+ 	if (zswap_rb_search(&tree->rbroot, swp_offset(entry->swpentry)) != entry) {
+ 		spin_unlock(&tree->lock);
+-		delete_from_swap_cache(page_folio(page));
++		delete_from_swap_cache(folio);
+ 		return -ENOMEM;
+ 	}
+ 	spin_unlock(&tree->lock);
+ 
+-	__zswap_load(entry, page);
++	__zswap_load(entry, &folio->page);
+ 
+-	/* page is up to date */
+-	SetPageUptodate(page);
++	/* folio is up to date */
++	folio_mark_uptodate(folio);
+ 
+ 	/* move it to the tail of the inactive list after end_writeback */
+-	SetPageReclaim(page);
++	folio_set_reclaim(folio);
+ 
+ 	/* start writeback */
+-	__swap_writepage(page, &wbc);
+-	put_page(page);
++	__swap_writepage(&folio->page, &wbc);
++	folio_put(folio);
  
  	return 0;
-@@ -1391,12 +1358,12 @@ static void __zswap_load(struct zswap_en
- 	u8 *src;
+ }
+@@ -1593,7 +1593,7 @@ bool zswap_store(struct folio *folio)
  
- 	acomp_ctx = raw_cpu_ptr(entry->pool->acomp_ctx);
--	mutex_lock(acomp_ctx->mutex);
-+	mutex_lock(&acomp_ctx->mutex);
- 
- 	src = zpool_map_handle(zpool, entry->handle, ZPOOL_MM_RO);
- 	if (!zpool_can_sleep_mapped(zpool)) {
--		memcpy(acomp_ctx->dstmem, src, entry->length);
--		src = acomp_ctx->dstmem;
-+		memcpy(acomp_ctx->buffer, src, entry->length);
-+		src = acomp_ctx->buffer;
- 		zpool_unmap_handle(zpool, entry->handle);
- 	}
- 
-@@ -1406,7 +1373,7 @@ static void __zswap_load(struct zswap_en
- 	acomp_request_set_params(acomp_ctx->req, &input, &output, entry->length, PAGE_SIZE);
- 	BUG_ON(crypto_wait_req(crypto_acomp_decompress(acomp_ctx->req), &acomp_ctx->wait));
- 	BUG_ON(acomp_ctx->req->dlen != PAGE_SIZE);
--	mutex_unlock(acomp_ctx->mutex);
-+	mutex_unlock(&acomp_ctx->mutex);
- 
- 	if (zpool_can_sleep_mapped(zpool))
- 		zpool_unmap_handle(zpool, entry->handle);
-@@ -1622,13 +1589,17 @@ bool zswap_store(struct folio *folio)
- 	/* compress */
- 	acomp_ctx = raw_cpu_ptr(entry->pool->acomp_ctx);
- 
--	mutex_lock(acomp_ctx->mutex);
-+	mutex_lock(&acomp_ctx->mutex);
- 
--	dst = acomp_ctx->dstmem;
-+	dst = acomp_ctx->buffer;
+ 	dst = acomp_ctx->buffer;
  	sg_init_table(&input, 1);
- 	sg_set_page(&input, page, PAGE_SIZE, 0);
+-	sg_set_page(&input, page, PAGE_SIZE, 0);
++	sg_set_page(&input, &folio->page, PAGE_SIZE, 0);
  
--	/* zswap_dstmem is of size (PAGE_SIZE * 2). Reflect same in sg_list */
-+	/*
-+	 * We need PAGE_SIZE * 2 here since there maybe over-compression case,
-+	 * and hardware-accelerators may won't check the dst buffer size, so
-+	 * giving the dst buffer with enough length to avoid buffer overflow.
-+	 */
- 	sg_init_one(&output, dst, PAGE_SIZE * 2);
- 	acomp_request_set_params(acomp_ctx->req, &input, &output, PAGE_SIZE, dlen);
  	/*
-@@ -1668,7 +1639,7 @@ bool zswap_store(struct folio *folio)
- 	buf = zpool_map_handle(zpool, handle, ZPOOL_MM_WO);
- 	memcpy(buf, dst, dlen);
- 	zpool_unmap_handle(zpool, handle);
--	mutex_unlock(acomp_ctx->mutex);
-+	mutex_unlock(&acomp_ctx->mutex);
- 
- 	/* populate entry */
- 	entry->swpentry = swp_entry(type, offset);
-@@ -1711,7 +1682,7 @@ insert_entry:
- 	return true;
- 
- put_dstmem:
--	mutex_unlock(acomp_ctx->mutex);
-+	mutex_unlock(&acomp_ctx->mutex);
- put_pool:
- 	zswap_pool_put(entry->pool);
- freepage:
-@@ -1886,13 +1857,6 @@ static int zswap_setup(void)
- 		goto cache_fail;
- 	}
- 
--	ret = cpuhp_setup_state(CPUHP_MM_ZSWP_MEM_PREPARE, "mm/zswap:prepare",
--				zswap_dstmem_prepare, zswap_dstmem_dead);
--	if (ret) {
--		pr_err("dstmem alloc failed\n");
--		goto dstmem_fail;
--	}
--
- 	ret = cpuhp_setup_state_multi(CPUHP_MM_ZSWP_POOL_PREPARE,
- 				      "mm/zswap_pool:prepare",
- 				      zswap_cpu_comp_prepare,
-@@ -1924,8 +1888,6 @@ fallback_fail:
- 	if (pool)
- 		zswap_pool_destroy(pool);
- hp_fail:
--	cpuhp_remove_state(CPUHP_MM_ZSWP_MEM_PREPARE);
--dstmem_fail:
- 	kmem_cache_destroy(zswap_entry_cache);
- cache_fail:
- 	/* if built-in, we aren't unloaded on failure; don't allow use */
+ 	 * We need PAGE_SIZE * 2 here since there maybe over-compression case,
 _
 
-Patches currently in -mm which might be from zhouchengming@bytedance.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
+mm-remove-inc-dec-lruvec-page-state-functions.patch
+slub-use-alloc_pages_node-in-alloc_slab_page.patch
+slub-use-folio-apis-in-free_large_kmalloc.patch
+slub-use-a-folio-in-__kmalloc_large_node.patch
+mm-khugepaged-use-a-folio-more-in-collapse_file.patch
+mm-memcontrol-remove-__mod_lruvec_page_state.patch
 
