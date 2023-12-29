@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16ED512B93;
-	Fri, 29 Dec 2023 19:07:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A8FD12B98
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 19:07:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d3ZFvyjK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4EF3C433C8;
-	Fri, 29 Dec 2023 19:07:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NdojJNSe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1D80C433C8;
+	Fri, 29 Dec 2023 19:07:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703876849;
-	bh=wB9g3K5uRJDJKPewUbc3L9soV5ziv4h2s0ZAqdBR+ek=;
+	s=korg; t=1703876851;
+	bh=fs9is5OXsokSrXSs/UYJym8gJ3IUVoTlHLI+Z8gwqJk=;
 	h=Date:To:From:Subject:From;
-	b=d3ZFvyjKpYN0iXsFYFZAio2x8DgAOELIz/QoF3N7Y9vx5Ez26SRJDMuucF6wBeHFD
-	 TbDlZWfB5xFBigqxUCPiiYBppTM37GB9ZPPlLbuKWHQpBlF9A2MXd7/16HkzTzM1ou
-	 PPltI4QgoLod7OOJebpOFua34WI7tIv0CviJGmeM=
-Date: Fri, 29 Dec 2023 11:07:29 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,yuzhao@google.com,akpm@linux-foundation.org
+	b=NdojJNSeLFCPdcOm4d211+gXA3dVY77+2485WwHuyg33anJ678uOEDCuNNSfpQ7XN
+	 ApH8diQ4i7btVm4gJyUZA81fVdufI+oCQqw2eTSJfeUEM0UsJRrMf1GJENp+gjsDts
+	 cKSmPEnRCxjLGA20+lNrFGzs6zlnf2L41iX9cKrE=
+Date: Fri, 29 Dec 2023 11:07:30 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,peterz@infradead.org,palmer@dabbelt.com,mpe@ellerman.id.au,luto@kernel.org,gerald.schaefer@linux.ibm.com,dave.hansen@linux.intel.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,agordeev@linux.ibm.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-mglru-skip-special-vmas-in-lru_gen_look_around.patch removed from -mm tree
-Message-Id: <20231229190729.C4EF3C433C8@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] arch-mm-fault-fix-major-fault-accounting-when-retrying-under-per-vma-lock.patch removed from -mm tree
+Message-Id: <20231229190730.F1D80C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,84 +27,122 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mglru: skip special VMAs in lru_gen_look_around()
+     Subject: arch/mm/fault: fix major fault accounting when retrying under per-VMA lock
 has been removed from the -mm tree.  Its filename was
-     mm-mglru-skip-special-vmas-in-lru_gen_look_around.patch
+     arch-mm-fault-fix-major-fault-accounting-when-retrying-under-per-vma-lock.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm/mglru: skip special VMAs in lru_gen_look_around()
-Date: Fri, 22 Dec 2023 21:56:47 -0700
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: arch/mm/fault: fix major fault accounting when retrying under per-VMA lock
+Date: Tue, 26 Dec 2023 13:46:10 -0800
 
-Special VMAs like VM_PFNMAP can contain anon pages from COW.  There isn't
-much profit in doing lookaround on them.  Besides, they can trigger the
-pte_special() warning in get_pte_pfn().
+A test [1] in Android test suite started failing after [2] was merged.  It
+turns out that after handling a major fault under per-VMA lock, the
+process major fault counter does not register that fault as major.  Before
+[2] read faults would be done under mmap_lock, in which case
+FAULT_FLAG_TRIED flag is set before retrying.  That in turn causes
+mm_account_fault() to account the fault as major once retry completes. 
+With per-VMA locks we often retry because a fault can't be handled without
+locking the whole mm using mmap_lock.  Therefore such retries do not set
+FAULT_FLAG_TRIED flag.  This logic does not work after [2] because we can
+now handle read major faults under per-VMA lock and upon retry the fact
+there was a major fault gets lost.  Fix this by setting FAULT_FLAG_TRIED
+after retrying under per-VMA lock if VM_FAULT_MAJOR was returned.  Ideally
+we would use an additional VM_FAULT bit to indicate the reason for the
+retry (could not handle under per-VMA lock vs other reason) but this
+simpler solution seems to work, so keeping it simple.
 
-Skip them in lru_gen_look_around().
+[1] https://cs.android.com/android/platform/superproject/+/master:test/vts-testcase/kernel/api/drop_caches_prop/drop_caches_test.cpp
+[2] https://lore.kernel.org/all/20231006195318.4087158-6-willy@infradead.org/
 
-Link: https://lkml.kernel.org/r/20231223045647.1566043-1-yuzhao@google.com
-Fixes: 018ee47f1489 ("mm: multi-gen LRU: exploit locality in rmap")
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Reported-by: syzbot+03fd9b3f71641f0ebf2d@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/000000000000f9ff00060d14c256@google.com/
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20231226214610.109282-1-surenb@google.com
+Fixes: 12214eba1992 ("mm: handle read faults under the VMA lock")
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ arch/arm64/mm/fault.c   |    2 ++
+ arch/powerpc/mm/fault.c |    2 ++
+ arch/riscv/mm/fault.c   |    2 ++
+ arch/s390/mm/fault.c    |    3 +++
+ arch/x86/mm/fault.c     |    2 ++
+ 5 files changed, 11 insertions(+)
 
---- a/mm/vmscan.c~mm-mglru-skip-special-vmas-in-lru_gen_look_around
-+++ a/mm/vmscan.c
-@@ -3955,6 +3955,7 @@ void lru_gen_look_around(struct page_vma
- 	int young = 0;
- 	pte_t *pte = pvmw->pte;
- 	unsigned long addr = pvmw->address;
-+	struct vm_area_struct *vma = pvmw->vma;
- 	struct folio *folio = pfn_folio(pvmw->pfn);
- 	bool can_swap = !folio_is_file_lru(folio);
- 	struct mem_cgroup *memcg = folio_memcg(folio);
-@@ -3969,11 +3970,15 @@ void lru_gen_look_around(struct page_vma
- 	if (spin_is_contended(pvmw->ptl))
+--- a/arch/arm64/mm/fault.c~arch-mm-fault-fix-major-fault-accounting-when-retrying-under-per-vma-lock
++++ a/arch/arm64/mm/fault.c
+@@ -607,6 +607,8 @@ static int __kprobes do_page_fault(unsig
+ 		goto done;
+ 	}
+ 	count_vm_vma_lock_event(VMA_LOCK_RETRY);
++	if (fault & VM_FAULT_MAJOR)
++		mm_flags |= FAULT_FLAG_TRIED;
+ 
+ 	/* Quick path to respond to signals */
+ 	if (fault_signal_pending(fault, regs)) {
+--- a/arch/powerpc/mm/fault.c~arch-mm-fault-fix-major-fault-accounting-when-retrying-under-per-vma-lock
++++ a/arch/powerpc/mm/fault.c
+@@ -497,6 +497,8 @@ static int ___do_page_fault(struct pt_re
+ 		goto done;
+ 	}
+ 	count_vm_vma_lock_event(VMA_LOCK_RETRY);
++	if (fault & VM_FAULT_MAJOR)
++		flags |= FAULT_FLAG_TRIED;
+ 
+ 	if (fault_signal_pending(fault, regs))
+ 		return user_mode(regs) ? 0 : SIGBUS;
+--- a/arch/riscv/mm/fault.c~arch-mm-fault-fix-major-fault-accounting-when-retrying-under-per-vma-lock
++++ a/arch/riscv/mm/fault.c
+@@ -304,6 +304,8 @@ void handle_page_fault(struct pt_regs *r
+ 		goto done;
+ 	}
+ 	count_vm_vma_lock_event(VMA_LOCK_RETRY);
++	if (fault & VM_FAULT_MAJOR)
++		flags |= FAULT_FLAG_TRIED;
+ 
+ 	if (fault_signal_pending(fault, regs)) {
+ 		if (!user_mode(regs))
+--- a/arch/s390/mm/fault.c~arch-mm-fault-fix-major-fault-accounting-when-retrying-under-per-vma-lock
++++ a/arch/s390/mm/fault.c
+@@ -337,6 +337,9 @@ static void do_exception(struct pt_regs
  		return;
- 
-+	/* exclude special VMAs containing anon pages from COW */
-+	if (vma->vm_flags & VM_SPECIAL)
-+		return;
+ 	}
+ 	count_vm_vma_lock_event(VMA_LOCK_RETRY);
++	if (fault & VM_FAULT_MAJOR)
++		flags |= FAULT_FLAG_TRIED;
 +
- 	/* avoid taking the LRU lock under the PTL when possible */
- 	walk = current->reclaim_state ? current->reclaim_state->mm_walk : NULL;
+ 	/* Quick path to respond to signals */
+ 	if (fault_signal_pending(fault, regs)) {
+ 		if (!user_mode(regs))
+--- a/arch/x86/mm/fault.c~arch-mm-fault-fix-major-fault-accounting-when-retrying-under-per-vma-lock
++++ a/arch/x86/mm/fault.c
+@@ -1370,6 +1370,8 @@ void do_user_addr_fault(struct pt_regs *
+ 		goto done;
+ 	}
+ 	count_vm_vma_lock_event(VMA_LOCK_RETRY);
++	if (fault & VM_FAULT_MAJOR)
++		flags |= FAULT_FLAG_TRIED;
  
--	start = max(addr & PMD_MASK, pvmw->vma->vm_start);
--	end = min(addr | ~PMD_MASK, pvmw->vma->vm_end - 1) + 1;
-+	start = max(addr & PMD_MASK, vma->vm_start);
-+	end = min(addr | ~PMD_MASK, vma->vm_end - 1) + 1;
- 
- 	if (end - start > MIN_LRU_BATCH * PAGE_SIZE) {
- 		if (addr - start < MIN_LRU_BATCH * PAGE_SIZE / 2)
-@@ -3998,7 +4003,7 @@ void lru_gen_look_around(struct page_vma
- 		unsigned long pfn;
- 		pte_t ptent = ptep_get(pte + i);
- 
--		pfn = get_pte_pfn(ptent, pvmw->vma, addr);
-+		pfn = get_pte_pfn(ptent, vma, addr);
- 		if (pfn == -1)
- 			continue;
- 
-@@ -4009,7 +4014,7 @@ void lru_gen_look_around(struct page_vma
- 		if (!folio)
- 			continue;
- 
--		if (!ptep_test_and_clear_young(pvmw->vma, addr, pte + i))
-+		if (!ptep_test_and_clear_young(vma, addr, pte + i))
- 			VM_WARN_ON_ONCE(true);
- 
- 		young++;
+ 	/* Quick path to respond to signals */
+ 	if (fault_signal_pending(fault, regs)) {
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from surenb@google.com are
 
+selftests-mm-call-uffd_test_ctx_clear-at-the-end-of-the-test.patch
+selftests-mm-add-uffd_test_case_ops-to-allow-test-case-specific-operations.patch
+selftests-mm-add-uffdio_move-ioctl-test.patch
 
