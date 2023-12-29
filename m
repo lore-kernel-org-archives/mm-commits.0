@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3714112B93
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 19:05:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7696712B9B
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 19:05:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K/9lTB8t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1833C433C8;
-	Fri, 29 Dec 2023 19:05:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BoEgvACL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA28BC433C7;
+	Fri, 29 Dec 2023 19:05:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703876707;
-	bh=wcRTtWkFW6qNSwApcEXGb1HSicvwDfaMuXdyOOXGz9Y=;
+	s=korg; t=1703876726;
+	bh=oHbG8zxWAY0q0H6Jn14n7I4/3xZ+kXjUXFqY0Sfq85w=;
 	h=Date:To:From:Subject:From;
-	b=K/9lTB8tmKRSwjXZmJjaiDVmpTkUYplKn3FIWTci7QYz/VRF3mqa7mv4HT3DaHnqv
-	 iHj/5xrIYS8/Ohj8C5jnT6WxI1XQjXKIlfQpwIwyCpr4ABZTzYc/71aj0DTknEEBiP
-	 Wqq/bj+fkF6I9ax5N4i4T+Ge0d35WgRMte+lPSZQ=
-Date: Fri, 29 Dec 2023 11:05:07 -0800
-To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,mike.kravetz@oracle.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=BoEgvACLwCPkmVJG2fp2deYNIaelR8w+t37zn6WsakL72vLaTTxEi6QLLTPmGO6nv
+	 /zK3LyAlx9jbXzvB24dyev5bEumUWEHoJmPAQrbeYXXctTu9vYxHjEodfIeeNzdCmR
+	 JCANUP1DeIvbEK6vreqQHVKyZgipl5X5yDvevFxY=
+Date: Fri, 29 Dec 2023 11:05:26 -0800
+To: mm-commits@vger.kernel.org,naoya.horiguchi@nec.com,linmiaohe@huawei.com,david@redhat.com,nao.horiguchi@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] maintainers-remove-hugetlb-maintainer-mike-kravetz-fix.patch removed from -mm tree
-Message-Id: <20231229190507.A1833C433C8@smtp.kernel.org>
+Subject: [folded-merged] maintainers-hand-over-hwpoison-maintainership-to-miaohe-lin-v2.patch removed from -mm tree
+Message-Id: <20231229190526.DA28BC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,44 +27,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maintainers-remove-hugetlb-maintainer-mike-kravetz-fix
+     Subject: maintainers-hand-over-hwpoison-maintainership-to-miaohe-lin-v2
 has been removed from the -mm tree.  Its filename was
-     maintainers-remove-hugetlb-maintainer-mike-kravetz-fix.patch
+     maintainers-hand-over-hwpoison-maintainership-to-miaohe-lin-v2.patch
 
-This patch was dropped because it was folded into maintainers-remove-hugetlb-maintainer-mike-kravetz.patch
+This patch was dropped because it was folded into maintainers-hand-over-hwpoison-maintainership-to-miaohe-lin.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: maintainers-remove-hugetlb-maintainer-mike-kravetz-fix
-Date: Wed Dec 20 02:23:04 PM PST 2023
+From: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Subject: maintainers-hand-over-hwpoison-maintainership-to-miaohe-lin-v2
+Date: Sat, 23 Dec 2023 12:11:15 +0900
 
-update CREDITS
+update to keep myself as a reviewer 
 
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Link: https://lkml.kernel.org/r/20231223031115.GA2883156@u2004
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- CREDITS |    4 ++++
- 1 file changed, 4 insertions(+)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/CREDITS~maintainers-remove-hugetlb-maintainer-mike-kravetz-fix
-+++ a/CREDITS
-@@ -2126,6 +2126,10 @@ S: 2213 La Terrace Circle
- S: San Jose, CA 95123
- S: USA
+--- a/MAINTAINERS~maintainers-hand-over-hwpoison-maintainership-to-miaohe-lin-v2
++++ a/MAINTAINERS
+@@ -9784,6 +9784,7 @@ F:	drivers/media/platform/st/sti/hva
  
-+N: Mike Kravetz
-+E: mike.kravetz@oracle.com
-+D: Maintenance and development of the hugetlb subsystem
-+
- N: Andreas S. Krebs
- E: akrebs@altavista.net
- D: CYPRESS CY82C693 chipset IDE, Digital's PC-Alpha 164SX boards
+ HWPOISON MEMORY FAILURE HANDLING
+ M:	Miaohe Lin <linmiaohe@huawei.com>
++R:	Naoya Horiguchi <naoya.horiguchi@nec.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	mm/hwpoison-inject.c
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from nao.horiguchi@gmail.com are
 
-maintainers-remove-hugetlb-maintainer-mike-kravetz.patch
-kasan-stop-leaking-stack-trace-handles-fix.patch
+maintainers-hand-over-hwpoison-maintainership-to-miaohe-lin.patch
 
