@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF3CA13AF9
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:00:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB3F413FE6
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:00:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="y40cT21w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A98E9C433C9;
-	Fri, 29 Dec 2023 20:00:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CJyXBQQc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B70C4C433CB;
+	Fri, 29 Dec 2023 20:00:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703880052;
-	bh=bcnIruq+m0icX6m/vIicL5POPV5uJxKxXpO5YcqBt1w=;
+	s=korg; t=1703880053;
+	bh=xNiiV5O/18hzQekDVRXyrG1a+hRhXfwWQmkZoEgwXVk=;
 	h=Date:To:From:Subject:From;
-	b=y40cT21wTP9TBx9uD5PmuDwUxwuvRbpyAxTLI9MpL54gyVAPjeLhHUQdyGVK8VxCh
-	 NX6/IR1m5YrTXcCcqLaRCBV1dBmMmORWyx5gittvRrN0yZrhVnHfXkFGwiMy43XKOb
-	 vFFhs2ddIcnhzmgzeesHu1G9ZpCYzxgID7fIbhUk=
-Date: Fri, 29 Dec 2023 12:00:52 -0800
+	b=CJyXBQQcJ5WPlGKqUUSb9FyoOADcWIkqC9ZymwgojJl5IUtbZ2fWp5AxUYcTyupqX
+	 xqwTiGEyiBYV7xFm9KbWhB+hNDLr299d1jFc7+u2yH4vVXMqqrSxZwUb2RLPaHRTnr
+	 7hINEQ9iZ8i1B1wAgMDdWjQ5S1d8UVppXrpMhdtg=
+Date: Fri, 29 Dec 2023 12:00:53 -0800
 To: mm-commits@vger.kernel.org,ryabinin.a.a@gmail.com,leitao@debian.org,glider@google.com,eugenis@google.com,elver@google.com,dvyukov@google.com,alobakin@pm.me,andreyknvl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kasan-reorder-tests.patch removed from -mm tree
-Message-Id: <20231229200052.A98E9C433C9@smtp.kernel.org>
+Subject: [merged mm-stable] kasan-rename-and-document-kasan_unpoison_object_data.patch removed from -mm tree
+Message-Id: <20231229200053.B70C4C433CB@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,540 +27,217 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kasan: reorder tests
+     Subject: kasan: rename and document kasan_(un)poison_object_data
 has been removed from the -mm tree.  Its filename was
-     kasan-reorder-tests.patch
+     kasan-rename-and-document-kasan_unpoison_object_data.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: reorder tests
-Date: Tue, 19 Dec 2023 23:29:02 +0100
+Subject: kasan: rename and document kasan_(un)poison_object_data
+Date: Tue, 19 Dec 2023 23:29:03 +0100
 
-Put closely related tests next to each other.
+Rename kasan_unpoison_object_data to kasan_unpoison_new_object and add a
+documentation comment.  Do the same for kasan_poison_object_data.
+
+The new names and the comments should suggest the users that these hooks
+are intended for internal use by the slab allocator.
+
+The following patch will remove non-slab-internal uses of these hooks.
 
 No functional changes.
 
-Link: https://lkml.kernel.org/r/acf0ee309394dbb5764c400434753ff030dd3d6c.1703024586.git.andreyknvl@google.com
+[andreyknvl@google.com: update references to renamed functions in comments]
+  Link: https://lkml.kernel.org/r/20231221180637.105098-1-andrey.konovalov@linux.dev
+Link: https://lkml.kernel.org/r/eab156ebbd635f9635ef67d1a4271f716994e628.1703024586.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Lobakin <alobakin@pm.me>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Breno Leitao <leitao@debian.org>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan_test.c |  418 ++++++++++++++++++++--------------------
- 1 file changed, 209 insertions(+), 209 deletions(-)
+ include/linux/kasan.h |   35 +++++++++++++++++++++++++++--------
+ mm/kasan/common.c     |    4 ++--
+ mm/kasan/shadow.c     |    4 ++--
+ mm/slab.c             |   10 ++++------
+ mm/slub.c             |    4 ++--
+ net/core/skbuff.c     |    8 ++++----
+ 6 files changed, 41 insertions(+), 24 deletions(-)
 
---- a/mm/kasan/kasan_test.c~kasan-reorder-tests
-+++ a/mm/kasan/kasan_test.c
-@@ -214,6 +214,23 @@ static void kmalloc_node_oob_right(struc
+--- a/include/linux/kasan.h~kasan-rename-and-document-kasan_unpoison_object_data
++++ a/include/linux/kasan.h
+@@ -129,20 +129,39 @@ static __always_inline void kasan_poison
+ 		__kasan_poison_slab(slab);
  }
  
- /*
-+ * Check that KASAN detects an out-of-bounds access for a big object allocated
-+ * via kmalloc(). But not as big as to trigger the page_alloc fallback for SLUB.
-+ */
-+static void kmalloc_big_oob_right(struct kunit *test)
-+{
-+	char *ptr;
-+	size_t size = KMALLOC_MAX_CACHE_SIZE - 256;
-+
-+	ptr = kmalloc(size, GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
-+
-+	OPTIMIZER_HIDE_VAR(ptr);
-+	KUNIT_EXPECT_KASAN_FAIL(test, ptr[size] = 0);
-+	kfree(ptr);
-+}
-+
-+/*
-  * The kmalloc_large_* tests below use kmalloc() to allocate a memory chunk
-  * that does not fit into the largest slab cache and therefore is allocated via
-  * the page_alloc fallback for SLUB. SLAB has no such fallback, and thus these
-@@ -299,23 +316,6 @@ static void page_alloc_uaf(struct kunit
- 	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr)[0]);
- }
- 
--/*
-- * Check that KASAN detects an out-of-bounds access for a big object allocated
-- * via kmalloc(). But not as big as to trigger the page_alloc fallback for SLUB.
-- */
--static void kmalloc_big_oob_right(struct kunit *test)
--{
--	char *ptr;
--	size_t size = KMALLOC_MAX_CACHE_SIZE - 256;
--
--	ptr = kmalloc(size, GFP_KERNEL);
--	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
--
--	OPTIMIZER_HIDE_VAR(ptr);
--	KUNIT_EXPECT_KASAN_FAIL(test, ptr[size] = 0);
--	kfree(ptr);
--}
--
- static void krealloc_more_oob_helper(struct kunit *test,
- 					size_t size1, size_t size2)
- {
-@@ -710,6 +710,126 @@ static void kmalloc_uaf3(struct kunit *t
- 	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr1)[8]);
- }
- 
-+static void kmalloc_double_kzfree(struct kunit *test)
-+{
-+	char *ptr;
-+	size_t size = 16;
-+
-+	ptr = kmalloc(size, GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
-+
-+	kfree_sensitive(ptr);
-+	KUNIT_EXPECT_KASAN_FAIL(test, kfree_sensitive(ptr));
-+}
-+
-+/* Check that ksize() does NOT unpoison whole object. */
-+static void ksize_unpoisons_memory(struct kunit *test)
-+{
-+	char *ptr;
-+	size_t size = 128 - KASAN_GRANULE_SIZE - 5;
-+	size_t real_size;
-+
-+	ptr = kmalloc(size, GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
-+
-+	real_size = ksize(ptr);
-+	KUNIT_EXPECT_GT(test, real_size, size);
-+
-+	OPTIMIZER_HIDE_VAR(ptr);
-+
-+	/* These accesses shouldn't trigger a KASAN report. */
-+	ptr[0] = 'x';
-+	ptr[size - 1] = 'x';
-+
-+	/* These must trigger a KASAN report. */
-+	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
-+		KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr)[size]);
-+	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr)[size + 5]);
-+	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr)[real_size - 1]);
-+
-+	kfree(ptr);
-+}
-+
-+/*
-+ * Check that a use-after-free is detected by ksize() and via normal accesses
-+ * after it.
-+ */
-+static void ksize_uaf(struct kunit *test)
-+{
-+	char *ptr;
-+	int size = 128 - KASAN_GRANULE_SIZE;
-+
-+	ptr = kmalloc(size, GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
-+	kfree(ptr);
-+
-+	OPTIMIZER_HIDE_VAR(ptr);
-+	KUNIT_EXPECT_KASAN_FAIL(test, ksize(ptr));
-+	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr)[0]);
-+	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr)[size]);
-+}
-+
-+/*
-+ * The two tests below check that Generic KASAN prints auxiliary stack traces
-+ * for RCU callbacks and workqueues. The reports need to be inspected manually.
+-void __kasan_unpoison_object_data(struct kmem_cache *cache, void *object);
+-static __always_inline void kasan_unpoison_object_data(struct kmem_cache *cache,
++void __kasan_unpoison_new_object(struct kmem_cache *cache, void *object);
++/**
++ * kasan_unpoison_new_object - Temporarily unpoison a new slab object.
++ * @cache: Cache the object belong to.
++ * @object: Pointer to the object.
 + *
-+ * These tests are still enabled for other KASAN modes to make sure that all
-+ * modes report bad accesses in tested scenarios.
++ * This function is intended for the slab allocator's internal use. It
++ * temporarily unpoisons an object from a newly allocated slab without doing
++ * anything else. The object must later be repoisoned by
++ * kasan_poison_new_object().
 + */
-+
-+static struct kasan_rcu_info {
-+	int i;
-+	struct rcu_head rcu;
-+} *global_rcu_ptr;
-+
-+static void rcu_uaf_reclaim(struct rcu_head *rp)
-+{
-+	struct kasan_rcu_info *fp =
-+		container_of(rp, struct kasan_rcu_info, rcu);
-+
-+	kfree(fp);
-+	((volatile struct kasan_rcu_info *)fp)->i;
-+}
-+
-+static void rcu_uaf(struct kunit *test)
-+{
-+	struct kasan_rcu_info *ptr;
-+
-+	ptr = kmalloc(sizeof(struct kasan_rcu_info), GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
-+
-+	global_rcu_ptr = rcu_dereference_protected(
-+				(struct kasan_rcu_info __rcu *)ptr, NULL);
-+
-+	KUNIT_EXPECT_KASAN_FAIL(test,
-+		call_rcu(&global_rcu_ptr->rcu, rcu_uaf_reclaim);
-+		rcu_barrier());
-+}
-+
-+static void workqueue_uaf_work(struct work_struct *work)
-+{
-+	kfree(work);
-+}
-+
-+static void workqueue_uaf(struct kunit *test)
-+{
-+	struct workqueue_struct *workqueue;
-+	struct work_struct *work;
-+
-+	workqueue = create_workqueue("kasan_workqueue_test");
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, workqueue);
-+
-+	work = kmalloc(sizeof(struct work_struct), GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, work);
-+
-+	INIT_WORK(work, workqueue_uaf_work);
-+	queue_work(workqueue, work);
-+	destroy_workqueue(workqueue);
-+
-+	KUNIT_EXPECT_KASAN_FAIL(test,
-+		((volatile struct work_struct *)work)->data);
-+}
-+
- static void kfree_via_page(struct kunit *test)
++static __always_inline void kasan_unpoison_new_object(struct kmem_cache *cache,
+ 							void *object)
  {
- 	char *ptr;
-@@ -760,6 +880,69 @@ static void kmem_cache_oob(struct kunit
- 	kmem_cache_destroy(cache);
+ 	if (kasan_enabled())
+-		__kasan_unpoison_object_data(cache, object);
++		__kasan_unpoison_new_object(cache, object);
  }
  
-+static void kmem_cache_double_free(struct kunit *test)
-+{
-+	char *p;
-+	size_t size = 200;
-+	struct kmem_cache *cache;
-+
-+	cache = kmem_cache_create("test_cache", size, 0, 0, NULL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, cache);
-+
-+	p = kmem_cache_alloc(cache, GFP_KERNEL);
-+	if (!p) {
-+		kunit_err(test, "Allocation failed: %s\n", __func__);
-+		kmem_cache_destroy(cache);
-+		return;
-+	}
-+
-+	kmem_cache_free(cache, p);
-+	KUNIT_EXPECT_KASAN_FAIL(test, kmem_cache_free(cache, p));
-+	kmem_cache_destroy(cache);
-+}
-+
-+static void kmem_cache_invalid_free(struct kunit *test)
-+{
-+	char *p;
-+	size_t size = 200;
-+	struct kmem_cache *cache;
-+
-+	cache = kmem_cache_create("test_cache", size, 0, SLAB_TYPESAFE_BY_RCU,
-+				  NULL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, cache);
-+
-+	p = kmem_cache_alloc(cache, GFP_KERNEL);
-+	if (!p) {
-+		kunit_err(test, "Allocation failed: %s\n", __func__);
-+		kmem_cache_destroy(cache);
-+		return;
-+	}
-+
-+	/* Trigger invalid free, the object doesn't get freed. */
-+	KUNIT_EXPECT_KASAN_FAIL(test, kmem_cache_free(cache, p + 1));
-+
-+	/*
-+	 * Properly free the object to prevent the "Objects remaining in
-+	 * test_cache on __kmem_cache_shutdown" BUG failure.
-+	 */
-+	kmem_cache_free(cache, p);
-+
-+	kmem_cache_destroy(cache);
-+}
-+
-+static void empty_cache_ctor(void *object) { }
-+
-+static void kmem_cache_double_destroy(struct kunit *test)
-+{
-+	struct kmem_cache *cache;
-+
-+	/* Provide a constructor to prevent cache merging. */
-+	cache = kmem_cache_create("test_cache", 200, 0, 0, empty_cache_ctor);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, cache);
-+	kmem_cache_destroy(cache);
-+	KUNIT_EXPECT_KASAN_FAIL(test, kmem_cache_destroy(cache));
-+}
-+
- static void kmem_cache_accounted(struct kunit *test)
+-void __kasan_poison_object_data(struct kmem_cache *cache, void *object);
+-static __always_inline void kasan_poison_object_data(struct kmem_cache *cache,
++void __kasan_poison_new_object(struct kmem_cache *cache, void *object);
++/**
++ * kasan_unpoison_new_object - Repoison a new slab object.
++ * @cache: Cache the object belong to.
++ * @object: Pointer to the object.
++ *
++ * This function is intended for the slab allocator's internal use. It
++ * repoisons an object that was previously unpoisoned by
++ * kasan_unpoison_new_object() without doing anything else.
++ */
++static __always_inline void kasan_poison_new_object(struct kmem_cache *cache,
+ 							void *object)
  {
- 	int i;
-@@ -1157,53 +1340,6 @@ static void kasan_global_oob_left(struct
- 	KUNIT_EXPECT_KASAN_FAIL(test, *(volatile char *)p);
+ 	if (kasan_enabled())
+-		__kasan_poison_object_data(cache, object);
++		__kasan_poison_new_object(cache, object);
  }
  
--/* Check that ksize() does NOT unpoison whole object. */
--static void ksize_unpoisons_memory(struct kunit *test)
--{
--	char *ptr;
--	size_t size = 128 - KASAN_GRANULE_SIZE - 5;
--	size_t real_size;
--
--	ptr = kmalloc(size, GFP_KERNEL);
--	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
--
--	real_size = ksize(ptr);
--	KUNIT_EXPECT_GT(test, real_size, size);
--
--	OPTIMIZER_HIDE_VAR(ptr);
--
--	/* These accesses shouldn't trigger a KASAN report. */
--	ptr[0] = 'x';
--	ptr[size - 1] = 'x';
--
--	/* These must trigger a KASAN report. */
--	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
--		KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr)[size]);
--	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr)[size + 5]);
--	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr)[real_size - 1]);
--
--	kfree(ptr);
--}
--
--/*
-- * Check that a use-after-free is detected by ksize() and via normal accesses
-- * after it.
-- */
--static void ksize_uaf(struct kunit *test)
--{
--	char *ptr;
--	int size = 128 - KASAN_GRANULE_SIZE;
--
--	ptr = kmalloc(size, GFP_KERNEL);
--	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
--	kfree(ptr);
--
--	OPTIMIZER_HIDE_VAR(ptr);
--	KUNIT_EXPECT_KASAN_FAIL(test, ksize(ptr));
--	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr)[0]);
--	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr)[size]);
--}
--
- static void kasan_stack_oob(struct kunit *test)
- {
- 	char stack_array[10];
-@@ -1246,69 +1382,6 @@ static void kasan_alloca_oob_right(struc
- 	KUNIT_EXPECT_KASAN_FAIL(test, *(volatile char *)p);
+ void * __must_check __kasan_init_slab_obj(struct kmem_cache *cache,
+@@ -342,9 +361,9 @@ static inline bool kasan_unpoison_pages(
+ 	return false;
+ }
+ static inline void kasan_poison_slab(struct slab *slab) {}
+-static inline void kasan_unpoison_object_data(struct kmem_cache *cache,
++static inline void kasan_unpoison_new_object(struct kmem_cache *cache,
+ 					void *object) {}
+-static inline void kasan_poison_object_data(struct kmem_cache *cache,
++static inline void kasan_poison_new_object(struct kmem_cache *cache,
+ 					void *object) {}
+ static inline void *kasan_init_slab_obj(struct kmem_cache *cache,
+ 				const void *object)
+--- a/mm/kasan/common.c~kasan-rename-and-document-kasan_unpoison_object_data
++++ a/mm/kasan/common.c
+@@ -143,12 +143,12 @@ void __kasan_poison_slab(struct slab *sl
+ 		     KASAN_SLAB_REDZONE, false);
  }
  
--static void kmem_cache_double_free(struct kunit *test)
--{
--	char *p;
--	size_t size = 200;
--	struct kmem_cache *cache;
--
--	cache = kmem_cache_create("test_cache", size, 0, 0, NULL);
--	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, cache);
--
--	p = kmem_cache_alloc(cache, GFP_KERNEL);
--	if (!p) {
--		kunit_err(test, "Allocation failed: %s\n", __func__);
--		kmem_cache_destroy(cache);
--		return;
--	}
--
--	kmem_cache_free(cache, p);
--	KUNIT_EXPECT_KASAN_FAIL(test, kmem_cache_free(cache, p));
--	kmem_cache_destroy(cache);
--}
--
--static void kmem_cache_invalid_free(struct kunit *test)
--{
--	char *p;
--	size_t size = 200;
--	struct kmem_cache *cache;
--
--	cache = kmem_cache_create("test_cache", size, 0, SLAB_TYPESAFE_BY_RCU,
--				  NULL);
--	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, cache);
--
--	p = kmem_cache_alloc(cache, GFP_KERNEL);
--	if (!p) {
--		kunit_err(test, "Allocation failed: %s\n", __func__);
--		kmem_cache_destroy(cache);
--		return;
--	}
--
--	/* Trigger invalid free, the object doesn't get freed. */
--	KUNIT_EXPECT_KASAN_FAIL(test, kmem_cache_free(cache, p + 1));
--
--	/*
--	 * Properly free the object to prevent the "Objects remaining in
--	 * test_cache on __kmem_cache_shutdown" BUG failure.
--	 */
--	kmem_cache_free(cache, p);
--
--	kmem_cache_destroy(cache);
--}
--
--static void empty_cache_ctor(void *object) { }
--
--static void kmem_cache_double_destroy(struct kunit *test)
--{
--	struct kmem_cache *cache;
--
--	/* Provide a constructor to prevent cache merging. */
--	cache = kmem_cache_create("test_cache", 200, 0, 0, empty_cache_ctor);
--	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, cache);
--	kmem_cache_destroy(cache);
--	KUNIT_EXPECT_KASAN_FAIL(test, kmem_cache_destroy(cache));
--}
--
- static void kasan_memchr(struct kunit *test)
+-void __kasan_unpoison_object_data(struct kmem_cache *cache, void *object)
++void __kasan_unpoison_new_object(struct kmem_cache *cache, void *object)
  {
- 	char *ptr;
-@@ -1470,79 +1543,6 @@ static void kasan_bitops_tags(struct kun
- 	kfree(bits);
+ 	kasan_unpoison(object, cache->object_size, false);
  }
  
--static void kmalloc_double_kzfree(struct kunit *test)
--{
--	char *ptr;
--	size_t size = 16;
--
--	ptr = kmalloc(size, GFP_KERNEL);
--	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
--
--	kfree_sensitive(ptr);
--	KUNIT_EXPECT_KASAN_FAIL(test, kfree_sensitive(ptr));
--}
--
--/*
-- * The two tests below check that Generic KASAN prints auxiliary stack traces
-- * for RCU callbacks and workqueues. The reports need to be inspected manually.
-- *
-- * These tests are still enabled for other KASAN modes to make sure that all
-- * modes report bad accesses in tested scenarios.
-- */
--
--static struct kasan_rcu_info {
--	int i;
--	struct rcu_head rcu;
--} *global_rcu_ptr;
--
--static void rcu_uaf_reclaim(struct rcu_head *rp)
--{
--	struct kasan_rcu_info *fp =
--		container_of(rp, struct kasan_rcu_info, rcu);
--
--	kfree(fp);
--	((volatile struct kasan_rcu_info *)fp)->i;
--}
--
--static void rcu_uaf(struct kunit *test)
--{
--	struct kasan_rcu_info *ptr;
--
--	ptr = kmalloc(sizeof(struct kasan_rcu_info), GFP_KERNEL);
--	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
--
--	global_rcu_ptr = rcu_dereference_protected(
--				(struct kasan_rcu_info __rcu *)ptr, NULL);
--
--	KUNIT_EXPECT_KASAN_FAIL(test,
--		call_rcu(&global_rcu_ptr->rcu, rcu_uaf_reclaim);
--		rcu_barrier());
--}
--
--static void workqueue_uaf_work(struct work_struct *work)
--{
--	kfree(work);
--}
--
--static void workqueue_uaf(struct kunit *test)
--{
--	struct workqueue_struct *workqueue;
--	struct work_struct *work;
--
--	workqueue = create_workqueue("kasan_workqueue_test");
--	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, workqueue);
--
--	work = kmalloc(sizeof(struct work_struct), GFP_KERNEL);
--	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, work);
--
--	INIT_WORK(work, workqueue_uaf_work);
--	queue_work(workqueue, work);
--	destroy_workqueue(workqueue);
--
--	KUNIT_EXPECT_KASAN_FAIL(test,
--		((volatile struct work_struct *)work)->data);
--}
--
- static void vmalloc_helpers_tags(struct kunit *test)
+-void __kasan_poison_object_data(struct kmem_cache *cache, void *object)
++void __kasan_poison_new_object(struct kmem_cache *cache, void *object)
  {
- 	void *ptr;
-@@ -1829,12 +1829,12 @@ static struct kunit_case kasan_kunit_tes
- 	KUNIT_CASE(kmalloc_oob_right),
- 	KUNIT_CASE(kmalloc_oob_left),
- 	KUNIT_CASE(kmalloc_node_oob_right),
-+	KUNIT_CASE(kmalloc_big_oob_right),
- 	KUNIT_CASE(kmalloc_large_oob_right),
- 	KUNIT_CASE(kmalloc_large_uaf),
- 	KUNIT_CASE(kmalloc_large_invalid_free),
- 	KUNIT_CASE(page_alloc_oob_right),
- 	KUNIT_CASE(page_alloc_uaf),
--	KUNIT_CASE(kmalloc_big_oob_right),
- 	KUNIT_CASE(krealloc_more_oob),
- 	KUNIT_CASE(krealloc_less_oob),
- 	KUNIT_CASE(krealloc_large_more_oob),
-@@ -1853,9 +1853,17 @@ static struct kunit_case kasan_kunit_tes
- 	KUNIT_CASE(kmalloc_uaf_memset),
- 	KUNIT_CASE(kmalloc_uaf2),
- 	KUNIT_CASE(kmalloc_uaf3),
-+	KUNIT_CASE(kmalloc_double_kzfree),
-+	KUNIT_CASE(ksize_unpoisons_memory),
-+	KUNIT_CASE(ksize_uaf),
-+	KUNIT_CASE(rcu_uaf),
-+	KUNIT_CASE(workqueue_uaf),
- 	KUNIT_CASE(kfree_via_page),
- 	KUNIT_CASE(kfree_via_phys),
- 	KUNIT_CASE(kmem_cache_oob),
-+	KUNIT_CASE(kmem_cache_double_free),
-+	KUNIT_CASE(kmem_cache_invalid_free),
-+	KUNIT_CASE(kmem_cache_double_destroy),
- 	KUNIT_CASE(kmem_cache_accounted),
- 	KUNIT_CASE(kmem_cache_bulk),
- 	KUNIT_CASE(mempool_kmalloc_oob_right),
-@@ -1875,19 +1883,11 @@ static struct kunit_case kasan_kunit_tes
- 	KUNIT_CASE(kasan_stack_oob),
- 	KUNIT_CASE(kasan_alloca_oob_left),
- 	KUNIT_CASE(kasan_alloca_oob_right),
--	KUNIT_CASE(ksize_unpoisons_memory),
--	KUNIT_CASE(ksize_uaf),
--	KUNIT_CASE(kmem_cache_double_free),
--	KUNIT_CASE(kmem_cache_invalid_free),
--	KUNIT_CASE(kmem_cache_double_destroy),
- 	KUNIT_CASE(kasan_memchr),
- 	KUNIT_CASE(kasan_memcmp),
- 	KUNIT_CASE(kasan_strings),
- 	KUNIT_CASE(kasan_bitops_generic),
- 	KUNIT_CASE(kasan_bitops_tags),
--	KUNIT_CASE(kmalloc_double_kzfree),
--	KUNIT_CASE(rcu_uaf),
--	KUNIT_CASE(workqueue_uaf),
- 	KUNIT_CASE(vmalloc_helpers_tags),
- 	KUNIT_CASE(vmalloc_oob),
- 	KUNIT_CASE(vmap_tags),
+ 	kasan_poison(object, round_up(cache->object_size, KASAN_GRANULE_SIZE),
+ 			KASAN_SLAB_REDZONE, false);
+--- a/mm/kasan/shadow.c~kasan-rename-and-document-kasan_unpoison_object_data
++++ a/mm/kasan/shadow.c
+@@ -130,7 +130,7 @@ void kasan_poison(const void *addr, size
+ 
+ 	/*
+ 	 * Perform shadow offset calculation based on untagged address, as
+-	 * some of the callers (e.g. kasan_poison_object_data) pass tagged
++	 * some of the callers (e.g. kasan_poison_new_object) pass tagged
+ 	 * addresses to this function.
+ 	 */
+ 	addr = kasan_reset_tag(addr);
+@@ -170,7 +170,7 @@ void kasan_unpoison(const void *addr, si
+ 
+ 	/*
+ 	 * Perform shadow offset calculation based on untagged address, as
+-	 * some of the callers (e.g. kasan_unpoison_object_data) pass tagged
++	 * some of the callers (e.g. kasan_unpoison_new_object) pass tagged
+ 	 * addresses to this function.
+ 	 */
+ 	addr = kasan_reset_tag(addr);
+--- a/mm/slab.c~kasan-rename-and-document-kasan_unpoison_object_data
++++ a/mm/slab.c
+@@ -2327,11 +2327,9 @@ static void cache_init_objs_debug(struct
+ 		 * They must also be threaded.
+ 		 */
+ 		if (cachep->ctor && !(cachep->flags & SLAB_POISON)) {
+-			kasan_unpoison_object_data(cachep,
+-						   objp + obj_offset(cachep));
++			kasan_unpoison_new_object(cachep, objp + obj_offset(cachep));
+ 			cachep->ctor(objp + obj_offset(cachep));
+-			kasan_poison_object_data(
+-				cachep, objp + obj_offset(cachep));
++			kasan_poison_new_object(cachep, objp + obj_offset(cachep));
+ 		}
+ 
+ 		if (cachep->flags & SLAB_RED_ZONE) {
+@@ -2472,9 +2470,9 @@ static void cache_init_objs(struct kmem_
+ 
+ 		/* constructor could break poison info */
+ 		if (DEBUG == 0 && cachep->ctor) {
+-			kasan_unpoison_object_data(cachep, objp);
++			kasan_unpoison_new_object(cachep, objp);
+ 			cachep->ctor(objp);
+-			kasan_poison_object_data(cachep, objp);
++			kasan_poison_new_object(cachep, objp);
+ 		}
+ 
+ 		if (!shuffled)
+--- a/mm/slub.c~kasan-rename-and-document-kasan_unpoison_object_data
++++ a/mm/slub.c
+@@ -1860,9 +1860,9 @@ static void *setup_object(struct kmem_ca
+ 	setup_object_debug(s, object);
+ 	object = kasan_init_slab_obj(s, object);
+ 	if (unlikely(s->ctor)) {
+-		kasan_unpoison_object_data(s, object);
++		kasan_unpoison_new_object(s, object);
+ 		s->ctor(object);
+-		kasan_poison_object_data(s, object);
++		kasan_poison_new_object(s, object);
+ 	}
+ 	return object;
+ }
+--- a/net/core/skbuff.c~kasan-rename-and-document-kasan_unpoison_object_data
++++ a/net/core/skbuff.c
+@@ -337,7 +337,7 @@ static struct sk_buff *napi_skb_cache_ge
+ 	}
+ 
+ 	skb = nc->skb_cache[--nc->skb_count];
+-	kasan_unpoison_object_data(skbuff_cache, skb);
++	kasan_unpoison_new_object(skbuff_cache, skb);
+ 
+ 	return skb;
+ }
+@@ -1309,13 +1309,13 @@ static void napi_skb_cache_put(struct sk
+ 	struct napi_alloc_cache *nc = this_cpu_ptr(&napi_alloc_cache);
+ 	u32 i;
+ 
+-	kasan_poison_object_data(skbuff_cache, skb);
++	kasan_poison_new_object(skbuff_cache, skb);
+ 	nc->skb_cache[nc->skb_count++] = skb;
+ 
+ 	if (unlikely(nc->skb_count == NAPI_SKB_CACHE_SIZE)) {
+ 		for (i = NAPI_SKB_CACHE_HALF; i < NAPI_SKB_CACHE_SIZE; i++)
+-			kasan_unpoison_object_data(skbuff_cache,
+-						   nc->skb_cache[i]);
++			kasan_unpoison_new_object(skbuff_cache,
++						  nc->skb_cache[i]);
+ 
+ 		kmem_cache_free_bulk(skbuff_cache, NAPI_SKB_CACHE_HALF,
+ 				     nc->skb_cache + NAPI_SKB_CACHE_HALF);
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
