@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD0DD13FE1
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:23:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1634113FE1
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:23:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cKKyjVGh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96391C433C8;
-	Fri, 29 Dec 2023 20:23:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q1y6Xj1A"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FC22C433C8;
+	Fri, 29 Dec 2023 20:23:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703881402;
-	bh=R6nIQuWe1Gmu5i2J4zrJ7Ib3OHJGnN4rdrIR42GkH5g=;
+	s=korg; t=1703881403;
+	bh=E/lCD4XpBsR4zJVGqWY3x6QDEXAtnCMPT5AL2LlYvOg=;
 	h=Date:To:From:Subject:From;
-	b=cKKyjVGhyg95PkBrK8Wz3mMzfiLFu7U3yJi/M2FQacPzd/Y6jT9VIX4CpR7FmHzK7
-	 NPWs69rca8wPI2BaYfbUQGD6g0cD/t2UVY/tvq+W4mciXAStypRWjTqAauKa+STPYX
-	 MuulzVbwrtQllEpklAvNaRlrqDkuu9X3AGAn17cY=
-Date: Fri, 29 Dec 2023 12:23:22 -0800
-To: mm-commits@vger.kernel.org,zhao_lei1@hoperun.com,zhang.zhengming@h3c.com,surenb@google.com,rppt@kernel.org,rafael@kernel.org,kunyu@nfschina.com,gregkh@linuxfoundation.org,nabijaczleweli@nabijaczleweli.xyz,akpm@linux-foundation.org
+	b=Q1y6Xj1AU/R+88/TqY46BaBSkfjet0A/gsmFWBXY5+i6P1c606PT2RQsLzAYRrWTw
+	 3dn4+jCc2SF88HWea0VRMVIbqf9EKBD75O2S1J+sfFo/S2nuBAPXKnS1GJ4TYbBVt2
+	 iWtoLN18axFvBnFOx6TcEAiyZjiBLP3mx0FzEy9A=
+Date: Fri, 29 Dec 2023 12:23:23 -0800
+To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,haokexin@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kernel-relay-remove-relay_file_splice_read-dead-code-doesnt-work.patch removed from -mm tree
-Message-Id: <20231229202322.96391C433C8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] nilfs2-add-missing-set_freezable-for-freezable-kthread.patch removed from -mm tree
+Message-Id: <20231229202323.8FC22C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,269 +27,44 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kernel: relay: remove relay_file_splice_read  dead code, doesn't work
+     Subject: nilfs2: add missing set_freezable() for freezable kthread
 has been removed from the -mm tree.  Its filename was
-     kernel-relay-remove-relay_file_splice_read-dead-code-doesnt-work.patch
+     nilfs2-add-missing-set_freezable-for-freezable-kthread.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ahelenia Ziemiańska <nabijaczleweli@nabijaczleweli.xyz>
-Subject: kernel: relay: remove relay_file_splice_read  dead code, doesn't work
-Date: Tue, 19 Dec 2023 23:24:14 +0100
+From: Kevin Hao <haokexin@gmail.com>
+Subject: nilfs2: add missing set_freezable() for freezable kthread
+Date: Tue, 19 Dec 2023 18:09:18 +0900
 
-Documentation/filesystems/relay.rst says to use
-	return debugfs_create_file(filename, mode, parent, buf,
-	                           &relay_file_operations);
-and this is the only way relay_file_operations is used.
+The kernel thread function nilfs_segctor_thread() invokes the
+try_to_freeze() in its loop.  But all the kernel threads are non-freezable
+by default.  So if we want to make a kernel thread to be freezable, we
+have to invoke set_freezable() explicitly.
 
-Thus: debugfs_create_file(&relay_file_operations)
-   -> __debugfs_create_file(&debugfs_full_proxy_file_operations,
-                            &relay_file_operations)
-   -> dentry{inode: {i_fop: &debugfs_full_proxy_file_operations},
-             d_fsdata: &relay_file_operations
-                       | DEBUGFS_FSDATA_IS_REAL_FOPS_BIT}
-
-debugfs_full_proxy_file_operations.open is full_proxy_open, which extracts
-the &relay_file_operations from the dentry, and allocates via
-__full_proxy_fops_init() new fops, with trivial wrappers around release,
-llseek, read, write, poll, and unlocked_ioctl, then replaces the fops on
-the opened file therewith.
-
-Naturally, all thusly-created debugfs files have .splice_read = NULL. 
-This was introduced in commit 49d200deaa68 ("debugfs: prevent access to
-removed files' private data") from 2016-03-22.
-
-AFAICT, relay_file_operations is the only struct file_operations used for
-debugfs which defines a .splice_read callback.  Hooking it up with
-
->	diff --git a/fs/debugfs/file.c b/fs/debugfs/file.c
->	index 5063434be0fc..952fcf5b2afa 100644
->	--- a/fs/debugfs/file.c
->	+++ b/fs/debugfs/file.c
->	@@ -328,6 +328,11 @@ FULL_PROXY_FUNC(write, ssize_t, filp,
->	 			loff_t *ppos),
->	 		ARGS(filp, buf, size, ppos));
->
->	+FULL_PROXY_FUNC(splice_read, long, in,
->	+		PROTO(struct file *in, loff_t *ppos, struct pipe_inode_info *pipe,
->	+			size_t len, unsigned int flags),
->	+		ARGS(in, ppos, pipe, len, flags));
->	+
->	 FULL_PROXY_FUNC(unlocked_ioctl, long, filp,
->	 		PROTO(struct file *filp, unsigned int cmd, unsigned long arg),
->	 		ARGS(filp, cmd, arg));
->	@@ -382,6 +387,8 @@ static void __full_proxy_fops_init(struct file_operations *proxy_fops,
->	 		proxy_fops->write = full_proxy_write;
->	 	if (real_fops->poll)
->	 		proxy_fops->poll = full_proxy_poll;
->	+	if (real_fops->splice_read)
->	+		proxy_fops->splice_read = full_proxy_splice_read;
->	 	if (real_fops->unlocked_ioctl)
->	 		proxy_fops->unlocked_ioctl = full_proxy_unlocked_ioctl;
->	 }
-
-shows it just doesn't work, and splicing always instantly returns empty
-(subsequent reads actually return the contents).
-
-No-one noticed it became dead code in 2016, who knows if it worked back
-then. Clearly no-one cares; just delete it.
-
-Link: https://lkml.kernel.org/r/dtexwpw6zcdx7dkx3xj5gyjp5syxmyretdcbcdtvrnukd4vvuh@tarta.nabijaczleweli.xyz
-Signed-off-by: Ahelenia Ziemiańska <nabijaczleweli@nabijaczleweli.xyz>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Li kunyu <kunyu@nfschina.com>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Rafael J. Wysocki <rafael@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Zhang Zhengming <zhang.zhengming@h3c.com>
-Cc: Zhao Lei <zhao_lei1@hoperun.com>
+Link: https://lkml.kernel.org/r/20231219090918.2329-1-konishi.ryusuke@gmail.com
+Signed-off-by: Kevin Hao <haokexin@gmail.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |  162 -----------------------------------------------
- 1 file changed, 162 deletions(-)
+ fs/nilfs2/segment.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/kernel/relay.c~kernel-relay-remove-relay_file_splice_read-dead-code-doesnt-work
-+++ a/kernel/relay.c
-@@ -1073,167 +1073,6 @@ static ssize_t relay_file_read(struct fi
- 	return written;
- }
+--- a/fs/nilfs2/segment.c~nilfs2-add-missing-set_freezable-for-freezable-kthread
++++ a/fs/nilfs2/segment.c
+@@ -2588,6 +2588,7 @@ static int nilfs_segctor_thread(void *ar
+ 		   "segctord starting. Construction interval = %lu seconds, CP frequency < %lu seconds",
+ 		   sci->sc_interval / HZ, sci->sc_mjcp_freq / HZ);
  
--static void relay_consume_bytes(struct rchan_buf *rbuf, int bytes_consumed)
--{
--	rbuf->bytes_consumed += bytes_consumed;
--
--	if (rbuf->bytes_consumed >= rbuf->chan->subbuf_size) {
--		relay_subbufs_consumed(rbuf->chan, rbuf->cpu, 1);
--		rbuf->bytes_consumed %= rbuf->chan->subbuf_size;
--	}
--}
--
--static void relay_pipe_buf_release(struct pipe_inode_info *pipe,
--				   struct pipe_buffer *buf)
--{
--	struct rchan_buf *rbuf;
--
--	rbuf = (struct rchan_buf *)page_private(buf->page);
--	relay_consume_bytes(rbuf, buf->private);
--}
--
--static const struct pipe_buf_operations relay_pipe_buf_ops = {
--	.release	= relay_pipe_buf_release,
--	.try_steal	= generic_pipe_buf_try_steal,
--	.get		= generic_pipe_buf_get,
--};
--
--static void relay_page_release(struct splice_pipe_desc *spd, unsigned int i)
--{
--}
--
--/*
-- *	subbuf_splice_actor - splice up to one subbuf's worth of data
-- */
--static ssize_t subbuf_splice_actor(struct file *in,
--			       loff_t *ppos,
--			       struct pipe_inode_info *pipe,
--			       size_t len,
--			       unsigned int flags,
--			       int *nonpad_ret)
--{
--	unsigned int pidx, poff, total_len, subbuf_pages, nr_pages;
--	struct rchan_buf *rbuf = in->private_data;
--	unsigned int subbuf_size = rbuf->chan->subbuf_size;
--	uint64_t pos = (uint64_t) *ppos;
--	uint32_t alloc_size = (uint32_t) rbuf->chan->alloc_size;
--	size_t read_start = (size_t) do_div(pos, alloc_size);
--	size_t read_subbuf = read_start / subbuf_size;
--	size_t padding = rbuf->padding[read_subbuf];
--	size_t nonpad_end = read_subbuf * subbuf_size + subbuf_size - padding;
--	struct page *pages[PIPE_DEF_BUFFERS];
--	struct partial_page partial[PIPE_DEF_BUFFERS];
--	struct splice_pipe_desc spd = {
--		.pages = pages,
--		.nr_pages = 0,
--		.nr_pages_max = PIPE_DEF_BUFFERS,
--		.partial = partial,
--		.ops = &relay_pipe_buf_ops,
--		.spd_release = relay_page_release,
--	};
--	ssize_t ret;
--
--	if (rbuf->subbufs_produced == rbuf->subbufs_consumed)
--		return 0;
--	if (splice_grow_spd(pipe, &spd))
--		return -ENOMEM;
--
--	/*
--	 * Adjust read len, if longer than what is available
--	 */
--	if (len > (subbuf_size - read_start % subbuf_size))
--		len = subbuf_size - read_start % subbuf_size;
--
--	subbuf_pages = rbuf->chan->alloc_size >> PAGE_SHIFT;
--	pidx = (read_start / PAGE_SIZE) % subbuf_pages;
--	poff = read_start & ~PAGE_MASK;
--	nr_pages = min_t(unsigned int, subbuf_pages, spd.nr_pages_max);
--
--	for (total_len = 0; spd.nr_pages < nr_pages; spd.nr_pages++) {
--		unsigned int this_len, this_end, private;
--		unsigned int cur_pos = read_start + total_len;
--
--		if (!len)
--			break;
--
--		this_len = min_t(unsigned long, len, PAGE_SIZE - poff);
--		private = this_len;
--
--		spd.pages[spd.nr_pages] = rbuf->page_array[pidx];
--		spd.partial[spd.nr_pages].offset = poff;
--
--		this_end = cur_pos + this_len;
--		if (this_end >= nonpad_end) {
--			this_len = nonpad_end - cur_pos;
--			private = this_len + padding;
--		}
--		spd.partial[spd.nr_pages].len = this_len;
--		spd.partial[spd.nr_pages].private = private;
--
--		len -= this_len;
--		total_len += this_len;
--		poff = 0;
--		pidx = (pidx + 1) % subbuf_pages;
--
--		if (this_end >= nonpad_end) {
--			spd.nr_pages++;
--			break;
--		}
--	}
--
--	ret = 0;
--	if (!spd.nr_pages)
--		goto out;
--
--	ret = *nonpad_ret = splice_to_pipe(pipe, &spd);
--	if (ret < 0 || ret < total_len)
--		goto out;
--
--        if (read_start + ret == nonpad_end)
--                ret += padding;
--
--out:
--	splice_shrink_spd(&spd);
--	return ret;
--}
--
--static ssize_t relay_file_splice_read(struct file *in,
--				      loff_t *ppos,
--				      struct pipe_inode_info *pipe,
--				      size_t len,
--				      unsigned int flags)
--{
--	ssize_t spliced;
--	int ret;
--	int nonpad_ret = 0;
--
--	ret = 0;
--	spliced = 0;
--
--	while (len && !spliced) {
--		ret = subbuf_splice_actor(in, ppos, pipe, len, flags, &nonpad_ret);
--		if (ret < 0)
--			break;
--		else if (!ret) {
--			if (flags & SPLICE_F_NONBLOCK)
--				ret = -EAGAIN;
--			break;
--		}
--
--		*ppos += ret;
--		if (ret > len)
--			len = 0;
--		else
--			len -= ret;
--		spliced += nonpad_ret;
--		nonpad_ret = 0;
--	}
--
--	if (spliced)
--		return spliced;
--
--	return ret;
--}
- 
- const struct file_operations relay_file_operations = {
- 	.open		= relay_file_open,
-@@ -1242,6 +1081,5 @@ const struct file_operations relay_file_
- 	.read		= relay_file_read,
- 	.llseek		= no_llseek,
- 	.release	= relay_file_release,
--	.splice_read	= relay_file_splice_read,
- };
- EXPORT_SYMBOL_GPL(relay_file_operations);
++	set_freezable();
+ 	spin_lock(&sci->sc_state_lock);
+  loop:
+ 	for (;;) {
 _
 
-Patches currently in -mm which might be from nabijaczleweli@nabijaczleweli.xyz are
+Patches currently in -mm which might be from haokexin@gmail.com are
 
 
