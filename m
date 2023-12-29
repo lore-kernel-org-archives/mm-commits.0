@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE4FF134BE
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:00:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FB29134BE
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:00:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VZhhGS/5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84EF4C433C8;
-	Fri, 29 Dec 2023 20:00:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="klujTP59"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDBACC433C8;
+	Fri, 29 Dec 2023 20:00:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703880002;
-	bh=4C7vjIFtfoAdmkSKdjX7Vv3NjDaZxjPsP9pqlTBGQwg=;
+	s=korg; t=1703880003;
+	bh=pIXAaYGG5AHDewD8m51NKd3+aZgNily5mLU2pn/HL8s=;
 	h=Date:To:From:Subject:From;
-	b=VZhhGS/5uFLY5/d2rcp/nRzv9nlM1e0Bx/WhLRM1OhfaGmQJTyc27A8MUpIT+KMYr
-	 r102/gEUHvb+4cQ/t59Bdy0VjoxDAbh8EuMzb6r1UMECLEou0kx1Sg/zrYV/0YbO4T
-	 zqg/KoCZdiyojI1V4xYGS0qSP6aIZzS94B+8a7Yc=
-Date: Fri, 29 Dec 2023 12:00:01 -0800
+	b=klujTP59aBtMqigBY2bkLNsXw3q7Ad7P7Vsmt2uUW+n96pbnRU9Lbzo/bj9ZQOgpN
+	 wK4rkh9kWr4jDUDbsNiDsuZGvxGDpnYfdYufno5zT+rRfVUxNn6MK1whjhCyBd7pvN
+	 TG4jKkGoeDEPXuaZFt8f+bNvkKA6k6y+efmJKoO0=
+Date: Fri, 29 Dec 2023 12:00:03 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-return-the-folio-from-__read_swap_cache_async.patch removed from -mm tree
-Message-Id: <20231229200002.84EF4C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-pass-a-folio-to-__swap_writepage.patch removed from -mm tree
+Message-Id: <20231229200003.CDBACC433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,397 +27,93 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: return the folio from __read_swap_cache_async()
+     Subject: mm: pass a folio to __swap_writepage()
 has been removed from the -mm tree.  Its filename was
-     mm-return-the-folio-from-__read_swap_cache_async.patch
+     mm-pass-a-folio-to-__swap_writepage.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: return the folio from __read_swap_cache_async()
-Date: Wed, 13 Dec 2023 21:58:30 +0000
+Subject: mm: pass a folio to __swap_writepage()
+Date: Wed, 13 Dec 2023 21:58:31 +0000
 
-Patch series "More swap folio conversions".
+Both callers now have a folio, so pass that in instead of the page. 
+Removes a few hidden calls to compound_head().
 
-These all seem like fairly straightforward conversions to me.  A lot of
-compound_head() calls get removed.  And page_swap_info(), which is nice.
-
-
-This patch (of 13):
-
-Move the folio->page conversion into the callers that actually want that. 
-Most of the callers are happier with the folio anyway.  If the
-page_allocated boolean is set, the folio allocated is of order-0, so it is
-safe to pass the page directly to swap_readpage().
-
-Link: https://lkml.kernel.org/r/20231213215842.671461-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20231213215842.671461-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231213215842.671461-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/zswap.h |    4 +-
- mm/swap.h             |    7 +--
- mm/swap_state.c       |   75 ++++++++++++++++++----------------------
- mm/zswap.c            |   58 +++++++++++++++---------------
- 4 files changed, 69 insertions(+), 75 deletions(-)
+ mm/page_io.c |   14 +++++++-------
+ mm/swap.h    |    2 +-
+ mm/zswap.c   |    2 +-
+ 3 files changed, 9 insertions(+), 9 deletions(-)
 
---- a/include/linux/zswap.h~mm-return-the-folio-from-__read_swap_cache_async
-+++ a/include/linux/zswap.h
-@@ -34,7 +34,7 @@ void zswap_swapon(int type);
- void zswap_swapoff(int type);
- void zswap_memcg_offline_cleanup(struct mem_cgroup *memcg);
- void zswap_lruvec_state_init(struct lruvec *lruvec);
--void zswap_page_swapin(struct page *page);
-+void zswap_folio_swapin(struct folio *folio);
- #else
- 
- struct zswap_lruvec_state {};
-@@ -54,7 +54,7 @@ static inline void zswap_swapon(int type
- static inline void zswap_swapoff(int type) {}
- static inline void zswap_memcg_offline_cleanup(struct mem_cgroup *memcg) {}
- static inline void zswap_lruvec_state_init(struct lruvec *lruvec) {}
--static inline void zswap_page_swapin(struct page *page) {}
-+static inline void zswap_folio_swapin(struct folio *folio) {}
- #endif
- 
- #endif /* _LINUX_ZSWAP_H */
---- a/mm/swap.h~mm-return-the-folio-from-__read_swap_cache_async
-+++ a/mm/swap.h
-@@ -49,10 +49,9 @@ struct page *read_swap_cache_async(swp_e
- 				   struct vm_area_struct *vma,
- 				   unsigned long addr,
- 				   struct swap_iocb **plug);
--struct page *__read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
--				     struct mempolicy *mpol, pgoff_t ilx,
--				     bool *new_page_allocated,
--				     bool skip_if_exists);
-+struct folio *__read_swap_cache_async(swp_entry_t entry, gfp_t gfp_flags,
-+		struct mempolicy *mpol, pgoff_t ilx, bool *new_page_allocated,
-+		bool skip_if_exists);
- struct page *swap_cluster_readahead(swp_entry_t entry, gfp_t flag,
- 				    struct mempolicy *mpol, pgoff_t ilx);
- struct page *swapin_readahead(swp_entry_t entry, gfp_t flag,
---- a/mm/swap_state.c~mm-return-the-folio-from-__read_swap_cache_async
-+++ a/mm/swap_state.c
-@@ -410,14 +410,12 @@ struct folio *filemap_get_incore_folio(s
- 	return folio;
- }
- 
--struct page *__read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
--				     struct mempolicy *mpol, pgoff_t ilx,
--				     bool *new_page_allocated,
--				     bool skip_if_exists)
-+struct folio *__read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
-+		struct mempolicy *mpol, pgoff_t ilx, bool *new_page_allocated,
-+		bool skip_if_exists)
- {
- 	struct swap_info_struct *si;
- 	struct folio *folio;
--	struct page *page;
- 	void *shadow = NULL;
- 
- 	*new_page_allocated = false;
-@@ -434,10 +432,8 @@ struct page *__read_swap_cache_async(swp
- 		 */
- 		folio = filemap_get_folio(swap_address_space(entry),
- 						swp_offset(entry));
--		if (!IS_ERR(folio)) {
--			page = folio_file_page(folio, swp_offset(entry));
--			goto got_page;
--		}
-+		if (!IS_ERR(folio))
-+			goto got_folio;
- 
- 		/*
- 		 * Just skip read ahead for unused swap slot.
-@@ -451,7 +447,7 @@ struct page *__read_swap_cache_async(swp
- 			goto fail_put_swap;
- 
- 		/*
--		 * Get a new page to read into from swap.  Allocate it now,
-+		 * Get a new folio to read into from swap.  Allocate it now,
- 		 * before marking swap_map SWAP_HAS_CACHE, when -EEXIST will
- 		 * cause any racers to loop around until we add it to cache.
- 		 */
-@@ -487,13 +483,13 @@ struct page *__read_swap_cache_async(swp
- 		 * stumble across a swap_map entry whose SWAP_HAS_CACHE
- 		 * has not yet been cleared.  Or race against another
- 		 * __read_swap_cache_async(), which has set SWAP_HAS_CACHE
--		 * in swap_map, but not yet added its page to swap cache.
-+		 * in swap_map, but not yet added its folio to swap cache.
- 		 */
- 		schedule_timeout_uninterruptible(1);
+--- a/mm/page_io.c~mm-pass-a-folio-to-__swap_writepage
++++ a/mm/page_io.c
+@@ -201,7 +201,7 @@ int swap_writepage(struct page *page, st
+ 		folio_end_writeback(folio);
+ 		return 0;
  	}
- 
- 	/*
--	 * The swap entry is ours to swap in. Prepare the new page.
-+	 * The swap entry is ours to swap in. Prepare the new folio.
- 	 */
- 
- 	__folio_set_locked(folio);
-@@ -514,10 +510,9 @@ struct page *__read_swap_cache_async(swp
- 	/* Caller will initiate read into locked folio */
- 	folio_add_lru(folio);
- 	*new_page_allocated = true;
--	page = &folio->page;
--got_page:
-+got_folio:
- 	put_swap_device(si);
--	return page;
-+	return folio;
- 
- fail_unlock:
- 	put_swap_folio(folio, entry);
-@@ -545,16 +540,16 @@ struct page *read_swap_cache_async(swp_e
- 	bool page_allocated;
- 	struct mempolicy *mpol;
- 	pgoff_t ilx;
--	struct page *page;
-+	struct folio *folio;
- 
- 	mpol = get_vma_policy(vma, addr, 0, &ilx);
--	page = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
-+	folio = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
- 					&page_allocated, false);
- 	mpol_cond_put(mpol);
- 
- 	if (page_allocated)
--		swap_readpage(page, false, plug);
--	return page;
-+		swap_readpage(&folio->page, false, plug);
-+	return folio_file_page(folio, swp_offset(entry));
- }
- 
- static unsigned int __swapin_nr_pages(unsigned long prev_offset,
-@@ -639,7 +634,7 @@ static unsigned long swapin_nr_pages(uns
- struct page *swap_cluster_readahead(swp_entry_t entry, gfp_t gfp_mask,
- 				    struct mempolicy *mpol, pgoff_t ilx)
- {
--	struct page *page;
-+	struct folio *folio;
- 	unsigned long entry_offset = swp_offset(entry);
- 	unsigned long offset = entry_offset;
- 	unsigned long start_offset, end_offset;
-@@ -664,31 +659,31 @@ struct page *swap_cluster_readahead(swp_
- 	blk_start_plug(&plug);
- 	for (offset = start_offset; offset <= end_offset ; offset++) {
- 		/* Ok, do the async read-ahead now */
--		page = __read_swap_cache_async(
-+		folio = __read_swap_cache_async(
- 				swp_entry(swp_type(entry), offset),
- 				gfp_mask, mpol, ilx, &page_allocated, false);
--		if (!page)
-+		if (!folio)
- 			continue;
- 		if (page_allocated) {
--			swap_readpage(page, false, &splug);
-+			swap_readpage(&folio->page, false, &splug);
- 			if (offset != entry_offset) {
--				SetPageReadahead(page);
-+				folio_set_readahead(folio);
- 				count_vm_event(SWAP_RA);
- 			}
- 		}
--		put_page(page);
-+		folio_put(folio);
- 	}
- 	blk_finish_plug(&plug);
- 	swap_read_unplug(splug);
- 	lru_add_drain();	/* Push any new pages onto the LRU now */
- skip:
- 	/* The page was likely read above, so no need for plugging here */
--	page = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
-+	folio = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
- 					&page_allocated, false);
- 	if (unlikely(page_allocated))
--		swap_readpage(page, false, NULL);
--	zswap_page_swapin(page);
--	return page;
-+		swap_readpage(&folio->page, false, NULL);
-+	zswap_folio_swapin(folio);
-+	return folio_file_page(folio, swp_offset(entry));
- }
- 
- int init_swap_address_space(unsigned int type, unsigned long nr_pages)
-@@ -806,7 +801,7 @@ static struct page *swap_vma_readahead(s
- {
- 	struct blk_plug plug;
- 	struct swap_iocb *splug = NULL;
--	struct page *page;
-+	struct folio *folio;
- 	pte_t *pte = NULL, pentry;
- 	unsigned long addr;
- 	swp_entry_t entry;
-@@ -839,18 +834,18 @@ static struct page *swap_vma_readahead(s
- 			continue;
- 		pte_unmap(pte);
- 		pte = NULL;
--		page = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
-+		folio = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
- 						&page_allocated, false);
--		if (!page)
-+		if (!folio)
- 			continue;
- 		if (page_allocated) {
--			swap_readpage(page, false, &splug);
-+			swap_readpage(&folio->page, false, &splug);
- 			if (i != ra_info.offset) {
--				SetPageReadahead(page);
-+				folio_set_readahead(folio);
- 				count_vm_event(SWAP_RA);
- 			}
- 		}
--		put_page(page);
-+		folio_put(folio);
- 	}
- 	if (pte)
- 		pte_unmap(pte);
-@@ -858,13 +853,13 @@ static struct page *swap_vma_readahead(s
- 	swap_read_unplug(splug);
- 	lru_add_drain();
- skip:
--	/* The page was likely read above, so no need for plugging here */
--	page = __read_swap_cache_async(targ_entry, gfp_mask, mpol, targ_ilx,
-+	/* The folio was likely read above, so no need for plugging here */
-+	folio = __read_swap_cache_async(targ_entry, gfp_mask, mpol, targ_ilx,
- 					&page_allocated, false);
- 	if (unlikely(page_allocated))
--		swap_readpage(page, false, NULL);
--	zswap_page_swapin(page);
--	return page;
-+		swap_readpage(&folio->page, false, NULL);
-+	zswap_folio_swapin(folio);
-+	return folio_file_page(folio, swp_offset(entry));
- }
- 
- /**
---- a/mm/zswap.c~mm-return-the-folio-from-__read_swap_cache_async
-+++ a/mm/zswap.c
-@@ -368,12 +368,12 @@ void zswap_lruvec_state_init(struct lruv
- 	atomic_long_set(&lruvec->zswap_lruvec_state.nr_zswap_protected, 0);
- }
- 
--void zswap_page_swapin(struct page *page)
-+void zswap_folio_swapin(struct folio *folio)
- {
- 	struct lruvec *lruvec;
- 
--	if (page) {
--		lruvec = folio_lruvec(page_folio(page));
-+	if (folio) {
-+		lruvec = folio_lruvec(folio);
- 		atomic_long_inc(&lruvec->zswap_lruvec_state.nr_zswap_protected);
- 	}
- }
-@@ -1383,14 +1383,14 @@ static void __zswap_load(struct zswap_en
- * writeback code
- **********************************/
- /*
-- * Attempts to free an entry by adding a page to the swap cache,
-- * decompressing the entry data into the page, and issuing a
-- * bio write to write the page back to the swap device.
-+ * Attempts to free an entry by adding a folio to the swap cache,
-+ * decompressing the entry data into the folio, and issuing a
-+ * bio write to write the folio back to the swap device.
-  *
-- * This can be thought of as a "resumed writeback" of the page
-+ * This can be thought of as a "resumed writeback" of the folio
-  * to the swap device.  We are basically resuming the same swap
-  * writeback path that was intercepted with the zswap_store()
-- * in the first place.  After the page has been decompressed into
-+ * in the first place.  After the folio has been decompressed into
-  * the swap cache, the compressed version stored by zswap can be
-  * freed.
-  */
-@@ -1398,56 +1398,56 @@ static int zswap_writeback_entry(struct
- 				 struct zswap_tree *tree)
- {
- 	swp_entry_t swpentry = entry->swpentry;
--	struct page *page;
-+	struct folio *folio;
- 	struct mempolicy *mpol;
--	bool page_was_allocated;
-+	bool folio_was_allocated;
- 	struct writeback_control wbc = {
- 		.sync_mode = WB_SYNC_NONE,
- 	};
- 
--	/* try to allocate swap cache page */
-+	/* try to allocate swap cache folio */
- 	mpol = get_task_policy(current);
--	page = __read_swap_cache_async(swpentry, GFP_KERNEL, mpol,
--				NO_INTERLEAVE_INDEX, &page_was_allocated, true);
--	if (!page)
-+	folio = __read_swap_cache_async(swpentry, GFP_KERNEL, mpol,
-+				NO_INTERLEAVE_INDEX, &folio_was_allocated, true);
-+	if (!folio)
- 		return -ENOMEM;
- 
- 	/*
--	 * Found an existing page, we raced with load/swapin. We generally
--	 * writeback cold pages from zswap, and swapin means the page just
--	 * became hot. Skip this page and let the caller find another one.
-+	 * Found an existing folio, we raced with load/swapin. We generally
-+	 * writeback cold folios from zswap, and swapin means the folio just
-+	 * became hot. Skip this folio and let the caller find another one.
- 	 */
--	if (!page_was_allocated) {
--		put_page(page);
-+	if (!folio_was_allocated) {
-+		folio_put(folio);
- 		return -EEXIST;
- 	}
- 
- 	/*
--	 * Page is locked, and the swapcache is now secured against
-+	 * folio is locked, and the swapcache is now secured against
- 	 * concurrent swapping to and from the slot. Verify that the
- 	 * swap entry hasn't been invalidated and recycled behind our
- 	 * backs (our zswap_entry reference doesn't prevent that), to
--	 * avoid overwriting a new swap page with old compressed data.
-+	 * avoid overwriting a new swap folio with old compressed data.
- 	 */
- 	spin_lock(&tree->lock);
- 	if (zswap_rb_search(&tree->rbroot, swp_offset(entry->swpentry)) != entry) {
- 		spin_unlock(&tree->lock);
--		delete_from_swap_cache(page_folio(page));
-+		delete_from_swap_cache(folio);
- 		return -ENOMEM;
- 	}
- 	spin_unlock(&tree->lock);
- 
--	__zswap_load(entry, page);
-+	__zswap_load(entry, &folio->page);
- 
--	/* page is up to date */
--	SetPageUptodate(page);
-+	/* folio is up to date */
-+	folio_mark_uptodate(folio);
- 
- 	/* move it to the tail of the inactive list after end_writeback */
--	SetPageReclaim(page);
-+	folio_set_reclaim(folio);
- 
- 	/* start writeback */
--	__swap_writepage(page, &wbc);
--	put_page(page);
-+	__swap_writepage(&folio->page, &wbc);
-+	folio_put(folio);
- 
+-	__swap_writepage(&folio->page, wbc);
++	__swap_writepage(folio, wbc);
  	return 0;
  }
-@@ -1593,7 +1593,7 @@ bool zswap_store(struct folio *folio)
  
- 	dst = acomp_ctx->buffer;
- 	sg_init_table(&input, 1);
--	sg_set_page(&input, page, PAGE_SIZE, 0);
-+	sg_set_page(&input, &folio->page, PAGE_SIZE, 0);
+@@ -368,22 +368,22 @@ static void swap_writepage_bdev_async(st
+ 	submit_bio(bio);
+ }
  
+-void __swap_writepage(struct page *page, struct writeback_control *wbc)
++void __swap_writepage(struct folio *folio, struct writeback_control *wbc)
+ {
+-	struct swap_info_struct *sis = page_swap_info(page);
++	struct swap_info_struct *sis = swp_swap_info(folio->swap);
+ 
+-	VM_BUG_ON_PAGE(!PageSwapCache(page), page);
++	VM_BUG_ON_FOLIO(!folio_test_swapcache(folio), folio);
  	/*
- 	 * We need PAGE_SIZE * 2 here since there maybe over-compression case,
+ 	 * ->flags can be updated non-atomicially (scan_swap_map_slots),
+ 	 * but that will never affect SWP_FS_OPS, so the data_race
+ 	 * is safe.
+ 	 */
+ 	if (data_race(sis->flags & SWP_FS_OPS))
+-		swap_writepage_fs(page, wbc);
++		swap_writepage_fs(&folio->page, wbc);
+ 	else if (sis->flags & SWP_SYNCHRONOUS_IO)
+-		swap_writepage_bdev_sync(page, wbc, sis);
++		swap_writepage_bdev_sync(&folio->page, wbc, sis);
+ 	else
+-		swap_writepage_bdev_async(page, wbc, sis);
++		swap_writepage_bdev_async(&folio->page, wbc, sis);
+ }
+ 
+ void swap_write_unplug(struct swap_iocb *sio)
+--- a/mm/swap.h~mm-pass-a-folio-to-__swap_writepage
++++ a/mm/swap.h
+@@ -19,7 +19,7 @@ static inline void swap_read_unplug(stru
+ }
+ void swap_write_unplug(struct swap_iocb *sio);
+ int swap_writepage(struct page *page, struct writeback_control *wbc);
+-void __swap_writepage(struct page *page, struct writeback_control *wbc);
++void __swap_writepage(struct folio *folio, struct writeback_control *wbc);
+ 
+ /* linux/mm/swap_state.c */
+ /* One swap address space for each 64M swap space */
+--- a/mm/zswap.c~mm-pass-a-folio-to-__swap_writepage
++++ a/mm/zswap.c
+@@ -1446,7 +1446,7 @@ static int zswap_writeback_entry(struct
+ 	folio_set_reclaim(folio);
+ 
+ 	/* start writeback */
+-	__swap_writepage(&folio->page, &wbc);
++	__swap_writepage(folio, &wbc);
+ 	folio_put(folio);
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
