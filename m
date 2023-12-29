@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C998134D8
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:00:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 604EF134D3;
+	Fri, 29 Dec 2023 20:00:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r1KcV1TM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6933CC433C7;
-	Fri, 29 Dec 2023 20:00:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qn5b4Ota"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 298E3C433C8;
+	Fri, 29 Dec 2023 20:00:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703880017;
-	bh=Kjd2++bRkvHZiv6rps1BBtp1e0udQDmZZ70zW01eBmA=;
+	s=korg; t=1703880019;
+	bh=2Fl5EBCwl9Q7A5Jt/uc2QkQS1eFZ02y9Z0Nk5PJdcOQ=;
 	h=Date:To:From:Subject:From;
-	b=r1KcV1TMv4MO6xNrXV/zb5/dQVMAJIMfWlrMdEjO0uazmAX7aphX86ELz+5m+qR8z
-	 RuT/2yTfDWst0xXdrZYb56Bshk+IEa6PbYCpn3/PE1bT9k9MObWMvrQt8IB7QDpYHB
-	 yRi/1RlzT+DU51FlaQr1RqaJLlWwhOi/qgzGQrB4=
-Date: Fri, 29 Dec 2023 12:00:16 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
+	b=qn5b4OtavNWW0iE6PsERPlb6WyfVS+DVyjCtrxlA7xVYQ1cea6zMWpzK7z386y6GN
+	 i//pT6drn2dSpVuOmyjAL2ImgY0Ibs4GrfcF3pjkIwZsUl+TXTWCH0F78WgjwdK6NO
+	 DJubFspoXR84PCUBtIeIdWW12SmToBL07hquHwZc=
+Date: Fri, 29 Dec 2023 12:00:18 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,xuyu@linux.alibaba.com,willy@infradead.org,stable@vger.kernel.org,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio.patch removed from -mm tree
-Message-Id: <20231229200017.6933CC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-migrate-fix-getting-incorrect-page-mapping-during-page-migration.patch removed from -mm tree
+Message-Id: <20231229200019.298E3C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,165 +27,140 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: convert swap_cluster_readahead and swap_vma_readahead to return a folio
+     Subject: mm: migrate: fix getting incorrect page mapping during page migration
 has been removed from the -mm tree.  Its filename was
-     mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio.patch
+     mm-migrate-fix-getting-incorrect-page-mapping-during-page-migration.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: convert swap_cluster_readahead and swap_vma_readahead to return a folio
-Date: Wed, 13 Dec 2023 21:58:42 +0000
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: migrate: fix getting incorrect page mapping during page migration
+Date: Fri, 15 Dec 2023 20:07:52 +0800
 
-shmem_swapin_cluster() immediately converts the page back to a folio, and
-swapin_readahead() may as well call folio_file_page() once instead of
-having each function call it.
+When running stress-ng testing, we found below kernel crash after a few hours:
 
-[willy@infradead.org: avoid NULL pointer deref]
-  Link: https://lkml.kernel.org/r/ZYI7OcVlM1voKfBl@casper.infradead.org
-Link: https://lkml.kernel.org/r/20231213215842.671461-14-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Unable to handle kernel NULL pointer dereference at virtual address 0000000000000000
+pc : dentry_name+0xd8/0x224
+lr : pointer+0x22c/0x370
+sp : ffff800025f134c0
+......
+Call trace:
+  dentry_name+0xd8/0x224
+  pointer+0x22c/0x370
+  vsnprintf+0x1ec/0x730
+  vscnprintf+0x2c/0x60
+  vprintk_store+0x70/0x234
+  vprintk_emit+0xe0/0x24c
+  vprintk_default+0x3c/0x44
+  vprintk_func+0x84/0x2d0
+  printk+0x64/0x88
+  __dump_page+0x52c/0x530
+  dump_page+0x14/0x20
+  set_migratetype_isolate+0x110/0x224
+  start_isolate_page_range+0xc4/0x20c
+  offline_pages+0x124/0x474
+  memory_block_offline+0x44/0xf4
+  memory_subsys_offline+0x3c/0x70
+  device_offline+0xf0/0x120
+  ......
+
+After analyzing the vmcore, I found this issue is caused by page migration.
+The scenario is that, one thread is doing page migration, and we will use the
+target page's ->mapping field to save 'anon_vma' pointer between page unmap and
+page move, and now the target page is locked and refcount is 1.
+
+Currently, there is another stress-ng thread performing memory hotplug,
+attempting to offline the target page that is being migrated. It discovers that
+the refcount of this target page is 1, preventing the offline operation, thus
+proceeding to dump the page. However, page_mapping() of the target page may
+return an incorrect file mapping to crash the system in dump_mapping(), since
+the target page->mapping only saves 'anon_vma' pointer without setting
+PAGE_MAPPING_ANON flag.
+
+There are seveval ways to fix this issue:
+(1) Setting the PAGE_MAPPING_ANON flag for target page's ->mapping when saving
+'anon_vma', but this can confuse PageAnon() for PFN walkers, since the target
+page has not built mappings yet.
+(2) Getting the page lock to call page_mapping() in __dump_page() to avoid crashing
+the system, however, there are still some PFN walkers that call page_mapping()
+without holding the page lock, such as compaction.
+(3) Using target page->private field to save the 'anon_vma' pointer and 2 bits
+page state, just as page->mapping records an anonymous page, which can remove
+the page_mapping() impact for PFN walkers and also seems a simple way.
+
+So I choose option 3 to fix this issue, and this can also fix other potential
+issues for PFN walkers, such as compaction.
+
+Link: https://lkml.kernel.org/r/e60b17a88afc38cb32f84c3e30837ec70b343d2b.1702641709.git.baolin.wang@linux.alibaba.com
+Fixes: 64c8902ed441 ("migrate_pages: split unmap_and_move() to _unmap() and _move()")
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Xu Yu <xuyu@linux.alibaba.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c      |    8 +++-----
- mm/swap.h       |    6 +++---
- mm/swap_state.c |   24 +++++++++++++-----------
- 3 files changed, 19 insertions(+), 19 deletions(-)
+ mm/migrate.c |   27 ++++++++++-----------------
+ 1 file changed, 10 insertions(+), 17 deletions(-)
 
---- a/mm/shmem.c~mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio
-+++ a/mm/shmem.c
-@@ -1570,15 +1570,13 @@ static struct folio *shmem_swapin_cluste
- {
- 	struct mempolicy *mpol;
- 	pgoff_t ilx;
--	struct page *page;
-+	struct folio *folio;
- 
- 	mpol = shmem_get_pgoff_policy(info, index, 0, &ilx);
--	page = swap_cluster_readahead(swap, gfp, mpol, ilx);
-+	folio = swap_cluster_readahead(swap, gfp, mpol, ilx);
- 	mpol_cond_put(mpol);
- 
--	if (!page)
--		return NULL;
--	return page_folio(page);
-+	return folio;
+--- a/mm/migrate.c~mm-migrate-fix-getting-incorrect-page-mapping-during-page-migration
++++ a/mm/migrate.c
+@@ -1025,38 +1025,31 @@ out:
  }
  
  /*
---- a/mm/swap.h~mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio
-+++ a/mm/swap.h
-@@ -52,8 +52,8 @@ struct folio *read_swap_cache_async(swp_
- struct folio *__read_swap_cache_async(swp_entry_t entry, gfp_t gfp_flags,
- 		struct mempolicy *mpol, pgoff_t ilx, bool *new_page_allocated,
- 		bool skip_if_exists);
--struct page *swap_cluster_readahead(swp_entry_t entry, gfp_t flag,
--				    struct mempolicy *mpol, pgoff_t ilx);
-+struct folio *swap_cluster_readahead(swp_entry_t entry, gfp_t flag,
-+		struct mempolicy *mpol, pgoff_t ilx);
- struct page *swapin_readahead(swp_entry_t entry, gfp_t flag,
- 			      struct vm_fault *vmf);
- 
-@@ -80,7 +80,7 @@ static inline void show_swap_cache_info(
- {
- }
- 
--static inline struct page *swap_cluster_readahead(swp_entry_t entry,
-+static inline struct folio *swap_cluster_readahead(swp_entry_t entry,
- 			gfp_t gfp_mask, struct mempolicy *mpol, pgoff_t ilx)
- {
- 	return NULL;
---- a/mm/swap_state.c~mm-convert-swap_cluster_readahead-and-swap_vma_readahead-to-return-a-folio
-+++ a/mm/swap_state.c
-@@ -620,7 +620,7 @@ static unsigned long swapin_nr_pages(uns
-  * @mpol: NUMA memory allocation policy to be applied
-  * @ilx: NUMA interleave index, for use only when MPOL_INTERLEAVE
-  *
-- * Returns the struct page for entry and addr, after queueing swapin.
-+ * Returns the struct folio for entry and addr, after queueing swapin.
-  *
-  * Primitive swap readahead code. We simply read an aligned block of
-  * (1 << page_cluster) entries in the swap area. This method is chosen
-@@ -631,7 +631,7 @@ static unsigned long swapin_nr_pages(uns
-  * are used for every page of the readahead: neighbouring pages on swap
-  * are fairly likely to have been swapped out from the same node.
+- * To record some information during migration, we use some unused
+- * fields (mapping and private) of struct folio of the newly allocated
+- * destination folio.  This is safe because nobody is using them
+- * except us.
++ * To record some information during migration, we use unused private
++ * field of struct folio of the newly allocated destination folio.
++ * This is safe because nobody is using it except us.
   */
--struct page *swap_cluster_readahead(swp_entry_t entry, gfp_t gfp_mask,
-+struct folio *swap_cluster_readahead(swp_entry_t entry, gfp_t gfp_mask,
- 				    struct mempolicy *mpol, pgoff_t ilx)
+-union migration_ptr {
+-	struct anon_vma *anon_vma;
+-	struct address_space *mapping;
+-};
+-
+ enum {
+ 	PAGE_WAS_MAPPED = BIT(0),
+ 	PAGE_WAS_MLOCKED = BIT(1),
++	PAGE_OLD_STATES = PAGE_WAS_MAPPED | PAGE_WAS_MLOCKED,
+ };
+ 
+ static void __migrate_folio_record(struct folio *dst,
+-				   unsigned long old_page_state,
++				   int old_page_state,
+ 				   struct anon_vma *anon_vma)
  {
- 	struct folio *folio;
-@@ -683,7 +683,7 @@ skip:
- 	if (unlikely(page_allocated))
- 		swap_read_folio(folio, false, NULL);
- 	zswap_folio_swapin(folio);
--	return folio_file_page(folio, swp_offset(entry));
-+	return folio;
+-	union migration_ptr ptr = { .anon_vma = anon_vma };
+-	dst->mapping = ptr.mapping;
+-	dst->private = (void *)old_page_state;
++	dst->private = (void *)anon_vma + old_page_state;
  }
  
- int init_swap_address_space(unsigned int type, unsigned long nr_pages)
-@@ -787,7 +787,7 @@ static void swap_ra_info(struct vm_fault
-  * @targ_ilx: NUMA interleave index, for use only when MPOL_INTERLEAVE
-  * @vmf: fault information
-  *
-- * Returns the struct page for entry and addr, after queueing swapin.
-+ * Returns the struct folio for entry and addr, after queueing swapin.
-  *
-  * Primitive swap readahead code. We simply read in a few pages whose
-  * virtual addresses are around the fault address in the same vma.
-@@ -795,9 +795,8 @@ static void swap_ra_info(struct vm_fault
-  * Caller must hold read mmap_lock if vmf->vma is not NULL.
-  *
-  */
--static struct page *swap_vma_readahead(swp_entry_t targ_entry, gfp_t gfp_mask,
--				       struct mempolicy *mpol, pgoff_t targ_ilx,
--				       struct vm_fault *vmf)
-+static struct folio *swap_vma_readahead(swp_entry_t targ_entry, gfp_t gfp_mask,
-+		struct mempolicy *mpol, pgoff_t targ_ilx, struct vm_fault *vmf)
+ static void __migrate_folio_extract(struct folio *dst,
+ 				   int *old_page_state,
+ 				   struct anon_vma **anon_vmap)
  {
- 	struct blk_plug plug;
- 	struct swap_iocb *splug = NULL;
-@@ -859,7 +858,7 @@ skip:
- 	if (unlikely(page_allocated))
- 		swap_read_folio(folio, false, NULL);
- 	zswap_folio_swapin(folio);
--	return folio_file_page(folio, swp_offset(entry));
-+	return folio;
- }
- 
- /**
-@@ -879,14 +878,17 @@ struct page *swapin_readahead(swp_entry_
- {
- 	struct mempolicy *mpol;
- 	pgoff_t ilx;
--	struct page *page;
-+	struct folio *folio;
- 
- 	mpol = get_vma_policy(vmf->vma, vmf->address, 0, &ilx);
--	page = swap_use_vma_readahead() ?
-+	folio = swap_use_vma_readahead() ?
- 		swap_vma_readahead(entry, gfp_mask, mpol, ilx, vmf) :
- 		swap_cluster_readahead(entry, gfp_mask, mpol, ilx);
- 	mpol_cond_put(mpol);
--	return page;
+-	union migration_ptr ptr = { .mapping = dst->mapping };
+-	*anon_vmap = ptr.anon_vma;
+-	*old_page_state = (unsigned long)dst->private;
+-	dst->mapping = NULL;
++	unsigned long private = (unsigned long)dst->private;
 +
-+	if (!folio)
-+		return NULL;
-+	return folio_file_page(folio, swp_offset(entry));
++	*anon_vmap = (struct anon_vma *)(private & ~PAGE_OLD_STATES);
++	*old_page_state = private & PAGE_OLD_STATES;
+ 	dst->private = NULL;
  }
  
- #ifdef CONFIG_SYSFS
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-remove-inc-dec-lruvec-page-state-functions.patch
-slub-use-alloc_pages_node-in-alloc_slab_page.patch
-slub-use-folio-apis-in-free_large_kmalloc.patch
-slub-use-a-folio-in-__kmalloc_large_node.patch
-mm-khugepaged-use-a-folio-more-in-collapse_file.patch
-mm-memcontrol-remove-__mod_lruvec_page_state.patch
 
