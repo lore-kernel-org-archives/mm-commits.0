@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90FDE14284
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:02:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B011213FF1
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:02:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0hQENJkI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E54DC433C8;
-	Fri, 29 Dec 2023 20:02:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FtDWET1J"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79592C433C7;
+	Fri, 29 Dec 2023 20:02:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703880121;
-	bh=OFCnNx3AM2fVpcp6FT0nd1X7wKCmsZfNxS1YjlSe3co=;
+	s=korg; t=1703880122;
+	bh=uPhIsQakShNr45YhJmLIIsqTP5G9/ZSxykbUwGDMmfA=;
 	h=Date:To:From:Subject:From;
-	b=0hQENJkIGxkCLKXYIgqwfYLJg5f/ZtoqEo219DwKgqyF8pwbPbrlohPUCGiLwXjn+
-	 4nos85SwFA3rUB6l6uI2XRnBAoRfuMBSqiKc6s7KZx83CO0aLOkIxHuidkagpSr+uW
-	 RNtfgxHlCu3O/lGreN3qSjVOQZRUDJRcJIgyleGc=
-Date: Fri, 29 Dec 2023 12:02:00 -0800
+	b=FtDWET1JprFAdH5MSkbKqihYgtVxnRUo5czmZUAey0p9qmEcJUaD1e7vURmxDrHAz
+	 Tfdb5wiqyo5qW20+HxD3HFYkD+m6hvmFQrinaFrOcKft4TGZbclSS0mCiCV5RBiOmt
+	 EQfhV03x3i1VP7xg9y35tnQyBwIDKK47aHrfoxZs=
+Date: Fri, 29 Dec 2023 12:02:01 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,songmuchun@bytedance.com,ryan.roberts@arm.com,peterx@redhat.com,muchun.song@linux.dev,hughd@google.com,fengwei.yin@intel.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-rmap-remove-page_try_dup_anon_rmap.patch removed from -mm tree
-Message-Id: <20231229200201.5E54DC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-convert-page_try_share_anon_rmap-to-folio_try_share_anon_rmap_.patch removed from -mm tree
+Message-Id: <20231229200202.79592C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,22 +27,34 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/rmap: remove page_try_dup_anon_rmap()
+     Subject: mm: convert page_try_share_anon_rmap() to folio_try_share_anon_rmap_[pte|pmd]()
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-remove-page_try_dup_anon_rmap.patch
+     mm-convert-page_try_share_anon_rmap-to-folio_try_share_anon_rmap_.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: remove page_try_dup_anon_rmap()
-Date: Wed, 20 Dec 2023 23:45:01 +0100
+Subject: mm: convert page_try_share_anon_rmap() to folio_try_share_anon_rmap_[pte|pmd]()
+Date: Wed, 20 Dec 2023 23:45:02 +0100
 
-All users are gone, remove page_try_dup_anon_rmap() and any remaining
-traces.
+Let's convert it like we converted all the other rmap functions.  Don't
+introduce folio_try_share_anon_rmap_ptes() for now, as we don't have a
+user that wants rmap batching in sight.  Pretty easy to add later.
 
-Link: https://lkml.kernel.org/r/20231220224504.646757-38-david@redhat.com
+All users are easy to convert -- only ksm.c doesn't use folios yet but
+that is left for future work -- so let's just do it in a single shot.
+
+While at it, turn the BUG_ON into a WARN_ON_ONCE.
+
+Note that page_try_share_anon_rmap() so far didn't care about pte/pmd
+mappings (no compound parameter).  We're changing that so we can perform
+better sanity checks and make the code actually more readable/consistent. 
+For example, __folio_rmap_sanity_checks() will make sure that a PMD range
+actually falls completely into the folio.
+
+Link: https://lkml.kernel.org/r/20231220224504.646757-39-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -54,48 +66,269 @@ Cc: Yin Fengwei <fengwei.yin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   16 +++-------------
- 1 file changed, 3 insertions(+), 13 deletions(-)
+ include/linux/rmap.h |   96 ++++++++++++++++++++++++++++++-----------
+ mm/gup.c             |    2 
+ mm/huge_memory.c     |    9 ++-
+ mm/internal.h        |    4 -
+ mm/ksm.c             |    5 +-
+ mm/migrate_device.c  |    2 
+ mm/rmap.c            |   11 ++--
+ 7 files changed, 89 insertions(+), 40 deletions(-)
 
---- a/include/linux/rmap.h~mm-rmap-remove-page_try_dup_anon_rmap
+--- a/include/linux/rmap.h~mm-convert-page_try_share_anon_rmap-to-folio_try_share_anon_rmap_
 +++ a/include/linux/rmap.h
-@@ -253,7 +253,7 @@ void hugetlb_add_anon_rmap(struct folio
- void hugetlb_add_new_anon_rmap(struct folio *, struct vm_area_struct *,
- 		unsigned long address);
+@@ -269,7 +269,7 @@ static inline int hugetlb_try_dup_anon_r
+ 	return 0;
+ }
  
--/* See page_try_dup_anon_rmap() */
-+/* See folio_try_dup_anon_rmap_*() */
- static inline int hugetlb_try_dup_anon_rmap(struct folio *folio,
- 		struct vm_area_struct *vma)
+-/* See page_try_share_anon_rmap() */
++/* See folio_try_share_anon_rmap_*() */
+ static inline int hugetlb_try_share_anon_rmap(struct folio *folio)
  {
-@@ -478,16 +478,6 @@ static inline int folio_try_dup_anon_rma
+ 	VM_WARN_ON_FOLIO(!folio_test_hugetlb(folio), folio);
+@@ -478,31 +478,15 @@ static inline int folio_try_dup_anon_rma
  #endif
  }
  
--static inline int page_try_dup_anon_rmap(struct page *page, bool compound,
--					 struct vm_area_struct *vma)
--{
--	struct folio *folio = page_folio(page);
--
--	if (likely(!compound))
--		return folio_try_dup_anon_rmap_pte(folio, page, vma);
--	return folio_try_dup_anon_rmap_pmd(folio, page, vma);
--}
--
- /**
-  * page_try_share_anon_rmap - try marking an exclusive anonymous page possibly
-  *			      shared to prepare for KSM or temporary unmapping
-@@ -496,8 +486,8 @@ static inline int page_try_dup_anon_rmap
-  * The caller needs to hold the PT lock and has to have the page table entry
-  * cleared/invalidated.
+-/**
+- * page_try_share_anon_rmap - try marking an exclusive anonymous page possibly
+- *			      shared to prepare for KSM or temporary unmapping
+- * @page: the exclusive anonymous page to try marking possibly shared
+- *
+- * The caller needs to hold the PT lock and has to have the page table entry
+- * cleared/invalidated.
+- *
+- * This is similar to folio_try_dup_anon_rmap_*(), however, not used during
+- * fork() to duplicate a mapping, but instead to prepare for KSM or temporarily
+- * unmapping a page (swap, migration) via folio_remove_rmap_*().
+- *
+- * Marking the page shared can only fail if the page may be pinned; device
+- * private pages cannot get pinned and consequently this function cannot fail.
+- *
+- * Returns 0 if marking the page possibly shared succeeded. Returns -EBUSY
+- * otherwise.
+- */
+-static inline int page_try_share_anon_rmap(struct page *page)
++static __always_inline int __folio_try_share_anon_rmap(struct folio *folio,
++		struct page *page, int nr_pages, enum rmap_level level)
+ {
+-	VM_WARN_ON(folio_test_hugetlb(page_folio(page)));
+-	VM_BUG_ON_PAGE(!PageAnon(page) || !PageAnonExclusive(page), page);
++	VM_WARN_ON_FOLIO(!folio_test_anon(folio), folio);
++	VM_WARN_ON_FOLIO(!PageAnonExclusive(page), folio);
++	__folio_rmap_sanity_checks(folio, page, nr_pages, level);
+ 
+-	/* device private pages cannot get pinned via GUP. */
+-	if (unlikely(is_device_private_page(page))) {
++	/* device private folios cannot get pinned via GUP. */
++	if (unlikely(folio_is_device_private(folio))) {
+ 		ClearPageAnonExclusive(page);
+ 		return 0;
+ 	}
+@@ -553,7 +537,7 @@ static inline int page_try_share_anon_rm
+ 	if (IS_ENABLED(CONFIG_HAVE_FAST_GUP))
+ 		smp_mb();
+ 
+-	if (unlikely(page_maybe_dma_pinned(page)))
++	if (unlikely(folio_maybe_dma_pinned(folio)))
+ 		return -EBUSY;
+ 	ClearPageAnonExclusive(page);
+ 
+@@ -566,6 +550,68 @@ static inline int page_try_share_anon_rm
+ 	return 0;
+ }
+ 
++/**
++ * folio_try_share_anon_rmap_pte - try marking an exclusive anonymous page
++ *				   mapped by a PTE possibly shared to prepare
++ *				   for KSM or temporary unmapping
++ * @folio:	The folio to share a mapping of
++ * @page:	The mapped exclusive page
++ *
++ * The caller needs to hold the page table lock and has to have the page table
++ * entries cleared/invalidated.
++ *
++ * This is similar to folio_try_dup_anon_rmap_pte(), however, not used during
++ * fork() to duplicate mappings, but instead to prepare for KSM or temporarily
++ * unmapping parts of a folio (swap, migration) via folio_remove_rmap_pte().
++ *
++ * Marking the mapped page shared can only fail if the folio maybe pinned;
++ * device private folios cannot get pinned and consequently this function cannot
++ * fail.
++ *
++ * Returns 0 if marking the mapped page possibly shared succeeded. Returns
++ * -EBUSY otherwise.
++ */
++static inline int folio_try_share_anon_rmap_pte(struct folio *folio,
++		struct page *page)
++{
++	return __folio_try_share_anon_rmap(folio, page, 1, RMAP_LEVEL_PTE);
++}
++
++/**
++ * folio_try_share_anon_rmap_pmd - try marking an exclusive anonymous page
++ *				   range mapped by a PMD possibly shared to
++ *				   prepare for temporary unmapping
++ * @folio:	The folio to share the mapping of
++ * @page:	The first page to share the mapping of
++ *
++ * The page range of the folio is defined by [page, page + HPAGE_PMD_NR)
++ *
++ * The caller needs to hold the page table lock and has to have the page table
++ * entries cleared/invalidated.
++ *
++ * This is similar to folio_try_dup_anon_rmap_pmd(), however, not used during
++ * fork() to duplicate a mapping, but instead to prepare for temporarily
++ * unmapping parts of a folio (swap, migration) via folio_remove_rmap_pmd().
++ *
++ * Marking the mapped pages shared can only fail if the folio maybe pinned;
++ * device private folios cannot get pinned and consequently this function cannot
++ * fail.
++ *
++ * Returns 0 if marking the mapped pages possibly shared succeeded. Returns
++ * -EBUSY otherwise.
++ */
++static inline int folio_try_share_anon_rmap_pmd(struct folio *folio,
++		struct page *page)
++{
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	return __folio_try_share_anon_rmap(folio, page, HPAGE_PMD_NR,
++					   RMAP_LEVEL_PMD);
++#else
++	WARN_ON_ONCE(true);
++	return -EBUSY;
++#endif
++}
++
+ /*
+  * Called from mm/vmscan.c to handle paging out
+  */
+--- a/mm/gup.c~mm-convert-page_try_share_anon_rmap-to-folio_try_share_anon_rmap_
++++ a/mm/gup.c
+@@ -177,7 +177,7 @@ struct folio *try_grab_folio(struct page
+ 	/*
+ 	 * Adjust the pincount before re-checking the PTE for changes.
+ 	 * This is essentially a smp_mb() and is paired with a memory
+-	 * barrier in page_try_share_anon_rmap().
++	 * barrier in folio_try_share_anon_rmap_*().
+ 	 */
+ 	smp_mb__after_atomic();
+ 
+--- a/mm/huge_memory.c~mm-convert-page_try_share_anon_rmap-to-folio_try_share_anon_rmap_
++++ a/mm/huge_memory.c
+@@ -2523,10 +2523,11 @@ static void __split_huge_pmd_locked(stru
+ 		 * In case we cannot clear PageAnonExclusive(), split the PMD
+ 		 * only and let try_to_migrate_one() fail later.
+ 		 *
+-		 * See page_try_share_anon_rmap(): invalidate PMD first.
++		 * See folio_try_share_anon_rmap_pmd(): invalidate PMD first.
+ 		 */
+ 		anon_exclusive = PageAnonExclusive(page);
+-		if (freeze && anon_exclusive && page_try_share_anon_rmap(page))
++		if (freeze && anon_exclusive &&
++		    folio_try_share_anon_rmap_pmd(folio, page))
+ 			freeze = false;
+ 		if (!freeze) {
+ 			rmap_t rmap_flags = RMAP_NONE;
+@@ -3554,9 +3555,9 @@ int set_pmd_migration_entry(struct page_
+ 	flush_cache_range(vma, address, address + HPAGE_PMD_SIZE);
+ 	pmdval = pmdp_invalidate(vma, address, pvmw->pmd);
+ 
+-	/* See page_try_share_anon_rmap(): invalidate PMD first. */
++	/* See folio_try_share_anon_rmap_pmd(): invalidate PMD first. */
+ 	anon_exclusive = folio_test_anon(folio) && PageAnonExclusive(page);
+-	if (anon_exclusive && page_try_share_anon_rmap(page)) {
++	if (anon_exclusive && folio_try_share_anon_rmap_pmd(folio, page)) {
+ 		set_pmd_at(mm, address, pvmw->pmd, pmdval);
+ 		return -EBUSY;
+ 	}
+--- a/mm/internal.h~mm-convert-page_try_share_anon_rmap-to-folio_try_share_anon_rmap_
++++ a/mm/internal.h
+@@ -1047,7 +1047,7 @@ enum {
+  * * Ordinary GUP: Using the PT lock
+  * * GUP-fast and fork(): mm->write_protect_seq
+  * * GUP-fast and KSM or temporary unmapping (swap, migration): see
+- *    page_try_share_anon_rmap()
++ *    folio_try_share_anon_rmap_*()
   *
-- * This is similar to page_try_dup_anon_rmap(), however, not used during fork()
-- * to duplicate a mapping, but instead to prepare for KSM or temporarily
-+ * This is similar to folio_try_dup_anon_rmap_*(), however, not used during
-+ * fork() to duplicate a mapping, but instead to prepare for KSM or temporarily
-  * unmapping a page (swap, migration) via folio_remove_rmap_*().
-  *
-  * Marking the page shared can only fail if the page may be pinned; device
+  * Must be called with the (sub)page that's actually referenced via the
+  * page table entry, which might not necessarily be the head page for a
+@@ -1090,7 +1090,7 @@ static inline bool gup_must_unshare(stru
+ 		return is_cow_mapping(vma->vm_flags);
+ 	}
+ 
+-	/* Paired with a memory barrier in page_try_share_anon_rmap(). */
++	/* Paired with a memory barrier in folio_try_share_anon_rmap_*(). */
+ 	if (IS_ENABLED(CONFIG_HAVE_FAST_GUP))
+ 		smp_rmb();
+ 
+--- a/mm/ksm.c~mm-convert-page_try_share_anon_rmap-to-folio_try_share_anon_rmap_
++++ a/mm/ksm.c
+@@ -1331,8 +1331,9 @@ static int write_protect_page(struct vm_
+ 			goto out_unlock;
+ 		}
+ 
+-		/* See page_try_share_anon_rmap(): clear PTE first. */
+-		if (anon_exclusive && page_try_share_anon_rmap(page)) {
++		/* See folio_try_share_anon_rmap_pte(): clear PTE first. */
++		if (anon_exclusive &&
++		    folio_try_share_anon_rmap_pte(page_folio(page), page)) {
+ 			set_pte_at(mm, pvmw.address, pvmw.pte, entry);
+ 			goto out_unlock;
+ 		}
+--- a/mm/migrate_device.c~mm-convert-page_try_share_anon_rmap-to-folio_try_share_anon_rmap_
++++ a/mm/migrate_device.c
+@@ -202,7 +202,7 @@ again:
+ 			if (anon_exclusive) {
+ 				pte = ptep_clear_flush(vma, addr, ptep);
+ 
+-				if (page_try_share_anon_rmap(page)) {
++				if (folio_try_share_anon_rmap_pte(folio, page)) {
+ 					set_pte_at(mm, addr, ptep, pte);
+ 					folio_unlock(folio);
+ 					folio_put(folio);
+--- a/mm/rmap.c~mm-convert-page_try_share_anon_rmap-to-folio_try_share_anon_rmap_
++++ a/mm/rmap.c
+@@ -1866,9 +1866,9 @@ static bool try_to_unmap_one(struct foli
+ 				break;
+ 			}
+ 
+-			/* See page_try_share_anon_rmap(): clear PTE first. */
++			/* See folio_try_share_anon_rmap(): clear PTE first. */
+ 			if (anon_exclusive &&
+-			    page_try_share_anon_rmap(subpage)) {
++			    folio_try_share_anon_rmap_pte(folio, subpage)) {
+ 				swap_free(entry);
+ 				set_pte_at(mm, address, pvmw.pte, pteval);
+ 				ret = false;
+@@ -2142,7 +2142,8 @@ static bool try_to_migrate_one(struct fo
+ 			pte_t swp_pte;
+ 
+ 			if (anon_exclusive)
+-				BUG_ON(page_try_share_anon_rmap(subpage));
++				WARN_ON_ONCE(folio_try_share_anon_rmap_pte(folio,
++									   subpage));
+ 
+ 			/*
+ 			 * Store the pfn of the page in a special migration
+@@ -2213,7 +2214,7 @@ static bool try_to_migrate_one(struct fo
+ 			VM_BUG_ON_PAGE(pte_write(pteval) && folio_test_anon(folio) &&
+ 				       !anon_exclusive, subpage);
+ 
+-			/* See page_try_share_anon_rmap(): clear PTE first. */
++			/* See folio_try_share_anon_rmap_pte(): clear PTE first. */
+ 			if (folio_test_hugetlb(folio)) {
+ 				if (anon_exclusive &&
+ 				    hugetlb_try_share_anon_rmap(folio)) {
+@@ -2224,7 +2225,7 @@ static bool try_to_migrate_one(struct fo
+ 					break;
+ 				}
+ 			} else if (anon_exclusive &&
+-				   page_try_share_anon_rmap(subpage)) {
++				   folio_try_share_anon_rmap_pte(folio, subpage)) {
+ 				set_pte_at(mm, address, pvmw.pte, pteval);
+ 				ret = false;
+ 				page_vma_mapped_walk_done(&pvmw);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
