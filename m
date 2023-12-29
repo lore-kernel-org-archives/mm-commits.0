@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D6BD13AE3
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:01:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CC4A13AE3
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:01:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TjeZbDbr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 049E5C433C8;
-	Fri, 29 Dec 2023 20:01:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r1EEQO3W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19817C433C8;
+	Fri, 29 Dec 2023 20:01:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703880107;
-	bh=yFqX0bkQR66SnlDxTKrOZ0CCqdbEqbgVzv4Lm1FstPY=;
+	s=korg; t=1703880108;
+	bh=52ka9rRV0dLMQXyCwhZnsoAsrOpTC8LnlZrZ4AYn6GA=;
 	h=Date:To:From:Subject:From;
-	b=TjeZbDbrC3iH4Ema8LIEGB13vftmby+lzXXZl2JAdudNiEeIZl1Sk8A9CqSVSS6pM
-	 TcaB148McdkQNQLuFYkA20JoD4gzsNWVSPP9j+9UXoHgTLGndEvYhixOd7bjUv/C5r
-	 VD1ygpAFROiHo/UPF01miKn/wBiIvJKnZG9NGvOQ=
-Date: Fri, 29 Dec 2023 12:01:46 -0800
+	b=r1EEQO3WqgA7nieyi01xyGw5o11qvvx4Cf+wSI58IFgxAVbnpAupQW2MN8OpEMK/b
+	 f0o3iV7JpHeIaSqjcTMwrEoLYAXQnv2wNXe9RJabMTfoFofzXrPq4bffhlXfwIf9PO
+	 C1VhCwA5BRerDJbYg0kJ4Ranae+39E1GJwNuKsrc=
+Date: Fri, 29 Dec 2023 12:01:47 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,songmuchun@bytedance.com,ryan.roberts@arm.com,peterx@redhat.com,muchun.song@linux.dev,hughd@google.com,fengwei.yin@intel.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-rmap-introduce-folio_remove_rmap_.patch removed from -mm tree
-Message-Id: <20231229200147.049E5C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] kernel-events-uprobes-page_remove_rmap-folio_remove_rmap_pte.patch removed from -mm tree
+Message-Id: <20231229200148.19817C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,30 +27,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/rmap: introduce folio_remove_rmap_[pte|ptes|pmd]()
+     Subject: kernel/events/uprobes: page_remove_rmap() -> folio_remove_rmap_pte()
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-introduce-folio_remove_rmap_.patch
+     kernel-events-uprobes-page_remove_rmap-folio_remove_rmap_pte.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: introduce folio_remove_rmap_[pte|ptes|pmd]()
-Date: Wed, 20 Dec 2023 23:44:47 +0100
+Subject: kernel/events/uprobes: page_remove_rmap() -> folio_remove_rmap_pte()
+Date: Wed, 20 Dec 2023 23:44:48 +0100
 
-Let's mimic what we did with folio_add_file_rmap_*() and
-folio_add_anon_rmap_*() so we can similarly replace page_remove_rmap()
-next.
+Let's convert __replace_page().
 
-Make the compiler always special-case on the granularity by using
-__always_inline.
-
-We're adding folio_remove_rmap_ptes() handling right away, as we want to
-use that soon for batching rmap operations when unmapping PTE-mapped large
-folios.
-
-Link: https://lkml.kernel.org/r/20231220224504.646757-24-david@redhat.com
+Link: https://lkml.kernel.org/r/20231220224504.646757-25-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -62,140 +53,20 @@ Cc: Yin Fengwei <fengwei.yin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    6 +++
- mm/rmap.c            |   80 +++++++++++++++++++++++++++++++++--------
- 2 files changed, 71 insertions(+), 15 deletions(-)
+ kernel/events/uprobes.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/rmap.h~mm-rmap-introduce-folio_remove_rmap_
-+++ a/include/linux/rmap.h
-@@ -243,6 +243,12 @@ void folio_add_file_rmap_pmd(struct foli
- 		struct vm_area_struct *);
- void page_remove_rmap(struct page *, struct vm_area_struct *,
- 		bool compound);
-+void folio_remove_rmap_ptes(struct folio *, struct page *, int nr_pages,
-+		struct vm_area_struct *);
-+#define folio_remove_rmap_pte(folio, page, vma) \
-+	folio_remove_rmap_ptes(folio, page, 1, vma)
-+void folio_remove_rmap_pmd(struct folio *, struct page *,
-+		struct vm_area_struct *);
+--- a/kernel/events/uprobes.c~kernel-events-uprobes-page_remove_rmap-folio_remove_rmap_pte
++++ a/kernel/events/uprobes.c
+@@ -198,7 +198,7 @@ static int __replace_page(struct vm_area
+ 		set_pte_at_notify(mm, addr, pvmw.pte,
+ 				  mk_pte(new_page, vma->vm_page_prot));
  
- void hugetlb_add_anon_rmap(struct folio *, struct vm_area_struct *,
- 		unsigned long address, rmap_t flags);
---- a/mm/rmap.c~mm-rmap-introduce-folio_remove_rmap_
-+++ a/mm/rmap.c
-@@ -1510,25 +1510,37 @@ void page_remove_rmap(struct page *page,
- 		bool compound)
- {
- 	struct folio *folio = page_folio(page);
-+
-+	if (likely(!compound))
-+		folio_remove_rmap_pte(folio, page, vma);
-+	else
-+		folio_remove_rmap_pmd(folio, page, vma);
-+}
-+
-+static __always_inline void __folio_remove_rmap(struct folio *folio,
-+		struct page *page, int nr_pages, struct vm_area_struct *vma,
-+		enum rmap_level level)
-+{
- 	atomic_t *mapped = &folio->_nr_pages_mapped;
--	int nr = 0, nr_pmdmapped = 0;
--	bool last;
-+	int last, nr = 0, nr_pmdmapped = 0;
- 	enum node_stat_item idx;
- 
--	VM_WARN_ON_FOLIO(folio_test_hugetlb(folio), folio);
--	VM_BUG_ON_PAGE(compound && !PageHead(page), page);
-+	__folio_rmap_sanity_checks(folio, page, nr_pages, level);
- 
--	/* Is page being unmapped by PTE? Is this its last map to be removed? */
--	if (likely(!compound)) {
--		last = atomic_add_negative(-1, &page->_mapcount);
--		nr = last;
--		if (last && folio_test_large(folio)) {
--			nr = atomic_dec_return_relaxed(mapped);
--			nr = (nr < COMPOUND_MAPPED);
--		}
--	} else if (folio_test_pmd_mappable(folio)) {
--		/* That test is redundant: it's for safety or to optimize out */
-+	switch (level) {
-+	case RMAP_LEVEL_PTE:
-+		do {
-+			last = atomic_add_negative(-1, &page->_mapcount);
-+			if (last && folio_test_large(folio)) {
-+				last = atomic_dec_return_relaxed(mapped);
-+				last = (last < COMPOUND_MAPPED);
-+			}
- 
-+			if (last)
-+				nr++;
-+		} while (page++, --nr_pages > 0);
-+		break;
-+	case RMAP_LEVEL_PMD:
- 		last = atomic_add_negative(-1, &folio->_entire_mapcount);
- 		if (last) {
- 			nr = atomic_sub_return_relaxed(COMPOUND_MAPPED, mapped);
-@@ -1543,6 +1555,7 @@ void page_remove_rmap(struct page *page,
- 				nr = 0;
- 			}
- 		}
-+		break;
- 	}
- 
- 	if (nr_pmdmapped) {
-@@ -1564,7 +1577,7 @@ void page_remove_rmap(struct page *page,
- 		 * is still mapped.
- 		 */
- 		if (folio_test_large(folio) && folio_test_anon(folio))
--			if (!compound || nr < nr_pmdmapped)
-+			if (level == RMAP_LEVEL_PTE || nr < nr_pmdmapped)
- 				deferred_split_folio(folio);
- 	}
- 
-@@ -1579,6 +1592,43 @@ void page_remove_rmap(struct page *page,
- 	munlock_vma_folio(folio, vma);
- }
- 
-+/**
-+ * folio_remove_rmap_ptes - remove PTE mappings from a page range of a folio
-+ * @folio:	The folio to remove the mappings from
-+ * @page:	The first page to remove
-+ * @nr_pages:	The number of pages that will be removed from the mapping
-+ * @vma:	The vm area from which the mappings are removed
-+ *
-+ * The page range of the folio is defined by [page, page + nr_pages)
-+ *
-+ * The caller needs to hold the page table lock.
-+ */
-+void folio_remove_rmap_ptes(struct folio *folio, struct page *page,
-+		int nr_pages, struct vm_area_struct *vma)
-+{
-+	__folio_remove_rmap(folio, page, nr_pages, vma, RMAP_LEVEL_PTE);
-+}
-+
-+/**
-+ * folio_remove_rmap_pmd - remove a PMD mapping from a page range of a folio
-+ * @folio:	The folio to remove the mapping from
-+ * @page:	The first page to remove
-+ * @vma:	The vm area from which the mapping is removed
-+ *
-+ * The page range of the folio is defined by [page, page + HPAGE_PMD_NR)
-+ *
-+ * The caller needs to hold the page table lock.
-+ */
-+void folio_remove_rmap_pmd(struct folio *folio, struct page *page,
-+		struct vm_area_struct *vma)
-+{
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	__folio_remove_rmap(folio, page, HPAGE_PMD_NR, vma, RMAP_LEVEL_PMD);
-+#else
-+	WARN_ON_ONCE(true);
-+#endif
-+}
-+
- /*
-  * @arg: enum ttu_flags will be passed to this argument
-  */
+-	page_remove_rmap(old_page, vma, false);
++	folio_remove_rmap_pte(old_folio, old_page, vma);
+ 	if (!folio_mapped(old_folio))
+ 		folio_free_swap(old_folio);
+ 	page_vma_mapped_walk_done(&pvmw);
 _
 
 Patches currently in -mm which might be from david@redhat.com are
