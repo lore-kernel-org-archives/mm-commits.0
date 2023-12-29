@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A205312B99
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 19:07:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D84F612B99;
+	Fri, 29 Dec 2023 19:07:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cg4MgF2x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17066C433CA;
-	Fri, 29 Dec 2023 19:07:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tZMy91R4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2CB4C433C8;
+	Fri, 29 Dec 2023 19:07:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703876844;
-	bh=RKpTWF0X/ctkwuuTUeAxFJzHiC94+L2Ot6sGXrMtrlo=;
+	s=korg; t=1703876845;
+	bh=VeNqkKpc0NYluTw50JCX3V29xXFVmRyhiDDu1enAJdA=;
 	h=Date:To:From:Subject:From;
-	b=cg4MgF2xMCsJBPClcfR+jkFtToE4NE8Z5gLz0DoKct6b5Lc7oK2AJZKe5VE5B06Z5
-	 hpOlhjHnd7w5tvxDcHWweDD9LXwk8rIukOFh4+/AOm1ShqCD+iSfKZLAc+fy2i4pvT
-	 2ETiXqGU7zD6AioNsUSR7Fhz4O7SCTES80LsIk/c=
-Date: Fri, 29 Dec 2023 11:07:23 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,shy828301@gmail.com,shakeelb@google.com,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=tZMy91R4eWbSNLrk9zgZFRz3RvR9JG/MEcM9Jvnxide0CnNQNVQxvuNNRCgFgvwYl
+	 oqXXxtfxgPlOoXUa8hn7ElkmrtmO8qW3P+LuGkjW+8F4bZ7XtESW0e5tjMOGnXrgoz
+	 gTbyTdhb8PXiBEvMM3n2hXp/lDwYpVjAzYT31ZCY=
+Date: Fri, 29 Dec 2023 11:07:25 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,jiajun.xie.sh@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-memcg-fix-split-queue-list-crash-when-large-folio-migration.patch removed from -mm tree
-Message-Id: <20231229190724.17066C433CA@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-fix-unmap_mapping_range-high-bits-shift-bug.patch removed from -mm tree
+Message-Id: <20231229190725.A2CB4C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,121 +27,92 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcg: fix split queue list crash when large folio migration
+     Subject: mm: fix unmap_mapping_range high bits shift bug
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-fix-split-queue-list-crash-when-large-folio-migration.patch
+     mm-fix-unmap_mapping_range-high-bits-shift-bug.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: memcg: fix split queue list crash when large folio migration
-Date: Wed, 20 Dec 2023 14:51:40 +0800
+From: Jiajun Xie <jiajun.xie.sh@gmail.com>
+Subject: mm: fix unmap_mapping_range high bits shift bug
+Date: Wed, 20 Dec 2023 13:28:39 +0800
 
-When running autonuma with enabling multi-size THP, I encountered the
-following kernel crash issue:
+The bug happens when highest bit of holebegin is 1, suppose holebegin is
+0x8000000111111000, after shift, hba would be 0xfff8000000111111, then
+vma_interval_tree_foreach would look it up fail or leads to the wrong
+result.
 
-[  134.290216] list_del corruption. prev->next should be fffff9ad42e1c490,
-but was dead000000000100. (prev=fffff9ad42399890)
-[  134.290877] kernel BUG at lib/list_debug.c:62!
-[  134.291052] invalid opcode: 0000 [#1] PREEMPT SMP NOPTI
-[  134.291210] CPU: 56 PID: 8037 Comm: numa01 Kdump: loaded Tainted:
-G            E      6.7.0-rc4+ #20
-[  134.291649] RIP: 0010:__list_del_entry_valid_or_report+0x97/0xb0
-......
-[  134.294252] Call Trace:
-[  134.294362]  <TASK>
-[  134.294440]  ? die+0x33/0x90
-[  134.294561]  ? do_trap+0xe0/0x110
-......
-[  134.295681]  ? __list_del_entry_valid_or_report+0x97/0xb0
-[  134.295842]  folio_undo_large_rmappable+0x99/0x100
-[  134.296003]  destroy_large_folio+0x68/0x70
-[  134.296172]  migrate_folio_move+0x12e/0x260
-[  134.296264]  ? __pfx_remove_migration_pte+0x10/0x10
-[  134.296389]  migrate_pages_batch+0x495/0x6b0
-[  134.296523]  migrate_pages+0x1d0/0x500
-[  134.296646]  ? __pfx_alloc_misplaced_dst_folio+0x10/0x10
-[  134.296799]  migrate_misplaced_folio+0x12d/0x2b0
-[  134.296953]  do_numa_page+0x1f4/0x570
-[  134.297121]  __handle_mm_fault+0x2b0/0x6c0
-[  134.297254]  handle_mm_fault+0x107/0x270
-[  134.300897]  do_user_addr_fault+0x167/0x680
-[  134.304561]  exc_page_fault+0x65/0x140
-[  134.307919]  asm_exc_page_fault+0x22/0x30
+error call seq e.g.:
+- mmap(..., offset=0x8000000111111000)
+  |- syscall(mmap, ... unsigned long, off):
+     |- ksys_mmap_pgoff( ... , off >> PAGE_SHIFT);
 
-The reason for the crash is that, the commit 85ce2c517ade ("memcontrol:
-only transfer the memcg data for migration") removed the charging and
-uncharging operations of the migration folios and cleared the memcg data
-of the old folio.
+  here pgoff is correctly shifted to 0x8000000111111,
+  but pass 0x8000000111111000 as holebegin to unmap
+  would then cause terrible result, as shown below:
 
-During the subsequent release process of the old large folio in
-destroy_large_folio(), if the large folio needs to be removed from the
-split queue, an incorrect split queue can be obtained (which is
-pgdat->deferred_split_queue) because the old folio's memcg is NULL now. 
-This can lead to list operations being performed under the wrong split
-queue lock protection, resulting in a list crash as above.
+- unmap_mapping_range(..., loff_t const holebegin)
+  |- pgoff_t hba = holebegin >> PAGE_SHIFT;
+          /* hba = 0xfff8000000111111 unexpectedly */
 
-After the migration, the old folio is going to be freed, so we can remove
-it from the split queue in mem_cgroup_migrate() a bit earlier before
-clearing the memcg data to avoid getting incorrect split queue.
+The issue happens in Heterogeneous computing, where the device(e.g. 
+gpu) and host share the same virtual address space.
 
-[akpm@linux-foundation.org: fix comment, per Zi Yan]
-Link: https://lkml.kernel.org/r/61273e5e9b490682388377c20f52d19de4a80460.1703054559.git.baolin.wang@linux.alibaba.com
-Fixes: 85ce2c517ade ("memcontrol: only transfer the memcg data for migration")
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
+A simple workflow pattern which hit the issue is:
+        /* host */
+    1. userspace first mmap a file backed VA range with specified offset.
+                        e.g. (offset=0x800..., mmap return: va_a)
+    2. write some data to the corresponding sys page
+                         e.g. (va_a = 0xAABB)
+        /* device */
+    3. gpu workload touches VA, triggers gpu fault and notify the host.
+        /* host */
+    4. reviced gpu fault notification, then it will:
+            4.1 unmap host pages and also takes care of cpu tlb
+                  (use unmap_mapping_range with offset=0x800...)
+            4.2 migrate sys page to device
+            4.3 setup device page table and resolve device fault.
+        /* device */
+    5. gpu workload continued, it accessed va_a and got 0xAABB.
+    6. gpu workload continued, it wrote 0xBBCC to va_a.
+        /* host */
+    7. userspace access va_a, as expected, it will:
+            7.1 trigger cpu vm fault.
+            7.2 driver handling fault to migrate gpu local page to host.
+    8. userspace then could correctly get 0xBBCC from va_a
+    9. done
+
+But in step 4.1, if we hit the bug this patch mentioned, then userspace
+would never trigger cpu fault, and still get the old value: 0xAABB.
+
+Making holebegin unsigned first fixes the bug.
+
+Link: https://lkml.kernel.org/r/20231220052839.26970-1-jiajun.xie.sh@gmail.com
+Signed-off-by: Jiajun Xie <jiajun.xie.sh@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- mm/memcontrol.c  |   11 +++++++++++
- 2 files changed, 12 insertions(+), 1 deletion(-)
+ mm/memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/huge_memory.c~mm-memcg-fix-split-queue-list-crash-when-large-folio-migration
-+++ a/mm/huge_memory.c
-@@ -2823,7 +2823,7 @@ void folio_undo_large_rmappable(struct f
- 	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
- 	if (!list_empty(&folio->_deferred_list)) {
- 		ds_queue->split_queue_len--;
--		list_del(&folio->_deferred_list);
-+		list_del_init(&folio->_deferred_list);
- 	}
- 	spin_unlock_irqrestore(&ds_queue->split_queue_lock, flags);
- }
---- a/mm/memcontrol.c~mm-memcg-fix-split-queue-list-crash-when-large-folio-migration
-+++ a/mm/memcontrol.c
-@@ -7543,6 +7543,17 @@ void mem_cgroup_migrate(struct folio *ol
+--- a/mm/memory.c~mm-fix-unmap_mapping_range-high-bits-shift-bug
++++ a/mm/memory.c
+@@ -3624,8 +3624,8 @@ EXPORT_SYMBOL_GPL(unmap_mapping_pages);
+ void unmap_mapping_range(struct address_space *mapping,
+ 		loff_t const holebegin, loff_t const holelen, int even_cows)
+ {
+-	pgoff_t hba = holebegin >> PAGE_SHIFT;
+-	pgoff_t hlen = (holelen + PAGE_SIZE - 1) >> PAGE_SHIFT;
++	pgoff_t hba = (pgoff_t)(holebegin) >> PAGE_SHIFT;
++	pgoff_t hlen = ((pgoff_t)(holelen) + PAGE_SIZE - 1) >> PAGE_SHIFT;
  
- 	/* Transfer the charge and the css ref */
- 	commit_charge(new, memcg);
-+	/*
-+	 * If the old folio is a large folio and is in the split queue, it needs
-+	 * to be removed from the split queue now, in case getting an incorrect
-+	 * split queue in destroy_large_folio() after the memcg of the old folio
-+	 * is cleared.
-+	 *
-+	 * In addition, the old folio is about to be freed after migration, so
-+	 * removing from the split queue a bit earlier seems reasonable.
-+	 */
-+	if (folio_test_large(old) && folio_test_large_rmappable(old))
-+		folio_undo_large_rmappable(old);
- 	old->memcg_data = 0;
- }
- 
+ 	/* Check for overflow. */
+ 	if (sizeof(holelen) > sizeof(hlen)) {
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from jiajun.xie.sh@gmail.com are
 
-mm-migrate-fix-getting-incorrect-page-mapping-during-page-migration.patch
 
