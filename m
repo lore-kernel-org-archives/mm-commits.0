@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB1CF13FF1
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:02:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B10D413FF1
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:02:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jlP2UiwZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7562CC433C7;
-	Fri, 29 Dec 2023 20:02:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BRiGkMkn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B2E2C433C7;
+	Fri, 29 Dec 2023 20:02:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703880123;
-	bh=cz8WBrfKOo5luAyGf+cw9YxwVrsftnqm17xemITQ2vQ=;
+	s=korg; t=1703880124;
+	bh=TZncM+/9Tpo7iVUPBCgrvCgyxqvZgl3q3zSexWBG4dQ=;
 	h=Date:To:From:Subject:From;
-	b=jlP2UiwZgDr5Ka/VkvndLOYwGCbgx8O36EoYZfi13TBQPlCQFOfrDajYKp48a6t+p
-	 pDV/IAbJK5ARMnf+VOxe8pO4I//nwAA9OvODjUQaOmTjWyUWJNF6Iuz5HQMvjwIRiQ
-	 XF6nXxnWufb3xaX876eRD4xStpcFhZ9RIqlgd5rY=
-Date: Fri, 29 Dec 2023 12:02:03 -0800
+	b=BRiGkMkngD1yXsjd29KDih2OcMj8iDvmT3vQkQH6jsCkpykKl4pW1b+YO4JckDh42
+	 7sz+PVgEQ0PnyLAwaRvXtQQ5RyD8YCn27HvO4UObQuK99XGA8VQpH4wwdnyFnDPvRq
+	 qBPkt9mSNXEx8AowNnHz68C0xutHlvlxxClO7SS4=
+Date: Fri, 29 Dec 2023 12:02:04 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,songmuchun@bytedance.com,ryan.roberts@arm.com,peterx@redhat.com,muchun.song@linux.dev,hughd@google.com,fengwei.yin@intel.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-rmap-rename-compound_mapped-to-entirely_mapped.patch removed from -mm tree
-Message-Id: <20231229200203.7562CC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-one-last-reference-to-page_add__rmap.patch removed from -mm tree
+Message-Id: <20231229200204.7B2E2C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,28 +27,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/rmap: rename COMPOUND_MAPPED to ENTIRELY_MAPPED
+     Subject: mm: remove one last reference to page_add_*_rmap()
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-rename-compound_mapped-to-entirely_mapped.patch
+     mm-remove-one-last-reference-to-page_add__rmap.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/rmap: rename COMPOUND_MAPPED to ENTIRELY_MAPPED
-Date: Wed, 20 Dec 2023 23:45:03 +0100
+Subject: mm: remove one last reference to page_add_*_rmap()
+Date: Wed, 20 Dec 2023 23:45:04 +0100
 
-We removed all "bool compound" and RMAP_COMPOUND parameters.  Let's remove
-the remaining "compound" terminology by making COMPOUND_MAPPED match the
-"folio->_entire_mapcount" terminology, renaming it to ENTIRELY_MAPPED.
+Let's fixup one remaining comment.  Note that the only trace remaining of
+the old rmap interface is in an example in Documentation/trace/ftrace.rst,
+that we'll just leave alone.
 
-ENTIRELY_MAPPED is only used when the whole folio is mapped using a single
-page table entry (e.g., a single PMD mapping a PMD-sized THP).  For now,
-we don't support mapping any THP bigger than that, so ENTIRELY_MAPPED only
-applies to PMD-mapped PMD-sized THP only.
-
-Link: https://lkml.kernel.org/r/20231220224504.646757-40-david@redhat.com
+Link: https://lkml.kernel.org/r/20231220224504.646757-41-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -60,107 +55,20 @@ Cc: Yin Fengwei <fengwei.yin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/transhuge.rst |    2 +-
- mm/internal.h                  |    6 +++---
- mm/rmap.c                      |   18 +++++++++---------
- 3 files changed, 13 insertions(+), 13 deletions(-)
+ mm/internal.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/mm/transhuge.rst~mm-rmap-rename-compound_mapped-to-entirely_mapped
-+++ a/Documentation/mm/transhuge.rst
-@@ -117,7 +117,7 @@ pages:
- 
-   - map/unmap of a PMD entry for the whole THP increment/decrement
-     folio->_entire_mapcount and also increment/decrement
--    folio->_nr_pages_mapped by COMPOUND_MAPPED when _entire_mapcount
-+    folio->_nr_pages_mapped by ENTIRELY_MAPPED when _entire_mapcount
-     goes from -1 to 0 or 0 to -1.
- 
-   - map/unmap of individual pages with PTE entry increment/decrement
---- a/mm/internal.h~mm-rmap-rename-compound_mapped-to-entirely_mapped
+--- a/mm/internal.h~mm-remove-one-last-reference-to-page_add__rmap
 +++ a/mm/internal.h
-@@ -54,12 +54,12 @@ void page_writeback_init(void);
- 
- /*
-  * If a 16GB hugetlb folio were mapped by PTEs of all of its 4kB pages,
-- * its nr_pages_mapped would be 0x400000: choose the COMPOUND_MAPPED bit
-+ * its nr_pages_mapped would be 0x400000: choose the ENTIRELY_MAPPED bit
-  * above that range, instead of 2*(PMD_SIZE/PAGE_SIZE).  Hugetlb currently
-  * leaves nr_pages_mapped at 0, but avoid surprise if it participates later.
+@@ -650,7 +650,7 @@ folio_within_vma(struct folio *folio, st
+  * should be called with vma's mmap_lock held for read or write,
+  * under page table lock for the pte/pmd being added or removed.
+  *
+- * mlock is usually called at the end of page_add_*_rmap(), munlock at
++ * mlock is usually called at the end of folio_add_*_rmap_*(), munlock at
+  * the end of folio_remove_rmap_*(); but new anon folios are managed by
+  * folio_add_lru_vma() calling mlock_new_folio().
   */
--#define COMPOUND_MAPPED		0x800000
--#define FOLIO_PAGES_MAPPED	(COMPOUND_MAPPED - 1)
-+#define ENTIRELY_MAPPED		0x800000
-+#define FOLIO_PAGES_MAPPED	(ENTIRELY_MAPPED - 1)
- 
- /*
-  * Flags passed to __show_mem() and show_free_areas() to suppress output in
---- a/mm/rmap.c~mm-rmap-rename-compound_mapped-to-entirely_mapped
-+++ a/mm/rmap.c
-@@ -1172,7 +1172,7 @@ static __always_inline unsigned int __fo
- 			first = atomic_inc_and_test(&page->_mapcount);
- 			if (first && folio_test_large(folio)) {
- 				first = atomic_inc_return_relaxed(mapped);
--				first = (first < COMPOUND_MAPPED);
-+				first = (first < ENTIRELY_MAPPED);
- 			}
- 
- 			if (first)
-@@ -1182,15 +1182,15 @@ static __always_inline unsigned int __fo
- 	case RMAP_LEVEL_PMD:
- 		first = atomic_inc_and_test(&folio->_entire_mapcount);
- 		if (first) {
--			nr = atomic_add_return_relaxed(COMPOUND_MAPPED, mapped);
--			if (likely(nr < COMPOUND_MAPPED + COMPOUND_MAPPED)) {
-+			nr = atomic_add_return_relaxed(ENTIRELY_MAPPED, mapped);
-+			if (likely(nr < ENTIRELY_MAPPED + ENTIRELY_MAPPED)) {
- 				*nr_pmdmapped = folio_nr_pages(folio);
- 				nr = *nr_pmdmapped - (nr & FOLIO_PAGES_MAPPED);
- 				/* Raced ahead of a remove and another add? */
- 				if (unlikely(nr < 0))
- 					nr = 0;
- 			} else {
--				/* Raced ahead of a remove of COMPOUND_MAPPED */
-+				/* Raced ahead of a remove of ENTIRELY_MAPPED */
- 				nr = 0;
- 			}
- 		}
-@@ -1433,7 +1433,7 @@ void folio_add_new_anon_rmap(struct foli
- 	} else {
- 		/* increment count (starts at -1) */
- 		atomic_set(&folio->_entire_mapcount, 0);
--		atomic_set(&folio->_nr_pages_mapped, COMPOUND_MAPPED);
-+		atomic_set(&folio->_nr_pages_mapped, ENTIRELY_MAPPED);
- 		SetPageAnonExclusive(&folio->page);
- 		__lruvec_stat_mod_folio(folio, NR_ANON_THPS, nr);
- 	}
-@@ -1514,7 +1514,7 @@ static __always_inline void __folio_remo
- 			last = atomic_add_negative(-1, &page->_mapcount);
- 			if (last && folio_test_large(folio)) {
- 				last = atomic_dec_return_relaxed(mapped);
--				last = (last < COMPOUND_MAPPED);
-+				last = (last < ENTIRELY_MAPPED);
- 			}
- 
- 			if (last)
-@@ -1524,15 +1524,15 @@ static __always_inline void __folio_remo
- 	case RMAP_LEVEL_PMD:
- 		last = atomic_add_negative(-1, &folio->_entire_mapcount);
- 		if (last) {
--			nr = atomic_sub_return_relaxed(COMPOUND_MAPPED, mapped);
--			if (likely(nr < COMPOUND_MAPPED)) {
-+			nr = atomic_sub_return_relaxed(ENTIRELY_MAPPED, mapped);
-+			if (likely(nr < ENTIRELY_MAPPED)) {
- 				nr_pmdmapped = folio_nr_pages(folio);
- 				nr = nr_pmdmapped - (nr & FOLIO_PAGES_MAPPED);
- 				/* Raced ahead of another remove and an add? */
- 				if (unlikely(nr < 0))
- 					nr = 0;
- 			} else {
--				/* An add of COMPOUND_MAPPED raced ahead */
-+				/* An add of ENTIRELY_MAPPED raced ahead */
- 				nr = 0;
- 			}
- 		}
 _
 
 Patches currently in -mm which might be from david@redhat.com are
