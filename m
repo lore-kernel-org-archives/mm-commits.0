@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A923212E46
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 19:59:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED3BF134B9
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 19:59:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YzpMuKc2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74B00C433C7;
-	Fri, 29 Dec 2023 19:59:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0awQPcxg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8503C433C7;
+	Fri, 29 Dec 2023 19:59:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703879993;
-	bh=8KlZCulwxVD4WBCembHbvGhtX5xUIHjvFdgbSrZD55o=;
+	s=korg; t=1703879994;
+	bh=7udKI/U4VtfIZaJalmFl1TUGyM60ik9uakhqUZ8+kbA=;
 	h=Date:To:From:Subject:From;
-	b=YzpMuKc2BNP99jSwy1B+yPYvGrvX1p16OvrUGP+c0L5llR9TB4uBFldlZKP7Js4g1
-	 JKVrBMT1I/tZYtUYmBm+NE5LUasjQn2gUhMoZn598sHMyYbrLR14+U0x1gutaaI2yq
-	 qxGSbnjI30Dv03d1BUV7HD4SvoKOKr+ZZQd65DsE=
-Date: Fri, 29 Dec 2023 11:59:52 -0800
-To: mm-commits@vger.kernel.org,riel@surriel.com,hannes@cmpxchg.org,david@redhat.com,shr@devkernel.io,akpm@linux-foundation.org
+	b=0awQPcxgPwS3F/o7ceimC8EzQGWuI1O1GIUM2BxH/J5R37dqI27M/u+7Ob9MXn4gh
+	 udriv6L3kN9dulsP0zgCietNJUpmBuiFjlNBGEUHY0VifUNKHGLh05Ih3ZTLJtR4wU
+	 cPzstF6VonCrT7uJXKs5IzPVHxKyYgkc8cU9unwk=
+Date: Fri, 29 Dec 2023 11:59:54 -0800
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,vitaly.wool@konsulko.com,sjenning@redhat.com,nphamcs@gmail.com,hannes@cmpxchg.org,ddstreet@ieee.org,chrisl@kernel.org,21cnbao@gmail.com,zhouchengming@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-ksm-document-ksm-advisor-and-its-sysfs-knobs.patch removed from -mm tree
-Message-Id: <20231229195953.74B00C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zswap-reuse-dstmem-when-decompress.patch removed from -mm tree
+Message-Id: <20231229195954.B8503C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,111 +27,176 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/ksm: document ksm advisor and its sysfs knobs
+     Subject: mm/zswap: reuse dstmem when decompress
 has been removed from the -mm tree.  Its filename was
-     mm-ksm-document-ksm-advisor-and-its-sysfs-knobs.patch
+     mm-zswap-reuse-dstmem-when-decompress.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Stefan Roesch <shr@devkernel.io>
-Subject: mm/ksm: document ksm advisor and its sysfs knobs
-Date: Mon, 18 Dec 2023 15:10:54 -0800
+From: Chengming Zhou <zhouchengming@bytedance.com>
+Subject: mm/zswap: reuse dstmem when decompress
+Date: Thu, 28 Dec 2023 09:45:42 +0000
 
-This documents the KSM advisor and its new knobs in /sys/fs/kernel/mm.
+Patch series "mm/zswap: dstmem reuse optimizations and cleanups", v5.
 
-Link: https://lkml.kernel.org/r/20231218231054.1625219-5-shr@devkernel.io
-Signed-off-by: Stefan Roesch <shr@devkernel.io>
-Acked-by: David Hildenbrand <david@redhat.com>
+The problem this series tries to optimize is that zswap_load() and
+zswap_writeback_entry() have to malloc a temporary memory to support
+!zpool_can_sleep_mapped().  We can avoid it by reusing the percpu
+crypto_acomp_ctx->dstmem, which is also used by zswap_store() and
+protected by the same percpu crypto_acomp_ctx->mutex.
+
+
+This patch (of 5):
+
+In the !zpool_can_sleep_mapped() case such as zsmalloc, we need to first
+copy the entry->handle memory to a temporary memory, which is allocated
+using kmalloc.
+
+Obviously we can reuse the per-compressor dstmem to avoid allocating every
+time, since it's percpu-compressor and protected in percpu mutex.
+
+Link: https://lkml.kernel.org/r/20231213-zswap-dstmem-v5-0-9382162bbf05@bytedance.com
+Link: https://lkml.kernel.org/r/20231213-zswap-dstmem-v5-1-9382162bbf05@bytedance.com
+Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
+Acked-by: Chris Li <chrisl@kernel.org> (Google)
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@surriel.com>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/ksm.rst |   55 +++++++++++++++++++++++++
- 1 file changed, 55 insertions(+)
+ mm/zswap.c |   44 ++++++++++++--------------------------------
+ 1 file changed, 12 insertions(+), 32 deletions(-)
 
---- a/Documentation/admin-guide/mm/ksm.rst~mm-ksm-document-ksm-advisor-and-its-sysfs-knobs
-+++ a/Documentation/admin-guide/mm/ksm.rst
-@@ -80,6 +80,9 @@ pages_to_scan
-         how many pages to scan before ksmd goes to sleep
-         e.g. ``echo 100 > /sys/kernel/mm/ksm/pages_to_scan``.
+--- a/mm/zswap.c~mm-zswap-reuse-dstmem-when-decompress
++++ a/mm/zswap.c
+@@ -1408,19 +1408,13 @@ static int zswap_writeback_entry(struct
+ 	struct crypto_acomp_ctx *acomp_ctx;
+ 	struct zpool *pool = zswap_find_zpool(entry);
+ 	bool page_was_allocated;
+-	u8 *src, *tmp = NULL;
++	u8 *src;
+ 	unsigned int dlen;
+ 	int ret;
+ 	struct writeback_control wbc = {
+ 		.sync_mode = WB_SYNC_NONE,
+ 	};
  
-+        The pages_to_scan value cannot be changed if ``advisor_mode`` has
-+        been set to scan-time.
-+
-         Default: 100 (chosen for demonstration purposes)
+-	if (!zpool_can_sleep_mapped(pool)) {
+-		tmp = kmalloc(PAGE_SIZE, GFP_KERNEL);
+-		if (!tmp)
+-			return -ENOMEM;
+-	}
+-
+ 	/* try to allocate swap cache page */
+ 	mpol = get_task_policy(current);
+ 	page = __read_swap_cache_async(swpentry, GFP_KERNEL, mpol,
+@@ -1456,15 +1450,15 @@ static int zswap_writeback_entry(struct
+ 	/* decompress */
+ 	acomp_ctx = raw_cpu_ptr(entry->pool->acomp_ctx);
+ 	dlen = PAGE_SIZE;
++	mutex_lock(acomp_ctx->mutex);
  
- sleep_millisecs
-@@ -164,6 +167,29 @@ smart_scan
-         optimization is enabled.  The ``pages_skipped`` metric shows how
-         effective the setting is.
+ 	src = zpool_map_handle(pool, entry->handle, ZPOOL_MM_RO);
+ 	if (!zpool_can_sleep_mapped(pool)) {
+-		memcpy(tmp, src, entry->length);
+-		src = tmp;
++		memcpy(acomp_ctx->dstmem, src, entry->length);
++		src = acomp_ctx->dstmem;
+ 		zpool_unmap_handle(pool, entry->handle);
+ 	}
  
-+advisor_mode
-+        The ``advisor_mode`` selects the current advisor. Two modes are
-+        supported: none and scan-time. The default is none. By setting
-+        ``advisor_mode`` to scan-time, the scan time advisor is enabled.
-+        The section about ``advisor`` explains in detail how the scan time
-+        advisor works.
-+
-+adivsor_max_cpu
-+        specifies the upper limit of the cpu percent usage of the ksmd
-+        background thread. The default is 70.
-+
-+advisor_target_scan_time
-+        specifies the target scan time in seconds to scan all the candidate
-+        pages. The default value is 200 seconds.
-+
-+advisor_min_pages_to_scan
-+        specifies the lower limit of the ``pages_to_scan`` parameter of the
-+        scan time advisor. The default is 500.
-+
-+adivsor_max_pages_to_scan
-+        specifies the upper limit of the ``pages_to_scan`` parameter of the
-+        scan time advisor. The default is 30000.
-+
- The effectiveness of KSM and MADV_MERGEABLE is shown in ``/sys/kernel/mm/ksm/``:
+-	mutex_lock(acomp_ctx->mutex);
+ 	sg_init_one(&input, src, entry->length);
+ 	sg_init_table(&output, 1);
+ 	sg_set_page(&output, page, PAGE_SIZE, 0);
+@@ -1473,9 +1467,7 @@ static int zswap_writeback_entry(struct
+ 	dlen = acomp_ctx->req->dlen;
+ 	mutex_unlock(acomp_ctx->mutex);
  
- general_profit
-@@ -263,6 +289,35 @@ ksm_swpin_copy
- 	note that KSM page might be copied when swapping in because do_swap_page()
- 	cannot do all the locking needed to reconstitute a cross-anon_vma KSM page.
+-	if (!zpool_can_sleep_mapped(pool))
+-		kfree(tmp);
+-	else
++	if (zpool_can_sleep_mapped(pool))
+ 		zpool_unmap_handle(pool, entry->handle);
  
-+Advisor
-+=======
+ 	BUG_ON(ret);
+@@ -1494,9 +1486,6 @@ static int zswap_writeback_entry(struct
+ 	return ret;
+ 
+ fail:
+-	if (!zpool_can_sleep_mapped(pool))
+-		kfree(tmp);
+-
+ 	/*
+ 	 * If we get here because the page is already in swapcache, a
+ 	 * load may be happening concurrently. It is safe and okay to
+@@ -1758,7 +1747,7 @@ bool zswap_load(struct folio *folio)
+ 	struct zswap_entry *entry;
+ 	struct scatterlist input, output;
+ 	struct crypto_acomp_ctx *acomp_ctx;
+-	u8 *src, *dst, *tmp;
++	u8 *src, *dst;
+ 	struct zpool *zpool;
+ 	unsigned int dlen;
+ 	bool ret;
+@@ -1783,26 +1772,19 @@ bool zswap_load(struct folio *folio)
+ 	}
+ 
+ 	zpool = zswap_find_zpool(entry);
+-	if (!zpool_can_sleep_mapped(zpool)) {
+-		tmp = kmalloc(entry->length, GFP_KERNEL);
+-		if (!tmp) {
+-			ret = false;
+-			goto freeentry;
+-		}
+-	}
+ 
+ 	/* decompress */
+ 	dlen = PAGE_SIZE;
+-	src = zpool_map_handle(zpool, entry->handle, ZPOOL_MM_RO);
++	acomp_ctx = raw_cpu_ptr(entry->pool->acomp_ctx);
++	mutex_lock(acomp_ctx->mutex);
+ 
++	src = zpool_map_handle(zpool, entry->handle, ZPOOL_MM_RO);
+ 	if (!zpool_can_sleep_mapped(zpool)) {
+-		memcpy(tmp, src, entry->length);
+-		src = tmp;
++		memcpy(acomp_ctx->dstmem, src, entry->length);
++		src = acomp_ctx->dstmem;
+ 		zpool_unmap_handle(zpool, entry->handle);
+ 	}
+ 
+-	acomp_ctx = raw_cpu_ptr(entry->pool->acomp_ctx);
+-	mutex_lock(acomp_ctx->mutex);
+ 	sg_init_one(&input, src, entry->length);
+ 	sg_init_table(&output, 1);
+ 	sg_set_page(&output, page, PAGE_SIZE, 0);
+@@ -1813,15 +1795,13 @@ bool zswap_load(struct folio *folio)
+ 
+ 	if (zpool_can_sleep_mapped(zpool))
+ 		zpool_unmap_handle(zpool, entry->handle);
+-	else
+-		kfree(tmp);
+ 
+ 	ret = true;
+ stats:
+ 	count_vm_event(ZSWPIN);
+ 	if (entry->objcg)
+ 		count_objcg_event(entry->objcg, ZSWPIN);
+-freeentry:
 +
-+The number of candidate pages for KSM is dynamic. It can be often observed
-+that during the startup of an application more candidate pages need to be
-+processed. Without an advisor the ``pages_to_scan`` parameter needs to be
-+sized for the maximum number of candidate pages. The scan time advisor can
-+changes the ``pages_to_scan`` parameter based on demand.
-+
-+The advisor can be enabled, so KSM can automatically adapt to changes in the
-+number of candidate pages to scan. Two advisors are implemented: none and
-+scan-time. With none, no advisor is enabled. The default is none.
-+
-+The scan time advisor changes the ``pages_to_scan`` parameter based on the
-+observed scan times. The possible values for the ``pages_to_scan`` parameter is
-+limited by the ``advisor_max_cpu`` parameter. In addition there is also the
-+``advisor_target_scan_time`` parameter. This parameter sets the target time to
-+scan all the KSM candidate pages. The parameter ``advisor_target_scan_time``
-+decides how aggressive the scan time advisor scans candidate pages. Lower
-+values make the scan time advisor to scan more aggresively. This is the most
-+important parameter for the configuration of the scan time advisor.
-+
-+The initial value and the maximum value can be changed with
-+``advisor_min_pages_to_scan`` and ``advisor_max_pages_to_scan``. The default
-+values are sufficient for most workloads and use cases.
-+
-+The ``pages_to_scan`` parameter is re-calculated after a scan has been completed.
-+
-+
- --
- Izik Eidus,
- Hugh Dickins, 17 Nov 2009
+ 	spin_lock(&tree->lock);
+ 	if (ret && zswap_exclusive_loads_enabled) {
+ 		zswap_invalidate_entry(tree, entry);
 _
 
-Patches currently in -mm which might be from shr@devkernel.io are
+Patches currently in -mm which might be from zhouchengming@bytedance.com are
 
 
