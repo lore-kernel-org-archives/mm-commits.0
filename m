@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B2FE134A0
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 19:59:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFE20134A0
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 19:59:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zbxIVWdf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64317C433C7;
-	Fri, 29 Dec 2023 19:59:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MRGZhW9C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E070C433C8;
+	Fri, 29 Dec 2023 19:59:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703879969;
-	bh=aQQq7D2rdHmHCZw9bGbPb/oIxbIDh3zAetFX5J7QSqo=;
+	s=korg; t=1703879970;
+	bh=TCP71FwWDGS50tWP+0Hs23/VouFEzsbxujRCF8bxrKY=;
 	h=Date:To:From:Subject:From;
-	b=zbxIVWdfGhkint05zAFEdx6f6BTYGD2k1pyd5YPVXDIJ8uJX60eZw/jKNPtSg6CrU
-	 xblcivBtYdjbRpiw5J1wzN5iJ3eNBRZ2n8tzWzekAndv2Ra17CSgkB368SokNyB5i0
-	 nOPPZ7KBzKj8IYscIhymOBjcUD0L6sstTJxyhuog=
-Date: Fri, 29 Dec 2023 11:59:28 -0800
+	b=MRGZhW9Ch0onwh17PuZSGet3VTklNf2HA5WYsD4KSR693sDUn/G/ngsfMUmn9UPgb
+	 uui7ImSS8MjHE3udKscLIMZB1W/3YPTzgX68i5BuiRupNkPDIr45/T6Nh1uwO5Bdtj
+	 UtQ0yxzUKOt270JIyYgyVo96z24UWHy5oXMkm06Q=
+Date: Fri, 29 Dec 2023 11:59:29 -0800
 To: mm-commits@vger.kernel.org,p.raghav@samsung.com,mcgrof@kernel.org,konishi.ryusuke@gmail.com,hare@suse.de,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] buffer-fix-various-functions-for-block-size-page_size.patch removed from -mm tree
-Message-Id: <20231229195929.64317C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] buffer-handle-large-folios-in-__block_write_begin_int.patch removed from -mm tree
+Message-Id: <20231229195930.7E070C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,73 +27,74 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: buffer: fix various functions for block size > PAGE_SIZE
+     Subject: buffer: handle large folios in __block_write_begin_int()
 has been removed from the -mm tree.  Its filename was
-     buffer-fix-various-functions-for-block-size-page_size.patch
+     buffer-handle-large-folios-in-__block_write_begin_int.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: buffer: fix various functions for block size > PAGE_SIZE
-Date: Thu, 9 Nov 2023 21:06:06 +0000
+Subject: buffer: handle large folios in __block_write_begin_int()
+Date: Thu, 9 Nov 2023 21:06:07 +0000
 
-If i_blkbits is larger than PAGE_SHIFT, we shift by a negative number,
-which is undefined.  It is safe to shift the block left as a block device
-must be smaller than MAX_LFS_FILESIZE, which is guaranteed to fit in
-loff_t.
+When __block_write_begin_int() was converted to support folios, we did not
+expect large folios to be passed to it.  With the current work to support
+large block size storage devices, this will no longer be true so change
+the checks on 'from' and 'to' to be related to the size of the folio
+instead of PAGE_SIZE.  Also remove an assumption that the block size is
+smaller than PAGE_SIZE.
 
-Link: https://lkml.kernel.org/r/20231109210608.2252323-6-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231109210608.2252323-7-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Pankaj Raghav <p.raghav@samsung.com>
+Reported-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Cc: Hannes Reinecke <hare@suse.de>
 Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: Pankaj Raghav <p.raghav@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/buffer.c |   17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
---- a/fs/buffer.c~buffer-fix-various-functions-for-block-size-page_size
+--- a/fs/buffer.c~buffer-handle-large-folios-in-__block_write_begin_int
 +++ a/fs/buffer.c
-@@ -199,7 +199,7 @@ __find_get_block_slow(struct block_devic
- 	int all_mapped = 1;
- 	static DEFINE_RATELIMIT_STATE(last_warned, HZ, 1);
+@@ -2075,27 +2075,24 @@ iomap_to_bh(struct inode *inode, sector_
+ int __block_write_begin_int(struct folio *folio, loff_t pos, unsigned len,
+ 		get_block_t *get_block, const struct iomap *iomap)
+ {
+-	unsigned from = pos & (PAGE_SIZE - 1);
+-	unsigned to = from + len;
++	size_t from = offset_in_folio(folio, pos);
++	size_t to = from + len;
+ 	struct inode *inode = folio->mapping->host;
+-	unsigned block_start, block_end;
++	size_t block_start, block_end;
+ 	sector_t block;
+ 	int err = 0;
+-	unsigned blocksize, bbits;
++	size_t blocksize;
+ 	struct buffer_head *bh, *head, *wait[2], **wait_bh=wait;
  
--	index = block >> (PAGE_SHIFT - bd_inode->i_blkbits);
-+	index = ((loff_t)block << bd_inode->i_blkbits) / PAGE_SIZE;
- 	folio = __filemap_get_folio(bd_mapping, index, FGP_ACCESSED, 0);
- 	if (IS_ERR(folio))
- 		goto out;
-@@ -1693,13 +1693,13 @@ void clean_bdev_aliases(struct block_dev
- 	struct inode *bd_inode = bdev->bd_inode;
- 	struct address_space *bd_mapping = bd_inode->i_mapping;
- 	struct folio_batch fbatch;
--	pgoff_t index = block >> (PAGE_SHIFT - bd_inode->i_blkbits);
-+	pgoff_t index = ((loff_t)block << bd_inode->i_blkbits) / PAGE_SIZE;
- 	pgoff_t end;
- 	int i, count;
- 	struct buffer_head *bh;
- 	struct buffer_head *head;
+ 	BUG_ON(!folio_test_locked(folio));
+-	BUG_ON(from > PAGE_SIZE);
+-	BUG_ON(to > PAGE_SIZE);
++	BUG_ON(to > folio_size(folio));
+ 	BUG_ON(from > to);
  
--	end = (block + len - 1) >> (PAGE_SHIFT - bd_inode->i_blkbits);
-+	end = ((loff_t)(block + len - 1) << bd_inode->i_blkbits) / PAGE_SIZE;
- 	folio_batch_init(&fbatch);
- 	while (filemap_get_folios(bd_mapping, &index, end, &fbatch)) {
- 		count = folio_batch_count(&fbatch);
-@@ -2660,8 +2660,8 @@ int block_truncate_page(struct address_s
- 		return 0;
+ 	head = folio_create_buffers(folio, inode, 0);
+ 	blocksize = head->b_size;
+-	bbits = block_size_bits(blocksize);
++	block = div_u64(folio_pos(folio), blocksize);
  
- 	length = blocksize - length;
--	iblock = (sector_t)index << (PAGE_SHIFT - inode->i_blkbits);
--	
-+	iblock = ((loff_t)index * PAGE_SIZE) >> inode->i_blkbits;
-+
- 	folio = filemap_grab_folio(mapping, index);
- 	if (IS_ERR(folio))
- 		return PTR_ERR(folio);
+-	block = (sector_t)folio->index << (PAGE_SHIFT - bbits);
+-
+-	for(bh = head, block_start = 0; bh != head || !block_start;
++	for (bh = head, block_start = 0; bh != head || !block_start;
+ 	    block++, block_start=block_end, bh = bh->b_this_page) {
+ 		block_end = block_start + blocksize;
+ 		if (block_end <= from || block_start >= to) {
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
