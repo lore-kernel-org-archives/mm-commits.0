@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FA0913FE4
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:00:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19EB813FF3
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:00:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F0iFh9Vl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF758C433CC;
-	Fri, 29 Dec 2023 20:00:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g80KwcPR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D96E8C433C9;
+	Fri, 29 Dec 2023 20:00:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
 	s=korg; t=1703880032;
-	bh=bnygWKA9VhcbFC/BrdUOVGJOIpRgCrllsf2MPTf0lgU=;
+	bh=dgziEq4zS12V2KcSKxgxe1yElLAveXQYGhsus9km8xI=;
 	h=Date:To:From:Subject:From;
-	b=F0iFh9Vl2bMo3lED9gFIKjqyNVgppOIHcHBc9sPrgRJmxRdEZQQeIjUpvREXeW5Yy
-	 GrMo0s0np9cb++zVAau0ZeLtWvUhf0AxUconTr0vsLdYgHZe6oVlsj5ERegF2/bE0i
-	 3C4geny93/iEiuwnPVFolSbF0t14fUDJthgF/j14=
-Date: Fri, 29 Dec 2023 12:00:31 -0800
+	b=g80KwcPRhwDyWOlQrY6jNjko4yuyccDI5DBfgaumpiWSC+Bo8PhXqUsXE9cIBLm9y
+	 1DWUyFpBup3/7gfYaqbqO8aNyceKA/mE6DkIderVc55GEgZVSJs0O29P+mPkbjmnkW
+	 ZEFlJOO2JRF1L0BgLifrN2STjXIcn6C43KoFL1q4=
+Date: Fri, 29 Dec 2023 12:00:32 -0800
 To: mm-commits@vger.kernel.org,hch@lst.de,axboe@kernel.dk,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] fs-convert-block_write_full_page-to-block_write_full_folio.patch removed from -mm tree
-Message-Id: <20231229200031.DF758C433CC@smtp.kernel.org>
+Subject: [merged mm-stable] fs-remove-the-bh_end_io-argument-from-__block_write_full_folio.patch removed from -mm tree
+Message-Id: <20231229200032.D96E8C433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,235 +27,139 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fs: convert block_write_full_page to block_write_full_folio
+     Subject: fs: remove the bh_end_io argument from __block_write_full_folio
 has been removed from the -mm tree.  Its filename was
-     fs-convert-block_write_full_page-to-block_write_full_folio.patch
+     fs-remove-the-bh_end_io-argument-from-__block_write_full_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: fs: convert block_write_full_page to block_write_full_folio
-Date: Fri, 15 Dec 2023 20:02:44 +0000
+Subject: fs: remove the bh_end_io argument from __block_write_full_folio
+Date: Fri, 15 Dec 2023 20:02:45 +0000
 
-Convert the function to be compatible with writepage_t so that it can be
-passed to write_cache_pages() by blkdev.  This removes a call to
-compound_head().  We can also remove the function export as both callers
-are built-in.
+All callers are passing end_buffer_async_write as this argument, so we can
+hardcode references to it within __block_write_full_folio().  That lets us
+make end_buffer_async_write() static.
 
-Link: https://lkml.kernel.org/r/20231215200245.748418-14-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231215200245.748418-15-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Jens Axboe <axboe@kernel.dk>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/fops.c                |   21 ++++++++++++++++++---
- fs/buffer.c                 |   16 +++++++---------
- fs/ext4/page-io.c           |    2 +-
- fs/gfs2/aops.c              |    4 ++--
- fs/mpage.c                  |    2 +-
- fs/ntfs/aops.c              |    4 ++--
- fs/ocfs2/alloc.c            |    2 +-
- fs/ocfs2/file.c             |    2 +-
- include/linux/buffer_head.h |    4 ++--
- 9 files changed, 35 insertions(+), 22 deletions(-)
+ fs/buffer.c                 |   22 ++++++++++------------
+ fs/gfs2/aops.c              |    2 +-
+ include/linux/buffer_head.h |    4 +---
+ 3 files changed, 12 insertions(+), 16 deletions(-)
 
---- a/block/fops.c~fs-convert-block_write_full_page-to-block_write_full_folio
-+++ a/block/fops.c
-@@ -410,9 +410,24 @@ static int blkdev_get_block(struct inode
- 	return 0;
- }
- 
--static int blkdev_writepage(struct page *page, struct writeback_control *wbc)
-+/*
-+ * We cannot call mpage_writepages() as it does not take the buffer lock.
-+ * We must use block_write_full_folio() directly which holds the buffer
-+ * lock.  The buffer lock provides the synchronisation with writeback
-+ * that filesystems rely on when they use the blockdev's mapping.
-+ */
-+static int blkdev_writepages(struct address_space *mapping,
-+		struct writeback_control *wbc)
- {
--	return block_write_full_page(page, blkdev_get_block, wbc);
-+	struct blk_plug plug;
-+	int err;
-+
-+	blk_start_plug(&plug);
-+	err = write_cache_pages(mapping, wbc, block_write_full_folio,
-+			blkdev_get_block);
-+	blk_finish_plug(&plug);
-+
-+	return err;
- }
- 
- static int blkdev_read_folio(struct file *file, struct folio *folio)
-@@ -449,7 +464,7 @@ const struct address_space_operations de
- 	.invalidate_folio = block_invalidate_folio,
- 	.read_folio	= blkdev_read_folio,
- 	.readahead	= blkdev_readahead,
--	.writepage	= blkdev_writepage,
-+	.writepages	= blkdev_writepages,
- 	.write_begin	= blkdev_write_begin,
- 	.write_end	= blkdev_write_end,
- 	.migrate_folio	= buffer_migrate_folio_norefs,
---- a/fs/buffer.c~fs-convert-block_write_full_page-to-block_write_full_folio
+--- a/fs/buffer.c~fs-remove-the-bh_end_io-argument-from-__block_write_full_folio
 +++ a/fs/buffer.c
-@@ -372,7 +372,7 @@ static void end_buffer_async_read_io(str
+@@ -372,10 +372,10 @@ static void end_buffer_async_read_io(str
  }
  
  /*
-- * Completion handler for block_write_full_page() - pages which are unlocked
-+ * Completion handler for block_write_full_folio() - pages which are unlocked
-  * during I/O, and which have PageWriteback cleared upon I/O completion.
+- * Completion handler for block_write_full_folio() - pages which are unlocked
+- * during I/O, and which have PageWriteback cleared upon I/O completion.
++ * Completion handler for block_write_full_folio() - folios which are unlocked
++ * during I/O, and which have the writeback flag cleared upon I/O completion.
   */
- void end_buffer_async_write(struct buffer_head *bh, int uptodate)
-@@ -1771,18 +1771,18 @@ static struct buffer_head *folio_create_
-  */
+-void end_buffer_async_write(struct buffer_head *bh, int uptodate)
++static void end_buffer_async_write(struct buffer_head *bh, int uptodate)
+ {
+ 	unsigned long flags;
+ 	struct buffer_head *first;
+@@ -415,7 +415,6 @@ still_busy:
+ 	spin_unlock_irqrestore(&first->b_uptodate_lock, flags);
+ 	return;
+ }
+-EXPORT_SYMBOL(end_buffer_async_write);
  
  /*
-- * While block_write_full_page is writing back the dirty buffers under
-+ * While block_write_full_folio is writing back the dirty buffers under
-  * the page lock, whoever dirtied the buffers may decide to clean them
-  * again at any time.  We handle that by only looking at the buffer
-  * state inside lock_buffer().
-  *
-- * If block_write_full_page() is called for regular writeback
-+ * If block_write_full_folio() is called for regular writeback
-  * (wbc->sync_mode == WB_SYNC_NONE) then it will redirty a page which has a
-  * locked buffer.   This only can happen if someone has written the buffer
-  * directly, with submit_bh().  At the address_space level PageWriteback
-  * prevents this contention from occurring.
-  *
-- * If block_write_full_page() is called with wbc->sync_mode ==
-+ * If block_write_full_folio() is called with wbc->sync_mode ==
-  * WB_SYNC_ALL, the writes are posted using REQ_SYNC; this
+  * If a page's buffers are under async readin (end_buffer_async_read
+@@ -1787,8 +1786,7 @@ static struct buffer_head *folio_create_
   * causes the writes to be flagged as synchronous writes.
   */
-@@ -1829,7 +1829,7 @@ int __block_write_full_folio(struct inod
- 			 * truncate in progress.
- 			 */
- 			/*
--			 * The buffer was zeroed by block_write_full_page()
-+			 * The buffer was zeroed by block_write_full_folio()
- 			 */
- 			clear_buffer_dirty(bh);
- 			set_buffer_uptodate(bh);
-@@ -2696,10 +2696,9 @@ EXPORT_SYMBOL(block_truncate_page);
- /*
-  * The generic ->writepage function for buffer-backed address_spaces
-  */
--int block_write_full_page(struct page *page, get_block_t *get_block,
--			struct writeback_control *wbc)
-+int block_write_full_folio(struct folio *folio, struct writeback_control *wbc,
-+		void *get_block)
+ int __block_write_full_folio(struct inode *inode, struct folio *folio,
+-			get_block_t *get_block, struct writeback_control *wbc,
+-			bh_end_io_t *handler)
++			get_block_t *get_block, struct writeback_control *wbc)
  {
--	struct folio *folio = page_folio(page);
- 	struct inode * const inode = folio->mapping->host;
- 	loff_t i_size = i_size_read(inode);
+ 	int err;
+ 	sector_t block;
+@@ -1867,7 +1865,8 @@ int __block_write_full_folio(struct inod
+ 			continue;
+ 		}
+ 		if (test_clear_buffer_dirty(bh)) {
+-			mark_buffer_async_write_endio(bh, handler);
++			mark_buffer_async_write_endio(bh,
++				end_buffer_async_write);
+ 		} else {
+ 			unlock_buffer(bh);
+ 		}
+@@ -1920,7 +1919,8 @@ recover:
+ 		if (buffer_mapped(bh) && buffer_dirty(bh) &&
+ 		    !buffer_delay(bh)) {
+ 			lock_buffer(bh);
+-			mark_buffer_async_write_endio(bh, handler);
++			mark_buffer_async_write_endio(bh,
++				end_buffer_async_write);
+ 		} else {
+ 			/*
+ 			 * The buffer may have been set dirty during
+@@ -2704,8 +2704,7 @@ int block_write_full_folio(struct folio
  
-@@ -2726,7 +2725,6 @@ int block_write_full_page(struct page *p
- 	return __block_write_full_folio(inode, folio, get_block, wbc,
- 			end_buffer_async_write);
+ 	/* Is the folio fully inside i_size? */
+ 	if (folio_pos(folio) + folio_size(folio) <= i_size)
+-		return __block_write_full_folio(inode, folio, get_block, wbc,
+-					       end_buffer_async_write);
++		return __block_write_full_folio(inode, folio, get_block, wbc);
+ 
+ 	/* Is the folio fully outside i_size? (truncate in progress) */
+ 	if (folio_pos(folio) >= i_size) {
+@@ -2722,8 +2721,7 @@ int block_write_full_folio(struct folio
+ 	 */
+ 	folio_zero_segment(folio, offset_in_folio(folio, i_size),
+ 			folio_size(folio));
+-	return __block_write_full_folio(inode, folio, get_block, wbc,
+-			end_buffer_async_write);
++	return __block_write_full_folio(inode, folio, get_block, wbc);
  }
--EXPORT_SYMBOL(block_write_full_page);
  
  sector_t generic_block_bmap(struct address_space *mapping, sector_t block,
- 			    get_block_t *get_block)
---- a/fs/ext4/page-io.c~fs-convert-block_write_full_page-to-block_write_full_folio
-+++ a/fs/ext4/page-io.c
-@@ -444,7 +444,7 @@ int ext4_bio_write_folio(struct ext4_io_
- 	folio_clear_error(folio);
- 
- 	/*
--	 * Comments copied from block_write_full_page:
-+	 * Comments copied from block_write_full_folio:
- 	 *
- 	 * The folio straddles i_size.  It must be zeroed out on each and every
- 	 * writepage invocation because it may be mmapped.  "A file is mapped
---- a/fs/gfs2/aops.c~fs-convert-block_write_full_page-to-block_write_full_folio
+--- a/fs/gfs2/aops.c~fs-remove-the-bh_end_io-argument-from-__block_write_full_folio
 +++ a/fs/gfs2/aops.c
-@@ -82,11 +82,11 @@ static int gfs2_get_block_noalloc(struct
+@@ -108,7 +108,7 @@ static int gfs2_write_jdata_folio(struct
+ 				folio_size(folio));
+ 
+ 	return __block_write_full_folio(inode, folio, gfs2_get_block_noalloc,
+-			wbc, end_buffer_async_write);
++			wbc);
  }
  
  /**
-- * gfs2_write_jdata_folio - gfs2 jdata-specific version of block_write_full_page
-+ * gfs2_write_jdata_folio - gfs2 jdata-specific version of block_write_full_folio
-  * @folio: The folio to write
-  * @wbc: The writeback control
-  *
-- * This is the same as calling block_write_full_page, but it also
-+ * This is the same as calling block_write_full_folio, but it also
-  * writes pages outside of i_size
-  */
- static int gfs2_write_jdata_folio(struct folio *folio,
---- a/fs/mpage.c~fs-convert-block_write_full_page-to-block_write_full_folio
-+++ a/fs/mpage.c
-@@ -642,7 +642,7 @@ confused:
- 	/*
- 	 * The caller has a ref on the inode, so *mapping is stable
- 	 */
--	ret = block_write_full_page(&folio->page, mpd->get_block, wbc);
-+	ret = block_write_full_folio(folio, wbc, mpd->get_block);
- 	mapping_set_error(mapping, ret);
- out:
- 	mpd->bio = bio;
---- a/fs/ntfs/aops.c~fs-convert-block_write_full_page-to-block_write_full_folio
-+++ a/fs/ntfs/aops.c
-@@ -1304,7 +1304,7 @@ done:
-  * page cleaned.  The VM has already locked the page and marked it clean.
-  *
-  * For non-resident attributes, ntfs_writepage() writes the @page by calling
-- * the ntfs version of the generic block_write_full_page() function,
-+ * the ntfs version of the generic block_write_full_folio() function,
-  * ntfs_write_block(), which in turn if necessary creates and writes the
-  * buffers associated with the page asynchronously.
-  *
-@@ -1314,7 +1314,7 @@ done:
-  * vfs inode dirty code path for the inode the mft record belongs to or via the
-  * vm page dirty code path for the page the mft record is in.
-  *
-- * Based on ntfs_read_folio() and fs/buffer.c::block_write_full_page().
-+ * Based on ntfs_read_folio() and fs/buffer.c::block_write_full_folio().
-  *
-  * Return 0 on success and -errno on error.
-  */
---- a/fs/ocfs2/alloc.c~fs-convert-block_write_full_page-to-block_write_full_folio
-+++ a/fs/ocfs2/alloc.c
-@@ -6934,7 +6934,7 @@ static int ocfs2_grab_eof_pages(struct i
-  * nonzero data on subsequent file extends.
-  *
-  * We need to call this before i_size is updated on the inode because
-- * otherwise block_write_full_page() will skip writeout of pages past
-+ * otherwise block_write_full_folio() will skip writeout of pages past
-  * i_size.
-  */
- int ocfs2_zero_range_for_truncate(struct inode *inode, handle_t *handle,
---- a/fs/ocfs2/file.c~fs-convert-block_write_full_page-to-block_write_full_folio
-+++ a/fs/ocfs2/file.c
-@@ -818,7 +818,7 @@ static int ocfs2_write_zero_page(struct
- 	/*
- 	 * fs-writeback will release the dirty pages without page lock
- 	 * whose offset are over inode size, the release happens at
--	 * block_write_full_page().
-+	 * block_write_full_folio().
- 	 */
- 	i_size_write(inode, abs_to);
- 	inode->i_blocks = ocfs2_inode_sector_count(inode);
---- a/include/linux/buffer_head.h~fs-convert-block_write_full_page-to-block_write_full_folio
+--- a/include/linux/buffer_head.h~fs-remove-the-bh_end_io-argument-from-__block_write_full_folio
 +++ a/include/linux/buffer_head.h
-@@ -252,8 +252,8 @@ void __bh_read_batch(int nr, struct buff
-  * address_spaces.
-  */
- void block_invalidate_folio(struct folio *folio, size_t offset, size_t length);
--int block_write_full_page(struct page *page, get_block_t *get_block,
--				struct writeback_control *wbc);
-+int block_write_full_folio(struct folio *folio, struct writeback_control *wbc,
-+		void *get_block);
+@@ -205,7 +205,6 @@ struct buffer_head *create_empty_buffers
+ 		unsigned long blocksize, unsigned long b_state);
+ void end_buffer_read_sync(struct buffer_head *bh, int uptodate);
+ void end_buffer_write_sync(struct buffer_head *bh, int uptodate);
+-void end_buffer_async_write(struct buffer_head *bh, int uptodate);
+ 
+ /* Things to do with buffers at mapping->private_list */
+ void mark_buffer_dirty_inode(struct buffer_head *bh, struct inode *inode);
+@@ -255,8 +254,7 @@ void block_invalidate_folio(struct folio
+ int block_write_full_folio(struct folio *folio, struct writeback_control *wbc,
+ 		void *get_block);
  int __block_write_full_folio(struct inode *inode, struct folio *folio,
- 			get_block_t *get_block, struct writeback_control *wbc,
- 			bh_end_io_t *handler);
+-			get_block_t *get_block, struct writeback_control *wbc,
+-			bh_end_io_t *handler);
++		get_block_t *get_block, struct writeback_control *wbc);
+ int block_read_full_folio(struct folio *, get_block_t *);
+ bool block_is_partially_uptodate(struct folio *, size_t from, size_t count);
+ int block_write_begin(struct address_space *mapping, loff_t pos, unsigned len,
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
