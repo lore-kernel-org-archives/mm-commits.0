@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D320134A4
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 19:59:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83A3E134B6
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 19:59:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VraVGohE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19095C433C9;
-	Fri, 29 Dec 2023 19:59:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kjvy9umC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B91CC433C7;
+	Fri, 29 Dec 2023 19:59:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703879991;
-	bh=qMkwoDMA+45wyd3AH4l4OjZsLnQFiE+xvSRvif1oyuk=;
+	s=korg; t=1703879992;
+	bh=8bA4oz/4mtRR7u8lU0A4Us/RGAkEm7IYVTBE4qfe9b8=;
 	h=Date:To:From:Subject:From;
-	b=VraVGohEKkcd2ujbnYg/bGqvo87Y33ugsHLt9nhyzU3aYgSPrgLjO2BZZccxTfuE0
-	 w45Y98M9BPKHnfJFQlPcS83tjjPMfQ7nVWrdvvBVfU9itguprYL0dEcKd6jfc1kZMj
-	 Uz+REpmQQOn2aJ9vtOARzWPEkvrx364ouTfqAer4=
-Date: Fri, 29 Dec 2023 11:59:50 -0800
+	b=kjvy9umC4CKU0ynFk1og14rAOB9AkEub/mtiI/xGOfJruJZ/9iNJhsypHpm4CJhSv
+	 DfNuernLsRS4EhiXP9h40/XHlFnUfRRy/nPRNVmoU/S00OOQrrMNo5jLAgZlxKMQSf
+	 98ei3A5pf8ZXYLL6WTHdfJdDZwDuRrZNuFGRPfME=
+Date: Fri, 29 Dec 2023 11:59:51 -0800
 To: mm-commits@vger.kernel.org,riel@surriel.com,hannes@cmpxchg.org,david@redhat.com,shr@devkernel.io,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-ksm-add-sysfs-knobs-for-advisor.patch removed from -mm tree
-Message-Id: <20231229195951.19095C433C9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-ksm-add-tracepoint-for-ksm-advisor.patch removed from -mm tree
+Message-Id: <20231229195952.4B91CC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,32 +27,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/ksm: add sysfs knobs for advisor
+     Subject: mm/ksm: add tracepoint for ksm advisor
 has been removed from the -mm tree.  Its filename was
-     mm-ksm-add-sysfs-knobs-for-advisor.patch
+     mm-ksm-add-tracepoint-for-ksm-advisor.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Stefan Roesch <shr@devkernel.io>
-Subject: mm/ksm: add sysfs knobs for advisor
-Date: Mon, 18 Dec 2023 15:10:52 -0800
+Subject: mm/ksm: add tracepoint for ksm advisor
+Date: Mon, 18 Dec 2023 15:10:53 -0800
 
-This adds four new knobs for the KSM advisor to influence its behaviour.
+This adds a new tracepoint for the ksm advisor.  It reports the last scan
+time, the new setting of the pages_to_scan parameter and the average cpu
+percent usage of the ksmd background thread for the last scan.
 
-The knobs are:
-- advisor_mode:
-    none:      no advisor (default)
-    scan-time: scan time advisor
-- advisor_max_cpu: 70 (default, cpu usage percent)
-- advisor_min_pages_to_scan: 500 (default)
-- advisor_max_pages_to_scan: 30000 (default)
-- advisor_target_scan_time: 200 (default in seconds)
-
-The new values will take effect on the next scan round.
-
-Link: https://lkml.kernel.org/r/20231218231054.1625219-3-shr@devkernel.io
+Link: https://lkml.kernel.org/r/20231218231054.1625219-4-shr@devkernel.io
 Signed-off-by: Stefan Roesch <shr@devkernel.io>
 Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -60,180 +51,62 @@ Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |  148 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 148 insertions(+)
+ include/trace/events/ksm.h |   33 +++++++++++++++++++++++++++++++++
+ mm/ksm.c                   |    1 +
+ 2 files changed, 34 insertions(+)
 
---- a/mm/ksm.c~mm-ksm-add-sysfs-knobs-for-advisor
-+++ a/mm/ksm.c
-@@ -338,6 +338,25 @@ enum ksm_advisor_type {
- };
- static enum ksm_advisor_type ksm_advisor;
+--- a/include/trace/events/ksm.h~mm-ksm-add-tracepoint-for-ksm-advisor
++++ a/include/trace/events/ksm.h
+@@ -245,6 +245,39 @@ TRACE_EVENT(ksm_remove_rmap_item,
+ 			__entry->pfn, __entry->rmap_item, __entry->mm)
+ );
  
-+#ifdef CONFIG_SYSFS
-+/*
-+ * Only called through the sysfs control interface:
++/**
++ * ksm_advisor - called after the advisor has run
++ *
++ * @scan_time:		scan time in seconds
++ * @pages_to_scan:	new pages_to_scan value
++ * @cpu_percent:	cpu usage in percent
++ *
++ * Allows to trace the ksm advisor.
 + */
++TRACE_EVENT(ksm_advisor,
 +
-+/* At least scan this many pages per batch. */
-+static unsigned long ksm_advisor_min_pages_to_scan = 500;
++	TP_PROTO(s64 scan_time, unsigned long pages_to_scan,
++		 unsigned int cpu_percent),
 +
-+static void set_advisor_defaults(void)
-+{
-+	if (ksm_advisor == KSM_ADVISOR_NONE) {
-+		ksm_thread_pages_to_scan = DEFAULT_PAGES_TO_SCAN;
-+	} else if (ksm_advisor == KSM_ADVISOR_SCAN_TIME) {
-+		advisor_ctx = (const struct advisor_ctx){ 0 };
-+		ksm_thread_pages_to_scan = ksm_advisor_min_pages_to_scan;
-+	}
-+}
-+#endif /* CONFIG_SYSFS */
++	TP_ARGS(scan_time, pages_to_scan, cpu_percent),
 +
- static inline void advisor_start_scan(void)
- {
- 	if (ksm_advisor == KSM_ADVISOR_SCAN_TIME)
-@@ -3721,6 +3740,130 @@ static ssize_t smart_scan_store(struct k
++	TP_STRUCT__entry(
++		__field(s64,		scan_time)
++		__field(unsigned long,	pages_to_scan)
++		__field(unsigned int,	cpu_percent)
++	),
++
++	TP_fast_assign(
++		__entry->scan_time	= scan_time;
++		__entry->pages_to_scan	= pages_to_scan;
++		__entry->cpu_percent	= cpu_percent;
++	),
++
++	TP_printk("ksm scan time %lld pages_to_scan %lu cpu percent %u",
++			__entry->scan_time, __entry->pages_to_scan,
++			__entry->cpu_percent)
++);
++
+ #endif /* _TRACE_KSM_H */
+ 
+ /* This part must be outside protection */
+--- a/mm/ksm.c~mm-ksm-add-tracepoint-for-ksm-advisor
++++ a/mm/ksm.c
+@@ -458,6 +458,7 @@ static void scan_time_advisor(void)
+ 	advisor_ctx.cpu_time = cpu_time;
+ 
+ 	ksm_thread_pages_to_scan = pages;
++	trace_ksm_advisor(scan_time, pages, cpu_percent);
  }
- KSM_ATTR(smart_scan);
  
-+static ssize_t advisor_mode_show(struct kobject *kobj,
-+				 struct kobj_attribute *attr, char *buf)
-+{
-+	const char *output;
-+
-+	if (ksm_advisor == KSM_ADVISOR_NONE)
-+		output = "[none] scan-time";
-+	else if (ksm_advisor == KSM_ADVISOR_SCAN_TIME)
-+		output = "none [scan-time]";
-+
-+	return sysfs_emit(buf, "%s\n", output);
-+}
-+
-+static ssize_t advisor_mode_store(struct kobject *kobj,
-+				  struct kobj_attribute *attr, const char *buf,
-+				  size_t count)
-+{
-+	enum ksm_advisor_type curr_advisor = ksm_advisor;
-+
-+	if (sysfs_streq("scan-time", buf))
-+		ksm_advisor = KSM_ADVISOR_SCAN_TIME;
-+	else if (sysfs_streq("none", buf))
-+		ksm_advisor = KSM_ADVISOR_NONE;
-+	else
-+		return -EINVAL;
-+
-+	/* Set advisor default values */
-+	if (curr_advisor != ksm_advisor)
-+		set_advisor_defaults();
-+
-+	return count;
-+}
-+KSM_ATTR(advisor_mode);
-+
-+static ssize_t advisor_max_cpu_show(struct kobject *kobj,
-+				    struct kobj_attribute *attr, char *buf)
-+{
-+	return sysfs_emit(buf, "%u\n", ksm_advisor_max_cpu);
-+}
-+
-+static ssize_t advisor_max_cpu_store(struct kobject *kobj,
-+				     struct kobj_attribute *attr,
-+				     const char *buf, size_t count)
-+{
-+	int err;
-+	unsigned long value;
-+
-+	err = kstrtoul(buf, 10, &value);
-+	if (err)
-+		return -EINVAL;
-+
-+	ksm_advisor_max_cpu = value;
-+	return count;
-+}
-+KSM_ATTR(advisor_max_cpu);
-+
-+static ssize_t advisor_min_pages_to_scan_show(struct kobject *kobj,
-+					struct kobj_attribute *attr, char *buf)
-+{
-+	return sysfs_emit(buf, "%lu\n", ksm_advisor_min_pages_to_scan);
-+}
-+
-+static ssize_t advisor_min_pages_to_scan_store(struct kobject *kobj,
-+					struct kobj_attribute *attr,
-+					const char *buf, size_t count)
-+{
-+	int err;
-+	unsigned long value;
-+
-+	err = kstrtoul(buf, 10, &value);
-+	if (err)
-+		return -EINVAL;
-+
-+	ksm_advisor_min_pages_to_scan = value;
-+	return count;
-+}
-+KSM_ATTR(advisor_min_pages_to_scan);
-+
-+static ssize_t advisor_max_pages_to_scan_show(struct kobject *kobj,
-+					struct kobj_attribute *attr, char *buf)
-+{
-+	return sysfs_emit(buf, "%lu\n", ksm_advisor_max_pages_to_scan);
-+}
-+
-+static ssize_t advisor_max_pages_to_scan_store(struct kobject *kobj,
-+					struct kobj_attribute *attr,
-+					const char *buf, size_t count)
-+{
-+	int err;
-+	unsigned long value;
-+
-+	err = kstrtoul(buf, 10, &value);
-+	if (err)
-+		return -EINVAL;
-+
-+	ksm_advisor_max_pages_to_scan = value;
-+	return count;
-+}
-+KSM_ATTR(advisor_max_pages_to_scan);
-+
-+static ssize_t advisor_target_scan_time_show(struct kobject *kobj,
-+					     struct kobj_attribute *attr, char *buf)
-+{
-+	return sysfs_emit(buf, "%lu\n", ksm_advisor_target_scan_time);
-+}
-+
-+static ssize_t advisor_target_scan_time_store(struct kobject *kobj,
-+					      struct kobj_attribute *attr,
-+					      const char *buf, size_t count)
-+{
-+	int err;
-+	unsigned long value;
-+
-+	err = kstrtoul(buf, 10, &value);
-+	if (err)
-+		return -EINVAL;
-+	if (value < 1)
-+		return -EINVAL;
-+
-+	ksm_advisor_target_scan_time = value;
-+	return count;
-+}
-+KSM_ATTR(advisor_target_scan_time);
-+
- static struct attribute *ksm_attrs[] = {
- 	&sleep_millisecs_attr.attr,
- 	&pages_to_scan_attr.attr,
-@@ -3743,6 +3886,11 @@ static struct attribute *ksm_attrs[] = {
- 	&use_zero_pages_attr.attr,
- 	&general_profit_attr.attr,
- 	&smart_scan_attr.attr,
-+	&advisor_mode_attr.attr,
-+	&advisor_max_cpu_attr.attr,
-+	&advisor_min_pages_to_scan_attr.attr,
-+	&advisor_max_pages_to_scan_attr.attr,
-+	&advisor_target_scan_time_attr.attr,
- 	NULL,
- };
- 
+ static void advisor_stop_scan(void)
 _
 
 Patches currently in -mm which might be from shr@devkernel.io are
