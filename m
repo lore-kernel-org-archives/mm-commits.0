@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FB29134BE
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:00:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47E6D134B7
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:00:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="klujTP59"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDBACC433C8;
-	Fri, 29 Dec 2023 20:00:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="efMP3eB2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14102C433C8;
+	Fri, 29 Dec 2023 20:00:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703880003;
-	bh=pIXAaYGG5AHDewD8m51NKd3+aZgNily5mLU2pn/HL8s=;
+	s=korg; t=1703880005;
+	bh=ZceLWJ78EA8V1hf2zIZB/FNKBIoyQefd0iIEzZtnZ7k=;
 	h=Date:To:From:Subject:From;
-	b=klujTP59aBtMqigBY2bkLNsXw3q7Ad7P7Vsmt2uUW+n96pbnRU9Lbzo/bj9ZQOgpN
-	 wK4rkh9kWr4jDUDbsNiDsuZGvxGDpnYfdYufno5zT+rRfVUxNn6MK1whjhCyBd7pvN
-	 TG4jKkGoeDEPXuaZFt8f+bNvkKA6k6y+efmJKoO0=
-Date: Fri, 29 Dec 2023 12:00:03 -0800
+	b=efMP3eB271tZhrbWHHQ2EEP+G5NqI6TkqO6XfuyoL7aW636apaTbT+H37/WYgkjYe
+	 r5AaTnIw7XC1Bzq/Oi5aeU7MA05V/Oy983aDRFW7vh5i1UHn/Np0oSFrKuxTt9mzHO
+	 +f3dBXWFRcBi3KDHwP7zYyogaG2h0uv+ji4Zfsx0=
+Date: Fri, 29 Dec 2023 12:00:04 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-pass-a-folio-to-__swap_writepage.patch removed from -mm tree
-Message-Id: <20231229200003.CDBACC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-pass-a-folio-to-swap_writepage_fs.patch removed from -mm tree
+Message-Id: <20231229200005.14102C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,93 +27,73 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: pass a folio to __swap_writepage()
+     Subject: mm: pass a folio to swap_writepage_fs()
 has been removed from the -mm tree.  Its filename was
-     mm-pass-a-folio-to-__swap_writepage.patch
+     mm-pass-a-folio-to-swap_writepage_fs.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: pass a folio to __swap_writepage()
-Date: Wed, 13 Dec 2023 21:58:31 +0000
+Subject: mm: pass a folio to swap_writepage_fs()
+Date: Wed, 13 Dec 2023 21:58:32 +0000
 
-Both callers now have a folio, so pass that in instead of the page. 
-Removes a few hidden calls to compound_head().
+Saves several calls to compound_head().
 
-Link: https://lkml.kernel.org/r/20231213215842.671461-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231213215842.671461-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |   14 +++++++-------
- mm/swap.h    |    2 +-
- mm/zswap.c   |    2 +-
- 3 files changed, 9 insertions(+), 9 deletions(-)
+ mm/page_io.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
---- a/mm/page_io.c~mm-pass-a-folio-to-__swap_writepage
+--- a/mm/page_io.c~mm-pass-a-folio-to-swap_writepage_fs
 +++ a/mm/page_io.c
-@@ -201,7 +201,7 @@ int swap_writepage(struct page *page, st
- 		folio_end_writeback(folio);
- 		return 0;
- 	}
--	__swap_writepage(&folio->page, wbc);
-+	__swap_writepage(folio, wbc);
- 	return 0;
+@@ -288,16 +288,16 @@ static void sio_write_complete(struct ki
+ 	mempool_free(sio, sio_pool);
  }
  
-@@ -368,22 +368,22 @@ static void swap_writepage_bdev_async(st
- 	submit_bio(bio);
- }
- 
--void __swap_writepage(struct page *page, struct writeback_control *wbc)
-+void __swap_writepage(struct folio *folio, struct writeback_control *wbc)
+-static void swap_writepage_fs(struct page *page, struct writeback_control *wbc)
++static void swap_writepage_fs(struct folio *folio, struct writeback_control *wbc)
  {
+ 	struct swap_iocb *sio = NULL;
 -	struct swap_info_struct *sis = page_swap_info(page);
 +	struct swap_info_struct *sis = swp_swap_info(folio->swap);
+ 	struct file *swap_file = sis->swap_file;
+-	loff_t pos = page_file_offset(page);
++	loff_t pos = folio_file_pos(folio);
  
--	VM_BUG_ON_PAGE(!PageSwapCache(page), page);
-+	VM_BUG_ON_FOLIO(!folio_test_swapcache(folio), folio);
- 	/*
- 	 * ->flags can be updated non-atomicially (scan_swap_map_slots),
- 	 * but that will never affect SWP_FS_OPS, so the data_race
+-	count_swpout_vm_event(page_folio(page));
+-	set_page_writeback(page);
+-	unlock_page(page);
++	count_swpout_vm_event(folio);
++	folio_start_writeback(folio);
++	folio_unlock(folio);
+ 	if (wbc->swap_plug)
+ 		sio = *wbc->swap_plug;
+ 	if (sio) {
+@@ -315,8 +315,8 @@ static void swap_writepage_fs(struct pag
+ 		sio->pages = 0;
+ 		sio->len = 0;
+ 	}
+-	bvec_set_page(&sio->bvec[sio->pages], page, thp_size(page), 0);
+-	sio->len += thp_size(page);
++	bvec_set_folio(&sio->bvec[sio->pages], folio, folio_size(folio), 0);
++	sio->len += folio_size(folio);
+ 	sio->pages += 1;
+ 	if (sio->pages == ARRAY_SIZE(sio->bvec) || !wbc->swap_plug) {
+ 		swap_write_unplug(sio);
+@@ -379,7 +379,7 @@ void __swap_writepage(struct folio *foli
  	 * is safe.
  	 */
  	if (data_race(sis->flags & SWP_FS_OPS))
--		swap_writepage_fs(page, wbc);
-+		swap_writepage_fs(&folio->page, wbc);
+-		swap_writepage_fs(&folio->page, wbc);
++		swap_writepage_fs(folio, wbc);
  	else if (sis->flags & SWP_SYNCHRONOUS_IO)
--		swap_writepage_bdev_sync(page, wbc, sis);
-+		swap_writepage_bdev_sync(&folio->page, wbc, sis);
+ 		swap_writepage_bdev_sync(&folio->page, wbc, sis);
  	else
--		swap_writepage_bdev_async(page, wbc, sis);
-+		swap_writepage_bdev_async(&folio->page, wbc, sis);
- }
- 
- void swap_write_unplug(struct swap_iocb *sio)
---- a/mm/swap.h~mm-pass-a-folio-to-__swap_writepage
-+++ a/mm/swap.h
-@@ -19,7 +19,7 @@ static inline void swap_read_unplug(stru
- }
- void swap_write_unplug(struct swap_iocb *sio);
- int swap_writepage(struct page *page, struct writeback_control *wbc);
--void __swap_writepage(struct page *page, struct writeback_control *wbc);
-+void __swap_writepage(struct folio *folio, struct writeback_control *wbc);
- 
- /* linux/mm/swap_state.c */
- /* One swap address space for each 64M swap space */
---- a/mm/zswap.c~mm-pass-a-folio-to-__swap_writepage
-+++ a/mm/zswap.c
-@@ -1446,7 +1446,7 @@ static int zswap_writeback_entry(struct
- 	folio_set_reclaim(folio);
- 
- 	/* start writeback */
--	__swap_writepage(&folio->page, &wbc);
-+	__swap_writepage(folio, &wbc);
- 	folio_put(folio);
- 
- 	return 0;
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
