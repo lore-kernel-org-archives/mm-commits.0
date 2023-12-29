@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83A3E134B6
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 19:59:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A923212E46
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 19:59:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kjvy9umC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B91CC433C7;
-	Fri, 29 Dec 2023 19:59:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YzpMuKc2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74B00C433C7;
+	Fri, 29 Dec 2023 19:59:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703879992;
-	bh=8bA4oz/4mtRR7u8lU0A4Us/RGAkEm7IYVTBE4qfe9b8=;
+	s=korg; t=1703879993;
+	bh=8KlZCulwxVD4WBCembHbvGhtX5xUIHjvFdgbSrZD55o=;
 	h=Date:To:From:Subject:From;
-	b=kjvy9umC4CKU0ynFk1og14rAOB9AkEub/mtiI/xGOfJruJZ/9iNJhsypHpm4CJhSv
-	 DfNuernLsRS4EhiXP9h40/XHlFnUfRRy/nPRNVmoU/S00OOQrrMNo5jLAgZlxKMQSf
-	 98ei3A5pf8ZXYLL6WTHdfJdDZwDuRrZNuFGRPfME=
-Date: Fri, 29 Dec 2023 11:59:51 -0800
+	b=YzpMuKc2BNP99jSwy1B+yPYvGrvX1p16OvrUGP+c0L5llR9TB4uBFldlZKP7Js4g1
+	 JKVrBMT1I/tZYtUYmBm+NE5LUasjQn2gUhMoZn598sHMyYbrLR14+U0x1gutaaI2yq
+	 qxGSbnjI30Dv03d1BUV7HD4SvoKOKr+ZZQd65DsE=
+Date: Fri, 29 Dec 2023 11:59:52 -0800
 To: mm-commits@vger.kernel.org,riel@surriel.com,hannes@cmpxchg.org,david@redhat.com,shr@devkernel.io,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-ksm-add-tracepoint-for-ksm-advisor.patch removed from -mm tree
-Message-Id: <20231229195952.4B91CC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-ksm-document-ksm-advisor-and-its-sysfs-knobs.patch removed from -mm tree
+Message-Id: <20231229195953.74B00C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,23 +27,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/ksm: add tracepoint for ksm advisor
+     Subject: mm/ksm: document ksm advisor and its sysfs knobs
 has been removed from the -mm tree.  Its filename was
-     mm-ksm-add-tracepoint-for-ksm-advisor.patch
+     mm-ksm-document-ksm-advisor-and-its-sysfs-knobs.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Stefan Roesch <shr@devkernel.io>
-Subject: mm/ksm: add tracepoint for ksm advisor
-Date: Mon, 18 Dec 2023 15:10:53 -0800
+Subject: mm/ksm: document ksm advisor and its sysfs knobs
+Date: Mon, 18 Dec 2023 15:10:54 -0800
 
-This adds a new tracepoint for the ksm advisor.  It reports the last scan
-time, the new setting of the pages_to_scan parameter and the average cpu
-percent usage of the ksmd background thread for the last scan.
+This documents the KSM advisor and its new knobs in /sys/fs/kernel/mm.
 
-Link: https://lkml.kernel.org/r/20231218231054.1625219-4-shr@devkernel.io
+Link: https://lkml.kernel.org/r/20231218231054.1625219-5-shr@devkernel.io
 Signed-off-by: Stefan Roesch <shr@devkernel.io>
 Acked-by: David Hildenbrand <david@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -51,62 +49,87 @@ Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/ksm.h |   33 +++++++++++++++++++++++++++++++++
- mm/ksm.c                   |    1 +
- 2 files changed, 34 insertions(+)
+ Documentation/admin-guide/mm/ksm.rst |   55 +++++++++++++++++++++++++
+ 1 file changed, 55 insertions(+)
 
---- a/include/trace/events/ksm.h~mm-ksm-add-tracepoint-for-ksm-advisor
-+++ a/include/trace/events/ksm.h
-@@ -245,6 +245,39 @@ TRACE_EVENT(ksm_remove_rmap_item,
- 			__entry->pfn, __entry->rmap_item, __entry->mm)
- );
+--- a/Documentation/admin-guide/mm/ksm.rst~mm-ksm-document-ksm-advisor-and-its-sysfs-knobs
++++ a/Documentation/admin-guide/mm/ksm.rst
+@@ -80,6 +80,9 @@ pages_to_scan
+         how many pages to scan before ksmd goes to sleep
+         e.g. ``echo 100 > /sys/kernel/mm/ksm/pages_to_scan``.
  
-+/**
-+ * ksm_advisor - called after the advisor has run
-+ *
-+ * @scan_time:		scan time in seconds
-+ * @pages_to_scan:	new pages_to_scan value
-+ * @cpu_percent:	cpu usage in percent
-+ *
-+ * Allows to trace the ksm advisor.
-+ */
-+TRACE_EVENT(ksm_advisor,
++        The pages_to_scan value cannot be changed if ``advisor_mode`` has
++        been set to scan-time.
 +
-+	TP_PROTO(s64 scan_time, unsigned long pages_to_scan,
-+		 unsigned int cpu_percent),
-+
-+	TP_ARGS(scan_time, pages_to_scan, cpu_percent),
-+
-+	TP_STRUCT__entry(
-+		__field(s64,		scan_time)
-+		__field(unsigned long,	pages_to_scan)
-+		__field(unsigned int,	cpu_percent)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->scan_time	= scan_time;
-+		__entry->pages_to_scan	= pages_to_scan;
-+		__entry->cpu_percent	= cpu_percent;
-+	),
-+
-+	TP_printk("ksm scan time %lld pages_to_scan %lu cpu percent %u",
-+			__entry->scan_time, __entry->pages_to_scan,
-+			__entry->cpu_percent)
-+);
-+
- #endif /* _TRACE_KSM_H */
+         Default: 100 (chosen for demonstration purposes)
  
- /* This part must be outside protection */
---- a/mm/ksm.c~mm-ksm-add-tracepoint-for-ksm-advisor
-+++ a/mm/ksm.c
-@@ -458,6 +458,7 @@ static void scan_time_advisor(void)
- 	advisor_ctx.cpu_time = cpu_time;
+ sleep_millisecs
+@@ -164,6 +167,29 @@ smart_scan
+         optimization is enabled.  The ``pages_skipped`` metric shows how
+         effective the setting is.
  
- 	ksm_thread_pages_to_scan = pages;
-+	trace_ksm_advisor(scan_time, pages, cpu_percent);
- }
++advisor_mode
++        The ``advisor_mode`` selects the current advisor. Two modes are
++        supported: none and scan-time. The default is none. By setting
++        ``advisor_mode`` to scan-time, the scan time advisor is enabled.
++        The section about ``advisor`` explains in detail how the scan time
++        advisor works.
++
++adivsor_max_cpu
++        specifies the upper limit of the cpu percent usage of the ksmd
++        background thread. The default is 70.
++
++advisor_target_scan_time
++        specifies the target scan time in seconds to scan all the candidate
++        pages. The default value is 200 seconds.
++
++advisor_min_pages_to_scan
++        specifies the lower limit of the ``pages_to_scan`` parameter of the
++        scan time advisor. The default is 500.
++
++adivsor_max_pages_to_scan
++        specifies the upper limit of the ``pages_to_scan`` parameter of the
++        scan time advisor. The default is 30000.
++
+ The effectiveness of KSM and MADV_MERGEABLE is shown in ``/sys/kernel/mm/ksm/``:
  
- static void advisor_stop_scan(void)
+ general_profit
+@@ -263,6 +289,35 @@ ksm_swpin_copy
+ 	note that KSM page might be copied when swapping in because do_swap_page()
+ 	cannot do all the locking needed to reconstitute a cross-anon_vma KSM page.
+ 
++Advisor
++=======
++
++The number of candidate pages for KSM is dynamic. It can be often observed
++that during the startup of an application more candidate pages need to be
++processed. Without an advisor the ``pages_to_scan`` parameter needs to be
++sized for the maximum number of candidate pages. The scan time advisor can
++changes the ``pages_to_scan`` parameter based on demand.
++
++The advisor can be enabled, so KSM can automatically adapt to changes in the
++number of candidate pages to scan. Two advisors are implemented: none and
++scan-time. With none, no advisor is enabled. The default is none.
++
++The scan time advisor changes the ``pages_to_scan`` parameter based on the
++observed scan times. The possible values for the ``pages_to_scan`` parameter is
++limited by the ``advisor_max_cpu`` parameter. In addition there is also the
++``advisor_target_scan_time`` parameter. This parameter sets the target time to
++scan all the KSM candidate pages. The parameter ``advisor_target_scan_time``
++decides how aggressive the scan time advisor scans candidate pages. Lower
++values make the scan time advisor to scan more aggresively. This is the most
++important parameter for the configuration of the scan time advisor.
++
++The initial value and the maximum value can be changed with
++``advisor_min_pages_to_scan`` and ``advisor_max_pages_to_scan``. The default
++values are sufficient for most workloads and use cases.
++
++The ``pages_to_scan`` parameter is re-calculated after a scan has been completed.
++
++
+ --
+ Izik Eidus,
+ Hugh Dickins, 17 Nov 2009
 _
 
 Patches currently in -mm which might be from shr@devkernel.io are
