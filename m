@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1597912E46
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 19:07:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A205312B99
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 19:07:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tnLuMeCy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD3C3C433C7;
-	Fri, 29 Dec 2023 19:07:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cg4MgF2x"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17066C433CA;
+	Fri, 29 Dec 2023 19:07:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703876842;
-	bh=7GQ+gNxYbJbxH+Qs0UqggSyizuXAQeBsUBsdMhzPWyE=;
+	s=korg; t=1703876844;
+	bh=RKpTWF0X/ctkwuuTUeAxFJzHiC94+L2Ot6sGXrMtrlo=;
 	h=Date:To:From:Subject:From;
-	b=tnLuMeCylkEMixiWSMnV/FijfChX8fnGt4f+XNgyWKkStUPYTAfKWjimawUayYhDW
-	 okBZUZ6MCWY/qmW3bFOjBl82Uw8GmQLx1k/yYjs4t5eIQsvexRplS/AkhHgsPHJA04
-	 gLiJE1ruUNw4sYc0emBVxILrksWjcwUsjXPHTpqM=
-Date: Fri, 29 Dec 2023 11:07:22 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,shr@devkernel.io,joseph.qi@linux.alibaba.com,jefflexu@linux.alibaba.com,akpm@linux-foundation.org
+	b=cg4MgF2xMCsJBPClcfR+jkFtToE4NE8Z5gLz0DoKct6b5Lc7oK2AJZKe5VE5B06Z5
+	 hpOlhjHnd7w5tvxDcHWweDD9LXwk8rIukOFh4+/AOm1ShqCD+iSfKZLAc+fy2i4pvT
+	 2ETiXqGU7zD6AioNsUSR7Fhz4O7SCTES80LsIk/c=
+Date: Fri, 29 Dec 2023 11:07:23 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@intel.com,shy828301@gmail.com,shakeelb@google.com,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-fix-arithmetic-for-max_prop_frac-when-setting-max_ratio.patch removed from -mm tree
-Message-Id: <20231229190722.CD3C3C433C7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-memcg-fix-split-queue-list-crash-when-large-folio-migration.patch removed from -mm tree
+Message-Id: <20231229190724.17066C433CA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,49 +27,121 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: fix arithmetic for max_prop_frac when setting max_ratio
+     Subject: mm: memcg: fix split queue list crash when large folio migration
 has been removed from the -mm tree.  Its filename was
-     mm-fix-arithmetic-for-max_prop_frac-when-setting-max_ratio.patch
+     mm-memcg-fix-split-queue-list-crash-when-large-folio-migration.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jingbo Xu <jefflexu@linux.alibaba.com>
-Subject: mm: fix arithmetic for max_prop_frac when setting max_ratio
-Date: Tue, 19 Dec 2023 22:25:08 +0800
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: memcg: fix split queue list crash when large folio migration
+Date: Wed, 20 Dec 2023 14:51:40 +0800
 
-Since now bdi->max_ratio is part per million, fix the wrong arithmetic for
-max_prop_frac when setting max_ratio.  Otherwise the miscalculated
-max_prop_frac will affect the incrementing of writeout completion count
-when max_ratio is not 100%.
+When running autonuma with enabling multi-size THP, I encountered the
+following kernel crash issue:
 
-Link: https://lkml.kernel.org/r/20231219142508.86265-3-jefflexu@linux.alibaba.com
-Fixes: efc3e6ad53ea ("mm: split off __bdi_set_max_ratio() function")
-Signed-off-by: Jingbo Xu <jefflexu@linux.alibaba.com>
-Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Stefan Roesch <shr@devkernel.io>
+[  134.290216] list_del corruption. prev->next should be fffff9ad42e1c490,
+but was dead000000000100. (prev=fffff9ad42399890)
+[  134.290877] kernel BUG at lib/list_debug.c:62!
+[  134.291052] invalid opcode: 0000 [#1] PREEMPT SMP NOPTI
+[  134.291210] CPU: 56 PID: 8037 Comm: numa01 Kdump: loaded Tainted:
+G            E      6.7.0-rc4+ #20
+[  134.291649] RIP: 0010:__list_del_entry_valid_or_report+0x97/0xb0
+......
+[  134.294252] Call Trace:
+[  134.294362]  <TASK>
+[  134.294440]  ? die+0x33/0x90
+[  134.294561]  ? do_trap+0xe0/0x110
+......
+[  134.295681]  ? __list_del_entry_valid_or_report+0x97/0xb0
+[  134.295842]  folio_undo_large_rmappable+0x99/0x100
+[  134.296003]  destroy_large_folio+0x68/0x70
+[  134.296172]  migrate_folio_move+0x12e/0x260
+[  134.296264]  ? __pfx_remove_migration_pte+0x10/0x10
+[  134.296389]  migrate_pages_batch+0x495/0x6b0
+[  134.296523]  migrate_pages+0x1d0/0x500
+[  134.296646]  ? __pfx_alloc_misplaced_dst_folio+0x10/0x10
+[  134.296799]  migrate_misplaced_folio+0x12d/0x2b0
+[  134.296953]  do_numa_page+0x1f4/0x570
+[  134.297121]  __handle_mm_fault+0x2b0/0x6c0
+[  134.297254]  handle_mm_fault+0x107/0x270
+[  134.300897]  do_user_addr_fault+0x167/0x680
+[  134.304561]  exc_page_fault+0x65/0x140
+[  134.307919]  asm_exc_page_fault+0x22/0x30
+
+The reason for the crash is that, the commit 85ce2c517ade ("memcontrol:
+only transfer the memcg data for migration") removed the charging and
+uncharging operations of the migration folios and cleared the memcg data
+of the old folio.
+
+During the subsequent release process of the old large folio in
+destroy_large_folio(), if the large folio needs to be removed from the
+split queue, an incorrect split queue can be obtained (which is
+pgdat->deferred_split_queue) because the old folio's memcg is NULL now. 
+This can lead to list operations being performed under the wrong split
+queue lock protection, resulting in a list crash as above.
+
+After the migration, the old folio is going to be freed, so we can remove
+it from the split queue in mem_cgroup_migrate() a bit earlier before
+clearing the memcg data to avoid getting incorrect split queue.
+
+[akpm@linux-foundation.org: fix comment, per Zi Yan]
+Link: https://lkml.kernel.org/r/61273e5e9b490682388377c20f52d19de4a80460.1703054559.git.baolin.wang@linux.alibaba.com
+Fixes: 85ce2c517ade ("memcontrol: only transfer the memcg data for migration")
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |    2 +-
+ mm/memcontrol.c  |   11 +++++++++++
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
---- a/mm/page-writeback.c~mm-fix-arithmetic-for-max_prop_frac-when-setting-max_ratio
-+++ a/mm/page-writeback.c
-@@ -728,7 +728,8 @@ static int __bdi_set_max_ratio(struct ba
- 		ret = -EINVAL;
- 	} else {
- 		bdi->max_ratio = max_ratio;
--		bdi->max_prop_frac = (FPROP_FRAC_BASE * max_ratio) / 100;
-+		bdi->max_prop_frac = (FPROP_FRAC_BASE * max_ratio) /
-+						(100 * BDI_RATIO_SCALE);
+--- a/mm/huge_memory.c~mm-memcg-fix-split-queue-list-crash-when-large-folio-migration
++++ a/mm/huge_memory.c
+@@ -2823,7 +2823,7 @@ void folio_undo_large_rmappable(struct f
+ 	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
+ 	if (!list_empty(&folio->_deferred_list)) {
+ 		ds_queue->split_queue_len--;
+-		list_del(&folio->_deferred_list);
++		list_del_init(&folio->_deferred_list);
  	}
- 	spin_unlock_bh(&bdi_lock);
+ 	spin_unlock_irqrestore(&ds_queue->split_queue_lock, flags);
+ }
+--- a/mm/memcontrol.c~mm-memcg-fix-split-queue-list-crash-when-large-folio-migration
++++ a/mm/memcontrol.c
+@@ -7543,6 +7543,17 @@ void mem_cgroup_migrate(struct folio *ol
+ 
+ 	/* Transfer the charge and the css ref */
+ 	commit_charge(new, memcg);
++	/*
++	 * If the old folio is a large folio and is in the split queue, it needs
++	 * to be removed from the split queue now, in case getting an incorrect
++	 * split queue in destroy_large_folio() after the memcg of the old folio
++	 * is cleared.
++	 *
++	 * In addition, the old folio is about to be freed after migration, so
++	 * removing from the split queue a bit earlier seems reasonable.
++	 */
++	if (folio_test_large(old) && folio_test_large_rmappable(old))
++		folio_undo_large_rmappable(old);
+ 	old->memcg_data = 0;
+ }
  
 _
 
-Patches currently in -mm which might be from jefflexu@linux.alibaba.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
+mm-migrate-fix-getting-incorrect-page-mapping-during-page-migration.patch
 
