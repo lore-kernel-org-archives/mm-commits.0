@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A58713FE1
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:23:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B191213FE1
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:23:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xgBwnvsE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61BC8C433C8;
-	Fri, 29 Dec 2023 20:23:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uiUL22oK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7672FC433C7;
+	Fri, 29 Dec 2023 20:23:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703881394;
-	bh=6VRF7koIAUe9LyjSXNQSbLRamWuoT2Y8MAr9W7Oi+90=;
+	s=korg; t=1703881395;
+	bh=oeBvU5ju38xFljdajm3k6BI9IZVjLfClj3g8Qd6F8k8=;
 	h=Date:To:From:Subject:From;
-	b=xgBwnvsE5qbUTEItwGAIihelwRmowEY05a+1QOwqwmFY9LeSor/84jqqndl3xqqiJ
-	 bUUtSLoXbUMkR7bRPwpv2ofdO2lmAWCvjmBG1wgsW1/YKsyB5cmBEzloaDdQIlpakt
-	 utw79J9wNw6ymee2atLN326E46jN4wa0RXEFITps=
-Date: Fri, 29 Dec 2023 12:23:13 -0800
-To: mm-commits@vger.kernel.org,glaubitz@physik.fu-berlin.de,chenhuacai@loongson.cn,tangyouling@kylinos.cn,akpm@linux-foundation.org
+	b=uiUL22oKXaj0vTAcY5WmmtJZRQ8C+TCxtdxTyGvAPPdQTdeJEAtPP2auM1jcpvcm7
+	 wz5c4S0a2PkbRKKruKN/hkTkkRknSBmnetC8YE9G615Wv7MUFux/JAbUDrW8ph5rCo
+	 k5G+oBUY6nBLtWAY9+2ol72n+aDXlmC6WgNyWdOc=
+Date: Fri, 29 Dec 2023 12:23:14 -0800
+To: mm-commits@vger.kernel.org,zhaoyang.huang@unisoc.com,sboyd@kernel.org,rdunlap@infradead.org,pmladek@suse.com,paulmck@kernel.org,kernel@pengutronix.de,keescook@chromium.org,geert+renesas@glider.be,elver@google.com,dianders@chromium.org,u.kleine-koenig@pengutronix.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] checkstack-add-loongarch-support-for-scripts-checkstackpl.patch removed from -mm tree
-Message-Id: <20231229202314.61BC8C433C8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-add-note-about-process-exit-message-for-debug_stack_usage.patch removed from -mm tree
+Message-Id: <20231229202315.7672FC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,54 +27,53 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: checkstack: add loongarch support for scripts/checkstack.pl
+     Subject: lib: add note about process exit message for DEBUG_STACK_USAGE
 has been removed from the -mm tree.  Its filename was
-     checkstack-add-loongarch-support-for-scripts-checkstackpl.patch
+     lib-add-note-about-process-exit-message-for-debug_stack_usage.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Youling Tang <tangyouling@kylinos.cn>
-Subject: checkstack: add loongarch support for scripts/checkstack.pl
-Date: Sat, 16 Dec 2023 14:40:54 +0800
+From: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+Subject: lib: add note about process exit message for DEBUG_STACK_USAGE
+Date: Tue, 19 Dec 2023 19:28:09 +0100
 
-scripts/checkstack.pl lacks support for the loongarch architecture.  Add
-support to detect "addi.{w,d} $sp, $sp, -FRAME_SIZE" stack frame
-generation instruction.
+DEBUG_STACK_USAGE doesn't only have an influence on the output of sysrq-T
+and sysrq-P, it also enables a message at process exit.  See
+check_stack_usage() in kernel/exit.c where this is implemented.
 
-Link: https://lkml.kernel.org/r/MW4PR84MB314514273F0B7DBCC5E35A978192A@MW4PR84MB3145.NAMPRD84.PROD.OUTLOOK.COM
-Signed-off-by: Youling Tang <tangyouling@kylinos.cn>
-Acked-by: Huacai Chen <chenhuacai@loongson.cn>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Link: https://lkml.kernel.org/r/20231219182808.210284-2-u.kleine-koenig@pengutronix.de
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+Cc: Douglas Anderson <dianders@chromium.org>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Marco Elver <elver@google.com>
+Cc: "Paul E. McKenney" <paulmck@kernel.org>
+Cc: Pengutronix Kernel Team <kernel@pengutronix.de>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Stephen Boyd <sboyd@kernel.org>
+Cc: Zhaoyang Huang <zhaoyang.huang@unisoc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkstack.pl |    4 ++++
- 1 file changed, 4 insertions(+)
+ lib/Kconfig.debug |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/scripts/checkstack.pl~checkstack-add-loongarch-support-for-scripts-checkstackpl
-+++ a/scripts/checkstack.pl
-@@ -16,6 +16,7 @@
- #	sparc port by Martin Habets <errandir_news@mph.eclipse.co.uk>
- #	ppc64le port by Breno Leitao <leitao@debian.org>
- #	riscv port by Wadim Mueller <wafgo01@gmail.com>
-+#	loongarch port by Youling Tang <tangyouling@kylinos.cn>
- #
- #	Usage:
- #	objdump -d vmlinux | scripts/checkstack.pl [arch]
-@@ -104,6 +105,9 @@ my (@stack, $re, $dre, $sub, $x, $xs, $f
- 	} elsif ($arch =~ /^riscv(64)?$/) {
- 		#ffffffff8036e868:	c2010113          	addi	sp,sp,-992
- 		$re = qr/.*addi.*sp,sp,-(([0-9]{2}|[3-9])[0-9]{2})/o;
-+	} elsif ($arch =~ /^loongarch(32|64)?$/) {
-+		#9000000000224708:	02ff4063		addi.d  $sp, $sp, -48(0xfd0)
-+		$re = qr/.*addi\..*sp, .*sp, -([0-9]{1,8}).*/o;
- 	} else {
- 		print("wrong or unknown architecture \"$arch\"\n");
- 		exit
+--- a/lib/Kconfig.debug~lib-add-note-about-process-exit-message-for-debug_stack_usage
++++ a/lib/Kconfig.debug
+@@ -763,6 +763,8 @@ config DEBUG_STACK_USAGE
+ 	help
+ 	  Enables the display of the minimum amount of free stack which each
+ 	  task has ever had available in the sysrq-T and sysrq-P debug output.
++	  Also emits a message to dmesg when a process exits if that process
++	  used more stack space than previously exiting processes.
+ 
+ 	  This option will slow down process creation somewhat.
+ 
 _
 
-Patches currently in -mm which might be from tangyouling@kylinos.cn are
+Patches currently in -mm which might be from u.kleine-koenig@pengutronix.de are
 
 
