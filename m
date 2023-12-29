@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C23F9134D3
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:00:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C2BD134D3
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:00:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PTnH1Epb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E196C433C8;
-	Fri, 29 Dec 2023 20:00:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xZwTAmsA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15895C433C9;
+	Fri, 29 Dec 2023 20:00:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703880022;
-	bh=6Aa1mDZmRIEPbLxPJ4EEQMoeqmQE+oJGCVjw2daazrU=;
+	s=korg; t=1703880023;
+	bh=57ketwV8O3p189PTsjDTZjyfr1o5MENVn89POurcNBY=;
 	h=Date:To:From:Subject:From;
-	b=PTnH1EpbyPcSXlAVlCFfOGJDUJClcGx08iKgtqOVeRv76lYbSYIUTVCmz32XRIs8F
-	 g3LuIm6du6wbBdq62p1jN2boAiw605V8ZyyTns+tRNHuIGViEk5H5Wmb/7IV1DPVmP
-	 a1uJSRv3EQESGMd3GNs1OYYPaz7oXobafgAxJITE=
-Date: Fri, 29 Dec 2023 12:00:21 -0800
+	b=xZwTAmsAHuDHxA29+07RWbXcPEYvMq/tsx6y7RRccr/wwMjhKfVkJhZHHkglWPVhV
+	 M11855iZ/UpNUxL4Twbig/u7JIn9HJLILGC5rlcEaGEwj6Yh/wY2QuiAUVNhkcU1s+
+	 hab8AkXXRBQIjpVgAZE6OE7BwfsbltZu6ZEmloWA=
+Date: Fri, 29 Dec 2023 12:00:22 -0800
 To: mm-commits@vger.kernel.org,hch@lst.de,axboe@kernel.dk,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] fs-reduce-stack-usage-in-__mpage_writepage.patch removed from -mm tree
-Message-Id: <20231229200022.2E196C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] fs-reduce-stack-usage-in-do_mpage_readpage.patch removed from -mm tree
+Message-Id: <20231229200023.15895C433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,17 +27,17 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fs: reduce stack usage in __mpage_writepage
+     Subject: fs: reduce stack usage in do_mpage_readpage
 has been removed from the -mm tree.  Its filename was
-     fs-reduce-stack-usage-in-__mpage_writepage.patch
+     fs-reduce-stack-usage-in-do_mpage_readpage.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: fs: reduce stack usage in __mpage_writepage
-Date: Fri, 15 Dec 2023 20:02:34 +0000
+Subject: fs: reduce stack usage in do_mpage_readpage
+Date: Fri, 15 Dec 2023 20:02:35 +0000
 
 Some architectures support a very large PAGE_SIZE, so instead of the 8
 pointers we see with a 4kB PAGE_SIZE, we can see 128 pointers with 64kB or
@@ -48,83 +48,89 @@ All we're doing with this array is checking for block contiguity, which we
 can as well do by remembering the address of the first block in the page
 and checking this block is at the appropriate offset from that address.
 
-Link: https://lkml.kernel.org/r/20231215200245.748418-4-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231215200245.748418-5-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mpage.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ fs/mpage.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/fs/mpage.c~fs-reduce-stack-usage-in-__mpage_writepage
+--- a/fs/mpage.c~fs-reduce-stack-usage-in-do_mpage_readpage
 +++ a/fs/mpage.c
-@@ -466,7 +466,7 @@ static int __mpage_writepage(struct foli
- 	const unsigned blocks_per_page = PAGE_SIZE >> blkbits;
- 	sector_t last_block;
+@@ -166,7 +166,7 @@ static struct bio *do_mpage_readpage(str
  	sector_t block_in_file;
+ 	sector_t last_block;
+ 	sector_t last_block_in_file;
 -	sector_t blocks[MAX_BUF_PER_PAGE];
 +	sector_t first_block;
  	unsigned page_block;
- 	unsigned first_unmapped = blocks_per_page;
+ 	unsigned first_hole = blocks_per_page;
  	struct block_device *bdev = NULL;
-@@ -504,10 +504,12 @@ static int __mpage_writepage(struct foli
- 			if (!buffer_dirty(bh) || !buffer_uptodate(bh))
- 				goto confused;
- 			if (page_block) {
--				if (bh->b_blocknr != blocks[page_block-1] + 1)
-+				if (bh->b_blocknr != first_block + page_block)
- 					goto confused;
-+			} else {
-+				first_block = bh->b_blocknr;
+@@ -205,6 +205,7 @@ static struct bio *do_mpage_readpage(str
+ 		unsigned map_offset = block_in_file - args->first_logical_block;
+ 		unsigned last = nblocks - map_offset;
+ 
++		first_block = map_bh->b_blocknr + map_offset;
+ 		for (relative_block = 0; ; relative_block++) {
+ 			if (relative_block == last) {
+ 				clear_buffer_mapped(map_bh);
+@@ -212,8 +213,6 @@ static struct bio *do_mpage_readpage(str
  			}
--			blocks[page_block++] = bh->b_blocknr;
-+			page_block++;
- 			boundary = buffer_boundary(bh);
- 			if (boundary) {
- 				boundary_block = bh->b_blocknr;
-@@ -556,10 +558,12 @@ static int __mpage_writepage(struct foli
- 			boundary_bdev = map_bh.b_bdev;
+ 			if (page_block == blocks_per_page)
+ 				break;
+-			blocks[page_block] = map_bh->b_blocknr + map_offset +
+-						relative_block;
+ 			page_block++;
+ 			block_in_file++;
  		}
- 		if (page_block) {
--			if (map_bh.b_blocknr != blocks[page_block-1] + 1)
-+			if (map_bh.b_blocknr != first_block + page_block)
- 				goto confused;
-+		} else {
-+			first_block = map_bh.b_blocknr;
+@@ -259,7 +258,9 @@ static struct bio *do_mpage_readpage(str
+ 			goto confused;		/* hole -> non-hole */
+ 
+ 		/* Contiguous blocks? */
+-		if (page_block && blocks[page_block-1] != map_bh->b_blocknr-1)
++		if (!page_block)
++			first_block = map_bh->b_blocknr;
++		else if (first_block + page_block != map_bh->b_blocknr)
+ 			goto confused;
+ 		nblocks = map_bh->b_size >> blkbits;
+ 		for (relative_block = 0; ; relative_block++) {
+@@ -268,7 +269,6 @@ static struct bio *do_mpage_readpage(str
+ 				break;
+ 			} else if (page_block == blocks_per_page)
+ 				break;
+-			blocks[page_block] = map_bh->b_blocknr+relative_block;
+ 			page_block++;
+ 			block_in_file++;
  		}
--		blocks[page_block++] = map_bh.b_blocknr;
-+		page_block++;
- 		boundary = buffer_boundary(&map_bh);
- 		bdev = map_bh.b_bdev;
- 		if (block_in_file == last_block)
-@@ -591,7 +595,7 @@ page_is_mapped:
+@@ -289,7 +289,7 @@ static struct bio *do_mpage_readpage(str
  	/*
- 	 * This page will go to BIO.  Do we need to send this BIO off first?
+ 	 * This folio will go to BIO.  Do we need to send this BIO off first?
  	 */
--	if (bio && mpd->last_block_in_bio != blocks[0] - 1)
-+	if (bio && mpd->last_block_in_bio != first_block - 1)
- 		bio = mpage_bio_submit_write(bio);
+-	if (args->bio && (args->last_block_in_bio != blocks[0] - 1))
++	if (args->bio && (args->last_block_in_bio != first_block - 1))
+ 		args->bio = mpage_bio_submit_read(args->bio);
  
  alloc_new:
-@@ -599,7 +603,7 @@ alloc_new:
- 		bio = bio_alloc(bdev, BIO_MAX_VECS,
- 				REQ_OP_WRITE | wbc_to_write_flags(wbc),
- 				GFP_NOFS);
--		bio->bi_iter.bi_sector = blocks[0] << (blkbits - 9);
-+		bio->bi_iter.bi_sector = first_block << (blkbits - 9);
- 		wbc_init_bio(wbc, bio);
+@@ -298,7 +298,7 @@ alloc_new:
+ 				      gfp);
+ 		if (args->bio == NULL)
+ 			goto confused;
+-		args->bio->bi_iter.bi_sector = blocks[0] << (blkbits - 9);
++		args->bio->bi_iter.bi_sector = first_block << (blkbits - 9);
  	}
  
-@@ -627,7 +631,7 @@ alloc_new:
- 					boundary_block, 1 << blkbits);
- 		}
- 	} else {
--		mpd->last_block_in_bio = blocks[blocks_per_page - 1];
-+		mpd->last_block_in_bio = first_block + blocks_per_page - 1;
- 	}
- 	goto out;
+ 	length = first_hole << blkbits;
+@@ -313,7 +313,7 @@ alloc_new:
+ 	    (first_hole != blocks_per_page))
+ 		args->bio = mpage_bio_submit_read(args->bio);
+ 	else
+-		args->last_block_in_bio = blocks[blocks_per_page - 1];
++		args->last_block_in_bio = first_block + blocks_per_page - 1;
+ out:
+ 	return args->bio;
  
 _
 
