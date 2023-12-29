@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2C5413FE1
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:23:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD0DD13FE1
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:23:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CYS0Dq4f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CB00C433CA;
-	Fri, 29 Dec 2023 20:23:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cKKyjVGh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96391C433C8;
+	Fri, 29 Dec 2023 20:23:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703881401;
-	bh=zK+4nE0KTRYdblzP6396n50bqu8im24wJMztoUcJhqE=;
+	s=korg; t=1703881402;
+	bh=R6nIQuWe1Gmu5i2J4zrJ7Ib3OHJGnN4rdrIR42GkH5g=;
 	h=Date:To:From:Subject:From;
-	b=CYS0Dq4fOleAVUomIamuCjUPAdnV28KHwQgVg8bAjRRjplcCghBh5mjtrnrJOlw1h
-	 Li3zzMxoOf1H7FJJF1G1CpcP6+o8qomH2mKk7UE3QGLF9zwHhxwKq5NwgHsN0jTv74
-	 Kv3bLVqsyswRJai/sW9Wgu88y46pBaa+wO1XKtc0=
-Date: Fri, 29 Dec 2023 12:23:20 -0800
-To: mm-commits@vger.kernel.org,corbet@lwn.net,yangtiezhu@loongson.cn,akpm@linux-foundation.org
+	b=cKKyjVGhyg95PkBrK8Wz3mMzfiLFu7U3yJi/M2FQacPzd/Y6jT9VIX4CpR7FmHzK7
+	 NPWs69rca8wPI2BaYfbUQGD6g0cD/t2UVY/tvq+W4mciXAStypRWjTqAauKa+STPYX
+	 MuulzVbwrtQllEpklAvNaRlrqDkuu9X3AGAn17cY=
+Date: Fri, 29 Dec 2023 12:23:22 -0800
+To: mm-commits@vger.kernel.org,zhao_lei1@hoperun.com,zhang.zhengming@h3c.com,surenb@google.com,rppt@kernel.org,rafael@kernel.org,kunyu@nfschina.com,gregkh@linuxfoundation.org,nabijaczleweli@nabijaczleweli.xyz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] docs-submit-checklist-remove-all-of-make-namespacecheck.patch removed from -mm tree
-Message-Id: <20231229202321.6CB00C433CA@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kernel-relay-remove-relay_file_splice_read-dead-code-doesnt-work.patch removed from -mm tree
+Message-Id: <20231229202322.96391C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,73 +27,269 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: docs: submit-checklist: remove all of "make namespacecheck"
+     Subject: kernel: relay: remove relay_file_splice_read  dead code, doesn't work
 has been removed from the -mm tree.  Its filename was
-     docs-submit-checklist-remove-all-of-make-namespacecheck.patch
+     kernel-relay-remove-relay_file_splice_read-dead-code-doesnt-work.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Tiezhu Yang <yangtiezhu@loongson.cn>
-Subject: docs: submit-checklist: remove all of "make namespacecheck"
-Date: Tue, 19 Dec 2023 20:50:01 +0800
+From: Ahelenia Ziemiańska <nabijaczleweli@nabijaczleweli.xyz>
+Subject: kernel: relay: remove relay_file_splice_read  dead code, doesn't work
+Date: Tue, 19 Dec 2023 23:24:14 +0100
 
-After commit 7dfbea4c468c ("scripts: remove namespace.pl"),
-scripts/namespace.pl has been removed from the kernel, and "make
-namespacecheck" has been removed from the English version of
-submit-checklist.rst, so also remove it in the related translations.
+Documentation/filesystems/relay.rst says to use
+	return debugfs_create_file(filename, mode, parent, buf,
+	                           &relay_file_operations);
+and this is the only way relay_file_operations is used.
 
-Link: https://lkml.kernel.org/r/20231219125008.23007-6-yangtiezhu@loongson.cn
-Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Thus: debugfs_create_file(&relay_file_operations)
+   -> __debugfs_create_file(&debugfs_full_proxy_file_operations,
+                            &relay_file_operations)
+   -> dentry{inode: {i_fop: &debugfs_full_proxy_file_operations},
+             d_fsdata: &relay_file_operations
+                       | DEBUGFS_FSDATA_IS_REAL_FOPS_BIT}
+
+debugfs_full_proxy_file_operations.open is full_proxy_open, which extracts
+the &relay_file_operations from the dentry, and allocates via
+__full_proxy_fops_init() new fops, with trivial wrappers around release,
+llseek, read, write, poll, and unlocked_ioctl, then replaces the fops on
+the opened file therewith.
+
+Naturally, all thusly-created debugfs files have .splice_read = NULL. 
+This was introduced in commit 49d200deaa68 ("debugfs: prevent access to
+removed files' private data") from 2016-03-22.
+
+AFAICT, relay_file_operations is the only struct file_operations used for
+debugfs which defines a .splice_read callback.  Hooking it up with
+
+>	diff --git a/fs/debugfs/file.c b/fs/debugfs/file.c
+>	index 5063434be0fc..952fcf5b2afa 100644
+>	--- a/fs/debugfs/file.c
+>	+++ b/fs/debugfs/file.c
+>	@@ -328,6 +328,11 @@ FULL_PROXY_FUNC(write, ssize_t, filp,
+>	 			loff_t *ppos),
+>	 		ARGS(filp, buf, size, ppos));
+>
+>	+FULL_PROXY_FUNC(splice_read, long, in,
+>	+		PROTO(struct file *in, loff_t *ppos, struct pipe_inode_info *pipe,
+>	+			size_t len, unsigned int flags),
+>	+		ARGS(in, ppos, pipe, len, flags));
+>	+
+>	 FULL_PROXY_FUNC(unlocked_ioctl, long, filp,
+>	 		PROTO(struct file *filp, unsigned int cmd, unsigned long arg),
+>	 		ARGS(filp, cmd, arg));
+>	@@ -382,6 +387,8 @@ static void __full_proxy_fops_init(struct file_operations *proxy_fops,
+>	 		proxy_fops->write = full_proxy_write;
+>	 	if (real_fops->poll)
+>	 		proxy_fops->poll = full_proxy_poll;
+>	+	if (real_fops->splice_read)
+>	+		proxy_fops->splice_read = full_proxy_splice_read;
+>	 	if (real_fops->unlocked_ioctl)
+>	 		proxy_fops->unlocked_ioctl = full_proxy_unlocked_ioctl;
+>	 }
+
+shows it just doesn't work, and splicing always instantly returns empty
+(subsequent reads actually return the contents).
+
+No-one noticed it became dead code in 2016, who knows if it worked back
+then. Clearly no-one cares; just delete it.
+
+Link: https://lkml.kernel.org/r/dtexwpw6zcdx7dkx3xj5gyjp5syxmyretdcbcdtvrnukd4vvuh@tarta.nabijaczleweli.xyz
+Signed-off-by: Ahelenia Ziemiańska <nabijaczleweli@nabijaczleweli.xyz>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Li kunyu <kunyu@nfschina.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Rafael J. Wysocki <rafael@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Zhang Zhengming <zhang.zhengming@h3c.com>
+Cc: Zhao Lei <zhao_lei1@hoperun.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/translations/ja_JP/SubmitChecklist              |    4 ++--
- Documentation/translations/zh_CN/process/submit-checklist.rst |    3 +--
- Documentation/translations/zh_TW/process/submit-checklist.rst |    3 +--
- 3 files changed, 4 insertions(+), 6 deletions(-)
+ kernel/relay.c |  162 -----------------------------------------------
+ 1 file changed, 162 deletions(-)
 
---- a/Documentation/translations/ja_JP/SubmitChecklist~docs-submit-checklist-remove-all-of-make-namespacecheck
-+++ a/Documentation/translations/ja_JP/SubmitChecklist
-@@ -56,8 +56,8 @@ などのLinuxカーネルパッチ投�
+--- a/kernel/relay.c~kernel-relay-remove-relay_file_splice_read-dead-code-doesnt-work
++++ a/kernel/relay.c
+@@ -1073,167 +1073,6 @@ static ssize_t relay_file_read(struct fi
+ 	return written;
+ }
  
-  9: sparseを利用してちゃんとしたコードチェックをしてください。
+-static void relay_consume_bytes(struct rchan_buf *rbuf, int bytes_consumed)
+-{
+-	rbuf->bytes_consumed += bytes_consumed;
+-
+-	if (rbuf->bytes_consumed >= rbuf->chan->subbuf_size) {
+-		relay_subbufs_consumed(rbuf->chan, rbuf->cpu, 1);
+-		rbuf->bytes_consumed %= rbuf->chan->subbuf_size;
+-	}
+-}
+-
+-static void relay_pipe_buf_release(struct pipe_inode_info *pipe,
+-				   struct pipe_buffer *buf)
+-{
+-	struct rchan_buf *rbuf;
+-
+-	rbuf = (struct rchan_buf *)page_private(buf->page);
+-	relay_consume_bytes(rbuf, buf->private);
+-}
+-
+-static const struct pipe_buf_operations relay_pipe_buf_ops = {
+-	.release	= relay_pipe_buf_release,
+-	.try_steal	= generic_pipe_buf_try_steal,
+-	.get		= generic_pipe_buf_get,
+-};
+-
+-static void relay_page_release(struct splice_pipe_desc *spd, unsigned int i)
+-{
+-}
+-
+-/*
+- *	subbuf_splice_actor - splice up to one subbuf's worth of data
+- */
+-static ssize_t subbuf_splice_actor(struct file *in,
+-			       loff_t *ppos,
+-			       struct pipe_inode_info *pipe,
+-			       size_t len,
+-			       unsigned int flags,
+-			       int *nonpad_ret)
+-{
+-	unsigned int pidx, poff, total_len, subbuf_pages, nr_pages;
+-	struct rchan_buf *rbuf = in->private_data;
+-	unsigned int subbuf_size = rbuf->chan->subbuf_size;
+-	uint64_t pos = (uint64_t) *ppos;
+-	uint32_t alloc_size = (uint32_t) rbuf->chan->alloc_size;
+-	size_t read_start = (size_t) do_div(pos, alloc_size);
+-	size_t read_subbuf = read_start / subbuf_size;
+-	size_t padding = rbuf->padding[read_subbuf];
+-	size_t nonpad_end = read_subbuf * subbuf_size + subbuf_size - padding;
+-	struct page *pages[PIPE_DEF_BUFFERS];
+-	struct partial_page partial[PIPE_DEF_BUFFERS];
+-	struct splice_pipe_desc spd = {
+-		.pages = pages,
+-		.nr_pages = 0,
+-		.nr_pages_max = PIPE_DEF_BUFFERS,
+-		.partial = partial,
+-		.ops = &relay_pipe_buf_ops,
+-		.spd_release = relay_page_release,
+-	};
+-	ssize_t ret;
+-
+-	if (rbuf->subbufs_produced == rbuf->subbufs_consumed)
+-		return 0;
+-	if (splice_grow_spd(pipe, &spd))
+-		return -ENOMEM;
+-
+-	/*
+-	 * Adjust read len, if longer than what is available
+-	 */
+-	if (len > (subbuf_size - read_start % subbuf_size))
+-		len = subbuf_size - read_start % subbuf_size;
+-
+-	subbuf_pages = rbuf->chan->alloc_size >> PAGE_SHIFT;
+-	pidx = (read_start / PAGE_SIZE) % subbuf_pages;
+-	poff = read_start & ~PAGE_MASK;
+-	nr_pages = min_t(unsigned int, subbuf_pages, spd.nr_pages_max);
+-
+-	for (total_len = 0; spd.nr_pages < nr_pages; spd.nr_pages++) {
+-		unsigned int this_len, this_end, private;
+-		unsigned int cur_pos = read_start + total_len;
+-
+-		if (!len)
+-			break;
+-
+-		this_len = min_t(unsigned long, len, PAGE_SIZE - poff);
+-		private = this_len;
+-
+-		spd.pages[spd.nr_pages] = rbuf->page_array[pidx];
+-		spd.partial[spd.nr_pages].offset = poff;
+-
+-		this_end = cur_pos + this_len;
+-		if (this_end >= nonpad_end) {
+-			this_len = nonpad_end - cur_pos;
+-			private = this_len + padding;
+-		}
+-		spd.partial[spd.nr_pages].len = this_len;
+-		spd.partial[spd.nr_pages].private = private;
+-
+-		len -= this_len;
+-		total_len += this_len;
+-		poff = 0;
+-		pidx = (pidx + 1) % subbuf_pages;
+-
+-		if (this_end >= nonpad_end) {
+-			spd.nr_pages++;
+-			break;
+-		}
+-	}
+-
+-	ret = 0;
+-	if (!spd.nr_pages)
+-		goto out;
+-
+-	ret = *nonpad_ret = splice_to_pipe(pipe, &spd);
+-	if (ret < 0 || ret < total_len)
+-		goto out;
+-
+-        if (read_start + ret == nonpad_end)
+-                ret += padding;
+-
+-out:
+-	splice_shrink_spd(&spd);
+-	return ret;
+-}
+-
+-static ssize_t relay_file_splice_read(struct file *in,
+-				      loff_t *ppos,
+-				      struct pipe_inode_info *pipe,
+-				      size_t len,
+-				      unsigned int flags)
+-{
+-	ssize_t spliced;
+-	int ret;
+-	int nonpad_ret = 0;
+-
+-	ret = 0;
+-	spliced = 0;
+-
+-	while (len && !spliced) {
+-		ret = subbuf_splice_actor(in, ppos, pipe, len, flags, &nonpad_ret);
+-		if (ret < 0)
+-			break;
+-		else if (!ret) {
+-			if (flags & SPLICE_F_NONBLOCK)
+-				ret = -EAGAIN;
+-			break;
+-		}
+-
+-		*ppos += ret;
+-		if (ret > len)
+-			len = 0;
+-		else
+-			len -= ret;
+-		spliced += nonpad_ret;
+-		nonpad_ret = 0;
+-	}
+-
+-	if (spliced)
+-		return spliced;
+-
+-	return ret;
+-}
  
--10: 'make checkstack' と 'make namespacecheck' を利用し、問題が発見されたら
--    修正してください。'make checkstack' は明示的に問題を示しませんが、どれか
-+10: 'make checkstack' を利用し、問題が発見されたら修正してください。
-+    'make checkstack' は明示的に問題を示しませんが、どれか
-     １つの関数が512バイトより大きいスタックを使っていれば、修正すべき候補と
-     なります。
- 
---- a/Documentation/translations/zh_CN/process/submit-checklist.rst~docs-submit-checklist-remove-all-of-make-namespacecheck
-+++ a/Documentation/translations/zh_CN/process/submit-checklist.rst
-@@ -53,8 +53,7 @@ 和其他有关提交Linux内核补丁�
- 9) 通过 sparse 清查。
-    （参见 Documentation/translations/zh_CN/dev-tools/sparse.rst ）
- 
--10) 使用 ``make checkstack`` 和 ``make namespacecheck`` 并修复他们发现的任何
--    问题。
-+10) 使用 ``make checkstack`` 并修复他们发现的任何问题。
- 
-     .. note::
- 
---- a/Documentation/translations/zh_TW/process/submit-checklist.rst~docs-submit-checklist-remove-all-of-make-namespacecheck
-+++ a/Documentation/translations/zh_TW/process/submit-checklist.rst
-@@ -56,8 +56,7 @@ 和其他有關提交Linux內核補丁�
- 9) 通過 sparse 清查。
-    （參見 Documentation/translations/zh_CN/dev-tools/sparse.rst ）
- 
--10) 使用 ``make checkstack`` 和 ``make namespacecheck`` 並修復他們發現的任何
--    問題。
-+10) 使用 ``make checkstack`` 並修復他們發現的任何問題。
- 
-     .. note::
- 
+ const struct file_operations relay_file_operations = {
+ 	.open		= relay_file_open,
+@@ -1242,6 +1081,5 @@ const struct file_operations relay_file_
+ 	.read		= relay_file_read,
+ 	.llseek		= no_llseek,
+ 	.release	= relay_file_release,
+-	.splice_read	= relay_file_splice_read,
+ };
+ EXPORT_SYMBOL_GPL(relay_file_operations);
 _
 
-Patches currently in -mm which might be from yangtiezhu@loongson.cn are
+Patches currently in -mm which might be from nabijaczleweli@nabijaczleweli.xyz are
 
 
