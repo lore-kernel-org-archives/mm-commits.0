@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB76D14018
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:02:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC98713FEB
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:02:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cUJXOtE8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7907AC433C7;
-	Fri, 29 Dec 2023 20:02:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VcEok/tr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A594C433C7;
+	Fri, 29 Dec 2023 20:02:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703880125;
-	bh=V3/CokR1xJXN8+3ZtI3R2UJh4AqPAz4p9eqZu1HYnfw=;
+	s=korg; t=1703880126;
+	bh=Y74wEd2UiUpDN3q8HR/kFPhNKE1T6Jnwn1yolRxIvDs=;
 	h=Date:To:From:Subject:From;
-	b=cUJXOtE8EeCFzJEy2f3UQoTsuGCIMXe8uHN/5p3ecGaAqGxdorFtmN4a5PvvN2jWn
-	 xDnymdv5Zwpl4ntYmBVU3iymu0qSsaw+oXRrLNgEsmYqWlaUaOqIexfpmvnMsEwJkU
-	 jDd/OsoHkB8tooU3dURMGCBV3YoybnM4sw6JXFQA=
-Date: Fri, 29 Dec 2023 12:02:04 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=VcEok/trucHxV2QhXtlj+UqWI9mS1mypxP36i3wZdb2CyDzb+VWbDFxoMaGJ0jdXk
+	 hZyjjO+lqvcFsRG364YBLYzecz+ov+fO/fYzhCtLLpFJYXHt+Smvz5ObmP/0OxaW4p
+	 kVUD5FF6Jg0Ga8NC3jltpOnPQSWyMyC23rqZabR4=
+Date: Fri, 29 Dec 2023 12:02:05 -0800
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,sj@kernel.org,tanzirh@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-unnecessary-ia64-code-and-comment.patch removed from -mm tree
-Message-Id: <20231229200205.7907AC433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-vaddr-changed-asm-generic-mman-commonh-to-linux-mmanh.patch removed from -mm tree
+Message-Id: <20231229200206.7A594C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,142 +27,49 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove unnecessary ia64 code and comment
+     Subject: mm/damon/vaddr: change asm-generic/mman-common.h to linux/mman.h
 has been removed from the -mm tree.  Its filename was
-     mm-remove-unnecessary-ia64-code-and-comment.patch
+     mm-damon-vaddr-changed-asm-generic-mman-commonh-to-linux-mmanh.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: remove unnecessary ia64 code and comment
-Date: Fri, 22 Dec 2023 15:02:03 +0800
+From: Tanzir Hasan <tanzirh@google.com>
+Subject: mm/damon/vaddr: change asm-generic/mman-common.h to linux/mman.h
+Date: Thu, 21 Dec 2023 23:11:01 +0000
 
-IA64 has gone with commit cf8e8658100d ("arch: Remove Itanium (IA-64)
-architecture"), remove unnecessary ia64 special mm code and comment too.
+asm-generic/mman-common.h can be replaced by linux/mman.h and the file
+will still build correctly.  It is an asm-generic file which should be
+avoided if possible.
 
-Link: https://lkml.kernel.org/r/20231222070203.2966980-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Link: https://lkml.kernel.org/r/20231221-asmgenericvaddr-v1-1-742b170c914e@google.com
+Fixes: 6dea8add4d28 ("mm/damon/vaddr: support DAMON-based Operation Schemes")
+Signed-off-by: Tanzir Hasan <tanzirh@google.com>
+Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig      |    2 -
- mm/memory.c     |    4 ---
- mm/mm_init.c    |   48 ++++++++++++++++++----------------------------
- mm/page_owner.c |    1 
- 4 files changed, 21 insertions(+), 34 deletions(-)
+ mm/damon/vaddr.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/Kconfig~mm-remove-unnecessary-ia64-code-and-comment
-+++ a/mm/Kconfig
-@@ -770,7 +770,7 @@ config DEFAULT_MMAP_MIN_ADDR
- 	  from userspace allocation.  Keeping a user from writing to low pages
- 	  can help reduce the impact of kernel NULL pointer bugs.
+--- a/mm/damon/vaddr.c~mm-damon-vaddr-changed-asm-generic-mman-commonh-to-linux-mmanh
++++ a/mm/damon/vaddr.c
+@@ -7,9 +7,9 @@
  
--	  For most ia64, ppc64 and x86 users with lots of address space
-+	  For most ppc64 and x86 users with lots of address space
- 	  a value of 65536 is reasonable and should cause no problems.
- 	  On arm and other archs it should not be higher than 32768.
- 	  Programs which use vm86 functionality or have some need to map
---- a/mm/memory.c~mm-remove-unnecessary-ia64-code-and-comment
-+++ a/mm/memory.c
-@@ -123,9 +123,7 @@ static bool vmf_orig_pte_uffd_wp(struct
- /*
-  * A number of key systems in x86 including ioremap() rely on the assumption
-  * that high_memory defines the upper bound on direct map memory, then end
-- * of ZONE_NORMAL.  Under CONFIG_DISCONTIG this means that max_low_pfn and
-- * highstart_pfn must be the same; there must be no gap between ZONE_NORMAL
-- * and ZONE_HIGHMEM.
-+ * of ZONE_NORMAL.
-  */
- void *high_memory;
- EXPORT_SYMBOL(high_memory);
---- a/mm/mm_init.c~mm-remove-unnecessary-ia64-code-and-comment
-+++ a/mm/mm_init.c
-@@ -1467,8 +1467,7 @@ void __init set_pageblock_order(void)
+ #define pr_fmt(fmt) "damon-va: " fmt
  
- 	/*
- 	 * Assume the largest contiguous order of interest is a huge page.
--	 * This value may be variable depending on boot parameters on IA64 and
--	 * powerpc.
-+	 * This value may be variable depending on boot parameters on powerpc.
- 	 */
- 	pageblock_order = order;
- }
-@@ -1629,8 +1628,8 @@ void __init *memmap_alloc(phys_addr_t si
- #ifdef CONFIG_FLATMEM
- static void __init alloc_node_mem_map(struct pglist_data *pgdat)
- {
--	unsigned long __maybe_unused start = 0;
--	unsigned long __maybe_unused offset = 0;
-+	unsigned long start, offset, size, end;
-+	struct page *map;
- 
- 	/* Skip empty nodes */
- 	if (!pgdat->node_spanned_pages)
-@@ -1638,33 +1637,24 @@ static void __init alloc_node_mem_map(st
- 
- 	start = pgdat->node_start_pfn & ~(MAX_ORDER_NR_PAGES - 1);
- 	offset = pgdat->node_start_pfn - start;
--	/* ia64 gets its own node_mem_map, before this, without bootmem */
--	if (!pgdat->node_mem_map) {
--		unsigned long size, end;
--		struct page *map;
--
--		/*
--		 * The zone's endpoints aren't required to be MAX_ORDER
--		 * aligned but the node_mem_map endpoints must be in order
--		 * for the buddy allocator to function correctly.
--		 */
--		end = pgdat_end_pfn(pgdat);
--		end = ALIGN(end, MAX_ORDER_NR_PAGES);
--		size =  (end - start) * sizeof(struct page);
--		map = memmap_alloc(size, SMP_CACHE_BYTES, MEMBLOCK_LOW_LIMIT,
--				   pgdat->node_id, false);
--		if (!map)
--			panic("Failed to allocate %ld bytes for node %d memory map\n",
--			      size, pgdat->node_id);
--		pgdat->node_mem_map = map + offset;
--	}
--	pr_debug("%s: node %d, pgdat %08lx, node_mem_map %08lx\n",
--				__func__, pgdat->node_id, (unsigned long)pgdat,
--				(unsigned long)pgdat->node_mem_map);
--#ifndef CONFIG_NUMA
- 	/*
--	 * With no DISCONTIG, the global mem_map is just set as node 0's
-+	 * The zone's endpoints aren't required to be MAX_ORDER
-+	 * aligned but the node_mem_map endpoints must be in order
-+	 * for the buddy allocator to function correctly.
- 	 */
-+	end = ALIGN(pgdat_end_pfn(pgdat), MAX_ORDER_NR_PAGES);
-+	size =  (end - start) * sizeof(struct page);
-+	map = memmap_alloc(size, SMP_CACHE_BYTES, MEMBLOCK_LOW_LIMIT,
-+			   pgdat->node_id, false);
-+	if (!map)
-+		panic("Failed to allocate %ld bytes for node %d memory map\n",
-+		      size, pgdat->node_id);
-+	pgdat->node_mem_map = map + offset;
-+	pr_debug("%s: node %d, pgdat %08lx, node_mem_map %08lx\n",
-+		 __func__, pgdat->node_id, (unsigned long)pgdat,
-+		 (unsigned long)pgdat->node_mem_map);
-+#ifndef CONFIG_NUMA
-+	/* the global mem_map is just set as node 0's */
- 	if (pgdat == NODE_DATA(0)) {
- 		mem_map = NODE_DATA(0)->node_mem_map;
- 		if (page_to_pfn(mem_map) != pgdat->node_start_pfn)
---- a/mm/page_owner.c~mm-remove-unnecessary-ia64-code-and-comment
-+++ a/mm/page_owner.c
-@@ -121,7 +121,6 @@ static noinline depot_stack_handle_t sav
- 	 * Sometimes page metadata allocation tracking requires more
- 	 * memory to be allocated:
- 	 * - when new stack trace is saved to stack depot
--	 * - when backtrace itself is calculated (ia64)
- 	 */
- 	if (current->in_page_owner)
- 		return dummy_handle;
+-#include <asm-generic/mman-common.h>
+ #include <linux/highmem.h>
+ #include <linux/hugetlb.h>
++#include <linux/mman.h>
+ #include <linux/mmu_notifier.h>
+ #include <linux/page_idle.h>
+ #include <linux/pagewalk.h>
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from tanzirh@google.com are
 
+lib-replaced-asm-generic-io-with-linux-io.patch
 
