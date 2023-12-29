@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10C7D134BF
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 19:59:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6E94134BF
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 19:59:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bgDFgcZB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFB9BC433C8;
-	Fri, 29 Dec 2023 19:59:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eKva8G4+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FBC6C433C8;
+	Fri, 29 Dec 2023 19:59:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703879997;
-	bh=xE6hdAo37F/nVywwamWGJpAakKgDBocWEnaU0sy3LsQ=;
+	s=korg; t=1703879999;
+	bh=v2Ac8FGLBuGMRwhPZSJ1zFk6qzhev0BvZrRlsezXpls=;
 	h=Date:To:From:Subject:From;
-	b=bgDFgcZBH19ol6JYxK8vSqC71oEje1TZTmsLYAkOIiHG5teSKZPhkgRvo8JHGszt6
-	 PzGfj1ZKrfLOZ8WzgTbvPvRXTYri6Omxi/tWfk1F8pHRwKYZoXvlHl6YVEeFAXfuof
-	 k/QoKLEs4d6+oLz0tcudX9yAVovetIjvjMqKEkhU=
-Date: Fri, 29 Dec 2023 11:59:57 -0800
+	b=eKva8G4+5ge/FH3f+ywzk1CaO/JPjRkVYu+a11yN7yjiFbSgoI2AJjEm0I5H9CCNW
+	 Wo1UHFYCVPUalwF81z+Cicn73QlqR1Ifm0rvvP1mF4ivLvOKS0JfUU6gbKfEs8XJ5z
+	 j0iYCdddVUySQhZsBKi0Cjh81Nn9NoC8DXVMNMG8=
+Date: Fri, 29 Dec 2023 11:59:58 -0800
 To: mm-commits@vger.kernel.org,yosryahmed@google.com,vitaly.wool@konsulko.com,sjenning@redhat.com,nphamcs@gmail.com,hannes@cmpxchg.org,ddstreet@ieee.org,chrisl@kernel.org,21cnbao@gmail.com,zhouchengming@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zswap-cleanup-zswap_load.patch removed from -mm tree
-Message-Id: <20231229195957.CFB9BC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-zswap-cleanup-zswap_writeback_entry.patch removed from -mm tree
+Message-Id: <20231229195959.6FBC6C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,84 +27,99 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/zswap: cleanup zswap_load()
+     Subject: mm/zswap: cleanup zswap_writeback_entry()
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-cleanup-zswap_load.patch
+     mm-zswap-cleanup-zswap_writeback_entry.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Chengming Zhou <zhouchengming@bytedance.com>
-Subject: mm/zswap: cleanup zswap_load()
-Date: Thu, 28 Dec 2023 09:45:44 +0000
+Subject: mm/zswap: cleanup zswap_writeback_entry()
+Date: Thu, 28 Dec 2023 09:45:45 +0000
 
-After the common decompress part goes to __zswap_load(), we can cleanup
-the zswap_load() a little.
+Also after the common decompress part goes to __zswap_load(), we can
+cleanup the zswap_writeback_entry() a little.
 
-Link: https://lkml.kernel.org/r/20231213-zswap-dstmem-v5-3-9382162bbf05@bytedance.com
+Link: https://lkml.kernel.org/r/20231213-zswap-dstmem-v5-4-9382162bbf05@bytedance.com
 Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
 Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
-Acked-by: Chis Li <chrisl@kernel.org> (Google)
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Acked-by: Chris Li <chrisl@kernel.org> (Google)
 Cc: Barry Song <21cnbao@gmail.com>
 Cc: Dan Streetman <ddstreet@ieee.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Seth Jennings <sjenning@redhat.com>
 Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ mm/zswap.c |   29 ++++++++++-------------------
+ 1 file changed, 10 insertions(+), 19 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-cleanup-zswap_load
+--- a/mm/zswap.c~mm-zswap-cleanup-zswap_writeback_entry
 +++ a/mm/zswap.c
-@@ -1746,7 +1746,6 @@ bool zswap_load(struct folio *folio)
- 	struct zswap_tree *tree = zswap_trees[type];
- 	struct zswap_entry *entry;
- 	u8 *dst;
--	bool ret;
+@@ -1434,7 +1434,6 @@ static int zswap_writeback_entry(struct
+ 	struct page *page;
+ 	struct mempolicy *mpol;
+ 	bool page_was_allocated;
+-	int ret;
+ 	struct writeback_control wbc = {
+ 		.sync_mode = WB_SYNC_NONE,
+ 	};
+@@ -1443,16 +1442,17 @@ static int zswap_writeback_entry(struct
+ 	mpol = get_task_policy(current);
+ 	page = __read_swap_cache_async(swpentry, GFP_KERNEL, mpol,
+ 				NO_INTERLEAVE_INDEX, &page_was_allocated, true);
+-	if (!page) {
+-		ret = -ENOMEM;
+-		goto fail;
+-	}
++	if (!page)
++		return -ENOMEM;
  
- 	VM_WARN_ON_ONCE(!folio_test_locked(folio));
+-	/* Found an existing page, we raced with load/swapin */
++	/*
++	 * Found an existing page, we raced with load/swapin. We generally
++	 * writeback cold pages from zswap, and swapin means the page just
++	 * became hot. Skip this page and let the caller find another one.
++	 */
+ 	if (!page_was_allocated) {
+ 		put_page(page);
+-		ret = -EEXIST;
+-		goto fail;
++		return -EEXIST;
+ 	}
  
-@@ -1759,23 +1758,20 @@ bool zswap_load(struct folio *folio)
+ 	/*
+@@ -1466,8 +1466,7 @@ static int zswap_writeback_entry(struct
+ 	if (zswap_rb_search(&tree->rbroot, swp_offset(entry->swpentry)) != entry) {
+ 		spin_unlock(&tree->lock);
+ 		delete_from_swap_cache(page_folio(page));
+-		ret = -ENOMEM;
+-		goto fail;
++		return -ENOMEM;
  	}
  	spin_unlock(&tree->lock);
  
--	if (!entry->length) {
-+	if (entry->length)
-+		__zswap_load(entry, page);
-+	else {
- 		dst = kmap_local_page(page);
- 		zswap_fill_page(dst, entry->value);
- 		kunmap_local(dst);
--		ret = true;
--		goto stats;
- 	}
- 
--	__zswap_load(entry, page);
--	ret = true;
--stats:
- 	count_vm_event(ZSWPIN);
- 	if (entry->objcg)
- 		count_objcg_event(entry->objcg, ZSWPIN);
- 
- 	spin_lock(&tree->lock);
--	if (ret && zswap_exclusive_loads_enabled) {
-+	if (zswap_exclusive_loads_enabled) {
- 		zswap_invalidate_entry(tree, entry);
- 		folio_mark_dirty(folio);
- 	} else if (entry->length) {
-@@ -1785,7 +1781,7 @@ stats:
- 	zswap_entry_put(tree, entry);
- 	spin_unlock(&tree->lock);
+@@ -1483,15 +1482,7 @@ static int zswap_writeback_entry(struct
+ 	__swap_writepage(page, &wbc);
+ 	put_page(page);
  
 -	return ret;
-+	return true;
+-
+-fail:
+-	/*
+-	 * If we get here because the page is already in swapcache, a
+-	 * load may be happening concurrently. It is safe and okay to
+-	 * not free the entry. It is also okay to return !0.
+-	 */
+-	return ret;
++	return 0;
  }
  
- void zswap_invalidate(int type, pgoff_t offset)
+ static int zswap_is_page_same_filled(void *ptr, unsigned long *value)
 _
 
 Patches currently in -mm which might be from zhouchengming@bytedance.com are
