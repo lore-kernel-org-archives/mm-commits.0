@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51FCC13FE1
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:23:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6888414010
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:23:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qi2fw79Y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C581C433C8;
-	Fri, 29 Dec 2023 20:23:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BecIdZRN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34B1AC433C8;
+	Fri, 29 Dec 2023 20:23:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703881414;
-	bh=aSUuKAAQrVOgBmu50C0JO/K6Qp9eoAyNRXavyixyP20=;
+	s=korg; t=1703881415;
+	bh=GYNCrLobkWjxlKDYQQDDpndO9UKI3o/jN9Q/EWbmjSc=;
 	h=Date:To:From:Subject:From;
-	b=qi2fw79YReRbV6ghQGpDt9TY1CoAAqCcLtcFLG4JQXZrA1qZCOl5SI4MZllvdhjQr
-	 cT/MFRQgTJBYvDMuHBrrYzBahNwiB6fvRWmb8xKB2ZhhgVyHRchrelbBTQH8bQrLno
-	 jlAatFMsYdBAnfznscnvObKcy2TfvBc/IIS7mGnw=
-Date: Fri, 29 Dec 2023 12:23:33 -0800
+	b=BecIdZRNFDYHPklfBAh2lyHalE6nuSgwyj1MzNYD93C5clwed4KF7o3CoanN9v1p8
+	 ypD0BWoyQd+5AOJJgy5drnjyJa1UVWSgyP5gEMtTjdDG7gKwErjZJv2b6sFrk5xMnH
+	 SdiOLmVGVzpPkT+/mT0v1lfSW0hTr70O26gk8zpU=
+Date: Fri, 29 Dec 2023 12:23:34 -0800
 To: mm-commits@vger.kernel.org,pmladek@suse.com,lizhe.67@bytedance.com,lecopzer.chen@mediatek.com,kernelfans@gmail.com,john.ogness@linutronix.de,dianders@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] watchdog-softlockup-use-printk_cpu_sync_get_irqsave-to-serialize-reporting.patch removed from -mm tree
-Message-Id: <20231229202334.1C581C433C8@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] watchdog-hardlockup-use-printk_cpu_sync_get_irqsave-to-serialize-reporting.patch removed from -mm tree
+Message-Id: <20231229202335.34B1AC433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,79 +27,106 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: watchdog/softlockup: use printk_cpu_sync_get_irqsave() to serialize reporting
+     Subject: watchdog/hardlockup: use printk_cpu_sync_get_irqsave() to serialize reporting
 has been removed from the -mm tree.  Its filename was
-     watchdog-softlockup-use-printk_cpu_sync_get_irqsave-to-serialize-reporting.patch
+     watchdog-hardlockup-use-printk_cpu_sync_get_irqsave-to-serialize-reporting.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Douglas Anderson <dianders@chromium.org>
-Subject: watchdog/softlockup: use printk_cpu_sync_get_irqsave() to serialize reporting
-Date: Wed, 20 Dec 2023 13:15:35 -0800
+Subject: watchdog/hardlockup: use printk_cpu_sync_get_irqsave() to serialize reporting
+Date: Wed, 20 Dec 2023 13:15:36 -0800
 
-Instead of introducing a spinlock, use printk_cpu_sync_get_irqsave() and
-printk_cpu_sync_put_irqrestore() to serialize softlockup reporting.  Alone
-this doesn't have any real advantage over the spinlock, but this will
-allow us to use the same function in a future change to also serialize
-hardlockup crawls.
+If two CPUs end up reporting a hardlockup at the same time then their logs
+could get interleaved which is hard to read.
 
-NOTE: for the most part this serialization is important because we often
-end up in the show_regs() path and that has no built-in serialization if
-there are multiple callers at once.  However, even in the case where we
-end up in the dump_stack() path this still has some advantages because the
-stack will be guaranteed to be together in the logs with the lockup
-message with no interleaving.
+The interleaving problem was especially bad with the "perf" hardlockup
+detector where the locked up CPU is always the same as the running CPU and
+we end up in show_regs().  show_regs() has no inherent serialization so we
+could mix together two crawls if two hardlockups happened at the same time
+(and if we didn't have `sysctl_hardlockup_all_cpu_backtrace` set).  With
+this change we'll fully serialize hardlockups when using the "perf"
+hardlockup detector.
 
-NOTE: the fact that printk_cpu_sync_get_irqsave() is allowed to be called
-multiple times on the same CPU is important here.  Specifically we hold
-the "lock" while calling dump_stack() which also gets the same "lock". 
-This is explicitly documented to be OK and means we don't need to
-introduce a variant of dump_stack() that doesn't grab the lock.
+The interleaving problem was less bad with the "buddy" hardlockup
+detector.  With "buddy" we always end up calling
+`trigger_single_cpu_backtrace(cpu)` on some CPU other than the running
+one.  trigger_single_cpu_backtrace() always at least serializes the
+individual stack crawls because it eventually uses
+printk_cpu_sync_get_irqsave().  Unfortunately the fact that
+trigger_single_cpu_backtrace() eventually calls
+printk_cpu_sync_get_irqsave() (on a different CPU) means that we have to
+drop the "lock" before calling it and we can't fully serialize all
+printouts associated with a given hardlockup.  However, we still do get
+the advantage of serializing the output of print_modules() and
+print_irqtrace_events().
 
-Link: https://lkml.kernel.org/r/20231220131534.2.Ia5906525d440d8e8383cde31b7c61c2aadc8f907@changeid
+Aside from serializing hardlockups from each other, this change also has
+the advantage of serializing hardlockups and softlockups from each other
+if they happen to happen at the same time since they are both using the
+same "lock".
+
+Even though nobody is expected to hang while holding the lock associated
+with printk_cpu_sync_get_irqsave(), out of an abundance of caution, we
+don't call printk_cpu_sync_get_irqsave() until after we print out about
+the hardlockup.  This makes extra sure that, even if
+printk_cpu_sync_get_irqsave() somehow never runs we at least print that we
+saw the hardlockup.  This is different than the choice made for softlockup
+because hardlockup is really our last resort.
+
+Link: https://lkml.kernel.org/r/20231220131534.3.I6ff691b3b40f0379bc860f80c6e729a0485b5247@changeid
 Signed-off-by: Douglas Anderson <dianders@chromium.org>
 Reviewed-by: John Ogness <john.ogness@linutronix.de>
-Reviewed-by: Li Zhe <lizhe.67@bytedance.com>
 Cc: Lecopzer Chen <lecopzer.chen@mediatek.com>
+Cc: Li Zhe <lizhe.67@bytedance.com>
 Cc: Petr Mladek <pmladek@suse.com>
 Cc: Pingfan Liu <kernelfans@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/watchdog.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
---- a/kernel/watchdog.c~watchdog-softlockup-use-printk_cpu_sync_get_irqsave-to-serialize-reporting
+--- a/kernel/watchdog.c~watchdog-hardlockup-use-printk_cpu_sync_get_irqsave-to-serialize-reporting
 +++ a/kernel/watchdog.c
-@@ -454,7 +454,7 @@ static enum hrtimer_restart watchdog_tim
- 	struct pt_regs *regs = get_irq_regs();
- 	int duration;
- 	int softlockup_all_cpu_backtrace = sysctl_softlockup_all_cpu_backtrace;
--	static DEFINE_SPINLOCK(watchdog_output_lock);
-+	unsigned long flags;
+@@ -151,6 +151,7 @@ void watchdog_hardlockup_check(unsigned
+ 	 */
+ 	if (is_hardlockup(cpu)) {
+ 		unsigned int this_cpu = smp_processor_id();
++		unsigned long flags;
  
- 	if (!watchdog_enabled)
- 		return HRTIMER_NORESTART;
-@@ -521,7 +521,7 @@ static enum hrtimer_restart watchdog_tim
- 		/* Start period for the next softlockup warning. */
- 		update_report_ts();
+ 		/* Only print hardlockups once. */
+ 		if (per_cpu(watchdog_hardlockup_warned, cpu))
+@@ -165,7 +166,17 @@ void watchdog_hardlockup_check(unsigned
+ 				return;
+ 		}
  
--		spin_lock(&watchdog_output_lock);
++		/*
++		 * NOTE: we call printk_cpu_sync_get_irqsave() after printing
++		 * the lockup message. While it would be nice to serialize
++		 * that printout, we really want to make sure that if some
++		 * other CPU somehow locked up while holding the lock associated
++		 * with printk_cpu_sync_get_irqsave() that we can still at least
++		 * get the message about the lockup out.
++		 */
+ 		pr_emerg("Watchdog detected hard LOCKUP on cpu %d\n", cpu);
 +		printk_cpu_sync_get_irqsave(flags);
- 		pr_emerg("BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",
- 			smp_processor_id(), duration,
- 			current->comm, task_pid_nr(current));
-@@ -531,7 +531,7 @@ static enum hrtimer_restart watchdog_tim
- 			show_regs(regs);
- 		else
- 			dump_stack();
--		spin_unlock(&watchdog_output_lock);
-+		printk_cpu_sync_put_irqrestore(flags);
++
+ 		print_modules();
+ 		print_irqtrace_events(current);
+ 		if (cpu == this_cpu) {
+@@ -173,7 +184,9 @@ void watchdog_hardlockup_check(unsigned
+ 				show_regs(regs);
+ 			else
+ 				dump_stack();
++			printk_cpu_sync_put_irqrestore(flags);
+ 		} else {
++			printk_cpu_sync_put_irqrestore(flags);
+ 			trigger_single_cpu_backtrace(cpu);
+ 		}
  
- 		if (softlockup_all_cpu_backtrace) {
- 			trigger_allbutcpu_cpu_backtrace(smp_processor_id());
 _
 
 Patches currently in -mm which might be from dianders@chromium.org are
