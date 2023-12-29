@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14473134B7
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:00:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC66412E50
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:00:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ly47G+Az"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D113EC433C9;
-	Fri, 29 Dec 2023 20:00:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fil2dV1X"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35D99C433C9;
+	Fri, 29 Dec 2023 20:00:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703880012;
-	bh=lXaIBjzS3vyjDumvzge4skKYhLtTzwIkv7iMXF3uTok=;
+	s=korg; t=1703880014;
+	bh=X9wSwywShpkDMy90HxjoC72OGRXxVWZWzapBXVtu+6M=;
 	h=Date:To:From:Subject:From;
-	b=ly47G+Az6mVdkrpv272cQH8MiFxSlzk7HjiCKIxrDskPo8X22GvLLiUIDS9ZdfVPb
-	 tfnajMofzq91EN9dPU59qnu9Xudd+4IZKth/CRtqLi94czRSuT2rn/1PjpSzPmTww4
-	 vuA6zEIK/hLdYGI94y79KJrQz7IfWbGkcnXfhKbA=
-Date: Fri, 29 Dec 2023 12:00:12 -0800
+	b=Fil2dV1XqABgcgCKOzAyREnFVUD5jZsPYPYQahps8HoAIOQu9H8wq15Vg/RU2rSmE
+	 C3sFPTGBvc/vLJuoNwtjU9/7VGeX1Wy+6uBKby70SiazFUC9Jjedg0+y1wcy3SU3CH
+	 3Zv6Ikg0bN6y5PdNaAoGWM2Y32mzxz9ifdRqL/sc=
+Date: Fri, 29 Dec 2023 12:00:13 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-convert-swap_page_sector-to-swap_folio_sector.patch removed from -mm tree
-Message-Id: <20231229200012.D113EC433C9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-convert-swap_readpage-to-swap_read_folio.patch removed from -mm tree
+Message-Id: <20231229200014.35D99C433C9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,100 +27,193 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: convert swap_page_sector() to swap_folio_sector()
+     Subject: mm: convert swap_readpage() to swap_read_folio()
 has been removed from the -mm tree.  Its filename was
-     mm-convert-swap_page_sector-to-swap_folio_sector.patch
+     mm-convert-swap_readpage-to-swap_read_folio.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: convert swap_page_sector() to swap_folio_sector()
-Date: Wed, 13 Dec 2023 21:58:38 +0000
+Subject: mm: convert swap_readpage() to swap_read_folio()
+Date: Wed, 13 Dec 2023 21:58:39 +0000
 
-All callers have a folio, so pass it in.  Saves a couple of calls to
+All callers have a folio, so pass it in, saving two calls to
 compound_head().
 
-Link: https://lkml.kernel.org/r/20231213215842.671461-10-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231213215842.671461-11-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    2 +-
- mm/page_io.c         |    8 ++++----
- mm/swapfile.c        |    6 +++---
- 3 files changed, 8 insertions(+), 8 deletions(-)
+ mm/memory.c     |    4 ++--
+ mm/page_io.c    |   18 +++++++++---------
+ mm/swap.h       |    5 +++--
+ mm/swap_state.c |   12 ++++++------
+ mm/swapfile.c   |    2 +-
+ 5 files changed, 21 insertions(+), 20 deletions(-)
 
---- a/include/linux/swap.h~mm-convert-swap_page_sector-to-swap_folio_sector
-+++ a/include/linux/swap.h
-@@ -493,7 +493,7 @@ struct backing_dev_info;
- extern int init_swap_address_space(unsigned int type, unsigned long nr_pages);
- extern void exit_swap_address_space(unsigned int type);
- extern struct swap_info_struct *get_swap_device(swp_entry_t entry);
--sector_t swap_page_sector(struct page *page);
-+sector_t swap_folio_sector(struct folio *folio);
+--- a/mm/memory.c~mm-convert-swap_readpage-to-swap_read_folio
++++ a/mm/memory.c
+@@ -3882,9 +3882,9 @@ vm_fault_t do_swap_page(struct vm_fault
  
- static inline void put_swap_device(struct swap_info_struct *si)
- {
---- a/mm/page_io.c~mm-convert-swap_page_sector-to-swap_folio_sector
+ 				folio_add_lru(folio);
+ 
+-				/* To provide entry to swap_readpage() */
++				/* To provide entry to swap_read_folio() */
+ 				folio->swap = entry;
+-				swap_readpage(page, true, NULL);
++				swap_read_folio(folio, true, NULL);
+ 				folio->private = NULL;
+ 			}
+ 		} else {
+--- a/mm/page_io.c~mm-convert-swap_readpage-to-swap_read_folio
 +++ a/mm/page_io.c
-@@ -334,7 +334,7 @@ static void swap_writepage_bdev_sync(str
- 
- 	bio_init(&bio, sis->bdev, &bv, 1,
- 		 REQ_OP_WRITE | REQ_SWAP | wbc_to_write_flags(wbc));
--	bio.bi_iter.bi_sector = swap_page_sector(&folio->page);
-+	bio.bi_iter.bi_sector = swap_folio_sector(folio);
- 	bio_add_folio_nofail(&bio, folio, folio_size(folio), 0);
- 
- 	bio_associate_blkg_from_page(&bio, folio);
-@@ -355,7 +355,7 @@ static void swap_writepage_bdev_async(st
- 	bio = bio_alloc(sis->bdev, 1,
- 			REQ_OP_WRITE | REQ_SWAP | wbc_to_write_flags(wbc),
- 			GFP_NOIO);
--	bio->bi_iter.bi_sector = swap_page_sector(&folio->page);
-+	bio->bi_iter.bi_sector = swap_folio_sector(folio);
- 	bio->bi_end_io = end_swap_bio_write;
- 	bio_add_folio_nofail(bio, folio, folio_size(folio), 0);
- 
-@@ -461,7 +461,7 @@ static void swap_readpage_bdev_sync(stru
- 	struct bio bio;
- 
- 	bio_init(&bio, sis->bdev, &bv, 1, REQ_OP_READ);
--	bio.bi_iter.bi_sector = swap_page_sector(&folio->page);
-+	bio.bi_iter.bi_sector = swap_folio_sector(folio);
- 	bio_add_folio_nofail(&bio, folio, folio_size(folio), 0);
- 	/*
- 	 * Keep this task valid during swap readpage because the oom killer may
-@@ -480,7 +480,7 @@ static void swap_readpage_bdev_async(str
- 	struct bio *bio;
- 
- 	bio = bio_alloc(sis->bdev, 1, REQ_OP_READ, GFP_KERNEL);
--	bio->bi_iter.bi_sector = swap_page_sector(&folio->page);
-+	bio->bi_iter.bi_sector = swap_folio_sector(folio);
- 	bio->bi_end_io = end_swap_bio_read;
- 	bio_add_folio_nofail(bio, folio, folio_size(folio), 0);
- 	count_vm_event(PSWPIN);
---- a/mm/swapfile.c~mm-convert-swap_page_sector-to-swap_folio_sector
-+++ a/mm/swapfile.c
-@@ -227,14 +227,14 @@ offset_to_swap_extent(struct swap_info_s
- 	BUG();
+@@ -420,7 +420,7 @@ static void sio_read_complete(struct kio
+ 	mempool_free(sio, sio_pool);
  }
  
--sector_t swap_page_sector(struct page *page)
-+sector_t swap_folio_sector(struct folio *folio)
+-static void swap_readpage_fs(struct folio *folio, struct swap_iocb **plug)
++static void swap_read_folio_fs(struct folio *folio, struct swap_iocb **plug)
  {
+ 	struct swap_info_struct *sis = swp_swap_info(folio->swap);
+ 	struct swap_iocb *sio = NULL;
+@@ -454,7 +454,7 @@ static void swap_readpage_fs(struct foli
+ 		*plug = sio;
+ }
+ 
+-static void swap_readpage_bdev_sync(struct folio *folio,
++static void swap_read_folio_bdev_sync(struct folio *folio,
+ 		struct swap_info_struct *sis)
+ {
+ 	struct bio_vec bv;
+@@ -474,7 +474,7 @@ static void swap_readpage_bdev_sync(stru
+ 	put_task_struct(current);
+ }
+ 
+-static void swap_readpage_bdev_async(struct folio *folio,
++static void swap_read_folio_bdev_async(struct folio *folio,
+ 		struct swap_info_struct *sis)
+ {
+ 	struct bio *bio;
+@@ -487,10 +487,10 @@ static void swap_readpage_bdev_async(str
+ 	submit_bio(bio);
+ }
+ 
+-void swap_readpage(struct page *page, bool synchronous, struct swap_iocb **plug)
++void swap_read_folio(struct folio *folio, bool synchronous,
++		struct swap_iocb **plug)
+ {
+-	struct folio *folio = page_folio(page);
 -	struct swap_info_struct *sis = page_swap_info(page);
 +	struct swap_info_struct *sis = swp_swap_info(folio->swap);
- 	struct swap_extent *se;
- 	sector_t sector;
- 	pgoff_t offset;
+ 	bool workingset = folio_test_workingset(folio);
+ 	unsigned long pflags;
+ 	bool in_thrashing;
+@@ -514,11 +514,11 @@ void swap_readpage(struct page *page, bo
+ 		folio_mark_uptodate(folio);
+ 		folio_unlock(folio);
+ 	} else if (data_race(sis->flags & SWP_FS_OPS)) {
+-		swap_readpage_fs(folio, plug);
++		swap_read_folio_fs(folio, plug);
+ 	} else if (synchronous || (sis->flags & SWP_SYNCHRONOUS_IO)) {
+-		swap_readpage_bdev_sync(folio, sis);
++		swap_read_folio_bdev_sync(folio, sis);
+ 	} else {
+-		swap_readpage_bdev_async(folio, sis);
++		swap_read_folio_bdev_async(folio, sis);
+ 	}
  
--	offset = __page_file_index(page);
-+	offset = swp_offset(folio->swap);
- 	se = offset_to_swap_extent(sis, offset);
- 	sector = se->start_block + (offset - se->start_page);
- 	return sector << (PAGE_SHIFT - 9);
+ 	if (workingset) {
+--- a/mm/swapfile.c~mm-convert-swap_readpage-to-swap_read_folio
++++ a/mm/swapfile.c
+@@ -2225,7 +2225,7 @@ EXPORT_SYMBOL_GPL(add_swap_extent);
+ /*
+  * A `swap extent' is a simple thing which maps a contiguous range of pages
+  * onto a contiguous range of disk blocks.  A rbtree of swap extents is
+- * built at swapon time and is then used at swap_writepage/swap_readpage
++ * built at swapon time and is then used at swap_writepage/swap_read_folio
+  * time for locating where on disk a page belongs.
+  *
+  * If the swapfile is an S_ISBLK block device, a single extent is installed.
+--- a/mm/swap.h~mm-convert-swap_readpage-to-swap_read_folio
++++ a/mm/swap.h
+@@ -10,7 +10,8 @@ struct mempolicy;
+ /* linux/mm/page_io.c */
+ int sio_pool_init(void);
+ struct swap_iocb;
+-void swap_readpage(struct page *page, bool do_poll, struct swap_iocb **plug);
++void swap_read_folio(struct folio *folio, bool do_poll,
++		struct swap_iocb **plug);
+ void __swap_read_unplug(struct swap_iocb *plug);
+ static inline void swap_read_unplug(struct swap_iocb *plug)
+ {
+@@ -63,7 +64,7 @@ static inline unsigned int folio_swap_fl
+ }
+ #else /* CONFIG_SWAP */
+ struct swap_iocb;
+-static inline void swap_readpage(struct page *page, bool do_poll,
++static inline void swap_read_folio(struct folio *folio, bool do_poll,
+ 		struct swap_iocb **plug)
+ {
+ }
+--- a/mm/swap_state.c~mm-convert-swap_readpage-to-swap_read_folio
++++ a/mm/swap_state.c
+@@ -530,7 +530,7 @@ fail_put_swap:
+  * the swap entry is no longer in use.
+  *
+  * get/put_swap_device() aren't needed to call this function, because
+- * __read_swap_cache_async() call them and swap_readpage() holds the
++ * __read_swap_cache_async() call them and swap_read_folio() holds the
+  * swap cache folio lock.
+  */
+ struct page *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
+@@ -548,7 +548,7 @@ struct page *read_swap_cache_async(swp_e
+ 	mpol_cond_put(mpol);
+ 
+ 	if (page_allocated)
+-		swap_readpage(&folio->page, false, plug);
++		swap_read_folio(folio, false, plug);
+ 	return folio_file_page(folio, swp_offset(entry));
+ }
+ 
+@@ -665,7 +665,7 @@ struct page *swap_cluster_readahead(swp_
+ 		if (!folio)
+ 			continue;
+ 		if (page_allocated) {
+-			swap_readpage(&folio->page, false, &splug);
++			swap_read_folio(folio, false, &splug);
+ 			if (offset != entry_offset) {
+ 				folio_set_readahead(folio);
+ 				count_vm_event(SWAP_RA);
+@@ -681,7 +681,7 @@ skip:
+ 	folio = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
+ 					&page_allocated, false);
+ 	if (unlikely(page_allocated))
+-		swap_readpage(&folio->page, false, NULL);
++		swap_read_folio(folio, false, NULL);
+ 	zswap_folio_swapin(folio);
+ 	return folio_file_page(folio, swp_offset(entry));
+ }
+@@ -839,7 +839,7 @@ static struct page *swap_vma_readahead(s
+ 		if (!folio)
+ 			continue;
+ 		if (page_allocated) {
+-			swap_readpage(&folio->page, false, &splug);
++			swap_read_folio(folio, false, &splug);
+ 			if (i != ra_info.offset) {
+ 				folio_set_readahead(folio);
+ 				count_vm_event(SWAP_RA);
+@@ -857,7 +857,7 @@ skip:
+ 	folio = __read_swap_cache_async(targ_entry, gfp_mask, mpol, targ_ilx,
+ 					&page_allocated, false);
+ 	if (unlikely(page_allocated))
+-		swap_readpage(&folio->page, false, NULL);
++		swap_read_folio(folio, false, NULL);
+ 	zswap_folio_swapin(folio);
+ 	return folio_file_page(folio, swp_offset(entry));
+ }
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
