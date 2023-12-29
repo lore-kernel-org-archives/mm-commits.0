@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8F6714015
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:23:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4493C14010
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:23:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y/MKKIAY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B422CC433C7;
-	Fri, 29 Dec 2023 20:23:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q3wPzvPR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B800BC433CA;
+	Fri, 29 Dec 2023 20:23:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703881407;
-	bh=SqSID4/8o6ATilGDN5wQksx3+AW4yMZ4iNAOyTo7+uk=;
+	s=korg; t=1703881408;
+	bh=CdC7sc02Jo5Le5JARbTSsJ0Eo8j64aX6pptfmtbqkSY=;
 	h=Date:To:From:Subject:From;
-	b=Y/MKKIAYI+jmCE0wLc5KG+7s1D5kCfNJedJcWMJEjluGJTK6lGV7gf8RXRmQk2mlD
-	 Dk5vOIf5DI2whikjaL666HZUOi948kAyN8IKiQYxlSr6BtpwgOroJAE2do+zLTrok5
-	 rh8CGdcnrbbSVLoiyo1bokqZG6YEBg2ok7C9qsZA=
-Date: Fri, 29 Dec 2023 12:23:27 -0800
-To: mm-commits@vger.kernel.org,rdunlap@infradead.org,akpm@linux-foundation.org
+	b=Q3wPzvPRGvmrAtSMA48Q3z9kCglSrYaPN8e6/+Cb5N35ZVnXSrQT9i1HSuKdTy26+
+	 0QglAHflfTqpk1/3/3St9GIY7tcZUPsyC60F7e7fossp1aVShLBhmQ8W5qm/AK6paR
+	 ssgsJ0BVZI83QODtCd48pyU8DvIwzZxH2YK/clQc=
+Date: Fri, 29 Dec 2023 12:23:28 -0800
+To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,rdunlap@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] stacktrace-fix-kernel-doc-typo.patch removed from -mm tree
-Message-Id: <20231229202327.B422CC433C7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] nilfs2-cpfile-fix-some-kernel-doc-warnings.patch removed from -mm tree
+Message-Id: <20231229202328.B800BC433CA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,42 +27,78 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: stacktrace: fix kernel-doc typo
+     Subject: nilfs2: cpfile: fix some kernel-doc warnings
 has been removed from the -mm tree.  Its filename was
-     stacktrace-fix-kernel-doc-typo.patch
+     nilfs2-cpfile-fix-some-kernel-doc-warnings.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Randy Dunlap <rdunlap@infradead.org>
-Subject: stacktrace: fix kernel-doc typo
-Date: Tue, 19 Dec 2023 21:49:45 -0800
+Subject: nilfs2: cpfile: fix some kernel-doc warnings
+Date: Thu, 21 Dec 2023 07:13:42 +0900
 
-Change @task to @tsk to prevent kernel-doc warnings:
+Correct the function parameter names for nilfs_cpfile_get_info():
 
-kernel/stacktrace.c:138: warning: Excess function parameter 'task' description in 'stack_trace_save_tsk'
-kernel/stacktrace.c:138: warning: Function parameter or member 'tsk' not described in 'stack_trace_save_tsk'
+cpfile.c:564: warning: Function parameter or member 'cnop' not described in 'nilfs_cpfile_get_cpinfo'
+cpfile.c:564: warning: Function parameter or member 'mode' not described in 'nilfs_cpfile_get_cpinfo'
+cpfile.c:564: warning: Function parameter or member 'buf' not described in 'nilfs_cpfile_get_cpinfo'
+cpfile.c:564: warning: Function parameter or member 'cisz' not described in 'nilfs_cpfile_get_cpinfo'
+cpfile.c:564: warning: Excess function parameter 'cno' description in 'nilfs_cpfile_get_cpinfo'
+cpfile.c:564: warning: Excess function parameter 'ci' description in 'nilfs_cpfile_get_cpinfo'
 
-Link: https://lkml.kernel.org/r/20231220054945.17663-1-rdunlap@infradead.org
+Also add missing descriptions of the function's specification.
+
+[ konishi.ryusuke@gmail.com: filled in missing descriptions ]
+
+Link: https://lkml.kernel.org/r/20231220065931.2372-1-rdunlap@infradead.org
+Link: https://lkml.kernel.org/r/20231220221342.11505-1-konishi.ryusuke@gmail.com
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/stacktrace.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nilfs2/cpfile.c |   28 +++++++++++++++++++++++-----
+ 1 file changed, 23 insertions(+), 5 deletions(-)
 
---- a/kernel/stacktrace.c~stacktrace-fix-kernel-doc-typo
-+++ a/kernel/stacktrace.c
-@@ -126,7 +126,7 @@ EXPORT_SYMBOL_GPL(stack_trace_save);
+--- a/fs/nilfs2/cpfile.c~nilfs2-cpfile-fix-some-kernel-doc-warnings
++++ a/fs/nilfs2/cpfile.c
+@@ -552,11 +552,29 @@ static ssize_t nilfs_cpfile_do_get_ssinf
+ }
  
  /**
-  * stack_trace_save_tsk - Save a task stack trace into a storage array
-- * @task:	The task to examine
-+ * @tsk:	The task to examine
-  * @store:	Pointer to storage array
-  * @size:	Size of the storage array
-  * @skipnr:	Number of entries to skip at the start of the stack trace
+- * nilfs_cpfile_get_cpinfo -
+- * @cpfile:
+- * @cno:
+- * @ci:
+- * @nci:
++ * nilfs_cpfile_get_cpinfo - get information on checkpoints
++ * @cpfile: checkpoint file inode
++ * @cnop:   place to pass a starting checkpoint number and receive a
++ *          checkpoint number to continue the search
++ * @mode:   mode of checkpoints that the caller wants to retrieve
++ * @buf:    buffer for storing checkpoints' information
++ * @cisz:   byte size of one checkpoint info item in array
++ * @nci:    number of checkpoint info items to retrieve
++ *
++ * nilfs_cpfile_get_cpinfo() searches for checkpoints in @mode state
++ * starting from the checkpoint number stored in @cnop, and stores
++ * information about found checkpoints in @buf.
++ * The buffer pointed to by @buf must be large enough to store information
++ * for @nci checkpoints.  If at least one checkpoint information is
++ * successfully retrieved, @cnop is updated to point to the checkpoint
++ * number to continue searching.
++ *
++ * Return: Count of checkpoint info items stored in the output buffer on
++ * success, or the following negative error code on failure.
++ * * %-EINVAL	- Invalid checkpoint mode.
++ * * %-ENOMEM	- Insufficient memory available.
++ * * %-EIO	- I/O error (including metadata corruption).
++ * * %-ENOENT	- Invalid checkpoint number specified.
+  */
+ 
+ ssize_t nilfs_cpfile_get_cpinfo(struct inode *cpfile, __u64 *cnop, int mode,
 _
 
 Patches currently in -mm which might be from rdunlap@infradead.org are
