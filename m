@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 012D214010
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:23:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3023314267
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:23:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BaR2QOC1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD4C0C433CA;
-	Fri, 29 Dec 2023 20:23:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QCdbG1DX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4470C433C7;
+	Fri, 29 Dec 2023 20:23:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703881406;
-	bh=u+fl/laBOnLFUuVSr0CnzwAnI+LGBzb6SRuDU6LPltY=;
+	s=korg; t=1703881405;
+	bh=05MwZCBBc+wj+PYByN/3erhoIyYwXrsp9P74wIdlvZw=;
 	h=Date:To:From:Subject:From;
-	b=BaR2QOC1eCiGDrdJnJ1M5Mdk88+K88tRfmPi1jPf/5i13Vl/26UDJrPpk8yoL3MKC
-	 IX3hA6fyof4e73grPjsgeLcZkyi7nIduIuV7+GOr9iByICip7LYTyp3qG3VtAKIJRX
-	 ve8jYOazm+RkCyaGGcJKWC2MUK5rELvIYHh94Asw=
-Date: Fri, 29 Dec 2023 12:23:26 -0800
-To: mm-commits@vger.kernel.org,qun-wei.lin@mediatek.com,matthias.bgg@gmail.com,chinwen.chang@mediatek.com,casper.li@mediatek.com,angelogioacchino.delregno@collabora.com,Kuan-Ying.Lee@mediatek.com,akpm@linux-foundation.org
+	b=QCdbG1DXrIgXFQ3/XAZ2N/eSArXIQe/diGqW+i6jEoL3soflCI8K68wbdd4JUuq8p
+	 FW0TIZf2WGmfsKwx97bmk4QWuTAitzcPF0gIFAXh9kqOwbTFhUU3Ucs+3+L10kJvZj
+	 6C/ZT2shv/JU8kUD0vY3x5tsEGRSRD6KV9SJhv2E=
+Date: Fri, 29 Dec 2023 12:23:25 -0800
+To: mm-commits@vger.kernel.org,bhe@redhat.com,ytcoode@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] scripts-fix-no-space-expression-between-sp-and-offset.patch removed from -mm tree
-Message-Id: <20231229202326.BD4C0C433CA@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] x86-kexec-fix-incorrect-argument-passed-to-kexec_dprintk.patch removed from -mm tree
+Message-Id: <20231229202325.A4470C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,68 +27,51 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: scripts/checkstack.pl: fix no space expression between sp and offset
+     Subject: x86/kexec: fix incorrect argument passed to kexec_dprintk()
 has been removed from the -mm tree.  Its filename was
-     scripts-fix-no-space-expression-between-sp-and-offset.patch
+     x86-kexec-fix-incorrect-argument-passed-to-kexec_dprintk.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Subject: scripts/checkstack.pl: fix no space expression between sp and offset
-Date: Wed, 20 Dec 2023 15:36:28 +0800
+From: Yuntao Wang <ytcoode@gmail.com>
+Subject: x86/kexec: fix incorrect argument passed to kexec_dprintk()
+Date: Wed, 20 Dec 2023 23:41:05 +0800
 
-When I use older version aarch64 objdump (2.24) to disassemble aarch64
-vmlinux, I get the result like below.  There is no space between sp and
-offset.
+kexec_dprintk() expects the last argument to be kbuf.memsz, but the actual
+argument being passed is kbuf.bufsz.
 
-ffff800008010000 <dw_apb_ictl_handle_irq>:
-ffff800008010000:       d503233f        hint    #0x19
-ffff800008010004:       a9bc7bfd        stp     x29, x30, [sp,#-64]!
-ffff800008010008:       90011e60        adrp    x0, ffff80000a3dc000 <num_ictlrs>
-ffff80000801000c:       910003fd        mov     x29, sp
-ffff800008010010:       a9025bf5        stp     x21, x22, [sp,#32]
+Although these two values are currently equal, it is better to pass the
+correct one, in case these two values become different in the future.
 
-When I use newer version aarch64 objdump (2.35), I get
-the result like below.
-There is a space between sp and offset.
-
-ffff800008010000 <dw_apb_ictl_handle_irq>:
-ffff800008010000:       d503233f        paciasp
-ffff800008010004:       a9bc7bfd        stp     x29, x30, [sp, #-64]!
-ffff800008010008:       90011e60        adrp    x0, ffff80000a3dc000 <num_ictlrs>
-ffff80000801000c:       910003fd        mov     x29, sp
-ffff800008010010:       a9025bf5        stp     x21, x22, [sp, #32]
-
-Add no space support of regular expression for old version objdump.
-
-Link: https://lkml.kernel.org/r/20231220073629.2658-1-Kuan-Ying.Lee@mediatek.com
-Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Cc: Casper Li <casper.li@mediatek.com>
-Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
-Cc: Chinwen Chang <chinwen.chang@mediatek.com>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Qun-Wei Lin <qun-wei.lin@mediatek.com>
+Link: https://lkml.kernel.org/r/20231220154105.215610-1-ytcoode@gmail.com
+Signed-off-by: Yuntao Wang <ytcoode@gmail.com>
+Cc: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkstack.pl |    2 +-
+ arch/x86/kernel/kexec-bzimage64.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/checkstack.pl~scripts-fix-no-space-expression-between-sp-and-offset
-+++ a/scripts/checkstack.pl
-@@ -56,7 +56,7 @@ my (@stack, $re, $dre, $sub, $x, $xs, $f
- 	if ($arch =~ '^(aarch|arm)64$') {
- 		#ffffffc0006325cc:       a9bb7bfd        stp     x29, x30, [sp, #-80]!
- 		#a110:       d11643ff        sub     sp, sp, #0x590
--		$re = qr/^.*stp.*sp, \#-([0-9]{1,8})\]\!/o;
-+		$re = qr/^.*stp.*sp, ?\#-([0-9]{1,8})\]\!/o;
- 		$dre = qr/^.*sub.*sp, sp, #(0x$x{1,8})/o;
- 	} elsif ($arch eq 'arm') {
- 		#c0008ffc:	e24dd064	sub	sp, sp, #100	; 0x64
+--- a/arch/x86/kernel/kexec-bzimage64.c~x86-kexec-fix-incorrect-argument-passed-to-kexec_dprintk
++++ a/arch/x86/kernel/kexec-bzimage64.c
+@@ -496,7 +496,7 @@ static void *bzImage64_load(struct kimag
+ 		goto out_free_params;
+ 	bootparam_load_addr = kbuf.mem;
+ 	kexec_dprintk("Loaded boot_param, command line and misc at 0x%lx bufsz=0x%lx memsz=0x%lx\n",
+-		      bootparam_load_addr, kbuf.bufsz, kbuf.bufsz);
++		      bootparam_load_addr, kbuf.bufsz, kbuf.memsz);
+ 
+ 	/* Load kernel */
+ 	kbuf.buffer = kernel + kern16_size;
 _
 
-Patches currently in -mm which might be from Kuan-Ying.Lee@mediatek.com are
+Patches currently in -mm which might be from ytcoode@gmail.com are
 
+x86-crash-remove-the-unused-image-parameter-from-prepare_elf_headers.patch
+x86-crash-use-sz_1m-macro-instead-of-hardcoded-value.patch
+crash_core-fix-and-simplify-the-logic-of-crash_exclude_mem_range.patch
+x86-crash-fix-potential-cmem-ranges-array-overflow.patch
+crash_core-optimize-crash_exclude_mem_range.patch
 
