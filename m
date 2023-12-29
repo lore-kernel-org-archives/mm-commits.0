@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E15A914010
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:23:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 012D214010
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:23:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hmhZ7Nz8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA8EEC433C9;
-	Fri, 29 Dec 2023 20:23:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BaR2QOC1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD4C0C433CA;
+	Fri, 29 Dec 2023 20:23:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703881404;
-	bh=8BuDHE70KKfjP+TEyLE5kAfTLoBZXWk1P6tksfLBdrc=;
+	s=korg; t=1703881406;
+	bh=u+fl/laBOnLFUuVSr0CnzwAnI+LGBzb6SRuDU6LPltY=;
 	h=Date:To:From:Subject:From;
-	b=hmhZ7Nz87OyXegX586bktAfcZmJlk1o0A320Rwr7hZVnNrAOFRNR07TCnp87+MxAU
-	 tpJVxV6UaRpn80+Hybkl/OlpMohTtRQSIv+cC/iuZEvIxuBA0YfxzxDFcTqa2tcilE
-	 NkcPeHJA3Y4lzwrLbAnv26vETyCYFqpqm/TDVozU=
-Date: Fri, 29 Dec 2023 12:23:24 -0800
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,mingo@redhat.com,hpa@zytor.com,ebiederm@xmission.com,dave.hansen@linux.intel.com,corbet@lwn.net,bp@alien8.de,bhe@redhat.com,ytcoode@gmail.com,akpm@linux-foundation.org
+	b=BaR2QOC1eCiGDrdJnJ1M5Mdk88+K88tRfmPi1jPf/5i13Vl/26UDJrPpk8yoL3MKC
+	 IX3hA6fyof4e73grPjsgeLcZkyi7nIduIuV7+GOr9iByICip7LYTyp3qG3VtAKIJRX
+	 ve8jYOazm+RkCyaGGcJKWC2MUK5rELvIYHh94Asw=
+Date: Fri, 29 Dec 2023 12:23:26 -0800
+To: mm-commits@vger.kernel.org,qun-wei.lin@mediatek.com,matthias.bgg@gmail.com,chinwen.chang@mediatek.com,casper.li@mediatek.com,angelogioacchino.delregno@collabora.com,Kuan-Ying.Lee@mediatek.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] x86-kexec-use-pr_err-instead-of-kexec_dprintk-when-an-error-occurs.patch removed from -mm tree
-Message-Id: <20231229202324.AA8EEC433C9@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] scripts-fix-no-space-expression-between-sp-and-offset.patch removed from -mm tree
+Message-Id: <20231229202326.BD4C0C433CA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,75 +27,68 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: x86/kexec: use pr_err() instead of kexec_dprintk() when an error occurs
+     Subject: scripts/checkstack.pl: fix no space expression between sp and offset
 has been removed from the -mm tree.  Its filename was
-     x86-kexec-use-pr_err-instead-of-kexec_dprintk-when-an-error-occurs.patch
+     scripts-fix-no-space-expression-between-sp-and-offset.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yuntao Wang <ytcoode@gmail.com>
-Subject: x86/kexec: use pr_err() instead of kexec_dprintk() when an error occurs
-Date: Wed, 20 Dec 2023 11:01:24 +0800
+From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Subject: scripts/checkstack.pl: fix no space expression between sp and offset
+Date: Wed, 20 Dec 2023 15:36:28 +0800
 
-When detecting an error, the current code uses kexec_dprintk() to output
-log message. This is not quite appropriate as kexec_dprintk() is mainly
-used for outputting debugging messages, rather than error messages.
+When I use older version aarch64 objdump (2.24) to disassemble aarch64
+vmlinux, I get the result like below.  There is no space between sp and
+offset.
 
-Replace kexec_dprintk() with pr_err(). This also makes the output method
-for this error log align with the output method for other error logs in
-this function.
+ffff800008010000 <dw_apb_ictl_handle_irq>:
+ffff800008010000:       d503233f        hint    #0x19
+ffff800008010004:       a9bc7bfd        stp     x29, x30, [sp,#-64]!
+ffff800008010008:       90011e60        adrp    x0, ffff80000a3dc000 <num_ictlrs>
+ffff80000801000c:       910003fd        mov     x29, sp
+ffff800008010010:       a9025bf5        stp     x21, x22, [sp,#32]
 
-Additionally, the last return statement in set_page_address() is
-unnecessary, remove it.
+When I use newer version aarch64 objdump (2.35), I get
+the result like below.
+There is a space between sp and offset.
 
-Link: https://lkml.kernel.org/r/20231220030124.149160-1-ytcoode@gmail.com
-Signed-off-by: Yuntao Wang <ytcoode@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Borislav Petkov (AMD) <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+ffff800008010000 <dw_apb_ictl_handle_irq>:
+ffff800008010000:       d503233f        paciasp
+ffff800008010004:       a9bc7bfd        stp     x29, x30, [sp, #-64]!
+ffff800008010008:       90011e60        adrp    x0, ffff80000a3dc000 <num_ictlrs>
+ffff80000801000c:       910003fd        mov     x29, sp
+ffff800008010010:       a9025bf5        stp     x21, x22, [sp, #32]
+
+Add no space support of regular expression for old version objdump.
+
+Link: https://lkml.kernel.org/r/20231220073629.2658-1-Kuan-Ying.Lee@mediatek.com
+Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Cc: Casper Li <casper.li@mediatek.com>
+Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
+Cc: Chinwen Chang <chinwen.chang@mediatek.com>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Qun-Wei Lin <qun-wei.lin@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/kexec-bzimage64.c |    2 +-
- mm/highmem.c                      |    2 --
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ scripts/checkstack.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/x86/kernel/kexec-bzimage64.c~x86-kexec-use-pr_err-instead-of-kexec_dprintk-when-an-error-occurs
-+++ a/arch/x86/kernel/kexec-bzimage64.c
-@@ -429,7 +429,7 @@ static void *bzImage64_load(struct kimag
- 	 * command line. Make sure it does not overflow
- 	 */
- 	if (cmdline_len + MAX_ELFCOREHDR_STR_LEN > header->cmdline_size) {
--		kexec_dprintk("Appending elfcorehdr=<addr> to command line exceeds maximum allowed length\n");
-+		pr_err("Appending elfcorehdr=<addr> to command line exceeds maximum allowed length\n");
- 		return ERR_PTR(-EINVAL);
- 	}
- 
---- a/mm/highmem.c~x86-kexec-use-pr_err-instead-of-kexec_dprintk-when-an-error-occurs
-+++ a/mm/highmem.c
-@@ -799,8 +799,6 @@ void set_page_address(struct page *page,
- 		}
- 		spin_unlock_irqrestore(&pas->lock, flags);
- 	}
--
--	return;
- }
- 
- void __init page_address_init(void)
+--- a/scripts/checkstack.pl~scripts-fix-no-space-expression-between-sp-and-offset
++++ a/scripts/checkstack.pl
+@@ -56,7 +56,7 @@ my (@stack, $re, $dre, $sub, $x, $xs, $f
+ 	if ($arch =~ '^(aarch|arm)64$') {
+ 		#ffffffc0006325cc:       a9bb7bfd        stp     x29, x30, [sp, #-80]!
+ 		#a110:       d11643ff        sub     sp, sp, #0x590
+-		$re = qr/^.*stp.*sp, \#-([0-9]{1,8})\]\!/o;
++		$re = qr/^.*stp.*sp, ?\#-([0-9]{1,8})\]\!/o;
+ 		$dre = qr/^.*sub.*sp, sp, #(0x$x{1,8})/o;
+ 	} elsif ($arch eq 'arm') {
+ 		#c0008ffc:	e24dd064	sub	sp, sp, #100	; 0x64
 _
 
-Patches currently in -mm which might be from ytcoode@gmail.com are
+Patches currently in -mm which might be from Kuan-Ying.Lee@mediatek.com are
 
-x86-crash-remove-the-unused-image-parameter-from-prepare_elf_headers.patch
-x86-crash-use-sz_1m-macro-instead-of-hardcoded-value.patch
-crash_core-fix-and-simplify-the-logic-of-crash_exclude_mem_range.patch
-x86-crash-fix-potential-cmem-ranges-array-overflow.patch
-crash_core-optimize-crash_exclude_mem_range.patch
 
