@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B10D413FF1
-	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:02:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB76D14018
+	for <mm-commits@vger.kernel.org>; Fri, 29 Dec 2023 20:02:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BRiGkMkn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B2E2C433C7;
-	Fri, 29 Dec 2023 20:02:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cUJXOtE8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7907AC433C7;
+	Fri, 29 Dec 2023 20:02:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703880124;
-	bh=TZncM+/9Tpo7iVUPBCgrvCgyxqvZgl3q3zSexWBG4dQ=;
+	s=korg; t=1703880125;
+	bh=V3/CokR1xJXN8+3ZtI3R2UJh4AqPAz4p9eqZu1HYnfw=;
 	h=Date:To:From:Subject:From;
-	b=BRiGkMkngD1yXsjd29KDih2OcMj8iDvmT3vQkQH6jsCkpykKl4pW1b+YO4JckDh42
-	 7sz+PVgEQ0PnyLAwaRvXtQQ5RyD8YCn27HvO4UObQuK99XGA8VQpH4wwdnyFnDPvRq
-	 qBPkt9mSNXEx8AowNnHz68C0xutHlvlxxClO7SS4=
+	b=cUJXOtE8EeCFzJEy2f3UQoTsuGCIMXe8uHN/5p3ecGaAqGxdorFtmN4a5PvvN2jWn
+	 xDnymdv5Zwpl4ntYmBVU3iymu0qSsaw+oXRrLNgEsmYqWlaUaOqIexfpmvnMsEwJkU
+	 jDd/OsoHkB8tooU3dURMGCBV3YoybnM4sw6JXFQA=
 Date: Fri, 29 Dec 2023 12:02:04 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,songmuchun@bytedance.com,ryan.roberts@arm.com,peterx@redhat.com,muchun.song@linux.dev,hughd@google.com,fengwei.yin@intel.com,david@redhat.com,akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org,rppt@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-one-last-reference-to-page_add__rmap.patch removed from -mm tree
-Message-Id: <20231229200204.7B2E2C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-remove-unnecessary-ia64-code-and-comment.patch removed from -mm tree
+Message-Id: <20231229200205.7907AC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,50 +27,142 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove one last reference to page_add_*_rmap()
+     Subject: mm: remove unnecessary ia64 code and comment
 has been removed from the -mm tree.  Its filename was
-     mm-remove-one-last-reference-to-page_add__rmap.patch
+     mm-remove-unnecessary-ia64-code-and-comment.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm: remove one last reference to page_add_*_rmap()
-Date: Wed, 20 Dec 2023 23:45:04 +0100
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: remove unnecessary ia64 code and comment
+Date: Fri, 22 Dec 2023 15:02:03 +0800
 
-Let's fixup one remaining comment.  Note that the only trace remaining of
-the old rmap interface is in an example in Documentation/trace/ftrace.rst,
-that we'll just leave alone.
+IA64 has gone with commit cf8e8658100d ("arch: Remove Itanium (IA-64)
+architecture"), remove unnecessary ia64 special mm code and comment too.
 
-Link: https://lkml.kernel.org/r/20231220224504.646757-41-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yin Fengwei <fengwei.yin@intel.com>
+Link: https://lkml.kernel.org/r/20231222070203.2966980-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/Kconfig      |    2 -
+ mm/memory.c     |    4 ---
+ mm/mm_init.c    |   48 ++++++++++++++++++----------------------------
+ mm/page_owner.c |    1 
+ 4 files changed, 21 insertions(+), 34 deletions(-)
 
---- a/mm/internal.h~mm-remove-one-last-reference-to-page_add__rmap
-+++ a/mm/internal.h
-@@ -650,7 +650,7 @@ folio_within_vma(struct folio *folio, st
-  * should be called with vma's mmap_lock held for read or write,
-  * under page table lock for the pte/pmd being added or removed.
-  *
-- * mlock is usually called at the end of page_add_*_rmap(), munlock at
-+ * mlock is usually called at the end of folio_add_*_rmap_*(), munlock at
-  * the end of folio_remove_rmap_*(); but new anon folios are managed by
-  * folio_add_lru_vma() calling mlock_new_folio().
+--- a/mm/Kconfig~mm-remove-unnecessary-ia64-code-and-comment
++++ a/mm/Kconfig
+@@ -770,7 +770,7 @@ config DEFAULT_MMAP_MIN_ADDR
+ 	  from userspace allocation.  Keeping a user from writing to low pages
+ 	  can help reduce the impact of kernel NULL pointer bugs.
+ 
+-	  For most ia64, ppc64 and x86 users with lots of address space
++	  For most ppc64 and x86 users with lots of address space
+ 	  a value of 65536 is reasonable and should cause no problems.
+ 	  On arm and other archs it should not be higher than 32768.
+ 	  Programs which use vm86 functionality or have some need to map
+--- a/mm/memory.c~mm-remove-unnecessary-ia64-code-and-comment
++++ a/mm/memory.c
+@@ -123,9 +123,7 @@ static bool vmf_orig_pte_uffd_wp(struct
+ /*
+  * A number of key systems in x86 including ioremap() rely on the assumption
+  * that high_memory defines the upper bound on direct map memory, then end
+- * of ZONE_NORMAL.  Under CONFIG_DISCONTIG this means that max_low_pfn and
+- * highstart_pfn must be the same; there must be no gap between ZONE_NORMAL
+- * and ZONE_HIGHMEM.
++ * of ZONE_NORMAL.
   */
+ void *high_memory;
+ EXPORT_SYMBOL(high_memory);
+--- a/mm/mm_init.c~mm-remove-unnecessary-ia64-code-and-comment
++++ a/mm/mm_init.c
+@@ -1467,8 +1467,7 @@ void __init set_pageblock_order(void)
+ 
+ 	/*
+ 	 * Assume the largest contiguous order of interest is a huge page.
+-	 * This value may be variable depending on boot parameters on IA64 and
+-	 * powerpc.
++	 * This value may be variable depending on boot parameters on powerpc.
+ 	 */
+ 	pageblock_order = order;
+ }
+@@ -1629,8 +1628,8 @@ void __init *memmap_alloc(phys_addr_t si
+ #ifdef CONFIG_FLATMEM
+ static void __init alloc_node_mem_map(struct pglist_data *pgdat)
+ {
+-	unsigned long __maybe_unused start = 0;
+-	unsigned long __maybe_unused offset = 0;
++	unsigned long start, offset, size, end;
++	struct page *map;
+ 
+ 	/* Skip empty nodes */
+ 	if (!pgdat->node_spanned_pages)
+@@ -1638,33 +1637,24 @@ static void __init alloc_node_mem_map(st
+ 
+ 	start = pgdat->node_start_pfn & ~(MAX_ORDER_NR_PAGES - 1);
+ 	offset = pgdat->node_start_pfn - start;
+-	/* ia64 gets its own node_mem_map, before this, without bootmem */
+-	if (!pgdat->node_mem_map) {
+-		unsigned long size, end;
+-		struct page *map;
+-
+-		/*
+-		 * The zone's endpoints aren't required to be MAX_ORDER
+-		 * aligned but the node_mem_map endpoints must be in order
+-		 * for the buddy allocator to function correctly.
+-		 */
+-		end = pgdat_end_pfn(pgdat);
+-		end = ALIGN(end, MAX_ORDER_NR_PAGES);
+-		size =  (end - start) * sizeof(struct page);
+-		map = memmap_alloc(size, SMP_CACHE_BYTES, MEMBLOCK_LOW_LIMIT,
+-				   pgdat->node_id, false);
+-		if (!map)
+-			panic("Failed to allocate %ld bytes for node %d memory map\n",
+-			      size, pgdat->node_id);
+-		pgdat->node_mem_map = map + offset;
+-	}
+-	pr_debug("%s: node %d, pgdat %08lx, node_mem_map %08lx\n",
+-				__func__, pgdat->node_id, (unsigned long)pgdat,
+-				(unsigned long)pgdat->node_mem_map);
+-#ifndef CONFIG_NUMA
+ 	/*
+-	 * With no DISCONTIG, the global mem_map is just set as node 0's
++	 * The zone's endpoints aren't required to be MAX_ORDER
++	 * aligned but the node_mem_map endpoints must be in order
++	 * for the buddy allocator to function correctly.
+ 	 */
++	end = ALIGN(pgdat_end_pfn(pgdat), MAX_ORDER_NR_PAGES);
++	size =  (end - start) * sizeof(struct page);
++	map = memmap_alloc(size, SMP_CACHE_BYTES, MEMBLOCK_LOW_LIMIT,
++			   pgdat->node_id, false);
++	if (!map)
++		panic("Failed to allocate %ld bytes for node %d memory map\n",
++		      size, pgdat->node_id);
++	pgdat->node_mem_map = map + offset;
++	pr_debug("%s: node %d, pgdat %08lx, node_mem_map %08lx\n",
++		 __func__, pgdat->node_id, (unsigned long)pgdat,
++		 (unsigned long)pgdat->node_mem_map);
++#ifndef CONFIG_NUMA
++	/* the global mem_map is just set as node 0's */
+ 	if (pgdat == NODE_DATA(0)) {
+ 		mem_map = NODE_DATA(0)->node_mem_map;
+ 		if (page_to_pfn(mem_map) != pgdat->node_start_pfn)
+--- a/mm/page_owner.c~mm-remove-unnecessary-ia64-code-and-comment
++++ a/mm/page_owner.c
+@@ -121,7 +121,6 @@ static noinline depot_stack_handle_t sav
+ 	 * Sometimes page metadata allocation tracking requires more
+ 	 * memory to be allocated:
+ 	 * - when new stack trace is saved to stack depot
+-	 * - when backtrace itself is calculated (ia64)
+ 	 */
+ 	if (current->in_page_owner)
+ 		return dummy_handle;
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
 
