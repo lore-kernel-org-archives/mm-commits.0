@@ -1,380 +1,115 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f182.google.com (mail-pl1-f182.google.com [209.85.214.182])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3876E1367
-	for <mm-commits@vger.kernel.org>; Sat, 30 Dec 2023 04:22:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88F4320F5
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jan 2024 01:21:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U48Lf+z9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 809BCC433C7;
-	Sat, 30 Dec 2023 04:22:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1703910150;
-	bh=KUOzq0Ni/rFSVqARRHJU2svWwyKUcxlcwveNU0rWlV0=;
-	h=Date:To:From:Subject:From;
-	b=U48Lf+z9+plcGr+09tZNEwlBuk1YWzoMklqC6zO3337kkgnj/R0sQs3Q65wMjNo/L
-	 bnWVv1rBeumvFCTVmQSVZ9M/hUvxrXEgZ/p/FhGbEY8TRIqqaDxAaLUyxKK6uTtFcB
-	 TDtjCL/51kiImBa6ss5PcOMFu19ZdPUps6S29IBQ=
-Date: Fri, 29 Dec 2023 20:22:29 -0800
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,vitaly.wool@konsulko.com,tj@kernel.org,sjenning@redhat.com,shakeelb@google.com,senozhatsky@chromium.org,rppt@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,lizefan.x@bytedance.com,konrad.wilk@oracle.com,hughd@google.com,hannes@cmpxchg.org,ddstreet@ieee.org,david@ixit.cz,corbet@lwn.net,chrisl@kernel.org,cerasuolodomenico@gmail.com,nphamcs@gmail.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zswap-memcontrol-implement-zswap-writeback-disabling.patch removed from -mm tree
-Message-Id: <20231230042230.809BCC433C7@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="ObG84riL"
+Received: by mail-pl1-f182.google.com with SMTP id d9443c01a7336-1d4ab4e65aeso8186455ad.0
+        for <mm-commits@vger.kernel.org>; Mon, 01 Jan 2024 17:21:52 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1704158512; x=1704763312; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=5TWIE9ZNOyJT85YfgIOnkx9t6JFsJhxtfeXMh8QNWIA=;
+        b=ObG84riLyMV0T4FrJb6e3i4uSwYK8Kuj96GxtKeKxHQ5jdh9VNT5oxRvJPlWmapjVi
+         uFiC7aHwmWEEY67RUOOxRXBl0zlx9lmZ+jr2LVaYN4vbc7vvMaTfPjh8cqvsjBOIKT4J
+         CRKuvor1tHdCuuxReTNl1i0MEW6H0AAOEUi+E=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1704158512; x=1704763312;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=5TWIE9ZNOyJT85YfgIOnkx9t6JFsJhxtfeXMh8QNWIA=;
+        b=QXQ5pOctul1nTHH0UZFM9sDyURu3O49VIMK4Xi0oZFf7TCiWb0y0nUfz/KVJ2r/fsh
+         qxkBf0zjrpKOWskWsjAChLeqvuXKHs/5fbRs0+1uai6AJcdTU6fx6mTZXjPOLJIylYvQ
+         3fvN938VRnN0BOFBKc+lapc06jkjFG+t30trCqIhmplLS6UFBIoVtpuNBM59jr9WhxN2
+         qxAOIThQAItn1VJFFO0njhhe/sNQFYR+zWQ1RgdB9kQv26y6axEgRWCYPRoJcMD+ZTTs
+         7ZB8XS8A6tYudpjTflm30CdPzM4+ifcuHNqbRPZzGSnfj3Qd9P2a2ZFn1wdENXIIiXo5
+         XSRg==
+X-Gm-Message-State: AOJu0YyOiSVtleC07h038tpWg/NwbK7Xu2qZgFuiTOp2wOP3zzNpJ+CH
+	FkoF7UkHFKiWMJMNpbF6Dp8nIsqH9ZsC
+X-Google-Smtp-Source: AGHT+IFDyy3QzFVN2FwxJXlanC/vfYsKqhVVdg6I/mRT6b4HMHRol0HvyrNqDfoZLR+rtDajjEU/Lw==
+X-Received: by 2002:a17:902:7588:b0:1d4:11b1:11b7 with SMTP id j8-20020a170902758800b001d411b111b7mr16081337pll.62.1704158511832;
+        Mon, 01 Jan 2024 17:21:51 -0800 (PST)
+Received: from google.com (KD124209171220.ppp-bb.dion.ne.jp. [124.209.171.220])
+        by smtp.gmail.com with ESMTPSA id l13-20020a170903120d00b001d4c8eabb82sm75787plh.223.2024.01.01.17.21.48
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 01 Jan 2024 17:21:51 -0800 (PST)
+Date: Tue, 2 Jan 2024 10:21:46 +0900
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, zhouchengming@bytedance.com,
+	yosryahmed@google.com, v-songbaohua@oppo.com,
+	vitaly.wool@konsulko.com, sjenning@redhat.com,
+	senozhatsky@chromium.org, nphamcs@gmail.com, minchan@kernel.org,
+	hannes@cmpxchg.org, ddstreet@ieee.org, chrisl@kernel.org,
+	21cnbao@gmail.com
+Subject: Re: +
+ mm-zsmalloc-return-enospc-rather-than-einval-in-zs_malloc-while-size-is-too-large.patch
+ added to mm-unstable branch
+Message-ID: <20240102012146.GC21409@google.com>
+References: <20231228191226.51357C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20231228191226.51357C433C8@smtp.kernel.org>
 
+On (23/12/28 11:12), Andrew Morton wrote:
+> This is the case the "compressed" data is larger than the original data,
+> it is better to return -ENOSPC which can help zswap record a poor compr
+> rather than an invalid request.  Then we get more friendly counting for
+> reject_compress_poor in debugfs.
+> 
+>  bool zswap_store(struct folio *folio)
+>  {
+>  	...
+>  	ret = zpool_malloc(zpool, dlen, gfp, &handle);
+>  	if (ret == -ENOSPC) {
+>  		zswap_reject_compress_poor++;
+>  		goto put_dstmem;
+>  	}
+>  	if (ret) {
+>  		zswap_reject_alloc_fail++;
+>  		goto put_dstmem;
+>  	}
+>  	...
+>  }
+> 
+> Also, zbud_alloc() and z3fold_alloc() are returning ENOSPC in the same
+> case, eg
+> 
+>  static int z3fold_alloc(struct z3fold_pool *pool, size_t size, gfp_t gfp,
+>  			unsigned long *handle)
+>  {
+>  	...
+>  	if (!size || (gfp & __GFP_HIGHMEM))
+>  		return -EINVAL;
+> 
+>  	if (size > PAGE_SIZE)
+>  		return -ENOSPC;
+>  	...
+>  }
+> 
+> Link: https://lkml.kernel.org/r/20231228061802.25280-1-v-songbaohua@oppo.com
+> Signed-off-by: Barry Song <v-songbaohua@oppo.com>
+> Reviewed-by: Chengming Zhou <zhouchengming@bytedance.com>
+> Cc: Chris Li <chrisl@kernel.org>
+> Cc: Dan Streetman <ddstreet@ieee.org>
+> Cc: Johannes Weiner <hannes@cmpxchg.org>
+> Cc: Minchan Kim <minchan@kernel.org>
+> Cc: Nhat Pham <nphamcs@gmail.com>
+> Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+> Cc: Seth Jennings <sjenning@redhat.com>
+> Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+> Cc: Yosry Ahmed <yosryahmed@google.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-The quilt patch titled
-     Subject: zswap: memcontrol: implement zswap writeback disabling
-has been removed from the -mm tree.  Its filename was
-     zswap-memcontrol-implement-zswap-writeback-disabling.patch
-
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-------------------------------------------------------
-From: Nhat Pham <nphamcs@gmail.com>
-Subject: zswap: memcontrol: implement zswap writeback disabling
-Date: Thu, 7 Dec 2023 11:24:06 -0800
-
-During our experiment with zswap, we sometimes observe swap IOs due to
-occasional zswap store failures and writebacks-to-swap.  These swapping
-IOs prevent many users who cannot tolerate swapping from adopting zswap to
-save memory and improve performance where possible.
-
-This patch adds the option to disable this behavior entirely: do not
-writeback to backing swapping device when a zswap store attempt fail, and
-do not write pages in the zswap pool back to the backing swap device (both
-when the pool is full, and when the new zswap shrinker is called).
-
-This new behavior can be opted-in/out on a per-cgroup basis via a new
-cgroup file.  By default, writebacks to swap device is enabled, which is
-the previous behavior.  Initially, writeback is enabled for the root
-cgroup, and a newly created cgroup will inherit the current setting of its
-parent.
-
-Note that this is subtly different from setting memory.swap.max to 0, as
-it still allows for pages to be stored in the zswap pool (which itself
-consumes swap space in its current form).
-
-This patch should be applied on top of the zswap shrinker series:
-
-https://lore.kernel.org/linux-mm/20231130194023.4102148-1-nphamcs@gmail.com/
-
-as it also disables the zswap shrinker, a major source of zswap
-writebacks.
-
-For the most part, this feature is motivated by internal parties who
-have already established their opinions regarding swapping - the
-workloads that are highly sensitive to IO, and especially those who are
-using servers with really slow disk performance (for instance, massive
-but slow HDDs).  For these folks, it's impossible to convince them to
-even entertain zswap if swapping also comes as a packaged deal. 
-Writeback disabling is quite a useful feature in these situations - on
-a mixed workloads deployment, they can disable writeback for the more
-IO-sensitive workloads, and enable writeback for other background
-workloads.
-
-For instance, on a server with HDD, I allocate memories and populate
-them with random values (so that zswap store will always fail), and
-specify memory.high low enough to trigger reclaim.  The time it takes
-to allocate the memories and just read through it a couple of times
-(doing silly things like computing the values' average etc.):
-
-zswap.writeback disabled:
-real 0m30.537s
-user 0m23.687s
-sys 0m6.637s
-0 pages swapped in
-0 pages swapped out
-
-zswap.writeback enabled:
-real 0m45.061s
-user 0m24.310s
-sys 0m8.892s
-712686 pages swapped in
-461093 pages swapped out
-
-(the last two lines are from vmstat -s).
-
-[nphamcs@gmail.com: add a comment about recurring zswap store failures leading to reclaim inefficiency]
-  Link: https://lkml.kernel.org/r/20231221005725.3446672-1-nphamcs@gmail.com
-Link: https://lkml.kernel.org/r/20231207192406.3809579-1-nphamcs@gmail.com
-Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
-Acked-by: Chris Li <chrisl@kernel.org>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: David Heidelberg <david@ixit.cz>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
-Cc: Zefan Li <lizefan.x@bytedance.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- Documentation/admin-guide/cgroup-v2.rst |   15 ++++++++
- Documentation/admin-guide/mm/zswap.rst  |   10 +++++
- include/linux/memcontrol.h              |   12 ++++++
- include/linux/zswap.h                   |    7 ++++
- mm/memcontrol.c                         |   38 ++++++++++++++++++++++
- mm/page_io.c                            |    5 ++
- mm/shmem.c                              |    3 -
- mm/zswap.c                              |   13 ++++++-
- 8 files changed, 99 insertions(+), 4 deletions(-)
-
---- a/Documentation/admin-guide/cgroup-v2.rst~zswap-memcontrol-implement-zswap-writeback-disabling
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1679,6 +1679,21 @@ PAGE_SIZE multiple when read back.
- 	limit, it will refuse to take any more stores before existing
- 	entries fault back in or are written out to disk.
- 
-+  memory.zswap.writeback
-+	A read-write single value file. The default value is "1". The
-+	initial value of the root cgroup is 1, and when a new cgroup is
-+	created, it inherits the current value of its parent.
-+
-+	When this is set to 0, all swapping attempts to swapping devices
-+	are disabled. This included both zswap writebacks, and swapping due
-+	to zswap store failures. If the zswap store failures are recurring
-+	(for e.g if the pages are incompressible), users can observe
-+	reclaim inefficiency after disabling writeback (because the same
-+	pages might be rejected again and again).
-+
-+	Note that this is subtly different from setting memory.swap.max to
-+	0, as it still allows for pages to be written to the zswap pool.
-+
-   memory.pressure
- 	A read-only nested-keyed file.
- 
---- a/Documentation/admin-guide/mm/zswap.rst~zswap-memcontrol-implement-zswap-writeback-disabling
-+++ a/Documentation/admin-guide/mm/zswap.rst
-@@ -153,6 +153,16 @@ attribute, e. g.::
- 
- Setting this parameter to 100 will disable the hysteresis.
- 
-+Some users cannot tolerate the swapping that comes with zswap store failures
-+and zswap writebacks. Swapping can be disabled entirely (without disabling
-+zswap itself) on a cgroup-basis as follows:
-+
-+	echo 0 > /sys/fs/cgroup/<cgroup-name>/memory.zswap.writeback
-+
-+Note that if the store failures are recurring (for e.g if the pages are
-+incompressible), users can observe reclaim inefficiency after disabling
-+writeback (because the same pages might be rejected again and again).
-+
- When there is a sizable amount of cold memory residing in the zswap pool, it
- can be advantageous to proactively write these cold pages to swap and reclaim
- the memory for other use cases. By default, the zswap shrinker is disabled.
---- a/include/linux/memcontrol.h~zswap-memcontrol-implement-zswap-writeback-disabling
-+++ a/include/linux/memcontrol.h
-@@ -219,6 +219,12 @@ struct mem_cgroup {
- 
- #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
- 	unsigned long zswap_max;
-+
-+	/*
-+	 * Prevent pages from this memcg from being written back from zswap to
-+	 * swap, and from being swapped out on zswap store failures.
-+	 */
-+	bool zswap_writeback;
- #endif
- 
- 	unsigned long soft_limit;
-@@ -1941,6 +1947,7 @@ static inline void count_objcg_event(str
- bool obj_cgroup_may_zswap(struct obj_cgroup *objcg);
- void obj_cgroup_charge_zswap(struct obj_cgroup *objcg, size_t size);
- void obj_cgroup_uncharge_zswap(struct obj_cgroup *objcg, size_t size);
-+bool mem_cgroup_zswap_writeback_enabled(struct mem_cgroup *memcg);
- #else
- static inline bool obj_cgroup_may_zswap(struct obj_cgroup *objcg)
- {
-@@ -1954,6 +1961,11 @@ static inline void obj_cgroup_uncharge_z
- 					     size_t size)
- {
- }
-+static inline bool mem_cgroup_zswap_writeback_enabled(struct mem_cgroup *memcg)
-+{
-+	/* if zswap is disabled, do not block pages going to the swapping device */
-+	return true;
-+}
- #endif
- 
- #endif /* _LINUX_MEMCONTROL_H */
---- a/include/linux/zswap.h~zswap-memcontrol-implement-zswap-writeback-disabling
-+++ a/include/linux/zswap.h
-@@ -35,6 +35,7 @@ void zswap_swapoff(int type);
- void zswap_memcg_offline_cleanup(struct mem_cgroup *memcg);
- void zswap_lruvec_state_init(struct lruvec *lruvec);
- void zswap_folio_swapin(struct folio *folio);
-+bool is_zswap_enabled(void);
- #else
- 
- struct zswap_lruvec_state {};
-@@ -55,6 +56,12 @@ static inline void zswap_swapoff(int typ
- static inline void zswap_memcg_offline_cleanup(struct mem_cgroup *memcg) {}
- static inline void zswap_lruvec_state_init(struct lruvec *lruvec) {}
- static inline void zswap_folio_swapin(struct folio *folio) {}
-+
-+static inline bool is_zswap_enabled(void)
-+{
-+	return false;
-+}
-+
- #endif
- 
- #endif /* _LINUX_ZSWAP_H */
---- a/mm/memcontrol.c~zswap-memcontrol-implement-zswap-writeback-disabling
-+++ a/mm/memcontrol.c
-@@ -5538,6 +5538,8 @@ mem_cgroup_css_alloc(struct cgroup_subsy
- 	WRITE_ONCE(memcg->soft_limit, PAGE_COUNTER_MAX);
- #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
- 	memcg->zswap_max = PAGE_COUNTER_MAX;
-+	WRITE_ONCE(memcg->zswap_writeback,
-+		!parent || READ_ONCE(parent->zswap_writeback));
- #endif
- 	page_counter_set_high(&memcg->swap, PAGE_COUNTER_MAX);
- 	if (parent) {
-@@ -8166,6 +8168,12 @@ void obj_cgroup_uncharge_zswap(struct ob
- 	rcu_read_unlock();
- }
- 
-+bool mem_cgroup_zswap_writeback_enabled(struct mem_cgroup *memcg)
-+{
-+	/* if zswap is disabled, do not block pages going to the swapping device */
-+	return !is_zswap_enabled() || !memcg || READ_ONCE(memcg->zswap_writeback);
-+}
-+
- static u64 zswap_current_read(struct cgroup_subsys_state *css,
- 			      struct cftype *cft)
- {
-@@ -8198,6 +8206,31 @@ static ssize_t zswap_max_write(struct ke
- 	return nbytes;
- }
- 
-+static int zswap_writeback_show(struct seq_file *m, void *v)
-+{
-+	struct mem_cgroup *memcg = mem_cgroup_from_seq(m);
-+
-+	seq_printf(m, "%d\n", READ_ONCE(memcg->zswap_writeback));
-+	return 0;
-+}
-+
-+static ssize_t zswap_writeback_write(struct kernfs_open_file *of,
-+				char *buf, size_t nbytes, loff_t off)
-+{
-+	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
-+	int zswap_writeback;
-+	ssize_t parse_ret = kstrtoint(strstrip(buf), 0, &zswap_writeback);
-+
-+	if (parse_ret)
-+		return parse_ret;
-+
-+	if (zswap_writeback != 0 && zswap_writeback != 1)
-+		return -EINVAL;
-+
-+	WRITE_ONCE(memcg->zswap_writeback, zswap_writeback);
-+	return nbytes;
-+}
-+
- static struct cftype zswap_files[] = {
- 	{
- 		.name = "zswap.current",
-@@ -8210,6 +8243,11 @@ static struct cftype zswap_files[] = {
- 		.seq_show = zswap_max_show,
- 		.write = zswap_max_write,
- 	},
-+	{
-+		.name = "zswap.writeback",
-+		.seq_show = zswap_writeback_show,
-+		.write = zswap_writeback_write,
-+	},
- 	{ }	/* terminate */
- };
- #endif /* CONFIG_MEMCG_KMEM && CONFIG_ZSWAP */
---- a/mm/page_io.c~zswap-memcontrol-implement-zswap-writeback-disabling
-+++ a/mm/page_io.c
-@@ -201,6 +201,11 @@ int swap_writepage(struct page *page, st
- 		folio_end_writeback(folio);
- 		return 0;
- 	}
-+	if (!mem_cgroup_zswap_writeback_enabled(folio_memcg(folio))) {
-+		folio_mark_dirty(folio);
-+		return AOP_WRITEPAGE_ACTIVATE;
-+	}
-+
- 	__swap_writepage(folio, wbc);
- 	return 0;
- }
---- a/mm/shmem.c~zswap-memcontrol-implement-zswap-writeback-disabling
-+++ a/mm/shmem.c
-@@ -1514,8 +1514,7 @@ static int shmem_writepage(struct page *
- 
- 		mutex_unlock(&shmem_swaplist_mutex);
- 		BUG_ON(folio_mapped(folio));
--		swap_writepage(&folio->page, wbc);
--		return 0;
-+		return swap_writepage(&folio->page, wbc);
- 	}
- 
- 	mutex_unlock(&shmem_swaplist_mutex);
---- a/mm/zswap.c~zswap-memcontrol-implement-zswap-writeback-disabling
-+++ a/mm/zswap.c
-@@ -153,6 +153,11 @@ static bool zswap_shrinker_enabled = IS_
- 		CONFIG_ZSWAP_SHRINKER_DEFAULT_ON);
- module_param_named(shrinker_enabled, zswap_shrinker_enabled, bool, 0644);
- 
-+bool is_zswap_enabled(void)
-+{
-+	return zswap_enabled;
-+}
-+
- /*********************************
- * data structures
- **********************************/
-@@ -596,7 +601,8 @@ static unsigned long zswap_shrinker_scan
- 	struct zswap_pool *pool = shrinker->private_data;
- 	bool encountered_page_in_swapcache = false;
- 
--	if (!zswap_shrinker_enabled) {
-+	if (!zswap_shrinker_enabled ||
-+			!mem_cgroup_zswap_writeback_enabled(sc->memcg)) {
- 		sc->nr_scanned = 0;
- 		return SHRINK_STOP;
- 	}
-@@ -637,7 +643,7 @@ static unsigned long zswap_shrinker_coun
- 	struct lruvec *lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(sc->nid));
- 	unsigned long nr_backing, nr_stored, nr_freeable, nr_protected;
- 
--	if (!zswap_shrinker_enabled)
-+	if (!zswap_shrinker_enabled || !mem_cgroup_zswap_writeback_enabled(memcg))
- 		return 0;
- 
- #ifdef CONFIG_MEMCG_KMEM
-@@ -923,6 +929,9 @@ static int shrink_memcg(struct mem_cgrou
- 	struct zswap_pool *pool;
- 	int nid, shrunk = 0;
- 
-+	if (!mem_cgroup_zswap_writeback_enabled(memcg))
-+		return -EINVAL;
-+
- 	/*
- 	 * Skip zombies because their LRUs are reparented and we would be
- 	 * reclaiming from the parent instead of the dead memcg.
-_
-
-Patches currently in -mm which might be from nphamcs@gmail.com are
-
-
+Acked-by: Sergey Senozhatsky <senozhatsky@chromium.org>
