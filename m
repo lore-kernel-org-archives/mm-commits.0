@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7839156C9
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jan 2024 17:55:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 413C5156F1
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jan 2024 17:58:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YdracvL3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33254C433BB;
-	Tue,  2 Jan 2024 17:55:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VlWL1zcS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA94EC433C8;
+	Tue,  2 Jan 2024 17:58:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704218138;
-	bh=vzZderrdlDB9srC0FizC0F4MiNEmELiCqJpD6o/cMJI=;
+	s=korg; t=1704218327;
+	bh=3XWjWFH0GEwacPcNqwopONUUkQoxSjkJdcLCtSdAyf0=;
 	h=Date:To:From:Subject:From;
-	b=YdracvL3fXyO6hxHX/uuC+wqcaCcjn7RmL24higYe4jYCRYMs7yu8E9YrIy1eM6lW
-	 i2ZQy0ooct99iD1KPH76g7HDKOqfYMx8wOHWvvxKJmCGFwAkWimocoRZc6WA2NU2/c
-	 0U24EsA1P+TUHs6V2bA4ax0PnFVm8QnqCjJwvKHs=
-Date: Tue, 02 Jan 2024 09:55:37 -0800
-To: mm-commits@vger.kernel.org,vgoyal@redhat.com,tiwai@suse.de,tglx@linutronix.de,seanjc@google.com,mingo@redhat.com,hpa@zytor.com,hbathini@linux.ibm.com,dyoung@redhat.com,dave.hansen@linux.intel.com,bp@alien8.de,bhe@redhat.com,ytcoode@gmail.com,akpm@linux-foundation.org
+	b=VlWL1zcSKm4iUF3yKjhv80G4FW2EzZLSN/bzXx8IWwlwzl/D8UY1IfHJtcFim2oDE
+	 6Zft7icWaZ/B6UAmPkVP7oofecVoVi0/7Q5LcbYfD/RMUQ5O70KA5yj9cuciKeCyp2
+	 Q6cQUBHgEBv5A4l+877C9RPdCiHrS/t39fzKJoOw=
+Date: Tue, 02 Jan 2024 09:58:46 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,syzbot+1e0ed05798af62917464@syzkaller.appspotmail.com,songmuchun@bytedance.com,penguin-kernel@I-love.SAKURA.ne.jp,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] crash_core-optimize-crash_exclude_mem_range.patch removed from -mm tree
-Message-Id: <20240102175538.33254C433BB@smtp.kernel.org>
+Subject: + mm-shrinker-use-kvzalloc_node-from-memcg_expand_one_shrinker_map.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240102175847.AA94EC433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -26,63 +26,67 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: crash_core: optimize crash_exclude_mem_range()
-has been removed from the -mm tree.  Its filename was
-     crash_core-optimize-crash_exclude_mem_range.patch
+The patch titled
+     Subject: mm: shrinker: use kvzalloc_node() from memcg_expand_one_shrinker_map()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-shrinker-use-kvzalloc_node-from-memcg_expand_one_shrinker_map.patch
 
-This patch was dropped because it is obsolete
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinker-use-kvzalloc_node-from-memcg_expand_one_shrinker_map.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yuntao Wang <ytcoode@gmail.com>
-Subject: crash_core: optimize crash_exclude_mem_range()
-Date: Wed, 20 Dec 2023 00:34:18 +0800
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: mm: shrinker: use kvzalloc_node() from memcg_expand_one_shrinker_map()
+Date: Wed, 3 Jan 2024 00:46:36 +0900
 
-Because memory ranges in mem->ranges are stored in ascending order, when
-we detect `p_end < start`, we can break the for loop early, as the
-subsequent memory ranges must also be outside the range we are looking
-for.
+syzbot is reporting uninit-value at shrinker_alloc(), for commit
+307bececcd12 ("mm: shrinker: add a secondary array for
+shrinker_info::{map, nr_deferred}") which assumed that the ->unit was
+allocated with __GFP_ZERO forgot to replace kvmalloc_node() in
+memcg_expand_one_shrinker_map() with kvzalloc_node().
 
-Link: https://lkml.kernel.org/r/20231219163418.108591-1-ytcoode@gmail.com
-Signed-off-by: Yuntao Wang <ytcoode@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Borislav Petkov (AMD) <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Hari Bathini <hbathini@linux.ibm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Link: https://lkml.kernel.org/r/b1a78c6a-b3fa-46ed-810a-ce546e726d44@I-love.SAKURA.ne.jp
+Fixes: 307bececcd12 ("mm: shrinker: add a secondary array for shrinker_info::{map, nr_deferred}")
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Reported-by: syzbot <syzbot+1e0ed05798af62917464@syzkaller.appspotmail.com>
+Closes: https://syzkaller.appspot.com/bug?extid=1e0ed05798af62917464
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/crash_core.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/shrinker.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/crash_core.c~crash_core-optimize-crash_exclude_mem_range
-+++ a/kernel/crash_core.c
-@@ -575,9 +575,12 @@ int crash_exclude_mem_range(struct crash
- 		p_start = mstart;
- 		p_end = mend;
- 
--		if (p_start > end || p_end < start)
-+		if (p_start > end)
+--- a/mm/shrinker.c~mm-shrinker-use-kvzalloc_node-from-memcg_expand_one_shrinker_map
++++ a/mm/shrinker.c
+@@ -126,7 +126,7 @@ static int expand_one_shrinker_info(stru
+ 		if (new_nr_max <= old->map_nr_max)
  			continue;
  
-+		if (p_end < start)
-+			break;
-+
- 		/* Truncate any area outside of range */
- 		if (p_start < start)
- 			p_start = start;
+-		new = kvmalloc_node(sizeof(*new) + new_size, GFP_KERNEL, nid);
++		new = kvzalloc_node(sizeof(*new) + new_size, GFP_KERNEL, nid);
+ 		if (!new)
+ 			return -ENOMEM;
+ 
 _
 
-Patches currently in -mm which might be from ytcoode@gmail.com are
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
 
-x86-crash-remove-the-unused-image-parameter-from-prepare_elf_headers.patch
-x86-crash-use-sz_1m-macro-instead-of-hardcoded-value.patch
-crash_core-fix-and-simplify-the-logic-of-crash_exclude_mem_range.patch
+mm-shrinker-use-kvzalloc_node-from-memcg_expand_one_shrinker_map.patch
 
