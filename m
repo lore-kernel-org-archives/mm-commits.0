@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEC40168B9
-	for <mm-commits@vger.kernel.org>; Tue,  2 Jan 2024 19:02:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 106BA15ACB
+	for <mm-commits@vger.kernel.org>; Tue,  2 Jan 2024 19:08:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wn0u2a26"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31385C433C9;
-	Tue,  2 Jan 2024 19:02:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dEDs+Wmo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F1CAC433C8;
+	Tue,  2 Jan 2024 19:08:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704222137;
-	bh=GSN4hFWgLgvUt88FZ8ZVMCpdeJAvR/0foP/R+1Q2j/g=;
+	s=korg; t=1704222492;
+	bh=T+xgOwJFYGRe+I1DIibPO9oMkqTsfXsKenuDLZlWLjM=;
 	h=Date:To:From:Subject:From;
-	b=wn0u2a26mJ8En2fppEre0vL/skZEp9yQhg0aiKkfZ+DK+MDH69Pu6xRUe1lGgDvZk
-	 cKpgBsKgqEMBQwDtrNhDGquu+nCF6//EiSsUloNDDQh1JmzVtw0RjJPdjUsLLfei3A
-	 LclC2WE+mQOgjlioQI66NqRjPXVB0GuqqvZ1eb0Q=
-Date: Tue, 02 Jan 2024 11:02:16 -0800
-To: mm-commits@vger.kernel.org,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
+	b=dEDs+WmoEgk3IvMqmD7CYMXIpRv85CKf6EFkVkl0m7afbepXpZLSnvndWgB7Se2fz
+	 5wPGCQLpW/sx3C0tr5nmO+wweuXEFmAPNHaoSSzRtMa9B2qw6LZVUOzZ32KqqaI9B/
+	 TZXJ67GUONm4vxuFj/Ruis7BpX4XTh5/cFELOOR0=
+Date: Tue, 02 Jan 2024 11:08:11 -0800
+To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-treewide-introduce-nr_page_orders-fix.patch added to mm-unstable branch
-Message-Id: <20240102190217.31385C433C9@smtp.kernel.org>
+Subject: + buffer-fix-unintended-successful-return.patch added to mm-unstable branch
+Message-Id: <20240102190812.8F1CAC433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-treewide-introduce-nr_page_orders-fix
+     Subject: buffer: fix unintended successful return
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-treewide-introduce-nr_page_orders-fix.patch
+     buffer-fix-unintended-successful-return.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-treewide-introduce-nr_page_orders-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/buffer-fix-unintended-successful-return.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -50,36 +50,73 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm-treewide-introduce-nr_page_orders-fix
-Date: Mon, 1 Jan 2024 14:15:12 +0300
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: buffer: fix unintended successful return
+Date: Mon, 1 Jan 2024 09:38:48 +0000
 
-fixup for kerneldoc warning
+If try_to_free_buffers() succeeded and then folio_alloc_buffers() failed,
+grow_dev_folio() would return success.  This would be incorrect; memory
+allocation failure is supposed to result in a failure.  It's a harmless
+bug; the caller will simply go around the loop one more time and
+grow_dev_folio() will correctly return a failure that time.  But it was an
+unintended change and looks like a more serious bug than it is.
 
-Link: https://lkml.kernel.org/r/20240101111512.7empzyifq7kxtzk3@box
-Signed-off-by: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+While I'm in here, improve the commentary about why we return success even
+though we failed.
+
+Link: https://lkml.kernel.org/r/20240101093848.2017115-1-willy@infradead.org
+Fixes: 6d840a18773f ("buffer: return bool from grow_dev_folio()")
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reported-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kdump/vmcoreinfo.rst |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/buffer.c |   17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
---- a/Documentation/admin-guide/kdump/vmcoreinfo.rst~mm-treewide-introduce-nr_page_orders-fix
-+++ a/Documentation/admin-guide/kdump/vmcoreinfo.rst
-@@ -190,7 +190,7 @@ information. Makedumpfile gets the start
- from this.
+--- a/fs/buffer.c~buffer-fix-unintended-successful-return
++++ a/fs/buffer.c
+@@ -1028,8 +1028,8 @@ static sector_t folio_init_buffers(struc
+  *
+  * This is used purely for blockdev mappings.
+  *
+- * Returns false if we have a 'permanent' failure.  Returns true if
+- * we succeeded, or the caller should retry.
++ * Returns false if we have a failure which cannot be cured by retrying
++ * without sleeping.  Returns true if we succeeded, or the caller should retry.
+  */
+ static bool grow_dev_folio(struct block_device *bdev, sector_t block,
+ 		pgoff_t index, unsigned size, gfp_t gfp)
+@@ -1051,10 +1051,17 @@ static bool grow_dev_folio(struct block_
+ 			goto unlock;
+ 		}
  
- (zone.free_area, NR_PAGE_ORDERS)
---------------------------------
-+--------------------------------
+-		/* Caller should retry if this call fails */
+-		end_block = ~0ULL;
+-		if (!try_to_free_buffers(folio))
++		/*
++		 * Retrying may succeed; for example the folio may finish
++		 * writeback, or buffers may be cleaned.  This should not
++		 * happen very often; maybe we have old buffers attached to
++		 * this blockdev's page cache and we're trying to change
++		 * the block size?
++		 */
++		if (!try_to_free_buffers(folio)) {
++			end_block = ~0ULL;
+ 			goto unlock;
++		}
+ 	}
  
- Free areas descriptor. User-space tools use this value to iterate the
- free_area ranges. MAX_ORDER is used by the zone buddy allocator.
+ 	bh = folio_alloc_buffers(folio, size, gfp | __GFP_ACCOUNT);
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-treewide-introduce-nr_page_orders.patch
-mm-treewide-introduce-nr_page_orders-fix.patch
-mm-treewide-rename-max_order-to-max_page_order.patch
+buffer-fix-unintended-successful-return.patch
+mm-remove-inc-dec-lruvec-page-state-functions.patch
+slub-use-alloc_pages_node-in-alloc_slab_page.patch
+slub-use-folio-apis-in-free_large_kmalloc.patch
+slub-use-a-folio-in-__kmalloc_large_node.patch
+mm-khugepaged-use-a-folio-more-in-collapse_file.patch
+mm-memcontrol-remove-__mod_lruvec_page_state.patch
 
