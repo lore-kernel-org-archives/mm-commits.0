@@ -1,78 +1,258 @@
-Received: from www262.sakura.ne.jp (www262.sakura.ne.jp [202.181.97.72])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 862DC468C
-	for <mm-commits@vger.kernel.org>; Wed,  3 Jan 2024 02:46:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=I-love.SAKURA.ne.jp
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=I-love.SAKURA.ne.jp
-Received: from fsav415.sakura.ne.jp (fsav415.sakura.ne.jp [133.242.250.114])
-	by www262.sakura.ne.jp (8.15.2/8.15.2) with ESMTP id 4032kCqZ069871;
-	Wed, 3 Jan 2024 11:46:12 +0900 (JST)
-	(envelope-from penguin-kernel@I-love.SAKURA.ne.jp)
-Received: from www262.sakura.ne.jp (202.181.97.72)
- by fsav415.sakura.ne.jp (F-Secure/fsigk_smtp/550/fsav415.sakura.ne.jp);
- Wed, 03 Jan 2024 11:46:12 +0900 (JST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/fsav415.sakura.ne.jp)
-Received: from [192.168.1.6] (M106072142033.v4.enabler.ne.jp [106.72.142.33])
-	(authenticated bits=0)
-	by www262.sakura.ne.jp (8.15.2/8.15.2) with ESMTPSA id 4032kBGI069867
-	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NO);
-	Wed, 3 Jan 2024 11:46:11 +0900 (JST)
-	(envelope-from penguin-kernel@I-love.SAKURA.ne.jp)
-Message-ID: <c3cdc9b3-a06f-4be7-af3b-44abb8d72c7d@I-love.SAKURA.ne.jp>
-Date: Wed, 3 Jan 2024 11:46:11 +0900
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA81D1C688
+	for <mm-commits@vger.kernel.org>; Wed,  3 Jan 2024 18:11:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CTJ6goJq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C550C433C7;
+	Wed,  3 Jan 2024 18:11:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1704305491;
+	bh=ywsBiu018nH+EOmuRh7//t3Q+9Hb0gbnlGXih/BBls0=;
+	h=Date:To:From:Subject:From;
+	b=CTJ6goJq/MqBzDZPUbrJNqSxvR6O5u5ixeNBiTaWzec9QDfVHqvhMhurk4J/y7kPq
+	 S2leIWZkB6Mwi3C1hAkBqNu9yueNwNf+eS6iqAqXf7CBLwyuk3SgS2KT8WToXdzFGy
+	 feb3hZBmRBq2lHtKUyBOwJaDSFCZyaAy8sCgbTCw=
+Date: Wed, 03 Jan 2024 10:11:30 -0800
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,willy@infradead.org,wangkefeng.wang@huawei.com,tj@kernel.org,shakeelb@google.com,roman.gushchin@linux.dev,rientjes@google.com,nphamcs@gmail.com,muchun.song@linux.dev,mhocko@suse.com,lizefan.x@bytedance.com,hughd@google.com,hannes@cmpxchg.org,findns94@gmail.com,david@redhat.com,corbet@lwn.net,chrisl@kernel.org,schatzberg.dan@gmail.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-add-defines-for-min-max-swappiness.patch added to mm-unstable branch
+Message-Id: <20240103181131.1C550C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: +
- mm-shrinker-use-kvzalloc_node-from-memcg_expand_one_shrinker_map.patch added
- to mm-hotfixes-unstable branch
-Content-Language: en-US
-To: Qi Zheng <zhengqi.arch@bytedance.com>,
-        Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org,
-        syzbot+1e0ed05798af62917464@syzkaller.appspotmail.com,
-        songmuchun@bytedance.com
-References: <20240102175847.AA94EC433C8@smtp.kernel.org>
- <35fc708f-c27c-4b37-99c2-f6c0db8db1d5@bytedance.com>
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-In-Reply-To: <35fc708f-c27c-4b37-99c2-f6c0db8db1d5@bytedance.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 
-On 2024/01/03 11:33, Qi Zheng wrote:
->> Link: https://lkml.kernel.org/r/b1a78c6a-b3fa-46ed-810a-ce546e726d44@I-love.SAKURA.ne.jp
-> 
-> Thanks for fixing this!
-> 
-> Reviewed-by: Qi Zheng <zhengqi.arch@bytedance.com>
-> 
-> BTW, this link above seems to be inaccessible:
-> 
-> ```
-> Message-ID <b1a78c6a-b3fa-46ed-810a-ce546e726d44@I-love.SAKURA.ne.jp>
-> not found
-> 
-> Perhaps try an external site:
-> ```
-> 
-> And I did not find this patch in LKML.
 
-Hmm. It seems that I should not remove linux-kernel@vger.kernel.org when posting to linux-mm@kvack.org
-because lkml.kernel.org does not archive linux-mm@kvack.org and syzbot can not find this patch.
+The patch titled
+     Subject: mm: add defines for min/max swappiness
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-add-defines-for-min-max-swappiness.patch
 
-Andrew, please take v2 which corrected function name.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-defines-for-min-max-swappiness.patch
 
-> 
->> Fixes: 307bececcd12 ("mm: shrinker: add a secondary array for shrinker_info::{map, nr_deferred}")
->> Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
->> Reported-by: syzbot <syzbot+1e0ed05798af62917464@syzkaller.appspotmail.com>
->> Closes: https://syzkaller.appspot.com/bug?extid=1e0ed05798af62917464
->> Cc: Qi Zheng <zhengqi.arch@bytedance.com>
->> Cc: Muchun Song <songmuchun@bytedance.com>
->> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Dan Schatzberg <schatzberg.dan@gmail.com>
+Subject: mm: add defines for min/max swappiness
+Date: Wed, 3 Jan 2024 08:48:36 -0800
+
+Patch series "Add swappiness argument to memory.reclaim", v6.
+
+This patch proposes augmenting the memory.reclaim interface with a
+swappiness=<val> argument that overrides the swappiness value for that
+instance of proactive reclaim.
+
+Userspace proactive reclaimers use the memory.reclaim interface to trigger
+reclaim.  The memory.reclaim interface does not allow for any way to
+effect the balance of file vs anon during proactive reclaim.  The only
+approach is to adjust the vm.swappiness setting.  However, there are a few
+reasons we look to control the balance of file vs anon during proactive
+reclaim, separately from reactive reclaim:
+
+* Swapout should be limited to manage SSD write endurance.  In near-OOM
+  situations we are fine with lots of swap-out to avoid OOMs.  As these
+  are typically rare events, they have relatively little impact on write
+  endurance.  However, proactive reclaim runs continuously and so its
+  impact on SSD write endurance is more significant.  Therefore it is
+  desireable to control swap-out for proactive reclaim separately from
+  reactive reclaim
+
+* Some userspace OOM killers like systemd-oomd[1] support OOM killing on
+  swap exhaustion.  This makes sense if the swap exhaustion is triggered
+  due to reactive reclaim but less so if it is triggered due to proactive
+  reclaim (e.g.  one could see OOMs when free memory is ample but anon is
+  just particularly cold).  Therefore, it's desireable to have proactive
+  reclaim reduce or stop swap-out before the threshold at which OOM
+  killing occurs.
+
+In the case of Meta's Senpai proactive reclaimer, we adjust vm.swappiness
+before writes to memory.reclaim[2].  This has been in production for
+nearly two years and has addressed our needs to control proactive vs
+reactive reclaim behavior but is still not ideal for a number of reasons:
+
+* vm.swappiness is a global setting, adjusting it can race/interfere
+  with other system administration that wishes to control vm.swappiness. 
+  In our case, we need to disable Senpai before adjusting vm.swappiness.
+
+* vm.swappiness is stateful - so a crash or restart of Senpai can leave
+  a misconfigured setting.  This requires some additional management to
+  record the "desired" setting and ensure Senpai always adjusts to it.
+
+With this patch, we avoid these downsides of adjusting vm.swappiness
+globally.
+
+Previously, this exact interface addition was proposed by Yosry[3].  In
+response, Roman proposed instead an interface to specify precise
+file/anon/slab reclaim amounts[4].  More recently Huan also proposed this
+as well[5] and others similarly questioned if this was the proper
+interface.
+
+Previous proposals sought to use this to allow proactive reclaimers to
+effectively perform a custom reclaim algorithm by issuing proactive
+reclaim with different settings to control file vs anon reclaim (e.g.  to
+only reclaim anon from some applications).  Responses argued that
+adjusting swappiness is a poor interface for custom reclaim.
+
+In contrast, I argue in favor of a swappiness setting not as a way to
+implement custom reclaim algorithms but rather to bias the balance of anon
+vs file due to differences of proactive vs reactive reclaim.  In this
+context, swappiness is the existing interface for controlling this balance
+and this patch simply allows for it to be configured differently for
+proactive vs reactive reclaim.
+
+Specifying explicit amounts of anon vs file pages to reclaim feels
+inappropriate for this prupose.  Proactive reclaimers are un-aware of the
+relative age of file vs anon for a cgroup which makes it difficult to
+manage proactive reclaim of different memory pools.  A proactive reclaimer
+would need some amount of anon reclaim attempts separate from the amount
+of file reclaim attempts which seems brittle given that it's difficult to
+observe the impact.
+
+[1]https://www.freedesktop.org/software/systemd/man/latest/systemd-oomd.service.html
+[2]https://github.com/facebookincubator/oomd/blob/main/src/oomd/plugins/Senpai.cpp#L585-L598
+[3]https://lore.kernel.org/linux-mm/CAJD7tkbDpyoODveCsnaqBBMZEkDvshXJmNdbk51yKSNgD7aGdg@mail.gmail.com/
+[4]https://lore.kernel.org/linux-mm/YoPHtHXzpK51F%2F1Z@carbon/
+[5]https://lore.kernel.org/lkml/20231108065818.19932-1-link@vivo.com/
+
+
+This patch (of 2):
+
+We use the constants 0 and 200 in a few places in the mm code when
+referring to the min and max swappiness.  This patch adds MIN_SWAPPINESS
+and MAX_SWAPPINESS #defines to improve clarity.  There are no functional
+changes.
+
+Link: https://lkml.kernel.org/r/20240103164841.2800183-1-schatzberg.dan@gmail.com
+Link: https://lkml.kernel.org/r/20240103164841.2800183-2-schatzberg.dan@gmail.com
+Signed-off-by: Dan Schatzberg <schatzberg.dan@gmail.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Chris Li <chrisl@kernel.org>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Yue Zhao <findns94@gmail.com>
+Cc: Zefan Li <lizefan.x@bytedance.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/swap.h |    2 ++
+ mm/memcontrol.c      |    2 +-
+ mm/vmscan.c          |   14 +++++++-------
+ 3 files changed, 10 insertions(+), 8 deletions(-)
+
+--- a/include/linux/swap.h~mm-add-defines-for-min-max-swappiness
++++ a/include/linux/swap.h
+@@ -404,6 +404,8 @@ extern unsigned long try_to_free_pages(s
+ 
+ #define MEMCG_RECLAIM_MAY_SWAP (1 << 1)
+ #define MEMCG_RECLAIM_PROACTIVE (1 << 2)
++#define MIN_SWAPPINESS 0
++#define MAX_SWAPPINESS 200
+ extern unsigned long try_to_free_mem_cgroup_pages(struct mem_cgroup *memcg,
+ 						  unsigned long nr_pages,
+ 						  gfp_t gfp_mask,
+--- a/mm/memcontrol.c~mm-add-defines-for-min-max-swappiness
++++ a/mm/memcontrol.c
+@@ -4356,7 +4356,7 @@ static int mem_cgroup_swappiness_write(s
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
+ 
+-	if (val > 200)
++	if (val > MAX_SWAPPINESS)
+ 		return -EINVAL;
+ 
+ 	if (!mem_cgroup_is_root(memcg))
+--- a/mm/vmscan.c~mm-add-defines-for-min-max-swappiness
++++ a/mm/vmscan.c
+@@ -183,7 +183,7 @@ struct scan_control {
+ #endif
+ 
+ /*
+- * From 0 .. 200.  Higher means more swappy.
++ * From 0 .. MAX_SWAPPINESS.  Higher means more swappy.
+  */
+ int vm_swappiness = 60;
+ 
+@@ -2404,7 +2404,7 @@ static void get_scan_count(struct lruvec
+ 	ap = swappiness * (total_cost + 1);
+ 	ap /= anon_cost + 1;
+ 
+-	fp = (200 - swappiness) * (total_cost + 1);
++	fp = (MAX_SWAPPINESS - swappiness) * (total_cost + 1);
+ 	fp /= file_cost + 1;
+ 
+ 	fraction[0] = ap;
+@@ -4422,7 +4422,7 @@ static int get_type_to_scan(struct lruve
+ {
+ 	int type, tier;
+ 	struct ctrl_pos sp, pv;
+-	int gain[ANON_AND_FILE] = { swappiness, 200 - swappiness };
++	int gain[ANON_AND_FILE] = { swappiness, MAX_SWAPPINESS - swappiness };
+ 
+ 	/*
+ 	 * Compare the first tier of anon with that of file to determine which
+@@ -4458,7 +4458,7 @@ static int isolate_folios(struct lruvec
+ 	/*
+ 	 * Try to make the obvious choice first. When anon and file are both
+ 	 * available from the same generation, interpret swappiness 1 as file
+-	 * first and 200 as anon first.
++	 * first and MAX_SWAPPINESS as anon first.
+ 	 */
+ 	if (!swappiness)
+ 		type = LRU_GEN_FILE;
+@@ -4466,7 +4466,7 @@ static int isolate_folios(struct lruvec
+ 		type = LRU_GEN_ANON;
+ 	else if (swappiness == 1)
+ 		type = LRU_GEN_FILE;
+-	else if (swappiness == 200)
++	else if (swappiness == MAX_SWAPPINESS)
+ 		type = LRU_GEN_ANON;
+ 	else
+ 		type = get_type_to_scan(lruvec, swappiness, &tier);
+@@ -5408,9 +5408,9 @@ static int run_cmd(char cmd, int memcg_i
+ 
+ 	lruvec = get_lruvec(memcg, nid);
+ 
+-	if (swappiness < 0)
++	if (swappiness < MIN_SWAPPINESS)
+ 		swappiness = get_swappiness(lruvec, sc);
+-	else if (swappiness > 200)
++	else if (swappiness > MAX_SWAPPINESS)
+ 		goto done;
+ 
+ 	switch (cmd) {
+_
+
+Patches currently in -mm which might be from schatzberg.dan@gmail.com are
+
+mm-add-defines-for-min-max-swappiness.patch
+mm-add-swapiness=-arg-to-memoryreclaim.patch
 
