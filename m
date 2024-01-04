@@ -1,37 +1,37 @@
-Received: from APC01-TYZ-obe.outbound.protection.outlook.com (mail-tyzapc01on2092.outbound.protection.outlook.com [40.107.117.92])
+Received: from APC01-TYZ-obe.outbound.protection.outlook.com (mail-tyzapc01on2116.outbound.protection.outlook.com [40.107.117.116])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B06A720B02
-	for <mm-commits@vger.kernel.org>; Thu,  4 Jan 2024 10:02:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EB7520B02
+	for <mm-commits@vger.kernel.org>; Thu,  4 Jan 2024 10:02:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=vivo.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=vivo.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=vivo.com header.i=@vivo.com header.b="LlLS90tp"
+	dkim=pass (2048-bit key) header.d=vivo.com header.i=@vivo.com header.b="nI9vtlsl"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=D2ok6OIXXsojowSbTgN2WdsTUTj9uLlL2+fzaDcvufUYxUG0LgVJ3LxMbui4kPOsGIFoZr/hDn/hEZiylylXJ8IZ6YtAnVvQnrib7hRQnlDD+RokaX/c63CTF9oE3uvPKcthAZTwjVSExsB2VxcmMO1DcbiedW949kn0aoApZwTK7WCWwO7vx7keLVcQZrOPaMNLKPNescjAJX8WRehbfZWWHbUbh/g1QihEPw1PieCM4NglC6PVBz4eYjXepWEE009/G0sw0GnfFKIsQmRPVIwCwgeCbmEG6hhrAQqbOFSHP57SAKpMVPO3AvMPP+7rfDxyMNsvxGfa4GEjmV0blQ==
+ b=DoiqyrCxmHZVczU+GeKENi/QWOd1mB8tW3EQH06oyjIZnksBvLBJ+AnJIYKLVru4Fd6jK0/Ccbzt5I5GnX0Eh2NmmlB3afVS3/Ei31J8D3D8dyuTvd9xxuR6js4TIKGXfISGKC9t1rCW9kHzzeRCFNjO8f8n2SWRVDlTcs9acIuSHHh7m4j+pGcsJKdMqGD4PJIz2piGE6WzY6XpVrakaedw54PXhY/GnEidM6XCF+5y/KiJQrKN/eZjEhOFl82FwrKtuuuXrZ5FuvtBlJsB9TLdef9uWoFtqH9rkfANBzaEyHn/JCmJN9TTOhA3cwDkbUQVQ9YjmMrwPH2/eHPkwA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=9IyphLw1z3cXak/6N1bG1g+lJjhfGiAfu9pfQ+cF3bs=;
- b=Vjp0WykYbiPT07IfLXeEfveF1yWa1yQeg5Dq1iZaQOLawEqJH9z9/9H54zHZ5Ir46+j/b4Oy0JTKzYrYs5cQVN4/Phyfmg88v1x/Us9t3UF9l6JWoH6a6s8foI8hnGbLhpJ9A/QZtMTfJqJd1GVIlmHR4L0bAxg5QqFexk5Oxu79yZI9mWT/JxZcH7xReoFrJ7bj6SyDTgRqNz0p6p5m8KSTEEa4c9sKcVjtIiynpAX7fYIO8eL6b+DVJcNA7pIVCNCH8oBW1aRpZRQRDTIoV1rmI8/DUFRYmFXOeNwqPswsVEod7TKk6n2J8A1FdiKjpvvSn9B86kHjChXG/ssjdw==
+ bh=2aQDjlWhWdpqHlsXM3gl/Zf183I9Y9KyBUkLUpxSWPA=;
+ b=dalMmotbbAfUlBPGYzfk9088J9wamnfpQuZypWszPojliBhzkhZDMftsFr/b+WL+cTmuE/RIGSHYCVBQWptBLw4Fh5PIlZ8Mk8jAlsUEcuOVfmBYHq5ZMsVCRjpXqPuO5AL6GFvG6LbLpmciEZLq4CTx1nU/jsvJF5ruVw0Z+gKuFDMeG8oPTIQz5hbWUIwADKgeU9b9vpXo+RZZP0gZS5lOR3wt2yktyJGt2KSrIACUcFaq7tAMrNqciDAPeFIay8cCTXEkXGyVyginutzDqPCeKnKJZtI+TG5WyVSVX4ijvpDaeGnTsyZz3V9k4Gyd/MbNPrTqseIiJ7CfA+HpeQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=vivo.com; dmarc=pass action=none header.from=vivo.com;
  dkim=pass header.d=vivo.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=vivo.com; s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=9IyphLw1z3cXak/6N1bG1g+lJjhfGiAfu9pfQ+cF3bs=;
- b=LlLS90tp40R9b7jBADCHMSMLrEciARWN/+0PYuOKKcD/eNf8IsQE01emw6rQzjpI1eEGJ/8+wAhz1EZ6nLTAZzUYVa3WsaYowiVbHPZQCsy72ri+LIDTRYkp6ATwpdm1os83wwMSIf/QuJbq8rz25M0PLb/RvXPB02zcfiU12VAzHSf7uHR42Vq1IZGUR7EkIQ7mYqac2tK/UAPGiXg6XzyFdunAYfyQwOVFUe8X0fXz9IznyHJv02V08EIqMe9F8vTeNrBOitbfuqyCulO2ouAv61OsqCiSah1xUGfepkwk8xaSIii5TQtzsblJYfDZE2arQARjHD1c1aedtR4biQ==
+ bh=2aQDjlWhWdpqHlsXM3gl/Zf183I9Y9KyBUkLUpxSWPA=;
+ b=nI9vtlsl3wuFxbdXQLlCC9e5EP/GkGSpvRyB9UjIPKm7xMi0cuL6hBMr8o8FfvOxj1TMbKbVKdSLq4Qp0m3gFfDJdISpyGGmBudWyD/YmbnOZ09dPvYYihkGdhc5drwYP+2J6bssaM9izuQnVZNthwj2KtuYRGvGImLzBDFev2ykCONGtPAVqKezVoMTjZJAqRVXyWBAAsV1zOGhfSwJxtZqPOU7U2GVKr2eV9icK7hfHS8pb33yI2bLgXnr6H9YolN46+mJYU32UZKm14V4wtfBfkcHugR5WWzFwscw5jdqZPeSLu9m48NrhH8ZSCazO4L5DXplkYIAzd41JH4dLA==
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=vivo.com;
 Received: from TYZPR06MB4045.apcprd06.prod.outlook.com (2603:1096:400:21::8)
- by KL1PR0601MB4050.apcprd06.prod.outlook.com (2603:1096:820:2a::7) with
+ by TY0PR06MB5428.apcprd06.prod.outlook.com (2603:1096:400:219::9) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7159.14; Thu, 4 Jan
- 2024 10:02:18 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7159.13; Thu, 4 Jan
+ 2024 10:02:20 +0000
 Received: from TYZPR06MB4045.apcprd06.prod.outlook.com
  ([fe80::9925:32d7:c818:3c5]) by TYZPR06MB4045.apcprd06.prod.outlook.com
  ([fe80::9925:32d7:c818:3c5%7]) with mapi id 15.20.7159.013; Thu, 4 Jan 2024
- 10:02:17 +0000
+ 10:02:20 +0000
 From: Bixuan Cui <cuibixuan@vivo.com>
 To: akpm@linux-foundation.org,
 	mm-commits@vger.kernel.org,
@@ -40,9 +40,9 @@ To: akpm@linux-foundation.org,
 	mathieu.desnoyers@efficios.com
 Cc: opensource.kernel@vivo.com,
 	cuibixuan@vivo.com
-Subject: [PATCH -next v5 1/2] mm: shrinker: add new event to trace shrink count
-Date: Thu,  4 Jan 2024 02:01:44 -0800
-Message-Id: <20240104100145.3855-2-cuibixuan@vivo.com>
+Subject: [PATCH -next v5 2/2] mm: vmscan: add new event to trace shrink lru
+Date: Thu,  4 Jan 2024 02:01:45 -0800
+Message-Id: <20240104100145.3855-3-cuibixuan@vivo.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20240104100145.3855-1-cuibixuan@vivo.com>
 References: <20240104100145.3855-1-cuibixuan@vivo.com>
@@ -57,77 +57,75 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: TYZPR06MB4045:EE_|KL1PR0601MB4050:EE_
-X-MS-Office365-Filtering-Correlation-Id: 41d0632f-c6a8-4390-da6f-08dc0d0c3c04
+X-MS-TrafficTypeDiagnostic: TYZPR06MB4045:EE_|TY0PR06MB5428:EE_
+X-MS-Office365-Filtering-Correlation-Id: 5bdd9a6e-e0dd-493f-8fe1-08dc0d0c3dbb
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
 X-Microsoft-Antispam-Message-Info:
-	hH7VUfzbxHsRQYiHkyJL1lz4ORsIVMq6oi4PXyKhZd4hlkzGwuP6Jv0X4InjnhcKTz2zYwLI0iRbyheUQSzepRycM54JgYmUq4R1Llo6ZVgBndiQuWnlt7ioVlOOVrJwyi2S25wb+jathyYwLnO2FY5IYlycVj7TpNNbaayop2FsIKSV8tfKuFDjEGhrUmrZ6+yXz97uXrK1imO7Caji5BW2uvA2JT0ADbUWfA6bDQMo1dO7pUyyQHEGJbWxFOgVAV9Hod6tPUMUuYhFRQrBJEUmYLqWbPO2Qh8olwwErbqZzzUVUE/JGhhNVxvWz0tghCGetU8YCgHCCst7s/9iLlxamC4faTNgHHk2IpK2YmiMoxMjFZtZaWskEe3LEi1gyl5Gad3R9sHTjlX0r0LRDT9mdvdl1ykHUwBZmapaXpCXxoHOktnOre1aRqHRz+wPgRUzvESr+ddoyN5OQiD0Fe2+KyAlUJW/Y/BwLL0txnMvUZY1HUcMzcvfst9J5Pf7CNpYAGgaXKoKe0EA/h0hzLkoIHPxS6yH+o8AItwitzushsbfEFbew9SPcySrwpj0rQP1eaqkJzq1oAoaU6a1pb9n23FFAItjzhkDS9e+1NIjlbdvs1gOJbRwOT5kc9bK
+	U7kLjafaIJHk49fHDOV3v/wZfxB9nmcWxeZsZfkpNeiNuCRp8kfLwoxJayZTJG8R1Gfl1sf1/iZpKD5ZBrYoI3CBhS94rY1sfYGKw3TKcO+3skS93LeP/YX7aL7JI+uYf+9/N9aEz1QPMGSPmr2CSt7bq6KeqVnvYIM0DyAo5huh7X4LqnbvmwV7IIAKnpguPEA+HBBOPb1RaYAn5jIwCbrlDzSIByMedJmqWwYSFJE5465YnRaL8mmUVnzqQvnrtpjBHvGRjQqfzOmkBv+woy2xgC3BvBi4G3erZGZvqbECYyGXRCKPeco2A02yjjXceHyDRmbQVd96+iv2rk4AnAuO+BlbuHfLwhGC+IH2KSDyMrTtuSrsjdVX1ZbWztxyhZSNZYPT8XbLebl+rFKRmXLlM01V98hsbPnylb75YOrxy7qC5wEgbziQeQSC7lP4nJuAjnU7WkrwCaP/6/Honh+ULwGkv/9OYuYmfN0yIEYWl7iskAcfztpirzrbMhej56gKT+DQKd/68TApF+F05JZhtCyfvAFOi1RMT65TmEXNgKYxgxF3g6SCGVVRlXzyN9ur0TaPHoS+a8pOsQ5v18P2CBMjOM40B8o58+dcZASTquNNaDr+LDQnHuNcvjKt
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:TYZPR06MB4045.apcprd06.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(136003)(376002)(346002)(366004)(396003)(39860400002)(230922051799003)(186009)(451199024)(1800799012)(64100799003)(40140700001)(5660300002)(38100700002)(86362001)(41300700001)(1076003)(6486002)(26005)(2616005)(107886003)(83380400001)(36756003)(52116002)(2906002)(478600001)(6512007)(38350700005)(6506007)(6666004)(4326008)(8676002)(8936002)(316002)(66946007)(66556008)(66476007);DIR:OUT;SFP:1102;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:TYZPR06MB4045.apcprd06.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(376002)(396003)(346002)(366004)(136003)(39860400002)(230922051799003)(186009)(64100799003)(451199024)(1800799012)(5660300002)(52116002)(6512007)(2906002)(6506007)(4326008)(66476007)(66556008)(66946007)(6486002)(6666004)(8936002)(478600001)(316002)(41300700001)(38100700002)(8676002)(86362001)(36756003)(40140700001)(83380400001)(38350700005)(107886003)(2616005)(1076003)(26005);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?R8Ha++pWFbUl5Ym5UvfeL4euhaUFsmjE9iicFK6rQHyYRPhvbjSlJW3V8/Dn?=
- =?us-ascii?Q?c60P/hpnnXOFzgusLudFEBf/sSBZ22ElUIg6bjUyTFJmao7KEQoWZ8en+cMz?=
- =?us-ascii?Q?bQ9IJSX4mm/7tVYfsaFI0dfncVsvu5NqPelwToXtWud68Fooa19S13u3mr2P?=
- =?us-ascii?Q?M44wRWTAssIV31Ry+lFslYTJ5io5bsDxDRf3uNmhlCoX5CAqTACk1EoGDyJG?=
- =?us-ascii?Q?BhcdOLL5fPYpiw2JvLAUCo4KBbEc241CPhlWYjcN0IlLqpLdcurjoqa02683?=
- =?us-ascii?Q?UcDL5AnVyHoWfsNcBbH+COET9mPcVEt6jcUv2jSibUM8G6Xh/1JtGy/n8Vru?=
- =?us-ascii?Q?5rKWSYzYd7rStGeFOr5KaHhMfdRE5m19YwbeXvCVuZGiXSoT+VjAH9CCPD0i?=
- =?us-ascii?Q?IfJqxn/3Q7ZVO21R5mUQB2qZaSkw4dF/rpROcfq+wif6xXwgww+5gsTZ6ZHa?=
- =?us-ascii?Q?CON0zTK86unYr0hk1uxl7tjVdXVedwkNUtDj/qSLatwlK2Wp/g7bEFnlFgVu?=
- =?us-ascii?Q?iJlfGKU79S/R+/Crzc00lRdsKrfAmHteIu7ueEnf457sMn8TSAFQXOksZvij?=
- =?us-ascii?Q?ZHNfjYJaQou4o2kvIy19gb6UFUqIi+Kj9YKX5IG2MtgoeYBaI97QGu2MWZY9?=
- =?us-ascii?Q?Y4pz05DADRJO2DzC6Cc4THt//NBkS3nf22vLCN8V/ZccdnEOqkMqzyTxoxPP?=
- =?us-ascii?Q?zcRvJ15e+KOdLGRqqJxxCmW/YHV9BKMxidraoK8MBbLBVhCJIEcNfiV0J5o7?=
- =?us-ascii?Q?Xbcej3fGZKVLp6U9x6XgWRbugmP3bgfUs8SQrplgjfCeRn1snkEtsDB94MiK?=
- =?us-ascii?Q?yZdXqeEiwUJDQqwbDBmU6J4j4eX35e277ya+MwpeQvg/Gn2q/6YVZCXkyXUU?=
- =?us-ascii?Q?ORfiNlCrHgZ+T5c8cdlOkVfrTzLj0Ld3rrwBvmS/HC1RCCjVYJM2peFm+uP7?=
- =?us-ascii?Q?KFZVUHiS4PXHyBP3/EmYfFz5mUpU/jobcYFzCMzttl453jLXXS4og51acNuC?=
- =?us-ascii?Q?Br3t9S6msXGxO9Xjh4V0MxYd/PIuhxu8JIzf3T142VI8k2C+dsfAq11LGkMe?=
- =?us-ascii?Q?qWf3JHUX5YcZWf2UkgWPGPvfRlfnz1K1jfTzts4FlmWXMOh1JDUzT4otctHh?=
- =?us-ascii?Q?1HE+hAnwxYQv1SKOUuKu3v5TEk0H92LJX1NlsDHlctOgVgJLxsg9Uh3rbHvH?=
- =?us-ascii?Q?hSndPWMhXcy/dgHeKvX3nhVOK5guI5dRuTVC9GM0IFUy4lWzDcazz6EJx9yA?=
- =?us-ascii?Q?qcsLxyv8pUq51UXiwrDoGBcGtl8gqgjrAqC7rgZlk4JtoJFuy9ak6V3Fva+j?=
- =?us-ascii?Q?/7oytHzLZ7EZMKqUJtPgY2MlpHDCxcTG07mGJHq+rCEThkzalvYA+tz2QwJA?=
- =?us-ascii?Q?1s3v7u/PYrhEyqIpGdOblhJDB+naq+V5t7fzilw/UR/Y82kyN7Jl25JjnyB5?=
- =?us-ascii?Q?DeiXRtJRJWxLRZk/16cLPKZH3SpRvRoL//CL4GhCH7gbtMrkja8g0MYQg6Dx?=
- =?us-ascii?Q?6ystw2wuGbg12EcDT56shyGjyjd15KqK6rUP7oVwCCXVdissJvi2bUs8tCec?=
- =?us-ascii?Q?PCq8za6mnoIr/xKr+h4gZUjRIxpqrPJjn8nU/Dcs?=
+	=?us-ascii?Q?rVrLFW7EtvT4ecYtYRAuVpy6I3XJ80i5NDghaeqcwRc/N3IKanecsy9XiECb?=
+ =?us-ascii?Q?shJxrE1S9RrUbLJkAkUZp4FjZa+tzgTNxXWG0bQBdinp6uX9fdXlLZUyuv/5?=
+ =?us-ascii?Q?7N8vxOp+dZ1TtDsBsb/cbvYJ3uWq3eIK26mjvIJAvBc4yYazfS0kvHB7lgXK?=
+ =?us-ascii?Q?jw/gqX0ppIjFKjh3iok5PvTvJLnkvx0mvuY1PEOqzuA6gI4sgGcJ0kDJFdrR?=
+ =?us-ascii?Q?izV6nZ7bjacZht7oQLPF5f/zPYZsNcM8AS2W398mRzLs0Y7lhvvCycWVqoVn?=
+ =?us-ascii?Q?k7PumrtjU5GgZmEa5BYgGePc0IMf9cmLpHN1o5dPMQ6FDn9Bl1/gmmPq7q7a?=
+ =?us-ascii?Q?35UFJd/6ryrpLEjbEZFuHtiqWD330fkVkQR22sAhrVNN0vXW/zZ5Vz9hRek7?=
+ =?us-ascii?Q?3h8yOnvCuvgvHwP3fD12aX10WSEW1gQPa85dHCiJwswoeJ1S1gkjVCIhaCe1?=
+ =?us-ascii?Q?Qa0Oa5NkrqZqt6qFo/mvjaUdcWc5NHSIDP9obk0JDZU/+FE5I65sn75Ux2hn?=
+ =?us-ascii?Q?dUH5UWI0i07u16qpI8nHLvg9Ccp/fXN4Bdng2I0F0yl5BCLeuI4X6RcaNvdM?=
+ =?us-ascii?Q?EK62MiJXxnyhmWsElSLFj/p5XOdGqGVl7MEm99BpcAm60cFlzzPLPZWU/EOI?=
+ =?us-ascii?Q?8X/Jcs/ATz5ZYFlncaKHTzG3QAk2GNmr1/PkWFmsXnlt7lpEv9a7O+TlpMR4?=
+ =?us-ascii?Q?Ri77wBnMNXJ2Rybxn3Ohydw5FWg6Tva92PPZ8K9P9IeaiXoOW1aICqJ71RCF?=
+ =?us-ascii?Q?WtzkBMpp6A3bSViPGASAYmKAKEweiy0z1j8oSVeIEe6ofZDDw8feJyl353Kw?=
+ =?us-ascii?Q?AktHR3jGWaTATNyGcgdyGOx+89mcQOE81K5eDkfuFwG+1jYi5ZyDRI7T0Ak6?=
+ =?us-ascii?Q?9KYAgBzZ4JLRw/zGzh6YI+rg+eC8Lf2jS2hhAcQgHWe4K1KQkmHinmi/hGPm?=
+ =?us-ascii?Q?NS14VfViFg5DXcL5CNPeRKhbCsZGo596wM5YW5zHVM/ignztv3ef6qdOE6TQ?=
+ =?us-ascii?Q?hMcLoTlpUsp84RJLVlk03UeT5a00fDMlalJK7ObkgCMhzmHJU/odc8ywJ9e9?=
+ =?us-ascii?Q?zzQvCPiNcQgcO7OhY7++4W0lkFzVShnxTdC6EkiLby2sHosFVEdTf+eyYOJJ?=
+ =?us-ascii?Q?MaQv/fHOGYlb7GznfDhAxI7lLulInUsTCS/2YX2qS+pdFBTe8Girw3jTXKtJ?=
+ =?us-ascii?Q?0rZlskmjcTErYvFWQNUiYVIoyYXRsEXxMdgXQ+vh2iY3/QFQEgxRGMODTNNZ?=
+ =?us-ascii?Q?MbnITnEVvzH7c67ROjw5h3xPElEgjCfROx6VSNokR4gOMuPDzoX19IlveSei?=
+ =?us-ascii?Q?sArF9DWNmw2yLD0IOI/OWlWDiSwlMpoF3WzuI7tSHIdojbBUuwW8QDB5gqvj?=
+ =?us-ascii?Q?wt0kxGBNaZhAqKE7BpnqYmq/hINUl7w1oQZqLLr/pyzun9AWhU9Gh7UfjHv1?=
+ =?us-ascii?Q?VBh3ccVKausjaH1JpM164PUe2atIE9rodJIqrYk8YESdTb7g/+I1iAY1Upy4?=
+ =?us-ascii?Q?/8sq/yEaa/Wj9C0wKqQ83cENIWEd/rKBAgfSkFRdoAVTZJBnW//fDjScFFWB?=
+ =?us-ascii?Q?IgJLlkxoEWfuqD8URVIe48c+BEGLXw7BkkHd+sIl?=
 X-OriginatorOrg: vivo.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 41d0632f-c6a8-4390-da6f-08dc0d0c3c04
+X-MS-Exchange-CrossTenant-Network-Message-Id: 5bdd9a6e-e0dd-493f-8fe1-08dc0d0c3dbb
 X-MS-Exchange-CrossTenant-AuthSource: TYZPR06MB4045.apcprd06.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Jan 2024 10:02:17.8763
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Jan 2024 10:02:20.7633
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 923e42dc-48d5-4cbe-b582-1a797a6412ed
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: vnQ2VzrcyMccC/I1OVhp7H8Ny6WO8OLaMPNNdsHzwZQ/6vGoHRNv9can4UewyOKSW7XASYhp5djuweFS/3Nn2w==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: KL1PR0601MB4050
+X-MS-Exchange-CrossTenant-UserPrincipalName: sztK1TsiZofJ3/t41e7x6EatVh+jEmLEmiS1CNJxgdW7XQaaqEYdRJuCVFpM54afMLCiIMK5bJo9hmNxMEfukQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: TY0PR06MB5428
 
 From: cuibixuan <cuibixuan@vivo.com>
 
-do_shrink_slab() calculates the freeable memory through shrinker->count_objects(),
-and then reclaims the memory through shrinker->scan_objects(). When reclaiming
-memory, shrinker->count_objects() takes a certain amount of time:
+Page reclaim is an important part of memory reclaim, including:
+  * shrink_active_list(), moves folios from the active LRU to the inactive LRU
+  * shrink_inactive_list(), shrink lru from inactive LRU list
 
-	Fun               spend(us)
-	ext4_es_count     4302
-	ext4_es_scan      12
-	super_cache_count 4195
-	super_cache_scan  2103
-
-Therefore, adding the trace event to count_objects() can more accurately
-obtain the time taken for slab memory recycling.
+Add the new events to calculate the execution time to better evaluate 
+the entire memory recycling ratio.
 
 Example of output:
-         kswapd0-103     [003] .....  1098.317942: mm_shrink_count_start: kfree_rcu_shrink_count.cfi_jt+0x0/0x8 00000000c540ff51: nid: 0
-         kswapd0-103     [003] .....  1098.317951: mm_shrink_count_end: kfree_rcu_shrink_count.cfi_jt+0x0/0x8 00000000c540ff51: nid: 0 freeable:36
+         kswapd0-103     [007] .....  1098.353020: mm_vmscan_lru_shrink_active_start: nid=0
+         kswapd0-103     [007] .....  1098.353040: mm_vmscan_lru_shrink_active_end: nid=0 nr_taken=32 nr_active=0 nr_deactivated=32 nr_referenced=0 priority=6 flags=RECLAIM_WB_FILE|RECLAIM_WB_ASYNC
+         kswapd0-103     [007] .....  1098.353040: mm_vmscan_lru_shrink_inactive_start: nid=0
+         kswapd0-103     [007] .....  1098.353094: mm_vmscan_lru_shrink_inactive_end: nid=0 nr_scanned=32 nr_reclaimed=0 nr_dirty=0 nr_writeback=0 nr_congested=0 nr_immediate=0 nr_activate_anon=0 nr_activate_file=0 nr_ref_keep=32 nr_unmap_fail=0 priority=6 flags=RECLAIM_WB_ANON|RECLAIM_WB_ASYNC
+         kswapd0-103     [007] .....  1098.353094: mm_vmscan_lru_shrink_inactive_start: nid=0
+         kswapd0-103     [007] .....  1098.353162: mm_vmscan_lru_shrink_inactive_end: nid=0 nr_scanned=32 nr_reclaimed=21 nr_dirty=0 nr_writeback=0 nr_congested=0 nr_immediate=0 nr_activate_anon=0 nr_activate_file=0 nr_ref_keep=11 nr_unmap_fail=0 priority=6 flags=RECLAIM_WB_FILE|RECLAIM_WB_ASYNC
 
 Signed-off-by: Bixuan Cui <cuibixuan@vivo.com>
-Reviewed-by: Steven Rostedt <rostedt@goodmis.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 Changes:
 v5: * Use 'DECLARE_EVENT_CLASS(mm_vmscan_lru_shrink_start_template' to
@@ -137,85 +135,110 @@ v4: * Add Reviewed-by and Changlog to every patch.
 v3: * Swap the positions of 'nid' and 'freeable' to prevent the hole in the trace event.
 v2: * Modify trace_mm_vmscan_lru_shrink_inactive() in evict_folios() at the same time to fix build error (Andrew pointed out).
 
- include/trace/events/vmscan.h | 49 +++++++++++++++++++++++++++++++++++
- mm/shrinker.c                 |  4 +++
- 2 files changed, 53 insertions(+)
+ include/trace/events/vmscan.h | 31 +++++++++++++++++++++++++++++--
+ mm/vmscan.c                   | 11 ++++++++---
+ 2 files changed, 37 insertions(+), 5 deletions(-)
 
 diff --git a/include/trace/events/vmscan.h b/include/trace/events/vmscan.h
-index 1a488c30afa5..b99cd28c9815 100644
+index b99cd28c9815..4793d952c248 100644
 --- a/include/trace/events/vmscan.h
 +++ b/include/trace/events/vmscan.h
-@@ -196,6 +196,55 @@ DEFINE_EVENT(mm_vmscan_direct_reclaim_end_template, mm_vmscan_memcg_softlimit_re
+@@ -395,7 +395,34 @@ TRACE_EVENT(mm_vmscan_write_folio,
+ 		show_reclaim_flags(__entry->reclaim_flags))
  );
- #endif /* CONFIG_MEMCG */
  
-+TRACE_EVENT(mm_shrink_count_start,
-+	TP_PROTO(struct shrinker *shr, struct shrink_control *sc),
+-TRACE_EVENT(mm_vmscan_lru_shrink_inactive,
++DECLARE_EVENT_CLASS(mm_vmscan_lru_shrink_start_template,
 +
-+	TP_ARGS(shr, sc),
++	TP_PROTO(int nid),
++
++	TP_ARGS(nid),
 +
 +	TP_STRUCT__entry(
-+		__field(struct shrinker *, shr)
-+		__field(void *, shrink)
 +		__field(int, nid)
 +	),
 +
 +	TP_fast_assign(
-+		__entry->shr = shr;
-+		__entry->shrink = shr->count_objects;
-+		__entry->nid = sc->nid;
++		__entry->nid = nid;
 +	),
 +
-+	TP_printk("%pS %p: nid: %d",
-+		__entry->shrink,
-+		__entry->shr,
-+		__entry->nid)
++	TP_printk("nid=%d", __entry->nid)
 +);
 +
-+TRACE_EVENT(mm_shrink_count_end,
-+	TP_PROTO(struct shrinker *shr, struct shrink_control *sc, long freeable),
-+
-+	TP_ARGS(shr, sc, freeable),
-+
-+	TP_STRUCT__entry(
-+		__field(struct shrinker *, shr)
-+		__field(void *, shrink)
-+		__field(long, freeable)
-+		__field(int, nid)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->shr = shr;
-+		__entry->shrink = shr->count_objects;
-+		__entry->freeable = freeable;
-+		__entry->nid = sc->nid;
-+	),
-+
-+	TP_printk("%pS %p: nid: %d freeable:%ld",
-+		__entry->shrink,
-+		__entry->shr,
-+		__entry->nid,
-+		__entry->freeable)
++DEFINE_EVENT(mm_vmscan_lru_shrink_start_template, mm_vmscan_lru_shrink_inactive_start,
++	TP_PROTO(int nid),
++	TP_ARGS(nid)
 +);
 +
- TRACE_EVENT(mm_shrink_slab_start,
- 	TP_PROTO(struct shrinker *shr, struct shrink_control *sc,
- 		long nr_objects_to_shrink, unsigned long cache_items,
-diff --git a/mm/shrinker.c b/mm/shrinker.c
-index dd91eab43ed3..d0c7bf61db61 100644
---- a/mm/shrinker.c
-+++ b/mm/shrinker.c
-@@ -379,7 +379,11 @@ static unsigned long do_shrink_slab(struct shrink_control *shrinkctl,
- 					  : SHRINK_BATCH;
- 	long scanned = 0, next_deferred;
++DEFINE_EVENT(mm_vmscan_lru_shrink_start_template, mm_vmscan_lru_shrink_active_start,
++	TP_PROTO(int nid),
++	TP_ARGS(nid)
++);
++
++TRACE_EVENT(mm_vmscan_lru_shrink_inactive_end,
  
-+	trace_mm_shrink_count_start(shrinker, shrinkctl);
+ 	TP_PROTO(int nid,
+ 		unsigned long nr_scanned, unsigned long nr_reclaimed,
+@@ -446,7 +473,7 @@ TRACE_EVENT(mm_vmscan_lru_shrink_inactive,
+ 		show_reclaim_flags(__entry->reclaim_flags))
+ );
+ 
+-TRACE_EVENT(mm_vmscan_lru_shrink_active,
++TRACE_EVENT(mm_vmscan_lru_shrink_active_end,
+ 
+ 	TP_PROTO(int nid, unsigned long nr_taken,
+ 		unsigned long nr_active, unsigned long nr_deactivated,
+diff --git a/mm/vmscan.c b/mm/vmscan.c
+index 4e3b835c6b4a..a44d9624d60f 100644
+--- a/mm/vmscan.c
++++ b/mm/vmscan.c
+@@ -1906,6 +1906,8 @@ static unsigned long shrink_inactive_list(unsigned long nr_to_scan,
+ 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
+ 	bool stalled = false;
+ 
++	trace_mm_vmscan_lru_shrink_inactive_start(pgdat->node_id);
 +
- 	freeable = shrinker->count_objects(shrinker, shrinkctl);
+ 	while (unlikely(too_many_isolated(pgdat, file, sc))) {
+ 		if (stalled)
+ 			return 0;
+@@ -1990,7 +1992,7 @@ static unsigned long shrink_inactive_list(unsigned long nr_to_scan,
+ 	if (file)
+ 		sc->nr.file_taken += nr_taken;
+ 
+-	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
++	trace_mm_vmscan_lru_shrink_inactive_end(pgdat->node_id,
+ 			nr_scanned, nr_reclaimed, &stat, sc->priority, file);
+ 	return nr_reclaimed;
+ }
+@@ -2028,6 +2030,8 @@ static void shrink_active_list(unsigned long nr_to_scan,
+ 	int file = is_file_lru(lru);
+ 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
+ 
++	trace_mm_vmscan_lru_shrink_active_start(pgdat->node_id);
 +
-+	trace_mm_shrink_count_end(shrinker, shrinkctl, freeable);
- 	if (freeable == 0 || freeable == SHRINK_EMPTY)
- 		return freeable;
+ 	lru_add_drain();
+ 
+ 	spin_lock_irq(&lruvec->lru_lock);
+@@ -2107,7 +2111,7 @@ static void shrink_active_list(unsigned long nr_to_scan,
+ 		lru_note_cost(lruvec, file, 0, nr_rotated);
+ 	mem_cgroup_uncharge_list(&l_active);
+ 	free_unref_page_list(&l_active);
+-	trace_mm_vmscan_lru_shrink_active(pgdat->node_id, nr_taken, nr_activate,
++	trace_mm_vmscan_lru_shrink_active_end(pgdat->node_id, nr_taken, nr_activate,
+ 			nr_deactivate, nr_rotated, sc->priority, file);
+ }
+ 
+@@ -4524,9 +4528,10 @@ static int evict_folios(struct lruvec *lruvec, struct scan_control *sc, int swap
+ 	if (list_empty(&list))
+ 		return scanned;
+ retry:
++	trace_mm_vmscan_lru_shrink_inactive_start(pgdat->node_id);
+ 	reclaimed = shrink_folio_list(&list, pgdat, sc, &stat, false);
+ 	sc->nr_reclaimed += reclaimed;
+-	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
++	trace_mm_vmscan_lru_shrink_inactive_end(pgdat->node_id,
+ 			scanned, reclaimed, &stat, sc->priority,
+ 			type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
  
 -- 
 2.17.1
