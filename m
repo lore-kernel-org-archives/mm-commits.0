@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3351A3589C
-	for <mm-commits@vger.kernel.org>; Fri,  5 Jan 2024 18:18:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 642F53589C
+	for <mm-commits@vger.kernel.org>; Fri,  5 Jan 2024 18:18:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qP0OuIbX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C16AC433C8;
-	Fri,  5 Jan 2024 18:18:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2ugFwoq/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA3EEC433CC;
+	Fri,  5 Jan 2024 18:18:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704478710;
-	bh=JleSJ/GwV/QiPXEWsyfIaFpJq5TFrtzGUhYvzzpp6us=;
+	s=korg; t=1704478711;
+	bh=Dr/4+fXhvAS2eSZY/41BnzoE33+yaKMRKPTqsewCeow=;
 	h=Date:To:From:Subject:From;
-	b=qP0OuIbXa1E72b1TLVJfN4fpVcC0U/lP2+HYi0hrHcjqzpr3AusMF1aL/0ppcXXli
-	 oJbB6nJLjNDTPKla+m1B47wHrqntTCi6c/Eh1GOuunaGKeTVuZ663WRis/qxgUTh+5
-	 A69h3BYXHEjobuUnO7mdTrx07xq+UORtpf64nLf0=
-Date: Fri, 05 Jan 2024 10:18:30 -0800
-To: mm-commits@vger.kernel.org,zhangpeng362@huawei.com,willy@infradead.org,viro@zeniv.linux.org.uk,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,peterx@redhat.com,ngeoffray@google.com,mhocko@suse.com,lokeshgidra@google.com,Liam.Howlett@oracle.com,kaleshsingh@google.com,jannh@google.com,hughd@google.com,david@redhat.com,brauner@kernel.org,bgeffon@google.com,axelrasmussen@google.com,aarcange@redhat.com,surenb@google.com,akpm@linux-foundation.org
+	b=2ugFwoq/RsIWPcsL+WoJNbcEJXYNAuCF2lcWYJ+ow0UjDek1ywAXpcHSnC3/wbJJn
+	 q0/gajUwmT48fgMVnsFPBacVEFUbpoiAS6ECwHRcWJWoJ1gu7v302UigE4dFa0tGiy
+	 QCVOCeI47i0B13xUAkcar58wFmu4NY43UxruwMJI=
+Date: Fri, 05 Jan 2024 10:18:31 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,ryan.roberts@arm.com,fengwei.yin@intel.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] userfaultfd-fix-move_pages_pte-splitting-folio-under-rcu-read-lock.patch removed from -mm tree
-Message-Id: <20240105181830.9C16AC433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rmap-silence-vm_warn_on_folio-in-__folio_rmap_sanity_checks.patch removed from -mm tree
+Message-Id: <20240105181831.CA3EEC433CC@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,79 +27,68 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: userfaultfd: fix move_pages_pte() splitting folio under RCU read lock
+     Date: Fri, 5 Jan 2024 16:57:29 +0100
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-fix-move_pages_pte-splitting-folio-under-rcu-read-lock.patch
+     mm-rmap-silence-vm_warn_on_folio-in-__folio_rmap_sanity_checks.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: userfaultfd: fix move_pages_pte() splitting folio under RCU read lock
-Date: Tue, 2 Jan 2024 15:32:56 -0800
+From: David Hildenbrand <david@redhat.com>
+Date: Fri, 5 Jan 2024 16:57:29 +0100
+Subject: mm/rmap: silence VM_WARN_ON_FOLIO() in __folio_rmap_sanity_checks()
 
-While testing the split PMD path with lockdep enabled I've got an "Invalid
-wait context" error caused by split_huge_page_to_list() trying to lock
-anon_vma->rwsem while inside RCU read section.  The issues is due to
-move_pages_pte() calling split_folio() under RCU read lock.  Fix this by
-unmapping the PTEs and exiting RCU read section before splitting the folio
-and then retrying.  The same retry pattern is used when locking the folio
-or anon_vma in this function.  After splitting the large folio we unlock
-and release it because after the split the old folio might not be the one
-that contains the src_addr.
+Unfortunately, vm_insert_page() and friends and up passing
+driver-allocated folios into folio_add_file_rmap_pte() using
+insert_page_into_pte_locked().
 
-Link: https://lkml.kernel.org/r/20240102233256.1077959-1-surenb@google.com
-Fixes: adef440691ba ("userfaultfd: UFFDIO_MOVE uABI")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Lokesh Gidra <lokeshgidra@google.com>
+While these driver-allocated folios can be compound pages (large folios),
+they are not proper "rmappable" folios.
+
+In these VM_MIXEDMAP VMAs, there isn't really the concept of a reverse
+mapping, so long-term, we should clean that up and not call into rmap
+code.
+
+For the time being, document how we can end up in rmap code with large
+folios that are not marked rmappable.
+
+Link: https://lkml.kernel.org/r/793c5cee-d5fc-4eb1-86a2-39e05686233d@redhat.com
+Fixes: 68f0320824fa ("mm/rmap: convert folio_add_file_rmap_range() into folio_add_file_rmap_[pte|ptes|pmd]()")
+Reported-by: syzbot+50ef73537bbc393a25bb@syzkaller.appspotmail.com
+Closes: https://lkml.kernel.org/r/000000000000014174060e09316e@google.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Nicolas Geoffray <ngeoffray@google.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: ZhangPeng <zhangpeng362@huawei.com>
+Cc: Yin Fengwei <fengwei.yin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ include/linux/rmap.h |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
---- a/mm/userfaultfd.c~userfaultfd-fix-move_pages_pte-splitting-folio-under-rcu-read-lock
-+++ a/mm/userfaultfd.c
-@@ -1078,9 +1078,18 @@ retry:
+--- a/include/linux/rmap.h~mm-rmap-silence-vm_warn_on_folio-in-__folio_rmap_sanity_checks
++++ a/include/linux/rmap.h
+@@ -199,8 +199,15 @@ static inline void __folio_rmap_sanity_c
+ {
+ 	/* hugetlb folios are handled separately. */
+ 	VM_WARN_ON_FOLIO(folio_test_hugetlb(folio), folio);
+-	VM_WARN_ON_FOLIO(folio_test_large(folio) &&
+-			 !folio_test_large_rmappable(folio), folio);
++
++	/*
++	 * TODO: we get driver-allocated folios that have nothing to do with
++	 * the rmap using vm_insert_page(); therefore, we cannot assume that
++	 * folio_test_large_rmappable() holds for large folios. We should
++	 * handle any desired mapcount+stats accounting for these folios in
++	 * VM_MIXEDMAP VMAs separately, and then sanity-check here that
++	 * we really only get rmappable folios.
++	 */
  
- 		/* at this point we have src_folio locked */
- 		if (folio_test_large(src_folio)) {
-+			/* split_folio() can block */
-+			pte_unmap(&orig_src_pte);
-+			pte_unmap(&orig_dst_pte);
-+			src_pte = dst_pte = NULL;
- 			err = split_folio(src_folio);
- 			if (err)
- 				goto out;
-+			/* have to reacquire the folio after it got split */
-+			folio_unlock(src_folio);
-+			folio_put(src_folio);
-+			src_folio = NULL;
-+			goto retry;
- 		}
- 
- 		if (!src_anon_vma) {
+ 	VM_WARN_ON_ONCE(nr_pages <= 0);
+ 	VM_WARN_ON_FOLIO(page_folio(page) != folio, folio);
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from david@redhat.com are
 
 
