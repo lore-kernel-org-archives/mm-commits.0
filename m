@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FFE43173E
-	for <mm-commits@vger.kernel.org>; Fri,  5 Jan 2024 16:54:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F42C321AE
+	for <mm-commits@vger.kernel.org>; Fri,  5 Jan 2024 17:45:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yC4xA7N6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7558C433C7;
-	Fri,  5 Jan 2024 16:54:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OeXfRhI1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE91DC433C8;
+	Fri,  5 Jan 2024 17:45:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704473655;
-	bh=50GKHkWZ/ff0LwFYPv2uk4q+WvAF8mEHM1GFbe4w6Rc=;
+	s=korg; t=1704476718;
+	bh=0YXQ6WmG2CQgr938ygvD0gkk5ZkAtithL3ekLc6MDCI=;
 	h=Date:To:From:Subject:From;
-	b=yC4xA7N6arBrcepsEHlTsna+wG7vmtUNlhRVRSIfN7DmP4Fi81jM+pbCnroY+5pVX
-	 2wuAQg9QiQQJBKT+6oHYIXISNDZoZaB+2Z4co7JeMc/QLgWG7IULa9+JoHywlShy+2
-	 SWN3hLoWOdX56U7gCxuo0mCwmA6kjWNkRXca8VKw=
-Date: Fri, 05 Jan 2024 08:54:15 -0800
-To: mm-commits@vger.kernel.org,xuyang2018.jy@fujitsu.com,wanlong.gao@gmail.com,vapier@gentoo.org,liwang@redhat.com,jstancek@redhat.com,aleksei.kodanev@bell-sw.com,pvorel@suse.cz,akpm@linux-foundation.org
+	b=OeXfRhI10GrcVU8knYJwPU6zFy6t3qighbRCOd1TD5UjOwnQst662H78TPlyo02Cn
+	 IHbYL2FMk071pZPsGOFjs9/EFDF/is4+xIz3HWVNB2MYciFw9prABlA0FTWzrG5MV9
+	 AjyUBVfOLSYU2+npiq+WWz39vj72jG/i/xFp4iTA=
+Date: Fri, 05 Jan 2024 09:45:17 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,ryan.roberts@arm.com,fengwei.yin@intel.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-update-ltp-maintainers.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240105165415.D7558C433C7@smtp.kernel.org>
+Subject: + mm-rmap-silence-vm_warn_on_folio-in-__folio_rmap_sanity_checks.patch added to mm-nonmm-unstable branch
+Message-Id: <20240105174517.DE91DC433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: update LTP maintainers
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-update-ltp-maintainers.patch
+     Date: Fri, 5 Jan 2024 16:57:29 +0100
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     mm-rmap-silence-vm_warn_on_folio-in-__folio_rmap_sanity_checks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-update-ltp-maintainers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-silence-vm_warn_on_folio-in-__folio_rmap_sanity_checks.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,48 +50,61 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Petr Vorel <pvorel@suse.cz>
-Subject: MAINTAINERS: update LTP maintainers
-Date: Thu, 4 Jan 2024 16:49:53 +0100
+From: David Hildenbrand <david@redhat.com>
+Date: Fri, 5 Jan 2024 16:57:29 +0100
+Subject: mm/rmap: silence VM_WARN_ON_FOLIO() in __folio_rmap_sanity_checks()
 
-There are more people with git push permissions, but we keep only people
-who actually did review and merge patches last year.
+Unfortunately, vm_insert_page() and friends and up passing
+driver-allocated folios into folio_add_file_rmap_pte() using
+insert_page_into_pte_locked().
 
-Link: https://lkml.kernel.org/r/20240104154953.1193634-1-pvorel@suse.cz
-Signed-off-by: Petr Vorel <pvorel@suse.cz>
-Reviewed-by: Li Wang <liwang@redhat.com>
-Cc: Alexey Kodanev <aleksei.kodanev@bell-sw.com>
-Cc: Jan Stancek <jstancek@redhat.com>
-Cc: Mike Frysinger <vapier@gentoo.org>
-Cc: Wanlong Gao <wanlong.gao@gmail.com>
-Cc: Yang Xu <xuyang2018.jy@fujitsu.com>
+While these driver-allocated folios can be compound pages (large folios),
+they are not proper "rmappable" folios.
+
+In these VM_MIXEDMAP VMAs, there isn't really the concept of a reverse
+mapping, so long-term, we should clean that up and not call into rmap
+code.
+
+For the time being, document how we can end up in rmap code with large
+folios that are not marked rmappable.
+
+Link: https://lkml.kernel.org/r/793c5cee-d5fc-4eb1-86a2-39e05686233d@redhat.com
+Fixes: 68f0320824fa ("mm/rmap: convert folio_add_file_rmap_range() into folio_add_file_rmap_[pte|ptes|pmd]()")
+Reported-by: syzbot+50ef73537bbc393a25bb@syzkaller.appspotmail.com
+Closes: https://lkml.kernel.org/r/000000000000014174060e09316e@google.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Yin Fengwei <fengwei.yin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ include/linux/rmap.h |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
---- a/MAINTAINERS~maintainers-update-ltp-maintainers
-+++ a/MAINTAINERS
-@@ -12583,12 +12583,11 @@ F:	Documentation/devicetree/bindings/i2c
- F:	drivers/i2c/muxes/i2c-mux-ltc4306.c
+--- a/include/linux/rmap.h~mm-rmap-silence-vm_warn_on_folio-in-__folio_rmap_sanity_checks
++++ a/include/linux/rmap.h
+@@ -199,8 +199,15 @@ static inline void __folio_rmap_sanity_c
+ {
+ 	/* hugetlb folios are handled separately. */
+ 	VM_WARN_ON_FOLIO(folio_test_hugetlb(folio), folio);
+-	VM_WARN_ON_FOLIO(folio_test_large(folio) &&
+-			 !folio_test_large_rmappable(folio), folio);
++
++	/*
++	 * TODO: we get driver-allocated folios that have nothing to do with
++	 * the rmap using vm_insert_page(); therefore, we cannot assume that
++	 * folio_test_large_rmappable() holds for large folios. We should
++	 * handle any desired mapcount+stats accounting for these folios in
++	 * VM_MIXEDMAP VMAs separately, and then sanity-check here that
++	 * we really only get rmappable folios.
++	 */
  
- LTP (Linux Test Project)
--M:	Mike Frysinger <vapier@gentoo.org>
- M:	Cyril Hrubis <chrubis@suse.cz>
--M:	Wanlong Gao <wanlong.gao@gmail.com>
- M:	Jan Stancek <jstancek@redhat.com>
--M:	Stanislav Kholmanskikh <stanislav.kholmanskikh@oracle.com>
--M:	Alexey Kodanev <alexey.kodanev@oracle.com>
-+M:	Petr Vorel <pvorel@suse.cz>
-+M:	Li Wang <liwang@redhat.com>
-+M:	Yang Xu <xuyang2018.jy@fujitsu.com>
- L:	ltp@lists.linux.it (subscribers-only)
- S:	Maintained
- W:	http://linux-test-project.github.io/
+ 	VM_WARN_ON_ONCE(nr_pages <= 0);
+ 	VM_WARN_ON_FOLIO(page_folio(page) != folio, folio);
 _
 
-Patches currently in -mm which might be from pvorel@suse.cz are
+Patches currently in -mm which might be from david@redhat.com are
 
-maintainers-update-ltp-maintainers.patch
+mm-rmap-silence-vm_warn_on_folio-in-__folio_rmap_sanity_checks.patch
 
