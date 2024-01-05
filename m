@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55C9635285
-	for <mm-commits@vger.kernel.org>; Fri,  5 Jan 2024 18:18:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F45F35286
+	for <mm-commits@vger.kernel.org>; Fri,  5 Jan 2024 18:18:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iHF9/4QX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B413AC433C9;
-	Fri,  5 Jan 2024 18:18:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KzmVUFFg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8B61C433C8;
+	Fri,  5 Jan 2024 18:18:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704478721;
-	bh=X3F3nCJUIbIzMMwgN2DFHnUn0DOYG8K22PQ0NRreUVY=;
+	s=korg; t=1704478723;
+	bh=UzAw7XIItYYOY4opPjrxSqVnMDJ9Cpfs4M6Dka6A+qo=;
 	h=Date:To:From:Subject:From;
-	b=iHF9/4QXYnbLtzFJUEYslHFf5zxQnDf7wk8oyCf9LQIDpmvHOZ42MqNjRxqfy1mOd
-	 u5ENm4i2BjAchuyrr2pjbQKWz+l9SRSfG3gAuk+mkMrtnSclbR/tTcGIs+iF8vSCOD
-	 mYubjEG6xMvUmLRONMbgZSXRyzFffq859CHlH0Kk=
-Date: Fri, 05 Jan 2024 10:18:41 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,hannes@cmpxchg.org,42.hyeyoo@gmail.com,willy@infradead.org,akpm@linux-foundation.org
+	b=KzmVUFFgljoOJacOmLMF1/bqITFxgv5aalc1OrX+ophRRTYsf6ty7WRISkveE/3ZK
+	 vouf5YSdR27RHUr+7qocsAdPnt4dze7k1+dV0KR7KLAMSB7J5SvgAIrQwb/rFer/w6
+	 SD+UrtE7oT80qjsqs1Kl08Nh2ez/cOKxnK0dbgI8=
+Date: Fri, 05 Jan 2024 10:18:42 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,rientjes@google.com,hannes@cmpxchg.org,42.hyeyoo@gmail.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-inc-dec-lruvec-page-state-functions.patch removed from -mm tree
-Message-Id: <20240105181841.B413AC433C9@smtp.kernel.org>
+Subject: [merged mm-stable] slub-use-alloc_pages_node-in-alloc_slab_page.patch removed from -mm tree
+Message-Id: <20240105181842.E8B61C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,80 +27,48 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove inc/dec lruvec page state functions
+     Subject: slub: use alloc_pages_node() in alloc_slab_page()
 has been removed from the -mm tree.  Its filename was
-     mm-remove-inc-dec-lruvec-page-state-functions.patch
+     slub-use-alloc_pages_node-in-alloc_slab_page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove inc/dec lruvec page state functions
-Date: Thu, 28 Dec 2023 08:57:43 +0000
+Subject: slub: use alloc_pages_node() in alloc_slab_page()
+Date: Thu, 28 Dec 2023 08:57:44 +0000
 
-Patch series "Remove some lruvec page accounting functions", v2.
+For no apparent reason, we were open-coding alloc_pages_node() in this
+function.
 
-Some functions are now unused; remove them.  Make
-__mod_lruvec_page_state() unused and then remove it.
-
-
-This patch (of 6):
-
-All callers of these have been converted to their folio equivalents.
-
-Link: https://lkml.kernel.org/r/20231228085748.1083901-1-willy@infradead.org
-Link: https://lkml.kernel.org/r/20231228085748.1083901-2-willy@infradead.org
+Link: https://lkml.kernel.org/r/20231228085748.1083901-3-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: David Rientjes <rientjes@google.com>
 Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |   24 ------------------------
- 1 file changed, 24 deletions(-)
+ mm/slub.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
---- a/include/linux/vmstat.h~mm-remove-inc-dec-lruvec-page-state-functions
-+++ a/include/linux/vmstat.h
-@@ -597,18 +597,6 @@ static inline void mod_lruvec_page_state
+--- a/mm/slub.c~slub-use-alloc_pages_node-in-alloc_slab_page
++++ a/mm/slub.c
+@@ -1877,11 +1877,7 @@ static inline struct slab *alloc_slab_pa
+ 	struct slab *slab;
+ 	unsigned int order = oo_order(oo);
  
- #endif /* CONFIG_MEMCG */
+-	if (node == NUMA_NO_NODE)
+-		folio = (struct folio *)alloc_pages(flags, order);
+-	else
+-		folio = (struct folio *)__alloc_pages_node(node, flags, order);
+-
++	folio = (struct folio *)alloc_pages_node(node, flags, order);
+ 	if (!folio)
+ 		return NULL;
  
--static inline void __inc_lruvec_page_state(struct page *page,
--					   enum node_stat_item idx)
--{
--	__mod_lruvec_page_state(page, idx, 1);
--}
--
--static inline void __dec_lruvec_page_state(struct page *page,
--					   enum node_stat_item idx)
--{
--	__mod_lruvec_page_state(page, idx, -1);
--}
--
- static inline void __lruvec_stat_mod_folio(struct folio *folio,
- 					   enum node_stat_item idx, int val)
- {
-@@ -627,18 +615,6 @@ static inline void __lruvec_stat_sub_fol
- 	__lruvec_stat_mod_folio(folio, idx, -folio_nr_pages(folio));
- }
- 
--static inline void inc_lruvec_page_state(struct page *page,
--					 enum node_stat_item idx)
--{
--	mod_lruvec_page_state(page, idx, 1);
--}
--
--static inline void dec_lruvec_page_state(struct page *page,
--					 enum node_stat_item idx)
--{
--	mod_lruvec_page_state(page, idx, -1);
--}
--
- static inline void lruvec_stat_mod_folio(struct folio *folio,
- 					 enum node_stat_item idx, int val)
- {
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
