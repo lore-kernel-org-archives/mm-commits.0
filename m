@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9598A34CEC
-	for <mm-commits@vger.kernel.org>; Fri,  5 Jan 2024 18:18:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6BD5358A9
+	for <mm-commits@vger.kernel.org>; Fri,  5 Jan 2024 18:18:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1ryY6ndz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 053B1C433C9;
-	Fri,  5 Jan 2024 18:18:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="melDEHkP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12403C433C8;
+	Fri,  5 Jan 2024 18:18:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704478713;
-	bh=fd4DjpGLRqlQyeGeha6hOrHfFO46rR6BwL89Q9dW2Nc=;
+	s=korg; t=1704478714;
+	bh=7V8CBxGNjamp/BDGJPvuHVuIUjqw8IV+NNzHoiYUGaA=;
 	h=Date:To:From:Subject:From;
-	b=1ryY6ndzZ6DtSEtQvJTZSXSVSjswnDdqajyd1z72vX6ZhUSKiKwngLyPien/pgBlN
-	 KwpQA+rYXuNJBcHYnXyp6+w4uyzvhzYjqRt4NMLWXOnm/1c0tL0VDhyqVy6+YUhgwU
-	 DhQjB/mETVTGclvCN480DUdtBnwoYTncU75s64cA=
-Date: Fri, 05 Jan 2024 10:18:32 -0800
+	b=melDEHkP1EWi9ybZKwgB9UVmgNa/LF4uwAlvAjrW5tn7+s2FY+blOIyZY+T9M3EFt
+	 mFO77tkSNO4G72xehCoaqY7GtIkdyiAkNuU1LiVxAn3ywiovaNZ5g7w+6eUSrm0ip9
+	 kpghYpzh4IlKISB6Go5UcdP2VmGdukDKaA6lv1QU=
+Date: Fri, 05 Jan 2024 10:18:33 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,lkp@intel.com,donettom@linux.vnet.ibm.com,aneesh.kumar@linux.ibm.com,kinseyho@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mglru-add-config_arch_has_hw_pte_young.patch removed from -mm tree
-Message-Id: <20240105181833.053B1C433C9@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mglru-add-config_lru_gen_walks_mmu.patch removed from -mm tree
+Message-Id: <20240105181834.12403C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,40 +27,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mglru: add CONFIG_ARCH_HAS_HW_PTE_YOUNG
+     Subject: mm/mglru: add CONFIG_LRU_GEN_WALKS_MMU
 has been removed from the -mm tree.  Its filename was
-     mm-mglru-add-config_arch_has_hw_pte_young.patch
+     mm-mglru-add-config_lru_gen_walks_mmu.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kinsey Ho <kinseyho@google.com>
-Subject: mm/mglru: add CONFIG_ARCH_HAS_HW_PTE_YOUNG
-Date: Wed, 27 Dec 2023 14:12:01 +0000
+Subject: mm/mglru: add CONFIG_LRU_GEN_WALKS_MMU
+Date: Wed, 27 Dec 2023 14:12:02 +0000
 
-Patch series "mm/mglru: Kconfig cleanup", v4.
+Add CONFIG_LRU_GEN_WALKS_MMU such that if disabled, the code that
+walks page tables to promote pages into the youngest generation will
+not be built.
 
-This series is the result of the following discussion:
-https://lore.kernel.org/47066176-bd93-55dd-c2fa-002299d9e034@linux.ibm.com/
+Also improves code readability by adding two helper functions
+get_mm_state() and get_next_mm().
 
-It mainly avoids building the code that walks page tables on CPUs that
-use it, i.e., those don't support hardware accessed bit. Specifically,
-it introduces a new Kconfig to guard some of functions added by
-commit bd74fdaea146 ("mm: multi-gen LRU: support page table walks")
-on CPUs like POWER9, on which the series was tested.
-
-
-This patch (of 5):
-
-Some architectures are able to set the accessed bit in PTEs when PTEs
-are used as part of linear address translations.
-
-Add CONFIG_ARCH_HAS_HW_PTE_YOUNG for such architectures to be able to
-override arch_has_hw_pte_young().
-
-Link: https://lkml.kernel.org/r/20231227141205.2200125-1-kinseyho@google.com
-Link: https://lkml.kernel.org/r/20231227141205.2200125-2-kinseyho@google.com
+Link: https://lkml.kernel.org/r/20231227141205.2200125-3-kinseyho@google.com
 Signed-off-by: Kinsey Ho <kinseyho@google.com>
 Co-developed-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
@@ -70,76 +56,573 @@ Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig                   |    8 ++++++++
- arch/arm64/Kconfig             |    1 +
- arch/x86/Kconfig               |    1 +
- arch/x86/include/asm/pgtable.h |    6 ------
- include/linux/pgtable.h        |    2 +-
- 5 files changed, 11 insertions(+), 7 deletions(-)
+ include/linux/memcontrol.h |    2 
+ include/linux/mm_types.h   |   12 +-
+ include/linux/mmzone.h     |    2 
+ kernel/fork.c              |    2 
+ mm/Kconfig                 |    4 
+ mm/vmscan.c                |  192 ++++++++++++++++++++++-------------
+ 6 files changed, 139 insertions(+), 75 deletions(-)
 
---- a/arch/arm64/Kconfig~mm-mglru-add-config_arch_has_hw_pte_young
-+++ a/arch/arm64/Kconfig
-@@ -36,6 +36,7 @@ config ARM64
- 	select ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE
- 	select ARCH_HAS_PTE_DEVMAP
- 	select ARCH_HAS_PTE_SPECIAL
-+	select ARCH_HAS_HW_PTE_YOUNG
- 	select ARCH_HAS_SETUP_DMA_OPS
- 	select ARCH_HAS_SET_DIRECT_MAP
- 	select ARCH_HAS_SET_MEMORY
---- a/arch/Kconfig~mm-mglru-add-config_arch_has_hw_pte_young
-+++ a/arch/Kconfig
-@@ -1470,6 +1470,14 @@ config DYNAMIC_SIGFRAME
- config HAVE_ARCH_NODE_DEV_GROUP
- 	bool
+--- a/include/linux/memcontrol.h~mm-mglru-add-config_lru_gen_walks_mmu
++++ a/include/linux/memcontrol.h
+@@ -330,7 +330,7 @@ struct mem_cgroup {
+ 	struct deferred_split deferred_split_queue;
+ #endif
  
-+config ARCH_HAS_HW_PTE_YOUNG
-+	bool
-+	help
-+	  Architectures that select this option are capable of setting the
-+	  accessed bit in PTE entries when using them as part of linear address
-+	  translations. Architectures that require runtime check should select
-+	  this option and override arch_has_hw_pte_young().
+-#ifdef CONFIG_LRU_GEN
++#ifdef CONFIG_LRU_GEN_WALKS_MMU
+ 	/* per-memcg mm_struct list */
+ 	struct lru_gen_mm_list mm_list;
+ #endif
+--- a/include/linux/mm_types.h~mm-mglru-add-config_lru_gen_walks_mmu
++++ a/include/linux/mm_types.h
+@@ -958,7 +958,7 @@ struct mm_struct {
+ 		 */
+ 		unsigned long ksm_zero_pages;
+ #endif /* CONFIG_KSM */
+-#ifdef CONFIG_LRU_GEN
++#ifdef CONFIG_LRU_GEN_WALKS_MMU
+ 		struct {
+ 			/* this mm_struct is on lru_gen_mm_list */
+ 			struct list_head list;
+@@ -973,7 +973,7 @@ struct mm_struct {
+ 			struct mem_cgroup *memcg;
+ #endif
+ 		} lru_gen;
+-#endif /* CONFIG_LRU_GEN */
++#endif /* CONFIG_LRU_GEN_WALKS_MMU */
+ 	} __randomize_layout;
+ 
+ 	/*
+@@ -1011,6 +1011,10 @@ struct lru_gen_mm_list {
+ 	spinlock_t lock;
+ };
+ 
++#endif /* CONFIG_LRU_GEN */
 +
- config ARCH_HAS_NONLEAF_PMD_YOUNG
- 	bool
- 	help
---- a/arch/x86/include/asm/pgtable.h~mm-mglru-add-config_arch_has_hw_pte_young
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -1679,12 +1679,6 @@ static inline bool arch_has_pfn_modify_c
- 	return boot_cpu_has_bug(X86_BUG_L1TF);
++#ifdef CONFIG_LRU_GEN_WALKS_MMU
++
+ void lru_gen_add_mm(struct mm_struct *mm);
+ void lru_gen_del_mm(struct mm_struct *mm);
+ #ifdef CONFIG_MEMCG
+@@ -1036,7 +1040,7 @@ static inline void lru_gen_use_mm(struct
+ 	WRITE_ONCE(mm->lru_gen.bitmap, -1);
  }
  
--#define arch_has_hw_pte_young arch_has_hw_pte_young
--static inline bool arch_has_hw_pte_young(void)
--{
--	return true;
--}
--
- #define arch_check_zapped_pte arch_check_zapped_pte
- void arch_check_zapped_pte(struct vm_area_struct *vma, pte_t pte);
+-#else /* !CONFIG_LRU_GEN */
++#else /* !CONFIG_LRU_GEN_WALKS_MMU */
  
---- a/arch/x86/Kconfig~mm-mglru-add-config_arch_has_hw_pte_young
-+++ a/arch/x86/Kconfig
-@@ -88,6 +88,7 @@ config X86
- 	select ARCH_HAS_PMEM_API		if X86_64
- 	select ARCH_HAS_PTE_DEVMAP		if X86_64
- 	select ARCH_HAS_PTE_SPECIAL
-+	select ARCH_HAS_HW_PTE_YOUNG
- 	select ARCH_HAS_NONLEAF_PMD_YOUNG	if PGTABLE_LEVELS > 2
- 	select ARCH_HAS_UACCESS_FLUSHCACHE	if X86_64
- 	select ARCH_HAS_COPY_MC			if X86_64
---- a/include/linux/pgtable.h~mm-mglru-add-config_arch_has_hw_pte_young
-+++ a/include/linux/pgtable.h
-@@ -375,7 +375,7 @@ static inline bool arch_has_hw_nonleaf_p
-  */
- static inline bool arch_has_hw_pte_young(void)
+ static inline void lru_gen_add_mm(struct mm_struct *mm)
  {
--	return false;
-+	return IS_ENABLED(CONFIG_ARCH_HAS_HW_PTE_YOUNG);
+@@ -1060,7 +1064,7 @@ static inline void lru_gen_use_mm(struct
+ {
+ }
+ 
+-#endif /* CONFIG_LRU_GEN */
++#endif /* CONFIG_LRU_GEN_WALKS_MMU */
+ 
+ struct vma_iterator {
+ 	struct ma_state mas;
+--- a/include/linux/mmzone.h~mm-mglru-add-config_lru_gen_walks_mmu
++++ a/include/linux/mmzone.h
+@@ -640,9 +640,11 @@ struct lruvec {
+ #ifdef CONFIG_LRU_GEN
+ 	/* evictable pages divided into generations */
+ 	struct lru_gen_folio		lrugen;
++#ifdef CONFIG_LRU_GEN_WALKS_MMU
+ 	/* to concurrently iterate lru_gen_mm_list */
+ 	struct lru_gen_mm_state		mm_state;
+ #endif
++#endif /* CONFIG_LRU_GEN */
+ #ifdef CONFIG_MEMCG
+ 	struct pglist_data *pgdat;
+ #endif
+--- a/kernel/fork.c~mm-mglru-add-config_lru_gen_walks_mmu
++++ a/kernel/fork.c
+@@ -2946,7 +2946,7 @@ pid_t kernel_clone(struct kernel_clone_a
+ 		get_task_struct(p);
+ 	}
+ 
+-	if (IS_ENABLED(CONFIG_LRU_GEN) && !(clone_flags & CLONE_VM)) {
++	if (IS_ENABLED(CONFIG_LRU_GEN_WALKS_MMU) && !(clone_flags & CLONE_VM)) {
+ 		/* lock the task to synchronize with memcg migration */
+ 		task_lock(p);
+ 		lru_gen_add_mm(p->mm);
+--- a/mm/Kconfig~mm-mglru-add-config_lru_gen_walks_mmu
++++ a/mm/Kconfig
+@@ -1274,6 +1274,10 @@ config LRU_GEN_STATS
+ 	  from evicted generations for debugging purpose.
+ 
+ 	  This option has a per-memcg and per-node memory overhead.
++
++config LRU_GEN_WALKS_MMU
++	def_bool y
++	depends on LRU_GEN && ARCH_HAS_HW_PTE_YOUNG
+ # }
+ 
+ config ARCH_SUPPORTS_PER_VMA_LOCK
+--- a/mm/vmscan.c~mm-mglru-add-config_lru_gen_walks_mmu
++++ a/mm/vmscan.c
+@@ -2671,13 +2671,14 @@ static void get_item_key(void *item, int
+ 	key[1] = hash >> BLOOM_FILTER_SHIFT;
+ }
+ 
+-static bool test_bloom_filter(struct lruvec *lruvec, unsigned long seq, void *item)
++static bool test_bloom_filter(struct lru_gen_mm_state *mm_state, unsigned long seq,
++			      void *item)
+ {
+ 	int key[2];
+ 	unsigned long *filter;
+ 	int gen = filter_gen_from_seq(seq);
+ 
+-	filter = READ_ONCE(lruvec->mm_state.filters[gen]);
++	filter = READ_ONCE(mm_state->filters[gen]);
+ 	if (!filter)
+ 		return true;
+ 
+@@ -2686,13 +2687,14 @@ static bool test_bloom_filter(struct lru
+ 	return test_bit(key[0], filter) && test_bit(key[1], filter);
+ }
+ 
+-static void update_bloom_filter(struct lruvec *lruvec, unsigned long seq, void *item)
++static void update_bloom_filter(struct lru_gen_mm_state *mm_state, unsigned long seq,
++				void *item)
+ {
+ 	int key[2];
+ 	unsigned long *filter;
+ 	int gen = filter_gen_from_seq(seq);
+ 
+-	filter = READ_ONCE(lruvec->mm_state.filters[gen]);
++	filter = READ_ONCE(mm_state->filters[gen]);
+ 	if (!filter)
+ 		return;
+ 
+@@ -2704,12 +2706,12 @@ static void update_bloom_filter(struct l
+ 		set_bit(key[1], filter);
+ }
+ 
+-static void reset_bloom_filter(struct lruvec *lruvec, unsigned long seq)
++static void reset_bloom_filter(struct lru_gen_mm_state *mm_state, unsigned long seq)
+ {
+ 	unsigned long *filter;
+ 	int gen = filter_gen_from_seq(seq);
+ 
+-	filter = lruvec->mm_state.filters[gen];
++	filter = mm_state->filters[gen];
+ 	if (filter) {
+ 		bitmap_clear(filter, 0, BIT(BLOOM_FILTER_SHIFT));
+ 		return;
+@@ -2717,13 +2719,15 @@ static void reset_bloom_filter(struct lr
+ 
+ 	filter = bitmap_zalloc(BIT(BLOOM_FILTER_SHIFT),
+ 			       __GFP_HIGH | __GFP_NOMEMALLOC | __GFP_NOWARN);
+-	WRITE_ONCE(lruvec->mm_state.filters[gen], filter);
++	WRITE_ONCE(mm_state->filters[gen], filter);
+ }
+ 
+ /******************************************************************************
+  *                          mm_struct list
+  ******************************************************************************/
+ 
++#ifdef CONFIG_LRU_GEN_WALKS_MMU
++
+ static struct lru_gen_mm_list *get_mm_list(struct mem_cgroup *memcg)
+ {
+ 	static struct lru_gen_mm_list mm_list = {
+@@ -2740,6 +2744,29 @@ static struct lru_gen_mm_list *get_mm_li
+ 	return &mm_list;
+ }
+ 
++static struct lru_gen_mm_state *get_mm_state(struct lruvec *lruvec)
++{
++	return &lruvec->mm_state;
++}
++
++static struct mm_struct *get_next_mm(struct lru_gen_mm_walk *walk)
++{
++	int key;
++	struct mm_struct *mm;
++	struct pglist_data *pgdat = lruvec_pgdat(walk->lruvec);
++	struct lru_gen_mm_state *mm_state = get_mm_state(walk->lruvec);
++
++	mm = list_entry(mm_state->head, struct mm_struct, lru_gen.list);
++	key = pgdat->node_id % BITS_PER_TYPE(mm->lru_gen.bitmap);
++
++	if (!walk->force_scan && !test_bit(key, &mm->lru_gen.bitmap))
++		return NULL;
++
++	clear_bit(key, &mm->lru_gen.bitmap);
++
++	return mmget_not_zero(mm) ? mm : NULL;
++}
++
+ void lru_gen_add_mm(struct mm_struct *mm)
+ {
+ 	int nid;
+@@ -2755,10 +2782,11 @@ void lru_gen_add_mm(struct mm_struct *mm
+ 
+ 	for_each_node_state(nid, N_MEMORY) {
+ 		struct lruvec *lruvec = get_lruvec(memcg, nid);
++		struct lru_gen_mm_state *mm_state = get_mm_state(lruvec);
+ 
+ 		/* the first addition since the last iteration */
+-		if (lruvec->mm_state.tail == &mm_list->fifo)
+-			lruvec->mm_state.tail = &mm->lru_gen.list;
++		if (mm_state->tail == &mm_list->fifo)
++			mm_state->tail = &mm->lru_gen.list;
+ 	}
+ 
+ 	list_add_tail(&mm->lru_gen.list, &mm_list->fifo);
+@@ -2784,14 +2812,15 @@ void lru_gen_del_mm(struct mm_struct *mm
+ 
+ 	for_each_node(nid) {
+ 		struct lruvec *lruvec = get_lruvec(memcg, nid);
++		struct lru_gen_mm_state *mm_state = get_mm_state(lruvec);
+ 
+ 		/* where the current iteration continues after */
+-		if (lruvec->mm_state.head == &mm->lru_gen.list)
+-			lruvec->mm_state.head = lruvec->mm_state.head->prev;
++		if (mm_state->head == &mm->lru_gen.list)
++			mm_state->head = mm_state->head->prev;
+ 
+ 		/* where the last iteration ended before */
+-		if (lruvec->mm_state.tail == &mm->lru_gen.list)
+-			lruvec->mm_state.tail = lruvec->mm_state.tail->next;
++		if (mm_state->tail == &mm->lru_gen.list)
++			mm_state->tail = mm_state->tail->next;
+ 	}
+ 
+ 	list_del_init(&mm->lru_gen.list);
+@@ -2834,10 +2863,30 @@ void lru_gen_migrate_mm(struct mm_struct
  }
  #endif
  
++#else /* !CONFIG_LRU_GEN_WALKS_MMU */
++
++static struct lru_gen_mm_list *get_mm_list(struct mem_cgroup *memcg)
++{
++	return NULL;
++}
++
++static struct lru_gen_mm_state *get_mm_state(struct lruvec *lruvec)
++{
++	return NULL;
++}
++
++static struct mm_struct *get_next_mm(struct lru_gen_mm_walk *walk)
++{
++	return NULL;
++}
++
++#endif
++
+ static void reset_mm_stats(struct lruvec *lruvec, struct lru_gen_mm_walk *walk, bool last)
+ {
+ 	int i;
+ 	int hist;
++	struct lru_gen_mm_state *mm_state = get_mm_state(lruvec);
+ 
+ 	lockdep_assert_held(&get_mm_list(lruvec_memcg(lruvec))->lock);
+ 
+@@ -2845,42 +2894,18 @@ static void reset_mm_stats(struct lruvec
+ 		hist = lru_hist_from_seq(walk->max_seq);
+ 
+ 		for (i = 0; i < NR_MM_STATS; i++) {
+-			WRITE_ONCE(lruvec->mm_state.stats[hist][i],
+-				   lruvec->mm_state.stats[hist][i] + walk->mm_stats[i]);
++			WRITE_ONCE(mm_state->stats[hist][i],
++				   mm_state->stats[hist][i] + walk->mm_stats[i]);
+ 			walk->mm_stats[i] = 0;
+ 		}
+ 	}
+ 
+ 	if (NR_HIST_GENS > 1 && last) {
+-		hist = lru_hist_from_seq(lruvec->mm_state.seq + 1);
++		hist = lru_hist_from_seq(mm_state->seq + 1);
+ 
+ 		for (i = 0; i < NR_MM_STATS; i++)
+-			WRITE_ONCE(lruvec->mm_state.stats[hist][i], 0);
+-	}
+-}
+-
+-static bool should_skip_mm(struct mm_struct *mm, struct lru_gen_mm_walk *walk)
+-{
+-	int type;
+-	unsigned long size = 0;
+-	struct pglist_data *pgdat = lruvec_pgdat(walk->lruvec);
+-	int key = pgdat->node_id % BITS_PER_TYPE(mm->lru_gen.bitmap);
+-
+-	if (!walk->force_scan && !test_bit(key, &mm->lru_gen.bitmap))
+-		return true;
+-
+-	clear_bit(key, &mm->lru_gen.bitmap);
+-
+-	for (type = !walk->can_swap; type < ANON_AND_FILE; type++) {
+-		size += type ? get_mm_counter(mm, MM_FILEPAGES) :
+-			       get_mm_counter(mm, MM_ANONPAGES) +
+-			       get_mm_counter(mm, MM_SHMEMPAGES);
++			WRITE_ONCE(mm_state->stats[hist][i], 0);
+ 	}
+-
+-	if (size < MIN_LRU_BATCH)
+-		return true;
+-
+-	return !mmget_not_zero(mm);
+ }
+ 
+ static bool iterate_mm_list(struct lruvec *lruvec, struct lru_gen_mm_walk *walk,
+@@ -2891,7 +2916,7 @@ static bool iterate_mm_list(struct lruve
+ 	struct mm_struct *mm = NULL;
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	struct lru_gen_mm_list *mm_list = get_mm_list(memcg);
+-	struct lru_gen_mm_state *mm_state = &lruvec->mm_state;
++	struct lru_gen_mm_state *mm_state = get_mm_state(lruvec);
+ 
+ 	/*
+ 	 * mm_state->seq is incremented after each iteration of mm_list. There
+@@ -2929,11 +2954,7 @@ static bool iterate_mm_list(struct lruve
+ 			mm_state->tail = mm_state->head->next;
+ 			walk->force_scan = true;
+ 		}
+-
+-		mm = list_entry(mm_state->head, struct mm_struct, lru_gen.list);
+-		if (should_skip_mm(mm, walk))
+-			mm = NULL;
+-	} while (!mm);
++	} while (!(mm = get_next_mm(walk)));
+ done:
+ 	if (*iter || last)
+ 		reset_mm_stats(lruvec, walk, last);
+@@ -2941,7 +2962,7 @@ done:
+ 	spin_unlock(&mm_list->lock);
+ 
+ 	if (mm && first)
+-		reset_bloom_filter(lruvec, walk->max_seq + 1);
++		reset_bloom_filter(mm_state, walk->max_seq + 1);
+ 
+ 	if (*iter)
+ 		mmput_async(*iter);
+@@ -2956,7 +2977,7 @@ static bool iterate_mm_list_nowalk(struc
+ 	bool success = false;
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	struct lru_gen_mm_list *mm_list = get_mm_list(memcg);
+-	struct lru_gen_mm_state *mm_state = &lruvec->mm_state;
++	struct lru_gen_mm_state *mm_state = get_mm_state(lruvec);
+ 
+ 	spin_lock(&mm_list->lock);
+ 
+@@ -3469,6 +3490,7 @@ static void walk_pmd_range(pud_t *pud, u
+ 	DECLARE_BITMAP(bitmap, MIN_LRU_BATCH);
+ 	unsigned long first = -1;
+ 	struct lru_gen_mm_walk *walk = args->private;
++	struct lru_gen_mm_state *mm_state = get_mm_state(walk->lruvec);
+ 
+ 	VM_WARN_ON_ONCE(pud_leaf(*pud));
+ 
+@@ -3520,7 +3542,7 @@ restart:
+ 			walk_pmd_range_locked(pud, addr, vma, args, bitmap, &first);
+ 		}
+ 
+-		if (!walk->force_scan && !test_bloom_filter(walk->lruvec, walk->max_seq, pmd + i))
++		if (!walk->force_scan && !test_bloom_filter(mm_state, walk->max_seq, pmd + i))
+ 			continue;
+ 
+ 		walk->mm_stats[MM_NONLEAF_FOUND]++;
+@@ -3531,7 +3553,7 @@ restart:
+ 		walk->mm_stats[MM_NONLEAF_ADDED]++;
+ 
+ 		/* carry over to the next generation */
+-		update_bloom_filter(walk->lruvec, walk->max_seq + 1, pmd + i);
++		update_bloom_filter(mm_state, walk->max_seq + 1, pmd + i);
+ 	}
+ 
+ 	walk_pmd_range_locked(pud, -1, vma, args, bitmap, &first);
+@@ -3738,16 +3760,25 @@ next:
+ 	return success;
+ }
+ 
+-static void inc_max_seq(struct lruvec *lruvec, bool can_swap, bool force_scan)
++static bool inc_max_seq(struct lruvec *lruvec, unsigned long max_seq,
++			bool can_swap, bool force_scan)
+ {
++	bool success;
+ 	int prev, next;
+ 	int type, zone;
+ 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ restart:
++	if (max_seq < READ_ONCE(lrugen->max_seq))
++		return false;
++
+ 	spin_lock_irq(&lruvec->lru_lock);
+ 
+ 	VM_WARN_ON_ONCE(!seq_is_valid(lruvec));
+ 
++	success = max_seq == lrugen->max_seq;
++	if (!success)
++		goto unlock;
++
+ 	for (type = ANON_AND_FILE - 1; type >= 0; type--) {
+ 		if (get_nr_gens(lruvec, type) != MAX_NR_GENS)
+ 			continue;
+@@ -3791,8 +3822,10 @@ restart:
+ 	WRITE_ONCE(lrugen->timestamps[next], jiffies);
+ 	/* make sure preceding modifications appear */
+ 	smp_store_release(&lrugen->max_seq, lrugen->max_seq + 1);
+-
++unlock:
+ 	spin_unlock_irq(&lruvec->lru_lock);
++
++	return success;
+ }
+ 
+ static bool try_to_inc_max_seq(struct lruvec *lruvec, unsigned long max_seq,
+@@ -3802,14 +3835,16 @@ static bool try_to_inc_max_seq(struct lr
+ 	struct lru_gen_mm_walk *walk;
+ 	struct mm_struct *mm = NULL;
+ 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
++	struct lru_gen_mm_state *mm_state = get_mm_state(lruvec);
+ 
+ 	VM_WARN_ON_ONCE(max_seq > READ_ONCE(lrugen->max_seq));
+ 
++	if (!mm_state)
++		return inc_max_seq(lruvec, max_seq, can_swap, force_scan);
++
+ 	/* see the comment in iterate_mm_list() */
+-	if (max_seq <= READ_ONCE(lruvec->mm_state.seq)) {
+-		success = false;
+-		goto done;
+-	}
++	if (max_seq <= READ_ONCE(mm_state->seq))
++		return false;
+ 
+ 	/*
+ 	 * If the hardware doesn't automatically set the accessed bit, fallback
+@@ -3839,8 +3874,10 @@ static bool try_to_inc_max_seq(struct lr
+ 			walk_mm(lruvec, mm, walk);
+ 	} while (mm);
+ done:
+-	if (success)
+-		inc_max_seq(lruvec, can_swap, force_scan);
++	if (success) {
++		success = inc_max_seq(lruvec, max_seq, can_swap, force_scan);
++		WARN_ON_ONCE(!success);
++	}
+ 
+ 	return success;
+ }
+@@ -3964,6 +4001,7 @@ void lru_gen_look_around(struct page_vma
+ 	struct mem_cgroup *memcg = folio_memcg(folio);
+ 	struct pglist_data *pgdat = folio_pgdat(folio);
+ 	struct lruvec *lruvec = mem_cgroup_lruvec(memcg, pgdat);
++	struct lru_gen_mm_state *mm_state = get_mm_state(lruvec);
+ 	DEFINE_MAX_SEQ(lruvec);
+ 	int old_gen, new_gen = lru_gen_from_seq(max_seq);
+ 
+@@ -4042,8 +4080,8 @@ void lru_gen_look_around(struct page_vma
+ 	mem_cgroup_unlock_pages();
+ 
+ 	/* feedback from rmap walkers to page table walkers */
+-	if (suitable_to_scan(i, young))
+-		update_bloom_filter(lruvec, max_seq, pvmw->pmd);
++	if (mm_state && suitable_to_scan(i, young))
++		update_bloom_filter(mm_state, max_seq, pvmw->pmd);
+ }
+ 
+ /******************************************************************************
+@@ -5219,6 +5257,7 @@ static void lru_gen_seq_show_full(struct
+ 	int type, tier;
+ 	int hist = lru_hist_from_seq(seq);
+ 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
++	struct lru_gen_mm_state *mm_state = get_mm_state(lruvec);
+ 
+ 	for (tier = 0; tier < MAX_NR_TIERS; tier++) {
+ 		seq_printf(m, "            %10d", tier);
+@@ -5244,6 +5283,9 @@ static void lru_gen_seq_show_full(struct
+ 		seq_putc(m, '\n');
+ 	}
+ 
++	if (!mm_state)
++		return;
++
+ 	seq_puts(m, "                      ");
+ 	for (i = 0; i < NR_MM_STATS; i++) {
+ 		const char *s = "      ";
+@@ -5251,10 +5293,10 @@ static void lru_gen_seq_show_full(struct
+ 
+ 		if (seq == max_seq && NR_HIST_GENS == 1) {
+ 			s = "LOYNFA";
+-			n = READ_ONCE(lruvec->mm_state.stats[hist][i]);
++			n = READ_ONCE(mm_state->stats[hist][i]);
+ 		} else if (seq != max_seq && NR_HIST_GENS > 1) {
+ 			s = "loynfa";
+-			n = READ_ONCE(lruvec->mm_state.stats[hist][i]);
++			n = READ_ONCE(mm_state->stats[hist][i]);
+ 		}
+ 
+ 		seq_printf(m, " %10lu%c", n, s[i]);
+@@ -5523,6 +5565,7 @@ void lru_gen_init_lruvec(struct lruvec *
+ 	int i;
+ 	int gen, type, zone;
+ 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
++	struct lru_gen_mm_state *mm_state = get_mm_state(lruvec);
+ 
+ 	lrugen->max_seq = MIN_NR_GENS + 1;
+ 	lrugen->enabled = lru_gen_enabled();
+@@ -5533,7 +5576,8 @@ void lru_gen_init_lruvec(struct lruvec *
+ 	for_each_gen_type_zone(gen, type, zone)
+ 		INIT_LIST_HEAD(&lrugen->folios[gen][type][zone]);
+ 
+-	lruvec->mm_state.seq = MIN_NR_GENS;
++	if (mm_state)
++		mm_state->seq = MIN_NR_GENS;
+ }
+ 
+ #ifdef CONFIG_MEMCG
+@@ -5552,28 +5596,38 @@ void lru_gen_init_pgdat(struct pglist_da
+ 
+ void lru_gen_init_memcg(struct mem_cgroup *memcg)
+ {
+-	INIT_LIST_HEAD(&memcg->mm_list.fifo);
+-	spin_lock_init(&memcg->mm_list.lock);
++	struct lru_gen_mm_list *mm_list = get_mm_list(memcg);
++
++	if (!mm_list)
++		return;
++
++	INIT_LIST_HEAD(&mm_list->fifo);
++	spin_lock_init(&mm_list->lock);
+ }
+ 
+ void lru_gen_exit_memcg(struct mem_cgroup *memcg)
+ {
+ 	int i;
+ 	int nid;
++	struct lru_gen_mm_list *mm_list = get_mm_list(memcg);
+ 
+-	VM_WARN_ON_ONCE(!list_empty(&memcg->mm_list.fifo));
++	VM_WARN_ON_ONCE(mm_list && !list_empty(&mm_list->fifo));
+ 
+ 	for_each_node(nid) {
+ 		struct lruvec *lruvec = get_lruvec(memcg, nid);
++		struct lru_gen_mm_state *mm_state = get_mm_state(lruvec);
+ 
+ 		VM_WARN_ON_ONCE(memchr_inv(lruvec->lrugen.nr_pages, 0,
+ 					   sizeof(lruvec->lrugen.nr_pages)));
+ 
+ 		lruvec->lrugen.list.next = LIST_POISON1;
+ 
++		if (!mm_state)
++			continue;
++
+ 		for (i = 0; i < NR_BLOOM_FILTERS; i++) {
+-			bitmap_free(lruvec->mm_state.filters[i]);
+-			lruvec->mm_state.filters[i] = NULL;
++			bitmap_free(mm_state->filters[i]);
++			mm_state->filters[i] = NULL;
+ 		}
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from kinseyho@google.com are
