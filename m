@@ -1,88 +1,172 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 837F724B31
-	for <mm-commits@vger.kernel.org>; Thu,  4 Jan 2024 16:31:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36C1AC433C8;
-	Thu,  4 Jan 2024 16:31:43 +0000 (UTC)
-Date: Thu, 4 Jan 2024 11:32:48 -0500
-From: Steven Rostedt <rostedt@goodmis.org>
-To: Bixuan Cui <cuibixuan@vivo.com>
-Cc: akpm@linux-foundation.org, mm-commits@vger.kernel.org,
- mhiramat@kernel.org, mathieu.desnoyers@efficios.com,
- opensource.kernel@vivo.com
-Subject: Re: [PATCH -next v5 2/2] mm: vmscan: add new event to trace shrink
- lru
-Message-ID: <20240104113248.00101ab9@gandalf.local.home>
-In-Reply-To: <20240104100145.3855-3-cuibixuan@vivo.com>
-References: <20240104100145.3855-1-cuibixuan@vivo.com>
-	<20240104100145.3855-3-cuibixuan@vivo.com>
-X-Mailer: Claws Mail 3.19.1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CF642E84A
+	for <mm-commits@vger.kernel.org>; Fri,  5 Jan 2024 16:50:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2AiHYN9B"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1198C433C8;
+	Fri,  5 Jan 2024 16:50:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1704473441;
+	bh=76Md/SXAupLILj/LL6pVcmJzWQW8pzAvErAQKK9m6oQ=;
+	h=Date:To:From:Subject:From;
+	b=2AiHYN9BGOFryr7dEKjsO/k9S6hVlrvsIF4iwaTpp1m7KKEjZ2A9J/o9wPde3VgKP
+	 NNvEhw2w93H2H+vzxPMkTo6/eQZMxXNWwv1kGfhh0XBi8R60MCVrso0BmNCTMytLNX
+	 mVf1yMSValf5riqmcGw5wljnqUYmy131NSgOdQBA=
+Date: Fri, 05 Jan 2024 08:50:41 -0800
+To: mm-commits@vger.kernel.org,thunder.leizhen@huawei.com,bhe@redhat.com,chenhuacai@loongson.cn,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + kdump-defer-the-insertion-of-crashkernel-resources.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240105165041.A1198C433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
 
-On Thu,  4 Jan 2024 02:01:45 -0800
-Bixuan Cui <cuibixuan@vivo.com> wrote:
 
-> From: cuibixuan <cuibixuan@vivo.com>
->=20
-> Page reclaim is an important part of memory reclaim, including:
->   * shrink_active_list(), moves folios from the active LRU to the inactiv=
-e LRU
->   * shrink_inactive_list(), shrink lru from inactive LRU list
->=20
-> Add the new events to calculate the execution time to better evaluate=20
-> the entire memory recycling ratio.
->=20
-> Example of output:
->          kswapd0-103     [007] .....  1098.353020: mm_vmscan_lru_shrink_a=
-ctive_start: nid=3D0
->          kswapd0-103     [007] .....  1098.353040: mm_vmscan_lru_shrink_a=
-ctive_end: nid=3D0 nr_taken=3D32 nr_active=3D0 nr_deactivated=3D32 nr_refer=
-enced=3D0 priority=3D6 flags=3DRECLAIM_WB_FILE|RECLAIM_WB_ASYNC
->          kswapd0-103     [007] .....  1098.353040: mm_vmscan_lru_shrink_i=
-nactive_start: nid=3D0
->          kswapd0-103     [007] .....  1098.353094: mm_vmscan_lru_shrink_i=
-nactive_end: nid=3D0 nr_scanned=3D32 nr_reclaimed=3D0 nr_dirty=3D0 nr_write=
-back=3D0 nr_congested=3D0 nr_immediate=3D0 nr_activate_anon=3D0 nr_activate=
-_file=3D0 nr_ref_keep=3D32 nr_unmap_fail=3D0 priority=3D6 flags=3DRECLAIM_W=
-B_ANON|RECLAIM_WB_ASYNC
->          kswapd0-103     [007] .....  1098.353094: mm_vmscan_lru_shrink_i=
-nactive_start: nid=3D0
->          kswapd0-103     [007] .....  1098.353162: mm_vmscan_lru_shrink_i=
-nactive_end: nid=3D0 nr_scanned=3D32 nr_reclaimed=3D21 nr_dirty=3D0 nr_writ=
-eback=3D0 nr_congested=3D0 nr_immediate=3D0 nr_activate_anon=3D0 nr_activat=
-e_file=3D0 nr_ref_keep=3D11 nr_unmap_fail=3D0 priority=3D6 flags=3DRECLAIM_=
-WB_FILE|RECLAIM_WB_ASYNC
->=20
-> Signed-off-by: Bixuan Cui <cuibixuan@vivo.com>
-> Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> Changes:
-> v5: * Use 'DECLARE_EVENT_CLASS(mm_vmscan_lru_shrink_start_template' to
-> replace 'RACE_EVENT(mm_vmscan_lru_shrink_inactive/active_start'
->     * Add the explanation for adding new shrink lru events into 'mm: vmsc=
-an: add new event to trace shrink lru'
+The patch titled
+     Subject: kdump: defer the insertion of crashkernel resources
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     kdump-defer-the-insertion-of-crashkernel-resources.patch
 
-=46rom the tracing POV:
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kdump-defer-the-insertion-of-crashkernel-resources.patch
 
-Reviewed-by: Steven Rostedt (Google) <rostedt@goodmis.org>
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
--- Steve
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-> v4: * Add Reviewed-by and Changlog to every patch.
-> v3: * Swap the positions of 'nid' and 'freeable' to prevent the hole in t=
-he trace event.
-> v2: * Modify trace_mm_vmscan_lru_shrink_inactive() in evict_folios() at t=
-he same time to fix build error (Andrew pointed out).
->=20
->  include/trace/events/vmscan.h | 31 +++++++++++++++++++++++++++++--
->  mm/vmscan.c                   | 11 ++++++++---
->  2 files changed, 37 insertions(+), 5 deletions(-)
->=20
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Huacai Chen <chenhuacai@loongson.cn>
+Subject: kdump: defer the insertion of crashkernel resources
+Date: Fri, 29 Dec 2023 16:02:13 +0800
+
+In /proc/iomem, sub-regions should be inserted after their parent,
+otherwise the insertion of parent resource fails.  But after generic
+crashkernel reservation applied, in both RISC-V and ARM64 (LoongArch will
+also use generic reservation later on), crashkernel resources are inserted
+before their parent, which causes the parent disappear in /proc/iomem.  So
+we defer the insertion of crashkernel resources to an early_initcall().
+
+1, Without 'crashkernel' parameter:
+
+ 100d0100-100d01ff : LOON0001:00
+   100d0100-100d01ff : LOON0001:00 LOON0001:00
+ 100e0000-100e0bff : LOON0002:00
+   100e0000-100e0bff : LOON0002:00 LOON0002:00
+ 1fe001e0-1fe001e7 : serial
+ 90400000-fa17ffff : System RAM
+   f6220000-f622ffff : Reserved
+   f9ee0000-f9ee3fff : Reserved
+   fa120000-fa17ffff : Reserved
+ fa190000-fe0bffff : System RAM
+   fa190000-fa1bffff : Reserved
+ fe4e0000-47fffffff : System RAM
+   43c000000-441ffffff : Reserved
+   47ff98000-47ffa3fff : Reserved
+   47ffa4000-47ffa7fff : Reserved
+   47ffa8000-47ffabfff : Reserved
+   47ffac000-47ffaffff : Reserved
+   47ffb0000-47ffb3fff : Reserved
+
+2, With 'crashkernel' parameter, before this patch:
+
+ 100d0100-100d01ff : LOON0001:00
+   100d0100-100d01ff : LOON0001:00 LOON0001:00
+ 100e0000-100e0bff : LOON0002:00
+   100e0000-100e0bff : LOON0002:00 LOON0002:00
+ 1fe001e0-1fe001e7 : serial
+ e6200000-f61fffff : Crash kernel
+ fa190000-fe0bffff : System RAM
+   fa190000-fa1bffff : Reserved
+ fe4e0000-47fffffff : System RAM
+   43c000000-441ffffff : Reserved
+   47ff98000-47ffa3fff : Reserved
+   47ffa4000-47ffa7fff : Reserved
+   47ffa8000-47ffabfff : Reserved
+   47ffac000-47ffaffff : Reserved
+   47ffb0000-47ffb3fff : Reserved
+
+3, With 'crashkernel' parameter, after this patch:
+
+ 100d0100-100d01ff : LOON0001:00
+   100d0100-100d01ff : LOON0001:00 LOON0001:00
+ 100e0000-100e0bff : LOON0002:00
+   100e0000-100e0bff : LOON0002:00 LOON0002:00
+ 1fe001e0-1fe001e7 : serial
+ 90400000-fa17ffff : System RAM
+   e6200000-f61fffff : Crash kernel
+   f6220000-f622ffff : Reserved
+   f9ee0000-f9ee3fff : Reserved
+   fa120000-fa17ffff : Reserved
+ fa190000-fe0bffff : System RAM
+   fa190000-fa1bffff : Reserved
+ fe4e0000-47fffffff : System RAM
+   43c000000-441ffffff : Reserved
+   47ff98000-47ffa3fff : Reserved
+   47ffa4000-47ffa7fff : Reserved
+   47ffa8000-47ffabfff : Reserved
+   47ffac000-47ffaffff : Reserved
+   47ffb0000-47ffb3fff : Reserved
+
+Link: https://lkml.kernel.org/r/20231229080213.2622204-1-chenhuacai@loongson.cn
+Signed-off-by: Huacai Chen <chenhuacai@loongson.cn>
+Fixes: 0ab97169aa051 ("crash_core: add generic function to do reservation")
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Zhen Lei <thunder.leizhen@huawei.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ kernel/crash_core.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+--- a/kernel/crash_core.c~kdump-defer-the-insertion-of-crashkernel-resources
++++ a/kernel/crash_core.c
+@@ -377,7 +377,6 @@ static int __init reserve_crashkernel_lo
+ 
+ 	crashk_low_res.start = low_base;
+ 	crashk_low_res.end   = low_base + low_size - 1;
+-	insert_resource(&iomem_resource, &crashk_low_res);
+ #endif
+ 	return 0;
+ }
+@@ -459,8 +458,19 @@ retry:
+ 
+ 	crashk_res.start = crash_base;
+ 	crashk_res.end = crash_base + crash_size - 1;
+-	insert_resource(&iomem_resource, &crashk_res);
+ }
++
++static __init int insert_crashkernel_resources(void)
++{
++	if (crashk_res.start < crashk_res.end)
++		insert_resource(&iomem_resource, &crashk_res);
++
++	if (crashk_low_res.start < crashk_low_res.end)
++		insert_resource(&iomem_resource, &crashk_low_res);
++
++	return 0;
++}
++early_initcall(insert_crashkernel_resources);
+ #endif
+ 
+ int crash_prepare_elf64_headers(struct crash_mem *mem, int need_kernel_map,
+_
+
+Patches currently in -mm which might be from chenhuacai@loongson.cn are
+
+kdump-defer-the-insertion-of-crashkernel-resources.patch
+
