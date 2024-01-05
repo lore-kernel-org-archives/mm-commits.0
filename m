@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19E61358A5
-	for <mm-commits@vger.kernel.org>; Fri,  5 Jan 2024 18:18:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16F7735EEB
+	for <mm-commits@vger.kernel.org>; Fri,  5 Jan 2024 18:18:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lQ8DFXzV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78BB1C433C7;
-	Fri,  5 Jan 2024 18:18:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o0sQYwR7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDC0CC433C8;
+	Fri,  5 Jan 2024 18:18:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704478715;
-	bh=7OmzhjHBYKANCTGUqteUQyDcqmx6yLoacoWykA4lVA0=;
+	s=korg; t=1704478716;
+	bh=6g3a4XmP1IlidGsNolOAPnSEQrc+m0qpoaSrqbFLt8Y=;
 	h=Date:To:From:Subject:From;
-	b=lQ8DFXzVPM6d/gXwsa+QUbuho7BfgS1KIUGMPnexD+k6EwLdESw0l17p0nDvfWhd4
-	 vehDI4LLJX8Jh+dB0XcttRMJoiGUIO8lbEDmBphf0JH2SjTqmrumaEQnE7jsC7PnUv
-	 LSLSX6K2TExgyhf9o3y2Hm03LmRDyRuq5whXGKIc=
-Date: Fri, 05 Jan 2024 10:18:34 -0800
+	b=o0sQYwR72FboiT5rucLpiT/t1alozCBUsnbd7zrkwnA/0q9IdzMXxVT0qnCnxZ3Ja
+	 VcaMsjU6cmLR9k92WS+pGBv/ptw6sYylMbhrmI2Rq5foWBYfbQT8AX77I8/bvyrcm4
+	 Jy1PnatCbb0G5rrr6foBiRctT12CHzAdjxOvvXkg=
+Date: Fri, 05 Jan 2024 10:18:36 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,lkp@intel.com,donettom@linux.vnet.ibm.com,aneesh.kumar@linux.ibm.com,kinseyho@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mglru-remove-config_memcg.patch removed from -mm tree
-Message-Id: <20240105181835.78BB1C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mglru-add-dummy-pmd_dirty.patch removed from -mm tree
+Message-Id: <20240105181836.CDC0CC433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,283 +27,118 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mglru: remove CONFIG_MEMCG
+     Subject: mm/mglru: add dummy pmd_dirty()
 has been removed from the -mm tree.  Its filename was
-     mm-mglru-remove-config_memcg.patch
+     mm-mglru-add-dummy-pmd_dirty.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kinsey Ho <kinseyho@google.com>
-Subject: mm/mglru: remove CONFIG_MEMCG
-Date: Wed, 27 Dec 2023 14:12:03 +0000
+Subject: mm/mglru: add dummy pmd_dirty()
+Date: Wed, 27 Dec 2023 14:12:04 +0000
 
-Remove CONFIG_MEMCG in a refactoring to improve code readability at
-the cost of a few bytes in struct lru_gen_folio per node when
-CONFIG_MEMCG=n.
+Add dummy pmd_dirty() for architectures that don't provide it.
+This is similar to commit 6617da8fb565 ("mm: add dummy pmd_young()
+for architectures not having it").
 
-Link: https://lkml.kernel.org/r/20231227141205.2200125-4-kinseyho@google.com
+Link: https://lkml.kernel.org/r/20231227141205.2200125-5-kinseyho@google.com
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202312210606.1Etqz3M4-lkp@intel.com/
+Closes: https://lore.kernel.org/oe-kbuild-all/202312210042.xQEiqlEh-lkp@intel.com/
 Signed-off-by: Kinsey Ho <kinseyho@google.com>
-Co-developed-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Tested-by: Donet Tom <donettom@linux.vnet.ibm.com>
-Acked-by: Yu Zhao <yuzhao@google.com>
-Cc: kernel test robot <lkp@intel.com>
+Suggested-by: Yu Zhao <yuzhao@google.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Donet Tom <donettom@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    4 --
- include/linux/mmzone.h   |   26 +-------------
- mm/vmscan.c              |   67 +++++++++++--------------------------
- 3 files changed, 23 insertions(+), 74 deletions(-)
+ arch/loongarch/include/asm/pgtable.h |    1 +
+ arch/mips/include/asm/pgtable.h      |    1 +
+ arch/riscv/include/asm/pgtable.h     |    1 +
+ arch/s390/include/asm/pgtable.h      |    1 +
+ arch/sparc/include/asm/pgtable_64.h  |    1 +
+ arch/x86/include/asm/pgtable.h       |    1 +
+ include/linux/pgtable.h              |    7 +++++++
+ 7 files changed, 13 insertions(+)
 
---- a/include/linux/mm_types.h~mm-mglru-remove-config_memcg
-+++ a/include/linux/mm_types.h
-@@ -1017,9 +1017,7 @@ struct lru_gen_mm_list {
- 
- void lru_gen_add_mm(struct mm_struct *mm);
- void lru_gen_del_mm(struct mm_struct *mm);
--#ifdef CONFIG_MEMCG
- void lru_gen_migrate_mm(struct mm_struct *mm);
--#endif
- 
- static inline void lru_gen_init_mm(struct mm_struct *mm)
- {
-@@ -1050,11 +1048,9 @@ static inline void lru_gen_del_mm(struct
- {
+--- a/arch/loongarch/include/asm/pgtable.h~mm-mglru-add-dummy-pmd_dirty
++++ a/arch/loongarch/include/asm/pgtable.h
+@@ -523,6 +523,7 @@ static inline pmd_t pmd_wrprotect(pmd_t
+ 	return pmd;
  }
  
--#ifdef CONFIG_MEMCG
- static inline void lru_gen_migrate_mm(struct mm_struct *mm)
++#define pmd_dirty pmd_dirty
+ static inline int pmd_dirty(pmd_t pmd)
  {
- }
--#endif
- 
- static inline void lru_gen_init_mm(struct mm_struct *mm)
- {
---- a/include/linux/mmzone.h~mm-mglru-remove-config_memcg
-+++ a/include/linux/mmzone.h
-@@ -440,14 +440,12 @@ struct lru_gen_folio {
- 	atomic_long_t refaulted[NR_HIST_GENS][ANON_AND_FILE][MAX_NR_TIERS];
- 	/* whether the multi-gen LRU is enabled */
- 	bool enabled;
--#ifdef CONFIG_MEMCG
- 	/* the memcg generation this lru_gen_folio belongs to */
- 	u8 gen;
- 	/* the list segment this lru_gen_folio belongs to */
- 	u8 seg;
- 	/* per-node lru_gen_folio list for global reclaim */
- 	struct hlist_nulls_node list;
--#endif
- };
- 
- enum {
-@@ -493,11 +491,6 @@ struct lru_gen_mm_walk {
- 	bool force_scan;
- };
- 
--void lru_gen_init_lruvec(struct lruvec *lruvec);
--void lru_gen_look_around(struct page_vma_mapped_walk *pvmw);
--
--#ifdef CONFIG_MEMCG
--
- /*
-  * For each node, memcgs are divided into two generations: the old and the
-  * young. For each generation, memcgs are randomly sharded into multiple bins
-@@ -555,6 +548,8 @@ struct lru_gen_memcg {
- };
- 
- void lru_gen_init_pgdat(struct pglist_data *pgdat);
-+void lru_gen_init_lruvec(struct lruvec *lruvec);
-+void lru_gen_look_around(struct page_vma_mapped_walk *pvmw);
- 
- void lru_gen_init_memcg(struct mem_cgroup *memcg);
- void lru_gen_exit_memcg(struct mem_cgroup *memcg);
-@@ -563,19 +558,6 @@ void lru_gen_offline_memcg(struct mem_cg
- void lru_gen_release_memcg(struct mem_cgroup *memcg);
- void lru_gen_soft_reclaim(struct mem_cgroup *memcg, int nid);
- 
--#else /* !CONFIG_MEMCG */
--
--#define MEMCG_NR_GENS	1
--
--struct lru_gen_memcg {
--};
--
--static inline void lru_gen_init_pgdat(struct pglist_data *pgdat)
--{
--}
--
--#endif /* CONFIG_MEMCG */
--
- #else /* !CONFIG_LRU_GEN */
- 
- static inline void lru_gen_init_pgdat(struct pglist_data *pgdat)
-@@ -590,8 +572,6 @@ static inline void lru_gen_look_around(s
- {
+ 	return !!(pmd_val(pmd) & (_PAGE_DIRTY | _PAGE_MODIFIED));
+--- a/arch/mips/include/asm/pgtable.h~mm-mglru-add-dummy-pmd_dirty
++++ a/arch/mips/include/asm/pgtable.h
+@@ -655,6 +655,7 @@ static inline pmd_t pmd_mkwrite_novma(pm
+ 	return pmd;
  }
  
--#ifdef CONFIG_MEMCG
--
- static inline void lru_gen_init_memcg(struct mem_cgroup *memcg)
++#define pmd_dirty pmd_dirty
+ static inline int pmd_dirty(pmd_t pmd)
  {
- }
-@@ -616,8 +596,6 @@ static inline void lru_gen_soft_reclaim(
- {
- }
- 
--#endif /* CONFIG_MEMCG */
--
- #endif /* CONFIG_LRU_GEN */
- 
- struct lruvec {
---- a/mm/vmscan.c~mm-mglru-remove-config_memcg
-+++ a/mm/vmscan.c
-@@ -4097,13 +4097,6 @@ enum {
- 	MEMCG_LRU_YOUNG,
- };
- 
--#ifdef CONFIG_MEMCG
--
--static int lru_gen_memcg_seg(struct lruvec *lruvec)
--{
--	return READ_ONCE(lruvec->lrugen.seg);
--}
--
- static void lru_gen_rotate_memcg(struct lruvec *lruvec, int op)
- {
- 	int seg;
-@@ -4150,6 +4143,8 @@ static void lru_gen_rotate_memcg(struct
- 	spin_unlock_irqrestore(&pgdat->memcg_lru.lock, flags);
+ 	return !!(pmd_val(pmd) & _PAGE_MODIFIED);
+--- a/arch/riscv/include/asm/pgtable.h~mm-mglru-add-dummy-pmd_dirty
++++ a/arch/riscv/include/asm/pgtable.h
+@@ -673,6 +673,7 @@ static inline int pmd_write(pmd_t pmd)
+ 	return pte_write(pmd_pte(pmd));
  }
  
-+#ifdef CONFIG_MEMCG
-+
- void lru_gen_online_memcg(struct mem_cgroup *memcg)
++#define pmd_dirty pmd_dirty
+ static inline int pmd_dirty(pmd_t pmd)
  {
- 	int gen;
-@@ -4217,18 +4212,11 @@ void lru_gen_soft_reclaim(struct mem_cgr
- 	struct lruvec *lruvec = get_lruvec(memcg, nid);
- 
- 	/* see the comment on MEMCG_NR_GENS */
--	if (lru_gen_memcg_seg(lruvec) != MEMCG_LRU_HEAD)
-+	if (READ_ONCE(lruvec->lrugen.seg) != MEMCG_LRU_HEAD)
- 		lru_gen_rotate_memcg(lruvec, MEMCG_LRU_HEAD);
+ 	return pte_dirty(pmd_pte(pmd));
+--- a/arch/s390/include/asm/pgtable.h~mm-mglru-add-dummy-pmd_dirty
++++ a/arch/s390/include/asm/pgtable.h
+@@ -770,6 +770,7 @@ static inline int pud_write(pud_t pud)
+ 	return (pud_val(pud) & _REGION3_ENTRY_WRITE) != 0;
  }
  
--#else /* !CONFIG_MEMCG */
--
--static int lru_gen_memcg_seg(struct lruvec *lruvec)
--{
--	return 0;
--}
--
--#endif
-+#endif /* CONFIG_MEMCG */
++#define pmd_dirty pmd_dirty
+ static inline int pmd_dirty(pmd_t pmd)
+ {
+ 	return (pmd_val(pmd) & _SEGMENT_ENTRY_DIRTY) != 0;
+--- a/arch/sparc/include/asm/pgtable_64.h~mm-mglru-add-dummy-pmd_dirty
++++ a/arch/sparc/include/asm/pgtable_64.h
+@@ -706,6 +706,7 @@ static inline unsigned long pmd_write(pm
+ #define pud_write(pud)	pte_write(__pte(pud_val(pud)))
  
- /******************************************************************************
-  *                          the eviction
-@@ -4776,7 +4764,7 @@ static int shrink_one(struct lruvec *lru
- 
- 	if (mem_cgroup_below_low(NULL, memcg)) {
- 		/* see the comment on MEMCG_NR_GENS */
--		if (lru_gen_memcg_seg(lruvec) != MEMCG_LRU_TAIL)
-+		if (READ_ONCE(lruvec->lrugen.seg) != MEMCG_LRU_TAIL)
- 			return MEMCG_LRU_TAIL;
- 
- 		memcg_memory_event(memcg, MEMCG_LOW);
-@@ -4799,12 +4787,10 @@ static int shrink_one(struct lruvec *lru
- 		return 0;
- 
- 	/* one retry if offlined or too small */
--	return lru_gen_memcg_seg(lruvec) != MEMCG_LRU_TAIL ?
-+	return READ_ONCE(lruvec->lrugen.seg) != MEMCG_LRU_TAIL ?
- 	       MEMCG_LRU_TAIL : MEMCG_LRU_YOUNG;
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
++#define pmd_dirty pmd_dirty
+ static inline unsigned long pmd_dirty(pmd_t pmd)
+ {
+ 	pte_t pte = __pte(pmd_val(pmd));
+--- a/arch/x86/include/asm/pgtable.h~mm-mglru-add-dummy-pmd_dirty
++++ a/arch/x86/include/asm/pgtable.h
+@@ -141,6 +141,7 @@ static inline int pte_young(pte_t pte)
+ 	return pte_flags(pte) & _PAGE_ACCESSED;
  }
  
--#ifdef CONFIG_MEMCG
--
- static void shrink_many(struct pglist_data *pgdat, struct scan_control *sc)
++#define pmd_dirty pmd_dirty
+ static inline bool pmd_dirty(pmd_t pmd)
  {
- 	int op;
-@@ -4896,20 +4882,6 @@ static void lru_gen_shrink_lruvec(struct
- 	blk_finish_plug(&plug);
+ 	return pmd_flags(pmd) & _PAGE_DIRTY_BITS;
+--- a/include/linux/pgtable.h~mm-mglru-add-dummy-pmd_dirty
++++ a/include/linux/pgtable.h
+@@ -184,6 +184,13 @@ static inline int pmd_young(pmd_t pmd)
  }
+ #endif
  
--#else /* !CONFIG_MEMCG */
--
--static void shrink_many(struct pglist_data *pgdat, struct scan_control *sc)
--{
--	BUILD_BUG();
--}
--
--static void lru_gen_shrink_lruvec(struct lruvec *lruvec, struct scan_control *sc)
--{
--	BUILD_BUG();
--}
--
--#endif
--
- static void set_initial_priority(struct pglist_data *pgdat, struct scan_control *sc)
- {
- 	int priority;
-@@ -5560,6 +5532,18 @@ static const struct file_operations lru_
-  *                          initialization
-  ******************************************************************************/
- 
-+void lru_gen_init_pgdat(struct pglist_data *pgdat)
++#ifndef pmd_dirty
++static inline int pmd_dirty(pmd_t pmd)
 +{
-+	int i, j;
-+
-+	spin_lock_init(&pgdat->memcg_lru.lock);
-+
-+	for (i = 0; i < MEMCG_NR_GENS; i++) {
-+		for (j = 0; j < MEMCG_NR_BINS; j++)
-+			INIT_HLIST_NULLS_HEAD(&pgdat->memcg_lru.fifo[i][j], i);
-+	}
++	return 0;
 +}
++#endif
 +
- void lru_gen_init_lruvec(struct lruvec *lruvec)
- {
- 	int i;
-@@ -5582,18 +5566,6 @@ void lru_gen_init_lruvec(struct lruvec *
- 
- #ifdef CONFIG_MEMCG
- 
--void lru_gen_init_pgdat(struct pglist_data *pgdat)
--{
--	int i, j;
--
--	spin_lock_init(&pgdat->memcg_lru.lock);
--
--	for (i = 0; i < MEMCG_NR_GENS; i++) {
--		for (j = 0; j < MEMCG_NR_BINS; j++)
--			INIT_HLIST_NULLS_HEAD(&pgdat->memcg_lru.fifo[i][j], i);
--	}
--}
--
- void lru_gen_init_memcg(struct mem_cgroup *memcg)
- {
- 	struct lru_gen_mm_list *mm_list = get_mm_list(memcg);
-@@ -5653,14 +5625,17 @@ late_initcall(init_lru_gen);
- 
- static void lru_gen_age_node(struct pglist_data *pgdat, struct scan_control *sc)
- {
-+	BUILD_BUG();
- }
- 
- static void lru_gen_shrink_lruvec(struct lruvec *lruvec, struct scan_control *sc)
- {
-+	BUILD_BUG();
- }
- 
- static void lru_gen_shrink_node(struct pglist_data *pgdat, struct scan_control *sc)
- {
-+	BUILD_BUG();
- }
- 
- #endif /* CONFIG_LRU_GEN */
+ /*
+  * A facility to provide lazy MMU batching.  This allows PTE updates and
+  * page invalidations to be delayed until a call to leave lazy MMU mode
 _
 
 Patches currently in -mm which might be from kinseyho@google.com are
