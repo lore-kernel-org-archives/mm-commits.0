@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE17D35892
-	for <mm-commits@vger.kernel.org>; Fri,  5 Jan 2024 18:18:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3351A3589C
+	for <mm-commits@vger.kernel.org>; Fri,  5 Jan 2024 18:18:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X9ifrz/0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40A83C433CB;
-	Fri,  5 Jan 2024 18:18:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qP0OuIbX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C16AC433C8;
+	Fri,  5 Jan 2024 18:18:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704478709;
-	bh=IvIC5VDqHMlpchvXIyxzPp6YpxBL9vw5rRRV685uC00=;
+	s=korg; t=1704478710;
+	bh=JleSJ/GwV/QiPXEWsyfIaFpJq5TFrtzGUhYvzzpp6us=;
 	h=Date:To:From:Subject:From;
-	b=X9ifrz/0Pzvz6KA5B2oanck/QA+BPMT4HguJsbbFtam3VCTX3gENMvcWchl2Z1Olo
-	 /hrKObBbpjAPBofuLuyaJMb0nF7yN8sQBwUHowPuo4YrOLVCy/OHH6yam+IotkSRr2
-	 lTh/dn2p1gD8DA6WqqqQKB7AemNtOBGwGuIGhtos=
-Date: Fri, 05 Jan 2024 10:18:28 -0800
-To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,willy@infradead.org,akpm@linux-foundation.org
+	b=qP0OuIbXa1E72b1TLVJfN4fpVcC0U/lP2+HYi0hrHcjqzpr3AusMF1aL/0ppcXXli
+	 oJbB6nJLjNDTPKla+m1B47wHrqntTCi6c/Eh1GOuunaGKeTVuZ663WRis/qxgUTh+5
+	 A69h3BYXHEjobuUnO7mdTrx07xq+UORtpf64nLf0=
+Date: Fri, 05 Jan 2024 10:18:30 -0800
+To: mm-commits@vger.kernel.org,zhangpeng362@huawei.com,willy@infradead.org,viro@zeniv.linux.org.uk,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,peterx@redhat.com,ngeoffray@google.com,mhocko@suse.com,lokeshgidra@google.com,Liam.Howlett@oracle.com,kaleshsingh@google.com,jannh@google.com,hughd@google.com,david@redhat.com,brauner@kernel.org,bgeffon@google.com,axelrasmussen@google.com,aarcange@redhat.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] buffer-fix-unintended-successful-return.patch removed from -mm tree
-Message-Id: <20240105181829.40A83C433CB@smtp.kernel.org>
+Subject: [merged mm-stable] userfaultfd-fix-move_pages_pte-splitting-folio-under-rcu-read-lock.patch removed from -mm tree
+Message-Id: <20240105181830.9C16AC433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,74 +27,79 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: buffer: fix unintended successful return
+     Subject: userfaultfd: fix move_pages_pte() splitting folio under RCU read lock
 has been removed from the -mm tree.  Its filename was
-     buffer-fix-unintended-successful-return.patch
+     userfaultfd-fix-move_pages_pte-splitting-folio-under-rcu-read-lock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: buffer: fix unintended successful return
-Date: Mon, 1 Jan 2024 09:38:48 +0000
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: userfaultfd: fix move_pages_pte() splitting folio under RCU read lock
+Date: Tue, 2 Jan 2024 15:32:56 -0800
 
-If try_to_free_buffers() succeeded and then folio_alloc_buffers() failed,
-grow_dev_folio() would return success.  This would be incorrect; memory
-allocation failure is supposed to result in a failure.  It's a harmless
-bug; the caller will simply go around the loop one more time and
-grow_dev_folio() will correctly return a failure that time.  But it was an
-unintended change and looks like a more serious bug than it is.
+While testing the split PMD path with lockdep enabled I've got an "Invalid
+wait context" error caused by split_huge_page_to_list() trying to lock
+anon_vma->rwsem while inside RCU read section.  The issues is due to
+move_pages_pte() calling split_folio() under RCU read lock.  Fix this by
+unmapping the PTEs and exiting RCU read section before splitting the folio
+and then retrying.  The same retry pattern is used when locking the folio
+or anon_vma in this function.  After splitting the large folio we unlock
+and release it because after the split the old folio might not be the one
+that contains the src_addr.
 
-While I'm in here, improve the commentary about why we return success even
-though we failed.
-
-Link: https://lkml.kernel.org/r/20240101093848.2017115-1-willy@infradead.org
-Fixes: 6d840a18773f ("buffer: return bool from grow_dev_folio()")
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reported-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Link: https://lkml.kernel.org/r/20240102233256.1077959-1-surenb@google.com
+Fixes: adef440691ba ("userfaultfd: UFFDIO_MOVE uABI")
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Nicolas Geoffray <ngeoffray@google.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: ZhangPeng <zhangpeng362@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ mm/userfaultfd.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/fs/buffer.c~buffer-fix-unintended-successful-return
-+++ a/fs/buffer.c
-@@ -1028,8 +1028,8 @@ static sector_t folio_init_buffers(struc
-  *
-  * This is used purely for blockdev mappings.
-  *
-- * Returns false if we have a 'permanent' failure.  Returns true if
-- * we succeeded, or the caller should retry.
-+ * Returns false if we have a failure which cannot be cured by retrying
-+ * without sleeping.  Returns true if we succeeded, or the caller should retry.
-  */
- static bool grow_dev_folio(struct block_device *bdev, sector_t block,
- 		pgoff_t index, unsigned size, gfp_t gfp)
-@@ -1051,10 +1051,17 @@ static bool grow_dev_folio(struct block_
- 			goto unlock;
+--- a/mm/userfaultfd.c~userfaultfd-fix-move_pages_pte-splitting-folio-under-rcu-read-lock
++++ a/mm/userfaultfd.c
+@@ -1078,9 +1078,18 @@ retry:
+ 
+ 		/* at this point we have src_folio locked */
+ 		if (folio_test_large(src_folio)) {
++			/* split_folio() can block */
++			pte_unmap(&orig_src_pte);
++			pte_unmap(&orig_dst_pte);
++			src_pte = dst_pte = NULL;
+ 			err = split_folio(src_folio);
+ 			if (err)
+ 				goto out;
++			/* have to reacquire the folio after it got split */
++			folio_unlock(src_folio);
++			folio_put(src_folio);
++			src_folio = NULL;
++			goto retry;
  		}
  
--		/* Caller should retry if this call fails */
--		end_block = ~0ULL;
--		if (!try_to_free_buffers(folio))
-+		/*
-+		 * Retrying may succeed; for example the folio may finish
-+		 * writeback, or buffers may be cleaned.  This should not
-+		 * happen very often; maybe we have old buffers attached to
-+		 * this blockdev's page cache and we're trying to change
-+		 * the block size?
-+		 */
-+		if (!try_to_free_buffers(folio)) {
-+			end_block = ~0ULL;
- 			goto unlock;
-+		}
- 	}
- 
- 	bh = folio_alloc_buffers(folio, size, gfp | __GFP_ACCOUNT);
+ 		if (!src_anon_vma) {
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from surenb@google.com are
 
 
