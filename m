@@ -1,98 +1,105 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E2F436084
-	for <mm-commits@vger.kernel.org>; Fri,  5 Jan 2024 19:33:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7AB335EF7;
+	Fri,  5 Jan 2024 19:43:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m4BKwmiU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F49CC433C7;
-	Fri,  5 Jan 2024 19:33:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="farBdVQi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34351C433C7;
+	Fri,  5 Jan 2024 19:43:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704483205;
-	bh=h8JZfTOvJXYFjB212d6Sl3dlIEwLqh/QPppKUUOi5E0=;
-	h=Date:To:From:Subject:From;
-	b=m4BKwmiUskcrwEZiwT52gOn9ai+PneZs9mB5ZctmCKtekjluxhBLYCnS1lUtnrvqV
-	 XHSwEdMXqzJDxriE/SnxzPXrZQ30Lppk+t0ndmqs7yVJ6Y9g7r/hEmEAPRecSrVe3z
-	 VW2KGMpkAx72XRzlEpA8kZtigdetEMuLlHTjXMJM=
-Date: Fri, 05 Jan 2024 11:33:24 -0800
-To: mm-commits@vger.kernel.org,ndesaulniers@google.com,lkp@intel.com,bcain@quicinc.com,acme@kernel.org,nathan@kernel.org,akpm@linux-foundation.org
+	s=korg; t=1704483795;
+	bh=MdXjGizu6OM6cf5fY1g8ytFP0y5aZO9iXKxYNAAMmfI=;
+	h=Date:From:To:Cc:Subject:From;
+	b=farBdVQiHkFQZInv977PSDycPgR6GkXu+GoBTooYZu/fNnzIzYNjv41m9yWWEKZsy
+	 ft+3hhrgCi7Hv35XROtqSP7iNXFFQMga47gNi+Bmalu1M8g+7zgYrNf5M1O7tIO0e+
+	 e0i8hQEVDXuRyyOAMLopDWzsBf7Ygt9J6tjSHK4k=
+Date: Fri, 5 Jan 2024 11:43:14 -0800
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-kconfigdebug-disable-config_debug_info_btf-for-hexagon.patch added to mm-nonmm-unstable branch
-Message-Id: <20240105193325.7F49CC433C7@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.8
+Message-Id: <20240105114314.820c25628928c57f639058fe@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The patch titled
-     Subject: lib/Kconfig.debug: disable CONFIG_DEBUG_INFO_BTF for Hexagon
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-kconfigdebug-disable-config_debug_info_btf-for-hexagon.patch
+Linus, please merge this batch of hotfixes, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-kconfigdebug-disable-config_debug_info_btf-for-hexagon.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following changes since commit 1803d0c5ee1a3bbee23db2336e21add067824f02:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+  mailmap: add an old address for Naoya Horiguchi (2023-12-20 13:46:20 -0800)
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+are available in the Git repository at:
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-01-05-11-35
 
-------------------------------------------------------
-From: Nathan Chancellor <nathan@kernel.org>
-Subject: lib/Kconfig.debug: disable CONFIG_DEBUG_INFO_BTF for Hexagon
-Date: Fri, 05 Jan 2024 12:13:04 -0700
+for you to fetch changes up to 7fba9420b726561966e1671004df60a08b39beb3:
 
-pahole, which generates BTF, relies on elfutils to process DWARF debug
-info.  Because kernel modules are relocatable files, elfutils needs to
-resolve relocations when processing the DWARF .debug sections.
+  mm: shrinker: use kvzalloc_node() from expand_one_shrinker_info() (2024-01-05 09:58:32 -0800)
 
-Hexagon is not supported in binutils or elfutils, so elfutils is unable to
-process relocations in kernel modules, causing pahole to crash during BTF
-generation.
+----------------------------------------------------------------
+12 hotfixes.  2 are cc:stable and the remainder either address post-6.7
+issues or aren't considered necessary for earlier kernel versions.
 
-Do not allow CONFIG_DEBUG_INFO_BTF to be selected for Hexagon until it is
-supported in elfutils, so that there are no more cryptic build failures
-during BTF generation.
+----------------------------------------------------------------
+Baolin Wang (1):
+      mm: memcg: fix split queue list crash when large folio migration
 
-Link: https://lkml.kernel.org/r/20240105-hexagon-disable-btf-v1-1-ddab073e7f74@kernel.org
-Signed-off-by: Nathan Chancellor <nathan@kernel.org>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202312192107.wMIKiZWw-lkp@intel.com/
-Suggested-by: Nick Desaulniers <ndesaulniers@google.com>
-Acked-by: Brian Cain <bcain@quicinc.com>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+Jiajun Xie (1):
+      mm: fix unmap_mapping_range high bits shift bug
 
- lib/Kconfig.debug |    2 ++
- 1 file changed, 2 insertions(+)
+Jingbo Xu (2):
+      mm: fix arithmetic for bdi min_ratio
+      mm: fix arithmetic for max_prop_frac when setting max_ratio
 
---- a/lib/Kconfig.debug~lib-kconfigdebug-disable-config_debug_info_btf-for-hexagon
-+++ a/lib/Kconfig.debug
-@@ -378,6 +378,8 @@ config DEBUG_INFO_BTF
- 	depends on !GCC_PLUGIN_RANDSTRUCT || COMPILE_TEST
- 	depends on BPF_SYSCALL
- 	depends on !DEBUG_INFO_DWARF5 || PAHOLE_VERSION >= 121
-+	# pahole uses elfutils, which does not have support for Hexagon relocations
-+	depends on !HEXAGON
- 	help
- 	  Generate deduplicated BTF type information from DWARF debug info.
- 	  Turning this on expects presence of pahole tool, which will convert
-_
+Mathieu Othacehe (1):
+      mailmap: add entries for Mathieu Othacehe
 
-Patches currently in -mm which might be from nathan@kernel.org are
+Mike Kravetz (1):
+      MAINTAINERS: remove hugetlb maintainer Mike Kravetz
 
-lib-kconfigdebug-disable-config_debug_info_btf-for-hexagon.patch
+Naoya Horiguchi (1):
+      MAINTAINERS: hand over hwpoison maintainership to Miaohe Lin
+
+Rik van Riel (1):
+      mm: align larger anonymous mappings on THP boundaries
+
+Suren Baghdasaryan (1):
+      arch/mm/fault: fix major fault accounting when retrying under per-VMA lock
+
+Tetsuo Handa (1):
+      mm: shrinker: use kvzalloc_node() from expand_one_shrinker_info()
+
+Yu Zhao (1):
+      mm/mglru: skip special VMAs in lru_gen_look_around()
+
+Zack Rusin (1):
+      MAINTAINERS: change vmware.com addresses to broadcom.com
+
+ .mailmap                |  3 ++-
+ CREDITS                 |  4 ++++
+ MAINTAINERS             | 14 ++++++--------
+ arch/arm64/mm/fault.c   |  2 ++
+ arch/powerpc/mm/fault.c |  2 ++
+ arch/riscv/mm/fault.c   |  2 ++
+ arch/s390/mm/fault.c    |  3 +++
+ arch/x86/mm/fault.c     |  2 ++
+ mm/huge_memory.c        |  2 +-
+ mm/memcontrol.c         | 11 +++++++++++
+ mm/memory.c             |  4 ++--
+ mm/mmap.c               |  3 +++
+ mm/page-writeback.c     |  4 ++--
+ mm/shrinker.c           |  2 +-
+ mm/vmscan.c             | 13 +++++++++----
+ 15 files changed, 52 insertions(+), 19 deletions(-)
 
