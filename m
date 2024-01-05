@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CF642E84A
-	for <mm-commits@vger.kernel.org>; Fri,  5 Jan 2024 16:50:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FFE43173E
+	for <mm-commits@vger.kernel.org>; Fri,  5 Jan 2024 16:54:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2AiHYN9B"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1198C433C8;
-	Fri,  5 Jan 2024 16:50:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yC4xA7N6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7558C433C7;
+	Fri,  5 Jan 2024 16:54:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704473441;
-	bh=76Md/SXAupLILj/LL6pVcmJzWQW8pzAvErAQKK9m6oQ=;
+	s=korg; t=1704473655;
+	bh=50GKHkWZ/ff0LwFYPv2uk4q+WvAF8mEHM1GFbe4w6Rc=;
 	h=Date:To:From:Subject:From;
-	b=2AiHYN9BGOFryr7dEKjsO/k9S6hVlrvsIF4iwaTpp1m7KKEjZ2A9J/o9wPde3VgKP
-	 NNvEhw2w93H2H+vzxPMkTo6/eQZMxXNWwv1kGfhh0XBi8R60MCVrso0BmNCTMytLNX
-	 mVf1yMSValf5riqmcGw5wljnqUYmy131NSgOdQBA=
-Date: Fri, 05 Jan 2024 08:50:41 -0800
-To: mm-commits@vger.kernel.org,thunder.leizhen@huawei.com,bhe@redhat.com,chenhuacai@loongson.cn,akpm@linux-foundation.org
+	b=yC4xA7N6arBrcepsEHlTsna+wG7vmtUNlhRVRSIfN7DmP4Fi81jM+pbCnroY+5pVX
+	 2wuAQg9QiQQJBKT+6oHYIXISNDZoZaB+2Z4co7JeMc/QLgWG7IULa9+JoHywlShy+2
+	 SWN3hLoWOdX56U7gCxuo0mCwmA6kjWNkRXca8VKw=
+Date: Fri, 05 Jan 2024 08:54:15 -0800
+To: mm-commits@vger.kernel.org,xuyang2018.jy@fujitsu.com,wanlong.gao@gmail.com,vapier@gentoo.org,liwang@redhat.com,jstancek@redhat.com,aleksei.kodanev@bell-sw.com,pvorel@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kdump-defer-the-insertion-of-crashkernel-resources.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240105165041.A1198C433C8@smtp.kernel.org>
+Subject: + maintainers-update-ltp-maintainers.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240105165415.D7558C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kdump: defer the insertion of crashkernel resources
+     Subject: MAINTAINERS: update LTP maintainers
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kdump-defer-the-insertion-of-crashkernel-resources.patch
+     maintainers-update-ltp-maintainers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kdump-defer-the-insertion-of-crashkernel-resources.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-update-ltp-maintainers.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -50,123 +50,48 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Huacai Chen <chenhuacai@loongson.cn>
-Subject: kdump: defer the insertion of crashkernel resources
-Date: Fri, 29 Dec 2023 16:02:13 +0800
+From: Petr Vorel <pvorel@suse.cz>
+Subject: MAINTAINERS: update LTP maintainers
+Date: Thu, 4 Jan 2024 16:49:53 +0100
 
-In /proc/iomem, sub-regions should be inserted after their parent,
-otherwise the insertion of parent resource fails.  But after generic
-crashkernel reservation applied, in both RISC-V and ARM64 (LoongArch will
-also use generic reservation later on), crashkernel resources are inserted
-before their parent, which causes the parent disappear in /proc/iomem.  So
-we defer the insertion of crashkernel resources to an early_initcall().
+There are more people with git push permissions, but we keep only people
+who actually did review and merge patches last year.
 
-1, Without 'crashkernel' parameter:
-
- 100d0100-100d01ff : LOON0001:00
-   100d0100-100d01ff : LOON0001:00 LOON0001:00
- 100e0000-100e0bff : LOON0002:00
-   100e0000-100e0bff : LOON0002:00 LOON0002:00
- 1fe001e0-1fe001e7 : serial
- 90400000-fa17ffff : System RAM
-   f6220000-f622ffff : Reserved
-   f9ee0000-f9ee3fff : Reserved
-   fa120000-fa17ffff : Reserved
- fa190000-fe0bffff : System RAM
-   fa190000-fa1bffff : Reserved
- fe4e0000-47fffffff : System RAM
-   43c000000-441ffffff : Reserved
-   47ff98000-47ffa3fff : Reserved
-   47ffa4000-47ffa7fff : Reserved
-   47ffa8000-47ffabfff : Reserved
-   47ffac000-47ffaffff : Reserved
-   47ffb0000-47ffb3fff : Reserved
-
-2, With 'crashkernel' parameter, before this patch:
-
- 100d0100-100d01ff : LOON0001:00
-   100d0100-100d01ff : LOON0001:00 LOON0001:00
- 100e0000-100e0bff : LOON0002:00
-   100e0000-100e0bff : LOON0002:00 LOON0002:00
- 1fe001e0-1fe001e7 : serial
- e6200000-f61fffff : Crash kernel
- fa190000-fe0bffff : System RAM
-   fa190000-fa1bffff : Reserved
- fe4e0000-47fffffff : System RAM
-   43c000000-441ffffff : Reserved
-   47ff98000-47ffa3fff : Reserved
-   47ffa4000-47ffa7fff : Reserved
-   47ffa8000-47ffabfff : Reserved
-   47ffac000-47ffaffff : Reserved
-   47ffb0000-47ffb3fff : Reserved
-
-3, With 'crashkernel' parameter, after this patch:
-
- 100d0100-100d01ff : LOON0001:00
-   100d0100-100d01ff : LOON0001:00 LOON0001:00
- 100e0000-100e0bff : LOON0002:00
-   100e0000-100e0bff : LOON0002:00 LOON0002:00
- 1fe001e0-1fe001e7 : serial
- 90400000-fa17ffff : System RAM
-   e6200000-f61fffff : Crash kernel
-   f6220000-f622ffff : Reserved
-   f9ee0000-f9ee3fff : Reserved
-   fa120000-fa17ffff : Reserved
- fa190000-fe0bffff : System RAM
-   fa190000-fa1bffff : Reserved
- fe4e0000-47fffffff : System RAM
-   43c000000-441ffffff : Reserved
-   47ff98000-47ffa3fff : Reserved
-   47ffa4000-47ffa7fff : Reserved
-   47ffa8000-47ffabfff : Reserved
-   47ffac000-47ffaffff : Reserved
-   47ffb0000-47ffb3fff : Reserved
-
-Link: https://lkml.kernel.org/r/20231229080213.2622204-1-chenhuacai@loongson.cn
-Signed-off-by: Huacai Chen <chenhuacai@loongson.cn>
-Fixes: 0ab97169aa051 ("crash_core: add generic function to do reservation")
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Zhen Lei <thunder.leizhen@huawei.com>
+Link: https://lkml.kernel.org/r/20240104154953.1193634-1-pvorel@suse.cz
+Signed-off-by: Petr Vorel <pvorel@suse.cz>
+Reviewed-by: Li Wang <liwang@redhat.com>
+Cc: Alexey Kodanev <aleksei.kodanev@bell-sw.com>
+Cc: Jan Stancek <jstancek@redhat.com>
+Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Wanlong Gao <wanlong.gao@gmail.com>
+Cc: Yang Xu <xuyang2018.jy@fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/crash_core.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ MAINTAINERS |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/kernel/crash_core.c~kdump-defer-the-insertion-of-crashkernel-resources
-+++ a/kernel/crash_core.c
-@@ -377,7 +377,6 @@ static int __init reserve_crashkernel_lo
+--- a/MAINTAINERS~maintainers-update-ltp-maintainers
++++ a/MAINTAINERS
+@@ -12583,12 +12583,11 @@ F:	Documentation/devicetree/bindings/i2c
+ F:	drivers/i2c/muxes/i2c-mux-ltc4306.c
  
- 	crashk_low_res.start = low_base;
- 	crashk_low_res.end   = low_base + low_size - 1;
--	insert_resource(&iomem_resource, &crashk_low_res);
- #endif
- 	return 0;
- }
-@@ -459,8 +458,19 @@ retry:
- 
- 	crashk_res.start = crash_base;
- 	crashk_res.end = crash_base + crash_size - 1;
--	insert_resource(&iomem_resource, &crashk_res);
- }
-+
-+static __init int insert_crashkernel_resources(void)
-+{
-+	if (crashk_res.start < crashk_res.end)
-+		insert_resource(&iomem_resource, &crashk_res);
-+
-+	if (crashk_low_res.start < crashk_low_res.end)
-+		insert_resource(&iomem_resource, &crashk_low_res);
-+
-+	return 0;
-+}
-+early_initcall(insert_crashkernel_resources);
- #endif
- 
- int crash_prepare_elf64_headers(struct crash_mem *mem, int need_kernel_map,
+ LTP (Linux Test Project)
+-M:	Mike Frysinger <vapier@gentoo.org>
+ M:	Cyril Hrubis <chrubis@suse.cz>
+-M:	Wanlong Gao <wanlong.gao@gmail.com>
+ M:	Jan Stancek <jstancek@redhat.com>
+-M:	Stanislav Kholmanskikh <stanislav.kholmanskikh@oracle.com>
+-M:	Alexey Kodanev <alexey.kodanev@oracle.com>
++M:	Petr Vorel <pvorel@suse.cz>
++M:	Li Wang <liwang@redhat.com>
++M:	Yang Xu <xuyang2018.jy@fujitsu.com>
+ L:	ltp@lists.linux.it (subscribers-only)
+ S:	Maintained
+ W:	http://linux-test-project.github.io/
 _
 
-Patches currently in -mm which might be from chenhuacai@loongson.cn are
+Patches currently in -mm which might be from pvorel@suse.cz are
 
-kdump-defer-the-insertion-of-crashkernel-resources.patch
+maintainers-update-ltp-maintainers.patch
 
