@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E805358B0
-	for <mm-commits@vger.kernel.org>; Fri,  5 Jan 2024 18:46:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E2F436084
+	for <mm-commits@vger.kernel.org>; Fri,  5 Jan 2024 19:33:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fUJI55Tf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3C68C433C8;
-	Fri,  5 Jan 2024 18:46:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m4BKwmiU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F49CC433C7;
+	Fri,  5 Jan 2024 19:33:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704480367;
-	bh=4vHEJYbT2CPmOkJb2GO2CDIIYEQNoflDTO2zPnpyxIU=;
+	s=korg; t=1704483205;
+	bh=h8JZfTOvJXYFjB212d6Sl3dlIEwLqh/QPppKUUOi5E0=;
 	h=Date:To:From:Subject:From;
-	b=fUJI55TfiwRaBr78YtSxDlMurKMRA4kQ0eQY+fujst4I0hO4C2L3Rlnd3fAtUmLuZ
-	 YzVCwgPAVf0Y4oQdYRUIBge55GdqwSR+tEKxfNMGCCGoaide4JP4JGa4lIddIL+tyY
-	 u/FGPAy977Q3boaEVni4kMQP+0fy8eSlIAbCLNQY=
-Date: Fri, 05 Jan 2024 10:46:06 -0800
-To: mm-commits@vger.kernel.org,vgoyal@redhat.com,tiwai@suse.de,tglx@linutronix.de,sourabhjain@linux.ibm.com,mingo@redhat.com,hpa@zytor.com,hbathini@linux.ibm.com,dyoung@redhat.com,dave.hansen@linux.intel.com,bp@alien8.de,bhe@redhat.com,ytcoode@gmail.com,akpm@linux-foundation.org
+	b=m4BKwmiUskcrwEZiwT52gOn9ai+PneZs9mB5ZctmCKtekjluxhBLYCnS1lUtnrvqV
+	 XHSwEdMXqzJDxriE/SnxzPXrZQ30Lppk+t0ndmqs7yVJ6Y9g7r/hEmEAPRecSrVe3z
+	 VW2KGMpkAx72XRzlEpA8kZtigdetEMuLlHTjXMJM=
+Date: Fri, 05 Jan 2024 11:33:24 -0800
+To: mm-commits@vger.kernel.org,ndesaulniers@google.com,lkp@intel.com,bcain@quicinc.com,acme@kernel.org,nathan@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] crash_core-fix-and-simplify-the-logic-of-crash_exclude_mem_range.patch removed from -mm tree
-Message-Id: <20240105184606.F3C68C433C8@smtp.kernel.org>
+Subject: + lib-kconfigdebug-disable-config_debug_info_btf-for-hexagon.patch added to mm-nonmm-unstable branch
+Message-Id: <20240105193325.7F49CC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -26,164 +26,73 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: crash_core: fix and simplify the logic of crash_exclude_mem_range()
-has been removed from the -mm tree.  Its filename was
-     crash_core-fix-and-simplify-the-logic-of-crash_exclude_mem_range.patch
+The patch titled
+     Subject: lib/Kconfig.debug: disable CONFIG_DEBUG_INFO_BTF for Hexagon
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-kconfigdebug-disable-config_debug_info_btf-for-hexagon.patch
 
-This patch was dropped because it was merged into the mm-nonmm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-kconfigdebug-disable-config_debug_info_btf-for-hexagon.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yuntao Wang <ytcoode@gmail.com>
-Subject: crash_core: fix and simplify the logic of crash_exclude_mem_range()
-Date: Tue, 2 Jan 2024 22:49:05 +0800
+From: Nathan Chancellor <nathan@kernel.org>
+Subject: lib/Kconfig.debug: disable CONFIG_DEBUG_INFO_BTF for Hexagon
+Date: Fri, 05 Jan 2024 12:13:04 -0700
 
-The purpose of crash_exclude_mem_range() is to remove all memory ranges
-that overlap with [mstart-mend].  However, the current logic only removes
-the first overlapping memory range.
+pahole, which generates BTF, relies on elfutils to process DWARF debug
+info.  Because kernel modules are relocatable files, elfutils needs to
+resolve relocations when processing the DWARF .debug sections.
 
-Commit a2e9a95d2190 ("kexec: Improve & fix crash_exclude_mem_range() to
-handle overlapping ranges") attempted to address this issue, but it did
-not fix all error cases.
+Hexagon is not supported in binutils or elfutils, so elfutils is unable to
+process relocations in kernel modules, causing pahole to crash during BTF
+generation.
 
-Let's fix and simplify the logic of crash_exclude_mem_range().
+Do not allow CONFIG_DEBUG_INFO_BTF to be selected for Hexagon until it is
+supported in elfutils, so that there are no more cryptic build failures
+during BTF generation.
 
-Link: https://lkml.kernel.org/r/20240102144905.110047-4-ytcoode@gmail.com
-Signed-off-by: Yuntao Wang <ytcoode@gmail.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Borislav Petkov (AMD) <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Hari Bathini <hbathini@linux.ibm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Link: https://lkml.kernel.org/r/20240105-hexagon-disable-btf-v1-1-ddab073e7f74@kernel.org
+Signed-off-by: Nathan Chancellor <nathan@kernel.org>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202312192107.wMIKiZWw-lkp@intel.com/
+Suggested-by: Nick Desaulniers <ndesaulniers@google.com>
+Acked-by: Brian Cain <bcain@quicinc.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/crash_core.c |   80 +++++++++++++++---------------------------
- 1 file changed, 29 insertions(+), 51 deletions(-)
+ lib/Kconfig.debug |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/kernel/crash_core.c~crash_core-fix-and-simplify-the-logic-of-crash_exclude_mem_range
-+++ a/kernel/crash_core.c
-@@ -566,9 +566,8 @@ int crash_prepare_elf64_headers(struct c
- int crash_exclude_mem_range(struct crash_mem *mem,
- 			    unsigned long long mstart, unsigned long long mend)
- {
--	int i, j;
-+	int i;
- 	unsigned long long start, end, p_start, p_end;
--	struct range temp_range = {0, 0};
- 
- 	for (i = 0; i < mem->nr_ranges; i++) {
- 		start = mem->ranges[i].start;
-@@ -576,72 +575,51 @@ int crash_exclude_mem_range(struct crash
- 		p_start = mstart;
- 		p_end = mend;
- 
--		if (mstart > end || mend < start)
-+		if (p_start > end)
- 			continue;
- 
-+		/*
-+		 * Because the memory ranges in mem->ranges are stored in
-+		 * ascending order, when we detect `p_end < start`, we can
-+		 * immediately exit the for loop, as the subsequent memory
-+		 * ranges will definitely be outside the range we are looking
-+		 * for.
-+		 */
-+		if (p_end < start)
-+			break;
-+
- 		/* Truncate any area outside of range */
--		if (mstart < start)
-+		if (p_start < start)
- 			p_start = start;
--		if (mend > end)
-+		if (p_end > end)
- 			p_end = end;
- 
- 		/* Found completely overlapping range */
- 		if (p_start == start && p_end == end) {
--			mem->ranges[i].start = 0;
--			mem->ranges[i].end = 0;
--			if (i < mem->nr_ranges - 1) {
--				/* Shift rest of the ranges to left */
--				for (j = i; j < mem->nr_ranges - 1; j++) {
--					mem->ranges[j].start =
--						mem->ranges[j+1].start;
--					mem->ranges[j].end =
--							mem->ranges[j+1].end;
--				}
--
--				/*
--				 * Continue to check if there are another overlapping ranges
--				 * from the current position because of shifting the above
--				 * mem ranges.
--				 */
--				i--;
--				mem->nr_ranges--;
--				continue;
--			}
-+			memmove(&mem->ranges[i], &mem->ranges[i + 1],
-+				(mem->nr_ranges - (i + 1)) * sizeof(mem->ranges[i]));
-+			i--;
- 			mem->nr_ranges--;
--			return 0;
--		}
--
--		if (p_start > start && p_end < end) {
-+		} else if (p_start > start && p_end < end) {
- 			/* Split original range */
-+			if (mem->nr_ranges >= mem->max_nr_ranges)
-+				return -ENOMEM;
-+
-+			memmove(&mem->ranges[i + 2], &mem->ranges[i + 1],
-+				(mem->nr_ranges - (i + 1)) * sizeof(mem->ranges[i]));
-+
- 			mem->ranges[i].end = p_start - 1;
--			temp_range.start = p_end + 1;
--			temp_range.end = end;
-+			mem->ranges[i + 1].start = p_end + 1;
-+			mem->ranges[i + 1].end = end;
-+
-+			i++;
-+			mem->nr_ranges++;
- 		} else if (p_start != start)
- 			mem->ranges[i].end = p_start - 1;
- 		else
- 			mem->ranges[i].start = p_end + 1;
--		break;
--	}
--
--	/* If a split happened, add the split to array */
--	if (!temp_range.end)
--		return 0;
--
--	/* Split happened */
--	if (i == mem->max_nr_ranges - 1)
--		return -ENOMEM;
--
--	/* Location where new range should go */
--	j = i + 1;
--	if (j < mem->nr_ranges) {
--		/* Move over all ranges one slot towards the end */
--		for (i = mem->nr_ranges - 1; i >= j; i--)
--			mem->ranges[i + 1] = mem->ranges[i];
- 	}
- 
--	mem->ranges[j].start = temp_range.start;
--	mem->ranges[j].end = temp_range.end;
--	mem->nr_ranges++;
- 	return 0;
- }
- 
+--- a/lib/Kconfig.debug~lib-kconfigdebug-disable-config_debug_info_btf-for-hexagon
++++ a/lib/Kconfig.debug
+@@ -378,6 +378,8 @@ config DEBUG_INFO_BTF
+ 	depends on !GCC_PLUGIN_RANDSTRUCT || COMPILE_TEST
+ 	depends on BPF_SYSCALL
+ 	depends on !DEBUG_INFO_DWARF5 || PAHOLE_VERSION >= 121
++	# pahole uses elfutils, which does not have support for Hexagon relocations
++	depends on !HEXAGON
+ 	help
+ 	  Generate deduplicated BTF type information from DWARF debug info.
+ 	  Turning this on expects presence of pahole tool, which will convert
 _
 
-Patches currently in -mm which might be from ytcoode@gmail.com are
+Patches currently in -mm which might be from nathan@kernel.org are
 
+lib-kconfigdebug-disable-config_debug_info_btf-for-hexagon.patch
 
