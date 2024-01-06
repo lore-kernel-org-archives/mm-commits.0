@@ -1,105 +1,55 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7AB335EF7;
-	Fri,  5 Jan 2024 19:43:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3109C3C15;
+	Sat,  6 Jan 2024 05:04:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="farBdVQi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34351C433C7;
-	Fri,  5 Jan 2024 19:43:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704483795;
-	bh=MdXjGizu6OM6cf5fY1g8ytFP0y5aZO9iXKxYNAAMmfI=;
-	h=Date:From:To:Cc:Subject:From;
-	b=farBdVQiHkFQZInv977PSDycPgR6GkXu+GoBTooYZu/fNnzIzYNjv41m9yWWEKZsy
-	 ft+3hhrgCi7Hv35XROtqSP7iNXFFQMga47gNi+Bmalu1M8g+7zgYrNf5M1O7tIO0e+
-	 e0i8hQEVDXuRyyOAMLopDWzsBf7Ygt9J6tjSHK4k=
-Date: Fri, 5 Jan 2024 11:43:14 -0800
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.8
-Message-Id: <20240105114314.820c25628928c57f639058fe@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gG67+Boh"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 065C5C433C8;
+	Sat,  6 Jan 2024 05:04:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1704517468;
+	bh=q/WzVRZpHOAvbucPbSrrmKYwXADrzRiNmaAqfuQhbMY=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+	b=gG67+Boh5/o0FPYxjDphhCtIH/yjXwU3LH/KVS7lJZqis8cB0X6qTOM9VVPUguMCd
+	 5McjhVU5UGLROJLXsa1tBVuLRtxzZGpQH1fBtBwcKRww5K5gEG/WbhgP8ZZ49J8Hjp
+	 eXRGjh6/Rcs3GYwVmaRxAtjCqwpiGa9ljqXGXu+z3Nyk4zcG40avPXEjOPgc8/4crI
+	 HwALN7oWjTTYwgD2KAeZkvbbPw31/jZA86CbB/unAmLBp0zzU4FjwQGeUfEhShTlLk
+	 pt8tGwj6//oHsfUQWFXN3bgAcmoWq4zZ5jjSsg5L84o19aIBWxv7sLRSZmiT7YuCbg
+	 k6ZeYA9X22AWg==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id E319DDCB6CD;
+	Sat,  6 Jan 2024 05:04:27 +0000 (UTC)
+Subject: Re: [GIT PULL] hotfixes for 6.8
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <20240105114314.820c25628928c57f639058fe@linux-foundation.org>
+References: <20240105114314.820c25628928c57f639058fe@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20240105114314.820c25628928c57f639058fe@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-01-05-11-35
+X-PR-Tracked-Commit-Id: 7fba9420b726561966e1671004df60a08b39beb3
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 95c8a35f1c017327eab3b6a2ff5c04255737c856
+Message-Id: <170451746792.9519.10559423595952441430.pr-tracker-bot@kernel.org>
+Date: Sat, 06 Jan 2024 05:04:27 +0000
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
+The pull request you sent on Fri, 5 Jan 2024 11:43:14 -0800:
 
-Linus, please merge this batch of hotfixes, thanks.
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-01-05-11-35
 
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/95c8a35f1c017327eab3b6a2ff5c04255737c856
 
-The following changes since commit 1803d0c5ee1a3bbee23db2336e21add067824f02:
+Thank you!
 
-  mailmap: add an old address for Naoya Horiguchi (2023-12-20 13:46:20 -0800)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-01-05-11-35
-
-for you to fetch changes up to 7fba9420b726561966e1671004df60a08b39beb3:
-
-  mm: shrinker: use kvzalloc_node() from expand_one_shrinker_info() (2024-01-05 09:58:32 -0800)
-
-----------------------------------------------------------------
-12 hotfixes.  2 are cc:stable and the remainder either address post-6.7
-issues or aren't considered necessary for earlier kernel versions.
-
-----------------------------------------------------------------
-Baolin Wang (1):
-      mm: memcg: fix split queue list crash when large folio migration
-
-Jiajun Xie (1):
-      mm: fix unmap_mapping_range high bits shift bug
-
-Jingbo Xu (2):
-      mm: fix arithmetic for bdi min_ratio
-      mm: fix arithmetic for max_prop_frac when setting max_ratio
-
-Mathieu Othacehe (1):
-      mailmap: add entries for Mathieu Othacehe
-
-Mike Kravetz (1):
-      MAINTAINERS: remove hugetlb maintainer Mike Kravetz
-
-Naoya Horiguchi (1):
-      MAINTAINERS: hand over hwpoison maintainership to Miaohe Lin
-
-Rik van Riel (1):
-      mm: align larger anonymous mappings on THP boundaries
-
-Suren Baghdasaryan (1):
-      arch/mm/fault: fix major fault accounting when retrying under per-VMA lock
-
-Tetsuo Handa (1):
-      mm: shrinker: use kvzalloc_node() from expand_one_shrinker_info()
-
-Yu Zhao (1):
-      mm/mglru: skip special VMAs in lru_gen_look_around()
-
-Zack Rusin (1):
-      MAINTAINERS: change vmware.com addresses to broadcom.com
-
- .mailmap                |  3 ++-
- CREDITS                 |  4 ++++
- MAINTAINERS             | 14 ++++++--------
- arch/arm64/mm/fault.c   |  2 ++
- arch/powerpc/mm/fault.c |  2 ++
- arch/riscv/mm/fault.c   |  2 ++
- arch/s390/mm/fault.c    |  3 +++
- arch/x86/mm/fault.c     |  2 ++
- mm/huge_memory.c        |  2 +-
- mm/memcontrol.c         | 11 +++++++++++
- mm/memory.c             |  4 ++--
- mm/mmap.c               |  3 +++
- mm/page-writeback.c     |  4 ++--
- mm/shrinker.c           |  2 +-
- mm/vmscan.c             | 13 +++++++++----
- 15 files changed, 52 insertions(+), 19 deletions(-)
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
