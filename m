@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81C1411C86
-	for <mm-commits@vger.kernel.org>; Sun,  7 Jan 2024 22:12:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A97211C87
+	for <mm-commits@vger.kernel.org>; Sun,  7 Jan 2024 22:14:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OGmo6qS0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF387C433C8;
-	Sun,  7 Jan 2024 22:12:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DDYBHUst"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84BFBC433C8;
+	Sun,  7 Jan 2024 22:14:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704665550;
-	bh=XUMiK+5yquqNBgXZ9coMfYh8o+XTNgEUHljr7Vl/A5s=;
+	s=korg; t=1704665657;
+	bh=QoTYvddmA6uKX+ToynsEoAGsgjdxjybtNKX7Mehrr+s=;
 	h=Date:To:From:Subject:From;
-	b=OGmo6qS0/veli5ioCUE94eVQ4Rn1QWdvL0lkw9pHX7HimNd/YilI8LMqX8qGZVZy6
-	 IXnHYiowg+D8OaeAZFxOa3V44TJ9VKhh38HLWbVKuwiyms7H8tS5p1KDYtDnNRsGS7
-	 nWuVq+o4rtrg8r8khn1FiyXr6Nq1+dPCkbKMy2c4=
-Date: Sun, 07 Jan 2024 14:12:30 -0800
-To: mm-commits@vger.kernel.org,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
+	b=DDYBHUstXLoCyrjfvK8ra+f+un2QaT/7LNFviAZIwkCnmdM8KpmRRw9S3MVviFBrf
+	 5gs+Dot1Yx6u7iK77cgzLMlMAdfrh4JHvvrkHhF9q2INejUxc7wZlGzDr9dMK6Colk
+	 rbEQrP+VHhl3mihjK4gzkKvM/ytnAwDqGyya5Jdo=
+Date: Sun, 07 Jan 2024 14:14:16 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,torvalds@linux-foundation.org,kirill.shutemov@linux.intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-treewide-introduce-nr_page_orders-fix.patch removed from -mm tree
-Message-Id: <20240107221230.DF387C433C8@smtp.kernel.org>
+Subject: [merged mm-stable] mm-treewide-introduce-nr_page_orders.patch removed from -mm tree
+Message-Id: <20240107221417.84BFBC433C8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,42 +27,418 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-treewide-introduce-nr_page_orders-fix
+     Subject: mm, treewide: introduce NR_PAGE_ORDERS
 has been removed from the -mm tree.  Its filename was
-     mm-treewide-introduce-nr_page_orders-fix.patch
+     mm-treewide-introduce-nr_page_orders.patch
 
-This patch was dropped because it was folded into mm-treewide-introduce-nr_page_orders.patch
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm-treewide-introduce-nr_page_orders-fix
-Date: Mon, 1 Jan 2024 14:15:12 +0300
+Subject: mm, treewide: introduce NR_PAGE_ORDERS
+Date: Thu, 28 Dec 2023 17:47:03 +0300
 
-fixup for kerneldoc warning
+NR_PAGE_ORDERS defines the number of page orders supported by the page
+allocator, ranging from 0 to MAX_ORDER, MAX_ORDER + 1 in total.
 
-Link: https://lkml.kernel.org/r/20240101111512.7empzyifq7kxtzk3@box
-Signed-off-by: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+NR_PAGE_ORDERS assists in defining arrays of page orders and allows for
+more natural iteration over them.
+
+[kirill.shutemov@linux.intel.com: fixup for kerneldoc warning]
+  Link: https://lkml.kernel.org/r/20240101111512.7empzyifq7kxtzk3@box
+Link: https://lkml.kernel.org/r/20231228144704.14033-1-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kdump/vmcoreinfo.rst |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/admin-guide/kdump/vmcoreinfo.rst |    6 ++--
+ arch/arm64/kvm/hyp/include/nvhe/gfp.h          |    2 -
+ arch/sparc/kernel/traps_64.c                   |    2 -
+ drivers/gpu/drm/ttm/tests/ttm_device_test.c    |    2 -
+ drivers/gpu/drm/ttm/ttm_pool.c                 |   20 +++++++--------
+ include/drm/ttm/ttm_pool.h                     |    2 -
+ include/linux/mmzone.h                         |    6 +++-
+ kernel/crash_core.c                            |    2 -
+ lib/test_meminit.c                             |    2 -
+ mm/compaction.c                                |    2 -
+ mm/kmsan/init.c                                |    2 -
+ mm/page_alloc.c                                |   13 ++++-----
+ mm/page_reporting.c                            |    2 -
+ mm/show_mem.c                                  |    8 +++---
+ mm/vmstat.c                                    |   12 ++++-----
+ 15 files changed, 42 insertions(+), 41 deletions(-)
 
---- a/Documentation/admin-guide/kdump/vmcoreinfo.rst~mm-treewide-introduce-nr_page_orders-fix
+--- a/arch/arm64/kvm/hyp/include/nvhe/gfp.h~mm-treewide-introduce-nr_page_orders
++++ a/arch/arm64/kvm/hyp/include/nvhe/gfp.h
+@@ -16,7 +16,7 @@ struct hyp_pool {
+ 	 * API at EL2.
+ 	 */
+ 	hyp_spinlock_t lock;
+-	struct list_head free_area[MAX_ORDER + 1];
++	struct list_head free_area[NR_PAGE_ORDERS];
+ 	phys_addr_t range_start;
+ 	phys_addr_t range_end;
+ 	unsigned short max_order;
+--- a/arch/sparc/kernel/traps_64.c~mm-treewide-introduce-nr_page_orders
++++ a/arch/sparc/kernel/traps_64.c
+@@ -897,7 +897,7 @@ void __init cheetah_ecache_flush_init(vo
+ 
+ 	/* Now allocate error trap reporting scoreboard. */
+ 	sz = NR_CPUS * (2 * sizeof(struct cheetah_err_info));
+-	for (order = 0; order <= MAX_ORDER; order++) {
++	for (order = 0; order < NR_PAGE_ORDERS; order++) {
+ 		if ((PAGE_SIZE << order) >= sz)
+ 			break;
+ 	}
+--- a/Documentation/admin-guide/kdump/vmcoreinfo.rst~mm-treewide-introduce-nr_page_orders
 +++ a/Documentation/admin-guide/kdump/vmcoreinfo.rst
-@@ -190,7 +190,7 @@ information. Makedumpfile gets the start
+@@ -172,7 +172,7 @@ variables.
+ Offset of the free_list's member. This value is used to compute the number
+ of free pages.
+ 
+-Each zone has a free_area structure array called free_area[MAX_ORDER + 1].
++Each zone has a free_area structure array called free_area[NR_PAGE_ORDERS].
+ The free_list represents a linked list of free page blocks.
+ 
+ (list_head, next|prev)
+@@ -189,8 +189,8 @@ Offsets of the vmap_area's members. They
+ information. Makedumpfile gets the start address of the vmalloc region
  from this.
  
- (zone.free_area, NR_PAGE_ORDERS)
+-(zone.free_area, MAX_ORDER + 1)
 --------------------------------
++(zone.free_area, NR_PAGE_ORDERS)
 +--------------------------------
  
  Free areas descriptor. User-space tools use this value to iterate the
  free_area ranges. MAX_ORDER is used by the zone buddy allocator.
+--- a/drivers/gpu/drm/ttm/tests/ttm_device_test.c~mm-treewide-introduce-nr_page_orders
++++ a/drivers/gpu/drm/ttm/tests/ttm_device_test.c
+@@ -175,7 +175,7 @@ static void ttm_device_init_pools(struct
+ 
+ 	if (params->pools_init_expected) {
+ 		for (int i = 0; i < TTM_NUM_CACHING_TYPES; ++i) {
+-			for (int j = 0; j <= MAX_ORDER; ++j) {
++			for (int j = 0; j < NR_PAGE_ORDERS; ++j) {
+ 				pt = pool->caching[i].orders[j];
+ 				KUNIT_EXPECT_PTR_EQ(test, pt.pool, pool);
+ 				KUNIT_EXPECT_EQ(test, pt.caching, i);
+--- a/drivers/gpu/drm/ttm/ttm_pool.c~mm-treewide-introduce-nr_page_orders
++++ a/drivers/gpu/drm/ttm/ttm_pool.c
+@@ -65,11 +65,11 @@ module_param(page_pool_size, ulong, 0644
+ 
+ static atomic_long_t allocated_pages;
+ 
+-static struct ttm_pool_type global_write_combined[MAX_ORDER + 1];
+-static struct ttm_pool_type global_uncached[MAX_ORDER + 1];
++static struct ttm_pool_type global_write_combined[NR_PAGE_ORDERS];
++static struct ttm_pool_type global_uncached[NR_PAGE_ORDERS];
+ 
+-static struct ttm_pool_type global_dma32_write_combined[MAX_ORDER + 1];
+-static struct ttm_pool_type global_dma32_uncached[MAX_ORDER + 1];
++static struct ttm_pool_type global_dma32_write_combined[NR_PAGE_ORDERS];
++static struct ttm_pool_type global_dma32_uncached[NR_PAGE_ORDERS];
+ 
+ static spinlock_t shrinker_lock;
+ static struct list_head shrinker_list;
+@@ -568,7 +568,7 @@ void ttm_pool_init(struct ttm_pool *pool
+ 
+ 	if (use_dma_alloc || nid != NUMA_NO_NODE) {
+ 		for (i = 0; i < TTM_NUM_CACHING_TYPES; ++i)
+-			for (j = 0; j <= MAX_ORDER; ++j)
++			for (j = 0; j < NR_PAGE_ORDERS; ++j)
+ 				ttm_pool_type_init(&pool->caching[i].orders[j],
+ 						   pool, i, j);
+ 	}
+@@ -601,7 +601,7 @@ void ttm_pool_fini(struct ttm_pool *pool
+ 
+ 	if (pool->use_dma_alloc || pool->nid != NUMA_NO_NODE) {
+ 		for (i = 0; i < TTM_NUM_CACHING_TYPES; ++i)
+-			for (j = 0; j <= MAX_ORDER; ++j)
++			for (j = 0; j < NR_PAGE_ORDERS; ++j)
+ 				ttm_pool_type_fini(&pool->caching[i].orders[j]);
+ 	}
+ 
+@@ -656,7 +656,7 @@ static void ttm_pool_debugfs_header(stru
+ 	unsigned int i;
+ 
+ 	seq_puts(m, "\t ");
+-	for (i = 0; i <= MAX_ORDER; ++i)
++	for (i = 0; i < NR_PAGE_ORDERS; ++i)
+ 		seq_printf(m, " ---%2u---", i);
+ 	seq_puts(m, "\n");
+ }
+@@ -667,7 +667,7 @@ static void ttm_pool_debugfs_orders(stru
+ {
+ 	unsigned int i;
+ 
+-	for (i = 0; i <= MAX_ORDER; ++i)
++	for (i = 0; i < NR_PAGE_ORDERS; ++i)
+ 		seq_printf(m, " %8u", ttm_pool_type_count(&pt[i]));
+ 	seq_puts(m, "\n");
+ }
+@@ -776,7 +776,7 @@ int ttm_pool_mgr_init(unsigned long num_
+ 	spin_lock_init(&shrinker_lock);
+ 	INIT_LIST_HEAD(&shrinker_list);
+ 
+-	for (i = 0; i <= MAX_ORDER; ++i) {
++	for (i = 0; i < NR_PAGE_ORDERS; ++i) {
+ 		ttm_pool_type_init(&global_write_combined[i], NULL,
+ 				   ttm_write_combined, i);
+ 		ttm_pool_type_init(&global_uncached[i], NULL, ttm_uncached, i);
+@@ -816,7 +816,7 @@ void ttm_pool_mgr_fini(void)
+ {
+ 	unsigned int i;
+ 
+-	for (i = 0; i <= MAX_ORDER; ++i) {
++	for (i = 0; i < NR_PAGE_ORDERS; ++i) {
+ 		ttm_pool_type_fini(&global_write_combined[i]);
+ 		ttm_pool_type_fini(&global_uncached[i]);
+ 
+--- a/include/drm/ttm/ttm_pool.h~mm-treewide-introduce-nr_page_orders
++++ a/include/drm/ttm/ttm_pool.h
+@@ -74,7 +74,7 @@ struct ttm_pool {
+ 	bool use_dma32;
+ 
+ 	struct {
+-		struct ttm_pool_type orders[MAX_ORDER + 1];
++		struct ttm_pool_type orders[NR_PAGE_ORDERS];
+ 	} caching[TTM_NUM_CACHING_TYPES];
+ };
+ 
+--- a/include/linux/mmzone.h~mm-treewide-introduce-nr_page_orders
++++ a/include/linux/mmzone.h
+@@ -35,6 +35,8 @@
+ 
+ #define IS_MAX_ORDER_ALIGNED(pfn) IS_ALIGNED(pfn, MAX_ORDER_NR_PAGES)
+ 
++#define NR_PAGE_ORDERS (MAX_ORDER + 1)
++
+ /*
+  * PAGE_ALLOC_COSTLY_ORDER is the order at which allocations are deemed
+  * costly to service.  That is between allocation orders which should
+@@ -96,7 +98,7 @@ static inline bool migratetype_is_mergea
+ }
+ 
+ #define for_each_migratetype_order(order, type) \
+-	for (order = 0; order <= MAX_ORDER; order++) \
++	for (order = 0; order < NR_PAGE_ORDERS; order++) \
+ 		for (type = 0; type < MIGRATE_TYPES; type++)
+ 
+ extern int page_group_by_mobility_disabled;
+@@ -933,7 +935,7 @@ struct zone {
+ 	CACHELINE_PADDING(_pad1_);
+ 
+ 	/* free areas of different sizes */
+-	struct free_area	free_area[MAX_ORDER + 1];
++	struct free_area	free_area[NR_PAGE_ORDERS];
+ 
+ #ifdef CONFIG_UNACCEPTED_MEMORY
+ 	/* Pages to be accepted. All pages on the list are MAX_ORDER */
+--- a/kernel/crash_core.c~mm-treewide-introduce-nr_page_orders
++++ a/kernel/crash_core.c
+@@ -802,7 +802,7 @@ static int __init crash_save_vmcoreinfo_
+ 	VMCOREINFO_OFFSET(list_head, prev);
+ 	VMCOREINFO_OFFSET(vmap_area, va_start);
+ 	VMCOREINFO_OFFSET(vmap_area, list);
+-	VMCOREINFO_LENGTH(zone.free_area, MAX_ORDER + 1);
++	VMCOREINFO_LENGTH(zone.free_area, NR_PAGE_ORDERS);
+ 	log_buf_vmcoreinfo_setup();
+ 	VMCOREINFO_LENGTH(free_area.free_list, MIGRATE_TYPES);
+ 	VMCOREINFO_NUMBER(NR_FREE_PAGES);
+--- a/lib/test_meminit.c~mm-treewide-introduce-nr_page_orders
++++ a/lib/test_meminit.c
+@@ -93,7 +93,7 @@ static int __init test_pages(int *total_
+ 	int failures = 0, num_tests = 0;
+ 	int i;
+ 
+-	for (i = 0; i <= MAX_ORDER; i++)
++	for (i = 0; i < NR_PAGE_ORDERS; i++)
+ 		num_tests += do_alloc_pages_order(i, &failures);
+ 
+ 	REPORT_FAILURES_IN_FN();
+--- a/mm/compaction.c~mm-treewide-introduce-nr_page_orders
++++ a/mm/compaction.c
+@@ -2229,7 +2229,7 @@ static enum compact_result __compact_fin
+ 
+ 	/* Direct compactor: Is a suitable page free? */
+ 	ret = COMPACT_NO_SUITABLE_PAGE;
+-	for (order = cc->order; order <= MAX_ORDER; order++) {
++	for (order = cc->order; order < NR_PAGE_ORDERS; order++) {
+ 		struct free_area *area = &cc->zone->free_area[order];
+ 		bool can_steal;
+ 
+--- a/mm/kmsan/init.c~mm-treewide-introduce-nr_page_orders
++++ a/mm/kmsan/init.c
+@@ -96,7 +96,7 @@ void __init kmsan_init_shadow(void)
+ struct metadata_page_pair {
+ 	struct page *shadow, *origin;
+ };
+-static struct metadata_page_pair held_back[MAX_ORDER + 1] __initdata;
++static struct metadata_page_pair held_back[NR_PAGE_ORDERS] __initdata;
+ 
+ /*
+  * Eager metadata allocation. When the memblock allocator is freeing pages to
+--- a/mm/page_alloc.c~mm-treewide-introduce-nr_page_orders
++++ a/mm/page_alloc.c
+@@ -1560,7 +1560,7 @@ struct page *__rmqueue_smallest(struct z
+ 	struct page *page;
+ 
+ 	/* Find a page of the appropriate size in the preferred list */
+-	for (current_order = order; current_order <= MAX_ORDER; ++current_order) {
++	for (current_order = order; current_order < NR_PAGE_ORDERS; ++current_order) {
+ 		area = &(zone->free_area[current_order]);
+ 		page = get_page_from_free_area(area, migratetype);
+ 		if (!page)
+@@ -1934,7 +1934,7 @@ static bool unreserve_highatomic_pageblo
+ 			continue;
+ 
+ 		spin_lock_irqsave(&zone->lock, flags);
+-		for (order = 0; order <= MAX_ORDER; order++) {
++		for (order = 0; order < NR_PAGE_ORDERS; order++) {
+ 			struct free_area *area = &(zone->free_area[order]);
+ 
+ 			page = get_page_from_free_area(area, MIGRATE_HIGHATOMIC);
+@@ -2044,8 +2044,7 @@ __rmqueue_fallback(struct zone *zone, in
+ 	return false;
+ 
+ find_smallest:
+-	for (current_order = order; current_order <= MAX_ORDER;
+-							current_order++) {
++	for (current_order = order; current_order < NR_PAGE_ORDERS; current_order++) {
+ 		area = &(zone->free_area[current_order]);
+ 		fallback_mt = find_suitable_fallback(area, current_order,
+ 				start_migratetype, false, &can_steal);
+@@ -3000,7 +2999,7 @@ bool __zone_watermark_ok(struct zone *z,
+ 		return true;
+ 
+ 	/* For a high-order request, check at least one suitable page is free */
+-	for (o = order; o <= MAX_ORDER; o++) {
++	for (o = order; o < NR_PAGE_ORDERS; o++) {
+ 		struct free_area *area = &z->free_area[o];
+ 		int mt;
+ 
+@@ -6628,7 +6627,7 @@ bool is_free_buddy_page(struct page *pag
+ 	unsigned long pfn = page_to_pfn(page);
+ 	unsigned int order;
+ 
+-	for (order = 0; order <= MAX_ORDER; order++) {
++	for (order = 0; order < NR_PAGE_ORDERS; order++) {
+ 		struct page *page_head = page - (pfn & ((1 << order) - 1));
+ 
+ 		if (PageBuddy(page_head) &&
+@@ -6683,7 +6682,7 @@ bool take_page_off_buddy(struct page *pa
+ 	bool ret = false;
+ 
+ 	spin_lock_irqsave(&zone->lock, flags);
+-	for (order = 0; order <= MAX_ORDER; order++) {
++	for (order = 0; order < NR_PAGE_ORDERS; order++) {
+ 		struct page *page_head = page - (pfn & ((1 << order) - 1));
+ 		int page_order = buddy_order(page_head);
+ 
+--- a/mm/page_reporting.c~mm-treewide-introduce-nr_page_orders
++++ a/mm/page_reporting.c
+@@ -276,7 +276,7 @@ page_reporting_process_zone(struct page_
+ 		return err;
+ 
+ 	/* Process each free list starting from lowest order/mt */
+-	for (order = page_reporting_order; order <= MAX_ORDER; order++) {
++	for (order = page_reporting_order; order < NR_PAGE_ORDERS; order++) {
+ 		for (mt = 0; mt < MIGRATE_TYPES; mt++) {
+ 			/* We do not pull pages from the isolate free list */
+ 			if (is_migrate_isolate(mt))
+--- a/mm/show_mem.c~mm-treewide-introduce-nr_page_orders
++++ a/mm/show_mem.c
+@@ -352,8 +352,8 @@ static void show_free_areas(unsigned int
+ 
+ 	for_each_populated_zone(zone) {
+ 		unsigned int order;
+-		unsigned long nr[MAX_ORDER + 1], flags, total = 0;
+-		unsigned char types[MAX_ORDER + 1];
++		unsigned long nr[NR_PAGE_ORDERS], flags, total = 0;
++		unsigned char types[NR_PAGE_ORDERS];
+ 
+ 		if (zone_idx(zone) > max_zone_idx)
+ 			continue;
+@@ -363,7 +363,7 @@ static void show_free_areas(unsigned int
+ 		printk(KERN_CONT "%s: ", zone->name);
+ 
+ 		spin_lock_irqsave(&zone->lock, flags);
+-		for (order = 0; order <= MAX_ORDER; order++) {
++		for (order = 0; order < NR_PAGE_ORDERS; order++) {
+ 			struct free_area *area = &zone->free_area[order];
+ 			int type;
+ 
+@@ -377,7 +377,7 @@ static void show_free_areas(unsigned int
+ 			}
+ 		}
+ 		spin_unlock_irqrestore(&zone->lock, flags);
+-		for (order = 0; order <= MAX_ORDER; order++) {
++		for (order = 0; order < NR_PAGE_ORDERS; order++) {
+ 			printk(KERN_CONT "%lu*%lukB ",
+ 			       nr[order], K(1UL) << order);
+ 			if (nr[order])
+--- a/mm/vmstat.c~mm-treewide-introduce-nr_page_orders
++++ a/mm/vmstat.c
+@@ -1059,7 +1059,7 @@ static void fill_contig_page_info(struct
+ 	info->free_blocks_total = 0;
+ 	info->free_blocks_suitable = 0;
+ 
+-	for (order = 0; order <= MAX_ORDER; order++) {
++	for (order = 0; order < NR_PAGE_ORDERS; order++) {
+ 		unsigned long blocks;
+ 
+ 		/*
+@@ -1476,7 +1476,7 @@ static void frag_show_print(struct seq_f
+ 	int order;
+ 
+ 	seq_printf(m, "Node %d, zone %8s ", pgdat->node_id, zone->name);
+-	for (order = 0; order <= MAX_ORDER; ++order)
++	for (order = 0; order < NR_PAGE_ORDERS; ++order)
+ 		/*
+ 		 * Access to nr_free is lockless as nr_free is used only for
+ 		 * printing purposes. Use data_race to avoid KCSAN warning.
+@@ -1505,7 +1505,7 @@ static void pagetypeinfo_showfree_print(
+ 					pgdat->node_id,
+ 					zone->name,
+ 					migratetype_names[mtype]);
+-		for (order = 0; order <= MAX_ORDER; ++order) {
++		for (order = 0; order < NR_PAGE_ORDERS; ++order) {
+ 			unsigned long freecount = 0;
+ 			struct free_area *area;
+ 			struct list_head *curr;
+@@ -1545,7 +1545,7 @@ static void pagetypeinfo_showfree(struct
+ 
+ 	/* Print header */
+ 	seq_printf(m, "%-43s ", "Free pages count per migrate type at order");
+-	for (order = 0; order <= MAX_ORDER; ++order)
++	for (order = 0; order < NR_PAGE_ORDERS; ++order)
+ 		seq_printf(m, "%6d ", order);
+ 	seq_putc(m, '\n');
+ 
+@@ -2181,7 +2181,7 @@ static void unusable_show_print(struct s
+ 	seq_printf(m, "Node %d, zone %8s ",
+ 				pgdat->node_id,
+ 				zone->name);
+-	for (order = 0; order <= MAX_ORDER; ++order) {
++	for (order = 0; order < NR_PAGE_ORDERS; ++order) {
+ 		fill_contig_page_info(zone, order, &info);
+ 		index = unusable_free_index(order, &info);
+ 		seq_printf(m, "%d.%03d ", index / 1000, index % 1000);
+@@ -2233,7 +2233,7 @@ static void extfrag_show_print(struct se
+ 	seq_printf(m, "Node %d, zone %8s ",
+ 				pgdat->node_id,
+ 				zone->name);
+-	for (order = 0; order <= MAX_ORDER; ++order) {
++	for (order = 0; order < NR_PAGE_ORDERS; ++order) {
+ 		fill_contig_page_info(zone, order, &info);
+ 		index = __fragmentation_index(order, &info);
+ 		seq_printf(m, "%2d.%03d ", index / 1000, index % 1000);
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-mm-treewide-introduce-nr_page_orders.patch
-mm-treewide-rename-max_order-to-max_page_order.patch
 
