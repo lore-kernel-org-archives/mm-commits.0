@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAAAB4C61D
-	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 16:07:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE5744C61D
+	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 16:07:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2Q2jNfcR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74C6CC433F1;
-	Wed, 10 Jan 2024 16:07:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NubrtpEd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E20BC433C7;
+	Wed, 10 Jan 2024 16:07:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704902873;
-	bh=cIaFW/v8CXvC8Mr4Ac0kb+OCi0CSrOKYLYgZrPq2Sj4=;
+	s=korg; t=1704902875;
+	bh=fC6cgf4FNVorAwCGJwdKJcivFY1Vu8iCpewaie/G9Vc=;
 	h=Date:To:From:Subject:From;
-	b=2Q2jNfcR4hHdeHmgpKBQrM9wowHT4FunGJFicvP5pqOW4X5iwy4lkoimFaz8gWowD
-	 gadNlvfMPqgmTE2FGFRYhNk49wdwp5FEiobD5oKYrOSVlTJOLs9ryXKELzqypGuOhj
-	 BzJYVbSPHLGOtHvzQlh81slB5eS2quM/iAlasf1Q=
-Date: Wed, 10 Jan 2024 08:07:52 -0800
+	b=NubrtpEdOvhE09yoIcTch02txJFVbFHziSw3T2GfyI32vH9bAxv5dOulJ53IEAu6U
+	 daOEcshU+EdOkXhdZWAkiE8dHafJvT0KfgWkljuPdfkft1eymMHT7w0rLArtcUrKDw
+	 NNglpyVUKpz8Dmfr7JojHZC6PfBddASqIOUT9tPg=
+Date: Wed, 10 Jan 2024 08:07:54 -0800
 To: mm-commits@vger.kernel.org,tglx@linutronix.de,ming.lei@redhat.com,linux@rasmusvillemoes.dk,andriy.shevchenko@linux.intel.com,yury.norov@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + cpumask-define-cleanup-function-for-cpumasks.patch added to mm-nonmm-unstable branch
-Message-Id: <20240110160753.74C6CC433F1@smtp.kernel.org>
+Subject: + lib-group_cpus-rework-group_cpus_evenly.patch added to mm-nonmm-unstable branch
+Message-Id: <20240110160755.3E20BC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: cpumask: define cleanup function for cpumasks
+     Subject: lib/group_cpus: rework group_cpus_evenly()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     cpumask-define-cleanup-function-for-cpumasks.patch
+     lib-group_cpus-rework-group_cpus_evenly.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cpumask-define-cleanup-function-for-cpumasks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-group_cpus-rework-group_cpus_evenly.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,12 +51,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yury Norov <yury.norov@gmail.com>
-Subject: cpumask: define cleanup function for cpumasks
-Date: Thu, 28 Dec 2023 12:09:34 -0800
+Subject: lib/group_cpus: rework group_cpus_evenly()
+Date: Thu, 28 Dec 2023 12:09:35 -0800
 
-Now we can simplify a code that allocates cpumasks for local needs.
+Leverage cleanup machinery and drop most of housekeeping code. 
+Particularly, drop unneeded and erroneously initialized with -ENOMEM
+variable ret.
 
-Link: https://lkml.kernel.org/r/20231228200936.2475595-8-yury.norov@gmail.com
+Link: https://lkml.kernel.org/r/20231228200936.2475595-9-yury.norov@gmail.com
 Signed-off-by: Yury Norov <yury.norov@gmail.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Ming Lei <ming.lei@redhat.com>
@@ -65,28 +67,120 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpumask.h |    3 +++
- 1 file changed, 3 insertions(+)
+ lib/group_cpus.c |   77 ++++++++++++++-------------------------------
+ 1 file changed, 24 insertions(+), 53 deletions(-)
 
---- a/include/linux/cpumask.h~cpumask-define-cleanup-function-for-cpumasks
-+++ a/include/linux/cpumask.h
-@@ -7,6 +7,7 @@
-  * set of CPUs in a system, one bit position per CPU number.  In general,
-  * only nr_cpu_ids (<= NR_CPUS) bits are valid.
-  */
-+#include <linux/cleanup.h>
- #include <linux/kernel.h>
- #include <linux/threads.h>
- #include <linux/bitmap.h>
-@@ -988,6 +989,8 @@ static inline bool cpumask_available(cpu
+--- a/lib/group_cpus.c~lib-group_cpus-rework-group_cpus_evenly
++++ a/lib/group_cpus.c
+@@ -76,6 +76,8 @@ static void free_node_to_cpumask(cpumask
+ 	kfree(masks);
  }
- #endif /* CONFIG_CPUMASK_OFFSTACK */
  
-+DEFINE_FREE(free_cpumask_var, struct cpumask *, if (_T) free_cpumask_var(_T));
++DEFINE_FREE(free_node_to_cpumask, cpumask_var_t *, if (_T) free_node_to_cpumask(_T));
 +
- /* It's common to want to use cpu_all_mask in struct member initializers,
-  * so it has to refer to an address rather than a pointer. */
- extern const DECLARE_BITMAP(cpu_all_bits, NR_CPUS);
+ static void build_node_to_cpumask(cpumask_var_t *masks)
+ {
+ 	int cpu;
+@@ -345,26 +347,16 @@ static int __group_cpus_evenly(unsigned
+  */
+ struct cpumask *group_cpus_evenly(unsigned int numgrps)
+ {
+-	unsigned int curgrp = 0, nr_present = 0, nr_others = 0;
+-	cpumask_var_t *node_to_cpumask;
+-	cpumask_var_t nmsk, npresmsk;
+-	int ret = -ENOMEM;
+-	struct cpumask *masks = NULL;
++	cpumask_var_t *node_to_cpumask __free(free_node_to_cpumask) = alloc_node_to_cpumask();
++	struct cpumask *masks __free(kfree) = kcalloc(numgrps, sizeof(*masks), GFP_KERNEL);
++	cpumask_var_t npresmsk __free(free_cpumask_var);
++	cpumask_var_t nmsk __free(free_cpumask_var);
++	unsigned int curgrp, nr_present, nr_others;
+ 
+-	if (!alloc_cpumask_var(&nmsk, GFP_KERNEL))
++	if (!masks || !node_to_cpumask || !alloc_cpumask_var(&nmsk, GFP_KERNEL)
++			|| !alloc_cpumask_var(&npresmsk, GFP_KERNEL))
+ 		return NULL;
+ 
+-	if (!alloc_cpumask_var(&npresmsk, GFP_KERNEL))
+-		goto fail_nmsk;
+-
+-	node_to_cpumask = alloc_node_to_cpumask();
+-	if (!node_to_cpumask)
+-		goto fail_npresmsk;
+-
+-	masks = kcalloc(numgrps, sizeof(*masks), GFP_KERNEL);
+-	if (!masks)
+-		goto fail_node_to_cpumask;
+-
+ 	build_node_to_cpumask(node_to_cpumask);
+ 
+ 	/*
+@@ -382,11 +374,15 @@ struct cpumask *group_cpus_evenly(unsign
+ 	cpumask_copy(npresmsk, data_race(cpu_present_mask));
+ 
+ 	/* grouping present CPUs first */
+-	ret = __group_cpus_evenly(curgrp, numgrps, node_to_cpumask,
+-				  npresmsk, nmsk, masks);
+-	if (ret < 0)
+-		goto fail_build_affinity;
+-	nr_present = ret;
++	nr_present = __group_cpus_evenly(0, numgrps, node_to_cpumask, npresmsk, nmsk, masks);
++	if (nr_present < 0)
++		return NULL;
++
++	/* If npresmsk is empty */
++	if (!cpumask_andnot(npresmsk, cpu_possible_mask, npresmsk))
++		return_ptr(masks);
++
++	curgrp = nr_present < numgrps ? nr_present : 0;
+ 
+ 	/*
+ 	 * Allocate non present CPUs starting from the next group to be
+@@ -394,38 +390,13 @@ struct cpumask *group_cpus_evenly(unsign
+ 	 * group space, assign the non present CPUs to the already
+ 	 * allocated out groups.
+ 	 */
+-	if (nr_present >= numgrps)
+-		curgrp = 0;
+-	else
+-		curgrp = nr_present;
+-
+-	if (cpumask_andnot(npresmsk, cpu_possible_mask, npresmsk))
+-		/* If npresmsk is not empty */
+-		ret = __group_cpus_evenly(curgrp, numgrps, node_to_cpumask,
+-					  npresmsk, nmsk, masks);
+-	else
+-		ret = 0;
+-
+-	if (ret >= 0)
+-		nr_others = ret;
+-
+- fail_build_affinity:
+-	if (ret >= 0)
+-		WARN_ON(nr_present + nr_others < numgrps);
+-
+- fail_node_to_cpumask:
+-	free_node_to_cpumask(node_to_cpumask);
+-
+- fail_npresmsk:
+-	free_cpumask_var(npresmsk);
+-
+- fail_nmsk:
+-	free_cpumask_var(nmsk);
+-	if (ret < 0) {
+-		kfree(masks);
++	nr_others = __group_cpus_evenly(curgrp, numgrps, node_to_cpumask,
++					npresmsk, nmsk, masks);
++	if (nr_others < 0)
+ 		return NULL;
+-	}
+-	return masks;
++
++	WARN_ON(nr_present + nr_others < numgrps);
++	return_ptr(masks);
+ }
+ #else /* CONFIG_SMP */
+ struct cpumask *group_cpus_evenly(unsigned int numgrps)
 _
 
 Patches currently in -mm which might be from yury.norov@gmail.com are
