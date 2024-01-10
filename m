@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3F6BDDC4
-	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 05:30:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FFF3DDA1
+	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 05:32:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GMsJ6Uz5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6148CC433F1;
-	Wed, 10 Jan 2024 05:30:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lc2ksB4+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14EB6C433C7;
+	Wed, 10 Jan 2024 05:32:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704864602;
-	bh=UzMmHW9WHBGxq9EVPgdEV7mj7GFO+QM+4b5N8As59j8=;
+	s=korg; t=1704864721;
+	bh=60dvsn8BhT7E8seKp4woiiIyhIz92VrdEeMJpvTwo/g=;
 	h=Date:To:From:Subject:From;
-	b=GMsJ6Uz5YZ1ggafffKjOXJmSTxktwYvfYgT/RNGcEe+CWKXRKyJBnorsSnwrCiEBc
-	 +wfnyklKpYKGFedsei7w58qX6AnQ1jYrGmfq+tkDpkaTrc8ndFn8NiPN1lEfAjbe9Z
-	 VmifPuGHoj6xF5LEkmoGE84vES5jns7pCa9ewklU=
-Date: Tue, 09 Jan 2024 21:30:01 -0800
-To: mm-commits@vger.kernel.org,tkjos@android.com,surenb@google.com,mingo@kernel.org,maco@android.com,kent.overstreet@gmail.com,keescook@chromium.org,joel@joelfernandes.org,jani.nikula@intel.com,gregkh@linuxfoundation.org,elver@google.com,colyli@suse.de,cmllamas@google.com,brauner@kernel.org,arve@android.com,andriy.shevchenko@linux.intel.com,pierre.gondois@arm.com,akpm@linux-foundation.org
+	b=lc2ksB4+6Eyg6q1swexwjzEQOWIbxjv50o6VaTZCjreRhK81ondpu42XgGsjLn2rH
+	 yIFfwNFfc1IrQNdhktPRM30TjXK9LU9YqIR3Iih/tU7feD9xkDR/YOwZnXMLeLiK4V
+	 KByfWQSuMmcPVGv5iSQoKb3D6sP8isHGSAgzPDYs=
+Date: Tue, 09 Jan 2024 21:32:00 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,lihongbo22@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + bcache-use-of-hlist_count_nodes.patch added to mm-nonmm-unstable branch
-Message-Id: <20240110053002.6148CC433F1@smtp.kernel.org>
+Subject: + mm-filemap-avoid-type-conversion.patch added to mm-unstable branch
+Message-Id: <20240110053201.14EB6C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: bcache: use of hlist_count_nodes()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     bcache-use-of-hlist_count_nodes.patch
+     Subject: mm/filemap: avoid type conversion
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-filemap-avoid-type-conversion.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bcache-use-of-hlist_count_nodes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-avoid-type-conversion.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,57 +50,36 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Pierre Gondois <pierre.gondois@arm.com>
-Subject: bcache: use of hlist_count_nodes()
-Date: Thu, 4 Jan 2024 17:49:35 +0100
+From: Hongbo Li <lihongbo22@huawei.com>
+Subject: mm/filemap: avoid type conversion
+Date: Mon, 8 Jan 2024 12:48:15 +0800
 
-Make use of the newly added hlist_count_nodes().
+The return type of function folio_test_hugetlb is bool type, there is no
+need to assign it to an integer type.
 
-Link: https://lkml.kernel.org/r/20240104164937.424320-4-pierre.gondois@arm.com
-Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>
-Acked-by: Coly Li <colyli@suse.de>
-Acked-by: Marco Elver <elver@google.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Arve Hjønnevåg <arve@android.com>
-Cc: Carlos Llamas <cmllamas@google.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Jani Nikula <jani.nikula@intel.com>
-Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Kent Overstreet <kent.overstreet@gmail.com>
-Cc: Martijn Coenen <maco@android.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Todd Kjos <tkjos@android.com>
+Link: https://lkml.kernel.org/r/20240108044815.3291487-1-lihongbo22@huawei.com
+Signed-off-by: Hongbo Li <lihongbo22@huawei.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/bcache/sysfs.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ mm/filemap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/md/bcache/sysfs.c~bcache-use-of-hlist_count_nodes
-+++ a/drivers/md/bcache/sysfs.c
-@@ -702,13 +702,7 @@ static unsigned int bch_cache_max_chain(
- 	for (h = c->bucket_hash;
- 	     h < c->bucket_hash + (1 << BUCKET_HASH_BITS);
- 	     h++) {
--		unsigned int i = 0;
--		struct hlist_node *p;
--
--		hlist_for_each(p, h)
--			i++;
--
--		ret = max(ret, i);
-+		ret = max(ret, hlist_count_nodes(h));
- 	}
+--- a/mm/filemap.c~mm-filemap-avoid-type-conversion
++++ a/mm/filemap.c
+@@ -842,7 +842,7 @@ noinline int __filemap_add_folio(struct
+ 		struct folio *folio, pgoff_t index, gfp_t gfp, void **shadowp)
+ {
+ 	XA_STATE(xas, &mapping->i_pages, index);
+-	int huge = folio_test_hugetlb(folio);
++	bool huge = folio_test_hugetlb(folio);
+ 	bool charged = false;
+ 	long nr = 1;
  
- 	mutex_unlock(&c->bucket_lock);
 _
 
-Patches currently in -mm which might be from pierre.gondois@arm.com are
+Patches currently in -mm which might be from lihongbo22@huawei.com are
 
-list-add-hlist_count_nodes.patch
-binder-use-of-hlist_count_nodes.patch
-bcache-use-of-hlist_count_nodes.patch
+mm-filemap-avoid-type-conversion.patch
 
