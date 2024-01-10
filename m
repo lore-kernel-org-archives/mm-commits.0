@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B53B4C3C6
-	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 16:07:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FB9E4C3C6
+	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 16:07:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HTcfrVLC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E973AC433C7;
-	Wed, 10 Jan 2024 16:07:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UtCV1qUN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8FE0C433F1;
+	Wed, 10 Jan 2024 16:07:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704902868;
-	bh=IzTnobkAdgUFlTNfjpp7N6nDr/52tQGThDdSXb4OaTs=;
+	s=korg; t=1704902869;
+	bh=w7LvAxksCxxVjuNTi1eNitbZFLUeND29zDnOL3YyjCk=;
 	h=Date:To:From:Subject:From;
-	b=HTcfrVLCzJXniAkGWXENlb9hQcy6NhuYghU/NlUehHTOMIYTcQgUKo/hlYlM95rBe
-	 29b/MLq72+wWrsYpkcvvCP54wpsxygg4VgMDxFai+gbXz09l5q8KNkveOuynu/6d66
-	 MZz1h3tZiNIHXKJE2dOkIFtvjVAbf5Wg4Zd+Xlos=
-Date: Wed, 10 Jan 2024 08:07:47 -0800
+	b=UtCV1qUNV1YGpPI9SyVk2jxvGp5ldnSLEFdKYU7NqpUakQBCoK4iqKqKXymx+U5mj
+	 MtLWkiiT2LlIBHXuM23G1/TNdBtU5jtcbVk4OTusBuo4PmskLlISxwRWsviSMbnj2G
+	 WeIobh4Ji0fQvu4LqP5++Ah1YTJUfhdpwTJoTKvc=
+Date: Wed, 10 Jan 2024 08:07:49 -0800
 To: mm-commits@vger.kernel.org,tglx@linutronix.de,ming.lei@redhat.com,linux@rasmusvillemoes.dk,andriy.shevchenko@linux.intel.com,yury.norov@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-group_cpus-optimize-outer-loop-in-grp_spread_init_one.patch added to mm-nonmm-unstable branch
-Message-Id: <20240110160747.E973AC433C7@smtp.kernel.org>
+Subject: + lib-group_cpus-dont-zero-cpumasks-in-group_cpus_evenly-on-allocation.patch added to mm-nonmm-unstable branch
+Message-Id: <20240110160749.C8FE0C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/group_cpus: optimize outer loop in grp_spread_init_one()
+     Subject: lib/group_cpus: don't zero cpumasks in group_cpus_evenly() on allocation
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-group_cpus-optimize-outer-loop-in-grp_spread_init_one.patch
+     lib-group_cpus-dont-zero-cpumasks-in-group_cpus_evenly-on-allocation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-group_cpus-optimize-outer-loop-in-grp_spread_init_one.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-group_cpus-dont-zero-cpumasks-in-group_cpus_evenly-on-allocation.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,18 +51,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yury Norov <yury.norov@gmail.com>
-Subject: lib/group_cpus: optimize outer loop in grp_spread_init_one()
-Date: Thu, 28 Dec 2023 12:09:31 -0800
+Subject: lib/group_cpus: don't zero cpumasks in group_cpus_evenly() on allocation
+Date: Thu, 28 Dec 2023 12:09:32 -0800
 
-Similarly to the inner loop, in the outer loop we can use for_each_cpu()
-macro, and skip CPUs that have been copied.
+nmsk and npresmsk are both allocated with zalloc_cpumask_var(), but they
+are initialized by copying later in the code, and so may be allocated
+uninitialized.
 
-With this patch, the function becomes O(1), despite that it's a
-double-loop.
-
-While here, add a comment why we can't merge the inner and outer logic.
-
-Link: https://lkml.kernel.org/r/20231228200936.2475595-5-yury.norov@gmail.com
+Link: https://lkml.kernel.org/r/20231228200936.2475595-6-yury.norov@gmail.com
 Signed-off-by: Yury Norov <yury.norov@gmail.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Ming Lei <ming.lei@redhat.com>
@@ -71,43 +67,24 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/group_cpus.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ lib/group_cpus.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/lib/group_cpus.c~lib-group_cpus-optimize-outer-loop-in-grp_spread_init_one
+--- a/lib/group_cpus.c~lib-group_cpus-dont-zero-cpumasks-in-group_cpus_evenly-on-allocation
 +++ a/lib/group_cpus.c
-@@ -17,16 +17,17 @@ static void grp_spread_init_one(struct c
- 	const struct cpumask *siblmsk;
- 	int cpu, sibl;
+@@ -354,10 +354,10 @@ struct cpumask *group_cpus_evenly(unsign
+ 	int ret = -ENOMEM;
+ 	struct cpumask *masks = NULL;
  
--	for ( ; cpus_per_grp > 0; ) {
--		cpu = cpumask_first(nmsk);
--
--		/* Should not happen, but I'm too lazy to think about it */
--		if (cpu >= nr_cpu_ids)
-+	for_each_cpu(cpu, nmsk) {
-+		if (cpus_per_grp-- == 0)
- 			return;
+-	if (!zalloc_cpumask_var(&nmsk, GFP_KERNEL))
++	if (!alloc_cpumask_var(&nmsk, GFP_KERNEL))
+ 		return NULL;
  
-+		/*
-+		 * If a caller wants to spread IRQa on offline CPUs, we need to
-+		 * take care of it explicitly because those offline CPUS are not
-+		 * included in siblings cpumask.
-+		 */
- 		__cpumask_clear_cpu(cpu, nmsk);
- 		__cpumask_set_cpu(cpu, irqmsk);
--		cpus_per_grp--;
+-	if (!zalloc_cpumask_var(&npresmsk, GFP_KERNEL))
++	if (!alloc_cpumask_var(&npresmsk, GFP_KERNEL))
+ 		goto fail_nmsk;
  
- 		/* If the cpu has siblings, use them first */
- 		siblmsk = topology_sibling_cpumask(cpu);
-@@ -38,6 +39,7 @@ static void grp_spread_init_one(struct c
- 
- 			__cpumask_clear_cpu(sibl, nmsk);
- 			__cpumask_set_cpu(sibl, irqmsk);
-+			cpu = sibl + 1;
- 		}
- 	}
- }
+ 	node_to_cpumask = alloc_node_to_cpumask();
 _
 
 Patches currently in -mm which might be from yury.norov@gmail.com are
