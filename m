@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CCE94C601
-	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 16:09:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64B2348CC1
+	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 16:09:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r6tP4bM4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 224D7C433F1;
-	Wed, 10 Jan 2024 16:09:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Uyn0FUzw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3343C43390;
+	Wed, 10 Jan 2024 16:09:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704902995;
-	bh=zIGgAdUkD32HCm1xa7fiA4YqNsR9/H2X+Cebk/dHELw=;
+	s=korg; t=1704902996;
+	bh=hW8ejaTorxUrUq/twHYhqDgWR0tJkXkrfUig2ewb0RU=;
 	h=Date:To:From:Subject:From;
-	b=r6tP4bM4izo51iOcbGiIkh67ab6+xEL8t1vp77VxChCIIP7s7GurGsEsdOn+K58Bz
-	 Gx6fYUKjzT+8UzbOKWjlGhFDwTsx67SUVS75q2vwvx0ojJx77r/0WBRy15RLRkTvIk
-	 rgf1nj/7nhsUAjlM2U9U0kO1AXzf0zso3aDRHKUI=
-Date: Wed, 10 Jan 2024 08:09:54 -0800
+	b=Uyn0FUzw2oBorRHwmlbWvqXR/U1d+4ilggYNu9+3dO6rSYZ9/zYbJCisnLMvbQH3p
+	 uILodXMNnVv8ccYz4JXnuJMA5+w9HPoW+mzzCvv5nSl+bMsvJWfk2wYLfVSLOKD7mn
+	 EhXOnYtrAufED5gOT4u3PgBjmIcAsrbTcX/p6yrU=
+Date: Wed, 10 Jan 2024 08:09:56 -0800
 To: mm-commits@vger.kernel.org,shakeelb@google.com,roman.gushchin@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,haifeng.xu@shopee.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-list_lru-disable-memcg_aware-when-cgroupmemory-is-set-to-nokmem.patch added to mm-unstable branch
-Message-Id: <20240110160955.224D7C433F1@smtp.kernel.org>
+Subject: + mm-list_lru-remove-unused-macro-list_lru_init_key.patch added to mm-unstable branch
+Message-Id: <20240110160956.C3343C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: list_lru: disable memcg_aware when cgroup.memory is set to "nokmem"
+     Subject: mm: list_lru: remove unused macro list_lru_init_key()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-list_lru-disable-memcg_aware-when-cgroupmemory-is-set-to-nokmem.patch
+     mm-list_lru-remove-unused-macro-list_lru_init_key.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-list_lru-disable-memcg_aware-when-cgroupmemory-is-set-to-nokmem.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-list_lru-remove-unused-macro-list_lru_init_key.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,18 +51,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Haifeng Xu <haifeng.xu@shopee.com>
-Subject: mm: list_lru: disable memcg_aware when cgroup.memory is set to "nokmem"
-Date: Thu, 28 Dec 2023 06:27:14 +0000
+Subject: mm: list_lru: remove unused macro list_lru_init_key()
+Date: Thu, 28 Dec 2023 06:27:15 +0000
 
-Actually, when using a boot time kernel option "cgroup.memory=nokmem", all
-lru items are inserted to list_lru_node.  But for those users who invoke
-list_lru_init_memcg() to initialize list_lru, list_lru_memcg_aware()
-returns true.  And this brings unneeded operations related to memcg.
+list_lru_init_key() isn't used by anyone, remove it to clean up.
 
-To make things more convenient, let's disable memcg_aware when
-cgroup.memory is set to "nokmem".
-
-Link: https://lkml.kernel.org/r/20231228062715.338672-1-haifeng.xu@shopee.com
+Link: https://lkml.kernel.org/r/20231228062715.338672-2-haifeng.xu@shopee.com
 Signed-off-by: Haifeng Xu <haifeng.xu@shopee.com>
 Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -71,21 +65,20 @@ Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/list_lru.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/list_lru.h |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/list_lru.c~mm-list_lru-disable-memcg_aware-when-cgroupmemory-is-set-to-nokmem
-+++ a/mm/list_lru.c
-@@ -567,6 +567,9 @@ int __list_lru_init(struct list_lru *lru
- 		lru->shrinker_id = shrinker->id;
- 	else
- 		lru->shrinker_id = -1;
-+
-+	if (mem_cgroup_kmem_disabled())
-+		memcg_aware = false;
- #endif
+--- a/include/linux/list_lru.h~mm-list_lru-remove-unused-macro-list_lru_init_key
++++ a/include/linux/list_lru.h
+@@ -62,8 +62,6 @@ int __list_lru_init(struct list_lru *lru
  
- 	lru->node = kcalloc(nr_node_ids, sizeof(*lru->node), GFP_KERNEL);
+ #define list_lru_init(lru)				\
+ 	__list_lru_init((lru), false, NULL, NULL)
+-#define list_lru_init_key(lru, key)			\
+-	__list_lru_init((lru), false, (key), NULL)
+ #define list_lru_init_memcg(lru, shrinker)		\
+ 	__list_lru_init((lru), true, NULL, shrinker)
+ 
 _
 
 Patches currently in -mm which might be from haifeng.xu@shopee.com are
