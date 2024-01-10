@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FFF3DDA1
-	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 05:32:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46301DDA1
+	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 05:32:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lc2ksB4+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14EB6C433C7;
-	Wed, 10 Jan 2024 05:32:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hfp4Ycot"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C340BC433F1;
+	Wed, 10 Jan 2024 05:32:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704864721;
-	bh=60dvsn8BhT7E8seKp4woiiIyhIz92VrdEeMJpvTwo/g=;
+	s=korg; t=1704864772;
+	bh=lN0iHXoX1VRpi7ybMPY4+hokflJeDAqCGuZyjdtg95Q=;
 	h=Date:To:From:Subject:From;
-	b=lc2ksB4+6Eyg6q1swexwjzEQOWIbxjv50o6VaTZCjreRhK81ondpu42XgGsjLn2rH
-	 yIFfwNFfc1IrQNdhktPRM30TjXK9LU9YqIR3Iih/tU7feD9xkDR/YOwZnXMLeLiK4V
-	 KByfWQSuMmcPVGv5iSQoKb3D6sP8isHGSAgzPDYs=
-Date: Tue, 09 Jan 2024 21:32:00 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,lihongbo22@huawei.com,akpm@linux-foundation.org
+	b=Hfp4YcotCvlvazzeOjFEs33q74oWvTAAcx4PeJtjR5zoDQwKj+KZn5YdSM9FAJh6h
+	 AcZKja+YoUYe6la4H6YYyfG6RF+hBzUlIGxEEUZSM5EeefZ/lh56gvR8NFpLDHffPm
+	 t6zxpQB/UhZ7wWylCCOcfRYC9mni1xxnJN0VkZ6o=
+Date: Tue, 09 Jan 2024 21:32:52 -0800
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,ghe@suse.com,gechangwei@live.cn,zhangyongzhen@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filemap-avoid-type-conversion.patch added to mm-unstable branch
-Message-Id: <20240110053201.14EB6C433C7@smtp.kernel.org>
+Subject: + ocfs2-spelling-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20240110053252.C340BC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/filemap: avoid type conversion
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-filemap-avoid-type-conversion.patch
+     Subject: ocfs2: Spelling fix
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-spelling-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-avoid-type-conversion.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-spelling-fix.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,36 +50,41 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Hongbo Li <lihongbo22@huawei.com>
-Subject: mm/filemap: avoid type conversion
-Date: Mon, 8 Jan 2024 12:48:15 +0800
+From: Yongzhen Zhang <zhangyongzhen@kylinos.cn>
+Subject: ocfs2: Spelling fix
+Date: Mon, 8 Jan 2024 09:56:04 +0800
 
-The return type of function folio_test_hugetlb is bool type, there is no
-need to assign it to an integer type.
+Modify reques to request in the comment.
 
-Link: https://lkml.kernel.org/r/20240108044815.3291487-1-lihongbo22@huawei.com
-Signed-off-by: Hongbo Li <lihongbo22@huawei.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20240108015604.38377-1-zhangyongzhen@kylinos.cn
+Signed-off-by: Yongzhen Zhang <zhangyongzhen@kylinos.cn>
+Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
+ fs/ocfs2/dlmglue.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/filemap.c~mm-filemap-avoid-type-conversion
-+++ a/mm/filemap.c
-@@ -842,7 +842,7 @@ noinline int __filemap_add_folio(struct
- 		struct folio *folio, pgoff_t index, gfp_t gfp, void **shadowp)
- {
- 	XA_STATE(xas, &mapping->i_pages, index);
--	int huge = folio_test_hugetlb(folio);
-+	bool huge = folio_test_hugetlb(folio);
- 	bool charged = false;
- 	long nr = 1;
+--- a/fs/ocfs2/dlmglue.c~ocfs2-spelling-fix
++++ a/fs/ocfs2/dlmglue.c
+@@ -1615,7 +1615,7 @@ update_holders:
+ unlock:
+ 	lockres_clear_flags(lockres, OCFS2_LOCK_UPCONVERT_FINISHING);
  
+-	/* ocfs2_unblock_lock reques on seeing OCFS2_LOCK_UPCONVERT_FINISHING */
++	/* ocfs2_unblock_lock request on seeing OCFS2_LOCK_UPCONVERT_FINISHING */
+ 	kick_dc = (lockres->l_flags & OCFS2_LOCK_BLOCKED);
+ 
+ 	spin_unlock_irqrestore(&lockres->l_lock, flags);
 _
 
-Patches currently in -mm which might be from lihongbo22@huawei.com are
+Patches currently in -mm which might be from zhangyongzhen@kylinos.cn are
 
-mm-filemap-avoid-type-conversion.patch
+ocfs2-spelling-fix.patch
 
