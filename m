@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C37D032C80
-	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 05:47:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE216360B9
+	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 05:52:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ClpA1D6n"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24DB5C433C7;
-	Wed, 10 Jan 2024 05:47:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u0MYGKjg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DB58C43390;
+	Wed, 10 Jan 2024 05:52:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704865669;
-	bh=dpo7e9BUxzdOyV1KvZgra89PRmPzTnmrid5lirv180I=;
+	s=korg; t=1704865928;
+	bh=SC4tW+1FcOq6cHkZEKepB2bWkVPRSyG4IKhMvTsfgBE=;
 	h=Date:To:From:Subject:From;
-	b=ClpA1D6nuKEY8EFeGkgl2UdSWb0R5BZKBB6t9Pn0ccreLOvHIXgwT7ZTTe5HaCidk
-	 XyFDqmaXcXcP2k5Ma18WCzfWD0YAI/KM+GUwXIiwllgYNDmM5+zw1fQMa5N4Y7Qem7
-	 R2zkW5HmzMaELi6bhrTZLrxH06Cv4VgaOIhqQpig=
-Date: Tue, 09 Jan 2024 21:47:48 -0800
-To: mm-commits@vger.kernel.org,vegard.nossum@oracle.com,songmuchun@bytedance.com,shy828301@gmail.com,shuah@kernel.org,rppt@kernel.org,riel@surriel.com,leitao@debian.org,akpm@linux-foundation.org
+	b=u0MYGKjg9fX2GS3nbjn8njavJYBbSHWvyWNeStPwjwYoi70RR9uqQeAagqvrja5x3
+	 sRPWpsUYfKlqgI4ihrkvcSpcuQRoTsjWP8nOB/zHlAohYtSO1tweVBGvEuJ2NwCo/z
+	 9vSQA55wGfcN+JmF1zJp8KwVVsMNOPMC6+5IfzY8=
+Date: Tue, 09 Jan 2024 21:52:06 -0800
+To: mm-commits@vger.kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,cuibixuan@vivo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-new-test-that-steals-pages.patch added to mm-unstable branch
-Message-Id: <20240110054749.24DB5C433C7@smtp.kernel.org>
+Subject: + mm-shrinker-add-new-event-to-trace-shrink-count.patch added to mm-unstable branch
+Message-Id: <20240110055208.0DB58C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: new test that steals pages
+     Subject: mm: shrinker: add new event to trace shrink count
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-new-test-that-steals-pages.patch
+     mm-shrinker-add-new-event-to-trace-shrink-count.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-new-test-that-steals-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinker-add-new-event-to-trace-shrink-count.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -50,198 +50,172 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: selftests/mm: new test that steals pages
-Date: Fri, 5 Jan 2024 07:54:19 -0800
+From: Bixuan Cui <cuibixuan@vivo.com>
+Subject: mm: shrinker: add new event to trace shrink count
+Date: Thu, 4 Jan 2024 17:36:06 -0800
 
-This test stresses the race between of madvise(DONTNEED), a page fault
-and a parallel huge page mmap, which should fail due to lack of
-available page available for mapping.
+Patch series "Make memory reclamation measurable", v6.
 
-This test case must run on a system with one and only one huge page
-available.
+When the system memory is low, kswapd reclaims the memory. The key steps
+of memory reclamation include
+1.shrink_lruvec
+  * shrink_active_list, moves folios from the active LRU to the inactive LRU
+  * shrink_inactive_list, shrink lru from inactive LRU list
+2.shrink_slab
+  * shrinker->count_objects(), calculates the freeable memory
+  * shrinker->scan_objects(), reclaims the slab memory
 
-	# echo 1 > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+The existing tracers in the vmscan are as follows:
 
-During setup, the test allocates the only available page, and starts
-three threads:
+--do_try_to_free_pages
+--shrink_zones
+--trace_mm_vmscan_node_reclaim_begin (tracer)
+--shrink_node
+--shrink_node_memcgs
+  --trace_mm_vmscan_memcg_shrink_begin (tracer)
+  --shrink_lruvec
+    --shrink_list
+      --shrink_active_list
+	  --trace_mm_vmscan_lru_shrink_active (tracer)
+      --shrink_inactive_list
+	  --trace_mm_vmscan_lru_shrink_inactive (tracer)
+    --shrink_active_list
+  --shrink_slab
+    --do_shrink_slab
+    --shrinker->count_objects()
+    --trace_mm_shrink_slab_start (tracer)
+    --shrinker->scan_objects()
+    --trace_mm_shrink_slab_end (tracer)
+  --trace_mm_vmscan_memcg_shrink_end (tracer)
+--trace_mm_vmscan_node_reclaim_end (tracer)
 
-  - thread 1:
-      * madvise(MADV_DONTNEED) on the allocated huge page
-  - thread 2:
-      * Write to the allocated huge page
-  - thread 3:
-      * Tries to allocated (steal) an extra huge page (which is not
-        available)
+If we get the duration and quantity of shrink lru and slab,
+then we can measure the memory recycling, as follows
 
-thread 3 should never succeed in the allocation, since the only huge
-page was never unmapped, and should be reserved.
+Measuring memory reclamation with bpf:
+  LRU FILE:
+	CPU COMM 	ShrinkActive(us) ShrinkInactive(us)  Reclaim(page)
+	7   kswapd0	 	26		51		32
+	7   kswapd0		52		47		13
+  SLAB:
+	CPU COMM 		OBJ_NAME		Count_Dur(us) Freeable(page) Scan_Dur(us) Reclaim(page)
+	 1  kswapd0		super_cache_scan.cfi_jt     2		    341		   3225		128
+	 7  kswapd0		super_cache_scan.cfi_jt     0		    2247	   8524		1024
+	 7  kswapd0	        super_cache_scan.cfi_jt     2367	    0		   0		0
 
-Touching the old page after thread3 allocation will raise a SIGBUS.
+For this, add the new tracer to shrink_active_list/shrink_inactive_list
+and shrinker->count_objects().
 
-Link: https://lkml.kernel.org/r/20240105155419.1939484-2-leitao@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Vegard Nossum <vegard.nossum@oracle.com>
-Cc: Yang Shi <shy828301@gmail.com>
+
+This patch (of 2):
+
+do_shrink_slab() calculates the freeable memory through
+shrinker->count_objects(), and then reclaims the memory through
+shrinker->scan_objects().  When reclaiming memory,
+shrinker->count_objects() takes a certain amount of time:
+
+	Fun               spend(us)
+	ext4_es_count     4302
+	ext4_es_scan      12
+	super_cache_count 4195
+	super_cache_scan  2103
+
+Therefore, adding the trace event to count_objects() can more accurately
+obtain the time taken for slab memory recycling.
+
+Example of output:
+         kswapd0-103     [003] .....  1098.317942: mm_shrink_count_start: kfree_rcu_shrink_count.cfi_jt+0x0/0x8 00000000c540ff51: nid: 0
+         kswapd0-103     [003] .....  1098.317951: mm_shrink_count_end: kfree_rcu_shrink_count.cfi_jt+0x0/0x8 00000000c540ff51: nid: 0 freeable:36
+
+Link: https://lkml.kernel.org/r/20240105013607.2868-1-cuibixuan@vivo.com
+Link: https://lkml.kernel.org/r/20240105013607.2868-2-cuibixuan@vivo.com
+Signed-off-by: Bixuan Cui <cuibixuan@vivo.com>
+Reviewed-by: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/.gitignore            |    1 
- tools/testing/selftests/mm/Makefile              |    1 
- tools/testing/selftests/mm/hugetlb_madv_vs_map.c |  124 +++++++++++++
- 3 files changed, 126 insertions(+)
+ include/trace/events/vmscan.h |   49 ++++++++++++++++++++++++++++++++
+ mm/shrinker.c                 |    4 ++
+ 2 files changed, 53 insertions(+)
 
---- a/tools/testing/selftests/mm/.gitignore~selftests-mm-new-test-that-steals-pages
-+++ a/tools/testing/selftests/mm/.gitignore
-@@ -46,3 +46,4 @@ gup_longterm
- mkdirty
- va_high_addr_switch
- hugetlb_fault_after_madv
-+hugetlb_madv_vs_map
---- /dev/null
-+++ a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c
-@@ -0,0 +1,124 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * A test case that must run on a system with one and only one huge page available.
-+ *	# echo 1 > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
-+ *
-+ * During setup, the test allocates the only available page, and starts three threads:
-+ *  - thread1:
-+ *	* madvise(MADV_DONTNEED) on the allocated huge page
-+ *  - thread 2:
-+ *	* Write to the allocated huge page
-+ *  - thread 3:
-+ *	* Try to allocated an extra huge page (which must not available)
-+ *
-+ *  The test fails if thread3 is able to allocate a page.
-+ *
-+ *  Touching the first page after thread3's allocation will raise a SIGBUS
-+ *
-+ *  Author: Breno Leitao <leitao@debian.org>
-+ */
-+#include <pthread.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <sys/mman.h>
-+#include <sys/types.h>
-+#include <unistd.h>
-+
-+#include "vm_util.h"
-+#include "../kselftest.h"
-+
-+#define MMAP_SIZE (1 << 21)
-+#define INLOOP_ITER 100
-+
-+char *huge_ptr;
-+
-+/* Touch the memory while it is being madvised() */
-+void *touch(void *unused)
-+{
-+	for (int i = 0; i < INLOOP_ITER; i++)
-+		huge_ptr[0] = '.';
-+
-+	return NULL;
-+}
-+
-+void *madv(void *unused)
-+{
-+	for (int i = 0; i < INLOOP_ITER; i++)
-+		madvise(huge_ptr, MMAP_SIZE, MADV_DONTNEED);
-+
-+	return NULL;
-+}
-+
-+/*
-+ * We got here, and there must be no huge page available for mapping
-+ * The other hugepage should be flipping from used <-> reserved, because
-+ * of madvise(DONTNEED).
-+ */
-+void *map_extra(void *unused)
-+{
-+	void *ptr;
-+
-+	for (int i = 0; i < INLOOP_ITER; i++) {
-+		ptr = mmap(NULL, MMAP_SIZE, PROT_READ | PROT_WRITE,
-+			   MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB,
-+			   -1, 0);
-+
-+		if ((long)ptr != -1) {
-+			/* Touching the other page now will cause a SIGBUG
-+			 * huge_ptr[0] = '1';
-+			 */
-+			return ptr;
-+		}
-+	}
-+
-+	return NULL;
-+}
-+
-+int main(void)
-+{
-+	pthread_t thread1, thread2, thread3;
-+	unsigned long free_hugepages;
-+	void *ret;
-+
-+	/*
-+	 * On kernel 6.7, we are able to reproduce the problem with ~10
-+	 * interactions
-+	 */
-+	int max = 10;
-+
-+	free_hugepages = get_free_hugepages();
-+
-+	if (free_hugepages != 1) {
-+		ksft_exit_skip("This test needs one and only one page to execute. Got %lu\n",
-+			       free_hugepages);
-+	}
-+
-+	while (max--) {
-+		huge_ptr = mmap(NULL, MMAP_SIZE, PROT_READ | PROT_WRITE,
-+				MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB,
-+				-1, 0);
-+
-+		if ((unsigned long)huge_ptr == -1) {
-+			ksft_exit_skip("Failed to allocated huge page\n");
-+			return KSFT_SKIP;
-+		}
-+
-+		pthread_create(&thread1, NULL, madv, NULL);
-+		pthread_create(&thread2, NULL, touch, NULL);
-+		pthread_create(&thread3, NULL, map_extra, NULL);
-+
-+		pthread_join(thread1, NULL);
-+		pthread_join(thread2, NULL);
-+		pthread_join(thread3, &ret);
-+
-+		if (ret) {
-+			ksft_test_result_fail("Unexpected huge page allocation\n");
-+			return KSFT_FAIL;
-+		}
-+
-+		/* Unmap and restart */
-+		munmap(huge_ptr, MMAP_SIZE);
-+	}
-+
-+	return KSFT_PASS;
-+}
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-new-test-that-steals-pages
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -70,6 +70,7 @@ TEST_GEN_FILES += ksm_tests
- TEST_GEN_FILES += ksm_functional_tests
- TEST_GEN_FILES += mdwe_test
- TEST_GEN_FILES += hugetlb_fault_after_madv
-+TEST_GEN_FILES += hugetlb_madv_vs_map
+--- a/include/trace/events/vmscan.h~mm-shrinker-add-new-event-to-trace-shrink-count
++++ a/include/trace/events/vmscan.h
+@@ -196,6 +196,55 @@ DEFINE_EVENT(mm_vmscan_direct_reclaim_en
+ );
+ #endif /* CONFIG_MEMCG */
  
- ifneq ($(ARCH),arm64)
- TEST_GEN_FILES += soft-dirty
++TRACE_EVENT(mm_shrink_count_start,
++	TP_PROTO(struct shrinker *shr, struct shrink_control *sc),
++
++	TP_ARGS(shr, sc),
++
++	TP_STRUCT__entry(
++		__field(struct shrinker *, shr)
++		__field(void *, shrink)
++		__field(int, nid)
++	),
++
++	TP_fast_assign(
++		__entry->shr = shr;
++		__entry->shrink = shr->count_objects;
++		__entry->nid = sc->nid;
++	),
++
++	TP_printk("%pS %p: nid: %d",
++		__entry->shrink,
++		__entry->shr,
++		__entry->nid)
++);
++
++TRACE_EVENT(mm_shrink_count_end,
++	TP_PROTO(struct shrinker *shr, struct shrink_control *sc, long freeable),
++
++	TP_ARGS(shr, sc, freeable),
++
++	TP_STRUCT__entry(
++		__field(struct shrinker *, shr)
++		__field(void *, shrink)
++		__field(long, freeable)
++		__field(int, nid)
++	),
++
++	TP_fast_assign(
++		__entry->shr = shr;
++		__entry->shrink = shr->count_objects;
++		__entry->freeable = freeable;
++		__entry->nid = sc->nid;
++	),
++
++	TP_printk("%pS %p: nid: %d freeable:%ld",
++		__entry->shrink,
++		__entry->shr,
++		__entry->nid,
++		__entry->freeable)
++);
++
+ TRACE_EVENT(mm_shrink_slab_start,
+ 	TP_PROTO(struct shrinker *shr, struct shrink_control *sc,
+ 		long nr_objects_to_shrink, unsigned long cache_items,
+--- a/mm/shrinker.c~mm-shrinker-add-new-event-to-trace-shrink-count
++++ a/mm/shrinker.c
+@@ -379,7 +379,11 @@ static unsigned long do_shrink_slab(stru
+ 					  : SHRINK_BATCH;
+ 	long scanned = 0, next_deferred;
+ 
++	trace_mm_shrink_count_start(shrinker, shrinkctl);
++
+ 	freeable = shrinker->count_objects(shrinker, shrinkctl);
++
++	trace_mm_shrink_count_end(shrinker, shrinkctl, freeable);
+ 	if (freeable == 0 || freeable == SHRINK_EMPTY)
+ 		return freeable;
+ 
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from cuibixuan@vivo.com are
 
-selftests-mm-new-test-that-steals-pages.patch
+mm-shrinker-add-new-event-to-trace-shrink-count.patch
+mm-vmscan-add-new-event-to-trace-shrink-lru.patch
 
