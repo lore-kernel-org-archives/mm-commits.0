@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B28973C2F
-	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 05:39:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3D0D3C2F
+	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 05:39:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dD/PGCG7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C2A3C433F1;
-	Wed, 10 Jan 2024 05:39:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b8My+zKC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21B89C43390;
+	Wed, 10 Jan 2024 05:39:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704865165;
-	bh=DmFWOr4Y/X3NH4geJUvPv0wXqavJ1SHB8SQ6PDZGXvA=;
+	s=korg; t=1704865194;
+	bh=RVQwKf3Vmc7g7XM5MSM9sOSBg6lqwJFJugqZWB4vWlM=;
 	h=Date:To:From:Subject:From;
-	b=dD/PGCG7APVXpU54hIIgTA7UWtgdaxZA5RBu54KjDesOm9exNOSzhDrgd5LTXODKx
-	 J+A9k/i12yJvI5/5KIDc+Nes31blqgynb4gZNx1iQQ45AjMu+VqQYqTB9NDFQOdyOs
-	 Ut3WIyGD55m+6iMR/3VaJHRNIK6JpqtGT4lC9uTk=
-Date: Tue, 09 Jan 2024 21:39:24 -0800
-To: mm-commits@vger.kernel.org,bhe@redhat.com,akpm@linux-foundation.org
+	b=b8My+zKCi7xkD93AayDO/OtBa0uyxY3aOEBSIrb9e4su2sbD3ee+iqLAIBLWbqzDU
+	 /Zjf542IPrBXk65LibMC/pIUqzOOBnJ3ps9/wKbtAHCDud7FKFrt58l4+46Vmy6Gvf
+	 gwskvNolAZJTq8YPaluoK9l8jTP6VLhiqbpBpd44=
+Date: Tue, 09 Jan 2024 21:39:53 -0800
+To: mm-commits@vger.kernel.org,akpm@linux-foundation.org,rdunlap@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + panic-suppress-gnu_printf-warning.patch added to mm-nonmm-unstable branch
-Message-Id: <20240110053925.3C2A3C433F1@smtp.kernel.org>
+Subject: + mailmap-add-old-address-mappings-for-myself.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240110053954.21B89C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: panic: suppress gnu_printf warning
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     panic-suppress-gnu_printf-warning.patch
+     Subject: mailmap: add old address mappings for Randy
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mailmap-add-old-address-mappings-for-myself.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/panic-suppress-gnu_printf-warning.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-add-old-address-mappings-for-myself.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,47 +50,38 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: panic: suppress gnu_printf warning
-Date: Sun, 7 Jan 2024 17:16:41 +0800
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: mailmap: add old address mappings for Randy
+Date: Fri, 5 Jan 2024 22:30:44 -0800
 
-with GCC 13.2.1 and W=1, there's compiling warning like this:
+Add my old email addresses so that git send-email will map them
+to my current email address.
 
-kernel/panic.c: In function `__warn':
-kernel/panic.c:676:17: warning: function `__warn' might be a candidate for `gnu_printf' format attribute [-Wsuggest-attribute=format]
-  676 |                 vprintk(args->fmt, args->args);
-      |                 ^~~~~~~
-
-The normal __printf(x,y) adding can't fix it. So add workaround which
-disables -Wsuggest-attribute=format to mute it.
-
-Link: https://lkml.kernel.org/r/20240107091641.579849-1-bhe@redhat.com
-Signed-off-by: Baoquan He <bhe@redhat.com>
+Link: https://lkml.kernel.org/r/20240106063051.13623-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ .mailmap |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/kernel/panic.c~panic-suppress-gnu_printf-warning
-+++ a/kernel/panic.c
-@@ -666,8 +666,13 @@ void __warn(const char *file, int line,
- 		pr_warn("WARNING: CPU: %d PID: %d at %pS\n",
- 			raw_smp_processor_id(), current->pid, caller);
- 
-+#pragma GCC diagnostic push
-+#ifndef __clang__
-+#pragma GCC diagnostic ignored "-Wsuggest-attribute=format"
-+#endif
- 	if (args)
- 		vprintk(args->fmt, args->args);
-+#pragma GCC diagnostic pop
- 
- 	print_modules();
- 
+--- a/.mailmap~mailmap-add-old-address-mappings-for-myself
++++ a/.mailmap
+@@ -503,6 +503,9 @@ Ralf Baechle <ralf@linux-mips.org>
+ Ralf Wildenhues <Ralf.Wildenhues@gmx.de>
+ Ram Chandra Jangir <quic_rjangir@quicinc.com> <rjangir@codeaurora.org>
+ Randy Dunlap <rdunlap@infradead.org> <rdunlap@xenotime.net>
++Randy Dunlap <rdunlap@infradead.org> <randy.dunlap@oracle.com>
++Randy Dunlap <rdunlap@infradead.org> <rddunlap@osdl.org>
++Randy Dunlap <rdunlap@infradead.org> <randy.dunlap@intel.com>
+ Ravi Kumar Bokka <quic_rbokka@quicinc.com> <rbokka@codeaurora.org>
+ Ravi Kumar Siddojigari <quic_rsiddoji@quicinc.com> <rsiddoji@codeaurora.org>
+ Rémi Denis-Courmont <rdenis@simphalempin.com>
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-panic-suppress-gnu_printf-warning.patch
+mailmap-add-old-address-mappings-for-myself.patch
+lib-win_minmax-fix-header-comments.patch
 
