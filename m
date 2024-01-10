@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46301DDA1
-	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 05:32:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8784DDA1
+	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 05:37:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hfp4Ycot"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C340BC433F1;
-	Wed, 10 Jan 2024 05:32:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ayJY8YEX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B61AC433F1;
+	Wed, 10 Jan 2024 05:37:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704864772;
-	bh=lN0iHXoX1VRpi7ybMPY4+hokflJeDAqCGuZyjdtg95Q=;
+	s=korg; t=1704865057;
+	bh=tsUmOoni75d1IOSQdpBrhWOPFnsSKgW6g1S6odZxKJE=;
 	h=Date:To:From:Subject:From;
-	b=Hfp4YcotCvlvazzeOjFEs33q74oWvTAAcx4PeJtjR5zoDQwKj+KZn5YdSM9FAJh6h
-	 AcZKja+YoUYe6la4H6YYyfG6RF+hBzUlIGxEEUZSM5EeefZ/lh56gvR8NFpLDHffPm
-	 t6zxpQB/UhZ7wWylCCOcfRYC9mni1xxnJN0VkZ6o=
-Date: Tue, 09 Jan 2024 21:32:52 -0800
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,ghe@suse.com,gechangwei@live.cn,zhangyongzhen@kylinos.cn,akpm@linux-foundation.org
+	b=ayJY8YEXGUYLqnzOUbcrC13ltCyNBaU2QDS9B8mRbE5L2/uN5TyWFMs67OBbSEA/F
+	 XztbgvKM+z7WoA6ZJYyKbNBduqe1y1qhi72epED2vCWJs0T31RB2FN0H64JMBGVpQ3
+	 MT3malGpMeDwMZP2fvsYnBNRovV85FfdBANJiNZs=
+Date: Tue, 09 Jan 2024 21:37:36 -0800
+To: mm-commits@vger.kernel.org,lkp@intel.com,bhe@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-spelling-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20240110053252.C340BC433F1@smtp.kernel.org>
+Subject: + kernel-crash_corec-make-__crash_hotplug_lock-static.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240110053737.2B61AC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: Spelling fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-spelling-fix.patch
+     Subject: kernel/crash_core.c: make __crash_hotplug_lock static
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     kernel-crash_corec-make-__crash_hotplug_lock-static.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-spelling-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-crash_corec-make-__crash_hotplug_lock-static.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,41 +50,38 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yongzhen Zhang <zhangyongzhen@kylinos.cn>
-Subject: ocfs2: Spelling fix
-Date: Mon, 8 Jan 2024 09:56:04 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel/crash_core.c: make __crash_hotplug_lock static
+Date: Tue Jan  9 09:35:21 PM PST 2024
 
-Modify reques to request in the comment.
+sparse warnings:
+kernel/crash_core.c:749:1: sparse: sparse: symbol '__crash_hotplug_lock' was not declared. Should it be static?
 
-Link: https://lkml.kernel.org/r/20240108015604.38377-1-zhangyongzhen@kylinos.cn
-Signed-off-by: Yongzhen Zhang <zhangyongzhen@kylinos.cn>
-Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Fixes: e2a8f20dd8e ("Crash: add lock to serialize crash hotplug handling")
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202401080654.IjjU5oK7-lkp@intel.com/
+Cc: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlmglue.c |    2 +-
+ kernel/crash_core.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/dlmglue.c~ocfs2-spelling-fix
-+++ a/fs/ocfs2/dlmglue.c
-@@ -1615,7 +1615,7 @@ update_holders:
- unlock:
- 	lockres_clear_flags(lockres, OCFS2_LOCK_UPCONVERT_FINISHING);
+--- a/kernel/crash_core.c~kernel-crash_corec-make-__crash_hotplug_lock-static
++++ a/kernel/crash_core.c
+@@ -877,7 +877,7 @@ subsys_initcall(crash_notes_memory_init)
+  * regions are online. So mutex lock  __crash_hotplug_lock is used to
+  * serialize the crash hotplug handling specifically.
+  */
+-DEFINE_MUTEX(__crash_hotplug_lock);
++static DEFINE_MUTEX(__crash_hotplug_lock);
+ #define crash_hotplug_lock() mutex_lock(&__crash_hotplug_lock)
+ #define crash_hotplug_unlock() mutex_unlock(&__crash_hotplug_lock)
  
--	/* ocfs2_unblock_lock reques on seeing OCFS2_LOCK_UPCONVERT_FINISHING */
-+	/* ocfs2_unblock_lock request on seeing OCFS2_LOCK_UPCONVERT_FINISHING */
- 	kick_dc = (lockres->l_flags & OCFS2_LOCK_BLOCKED);
- 
- 	spin_unlock_irqrestore(&lockres->l_lock, flags);
 _
 
-Patches currently in -mm which might be from zhangyongzhen@kylinos.cn are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-spelling-fix.patch
+fs-proc-task_mmu-move-mmu-notification-mechanism-inside-mm-lock-fix.patch
+kernel-crash_corec-make-__crash_hotplug_lock-static.patch
 
