@@ -1,105 +1,113 @@
-Received: from mail-lf1-f46.google.com (mail-lf1-f46.google.com [209.85.167.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B50B3F8C4
-	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 09:44:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6D001D683;
+	Wed, 10 Jan 2024 15:32:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="AePBWAUD"
-Received: by mail-lf1-f46.google.com with SMTP id 2adb3069b0e04-50eac018059so4862090e87.0
-        for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 01:44:29 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1704879867; x=1705484667; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Z/GyLdTtM/OnXSNZXFAQn8x+qjf9pxe1G7VU4q+zLu4=;
-        b=AePBWAUDji633z8uqIntwK/lwk4tbOkwMod438hJMFp9ctlybjafM7oINFW8fcAMCy
-         wn+zE1bpTfX50H5/3tSozX48ejz9ipSvbHo69pXNQpTKvyvW9wQyGRQFXM8tMsfvR/ao
-         mhq2Ca852o/WS5Rv24kNUs3q9uroo465Qip3lOf31K0l8bGiFCDWnEL1N3pa8sKNqHby
-         tGGne3CrqN1ymvwSa3F5gT1Ea8qIz3aQJhB3+SZSk0KbR1z5o7Gs7W6CTKca17E2Y0LY
-         ULy4Z1AVGBAW202DLqZI+xPlLDdszubi1PMUcXRREE3YZnIOdjWJ0hqINvC55+NRpjBi
-         mCTg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1704879867; x=1705484667;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Z/GyLdTtM/OnXSNZXFAQn8x+qjf9pxe1G7VU4q+zLu4=;
-        b=NnysqdFE+OnJPrQo0iSr8vNyQGIxDLleI26vPfdgIYmjNrzRh+a9WGum+nOL+UVSd1
-         KXHF2ZEpeN+bT9YG4RZPivOwx9I4A1B2Oug0l5dg7a5e1UXSfsPSM311m0rbHIJzoQe6
-         ReTnD2Qo/uME7LfbFKXKKlz4Bp62UxsZ+vQ5XhiSj8ihNX1hpXvRayLYf2odFWwYU00y
-         PtZTrb/AGkUmMcX67sFMZ1CFqZaM5+EPKBfCt2hQXhJ/53J7sxPSR5jAXlBlqeDOTXe+
-         MwOc4yQNVz/khALilaBn6qE4eKNGXB8IeBbcu2ES8hzbD+PCpmF36j4gSzO7YzLvpWNH
-         0D7Q==
-X-Gm-Message-State: AOJu0Yxuad5A+4ZxojrwEmoiuMX9ZynqwfeeoLuWlIN4gqECTOnckbyx
-	B8RQyW0ZnyZN/tr8o+L0bdddgSUHuT/YavsTwim+W3A5/Ifx
-X-Google-Smtp-Source: AGHT+IHr8s4tDXvq0TvI+5AiTouqmWth496mePjRpyBNbf/mSbI1EAkny+vGVcHXe8nkMiCz0EcBfMhtyiRD+Al4kEY=
-X-Received: by 2002:ac2:4948:0:b0:50e:d157:ffbc with SMTP id
- o8-20020ac24948000000b0050ed157ffbcmr270644lfi.109.1704879867260; Wed, 10 Jan
- 2024 01:44:27 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2e4iu7+m"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A287C433C7;
+	Wed, 10 Jan 2024 15:32:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1704900740;
+	bh=SSE859ZKpB0eYzK233X0/uAqLdDI1iU0hHw9Rn7AzoU=;
+	h=Date:To:From:Subject:From;
+	b=2e4iu7+mRAqic3MkQ65KB95c0retXan88By6VPdL0iI6tc/K20POH4NI3/YlDO/To
+	 qH770I0s69Q+P0vLspmTyYb7ebscJSoERJ+Wk+EBKTzFIIMkLAe5badAEGtQOWVuPW
+	 zXIvT3tYcC6xXHtLQegO8ZSKEibBPgMp7il0Y5ao=
+Date: Wed, 10 Jan 2024 07:32:19 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,osalvador@suse.de,mhocko@suse.com,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@redhat.com,aneesh.kumar@linux.ibm.com,agordeev@linux.ibm.com,sumanthk@linux.ibm.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-memory_hotplug-fix-memmap_on_memory-sysfs-value-retrieval.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240110153220.3A287C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20240110043220.633ADC433C7@smtp.kernel.org>
-In-Reply-To: <20240110043220.633ADC433C7@smtp.kernel.org>
-From: Yosry Ahmed <yosryahmed@google.com>
-Date: Wed, 10 Jan 2024 01:43:49 -0800
-Message-ID: <CAJD7tkbUrBCnPYmw9_euwOzJ4UcHpNvHSMRHBULR-NgjDWcMaQ@mail.gmail.com>
-Subject: Re: + mm-zswap-switch-maintainers-to-recently-active-developers-and-reviewers.patch
- added to mm-hotfixes-unstable branch
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, vitaly.wool@konsulko.com, sjenning@redhat.com, 
-	nphamcs@gmail.com, ddstreet@ieee.org, hannes@cmpxchg.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, Jan 9, 2024 at 8:32=E2=80=AFPM Andrew Morton <akpm@linux-foundation=
-.org> wrote:
->
->
-> The patch titled
->      Subject: mm: zswap: switch maintainers to recently active developers=
- and reviewers
-> has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
->      mm-zswap-switch-maintainers-to-recently-active-developers-and-review=
-ers.patch
->
-> This patch will shortly appear at
->      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree=
-/patches/mm-zswap-switch-maintainers-to-recently-active-developers-and-revi=
-ewers.patch
->
-> This patch will later appear in the mm-hotfixes-unstable branch at
->     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
->
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
->
-> *** Remember to use Documentation/process/submit-checklist.rst when testi=
-ng your code ***
->
-> The -mm tree is included into linux-next via the mm-everything
-> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> and is updated there every 2-3 working days
->
-> ------------------------------------------------------
-> From: Johannes Weiner <hannes@cmpxchg.org>
-> Subject: mm: zswap: switch maintainers to recently active developers and =
-reviewers
-> Date: Tue, 9 Jan 2024 14:02:00 -0500
->
-> Yosry, Nhat and I have been doing most of the recent development and
-> reviewing of changes in this space.
->
-> Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-> Acked-by: Nhat Pham <nphamcs@gmail.com>
 
-Acked-by: Yosry Ahmed <yosryahmed@google.com>
+The patch titled
+     Subject: mm/memory_hotplug: fix memmap_on_memory sysfs value retrieval
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-memory_hotplug-fix-memmap_on_memory-sysfs-value-retrieval.patch
+
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-fix-memmap_on_memory-sysfs-value-retrieval.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: Sumanth Korikkar <sumanthk@linux.ibm.com>
+Subject: mm/memory_hotplug: fix memmap_on_memory sysfs value retrieval
+Date: Wed, 10 Jan 2024 15:01:27 +0100
+
+set_memmap_mode() stores the kernel parameter memmap mode as an integer. 
+However, the get_memmap_mode() function utilizes param_get_bool() to fetch
+the value as a boolean, leading to potential endianness issue.  On
+Big-endian architectures, the memmap_on_memory is consistently displayed
+as 'N' regardless of its actual status.
+
+To address this endianness problem, the solution involves obtaining the
+mode as an integer.  This adjustment ensures the proper display of the
+memmap_on_memory parameter, presenting it as one of the following options:
+Force, Y, or N.
+
+Link: https://lkml.kernel.org/r/20240110140127.241451-1-sumanthk@linux.ibm.com
+Fixes: 2d1f649c7c08 ("mm/memory_hotplug: support memmap_on_memory when memmap is not aligned to pageblocks")
+Signed-off-by: Sumanth Korikkar <sumanthk@linux.ibm.com>
+Suggested-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: <stable@vger.kernel.org>	[6.6+]
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/memory_hotplug.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-fix-memmap_on_memory-sysfs-value-retrieval
++++ a/mm/memory_hotplug.c
+@@ -101,9 +101,11 @@ static int set_memmap_mode(const char *v
+ 
+ static int get_memmap_mode(char *buffer, const struct kernel_param *kp)
+ {
+-	if (*((int *)kp->arg) == MEMMAP_ON_MEMORY_FORCE)
+-		return sprintf(buffer,  "force\n");
+-	return param_get_bool(buffer, kp);
++	int mode = *((int *)kp->arg);
++
++	if (mode == MEMMAP_ON_MEMORY_FORCE)
++		return sprintf(buffer, "force\n");
++	return sprintf(buffer, "%c\n", mode ? 'Y' : 'N');
+ }
+ 
+ static const struct kernel_param_ops memmap_mode_ops = {
+_
+
+Patches currently in -mm which might be from sumanthk@linux.ibm.com are
+
+mm-memory_hotplug-fix-memmap_on_memory-sysfs-value-retrieval.patch
+mm-memory_hotplug-introduce-mem_prepare_online-mem_finish_offline-notifiers.patch
+s390-mm-allocate-vmemmap-pages-from-self-contained-memory-range.patch
+s390-sclp-remove-unhandled-memory-notifier-type.patch
+s390-mm-implement-mem_prepare_online-mem_finish_offline-notifiers.patch
+s390-enable-mhp_memmap_on_memory.patch
+
