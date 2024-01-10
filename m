@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D77D6DF5C
-	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 05:52:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5B4ADF56;
+	Wed, 10 Jan 2024 05:59:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ef5dIw2f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E5D3C433C7;
-	Wed, 10 Jan 2024 05:52:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f1r611M2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A8C3C433F1;
+	Wed, 10 Jan 2024 05:59:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704865930;
-	bh=dvFVp8ejM+SA/fW+ryXQm/JO7N1Ww/UqFKwSw25zPiA=;
+	s=korg; t=1704866394;
+	bh=m5CUiue0GETYIesq8P6U7DRL+kDKwEeBo1yCttuE0MM=;
 	h=Date:To:From:Subject:From;
-	b=ef5dIw2fZ2bZRO/H9wSTBWCiLhPp6tAOo3Pur3B/YL4H5N4tuQ3WQCApr83dbCM+D
-	 IyFHhYRCXB+CJecQE+BkJ1uf4zaVVT89Vkg7pAQ9RQKsdMSU9bk/Oq+LUZeElgYjbF
-	 SWNJCKmoBm88CYZUUc/0WHDfyEpcAqnfoe8Cf+Y8=
-Date: Tue, 09 Jan 2024 21:52:09 -0800
-To: mm-commits@vger.kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,cuibixuan@vivo.com,akpm@linux-foundation.org
+	b=f1r611M2gDviTlNg/+s3CxLtKtFipOLq/M5sAVMEnu+UK1TamscCUECb57AXBhe3K
+	 sqT5K6LmyABWZNxhexz3mcrte7KjPasdmNjbKhBh0hiWC4F3bjcKurnkfpXvjssT+P
+	 c0rK8t3CW4IkuovBajr+NOHd0h32cgCZ9mTBMu8g=
+Date: Tue, 09 Jan 2024 21:59:53 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,guoxuenan@huawei.com,jack@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-add-new-event-to-trace-shrink-lru.patch added to mm-unstable branch
-Message-Id: <20240110055210.4E5D3C433C7@smtp.kernel.org>
+Subject: + readahead-avoid-multiple-marked-readahead-pages.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240110055954.2A8C3C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: vmscan: add new event to trace shrink lru
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-add-new-event-to-trace-shrink-lru.patch
+     Subject: readahead: avoid multiple marked readahead pages
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     readahead-avoid-multiple-marked-readahead-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-add-new-event-to-trace-shrink-lru.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/readahead-avoid-multiple-marked-readahead-pages.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,138 +50,85 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Bixuan Cui <cuibixuan@vivo.com>
-Subject: mm: vmscan: add new event to trace shrink lru
-Date: Thu, 4 Jan 2024 17:36:07 -0800
+From: Jan Kara <jack@suse.cz>
+Subject: readahead: avoid multiple marked readahead pages
+Date: Thu, 4 Jan 2024 09:58:39 +0100
 
-Page reclaim is an important part of memory reclaim, including:
-  * shrink_active_list(), moves folios from the active LRU to the inactive LRU
-  * shrink_inactive_list(), shrink lru from inactive LRU list
+ra_alloc_folio() marks a page that should trigger next round of async
+readahead.  However it rounds up computed index to the order of page being
+allocated.  This can however lead to multiple consecutive pages being
+marked with readahead flag.  Consider situation with index == 1, mark ==
+1, order == 0.  We insert order 0 page at index 1 and mark it.  Then we
+bump order to 1, index to 2, mark (still == 1) is rounded up to 2 so page
+at index 2 is marked as well.  Then we bump order to 2, index is
+incremented to 4, mark gets rounded to 4 so page at index 4 is marked as
+well.  The fact that multiple pages get marked within a single readahead
+window confuses the readahead logic and results in readahead window being
+trimmed back to 1.  This situation is triggered in particular when maximum
+readahead window size is not a power of two (in the observed case it was
+768 KB) and as a result sequential read throughput suffers.
 
-Add the new events to calculate the execution time to better evaluate the
-entire memory recycling ratio.
+Fix the problem by rounding 'mark' down instead of up.  Because the index
+is naturally aligned to 'order', we are guaranteed 'rounded mark' == index
+iff 'mark' is within the page we are allocating at 'index' and thus
+exactly one page is marked with readahead flag as required by the
+readahead code and sequential read performance is restored.
 
-Example of output:
-         kswapd0-103     [007] .....  1098.353020: mm_vmscan_lru_shrink_active_start: nid=0
-         kswapd0-103     [007] .....  1098.353040: mm_vmscan_lru_shrink_active_end: nid=0 nr_taken=32 nr_active=0 nr_deactivated=32 nr_referenced=0 priority=6 flags=RECLAIM_WB_FILE|RECLAIM_WB_ASYNC
-         kswapd0-103     [007] .....  1098.353040: mm_vmscan_lru_shrink_inactive_start: nid=0
-         kswapd0-103     [007] .....  1098.353094: mm_vmscan_lru_shrink_inactive_end: nid=0 nr_scanned=32 nr_reclaimed=0 nr_dirty=0 nr_writeback=0 nr_congested=0 nr_immediate=0 nr_activate_anon=0 nr_activate_file=0 nr_ref_keep=32 nr_unmap_fail=0 priority=6 flags=RECLAIM_WB_ANON|RECLAIM_WB_ASYNC
-         kswapd0-103     [007] .....  1098.353094: mm_vmscan_lru_shrink_inactive_start: nid=0
-         kswapd0-103     [007] .....  1098.353162: mm_vmscan_lru_shrink_inactive_end: nid=0 nr_scanned=32 nr_reclaimed=21 nr_dirty=0 nr_writeback=0 nr_congested=0 nr_immediate=0 nr_activate_anon=0 nr_activate_file=0 nr_ref_keep=11 nr_unmap_fail=0 priority=6 flags=RECLAIM_WB_FILE|RECLAIM_WB_ASYNC
+This effectively reverts part of commit b9ff43dd2743 ("mm/readahead: Fix
+readahead with large folios").  The commit changed the rounding with the
+rationale:
 
-Link: https://lkml.kernel.org/r/20240105013607.2868-3-cuibixuan@vivo.com
-Signed-off-by: Bixuan Cui <cuibixuan@vivo.com>
-Reviewed-by: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+"...  we were setting the readahead flag on the folio which contains the
+last byte read from the block.  This is wrong because we will trigger
+readahead at the end of the read without waiting to see if a subsequent
+read is going to use the pages we just read."
+
+Although this is true, the fact is this was always the case with read
+sizes not aligned to folio boundaries and large folios in the page cache
+just make the situation more obvious (and frequent).  Also for sequential
+read workloads it is better to trigger the readahead earlier rather than
+later.  It is true that the difference in the rounding and thus earlier
+triggering of the readahead can result in reading more for semi-random
+workloads.  However workloads really suffering from this seem to be rare. 
+In particular I have verified that the workload described in commit
+b9ff43dd2743 ("mm/readahead: Fix readahead with large folios") of reading
+random 100k blocks from a file like:
+
+[reader]
+bs=100k
+rw=randread
+numjobs=1
+size=64g
+runtime=60s
+
+is not impacted by the rounding change and achieves ~70MB/s in both cases.
+
+Link: https://lkml.kernel.org/r/20240104085839.21029-1-jack@suse.cz
+Fixes: b9ff43dd2743 ("mm/readahead: Fix readahead with large folios")
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Guo Xuenan <guoxuenan@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/vmscan.h |   31 +++++++++++++++++++++++++++++--
- mm/vmscan.c                   |   11 ++++++++---
- 2 files changed, 37 insertions(+), 5 deletions(-)
+ mm/readahead.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/trace/events/vmscan.h~mm-vmscan-add-new-event-to-trace-shrink-lru
-+++ a/include/trace/events/vmscan.h
-@@ -395,7 +395,34 @@ TRACE_EVENT(mm_vmscan_write_folio,
- 		show_reclaim_flags(__entry->reclaim_flags))
- );
+--- a/mm/readahead.c~readahead-avoid-multiple-marked-readahead-pages
++++ a/mm/readahead.c
+@@ -469,7 +469,7 @@ static inline int ra_alloc_folio(struct
  
--TRACE_EVENT(mm_vmscan_lru_shrink_inactive,
-+DECLARE_EVENT_CLASS(mm_vmscan_lru_shrink_start_template,
-+
-+	TP_PROTO(int nid),
-+
-+	TP_ARGS(nid),
-+
-+	TP_STRUCT__entry(
-+		__field(int, nid)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->nid = nid;
-+	),
-+
-+	TP_printk("nid=%d", __entry->nid)
-+);
-+
-+DEFINE_EVENT(mm_vmscan_lru_shrink_start_template, mm_vmscan_lru_shrink_inactive_start,
-+	TP_PROTO(int nid),
-+	TP_ARGS(nid)
-+);
-+
-+DEFINE_EVENT(mm_vmscan_lru_shrink_start_template, mm_vmscan_lru_shrink_active_start,
-+	TP_PROTO(int nid),
-+	TP_ARGS(nid)
-+);
-+
-+TRACE_EVENT(mm_vmscan_lru_shrink_inactive_end,
- 
- 	TP_PROTO(int nid,
- 		unsigned long nr_scanned, unsigned long nr_reclaimed,
-@@ -446,7 +473,7 @@ TRACE_EVENT(mm_vmscan_lru_shrink_inactiv
- 		show_reclaim_flags(__entry->reclaim_flags))
- );
- 
--TRACE_EVENT(mm_vmscan_lru_shrink_active,
-+TRACE_EVENT(mm_vmscan_lru_shrink_active_end,
- 
- 	TP_PROTO(int nid, unsigned long nr_taken,
- 		unsigned long nr_active, unsigned long nr_deactivated,
---- a/mm/vmscan.c~mm-vmscan-add-new-event-to-trace-shrink-lru
-+++ a/mm/vmscan.c
-@@ -1879,6 +1879,8 @@ static unsigned long shrink_inactive_lis
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 	bool stalled = false;
- 
-+	trace_mm_vmscan_lru_shrink_inactive_start(pgdat->node_id);
-+
- 	while (unlikely(too_many_isolated(pgdat, file, sc))) {
- 		if (stalled)
- 			return 0;
-@@ -1963,7 +1965,7 @@ static unsigned long shrink_inactive_lis
- 	if (file)
- 		sc->nr.file_taken += nr_taken;
- 
--	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
-+	trace_mm_vmscan_lru_shrink_inactive_end(pgdat->node_id,
- 			nr_scanned, nr_reclaimed, &stat, sc->priority, file);
- 	return nr_reclaimed;
- }
-@@ -2001,6 +2003,8 @@ static void shrink_active_list(unsigned
- 	int file = is_file_lru(lru);
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 
-+	trace_mm_vmscan_lru_shrink_active_start(pgdat->node_id);
-+
- 	lru_add_drain();
- 
- 	spin_lock_irq(&lruvec->lru_lock);
-@@ -2080,7 +2084,7 @@ static void shrink_active_list(unsigned
- 		lru_note_cost(lruvec, file, 0, nr_rotated);
- 	mem_cgroup_uncharge_list(&l_active);
- 	free_unref_page_list(&l_active);
--	trace_mm_vmscan_lru_shrink_active(pgdat->node_id, nr_taken, nr_activate,
-+	trace_mm_vmscan_lru_shrink_active_end(pgdat->node_id, nr_taken, nr_activate,
- 			nr_deactivate, nr_rotated, sc->priority, file);
- }
- 
-@@ -4518,9 +4522,10 @@ static int evict_folios(struct lruvec *l
- 	if (list_empty(&list))
- 		return scanned;
- retry:
-+	trace_mm_vmscan_lru_shrink_inactive_start(pgdat->node_id);
- 	reclaimed = shrink_folio_list(&list, pgdat, sc, &stat, false);
- 	sc->nr_reclaimed += reclaimed;
--	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
-+	trace_mm_vmscan_lru_shrink_inactive_end(pgdat->node_id,
- 			scanned, reclaimed, &stat, sc->priority,
- 			type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
- 
+ 	if (!folio)
+ 		return -ENOMEM;
+-	mark = round_up(mark, 1UL << order);
++	mark = round_down(mark, 1UL << order);
+ 	if (index == mark)
+ 		folio_set_readahead(folio);
+ 	err = filemap_add_folio(ractl->mapping, folio, index, gfp);
 _
 
-Patches currently in -mm which might be from cuibixuan@vivo.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-mm-shrinker-add-new-event-to-trace-shrink-count.patch
-mm-vmscan-add-new-event-to-trace-shrink-lru.patch
+readahead-avoid-multiple-marked-readahead-pages.patch
 
