@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 663C16ABF
-	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 05:29:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 309AA6ABF
+	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 05:30:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rt/PjNQg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2162C433C7;
-	Wed, 10 Jan 2024 05:29:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ecTB9T7z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A588C433F1;
+	Wed, 10 Jan 2024 05:30:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704864598;
-	bh=hzMwayT52uhdXa6fOySr+j68Xhr2VZxxv3aceUUB70Y=;
+	s=korg; t=1704864600;
+	bh=nSxN4hCaRoQus/MPDX9TreCSNoDYfM5u10+C37gCjuA=;
 	h=Date:To:From:Subject:From;
-	b=rt/PjNQg3HRXEmKj1buDALVNCCSVykMME8+in8LKyeRasfTvpL3DtqMT2fsODx0mR
-	 PjzStGXWbQgjqW/EfiFxsO2kyVQPkSzpHDVyffk/AUMAYm1WTB+N3ZVbWjekZiBIiC
-	 ly8xmxy6fPIFGqM056FM8wVQu14O6JQxiKCb1oGs=
-Date: Tue, 09 Jan 2024 21:29:58 -0800
+	b=ecTB9T7z8Itr0RSpzpDvIJZM4JJZ7tcFtx64jEQfIW1r77AfeVKN7XDjnWKTDKZrD
+	 uaMZL2q8x4FECLTmjhapXfmfYKY4iCe+S3DOGIlkzcgYw1A7YaIhIW+hF/mcuD51Es
+	 6cT7/KnirSVdSoheE5zRF0oNgA9tD2/sbP220hy0=
+Date: Tue, 09 Jan 2024 21:30:00 -0800
 To: mm-commits@vger.kernel.org,tkjos@android.com,surenb@google.com,mingo@kernel.org,maco@android.com,kent.overstreet@gmail.com,keescook@chromium.org,joel@joelfernandes.org,jani.nikula@intel.com,gregkh@linuxfoundation.org,elver@google.com,colyli@suse.de,cmllamas@google.com,brauner@kernel.org,arve@android.com,andriy.shevchenko@linux.intel.com,pierre.gondois@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + list-add-hlist_count_nodes.patch added to mm-nonmm-unstable branch
-Message-Id: <20240110052958.C2162C433C7@smtp.kernel.org>
+Subject: + binder-use-of-hlist_count_nodes.patch added to mm-nonmm-unstable branch
+Message-Id: <20240110053000.9A588C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: list: add hlist_count_nodes()
+     Subject: binder: use of hlist_count_nodes()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     list-add-hlist_count_nodes.patch
+     binder-use-of-hlist_count_nodes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/list-add-hlist_count_nodes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/binder-use-of-hlist_count_nodes.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,26 +51,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Pierre Gondois <pierre.gondois@arm.com>
-Subject: list: add hlist_count_nodes()
-Date: Thu, 4 Jan 2024 17:49:33 +0100
+Subject: binder: use of hlist_count_nodes()
+Date: Thu, 4 Jan 2024 17:49:34 +0100
 
-Add a generic hlist_count_nodes() function and use it in two drivers.
+Make use of the newly added hlist_count_nodes().
 
-
-This patch (of 3):
-
-Add a function to count nodes in a hlist.  hlist_count_nodes() is similar
-to list_count_nodes().
-
-Link: https://lkml.kernel.org/r/20240104164937.424320-1-pierre.gondois@arm.com
-Link: https://lkml.kernel.org/r/20240104164937.424320-2-pierre.gondois@arm.com
+Link: https://lkml.kernel.org/r/20240104164937.424320-3-pierre.gondois@arm.com
 Signed-off-by: Pierre Gondois <pierre.gondois@arm.com>
-Reviewed-by: Carlos Llamas <cmllamas@google.com>
-Acked-by: Coly Li <colyli@suse.de>
+Acked-by: Carlos Llamas <cmllamas@google.com>
 Acked-by: Marco Elver <elver@google.com>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Arve Hjønnevåg <arve@android.com>
 Cc: Christian Brauner <brauner@kernel.org>
+Cc: Coly Li <colyli@suse.de>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Jani Nikula <jani.nikula@intel.com>
@@ -83,31 +76,22 @@ Cc: Todd Kjos <tkjos@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list.h |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ drivers/android/binder.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/include/linux/list.h~list-add-hlist_count_nodes
-+++ a/include/linux/list.h
-@@ -1175,4 +1175,19 @@ static inline void hlist_move_list(struc
- 	     pos && ({ n = pos->member.next; 1; });			\
- 	     pos = hlist_entry_safe(n, typeof(*pos), member))
+--- a/drivers/android/binder.c~binder-use-of-hlist_count_nodes
++++ a/drivers/android/binder.c
+@@ -6077,9 +6077,7 @@ static void print_binder_node_nilocked(s
+ 	struct binder_work *w;
+ 	int count;
  
-+/**
-+ * hlist_count_nodes - count nodes in the hlist
-+ * @head:	the head for your hlist.
-+ */
-+static inline size_t hlist_count_nodes(struct hlist_head *head)
-+{
-+	struct hlist_node *pos;
-+	size_t count = 0;
-+
-+	hlist_for_each(pos, head)
-+		count++;
-+
-+	return count;
-+}
-+
- #endif
+-	count = 0;
+-	hlist_for_each_entry(ref, &node->refs, node_entry)
+-		count++;
++	count = hlist_count_nodes(&node->refs);
+ 
+ 	seq_printf(m, "  node %d: u%016llx c%016llx hs %d hw %d ls %d lw %d is %d iw %d tr %d",
+ 		   node->debug_id, (u64)node->ptr, (u64)node->cookie,
 _
 
 Patches currently in -mm which might be from pierre.gondois@arm.com are
