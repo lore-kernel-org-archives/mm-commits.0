@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEB8B6107
-	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 04:16:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA59F6AC0
+	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 04:16:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="etkuygH9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 205A9C433F1;
-	Wed, 10 Jan 2024 04:16:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WukFeL3H"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18658C433F1;
+	Wed, 10 Jan 2024 04:16:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704860173;
-	bh=NuBrP6tDxxzM4WCFS6CKpgxvWmX75EITbW1EQmWt0BY=;
+	s=korg; t=1704860176;
+	bh=LpXZ3JXlQXLCAoxHbZJpgOHJ7LeMizzHHvt3IrIqT28=;
 	h=Date:To:From:Subject:From;
-	b=etkuygH962KKareJhq6Oo2Djsw4JXWg5rt2NPrkZADZmGTPT3t6hwq9r8Y1gpQyVG
-	 QYaNkuVQ/xwCYDTEgXhEwdqmew1+rDS0KvtqsWW6+p9KuCos0rgCAnEt2jvzddX6l2
-	 lsc8/HLSR3FYnmakQ2LxhWRqaPb2k7xfQbu/Y9oU=
-Date: Tue, 09 Jan 2024 20:16:12 -0800
+	b=WukFeL3HGZwoNiqYdvmYV/hEhyTtwTZuQBVgGLmeK5ubTkX3VqgaP2klrGXLU5RTR
+	 bboWRlApWIcHw1jYbbEwMSS7GqQWkfJLBPghXxpMKD9tA3tm7Jmyu83Ia1evFykG/Y
+	 +BXmH5H8/tH2QfIXks+4tt6uptfTO76E5dkt9VjE=
+Date: Tue, 09 Jan 2024 20:16:15 -0800
 To: mm-commits@vger.kernel.org,mykolal@fb.com,daniel@iogearbox.net,ast@kernel.org,andrii@kernel.org,nathan@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arch-and-include-update-llvm-phabricator-links.patch added to mm-nonmm-unstable branch
-Message-Id: <20240110041613.205A9C433F1@smtp.kernel.org>
+Subject: + treewide-update-llvm-bugzilla-links.patch added to mm-nonmm-unstable branch
+Message-Id: <20240110041616.18658C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arch and include: update LLVM Phabricator links
+     Subject: treewide: update LLVM Bugzilla links
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     arch-and-include-update-llvm-phabricator-links.patch
+     treewide-update-llvm-bugzilla-links.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch-and-include-update-llvm-phabricator-links.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/treewide-update-llvm-bugzilla-links.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,22 +51,27 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Nathan Chancellor <nathan@kernel.org>
-Subject: arch and include: update LLVM Phabricator links
-Date: Tue, 09 Jan 2024 15:16:30 -0700
+Subject: treewide: update LLVM Bugzilla links
+Date: Tue, 09 Jan 2024 15:16:31 -0700
 
-reviews.llvm.org was LLVM's Phabricator instances for code review.  It has
-been abandoned in favor of GitHub pull requests.  While the majority of
-links in the kernel sources still work because of the work Fangrui has
-done turning the dynamic Phabricator instance into a static archive, there
-are some issues with that work, so preemptively convert all the links in
-the kernel sources to point to the commit on GitHub.
+LLVM moved their issue tracker from their own Bugzilla instance to GitHub
+issues.  While all of the links are still valid, they may not necessarily
+show the most up to date information around the issues, as all updates
+will occur on GitHub, not Bugzilla.
 
-Most of the commits have the corresponding differential review link in the
-commit message itself so there should not be any loss of fidelity in the
-relevant information.
+Another complication is that the Bugzilla issue number is not always the
+same as the GitHub issue number.  Thankfully, LLVM maintains this mapping
+through two shortlinks:
 
-Link: https://discourse.llvm.org/t/update-on-github-pull-requests/71540/172
-Link: https://lkml.kernel.org/r/20240109-update-llvm-links-v1-2-eb09b59db071@kernel.org
+  https://llvm.org/bz<num> -> https://bugs.llvm.org/show_bug.cgi?id=<num>
+  https://llvm.org/pr<num> -> https://github.com/llvm/llvm-project/issues/<mapped_num>
+
+Switch all "https://bugs.llvm.org/show_bug.cgi?id=<num>" links to the
+"https://llvm.org/pr<num>" shortlink so that the links show the most up to
+date information.  Each migrated issue links back to the Bugzilla entry,
+so there should be no loss of fidelity of information here.
+
+Link: https://lkml.kernel.org/r/20240109-update-llvm-links-v1-3-eb09b59db071@kernel.org
 Signed-off-by: Nathan Chancellor <nathan@kernel.org>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Andrii Nakryiko <andrii@kernel.org>
@@ -75,65 +80,205 @@ Cc: Mykola Lysenko <mykolal@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig              |    4 ++--
- arch/riscv/Kconfig              |    2 +-
- arch/riscv/include/asm/ftrace.h |    2 +-
- include/linux/compiler-clang.h  |    2 +-
- 4 files changed, 5 insertions(+), 5 deletions(-)
+ arch/powerpc/Makefile                           |    4 ++--
+ arch/powerpc/kvm/book3s_hv_nested.c             |    2 +-
+ arch/s390/include/asm/ftrace.h                  |    2 +-
+ arch/x86/power/Makefile                         |    2 +-
+ crypto/blake2b_generic.c                        |    2 +-
+ drivers/firmware/efi/libstub/Makefile           |    2 +-
+ drivers/gpu/drm/amd/amdgpu/sdma_v4_4_2.c        |    2 +-
+ drivers/media/test-drivers/vicodec/codec-fwht.c |    2 +-
+ drivers/regulator/Kconfig                       |    2 +-
+ include/asm-generic/vmlinux.lds.h               |    2 +-
+ lib/Kconfig.kasan                               |    2 +-
+ lib/raid6/Makefile                              |    2 +-
+ lib/stackinit_kunit.c                           |    2 +-
+ mm/slab_common.c                                |    2 +-
+ net/bridge/br_multicast.c                       |    2 +-
+ security/Kconfig                                |    2 +-
+ 16 files changed, 17 insertions(+), 17 deletions(-)
 
---- a/arch/arm64/Kconfig~arch-and-include-update-llvm-phabricator-links
-+++ a/arch/arm64/Kconfig
-@@ -381,7 +381,7 @@ config BROKEN_GAS_INST
- config BUILTIN_RETURN_ADDRESS_STRIPS_PAC
- 	bool
- 	# Clang's __builtin_return_adddress() strips the PAC since 12.0.0
--	# https://reviews.llvm.org/D75044
-+	# https://github.com/llvm/llvm-project/commit/2a96f47c5ffca84cd774ad402cacd137f4bf45e2
- 	default y if CC_IS_CLANG && (CLANG_VERSION >= 120000)
- 	# GCC's __builtin_return_address() strips the PAC since 11.1.0,
- 	# and this was backported to 10.2.0, 9.4.0, 8.5.0, but not earlier
-@@ -2203,7 +2203,7 @@ config STACKPROTECTOR_PER_TASK
+--- a/arch/powerpc/kvm/book3s_hv_nested.c~treewide-update-llvm-bugzilla-links
++++ a/arch/powerpc/kvm/book3s_hv_nested.c
+@@ -55,7 +55,7 @@ void kvmhv_save_hv_regs(struct kvm_vcpu
+ 	hr->dawrx1 = vcpu->arch.dawrx1;
+ }
  
- config UNWIND_PATCH_PAC_INTO_SCS
- 	bool "Enable shadow call stack dynamically using code patching"
--	# needs Clang with https://reviews.llvm.org/D111780 incorporated
-+	# needs Clang with https://github.com/llvm/llvm-project/commit/de07cde67b5d205d58690be012106022aea6d2b3 incorporated
- 	depends on CC_IS_CLANG && CLANG_VERSION >= 150000
- 	depends on ARM64_PTR_AUTH_KERNEL && CC_HAS_BRANCH_PROT_PAC_RET
- 	depends on SHADOW_CALL_STACK
---- a/arch/riscv/include/asm/ftrace.h~arch-and-include-update-llvm-phabricator-links
-+++ a/arch/riscv/include/asm/ftrace.h
-@@ -15,7 +15,7 @@
+-/* Use noinline_for_stack due to https://bugs.llvm.org/show_bug.cgi?id=49610 */
++/* Use noinline_for_stack due to https://llvm.org/pr49610 */
+ static noinline_for_stack void byteswap_pt_regs(struct pt_regs *regs)
+ {
+ 	unsigned long *addr = (unsigned long *) regs;
+--- a/arch/powerpc/Makefile~treewide-update-llvm-bugzilla-links
++++ a/arch/powerpc/Makefile
+@@ -144,11 +144,11 @@ CFLAGS-$(CONFIG_PPC64)	+= $(call cc-opti
+ CFLAGS-$(CONFIG_PPC64)	+= $(call cc-option,-mlong-double-128)
+ 
+ # Clang unconditionally reserves r2 on ppc32 and does not support the flag
+-# https://bugs.llvm.org/show_bug.cgi?id=39555
++# https://llvm.org/pr39555
+ CFLAGS-$(CONFIG_PPC32)	:= $(call cc-option, -ffixed-r2)
+ 
+ # Clang doesn't support -mmultiple / -mno-multiple
+-# https://bugs.llvm.org/show_bug.cgi?id=39556
++# https://llvm.org/pr39556
+ CFLAGS-$(CONFIG_PPC32)	+= $(call cc-option, $(MULTIPLEWORD))
+ 
+ CFLAGS-$(CONFIG_PPC32)	+= $(call cc-option,-mno-readonly-in-sdata)
+--- a/arch/s390/include/asm/ftrace.h~treewide-update-llvm-bugzilla-links
++++ a/arch/s390/include/asm/ftrace.h
+@@ -9,7 +9,7 @@
+ #ifndef __ASSEMBLY__
+ 
+ #ifdef CONFIG_CC_IS_CLANG
+-/* https://bugs.llvm.org/show_bug.cgi?id=41424 */
++/* https://llvm.org/pr41424 */
+ #define ftrace_return_address(n) 0UL
+ #else
+ #define ftrace_return_address(n) __builtin_return_address(n)
+--- a/arch/x86/power/Makefile~treewide-update-llvm-bugzilla-links
++++ a/arch/x86/power/Makefile
+@@ -5,7 +5,7 @@
+ CFLAGS_cpu.o	:= -fno-stack-protector
+ 
+ # Clang may incorrectly inline functions with stack protector enabled into
+-# __restore_processor_state(): https://bugs.llvm.org/show_bug.cgi?id=47479
++# __restore_processor_state(): https://llvm.org/pr47479
+ CFLAGS_REMOVE_cpu.o := $(CC_FLAGS_LTO)
+ 
+ obj-$(CONFIG_PM_SLEEP)		+= cpu.o
+--- a/crypto/blake2b_generic.c~treewide-update-llvm-bugzilla-links
++++ a/crypto/blake2b_generic.c
+@@ -102,7 +102,7 @@ static void blake2b_compress_one_generic
+ 	ROUND(10);
+ 	ROUND(11);
+ #ifdef CONFIG_CC_IS_CLANG
+-#pragma nounroll /* https://bugs.llvm.org/show_bug.cgi?id=45803 */
++#pragma nounroll /* https://llvm.org/pr45803 */
+ #endif
+ 	for (i = 0; i < 8; ++i)
+ 		S->h[i] = S->h[i] ^ v[i] ^ v[i + 8];
+--- a/drivers/firmware/efi/libstub/Makefile~treewide-update-llvm-bugzilla-links
++++ a/drivers/firmware/efi/libstub/Makefile
+@@ -105,7 +105,7 @@ lib-y				:= $(patsubst %.o,%.stub.o,$(li
+ # Even when -mbranch-protection=none is set, Clang will generate a
+ # .note.gnu.property for code-less object files (like lib/ctype.c),
+ # so work around this by explicitly removing the unwanted section.
+-# https://bugs.llvm.org/show_bug.cgi?id=46480
++# https://llvm.org/pr46480
+ STUBCOPY_FLAGS-y		+= --remove-section=.note.gnu.property
+ 
+ STUBCOPY_RELOC-$(CONFIG_X86_32)	:= R_386_32
+--- a/drivers/gpu/drm/amd/amdgpu/sdma_v4_4_2.c~treewide-update-llvm-bugzilla-links
++++ a/drivers/gpu/drm/amd/amdgpu/sdma_v4_4_2.c
+@@ -610,7 +610,7 @@ static uint32_t sdma_v4_4_2_rb_cntl(stru
+ 	/* Set ring buffer size in dwords */
+ 	uint32_t rb_bufsz = order_base_2(ring->ring_size / 4);
+ 
+-	barrier(); /* work around https://bugs.llvm.org/show_bug.cgi?id=42576 */
++	barrier(); /* work around https://llvm.org/pr42576 */
+ 	rb_cntl = REG_SET_FIELD(rb_cntl, SDMA_GFX_RB_CNTL, RB_SIZE, rb_bufsz);
+ #ifdef __BIG_ENDIAN
+ 	rb_cntl = REG_SET_FIELD(rb_cntl, SDMA_GFX_RB_CNTL, RB_SWAP_ENABLE, 1);
+--- a/drivers/media/test-drivers/vicodec/codec-fwht.c~treewide-update-llvm-bugzilla-links
++++ a/drivers/media/test-drivers/vicodec/codec-fwht.c
+@@ -49,7 +49,7 @@ static const uint8_t zigzag[64] = {
  
  /*
-  * Clang prior to 13 had "mcount" instead of "_mcount":
-- * https://reviews.llvm.org/D98881
-+ * https://github.com/llvm/llvm-project/commit/ef58ae86ba778ed7d01cd3f6bd6d08f943abab44
+  * noinline_for_stack to work around
+- * https://bugs.llvm.org/show_bug.cgi?id=38809
++ * https://llvm.org/pr38809
   */
- #if defined(CONFIG_CC_IS_GCC) || CONFIG_CLANG_VERSION >= 130000
- #define MCOUNT_NAME _mcount
---- a/arch/riscv/Kconfig~arch-and-include-update-llvm-phabricator-links
-+++ a/arch/riscv/Kconfig
-@@ -291,7 +291,7 @@ config AS_HAS_INSN
- 	def_bool $(as-instr,.insn r 51$(comma) 0$(comma) 0$(comma) t0$(comma) t0$(comma) zero)
+ static int noinline_for_stack
+ rlc(const s16 *in, __be16 *output, int blocktype)
+--- a/drivers/regulator/Kconfig~treewide-update-llvm-bugzilla-links
++++ a/drivers/regulator/Kconfig
+@@ -288,7 +288,7 @@ config REGULATOR_CROS_EC
+ config REGULATOR_DA903X
+ 	tristate "Dialog Semiconductor DA9030/DA9034 regulators"
+ 	depends on PMIC_DA903X
+-	depends on !CC_IS_CLANG # https://bugs.llvm.org/show_bug.cgi?id=38789
++	depends on !CC_IS_CLANG # https://llvm.org/pr38789
+ 	help
+ 	  Say y here to support the BUCKs and LDOs regulators found on
+ 	  Dialog Semiconductor DA9030/DA9034 PMIC.
+--- a/include/asm-generic/vmlinux.lds.h~treewide-update-llvm-bugzilla-links
++++ a/include/asm-generic/vmlinux.lds.h
+@@ -984,7 +984,7 @@
+  * -fsanitize=thread produce unwanted sections (.eh_frame
+  * and .init_array.*), but CONFIG_CONSTRUCTORS wants to
+  * keep any .init_array.* sections.
+- * https://bugs.llvm.org/show_bug.cgi?id=46478
++ * https://llvm.org/pr46478
+  */
+ #ifdef CONFIG_UNWIND_TABLES
+ #define DISCARD_EH_FRAME
+--- a/lib/Kconfig.kasan~treewide-update-llvm-bugzilla-links
++++ a/lib/Kconfig.kasan
+@@ -158,7 +158,7 @@ config KASAN_STACK
+ 	  out-of-bounds bugs in stack variables.
  
- config AS_HAS_OPTION_ARCH
--	# https://reviews.llvm.org/D123515
-+	# https://github.com/llvm/llvm-project/commit/9e8ed3403c191ab9c4903e8eeb8f732ff8a43cb4
- 	def_bool y
- 	depends on $(as-instr, .option arch$(comma) +m)
- 	depends on !$(as-instr, .option arch$(comma) -i)
---- a/include/linux/compiler-clang.h~arch-and-include-update-llvm-phabricator-links
-+++ a/include/linux/compiler-clang.h
-@@ -9,7 +9,7 @@
-  * Clang prior to 17 is being silly and considers many __cleanup() variables
-  * as unused (because they are, their sole purpose is to go out of scope).
-  *
-- * https://reviews.llvm.org/D152180
-+ * https://github.com/llvm/llvm-project/commit/877210faa447f4cc7db87812f8ed80e398fedd61
+ 	  With Clang, stack instrumentation has a problem that causes excessive
+-	  stack usage, see https://bugs.llvm.org/show_bug.cgi?id=38809. Thus,
++	  stack usage, see https://llvm.org/pr38809. Thus,
+ 	  with Clang, this option is deemed unsafe.
+ 
+ 	  This option is always disabled when compile-testing with Clang to
+--- a/lib/raid6/Makefile~treewide-update-llvm-bugzilla-links
++++ a/lib/raid6/Makefile
+@@ -21,7 +21,7 @@ altivec_flags += -isystem $(shell $(CC)
+ ifdef CONFIG_CC_IS_CLANG
+ # clang ppc port does not yet support -maltivec when -msoft-float is
+ # enabled. A future release of clang will resolve this
+-# https://bugs.llvm.org/show_bug.cgi?id=31177
++# https://llvm.org/pr31177
+ CFLAGS_REMOVE_altivec1.o  += -msoft-float
+ CFLAGS_REMOVE_altivec2.o  += -msoft-float
+ CFLAGS_REMOVE_altivec4.o  += -msoft-float
+--- a/lib/stackinit_kunit.c~treewide-update-llvm-bugzilla-links
++++ a/lib/stackinit_kunit.c
+@@ -404,7 +404,7 @@ static noinline int leaf_switch_2_none(u
+  * These are expected to fail for most configurations because neither
+  * GCC nor Clang have a way to perform initialization of variables in
+  * non-code areas (i.e. in a switch statement before the first "case").
+- * https://bugs.llvm.org/show_bug.cgi?id=44916
++ * https://llvm.org/pr44916
   */
- #undef __cleanup
- #define __cleanup(func) __maybe_unused __attribute__((__cleanup__(func)))
+ DEFINE_TEST_DRIVER(switch_1_none, uint64_t, SCALAR, ALWAYS_FAIL);
+ DEFINE_TEST_DRIVER(switch_2_none, uint64_t, SCALAR, ALWAYS_FAIL);
+--- a/mm/slab_common.c~treewide-update-llvm-bugzilla-links
++++ a/mm/slab_common.c
+@@ -651,7 +651,7 @@ static struct kmem_cache *__init create_
+ 
+ struct kmem_cache *
+ kmalloc_caches[NR_KMALLOC_TYPES][KMALLOC_SHIFT_HIGH + 1] __ro_after_init =
+-{ /* initialization for https://bugs.llvm.org/show_bug.cgi?id=42570 */ };
++{ /* initialization for https://llvm.org/pr42570 */ };
+ EXPORT_SYMBOL(kmalloc_caches);
+ 
+ #ifdef CONFIG_RANDOM_KMALLOC_CACHES
+--- a/net/bridge/br_multicast.c~treewide-update-llvm-bugzilla-links
++++ a/net/bridge/br_multicast.c
+@@ -5043,7 +5043,7 @@ void br_multicast_uninit_stats(struct ne
+ 	free_percpu(br->mcast_stats);
+ }
+ 
+-/* noinline for https://bugs.llvm.org/show_bug.cgi?id=45802#c9 */
++/* noinline for https://llvm.org/pr45802#c9 */
+ static noinline_for_stack void mcast_stats_add_dir(u64 *dst, u64 *src)
+ {
+ 	dst[BR_MCAST_DIR_RX] += src[BR_MCAST_DIR_RX];
+--- a/security/Kconfig~treewide-update-llvm-bugzilla-links
++++ a/security/Kconfig
+@@ -142,7 +142,7 @@ config HARDENED_USERCOPY
+ config FORTIFY_SOURCE
+ 	bool "Harden common str/mem functions against buffer overflows"
+ 	depends on ARCH_HAS_FORTIFY_SOURCE
+-	# https://bugs.llvm.org/show_bug.cgi?id=41459
++	# https://llvm.org/pr41459
+ 	depends on !CC_IS_CLANG || CLANG_VERSION >= 120001
+ 	# https://github.com/llvm/llvm-project/issues/53645
+ 	depends on !CC_IS_CLANG || !X86_32
 _
 
 Patches currently in -mm which might be from nathan@kernel.org are
