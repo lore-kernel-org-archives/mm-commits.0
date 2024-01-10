@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D83032C71
-	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 06:23:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 925DD32C71
+	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 06:23:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xBzQuhZk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3F52C433C7;
-	Wed, 10 Jan 2024 06:23:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0XKeP1Y+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00C63C433F1;
+	Wed, 10 Jan 2024 06:23:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704867802;
-	bh=qnjgGaR8XXRWZ+tmQDxfC6xYsq2ZeUCM7Fsyt9KaU+s=;
+	s=korg; t=1704867807;
+	bh=Sg5JrFTtI3Hfiy8y1E7XdNPqmQdycyiAEHJu9u41vg4=;
 	h=Date:To:From:Subject:From;
-	b=xBzQuhZkwhAuF3XcfaMnmMmOczJx+WcGLf8SgQas2p3WC3XCGqVfboVXZ5qQ7wyjB
-	 ayC+dnA0/M5f+FOAteEtDeZtzTLv3BQU+IIN4tdhKi5ubLL1xUoLVwovght/WcEyVR
-	 hFwnOcQk2/yzL9WWRXdp9H0F8spbRCM8fpVfzF2I=
-Date: Tue, 09 Jan 2024 22:23:22 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,urezki@gmail.com,paulmck@kernel.org,oleksiy.avramchenko@sony.com,lstoakes@gmail.com,Liam.Howlett@oracle.com,k-hagio-ab@nec.com,joel@joelfernandes.org,hch@lst.de,david@fromorbit.com,bhe@redhat.com,akpm@linux-foundation.org
+	b=0XKeP1Y+MujfrinbTvhThNJBJIJeNQOk2+pv1b62QszY0pEJx3xQGJyJhSNiFqNUs
+	 gNiY2NpPMvzx/FTGXrmL7tKZKpo+YjLcmgcn1GgIjRKaqZLZdd9akiSZvnDszFzPDo
+	 HqUXksa9Mo7i6RTFWrJoXoxB//lZVAH5+SukJS/U=
+Date: Tue, 09 Jan 2024 22:23:26 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,paulmck@kernel.org,oleksiy.avramchenko@sony.com,lstoakes@gmail.com,Liam.Howlett@oracle.com,k-hagio-ab@nec.com,joel@joelfernandes.org,hch@lst.de,david@fromorbit.com,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-remove-vmap_area_list.patch added to mm-unstable branch
-Message-Id: <20240110062322.D3F52C433C7@smtp.kernel.org>
+Subject: + mm-vmalloc-remove-global-purge_vmap_area_root-rb-tree.patch added to mm-unstable branch
+Message-Id: <20240110062327.00C63C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: remove vmap_area_list
+     Subject: mm: vmalloc: remove global purge_vmap_area_root rb-tree
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-remove-vmap_area_list.patch
+     mm-vmalloc-remove-global-purge_vmap_area_root-rb-tree.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-remove-vmap_area_list.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-remove-global-purge_vmap_area_root-rb-tree.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -50,17 +50,20 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: mm/vmalloc: remove vmap_area_list
-Date: Tue, 2 Jan 2024 19:46:27 +0100
+From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Subject: mm: vmalloc: remove global purge_vmap_area_root rb-tree
+Date: Tue, 2 Jan 2024 19:46:28 +0100
 
-Earlier, vmap_area_list is exported to vmcoreinfo so that makedumpfile get
-the base address of vmalloc area.  Now, vmap_area_list is empty, so export
-VMALLOC_START to vmcoreinfo instead, and remove vmap_area_list.
+Similar to busy VA, lazily-freed area is stored to a node it belongs to. 
+Such approach does not require any global locking primitive, instead an
+access becomes scalable what mitigates a contention.
 
-Link: https://lkml.kernel.org/r/20240102184633.748113-6-urezki@gmail.com
-Signed-off-by: Baoquan He <bhe@redhat.com>
+This patch removes a global purge-lock, global purge-tree and global purge
+list.
+
+Link: https://lkml.kernel.org/r/20240102184633.748113-7-urezki@gmail.com
 Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reviewed-by: Baoquan He <bhe@redhat.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
@@ -73,120 +76,236 @@ Cc: Paul E. McKenney <paulmck@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kdump/vmcoreinfo.rst |    8 ++++----
- arch/arm64/kernel/crash_core.c                 |    1 -
- arch/riscv/kernel/crash_core.c                 |    1 -
- include/linux/vmalloc.h                        |    1 -
- kernel/crash_core.c                            |    4 +---
- kernel/kallsyms_selftest.c                     |    1 -
- mm/nommu.c                                     |    2 --
- mm/vmalloc.c                                   |    2 --
- 8 files changed, 5 insertions(+), 15 deletions(-)
+ mm/vmalloc.c |  135 +++++++++++++++++++++++++++++--------------------
+ 1 file changed, 82 insertions(+), 53 deletions(-)
 
---- a/arch/arm64/kernel/crash_core.c~mm-vmalloc-remove-vmap_area_list
-+++ a/arch/arm64/kernel/crash_core.c
-@@ -23,7 +23,6 @@ void arch_crash_save_vmcoreinfo(void)
- 	/* Please note VMCOREINFO_NUMBER() uses "%d", not "%x" */
- 	vmcoreinfo_append_str("NUMBER(MODULES_VADDR)=0x%lx\n", MODULES_VADDR);
- 	vmcoreinfo_append_str("NUMBER(MODULES_END)=0x%lx\n", MODULES_END);
--	vmcoreinfo_append_str("NUMBER(VMALLOC_START)=0x%lx\n", VMALLOC_START);
- 	vmcoreinfo_append_str("NUMBER(VMALLOC_END)=0x%lx\n", VMALLOC_END);
- 	vmcoreinfo_append_str("NUMBER(VMEMMAP_START)=0x%lx\n", VMEMMAP_START);
- 	vmcoreinfo_append_str("NUMBER(VMEMMAP_END)=0x%lx\n", VMEMMAP_END);
---- a/arch/riscv/kernel/crash_core.c~mm-vmalloc-remove-vmap_area_list
-+++ a/arch/riscv/kernel/crash_core.c
-@@ -8,7 +8,6 @@ void arch_crash_save_vmcoreinfo(void)
- 	VMCOREINFO_NUMBER(phys_ram_base);
- 
- 	vmcoreinfo_append_str("NUMBER(PAGE_OFFSET)=0x%lx\n", PAGE_OFFSET);
--	vmcoreinfo_append_str("NUMBER(VMALLOC_START)=0x%lx\n", VMALLOC_START);
- 	vmcoreinfo_append_str("NUMBER(VMALLOC_END)=0x%lx\n", VMALLOC_END);
- #ifdef CONFIG_MMU
- 	VMCOREINFO_NUMBER(VA_BITS);
---- a/Documentation/admin-guide/kdump/vmcoreinfo.rst~mm-vmalloc-remove-vmap_area_list
-+++ a/Documentation/admin-guide/kdump/vmcoreinfo.rst
-@@ -65,11 +65,11 @@ Defines the beginning of the text sectio
- the kernel start address. Used to convert a virtual address from the
- direct kernel map to a physical address.
- 
--vmap_area_list
----------------
-+VMALLOC_START
-+-------------
- 
--Stores the virtual area list. makedumpfile gets the vmalloc start value
--from this variable and its value is necessary for vmalloc translation.
-+Stores the base address of vmalloc area. makedumpfile gets this value
-+since is necessary for vmalloc translation.
- 
- mem_map
- -------
---- a/include/linux/vmalloc.h~mm-vmalloc-remove-vmap_area_list
-+++ a/include/linux/vmalloc.h
-@@ -253,7 +253,6 @@ extern long vread_iter(struct iov_iter *
- /*
-  *	Internals.  Don't use..
-  */
--extern struct list_head vmap_area_list;
- extern __init void vm_area_add_early(struct vm_struct *vm);
- extern __init void vm_area_register_early(struct vm_struct *vm, size_t align);
- 
---- a/kernel/crash_core.c~mm-vmalloc-remove-vmap_area_list
-+++ a/kernel/crash_core.c
-@@ -748,7 +748,7 @@ static int __init crash_save_vmcoreinfo_
- 	VMCOREINFO_SYMBOL_ARRAY(swapper_pg_dir);
- #endif
- 	VMCOREINFO_SYMBOL(_stext);
--	VMCOREINFO_SYMBOL(vmap_area_list);
-+	vmcoreinfo_append_str("NUMBER(VMALLOC_START)=0x%lx\n", VMALLOC_START);
- 
- #ifndef CONFIG_NUMA
- 	VMCOREINFO_SYMBOL(mem_map);
-@@ -789,8 +789,6 @@ static int __init crash_save_vmcoreinfo_
- 	VMCOREINFO_OFFSET(free_area, free_list);
- 	VMCOREINFO_OFFSET(list_head, next);
- 	VMCOREINFO_OFFSET(list_head, prev);
--	VMCOREINFO_OFFSET(vmap_area, va_start);
--	VMCOREINFO_OFFSET(vmap_area, list);
- 	VMCOREINFO_LENGTH(zone.free_area, NR_PAGE_ORDERS);
- 	log_buf_vmcoreinfo_setup();
- 	VMCOREINFO_LENGTH(free_area.free_list, MIGRATE_TYPES);
---- a/kernel/kallsyms_selftest.c~mm-vmalloc-remove-vmap_area_list
-+++ a/kernel/kallsyms_selftest.c
-@@ -89,7 +89,6 @@ static struct test_item test_items[] = {
- 	ITEM_DATA(kallsyms_test_var_data_static),
- 	ITEM_DATA(kallsyms_test_var_bss),
- 	ITEM_DATA(kallsyms_test_var_data),
--	ITEM_DATA(vmap_area_list),
- #endif
- };
- 
---- a/mm/nommu.c~mm-vmalloc-remove-vmap_area_list
-+++ a/mm/nommu.c
-@@ -131,8 +131,6 @@ int follow_pfn(struct vm_area_struct *vm
- }
- EXPORT_SYMBOL(follow_pfn);
- 
--LIST_HEAD(vmap_area_list);
--
- void vfree(const void *addr)
- {
- 	kfree(addr);
---- a/mm/vmalloc.c~mm-vmalloc-remove-vmap_area_list
+--- a/mm/vmalloc.c~mm-vmalloc-remove-global-purge_vmap_area_root-rb-tree
 +++ a/mm/vmalloc.c
-@@ -729,8 +729,6 @@ EXPORT_SYMBOL(vmalloc_to_pfn);
- 
- 
+@@ -731,10 +731,6 @@ EXPORT_SYMBOL(vmalloc_to_pfn);
  static DEFINE_SPINLOCK(free_vmap_area_lock);
--/* Export for kexec only */
--LIST_HEAD(vmap_area_list);
  static bool vmap_initialized __read_mostly;
  
- static struct rb_root purge_vmap_area_root = RB_ROOT;
+-static struct rb_root purge_vmap_area_root = RB_ROOT;
+-static LIST_HEAD(purge_vmap_area_list);
+-static DEFINE_SPINLOCK(purge_vmap_area_lock);
+-
+ /*
+  * This kmem_cache is used for vmap_area objects. Instead of
+  * allocating from slab we reuse an object from this cache to
+@@ -782,6 +778,12 @@ struct rb_list {
+ static struct vmap_node {
+ 	/* Bookkeeping data of this node. */
+ 	struct rb_list busy;
++	struct rb_list lazy;
++
++	/*
++	 * Ready-to-free areas.
++	 */
++	struct list_head purge_list;
+ } single;
+ 
+ static struct vmap_node *vmap_nodes = &single;
+@@ -1766,40 +1768,22 @@ static DEFINE_MUTEX(vmap_purge_lock);
+ 
+ /* for per-CPU blocks */
+ static void purge_fragmented_blocks_allcpus(void);
++static cpumask_t purge_nodes;
+ 
+ /*
+  * Purges all lazily-freed vmap areas.
+  */
+-static bool __purge_vmap_area_lazy(unsigned long start, unsigned long end)
++static unsigned long
++purge_vmap_node(struct vmap_node *vn)
+ {
+-	unsigned long resched_threshold;
+-	unsigned int num_purged_areas = 0;
+-	struct list_head local_purge_list;
++	unsigned long num_purged_areas = 0;
+ 	struct vmap_area *va, *n_va;
+ 
+-	lockdep_assert_held(&vmap_purge_lock);
+-
+-	spin_lock(&purge_vmap_area_lock);
+-	purge_vmap_area_root = RB_ROOT;
+-	list_replace_init(&purge_vmap_area_list, &local_purge_list);
+-	spin_unlock(&purge_vmap_area_lock);
+-
+-	if (unlikely(list_empty(&local_purge_list)))
+-		goto out;
+-
+-	start = min(start,
+-		list_first_entry(&local_purge_list,
+-			struct vmap_area, list)->va_start);
+-
+-	end = max(end,
+-		list_last_entry(&local_purge_list,
+-			struct vmap_area, list)->va_end);
+-
+-	flush_tlb_kernel_range(start, end);
+-	resched_threshold = lazy_max_pages() << 1;
++	if (list_empty(&vn->purge_list))
++		return 0;
+ 
+ 	spin_lock(&free_vmap_area_lock);
+-	list_for_each_entry_safe(va, n_va, &local_purge_list, list) {
++	list_for_each_entry_safe(va, n_va, &vn->purge_list, list) {
+ 		unsigned long nr = (va->va_end - va->va_start) >> PAGE_SHIFT;
+ 		unsigned long orig_start = va->va_start;
+ 		unsigned long orig_end = va->va_end;
+@@ -1821,13 +1805,55 @@ static bool __purge_vmap_area_lazy(unsig
+ 
+ 		atomic_long_sub(nr, &vmap_lazy_nr);
+ 		num_purged_areas++;
+-
+-		if (atomic_long_read(&vmap_lazy_nr) < resched_threshold)
+-			cond_resched_lock(&free_vmap_area_lock);
+ 	}
+ 	spin_unlock(&free_vmap_area_lock);
+ 
+-out:
++	return num_purged_areas;
++}
++
++/*
++ * Purges all lazily-freed vmap areas.
++ */
++static bool __purge_vmap_area_lazy(unsigned long start, unsigned long end)
++{
++	unsigned long num_purged_areas = 0;
++	struct vmap_node *vn;
++	int i;
++
++	lockdep_assert_held(&vmap_purge_lock);
++	purge_nodes = CPU_MASK_NONE;
++
++	for (i = 0; i < nr_vmap_nodes; i++) {
++		vn = &vmap_nodes[i];
++
++		INIT_LIST_HEAD(&vn->purge_list);
++
++		if (RB_EMPTY_ROOT(&vn->lazy.root))
++			continue;
++
++		spin_lock(&vn->lazy.lock);
++		WRITE_ONCE(vn->lazy.root.rb_node, NULL);
++		list_replace_init(&vn->lazy.head, &vn->purge_list);
++		spin_unlock(&vn->lazy.lock);
++
++		start = min(start, list_first_entry(&vn->purge_list,
++			struct vmap_area, list)->va_start);
++
++		end = max(end, list_last_entry(&vn->purge_list,
++			struct vmap_area, list)->va_end);
++
++		cpumask_set_cpu(i, &purge_nodes);
++	}
++
++	if (cpumask_weight(&purge_nodes) > 0) {
++		flush_tlb_kernel_range(start, end);
++
++		for_each_cpu(i, &purge_nodes) {
++			vn = &nodes[i];
++			num_purged_areas += purge_vmap_node(vn);
++		}
++	}
++
+ 	trace_purge_vmap_area_lazy(start, end, num_purged_areas);
+ 	return num_purged_areas > 0;
+ }
+@@ -1846,16 +1872,9 @@ static void reclaim_and_purge_vmap_areas
+ 
+ static void drain_vmap_area_work(struct work_struct *work)
+ {
+-	unsigned long nr_lazy;
+-
+-	do {
+-		mutex_lock(&vmap_purge_lock);
+-		__purge_vmap_area_lazy(ULONG_MAX, 0);
+-		mutex_unlock(&vmap_purge_lock);
+-
+-		/* Recheck if further work is required. */
+-		nr_lazy = atomic_long_read(&vmap_lazy_nr);
+-	} while (nr_lazy > lazy_max_pages());
++	mutex_lock(&vmap_purge_lock);
++	__purge_vmap_area_lazy(ULONG_MAX, 0);
++	mutex_unlock(&vmap_purge_lock);
+ }
+ 
+ /*
+@@ -1865,6 +1884,7 @@ static void drain_vmap_area_work(struct
+  */
+ static void free_vmap_area_noflush(struct vmap_area *va)
+ {
++	struct vmap_node *vn = addr_to_node(va->va_start);
+ 	unsigned long nr_lazy_max = lazy_max_pages();
+ 	unsigned long va_start = va->va_start;
+ 	unsigned long nr_lazy;
+@@ -1878,10 +1898,9 @@ static void free_vmap_area_noflush(struc
+ 	/*
+ 	 * Merge or place it to the purge tree/list.
+ 	 */
+-	spin_lock(&purge_vmap_area_lock);
+-	merge_or_add_vmap_area(va,
+-		&purge_vmap_area_root, &purge_vmap_area_list);
+-	spin_unlock(&purge_vmap_area_lock);
++	spin_lock(&vn->lazy.lock);
++	merge_or_add_vmap_area(va, &vn->lazy.root, &vn->lazy.head);
++	spin_unlock(&vn->lazy.lock);
+ 
+ 	trace_free_vmap_area_noflush(va_start, nr_lazy, nr_lazy_max);
+ 
+@@ -4411,15 +4430,21 @@ static void show_numa_info(struct seq_fi
+ 
+ static void show_purge_info(struct seq_file *m)
+ {
++	struct vmap_node *vn;
+ 	struct vmap_area *va;
++	int i;
+ 
+-	spin_lock(&purge_vmap_area_lock);
+-	list_for_each_entry(va, &purge_vmap_area_list, list) {
+-		seq_printf(m, "0x%pK-0x%pK %7ld unpurged vm_area\n",
+-			(void *)va->va_start, (void *)va->va_end,
+-			va->va_end - va->va_start);
++	for (i = 0; i < nr_vmap_nodes; i++) {
++		vn = &vmap_nodes[i];
++
++		spin_lock(&vn->lazy.lock);
++		list_for_each_entry(va, &vn->lazy.head, list) {
++			seq_printf(m, "0x%pK-0x%pK %7ld unpurged vm_area\n",
++				(void *)va->va_start, (void *)va->va_end,
++				va->va_end - va->va_start);
++		}
++		spin_unlock(&vn->lazy.lock);
+ 	}
+-	spin_unlock(&purge_vmap_area_lock);
+ }
+ 
+ static int s_show(struct seq_file *m, void *p)
+@@ -4558,6 +4583,10 @@ static void vmap_init_nodes(void)
+ 		vn->busy.root = RB_ROOT;
+ 		INIT_LIST_HEAD(&vn->busy.head);
+ 		spin_lock_init(&vn->busy.lock);
++
++		vn->lazy.root = RB_ROOT;
++		INIT_LIST_HEAD(&vn->lazy.head);
++		spin_lock_init(&vn->lazy.lock);
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from urezki@gmail.com are
 
-mm-vmalloc-remove-vmap_area_list.patch
-panic-suppress-gnu_printf-warning.patch
+mm-vmalloc-add-va_alloc-helper.patch
+mm-vmalloc-rename-adjust_va_to_fit_type-function.patch
+mm-vmalloc-move-vmap_init_free_space-down-in-vmallocc.patch
+mm-vmalloc-remove-global-vmap_area_root-rb-tree.patch
+mm-vmalloc-remove-global-purge_vmap_area_root-rb-tree.patch
+mm-vmalloc-offload-free_vmap_area_lock-lock.patch
+mm-vmalloc-support-multiple-nodes-in-vread_iter.patch
+mm-vmalloc-support-multiple-nodes-in-vmallocinfo.patch
+mm-vmalloc-set-nr_nodes-based-on-cpus-in-a-system.patch
+mm-vmalloc-add-a-shrinker-to-drain-vmap-pools.patch
 
