@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 517634BA9C;
-	Wed, 10 Jan 2024 15:42:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A60A4C3AC
+	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 15:49:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JI8cJAUN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1D8CC43390;
-	Wed, 10 Jan 2024 15:42:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="y6t2pWcP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E68FC433F1;
+	Wed, 10 Jan 2024 15:49:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704901337;
-	bh=ZNu73zuf7NYTJBEkIYHcS8AYQ205RpbL6BfU2KD6CpI=;
+	s=korg; t=1704901775;
+	bh=8D2Eyd2oduD9H5v+qg79hMLrLvEo2F06ewPGAB3VOr4=;
 	h=Date:To:From:Subject:From;
-	b=JI8cJAUNZla5dQpPRSpeWC/1DmtSU08zPEnQa18QRMMW4aMVhnxEPrDiQ62xykvbN
-	 x8XlOT71Et3CNQkklQpk1XofnTKrNs6ir/xqEPZRvARSBlYaJ02XNfNvqoqC6aBnym
-	 q8CMuQDJrlwipVGdA5VL8eztR78pTJrQXLJ7bQp0=
-Date: Wed, 10 Jan 2024 07:42:17 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,tzimmermann@suse.de,tvrtko.ursulin@linux.intel.com,stable@vger.kernel.org,rodrigo.vivi@intel.com,ray.huang@amd.com,mripard@kernel.org,maarten.lankhorst@linux.intel.com,joonas.lahtinen@linux.intel.com,jarkko@kernel.org,jani.nikula@linux.intel.com,hughd@google.com,djwong@kernel.org,dhowells@redhat.com,dave.hansen@linux.intel.com,daniel@ffwll.ch,christian.koenig@amd.com,chandan.babu@oracle.com,airlied@gmail.com,hch@lst.de,akpm@linux-foundation.org
+	b=y6t2pWcPkT4FfSAa0UCaHH1BG142t7mXK2wNOyW93wSZvjvGagS2vLxWQL8V7KmrQ
+	 EtSwTO57cf4sIqpYN2waQrIxewnI2wnXy55KtwjtiYZahY8KWN+fzJ0bk/rirWO6NC
+	 sJtGghSGbvY6fCmAfvvLI972uhSFOgkVus+g1jqo=
+Date: Wed, 10 Jan 2024 07:49:34 -0800
+To: mm-commits@vger.kernel.org,yajun.deng@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + xfs-disable-large-folio-support-in-xfile_create.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240110154217.A1D8CC43390@smtp.kernel.org>
+Subject: + mm-mmap-simplify-vma-link-and-unlink.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240110154935.3E68FC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: xfs: disable large folio support in xfile_create
+     Subject: mm/mmap: simplify vma link and unlink
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     xfs-disable-large-folio-support-in-xfile_create.patch
+     mm-mmap-simplify-vma-link-and-unlink.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xfs-disable-large-folio-support-in-xfile_create.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-simplify-vma-link-and-unlink.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -50,63 +50,119 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: xfs: disable large folio support in xfile_create
-Date: Wed, 10 Jan 2024 10:21:09 +0100
+From: Yajun Deng <yajun.deng@linux.dev>
+Subject: mm/mmap: simplify vma link and unlink
+Date: Wed, 10 Jan 2024 16:46:22 +0800
 
-The xfarray code will crash if large folios are force enabled using:
+The file parameter in the __remove_shared_vm_struct is no longer used,
+remove it.
 
-   echo force > /sys/kernel/mm/transparent_hugepage/shmem_enabled
+These functions vma_link() and mmap_region() have some of the same code,
+introduce vma_link_file() helper function to simplify the code.
 
-Fixing this will require a bit of an API change, and prefeably sorting out
-the hwpoison story for pages vs folio and where it is placed in the shmem
-API.  For now use this one liner to disable large folios.
-
-Link: https://lkml.kernel.org/r/20240110092109.1950011-3-hch@lst.de
-Reported-by: Darrick J. Wong <djwong@kernel.org>
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Chandan Babu R <chandan.babu@oracle.com>
-Cc: Christian König <christian.koenig@amd.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Dave Airlie <airlied@gmail.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Huang Rui <ray.huang@amd.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Jarkko Sakkinen <jarkko@kernel.org>
-Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Maxime Ripard <mripard@kernel.org>
-Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
-Cc: Thomas Zimmermann <tzimmermann@suse.de>
-Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240110084622.2425927-1-yajun.deng@linux.dev
+Signed-off-by: Yajun Deng <yajun.deng@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/scrub/xfile.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/mmap.c |   44 +++++++++++++++++++-------------------------
+ 1 file changed, 19 insertions(+), 25 deletions(-)
 
---- a/fs/xfs/scrub/xfile.c~xfs-disable-large-folio-support-in-xfile_create
-+++ a/fs/xfs/scrub/xfile.c
-@@ -94,6 +94,11 @@ xfile_create(
+--- a/mm/mmap.c~mm-mmap-simplify-vma-link-and-unlink
++++ a/mm/mmap.c
+@@ -105,7 +105,7 @@ void vma_set_page_prot(struct vm_area_st
+  * Requires inode->i_mapping->i_mmap_rwsem
+  */
+ static void __remove_shared_vm_struct(struct vm_area_struct *vma,
+-		struct file *file, struct address_space *mapping)
++				      struct address_space *mapping)
+ {
+ 	if (vma_is_shared_maywrite(vma))
+ 		mapping_unmap_writable(mapping);
+@@ -126,7 +126,7 @@ void unlink_file_vma(struct vm_area_stru
+ 	if (file) {
+ 		struct address_space *mapping = file->f_mapping;
+ 		i_mmap_lock_write(mapping);
+-		__remove_shared_vm_struct(vma, file, mapping);
++		__remove_shared_vm_struct(vma, mapping);
+ 		i_mmap_unlock_write(mapping);
+ 	}
+ }
+@@ -392,26 +392,30 @@ static void __vma_link_file(struct vm_ar
+ 	flush_dcache_mmap_unlock(mapping);
+ }
  
- 	lockdep_set_class(&inode->i_rwsem, &xfile_i_mutex_key);
- 
-+	/*
-+	 * We're not quite ready for large folios yet.
-+	 */
-+	mapping_clear_large_folios(inode->i_mapping);
++static void vma_link_file(struct vm_area_struct *vma)
++{
++	struct file *file = vma->vm_file;
++	struct address_space *mapping;
 +
- 	trace_xfile_create(xf);
++	if (file) {
++		mapping = file->f_mapping;
++		i_mmap_lock_write(mapping);
++		__vma_link_file(vma, mapping);
++		i_mmap_unlock_write(mapping);
++	}
++}
++
+ static int vma_link(struct mm_struct *mm, struct vm_area_struct *vma)
+ {
+ 	VMA_ITERATOR(vmi, mm, 0);
+-	struct address_space *mapping = NULL;
  
- 	*xfilep = xf;
+ 	vma_iter_config(&vmi, vma->vm_start, vma->vm_end);
+ 	if (vma_iter_prealloc(&vmi, vma))
+ 		return -ENOMEM;
+ 
+ 	vma_start_write(vma);
+-
+ 	vma_iter_store(&vmi, vma);
+-
+-	if (vma->vm_file) {
+-		mapping = vma->vm_file->f_mapping;
+-		i_mmap_lock_write(mapping);
+-		__vma_link_file(vma, mapping);
+-		i_mmap_unlock_write(mapping);
+-	}
+-
++	vma_link_file(vma);
+ 	mm->map_count++;
+ 	validate_mm(mm);
+ 	return 0;
+@@ -519,10 +523,9 @@ static inline void vma_complete(struct v
+ 	}
+ 
+ 	if (vp->remove && vp->file) {
+-		__remove_shared_vm_struct(vp->remove, vp->file, vp->mapping);
++		__remove_shared_vm_struct(vp->remove, vp->mapping);
+ 		if (vp->remove2)
+-			__remove_shared_vm_struct(vp->remove2, vp->file,
+-						  vp->mapping);
++			__remove_shared_vm_struct(vp->remove2, vp->mapping);
+ 	} else if (vp->insert) {
+ 		/*
+ 		 * split_vma has split insert from vma, and needs
+@@ -2889,16 +2892,7 @@ cannot_expand:
+ 	vma_start_write(vma);
+ 	vma_iter_store(&vmi, vma);
+ 	mm->map_count++;
+-	if (vma->vm_file) {
+-		i_mmap_lock_write(vma->vm_file->f_mapping);
+-		if (vma_is_shared_maywrite(vma))
+-			mapping_allow_writable(vma->vm_file->f_mapping);
+-
+-		flush_dcache_mmap_lock(vma->vm_file->f_mapping);
+-		vma_interval_tree_insert(vma, &vma->vm_file->f_mapping->i_mmap);
+-		flush_dcache_mmap_unlock(vma->vm_file->f_mapping);
+-		i_mmap_unlock_write(vma->vm_file->f_mapping);
+-	}
++	vma_link_file(vma);
+ 
+ 	/*
+ 	 * vma_merge() calls khugepaged_enter_vma() either, the below
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from yajun.deng@linux.dev are
 
-mm-add-a-mapping_clear_large_folios-helper.patch
-xfs-disable-large-folio-support-in-xfile_create.patch
+mm-mmap-simplify-vma-link-and-unlink.patch
 
