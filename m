@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B782D7484
-	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 04:44:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E8656FB1
+	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 04:56:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nxCHd4ue"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2412EC433F1;
-	Wed, 10 Jan 2024 04:44:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wjrk0BHu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDD85C433C7;
+	Wed, 10 Jan 2024 04:56:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704861850;
-	bh=U5yYN77T1g/GU0SQhc35nnBgHxLGNlHozKaOhMHGtjU=;
+	s=korg; t=1704862618;
+	bh=qCQqYGVm7S7F5KCfFDzt2AAcpRK8k251EmU9e/YV7T8=;
 	h=Date:To:From:Subject:From;
-	b=nxCHd4uepxaJDr0q4Fgy1IAjWNJ5W62q7eAPGyQrzM77G0kh9sh2MPav4sv2zMFIJ
-	 L6ke+Z7Qx4/F+7MeEDT8OO9PYL0eXMmrF+JiGLfQfa3R7OF1l8hWyo8NzBoTSewSgd
-	 i5cmrDQgHJb7sFK8NY20HFU2yAtHOTPHwyljnNdk=
-Date: Tue, 09 Jan 2024 20:44:09 -0800
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,usama.anjum@collabora.com,surenb@google.com,sfr@canb.auug.org.au,seanjc@google.com,ryan.roberts@arm.com,peterx@redhat.com,mirq-linux@rere.qmqm.pl,Liam.Howlett@oracle.com,hughd@google.com,david@redhat.com,avagin@google.com,arnd@arndb.de,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=wjrk0BHuQzvvPBpiSoAdOTx4Wx9+pHqfubMuCWiQX2Lfyi8AMr6/7wUSVpOtHcDTI
+	 tlafKzom4miVe3GCyX6gT0HMWXy7DiVfF0vNSt/HV9kZW7bNzT6fx9JhldiOegefZO
+	 yPbV/tG87lP++HijZ7nvW/ffFlIj9ZTiYQdW+Vnk=
+Date: Tue, 09 Jan 2024 20:56:58 -0800
+To: mm-commits@vger.kernel.org,manivannan.sadhasivam@linaro.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-task_mmu-move-mmu-notification-mechanism-inside-mm-lock-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240110044410.2412EC433F1@smtp.kernel.org>
+Subject: + mailmap-update-entry-for-manivannan-sadhasivam.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240110045658.CDD85C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs-proc-task_mmu-move-mmu-notification-mechanism-inside-mm-lock-fix
+     Subject: mailmap: update entry for Manivannan Sadhasivam
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     fs-proc-task_mmu-move-mmu-notification-mechanism-inside-mm-lock-fix.patch
+     mailmap-update-entry-for-manivannan-sadhasivam.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-move-mmu-notification-mechanism-inside-mm-lock-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-update-entry-for-manivannan-sadhasivam.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -50,52 +50,35 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-proc-task_mmu-move-mmu-notification-mechanism-inside-mm-lock-fix
-Date: Tue Jan  9 08:41:17 PM PST 2024
+From: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
+Subject: mailmap: update entry for Manivannan Sadhasivam
+Date: Tue, 09 Jan 2024 15:44:31 +0530
 
-narrow the scope of `range', per Sean
+Remove the map for Linaro id as it is still in use and I want to use it
+for submitting patches.  Otherwise, git uses kernel.org as the author id
+for patches created using Linaro id.
 
-Cc: Andrei Vagin <avagin@google.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Michał Mirosław <mirq-linux@rere.qmqm.pl>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/20240109-update-mailmap-v1-1-bf7a39f15fb7@linaro.org
+Signed-off-by: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .mailmap |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/fs/proc/task_mmu.c~fs-proc-task_mmu-move-mmu-notification-mechanism-inside-mm-lock-fix
-+++ a/fs/proc/task_mmu.c
-@@ -2432,7 +2432,6 @@ static long pagemap_scan_flush_buffer(st
- 
- static long do_pagemap_scan(struct mm_struct *mm, unsigned long uarg)
- {
--	struct mmu_notifier_range range;
- 	struct pagemap_scan_private p = {0};
- 	unsigned long walk_start;
- 	size_t n_ranges_out = 0;
-@@ -2450,6 +2449,7 @@ static long do_pagemap_scan(struct mm_st
- 
- 	for (walk_start = p.arg.start; walk_start < p.arg.end;
- 			walk_start = p.arg.walk_end) {
-+		struct mmu_notifier_range range;
- 		long n_out;
- 
- 		if (fatal_signal_pending(current)) {
+--- a/.mailmap~mailmap-update-entry-for-manivannan-sadhasivam
++++ a/.mailmap
+@@ -363,7 +363,6 @@ Maheshwar Ajja <quic_majja@quicinc.com>
+ Malathi Gottam <quic_mgottam@quicinc.com> <mgottam@codeaurora.org>
+ Manikanta Pubbisetty <quic_mpubbise@quicinc.com> <mpubbise@codeaurora.org>
+ Manivannan Sadhasivam <mani@kernel.org> <manivannanece23@gmail.com>
+-Manivannan Sadhasivam <mani@kernel.org> <manivannan.sadhasivam@linaro.org>
+ Manoj Basapathi <quic_manojbm@quicinc.com> <manojbm@codeaurora.org>
+ Marcin Nowakowski <marcin.nowakowski@mips.com> <marcin.nowakowski@imgtec.com>
+ Marc Zyngier <maz@kernel.org> <marc.zyngier@arm.com>
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from manivannan.sadhasivam@linaro.org are
 
-fs-proc-task_mmu-move-mmu-notification-mechanism-inside-mm-lock-fix.patch
+mailmap-update-entry-for-manivannan-sadhasivam.patch
 
