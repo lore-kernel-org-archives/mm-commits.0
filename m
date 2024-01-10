@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E8656FB1
-	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 04:56:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9227A7484
+	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 05:01:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wjrk0BHu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDD85C433C7;
-	Wed, 10 Jan 2024 04:56:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mECougsp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E626AC433F1;
+	Wed, 10 Jan 2024 05:01:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704862618;
-	bh=qCQqYGVm7S7F5KCfFDzt2AAcpRK8k251EmU9e/YV7T8=;
+	s=korg; t=1704862905;
+	bh=JDB1UtMfy0co9mI3XATmvaC9yDMBom6RJ+FBiYA3Xlo=;
 	h=Date:To:From:Subject:From;
-	b=wjrk0BHuQzvvPBpiSoAdOTx4Wx9+pHqfubMuCWiQX2Lfyi8AMr6/7wUSVpOtHcDTI
-	 tlafKzom4miVe3GCyX6gT0HMWXy7DiVfF0vNSt/HV9kZW7bNzT6fx9JhldiOegefZO
-	 yPbV/tG87lP++HijZ7nvW/ffFlIj9ZTiYQdW+Vnk=
-Date: Tue, 09 Jan 2024 20:56:58 -0800
-To: mm-commits@vger.kernel.org,manivannan.sadhasivam@linaro.org,akpm@linux-foundation.org
+	b=mECougspecBf2lxclzGs1hIcbLP1WDP2fkDlQJH0YJU9CoU6CJ4pXgP1N0Cc8SjJ2
+	 BWMG/DDQpciibIF8O5LbU5jfX5cypLdWO2aSdUA1L9opSu3+OYaWtZ3DRbPLaCS5Kr
+	 juR2vg/x0JHW9RQnXhbZvdwOxvlESHCKlmrcRa0s=
+Date: Tue, 09 Jan 2024 21:01:44 -0800
+To: mm-commits@vger.kernel.org,schwidefsky@de.ibm.com,peterz@infradead.org,mhocko@suse.com,jianfeng.w.wang@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-update-entry-for-manivannan-sadhasivam.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240110045658.CDD85C433C7@smtp.kernel.org>
+Subject: + mm-oom-add-lru_add_drain-in-__oom_reap_task_mm.patch added to mm-unstable branch
+Message-Id: <20240110050144.E626AC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mailmap: update entry for Manivannan Sadhasivam
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mailmap-update-entry-for-manivannan-sadhasivam.patch
+     Subject: mm, oom: add lru_add_drain() in __oom_reap_task_mm()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-oom-add-lru_add_drain-in-__oom_reap_task_mm.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-update-entry-for-manivannan-sadhasivam.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-oom-add-lru_add_drain-in-__oom_reap_task_mm.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,35 +50,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
-Subject: mailmap: update entry for Manivannan Sadhasivam
-Date: Tue, 09 Jan 2024 15:44:31 +0530
+From: Jianfeng Wang <jianfeng.w.wang@oracle.com>
+Subject: mm, oom: add lru_add_drain() in __oom_reap_task_mm()
+Date: Tue, 9 Jan 2024 01:15:11 -0800
 
-Remove the map for Linaro id as it is still in use and I want to use it
-for submitting patches.  Otherwise, git uses kernel.org as the author id
-for patches created using Linaro id.
+The oom_reaper tries to reclaim additional memory owned by the oom
+victim. In __oom_reap_task_mm(), it uses mmu_gather for batched page
+free.
 
-Link: https://lkml.kernel.org/r/20240109-update-mailmap-v1-1-bf7a39f15fb7@linaro.org
-Signed-off-by: Manivannan Sadhasivam <manivannan.sadhasivam@linaro.org>
+After oom_reaper was added, the mmu_gather CONFIG_MMU_GATHER_NO_GATHER
+feature was introduced in commit 952a31c9e6fa ("asm-generic/tlb: Introduce
+CONFIG_HAVE_MMU_GATHER_NO_GATHER=y").  This is an option to skip batched
+page freeing.  If set, tlb_batch_pages_flush(), which is responsible for
+calling lru_add_drain(), is skipped during tlb_finish_mmu().  Without
+this, pages could still be held by per-cpu fbatches rather than being
+freed.
+
+This fix adds lru_add_drain() prior to mmu_gather. This makes the code
+consistent with other cases where mmu_gather is used for freeing pages.
+
+Link: https://lkml.kernel.org/r/20240109091511.8299-1-jianfeng.w.wang@oracle.com
+Signed-off-by: Jianfeng Wang <jianfeng.w.wang@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    1 -
- 1 file changed, 1 deletion(-)
+ mm/oom_kill.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/.mailmap~mailmap-update-entry-for-manivannan-sadhasivam
-+++ a/.mailmap
-@@ -363,7 +363,6 @@ Maheshwar Ajja <quic_majja@quicinc.com>
- Malathi Gottam <quic_mgottam@quicinc.com> <mgottam@codeaurora.org>
- Manikanta Pubbisetty <quic_mpubbise@quicinc.com> <mpubbise@codeaurora.org>
- Manivannan Sadhasivam <mani@kernel.org> <manivannanece23@gmail.com>
--Manivannan Sadhasivam <mani@kernel.org> <manivannan.sadhasivam@linaro.org>
- Manoj Basapathi <quic_manojbm@quicinc.com> <manojbm@codeaurora.org>
- Marcin Nowakowski <marcin.nowakowski@mips.com> <marcin.nowakowski@imgtec.com>
- Marc Zyngier <maz@kernel.org> <marc.zyngier@arm.com>
+--- a/mm/oom_kill.c~mm-oom-add-lru_add_drain-in-__oom_reap_task_mm
++++ a/mm/oom_kill.c
+@@ -538,6 +538,7 @@ static bool __oom_reap_task_mm(struct mm
+ 			struct mmu_notifier_range range;
+ 			struct mmu_gather tlb;
+ 
++			lru_add_drain();
+ 			mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0,
+ 						mm, vma->vm_start,
+ 						vma->vm_end);
 _
 
-Patches currently in -mm which might be from manivannan.sadhasivam@linaro.org are
+Patches currently in -mm which might be from jianfeng.w.wang@oracle.com are
 
-mailmap-update-entry-for-manivannan-sadhasivam.patch
+mm-oom-add-lru_add_drain-in-__oom_reap_task_mm.patch
 
