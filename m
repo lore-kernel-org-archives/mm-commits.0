@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5B4ADF56;
-	Wed, 10 Jan 2024 05:59:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F8B9364C1
+	for <mm-commits@vger.kernel.org>; Wed, 10 Jan 2024 06:23:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f1r611M2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A8C3C433F1;
-	Wed, 10 Jan 2024 05:59:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RARS7jAb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2905C433C7;
+	Wed, 10 Jan 2024 06:23:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1704866394;
-	bh=m5CUiue0GETYIesq8P6U7DRL+kDKwEeBo1yCttuE0MM=;
+	s=korg; t=1704867794;
+	bh=0VeBPKgxt1tRD7uUDv/p2BpEtwLYxUm9Q0pFunoaPlM=;
 	h=Date:To:From:Subject:From;
-	b=f1r611M2gDviTlNg/+s3CxLtKtFipOLq/M5sAVMEnu+UK1TamscCUECb57AXBhe3K
-	 sqT5K6LmyABWZNxhexz3mcrte7KjPasdmNjbKhBh0hiWC4F3bjcKurnkfpXvjssT+P
-	 c0rK8t3CW4IkuovBajr+NOHd0h32cgCZ9mTBMu8g=
-Date: Tue, 09 Jan 2024 21:59:53 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,guoxuenan@huawei.com,jack@suse.cz,akpm@linux-foundation.org
+	b=RARS7jAb4FwNyCGhETXUqxI69EKk+hXE5cQVxnsKOT9KBB5+5CIegoX4feYtYGWf9
+	 OtYNj/DrCPsySZpBTk0gAsrciuDJ/49V2oCcGwsuExJYPE04OmppN9KaNF81T+XtwG
+	 s+7/eI3AOXIyCwVaM+TUCWtgJKvVcQaDu4kvwcTA=
+Date: Tue, 09 Jan 2024 22:23:14 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,paulmck@kernel.org,oleksiy.avramchenko@sony.com,lstoakes@gmail.com,Liam.Howlett@oracle.com,k-hagio-ab@nec.com,joel@joelfernandes.org,hch@lst.de,david@fromorbit.com,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + readahead-avoid-multiple-marked-readahead-pages.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240110055954.2A8C3C433F1@smtp.kernel.org>
+Subject: + mm-vmalloc-add-va_alloc-helper.patch added to mm-unstable branch
+Message-Id: <20240110062314.A2905C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,14 +27,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: readahead: avoid multiple marked readahead pages
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     readahead-avoid-multiple-marked-readahead-pages.patch
+     Subject: mm: vmalloc: add va_alloc() helper
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-vmalloc-add-va_alloc-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/readahead-avoid-multiple-marked-readahead-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-add-va_alloc-helper.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -50,85 +50,238 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: readahead: avoid multiple marked readahead pages
-Date: Thu, 4 Jan 2024 09:58:39 +0100
+From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Subject: mm: vmalloc: add va_alloc() helper
+Date: Tue, 2 Jan 2024 19:46:23 +0100
 
-ra_alloc_folio() marks a page that should trigger next round of async
-readahead.  However it rounds up computed index to the order of page being
-allocated.  This can however lead to multiple consecutive pages being
-marked with readahead flag.  Consider situation with index == 1, mark ==
-1, order == 0.  We insert order 0 page at index 1 and mark it.  Then we
-bump order to 1, index to 2, mark (still == 1) is rounded up to 2 so page
-at index 2 is marked as well.  Then we bump order to 2, index is
-incremented to 4, mark gets rounded to 4 so page at index 4 is marked as
-well.  The fact that multiple pages get marked within a single readahead
-window confuses the readahead logic and results in readahead window being
-trimmed back to 1.  This situation is triggered in particular when maximum
-readahead window size is not a power of two (in the observed case it was
-768 KB) and as a result sequential read throughput suffers.
+Patch series "Mitigate a vmap lock contention", v3.
 
-Fix the problem by rounding 'mark' down instead of up.  Because the index
-is naturally aligned to 'order', we are guaranteed 'rounded mark' == index
-iff 'mark' is within the page we are allocating at 'index' and thus
-exactly one page is marked with readahead flag as required by the
-readahead code and sequential read performance is restored.
+1. Motivation
 
-This effectively reverts part of commit b9ff43dd2743 ("mm/readahead: Fix
-readahead with large folios").  The commit changed the rounding with the
-rationale:
+- Offload global vmap locks making it scaled to number of CPUS;
 
-"...  we were setting the readahead flag on the folio which contains the
-last byte read from the block.  This is wrong because we will trigger
-readahead at the end of the read without waiting to see if a subsequent
-read is going to use the pages we just read."
+- If possible and there is an agreement, we can remove the "Per cpu kva
+  allocator" to make the vmap code to be more simple;
 
-Although this is true, the fact is this was always the case with read
-sizes not aligned to folio boundaries and large folios in the page cache
-just make the situation more obvious (and frequent).  Also for sequential
-read workloads it is better to trigger the readahead earlier rather than
-later.  It is true that the difference in the rounding and thus earlier
-triggering of the readahead can result in reading more for semi-random
-workloads.  However workloads really suffering from this seem to be rare. 
-In particular I have verified that the workload described in commit
-b9ff43dd2743 ("mm/readahead: Fix readahead with large folios") of reading
-random 100k blocks from a file like:
+- There were complaints from XFS folk that a vmalloc might be contented
+  on their workloads.
 
-[reader]
-bs=100k
-rw=randread
-numjobs=1
-size=64g
-runtime=60s
+2. Design(high level overview)
 
-is not impacted by the rounding change and achieves ~70MB/s in both cases.
+We introduce an effective vmap node logic.  A node behaves as independent
+entity to serve an allocation request directly(if possible) from its pool.
+That way it bypasses a global vmap space that is protected by its own
+lock.
 
-Link: https://lkml.kernel.org/r/20240104085839.21029-1-jack@suse.cz
-Fixes: b9ff43dd2743 ("mm/readahead: Fix readahead with large folios")
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Guo Xuenan <guoxuenan@huawei.com>
-Cc: <stable@vger.kernel.org>
+An access to pools are serialized by CPUs.  Number of nodes are equal to
+number of CPUs in a system.  Please note the high threshold is bound to
+128 nodes.
+
+Pools are size segregated and populated based on system demand.  The
+maximum alloc request that can be stored into a segregated storage is 256
+pages.  The lazily drain path decays a pool by 25% as a first step and as
+second populates it by fresh freed VAs for reuse instead of returning them
+into a global space.
+
+When a VA is obtained(alloc path), it is stored in separate nodes.  A
+va->va_start address is converted into a correct node where it should be
+placed and resided.  Doing so we balance VAs across the nodes as a result
+an access becomes scalable.  The addr_to_node() function does a proper
+address conversion to a correct node.
+
+A vmap space is divided on segments with fixed size, it is 16 pages.  That
+way any address can be associated with a segment number.  Number of
+segments are equal to num_possible_cpus() but not grater then 128.  The
+numeration starts from 0.  See below how it is converted:
+
+static inline unsigned int
+addr_to_node_id(unsigned long addr)
+{
+	return (addr / zone_size) % nr_nodes;
+}
+
+On a free path, a VA can be easily found by converting its "va_start"
+address to a certain node it resides.  It is moved from "busy" data to
+"lazy" data structure.  Later on, as noted earlier, the lazy kworker
+decays each node pool and populates it by fresh incoming VAs.  Please
+note, a VA is returned to a node that did an alloc request.
+
+3. Test on AMD Ryzen Threadripper 3970X 32-Core Processor
+
+sudo ./test_vmalloc.sh run_test_mask=7 nr_threads=64
+
+<default perf>
+ 94.41%     0.89%  [kernel]        [k] _raw_spin_lock
+ 93.35%    93.07%  [kernel]        [k] native_queued_spin_lock_slowpath
+ 76.13%     0.28%  [kernel]        [k] __vmalloc_node_range
+ 72.96%     0.81%  [kernel]        [k] alloc_vmap_area
+ 56.94%     0.00%  [kernel]        [k] __get_vm_area_node
+ 41.95%     0.00%  [kernel]        [k] vmalloc
+ 37.15%     0.01%  [test_vmalloc]  [k] full_fit_alloc_test
+ 35.17%     0.00%  [kernel]        [k] ret_from_fork_asm
+ 35.17%     0.00%  [kernel]        [k] ret_from_fork
+ 35.17%     0.00%  [kernel]        [k] kthread
+ 35.08%     0.00%  [test_vmalloc]  [k] test_func
+ 34.45%     0.00%  [test_vmalloc]  [k] fix_size_alloc_test
+ 28.09%     0.01%  [test_vmalloc]  [k] long_busy_list_alloc_test
+ 23.53%     0.25%  [kernel]        [k] vfree.part.0
+ 21.72%     0.00%  [kernel]        [k] remove_vm_area
+ 20.08%     0.21%  [kernel]        [k] find_unlink_vmap_area
+  2.34%     0.61%  [kernel]        [k] free_vmap_area_noflush
+<default perf>
+   vs
+<patch-series perf>
+ 82.32%     0.22%  [test_vmalloc]  [k] long_busy_list_alloc_test
+ 63.36%     0.02%  [kernel]        [k] vmalloc
+ 63.34%     2.64%  [kernel]        [k] __vmalloc_node_range
+ 30.42%     4.46%  [kernel]        [k] vfree.part.0
+ 28.98%     2.51%  [kernel]        [k] __alloc_pages_bulk
+ 27.28%     0.19%  [kernel]        [k] __get_vm_area_node
+ 26.13%     1.50%  [kernel]        [k] alloc_vmap_area
+ 21.72%    21.67%  [kernel]        [k] clear_page_rep
+ 19.51%     2.43%  [kernel]        [k] _raw_spin_lock
+ 16.61%    16.51%  [kernel]        [k] native_queued_spin_lock_slowpath
+ 13.40%     2.07%  [kernel]        [k] free_unref_page
+ 10.62%     0.01%  [kernel]        [k] remove_vm_area
+  9.02%     8.73%  [kernel]        [k] insert_vmap_area
+  8.94%     0.00%  [kernel]        [k] ret_from_fork_asm
+  8.94%     0.00%  [kernel]        [k] ret_from_fork
+  8.94%     0.00%  [kernel]        [k] kthread
+  8.29%     0.00%  [test_vmalloc]  [k] test_func
+  7.81%     0.05%  [test_vmalloc]  [k] full_fit_alloc_test
+  5.30%     4.73%  [kernel]        [k] purge_vmap_node
+  4.47%     2.65%  [kernel]        [k] free_vmap_area_noflush
+<patch-series perf>
+
+confirms that a native_queued_spin_lock_slowpath goes down to
+16.51% percent from 93.07%.
+
+The throughput is ~12x higher:
+
+urezki@pc638:~$ time sudo ./test_vmalloc.sh run_test_mask=7 nr_threads=64
+Run the test with following parameters: run_test_mask=7 nr_threads=64
+Done.
+Check the kernel ring buffer to see the summary.
+
+real    10m51.271s
+user    0m0.013s
+sys     0m0.187s
+urezki@pc638:~$
+
+urezki@pc638:~$ time sudo ./test_vmalloc.sh run_test_mask=7 nr_threads=64
+Run the test with following parameters: run_test_mask=7 nr_threads=64
+Done.
+Check the kernel ring buffer to see the summary.
+
+real    0m51.301s
+user    0m0.015s
+sys     0m0.040s
+urezki@pc638:~$
+
+
+This patch (of 11):
+
+Currently __alloc_vmap_area() function contains an open codded logic that
+finds and adjusts a VA based on allocation request.
+
+Introduce a va_alloc() helper that adjusts found VA only.  There is no a
+functional change as a result of this patch.
+
+Link: https://lkml.kernel.org/r/20240102184633.748113-1-urezki@gmail.com
+Link: https://lkml.kernel.org/r/20240102184633.748113-2-urezki@gmail.com
+Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reviewed-by: Baoquan He <bhe@redhat.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sony.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Kazuhito Hagio <k-hagio-ab@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmalloc.c |   41 ++++++++++++++++++++++++++++-------------
+ 1 file changed, 28 insertions(+), 13 deletions(-)
 
---- a/mm/readahead.c~readahead-avoid-multiple-marked-readahead-pages
-+++ a/mm/readahead.c
-@@ -469,7 +469,7 @@ static inline int ra_alloc_folio(struct
+--- a/mm/vmalloc.c~mm-vmalloc-add-va_alloc-helper
++++ a/mm/vmalloc.c
+@@ -1481,6 +1481,32 @@ adjust_va_to_fit_type(struct rb_root *ro
+ 	return 0;
+ }
  
- 	if (!folio)
- 		return -ENOMEM;
--	mark = round_up(mark, 1UL << order);
-+	mark = round_down(mark, 1UL << order);
- 	if (index == mark)
- 		folio_set_readahead(folio);
- 	err = filemap_add_folio(ractl->mapping, folio, index, gfp);
++static unsigned long
++va_alloc(struct vmap_area *va,
++		struct rb_root *root, struct list_head *head,
++		unsigned long size, unsigned long align,
++		unsigned long vstart, unsigned long vend)
++{
++	unsigned long nva_start_addr;
++	int ret;
++
++	if (va->va_start > vstart)
++		nva_start_addr = ALIGN(va->va_start, align);
++	else
++		nva_start_addr = ALIGN(vstart, align);
++
++	/* Check the "vend" restriction. */
++	if (nva_start_addr + size > vend)
++		return vend;
++
++	/* Update the free vmap_area. */
++	ret = adjust_va_to_fit_type(root, head, va, nva_start_addr, size);
++	if (WARN_ON_ONCE(ret))
++		return vend;
++
++	return nva_start_addr;
++}
++
+ /*
+  * Returns a start address of the newly allocated area, if success.
+  * Otherwise a vend is returned that indicates failure.
+@@ -1493,7 +1519,6 @@ __alloc_vmap_area(struct rb_root *root,
+ 	bool adjust_search_size = true;
+ 	unsigned long nva_start_addr;
+ 	struct vmap_area *va;
+-	int ret;
+ 
+ 	/*
+ 	 * Do not adjust when:
+@@ -1511,18 +1536,8 @@ __alloc_vmap_area(struct rb_root *root,
+ 	if (unlikely(!va))
+ 		return vend;
+ 
+-	if (va->va_start > vstart)
+-		nva_start_addr = ALIGN(va->va_start, align);
+-	else
+-		nva_start_addr = ALIGN(vstart, align);
+-
+-	/* Check the "vend" restriction. */
+-	if (nva_start_addr + size > vend)
+-		return vend;
+-
+-	/* Update the free vmap_area. */
+-	ret = adjust_va_to_fit_type(root, head, va, nva_start_addr, size);
+-	if (WARN_ON_ONCE(ret))
++	nva_start_addr = va_alloc(va, root, head, size, align, vstart, vend);
++	if (nva_start_addr == vend)
+ 		return vend;
+ 
+ #if DEBUG_AUGMENT_LOWEST_MATCH_CHECK
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from urezki@gmail.com are
 
-readahead-avoid-multiple-marked-readahead-pages.patch
+mm-vmalloc-add-va_alloc-helper.patch
+mm-vmalloc-rename-adjust_va_to_fit_type-function.patch
+mm-vmalloc-move-vmap_init_free_space-down-in-vmallocc.patch
+mm-vmalloc-remove-global-vmap_area_root-rb-tree.patch
+mm-vmalloc-remove-global-purge_vmap_area_root-rb-tree.patch
+mm-vmalloc-offload-free_vmap_area_lock-lock.patch
+mm-vmalloc-support-multiple-nodes-in-vread_iter.patch
+mm-vmalloc-support-multiple-nodes-in-vmallocinfo.patch
+mm-vmalloc-set-nr_nodes-based-on-cpus-in-a-system.patch
+mm-vmalloc-add-a-shrinker-to-drain-vmap-pools.patch
 
