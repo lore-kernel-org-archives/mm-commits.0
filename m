@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4855B58128
-	for <mm-commits@vger.kernel.org>; Thu, 11 Jan 2024 20:32:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0482C58128
+	for <mm-commits@vger.kernel.org>; Thu, 11 Jan 2024 20:32:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zGTvBEdg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9784BC43394;
-	Thu, 11 Jan 2024 20:32:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IYcHRc8S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF1D8C43390;
+	Thu, 11 Jan 2024 20:32:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705005154;
-	bh=V53yTAD12JEwRdzx3fHRJldipqylhlfplJ3Wx1AP6fg=;
+	s=korg; t=1705005155;
+	bh=HdJIO1KcUFQWVob/4yq/O2+EGw5rRNPQnd3cmX9C9X4=;
 	h=Date:To:From:Subject:From;
-	b=zGTvBEdgHoI/3rDLDpYJL4qudtGzudqo6mMfeEtfbw8YKQqftPw1gMlhBHKZKjS4F
-	 gdbPhdFrpfqtsxtf73e4jNQeiiQ+2qmSqgFtj76q4eJz/5fRBsU4kxp85A4dETWus8
-	 s+LXYUlCLgp1pSCq9dosggiriAtvQqBbY6l+nlO4=
-Date: Thu, 11 Jan 2024 12:32:34 -0800
+	b=IYcHRc8SyhQwBYreZvhafRtd/IWk2VWv/On5xxAnFe7k40eGdNZUMfM3sLiXwf5NY
+	 TB2/ZwS9ZRSmzZMsBY55azXG+SCB0DgGfhZla7YRGeIDhljjU32wSkERPJY/pXkPT0
+	 +vn7X2cENfthghDO+k6Z5f5tlsFJK84olmDasLdk=
+Date: Thu, 11 Jan 2024 12:32:35 -0800
 To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,david@redhat.com,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-use-pfn_swap_entry_folio-where-obvious.patch added to mm-unstable branch
-Message-Id: <20240111203234.9784BC43394@smtp.kernel.org>
+Subject: + mprotect-use-pfn_swap_entry_folio.patch added to mm-unstable branch
+Message-Id: <20240111203235.BF1D8C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: proc: use pfn_swap_entry_folio where obvious
+     Subject: mprotect: use pfn_swap_entry_folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     proc-use-pfn_swap_entry_folio-where-obvious.patch
+     mprotect-use-pfn_swap_entry_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-use-pfn_swap_entry_folio-where-obvious.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mprotect-use-pfn_swap_entry_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,42 +51,40 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: proc: use pfn_swap_entry_folio where obvious
-Date: Thu, 11 Jan 2024 15:24:21 +0000
+Subject: mprotect: use pfn_swap_entry_folio
+Date: Thu, 11 Jan 2024 15:24:22 +0000
 
-These callers only pass the result to PageAnon(), so we can save the extra
-call to compound_head() by using pfn_swap_entry_folio().
+We only want to know whether the folio is anonymous, so use
+pfn_swap_entry_folio() and save a call to compound_head().
 
-Link: https://lkml.kernel.org/r/20240111152429.3374566-3-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240111152429.3374566-4-willy@infradead.org
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    4 ++--
+ mm/mprotect.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/proc/task_mmu.c~proc-use-pfn_swap_entry_folio-where-obvious
-+++ a/fs/proc/task_mmu.c
-@@ -1807,7 +1807,7 @@ static unsigned long pagemap_page_catego
- 		if (p->masks_of_interest & PAGE_IS_FILE) {
- 			swp = pte_to_swp_entry(pte);
- 			if (is_pfn_swap_entry(swp) &&
--			    !PageAnon(pfn_swap_entry_to_page(swp)))
-+			    !folio_test_anon(pfn_swap_entry_folio(swp)))
- 				categories |= PAGE_IS_FILE;
- 		}
- 		if (pte_swp_soft_dirty(pte))
-@@ -1873,7 +1873,7 @@ static unsigned long pagemap_thp_categor
- 		if (p->masks_of_interest & PAGE_IS_FILE) {
- 			swp = pmd_to_swp_entry(pmd);
- 			if (is_pfn_swap_entry(swp) &&
--			    !PageAnon(pfn_swap_entry_to_page(swp)))
-+			    !folio_test_anon(pfn_swap_entry_folio(swp)))
- 				categories |= PAGE_IS_FILE;
- 		}
- 	}
+--- a/mm/mprotect.c~mprotect-use-pfn_swap_entry_folio
++++ a/mm/mprotect.c
+@@ -198,13 +198,13 @@ static long change_pte_range(struct mmu_
+ 			pte_t newpte;
+ 
+ 			if (is_writable_migration_entry(entry)) {
+-				struct page *page = pfn_swap_entry_to_page(entry);
++				struct folio *folio = pfn_swap_entry_folio(entry);
+ 
+ 				/*
+ 				 * A protection check is difficult so
+ 				 * just be safe and disable write
+ 				 */
+-				if (PageAnon(page))
++				if (folio_test_anon(folio))
+ 					entry = make_readable_exclusive_migration_entry(
+ 							     swp_offset(entry));
+ 				else
 _
 
 Patches currently in -mm which might be from willy@infradead.org are
