@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDC5D58205;
-	Thu, 11 Jan 2024 21:14:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAB9055E5A
+	for <mm-commits@vger.kernel.org>; Thu, 11 Jan 2024 21:15:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pLS5mTPL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F73EC433F1;
-	Thu, 11 Jan 2024 21:14:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oDI3PDri"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2DAFC433C7;
+	Thu, 11 Jan 2024 21:15:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705007660;
-	bh=XLD78mXF3GfkDd5hMDTNHKe08UvMIrlFGV+Sa7uY1sk=;
+	s=korg; t=1705007710;
+	bh=g31W6i0wwEuBp4esr9MTsRnNobFIlWDhHNM8kw5OKRU=;
 	h=Date:To:From:Subject:From;
-	b=pLS5mTPLl2SoULqsHcE7X2Dt+VPWcenj4clFzLUgG07lqoflotIFJlKOPmf2FjDmh
-	 oZSx5TN5wPOSMgl8VL05zQIOBgz/1sPGOT0K92g0zWV1GQ/jPWOSJhzbLRJNzr54Yq
-	 V8yz8X7HHXvwGR3QbcJH6lUeAb8pe9mH1R+xd+6U=
-Date: Thu, 11 Jan 2024 13:14:19 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,lstoakes@gmail.com,joel@joelfernandes.org,usama.anjum@collabora.com,akpm@linux-foundation.org
+	b=oDI3PDriwn5PmghGQJC/xcg6usAd48RGwg+Dt4ZkOE1rAt/VLX/jaWoPO4uw7isUZ
+	 jrh4izLE2iEB3alNtXnGsglB06s85gz0EwTf0JVQDyv0mJS3tHXKdWf3I2LqmeUcWw
+	 JxLJM0U/6UvLA4G53ApmjlV2u57283sfLCTo7l8Q=
+Date: Thu, 11 Jan 2024 13:15:09 -0800
+To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,david@fromorbit.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-mremap_test-fix-build-warning.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240111211420.5F73EC433F1@smtp.kernel.org>
+Subject: + maintainers-add-entry-for-shrinker.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240111211510.A2DAFC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: mremap_test: fix build warning
+     Subject: MAINTAINERS: add entry for shrinker
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-mm-mremap_test-fix-build-warning.patch
+     maintainers-add-entry-for-shrinker.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-mremap_test-fix-build-warning.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-entry-for-shrinker.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -50,41 +50,54 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: mremap_test: fix build warning
-Date: Thu, 11 Jan 2024 13:20:38 +0500
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: MAINTAINERS: add entry for shrinker
+Date: Thu, 11 Jan 2024 15:52:19 +0800
 
-Fix following build warning:
-warning: format `%d' expects argument of type `int', but argument 2 has type `long long unsigned int'
+Since the shrinker-related code has been moved to a separate shrinker.c
+file, it's time to add a MAINTAINERS entry for it.
 
-Link: https://lkml.kernel.org/r/20240111082039.3398848-1-usama.anjum@collabora.com
-Fixes: a4cb3b243343 ("selftests: mm: add a test for remapping to area immediately after existing mapping")
-Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: <stable@vger.kernel.org>
+Dave, Roman, Muchun and I have all worked on shrinker (development,
+review, etc) in the past period of time, and all of us are willing to
+continue working on shrinker in the future, so I'd like to add all of us
+as maintainer/reviewer.
+
+Link: https://lkml.kernel.org/r/20240111075219.34221-1-zhengqi.arch@bytedance.com
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mremap_test.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
---- a/tools/testing/selftests/mm/mremap_test.c~selftests-mm-mremap_test-fix-build-warning
-+++ a/tools/testing/selftests/mm/mremap_test.c
-@@ -457,7 +457,7 @@ static long long remap_region(struct con
- 			char c = (char) rand();
+--- a/MAINTAINERS~maintainers-add-entry-for-shrinker
++++ a/MAINTAINERS
+@@ -19648,6 +19648,19 @@ T:	git git://linuxtv.org/media_tree.git
+ F:	drivers/media/i2c/rj54n1cb0c.c
+ F:	include/media/i2c/rj54n1cb0c.h
  
- 			if (((char *) dest_preamble_addr)[i] != c) {
--				ksft_print_msg("Preamble data after remap doesn't match at offset %d\n",
-+				ksft_print_msg("Preamble data after remap doesn't match at offset %llu\n",
- 					       i);
- 				ksft_print_msg("Expected: %#x\t Got: %#x\n", c & 0xff,
- 					       ((char *) dest_preamble_addr)[i] & 0xff);
++SHRINKER
++M:	Andrew Morton <akpm@linux-foundation.org>
++M:	Dave Chinner <david@fromorbit.com>
++R:	Qi Zheng <zhengqi.arch@bytedance.com>
++R:	Roman Gushchin <roman.gushchin@linux.dev>
++R:	Muchun Song <muchun.song@linux.dev>
++L:	linux-mm@kvack.org
++S:	Maintained
++F:	Documentation/admin-guide/mm/shrinker_debugfs.rst
++F:	include/linux/shrinker.h
++F:	mm/shrinker.c
++F:	mm/shrinker_debug.c
++
+ SH_VOU V4L2 OUTPUT DRIVER
+ L:	linux-media@vger.kernel.org
+ S:	Orphan
 _
 
-Patches currently in -mm which might be from usama.anjum@collabora.com are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
-fs-proc-task_mmu-move-mmu-notification-mechanism-inside-mm-lock.patch
-selftests-mm-mremap_test-fix-build-warning.patch
+maintainers-add-entry-for-shrinker.patch
 
