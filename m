@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E04B56759
-	for <mm-commits@vger.kernel.org>; Thu, 11 Jan 2024 20:08:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CB1F4F8A0
+	for <mm-commits@vger.kernel.org>; Thu, 11 Jan 2024 20:15:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bdPNxh1J"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BFCCC433F1;
-	Thu, 11 Jan 2024 20:08:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="krFAp9tw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18338C433F1;
+	Thu, 11 Jan 2024 20:15:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705003729;
-	bh=kholu4CgnXzcnTU6Bu8lN8qDDk0blAFCwt3IIVyFZOo=;
+	s=korg; t=1705004114;
+	bh=yYXry71Im95DAgUK5ufu5C6+YRh1v8trQdoMXXG+MaA=;
 	h=Date:To:From:Subject:From;
-	b=bdPNxh1J4/5sKvt6sUR6iuvfy3q8JFgR34hBObw4iWMRvqA4WiFkjqv3gThvJaxIF
-	 ficG8Si6CQmAVtPvejMJcyM8L6H1ZlpKU6zHga6v8/pK1TnKz6nF+0ZKex72FTHZhZ
-	 DHG01uitWS/pxQYbngC6H3gMo9q3KfbtXHjllkIE=
-Date: Thu, 11 Jan 2024 12:08:48 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,chrisl@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=krFAp9twkQJuFsigr9s+20P46TlQQFy6ZNB/8xI6fIRj1vtAohPHgvDCzx/QOw62M
+	 YDJu3MWNse11QzbdY6aTB7nqdjtCJhsh5E23MqUL6YHT5kDVV9Ddc7RyvQ5RtZQeZI
+	 MdUtNvLOqWUuDMWt5G8DdFYaGHTMWRrFrrQv3tr8=
+Date: Thu, 11 Jan 2024 12:15:13 -0800
+To: mm-commits@vger.kernel.org,shakeelb@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-lru_gen-try-to-prefetch-next-page-when-canning-lru.patch added to mm-unstable branch
-Message-Id: <20240111200849.0BFCCC433F1@smtp.kernel.org>
+Subject: + memcg-convert-mem_cgroup_move_charge_pte_range-to-use-a-folio.patch added to mm-unstable branch
+Message-Id: <20240111201514.18338C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, lru_gen: try to prefetch next page when scanning LRU
+     Subject: memcg: convert mem_cgroup_move_charge_pte_range() to use a folio
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-lru_gen-try-to-prefetch-next-page-when-canning-lru.patch
+     memcg-convert-mem_cgroup_move_charge_pte_range-to-use-a-folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-lru_gen-try-to-prefetch-next-page-when-canning-lru.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-convert-mem_cgroup_move_charge_pte_range-to-use-a-folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -50,108 +50,159 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm, lru_gen: try to prefetch next page when scanning LRU
-Date: Fri, 12 Jan 2024 02:33:21 +0800
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: memcg: convert mem_cgroup_move_charge_pte_range() to use a folio
+Date: Thu, 11 Jan 2024 18:12:16 +0000
 
-Prefetch for inactive/active LRU have been long exiting, apply the same
-optimization for MGLRU.
+Patch series "Convert memcontrol charge moving to use folios".
 
-Ramdisk based swap test in a 4G memcg on a EPYC 7K62 with:
+No part of these patches should change behaviour; all the called functions
+already convert from page to folio, so this ought to simply be a reduction
+in the number of calls to compound_head().  
 
-  memcached -u nobody -m 16384 -s /tmp/memcached.socket \
-    -a 0766 -t 16 -B binary &
 
-  memtier_benchmark -S /tmp/memcached.socket \
-    -P memcache_binary -n allkeys \
-    --key-minimum=1 --key-maximum=16000000 -d 1024 \
-    --ratio=1:0 --key-pattern=P:P -c 2 -t 16 --pipeline 8 -x 6
+This patch (of 4):
 
-Average result of 18 test runs:
+Remove many calls to compound_head() by calling page_folio() once at the
+start of each stanza which receives a struct page from 'target'.  There
+should be no change in behaviour here as all the called functions start
+out by converting the page to its folio.
 
-Before:           44017.78 Ops/sec
-After patch 1-3:  44890.50 Ops/sec (+1.8%)
-
-Ramdisk fio test in a 4G memcg on a EPYC 7K62 with:
-
-  fio -name=mglru --numjobs=16 --directory=/mnt --size=960m \
-    --buffered=1 --ioengine=io_uring --iodepth=128 \
-    --iodepth_batch_submit=32 --iodepth_batch_complete=32 \
-    --rw=randread --random_distribution=zipf:0.5 --norandommap \
-    --time_based --ramp_time=1m --runtime=5m --group_reporting
-
-Before this patch:
-bw (  MiB/s): min= 7644, max= 9293, per=100.00%, avg=8777.77, stdev=16.59, samples=9568
-iops        : min=1956954, max=2379053, avg=2247108.51, stdev=4247.22, samples=9568
-
-After this patch (+7.5%):
-bw (  MiB/s): min= 8462, max= 9902, per=100.00%, avg=9444.77, stdev=16.43, samples=9568
-iops        : min=2166433, max=2535135, avg=2417858.23, stdev=4205.15, samples=9568
-
-Prefetch is highly related to timing and architecture so it may only help in
-certain cases, some extra test showed at least no regression here for
-the series:
-
-Ramdisk memtier test above in a 8G memcg on an Intel i7-9700:
-
-  memtier_benchmark -S /tmp/memcached.socket \
-    -P memcache_binary -n allkeys --key-minimum=1 \
-    --key-maximum=36000000 --key-pattern=P:P -c 1 -t 12 \
-    --ratio 1:0 --pipeline 8 -d 1024 -x 4
-
-Average result of 12 test runs:
-
-Before:           61241.96 Ops/sec
-After patch 1-3:  61268.53 Ops/sec (+0.0%)
-
-Link: https://lkml.kernel.org/r/20240111183321.19984-4-ryncsn@gmail.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/20240111181219.3462852-1-willy@infradead.org
+Link: https://lkml.kernel.org/r/20240111181219.3462852-2-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ mm/memcontrol.c |   49 ++++++++++++++++++++++------------------------
+ 1 file changed, 24 insertions(+), 25 deletions(-)
 
---- a/mm/vmscan.c~mm-lru_gen-try-to-prefetch-next-page-when-canning-lru
-+++ a/mm/vmscan.c
-@@ -3777,10 +3777,12 @@ static bool inc_min_seq(struct lruvec *l
- 			VM_WARN_ON_ONCE_FOLIO(folio_is_file_lru(folio) != type, folio);
- 			VM_WARN_ON_ONCE_FOLIO(folio_zonenum(folio) != zone, folio);
+--- a/mm/memcontrol.c~memcg-convert-mem_cgroup_move_charge_pte_range-to-use-a-folio
++++ a/mm/memcontrol.c
+@@ -5930,23 +5930,22 @@ static struct page *mc_handle_file_pte(s
+ }
  
--			if (unlikely(list_is_first(&folio->lru, head)))
-+			if (unlikely(list_is_first(&folio->lru, head))) {
- 				prev = NULL;
--			else
-+			} else {
- 				prev = lru_to_folio(&folio->lru);
-+				prefetchw(&prev->flags);
-+			}
+ /**
+- * mem_cgroup_move_account - move account of the page
+- * @page: the page
++ * mem_cgroup_move_account - move account of the folio
++ * @folio: The folio.
+  * @compound: charge the page as compound or small page
+- * @from: mem_cgroup which the page is moved from.
+- * @to:	mem_cgroup which the page is moved to. @from != @to.
++ * @from: mem_cgroup which the folio is moved from.
++ * @to:	mem_cgroup which the folio is moved to. @from != @to.
+  *
+- * The page must be locked and not on the LRU.
++ * The folio must be locked and not on the LRU.
+  *
+  * This function doesn't do "charge" to new cgroup and doesn't do "uncharge"
+  * from old cgroup.
+  */
+-static int mem_cgroup_move_account(struct page *page,
++static int mem_cgroup_move_account(struct folio *folio,
+ 				   bool compound,
+ 				   struct mem_cgroup *from,
+ 				   struct mem_cgroup *to)
+ {
+-	struct folio *folio = page_folio(page);
+ 	struct lruvec *from_vec, *to_vec;
+ 	struct pglist_data *pgdat;
+ 	unsigned int nr_pages = compound ? folio_nr_pages(folio) : 1;
+@@ -6396,7 +6395,7 @@ static int mem_cgroup_move_charge_pte_ra
+ 	spinlock_t *ptl;
+ 	enum mc_target_type target_type;
+ 	union mc_target target;
+-	struct page *page;
++	struct folio *folio;
  
- 			new_gen = folio_inc_gen(lruvec, folio, false, &batch);
- 			lru_gen_try_inc_bulk(lrugen, folio, bulk_gen, new_gen, type, zone, &batch);
-@@ -4456,10 +4458,12 @@ static int scan_folios(struct lruvec *lr
- 			VM_WARN_ON_ONCE_FOLIO(folio_zonenum(folio) != zone, folio);
- 
- 			scanned += delta;
--			if (unlikely(list_is_first(&folio->lru, head)))
-+			if (unlikely(list_is_first(&folio->lru, head))) {
- 				prev = NULL;
--			else
-+			} else {
- 				prev = lru_to_folio(&folio->lru);
-+				prefetchw(&prev->flags);
-+			}
- 
- 			if (sort_folio(lruvec, folio, sc, tier, bulk_gen, &batch))
- 				sorted += delta;
+ 	ptl = pmd_trans_huge_lock(pmd, vma);
+ 	if (ptl) {
+@@ -6406,26 +6405,26 @@ static int mem_cgroup_move_charge_pte_ra
+ 		}
+ 		target_type = get_mctgt_type_thp(vma, addr, *pmd, &target);
+ 		if (target_type == MC_TARGET_PAGE) {
+-			page = target.page;
+-			if (isolate_lru_page(page)) {
+-				if (!mem_cgroup_move_account(page, true,
++			folio = page_folio(target.page);
++			if (folio_isolate_lru(folio)) {
++				if (!mem_cgroup_move_account(folio, true,
+ 							     mc.from, mc.to)) {
+ 					mc.precharge -= HPAGE_PMD_NR;
+ 					mc.moved_charge += HPAGE_PMD_NR;
+ 				}
+-				putback_lru_page(page);
++				folio_putback_lru(folio);
+ 			}
+-			unlock_page(page);
+-			put_page(page);
++			folio_unlock(folio);
++			folio_put(folio);
+ 		} else if (target_type == MC_TARGET_DEVICE) {
+-			page = target.page;
+-			if (!mem_cgroup_move_account(page, true,
++			folio = page_folio(target.page);
++			if (!mem_cgroup_move_account(folio, true,
+ 						     mc.from, mc.to)) {
+ 				mc.precharge -= HPAGE_PMD_NR;
+ 				mc.moved_charge += HPAGE_PMD_NR;
+ 			}
+-			unlock_page(page);
+-			put_page(page);
++			folio_unlock(folio);
++			folio_put(folio);
+ 		}
+ 		spin_unlock(ptl);
+ 		return 0;
+@@ -6448,28 +6447,28 @@ retry:
+ 			device = true;
+ 			fallthrough;
+ 		case MC_TARGET_PAGE:
+-			page = target.page;
++			folio = page_folio(target.page);
+ 			/*
+ 			 * We can have a part of the split pmd here. Moving it
+ 			 * can be done but it would be too convoluted so simply
+ 			 * ignore such a partial THP and keep it in original
+ 			 * memcg. There should be somebody mapping the head.
+ 			 */
+-			if (PageTransCompound(page))
++			if (folio_test_large(folio))
+ 				goto put;
+-			if (!device && !isolate_lru_page(page))
++			if (!device && !folio_isolate_lru(folio))
+ 				goto put;
+-			if (!mem_cgroup_move_account(page, false,
++			if (!mem_cgroup_move_account(folio, false,
+ 						mc.from, mc.to)) {
+ 				mc.precharge--;
+ 				/* we uncharge from mc.from later. */
+ 				mc.moved_charge++;
+ 			}
+ 			if (!device)
+-				putback_lru_page(page);
++				folio_putback_lru(folio);
+ put:			/* get_mctgt_type() gets & locks the page */
+-			unlock_page(page);
+-			put_page(page);
++			folio_unlock(folio);
++			folio_put(folio);
+ 			break;
+ 		case MC_TARGET_SWAP:
+ 			ent = target.ent;
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-lru_gen-batch-update-counters-on-againg.patch
-mm-lru_gen-move-pages-in-bulk-when-aging.patch
-mm-lru_gen-try-to-prefetch-next-page-when-canning-lru.patch
+memcg-convert-mem_cgroup_move_charge_pte_range-to-use-a-folio.patch
+memcg-return-the-folio-in-union-mc_target.patch
+memcg-use-a-folio-in-get_mctgt_type.patch
+memcg-use-a-folio-in-get_mctgt_type_thp.patch
+bounds-support-non-power-of-two-config_nr_cpus.patch
 
