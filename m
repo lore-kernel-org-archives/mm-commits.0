@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6351A5810E
-	for <mm-commits@vger.kernel.org>; Thu, 11 Jan 2024 20:49:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2056B56B80
+	for <mm-commits@vger.kernel.org>; Thu, 11 Jan 2024 21:03:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jgwD2dZf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE631C433F1;
-	Thu, 11 Jan 2024 20:49:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A+7U5lrL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEF69C433F1;
+	Thu, 11 Jan 2024 21:03:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705006153;
-	bh=TjLg+QlIR+vdl/7i48LJiC0Z3rz1dbDUqaEJ2mHuv1c=;
+	s=korg; t=1705006984;
+	bh=KIXRPbaUG96LzDg3haJh+ZCIWxfsF5WG6uo9RSK/hNY=;
 	h=Date:To:From:Subject:From;
-	b=jgwD2dZfdHyelm2CgdNwGNljVvMlphH9tp5AoW829905G3sieD7NJto5H1ecgybyc
-	 XtFgZMZuqu/HAdv+/jWB/aewYs4jhpGT228pNxv33ZIeRTHD+QzfZx8yTpSLaGiROK
-	 KoviOYA6HWMrKitOZAULuZDvqkje36m+Fdp5OXis=
-Date: Thu, 11 Jan 2024 12:49:13 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,oleksiy.avramchenko@sony.com,nathan@kernel.org,lstoakes@gmail.com,lkp@intel.com,Liam.Howlett@oracle.com,hch@infradead.org,david@fromorbit.com,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
+	b=A+7U5lrL3y/eaLl/NM/Q2nEkfDbo38nuhl5RWHwMthO3Fqvvieh1qQ3EAiaY5VN10
+	 YSZgEniTmcxh/QsxvfhRcxq7fMbvGmbuYKBq2mOwa/hiUoIyN+l2X1dlgfB2znoBu1
+	 fWIA5QL4G/g9QLlzUMQuO67RXkbDQy4It39uek6Q=
+Date: Thu, 11 Jan 2024 13:03:04 -0800
+To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,usama.anjum@collabora.com,ryan.roberts@arm.com,peterx@redhat.com,Liam.Howlett@oracle.com,hughd@google.com,david@redhat.com,avagin@google.com,adobriyan@gmail.com,teawater@antgroup.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-remove-global-vmap_area_root-rb-tree-fix-2.patch added to mm-unstable branch
-Message-Id: <20240111204913.CE631C433F1@smtp.kernel.org>
+Subject: + fs-proc-task_mmuc-add_to_pagemap-remove-useless-parameter-addr.patch added to mm-unstable branch
+Message-Id: <20240111210304.BEF69C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fix a wrong value passed to __find_vmap_area()
+     Subject: fs/proc/task_mmu.c: add_to_pagemap: remove useless parameter addr
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-remove-global-vmap_area_root-rb-tree-fix-2.patch
+     fs-proc-task_mmuc-add_to_pagemap-remove-useless-parameter-addr.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-remove-global-vmap_area_root-rb-tree-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmuc-add_to_pagemap-remove-useless-parameter-addr.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -50,59 +50,90 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: fix a wrong value passed to __find_vmap_area()
-Date: Thu, 11 Jan 2024 13:11:04 +0100
+From: Hui Zhu <teawater@antgroup.com>
+Subject: fs/proc/task_mmu.c: add_to_pagemap: remove useless parameter addr
+Date: Thu, 11 Jan 2024 08:45:33 +0000
 
-There was a typo in the vmalloc_dump_obj() function.  Instead of passing a
-real address which is "objp" an "addr" was used what is wrong and not
-initialized.
+Function parameter addr of add_to_pagemap() is useless.  Remove it.
 
-Link: https://lkml.kernel.org/r/20240111121104.180993-1-urezki@gmail.com
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Fixes: 86817057732a ("mm: vmalloc: remove global vmap_area_root rb-tree")
-Closes: https://lore.kernel.org/oe-kbuild-all/202401111810.TKPIXLCs-lkp@intel.com/
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Dave Chinner <david@fromorbit.com>
+Link: https://lkml.kernel.org/r/20240111084533.40038-1-teawaterz@linux.alibaba.com
+Signed-off-by: Hui Zhu <teawater@antgroup.com>
+Reviewed-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Tested-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Andrei Vagin <avagin@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sony.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/task_mmu.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-remove-global-vmap_area_root-rb-tree-fix-2
-+++ a/mm/vmalloc.c
-@@ -4342,7 +4342,7 @@ bool vmalloc_dump_obj(void *object)
- 	vn = addr_to_node((unsigned long)objp);
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmuc-add_to_pagemap-remove-useless-parameter-addr
++++ a/fs/proc/task_mmu.c
+@@ -1352,8 +1352,7 @@ static inline pagemap_entry_t make_pme(u
+ 	return (pagemap_entry_t) { .pme = (frame & PM_PFRAME_MASK) | flags };
+ }
  
- 	if (spin_trylock(&vn->busy.lock)) {
--		va = __find_vmap_area(addr, &vn->busy.root);
-+		va = __find_vmap_area((unsigned long)objp, &vn->busy.root);
+-static int add_to_pagemap(unsigned long addr, pagemap_entry_t *pme,
+-			  struct pagemapread *pm)
++static int add_to_pagemap(pagemap_entry_t *pme, struct pagemapread *pm)
+ {
+ 	pm->buffer[pm->pos++] = *pme;
+ 	if (pm->pos >= pm->len)
+@@ -1380,7 +1379,7 @@ static int pagemap_pte_hole(unsigned lon
+ 			hole_end = end;
  
- 		if (va && va->vm) {
- 			addr = (unsigned long)va->vm->addr;
+ 		for (; addr < hole_end; addr += PAGE_SIZE) {
+-			err = add_to_pagemap(addr, &pme, pm);
++			err = add_to_pagemap(&pme, pm);
+ 			if (err)
+ 				goto out;
+ 		}
+@@ -1392,7 +1391,7 @@ static int pagemap_pte_hole(unsigned lon
+ 		if (vma->vm_flags & VM_SOFTDIRTY)
+ 			pme = make_pme(0, PM_SOFT_DIRTY);
+ 		for (; addr < min(end, vma->vm_end); addr += PAGE_SIZE) {
+-			err = add_to_pagemap(addr, &pme, pm);
++			err = add_to_pagemap(&pme, pm);
+ 			if (err)
+ 				goto out;
+ 		}
+@@ -1519,7 +1518,7 @@ static int pagemap_pmd_range(pmd_t *pmdp
+ 		for (; addr != end; addr += PAGE_SIZE) {
+ 			pagemap_entry_t pme = make_pme(frame, flags);
+ 
+-			err = add_to_pagemap(addr, &pme, pm);
++			err = add_to_pagemap(&pme, pm);
+ 			if (err)
+ 				break;
+ 			if (pm->show_pfn) {
+@@ -1547,7 +1546,7 @@ static int pagemap_pmd_range(pmd_t *pmdp
+ 		pagemap_entry_t pme;
+ 
+ 		pme = pte_to_pagemap_entry(pm, vma, addr, ptep_get(pte));
+-		err = add_to_pagemap(addr, &pme, pm);
++		err = add_to_pagemap(&pme, pm);
+ 		if (err)
+ 			break;
+ 	}
+@@ -1597,7 +1596,7 @@ static int pagemap_hugetlb_range(pte_t *
+ 	for (; addr != end; addr += PAGE_SIZE) {
+ 		pagemap_entry_t pme = make_pme(frame, flags);
+ 
+-		err = add_to_pagemap(addr, &pme, pm);
++		err = add_to_pagemap(&pme, pm);
+ 		if (err)
+ 			return err;
+ 		if (pm->show_pfn && (flags & PM_PRESENT))
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from teawater@antgroup.com are
 
-mm-vmalloc-add-va_alloc-helper.patch
-mm-vmalloc-rename-adjust_va_to_fit_type-function.patch
-mm-vmalloc-move-vmap_init_free_space-down-in-vmallocc.patch
-mm-vmalloc-remove-global-vmap_area_root-rb-tree.patch
-mm-vmalloc-remove-global-vmap_area_root-rb-tree-fix.patch
-mm-vmalloc-remove-global-vmap_area_root-rb-tree-fix-2.patch
-mm-vmalloc-remove-vmap_area_list-fix.patch
-mm-vmalloc-remove-global-purge_vmap_area_root-rb-tree.patch
-mm-vmalloc-offload-free_vmap_area_lock-lock.patch
-mm-vmalloc-support-multiple-nodes-in-vread_iter.patch
-mm-vmalloc-support-multiple-nodes-in-vmallocinfo.patch
-mm-vmalloc-set-nr_nodes-based-on-cpus-in-a-system.patch
-mm-vmalloc-add-a-shrinker-to-drain-vmap-pools.patch
+fs-proc-task_mmuc-add_to_pagemap-remove-useless-parameter-addr.patch
 
