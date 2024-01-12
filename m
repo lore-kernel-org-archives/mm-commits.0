@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04FEDEA6
-	for <mm-commits@vger.kernel.org>; Fri, 12 Jan 2024 01:43:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72C381B27B
+	for <mm-commits@vger.kernel.org>; Fri, 12 Jan 2024 03:58:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Jy3YRU28"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67CF5C433C7;
-	Fri, 12 Jan 2024 01:43:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f+fWUgZp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C40EC433F1;
+	Fri, 12 Jan 2024 03:58:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705023835;
-	bh=GPxkzYs1tZOhS6UR90vw0dcv1JzKFzCuDGMKt6rZ6so=;
+	s=korg; t=1705031917;
+	bh=EDywftfHYBaf19ZN3j6O1OdQbb9ngbuhraqE4PDDJ3I=;
 	h=Date:To:From:Subject:From;
-	b=Jy3YRU28f135cqIcBH8jElpsVClzCjonr7pawwy7wP6N+g/dU77NTSFRNlLNyeLsV
-	 PXxFIGWEF9Y9ORr3BgonyAVc2b7fzqsrebb/jHfUn5lzrPdaBGoJTumdQKEDEuUn1p
-	 9dWFRBv2aN180OICtvNVRqQvBt0VdDtbUNWJgSxA=
-Date: Thu, 11 Jan 2024 17:43:54 -0800
-To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,peterx@redhat.com,david@redhat.com,aarcange@redhat.com,surenb@google.com,akpm@linux-foundation.org
+	b=f+fWUgZpkTdHFoMPW1FrOUkDNpgzjcs8ZpfP3gkNdftq4HERtfTJIssJE52RUGsHC
+	 HrLnC9BGOVAnm0PDfdhbUNVmnRXsaktchuLa0OZCVO3lDgr4Z7HpX2+eWlXkDt+QDT
+	 ZLIRdGFKpJww4xVYeon0MSpo7pD1FUPHXlrb6zwA=
+Date: Thu, 11 Jan 2024 19:58:36 -0800
+To: mm-commits@vger.kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,cuibixuan@vivo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + userfaultfd-avoid-huge_zero_page-in-uffdio_move.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240112014355.67CF5C433C7@smtp.kernel.org>
+Subject: [nacked] mm-shrinker-add-new-event-to-trace-shrink-count.patch removed from -mm tree
+Message-Id: <20240112035837.0C40EC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -26,72 +26,179 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: userfaultfd: avoid huge_zero_page in UFFDIO_MOVE
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     userfaultfd-avoid-huge_zero_page-in-uffdio_move.patch
+The quilt patch titled
+     Subject: mm: shrinker: add new event to trace shrink count
+has been removed from the -mm tree.  Its filename was
+     mm-shrinker-add-new-event-to-trace-shrink-count.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-avoid-huge_zero_page-in-uffdio_move.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: userfaultfd: avoid huge_zero_page in UFFDIO_MOVE
-Date: Thu, 11 Jan 2024 17:39:35 -0800
+From: Bixuan Cui <cuibixuan@vivo.com>
+Subject: mm: shrinker: add new event to trace shrink count
+Date: Thu, 4 Jan 2024 17:36:06 -0800
 
-While testing UFFDIO_MOVE ioctl, syzbot triggered VM_BUG_ON_PAGE caused by
-a call to PageAnonExclusive() with a huge_zero_page as a parameter. 
-UFFDIO_MOVE does not yet handle zeropages and returns EBUSY when one is
-encountered.  Add an early huge_zero_page check in the PMD move path to
-avoid this situation.
+Patch series "Make memory reclamation measurable", v6.
 
-Link: https://lkml.kernel.org/r/20240112013935.1474648-1-surenb@google.com
-Fixes: adef440691ba ("userfaultfd: UFFDIO_MOVE uABI")
-Reported-by: syzbot+705209281e36404998f6@syzkaller.appspotmail.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+When the system memory is low, kswapd reclaims the memory. The key steps
+of memory reclamation include
+1.shrink_lruvec
+  * shrink_active_list, moves folios from the active LRU to the inactive LRU
+  * shrink_inactive_list, shrink lru from inactive LRU list
+2.shrink_slab
+  * shrinker->count_objects(), calculates the freeable memory
+  * shrinker->scan_objects(), reclaims the slab memory
+
+The existing tracers in the vmscan are as follows:
+
+--do_try_to_free_pages
+--shrink_zones
+--trace_mm_vmscan_node_reclaim_begin (tracer)
+--shrink_node
+--shrink_node_memcgs
+  --trace_mm_vmscan_memcg_shrink_begin (tracer)
+  --shrink_lruvec
+    --shrink_list
+      --shrink_active_list
+	  --trace_mm_vmscan_lru_shrink_active (tracer)
+      --shrink_inactive_list
+	  --trace_mm_vmscan_lru_shrink_inactive (tracer)
+    --shrink_active_list
+  --shrink_slab
+    --do_shrink_slab
+    --shrinker->count_objects()
+    --trace_mm_shrink_slab_start (tracer)
+    --shrinker->scan_objects()
+    --trace_mm_shrink_slab_end (tracer)
+  --trace_mm_vmscan_memcg_shrink_end (tracer)
+--trace_mm_vmscan_node_reclaim_end (tracer)
+
+If we get the duration and quantity of shrink lru and slab,
+then we can measure the memory recycling, as follows
+
+Measuring memory reclamation with bpf:
+  LRU FILE:
+	CPU COMM 	ShrinkActive(us) ShrinkInactive(us)  Reclaim(page)
+	7   kswapd0	 	26		51		32
+	7   kswapd0		52		47		13
+  SLAB:
+	CPU COMM 		OBJ_NAME		Count_Dur(us) Freeable(page) Scan_Dur(us) Reclaim(page)
+	 1  kswapd0		super_cache_scan.cfi_jt     2		    341		   3225		128
+	 7  kswapd0		super_cache_scan.cfi_jt     0		    2247	   8524		1024
+	 7  kswapd0	        super_cache_scan.cfi_jt     2367	    0		   0		0
+
+For this, add the new tracer to shrink_active_list/shrink_inactive_list
+and shrinker->count_objects().
+
+
+This patch (of 2):
+
+do_shrink_slab() calculates the freeable memory through
+shrinker->count_objects(), and then reclaims the memory through
+shrinker->scan_objects().  When reclaiming memory,
+shrinker->count_objects() takes a certain amount of time:
+
+	Fun               spend(us)
+	ext4_es_count     4302
+	ext4_es_scan      12
+	super_cache_count 4195
+	super_cache_scan  2103
+
+Therefore, adding the trace event to count_objects() can more accurately
+obtain the time taken for slab memory recycling.
+
+Example of output:
+         kswapd0-103     [003] .....  1098.317942: mm_shrink_count_start: kfree_rcu_shrink_count.cfi_jt+0x0/0x8 00000000c540ff51: nid: 0
+         kswapd0-103     [003] .....  1098.317951: mm_shrink_count_end: kfree_rcu_shrink_count.cfi_jt+0x0/0x8 00000000c540ff51: nid: 0 freeable:36
+
+Link: https://lkml.kernel.org/r/20240105013607.2868-1-cuibixuan@vivo.com
+Link: https://lkml.kernel.org/r/20240105013607.2868-2-cuibixuan@vivo.com
+Signed-off-by: Bixuan Cui <cuibixuan@vivo.com>
+Reviewed-by: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/trace/events/vmscan.h |   49 ++++++++++++++++++++++++++++++++
+ mm/shrinker.c                 |    4 ++
+ 2 files changed, 53 insertions(+)
 
---- a/mm/userfaultfd.c~userfaultfd-avoid-huge_zero_page-in-uffdio_move
-+++ a/mm/userfaultfd.c
-@@ -1393,6 +1393,12 @@ ssize_t move_pages(struct userfaultfd_ct
- 				err = -ENOENT;
- 				break;
- 			}
-+			/* Avoid moving zeropages for now */
-+			if (is_huge_zero_pmd(*src_pmd)) {
-+				spin_unlock(ptl);
-+				err = -EBUSY;
-+				break;
-+			}
+--- a/include/trace/events/vmscan.h~mm-shrinker-add-new-event-to-trace-shrink-count
++++ a/include/trace/events/vmscan.h
+@@ -196,6 +196,55 @@ DEFINE_EVENT(mm_vmscan_direct_reclaim_en
+ );
+ #endif /* CONFIG_MEMCG */
  
- 			/* Check if we can move the pmd without splitting it. */
- 			if (move_splits_huge_pmd(dst_addr, src_addr, src_start + len) ||
++TRACE_EVENT(mm_shrink_count_start,
++	TP_PROTO(struct shrinker *shr, struct shrink_control *sc),
++
++	TP_ARGS(shr, sc),
++
++	TP_STRUCT__entry(
++		__field(struct shrinker *, shr)
++		__field(void *, shrink)
++		__field(int, nid)
++	),
++
++	TP_fast_assign(
++		__entry->shr = shr;
++		__entry->shrink = shr->count_objects;
++		__entry->nid = sc->nid;
++	),
++
++	TP_printk("%pS %p: nid: %d",
++		__entry->shrink,
++		__entry->shr,
++		__entry->nid)
++);
++
++TRACE_EVENT(mm_shrink_count_end,
++	TP_PROTO(struct shrinker *shr, struct shrink_control *sc, long freeable),
++
++	TP_ARGS(shr, sc, freeable),
++
++	TP_STRUCT__entry(
++		__field(struct shrinker *, shr)
++		__field(void *, shrink)
++		__field(long, freeable)
++		__field(int, nid)
++	),
++
++	TP_fast_assign(
++		__entry->shr = shr;
++		__entry->shrink = shr->count_objects;
++		__entry->freeable = freeable;
++		__entry->nid = sc->nid;
++	),
++
++	TP_printk("%pS %p: nid: %d freeable:%ld",
++		__entry->shrink,
++		__entry->shr,
++		__entry->nid,
++		__entry->freeable)
++);
++
+ TRACE_EVENT(mm_shrink_slab_start,
+ 	TP_PROTO(struct shrinker *shr, struct shrink_control *sc,
+ 		long nr_objects_to_shrink, unsigned long cache_items,
+--- a/mm/shrinker.c~mm-shrinker-add-new-event-to-trace-shrink-count
++++ a/mm/shrinker.c
+@@ -379,7 +379,11 @@ static unsigned long do_shrink_slab(stru
+ 					  : SHRINK_BATCH;
+ 	long scanned = 0, next_deferred;
+ 
++	trace_mm_shrink_count_start(shrinker, shrinkctl);
++
+ 	freeable = shrinker->count_objects(shrinker, shrinkctl);
++
++	trace_mm_shrink_count_end(shrinker, shrinkctl, freeable);
+ 	if (freeable == 0 || freeable == SHRINK_EMPTY)
+ 		return freeable;
+ 
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from cuibixuan@vivo.com are
 
-userfaultfd-avoid-huge_zero_page-in-uffdio_move.patch
+mm-vmscan-add-new-event-to-trace-shrink-lru.patch
 
