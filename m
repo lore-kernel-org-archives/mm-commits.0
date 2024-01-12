@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4A34171AC
-	for <mm-commits@vger.kernel.org>; Fri, 12 Jan 2024 19:37:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FEB117730
+	for <mm-commits@vger.kernel.org>; Fri, 12 Jan 2024 19:37:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kuOpOwwM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49DD4C433F1;
-	Fri, 12 Jan 2024 19:37:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kh0M5b4O"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29D8EC433C7;
+	Fri, 12 Jan 2024 19:37:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705088272;
-	bh=JytlekYcQwRzLR4fq8Yqg0OljPzAVo4zJTdQ1MrLiuI=;
+	s=korg; t=1705088274;
+	bh=K/sUY/FLQjwk20L74hdpjN1lrmw9mN+yrsWkyPEjU3c=;
 	h=Date:To:From:Subject:From;
-	b=kuOpOwwMCejhXXlcIqtmyOd5dTb3mM5cM8WBpZQdy8bGpeB9qgFZOJT1FtDCfhWWQ
-	 E0ARS1O4aD84QHw+mY/ZG3hX4kSp0Jd+plPjpySrXLsZsZVDK+9l4zqTPRvS6sQypi
-	 aC4Dq/g7jU8GNbpzP9MaaBFdqm+H9DazV3/c5SyA=
-Date: Fri, 12 Jan 2024 11:37:51 -0800
+	b=kh0M5b4OgaMVYwIWKkXnjwINOKq2RJ1X23F6fuu40PzGD3h46bhPsqXg8CwvVjskw
+	 5cz/bX98M1oji4MuXRCVKbkb6xv3FloA+lFzEw20RS0CWwG/XBgok/MB6mKmDs1MbA
+	 OUwQvh+rf3IpzYw4N2Fsn2MZ3ScDixFfXdfeI57c=
+Date: Fri, 12 Jan 2024 11:37:53 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-hugepage-shm-conform-test-to-tap-format-output.patch added to mm-unstable branch
-Message-Id: <20240112193752.49DD4C433F1@smtp.kernel.org>
+Subject: + selftests-mm-hugepage-vmemmap-conform-test-to-tap-format-output.patch added to mm-unstable branch
+Message-Id: <20240112193754.29D8EC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,12 +27,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: hugepage-shm: conform test to TAP format output
+     Subject: selftests/mm: hugepage-vmemmap: conform test to TAP format output
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-hugepage-shm-conform-test-to-tap-format-output.patch
+     selftests-mm-hugepage-vmemmap-conform-test-to-tap-format-output.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-hugepage-shm-conform-test-to-tap-format-output.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-hugepage-vmemmap-conform-test-to-tap-format-output.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -51,103 +51,103 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: hugepage-shm: conform test to TAP format output
-Date: Fri, 12 Jan 2024 12:21:34 +0500
+Subject: selftests/mm: hugepage-vmemmap: conform test to TAP format output
+Date: Fri, 12 Jan 2024 12:21:35 +0500
 
 Conform the layout, informational and status messages to TAP.  No
 functional change is intended other than the layout of output messages.
 
-The "." was being printed inside for loop to indicate the writes progress.
-This was extraneous and hence removed in the patch.
-
-Link: https://lkml.kernel.org/r/20240112072144.620098-1-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20240112072144.620098-2-usama.anjum@collabora.com
 Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugepage-shm.c |   47 +++++++++-----------
- 1 file changed, 22 insertions(+), 25 deletions(-)
+ tools/testing/selftests/mm/hugepage-vmemmap.c |   36 +++++++---------
+ 1 file changed, 17 insertions(+), 19 deletions(-)
 
---- a/tools/testing/selftests/mm/hugepage-shm.c~selftests-mm-hugepage-shm-conform-test-to-tap-format-output
-+++ a/tools/testing/selftests/mm/hugepage-shm.c
-@@ -34,11 +34,10 @@
- #include <sys/ipc.h>
- #include <sys/shm.h>
+--- a/tools/testing/selftests/mm/hugepage-vmemmap.c~selftests-mm-hugepage-vmemmap-conform-test-to-tap-format-output
++++ a/tools/testing/selftests/mm/hugepage-vmemmap.c
+@@ -11,6 +11,7 @@
  #include <sys/mman.h>
+ #include <fcntl.h>
+ #include "vm_util.h"
 +#include "../kselftest.h"
  
- #define LENGTH (256UL*1024*1024)
+ #define PAGE_COMPOUND_HEAD	(1UL << 15)
+ #define PAGE_COMPOUND_TAIL	(1UL << 16)
+@@ -77,7 +78,7 @@ static int check_page_flags(unsigned lon
+ 	read(fd, &pageflags, sizeof(pageflags));
+ 	if ((pageflags & HEAD_PAGE_FLAGS) != HEAD_PAGE_FLAGS) {
+ 		close(fd);
+-		printf("Head page flags (%lx) is invalid\n", pageflags);
++		ksft_print_msg("Head page flags (%lx) is invalid\n", pageflags);
+ 		return -1;
+ 	}
  
--#define dprintf(x)  printf(x)
--
- /* Only ia64 requires this */
- #ifdef __ia64__
- #define ADDR (void *)(0x8000000000000000UL)
-@@ -54,44 +53,42 @@ int main(void)
- 	unsigned long i;
- 	char *shmaddr;
+@@ -91,7 +92,7 @@ static int check_page_flags(unsigned lon
+ 		if ((pageflags & TAIL_PAGE_FLAGS) != TAIL_PAGE_FLAGS ||
+ 		    (pageflags & HEAD_PAGE_FLAGS) == HEAD_PAGE_FLAGS) {
+ 			close(fd);
+-			printf("Tail page flags (%lx) is invalid\n", pageflags);
++			ksft_print_msg("Tail page flags (%lx) is invalid\n", pageflags);
+ 			return -1;
+ 		}
+ 	}
+@@ -106,6 +107,9 @@ int main(int argc, char **argv)
+ 	void *addr;
+ 	unsigned long pfn;
  
 +	ksft_print_header();
 +	ksft_set_plan(1);
 +
- 	shmid = shmget(2, LENGTH, SHM_HUGETLB | IPC_CREAT | SHM_R | SHM_W);
--	if (shmid < 0) {
--		perror("shmget");
+ 	pagesize  = psize();
+ 	maplength = default_huge_page_size();
+ 	if (!maplength) {
+@@ -114,10 +118,8 @@ int main(int argc, char **argv)
+ 	}
+ 
+ 	addr = mmap(MAP_ADDR, maplength, PROT_READ | PROT_WRITE, MAP_FLAGS, -1, 0);
+-	if (addr == MAP_FAILED) {
+-		perror("mmap");
 -		exit(1);
 -	}
--	printf("shmid: 0x%x\n", shmid);
-+	if (shmid < 0)
-+		ksft_exit_fail_msg("shmget: %s\n", strerror(errno));
-+
-+	ksft_print_msg("shmid: 0x%x\n", shmid);
++	if (addr == MAP_FAILED)
++		ksft_exit_fail_msg("mmap: %s\n", strerror(errno));
  
- 	shmaddr = shmat(shmid, ADDR, SHMAT_FLAGS);
- 	if (shmaddr == (char *)-1) {
--		perror("Shared memory attach failure");
- 		shmctl(shmid, IPC_RMID, NULL);
--		exit(2);
-+		ksft_exit_fail_msg("Shared memory attach failure: %s\n", strerror(errno));
+ 	/* Trigger allocation of HugeTLB page. */
+ 	write_bytes(addr, maplength);
+@@ -125,23 +127,19 @@ int main(int argc, char **argv)
+ 	pfn = virt_to_pfn(addr);
+ 	if (pfn == -1UL) {
+ 		munmap(addr, maplength);
+-		perror("virt_to_pfn");
+-		exit(1);
++		ksft_exit_fail_msg("virt_to_pfn: %s\n", strerror(errno));
++	} else if (!pfn && geteuid()) {
++		ksft_test_result_skip("Unable to read the pfn as non-root user\n");
++		ksft_finished();
  	}
--	printf("shmaddr: %p\n", shmaddr);
  
--	dprintf("Starting the writes:\n");
--	for (i = 0; i < LENGTH; i++) {
-+	ksft_print_msg("shmaddr: %p\n", shmaddr);
-+
-+	ksft_print_msg("Starting the writes:");
-+	for (i = 0; i < LENGTH; i++)
- 		shmaddr[i] = (char)(i);
--		if (!(i % (1024 * 1024)))
--			dprintf(".");
+-	printf("Returned address is %p whose pfn is %lx\n", addr, pfn);
++	ksft_print_msg("Returned address is %p whose pfn is %lx\n", addr, pfn);
+ 
+-	if (check_page_flags(pfn) < 0) {
+-		munmap(addr, maplength);
+-		perror("check_page_flags");
+-		exit(1);
 -	}
--	dprintf("\n");
-+	ksft_print_msg("Done.\n");
++	ksft_test_result(!check_page_flags(pfn), "Check page flags\n");
  
--	dprintf("Starting the Check...");
-+	ksft_print_msg("Starting the Check...");
- 	for (i = 0; i < LENGTH; i++)
--		if (shmaddr[i] != (char)i) {
--			printf("\nIndex %lu mismatched\n", i);
--			exit(3);
--		}
--	dprintf("Done.\n");
-+		if (shmaddr[i] != (char)i)
-+			ksft_exit_fail_msg("\nIndex %lu mismatched\n", i);
-+	ksft_print_msg("Done.\n");
- 
- 	if (shmdt((const void *)shmaddr) != 0) {
--		perror("Detach failure");
- 		shmctl(shmid, IPC_RMID, NULL);
--		exit(4);
-+		ksft_exit_fail_msg("Detach failure: %s\n", strerror(errno));
- 	}
- 
- 	shmctl(shmid, IPC_RMID, NULL);
+ 	/* munmap() length of MAP_HUGETLB memory must be hugepage aligned */
+-	if (munmap(addr, maplength)) {
+-		perror("munmap");
+-		exit(1);
+-	}
++	if (munmap(addr, MAP_LENGTH))
++		ksft_exit_fail_msg("munmap: %s\n", strerror(errno));
  
 -	return 0;
-+	ksft_test_result_pass("Completed test\n");
-+
 +	ksft_finished();
  }
 _
