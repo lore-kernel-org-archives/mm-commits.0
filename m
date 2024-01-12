@@ -1,24 +1,24 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6222D18EB5
-	for <mm-commits@vger.kernel.org>; Fri, 12 Jan 2024 23:21:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7920318EA9
+	for <mm-commits@vger.kernel.org>; Fri, 12 Jan 2024 23:21:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Rpdi0zM7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BA47C433F1;
-	Fri, 12 Jan 2024 23:21:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ajqdK2Bl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA077C433C7;
+	Fri, 12 Jan 2024 23:21:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705101690;
-	bh=y5QCdCY9Mepyxqiw99RXtqk7Txp2yA4EU2Ga4NbisFA=;
+	s=korg; t=1705101691;
+	bh=96yHo5MkFESNZhxw6f1wh4HN07eqLQOjFqfOY6SVw8Q=;
 	h=Date:To:From:Subject:From;
-	b=Rpdi0zM7vSxWlnVs9qykgY019zjFHt7GiUTVX++K0KkreXwHC47HEEliO3BJQ3t3M
-	 Y7EPgWUqtqbrIfV8znicWKNAppbZ6PJ0wHI+miVkmuo5txD66V/QfQ6z4qEBGk2z2x
-	 32WOA94lmMZSJfwF8rPR3B39IOAJgDOcw8X98bPA=
-Date: Fri, 12 Jan 2024 15:21:30 -0800
-To: mm-commits@vger.kernel.org,xuyang2018.jy@fujitsu.com,wanlong.gao@gmail.com,vapier@gentoo.org,liwang@redhat.com,jstancek@redhat.com,aleksei.kodanev@bell-sw.com,pvorel@suse.cz,akpm@linux-foundation.org
+	b=ajqdK2BlYamZEW3sZ1reBKrJB2oNao9J0EPRctJ+IUZ7P6ZYMetzfi61suLWuRXFx
+	 K2HJxbVxj56BaWqZ6iOi8TcUAO84kiTQVWYy0CIF67Jp6qfNAzo6ZqtP4M2gLdTnZa
+	 /Xt34zflxu9fKGNxPjKoEorzwWTz9v7I+sQybiyM=
+Date: Fri, 12 Jan 2024 15:21:31 -0800
+To: mm-commits@vger.kernel.org,ndesaulniers@google.com,lkp@intel.com,bcain@quicinc.com,acme@kernel.org,nathan@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-update-ltp-maintainers.patch removed from -mm tree
-Message-Id: <20240112232130.9BA47C433F1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] lib-kconfigdebug-disable-config_debug_info_btf-for-hexagon.patch removed from -mm tree
+Message-Id: <20240112232131.DA077C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -27,55 +27,59 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: update LTP maintainers
+     Subject: lib/Kconfig.debug: disable CONFIG_DEBUG_INFO_BTF for Hexagon
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-ltp-maintainers.patch
+     lib-kconfigdebug-disable-config_debug_info_btf-for-hexagon.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Petr Vorel <pvorel@suse.cz>
-Subject: MAINTAINERS: update LTP maintainers
-Date: Thu, 4 Jan 2024 16:49:53 +0100
+From: Nathan Chancellor <nathan@kernel.org>
+Subject: lib/Kconfig.debug: disable CONFIG_DEBUG_INFO_BTF for Hexagon
+Date: Fri, 05 Jan 2024 12:13:04 -0700
 
-There are more people with git push permissions, but we keep only people
-who actually did review and merge patches last year.
+pahole, which generates BTF, relies on elfutils to process DWARF debug
+info.  Because kernel modules are relocatable files, elfutils needs to
+resolve relocations when processing the DWARF .debug sections.
 
-Link: https://lkml.kernel.org/r/20240104154953.1193634-1-pvorel@suse.cz
-Signed-off-by: Petr Vorel <pvorel@suse.cz>
-Reviewed-by: Li Wang <liwang@redhat.com>
-Cc: Alexey Kodanev <aleksei.kodanev@bell-sw.com>
-Cc: Jan Stancek <jstancek@redhat.com>
-Cc: Mike Frysinger <vapier@gentoo.org>
-Cc: Wanlong Gao <wanlong.gao@gmail.com>
-Cc: Yang Xu <xuyang2018.jy@fujitsu.com>
+Hexagon is not supported in binutils or elfutils, so elfutils is unable to
+process relocations in kernel modules, causing pahole to crash during BTF
+generation.
+
+Do not allow CONFIG_DEBUG_INFO_BTF to be selected for Hexagon until it is
+supported in elfutils, so that there are no more cryptic build failures
+during BTF generation.
+
+Link: https://lkml.kernel.org/r/20240105-hexagon-disable-btf-v1-1-ddab073e7f74@kernel.org
+Signed-off-by: Nathan Chancellor <nathan@kernel.org>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202312192107.wMIKiZWw-lkp@intel.com/
+Suggested-by: Nick Desaulniers <ndesaulniers@google.com>
+Acked-by: Brian Cain <bcain@quicinc.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ lib/Kconfig.debug |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/MAINTAINERS~maintainers-update-ltp-maintainers
-+++ a/MAINTAINERS
-@@ -12627,12 +12627,11 @@ F:	Documentation/devicetree/bindings/i2c
- F:	drivers/i2c/muxes/i2c-mux-ltc4306.c
- 
- LTP (Linux Test Project)
--M:	Mike Frysinger <vapier@gentoo.org>
- M:	Cyril Hrubis <chrubis@suse.cz>
--M:	Wanlong Gao <wanlong.gao@gmail.com>
- M:	Jan Stancek <jstancek@redhat.com>
--M:	Stanislav Kholmanskikh <stanislav.kholmanskikh@oracle.com>
--M:	Alexey Kodanev <alexey.kodanev@oracle.com>
-+M:	Petr Vorel <pvorel@suse.cz>
-+M:	Li Wang <liwang@redhat.com>
-+M:	Yang Xu <xuyang2018.jy@fujitsu.com>
- L:	ltp@lists.linux.it (subscribers-only)
- S:	Maintained
- W:	http://linux-test-project.github.io/
+--- a/lib/Kconfig.debug~lib-kconfigdebug-disable-config_debug_info_btf-for-hexagon
++++ a/lib/Kconfig.debug
+@@ -378,6 +378,8 @@ config DEBUG_INFO_BTF
+ 	depends on !GCC_PLUGIN_RANDSTRUCT || COMPILE_TEST
+ 	depends on BPF_SYSCALL
+ 	depends on !DEBUG_INFO_DWARF5 || PAHOLE_VERSION >= 121
++	# pahole uses elfutils, which does not have support for Hexagon relocations
++	depends on !HEXAGON
+ 	help
+ 	  Generate deduplicated BTF type information from DWARF debug info.
+ 	  Turning this on expects presence of pahole tool, which will convert
 _
 
-Patches currently in -mm which might be from pvorel@suse.cz are
+Patches currently in -mm which might be from nathan@kernel.org are
 
+selftests-bpf-update-llvm-phabricator-links.patch
+arch-and-include-update-llvm-phabricator-links.patch
+treewide-update-llvm-bugzilla-links.patch
 
