@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13F305786C
-	for <mm-commits@vger.kernel.org>; Tue, 16 Jan 2024 20:09:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8458B1D52D
+	for <mm-commits@vger.kernel.org>; Tue, 16 Jan 2024 21:45:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705435773; cv=none; b=pLruKOI09nRnKt9Npjv5vabHINOLDzOnIKd4cJDLzIPZwryQ0p+gZl0TOMXxPcpI89qZcMqVBPIRhfSR4ewUoNoTruqQog8VJPOOnroiwuvZuQyB+uiqLseOXWXcPsDakV0l/6fXixm6BN+RUATlfBsdiPsSbTsvfrmyk7FnqcY=
+	t=1705441547; cv=none; b=KQWkXzQmBvsEdR2gC1PGYIEeVKCiOVb0ZvWiG6niU6HRRWhMG2GnBz0EP8m++CEwdiGYVwXXuEOQwCsul5Y+0h4suxjXHsyXSRHimAFeFM6yiEQw80OQ5Wil4cGvee+VwXCOEe29xEPuhhT52OsRiUyBzYJJmZr12ysRWQSryBY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705435773; c=relaxed/simple;
-	bh=nhHI3vFlsM8hSt/fDAMSSWWvNH/HFJoFRr5FFCwJtKw=;
-	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id; b=E6lkesh7m363tdmLvhVQshNhjoBwVV5x6+G+PJ38onyUamYw5c1fAUXB37/hqNYaVKMKelQjO/twIpW6y2WJsGAypfeUp2jtKKidbbxICXebzqITHMnkXrGAqa3Yl98yK5V3vl+ygSruaAegg9WFOedn4vM/dtEdTWaOPp8VW/U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W56ra+wY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705441547; c=relaxed/simple;
+	bh=KtJ/0rCDjobbCH4aMimvbQy5VngluNo+vLq8dDfcups=;
+	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id; b=oC7o+0EaLUCnlA/WFXSPlECQwgnwFLZy85bIQOegSQ/VrGH8XWS9WGb5r9/iMJ7yUxvAwR7rzePz1GbURmu5Z975lLkLpiTUrjiY2zEWSTCOnA/ibq042ThlzMBXnicy0MmumYG4yD/cS3e5izeSoemupW/gwC7yLiSOKDCQWmc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yNqfnH4s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W56ra+wY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DA97C433C7;
-	Tue, 16 Jan 2024 20:09:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yNqfnH4s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A494CC433C7;
+	Tue, 16 Jan 2024 21:45:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705435772;
-	bh=nhHI3vFlsM8hSt/fDAMSSWWvNH/HFJoFRr5FFCwJtKw=;
+	s=korg; t=1705441547;
+	bh=KtJ/0rCDjobbCH4aMimvbQy5VngluNo+vLq8dDfcups=;
 	h=Date:To:From:Subject:From;
-	b=W56ra+wYhAvmKqivIWp0okmkx2HbTole/EOPp6Xb2qsY1CfRfP/ZCf19MNb2j7Jk8
-	 mQWSDQkstOKpKECRnvxxjL53lMelcncXRQi1Xfl36KoAs3slB+GK6RyXRPmSaFccCn
-	 Q/HWBBA2MrKeQmHu0bNCKr1n53pHyJQxkxnu4EWo=
-Date: Tue, 16 Jan 2024 12:09:29 -0800
-To: mm-commits@vger.kernel.org,visitorckw@gmail.com,akpm@linux-foundation.org
+	b=yNqfnH4sOANG0KF1ZhOPM9pmdmVl9mXWpFB2QH9PZpbx1H4YL6yP7igsmb4WqOONR
+	 oJm3lt8BJPHBHtGx0v7BVCk0eYHshLG+PhHp8Y9vOxAzyeV28egbwUS8ZG5I7zgxEc
+	 49uS/6Mvp3B7Suyr4CC2Y5z4caimoKoUQRAPlHVk=
+Date: Tue, 16 Jan 2024 13:45:44 -0800
+To: mm-commits@vger.kernel.org,vitaly.wool@konsulko.com,sjenning@redhat.com,nphamcs@gmail.com,ddstreet@ieee.org,chrisl@kernel.org,debug.penguin32@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-sort-optimize-heapsort-for-equal-elements-in-sift-down-path.patch added to mm-nonmm-unstable branch
-Message-Id: <20240116200932.3DA97C433C7@smtp.kernel.org>
+Subject: + mm-zswap-improve-with-alloc_workqueue-call.patch added to mm-unstable branch
+Message-Id: <20240116214546.A494CC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/sort: optimize heapsort for equal elements in sift-down path
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-sort-optimize-heapsort-for-equal-elements-in-sift-down-path.patch
+     Subject: mm/zswap: improve with alloc_workqueue() call
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-zswap-improve-with-alloc_workqueue-call.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-sort-optimize-heapsort-for-equal-elements-in-sift-down-path.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-improve-with-alloc_workqueue-call.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,54 +58,57 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: lib/sort: optimize heapsort for equal elements in sift-down path
-Date: Sat, 13 Jan 2024 11:13:51 +0800
+From: Ronald Monthero <debug.penguin32@gmail.com>
+Subject: mm/zswap: improve with alloc_workqueue() call
+Date: Tue, 16 Jan 2024 23:31:45 +1000
 
-Patch series "lib/sort: Optimize the number of swaps and comparisons".
+The core-api create_workqueue is deprecated, this patch replaces the
+create_workqueue with alloc_workqueue.  The previous implementation
+workqueue of zswap was a bounded workqueue, this patch uses
+alloc_workqueue() to create an unbounded workqueue.  The WQ_UNBOUND
+attribute is desirable making the workqueue not localized to a specific
+cpu so that the scheduler is free to exercise improvisations in any
+demanding scenarios for offloading cpu time slices for workqueues.  For
+example if any other workqueues of the same primary cpu had to be served
+which are WQ_HIGHPRI and WQ_CPU_INTENSIVE.  Also Unbound workqueue happens
+to be more efficient in a system during memory pressure scenarios in
+comparison to a bounded workqueue.
 
-This patch series aims to optimize the heapsort algorithm, specifically
-targeting a reduction in the number of swaps and comparisons required.
+shrink_wq = alloc_workqueue("zswap-shrink",
+                     WQ_UNBOUND|WQ_MEM_RECLAIM, 1);
 
+Overall the change suggested in this patch should be seamless and does not
+alter the existing behavior, other than the improvisation to be an
+unbounded workqueue.
 
-This patch (of 2):
-
-Currently, when searching for the sift-down path and encountering equal
-elements, the algorithm chooses the left child.  However, considering that
-the height of the right subtree may be one less than that of the left
-subtree, selecting the right child in such cases can potentially reduce
-the number of comparisons and swaps.
-
-For instance, when sorting an array of 10,000 identical elements, the
-current implementation requires 247,209 comparisons.  With this patch, the
-number of comparisons can be reduced to 227,241.
-
-Link: https://lkml.kernel.org/r/20240113031352.2395118-1-visitorckw@gmail.com
-Link: https://lkml.kernel.org/r/20240113031352.2395118-2-visitorckw@gmail.com
-Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
+Link: https://lkml.kernel.org/r/20240116133145.12454-1-debug.penguin32@gmail.com
+Signed-off-by: Ronald Monthero <debug.penguin32@gmail.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/sort.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/zswap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/lib/sort.c~lib-sort-optimize-heapsort-for-equal-elements-in-sift-down-path
-+++ a/lib/sort.c
-@@ -262,7 +262,7 @@ void sort_r(void *base, size_t num, size
- 		 * average, 3/4 worst-case.)
- 		 */
- 		for (b = a; c = 2*b + size, (d = c + size) < n;)
--			b = do_cmp(base + c, base + d, cmp_func, priv) >= 0 ? c : d;
-+			b = do_cmp(base + c, base + d, cmp_func, priv) > 0 ? c : d;
- 		if (d == n)	/* Special case last leaf with no sibling */
- 			b = c;
+--- a/mm/zswap.c~mm-zswap-improve-with-alloc_workqueue-call
++++ a/mm/zswap.c
+@@ -1884,7 +1884,8 @@ static int zswap_setup(void)
+ 		zswap_enabled = false;
+ 	}
+ 
+-	shrink_wq = create_workqueue("zswap-shrink");
++	shrink_wq = alloc_workqueue("zswap-shrink",
++			WQ_UNBOUND|WQ_MEM_RECLAIM, 1);
+ 	if (!shrink_wq)
+ 		goto fallback_fail;
  
 _
 
-Patches currently in -mm which might be from visitorckw@gmail.com are
+Patches currently in -mm which might be from debug.penguin32@gmail.com are
 
-lib-min_heap-optimize-number-of-calls-to-min_heapify.patch
-lib-min_heap-optimize-number-of-comparisons-in-min_heapify.patch
-lib-sort-optimize-heapsort-for-equal-elements-in-sift-down-path.patch
-lib-sort-optimize-heapsort-with-double-pop-variation.patch
+mm-zswap-improve-with-alloc_workqueue-call.patch
 
