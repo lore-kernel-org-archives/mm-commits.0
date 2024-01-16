@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C45C220B33
-	for <mm-commits@vger.kernel.org>; Tue, 16 Jan 2024 20:09:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C93BC1DA35
+	for <mm-commits@vger.kernel.org>; Tue, 16 Jan 2024 20:09:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705435744; cv=none; b=pxCBkuSqdKDhC2BIPT4rWXTNAnGCOH40YlDX4mp10DAGhnlGmobjVEk7bImklvjGn9bE1fwguqHHihi9lUt96XqnGLbUm84krhfKe4X7+Kud6NEKmC/sQTf44t3Tfe2Reh7y1ylR7ZI+qQ/G+yeFlhGPi9AVVupE+bpLjxlIgP4=
+	t=1705435747; cv=none; b=SD1Pl1pP9TSWk3CsI029/NIGdf1RLaJlXbXMK56PW4sDWn3x7lLsDSq4rAgNequfq+qBRnmiSZuBkeTOxjxuY3C6+abLhmk2Axl1Qdomni+gzAFioowiDBPL0oxwr/MRL9bcCErcZup6OZ1N7VdDLo+oRuQ+UqjuB9gMal5xTPo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705435744; c=relaxed/simple;
-	bh=rNXjPYUJRVg1KrkMThLmvyXtSIGHdfM3w71AG2yzANI=;
-	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id; b=KJ1CvU/tkejhl8XS+0bzcinU9nX2psPrlES7Vq0r6VmhBrAwGs4RRCYHnCu3Fzf7MyMBmnqF9V/8WQjahcx0y3N1pUNWIo0xAB6Of8Qh+B2eAOVzuZN9C0eauuRVG92Y3CAorWI0vkjVXaICbJ78VSbDMOx/5YFWJ3MyJGaG9WE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O0e0joiY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705435747; c=relaxed/simple;
+	bh=CKAs7OI8Rpams7OjhLKq0DxNO2gsVCk9Qwh7vae31Mg=;
+	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id; b=cbz1qG74cHHDJBOe3qBPd/rTe2KqmUOOWEgDdopIihL20efWKdJMdaxSI0+RSG5LvHvq+MqtdmTqSMsa0djc9ZBH+MQSiZGD9diGzv+osLBFfVfAO7cWkd48JyxVGBGj+eTd8smrjNcovr/rgRWSvvprmS9hzLFhlGkF5NgSkJM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Okbr4Ozr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O0e0joiY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 154B6C433C7;
-	Tue, 16 Jan 2024 20:09:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Okbr4Ozr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F264AC433C7;
+	Tue, 16 Jan 2024 20:09:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705435744;
-	bh=rNXjPYUJRVg1KrkMThLmvyXtSIGHdfM3w71AG2yzANI=;
+	s=korg; t=1705435747;
+	bh=CKAs7OI8Rpams7OjhLKq0DxNO2gsVCk9Qwh7vae31Mg=;
 	h=Date:To:From:Subject:From;
-	b=O0e0joiYTCtRZQCbGc9uy51hWgrk2QMrCRyWHOzqVe5m3AEAEWWLeq6DCMr5TIOUP
-	 iXmZRpj3ZTm++JFk5TV0t2JHx6ncYfavBV5iniupGGj8UEQkUsYx+7xP+2UPk2UsCg
-	 MpDUw/zmAWTznrzjh5Gc/TUqiBCCmJbu7KalMPbw=
-Date: Tue, 16 Jan 2024 12:09:01 -0800
+	b=Okbr4OzrVlZdlWwapsBjtYXNbTdWW0SMXhpInUe+8fdt3WgZHOEplWs75tQewka41
+	 c6qk8LJBc6ApkxL2q/HggNcQrMnBhUN5hJkpKBc2QCKCnpum26Xwe/kZAhaDsEclfd
+	 WPIeDCQ9fMXliLSyvgbaFPSY+A8EsmtAqeFgk2Yw=
+Date: Tue, 16 Jan 2024 12:09:04 -0800
 To: mm-commits@vger.kernel.org,mcgrof@kernel.org,manfred@colorfullife.com,keescook@chromium.org,joel.granados@gmail.com,ebiederm@xmission.com,dave@stgolabs.net,brauner@kernel.org,legion@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-add-information-about-ipc-sysctls-limitations.patch added to mm-nonmm-unstable branch
-Message-Id: <20240116200904.154B6C433C7@smtp.kernel.org>
+Subject: + sysctl-allow-change-system-v-ipc-sysctls-inside-ipc-namespace.patch added to mm-nonmm-unstable branch
+Message-Id: <20240116200906.F264AC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: docs: add information about ipc sysctls limitations
+     Subject: sysctl: allow change system v ipc sysctls inside ipc namespace
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     docs-add-information-about-ipc-sysctls-limitations.patch
+     sysctl-allow-change-system-v-ipc-sysctls-inside-ipc-namespace.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-add-information-about-ipc-sysctls-limitations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sysctl-allow-change-system-v-ipc-sysctls-inside-ipc-namespace.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,75 +59,135 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Alexey Gladkov <legion@kernel.org>
-Subject: docs: add information about ipc sysctls limitations
-Date: Mon, 15 Jan 2024 15:46:42 +0000
+Subject: sysctl: allow change system v ipc sysctls inside ipc namespace
+Date: Mon, 15 Jan 2024 15:46:41 +0000
 
-After 25b21cb2f6d6 ("[PATCH] IPC namespace core") and 4e9823111bdc
-("[PATCH] IPC namespace - shm") the shared memory page count stopped being
-global and started counting per ipc namespace.  The documentation and
-shmget(2) still says that shmall is a global option.
+Patch series "Allow to change ipc/mq sysctls inside ipc namespace", v3.
 
-shmget(2):
+Right now ipc and mq limits count as per ipc namespace, but only real root
+can change them.  By default, the current values of these limits are such
+that it can only be reduced.  Since only root can change the values, it is
+impossible to reduce these limits in the rootless container.
 
-SHMALL System-wide limit on the total amount of shared memory, measured in
-units of the system page size.  On Linux, this limit can be read and
-modified via /proc/sys/kernel/shmall.
+We can allow limit changes within ipc namespace because mq parameters are
+limited by RLIMIT_MSGQUEUE and ipc parameters are not limited to anything
+other than cgroups.
 
-I think the changes made in 2006 should be documented.
 
-Link: https://lkml.kernel.org/r/09e99911071766958af488beb4e8a728a4f12135.1705333426.git.legion@kernel.org
+This patch (of 3):
+
+Rootless containers are not allowed to modify kernel IPC parameters.
+
+All default limits are set to such high values that in fact there are no
+limits at all.  All limits are not inherited and are initialized to
+default values when a new ipc_namespace is created.
+
+For new ipc_namespace:
+
+size_t       ipc_ns.shm_ctlmax = SHMMAX; // (ULONG_MAX - (1UL << 24))
+size_t       ipc_ns.shm_ctlall = SHMALL; // (ULONG_MAX - (1UL << 24))
+int          ipc_ns.shm_ctlmni = IPCMNI; // (1 << 15)
+int          ipc_ns.shm_rmid_forced = 0;
+unsigned int ipc_ns.msg_ctlmax = MSGMAX; // 8192
+unsigned int ipc_ns.msg_ctlmni = MSGMNI; // 32000
+unsigned int ipc_ns.msg_ctlmnb = MSGMNB; // 16384
+
+The shm_tot (total amount of shared pages) has also ceased to be global,
+it is located in ipc_namespace and is not inherited from anywhere.
+
+In such conditions, it cannot be said that these limits limit anything. 
+The real limiter for them is cgroups.
+
+If we allow rootless containers to change these parameters, then it can
+only be reduced.
+
+Link: https://lkml.kernel.org/r/cover.1705333426.git.legion@kernel.org
+Link: https://lkml.kernel.org/r/d2f4603305cbfed58a24755aa61d027314b73a45.1705333426.git.legion@kernel.org
 Signed-off-by: Alexey Gladkov <legion@kernel.org>
 Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Link: https://lkml.kernel.org/r/ede20ddf7be48b93e8084c3be2e920841ee1a641.1663756794.git.legion@kernel.org
+Link: https://lkml.kernel.org/r/e2d84d3ec0172cfff759e6065da84ce0cc2736f8.1663756794.git.legion@kernel.org
 Cc: Christian Brauner <brauner@kernel.org>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: Joel Granados <joel.granados@gmail.com>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/kernel.rst |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ ipc/ipc_sysctl.c |   37 +++++++++++++++++++++++++++++++++++--
+ 1 file changed, 35 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/kernel.rst~docs-add-information-about-ipc-sysctls-limitations
-+++ a/Documentation/admin-guide/sysctl/kernel.rst
-@@ -594,6 +594,9 @@ default (``MSGMNB``).
- ``msgmni`` is the maximum number of IPC queues. 32000 by default
- (``MSGMNI``).
+--- a/ipc/ipc_sysctl.c~sysctl-allow-change-system-v-ipc-sysctls-inside-ipc-namespace
++++ a/ipc/ipc_sysctl.c
+@@ -14,6 +14,7 @@
+ #include <linux/ipc_namespace.h>
+ #include <linux/msg.h>
+ #include <linux/slab.h>
++#include <linux/cred.h>
+ #include "util.h"
  
-+All of these parameters are set per ipc namespace. The maximum number of bytes
-+in POSIX message queues is limited by ``RLIMIT_MSGQUEUE``. This limit is
-+respected hierarchically in the each user namespace.
+ static int proc_ipc_dointvec_minmax_orphans(struct ctl_table *table, int write,
+@@ -190,25 +191,57 @@ static int set_is_seen(struct ctl_table_
+ 	return &current->nsproxy->ipc_ns->ipc_set == set;
+ }
  
- msg_next_id, sem_next_id, and shm_next_id (System V IPC)
- ========================================================
-@@ -1274,15 +1277,20 @@ are doing anyway :)
- shmall
- ======
++static void ipc_set_ownership(struct ctl_table_header *head,
++			      struct ctl_table *table,
++			      kuid_t *uid, kgid_t *gid)
++{
++	struct ipc_namespace *ns =
++		container_of(head->set, struct ipc_namespace, ipc_set);
++
++	kuid_t ns_root_uid = make_kuid(ns->user_ns, 0);
++	kgid_t ns_root_gid = make_kgid(ns->user_ns, 0);
++
++	*uid = uid_valid(ns_root_uid) ? ns_root_uid : GLOBAL_ROOT_UID;
++	*gid = gid_valid(ns_root_gid) ? ns_root_gid : GLOBAL_ROOT_GID;
++}
++
+ static int ipc_permissions(struct ctl_table_header *head, struct ctl_table *table)
+ {
+ 	int mode = table->mode;
  
--This parameter sets the total amount of shared memory pages that
--can be used system wide. Hence, ``shmall`` should always be at least
--``ceil(shmmax/PAGE_SIZE)``.
-+This parameter sets the total amount of shared memory pages that can be used
-+inside ipc namespace. The shared memory pages counting occurs for each ipc
-+namespace separately and is not inherited. Hence, ``shmall`` should always be at
-+least ``ceil(shmmax/PAGE_SIZE)``.
+ #ifdef CONFIG_CHECKPOINT_RESTORE
+-	struct ipc_namespace *ns = current->nsproxy->ipc_ns;
++	struct ipc_namespace *ns =
++		container_of(head->set, struct ipc_namespace, ipc_set);
  
- If you are not sure what the default ``PAGE_SIZE`` is on your Linux
- system, you can run the following command::
+ 	if (((table->data == &ns->ids[IPC_SEM_IDS].next_id) ||
+ 	     (table->data == &ns->ids[IPC_MSG_IDS].next_id) ||
+ 	     (table->data == &ns->ids[IPC_SHM_IDS].next_id)) &&
+ 	    checkpoint_restore_ns_capable(ns->user_ns))
+ 		mode = 0666;
++	else
+ #endif
+-	return mode;
++	{
++		kuid_t ns_root_uid;
++		kgid_t ns_root_gid;
++
++		ipc_set_ownership(head, table, &ns_root_uid, &ns_root_gid);
++
++		if (uid_eq(current_euid(), ns_root_uid))
++			mode >>= 6;
++
++		else if (in_egroup_p(ns_root_gid))
++			mode >>= 3;
++	}
++
++	mode &= 7;
++
++	return (mode << 6) | (mode << 3) | mode;
+ }
  
- 	# getconf PAGE_SIZE
+ static struct ctl_table_root set_root = {
+ 	.lookup = set_lookup,
+ 	.permissions = ipc_permissions,
++	.set_ownership = ipc_set_ownership,
+ };
  
-+To reduce or disable the ability to allocate shared memory, you must create a
-+new ipc namespace, set this parameter to the required value and prohibit the
-+creation of a new ipc namespace in the current user namespace or cgroups can
-+be used.
- 
- shmmax
- ======
+ bool setup_ipc_sysctls(struct ipc_namespace *ns)
 _
 
 Patches currently in -mm which might be from legion@kernel.org are
