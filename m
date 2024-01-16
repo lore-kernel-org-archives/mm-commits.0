@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 438D91DA36
-	for <mm-commits@vger.kernel.org>; Tue, 16 Jan 2024 20:09:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 851AA1DA36
+	for <mm-commits@vger.kernel.org>; Tue, 16 Jan 2024 20:09:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705435750; cv=none; b=AXZq5scblq1chrNoIxybJatLlZsy+6ajTEw5ymxmzq45nLJyDmHyv9B/MmLmEEjTGGloaCtIzHSdsaO6ylOfBuIPNJ6PjAEYw/n0NSu7k+S/kNUCMArff4OrMa3uUOlhp4OBN2M7hC8rncNqqb2hH7FkRHWcC3JptOnOo36fU6Q=
+	t=1705435753; cv=none; b=dOGpUv7RN9eQhaAnp/o5q5NIX3NUNwlP7y0UhYd292uGBCJ32Vd35B/lErV8FpI3nxD1EJsQ0s7rN+Krd32EDCLB9Fr2+f2Y0t633t7aa1E150kfQnGofFmzURjXf/Im1CIfRj2uN5hua5RfBjZgKuxZYA70Oc6jB7RW8owHy0U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705435750; c=relaxed/simple;
-	bh=MUGre+Ntt2WmsUHV+FLRrfKzAJp2k5oYbXEjgllDI+M=;
-	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id; b=gRlwGQWYZbM0AHwuWdgcuu51HFPSisSuZT0p84lxaaCvPy8S82moxYYACwaY1bI5TLxVS69YUIHVFemHIRjgOlpiOHXkP0H88vvgtroNQRmNRc1czagTLqtF2DAwbsBcH6Yo4kdx3eM28hKE1clIhjB941U2ACpDqCIvGMOfAfY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l84OKv/X; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705435753; c=relaxed/simple;
+	bh=EONF7vocfNLFi22SHmMV2j/fUxVH/5sbrVJp63/947Y=;
+	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id; b=GlMU93SM76yyBxGUU0wz60fkkh0yVUJdjhZWNUlyr1IKB7SVIn5HYSq9Sh9u76d/pP6v9rGZB2SfcEmYlH9wSh4lqT0gdTa7Ly3mVVohyY4DdbH4mbWOgg22QI/jNYsxXRQtAdBBeRbzGAKvUILUsBuPfSzOZivX/kQ9zviIEZs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BaFa3j1E; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l84OKv/X"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA5CCC433C7;
-	Tue, 16 Jan 2024 20:09:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BaFa3j1E"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92A52C433C7;
+	Tue, 16 Jan 2024 20:09:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705435750;
-	bh=MUGre+Ntt2WmsUHV+FLRrfKzAJp2k5oYbXEjgllDI+M=;
+	s=korg; t=1705435752;
+	bh=EONF7vocfNLFi22SHmMV2j/fUxVH/5sbrVJp63/947Y=;
 	h=Date:To:From:Subject:From;
-	b=l84OKv/XDdTkONrUILqJTKTvTK4bL5/9a+H7RRAUW91HmIfH6W0bs0KM6hDfjOLAW
-	 gRg0SlXzBqr3wNp0OvVW3YI95+5cR76lWEbyKxR6DSggaJSJzScnUGvZey7lTJo7ny
-	 HuQ91L0KdWXzTICGmJ8jjoTizAAGMMnIrZLDH0xg=
-Date: Tue, 16 Jan 2024 12:09:07 -0800
-To: mm-commits@vger.kernel.org,mcgrof@kernel.org,manfred@colorfullife.com,keescook@chromium.org,joel.granados@gmail.com,ebiederm@xmission.com,dave@stgolabs.net,brauner@kernel.org,legion@kernel.org,akpm@linux-foundation.org
+	b=BaFa3j1Ep6czH5bIg6EG4Gu9tc1blInUBWDUwceZOvYMOHtliJdOKGznBo2/WLGVV
+	 /I47TRoNEL3Iq1WaL0fO+vgvf4zJJRh2IQKZoWLLh2iz3iePPOWThXEmgbt68t5WUj
+	 Q56qXwLtgoPAd/1t05fP8GfnJfUGWuPztaizJGXA=
+Date: Tue, 16 Jan 2024 12:09:10 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,p.raghav@samsung.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + sysctl-allow-to-change-limits-for-posix-messages-queues.patch added to mm-nonmm-unstable branch
-Message-Id: <20240116200909.AA5CCC433C7@smtp.kernel.org>
+Subject: + readahead-use-ilog2-instead-of-a-while-loop-in-page_cache_ra_order.patch added to mm-unstable branch
+Message-Id: <20240116200912.92A52C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: sysctl: allow to change limits for posix messages queues
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     sysctl-allow-to-change-limits-for-posix-messages-queues.patch
+     Subject: readahead: use ilog2 instead of a while loop in page_cache_ra_order()
+has been added to the -mm mm-unstable branch.  Its filename is
+     readahead-use-ilog2-instead-of-a-while-loop-in-page_cache_ra_order.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sysctl-allow-to-change-limits-for-posix-messages-queues.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/readahead-use-ilog2-instead-of-a-while-loop-in-page_cache_ra_order.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,95 +58,46 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Alexey Gladkov <legion@kernel.org>
-Subject: sysctl: allow to change limits for posix messages queues
-Date: Mon, 15 Jan 2024 15:46:43 +0000
+From: Pankaj Raghav <p.raghav@samsung.com>
+Subject: readahead: use ilog2 instead of a while loop in page_cache_ra_order()
+Date: Mon, 15 Jan 2024 11:25:22 +0100
 
-All parameters of posix messages queues (queues_max/msg_max/msgsize_max)
-end up being limited by RLIMIT_MSGQUEUE.  The code in mqueue_get_inode is
-where that limiting happens.
+A while loop is used to adjust the new_order to be lower than the
+ra->size.  ilog2 could be used to do the same instead of using a loop.
 
-The RLIMIT_MSGQUEUE is bound to the user namespace and is counted
-hierarchically.
+ilog2 typically resolves to a bit scan reverse instruction.  This is
+particularly useful when ra->size is smaller than the 2^new_order as it
+resolves in one instruction instead of looping to find the new_order.
 
-We can allow root in the user namespace to modify the posix messages
-queues parameters.
+No functional changes.
 
-Link: https://lkml.kernel.org/r/6ad67f23d1459a4f4339f74aa73bac0ecf3995e1.1705333426.git.legion@kernel.org
-Signed-off-by: Alexey Gladkov <legion@kernel.org>
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Link: https://lkml.kernel.org/r/7eb21211c8622e91d226e63416b1b93c079f60ee.1663756794.git.legion@kernel.org
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Joel Granados <joel.granados@gmail.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+Link: https://lkml.kernel.org/r/20240115102523.2336742-1-kernel@pankajraghav.com
+Signed-off-by: Pankaj Raghav <p.raghav@samsung.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mq_sysctl.c |   36 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
+ mm/readahead.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/ipc/mq_sysctl.c~sysctl-allow-to-change-limits-for-posix-messages-queues
-+++ a/ipc/mq_sysctl.c
-@@ -12,6 +12,7 @@
- #include <linux/stat.h>
- #include <linux/capability.h>
- #include <linux/slab.h>
-+#include <linux/cred.h>
+--- a/mm/readahead.c~readahead-use-ilog2-instead-of-a-while-loop-in-page_cache_ra_order
++++ a/mm/readahead.c
+@@ -500,10 +500,8 @@ void page_cache_ra_order(struct readahea
  
- static int msg_max_limit_min = MIN_MSGMAX;
- static int msg_max_limit_max = HARD_MSGMAX;
-@@ -76,8 +77,43 @@ static int set_is_seen(struct ctl_table_
- 	return &current->nsproxy->ipc_ns->mq_set == set;
- }
+ 	if (new_order < MAX_PAGECACHE_ORDER) {
+ 		new_order += 2;
+-		if (new_order > MAX_PAGECACHE_ORDER)
+-			new_order = MAX_PAGECACHE_ORDER;
+-		while ((1 << new_order) > ra->size)
+-			new_order--;
++		new_order = min_t(unsigned int, MAX_PAGECACHE_ORDER, new_order);
++		new_order = min_t(unsigned int, new_order, ilog2(ra->size));
+ 	}
  
-+static void mq_set_ownership(struct ctl_table_header *head,
-+			     struct ctl_table *table,
-+			     kuid_t *uid, kgid_t *gid)
-+{
-+	struct ipc_namespace *ns =
-+		container_of(head->set, struct ipc_namespace, mq_set);
-+
-+	kuid_t ns_root_uid = make_kuid(ns->user_ns, 0);
-+	kgid_t ns_root_gid = make_kgid(ns->user_ns, 0);
-+
-+	*uid = uid_valid(ns_root_uid) ? ns_root_uid : GLOBAL_ROOT_UID;
-+	*gid = gid_valid(ns_root_gid) ? ns_root_gid : GLOBAL_ROOT_GID;
-+}
-+
-+static int mq_permissions(struct ctl_table_header *head, struct ctl_table *table)
-+{
-+	int mode = table->mode;
-+	kuid_t ns_root_uid;
-+	kgid_t ns_root_gid;
-+
-+	mq_set_ownership(head, table, &ns_root_uid, &ns_root_gid);
-+
-+	if (uid_eq(current_euid(), ns_root_uid))
-+		mode >>= 6;
-+
-+	else if (in_egroup_p(ns_root_gid))
-+		mode >>= 3;
-+
-+	mode &= 7;
-+
-+	return (mode << 6) | (mode << 3) | mode;
-+}
-+
- static struct ctl_table_root set_root = {
- 	.lookup = set_lookup,
-+	.permissions = mq_permissions,
-+	.set_ownership = mq_set_ownership,
- };
- 
- bool setup_mq_sysctls(struct ipc_namespace *ns)
+ 	filemap_invalidate_lock_shared(mapping);
 _
 
-Patches currently in -mm which might be from legion@kernel.org are
+Patches currently in -mm which might be from p.raghav@samsung.com are
 
-sysctl-allow-change-system-v-ipc-sysctls-inside-ipc-namespace.patch
-docs-add-information-about-ipc-sysctls-limitations.patch
-sysctl-allow-to-change-limits-for-posix-messages-queues.patch
+readahead-use-ilog2-instead-of-a-while-loop-in-page_cache_ra_order.patch
 
