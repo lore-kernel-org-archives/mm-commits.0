@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 851AA1DA36
-	for <mm-commits@vger.kernel.org>; Tue, 16 Jan 2024 20:09:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D9095730A
+	for <mm-commits@vger.kernel.org>; Tue, 16 Jan 2024 20:09:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705435753; cv=none; b=dOGpUv7RN9eQhaAnp/o5q5NIX3NUNwlP7y0UhYd292uGBCJ32Vd35B/lErV8FpI3nxD1EJsQ0s7rN+Krd32EDCLB9Fr2+f2Y0t633t7aa1E150kfQnGofFmzURjXf/Im1CIfRj2uN5hua5RfBjZgKuxZYA70Oc6jB7RW8owHy0U=
+	t=1705435756; cv=none; b=eR9cUfRkMVf0hoyE8+lCQh/nocLTZFLg6DXGV49V70FzoCjtMlf71gK/97dk+4ihb1o/ImONngxlDwQbXspwb1zKc3WqMaJ06Dq84LiuTLHM8+DbqgM0V7Arwi7N13idrtJBSObxygIN3XQh3B/prxNECcpfHlh5sblyTpPGIcA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705435753; c=relaxed/simple;
-	bh=EONF7vocfNLFi22SHmMV2j/fUxVH/5sbrVJp63/947Y=;
-	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id; b=GlMU93SM76yyBxGUU0wz60fkkh0yVUJdjhZWNUlyr1IKB7SVIn5HYSq9Sh9u76d/pP6v9rGZB2SfcEmYlH9wSh4lqT0gdTa7Ly3mVVohyY4DdbH4mbWOgg22QI/jNYsxXRQtAdBBeRbzGAKvUILUsBuPfSzOZivX/kQ9zviIEZs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BaFa3j1E; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705435756; c=relaxed/simple;
+	bh=BrOTVHOlB5LAMKOCtLF8KshyxfPfQzwuGkolbnR7Hx4=;
+	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id; b=c47rhK+0W9hx0JohVGXsCTd1oRKzCf6taoqoWYQ6TvhlwIXeJmar8InG1Ik0Sy5XFxsiTnrI+KPGfkUDu1lzTJTO/FIwQu+os3A4GvadGTkGR2d90+e8bKOsU5SEvSGlSBB30mmnuF4p0/9jhl+FYAJD9q72YYTXn/rS8a7lSY8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hb+NxyQ/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BaFa3j1E"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92A52C433C7;
-	Tue, 16 Jan 2024 20:09:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hb+NxyQ/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FF61C433C7;
+	Tue, 16 Jan 2024 20:09:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705435752;
-	bh=EONF7vocfNLFi22SHmMV2j/fUxVH/5sbrVJp63/947Y=;
+	s=korg; t=1705435755;
+	bh=BrOTVHOlB5LAMKOCtLF8KshyxfPfQzwuGkolbnR7Hx4=;
 	h=Date:To:From:Subject:From;
-	b=BaFa3j1Ep6czH5bIg6EG4Gu9tc1blInUBWDUwceZOvYMOHtliJdOKGznBo2/WLGVV
-	 /I47TRoNEL3Iq1WaL0fO+vgvf4zJJRh2IQKZoWLLh2iz3iePPOWThXEmgbt68t5WUj
-	 Q56qXwLtgoPAd/1t05fP8GfnJfUGWuPztaizJGXA=
-Date: Tue, 16 Jan 2024 12:09:10 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,p.raghav@samsung.com,akpm@linux-foundation.org
+	b=Hb+NxyQ/RZSNmO8iCDP6K42MVvESYYMzdAvd5dcUJjJPg4w09MlCQZRRAO5QQlHiV
+	 VAwn1/yku1FOT8QcRrbjAyyUN7Tyj0kChPRqNTw+lRpQR4POnclFm/c318zQXDxklm
+	 cL+58ZU2B6RGh4IzWtTeXc+XonLHSjnzzrz/EvcA=
+Date: Tue, 16 Jan 2024 12:09:13 -0800
+To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,peterz@infradead.org,oleg@redhat.com,namhyung@kernel.org,mingo@redhat.com,mark.rutland@arm.com,jolsa@kernel.org,irogers@google.com,adrian.hunter@intel.com,acme@kernel.org,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + readahead-use-ilog2-instead-of-a-while-loop-in-page_cache_ra_order.patch added to mm-unstable branch
-Message-Id: <20240116200912.92A52C433C7@smtp.kernel.org>
+Subject: + uprobes-use-pagesize-aligned-virtual-address-when-replacing-pages.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240116200915.7FF61C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: readahead: use ilog2 instead of a while loop in page_cache_ra_order()
-has been added to the -mm mm-unstable branch.  Its filename is
-     readahead-use-ilog2-instead-of-a-while-loop-in-page_cache_ra_order.patch
+     Subject: uprobes: use pagesize-aligned virtual address when replacing pages
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     uprobes-use-pagesize-aligned-virtual-address-when-replacing-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/readahead-use-ilog2-instead-of-a-while-loop-in-page_cache_ra_order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/uprobes-use-pagesize-aligned-virtual-address-when-replacing-pages.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,46 +58,65 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Pankaj Raghav <p.raghav@samsung.com>
-Subject: readahead: use ilog2 instead of a while loop in page_cache_ra_order()
-Date: Mon, 15 Jan 2024 11:25:22 +0100
+From: David Hildenbrand <david@redhat.com>
+Subject: uprobes: use pagesize-aligned virtual address when replacing pages
+Date: Mon, 15 Jan 2024 11:07:31 +0100
 
-A while loop is used to adjust the new_order to be lower than the
-ra->size.  ilog2 could be used to do the same instead of using a loop.
+uprobes passes an unaligned page mapping address to
+folio_add_new_anon_rmap(), which ends up triggering a VM_BUG_ON() we
+recently extended in commit 372cbd4d5a066 ("mm: non-pmd-mappable, large
+folios for folio_add_new_anon_rmap()").
 
-ilog2 typically resolves to a bit scan reverse instruction.  This is
-particularly useful when ra->size is smaller than the 2^new_order as it
-resolves in one instruction instead of looping to find the new_order.
+Arguably, this is uprobes code doing something wrong; however, for the
+time being it would have likely worked in rmap code because
+__folio_set_anon() would set folio->index to the same value.
 
-No functional changes.
+Looking at __replace_page(), we'd also pass slightly wrong values to
+mmu_notifier_range_init(), page_vma_mapped_walk(), flush_cache_page(),
+ptep_clear_flush() and set_pte_at_notify().  I suspect most of them are
+fine, but let's just mark the introducing commit as the one needed fixing.
+I don't think CC stable is warranted.
 
-Link: https://lkml.kernel.org/r/20240115102523.2336742-1-kernel@pankajraghav.com
-Signed-off-by: Pankaj Raghav <p.raghav@samsung.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+We'll add more sanity checks in rmap code separately, to make sure that we
+always get properly aligned addresses.
+
+Link: https://lkml.kernel.org/r/20240115100731.91007-1-david@redhat.com
+Fixes: c517ee744b96 ("uprobes: __replace_page() should not use page_address_in_vma()")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reported-by: Jiri Olsa <jolsa@kernel.org>
+Closes: https://lkml.kernel.org/r/ZaMR2EWN-HvlCfUl@krava
+Tested-by: Jiri Olsa <jolsa@kernel.org>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Alexander Shishkin
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ kernel/events/uprobes.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/readahead.c~readahead-use-ilog2-instead-of-a-while-loop-in-page_cache_ra_order
-+++ a/mm/readahead.c
-@@ -500,10 +500,8 @@ void page_cache_ra_order(struct readahea
- 
- 	if (new_order < MAX_PAGECACHE_ORDER) {
- 		new_order += 2;
--		if (new_order > MAX_PAGECACHE_ORDER)
--			new_order = MAX_PAGECACHE_ORDER;
--		while ((1 << new_order) > ra->size)
--			new_order--;
-+		new_order = min_t(unsigned int, MAX_PAGECACHE_ORDER, new_order);
-+		new_order = min_t(unsigned int, new_order, ilog2(ra->size));
+--- a/kernel/events/uprobes.c~uprobes-use-pagesize-aligned-virtual-address-when-replacing-pages
++++ a/kernel/events/uprobes.c
+@@ -537,7 +537,7 @@ retry:
+ 		}
  	}
  
- 	filemap_invalidate_lock_shared(mapping);
+-	ret = __replace_page(vma, vaddr, old_page, new_page);
++	ret = __replace_page(vma, vaddr & PAGE_MASK, old_page, new_page);
+ 	if (new_page)
+ 		put_page(new_page);
+ put_old:
 _
 
-Patches currently in -mm which might be from p.raghav@samsung.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-readahead-use-ilog2-instead-of-a-while-loop-in-page_cache_ra_order.patch
+uprobes-use-pagesize-aligned-virtual-address-when-replacing-pages.patch
 
