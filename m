@@ -1,119 +1,138 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06D7018623;
-	Sat, 13 Jan 2024 00:59:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C45C220B33
+	for <mm-commits@vger.kernel.org>; Tue, 16 Jan 2024 20:09:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1705435744; cv=none; b=pxCBkuSqdKDhC2BIPT4rWXTNAnGCOH40YlDX4mp10DAGhnlGmobjVEk7bImklvjGn9bE1fwguqHHihi9lUt96XqnGLbUm84krhfKe4X7+Kud6NEKmC/sQTf44t3Tfe2Reh7y1ylR7ZI+qQ/G+yeFlhGPi9AVVupE+bpLjxlIgP4=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1705435744; c=relaxed/simple;
+	bh=rNXjPYUJRVg1KrkMThLmvyXtSIGHdfM3w71AG2yzANI=;
+	h=Received:DKIM-Signature:Date:To:From:Subject:Message-Id; b=KJ1CvU/tkejhl8XS+0bzcinU9nX2psPrlES7Vq0r6VmhBrAwGs4RRCYHnCu3Fzf7MyMBmnqF9V/8WQjahcx0y3N1pUNWIo0xAB6Of8Qh+B2eAOVzuZN9C0eauuRVG92Y3CAorWI0vkjVXaICbJ78VSbDMOx/5YFWJ3MyJGaG9WE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O0e0joiY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Kvevvtbx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5398CC433F1;
-	Sat, 13 Jan 2024 00:59:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O0e0joiY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 154B6C433C7;
+	Tue, 16 Jan 2024 20:09:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705107558;
-	bh=z3Og+V8n6COrYudtY52XOD7nWNIbpJKDhDbAlTUNWM0=;
-	h=Date:From:To:Cc:Subject:From;
-	b=KvevvtbxZlx4eMzWtOpPAAwp4sq75/VKqpzFDQEJwyWxrZD+R6O5CfQQVmL2xV4Hn
-	 uNBcmbbO9JVaB1blZeC3pvTGc3693GSbMMuy48etkl24qAJppzGRQItODfbv04LcDy
-	 naTLvGU4fkfateD/WFlLhTNSZLkJeKl52U76ai6U=
-Date: Fri, 12 Jan 2024 16:59:17 -0800
+	s=korg; t=1705435744;
+	bh=rNXjPYUJRVg1KrkMThLmvyXtSIGHdfM3w71AG2yzANI=;
+	h=Date:To:From:Subject:From;
+	b=O0e0joiYTCtRZQCbGc9uy51hWgrk2QMrCRyWHOzqVe5m3AEAEWWLeq6DCMr5TIOUP
+	 iXmZRpj3ZTm++JFk5TV0t2JHx6ncYfavBV5iniupGGj8UEQkUsYx+7xP+2UPk2UsCg
+	 MpDUw/zmAWTznrzjh5Gc/TUqiBCCmJbu7KalMPbw=
+Date: Tue, 16 Jan 2024 12:09:01 -0800
+To: mm-commits@vger.kernel.org,mcgrof@kernel.org,manfred@colorfullife.com,keescook@chromium.org,joel.granados@gmail.com,ebiederm@xmission.com,dave@stgolabs.net,brauner@kernel.org,legion@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.8-rc1
-Message-Id: <20240112165917.67505f1509909230808c06e3@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + docs-add-information-about-ipc-sysctls-limitations.patch added to mm-nonmm-unstable branch
+Message-Id: <20240116200904.154B6C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
 
-Linus, please merge this batch of hotfixes.  Which, for once, are not
-mostly MM-related.  Thanks.
+The patch titled
+     Subject: docs: add information about ipc sysctls limitations
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     docs-add-information-about-ipc-sysctls-limitations.patch
 
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-add-information-about-ipc-sysctls-limitations.patch
 
-The following changes since commit ab27740f76654ed58dd32ac0ba0031c18a6dea3b:
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-  Merge tag 'linux_kselftest-next-6.8-rc1' of git://git.kernel.org/pub/scm/linux/kernel/git/shuah/linux-kselftest (2024-01-09 17:28:41 -0800)
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-are available in the Git repository at:
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-01-12-16-52
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
-for you to fetch changes up to 5d4747a6cc8e78ce74742d557fc9b7697fcacc95:
+------------------------------------------------------
+From: Alexey Gladkov <legion@kernel.org>
+Subject: docs: add information about ipc sysctls limitations
+Date: Mon, 15 Jan 2024 15:46:42 +0000
 
-  userfaultfd: avoid huge_zero_page in UFFDIO_MOVE (2024-01-12 15:20:49 -0800)
+After 25b21cb2f6d6 ("[PATCH] IPC namespace core") and 4e9823111bdc
+("[PATCH] IPC namespace - shm") the shared memory page count stopped being
+global and started counting per ipc namespace.  The documentation and
+shmget(2) still says that shmall is a global option.
 
-----------------------------------------------------------------
-17 hotfixes.  10 address post-6.7 issues and the other 7 are cc:stable.
+shmget(2):
 
-----------------------------------------------------------------
-Andrew Morton (1):
-      kernel/crash_core.c: make __crash_hotplug_lock static
+SHMALL System-wide limit on the total amount of shared memory, measured in
+units of the system page size.  On Linux, this limit can be read and
+modified via /proc/sys/kernel/shmall.
 
-Andrey Konovalov (1):
-      kasan: avoid resetting aux_lock
+I think the changes made in 2006 should be documented.
 
-Carlos Llamas (1):
-      scripts/decode_stacktrace.sh: optionally use LLVM utilities
+Link: https://lkml.kernel.org/r/09e99911071766958af488beb4e8a728a4f12135.1705333426.git.legion@kernel.org
+Signed-off-by: Alexey Gladkov <legion@kernel.org>
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Link: https://lkml.kernel.org/r/ede20ddf7be48b93e8084c3be2e920841ee1a641.1663756794.git.legion@kernel.org
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Joel Granados <joel.granados@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Donet Tom (1):
-      selftests: mm: hugepage-vmemmap fails on 64K page size systems
+ Documentation/admin-guide/sysctl/kernel.rst |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
-Huacai Chen (1):
-      kdump: defer the insertion of crashkernel resources
+--- a/Documentation/admin-guide/sysctl/kernel.rst~docs-add-information-about-ipc-sysctls-limitations
++++ a/Documentation/admin-guide/sysctl/kernel.rst
+@@ -594,6 +594,9 @@ default (``MSGMNB``).
+ ``msgmni`` is the maximum number of IPC queues. 32000 by default
+ (``MSGMNI``).
+ 
++All of these parameters are set per ipc namespace. The maximum number of bytes
++in POSIX message queues is limited by ``RLIMIT_MSGQUEUE``. This limit is
++respected hierarchically in the each user namespace.
+ 
+ msg_next_id, sem_next_id, and shm_next_id (System V IPC)
+ ========================================================
+@@ -1274,15 +1277,20 @@ are doing anyway :)
+ shmall
+ ======
+ 
+-This parameter sets the total amount of shared memory pages that
+-can be used system wide. Hence, ``shmall`` should always be at least
+-``ceil(shmmax/PAGE_SIZE)``.
++This parameter sets the total amount of shared memory pages that can be used
++inside ipc namespace. The shared memory pages counting occurs for each ipc
++namespace separately and is not inherited. Hence, ``shmall`` should always be at
++least ``ceil(shmmax/PAGE_SIZE)``.
+ 
+ If you are not sure what the default ``PAGE_SIZE`` is on your Linux
+ system, you can run the following command::
+ 
+ 	# getconf PAGE_SIZE
+ 
++To reduce or disable the ability to allocate shared memory, you must create a
++new ipc namespace, set this parameter to the required value and prohibit the
++creation of a new ipc namespace in the current user namespace or cgroups can
++be used.
+ 
+ shmmax
+ ======
+_
 
-James Gowans (1):
-      kexec: do syscore_shutdown() in kernel_kexec
+Patches currently in -mm which might be from legion@kernel.org are
 
-Johannes Weiner (1):
-      mm: zswap: switch maintainers to recently active developers and reviewers
-
-Ma Wupeng (1):
-      efi: disable mirror feature during crashkernel
-
-Manivannan Sadhasivam (1):
-      mailmap: update entry for Manivannan Sadhasivam
-
-Muhammad Usama Anjum (1):
-      fs/proc/task_mmu: move mmu notification mechanism inside mm lock
-
-Nathan Chancellor (1):
-      lib/Kconfig.debug: disable CONFIG_DEBUG_INFO_BTF for Hexagon
-
-Petr Vorel (1):
-      MAINTAINERS: update LTP maintainers
-
-Qi Zheng (1):
-      MAINTAINERS: add entry for shrinker
-
-Randy Dunlap (1):
-      mailmap: add old address mappings for Randy
-
-Sumanth Korikkar (1):
-      mm/memory_hotplug: fix memmap_on_memory sysfs value retrieval
-
-Suren Baghdasaryan (1):
-      userfaultfd: avoid huge_zero_page in UFFDIO_MOVE
-
-Tanzir Hasan (1):
-      mailmap: switch email for Tanzir Hasan
-
- .mailmap                                      |  5 ++++-
- MAINTAINERS                                   | 28 +++++++++++++++++++-------
- fs/proc/task_mmu.c                            | 24 ++++++++++++----------
- kernel/crash_core.c                           | 16 ++++++++++++---
- kernel/kexec_core.c                           |  1 +
- lib/Kconfig.debug                             |  2 ++
- mm/kasan/generic.c                            | 10 +++++++--
- mm/memory_hotplug.c                           |  8 +++++---
- mm/mm_init.c                                  |  6 ++++++
- mm/userfaultfd.c                              |  6 ++++++
- scripts/decode_stacktrace.sh                  | 19 ++++++++++++++++--
- tools/testing/selftests/mm/hugepage-vmemmap.c | 29 +++++++++++++++++----------
- 12 files changed, 114 insertions(+), 40 deletions(-)
+sysctl-allow-change-system-v-ipc-sysctls-inside-ipc-namespace.patch
+docs-add-information-about-ipc-sysctls-limitations.patch
+sysctl-allow-to-change-limits-for-posix-messages-queues.patch
 
