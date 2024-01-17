@@ -1,66 +1,79 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55EF324A0E;
-	Wed, 17 Jan 2024 20:03:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34694249F7
+	for <mm-commits@vger.kernel.org>; Wed, 17 Jan 2024 20:20:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705521818; cv=none; b=e6N5gb6pHG0bCQoEzafNwKMNyujkmOyuXVbjjzrtTBVLtP/U06QWpI36A034tAyf1DYJZ5ldX1+AAiMWSAEiMfVDtuO8zLDX0Mwt+Zz+IjjuKWwLWP/Mx1X4z7iUMt3by0vQOlhZcXGPi+ucSX61kshTpn5UIMPHzqf5maLJIoA=
+	t=1705522850; cv=none; b=pRVOlnTODjkC+ckU4hBWUOi6S+kijeKLvfzINClhLOAsnmtDZJmegXRwhynaWWaNIYe8x7R4R0YL1EX8euTbekB5edy9ZBNOluKGOTQEqSAWsd4DKZJUBDzNkB1db1zVBimJ6Z0s2a6+twRbRHe6rIl4HACf+46BnYPQ/m4weGs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705521818; c=relaxed/simple;
-	bh=4P8RX2t/zSULhuHoA92glZJQ8bY6hHyB/tlyZMbK11k=;
-	h=Received:DKIM-Signature:Received:Subject:From:In-Reply-To:
-	 References:X-PR-Tracked-List-Id:X-PR-Tracked-Message-Id:
-	 X-PR-Tracked-Remote:X-PR-Tracked-Commit-Id:X-PR-Merge-Tree:
-	 X-PR-Merge-Refname:X-PR-Merge-Commit-Id:Message-Id:Date:To:Cc; b=LeasQl5mrmtdsyIfPh+Y380HkZdH3ZMb9qDe7WEDIht+49184yl6kQsTv+6aIYhonFJEP/VAblg7FQE168XX6To503eyrFBCtLFd4/EwIoVkaL8OznnZm2aXQ3Wo70YQ0olfyrMZYFT4Y8eAamDw4MtT3LYJL0zLw4hg7W+8BH4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Wm8leWN1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705522850; c=relaxed/simple;
+	bh=84B4iIt1hW/XKn/0X+PfICcbfcUZJG5XUZmMi6I2+hU=;
+	h=Received:DKIM-Signature:Date:From:To:Cc:Subject:Message-Id:
+	 In-Reply-To:References:X-Mailer:Mime-Version:Content-Type:
+	 Content-Transfer-Encoding; b=adAWSgA8PnwSylakZye4feWCun2G+L+7WETTtwmh+X/nsXzhtulm6g86uL2jsc1cEpmhGSdkOcuTxlkUR3DvyThVULtaDC0v1IhmAe0+3qs8LkovBtYdVBIHvrbsv6/Cx1Jxq3g6ZCY5CR5OCXMG8H1P3dHaghCqcp6DD6Jue+0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z3FSzG7s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Wm8leWN1"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 2DE48C433F1;
-	Wed, 17 Jan 2024 20:03:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1705521818;
-	bh=4P8RX2t/zSULhuHoA92glZJQ8bY6hHyB/tlyZMbK11k=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=Wm8leWN1cUpX1S/9SBcwg3oEdvvSpcx/AxktLJd0U/ovMUzKZmIKBKyAZ0uiL58qW
-	 3KVzWLKIcSkHfqD7s+6iDhb8vLc+CIqkJSmJ1x6NYtU60VNopxnbTjE+FrG4xMBtDQ
-	 8moa73s7csJy9yOqCxt5ufadzGPReXf+RA4inajgM2h9nMJB1BLENGz7qLk0eHahZa
-	 WGwH3vXPK78J9DtU7WMwMhTCvVL61ntRDAgoX3hLslo+mkHiFO71QVUVATgneNrN4q
-	 xw+YlaM0oOXNVQZrIs7aSfsyViJHI/ljIYG02qqmSwKaQbSYn7KW+GpRdwIMXB3bQQ
-	 fvdUEl/oNjC2w==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 1D7C2D8C97B;
-	Wed, 17 Jan 2024 20:03:38 +0000 (UTC)
-Subject: Re: [GIT PULL] hotfixes for 6.8-rc1
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <20240112165917.67505f1509909230808c06e3@linux-foundation.org>
-References: <20240112165917.67505f1509909230808c06e3@linux-foundation.org>
-X-PR-Tracked-List-Id: <linux-mm.kvack.org>
-X-PR-Tracked-Message-Id: <20240112165917.67505f1509909230808c06e3@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-01-12-16-52
-X-PR-Tracked-Commit-Id: 5d4747a6cc8e78ce74742d557fc9b7697fcacc95
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 7f5e47f785140c2d7948bee6fc387f939f68dbb8
-Message-Id: <170552181811.2985.15229324844308199993.pr-tracker-bot@kernel.org>
-Date: Wed, 17 Jan 2024 20:03:38 +0000
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z3FSzG7s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 280A8C433C7;
+	Wed, 17 Jan 2024 20:20:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1705522849;
+	bh=84B4iIt1hW/XKn/0X+PfICcbfcUZJG5XUZmMi6I2+hU=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=Z3FSzG7sKIW72zh8swhKihDEmYjXvCB9KPQYk4vnDOVfZQWrkGwIMvDPZEQNfavsx
+	 wFOCn9gd5nhDITmzQvnBMd6Vmfak78SCFdo8LQWOkOlZCgIzWdvwCrwE0l6DNYsPsb
+	 yC4w1e6/V3R2NDwrZPA1GLGgRII/Mg6teuVEGWFA=
+Date: Wed, 17 Jan 2024 12:20:44 -0800
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Breno Leitao <leitao@debian.org>
+Cc: Yury Norov <yury.norov@gmail.com>, mm-commits@vger.kernel.org,
+ tglx@linutronix.de, ming.lei@redhat.com, linux@rasmusvillemoes.dk,
+ andriy.shevchenko@linux.intel.com
+Subject: Re: + lib-group_cpus-rework-group_cpus_evenly.patch added to
+ mm-nonmm-unstable branch
+Message-Id: <20240117122044.ce5b24c38f62d1e36de715dc@linux-foundation.org>
+In-Reply-To: <ZagEHj9v9n9M80YW@gmail.com>
+References: <20240110160755.3E20BC433C7@smtp.kernel.org>
+	<ZZ7e3xbIKfVa3yqd@yury-ThinkPad>
+	<ZagEHj9v9n9M80YW@gmail.com>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-The pull request you sent on Fri, 12 Jan 2024 16:59:17 -0800:
+On Wed, 17 Jan 2024 08:45:18 -0800 Breno Leitao <leitao@debian.org> wrote:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-01-12-16-52
+> Hello Yury,
+> 
+> On Wed, Jan 10, 2024 at 10:15:59AM -0800, Yury Norov wrote:
+> > diff --git a/lib/group_cpus.c b/lib/group_cpus.c
+> > index 3a0db0f51f09..c9c95b21e6c6 100644
+> > --- a/lib/group_cpus.c
+> > +++ b/lib/group_cpus.c
+> > @@ -353,8 +353,8 @@ struct cpumask *group_cpus_evenly(unsigned int numgrps)
+> >  {
+> >  	cpumask_var_t *node_to_cpumask __free(free_node_to_cpumask) = alloc_node_to_cpumask();
+> >  	struct cpumask *masks __free(kfree) = kcalloc(numgrps, sizeof(*masks), GFP_KERNEL);
+> > -	cpumask_var_t npresmsk __free(free_cpumask_var);
+> > -	unsigned int curgrp, nr_present, nr_others;
+> > +	cpumask_var_t npresmsk __free(free_cpumask_var) = NULL;
+> 
+> I am testing the akpm's mm-everything branch, and I am seeing this
+> compilation error when compiling with clang.
+> 
+> 	lib/group_cpus.c: In function ‘group_cpus_evenly’:
+> 	./include/linux/stddef.h:8:14: error: invalid initializer
+> 	 #define NULL ((void *)0)
+> 		      ^
+> 	lib/group_cpus.c:356:52: note: in expansion of macro ‘NULL’
+> 	  cpumask_var_t npresmsk __free(free_cpumask_var) = NULL;
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/7f5e47f785140c2d7948bee6fc387f939f68dbb8
+yes, there have been a few reports of this.  I'll drop the series and
+shall await the next revision, thanks.
 
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
