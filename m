@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80ADF1E486
-	for <mm-commits@vger.kernel.org>; Thu, 18 Jan 2024 22:16:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 480481E486
+	for <mm-commits@vger.kernel.org>; Thu, 18 Jan 2024 22:16:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705616180; cv=none; b=ZVMaNr/V+jX1SJoFPNE8yjEvPA48qiJnOk4y9PkXeFxPOtFeuj4xcRtmtN1Yg8ck3/gI/Epo9l6OJm/6dPjF/uCWyp7Q2HJZxcZCZ29ShKSxN8CWg9uzw+yjKqQqgwlV4N/Kb4AS5n3qTq7pCwtKOGM+hjlG/jgLa4P3MFbVtj0=
+	t=1705616183; cv=none; b=ZPRZMQK5P4pkvOPUYD2yKc73uOAGIFBNPxGAw8nU89vWQ2fpUCb5z7cKsy1VQsx55FW8o5e3Rel13gmrgVrjuE8lSVUY1/rbPNCP0Pldpr+iIA3rwm8K4TwsMuAdsbu6Cb0/Yw4Dut7zDI+xNGuQ+q9jrC9QLGZuQ+t7i+O2/S0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705616180; c=relaxed/simple;
-	bh=A3Snl3zRADFt1HK2Rf/ZgPsxgh8RX4oGawQE94z14R8=;
-	h=Date:To:From:Subject:Message-Id; b=oHEPhFNlgg6/gcewhYN8KO7NI0yI8rhrptWEwOes2m+f6SKcGffuUP0RvbxRAb1Q0IeE4vQkPbFe4ue+2QCxKBcr1hxZBqrPbUm8ZbwAx+NeNtAAnMxK2/rFMVAkaBLEpm6A4szzEjU2/hZZUnjRnbingSDYBjQncbvGxcx7Bn8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1CmVbOyA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705616183; c=relaxed/simple;
+	bh=89rCDzKbZi8pl0I1qe1zIRBWdxC8Yx5qEm5uyp9GOpg=;
+	h=Date:To:From:Subject:Message-Id; b=naMikHKw+CohJvWWpKg6XSwUqlav+/9VyJQCNM3uhkRdXPIC0YU9fhvoDN0DCBH+41UH2IVu2OXT0A/TQxnJ1IyTe+3WCKOLWrKmBwmCFdAQjnD8i9e8nSMwlr9cEDRSutDe6LbaHv4xwnP1PzwblPGC12Ys0nE/HkI+J2RoTlA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HpUKswxR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1CmVbOyA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D19DC433C7;
-	Thu, 18 Jan 2024 22:16:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HpUKswxR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63E8BC433F1;
+	Thu, 18 Jan 2024 22:16:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705616180;
-	bh=A3Snl3zRADFt1HK2Rf/ZgPsxgh8RX4oGawQE94z14R8=;
+	s=korg; t=1705616182;
+	bh=89rCDzKbZi8pl0I1qe1zIRBWdxC8Yx5qEm5uyp9GOpg=;
 	h=Date:To:From:Subject:From;
-	b=1CmVbOyAGmU98PhJsFf3E6vFFerJMh4SfBz4SLY4nCBFiLuv71pfrfb987UFzuLr0
-	 RU/s/LbiDolGtVTpm/IzRaAdNy9VKC1LO9l/BT2xZ8VlMVLeY7M+nesPN8rmhMFhJQ
-	 SIrZ2ger2RPX0M4C+HDb1s83qcb7oJmuMZ0MDTAg=
-Date: Thu, 18 Jan 2024 14:16:17 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,peterx@redhat.com,ngeoffray@google.com,kaleshsingh@google.com,jannh@google.com,david@redhat.com,bgeffon@google.com,axelrasmussen@google.com,aarcange@redhat.com,lokeshgidra@google.com,akpm@linux-foundation.org
+	b=HpUKswxREv9Zc1OIEPHUuK8axxUecX0K2rvPLUegOzmlVzQt2aXTj2UbtJMjtdG+W
+	 J+bx1U+BWo5ua2R52pPB9eDnpN5DPFFrCnq2VU/WQSaz5o0PPFLh1Dn0YQpwc3GYm0
+	 NnJiX+9XhgnvCC0qTwSek7JqXLE+jYqac0pCtolc=
+Date: Thu, 18 Jan 2024 14:16:20 -0800
+To: mm-commits@vger.kernel.org,vitaly.wool@konsulko.com,sjenning@redhat.com,nphamcs@gmail.com,hannes@cmpxchg.org,ddstreet@ieee.org,yosryahmed@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + userfaultfd-fix-mmap_changing-checking-in-mfill_atomic_hugetlb.patch added to mm-unstable branch
-Message-Id: <20240118221619.9D19DC433C7@smtp.kernel.org>
+Subject: + maintainers-supplement-of-zswap-maintainers-update.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240118221622.63E8BC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: userfaultfd: fix mmap_changing checking in mfill_atomic_hugetlb
-has been added to the -mm mm-unstable branch.  Its filename is
-     userfaultfd-fix-mmap_changing-checking-in-mfill_atomic_hugetlb.patch
+     Subject: MAINTAINERS: supplement of zswap maintainers update
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maintainers-supplement-of-zswap-maintainers-update.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-fix-mmap_changing-checking-in-mfill_atomic_hugetlb.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-supplement-of-zswap-maintainers-update.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,82 +58,81 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lokesh Gidra <lokeshgidra@google.com>
-Subject: userfaultfd: fix mmap_changing checking in mfill_atomic_hugetlb
-Date: Wed, 17 Jan 2024 14:37:29 -0800
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: MAINTAINERS: supplement of zswap maintainers update
+Date: Wed, 17 Jan 2024 18:21:52 +0000
 
-In mfill_atomic_hugetlb(), mmap_changing isn't being checked
-again if we drop mmap_lock and reacquire it. When the lock is not held,
-mmap_changing could have been incremented. This is also inconsistent
-with the behavior in mfill_atomic().
+As discussed on the mailing list [1], merge the zpool maintainers entry
+into the zswap one.  Also, add CREDITS entries for previous zswap/zpool
+maintainers.
 
-Link: https://lkml.kernel.org/r/20240117223729.1444522-1-lokeshgidra@google.com
-Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nicolas Geoffray <ngeoffray@google.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+[1] https://lore.kernel.org/linux-mm/CAJD7tkYx4YWhGoVwnSeGc8dY_1aRRxxg8PzWBV==A6iqG_OgFw@mail.gmail.com/
+
+Link: https://lkml.kernel.org/r/20240117182152.1439822-1-yosryahmed@google.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Acked-by: Nhat Pham <nphamcs@gmail.com>
+Acked-by: Dan Streetman <ddstreet@ieee.org>
+Acked-by: Seth Jennings <sjenning@redhat.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ CREDITS     |   13 +++++++++++++
+ MAINTAINERS |    9 ++-------
+ 2 files changed, 15 insertions(+), 7 deletions(-)
 
---- a/mm/userfaultfd.c~userfaultfd-fix-mmap_changing-checking-in-mfill_atomic_hugetlb
-+++ a/mm/userfaultfd.c
-@@ -357,6 +357,7 @@ static __always_inline ssize_t mfill_ato
- 					      unsigned long dst_start,
- 					      unsigned long src_start,
- 					      unsigned long len,
-+					      atomic_t *mmap_changing,
- 					      uffd_flags_t flags)
- {
- 	struct mm_struct *dst_mm = dst_vma->vm_mm;
-@@ -472,6 +473,15 @@ retry:
- 				goto out;
- 			}
- 			mmap_read_lock(dst_mm);
-+			/*
-+			 * If memory mappings are changing because of non-cooperative
-+			 * operation (e.g. mremap) running in parallel, bail out and
-+			 * request the user to retry later
-+			 */
-+			if (mmap_changing && atomic_read(mmap_changing)) {
-+				err = -EAGAIN;
-+				break;
-+			}
+--- a/CREDITS~maintainers-supplement-of-zswap-maintainers-update
++++ a/CREDITS
+@@ -2148,6 +2148,19 @@ N: Mike Kravetz
+ E: mike.kravetz@oracle.com
+ D: Maintenance and development of the hugetlb subsystem
  
- 			dst_vma = NULL;
- 			goto retry;
-@@ -506,6 +516,7 @@ extern ssize_t mfill_atomic_hugetlb(stru
- 				    unsigned long dst_start,
- 				    unsigned long src_start,
- 				    unsigned long len,
-+				    atomic_t *mmap_changing,
- 				    uffd_flags_t flags);
- #endif /* CONFIG_HUGETLB_PAGE */
++N: Seth Jennings
++E: sjenning@redhat.com
++D: Creation and maintenance of zswap
++
++N: Dan Streetman
++E: ddstreet@ieee.org
++D: Maintenance and development of zswap
++D: Creation and maintenance of the zpool API
++
++N: Vitaly Wool
++E: vitaly.wool@konsulko.com
++D: Maintenance and development of zswap
++
+ N: Andreas S. Krebs
+ E: akrebs@altavista.net
+ D: CYPRESS CY82C693 chipset IDE, Digital's PC-Alpha 164SX boards
+--- a/MAINTAINERS~maintainers-supplement-of-zswap-maintainers-update
++++ a/MAINTAINERS
+@@ -24226,13 +24226,6 @@ T:	git git://git.kernel.org/pub/scm/linu
+ F:	Documentation/filesystems/zonefs.rst
+ F:	fs/zonefs/
  
-@@ -622,8 +633,8 @@ retry:
- 	 * If this is a HUGETLB vma, pass off to appropriate routine
- 	 */
- 	if (is_vm_hugetlb_page(dst_vma))
--		return  mfill_atomic_hugetlb(dst_vma, dst_start,
--					     src_start, len, flags);
-+		return  mfill_atomic_hugetlb(dst_vma, dst_start, src_start,
-+					     len, mmap_changing, flags);
+-ZPOOL COMPRESSED PAGE STORAGE API
+-M:	Dan Streetman <ddstreet@ieee.org>
+-L:	linux-mm@kvack.org
+-S:	Maintained
+-F:	include/linux/zpool.h
+-F:	mm/zpool.c
+-
+ ZR36067 VIDEO FOR LINUX DRIVER
+ M:	Corentin Labbe <clabbe@baylibre.com>
+ L:	mjpeg-users@lists.sourceforge.net
+@@ -24284,7 +24277,9 @@ M:	Nhat Pham <nphamcs@gmail.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	Documentation/admin-guide/mm/zswap.rst
++F:	include/linux/zpool.h
+ F:	include/linux/zswap.h
++F:	mm/zpool.c
+ F:	mm/zswap.c
  
- 	if (!vma_is_anonymous(dst_vma) && !vma_is_shmem(dst_vma))
- 		goto out_unlock;
+ THE REST
 _
 
-Patches currently in -mm which might be from lokeshgidra@google.com are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
-userfaultfd-fix-return-error-if-mmap_changing-is-non-zero-in-move-ioctl.patch
-userfaultfd-fix-mmap_changing-checking-in-mfill_atomic_hugetlb.patch
+maintainers-supplement-of-zswap-maintainers-update.patch
 
