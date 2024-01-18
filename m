@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DC9B1E486
-	for <mm-commits@vger.kernel.org>; Thu, 18 Jan 2024 22:16:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBA37250F7;
+	Thu, 18 Jan 2024 22:16:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705616160; cv=none; b=QUuUGleec/zXmdMnicxB5qT1VW67z15MChKWxyUDyG3PwNJOgk2R4OH7lgEaJB2MYXs5gigge3lNL8MZ+LZrduGiCVYQnjAS1KhFJoR5GJbS/L7X2BgtpwZU3zcFbJsRDycmjV+unW7gFT14L2F87BCEw78PCIvbOf7CsP99+9Q=
+	t=1705616164; cv=none; b=hTSVos3sZoCDiP5hhahpB1lrONCKU7wFcsDBd4lLzEo2uDPWsFZPuxuXTSZQfhUZ8WmhoBYbzKvqyLlbkBwdjg1Gyk+l+aX3vxSp5sr8D6Pzfqir3QEVqfxUQ8RhOKFDAi7jEm5M0ZM30lfYGUX2YYMqOVhcxD3tJQz2dlg4VyM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705616160; c=relaxed/simple;
-	bh=iZx750PaYsnY6oZ91bGLfB2Xzakiec/Lh+9KFu14XtE=;
-	h=Date:To:From:Subject:Message-Id; b=urGQOBFJFH6uNlJ+k8hNPbY+PZyNUrGGtxKS8BLAZMyq/4mIC58Q4xqATPcQrQkLYuX9JkV2/mr2nmVl8vfuKWFcPJLOxRbpdnKHc+Nw08ibxRChu6cmpUXuG/CAjIcS2Wm8SmUBBzNPkqbV6t/vhZuFbRJOlXNVPo2gL+vf6vM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VKBeuJF3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705616164; c=relaxed/simple;
+	bh=fPBSN2h/OREGese30qiHOxnuMYdC/808Xoqu9vd7y/w=;
+	h=Date:To:From:Subject:Message-Id; b=mqCbMmibvgOpiNly2ZDh/LdxK81dgbXeEgklHbbo1IU1ooqUud1fDG5fJch+H04h4M4pPLYQTVsx9HhswVYcEsVJOqJv/dSsnaoloDruwEbroxVK4yzFacEl+9v548q6F4IS9kW1Y4YXsMieUSMlxI7DHIoM+usQw3JGNcA0ESE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wmq/3/jH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VKBeuJF3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07643C433F1;
-	Thu, 18 Jan 2024 22:15:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wmq/3/jH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0601C433F1;
+	Thu, 18 Jan 2024 22:16:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705616160;
-	bh=iZx750PaYsnY6oZ91bGLfB2Xzakiec/Lh+9KFu14XtE=;
+	s=korg; t=1705616163;
+	bh=fPBSN2h/OREGese30qiHOxnuMYdC/808Xoqu9vd7y/w=;
 	h=Date:To:From:Subject:From;
-	b=VKBeuJF3R+POjUYsv9itx/3lsoJC2gI0R03P2+0ciqxEjRSPTbyWcflHj0rs67ulL
-	 aowFowHH2DzVxFu6beSZYQHYRhxBbCpEZmrqb+pIrn8QU6KmosrUlVoKDX7lq7iUqf
-	 dhA6T7gNvgABqsJe67J3hTkhWc/QcdcMt7RN8zZg=
-Date: Thu, 18 Jan 2024 14:15:57 -0800
-To: mm-commits@vger.kernel.org,tj@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,jack@suse.cz,hannes@cmpxchg.org,axboe@kernel.dk,shakeelb@google.com,akpm@linux-foundation.org
+	b=wmq/3/jH2JsubIhEuk+DWIljpnvYa6qKdWoHIVllhh8B1mMbaSk/w22QAz6E8hV0N
+	 NMgUDNWttfhlKgEJTqcm6WFQfxQzjfJ6urbR9poIXlZWSFMxL+N2wZlg5+Fnlqe7lC
+	 FPYHviakag66N09YbKOvojS2Yvoxhhihr1+jtNiM=
+Date: Thu, 18 Jan 2024 14:16:00 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,MPatlasov@parallels.com,zokeefe@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-writeback-ratelimit-stat-flush-from-mem_cgroup_wb_stats.patch added to mm-unstable branch
-Message-Id: <20240118221600.07643C433F1@smtp.kernel.org>
+Subject: + mm-writeback-fix-possible-divide-by-zero-in-wb_dirty_limits-again.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240118221602.F0601C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: writeback: ratelimit stat flush from mem_cgroup_wb_stats
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-writeback-ratelimit-stat-flush-from-mem_cgroup_wb_stats.patch
+     Subject: mm/writeback: fix possible divide-by-zero in wb_dirty_limits(), again
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-writeback-fix-possible-divide-by-zero-in-wb_dirty_limits-again.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-writeback-ratelimit-stat-flush-from-mem_cgroup_wb_stats.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-writeback-fix-possible-divide-by-zero-in-wb_dirty_limits-again.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,48 +58,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeelb@google.com>
-Subject: mm: writeback: ratelimit stat flush from mem_cgroup_wb_stats
-Date: Thu, 18 Jan 2024 18:42:35 +0000
+From: "Zach O'Keefe" <zokeefe@google.com>
+Subject: mm/writeback: fix possible divide-by-zero in wb_dirty_limits(), again
+Date: Thu, 18 Jan 2024 10:19:53 -0800
 
-One of our workloads (Postgres 14) has regressed when migrated from 5.10
-to 6.1 upstream kernel.  The regression can be reproduced by sysbench's
-oltp_write_only benchmark.  It seems like the always on rstat flush in
-mem_cgroup_wb_stats() is causing the regression.  So, rate limit that
-specific rstat flush.  One potential consequence would be the dirty
-throttling might be decided on stale memcg stats.  However from our
-benchmarks and production traffic we have not observed any change in the
-dirty throttling behavior of the application.
+(struct dirty_throttle_control *)->thresh is an unsigned long, but is
+passed as the u32 divisor argument to div_u64().  On architectures where
+unsigned long is 64 bytes, the argument will be implicitly truncated.
 
-Link: https://lkml.kernel.org/r/20240118184235.618164-1-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
+Use div64_u64() instead of div_u64() so that the value used in the "is
+this a safe division" check is the same as the divisor.
+
+Also, remove redundant cast of the numerator to u64, as that should happen
+implicitly.
+
+This would be difficult to exploit in memcg domain, given the ratio-based
+arithmetic domain_drity_limits() uses, but is much easier in global
+writeback domain with a BDI_CAP_STRICTLIMIT-backing device, using e.g. 
+vm.dirty_bytes=(1<<32)*PAGE_SIZE so that dtc->thresh == (1<<32)
+
+Link: https://lkml.kernel.org/r/20240118181954.1415197-1-zokeefe@google.com
+Fixes: f6789593d5ce ("mm/page-writeback.c: fix divide by zero in bdi_dirty_limits()")
+Signed-off-by: Zach O'Keefe <zokeefe@google.com>
+Cc: Maxim Patlasov <MPatlasov@parallels.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
+ mm/page-writeback.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-writeback-ratelimit-stat-flush-from-mem_cgroup_wb_stats
-+++ a/mm/memcontrol.c
-@@ -4795,7 +4795,7 @@ void mem_cgroup_wb_stats(struct bdi_writ
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(wb->memcg_css);
- 	struct mem_cgroup *parent;
+--- a/mm/page-writeback.c~mm-writeback-fix-possible-divide-by-zero-in-wb_dirty_limits-again
++++ a/mm/page-writeback.c
+@@ -1638,7 +1638,7 @@ static inline void wb_dirty_limits(struc
+ 	 */
+ 	dtc->wb_thresh = __wb_calc_thresh(dtc);
+ 	dtc->wb_bg_thresh = dtc->thresh ?
+-		div_u64((u64)dtc->wb_thresh * dtc->bg_thresh, dtc->thresh) : 0;
++		div64_u64(dtc->wb_thresh * dtc->bg_thresh, dtc->thresh) : 0;
  
--	mem_cgroup_flush_stats(memcg);
-+	mem_cgroup_flush_stats_ratelimited(memcg);
- 
- 	*pdirty = memcg_page_state(memcg, NR_FILE_DIRTY);
- 	*pwriteback = memcg_page_state(memcg, NR_WRITEBACK);
+ 	/*
+ 	 * In order to avoid the stacked BDI deadlock we need
 _
 
-Patches currently in -mm which might be from shakeelb@google.com are
+Patches currently in -mm which might be from zokeefe@google.com are
 
-mm-writeback-ratelimit-stat-flush-from-mem_cgroup_wb_stats.patch
+mm-writeback-fix-possible-divide-by-zero-in-wb_dirty_limits-again.patch
 
