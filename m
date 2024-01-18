@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBA37250F7;
-	Thu, 18 Jan 2024 22:16:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E9F831A81
+	for <mm-commits@vger.kernel.org>; Thu, 18 Jan 2024 22:16:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705616164; cv=none; b=hTSVos3sZoCDiP5hhahpB1lrONCKU7wFcsDBd4lLzEo2uDPWsFZPuxuXTSZQfhUZ8WmhoBYbzKvqyLlbkBwdjg1Gyk+l+aX3vxSp5sr8D6Pzfqir3QEVqfxUQ8RhOKFDAi7jEm5M0ZM30lfYGUX2YYMqOVhcxD3tJQz2dlg4VyM=
+	t=1705616166; cv=none; b=G5Y9AKj0ppepyECxuHOGtu2zeLo4i6KeI87AJVXsX9ieKQ1xfYWym6MPiiHoybqLmjoCKMAYfXxb4Dy1aHC8Ox9blc5lWhUiJIAOuzNGhTBjjNjRuVC4hm3u1KrNYOSRFn2Xhd5tbdA25QE6I7+7pUrcDQ/Xuynbd2abIqZ+c00=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705616164; c=relaxed/simple;
-	bh=fPBSN2h/OREGese30qiHOxnuMYdC/808Xoqu9vd7y/w=;
-	h=Date:To:From:Subject:Message-Id; b=mqCbMmibvgOpiNly2ZDh/LdxK81dgbXeEgklHbbo1IU1ooqUud1fDG5fJch+H04h4M4pPLYQTVsx9HhswVYcEsVJOqJv/dSsnaoloDruwEbroxVK4yzFacEl+9v548q6F4IS9kW1Y4YXsMieUSMlxI7DHIoM+usQw3JGNcA0ESE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wmq/3/jH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705616166; c=relaxed/simple;
+	bh=eBSDt7wj2+HKhb+b9vERnPSebipGCEUP2NQfqs+Hz3k=;
+	h=Date:To:From:Subject:Message-Id; b=ke+FMEn768o0GBWoFjXzFW2hJJ9Q4p8xq+j2uYgu9qUhqEs9aHGWAUab/+luNbCp8H+iUD6dFntUa9T4KKut+mUhY6Lbad5oo4SR9pz3WId+na0NAyJGhbKE01bCR3+3W4Mwa5HTTTXGQENSOUUgPejI/NglxSBJDUb4n1xkQms=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dRsRUg8z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wmq/3/jH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0601C433F1;
-	Thu, 18 Jan 2024 22:16:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dRsRUg8z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B78CEC433C7;
+	Thu, 18 Jan 2024 22:16:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705616163;
-	bh=fPBSN2h/OREGese30qiHOxnuMYdC/808Xoqu9vd7y/w=;
+	s=korg; t=1705616166;
+	bh=eBSDt7wj2+HKhb+b9vERnPSebipGCEUP2NQfqs+Hz3k=;
 	h=Date:To:From:Subject:From;
-	b=wmq/3/jH2JsubIhEuk+DWIljpnvYa6qKdWoHIVllhh8B1mMbaSk/w22QAz6E8hV0N
-	 NMgUDNWttfhlKgEJTqcm6WFQfxQzjfJ6urbR9poIXlZWSFMxL+N2wZlg5+Fnlqe7lC
-	 FPYHviakag66N09YbKOvojS2Yvoxhhihr1+jtNiM=
-Date: Thu, 18 Jan 2024 14:16:00 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,MPatlasov@parallels.com,zokeefe@google.com,akpm@linux-foundation.org
+	b=dRsRUg8zYzZVXCfv4hf0OVYZWSJ3DIz5ZhAL5JWmxKJBduBi+rBDlTreHCI9wrIyn
+	 5OyfvKIYV4YJzvLvQ/8xBzsscyCorJitmbrME9iPDg1PNmX+43sDNLuGHec7RSi7Xd
+	 7lUjtPpR1EHSVlf1KfBqL+PyLPV7Kq/MtrcFD3cY=
+Date: Thu, 18 Jan 2024 14:16:03 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,ak@linux.intel.com,elver@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-writeback-fix-possible-divide-by-zero-in-wb_dirty_limits-again.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240118221602.F0601C433F1@smtp.kernel.org>
+Subject: + stackdepot-make-fast-paths-lock-less-again.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240118221605.B78CEC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/writeback: fix possible divide-by-zero in wb_dirty_limits(), again
+     Subject: stackdepot: make fast paths lock-less again
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-writeback-fix-possible-divide-by-zero-in-wb_dirty_limits-again.patch
+     stackdepot-make-fast-paths-lock-less-again.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-writeback-fix-possible-divide-by-zero-in-wb_dirty_limits-again.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/stackdepot-make-fast-paths-lock-less-again.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,50 +58,601 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "Zach O'Keefe" <zokeefe@google.com>
-Subject: mm/writeback: fix possible divide-by-zero in wb_dirty_limits(), again
-Date: Thu, 18 Jan 2024 10:19:53 -0800
+From: Marco Elver <elver@google.com>
+Subject: stackdepot: make fast paths lock-less again
+Date: Thu, 18 Jan 2024 12:01:30 +0100
 
-(struct dirty_throttle_control *)->thresh is an unsigned long, but is
-passed as the u32 divisor argument to div_u64().  On architectures where
-unsigned long is 64 bytes, the argument will be implicitly truncated.
+With the introduction of the pool_rwlock (reader-writer lock), several
+fast paths end up taking the pool_rwlock as readers.  Furthermore,
+stack_depot_put() unconditionally takes the pool_rwlock as a writer.
 
-Use div64_u64() instead of div_u64() so that the value used in the "is
-this a safe division" check is the same as the divisor.
+Despite allowing readers to make forward-progress concurrently,
+reader-writer locks have inherent cache contention issues, which does not
+scale well on systems with large CPU counts.
 
-Also, remove redundant cast of the numerator to u64, as that should happen
-implicitly.
+Rework the synchronization story of stack depot to again avoid taking any
+locks in the fast paths.  This is done by relying on RCU-protected list
+traversal, and the NMI-safe subset of RCU to delay reuse of freed stack
+records.  See code comments for more details.
 
-This would be difficult to exploit in memcg domain, given the ratio-based
-arithmetic domain_drity_limits() uses, but is much easier in global
-writeback domain with a BDI_CAP_STRICTLIMIT-backing device, using e.g. 
-vm.dirty_bytes=(1<<32)*PAGE_SIZE so that dtc->thresh == (1<<32)
+Along with the performance issues, this also fixes incorrect nesting of
+rwlock within a raw_spinlock, given that stack depot should still be
+usable from anywhere:
 
-Link: https://lkml.kernel.org/r/20240118181954.1415197-1-zokeefe@google.com
-Fixes: f6789593d5ce ("mm/page-writeback.c: fix divide by zero in bdi_dirty_limits()")
-Signed-off-by: Zach O'Keefe <zokeefe@google.com>
-Cc: Maxim Patlasov <MPatlasov@parallels.com>
-Cc: <stable@vger.kernel.org>
+ | [ BUG: Invalid wait context ]
+ | -----------------------------
+ | swapper/0/1 is trying to lock:
+ | ffffffff89869be8 (pool_rwlock){..--}-{3:3}, at: stack_depot_save_flags
+ | other info that might help us debug this:
+ | context-{5:5}
+ | 2 locks held by swapper/0/1:
+ |  #0: ffffffff89632440 (rcu_read_lock){....}-{1:3}, at: __queue_work
+ |  #1: ffff888100092018 (&pool->lock){-.-.}-{2:2}, at: __queue_work  <-- raw_spin_lock
+
+Stack depot usage stats are similar to the previous version after a KASAN
+kernel boot:
+
+ $ cat /sys/kernel/debug/stackdepot/stats
+ pools: 838
+ allocations: 29865
+ frees: 6604
+ in_use: 23261
+ freelist_size: 1879
+
+The number of pools is the same as previously.  The freelist size is
+minimally larger, but this may also be due to variance across system
+boots.  This shows that even though we do not eagerly wait for the next
+RCU grace period (such as with synchronize_rcu() or call_rcu()) after
+freeing a stack record - requiring depot_pop_free() to "poll" if an entry
+may be used - new allocations are very likely to happen in later RCU grace
+periods.
+
+Link: https://lkml.kernel.org/r/20240118110216.2539519-2-elver@google.com
+Fixes: 108be8def46e ("lib/stackdepot: allow users to evict stack traces")
+Reported-by: Andi Kleen <ak@linux.intel.com>
+Signed-off-by: Marco Elver <elver@google.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/stackdepot.c |  322 +++++++++++++++++++++++++++++----------------
+ 1 file changed, 211 insertions(+), 111 deletions(-)
 
---- a/mm/page-writeback.c~mm-writeback-fix-possible-divide-by-zero-in-wb_dirty_limits-again
-+++ a/mm/page-writeback.c
-@@ -1638,7 +1638,7 @@ static inline void wb_dirty_limits(struc
- 	 */
- 	dtc->wb_thresh = __wb_calc_thresh(dtc);
- 	dtc->wb_bg_thresh = dtc->thresh ?
--		div_u64((u64)dtc->wb_thresh * dtc->bg_thresh, dtc->thresh) : 0;
-+		div64_u64(dtc->wb_thresh * dtc->bg_thresh, dtc->thresh) : 0;
+--- a/lib/stackdepot.c~stackdepot-make-fast-paths-lock-less-again
++++ a/lib/stackdepot.c
+@@ -22,8 +22,9 @@
+ #include <linux/list.h>
+ #include <linux/mm.h>
+ #include <linux/mutex.h>
+-#include <linux/percpu.h>
+ #include <linux/printk.h>
++#include <linux/rculist.h>
++#include <linux/rcupdate.h>
+ #include <linux/refcount.h>
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
+@@ -68,12 +69,28 @@ union handle_parts {
+ };
+ 
+ struct stack_record {
+-	struct list_head list;		/* Links in hash table or freelist */
++	struct list_head hash_list;	/* Links in the hash table */
+ 	u32 hash;			/* Hash in hash table */
+ 	u32 size;			/* Number of stored frames */
+-	union handle_parts handle;
++	union handle_parts handle;	/* Constant after initialization */
+ 	refcount_t count;
+-	unsigned long entries[CONFIG_STACKDEPOT_MAX_FRAMES];	/* Frames */
++	union {
++		unsigned long entries[CONFIG_STACKDEPOT_MAX_FRAMES];	/* Frames */
++		struct {
++			/*
++			 * An important invariant of the implementation is to
++			 * only place a stack record onto the freelist iff its
++			 * refcount is zero. Because stack records with a zero
++			 * refcount are never considered as valid, it is safe to
++			 * union @entries and freelist management state below.
++			 * Conversely, as soon as an entry is off the freelist
++			 * and its refcount becomes non-zero, the below must not
++			 * be accessed until being placed back on the freelist.
++			 */
++			struct list_head free_list;	/* Links in the freelist */
++			unsigned long rcu_state;	/* RCU cookie */
++		};
++	};
+ };
+ 
+ #define DEPOT_STACK_RECORD_SIZE \
+@@ -113,8 +130,8 @@ static LIST_HEAD(free_stacks);
+  * yet allocated or if the limit on the number of pools is reached.
+  */
+ static bool new_pool_required = true;
+-/* Lock that protects the variables above. */
+-static DEFINE_RWLOCK(pool_rwlock);
++/* The lock must be held when performing pool or freelist modifications. */
++static DEFINE_RAW_SPINLOCK(pool_lock);
+ 
+ /* Statistics counters for debugfs. */
+ enum depot_counter_id {
+@@ -276,14 +293,15 @@ out_unlock:
+ }
+ EXPORT_SYMBOL_GPL(stack_depot_init);
+ 
+-/* Initializes a stack depol pool. */
++/*
++ * Initializes new stack depot @pool, release all its entries to the freelist,
++ * and update the list of pools.
++ */
+ static void depot_init_pool(void *pool)
+ {
+ 	int offset;
+ 
+-	lockdep_assert_held_write(&pool_rwlock);
+-
+-	WARN_ON(!list_empty(&free_stacks));
++	lockdep_assert_held(&pool_lock);
+ 
+ 	/* Initialize handles and link stack records into the freelist. */
+ 	for (offset = 0; offset <= DEPOT_POOL_SIZE - DEPOT_STACK_RECORD_SIZE;
+@@ -294,19 +312,36 @@ static void depot_init_pool(void *pool)
+ 		stack->handle.offset = offset >> DEPOT_STACK_ALIGN;
+ 		stack->handle.extra = 0;
+ 
+-		list_add(&stack->list, &free_stacks);
++		/*
++		 * Stack traces of size 0 are never saved, and we can simply use
++		 * the size field as an indicator if this is a new unused stack
++		 * record in the freelist.
++		 */
++		stack->size = 0;
++
++		INIT_LIST_HEAD(&stack->hash_list);
++		/*
++		 * Add to the freelist front to prioritize never-used entries:
++		 * required in case there are entries in the freelist, but their
++		 * RCU cookie still belongs to the current RCU grace period
++		 * (there can still be concurrent readers).
++		 */
++		list_add(&stack->free_list, &free_stacks);
+ 		counters[DEPOT_COUNTER_FREELIST_SIZE]++;
+ 	}
+ 
+ 	/* Save reference to the pool to be used by depot_fetch_stack(). */
+ 	stack_pools[pools_num] = pool;
+-	pools_num++;
++
++	/* Pairs with concurrent READ_ONCE() in depot_fetch_stack(). */
++	WRITE_ONCE(pools_num, pools_num + 1);
++	ASSERT_EXCLUSIVE_WRITER(pools_num);
+ }
+ 
+ /* Keeps the preallocated memory to be used for a new stack depot pool. */
+ static void depot_keep_new_pool(void **prealloc)
+ {
+-	lockdep_assert_held_write(&pool_rwlock);
++	lockdep_assert_held(&pool_lock);
  
  	/*
- 	 * In order to avoid the stacked BDI deadlock we need
+ 	 * If a new pool is already saved or the maximum number of
+@@ -329,17 +364,16 @@ static void depot_keep_new_pool(void **p
+ 	 * number of pools is reached. In either case, take note that
+ 	 * keeping another pool is not required.
+ 	 */
+-	new_pool_required = false;
++	WRITE_ONCE(new_pool_required, false);
+ }
+ 
+-/* Updates references to the current and the next stack depot pools. */
+-static bool depot_update_pools(void **prealloc)
++/*
++ * Try to initialize a new stack depot pool from either a previous or the
++ * current pre-allocation, and release all its entries to the freelist.
++ */
++static bool depot_try_init_pool(void **prealloc)
+ {
+-	lockdep_assert_held_write(&pool_rwlock);
+-
+-	/* Check if we still have objects in the freelist. */
+-	if (!list_empty(&free_stacks))
+-		goto out_keep_prealloc;
++	lockdep_assert_held(&pool_lock);
+ 
+ 	/* Check if we have a new pool saved and use it. */
+ 	if (new_pool) {
+@@ -348,10 +382,9 @@ static bool depot_update_pools(void **pr
+ 
+ 		/* Take note that we might need a new new_pool. */
+ 		if (pools_num < DEPOT_MAX_POOLS)
+-			new_pool_required = true;
++			WRITE_ONCE(new_pool_required, true);
+ 
+-		/* Try keeping the preallocated memory for new_pool. */
+-		goto out_keep_prealloc;
++		return true;
+ 	}
+ 
+ 	/* Bail out if we reached the pool limit. */
+@@ -368,12 +401,32 @@ static bool depot_update_pools(void **pr
+ 	}
+ 
+ 	return false;
++}
++
++/* Try to find next free usable entry. */
++static struct stack_record *depot_pop_free(void)
++{
++	struct stack_record *stack;
++
++	lockdep_assert_held(&pool_lock);
++
++	if (list_empty(&free_stacks))
++		return NULL;
++
++	/*
++	 * We maintain the invariant that the elements in front are least
++	 * recently used, and are therefore more likely to be associated with an
++	 * RCU grace period in the past. Consequently it is sufficient to only
++	 * check the first entry.
++	 */
++	stack = list_first_entry(&free_stacks, struct stack_record, free_list);
++	if (stack->size && !poll_state_synchronize_rcu(stack->rcu_state))
++		return NULL;
+ 
+-out_keep_prealloc:
+-	/* Keep the preallocated memory for a new pool if required. */
+-	if (*prealloc)
+-		depot_keep_new_pool(prealloc);
+-	return true;
++	list_del(&stack->free_list);
++	counters[DEPOT_COUNTER_FREELIST_SIZE]--;
++
++	return stack;
+ }
+ 
+ /* Allocates a new stack in a stack depot pool. */
+@@ -382,20 +435,22 @@ depot_alloc_stack(unsigned long *entries
+ {
+ 	struct stack_record *stack;
+ 
+-	lockdep_assert_held_write(&pool_rwlock);
++	lockdep_assert_held(&pool_lock);
+ 
+-	/* Update current and new pools if required and possible. */
+-	if (!depot_update_pools(prealloc))
++	/* This should already be checked by public API entry points. */
++	if (WARN_ON_ONCE(!size))
+ 		return NULL;
+ 
+ 	/* Check if we have a stack record to save the stack trace. */
+-	if (list_empty(&free_stacks))
+-		return NULL;
+-
+-	/* Get and unlink the first entry from the freelist. */
+-	stack = list_first_entry(&free_stacks, struct stack_record, list);
+-	list_del(&stack->list);
+-	counters[DEPOT_COUNTER_FREELIST_SIZE]--;
++	stack = depot_pop_free();
++	if (!stack) {
++		/* No usable entries on the freelist - try to refill the freelist. */
++		if (!depot_try_init_pool(prealloc))
++			return NULL;
++		stack = depot_pop_free();
++		if (WARN_ON(!stack))
++			return NULL;
++	}
+ 
+ 	/* Limit number of saved frames to CONFIG_STACKDEPOT_MAX_FRAMES. */
+ 	if (size > CONFIG_STACKDEPOT_MAX_FRAMES)
+@@ -421,37 +476,73 @@ depot_alloc_stack(unsigned long *entries
+ 
+ static struct stack_record *depot_fetch_stack(depot_stack_handle_t handle)
+ {
++	const int pools_num_cached = READ_ONCE(pools_num);
+ 	union handle_parts parts = { .handle = handle };
+ 	void *pool;
+ 	size_t offset = parts.offset << DEPOT_STACK_ALIGN;
+ 	struct stack_record *stack;
+ 
+-	lockdep_assert_held(&pool_rwlock);
++	lockdep_assert_not_held(&pool_lock);
+ 
+-	if (parts.pool_index > pools_num) {
++	if (parts.pool_index > pools_num_cached) {
+ 		WARN(1, "pool index %d out of bounds (%d) for stack id %08x\n",
+-		     parts.pool_index, pools_num, handle);
++		     parts.pool_index, pools_num_cached, handle);
+ 		return NULL;
+ 	}
+ 
+ 	pool = stack_pools[parts.pool_index];
+-	if (!pool)
++	if (WARN_ON(!pool))
+ 		return NULL;
+ 
+ 	stack = pool + offset;
++	if (WARN_ON(!refcount_read(&stack->count)))
++		return NULL;
++
+ 	return stack;
+ }
+ 
+ /* Links stack into the freelist. */
+ static void depot_free_stack(struct stack_record *stack)
+ {
+-	lockdep_assert_held_write(&pool_rwlock);
++	unsigned long flags;
++
++	lockdep_assert_not_held(&pool_lock);
+ 
+-	list_add(&stack->list, &free_stacks);
++	raw_spin_lock_irqsave(&pool_lock, flags);
++	printk_deferred_enter();
++
++	/*
++	 * Remove the entry from the hash list. Concurrent list traversal may
++	 * still observe the entry, but since the refcount is zero, this entry
++	 * will no longer be considered as valid.
++	 */
++	list_del_rcu(&stack->hash_list);
++
++	/*
++	 * Due to being used from constrained contexts such as the allocators,
++	 * NMI, or even RCU itself, stack depot cannot rely on primitives that
++	 * would sleep (such as synchronize_rcu()) or recursively call into
++	 * stack depot again (such as call_rcu()).
++	 *
++	 * Instead, get an RCU cookie, so that we can ensure this entry isn't
++	 * moved onto another list until the next grace period, and concurrent
++	 * RCU list traversal remains safe.
++	 */
++	stack->rcu_state = get_state_synchronize_rcu();
++
++	/*
++	 * Add the entry to the freelist tail, so that older entries are
++	 * considered first - their RCU cookie is more likely to no longer be
++	 * associated with the current grace period.
++	 */
++	list_add_tail(&stack->free_list, &free_stacks);
+ 
+ 	counters[DEPOT_COUNTER_FREELIST_SIZE]++;
+ 	counters[DEPOT_COUNTER_FREES]++;
+ 	counters[DEPOT_COUNTER_INUSE]--;
++
++	printk_deferred_exit();
++	raw_spin_unlock_irqrestore(&pool_lock, flags);
+ }
+ 
+ /* Calculates the hash for a stack. */
+@@ -479,22 +570,52 @@ int stackdepot_memcmp(const unsigned lon
+ 
+ /* Finds a stack in a bucket of the hash table. */
+ static inline struct stack_record *find_stack(struct list_head *bucket,
+-					     unsigned long *entries, int size,
+-					     u32 hash)
++					      unsigned long *entries, int size,
++					      u32 hash, depot_flags_t flags)
+ {
+-	struct list_head *pos;
+-	struct stack_record *found;
++	struct stack_record *stack, *ret = NULL;
++
++	/*
++	 * Stack depot may be used from instrumentation that instruments RCU or
++	 * tracing itself; use variant that does not call into RCU and cannot be
++	 * traced.
++	 *
++	 * Note: Such use cases must take care when using refcounting to evict
++	 * unused entries, because the stack record free-then-reuse code paths
++	 * do call into RCU.
++	 */
++	rcu_read_lock_sched_notrace();
++
++	list_for_each_entry_rcu(stack, bucket, hash_list) {
++		if (stack->hash != hash || stack->size != size)
++			continue;
+ 
+-	lockdep_assert_held(&pool_rwlock);
++		/*
++		 * This may race with depot_free_stack() accessing the freelist
++		 * management state unioned with @entries. The refcount is zero
++		 * in that case and the below refcount_inc_not_zero() will fail.
++		 */
++		if (data_race(stackdepot_memcmp(entries, stack->entries, size)))
++			continue;
+ 
+-	list_for_each(pos, bucket) {
+-		found = list_entry(pos, struct stack_record, list);
+-		if (found->hash == hash &&
+-		    found->size == size &&
+-		    !stackdepot_memcmp(entries, found->entries, size))
+-			return found;
++		/*
++		 * Try to increment refcount. If this succeeds, the stack record
++		 * is valid and has not yet been freed.
++		 *
++		 * If STACK_DEPOT_FLAG_GET is not used, it is undefined behavior
++		 * to then call stack_depot_put() later, and we can assume that
++		 * a stack record is never placed back on the freelist.
++		 */
++		if ((flags & STACK_DEPOT_FLAG_GET) && !refcount_inc_not_zero(&stack->count))
++			continue;
++
++		ret = stack;
++		break;
+ 	}
+-	return NULL;
++
++	rcu_read_unlock_sched_notrace();
++
++	return ret;
+ }
+ 
+ depot_stack_handle_t stack_depot_save_flags(unsigned long *entries,
+@@ -508,7 +629,6 @@ depot_stack_handle_t stack_depot_save_fl
+ 	struct page *page = NULL;
+ 	void *prealloc = NULL;
+ 	bool can_alloc = depot_flags & STACK_DEPOT_FLAG_CAN_ALLOC;
+-	bool need_alloc = false;
+ 	unsigned long flags;
+ 	u32 hash;
+ 
+@@ -531,31 +651,16 @@ depot_stack_handle_t stack_depot_save_fl
+ 	hash = hash_stack(entries, nr_entries);
+ 	bucket = &stack_table[hash & stack_hash_mask];
+ 
+-	read_lock_irqsave(&pool_rwlock, flags);
+-	printk_deferred_enter();
+-
+-	/* Fast path: look the stack trace up without full locking. */
+-	found = find_stack(bucket, entries, nr_entries, hash);
+-	if (found) {
+-		if (depot_flags & STACK_DEPOT_FLAG_GET)
+-			refcount_inc(&found->count);
+-		printk_deferred_exit();
+-		read_unlock_irqrestore(&pool_rwlock, flags);
++	/* Fast path: look the stack trace up without locking. */
++	found = find_stack(bucket, entries, nr_entries, hash, depot_flags);
++	if (found)
+ 		goto exit;
+-	}
+-
+-	/* Take note if another stack pool needs to be allocated. */
+-	if (new_pool_required)
+-		need_alloc = true;
+-
+-	printk_deferred_exit();
+-	read_unlock_irqrestore(&pool_rwlock, flags);
+ 
+ 	/*
+ 	 * Allocate memory for a new pool if required now:
+ 	 * we won't be able to do that under the lock.
+ 	 */
+-	if (unlikely(can_alloc && need_alloc)) {
++	if (unlikely(can_alloc && READ_ONCE(new_pool_required))) {
+ 		/*
+ 		 * Zero out zone modifiers, as we don't have specific zone
+ 		 * requirements. Keep the flags related to allocation in atomic
+@@ -569,31 +674,36 @@ depot_stack_handle_t stack_depot_save_fl
+ 			prealloc = page_address(page);
+ 	}
+ 
+-	write_lock_irqsave(&pool_rwlock, flags);
++	raw_spin_lock_irqsave(&pool_lock, flags);
+ 	printk_deferred_enter();
+ 
+-	found = find_stack(bucket, entries, nr_entries, hash);
++	/* Try to find again, to avoid concurrently inserting duplicates. */
++	found = find_stack(bucket, entries, nr_entries, hash, depot_flags);
+ 	if (!found) {
+ 		struct stack_record *new =
+ 			depot_alloc_stack(entries, nr_entries, hash, &prealloc);
+ 
+ 		if (new) {
+-			list_add(&new->list, bucket);
++			/*
++			 * This releases the stack record into the bucket and
++			 * makes it visible to readers in find_stack().
++			 */
++			list_add_rcu(&new->hash_list, bucket);
+ 			found = new;
+ 		}
+-	} else {
+-		if (depot_flags & STACK_DEPOT_FLAG_GET)
+-			refcount_inc(&found->count);
++	}
++
++	if (prealloc) {
+ 		/*
+-		 * Stack depot already contains this stack trace, but let's
+-		 * keep the preallocated memory for future.
++		 * Either stack depot already contains this stack trace, or
++		 * depot_alloc_stack() did not consume the preallocated memory.
++		 * Try to keep the preallocated memory for future.
+ 		 */
+-		if (prealloc)
+-			depot_keep_new_pool(&prealloc);
++		depot_keep_new_pool(&prealloc);
+ 	}
+ 
+ 	printk_deferred_exit();
+-	write_unlock_irqrestore(&pool_rwlock, flags);
++	raw_spin_unlock_irqrestore(&pool_lock, flags);
+ exit:
+ 	if (prealloc) {
+ 		/* Stack depot didn't use this memory, free it. */
+@@ -618,7 +728,6 @@ unsigned int stack_depot_fetch(depot_sta
+ 			       unsigned long **entries)
+ {
+ 	struct stack_record *stack;
+-	unsigned long flags;
+ 
+ 	*entries = NULL;
+ 	/*
+@@ -630,13 +739,13 @@ unsigned int stack_depot_fetch(depot_sta
+ 	if (!handle || stack_depot_disabled)
+ 		return 0;
+ 
+-	read_lock_irqsave(&pool_rwlock, flags);
+-	printk_deferred_enter();
+-
+ 	stack = depot_fetch_stack(handle);
+-
+-	printk_deferred_exit();
+-	read_unlock_irqrestore(&pool_rwlock, flags);
++	/*
++	 * Should never be NULL, otherwise this is a use-after-put (or just a
++	 * corrupt handle).
++	 */
++	if (WARN(!stack, "corrupt handle or use after stack_depot_put()"))
++		return 0;
+ 
+ 	*entries = stack->entries;
+ 	return stack->size;
+@@ -646,29 +755,20 @@ EXPORT_SYMBOL_GPL(stack_depot_fetch);
+ void stack_depot_put(depot_stack_handle_t handle)
+ {
+ 	struct stack_record *stack;
+-	unsigned long flags;
+ 
+ 	if (!handle || stack_depot_disabled)
+ 		return;
+ 
+-	write_lock_irqsave(&pool_rwlock, flags);
+-	printk_deferred_enter();
+-
+ 	stack = depot_fetch_stack(handle);
+-	if (WARN_ON(!stack))
+-		goto out;
+-
+-	if (refcount_dec_and_test(&stack->count)) {
+-		/* Unlink stack from the hash table. */
+-		list_del(&stack->list);
++	/*
++	 * Should always be able to find the stack record, otherwise this is an
++	 * unbalanced put attempt (or corrupt handle).
++	 */
++	if (WARN(!stack, "corrupt handle or unbalanced stack_depot_put()"))
++		return;
+ 
+-		/* Free stack. */
++	if (refcount_dec_and_test(&stack->count))
+ 		depot_free_stack(stack);
+-	}
+-
+-out:
+-	printk_deferred_exit();
+-	write_unlock_irqrestore(&pool_rwlock, flags);
+ }
+ EXPORT_SYMBOL_GPL(stack_depot_put);
+ 
 _
 
-Patches currently in -mm which might be from zokeefe@google.com are
+Patches currently in -mm which might be from elver@google.com are
 
-mm-writeback-fix-possible-divide-by-zero-in-wb_dirty_limits-again.patch
+stackdepot-add-stats-counters-exported-via-debugfs.patch
+stackdepot-make-fast-paths-lock-less-again.patch
 
