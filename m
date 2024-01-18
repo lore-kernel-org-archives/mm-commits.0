@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 623631E486
-	for <mm-commits@vger.kernel.org>; Thu, 18 Jan 2024 22:16:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8B921E486
+	for <mm-commits@vger.kernel.org>; Thu, 18 Jan 2024 22:16:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705616172; cv=none; b=E1l0EjxwsbcHkZ5FrbkhSio1AYsSZU94WpF+nSs5UcWWlveMqn1zMseJWKBnjmIqEtLFOWmk980DrlPteXBSdbfGnJeEzIrw5TNmBRcUS2I+dJUDBjsBfPfDEXrYgsbHaUxDD8nBuCYWFPVKPGLLjFkYTmH7EZq23VNL1eZiwwI=
+	t=1705616174; cv=none; b=agqriAsYj5Jui1LBWCUkEmhveXXJCu4XYWcrFbZMrJWQBegwmwZVjt08DvKzANNPxaPAXqbLpSkrXRP0e6Cfkc0OSZc/mNn+SLuc1aRY22FscKfv82Jt/jEN3ys31bHGZ6gPJOU/Dct9jPZdANSoBQBhokk0CSMTdzqJ8Qgp6uo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705616172; c=relaxed/simple;
-	bh=QfgZK4oAZp7juTvcHwMA1Io1YBuyAYqvjcEokPm9QLM=;
-	h=Date:To:From:Subject:Message-Id; b=GBMaGvknYa+5S5NVdD8vqER5dgs/GqJeNSxamaLDTlpNueiAnLzYqVXxO+T23D/yBa53GoUPh2IWQ3FnPMm2q+H2ZN80oDpKb/f8mR30ZFzQ5Dv4fFTQjHnfnPT8VnjFqzgROBE+9xubSgbwJE1aYa6QjXuiJhB0ka16ZuZoRi0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0jwb/aok; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705616174; c=relaxed/simple;
+	bh=gFO0gIpsuGCDgMaBd7xInN/oF4csmlv8NglYTe2bCgE=;
+	h=Date:To:From:Subject:Message-Id; b=F+ET4TlkkblsGYxY+LFXm3Sxcc4iQ1BsX9WSRjbWk7DBPG+A6OFmnK7C0gKk+UjXx/GVCe9udsDqqlqQMHC6QQAqp0tkG2hBTm5nfwWocRdb3w9a/hhFS+XvtvYfJi4l5XyK+0p4P1IHuVBMAGcp5i/VoyVsu3PU8zcUJAznVLc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jwa2XnVJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0jwb/aok"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70039C433C7;
-	Thu, 18 Jan 2024 22:16:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jwa2XnVJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AD19C433C7;
+	Thu, 18 Jan 2024 22:16:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705616171;
-	bh=QfgZK4oAZp7juTvcHwMA1Io1YBuyAYqvjcEokPm9QLM=;
+	s=korg; t=1705616174;
+	bh=gFO0gIpsuGCDgMaBd7xInN/oF4csmlv8NglYTe2bCgE=;
 	h=Date:To:From:Subject:From;
-	b=0jwb/aokRn5weivu5R9CGyTz7GnKo5FgK3ZiyaukKPN+ZqjLSh/ruNi7l0h2wG20T
-	 tOfKIpHP6SLgDMGVdrL9BMidPY1uFJqH3n+93uXlO7YrP0s/Xz2+izWY3jtJQg2mF/
-	 dCkWMv7OSUzWjehV7H7fC0ChwvJpNNaV4qhHfb0I=
-Date: Thu, 18 Jan 2024 14:16:09 -0800
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,quic_charante@quicinc.com,mingo@redhat.com,hpa@zytor.com,glider@google.com,dvyukov@google.com,dave.hansen@linux.intel.com,bp@alien8.de,elver@google.com,akpm@linux-foundation.org
+	b=jwa2XnVJn2rraXc/oO+Qoy6DxQ2iD5fNdM5FwNeHDE1JMj5eRHkLUYMZUJw46dA2l
+	 DEfCqdrKZtRkv36SfjXeLrVXZdbS2JYAB/IhOk6GPBtFrDwsM+/xGRRUdRXN+j+KVf
+	 3IqD5b2yMdl1mz9mAenbZ9hIDxPnm8+3nosp3U1s=
+Date: Thu, 18 Jan 2024 14:16:12 -0800
+To: mm-commits@vger.kernel.org,shuah@kernel.org,keescook@chromium.org,jeffxu@google.com,dverkamp@chromium.org,cyphar@cyphar.com,gthelen@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmsan-fix-infinite-recursion-due-to-rcu-critical-section.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240118221611.70039C433C7@smtp.kernel.org>
+Subject: + selftests-memfd-delete-unused-declarations.patch added to mm-unstable branch
+Message-Id: <20240118221614.2AD19C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, kmsan: fix infinite recursion due to RCU critical section
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-kmsan-fix-infinite-recursion-due-to-rcu-critical-section.patch
+     Subject: selftests/memfd: delete unused declarations
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-memfd-delete-unused-declarations.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmsan-fix-infinite-recursion-due-to-rcu-critical-section.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-memfd-delete-unused-declarations.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,129 +58,99 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: mm, kmsan: fix infinite recursion due to RCU critical section
-Date: Thu, 18 Jan 2024 11:59:14 +0100
+From: Greg Thelen <gthelen@google.com>
+Subject: selftests/memfd: delete unused declarations
+Date: Thu, 18 Jan 2024 01:50:57 -0800
 
-Alexander Potapenko writes in [1]: "For every memory access in the code
-instrumented by KMSAN we call kmsan_get_metadata() to obtain the metadata
-for the memory being accessed.  For virtual memory the metadata pointers
-are stored in the corresponding `struct page`, therefore we need to call
-virt_to_page() to get them.
+Commit 32d118ad50a5 ("selftests/memfd: add tests for F_SEAL_EXEC"):
+- added several unused 'nbytes' local variables
 
-According to the comment in arch/x86/include/asm/page.h,
-virt_to_page(kaddr) returns a valid pointer iff virt_addr_valid(kaddr) is
-true, so KMSAN needs to call virt_addr_valid() as well.
+Commit 6469b66e3f5a ("selftests: improve vm.memfd_noexec sysctl tests"):
+- orphaned 'newpid_thread_fn2()' forward declaration
+- orphaned 'join_newpid_thread()' forward declaration
+- added unused 'pid' local in sysctl_simple_child()
+- orphaned 'fd' local in sysctl_simple_child()
+- added unused 'fd' in sysctl_nested_child()
 
-To avoid recursion, kmsan_get_metadata() must not call instrumented code,
-therefore ./arch/x86/include/asm/kmsan.h forks parts of
-arch/x86/mm/physaddr.c to check whether a virtual address is valid or not.
+Delete the unused locals and forward declarations.
 
-But the introduction of rcu_read_lock() to pfn_valid() added instrumented
-RCU API calls to virt_to_page_or_null(), which is called by
-kmsan_get_metadata(), so there is an infinite recursion now.  I do not
-think it is correct to stop that recursion by doing
-kmsan_enter_runtime()/kmsan_exit_runtime() in kmsan_get_metadata(): that
-would prevent instrumented functions called from within the runtime from
-tracking the shadow values, which might introduce false positives."
-
-Fix the issue by switching pfn_valid() to the _sched() variant of
-rcu_read_lock/unlock(), which does not require calling into RCU.  Given
-the critical section in pfn_valid() is very small, this is a reasonable
-trade-off (with preemptible RCU).
-
-KMSAN further needs to be careful to suppress calls into the scheduler,
-which would be another source of recursion.  This can be done by wrapping
-the call to pfn_valid() into preempt_disable/enable_no_resched().  The
-downside is that this sacrifices breaking scheduling guarantees; however,
-a kernel compiled with KMSAN has already given up any performance
-guarantees due to being heavily instrumented.
-
-Note, KMSAN code already disables tracing via Makefile, and since mmzone.h
-is included, it is not necessary to use the notrace variant, which is
-generally preferred in all other cases.
-
-Link: https://lkml.kernel.org/r/20240115184430.2710652-1-glider@google.com [1]
-Link: https://lkml.kernel.org/r/20240118110022.2538350-1-elver@google.com
-Fixes: 5ec8e8ea8b77 ("mm/sparsemem: fix race in accessing memory_section->usage")
-Signed-off-by: Marco Elver <elver@google.com>
-Reported-by: Alexander Potapenko <glider@google.com>
-Reported-by: syzbot+93a9e8a3dea8d6085e12@syzkaller.appspotmail.com
-Cc: Charan Teja Kalla <quic_charante@quicinc.com>
-Cc: Borislav Petkov (AMD) <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: https://lkml.kernel.org/r/20240118095057.677544-1-gthelen@google.com
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Cc: Aleksa Sarai <cyphar@cyphar.com>
+Cc: Daniel Verkamp <dverkamp@chromium.org>
+Cc: Jeff Xu <jeffxu@google.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/kmsan.h |   17 ++++++++++++++++-
- include/linux/mmzone.h       |    6 +++---
- 2 files changed, 19 insertions(+), 4 deletions(-)
+ tools/testing/selftests/memfd/memfd_test.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
---- a/arch/x86/include/asm/kmsan.h~mm-kmsan-fix-infinite-recursion-due-to-rcu-critical-section
-+++ a/arch/x86/include/asm/kmsan.h
-@@ -64,6 +64,7 @@ static inline bool kmsan_virt_addr_valid
+--- a/tools/testing/selftests/memfd/memfd_test.c~selftests-memfd-delete-unused-declarations
++++ a/tools/testing/selftests/memfd/memfd_test.c
+@@ -44,8 +44,6 @@
+  */
+ static size_t mfd_def_size = MFD_DEF_SIZE;
+ static const char *memfd_str = MEMFD_STR;
+-static int newpid_thread_fn2(void *arg);
+-static void join_newpid_thread(pid_t pid);
+ 
+ static ssize_t fd2name(int fd, char *buf, size_t bufsize)
  {
- 	unsigned long x = (unsigned long)addr;
- 	unsigned long y = x - __START_KERNEL_map;
-+	bool ret;
+@@ -194,7 +192,6 @@ static unsigned int mfd_assert_get_seals
+ static void mfd_assert_has_seals(int fd, unsigned int seals)
+ {
+ 	char buf[PATH_MAX];
+-	int nbytes;
+ 	unsigned int s;
+ 	fd2name(fd, buf, PATH_MAX);
  
- 	/* use the carry flag to determine if x was < __START_KERNEL_map */
- 	if (unlikely(x > y)) {
-@@ -79,7 +80,21 @@ static inline bool kmsan_virt_addr_valid
- 			return false;
- 	}
+@@ -696,7 +693,6 @@ static void mfd_assert_mode(int fd, int
+ {
+ 	struct stat st;
+ 	char buf[PATH_MAX];
+-	int nbytes;
  
--	return pfn_valid(x >> PAGE_SHIFT);
-+	/*
-+	 * pfn_valid() relies on RCU, and may call into the scheduler on exiting
-+	 * the critical section. However, this would result in recursion with
-+	 * KMSAN. Therefore, disable preemption here, and re-enable preemption
-+	 * below while suppressing reschedules to avoid recursion.
-+	 *
-+	 * Note, this sacrifices occasionally breaking scheduling guarantees.
-+	 * Although, a kernel compiled with KMSAN has already given up on any
-+	 * performance guarantees due to being heavily instrumented.
-+	 */
-+	preempt_disable();
-+	ret = pfn_valid(x >> PAGE_SHIFT);
-+	preempt_enable_no_resched();
-+
-+	return ret;
- }
+ 	fd2name(fd, buf, PATH_MAX);
  
- #endif /* !MODULE */
---- a/include/linux/mmzone.h~mm-kmsan-fix-infinite-recursion-due-to-rcu-critical-section
-+++ a/include/linux/mmzone.h
-@@ -2013,9 +2013,9 @@ static inline int pfn_valid(unsigned lon
- 	if (pfn_to_section_nr(pfn) >= NR_MEM_SECTIONS)
- 		return 0;
- 	ms = __pfn_to_section(pfn);
--	rcu_read_lock();
-+	rcu_read_lock_sched();
- 	if (!valid_section(ms)) {
--		rcu_read_unlock();
-+		rcu_read_unlock_sched();
- 		return 0;
- 	}
- 	/*
-@@ -2023,7 +2023,7 @@ static inline int pfn_valid(unsigned lon
- 	 * the entire section-sized span.
- 	 */
- 	ret = early_section(ms) || pfn_section_valid(ms, pfn);
--	rcu_read_unlock();
-+	rcu_read_unlock_sched();
+@@ -715,7 +711,6 @@ static void mfd_assert_mode(int fd, int
+ static void mfd_assert_chmod(int fd, int mode)
+ {
+ 	char buf[PATH_MAX];
+-	int nbytes;
  
- 	return ret;
- }
+ 	fd2name(fd, buf, PATH_MAX);
+ 
+@@ -731,7 +726,6 @@ static void mfd_fail_chmod(int fd, int m
+ {
+ 	struct stat st;
+ 	char buf[PATH_MAX];
+-	int nbytes;
+ 
+ 	fd2name(fd, buf, PATH_MAX);
+ 
+@@ -1254,9 +1248,6 @@ static void test_sysctl_set_sysctl2(void
+ 
+ static int sysctl_simple_child(void *arg)
+ {
+-	int fd;
+-	int pid;
+-
+ 	printf("%s sysctl 0\n", memfd_str);
+ 	test_sysctl_set_sysctl0();
+ 
+@@ -1321,7 +1312,6 @@ static void test_sysctl_sysctl2_failset(
+ 
+ static int sysctl_nested_child(void *arg)
+ {
+-	int fd;
+ 	int pid;
+ 
+ 	printf("%s nested sysctl 0\n", memfd_str);
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from gthelen@google.com are
 
-mm-kmsan-fix-infinite-recursion-due-to-rcu-critical-section.patch
-stackdepot-add-stats-counters-exported-via-debugfs.patch
-stackdepot-make-fast-paths-lock-less-again.patch
+selftests-memfd-delete-unused-declarations.patch
 
