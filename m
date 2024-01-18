@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 480481E486
-	for <mm-commits@vger.kernel.org>; Thu, 18 Jan 2024 22:16:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1FEA431A73
+	for <mm-commits@vger.kernel.org>; Thu, 18 Jan 2024 22:16:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705616183; cv=none; b=ZPRZMQK5P4pkvOPUYD2yKc73uOAGIFBNPxGAw8nU89vWQ2fpUCb5z7cKsy1VQsx55FW8o5e3Rel13gmrgVrjuE8lSVUY1/rbPNCP0Pldpr+iIA3rwm8K4TwsMuAdsbu6Cb0/Yw4Dut7zDI+xNGuQ+q9jrC9QLGZuQ+t7i+O2/S0=
+	t=1705616186; cv=none; b=FdYCpzsuTAzybOPBXFkhPFFk7iLkt1U9fREhhPVLRUQzBxBNnRv3rcHRFKox2dcLvrv6sDaCgrNlRqOy9sc5zPpjdpQzc35Sp1G8hAlRFdmPWfvF/Pn0zPx/zNW3FnOQinc6xosZTML0qoPMh96bFowuQprQVCdQ8lpEfJQQ0Vo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705616183; c=relaxed/simple;
-	bh=89rCDzKbZi8pl0I1qe1zIRBWdxC8Yx5qEm5uyp9GOpg=;
-	h=Date:To:From:Subject:Message-Id; b=naMikHKw+CohJvWWpKg6XSwUqlav+/9VyJQCNM3uhkRdXPIC0YU9fhvoDN0DCBH+41UH2IVu2OXT0A/TQxnJ1IyTe+3WCKOLWrKmBwmCFdAQjnD8i9e8nSMwlr9cEDRSutDe6LbaHv4xwnP1PzwblPGC12Ys0nE/HkI+J2RoTlA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HpUKswxR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705616186; c=relaxed/simple;
+	bh=uCQHvTENU0YGjJE5naAp/C3DhzTwz5JlUT7Y6s88g+g=;
+	h=Date:To:From:Subject:Message-Id; b=VUu7C4om0/2tJT5Anq3S6AoSDRlqboBk6P23FXCqcYHfMLUOp+m67+uzXOEBiRSk2Nndu+wJvGZS6Kg/GS+aQHenrPa2CPy1MX/9IQaNtn3wqLCXMc3uOgXQKfvwudFgowSVmmArTZ+eugxFkJsQU5a9m1g+psNGtIsgRs4yNn4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z7GIuaIu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HpUKswxR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63E8BC433F1;
-	Thu, 18 Jan 2024 22:16:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z7GIuaIu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 521B3C433F1;
+	Thu, 18 Jan 2024 22:16:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705616182;
-	bh=89rCDzKbZi8pl0I1qe1zIRBWdxC8Yx5qEm5uyp9GOpg=;
+	s=korg; t=1705616185;
+	bh=uCQHvTENU0YGjJE5naAp/C3DhzTwz5JlUT7Y6s88g+g=;
 	h=Date:To:From:Subject:From;
-	b=HpUKswxREv9Zc1OIEPHUuK8axxUecX0K2rvPLUegOzmlVzQt2aXTj2UbtJMjtdG+W
-	 J+bx1U+BWo5ua2R52pPB9eDnpN5DPFFrCnq2VU/WQSaz5o0PPFLh1Dn0YQpwc3GYm0
-	 NnJiX+9XhgnvCC0qTwSek7JqXLE+jYqac0pCtolc=
-Date: Thu, 18 Jan 2024 14:16:20 -0800
-To: mm-commits@vger.kernel.org,vitaly.wool@konsulko.com,sjenning@redhat.com,nphamcs@gmail.com,hannes@cmpxchg.org,ddstreet@ieee.org,yosryahmed@google.com,akpm@linux-foundation.org
+	b=Z7GIuaIu1MaCJqQnPR4rxnXQ774/8Rn2ab1XwgUGJw0PvL4Exuy5NrS7+iXIOXuQG
+	 wVJG3mYlw868FEH2FTsM7WsNVfME4cYFsfu60fxiT53CHgcqNf/cnv8a7LCAl78tkY
+	 khI+PRe0dETpn6MQt6c7DT+4z/RXRq6DsX0Aei+0=
+Date: Thu, 18 Jan 2024 14:16:23 -0800
+To: mm-commits@vger.kernel.org,shuah@kernel.org,npache@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-supplement-of-zswap-maintainers-update.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240118221622.63E8BC433F1@smtp.kernel.org>
+Subject: + selftests-mm-perform-some-system-cleanup-before-using-hugepages.patch added to mm-unstable branch
+Message-Id: <20240118221625.521B3C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: supplement of zswap maintainers update
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-supplement-of-zswap-maintainers-update.patch
+     Subject: selftests: mm: perform some system cleanup before using hugepages
+has been added to the -mm mm-unstable branch.  Its filename is
+     selftests-mm-perform-some-system-cleanup-before-using-hugepages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-supplement-of-zswap-maintainers-update.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-perform-some-system-cleanup-before-using-hugepages.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,81 +58,48 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: MAINTAINERS: supplement of zswap maintainers update
-Date: Wed, 17 Jan 2024 18:21:52 +0000
+From: Nico Pache <npache@redhat.com>
+Subject: selftests: mm: perform some system cleanup before using hugepages
+Date: Wed, 17 Jan 2024 11:00:37 -0700
 
-As discussed on the mailing list [1], merge the zpool maintainers entry
-into the zswap one.  Also, add CREDITS entries for previous zswap/zpool
-maintainers.
+When running with CATEGORY= (thp | hugetlb) we see a large numbers of
+tests failing.  These failures are due to not being able to allocate a
+hugepage and normally occur on memory contrainted systems or when using
+large page sizes.
 
-[1] https://lore.kernel.org/linux-mm/CAJD7tkYx4YWhGoVwnSeGc8dY_1aRRxxg8PzWBV==A6iqG_OgFw@mail.gmail.com/
+drop_cache and compact_memory before the tests for a higher chance at a
+successful hugepage allocation.
 
-Link: https://lkml.kernel.org/r/20240117182152.1439822-1-yosryahmed@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Acked-by: Nhat Pham <nphamcs@gmail.com>
-Acked-by: Dan Streetman <ddstreet@ieee.org>
-Acked-by: Seth Jennings <sjenning@redhat.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Link: https://lkml.kernel.org/r/20240117180037.15734-1-npache@redhat.com
+Signed-off-by: Nico Pache <npache@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- CREDITS     |   13 +++++++++++++
- MAINTAINERS |    9 ++-------
- 2 files changed, 15 insertions(+), 7 deletions(-)
+ tools/testing/selftests/mm/run_vmtests.sh |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/CREDITS~maintainers-supplement-of-zswap-maintainers-update
-+++ a/CREDITS
-@@ -2148,6 +2148,19 @@ N: Mike Kravetz
- E: mike.kravetz@oracle.com
- D: Maintenance and development of the hugetlb subsystem
- 
-+N: Seth Jennings
-+E: sjenning@redhat.com
-+D: Creation and maintenance of zswap
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-perform-some-system-cleanup-before-using-hugepages
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -206,6 +206,15 @@ pretty_name() {
+ # Usage: run_test [test binary] [arbitrary test arguments...]
+ run_test() {
+ 	if test_selected ${CATEGORY}; then
++		# On memory constrainted systems some tests can fail to allocate hugepages.
++		# perform some cleanup before the test for a higher success rate.
++		if [ ${CATEGORY} == "thp" ] | [ ${CATEGORY} == "hugetlb" ]; then
++			echo 3 > /proc/sys/vm/drop_caches
++			sleep 2
++			echo 1 > /proc/sys/vm/compact_memory
++			sleep 2
++		fi
 +
-+N: Dan Streetman
-+E: ddstreet@ieee.org
-+D: Maintenance and development of zswap
-+D: Creation and maintenance of the zpool API
-+
-+N: Vitaly Wool
-+E: vitaly.wool@konsulko.com
-+D: Maintenance and development of zswap
-+
- N: Andreas S. Krebs
- E: akrebs@altavista.net
- D: CYPRESS CY82C693 chipset IDE, Digital's PC-Alpha 164SX boards
---- a/MAINTAINERS~maintainers-supplement-of-zswap-maintainers-update
-+++ a/MAINTAINERS
-@@ -24226,13 +24226,6 @@ T:	git git://git.kernel.org/pub/scm/linu
- F:	Documentation/filesystems/zonefs.rst
- F:	fs/zonefs/
- 
--ZPOOL COMPRESSED PAGE STORAGE API
--M:	Dan Streetman <ddstreet@ieee.org>
--L:	linux-mm@kvack.org
--S:	Maintained
--F:	include/linux/zpool.h
--F:	mm/zpool.c
--
- ZR36067 VIDEO FOR LINUX DRIVER
- M:	Corentin Labbe <clabbe@baylibre.com>
- L:	mjpeg-users@lists.sourceforge.net
-@@ -24284,7 +24277,9 @@ M:	Nhat Pham <nphamcs@gmail.com>
- L:	linux-mm@kvack.org
- S:	Maintained
- F:	Documentation/admin-guide/mm/zswap.rst
-+F:	include/linux/zpool.h
- F:	include/linux/zswap.h
-+F:	mm/zpool.c
- F:	mm/zswap.c
- 
- THE REST
+ 		local test=$(pretty_name "$*")
+ 		local title="running $*"
+ 		local sep=$(echo -n "$title" | tr "[:graph:][:space:]" -)
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from npache@redhat.com are
 
-maintainers-supplement-of-zswap-maintainers-update.patch
+selftests-mm-perform-some-system-cleanup-before-using-hugepages.patch
 
