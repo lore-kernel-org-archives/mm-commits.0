@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0B7031A78;
-	Sun, 21 Jan 2024 22:13:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19A4431A78
+	for <mm-commits@vger.kernel.org>; Sun, 21 Jan 2024 22:13:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705875235; cv=none; b=odfDJ786e9slMRyF7wuFebCdomLIhgPVNGnY7IeKdXoId8LgD0Ldtz9JZq/fnlSL/1UUUUROn8lojc4kX0b4LYnAQeraVDLrb7gQQEeI5SjL71h4O4wu+H4H0eKONUtytVpadotorL7F58i6ytNybrnR0b6btbWTrEOyosVE+cQ=
+	t=1705875238; cv=none; b=DFHMTyzBGiLC+RXfkpTNGm1wJKZX0c2as2220XEi8HcqOUsgwsTuVxOC38zfdCeMyCp4MT7YOnkUJp5RNXr2eXUbr6v60L1Ke6RdLNjS17umqrtNAf0X4pPUIdzLnBkiie+StMWPIOS8qJX5H4YnAW/51DH7SU1IWzIgCi4zhq4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705875235; c=relaxed/simple;
-	bh=KSqALTixM5vYaqW5ZAi1Xh0NLYQMP+PJoTN5lg+7UQA=;
-	h=Date:To:From:Subject:Message-Id; b=PEWodEZeZKi6Ub61jBBHiC7iworp/gL+kIqQuKPvDVa/9Dj1ArmI2qDUE3xrm9klE7fckz+5E4bjSf/2sSfxW0kzJWOmwxC9BjBT4tLkdWh1ppi64IYNB9UHmM5t7Zcn3ns3imApx1CvNPTDSpjowXa74aagU3tYBHbWCT0NePs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LM4qngJR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705875238; c=relaxed/simple;
+	bh=MnM/uSPNHUtvnjgVu0dYC6dySDmr6Xc4UR9KWse0UJ4=;
+	h=Date:To:From:Subject:Message-Id; b=hMPguYv0r4uDk0i44+U9twTQg+mQHBN5D/PreuMYICbwQqxp606f+8rYPsD8I2RSEe0way4HVPpv4Xi/pAagxXn3qy9p7yzeAsBY2F5GlsBCTTUObSM7UiSQUX3XHs2fQ7qpPBLGh9ykzBRhWj3gGPlhv+P9KvHOQKf/EAJbezM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s3bD+aBd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LM4qngJR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E8E8C433F1;
-	Sun, 21 Jan 2024 22:13:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s3bD+aBd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36253C433F1;
+	Sun, 21 Jan 2024 22:13:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705875234;
-	bh=KSqALTixM5vYaqW5ZAi1Xh0NLYQMP+PJoTN5lg+7UQA=;
+	s=korg; t=1705875237;
+	bh=MnM/uSPNHUtvnjgVu0dYC6dySDmr6Xc4UR9KWse0UJ4=;
 	h=Date:To:From:Subject:From;
-	b=LM4qngJRCy71/Sj/IXxdCMei2usiK3XWLLAVYq0P90c11KuKfLxvm7rUv6AzG4wgR
-	 xt79gvH/YJA4ehHDqBzLZ8AFVGWoQdZc96UXM4FoSgYYDuuzc6moZcMWr3SragB9T9
-	 Zkf39TTwY0SgcFR3ktGLULrcbSO3x3OlX+4VMopI=
-Date: Sun, 21 Jan 2024 14:13:50 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,raquini@redhat.com,adam@wowsignal.io,audra@redhat.com,akpm@linux-foundation.org
+	b=s3bD+aBdJ1sYzHpJO6CidbKk3di38Bv3tfUOS+E6vCjpYzu+gDkNFQ6CJbgWQBXAX
+	 XlCCsNDILjgot6tx6KzxHgAGopBcAbO+T3ZYIreimJozCX+jGA57xGYKLe3oM4rRSE
+	 ilbrd6tqF7IENV60IdKjF+To6LB520j4JbXH9id0=
+Date: Sun, 21 Jan 2024 14:13:54 -0800
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,sthanneeru.opensrc@micron.com,ravis.opensrc@micron.com,mhocko@suse.com,Jonathan.Cameron@huawei.com,hyeongtak.ji@sk.com,honggyu.kim@sk.com,Hasan.Maruf@amd.com,hannes@cmpxchg.org,gregory.price@memverge.com,gourry.memverge@gmail.com,fvdl@google.com,dan.j.williams@intel.com,corbet@lwn.net,ak@linux.intel.com,rakie.kim@sk.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-update-va_high_addr_switchsh-to-check-cpu-for-la57-flag.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240121221354.1E8E8C433F1@smtp.kernel.org>
+Subject: + mm-mempolicy-implement-the-sysfs-based-weighted_interleave-interface.patch added to mm-unstable branch
+Message-Id: <20240121221357.36253C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: Update va_high_addr_switch.sh to check CPU for la57 flag
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-mm-update-va_high_addr_switchsh-to-check-cpu-for-la57-flag.patch
+     Subject: mm/mempolicy: implement the sysfs-based weighted_interleave interface
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-mempolicy-implement-the-sysfs-based-weighted_interleave-interface.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-update-va_high_addr_switchsh-to-check-cpu-for-la57-flag.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-implement-the-sysfs-based-weighted_interleave-interface.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,49 +58,450 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Audra Mitchell <audra@redhat.com>
-Subject: selftests/mm: Update va_high_addr_switch.sh to check CPU for la57 flag
-Date: Fri, 19 Jan 2024 15:58:01 -0500
+From: Rakie Kim <rakie.kim@sk.com>
+Subject: mm/mempolicy: implement the sysfs-based weighted_interleave interface
+Date: Fri, 19 Jan 2024 12:57:28 -0500
 
-In order for the page table level 5 to be in use, the CPU must have the
-setting enabled in addition to the CONFIG option. Check for the flag to be
-set to avoid false test failures on systems that do not have this cpu flag
-set.
+Patch series "mm/mempolicy: weighted interleave mempolicy and sysfs
+extension", v2.
 
-Link: https://lkml.kernel.org/r/20240119205801.62769-1-audra@redhat.com
-Fixes: 4f2930c6718a ("selftests/vm: only run 128TBswitch with 5-level paging")
-Signed-off-by: Audra Mitchell <audra@redhat.com>
-Cc: Rafael Aquini <raquini@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Adam Sindelar <adam@wowsignal.io>
-Cc: <stable@vger.kernel.org>
+Weighted interleave is a new interleave policy intended to make use of
+heterogeneous memory environments appearing with CXL.
+
+The existing interleave mechanism does an even round-robin distribution of
+memory across all nodes in a nodemask, while weighted interleave
+distributes memory across nodes according to a provided weight.  (Weight =
+# of page allocations per round)
+
+Weighted interleave is intended to reduce average latency when bandwidth
+is pressured - therefore increasing total throughput.
+
+In other words: It allows greater use of the total available bandwidth in
+a heterogeneous hardware environment (different hardware provides
+different bandwidth capacity).
+
+As bandwidth is pressured, latency increases - first linearly and then
+exponentially.  By keeping bandwidth usage distributed according to
+available bandwidth, we therefore can reduce the average latency of a
+cacheline fetch.
+
+A good explanation of the bandwidth vs latency response curve:
+https://mahmoudhatem.wordpress.com/2017/11/07/memory-bandwidth-vs-latency-response-curve/
+
+From the article:
+```
+Constant region:
+    The latency response is fairly constant for the first 40%
+    of the sustained bandwidth.
+Linear region:
+    In between 40% to 80% of the sustained bandwidth, the
+    latency response increases almost linearly with the bandwidth
+    demand of the system due to contention overhead by numerous
+    memory requests.
+Exponential region:
+    Between 80% to 100% of the sustained bandwidth, the memory
+    latency is dominated by the contention latency which can be
+    as much as twice the idle latency or more.
+Maximum sustained bandwidth :
+    Is 65% to 75% of the theoretical maximum bandwidth.
+```
+
+As a general rule of thumb:
+* If bandwidth usage is low, latency does not increase. It is
+  optimal to place data in the nearest (lowest latency) device.
+* If bandwidth usage is high, latency increases. It is optimal
+  to place data such that bandwidth use is optimized per-device.
+
+This is the top line goal: Provide a user a mechanism to target using the
+"maximum sustained bandwidth" of each hardware component in a heterogenous
+memory system.
+
+
+For example, the stream benchmark demonstrates that 1:1 (default)
+interleave is actively harmful, while weighted interleave can be
+beneficial.  Default interleave distributes data such that too much
+pressure is placed on devices with lower available bandwidth.
+
+Stream Benchmark (High level results, 1 Socket + 1 CXL Device)
+Default interleave : -78% (slower than DRAM)
+Global weighting   : -6% to +4% (workload dependant)
+Targeted weights   : +2.5% to +4% (consistently better than DRAM)
+
+Global means the task-policy was set (set_mempolicy), while targeted means
+VMA policies were set (mbind2).  We see weighted interleave is not always
+beneficial when applied globally, but is always beneficial when applied to
+bandwidth-driving memory regions.
+
+We implement sysfs entries for "system global" weights which can be set by
+a daemon or administrator.
+
+
+There are 3 patches in this set:
+1) Implement system-global interleave weights as sysfs extension
+   in mm/mempolicy.c.  These weights are RCU protected, and the
+   default/minimum weight is 1 for all nodes.
+
+   In future work, we intend to expose an interface for HMAT/CDAT
+   information to be used during boot to set reasonable system
+   default values based on the memory configuration of the system
+   discovered at boot or during device hotplug.
+
+2) A mild refactor of some interleave-logic for re-use in the
+   new weighted interleave logic.
+
+3) MPOL_WEIGHTED_INTERLEAVE extension for set_mempolicy/mbind
+
+
+Included below are some performance and LTP test information,
+and a sample numactl branch which can be used for testing.
+
+= Performance summary =
+(tests may have different configurations, see extended info below)
+1) MLC (W2) : +38% over DRAM. +264% over default interleave.
+   MLC (W5) : +40% over DRAM. +226% over default interleave.
+2) Stream   : -6% to +4% over DRAM, +430% over default interleave.
+3) XSBench  : +19% over DRAM. +47% over default interleave.
+
+= LTP Testing Summary =
+existing mempolicy & mbind tests: pass
+mempolicy & mbind + weighted interleave (global weights): pass
+
+
+This patch (of 3):
+
+This patch provides a way to set interleave weight information under sysfs
+at /sys/kernel/mm/mempolicy/weighted_interleave/nodeN
+
+The sysfs structure is designed as follows.
+
+  $ tree /sys/kernel/mm/mempolicy/
+  /sys/kernel/mm/mempolicy/ [1]
+  └── weighted_interleave [2]
+      ├── node0 [3]
+      └── node1
+
+Each file above can be explained as follows.
+
+[1] mm/mempolicy: configuration interface for mempolicy subsystem
+
+[2] weighted_interleave/: config interface for weighted interleave policy
+
+[3] weighted_interleave/nodeN: weight for nodeN
+
+If a node value is set to `0`, the system-default value will be used.
+As of this patch, the system-default for all nodes is always 1.
+
+Link: https://lkml.kernel.org/r/20240119175730.15484-1-gregory.price@memverge.com
+Link: https://lkml.kernel.org/r/20240119175730.15484-2-gregory.price@memverge.com
+Suggested-by: Huang Ying <ying.huang@intel.com>
+Signed-off-by: Rakie Kim <rakie.kim@sk.com>
+Signed-off-by: Honggyu Kim <honggyu.kim@sk.com>
+Co-developed-by: Gregory Price <gregory.price@memverge.com>
+Signed-off-by: Gregory Price <gregory.price@memverge.com>
+Co-developed-by: Hyeongtak Ji <hyeongtak.ji@sk.com>
+Signed-off-by: Hyeongtak Ji <hyeongtak.ji@sk.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Frank van der Linden <fvdl@google.com>
+Cc: Hasan Al Maruf <Hasan.Maruf@amd.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Ravi Jonnalagadda <ravis.opensrc@micron.com>
+Cc: Gregory Price <gourry.memverge@gmail.com>
+Cc: Srinivasulu Thanneeru <sthanneeru.opensrc@micron.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/va_high_addr_switch.sh |    6 ++++++
- 1 file changed, 6 insertions(+)
+ Documentation/ABI/testing/sysfs-kernel-mm-mempolicy                     |    4 
+ Documentation/ABI/testing/sysfs-kernel-mm-mempolicy-weighted-interleave |   26 +
+ mm/mempolicy.c                                                          |  231 ++++++++++
+ 3 files changed, 261 insertions(+)
 
---- a/tools/testing/selftests/mm/va_high_addr_switch.sh~selftests-mm-update-va_high_addr_switchsh-to-check-cpu-for-la57-flag
-+++ a/tools/testing/selftests/mm/va_high_addr_switch.sh
-@@ -29,9 +29,15 @@ check_supported_x86_64()
- 	# See man 1 gzip under '-f'.
- 	local pg_table_levels=$(gzip -dcfq "${config}" | grep PGTABLE_LEVELS | cut -d'=' -f 2)
- 
-+	local cpu_supports_pl5=$(awk '/^flags/ {if (/la57/) {print 0;}
-+		else {print 1}; exit}' /proc/cpuinfo 2>/dev/null)
+--- /dev/null
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-mempolicy
+@@ -0,0 +1,4 @@
++What:		/sys/kernel/mm/mempolicy/
++Date:		December 2023
++Contact:	Linux memory management mailing list <linux-mm@kvack.org>
++Description:	Interface for Mempolicy
+--- /dev/null
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-mempolicy-weighted-interleave
+@@ -0,0 +1,26 @@
++What:		/sys/kernel/mm/mempolicy/weighted_interleave/
++Date:		December 2023
++Contact:	Linux memory management mailing list <linux-mm@kvack.org>
++Description:	Configuration Interface for the Weighted Interleave policy
 +
- 	if [[ "${pg_table_levels}" -lt 5 ]]; then
- 		echo "$0: PGTABLE_LEVELS=${pg_table_levels}, must be >= 5 to run this test"
- 		exit $ksft_skip
-+	elif [[ "${cpu_supports_pl5}" -ne 0 ]]; then
-+		echo "$0: CPU does not have the necessary la57 flag to support page table level 5"
-+		exit $ksft_skip
- 	fi
- }
++What:		/sys/kernel/mm/mempolicy/weighted_interleave/nodeN
++Date:		December 2023
++Contact:	Linux memory management mailing list <linux-mm@kvack.org>
++Description:	Weight configuration interface for nodeN
++
++		The interleave weight for a memory node (N). These weights are
++		utilized by processes which have set their mempolicy to
++		MPOL_WEIGHTED_INTERLEAVE and have opted into global weights by
++		omitting a task-local weight array.
++
++		These weights only affect new allocations, and changes at runtime
++		will not cause migrations on already allocated pages.
++
++		The minimum weight for a node is always 1.
++
++		Minimum weight: 1
++		Maximum weight: 255
++
++		Writing an empty string or `0` will reset the weight to the
++		system default. The system default may be set by the kernel
++		or drivers at boot or during hotplug events.
+--- a/mm/mempolicy.c~mm-mempolicy-implement-the-sysfs-based-weighted_interleave-interface
++++ a/mm/mempolicy.c
+@@ -131,6 +131,16 @@ static struct mempolicy default_policy =
  
+ static struct mempolicy preferred_node_policy[MAX_NUMNODES];
+ 
++/*
++ * iw_table is the sysfs-set interleave weight table, a value of 0 denotes
++ * system-default value should be used. Until system-defaults are implemented,
++ * the system-default is always 1.
++ *
++ * iw_table is RCU protected
++ */
++static u8 __rcu *iw_table;
++static DEFINE_MUTEX(iw_table_lock);
++
+ /**
+  * numa_nearest_node - Find nearest node by state
+  * @node: Node id to start the search
+@@ -3067,3 +3077,224 @@ void mpol_to_str(char *buffer, int maxle
+ 		p += scnprintf(p, buffer + maxlen - p, ":%*pbl",
+ 			       nodemask_pr_args(&nodes));
+ }
++
++#ifdef CONFIG_SYSFS
++struct iw_node_attr {
++	struct kobj_attribute kobj_attr;
++	int nid;
++};
++
++static ssize_t node_show(struct kobject *kobj, struct kobj_attribute *attr,
++			 char *buf)
++{
++	struct iw_node_attr *node_attr;
++	u8 weight;
++	u8 __rcu *table;
++
++	node_attr = container_of(attr, struct iw_node_attr, kobj_attr);
++
++	rcu_read_lock();
++	table = rcu_dereference(iw_table);
++	weight = table ? table[node_attr->nid] : 1;
++	rcu_read_unlock();
++
++	return sysfs_emit(buf, "%d\n", weight);
++}
++
++static ssize_t node_store(struct kobject *kobj, struct kobj_attribute *attr,
++			  const char *buf, size_t count)
++{
++	struct iw_node_attr *node_attr;
++	u8 __rcu *new;
++	u8 __rcu *old;
++	u8 weight = 0;
++
++	node_attr = container_of(attr, struct iw_node_attr, kobj_attr);
++	if (count == 0 || sysfs_streq(buf, ""))
++		weight = 0;
++	else if (kstrtou8(buf, 0, &weight))
++		return -EINVAL;
++
++	/*
++	 * The default weight is 1 (for now), when the kernel-internal
++	 * default weight array is implemented, this should be updated to
++	 * collect the system-default weight of the node if the user passes 0.
++	 */
++	if (!weight)
++		weight = 1;
++
++	/* We only need to allocate up to the number of possible nodes */
++	new = kmalloc(nr_node_ids, GFP_KERNEL);
++	if (!new)
++		return -ENOMEM;
++
++	mutex_lock(&iw_table_lock);
++	old = rcu_dereference_protected(iw_table,
++					lockdep_is_held(&iw_table_lock));
++	if (old)
++		memcpy(new, old, nr_node_ids);
++	else
++		memset(new, 1, nr_node_ids);
++	new[node_attr->nid] = weight;
++	rcu_assign_pointer(iw_table, new);
++	mutex_unlock(&iw_table_lock);
++	synchronize_rcu();
++	kfree(old);
++	return count;
++}
++
++static struct iw_node_attr *node_attrs[MAX_NUMNODES];
++
++static void sysfs_wi_node_release(struct iw_node_attr *node_attr,
++				  struct kobject *parent)
++{
++	if (!node_attr)
++		return;
++	sysfs_remove_file(parent, &node_attr->kobj_attr.attr);
++	kfree(node_attr->kobj_attr.attr.name);
++	kfree(node_attr);
++}
++
++static void sysfs_wi_release(struct kobject *wi_kobj)
++{
++	int i;
++
++	for (i = 0; i < MAX_NUMNODES; i++)
++		sysfs_wi_node_release(node_attrs[i], wi_kobj);
++	kobject_put(wi_kobj);
++}
++
++static const struct kobj_type wi_ktype = {
++	.sysfs_ops = &kobj_sysfs_ops,
++	.release = sysfs_wi_release,
++};
++
++static int add_weight_node(int nid, struct kobject *wi_kobj)
++{
++	struct iw_node_attr *node_attr;
++	char *name;
++
++	node_attr = kzalloc(sizeof(*node_attr), GFP_KERNEL);
++	if (!node_attr)
++		return -ENOMEM;
++
++	name = kasprintf(GFP_KERNEL, "node%d", nid);
++	if (!name) {
++		kfree(node_attr);
++		return -ENOMEM;
++	}
++
++	sysfs_attr_init(&node_attr->kobj_attr.attr);
++	node_attr->kobj_attr.attr.name = name;
++	node_attr->kobj_attr.attr.mode = 0644;
++	node_attr->kobj_attr.show = node_show;
++	node_attr->kobj_attr.store = node_store;
++	node_attr->nid = nid;
++
++	if (sysfs_create_file(wi_kobj, &node_attr->kobj_attr.attr)) {
++		kfree(node_attr->kobj_attr.attr.name);
++		kfree(node_attr);
++		pr_err("failed to add attribute to weighted_interleave\n");
++		return -ENOMEM;
++	}
++
++	node_attrs[nid] = node_attr;
++	return 0;
++}
++
++static int add_weighted_interleave_group(struct kobject *root_kobj)
++{
++	struct kobject *wi_kobj;
++	int nid, err;
++
++	wi_kobj = kzalloc(sizeof(struct kobject), GFP_KERNEL);
++	if (!wi_kobj)
++		return -ENOMEM;
++
++	err = kobject_init_and_add(wi_kobj, &wi_ktype, root_kobj,
++				   "weighted_interleave");
++	if (err) {
++		kfree(wi_kobj);
++		return err;
++	}
++
++	memset(node_attrs, 0, sizeof(node_attrs));
++	for_each_node_state(nid, N_POSSIBLE) {
++		err = add_weight_node(nid, wi_kobj);
++		if (err) {
++			pr_err("failed to add sysfs [node%d]\n", nid);
++			break;
++		}
++	}
++	if (err)
++		kobject_put(wi_kobj);
++	return 0;
++}
++
++static void mempolicy_kobj_release(struct kobject *kobj)
++{
++	u8 __rcu *old;
++
++	mutex_lock(&iw_table_lock);
++	old = rcu_dereference_protected(iw_table,
++					lockdep_is_held(&iw_table_lock));
++	rcu_assign_pointer(iw_table, NULL);
++	mutex_unlock(&iw_table_lock);
++	synchronize_rcu();
++	/* Never free the default table, it's always in use */
++	kfree(old);
++	kfree(kobj);
++}
++
++static const struct kobj_type mempolicy_ktype = {
++	.release = mempolicy_kobj_release
++};
++
++static struct kobject *mempolicy_kobj;
++static int __init mempolicy_sysfs_init(void)
++{
++	int err;
++	struct kobject *mempolicy_kobj;
++
++	/* A NULL iw_table is interpreted by interleave logic as "all 1s" */
++	iw_table = NULL;
++	mempolicy_kobj = kzalloc(sizeof(*mempolicy_kobj), GFP_KERNEL);
++	if (!mempolicy_kobj) {
++		pr_err("failed to add mempolicy kobject to the system\n");
++		return -ENOMEM;
++	}
++	err = kobject_init_and_add(mempolicy_kobj, &mempolicy_ktype, mm_kobj,
++				   "mempolicy");
++	if (err) {
++		kfree(mempolicy_kobj);
++		return err;
++	}
++
++	err = add_weighted_interleave_group(mempolicy_kobj);
++
++	if (err) {
++		kobject_put(mempolicy_kobj);
++		return err;
++	}
++
++	return err;
++}
++
++static void __exit mempolicy_exit(void)
++{
++	if (mempolicy_kobj)
++		kobject_put(mempolicy_kobj);
++}
++
++#else
++static int __init mempolicy_sysfs_init(void)
++{
++	/* A NULL iw_table is interpreted by interleave logic as "all 1s" */
++	iw_table = NULL;
++	return 0;
++}
++
++static void __exit mempolicy_exit(void) { }
++#endif /* CONFIG_SYSFS */
++late_initcall(mempolicy_sysfs_init);
++module_exit(mempolicy_exit);
 _
 
-Patches currently in -mm which might be from audra@redhat.com are
+Patches currently in -mm which might be from rakie.kim@sk.com are
 
-selftests-mm-update-va_high_addr_switchsh-to-check-cpu-for-la57-flag.patch
+mm-mempolicy-implement-the-sysfs-based-weighted_interleave-interface.patch
 
