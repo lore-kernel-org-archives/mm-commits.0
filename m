@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB7EC38DE6
-	for <mm-commits@vger.kernel.org>; Sun, 21 Jan 2024 22:13:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0B7031A78;
+	Sun, 21 Jan 2024 22:13:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705875231; cv=none; b=svWC/iY5sNKYAmjmjQxmrC05q1fj86pO8yjR9tvTlk83wAyrNs3LDqa1asZ3uIvnrd8MoKxyK30irR8Jo60Cy2qBCnqIJ/phdC99Tw7nJux8YCSiTFW48UvQLSvJoAVp+yckPX+cCgmqWKv6E0qpfyMf/9ErGZIYx4TSZF15Mc0=
+	t=1705875235; cv=none; b=odfDJ786e9slMRyF7wuFebCdomLIhgPVNGnY7IeKdXoId8LgD0Ldtz9JZq/fnlSL/1UUUUROn8lojc4kX0b4LYnAQeraVDLrb7gQQEeI5SjL71h4O4wu+H4H0eKONUtytVpadotorL7F58i6ytNybrnR0b6btbWTrEOyosVE+cQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705875231; c=relaxed/simple;
-	bh=XUy7pjzuJ4FfkDGh+UQgBJBju7rVO1hgJ0FQz9r4xzk=;
-	h=Date:To:From:Subject:Message-Id; b=fhrn9O/dYmHFAr4JuOcnMJPga9EzRTAWqjjYmfD/VbCRw9STzHm8HGtU0QIMZXHl9i+FVAIsnGa7sj8Mowa2YLJEYDc7UXb/vIeYJmH6+JQ1AHWxbJcSLkatngpxC7i4WfA5PCUXBhBLxHhAhgp5kfcj4eIHMV/ojimTj1TzS04=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NiJw+EPT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705875235; c=relaxed/simple;
+	bh=KSqALTixM5vYaqW5ZAi1Xh0NLYQMP+PJoTN5lg+7UQA=;
+	h=Date:To:From:Subject:Message-Id; b=PEWodEZeZKi6Ub61jBBHiC7iworp/gL+kIqQuKPvDVa/9Dj1ArmI2qDUE3xrm9klE7fckz+5E4bjSf/2sSfxW0kzJWOmwxC9BjBT4tLkdWh1ppi64IYNB9UHmM5t7Zcn3ns3imApx1CvNPTDSpjowXa74aagU3tYBHbWCT0NePs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LM4qngJR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NiJw+EPT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E957C433F1;
-	Sun, 21 Jan 2024 22:13:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LM4qngJR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E8E8C433F1;
+	Sun, 21 Jan 2024 22:13:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705875230;
-	bh=XUy7pjzuJ4FfkDGh+UQgBJBju7rVO1hgJ0FQz9r4xzk=;
+	s=korg; t=1705875234;
+	bh=KSqALTixM5vYaqW5ZAi1Xh0NLYQMP+PJoTN5lg+7UQA=;
 	h=Date:To:From:Subject:From;
-	b=NiJw+EPTA1Tehdecn6TC51aniZv8071An05vNd41jdCSw1m5x7HTzPWwJ7Bz3WEeu
-	 w/RBzCEKpQ4X8e0IZWhkCc9nHmUx2MZB+cxHV+MoQHN2O1GqDRtlsovnZlpEX34InO
-	 pSH3IHLLfCw/AHLEq7rCs0INuiLSyfyif6Yh2jtw=
-Date: Sun, 21 Jan 2024 14:13:47 -0800
-To: mm-commits@vger.kernel.org,muchun.song@linux.dev,prakash.sangappa@oracle.com,akpm@linux-foundation.org
+	b=LM4qngJRCy71/Sj/IXxdCMei2usiK3XWLLAVYq0P90c11KuKfLxvm7rUv6AzG4wgR
+	 xt79gvH/YJA4ehHDqBzLZ8AFVGWoQdZc96UXM4FoSgYYDuuzc6moZcMWr3SragB9T9
+	 Zkf39TTwY0SgcFR3ktGLULrcbSO3x3OlX+4VMopI=
+Date: Sun, 21 Jan 2024 14:13:50 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,raquini@redhat.com,adam@wowsignal.io,audra@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-pages-should-not-be-reserved-by-shmat-if-shm_noreserve.patch added to mm-unstable branch
-Message-Id: <20240121221350.0E957C433F1@smtp.kernel.org>
+Subject: + selftests-mm-update-va_high_addr_switchsh-to-check-cpu-for-la57-flag.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240121221354.1E8E8C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Hugetlb pages should not be reserved by shmat() if SHM_NORESERVE
-has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-pages-should-not-be-reserved-by-shmat-if-shm_noreserve.patch
+     Subject: selftests/mm: Update va_high_addr_switch.sh to check CPU for la57 flag
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     selftests-mm-update-va_high_addr_switchsh-to-check-cpu-for-la57-flag.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-pages-should-not-be-reserved-by-shmat-if-shm_noreserve.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-update-va_high_addr_switchsh-to-check-cpu-for-la57-flag.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,48 +58,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Prakash Sangappa <prakash.sangappa@oracle.com>
-Subject: Hugetlb pages should not be reserved by shmat() if SHM_NORESERVE
-Date: Fri, 19 Jan 2024 17:17:52 -0800
+From: Audra Mitchell <audra@redhat.com>
+Subject: selftests/mm: Update va_high_addr_switch.sh to check CPU for la57 flag
+Date: Fri, 19 Jan 2024 15:58:01 -0500
 
-For shared memory of type SHM_HUGETLB, hugetlb pages are reserved in
-shmget() call.  If SHM_NORESERVE flags is specified then the hugetlb pages
-are not reserved.  However when the shared memory is attached with the
-shmat() call the hugetlb pages are getting reserved incorrectly for
-SHM_HUGETLB shared memory created with SHM_NORESERVE.
+In order for the page table level 5 to be in use, the CPU must have the
+setting enabled in addition to the CONFIG option. Check for the flag to be
+set to avoid false test failures on systems that do not have this cpu flag
+set.
 
-Ensure that the hugetlb pages are no reserved for SHM_HUGETLB shared
-memory in the shmat() call.
-
-Link: https://lkml.kernel.org/r/1705713472-3537-1-git-send-email-prakash.sangappa@oracle.com
-Signed-off-by: Prakash Sangappa <prakash.sangappa@oracle.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+Link: https://lkml.kernel.org/r/20240119205801.62769-1-audra@redhat.com
+Fixes: 4f2930c6718a ("selftests/vm: only run 128TBswitch with 5-level paging")
+Signed-off-by: Audra Mitchell <audra@redhat.com>
+Cc: Rafael Aquini <raquini@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Adam Sindelar <adam@wowsignal.io>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/va_high_addr_switch.sh |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/fs/hugetlbfs/inode.c~hugetlb-pages-should-not-be-reserved-by-shmat-if-shm_noreserve
-+++ a/fs/hugetlbfs/inode.c
-@@ -141,7 +141,13 @@ static int hugetlbfs_file_mmap(struct fi
- 	file_accessed(file);
+--- a/tools/testing/selftests/mm/va_high_addr_switch.sh~selftests-mm-update-va_high_addr_switchsh-to-check-cpu-for-la57-flag
++++ a/tools/testing/selftests/mm/va_high_addr_switch.sh
+@@ -29,9 +29,15 @@ check_supported_x86_64()
+ 	# See man 1 gzip under '-f'.
+ 	local pg_table_levels=$(gzip -dcfq "${config}" | grep PGTABLE_LEVELS | cut -d'=' -f 2)
  
- 	ret = -ENOMEM;
--	if (!hugetlb_reserve_pages(inode,
++	local cpu_supports_pl5=$(awk '/^flags/ {if (/la57/) {print 0;}
++		else {print 1}; exit}' /proc/cpuinfo 2>/dev/null)
 +
-+	/*
-+	 * for SHM_HUGETLB, the pages are reserved in the shmget() call so skip
-+	 * reserving here. Note only for SHM hugetlbfs file, the inode
-+	 * flag S_PRIVATE is set.
-+	 */
-+	if (!(inode->i_flags & S_PRIVATE) && !hugetlb_reserve_pages(inode,
- 				vma->vm_pgoff >> huge_page_order(h),
- 				len >> huge_page_shift(h), vma,
- 				vma->vm_flags))
+ 	if [[ "${pg_table_levels}" -lt 5 ]]; then
+ 		echo "$0: PGTABLE_LEVELS=${pg_table_levels}, must be >= 5 to run this test"
+ 		exit $ksft_skip
++	elif [[ "${cpu_supports_pl5}" -ne 0 ]]; then
++		echo "$0: CPU does not have the necessary la57 flag to support page table level 5"
++		exit $ksft_skip
+ 	fi
+ }
+ 
 _
 
-Patches currently in -mm which might be from prakash.sangappa@oracle.com are
+Patches currently in -mm which might be from audra@redhat.com are
 
-hugetlb-pages-should-not-be-reserved-by-shmat-if-shm_noreserve.patch
+selftests-mm-update-va_high_addr_switchsh-to-check-cpu-for-la57-flag.patch
 
