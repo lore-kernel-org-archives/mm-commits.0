@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DB6C5102B
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:42:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C872554BD5
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:42:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705970573; cv=none; b=eKjocKHfwyyFOLAbevOhxOfi5i0UJ9oIZJHJtophrfGM74+lguQaXTxgFhr/U4QTEdwrfuimC7n5Kg10KRYTxny1qjVjJHFXDXiKt1P6dvTXbyOWzpq/6JEQIv7hVVkbjwP1BzhZZD+U8XohlsQiche9KQDvQmAD4akG6JD8J4E=
+	t=1705970576; cv=none; b=o7OFbFbX8SGXNKZEfNh4ag3bUMKmXcD8ZCnxnLZpIrp3MM/RALVWXcT1H1aiNGblvR1qpyv02YttVoeywLZjfTbqvpsOOzsBnQvtCYN13UGpHKQpi87j4ARhA3kgJi27acLltEX8FOuvdGlV+VFLzugcUZvQ+Tn1/8i4nr6z+ic=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705970573; c=relaxed/simple;
-	bh=bD86/+mgW1/FyoD17XHvfZypLGo26bKxh1BYjtKH1l4=;
-	h=Date:To:From:Subject:Message-Id; b=iviCA1AzPD3JtckLHfZOgVlWnj9v2ZcDDpjY/ORVku9ES7jgpcTvyc2Lv51zI9cfkWP/aidcoA7KwotT51EHzX24BZFqEvmXbzaC7fWzqKW/grPV7LnxxYJgUU0HHYC5XhrOAXZ+9bMdAgVcsS/TRCZQPZmqjrIdtDkTQ/PHLC0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uyH0wkw4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705970576; c=relaxed/simple;
+	bh=G9xEUi+9Wj4jMp55lO2qFOrHJ7yIlNPGzAlw5jD0lIE=;
+	h=Date:To:From:Subject:Message-Id; b=Iwaj1m7pQBvxM8NBSuhb+ic6fQ0qZJjz52OvvLugD3Huq2zNIJ98Wn59lf5Z0WYV8R9Kg7m6MhYp6IY0BawdjBGwqa61rW/lfeSSIAnETcm603J60IKnxvtbSI+AQh6ar9HuCk4CjdkBXGh0TZmMQujwBBcHtxs70VPHt1UtP0Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W3ZerhrV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uyH0wkw4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8225BC433F1;
-	Tue, 23 Jan 2024 00:42:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W3ZerhrV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F0F6C43390;
+	Tue, 23 Jan 2024 00:42:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705970573;
-	bh=bD86/+mgW1/FyoD17XHvfZypLGo26bKxh1BYjtKH1l4=;
+	s=korg; t=1705970576;
+	bh=G9xEUi+9Wj4jMp55lO2qFOrHJ7yIlNPGzAlw5jD0lIE=;
 	h=Date:To:From:Subject:From;
-	b=uyH0wkw47KR1PQ7HEu6G/Vsb3rOUHE7h1fZop7bf68A9rVZiAgmyEgi/33A5SfYsw
-	 Po+W7vi/ifJ6pXQEDd8ZwKRcqC9K2tccDL6+gq2d9Ykhz8rzAxOb1hq6VENbqH2g2p
-	 6xx4ANnmLxr2+E6Q/XKHlknUuERiakPh7nS+rUwI=
-Date: Mon, 22 Jan 2024 16:42:49 -0800
+	b=W3ZerhrVcvSnH6KUya27LOhSGCGEv5MSwpgLd/naPhiV3Jrsyv7hxH6YYcKap5YHf
+	 bfC7hJyfidesziGQdy0qiezksm0KhQ1pqTbqNQ7/WFwZ1rkd5mHdLfHd3bVoLt+TFX
+	 FOVJj9DuqM/6obKb+5qi7J2nDzUaA/cvW2e/r5Gk=
+Date: Mon, 22 Jan 2024 16:42:53 -0800
 To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-convert-sufile-to-use-kmap_local.patch added to mm-nonmm-unstable branch
-Message-Id: <20240123004252.8225BC433F1@smtp.kernel.org>
+Subject: + nilfs2-move-nilfs_bmap_write-call-out-of-nilfs_write_inode_common.patch added to mm-nonmm-unstable branch
+Message-Id: <20240123004256.2F0F6C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: convert sufile to use kmap_local
+     Subject: nilfs2: move nilfs_bmap_write call out of nilfs_write_inode_common
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-convert-sufile-to-use-kmap_local.patch
+     nilfs2-move-nilfs_bmap_write-call-out-of-nilfs_write_inode_common.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-sufile-to-use-kmap_local.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-move-nilfs_bmap_write-call-out-of-nilfs_write_inode_common.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,357 +59,183 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: convert sufile to use kmap_local
-Date: Mon, 22 Jan 2024 23:01:52 +0900
+Subject: nilfs2: move nilfs_bmap_write call out of nilfs_write_inode_common
+Date: Mon, 22 Jan 2024 23:01:55 +0900
 
-Concerning the code of the metadata file sufile for segment management,
-convert all parts that uses the deprecated kmap_atomic() to use
-kmap_local.  All transformations are directly possible here.
+Before converting the disk inode management metadata file ifile, the call
+to nilfs_bmap_write(), the i_device_code setting, and the zero-fill code
+for inodes on the super root block are moved from
+nilfs_write_inode_common() to its callers.
 
-Link: https://lkml.kernel.org/r/20240122140202.6950-6-konishi.ryusuke@gmail.com
+This cleanup simplifies the role and arguments of
+nilfs_write_inode_common() and collects calls to nilfs_bmap_write() to the
+log writing code.
+
+Also, add and use a new helper nilfs_write_root_mdt_inode() to avoid code
+duplication in the data export routine nilfs_segctor_fill_in_super_root()
+to the super root block's buffer.
+
+Link: https://lkml.kernel.org/r/20240122140202.6950-9-konishi.ryusuke@gmail.com
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/sufile.c |   86 +++++++++++++++++++++----------------------
- 1 file changed, 43 insertions(+), 43 deletions(-)
+ fs/nilfs2/inode.c   |   38 ++++++++++++++-------------------
+ fs/nilfs2/nilfs.h   |    3 +-
+ fs/nilfs2/segment.c |   47 ++++++++++++++++++++++++++++++++++--------
+ 3 files changed, 57 insertions(+), 31 deletions(-)
 
---- a/fs/nilfs2/sufile.c~nilfs2-convert-sufile-to-use-kmap_local
-+++ a/fs/nilfs2/sufile.c
-@@ -107,11 +107,11 @@ static void nilfs_sufile_mod_counter(str
- 	struct nilfs_sufile_header *header;
- 	void *kaddr;
- 
--	kaddr = kmap_atomic(header_bh->b_page);
-+	kaddr = kmap_local_page(header_bh->b_page);
- 	header = kaddr + bh_offset(header_bh);
- 	le64_add_cpu(&header->sh_ncleansegs, ncleanadd);
- 	le64_add_cpu(&header->sh_ndirtysegs, ndirtyadd);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
- 	mark_buffer_dirty(header_bh);
+--- a/fs/nilfs2/inode.c~nilfs2-move-nilfs_bmap_write-call-out-of-nilfs_write_inode_common
++++ a/fs/nilfs2/inode.c
+@@ -759,8 +759,18 @@ struct inode *nilfs_iget_for_shadow(stru
+ 	return s_inode;
  }
-@@ -315,10 +315,10 @@ int nilfs_sufile_alloc(struct inode *suf
- 	ret = nilfs_sufile_get_header_block(sufile, &header_bh);
- 	if (ret < 0)
- 		goto out_sem;
--	kaddr = kmap_atomic(header_bh->b_page);
-+	kaddr = kmap_local_page(header_bh->b_page);
- 	header = kaddr + bh_offset(header_bh);
- 	last_alloc = le64_to_cpu(header->sh_last_alloc);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
  
- 	nsegments = nilfs_sufile_get_nsegments(sufile);
- 	maxsegnum = sui->allocmax;
-@@ -352,7 +352,7 @@ int nilfs_sufile_alloc(struct inode *suf
- 							   &su_bh);
- 		if (ret < 0)
- 			goto out_header;
--		kaddr = kmap_atomic(su_bh->b_page);
-+		kaddr = kmap_local_page(su_bh->b_page);
- 		su = nilfs_sufile_block_get_segment_usage(
- 			sufile, segnum, su_bh, kaddr);
++/**
++ * nilfs_write_inode_common - export common inode information to on-disk inode
++ * @inode:     inode object
++ * @raw_inode: on-disk inode
++ *
++ * This function writes standard information from the on-memory inode @inode
++ * to @raw_inode on ifile, cpfile or a super root block.  Since inode bmap
++ * data is not exported, nilfs_bmap_write() must be called separately during
++ * log writing.
++ */
+ void nilfs_write_inode_common(struct inode *inode,
+-			      struct nilfs_inode *raw_inode, int has_bmap)
++			      struct nilfs_inode *raw_inode)
+ {
+ 	struct nilfs_inode_info *ii = NILFS_I(inode);
  
-@@ -363,14 +363,14 @@ int nilfs_sufile_alloc(struct inode *suf
- 				continue;
- 			/* found a clean segment */
- 			nilfs_segment_usage_set_dirty(su);
--			kunmap_atomic(kaddr);
-+			kunmap_local(kaddr);
+@@ -778,21 +788,6 @@ void nilfs_write_inode_common(struct ino
+ 	raw_inode->i_flags = cpu_to_le32(ii->i_flags);
+ 	raw_inode->i_generation = cpu_to_le32(inode->i_generation);
  
--			kaddr = kmap_atomic(header_bh->b_page);
-+			kaddr = kmap_local_page(header_bh->b_page);
- 			header = kaddr + bh_offset(header_bh);
- 			le64_add_cpu(&header->sh_ncleansegs, -1);
- 			le64_add_cpu(&header->sh_ndirtysegs, 1);
- 			header->sh_last_alloc = cpu_to_le64(segnum);
--			kunmap_atomic(kaddr);
-+			kunmap_local(kaddr);
+-	if (NILFS_ROOT_METADATA_FILE(inode->i_ino)) {
+-		struct the_nilfs *nilfs = inode->i_sb->s_fs_info;
+-
+-		/* zero-fill unused portion in the case of super root block */
+-		raw_inode->i_xattr = 0;
+-		raw_inode->i_pad = 0;
+-		memset((void *)raw_inode + sizeof(*raw_inode), 0,
+-		       nilfs->ns_inode_size - sizeof(*raw_inode));
+-	}
+-
+-	if (has_bmap)
+-		nilfs_bmap_write(ii->i_bmap, raw_inode);
+-	else if (S_ISCHR(inode->i_mode) || S_ISBLK(inode->i_mode))
+-		raw_inode->i_device_code =
+-			cpu_to_le64(huge_encode_dev(inode->i_rdev));
+ 	/*
+ 	 * When extending inode, nilfs->ns_inode_size should be checked
+ 	 * for substitutions of appended fields.
+@@ -813,12 +808,11 @@ void nilfs_update_inode(struct inode *in
+ 	if (flags & I_DIRTY_DATASYNC)
+ 		set_bit(NILFS_I_INODE_SYNC, &ii->i_state);
  
- 			sui->ncleansegs--;
- 			mark_buffer_dirty(header_bh);
-@@ -384,7 +384,7 @@ int nilfs_sufile_alloc(struct inode *suf
- 			goto out_header;
- 		}
+-	nilfs_write_inode_common(inode, raw_inode, 0);
+-		/*
+-		 * XXX: call with has_bmap = 0 is a workaround to avoid
+-		 * deadlock of bmap.  This delays update of i_bmap to just
+-		 * before writing.
+-		 */
++	nilfs_write_inode_common(inode, raw_inode);
++
++	if (S_ISCHR(inode->i_mode) || S_ISBLK(inode->i_mode))
++		raw_inode->i_device_code =
++			cpu_to_le64(huge_encode_dev(inode->i_rdev));
  
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		brelse(su_bh);
+ 	nilfs_ifile_unmap_inode(ifile, ino, ibh);
+ }
+--- a/fs/nilfs2/nilfs.h~nilfs2-move-nilfs_bmap_write-call-out-of-nilfs_write_inode_common
++++ a/fs/nilfs2/nilfs.h
+@@ -256,7 +256,8 @@ extern struct inode *nilfs_new_inode(str
+ extern int nilfs_get_block(struct inode *, sector_t, struct buffer_head *, int);
+ extern void nilfs_set_inode_flags(struct inode *);
+ extern int nilfs_read_inode_common(struct inode *, struct nilfs_inode *);
+-extern void nilfs_write_inode_common(struct inode *, struct nilfs_inode *, int);
++void nilfs_write_inode_common(struct inode *inode,
++			      struct nilfs_inode *raw_inode);
+ struct inode *nilfs_ilookup(struct super_block *sb, struct nilfs_root *root,
+ 			    unsigned long ino);
+ struct inode *nilfs_iget_locked(struct super_block *sb, struct nilfs_root *root,
+--- a/fs/nilfs2/segment.c~nilfs2-move-nilfs_bmap_write-call-out-of-nilfs_write_inode_common
++++ a/fs/nilfs2/segment.c
+@@ -913,6 +913,7 @@ static int nilfs_segctor_fill_in_checkpo
+ 	struct the_nilfs *nilfs = sci->sc_super->s_fs_info;
+ 	struct buffer_head *bh_cp;
+ 	struct nilfs_checkpoint *raw_cp;
++	struct inode *ifile;
+ 	int err;
+ 
+ 	err = nilfs_cpfile_get_checkpoint(nilfs->ns_cpfile, nilfs->ns_cno, 0,
+@@ -941,8 +942,10 @@ static int nilfs_segctor_fill_in_checkpo
+ 	else
+ 		nilfs_checkpoint_set_minor(raw_cp);
+ 
+-	nilfs_write_inode_common(sci->sc_root->ifile,
+-				 &raw_cp->cp_ifile_inode, 1);
++	ifile = sci->sc_root->ifile;
++	nilfs_write_inode_common(ifile, &raw_cp->cp_ifile_inode);
++	nilfs_bmap_write(NILFS_I(ifile)->i_bmap, &raw_cp->cp_ifile_inode);
++
+ 	nilfs_cpfile_put_checkpoint(nilfs->ns_cpfile, nilfs->ns_cno, bh_cp);
+ 	return 0;
+ 
+@@ -977,6 +980,33 @@ static void nilfs_segctor_fill_in_file_b
  	}
+ }
  
-@@ -406,16 +406,16 @@ void nilfs_sufile_do_cancel_free(struct
- 	struct nilfs_segment_usage *su;
- 	void *kaddr;
++/**
++ * nilfs_write_root_mdt_inode - export root metadata inode information to
++ *                              the on-disk inode
++ * @inode:     inode object of the root metadata file
++ * @raw_inode: on-disk inode
++ *
++ * nilfs_write_root_mdt_inode() writes inode information and bmap data of
++ * @inode to the inode area of the metadata file allocated on the super root
++ * block created to finalize the log.  Since super root blocks are configured
++ * each time, this function zero-fills the unused area of @raw_inode.
++ */
++static void nilfs_write_root_mdt_inode(struct inode *inode,
++				       struct nilfs_inode *raw_inode)
++{
++	struct the_nilfs *nilfs = inode->i_sb->s_fs_info;
++
++	nilfs_write_inode_common(inode, raw_inode);
++
++	/* zero-fill unused portion of raw_inode */
++	raw_inode->i_xattr = 0;
++	raw_inode->i_pad = 0;
++	memset((void *)raw_inode + sizeof(*raw_inode), 0,
++	       nilfs->ns_inode_size - sizeof(*raw_inode));
++
++	nilfs_bmap_write(NILFS_I(inode)->i_bmap, raw_inode);
++}
++
+ static void nilfs_segctor_fill_in_super_root(struct nilfs_sc_info *sci,
+ 					     struct the_nilfs *nilfs)
+ {
+@@ -998,12 +1028,13 @@ static void nilfs_segctor_fill_in_super_
+ 			      nilfs->ns_nongc_ctime : sci->sc_seg_ctime);
+ 	raw_sr->sr_flags = 0;
  
--	kaddr = kmap_atomic(su_bh->b_page);
-+	kaddr = kmap_local_page(su_bh->b_page);
- 	su = nilfs_sufile_block_get_segment_usage(sufile, segnum, su_bh, kaddr);
- 	if (unlikely(!nilfs_segment_usage_clean(su))) {
- 		nilfs_warn(sufile->i_sb, "%s: segment %llu must be clean",
- 			   __func__, (unsigned long long)segnum);
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		return;
- 	}
- 	nilfs_segment_usage_set_dirty(su);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
- 	nilfs_sufile_mod_counter(header_bh, -1, 1);
- 	NILFS_SUI(sufile)->ncleansegs--;
-@@ -432,11 +432,11 @@ void nilfs_sufile_do_scrap(struct inode
- 	void *kaddr;
- 	int clean, dirty;
- 
--	kaddr = kmap_atomic(su_bh->b_page);
-+	kaddr = kmap_local_page(su_bh->b_page);
- 	su = nilfs_sufile_block_get_segment_usage(sufile, segnum, su_bh, kaddr);
- 	if (su->su_flags == cpu_to_le32(BIT(NILFS_SEGMENT_USAGE_DIRTY)) &&
- 	    su->su_nblocks == cpu_to_le32(0)) {
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		return;
- 	}
- 	clean = nilfs_segment_usage_clean(su);
-@@ -446,7 +446,7 @@ void nilfs_sufile_do_scrap(struct inode
- 	su->su_lastmod = cpu_to_le64(0);
- 	su->su_nblocks = cpu_to_le32(0);
- 	su->su_flags = cpu_to_le32(BIT(NILFS_SEGMENT_USAGE_DIRTY));
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
- 	nilfs_sufile_mod_counter(header_bh, clean ? (u64)-1 : 0, dirty ? 0 : 1);
- 	NILFS_SUI(sufile)->ncleansegs -= clean;
-@@ -463,12 +463,12 @@ void nilfs_sufile_do_free(struct inode *
- 	void *kaddr;
- 	int sudirty;
- 
--	kaddr = kmap_atomic(su_bh->b_page);
-+	kaddr = kmap_local_page(su_bh->b_page);
- 	su = nilfs_sufile_block_get_segment_usage(sufile, segnum, su_bh, kaddr);
- 	if (nilfs_segment_usage_clean(su)) {
- 		nilfs_warn(sufile->i_sb, "%s: segment %llu is already clean",
- 			   __func__, (unsigned long long)segnum);
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		return;
- 	}
- 	if (unlikely(nilfs_segment_usage_error(su)))
-@@ -481,7 +481,7 @@ void nilfs_sufile_do_free(struct inode *
- 			   (unsigned long long)segnum);
- 
- 	nilfs_segment_usage_set_clean(su);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 	mark_buffer_dirty(su_bh);
- 
- 	nilfs_sufile_mod_counter(header_bh, 1, sudirty ? (u64)-1 : 0);
-@@ -509,12 +509,12 @@ int nilfs_sufile_mark_dirty(struct inode
- 	if (ret)
- 		goto out_sem;
- 
--	kaddr = kmap_atomic(bh->b_page);
-+	kaddr = kmap_local_page(bh->b_page);
- 	su = nilfs_sufile_block_get_segment_usage(sufile, segnum, bh, kaddr);
- 	if (unlikely(nilfs_segment_usage_error(su))) {
- 		struct the_nilfs *nilfs = sufile->i_sb->s_fs_info;
- 
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		brelse(bh);
- 		if (nilfs_segment_is_active(nilfs, segnum)) {
- 			nilfs_error(sufile->i_sb,
-@@ -532,7 +532,7 @@ int nilfs_sufile_mark_dirty(struct inode
- 		ret = -EIO;
- 	} else {
- 		nilfs_segment_usage_set_dirty(su);
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		mark_buffer_dirty(bh);
- 		nilfs_mdt_mark_dirty(sufile);
- 		brelse(bh);
-@@ -562,7 +562,7 @@ int nilfs_sufile_set_segment_usage(struc
- 	if (ret < 0)
- 		goto out_sem;
- 
--	kaddr = kmap_atomic(bh->b_page);
-+	kaddr = kmap_local_page(bh->b_page);
- 	su = nilfs_sufile_block_get_segment_usage(sufile, segnum, bh, kaddr);
- 	if (modtime) {
- 		/*
-@@ -573,7 +573,7 @@ int nilfs_sufile_set_segment_usage(struc
- 		su->su_lastmod = cpu_to_le64(modtime);
- 	}
- 	su->su_nblocks = cpu_to_le32(nblocks);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
- 	mark_buffer_dirty(bh);
- 	nilfs_mdt_mark_dirty(sufile);
-@@ -614,7 +614,7 @@ int nilfs_sufile_get_stat(struct inode *
- 	if (ret < 0)
- 		goto out_sem;
- 
--	kaddr = kmap_atomic(header_bh->b_page);
-+	kaddr = kmap_local_page(header_bh->b_page);
- 	header = kaddr + bh_offset(header_bh);
- 	sustat->ss_nsegs = nilfs_sufile_get_nsegments(sufile);
- 	sustat->ss_ncleansegs = le64_to_cpu(header->sh_ncleansegs);
-@@ -624,7 +624,7 @@ int nilfs_sufile_get_stat(struct inode *
- 	spin_lock(&nilfs->ns_last_segment_lock);
- 	sustat->ss_prot_seq = nilfs->ns_prot_seq;
- 	spin_unlock(&nilfs->ns_last_segment_lock);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 	brelse(header_bh);
- 
-  out_sem:
-@@ -640,15 +640,15 @@ void nilfs_sufile_do_set_error(struct in
- 	void *kaddr;
- 	int suclean;
- 
--	kaddr = kmap_atomic(su_bh->b_page);
-+	kaddr = kmap_local_page(su_bh->b_page);
- 	su = nilfs_sufile_block_get_segment_usage(sufile, segnum, su_bh, kaddr);
- 	if (nilfs_segment_usage_error(su)) {
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		return;
- 	}
- 	suclean = nilfs_segment_usage_clean(su);
- 	nilfs_segment_usage_set_error(su);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
- 	if (suclean) {
- 		nilfs_sufile_mod_counter(header_bh, -1, 0);
-@@ -717,7 +717,7 @@ static int nilfs_sufile_truncate_range(s
- 			/* hole */
- 			continue;
- 		}
--		kaddr = kmap_atomic(su_bh->b_page);
-+		kaddr = kmap_local_page(su_bh->b_page);
- 		su = nilfs_sufile_block_get_segment_usage(
- 			sufile, segnum, su_bh, kaddr);
- 		su2 = su;
-@@ -726,7 +726,7 @@ static int nilfs_sufile_truncate_range(s
- 			     ~BIT(NILFS_SEGMENT_USAGE_ERROR)) ||
- 			    nilfs_segment_is_active(nilfs, segnum + j)) {
- 				ret = -EBUSY;
--				kunmap_atomic(kaddr);
-+				kunmap_local(kaddr);
- 				brelse(su_bh);
- 				goto out_header;
- 			}
-@@ -738,7 +738,7 @@ static int nilfs_sufile_truncate_range(s
- 				nc++;
- 			}
- 		}
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		if (nc > 0) {
- 			mark_buffer_dirty(su_bh);
- 			ncleaned += nc;
-@@ -823,10 +823,10 @@ int nilfs_sufile_resize(struct inode *su
- 		sui->allocmin = 0;
- 	}
- 
--	kaddr = kmap_atomic(header_bh->b_page);
-+	kaddr = kmap_local_page(header_bh->b_page);
- 	header = kaddr + bh_offset(header_bh);
- 	header->sh_ncleansegs = cpu_to_le64(sui->ncleansegs);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
- 	mark_buffer_dirty(header_bh);
- 	nilfs_mdt_mark_dirty(sufile);
-@@ -891,7 +891,7 @@ ssize_t nilfs_sufile_get_suinfo(struct i
- 			continue;
- 		}
- 
--		kaddr = kmap_atomic(su_bh->b_page);
-+		kaddr = kmap_local_page(su_bh->b_page);
- 		su = nilfs_sufile_block_get_segment_usage(
- 			sufile, segnum, su_bh, kaddr);
- 		for (j = 0; j < n;
-@@ -904,7 +904,7 @@ ssize_t nilfs_sufile_get_suinfo(struct i
- 				si->sui_flags |=
- 					BIT(NILFS_SEGMENT_USAGE_ACTIVE);
- 		}
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		brelse(su_bh);
- 	}
- 	ret = nsegs;
-@@ -973,7 +973,7 @@ ssize_t nilfs_sufile_set_suinfo(struct i
- 		goto out_header;
- 
- 	for (;;) {
--		kaddr = kmap_atomic(bh->b_page);
-+		kaddr = kmap_local_page(bh->b_page);
- 		su = nilfs_sufile_block_get_segment_usage(
- 			sufile, sup->sup_segnum, bh, kaddr);
- 
-@@ -1010,7 +1010,7 @@ ssize_t nilfs_sufile_set_suinfo(struct i
- 			su->su_flags = cpu_to_le32(sup->sup_sui.sui_flags);
- 		}
- 
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 
- 		sup = (void *)sup + supsz;
- 		if (sup >= supend)
-@@ -1115,7 +1115,7 @@ int nilfs_sufile_trim_fs(struct inode *s
- 			continue;
- 		}
- 
--		kaddr = kmap_atomic(su_bh->b_page);
-+		kaddr = kmap_local_page(su_bh->b_page);
- 		su = nilfs_sufile_block_get_segment_usage(sufile, segnum,
- 				su_bh, kaddr);
- 		for (i = 0; i < n; ++i, ++segnum, su = (void *)su + susz) {
-@@ -1145,7 +1145,7 @@ int nilfs_sufile_trim_fs(struct inode *s
- 			}
- 
- 			if (nblocks >= minlen) {
--				kunmap_atomic(kaddr);
-+				kunmap_local(kaddr);
- 
- 				ret = blkdev_issue_discard(nilfs->ns_bdev,
- 						start * sects_per_block,
-@@ -1157,7 +1157,7 @@ int nilfs_sufile_trim_fs(struct inode *s
- 				}
- 
- 				ndiscarded += nblocks;
--				kaddr = kmap_atomic(su_bh->b_page);
-+				kaddr = kmap_local_page(su_bh->b_page);
- 				su = nilfs_sufile_block_get_segment_usage(
- 					sufile, segnum, su_bh, kaddr);
- 			}
-@@ -1166,7 +1166,7 @@ int nilfs_sufile_trim_fs(struct inode *s
- 			start = seg_start;
- 			nblocks = seg_end - seg_start + 1;
- 		}
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		put_bh(su_bh);
- 	}
- 
-@@ -1246,10 +1246,10 @@ int nilfs_sufile_read(struct super_block
- 		goto failed;
- 
- 	sui = NILFS_SUI(sufile);
--	kaddr = kmap_atomic(header_bh->b_page);
-+	kaddr = kmap_local_page(header_bh->b_page);
- 	header = kaddr + bh_offset(header_bh);
- 	sui->ncleansegs = le64_to_cpu(header->sh_ncleansegs);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 	brelse(header_bh);
- 
- 	sui->allocmax = nilfs_sufile_get_nsegments(sufile) - 1;
+-	nilfs_write_inode_common(nilfs->ns_dat, (void *)raw_sr +
+-				 NILFS_SR_DAT_OFFSET(isz), 1);
+-	nilfs_write_inode_common(nilfs->ns_cpfile, (void *)raw_sr +
+-				 NILFS_SR_CPFILE_OFFSET(isz), 1);
+-	nilfs_write_inode_common(nilfs->ns_sufile, (void *)raw_sr +
+-				 NILFS_SR_SUFILE_OFFSET(isz), 1);
++	nilfs_write_root_mdt_inode(nilfs->ns_dat, (void *)raw_sr +
++				   NILFS_SR_DAT_OFFSET(isz));
++	nilfs_write_root_mdt_inode(nilfs->ns_cpfile, (void *)raw_sr +
++				   NILFS_SR_CPFILE_OFFSET(isz));
++	nilfs_write_root_mdt_inode(nilfs->ns_sufile, (void *)raw_sr +
++				   NILFS_SR_SUFILE_OFFSET(isz));
++
+ 	memset((void *)raw_sr + srsz, 0, nilfs->ns_blocksize - srsz);
+ 	set_buffer_uptodate(bh_sr);
+ 	unlock_buffer(bh_sr);
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
