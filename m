@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12A4A626
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:44:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9869663CB
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:44:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705970677; cv=none; b=rrbG0ehQraRRPRb8cb5WXRXICtKrzU3tKOllB03hlac/9p2+1+rr+jIEYJht+vmaoRbb6ksTV8HPr9kDbFx49lVcKAJ3ILvNrNiB8XjnMHb/sBA2RSiAHjw17mCiTWDgc7KcW8K+Y5o8thY3Pw9xbBiithnkSuNOkSW9zm4vClk=
+	t=1705970680; cv=none; b=Y1FWxv0UbceJDZOeMRI9t8AqKgLKZmcTZrce9J1q3WUm5YEBGON0rXJQhNFpPwAyjObM25zgOfPTM9wn0zX74e6RGOwgOgr7J4tqZruXEY20mIh8STc4zLrT+b4ybDsjkN4A4J29SyunYnU5oZ+k3Qa98LVPHZ1mnf6jhpIxnCo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705970677; c=relaxed/simple;
-	bh=5YuI4zNIphQRV9Bor9PGpBUfWkqptp17T5DjGnoIjyQ=;
-	h=Date:To:From:Subject:Message-Id; b=etHfJmM7Jr/NQCm2e1gk3/JdUyQAM6OkybDaiVSYFwDDdA3OQg82absHCjM9337NmLxCTiqei0/Ht+v/LW58Ox1uFuXjOavvcRG2+UWgepci6B4NTBQTa04ywugvm6obvS7LTMU+hmbNiiMGJxbWt5IyqrMuqGzsRGT9dJwyyD0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FWaUVtk5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705970680; c=relaxed/simple;
+	bh=GwUDINDsWJC6kt9KSyE/FIZFYR+vuIH4UIHwHT2BS6I=;
+	h=Date:To:From:Subject:Message-Id; b=OkAItbQbl6WEVxH4vEQ49py2IvlXcZV8qwBZbKpF0xcQY6axrIzo/5QVL3UIH8MzXcaw9aErho7whaOhnYymVCVTttJuV7MUrY6ZkErazF3OiTUK9eScSRxGwrMom4+r2x7BpB4IoKy9x3pl03qDqjoBBocQmeUSiJ9sf+nIVUs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pk+hB4QJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FWaUVtk5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47829C433C7;
-	Tue, 23 Jan 2024 00:44:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pk+hB4QJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 012C6C433F1;
+	Tue, 23 Jan 2024 00:44:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705970676;
-	bh=5YuI4zNIphQRV9Bor9PGpBUfWkqptp17T5DjGnoIjyQ=;
+	s=korg; t=1705970680;
+	bh=GwUDINDsWJC6kt9KSyE/FIZFYR+vuIH4UIHwHT2BS6I=;
 	h=Date:To:From:Subject:From;
-	b=FWaUVtk5v25aZt3B9Q10FRRFOnsmX2Tut7emJtUmW3zGbDKCDaXofpyVKrCkvTuz8
-	 2HoySGhIcX8Pl631N6l3wNd2fWcoSYk6cneS3OKlisq+I8Ntza9zeN8ZAHBcWUf0vC
-	 EJhy8KFkZvcjxKcOptyGYLhhdC2I9FSirBp7nCS8=
-Date: Mon, 22 Jan 2024 16:44:33 -0800
+	b=pk+hB4QJ6whU25Q6A3iuYAF47f1Eif4C7qw/z/Jibb3Ln46d83ywJCEqzSzHr9y56
+	 UDscIKjzH7riKxib/qQhk1jUrjwA5lTpLw1+jJpzQgFdo5wHmf8CYae7CuLXduow3N
+	 AqW49+50xPSZrezUvCBoXjsHiyAxHzK5VSBx41p8=
+Date: Mon, 22 Jan 2024 16:44:37 -0800
 To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,piliu@redhat.com,hbathini@linux.ibm.com,ebiederm@xmission.com,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + loongarch-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch added to mm-unstable branch
-Message-Id: <20240123004436.47829C433C7@smtp.kernel.org>
+Subject: + riscv-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch added to mm-unstable branch
+Message-Id: <20240123004440.012C6C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: loongarch, crash: wrap crash dumping code into crash related ifdefs
+     Subject: riscv, crash: wrap crash dumping code into crash related ifdefs
 has been added to the -mm mm-unstable branch.  Its filename is
-     loongarch-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
+     riscv-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/loongarch-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: loongarch, crash: wrap crash dumping code into crash related ifdefs
-Date: Fri, 19 Jan 2024 22:52:41 +0800
+Subject: riscv, crash: wrap crash dumping code into crash related ifdefs
+Date: Fri, 19 Jan 2024 22:52:40 +0800
 
 Now crash codes under kernel/ folder has been split out from kexec
 code, crash dumping can be separated from kexec reboot in config
-items on loongarch with some adjustments.
+items on risc-v with some adjustments.
 
 Here wrap up crash dumping codes with CONFIG_CRASH_DUMP ifdeffery, and
 use IS_ENABLED(CONFIG_CRASH_RESERVE) check to decide if compiling
 in the crashkernel reservation code.
 
-Link: https://lkml.kernel.org/r/20240119145241.769622-15-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20240119145241.769622-14-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
@@ -79,43 +79,73 @@ Cc: Pingfan Liu <piliu@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/loongarch/kernel/setup.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ arch/riscv/kernel/elf_kexec.c |    9 +++++++--
+ arch/riscv/mm/init.c          |    2 +-
+ 2 files changed, 8 insertions(+), 3 deletions(-)
 
---- a/arch/loongarch/kernel/setup.c~loongarch-crash-wrap-crash-dumping-code-into-crash-related-ifdefs
-+++ a/arch/loongarch/kernel/setup.c
-@@ -258,11 +258,13 @@ static void __init arch_reserve_vmcore(v
- 
- static void __init arch_parse_crashkernel(void)
- {
--#ifdef CONFIG_KEXEC
- 	int ret;
- 	unsigned long long total_mem;
- 	unsigned long long crash_base, crash_size;
- 
-+	if (!IS_ENABLED(CONFIG_CRASH_RESERVE))
-+		return;
-+
- 	total_mem = memblock_phys_mem_size();
- 	ret = parse_crashkernel(boot_command_line, total_mem,
- 				&crash_size, &crash_base,
-@@ -283,7 +285,6 @@ static void __init arch_parse_crashkerne
- 
- 	crashk_res.start = crash_base;
- 	crashk_res.end	 = crash_base + crash_size - 1;
--#endif
+--- a/arch/riscv/kernel/elf_kexec.c~riscv-crash-wrap-crash-dumping-code-into-crash-related-ifdefs
++++ a/arch/riscv/kernel/elf_kexec.c
+@@ -117,6 +117,7 @@ static int elf_find_pbase(struct kimage
+ 	return ret;
  }
  
- static void __init fdt_setup(void)
-@@ -468,7 +469,7 @@ static void __init resource_init(void)
- 		request_resource(res, &bss_resource);
- 	}
++#ifdef CONFIG_CRASH_DUMP
+ static int get_nr_ram_ranges_callback(struct resource *res, void *arg)
+ {
+ 	unsigned int *nr_ranges = arg;
+@@ -189,6 +190,7 @@ static char *setup_kdump_cmdline(struct
+ 	cmdline_ptr[COMMAND_LINE_SIZE - 1] = '\0';
+ 	return cmdline_ptr;
+ }
++#endif
  
--#ifdef CONFIG_KEXEC
-+#ifdef CONFIG_CRASH_RESERVE
- 	if (crashk_res.start < crashk_res.end) {
- 		insert_resource(&iomem_resource, &crashk_res);
- 		pr_info("Reserving %ldMB of memory at %ldMB for crashkernel\n",
+ static void *elf_kexec_load(struct kimage *image, char *kernel_buf,
+ 			    unsigned long kernel_len, char *initrd,
+@@ -196,12 +198,11 @@ static void *elf_kexec_load(struct kimag
+ 			    unsigned long cmdline_len)
+ {
+ 	int ret;
++	void *fdt;
+ 	unsigned long old_kernel_pbase = ULONG_MAX;
+ 	unsigned long new_kernel_pbase = 0UL;
+ 	unsigned long initrd_pbase = 0UL;
+-	unsigned long headers_sz;
+ 	unsigned long kernel_start;
+-	void *fdt, *headers;
+ 	struct elfhdr ehdr;
+ 	struct kexec_buf kbuf;
+ 	struct kexec_elf_info elf_info;
+@@ -227,8 +228,11 @@ static void *elf_kexec_load(struct kimag
+ 	kbuf.buf_min = new_kernel_pbase + kernel_len;
+ 	kbuf.buf_max = ULONG_MAX;
+ 
++#ifdef CONFIG_CRASH_DUMP
+ 	/* Add elfcorehdr */
+ 	if (image->type == KEXEC_TYPE_CRASH) {
++		void *headers;
++		unsigned long headers_sz;
+ 		ret = prepare_elf_headers(&headers, &headers_sz);
+ 		if (ret) {
+ 			pr_err("Preparing elf core header failed\n");
+@@ -264,6 +268,7 @@ static void *elf_kexec_load(struct kimag
+ 		}
+ 		cmdline = modified_cmdline;
+ 	}
++#endif
+ 
+ #ifdef CONFIG_ARCH_SUPPORTS_KEXEC_PURGATORY
+ 	/* Add purgatory to the image */
+--- a/arch/riscv/mm/init.c~riscv-crash-wrap-crash-dumping-code-into-crash-related-ifdefs
++++ a/arch/riscv/mm/init.c
+@@ -1354,7 +1354,7 @@ static void __init arch_reserve_crashker
+ 	bool high = false;
+ 	int ret;
+ 
+-	if (!IS_ENABLED(CONFIG_KEXEC_CORE))
++	if (!IS_ENABLED(CONFIG_CRASH_RESERVE))
+ 		return;
+ 
+ 	ret = parse_crashkernel(cmdline, memblock_phys_mem_size(),
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
