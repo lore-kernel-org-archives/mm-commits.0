@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8D6A5C80
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:44:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E14E5C9C
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:44:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705970669; cv=none; b=YlzrhjCIcFuhyfQVk4BY40lLJkziqcSMVxa7FCbW9AmYyuCo2wygh8UWG0kF7aAmDOhiUMbxgdKtkldanqVAILfy/Ja9X1hqbYZKVsM3oBRaOEs+8fv2CY5rN7Ph40MxpmySUfFtrsWGXCgUPFaGbqkmDQaTJ8dxIJR/jY371P4=
+	t=1705970673; cv=none; b=sgTocsl9VtGR1VGibLK9gRirDbiOGB6+BaJ1kAp5pVnQXHsOjIeZwtLfGKY2WxbL8CcS9xrLBmhiYbKXj4Gn8I7xhsoc3z1BZPDWj+ftQhAgXqfS3K+o0fmzEfSdvBnWgr9qvMOmSOWAbVV5Mm9MqNLqmsYMP7oyjVeZMMbNhiQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705970669; c=relaxed/simple;
-	bh=+fBuDDchFkOruYUDeoj8tX++h92GV0pOD9XgdsiVHmI=;
-	h=Date:To:From:Subject:Message-Id; b=mezn3iQgI9gbAGz8xKdtWCjp+0DlAV65yXSdDFQHyI98Dt5ybD1oSmsVAfbnaO0RxqM1YV+2zyMwWNwuS+1wiJ4hWrL19eRLWXRevmyTuOPDmoZzErzyYVwsIokkCKgqIemNCf9BX2tDaXrtRg+z3fv+N2z/+38CXwN2sIU++7E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UXga4YAO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705970673; c=relaxed/simple;
+	bh=5sKysFVGPknq2Ssw+fjbg/Z7uE4LLnJQobOkZBBlDcY=;
+	h=Date:To:From:Subject:Message-Id; b=XcLINFwUTZqPsA+5bDP1Fz97CKUn7Cz7bqwQ4BTrMr5dmlnLGNRRHUaLj8Xu2e3oV5cbA2G0ODqlTvVte3TTYtjyusHsICRdhm292OEP0NIa3m5dn/eWE67LGEdOLguBhhRAhZBFtT2oWLYI3YQifTLYAcSKkHc0iuuSdJjWEas=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0jjFarys; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UXga4YAO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 208DDC433F1;
-	Tue, 23 Jan 2024 00:44:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0jjFarys"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAE3BC43390;
+	Tue, 23 Jan 2024 00:44:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705970669;
-	bh=+fBuDDchFkOruYUDeoj8tX++h92GV0pOD9XgdsiVHmI=;
+	s=korg; t=1705970673;
+	bh=5sKysFVGPknq2Ssw+fjbg/Z7uE4LLnJQobOkZBBlDcY=;
 	h=Date:To:From:Subject:From;
-	b=UXga4YAO5oXOpDeMLnzxXaAPO763UpaMVVUSSvVhtGE5N9yDiywk1LzwkNpzcZxe3
-	 vOfbZgYmS6N0j6/UqHamioSKa34hrqiea+5A2+/1Uq3hxEu6DWnFT2giDYslKSs3GB
-	 kBauEF8KHWfi1vtfg5sePw+WSslXYcrd9FfoRM/I=
-Date: Mon, 22 Jan 2024 16:44:26 -0800
+	b=0jjFarysev/GrNy4ecT5j1CbWmb+nN4WqZrpSDIHdZh4DEgEQc0YwMcmFPXjdp0HB
+	 0SKXR4J8t1F66c/GBq4X4RWHtHFmKuieUZjSGLNL78L+keGrTiqSBpRBQq20qSABEX
+	 8ZAyF3Vs7DegN9PIFrV4D0EIhrb7w1TUNvAkEbgI=
+Date: Mon, 22 Jan 2024 16:44:30 -0800
 To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,piliu@redhat.com,hbathini@linux.ibm.com,ebiederm@xmission.com,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mips-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch added to mm-unstable branch
-Message-Id: <20240123004429.208DDC433F1@smtp.kernel.org>
+Subject: + arm-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch added to mm-unstable branch
+Message-Id: <20240123004432.BAE3BC43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mips, crash: wrap crash dumping code into crash related ifdefs
+     Subject: arm, crash: wrap crash dumping code into crash related ifdefs
 has been added to the -mm mm-unstable branch.  Its filename is
-     mips-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
+     arm-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: mips, crash: wrap crash dumping code into crash related ifdefs
-Date: Fri, 19 Jan 2024 22:52:39 +0800
+Subject: arm, crash: wrap crash dumping code into crash related ifdefs
+Date: Mon, 15 Jan 2024 22:32:19 -0500
 
-Now crash codes under kernel/ folder has been split out from kexec
-code, crash dumping can be separated from kexec reboot in config
-items on mips with some adjustments.
+Now crash codes under kernel/ folder has been split out from kexec code,
+crash dumping can be separated from kexec reboot in config items on arm
+with some adjustments.
 
-Here use IS_ENABLED(CONFIG_CRASH_RESERVE) check to decide if compiling
-in the crashkernel reservation code.
+Here use CONFIG_CRASH_RESERVE ifdef to replace CONFIG_KEXEC ifdef.
 
-Link: https://lkml.kernel.org/r/20240119145241.769622-13-bhe@redhat.com
+Link: https://lkml.kernel.org/r/Zax5kXfiREk2bDbu@MiWiFi-R3L-srv
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
@@ -78,55 +77,28 @@ Cc: Pingfan Liu <piliu@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/setup.c |   17 ++++++-----------
- 1 file changed, 6 insertions(+), 11 deletions(-)
+ arch/arm/kernel/setup.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/mips/kernel/setup.c~mips-crash-wrap-crash-dumping-code-into-crash-related-ifdefs
-+++ a/arch/mips/kernel/setup.c
-@@ -442,8 +442,6 @@ static void __init mips_reserve_vmcore(v
- #endif
+--- a/arch/arm/kernel/setup.c~arm-crash-wrap-crash-dumping-code-into-crash-related-ifdefs
++++ a/arch/arm/kernel/setup.c
+@@ -979,7 +979,7 @@ static int __init init_machine_late(void
  }
+ late_initcall(init_machine_late);
  
 -#ifdef CONFIG_KEXEC
--
- /* 64M alignment for crash kernel regions */
- #define CRASH_ALIGN	SZ_64M
- #define CRASH_ADDR_MAX	SZ_512M
-@@ -454,6 +452,9 @@ static void __init mips_parse_crashkerne
- 	unsigned long long crash_size, crash_base;
- 	int ret;
- 
-+	if (!IS_ENABLED(CONFIG_CRASH_RESERVE))
-+		return;
-+
- 	total_mem = memblock_phys_mem_size();
- 	ret = parse_crashkernel(boot_command_line, total_mem,
- 				&crash_size, &crash_base,
-@@ -489,6 +490,9 @@ static void __init request_crashkernel(s
- {
- 	int ret;
- 
-+	if (!IS_ENABLED(CONFIG_CRASH_RESERVE))
-+		return;
-+
- 	if (crashk_res.start == crashk_res.end)
- 		return;
- 
-@@ -498,15 +502,6 @@ static void __init request_crashkernel(s
- 			(unsigned long)(resource_size(&crashk_res) >> 20),
- 			(unsigned long)(crashk_res.start  >> 20));
++#ifdef CONFIG_CRASH_RESERVE
+ /*
+  * The crash region must be aligned to 128MB to avoid
+  * zImage relocating below the reserved region.
+@@ -1066,7 +1066,7 @@ static void __init reserve_crashkernel(v
  }
--#else /* !defined(CONFIG_KEXEC)		*/
--static void __init mips_parse_crashkernel(void)
--{
--}
--
--static void __init request_crashkernel(struct resource *res)
--{
--}
--#endif /* !defined(CONFIG_KEXEC)  */
+ #else
+ static inline void reserve_crashkernel(void) {}
+-#endif /* CONFIG_KEXEC */
++#endif /* CONFIG_CRASH_RESERVE*/
  
- static void __init check_kernel_sections_mem(void)
+ void __init hyp_mode_check(void)
  {
 _
 
