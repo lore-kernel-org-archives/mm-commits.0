@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A59684E1D2
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:42:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 879094E1D2
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:42:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705970565; cv=none; b=K1Ec33rTZV3vXIwlF3sAHc4hWFOi7RbeduIG3S6KhZzXvQZVJWj9fe3705BiFH47ej9umOaQ1VMofCbnc5Wx7picnnfJf3cHyIF8PrV86iilDcpJsCzUfYq7Pd3k671D9VWTce2mMb3zKiGdQ+E0HvVgwi0mfoLE3uBT/F3hBfg=
+	t=1705970569; cv=none; b=PURLEahx1U6MP5K6+fAe8/zMBJMweh6TYK3WG3dvgb33XoaiWpZgd8OwOBOG5DLPgWH+8OkgZt7dPTxIzEO9JolzzAVJUEtdL944tD/hRWO4CnRSI3RYKxRCu/NWg0VTHQDi6ErprmYTLSpy0m5t48RrDtqIxEtyzWti34Q4QNk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705970565; c=relaxed/simple;
-	bh=bzKeckyZuEnEgMc9CZc/ZvmeNZjBJAE06nEYXyqcizk=;
-	h=Date:To:From:Subject:Message-Id; b=Hvx0jpYFcbKnu6O716ywKsURDUmemqaRZLxvWlmGNOQb6JmTKHv+wbbeXIemMUFbDCiYTzZigkHuk0JPCEwsECm9d4qQftNiOkOb2KEUESSE6aG3yoCjmgmXI0EGcPiJ9Yfx/BTJo7Z+gf+3Fi+z+DShK/eyYWTX67yhC1IJMLA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u6OJaejv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705970569; c=relaxed/simple;
+	bh=fbZcer5AQV5Y/Sez43u+t/gnchcVx7j3Lq6Ab/0sNa8=;
+	h=Date:To:From:Subject:Message-Id; b=TWGIhqLHGxrZjUdPYLAxqKhTAbx53oiR3tFo3Vwwivy2XMy80qYVHxaOHlFqEBE/+AHobUSDORGmYffi2M2yNLJuFBldXgYgdgZgeCJWyGcDv+xhevssC+D9j1UducWfiiWV6rRy/fhypmHKaLwgonDhPIkXh9N7v3o2TmeHty4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iU2MD0lS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u6OJaejv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CE9EC43390;
-	Tue, 23 Jan 2024 00:42:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iU2MD0lS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA743C43390;
+	Tue, 23 Jan 2024 00:42:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705970565;
-	bh=bzKeckyZuEnEgMc9CZc/ZvmeNZjBJAE06nEYXyqcizk=;
+	s=korg; t=1705970569;
+	bh=fbZcer5AQV5Y/Sez43u+t/gnchcVx7j3Lq6Ab/0sNa8=;
 	h=Date:To:From:Subject:From;
-	b=u6OJaejvCBLN9aSR+n7KQY+W1TjNVbMqYNJQjurrvA30tZx9u4ETQwyobUIo/76tz
-	 zDZ36XGVVPw/QOHSsuih4yZz8f8TwutVBS5gLBNXuHg0tXBlwHEFtcXW94o7m2iU5g
-	 JF1zsoaEqc8/G5/KNUW3iSr+Kl2UH7VgfP43QISI=
-Date: Mon, 22 Jan 2024 16:42:42 -0800
+	b=iU2MD0lSu9dVhN2Boh1Qb02X+j2D9DTJ2sxKQzDhHpGsI5wL2xZY46XdfnEnwG4k+
+	 CPGEa3/wUxYdUzZ8OZyNhUZ7DLWOGtMxevUsgwUZEdZ+Noc58FQgrx4cSLK5ovTf2w
+	 Q2A49XabkGhIsRNbekphU8i6iXltZ82Z4Khsmb58=
+Date: Mon, 22 Jan 2024 16:42:45 -0800
 To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-convert-persistent-object-allocator-to-use-kmap_local.patch added to mm-nonmm-unstable branch
-Message-Id: <20240123004245.0CE9EC43390@smtp.kernel.org>
+Subject: + nilfs2-convert-dat-to-use-kmap_local.patch added to mm-nonmm-unstable branch
+Message-Id: <20240123004248.DA743C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: convert persistent object allocator to use kmap_local
+     Subject: nilfs2: convert DAT to use kmap_local
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-convert-persistent-object-allocator-to-use-kmap_local.patch
+     nilfs2-convert-dat-to-use-kmap_local.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-persistent-object-allocator-to-use-kmap_local.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-dat-to-use-kmap_local.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,198 +59,179 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: convert persistent object allocator to use kmap_local
-Date: Mon, 22 Jan 2024 23:01:53 +0900
+Subject: nilfs2: convert DAT to use kmap_local
+Date: Mon, 22 Jan 2024 23:01:54 +0900
 
-Regarding the allocator code that is commonly used in the ondisk inode
-metadata file ifile and the disk address translation metadata file DAT,
-convert the parts that use the deprecated kmap_atomic() and kmap() to use
-kmap_local.
+Concerning the code of the metadata file DAT for disk address translation,
+convert all parts that use the deprecated kmap_atomic to use kmap_local. 
+All transformations are directly possible.
 
-Most can be converted directly, but only
-nilfs_palloc_prepare_alloc_entry() needs to be rewritten to change mapping
-sections so that multiple kmap_local/kunmap_local calls are nested and
-disk I/O can be avoided within the mapping sections.
-
-Link: https://lkml.kernel.org/r/20240122140202.6950-7-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20240122140202.6950-8-konishi.ryusuke@gmail.com
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/alloc.c |   91 ++++++++++++++++++++++----------------------
- 1 file changed, 46 insertions(+), 45 deletions(-)
+ fs/nilfs2/dat.c |   38 +++++++++++++++++++-------------------
+ 1 file changed, 19 insertions(+), 19 deletions(-)
 
---- a/fs/nilfs2/alloc.c~nilfs2-convert-persistent-object-allocator-to-use-kmap_local
-+++ a/fs/nilfs2/alloc.c
-@@ -525,54 +525,55 @@ int nilfs_palloc_prepare_alloc_entry(str
- 		ret = nilfs_palloc_get_desc_block(inode, group, 1, &desc_bh);
- 		if (ret < 0)
- 			return ret;
--		desc_kaddr = kmap(desc_bh->b_page);
-+		desc_kaddr = kmap_local_page(desc_bh->b_page);
- 		desc = nilfs_palloc_block_get_group_desc(
- 			inode, group, desc_bh, desc_kaddr);
- 		n = nilfs_palloc_rest_groups_in_desc_block(inode, group,
- 							   maxgroup);
--		for (j = 0; j < n; j++, desc++, group++) {
-+		for (j = 0; j < n; j++, desc++, group++, group_offset = 0) {
- 			lock = nilfs_mdt_bgl_lock(inode, group);
--			if (nilfs_palloc_group_desc_nfrees(desc, lock) > 0) {
--				ret = nilfs_palloc_get_bitmap_block(
--					inode, group, 1, &bitmap_bh);
--				if (ret < 0)
--					goto out_desc;
--				bitmap_kaddr = kmap(bitmap_bh->b_page);
--				bitmap = bitmap_kaddr + bh_offset(bitmap_bh);
--				pos = nilfs_palloc_find_available_slot(
--					bitmap, group_offset,
--					entries_per_group, lock);
--				if (pos >= 0) {
--					/* found a free entry */
--					nilfs_palloc_group_desc_add_entries(
--						desc, lock, -1);
--					req->pr_entry_nr =
--						entries_per_group * group + pos;
--					kunmap(desc_bh->b_page);
--					kunmap(bitmap_bh->b_page);
--
--					req->pr_desc_bh = desc_bh;
--					req->pr_bitmap_bh = bitmap_bh;
--					return 0;
--				}
--				kunmap(bitmap_bh->b_page);
--				brelse(bitmap_bh);
-+			if (nilfs_palloc_group_desc_nfrees(desc, lock) == 0)
-+				continue;
-+
-+			kunmap_local(desc_kaddr);
-+			ret = nilfs_palloc_get_bitmap_block(inode, group, 1,
-+							    &bitmap_bh);
-+			if (unlikely(ret < 0)) {
-+				brelse(desc_bh);
-+				return ret;
- 			}
+--- a/fs/nilfs2/dat.c~nilfs2-convert-dat-to-use-kmap_local
++++ a/fs/nilfs2/dat.c
+@@ -91,13 +91,13 @@ void nilfs_dat_commit_alloc(struct inode
+ 	struct nilfs_dat_entry *entry;
+ 	void *kaddr;
  
--			group_offset = 0;
-+			desc_kaddr = kmap_local_page(desc_bh->b_page);
-+			desc = nilfs_palloc_block_get_group_desc(
-+				inode, group, desc_bh, desc_kaddr);
-+
-+			bitmap_kaddr = kmap_local_page(bitmap_bh->b_page);
-+			bitmap = bitmap_kaddr + bh_offset(bitmap_bh);
-+			pos = nilfs_palloc_find_available_slot(
-+				bitmap, group_offset, entries_per_group, lock);
-+			kunmap_local(bitmap_kaddr);
-+			if (pos >= 0)
-+				goto found;
-+
-+			brelse(bitmap_bh);
+-	kaddr = kmap_atomic(req->pr_entry_bh->b_page);
++	kaddr = kmap_local_page(req->pr_entry_bh->b_page);
+ 	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
+ 					     req->pr_entry_bh, kaddr);
+ 	entry->de_start = cpu_to_le64(NILFS_CNO_MIN);
+ 	entry->de_end = cpu_to_le64(NILFS_CNO_MAX);
+ 	entry->de_blocknr = cpu_to_le64(0);
+-	kunmap_atomic(kaddr);
++	kunmap_local(kaddr);
+ 
+ 	nilfs_palloc_commit_alloc_entry(dat, req);
+ 	nilfs_dat_commit_entry(dat, req);
+@@ -115,13 +115,13 @@ static void nilfs_dat_commit_free(struct
+ 	struct nilfs_dat_entry *entry;
+ 	void *kaddr;
+ 
+-	kaddr = kmap_atomic(req->pr_entry_bh->b_page);
++	kaddr = kmap_local_page(req->pr_entry_bh->b_page);
+ 	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
+ 					     req->pr_entry_bh, kaddr);
+ 	entry->de_start = cpu_to_le64(NILFS_CNO_MIN);
+ 	entry->de_end = cpu_to_le64(NILFS_CNO_MIN);
+ 	entry->de_blocknr = cpu_to_le64(0);
+-	kunmap_atomic(kaddr);
++	kunmap_local(kaddr);
+ 
+ 	nilfs_dat_commit_entry(dat, req);
+ 
+@@ -145,12 +145,12 @@ void nilfs_dat_commit_start(struct inode
+ 	struct nilfs_dat_entry *entry;
+ 	void *kaddr;
+ 
+-	kaddr = kmap_atomic(req->pr_entry_bh->b_page);
++	kaddr = kmap_local_page(req->pr_entry_bh->b_page);
+ 	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
+ 					     req->pr_entry_bh, kaddr);
+ 	entry->de_start = cpu_to_le64(nilfs_mdt_cno(dat));
+ 	entry->de_blocknr = cpu_to_le64(blocknr);
+-	kunmap_atomic(kaddr);
++	kunmap_local(kaddr);
+ 
+ 	nilfs_dat_commit_entry(dat, req);
+ }
+@@ -167,12 +167,12 @@ int nilfs_dat_prepare_end(struct inode *
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	kaddr = kmap_atomic(req->pr_entry_bh->b_page);
++	kaddr = kmap_local_page(req->pr_entry_bh->b_page);
+ 	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
+ 					     req->pr_entry_bh, kaddr);
+ 	start = le64_to_cpu(entry->de_start);
+ 	blocknr = le64_to_cpu(entry->de_blocknr);
+-	kunmap_atomic(kaddr);
++	kunmap_local(kaddr);
+ 
+ 	if (blocknr == 0) {
+ 		ret = nilfs_palloc_prepare_free_entry(dat, req);
+@@ -202,7 +202,7 @@ void nilfs_dat_commit_end(struct inode *
+ 	sector_t blocknr;
+ 	void *kaddr;
+ 
+-	kaddr = kmap_atomic(req->pr_entry_bh->b_page);
++	kaddr = kmap_local_page(req->pr_entry_bh->b_page);
+ 	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
+ 					     req->pr_entry_bh, kaddr);
+ 	end = start = le64_to_cpu(entry->de_start);
+@@ -212,7 +212,7 @@ void nilfs_dat_commit_end(struct inode *
+ 	}
+ 	entry->de_end = cpu_to_le64(end);
+ 	blocknr = le64_to_cpu(entry->de_blocknr);
+-	kunmap_atomic(kaddr);
++	kunmap_local(kaddr);
+ 
+ 	if (blocknr == 0)
+ 		nilfs_dat_commit_free(dat, req);
+@@ -227,12 +227,12 @@ void nilfs_dat_abort_end(struct inode *d
+ 	sector_t blocknr;
+ 	void *kaddr;
+ 
+-	kaddr = kmap_atomic(req->pr_entry_bh->b_page);
++	kaddr = kmap_local_page(req->pr_entry_bh->b_page);
+ 	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
+ 					     req->pr_entry_bh, kaddr);
+ 	start = le64_to_cpu(entry->de_start);
+ 	blocknr = le64_to_cpu(entry->de_blocknr);
+-	kunmap_atomic(kaddr);
++	kunmap_local(kaddr);
+ 
+ 	if (start == nilfs_mdt_cno(dat) && blocknr == 0)
+ 		nilfs_palloc_abort_free_entry(dat, req);
+@@ -362,7 +362,7 @@ int nilfs_dat_move(struct inode *dat, __
  		}
- 
--		kunmap(desc_bh->b_page);
-+		kunmap_local(desc_kaddr);
- 		brelse(desc_bh);
  	}
  
- 	/* no entries left */
- 	return -ENOSPC;
+-	kaddr = kmap_atomic(entry_bh->b_page);
++	kaddr = kmap_local_page(entry_bh->b_page);
+ 	entry = nilfs_palloc_block_get_entry(dat, vblocknr, entry_bh, kaddr);
+ 	if (unlikely(entry->de_blocknr == cpu_to_le64(0))) {
+ 		nilfs_crit(dat->i_sb,
+@@ -370,13 +370,13 @@ int nilfs_dat_move(struct inode *dat, __
+ 			   __func__, (unsigned long long)vblocknr,
+ 			   (unsigned long long)le64_to_cpu(entry->de_start),
+ 			   (unsigned long long)le64_to_cpu(entry->de_end));
+-		kunmap_atomic(kaddr);
++		kunmap_local(kaddr);
+ 		brelse(entry_bh);
+ 		return -EINVAL;
+ 	}
+ 	WARN_ON(blocknr == 0);
+ 	entry->de_blocknr = cpu_to_le64(blocknr);
+-	kunmap_atomic(kaddr);
++	kunmap_local(kaddr);
  
-- out_desc:
--	kunmap(desc_bh->b_page);
--	brelse(desc_bh);
--	return ret;
-+found:
-+	/* found a free entry */
-+	nilfs_palloc_group_desc_add_entries(desc, lock, -1);
-+	req->pr_entry_nr = entries_per_group * group + pos;
-+	kunmap_local(desc_kaddr);
-+
-+	req->pr_desc_bh = desc_bh;
-+	req->pr_bitmap_bh = bitmap_bh;
-+	return 0;
- }
- 
- /**
-@@ -606,10 +607,10 @@ void nilfs_palloc_commit_free_entry(stru
- 	spinlock_t *lock;
- 
- 	group = nilfs_palloc_group(inode, req->pr_entry_nr, &group_offset);
--	desc_kaddr = kmap(req->pr_desc_bh->b_page);
-+	desc_kaddr = kmap_local_page(req->pr_desc_bh->b_page);
- 	desc = nilfs_palloc_block_get_group_desc(inode, group,
- 						 req->pr_desc_bh, desc_kaddr);
--	bitmap_kaddr = kmap(req->pr_bitmap_bh->b_page);
-+	bitmap_kaddr = kmap_local_page(req->pr_bitmap_bh->b_page);
- 	bitmap = bitmap_kaddr + bh_offset(req->pr_bitmap_bh);
- 	lock = nilfs_mdt_bgl_lock(inode, group);
- 
-@@ -621,8 +622,8 @@ void nilfs_palloc_commit_free_entry(stru
- 	else
- 		nilfs_palloc_group_desc_add_entries(desc, lock, 1);
- 
--	kunmap(req->pr_bitmap_bh->b_page);
--	kunmap(req->pr_desc_bh->b_page);
-+	kunmap_local(bitmap_kaddr);
-+	kunmap_local(desc_kaddr);
- 
- 	mark_buffer_dirty(req->pr_desc_bh);
- 	mark_buffer_dirty(req->pr_bitmap_bh);
-@@ -647,10 +648,10 @@ void nilfs_palloc_abort_alloc_entry(stru
- 	spinlock_t *lock;
- 
- 	group = nilfs_palloc_group(inode, req->pr_entry_nr, &group_offset);
--	desc_kaddr = kmap(req->pr_desc_bh->b_page);
-+	desc_kaddr = kmap_local_page(req->pr_desc_bh->b_page);
- 	desc = nilfs_palloc_block_get_group_desc(inode, group,
- 						 req->pr_desc_bh, desc_kaddr);
--	bitmap_kaddr = kmap(req->pr_bitmap_bh->b_page);
-+	bitmap_kaddr = kmap_local_page(req->pr_bitmap_bh->b_page);
- 	bitmap = bitmap_kaddr + bh_offset(req->pr_bitmap_bh);
- 	lock = nilfs_mdt_bgl_lock(inode, group);
- 
-@@ -662,8 +663,8 @@ void nilfs_palloc_abort_alloc_entry(stru
- 	else
- 		nilfs_palloc_group_desc_add_entries(desc, lock, 1);
- 
--	kunmap(req->pr_bitmap_bh->b_page);
--	kunmap(req->pr_desc_bh->b_page);
-+	kunmap_local(bitmap_kaddr);
-+	kunmap_local(desc_kaddr);
- 
- 	brelse(req->pr_bitmap_bh);
- 	brelse(req->pr_desc_bh);
-@@ -755,7 +756,7 @@ int nilfs_palloc_freev(struct inode *ino
- 		/* Get the first entry number of the group */
- 		group_min_nr = (__u64)group * epg;
- 
--		bitmap_kaddr = kmap(bitmap_bh->b_page);
-+		bitmap_kaddr = kmap_local_page(bitmap_bh->b_page);
- 		bitmap = bitmap_kaddr + bh_offset(bitmap_bh);
- 		lock = nilfs_mdt_bgl_lock(inode, group);
- 
-@@ -801,7 +802,7 @@ int nilfs_palloc_freev(struct inode *ino
- 			entry_start = rounddown(group_offset, epb);
- 		} while (true);
- 
--		kunmap(bitmap_bh->b_page);
-+		kunmap_local(bitmap_kaddr);
- 		mark_buffer_dirty(bitmap_bh);
- 		brelse(bitmap_bh);
- 
-@@ -815,11 +816,11 @@ int nilfs_palloc_freev(struct inode *ino
- 					   inode->i_ino);
+ 	mark_buffer_dirty(entry_bh);
+ 	nilfs_mdt_mark_dirty(dat);
+@@ -426,7 +426,7 @@ int nilfs_dat_translate(struct inode *da
  		}
+ 	}
  
--		desc_kaddr = kmap_atomic(desc_bh->b_page);
-+		desc_kaddr = kmap_local_page(desc_bh->b_page);
- 		desc = nilfs_palloc_block_get_group_desc(
- 			inode, group, desc_bh, desc_kaddr);
- 		nfree = nilfs_palloc_group_desc_add_entries(desc, lock, n);
--		kunmap_atomic(desc_kaddr);
-+		kunmap_local(desc_kaddr);
- 		mark_buffer_dirty(desc_bh);
- 		nilfs_mdt_mark_dirty(inode);
- 		brelse(desc_bh);
+-	kaddr = kmap_atomic(entry_bh->b_page);
++	kaddr = kmap_local_page(entry_bh->b_page);
+ 	entry = nilfs_palloc_block_get_entry(dat, vblocknr, entry_bh, kaddr);
+ 	blocknr = le64_to_cpu(entry->de_blocknr);
+ 	if (blocknr == 0) {
+@@ -436,7 +436,7 @@ int nilfs_dat_translate(struct inode *da
+ 	*blocknrp = blocknr;
+ 
+  out:
+-	kunmap_atomic(kaddr);
++	kunmap_local(kaddr);
+ 	brelse(entry_bh);
+ 	return ret;
+ }
+@@ -457,7 +457,7 @@ ssize_t nilfs_dat_get_vinfo(struct inode
+ 						   0, &entry_bh);
+ 		if (ret < 0)
+ 			return ret;
+-		kaddr = kmap_atomic(entry_bh->b_page);
++		kaddr = kmap_local_page(entry_bh->b_page);
+ 		/* last virtual block number in this block */
+ 		first = vinfo->vi_vblocknr;
+ 		do_div(first, entries_per_block);
+@@ -473,7 +473,7 @@ ssize_t nilfs_dat_get_vinfo(struct inode
+ 			vinfo->vi_end = le64_to_cpu(entry->de_end);
+ 			vinfo->vi_blocknr = le64_to_cpu(entry->de_blocknr);
+ 		}
+-		kunmap_atomic(kaddr);
++		kunmap_local(kaddr);
+ 		brelse(entry_bh);
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
