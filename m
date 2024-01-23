@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1BB254BD2
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:43:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CD2954BD2
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:43:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705970587; cv=none; b=ji53HYp99wNvVJPQOLYIXeDVou18F0meYm9tlfqsnVF4qSYMg+tKAbuFA4p1YZjzqmieEQPaHmY4Fy30DCNKN7HynqyoyD6r35eh9GDfLeYHxJc610rDV8/l1iJfHmKehvw7tSw1wz6EBIv8akHiXbnBFwsyqazPwKm0blLbSS8=
+	t=1705970591; cv=none; b=X6kusOBQBuoKHKqqA63hU8oG9byJYwLY3jHiZIfCJM+BkQRzWBaM+oDv2tdO03q7mAfO4UnzPfo7e2NOIgqsL7j4f75WvDmV/ioc0cUY7fXKKKododesdK+y/ZrqowI0+KWH8x+r40GIHPXIFpGDXPpJEaTmw0uNcpRkOvapN3s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705970587; c=relaxed/simple;
-	bh=SkX16vbLDv24oBwlvRj2zJZXonDaNiYZdV9bCaHbwK8=;
-	h=Date:To:From:Subject:Message-Id; b=MidneTnjg3fHfh/hSu9CR77IlFc32eZPdygGYPSdXkSyGnPJro/BzdGOoA4tjUmv77OPFBCQU8pEhx/kTvv/soHwTZ3vR9xwVD3iq7hrfKzeWglRzDdD2DHHDGF6g1RzLgDn+C753ZS6DRM5Th+vO0Eat00vh0GbGcJ+co0JviA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b2Jx9BNZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705970591; c=relaxed/simple;
+	bh=ZE7TmUN4AtRjPe/T4p/4J83ZmWTyqgPdYMnirVWN0jA=;
+	h=Date:To:From:Subject:Message-Id; b=ZPk4hrdOgQeDu5Aa0va/578z0Vk0bBh5musIsQ9M31ujA1HtDqDFZPGL90n9EAXR9Xya8holIMAFycheHatSOaSNHoeArIGCBC29fDzh1JnlbHj5x6eAAe1wFCeFdyQY7e4aS3L2YMvHUP4DX+jabxGplc4CRmLmdvMmoID5Kkg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AGXe4d0j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b2Jx9BNZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 075C3C43394;
-	Tue, 23 Jan 2024 00:43:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AGXe4d0j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A23ECC433F1;
+	Tue, 23 Jan 2024 00:43:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705970587;
-	bh=SkX16vbLDv24oBwlvRj2zJZXonDaNiYZdV9bCaHbwK8=;
+	s=korg; t=1705970591;
+	bh=ZE7TmUN4AtRjPe/T4p/4J83ZmWTyqgPdYMnirVWN0jA=;
 	h=Date:To:From:Subject:From;
-	b=b2Jx9BNZGz+vZ+6pEHr65R6zMmqahRHltGqx2kvJwWeRe/nBcrwLutSza1dNUwSI5
-	 0zpNHw7FK2v3HoECUUopk/sILgKaJhiHXjSEaC1grjZMQn0sxLGTtD/tNvC/a5lPRz
-	 /I2HIUMMAqqXPFCxRjcYSkSkcGH+VoO7U1n571rs=
-Date: Mon, 22 Jan 2024 16:43:04 -0800
+	b=AGXe4d0jrrMOqhiY73b+tD4wjevoKcHAWq+C3ey8NlqILKKo9ugS1P2b2KrdCt5oU
+	 iaTBsQ1sgSGPM8NsSRRBKGqEgIK1P6L1t2f79TGJMmzJBPltawJRNgmcwO2K+auDwq
+	 7KXimY3lS3Vq6XwuKd3DDammgc2EwpDwmy/0JCP8=
+Date: Mon, 22 Jan 2024 16:43:07 -0800
 To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-localize-highmem-mapping-for-checkpoint-finalization-within-cpfile.patch added to mm-nonmm-unstable branch
-Message-Id: <20240123004307.075C3C43394@smtp.kernel.org>
+Subject: + nilfs2-localize-highmem-mapping-for-checkpoint-creation-within-cpfile.patch added to mm-nonmm-unstable branch
+Message-Id: <20240123004310.A23ECC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: localize highmem mapping for checkpoint finalization within cpfile
+     Subject: nilfs2: localize highmem mapping for checkpoint creation within cpfile
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-localize-highmem-mapping-for-checkpoint-finalization-within-cpfile.patch
+     nilfs2-localize-highmem-mapping-for-checkpoint-creation-within-cpfile.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-localize-highmem-mapping-for-checkpoint-finalization-within-cpfile.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-localize-highmem-mapping-for-checkpoint-creation-within-cpfile.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,54 +59,50 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: localize highmem mapping for checkpoint finalization within cpfile
-Date: Mon, 22 Jan 2024 23:01:59 +0900
+Subject: nilfs2: localize highmem mapping for checkpoint creation within cpfile
+Date: Mon, 22 Jan 2024 23:01:58 +0900
 
-Move the checkpoint finalization routine to the cpfile side, and make the
-page mapping local and temporary.  And use kmap_local instead of kmap to
-access the checkpoint entry page when finalizing a checkpoint.
+In order to convert kmap() used in cpfile to kmap_local, first move the
+checkpoint creation routine, which is one of the places where kmap is
+used, to the cpfile side and make the page mapping local and temporary. 
+And use kmap_local instead of kmap to access the checkpoint entry page
+(and header block page) when generating a checkpoint.
 
-In this conversion, some of the information on the checkpoint entry being
-rewritten is passed through the arguments of the newly added method
-nilfs_cpfile_finalize_checkpoint().
-
-Link: https://lkml.kernel.org/r/20240122140202.6950-13-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20240122140202.6950-12-konishi.ryusuke@gmail.com
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  fs/nilfs2/cpfile.c  |   74 ++++++++++++++++++++++++++++++++++++++++++
- fs/nilfs2/cpfile.h  |    3 +
- fs/nilfs2/segment.c |   51 ++--------------------------
- 3 files changed, 82 insertions(+), 46 deletions(-)
+ fs/nilfs2/cpfile.h  |    1 
+ fs/nilfs2/segment.c |   31 +----------------
+ 3 files changed, 77 insertions(+), 29 deletions(-)
 
---- a/fs/nilfs2/cpfile.c~nilfs2-localize-highmem-mapping-for-checkpoint-finalization-within-cpfile
+--- a/fs/nilfs2/cpfile.c~nilfs2-localize-highmem-mapping-for-checkpoint-creation-within-cpfile
 +++ a/fs/nilfs2/cpfile.c
-@@ -364,6 +364,80 @@ void nilfs_cpfile_put_checkpoint(struct
+@@ -273,6 +273,80 @@ int nilfs_cpfile_get_checkpoint(struct i
  }
  
  /**
-+ * nilfs_cpfile_finalize_checkpoint - fill in a checkpoint entry in cpfile
++ * nilfs_cpfile_create_checkpoint - create a checkpoint entry on cpfile
 + * @cpfile: checkpoint file inode
-+ * @cno:    checkpoint number
-+ * @root:   nilfs root object
-+ * @blkinc: number of blocks added by this checkpoint
-+ * @ctime:  checkpoint creation time
-+ * @minor:  minor checkpoint flag
++ * @cno:    number of checkpoint to set up
 + *
-+ * This function completes the checkpoint entry numbered by @cno in the
-+ * cpfile with the data given by the arguments @root, @blkinc, @ctime, and
-+ * @minor.
++ * This function creates a checkpoint with the number specified by @cno on
++ * cpfile.  If the specified checkpoint entry already exists due to a past
++ * failure, it will be reused without returning an error.
++ * In either case, the buffer of the block containing the checkpoint entry
++ * and the cpfile inode are made dirty for inclusion in the write log.
 + *
 + * Return: 0 on success, or the following negative error code on failure.
 + * * %-ENOMEM	- Insufficient memory available.
 + * * %-EIO	- I/O error (including metadata corruption).
++ * * %-EROFS	- Read only filesystem
 + */
-+int nilfs_cpfile_finalize_checkpoint(struct inode *cpfile, __u64 cno,
-+				     struct nilfs_root *root, __u64 blkinc,
-+				     time64_t ctime, bool minor)
++int nilfs_cpfile_create_checkpoint(struct inode *cpfile, __u64 cno)
 +{
-+	struct buffer_head *cp_bh;
++	struct buffer_head *header_bh, *cp_bh;
++	struct nilfs_cpfile_header *header;
 +	struct nilfs_checkpoint *cp;
 +	void *kaddr;
 +	int ret;
@@ -115,133 +111,113 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +		return -EIO;
 +
 +	down_write(&NILFS_MDT(cpfile)->mi_sem);
-+	ret = nilfs_cpfile_get_checkpoint_block(cpfile, cno, 0, &cp_bh);
++	ret = nilfs_cpfile_get_header_block(cpfile, &header_bh);
 +	if (unlikely(ret < 0)) {
-+		if (ret == -ENOENT)
-+			goto error;
++		if (ret == -ENOENT) {
++			nilfs_error(cpfile->i_sb,
++				    "checkpoint creation failed due to metadata corruption.");
++			ret = -EIO;
++		}
 +		goto out_sem;
 +	}
++	ret = nilfs_cpfile_get_checkpoint_block(cpfile, cno, 1, &cp_bh);
++	if (unlikely(ret < 0))
++		goto out_header;
 +
 +	kaddr = kmap_local_page(cp_bh->b_page);
 +	cp = nilfs_cpfile_block_get_checkpoint(cpfile, cno, cp_bh, kaddr);
-+	if (unlikely(nilfs_checkpoint_invalid(cp))) {
++	if (nilfs_checkpoint_invalid(cp)) {
++		/* a newly-created checkpoint */
++		nilfs_checkpoint_clear_invalid(cp);
++		if (!nilfs_cpfile_is_in_first(cpfile, cno))
++			nilfs_cpfile_block_add_valid_checkpoints(cpfile, cp_bh,
++								 kaddr, 1);
 +		kunmap_local(kaddr);
-+		brelse(cp_bh);
-+		goto error;
++
++		kaddr = kmap_local_page(header_bh->b_page);
++		header = nilfs_cpfile_block_get_header(cpfile, header_bh,
++						       kaddr);
++		le64_add_cpu(&header->ch_ncheckpoints, 1);
++		kunmap_local(kaddr);
++		mark_buffer_dirty(header_bh);
++	} else {
++		kunmap_local(kaddr);
 +	}
 +
-+	cp->cp_snapshot_list.ssl_next = 0;
-+	cp->cp_snapshot_list.ssl_prev = 0;
-+	cp->cp_inodes_count = cpu_to_le64(atomic64_read(&root->inodes_count));
-+	cp->cp_blocks_count = cpu_to_le64(atomic64_read(&root->blocks_count));
-+	cp->cp_nblk_inc = cpu_to_le64(blkinc);
-+	cp->cp_create = cpu_to_le64(ctime);
-+	cp->cp_cno = cpu_to_le64(cno);
-+
-+	if (minor)
-+		nilfs_checkpoint_set_minor(cp);
-+	else
-+		nilfs_checkpoint_clear_minor(cp);
-+
-+	nilfs_write_inode_common(root->ifile, &cp->cp_ifile_inode);
-+	nilfs_bmap_write(NILFS_I(root->ifile)->i_bmap, &cp->cp_ifile_inode);
-+
-+	kunmap_local(kaddr);
++	/* Force the buffer and the inode to become dirty */
++	mark_buffer_dirty(cp_bh);
 +	brelse(cp_bh);
++	nilfs_mdt_mark_dirty(cpfile);
++
++out_header:
++	brelse(header_bh);
++
 +out_sem:
 +	up_write(&NILFS_MDT(cpfile)->mi_sem);
 +	return ret;
-+
-+error:
-+	nilfs_error(cpfile->i_sb,
-+		    "checkpoint finalization failed due to metadata corruption.");
-+	ret = -EIO;
-+	goto out_sem;
 +}
 +
 +/**
-  * nilfs_cpfile_delete_checkpoints - delete checkpoints
+  * nilfs_cpfile_put_checkpoint - put a checkpoint
   * @cpfile: inode of checkpoint file
-  * @start: start checkpoint number
---- a/fs/nilfs2/cpfile.h~nilfs2-localize-highmem-mapping-for-checkpoint-finalization-within-cpfile
+  * @cno: checkpoint number
+--- a/fs/nilfs2/cpfile.h~nilfs2-localize-highmem-mapping-for-checkpoint-creation-within-cpfile
 +++ a/fs/nilfs2/cpfile.h
-@@ -21,6 +21,9 @@ int nilfs_cpfile_get_checkpoint(struct i
+@@ -19,6 +19,7 @@
+ int nilfs_cpfile_get_checkpoint(struct inode *, __u64, int,
+ 				struct nilfs_checkpoint **,
  				struct buffer_head **);
- int nilfs_cpfile_create_checkpoint(struct inode *cpfile, __u64 cno);
++int nilfs_cpfile_create_checkpoint(struct inode *cpfile, __u64 cno);
  void nilfs_cpfile_put_checkpoint(struct inode *, __u64, struct buffer_head *);
-+int nilfs_cpfile_finalize_checkpoint(struct inode *cpfile, __u64 cno,
-+				     struct nilfs_root *root, __u64 blkinc,
-+				     time64_t ctime, bool minor);
  int nilfs_cpfile_delete_checkpoints(struct inode *, __u64, __u64);
  int nilfs_cpfile_delete_checkpoint(struct inode *, __u64);
- int nilfs_cpfile_change_cpmode(struct inode *, __u64, int);
---- a/fs/nilfs2/segment.c~nilfs2-localize-highmem-mapping-for-checkpoint-finalization-within-cpfile
+--- a/fs/nilfs2/segment.c~nilfs2-localize-highmem-mapping-for-checkpoint-creation-within-cpfile
 +++ a/fs/nilfs2/segment.c
-@@ -880,51 +880,6 @@ static void nilfs_segctor_clear_metadata
+@@ -880,34 +880,6 @@ static void nilfs_segctor_clear_metadata
  	nilfs_mdt_clear_dirty(nilfs->ns_dat);
  }
  
--static int nilfs_segctor_fill_in_checkpoint(struct nilfs_sc_info *sci)
+-static int nilfs_segctor_create_checkpoint(struct nilfs_sc_info *sci)
 -{
 -	struct the_nilfs *nilfs = sci->sc_super->s_fs_info;
 -	struct buffer_head *bh_cp;
 -	struct nilfs_checkpoint *raw_cp;
--	struct inode *ifile;
 -	int err;
 -
--	err = nilfs_cpfile_get_checkpoint(nilfs->ns_cpfile, nilfs->ns_cno, 0,
+-	/* XXX: this interface will be changed */
+-	err = nilfs_cpfile_get_checkpoint(nilfs->ns_cpfile, nilfs->ns_cno, 1,
 -					  &raw_cp, &bh_cp);
--	if (unlikely(err)) {
--		if (err == -EINVAL || err == -ENOENT) {
--			nilfs_error(sci->sc_super,
--				    "checkpoint finalization failed due to metadata corruption.");
--			err = -EIO;
--		}
--		goto failed_ibh;
+-	if (likely(!err)) {
+-		/*
+-		 * The following code is duplicated with cpfile.  But, it is
+-		 * needed to collect the checkpoint even if it was not newly
+-		 * created.
+-		 */
+-		mark_buffer_dirty(bh_cp);
+-		nilfs_mdt_mark_dirty(nilfs->ns_cpfile);
+-		nilfs_cpfile_put_checkpoint(
+-			nilfs->ns_cpfile, nilfs->ns_cno, bh_cp);
+-	} else if (err == -EINVAL || err == -ENOENT) {
+-		nilfs_error(sci->sc_super,
+-			    "checkpoint creation failed due to metadata corruption.");
+-		err = -EIO;
 -	}
--	raw_cp->cp_snapshot_list.ssl_next = 0;
--	raw_cp->cp_snapshot_list.ssl_prev = 0;
--	raw_cp->cp_inodes_count =
--		cpu_to_le64(atomic64_read(&sci->sc_root->inodes_count));
--	raw_cp->cp_blocks_count =
--		cpu_to_le64(atomic64_read(&sci->sc_root->blocks_count));
--	raw_cp->cp_nblk_inc =
--		cpu_to_le64(sci->sc_nblk_inc + sci->sc_nblk_this_inc);
--	raw_cp->cp_create = cpu_to_le64(sci->sc_seg_ctime);
--	raw_cp->cp_cno = cpu_to_le64(nilfs->ns_cno);
--
--	if (test_bit(NILFS_SC_HAVE_DELTA, &sci->sc_flags))
--		nilfs_checkpoint_clear_minor(raw_cp);
--	else
--		nilfs_checkpoint_set_minor(raw_cp);
--
--	ifile = sci->sc_root->ifile;
--	nilfs_write_inode_common(ifile, &raw_cp->cp_ifile_inode);
--	nilfs_bmap_write(NILFS_I(ifile)->i_bmap, &raw_cp->cp_ifile_inode);
--
--	nilfs_cpfile_put_checkpoint(nilfs->ns_cpfile, nilfs->ns_cno, bh_cp);
--	return 0;
--
-- failed_ibh:
 -	return err;
 -}
 -
- static void nilfs_fill_in_file_bmap(struct inode *ifile,
- 				    struct nilfs_inode_info *ii)
- 
-@@ -2103,7 +2058,11 @@ static int nilfs_segctor_do_construct(st
- 
- 		if (mode == SC_LSEG_SR &&
- 		    nilfs_sc_cstage_get(sci) >= NILFS_ST_CPFILE) {
--			err = nilfs_segctor_fill_in_checkpoint(sci);
-+			err = nilfs_cpfile_finalize_checkpoint(
-+				nilfs->ns_cpfile, nilfs->ns_cno, sci->sc_root,
-+				sci->sc_nblk_inc + sci->sc_nblk_this_inc,
-+				sci->sc_seg_ctime,
-+				!test_bit(NILFS_SC_HAVE_DELTA, &sci->sc_flags));
- 			if (unlikely(err))
- 				goto failed_to_write;
- 
+ static int nilfs_segctor_fill_in_checkpoint(struct nilfs_sc_info *sci)
+ {
+ 	struct the_nilfs *nilfs = sci->sc_super->s_fs_info;
+@@ -1261,7 +1233,8 @@ static int nilfs_segctor_collect_blocks(
+ 			break;
+ 		nilfs_sc_cstage_inc(sci);
+ 		/* Creating a checkpoint */
+-		err = nilfs_segctor_create_checkpoint(sci);
++		err = nilfs_cpfile_create_checkpoint(nilfs->ns_cpfile,
++						     nilfs->ns_cno);
+ 		if (unlikely(err))
+ 			break;
+ 		fallthrough;
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
