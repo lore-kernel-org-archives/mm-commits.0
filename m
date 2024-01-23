@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9DBA5D903
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:41:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 828D03984D
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:41:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705970481; cv=none; b=jA2V5DC1uyFnuqTX2+qvyDbnMcBDx610W8Pc803RZs2z76rs7aKMhoPlP17gq7IO2xaDtHb4JQre8eFKl+WQc8B0rsnByQaFsPhc9Y2f/Gr6LrzqTBfv9+XR7YUNgvbQCDDDkpsfEcleqiZsttPcOEXMll3SKBn3VbP2tW7mqz8=
+	t=1705970485; cv=none; b=Hu1A8RHtSAXFsNHk0RttNsvyrGQVb4U2+L3vwiL3kjH2WYkpUPl34HBsAvHI4/L0CV6W0aJTTOw//yxhcPkM4w263LgkCR5d3VqtKye722T36P77FeOs549nFFptsNBaFRE4kGwCbXbEQ0/erRmyxU8GWeiW01eRNgivWYCXyA8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705970481; c=relaxed/simple;
-	bh=Wg0gv2/lEWXqZ4FBEJk33BdvblY7cb4+/tCI7a8WD4Q=;
-	h=Date:To:From:Subject:Message-Id; b=fWWpzHugJqsHJTbzOqr8UjhJRk8VAdDmE2wp9ziayJ43Y0a+adSEIlSJIdROm6+X8ohrk/o20NNViUkF+pVKMmxjrN1jzKYfJm69TWCP6biCEea7PfiAM0WM2B701Qj0f0Hwfy+MA6kNoaGN4fJyrCSLTF4E8QduyUFbzxcuP2s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zfc/27UZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705970485; c=relaxed/simple;
+	bh=3jeujPwdmzaO9EKCdIfEw7ulDV8Nj+8jD5EMdBd4pgc=;
+	h=Date:To:From:Subject:Message-Id; b=RYKjj6eQ7xUxoUa8ybShZ0SehIHnJPLeIYexVwzZ3tfa2O7Jvme7n4a3ibpDSLdW6OQ8xUnK01SHjz9PlDz9V+j/5oj2w44F/T1LaMrPOJa4BpMxCqG98xTVcRsUdKPudpFEmdETpOHgZUaanFQCAiT31oqrMfb4fbk4Ac7m57g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FUbUO3Vj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zfc/27UZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22F8DC433F1;
-	Tue, 23 Jan 2024 00:41:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FUbUO3Vj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1CD3C433C7;
+	Tue, 23 Jan 2024 00:41:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705970481;
-	bh=Wg0gv2/lEWXqZ4FBEJk33BdvblY7cb4+/tCI7a8WD4Q=;
+	s=korg; t=1705970485;
+	bh=3jeujPwdmzaO9EKCdIfEw7ulDV8Nj+8jD5EMdBd4pgc=;
 	h=Date:To:From:Subject:From;
-	b=zfc/27UZ+udK7tbNDsMAQ68qLwFf6bbACdqWHhHO7JN1eHDEVR95q2X+xk0BWwx4r
-	 XwDvW4OoN0SJDAZhSWaxC/N5VZxwkaQrudXQE/GJluN5FXaupXV9ToJgE0z2NPQfST
-	 MDoCMH75p+lFrFbXFX+yTWsMag6DeIl/1yNqMC4c=
-Date: Mon, 22 Jan 2024 16:41:18 -0800
+	b=FUbUO3Vj69eG4vMuo/6pGlpwn2BetuQVMo8C1hWV+YSoNd+4iICBgfzSAdG3Od04i
+	 Q1qtS1FE+fuIDrVxYJ2Y+hDe/GPnUBwM1o6kvyfikw/+TP+Z2A9OxFvScLERaNnMkR
+	 D7+VTueJrKyfvof9PzZoR2RMBQwytHKaHpg92+zs=
+Date: Mon, 22 Jan 2024 16:41:22 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,svens@linux.ibm.com,ryan.roberts@arm.com,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,mpe@ellerman.id.au,linux@armlinux.org.uk,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,dinguyen@kernel.org,davem@davemloft.net,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,borntraeger@linux.ibm.com,aou@eecs.berkeley.edu,aneesh.kumar@kernel.org,alexghiti@rivosinc.com,agordeev@linux.ibm.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nios2-pgtable-define-pfn_pte_shift.patch added to mm-unstable branch
-Message-Id: <20240123004121.22F8DC433F1@smtp.kernel.org>
+Subject: + risc-pgtable-define-pfn_pte_shift.patch added to mm-unstable branch
+Message-Id: <20240123004124.C1CD3C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nios2/pgtable: define PFN_PTE_SHIFT
+     Subject: riscv: pgtable: define PFN_PTE_SHIFT
 has been added to the -mm mm-unstable branch.  Its filename is
-     nios2-pgtable-define-pfn_pte_shift.patch
+     risc-pgtable-define-pfn_pte_shift.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nios2-pgtable-define-pfn_pte_shift.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/risc-pgtable-define-pfn_pte_shift.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: nios2/pgtable: define PFN_PTE_SHIFT
-Date: Mon, 22 Jan 2024 20:41:51 +0100
+Subject: riscv: pgtable: define PFN_PTE_SHIFT
+Date: Mon, 22 Jan 2024 20:41:53 +0100
 
 We want to make use of pte_next_pfn() outside of set_ptes().  Let's
 simpliy define PFN_PTE_SHIFT, required by pte_next_pfn().
 
-Link: https://lkml.kernel.org/r/20240122194200.381241-3-david@redhat.com
+Link: https://lkml.kernel.org/r/20240122194200.381241-5-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Alexandre Ghiti <alexghiti@rivosinc.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
 Cc: "Aneesh Kumar K.V (IBM)" <aneesh.kumar@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
@@ -92,19 +92,19 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/nios2/include/asm/pgtable.h |    2 ++
+ arch/riscv/include/asm/pgtable.h |    2 ++
  1 file changed, 2 insertions(+)
 
---- a/arch/nios2/include/asm/pgtable.h~nios2-pgtable-define-pfn_pte_shift
-+++ a/arch/nios2/include/asm/pgtable.h
-@@ -178,6 +178,8 @@ static inline void set_pte(pte_t *ptep,
- 	*ptep = pteval;
+--- a/arch/riscv/include/asm/pgtable.h~risc-pgtable-define-pfn_pte_shift
++++ a/arch/riscv/include/asm/pgtable.h
+@@ -523,6 +523,8 @@ static inline void __set_pte_at(pte_t *p
+ 	set_pte(ptep, pteval);
  }
  
-+#define PFN_PTE_SHIFT		0
++#define PFN_PTE_SHIFT		_PAGE_PFN_SHIFT
 +
  static inline void set_ptes(struct mm_struct *mm, unsigned long addr,
- 		pte_t *ptep, pte_t pte, unsigned int nr)
+ 		pte_t *ptep, pte_t pteval, unsigned int nr)
  {
 _
 
