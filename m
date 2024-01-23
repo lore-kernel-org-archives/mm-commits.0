@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7240F5EE75
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:42:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C54B5DF15
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:42:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705970553; cv=none; b=exbB4EEiRaibS1VJ/tAYBP0ry4N7VxUUm04v6Id1E+eFW4x1MB66qa8knvye9fneZBcecaR3aHFg0mSmnBJ+URUploqi+sWv2bneQWDfBuAYEB4gjM5ZboDupEhcOolvWEpjnudDdiXUlD65jG20MA+QUjCsOnkQrgvFov27KeM=
+	t=1705970555; cv=none; b=ZcnpdwE4OLSi+n/ORGpXHraF3qRKhMEQYjTlfHZ+4htRxu+Zm9kLU+5wCibmqjhxdBKFEHcPg3zFkVf/35StyyoB/+kSEmqW0xzrzSmMrdiuWctQ9q6RzvqPW6HCRPlkJaw0rWxxpBtaV4hsSpBzqbOc+ac/sgpReIpbMa57qds=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705970553; c=relaxed/simple;
-	bh=bciMCmXA9c2LX2jUnWBbgm8rF9Mb/qoFdF6kKP2halY=;
-	h=Date:To:From:Subject:Message-Id; b=QcwkvYqjmkZxCjHiNDF1uege2MVPW559g5d6y1uS66dgQqN5EcNPuYNAcmWh6z46y5R04pSY1iQNCiD4nLhUmKaVTpXaf8jXc3PeIiBFuVMZJEWvc0+q4htsO6u7mE7SoAgxWCk4dB83NixkSylKJ+buPM8YRzeOlBsYDnMBJDQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IFMSXQjm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705970555; c=relaxed/simple;
+	bh=dvPpm75C6l5OD6PqYC2F6piDoF1hxCjW7hEBsA+NvWg=;
+	h=Date:To:From:Subject:Message-Id; b=HgY18fHDUMzwFgAIz76qZ2mL6euYsoqXPvkWGt38qqKXw6fxFpeoAUxiylNBDN21tKG5ilzqKhfj4nZshzDkX2Gd40MfVWAsN2bmp1hTYzzDT/AECw/VdPxfhk4Du5yL0b+AhRkIEL4tAxypbSu3WNiaSjD/bRRjpNbkKF9SpeM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XRGJ5OEj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IFMSXQjm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70FD9C43390;
-	Tue, 23 Jan 2024 00:42:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XRGJ5OEj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E230C43394;
+	Tue, 23 Jan 2024 00:42:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705970550;
-	bh=bciMCmXA9c2LX2jUnWBbgm8rF9Mb/qoFdF6kKP2halY=;
+	s=korg; t=1705970554;
+	bh=dvPpm75C6l5OD6PqYC2F6piDoF1hxCjW7hEBsA+NvWg=;
 	h=Date:To:From:Subject:From;
-	b=IFMSXQjmv1QOmeCuQNfnQEBYmbOrWkcG3U1xoRXHWT1EP79TnSq3Yd4x8UzvgoHeA
-	 +UFNLatXgvF6KdzGeub4H22zsDHoVyi3mU+zVyHCS7GNGU+pP/bj2UUFcdz4WGvHzF
-	 co/vowZm+87u8dsppm9vH0RmE9AW/zJDuw3VWhgI=
-Date: Mon, 22 Jan 2024 16:42:27 -0800
+	b=XRGJ5OEjF9QmqYYMYmzOR1r1wrloIiMcLSZqmdLwCWQuIeDNYXKybZjxZc+N6tzXA
+	 PMfC/4k6/PWXHvgWxtaz+ia6/XHHW7Dwo88ZRdu1wJKZfSSiJ54DmidS7Z2Y1zNOZj
+	 Pd1B9UoLE7y1ZnOZOVJCPMYhqvuDSw6GgW3cneOc=
+Date: Mon, 22 Jan 2024 16:42:31 -0800
 To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-convert-segment-buffer-to-use-kmap_local.patch added to mm-nonmm-unstable branch
-Message-Id: <20240123004230.70FD9C43390@smtp.kernel.org>
+Subject: + nilfs2-convert-recovery-logic-to-use-kmap_local.patch added to mm-nonmm-unstable branch
+Message-Id: <20240123004234.0E230C43394@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: convert segment buffer to use kmap_local
+     Subject: nilfs2: convert recovery logic to use kmap_local
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-convert-segment-buffer-to-use-kmap_local.patch
+     nilfs2-convert-recovery-logic-to-use-kmap_local.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-segment-buffer-to-use-kmap_local.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-recovery-logic-to-use-kmap_local.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,33 +59,55 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: convert segment buffer to use kmap_local
-Date: Mon, 22 Jan 2024 23:01:49 +0900
+Subject: nilfs2: convert recovery logic to use kmap_local
+Date: Mon, 22 Jan 2024 23:01:48 +0900
 
-In the segment buffer code used for log writing, a CRC calculation routine
-uses the deprecated kmap_atomic(), so convert it to use kmap_local.
+Patch series "nilfs2: eliminate kmap and kmap_atomic calls".
 
-Link: https://lkml.kernel.org/r/20240122140202.6950-3-konishi.ryusuke@gmail.com
+This series converts remaining kmap and kmap_atomic calls to use
+kmap_local, mainly in metadata files, and eliminates calls to these
+deprecated kmap functions from nilfs2.
+
+This series does not include converting metadata files to use folios, but
+it is a step in that direction.
+
+Most conversions are straightforward, but some are not: the checkpoint
+file, the inode file, and the persistent object allocator.  These have
+been adjusted or rewritten to avoid multiple kmap_local calls or nest them
+if necessary, and to eliminate long waits like block I/O within the
+highmem mapping sections.
+
+This series has been tested in both 32-bit and 64-bit environments with
+varying block sizes.
+
+
+This patch (of 15):
+
+In the recovery function when mounting, nilfs_recovery_copy_block() uses
+the deprecated kmap_atomic(), so convert it to use kmap_local.
+
+Link: https://lkml.kernel.org/r/20240122140202.6950-1-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20240122140202.6950-2-konishi.ryusuke@gmail.com
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segbuf.c |    4 ++--
+ fs/nilfs2/recovery.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/nilfs2/segbuf.c~nilfs2-convert-segment-buffer-to-use-kmap_local
-+++ a/fs/nilfs2/segbuf.c
-@@ -220,9 +220,9 @@ static void nilfs_segbuf_fill_in_data_cr
- 		crc = crc32_le(crc, bh->b_data, bh->b_size);
- 	}
- 	list_for_each_entry(bh, &segbuf->sb_payload_buffers, b_assoc_buffers) {
--		kaddr = kmap_atomic(bh->b_page);
-+		kaddr = kmap_local_page(bh->b_page);
- 		crc = crc32_le(crc, kaddr + bh_offset(bh), bh->b_size);
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 	}
- 	raw_sum->ss_datasum = cpu_to_le32(crc);
+--- a/fs/nilfs2/recovery.c~nilfs2-convert-recovery-logic-to-use-kmap_local
++++ a/fs/nilfs2/recovery.c
+@@ -481,9 +481,9 @@ static int nilfs_recovery_copy_block(str
+ 	if (unlikely(!bh_org))
+ 		return -EIO;
+ 
+-	kaddr = kmap_atomic(page);
++	kaddr = kmap_local_page(page);
+ 	memcpy(kaddr + bh_offset(bh_org), bh_org->b_data, bh_org->b_size);
+-	kunmap_atomic(kaddr);
++	kunmap_local(kaddr);
+ 	brelse(bh_org);
+ 	return 0;
  }
 _
 
