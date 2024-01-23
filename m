@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9869663CB
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:44:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3930C626
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:44:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705970680; cv=none; b=Y1FWxv0UbceJDZOeMRI9t8AqKgLKZmcTZrce9J1q3WUm5YEBGON0rXJQhNFpPwAyjObM25zgOfPTM9wn0zX74e6RGOwgOgr7J4tqZruXEY20mIh8STc4zLrT+b4ybDsjkN4A4J29SyunYnU5oZ+k3Qa98LVPHZ1mnf6jhpIxnCo=
+	t=1705970684; cv=none; b=QlM0lWCKl4yCB9flAwm5w2Yvr3fopramWmL2Gi714IOXw/XAPZ4LpRCFOMLVNPuEy77BSt9OHXd5gTxMP1WlacoRaqpCcs/qJ7Qh3QrBEIuvEh8uhqIsEU6lR7P3DtLbjYmeBs+MuzdFPOw1Rb5bZ9XaIK/Xkh5HrmhEdLGw6kM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705970680; c=relaxed/simple;
-	bh=GwUDINDsWJC6kt9KSyE/FIZFYR+vuIH4UIHwHT2BS6I=;
-	h=Date:To:From:Subject:Message-Id; b=OkAItbQbl6WEVxH4vEQ49py2IvlXcZV8qwBZbKpF0xcQY6axrIzo/5QVL3UIH8MzXcaw9aErho7whaOhnYymVCVTttJuV7MUrY6ZkErazF3OiTUK9eScSRxGwrMom4+r2x7BpB4IoKy9x3pl03qDqjoBBocQmeUSiJ9sf+nIVUs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pk+hB4QJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705970684; c=relaxed/simple;
+	bh=JCA/vgyQw7vD9eyDRb/GNRtMJ7FFoTxlqX6iPvDDlfM=;
+	h=Date:To:From:Subject:Message-Id; b=SxAi65TR0qkavzYLBPPN+ni3d37PEz1VvGVdVHo0NSrHPHt6FyGuH6adm3pZa8c/cNXsDA0D4ej/Y7gMiFaFPtO2R3/qCZNoTaC7NWQeCMs/paTYVngG+kupx7qNk8ODtzGiZMvkbvSPiQPhluOxHFQ2J+AgqZMFZgufhrtrfL0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=azbqd79d; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pk+hB4QJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 012C6C433F1;
-	Tue, 23 Jan 2024 00:44:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="azbqd79d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 932EEC433F1;
+	Tue, 23 Jan 2024 00:44:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705970680;
-	bh=GwUDINDsWJC6kt9KSyE/FIZFYR+vuIH4UIHwHT2BS6I=;
+	s=korg; t=1705970684;
+	bh=JCA/vgyQw7vD9eyDRb/GNRtMJ7FFoTxlqX6iPvDDlfM=;
 	h=Date:To:From:Subject:From;
-	b=pk+hB4QJ6whU25Q6A3iuYAF47f1Eif4C7qw/z/Jibb3Ln46d83ywJCEqzSzHr9y56
-	 UDscIKjzH7riKxib/qQhk1jUrjwA5lTpLw1+jJpzQgFdo5wHmf8CYae7CuLXduow3N
-	 AqW49+50xPSZrezUvCBoXjsHiyAxHzK5VSBx41p8=
-Date: Mon, 22 Jan 2024 16:44:37 -0800
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,piliu@redhat.com,hbathini@linux.ibm.com,ebiederm@xmission.com,bhe@redhat.com,akpm@linux-foundation.org
+	b=azbqd79d5sYEwU0SV9EjtXJcn9+3F+Pj7+c+ZZkpCstGdq/lK3ViWfoIRyiSCkjKF
+	 /JQaRhqhfGy3WRPyky5zkDpogNs77HEWd3oG1HnO+qOJyX1Dpt4c5i1EboxuRiJt9+
+	 wuF8JNArM6gXDqw93KzvCdZhJiPAfAMypZSQJbcg=
+Date: Mon, 22 Jan 2024 16:44:40 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,riel@surriel.com,jirislaby@kernel.org,cl@linux.com,yang@os.amperecomputing.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + riscv-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch added to mm-unstable branch
-Message-Id: <20240123004440.012C6C433F1@smtp.kernel.org>
+Subject: + mm-huge_memory-dont-force-huge-page-alignment-on-32-bit.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240123004443.932EEC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: riscv, crash: wrap crash dumping code into crash related ifdefs
-has been added to the -mm mm-unstable branch.  Its filename is
-     riscv-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
+     Subject: mm: huge_memory: don't force huge page alignment on 32 bit
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-huge_memory-dont-force-huge-page-alignment-on-32-bit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-dont-force-huge-page-alignment-on-32-bit.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,112 +58,61 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: riscv, crash: wrap crash dumping code into crash related ifdefs
-Date: Fri, 19 Jan 2024 22:52:40 +0800
+From: Yang Shi <yang@os.amperecomputing.com>
+Subject: mm: huge_memory: don't force huge page alignment on 32 bit
+Date: Thu, 18 Jan 2024 10:05:05 -0800
 
-Now crash codes under kernel/ folder has been split out from kexec
-code, crash dumping can be separated from kexec reboot in config
-items on risc-v with some adjustments.
+commit efa7df3e3bb5 ("mm: align larger anonymous mappings on THP
+boundaries") caused two issues [1] [2] reported on 32 bit system or compat
+userspace.
 
-Here wrap up crash dumping codes with CONFIG_CRASH_DUMP ifdeffery, and
-use IS_ENABLED(CONFIG_CRASH_RESERVE) check to decide if compiling
-in the crashkernel reservation code.
+It doesn't make too much sense to force huge page alignment on 32 bit
+system due to the constrained virtual address space.
 
-Link: https://lkml.kernel.org/r/20240119145241.769622-14-bhe@redhat.com
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Hari Bathini <hbathini@linux.ibm.com>
-Cc: Pingfan Liu <piliu@redhat.com>
+[1] https://lore.kernel.org/linux-mm/d0a136a0-4a31-46bc-adf4-2db109a61672@kernel.org/
+[2] https://lore.kernel.org/linux-mm/CAJuCfpHXLdQy1a2B6xN2d7quTYwg2OoZseYPZTRpU0eHHKD-sQ@mail.gmail.com/
+
+Link: https://lkml.kernel.org/r/20240118180505.2914778-1-shy828301@gmail.com
+Fixes: efa7df3e3bb5 ("mm: align larger anonymous mappings on THP boundaries")
+Signed-off-by: Yang Shi <yang@os.amperecomputing.com>
+Reported-by: Jiri Slaby <jirislaby@kernel.org>
+Reported-by: Suren Baghdasaryan <surenb@google.com>
+Tested-by: Jiri Slaby <jirislaby@kernel.org>
+Tested-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Christopher Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/kernel/elf_kexec.c |    9 +++++++--
- arch/riscv/mm/init.c          |    2 +-
- 2 files changed, 8 insertions(+), 3 deletions(-)
+ mm/huge_memory.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/arch/riscv/kernel/elf_kexec.c~riscv-crash-wrap-crash-dumping-code-into-crash-related-ifdefs
-+++ a/arch/riscv/kernel/elf_kexec.c
-@@ -117,6 +117,7 @@ static int elf_find_pbase(struct kimage
- 	return ret;
- }
+--- a/mm/huge_memory.c~mm-huge_memory-dont-force-huge-page-alignment-on-32-bit
++++ a/mm/huge_memory.c
+@@ -37,6 +37,7 @@
+ #include <linux/page_owner.h>
+ #include <linux/sched/sysctl.h>
+ #include <linux/memory-tiers.h>
++#include <linux/compat.h>
  
-+#ifdef CONFIG_CRASH_DUMP
- static int get_nr_ram_ranges_callback(struct resource *res, void *arg)
- {
- 	unsigned int *nr_ranges = arg;
-@@ -189,6 +190,7 @@ static char *setup_kdump_cmdline(struct
- 	cmdline_ptr[COMMAND_LINE_SIZE - 1] = '\0';
- 	return cmdline_ptr;
- }
-+#endif
+ #include <asm/tlb.h>
+ #include <asm/pgalloc.h>
+@@ -811,6 +812,9 @@ static unsigned long __thp_get_unmapped_
+ 	loff_t off_align = round_up(off, size);
+ 	unsigned long len_pad, ret;
  
- static void *elf_kexec_load(struct kimage *image, char *kernel_buf,
- 			    unsigned long kernel_len, char *initrd,
-@@ -196,12 +198,11 @@ static void *elf_kexec_load(struct kimag
- 			    unsigned long cmdline_len)
- {
- 	int ret;
-+	void *fdt;
- 	unsigned long old_kernel_pbase = ULONG_MAX;
- 	unsigned long new_kernel_pbase = 0UL;
- 	unsigned long initrd_pbase = 0UL;
--	unsigned long headers_sz;
- 	unsigned long kernel_start;
--	void *fdt, *headers;
- 	struct elfhdr ehdr;
- 	struct kexec_buf kbuf;
- 	struct kexec_elf_info elf_info;
-@@ -227,8 +228,11 @@ static void *elf_kexec_load(struct kimag
- 	kbuf.buf_min = new_kernel_pbase + kernel_len;
- 	kbuf.buf_max = ULONG_MAX;
++	if (IS_ENABLED(CONFIG_32BIT) || in_compat_syscall())
++		return 0;
++
+ 	if (off_end <= off_align || (off_end - off_align) < size)
+ 		return 0;
  
-+#ifdef CONFIG_CRASH_DUMP
- 	/* Add elfcorehdr */
- 	if (image->type == KEXEC_TYPE_CRASH) {
-+		void *headers;
-+		unsigned long headers_sz;
- 		ret = prepare_elf_headers(&headers, &headers_sz);
- 		if (ret) {
- 			pr_err("Preparing elf core header failed\n");
-@@ -264,6 +268,7 @@ static void *elf_kexec_load(struct kimag
- 		}
- 		cmdline = modified_cmdline;
- 	}
-+#endif
- 
- #ifdef CONFIG_ARCH_SUPPORTS_KEXEC_PURGATORY
- 	/* Add purgatory to the image */
---- a/arch/riscv/mm/init.c~riscv-crash-wrap-crash-dumping-code-into-crash-related-ifdefs
-+++ a/arch/riscv/mm/init.c
-@@ -1354,7 +1354,7 @@ static void __init arch_reserve_crashker
- 	bool high = false;
- 	int ret;
- 
--	if (!IS_ENABLED(CONFIG_KEXEC_CORE))
-+	if (!IS_ENABLED(CONFIG_CRASH_RESERVE))
- 		return;
- 
- 	ret = parse_crashkernel(cmdline, memblock_phys_mem_size(),
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from yang@os.amperecomputing.com are
 
-mm-vmalloc-remove-vmap_area_list.patch
-kexec-split-crashkernel-reservation-code-out-from-crash_corec.patch
-crash-split-vmcoreinfo-exporting-code-out-from-crash_corec.patch
-crash-remove-dependency-of-fa_dump-on-crash_dump.patch
-crash-split-crash-dumping-code-out-from-kexec_corec.patch
-crash-clean-up-kdump-related-config-items.patch
-x86-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
-arm64-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
-ppc-crash-enforce-kexec-and-kexec_file-to-select-crash_dump.patch
-s390-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
-sh-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
-arm-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
-mips-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
-riscv-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
-loongarch-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
-panic-suppress-gnu_printf-warning.patch
+mm-mmap-map-map_stack-to-vm_nohugepage.patch
+mm-huge_memory-dont-force-huge-page-alignment-on-32-bit.patch
+mm-mmap-no-need-to-call-khugepaged_enter_vma-for-stack.patch
 
