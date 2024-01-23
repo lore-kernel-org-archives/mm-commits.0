@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E71A54BD2
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:43:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 424E254BD2
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:43:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705970598; cv=none; b=FsJ/bPJ65mhZL08CdLwLrQmtg1lpR5Ex0NW1SW9/FgP89zD9ACcSAy4HYnaMVORNPJ07i4ydkZ0BlA8OSAbT5FdOh7I9cWWR8cNTw/QB/niCLKyOHwCfUNHQJC0IXD9eiwxZMgUSJyn8hkBniOwxsMcdHo3+qXNh9c+JqJxcqNs=
+	t=1705970602; cv=none; b=GbDIj8wVxtfKQ0zJMxZDBYIvH2JbgiOhi+PUUpXDtA476w3Hr9yAnalGgwXRyK5PjKJ3upC1p8kLx8rHyKzqRPQWrhNnze+tSUaEIVavHerpBbwEF3TCdGTWsYgE6fkBu03YFqHljpeHahW9mk28XhO3SBndZqrHvDhyu37xYxI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705970598; c=relaxed/simple;
-	bh=v0iM25hOBTtpz4zl97d+LzrYROU52uFk5/JkBjUUmT4=;
-	h=Date:To:From:Subject:Message-Id; b=m33JRkXb2DKa62fLybChXKPzLbGIOOgK/rg+U7B8fAUQG1+3vaw79v+b0Xk59pRKOvZCxvEXyB7cuO+ErJtAY9C9OXPxXPlt2wLLX0yCl+IQH+Yd311Lik/XssORJ0blw69a5tp5VrHRRRfJ7HpKfgncfolFZ8JswrtmxCPbI2c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x0MAUmFI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705970602; c=relaxed/simple;
+	bh=6I7EvE4mfSf7WxkdtNn4XDeAFGrbFFRIqTSdCbKUzEY=;
+	h=Date:To:From:Subject:Message-Id; b=HkRqnk2EfrEdAEwATgTTE/FvjpuPEcGvzPYi/1OhGbpHd+TPGBETsj3P+Fd6Ly2VFsz3kTjp0liqUJPN/edvBg4f23TqR0Bjs+zE9BBWTzP4ToRAVdopNHHa4+oIUskYzfqB1Q276nM006UZVHpNPQXZEFkbmsClYC1auPZFWvA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tNGv1Mqf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x0MAUmFI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFEE6C433C7;
-	Tue, 23 Jan 2024 00:43:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tNGv1Mqf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AFD1C43390;
+	Tue, 23 Jan 2024 00:43:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705970598;
-	bh=v0iM25hOBTtpz4zl97d+LzrYROU52uFk5/JkBjUUmT4=;
+	s=korg; t=1705970602;
+	bh=6I7EvE4mfSf7WxkdtNn4XDeAFGrbFFRIqTSdCbKUzEY=;
 	h=Date:To:From:Subject:From;
-	b=x0MAUmFI1daOWXwYT78DQuRM4JvMf3wMGqAsawAC1fX8q0Z3WYPGiVI7M0GGRO2PA
-	 McLaHwrqxC+Mk/xtuvxe+3L9FcTzQS0sN3lsMVw/eOHCJ3qkx1PjJ/kz8FJLlrTjxQ
-	 +NjAZNvAFR6EzNJSb1miIAY9rT7XxvT2/cefHXyo=
-Date: Mon, 22 Jan 2024 16:43:15 -0800
+	b=tNGv1MqflpJ4J4r3x0LtyhVBzYQkwu6fVhEHC+qFxD/7qIB45GCqBZ/eq4H5QFMlX
+	 G3ZTGfE0iMRndpFiOj+IGld4elKrEuOp6UKQ7uZo1dZ8h4DChg4sSW3otFkpHewF8A
+	 /lHcqjpZ31DqmFTuZbGUbE/YWpwCO8g+74+cMreg=
+Date: Mon, 22 Jan 2024 16:43:18 -0800
 To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-convert-cpfile-to-use-kmap_local.patch added to mm-nonmm-unstable branch
-Message-Id: <20240123004317.EFEE6C433C7@smtp.kernel.org>
+Subject: + nilfs2-remove-nilfs_cpfile_getput_checkpoint.patch added to mm-nonmm-unstable branch
+Message-Id: <20240123004321.9AFD1C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: convert cpfile to use kmap_local
+     Subject: nilfs2: remove nilfs_cpfile_{get,put}_checkpoint()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-convert-cpfile-to-use-kmap_local.patch
+     nilfs2-remove-nilfs_cpfile_getput_checkpoint.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-cpfile-to-use-kmap_local.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-remove-nilfs_cpfile_getput_checkpoint.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,315 +59,157 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: convert cpfile to use kmap_local
-Date: Mon, 22 Jan 2024 23:02:02 +0900
+Subject: nilfs2: remove nilfs_cpfile_{get,put}_checkpoint()
+Date: Mon, 22 Jan 2024 23:02:01 +0900
 
-Convert all remaining usages of kmap_atomic in cpfile to kmap_local.
+All calls to nilfs_cpfile_get_checkpoint() and
+nilfs_cpfile_put_checkpoint() that call kmap() and kunmap() separately are
+now gone, so remove these methods.
 
-Link: https://lkml.kernel.org/r/20240122140202.6950-16-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20240122140202.6950-15-konishi.ryusuke@gmail.com
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/cpfile.c |   90 +++++++++++++++++++++----------------------
- 1 file changed, 45 insertions(+), 45 deletions(-)
+ fs/nilfs2/cpfile.c |  103 -------------------------------------------
+ fs/nilfs2/cpfile.h |    4 -
+ 2 files changed, 107 deletions(-)
 
---- a/fs/nilfs2/cpfile.c~nilfs2-convert-cpfile-to-use-kmap_local
+--- a/fs/nilfs2/cpfile.c~nilfs2-remove-nilfs_cpfile_getput_checkpoint
 +++ a/fs/nilfs2/cpfile.c
-@@ -460,7 +460,7 @@ int nilfs_cpfile_delete_checkpoints(stru
- 			continue;
- 		}
+@@ -255,92 +255,6 @@ out_sem:
+ }
  
--		kaddr = kmap_atomic(cp_bh->b_page);
-+		kaddr = kmap_local_page(cp_bh->b_page);
- 		cp = nilfs_cpfile_block_get_checkpoint(
- 			cpfile, cno, cp_bh, kaddr);
- 		nicps = 0;
-@@ -482,7 +482,7 @@ int nilfs_cpfile_delete_checkpoints(stru
- 						cpfile, cp_bh, kaddr, nicps);
- 				if (count == 0) {
- 					/* make hole */
--					kunmap_atomic(kaddr);
-+					kunmap_local(kaddr);
- 					brelse(cp_bh);
- 					ret =
- 					  nilfs_cpfile_delete_checkpoint_block(
-@@ -497,18 +497,18 @@ int nilfs_cpfile_delete_checkpoints(stru
- 			}
- 		}
- 
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		brelse(cp_bh);
- 	}
- 
- 	if (tnicps > 0) {
+ /**
+- * nilfs_cpfile_get_checkpoint - get a checkpoint
+- * @cpfile: inode of checkpoint file
+- * @cno: checkpoint number
+- * @create: create flag
+- * @cpp: pointer to a checkpoint
+- * @bhp: pointer to a buffer head
+- *
+- * Description: nilfs_cpfile_get_checkpoint() acquires the checkpoint
+- * specified by @cno. A new checkpoint will be created if @cno is the current
+- * checkpoint number and @create is nonzero.
+- *
+- * Return Value: On success, 0 is returned, and the checkpoint and the
+- * buffer head of the buffer on which the checkpoint is located are stored in
+- * the place pointed by @cpp and @bhp, respectively. On error, one of the
+- * following negative error codes is returned.
+- *
+- * %-EIO - I/O error.
+- *
+- * %-ENOMEM - Insufficient amount of memory available.
+- *
+- * %-ENOENT - No such checkpoint.
+- *
+- * %-EINVAL - invalid checkpoint.
+- */
+-int nilfs_cpfile_get_checkpoint(struct inode *cpfile,
+-				__u64 cno,
+-				int create,
+-				struct nilfs_checkpoint **cpp,
+-				struct buffer_head **bhp)
+-{
+-	struct buffer_head *header_bh, *cp_bh;
+-	struct nilfs_cpfile_header *header;
+-	struct nilfs_checkpoint *cp;
+-	void *kaddr;
+-	int ret;
+-
+-	if (unlikely(cno < 1 || cno > nilfs_mdt_cno(cpfile) ||
+-		     (cno < nilfs_mdt_cno(cpfile) && create)))
+-		return -EINVAL;
+-
+-	down_write(&NILFS_MDT(cpfile)->mi_sem);
+-
+-	ret = nilfs_cpfile_get_header_block(cpfile, &header_bh);
+-	if (ret < 0)
+-		goto out_sem;
+-	ret = nilfs_cpfile_get_checkpoint_block(cpfile, cno, create, &cp_bh);
+-	if (ret < 0)
+-		goto out_header;
+-	kaddr = kmap(cp_bh->b_page);
+-	cp = nilfs_cpfile_block_get_checkpoint(cpfile, cno, cp_bh, kaddr);
+-	if (nilfs_checkpoint_invalid(cp)) {
+-		if (!create) {
+-			kunmap(cp_bh->b_page);
+-			brelse(cp_bh);
+-			ret = -ENOENT;
+-			goto out_header;
+-		}
+-		/* a newly-created checkpoint */
+-		nilfs_checkpoint_clear_invalid(cp);
+-		if (!nilfs_cpfile_is_in_first(cpfile, cno))
+-			nilfs_cpfile_block_add_valid_checkpoints(cpfile, cp_bh,
+-								 kaddr, 1);
+-		mark_buffer_dirty(cp_bh);
+-
 -		kaddr = kmap_atomic(header_bh->b_page);
-+		kaddr = kmap_local_page(header_bh->b_page);
- 		header = nilfs_cpfile_block_get_header(cpfile, header_bh,
- 						       kaddr);
- 		le64_add_cpu(&header->ch_ncheckpoints, -(u64)tnicps);
- 		mark_buffer_dirty(header_bh);
- 		nilfs_mdt_mark_dirty(cpfile);
+-		header = nilfs_cpfile_block_get_header(cpfile, header_bh,
+-						       kaddr);
+-		le64_add_cpu(&header->ch_ncheckpoints, 1);
 -		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 	}
+-		mark_buffer_dirty(header_bh);
+-		nilfs_mdt_mark_dirty(cpfile);
+-	}
+-
+-	if (cpp != NULL)
+-		*cpp = cp;
+-	*bhp = cp_bh;
+-
+- out_header:
+-	brelse(header_bh);
+-
+- out_sem:
+-	up_write(&NILFS_MDT(cpfile)->mi_sem);
+-	return ret;
+-}
+-
+-/**
+  * nilfs_cpfile_create_checkpoint - create a checkpoint entry on cpfile
+  * @cpfile: checkpoint file inode
+  * @cno:    number of checkpoint to set up
+@@ -415,23 +329,6 @@ out_sem:
+ }
  
- 	brelse(header_bh);
-@@ -560,7 +560,7 @@ static ssize_t nilfs_cpfile_do_get_cpinf
- 		}
- 		ncps = nilfs_cpfile_checkpoints_in_block(cpfile, cno, cur_cno);
+ /**
+- * nilfs_cpfile_put_checkpoint - put a checkpoint
+- * @cpfile: inode of checkpoint file
+- * @cno: checkpoint number
+- * @bh: buffer head
+- *
+- * Description: nilfs_cpfile_put_checkpoint() releases the checkpoint
+- * specified by @cno. @bh must be the buffer head which has been returned by
+- * a previous call to nilfs_cpfile_get_checkpoint() with @cno.
+- */
+-void nilfs_cpfile_put_checkpoint(struct inode *cpfile, __u64 cno,
+-				 struct buffer_head *bh)
+-{
+-	kunmap(bh->b_page);
+-	brelse(bh);
+-}
+-
+-/**
+  * nilfs_cpfile_finalize_checkpoint - fill in a checkpoint entry in cpfile
+  * @cpfile: checkpoint file inode
+  * @cno:    checkpoint number
+--- a/fs/nilfs2/cpfile.h~nilfs2-remove-nilfs_cpfile_getput_checkpoint
++++ a/fs/nilfs2/cpfile.h
+@@ -16,13 +16,9 @@
+ #include <linux/nilfs2_ondisk.h>	/* nilfs_inode, nilfs_checkpoint */
  
--		kaddr = kmap_atomic(bh->b_page);
-+		kaddr = kmap_local_page(bh->b_page);
- 		cp = nilfs_cpfile_block_get_checkpoint(cpfile, cno, bh, kaddr);
- 		for (i = 0; i < ncps && n < nci; i++, cp = (void *)cp + cpsz) {
- 			if (!nilfs_checkpoint_invalid(cp)) {
-@@ -570,7 +570,7 @@ static ssize_t nilfs_cpfile_do_get_cpinf
- 				n++;
- 			}
- 		}
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		brelse(bh);
- 	}
  
-@@ -604,10 +604,10 @@ static ssize_t nilfs_cpfile_do_get_ssinf
- 		ret = nilfs_cpfile_get_header_block(cpfile, &bh);
- 		if (ret < 0)
- 			goto out;
--		kaddr = kmap_atomic(bh->b_page);
-+		kaddr = kmap_local_page(bh->b_page);
- 		header = nilfs_cpfile_block_get_header(cpfile, bh, kaddr);
- 		curr = le64_to_cpu(header->ch_snapshot_list.ssl_next);
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		brelse(bh);
- 		if (curr == 0) {
- 			ret = 0;
-@@ -625,7 +625,7 @@ static ssize_t nilfs_cpfile_do_get_ssinf
- 			ret = 0; /* No snapshots (started from a hole block) */
- 		goto out;
- 	}
--	kaddr = kmap_atomic(bh->b_page);
-+	kaddr = kmap_local_page(bh->b_page);
- 	while (n < nci) {
- 		cp = nilfs_cpfile_block_get_checkpoint(cpfile, curr, bh, kaddr);
- 		curr = ~(__u64)0; /* Terminator */
-@@ -641,7 +641,7 @@ static ssize_t nilfs_cpfile_do_get_ssinf
- 
- 		next_blkoff = nilfs_cpfile_get_blkoff(cpfile, next);
- 		if (curr_blkoff != next_blkoff) {
--			kunmap_atomic(kaddr);
-+			kunmap_local(kaddr);
- 			brelse(bh);
- 			ret = nilfs_cpfile_get_checkpoint_block(cpfile, next,
- 								0, &bh);
-@@ -649,12 +649,12 @@ static ssize_t nilfs_cpfile_do_get_ssinf
- 				WARN_ON(ret == -ENOENT);
- 				goto out;
- 			}
--			kaddr = kmap_atomic(bh->b_page);
-+			kaddr = kmap_local_page(bh->b_page);
- 		}
- 		curr = next;
- 		curr_blkoff = next_blkoff;
- 	}
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 	brelse(bh);
- 	*cnop = curr;
- 	ret = n;
-@@ -763,24 +763,24 @@ static int nilfs_cpfile_set_snapshot(str
- 	ret = nilfs_cpfile_get_checkpoint_block(cpfile, cno, 0, &cp_bh);
- 	if (ret < 0)
- 		goto out_sem;
--	kaddr = kmap_atomic(cp_bh->b_page);
-+	kaddr = kmap_local_page(cp_bh->b_page);
- 	cp = nilfs_cpfile_block_get_checkpoint(cpfile, cno, cp_bh, kaddr);
- 	if (nilfs_checkpoint_invalid(cp)) {
- 		ret = -ENOENT;
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		goto out_cp;
- 	}
- 	if (nilfs_checkpoint_snapshot(cp)) {
- 		ret = 0;
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		goto out_cp;
- 	}
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
- 	ret = nilfs_cpfile_get_header_block(cpfile, &header_bh);
- 	if (ret < 0)
- 		goto out_cp;
--	kaddr = kmap_atomic(header_bh->b_page);
-+	kaddr = kmap_local_page(header_bh->b_page);
- 	header = nilfs_cpfile_block_get_header(cpfile, header_bh, kaddr);
- 	list = &header->ch_snapshot_list;
- 	curr_bh = header_bh;
-@@ -792,13 +792,13 @@ static int nilfs_cpfile_set_snapshot(str
- 		prev_blkoff = nilfs_cpfile_get_blkoff(cpfile, prev);
- 		curr = prev;
- 		if (curr_blkoff != prev_blkoff) {
--			kunmap_atomic(kaddr);
-+			kunmap_local(kaddr);
- 			brelse(curr_bh);
- 			ret = nilfs_cpfile_get_checkpoint_block(cpfile, curr,
- 								0, &curr_bh);
- 			if (ret < 0)
- 				goto out_header;
--			kaddr = kmap_atomic(curr_bh->b_page);
-+			kaddr = kmap_local_page(curr_bh->b_page);
- 		}
- 		curr_blkoff = prev_blkoff;
- 		cp = nilfs_cpfile_block_get_checkpoint(
-@@ -806,7 +806,7 @@ static int nilfs_cpfile_set_snapshot(str
- 		list = &cp->cp_snapshot_list;
- 		prev = le64_to_cpu(list->ssl_prev);
- 	}
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
- 	if (prev != 0) {
- 		ret = nilfs_cpfile_get_checkpoint_block(cpfile, prev, 0,
-@@ -818,29 +818,29 @@ static int nilfs_cpfile_set_snapshot(str
- 		get_bh(prev_bh);
- 	}
- 
--	kaddr = kmap_atomic(curr_bh->b_page);
-+	kaddr = kmap_local_page(curr_bh->b_page);
- 	list = nilfs_cpfile_block_get_snapshot_list(
- 		cpfile, curr, curr_bh, kaddr);
- 	list->ssl_prev = cpu_to_le64(cno);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
--	kaddr = kmap_atomic(cp_bh->b_page);
-+	kaddr = kmap_local_page(cp_bh->b_page);
- 	cp = nilfs_cpfile_block_get_checkpoint(cpfile, cno, cp_bh, kaddr);
- 	cp->cp_snapshot_list.ssl_next = cpu_to_le64(curr);
- 	cp->cp_snapshot_list.ssl_prev = cpu_to_le64(prev);
- 	nilfs_checkpoint_set_snapshot(cp);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
--	kaddr = kmap_atomic(prev_bh->b_page);
-+	kaddr = kmap_local_page(prev_bh->b_page);
- 	list = nilfs_cpfile_block_get_snapshot_list(
- 		cpfile, prev, prev_bh, kaddr);
- 	list->ssl_next = cpu_to_le64(cno);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
--	kaddr = kmap_atomic(header_bh->b_page);
-+	kaddr = kmap_local_page(header_bh->b_page);
- 	header = nilfs_cpfile_block_get_header(cpfile, header_bh, kaddr);
- 	le64_add_cpu(&header->ch_nsnapshots, 1);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
- 	mark_buffer_dirty(prev_bh);
- 	mark_buffer_dirty(curr_bh);
-@@ -881,23 +881,23 @@ static int nilfs_cpfile_clear_snapshot(s
- 	ret = nilfs_cpfile_get_checkpoint_block(cpfile, cno, 0, &cp_bh);
- 	if (ret < 0)
- 		goto out_sem;
--	kaddr = kmap_atomic(cp_bh->b_page);
-+	kaddr = kmap_local_page(cp_bh->b_page);
- 	cp = nilfs_cpfile_block_get_checkpoint(cpfile, cno, cp_bh, kaddr);
- 	if (nilfs_checkpoint_invalid(cp)) {
- 		ret = -ENOENT;
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		goto out_cp;
- 	}
- 	if (!nilfs_checkpoint_snapshot(cp)) {
- 		ret = 0;
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		goto out_cp;
- 	}
- 
- 	list = &cp->cp_snapshot_list;
- 	next = le64_to_cpu(list->ssl_next);
- 	prev = le64_to_cpu(list->ssl_prev);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
- 	ret = nilfs_cpfile_get_header_block(cpfile, &header_bh);
- 	if (ret < 0)
-@@ -921,29 +921,29 @@ static int nilfs_cpfile_clear_snapshot(s
- 		get_bh(prev_bh);
- 	}
- 
--	kaddr = kmap_atomic(next_bh->b_page);
-+	kaddr = kmap_local_page(next_bh->b_page);
- 	list = nilfs_cpfile_block_get_snapshot_list(
- 		cpfile, next, next_bh, kaddr);
- 	list->ssl_prev = cpu_to_le64(prev);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
--	kaddr = kmap_atomic(prev_bh->b_page);
-+	kaddr = kmap_local_page(prev_bh->b_page);
- 	list = nilfs_cpfile_block_get_snapshot_list(
- 		cpfile, prev, prev_bh, kaddr);
- 	list->ssl_next = cpu_to_le64(next);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
--	kaddr = kmap_atomic(cp_bh->b_page);
-+	kaddr = kmap_local_page(cp_bh->b_page);
- 	cp = nilfs_cpfile_block_get_checkpoint(cpfile, cno, cp_bh, kaddr);
- 	cp->cp_snapshot_list.ssl_next = cpu_to_le64(0);
- 	cp->cp_snapshot_list.ssl_prev = cpu_to_le64(0);
- 	nilfs_checkpoint_clear_snapshot(cp);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
--	kaddr = kmap_atomic(header_bh->b_page);
-+	kaddr = kmap_local_page(header_bh->b_page);
- 	header = nilfs_cpfile_block_get_header(cpfile, header_bh, kaddr);
- 	le64_add_cpu(&header->ch_nsnapshots, -1);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
- 	mark_buffer_dirty(next_bh);
- 	mark_buffer_dirty(prev_bh);
-@@ -1002,13 +1002,13 @@ int nilfs_cpfile_is_snapshot(struct inod
- 	ret = nilfs_cpfile_get_checkpoint_block(cpfile, cno, 0, &bh);
- 	if (ret < 0)
- 		goto out;
--	kaddr = kmap_atomic(bh->b_page);
-+	kaddr = kmap_local_page(bh->b_page);
- 	cp = nilfs_cpfile_block_get_checkpoint(cpfile, cno, bh, kaddr);
- 	if (nilfs_checkpoint_invalid(cp))
- 		ret = -ENOENT;
- 	else
- 		ret = nilfs_checkpoint_snapshot(cp);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 	brelse(bh);
- 
-  out:
-@@ -1085,12 +1085,12 @@ int nilfs_cpfile_get_stat(struct inode *
- 	ret = nilfs_cpfile_get_header_block(cpfile, &bh);
- 	if (ret < 0)
- 		goto out_sem;
--	kaddr = kmap_atomic(bh->b_page);
-+	kaddr = kmap_local_page(bh->b_page);
- 	header = nilfs_cpfile_block_get_header(cpfile, bh, kaddr);
- 	cpstat->cs_cno = nilfs_mdt_cno(cpfile);
- 	cpstat->cs_ncps = le64_to_cpu(header->ch_ncheckpoints);
- 	cpstat->cs_nsss = le64_to_cpu(header->ch_nsnapshots);
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 	brelse(bh);
- 
-  out_sem:
+-int nilfs_cpfile_get_checkpoint(struct inode *, __u64, int,
+-				struct nilfs_checkpoint **,
+-				struct buffer_head **);
+ int nilfs_cpfile_read_checkpoint(struct inode *cpfile, __u64 cno,
+ 				 struct nilfs_root *root, struct inode *ifile);
+ int nilfs_cpfile_create_checkpoint(struct inode *cpfile, __u64 cno);
+-void nilfs_cpfile_put_checkpoint(struct inode *, __u64, struct buffer_head *);
+ int nilfs_cpfile_finalize_checkpoint(struct inode *cpfile, __u64 cno,
+ 				     struct nilfs_root *root, __u64 blkinc,
+ 				     time64_t ctime, bool minor);
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
