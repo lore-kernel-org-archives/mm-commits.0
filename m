@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E0EB54BD2
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:43:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39A1554BD2
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:43:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705970609; cv=none; b=tvt9eYBePgjsUvTfwMCchLGazWI9mPHOiMSA4BXMb+upJxLnmvaePgi73loDPHO69Z95VDHoXu/CxqAkDBxWfEjM7Zh43f4Uwg5srqbj7B3U0B+Xxm1sxNcwQI3C38/JCBQ0GJ66pzJ2uDhTP+B7BsjOvkBMbMp5aOqV4s6UTyI=
+	t=1705970613; cv=none; b=UYbEAZywIVKITyFMIPBBt6mpyf7FdXrLVEAm59dP8lz9uXNuuTJQYh7gN28sy4A0azBEOXMwieB6jqoOH1oejO5+ISNXpY+DRoUKuQ0EnEhZPnEIQsdB0J0dAjs7e9/uLgSO0BIFS5Wq7DGsLCajO6QnJQwtJdyNIyA2qSwtpxs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705970609; c=relaxed/simple;
-	bh=wLZagRUTB0lDnWOTulKQCK+Iaw7YhkLiwtKf9C5FYjU=;
-	h=Date:To:From:Subject:Message-Id; b=VY5vj0dxTsM0KC3GEz+ZXdAZPtEKWwlZz9RrlSd83NI+kvGzBkCfxz/PoVbzh0tFKFJDB8uJwGAh/sWLb9MRp2B0tUnaJJrZnn3tT2JryRovoZkZkiL/cz3eSX3rh3zUXmM1eVyQQaxNWua/mSBlE10gABmNVeQDS5rmYGjxMW0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cbolvDm8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705970613; c=relaxed/simple;
+	bh=rMvpE6W6S4y/nXUrfNpJkxDoHfCGGyzz7Wcx4aiuNTA=;
+	h=Date:To:From:Subject:Message-Id; b=FYvCzcJaXV008Bkp+me8OZo6JgnZIceMFq8eRxi7o/OmqWyDUHLG+Btrmpd9TeBVS0GZvKjse3UXgkgPEZRvpNHnDlT9+q+UvHLx6h2Q9+ZRWUwi1JZmLSWFUCp/LxiEjanxA7kLLQ6ABi7/WZyr9pvXgdseXZWNM6IizfoQtbU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Cu2nhRzO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cbolvDm8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CECDC433C7;
-	Tue, 23 Jan 2024 00:43:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Cu2nhRzO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95E0CC433F1;
+	Tue, 23 Jan 2024 00:43:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705970609;
-	bh=wLZagRUTB0lDnWOTulKQCK+Iaw7YhkLiwtKf9C5FYjU=;
+	s=korg; t=1705970613;
+	bh=rMvpE6W6S4y/nXUrfNpJkxDoHfCGGyzz7Wcx4aiuNTA=;
 	h=Date:To:From:Subject:From;
-	b=cbolvDm8mMXDRct2TdgvTz5L7GPFZf5VOhXJ5BJGnq/PovB2z8KHhWd++oT1goYFX
-	 xInXa+/6VSv9gOn9flMVoVytF+/Q2t2pODTXrA7oTGba10gYiCX3dCDmhlrNrw5Y9c
-	 nNLCECR2Inv6ocFCf52/0IjtXTxiS23ZNsQtSltc=
-Date: Mon, 22 Jan 2024 16:43:26 -0800
-To: mm-commits@vger.kernel.org,Liam.Howlett@oracle.com,lukas.bulwahn@gmail.com,akpm@linux-foundation.org
+	b=Cu2nhRzOxEdzrzh9BR1jBMMHs0Ugerc/vcHdK8TPLWpqj7wnSZa88M9q6CWo0IKv2
+	 rNyM5NskMKqNOa20F+nD6UemG0iczmiQUdLc9RLkCPkbwkJXzt38Er/ksb0d7VlDMA
+	 coDy349giJamv0BrSnAkq7PIf6glXuQP0NzsbOp0=
+Date: Mon, 22 Jan 2024 16:43:29 -0800
+To: mm-commits@vger.kernel.org,hughd@google.com,lukas.bulwahn@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-avoid-duplicate-variable-init-in-mast_spanning_rebalance.patch added to mm-unstable branch
-Message-Id: <20240123004329.0CECDC433C7@smtp.kernel.org>
+Subject: + mempolicy-clean-up-minor-dead-code-in-queue_pages_test_walk.patch added to mm-unstable branch
+Message-Id: <20240123004332.95E0CC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree: avoid duplicate variable init in mast_spanning_rebalance()
+     Subject: mempolicy: clean up minor dead code in queue_pages_test_walk()
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-avoid-duplicate-variable-init-in-mast_spanning_rebalance.patch
+     mempolicy-clean-up-minor-dead-code-in-queue_pages_test_walk.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-avoid-duplicate-variable-init-in-mast_spanning_rebalance.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mempolicy-clean-up-minor-dead-code-in-queue_pages_test_walk.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,41 +59,51 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: maple_tree: avoid duplicate variable init in mast_spanning_rebalance()
-Date: Mon, 22 Jan 2024 11:20:00 +0100
+Subject: mempolicy: clean up minor dead code in queue_pages_test_walk()
+Date: Mon, 22 Jan 2024 10:25:04 +0100
 
-The local variables r_tmp and l_tmp in mast_spanning_rebalance() are
-already initialized at its declaration; there is no need to assign the
-value again.
+Commit 2cafb582173f ("mempolicy: remove confusing MPOL_MF_LAZY dead code")
+removes MPOL_MF_LAZY handling in queue_pages_test_walk(), and with that,
+there is no effective use of the local variable endvma in that function
+remaining.
 
-Remove the duplicate initialization of {r,l}_tmp.  No functional change. 
-Due to common compiler optimizations, also no change to object code.
+Remove the local variable endvma and its dead code. No functional change.
 
 This issue was identified with clang-analyzer's dead stores analysis.
 
-Link: https://lkml.kernel.org/r/20240122102000.29558-1-lukas.bulwahn@gmail.com
+Link: https://lkml.kernel.org/r/20240122092504.18377-1-lukas.bulwahn@gmail.com
 Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/mempolicy.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-avoid-duplicate-variable-init-in-mast_spanning_rebalance
-+++ a/lib/maple_tree.c
-@@ -2271,8 +2271,6 @@ bool mast_spanning_rebalance(struct mapl
- 	struct ma_state l_tmp = *mast->orig_l;
- 	unsigned char depth = 0;
+--- a/mm/mempolicy.c~mempolicy-clean-up-minor-dead-code-in-queue_pages_test_walk
++++ a/mm/mempolicy.c
+@@ -676,7 +676,6 @@ static int queue_pages_test_walk(unsigne
+ {
+ 	struct vm_area_struct *next, *vma = walk->vma;
+ 	struct queue_pages *qp = walk->private;
+-	unsigned long endvma = vma->vm_end;
+ 	unsigned long flags = qp->flags;
  
--	r_tmp = *mast->orig_r;
--	l_tmp = *mast->orig_l;
- 	do {
- 		mas_ascend(mast->orig_r);
- 		mas_ascend(mast->orig_l);
+ 	/* range check first */
+@@ -704,9 +703,6 @@ static int queue_pages_test_walk(unsigne
+ 	    !(flags & MPOL_MF_STRICT))
+ 		return 1;
+ 
+-	if (endvma > end)
+-		endvma = end;
+-
+ 	/*
+ 	 * Check page nodes, and queue pages to move, in the current vma.
+ 	 * But if no moving, and no strict checking, the scan can be skipped.
 _
 
 Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
 
 maple_tree-avoid-duplicate-variable-init-in-mast_spanning_rebalance.patch
+mempolicy-clean-up-minor-dead-code-in-queue_pages_test_walk.patch
 
