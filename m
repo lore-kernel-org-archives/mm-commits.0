@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39A1554BD2
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:43:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B00854BD2
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:43:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705970613; cv=none; b=UYbEAZywIVKITyFMIPBBt6mpyf7FdXrLVEAm59dP8lz9uXNuuTJQYh7gN28sy4A0azBEOXMwieB6jqoOH1oejO5+ISNXpY+DRoUKuQ0EnEhZPnEIQsdB0J0dAjs7e9/uLgSO0BIFS5Wq7DGsLCajO6QnJQwtJdyNIyA2qSwtpxs=
+	t=1705970617; cv=none; b=EeL6Uz1d8Nz6/D0MqN6W7n/yD6tyaiVk7GWDWLBJItE+lPK77U+HNebQIjBW63PJ4nszHrS4ZkSSGR6wSfWEYP0m/Z8ThrnVwNBW/c5prMiwy09UkaAmldJqKOg666HB+yRPqRZOv8BlLtr/kcaEBsYM76e/GXqz1r3DmDNWqFM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705970613; c=relaxed/simple;
-	bh=rMvpE6W6S4y/nXUrfNpJkxDoHfCGGyzz7Wcx4aiuNTA=;
-	h=Date:To:From:Subject:Message-Id; b=FYvCzcJaXV008Bkp+me8OZo6JgnZIceMFq8eRxi7o/OmqWyDUHLG+Btrmpd9TeBVS0GZvKjse3UXgkgPEZRvpNHnDlT9+q+UvHLx6h2Q9+ZRWUwi1JZmLSWFUCp/LxiEjanxA7kLLQ6ABi7/WZyr9pvXgdseXZWNM6IizfoQtbU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Cu2nhRzO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705970617; c=relaxed/simple;
+	bh=fhC+I6ALP6vkYjtxL2wdDPfwPW3ql+tHcAyAHR3wiWQ=;
+	h=Date:To:From:Subject:Message-Id; b=BIsQOdIAejf+dVz11y7uA5zH+gyob52hrxYNuotAnTHnSymI93avyROTeLGUgTnWQ/DVy2UgvxCS+7n2dYPd+2j0MruGZLOshjNXO0zQr+Qmog9Z53QB/p8DiivcBMBr/08FriGV9Y5P9l4J2ck98OWZvN2zphVvESfRfgUVUP4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c5GAGQy+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Cu2nhRzO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95E0CC433F1;
-	Tue, 23 Jan 2024 00:43:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c5GAGQy+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32262C433F1;
+	Tue, 23 Jan 2024 00:43:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705970613;
-	bh=rMvpE6W6S4y/nXUrfNpJkxDoHfCGGyzz7Wcx4aiuNTA=;
+	s=korg; t=1705970617;
+	bh=fhC+I6ALP6vkYjtxL2wdDPfwPW3ql+tHcAyAHR3wiWQ=;
 	h=Date:To:From:Subject:From;
-	b=Cu2nhRzOxEdzrzh9BR1jBMMHs0Ugerc/vcHdK8TPLWpqj7wnSZa88M9q6CWo0IKv2
-	 rNyM5NskMKqNOa20F+nD6UemG0iczmiQUdLc9RLkCPkbwkJXzt38Er/ksb0d7VlDMA
-	 coDy349giJamv0BrSnAkq7PIf6glXuQP0NzsbOp0=
-Date: Mon, 22 Jan 2024 16:43:29 -0800
-To: mm-commits@vger.kernel.org,hughd@google.com,lukas.bulwahn@gmail.com,akpm@linux-foundation.org
+	b=c5GAGQy+UM/4LQ/yfOKn9Va84jrZTxDtIGGflwl6+QiTN0+4j1qPHVOZe7Q93WVQm
+	 J0pB+271CCQCSaelurHoEK5cNfo6k2DpEgXtJgHSEQLvJfGLUg5scFkV1ol+d611fP
+	 fymXb87ui+j7Ez7lYqJpU/j6luJJm21yRnybMRSs=
+Date: Mon, 22 Jan 2024 16:43:33 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yangxingui@huawei.com,willy@infradead.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,usama.anjum@collabora.com,talumbau@google.com,sidhartha.kumar@oracle.com,ryan.roberts@arm.com,peterx@redhat.com,paulmck@kernel.org,mgorman@techsingularity.net,mathieu.desnoyers@efficios.com,lstoakes@gmail.com,Liam.Howlett@oracle.com,keescook@chromium.org,jhubbard@nvidia.com,jgg@ziepe.ca,jack@suse.cz,hughd@google.com,dhowells@redhat.com,dchinner@redhat.com,david@redhat.com,casey@schaufler-ca.com,brauner@kernel.org,ben.wolsieffer@hefring.com,axelrasmussen@google.com,avagin@google.com,andriy.shevchenko@linux.intel.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mempolicy-clean-up-minor-dead-code-in-queue_pages_test_walk.patch added to mm-unstable branch
-Message-Id: <20240123004332.95E0CC433F1@smtp.kernel.org>
+Subject: + mm-make-vm_area_struct-anon_name-field-rcu-safe.patch added to mm-unstable branch
+Message-Id: <20240123004336.32262C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mempolicy: clean up minor dead code in queue_pages_test_walk()
+     Subject: mm: make vm_area_struct anon_name field RCU-safe
 has been added to the -mm mm-unstable branch.  Its filename is
-     mempolicy-clean-up-minor-dead-code-in-queue_pages_test_walk.patch
+     mm-make-vm_area_struct-anon_name-field-rcu-safe.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mempolicy-clean-up-minor-dead-code-in-queue_pages_test_walk.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-vm_area_struct-anon_name-field-rcu-safe.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,52 +58,177 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: mempolicy: clean up minor dead code in queue_pages_test_walk()
-Date: Mon, 22 Jan 2024 10:25:04 +0100
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm: make vm_area_struct anon_name field RCU-safe
+Date: Sun, 21 Jan 2024 23:13:22 -0800
 
-Commit 2cafb582173f ("mempolicy: remove confusing MPOL_MF_LAZY dead code")
-removes MPOL_MF_LAZY handling in queue_pages_test_walk(), and with that,
-there is no effective use of the local variable endvma in that function
-remaining.
+For lockless /proc/pid/maps reading we have to ensure all the fields used
+when generating the output are RCU-safe.  The only pointer fields in
+vm_area_struct which are used to generate that file's output are vm_file
+and anon_name.  vm_file is RCU-safe but anon_name is not.  Make anon_name
+RCU-safe as well.
 
-Remove the local variable endvma and its dead code. No functional change.
-
-This issue was identified with clang-analyzer's dead stores analysis.
-
-Link: https://lkml.kernel.org/r/20240122092504.18377-1-lukas.bulwahn@gmail.com
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Link: https://lkml.kernel.org/r/20240122071324.2099712-1-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andrei Vagin <avagin@google.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Ben Wolsieffer <ben.wolsieffer@hefring.com>
+Cc: Casey Schaufler <casey@schaufler-ca.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: T.J. Alumbaugh <talumbau@google.com>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Xingui Yang <yangxingui@huawei.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    4 ----
- 1 file changed, 4 deletions(-)
+ include/linux/mm_inline.h |   10 +++++++++-
+ include/linux/mm_types.h  |    3 ++-
+ mm/madvise.c              |   30 ++++++++++++++++++++++++++----
+ 3 files changed, 37 insertions(+), 6 deletions(-)
 
---- a/mm/mempolicy.c~mempolicy-clean-up-minor-dead-code-in-queue_pages_test_walk
-+++ a/mm/mempolicy.c
-@@ -676,7 +676,6 @@ static int queue_pages_test_walk(unsigne
+--- a/include/linux/mm_inline.h~mm-make-vm_area_struct-anon_name-field-rcu-safe
++++ a/include/linux/mm_inline.h
+@@ -389,7 +389,7 @@ static inline void dup_anon_vma_name(str
+ 	struct anon_vma_name *anon_name = anon_vma_name(orig_vma);
+ 
+ 	if (anon_name)
+-		new_vma->anon_name = anon_vma_name_reuse(anon_name);
++		rcu_assign_pointer(new_vma->anon_name, anon_vma_name_reuse(anon_name));
+ }
+ 
+ static inline void free_anon_vma_name(struct vm_area_struct *vma)
+@@ -411,6 +411,8 @@ static inline bool anon_vma_name_eq(stru
+ 		!strcmp(anon_name1->name, anon_name2->name);
+ }
+ 
++struct anon_vma_name *anon_vma_name_get_rcu(struct vm_area_struct *vma);
++
+ #else /* CONFIG_ANON_VMA_NAME */
+ static inline void anon_vma_name_get(struct anon_vma_name *anon_name) {}
+ static inline void anon_vma_name_put(struct anon_vma_name *anon_name) {}
+@@ -424,6 +426,12 @@ static inline bool anon_vma_name_eq(stru
+ 	return true;
+ }
+ 
++static inline
++struct anon_vma_name *anon_vma_name_get_rcu(struct vm_area_struct *vma)
++{
++	return NULL;
++}
++
+ #endif  /* CONFIG_ANON_VMA_NAME */
+ 
+ static inline void init_tlb_flush_pending(struct mm_struct *mm)
+--- a/include/linux/mm_types.h~mm-make-vm_area_struct-anon_name-field-rcu-safe
++++ a/include/linux/mm_types.h
+@@ -545,6 +545,7 @@ struct vm_userfaultfd_ctx {};
+ 
+ struct anon_vma_name {
+ 	struct kref kref;
++	struct rcu_head rcu;
+ 	/* The name needs to be at the end because it is dynamically sized. */
+ 	char name[];
+ };
+@@ -699,7 +700,7 @@ struct vm_area_struct {
+ 	 * terminated string containing the name given to the vma, or NULL if
+ 	 * unnamed. Serialized by mmap_lock. Use anon_vma_name to access.
+ 	 */
+-	struct anon_vma_name *anon_name;
++	struct anon_vma_name __rcu *anon_name;
+ #endif
+ #ifdef CONFIG_SWAP
+ 	atomic_long_t swap_readahead_info;
+--- a/mm/madvise.c~mm-make-vm_area_struct-anon_name-field-rcu-safe
++++ a/mm/madvise.c
+@@ -88,14 +88,15 @@ void anon_vma_name_free(struct kref *kre
  {
- 	struct vm_area_struct *next, *vma = walk->vma;
- 	struct queue_pages *qp = walk->private;
--	unsigned long endvma = vma->vm_end;
- 	unsigned long flags = qp->flags;
+ 	struct anon_vma_name *anon_name =
+ 			container_of(kref, struct anon_vma_name, kref);
+-	kfree(anon_name);
++	kfree_rcu(anon_name, rcu);
+ }
  
- 	/* range check first */
-@@ -704,9 +703,6 @@ static int queue_pages_test_walk(unsigne
- 	    !(flags & MPOL_MF_STRICT))
- 		return 1;
+ struct anon_vma_name *anon_vma_name(struct vm_area_struct *vma)
+ {
+ 	mmap_assert_locked(vma->vm_mm);
  
--	if (endvma > end)
--		endvma = end;
--
- 	/*
- 	 * Check page nodes, and queue pages to move, in the current vma.
- 	 * But if no moving, and no strict checking, the scan can be skipped.
+-	return vma->anon_name;
++	return rcu_dereference_protected(vma->anon_name,
++		rwsem_is_locked(&vma->vm_mm->mmap_lock));
+ }
+ 
+ /* mmap_lock should be write-locked */
+@@ -105,7 +106,7 @@ static int replace_anon_vma_name(struct
+ 	struct anon_vma_name *orig_name = anon_vma_name(vma);
+ 
+ 	if (!anon_name) {
+-		vma->anon_name = NULL;
++		rcu_assign_pointer(vma->anon_name, NULL);
+ 		anon_vma_name_put(orig_name);
+ 		return 0;
+ 	}
+@@ -113,11 +114,32 @@ static int replace_anon_vma_name(struct
+ 	if (anon_vma_name_eq(orig_name, anon_name))
+ 		return 0;
+ 
+-	vma->anon_name = anon_vma_name_reuse(anon_name);
++	rcu_assign_pointer(vma->anon_name, anon_vma_name_reuse(anon_name));
+ 	anon_vma_name_put(orig_name);
+ 
+ 	return 0;
+ }
++
++/*
++ * Returned anon_vma_name is stable due to elevated refcount but not guaranteed
++ * to be assigned to the original VMA after the call.
++ */
++struct anon_vma_name *anon_vma_name_get_rcu(struct vm_area_struct *vma)
++{
++	struct anon_vma_name __rcu *anon_name;
++
++	WARN_ON_ONCE(!rcu_read_lock_held());
++
++	anon_name = rcu_dereference(vma->anon_name);
++	if (!anon_name)
++		return NULL;
++
++	if (unlikely(!kref_get_unless_zero(&anon_name->kref)))
++		return NULL;
++
++	return anon_name;
++}
++
+ #else /* CONFIG_ANON_VMA_NAME */
+ static int replace_anon_vma_name(struct vm_area_struct *vma,
+ 				 struct anon_vma_name *anon_name)
 _
 
-Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-maple_tree-avoid-duplicate-variable-init-in-mast_spanning_rebalance.patch
-mempolicy-clean-up-minor-dead-code-in-queue_pages_test_walk.patch
+mm-make-vm_area_struct-anon_name-field-rcu-safe.patch
+mm-add-mm_struct-sequence-number-to-detect-write-locks.patch
+mm-maps-read-proc-pid-maps-under-rcu.patch
 
