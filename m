@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F16125F541
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:43:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D043738DCC
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:43:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705970625; cv=none; b=aw4FZcnktOI4Fe5T6YDe2MkYWqJywQySgg0qURSaIj6KhC8NSDH9DUpSvto6KcNA5y/0DgU7swoeqE1bbyKIsq8W39320SYhCEbeF2aZWJKuUxbVlocRTv7YRZ3Ked3VguI4s4kpLtc+wnXpLF8cA6HUG/gLPHoRKNaFUSy+QLk=
+	t=1705970628; cv=none; b=uQRxBgnXKcyc+y0gZSYj/WTgIluz8Jo0zPr8Ru/4B5Vz+Uxbc2SVXWp9lNO57/CdqOF4es7nhv4axYBqD2/7WedL/VX0CVjIC5Wy2Ry6OI2eqiToYtpAWi4WQ/sdTb53jJ5Q97zkYs8yDJDD4VM+IG/uHIa4TkxVE2zU9D92/eE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705970625; c=relaxed/simple;
-	bh=GtYdyGhwwxsdEBUXuEat/e91TaR8X/JkTc5UyFPb94g=;
-	h=Date:To:From:Subject:Message-Id; b=bPxxGwvATF1YL6ge4w7zodCcM2tzEKkUOr7yzY8ZVtteyHmfipj85gjy+OtQseVl8cROCW7GC030IfmYY9tmDtZjn3z9+QahAN0J6RJEbUjEOoi2aLHF6oEDUrayKzDL3TE9fX50D9E07w/Vua+2BE1BNTSZU8Ufem/y7RNt7Z4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VfeEoSHm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705970628; c=relaxed/simple;
+	bh=iHUREvR9U+zQEqIKpyU+In5j2DN95piMUj5+NjF+F6I=;
+	h=Date:To:From:Subject:Message-Id; b=bXX+psFFpFN0SLD39tqGFZsdg7KTEMgoq5tPTkMannCUaS6QmzDc12EWf8w4816Td/iiMPYZz4q3BG2okTzq9LEbyRJ4/hnYJYvtHAj+QD/m5fch2hlAFIW/A1ih5/hx6vROYbYbSDUsRExl9nsRWxgXEVFkvLq7eEUqCi9PRcE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L2cJPczV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VfeEoSHm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 124FCC433F1;
-	Tue, 23 Jan 2024 00:43:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L2cJPczV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6B07C433F1;
+	Tue, 23 Jan 2024 00:43:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705970624;
-	bh=GtYdyGhwwxsdEBUXuEat/e91TaR8X/JkTc5UyFPb94g=;
+	s=korg; t=1705970628;
+	bh=iHUREvR9U+zQEqIKpyU+In5j2DN95piMUj5+NjF+F6I=;
 	h=Date:To:From:Subject:From;
-	b=VfeEoSHmIbUMt/W+ijUAuGzidlA3ZXWitDIoAFala5iHqjFVmBPX1MqHq2ubS3fQ/
-	 Jc9K2x+yk8abOmlVfkWa9Fo3AIpXGhnO+z+BY4W3/ZWbltOiGNiGc2O0NshO/ZpZrV
-	 PbbTQQyWEgtS8wEEZanFBSGsnG6GCTMB9XEDjgyA=
-Date: Mon, 22 Jan 2024 16:43:41 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yangxingui@huawei.com,willy@infradead.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,usama.anjum@collabora.com,talumbau@google.com,sidhartha.kumar@oracle.com,ryan.roberts@arm.com,peterx@redhat.com,paulmck@kernel.org,mgorman@techsingularity.net,mathieu.desnoyers@efficios.com,lstoakes@gmail.com,Liam.Howlett@oracle.com,keescook@chromium.org,jhubbard@nvidia.com,jgg@ziepe.ca,jack@suse.cz,hughd@google.com,dhowells@redhat.com,dchinner@redhat.com,david@redhat.com,casey@schaufler-ca.com,brauner@kernel.org,ben.wolsieffer@hefring.com,axelrasmussen@google.com,avagin@google.com,andriy.shevchenko@linux.intel.com,surenb@google.com,akpm@linux-foundation.org
+	b=L2cJPczVgxqTjbLdFCqRTAiyiGxyMLGx2f95xZah4x3lCd7NUIrD6nAsahZlRimRH
+	 YhyxKPQSf+QmWxQnpyo6ZcNE5j8CTpW8kFwU5FUeQFk2Kxmm4yEpA2SRHWns2L7yRb
+	 kNQbrfWIsqg2ivVXn9nbaUco6EN3PnRitgOiIfhc=
+Date: Mon, 22 Jan 2024 16:43:45 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,songmuchun@bytedance.com,shakeelb@google.com,ryan.roberts@arm.com,roman.gushchin@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,david@redhat.com,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-maps-read-proc-pid-maps-under-rcu.patch added to mm-unstable branch
-Message-Id: <20240123004344.124FCC433F1@smtp.kernel.org>
+Subject: + mm-memory-move-mem_cgroup_charge-into-alloc_anon_folio.patch added to mm-unstable branch
+Message-Id: <20240123004347.D6B07C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/maps: read proc/pid/maps under RCU
+     Subject: mm: memory: move mem_cgroup_charge() into alloc_anon_folio()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-maps-read-proc-pid-maps-under-rcu.patch
+     mm-memory-move-mem_cgroup_charge-into-alloc_anon_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-maps-read-proc-pid-maps-under-rcu.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-move-mem_cgroup_charge-into-alloc_anon_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,253 +58,116 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm/maps: read proc/pid/maps under RCU
-Date: Sun, 21 Jan 2024 23:13:24 -0800
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: memory: move mem_cgroup_charge() into alloc_anon_folio()
+Date: Wed, 17 Jan 2024 18:39:54 +0800
 
-With maple_tree supporting vma tree traversal under RCU and per-vma locks
-making vma access RCU-safe, /proc/pid/maps can be read under RCU and
-without the need to read-lock mmap_lock.  However vma content can change
-from under us, therefore we make a copy of the vma and we pin pointer
-fields used when generating the output (currently only vm_file and
-anon_name).  Afterwards we check for concurrent address space
-modifications, wait for them to end and retry.  That last check is needed
-to avoid possibility of missing a vma during concurrent maple_tree node
-replacement, which might report a NULL when a vma is replaced with another
-one.  While we take the mmap_lock for reading during such contention, we
-do that momentarily only to record new mm_wr_seq counter.  This change is
-designed to reduce mmap_lock contention and prevent a process reading
-/proc/pid/maps files (often a low priority task, such as monitoring/data
-collection services) from blocking address space updates.
+The GFP flags from vma_thp_gfp_mask() according to user configuration only
+used for large folio allocation but not for memory cgroup charge, and
+GFP_KERNEL is used for both order-0 and large order folio when memory
+cgroup charge at present.  However, mem_cgroup_charge() uses the GFP flags
+in a fairly sophisticated way.  In addition to checking
+gfpflags_allow_blocking(), it pays attention to __GFP_NORETRY and
+__GFP_RETRY_MAYFAIL to ensure that processes within this memcg do not
+exceed their quotas.
 
-Note that this change has a userspace visible disadvantage: it allows for
-sub-page data tearing as opposed to the previous mechanism where data
-tearing could happen only between pages of generated output data.  Since
-current userspace considers data tearing between pages to be acceptable,
-we assume is will be able to handle sub-page data tearing as well.
+So we'd better to move mem_cgroup_charge() into alloc_anon_folio(),
 
-Link: https://lkml.kernel.org/r/20240122071324.2099712-3-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andrei Vagin <avagin@google.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Ben Wolsieffer <ben.wolsieffer@hefring.com>
-Cc: Casey Schaufler <casey@schaufler-ca.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Dave Chinner <dchinner@redhat.com>
+1) it will make us to allocate as much as possible large order folio,
+   because we could try the next order if mem_cgroup_charge() fails,
+   although the memcg's memory usage is close to its limits.
+
+2) using same GFP flags for allocation and charge is to be consistent
+   with PMD THP firstly, in addition, according to GFP flag returned from
+   vma_thp_gfp_mask(), GFP_TRANSHUGE_LIGHT could make us skip direct
+   reclaim, _GFP_NORETRY will make us skip mem_cgroup_oom() and won't
+   trigger memory cgroup oom from large order(order <= COSTLY_ORDER) folio
+   charging.
+
+Link: https://lkml.kernel.org/r/20240122011612.501029-1-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20240117103954.2756050-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Paul E. McKenney <paulmck@kernel.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: T.J. Alumbaugh <talumbau@google.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Xingui Yang <yangxingui@huawei.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/internal.h |    2 
- fs/proc/task_mmu.c |  114 ++++++++++++++++++++++++++++++++++++++++---
- 2 files changed, 109 insertions(+), 7 deletions(-)
+ mm/memory.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/fs/proc/internal.h~mm-maps-read-proc-pid-maps-under-rcu
-+++ a/fs/proc/internal.h
-@@ -290,6 +290,8 @@ struct proc_maps_private {
- 	struct task_struct *task;
- 	struct mm_struct *mm;
- 	struct vma_iterator iter;
-+	unsigned long mm_wr_seq;
-+	struct vm_area_struct vma_copy;
- #ifdef CONFIG_NUMA
- 	struct mempolicy *task_mempolicy;
- #endif
---- a/fs/proc/task_mmu.c~mm-maps-read-proc-pid-maps-under-rcu
-+++ a/fs/proc/task_mmu.c
-@@ -126,11 +126,96 @@ static void release_task_mempolicy(struc
- }
- #endif
+--- a/mm/memory.c~mm-memory-move-mem_cgroup_charge-into-alloc_anon_folio
++++ a/mm/memory.c
+@@ -4153,8 +4153,8 @@ static bool pte_range_none(pte_t *pte, i
  
--static struct vm_area_struct *proc_get_vma(struct proc_maps_private *priv,
--						loff_t *ppos)
-+#ifdef CONFIG_PER_VMA_LOCK
-+
-+static const struct seq_operations proc_pid_maps_op;
-+/*
-+ * Take VMA snapshot and pin vm_file and anon_name as they are used by
-+ * show_map_vma.
-+ */
-+static int get_vma_snapshow(struct proc_maps_private *priv, struct vm_area_struct *vma)
-+{
-+	struct vm_area_struct *copy = &priv->vma_copy;
-+	int ret = -EAGAIN;
-+
-+	memcpy(copy, vma, sizeof(*vma));
-+	if (copy->vm_file && !get_file_rcu(&copy->vm_file))
-+		goto out;
-+
-+	if (copy->anon_name && !anon_vma_name_get_rcu(copy))
-+		goto put_file;
-+
-+	if (priv->mm_wr_seq == mmap_write_seq_read(priv->mm))
-+		return 0;
-+
-+	/* Address space got modified, vma might be stale. Wait and retry. */
-+	rcu_read_unlock();
-+	ret = mmap_read_lock_killable(priv->mm);
-+	mmap_write_seq_record(priv->mm, &priv->mm_wr_seq);
-+	mmap_read_unlock(priv->mm);
-+	rcu_read_lock();
-+
-+	if (!ret)
-+		ret = -EAGAIN; /* no other errors, ok to retry */
-+
-+	if (copy->anon_name)
-+		anon_vma_name_put(copy->anon_name);
-+put_file:
-+	if (copy->vm_file)
-+		fput(copy->vm_file);
-+out:
-+	return ret;
-+}
-+
-+static void put_vma_snapshot(struct proc_maps_private *priv)
-+{
-+	struct vm_area_struct *vma = &priv->vma_copy;
-+
-+	if (vma->anon_name)
-+		anon_vma_name_put(vma->anon_name);
-+	if (vma->vm_file)
-+		fput(vma->vm_file);
-+}
-+
-+static inline bool needs_mmap_lock(struct seq_file *m)
-+{
-+	/*
-+	 * smaps and numa_maps perform page table walk, therefore require
-+	 * mmap_lock but maps can be read under RCU.
-+	 */
-+	return m->op != &proc_pid_maps_op;
-+}
-+
-+#else /* CONFIG_PER_VMA_LOCK */
-+
-+/* Without per-vma locks VMA access is not RCU-safe */
-+static inline bool needs_mmap_lock(struct seq_file *m) { return true; }
-+
-+#endif /* CONFIG_PER_VMA_LOCK */
-+
-+static struct vm_area_struct *proc_get_vma(struct seq_file *m, loff_t *ppos)
+ static struct folio *alloc_anon_folio(struct vm_fault *vmf)
  {
-+	struct proc_maps_private *priv = m->private;
- 	struct vm_area_struct *vma = vma_next(&priv->iter);
- 
-+#ifdef CONFIG_PER_VMA_LOCK
-+	if (vma && !needs_mmap_lock(m)) {
-+		int ret;
-+
-+		put_vma_snapshot(priv);
-+		while ((ret = get_vma_snapshow(priv, vma)) == -EAGAIN) {
-+			/* lookup the vma at the last position again */
-+			vma_iter_init(&priv->iter, priv->mm, *ppos);
-+			vma = vma_next(&priv->iter);
-+		}
-+
-+		if (ret) {
-+			put_vma_snapshot(priv);
-+			return NULL;
-+		}
-+		vma = &priv->vma_copy;
-+	}
-+#endif
- 	if (vma) {
- 		*ppos = vma->vm_start;
- 	} else {
-@@ -169,12 +254,20 @@ static void *m_start(struct seq_file *m,
- 		return ERR_PTR(-EINTR);
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	struct vm_area_struct *vma = vmf->vma;
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	unsigned long orders;
+ 	struct folio *folio;
+ 	unsigned long addr;
+@@ -4206,15 +4206,21 @@ static struct folio *alloc_anon_folio(st
+ 		addr = ALIGN_DOWN(vmf->address, PAGE_SIZE << order);
+ 		folio = vma_alloc_folio(gfp, order, vma, addr, true);
+ 		if (folio) {
++			if (mem_cgroup_charge(folio, vma->vm_mm, gfp)) {
++				folio_put(folio);
++				goto next;
++			}
++			folio_throttle_swaprate(folio, gfp);
+ 			clear_huge_page(&folio->page, vmf->address, 1 << order);
+ 			return folio;
+ 		}
++next:
+ 		order = next_order(&orders, order);
  	}
  
-+	/* Drop mmap_lock if possible */
-+	if (!needs_mmap_lock(m)) {
-+		mmap_write_seq_record(priv->mm, &priv->mm_wr_seq);
-+		mmap_read_unlock(priv->mm);
-+		rcu_read_lock();
-+		memset(&priv->vma_copy, 0, sizeof(priv->vma_copy));
-+	}
-+
- 	vma_iter_init(&priv->iter, mm, last_addr);
- 	hold_task_mempolicy(priv);
- 	if (last_addr == -2UL)
- 		return get_gate_vma(mm);
- 
--	return proc_get_vma(priv, ppos);
-+	return proc_get_vma(m, ppos);
+ fallback:
+ #endif
+-	return vma_alloc_zeroed_movable_folio(vmf->vma, vmf->address);
++	return folio_prealloc(vma->vm_mm, vma, vmf->address, true);
  }
  
- static void *m_next(struct seq_file *m, void *v, loff_t *ppos)
-@@ -183,7 +276,7 @@ static void *m_next(struct seq_file *m,
- 		*ppos = -1UL;
- 		return NULL;
- 	}
--	return proc_get_vma(m->private, ppos);
-+	return proc_get_vma(m, ppos);
- }
+ /*
+@@ -4281,10 +4287,6 @@ static vm_fault_t do_anonymous_page(stru
+ 	nr_pages = folio_nr_pages(folio);
+ 	addr = ALIGN_DOWN(vmf->address, nr_pages * PAGE_SIZE);
  
- static void m_stop(struct seq_file *m, void *v)
-@@ -195,7 +288,10 @@ static void m_stop(struct seq_file *m, v
- 		return;
- 
- 	release_task_mempolicy(priv);
--	mmap_read_unlock(mm);
-+	if (needs_mmap_lock(m))
-+		mmap_read_unlock(mm);
-+	else
-+		rcu_read_unlock();
- 	mmput(mm);
- 	put_task_struct(priv->task);
- 	priv->task = NULL;
-@@ -283,8 +379,10 @@ show_map_vma(struct seq_file *m, struct
- 	start = vma->vm_start;
- 	end = vma->vm_end;
- 	show_vma_header_prefix(m, start, end, flags, pgoff, dev, ino);
--	if (mm)
--		anon_name = anon_vma_name(vma);
-+	if (mm) {
-+		anon_name = needs_mmap_lock(m) ? anon_vma_name(vma) :
-+				anon_vma_name_get_rcu(vma);
-+	}
- 
+-	if (mem_cgroup_charge(folio, vma->vm_mm, GFP_KERNEL))
+-		goto oom_free_page;
+-	folio_throttle_swaprate(folio, GFP_KERNEL);
+-
  	/*
- 	 * Print the dentry name for named mappings, and a
-@@ -338,6 +436,8 @@ done:
- 		seq_puts(m, name);
- 	}
- 	seq_putc(m, '\n');
-+	if (anon_name && !needs_mmap_lock(m))
-+		anon_vma_name_put(anon_name);
+ 	 * The memory barrier inside __folio_mark_uptodate makes sure that
+ 	 * preceding stores to the page contents become visible before
+@@ -4338,8 +4340,6 @@ unlock:
+ release:
+ 	folio_put(folio);
+ 	goto unlock;
+-oom_free_page:
+-	folio_put(folio);
+ oom:
+ 	return VM_FAULT_OOM;
  }
- 
- static int show_map(struct seq_file *m, void *v)
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-make-vm_area_struct-anon_name-field-rcu-safe.patch
-mm-add-mm_struct-sequence-number-to-detect-write-locks.patch
-mm-maps-read-proc-pid-maps-under-rcu.patch
+mm-memory-use-nth_page-in-clear-copy_subpage.patch
+s390-use-pfn_swap_entry_folio-in-ptep_zap_swap_entry.patch
+mm-use-pfn_swap_entry_folio-in-__split_huge_pmd_locked.patch
+mm-use-pfn_swap_entry_to_folio-in-zap_huge_pmd.patch
+mm-use-pfn_swap_entry_folio-in-copy_nonpresent_pte.patch
+mm-convert-to-should_zap_page-to-should_zap_folio.patch
+mm-convert-to-should_zap_page-to-should_zap_folio-fix.patch
+mm-convert-mm_counter-to-take-a-folio.patch
+mm-convert-mm_counter_file-to-take-a-folio.patch
+mm-memory-move-mem_cgroup_charge-into-alloc_anon_folio.patch
 
