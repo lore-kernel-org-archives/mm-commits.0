@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E9CF56773
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:42:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1882956773
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:42:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705970525; cv=none; b=r4cTXh5zGXRnSsgEb154a7cY1ASJHPunbWn2SavQi+HeBxWwXjB0e1riIr2mASraQ505YSrXDtldibbQHttbKedo3hugQBcTJWtRBin5RXUEDM8vKKcUVyjS+0nNdUKFCfr2P48qipaEvQ6BdLUTEgArQi+J/iz6skHfSfmNhz8=
+	t=1705970529; cv=none; b=qFgm6zF6YH9awScWnRYA//49c9D5PJqKSLZOrvAIAzIcaRiEd3GzVeRP/gHqnskTpkE0fRFUxwG/xuCgGwAex5hhs4OwOfrVN6Rz48emJyl2cRdYE0XTXkk+4QP0RCjm9Bh4R8tqOyKDS+6i7f8V72CKgslbK9cXNdzBt642RHo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705970525; c=relaxed/simple;
-	bh=qQMTXrs7u5d2h2zCTlXFxzn7pE46kAD1GlSFvwjn4sw=;
-	h=Date:To:From:Subject:Message-Id; b=ed0SVg6YdFAKYU+iQ8Em3BIVmMdB9t7O3BG93EMcEDVMlQyaZBIG7Z+TyZCSwyC7B/pGy9OkwUUJa4ecnu7lHj8yJQSH1EtIjtS2eSINDNrHXoKeOrjSu15Wc+ioiELTyUu2Q0Kbi0dogj/xSOc7vpx24GFTzeL9BFSdmHoxmbM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MRKmFxjX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705970529; c=relaxed/simple;
+	bh=cz/OgjC12bvEQXMRV0SEo7ZIrtWcoYME1vBoU+aAs6Q=;
+	h=Date:To:From:Subject:Message-Id; b=lbJ/1JEnJoWHjido+Hj2I2NyQBFNakvka8oJ3EebUec89MHmorsDfG5qI/wWlxudGmQjwXlpsHoGfVtXXLXg3Sqo+WL484IJkiD8T6AqzXByFNZGjblTmlCoJ088ZzUTrSiHUF7gGtcRODi3z1nZoVHRZwzN7DCqhHTgF/jX9c8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Gh9NqkOP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MRKmFxjX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3C96C433F1;
-	Tue, 23 Jan 2024 00:42:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Gh9NqkOP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C9ECC433C7;
+	Tue, 23 Jan 2024 00:42:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705970525;
-	bh=qQMTXrs7u5d2h2zCTlXFxzn7pE46kAD1GlSFvwjn4sw=;
+	s=korg; t=1705970528;
+	bh=cz/OgjC12bvEQXMRV0SEo7ZIrtWcoYME1vBoU+aAs6Q=;
 	h=Date:To:From:Subject:From;
-	b=MRKmFxjX5t7vN+2G7iTC0qBS9wZRMPDvcg2KJTwwG5Lg5UQ7gRucyJJwmLroAuzeA
-	 I/BCaQuKTr9jC7453ZBI+8UVAxa4cKiQ09ugMbvM0CHyNzIBuSCx2YDvXNNcpgXpkf
-	 FxS0qrMS7UWzKvR7v5sq744BkpB0EDj5nEbG5/Jo=
-Date: Mon, 22 Jan 2024 16:42:02 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,ryan.roberts@arm.com,david@redhat.com,akpm@linux-foundation.org
+	b=Gh9NqkOP8mpivM/ITds95TyCqq4V8Wy3OXvQs05Nf+VrqekKlWhuHhczGjL3KP+1N
+	 aor8NpKtBSqMBoFvLhHC/QknMmdaQVS2yCgnPcS3PPOMJDa3DytUE3a9x9XUS049zT
+	 sO9nB3EbhE+Fl27sHfMdyzTbl27vjqTKCjgcwOU4=
+Date: Mon, 22 Jan 2024 16:42:05 -0800
+To: mm-commits@vger.kernel.org,oleg@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-fix-folio_set_dirty-vs-folio_mark_dirty-in-zap_pte_range.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240123004204.E3C96C433F1@smtp.kernel.org>
+Subject: + ptrace_attach-shift-sendsigstop-into-ptrace_set_stopped.patch added to mm-nonmm-unstable branch
+Message-Id: <20240123004208.6C9ECC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory: fix folio_set_dirty() vs. folio_mark_dirty() in zap_pte_range()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-memory-fix-folio_set_dirty-vs-folio_mark_dirty-in-zap_pte_range.patch
+     Subject: ptrace_attach: shift send(SIGSTOP) into ptrace_set_stopped()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ptrace_attach-shift-sendsigstop-into-ptrace_set_stopped.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-fix-folio_set_dirty-vs-folio_mark_dirty-in-zap_pte_range.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ptrace_attach-shift-sendsigstop-into-ptrace_set_stopped.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,57 +58,61 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory: fix folio_set_dirty() vs. folio_mark_dirty() in zap_pte_range()
-Date: Mon, 22 Jan 2024 18:17:51 +0100
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: ptrace_attach: shift send(SIGSTOP) into ptrace_set_stopped()
+Date: Mon, 22 Jan 2024 18:16:31 +0100
 
-The correct folio replacement for "set_page_dirty()" is
-"folio_mark_dirty()", not "folio_set_dirty()".  Using the latter won't
-properly inform the FS using the dirty_folio() callback.
+Turn send_sig_info(SIGSTOP) into send_signal_locked(SIGSTOP) and move it
+from ptrace_attach() to ptrace_set_stopped().
 
-This has been found by code inspection, but likely this can result in some
-real trouble when zapping dirty PTEs that point at clean pagecache folios.
+This looks more logical and avoids lock(siglock) right after unlock().
 
-Link: https://lkml.kernel.org/r/20240122171751.272074-1-david@redhat.com
-Fixes: c46265030b0f ("mm/memory: page_remove_rmap() -> folio_remove_rmap_pte()")
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reported-by: Ryan Roberts <ryan.roberts@arm.com>
-Closes: https://lkml.kernel.org/r/2445cedb-61fb-422c-8bfb-caf0a2beed62@arm.com
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20240122171631.GA29844@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/ptrace.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
---- a/mm/memory.c~mm-memory-fix-folio_set_dirty-vs-folio_mark_dirty-in-zap_pte_range
-+++ a/mm/memory.c
-@@ -1464,7 +1464,7 @@ static unsigned long zap_pte_range(struc
- 			delay_rmap = 0;
- 			if (!folio_test_anon(folio)) {
- 				if (pte_dirty(ptent)) {
--					folio_set_dirty(folio);
-+					folio_mark_dirty(folio);
- 					if (tlb_delay_rmap(tlb)) {
- 						delay_rmap = 1;
- 						force_flush = 1;
+--- a/kernel/ptrace.c~ptrace_attach-shift-sendsigstop-into-ptrace_set_stopped
++++ a/kernel/ptrace.c
+@@ -375,10 +375,13 @@ static int check_ptrace_options(unsigned
+ 	return 0;
+ }
+ 
+-static inline void ptrace_set_stopped(struct task_struct *task)
++static inline void ptrace_set_stopped(struct task_struct *task, bool seize)
+ {
+ 	guard(spinlock)(&task->sighand->siglock);
+ 
++	/* SEIZE doesn't trap tracee on attach */
++	if (!seize)
++		send_signal_locked(SIGSTOP, SEND_SIG_PRIV, task, PIDTYPE_PID);
+ 	/*
+ 	 * If the task is already STOPPED, set JOBCTL_TRAP_STOP and
+ 	 * TRAPPING, and kick it so that it transits to TRACED.  TRAPPING
+@@ -457,14 +460,8 @@ static int ptrace_attach(struct task_str
+ 				return -EPERM;
+ 
+ 			task->ptrace = flags;
+-
+ 			ptrace_link(task, current);
+-
+-			/* SEIZE doesn't trap tracee on attach */
+-			if (!seize)
+-				send_sig_info(SIGSTOP, SEND_SIG_PRIV, task);
+-
+-			ptrace_set_stopped(task);
++			ptrace_set_stopped(task, seize);
+ 		}
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-uprobes-use-pagesize-aligned-virtual-address-when-replacing-pages.patch
-mm-huge_memory-fix-folio_set_dirty-vs-folio_mark_dirty.patch
-mm-memory-fix-folio_set_dirty-vs-folio_mark_dirty-in-zap_pte_range.patch
-arm-pgtable-define-pfn_pte_shift-on-arm-and-arm64.patch
-nios2-pgtable-define-pfn_pte_shift.patch
-powerpc-pgtable-define-pfn_pte_shift.patch
-risc-pgtable-define-pfn_pte_shift.patch
-s390-pgtable-define-pfn_pte_shift.patch
-sparc-pgtable-define-pfn_pte_shift.patch
-mm-memory-factor-out-copying-the-actual-pte-in-copy_present_pte.patch
-mm-memory-pass-pte-to-copy_present_pte.patch
-mm-memory-optimize-fork-with-pte-mapped-thp.patch
-mm-memory-ignore-dirty-accessed-soft-dirty-bits-in-folio_pte_batch.patch
-mm-memory-ignore-writable-bit-in-folio_pte_batch.patch
+getrusage-move-thread_group_cputime_adjusted-outside-of-lock_task_sighand.patch
+getrusage-use-sig-stats_lock.patch
+ptrace_attach-shift-sendsigstop-into-ptrace_set_stopped.patch
 
