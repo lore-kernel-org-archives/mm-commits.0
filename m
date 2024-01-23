@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DF5853E0F
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:43:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECD8256B99
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:43:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705970580; cv=none; b=VghuiDEiy8PSCM+mjWCV258Y/QAEIPxKhsPycPzVcCbHReZIV0i45ARU3Naht8iGe5FFwKnsL9SYHWCJmArbo0mTulby+hXsgy2mi95U+GA8mWqUlJBVaUPh+xUvnBpWPmhnIQRjk40MEIiQqxu05rPfkZjtu8Dbyw5K6MMOmOw=
+	t=1705970584; cv=none; b=KIOHZz4A7/JX4qdYnwbSV5I4HhEXlOM919GGXaCt0k7Qi5P6kcvmJ//kGYfG3TbLKeDTepGgofNJTHu1DPPdhdGl+r57J+FyouL7Z/XFiVXdfz930lhQhi8diQBbdOGu7OHYizGpdztr+B8mHR+p2AJM3vVwMjNfEDUUbGjUbk8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705970580; c=relaxed/simple;
-	bh=ZXjfAs6T6rQZ0/0tOTbdZYSLfUl05v30528Z5YW6sQM=;
-	h=Date:To:From:Subject:Message-Id; b=CPJ7XTCFxN9/XcHZV5Qoe95biQ3iroIVEpzZPRIYqSteM4ezRVy+cAylDsCbVt3ksGjD1Dw6kPlrGjNL8JTkt5tdVffIehT7zJknELNY5igSkcTsLXNg+VDW2/mKmetAZ0PXyjfOKjZ9sgZ+zfZtCGRt5kKlrQdxSAHbUiheBlY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ya8OM3/w; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705970584; c=relaxed/simple;
+	bh=dhP0PPAcW2dIl+0DEdeT7B/e3o+5H1m8FL7c2734KnA=;
+	h=Date:To:From:Subject:Message-Id; b=TzVni1ZlrZ7TCG7yC95bntrraDmy7huykSdd/QR8Tj6Up4yIz+7Fg68IyK8cwaRItO6j3pXCFNX3LwiQbHsArXd0UevtLA/YJwmA8SMKlc1qPEObhi+N6yfcW9Qg2JjIVRx2F70wINx8ir42vlIpwF6aXcizOHJ0nQ2VibCKBjg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mnklbd3E; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ya8OM3/w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7DDDC43390;
-	Tue, 23 Jan 2024 00:42:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mnklbd3E"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A177C433F1;
+	Tue, 23 Jan 2024 00:43:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705970580;
-	bh=ZXjfAs6T6rQZ0/0tOTbdZYSLfUl05v30528Z5YW6sQM=;
+	s=korg; t=1705970583;
+	bh=dhP0PPAcW2dIl+0DEdeT7B/e3o+5H1m8FL7c2734KnA=;
 	h=Date:To:From:Subject:From;
-	b=Ya8OM3/w5Xh6JwNjpCqj2smUvzbWXSDq1UHZMU3W4p84Eev+0eYpXoZyB18SXr6MH
-	 Fb4l/Gf2HOWSF6CxORx2LUNtLSh6WsYL+l17jZYsK1rLIQD6QQKIl/DMr9OqghrgwG
-	 iUMvlgVxHXVyLWHXQZlZpaReUUYvpsaZpUhHuGs8=
-Date: Mon, 22 Jan 2024 16:42:57 -0800
+	b=mnklbd3EBBJ82L9ERyhi4i9u9qfw3QYa+ZyaFIVjtrHGoCvv4uTqQow19Xh5RsO5N
+	 kbTqJ1I//JOoc6Y8cH/mlojgTzh9TECveh1qNib12MwiWs0rx5XtzbH5NMvSvUhnPh
+	 QfWCtHD6vqRrKWfpxL7xB26YqdFomuxyTG2mfibw=
+Date: Mon, 22 Jan 2024 16:43:00 -0800
 To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-convert-ifile-to-use-kmap_local.patch added to mm-nonmm-unstable branch
-Message-Id: <20240123004259.B7DDDC43390@smtp.kernel.org>
+Subject: + nilfs2-do-not-acquire-rwsem-in-nilfs_bmap_write.patch added to mm-nonmm-unstable branch
+Message-Id: <20240123004303.4A177C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: convert ifile to use kmap_local
+     Subject: nilfs2: do not acquire rwsem in nilfs_bmap_write()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-convert-ifile-to-use-kmap_local.patch
+     nilfs2-do-not-acquire-rwsem-in-nilfs_bmap_write.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-convert-ifile-to-use-kmap_local.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-do-not-acquire-rwsem-in-nilfs_bmap_write.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,104 +59,41 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: convert ifile to use kmap_local
-Date: Mon, 22 Jan 2024 23:01:57 +0900
+Subject: nilfs2: do not acquire rwsem in nilfs_bmap_write()
+Date: Mon, 22 Jan 2024 23:01:56 +0900
 
-Convert deprecated kmap() and kmap_atomic() to use kmap_local for the
-ifile metadata file used to manage disk inodes.
+It is now clear that nilfs_bmap_write() is only used to finalize logs
+written to disk.  Concurrent bmap modification operations are not
+performed on bmaps in this context.  Additionally, this function does not
+modify data used in read-only operations such as bmap lookups.
 
-In some usages, calls to kmap_local and kunmap_local are split into
-different helpers, but those usages can be safely changed to local thread
-kmap.
+Therefore, there is no need to acquire bmap->b_sem in nilfs_bmap_write(),
+so delete it.
 
-Link: https://lkml.kernel.org/r/20240122140202.6950-11-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20240122140202.6950-10-konishi.ryusuke@gmail.com
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/ifile.c   |    4 ++--
- fs/nilfs2/ifile.h   |    7 +++----
- fs/nilfs2/inode.c   |    6 +++---
- fs/nilfs2/segment.c |    2 +-
- 4 files changed, 9 insertions(+), 10 deletions(-)
+ fs/nilfs2/bmap.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/fs/nilfs2/ifile.c~nilfs2-convert-ifile-to-use-kmap_local
-+++ a/fs/nilfs2/ifile.c
-@@ -115,11 +115,11 @@ int nilfs_ifile_delete_inode(struct inod
- 		return ret;
- 	}
- 
--	kaddr = kmap_atomic(req.pr_entry_bh->b_page);
-+	kaddr = kmap_local_page(req.pr_entry_bh->b_page);
- 	raw_inode = nilfs_palloc_block_get_entry(ifile, req.pr_entry_nr,
- 						 req.pr_entry_bh, kaddr);
- 	raw_inode->i_flags = 0;
--	kunmap_atomic(kaddr);
-+	kunmap_local(kaddr);
- 
- 	mark_buffer_dirty(req.pr_entry_bh);
- 	brelse(req.pr_entry_bh);
---- a/fs/nilfs2/ifile.h~nilfs2-convert-ifile-to-use-kmap_local
-+++ a/fs/nilfs2/ifile.h
-@@ -21,15 +21,14 @@
- static inline struct nilfs_inode *
- nilfs_ifile_map_inode(struct inode *ifile, ino_t ino, struct buffer_head *ibh)
+--- a/fs/nilfs2/bmap.c~nilfs2-do-not-acquire-rwsem-in-nilfs_bmap_write
++++ a/fs/nilfs2/bmap.c
+@@ -548,13 +548,10 @@ int nilfs_bmap_read(struct nilfs_bmap *b
+  */
+ void nilfs_bmap_write(struct nilfs_bmap *bmap, struct nilfs_inode *raw_inode)
  {
--	void *kaddr = kmap(ibh->b_page);
-+	void *kaddr = kmap_local_page(ibh->b_page);
- 
- 	return nilfs_palloc_block_get_entry(ifile, ino, ibh, kaddr);
+-	down_write(&bmap->b_sem);
+ 	memcpy(raw_inode->i_bmap, bmap->b_u.u_data,
+ 	       NILFS_INODE_BMAP_SIZE * sizeof(__le64));
+ 	if (bmap->b_inode->i_ino == NILFS_DAT_INO)
+ 		bmap->b_last_allocated_ptr = NILFS_BMAP_NEW_PTR_INIT;
+-
+-	up_write(&bmap->b_sem);
  }
  
--static inline void nilfs_ifile_unmap_inode(struct inode *ifile, ino_t ino,
--					   struct buffer_head *ibh)
-+static inline void nilfs_ifile_unmap_inode(struct nilfs_inode *raw_inode)
- {
--	kunmap(ibh->b_page);
-+	kunmap_local(raw_inode);
- }
- 
- int nilfs_ifile_create_inode(struct inode *, ino_t *, struct buffer_head **);
---- a/fs/nilfs2/inode.c~nilfs2-convert-ifile-to-use-kmap_local
-+++ a/fs/nilfs2/inode.c
-@@ -520,7 +520,7 @@ static int __nilfs_read_inode(struct sup
- 			inode, inode->i_mode,
- 			huge_decode_dev(le64_to_cpu(raw_inode->i_device_code)));
- 	}
--	nilfs_ifile_unmap_inode(root->ifile, ino, bh);
-+	nilfs_ifile_unmap_inode(raw_inode);
- 	brelse(bh);
- 	up_read(&NILFS_MDT(nilfs->ns_dat)->mi_sem);
- 	nilfs_set_inode_flags(inode);
-@@ -529,7 +529,7 @@ static int __nilfs_read_inode(struct sup
- 	return 0;
- 
-  failed_unmap:
--	nilfs_ifile_unmap_inode(root->ifile, ino, bh);
-+	nilfs_ifile_unmap_inode(raw_inode);
- 	brelse(bh);
- 
-  bad_inode:
-@@ -814,7 +814,7 @@ void nilfs_update_inode(struct inode *in
- 		raw_inode->i_device_code =
- 			cpu_to_le64(huge_encode_dev(inode->i_rdev));
- 
--	nilfs_ifile_unmap_inode(ifile, ino, ibh);
-+	nilfs_ifile_unmap_inode(raw_inode);
- }
- 
- #define NILFS_MAX_TRUNCATE_BLOCKS	16384  /* 64MB for 4KB block */
---- a/fs/nilfs2/segment.c~nilfs2-convert-ifile-to-use-kmap_local
-+++ a/fs/nilfs2/segment.c
-@@ -966,7 +966,7 @@ static void nilfs_fill_in_file_bmap(stru
- 		raw_inode = nilfs_ifile_map_inode(ifile, ii->vfs_inode.i_ino,
- 						  ibh);
- 		nilfs_bmap_write(ii->i_bmap, raw_inode);
--		nilfs_ifile_unmap_inode(ifile, ii->vfs_inode.i_ino, ibh);
-+		nilfs_ifile_unmap_inode(raw_inode);
- 	}
- }
- 
+ void nilfs_bmap_init_gc(struct nilfs_bmap *bmap)
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
