@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EAD3B53E1D
-	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:41:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DB5253E1D
+	for <mm-commits@vger.kernel.org>; Tue, 23 Jan 2024 00:41:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705970511; cv=none; b=asqt4m68gLIciYayeE9vO/SP8K6l8Nn3E1I31YMsQ2iU3zSjFiTwYTR9oBq8pKrJX8Vwa+iJZaB6RwwpbaiXfSAfry/cjdhmT9o1o2a5IYdyr/mM2XehsXnjOF643Qq9MP/urXxcAspe9ThfVSrwnpMyymjmQuaSoGhdCUHyOMY=
+	t=1705970514; cv=none; b=N6jwvJjNQ0NtgHKYLkOQuksYA8M3ygKmyjeAwr8x1WqKAqp2aGX5MfRcVgBjvtZr7MuLEfc/2xoavrJ/3sM9lbxJxYqN7/KwPc4Su/tFvhcP5MnqeSwHn0w+ARPgT9n/hJaUESDWG0F567g/KWCslASw2kzcEuAesVg5GYD6Np8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705970511; c=relaxed/simple;
-	bh=yt2DJpu2f0R+9oCl/huaRMzTb9m1G4cH2F5NcRuqoXw=;
-	h=Date:To:From:Subject:Message-Id; b=b8d/as8UZNTi8yG/xvjM/4pnx9RWJQfNzQdmFWvGUYhqu2SB5+lWb7PWYPBxFiGClT1ohIkixZye7k8CskG1c5BFO+9F/5l/Qxbi4RXaD/VPwDHm7F8SD+IQohBPxUy2Z/V/GmF1xznKQxNHGa42DLSYX8pHEJR/PpxpkdfAgks=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bfxprm4e; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1705970514; c=relaxed/simple;
+	bh=vDWQVbOB3vxJVu257Ui4DAzgDAvY/KkbrNFtXTupxRs=;
+	h=Date:To:From:Subject:Message-Id; b=Bs3sB28et+viY+DgfMz2K5F4W6JbQ0Mw8FGbE2a3xhMF3BIkusVSdC3cHpO4XO0Duj1KXxjk6HiugJPHXlRw6zNOugb/HqRDbOiKZRT8ZVKGJGRZEouYMLWCYmUB1WkoMfwcQnhDZCywnjUspYgEm8IrlFs8cd28lGBYMjLbeQ0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kWToRqMX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bfxprm4e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F62BC433C7;
-	Tue, 23 Jan 2024 00:41:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kWToRqMX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8AA2C433F1;
+	Tue, 23 Jan 2024 00:41:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1705970510;
-	bh=yt2DJpu2f0R+9oCl/huaRMzTb9m1G4cH2F5NcRuqoXw=;
+	s=korg; t=1705970514;
+	bh=vDWQVbOB3vxJVu257Ui4DAzgDAvY/KkbrNFtXTupxRs=;
 	h=Date:To:From:Subject:From;
-	b=bfxprm4eWTaAgb45mAlkypcM8EaxAgRHX676c6lOhzQEOfDnPpojXS4bFGGNmdP23
-	 0mtph/xssil4iR4iGGKFKvOMRKABP8Z5PYmq+52110BO1sbHOwSlJf8d3pBn6YlT6n
-	 +M8DY56Sn3Ri9VRGBQK0FDsJwRV4+KeNRe5Pg9XU=
-Date: Mon, 22 Jan 2024 16:41:47 -0800
+	b=kWToRqMXoVo9dlNf4Bzm4E085uO4WlkrSe7k3CeIDqC66c1s2fGuJHy5Ky41AtmYl
+	 2g73m3DlAYDZSobyii+0FFHIL7ZuF4IDroAl6cNW/JPv9itEKHv/yXW6/n0oNmL/8y
+	 zD73/omtVDgirjU04xHwJZU+EuIuU5PRNsKl6Ep8=
+Date: Mon, 22 Jan 2024 16:41:51 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,svens@linux.ibm.com,ryan.roberts@arm.com,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,mpe@ellerman.id.au,linux@armlinux.org.uk,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,dinguyen@kernel.org,davem@davemloft.net,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,borntraeger@linux.ibm.com,aou@eecs.berkeley.edu,aneesh.kumar@kernel.org,alexghiti@rivosinc.com,agordeev@linux.ibm.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-optimize-fork-with-pte-mapped-thp.patch added to mm-unstable branch
-Message-Id: <20240123004150.4F62BC433C7@smtp.kernel.org>
+Subject: + mm-memory-ignore-writable-bit-in-folio_pte_batch.patch added to mm-unstable branch
+Message-Id: <20240123004153.E8AA2C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory: optimize fork() with PTE-mapped THP
+     Subject: mm/memory: ignore writable bit in folio_pte_batch()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-optimize-fork-with-pte-mapped-thp.patch
+     mm-memory-ignore-writable-bit-in-folio_pte_batch.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-optimize-fork-with-pte-mapped-thp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-ignore-writable-bit-in-folio_pte_batch.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,25 +59,14 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory: optimize fork() with PTE-mapped THP
-Date: Mon, 22 Jan 2024 20:41:58 +0100
+Subject: mm/memory: ignore writable bit in folio_pte_batch()
+Date: Mon, 22 Jan 2024 20:42:00 +0100
 
-Let's implement PTE batching when consecutive (present) PTEs map
-consecutive pages of the same large folio, and all other PTE bits besides
-the PFNs are equal.
+...  and conditionally return to the caller if any pte except the first
+one is writable.  fork() has to make sure to properly write-protect in
+case any PTE is writable.  Other users (e.g., page unmaping) won't care.
 
-We will optimize folio_pte_batch() separately, to ignore some other PTE
-bits.  This patch is based on work by Ryan Roberts.
-
-Use __always_inline for __copy_present_ptes() and keep the handling for
-single PTEs completely separate from the multi-PTE case: we really want
-the compiler to optimize for the single-PTE case with small folios, to not
-degrade performance.
-
-Note that PTE batching will never exceed a single page table and will
-always stay within VMA boundaries.
-
-Link: https://lkml.kernel.org/r/20240122194200.381241-10-david@redhat.com
+Link: https://lkml.kernel.org/r/20240122194200.381241-12-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -104,252 +93,90 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |   17 +++++
- mm/memory.c             |  113 +++++++++++++++++++++++++++++++-------
- 2 files changed, 109 insertions(+), 21 deletions(-)
+ mm/memory.c |   26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
---- a/include/linux/pgtable.h~mm-memory-optimize-fork-with-pte-mapped-thp
-+++ a/include/linux/pgtable.h
-@@ -212,8 +212,6 @@ static inline int pmd_dirty(pmd_t pmd)
- #define arch_flush_lazy_mmu_mode()	do {} while (0)
- #endif
- 
--#ifndef set_ptes
--
- #ifndef pte_next_pfn
- static inline pte_t pte_next_pfn(pte_t pte)
- {
-@@ -221,6 +219,7 @@ static inline pte_t pte_next_pfn(pte_t p
- }
- #endif
- 
-+#ifndef set_ptes
- /**
-  * set_ptes - Map consecutive pages to a contiguous range of addresses.
-  * @mm: Address space to map the pages into.
-@@ -650,6 +649,20 @@ static inline void ptep_set_wrprotect(st
- }
- #endif
- 
-+#ifndef wrprotect_ptes
-+static inline void wrprotect_ptes(struct mm_struct *mm, unsigned long addr,
-+		pte_t *ptep, unsigned int nr)
-+{
-+	for (;;) {
-+		ptep_set_wrprotect(mm, addr, ptep);
-+		if (--nr == 0)
-+			break;
-+		ptep++;
-+		addr += PAGE_SIZE;
-+	}
-+}
-+#endif
-+
- /*
-  * On some architectures hardware does not set page access bit when accessing
-  * memory page, it is responsibility of software setting this bit. It brings
---- a/mm/memory.c~mm-memory-optimize-fork-with-pte-mapped-thp
+--- a/mm/memory.c~mm-memory-ignore-writable-bit-in-folio_pte_batch
 +++ a/mm/memory.c
-@@ -930,15 +930,15 @@ copy_present_page(struct vm_area_struct
- 	return 0;
- }
+@@ -955,7 +955,7 @@ static __always_inline void __copy_prese
  
--static inline void __copy_present_pte(struct vm_area_struct *dst_vma,
-+static __always_inline void __copy_present_ptes(struct vm_area_struct *dst_vma,
- 		struct vm_area_struct *src_vma, pte_t *dst_pte, pte_t *src_pte,
--		pte_t pte, unsigned long addr)
-+		pte_t pte, unsigned long addr, int nr)
+ static inline pte_t __pte_batch_clear_ignored(pte_t pte)
  {
- 	struct mm_struct *src_mm = src_vma->vm_mm;
- 
- 	/* If it's a COW mapping, write protect it both processes. */
- 	if (is_cow_mapping(src_vma->vm_flags) && pte_write(pte)) {
--		ptep_set_wrprotect(src_mm, addr, src_pte);
-+		wrprotect_ptes(src_mm, addr, src_pte, nr);
- 		pte = pte_wrprotect(pte);
- 	}
- 
-@@ -950,26 +950,94 @@ static inline void __copy_present_pte(st
- 	if (!userfaultfd_wp(dst_vma))
- 		pte = pte_clear_uffd_wp(pte);
- 
--	set_pte_at(dst_vma->vm_mm, addr, dst_pte, pte);
-+	set_ptes(dst_vma->vm_mm, addr, dst_pte, pte, nr);
+-	return pte_clear_soft_dirty(pte_mkclean(pte_mkold(pte)));
++	return pte_wrprotect(pte_clear_soft_dirty(pte_mkclean(pte_mkold(pte))));
  }
  
  /*
-- * Copy one pte.  Returns 0 if succeeded, or -EAGAIN if one preallocated page
-- * is required to copy this pte.
-+ * Detect a PTE batch: consecutive (present) PTEs that map consecutive
-+ * pages of the same folio.
-+ *
-+ * All PTEs inside a PTE batch have the same PTE bits set, excluding the PFN.
-+ */
-+static inline int folio_pte_batch(struct folio *folio, unsigned long addr,
-+		pte_t *start_ptep, pte_t pte, int max_nr)
-+{
-+	unsigned long folio_end_pfn = folio_pfn(folio) + folio_nr_pages(folio);
-+	const pte_t *end_ptep = start_ptep + max_nr;
-+	pte_t expected_pte = pte_next_pfn(pte);
-+	pte_t *ptep = start_ptep + 1;
-+
-+	VM_WARN_ON_FOLIO(!pte_present(pte), folio);
-+
-+	while (ptep != end_ptep) {
-+		pte = ptep_get(ptep);
-+
-+		if (!pte_same(pte, expected_pte))
-+			break;
-+
-+		/*
-+		 * Stop immediately once we reached the end of the folio. In
-+		 * corner cases the next PFN might fall into a different
-+		 * folio.
-+		 */
-+		if (pte_pfn(pte) == folio_end_pfn)
-+			break;
-+
-+		expected_pte = pte_next_pfn(expected_pte);
-+		ptep++;
-+	}
-+
-+	return ptep - start_ptep;
-+}
-+
-+/*
-+ * Copy one present PTE, trying to batch-process subsequent PTEs that map
-+ * consecutive pages of the same folio by copying them as well.
-+ *
-+ * Returns -EAGAIN if one preallocated page is required to copy the next PTE.
-+ * Otherwise, returns the number of copied PTEs (at least 1).
+@@ -963,20 +963,29 @@ static inline pte_t __pte_batch_clear_ig
+  * pages of the same folio.
+  *
+  * All PTEs inside a PTE batch have the same PTE bits set, excluding the PFN.
+- * the accessed bit, dirty bit and soft-dirty bit.
++ * the accessed bit, dirty bit, soft-dirty bit and writable bit.
++ . If "any_writable" is set, it will indicate if any other PTE besides the
++ * first (given) PTE is writable.
   */
- static inline int
--copy_present_pte(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma,
-+copy_present_ptes(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma,
- 		 pte_t *dst_pte, pte_t *src_pte, pte_t pte, unsigned long addr,
--		 int *rss, struct folio **prealloc)
-+		 int max_nr, int *rss, struct folio **prealloc)
+ static inline int folio_pte_batch(struct folio *folio, unsigned long addr,
+-		pte_t *start_ptep, pte_t pte, int max_nr)
++		pte_t *start_ptep, pte_t pte, int max_nr, bool *any_writable)
+ {
+ 	unsigned long folio_end_pfn = folio_pfn(folio) + folio_nr_pages(folio);
+ 	const pte_t *end_ptep = start_ptep + max_nr;
+ 	pte_t expected_pte = __pte_batch_clear_ignored(pte_next_pfn(pte));
+ 	pte_t *ptep = start_ptep + 1;
++	bool writable;
++
++	if (any_writable)
++		*any_writable = false;
+ 
+ 	VM_WARN_ON_FOLIO(!pte_present(pte), folio);
+ 
+ 	while (ptep != end_ptep) {
+-		pte = __pte_batch_clear_ignored(ptep_get(ptep));
++		pte = ptep_get(ptep);
++		if (any_writable)
++			writable = !!pte_write(pte);
++		pte = __pte_batch_clear_ignored(pte);
+ 
+ 		if (!pte_same(pte, expected_pte))
+ 			break;
+@@ -989,6 +998,9 @@ static inline int folio_pte_batch(struct
+ 		if (pte_pfn(pte) == folio_end_pfn)
+ 			break;
+ 
++		if (any_writable)
++			*any_writable |= writable;
++
+ 		expected_pte = pte_next_pfn(expected_pte);
+ 		ptep++;
+ 	}
+@@ -1010,6 +1022,7 @@ copy_present_ptes(struct vm_area_struct
  {
  	struct page *page;
  	struct folio *folio;
-+	int err, nr;
++	bool any_writable;
+ 	int err, nr;
  
  	page = vm_normal_page(src_vma, addr, pte);
- 	if (unlikely(!page))
- 		goto copy_pte;
- 
- 	folio = page_folio(page);
-+
-+	/*
-+	 * If we likely have to copy, just don't bother with batching. Make
-+	 * sure that the common "small folio" case stays as fast as possible
-+	 * by keeping the batching logic separate.
-+	 */
-+	if (unlikely(!*prealloc && folio_test_large(folio) && max_nr != 1)) {
-+		nr = folio_pte_batch(folio, addr, src_pte, pte, max_nr);
-+		if (folio_test_anon(folio)) {
-+			folio_ref_add(folio, nr);
-+			if (unlikely(folio_try_dup_anon_rmap_ptes(folio, page,
-+								  nr, src_vma))) {
-+				folio_ref_sub(folio, nr);
-+				return -EAGAIN;
-+			}
-+			rss[MM_ANONPAGES] += nr;
-+			VM_WARN_ON_FOLIO(PageAnonExclusive(page), folio);
-+		} else {
-+			folio_ref_add(folio, nr);
-+			folio_dup_file_rmap_ptes(folio, page, nr);
-+			rss[mm_counter_file(page)] += nr;
-+		}
-+		__copy_present_ptes(dst_vma, src_vma, dst_pte, src_pte, pte,
-+				    addr, nr);
-+		return nr;
-+	}
-+
- 	if (folio_test_anon(folio)) {
- 		/*
- 		 * If this page may have been pinned by the parent process,
-@@ -981,8 +1049,9 @@ copy_present_pte(struct vm_area_struct *
- 		if (unlikely(folio_try_dup_anon_rmap_pte(folio, page, src_vma))) {
- 			/* Page may be pinned, we have to copy. */
- 			folio_put(folio);
--			return copy_present_page(dst_vma, src_vma, dst_pte, src_pte,
--						 addr, rss, prealloc, page);
-+			err = copy_present_page(dst_vma, src_vma, dst_pte, src_pte,
-+						addr, rss, prealloc, page);
-+			return err ? err : 1;
+@@ -1024,7 +1037,8 @@ copy_present_ptes(struct vm_area_struct
+ 	 * by keeping the batching logic separate.
+ 	 */
+ 	if (unlikely(!*prealloc && folio_test_large(folio) && max_nr != 1)) {
+-		nr = folio_pte_batch(folio, addr, src_pte, pte, max_nr);
++		nr = folio_pte_batch(folio, addr, src_pte, pte, max_nr,
++				     &any_writable);
+ 		if (folio_test_anon(folio)) {
+ 			folio_ref_add(folio, nr);
+ 			if (unlikely(folio_try_dup_anon_rmap_ptes(folio, page,
+@@ -1039,6 +1053,8 @@ copy_present_ptes(struct vm_area_struct
+ 			folio_dup_file_rmap_ptes(folio, page, nr);
+ 			rss[mm_counter_file(page)] += nr;
  		}
- 		rss[MM_ANONPAGES]++;
- 		VM_WARN_ON_FOLIO(PageAnonExclusive(page), folio);
-@@ -993,8 +1062,8 @@ copy_present_pte(struct vm_area_struct *
- 	}
- 
- copy_pte:
--	__copy_present_pte(dst_vma, src_vma, dst_pte, src_pte, pte, addr);
--	return 0;
-+	__copy_present_ptes(dst_vma, src_vma, dst_pte, src_pte, pte, addr, 1);
-+	return 1;
- }
- 
- static inline struct folio *folio_prealloc(struct mm_struct *src_mm,
-@@ -1031,10 +1100,11 @@ copy_pte_range(struct vm_area_struct *ds
- 	pte_t *src_pte, *dst_pte;
- 	pte_t ptent;
- 	spinlock_t *src_ptl, *dst_ptl;
--	int progress, ret = 0;
-+	int progress, max_nr, ret = 0;
- 	int rss[NR_MM_COUNTERS];
- 	swp_entry_t entry = (swp_entry_t){0};
- 	struct folio *prealloc = NULL;
-+	int nr;
- 
- again:
- 	progress = 0;
-@@ -1065,6 +1135,8 @@ again:
- 	arch_enter_lazy_mmu_mode();
- 
- 	do {
-+		nr = 1;
-+
- 		/*
- 		 * We are holding two locks at this point - either of them
- 		 * could generate latencies in another task on another CPU.
-@@ -1101,9 +1173,10 @@ again:
- 			 */
- 			WARN_ON_ONCE(ret != -ENOENT);
- 		}
--		/* copy_present_pte() will clear `*prealloc' if consumed */
--		ret = copy_present_pte(dst_vma, src_vma, dst_pte, src_pte,
--				       ptent, addr, rss, &prealloc);
-+		/* copy_present_ptes() will clear `*prealloc' if consumed */
-+		max_nr = (end - addr) / PAGE_SIZE;
-+		ret = copy_present_ptes(dst_vma, src_vma, dst_pte, src_pte,
-+					ptent, addr, max_nr, rss, &prealloc);
- 		/*
- 		 * If we need a pre-allocated page for this pte, drop the
- 		 * locks, allocate, and try again.
-@@ -1120,8 +1193,10 @@ again:
- 			folio_put(prealloc);
- 			prealloc = NULL;
- 		}
--		progress += 8;
--	} while (dst_pte++, src_pte++, addr += PAGE_SIZE, addr != end);
-+		nr = ret;
-+		progress += 8 * nr;
-+	} while (dst_pte += nr, src_pte += nr, addr += PAGE_SIZE * nr,
-+		 addr != end);
- 
- 	arch_leave_lazy_mmu_mode();
- 	pte_unmap_unlock(orig_src_pte, src_ptl);
-@@ -1142,7 +1217,7 @@ again:
- 		prealloc = folio_prealloc(src_mm, src_vma, addr, false);
- 		if (!prealloc)
- 			return -ENOMEM;
--	} else if (ret) {
-+	} else if (ret < 0) {
- 		VM_WARN_ON_ONCE(1);
- 	}
- 
++		if (any_writable)
++			pte = pte_mkwrite(pte, src_vma);
+ 		__copy_present_ptes(dst_vma, src_vma, dst_pte, src_pte, pte,
+ 				    addr, nr);
+ 		return nr;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
