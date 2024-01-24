@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B02F18C08
-	for <mm-commits@vger.kernel.org>; Wed, 24 Jan 2024 10:17:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E80058C08
+	for <mm-commits@vger.kernel.org>; Wed, 24 Jan 2024 10:17:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706091433; cv=none; b=KhMW7lGDV6M+B7LXMo2dqHiwfFmNzl3orhkWULd5Uoce+4+2fJy33UTiuJmPY/zAk2MhnBCtRr31eSBdMAqRSrsN1p22AqhS83m+hKDe98wK6czRY/ZrronHruXFIkHlLxSu+8tr5XwAvpZ7pFketygWunPjzTTlP3IRNeT4FJY=
+	t=1706091437; cv=none; b=VRKwIyCyfIvPETu7hhLAn+vdOjH0UZEEfve6nVdmtTnFAZwBOAF6WgqCUEB5adeEmsytDptNs0jzU9klOTFOi4rXxIdWra9wXHpwYiB2ZlHKzAiHe5OG/2e5k0c8Djk9Y4nmxzrUlZyp7xhp0t5AdnXn/BJX1+LKbLXVNQIfTVY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706091433; c=relaxed/simple;
-	bh=tA+/BZvZ3Ex2Jwh0v5ixu/l9WAzNXe06pwEa/dxUUAU=;
-	h=Date:To:From:Subject:Message-Id; b=T7d+GEaZ7vSng8Myf1EsYt0qIXdLm57yW7VHD5dKQICFwQi7KvmRcffzeO1tZF2U2ND6KCInioFcGB9ZzoA+rvvvg/rLw0ZUeNPSKL16cgeFDKenMNQq2vDhNtkj/EaXEqlP/EkfP9Aq+vgAmvf8CTKsVOPrKs3pvKn3Tgfd3Pk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cCFOTgC5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706091437; c=relaxed/simple;
+	bh=hrYiI8eLJahZT1FQOs2sZne7hhAGzUNxGnOIMvksgO8=;
+	h=Date:To:From:Subject:Message-Id; b=Mdb/U7AX9O2ShJihAMZQyQLxSiHjQdQdSSlJqjrtEtRGSINmQO5TZtOYTxOjULfktkZbO9q1Ma/AQAKhZIL1Qxs41Z89HTUtpq31ZoPsg5EZWycBAfQA6rtYwgFr5Gpb1usY8CX4nWukEJmANRKZZY1Z53eUTmpud0EpG9m4SbI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gea0iuIf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cCFOTgC5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46AA3C433F1;
-	Wed, 24 Jan 2024 10:17:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gea0iuIf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8641DC43399;
+	Wed, 24 Jan 2024 10:17:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706091433;
-	bh=tA+/BZvZ3Ex2Jwh0v5ixu/l9WAzNXe06pwEa/dxUUAU=;
+	s=korg; t=1706091436;
+	bh=hrYiI8eLJahZT1FQOs2sZne7hhAGzUNxGnOIMvksgO8=;
 	h=Date:To:From:Subject:From;
-	b=cCFOTgC5Pus1a6zjCqYIZteOWrimUwryZcuOO40+r6f58wUEIC06JIxYbpaBQLUYO
-	 TRAm/1fqLZitcIDjvwIOm4orYqeJkxb8AQIwTlAFkmgVN840lIKhPj5UkbLBmPBa0H
-	 n/ctuzpeJj/Ji+u5QI5ieHS09Z6xyTw9+eJZJphk=
-Date: Wed, 24 Jan 2024 02:17:10 -0800
+	b=gea0iuIfmKEDKJ3Ep2MBBYRMDCrw+Gjfxxvgma6vREc4S15mJWSw1h/VEFdVgaWk0
+	 ApJJKoMvtCFS4dPo9QI+DHI0UViHOKApNweYTM9kyRG72NtdPO2aX57FP8BTgPe30B
+	 TmMMcsM3qUzsLqWuXCLdkcC/0bZtJxzvedXyKtLI=
+Date: Wed, 24 Jan 2024 02:17:13 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yangxingui@huawei.com,willy@infradead.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,usama.anjum@collabora.com,talumbau@google.com,sj@kernel.org,sidhartha.kumar@oracle.com,ryan.roberts@arm.com,peterx@redhat.com,paulmck@kernel.org,mgorman@techsingularity.net,mathieu.desnoyers@efficios.com,lstoakes@gmail.com,Liam.Howlett@oracle.com,keescook@chromium.org,jhubbard@nvidia.com,jgg@ziepe.ca,jack@suse.cz,hughd@google.com,dhowells@redhat.com,dchinner@redhat.com,david@redhat.com,casey@schaufler-ca.com,brauner@kernel.org,ben.wolsieffer@hefring.com,axelrasmussen@google.com,avagin@google.com,andriy.shevchenko@linux.intel.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-mm_struct-sequence-number-to-detect-write-locks.patch added to mm-unstable branch
-Message-Id: <20240124101712.46AA3C433F1@smtp.kernel.org>
+Subject: + mm-maps-read-proc-pid-maps-under-rcu.patch added to mm-unstable branch
+Message-Id: <20240124101715.8641DC43399@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: add mm_struct sequence number to detect write locks
+     Subject: mm/maps: read proc/pid/maps under RCU
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-mm_struct-sequence-number-to-detect-write-locks.patch
+     mm-maps-read-proc-pid-maps-under-rcu.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-mm_struct-sequence-number-to-detect-write-locks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-maps-read-proc-pid-maps-under-rcu.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,20 +59,31 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: add mm_struct sequence number to detect write locks
-Date: Tue, 23 Jan 2024 15:10:13 -0800
+Subject: mm/maps: read proc/pid/maps under RCU
+Date: Tue, 23 Jan 2024 15:10:14 -0800
 
-Provide a way for lockless mm_struct users to detect whether mm might have
-been changed since some specific point in time.  The API provided allows
-the user to record a counter when it starts using the mm and later use
-that counter to check if anyone write-locked mmap_lock since the counter
-was recorded.  Recording the counter value should be done while holding
-mmap_lock at least for reading to prevent the counter from concurrent
-changes.  Every time mmap_lock is write-locked mm_struct updates its
-mm_wr_seq counter so that checks against counters recorded before that
-would fail, indicating a possibility of mm being modified.
+With maple_tree supporting vma tree traversal under RCU and per-vma locks
+making vma access RCU-safe, /proc/pid/maps can be read under RCU and
+without the need to read-lock mmap_lock.  However vma content can change
+from under us, therefore we make a copy of the vma and we pin pointer
+fields used when generating the output (currently only vm_file and
+anon_name).  Afterwards we check for concurrent address space
+modifications, wait for them to end and retry.  That last check is needed
+to avoid possibility of missing a vma during concurrent maple_tree node
+replacement, which might report a NULL when a vma is replaced with another
+one.  While we take the mmap_lock for reading during such contention, we
+do that momentarily only to record new mm_wr_seq counter.  This change is
+designed to reduce mmap_lock contention and prevent a process reading
+/proc/pid/maps files (often a low priority task, such as monitoring/data
+collection services) from blocking address space updates.
 
-Link: https://lkml.kernel.org/r/20240123231014.3801041-2-surenb@google.com
+Note that this change has a userspace visible disadvantage: it allows for
+sub-page data tearing as opposed to the previous mechanism where data
+tearing could happen only between pages of generated output data.  Since
+current userspace considers data tearing between pages to be acceptable,
+we assume is will be able to handle sub-page data tearing as well.
+
+Link: https://lkml.kernel.org/r/20240123231014.3801041-3-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Andrei Vagin <avagin@google.com>
@@ -109,73 +120,221 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h  |    2 ++
- include/linux/mmap_lock.h |   22 ++++++++++++++++++++++
- 2 files changed, 24 insertions(+)
+ fs/proc/internal.h        |    2 
+ fs/proc/task_mmu.c        |  113 +++++++++++++++++++++++++++++++++---
+ include/linux/mm_inline.h |   18 +++++
+ 3 files changed, 126 insertions(+), 7 deletions(-)
 
---- a/include/linux/mmap_lock.h~mm-add-mm_struct-sequence-number-to-detect-write-locks
-+++ a/include/linux/mmap_lock.h
-@@ -106,6 +106,8 @@ static inline void mmap_write_lock(struc
- {
- 	__mmap_lock_trace_start_locking(mm, true);
- 	down_write(&mm->mmap_lock);
-+	/* Pairs with ACQUIRE semantics in mmap_write_seq_read */
-+	smp_store_release(&mm->mm_wr_seq, mm->mm_wr_seq + 1);
- 	__mmap_lock_trace_acquire_returned(mm, true, true);
- }
- 
-@@ -113,6 +115,8 @@ static inline void mmap_write_lock_neste
- {
- 	__mmap_lock_trace_start_locking(mm, true);
- 	down_write_nested(&mm->mmap_lock, subclass);
-+	/* Pairs with ACQUIRE semantics in mmap_write_seq_read */
-+	smp_store_release(&mm->mm_wr_seq, mm->mm_wr_seq + 1);
- 	__mmap_lock_trace_acquire_returned(mm, true, true);
- }
- 
-@@ -122,6 +126,10 @@ static inline int mmap_write_lock_killab
- 
- 	__mmap_lock_trace_start_locking(mm, true);
- 	ret = down_write_killable(&mm->mmap_lock);
-+	if (!ret) {
-+		/* Pairs with ACQUIRE semantics in mmap_write_seq_read */
-+		smp_store_release(&mm->mm_wr_seq, mm->mm_wr_seq + 1);
-+	}
- 	__mmap_lock_trace_acquire_returned(mm, true, ret == 0);
- 	return ret;
- }
-@@ -140,6 +148,20 @@ static inline void mmap_write_downgrade(
- 	downgrade_write(&mm->mmap_lock);
- }
- 
-+static inline unsigned long mmap_write_seq_read(struct mm_struct *mm)
-+{
-+	/* Pairs with RELEASE semantics in mmap_write_lock */
-+	return smp_load_acquire(&mm->mm_wr_seq);
-+}
-+
-+static inline void mmap_write_seq_record(struct mm_struct *mm,
-+					 unsigned long *mm_wr_seq)
-+{
-+	mmap_assert_locked(mm);
-+	/* Nobody can concurrently modify since we hold the mmap_lock */
-+	*mm_wr_seq = mm->mm_wr_seq;
-+}
-+
- static inline void mmap_read_lock(struct mm_struct *mm)
- {
- 	__mmap_lock_trace_start_locking(mm, false);
---- a/include/linux/mm_types.h~mm-add-mm_struct-sequence-number-to-detect-write-locks
-+++ a/include/linux/mm_types.h
-@@ -846,6 +846,8 @@ struct mm_struct {
- 		 */
- 		int mm_lock_seq;
+--- a/fs/proc/internal.h~mm-maps-read-proc-pid-maps-under-rcu
++++ a/fs/proc/internal.h
+@@ -290,6 +290,8 @@ struct proc_maps_private {
+ 	struct task_struct *task;
+ 	struct mm_struct *mm;
+ 	struct vma_iterator iter;
++	unsigned long mm_wr_seq;
++	struct vm_area_struct vma_copy;
+ #ifdef CONFIG_NUMA
+ 	struct mempolicy *task_mempolicy;
  #endif
-+		/* Counter incremented each time mm gets write-locked */
-+		unsigned long mm_wr_seq;
+--- a/fs/proc/task_mmu.c~mm-maps-read-proc-pid-maps-under-rcu
++++ a/fs/proc/task_mmu.c
+@@ -126,11 +126,95 @@ static void release_task_mempolicy(struc
+ }
+ #endif
  
+-static struct vm_area_struct *proc_get_vma(struct proc_maps_private *priv,
+-						loff_t *ppos)
++#ifdef CONFIG_PER_VMA_LOCK
++
++static const struct seq_operations proc_pid_maps_op;
++
++/*
++ * Take VMA snapshot and pin vm_file and anon_name as they are used by
++ * show_map_vma.
++ */
++static int get_vma_snapshot(struct proc_maps_private *priv, struct vm_area_struct *vma)
++{
++	struct vm_area_struct *copy = &priv->vma_copy;
++	int ret = -EAGAIN;
++
++	memcpy(copy, vma, sizeof(*vma));
++	if (copy->vm_file && !get_file_rcu(&copy->vm_file))
++		goto out;
++
++	if (!anon_vma_name_get_if_valid(copy))
++		goto put_file;
++
++	if (priv->mm_wr_seq == mmap_write_seq_read(priv->mm))
++		return 0;
++
++	/* Address space got modified, vma might be stale. Wait and retry. */
++	rcu_read_unlock();
++	ret = mmap_read_lock_killable(priv->mm);
++	mmap_write_seq_record(priv->mm, &priv->mm_wr_seq);
++	mmap_read_unlock(priv->mm);
++	rcu_read_lock();
++
++	if (!ret)
++		ret = -EAGAIN; /* no other errors, ok to retry */
++
++	anon_vma_name_put_if_valid(copy);
++put_file:
++	if (copy->vm_file)
++		fput(copy->vm_file);
++out:
++	return ret;
++}
++
++static void put_vma_snapshot(struct proc_maps_private *priv)
++{
++	struct vm_area_struct *vma = &priv->vma_copy;
++
++	anon_vma_name_put_if_valid(vma);
++	if (vma->vm_file)
++		fput(vma->vm_file);
++}
++
++static inline bool needs_mmap_lock(struct seq_file *m)
+ {
++	/*
++	 * smaps and numa_maps perform page table walk, therefore require
++	 * mmap_lock but maps can be read under RCU.
++	 */
++	return m->op != &proc_pid_maps_op;
++}
++
++#else /* CONFIG_PER_VMA_LOCK */
++
++/* Without per-vma locks VMA access is not RCU-safe */
++static inline bool needs_mmap_lock(struct seq_file *m) { return true; }
++
++#endif /* CONFIG_PER_VMA_LOCK */
++
++static struct vm_area_struct *proc_get_vma(struct seq_file *m, loff_t *ppos)
++{
++	struct proc_maps_private *priv = m->private;
+ 	struct vm_area_struct *vma = vma_next(&priv->iter);
  
- 		unsigned long hiwater_rss; /* High-watermark of RSS usage */
++#ifdef CONFIG_PER_VMA_LOCK
++	if (vma && !needs_mmap_lock(m)) {
++		int ret;
++
++		put_vma_snapshot(priv);
++		while ((ret = get_vma_snapshot(priv, vma)) == -EAGAIN) {
++			/* lookup the vma at the last position again */
++			vma_iter_init(&priv->iter, priv->mm, *ppos);
++			vma = vma_next(&priv->iter);
++		}
++
++		if (ret) {
++			put_vma_snapshot(priv);
++			return NULL;
++		}
++		vma = &priv->vma_copy;
++	}
++#endif
+ 	if (vma) {
+ 		*ppos = vma->vm_start;
+ 	} else {
+@@ -169,12 +253,20 @@ static void *m_start(struct seq_file *m,
+ 		return ERR_PTR(-EINTR);
+ 	}
+ 
++	/* Drop mmap_lock if possible */
++	if (!needs_mmap_lock(m)) {
++		mmap_write_seq_record(priv->mm, &priv->mm_wr_seq);
++		mmap_read_unlock(priv->mm);
++		rcu_read_lock();
++		memset(&priv->vma_copy, 0, sizeof(priv->vma_copy));
++	}
++
+ 	vma_iter_init(&priv->iter, mm, last_addr);
+ 	hold_task_mempolicy(priv);
+ 	if (last_addr == -2UL)
+ 		return get_gate_vma(mm);
+ 
+-	return proc_get_vma(priv, ppos);
++	return proc_get_vma(m, ppos);
+ }
+ 
+ static void *m_next(struct seq_file *m, void *v, loff_t *ppos)
+@@ -183,7 +275,7 @@ static void *m_next(struct seq_file *m,
+ 		*ppos = -1UL;
+ 		return NULL;
+ 	}
+-	return proc_get_vma(m->private, ppos);
++	return proc_get_vma(m, ppos);
+ }
+ 
+ static void m_stop(struct seq_file *m, void *v)
+@@ -195,7 +287,10 @@ static void m_stop(struct seq_file *m, v
+ 		return;
+ 
+ 	release_task_mempolicy(priv);
+-	mmap_read_unlock(mm);
++	if (needs_mmap_lock(m))
++		mmap_read_unlock(mm);
++	else
++		rcu_read_unlock();
+ 	mmput(mm);
+ 	put_task_struct(priv->task);
+ 	priv->task = NULL;
+@@ -283,8 +378,10 @@ show_map_vma(struct seq_file *m, struct
+ 	start = vma->vm_start;
+ 	end = vma->vm_end;
+ 	show_vma_header_prefix(m, start, end, flags, pgoff, dev, ino);
+-	if (mm)
+-		anon_name = anon_vma_name(vma);
++	if (mm) {
++		anon_name = needs_mmap_lock(m) ? anon_vma_name(vma) :
++				anon_vma_name_get_rcu(vma);
++	}
+ 
+ 	/*
+ 	 * Print the dentry name for named mappings, and a
+@@ -338,6 +435,8 @@ done:
+ 		seq_puts(m, name);
+ 	}
+ 	seq_putc(m, '\n');
++	if (anon_name && !needs_mmap_lock(m))
++		anon_vma_name_put(anon_name);
+ }
+ 
+ static int show_map(struct seq_file *m, void *v)
+--- a/include/linux/mm_inline.h~mm-maps-read-proc-pid-maps-under-rcu
++++ a/include/linux/mm_inline.h
+@@ -413,6 +413,21 @@ static inline bool anon_vma_name_eq(stru
+ 
+ struct anon_vma_name *anon_vma_name_get_rcu(struct vm_area_struct *vma);
+ 
++/*
++ * Takes a reference if anon_vma is valid and stable (has references).
++ * Fails only if anon_vma is valid but we failed to get a reference.
++ */
++static inline bool anon_vma_name_get_if_valid(struct vm_area_struct *vma)
++{
++	return !vma->anon_name || anon_vma_name_get_rcu(vma);
++}
++
++static inline void anon_vma_name_put_if_valid(struct vm_area_struct *vma)
++{
++	if (vma->anon_name)
++		anon_vma_name_put(vma->anon_name);
++}
++
+ #else /* CONFIG_ANON_VMA_NAME */
+ static inline void anon_vma_name_get(struct anon_vma_name *anon_name) {}
+ static inline void anon_vma_name_put(struct anon_vma_name *anon_name) {}
+@@ -432,6 +447,9 @@ struct anon_vma_name *anon_vma_name_get_
+ 	return NULL;
+ }
+ 
++static inline bool anon_vma_name_get_if_valid(struct vm_area_struct *vma) { return true; }
++static inline void anon_vma_name_put_if_valid(struct vm_area_struct *vma) {}
++
+ #endif  /* CONFIG_ANON_VMA_NAME */
+ 
+ static inline void init_tlb_flush_pending(struct mm_struct *mm)
 _
 
 Patches currently in -mm which might be from surenb@google.com are
