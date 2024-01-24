@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7824418643
-	for <mm-commits@vger.kernel.org>; Wed, 24 Jan 2024 10:16:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FF151863C
+	for <mm-commits@vger.kernel.org>; Wed, 24 Jan 2024 10:16:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706091392; cv=none; b=pPZCmQLMs0Cieqh20jWtE3Tuy/6t5Zwd041UXAXCwh/lfIpWHB+hsvDNqaqPoiY/XHLLe/FIsjbnhuxgDi6sAXT48Vgd9N4eEGddKi8CWejdq0nyHC/9msFX4SKIZdJA4hRaPLDEhPoMv1YvX9FLf13mCY6trrhSI8giYCUp2Ko=
+	t=1706091395; cv=none; b=K8gmjmmEHDkin5PNENeVF0yI0DRZtqFWNwD7pLK4iyJ3oXDFH2s89EYqPSKTilzVPNEZa/ex53ApsTknwjEpclsuh9CCB3JkkcjOqFi50EOCzoZ1l1Zmh2jOAJxZg+XNsySfZ67FQZfG2tXVuKXwc11aAqA6x0Th9RXacRU3I8o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706091392; c=relaxed/simple;
-	bh=SnLcP/BV9CuCOXJE5NQoxFhYSMv+7WBl5IFtHy0RjHM=;
-	h=Date:To:From:Subject:Message-Id; b=tUpqRudcQWN7V6xYqAOjHgNwa7tcKQEVGoj1uHgYsEmQR9woPJ/VcKVsOiQYT4Ht0hn18KiW+Wr7lD9EpKcRjfVM6TA5WRPtTU25rcYDa7OdQRXy6L7ijDvpAaVgjt+ImEqXi/KK24iiQj+iNrk+8UzIECY3j8Pp6nn7EfBAE8Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=scgjaSy3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706091395; c=relaxed/simple;
+	bh=4Y1vUCn6mQnnPu6N+r5tHlJOQ6l+3KnZxjo01kcDxEQ=;
+	h=Date:To:From:Subject:Message-Id; b=XYsSRdXzwtYriqB5hTYwYpx03LnaRMNaUUU3tHGZaqjKlr3LbAUS1B6tu+lUpoCfmVem74xYcSMoMwMp+05Mt6ydvcD0FrOSDZVzxD+OwStYVUgmAkIn88NepsOt65Za/4XLt9IktJvVz0aL73+SaS4GgzndrBdvgPRom5CcUd8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ty2Qo9Ld; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="scgjaSy3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58756C433F1;
-	Wed, 24 Jan 2024 10:16:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ty2Qo9Ld"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E6C0C433F1;
+	Wed, 24 Jan 2024 10:16:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706091392;
-	bh=SnLcP/BV9CuCOXJE5NQoxFhYSMv+7WBl5IFtHy0RjHM=;
+	s=korg; t=1706091395;
+	bh=4Y1vUCn6mQnnPu6N+r5tHlJOQ6l+3KnZxjo01kcDxEQ=;
 	h=Date:To:From:Subject:From;
-	b=scgjaSy3iweBIqUqAfuxcqVtNzqXKGkm8XsjpTGKORh0JZYKNeznY35uOe0nSA4zs
-	 SKjDSYtFAgKSL5UGNGJZ25dxyQZJcboWB3hSAr55DoarRlGlhniN56m58qKMN3/8Pg
-	 LyDHajsYRZhLBkEqB8qY2riycOpj90gLzdxriOaY=
-Date: Wed, 24 Jan 2024 02:16:29 -0800
+	b=ty2Qo9Ldi7l4pfKtLE5X2QZUBlDJup/X8OkM3R8I1wKYbqUXMymCn86DbxNy08lnl
+	 YpOohuH4rfFl5GlhxFLZmK0j/tyPpTxn51x+W+Qu7I4iUWgVzK61hhruN65yqs9uWf
+	 GzbX7Ut5OVv1ARzDNKddqpal/t3hENRme5Hk48ZI=
+Date: Wed, 24 Jan 2024 02:16:32 -0800
 To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,piliu@redhat.com,hbathini@linux.ibm.com,ebiederm@xmission.com,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch added to mm-unstable branch
-Message-Id: <20240124101631.58756C433F1@smtp.kernel.org>
+Subject: + ppc-crash-enforce-kexec-and-kexec_file-to-select-crash_dump.patch added to mm-unstable branch
+Message-Id: <20240124101634.9E6C0C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: s390, crash: wrap crash dumping code into crash related ifdefs
+     Subject: ppc, crash: enforce KEXEC and KEXEC_FILE to select CRASH_DUMP
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
+     ppc-crash-enforce-kexec-and-kexec_file-to-select-crash_dump.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ppc-crash-enforce-kexec-and-kexec_file-to-select-crash_dump.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: s390, crash: wrap crash dumping code into crash related ifdefs
-Date: Wed, 24 Jan 2024 13:12:49 +0800
+Subject: ppc, crash: enforce KEXEC and KEXEC_FILE to select CRASH_DUMP
+Date: Wed, 24 Jan 2024 13:12:48 +0800
 
-Now crash codes under kernel/ folder has been split out from kexec
-code, crash dumping can be separated from kexec reboot in config
-items on s390 with some adjustments.
+In PowerPC, the crash dumping and kexec reboot share code in
+arch_kexec_locate_mem_hole(), in which struct crash_mem is used.
 
-Here wrap up crash dumping codes with CONFIG_CRASH_DUMP ifdeffery.
+Here enfoce enforce KEXEC and KEXEC_FILE to select CRASH_DUMP for now.
 
-Link: https://lkml.kernel.org/r/20240124051254.67105-10-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20240124051254.67105-9-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
@@ -77,101 +76,30 @@ Cc: Pingfan Liu <piliu@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/kexec_elf.c          |    2 ++
- arch/s390/kernel/kexec_image.c        |    2 ++
- arch/s390/kernel/machine_kexec_file.c |   10 ++++++++++
- 3 files changed, 14 insertions(+)
+ arch/powerpc/Kconfig |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/arch/s390/kernel/kexec_elf.c~s390-crash-wrap-crash-dumping-code-into-crash-related-ifdefs
-+++ a/arch/s390/kernel/kexec_elf.c
-@@ -40,8 +40,10 @@ static int kexec_file_add_kernel_elf(str
- 		buf.bufsz = phdr->p_filesz;
+--- a/arch/powerpc/Kconfig~ppc-crash-enforce-kexec-and-kexec_file-to-select-crash_dump
++++ a/arch/powerpc/Kconfig
+@@ -608,6 +608,10 @@ config PPC64_SUPPORTS_MEMORY_FAILURE
+ config ARCH_SUPPORTS_KEXEC
+ 	def_bool PPC_BOOK3S || PPC_E500 || (44x && !SMP)
  
- 		buf.mem = ALIGN(phdr->p_paddr, phdr->p_align);
-+#ifdef CONFIG_CRASH_DUMP
- 		if (image->type == KEXEC_TYPE_CRASH)
- 			buf.mem += crashk_res.start;
-+#endif
- 		buf.memsz = phdr->p_memsz;
- 		data->memsz = ALIGN(data->memsz, phdr->p_align) + buf.memsz;
++config ARCH_SELECTS_KEXEC
++	def_bool y
++	select CRASH_DUMP
++
+ config ARCH_SUPPORTS_KEXEC_FILE
+ 	def_bool PPC64
  
---- a/arch/s390/kernel/kexec_image.c~s390-crash-wrap-crash-dumping-code-into-crash-related-ifdefs
-+++ a/arch/s390/kernel/kexec_image.c
-@@ -24,8 +24,10 @@ static int kexec_file_add_kernel_image(s
- 	buf.bufsz = image->kernel_buf_len;
+@@ -618,6 +622,7 @@ config ARCH_SELECTS_KEXEC_FILE
+ 	def_bool y
+ 	depends on KEXEC_FILE
+ 	select KEXEC_ELF
++	select CRASH_DUMP
+ 	select HAVE_IMA_KEXEC if IMA
  
- 	buf.mem = 0;
-+#ifdef CONFIG_CRASH_DUMP
- 	if (image->type == KEXEC_TYPE_CRASH)
- 		buf.mem += crashk_res.start;
-+#endif
- 	buf.memsz = buf.bufsz;
- 
- 	data->kernel_buf = image->kernel_buf;
---- a/arch/s390/kernel/machine_kexec_file.c~s390-crash-wrap-crash-dumping-code-into-crash-related-ifdefs
-+++ a/arch/s390/kernel/machine_kexec_file.c
-@@ -105,6 +105,7 @@ static int kexec_file_update_purgatory(s
- 	if (ret)
- 		return ret;
- 
-+#ifdef CONFIG_CRASH_DUMP
- 	if (image->type == KEXEC_TYPE_CRASH) {
- 		u64 crash_size;
- 
-@@ -121,6 +122,7 @@ static int kexec_file_update_purgatory(s
- 						     sizeof(crash_size),
- 						     false);
- 	}
-+#endif
- 	return ret;
- }
- 
-@@ -134,8 +136,10 @@ static int kexec_file_add_purgatory(stru
- 
- 	data->memsz = ALIGN(data->memsz, PAGE_SIZE);
- 	buf.mem = data->memsz;
-+#ifdef CONFIG_CRASH_DUMP
- 	if (image->type == KEXEC_TYPE_CRASH)
- 		buf.mem += crashk_res.start;
-+#endif
- 
- 	ret = kexec_load_purgatory(image, &buf);
- 	if (ret)
-@@ -158,8 +162,10 @@ static int kexec_file_add_initrd(struct
- 
- 	data->memsz = ALIGN(data->memsz, PAGE_SIZE);
- 	buf.mem = data->memsz;
-+#ifdef CONFIG_CRASH_DUMP
- 	if (image->type == KEXEC_TYPE_CRASH)
- 		buf.mem += crashk_res.start;
-+#endif
- 	buf.memsz = buf.bufsz;
- 
- 	data->parm->initrd_start = data->memsz;
-@@ -223,8 +229,10 @@ static int kexec_file_add_ipl_report(str
- 		data->kernel_buf + offsetof(struct lowcore, ipl_parmblock_ptr);
- 	*lc_ipl_parmblock_ptr = (__u32)buf.mem;
- 
-+#ifdef CONFIG_CRASH_DUMP
- 	if (image->type == KEXEC_TYPE_CRASH)
- 		buf.mem += crashk_res.start;
-+#endif
- 
- 	ret = kexec_add_buffer(&buf);
- out:
-@@ -268,10 +276,12 @@ void *kexec_file_add_components(struct k
- 	memcpy(data.parm->command_line, image->cmdline_buf,
- 	       image->cmdline_buf_len);
- 
-+#ifdef CONFIG_CRASH_DUMP
- 	if (image->type == KEXEC_TYPE_CRASH) {
- 		data.parm->oldmem_base = crashk_res.start;
- 		data.parm->oldmem_size = crashk_res.end - crashk_res.start + 1;
- 	}
-+#endif
- 
- 	if (image->initrd_buf) {
- 		ret = kexec_file_add_initrd(image, &data);
+ config PPC64_BIG_ENDIAN_ELF_ABI_V2
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
