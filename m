@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F049B18658
-	for <mm-commits@vger.kernel.org>; Wed, 24 Jan 2024 10:17:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2D678C08
+	for <mm-commits@vger.kernel.org>; Wed, 24 Jan 2024 10:17:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706091424; cv=none; b=Nl9cT2rsmz1XwTjpfHrSi/kwjFtnxbWyMmvjTmEaXcRMwWUEC9eJOiJ8E0m0U1eDsgSijnaCoo0PQonXF0n2iat6meGGMpxlV2wzC70hXLRLS8acfWB5SXC6yEwDLxJtWTKqr39fD6j4ulSOpMWYN/5p50U5T1+z66Ae7kPeIAk=
+	t=1706091426; cv=none; b=kIdXHsqEUizOzJ1biCGaUdUed8wTgfxFUsrzUvaMLHzCYa1MruEUorueYYgWA/CoLiqCqnRIFh22E46W/D5kVoUeRLIxbQgtgNXmsKFJ8ptcKsobRqLuQV6oZl8vheg3OHHNIPUQVEr+p1gV0fr7/EyxqY8/oy028dEN3U6IBok=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706091424; c=relaxed/simple;
-	bh=c1lF+NfDVLeV4rYWqUQIRLSsa7sp5GHh/ehMRw1cUJs=;
-	h=Date:To:From:Subject:Message-Id; b=dW+ZbVkOU+nVorUFRxzYbUhNLedqa/m5Prxm0FXPxpcAdKyzct/MtN2Tqa6CjDiLz+j07KatDOaSXjNxWV2lFn6bGPR+hb8xSkLiZML8FKYDze8JSln/UUUPWL+HED57YEJ79gEcyAI/HPU25l6zApZWgqB+MSr6inr8WJyRPJw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HVup6U8U; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706091426; c=relaxed/simple;
+	bh=uDeA3lMA6eS/Siz4F1EPt6Jj7GMxo0k1iHvg5Jtv5Bs=;
+	h=Date:To:From:Subject:Message-Id; b=Fq8kJZ+7bwGBgTquAeLhHe1vBMWeLBwFwUiASAlthaQG0j/lqcHLr58zXht0ZrU5dS688mS88DOqeo/Qq3jG9TJ7XEcVKTepeoRsRQvfXtHfdCkZ1H3RvWADpsbnXdiR1vbLb9bZPP9gn6pE8129kXM4Uo7b97p6gwQzRwqkBz0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Yw7tIcoR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HVup6U8U"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0F01C43394;
-	Wed, 24 Jan 2024 10:17:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Yw7tIcoR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E402C433F1;
+	Wed, 24 Jan 2024 10:17:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706091423;
-	bh=c1lF+NfDVLeV4rYWqUQIRLSsa7sp5GHh/ehMRw1cUJs=;
+	s=korg; t=1706091426;
+	bh=uDeA3lMA6eS/Siz4F1EPt6Jj7GMxo0k1iHvg5Jtv5Bs=;
 	h=Date:To:From:Subject:From;
-	b=HVup6U8Uu+nvofIrhRPyBglm0ned6J87p/Vd5XaZGBiS67cZG2LpzAc09QFMkOyVP
-	 cC7u549cjkX04s63yuHcpeQ524iqU3WemhBH+OTgP0e01avIf4FALvR56nCs6Hc92d
-	 qpqHGEFMqJDa1Owl/CUvb8OcZygGeKTIx/blc/34=
-Date: Wed, 24 Jan 2024 02:17:00 -0800
-To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,ying.huang@intel.com,nphamcs@gmail.com,hannes@cmpxchg.org,chrisl@kernel.org,yosryahmed@google.com,akpm@linux-foundation.org
+	b=Yw7tIcoRkMXXdVhlk4o9Q5rKvyW+vCiVFcM1FW/xYvjdxCsvxBPCEzDBscbrFa4bp
+	 xkc2qYqa1tcMs22Q0MjMRDCv1CNnMrzRwywJwxK2Ewt7o1dswDQklRh01MHir10wf0
+	 dSdbI2p6UY9KoYeQ0ldP7YZcFuPWHg9rDh+6JgpU=
+Date: Wed, 24 Jan 2024 02:17:03 -0800
+To: mm-commits@vger.kernel.org,Liam.Howlett@oracle.com,yajun.deng@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-enforce-updating-inuse_pages-at-the-end-of-swap_range_free.patch added to mm-unstable branch
-Message-Id: <20240124101702.E0F01C43394@smtp.kernel.org>
+Subject: + mm-mmap-introduce-vma_set_range.patch added to mm-unstable branch
+Message-Id: <20240124101706.1E402C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: swap: enforce updating inuse_pages at the end of swap_range_free()
+     Subject: mm/mmap: introduce vma_set_range()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-enforce-updating-inuse_pages-at-the-end-of-swap_range_free.patch
+     mm-mmap-introduce-vma_set_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-enforce-updating-inuse_pages-at-the-end-of-swap_range_free.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-introduce-vma_set_range.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,102 +58,127 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: swap: enforce updating inuse_pages at the end of swap_range_free()
-Date: Wed, 24 Jan 2024 04:51:11 +0000
+From: Yajun Deng <yajun.deng@linux.dev>
+Subject: mm/mmap: introduce vma_set_range()
+Date: Wed, 24 Jan 2024 11:57:19 +0800
 
-Patch series "mm: zswap: simplify zswap_swapoff()", v2.
+There is a lot of code needs to set the range of vma in mmap.c, introduce
+vma_set_range() to simplify the code.
 
-These patches aim to simplify zswap_swapoff() by removing the unnecessary
-trees cleanup code.  Patch 1 makes sure that the order of operations
-during swapoff is enforced correctly, making sure the simplification in
-patch 2 is correct in a future-proof manner.
-
-
-This patch (of 2):
-
-In swap_range_free(), we update inuse_pages then do some cleanups (arch
-invalidation, zswap invalidation, swap cache cleanups, etc).  During
-swapoff, try_to_unuse() checks that inuse_pages is 0 to make sure all swap
-entries are freed.  Make sure we only update inuse_pages after we are done
-with the cleanups in swap_range_free(), and use the proper memory barriers
-to enforce it.  This makes sure that code following try_to_unuse() can
-safely assume that swap_range_free() ran for all entries in thr swapfile
-(e.g.  swap cache cleanup, zswap_swapoff()).
-
-In practice, this currently isn't a problem because swap_range_free() is
-called with the swap info lock held, and the swapoff code happens to spin
-for that after try_to_unuse().  However, this seems fragile and
-unintentional, so make it more relable and future-proof.  This also
-facilitates a following simplification of zswap_swapoff().
-
-Link: https://lkml.kernel.org/r/20240124045113.415378-1-yosryahmed@google.com
-Link: https://lkml.kernel.org/r/20240124045113.415378-2-yosryahmed@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Chengming Zhou <zhouchengming@bytedance.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
+Link: https://lkml.kernel.org/r/20240124035719.3685193-1-yajun.deng@linux.dev
+Signed-off-by: Yajun Deng <yajun.deng@linux.dev>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ mm/internal.h |    9 +++++++++
+ mm/mmap.c     |   29 +++++++----------------------
+ 2 files changed, 16 insertions(+), 22 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-enforce-updating-inuse_pages-at-the-end-of-swap_range_free
-+++ a/mm/swapfile.c
-@@ -737,8 +737,6 @@ static void swap_range_free(struct swap_
- 		if (was_full && (si->flags & SWP_WRITEOK))
- 			add_to_avail_list(si);
- 	}
--	atomic_long_add(nr_entries, &nr_swap_pages);
--	WRITE_ONCE(si->inuse_pages, si->inuse_pages - nr_entries);
- 	if (si->flags & SWP_BLKDEV)
- 		swap_slot_free_notify =
- 			si->bdev->bd_disk->fops->swap_slot_free_notify;
-@@ -752,6 +750,14 @@ static void swap_range_free(struct swap_
- 		offset++;
- 	}
- 	clear_shadow_from_swap_cache(si->type, begin, end);
+--- a/mm/internal.h~mm-mmap-introduce-vma_set_range
++++ a/mm/internal.h
+@@ -1114,6 +1114,15 @@ static inline bool gup_must_unshare(stru
+ extern bool mirrored_kernelcore;
+ extern bool memblock_has_mirror(void);
+ 
++static __always_inline void vma_set_range(struct vm_area_struct *vma,
++					  unsigned long start, unsigned long end,
++					  pgoff_t pgoff)
++{
++	vma->vm_start = start;
++	vma->vm_end = end;
++	vma->vm_pgoff = pgoff;
++}
 +
-+	/*
-+	 * Make sure that try_to_unuse() observes si->inuse_pages reaching 0
-+	 * only after the above cleanups are done.
-+	 */
-+	smp_wmb();
-+	atomic_long_add(nr_entries, &nr_swap_pages);
-+	WRITE_ONCE(si->inuse_pages, si->inuse_pages - nr_entries);
- }
+ static inline bool vma_soft_dirty_enabled(struct vm_area_struct *vma)
+ {
+ 	/*
+--- a/mm/mmap.c~mm-mmap-introduce-vma_set_range
++++ a/mm/mmap.c
+@@ -663,9 +663,7 @@ int vma_expand(struct vma_iterator *vmi,
  
- static void set_cluster_next(struct swap_info_struct *si, unsigned long next)
-@@ -2049,7 +2055,7 @@ static int try_to_unuse(unsigned int typ
- 	unsigned int i;
+ 	vma_prepare(&vp);
+ 	vma_adjust_trans_huge(vma, start, end, 0);
+-	vma->vm_start = start;
+-	vma->vm_end = end;
+-	vma->vm_pgoff = pgoff;
++	vma_set_range(vma, start, end, pgoff);
+ 	vma_iter_store(vmi, vma);
  
- 	if (!READ_ONCE(si->inuse_pages))
--		return 0;
-+		goto success;
+ 	vma_complete(&vp, vmi, vma->vm_mm);
+@@ -708,9 +706,7 @@ int vma_shrink(struct vma_iterator *vmi,
+ 	vma_adjust_trans_huge(vma, start, end, 0);
  
- retry:
- 	retval = shmem_unuse(type);
-@@ -2130,6 +2136,12 @@ retry:
- 		return -EINTR;
- 	}
- 
-+success:
-+	/*
-+	 * Make sure that further cleanups after try_to_unuse() returns happen
-+	 * after swap_range_free() reduces si->inuse_pages to 0.
-+	 */
-+	smp_mb();
+ 	vma_iter_clear(vmi);
+-	vma->vm_start = start;
+-	vma->vm_end = end;
+-	vma->vm_pgoff = pgoff;
++	vma_set_range(vma, start, end, pgoff);
+ 	vma_complete(&vp, vmi, vma->vm_mm);
  	return 0;
  }
+@@ -1015,10 +1011,7 @@ static struct vm_area_struct
  
+ 	vma_prepare(&vp);
+ 	vma_adjust_trans_huge(vma, vma_start, vma_end, adj_start);
+-
+-	vma->vm_start = vma_start;
+-	vma->vm_end = vma_end;
+-	vma->vm_pgoff = vma_pgoff;
++	vma_set_range(vma, vma_start, vma_end, vma_pgoff);
+ 
+ 	if (vma_expanded)
+ 		vma_iter_store(vmi, vma);
+@@ -2809,11 +2802,9 @@ cannot_expand:
+ 	}
+ 
+ 	vma_iter_config(&vmi, addr, end);
+-	vma->vm_start = addr;
+-	vma->vm_end = end;
++	vma_set_range(vma, addr, end, pgoff);
+ 	vm_flags_init(vma, vm_flags);
+ 	vma->vm_page_prot = vm_get_page_prot(vm_flags);
+-	vma->vm_pgoff = pgoff;
+ 
+ 	if (file) {
+ 		vma->vm_file = get_file(file);
+@@ -3163,9 +3154,7 @@ static int do_brk_flags(struct vma_itera
+ 		goto unacct_fail;
+ 
+ 	vma_set_anonymous(vma);
+-	vma->vm_start = addr;
+-	vma->vm_end = addr + len;
+-	vma->vm_pgoff = addr >> PAGE_SHIFT;
++	vma_set_range(vma, addr, addr + len, addr >> PAGE_SHIFT);
+ 	vm_flags_init(vma, flags);
+ 	vma->vm_page_prot = vm_get_page_prot(flags);
+ 	vma_start_write(vma);
+@@ -3402,9 +3391,7 @@ struct vm_area_struct *copy_vma(struct v
+ 		new_vma = vm_area_dup(vma);
+ 		if (!new_vma)
+ 			goto out;
+-		new_vma->vm_start = addr;
+-		new_vma->vm_end = addr + len;
+-		new_vma->vm_pgoff = pgoff;
++		vma_set_range(new_vma, addr, addr + len, pgoff);
+ 		if (vma_dup_policy(vma, new_vma))
+ 			goto out_free_vma;
+ 		if (anon_vma_clone(new_vma, vma))
+@@ -3572,9 +3559,7 @@ static struct vm_area_struct *__install_
+ 	if (unlikely(vma == NULL))
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	vma->vm_start = addr;
+-	vma->vm_end = addr + len;
+-
++	vma_set_range(vma, addr, addr + len, 0);
+ 	vm_flags_init(vma, (vm_flags | mm->def_flags |
+ 		      VM_DONTEXPAND | VM_SOFTDIRTY) & ~VM_LOCKED_MASK);
+ 	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from yajun.deng@linux.dev are
 
-maintainers-supplement-of-zswap-maintainers-update.patch
-mm-swap-enforce-updating-inuse_pages-at-the-end-of-swap_range_free.patch
-mm-zswap-remove-unnecessary-trees-cleanups-in-zswap_swapoff.patch
+mm-mmap-simplify-vma-link-and-unlink.patch
+mm-mmap-introduce-vma_set_range.patch
 
