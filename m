@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6E6B18658
-	for <mm-commits@vger.kernel.org>; Wed, 24 Jan 2024 10:16:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E465918AF4
+	for <mm-commits@vger.kernel.org>; Wed, 24 Jan 2024 10:16:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706091407; cv=none; b=QdBpohVFrCJuAKZYX7a3G/qwVbKTGzUYvfIaCKG7njkxilK4AZBhchj45SxxYgawdB4HajIIJD7hkP9OBTqWMbc02sHsSO/VcVNBoi8CpRK28gjNCngZHggPhL8Q0DBXib8EJh+PMJU5l5L8nOPhQw4Q0bali/urRvDwPyOi5J0=
+	t=1706091411; cv=none; b=j0LbY4igmARv+U3X7shRI7YmH0v0aFv/BwSBqykvgswz8TkF8GhqZjLfdeV9p6XBhj8uZCb16g10gEN/n4H6WlMAO2cWBmhWGyP1jGlKD/2sPB5jvM9kmFaoQc3xZKW3l+4UCLjgFzbgUesRJe7pwPMpUp0q038uBtwm1SM0cuI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706091407; c=relaxed/simple;
-	bh=EGeqwTI0m/joNxkMrUJH6PD+em3EOiah744tWLPFrPI=;
-	h=Date:To:From:Subject:Message-Id; b=TMaKqpHIR/YXTv0NPu0Gnrwme4xqTfY+k1eYdpteHxcIOx5qloIoPzq/ZYMBR+T/FLPY2MGzz711W6iH5rArZ26FWu6zKfibsLiTfPB5hfHg0JZL2F5AXrF9Hzn1vgwtYiOWUtJ1DpNgUGl510/laL/hSJaCIsjCkzNziu0xyhI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t7pnGem1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706091411; c=relaxed/simple;
+	bh=8FGhSvsxHHTD2ABquxOpcQhPPlUoNrEqD+xkhjvPXok=;
+	h=Date:To:From:Subject:Message-Id; b=UMLFD1IwqDk44Hi5eSFsZHT2EVOrlhhOR1+GlB3o5UT+IGpCQo2Z5ZOMlbXDxZo9NKzTTAIiJ9sYHedsHsZdXDpYuei7R3UDl09wtw52No2syJ5lk51Wd0abZlrFnUr67KjmaU/EhQSDw4Czo+Ydd3RCbZP69/plkmU2fGn/b3w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XY3uAdXI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t7pnGem1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01D89C433C7;
-	Wed, 24 Jan 2024 10:16:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XY3uAdXI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F004DC43390;
+	Wed, 24 Jan 2024 10:16:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706091407;
-	bh=EGeqwTI0m/joNxkMrUJH6PD+em3EOiah744tWLPFrPI=;
+	s=korg; t=1706091410;
+	bh=8FGhSvsxHHTD2ABquxOpcQhPPlUoNrEqD+xkhjvPXok=;
 	h=Date:To:From:Subject:From;
-	b=t7pnGem1lJuZRb6GLeVbe0R7imFTARoZJ4fE9T9s2lT+4hu97NiBDelGMLDdHjzei
-	 kcntXSvK7UeNVuShl5YKo63yvRt8T1h1isfrReoZAIoSktZSiqcnWVA2paAfXhT45D
-	 cxd4N+1MXejc/JgANoZarmj1rL9WwkX4+6j6Du8c=
-Date: Wed, 24 Jan 2024 02:16:44 -0800
+	b=XY3uAdXI9vR2MBOivg2D4z2haVARI7drQK9lYQU+xdzdaC/8aaVv+k3IMNBrOPOer
+	 AHmxHom5wwa7zIkzXb/WSrijxrF1jXA+CzeUjTDmm7cL0qjaG9gk+y+WTpX4I27jGl
+	 jwrs5HOHIVy6w0oDk+r5O+GdQ9wHh9Jw/Q8xjdpU=
+Date: Wed, 24 Jan 2024 02:16:47 -0800
 To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,piliu@redhat.com,hbathini@linux.ibm.com,ebiederm@xmission.com,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + loongarch-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch added to mm-unstable branch
-Message-Id: <20240124101647.01D89C433C7@smtp.kernel.org>
+Subject: + arm-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch added to mm-unstable branch
+Message-Id: <20240124101649.F004DC43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: loongarch, crash: wrap crash dumping code into crash related ifdefs
+     Subject: arm, crash: wrap crash dumping code into crash related ifdefs
 has been added to the -mm mm-unstable branch.  Its filename is
-     loongarch-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
+     arm-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/loongarch-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,16 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: loongarch, crash: wrap crash dumping code into crash related ifdefs
-Date: Wed, 24 Jan 2024 13:12:54 +0800
+Subject: arm, crash: wrap crash dumping code into crash related ifdefs
+Date: Wed, 24 Jan 2024 13:12:53 +0800
 
 Now crash codes under kernel/ folder has been split out from kexec
 code, crash dumping can be separated from kexec reboot in config
-items on loongarch with some adjustments.
+items on arm with some adjustments.
 
-Here use IS_ENABLED(CONFIG_CRASH_RESERVE) check to decide if compiling
-in the crashkernel reservation code.
+Here use CONFIG_CRASH_RESERVE ifdef to replace CONFIG_KEXEC ifdef.
 
-Link: https://lkml.kernel.org/r/20240124051254.67105-15-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20240124051254.67105-14-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
@@ -78,20 +77,29 @@ Cc: Pingfan Liu <piliu@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/loongarch/kernel/setup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/kernel/setup.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/loongarch/kernel/setup.c~loongarch-crash-wrap-crash-dumping-code-into-crash-related-ifdefs
-+++ a/arch/loongarch/kernel/setup.c
-@@ -260,7 +260,7 @@ static void __init arch_reserve_crashker
- 	char *cmdline = boot_command_line;
- 	bool high = false;
+--- a/arch/arm/kernel/setup.c~arm-crash-wrap-crash-dumping-code-into-crash-related-ifdefs
++++ a/arch/arm/kernel/setup.c
+@@ -979,7 +979,7 @@ static int __init init_machine_late(void
+ }
+ late_initcall(init_machine_late);
  
--	if (!IS_ENABLED(CONFIG_KEXEC_CORE))
-+	if (!IS_ENABLED(CONFIG_CRASH_RESERVE))
- 		return;
+-#ifdef CONFIG_KEXEC
++#ifdef CONFIG_CRASH_RESERVE
+ /*
+  * The crash region must be aligned to 128MB to avoid
+  * zImage relocating below the reserved region.
+@@ -1066,7 +1066,7 @@ static void __init reserve_crashkernel(v
+ }
+ #else
+ static inline void reserve_crashkernel(void) {}
+-#endif /* CONFIG_KEXEC */
++#endif /* CONFIG_CRASH_RESERVE*/
  
- 	ret = parse_crashkernel(cmdline, memblock_phys_mem_size(),
+ void __init hyp_mode_check(void)
+ {
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
