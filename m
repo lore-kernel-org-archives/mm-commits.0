@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B36AD18658
-	for <mm-commits@vger.kernel.org>; Wed, 24 Jan 2024 10:17:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F049B18658
+	for <mm-commits@vger.kernel.org>; Wed, 24 Jan 2024 10:17:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706091420; cv=none; b=elF3nRFASAd6sngY5P/eUZ2htIkOmYbRREohbBgnNT3jacxQUrGiOcQ16MUQsFEZv4llWR+FtCZDmkXMGPD++o9dTWdJb1hIlEbj9sZRpkTDaPP4eMVnQFcCc7MkxLCobOG1KNxSWpfNBTtCp/e0Q89Q3tROkfbvpdkPA7mTxUI=
+	t=1706091424; cv=none; b=Nl9cT2rsmz1XwTjpfHrSi/kwjFtnxbWyMmvjTmEaXcRMwWUEC9eJOiJ8E0m0U1eDsgSijnaCoo0PQonXF0n2iat6meGGMpxlV2wzC70hXLRLS8acfWB5SXC6yEwDLxJtWTKqr39fD6j4ulSOpMWYN/5p50U5T1+z66Ae7kPeIAk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706091420; c=relaxed/simple;
-	bh=bCcispOPqSdY07uiv4TwhlNfDHwHRT1IqhM3huUHVRw=;
-	h=Date:To:From:Subject:Message-Id; b=eNsdnVwSLP2PD8iV6M3YLhgRZRy6wE+U9w8c+bs/l/lZCZOGxK36adm9CzU3JidK42yoF5Abm85SZEAU9DzP0FKXkrKKvyheCYNYfYkt99WgpBP3L8FhwzBu2c3MQvXumrT94y4bXTQpA6tqA8aUFRYlgviFYh2GoNLDGP055Dw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UOeik249; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706091424; c=relaxed/simple;
+	bh=c1lF+NfDVLeV4rYWqUQIRLSsa7sp5GHh/ehMRw1cUJs=;
+	h=Date:To:From:Subject:Message-Id; b=dW+ZbVkOU+nVorUFRxzYbUhNLedqa/m5Prxm0FXPxpcAdKyzct/MtN2Tqa6CjDiLz+j07KatDOaSXjNxWV2lFn6bGPR+hb8xSkLiZML8FKYDze8JSln/UUUPWL+HED57YEJ79gEcyAI/HPU25l6zApZWgqB+MSr6inr8WJyRPJw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HVup6U8U; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UOeik249"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88757C433F1;
-	Wed, 24 Jan 2024 10:16:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HVup6U8U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0F01C43394;
+	Wed, 24 Jan 2024 10:17:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706091420;
-	bh=bCcispOPqSdY07uiv4TwhlNfDHwHRT1IqhM3huUHVRw=;
+	s=korg; t=1706091423;
+	bh=c1lF+NfDVLeV4rYWqUQIRLSsa7sp5GHh/ehMRw1cUJs=;
 	h=Date:To:From:Subject:From;
-	b=UOeik249MdlN7gNtat26iRmUkywz+1N6qjb/8hZTm1U6c/34MjfQUMRIBDdjD5TpT
-	 Q+DlQ/b0wWGV6B+/g/DoMQf6/mrdrgVLcaihy2ZgskYrRiq2cXWHYXmYWl90QeGX3G
-	 27qFdsOV6gh9mi29EWMIpxLxnf7uTB95Xe+gw4i0=
-Date: Wed, 24 Jan 2024 02:16:57 -0800
+	b=HVup6U8Uu+nvofIrhRPyBglm0ned6J87p/Vd5XaZGBiS67cZG2LpzAc09QFMkOyVP
+	 cC7u549cjkX04s63yuHcpeQ524iqU3WemhBH+OTgP0e01avIf4FALvR56nCs6Hc92d
+	 qpqHGEFMqJDa1Owl/CUvb8OcZygGeKTIx/blc/34=
+Date: Wed, 24 Jan 2024 02:17:00 -0800
 To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,ying.huang@intel.com,nphamcs@gmail.com,hannes@cmpxchg.org,chrisl@kernel.org,yosryahmed@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-remove-unnecessary-trees-cleanups-in-zswap_swapoff.patch added to mm-unstable branch
-Message-Id: <20240124101659.88757C433F1@smtp.kernel.org>
+Subject: + mm-swap-enforce-updating-inuse_pages-at-the-end-of-swap_range_free.patch added to mm-unstable branch
+Message-Id: <20240124101702.E0F01C43394@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: zswap: remove unnecessary trees cleanups in zswap_swapoff()
+     Subject: mm: swap: enforce updating inuse_pages at the end of swap_range_free()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-remove-unnecessary-trees-cleanups-in-zswap_swapoff.patch
+     mm-swap-enforce-updating-inuse_pages-at-the-end-of-swap_range_free.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-remove-unnecessary-trees-cleanups-in-zswap_swapoff.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-enforce-updating-inuse_pages-at-the-end-of-swap_range_free.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,53 +59,96 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: zswap: remove unnecessary trees cleanups in zswap_swapoff()
-Date: Wed, 24 Jan 2024 04:51:12 +0000
+Subject: mm: swap: enforce updating inuse_pages at the end of swap_range_free()
+Date: Wed, 24 Jan 2024 04:51:11 +0000
 
-During swapoff, try_to_unuse() makes sure that zswap_invalidate() is
-called for all swap entries before zswap_swapoff() is called.  This means
-that all zswap entries should already be removed from the tree.  Simplify
-zswap_swapoff() by removing the trees cleanup code, and leave an assertion
-in its place.
+Patch series "mm: zswap: simplify zswap_swapoff()", v2.
 
-Link: https://lkml.kernel.org/r/20240124045113.415378-3-yosryahmed@google.com
+These patches aim to simplify zswap_swapoff() by removing the unnecessary
+trees cleanup code.  Patch 1 makes sure that the order of operations
+during swapoff is enforced correctly, making sure the simplification in
+patch 2 is correct in a future-proof manner.
+
+
+This patch (of 2):
+
+In swap_range_free(), we update inuse_pages then do some cleanups (arch
+invalidation, zswap invalidation, swap cache cleanups, etc).  During
+swapoff, try_to_unuse() checks that inuse_pages is 0 to make sure all swap
+entries are freed.  Make sure we only update inuse_pages after we are done
+with the cleanups in swap_range_free(), and use the proper memory barriers
+to enforce it.  This makes sure that code following try_to_unuse() can
+safely assume that swap_range_free() ran for all entries in thr swapfile
+(e.g.  swap cache cleanup, zswap_swapoff()).
+
+In practice, this currently isn't a problem because swap_range_free() is
+called with the swap info lock held, and the swapoff code happens to spin
+for that after try_to_unuse().  However, this seems fragile and
+unintentional, so make it more relable and future-proof.  This also
+facilitates a following simplification of zswap_swapoff().
+
+Link: https://lkml.kernel.org/r/20240124045113.415378-1-yosryahmed@google.com
+Link: https://lkml.kernel.org/r/20240124045113.415378-2-yosryahmed@google.com
 Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Reviewed-by: Chengming Zhou <zhouchengming@bytedance.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Chengming Zhou <zhouchengming@bytedance.com>
 Cc: Chris Li <chrisl@kernel.org>
-Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   16 +++-------------
- 1 file changed, 3 insertions(+), 13 deletions(-)
+ mm/swapfile.c |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-remove-unnecessary-trees-cleanups-in-zswap_swapoff
-+++ a/mm/zswap.c
-@@ -1808,19 +1808,9 @@ void zswap_swapoff(int type)
- 	if (!trees)
- 		return;
+--- a/mm/swapfile.c~mm-swap-enforce-updating-inuse_pages-at-the-end-of-swap_range_free
++++ a/mm/swapfile.c
+@@ -737,8 +737,6 @@ static void swap_range_free(struct swap_
+ 		if (was_full && (si->flags & SWP_WRITEOK))
+ 			add_to_avail_list(si);
+ 	}
+-	atomic_long_add(nr_entries, &nr_swap_pages);
+-	WRITE_ONCE(si->inuse_pages, si->inuse_pages - nr_entries);
+ 	if (si->flags & SWP_BLKDEV)
+ 		swap_slot_free_notify =
+ 			si->bdev->bd_disk->fops->swap_slot_free_notify;
+@@ -752,6 +750,14 @@ static void swap_range_free(struct swap_
+ 		offset++;
+ 	}
+ 	clear_shadow_from_swap_cache(si->type, begin, end);
++
++	/*
++	 * Make sure that try_to_unuse() observes si->inuse_pages reaching 0
++	 * only after the above cleanups are done.
++	 */
++	smp_wmb();
++	atomic_long_add(nr_entries, &nr_swap_pages);
++	WRITE_ONCE(si->inuse_pages, si->inuse_pages - nr_entries);
+ }
  
--	for (i = 0; i < nr_zswap_trees[type]; i++) {
--		struct zswap_tree *tree = trees + i;
--		struct zswap_entry *entry, *n;
--
--		/* walk the tree and free everything */
--		spin_lock(&tree->lock);
--		rbtree_postorder_for_each_entry_safe(entry, n,
--						     &tree->rbroot,
--						     rbnode)
--			zswap_free_entry(entry);
--		tree->rbroot = RB_ROOT;
--		spin_unlock(&tree->lock);
--	}
-+	/* try_to_unuse() invalidated all the entries already */
-+	for (i = 0; i < nr_zswap_trees[type]; i++)
-+		WARN_ON_ONCE(!RB_EMPTY_ROOT(&trees[i].rbroot));
+ static void set_cluster_next(struct swap_info_struct *si, unsigned long next)
+@@ -2049,7 +2055,7 @@ static int try_to_unuse(unsigned int typ
+ 	unsigned int i;
  
- 	kvfree(trees);
- 	nr_zswap_trees[type] = 0;
+ 	if (!READ_ONCE(si->inuse_pages))
+-		return 0;
++		goto success;
+ 
+ retry:
+ 	retval = shmem_unuse(type);
+@@ -2130,6 +2136,12 @@ retry:
+ 		return -EINTR;
+ 	}
+ 
++success:
++	/*
++	 * Make sure that further cleanups after try_to_unuse() returns happen
++	 * after swap_range_free() reduces si->inuse_pages to 0.
++	 */
++	smp_mb();
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from yosryahmed@google.com are
