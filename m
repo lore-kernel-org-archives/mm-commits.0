@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77BA78C08;
-	Wed, 24 Jan 2024 10:17:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E81A18B09;
+	Wed, 24 Jan 2024 10:17:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706091446; cv=none; b=enw2SJFYzZMSVMmCTNe0DvbmGFpNJp/BEkonDeNbK/hJ/oeuGcI10axRxYDLZMORr0+LbhDycdrY7a5S+WR4sKMQ+f7TULj215NfxCxQdq03EzArZxf01rXcJHq4pTkm72eZAe1dsy2qJCMwcbxgq/EBgKzMYHhk7fZXjdzdF2I=
+	t=1706091449; cv=none; b=npJBX8Z1jrkX4qT4TmmWipaAxYYLGmeHPchb/NkNH+iEBf30P9yjKLnC7emr/+rKz3jbRSu8Ufo9NyVVu0kM1k4GWMSvEefaYqIopzV9KfmZ8hSHG4hR2opCice0gIGCUAp9j33ru8UAjIdZOhJQPgQQF+V4K/I1Zqv5NMKn4uw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706091446; c=relaxed/simple;
-	bh=1WnvG//jyFkx8NotXPlUwRacCiW8tReKOYaJcGAWasQ=;
-	h=Date:To:From:Subject:Message-Id; b=as56paY2KiygP2qU0RcMN048gMrmqi2dsy2WLSaxePOCNbyAU67HEZoPYvpAjkMAJdmDOTISoOn/skkwBncFRdJgOX6C+ttBf8+fraZy+DxBGhuQcny6uiLIULmiXdvntFOtQVunz+CfWVpzKZYQqmdS7eahnXqRc6vzPuW4TSE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y9zz55bR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706091449; c=relaxed/simple;
+	bh=xewqOWNToJccyxc7C9N9xqz03PibygApLAZ2FuD96/Q=;
+	h=Date:To:From:Subject:Message-Id; b=RcqvnBt7iK0/bZbmJZZGB5PR/EAhY+5ALkybTjD2MVL3kfE5ZfbXNLp+RZEDDAUyBJUnW906Q4m+IEw8urZvR3YpBQrYkMgr0nCpqGr+spyeXZOeF3yFprWNc+yzW56MN4sjbAmL6qK2jzczKdtnWFGzq7asCC2yW0E3DIHj6ac=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JL7Pf3m/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y9zz55bR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B44CCC433C7;
-	Wed, 24 Jan 2024 10:17:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JL7Pf3m/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF51EC433C7;
+	Wed, 24 Jan 2024 10:17:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706091446;
-	bh=1WnvG//jyFkx8NotXPlUwRacCiW8tReKOYaJcGAWasQ=;
+	s=korg; t=1706091449;
+	bh=xewqOWNToJccyxc7C9N9xqz03PibygApLAZ2FuD96/Q=;
 	h=Date:To:From:Subject:From;
-	b=Y9zz55bRf+Bb47EQtm/ZVxWHwC1x5isbRv6/MLr6HPOFxn8V8wb91rqldWNFDc2jD
-	 LSx9j+bmBeldw524TKDAWGh+F0oFQrsb/4dEY8z74uf6KTO+MYAnzXjjpcmL5HwhiL
-	 +XsHo4bTTRAxMQkF5gQ5qZXWkmgsJPToYpKnUYYY=
-Date: Wed, 24 Jan 2024 02:17:23 -0800
+	b=JL7Pf3m/Jy5ExaIAIa7HFl38aJKf+U9CzRnD5OKWaQVJ7MHKVTcYNJfS5cRQNLQY5
+	 c3540DmuYdSMGIyIyGa4P7+Y01O+FoZeqOUYT/7Wi8RxMwDrUuQccm5vv32ORKLs5v
+	 iMKrQr75BH+iwEYzL4mxCvENZxCS17cPDBw9P+E4=
+Date: Wed, 24 Jan 2024 02:17:26 -0800
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,ebiederm@xmission.com,dylanbhatch@google.com,oleg@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-do_task_stat-use-sig-stats_lock-to-gather-the-threads-children-stats.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240124101725.B44CCC433C7@smtp.kernel.org>
+Subject: + fs-proc-do_task_stat-move-thread_group_cputime_adjusted-outside-of-lock_task_sighand.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240124101728.DF51EC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/proc: do_task_stat: use sig->stats_lock to gather the threads/children stats
+     Subject: fs/proc: do_task_stat: move thread_group_cputime_adjusted() outside of lock_task_sighand()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     fs-proc-do_task_stat-use-sig-stats_lock-to-gather-the-threads-children-stats.patch
+     fs-proc-do_task_stat-move-thread_group_cputime_adjusted-outside-of-lock_task_sighand.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-do_task_stat-use-sig-stats_lock-to-gather-the-threads-children-stats.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-do_task_stat-move-thread_group_cputime_adjusted-outside-of-lock_task_sighand.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,31 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: fs/proc: do_task_stat: use sig->stats_lock to gather the threads/children stats
-Date: Tue, 23 Jan 2024 16:33:57 +0100
+Subject: fs/proc: do_task_stat: move thread_group_cputime_adjusted() outside of lock_task_sighand()
+Date: Tue, 23 Jan 2024 16:33:55 +0100
 
-lock_task_sighand() can trigger a hard lockup.  If NR_CPUS threads call
-do_task_stat() at the same time and the process has NR_THREADS, it will
-spin with irqs disabled O(NR_CPUS * NR_THREADS) time.
+Patch series "fs/proc: do_task_stat: use sig->stats_".
 
-Change do_task_stat() to use sig->stats_lock to gather the statistics
-outside of ->siglock protected section, in the likely case this code will
-run lockless.
+do_task_stat() has the same problem as getrusage() had before "getrusage:
+use sig->stats_lock rather than lock_task_sighand()": a hard lockup.  If
+NR_CPUS threads call lock_task_sighand() at the same time and the process
+has NR_THREADS, spin_lock_irq will spin with irqs disabled O(NR_CPUS *
+NR_THREADS) time.
 
-Link: https://lkml.kernel.org/r/20240123153357.GA21857@redhat.com
+
+This patch (of 3):
+
+thread_group_cputime() does its own locking, we can safely shift
+thread_group_cputime_adjusted() which does another for_each_thread loop
+outside of ->siglock protected section.
+
+Not only this removes for_each_thread() from the critical section with
+irqs disabled, this removes another case when stats_lock is taken with
+siglock held.  We want to remove this dependency, then we can change the
+users of stats_lock to not disable irqs.
+
+Link: https://lkml.kernel.org/r/20240123153313.GA21832@redhat.com
+Link: https://lkml.kernel.org/r/20240123153355.GA21854@redhat.com
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Dylan Hatch <dylanbhatch@google.com>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
@@ -78,105 +91,44 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |   58 +++++++++++++++++++++++++---------------------
- 1 file changed, 32 insertions(+), 26 deletions(-)
+ fs/proc/array.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/fs/proc/array.c~fs-proc-do_task_stat-use-sig-stats_lock-to-gather-the-threads-children-stats
+--- a/fs/proc/array.c~fs-proc-do_task_stat-move-thread_group_cputime_adjusted-outside-of-lock_task_sighand
 +++ a/fs/proc/array.c
-@@ -477,13 +477,13 @@ static int do_task_stat(struct seq_file
- 	int permitted;
- 	struct mm_struct *mm;
- 	unsigned long long start_time;
--	unsigned long cmin_flt = 0, cmaj_flt = 0;
--	unsigned long  min_flt = 0,  maj_flt = 0;
--	u64 cutime, cstime, utime, stime;
--	u64 cgtime, gtime;
-+	unsigned long cmin_flt, cmaj_flt, min_flt, maj_flt;
-+	u64 cutime, cstime, cgtime, utime, stime, gtime;
- 	unsigned long rsslim = 0;
- 	unsigned long flags;
- 	int exit_code = task->exit_code;
-+	struct signal_struct *sig = task->signal;
-+	unsigned int seq = 1;
- 
- 	state = *get_task_state(task);
- 	vsize = eip = esp = 0;
-@@ -511,12 +511,8 @@ static int do_task_stat(struct seq_file
+@@ -511,7 +511,7 @@ static int do_task_stat(struct seq_file
  
  	sigemptyset(&sigign);
  	sigemptyset(&sigcatch);
--	cutime = cstime = 0;
--	cgtime = gtime = 0;
+-	cutime = cstime = utime = stime = 0;
++	cutime = cstime = 0;
+ 	cgtime = gtime = 0;
  
  	if (lock_task_sighand(task, &flags)) {
--		struct signal_struct *sig = task->signal;
--
- 		if (sig->tty) {
- 			struct pid *pgrp = tty_get_pgrp(sig->tty);
- 			tty_pgrp = pid_nr_ns(pgrp, ns);
-@@ -527,27 +523,9 @@ static int do_task_stat(struct seq_file
- 		num_threads = get_nr_threads(task);
- 		collect_sigign_sigcatch(task, &sigign, &sigcatch);
+@@ -546,7 +546,6 @@ static int do_task_stat(struct seq_file
  
--		cmin_flt = sig->cmin_flt;
--		cmaj_flt = sig->cmaj_flt;
--		cutime = sig->cutime;
--		cstime = sig->cstime;
--		cgtime = sig->cgtime;
- 		rsslim = READ_ONCE(sig->rlim[RLIMIT_RSS].rlim_cur);
+ 			min_flt += sig->min_flt;
+ 			maj_flt += sig->maj_flt;
+-			thread_group_cputime_adjusted(task, &utime, &stime);
+ 			gtime += sig->gtime;
  
--		/* add up live thread stats at the group level */
- 		if (whole) {
--			struct task_struct *t;
--
--			__for_each_thread(sig, t) {
--				min_flt += t->min_flt;
--				maj_flt += t->maj_flt;
--				gtime += task_gtime(t);
--			}
--
--			min_flt += sig->min_flt;
--			maj_flt += sig->maj_flt;
--			gtime += sig->gtime;
--
  			if (sig->flags & (SIGNAL_GROUP_EXIT | SIGNAL_STOP_STOPPED))
- 				exit_code = sig->group_exit_code;
- 		}
-@@ -562,6 +540,34 @@ static int do_task_stat(struct seq_file
+@@ -562,10 +561,13 @@ static int do_task_stat(struct seq_file
+ 
  	if (permitted && (!whole || num_threads < 2))
  		wchan = !task_is_running(task);
+-	if (!whole) {
++
++	if (whole) {
++		thread_group_cputime_adjusted(task, &utime, &stime);
++	} else {
++		task_cputime_adjusted(task, &utime, &stime);
+ 		min_flt = task->min_flt;
+ 		maj_flt = task->maj_flt;
+-		task_cputime_adjusted(task, &utime, &stime);
+ 		gtime = task_gtime(task);
+ 	}
  
-+	do {
-+		seq++; /* 2 on the 1st/lockless path, otherwise odd */
-+		flags = read_seqbegin_or_lock_irqsave(&sig->stats_lock, &seq);
-+
-+		cmin_flt = sig->cmin_flt;
-+		cmaj_flt = sig->cmaj_flt;
-+		cutime = sig->cutime;
-+		cstime = sig->cstime;
-+		cgtime = sig->cgtime;
-+
-+		if (whole) {
-+			struct task_struct *t;
-+
-+			min_flt = sig->min_flt;
-+			maj_flt = sig->maj_flt;
-+			gtime = sig->gtime;
-+
-+			rcu_read_lock();
-+			__for_each_thread(sig, t) {
-+				min_flt += t->min_flt;
-+				maj_flt += t->maj_flt;
-+				gtime += task_gtime(t);
-+			}
-+			rcu_read_unlock();
-+		}
-+	} while (need_seqretry(&sig->stats_lock, seq));
-+	done_seqretry_irqrestore(&sig->stats_lock, seq, flags);
-+
- 	if (whole) {
- 		thread_group_cputime_adjusted(task, &utime, &stime);
- 	} else {
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
