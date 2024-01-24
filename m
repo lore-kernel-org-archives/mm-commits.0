@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A47A68C08
-	for <mm-commits@vger.kernel.org>; Wed, 24 Jan 2024 10:16:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9033F8C08
+	for <mm-commits@vger.kernel.org>; Wed, 24 Jan 2024 10:16:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706091401; cv=none; b=uU/DYb4yvZybHeN0c4744PbPd4GkMkmxs/l1IbCxKg7ev6Mc2j3YcffZYQ/mESycPFEU5ILgPCGdqToFT5cb2fVe07Jc+lfoatyEeEj6XczD2SNor25wbYoYWBWtbrr4oFCKmjQ2/ZKgtHX/HfbiU0leSpc+I/xm3VDwlyn23SY=
+	t=1706091404; cv=none; b=iEkWA8lidN8sNB77krUo7Sgi/eD5ijeXr4P52IWkmrUfhMllJO80nvxaFtJetOrzS0c9WzVQ1/x6moHKlp1o3E+N6oHGJ7D1zvFak4M2NdzENB9xg9WaDxKuhsNfnVdQZOuYRKIZDiToZi8iZJLphcVeBkqqqKe9oKOnJDWaRXM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706091401; c=relaxed/simple;
-	bh=5ihsX5ZKOwM8E2ETByk0Y/TKAa0CFcpHULlZD7ViEdY=;
-	h=Date:To:From:Subject:Message-Id; b=meQNztwlGc8FQHVjziNFB1ZMPgpkBqPIHXkoM+D5uiB8OuCJRL9aaIDnTeGVAm9d2AE+iAQQ3j+/YNexGsDffWitHPg02XwtRPAouMp42F4KLDoGlKdo5IcvOBCBIu7AwCQ+EOL6sV5wP6xbgnbyHkWVNMuwtYHk0ObE6hGUIpQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oW5LrkOS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706091404; c=relaxed/simple;
+	bh=i7RIZgzxNjaF+bRZ9r38d42y2m6IdFsOmz7zf5Dx/I0=;
+	h=Date:To:From:Subject:Message-Id; b=Xoirn8bYVYZdmHhi6jW/FuzFFemH0fJV3DrPK7DNf1zrMp8FG37YnkscPTAk5AcYka5aE6XXdNWWbjMF7dRLK2mWNnIimBxF2kN30Ug2/82hLBRnr8RhZ0/aJGuKbUW2EBEbj0vgXJ0J9Db7GmyV661E3JQtqjGqpH3Xj/0MmGE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BkUkIlNB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oW5LrkOS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8AB7C433F1;
-	Wed, 24 Jan 2024 10:16:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BkUkIlNB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB185C43390;
+	Wed, 24 Jan 2024 10:16:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706091401;
-	bh=5ihsX5ZKOwM8E2ETByk0Y/TKAa0CFcpHULlZD7ViEdY=;
+	s=korg; t=1706091404;
+	bh=i7RIZgzxNjaF+bRZ9r38d42y2m6IdFsOmz7zf5Dx/I0=;
 	h=Date:To:From:Subject:From;
-	b=oW5LrkOSjCNbakwCiot8zjaqQoW3SKbSVj2n+6XWaUZ9Y2Y4hNZEvdCXykEDBRw40
-	 Ep+VrDLZXuYcSmykuqDCzJOEzk0SZP/GhjsgC5qrE2D0etYW0oCGTWibqTEYwbbfOQ
-	 8xeglSQ2c970V67/XFE42duAT/H2mEYyz4B2LKzs=
-Date: Wed, 24 Jan 2024 02:16:38 -0800
+	b=BkUkIlNBo1i/gt6eXOS0C/lM/3MUFPDBPX9HkA3pXY0uNP9tSe5a6v0O0bi7xo9TI
+	 uR+6GUj2SLZ9QG30Nu1bBrgLXhQ+I53+b3SRdKGkhMRAdV7PaCAXOVWrYNuZaHPmDo
+	 7mMKroIBtVqjFNARyzzbdTDNo11NKEnIoLJgt5to=
+Date: Wed, 24 Jan 2024 02:16:41 -0800
 To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,piliu@redhat.com,hbathini@linux.ibm.com,ebiederm@xmission.com,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + riscv-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch added to mm-unstable branch
-Message-Id: <20240124101640.A8AB7C433F1@smtp.kernel.org>
+Subject: + mips-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch added to mm-unstable branch
+Message-Id: <20240124101643.DB185C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: riscv, crash: wrap crash dumping code into crash related ifdefs
+     Subject: mips, crash: wrap crash dumping code into crash related ifdefs
 has been added to the -mm mm-unstable branch.  Its filename is
-     riscv-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
+     mips-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mips-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: riscv, crash: wrap crash dumping code into crash related ifdefs
-Date: Wed, 24 Jan 2024 13:12:52 +0800
+Subject: mips, crash: wrap crash dumping code into crash related ifdefs
+Date: Wed, 24 Jan 2024 13:12:51 +0800
 
 Now crash codes under kernel/ folder has been split out from kexec
 code, crash dumping can be separated from kexec reboot in config
-items on risc-v with some adjustments.
+items on mips with some adjustments.
 
-Here wrap up crash dumping codes with CONFIG_CRASH_DUMP ifdeffery, and
-use IS_ENABLED(CONFIG_CRASH_RESERVE) check to decide if compiling
+Here use IS_ENABLED(CONFIG_CRASH_RESERVE) check to decide if compiling
 in the crashkernel reservation code.
 
-Link: https://lkml.kernel.org/r/20240124051254.67105-13-bhe@redhat.com
+Link: https://lkml.kernel.org/r/20240124051254.67105-12-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
@@ -79,73 +78,56 @@ Cc: Pingfan Liu <piliu@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/kernel/elf_kexec.c |    9 +++++++--
- arch/riscv/mm/init.c          |    2 +-
- 2 files changed, 8 insertions(+), 3 deletions(-)
+ arch/mips/kernel/setup.c |   17 ++++++-----------
+ 1 file changed, 6 insertions(+), 11 deletions(-)
 
---- a/arch/riscv/kernel/elf_kexec.c~riscv-crash-wrap-crash-dumping-code-into-crash-related-ifdefs
-+++ a/arch/riscv/kernel/elf_kexec.c
-@@ -117,6 +117,7 @@ static int elf_find_pbase(struct kimage
- 	return ret;
+--- a/arch/mips/kernel/setup.c~mips-crash-wrap-crash-dumping-code-into-crash-related-ifdefs
++++ a/arch/mips/kernel/setup.c
+@@ -442,8 +442,6 @@ static void __init mips_reserve_vmcore(v
+ #endif
  }
  
-+#ifdef CONFIG_CRASH_DUMP
- static int get_nr_ram_ranges_callback(struct resource *res, void *arg)
- {
- 	unsigned int *nr_ranges = arg;
-@@ -189,6 +190,7 @@ static char *setup_kdump_cmdline(struct
- 	cmdline_ptr[COMMAND_LINE_SIZE - 1] = '\0';
- 	return cmdline_ptr;
- }
-+#endif
- 
- static void *elf_kexec_load(struct kimage *image, char *kernel_buf,
- 			    unsigned long kernel_len, char *initrd,
-@@ -196,12 +198,11 @@ static void *elf_kexec_load(struct kimag
- 			    unsigned long cmdline_len)
- {
- 	int ret;
-+	void *fdt;
- 	unsigned long old_kernel_pbase = ULONG_MAX;
- 	unsigned long new_kernel_pbase = 0UL;
- 	unsigned long initrd_pbase = 0UL;
--	unsigned long headers_sz;
- 	unsigned long kernel_start;
--	void *fdt, *headers;
- 	struct elfhdr ehdr;
- 	struct kexec_buf kbuf;
- 	struct kexec_elf_info elf_info;
-@@ -227,8 +228,11 @@ static void *elf_kexec_load(struct kimag
- 	kbuf.buf_min = new_kernel_pbase + kernel_len;
- 	kbuf.buf_max = ULONG_MAX;
- 
-+#ifdef CONFIG_CRASH_DUMP
- 	/* Add elfcorehdr */
- 	if (image->type == KEXEC_TYPE_CRASH) {
-+		void *headers;
-+		unsigned long headers_sz;
- 		ret = prepare_elf_headers(&headers, &headers_sz);
- 		if (ret) {
- 			pr_err("Preparing elf core header failed\n");
-@@ -264,6 +268,7 @@ static void *elf_kexec_load(struct kimag
- 		}
- 		cmdline = modified_cmdline;
- 	}
-+#endif
- 
- #ifdef CONFIG_ARCH_SUPPORTS_KEXEC_PURGATORY
- 	/* Add purgatory to the image */
---- a/arch/riscv/mm/init.c~riscv-crash-wrap-crash-dumping-code-into-crash-related-ifdefs
-+++ a/arch/riscv/mm/init.c
-@@ -1358,7 +1358,7 @@ static void __init arch_reserve_crashker
- 	bool high = false;
+-#ifdef CONFIG_KEXEC
+-
+ /* 64M alignment for crash kernel regions */
+ #define CRASH_ALIGN	SZ_64M
+ #define CRASH_ADDR_MAX	SZ_512M
+@@ -454,6 +452,9 @@ static void __init mips_parse_crashkerne
+ 	unsigned long long crash_size, crash_base;
  	int ret;
  
--	if (!IS_ENABLED(CONFIG_KEXEC_CORE))
 +	if (!IS_ENABLED(CONFIG_CRASH_RESERVE))
++		return;
++
+ 	total_mem = memblock_phys_mem_size();
+ 	ret = parse_crashkernel(boot_command_line, total_mem,
+ 				&crash_size, &crash_base,
+@@ -489,6 +490,9 @@ static void __init request_crashkernel(s
+ {
+ 	int ret;
+ 
++	if (!IS_ENABLED(CONFIG_CRASH_RESERVE))
++		return;
++
+ 	if (crashk_res.start == crashk_res.end)
  		return;
  
- 	ret = parse_crashkernel(cmdline, memblock_phys_mem_size(),
+@@ -498,15 +502,6 @@ static void __init request_crashkernel(s
+ 			(unsigned long)(resource_size(&crashk_res) >> 20),
+ 			(unsigned long)(crashk_res.start  >> 20));
+ }
+-#else /* !defined(CONFIG_KEXEC)		*/
+-static void __init mips_parse_crashkernel(void)
+-{
+-}
+-
+-static void __init request_crashkernel(struct resource *res)
+-{
+-}
+-#endif /* !defined(CONFIG_KEXEC)  */
+ 
+ static void __init check_kernel_sections_mem(void)
+ {
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
