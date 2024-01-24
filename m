@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 596418C08
-	for <mm-commits@vger.kernel.org>; Wed, 24 Jan 2024 10:17:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B02F18C08
+	for <mm-commits@vger.kernel.org>; Wed, 24 Jan 2024 10:17:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706091430; cv=none; b=J2DwstDz2AsFx10k5DQuxoZRyrUuluu5nvsFZbmyn+Fo3xjqetArvtNUB+lul5asYzL2T5h5EJG+uJ2JXS62ChxkfylRV9oHaZ2sjF84zQm2a9R0Wao3CruhXrL1Wa2YEcjzCAR1w/vSHINxvCqM8LEsdpLMD+zXiRpPE6UtelU=
+	t=1706091433; cv=none; b=KhMW7lGDV6M+B7LXMo2dqHiwfFmNzl3orhkWULd5Uoce+4+2fJy33UTiuJmPY/zAk2MhnBCtRr31eSBdMAqRSrsN1p22AqhS83m+hKDe98wK6czRY/ZrronHruXFIkHlLxSu+8tr5XwAvpZ7pFketygWunPjzTTlP3IRNeT4FJY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706091430; c=relaxed/simple;
-	bh=jdPXvL9uwjQg+I/Tp1HtUrD+IBx+K3pLirPHMriVCr8=;
-	h=Date:To:From:Subject:Message-Id; b=lD5+DIAi0QPxfSwUEBGo3aonq/ai+TNKHTMwLL1vfCjtMWF86kHwwKpgvPR0MqDfrBehGaq2NTzkS6Cuc58HiC2q0s9FBDZrT3Gq8OyKC1g1hOuMaaNA4MXrYC/ojB9Z3Sjoaj3lSqfcwU3jMtMFT6Pq8UPBuy4rKOESVYV4hNQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PW5RVn8e; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706091433; c=relaxed/simple;
+	bh=tA+/BZvZ3Ex2Jwh0v5ixu/l9WAzNXe06pwEa/dxUUAU=;
+	h=Date:To:From:Subject:Message-Id; b=T7d+GEaZ7vSng8Myf1EsYt0qIXdLm57yW7VHD5dKQICFwQi7KvmRcffzeO1tZF2U2ND6KCInioFcGB9ZzoA+rvvvg/rLw0ZUeNPSKL16cgeFDKenMNQq2vDhNtkj/EaXEqlP/EkfP9Aq+vgAmvf8CTKsVOPrKs3pvKn3Tgfd3Pk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cCFOTgC5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PW5RVn8e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07AB2C43394;
-	Wed, 24 Jan 2024 10:17:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cCFOTgC5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46AA3C433F1;
+	Wed, 24 Jan 2024 10:17:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706091429;
-	bh=jdPXvL9uwjQg+I/Tp1HtUrD+IBx+K3pLirPHMriVCr8=;
+	s=korg; t=1706091433;
+	bh=tA+/BZvZ3Ex2Jwh0v5ixu/l9WAzNXe06pwEa/dxUUAU=;
 	h=Date:To:From:Subject:From;
-	b=PW5RVn8efH16AGqDBA1lDv1fmVam3LlQle6Ujo9xMYS3fy5nWB55KYLQHOTeb09Ty
-	 9XeSztFRHifN1YqyGt7y7mbkVLHmo6RqKN9AwzNLVFMqTzDMTdQwMGeyvEb2dHIM51
-	 iyChsLW1EcUtzGRJYw06GadtUv6JQNdIYztiqwNw=
-Date: Wed, 24 Jan 2024 02:17:07 -0800
+	b=cCFOTgC5Pus1a6zjCqYIZteOWrimUwryZcuOO40+r6f58wUEIC06JIxYbpaBQLUYO
+	 TRAm/1fqLZitcIDjvwIOm4orYqeJkxb8AQIwTlAFkmgVN840lIKhPj5UkbLBmPBa0H
+	 n/ctuzpeJj/Ji+u5QI5ieHS09Z6xyTw9+eJZJphk=
+Date: Wed, 24 Jan 2024 02:17:10 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,yangxingui@huawei.com,willy@infradead.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,usama.anjum@collabora.com,talumbau@google.com,sj@kernel.org,sidhartha.kumar@oracle.com,ryan.roberts@arm.com,peterx@redhat.com,paulmck@kernel.org,mgorman@techsingularity.net,mathieu.desnoyers@efficios.com,lstoakes@gmail.com,Liam.Howlett@oracle.com,keescook@chromium.org,jhubbard@nvidia.com,jgg@ziepe.ca,jack@suse.cz,hughd@google.com,dhowells@redhat.com,dchinner@redhat.com,david@redhat.com,casey@schaufler-ca.com,brauner@kernel.org,ben.wolsieffer@hefring.com,axelrasmussen@google.com,avagin@google.com,andriy.shevchenko@linux.intel.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-make-vm_area_struct-anon_name-field-rcu-safe.patch added to mm-unstable branch
-Message-Id: <20240124101709.07AB2C43394@smtp.kernel.org>
+Subject: + mm-add-mm_struct-sequence-number-to-detect-write-locks.patch added to mm-unstable branch
+Message-Id: <20240124101712.46AA3C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: make vm_area_struct anon_name field RCU-safe
+     Subject: mm: add mm_struct sequence number to detect write locks
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-make-vm_area_struct-anon_name-field-rcu-safe.patch
+     mm-add-mm_struct-sequence-number-to-detect-write-locks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-vm_area_struct-anon_name-field-rcu-safe.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-mm_struct-sequence-number-to-detect-write-locks.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: make vm_area_struct anon_name field RCU-safe
-Date: Tue, 23 Jan 2024 15:10:12 -0800
+Subject: mm: add mm_struct sequence number to detect write locks
+Date: Tue, 23 Jan 2024 15:10:13 -0800
 
-For lockless /proc/pid/maps reading we have to ensure all the fields used
-when generating the output are RCU-safe.  The only pointer fields in
-vm_area_struct which are used to generate that file's output are vm_file
-and anon_name.  vm_file is RCU-safe but anon_name is not.  Make anon_name
-RCU-safe as well.
+Provide a way for lockless mm_struct users to detect whether mm might have
+been changed since some specific point in time.  The API provided allows
+the user to record a counter when it starts using the mm and later use
+that counter to check if anyone write-locked mmap_lock since the counter
+was recorded.  Recording the counter value should be done while holding
+mmap_lock at least for reading to prevent the counter from concurrent
+changes.  Every time mmap_lock is write-locked mm_struct updates its
+mm_wr_seq counter so that checks against counters recorded before that
+would fail, indicating a possibility of mm being modified.
 
-Link: https://lkml.kernel.org/r/20240123231014.3801041-1-surenb@google.com
+Link: https://lkml.kernel.org/r/20240123231014.3801041-2-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Andrei Vagin <avagin@google.com>
@@ -105,126 +109,73 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |   10 +++++++++-
- include/linux/mm_types.h  |    3 ++-
- mm/madvise.c              |   30 ++++++++++++++++++++++++++----
- 3 files changed, 37 insertions(+), 6 deletions(-)
+ include/linux/mm_types.h  |    2 ++
+ include/linux/mmap_lock.h |   22 ++++++++++++++++++++++
+ 2 files changed, 24 insertions(+)
 
---- a/include/linux/mm_inline.h~mm-make-vm_area_struct-anon_name-field-rcu-safe
-+++ a/include/linux/mm_inline.h
-@@ -389,7 +389,7 @@ static inline void dup_anon_vma_name(str
- 	struct anon_vma_name *anon_name = anon_vma_name(orig_vma);
- 
- 	if (anon_name)
--		new_vma->anon_name = anon_vma_name_reuse(anon_name);
-+		rcu_assign_pointer(new_vma->anon_name, anon_vma_name_reuse(anon_name));
+--- a/include/linux/mmap_lock.h~mm-add-mm_struct-sequence-number-to-detect-write-locks
++++ a/include/linux/mmap_lock.h
+@@ -106,6 +106,8 @@ static inline void mmap_write_lock(struc
+ {
+ 	__mmap_lock_trace_start_locking(mm, true);
+ 	down_write(&mm->mmap_lock);
++	/* Pairs with ACQUIRE semantics in mmap_write_seq_read */
++	smp_store_release(&mm->mm_wr_seq, mm->mm_wr_seq + 1);
+ 	__mmap_lock_trace_acquire_returned(mm, true, true);
  }
  
- static inline void free_anon_vma_name(struct vm_area_struct *vma)
-@@ -411,6 +411,8 @@ static inline bool anon_vma_name_eq(stru
- 		!strcmp(anon_name1->name, anon_name2->name);
+@@ -113,6 +115,8 @@ static inline void mmap_write_lock_neste
+ {
+ 	__mmap_lock_trace_start_locking(mm, true);
+ 	down_write_nested(&mm->mmap_lock, subclass);
++	/* Pairs with ACQUIRE semantics in mmap_write_seq_read */
++	smp_store_release(&mm->mm_wr_seq, mm->mm_wr_seq + 1);
+ 	__mmap_lock_trace_acquire_returned(mm, true, true);
  }
  
-+struct anon_vma_name *anon_vma_name_get_rcu(struct vm_area_struct *vma);
-+
- #else /* CONFIG_ANON_VMA_NAME */
- static inline void anon_vma_name_get(struct anon_vma_name *anon_name) {}
- static inline void anon_vma_name_put(struct anon_vma_name *anon_name) {}
-@@ -424,6 +426,12 @@ static inline bool anon_vma_name_eq(stru
- 	return true;
+@@ -122,6 +126,10 @@ static inline int mmap_write_lock_killab
+ 
+ 	__mmap_lock_trace_start_locking(mm, true);
+ 	ret = down_write_killable(&mm->mmap_lock);
++	if (!ret) {
++		/* Pairs with ACQUIRE semantics in mmap_write_seq_read */
++		smp_store_release(&mm->mm_wr_seq, mm->mm_wr_seq + 1);
++	}
+ 	__mmap_lock_trace_acquire_returned(mm, true, ret == 0);
+ 	return ret;
+ }
+@@ -140,6 +148,20 @@ static inline void mmap_write_downgrade(
+ 	downgrade_write(&mm->mmap_lock);
  }
  
-+static inline
-+struct anon_vma_name *anon_vma_name_get_rcu(struct vm_area_struct *vma)
++static inline unsigned long mmap_write_seq_read(struct mm_struct *mm)
 +{
-+	return NULL;
++	/* Pairs with RELEASE semantics in mmap_write_lock */
++	return smp_load_acquire(&mm->mm_wr_seq);
 +}
 +
- #endif  /* CONFIG_ANON_VMA_NAME */
- 
- static inline void init_tlb_flush_pending(struct mm_struct *mm)
---- a/include/linux/mm_types.h~mm-make-vm_area_struct-anon_name-field-rcu-safe
++static inline void mmap_write_seq_record(struct mm_struct *mm,
++					 unsigned long *mm_wr_seq)
++{
++	mmap_assert_locked(mm);
++	/* Nobody can concurrently modify since we hold the mmap_lock */
++	*mm_wr_seq = mm->mm_wr_seq;
++}
++
+ static inline void mmap_read_lock(struct mm_struct *mm)
+ {
+ 	__mmap_lock_trace_start_locking(mm, false);
+--- a/include/linux/mm_types.h~mm-add-mm_struct-sequence-number-to-detect-write-locks
 +++ a/include/linux/mm_types.h
-@@ -545,6 +545,7 @@ struct vm_userfaultfd_ctx {};
- 
- struct anon_vma_name {
- 	struct kref kref;
-+	struct rcu_head rcu;
- 	/* The name needs to be at the end because it is dynamically sized. */
- 	char name[];
- };
-@@ -699,7 +700,7 @@ struct vm_area_struct {
- 	 * terminated string containing the name given to the vma, or NULL if
- 	 * unnamed. Serialized by mmap_lock. Use anon_vma_name to access.
- 	 */
--	struct anon_vma_name *anon_name;
-+	struct anon_vma_name __rcu *anon_name;
+@@ -846,6 +846,8 @@ struct mm_struct {
+ 		 */
+ 		int mm_lock_seq;
  #endif
- #ifdef CONFIG_SWAP
- 	atomic_long_t swap_readahead_info;
---- a/mm/madvise.c~mm-make-vm_area_struct-anon_name-field-rcu-safe
-+++ a/mm/madvise.c
-@@ -88,14 +88,15 @@ void anon_vma_name_free(struct kref *kre
- {
- 	struct anon_vma_name *anon_name =
- 			container_of(kref, struct anon_vma_name, kref);
--	kfree(anon_name);
-+	kfree_rcu(anon_name, rcu);
- }
++		/* Counter incremented each time mm gets write-locked */
++		unsigned long mm_wr_seq;
  
- struct anon_vma_name *anon_vma_name(struct vm_area_struct *vma)
- {
- 	mmap_assert_locked(vma->vm_mm);
  
--	return vma->anon_name;
-+	return rcu_dereference_protected(vma->anon_name,
-+		rwsem_is_locked(&vma->vm_mm->mmap_lock));
- }
- 
- /* mmap_lock should be write-locked */
-@@ -105,7 +106,7 @@ static int replace_anon_vma_name(struct
- 	struct anon_vma_name *orig_name = anon_vma_name(vma);
- 
- 	if (!anon_name) {
--		vma->anon_name = NULL;
-+		rcu_assign_pointer(vma->anon_name, NULL);
- 		anon_vma_name_put(orig_name);
- 		return 0;
- 	}
-@@ -113,11 +114,32 @@ static int replace_anon_vma_name(struct
- 	if (anon_vma_name_eq(orig_name, anon_name))
- 		return 0;
- 
--	vma->anon_name = anon_vma_name_reuse(anon_name);
-+	rcu_assign_pointer(vma->anon_name, anon_vma_name_reuse(anon_name));
- 	anon_vma_name_put(orig_name);
- 
- 	return 0;
- }
-+
-+/*
-+ * Returned anon_vma_name is stable due to elevated refcount but not guaranteed
-+ * to be assigned to the original VMA after the call.
-+ */
-+struct anon_vma_name *anon_vma_name_get_rcu(struct vm_area_struct *vma)
-+{
-+	struct anon_vma_name __rcu *anon_name;
-+
-+	WARN_ON_ONCE(!rcu_read_lock_held());
-+
-+	anon_name = rcu_dereference(vma->anon_name);
-+	if (!anon_name)
-+		return NULL;
-+
-+	if (unlikely(!kref_get_unless_zero(&anon_name->kref)))
-+		return NULL;
-+
-+	return anon_name;
-+}
-+
- #else /* CONFIG_ANON_VMA_NAME */
- static int replace_anon_vma_name(struct vm_area_struct *vma,
- 				 struct anon_vma_name *anon_name)
+ 		unsigned long hiwater_rss; /* High-watermark of RSS usage */
 _
 
 Patches currently in -mm which might be from surenb@google.com are
