@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A2111C13
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 02:14:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98AE210F7
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 02:14:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706235280; cv=none; b=lz/a7Ei+2jdsQg4mYGVQh/mfJXI2PWPeEx9MGV1UTP+A/8WmnE/Jnxe90wotPsgQJv3pgPhhE3YkW4myA+IVGR6cGfwfhYzJ/RjNkP0Uy/zk1cKe6GSFANRcMsYqwyTNkpX/oZMPC5PZfJ1kADOMRe8OmLRTOoE/62k//v+E6AQ=
+	t=1706235283; cv=none; b=a6D+9gcs0cdXHdUIlu+hkmUmmNUqgqZ7c/5lIWIN8n+x2yEQJuGSL3UTn9uQulQF/EllR27Cd8bqfizFSaLj37LtEU6Ug5rBBi0mtQ/rTdg5QdMNffPYiGlcWJdPDeknSW9ePJEA2OaUkeaD+h/onGRU0V0U4VKbARj+fHIwWAQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706235280; c=relaxed/simple;
-	bh=tB9Wxk+j6V1r3Po0PYO2Eore4md3Zx3l9Sg4riy/VoQ=;
-	h=Date:To:From:Subject:Message-Id; b=KDUcC9iOww1AgQq88qepUOo7MH0jfd2m0aJKHHFPpESHc7m/sMJLe/rx1ghEmT3MOD6U6sn9AqtmxfWR5siSXz2I1Ry8gGa3vE9jMiyHWQAxsf/c+rf98GvgjomeWLGCdwyh8kihzrw5G+MNN1R72tKvPLE8+B5bRDKsZgDRBPg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nOcL8exc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706235283; c=relaxed/simple;
+	bh=Q6O0QFkyVp+f9xWlRGgjy8MNZ+w5iW5w7MsJvAGVK0g=;
+	h=Date:To:From:Subject:Message-Id; b=CSmN89La2qkchkxCMGDz/yAF4SwKmUV9qot0dMCleP7iWGQiWIWvd1zMzeUA77ZWdKc70Yv9rZNqOgHnDeS21YQnqFjKQXdDLlkFpRmoMore/5a/+fBwiqXwmeW+oE1OR9TCRGYFAWnGqhJo9WEsAz21rThC69W57zd7dwQdhPU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j4U9gWkZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nOcL8exc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BA09C433C7;
-	Fri, 26 Jan 2024 02:14:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j4U9gWkZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEC21C433C7;
+	Fri, 26 Jan 2024 02:14:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706235279;
-	bh=tB9Wxk+j6V1r3Po0PYO2Eore4md3Zx3l9Sg4riy/VoQ=;
+	s=korg; t=1706235283;
+	bh=Q6O0QFkyVp+f9xWlRGgjy8MNZ+w5iW5w7MsJvAGVK0g=;
 	h=Date:To:From:Subject:From;
-	b=nOcL8excV42Z/B25M9iwkzRE495pFN65Q+RtTe53gk1X6k1wSau6oPfoN85GSqrLY
-	 vJIuqoTqFGlds5loc6KNja5tO2OnTzDa8+S7GzgBMgIZqg4krK+pkInybeaCfdxoHB
-	 f1JmoCRXklpomrzQiOK4D6D79e04OY1PNv47Tv60=
-Date: Thu, 25 Jan 2024 18:14:36 -0800
+	b=j4U9gWkZthXQ74TvH5erDCQaTI7ptoaewNXAJKcropsOmosS+ixE528YgImJ6CqDP
+	 o7Iafq0Am/loYOeT2CWF9FceJx6TapIQbInK+/YIz8Db2so/V1stwA21wS7lKCezcN
+	 ezsgF5TqNc4mD1ezVe1/+T7vfw6pFT1mssQBKj1I=
+Date: Thu, 25 Jan 2024 18:14:40 -0800
 To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,nicolas@fjasle.eu,naveen.n.rao@linux.ibm.com,mpe@ellerman.id.au,mingo@redhat.com,masahiroy@kernel.org,mark.rutland@arm.com,linux@armlinux.org.uk,keescook@chromium.org,dave.hansen@linux.intel.com,conor@kernel.org,catalin.marinas@arm.com,bp@alien8.de,ardb@kernel.org,aou@eecs.berkeley.edu,aneesh.kumar@kernel.org,nathan@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-drop-stack-alignment-plugin-opt.patch added to mm-nonmm-unstable branch
-Message-Id: <20240126021439.0BA09C433C7@smtp.kernel.org>
+Subject: + makefile-drop-warn-stack-size-plugin-opt.patch added to mm-nonmm-unstable branch
+Message-Id: <20240126021442.AEC21C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86: drop stack-alignment plugin opt
+     Subject: Makefile: drop warn-stack-size plugin opt
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     x86-drop-stack-alignment-plugin-opt.patch
+     makefile-drop-warn-stack-size-plugin-opt.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-drop-stack-alignment-plugin-opt.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/makefile-drop-warn-stack-size-plugin-opt.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Nathan Chancellor <nathan@kernel.org>
-Subject: x86: drop stack-alignment plugin opt
-Date: Thu, 25 Jan 2024 15:55:09 -0700
+Subject: Makefile: drop warn-stack-size plugin opt
+Date: Thu, 25 Jan 2024 15:55:08 -0700
 
 Now that the minimum supported version of LLVM for building the kernel has
 been bumped to 13.0.1, the inner ifeq statement is always false, as the
 build will fail during the configuration stage for older LLVM versions.
 
-This effectively reverts part of commit b33fff07e3e3 ("x86, build: allow
-LTO to be selected") and its follow up fix, commit 2398ce80152a ("x86,
-lto: Pass -stack-alignment only on LLD < 13.0.0").
+This effectively reverts commit 24845dcb170e ("Makefile: LTO: have linker
+check -Wframe-larger-than") and its follow up fix, commit 0236526d76b8
+("Makefile: lto: Pass -warn-stack-size only on LLD < 13.0.0").
 
-Link: https://lkml.kernel.org/r/20240125-bump-min-llvm-ver-to-13-0-1-v1-3-f5ff9bda41c5@kernel.org
+Link: https://lkml.kernel.org/r/20240125-bump-min-llvm-ver-to-13-0-1-v1-2-f5ff9bda41c5@kernel.org
 Signed-off-by: Nathan Chancellor <nathan@kernel.org>
 Reviewed-by: Kees Cook <keescook@chromium.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
@@ -95,24 +95,26 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Makefile |    6 ------
- 1 file changed, 6 deletions(-)
+ Makefile |    8 --------
+ 1 file changed, 8 deletions(-)
 
---- a/arch/x86/Makefile~x86-drop-stack-alignment-plugin-opt
-+++ a/arch/x86/Makefile
-@@ -217,12 +217,6 @@ endif
+--- a/Makefile~makefile-drop-warn-stack-size-plugin-opt
++++ a/Makefile
+@@ -951,14 +951,6 @@ CC_FLAGS_LTO	+= -fvisibility=hidden
  
- KBUILD_LDFLAGS += -m elf_$(UTS_MACHINE)
- 
--ifdef CONFIG_LTO_CLANG
--ifeq ($(call test-lt, $(CONFIG_LLD_VERSION), 130000),y)
--KBUILD_LDFLAGS	+= -plugin-opt=-stack-alignment=$(if $(CONFIG_X86_32),4,8)
--endif
--endif
+ # Limit inlining across translation units to reduce binary size
+ KBUILD_LDFLAGS += -mllvm -import-instr-limit=5
 -
- ifdef CONFIG_X86_NEED_RELOCS
- LDFLAGS_vmlinux := --emit-relocs --discard-none
- else
+-# Check for frame size exceeding threshold during prolog/epilog insertion
+-# when using lld < 13.0.0.
+-ifneq ($(CONFIG_FRAME_WARN),0)
+-ifeq ($(call test-lt, $(CONFIG_LLD_VERSION), 130000),y)
+-KBUILD_LDFLAGS	+= -plugin-opt=-warn-stack-size=$(CONFIG_FRAME_WARN)
+-endif
+-endif
+ endif
+ 
+ ifdef CONFIG_LTO
 _
 
 Patches currently in -mm which might be from nathan@kernel.org are
