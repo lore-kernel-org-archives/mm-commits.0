@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E979A524F
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 02:15:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C86C5CBD
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 02:16:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706235359; cv=none; b=ui77YstSw+UqdjFVXcmmZj97c1yg9m3FiUkYu+0AzKg0MXfam2UAhfS4p/DjmQLpdNljth6wepF7jgAQTp1L4LD3rHSvSi808aPEXAzLrsAOemxlda+DIWuyQ1eic9wISXiCCEkzz05gZzNzvQmw4XJaaOGqLZX71oRXvUxuzEE=
+	t=1706235362; cv=none; b=SoOY70i8IWKVO6wMsJHqyJE3SIftUhrKiaEQBvysE72m7lCjQtOItqq7Hck9Aalp/lMub1YSE1uA0/NTb9fyQm2LyBH5rmJ92r1NJCNuwA4IcQ0oGypva6owss68UWOTh3Q/dSdR/fv5uGCWcWigmNZvDfTKS9uiSyl2rLBBwWQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706235359; c=relaxed/simple;
-	bh=rt18WZ/ZPTeI4zepxen2viYCQUuNa6auVwacDKpSXeM=;
-	h=Date:To:From:Subject:Message-Id; b=cTbJWUtfZl+3pOAWcfhIwNvQ8Xagdt9Jqh5+iGwkWAMjWwunAdEDAjzdNr1kGdImkYTppuaqO+I2F1UChXXz87lj0AaiiqxogLsVPazWYXZHIp90ZkqhKSI/WFSqZQTh+a8+8cj/q9wo+PGcKKZD4ZZdK6YGAjbJ43ryeS+ju/U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Dx6er1R1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706235362; c=relaxed/simple;
+	bh=0iCpVMvlTfaILT3B0NQfy9+djRPbY/b5XpQ69h728/Y=;
+	h=Date:To:From:Subject:Message-Id; b=I36P/lHng5s6F517t55V52bMfvSk8BnRX+17UNCJvbAJmNcJQ8HP8MMP6VbycuLQ/hxuHai2fzMg9xz3WbG9u3jTZMSa8BMebD9d/HEkRdc0F5yVrzdH+DxUTUC9JQc2ohwPst4+7FPvkxsa+1lTq/lcTyWWnRNE1buAQg2KZiQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YyXtsVYh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Dx6er1R1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD317C433C7;
-	Fri, 26 Jan 2024 02:15:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YyXtsVYh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DAAD9C433C7;
+	Fri, 26 Jan 2024 02:16:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706235358;
-	bh=rt18WZ/ZPTeI4zepxen2viYCQUuNa6auVwacDKpSXeM=;
+	s=korg; t=1706235362;
+	bh=0iCpVMvlTfaILT3B0NQfy9+djRPbY/b5XpQ69h728/Y=;
 	h=Date:To:From:Subject:From;
-	b=Dx6er1R1mChf6c/koVui8kZWAiLakd+cIoXymlFWgqYiecginhBjXKysCp6b3gc5j
-	 x0lJ9B/ZWH6L+vO6FzTti0whw5kZoF5kMHLJurK4B8YvHsVnU1Bng4M2jg8pN+LbVs
-	 TS684g5H8R7w6BseNo08e6bYJMfaFDxOhg9aPSpM=
-Date: Thu, 25 Jan 2024 18:15:54 -0800
-To: mm-commits@vger.kernel.org,shuah@kernel.org,ryan.roberts@arm.com,usama.anjum@collabora.com,akpm@linux-foundation.org
+	b=YyXtsVYhJPluiudojnaWAo2hcOpvy2mlEcXagZT51G8CbRo6gKDpWCEbhabK+hpbF
+	 i6AeFH/ERS92R1QsuGmVWeZpyIlST1FjuCFaCiiC9FpZ9yIGpIfF0xQnEYa6+kDetB
+	 /Y+nJaqs6RUknlSTNLa17RH57lo3AQUdySJl551I=
+Date: Thu, 25 Jan 2024 18:15:58 -0800
+To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,nphamcs@gmail.com,hannes@cmpxchg.org,yosryahmed@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-protection_keys-save-restore-nr_hugepages-settings.patch added to mm-nonmm-unstable branch
-Message-Id: <20240126021557.DD317C433C7@smtp.kernel.org>
+Subject: + mm-zswap-remove-unused-tree-argument-in-zswap_entry_put.patch added to mm-unstable branch
+Message-Id: <20240126021601.DAAD9C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: protection_keys: save/restore nr_hugepages settings
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-mm-protection_keys-save-restore-nr_hugepages-settings.patch
+     Subject: mm: zswap: remove unused tree argument in zswap_entry_put()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-zswap-remove-unused-tree-argument-in-zswap_entry_put.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-protection_keys-save-restore-nr_hugepages-settings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-remove-unused-tree-argument-in-zswap_entry_put.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,90 +58,69 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: protection_keys: save/restore nr_hugepages settings
-Date: Thu, 25 Jan 2024 20:46:07 +0500
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: mm: zswap: remove unused tree argument in zswap_entry_put()
+Date: Thu, 25 Jan 2024 08:14:23 +0000
 
-Save and restore nr_hugepages before changing it during the test.  A test
-should not change system wide settings.
+Commit 7310895779624 ("mm: zswap: tighten up entry invalidation") removed
+the usage of tree argument, delete it.
 
-Link: https://lkml.kernel.org/r/20240125154608.720072-5-usama.anjum@collabora.com
-Fixes: 5f23f6d082a9 ("x86/pkeys: Add self-tests")
-Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20240125081423.1200336-1-yosryahmed@google.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: Chengming Zhou <zhouchengming@bytedance.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/protection_keys.c |   34 +++++++++++++++++
- 1 file changed, 34 insertions(+)
+ mm/zswap.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/mm/protection_keys.c~selftests-mm-protection_keys-save-restore-nr_hugepages-settings
-+++ a/tools/testing/selftests/mm/protection_keys.c
-@@ -54,6 +54,7 @@ int test_nr;
- u64 shadow_pkey_reg;
- int dprint_in_signal;
- char dprint_in_signal_buffer[DPRINT_IN_SIGNAL_BUF_SIZE];
-+char buf[256];
- 
- void cat_into_file(char *str, char *file)
+--- a/mm/zswap.c~mm-zswap-remove-unused-tree-argument-in-zswap_entry_put
++++ a/mm/zswap.c
+@@ -569,8 +569,7 @@ static void zswap_entry_get(struct zswap
+ /* caller must hold the tree lock
+ * remove from the tree and free it, if nobody reference the entry
+ */
+-static void zswap_entry_put(struct zswap_tree *tree,
+-			struct zswap_entry *entry)
++static void zswap_entry_put(struct zswap_entry *entry)
  {
-@@ -1744,6 +1745,38 @@ void pkey_setup_shadow(void)
- 	shadow_pkey_reg = __read_pkey_reg();
+ 	int refcount = --entry->refcount;
+ 
+@@ -853,7 +852,7 @@ static void zswap_invalidate_entry(struc
+ 				   struct zswap_entry *entry)
+ {
+ 	if (zswap_rb_erase(&tree->rbroot, entry))
+-		zswap_entry_put(tree, entry);
++		zswap_entry_put(entry);
  }
  
-+void restore_settings_atexit(void)
-+{
-+	cat_into_file(buf, "/proc/sys/vm/nr_hugepages");
-+}
-+
-+void save_settings(void)
-+{
-+	int fd;
-+	int err;
-+
-+	if (geteuid())
-+		return;
-+
-+	fd = open("/proc/sys/vm/nr_hugepages", O_RDONLY);
-+	if (fd < 0) {
-+		fprintf(stderr, "error opening\n");
-+		perror("error: ");
-+		exit(__LINE__);
-+	}
-+
-+	/* -1 to guarantee leaving the trailing \0 */
-+	err = read(fd, buf, sizeof(buf)-1);
-+	if (err < 0) {
-+		fprintf(stderr, "error reading\n");
-+		perror("error: ");
-+		exit(__LINE__);
-+	}
-+
-+	atexit(restore_settings_atexit);
-+	close(fd);
-+}
-+
- int main(void)
- {
- 	int nr_iterations = 22;
-@@ -1751,6 +1784,7 @@ int main(void)
+ static enum lru_status shrink_memcg_cb(struct list_head *item, struct list_lru_one *l,
+@@ -924,7 +923,7 @@ static enum lru_status shrink_memcg_cb(s
  
- 	srand((unsigned int)time(NULL));
+ put_unlock:
+ 	/* Drop local reference */
+-	zswap_entry_put(tree, entry);
++	zswap_entry_put(entry);
+ unlock:
+ 	spin_unlock(&tree->lock);
+ 	spin_lock(lock);
+@@ -1754,7 +1753,7 @@ bool zswap_load(struct folio *folio)
+ 		zswap_lru_del(&entry->pool->list_lru, entry);
+ 		zswap_lru_add(&entry->pool->list_lru, entry);
+ 	}
+-	zswap_entry_put(tree, entry);
++	zswap_entry_put(entry);
+ 	spin_unlock(&tree->lock);
  
-+	save_settings();
- 	setup_handlers();
- 
- 	printf("has pkeys: %d\n", pkeys_supported);
+ 	return true;
 _
 
-Patches currently in -mm which might be from usama.anjum@collabora.com are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
-selftests-mm-mremap_test-fix-build-warning.patch
-selftests-mm-switch-to-bash-from-sh.patch
-selftests-mm-hugetlb_reparenting_test-do-not-unmount.patch
-selftests-mm-run_vmtests-remove-sudo-and-conform-to-tap.patch
-selftests-mm-save-and-restore-nr_hugepages-value.patch
-selftests-mm-protection_keys-save-restore-nr_hugepages-settings.patch
-selftests-mm-run_vmtestssh-add-missing-tests.patch
+maintainers-supplement-of-zswap-maintainers-update.patch
+mm-swap-enforce-updating-inuse_pages-at-the-end-of-swap_range_free.patch
+mm-zswap-remove-unnecessary-trees-cleanups-in-zswap_swapoff.patch
+mm-zswap-remove-unused-tree-argument-in-zswap_entry_put.patch
 
