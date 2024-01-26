@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98AE210F7
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 02:14:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 234051864
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 02:14:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706235283; cv=none; b=a6D+9gcs0cdXHdUIlu+hkmUmmNUqgqZ7c/5lIWIN8n+x2yEQJuGSL3UTn9uQulQF/EllR27Cd8bqfizFSaLj37LtEU6Ug5rBBi0mtQ/rTdg5QdMNffPYiGlcWJdPDeknSW9ePJEA2OaUkeaD+h/onGRU0V0U4VKbARj+fHIwWAQ=
+	t=1706235287; cv=none; b=d+mVoUSb8LBAx/wWX4or9V39qpnu+w6srCJ4gDoc1wueHMX+9J06PlQfGKLhZbyGXi17QMl3kJC75Aj4sWMwI2fxyIVMqgplPsRyUQbzFzWuCpP/UE1cK3+dvf2ApxfoSkSqdiPKnrpNzYJNB67G05XtHTmK8kvG8EFsvz2FdyI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706235283; c=relaxed/simple;
-	bh=Q6O0QFkyVp+f9xWlRGgjy8MNZ+w5iW5w7MsJvAGVK0g=;
-	h=Date:To:From:Subject:Message-Id; b=CSmN89La2qkchkxCMGDz/yAF4SwKmUV9qot0dMCleP7iWGQiWIWvd1zMzeUA77ZWdKc70Yv9rZNqOgHnDeS21YQnqFjKQXdDLlkFpRmoMore/5a/+fBwiqXwmeW+oE1OR9TCRGYFAWnGqhJo9WEsAz21rThC69W57zd7dwQdhPU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j4U9gWkZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706235287; c=relaxed/simple;
+	bh=6ijg6LesWxm+WH4vAOfWxAOwv6mcPspaTOcipFCPR28=;
+	h=Date:To:From:Subject:Message-Id; b=FZRTT4eOuDr4KR2/9bdntUhKja0cMrlqkozgLzA8gbgsraak6r5fPx6NAfIW7Us+ngLzyNsjJ+TvawOAseEEgXCDLtDgPvOEMrlTGfdOCOkI1WmCTzXeebttzmJSnEa4uy4ans3tvKM1gmlaxQxV6eFhccOVvgvSIcm50EqIaf8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cvwDRdvw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j4U9gWkZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEC21C433C7;
-	Fri, 26 Jan 2024 02:14:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cvwDRdvw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21AC5C433F1;
+	Fri, 26 Jan 2024 02:14:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706235283;
-	bh=Q6O0QFkyVp+f9xWlRGgjy8MNZ+w5iW5w7MsJvAGVK0g=;
+	s=korg; t=1706235286;
+	bh=6ijg6LesWxm+WH4vAOfWxAOwv6mcPspaTOcipFCPR28=;
 	h=Date:To:From:Subject:From;
-	b=j4U9gWkZthXQ74TvH5erDCQaTI7ptoaewNXAJKcropsOmosS+ixE528YgImJ6CqDP
-	 o7Iafq0Am/loYOeT2CWF9FceJx6TapIQbInK+/YIz8Db2so/V1stwA21wS7lKCezcN
-	 ezsgF5TqNc4mD1ezVe1/+T7vfw6pFT1mssQBKj1I=
-Date: Thu, 25 Jan 2024 18:14:40 -0800
+	b=cvwDRdvwJwwm6+WWYXMius8IjC8yqZWBn5Cko+JqJTuNqC86li1YQYzi/A1xcy5CS
+	 wHyzLZYYiGdEAKh5UZdEu3eg1WgjyF6YhI9XitFia0OvLJW65CY133Qv9uxXEySUNK
+	 PH9itcW+Pf9HK4Z2pfx5Z9VQHNCEyUDc9g9jPRPE=
+Date: Thu, 25 Jan 2024 18:14:43 -0800
 To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,nicolas@fjasle.eu,naveen.n.rao@linux.ibm.com,mpe@ellerman.id.au,mingo@redhat.com,masahiroy@kernel.org,mark.rutland@arm.com,linux@armlinux.org.uk,keescook@chromium.org,dave.hansen@linux.intel.com,conor@kernel.org,catalin.marinas@arm.com,bp@alien8.de,ardb@kernel.org,aou@eecs.berkeley.edu,aneesh.kumar@kernel.org,nathan@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + makefile-drop-warn-stack-size-plugin-opt.patch added to mm-nonmm-unstable branch
-Message-Id: <20240126021442.AEC21C433C7@smtp.kernel.org>
+Subject: + arm64-kconfig-clean-up-tautological-llvm-version-checks.patch added to mm-nonmm-unstable branch
+Message-Id: <20240126021446.21AC5C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Makefile: drop warn-stack-size plugin opt
+     Subject: arm64: Kconfig: clean up tautological LLVM version checks
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     makefile-drop-warn-stack-size-plugin-opt.patch
+     arm64-kconfig-clean-up-tautological-llvm-version-checks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/makefile-drop-warn-stack-size-plugin-opt.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-kconfig-clean-up-tautological-llvm-version-checks.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,15 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Nathan Chancellor <nathan@kernel.org>
-Subject: Makefile: drop warn-stack-size plugin opt
-Date: Thu, 25 Jan 2024 15:55:08 -0700
+Subject: arm64: Kconfig: clean up tautological LLVM version checks
+Date: Thu, 25 Jan 2024 15:55:11 -0700
 
 Now that the minimum supported version of LLVM for building the kernel has
-been bumped to 13.0.1, the inner ifeq statement is always false, as the
-build will fail during the configuration stage for older LLVM versions.
+been bumped to 13.0.1, several conditions become tautologies, as they will
+always be true because the build will fail during the configuration stage
+for older LLVM versions.  Drop them, as they are unnecessary.
 
-This effectively reverts commit 24845dcb170e ("Makefile: LTO: have linker
-check -Wframe-larger-than") and its follow up fix, commit 0236526d76b8
-("Makefile: lto: Pass -warn-stack-size only on LLD < 13.0.0").
-
-Link: https://lkml.kernel.org/r/20240125-bump-min-llvm-ver-to-13-0-1-v1-2-f5ff9bda41c5@kernel.org
+Link: https://lkml.kernel.org/r/20240125-bump-min-llvm-ver-to-13-0-1-v1-5-f5ff9bda41c5@kernel.org
 Signed-off-by: Nathan Chancellor <nathan@kernel.org>
 Reviewed-by: Kees Cook <keescook@chromium.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
@@ -95,26 +92,37 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    8 --------
- 1 file changed, 8 deletions(-)
+ arch/arm64/Kconfig |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/Makefile~makefile-drop-warn-stack-size-plugin-opt
-+++ a/Makefile
-@@ -951,14 +951,6 @@ CC_FLAGS_LTO	+= -fvisibility=hidden
+--- a/arch/arm64/Kconfig~arm64-kconfig-clean-up-tautological-llvm-version-checks
++++ a/arch/arm64/Kconfig
+@@ -384,7 +384,7 @@ config BUILTIN_RETURN_ADDRESS_STRIPS_PAC
+ 	bool
+ 	# Clang's __builtin_return_adddress() strips the PAC since 12.0.0
+ 	# https://github.com/llvm/llvm-project/commit/2a96f47c5ffca84cd774ad402cacd137f4bf45e2
+-	default y if CC_IS_CLANG && (CLANG_VERSION >= 120000)
++	default y if CC_IS_CLANG
+ 	# GCC's __builtin_return_address() strips the PAC since 11.1.0,
+ 	# and this was backported to 10.2.0, 9.4.0, 8.5.0, but not earlier
+ 	# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=94891
+@@ -1388,7 +1388,6 @@ choice
  
- # Limit inlining across translation units to reduce binary size
- KBUILD_LDFLAGS += -mllvm -import-instr-limit=5
--
--# Check for frame size exceeding threshold during prolog/epilog insertion
--# when using lld < 13.0.0.
--ifneq ($(CONFIG_FRAME_WARN),0)
--ifeq ($(call test-lt, $(CONFIG_LLD_VERSION), 130000),y)
--KBUILD_LDFLAGS	+= -plugin-opt=-warn-stack-size=$(CONFIG_FRAME_WARN)
--endif
--endif
- endif
- 
- ifdef CONFIG_LTO
+ config CPU_BIG_ENDIAN
+ 	bool "Build big-endian kernel"
+-	depends on !LD_IS_LLD || LLD_VERSION >= 130000
+ 	# https://github.com/llvm/llvm-project/commit/1379b150991f70a5782e9a143c2ba5308da1161c
+ 	depends on AS_IS_GNU || AS_VERSION >= 150000
+ 	help
+@@ -2019,8 +2018,6 @@ config ARM64_BTI_KERNEL
+ 	depends on !CC_IS_GCC || GCC_VERSION >= 100100
+ 	# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=106671
+ 	depends on !CC_IS_GCC
+-	# https://github.com/llvm/llvm-project/commit/a88c722e687e6780dcd6a58718350dc76fcc4cc9
+-	depends on !CC_IS_CLANG || CLANG_VERSION >= 120000
+ 	depends on (!FUNCTION_GRAPH_TRACER || DYNAMIC_FTRACE_WITH_ARGS)
+ 	help
+ 	  Build the kernel with Branch Target Identification annotations
 _
 
 Patches currently in -mm which might be from nathan@kernel.org are
