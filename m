@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D181B3232
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 02:15:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD8194687
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 02:15:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706235304; cv=none; b=s9z6xyqa651eDdVCZIfCPTmYCsbpakifTtAhhw4qQzA6pl1fUu1Jf74NNByanAnsVVVqdSWgh9pDzVs8ONUovmFJ2myd6bTKybcRa69XEduBonE+sbiQ0TwibeGP32tXsHOfaTyKXkEogKpuTjmq3h7xAmOAaEtVGb2bDMwzxuc=
+	t=1706235308; cv=none; b=CWae2oAZ3mjTKk6FTE83r+y6zwu7wo/39Ath5daLslzvEo92Jodjr4stJ/rB/wV/p3vG5PxzaMs/rvIOHhofNqOQ4DSdHx3C2GqAyV9s+bDyoI4My924CY6q/TsgrBlndAl1cM5bh9BCLvqRo1S9juUUSjDoYK5TWzA7o0ROZLw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706235304; c=relaxed/simple;
-	bh=Z92eM63/umPYN8Cw1d47YGYMIvkq00hJdeVesyddqnk=;
-	h=Date:To:From:Subject:Message-Id; b=YcNOjmdNW/XwjKNqY67CxiBtVOzW28+tdABVtMFWui0yAql5HXcOfbmLBN4mpVjqNxml0T3/8Vkv9376JenSOBIrOgMmJk6vJQ2BQpp2a/RX6SsgQyRpOk25w0zFUYUdWPEakm16+mdtNC4Zg2ORYnTIODu0GCTH+qZRGo8AJI0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SFv/C3rI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706235308; c=relaxed/simple;
+	bh=6byrbjpzwYZmHhImbtaBj614ZN6ET+TpaFXhmcg3yqI=;
+	h=Date:To:From:Subject:Message-Id; b=AmxGFfemUIEGTACGaMKoYAKRqRNV+BIx6IZjXv/kARI3eO7ObzM5uQE00oYpg1AKQnnRyz3NI7t7XHk6ZNHG+jeLqKu6ESxM2Y8ZfJzfiOvIGA8vieuXJs4sVwByR5aoP+Sd2u5TjsweFZOTrEWVGQDFWjrJ2ZObA4715zzAOZM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pJ8regS8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SFv/C3rI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28831C433C7;
-	Fri, 26 Jan 2024 02:15:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pJ8regS8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DABA4C433F1;
+	Fri, 26 Jan 2024 02:15:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706235304;
-	bh=Z92eM63/umPYN8Cw1d47YGYMIvkq00hJdeVesyddqnk=;
+	s=korg; t=1706235308;
+	bh=6byrbjpzwYZmHhImbtaBj614ZN6ET+TpaFXhmcg3yqI=;
 	h=Date:To:From:Subject:From;
-	b=SFv/C3rIz53qlZkyQAShdT/U0ZAHiztSTYejjcdD8IxmWWpwpZTMhmiiCKerVwc1B
-	 xnyCK5402A0RodqufXqYib3qU8gt+yK9SbeKMk1FzJeOb9s80ltr+Ur+pJu9yxlgF3
-	 wueQNtgRFFmNYZUuiU1DRipbtJcCGAq1TkKW2SSQ=
-Date: Thu, 25 Jan 2024 18:15:01 -0800
+	b=pJ8regS8+/Uu/3GQWYyMIUvQYZbSUWndG74e8DeNMOhfUwido5ZQqlOhUff1XIas7
+	 iZZsf3Pq7w/pFJY6IrZdxLqwB18Hhjc8Dsu6pLDykT3IQcpM99nYnO9AHzp3LMit54
+	 80SEZT3hRYdWi3YhdQsvw5COcHqzrnMvdfWhNrSM=
+Date: Thu, 25 Jan 2024 18:15:05 -0800
 To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,nicolas@fjasle.eu,naveen.n.rao@linux.ibm.com,mpe@ellerman.id.au,mingo@redhat.com,masahiroy@kernel.org,mark.rutland@arm.com,linux@armlinux.org.uk,keescook@chromium.org,dave.hansen@linux.intel.com,conor@kernel.org,catalin.marinas@arm.com,bp@alien8.de,ardb@kernel.org,aou@eecs.berkeley.edu,aneesh.kumar@kernel.org,nathan@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + riscv-kconfig-remove-version-dependency-from-config_clang_supports_dynamic_ftrace.patch added to mm-nonmm-unstable branch
-Message-Id: <20240126021504.28831C433C7@smtp.kernel.org>
+Subject: + compiler-clangh-update-__diag_clang-macros-for-minimum-version-bump.patch added to mm-nonmm-unstable branch
+Message-Id: <20240126021507.DABA4C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: riscv: Kconfig: remove version dependency from CONFIG_CLANG_SUPPORTS_DYNAMIC_FTRACE
+     Subject: compiler-clang.h: update __diag_clang() macros for minimum version bump
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     riscv-kconfig-remove-version-dependency-from-config_clang_supports_dynamic_ftrace.patch
+     compiler-clangh-update-__diag_clang-macros-for-minimum-version-bump.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-kconfig-remove-version-dependency-from-config_clang_supports_dynamic_ftrace.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/compiler-clangh-update-__diag_clang-macros-for-minimum-version-bump.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Nathan Chancellor <nathan@kernel.org>
-Subject: riscv: Kconfig: remove version dependency from CONFIG_CLANG_SUPPORTS_DYNAMIC_FTRACE
-Date: Thu, 25 Jan 2024 15:55:14 -0700
+Subject: compiler-clang.h: update __diag_clang() macros for minimum version bump
+Date: Thu, 25 Jan 2024 15:55:17 -0700
 
-Now that the minimum supported version of LLVM for building the kernel has
-been bumped to 13.0.1, this condition is always true, as the build will
-fail during the configuration stage for older LLVM versions.  Remove it.
+The minimum supported version of LLVM for building the kernel has been
+bumped to 13.0.1.  Update the __diag_clang() macros for this bump.
 
-Link: https://lkml.kernel.org/r/20240125-bump-min-llvm-ver-to-13-0-1-v1-8-f5ff9bda41c5@kernel.org
+Link: https://lkml.kernel.org/r/20240125-bump-min-llvm-ver-to-13-0-1-v1-11-f5ff9bda41c5@kernel.org
 Signed-off-by: Nathan Chancellor <nathan@kernel.org>
 Reviewed-by: Kees Cook <keescook@chromium.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
@@ -91,20 +90,25 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/Kconfig |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/compiler-clang.h |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
---- a/arch/riscv/Kconfig~riscv-kconfig-remove-version-dependency-from-config_clang_supports_dynamic_ftrace
-+++ a/arch/riscv/Kconfig
-@@ -174,8 +174,6 @@ config RISCV
+--- a/include/linux/compiler-clang.h~compiler-clangh-update-__diag_clang-macros-for-minimum-version-bump
++++ a/include/linux/compiler-clang.h
+@@ -114,11 +114,7 @@
+ #define __diag_str(s)		__diag_str1(s)
+ #define __diag(s)		_Pragma(__diag_str(clang diagnostic s))
  
- config CLANG_SUPPORTS_DYNAMIC_FTRACE
- 	def_bool CC_IS_CLANG
--	# https://github.com/llvm/llvm-project/commit/6ab8927931851bb42b2c93a00801dc499d7d9b1e
--	depends on CLANG_VERSION >= 130000
- 	# https://github.com/ClangBuiltLinux/linux/issues/1817
- 	depends on AS_IS_GNU || (AS_IS_LLVM && (LD_IS_LLD || LD_VERSION >= 23600))
+-#if CONFIG_CLANG_VERSION >= 110000
+-#define __diag_clang_11(s)	__diag(s)
+-#else
+-#define __diag_clang_11(s)
+-#endif
++#define __diag_clang_13(s)	__diag(s)
  
+ #define __diag_ignore_all(option, comment) \
+-	__diag_clang(11, ignore, option)
++	__diag_clang(13, ignore, option)
 _
 
 Patches currently in -mm which might be from nathan@kernel.org are
