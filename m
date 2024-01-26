@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E42ED310;
-	Fri, 26 Jan 2024 07:55:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAC14D310;
+	Fri, 26 Jan 2024 07:56:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706255759; cv=none; b=Gp+bQUt72UcWgZUpfnmKGxIRSZ1hdQrRoehUbHvqumjuwgTVx5DbK4ZfycfbQlMHmRZhhIt7KSSv/E7Z8FMuoJZpJB65ojhaMO5TLgn4ftX2vLaYsF2IcZVUGdwH7in6vRJ4LyoxIVNaWNpKIEyn4Z56IR4SulVKvwF82dOtqiw=
+	t=1706255762; cv=none; b=QPktsrTcgGzi4B/VbLt2/OllIw+OotZ2RjdcwU/63dkpoVMU08gbDzQ7SshAF7pdrmTGKjsu4X52U/77XAu3aDadQovmtmJsqTe9choeSKydMT0CmzCW4enkN7AnMrHkQmEFzsrde/duYzoI5+crMIstItLNFAEOznzQ8ZOvqGE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706255759; c=relaxed/simple;
-	bh=ab0TfX9VfkqUFBpanhBvwDtifM6uG0wHJ0AydN4xk+0=;
-	h=Date:To:From:Subject:Message-Id; b=RaM5+3TUX/+NWOHuWVFJk61qaMmIODpwQUbBGBoMHuEwi1JJT4/zmUKc5mK0VPeXQlKAuwsiRV7Dko582bRkve2zc82PrniPSlXE/AfbNJ+QEHspznyE8HHU+bjYCOZeuaKAMnxsQbV0ibuPxrjOpBntO6qMIFBTBlPgCvhFj2k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mu2Ivzfc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706255762; c=relaxed/simple;
+	bh=3Te0uYkQhoD8wPt8fBPAVzbgCbkYHURjya5IUT8r9v4=;
+	h=Date:To:From:Subject:Message-Id; b=AGN3L3AHQ7I4CigH1Dg1iTHH8YeBG0ZfENU39KToGAGw5q5Uyjt/tHC2Z29vIwNXQyeng5ZUyq0/unh3sSOEvJzeImLAgoJLHfyttzMfdUB3K6QdBGvrw2XY8WBtbFyL/MPUS4Qy4PhevUNrdoXTggKHEJNFRPBShbRE6gslr8M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tO5jypqY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mu2Ivzfc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89F6FC433F1;
-	Fri, 26 Jan 2024 07:55:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tO5jypqY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14665C433C7;
+	Fri, 26 Jan 2024 07:56:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706255759;
-	bh=ab0TfX9VfkqUFBpanhBvwDtifM6uG0wHJ0AydN4xk+0=;
+	s=korg; t=1706255762;
+	bh=3Te0uYkQhoD8wPt8fBPAVzbgCbkYHURjya5IUT8r9v4=;
 	h=Date:To:From:Subject:From;
-	b=mu2Ivzfc4wiTR0ofPTqV+R1QhDeCtYONOMmFHKTpI+CtGtqk5YUCSaMYqSBMe8N0X
-	 6znWuQsNKAzalBOD7HVQCAASthq7Pi2ulga5G9M4bu0kx++QVTewCxvZ8oLSuhFyVN
-	 E4g9kTlIUBu8Lev/q+3U145MTdy/8xf1hX0i/sHQ=
-Date: Thu, 25 Jan 2024 23:55:56 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,raquini@redhat.com,adam@wowsignal.io,audra@redhat.com,akpm@linux-foundation.org
+	b=tO5jypqYDvq/N9ZBgz4fgXZWymeOnWfWIGGmqORvzVhC389TUzdqcvN4FRVLZMJPW
+	 E3s+ZdfhtJsw0017IYBiu6oOm0zDJuGy/qSrUM9U9mSxqcQEizOxQ1KKi45XrDyaTy
+	 KrOQ+tHvOfWgtEsNO7hfuDPOu7S4HqV5ZNT2BsJI=
+Date: Thu, 25 Jan 2024 23:55:59 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,riel@surriel.com,muchun.song@linux.dev,lstoakes@gmail.com,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-update-va_high_addr_switchsh-to-check-cpu-for-la57-flag.patch removed from -mm tree
-Message-Id: <20240126075558.89F6FC433F1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-restore-the-reservation-if-needed.patch removed from -mm tree
+Message-Id: <20240126075602.14665C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,74 +35,83 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: Update va_high_addr_switch.sh to check CPU for la57 flag
+     Subject: mm/hugetlb: restore the reservation if needed
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-update-va_high_addr_switchsh-to-check-cpu-for-la57-flag.patch
+     mm-hugetlb-restore-the-reservation-if-needed.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Audra Mitchell <audra@redhat.com>
-Subject: selftests/mm: Update va_high_addr_switch.sh to check CPU for la57 flag
-Date: Fri, 19 Jan 2024 15:58:01 -0500
+From: Breno Leitao <leitao@debian.org>
+Subject: mm/hugetlb: restore the reservation if needed
+Date: Wed, 17 Jan 2024 09:10:57 -0800
 
-In order for the page table level 5 to be in use, the CPU must have the
-setting enabled in addition to the CONFIG option. Check for the flag to be
-set to avoid false test failures on systems that do not have this cpu flag
-set.
+Currently there is a bug that a huge page could be stolen, and when the
+original owner tries to fault in it, it causes a page fault.
 
-The test does a series of mmap calls including three using the
-MAP_FIXED flag and specifying an address that is 1<<47 or 1<<48.  These
-addresses are only available if you are using level 5 page tables,
-which requires both the CPU to have the capabiltiy (la57 flag) and the
-kernel to be configured.  Currently the test only checks for the kernel
-configuration option, so this test can still report a false positive. 
-Here are the three failing lines:
+You can achieve that by:
+  1) Creating a single page
+	echo 1 > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
 
-$ ./va_high_addr_switch | grep FAILED
-mmap(ADDR_SWITCH_HINT, 2 * PAGE_SIZE, MAP_FIXED): 0xffffffffffffffff - FAILED
-mmap(HIGH_ADDR, MAP_FIXED): 0xffffffffffffffff - FAILED
-mmap(ADDR_SWITCH_HINT, 2 * PAGE_SIZE, MAP_FIXED): 0xffffffffffffffff - FAILED
+  2) mmap() the page above with MAP_HUGETLB into (void *ptr1).
+	* This will mark the page as reserved
+  3) touch the page, which causes a page fault and allocates the page
+	* This will move the page out of the free list.
+	* It will also unreserved the page, since there is no more free
+	  page
+  4) madvise(MADV_DONTNEED) the page
+	* This will free the page, but not mark it as reserved.
+  5) Allocate a secondary page with mmap(MAP_HUGETLB) into (void *ptr2).
+	* it should fail, but, since there is no more available page.
+	* But, since the page above is not reserved, this mmap() succeed.
+  6) Faulting at ptr1 will cause a SIGBUS
+	* it will try to allocate a huge page, but there is none
+	  available
 
-I thought (for about a second) refactoring the test so that these three
-mmap calls will only be run on systems with the level 5 page tables
-available, but the whole point of the test is to check the level 5
-feature...
+A full reproducer is in selftest. See
+https://lore.kernel.org/all/20240105155419.1939484-1-leitao@debian.org/
 
-Link: https://lkml.kernel.org/r/20240119205801.62769-1-audra@redhat.com
-Fixes: 4f2930c6718a ("selftests/vm: only run 128TBswitch with 5-level paging")
-Signed-off-by: Audra Mitchell <audra@redhat.com>
-Cc: Rafael Aquini <raquini@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Adam Sindelar <adam@wowsignal.io>
+Fix this by restoring the reserved page if necessary.  If the page being
+unmapped has HPAGE_RESV_OWNER set, and needs a reservation, set the
+restore_reserve flag, which will move the page from free to reserved.
+
+Link: https://lkml.kernel.org/r/20240117171058.2192286-1-leitao@debian.org
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Suggested-by: Rik van Riel <riel@surriel.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Rik van Riel <riel@surriel.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/va_high_addr_switch.sh |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/hugetlb.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/tools/testing/selftests/mm/va_high_addr_switch.sh~selftests-mm-update-va_high_addr_switchsh-to-check-cpu-for-la57-flag
-+++ a/tools/testing/selftests/mm/va_high_addr_switch.sh
-@@ -29,9 +29,15 @@ check_supported_x86_64()
- 	# See man 1 gzip under '-f'.
- 	local pg_table_levels=$(gzip -dcfq "${config}" | grep PGTABLE_LEVELS | cut -d'=' -f 2)
+--- a/mm/hugetlb.c~mm-hugetlb-restore-the-reservation-if-needed
++++ a/mm/hugetlb.c
+@@ -5677,6 +5677,16 @@ void __unmap_hugepage_range(struct mmu_g
+ 		hugetlb_count_sub(pages_per_huge_page(h), mm);
+ 		hugetlb_remove_rmap(page_folio(page));
  
-+	local cpu_supports_pl5=$(awk '/^flags/ {if (/la57/) {print 0;}
-+		else {print 1}; exit}' /proc/cpuinfo 2>/dev/null)
++		if (is_vma_resv_set(vma, HPAGE_RESV_OWNER) &&
++		    vma_needs_reservation(h, vma, start)) {
++			/*
++			 * Restore the reservation if needed, otherwise the
++			 * backing page could be stolen by someone.
++			 */
++			folio_set_hugetlb_restore_reserve(page_folio(page));
++			vma_add_reservation(h, vma, address);
++		}
 +
- 	if [[ "${pg_table_levels}" -lt 5 ]]; then
- 		echo "$0: PGTABLE_LEVELS=${pg_table_levels}, must be >= 5 to run this test"
- 		exit $ksft_skip
-+	elif [[ "${cpu_supports_pl5}" -ne 0 ]]; then
-+		echo "$0: CPU does not have the necessary la57 flag to support page table level 5"
-+		exit $ksft_skip
- 	fi
- }
- 
+ 		spin_unlock(ptl);
+ 		tlb_remove_page_size(tlb, page, huge_page_size(h));
+ 		/*
 _
 
-Patches currently in -mm which might be from audra@redhat.com are
+Patches currently in -mm which might be from leitao@debian.org are
 
+selftests-mm-new-test-that-steals-pages.patch
 
