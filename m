@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E6031C11
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 02:15:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 165FA6FB9
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 02:15:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706235351; cv=none; b=q9SScfVBxotGOO+xvyRhWc/3O2IdIHstHwNASq31dhN9lRdeOZMZY5k28UGAmFzNjOOLPEk5QQmh0Taq2sHcbEHORWAej44xwHxMf0DAG7DEpIQesf7gaPYKuB759w64qbFgEY8VqfoicJd4X0tRbEzt3VwTPsaiVal1hOz7AHk=
+	t=1706235355; cv=none; b=XzqBIa6tA2LzlyGDUR0GT1MXhUaveKse+SMZxxkQrnf3oMrSfpiiC2aX72Ufvnz+pp4HOgEVKz7SCRGIyEaj+bmUdiA7EjVjXOqdO5us7jvhy0Tac/+H/UreY7+pNDG0gC3c7ScK0AAfe587Qql9e3ZHB2N03BgI5xKLWvSxAv8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706235351; c=relaxed/simple;
-	bh=x5zY4zvXXLAmVEpDyGFam50Q9yXnqbvVcRZFCqnXtfs=;
-	h=Date:To:From:Subject:Message-Id; b=jpLA5cbYlRrEJPHoJ8G7w2/SCSmWCuMJa3w0RMRRJKkEM5b1aHUwEKhYDOdUKh3cHCnHoPgZj1YCA371cFIyuATdVu6U02lJupsFqIWPZ9189cIisg2hw8c/nZEbXo+8v2ECnbUDi6baHCl55AK/gBOpDSFqJK4B8lPJN+eQW9U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D5ExNYDW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706235355; c=relaxed/simple;
+	bh=PwsE+7cVWsj1YWF4Q3zwswVhk/elNwmoKGIpRX8SI5s=;
+	h=Date:To:From:Subject:Message-Id; b=YSFFLhtu8GUK/JOj8fIzcdANrvLC6y14Jo6SVSSZEP89ApYra909pcFVdsBEIgks6TM0LHDJJbDaAbeDyr8/11dvBj3rWqqhBUc1/OmdjmlL+SyMk6H0jnj0y/y6iz1SY6Mg5q3DFvRexo2sod1oEawIubTazdSvuk0UMDWQ/Rc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KTJeIi/N; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D5ExNYDW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9DF9C433F1;
-	Fri, 26 Jan 2024 02:15:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KTJeIi/N"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DE20C433F1;
+	Fri, 26 Jan 2024 02:15:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706235351;
-	bh=x5zY4zvXXLAmVEpDyGFam50Q9yXnqbvVcRZFCqnXtfs=;
+	s=korg; t=1706235354;
+	bh=PwsE+7cVWsj1YWF4Q3zwswVhk/elNwmoKGIpRX8SI5s=;
 	h=Date:To:From:Subject:From;
-	b=D5ExNYDWb0M6HW79qLKFGJhBWMoTuUin+b1xT4H0xQwvZJExfQmyL53qyql3pWL+b
-	 h0ZLor2S6qXOs4EJPwpZrV4PesfHLEAOeCfVuDCs2YbIvo7rF852fNuu0Y7Fk3jG1w
-	 DoE3eI32qolYnMSLjjUhYVofPSM5GNav1SEN22jY=
-Date: Thu, 25 Jan 2024 18:15:47 -0800
+	b=KTJeIi/NmusY/wJrXWtHhB/D/c0T6ebF6k+/NJCtZuwwjjnDOrr6rE5L1y4QXkEpm
+	 rSbwBW8ImssSzQE/vAqD/pqWYsEW6Nq5y6Sp6IIML/PtL5Y5Las3ny9amE35YvsNDy
+	 UaDyVOuXVMNWtUiPgfgiNSj421X/LB9Zs2k/5tl0=
+Date: Thu, 25 Jan 2024 18:15:51 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,ryan.roberts@arm.com,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-run_vmtests-remove-sudo-and-conform-to-tap.patch added to mm-nonmm-unstable branch
-Message-Id: <20240126021550.A9DF9C433F1@smtp.kernel.org>
+Subject: + selftests-mm-run_vmtestssh-add-missing-tests.patch added to mm-nonmm-unstable branch
+Message-Id: <20240126021554.1DE20C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: run_vmtests: remove sudo and conform to tap
+     Subject: selftests/mm: run_vmtests.sh: add missing tests
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-mm-run_vmtests-remove-sudo-and-conform-to-tap.patch
+     selftests-mm-run_vmtestssh-add-missing-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-run_vmtests-remove-sudo-and-conform-to-tap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-run_vmtestssh-add-missing-tests.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,94 +59,75 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: run_vmtests: remove sudo and conform to tap
-Date: Thu, 25 Jan 2024 20:46:05 +0500
+Subject: selftests/mm: run_vmtests.sh: add missing tests
+Date: Thu, 25 Jan 2024 20:46:08 +0500
 
-Remove sudo as some test running environments may not have sudo available.
-Instead skip the test if root privileges aren't available in the test.
+Add missing tests to run_vmtests.sh.  The mm kselftests are run through
+run_vmtests.sh.  If a test isn't present in this script, it'll not run
+with run_tests or `make -C tools/testing/selftests/mm run_tests`.
 
-Link: https://lkml.kernel.org/r/20240125154608.720072-3-usama.anjum@collabora.com
-Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Link: https://lkml.kernel.org/r/20240125154608.720072-6-usama.anjum@collabora.com
 Cc: Ryan Roberts <ryan.roberts@arm.com>
+Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/on-fault-limit.c |   38 ++++++++----------
- tools/testing/selftests/mm/run_vmtests.sh   |    2 
- 2 files changed, 19 insertions(+), 21 deletions(-)
+ tools/testing/selftests/mm/Makefile       |    5 +++++
+ tools/testing/selftests/mm/run_vmtests.sh |    8 ++++++++
+ 2 files changed, 13 insertions(+)
 
---- a/tools/testing/selftests/mm/on-fault-limit.c~selftests-mm-run_vmtests-remove-sudo-and-conform-to-tap
-+++ a/tools/testing/selftests/mm/on-fault-limit.c
-@@ -5,40 +5,38 @@
- #include <string.h>
- #include <sys/time.h>
- #include <sys/resource.h>
-+#include "../kselftest.h"
- 
--static int test_limit(void)
-+static void test_limit(void)
- {
--	int ret = 1;
- 	struct rlimit lims;
- 	void *map;
- 
--	if (getrlimit(RLIMIT_MEMLOCK, &lims)) {
--		perror("getrlimit");
--		return ret;
--	}
--
--	if (mlockall(MCL_ONFAULT | MCL_FUTURE)) {
--		perror("mlockall");
--		return ret;
--	}
-+	if (getrlimit(RLIMIT_MEMLOCK, &lims))
-+		ksft_exit_fail_msg("getrlimit: %s\n", strerror(errno));
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-run_vmtestssh-add-missing-tests
++++ a/tools/testing/selftests/mm/Makefile
+@@ -115,6 +115,11 @@ TEST_PROGS := run_vmtests.sh
+ TEST_FILES := test_vmalloc.sh
+ TEST_FILES += test_hmm.sh
+ TEST_FILES += va_high_addr_switch.sh
++TEST_FILES += charge_reserved_hugetlb.sh
++TEST_FILES += hugetlb_reparenting_test.sh
 +
-+	if (mlockall(MCL_ONFAULT | MCL_FUTURE))
-+		ksft_exit_fail_msg("mlockall: %s\n", strerror(errno));
++# required by charge_reserved_hugetlb.sh
++TEST_FILES += write_hugetlb_memory.sh
  
- 	map = mmap(NULL, 2 * lims.rlim_max, PROT_READ | PROT_WRITE,
- 		   MAP_PRIVATE | MAP_ANONYMOUS | MAP_POPULATE, -1, 0);
-+
-+	ksft_test_result(map == MAP_FAILED, "Failed mmap\n");
-+
- 	if (map != MAP_FAILED)
--		printf("mmap should have failed, but didn't\n");
--	else {
--		ret = 0;
- 		munmap(map, 2 * lims.rlim_max);
--	}
--
- 	munlockall();
--	return ret;
- }
+ include ../lib.mk
  
- int main(int argc, char **argv)
- {
--	int ret = 0;
-+	ksft_print_header();
-+	ksft_set_plan(1);
-+
-+	if (getuid())
-+		ksft_test_result_skip("Require root privileges to run\n");
-+	else
-+		test_limit();
- 
--	ret += test_limit();
--	return ret;
-+	ksft_finished();
- }
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-run_vmtests-remove-sudo-and-conform-to-tap
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-run_vmtestssh-add-missing-tests
 +++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -301,7 +301,7 @@ echo "$nr_hugepgs" > /proc/sys/vm/nr_hug
+@@ -19,6 +19,7 @@ usage: ${BASH_SOURCE[0]:-$0} [ options ]
+   -t: specify specific categories to tests to run
+   -h: display this message
+   -n: disable TAP output
++  -d: run destructive tests
  
- CATEGORY="compaction" run_test ./compaction_test
+ The default behavior is to run required tests only.  If -a is specified,
+ will run all tests.
+@@ -79,6 +80,7 @@ EOF
+ }
  
--CATEGORY="mlock" run_test sudo -u nobody ./on-fault-limit
-+CATEGORY="mlock" run_test ./on-fault-limit
+ RUN_ALL=false
++RUN_DESTRUCTIVE_TEST=false
+ TAP_PREFIX="# "
  
- CATEGORY="mmap" run_test ./map_populate
+ while getopts "aht:n" OPT; do
+@@ -87,6 +89,7 @@ while getopts "aht:n" OPT; do
+ 		"h") usage ;;
+ 		"t") VM_SELFTEST_ITEMS=${OPTARG} ;;
+ 		"n") TAP_PREFIX= ;;
++		"a") RUN_DESTRUCTIVE_TEST=true ;;
+ 	esac
+ done
+ shift $((OPTIND -1))
+@@ -314,6 +317,11 @@ CATEGORY="process_mrelease" run_test ./m
+ CATEGORY="mremap" run_test ./mremap_test
+ 
+ CATEGORY="hugetlb" run_test ./thuge-gen
++CATEGORY="hugetlb" run_test ./charge_reserved_hugetlb.sh -cgroup-v2
++CATEGORY="hugetlb" run_test ./hugetlb_reparenting_test.sh -cgroup-v2
++if $RUN_DESTRUCTIVE_TEST; then
++CATEGORY="hugetlb" run_test ./hugetlb-read-hwpoison
++fi
+ 
+ if [ $VADDR64 -ne 0 ]; then
  
 _
 
