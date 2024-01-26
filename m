@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B65846FA8;
-	Fri, 26 Jan 2024 07:55:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65AA6D310
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 07:55:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706255737; cv=none; b=HGGLon5bzx5oKy4HBC7CmqyDw/G3OTSakbA1WCpPPDyBQRjyEVQaB6puqqxqeqP4Ect2/QegOo7HpMY8/1iLIdHQiGupW0y6mquC7W9U+o80OLOVRIKgamk9AYkgjX1JPkdLG/fB6U17lUsD15Mymi2uoSWIAvVol03qsZ+r6K4=
+	t=1706255741; cv=none; b=NxhMlqwzHywdIOF+BFLSVfLF+uiiooBl5nXjr0aTwSU49u4vfb3p+pIr4mYX/KqzzQWuQmgkAlasYUBlPv0jyoCc29kEyg2nrjJtFpe1Dj/hBKptVugkvwjfOokE9nsfWKPTkBsswTsCVRTUx/jVFCD7DLcsShn16Ph5zdSFDnA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706255737; c=relaxed/simple;
-	bh=NyGHhL/rwDqeHhyfZWGT//uKcVcjOZ7lNmrf87RREn0=;
-	h=Date:To:From:Subject:Message-Id; b=owB+HtUZUn0N1LXxDSY6q9lf/kH+v0x6zAam32WSA35CNPSMpXlvtK3Z314rXuqxlpaRf/DzVmSetxS2hKv8ZEY/nqGsdnypq+AI08L7vWq43ZGPjVsFmQ2KDt2px6NmjgFH5Y0VRkvlGVL2UbLCn6WISmkzx7MAox0DO2wDORw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wUPel4H8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706255741; c=relaxed/simple;
+	bh=7ZH1/p9MqIq6rf/rTmMvXju4aeywFuvdSCc3Rwugc78=;
+	h=Date:To:From:Subject:Message-Id; b=eaFJetSblLGrAwFCcOfcOeLNgiAn1x5HFjcPuwEziaZLl41Nth+ZvxKwyo0Z06X62qKnQEpjalmxuPYgvw27pL3yMKSDPe++C6i15kClSUcxVJOQVlJh4X1lJlP0isLQx4fwaYH5/Kr2QyUuvxWkBqAHh0nQKBpdoAf010814CE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yhC2IrcG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wUPel4H8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D02B4C433F1;
-	Fri, 26 Jan 2024 07:55:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yhC2IrcG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29279C433F1;
+	Fri, 26 Jan 2024 07:55:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706255737;
-	bh=NyGHhL/rwDqeHhyfZWGT//uKcVcjOZ7lNmrf87RREn0=;
+	s=korg; t=1706255740;
+	bh=7ZH1/p9MqIq6rf/rTmMvXju4aeywFuvdSCc3Rwugc78=;
 	h=Date:To:From:Subject:From;
-	b=wUPel4H8sGC4IvZf2FmCYk4mheVCEFWdexg8p5cxP/OC0hB2qOkrtLy6h9aHYbQhi
-	 XSgF12bkEx5ugad9FHKAhUSNRYwM8YRLqTF9fHRvLcYZ/HLLOPtuJabXDVe+60yc6q
-	 gNrDcnlH+ZlJwaN4Y1jURp9pBZ0cOUEyX+z6eigQ=
-Date: Thu, 25 Jan 2024 23:55:34 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,MPatlasov@parallels.com,zokeefe@google.com,akpm@linux-foundation.org
+	b=yhC2IrcGJMNwHfx1VfXfXcQbmRY2HW3tZxUXqc/O+J1Y5K9lUtu7I9Gun0dyx1vsD
+	 ZLRffoONYpD5/qi4QXZBfScY8fPIgr1cyyv1AYQOiCAtGBScp0IHg0o1yFlZV9ebMz
+	 3aeVS+7gWl+lCzmmOs4x1DUVy0lVlcH8RkGLZwK8=
+Date: Thu, 25 Jan 2024 23:55:37 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,ryan.roberts@arm.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-writeback-fix-possible-divide-by-zero-in-wb_dirty_limits-again.patch removed from -mm tree
-Message-Id: <20240126075536.D02B4C433F1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memory-fix-folio_set_dirty-vs-folio_mark_dirty.patch removed from -mm tree
+Message-Id: <20240126075540.29279C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,58 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/writeback: fix possible divide-by-zero in wb_dirty_limits(), again
+     Subject: mm/huge_memory: fix folio_set_dirty() vs. folio_mark_dirty()
 has been removed from the -mm tree.  Its filename was
-     mm-writeback-fix-possible-divide-by-zero-in-wb_dirty_limits-again.patch
+     mm-huge_memory-fix-folio_set_dirty-vs-folio_mark_dirty.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Zach O'Keefe" <zokeefe@google.com>
-Subject: mm/writeback: fix possible divide-by-zero in wb_dirty_limits(), again
-Date: Thu, 18 Jan 2024 10:19:53 -0800
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/huge_memory: fix folio_set_dirty() vs. folio_mark_dirty()
+Date: Mon, 22 Jan 2024 18:54:07 +0100
 
-(struct dirty_throttle_control *)->thresh is an unsigned long, but is
-passed as the u32 divisor argument to div_u64().  On architectures where
-unsigned long is 64 bytes, the argument will be implicitly truncated.
+The correct folio replacement for "set_page_dirty()" is
+"folio_mark_dirty()", not "folio_set_dirty()".  Using the latter won't
+properly inform the FS using the dirty_folio() callback.
 
-Use div64_u64() instead of div_u64() so that the value used in the "is
-this a safe division" check is the same as the divisor.
+This has been found by code inspection, but likely this can result in some
+real trouble.
 
-Also, remove redundant cast of the numerator to u64, as that should happen
-implicitly.
-
-This would be difficult to exploit in memcg domain, given the ratio-based
-arithmetic domain_drity_limits() uses, but is much easier in global
-writeback domain with a BDI_CAP_STRICTLIMIT-backing device, using e.g. 
-vm.dirty_bytes=(1<<32)*PAGE_SIZE so that dtc->thresh == (1<<32)
-
-Link: https://lkml.kernel.org/r/20240118181954.1415197-1-zokeefe@google.com
-Fixes: f6789593d5ce ("mm/page-writeback.c: fix divide by zero in bdi_dirty_limits()")
-Signed-off-by: Zach O'Keefe <zokeefe@google.com>
-Cc: Maxim Patlasov <MPatlasov@parallels.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240122175407.307992-1-david@redhat.com
+Fixes: a8e61d584eda0 ("mm/huge_memory: page_remove_rmap() -> folio_remove_rmap_pmd()")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/page-writeback.c~mm-writeback-fix-possible-divide-by-zero-in-wb_dirty_limits-again
-+++ a/mm/page-writeback.c
-@@ -1638,7 +1638,7 @@ static inline void wb_dirty_limits(struc
- 	 */
- 	dtc->wb_thresh = __wb_calc_thresh(dtc);
- 	dtc->wb_bg_thresh = dtc->thresh ?
--		div_u64((u64)dtc->wb_thresh * dtc->bg_thresh, dtc->thresh) : 0;
-+		div64_u64(dtc->wb_thresh * dtc->bg_thresh, dtc->thresh) : 0;
+--- a/mm/huge_memory.c~mm-huge_memory-fix-folio_set_dirty-vs-folio_mark_dirty
++++ a/mm/huge_memory.c
+@@ -2437,7 +2437,7 @@ static void __split_huge_pmd_locked(stru
+ 			page = pmd_page(old_pmd);
+ 			folio = page_folio(page);
+ 			if (!folio_test_dirty(folio) && pmd_dirty(old_pmd))
+-				folio_set_dirty(folio);
++				folio_mark_dirty(folio);
+ 			if (!folio_test_referenced(folio) && pmd_young(old_pmd))
+ 				folio_set_referenced(folio);
+ 			folio_remove_rmap_pmd(folio, page, vma);
+@@ -3563,7 +3563,7 @@ int set_pmd_migration_entry(struct page_
+ 	}
  
- 	/*
- 	 * In order to avoid the stacked BDI deadlock we need
+ 	if (pmd_dirty(pmdval))
+-		folio_set_dirty(folio);
++		folio_mark_dirty(folio);
+ 	if (pmd_write(pmdval))
+ 		entry = make_writable_migration_entry(page_to_pfn(page));
+ 	else if (anon_exclusive)
 _
 
-Patches currently in -mm which might be from zokeefe@google.com are
+Patches currently in -mm which might be from david@redhat.com are
 
 
