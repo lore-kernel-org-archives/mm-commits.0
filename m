@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 073A93232
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 02:15:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E6031C11
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 02:15:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706235348; cv=none; b=rFB8DtH/XM1uzx6OZ7YS78i/aO+pNMuXYtFswLC9Hbb/eDG9w1+rM/TVxAkyIC5C6EvaXL6tcWdNnWz9/+OJBef1+0IpAxYbk/Ptd6Y5Rnx3KAR/x+hQNdGkOApbNIU0VEemdbfmXMPWfWM/ybDTcTdYZYvhxTGNcTaH/CBSNg0=
+	t=1706235351; cv=none; b=q9SScfVBxotGOO+xvyRhWc/3O2IdIHstHwNASq31dhN9lRdeOZMZY5k28UGAmFzNjOOLPEk5QQmh0Taq2sHcbEHORWAej44xwHxMf0DAG7DEpIQesf7gaPYKuB759w64qbFgEY8VqfoicJd4X0tRbEzt3VwTPsaiVal1hOz7AHk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706235348; c=relaxed/simple;
-	bh=hbusMVtyw4DFS9c+R2UDbuOPUe0JHxo+EvysDWuOH3k=;
-	h=Date:To:From:Subject:Message-Id; b=phco1fbtnkyflhPjdllKTeevbtEV3Vj8Bnxzt6IF16oAlVjDFu2e499zrX93RgslgY4+FRA0rz4l9AoO+IuEF/nEohylII/xHyvbJIkMN4eQQFCpyF64HUmbqpa2d9mBYkuRwhVuUX6dZt3vaRMXmifyGNzyJ70ckaGac0+tAT0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NPLvhuQ1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706235351; c=relaxed/simple;
+	bh=x5zY4zvXXLAmVEpDyGFam50Q9yXnqbvVcRZFCqnXtfs=;
+	h=Date:To:From:Subject:Message-Id; b=jpLA5cbYlRrEJPHoJ8G7w2/SCSmWCuMJa3w0RMRRJKkEM5b1aHUwEKhYDOdUKh3cHCnHoPgZj1YCA371cFIyuATdVu6U02lJupsFqIWPZ9189cIisg2hw8c/nZEbXo+8v2ECnbUDi6baHCl55AK/gBOpDSFqJK4B8lPJN+eQW9U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D5ExNYDW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NPLvhuQ1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C91AC433F1;
-	Fri, 26 Jan 2024 02:15:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D5ExNYDW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9DF9C433F1;
+	Fri, 26 Jan 2024 02:15:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706235347;
-	bh=hbusMVtyw4DFS9c+R2UDbuOPUe0JHxo+EvysDWuOH3k=;
+	s=korg; t=1706235351;
+	bh=x5zY4zvXXLAmVEpDyGFam50Q9yXnqbvVcRZFCqnXtfs=;
 	h=Date:To:From:Subject:From;
-	b=NPLvhuQ150VMxwduz4g9k4Z1WO3/rZRZ3OH7nzyD0EPdNza/IJup0JyBMOhmWwAkq
-	 wbgTh6XO8iDW+G9VhVnjdSt9sDgCyqFNfHhZ8zmQDFEFgn+HMYuCmJlNmNd7onkfhj
-	 iZIkFwFAQNE9/2JvXk8MW8yKj8lzILBRJIVbrLyo=
-Date: Thu, 25 Jan 2024 18:15:44 -0800
+	b=D5ExNYDWb0M6HW79qLKFGJhBWMoTuUin+b1xT4H0xQwvZJExfQmyL53qyql3pWL+b
+	 h0ZLor2S6qXOs4EJPwpZrV4PesfHLEAOeCfVuDCs2YbIvo7rF852fNuu0Y7Fk3jG1w
+	 DoE3eI32qolYnMSLjjUhYVofPSM5GNav1SEN22jY=
+Date: Thu, 25 Jan 2024 18:15:47 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,ryan.roberts@arm.com,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-save-and-restore-nr_hugepages-value.patch added to mm-nonmm-unstable branch
-Message-Id: <20240126021547.1C91AC433F1@smtp.kernel.org>
+Subject: + selftests-mm-run_vmtests-remove-sudo-and-conform-to-tap.patch added to mm-nonmm-unstable branch
+Message-Id: <20240126021550.A9DF9C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: save and restore nr_hugepages value
+     Subject: selftests/mm: run_vmtests: remove sudo and conform to tap
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-mm-save-and-restore-nr_hugepages-value.patch
+     selftests-mm-run_vmtests-remove-sudo-and-conform-to-tap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-save-and-restore-nr_hugepages-value.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-run_vmtests-remove-sudo-and-conform-to-tap.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,56 +59,95 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: save and restore nr_hugepages value
-Date: Thu, 25 Jan 2024 20:46:06 +0500
+Subject: selftests/mm: run_vmtests: remove sudo and conform to tap
+Date: Thu, 25 Jan 2024 20:46:05 +0500
 
-Save and restore nr_hugepages before changing it during the test.  A test
-should not change system wide settings.
+Remove sudo as some test running environments may not have sudo available.
+Instead skip the test if root privileges aren't available in the test.
 
-Link: https://lkml.kernel.org/r/20240125154608.720072-4-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20240125154608.720072-3-usama.anjum@collabora.com
 Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/charge_reserved_hugetlb.sh  |    4 ++++
- tools/testing/selftests/mm/hugetlb_reparenting_test.sh |    3 +++
- 2 files changed, 7 insertions(+)
+ tools/testing/selftests/mm/on-fault-limit.c |   38 ++++++++----------
+ tools/testing/selftests/mm/run_vmtests.sh   |    2 
+ 2 files changed, 19 insertions(+), 21 deletions(-)
 
---- a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh~selftests-mm-save-and-restore-nr_hugepages-value
-+++ a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh
-@@ -11,6 +11,8 @@ if [[ $(id -u) -ne 0 ]]; then
-   exit $ksft_skip
- fi
+--- a/tools/testing/selftests/mm/on-fault-limit.c~selftests-mm-run_vmtests-remove-sudo-and-conform-to-tap
++++ a/tools/testing/selftests/mm/on-fault-limit.c
+@@ -5,40 +5,38 @@
+ #include <string.h>
+ #include <sys/time.h>
+ #include <sys/resource.h>
++#include "../kselftest.h"
  
-+nr_hugepgs=$(cat /proc/sys/vm/nr_hugepages)
-+
- fault_limit_file=limit_in_bytes
- reservation_limit_file=rsvd.limit_in_bytes
- fault_usage_file=usage_in_bytes
-@@ -582,3 +584,5 @@ if [[ $do_umount ]]; then
-   umount $cgroup_path
-   rmdir $cgroup_path
- fi
-+
-+echo "$nr_hugepgs" > /proc/sys/vm/nr_hugepages
---- a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh~selftests-mm-save-and-restore-nr_hugepages-value
-+++ a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh
-@@ -11,6 +11,7 @@ if [[ $(id -u) -ne 0 ]]; then
-   exit $ksft_skip
- fi
+-static int test_limit(void)
++static void test_limit(void)
+ {
+-	int ret = 1;
+ 	struct rlimit lims;
+ 	void *map;
  
-+nr_hugepgs=$(cat /proc/sys/vm/nr_hugepages)
- usage_file=usage_in_bytes
- 
- if [[ "$1" == "-cgroup-v2" ]]; then
-@@ -252,3 +253,5 @@ if [[ $do_umount ]]; then
-   umount $CGROUP_ROOT
-   rm -rf $CGROUP_ROOT
- fi
+-	if (getrlimit(RLIMIT_MEMLOCK, &lims)) {
+-		perror("getrlimit");
+-		return ret;
+-	}
+-
+-	if (mlockall(MCL_ONFAULT | MCL_FUTURE)) {
+-		perror("mlockall");
+-		return ret;
+-	}
++	if (getrlimit(RLIMIT_MEMLOCK, &lims))
++		ksft_exit_fail_msg("getrlimit: %s\n", strerror(errno));
 +
-+echo "$nr_hugepgs" > /proc/sys/vm/nr_hugepages
++	if (mlockall(MCL_ONFAULT | MCL_FUTURE))
++		ksft_exit_fail_msg("mlockall: %s\n", strerror(errno));
+ 
+ 	map = mmap(NULL, 2 * lims.rlim_max, PROT_READ | PROT_WRITE,
+ 		   MAP_PRIVATE | MAP_ANONYMOUS | MAP_POPULATE, -1, 0);
++
++	ksft_test_result(map == MAP_FAILED, "Failed mmap\n");
++
+ 	if (map != MAP_FAILED)
+-		printf("mmap should have failed, but didn't\n");
+-	else {
+-		ret = 0;
+ 		munmap(map, 2 * lims.rlim_max);
+-	}
+-
+ 	munlockall();
+-	return ret;
+ }
+ 
+ int main(int argc, char **argv)
+ {
+-	int ret = 0;
++	ksft_print_header();
++	ksft_set_plan(1);
++
++	if (getuid())
++		ksft_test_result_skip("Require root privileges to run\n");
++	else
++		test_limit();
+ 
+-	ret += test_limit();
+-	return ret;
++	ksft_finished();
+ }
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-run_vmtests-remove-sudo-and-conform-to-tap
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -301,7 +301,7 @@ echo "$nr_hugepgs" > /proc/sys/vm/nr_hug
+ 
+ CATEGORY="compaction" run_test ./compaction_test
+ 
+-CATEGORY="mlock" run_test sudo -u nobody ./on-fault-limit
++CATEGORY="mlock" run_test ./on-fault-limit
+ 
+ CATEGORY="mmap" run_test ./map_populate
+ 
 _
 
 Patches currently in -mm which might be from usama.anjum@collabora.com are
