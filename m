@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E51712E45
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 07:55:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE7DB62815
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 07:55:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706255720; cv=none; b=Qxu9mpb8XBWupCutzLvQX11z2b+B6mbgmw5Vx1k0RAcNneYpeOBMtnedISrVXRogEpaya2A9Bmcr7vqaGt4qViChN087+DuhJftpdBbc0BA++XuF9m1ysvpvjfw+PU+t7eS5QEVYie7m6s3VOWZlTsqzr0zTWmnCj97hgoRxgNY=
+	t=1706255723; cv=none; b=MBcPm0ZXV1H9RLGJOCPg5rpM5nzs9vBGk1jL3/KneqDNpcvruUMl25lASWCQj9ljLiw0XUsUNHYqweY/tWBxLwF/lotXeGAzwT0WMZnA92yja3G2OlefYpIgqttX1b/4g3u+VCfNJCmJRn7uNw2UEm5dWxA03VynR1mIvTuRG8o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706255720; c=relaxed/simple;
-	bh=ncOBk8Ygcot2gQd4NnT5DlOsoQDlApNywa6zl8r5/Ds=;
-	h=Date:To:From:Subject:Message-Id; b=EbLYC2gJpDpbPwLhaP9vwnxTcGiwV4auF0m2ZHRbCgrNous3lFHnBujUTbc55GiZZ/DpKpuEGyltgMjvgL+cVCARKuM36ZtgUtq10GU0ra+QtMcKKRWo5Ts5b7+S3cm15KMhaePvycNJWjVo9t1YSsEMgNuMN3l35kAWE/V8GKA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x84lPmSu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706255723; c=relaxed/simple;
+	bh=tnmPKOyjxMHBrN8O1ElMzItxs0cF3xU2hXtkXQln5n0=;
+	h=Date:To:From:Subject:Message-Id; b=tqPhWVYijQuyzKgkdV7Bb1WeuxA3PhgXYTiP9ITBWmdNoOQitOqGUzl6lC4wHRzGgccRfjfDPTWEUiGli6hukHh0tYFGeaRbDfjPWZk2LholybsKe+KfWjLwPHlqHdSnYDCL60i0sHkLv8FnllUSkd82Zm7zHZaYGlpXMagLDK0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Svk7sVcy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x84lPmSu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C24E9C433F1;
-	Fri, 26 Jan 2024 07:55:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Svk7sVcy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EC8AC433C7;
+	Fri, 26 Jan 2024 07:55:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706255720;
-	bh=ncOBk8Ygcot2gQd4NnT5DlOsoQDlApNywa6zl8r5/Ds=;
+	s=korg; t=1706255723;
+	bh=tnmPKOyjxMHBrN8O1ElMzItxs0cF3xU2hXtkXQln5n0=;
 	h=Date:To:From:Subject:From;
-	b=x84lPmSuVU4IJkNrRg5oEGSgcUKqUpf66NM1KuwJNUMVt5P+xv7zecdKHDRa7gKrn
-	 0PNRjHP05Ajzw6c0KFYEVECt0J40p3yE4joEv2vUKb5yopn7iF9cQkWxH7C+G9oIxs
-	 Vpfk2uKtDlkPXsZdMwYm8ZcygmmOI5RIWCm2WSIE=
-Date: Thu, 25 Jan 2024 23:55:17 -0800
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,quic_charante@quicinc.com,mingo@redhat.com,hpa@zytor.com,glider@google.com,dvyukov@google.com,dave.hansen@linux.intel.com,bp@alien8.de,elver@google.com,akpm@linux-foundation.org
+	b=Svk7sVcyh1eDcAWXutsNTeuKvZA32JY44aoSwX9RyN8TLXqL2PL1JEwxd7Go45iIx
+	 CHbjT/QjJ560s5Dc9XPahi7XesFznnMyx7pvpM2vXeZxuxpGLSM3BpgYqzqetIt9fa
+	 nHfHIaR2dYD8nMiKMR0Fisl5Y8kOWAlckRKjfkFM=
+Date: Thu, 25 Jan 2024 23:55:20 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,ak@linux.intel.com,elver@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-kmsan-fix-infinite-recursion-due-to-rcu-critical-section.patch removed from -mm tree
-Message-Id: <20240126075519.C24E9C433F1@smtp.kernel.org>
+Subject: [merged mm-stable] stackdepot-add-stats-counters-exported-via-debugfs.patch removed from -mm tree
+Message-Id: <20240126075523.3EC8AC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,134 +35,146 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm, kmsan: fix infinite recursion due to RCU critical section
+     Subject: stackdepot: add stats counters exported via debugfs
 has been removed from the -mm tree.  Its filename was
-     mm-kmsan-fix-infinite-recursion-due-to-rcu-critical-section.patch
+     stackdepot-add-stats-counters-exported-via-debugfs.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Marco Elver <elver@google.com>
-Subject: mm, kmsan: fix infinite recursion due to RCU critical section
-Date: Thu, 18 Jan 2024 11:59:14 +0100
+Subject: stackdepot: add stats counters exported via debugfs
+Date: Thu, 18 Jan 2024 12:01:29 +0100
 
-Alexander Potapenko writes in [1]: "For every memory access in the code
-instrumented by KMSAN we call kmsan_get_metadata() to obtain the metadata
-for the memory being accessed.  For virtual memory the metadata pointers
-are stored in the corresponding `struct page`, therefore we need to call
-virt_to_page() to get them.
+Add a few basic stats counters for stack depot that can be used to derive
+if stack depot is working as intended.  This is a snapshot of the new
+stats after booting a system with a KASAN-enabled kernel:
 
-According to the comment in arch/x86/include/asm/page.h,
-virt_to_page(kaddr) returns a valid pointer iff virt_addr_valid(kaddr) is
-true, so KMSAN needs to call virt_addr_valid() as well.
+ $ cat /sys/kernel/debug/stackdepot/stats
+ pools: 838
+ allocations: 29861
+ frees: 6561
+ in_use: 23300
+ freelist_size: 1840
 
-To avoid recursion, kmsan_get_metadata() must not call instrumented code,
-therefore ./arch/x86/include/asm/kmsan.h forks parts of
-arch/x86/mm/physaddr.c to check whether a virtual address is valid or not.
+Generally, "pools" should be well below the max; once the system is
+booted, "in_use" should remain relatively steady.
 
-But the introduction of rcu_read_lock() to pfn_valid() added instrumented
-RCU API calls to virt_to_page_or_null(), which is called by
-kmsan_get_metadata(), so there is an infinite recursion now.  I do not
-think it is correct to stop that recursion by doing
-kmsan_enter_runtime()/kmsan_exit_runtime() in kmsan_get_metadata(): that
-would prevent instrumented functions called from within the runtime from
-tracking the shadow values, which might introduce false positives."
-
-Fix the issue by switching pfn_valid() to the _sched() variant of
-rcu_read_lock/unlock(), which does not require calling into RCU.  Given
-the critical section in pfn_valid() is very small, this is a reasonable
-trade-off (with preemptible RCU).
-
-KMSAN further needs to be careful to suppress calls into the scheduler,
-which would be another source of recursion.  This can be done by wrapping
-the call to pfn_valid() into preempt_disable/enable_no_resched().  The
-downside is that this sacrifices breaking scheduling guarantees; however,
-a kernel compiled with KMSAN has already given up any performance
-guarantees due to being heavily instrumented.
-
-Note, KMSAN code already disables tracing via Makefile, and since mmzone.h
-is included, it is not necessary to use the notrace variant, which is
-generally preferred in all other cases.
-
-Link: https://lkml.kernel.org/r/20240115184430.2710652-1-glider@google.com [1]
-Link: https://lkml.kernel.org/r/20240118110022.2538350-1-elver@google.com
-Fixes: 5ec8e8ea8b77 ("mm/sparsemem: fix race in accessing memory_section->usage")
+Link: https://lkml.kernel.org/r/20240118110216.2539519-1-elver@google.com
 Signed-off-by: Marco Elver <elver@google.com>
-Reported-by: Alexander Potapenko <glider@google.com>
-Reported-by: syzbot+93a9e8a3dea8d6085e12@syzkaller.appspotmail.com
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Tested-by: Alexander Potapenko <glider@google.com>
-Cc: Charan Teja Kalla <quic_charante@quicinc.com>
-Cc: Borislav Petkov (AMD) <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/kmsan.h |   17 ++++++++++++++++-
- include/linux/mmzone.h       |    6 +++---
- 2 files changed, 19 insertions(+), 4 deletions(-)
+ lib/stackdepot.c |   53 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 53 insertions(+)
 
---- a/arch/x86/include/asm/kmsan.h~mm-kmsan-fix-infinite-recursion-due-to-rcu-critical-section
-+++ a/arch/x86/include/asm/kmsan.h
-@@ -64,6 +64,7 @@ static inline bool kmsan_virt_addr_valid
- {
- 	unsigned long x = (unsigned long)addr;
- 	unsigned long y = x - __START_KERNEL_map;
-+	bool ret;
+--- a/lib/stackdepot.c~stackdepot-add-stats-counters-exported-via-debugfs
++++ a/lib/stackdepot.c
+@@ -14,6 +14,7 @@
  
- 	/* use the carry flag to determine if x was < __START_KERNEL_map */
- 	if (unlikely(x > y)) {
-@@ -79,7 +80,21 @@ static inline bool kmsan_virt_addr_valid
- 			return false;
- 	}
+ #define pr_fmt(fmt) "stackdepot: " fmt
  
--	return pfn_valid(x >> PAGE_SHIFT);
-+	/*
-+	 * pfn_valid() relies on RCU, and may call into the scheduler on exiting
-+	 * the critical section. However, this would result in recursion with
-+	 * KMSAN. Therefore, disable preemption here, and re-enable preemption
-+	 * below while suppressing reschedules to avoid recursion.
-+	 *
-+	 * Note, this sacrifices occasionally breaking scheduling guarantees.
-+	 * Although, a kernel compiled with KMSAN has already given up on any
-+	 * performance guarantees due to being heavily instrumented.
-+	 */
-+	preempt_disable();
-+	ret = pfn_valid(x >> PAGE_SHIFT);
-+	preempt_enable_no_resched();
++#include <linux/debugfs.h>
+ #include <linux/gfp.h>
+ #include <linux/jhash.h>
+ #include <linux/kernel.h>
+@@ -115,6 +116,23 @@ static bool new_pool_required = true;
+ /* Lock that protects the variables above. */
+ static DEFINE_RWLOCK(pool_rwlock);
+ 
++/* Statistics counters for debugfs. */
++enum depot_counter_id {
++	DEPOT_COUNTER_ALLOCS,
++	DEPOT_COUNTER_FREES,
++	DEPOT_COUNTER_INUSE,
++	DEPOT_COUNTER_FREELIST_SIZE,
++	DEPOT_COUNTER_COUNT,
++};
++static long counters[DEPOT_COUNTER_COUNT];
++static const char *const counter_names[] = {
++	[DEPOT_COUNTER_ALLOCS]		= "allocations",
++	[DEPOT_COUNTER_FREES]		= "frees",
++	[DEPOT_COUNTER_INUSE]		= "in_use",
++	[DEPOT_COUNTER_FREELIST_SIZE]	= "freelist_size",
++};
++static_assert(ARRAY_SIZE(counter_names) == DEPOT_COUNTER_COUNT);
 +
-+	return ret;
- }
+ static int __init disable_stack_depot(char *str)
+ {
+ 	return kstrtobool(str, &stack_depot_disabled);
+@@ -277,6 +295,7 @@ static void depot_init_pool(void *pool)
+ 		stack->handle.extra = 0;
  
- #endif /* !MODULE */
---- a/include/linux/mmzone.h~mm-kmsan-fix-infinite-recursion-due-to-rcu-critical-section
-+++ a/include/linux/mmzone.h
-@@ -2013,9 +2013,9 @@ static inline int pfn_valid(unsigned lon
- 	if (pfn_to_section_nr(pfn) >= NR_MEM_SECTIONS)
- 		return 0;
- 	ms = __pfn_to_section(pfn);
--	rcu_read_lock();
-+	rcu_read_lock_sched();
- 	if (!valid_section(ms)) {
--		rcu_read_unlock();
-+		rcu_read_unlock_sched();
- 		return 0;
+ 		list_add(&stack->list, &free_stacks);
++		counters[DEPOT_COUNTER_FREELIST_SIZE]++;
  	}
- 	/*
-@@ -2023,7 +2023,7 @@ static inline int pfn_valid(unsigned lon
- 	 * the entire section-sized span.
- 	 */
- 	ret = early_section(ms) || pfn_section_valid(ms, pfn);
--	rcu_read_unlock();
-+	rcu_read_unlock_sched();
  
- 	return ret;
+ 	/* Save reference to the pool to be used by depot_fetch_stack(). */
+@@ -376,6 +395,7 @@ depot_alloc_stack(unsigned long *entries
+ 	/* Get and unlink the first entry from the freelist. */
+ 	stack = list_first_entry(&free_stacks, struct stack_record, list);
+ 	list_del(&stack->list);
++	counters[DEPOT_COUNTER_FREELIST_SIZE]--;
+ 
+ 	/* Limit number of saved frames to CONFIG_STACKDEPOT_MAX_FRAMES. */
+ 	if (size > CONFIG_STACKDEPOT_MAX_FRAMES)
+@@ -394,6 +414,8 @@ depot_alloc_stack(unsigned long *entries
+ 	 */
+ 	kmsan_unpoison_memory(stack, DEPOT_STACK_RECORD_SIZE);
+ 
++	counters[DEPOT_COUNTER_ALLOCS]++;
++	counters[DEPOT_COUNTER_INUSE]++;
+ 	return stack;
  }
+ 
+@@ -426,6 +448,10 @@ static void depot_free_stack(struct stac
+ 	lockdep_assert_held_write(&pool_rwlock);
+ 
+ 	list_add(&stack->list, &free_stacks);
++
++	counters[DEPOT_COUNTER_FREELIST_SIZE]++;
++	counters[DEPOT_COUNTER_FREES]++;
++	counters[DEPOT_COUNTER_INUSE]--;
+ }
+ 
+ /* Calculates the hash for a stack. */
+@@ -690,3 +716,30 @@ unsigned int stack_depot_get_extra_bits(
+ 	return parts.extra;
+ }
+ EXPORT_SYMBOL(stack_depot_get_extra_bits);
++
++static int stats_show(struct seq_file *seq, void *v)
++{
++	/*
++	 * data race ok: These are just statistics counters, and approximate
++	 * statistics are ok for debugging.
++	 */
++	seq_printf(seq, "pools: %d\n", data_race(pools_num));
++	for (int i = 0; i < DEPOT_COUNTER_COUNT; i++)
++		seq_printf(seq, "%s: %ld\n", counter_names[i], data_race(counters[i]));
++
++	return 0;
++}
++DEFINE_SHOW_ATTRIBUTE(stats);
++
++static int depot_debugfs_init(void)
++{
++	struct dentry *dir;
++
++	if (stack_depot_disabled)
++		return 0;
++
++	dir = debugfs_create_dir("stackdepot", NULL);
++	debugfs_create_file("stats", 0444, dir, NULL, &stats_fops);
++	return 0;
++}
++late_initcall(depot_debugfs_init);
 _
 
 Patches currently in -mm which might be from elver@google.com are
