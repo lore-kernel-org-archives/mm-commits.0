@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 680E112E45
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 07:55:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E51712E45
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 07:55:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706255717; cv=none; b=VowzlIOhNMRNihTk/nUeFqjNSScKHiTSr08E+K8VSEMRBp+RKHcPuIiUb4YPYn9VssJ9yLbh86DWTYh+O84OTBtldR1iAA65UPkZ9pzXqzPfvGVQ01Annfk6eX9/OSsAp8u6R4xx1xdWo7p09Kzcgi5+LbRzvew2gPtZ+oBY+og=
+	t=1706255720; cv=none; b=Qxu9mpb8XBWupCutzLvQX11z2b+B6mbgmw5Vx1k0RAcNneYpeOBMtnedISrVXRogEpaya2A9Bmcr7vqaGt4qViChN087+DuhJftpdBbc0BA++XuF9m1ysvpvjfw+PU+t7eS5QEVYie7m6s3VOWZlTsqzr0zTWmnCj97hgoRxgNY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706255717; c=relaxed/simple;
-	bh=eIwUXcQHBnAGzlhtata3vWH445M9PMgPEZjqeoidM/k=;
-	h=Date:To:From:Subject:Message-Id; b=qCgviBxZ42raPlC5ADqJ7vpF26Rr7gHIDX9PPM8XR6XT5q1x8/vwiZ7peAXENJ7HC3/+/8ODMkJ5UUfFkas4fhtZw5bFyTqVenDBlxFDml9d5jGlaNs6dVBRg9RBVcpFENqNnZBb9e9hR1nEf68w1hGdLE5sS3uYw0ScfyfZebc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OZ8LgvLL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706255720; c=relaxed/simple;
+	bh=ncOBk8Ygcot2gQd4NnT5DlOsoQDlApNywa6zl8r5/Ds=;
+	h=Date:To:From:Subject:Message-Id; b=EbLYC2gJpDpbPwLhaP9vwnxTcGiwV4auF0m2ZHRbCgrNous3lFHnBujUTbc55GiZZ/DpKpuEGyltgMjvgL+cVCARKuM36ZtgUtq10GU0ra+QtMcKKRWo5Ts5b7+S3cm15KMhaePvycNJWjVo9t1YSsEMgNuMN3l35kAWE/V8GKA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x84lPmSu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OZ8LgvLL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76DE3C433C7;
-	Fri, 26 Jan 2024 07:55:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x84lPmSu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C24E9C433F1;
+	Fri, 26 Jan 2024 07:55:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706255716;
-	bh=eIwUXcQHBnAGzlhtata3vWH445M9PMgPEZjqeoidM/k=;
+	s=korg; t=1706255720;
+	bh=ncOBk8Ygcot2gQd4NnT5DlOsoQDlApNywa6zl8r5/Ds=;
 	h=Date:To:From:Subject:From;
-	b=OZ8LgvLLigkdeBtYwl3w7pUUJzru77nAu1tQ+xUjQPPxe95dqcJoAICv3XTB929dy
-	 8QQaR7yAIix8RYWS2Y6t6yxpvcTdMroaTBPRXOKNgjSV/rDMBqhuxguyi4abrRjxDh
-	 4cOvxcg36S4mdhaP6LrFbNShtWYyXs184COOfW4A=
-Date: Thu, 25 Jan 2024 23:55:14 -0800
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,willy@infradead.org,stable@vger.kerenl.org,riel@surriel.com,oliver.sang@intel.com,fengwei.yin@intel.com,cl@linux.com,yang@os.amperecomputing.com,akpm@linux-foundation.org
+	b=x84lPmSuVU4IJkNrRg5oEGSgcUKqUpf66NM1KuwJNUMVt5P+xv7zecdKHDRa7gKrn
+	 0PNRjHP05Ajzw6c0KFYEVECt0J40p3yE4joEv2vUKb5yopn7iF9cQkWxH7C+G9oIxs
+	 Vpfk2uKtDlkPXsZdMwYm8ZcygmmOI5RIWCm2WSIE=
+Date: Thu, 25 Jan 2024 23:55:17 -0800
+To: mm-commits@vger.kernel.org,tglx@linutronix.de,quic_charante@quicinc.com,mingo@redhat.com,hpa@zytor.com,glider@google.com,dvyukov@google.com,dave.hansen@linux.intel.com,bp@alien8.de,elver@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mmap-map-map_stack-to-vm_nohugepage.patch removed from -mm tree
-Message-Id: <20240126075516.76DE3C433C7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kmsan-fix-infinite-recursion-due-to-rcu-critical-section.patch removed from -mm tree
+Message-Id: <20240126075519.C24E9C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,91 +35,136 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: mmap: map MAP_STACK to VM_NOHUGEPAGE
+     Subject: mm, kmsan: fix infinite recursion due to RCU critical section
 has been removed from the -mm tree.  Its filename was
-     mm-mmap-map-map_stack-to-vm_nohugepage.patch
+     mm-kmsan-fix-infinite-recursion-due-to-rcu-critical-section.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yang Shi <yang@os.amperecomputing.com>
-Subject: mm: mmap: map MAP_STACK to VM_NOHUGEPAGE
-Date: Wed, 20 Dec 2023 22:59:43 -0800
+From: Marco Elver <elver@google.com>
+Subject: mm, kmsan: fix infinite recursion due to RCU critical section
+Date: Thu, 18 Jan 2024 11:59:14 +0100
 
-commit efa7df3e3bb5 ("mm: align larger anonymous mappings on THP
-boundaries") incured regression for stress-ng pthread benchmark [1].  It
-is because THP get allocated to pthread's stack area much more possible
-than before.  Pthread's stack area is allocated by mmap without
-VM_GROWSDOWN or VM_GROWSUP flag, so kernel can't tell whether it is a
-stack area or not.
+Alexander Potapenko writes in [1]: "For every memory access in the code
+instrumented by KMSAN we call kmsan_get_metadata() to obtain the metadata
+for the memory being accessed.  For virtual memory the metadata pointers
+are stored in the corresponding `struct page`, therefore we need to call
+virt_to_page() to get them.
 
-The MAP_STACK flag is used to mark the stack area, but it is a no-op on
-Linux.  Mapping MAP_STACK to VM_NOHUGEPAGE to prevent from allocating THP
-for such stack area.
+According to the comment in arch/x86/include/asm/page.h,
+virt_to_page(kaddr) returns a valid pointer iff virt_addr_valid(kaddr) is
+true, so KMSAN needs to call virt_addr_valid() as well.
 
-With this change the stack area looks like:
+To avoid recursion, kmsan_get_metadata() must not call instrumented code,
+therefore ./arch/x86/include/asm/kmsan.h forks parts of
+arch/x86/mm/physaddr.c to check whether a virtual address is valid or not.
 
-fffd18e10000-fffd19610000 rw-p 00000000 00:00 0
-Size:               8192 kB
-KernelPageSize:        4 kB
-MMUPageSize:           4 kB
-Rss:                  12 kB
-Pss:                  12 kB
-Pss_Dirty:            12 kB
-Shared_Clean:          0 kB
-Shared_Dirty:          0 kB
-Private_Clean:         0 kB
-Private_Dirty:        12 kB
-Referenced:           12 kB
-Anonymous:            12 kB
-KSM:                   0 kB
-LazyFree:              0 kB
-AnonHugePages:         0 kB
-ShmemPmdMapped:        0 kB
-FilePmdMapped:         0 kB
-Shared_Hugetlb:        0 kB
-Private_Hugetlb:       0 kB
-Swap:                  0 kB
-SwapPss:               0 kB
-Locked:                0 kB
-THPeligible:           0
-VmFlags: rd wr mr mw me ac nh
+But the introduction of rcu_read_lock() to pfn_valid() added instrumented
+RCU API calls to virt_to_page_or_null(), which is called by
+kmsan_get_metadata(), so there is an infinite recursion now.  I do not
+think it is correct to stop that recursion by doing
+kmsan_enter_runtime()/kmsan_exit_runtime() in kmsan_get_metadata(): that
+would prevent instrumented functions called from within the runtime from
+tracking the shadow values, which might introduce false positives."
 
-The "nh" flag is set.
+Fix the issue by switching pfn_valid() to the _sched() variant of
+rcu_read_lock/unlock(), which does not require calling into RCU.  Given
+the critical section in pfn_valid() is very small, this is a reasonable
+trade-off (with preemptible RCU).
 
-[1] https://lore.kernel.org/linux-mm/202312192310.56367035-oliver.sang@intel.com/
+KMSAN further needs to be careful to suppress calls into the scheduler,
+which would be another source of recursion.  This can be done by wrapping
+the call to pfn_valid() into preempt_disable/enable_no_resched().  The
+downside is that this sacrifices breaking scheduling guarantees; however,
+a kernel compiled with KMSAN has already given up any performance
+guarantees due to being heavily instrumented.
 
-Link: https://lkml.kernel.org/r/20231221065943.2803551-2-shy828301@gmail.com
-Fixes: efa7df3e3bb5 ("mm: align larger anonymous mappings on THP boundaries")
-Signed-off-by: Yang Shi <yang@os.amperecomputing.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Tested-by: Oliver Sang <oliver.sang@intel.com>
-Reviewed-by: Yin Fengwei <fengwei.yin@intel.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Christopher Lameter <cl@linux.com>
-Cc: Huang, Ying <ying.huang@intel.com>
-Cc: <stable@vger.kerenl.org>
+Note, KMSAN code already disables tracing via Makefile, and since mmzone.h
+is included, it is not necessary to use the notrace variant, which is
+generally preferred in all other cases.
+
+Link: https://lkml.kernel.org/r/20240115184430.2710652-1-glider@google.com [1]
+Link: https://lkml.kernel.org/r/20240118110022.2538350-1-elver@google.com
+Fixes: 5ec8e8ea8b77 ("mm/sparsemem: fix race in accessing memory_section->usage")
+Signed-off-by: Marco Elver <elver@google.com>
+Reported-by: Alexander Potapenko <glider@google.com>
+Reported-by: syzbot+93a9e8a3dea8d6085e12@syzkaller.appspotmail.com
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Tested-by: Alexander Potapenko <glider@google.com>
+Cc: Charan Teja Kalla <quic_charante@quicinc.com>
+Cc: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mman.h |    1 +
- 1 file changed, 1 insertion(+)
+ arch/x86/include/asm/kmsan.h |   17 ++++++++++++++++-
+ include/linux/mmzone.h       |    6 +++---
+ 2 files changed, 19 insertions(+), 4 deletions(-)
 
---- a/include/linux/mman.h~mm-mmap-map-map_stack-to-vm_nohugepage
-+++ a/include/linux/mman.h
-@@ -156,6 +156,7 @@ calc_vm_flag_bits(unsigned long flags)
- 	return _calc_vm_trans(flags, MAP_GROWSDOWN,  VM_GROWSDOWN ) |
- 	       _calc_vm_trans(flags, MAP_LOCKED,     VM_LOCKED    ) |
- 	       _calc_vm_trans(flags, MAP_SYNC,	     VM_SYNC      ) |
-+	       _calc_vm_trans(flags, MAP_STACK,	     VM_NOHUGEPAGE) |
- 	       arch_calc_vm_flag_bits(flags);
+--- a/arch/x86/include/asm/kmsan.h~mm-kmsan-fix-infinite-recursion-due-to-rcu-critical-section
++++ a/arch/x86/include/asm/kmsan.h
+@@ -64,6 +64,7 @@ static inline bool kmsan_virt_addr_valid
+ {
+ 	unsigned long x = (unsigned long)addr;
+ 	unsigned long y = x - __START_KERNEL_map;
++	bool ret;
+ 
+ 	/* use the carry flag to determine if x was < __START_KERNEL_map */
+ 	if (unlikely(x > y)) {
+@@ -79,7 +80,21 @@ static inline bool kmsan_virt_addr_valid
+ 			return false;
+ 	}
+ 
+-	return pfn_valid(x >> PAGE_SHIFT);
++	/*
++	 * pfn_valid() relies on RCU, and may call into the scheduler on exiting
++	 * the critical section. However, this would result in recursion with
++	 * KMSAN. Therefore, disable preemption here, and re-enable preemption
++	 * below while suppressing reschedules to avoid recursion.
++	 *
++	 * Note, this sacrifices occasionally breaking scheduling guarantees.
++	 * Although, a kernel compiled with KMSAN has already given up on any
++	 * performance guarantees due to being heavily instrumented.
++	 */
++	preempt_disable();
++	ret = pfn_valid(x >> PAGE_SHIFT);
++	preempt_enable_no_resched();
++
++	return ret;
  }
  
+ #endif /* !MODULE */
+--- a/include/linux/mmzone.h~mm-kmsan-fix-infinite-recursion-due-to-rcu-critical-section
++++ a/include/linux/mmzone.h
+@@ -2013,9 +2013,9 @@ static inline int pfn_valid(unsigned lon
+ 	if (pfn_to_section_nr(pfn) >= NR_MEM_SECTIONS)
+ 		return 0;
+ 	ms = __pfn_to_section(pfn);
+-	rcu_read_lock();
++	rcu_read_lock_sched();
+ 	if (!valid_section(ms)) {
+-		rcu_read_unlock();
++		rcu_read_unlock_sched();
+ 		return 0;
+ 	}
+ 	/*
+@@ -2023,7 +2023,7 @@ static inline int pfn_valid(unsigned lon
+ 	 * the entire section-sized span.
+ 	 */
+ 	ret = early_section(ms) || pfn_section_valid(ms, pfn);
+-	rcu_read_unlock();
++	rcu_read_unlock_sched();
+ 
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from yang@os.amperecomputing.com are
+Patches currently in -mm which might be from elver@google.com are
 
-mm-mmap-no-need-to-call-khugepaged_enter_vma-for-stack.patch
 
