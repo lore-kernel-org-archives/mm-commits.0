@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7387E3232
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 02:15:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1E80524F
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 02:15:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706235312; cv=none; b=nYdY0fD9zoegK3BWNdnY5HTcq1s8y22an47JDQ50nD3z23OLc752hV50aB9CaJFuyrSUk88zVc+5tHXG1tcwptgNPQdsApp2TwbLgmBkocrMyfslwOYR3WZKQWmIKQXLmbTdOPBWJjI/zpkzhlkuCjK8SAhpx9v2nTgqFbzPXuU=
+	t=1706235315; cv=none; b=jIyqNPvJeVAsaXxLiAoYf8O7p81RVDGSzi75aMcMv47qyZMYuXtOb4HKdHSsQPRMF9RgsCnu0JMhSy/sFDMS8KXJbI+pSbM2MeS05H9682woul3ZuP8UWWWRXRc+LmuGEd3z+Pw+pD7CEIyVcUyAmQeX/QW5x2SW9X5P87wVJbQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706235312; c=relaxed/simple;
-	bh=VROcE70pNfsE2BkUehm5J29fAuEwg7A0GvTpbLFxGao=;
-	h=Date:To:From:Subject:Message-Id; b=XFLAP7lzpnAp+bnirjOI/P1Ubjh4xv990olUhWUlGmmNQzIoQt+EAq4TEuHJtLE8QhzGv4wFC58+xFaIgJwXdDfD1aROrsujAFLauO9CqZFoAfQEikAPGB8lCLSEG7zFfqyXWjwcIraNCT+X2qnf9eoNyv/6TkVb0hK+9PTKClE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gZ943KD0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706235315; c=relaxed/simple;
+	bh=a1obYz66uBl2adzqberv5lj7Xl2YW8fm+1jmkjCY6Zc=;
+	h=Date:To:From:Subject:Message-Id; b=cH5I2ISml4dXKd4TFkfuDFr74eAdyiUjzHtnasM54Fm8KZl4Plp3TLeZLmx53bbV12jFJ89yCEjq5F7nfH6lbM0t0b7+BuBs/a4UaRaT9xNHttV7m+hCEUEu4n7k77QZV+l8kvYMUv9m5v/2WZPIchDjMmM5JcEiLiH70e1VuMA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i52loKR/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gZ943KD0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6504FC433F1;
-	Fri, 26 Jan 2024 02:15:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i52loKR/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B34AC433F1;
+	Fri, 26 Jan 2024 02:15:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706235311;
-	bh=VROcE70pNfsE2BkUehm5J29fAuEwg7A0GvTpbLFxGao=;
+	s=korg; t=1706235315;
+	bh=a1obYz66uBl2adzqberv5lj7Xl2YW8fm+1jmkjCY6Zc=;
 	h=Date:To:From:Subject:From;
-	b=gZ943KD0eoxVIt7uHL3LI3g4dutewk9xWeoqX/pMSYHgwbaYRDE8sZUYgYCpHoO+P
-	 eAkAijsgdgkIza4SEA0TOli8kYYJS70yKzyJsc2ZrbQfnhBC/YjOoIApaO1eJP5mRW
-	 d/eHJa9HZ1bXCoGeMqUv/ZV1ONO4PaZbzujwpcLQ=
-Date: Thu, 25 Jan 2024 18:15:08 -0800
-To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,nicolas@fjasle.eu,naveen.n.rao@linux.ibm.com,mpe@ellerman.id.au,mingo@redhat.com,masahiroy@kernel.org,mark.rutland@arm.com,linux@armlinux.org.uk,keescook@chromium.org,dave.hansen@linux.intel.com,conor@kernel.org,catalin.marinas@arm.com,bp@alien8.de,ardb@kernel.org,aou@eecs.berkeley.edu,aneesh.kumar@kernel.org,nathan@kernel.org,akpm@linux-foundation.org
+	b=i52loKR/jGQbVGD84NvSmlTAuhjbJJbT+m8TrXZAOoDrShHdItZP8+zsF9N3y8+9T
+	 gUq4mKw4JvTyttM1xIsNJjicdSoZNcYR0xFuOrItQerFe7xTKJEdyiEZDIPfy5cud9
+	 GgLNouK4jvYBpELPIJEs+tskYRz52+iEIQ0Y67L4=
+Date: Thu, 25 Jan 2024 18:15:12 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yangxingui@huawei.com,willy@infradead.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,viro@zeniv.linux.org.uk,vbabka@suse.cz,usama.anjum@collabora.com,talumbau@google.com,sj@kernel.org,sidhartha.kumar@oracle.com,ryan.roberts@arm.com,peterx@redhat.com,paulmck@kernel.org,mgorman@techsingularity.net,mathieu.desnoyers@efficios.com,lstoakes@gmail.com,Liam.Howlett@oracle.com,keescook@chromium.org,jhubbard@nvidia.com,jgg@ziepe.ca,jack@suse.cz,hughd@google.com,dhowells@redhat.com,dchinner@redhat.com,david@redhat.com,casey@schaufler-ca.com,brauner@kernel.org,ben.wolsieffer@hefring.com,axelrasmussen@google.com,avagin@google.com,andriy.shevchenko@linux.intel.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-kconfigdebug-update-clang-version-check-in-config_kcov.patch added to mm-nonmm-unstable branch
-Message-Id: <20240126021511.6504FC433F1@smtp.kernel.org>
+Subject: [to-be-updated] mm-add-mm_struct-sequence-number-to-detect-write-locks.patch removed from -mm tree
+Message-Id: <20240126021514.9B34AC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,94 +34,135 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: lib/Kconfig.debug: update Clang version check in CONFIG_KCOV
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-kconfigdebug-update-clang-version-check-in-config_kcov.patch
+The quilt patch titled
+     Subject: mm: add mm_struct sequence number to detect write locks
+has been removed from the -mm tree.  Its filename was
+     mm-add-mm_struct-sequence-number-to-detect-write-locks.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-kconfigdebug-update-clang-version-check-in-config_kcov.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Nathan Chancellor <nathan@kernel.org>
-Subject: lib/Kconfig.debug: update Clang version check in CONFIG_KCOV
-Date: Thu, 25 Jan 2024 15:55:16 -0700
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm: add mm_struct sequence number to detect write locks
+Date: Tue, 23 Jan 2024 15:10:13 -0800
 
-Now that the minimum supported version of LLVM for building the kernel has
-been bumped to 13.0.1, this condition can be changed to just
-CONFIG_CC_IS_CLANG, as the build will fail during the configuration stage
-for older LLVM versions.
+Provide a way for lockless mm_struct users to detect whether mm might have
+been changed since some specific point in time.  The API provided allows
+the user to record a counter when it starts using the mm and later use
+that counter to check if anyone write-locked mmap_lock since the counter
+was recorded.  Recording the counter value should be done while holding
+mmap_lock at least for reading to prevent the counter from concurrent
+changes.  Every time mmap_lock is write-locked mm_struct updates its
+mm_wr_seq counter so that checks against counters recorded before that
+would fail, indicating a possibility of mm being modified.
 
-Link: https://lkml.kernel.org/r/20240125-bump-min-llvm-ver-to-13-0-1-v1-10-f5ff9bda41c5@kernel.org
-Signed-off-by: Nathan Chancellor <nathan@kernel.org>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: "Aneesh Kumar K.V (IBM)" <aneesh.kumar@kernel.org>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Borislav Petkov (AMD) <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Conor Dooley <conor@kernel.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Nicolas Schier <nicolas@fjasle.eu>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20240123231014.3801041-2-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andrei Vagin <avagin@google.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Ben Wolsieffer <ben.wolsieffer@hefring.com>
+Cc: Casey Schaufler <casey@schaufler-ca.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Paul E. McKenney <paulmck@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: T.J. Alumbaugh <talumbau@google.com>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Xingui Yang <yangxingui@huawei.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm_types.h  |    2 ++
+ include/linux/mmap_lock.h |   22 ++++++++++++++++++++++
+ 2 files changed, 24 insertions(+)
 
---- a/lib/Kconfig.debug~lib-kconfigdebug-update-clang-version-check-in-config_kcov
-+++ a/lib/Kconfig.debug
-@@ -2085,7 +2085,7 @@ config KCOV
- 	depends on ARCH_HAS_KCOV
- 	depends on CC_HAS_SANCOV_TRACE_PC || GCC_PLUGINS
- 	depends on !ARCH_WANTS_NO_INSTR || HAVE_NOINSTR_HACK || \
--		   GCC_VERSION >= 120000 || CLANG_VERSION >= 130000
-+		   GCC_VERSION >= 120000 || CC_IS_CLANG
- 	select DEBUG_FS
- 	select GCC_PLUGIN_SANCOV if !CC_HAS_SANCOV_TRACE_PC
- 	select OBJTOOL if HAVE_NOINSTR_HACK
+--- a/include/linux/mmap_lock.h~mm-add-mm_struct-sequence-number-to-detect-write-locks
++++ a/include/linux/mmap_lock.h
+@@ -106,6 +106,8 @@ static inline void mmap_write_lock(struc
+ {
+ 	__mmap_lock_trace_start_locking(mm, true);
+ 	down_write(&mm->mmap_lock);
++	/* Pairs with ACQUIRE semantics in mmap_write_seq_read */
++	smp_store_release(&mm->mm_wr_seq, mm->mm_wr_seq + 1);
+ 	__mmap_lock_trace_acquire_returned(mm, true, true);
+ }
+ 
+@@ -113,6 +115,8 @@ static inline void mmap_write_lock_neste
+ {
+ 	__mmap_lock_trace_start_locking(mm, true);
+ 	down_write_nested(&mm->mmap_lock, subclass);
++	/* Pairs with ACQUIRE semantics in mmap_write_seq_read */
++	smp_store_release(&mm->mm_wr_seq, mm->mm_wr_seq + 1);
+ 	__mmap_lock_trace_acquire_returned(mm, true, true);
+ }
+ 
+@@ -122,6 +126,10 @@ static inline int mmap_write_lock_killab
+ 
+ 	__mmap_lock_trace_start_locking(mm, true);
+ 	ret = down_write_killable(&mm->mmap_lock);
++	if (!ret) {
++		/* Pairs with ACQUIRE semantics in mmap_write_seq_read */
++		smp_store_release(&mm->mm_wr_seq, mm->mm_wr_seq + 1);
++	}
+ 	__mmap_lock_trace_acquire_returned(mm, true, ret == 0);
+ 	return ret;
+ }
+@@ -140,6 +148,20 @@ static inline void mmap_write_downgrade(
+ 	downgrade_write(&mm->mmap_lock);
+ }
+ 
++static inline unsigned long mmap_write_seq_read(struct mm_struct *mm)
++{
++	/* Pairs with RELEASE semantics in mmap_write_lock */
++	return smp_load_acquire(&mm->mm_wr_seq);
++}
++
++static inline void mmap_write_seq_record(struct mm_struct *mm,
++					 unsigned long *mm_wr_seq)
++{
++	mmap_assert_locked(mm);
++	/* Nobody can concurrently modify since we hold the mmap_lock */
++	*mm_wr_seq = mm->mm_wr_seq;
++}
++
+ static inline void mmap_read_lock(struct mm_struct *mm)
+ {
+ 	__mmap_lock_trace_start_locking(mm, false);
+--- a/include/linux/mm_types.h~mm-add-mm_struct-sequence-number-to-detect-write-locks
++++ a/include/linux/mm_types.h
+@@ -846,6 +846,8 @@ struct mm_struct {
+ 		 */
+ 		int mm_lock_seq;
+ #endif
++		/* Counter incremented each time mm gets write-locked */
++		unsigned long mm_wr_seq;
+ 
+ 
+ 		unsigned long hiwater_rss; /* High-watermark of RSS usage */
 _
 
-Patches currently in -mm which might be from nathan@kernel.org are
+Patches currently in -mm which might be from surenb@google.com are
 
-selftests-bpf-update-llvm-phabricator-links.patch
-arch-and-include-update-llvm-phabricator-links.patch
-treewide-update-llvm-bugzilla-links.patch
-kbuild-raise-the-minimum-supported-version-of-llvm-to-1301.patch
-makefile-drop-warn-stack-size-plugin-opt.patch
-x86-drop-stack-alignment-plugin-opt.patch
-arm-remove-thumb2-__builtin_thread_pointer-workaround-for-clang.patch
-arm64-kconfig-clean-up-tautological-llvm-version-checks.patch
-powerpc-kconfig-remove-tautology-in-config_compat.patch
-riscv-remove-mcount_name-workaround.patch
-riscv-kconfig-remove-version-dependency-from-config_clang_supports_dynamic_ftrace.patch
-fortify-drop-clang-version-check-for-1201-or-newer.patch
-lib-kconfigdebug-update-clang-version-check-in-config_kcov.patch
-compiler-clangh-update-__diag_clang-macros-for-minimum-version-bump.patch
+mm-maps-read-proc-pid-maps-under-rcu.patch
 
