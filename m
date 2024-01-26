@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E2CF6FA8;
-	Fri, 26 Jan 2024 07:55:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B65846FA8;
+	Fri, 26 Jan 2024 07:55:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706255734; cv=none; b=IqF4BV9FRkoZkW4rCd9iyl9lW5aHaV3GBgHNq7fIGQ4m/dkMFOz7XhSMZMwUP7Dvu+0qyDDU43hb7jcwJDivuMNUmXTG17Wq3PAbBhe39nJgOtz46zKFaIY3ZWggS83mIf1jZhtj+SRYr7L7sGW6I1eRINaKBM6ejRPCuXvadXA=
+	t=1706255737; cv=none; b=HGGLon5bzx5oKy4HBC7CmqyDw/G3OTSakbA1WCpPPDyBQRjyEVQaB6puqqxqeqP4Ect2/QegOo7HpMY8/1iLIdHQiGupW0y6mquC7W9U+o80OLOVRIKgamk9AYkgjX1JPkdLG/fB6U17lUsD15Mymi2uoSWIAvVol03qsZ+r6K4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706255734; c=relaxed/simple;
-	bh=feS80eLe97iHODmNfpPhyl+lgvX9ivAYfndKLeyU/T4=;
-	h=Date:To:From:Subject:Message-Id; b=nQ/gWjpfhaQp/fA9v4onoZn0AgvxLnmlFOzJml1LfBsH9GYAyQF6ps6DzfgdKzZBYCzj2FvDdPNo9DFf7tp6ISBqU941wwgGaHwUtkKC6eAJST+DhIKvOL/5c9VylQcliIcpC2gjNbwrHu4T7Jwr0Z2ROXWz9GiKG7Sw0QPRPwU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YB2Obz+O; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706255737; c=relaxed/simple;
+	bh=NyGHhL/rwDqeHhyfZWGT//uKcVcjOZ7lNmrf87RREn0=;
+	h=Date:To:From:Subject:Message-Id; b=owB+HtUZUn0N1LXxDSY6q9lf/kH+v0x6zAam32WSA35CNPSMpXlvtK3Z314rXuqxlpaRf/DzVmSetxS2hKv8ZEY/nqGsdnypq+AI08L7vWq43ZGPjVsFmQ2KDt2px6NmjgFH5Y0VRkvlGVL2UbLCn6WISmkzx7MAox0DO2wDORw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wUPel4H8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YB2Obz+O"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62EDBC433F1;
-	Fri, 26 Jan 2024 07:55:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wUPel4H8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D02B4C433F1;
+	Fri, 26 Jan 2024 07:55:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706255733;
-	bh=feS80eLe97iHODmNfpPhyl+lgvX9ivAYfndKLeyU/T4=;
+	s=korg; t=1706255737;
+	bh=NyGHhL/rwDqeHhyfZWGT//uKcVcjOZ7lNmrf87RREn0=;
 	h=Date:To:From:Subject:From;
-	b=YB2Obz+Oq+JoKCrLGW3C8UY7yhZ7xIWEPuCItWTtbGeVNVwJBJVFttV9ID44LqyhW
-	 GRL4wI7sIz2ddTFM8yXHeYf4Y4G+yNMwNkPbnW/O+15uhTBNIiPUpYvNK/l76m4hwO
-	 qiMbRh4hqdvz0flGvkLRBzK+xGzsVR8MTULNrhSM=
-Date: Thu, 25 Jan 2024 23:55:30 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,mpe@ellerman.id.au,donettom@linux.vnet.ibm.com,christophe.leroy@c-s.fr,npache@redhat.com,akpm@linux-foundation.org
+	b=wUPel4H8sGC4IvZf2FmCYk4mheVCEFWdexg8p5cxP/OC0hB2qOkrtLy6h9aHYbQhi
+	 XSgF12bkEx5ugad9FHKAhUSNRYwM8YRLqTF9fHRvLcYZ/HLLOPtuJabXDVe+60yc6q
+	 gNrDcnlH+ZlJwaN4Y1jURp9pBZ0cOUEyX+z6eigQ=
+Date: Thu, 25 Jan 2024 23:55:34 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,MPatlasov@parallels.com,zokeefe@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-fix-map_hugetlb-failure-on-64k-page-size-systems.patch removed from -mm tree
-Message-Id: <20240126075533.62EDBC433F1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-writeback-fix-possible-divide-by-zero-in-wb_dirty_limits-again.patch removed from -mm tree
+Message-Id: <20240126075536.D02B4C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,68 +35,57 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests: mm: fix map_hugetlb failure on 64K page size systems
+     Subject: mm/writeback: fix possible divide-by-zero in wb_dirty_limits(), again
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-fix-map_hugetlb-failure-on-64k-page-size-systems.patch
+     mm-writeback-fix-possible-divide-by-zero-in-wb_dirty_limits-again.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Nico Pache <npache@redhat.com>
-Subject: selftests: mm: fix map_hugetlb failure on 64K page size systems
-Date: Fri, 19 Jan 2024 06:14:29 -0700
+From: "Zach O'Keefe" <zokeefe@google.com>
+Subject: mm/writeback: fix possible divide-by-zero in wb_dirty_limits(), again
+Date: Thu, 18 Jan 2024 10:19:53 -0800
 
-On systems with 64k page size and 512M huge page sizes, the allocation and
-test succeeds but errors out at the munmap.  As the comment states, munmap
-will failure if its not HUGEPAGE aligned.  This is due to the length of
-the mapping being 1/2 the size of the hugepage causing the munmap to not
-be hugepage aligned.  Fix this by making the mapping length the full
-hugepage if the hugepage is larger than the length of the mapping.
+(struct dirty_throttle_control *)->thresh is an unsigned long, but is
+passed as the u32 divisor argument to div_u64().  On architectures where
+unsigned long is 64 bytes, the argument will be implicitly truncated.
 
-Link: https://lkml.kernel.org/r/20240119131429.172448-1-npache@redhat.com
-Signed-off-by: Nico Pache <npache@redhat.com>
-Cc: Donet Tom <donettom@linux.vnet.ibm.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Christophe Leroy <christophe.leroy@c-s.fr>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Use div64_u64() instead of div_u64() so that the value used in the "is
+this a safe division" check is the same as the divisor.
+
+Also, remove redundant cast of the numerator to u64, as that should happen
+implicitly.
+
+This would be difficult to exploit in memcg domain, given the ratio-based
+arithmetic domain_drity_limits() uses, but is much easier in global
+writeback domain with a BDI_CAP_STRICTLIMIT-backing device, using e.g. 
+vm.dirty_bytes=(1<<32)*PAGE_SIZE so that dtc->thresh == (1<<32)
+
+Link: https://lkml.kernel.org/r/20240118181954.1415197-1-zokeefe@google.com
+Fixes: f6789593d5ce ("mm/page-writeback.c: fix divide by zero in bdi_dirty_limits()")
+Signed-off-by: Zach O'Keefe <zokeefe@google.com>
+Cc: Maxim Patlasov <MPatlasov@parallels.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/map_hugetlb.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/page-writeback.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/map_hugetlb.c~selftests-mm-fix-map_hugetlb-failure-on-64k-page-size-systems
-+++ a/tools/testing/selftests/mm/map_hugetlb.c
-@@ -15,6 +15,7 @@
- #include <unistd.h>
- #include <sys/mman.h>
- #include <fcntl.h>
-+#include "vm_util.h"
+--- a/mm/page-writeback.c~mm-writeback-fix-possible-divide-by-zero-in-wb_dirty_limits-again
++++ a/mm/page-writeback.c
+@@ -1638,7 +1638,7 @@ static inline void wb_dirty_limits(struc
+ 	 */
+ 	dtc->wb_thresh = __wb_calc_thresh(dtc);
+ 	dtc->wb_bg_thresh = dtc->thresh ?
+-		div_u64((u64)dtc->wb_thresh * dtc->bg_thresh, dtc->thresh) : 0;
++		div64_u64(dtc->wb_thresh * dtc->bg_thresh, dtc->thresh) : 0;
  
- #define LENGTH (256UL*1024*1024)
- #define PROTECTION (PROT_READ | PROT_WRITE)
-@@ -58,10 +59,16 @@ int main(int argc, char **argv)
- {
- 	void *addr;
- 	int ret;
-+	size_t hugepage_size;
- 	size_t length = LENGTH;
- 	int flags = FLAGS;
- 	int shift = 0;
- 
-+	hugepage_size = default_huge_page_size();
-+	/* munmap with fail if the length is not page aligned */
-+	if (hugepage_size > length)
-+		length = hugepage_size;
-+
- 	if (argc > 1)
- 		length = atol(argv[1]) << 20;
- 	if (argc > 2) {
+ 	/*
+ 	 * In order to avoid the stacked BDI deadlock we need
 _
 
-Patches currently in -mm which might be from npache@redhat.com are
+Patches currently in -mm which might be from zokeefe@google.com are
 
-selftests-mm-perform-some-system-cleanup-before-using-hugepages.patch
 
