@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 234051864
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 02:14:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB8EB10F7
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 02:14:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706235287; cv=none; b=d+mVoUSb8LBAx/wWX4or9V39qpnu+w6srCJ4gDoc1wueHMX+9J06PlQfGKLhZbyGXi17QMl3kJC75Aj4sWMwI2fxyIVMqgplPsRyUQbzFzWuCpP/UE1cK3+dvf2ApxfoSkSqdiPKnrpNzYJNB67G05XtHTmK8kvG8EFsvz2FdyI=
+	t=1706235290; cv=none; b=D+1HTYr6qm7XQ2hm7ebWl/Y9IfgJkzgwhnpr7lT816effaR/u5nmW30Eg85qsUJErh23b5YXmag5S2dVsblWrUsFkDLKOOFeIRsGXPyS7iK3kDpkIdsYa8wqvOZ39+OgF9A3cygmgeZ/gkObx4imBGlYnEYmpPv31+pZ0B3kkRA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706235287; c=relaxed/simple;
-	bh=6ijg6LesWxm+WH4vAOfWxAOwv6mcPspaTOcipFCPR28=;
-	h=Date:To:From:Subject:Message-Id; b=FZRTT4eOuDr4KR2/9bdntUhKja0cMrlqkozgLzA8gbgsraak6r5fPx6NAfIW7Us+ngLzyNsjJ+TvawOAseEEgXCDLtDgPvOEMrlTGfdOCOkI1WmCTzXeebttzmJSnEa4uy4ans3tvKM1gmlaxQxV6eFhccOVvgvSIcm50EqIaf8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cvwDRdvw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706235290; c=relaxed/simple;
+	bh=aKkCjiuOODZyhw6TyTmHTF6+/iy9If1s+suh2rTUtqc=;
+	h=Date:To:From:Subject:Message-Id; b=iIetOj0UbVTsrFgsEv8znk1MuIMV4xFbgROKLVu33Pq9KjvfWcUH2LVGRiP1sZ0HoQInzDNWI2tSDXBrPNXvPihVwwHtnATojhmhVIwFcJh9ytfwaSCatKmi0/fo2h1O9/8G26dbWJwI9Hk5LNuMXV2Gk4PwvsGlHH1yIure6bs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NvZUhxmG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cvwDRdvw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21AC5C433F1;
-	Fri, 26 Jan 2024 02:14:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NvZUhxmG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A08BAC433F1;
+	Fri, 26 Jan 2024 02:14:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706235286;
-	bh=6ijg6LesWxm+WH4vAOfWxAOwv6mcPspaTOcipFCPR28=;
+	s=korg; t=1706235290;
+	bh=aKkCjiuOODZyhw6TyTmHTF6+/iy9If1s+suh2rTUtqc=;
 	h=Date:To:From:Subject:From;
-	b=cvwDRdvwJwwm6+WWYXMius8IjC8yqZWBn5Cko+JqJTuNqC86li1YQYzi/A1xcy5CS
-	 wHyzLZYYiGdEAKh5UZdEu3eg1WgjyF6YhI9XitFia0OvLJW65CY133Qv9uxXEySUNK
-	 PH9itcW+Pf9HK4Z2pfx5Z9VQHNCEyUDc9g9jPRPE=
-Date: Thu, 25 Jan 2024 18:14:43 -0800
+	b=NvZUhxmGij5DxBarOrP1hcmBBNrNKQsP4YMGVLX+UNgolZOlcpXdn4ddf3w8enEgS
+	 M19vZ0LrVVtrWpyW5de4rZemZYyDlFTKilskcMQ7cZ+3N7+FW7aBesDQg+DpveBIib
+	 o1L97tBcJRKjFzbGT8k/hoqH6750rfqGXbXDvzpc=
+Date: Thu, 25 Jan 2024 18:14:47 -0800
 To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,nicolas@fjasle.eu,naveen.n.rao@linux.ibm.com,mpe@ellerman.id.au,mingo@redhat.com,masahiroy@kernel.org,mark.rutland@arm.com,linux@armlinux.org.uk,keescook@chromium.org,dave.hansen@linux.intel.com,conor@kernel.org,catalin.marinas@arm.com,bp@alien8.de,ardb@kernel.org,aou@eecs.berkeley.edu,aneesh.kumar@kernel.org,nathan@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-kconfig-clean-up-tautological-llvm-version-checks.patch added to mm-nonmm-unstable branch
-Message-Id: <20240126021446.21AC5C433F1@smtp.kernel.org>
+Subject: + arm-remove-thumb2-__builtin_thread_pointer-workaround-for-clang.patch added to mm-nonmm-unstable branch
+Message-Id: <20240126021449.A08BAC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64: Kconfig: clean up tautological LLVM version checks
+     Subject: ARM: remove Thumb2 __builtin_thread_pointer workaround for Clang
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     arm64-kconfig-clean-up-tautological-llvm-version-checks.patch
+     arm-remove-thumb2-__builtin_thread_pointer-workaround-for-clang.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-kconfig-clean-up-tautological-llvm-version-checks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm-remove-thumb2-__builtin_thread_pointer-workaround-for-clang.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Nathan Chancellor <nathan@kernel.org>
-Subject: arm64: Kconfig: clean up tautological LLVM version checks
-Date: Thu, 25 Jan 2024 15:55:11 -0700
+Subject: ARM: remove Thumb2 __builtin_thread_pointer workaround for Clang
+Date: Thu, 25 Jan 2024 15:55:10 -0700
 
 Now that the minimum supported version of LLVM for building the kernel has
-been bumped to 13.0.1, several conditions become tautologies, as they will
-always be true because the build will fail during the configuration stage
-for older LLVM versions.  Drop them, as they are unnecessary.
+been bumped to 13.0.1, the conditional expression added to get_current()
+by commit c1e42efacb9b ("ARM: 9151/1: Thumb2: avoid
+__builtin_thread_pointer() on Clang") is always true, as the build will
+fail during the configuration stage for older LLVM versions.  Remove it,
+effectively reverting the aforementioned change.
 
-Link: https://lkml.kernel.org/r/20240125-bump-min-llvm-ver-to-13-0-1-v1-5-f5ff9bda41c5@kernel.org
+Link: https://lkml.kernel.org/r/20240125-bump-min-llvm-ver-to-13-0-1-v1-4-f5ff9bda41c5@kernel.org
 Signed-off-by: Nathan Chancellor <nathan@kernel.org>
 Reviewed-by: Kees Cook <keescook@chromium.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
@@ -92,37 +94,31 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ arch/arm/include/asm/current.h |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
---- a/arch/arm64/Kconfig~arm64-kconfig-clean-up-tautological-llvm-version-checks
-+++ a/arch/arm64/Kconfig
-@@ -384,7 +384,7 @@ config BUILTIN_RETURN_ADDRESS_STRIPS_PAC
- 	bool
- 	# Clang's __builtin_return_adddress() strips the PAC since 12.0.0
- 	# https://github.com/llvm/llvm-project/commit/2a96f47c5ffca84cd774ad402cacd137f4bf45e2
--	default y if CC_IS_CLANG && (CLANG_VERSION >= 120000)
-+	default y if CC_IS_CLANG
- 	# GCC's __builtin_return_address() strips the PAC since 11.1.0,
- 	# and this was backported to 10.2.0, 9.4.0, 8.5.0, but not earlier
- 	# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=94891
-@@ -1388,7 +1388,6 @@ choice
+--- a/arch/arm/include/asm/current.h~arm-remove-thumb2-__builtin_thread_pointer-workaround-for-clang
++++ a/arch/arm/include/asm/current.h
+@@ -18,18 +18,12 @@ static __always_inline __attribute_const
+ {
+ 	struct task_struct *cur;
  
- config CPU_BIG_ENDIAN
- 	bool "Build big-endian kernel"
--	depends on !LD_IS_LLD || LLD_VERSION >= 130000
- 	# https://github.com/llvm/llvm-project/commit/1379b150991f70a5782e9a143c2ba5308da1161c
- 	depends on AS_IS_GNU || AS_VERSION >= 150000
- 	help
-@@ -2019,8 +2018,6 @@ config ARM64_BTI_KERNEL
- 	depends on !CC_IS_GCC || GCC_VERSION >= 100100
- 	# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=106671
- 	depends on !CC_IS_GCC
--	# https://github.com/llvm/llvm-project/commit/a88c722e687e6780dcd6a58718350dc76fcc4cc9
--	depends on !CC_IS_CLANG || CLANG_VERSION >= 120000
- 	depends on (!FUNCTION_GRAPH_TRACER || DYNAMIC_FTRACE_WITH_ARGS)
- 	help
- 	  Build the kernel with Branch Target Identification annotations
+-#if __has_builtin(__builtin_thread_pointer) && \
+-    defined(CONFIG_CURRENT_POINTER_IN_TPIDRURO) && \
+-    !(defined(CONFIG_THUMB2_KERNEL) && \
+-      defined(CONFIG_CC_IS_CLANG) && CONFIG_CLANG_VERSION < 130001)
++#if __has_builtin(__builtin_thread_pointer) && defined(CONFIG_CURRENT_POINTER_IN_TPIDRURO)
+ 	/*
+ 	 * Use the __builtin helper when available - this results in better
+ 	 * code, especially when using GCC in combination with the per-task
+ 	 * stack protector, as the compiler will recognize that it needs to
+ 	 * load the TLS register only once in every function.
+-	 *
+-	 * Clang < 13.0.1 gets this wrong for Thumb2 builds:
+-	 * https://github.com/ClangBuiltLinux/linux/issues/1485
+ 	 */
+ 	cur = __builtin_thread_pointer();
+ #elif defined(CONFIG_CURRENT_POINTER_IN_TPIDRURO) || defined(CONFIG_SMP)
 _
 
 Patches currently in -mm which might be from nathan@kernel.org are
