@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80AD7125DB
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 07:54:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB74B125DB;
+	Fri, 26 Jan 2024 07:54:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706255689; cv=none; b=ROjl+yLTqSlcMDMPQrPBs/d6u20AESv3xRYf1PoExeGHcL0C4evXdoG/YFUq0gX6qH1lOtulIUbm/jMQ0y0KBP5tuFVx0ocb9LelBh86p+m1YqTR/tCW3xQFeoifo27Sb2/ByXJGReKKam08+hRjkrXybkJ8Qc1nJJ8LIir7Dts=
+	t=1706255693; cv=none; b=ZAYi8gVUaFTpvJQYRO+YPOXSyzAkQJnYxZw/9l/SuNwLmWEyEvvjKgyyBRvKPK9Knl+URUwCPDdTVkBei+NF703f6g4DkSwyTfYg5s7bFvtA7ktfaWmUYkJihAvQj2x5SplTRRZpwr4pKcRnZWz0HhluR4D/wISWz861gMHhMqw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706255689; c=relaxed/simple;
-	bh=aP6nbJ9GFLiezWUfhJywI+wsY/mrh8BHs+NaqLjHpV4=;
-	h=Date:To:From:Subject:Message-Id; b=HuLQh84uVSE65BmQb6B1fzD1OtbdZ2EvzZdsI2F/BzMAUghApChHlhGsBTfLjHNweF0CUYnAf8HgjGm6FWNFYHtbBZLFWHc7con1KH/mtD2oOMAgdENwypDv/B8KIlFVre3u7qxk8NM2zN+EjekAqb4aBp10kzcjV9jalOiywXc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sjS5Zfci; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706255693; c=relaxed/simple;
+	bh=MJSGM7A/KIuGUOsWYbsWQtkX5KkTHNXkKabPAiRps0A=;
+	h=Date:To:From:Subject:Message-Id; b=Lqbt0F2DrXhjlMPPfM4/TksqccUwBNzLBXKXrPoaG8rLH3RZAiEBsQAnqEmZH4fTjbQDfH6i3I8rgM+8t1w4iJvKAjaTjgpZfB8730eZ5DRyqHyrWhXg2athkBohzIfu/RGi+bR7cxFpKkU2VFdz268nduK6T5eY4FwP4rEbkmE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I0BX1JL9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sjS5Zfci"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C9E2C433F1;
-	Fri, 26 Jan 2024 07:54:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I0BX1JL9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 406AFC433C7;
+	Fri, 26 Jan 2024 07:54:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706255689;
-	bh=aP6nbJ9GFLiezWUfhJywI+wsY/mrh8BHs+NaqLjHpV4=;
+	s=korg; t=1706255692;
+	bh=MJSGM7A/KIuGUOsWYbsWQtkX5KkTHNXkKabPAiRps0A=;
 	h=Date:To:From:Subject:From;
-	b=sjS5ZfciQFJZSfHbYwbsvc+AQ4mrMDTNuMHrDdFuka4a3hR88ey+xAfAbeEw7jkJJ
-	 rvZgYgaMNs5M6bUbOUVlItaT9rRw+fUcgCwOfN4epcp2Gv5joIUYj74n7hzUB0Ik64
-	 yNTfhMouGpqlL5IczrJLY3/+wH9HQrnTAa72lW+Q=
-Date: Thu, 25 Jan 2024 23:54:45 -0800
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,tj@kernel.org,shakeelb@google.com,schatzberg.dan@gmail.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=I0BX1JL9/lloGVI0+P9EKSZ4ZMYuN5Dqz2ZXpS/KPJPwo9Gg+vu1R1QmCuCFAIS1B
+	 PgkkVhXbrKKiXADCNkicEZXbxAAvuo0M12qqUs/jBgphdzDUDoHADUGGpb25U3WUfx
+	 zGq44b3yf/enNiTgxhoqjbYzLZ1ZlqPZZm68dsyI=
+Date: Thu, 25 Jan 2024 23:54:49 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,usama.anjum@collabora.com,stable@vger.kernel.org,naoya.horiguchi@nec.com,muchun.song@linux.dev,linmiaohe@huawei.com,jthoughton@google.com,jiaqiyan@google.com,sidhartha.kumar@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-memcontrol-dont-throttle-dying-tasks-on-memoryhigh-v2.patch removed from -mm tree
-Message-Id: <20240126075448.8C9E2C433F1@smtp.kernel.org>
+Subject: [merged mm-stable] fs-hugetlbfs-inodec-mm-memory-failurec-fix-hugetlbfs-hwpoison-handling.patch removed from -mm tree
+Message-Id: <20240126075452.406AFC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,100 +35,78 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-memcontrol-dont-throttle-dying-tasks-on-memoryhigh-v2
+     Subject: fs/hugetlbfs/inode.c: mm/memory-failure.c: fix hugetlbfs hwpoison handling
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-dont-throttle-dying-tasks-on-memoryhigh-v2.patch
+     fs-hugetlbfs-inodec-mm-memory-failurec-fix-hugetlbfs-hwpoison-handling.patch
 
-This patch was dropped because it was folded into mm-memcontrol-dont-throttle-dying-tasks-on-memoryhigh.patch
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm-memcontrol-dont-throttle-dying-tasks-on-memoryhigh-v2
-Date: Thu, 11 Jan 2024 14:28:07 -0500
+From: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Subject: fs/hugetlbfs/inode.c: mm/memory-failure.c: fix hugetlbfs hwpoison handling
+Date: Fri, 12 Jan 2024 10:08:40 -0800
 
-also handle the case when tasks are being killed during the reclaim
+has_extra_refcount() makes the assumption that the page cache adds a ref
+count of 1 and subtracts this in the extra_pins case.  Commit a08c7193e4f1
+(mm/filemap: remove hugetlb special casing in filemap.c) modifies
+__filemap_add_folio() by calling folio_ref_add(folio, nr); for all cases
+(including hugtetlb) where nr is the number of pages in the folio.  We
+should adjust the number of references coming from the page cache by
+subtracing the number of pages rather than 1.
 
-Link: https://lkml.kernel.org/r/20240111192807.GA424308@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Yosry Ahmed <yosryahmed@google.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Dan Schatzberg <schatzberg.dan@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
+In hugetlbfs_read_iter(), folio_test_has_hwpoisoned() is testing the wrong
+flag as, in the hugetlb case, memory-failure code calls
+folio_test_set_hwpoison() to indicate poison.  folio_test_hwpoison() is
+the correct function to test for that flag.
+
+After these fixes, the hugetlb hwpoison read selftest passes all cases.
+
+Link: https://lkml.kernel.org/r/20240112180840.367006-1-sidhartha.kumar@oracle.com
+Fixes: a08c7193e4f1 ("mm/filemap: remove hugetlb special casing in filemap.c")
+Signed-off-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Closes: https://lore.kernel.org/linux-mm/20230713001833.3778937-1-jiaqiyan@google.com/T/#m8e1469119e5b831bbd05d495f96b842e4a1c5519
+Reported-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Tested-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Acked-by: Miaohe Lin <linmiaohe@huawei.com>
+Acked-by: Muchun Song <muchun.song@linux.dev>
+Cc: James Houghton <jthoughton@google.com>
+Cc: Jiaqi Yan <jiaqiyan@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: <stable@vger.kernel.org>	[6.7+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   37 ++++++++++++++++++++-----------------
- 1 file changed, 20 insertions(+), 17 deletions(-)
+ fs/hugetlbfs/inode.c |    2 +-
+ mm/memory-failure.c  |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-dont-throttle-dying-tasks-on-memoryhigh-v2
-+++ a/mm/memcontrol.c
-@@ -2624,8 +2624,8 @@ static unsigned long calculate_high_dela
+--- a/fs/hugetlbfs/inode.c~fs-hugetlbfs-inodec-mm-memory-failurec-fix-hugetlbfs-hwpoison-handling
++++ a/fs/hugetlbfs/inode.c
+@@ -340,7 +340,7 @@ static ssize_t hugetlbfs_read_iter(struc
+ 		} else {
+ 			folio_unlock(folio);
  
- /*
-  * Reclaims memory over the high limit. Called directly from
-- * try_charge() when possible, but also scheduled to be called from
-- * the userland return path where reclaim is always able to block.
-+ * try_charge() (context permitting), as well as from the userland
-+ * return path where reclaim is always able to block.
-  */
- void mem_cgroup_handle_over_high(gfp_t gfp_mask)
- {
-@@ -2645,6 +2645,17 @@ void mem_cgroup_handle_over_high(gfp_t g
+-			if (!folio_test_has_hwpoisoned(folio))
++			if (!folio_test_hwpoison(folio))
+ 				want = nr;
+ 			else {
+ 				/*
+--- a/mm/memory-failure.c~fs-hugetlbfs-inodec-mm-memory-failurec-fix-hugetlbfs-hwpoison-handling
++++ a/mm/memory-failure.c
+@@ -982,7 +982,7 @@ static bool has_extra_refcount(struct pa
+ 	int count = page_count(p) - 1;
  
- retry_reclaim:
- 	/*
-+	 * Bail if the task is already exiting. Unlike memory.max,
-+	 * memory.high enforcement isn't as strict, and there is no
-+	 * OOM killer involved, which means the excess could already
-+	 * be much bigger (and still growing) than it could for
-+	 * memory.max; the dying task could get stuck in fruitless
-+	 * reclaim for a long time, which isn't desirable.
-+	 */
-+	if (task_is_dying())
-+		goto out;
-+
-+	/*
- 	 * The allocating task should reclaim at least the batch size, but for
- 	 * subsequent retries we only want to do what's necessary to prevent oom
- 	 * or breaching resource isolation.
-@@ -2892,24 +2903,16 @@ done_restock:
- 	} while ((memcg = parent_mem_cgroup(memcg)));
+ 	if (extra_pins)
+-		count -= 1;
++		count -= folio_nr_pages(page_folio(p));
  
- 	/*
--	 * Reclaim is scheduled for the userland return path already,
--	 * but also attempt synchronous reclaim to avoid excessive
--	 * overrun while the task is still inside the kernel. If this
--	 * is successful, the return path will see it when it rechecks
--	 * the overage, and simply bail out.
--	 *
--	 * Skip if the task is already dying, though. Unlike
--	 * memory.max, memory.high enforcement isn't as strict, and
--	 * there is no OOM killer involved, which means the excess
--	 * could already be much bigger (and still growing) than it
--	 * could for memory.max; the dying task could get stuck in
--	 * fruitless reclaim for a long time, which isn't desirable.
-+	 * Reclaim is set up above to be called from the userland
-+	 * return path. But also attempt synchronous reclaim to avoid
-+	 * excessive overrun while the task is still inside the
-+	 * kernel. If this is successful, the return path will see it
-+	 * when it rechecks the overage and simply bail out.
- 	 */
- 	if (current->memcg_nr_pages_over_high > MEMCG_CHARGE_BATCH &&
--	    !(current->flags & PF_MEMALLOC) && !task_is_dying() &&
--	    gfpflags_allow_blocking(gfp_mask)) {
-+	    !(current->flags & PF_MEMALLOC) &&
-+	    gfpflags_allow_blocking(gfp_mask))
- 		mem_cgroup_handle_over_high(gfp_mask);
--	}
- 	return 0;
- }
- 
+ 	if (count > 0) {
+ 		pr_err("%#lx: %s still referenced by %d users\n",
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from sidhartha.kumar@oracle.com are
 
-mm-memcontrol-dont-throttle-dying-tasks-on-memoryhigh.patch
+maple_tree-fix-comment-describing-mas_node_count_gfp.patch
 
