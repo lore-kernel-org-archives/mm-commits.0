@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E638D310;
-	Fri, 26 Jan 2024 07:55:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E42ED310;
+	Fri, 26 Jan 2024 07:55:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706255756; cv=none; b=Iec8/TdYq4a7VxklsGrsZ2r904R7qejk05nT+9KFCdLKa1mfqs/rOX2I//80FJRtpuj71MsZlZni/JwvzsSLt0P6+ikRT3PDrW1Kdkt6WB1AJA+m3mqtr3QFRkmE6nsMysiMbW12RsDUHfcJz3MhETWrqici3bt7NtBiDMIlR5o=
+	t=1706255759; cv=none; b=Gp+bQUt72UcWgZUpfnmKGxIRSZ1hdQrRoehUbHvqumjuwgTVx5DbK4ZfycfbQlMHmRZhhIt7KSSv/E7Z8FMuoJZpJB65ojhaMO5TLgn4ftX2vLaYsF2IcZVUGdwH7in6vRJ4LyoxIVNaWNpKIEyn4Z56IR4SulVKvwF82dOtqiw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706255756; c=relaxed/simple;
-	bh=BjerNLWjsFh3mk3AkNv8qY6cZa/FzwsAh7PiMLhXKBE=;
-	h=Date:To:From:Subject:Message-Id; b=q+mVAeyq33bATCU87dKObn9+nfEq28fqrguz7RhbLffphDZxDIbV3G/s9Lvk/AnBibX4FPhUoXvpQBKSluJFu1H9rpNKs77wgDcVuM+gX9sBXcPNw9cjj51ux2Dq0JIR+0GVaBicjbjujhG89K3N4nhZU6MyorOESXs6KIeCuV8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=px5es3rZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706255759; c=relaxed/simple;
+	bh=ab0TfX9VfkqUFBpanhBvwDtifM6uG0wHJ0AydN4xk+0=;
+	h=Date:To:From:Subject:Message-Id; b=RaM5+3TUX/+NWOHuWVFJk61qaMmIODpwQUbBGBoMHuEwi1JJT4/zmUKc5mK0VPeXQlKAuwsiRV7Dko582bRkve2zc82PrniPSlXE/AfbNJ+QEHspznyE8HHU+bjYCOZeuaKAMnxsQbV0ibuPxrjOpBntO6qMIFBTBlPgCvhFj2k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mu2Ivzfc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="px5es3rZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 311C0C433F1;
-	Fri, 26 Jan 2024 07:55:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mu2Ivzfc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89F6FC433F1;
+	Fri, 26 Jan 2024 07:55:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706255755;
-	bh=BjerNLWjsFh3mk3AkNv8qY6cZa/FzwsAh7PiMLhXKBE=;
+	s=korg; t=1706255759;
+	bh=ab0TfX9VfkqUFBpanhBvwDtifM6uG0wHJ0AydN4xk+0=;
 	h=Date:To:From:Subject:From;
-	b=px5es3rZbqdiq+uiqobql6LnYQhCzey9P7H0om9y52nhA/d1sx59UyJiv7wm1PoHU
-	 XYe3A1MvDVbw+GL+BddWWcdeGJe++/5CjeI4EfT8MQyOyDzYyYh3ECTLg7PrcX8U23
-	 yj7V3v17lGrRIppJMxwS53neywWZl1fliG3yFOaU=
-Date: Thu, 25 Jan 2024 23:55:52 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,peterx@redhat.com,ngeoffray@google.com,kaleshsingh@google.com,jannh@google.com,david@redhat.com,bgeffon@google.com,axelrasmussen@google.com,aarcange@redhat.com,lokeshgidra@google.com,akpm@linux-foundation.org
+	b=mu2Ivzfc4wiTR0ofPTqV+R1QhDeCtYONOMmFHKTpI+CtGtqk5YUCSaMYqSBMe8N0X
+	 6znWuQsNKAzalBOD7HVQCAASthq7Pi2ulga5G9M4bu0kx++QVTewCxvZ8oLSuhFyVN
+	 E4g9kTlIUBu8Lev/q+3U145MTdy/8xf1hX0i/sHQ=
+Date: Thu, 25 Jan 2024 23:55:56 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,raquini@redhat.com,adam@wowsignal.io,audra@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] userfaultfd-fix-mmap_changing-checking-in-mfill_atomic_hugetlb.patch removed from -mm tree
-Message-Id: <20240126075555.311C0C433F1@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-update-va_high_addr_switchsh-to-check-cpu-for-la57-flag.patch removed from -mm tree
+Message-Id: <20240126075558.89F6FC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,92 +35,74 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: userfaultfd: fix mmap_changing checking in mfill_atomic_hugetlb
+     Subject: selftests/mm: Update va_high_addr_switch.sh to check CPU for la57 flag
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-fix-mmap_changing-checking-in-mfill_atomic_hugetlb.patch
+     selftests-mm-update-va_high_addr_switchsh-to-check-cpu-for-la57-flag.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lokesh Gidra <lokeshgidra@google.com>
-Subject: userfaultfd: fix mmap_changing checking in mfill_atomic_hugetlb
-Date: Wed, 17 Jan 2024 14:37:29 -0800
+From: Audra Mitchell <audra@redhat.com>
+Subject: selftests/mm: Update va_high_addr_switch.sh to check CPU for la57 flag
+Date: Fri, 19 Jan 2024 15:58:01 -0500
 
-In mfill_atomic_hugetlb(), mmap_changing isn't being checked
-again if we drop mmap_lock and reacquire it. When the lock is not held,
-mmap_changing could have been incremented. This is also inconsistent
-with the behavior in mfill_atomic().
+In order for the page table level 5 to be in use, the CPU must have the
+setting enabled in addition to the CONFIG option. Check for the flag to be
+set to avoid false test failures on systems that do not have this cpu flag
+set.
 
-Link: https://lkml.kernel.org/r/20240117223729.1444522-1-lokeshgidra@google.com
-Fixes: df2cc96e77011 ("userfaultfd: prevent non-cooperative events vs mcopy_atomic races") 
-Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nicolas Geoffray <ngeoffray@google.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+The test does a series of mmap calls including three using the
+MAP_FIXED flag and specifying an address that is 1<<47 or 1<<48.  These
+addresses are only available if you are using level 5 page tables,
+which requires both the CPU to have the capabiltiy (la57 flag) and the
+kernel to be configured.  Currently the test only checks for the kernel
+configuration option, so this test can still report a false positive. 
+Here are the three failing lines:
+
+$ ./va_high_addr_switch | grep FAILED
+mmap(ADDR_SWITCH_HINT, 2 * PAGE_SIZE, MAP_FIXED): 0xffffffffffffffff - FAILED
+mmap(HIGH_ADDR, MAP_FIXED): 0xffffffffffffffff - FAILED
+mmap(ADDR_SWITCH_HINT, 2 * PAGE_SIZE, MAP_FIXED): 0xffffffffffffffff - FAILED
+
+I thought (for about a second) refactoring the test so that these three
+mmap calls will only be run on systems with the level 5 page tables
+available, but the whole point of the test is to check the level 5
+feature...
+
+Link: https://lkml.kernel.org/r/20240119205801.62769-1-audra@redhat.com
+Fixes: 4f2930c6718a ("selftests/vm: only run 128TBswitch with 5-level paging")
+Signed-off-by: Audra Mitchell <audra@redhat.com>
+Cc: Rafael Aquini <raquini@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Adam Sindelar <adam@wowsignal.io>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/va_high_addr_switch.sh |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/userfaultfd.c~userfaultfd-fix-mmap_changing-checking-in-mfill_atomic_hugetlb
-+++ a/mm/userfaultfd.c
-@@ -357,6 +357,7 @@ static __always_inline ssize_t mfill_ato
- 					      unsigned long dst_start,
- 					      unsigned long src_start,
- 					      unsigned long len,
-+					      atomic_t *mmap_changing,
- 					      uffd_flags_t flags)
- {
- 	struct mm_struct *dst_mm = dst_vma->vm_mm;
-@@ -472,6 +473,15 @@ retry:
- 				goto out;
- 			}
- 			mmap_read_lock(dst_mm);
-+			/*
-+			 * If memory mappings are changing because of non-cooperative
-+			 * operation (e.g. mremap) running in parallel, bail out and
-+			 * request the user to retry later
-+			 */
-+			if (mmap_changing && atomic_read(mmap_changing)) {
-+				err = -EAGAIN;
-+				break;
-+			}
+--- a/tools/testing/selftests/mm/va_high_addr_switch.sh~selftests-mm-update-va_high_addr_switchsh-to-check-cpu-for-la57-flag
++++ a/tools/testing/selftests/mm/va_high_addr_switch.sh
+@@ -29,9 +29,15 @@ check_supported_x86_64()
+ 	# See man 1 gzip under '-f'.
+ 	local pg_table_levels=$(gzip -dcfq "${config}" | grep PGTABLE_LEVELS | cut -d'=' -f 2)
  
- 			dst_vma = NULL;
- 			goto retry;
-@@ -506,6 +516,7 @@ extern ssize_t mfill_atomic_hugetlb(stru
- 				    unsigned long dst_start,
- 				    unsigned long src_start,
- 				    unsigned long len,
-+				    atomic_t *mmap_changing,
- 				    uffd_flags_t flags);
- #endif /* CONFIG_HUGETLB_PAGE */
++	local cpu_supports_pl5=$(awk '/^flags/ {if (/la57/) {print 0;}
++		else {print 1}; exit}' /proc/cpuinfo 2>/dev/null)
++
+ 	if [[ "${pg_table_levels}" -lt 5 ]]; then
+ 		echo "$0: PGTABLE_LEVELS=${pg_table_levels}, must be >= 5 to run this test"
+ 		exit $ksft_skip
++	elif [[ "${cpu_supports_pl5}" -ne 0 ]]; then
++		echo "$0: CPU does not have the necessary la57 flag to support page table level 5"
++		exit $ksft_skip
+ 	fi
+ }
  
-@@ -622,8 +633,8 @@ retry:
- 	 * If this is a HUGETLB vma, pass off to appropriate routine
- 	 */
- 	if (is_vm_hugetlb_page(dst_vma))
--		return  mfill_atomic_hugetlb(dst_vma, dst_start,
--					     src_start, len, flags);
-+		return  mfill_atomic_hugetlb(dst_vma, dst_start, src_start,
-+					     len, mmap_changing, flags);
- 
- 	if (!vma_is_anonymous(dst_vma) && !vma_is_shmem(dst_vma))
- 		goto out_unlock;
 _
 
-Patches currently in -mm which might be from lokeshgidra@google.com are
+Patches currently in -mm which might be from audra@redhat.com are
 
-userfaultfd-fix-return-error-if-mmap_changing-is-non-zero-in-move-ioctl.patch
 
