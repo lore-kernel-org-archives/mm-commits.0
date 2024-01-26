@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 873587465
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 02:14:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A2111C13
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 02:14:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706235276; cv=none; b=Yl5Ebdzxncwna1zOoK2D7Qs0H4L63GzI29hrBprRcOoSktrgJU8sT39wplDXW84svEPnL/wsDbae/a7nOAVLj8qRYGjsA4QpREAiYnILcFmUHGzePX2xkQn8eqcQ5BdFUiyDmhRkg8glRtZo47F6uNwTph8QUYBMpeZOpzNQrzE=
+	t=1706235280; cv=none; b=lz/a7Ei+2jdsQg4mYGVQh/mfJXI2PWPeEx9MGV1UTP+A/8WmnE/Jnxe90wotPsgQJv3pgPhhE3YkW4myA+IVGR6cGfwfhYzJ/RjNkP0Uy/zk1cKe6GSFANRcMsYqwyTNkpX/oZMPC5PZfJ1kADOMRe8OmLRTOoE/62k//v+E6AQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706235276; c=relaxed/simple;
-	bh=8Ho+Mg+alxzVi/cP3v2qrfEPWJ3r8AAhCT+fX1Ysd7s=;
-	h=Date:To:From:Subject:Message-Id; b=uyk3JaoekSSCAWuvPhh9UyQRU//XluwsLrat/6mv35ZqZRBfFfkv6bhvv47DnYVLoyLb/X2Wlszm3AaYDtk/dgdsSlIL9p8HnAnqTFD7yWk4eNH0S8/2Qu/HePMOwsTiFE8XcDsfleuym/BcHMdbVoclB1tuD3fV00D+rF9l6ic=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PEO1+2k4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706235280; c=relaxed/simple;
+	bh=tB9Wxk+j6V1r3Po0PYO2Eore4md3Zx3l9Sg4riy/VoQ=;
+	h=Date:To:From:Subject:Message-Id; b=KDUcC9iOww1AgQq88qepUOo7MH0jfd2m0aJKHHFPpESHc7m/sMJLe/rx1ghEmT3MOD6U6sn9AqtmxfWR5siSXz2I1Ry8gGa3vE9jMiyHWQAxsf/c+rf98GvgjomeWLGCdwyh8kihzrw5G+MNN1R72tKvPLE8+B5bRDKsZgDRBPg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nOcL8exc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PEO1+2k4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45B6AC433F1;
-	Fri, 26 Jan 2024 02:14:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nOcL8exc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BA09C433C7;
+	Fri, 26 Jan 2024 02:14:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706235275;
-	bh=8Ho+Mg+alxzVi/cP3v2qrfEPWJ3r8AAhCT+fX1Ysd7s=;
+	s=korg; t=1706235279;
+	bh=tB9Wxk+j6V1r3Po0PYO2Eore4md3Zx3l9Sg4riy/VoQ=;
 	h=Date:To:From:Subject:From;
-	b=PEO1+2k4TvvtaDppXV7EMiBRzygFCWOyn8LNilb0Qr0iOPckYuWEsKFXlD2dRa6Uj
-	 OXM0Qhfqr4q6cYLyFIVV15S9UJc3oAQm+CAx6y5a6Sai9b3IV5mPmhPJaxkNyDisf5
-	 yOD0WYV8EHJYY7Cf0SbrObFvMeEuWn+U+d9v2VEY=
-Date: Thu, 25 Jan 2024 18:14:32 -0800
+	b=nOcL8excV42Z/B25M9iwkzRE495pFN65Q+RtTe53gk1X6k1wSau6oPfoN85GSqrLY
+	 vJIuqoTqFGlds5loc6KNja5tO2OnTzDa8+S7GzgBMgIZqg4krK+pkInybeaCfdxoHB
+	 f1JmoCRXklpomrzQiOK4D6D79e04OY1PNv47Tv60=
+Date: Thu, 25 Jan 2024 18:14:36 -0800
 To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,nicolas@fjasle.eu,naveen.n.rao@linux.ibm.com,mpe@ellerman.id.au,mingo@redhat.com,masahiroy@kernel.org,mark.rutland@arm.com,linux@armlinux.org.uk,keescook@chromium.org,dave.hansen@linux.intel.com,conor@kernel.org,catalin.marinas@arm.com,bp@alien8.de,ardb@kernel.org,aou@eecs.berkeley.edu,aneesh.kumar@kernel.org,nathan@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kbuild-raise-the-minimum-supported-version-of-llvm-to-1301.patch added to mm-nonmm-unstable branch
-Message-Id: <20240126021435.45B6AC433F1@smtp.kernel.org>
+Subject: + x86-drop-stack-alignment-plugin-opt.patch added to mm-nonmm-unstable branch
+Message-Id: <20240126021439.0BA09C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kbuild: raise the minimum supported version of LLVM to 13.0.1
+     Subject: x86: drop stack-alignment plugin opt
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kbuild-raise-the-minimum-supported-version-of-llvm-to-1301.patch
+     x86-drop-stack-alignment-plugin-opt.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kbuild-raise-the-minimum-supported-version-of-llvm-to-1301.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-drop-stack-alignment-plugin-opt.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,123 +59,18 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Nathan Chancellor <nathan@kernel.org>
-Subject: kbuild: raise the minimum supported version of LLVM to 13.0.1
-Date: Thu, 25 Jan 2024 15:55:07 -0700
+Subject: x86: drop stack-alignment plugin opt
+Date: Thu, 25 Jan 2024 15:55:09 -0700
 
-Patch series "Bump the minimum supported version of LLVM to 13.0.1".
+Now that the minimum supported version of LLVM for building the kernel has
+been bumped to 13.0.1, the inner ifeq statement is always false, as the
+build will fail during the configuration stage for older LLVM versions.
 
-This series bumps the minimum supported version of LLVM for building the
-kernel to 13.0.1.  The first patch does the bump and all subsequent
-patches clean up all the various workarounds and checks for earlier
-versions.
+This effectively reverts part of commit b33fff07e3e3 ("x86, build: allow
+LTO to be selected") and its follow up fix, commit 2398ce80152a ("x86,
+lto: Pass -stack-alignment only on LLD < 13.0.0").
 
-Quoting the first patch's commit message for those that were only on CC
-for the clean ups:
-
-  When __builtin_mul_overflow() has arguments that differ in terms of
-  signedness and width, LLVM may generate a libcall to __muloti4 because
-  it performs the checks in terms of 65-bit multiplication. This issue
-  becomes harder to hit (but still possible) after LLVM 12.0.0, which
-  includes a special case for matching widths but different signs.
-
-  To gain access to this special case, which the kernel can take advantage
-  of when calls to __muloti4 appear, bump the minimum supported version of
-  LLVM for building the kernel to 13.0.1. 13.0.1 was chosen because there
-  is minimal impact to distribution support while allowing a few more
-  workarounds to be dropped in the kernel source than if 12.0.0 were
-  chosen. Looking at container images of up to date distribution versions:
-
-    archlinux:latest              clang version 16.0.6
-    debian:oldoldstable-slim      clang version 7.0.1-8+deb10u2 (tags/RELEASE_701/final)
-    debian:oldstable-slim         Debian clang version 11.0.1-2
-    debian:stable-slim            Debian clang version 14.0.6
-    debian:testing-slim           Debian clang version 16.0.6 (19)
-    debian:unstable-slim          Debian clang version 16.0.6 (19)
-    fedora:38                     clang version 16.0.6 (Fedora 16.0.6-3.fc38)
-    fedora:latest                 clang version 17.0.6 (Fedora 17.0.6-1.fc39)
-    fedora:rawhide                clang version 17.0.6 (Fedora 17.0.6-1.fc40)
-    opensuse/leap:latest          clang version 15.0.7
-    opensuse/tumbleweed:latest    clang version 17.0.6
-    ubuntu:focal                  clang version 10.0.0-4ubuntu1
-    ubuntu:latest                 Ubuntu clang version 14.0.0-1ubuntu1.1
-    ubuntu:rolling                Ubuntu clang version 16.0.6 (15)
-    ubuntu:devel                  Ubuntu clang version 17.0.6 (3)
-
-  The only distribution that gets left behind is Debian Bullseye, as the
-  default version is 11.0.1; other distributions either have a newer
-  version than 13.0.1 or one older than the current minimum of 11.0.0.
-  Debian has easy access to more recent LLVM versions through
-  apt.llvm.org, so this is not as much of a concern. There are also the
-  kernel.org LLVM toolchains, which should work with distributions with
-  glibc 2.28 and newer.
-
-  Another benefit of slimming up the number of supported versions of LLVM
-  for building the kernel is reducing the build capacity needed to support
-  a matrix that builds with each supported version, which allows a matrix
-  to reallocate the freed up build capacity towards something else, such
-  as more configuration combinations.
-
-This passes my build matrix with all supported versions.
-
-This is based on Andrew's mm-nonmm-unstable to avoid trivial conflicts
-with my series to update the LLVM links across the repository [1] but I
-can easily rebase it to linux-kbuild if Masahiro would rather these
-patches go through there (and defer the conflict resolution to the merge
-window).
-
-[1]: https://lore.kernel.org/20240109-update-llvm-links-v1-0-eb09b59db071@kernel.org/
-
-
-This patch (of 11):
-
-When __builtin_mul_overflow() has arguments that differ in terms of
-signedness and width, LLVM may generate a libcall to __muloti4 because it
-performs the checks in terms of 65-bit multiplication.  This issue becomes
-harder to hit (but still possible) after LLVM 12.0.0, which includes a
-special case for matching widths but different signs.
-
-To gain access to this special case, which the kernel can take advantage
-of when calls to __muloti4 appear, bump the minimum supported version of
-LLVM for building the kernel to 13.0.1.  13.0.1 was chosen because there
-is minimal impact to distribution support while allowing a few more
-workarounds to be dropped in the kernel source than if 12.0.0 were chosen.
-Looking at container images of up to date distribution versions:
-
-  archlinux:latest              clang version 16.0.6
-  debian:oldoldstable-slim      clang version 7.0.1-8+deb10u2 (tags/RELEASE_701/final)
-  debian:oldstable-slim         Debian clang version 11.0.1-2
-  debian:stable-slim            Debian clang version 14.0.6
-  debian:testing-slim           Debian clang version 16.0.6 (19)
-  debian:unstable-slim          Debian clang version 16.0.6 (19)
-  fedora:38                     clang version 16.0.6 (Fedora 16.0.6-3.fc38)
-  fedora:latest                 clang version 17.0.6 (Fedora 17.0.6-1.fc39)
-  fedora:rawhide                clang version 17.0.6 (Fedora 17.0.6-1.fc40)
-  opensuse/leap:latest          clang version 15.0.7
-  opensuse/tumbleweed:latest    clang version 17.0.6
-  ubuntu:focal                  clang version 10.0.0-4ubuntu1
-  ubuntu:latest                 Ubuntu clang version 14.0.0-1ubuntu1.1
-  ubuntu:rolling                Ubuntu clang version 16.0.6 (15)
-  ubuntu:devel                  Ubuntu clang version 17.0.6 (3)
-
-The only distribution that gets left behind is Debian Bullseye, as the
-default version is 11.0.1; other distributions either have a newer version
-than 13.0.1 or one older than the current minimum of 11.0.0.  Debian has
-easy access to more recent LLVM versions through apt.llvm.org, so this is
-not as much of a concern.  There are also the kernel.org LLVM toolchains,
-which should work with distributions with glibc 2.28 and newer.
-
-Another benefit of slimming up the number of supported versions of LLVM
-for building the kernel is reducing the build capacity needed to support a
-matrix that builds with each supported version, which allows a matrix to
-reallocate the freed up build capacity towards something else, such as
-more configuration combinations.
-
-Link: https://lkml.kernel.org/r/20240125-bump-min-llvm-ver-to-13-0-1-v1-0-f5ff9bda41c5@kernel.org
-Closes: https://github.com/ClangBuiltLinux/linux/issues/1975
-Link: https://github.com/llvm/llvm-project/issues/38013
-Link: https://github.com/llvm/llvm-project/commit/3203143f1356a4e4e3ada231156fc6da6e1a9f9d
-Link: https://mirrors.edge.kernel.org/pub/tools/llvm/
-Link: https://lkml.kernel.org/r/20240125-bump-min-llvm-ver-to-13-0-1-v1-1-f5ff9bda41c5@kernel.org
+Link: https://lkml.kernel.org/r/20240125-bump-min-llvm-ver-to-13-0-1-v1-3-f5ff9bda41c5@kernel.org
 Signed-off-by: Nathan Chancellor <nathan@kernel.org>
 Reviewed-by: Kees Cook <keescook@chromium.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
@@ -189,7 +84,6 @@ Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Masahiro Yamada <masahiroy@kernel.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Nicolas Schier <nicolas@fjasle.eu>
@@ -201,32 +95,24 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/process/changes.rst |    2 +-
- scripts/min-tool-version.sh       |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/Makefile |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/Documentation/process/changes.rst~kbuild-raise-the-minimum-supported-version-of-llvm-to-1301
-+++ a/Documentation/process/changes.rst
-@@ -30,7 +30,7 @@ you probably needn't concern yourself wi
-         Program        Minimal version       Command to check the version
- ====================== ===============  ========================================
- GNU C                  5.1              gcc --version
--Clang/LLVM (optional)  11.0.0           clang --version
-+Clang/LLVM (optional)  13.0.1           clang --version
- Rust (optional)        1.74.1           rustc --version
- bindgen (optional)     0.65.1           bindgen --version
- GNU make               3.82             make --version
---- a/scripts/min-tool-version.sh~kbuild-raise-the-minimum-supported-version-of-llvm-to-1301
-+++ a/scripts/min-tool-version.sh
-@@ -29,7 +29,7 @@ llvm)
- 	elif [ "$SRCARCH" = loongarch ]; then
- 		echo 18.0.0
- 	else
--		echo 11.0.0
-+		echo 13.0.1
- 	fi
- 	;;
- rustc)
+--- a/arch/x86/Makefile~x86-drop-stack-alignment-plugin-opt
++++ a/arch/x86/Makefile
+@@ -217,12 +217,6 @@ endif
+ 
+ KBUILD_LDFLAGS += -m elf_$(UTS_MACHINE)
+ 
+-ifdef CONFIG_LTO_CLANG
+-ifeq ($(call test-lt, $(CONFIG_LLD_VERSION), 130000),y)
+-KBUILD_LDFLAGS	+= -plugin-opt=-stack-alignment=$(if $(CONFIG_X86_32),4,8)
+-endif
+-endif
+-
+ ifdef CONFIG_X86_NEED_RELOCS
+ LDFLAGS_vmlinux := --emit-relocs --discard-none
+ else
 _
 
 Patches currently in -mm which might be from nathan@kernel.org are
