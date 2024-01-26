@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAF38524F
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 02:16:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC90E524F
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 02:16:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706235373; cv=none; b=PI8Sq2r2bSjgvwK2trf2+TPecA3jqHXLxsABwYy1++mgpmauSAwBholm+Te/X5xuHhORHG0VQyCXLFJyIfPKa1y92UIK2ZWrFMQWeeSe90Vh6Q840gcejoSkg5m+anIxpfy0cP/niZ/uJl0aJEdCneOyHJtudlOFvPCMQ/zn+9c=
+	t=1706235376; cv=none; b=heHGPk+NRvZoW1iJCO3H+popsSuOe8pmhmVUxUb/tTM85fmubBxNjhgQdP8s7ZFHM1yo+Ne7CaPfBcqwBAakg0IUv0jhnz3moJX72frqt4pS935d4DtXQo1zCSwbZBDwq/50es4OFCZcn6/u4uL7brCs055qqfC5Kj0wQpJGCPI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706235373; c=relaxed/simple;
-	bh=6G826au7v8epojiaeK7t/PJSdaOrDX2hyldBpyq3WYk=;
-	h=Date:To:From:Subject:Message-Id; b=HcyCUcSNYOjOwD1+ywcpANhnDpZ9/z3mJ6fSaUrDTqWibhVTYzkW5fKGPjW2uzCkI0Te724pz072wnvyv8ch16hERn+PqmAuQV0aqsl+ODOrfpnQnN4U9ZoNP++BOV70O3AiG3mq6QMxlPguwWm9zKsWaXZWMmNZCWUAm8YJ3ho=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rE0SX4LA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706235376; c=relaxed/simple;
+	bh=sKBP+rxz/jtKqvMy3faKiLJZNz32NEu+8O9CkbugTk8=;
+	h=Date:To:From:Subject:Message-Id; b=U+fiPin9KeDqbFyL6T7lcyr95DyxkyhAd0c8W9+8zC7lY+yMr87HLeTZG2MHCmmdD3Lxd6RhTMWNBKaIYuLPWoH0IQ8KokUPPyRsiKNuVledggmcao+f0w9JbiP1vQumbPBuuTE1jCxbSTvdbbzEBaJ8hEBIT8roqdJzNYxe8ek=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g/k1zVFE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rE0SX4LA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD97DC433F1;
-	Fri, 26 Jan 2024 02:16:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g/k1zVFE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BEE8C43390;
+	Fri, 26 Jan 2024 02:16:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706235373;
-	bh=6G826au7v8epojiaeK7t/PJSdaOrDX2hyldBpyq3WYk=;
+	s=korg; t=1706235376;
+	bh=sKBP+rxz/jtKqvMy3faKiLJZNz32NEu+8O9CkbugTk8=;
 	h=Date:To:From:Subject:From;
-	b=rE0SX4LA0Yjtb9dHRrMFQ50TAo0rmo/X/XrKnmQIe/l5dSSAm3S5nJf3leS9paEfl
-	 +NzIDFWLXkAVyJMzgrFgAdoRhg7H5ut+l/FwKKRf8IpA4Pz9q0BP71pymOfc0maSq6
-	 68TWodPqyzOwEJ7YZFy6jIV4lAZjpx4IEQfns69g=
-Date: Thu, 25 Jan 2024 18:16:10 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,chrisl@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=g/k1zVFEETpearoJ2RpApnar/8Ne5e/1rK2gtbHOf+xy/Zw4xNlBy+0LMrvGvG0g7
+	 AEtjcpbArkyStQtbi3S7SQUKJvedtFt1Us+17Z5smOPNVwjsRVSAkjCUk4rXy3lmMg
+	 sJQfGERM8cEEAMCTEmHGqUMMjx0qRSM+SNCZsmZs=
+Date: Thu, 25 Jan 2024 18:16:13 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,lstoakes@gmail.com,Liam.Howlett@oracle.com,brauner@kernel.org,yajun.deng@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-lru_gen-batch-update-counters-on-againg.patch removed from -mm tree
-Message-Id: <20240126021612.BD97DC433F1@smtp.kernel.org>
+Subject: + mm-mmap-pass-vma-to-vma_merge.patch added to mm-unstable branch
+Message-Id: <20240126021616.3BEE8C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,253 +34,131 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm, lru_gen: batch update counters on aging
-has been removed from the -mm tree.  Its filename was
-     mm-lru_gen-batch-update-counters-on-againg.patch
+The patch titled
+     Subject: mm/mmap: pass vma to vma_merge()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-mmap-pass-vma-to-vma_merge.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-pass-vma-to-vma_merge.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm, lru_gen: batch update counters on aging
-Date: Fri, 12 Jan 2024 02:33:19 +0800
+From: Yajun Deng <yajun.deng@linux.dev>
+Subject: mm/mmap: pass vma to vma_merge()
+Date: Thu, 25 Jan 2024 11:49:21 +0800
 
-Patch series "mm, lru_gen: batch update pages when aging", v2.
+Patch series "mm/mmap: simplify vma_merge()", v2.
 
-From: Kairui Song <kasong@tencent.com>
-Currently when MGLRU ages, it moves the pages one by one and updates mm
-counter page by page, which is correct but the overhead can be optimized
-by batching these operations.
-
-In previous series I only test with memtier which didn't show a good
-enough improment.  Acutally in-mem fio benifits the most from patch 3:
-
-Ramdisk fio test in a 4G memcg on a EPYC 7K62 with:
-
-  fio -name=mglru --numjobs=16 --directory=/mnt --size=960m \
-    --buffered=1 --ioengine=io_uring --iodepth=128 \
-    --iodepth_batch_submit=32 --iodepth_batch_complete=32 \
-    --rw=randread --random_distribution=zipf:0.5 --norandommap \
-    --time_based --ramp_time=1m --runtime=5m --group_reporting
-
-Before this series:
-bw (  MiB/s): min= 7644, max= 9293, per=100.00%, avg=8777.77, stdev=16.59, samples=9568
-iops        : min=1956954, max=2379053, avg=2247108.51, stdev=4247.22, samples=9568
-
-After this series (+7.5%):
-bw (  MiB/s): min= 8462, max= 9902, per=100.00%, avg=9444.77, stdev=16.43, samples=9568
-iops        : min=2166433, max=2535135, avg=2417858.23, stdev=4205.15, samples=9568
-
-However it's highly related to the actual timing and use case.
-
-Besides, batch moving also has a good effect on LRU ordering.  Currently
-when MGLRU ages, it walks the LRU backward, and the protected pages are
-moved to the tail of newer gen one by one, which reverses the order of
-pages in LRU.  Moving them in batches can help keep their order, only in a
-small scope though due to the scan limit of MAX_LRU_BATCH pages.
-
-I noticed a higher performance gain if there are a lot of pages getting
-protected, but hard to reproduce, so instead I tested using a simpler
-benchmark, memtier, also for a more generic result.  The main overhead
-here is not aging but the result is also looking good:
-
-Average result of 18 test runs:
-
-Before:           44017.78 Ops/sec
-After patch 1-3:  44890.50 Ops/sec (+1.8%)
+The vma_merge() has too many parameters, we can pass vma to vma_merge(),
+so that it can save two parameters.  Since the src vma was passed,
+find_vma_intersection() can be removed.
 
 
-This patch (of 3):
+This patch (of 2):
 
-When lru_gen is aging, it will update mm counters page by page, which
-causes a higher overhead if age happens frequently or there are a lot of
-pages in one generation getting moved.  Optimize this by doing the counter
-update in batch.
+These vma_merge() callers will pass mm, anon_vma and file, they all from
+the same vma.  There is no need to pass three parameters at the same time.
 
-Although most __mod_*_state has its own caches the overhead is still
-observable.
+Pass vma instead of mm, anon_vma and file to vma_merge(), so that it can
+save two parameters.
 
-Tested in a 4G memcg on a EPYC 7K62 with:
-
-  memcached -u nobody -m 16384 -s /tmp/memcached.socket \
-    -a 0766 -t 16 -B binary &
-
-  memtier_benchmark -S /tmp/memcached.socket \
-    -P memcache_binary -n allkeys \
-    --key-minimum=1 --key-maximum=16000000 -d 1024 \
-    --ratio=1:0 --key-pattern=P:P -c 2 -t 16 --pipeline 8 -x 6
-
-Average result of 18 test runs:
-
-Before: 44017.78 Ops/sec
-After:  44687.08 Ops/sec (+1.5%)
-
-Link: https://lkml.kernel.org/r/20240111183321.19984-1-ryncsn@gmail.com
-Link: https://lkml.kernel.org/r/20240111183321.19984-2-ryncsn@gmail.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Cc: Chris Li <chrisl@kernel.org>
+Link: https://lkml.kernel.org/r/20240125034922.1004671-1-yajun.deng@linux.dev
+Link: https://lkml.kernel.org/r/20240125034922.1004671-2-yajun.deng@linux.dev
+Signed-off-by: Yajun Deng <yajun.deng@linux.dev>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Yu Zhao <yuzhao@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   64 ++++++++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 55 insertions(+), 9 deletions(-)
+ mm/mmap.c |   27 +++++++++++++--------------
+ 1 file changed, 13 insertions(+), 14 deletions(-)
 
---- a/mm/vmscan.c~mm-lru_gen-batch-update-counters-on-againg
-+++ a/mm/vmscan.c
-@@ -3113,9 +3113,47 @@ static int folio_update_gen(struct folio
- 	return ((old_flags & LRU_GEN_MASK) >> LRU_GEN_PGOFF) - 1;
+--- a/mm/mmap.c~mm-mmap-pass-vma-to-vma_merge
++++ a/mm/mmap.c
+@@ -860,13 +860,15 @@ can_vma_merge_after(struct vm_area_struc
+  *      area is returned, or the function will return NULL
+  */
+ static struct vm_area_struct
+-*vma_merge(struct vma_iterator *vmi, struct mm_struct *mm,
+-	   struct vm_area_struct *prev, unsigned long addr, unsigned long end,
+-	   unsigned long vm_flags, struct anon_vma *anon_vma, struct file *file,
+-	   pgoff_t pgoff, struct mempolicy *policy,
++*vma_merge(struct vma_iterator *vmi, struct vm_area_struct *prev,
++	   struct vm_area_struct *src, unsigned long addr, unsigned long end,
++	   unsigned long vm_flags, pgoff_t pgoff, struct mempolicy *policy,
+ 	   struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
+ 	   struct anon_vma_name *anon_name)
+ {
++	struct mm_struct *mm = src->vm_mm;
++	struct anon_vma *anon_vma = src->anon_vma;
++	struct file *file = src->vm_file;
+ 	struct vm_area_struct *curr, *next, *res;
+ 	struct vm_area_struct *vma, *adjust, *remove, *remove2;
+ 	struct vm_area_struct *anon_dup = NULL;
+@@ -2426,9 +2428,8 @@ struct vm_area_struct *vma_modify(struct
+ 	pgoff_t pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
+ 	struct vm_area_struct *merged;
+ 
+-	merged = vma_merge(vmi, vma->vm_mm, prev, start, end, vm_flags,
+-			   vma->anon_vma, vma->vm_file, pgoff, policy,
+-			   uffd_ctx, anon_name);
++	merged = vma_merge(vmi, prev, vma, start, end, vm_flags,
++			   pgoff, policy, uffd_ctx, anon_name);
+ 	if (merged)
+ 		return merged;
+ 
+@@ -2458,9 +2459,8 @@ static struct vm_area_struct
+ 		   struct vm_area_struct *vma, unsigned long start,
+ 		   unsigned long end, pgoff_t pgoff)
+ {
+-	return vma_merge(vmi, vma->vm_mm, prev, start, end, vma->vm_flags,
+-			 vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma),
+-			 vma->vm_userfaultfd_ctx, anon_vma_name(vma));
++	return vma_merge(vmi, prev, vma, start, end, vma->vm_flags, pgoff,
++			 vma_policy(vma), vma->vm_userfaultfd_ctx, anon_vma_name(vma));
  }
  
-+/*
-+ * Update LRU gen in batch for each lru_gen LRU list. The batch is limited to
-+ * each gen / type / zone level LRU. Batch is applied after finished or aborted
-+ * scanning one LRU list.
-+ */
-+struct gen_update_batch {
-+	int delta[MAX_NR_GENS];
-+};
-+
-+static void lru_gen_update_batch(struct lruvec *lruvec, int type, int zone,
-+				 struct gen_update_batch *batch)
-+{
-+	int gen;
-+	int promoted = 0;
-+	struct lru_gen_folio *lrugen = &lruvec->lrugen;
-+	enum lru_list lru = type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON;
-+
-+	for (gen = 0; gen < MAX_NR_GENS; gen++) {
-+		int delta = batch->delta[gen];
-+
-+		if (!delta)
-+			continue;
-+
-+		WRITE_ONCE(lrugen->nr_pages[gen][type][zone],
-+			   lrugen->nr_pages[gen][type][zone] + delta);
-+
-+		if (lru_gen_is_active(lruvec, gen))
-+			promoted += delta;
-+	}
-+
-+	if (promoted) {
-+		__update_lru_size(lruvec, lru, zone, -promoted);
-+		__update_lru_size(lruvec, lru + LRU_ACTIVE, zone, promoted);
-+	}
-+}
-+
- /* protect pages accessed multiple times through file descriptors */
--static int folio_inc_gen(struct lruvec *lruvec, struct folio *folio, bool reclaiming)
-+static int folio_inc_gen(struct lruvec *lruvec, struct folio *folio,
-+			 bool reclaiming, struct gen_update_batch *batch)
- {
-+	int delta = folio_nr_pages(folio);
- 	int type = folio_is_file_lru(folio);
- 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 	int new_gen, old_gen = lru_gen_from_seq(lrugen->min_seq[type]);
-@@ -3138,7 +3176,8 @@ static int folio_inc_gen(struct lruvec *
- 			new_flags |= BIT(PG_reclaim);
- 	} while (!try_cmpxchg(&folio->flags, &old_flags, new_flags));
+ /*
+@@ -2474,10 +2474,9 @@ struct vm_area_struct *vma_merge_extend(
+ 	pgoff_t pgoff = vma->vm_pgoff + vma_pages(vma);
  
--	lru_gen_update_size(lruvec, folio, old_gen, new_gen);
-+	batch->delta[old_gen] -= delta;
-+	batch->delta[new_gen] += delta;
- 
- 	return new_gen;
+ 	/* vma is specified as prev, so case 1 or 2 will apply. */
+-	return vma_merge(vmi, vma->vm_mm, vma, vma->vm_end, vma->vm_end + delta,
+-			 vma->vm_flags, vma->anon_vma, vma->vm_file, pgoff,
+-			 vma_policy(vma), vma->vm_userfaultfd_ctx,
+-			 anon_vma_name(vma));
++	return vma_merge(vmi, vma, vma, vma->vm_end, vma->vm_end + delta,
++			 vma->vm_flags, pgoff, vma_policy(vma),
++			 vma->vm_userfaultfd_ctx, anon_vma_name(vma));
  }
-@@ -3672,6 +3711,7 @@ static bool inc_min_seq(struct lruvec *l
- {
- 	int zone;
- 	int remaining = MAX_LRU_BATCH;
-+	struct gen_update_batch batch = { };
- 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 	int new_gen, old_gen = lru_gen_from_seq(lrugen->min_seq[type]);
  
-@@ -3690,12 +3730,15 @@ static bool inc_min_seq(struct lruvec *l
- 			VM_WARN_ON_ONCE_FOLIO(folio_is_file_lru(folio) != type, folio);
- 			VM_WARN_ON_ONCE_FOLIO(folio_zonenum(folio) != zone, folio);
- 
--			new_gen = folio_inc_gen(lruvec, folio, false);
-+			new_gen = folio_inc_gen(lruvec, folio, false, &batch);
- 			list_move_tail(&folio->lru, &lrugen->folios[new_gen][type][zone]);
- 
--			if (!--remaining)
-+			if (!--remaining) {
-+				lru_gen_update_batch(lruvec, type, zone, &batch);
- 				return false;
-+			}
- 		}
-+		lru_gen_update_batch(lruvec, type, zone, &batch);
- 	}
- done:
- 	reset_ctrl_pos(lruvec, type, true);
-@@ -4215,7 +4258,7 @@ void lru_gen_soft_reclaim(struct mem_cgr
-  ******************************************************************************/
- 
- static bool sort_folio(struct lruvec *lruvec, struct folio *folio, struct scan_control *sc,
--		       int tier_idx)
-+		       int tier_idx, struct gen_update_batch *batch)
- {
- 	bool success;
- 	int gen = folio_lru_gen(folio);
-@@ -4257,7 +4300,7 @@ static bool sort_folio(struct lruvec *lr
- 	if (tier > tier_idx || refs == BIT(LRU_REFS_WIDTH)) {
- 		int hist = lru_hist_from_seq(lrugen->min_seq[type]);
- 
--		gen = folio_inc_gen(lruvec, folio, false);
-+		gen = folio_inc_gen(lruvec, folio, false, batch);
- 		list_move_tail(&folio->lru, &lrugen->folios[gen][type][zone]);
- 
- 		WRITE_ONCE(lrugen->protected[hist][type][tier - 1],
-@@ -4267,7 +4310,7 @@ static bool sort_folio(struct lruvec *lr
- 
- 	/* ineligible */
- 	if (zone > sc->reclaim_idx || skip_cma(folio, sc)) {
--		gen = folio_inc_gen(lruvec, folio, false);
-+		gen = folio_inc_gen(lruvec, folio, false, batch);
- 		list_move_tail(&folio->lru, &lrugen->folios[gen][type][zone]);
- 		return true;
- 	}
-@@ -4275,7 +4318,7 @@ static bool sort_folio(struct lruvec *lr
- 	/* waiting for writeback */
- 	if (folio_test_locked(folio) || folio_test_writeback(folio) ||
- 	    (type == LRU_GEN_FILE && folio_test_dirty(folio))) {
--		gen = folio_inc_gen(lruvec, folio, true);
-+		gen = folio_inc_gen(lruvec, folio, true, batch);
- 		list_move(&folio->lru, &lrugen->folios[gen][type][zone]);
- 		return true;
- 	}
-@@ -4341,6 +4384,7 @@ static int scan_folios(struct lruvec *lr
- 	for (i = MAX_NR_ZONES; i > 0; i--) {
- 		LIST_HEAD(moved);
- 		int skipped_zone = 0;
-+		struct gen_update_batch batch = { };
- 		int zone = (sc->reclaim_idx + i) % MAX_NR_ZONES;
- 		struct list_head *head = &lrugen->folios[gen][type][zone];
- 
-@@ -4355,7 +4399,7 @@ static int scan_folios(struct lruvec *lr
- 
- 			scanned += delta;
- 
--			if (sort_folio(lruvec, folio, sc, tier))
-+			if (sort_folio(lruvec, folio, sc, tier, &batch))
- 				sorted += delta;
- 			else if (isolate_folio(lruvec, folio, sc)) {
- 				list_add(&folio->lru, list);
-@@ -4375,6 +4419,8 @@ static int scan_folios(struct lruvec *lr
- 			skipped += skipped_zone;
- 		}
- 
-+		lru_gen_update_batch(lruvec, type, zone, &batch);
-+
- 		if (!remaining || isolated >= MIN_LRU_BATCH)
- 			break;
- 	}
+ /*
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from yajun.deng@linux.dev are
 
-mm-lru_gen-move-pages-in-bulk-when-aging.patch
-mm-lru_gen-try-to-prefetch-next-page-when-canning-lru.patch
+mm-mmap-simplify-vma-link-and-unlink.patch
+mm-mmap-introduce-vma_set_range.patch
+mm-mmap-pass-vma-to-vma_merge.patch
+mm-mmap-remove-find_vma_intersection-in-vma_merge.patch
 
