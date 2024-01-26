@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3000C79D8
-	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 02:15:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6043E7465
+	for <mm-commits@vger.kernel.org>; Fri, 26 Jan 2024 02:15:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706235330; cv=none; b=STELqgl6jILFj0mks1lTN96UHKd++RtiE0ehXCUE3SdG3XqXz2fz1TS+ar7o2mFFRywTupPeA9PJ24O/uPaTcy3EDb3T+B7pIWbHj1gwDLYgxe0AjaPTg0YBIwq2C2qa48RgWjET6ZtOO/Phz+4GA2mjGIGLmrRfONhVoXnjin4=
+	t=1706235333; cv=none; b=A1l1TRktqrYVxot5fKGhVU467NJlV/x693SMmpNruwMKHbzDUvr/XbKV16NlupY263Zpf9t0mZMb0q1a/9f6dC0TiWSS/Z23ybP4V/Dmx+eAd9wakKrD1wyZ3/MRNlzjmCC9pKFBmTZ4IP90VIs9W6sL4UBGJNPRtLs7tEd+9yU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706235330; c=relaxed/simple;
-	bh=DfHe6eB1ZVNO3q7PLm59LEspPdx0D5rRTnj1fz5QGow=;
-	h=Date:To:From:Subject:Message-Id; b=qjriIZym/BJ0grb7s0XiGkC54wqD0pQLR1kiGdYRdx8jZq4OM8XeZLoyxRVSc9XPp9iFa2jwMzujVNdSUTPw1ma/2yD8fWr6RMz57dvY/517MhVSsPNm1kTUacVHPPdyKoTnXvqCIcwEMt5/MX3v6cEYw31PLrs00v0SNX4W0A0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OgqQeyFE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706235333; c=relaxed/simple;
+	bh=tCbNNd3+gc5F6EP+8hoZJ66aGXIey5BmDQE1/MYE3oQ=;
+	h=Date:To:From:Subject:Message-Id; b=LudGwyArEE+CnocxOBJaNakG3K0tpilRqOFAOwu8YBP8cAKkXUAuiq1HVRMRvcQ1JQ541WinPHNlKkSLIZHVvebq7rEH6ICU6L6+7yY18NEDyXatb63lTX/7ZK4eC18kvFPO7A90lmlMpzDNKrJ/0St0aOa6i355z3NiTqQ4jfg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pcbF8WP8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OgqQeyFE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B759C433F1;
-	Fri, 26 Jan 2024 02:15:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pcbF8WP8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4584C433F1;
+	Fri, 26 Jan 2024 02:15:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706235329;
-	bh=DfHe6eB1ZVNO3q7PLm59LEspPdx0D5rRTnj1fz5QGow=;
+	s=korg; t=1706235333;
+	bh=tCbNNd3+gc5F6EP+8hoZJ66aGXIey5BmDQE1/MYE3oQ=;
 	h=Date:To:From:Subject:From;
-	b=OgqQeyFE7qbxh01jJ2AbtM3mLEhxoEwWlg8A9TZcgRkv82HC++wPhFcSOqJx8bRjT
-	 p/0qaHuNSZhFSwUMIfhRxh4U5o7gMZPDMSYVNSxkcKp7cB2EkNMrs+tx6HYjMVOmgJ
-	 yskuaVp+5RsoKA1LcS0qz8DV+QxtOUMjG4E+yaMc=
-Date: Thu, 25 Jan 2024 18:15:26 -0800
+	b=pcbF8WP86kNoskda1qOksgc0tedL3XS/42vSJeMddggLxjSuKrwOCspwgfMN7VT/0
+	 a7nOCdoPF8LsHx/MIJhnP+Yz3JW3LAgA/STVYeS/6s5Qo6NkY5jp9YNvbOchECfy/k
+	 qbSxqTF+/MSHRASyEUV13rwXmLLNgJ7VAiEABOyM=
+Date: Thu, 25 Jan 2024 18:15:30 -0800
 To: mm-commits@vger.kernel.org,ying.huang@intel.com,sthanneeru.opensrc@micron.com,ravis.opensrc@micron.com,rakie.kim@sk.com,mhocko@suse.com,mhocko@kernel.org,Jonathan.Cameron@huawei.com,hyeongtak.ji@sk.com,honggyu.kim@sk.com,Hasan.Maruf@amd.com,hannes@cmpxchg.org,gregory.price@memverge.com,fvdl@google.com,dan.j.williams@intel.com,corbet@lwn.net,ak@linux.intel.com,gourry.memverge@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-refactor-a-read-once-mechanism-into-a-function-for-re-use.patch added to mm-unstable branch
-Message-Id: <20240126021529.3B759C433F1@smtp.kernel.org>
+Subject: + mm-mempolicy-introduce-mpol_weighted_interleave-for-weighted-interleaving.patch added to mm-unstable branch
+Message-Id: <20240126021532.B4584C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mempolicy: refactor a read-once mechanism into a function for re-use
+     Subject: mm/mempolicy: introduce MPOL_WEIGHTED_INTERLEAVE for weighted interleaving
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mempolicy-refactor-a-read-once-mechanism-into-a-function-for-re-use.patch
+     mm-mempolicy-introduce-mpol_weighted_interleave-for-weighted-interleaving.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-refactor-a-read-once-mechanism-into-a-function-for-re-use.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-introduce-mpol_weighted_interleave-for-weighted-interleaving.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,81 +59,566 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Gregory Price <gourry.memverge@gmail.com>
-Subject: mm/mempolicy: refactor a read-once mechanism into a function for re-use
-Date: Thu, 25 Jan 2024 13:43:43 -0500
+Subject: mm/mempolicy: introduce MPOL_WEIGHTED_INTERLEAVE for weighted interleaving
+Date: Thu, 25 Jan 2024 13:43:44 -0500
 
-move the use of barrier() to force policy->nodemask onto the stack into
-a function `read_once_policy_nodemask` so that it may be re-used.
+When a system has multiple NUMA nodes and it becomes bandwidth hungry,
+using the current MPOL_INTERLEAVE could be an wise option.
 
-Link: https://lkml.kernel.org/r/20240125184345.47074-3-gregory.price@memverge.com
+However, if those NUMA nodes consist of different types of memory such
+as socket-attached DRAM and CXL/PCIe attached DRAM, the round-robin
+based interleave policy does not optimally distribute data to make use
+of their different bandwidth characteristics.
+
+Instead, interleave is more effective when the allocation policy follows
+each NUMA nodes' bandwidth weight rather than a simple 1:1 distribution.
+
+This patch introduces a new memory policy, MPOL_WEIGHTED_INTERLEAVE,
+enabling weighted interleave between NUMA nodes.  Weighted interleave
+allows for proportional distribution of memory across multiple numa
+nodes, preferably apportioned to match the bandwidth of each node.
+
+For example, if a system has 1 CPU node (0), and 2 memory nodes (0,1),
+with bandwidth of (100GB/s, 50GB/s) respectively, the appropriate
+weight distribution is (2:1).
+
+Weights for each node can be assigned via the new sysfs extension:
+/sys/kernel/mm/mempolicy/weighted_interleave/
+
+For now, the default value of all nodes will be `1`, which matches
+the behavior of standard 1:1 round-robin interleave. An extension
+will be added in the future to allow default values to be registered
+at kernel and device bringup time.
+
+The policy allocates a number of pages equal to the set weights. For
+example, if the weights are (2,1), then 2 pages will be allocated on
+node0 for every 1 page allocated on node1.
+
+The new flag MPOL_WEIGHTED_INTERLEAVE can be used in set_mempolicy(2)
+and mbind(2).
+
+There are 3 integration points:
+
+weighted_interleave_nodes:
+    Counts the number of allocations as they occur, and applies the
+    weight for the current node.  When the weight reaches 0, switch
+    to the next node.
+
+weighted_interleave_nid:
+    Gets the total weight of the nodemask as well as each individual
+    node weight, then calculates the node based on the given index.
+
+bulk_array_weighted_interleave:
+    Gets the total weight of the nodemask as well as each individual
+    node weight, then calculates the number of "interleave rounds" as
+    well as any delta ("partial round").  Calculates the number of
+    pages for each node and allocates them.
+
+    If a node was scheduled for interleave via interleave_nodes, the
+    current weight (pol->cur_il_weight) will be allocated first, before
+    the remaining bulk calculation is done.
+
+One piece of complexity is the interaction between a recent refactor
+which split the logic to acquire the "ilx" (interleave index) of an
+allocation and the actually application of the interleave.  The
+calculation of the `interleave index` is done by `get_vma_policy()`,
+while the actual selection of the node will be later appliex by the
+relevant weighted_interleave function.
+
+Link: https://lkml.kernel.org/r/20240125184345.47074-4-gregory.price@memverge.com
+Suggested-by: Hasan Al Maruf <Hasan.Maruf@amd.com>
 Signed-off-by: Gregory Price <gregory.price@memverge.com>
-Suggested-by: Huang Ying <ying.huang@intel.com>
+Co-developed-by: Rakie Kim <rakie.kim@sk.com>
+Signed-off-by: Rakie Kim <rakie.kim@sk.com>
+Co-developed-by: Honggyu Kim <honggyu.kim@sk.com>
+Signed-off-by: Honggyu Kim <honggyu.kim@sk.com>
+Co-developed-by: Hyeongtak Ji <hyeongtak.ji@sk.com>
+Signed-off-by: Hyeongtak Ji <hyeongtak.ji@sk.com>
+Co-developed-by: Srinivasulu Thanneeru <sthanneeru.opensrc@micron.com>
+Signed-off-by: Srinivasulu Thanneeru <sthanneeru.opensrc@micron.com>
+Co-developed-by: Ravi Jonnalagadda <ravis.opensrc@micron.com>
+Signed-off-by: Ravi Jonnalagadda <ravis.opensrc@micron.com>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Frank van der Linden <fvdl@google.com>
-Cc: Hasan Al Maruf <Hasan.Maruf@amd.com>
-Cc: Honggyu Kim <honggyu.kim@sk.com>
-Cc: Hyeongtak Ji <hyeongtak.ji@sk.com>
+Cc: Huang Ying <ying.huang@intel.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Ravi Jonnalagadda <ravis.opensrc@micron.com>
-Cc: Srinivasulu Thanneeru <sthanneeru.opensrc@micron.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   26 ++++++++++++++++----------
- 1 file changed, 16 insertions(+), 10 deletions(-)
+ Documentation/admin-guide/mm/numa_memory_policy.rst |    9 
+ include/linux/mempolicy.h                           |    3 
+ include/uapi/linux/mempolicy.h                      |    1 
+ mm/mempolicy.c                                      |  274 +++++++++-
+ 4 files changed, 283 insertions(+), 4 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-refactor-a-read-once-mechanism-into-a-function-for-re-use
+--- a/Documentation/admin-guide/mm/numa_memory_policy.rst~mm-mempolicy-introduce-mpol_weighted_interleave-for-weighted-interleaving
++++ a/Documentation/admin-guide/mm/numa_memory_policy.rst
+@@ -250,6 +250,15 @@ MPOL_PREFERRED_MANY
+ 	can fall back to all existing numa nodes. This is effectively
+ 	MPOL_PREFERRED allowed for a mask rather than a single node.
+ 
++MPOL_WEIGHTED_INTERLEAVE
++	This mode operates the same as MPOL_INTERLEAVE, except that
++	interleaving behavior is executed based on weights set in
++	/sys/kernel/mm/mempolicy/weighted_interleave/
++
++	Weighted interleave allocates pages on nodes according to a
++	weight.  For example if nodes [0,1] are weighted [5,2], 5 pages
++	will be allocated on node0 for every 2 pages allocated on node1.
++
+ NUMA memory policy supports the following optional mode flags:
+ 
+ MPOL_F_STATIC_NODES
+--- a/include/linux/mempolicy.h~mm-mempolicy-introduce-mpol_weighted_interleave-for-weighted-interleaving
++++ a/include/linux/mempolicy.h
+@@ -54,6 +54,9 @@ struct mempolicy {
+ 		nodemask_t cpuset_mems_allowed;	/* relative to these nodes */
+ 		nodemask_t user_nodemask;	/* nodemask passed by user */
+ 	} w;
++
++	/* Weighted interleave settings */
++	u8 cur_il_weight;
+ };
+ 
+ /*
+--- a/include/uapi/linux/mempolicy.h~mm-mempolicy-introduce-mpol_weighted_interleave-for-weighted-interleaving
++++ a/include/uapi/linux/mempolicy.h
+@@ -23,6 +23,7 @@ enum {
+ 	MPOL_INTERLEAVE,
+ 	MPOL_LOCAL,
+ 	MPOL_PREFERRED_MANY,
++	MPOL_WEIGHTED_INTERLEAVE,
+ 	MPOL_MAX,	/* always last member of enum */
+ };
+ 
+--- a/mm/mempolicy.c~mm-mempolicy-introduce-mpol_weighted_interleave-for-weighted-interleaving
 +++ a/mm/mempolicy.c
-@@ -1890,6 +1890,20 @@ unsigned int mempolicy_slab_node(void)
+@@ -19,6 +19,13 @@
+  *                for anonymous memory. For process policy an process counter
+  *                is used.
+  *
++ * weighted interleave
++ *                Allocate memory interleaved over a set of nodes based on
++ *                a set of weights (per-node), with normal fallback if it
++ *                fails.  Otherwise operates the same as interleave.
++ *                Example: nodeset(0,1) & weights (2,1) - 2 pages allocated
++ *                on node 0 for every 1 page allocated on node 1.
++ *
+  * bind           Only allocate memory on a specific set of nodes,
+  *                no fallback.
+  *                FIXME: memory is allocated starting with the first node
+@@ -314,6 +321,7 @@ static struct mempolicy *mpol_new(unsign
+ 	policy->mode = mode;
+ 	policy->flags = flags;
+ 	policy->home_node = NUMA_NO_NODE;
++	policy->cur_il_weight = 0;
+ 
+ 	return policy;
+ }
+@@ -426,6 +434,10 @@ static const struct mempolicy_operations
+ 		.create = mpol_new_nodemask,
+ 		.rebind = mpol_rebind_preferred,
+ 	},
++	[MPOL_WEIGHTED_INTERLEAVE] = {
++		.create = mpol_new_nodemask,
++		.rebind = mpol_rebind_nodemask,
++	},
+ };
+ 
+ static bool migrate_folio_add(struct folio *folio, struct list_head *foliolist,
+@@ -843,7 +855,8 @@ static long do_set_mempolicy(unsigned sh
+ 
+ 	old = current->mempolicy;
+ 	current->mempolicy = new;
+-	if (new && new->mode == MPOL_INTERLEAVE)
++	if (new && (new->mode == MPOL_INTERLEAVE ||
++		    new->mode == MPOL_WEIGHTED_INTERLEAVE))
+ 		current->il_prev = MAX_NUMNODES-1;
+ 	task_unlock(current);
+ 	mpol_put(old);
+@@ -869,6 +882,7 @@ static void get_policy_nodemask(struct m
+ 	case MPOL_INTERLEAVE:
+ 	case MPOL_PREFERRED:
+ 	case MPOL_PREFERRED_MANY:
++	case MPOL_WEIGHTED_INTERLEAVE:
+ 		*nodes = pol->nodes;
+ 		break;
+ 	case MPOL_LOCAL:
+@@ -953,6 +967,13 @@ static long do_get_mempolicy(int *policy
+ 		} else if (pol == current->mempolicy &&
+ 				pol->mode == MPOL_INTERLEAVE) {
+ 			*policy = next_node_in(current->il_prev, pol->nodes);
++		} else if (pol == current->mempolicy &&
++				(pol->mode == MPOL_WEIGHTED_INTERLEAVE)) {
++			if (pol->cur_il_weight)
++				*policy = current->il_prev;
++			else
++				*policy = next_node_in(current->il_prev,
++						       pol->nodes);
+ 		} else {
+ 			err = -EINVAL;
+ 			goto out;
+@@ -1765,7 +1786,8 @@ struct mempolicy *__get_vma_policy(struc
+  * @vma: virtual memory area whose policy is sought
+  * @addr: address in @vma for shared policy lookup
+  * @order: 0, or appropriate huge_page_order for interleaving
+- * @ilx: interleave index (output), for use only when MPOL_INTERLEAVE
++ * @ilx: interleave index (output), for use only when MPOL_INTERLEAVE or
++ *       MPOL_WEIGHTED_INTERLEAVE
+  *
+  * Returns effective policy for a VMA at specified address.
+  * Falls back to current->mempolicy or system default policy, as necessary.
+@@ -1782,7 +1804,8 @@ struct mempolicy *get_vma_policy(struct
+ 	pol = __get_vma_policy(vma, addr, ilx);
+ 	if (!pol)
+ 		pol = get_task_policy(current);
+-	if (pol->mode == MPOL_INTERLEAVE) {
++	if (pol->mode == MPOL_INTERLEAVE ||
++	    pol->mode == MPOL_WEIGHTED_INTERLEAVE) {
+ 		*ilx += vma->vm_pgoff >> order;
+ 		*ilx += (addr - vma->vm_start) >> (PAGE_SHIFT + order);
  	}
+@@ -1832,6 +1855,44 @@ bool apply_policy_zone(struct mempolicy
+ 	return zone >= dynamic_policy_zone;
  }
  
-+static unsigned int read_once_policy_nodemask(struct mempolicy *pol,
-+					      nodemask_t *mask)
++static unsigned int weighted_interleave_nodes(struct mempolicy *policy)
 +{
-+	/*
-+	 * barrier stabilizes the nodemask locally so that it can be iterated
-+	 * over safely without concern for changes. Allocators validate node
-+	 * selection does not violate mems_allowed, so this is safe.
-+	 */
-+	barrier();
-+	memcpy(mask, &pol->nodes, sizeof(nodemask_t));
-+	barrier();
-+	return nodes_weight(*mask);
++	unsigned int node, next;
++	struct task_struct *me = current;
++	u8 __rcu *table;
++	u8 weight;
++
++	node = next_node_in(me->il_prev, policy->nodes);
++	if (node == MAX_NUMNODES)
++		return node;
++
++	/* on first alloc after setting mempolicy, acquire first weight */
++	if (unlikely(!policy->cur_il_weight)) {
++		rcu_read_lock();
++		table = rcu_dereference(iw_table);
++		/* detect system-default values */
++		weight = table ? table[node] : 1;
++		policy->cur_il_weight = weight ? weight : 1;
++		rcu_read_unlock();
++	}
++
++	/* account for this allocation call */
++	policy->cur_il_weight--;
++
++	/* if now at 0, move to next node and set up that node's weight */
++	if (unlikely(!policy->cur_il_weight)) {
++		me->il_prev = node;
++		next = next_node_in(node, policy->nodes);
++		rcu_read_lock();
++		table = rcu_dereference(iw_table);
++		/* detect system-default values */
++		weight = table ? table[next] : 1;
++		policy->cur_il_weight = weight ? weight : 1;
++		rcu_read_unlock();
++	}
++	return node;
++}
++
+ /* Do dynamic interleaving for a process */
+ static unsigned int interleave_nodes(struct mempolicy *policy)
+ {
+@@ -1866,6 +1927,9 @@ unsigned int mempolicy_slab_node(void)
+ 	case MPOL_INTERLEAVE:
+ 		return interleave_nodes(policy);
+ 
++	case MPOL_WEIGHTED_INTERLEAVE:
++		return weighted_interleave_nodes(policy);
++
+ 	case MPOL_BIND:
+ 	case MPOL_PREFERRED_MANY:
+ 	{
+@@ -1904,6 +1968,39 @@ static unsigned int read_once_policy_nod
+ 	return nodes_weight(*mask);
+ }
+ 
++static unsigned int weighted_interleave_nid(struct mempolicy *pol, pgoff_t ilx)
++{
++	nodemask_t nodemask;
++	unsigned int target, nr_nodes;
++	u8 __rcu *table;
++	unsigned int weight_total = 0;
++	u8 weight;
++	int nid;
++
++	nr_nodes = read_once_policy_nodemask(pol, &nodemask);
++	if (!nr_nodes)
++		return numa_node_id();
++
++	rcu_read_lock();
++	table = rcu_dereference(iw_table);
++	/* calculate the total weight */
++	for_each_node_mask(nid, nodemask)
++		weight_total += table ? table[nid] : 1;
++
++	/* Calculate the node offset based on totals */
++	target = ilx % weight_total;
++	nid = first_node(nodemask);
++	while (target) {
++		weight = table ? table[nid] : 1;
++		if (target < weight)
++			break;
++		target -= weight;
++		nid = next_node_in(nid, nodemask);
++	}
++	rcu_read_unlock();
++	return nid;
 +}
 +
  /*
   * Do static interleaving for interleave index @ilx.  Returns the ilx'th
   * node in pol->nodes (starting from ilx=0), wrapping around if ilx
-@@ -1897,20 +1911,12 @@ unsigned int mempolicy_slab_node(void)
-  */
- static unsigned int interleave_nid(struct mempolicy *pol, pgoff_t ilx)
- {
--	nodemask_t nodemask = pol->nodes;
-+	nodemask_t nodemask;
- 	unsigned int target, nnodes;
- 	int i;
- 	int nid;
--	/*
--	 * The barrier will stabilize the nodemask in a register or on
--	 * the stack so that it will stop changing under the code.
--	 *
--	 * Between first_node() and next_node(), pol->nodes could be changed
--	 * by other threads. So we put pol->nodes in a local stack.
--	 */
--	barrier();
+@@ -1964,6 +2061,11 @@ static nodemask_t *policy_nodemask(gfp_t
+ 		*nid = (ilx == NO_INTERLEAVE_INDEX) ?
+ 			interleave_nodes(pol) : interleave_nid(pol, ilx);
+ 		break;
++	case MPOL_WEIGHTED_INTERLEAVE:
++		*nid = (ilx == NO_INTERLEAVE_INDEX) ?
++			weighted_interleave_nodes(pol) :
++			weighted_interleave_nid(pol, ilx);
++		break;
+ 	}
  
--	nnodes = nodes_weight(nodemask);
-+	nnodes = read_once_policy_nodemask(pol, &nodemask);
- 	if (!nnodes)
- 		return numa_node_id();
- 	target = ilx % nnodes;
+ 	return nodemask;
+@@ -2025,6 +2127,7 @@ bool init_nodemask_of_mempolicy(nodemask
+ 	case MPOL_PREFERRED_MANY:
+ 	case MPOL_BIND:
+ 	case MPOL_INTERLEAVE:
++	case MPOL_WEIGHTED_INTERLEAVE:
+ 		*mask = mempolicy->nodes;
+ 		break;
+ 
+@@ -2124,7 +2227,8 @@ struct page *alloc_pages_mpol(gfp_t gfp,
+ 		 * If the policy is interleave or does not allow the current
+ 		 * node in its nodemask, we allocate the standard way.
+ 		 */
+-		if (pol->mode != MPOL_INTERLEAVE &&
++		if ((pol->mode != MPOL_INTERLEAVE &&
++		    pol->mode != MPOL_WEIGHTED_INTERLEAVE) &&
+ 		    (!nodemask || node_isset(nid, *nodemask))) {
+ 			/*
+ 			 * First, try to allocate THP only on local node, but
+@@ -2260,6 +2364,156 @@ static unsigned long alloc_pages_bulk_ar
+ 	return total_allocated;
+ }
+ 
++static unsigned long alloc_pages_bulk_array_weighted_interleave(gfp_t gfp,
++		struct mempolicy *pol, unsigned long nr_pages,
++		struct page **page_array)
++{
++	struct task_struct *me = current;
++	unsigned long total_allocated = 0;
++	unsigned long nr_allocated;
++	unsigned long rounds;
++	unsigned long node_pages, delta;
++	u8 weight, resume_weight;
++	u8 __rcu *table;
++	u8 *weights;
++	unsigned int weight_total = 0;
++	unsigned long rem_pages = nr_pages;
++	nodemask_t nodes;
++	int nnodes, node, resume_node, next_node;
++	int prev_node = me->il_prev;
++	int i;
++
++	if (!nr_pages)
++		return 0;
++
++	nnodes = read_once_policy_nodemask(pol, &nodes);
++	if (!nnodes)
++		return 0;
++
++	/* Continue allocating from most recent node and adjust the nr_pages */
++	if (pol->cur_il_weight) {
++		node = next_node_in(prev_node, nodes);
++		node_pages = pol->cur_il_weight;
++		if (node_pages > rem_pages)
++			node_pages = rem_pages;
++		nr_allocated = __alloc_pages_bulk(gfp, node, NULL, node_pages,
++						  NULL, page_array);
++		page_array += nr_allocated;
++		total_allocated += nr_allocated;
++		/*
++		 * if that's all the pages, no need to interleave, otherwise
++		 * we need to set up the next interleave node/weight correctly.
++		 */
++		if (rem_pages < pol->cur_il_weight) {
++			/* stay on current node, adjust cur_il_weight */
++			pol->cur_il_weight -= rem_pages;
++			return total_allocated;
++		} else if (rem_pages == pol->cur_il_weight) {
++			/* move to next node / weight */
++			me->il_prev = node;
++			next_node = next_node_in(node, nodes);
++			rcu_read_lock();
++			table = rcu_dereference(iw_table);
++			weight = table ? table[next_node] : 1;
++			/* detect system-default usage */
++			pol->cur_il_weight = weight ? weight : 1;
++			rcu_read_unlock();
++			return total_allocated;
++		}
++		/* Otherwise we adjust nr_pages down, and continue from there */
++		rem_pages -= pol->cur_il_weight;
++		pol->cur_il_weight = 0;
++		prev_node = node;
++	}
++
++	/* create a local copy of node weights to operate on outside rcu */
++	weights = kmalloc(nr_node_ids, GFP_KERNEL);
++	if (!weights)
++		return total_allocated;
++
++	rcu_read_lock();
++	table = rcu_dereference(iw_table);
++	/* If table is not registered, use system defaults */
++	if (table)
++		memcpy(weights, iw_table, nr_node_ids);
++	else
++		memset(weights, 1, nr_node_ids);
++	rcu_read_unlock();
++
++	/* calculate total, detect system default usage */
++	for_each_node_mask(node, nodes) {
++		/* detect system-default usage */
++		if (!weights[node])
++			weights[node] = 1;
++		weight_total += weights[node];
++	}
++
++	/*
++	 * Now we can continue allocating from 0 instead of an offset
++	 * We calculate the number of rounds and any partial rounds so
++	 * that we minimize the number of calls to __alloc_pages_bulk
++	 * This requires us to track which node we should resume from.
++	 *
++	 * if (rounds > 0) and (delta == 0), resume_node will always be
++	 * the current value of prev_node, which may be NUMA_NO_NODE if
++	 * this is the first allocation after a policy is replaced. The
++	 * resume weight will be the weight of the next node.
++	 *
++	 * if (delta > 0) and delta is depleted exactly on a node-weight
++	 * boundary, resume node will be the node last allocated from when
++	 * delta reached 0.
++	 *
++	 * if (delta > 0) and delta is not depleted on a node-weight boundary,
++	 * resume node will be the node prior to the node last allocated from.
++	 *
++	 * (rounds == 0) and (delta == 0) is not possible (earlier exit)
++	 */
++	rounds = rem_pages / weight_total;
++	delta = rem_pages % weight_total;
++	resume_node = prev_node;
++	resume_weight = weights[next_node_in(prev_node, nodes)];
++	/* If no delta, we'll resume from current prev_node and first weight */
++	for (i = 0; i < nnodes; i++) {
++		node = next_node_in(prev_node, nodes);
++		weight = weights[node];
++		node_pages = weight * rounds;
++		/* If a delta exists, add this node's portion of the delta */
++		if (delta > weight) {
++			node_pages += weight;
++			delta -= weight;
++			resume_node = node;
++		} else if (delta) {
++			node_pages += delta;
++			if (delta == weight) {
++				/* resume from next node with its weight */
++				resume_node = node;
++				next_node = next_node_in(node, nodes);
++				resume_weight = weights[next_node];
++			} else {
++				/* resume from this node w/ remaining weight */
++				resume_node = prev_node;
++				resume_weight = weight - (node_pages % weight);
++			}
++			delta = 0;
++		}
++		/* node_pages can be 0 if an allocation fails and rounds == 0 */
++		if (!node_pages)
++			break;
++		nr_allocated = __alloc_pages_bulk(gfp, node, NULL, node_pages,
++						  NULL, page_array);
++		page_array += nr_allocated;
++		total_allocated += nr_allocated;
++		if (total_allocated == nr_pages)
++			break;
++		prev_node = node;
++	}
++	/* resume allocating from the calculated node and weight */
++	me->il_prev = resume_node;
++	pol->cur_il_weight = resume_weight;
++	kfree(weights);
++	return total_allocated;
++}
++
+ static unsigned long alloc_pages_bulk_array_preferred_many(gfp_t gfp, int nid,
+ 		struct mempolicy *pol, unsigned long nr_pages,
+ 		struct page **page_array)
+@@ -2300,6 +2554,10 @@ unsigned long alloc_pages_bulk_array_mem
+ 		return alloc_pages_bulk_array_interleave(gfp, pol,
+ 							 nr_pages, page_array);
+ 
++	if (pol->mode == MPOL_WEIGHTED_INTERLEAVE)
++		return alloc_pages_bulk_array_weighted_interleave(
++				  gfp, pol, nr_pages, page_array);
++
+ 	if (pol->mode == MPOL_PREFERRED_MANY)
+ 		return alloc_pages_bulk_array_preferred_many(gfp,
+ 				numa_node_id(), pol, nr_pages, page_array);
+@@ -2375,6 +2633,7 @@ bool __mpol_equal(struct mempolicy *a, s
+ 	case MPOL_INTERLEAVE:
+ 	case MPOL_PREFERRED:
+ 	case MPOL_PREFERRED_MANY:
++	case MPOL_WEIGHTED_INTERLEAVE:
+ 		return !!nodes_equal(a->nodes, b->nodes);
+ 	case MPOL_LOCAL:
+ 		return true;
+@@ -2511,6 +2770,10 @@ int mpol_misplaced(struct folio *folio,
+ 		polnid = interleave_nid(pol, ilx);
+ 		break;
+ 
++	case MPOL_WEIGHTED_INTERLEAVE:
++		polnid = weighted_interleave_nid(pol, ilx);
++		break;
++
+ 	case MPOL_PREFERRED:
+ 		if (node_isset(curnid, pol->nodes))
+ 			goto out;
+@@ -2885,6 +3148,7 @@ static const char * const policy_modes[]
+ 	[MPOL_PREFERRED]  = "prefer",
+ 	[MPOL_BIND]       = "bind",
+ 	[MPOL_INTERLEAVE] = "interleave",
++	[MPOL_WEIGHTED_INTERLEAVE] = "weighted interleave",
+ 	[MPOL_LOCAL]      = "local",
+ 	[MPOL_PREFERRED_MANY]  = "prefer (many)",
+ };
+@@ -2944,6 +3208,7 @@ int mpol_parse_str(char *str, struct mem
+ 		}
+ 		break;
+ 	case MPOL_INTERLEAVE:
++	case MPOL_WEIGHTED_INTERLEAVE:
+ 		/*
+ 		 * Default to online nodes with memory if no nodelist
+ 		 */
+@@ -3054,6 +3319,7 @@ void mpol_to_str(char *buffer, int maxle
+ 	case MPOL_PREFERRED_MANY:
+ 	case MPOL_BIND:
+ 	case MPOL_INTERLEAVE:
++	case MPOL_WEIGHTED_INTERLEAVE:
+ 		nodes = pol->nodes;
+ 		break;
+ 	default:
 _
 
 Patches currently in -mm which might be from gourry.memverge@gmail.com are
