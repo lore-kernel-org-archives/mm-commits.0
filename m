@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 360DED51C
-	for <mm-commits@vger.kernel.org>; Sun, 28 Jan 2024 08:28:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79307D527
+	for <mm-commits@vger.kernel.org>; Sun, 28 Jan 2024 08:28:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706430483; cv=none; b=n6yc+VA39lSb4ZepWvc91QDezrkKwnhovIj+wweIl497MmAoa1mZSMTsK9xSeksDsMrYaIeVUvYsS7AqoP0tTYyPjkFumMZM4iBgbECGZpE8e0mcjGONQcfSy2vhg1RSHZqtU7P1ZTvArXYw7NciyaPlomL+ADJGokzFra1EIXE=
+	t=1706430487; cv=none; b=u60JEJJF8hMm53mDdPewURqbPg6RUtrVxxohHxHKqi02cUs2vzliY+877wyNFF9hGMYB1MFMRY4ngTwJOlIaPyppfu7DlrY2aVAM9PmZeOeg1qwL7k8XiSsn7PUcmQZbmF7M1/0+/mA87RMpSDbORxfxLVJISyMygWsNPpvvo3A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706430483; c=relaxed/simple;
-	bh=eHHQaaklzqbay60QkrHw1RlTGD4plGQ7A8pvhMPi1T8=;
-	h=Date:To:From:Subject:Message-Id; b=hJd/9xigrBGz4b0BDVlXdEmouMCj/3BW1pUmwTWy9ustI8VyRNXJLdv65LjQvO8r9raLHVSMOjQCyV/An4wkrveTdu+o1Jswnfb9aw0uGdpTr2wm75Pc8ZuU/ClSrpeWE03Zho9z+jqeI1GB3pGms+bc0HIHbHqbTaJQUqPEFNU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qnu4V7Ss; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706430487; c=relaxed/simple;
+	bh=fGs01xFifC39aptNmoOrn7HljnJHMarxlZpyOIq8EsM=;
+	h=Date:To:From:Subject:Message-Id; b=bG9ihPTiYnOhrnF4VU33BBpnYspj+0kNG1k2TMlT2iAuDfgBnYtsnSYPw/i80umzhetI6FHuOJORb/0CwZYHyZ9OHi9sV9UlJM9Hfg4qDTx5jTw+FbGCWoY+eetdBFiEOZwx9zhFRpOt2wJUT6k0fjVcda1xnvnSMhfPiX7NGfk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wo5GLTUE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qnu4V7Ss"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28881C43390;
-	Sun, 28 Jan 2024 08:28:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wo5GLTUE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71CDFC433C7;
+	Sun, 28 Jan 2024 08:28:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706430482;
-	bh=eHHQaaklzqbay60QkrHw1RlTGD4plGQ7A8pvhMPi1T8=;
+	s=korg; t=1706430486;
+	bh=fGs01xFifC39aptNmoOrn7HljnJHMarxlZpyOIq8EsM=;
 	h=Date:To:From:Subject:From;
-	b=qnu4V7Ss8lmb0z3MbcB0PLjOWJefW2uthbgoCFaMLJotpaIwqo5IQZu262HJ9IKMr
-	 /+89N4C1MSOrgWpBnLPXQxqFGdOXfHTCTOWE32a0OLK/3fpMGATp2s0X04xFh3SzA9
-	 ZNhGepsCJZ8/8AOqQKoAlmM2t3Ck+8wRkR5SO2zU=
-Date: Sun, 28 Jan 2024 00:27:59 -0800
+	b=wo5GLTUEVpTV2286rbhjtxyUms6kump77twjbbBjtY0XPh0g4iab9QopHkSWvCUOs
+	 PAsfSeCDvSpfGHiUzOFZTfwvCRpcKnySPSt9wysKwPIPwmOagfIeQ1AdQZ+iwForeN
+	 upEQ+kdPuISa0RDsxHebI9h7jVu7RgYWze5KwMcw=
+Date: Sun, 28 Jan 2024 00:28:03 -0800
 To: mm-commits@vger.kernel.org,tim.c.chen@linux.intel.com,rientjes@google.com,muchun.song@linux.dev,mike.kravetz@oracle.com,ligang.bdlg@bytedance.com,david@redhat.com,gang.li@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hugetlb-split-hugetlb_hstate_alloc_pages.patch added to mm-unstable branch
-Message-Id: <20240128082802.28881C43390@smtp.kernel.org>
+Subject: + padata-dispatch-works-on-different-nodes.patch added to mm-unstable branch
+Message-Id: <20240128082806.71CDFC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hugetlb: split hugetlb_hstate_alloc_pages
+     Subject: padata: dispatch works on different nodes
 has been added to the -mm mm-unstable branch.  Its filename is
-     hugetlb-split-hugetlb_hstate_alloc_pages.patch
+     padata-dispatch-works-on-different-nodes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hugetlb-split-hugetlb_hstate_alloc_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/padata-dispatch-works-on-different-nodes.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,140 +59,89 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Gang Li <gang.li@linux.dev>
-Subject: hugetlb: split hugetlb_hstate_alloc_pages
-Date: Fri, 26 Jan 2024 23:24:06 +0800
+Subject: padata: dispatch works on different nodes
+Date: Fri, 26 Jan 2024 23:24:07 +0800
 
-1G and 2M huge pages have different allocation and initialization logic,
-which leads to subtle differences in parallelization.  Therefore, it is
-appropriate to split hugetlb_hstate_alloc_pages into gigantic and
-non-gigantic.
+When a group of tasks that access different nodes are scheduled on the
+same node, they may encounter bandwidth bottlenecks and access latency.
 
-This patch has no functional changes.
+Thus, numa_aware flag is introduced here, allowing tasks to be distributed
+across different nodes to fully utilize the advantage of multi-node
+systems.
 
-Link: https://lkml.kernel.org/r/20240126152411.1238072-3-gang.li@linux.dev
+Link: https://lkml.kernel.org/r/20240126152411.1238072-4-gang.li@linux.dev
 Signed-off-by: Gang Li <ligang.bdlg@bytedance.com>
 Tested-by: David Rientjes <rientjes@google.com>
-Reviewed-by: Tim Chen <tim.c.chen@linux.intel.com>
 Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Reviewed-by: Tim Chen <tim.c.chen@linux.intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   87 ++++++++++++++++++++++++-------------------------
- 1 file changed, 43 insertions(+), 44 deletions(-)
+ include/linux/padata.h |    2 ++
+ kernel/padata.c        |   14 ++++++++++++--
+ mm/mm_init.c           |    1 +
+ 3 files changed, 15 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-split-hugetlb_hstate_alloc_pages
-+++ a/mm/hugetlb.c
-@@ -3509,6 +3509,43 @@ static void __init hugetlb_hstate_alloc_
- 	}
- }
- 
-+static unsigned long __init hugetlb_gigantic_pages_alloc_boot(struct hstate *h)
-+{
-+	unsigned long i;
-+
-+	for (i = 0; i < h->max_huge_pages; ++i) {
-+		if (!alloc_bootmem_huge_page(h, NUMA_NO_NODE))
-+			break;
-+		cond_resched();
-+	}
-+
-+	return i;
-+}
-+
-+static unsigned long __init hugetlb_pages_alloc_boot(struct hstate *h)
-+{
-+	unsigned long i;
-+	struct folio *folio;
-+	LIST_HEAD(folio_list);
-+	nodemask_t node_alloc_noretry;
-+
-+	/* Bit mask controlling how hard we retry per-node allocations.*/
-+	nodes_clear(node_alloc_noretry);
-+
-+	for (i = 0; i < h->max_huge_pages; ++i) {
-+		folio = alloc_pool_huge_folio(h, &node_states[N_MEMORY],
-+						&node_alloc_noretry);
-+		if (!folio)
-+			break;
-+		list_add(&folio->lru, &folio_list);
-+		cond_resched();
-+	}
-+
-+	prep_and_add_allocated_folios(h, &folio_list);
-+
-+	return i;
-+}
-+
- /*
-  * NOTE: this routine is called in different contexts for gigantic and
-  * non-gigantic pages.
-@@ -3522,10 +3559,7 @@ static void __init hugetlb_hstate_alloc_
+--- a/include/linux/padata.h~padata-dispatch-works-on-different-nodes
++++ a/include/linux/padata.h
+@@ -137,6 +137,7 @@ struct padata_shell {
+  *             appropriate for one worker thread to do at once.
+  * @max_threads: Max threads to use for the job, actual number may be less
+  *               depending on task size and minimum chunk size.
++ * @numa_aware: Distribute jobs to different nodes with CPU in a round robin fashion.
   */
- static void __init hugetlb_hstate_alloc_pages(struct hstate *h)
- {
--	unsigned long i;
--	struct folio *folio;
--	LIST_HEAD(folio_list);
--	nodemask_t *node_alloc_noretry;
-+	unsigned long allocated;
+ struct padata_mt_job {
+ 	void (*thread_fn)(unsigned long start, unsigned long end, void *arg);
+@@ -146,6 +147,7 @@ struct padata_mt_job {
+ 	unsigned long		align;
+ 	unsigned long		min_chunk;
+ 	int			max_threads;
++	bool			numa_aware;
+ };
  
- 	/* skip gigantic hugepages allocation if hugetlb_cma enabled */
- 	if (hstate_is_gigantic(h) && hugetlb_cma_size) {
-@@ -3538,47 +3572,12 @@ static void __init hugetlb_hstate_alloc_
+ /**
+--- a/kernel/padata.c~padata-dispatch-works-on-different-nodes
++++ a/kernel/padata.c
+@@ -485,7 +485,8 @@ void __init padata_do_multithreaded(stru
+ 	struct padata_work my_work, *pw;
+ 	struct padata_mt_job_state ps;
+ 	LIST_HEAD(works);
+-	int nworks;
++	int nworks, nid;
++	static atomic_t last_used_nid __initdata;
+ 
+ 	if (job->size == 0)
  		return;
+@@ -517,7 +518,16 @@ void __init padata_do_multithreaded(stru
+ 	ps.chunk_size = roundup(ps.chunk_size, job->align);
  
- 	/* below will do all node balanced alloc */
--	if (!hstate_is_gigantic(h)) {
--		/*
--		 * Bit mask controlling how hard we retry per-node allocations.
--		 * Ignore errors as lower level routines can deal with
--		 * node_alloc_noretry == NULL.  If this kmalloc fails at boot
--		 * time, we are likely in bigger trouble.
--		 */
--		node_alloc_noretry = kmalloc(sizeof(*node_alloc_noretry),
--						GFP_KERNEL);
--	} else {
--		/* allocations done at boot time */
--		node_alloc_noretry = NULL;
--	}
--
--	/* bit mask controlling how hard we retry per-node allocations */
--	if (node_alloc_noretry)
--		nodes_clear(*node_alloc_noretry);
--
--	for (i = 0; i < h->max_huge_pages; ++i) {
--		if (hstate_is_gigantic(h)) {
--			/*
--			 * gigantic pages not added to list as they are not
--			 * added to pools now.
--			 */
--			if (!alloc_bootmem_huge_page(h, NUMA_NO_NODE))
--				break;
--		} else {
--			folio = alloc_pool_huge_folio(h, &node_states[N_MEMORY],
--							node_alloc_noretry);
--			if (!folio)
--				break;
--			list_add(&folio->lru, &folio_list);
--		}
--		cond_resched();
--	}
--
--	/* list will be empty if hstate_is_gigantic */
--	prep_and_add_allocated_folios(h, &folio_list);
-+	if (hstate_is_gigantic(h))
-+		allocated = hugetlb_gigantic_pages_alloc_boot(h);
-+	else
-+		allocated = hugetlb_pages_alloc_boot(h);
+ 	list_for_each_entry(pw, &works, pw_list)
+-		queue_work(system_unbound_wq, &pw->pw_work);
++		if (job->numa_aware) {
++			int old_node = atomic_read(&last_used_nid);
++
++			do {
++				nid = next_node_in(old_node, node_states[N_CPU]);
++			} while (!atomic_try_cmpxchg(&last_used_nid, &old_node, nid));
++			queue_work_node(nid, system_unbound_wq, &pw->pw_work);
++		} else {
++			queue_work(system_unbound_wq, &pw->pw_work);
++		}
  
--	hugetlb_hstate_alloc_pages_errcheck(i, h);
--	kfree(node_alloc_noretry);
-+	hugetlb_hstate_alloc_pages_errcheck(allocated, h);
- }
+ 	/* Use the current thread, which saves starting a workqueue worker. */
+ 	padata_work_init(&my_work, padata_mt_helper, &ps, PADATA_WORK_ONSTACK);
+--- a/mm/mm_init.c~padata-dispatch-works-on-different-nodes
++++ a/mm/mm_init.c
+@@ -2231,6 +2231,7 @@ static int __init deferred_init_memmap(v
+ 			.align       = PAGES_PER_SECTION,
+ 			.min_chunk   = PAGES_PER_SECTION,
+ 			.max_threads = max_threads,
++			.numa_aware  = false,
+ 		};
  
- static void __init hugetlb_init_hstates(void)
+ 		padata_do_multithreaded(&job);
 _
 
 Patches currently in -mm which might be from gang.li@linux.dev are
