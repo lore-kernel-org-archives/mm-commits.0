@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92473D518
-	for <mm-commits@vger.kernel.org>; Sun, 28 Jan 2024 08:35:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEC31D51E
+	for <mm-commits@vger.kernel.org>; Sun, 28 Jan 2024 08:37:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706430932; cv=none; b=HbPzPgsJPwoztS/4mAcYlRUPxCTRZ4E7UA9rgZeLk5PgpH1NBDGJkIPFOf7h71/m4QGde9G+f6cIUB4VREuWheqj8Dw7byxIib10sHOvlsKVUcgR+C2r5D/HstIUczs+YLuEsQfdahfL2lz0Eg+ALKUkQtXOXPErpqYS+lyWzwc=
+	t=1706431079; cv=none; b=aQa7dTOCCVuSfyJ7ZYJYLxx5rJP9oGauq1DgliaGz5I5TlZDFaMj1Gm0bsOOWLUY+qUZYzGftiZMdcas95sAFk5sNPlKDardyRTsNHXvGsNX7l1OK1Q+GgWsQenjgKbUqLRh2Io/hZwWoC/lFfAc9/FPNj0NmgXRdngkkM5Zl/Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706430932; c=relaxed/simple;
-	bh=Fhgzfo0WRw1eNrxkjFx/mqXknsQz9hYm9qM8yMSX41U=;
-	h=Date:To:From:Subject:Message-Id; b=U2lZ6KBPuGZvxJuDO6Klk9o/6egWlYjoWRzi5ir0PxpgLLx3Da0ZpaEasUUuFoGrmuy58QUx6aoCnHWxzgq2IVUkjEUu/2c0HAW2tpkxeZhtuNo4nJT7WeE+oQk7e4ZI0vdBSYd8SxEqRiZ4BjG7g/q7wCVg2QopBiRk3pcZgEA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sfS7zHAH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706431079; c=relaxed/simple;
+	bh=OY7ud0hYCnOcSsmuGRbbbho2iB1GMhquSk57eQAZBVw=;
+	h=Date:To:From:Subject:Message-Id; b=Gw4KOZsJgHyLC9cd1KdyI713M64PhLRAMIDN8vwbqFg8wFa+g2/WFOzUG1jRFlIi+2Qpz+xyLms2TJd4mVDXznljhj6wJtBO0KmgWHE4h81uFzGROvGmT1YSqTkE2eVa11rtwi3IdvJuGP+FXuFV3llCIWBhZsDMOneh8/Gw5HQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iILTfNXz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sfS7zHAH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A320C433F1;
-	Sun, 28 Jan 2024 08:35:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iILTfNXz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8C6EC433C7;
+	Sun, 28 Jan 2024 08:37:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706430932;
-	bh=Fhgzfo0WRw1eNrxkjFx/mqXknsQz9hYm9qM8yMSX41U=;
+	s=korg; t=1706431077;
+	bh=OY7ud0hYCnOcSsmuGRbbbho2iB1GMhquSk57eQAZBVw=;
 	h=Date:To:From:Subject:From;
-	b=sfS7zHAHVGx2lMMU98T5/idsYuBpMI+Q6otu8/ZIeYgdTNOf+BIiFXHf9+gi7Xkvt
-	 LN8SPI/sXOfC0J1sOPpjJXNp9H/+zv24M+7mVFqiQkF2qdqYRFjCnZAxwbhtc/CKbv
-	 gSAtbq1M1wb27vKDUcdBVw+bA9fFVe4oMpPZ7aVY=
-Date: Sun, 28 Jan 2024 00:35:28 -0800
-To: mm-commits@vger.kernel.org,yajun.deng@linux.dev,akpm@linux-foundation.org
+	b=iILTfNXzm2KTni2KbWsjYgCRJ3rHlwmzUUt+7667RASR2r/kWojib0KsBP91XYeLJ
+	 qk+StV8y6W2vFLmy/Xx1nexuBPmfOX9FlmK/2bZ+U7G1gOxyEb9oiz+JW3RiYBslAI
+	 lFXPbwh5ehC6AhHoaVcd2aMM6hGPVcslaoDtfjec=
+Date: Sun, 28 Jan 2024 00:37:54 -0800
+To: mm-commits@vger.kernel.org,sudeep.holla@arm.com,mgorman@techsingularity.net,kyle.meyer@hpe.com,ying.huang@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-use-sz_8m-128m-helper-macro.patch added to mm-unstable branch
-Message-Id: <20240128083531.9A320C433F1@smtp.kernel.org>
+Subject: + mm-and-cache_info-remove-unnecessary-cpu-cache-info-update.patch added to mm-unstable branch
+Message-Id: <20240128083756.B8C6EC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mmap: use SZ_{8M, 128M} helper macro
+     Subject: mm and cache_info: remove unnecessary CPU cache info update
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-use-sz_8m-128m-helper-macro.patch
+     mm-and-cache_info-remove-unnecessary-cpu-cache-info-update.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-use-sz_8m-128m-helper-macro.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-and-cache_info-remove-unnecessary-cpu-cache-info-update.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,63 +58,202 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yajun Deng <yajun.deng@linux.dev>
-Subject: mm/mmap: use SZ_{8M, 128M} helper macro
-Date: Fri, 26 Jan 2024 16:59:05 +0800
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm and cache_info: remove unnecessary CPU cache info update
+Date: Fri, 26 Jan 2024 16:19:44 +0800
 
-Use SZ_{8M, 128M} macro intead of the number in init_user_reserve and
-reserve_mem_notifier.
+For each CPU hotplug event, we will update per-CPU data slice size and
+corresponding PCP configuration for every online CPU to make the
+implementation simple.  But, Kyle reported that this takes tens seconds
+during boot on a machine with 34 zones and 3840 CPUs.
 
-Link: https://lkml.kernel.org/r/20240126085905.2835513-1-yajun.deng@linux.dev
-Signed-off-by: Yajun Deng <yajun.deng@linux.dev>
+So, in this patch, for each CPU hotplug event, we only update per-CPU data
+slice size and corresponding PCP configuration for the CPUs that share
+caches with the hotplugged CPU.  With the patch, the system boot time
+reduces 67 seconds on the machine.
+
+Link: https://lkml.kernel.org/r/20240126081944.414520-1-ying.huang@intel.com
+Fixes: 362d37a106dd ("mm, pcp: reduce lock contention for draining high-order pages")
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Originally-by: Kyle Meyer <kyle.meyer@hpe.com>
+Reported-and-tested-by: Kyle Meyer <kyle.meyer@hpe.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/base/cacheinfo.c |   50 ++++++++++++++++++++++++++++++++-----
+ include/linux/gfp.h      |    2 -
+ mm/page_alloc.c          |   39 +++++++++++++---------------
+ 3 files changed, 63 insertions(+), 28 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-use-sz_8m-128m-helper-macro
-+++ a/mm/mmap.c
-@@ -3847,7 +3847,7 @@ static int init_user_reserve(void)
+--- a/drivers/base/cacheinfo.c~mm-and-cache_info-remove-unnecessary-cpu-cache-info-update
++++ a/drivers/base/cacheinfo.c
+@@ -898,6 +898,37 @@ err:
+ 	return rc;
+ }
  
- 	free_kbytes = K(global_zone_page_state(NR_FREE_PAGES));
++static unsigned int cpu_map_shared_cache(bool online, unsigned int cpu,
++					 cpumask_t **map)
++{
++	struct cacheinfo *llc, *sib_llc;
++	unsigned int sibling;
++
++	if (!last_level_cache_is_valid(cpu))
++		return 0;
++
++	llc = per_cpu_cacheinfo_idx(cpu, cache_leaves(cpu) - 1);
++
++	if (llc->type != CACHE_TYPE_DATA && llc->type != CACHE_TYPE_UNIFIED)
++		return 0;
++
++	if (online) {
++		*map = &llc->shared_cpu_map;
++		return cpumask_weight(*map);
++	}
++
++	/* shared_cpu_map of offlined CPU will be cleared, so use sibling map */
++	for_each_cpu(sibling, &llc->shared_cpu_map) {
++		if (sibling == cpu || !last_level_cache_is_valid(sibling))
++			continue;
++		sib_llc = per_cpu_cacheinfo_idx(sibling, cache_leaves(sibling) - 1);
++		*map = &sib_llc->shared_cpu_map;
++		return cpumask_weight(*map);
++	}
++
++	return 0;
++}
++
+ /*
+  * Calculate the size of the per-CPU data cache slice.  This can be
+  * used to estimate the size of the data cache slice that can be used
+@@ -929,28 +960,31 @@ static void update_per_cpu_data_slice_si
+ 		ci->per_cpu_data_slice_size = llc->size / nr_shared;
+ }
  
--	sysctl_user_reserve_kbytes = min(free_kbytes / 32, 1UL << 17);
-+	sysctl_user_reserve_kbytes = min(free_kbytes / 32, SZ_128M);
+-static void update_per_cpu_data_slice_size(bool cpu_online, unsigned int cpu)
++static void update_per_cpu_data_slice_size(bool cpu_online, unsigned int cpu,
++					   cpumask_t *cpu_map)
+ {
+ 	unsigned int icpu;
+ 
+-	for_each_online_cpu(icpu) {
++	for_each_cpu(icpu, cpu_map) {
+ 		if (!cpu_online && icpu == cpu)
+ 			continue;
+ 		update_per_cpu_data_slice_size_cpu(icpu);
++		setup_pcp_cacheinfo(icpu);
+ 	}
+ }
+ 
+ static int cacheinfo_cpu_online(unsigned int cpu)
+ {
+ 	int rc = detect_cache_attributes(cpu);
++	cpumask_t *cpu_map;
+ 
+ 	if (rc)
+ 		return rc;
+ 	rc = cache_add_dev(cpu);
+ 	if (rc)
+ 		goto err;
+-	update_per_cpu_data_slice_size(true, cpu);
+-	setup_pcp_cacheinfo();
++	if (cpu_map_shared_cache(true, cpu, &cpu_map))
++		update_per_cpu_data_slice_size(true, cpu, cpu_map);
+ 	return 0;
+ err:
+ 	free_cache_attributes(cpu);
+@@ -959,12 +993,16 @@ err:
+ 
+ static int cacheinfo_cpu_pre_down(unsigned int cpu)
+ {
++	cpumask_t *cpu_map;
++	unsigned int nr_shared;
++
++	nr_shared = cpu_map_shared_cache(false, cpu, &cpu_map);
+ 	if (cpumask_test_and_clear_cpu(cpu, &cache_dev_map))
+ 		cpu_cache_sysfs_exit(cpu);
+ 
+ 	free_cache_attributes(cpu);
+-	update_per_cpu_data_slice_size(false, cpu);
+-	setup_pcp_cacheinfo();
++	if (nr_shared > 1)
++		update_per_cpu_data_slice_size(false, cpu, cpu_map);
  	return 0;
  }
- subsys_initcall(init_user_reserve);
-@@ -3868,7 +3868,7 @@ static int init_admin_reserve(void)
  
- 	free_kbytes = K(global_zone_page_state(NR_FREE_PAGES));
+--- a/include/linux/gfp.h~mm-and-cache_info-remove-unnecessary-cpu-cache-info-update
++++ a/include/linux/gfp.h
+@@ -334,7 +334,7 @@ void drain_all_pages(struct zone *zone);
+ void drain_local_pages(struct zone *zone);
  
--	sysctl_admin_reserve_kbytes = min(free_kbytes / 32, 1UL << 13);
-+	sysctl_admin_reserve_kbytes = min(free_kbytes / 32, SZ_8M);
- 	return 0;
+ void page_alloc_init_late(void);
+-void setup_pcp_cacheinfo(void);
++void setup_pcp_cacheinfo(unsigned int cpu);
+ 
+ /*
+  * gfp_allowed_mask is set to GFP_BOOT_MASK during early boot to restrict what
+--- a/mm/page_alloc.c~mm-and-cache_info-remove-unnecessary-cpu-cache-info-update
++++ a/mm/page_alloc.c
+@@ -5578,37 +5578,34 @@ static void zone_pcp_update(struct zone
+ 	mutex_unlock(&pcp_batch_high_lock);
  }
- subsys_initcall(init_admin_reserve);
-@@ -3900,12 +3900,12 @@ static int reserve_mem_notifier(struct n
- 	case MEM_ONLINE:
- 		/* Default max is 128MB. Leave alone if modified by operator. */
- 		tmp = sysctl_user_reserve_kbytes;
--		if (0 < tmp && tmp < (1UL << 17))
-+		if (tmp > 0 && tmp < SZ_128M)
- 			init_user_reserve();
  
- 		/* Default max is 8MB.  Leave alone if modified by operator. */
- 		tmp = sysctl_admin_reserve_kbytes;
--		if (0 < tmp && tmp < (1UL << 13))
-+		if (tmp > 0 && tmp < SZ_8M)
- 			init_admin_reserve();
+-static void zone_pcp_update_cacheinfo(struct zone *zone)
++static void zone_pcp_update_cacheinfo(struct zone *zone, unsigned int cpu)
+ {
+-	int cpu;
+ 	struct per_cpu_pages *pcp;
+ 	struct cpu_cacheinfo *cci;
  
- 		break;
+-	for_each_online_cpu(cpu) {
+-		pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
+-		cci = get_cpu_cacheinfo(cpu);
+-		/*
+-		 * If data cache slice of CPU is large enough, "pcp->batch"
+-		 * pages can be preserved in PCP before draining PCP for
+-		 * consecutive high-order pages freeing without allocation.
+-		 * This can reduce zone lock contention without hurting
+-		 * cache-hot pages sharing.
+-		 */
+-		spin_lock(&pcp->lock);
+-		if ((cci->per_cpu_data_slice_size >> PAGE_SHIFT) > 3 * pcp->batch)
+-			pcp->flags |= PCPF_FREE_HIGH_BATCH;
+-		else
+-			pcp->flags &= ~PCPF_FREE_HIGH_BATCH;
+-		spin_unlock(&pcp->lock);
+-	}
++	pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
++	cci = get_cpu_cacheinfo(cpu);
++	/*
++	 * If data cache slice of CPU is large enough, "pcp->batch"
++	 * pages can be preserved in PCP before draining PCP for
++	 * consecutive high-order pages freeing without allocation.
++	 * This can reduce zone lock contention without hurting
++	 * cache-hot pages sharing.
++	 */
++	spin_lock(&pcp->lock);
++	if ((cci->per_cpu_data_slice_size >> PAGE_SHIFT) > 3 * pcp->batch)
++		pcp->flags |= PCPF_FREE_HIGH_BATCH;
++	else
++		pcp->flags &= ~PCPF_FREE_HIGH_BATCH;
++	spin_unlock(&pcp->lock);
+ }
+ 
+-void setup_pcp_cacheinfo(void)
++void setup_pcp_cacheinfo(unsigned int cpu)
+ {
+ 	struct zone *zone;
+ 
+ 	for_each_populated_zone(zone)
+-		zone_pcp_update_cacheinfo(zone);
++		zone_pcp_update_cacheinfo(zone, cpu);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from yajun.deng@linux.dev are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-mm-mmap-simplify-vma-link-and-unlink.patch
-mm-mmap-introduce-vma_set_range.patch
-mm-mmap-pass-vma-to-vma_merge.patch
-mm-mmap-remove-find_vma_intersection-in-vma_merge.patch
-mm-mmap-use-sz_8m-128m-helper-macro.patch
+mm-and-cache_info-remove-unnecessary-cpu-cache-info-update.patch
 
