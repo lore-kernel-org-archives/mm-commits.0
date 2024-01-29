@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65A7DDDAB
-	for <mm-commits@vger.kernel.org>; Sun, 28 Jan 2024 08:39:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D69D4438F
+	for <mm-commits@vger.kernel.org>; Mon, 29 Jan 2024 06:01:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706431150; cv=none; b=gL7o+eEPlahrO1bNv8GPtbk36roF69c/VMm4ryO2cZ4UGXWLtshs31An5gpB90HscBy7qDeF4no4POinVZMUdSswSum/8+tItto0tNhXW1lPB9D9hiTJ/6s0NqHpQCyjA9xNPg7PoVN+g7inpPuUG4dki2rrPFcnOwyD6w9flTY=
+	t=1706508112; cv=none; b=DrdnEpJuv0NM3cE5eqK3Oghpy2pAZGwPDcySIpToWlXttykJJuc5AoLC1IqNHbra1zwUKJp1kxoauo7ILqim0jIk0dhyl1kDpb/wUcYpaABGn3c+GCZaxv5PWos91SwMr45olSH4cJI9hP/vXIO09C/sTbmMqJZL59BtQq4JKrg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706431150; c=relaxed/simple;
-	bh=kDrOhDV0VyipzT4tpzbiFi3HFqdrPAv4s7XWozu5vQA=;
-	h=Date:To:From:Subject:Message-Id; b=awAEJPFHpaQ6IlELVOSx8a2qzGDJK1j2xQM5y0H37iJS/G334sYNfq0N87SrZ2oiEMDBccbz5NSz6+3nB2FLPtE6gisb8ZX9iKbNmFFqXuM/lKmV8+mEnd3d4acj6No8D7DUCNimr1ANkSQKaXDlc3YRbQsEFsNyddpUqo27Sw0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yWGbpXPf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706508112; c=relaxed/simple;
+	bh=bKC/hA5fHmRXjT4HWKgn7EEI7Z2x/lTHqRrjE6Q+vMQ=;
+	h=Date:To:From:Subject:Message-Id; b=FlUFS6uCYn9X1I1Zc1KkYfcagvjsOj1hWiQD7UQkqVmyO/nu7u7yHNvIyH9k7x8B1Qbe4r9E09ijuhOy85hg8gp4/uGOVNx2pGbmHhRCXlJz+6T4gt/IJjug3Z1EYE8VmPdI0xRypcgbDSnxhbPVzUoaMu9t/hgipoEHwWgAfMI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YnDm6CO2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yWGbpXPf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 464A8C433F1;
-	Sun, 28 Jan 2024 08:39:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YnDm6CO2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18917C433F1;
+	Mon, 29 Jan 2024 06:01:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706431149;
-	bh=kDrOhDV0VyipzT4tpzbiFi3HFqdrPAv4s7XWozu5vQA=;
+	s=korg; t=1706508111;
+	bh=bKC/hA5fHmRXjT4HWKgn7EEI7Z2x/lTHqRrjE6Q+vMQ=;
 	h=Date:To:From:Subject:From;
-	b=yWGbpXPfPrwh+o/dWu6BP0NU9BcbNKtDGBe3wQv1gFGFTdNIWqBGgFzmiN4UOmbxc
-	 Ga2szUKOJpSvLKrG8IjZ5Re3bO5+AIXLNVZwtbelZoboPUnTaAe1Gy2yrGTaFWTqB6
-	 xKmLUGq5HnCVOvUH5IvNKmW0FxxQBOxD/N/xOk/Y=
-Date: Sun, 28 Jan 2024 00:39:06 -0800
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,peterz@infradead.org,mingo@redhat.com,luto@kernel.org,dave.hansen@linux.intel.com,bp@alien8.de,yosryahmed@google.com,akpm@linux-foundation.org
+	b=YnDm6CO29YrHgjLJi/xxsLfj9h/5r1/5XZ8g1/72NdTStSLC/lYe9JUbd5aPLlwa2
+	 MOkFhFIb+ignqtKyhtJ+7Oww1oPAbCP+Oai2ACLDMcJsPl2m/RxKTC+t0/4aWJI4CA
+	 Eik1qBZ9xQvJvW5FCkJmoSEj4h1ambioawIo1hzg=
+Date: Sun, 28 Jan 2024 22:01:48 -0800
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,piliu@redhat.com,klarasmodin@gmail.com,hbathini@linux.ibm.com,ebiederm@xmission.com,bhe@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-mm-clarify-prev-usage-in-switch_mm_irqs_off.patch added to mm-unstable branch
-Message-Id: <20240128083909.464A8C433F1@smtp.kernel.org>
+Subject: + kexec-split-crashkernel-reservation-code-out-from-crash_corec-fix.patch added to mm-unstable branch
+Message-Id: <20240129060151.18917C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/mm: clarify "prev" usage in switch_mm_irqs_off()
+     Subject: kexec-split-crashkernel-reservation-code-out-from-crash_corec-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-mm-clarify-prev-usage-in-switch_mm_irqs_off.patch
+     kexec-split-crashkernel-reservation-code-out-from-crash_corec-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-clarify-prev-usage-in-switch_mm_irqs_off.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-split-crashkernel-reservation-code-out-from-crash_corec-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,141 +58,40 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: x86/mm: clarify "prev" usage in switch_mm_irqs_off()
-Date: Fri, 26 Jan 2024 08:06:44 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kexec-split-crashkernel-reservation-code-out-from-crash_corec-fix
+Date: Sun Jan 28 10:00:15 PM PST 2024
 
-In the x86 implementation of switch_mm_irqs_off(), we do not use the
-"prev" argument passed in by the caller, we use exclusively use
-"real_prev", which is cpu_tlbstate.loaded_mm.  This is not obvious at the
-first sight.
+s/CRASH_RESEERVE/CRASH_RESERVE/, per Klara Modin
 
-Furthermore, a comment describes a condition that happens when called with
-prev == next, but this should not affect the function in any way since
-prev is unused.  Apparently, the comment is intended to clarify why we
-don't rely on prev == next to decide whether we need to update CR3, but
-again, it is not obvious.  The comment also references the fact that
-leave_mm() calls with prev == NULL and tsk == NULL, but this also
-shouldn't matter because prev is unused and tsk is only used in one
-function which has a NULL check.
-
-Clarify things by renaming (prev -> unused) and (real_prev -> prev), also
-move and rewrite the comment as an explanation for why we don't rely on
-"prev" supplied by the caller in x86 code and use our own.  Hopefully this
-makes reading the code easier.
-
-Link: https://lkml.kernel.org/r/20240126080644.1714297-2-yosryahmed@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Borislav Petkov (AMD) <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Hari Bathini <hbathini@linux.ibm.com>
+Cc: Pingfan Liu <piliu@redhat.com>
+Cc: Klara Modin <klarasmodin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/tlb.c |   35 ++++++++++++++++-------------------
- 1 file changed, 16 insertions(+), 19 deletions(-)
+ arch/x86/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/x86/mm/tlb.c~x86-mm-clarify-prev-usage-in-switch_mm_irqs_off
-+++ a/arch/x86/mm/tlb.c
-@@ -492,10 +492,16 @@ void cr4_update_pce(void *ignored)
- static inline void cr4_update_pce_mm(struct mm_struct *mm) { }
- #endif
+--- a/arch/x86/Kconfig~kexec-split-crashkernel-reservation-code-out-from-crash_corec-fix
++++ a/arch/x86/Kconfig
+@@ -2106,7 +2106,7 @@ config ARCH_SUPPORTS_CRASH_HOTPLUG
+ 	def_bool y
  
--void switch_mm_irqs_off(struct mm_struct *prev, struct mm_struct *next,
-+/*
-+ * The "prev" argument passed by the caller does not always match CR3. For
-+ * example, the scheduler passes in active_mm when switching from lazy TLB mode
-+ * to normal mode, but switch_mm_irqs_off() can be called from x86 code without
-+ * updating active_mm. Use cpu_tlbstate.loaded_mm instead.
-+ */
-+void switch_mm_irqs_off(struct mm_struct *unused, struct mm_struct *next,
- 			struct task_struct *tsk)
- {
--	struct mm_struct *real_prev = this_cpu_read(cpu_tlbstate.loaded_mm);
-+	struct mm_struct *prev = this_cpu_read(cpu_tlbstate.loaded_mm);
- 	u16 prev_asid = this_cpu_read(cpu_tlbstate.loaded_mm_asid);
- 	unsigned long new_lam = mm_lam_cr3_mask(next);
- 	bool was_lazy = this_cpu_read(cpu_tlbstate_shared.is_lazy);
-@@ -504,15 +510,6 @@ void switch_mm_irqs_off(struct mm_struct
- 	bool need_flush;
- 	u16 new_asid;
+ config ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION
+-	def_bool CRASH_RESEERVE
++	def_bool CRASH_RESERVE
  
--	/*
--	 * NB: The scheduler will call us with prev == next when switching
--	 * from lazy TLB mode to normal mode if active_mm isn't changing.
--	 * When this happens, we don't assume that CR3 (and hence
--	 * cpu_tlbstate.loaded_mm) matches next.
--	 *
--	 * NB: leave_mm() calls us with prev == NULL and tsk == NULL.
--	 */
--
- 	/* We don't want flush_tlb_func() to run concurrently with us. */
- 	if (IS_ENABLED(CONFIG_PROVE_LOCKING))
- 		WARN_ON_ONCE(!irqs_disabled());
-@@ -527,7 +524,7 @@ void switch_mm_irqs_off(struct mm_struct
- 	 * isn't free.
- 	 */
- #ifdef CONFIG_DEBUG_VM
--	if (WARN_ON_ONCE(__read_cr3() != build_cr3(real_prev->pgd, prev_asid,
-+	if (WARN_ON_ONCE(__read_cr3() != build_cr3(prev->pgd, prev_asid,
- 						   tlbstate_lam_cr3_mask()))) {
- 		/*
- 		 * If we were to BUG here, we'd be very likely to kill
-@@ -559,7 +556,7 @@ void switch_mm_irqs_off(struct mm_struct
- 	 * provides that full memory barrier and core serializing
- 	 * instruction.
- 	 */
--	if (real_prev == next) {
-+	if (prev == next) {
- 		/* Not actually switching mm's */
- 		VM_WARN_ON(this_cpu_read(cpu_tlbstate.ctxs[prev_asid].ctx_id) !=
- 			   next->context.ctx_id);
-@@ -574,7 +571,7 @@ void switch_mm_irqs_off(struct mm_struct
- 		 * mm_cpumask. The TLB shootdown code can figure out from
- 		 * cpu_tlbstate_shared.is_lazy whether or not to send an IPI.
- 		 */
--		if (WARN_ON_ONCE(real_prev != &init_mm &&
-+		if (WARN_ON_ONCE(prev != &init_mm &&
- 				 !cpumask_test_cpu(cpu, mm_cpumask(next))))
- 			cpumask_set_cpu(cpu, mm_cpumask(next));
- 
-@@ -616,10 +613,10 @@ void switch_mm_irqs_off(struct mm_struct
- 		 * Skip kernel threads; we never send init_mm TLB flushing IPIs,
- 		 * but the bitmap manipulation can cause cache line contention.
- 		 */
--		if (real_prev != &init_mm) {
-+		if (prev != &init_mm) {
- 			VM_WARN_ON_ONCE(!cpumask_test_cpu(cpu,
--						mm_cpumask(real_prev)));
--			cpumask_clear_cpu(cpu, mm_cpumask(real_prev));
-+						mm_cpumask(prev)));
-+			cpumask_clear_cpu(cpu, mm_cpumask(prev));
- 		}
- 
- 		/*
-@@ -656,9 +653,9 @@ void switch_mm_irqs_off(struct mm_struct
- 	this_cpu_write(cpu_tlbstate.loaded_mm, next);
- 	this_cpu_write(cpu_tlbstate.loaded_mm_asid, new_asid);
- 
--	if (next != real_prev) {
-+	if (next != prev) {
- 		cr4_update_pce_mm(next);
--		switch_ldt(real_prev, next);
-+		switch_ldt(prev, next);
- 	}
- }
- 
+ config PHYSICAL_START
+ 	hex "Physical address where the kernel is loaded" if (EXPERT || CRASH_DUMP)
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-memcg-optimize-parent-iteration-in-memcg_rstat_updated.patch
-mm-swap-enforce-updating-inuse_pages-at-the-end-of-swap_range_free.patch
-mm-zswap-remove-unnecessary-trees-cleanups-in-zswap_swapoff.patch
-mm-zswap-remove-unused-tree-argument-in-zswap_entry_put.patch
-x86-mm-delete-unused-cpu-argument-to-leave_mm.patch
-x86-mm-clarify-prev-usage-in-switch_mm_irqs_off.patch
+kexec-split-crashkernel-reservation-code-out-from-crash_corec-fix.patch
+mm-memory_hotplug-export-mhp_supports_memmap_on_memory-fix.patch
+kprobes-use-synchronize_rcu_tasks_rude-in-kprobe_optimizer-fix.patch
 
