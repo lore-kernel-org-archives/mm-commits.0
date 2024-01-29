@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66EFB57865
-	for <mm-commits@vger.kernel.org>; Mon, 29 Jan 2024 10:47:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F36556469
+	for <mm-commits@vger.kernel.org>; Mon, 29 Jan 2024 10:48:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706525262; cv=none; b=H24AxcUMVaT1naKS60phgI/+XpdafIkxvIth0ZsB+oSQpDp3ad4fwP9p/K3zM50uqMRm6kPvqClkUbIGGfb44diLgJpBgRXLf15npec3q1wN1iuL+p9wBHJxK/NYttYsEYAyojx6S+WSIBs6QUFFPNDn28/N/7j9TcYLyQ70+Xo=
+	t=1706525307; cv=none; b=lJBsc+GbYxpaTr//z/rMQtO3eWdBgRgmSdVeNgh+d/Umw2kKmXV6h6CtsH6hj8M8WlkOxBIIp6d0VAU+AVd76/idW7NsG1Sh3S8X02Xk9FRzX3B+iMCygXS6rUYqcZ5b55injk3LhGCKq5N7iODaWN4QeMDLJ/+bgUq+ykZeBZ0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706525262; c=relaxed/simple;
-	bh=5acSFrqQ+r+D9AUQQLQq2n5Ps6jLurQVLMJZgmw5IBY=;
-	h=Date:To:From:Subject:Message-Id; b=Sz5PJHc+yKU/tv7iFi3CX1z9IF53V6s6GcILOZZVndEXButPfuZ0jQFzuFAzqYv1UEkNnB3KzX52Q9AGN2PC6RuQ3bPTB6XcsTIwUgQsTmFkGoV5QglCc0xEFVUSYig0r/3rCHvNXkG7IBtWw0WjDn9oHa/Snm+2Q9vuvMo12SI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KX/LhzGo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706525307; c=relaxed/simple;
+	bh=cq1ZKv1cH/WeuBEMcNvbYA3RRZeGUK8yx92qli3+Yyc=;
+	h=Date:To:From:Subject:Message-Id; b=daHNpQSoi5T2lSK/IGtcgLzCF4HhxP4PNsl7boJmDDZ0Z1AIlLxp8LdEVgkk0q15ZEVyS/lIYzOJOWYKR75u5nERvcOnfq8KiE2mKls7kFs9fjrPCjnlgsglO/sYQnuGp/Yy/kqDi7HFQmW1uABfmCFd6XsP7umHLxhjwu+jAZA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SKt/3Wci; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KX/LhzGo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 204D7C433F1;
-	Mon, 29 Jan 2024 10:47:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SKt/3Wci"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DFA1C433F1;
+	Mon, 29 Jan 2024 10:48:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706525261;
-	bh=5acSFrqQ+r+D9AUQQLQq2n5Ps6jLurQVLMJZgmw5IBY=;
+	s=korg; t=1706525306;
+	bh=cq1ZKv1cH/WeuBEMcNvbYA3RRZeGUK8yx92qli3+Yyc=;
 	h=Date:To:From:Subject:From;
-	b=KX/LhzGoMkXfF11AKmhbDYXA4sGBLaLKIpem9CTRTcqCIEgw+DHc0IWU4bZrRWlLt
-	 hDytOzR3sHhVAYdZd6fb6wTxyI3/bosU4mHSt8Sj83ZsMYi3kun2Q8qH/woudVLDRg
-	 W6lD2CKdbxWvq1RRLRvfVz/a61/TDAb1wSHOBBB4=
-Date: Mon, 29 Jan 2024 02:47:38 -0800
-To: mm-commits@vger.kernel.org,zokeefe@google.com,songmuchun@bytedance.com,peterx@redhat.com,minchan@kernel.org,mhocko@suse.com,david@redhat.com,ioworker0@gmail.com,akpm@linux-foundation.org
+	b=SKt/3WciKRLdbbVXWSBrFgmjVKJnVe/RzW6phdX+Q+KvFnlFdFRJKVJlTE2y99gDw
+	 HZYt7jdwyn5uuIPMmYS9By+kM855RQ/OjSJfzBbMiRabL6dm6rZShGtJ0ypgBKm86j
+	 /jHkkZsxWMcH50/mKdYEyE7E4vZAZ1J5dAfi8neA=
+Date: Mon, 29 Jan 2024 02:48:23 -0800
+To: mm-commits@vger.kernel.org,suxiaoyi@huawei.com,mcgrof@kernel.org,changbin.du@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-bypassing-unnecessary-scans-with-mmf_disable_thp-check.patch added to mm-unstable branch
-Message-Id: <20240129104741.204D7C433F1@smtp.kernel.org>
+Subject: + modules-wait-do_free_init-correctly.patch added to mm-nonmm-unstable branch
+Message-Id: <20240129104826.3DFA1C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/khugepaged: bypassing unnecessary scans with MMF_DISABLE_THP check
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-bypassing-unnecessary-scans-with-mmf_disable_thp-check.patch
+     Subject: modules: wait do_free_init correctly
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     modules-wait-do_free_init-correctly.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-bypassing-unnecessary-scans-with-mmf_disable_thp-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/modules-wait-do_free_init-correctly.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,107 +58,89 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Lance Yang <ioworker0@gmail.com>
-Subject: mm/khugepaged: bypassing unnecessary scans with MMF_DISABLE_THP check
-Date: Mon, 29 Jan 2024 13:45:51 +0800
+From: Changbin Du <changbin.du@huawei.com>
+Subject: modules: wait do_free_init correctly
+Date: Mon, 29 Jan 2024 10:03:04 +0800
 
-khugepaged scans the entire address space in the background for each given
-mm, looking for opportunities to merge sequences of basic pages into huge
-pages.  However, when an mm is inserted to the mm_slots list, and the
-MMF_DISABLE_THP flag is set later, this scanning process becomes
-unnecessary for that mm and can be skipped to avoid redundant operations,
-especially in scenarios with a large address space.
+commit 1a7b7d922081 ("modules: Use vmalloc special flag") moves
+do_free_init() into a global workqueue instead of call_rcu().  So now
+rcu_barrier() can not ensure that do_free_init has completed.  We should
+wait it via flush_work().
 
-This commit introduces a check before each scanning process to test the
-MMF_DISABLE_THP flag for the given mm; if the flag is set, the scanning
-process is bypassed, thereby improving the efficiency of khugepaged.
+Without this fix, we still could encounter false positive reports in W+X
+checking, and rcu synchronization is unnecessary.
 
-Link: https://lkml.kernel.org/r/20240129054551.57728-1-ioworker0@gmail.com
-Signed-off-by: Lance Yang <ioworker0@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
+Link: https://lkml.kernel.org/r/20240129020304.1981372-1-changbin.du@huawei.com
+Fixes: 1a7b7d922081 ("modules: Use vmalloc special flag")
+Signed-off-by: Changbin Du <changbin.du@huawei.com>
+Cc: Xiaoyi Su <suxiaoyi@huawei.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ include/linux/moduleloader.h |    8 ++++++++
+ init/main.c                  |    5 +++--
+ kernel/module/main.c         |    5 +++++
+ 3 files changed, 16 insertions(+), 2 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-bypassing-unnecessary-scans-with-mmf_disable_thp-check
-+++ a/mm/khugepaged.c
-@@ -410,6 +410,12 @@ static inline int hpage_collapse_test_ex
- 	return atomic_read(&mm->mm_users) == 0;
+--- a/include/linux/moduleloader.h~modules-wait-do_free_init-correctly
++++ a/include/linux/moduleloader.h
+@@ -115,6 +115,14 @@ int module_finalize(const Elf_Ehdr *hdr,
+ 		    const Elf_Shdr *sechdrs,
+ 		    struct module *mod);
+ 
++#ifdef CONFIG_MODULES
++void flush_module_init_free_work(void);
++#else
++static inline void flush_module_init_free_work(void)
++{
++}
++#endif
++
+ /* Any cleanup needed when module leaves. */
+ void module_arch_cleanup(struct module *mod);
+ 
+--- a/init/main.c~modules-wait-do_free_init-correctly
++++ a/init/main.c
+@@ -99,6 +99,7 @@
+ #include <linux/init_syscalls.h>
+ #include <linux/stackdepot.h>
+ #include <linux/randomize_kstack.h>
++#include <linux/moduleloader.h>
+ #include <net/net_namespace.h>
+ 
+ #include <asm/io.h>
+@@ -1397,11 +1398,11 @@ static void mark_readonly(void)
+ 	if (rodata_enabled) {
+ 		/*
+ 		 * load_module() results in W+X mappings, which are cleaned
+-		 * up with call_rcu().  Let's make sure that queued work is
++		 * up with init_free_wq. Let's make sure that queued work is
+ 		 * flushed so that we don't hit false positives looking for
+ 		 * insecure pages which are W+X.
+ 		 */
+-		rcu_barrier();
++		flush_module_init_free_work();
+ 		mark_rodata_ro();
+ 		rodata_test();
+ 	} else
+--- a/kernel/module/main.c~modules-wait-do_free_init-correctly
++++ a/kernel/module/main.c
+@@ -2489,6 +2489,11 @@ static void do_free_init(struct work_str
+ 	}
  }
  
-+static inline int hpage_collapse_test_exit_or_disable(struct mm_struct *mm)
++void flush_module_init_free_work(void)
 +{
-+	return hpage_collapse_test_exit(mm) ||
-+	       test_bit(MMF_DISABLE_THP, &mm->flags);
++	flush_work(&init_free_wq);
 +}
 +
- void __khugepaged_enter(struct mm_struct *mm)
- {
- 	struct khugepaged_mm_slot *mm_slot;
-@@ -1422,7 +1428,7 @@ static void collect_mm_slot(struct khuge
- 
- 	lockdep_assert_held(&khugepaged_mm_lock);
- 
--	if (hpage_collapse_test_exit(mm)) {
-+	if (hpage_collapse_test_exit_or_disable(mm)) {
- 		/* free mm_slot */
- 		hash_del(&slot->hash);
- 		list_del(&slot->mm_node);
-@@ -2360,7 +2366,7 @@ static unsigned int khugepaged_scan_mm_s
- 		goto breakouterloop_mmap_lock;
- 
- 	progress++;
--	if (unlikely(hpage_collapse_test_exit(mm)))
-+	if (unlikely(hpage_collapse_test_exit_or_disable(mm)))
- 		goto breakouterloop;
- 
- 	vma_iter_init(&vmi, mm, khugepaged_scan.address);
-@@ -2368,7 +2374,7 @@ static unsigned int khugepaged_scan_mm_s
- 		unsigned long hstart, hend;
- 
- 		cond_resched();
--		if (unlikely(hpage_collapse_test_exit(mm))) {
-+		if (unlikely(hpage_collapse_test_exit_or_disable(mm))) {
- 			progress++;
- 			break;
- 		}
-@@ -2390,7 +2396,7 @@ skip:
- 			bool mmap_locked = true;
- 
- 			cond_resched();
--			if (unlikely(hpage_collapse_test_exit(mm)))
-+			if (unlikely(hpage_collapse_test_exit_or_disable(mm)))
- 				goto breakouterloop;
- 
- 			VM_BUG_ON(khugepaged_scan.address < hstart ||
-@@ -2408,7 +2414,7 @@ skip:
- 				fput(file);
- 				if (*result == SCAN_PTE_MAPPED_HUGEPAGE) {
- 					mmap_read_lock(mm);
--					if (hpage_collapse_test_exit(mm))
-+					if (hpage_collapse_test_exit_or_disable(mm))
- 						goto breakouterloop;
- 					*result = collapse_pte_mapped_thp(mm,
- 						khugepaged_scan.address, false);
-@@ -2450,7 +2456,7 @@ breakouterloop_mmap_lock:
- 	 * Release the current mm_slot if this mm is about to die, or
- 	 * if we scanned all vmas of this mm.
- 	 */
--	if (hpage_collapse_test_exit(mm) || !vma) {
-+	if (hpage_collapse_test_exit_or_disable(mm) || !vma) {
- 		/*
- 		 * Make sure that if mm_users is reaching zero while
- 		 * khugepaged runs here, khugepaged_exit will find
+ #undef MODULE_PARAM_PREFIX
+ #define MODULE_PARAM_PREFIX "module."
+ /* Default value for module->async_probe_requested */
 _
 
-Patches currently in -mm which might be from ioworker0@gmail.com are
+Patches currently in -mm which might be from changbin.du@huawei.com are
 
-mm-khugepaged-bypassing-unnecessary-scans-with-mmf_disable_thp-check.patch
+modules-wait-do_free_init-correctly.patch
 
