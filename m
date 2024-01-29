@@ -1,139 +1,523 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DE664E1CE;
-	Mon, 29 Jan 2024 07:28:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AB7755E6D
+	for <mm-commits@vger.kernel.org>; Mon, 29 Jan 2024 10:25:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706513284; cv=none; b=rIsUtIKMJT9ow2EqPBCN9NqGTSzK2yPVsETFudYX26T+CxoOsRIM1E41LjEVRY4sy76Aqmz0mIerhvr51l4v4aI8RGHfMHpYKNWQJmXOS+m5VsC5lGfyS3VWQnPTwiE/fLXwzn0bPFvoURNr6332NXvPWUz9txOFaoooRRiF2oQ=
+	t=1706523950; cv=none; b=KevC9v/YbPZyuBlLrJLgDnbx4KEjRoWsxqBwLb4bhAAdhp9hGDeRmrBBMtFjQhV2R8nqxyTqSUKF+l55xdvlwZ2dppQAMkBxj447I4nTb48TzLp/EHlKdAsKK/ng612SA8raBVIYzPApsxUjJVPmnQ3Lr5wyiwNisDYF+Jxd+wQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706513284; c=relaxed/simple;
-	bh=Z2oS6BBjVYPhT+NnSiP9NynFvHR/xA4KdnP+bGoWRRo=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=eN4dgTlaNsEm75iTGOnYt/OseIVBcUZUU4NoNljcVDbA6HSQeM+r7hzrLjAOyE+PS2YiIYqabsQYeEQiDjGRsQSU8v9c/F1SdQDQevOeGKNYNa2ccTXBua0HhENIzj3a9F0lSSKIWTkT/9tY5OGMxrUp2XHxTK2ZkQH4fhuuxo4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=buEMxP6W; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706523950; c=relaxed/simple;
+	bh=49FV+W+MUxn8hNu6KIHNj44al3UX/hIlGou4HJbT4uE=;
+	h=Date:To:From:Subject:Message-Id; b=lISgg1bRSc+L8s3CLumaWo+iO5fT3+FwDDe9Q+m9jO3SMnBs3V81td4atMUwuTZXkbPwjwplxtyoJhDrty4pAOllRRz6P+mhYZbqFA4DYxA0ymuMc8HKSThZVhD5CkYODRbaUfUB1Yo9XGWkRq8mBGOq2k/UhsSUBpOhverzfWc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w+0XrZ//; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="buEMxP6W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A52AC433F1;
-	Mon, 29 Jan 2024 07:28:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w+0XrZ//"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B17CC433C7;
+	Mon, 29 Jan 2024 10:25:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706513283;
-	bh=Z2oS6BBjVYPhT+NnSiP9NynFvHR/xA4KdnP+bGoWRRo=;
-	h=Date:From:To:Cc:Subject:From;
-	b=buEMxP6W6BhKvQwuvcK1MGGd7DTo1kyWkYH3sgMXDlQ1xajRLF4LKqMmWWEbqyUXK
-	 2hrE3EcfINuB3hMibYIxS+4N2z+RUIhjBoL/5cv9ceHj+HGj02qHsV9m6l3Y9IVEEi
-	 laBZXuskqnU57nRLZNpc4aiten2giUAeofokKVIU=
-Date: Sun, 28 Jan 2024 23:27:59 -0800
+	s=korg; t=1706523950;
+	bh=49FV+W+MUxn8hNu6KIHNj44al3UX/hIlGou4HJbT4uE=;
+	h=Date:To:From:Subject:From;
+	b=w+0XrZ//A85VGmjzR4m5ldN7OB242icXgun7EPvoOOD3syPa4Ao3eEoTKCcmTAQA9
+	 MQHM57cBue6iuLqSgltwbYH1aM/0xf7mPXV7nLxmcsd+rP/ICRPOgTHz1j8HJsuZyc
+	 7gzvBpNiVd53Ol6caZcxD38Cr/veSbBHs/jxpKF8=
+Date: Mon, 29 Jan 2024 02:25:46 -0800
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,vbabka@suse.cz,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,elver@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
- mm-commits@vger.kernel.org
-Subject: [GIT PULL]  hotfixes for 6.8-rc3
-Message-Id: <20240128232759.7535e6774bec152556fb9730@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + stackdepot-use-variable-size-records-for-non-evictable-entries.patch added to mm-unstable branch
+Message-Id: <20240129102549.6B17CC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
 
-Linus, please merge this batch of MM and non-MM hotfixes, thanks.
+The patch titled
+     Subject: stackdepot: use variable size records for non-evictable entries
+has been added to the -mm mm-unstable branch.  Its filename is
+     stackdepot-use-variable-size-records-for-non-evictable-entries.patch
 
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/stackdepot-use-variable-size-records-for-non-evictable-entries.patch
 
-The following changes since commit f0b7a0d1d46625db5b0e631c05ae96d78eda6c70:
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-  Merge branch 'master' into mm-hotfixes-stable (2024-01-22 19:23:56 -0800)
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-are available in the Git repository at:
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-01-28-23-21
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
-for you to fetch changes up to 96204e15310c218fd9355bdcacd02fed1d18070e:
+------------------------------------------------------
+From: Marco Elver <elver@google.com>
+Subject: stackdepot: use variable size records for non-evictable entries
+Date: Mon, 29 Jan 2024 11:07:01 +0100
 
-  mm: thp_get_unmapped_area must honour topdown preference (2024-01-26 01:23:44 -0800)
+With the introduction of stack depot evictions, each stack record is now
+fixed size, so that future reuse after an eviction can safely store
+differently sized stack traces.  In all cases that do not make use of
+evictions, this wastes lots of space.
 
-----------------------------------------------------------------
-22 hotfixes.  11 are cc:stable and the remainder address post-6.7 issues
-or aren't considered appropriate for backporting.
+Fix it by re-introducing variable size stack records (up to the max
+allowed size) for entries that will never be evicted.  We know if an entry
+will never be evicted if the flag STACK_DEPOT_FLAG_GET is not provided,
+since a later stack_depot_put() attempt is undefined behavior.
 
-----------------------------------------------------------------
-Audra Mitchell (1):
-      selftests/mm: Update va_high_addr_switch.sh to check CPU for la57 flag
+With my current kernel config that enables KASAN and also SLUB owner
+tracking, I observe (after a kernel boot) a whopping reduction of 296
+stack depot pools, which translates into 4736 KiB saved.  The savings here
+are from SLUB owner tracking only, because KASAN generic mode still uses
+refcounting.
 
-David Hildenbrand (3):
-      uprobes: use pagesize-aligned virtual address when replacing pages
-      mm/huge_memory: fix folio_set_dirty() vs. folio_mark_dirty()
-      mm/memory: fix folio_set_dirty() vs. folio_mark_dirty() in zap_pte_range()
+Before:
 
-Jan Kara (1):
-      readahead: avoid multiple marked readahead pages
+  pools: 893
+  allocations: 29841
+  frees: 6524
+  in_use: 23317
+  freelist_size: 3454
 
-Johannes Weiner (1):
-      mm: memcontrol: don't throttle dying tasks on memory.high
+After:
 
-Lokesh Gidra (1):
-      userfaultfd: fix mmap_changing checking in mfill_atomic_hugetlb
+  pools: 597
+  refcounted_allocations: 17547
+  refcounted_frees: 6477
+  refcounted_in_use: 11070
+  freelist_size: 3497
+  persistent_count: 12163
+  persistent_bytes: 1717008
 
-Marco Elver (3):
-      mm, kmsan: fix infinite recursion due to RCU critical section
-      stackdepot: add stats counters exported via debugfs
-      stackdepot: make fast paths lock-less again
+Link: https://lkml.kernel.org/r/20240129100708.39460-1-elver@google.com
+Fixes: 108be8def46e ("lib/stackdepot: allow users to evict stack traces")
+Signed-off-by: Marco Elver <elver@google.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Muhammad Usama Anjum (2):
-      selftests/mm: mremap_test: fix build warning
-      selftests/mm: switch to bash from sh
+ include/linux/poison.h |    3 
+ lib/stackdepot.c       |  250 +++++++++++++++++++--------------------
+ 2 files changed, 130 insertions(+), 123 deletions(-)
 
-Nico Pache (1):
-      selftests: mm: fix map_hugetlb failure on 64K page size systems
+--- a/include/linux/poison.h~stackdepot-use-variable-size-records-for-non-evictable-entries
++++ a/include/linux/poison.h
+@@ -92,4 +92,7 @@
+ /********** VFS **********/
+ #define VFS_PTR_POISON ((void *)(0xF5 + POISON_POINTER_DELTA))
+ 
++/********** lib/stackdepot.c **********/
++#define STACK_DEPOT_POISON ((void *)(0xD390 + POISON_POINTER_DELTA))
++
+ #endif
+--- a/lib/stackdepot.c~stackdepot-use-variable-size-records-for-non-evictable-entries
++++ a/lib/stackdepot.c
+@@ -22,6 +22,7 @@
+ #include <linux/list.h>
+ #include <linux/mm.h>
+ #include <linux/mutex.h>
++#include <linux/poison.h>
+ #include <linux/printk.h>
+ #include <linux/rculist.h>
+ #include <linux/rcupdate.h>
+@@ -43,17 +44,7 @@
+ #define DEPOT_OFFSET_BITS (DEPOT_POOL_ORDER + PAGE_SHIFT - DEPOT_STACK_ALIGN)
+ #define DEPOT_POOL_INDEX_BITS (DEPOT_HANDLE_BITS - DEPOT_OFFSET_BITS - \
+ 			       STACK_DEPOT_EXTRA_BITS)
+-#if IS_ENABLED(CONFIG_KMSAN) && CONFIG_STACKDEPOT_MAX_FRAMES >= 32
+-/*
+- * KMSAN is frequently used in fuzzing scenarios and thus saves a lot of stack
+- * traces. As KMSAN does not support evicting stack traces from the stack
+- * depot, the stack depot capacity might be reached quickly with large stack
+- * records. Adjust the maximum number of stack depot pools for this case.
+- */
+-#define DEPOT_POOLS_CAP (8192 * (CONFIG_STACKDEPOT_MAX_FRAMES / 16))
+-#else
+ #define DEPOT_POOLS_CAP 8192
+-#endif
+ #define DEPOT_MAX_POOLS \
+ 	(((1LL << (DEPOT_POOL_INDEX_BITS)) < DEPOT_POOLS_CAP) ? \
+ 	 (1LL << (DEPOT_POOL_INDEX_BITS)) : DEPOT_POOLS_CAP)
+@@ -93,9 +84,6 @@ struct stack_record {
+ 	};
+ };
+ 
+-#define DEPOT_STACK_RECORD_SIZE \
+-	ALIGN(sizeof(struct stack_record), 1 << DEPOT_STACK_ALIGN)
+-
+ static bool stack_depot_disabled;
+ static bool __stack_depot_early_init_requested __initdata = IS_ENABLED(CONFIG_STACKDEPOT_ALWAYS_INIT);
+ static bool __stack_depot_early_init_passed __initdata;
+@@ -121,32 +109,31 @@ static void *stack_pools[DEPOT_MAX_POOLS
+ static void *new_pool;
+ /* Number of pools in stack_pools. */
+ static int pools_num;
++/* Offset to the unused space in the currently used pool. */
++static size_t pool_offset = DEPOT_POOL_SIZE;
+ /* Freelist of stack records within stack_pools. */
+ static LIST_HEAD(free_stacks);
+-/*
+- * Stack depot tries to keep an extra pool allocated even before it runs out
+- * of space in the currently used pool. This flag marks whether this extra pool
+- * needs to be allocated. It has the value 0 when either an extra pool is not
+- * yet allocated or if the limit on the number of pools is reached.
+- */
+-static bool new_pool_required = true;
+ /* The lock must be held when performing pool or freelist modifications. */
+ static DEFINE_RAW_SPINLOCK(pool_lock);
+ 
+ /* Statistics counters for debugfs. */
+ enum depot_counter_id {
+-	DEPOT_COUNTER_ALLOCS,
+-	DEPOT_COUNTER_FREES,
+-	DEPOT_COUNTER_INUSE,
++	DEPOT_COUNTER_REFD_ALLOCS,
++	DEPOT_COUNTER_REFD_FREES,
++	DEPOT_COUNTER_REFD_INUSE,
+ 	DEPOT_COUNTER_FREELIST_SIZE,
++	DEPOT_COUNTER_PERSIST_COUNT,
++	DEPOT_COUNTER_PERSIST_BYTES,
+ 	DEPOT_COUNTER_COUNT,
+ };
+ static long counters[DEPOT_COUNTER_COUNT];
+ static const char *const counter_names[] = {
+-	[DEPOT_COUNTER_ALLOCS]		= "allocations",
+-	[DEPOT_COUNTER_FREES]		= "frees",
+-	[DEPOT_COUNTER_INUSE]		= "in_use",
++	[DEPOT_COUNTER_REFD_ALLOCS]	= "refcounted_allocations",
++	[DEPOT_COUNTER_REFD_FREES]	= "refcounted_frees",
++	[DEPOT_COUNTER_REFD_INUSE]	= "refcounted_in_use",
+ 	[DEPOT_COUNTER_FREELIST_SIZE]	= "freelist_size",
++	[DEPOT_COUNTER_PERSIST_COUNT]	= "persistent_count",
++	[DEPOT_COUNTER_PERSIST_BYTES]	= "persistent_bytes",
+ };
+ static_assert(ARRAY_SIZE(counter_names) == DEPOT_COUNTER_COUNT);
+ 
+@@ -294,48 +281,52 @@ out_unlock:
+ EXPORT_SYMBOL_GPL(stack_depot_init);
+ 
+ /*
+- * Initializes new stack depot @pool, release all its entries to the freelist,
+- * and update the list of pools.
++ * Initializes new stack pool, and updates the list of pools.
+  */
+-static void depot_init_pool(void *pool)
++static bool depot_init_pool(void **prealloc)
+ {
+-	int offset;
+-
+ 	lockdep_assert_held(&pool_lock);
+ 
+-	/* Initialize handles and link stack records into the freelist. */
+-	for (offset = 0; offset <= DEPOT_POOL_SIZE - DEPOT_STACK_RECORD_SIZE;
+-	     offset += DEPOT_STACK_RECORD_SIZE) {
+-		struct stack_record *stack = pool + offset;
+-
+-		stack->handle.pool_index = pools_num;
+-		stack->handle.offset = offset >> DEPOT_STACK_ALIGN;
+-		stack->handle.extra = 0;
+-
+-		/*
+-		 * Stack traces of size 0 are never saved, and we can simply use
+-		 * the size field as an indicator if this is a new unused stack
+-		 * record in the freelist.
+-		 */
+-		stack->size = 0;
++	if (unlikely(pools_num >= DEPOT_MAX_POOLS)) {
++		/* Bail out if we reached the pool limit. */
++		WARN_ON_ONCE(pools_num > DEPOT_MAX_POOLS); /* should never happen */
++		WARN_ON_ONCE(!new_pool); /* to avoid unnecessary pre-allocation */
++		WARN_ONCE(1, "Stack depot reached limit capacity");
++		return false;
++	}
+ 
+-		INIT_LIST_HEAD(&stack->hash_list);
+-		/*
+-		 * Add to the freelist front to prioritize never-used entries:
+-		 * required in case there are entries in the freelist, but their
+-		 * RCU cookie still belongs to the current RCU grace period
+-		 * (there can still be concurrent readers).
+-		 */
+-		list_add(&stack->free_list, &free_stacks);
+-		counters[DEPOT_COUNTER_FREELIST_SIZE]++;
++	if (!new_pool && *prealloc) {
++		/* We have preallocated memory, use it. */
++		WRITE_ONCE(new_pool, *prealloc);
++		*prealloc = NULL;
+ 	}
+ 
++	if (!new_pool)
++		return false; /* new_pool and *prealloc are NULL */
++
+ 	/* Save reference to the pool to be used by depot_fetch_stack(). */
+-	stack_pools[pools_num] = pool;
++	stack_pools[pools_num] = new_pool;
++
++	/*
++	 * Stack depot tries to keep an extra pool allocated even before it runs
++	 * out of space in the currently used pool.
++	 *
++	 * To indicate that a new preallocation is needed new_pool is reset to
++	 * NULL; do not reset to NULL if we have reached the maximum number of
++	 * pools.
++	 */
++	if (pools_num < DEPOT_MAX_POOLS)
++		WRITE_ONCE(new_pool, NULL);
++	else
++		WRITE_ONCE(new_pool, STACK_DEPOT_POISON);
+ 
+ 	/* Pairs with concurrent READ_ONCE() in depot_fetch_stack(). */
+ 	WRITE_ONCE(pools_num, pools_num + 1);
+ 	ASSERT_EXCLUSIVE_WRITER(pools_num);
++
++	pool_offset = 0;
++
++	return true;
+ }
+ 
+ /* Keeps the preallocated memory to be used for a new stack depot pool. */
+@@ -347,63 +338,51 @@ static void depot_keep_new_pool(void **p
+ 	 * If a new pool is already saved or the maximum number of
+ 	 * pools is reached, do not use the preallocated memory.
+ 	 */
+-	if (!new_pool_required)
++	if (new_pool)
+ 		return;
+ 
+-	/*
+-	 * Use the preallocated memory for the new pool
+-	 * as long as we do not exceed the maximum number of pools.
+-	 */
+-	if (pools_num < DEPOT_MAX_POOLS) {
+-		new_pool = *prealloc;
+-		*prealloc = NULL;
+-	}
+-
+-	/*
+-	 * At this point, either a new pool is kept or the maximum
+-	 * number of pools is reached. In either case, take note that
+-	 * keeping another pool is not required.
+-	 */
+-	WRITE_ONCE(new_pool_required, false);
++	WRITE_ONCE(new_pool, *prealloc);
++	*prealloc = NULL;
+ }
+ 
+ /*
+- * Try to initialize a new stack depot pool from either a previous or the
+- * current pre-allocation, and release all its entries to the freelist.
++ * Try to initialize a new stack record from the current pool, a cached pool, or
++ * the current pre-allocation.
+  */
+-static bool depot_try_init_pool(void **prealloc)
++static struct stack_record *depot_pop_free_pool(void **prealloc, size_t size)
+ {
++	struct stack_record *stack;
++	void *current_pool;
++	u32 pool_index;
++
+ 	lockdep_assert_held(&pool_lock);
+ 
+-	/* Check if we have a new pool saved and use it. */
+-	if (new_pool) {
+-		depot_init_pool(new_pool);
+-		new_pool = NULL;
++	if (pool_offset + size > DEPOT_POOL_SIZE) {
++		if (!depot_init_pool(prealloc))
++			return NULL;
++	}
+ 
+-		/* Take note that we might need a new new_pool. */
+-		if (pools_num < DEPOT_MAX_POOLS)
+-			WRITE_ONCE(new_pool_required, true);
++	if (WARN_ON_ONCE(pools_num < 1))
++		return NULL;
++	pool_index = pools_num - 1;
++	current_pool = stack_pools[pool_index];
++	if (WARN_ON_ONCE(!current_pool))
++		return NULL;
+ 
+-		return true;
+-	}
++	stack = current_pool + pool_offset;
+ 
+-	/* Bail out if we reached the pool limit. */
+-	if (unlikely(pools_num >= DEPOT_MAX_POOLS)) {
+-		WARN_ONCE(1, "Stack depot reached limit capacity");
+-		return false;
+-	}
++	/* Pre-initialize handle once. */
++	stack->handle.pool_index = pool_index;
++	stack->handle.offset = pool_offset >> DEPOT_STACK_ALIGN;
++	stack->handle.extra = 0;
++	INIT_LIST_HEAD(&stack->hash_list);
+ 
+-	/* Check if we have preallocated memory and use it. */
+-	if (*prealloc) {
+-		depot_init_pool(*prealloc);
+-		*prealloc = NULL;
+-		return true;
+-	}
++	pool_offset += size;
+ 
+-	return false;
++	return stack;
+ }
+ 
+-/* Try to find next free usable entry. */
++/* Try to find next free usable entry from the freelist. */
+ static struct stack_record *depot_pop_free(void)
+ {
+ 	struct stack_record *stack;
+@@ -420,7 +399,7 @@ static struct stack_record *depot_pop_fr
+ 	 * check the first entry.
+ 	 */
+ 	stack = list_first_entry(&free_stacks, struct stack_record, free_list);
+-	if (stack->size && !poll_state_synchronize_rcu(stack->rcu_state))
++	if (!poll_state_synchronize_rcu(stack->rcu_state))
+ 		return NULL;
+ 
+ 	list_del(&stack->free_list);
+@@ -429,48 +408,73 @@ static struct stack_record *depot_pop_fr
+ 	return stack;
+ }
+ 
++static inline size_t depot_stack_record_size(struct stack_record *s, unsigned int nr_entries)
++{
++	const size_t used = flex_array_size(s, entries, nr_entries);
++	const size_t unused = sizeof(s->entries) - used;
++
++	WARN_ON_ONCE(sizeof(s->entries) < used);
++
++	return ALIGN(sizeof(struct stack_record) - unused, 1 << DEPOT_STACK_ALIGN);
++}
++
+ /* Allocates a new stack in a stack depot pool. */
+ static struct stack_record *
+-depot_alloc_stack(unsigned long *entries, int size, u32 hash, void **prealloc)
++depot_alloc_stack(unsigned long *entries, int nr_entries, u32 hash, depot_flags_t flags, void **prealloc)
+ {
+-	struct stack_record *stack;
++	struct stack_record *stack = NULL;
++	size_t record_size;
+ 
+ 	lockdep_assert_held(&pool_lock);
+ 
+ 	/* This should already be checked by public API entry points. */
+-	if (WARN_ON_ONCE(!size))
++	if (WARN_ON_ONCE(!nr_entries))
+ 		return NULL;
+ 
+-	/* Check if we have a stack record to save the stack trace. */
+-	stack = depot_pop_free();
+-	if (!stack) {
+-		/* No usable entries on the freelist - try to refill the freelist. */
+-		if (!depot_try_init_pool(prealloc))
+-			return NULL;
++	/* Limit number of saved frames to CONFIG_STACKDEPOT_MAX_FRAMES. */
++	if (nr_entries > CONFIG_STACKDEPOT_MAX_FRAMES)
++		nr_entries = CONFIG_STACKDEPOT_MAX_FRAMES;
++
++	if (flags & STACK_DEPOT_FLAG_GET) {
++		/*
++		 * Evictable entries have to allocate the max. size so they may
++		 * safely be re-used by differently sized allocations.
++		 */
++		record_size = depot_stack_record_size(stack, CONFIG_STACKDEPOT_MAX_FRAMES);
+ 		stack = depot_pop_free();
+-		if (WARN_ON(!stack))
+-			return NULL;
++	} else {
++		record_size = depot_stack_record_size(stack, nr_entries);
+ 	}
+ 
+-	/* Limit number of saved frames to CONFIG_STACKDEPOT_MAX_FRAMES. */
+-	if (size > CONFIG_STACKDEPOT_MAX_FRAMES)
+-		size = CONFIG_STACKDEPOT_MAX_FRAMES;
++	if (!stack) {
++		stack = depot_pop_free_pool(prealloc, record_size);
++		if (!stack)
++			return NULL;
++	}
+ 
+ 	/* Save the stack trace. */
+ 	stack->hash = hash;
+-	stack->size = size;
+-	/* stack->handle is already filled in by depot_init_pool(). */
+-	refcount_set(&stack->count, 1);
+-	memcpy(stack->entries, entries, flex_array_size(stack, entries, size));
++	stack->size = nr_entries;
++	/* stack->handle is already filled in by depot_pop_free_pool(). */
++	memcpy(stack->entries, entries, flex_array_size(stack, entries, nr_entries));
++
++	if (flags & STACK_DEPOT_FLAG_GET) {
++		refcount_set(&stack->count, 1);
++		counters[DEPOT_COUNTER_REFD_ALLOCS]++;
++		counters[DEPOT_COUNTER_REFD_INUSE]++;
++	} else {
++		/* Warn on attempts to switch to refcounting this entry. */
++		refcount_set(&stack->count, REFCOUNT_SATURATED);
++		counters[DEPOT_COUNTER_PERSIST_COUNT]++;
++		counters[DEPOT_COUNTER_PERSIST_BYTES] += record_size;
++	}
+ 
+ 	/*
+ 	 * Let KMSAN know the stored stack record is initialized. This shall
+ 	 * prevent false positive reports if instrumented code accesses it.
+ 	 */
+-	kmsan_unpoison_memory(stack, DEPOT_STACK_RECORD_SIZE);
++	kmsan_unpoison_memory(stack, record_size);
+ 
+-	counters[DEPOT_COUNTER_ALLOCS]++;
+-	counters[DEPOT_COUNTER_INUSE]++;
+ 	return stack;
+ }
+ 
+@@ -538,8 +542,8 @@ static void depot_free_stack(struct stac
+ 	list_add_tail(&stack->free_list, &free_stacks);
+ 
+ 	counters[DEPOT_COUNTER_FREELIST_SIZE]++;
+-	counters[DEPOT_COUNTER_FREES]++;
+-	counters[DEPOT_COUNTER_INUSE]--;
++	counters[DEPOT_COUNTER_REFD_FREES]++;
++	counters[DEPOT_COUNTER_REFD_INUSE]--;
+ 
+ 	printk_deferred_exit();
+ 	raw_spin_unlock_irqrestore(&pool_lock, flags);
+@@ -660,7 +664,7 @@ depot_stack_handle_t stack_depot_save_fl
+ 	 * Allocate memory for a new pool if required now:
+ 	 * we won't be able to do that under the lock.
+ 	 */
+-	if (unlikely(can_alloc && READ_ONCE(new_pool_required))) {
++	if (unlikely(can_alloc && !READ_ONCE(new_pool))) {
+ 		/*
+ 		 * Zero out zone modifiers, as we don't have specific zone
+ 		 * requirements. Keep the flags related to allocation in atomic
+@@ -681,7 +685,7 @@ depot_stack_handle_t stack_depot_save_fl
+ 	found = find_stack(bucket, entries, nr_entries, hash, depot_flags);
+ 	if (!found) {
+ 		struct stack_record *new =
+-			depot_alloc_stack(entries, nr_entries, hash, &prealloc);
++			depot_alloc_stack(entries, nr_entries, hash, depot_flags, &prealloc);
+ 
+ 		if (new) {
+ 			/*
+_
 
-Petr Vorel (1):
-      MAINTAINERS: add man-pages git trees
+Patches currently in -mm which might be from elver@google.com are
 
-Ryan Roberts (2):
-      selftests/mm: ksm_tests should only MADV_HUGEPAGE valid memory
-      mm: thp_get_unmapped_area must honour topdown preference
-
-Samuel Holland (1):
-      scs: add CONFIG_MMU dependency for vfree_atomic()
-
-Sidhartha Kumar (1):
-      fs/hugetlbfs/inode.c: mm/memory-failure.c: fix hugetlbfs hwpoison handling
-
-Yang Shi (2):
-      mm: mmap: map MAP_STACK to VM_NOHUGEPAGE
-      mm: huge_memory: don't force huge page alignment on 32 bit
-
-Yosry Ahmed (1):
-      MAINTAINERS: supplement of zswap maintainers update
-
-Zach O'Keefe (1):
-      mm/writeback: fix possible divide-by-zero in wb_dirty_limits(), again
-
- CREDITS                                            |  13 +
- MAINTAINERS                                        |  11 +-
- arch/Kconfig                                       |   1 +
- arch/x86/include/asm/kmsan.h                       |  17 +-
- fs/hugetlbfs/inode.c                               |   2 +-
- include/linux/mman.h                               |   1 +
- include/linux/mmzone.h                             |   6 +-
- kernel/events/uprobes.c                            |   2 +-
- lib/stackdepot.c                                   | 373 +++++++++++++++------
- mm/huge_memory.c                                   |  18 +-
- mm/memcontrol.c                                    |  29 +-
- mm/memory-failure.c                                |   2 +-
- mm/memory.c                                        |   2 +-
- mm/mmap.c                                          |   6 +-
- mm/page-writeback.c                                |   2 +-
- mm/readahead.c                                     |   4 +-
- mm/userfaultfd.c                                   |  15 +-
- .../selftests/mm/charge_reserved_hugetlb.sh        |   2 +-
- tools/testing/selftests/mm/ksm_tests.c             |   2 +-
- tools/testing/selftests/mm/map_hugetlb.c           |   7 +
- tools/testing/selftests/mm/mremap_test.c           |  27 +-
- tools/testing/selftests/mm/va_high_addr_switch.sh  |   6 +
- tools/testing/selftests/mm/write_hugetlb_memory.sh |   2 +-
- 23 files changed, 394 insertions(+), 156 deletions(-)
+stackdepot-use-variable-size-records-for-non-evictable-entries.patch
+kasan-revert-eviction-of-stack-traces-in-generic-mode.patch
 
