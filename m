@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFF73159589
-	for <mm-commits@vger.kernel.org>; Mon, 29 Jan 2024 22:23:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CF41158D7F
+	for <mm-commits@vger.kernel.org>; Mon, 29 Jan 2024 22:23:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706567028; cv=none; b=ifhLQJRvaMVm9nk3JDJ6TeAJjfQcXhbm7DVN+ze2nbEdBp3jD9JPmAeu5cdGmbG3XtESQ78loG77xUQXEWI+qEmkPaaFPgCEjIagknoZ0BPfxm5WCCRtT9Tmp/h8qeaaYMY6ji31RmdxkQ0OlQ+qJ+NaFtNkvXuh+NhIoG1nr9I=
+	t=1706567032; cv=none; b=plsmkF65nG2lVPqxsqSZvaLRbzop5kJsH09ibn6yR4qixJxRriA1epOo5u5YrxPtueYRYY64sUAyIGTIP8T60MbaTpIcFa74A503FOT3LBR+muslwmkE3rMv298mZTzGHU2CYzsYxmh2CA/qkevehuugfk2K3g5W+eEqHruItNg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706567028; c=relaxed/simple;
-	bh=FZGnQXfYUHk5tk34pyE1UrOqrjH0RFYAh4ATNCMnpZs=;
-	h=Date:To:From:Subject:Message-Id; b=ldtUfMHiZxv9AZIQ0mEwlCD+mDuqS9iSjGvlIiprosZykcKQuc5AEifbqYk39N+pt88kAbJl4U+E0cCnMwyM07/L9adhSqIBPT0Ba5TU8eYF+HKZ20R/RM8wZWSu19I11w7J0al3yzisOIQIcFd271CWWlz94+0k6wDxMhFFYws=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j3vDWbHv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706567032; c=relaxed/simple;
+	bh=mIluKo6FjH0bNT4Qk4UP/IvFA6QjDFhAKX7lagllXUM=;
+	h=Date:To:From:Subject:Message-Id; b=mrn0B27bZ8pN504FMiMsd+lqlTVLCQ3yYk/+UsoQ4pOvTSNggY2czpXgxwYJZ+x733+jtgzbSdX9vTFBm2QSRojXNyEXYOdT5h0uuDKwY8pN61B/0ZIeJt4T5YtLK3QUxj8hEEE0uc2ICwoO4gN/dUJ+2epBvqjeZ9wZBgiAFao=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SIczMxwE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j3vDWbHv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDFB9C433C7;
-	Mon, 29 Jan 2024 22:23:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SIczMxwE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4D11C433C7;
+	Mon, 29 Jan 2024 22:23:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706567027;
-	bh=FZGnQXfYUHk5tk34pyE1UrOqrjH0RFYAh4ATNCMnpZs=;
+	s=korg; t=1706567031;
+	bh=mIluKo6FjH0bNT4Qk4UP/IvFA6QjDFhAKX7lagllXUM=;
 	h=Date:To:From:Subject:From;
-	b=j3vDWbHvyR/9LmuzN2LRO/lQKIy9gD0/nmCorucftBVzL02Dd6zMY+bAdf+hp82vF
-	 h7DXKoLWXG6yYCneCbHcAARYC/6oNY1yo3U3SSME5vbF6rOIspAwCjIJ5aGtd6VVRn
-	 1FSo0Q5t7iaDxipVDHELrBzOXdRijqDMjndfXTSs=
-Date: Mon, 29 Jan 2024 14:23:43 -0800
+	b=SIczMxwEJ1JynrSrfi6CUElNrepJqFPQOW500E+CTCZ4FJZcD32w34gknLaRTrExp
+	 r1GQ4GLRyVhGZr7vNdxsdT5oTMySCZ84SrFgSwvK+5lkBdzAWyU7hCMKNRbZdHzkgd
+	 DDqwkscXasvi6qA++OOfymdOK+VeQRX9om6RTGO4=
+Date: Mon, 29 Jan 2024 14:23:48 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,lstoakes@gmail.com,Liam.Howlett@oracle.com,brauner@kernel.org,yajun.deng@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] mm-mmap-pass-vma-to-vma_merge.patch removed from -mm tree
-Message-Id: <20240129222346.BDFB9C433C7@smtp.kernel.org>
+Subject: [failures] mm-mmap-remove-find_vma_intersection-in-vma_merge.patch removed from -mm tree
+Message-Id: <20240129222350.E4D11C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,34 +35,25 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mmap: pass vma to vma_merge()
+     Subject: mm/mmap: remove find_vma_intersection() in vma_merge()
 has been removed from the -mm tree.  Its filename was
-     mm-mmap-pass-vma-to-vma_merge.patch
+     mm-mmap-remove-find_vma_intersection-in-vma_merge.patch
 
 This patch was dropped because it had testing failures
 
 ------------------------------------------------------
 From: Yajun Deng <yajun.deng@linux.dev>
-Subject: mm/mmap: pass vma to vma_merge()
-Date: Thu, 25 Jan 2024 11:49:21 +0800
+Subject: mm/mmap: remove find_vma_intersection() in vma_merge()
+Date: Thu, 25 Jan 2024 11:49:22 +0800
 
-Patch series "mm/mmap: simplify vma_merge()", v2.
+We need to find the current vma by find_vma_intersection() in vma_merge().
+Since the src vma was passed, we can add a check to figure out if the
+current vma is NULL or the src vma directly.
 
-The vma_merge() has too many parameters, we can pass vma to vma_merge(),
-so that it can save two parameters.  Since the src vma was passed,
-find_vma_intersection() can be removed.
+Remove find_vma_intersection() in vma_merge().  And initialize the next to
+NULL when defining it.
 
-
-This patch (of 2):
-
-These vma_merge() callers will pass mm, anon_vma and file, they all from
-the same vma.  There is no need to pass three parameters at the same time.
-
-Pass vma instead of mm, anon_vma and file to vma_merge(), so that it can
-save two parameters.
-
-Link: https://lkml.kernel.org/r/20240125034922.1004671-1-yajun.deng@linux.dev
-Link: https://lkml.kernel.org/r/20240125034922.1004671-2-yajun.deng@linux.dev
+Link: https://lkml.kernel.org/r/20240125034922.1004671-3-yajun.deng@linux.dev
 Signed-off-by: Yajun Deng <yajun.deng@linux.dev>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -74,75 +65,56 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   27 +++++++++++++--------------
- 1 file changed, 13 insertions(+), 14 deletions(-)
+ mm/mmap.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-pass-vma-to-vma_merge
+--- a/mm/mmap.c~mm-mmap-remove-find_vma_intersection-in-vma_merge
 +++ a/mm/mmap.c
-@@ -860,13 +860,15 @@ can_vma_merge_after(struct vm_area_struc
-  *      area is returned, or the function will return NULL
-  */
- static struct vm_area_struct
--*vma_merge(struct vma_iterator *vmi, struct mm_struct *mm,
--	   struct vm_area_struct *prev, unsigned long addr, unsigned long end,
--	   unsigned long vm_flags, struct anon_vma *anon_vma, struct file *file,
--	   pgoff_t pgoff, struct mempolicy *policy,
-+*vma_merge(struct vma_iterator *vmi, struct vm_area_struct *prev,
-+	   struct vm_area_struct *src, unsigned long addr, unsigned long end,
-+	   unsigned long vm_flags, pgoff_t pgoff, struct mempolicy *policy,
- 	   struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
- 	   struct anon_vma_name *anon_name)
- {
-+	struct mm_struct *mm = src->vm_mm;
-+	struct anon_vma *anon_vma = src->anon_vma;
-+	struct file *file = src->vm_file;
- 	struct vm_area_struct *curr, *next, *res;
+@@ -869,7 +869,7 @@ static struct vm_area_struct
+ 	struct mm_struct *mm = src->vm_mm;
+ 	struct anon_vma *anon_vma = src->anon_vma;
+ 	struct file *file = src->vm_file;
+-	struct vm_area_struct *curr, *next, *res;
++	struct vm_area_struct *curr = src, *next = NULL, *res;
  	struct vm_area_struct *vma, *adjust, *remove, *remove2;
  	struct vm_area_struct *anon_dup = NULL;
-@@ -2426,9 +2428,8 @@ struct vm_area_struct *vma_modify(struct
- 	pgoff_t pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
- 	struct vm_area_struct *merged;
+ 	struct vma_prepare vp;
+@@ -890,14 +890,18 @@ static struct vm_area_struct
+ 	if (vm_flags & VM_SPECIAL)
+ 		return NULL;
  
--	merged = vma_merge(vmi, vma->vm_mm, prev, start, end, vm_flags,
--			   vma->anon_vma, vma->vm_file, pgoff, policy,
--			   uffd_ctx, anon_name);
-+	merged = vma_merge(vmi, prev, vma, start, end, vm_flags,
-+			   pgoff, policy, uffd_ctx, anon_name);
- 	if (merged)
- 		return merged;
+-	/* Does the input range span an existing VMA? (cases 5 - 8) */
+-	curr = find_vma_intersection(mm, prev ? prev->vm_end : 0, end);
++	/*
++	 * If the current vma and the prev vma are the same vma, it
++	 * means the current vma is NULL.
++	 * Does the input range span an existing VMA? (cases 5 - 8)
++	 */
++	if (prev == curr || addr != curr->vm_start || end > curr->vm_end)
++		curr = NULL;
  
-@@ -2458,9 +2459,8 @@ static struct vm_area_struct
- 		   struct vm_area_struct *vma, unsigned long start,
- 		   unsigned long end, pgoff_t pgoff)
- {
--	return vma_merge(vmi, vma->vm_mm, prev, start, end, vma->vm_flags,
--			 vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma),
--			 vma->vm_userfaultfd_ctx, anon_vma_name(vma));
-+	return vma_merge(vmi, prev, vma, start, end, vma->vm_flags, pgoff,
-+			 vma_policy(vma), vma->vm_userfaultfd_ctx, anon_vma_name(vma));
- }
+ 	if (!curr ||			/* cases 1 - 4 */
+ 	    end == curr->vm_end)	/* cases 6 - 8, adjacent VMA */
+ 		next = vma_lookup(mm, end);
+-	else
+-		next = NULL;		/* case 5 */
++					/* case 5 set to NULL above */
  
- /*
-@@ -2474,10 +2474,9 @@ struct vm_area_struct *vma_merge_extend(
- 	pgoff_t pgoff = vma->vm_pgoff + vma_pages(vma);
+ 	if (prev) {
+ 		vma_start = prev->vm_start;
+@@ -921,7 +925,6 @@ static struct vm_area_struct
  
- 	/* vma is specified as prev, so case 1 or 2 will apply. */
--	return vma_merge(vmi, vma->vm_mm, vma, vma->vm_end, vma->vm_end + delta,
--			 vma->vm_flags, vma->anon_vma, vma->vm_file, pgoff,
--			 vma_policy(vma), vma->vm_userfaultfd_ctx,
--			 anon_vma_name(vma));
-+	return vma_merge(vmi, vma, vma, vma->vm_end, vma->vm_end + delta,
-+			 vma->vm_flags, pgoff, vma_policy(vma),
-+			 vma->vm_userfaultfd_ctx, anon_vma_name(vma));
- }
+ 	/* Verify some invariant that must be enforced by the caller. */
+ 	VM_WARN_ON(prev && addr <= prev->vm_start);
+-	VM_WARN_ON(curr && (addr != curr->vm_start || end > curr->vm_end));
+ 	VM_WARN_ON(addr >= end);
  
- /*
+ 	if (!merge_prev && !merge_next)
 _
 
 Patches currently in -mm which might be from yajun.deng@linux.dev are
 
 mm-mmap-simplify-vma-link-and-unlink.patch
 mm-mmap-introduce-vma_set_range.patch
-mm-mmap-remove-find_vma_intersection-in-vma_merge.patch
 mm-mmap-use-sz_8m-128m-helper-macro.patch
 
