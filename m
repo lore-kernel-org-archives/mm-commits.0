@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AB7755E6D
-	for <mm-commits@vger.kernel.org>; Mon, 29 Jan 2024 10:25:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F3B755E6D
+	for <mm-commits@vger.kernel.org>; Mon, 29 Jan 2024 10:25:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706523950; cv=none; b=KevC9v/YbPZyuBlLrJLgDnbx4KEjRoWsxqBwLb4bhAAdhp9hGDeRmrBBMtFjQhV2R8nqxyTqSUKF+l55xdvlwZ2dppQAMkBxj447I4nTb48TzLp/EHlKdAsKK/ng612SA8raBVIYzPApsxUjJVPmnQ3Lr5wyiwNisDYF+Jxd+wQ=
+	t=1706523955; cv=none; b=Zw+fL8kAsNvBdrNOFvdLh7wPh5yLm6+W+0XJCxVj0M0eFBDJlX6hb92f5jRRIFLR0vBFDe3zvZzHYN3VQXwKIKnI0dzXaO1X+Nc9wAgRBARUcwHVUEzUJO9l3/VG07XyAyswHSCyMHHo9fjtKUvJBEY8cmJwQOa2ZpF0R82jee4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706523950; c=relaxed/simple;
-	bh=49FV+W+MUxn8hNu6KIHNj44al3UX/hIlGou4HJbT4uE=;
-	h=Date:To:From:Subject:Message-Id; b=lISgg1bRSc+L8s3CLumaWo+iO5fT3+FwDDe9Q+m9jO3SMnBs3V81td4atMUwuTZXkbPwjwplxtyoJhDrty4pAOllRRz6P+mhYZbqFA4DYxA0ymuMc8HKSThZVhD5CkYODRbaUfUB1Yo9XGWkRq8mBGOq2k/UhsSUBpOhverzfWc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w+0XrZ//; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706523955; c=relaxed/simple;
+	bh=vRvC5X39+ah+z9g7MTSFVUCGd2j/zj8s7/oawaS1pcA=;
+	h=Date:To:From:Subject:Message-Id; b=cgbF7oVaacyMkoruzJDQSb1kivtX+U84G4p9Lk6BJ7su33rQruNU7RHUmw76QgF/QRhTT26FaHWGEELJp1azzf9eMShNl+nHSkIiN3a4SzoRduvbsv8cEROP1Z78FxPdrP9dPriTMkfEXX6SKECjEvK3C8hYpHNEZOxeBa7nL+o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SPigeEKU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w+0XrZ//"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B17CC433C7;
-	Mon, 29 Jan 2024 10:25:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SPigeEKU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56593C433C7;
+	Mon, 29 Jan 2024 10:25:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706523950;
-	bh=49FV+W+MUxn8hNu6KIHNj44al3UX/hIlGou4HJbT4uE=;
+	s=korg; t=1706523954;
+	bh=vRvC5X39+ah+z9g7MTSFVUCGd2j/zj8s7/oawaS1pcA=;
 	h=Date:To:From:Subject:From;
-	b=w+0XrZ//A85VGmjzR4m5ldN7OB242icXgun7EPvoOOD3syPa4Ao3eEoTKCcmTAQA9
-	 MQHM57cBue6iuLqSgltwbYH1aM/0xf7mPXV7nLxmcsd+rP/ICRPOgTHz1j8HJsuZyc
-	 7gzvBpNiVd53Ol6caZcxD38Cr/veSbBHs/jxpKF8=
-Date: Mon, 29 Jan 2024 02:25:46 -0800
+	b=SPigeEKU71dJ6/1QQSiruI+lu8itl+KM+W0f1qRPHHecGSGIB0IfBCu74rs3CS8pz
+	 jldSLgFB56XKPHIcs4EY8S6KQ88++GdVuWz46KI7zsu4VNg0fZnDm77EEYka1iQTaQ
+	 QCn5V8PVMKSWWsO6D+AfXrMNBBW+JvmmGKeC0nMA=
+Date: Mon, 29 Jan 2024 02:25:51 -0800
 To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,vbabka@suse.cz,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,elver@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + stackdepot-use-variable-size-records-for-non-evictable-entries.patch added to mm-unstable branch
-Message-Id: <20240129102549.6B17CC433C7@smtp.kernel.org>
+Subject: + kasan-revert-eviction-of-stack-traces-in-generic-mode.patch added to mm-unstable branch
+Message-Id: <20240129102554.56593C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: stackdepot: use variable size records for non-evictable entries
+     Subject: kasan: revert eviction of stack traces in generic mode
 has been added to the -mm mm-unstable branch.  Its filename is
-     stackdepot-use-variable-size-records-for-non-evictable-entries.patch
+     kasan-revert-eviction-of-stack-traces-in-generic-mode.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/stackdepot-use-variable-size-records-for-non-evictable-entries.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-revert-eviction-of-stack-traces-in-generic-mode.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,34 +59,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Marco Elver <elver@google.com>
-Subject: stackdepot: use variable size records for non-evictable entries
-Date: Mon, 29 Jan 2024 11:07:01 +0100
+Subject: kasan: revert eviction of stack traces in generic mode
+Date: Mon, 29 Jan 2024 11:07:02 +0100
 
-With the introduction of stack depot evictions, each stack record is now
-fixed size, so that future reuse after an eviction can safely store
-differently sized stack traces.  In all cases that do not make use of
-evictions, this wastes lots of space.
+This partially reverts commits cc478e0b6bdf, 63b85ac56a64, 08d7c94d9635,
+a414d4286f34, and 773688a6cb24 to make use of variable-sized stack depot
+records, since eviction of stack entries from stack depot forces fixed-
+sized stack records.  Care was taken to retain the code cleanups by the
+above commits.
 
-Fix it by re-introducing variable size stack records (up to the max
-allowed size) for entries that will never be evicted.  We know if an entry
-will never be evicted if the flag STACK_DEPOT_FLAG_GET is not provided,
-since a later stack_depot_put() attempt is undefined behavior.
+Eviction was added to generic KASAN as a response to alleviating the
+additional memory usage from fixed-sized stack records, but this still
+uses more memory than previously.
 
-With my current kernel config that enables KASAN and also SLUB owner
-tracking, I observe (after a kernel boot) a whopping reduction of 296
-stack depot pools, which translates into 4736 KiB saved.  The savings here
-are from SLUB owner tracking only, because KASAN generic mode still uses
-refcounting.
+With the re-introduction of variable-sized records for stack depot, we can
+just switch back to non-evictable stack records again, and return back to
+the previous performance and memory usage baseline.
 
-Before:
-
-  pools: 893
-  allocations: 29841
-  frees: 6524
-  in_use: 23317
-  freelist_size: 3454
-
-After:
+Before (observed after a KASAN kernel boot):
 
   pools: 597
   refcounted_allocations: 17547
@@ -96,8 +86,27 @@ After:
   persistent_count: 12163
   persistent_bytes: 1717008
 
-Link: https://lkml.kernel.org/r/20240129100708.39460-1-elver@google.com
-Fixes: 108be8def46e ("lib/stackdepot: allow users to evict stack traces")
+After:
+
+  pools: 319
+  refcounted_allocations: 0
+  refcounted_frees: 0
+  refcounted_in_use: 0
+  freelist_size: 0
+  persistent_count: 29397
+  persistent_bytes: 5183536
+
+As can be seen from the counters, with a generic KASAN config, refcounted
+allocations and evictions are no longer used.  Due to using variable-sized
+records, I observe a reduction of 278 stack depot pools (saving 4448 KiB)
+with my test setup.
+
+Link: https://lkml.kernel.org/r/20240129100708.39460-2-elver@google.com
+Fixes: cc478e0b6bdf ("kasan: avoid resetting aux_lock")
+Fixes: 63b85ac56a64 ("kasan: stop leaking stack trace handles")
+Fixes: 08d7c94d9635 ("kasan: memset free track in qlink_free")
+Fixes: a414d4286f34 ("kasan: handle concurrent kasan_record_aux_stack calls")
+Fixes: 773688a6cb24 ("kasan: use stack_depot_put for Generic mode")
 Signed-off-by: Marco Elver <elver@google.com>
 Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -108,412 +117,218 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/poison.h |    3 
- lib/stackdepot.c       |  250 +++++++++++++++++++--------------------
- 2 files changed, 130 insertions(+), 123 deletions(-)
+ mm/kasan/common.c     |    8 +---
+ mm/kasan/generic.c    |   68 ++++------------------------------------
+ mm/kasan/kasan.h      |   10 -----
+ mm/kasan/quarantine.c |    5 ++
+ 4 files changed, 14 insertions(+), 77 deletions(-)
 
---- a/include/linux/poison.h~stackdepot-use-variable-size-records-for-non-evictable-entries
-+++ a/include/linux/poison.h
-@@ -92,4 +92,7 @@
- /********** VFS **********/
- #define VFS_PTR_POISON ((void *)(0xF5 + POISON_POINTER_DELTA))
- 
-+/********** lib/stackdepot.c **********/
-+#define STACK_DEPOT_POISON ((void *)(0xD390 + POISON_POINTER_DELTA))
-+
- #endif
---- a/lib/stackdepot.c~stackdepot-use-variable-size-records-for-non-evictable-entries
-+++ a/lib/stackdepot.c
-@@ -22,6 +22,7 @@
- #include <linux/list.h>
- #include <linux/mm.h>
- #include <linux/mutex.h>
-+#include <linux/poison.h>
- #include <linux/printk.h>
- #include <linux/rculist.h>
- #include <linux/rcupdate.h>
-@@ -43,17 +44,7 @@
- #define DEPOT_OFFSET_BITS (DEPOT_POOL_ORDER + PAGE_SHIFT - DEPOT_STACK_ALIGN)
- #define DEPOT_POOL_INDEX_BITS (DEPOT_HANDLE_BITS - DEPOT_OFFSET_BITS - \
- 			       STACK_DEPOT_EXTRA_BITS)
--#if IS_ENABLED(CONFIG_KMSAN) && CONFIG_STACKDEPOT_MAX_FRAMES >= 32
--/*
-- * KMSAN is frequently used in fuzzing scenarios and thus saves a lot of stack
-- * traces. As KMSAN does not support evicting stack traces from the stack
-- * depot, the stack depot capacity might be reached quickly with large stack
-- * records. Adjust the maximum number of stack depot pools for this case.
-- */
--#define DEPOT_POOLS_CAP (8192 * (CONFIG_STACKDEPOT_MAX_FRAMES / 16))
--#else
- #define DEPOT_POOLS_CAP 8192
--#endif
- #define DEPOT_MAX_POOLS \
- 	(((1LL << (DEPOT_POOL_INDEX_BITS)) < DEPOT_POOLS_CAP) ? \
- 	 (1LL << (DEPOT_POOL_INDEX_BITS)) : DEPOT_POOLS_CAP)
-@@ -93,9 +84,6 @@ struct stack_record {
- 	};
- };
- 
--#define DEPOT_STACK_RECORD_SIZE \
--	ALIGN(sizeof(struct stack_record), 1 << DEPOT_STACK_ALIGN)
--
- static bool stack_depot_disabled;
- static bool __stack_depot_early_init_requested __initdata = IS_ENABLED(CONFIG_STACKDEPOT_ALWAYS_INIT);
- static bool __stack_depot_early_init_passed __initdata;
-@@ -121,32 +109,31 @@ static void *stack_pools[DEPOT_MAX_POOLS
- static void *new_pool;
- /* Number of pools in stack_pools. */
- static int pools_num;
-+/* Offset to the unused space in the currently used pool. */
-+static size_t pool_offset = DEPOT_POOL_SIZE;
- /* Freelist of stack records within stack_pools. */
- static LIST_HEAD(free_stacks);
--/*
-- * Stack depot tries to keep an extra pool allocated even before it runs out
-- * of space in the currently used pool. This flag marks whether this extra pool
-- * needs to be allocated. It has the value 0 when either an extra pool is not
-- * yet allocated or if the limit on the number of pools is reached.
-- */
--static bool new_pool_required = true;
- /* The lock must be held when performing pool or freelist modifications. */
- static DEFINE_RAW_SPINLOCK(pool_lock);
- 
- /* Statistics counters for debugfs. */
- enum depot_counter_id {
--	DEPOT_COUNTER_ALLOCS,
--	DEPOT_COUNTER_FREES,
--	DEPOT_COUNTER_INUSE,
-+	DEPOT_COUNTER_REFD_ALLOCS,
-+	DEPOT_COUNTER_REFD_FREES,
-+	DEPOT_COUNTER_REFD_INUSE,
- 	DEPOT_COUNTER_FREELIST_SIZE,
-+	DEPOT_COUNTER_PERSIST_COUNT,
-+	DEPOT_COUNTER_PERSIST_BYTES,
- 	DEPOT_COUNTER_COUNT,
- };
- static long counters[DEPOT_COUNTER_COUNT];
- static const char *const counter_names[] = {
--	[DEPOT_COUNTER_ALLOCS]		= "allocations",
--	[DEPOT_COUNTER_FREES]		= "frees",
--	[DEPOT_COUNTER_INUSE]		= "in_use",
-+	[DEPOT_COUNTER_REFD_ALLOCS]	= "refcounted_allocations",
-+	[DEPOT_COUNTER_REFD_FREES]	= "refcounted_frees",
-+	[DEPOT_COUNTER_REFD_INUSE]	= "refcounted_in_use",
- 	[DEPOT_COUNTER_FREELIST_SIZE]	= "freelist_size",
-+	[DEPOT_COUNTER_PERSIST_COUNT]	= "persistent_count",
-+	[DEPOT_COUNTER_PERSIST_BYTES]	= "persistent_bytes",
- };
- static_assert(ARRAY_SIZE(counter_names) == DEPOT_COUNTER_COUNT);
- 
-@@ -294,48 +281,52 @@ out_unlock:
- EXPORT_SYMBOL_GPL(stack_depot_init);
- 
- /*
-- * Initializes new stack depot @pool, release all its entries to the freelist,
-- * and update the list of pools.
-+ * Initializes new stack pool, and updates the list of pools.
-  */
--static void depot_init_pool(void *pool)
-+static bool depot_init_pool(void **prealloc)
+--- a/mm/kasan/common.c~kasan-revert-eviction-of-stack-traces-in-generic-mode
++++ a/mm/kasan/common.c
+@@ -65,8 +65,7 @@ void kasan_save_track(struct kasan_track
  {
--	int offset;
--
- 	lockdep_assert_held(&pool_lock);
+ 	depot_stack_handle_t stack;
  
--	/* Initialize handles and link stack records into the freelist. */
--	for (offset = 0; offset <= DEPOT_POOL_SIZE - DEPOT_STACK_RECORD_SIZE;
--	     offset += DEPOT_STACK_RECORD_SIZE) {
--		struct stack_record *stack = pool + offset;
--
--		stack->handle.pool_index = pools_num;
--		stack->handle.offset = offset >> DEPOT_STACK_ALIGN;
--		stack->handle.extra = 0;
--
--		/*
--		 * Stack traces of size 0 are never saved, and we can simply use
--		 * the size field as an indicator if this is a new unused stack
--		 * record in the freelist.
--		 */
--		stack->size = 0;
-+	if (unlikely(pools_num >= DEPOT_MAX_POOLS)) {
-+		/* Bail out if we reached the pool limit. */
-+		WARN_ON_ONCE(pools_num > DEPOT_MAX_POOLS); /* should never happen */
-+		WARN_ON_ONCE(!new_pool); /* to avoid unnecessary pre-allocation */
-+		WARN_ONCE(1, "Stack depot reached limit capacity");
-+		return false;
-+	}
- 
--		INIT_LIST_HEAD(&stack->hash_list);
--		/*
--		 * Add to the freelist front to prioritize never-used entries:
--		 * required in case there are entries in the freelist, but their
--		 * RCU cookie still belongs to the current RCU grace period
--		 * (there can still be concurrent readers).
--		 */
--		list_add(&stack->free_list, &free_stacks);
--		counters[DEPOT_COUNTER_FREELIST_SIZE]++;
-+	if (!new_pool && *prealloc) {
-+		/* We have preallocated memory, use it. */
-+		WRITE_ONCE(new_pool, *prealloc);
-+		*prealloc = NULL;
- 	}
- 
-+	if (!new_pool)
-+		return false; /* new_pool and *prealloc are NULL */
-+
- 	/* Save reference to the pool to be used by depot_fetch_stack(). */
--	stack_pools[pools_num] = pool;
-+	stack_pools[pools_num] = new_pool;
-+
-+	/*
-+	 * Stack depot tries to keep an extra pool allocated even before it runs
-+	 * out of space in the currently used pool.
-+	 *
-+	 * To indicate that a new preallocation is needed new_pool is reset to
-+	 * NULL; do not reset to NULL if we have reached the maximum number of
-+	 * pools.
-+	 */
-+	if (pools_num < DEPOT_MAX_POOLS)
-+		WRITE_ONCE(new_pool, NULL);
-+	else
-+		WRITE_ONCE(new_pool, STACK_DEPOT_POISON);
- 
- 	/* Pairs with concurrent READ_ONCE() in depot_fetch_stack(). */
- 	WRITE_ONCE(pools_num, pools_num + 1);
- 	ASSERT_EXCLUSIVE_WRITER(pools_num);
-+
-+	pool_offset = 0;
-+
-+	return true;
+-	stack = kasan_save_stack(flags,
+-			STACK_DEPOT_FLAG_CAN_ALLOC | STACK_DEPOT_FLAG_GET);
++	stack = kasan_save_stack(flags, STACK_DEPOT_FLAG_CAN_ALLOC);
+ 	kasan_set_track(track, stack);
  }
  
- /* Keeps the preallocated memory to be used for a new stack depot pool. */
-@@ -347,63 +338,51 @@ static void depot_keep_new_pool(void **p
- 	 * If a new pool is already saved or the maximum number of
- 	 * pools is reached, do not use the preallocated memory.
- 	 */
--	if (!new_pool_required)
-+	if (new_pool)
- 		return;
- 
--	/*
--	 * Use the preallocated memory for the new pool
--	 * as long as we do not exceed the maximum number of pools.
--	 */
--	if (pools_num < DEPOT_MAX_POOLS) {
--		new_pool = *prealloc;
--		*prealloc = NULL;
--	}
--
--	/*
--	 * At this point, either a new pool is kept or the maximum
--	 * number of pools is reached. In either case, take note that
--	 * keeping another pool is not required.
--	 */
--	WRITE_ONCE(new_pool_required, false);
-+	WRITE_ONCE(new_pool, *prealloc);
-+	*prealloc = NULL;
- }
- 
- /*
-- * Try to initialize a new stack depot pool from either a previous or the
-- * current pre-allocation, and release all its entries to the freelist.
-+ * Try to initialize a new stack record from the current pool, a cached pool, or
-+ * the current pre-allocation.
-  */
--static bool depot_try_init_pool(void **prealloc)
-+static struct stack_record *depot_pop_free_pool(void **prealloc, size_t size)
- {
-+	struct stack_record *stack;
-+	void *current_pool;
-+	u32 pool_index;
-+
- 	lockdep_assert_held(&pool_lock);
- 
--	/* Check if we have a new pool saved and use it. */
--	if (new_pool) {
--		depot_init_pool(new_pool);
--		new_pool = NULL;
-+	if (pool_offset + size > DEPOT_POOL_SIZE) {
-+		if (!depot_init_pool(prealloc))
-+			return NULL;
-+	}
- 
--		/* Take note that we might need a new new_pool. */
--		if (pools_num < DEPOT_MAX_POOLS)
--			WRITE_ONCE(new_pool_required, true);
-+	if (WARN_ON_ONCE(pools_num < 1))
-+		return NULL;
-+	pool_index = pools_num - 1;
-+	current_pool = stack_pools[pool_index];
-+	if (WARN_ON_ONCE(!current_pool))
-+		return NULL;
- 
--		return true;
--	}
-+	stack = current_pool + pool_offset;
- 
--	/* Bail out if we reached the pool limit. */
--	if (unlikely(pools_num >= DEPOT_MAX_POOLS)) {
--		WARN_ONCE(1, "Stack depot reached limit capacity");
--		return false;
--	}
-+	/* Pre-initialize handle once. */
-+	stack->handle.pool_index = pool_index;
-+	stack->handle.offset = pool_offset >> DEPOT_STACK_ALIGN;
-+	stack->handle.extra = 0;
-+	INIT_LIST_HEAD(&stack->hash_list);
- 
--	/* Check if we have preallocated memory and use it. */
--	if (*prealloc) {
--		depot_init_pool(*prealloc);
--		*prealloc = NULL;
--		return true;
--	}
-+	pool_offset += size;
- 
--	return false;
-+	return stack;
- }
- 
--/* Try to find next free usable entry. */
-+/* Try to find next free usable entry from the freelist. */
- static struct stack_record *depot_pop_free(void)
- {
- 	struct stack_record *stack;
-@@ -420,7 +399,7 @@ static struct stack_record *depot_pop_fr
- 	 * check the first entry.
- 	 */
- 	stack = list_first_entry(&free_stacks, struct stack_record, free_list);
--	if (stack->size && !poll_state_synchronize_rcu(stack->rcu_state))
-+	if (!poll_state_synchronize_rcu(stack->rcu_state))
- 		return NULL;
- 
- 	list_del(&stack->free_list);
-@@ -429,48 +408,73 @@ static struct stack_record *depot_pop_fr
- 	return stack;
- }
- 
-+static inline size_t depot_stack_record_size(struct stack_record *s, unsigned int nr_entries)
-+{
-+	const size_t used = flex_array_size(s, entries, nr_entries);
-+	const size_t unused = sizeof(s->entries) - used;
-+
-+	WARN_ON_ONCE(sizeof(s->entries) < used);
-+
-+	return ALIGN(sizeof(struct stack_record) - unused, 1 << DEPOT_STACK_ALIGN);
-+}
-+
- /* Allocates a new stack in a stack depot pool. */
- static struct stack_record *
--depot_alloc_stack(unsigned long *entries, int size, u32 hash, void **prealloc)
-+depot_alloc_stack(unsigned long *entries, int nr_entries, u32 hash, depot_flags_t flags, void **prealloc)
- {
--	struct stack_record *stack;
-+	struct stack_record *stack = NULL;
-+	size_t record_size;
- 
- 	lockdep_assert_held(&pool_lock);
- 
- 	/* This should already be checked by public API entry points. */
--	if (WARN_ON_ONCE(!size))
-+	if (WARN_ON_ONCE(!nr_entries))
- 		return NULL;
- 
--	/* Check if we have a stack record to save the stack trace. */
--	stack = depot_pop_free();
--	if (!stack) {
--		/* No usable entries on the freelist - try to refill the freelist. */
--		if (!depot_try_init_pool(prealloc))
--			return NULL;
-+	/* Limit number of saved frames to CONFIG_STACKDEPOT_MAX_FRAMES. */
-+	if (nr_entries > CONFIG_STACKDEPOT_MAX_FRAMES)
-+		nr_entries = CONFIG_STACKDEPOT_MAX_FRAMES;
-+
-+	if (flags & STACK_DEPOT_FLAG_GET) {
-+		/*
-+		 * Evictable entries have to allocate the max. size so they may
-+		 * safely be re-used by differently sized allocations.
-+		 */
-+		record_size = depot_stack_record_size(stack, CONFIG_STACKDEPOT_MAX_FRAMES);
- 		stack = depot_pop_free();
--		if (WARN_ON(!stack))
--			return NULL;
-+	} else {
-+		record_size = depot_stack_record_size(stack, nr_entries);
- 	}
- 
--	/* Limit number of saved frames to CONFIG_STACKDEPOT_MAX_FRAMES. */
--	if (size > CONFIG_STACKDEPOT_MAX_FRAMES)
--		size = CONFIG_STACKDEPOT_MAX_FRAMES;
-+	if (!stack) {
-+		stack = depot_pop_free_pool(prealloc, record_size);
-+		if (!stack)
-+			return NULL;
-+	}
- 
- 	/* Save the stack trace. */
- 	stack->hash = hash;
--	stack->size = size;
--	/* stack->handle is already filled in by depot_init_pool(). */
--	refcount_set(&stack->count, 1);
--	memcpy(stack->entries, entries, flex_array_size(stack, entries, size));
-+	stack->size = nr_entries;
-+	/* stack->handle is already filled in by depot_pop_free_pool(). */
-+	memcpy(stack->entries, entries, flex_array_size(stack, entries, nr_entries));
-+
-+	if (flags & STACK_DEPOT_FLAG_GET) {
-+		refcount_set(&stack->count, 1);
-+		counters[DEPOT_COUNTER_REFD_ALLOCS]++;
-+		counters[DEPOT_COUNTER_REFD_INUSE]++;
-+	} else {
-+		/* Warn on attempts to switch to refcounting this entry. */
-+		refcount_set(&stack->count, REFCOUNT_SATURATED);
-+		counters[DEPOT_COUNTER_PERSIST_COUNT]++;
-+		counters[DEPOT_COUNTER_PERSIST_BYTES] += record_size;
-+	}
+@@ -266,10 +265,9 @@ bool __kasan_slab_free(struct kmem_cache
+ 		return true;
  
  	/*
- 	 * Let KMSAN know the stored stack record is initialized. This shall
- 	 * prevent false positive reports if instrumented code accesses it.
+-	 * If the object is not put into quarantine, it will likely be quickly
+-	 * reallocated. Thus, release its metadata now.
++	 * Note: Keep per-object metadata to allow KASAN print stack traces for
++	 * use-after-free-before-realloc bugs.
  	 */
--	kmsan_unpoison_memory(stack, DEPOT_STACK_RECORD_SIZE);
-+	kmsan_unpoison_memory(stack, record_size);
+-	kasan_release_object_meta(cache, object);
  
--	counters[DEPOT_COUNTER_ALLOCS]++;
--	counters[DEPOT_COUNTER_INUSE]++;
- 	return stack;
+ 	/* Let slab put the object onto the freelist. */
+ 	return false;
+--- a/mm/kasan/generic.c~kasan-revert-eviction-of-stack-traces-in-generic-mode
++++ a/mm/kasan/generic.c
+@@ -485,16 +485,6 @@ void kasan_init_object_meta(struct kmem_
+ 	if (alloc_meta) {
+ 		/* Zero out alloc meta to mark it as invalid. */
+ 		__memset(alloc_meta, 0, sizeof(*alloc_meta));
+-
+-		/*
+-		 * Prepare the lock for saving auxiliary stack traces.
+-		 * Temporarily disable KASAN bug reporting to allow instrumented
+-		 * raw_spin_lock_init to access aux_lock, which resides inside
+-		 * of a redzone.
+-		 */
+-		kasan_disable_current();
+-		raw_spin_lock_init(&alloc_meta->aux_lock);
+-		kasan_enable_current();
+ 	}
+ 
+ 	/*
+@@ -506,18 +496,8 @@ void kasan_init_object_meta(struct kmem_
+ 
+ static void release_alloc_meta(struct kasan_alloc_meta *meta)
+ {
+-	/* Evict the stack traces from stack depot. */
+-	stack_depot_put(meta->alloc_track.stack);
+-	stack_depot_put(meta->aux_stack[0]);
+-	stack_depot_put(meta->aux_stack[1]);
+-
+-	/*
+-	 * Zero out alloc meta to mark it as invalid but keep aux_lock
+-	 * initialized to avoid having to reinitialize it when another object
+-	 * is allocated in the same slot.
+-	 */
+-	__memset(&meta->alloc_track, 0, sizeof(meta->alloc_track));
+-	__memset(meta->aux_stack, 0, sizeof(meta->aux_stack));
++	/* Zero out alloc meta to mark it as invalid. */
++	__memset(meta, 0, sizeof(*meta));
  }
  
-@@ -538,8 +542,8 @@ static void depot_free_stack(struct stac
- 	list_add_tail(&stack->free_list, &free_stacks);
+ static void release_free_meta(const void *object, struct kasan_free_meta *meta)
+@@ -526,27 +506,10 @@ static void release_free_meta(const void
+ 	if (*(u8 *)kasan_mem_to_shadow(object) != KASAN_SLAB_FREE_META)
+ 		return;
  
- 	counters[DEPOT_COUNTER_FREELIST_SIZE]++;
--	counters[DEPOT_COUNTER_FREES]++;
--	counters[DEPOT_COUNTER_INUSE]--;
-+	counters[DEPOT_COUNTER_REFD_FREES]++;
-+	counters[DEPOT_COUNTER_REFD_INUSE]--;
+-	/* Evict the stack trace from the stack depot. */
+-	stack_depot_put(meta->free_track.stack);
+-
+ 	/* Mark free meta as invalid. */
+ 	*(u8 *)kasan_mem_to_shadow(object) = KASAN_SLAB_FREE;
+ }
  
- 	printk_deferred_exit();
- 	raw_spin_unlock_irqrestore(&pool_lock, flags);
-@@ -660,7 +664,7 @@ depot_stack_handle_t stack_depot_save_fl
- 	 * Allocate memory for a new pool if required now:
- 	 * we won't be able to do that under the lock.
- 	 */
--	if (unlikely(can_alloc && READ_ONCE(new_pool_required))) {
-+	if (unlikely(can_alloc && !READ_ONCE(new_pool))) {
- 		/*
- 		 * Zero out zone modifiers, as we don't have specific zone
- 		 * requirements. Keep the flags related to allocation in atomic
-@@ -681,7 +685,7 @@ depot_stack_handle_t stack_depot_save_fl
- 	found = find_stack(bucket, entries, nr_entries, hash, depot_flags);
- 	if (!found) {
- 		struct stack_record *new =
--			depot_alloc_stack(entries, nr_entries, hash, &prealloc);
-+			depot_alloc_stack(entries, nr_entries, hash, depot_flags, &prealloc);
+-void kasan_release_object_meta(struct kmem_cache *cache, const void *object)
+-{
+-	struct kasan_alloc_meta *alloc_meta;
+-	struct kasan_free_meta *free_meta;
+-
+-	alloc_meta = kasan_get_alloc_meta(cache, object);
+-	if (alloc_meta)
+-		release_alloc_meta(alloc_meta);
+-
+-	free_meta = kasan_get_free_meta(cache, object);
+-	if (free_meta)
+-		release_free_meta(object, free_meta);
+-}
+-
+ size_t kasan_metadata_size(struct kmem_cache *cache, bool in_object)
+ {
+ 	struct kasan_cache *info = &cache->kasan_info;
+@@ -571,8 +534,6 @@ static void __kasan_record_aux_stack(voi
+ 	struct kmem_cache *cache;
+ 	struct kasan_alloc_meta *alloc_meta;
+ 	void *object;
+-	depot_stack_handle_t new_handle, old_handle;
+-	unsigned long flags;
  
- 		if (new) {
- 			/*
+ 	if (is_kfence_address(addr) || !slab)
+ 		return;
+@@ -583,33 +544,18 @@ static void __kasan_record_aux_stack(voi
+ 	if (!alloc_meta)
+ 		return;
+ 
+-	new_handle = kasan_save_stack(0, depot_flags);
+-
+-	/*
+-	 * Temporarily disable KASAN bug reporting to allow instrumented
+-	 * spinlock functions to access aux_lock, which resides inside of a
+-	 * redzone.
+-	 */
+-	kasan_disable_current();
+-	raw_spin_lock_irqsave(&alloc_meta->aux_lock, flags);
+-	old_handle = alloc_meta->aux_stack[1];
+ 	alloc_meta->aux_stack[1] = alloc_meta->aux_stack[0];
+-	alloc_meta->aux_stack[0] = new_handle;
+-	raw_spin_unlock_irqrestore(&alloc_meta->aux_lock, flags);
+-	kasan_enable_current();
+-
+-	stack_depot_put(old_handle);
++	alloc_meta->aux_stack[0] = kasan_save_stack(0, depot_flags);
+ }
+ 
+ void kasan_record_aux_stack(void *addr)
+ {
+-	return __kasan_record_aux_stack(addr,
+-			STACK_DEPOT_FLAG_CAN_ALLOC | STACK_DEPOT_FLAG_GET);
++	return __kasan_record_aux_stack(addr, STACK_DEPOT_FLAG_CAN_ALLOC);
+ }
+ 
+ void kasan_record_aux_stack_noalloc(void *addr)
+ {
+-	return __kasan_record_aux_stack(addr, STACK_DEPOT_FLAG_GET);
++	return __kasan_record_aux_stack(addr, 0);
+ }
+ 
+ void kasan_save_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
+@@ -620,7 +566,7 @@ void kasan_save_alloc_info(struct kmem_c
+ 	if (!alloc_meta)
+ 		return;
+ 
+-	/* Evict previous stack traces (might exist for krealloc or mempool). */
++	/* Invalidate previous stack traces (might exist for krealloc or mempool). */
+ 	release_alloc_meta(alloc_meta);
+ 
+ 	kasan_save_track(&alloc_meta->alloc_track, flags);
+@@ -634,7 +580,7 @@ void kasan_save_free_info(struct kmem_ca
+ 	if (!free_meta)
+ 		return;
+ 
+-	/* Evict previous stack trace (might exist for mempool). */
++	/* Invalidate previous stack trace (might exist for mempool). */
+ 	release_free_meta(object, free_meta);
+ 
+ 	kasan_save_track(&free_meta->free_track, 0);
+--- a/mm/kasan/kasan.h~kasan-revert-eviction-of-stack-traces-in-generic-mode
++++ a/mm/kasan/kasan.h
+@@ -6,7 +6,6 @@
+ #include <linux/kasan.h>
+ #include <linux/kasan-tags.h>
+ #include <linux/kfence.h>
+-#include <linux/spinlock.h>
+ #include <linux/stackdepot.h>
+ 
+ #if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
+@@ -265,13 +264,6 @@ struct kasan_global {
+ struct kasan_alloc_meta {
+ 	struct kasan_track alloc_track;
+ 	/* Free track is stored in kasan_free_meta. */
+-	/*
+-	 * aux_lock protects aux_stack from accesses from concurrent
+-	 * kasan_record_aux_stack calls. It is a raw spinlock to avoid sleeping
+-	 * on RT kernels, as kasan_record_aux_stack_noalloc can be called from
+-	 * non-sleepable contexts.
+-	 */
+-	raw_spinlock_t aux_lock;
+ 	depot_stack_handle_t aux_stack[2];
+ };
+ 
+@@ -398,10 +390,8 @@ struct kasan_alloc_meta *kasan_get_alloc
+ struct kasan_free_meta *kasan_get_free_meta(struct kmem_cache *cache,
+ 						const void *object);
+ void kasan_init_object_meta(struct kmem_cache *cache, const void *object);
+-void kasan_release_object_meta(struct kmem_cache *cache, const void *object);
+ #else
+ static inline void kasan_init_object_meta(struct kmem_cache *cache, const void *object) { }
+-static inline void kasan_release_object_meta(struct kmem_cache *cache, const void *object) { }
+ #endif
+ 
+ depot_stack_handle_t kasan_save_stack(gfp_t flags, depot_flags_t depot_flags);
+--- a/mm/kasan/quarantine.c~kasan-revert-eviction-of-stack-traces-in-generic-mode
++++ a/mm/kasan/quarantine.c
+@@ -145,7 +145,10 @@ static void qlink_free(struct qlist_node
+ 	void *object = qlink_to_object(qlink, cache);
+ 	struct kasan_free_meta *free_meta = kasan_get_free_meta(cache, object);
+ 
+-	kasan_release_object_meta(cache, object);
++	/*
++	 * Note: Keep per-object metadata to allow KASAN print stack traces for
++	 * use-after-free-before-realloc bugs.
++	 */
+ 
+ 	/*
+ 	 * If init_on_free is enabled and KASAN's free metadata is stored in
 _
 
 Patches currently in -mm which might be from elver@google.com are
