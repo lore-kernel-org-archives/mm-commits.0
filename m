@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F3B755E6D
-	for <mm-commits@vger.kernel.org>; Mon, 29 Jan 2024 10:25:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66EFB57865
+	for <mm-commits@vger.kernel.org>; Mon, 29 Jan 2024 10:47:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706523955; cv=none; b=Zw+fL8kAsNvBdrNOFvdLh7wPh5yLm6+W+0XJCxVj0M0eFBDJlX6hb92f5jRRIFLR0vBFDe3zvZzHYN3VQXwKIKnI0dzXaO1X+Nc9wAgRBARUcwHVUEzUJO9l3/VG07XyAyswHSCyMHHo9fjtKUvJBEY8cmJwQOa2ZpF0R82jee4=
+	t=1706525262; cv=none; b=H24AxcUMVaT1naKS60phgI/+XpdafIkxvIth0ZsB+oSQpDp3ad4fwP9p/K3zM50uqMRm6kPvqClkUbIGGfb44diLgJpBgRXLf15npec3q1wN1iuL+p9wBHJxK/NYttYsEYAyojx6S+WSIBs6QUFFPNDn28/N/7j9TcYLyQ70+Xo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706523955; c=relaxed/simple;
-	bh=vRvC5X39+ah+z9g7MTSFVUCGd2j/zj8s7/oawaS1pcA=;
-	h=Date:To:From:Subject:Message-Id; b=cgbF7oVaacyMkoruzJDQSb1kivtX+U84G4p9Lk6BJ7su33rQruNU7RHUmw76QgF/QRhTT26FaHWGEELJp1azzf9eMShNl+nHSkIiN3a4SzoRduvbsv8cEROP1Z78FxPdrP9dPriTMkfEXX6SKECjEvK3C8hYpHNEZOxeBa7nL+o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SPigeEKU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706525262; c=relaxed/simple;
+	bh=5acSFrqQ+r+D9AUQQLQq2n5Ps6jLurQVLMJZgmw5IBY=;
+	h=Date:To:From:Subject:Message-Id; b=Sz5PJHc+yKU/tv7iFi3CX1z9IF53V6s6GcILOZZVndEXButPfuZ0jQFzuFAzqYv1UEkNnB3KzX52Q9AGN2PC6RuQ3bPTB6XcsTIwUgQsTmFkGoV5QglCc0xEFVUSYig0r/3rCHvNXkG7IBtWw0WjDn9oHa/Snm+2Q9vuvMo12SI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KX/LhzGo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SPigeEKU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56593C433C7;
-	Mon, 29 Jan 2024 10:25:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KX/LhzGo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 204D7C433F1;
+	Mon, 29 Jan 2024 10:47:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706523954;
-	bh=vRvC5X39+ah+z9g7MTSFVUCGd2j/zj8s7/oawaS1pcA=;
+	s=korg; t=1706525261;
+	bh=5acSFrqQ+r+D9AUQQLQq2n5Ps6jLurQVLMJZgmw5IBY=;
 	h=Date:To:From:Subject:From;
-	b=SPigeEKU71dJ6/1QQSiruI+lu8itl+KM+W0f1qRPHHecGSGIB0IfBCu74rs3CS8pz
-	 jldSLgFB56XKPHIcs4EY8S6KQ88++GdVuWz46KI7zsu4VNg0fZnDm77EEYka1iQTaQ
-	 QCn5V8PVMKSWWsO6D+AfXrMNBBW+JvmmGKeC0nMA=
-Date: Mon, 29 Jan 2024 02:25:51 -0800
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,vbabka@suse.cz,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,elver@google.com,akpm@linux-foundation.org
+	b=KX/LhzGoMkXfF11AKmhbDYXA4sGBLaLKIpem9CTRTcqCIEgw+DHc0IWU4bZrRWlLt
+	 hDytOzR3sHhVAYdZd6fb6wTxyI3/bosU4mHSt8Sj83ZsMYi3kun2Q8qH/woudVLDRg
+	 W6lD2CKdbxWvq1RRLRvfVz/a61/TDAb1wSHOBBB4=
+Date: Mon, 29 Jan 2024 02:47:38 -0800
+To: mm-commits@vger.kernel.org,zokeefe@google.com,songmuchun@bytedance.com,peterx@redhat.com,minchan@kernel.org,mhocko@suse.com,david@redhat.com,ioworker0@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-revert-eviction-of-stack-traces-in-generic-mode.patch added to mm-unstable branch
-Message-Id: <20240129102554.56593C433C7@smtp.kernel.org>
+Subject: + mm-khugepaged-bypassing-unnecessary-scans-with-mmf_disable_thp-check.patch added to mm-unstable branch
+Message-Id: <20240129104741.204D7C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan: revert eviction of stack traces in generic mode
+     Subject: mm/khugepaged: bypassing unnecessary scans with MMF_DISABLE_THP check
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-revert-eviction-of-stack-traces-in-generic-mode.patch
+     mm-khugepaged-bypassing-unnecessary-scans-with-mmf_disable_thp-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-revert-eviction-of-stack-traces-in-generic-mode.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-bypassing-unnecessary-scans-with-mmf_disable_thp-check.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,281 +58,107 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kasan: revert eviction of stack traces in generic mode
-Date: Mon, 29 Jan 2024 11:07:02 +0100
+From: Lance Yang <ioworker0@gmail.com>
+Subject: mm/khugepaged: bypassing unnecessary scans with MMF_DISABLE_THP check
+Date: Mon, 29 Jan 2024 13:45:51 +0800
 
-This partially reverts commits cc478e0b6bdf, 63b85ac56a64, 08d7c94d9635,
-a414d4286f34, and 773688a6cb24 to make use of variable-sized stack depot
-records, since eviction of stack entries from stack depot forces fixed-
-sized stack records.  Care was taken to retain the code cleanups by the
-above commits.
+khugepaged scans the entire address space in the background for each given
+mm, looking for opportunities to merge sequences of basic pages into huge
+pages.  However, when an mm is inserted to the mm_slots list, and the
+MMF_DISABLE_THP flag is set later, this scanning process becomes
+unnecessary for that mm and can be skipped to avoid redundant operations,
+especially in scenarios with a large address space.
 
-Eviction was added to generic KASAN as a response to alleviating the
-additional memory usage from fixed-sized stack records, but this still
-uses more memory than previously.
+This commit introduces a check before each scanning process to test the
+MMF_DISABLE_THP flag for the given mm; if the flag is set, the scanning
+process is bypassed, thereby improving the efficiency of khugepaged.
 
-With the re-introduction of variable-sized records for stack depot, we can
-just switch back to non-evictable stack records again, and return back to
-the previous performance and memory usage baseline.
-
-Before (observed after a KASAN kernel boot):
-
-  pools: 597
-  refcounted_allocations: 17547
-  refcounted_frees: 6477
-  refcounted_in_use: 11070
-  freelist_size: 3497
-  persistent_count: 12163
-  persistent_bytes: 1717008
-
-After:
-
-  pools: 319
-  refcounted_allocations: 0
-  refcounted_frees: 0
-  refcounted_in_use: 0
-  freelist_size: 0
-  persistent_count: 29397
-  persistent_bytes: 5183536
-
-As can be seen from the counters, with a generic KASAN config, refcounted
-allocations and evictions are no longer used.  Due to using variable-sized
-records, I observe a reduction of 278 stack depot pools (saving 4448 KiB)
-with my test setup.
-
-Link: https://lkml.kernel.org/r/20240129100708.39460-2-elver@google.com
-Fixes: cc478e0b6bdf ("kasan: avoid resetting aux_lock")
-Fixes: 63b85ac56a64 ("kasan: stop leaking stack trace handles")
-Fixes: 08d7c94d9635 ("kasan: memset free track in qlink_free")
-Fixes: a414d4286f34 ("kasan: handle concurrent kasan_record_aux_stack calls")
-Fixes: 773688a6cb24 ("kasan: use stack_depot_put for Generic mode")
-Signed-off-by: Marco Elver <elver@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20240129054551.57728-1-ioworker0@gmail.com
+Signed-off-by: Lance Yang <ioworker0@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c     |    8 +---
- mm/kasan/generic.c    |   68 ++++------------------------------------
- mm/kasan/kasan.h      |   10 -----
- mm/kasan/quarantine.c |    5 ++
- 4 files changed, 14 insertions(+), 77 deletions(-)
+ mm/khugepaged.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
---- a/mm/kasan/common.c~kasan-revert-eviction-of-stack-traces-in-generic-mode
-+++ a/mm/kasan/common.c
-@@ -65,8 +65,7 @@ void kasan_save_track(struct kasan_track
- {
- 	depot_stack_handle_t stack;
- 
--	stack = kasan_save_stack(flags,
--			STACK_DEPOT_FLAG_CAN_ALLOC | STACK_DEPOT_FLAG_GET);
-+	stack = kasan_save_stack(flags, STACK_DEPOT_FLAG_CAN_ALLOC);
- 	kasan_set_track(track, stack);
+--- a/mm/khugepaged.c~mm-khugepaged-bypassing-unnecessary-scans-with-mmf_disable_thp-check
++++ a/mm/khugepaged.c
+@@ -410,6 +410,12 @@ static inline int hpage_collapse_test_ex
+ 	return atomic_read(&mm->mm_users) == 0;
  }
  
-@@ -266,10 +265,9 @@ bool __kasan_slab_free(struct kmem_cache
- 		return true;
++static inline int hpage_collapse_test_exit_or_disable(struct mm_struct *mm)
++{
++	return hpage_collapse_test_exit(mm) ||
++	       test_bit(MMF_DISABLE_THP, &mm->flags);
++}
++
+ void __khugepaged_enter(struct mm_struct *mm)
+ {
+ 	struct khugepaged_mm_slot *mm_slot;
+@@ -1422,7 +1428,7 @@ static void collect_mm_slot(struct khuge
  
- 	/*
--	 * If the object is not put into quarantine, it will likely be quickly
--	 * reallocated. Thus, release its metadata now.
-+	 * Note: Keep per-object metadata to allow KASAN print stack traces for
-+	 * use-after-free-before-realloc bugs.
+ 	lockdep_assert_held(&khugepaged_mm_lock);
+ 
+-	if (hpage_collapse_test_exit(mm)) {
++	if (hpage_collapse_test_exit_or_disable(mm)) {
+ 		/* free mm_slot */
+ 		hash_del(&slot->hash);
+ 		list_del(&slot->mm_node);
+@@ -2360,7 +2366,7 @@ static unsigned int khugepaged_scan_mm_s
+ 		goto breakouterloop_mmap_lock;
+ 
+ 	progress++;
+-	if (unlikely(hpage_collapse_test_exit(mm)))
++	if (unlikely(hpage_collapse_test_exit_or_disable(mm)))
+ 		goto breakouterloop;
+ 
+ 	vma_iter_init(&vmi, mm, khugepaged_scan.address);
+@@ -2368,7 +2374,7 @@ static unsigned int khugepaged_scan_mm_s
+ 		unsigned long hstart, hend;
+ 
+ 		cond_resched();
+-		if (unlikely(hpage_collapse_test_exit(mm))) {
++		if (unlikely(hpage_collapse_test_exit_or_disable(mm))) {
+ 			progress++;
+ 			break;
+ 		}
+@@ -2390,7 +2396,7 @@ skip:
+ 			bool mmap_locked = true;
+ 
+ 			cond_resched();
+-			if (unlikely(hpage_collapse_test_exit(mm)))
++			if (unlikely(hpage_collapse_test_exit_or_disable(mm)))
+ 				goto breakouterloop;
+ 
+ 			VM_BUG_ON(khugepaged_scan.address < hstart ||
+@@ -2408,7 +2414,7 @@ skip:
+ 				fput(file);
+ 				if (*result == SCAN_PTE_MAPPED_HUGEPAGE) {
+ 					mmap_read_lock(mm);
+-					if (hpage_collapse_test_exit(mm))
++					if (hpage_collapse_test_exit_or_disable(mm))
+ 						goto breakouterloop;
+ 					*result = collapse_pte_mapped_thp(mm,
+ 						khugepaged_scan.address, false);
+@@ -2450,7 +2456,7 @@ breakouterloop_mmap_lock:
+ 	 * Release the current mm_slot if this mm is about to die, or
+ 	 * if we scanned all vmas of this mm.
  	 */
--	kasan_release_object_meta(cache, object);
- 
- 	/* Let slab put the object onto the freelist. */
- 	return false;
---- a/mm/kasan/generic.c~kasan-revert-eviction-of-stack-traces-in-generic-mode
-+++ a/mm/kasan/generic.c
-@@ -485,16 +485,6 @@ void kasan_init_object_meta(struct kmem_
- 	if (alloc_meta) {
- 		/* Zero out alloc meta to mark it as invalid. */
- 		__memset(alloc_meta, 0, sizeof(*alloc_meta));
--
--		/*
--		 * Prepare the lock for saving auxiliary stack traces.
--		 * Temporarily disable KASAN bug reporting to allow instrumented
--		 * raw_spin_lock_init to access aux_lock, which resides inside
--		 * of a redzone.
--		 */
--		kasan_disable_current();
--		raw_spin_lock_init(&alloc_meta->aux_lock);
--		kasan_enable_current();
- 	}
- 
- 	/*
-@@ -506,18 +496,8 @@ void kasan_init_object_meta(struct kmem_
- 
- static void release_alloc_meta(struct kasan_alloc_meta *meta)
- {
--	/* Evict the stack traces from stack depot. */
--	stack_depot_put(meta->alloc_track.stack);
--	stack_depot_put(meta->aux_stack[0]);
--	stack_depot_put(meta->aux_stack[1]);
--
--	/*
--	 * Zero out alloc meta to mark it as invalid but keep aux_lock
--	 * initialized to avoid having to reinitialize it when another object
--	 * is allocated in the same slot.
--	 */
--	__memset(&meta->alloc_track, 0, sizeof(meta->alloc_track));
--	__memset(meta->aux_stack, 0, sizeof(meta->aux_stack));
-+	/* Zero out alloc meta to mark it as invalid. */
-+	__memset(meta, 0, sizeof(*meta));
- }
- 
- static void release_free_meta(const void *object, struct kasan_free_meta *meta)
-@@ -526,27 +506,10 @@ static void release_free_meta(const void
- 	if (*(u8 *)kasan_mem_to_shadow(object) != KASAN_SLAB_FREE_META)
- 		return;
- 
--	/* Evict the stack trace from the stack depot. */
--	stack_depot_put(meta->free_track.stack);
--
- 	/* Mark free meta as invalid. */
- 	*(u8 *)kasan_mem_to_shadow(object) = KASAN_SLAB_FREE;
- }
- 
--void kasan_release_object_meta(struct kmem_cache *cache, const void *object)
--{
--	struct kasan_alloc_meta *alloc_meta;
--	struct kasan_free_meta *free_meta;
--
--	alloc_meta = kasan_get_alloc_meta(cache, object);
--	if (alloc_meta)
--		release_alloc_meta(alloc_meta);
--
--	free_meta = kasan_get_free_meta(cache, object);
--	if (free_meta)
--		release_free_meta(object, free_meta);
--}
--
- size_t kasan_metadata_size(struct kmem_cache *cache, bool in_object)
- {
- 	struct kasan_cache *info = &cache->kasan_info;
-@@ -571,8 +534,6 @@ static void __kasan_record_aux_stack(voi
- 	struct kmem_cache *cache;
- 	struct kasan_alloc_meta *alloc_meta;
- 	void *object;
--	depot_stack_handle_t new_handle, old_handle;
--	unsigned long flags;
- 
- 	if (is_kfence_address(addr) || !slab)
- 		return;
-@@ -583,33 +544,18 @@ static void __kasan_record_aux_stack(voi
- 	if (!alloc_meta)
- 		return;
- 
--	new_handle = kasan_save_stack(0, depot_flags);
--
--	/*
--	 * Temporarily disable KASAN bug reporting to allow instrumented
--	 * spinlock functions to access aux_lock, which resides inside of a
--	 * redzone.
--	 */
--	kasan_disable_current();
--	raw_spin_lock_irqsave(&alloc_meta->aux_lock, flags);
--	old_handle = alloc_meta->aux_stack[1];
- 	alloc_meta->aux_stack[1] = alloc_meta->aux_stack[0];
--	alloc_meta->aux_stack[0] = new_handle;
--	raw_spin_unlock_irqrestore(&alloc_meta->aux_lock, flags);
--	kasan_enable_current();
--
--	stack_depot_put(old_handle);
-+	alloc_meta->aux_stack[0] = kasan_save_stack(0, depot_flags);
- }
- 
- void kasan_record_aux_stack(void *addr)
- {
--	return __kasan_record_aux_stack(addr,
--			STACK_DEPOT_FLAG_CAN_ALLOC | STACK_DEPOT_FLAG_GET);
-+	return __kasan_record_aux_stack(addr, STACK_DEPOT_FLAG_CAN_ALLOC);
- }
- 
- void kasan_record_aux_stack_noalloc(void *addr)
- {
--	return __kasan_record_aux_stack(addr, STACK_DEPOT_FLAG_GET);
-+	return __kasan_record_aux_stack(addr, 0);
- }
- 
- void kasan_save_alloc_info(struct kmem_cache *cache, void *object, gfp_t flags)
-@@ -620,7 +566,7 @@ void kasan_save_alloc_info(struct kmem_c
- 	if (!alloc_meta)
- 		return;
- 
--	/* Evict previous stack traces (might exist for krealloc or mempool). */
-+	/* Invalidate previous stack traces (might exist for krealloc or mempool). */
- 	release_alloc_meta(alloc_meta);
- 
- 	kasan_save_track(&alloc_meta->alloc_track, flags);
-@@ -634,7 +580,7 @@ void kasan_save_free_info(struct kmem_ca
- 	if (!free_meta)
- 		return;
- 
--	/* Evict previous stack trace (might exist for mempool). */
-+	/* Invalidate previous stack trace (might exist for mempool). */
- 	release_free_meta(object, free_meta);
- 
- 	kasan_save_track(&free_meta->free_track, 0);
---- a/mm/kasan/kasan.h~kasan-revert-eviction-of-stack-traces-in-generic-mode
-+++ a/mm/kasan/kasan.h
-@@ -6,7 +6,6 @@
- #include <linux/kasan.h>
- #include <linux/kasan-tags.h>
- #include <linux/kfence.h>
--#include <linux/spinlock.h>
- #include <linux/stackdepot.h>
- 
- #if defined(CONFIG_KASAN_SW_TAGS) || defined(CONFIG_KASAN_HW_TAGS)
-@@ -265,13 +264,6 @@ struct kasan_global {
- struct kasan_alloc_meta {
- 	struct kasan_track alloc_track;
- 	/* Free track is stored in kasan_free_meta. */
--	/*
--	 * aux_lock protects aux_stack from accesses from concurrent
--	 * kasan_record_aux_stack calls. It is a raw spinlock to avoid sleeping
--	 * on RT kernels, as kasan_record_aux_stack_noalloc can be called from
--	 * non-sleepable contexts.
--	 */
--	raw_spinlock_t aux_lock;
- 	depot_stack_handle_t aux_stack[2];
- };
- 
-@@ -398,10 +390,8 @@ struct kasan_alloc_meta *kasan_get_alloc
- struct kasan_free_meta *kasan_get_free_meta(struct kmem_cache *cache,
- 						const void *object);
- void kasan_init_object_meta(struct kmem_cache *cache, const void *object);
--void kasan_release_object_meta(struct kmem_cache *cache, const void *object);
- #else
- static inline void kasan_init_object_meta(struct kmem_cache *cache, const void *object) { }
--static inline void kasan_release_object_meta(struct kmem_cache *cache, const void *object) { }
- #endif
- 
- depot_stack_handle_t kasan_save_stack(gfp_t flags, depot_flags_t depot_flags);
---- a/mm/kasan/quarantine.c~kasan-revert-eviction-of-stack-traces-in-generic-mode
-+++ a/mm/kasan/quarantine.c
-@@ -145,7 +145,10 @@ static void qlink_free(struct qlist_node
- 	void *object = qlink_to_object(qlink, cache);
- 	struct kasan_free_meta *free_meta = kasan_get_free_meta(cache, object);
- 
--	kasan_release_object_meta(cache, object);
-+	/*
-+	 * Note: Keep per-object metadata to allow KASAN print stack traces for
-+	 * use-after-free-before-realloc bugs.
-+	 */
- 
- 	/*
- 	 * If init_on_free is enabled and KASAN's free metadata is stored in
+-	if (hpage_collapse_test_exit(mm) || !vma) {
++	if (hpage_collapse_test_exit_or_disable(mm) || !vma) {
+ 		/*
+ 		 * Make sure that if mm_users is reaching zero while
+ 		 * khugepaged runs here, khugepaged_exit will find
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from ioworker0@gmail.com are
 
-stackdepot-use-variable-size-records-for-non-evictable-entries.patch
-kasan-revert-eviction-of-stack-traces-in-generic-mode.patch
+mm-khugepaged-bypassing-unnecessary-scans-with-mmf_disable_thp-check.patch
 
