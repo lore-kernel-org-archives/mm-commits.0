@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85B8B383B5
-	for <mm-commits@vger.kernel.org>; Tue, 30 Jan 2024 06:40:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99FBD4500D
+	for <mm-commits@vger.kernel.org>; Tue, 30 Jan 2024 06:40:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706596820; cv=none; b=IENbcHoUwQIDHT4fTb7tTU0S2pS7mo0r8rhuCIhMwVJrnTPcvf018FU10PneIhxFcWvh80LszT0q3Af2BwWwweXE7fgtkwi9UrlsGfbteA7Yt5tVOK95QU3CLQoo4kepUUUUfiutPecVcaIgUCbhxd+coaQWAnbT3spWeRQEPDs=
+	t=1706596835; cv=none; b=Gu9orgIACe/AOCLJjDA0WDajxJG6alveALWnlG/O66KvOHlsEwaqd4NxQN9amwICdlU1qhmTHshUMq8pvHu/4Dzu3KpiWJp0ovsm0YH01aF511drGC57MM69sBNSj9b0U0UjWxzKDp/IP+OTfTe3nhbNQlxwQJ2cz6YU8mlZztc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706596820; c=relaxed/simple;
-	bh=fDxF8KbvEwxVkToOSArghZot5hY40SxQf5KNCrqJqHI=;
-	h=Date:To:From:Subject:Message-Id; b=NY2PmoF/JCkh1eVXy6bpXenuEXLKwzRp1MLOqcRiGuzChppG4XH4xOM7/XNtdphIn7g798dseVH+P/R8+kFhcirdbS7jdIVrqcW3PkBr4EnrGc3n1N4kMFypTDtdCQ5+iz+M81/PrMgnSIuTKgp2j1SHyTaS/FtMUlk/DpdVVIs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0aw7RHBB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706596835; c=relaxed/simple;
+	bh=X+Ns23AHWHNsksx5e4G8QQmBM0odZ8hrx9AN/pno3LQ=;
+	h=Date:To:From:Subject:Message-Id; b=GDOFXnPieW4IX4WV3cXV9nEKFE5qA+TtScdF8sNyklJEnhO8UILxB1k9rnFJrNEKRDEYr2T/cICgBBo8o7jV7FeReIoq4GJGB6TKcKcaWZ3MLuPs8f+4CaZLNCBCwySs10KbwOlyHOMTgRM5t42CA74e28q2uVNWPx7sxlvJK+U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ebX1baq8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0aw7RHBB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53183C433C7;
-	Tue, 30 Jan 2024 06:40:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ebX1baq8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC256C433C7;
+	Tue, 30 Jan 2024 06:40:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706596820;
-	bh=fDxF8KbvEwxVkToOSArghZot5hY40SxQf5KNCrqJqHI=;
+	s=korg; t=1706596835;
+	bh=X+Ns23AHWHNsksx5e4G8QQmBM0odZ8hrx9AN/pno3LQ=;
 	h=Date:To:From:Subject:From;
-	b=0aw7RHBB3ox+ZOikGU5szMaIcOAX89lBa6G7wdUP03AN+uPrxzGS7rh/pimeMh0ce
-	 LiEot2MpuTmS5nnZdTf2wYkAyW5B4TySqAoYhs41JSikEtPrq+1hevJ2SmFM89nvXV
-	 Na5DAR9cveWlSpqOubiIiedLZqDHJNsYXDg79E/M=
-Date: Mon, 29 Jan 2024 22:40:07 -0800
+	b=ebX1baq8op4W6rJuzSh4FXhUEmCjO0TyVTkTZMLeSy5K6durp+YQjpxJLrsV22Igz
+	 ALSHPkgtQ9Qa+oenMFkVM/RQziLXfa0SqqlZ9PiZazMo8y6eCDcXpC+XNHWmWXht9x
+	 PFNRWGDAyvhUGxirpO3rKZsBNpZXaAciO82aOXGU=
+Date: Mon, 29 Jan 2024 22:40:21 -0800
 To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,yosryahmed@google.com,nphamcs@gmail.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-clean-up-zswap_entry_put.patch added to mm-unstable branch
-Message-Id: <20240130064019.53183C433C7@smtp.kernel.org>
+Subject: + mm-zswap-rename-__zswap_load-to-zswap_decompress.patch added to mm-unstable branch
+Message-Id: <20240130064033.DC256C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: zswap: clean up zswap_entry_put()
+     Subject: mm: zswap: rename __zswap_load() to zswap_decompress()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-clean-up-zswap_entry_put.patch
+     mm-zswap-rename-__zswap_load-to-zswap_decompress.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-clean-up-zswap_entry_put.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-rename-__zswap_load-to-zswap_decompress.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,12 +59,10 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: zswap: clean up zswap_entry_put()
-Date: Mon, 29 Jan 2024 20:36:41 -0500
+Subject: mm: zswap: rename __zswap_load() to zswap_decompress()
+Date: Mon, 29 Jan 2024 20:36:42 -0500
 
-Remove stale comment and unnecessary local variable.
-
-Link: https://lkml.kernel.org/r/20240130014208.565554-6-hannes@cmpxchg.org
+Link: https://lkml.kernel.org/r/20240130014208.565554-7-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Chengming Zhou <zhouchengming@bytedance.com>
 Cc: Nhat Pham <nphamcs@gmail.com>
@@ -72,30 +70,38 @@ Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ mm/zswap.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-clean-up-zswap_entry_put
+--- a/mm/zswap.c~mm-zswap-rename-__zswap_load-to-zswap_decompress
 +++ a/mm/zswap.c
-@@ -546,15 +546,11 @@ static void zswap_entry_get(struct zswap
- 	entry->refcount++;
+@@ -1316,7 +1316,7 @@ static int zswap_enabled_param_set(const
+ 	return ret;
  }
  
--/* caller must hold the tree lock
--* remove from the tree and free it, if nobody reference the entry
--*/
-+/* caller must hold the tree lock */
- static void zswap_entry_put(struct zswap_entry *entry)
+-static void __zswap_load(struct zswap_entry *entry, struct page *page)
++static void zswap_decompress(struct zswap_entry *entry, struct page *page)
  {
--	int refcount = --entry->refcount;
--
--	WARN_ON_ONCE(refcount < 0);
--	if (refcount == 0) {
-+	WARN_ON_ONCE(!entry->refcount);
-+	if (--entry->refcount == 0) {
- 		WARN_ON_ONCE(!RB_EMPTY_NODE(&entry->rbnode));
- 		zswap_entry_free(entry);
- 	}
+ 	struct zpool *zpool = zswap_find_zpool(entry);
+ 	struct scatterlist input, output;
+@@ -1411,7 +1411,7 @@ static int zswap_writeback_entry(struct
+ 	zswap_entry_get(entry);
+ 	spin_unlock(&tree->lock);
+ 
+-	__zswap_load(entry, &folio->page);
++	zswap_decompress(entry, &folio->page);
+ 
+ 	count_vm_event(ZSWPWB);
+ 	if (entry->objcg)
+@@ -1702,7 +1702,7 @@ bool zswap_load(struct folio *folio)
+ 	spin_unlock(&tree->lock);
+ 
+ 	if (entry->length)
+-		__zswap_load(entry, page);
++		zswap_decompress(entry, page);
+ 	else {
+ 		dst = kmap_local_page(page);
+ 		zswap_fill_page(dst, entry->value);
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
