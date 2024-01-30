@@ -1,120 +1,63 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CF41158D7F
-	for <mm-commits@vger.kernel.org>; Mon, 29 Jan 2024 22:23:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BDD437179;
+	Tue, 30 Jan 2024 02:49:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706567032; cv=none; b=plsmkF65nG2lVPqxsqSZvaLRbzop5kJsH09ibn6yR4qixJxRriA1epOo5u5YrxPtueYRYY64sUAyIGTIP8T60MbaTpIcFa74A503FOT3LBR+muslwmkE3rMv298mZTzGHU2CYzsYxmh2CA/qkevehuugfk2K3g5W+eEqHruItNg=
+	t=1706582970; cv=none; b=KuQE4RrzMpXFYlkHFdsekdWn6a6PxEV7rbclZ6f5h9v3UpALUU1lROoAIUyrVgJFxaqTryQ0KG9AQDOJdf3eXeRzFsT+nPu4z2l15hHKOAhzTSZeCY8dBS0hQgeytmlPQlzKs5fg65GiCvbhL4yHCKDrasqto5kJ/yrArsmN4mE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706567032; c=relaxed/simple;
-	bh=mIluKo6FjH0bNT4Qk4UP/IvFA6QjDFhAKX7lagllXUM=;
-	h=Date:To:From:Subject:Message-Id; b=mrn0B27bZ8pN504FMiMsd+lqlTVLCQ3yYk/+UsoQ4pOvTSNggY2czpXgxwYJZ+x733+jtgzbSdX9vTFBm2QSRojXNyEXYOdT5h0uuDKwY8pN61B/0ZIeJt4T5YtLK3QUxj8hEEE0uc2ICwoO4gN/dUJ+2epBvqjeZ9wZBgiAFao=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SIczMxwE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706582970; c=relaxed/simple;
+	bh=hJWKNiFb57ncUXq+Tm5DaKBUr+YvxeE4Faa6RNKpKZ4=;
+	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=jXpdw4YYKSCYOM+GsFuf0eL8NXv7Q/V6hokYNbTrkNq9/En9F6Xovco6j66zPs5ealhGJX/ZpJDdvKfPSgqZ7btnFsQSuX3MnSuyVyWSxRscPZ7C9+A4kESAPRKkL6Wi/ft1ugnHzHbvQcXZtUDo9z16YhsYRlAaue/0gQN1QoQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JGH5OIXx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SIczMxwE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4D11C433C7;
-	Mon, 29 Jan 2024 22:23:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706567031;
-	bh=mIluKo6FjH0bNT4Qk4UP/IvFA6QjDFhAKX7lagllXUM=;
-	h=Date:To:From:Subject:From;
-	b=SIczMxwEJ1JynrSrfi6CUElNrepJqFPQOW500E+CTCZ4FJZcD32w34gknLaRTrExp
-	 r1GQ4GLRyVhGZr7vNdxsdT5oTMySCZ84SrFgSwvK+5lkBdzAWyU7hCMKNRbZdHzkgd
-	 DDqwkscXasvi6qA++OOfymdOK+VeQRX9om6RTGO4=
-Date: Mon, 29 Jan 2024 14:23:48 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,surenb@google.com,lstoakes@gmail.com,Liam.Howlett@oracle.com,brauner@kernel.org,yajun.deng@linux.dev,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] mm-mmap-remove-find_vma_intersection-in-vma_merge.patch removed from -mm tree
-Message-Id: <20240129222350.E4D11C433C7@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JGH5OIXx"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 991A7C433F1;
+	Tue, 30 Jan 2024 02:49:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1706582969;
+	bh=hJWKNiFb57ncUXq+Tm5DaKBUr+YvxeE4Faa6RNKpKZ4=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+	b=JGH5OIXx1ZsGagJt2BgMtfGKSNBGShDlk/rR9ZnuB0+mjAIMqUH3ajPxzHVzJZkqT
+	 +46MaWbe3TS74joIWeOgZC6l6ww+zF14yKzJXffqKLIiI1Qjcfcn0xrsB1lUFYsPlx
+	 BHvtDaA6rXoXjF4Xl0n2wUmTS1yFvTQCFEIEoF1xoLlJRWz4Oa/7i6c6ithbfOEGEu
+	 AVjCZY69ZZxiRGIeT8cFLdVocBWWw1P52VujWYbPhPH9hbJcwOzLegnvYjBEsTXh7H
+	 mBqqg2S88e73igf8vU9+INfrowLlIuZCy8C3Q846DYH0k6OwqwB93ZvFVbwIJjWV56
+	 SBJxpak6GoxkQ==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 7FDD9C3274C;
+	Tue, 30 Jan 2024 02:49:29 +0000 (UTC)
+Subject: Re: [GIT PULL]  hotfixes for 6.8-rc3
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <20240128232759.7535e6774bec152556fb9730@linux-foundation.org>
+References: <20240128232759.7535e6774bec152556fb9730@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20240128232759.7535e6774bec152556fb9730@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-01-28-23-21
+X-PR-Tracked-Commit-Id: 96204e15310c218fd9355bdcacd02fed1d18070e
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 6f3d7d5cedbad7a859bb34161a2807c58e6cdda8
+Message-Id: <170658296952.4250.18222386329328793534.pr-tracker-bot@kernel.org>
+Date: Tue, 30 Jan 2024 02:49:29 +0000
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+The pull request you sent on Sun, 28 Jan 2024 23:27:59 -0800:
 
-The quilt patch titled
-     Subject: mm/mmap: remove find_vma_intersection() in vma_merge()
-has been removed from the -mm tree.  Its filename was
-     mm-mmap-remove-find_vma_intersection-in-vma_merge.patch
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-01-28-23-21
 
-This patch was dropped because it had testing failures
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/6f3d7d5cedbad7a859bb34161a2807c58e6cdda8
 
-------------------------------------------------------
-From: Yajun Deng <yajun.deng@linux.dev>
-Subject: mm/mmap: remove find_vma_intersection() in vma_merge()
-Date: Thu, 25 Jan 2024 11:49:22 +0800
+Thank you!
 
-We need to find the current vma by find_vma_intersection() in vma_merge().
-Since the src vma was passed, we can add a check to figure out if the
-current vma is NULL or the src vma directly.
-
-Remove find_vma_intersection() in vma_merge().  And initialize the next to
-NULL when defining it.
-
-Link: https://lkml.kernel.org/r/20240125034922.1004671-3-yajun.deng@linux.dev
-Signed-off-by: Yajun Deng <yajun.deng@linux.dev>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/mmap.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
-
---- a/mm/mmap.c~mm-mmap-remove-find_vma_intersection-in-vma_merge
-+++ a/mm/mmap.c
-@@ -869,7 +869,7 @@ static struct vm_area_struct
- 	struct mm_struct *mm = src->vm_mm;
- 	struct anon_vma *anon_vma = src->anon_vma;
- 	struct file *file = src->vm_file;
--	struct vm_area_struct *curr, *next, *res;
-+	struct vm_area_struct *curr = src, *next = NULL, *res;
- 	struct vm_area_struct *vma, *adjust, *remove, *remove2;
- 	struct vm_area_struct *anon_dup = NULL;
- 	struct vma_prepare vp;
-@@ -890,14 +890,18 @@ static struct vm_area_struct
- 	if (vm_flags & VM_SPECIAL)
- 		return NULL;
- 
--	/* Does the input range span an existing VMA? (cases 5 - 8) */
--	curr = find_vma_intersection(mm, prev ? prev->vm_end : 0, end);
-+	/*
-+	 * If the current vma and the prev vma are the same vma, it
-+	 * means the current vma is NULL.
-+	 * Does the input range span an existing VMA? (cases 5 - 8)
-+	 */
-+	if (prev == curr || addr != curr->vm_start || end > curr->vm_end)
-+		curr = NULL;
- 
- 	if (!curr ||			/* cases 1 - 4 */
- 	    end == curr->vm_end)	/* cases 6 - 8, adjacent VMA */
- 		next = vma_lookup(mm, end);
--	else
--		next = NULL;		/* case 5 */
-+					/* case 5 set to NULL above */
- 
- 	if (prev) {
- 		vma_start = prev->vm_start;
-@@ -921,7 +925,6 @@ static struct vm_area_struct
- 
- 	/* Verify some invariant that must be enforced by the caller. */
- 	VM_WARN_ON(prev && addr <= prev->vm_start);
--	VM_WARN_ON(curr && (addr != curr->vm_start || end > curr->vm_end));
- 	VM_WARN_ON(addr >= end);
- 
- 	if (!merge_prev && !merge_next)
-_
-
-Patches currently in -mm which might be from yajun.deng@linux.dev are
-
-mm-mmap-simplify-vma-link-and-unlink.patch
-mm-mmap-introduce-vma_set_range.patch
-mm-mmap-use-sz_8m-128m-helper-macro.patch
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
