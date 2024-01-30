@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 866084C61
-	for <mm-commits@vger.kernel.org>; Tue, 30 Jan 2024 06:35:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B26051C3D
+	for <mm-commits@vger.kernel.org>; Tue, 30 Jan 2024 06:39:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706596546; cv=none; b=ukY00NZ2i5z/JVV7f3HkJh6VT8GeN2biBWquM2EUhcSJw1FJu+MkrCKyewZvbOi3lYHyEp7M4+lBuOIWQ8mf3z3GWMsQA9c/OmAGgUXSSSUkaemt030j5+Eu7X2fJhmJJ5iMtTY0vLppPUx0Geeoi/MxGx8X3QudwJEdv2C/E7M=
+	t=1706596778; cv=none; b=VoRMSGJI4G0pvcv+SZFJQD3lP0UwreEgxen/A0b+wthkNVU3pkOVU5xXRaN42Fm4I2I9bXcxqGDEhwe7TLAXgV2cgQMDKur2tobWEUkPMs9J4dvjBQKq9A50YkRt5y3OlX7T7LRzdMgDylV6fmO1d7Kuj4QCzR8APDtxIKdWoZE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706596546; c=relaxed/simple;
-	bh=AV7Rb04QQYyWQWiT1QihDbhOczvwQEOV8PUG/zb8XyM=;
-	h=Date:To:From:Subject:Message-Id; b=hLfOTLM139ZB6v+76u4Rq30CgXZMWeocC1FANaH2tq+udAiPDfYWDbgOqpcsaZA/DrAL92vVQDFGgrPwrlqibpndAiaYYkLAYBncslf8VLZHrY1Rgbf7MddCmXe2uz1yTvkTupluTYIhL/8tu89GBQVj2nUeOzYPiYpNTVJq++Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yk916BoV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706596778; c=relaxed/simple;
+	bh=zuBOW497FHPbvgz0SH5PE+Gy4ToZ+bBIvsbBp27MLWg=;
+	h=Date:To:From:Subject:Message-Id; b=gnQLx+ZBpeH1Qedl2+nnGEttvz2MtB0pG+1J1OIyE5ZJjArXPW5ZKscq8skTSEi0dZH5gv/MnhL4GXp3s1xRBPSQmMmmgec/falXw7Ut8u2TZ6ptlQWNboi/AcTJmQc/7lAdXSnMqmXoc2DkNcwZuzMKFUZ5nJGl7MjxYzcwSoU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WGncuS3s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yk916BoV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4784CC433C7;
-	Tue, 30 Jan 2024 06:35:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WGncuS3s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5F85C433C7;
+	Tue, 30 Jan 2024 06:39:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706596546;
-	bh=AV7Rb04QQYyWQWiT1QihDbhOczvwQEOV8PUG/zb8XyM=;
+	s=korg; t=1706596777;
+	bh=zuBOW497FHPbvgz0SH5PE+Gy4ToZ+bBIvsbBp27MLWg=;
 	h=Date:To:From:Subject:From;
-	b=yk916BoVyAy8GOyS9Ob4UV0K0eYEbQ+QAR2kZ/O0mRzpsiAmXAafSyCgN6oyORNqP
-	 9ru/Dv6vD7F0BTSN2d3/27u6250EFdUqo7Jpn4xEN3por9k/MasUEmJE6pPmG7irHt
-	 SjlAxK2NT6o3Z74gyImkMgw5BH6U/1OJlPcgsBRM=
-Date: Mon, 29 Jan 2024 22:35:26 -0800
+	b=WGncuS3sROMyq34IYl4U0k5ipKkLH6n/Cl/xHlqkZw3juiKuJP9Djr09OpbPpEb6A
+	 chnLvm8QNcCQhX73HJ1vn/pCm2jgdcTrAlR1hYseNqROQ7Lz7FePdBe2Ohw5EJS0lR
+	 K0DHkwHik/HcFyHLjhZdBe8pF1ZPFtp+zaFMow7Q=
+Date: Mon, 29 Jan 2024 22:39:23 -0800
 To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,yosryahmed@google.com,nphamcs@gmail.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-fix-objcg-use-after-free-in-entry-destruction.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240130063544.4784CC433C7@smtp.kernel.org>
+Subject: + mm-zswap-rename-zswap_free_entry-to-zswap_entry_free.patch added to mm-unstable branch
+Message-Id: <20240130063935.E5F85C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: zswap: fix objcg use-after-free in entry destruction
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-zswap-fix-objcg-use-after-free-in-entry-destruction.patch
+     Subject: mm: zswap: rename zswap_free_entry to zswap_entry_free
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-zswap-rename-zswap_free_entry-to-zswap_entry_free.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-fix-objcg-use-after-free-in-entry-destruction.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-rename-zswap_free_entry-to-zswap_entry_free.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -59,49 +59,42 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: zswap: fix objcg use-after-free in entry destruction
-Date: Mon, 29 Jan 2024 20:34:38 -0500
+Subject: mm: zswap: rename zswap_free_entry to zswap_entry_free
+Date: Mon, 29 Jan 2024 20:36:37 -0500
 
-In the per-memcg LRU universe, LRU removal uses entry->objcg to determine
-which list count needs to be decreased.  Drop the objcg reference after
-updating the LRU, to fix a possible use-after-free.
+There is a zswap_entry_ namespace with multiple functions already.
 
-Link: https://lkml.kernel.org/r/20240130013438.565167-1-hannes@cmpxchg.org
-Fixes: a65b0e7607cc ("zswap: make shrinking memcg-aware")
+Link: https://lkml.kernel.org/r/20240130014208.565554-2-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Yosry Ahmed <yosryahmed@google.com>
 Cc: Chengming Zhou <zhouchengming@bytedance.com>
 Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/zswap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-fix-objcg-use-after-free-in-entry-destruction
+--- a/mm/zswap.c~mm-zswap-rename-zswap_free_entry-to-zswap_entry_free
 +++ a/mm/zswap.c
-@@ -536,10 +536,6 @@ static struct zpool *zswap_find_zpool(st
+@@ -520,7 +520,7 @@ static struct zpool *zswap_find_zpool(st
+  * Carries out the common pattern of freeing and entry's zpool allocation,
+  * freeing the entry itself, and decrementing the number of stored pages.
   */
- static void zswap_free_entry(struct zswap_entry *entry)
+-static void zswap_free_entry(struct zswap_entry *entry)
++static void zswap_entry_free(struct zswap_entry *entry)
  {
--	if (entry->objcg) {
--		obj_cgroup_uncharge_zswap(entry->objcg, entry->length);
--		obj_cgroup_put(entry->objcg);
--	}
  	if (!entry->length)
  		atomic_dec(&zswap_same_filled_pages);
- 	else {
-@@ -548,6 +544,10 @@ static void zswap_free_entry(struct zswa
- 		atomic_dec(&entry->pool->nr_stored);
- 		zswap_pool_put(entry->pool);
+@@ -555,7 +555,7 @@ static void zswap_entry_put(struct zswap
+ 	WARN_ON_ONCE(refcount < 0);
+ 	if (refcount == 0) {
+ 		WARN_ON_ONCE(!RB_EMPTY_NODE(&entry->rbnode));
+-		zswap_free_entry(entry);
++		zswap_entry_free(entry);
  	}
-+	if (entry->objcg) {
-+		obj_cgroup_uncharge_zswap(entry->objcg, entry->length);
-+		obj_cgroup_put(entry->objcg);
-+	}
- 	zswap_entry_cache_free(entry);
- 	atomic_dec(&zswap_stored_pages);
- 	zswap_update_total_size();
+ }
+ 
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
