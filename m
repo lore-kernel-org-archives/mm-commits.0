@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CAB0381B4
-	for <mm-commits@vger.kernel.org>; Tue, 30 Jan 2024 06:42:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3F72383B1
+	for <mm-commits@vger.kernel.org>; Tue, 30 Jan 2024 06:42:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706596938; cv=none; b=RS0zS0U67spPmECiMpQXFFMmHosKUWROqpIr3SFdHnxmj7aQhkLfMxl/3GGypbH/MsP/0Lp8fJ+9XGe5y4NP61LYq2fHNujQYgAPEHPPKR7BZLrBIOVjB3axMMxYoNjdb9VR+SwSiEyjqI6KUJfqwncUXDLQW4YXKklU1Z4iAZs=
+	t=1706596952; cv=none; b=UybLP87faSLffXenjHkyI06DvRUCYDWBMEMa1TqUVOXqqI4X1Ip8lBnzeElmYU4BR/SXqHq5nYKt9S4jLWPZ+J8NtTZHJlmqXukbt8LdPi5GMKj/B8QVPOA+hi0QYxoO9+Vszsvw/lOtxVmSmmT2KsKuers2l4be2ThIj3ZXQxM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706596938; c=relaxed/simple;
-	bh=3YJIWVrnAO9kGwne2wwYKr/dBQxV/lOtsH8MjqphUFE=;
-	h=Date:To:From:Subject:Message-Id; b=UIQGAFjmN/nwzb54FyX9GT9EvNnzrh7FHaETNxLggeXZqAFq/6K8DDmF9bUbusU/yNmj4V9fUrzFCBWydXd0SOoEeUi7iYPlciWFFZY5vTUGs0LpNDlUDGVVCDNzi47T6QfPJkVo9WHCwgsLzKzxaVOh2cpxMnzmwY9zWUffuRA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ht2+XLu4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706596952; c=relaxed/simple;
+	bh=fX4P0C+2I/NdPU/3KcVKkv7SLO7T1Z54zk5OymgTdb8=;
+	h=Date:To:From:Subject:Message-Id; b=O4FIpOCk02FM1DIJMimtV/9PQ/yMqrYtNyoNjeiiXbujP6znri136e20UKFAVPhDf97Ctd16OfV6pai7vicoqOhdMSsPL8zQs04IeTN90XMxUfgrN+v0lkrOHshVGuHECya+MDTenNs73NNuNz1sFq5enT01beQSiKSCj0Z9ccI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tk/hWpsa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ht2+XLu4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA91FC433F1;
-	Tue, 30 Jan 2024 06:42:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tk/hWpsa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F098CC433C7;
+	Tue, 30 Jan 2024 06:42:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706596938;
-	bh=3YJIWVrnAO9kGwne2wwYKr/dBQxV/lOtsH8MjqphUFE=;
+	s=korg; t=1706596952;
+	bh=fX4P0C+2I/NdPU/3KcVKkv7SLO7T1Z54zk5OymgTdb8=;
 	h=Date:To:From:Subject:From;
-	b=ht2+XLu4s3b5JbjQ/1b8kp+4DwoT96OfQ3PLrHk8E98edfxvHI7ryfDdUX0j2C6Sl
-	 QsRjGmHMcUN5b+wNhfrvff6iiR8DGUoHvpz8PhJN6wjZ6f5souimutHjXrN5/vnC+X
-	 y9I5JtV/4c4QB97tGZMZ+kcGAg5XgvE65Vuv2uWc=
-Date: Mon, 29 Jan 2024 22:42:04 -0800
+	b=tk/hWpsawxHpfQaeafprVb5acZrmcxgRZmwYTR2VDcB8bFxIEqEsUlHODbb4RWJyT
+	 4yFTaF7hGyOEydWTARRMGubLueziGlL0qvqTG3noYq8Bafa0tW3WjCZ9gFMWbibfgs
+	 N3w2JPUrnnf5SHnE6ncQ6+SYRbfzwrrh2C5LX8Mw=
+Date: Mon, 29 Jan 2024 22:42:19 -0800
 To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,yosryahmed@google.com,nphamcs@gmail.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-function-ordering-pool-params.patch added to mm-unstable branch
-Message-Id: <20240130064215.CA91FC433F1@smtp.kernel.org>
+Subject: + mm-zswap-function-ordering-pool-refcounting.patch added to mm-unstable branch
+Message-Id: <20240130064230.F098CC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: zswap: function ordering: pool params
+     Subject: mm: zswap: function ordering: pool refcounting
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-function-ordering-pool-params.patch
+     mm-zswap-function-ordering-pool-refcounting.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-function-ordering-pool-params.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-function-ordering-pool-refcounting.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,22 +59,20 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: zswap: function ordering: pool params
-Date: Mon, 29 Jan 2024 20:36:49 -0500
+Subject: mm: zswap: function ordering: pool refcounting
+Date: Mon, 29 Jan 2024 20:36:47 -0500
 
-Patch series "mm: zswap: cleanups".
+Move pool refcounting functions into the pool section. First the
+destroy functions, then the get and put which uses them.
 
-Cleanups and maintenance items that accumulated while reviewing zswap
-patches.
+__zswap_pool_empty() has an upward reference to the global
+zswap_pools, to sanity check it's not the currently active pool that's
+being freed. That gets the forward decl for zswap_pool_cuyrrent().
 
+This puts the get and put function above all callers, so kill the
+forward decls as well.
 
-This patch (of 20):
-
-The parameters primarily control pool attributes. Move those
-operations up to the pool section.
-
-Link: https://lkml.kernel.org/r/20240130014208.565554-1-hannes@cmpxchg.org
-Link: https://lkml.kernel.org/r/20240130014208.565554-14-hannes@cmpxchg.org
+Link: https://lkml.kernel.org/r/20240130014208.565554-12-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Chengming Zhou <zhouchengming@bytedance.com>
 Cc: Nhat Pham <nphamcs@gmail.com>
@@ -82,337 +80,126 @@ Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |  312 +++++++++++++++++++++++++--------------------------
- 1 file changed, 156 insertions(+), 156 deletions(-)
+ mm/zswap.c |   94 +++++++++++++++++++++++++--------------------------
+ 1 file changed, 47 insertions(+), 47 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-function-ordering-pool-params
+--- a/mm/zswap.c~mm-zswap-function-ordering-pool-refcounting
 +++ a/mm/zswap.c
-@@ -590,6 +590,162 @@ static struct zswap_pool *zswap_pool_fin
- 	return NULL;
+@@ -278,8 +278,6 @@ static inline struct zswap_tree *swap_zs
+ 
+ static int zswap_writeback_entry(struct zswap_entry *entry,
+ 				 swp_entry_t swpentry);
+-static int zswap_pool_get(struct zswap_pool *pool);
+-static void zswap_pool_put(struct zswap_pool *pool);
+ 
+ static bool zswap_is_full(void)
+ {
+@@ -472,6 +470,53 @@ static void zswap_pool_destroy(struct zs
+ 	kfree(pool);
  }
  
-+/*********************************
-+* param callbacks
-+**********************************/
-+
-+static bool zswap_pool_changed(const char *s, const struct kernel_param *kp)
++static void __zswap_pool_release(struct work_struct *work)
 +{
-+	/* no change required */
-+	if (!strcmp(s, *(char **)kp->arg) && zswap_has_pool)
-+		return false;
-+	return true;
++	struct zswap_pool *pool = container_of(work, typeof(*pool),
++						release_work);
++
++	synchronize_rcu();
++
++	/* nobody should have been able to get a kref... */
++	WARN_ON(kref_get_unless_zero(&pool->kref));
++
++	/* pool is now off zswap_pools list and has no references. */
++	zswap_pool_destroy(pool);
 +}
 +
-+/* val must be a null-terminated string */
-+static int __zswap_param_set(const char *val, const struct kernel_param *kp,
-+			     char *type, char *compressor)
++static struct zswap_pool *zswap_pool_current(void);
++
++static void __zswap_pool_empty(struct kref *kref)
 +{
-+	struct zswap_pool *pool, *put_pool = NULL;
-+	char *s = strstrip((char *)val);
-+	int ret = 0;
-+	bool new_pool = false;
++	struct zswap_pool *pool;
 +
-+	mutex_lock(&zswap_init_lock);
-+	switch (zswap_init_state) {
-+	case ZSWAP_UNINIT:
-+		/* if this is load-time (pre-init) param setting,
-+		 * don't create a pool; that's done during init.
-+		 */
-+		ret = param_set_charp(s, kp);
-+		break;
-+	case ZSWAP_INIT_SUCCEED:
-+		new_pool = zswap_pool_changed(s, kp);
-+		break;
-+	case ZSWAP_INIT_FAILED:
-+		pr_err("can't set param, initialization failed\n");
-+		ret = -ENODEV;
-+	}
-+	mutex_unlock(&zswap_init_lock);
-+
-+	/* no need to create a new pool, return directly */
-+	if (!new_pool)
-+		return ret;
-+
-+	if (!type) {
-+		if (!zpool_has_pool(s)) {
-+			pr_err("zpool %s not available\n", s);
-+			return -ENOENT;
-+		}
-+		type = s;
-+	} else if (!compressor) {
-+		if (!crypto_has_acomp(s, 0, 0)) {
-+			pr_err("compressor %s not available\n", s);
-+			return -ENOENT;
-+		}
-+		compressor = s;
-+	} else {
-+		WARN_ON(1);
-+		return -EINVAL;
-+	}
++	pool = container_of(kref, typeof(*pool), kref);
 +
 +	spin_lock(&zswap_pools_lock);
 +
-+	pool = zswap_pool_find_get(type, compressor);
-+	if (pool) {
-+		zswap_pool_debug("using existing", pool);
-+		WARN_ON(pool == zswap_pool_current());
-+		list_del_rcu(&pool->list);
-+	}
++	WARN_ON(pool == zswap_pool_current());
++
++	list_del_rcu(&pool->list);
++
++	INIT_WORK(&pool->release_work, __zswap_pool_release);
++	schedule_work(&pool->release_work);
 +
 +	spin_unlock(&zswap_pools_lock);
++}
 +
++static int __must_check zswap_pool_get(struct zswap_pool *pool)
++{
 +	if (!pool)
-+		pool = zswap_pool_create(type, compressor);
++		return 0;
 +
-+	if (pool)
-+		ret = param_set_charp(s, kp);
-+	else
-+		ret = -EINVAL;
-+
-+	spin_lock(&zswap_pools_lock);
-+
-+	if (!ret) {
-+		put_pool = zswap_pool_current();
-+		list_add_rcu(&pool->list, &zswap_pools);
-+		zswap_has_pool = true;
-+	} else if (pool) {
-+		/* add the possibly pre-existing pool to the end of the pools
-+		 * list; if it's new (and empty) then it'll be removed and
-+		 * destroyed by the put after we drop the lock
-+		 */
-+		list_add_tail_rcu(&pool->list, &zswap_pools);
-+		put_pool = pool;
-+	}
-+
-+	spin_unlock(&zswap_pools_lock);
-+
-+	if (!zswap_has_pool && !pool) {
-+		/* if initial pool creation failed, and this pool creation also
-+		 * failed, maybe both compressor and zpool params were bad.
-+		 * Allow changing this param, so pool creation will succeed
-+		 * when the other param is changed. We already verified this
-+		 * param is ok in the zpool_has_pool() or crypto_has_acomp()
-+		 * checks above.
-+		 */
-+		ret = param_set_charp(s, kp);
-+	}
-+
-+	/* drop the ref from either the old current pool,
-+	 * or the new pool we failed to add
-+	 */
-+	if (put_pool)
-+		zswap_pool_put(put_pool);
-+
-+	return ret;
++	return kref_get_unless_zero(&pool->kref);
 +}
 +
-+static int zswap_compressor_param_set(const char *val,
-+				      const struct kernel_param *kp)
++static void zswap_pool_put(struct zswap_pool *pool)
 +{
-+	return __zswap_param_set(val, kp, zswap_zpool_type, NULL);
-+}
-+
-+static int zswap_zpool_param_set(const char *val,
-+				 const struct kernel_param *kp)
-+{
-+	return __zswap_param_set(val, kp, NULL, zswap_compressor);
-+}
-+
-+static int zswap_enabled_param_set(const char *val,
-+				   const struct kernel_param *kp)
-+{
-+	int ret = -ENODEV;
-+
-+	/* if this is load-time (pre-init) param setting, only set param. */
-+	if (system_state != SYSTEM_RUNNING)
-+		return param_set_bool(val, kp);
-+
-+	mutex_lock(&zswap_init_lock);
-+	switch (zswap_init_state) {
-+	case ZSWAP_UNINIT:
-+		if (zswap_setup())
-+			break;
-+		fallthrough;
-+	case ZSWAP_INIT_SUCCEED:
-+		if (!zswap_has_pool)
-+			pr_err("can't enable, no pool configured\n");
-+		else
-+			ret = param_set_bool(val, kp);
-+		break;
-+	case ZSWAP_INIT_FAILED:
-+		pr_err("can't enable, initialization failed\n");
-+	}
-+	mutex_unlock(&zswap_init_lock);
-+
-+	return ret;
++	kref_put(&pool->kref, __zswap_pool_empty);
 +}
 +
  /* should be called under RCU */
  #ifdef CONFIG_MEMCG
  static inline struct mem_cgroup *mem_cgroup_from_entry(struct zswap_entry *entry)
-@@ -1163,162 +1319,6 @@ resched:
+@@ -1122,51 +1167,6 @@ resched:
  	zswap_pool_put(pool);
  }
  
--/*********************************
--* param callbacks
--**********************************/
--
--static bool zswap_pool_changed(const char *s, const struct kernel_param *kp)
+-static int __must_check zswap_pool_get(struct zswap_pool *pool)
 -{
--	/* no change required */
--	if (!strcmp(s, *(char **)kp->arg) && zswap_has_pool)
--		return false;
--	return true;
--}
--
--/* val must be a null-terminated string */
--static int __zswap_param_set(const char *val, const struct kernel_param *kp,
--			     char *type, char *compressor)
--{
--	struct zswap_pool *pool, *put_pool = NULL;
--	char *s = strstrip((char *)val);
--	int ret = 0;
--	bool new_pool = false;
--
--	mutex_lock(&zswap_init_lock);
--	switch (zswap_init_state) {
--	case ZSWAP_UNINIT:
--		/* if this is load-time (pre-init) param setting,
--		 * don't create a pool; that's done during init.
--		 */
--		ret = param_set_charp(s, kp);
--		break;
--	case ZSWAP_INIT_SUCCEED:
--		new_pool = zswap_pool_changed(s, kp);
--		break;
--	case ZSWAP_INIT_FAILED:
--		pr_err("can't set param, initialization failed\n");
--		ret = -ENODEV;
--	}
--	mutex_unlock(&zswap_init_lock);
--
--	/* no need to create a new pool, return directly */
--	if (!new_pool)
--		return ret;
--
--	if (!type) {
--		if (!zpool_has_pool(s)) {
--			pr_err("zpool %s not available\n", s);
--			return -ENOENT;
--		}
--		type = s;
--	} else if (!compressor) {
--		if (!crypto_has_acomp(s, 0, 0)) {
--			pr_err("compressor %s not available\n", s);
--			return -ENOENT;
--		}
--		compressor = s;
--	} else {
--		WARN_ON(1);
--		return -EINVAL;
--	}
--
--	spin_lock(&zswap_pools_lock);
--
--	pool = zswap_pool_find_get(type, compressor);
--	if (pool) {
--		zswap_pool_debug("using existing", pool);
--		WARN_ON(pool == zswap_pool_current());
--		list_del_rcu(&pool->list);
--	}
--
--	spin_unlock(&zswap_pools_lock);
--
 -	if (!pool)
--		pool = zswap_pool_create(type, compressor);
+-		return 0;
 -
--	if (pool)
--		ret = param_set_charp(s, kp);
--	else
--		ret = -EINVAL;
+-	return kref_get_unless_zero(&pool->kref);
+-}
+-
+-static void __zswap_pool_release(struct work_struct *work)
+-{
+-	struct zswap_pool *pool = container_of(work, typeof(*pool),
+-						release_work);
+-
+-	synchronize_rcu();
+-
+-	/* nobody should have been able to get a kref... */
+-	WARN_ON(kref_get_unless_zero(&pool->kref));
+-
+-	/* pool is now off zswap_pools list and has no references. */
+-	zswap_pool_destroy(pool);
+-}
+-
+-static void __zswap_pool_empty(struct kref *kref)
+-{
+-	struct zswap_pool *pool;
+-
+-	pool = container_of(kref, typeof(*pool), kref);
 -
 -	spin_lock(&zswap_pools_lock);
 -
--	if (!ret) {
--		put_pool = zswap_pool_current();
--		list_add_rcu(&pool->list, &zswap_pools);
--		zswap_has_pool = true;
--	} else if (pool) {
--		/* add the possibly pre-existing pool to the end of the pools
--		 * list; if it's new (and empty) then it'll be removed and
--		 * destroyed by the put after we drop the lock
--		 */
--		list_add_tail_rcu(&pool->list, &zswap_pools);
--		put_pool = pool;
--	}
+-	WARN_ON(pool == zswap_pool_current());
+-
+-	list_del_rcu(&pool->list);
+-
+-	INIT_WORK(&pool->release_work, __zswap_pool_release);
+-	schedule_work(&pool->release_work);
 -
 -	spin_unlock(&zswap_pools_lock);
--
--	if (!zswap_has_pool && !pool) {
--		/* if initial pool creation failed, and this pool creation also
--		 * failed, maybe both compressor and zpool params were bad.
--		 * Allow changing this param, so pool creation will succeed
--		 * when the other param is changed. We already verified this
--		 * param is ok in the zpool_has_pool() or crypto_has_acomp()
--		 * checks above.
--		 */
--		ret = param_set_charp(s, kp);
--	}
--
--	/* drop the ref from either the old current pool,
--	 * or the new pool we failed to add
--	 */
--	if (put_pool)
--		zswap_pool_put(put_pool);
--
--	return ret;
 -}
 -
--static int zswap_compressor_param_set(const char *val,
--				      const struct kernel_param *kp)
+-static void zswap_pool_put(struct zswap_pool *pool)
 -{
--	return __zswap_param_set(val, kp, zswap_zpool_type, NULL);
+-	kref_put(&pool->kref, __zswap_pool_empty);
 -}
 -
--static int zswap_zpool_param_set(const char *val,
--				 const struct kernel_param *kp)
--{
--	return __zswap_param_set(val, kp, NULL, zswap_compressor);
--}
--
--static int zswap_enabled_param_set(const char *val,
--				   const struct kernel_param *kp)
--{
--	int ret = -ENODEV;
--
--	/* if this is load-time (pre-init) param setting, only set param. */
--	if (system_state != SYSTEM_RUNNING)
--		return param_set_bool(val, kp);
--
--	mutex_lock(&zswap_init_lock);
--	switch (zswap_init_state) {
--	case ZSWAP_UNINIT:
--		if (zswap_setup())
--			break;
--		fallthrough;
--	case ZSWAP_INIT_SUCCEED:
--		if (!zswap_has_pool)
--			pr_err("can't enable, no pool configured\n");
--		else
--			ret = param_set_bool(val, kp);
--		break;
--	case ZSWAP_INIT_FAILED:
--		pr_err("can't enable, initialization failed\n");
--	}
--	mutex_unlock(&zswap_init_lock);
--
--	return ret;
--}
--
- static bool zswap_compress(struct folio *folio, struct zswap_entry *entry)
- {
- 	struct crypto_acomp_ctx *acomp_ctx;
+ /*********************************
+ * param callbacks
+ **********************************/
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
