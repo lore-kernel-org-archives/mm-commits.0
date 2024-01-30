@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A9DC38DF9
-	for <mm-commits@vger.kernel.org>; Tue, 30 Jan 2024 06:44:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31A1D38DF9
+	for <mm-commits@vger.kernel.org>; Tue, 30 Jan 2024 06:44:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706597061; cv=none; b=WtqIfMytHWqTILvXXIMdXEyZEnXfleel88lx+uKeBkZIBDDuv7Ufc9Xi0NhCXwj2omR178SnnSeA+PQDf1inxhPTgAcaHCg+XZdgm9mhVCTarkOxMJ4e+ldYnpLK1DFi2+iGzWnuXDsVbTUO+yw3PCWzY5JsLKxJxNe+SItI1JA=
+	t=1706597075; cv=none; b=bE9ddcHg6BrlYlwkMOqBKQ9tB/90rTwlID2uyZFhQzPgBdJYDoo0i0TQvVadZ+v4E1XKQHe9gW96wGX4QQlKSes4t8AjfPLjVovojc23/ZqfqgGHEHiDddxsEtqMWJbHc4EoUcmzq61glpOSREJltMz7PMZg7C+zPPBmmjzMf1Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706597061; c=relaxed/simple;
-	bh=FScH5b7BYwyUKqafFvJC4BzCMuRvSaHORtTXhclZedE=;
-	h=Date:To:From:Subject:Message-Id; b=UiFR2db0MBSifDFrib52tcBoPj5qPAXM/VsnOg5kSNxkWTDXLYO2NaDUcE9WSlzTOuH1IBu5yF6r0S0bFeIBmorSxVL7dQcWTwKfYxSYeGaiVSTJTe71SbLWtrk+GTqUeTsEmQAUmrholrxeVJtWc/7OlGRuGMQht439uPYQ05g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZSyNdh9l; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706597075; c=relaxed/simple;
+	bh=ka5EI5TuXTpbFKojzzSF/Ux8h/PSg/s6u7A+gXf7/1E=;
+	h=Date:To:From:Subject:Message-Id; b=t7kW+sP3RRR0DCwYijY9Z5OGwnonOoz2R8nL0zGHqdRbwg8U8k9Qr7aHRWfrUS2DewfOVUwdfoLvIucFe83ck8yJL9JdIsLawB/fknDvW+xDGiQqfUksC+11Jr53j1DQe5ldTFAtPZlqthQjVfVi4GKyXd6a1lu1u6T+jFU7+ic=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PI8CHtxd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZSyNdh9l"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9D14C433C7;
-	Tue, 30 Jan 2024 06:44:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PI8CHtxd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 677F0C433C7;
+	Tue, 30 Jan 2024 06:44:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706597061;
-	bh=FScH5b7BYwyUKqafFvJC4BzCMuRvSaHORtTXhclZedE=;
+	s=korg; t=1706597075;
+	bh=ka5EI5TuXTpbFKojzzSF/Ux8h/PSg/s6u7A+gXf7/1E=;
 	h=Date:To:From:Subject:From;
-	b=ZSyNdh9lQ/N9Y9Mx0uwiscuYW6P0cjoEo9U7uhbatTwcUTP2lb/8EEF+QfNYVjKaP
-	 8Jb8to+fzJs0NzVxdzU51LITC2eO46MjzmhLZuHiR+p8oacsHcaJb8wtFmiccMKZpQ
-	 X60jlUtUjU2Xo2zBSwYZrkxSSJsRxo/Za16U25DE=
-Date: Mon, 29 Jan 2024 22:44:06 -0800
-To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,yosryahmed@google.com,nphamcs@gmail.com,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=PI8CHtxdIujG7W796YoGtKvjFMvecwgtnCU0y8IZllnbyiGXVSlhQ674/95NhcD9O
+	 9KenWb6oMr3MJKCwH6B3k04P1dVVPVuUIsmeJ5mMzNAtWafyohBwl7Ifvcv09SIugB
+	 DMfAqbfOirHf1gWQtVrfbm+3YMK4bQ6F0HDSubA0=
+Date: Mon, 29 Jan 2024 22:44:22 -0800
+To: mm-commits@vger.kernel.org,siyanteng@loongson.cn,shuah@kernel.org,corbet@lwn.net,alexs@kernel.org,2023002089@link.tyut.edu.cn,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-function-ordering-shrink_memcg_cb.patch added to mm-unstable branch
-Message-Id: <20240130064419.C9D14C433C7@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-use-sysfs-interface-for-tracepoints-example.patch added to mm-unstable branch
+Message-Id: <20240130064433.677F0C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: zswap: function ordering: shrink_memcg_cb
+     Subject: Docs/admin-guide/mm/damon/usage: use sysfs interface for tracepoints example
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-function-ordering-shrink_memcg_cb.patch
+     docs-admin-guide-mm-damon-usage-use-sysfs-interface-for-tracepoints-example.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-function-ordering-shrink_memcg_cb.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-use-sysfs-interface-for-tracepoints-example.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,188 +58,69 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: zswap: function ordering: shrink_memcg_cb
-Date: Mon, 29 Jan 2024 20:36:56 -0500
+From: SeongJae Park <sj@kernel.org>
+Subject: Docs/admin-guide/mm/damon/usage: use sysfs interface for tracepoints example
+Date: Mon, 29 Jan 2024 17:35:40 -0800
 
-shrink_memcg_cb() is called by the shrinker and is based on
-zswap_writeback_entry(). Move it in between. Save one fwd decl.
+Patch series "mm/damon: make DAMON debugfs interface deprecation
+unignorable".
 
-Link: https://lkml.kernel.org/r/20240130014208.565554-21-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Chengming Zhou <zhouchengming@bytedance.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+DAMON debugfs interface is deprecated in February 2023, by commit
+5445fcbc4cda ("Docs/admin-guide/mm/damon/usage: add DAMON debugfs
+interface deprecation notice").  Make the fact unable to be easily ignored
+by removing an example usage from the document (patch 1), renaming the
+config (patch 2), adding a deprecation notice file to the debugfs
+directory (patches 3-5), and renaming the debugfs file that essnetial to
+be used for real use of DAMON (patches 6-9).
+
+
+This patch (of 9):
+
+DAMON tracepoints example on the DAMON usage document is using DAMON
+debugfs interface, which is deprecated.  Use its alternative, DAMON sysfs
+interface.
+
+Link: https://lkml.kernel.org/r/20240130013549.89538-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240130013549.89538-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: Hu Haowen <2023002089@link.tyut.edu.cn>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Yanteng Si <siyanteng@loongson.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |  125 ++++++++++++++++++++++++---------------------------
- 1 file changed, 61 insertions(+), 64 deletions(-)
+ Documentation/admin-guide/mm/damon/usage.rst |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-function-ordering-shrink_memcg_cb
-+++ a/mm/zswap.c
-@@ -1254,7 +1254,67 @@ static int zswap_writeback_entry(struct
- * shrinker functions
- **********************************/
- static enum lru_status shrink_memcg_cb(struct list_head *item, struct list_lru_one *l,
--				       spinlock_t *lock, void *arg);
-+				       spinlock_t *lock, void *arg)
-+{
-+	struct zswap_entry *entry = container_of(item, struct zswap_entry, lru);
-+	bool *encountered_page_in_swapcache = (bool *)arg;
-+	swp_entry_t swpentry;
-+	enum lru_status ret = LRU_REMOVED_RETRY;
-+	int writeback_result;
-+
-+	/*
-+	 * Rotate the entry to the tail before unlocking the LRU,
-+	 * so that in case of an invalidation race concurrent
-+	 * reclaimers don't waste their time on it.
-+	 *
-+	 * If writeback succeeds, or failure is due to the entry
-+	 * being invalidated by the swap subsystem, the invalidation
-+	 * will unlink and free it.
-+	 *
-+	 * Temporary failures, where the same entry should be tried
-+	 * again immediately, almost never happen for this shrinker.
-+	 * We don't do any trylocking; -ENOMEM comes closest,
-+	 * but that's extremely rare and doesn't happen spuriously
-+	 * either. Don't bother distinguishing this case.
-+	 *
-+	 * But since they do exist in theory, the entry cannot just
-+	 * be unlinked, or we could leak it. Hence, rotate.
-+	 */
-+	list_move_tail(item, &l->list);
-+
-+	/*
-+	 * Once the lru lock is dropped, the entry might get freed. The
-+	 * swpentry is copied to the stack, and entry isn't deref'd again
-+	 * until the entry is verified to still be alive in the tree.
-+	 */
-+	swpentry = entry->swpentry;
-+
-+	/*
-+	 * It's safe to drop the lock here because we return either
-+	 * LRU_REMOVED_RETRY or LRU_RETRY.
-+	 */
-+	spin_unlock(lock);
-+
-+	writeback_result = zswap_writeback_entry(entry, swpentry);
-+
-+	if (writeback_result) {
-+		zswap_reject_reclaim_fail++;
-+		ret = LRU_RETRY;
-+
-+		/*
-+		 * Encountering a page already in swap cache is a sign that we are shrinking
-+		 * into the warmer region. We should terminate shrinking (if we're in the dynamic
-+		 * shrinker context).
-+		 */
-+		if (writeback_result == -EEXIST && encountered_page_in_swapcache)
-+			*encountered_page_in_swapcache = true;
-+	} else {
-+		zswap_written_back_pages++;
-+	}
-+
-+	spin_lock(lock);
-+	return ret;
-+}
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-use-sysfs-interface-for-tracepoints-example
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -579,11 +579,11 @@ monitoring results recording.
+ While the monitoring is turned on, you could record the tracepoint events and
+ show results using tracepoint supporting tools like ``perf``.  For example::
  
- static unsigned long zswap_shrinker_scan(struct shrinker *shrinker,
- 		struct shrink_control *sc)
-@@ -1354,69 +1414,6 @@ static void zswap_alloc_shrinker(struct
- 	pool->shrinker->seeks = DEFAULT_SEEKS;
- }
- 
--static enum lru_status shrink_memcg_cb(struct list_head *item, struct list_lru_one *l,
--				       spinlock_t *lock, void *arg)
--{
--	struct zswap_entry *entry = container_of(item, struct zswap_entry, lru);
--	bool *encountered_page_in_swapcache = (bool *)arg;
--	swp_entry_t swpentry;
--	enum lru_status ret = LRU_REMOVED_RETRY;
--	int writeback_result;
--
--	/*
--	 * Rotate the entry to the tail before unlocking the LRU,
--	 * so that in case of an invalidation race concurrent
--	 * reclaimers don't waste their time on it.
--	 *
--	 * If writeback succeeds, or failure is due to the entry
--	 * being invalidated by the swap subsystem, the invalidation
--	 * will unlink and free it.
--	 *
--	 * Temporary failures, where the same entry should be tried
--	 * again immediately, almost never happen for this shrinker.
--	 * We don't do any trylocking; -ENOMEM comes closest,
--	 * but that's extremely rare and doesn't happen spuriously
--	 * either. Don't bother distinguishing this case.
--	 *
--	 * But since they do exist in theory, the entry cannot just
--	 * be unlinked, or we could leak it. Hence, rotate.
--	 */
--	list_move_tail(item, &l->list);
--
--	/*
--	 * Once the lru lock is dropped, the entry might get freed. The
--	 * swpentry is copied to the stack, and entry isn't deref'd again
--	 * until the entry is verified to still be alive in the tree.
--	 */
--	swpentry = entry->swpentry;
--
--	/*
--	 * It's safe to drop the lock here because we return either
--	 * LRU_REMOVED_RETRY or LRU_RETRY.
--	 */
--	spin_unlock(lock);
--
--	writeback_result = zswap_writeback_entry(entry, swpentry);
--
--	if (writeback_result) {
--		zswap_reject_reclaim_fail++;
--		ret = LRU_RETRY;
--
--		/*
--		 * Encountering a page already in swap cache is a sign that we are shrinking
--		 * into the warmer region. We should terminate shrinking (if we're in the dynamic
--		 * shrinker context).
--		 */
--		if (writeback_result == -EEXIST && encountered_page_in_swapcache)
--			*encountered_page_in_swapcache = true;
--	} else {
--		zswap_written_back_pages++;
--	}
--
--	spin_lock(lock);
--	return ret;
--}
--
- static int shrink_memcg(struct mem_cgroup *memcg)
- {
- 	struct zswap_pool *pool;
+-    # echo on > monitor_on
++    # echo on > kdamonds/0/state
+     # perf record -e damon:damon_aggregated &
+     # sleep 5
+     # kill 9 $(pidof perf)
+-    # echo off > monitor_on
++    # echo off > kdamonds/0/state
+     # perf script
+     kdamond.0 46568 [027] 79357.842179: damon:damon_aggregated: target_id=0 nr_regions=11 122509119488-135708762112: 0 864
+     [...]
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-zswap-fix-objcg-use-after-free-in-entry-destruction.patch
-mm-zswap-rename-zswap_free_entry-to-zswap_entry_free.patch
-mm-zswap-inline-and-remove-zswap_entry_find_get.patch
-mm-zswap-move-zswap_invalidate_entry-to-related-functions.patch
-mm-zswap-warn-when-referencing-a-dead-entry.patch
-mm-zswap-clean-up-zswap_entry_put.patch
-mm-zswap-rename-__zswap_load-to-zswap_decompress.patch
-mm-zswap-break-out-zwap_compress.patch
-mm-zswap-further-cleanup-zswap_store.patch
-mm-zswap-simplify-zswap_invalidate.patch
-mm-zswap-function-ordering-pool-alloc-free.patch
-mm-zswap-function-ordering-pool-refcounting.patch
-mm-zswap-function-ordering-zswap_pools.patch
-mm-zswap-function-ordering-pool-params.patch
-mm-zswap-function-ordering-public-lru-api.patch
-mm-zswap-function-ordering-move-entry-sections-out-of-lru-section.patch
-mm-zswap-function-ordering-move-entry-section-out-of-tree-section.patch
-mm-zswap-function-ordering-compress-decompress-functions.patch
-mm-zswap-function-ordering-per-cpu-compression-infra.patch
-mm-zswap-function-ordering-writeback.patch
-mm-zswap-function-ordering-shrink_memcg_cb.patch
+docs-admin-guide-mm-damon-usage-use-sysfs-interface-for-tracepoints-example.patch
+mm-damon-rename-config_damon_dbgfs-to-damon_dbgfs_deprecated.patch
+mm-damon-dbgfs-implement-deprecation-notice-file.patch
+mm-damon-dbgfs-make-debugfs-interface-deprecation-message-a-macro.patch
+docs-admin-guide-mm-damon-usage-document-deprecated-file-of-damon-debugfs-interface.patch
+selftets-damon-prepare-for-monitor_on-file-renaming.patch
+mm-damon-dbgfs-rename-monitor_on-file-to-monitor_on_deprecated.patch
+docs-admin-guide-mm-damon-usage-update-for-monitor_on-renaming.patch
+docs-translations-damon-usage-update-for-monitor_on-renaming.patch
 
