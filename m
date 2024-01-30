@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 500D43838F
-	for <mm-commits@vger.kernel.org>; Tue, 30 Jan 2024 06:39:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D318438F84
+	for <mm-commits@vger.kernel.org>; Tue, 30 Jan 2024 06:40:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706596792; cv=none; b=SByPlCv6nl/u3je3PyjGpKixQJmrmhRqP1XwtgIh2eFR3KM4OjZuoP/ZL5zEm6FQR9AGp0KrwF6FmYeTeraoN+Oee9cEWKhqKTny3ILOh4/90x45i12J4VhfpBJG3RC0PcBAVHmxDwL51Orl0+N9ykbLGxU5AWScjXKvJMmfuYI=
+	t=1706596806; cv=none; b=kcs6T7yg2zM1RmBvcHfajX0Dg0MnBDXk/WG+zieTIbHTE2swt1+82YVmK0T7dTRb7+GEr91m7u70CLy4SflVYARkCYs/pkMAEFDL9LPErpZyL4dyYQieg+N7v0Uu7PzEe5E4b1uoonIKbTpEJERmcxwmiakO0rLwrKW5kI+eexE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706596792; c=relaxed/simple;
-	bh=kHTgjzelzGGpOEI4/4sD9c1Zcmc5s1uIrwQr/0kv1RI=;
-	h=Date:To:From:Subject:Message-Id; b=G0VWOK6JYM5BxxweR5LHbz9wEcn5kbljLn2F6DDomoYC8232HtGmtzub2sf+/N3rkxtO6VLpqz1aMaIuCUzVOXZxmswplOZyavv1dRGG85ub0ytjrp+HadC36HjTG91R43YLpG6EtPkBkS5jvJaMgNa+P0jZvFvvZDzO7OSgYaU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ENvlw7eu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706596806; c=relaxed/simple;
+	bh=lbpNq1qLgRD8DHa11etBp/3IHrmiEk28aZFEOYNL0nE=;
+	h=Date:To:From:Subject:Message-Id; b=YUJCKwINg6x2E1XlOT9hI74tdrMSTo4bL57MxhQv0Qm4GmnrTdqOTLBHadcpVIKsvo8B1lgx0lcqBwO6Xuw7XQX8J6heYJT/9jU4nCtmzM5AT2ZbJn9H0yLy3I6GN62essZ49xaj4rc41CcwEbk5ObhsqsC2M3MxLQ1McdMU8YU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ro7hrSUb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ENvlw7eu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6924C433C7;
-	Tue, 30 Jan 2024 06:39:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ro7hrSUb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 228ACC433F1;
+	Tue, 30 Jan 2024 06:40:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706596791;
-	bh=kHTgjzelzGGpOEI4/4sD9c1Zcmc5s1uIrwQr/0kv1RI=;
+	s=korg; t=1706596806;
+	bh=lbpNq1qLgRD8DHa11etBp/3IHrmiEk28aZFEOYNL0nE=;
 	h=Date:To:From:Subject:From;
-	b=ENvlw7eu5Aoa+YJqgLPkJPVv8xGX+323ZVJUl1L3yDwQ+MQuRzqbCD4YM1/Z4Alnp
-	 QnDPlowDRHozOVu/gWBIMFvMt9mkOr+Qgbhd0hRBqX8Wl06R1MoTRWDh8Q5e49kONu
-	 5+DU4cTI32Qg8gujapkc9JDreolg8FMzSGG+FxiI=
-Date: Mon, 29 Jan 2024 22:39:39 -0800
+	b=ro7hrSUbftt7++90jLAWGfYobGEE19JtfCnXFR3+AI1plhiNTmXYiytS8bWGREvuX
+	 JArU7NUr64l6d/NA1wLJa78JswgBxNMsOfJ18dej7YKbpG4ywdY44mH+iSZb9azBR9
+	 DC36lNisnl03O6kp7cuGRnnqbgYVKTmdT26g6Ib0=
+Date: Mon, 29 Jan 2024 22:39:52 -0800
 To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,yosryahmed@google.com,nphamcs@gmail.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-move-zswap_invalidate_entry-to-related-functions.patch added to mm-unstable branch
-Message-Id: <20240130063950.B6924C433C7@smtp.kernel.org>
+Subject: + mm-zswap-inline-and-remove-zswap_entry_find_get.patch added to mm-unstable branch
+Message-Id: <20240130064005.228ACC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: zswap: move zswap_invalidate_entry() to related functions
+     Subject: mm: zswap: inline and remove zswap_entry_find_get()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-move-zswap_invalidate_entry-to-related-functions.patch
+     mm-zswap-inline-and-remove-zswap_entry_find_get.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-move-zswap_invalidate_entry-to-related-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-inline-and-remove-zswap_entry_find_get.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,12 +59,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: zswap: move zswap_invalidate_entry() to related functions
-Date: Mon, 29 Jan 2024 20:36:39 -0500
+Subject: mm: zswap: inline and remove zswap_entry_find_get()
+Date: Mon, 29 Jan 2024 20:36:38 -0500
 
-Move it up to the other tree and refcounting functions.
+There is only one caller and the function is trivial. Inline it.
 
-Link: https://lkml.kernel.org/r/20240130014208.565554-4-hannes@cmpxchg.org
+Link: https://lkml.kernel.org/r/20240130014208.565554-3-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Chengming Zhou <zhouchengming@bytedance.com>
 Cc: Nhat Pham <nphamcs@gmail.com>
@@ -72,49 +72,47 @@ Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ mm/zswap.c |   17 ++---------------
+ 1 file changed, 2 insertions(+), 15 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-move-zswap_invalidate_entry-to-related-functions
+--- a/mm/zswap.c~mm-zswap-inline-and-remove-zswap_entry_find_get
 +++ a/mm/zswap.c
-@@ -559,6 +559,18 @@ static void zswap_entry_put(struct zswap
+@@ -559,19 +559,6 @@ static void zswap_entry_put(struct zswap
  	}
  }
  
-+/*
-+ * If the entry is still valid in the tree, drop the initial ref and remove it
-+ * from the tree. This function must be called with an additional ref held,
-+ * otherwise it may race with another invalidation freeing the entry.
-+ */
-+static void zswap_invalidate_entry(struct zswap_tree *tree,
-+				   struct zswap_entry *entry)
-+{
-+	if (zswap_rb_erase(&tree->rbroot, entry))
-+		zswap_entry_put(entry);
-+}
-+
+-/* caller must hold the tree lock */
+-static struct zswap_entry *zswap_entry_find_get(struct rb_root *root,
+-				pgoff_t offset)
+-{
+-	struct zswap_entry *entry;
+-
+-	entry = zswap_rb_search(root, offset);
+-	if (entry)
+-		zswap_entry_get(entry);
+-
+-	return entry;
+-}
+-
  /*********************************
  * shrinker functions
  **********************************/
-@@ -809,18 +821,6 @@ static struct zswap_pool *zswap_pool_fin
- 	return NULL;
- }
+@@ -1708,13 +1695,13 @@ bool zswap_load(struct folio *folio)
  
--/*
-- * If the entry is still valid in the tree, drop the initial ref and remove it
-- * from the tree. This function must be called with an additional ref held,
-- * otherwise it may race with another invalidation freeing the entry.
-- */
--static void zswap_invalidate_entry(struct zswap_tree *tree,
--				   struct zswap_entry *entry)
--{
--	if (zswap_rb_erase(&tree->rbroot, entry))
--		zswap_entry_put(entry);
--}
--
- static enum lru_status shrink_memcg_cb(struct list_head *item, struct list_lru_one *l,
- 				       spinlock_t *lock, void *arg)
- {
+ 	VM_WARN_ON_ONCE(!folio_test_locked(folio));
+ 
+-	/* find */
+ 	spin_lock(&tree->lock);
+-	entry = zswap_entry_find_get(&tree->rbroot, offset);
++	entry = zswap_rb_search(&tree->rbroot, offset);
+ 	if (!entry) {
+ 		spin_unlock(&tree->lock);
+ 		return false;
+ 	}
++	zswap_entry_get(entry);
+ 	spin_unlock(&tree->lock);
+ 
+ 	if (entry->length)
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
