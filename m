@@ -1,155 +1,169 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from out30-124.freemail.mail.aliyun.com (out30-124.freemail.mail.aliyun.com [115.124.30.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B277938FA3
-	for <mm-commits@vger.kernel.org>; Tue, 30 Jan 2024 06:46:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AA093D393
+	for <mm-commits@vger.kernel.org>; Tue, 30 Jan 2024 07:01:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=115.124.30.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706597194; cv=none; b=RAjFo92qEwIbHGkcI46DwcDlsEz1KLuv+zxCs5cG0xtHCYfVAjsx0mbdp7OmDbG3nQNyYm2GD14DYCTnm612CspoLLnpyBHs0dxMtHulrfTS8mVJdjT+/svz8XVmg11g57kx2IrDaoj0YRkSF/apNxATP3ch/iuL0mCK9tvKcW8=
+	t=1706598080; cv=none; b=nccW8ubxGKW1k3OCMkUzVJn8RsfGFTPdsOvEeO5HX0kIcAle5MHzSqooryTcvTzDqRalQZyOPPZZGX1+Qgu2IJvpGgRhK5/+REBdyJqzYSVbUjGHlukqPelUnCtzvwX85YC70Ab3+xb+9LRhtBFgX7fWgLrGW/J+pm1oJN8mtmU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706597194; c=relaxed/simple;
-	bh=C+rzYJ5OiV8GctdFfetiOXy/pcxc7DfhSP8l6Q38pTY=;
-	h=Date:To:From:Subject:Message-Id; b=rcJh4C4qDSLFgpvBVAY8Ov0RyXwbHJC/wU6o5/c1wujvuX5lEaCUXtJQUlWNpfpMZmGyC7qOa2fR4xvZHvK2EE6OE7kGGW6qQF+9nAAIPsDqftI9zqxHZXT4XLKVz45BDDCB26TkwUZTfFsphGe20ihGjdflPOSOdk+NmtG+Rcc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HMoAqexw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706598080; c=relaxed/simple;
+	bh=qI0VklqydPOxekpSIKSJ9U6o/1vapwyXK9Z14rngDaA=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=Y7bkWYtArDtqcQPd4xTIQtJ5mja3spX3yxopvuV4Bg3TfwrIyTfGzpg5CXpdq7H+v4ZLK4MlPkxKQ3i/VLvaLeZYXuZasAbyEJc9zpRq2j0kwgpSqDxvJE67vEzY3joidiuS+dht9CoyQDlJmRR6S3uy/SmgRCoSx89mC4m6yJY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com; spf=pass smtp.mailfrom=linux.alibaba.com; dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b=C/5uhi/q; arc=none smtp.client-ip=115.124.30.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.alibaba.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.alibaba.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HMoAqexw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97245C433F1;
-	Tue, 30 Jan 2024 06:46:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706597194;
-	bh=C+rzYJ5OiV8GctdFfetiOXy/pcxc7DfhSP8l6Q38pTY=;
-	h=Date:To:From:Subject:From;
-	b=HMoAqexwK5AjpWHkNuWYbLCK9KCVbnKKCXvTE+sy+/YSUSDa/VMOLyy6RUAn5zIXP
-	 iFRlGEJcKd0x6/G46hocW+VYPv0MW+PaqGRI3h6iusl5pVsJwP62TDwczA+0ZgiXnO
-	 8ma1Gy2V4GbR5KKRAozN9eMaaqYlno6gQSY1o4eY=
-Date: Mon, 29 Jan 2024 22:46:20 -0800
-To: mm-commits@vger.kernel.org,siyanteng@loongson.cn,shuah@kernel.org,corbet@lwn.net,alexs@kernel.org,2023002089@link.tyut.edu.cn,sj@kernel.org,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-usage-update-for-monitor_on-renaming.patch added to mm-unstable branch
-Message-Id: <20240130064632.97245C433F1@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=linux.alibaba.com header.i=@linux.alibaba.com header.b="C/5uhi/q"
+DKIM-Signature:v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux.alibaba.com; s=default;
+	t=1706598068; h=Message-ID:Date:MIME-Version:Subject:To:From:Content-Type;
+	bh=RR7NNbnOU0LLBfw1eK3vKf4VsZqIARArj67GFgtkZE4=;
+	b=C/5uhi/qtAm+Qut3pS3zvv1oO3GXsTUBJUMa48KFqsKv6V1Bt50qgN5YR+kbx5XZV1z6FLgNi/x8SxJEXSNZ01rnVzm0GMTZQf6NWB24BonBXmzTKNzUPzYr12tWKumNCqDnmLg6hM0lncah2oj6RUQcq+0jP0vGvZ7bFJ2qr/g=
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R911e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046056;MF=baolin.wang@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0W.fH3TN_1706598067;
+Received: from 30.97.56.47(mailfrom:baolin.wang@linux.alibaba.com fp:SMTPD_---0W.fH3TN_1706598067)
+          by smtp.aliyun-inc.com;
+          Tue, 30 Jan 2024 15:01:08 +0800
+Message-ID: <e4d47608-7f7f-4156-9fbb-52ffb3029f4d@linux.alibaba.com>
+Date: Tue, 30 Jan 2024 15:01:30 +0800
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: +
+ mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages.patch
+ added to mm-unstable branch
+To: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
+ vbabka@suse.cz, mgorman@techsingularity.net
+References: <20240130063057.A1891C433C7@smtp.kernel.org>
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+In-Reply-To: <20240130063057.A1891C433C7@smtp.kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
 
-The patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: update for monitor_on renaming
-has been added to the -mm mm-unstable branch.  Its filename is
-     docs-admin-guide-mm-damon-usage-update-for-monitor_on-renaming.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-update-for-monitor_on-renaming.patch
+On 1/30/2024 2:30 PM, Andrew Morton wrote:
+> The patch titled
+>       Subject: mm: compaction: update the cc->nr_migratepages when allocating or freeing the freepages
+> has been added to the -mm mm-unstable branch.  Its filename is
+>       mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages.patch
+> 
+> This patch will shortly appear at
+>       https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages.patch
+> 
+> This patch will later appear in the mm-unstable branch at
+>      git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> 
+> Before you just go and hit "reply", please:
+>     a) Consider who else should be cc'ed
+>     b) Prefer to cc a suitable mailing list as well
+>     c) Ideally: find the original patch on the mailing list and do a
+>        reply-to-all to that, adding suitable additional cc's
+> 
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> 
+> The -mm tree is included into linux-next via the mm-everything
+> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there every 2-3 working days
+> 
+> ------------------------------------------------------
+> From: Baolin Wang <baolin.wang@linux.alibaba.com>
+> Subject: mm: compaction: update the cc->nr_migratepages when allocating or freeing the freepages
+> Date: Mon, 22 Jan 2024 21:01:54 +0800
+> 
+> Currently we will use 'cc->nr_freepages >= cc->nr_migratepages' comparison
+> to ensure that enough freepages are isolated in isolate_freepages(), however
+> it just decreases the cc->nr_freepages without updating cc->nr_migratepages
+> in compaction_alloc(), which will waste more CPU cycles and cause too many
+> freepages to be isolated.
+> 
+> So we should also update the cc->nr_migratepages when allocating or
+> freeing the freepages to avoid isolating excess freepages.  And I can see
+> fewer free pages are scanned and isolated when running thpcompact on my
+> Arm64 server:
+> 
+>                                         k6.7         k6.7_patched
+> Ops Compaction pages isolated      120692036.00   118160797.00
+> Ops Compaction migrate scanned     131210329.00   154093268.00
+> Ops Compaction free scanned       1090587971.00  1080632536.00
+> Ops Compact scan efficiency               12.03          14.26
+> 
+> Moreover, I did not see an obvious latency improvements, this is likely
+> because isolating freepages is not the bottleneck in the thpcompact test
+> case.
+> 
+>                                k6.7                  k6.7_patched
+> Amean     fault-both-1      1089.76 (   0.00%)     1080.16 *   0.88%*
+> Amean     fault-both-3      1616.48 (   0.00%)     1636.65 *  -1.25%*
+> Amean     fault-both-5      2266.66 (   0.00%)     2219.20 *   2.09%*
+> Amean     fault-both-7      2909.84 (   0.00%)     2801.90 *   3.71%*
+> Amean     fault-both-12     4861.26 (   0.00%)     4733.25 *   2.63%*
+> Amean     fault-both-18     7351.11 (   0.00%)     6950.51 *   5.45%*
+> Amean     fault-both-24     9059.30 (   0.00%)     9159.99 *  -1.11%*
+> Amean     fault-both-30    10685.68 (   0.00%)    11399.02 *  -6.68%*
+> 
+> Link: https://lkml.kernel.org/r/0773058df022fa701b78f9a6dfe3c501a1a77351.1705928395.git.baolin.wang@linux.alibaba.com
+> Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+> Cc: Mel Gorman <mgorman@techsingularity.net>
+> Cc: Vlastimil Babka <vbabka@suse.cz>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+Hi Andrew,
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Thanks for queuing this patch, but this patch should be updated as below 
+after the "Enable >0 order folio memory compaction" series:
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+diff --git a/mm/compaction.c b/mm/compaction.c
+index fa9993c8a389..af3738102838 100644
+--- a/mm/compaction.c
++++ b/mm/compaction.c
+@@ -1881,6 +1881,7 @@ static struct folio *compaction_alloc(struct folio 
+*src, unsigned long data)
+         if (order)
+                 prep_compound_page(&dst->page, order);
+         cc->nr_freepages -= 1 << order;
++       cc->nr_migratepages -= 1 << order;
+         return page_rmappable_folio(&dst->page);
+  }
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+@@ -1903,6 +1904,7 @@ static void compaction_free(struct folio *dst, 
+unsigned long data)
+         list_add(&dst->lru, &cc->freepages[order].pages);
+         cc->freepages[order].nr_pages++;
+         cc->nr_freepages += 1 << order;
++       cc->nr_migratepages += 1 << order;
+  }
 
-------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: update for monitor_on renaming
-Date: Mon, 29 Jan 2024 17:35:47 -0800
 
-Update DAMON debugfs interface sections on the usage document to reflect
-the fact that 'monitor_on' file has renamed to 'monitor_on_DEPRECATED'.
-
-Link: https://lkml.kernel.org/r/20240130013549.89538-9-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Alex Shi <alexs@kernel.org>
-Cc: Hu Haowen <2023002089@link.tyut.edu.cn>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Yanteng Si <siyanteng@loongson.cn>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- Documentation/admin-guide/mm/damon/usage.rst |   29 ++++++++---------
- 1 file changed, 15 insertions(+), 14 deletions(-)
-
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-update-for-monitor_on-renaming
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -629,8 +629,9 @@ debugfs Interface (DEPRECATED!)
-   linux-mm@kvack.org.
- 
- DAMON exports nine files, ``DEPRECATED``, ``attrs``, ``target_ids``,
--``init_regions``, ``schemes``, ``monitor_on``, ``kdamond_pid``, ``mk_contexts``
--and ``rm_contexts`` under its debugfs directory, ``<debugfs>/damon/``.
-+``init_regions``, ``schemes``, ``monitor_on_DEPRECATED``, ``kdamond_pid``,
-+``mk_contexts`` and ``rm_contexts`` under its debugfs directory,
-+``<debugfs>/damon/``.
- 
- 
- ``DEPRECATED`` is a read-only file for the DAMON debugfs interface deprecation
-@@ -855,16 +856,16 @@ Turning On/Off
- 
- Setting the files as described above doesn't incur effect unless you explicitly
- start the monitoring.  You can start, stop, and check the current status of the
--monitoring by writing to and reading from the ``monitor_on`` file.  Writing
--``on`` to the file starts the monitoring of the targets with the attributes.
--Writing ``off`` to the file stops those.  DAMON also stops if every target
--process is terminated.  Below example commands turn on, off, and check the
--status of DAMON::
-+monitoring by writing to and reading from the ``monitor_on_DEPRECATED`` file.
-+Writing ``on`` to the file starts the monitoring of the targets with the
-+attributes.  Writing ``off`` to the file stops those.  DAMON also stops if
-+every target process is terminated.  Below example commands turn on, off, and
-+check the status of DAMON::
- 
-     # cd <debugfs>/damon
--    # echo on > monitor_on
--    # echo off > monitor_on
--    # cat monitor_on
-+    # echo on > monitor_on_DEPRECATED
-+    # echo off > monitor_on_DEPRECATED
-+    # cat monitor_on_DEPRECATED
-     off
- 
- Please note that you cannot write to the above-mentioned debugfs files while
-@@ -880,11 +881,11 @@ can get the pid of the thread by reading
- monitoring is turned off, reading the file returns ``none``. ::
- 
-     # cd <debugfs>/damon
--    # cat monitor_on
-+    # cat monitor_on_DEPRECATED
-     off
-     # cat kdamond_pid
-     none
--    # echo on > monitor_on
-+    # echo on > monitor_on_DEPRECATED
-     # cat kdamond_pid
-     18594
- 
-@@ -914,5 +915,5 @@ directory by putting the name of the con
-     # ls foo
-     # ls: cannot access 'foo': No such file or directory
- 
--Note that ``mk_contexts``, ``rm_contexts``, and ``monitor_on`` files are in the
--root directory only.
-+Note that ``mk_contexts``, ``rm_contexts``, and ``monitor_on_DEPRECATED`` files
-+are in the root directory only.
-_
-
-Patches currently in -mm which might be from sj@kernel.org are
-
-docs-admin-guide-mm-damon-usage-use-sysfs-interface-for-tracepoints-example.patch
-mm-damon-rename-config_damon_dbgfs-to-damon_dbgfs_deprecated.patch
-mm-damon-dbgfs-implement-deprecation-notice-file.patch
-mm-damon-dbgfs-make-debugfs-interface-deprecation-message-a-macro.patch
-docs-admin-guide-mm-damon-usage-document-deprecated-file-of-damon-debugfs-interface.patch
-selftets-damon-prepare-for-monitor_on-file-renaming.patch
-mm-damon-dbgfs-rename-monitor_on-file-to-monitor_on_deprecated.patch
-docs-admin-guide-mm-damon-usage-update-for-monitor_on-renaming.patch
-docs-translations-damon-usage-update-for-monitor_on-renaming.patch
-
+>   mm/compaction.c |    2 ++
+>   1 file changed, 2 insertions(+)
+> 
+> --- a/mm/compaction.c~mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages
+> +++ a/mm/compaction.c
+> @@ -1876,6 +1876,7 @@ again:
+>   
+>   	dst = list_first_entry(&cc->freepages[order].pages, struct folio, lru);
+>   	cc->freepages[order].nr_pages--;
+> +	cc->nr_migratepages--;
+>   	list_del(&dst->lru);
+>   done:
+>   	post_alloc_hook(&dst->page, order, __GFP_MOVABLE);
+> @@ -1904,6 +1905,7 @@ static void compaction_free(struct folio
+>   	list_add(&dst->lru, &cc->freepages[order].pages);
+>   	cc->freepages[order].nr_pages++;
+>   	cc->nr_freepages += 1 << order;
+> +	cc->nr_migratepages++;
+>   }
+>   
+>   /* possible outcome of isolate_migratepages */
+> _
+> 
+> Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+> 
+> mm-compaction-limit-the-suitable-target-page-order-to-be-less-than-cc-order.patch
+> mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages.patch
