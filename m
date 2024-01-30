@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B2BE1172C
-	for <mm-commits@vger.kernel.org>; Tue, 30 Jan 2024 06:31:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 866084C61
+	for <mm-commits@vger.kernel.org>; Tue, 30 Jan 2024 06:35:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706596260; cv=none; b=dVgZKRiiOTyq13g+qxXuTqeJ2Vk4LgY3H8IlcHcC680vH7A8MBosqFptCa3pxizrn49MtkOLfouvlRmPAHsAVexuxd5geYykzlSh+jD7JfUl4ZbX35q1yXjoRaYyPWR32e54biCgTE3KH1N2I2ZvNsjY53EJBo+aIMlv6t8CbO8=
+	t=1706596546; cv=none; b=ukY00NZ2i5z/JVV7f3HkJh6VT8GeN2biBWquM2EUhcSJw1FJu+MkrCKyewZvbOi3lYHyEp7M4+lBuOIWQ8mf3z3GWMsQA9c/OmAGgUXSSSUkaemt030j5+Eu7X2fJhmJJ5iMtTY0vLppPUx0Geeoi/MxGx8X3QudwJEdv2C/E7M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706596260; c=relaxed/simple;
-	bh=4NsRjAwwgh8tNWaTwGZ3RRWdPqmi8ZTWQrNA5AN2zkw=;
-	h=Date:To:From:Subject:Message-Id; b=k8beR/d5Kj45moz9IpLpCgm/SnbMNNhbVQ7Ml1LqsKyM++KUIOIL9JUJBVaShNbrnJgUOANzvu8RyLfrAv1ntmGHlsrqP4IowR4ceP3f44Mb3flaa+IUcHpmMIvG8BXue9F6xZkaPKs4dmnQopunEVCFNYH34DHCAHVHb7nbeIg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TGmzOXOy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706596546; c=relaxed/simple;
+	bh=AV7Rb04QQYyWQWiT1QihDbhOczvwQEOV8PUG/zb8XyM=;
+	h=Date:To:From:Subject:Message-Id; b=hLfOTLM139ZB6v+76u4Rq30CgXZMWeocC1FANaH2tq+udAiPDfYWDbgOqpcsaZA/DrAL92vVQDFGgrPwrlqibpndAiaYYkLAYBncslf8VLZHrY1Rgbf7MddCmXe2uz1yTvkTupluTYIhL/8tu89GBQVj2nUeOzYPiYpNTVJq++Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yk916BoV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TGmzOXOy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1891C433C7;
-	Tue, 30 Jan 2024 06:30:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yk916BoV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4784CC433C7;
+	Tue, 30 Jan 2024 06:35:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706596260;
-	bh=4NsRjAwwgh8tNWaTwGZ3RRWdPqmi8ZTWQrNA5AN2zkw=;
+	s=korg; t=1706596546;
+	bh=AV7Rb04QQYyWQWiT1QihDbhOczvwQEOV8PUG/zb8XyM=;
 	h=Date:To:From:Subject:From;
-	b=TGmzOXOyb/SPivfFwuJhT0fH7dqlMcg631UnJmYBCxFmbHC6TGVpKTwqOsbU73ORs
-	 sidkpExGuZY9cuYDq1Ia89/Cim5mv5Jcm4WhyNu2ko0gIk7wiGDVy9i8FrFksdho4V
-	 Mg3cWmFJSKSbn5NILcA4fEFC015ca3paesnEVrlk=
-Date: Mon, 29 Jan 2024 22:30:45 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,mgorman@techsingularity.net,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=yk916BoVyAy8GOyS9Ob4UV0K0eYEbQ+QAR2kZ/O0mRzpsiAmXAafSyCgN6oyORNqP
+	 9ru/Dv6vD7F0BTSN2d3/27u6250EFdUqo7Jpn4xEN3por9k/MasUEmJE6pPmG7irHt
+	 SjlAxK2NT6o3Z74gyImkMgw5BH6U/1OJlPcgsBRM=
+Date: Mon, 29 Jan 2024 22:35:26 -0800
+To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,yosryahmed@google.com,nphamcs@gmail.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages.patch added to mm-unstable branch
-Message-Id: <20240130063057.A1891C433C7@smtp.kernel.org>
+Subject: + mm-zswap-fix-objcg-use-after-free-in-entry-destruction.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240130063544.4784CC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: compaction: update the cc->nr_migratepages when allocating or freeing the freepages
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages.patch
+     Subject: mm: zswap: fix objcg use-after-free in entry destruction
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-zswap-fix-objcg-use-after-free-in-entry-destruction.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-fix-objcg-use-after-free-in-entry-destruction.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,73 +58,73 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: compaction: update the cc->nr_migratepages when allocating or freeing the freepages
-Date: Mon, 22 Jan 2024 21:01:54 +0800
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: zswap: fix objcg use-after-free in entry destruction
+Date: Mon, 29 Jan 2024 20:34:38 -0500
 
-Currently we will use 'cc->nr_freepages >= cc->nr_migratepages' comparison
-to ensure that enough freepages are isolated in isolate_freepages(), however
-it just decreases the cc->nr_freepages without updating cc->nr_migratepages
-in compaction_alloc(), which will waste more CPU cycles and cause too many
-freepages to be isolated.
+In the per-memcg LRU universe, LRU removal uses entry->objcg to determine
+which list count needs to be decreased.  Drop the objcg reference after
+updating the LRU, to fix a possible use-after-free.
 
-So we should also update the cc->nr_migratepages when allocating or
-freeing the freepages to avoid isolating excess freepages.  And I can see
-fewer free pages are scanned and isolated when running thpcompact on my
-Arm64 server:
-
-                                       k6.7         k6.7_patched
-Ops Compaction pages isolated      120692036.00   118160797.00
-Ops Compaction migrate scanned     131210329.00   154093268.00
-Ops Compaction free scanned       1090587971.00  1080632536.00
-Ops Compact scan efficiency               12.03          14.26
-
-Moreover, I did not see an obvious latency improvements, this is likely
-because isolating freepages is not the bottleneck in the thpcompact test
-case.
-
-                              k6.7                  k6.7_patched
-Amean     fault-both-1      1089.76 (   0.00%)     1080.16 *   0.88%*
-Amean     fault-both-3      1616.48 (   0.00%)     1636.65 *  -1.25%*
-Amean     fault-both-5      2266.66 (   0.00%)     2219.20 *   2.09%*
-Amean     fault-both-7      2909.84 (   0.00%)     2801.90 *   3.71%*
-Amean     fault-both-12     4861.26 (   0.00%)     4733.25 *   2.63%*
-Amean     fault-both-18     7351.11 (   0.00%)     6950.51 *   5.45%*
-Amean     fault-both-24     9059.30 (   0.00%)     9159.99 *  -1.11%*
-Amean     fault-both-30    10685.68 (   0.00%)    11399.02 *  -6.68%*
-
-Link: https://lkml.kernel.org/r/0773058df022fa701b78f9a6dfe3c501a1a77351.1705928395.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20240130013438.565167-1-hannes@cmpxchg.org
+Fixes: a65b0e7607cc ("zswap: make shrinking memcg-aware")
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Yosry Ahmed <yosryahmed@google.com>
+Cc: Chengming Zhou <zhouchengming@bytedance.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/zswap.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages
-+++ a/mm/compaction.c
-@@ -1876,6 +1876,7 @@ again:
- 
- 	dst = list_first_entry(&cc->freepages[order].pages, struct folio, lru);
- 	cc->freepages[order].nr_pages--;
-+	cc->nr_migratepages--;
- 	list_del(&dst->lru);
- done:
- 	post_alloc_hook(&dst->page, order, __GFP_MOVABLE);
-@@ -1904,6 +1905,7 @@ static void compaction_free(struct folio
- 	list_add(&dst->lru, &cc->freepages[order].pages);
- 	cc->freepages[order].nr_pages++;
- 	cc->nr_freepages += 1 << order;
-+	cc->nr_migratepages++;
- }
- 
- /* possible outcome of isolate_migratepages */
+--- a/mm/zswap.c~mm-zswap-fix-objcg-use-after-free-in-entry-destruction
++++ a/mm/zswap.c
+@@ -536,10 +536,6 @@ static struct zpool *zswap_find_zpool(st
+  */
+ static void zswap_free_entry(struct zswap_entry *entry)
+ {
+-	if (entry->objcg) {
+-		obj_cgroup_uncharge_zswap(entry->objcg, entry->length);
+-		obj_cgroup_put(entry->objcg);
+-	}
+ 	if (!entry->length)
+ 		atomic_dec(&zswap_same_filled_pages);
+ 	else {
+@@ -548,6 +544,10 @@ static void zswap_free_entry(struct zswa
+ 		atomic_dec(&entry->pool->nr_stored);
+ 		zswap_pool_put(entry->pool);
+ 	}
++	if (entry->objcg) {
++		obj_cgroup_uncharge_zswap(entry->objcg, entry->length);
++		obj_cgroup_put(entry->objcg);
++	}
+ 	zswap_entry_cache_free(entry);
+ 	atomic_dec(&zswap_stored_pages);
+ 	zswap_update_total_size();
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-compaction-limit-the-suitable-target-page-order-to-be-less-than-cc-order.patch
-mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages.patch
+mm-zswap-fix-objcg-use-after-free-in-entry-destruction.patch
+mm-zswap-rename-zswap_free_entry-to-zswap_entry_free.patch
+mm-zswap-inline-and-remove-zswap_entry_find_get.patch
+mm-zswap-move-zswap_invalidate_entry-to-related-functions.patch
+mm-zswap-warn-when-referencing-a-dead-entry.patch
+mm-zswap-clean-up-zswap_entry_put.patch
+mm-zswap-rename-__zswap_load-to-zswap_decompress.patch
+mm-zswap-break-out-zwap_compress.patch
+mm-zswap-further-cleanup-zswap_store.patch
+mm-zswap-simplify-zswap_invalidate.patch
+mm-zswap-function-ordering-pool-alloc-free.patch
+mm-zswap-function-ordering-pool-refcounting.patch
+mm-zswap-function-ordering-zswap_pools.patch
+mm-zswap-function-ordering-pool-params.patch
+mm-zswap-function-ordering-public-lru-api.patch
+mm-zswap-function-ordering-move-entry-sections-out-of-lru-section.patch
+mm-zswap-function-ordering-move-entry-section-out-of-tree-section.patch
+mm-zswap-function-ordering-compress-decompress-functions.patch
+mm-zswap-function-ordering-per-cpu-compression-infra.patch
+mm-zswap-function-ordering-writeback.patch
+mm-zswap-function-ordering-shrink_memcg_cb.patch
 
