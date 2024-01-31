@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87A5421341
-	for <mm-commits@vger.kernel.org>; Wed, 31 Jan 2024 06:37:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 335922E647
+	for <mm-commits@vger.kernel.org>; Wed, 31 Jan 2024 06:37:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706683026; cv=none; b=BdvNMpqNH9uRtbpdcKW1WOaefzie3DGYkHUU3dR1EC7e06aQiHY8DvBNHFNaVs3dDIR6NkF2KzQYtDIylFl3BKwBkBnz++TGLSJOliADSWcGZqNMatKY0o1ILKHEKuWNk1xYhSht2KiB1A1kns94erQC6Zr5SA9fhs/80CkVjmM=
+	t=1706683042; cv=none; b=tosSe/XfirJa8ZYQ5ngb1BgG5H3ZrNVHOhKYCnamS9R3w/797Ex3oLnOv8KAs/edPdVMrZ+HUQ2RW8b3HZYYXtzwnKAmS7008fhjjOeBr8kj3QLkx4M89Bc4aa3eIO6NffaC9/6XEFOuhwpJcQQUdWORG2pWBBQNstKaEsn1F6U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706683026; c=relaxed/simple;
-	bh=H90GyVJoUN/6DTewREsFXzOSP4zBx18JRUfM6TA61vM=;
-	h=Date:To:From:Subject:Message-Id; b=kRpYz2WolNbs/lsLG3CbBvAmjX3xZod6Uf5k+qFGnzj30DYmlE0/CpGtFlDV2fiNDUihJhXHGTjjLVWRymV8OQtsO+VUWBe0DkWw4M72WVTv6Inxb3AszRpy90OXmvfaCDQeD6GKSLPDriFE6PZHPwUrQWfzElMA87hKx+/C4DE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F0vMkzPw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706683042; c=relaxed/simple;
+	bh=+Sbwp/qemtabOTQNr5Tif6Y1zH/ApV9jSyshIYHxGlk=;
+	h=Date:To:From:Subject:Message-Id; b=Kbp96sGsvv1bTeIjn+QANAVS31fFkvbv6g66dnoEXqZMrXSKlKoNScr7txQFQUyg6zY49S9O6ZPFOnRtOJipp0BVRFuK6A8NAhEGRI2oLgL67pluJCw4E3BlEsncjv+5NU1BnMP3y9bsRztpBTZ4IKhRHcZsJ1BDx5uR1yN/zW4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wpSj8Pdj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F0vMkzPw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84259C433C7;
-	Wed, 31 Jan 2024 06:37:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wpSj8Pdj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCA9BC433F1;
+	Wed, 31 Jan 2024 06:37:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706683026;
-	bh=H90GyVJoUN/6DTewREsFXzOSP4zBx18JRUfM6TA61vM=;
+	s=korg; t=1706683041;
+	bh=+Sbwp/qemtabOTQNr5Tif6Y1zH/ApV9jSyshIYHxGlk=;
 	h=Date:To:From:Subject:From;
-	b=F0vMkzPwdv5T/M/uKZ7C2DL40DvRIzMoVIUBkE4yHsEXJRV36j+MVAIpwzW4Jkazb
-	 z0Py8vdFBg1Zyp8tbZ+NGTWHWo1JgFwETrmr3cEhN66X1h7W0Lpn4T4VUI9gPPchyh
-	 3pbpf5K1FFhlBkJp0Mqhk2J2cOncVxMveHjE0Q0M=
-Date: Tue, 30 Jan 2024 22:36:51 -0800
+	b=wpSj8PdjC11+N0BBVtd3GrDPU1SogAw0ev5iuadLP5xC3ewpJi9JAjbbHcuZ202x3
+	 Unr/H+A8QyLNkruPRhLGWLIWJsim/nfBTKNBUhF6KU3Z5cGw1wUzN8ku4TnEN8nOBy
+	 1WA1YZFOq5KJ6agfZCEBUnL+93/NrjC5Akk9WlYc=
+Date: Tue, 30 Jan 2024 22:37:07 -0800
 To: mm-commits@vger.kernel.org,will@kernel.org,tranmanphong@gmail.com,tglx@linutronix.de,svens@linux.ibm.com,steven.price@arm.com,peterz@infradead.org,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,mpe@ellerman.id.au,mingo@redhat.com,mark.rutland@arm.com,luto@kernel.org,linux@armlinux.org.uk,keescook@chromium.org,hpa@zytor.com,hca@linux.ibm.com,greg@kroah.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,borntraeger@linux.ibm.com,aou@eecs.berkeley.edu,aneesh.kumar@kernel.org,alexghiti@rivosinc.com,agordeev@linux.ibm.com,christophe.leroy@csgroup.eu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + powerpcs390-ptdump-define-ptdump_check_wx-regardless-of-config_debug_wx.patch added to mm-unstable branch
-Message-Id: <20240131063703.84259C433C7@smtp.kernel.org>
+Subject: + mm-ptdump-have-ptdump_check_wx-return-bool.patch added to mm-unstable branch
+Message-Id: <20240131063719.BCA9BC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: powerpc,s390: ptdump: define ptdump_check_wx() regardless of CONFIG_DEBUG_WX
+     Subject: mm: ptdump: have ptdump_check_wx() return bool
 has been added to the -mm mm-unstable branch.  Its filename is
-     powerpcs390-ptdump-define-ptdump_check_wx-regardless-of-config_debug_wx.patch
+     mm-ptdump-have-ptdump_check_wx-return-bool.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpcs390-ptdump-define-ptdump_check_wx-regardless-of-config_debug_wx.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ptdump-have-ptdump_check_wx-return-bool.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,15 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: powerpc,s390: ptdump: define ptdump_check_wx() regardless of CONFIG_DEBUG_WX
-Date: Tue, 30 Jan 2024 11:34:34 +0100
+Subject: mm: ptdump: have ptdump_check_wx() return bool
+Date: Tue, 30 Jan 2024 11:34:35 +0100
 
-Following patch will use ptdump_check_wx() regardless of CONFIG_DEBUG_WX,
-so define it at all times on powerpc and s390 just like other
-architectures.  Though keep the WARN_ON_ONCE() only when CONFIG_DEBUG_WX
-is set.
+Have ptdump_check_wx() return true when the check is successful or false
+otherwise.
 
-Link: https://lkml.kernel.org/r/07bfb04c7fec58e84413e91d2533581be357a696.1706610398.git.christophe.leroy@csgroup.eu
+Link: https://lkml.kernel.org/r/7943149fe955458cb7b57cd483bf41a3aad94684.1706610398.git.christophe.leroy@csgroup.eu
 Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -101,84 +99,214 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/ptdump/ptdump.c |    7 +++----
- arch/s390/mm/dump_pagetables.c  |    7 ++-----
- 2 files changed, 5 insertions(+), 9 deletions(-)
+ arch/arm64/mm/ptdump.c          |   11 ++++++++---
+ arch/powerpc/mm/ptdump/ptdump.c |   13 +++++++++----
+ arch/riscv/mm/ptdump.c          |   11 ++++++++---
+ arch/s390/mm/dump_pagetables.c  |   13 +++++++++----
+ arch/x86/include/asm/pgtable.h  |    2 +-
+ arch/x86/mm/dump_pagetables.c   |   19 ++++++++++++-------
+ include/linux/ptdump.h          |    2 +-
+ 7 files changed, 48 insertions(+), 23 deletions(-)
 
---- a/arch/powerpc/mm/ptdump/ptdump.c~powerpcs390-ptdump-define-ptdump_check_wx-regardless-of-config_debug_wx
-+++ a/arch/powerpc/mm/ptdump/ptdump.c
-@@ -184,13 +184,14 @@ static void note_prot_wx(struct pg_state
+--- a/arch/arm64/mm/ptdump.c~mm-ptdump-have-ptdump_check_wx-return-bool
++++ a/arch/arm64/mm/ptdump.c
+@@ -345,7 +345,7 @@ static struct ptdump_info kernel_ptdump_
+ 	.base_addr	= PAGE_OFFSET,
+ };
+ 
+-void ptdump_check_wx(void)
++bool ptdump_check_wx(void)
  {
- 	pte_t pte = __pte(st->current_flags);
+ 	struct pg_state st = {
+ 		.seq = NULL,
+@@ -366,11 +366,16 @@ void ptdump_check_wx(void)
  
--	if (!IS_ENABLED(CONFIG_DEBUG_WX) || !st->check_wx)
-+	if (!st->check_wx)
- 		return;
+ 	ptdump_walk_pgd(&st.ptdump, &init_mm, NULL);
  
- 	if (!pte_write(pte) || !pte_exec(pte))
- 		return;
+-	if (st.wx_pages || st.uxn_pages)
++	if (st.wx_pages || st.uxn_pages) {
+ 		pr_warn("Checked W+X mappings: FAILED, %lu W+X pages found, %lu non-UXN pages found\n",
+ 			st.wx_pages, st.uxn_pages);
+-	else
++
++		return false;
++	} else {
+ 		pr_info("Checked W+X mappings: passed, no W+X pages found\n");
++
++		return true;
++	}
+ }
  
--	WARN_ONCE(1, "powerpc/mm: Found insecure W+X mapping at address %p/%pS\n",
-+	WARN_ONCE(IS_ENABLED(CONFIG_DEBUG_WX),
-+		  "powerpc/mm: Found insecure W+X mapping at address %p/%pS\n",
- 		  (void *)st->start_address, (void *)st->start_address);
- 
- 	st->wx_pages += (addr - st->start_address) / PAGE_SIZE;
-@@ -326,7 +327,6 @@ static void __init build_pgtable_complet
+ static int __init ptdump_init(void)
+--- a/arch/powerpc/mm/ptdump/ptdump.c~mm-ptdump-have-ptdump_check_wx-return-bool
++++ a/arch/powerpc/mm/ptdump/ptdump.c
+@@ -327,7 +327,7 @@ static void __init build_pgtable_complet
  				pg_level[i].mask |= pg_level[i].flag[j].mask;
  }
  
--#ifdef CONFIG_DEBUG_WX
- void ptdump_check_wx(void)
+-void ptdump_check_wx(void)
++bool ptdump_check_wx(void)
  {
  	struct pg_state st = {
-@@ -354,7 +354,6 @@ void ptdump_check_wx(void)
- 	else
+ 		.seq = NULL,
+@@ -344,15 +344,20 @@ void ptdump_check_wx(void)
+ 	};
+ 
+ 	if (IS_ENABLED(CONFIG_PPC_BOOK3S_64) && !mmu_has_feature(MMU_FTR_KERNEL_RO))
+-		return;
++		return true;
+ 
+ 	ptdump_walk_pgd(&st.ptdump, &init_mm, NULL);
+ 
+-	if (st.wx_pages)
++	if (st.wx_pages) {
+ 		pr_warn("Checked W+X mappings: FAILED, %lu W+X pages found\n",
+ 			st.wx_pages);
+-	else
++
++		return false;
++	} else {
  		pr_info("Checked W+X mappings: passed, no W+X pages found\n");
++
++		return true;
++	}
  }
--#endif
  
  static int __init ptdump_init(void)
- {
---- a/arch/s390/mm/dump_pagetables.c~powerpcs390-ptdump-define-ptdump_check_wx-regardless-of-config_debug_wx
-+++ a/arch/s390/mm/dump_pagetables.c
-@@ -121,7 +121,6 @@ static void print_prot(struct seq_file *
- 
- static void note_prot_wx(struct pg_state *st, unsigned long addr)
- {
--#ifdef CONFIG_DEBUG_WX
- 	if (!st->check_wx)
- 		return;
- 	if (st->current_prot & _PAGE_INVALID)
-@@ -138,10 +137,10 @@ static void note_prot_wx(struct pg_state
- 	 */
- 	if (addr == PAGE_SIZE && (nospec_uses_trampoline() || !static_key_enabled(&cpu_has_bear)))
- 		return;
--	WARN_ONCE(1, "s390/mm: Found insecure W+X mapping at address %pS\n",
-+	WARN_ONCE(IS_ENABLED(CONFIG_DEBUG_WX),
-+		  "s390/mm: Found insecure W+X mapping at address %pS\n",
- 		  (void *)st->start_address);
- 	st->wx_pages += (addr - st->start_address) / PAGE_SIZE;
--#endif /* CONFIG_DEBUG_WX */
+--- a/arch/riscv/mm/ptdump.c~mm-ptdump-have-ptdump_check_wx-return-bool
++++ a/arch/riscv/mm/ptdump.c
+@@ -335,7 +335,7 @@ static void ptdump_walk(struct seq_file
+ 	ptdump_walk_pgd(&st.ptdump, pinfo->mm, NULL);
  }
  
- static void note_page(struct ptdump_state *pt_st, unsigned long addr, int level, u64 val)
-@@ -193,7 +192,6 @@ static void note_page(struct ptdump_stat
+-void ptdump_check_wx(void)
++bool ptdump_check_wx(void)
+ {
+ 	struct pg_state st = {
+ 		.seq = NULL,
+@@ -356,11 +356,16 @@ void ptdump_check_wx(void)
+ 
+ 	ptdump_walk_pgd(&st.ptdump, &init_mm, NULL);
+ 
+-	if (st.wx_pages)
++	if (st.wx_pages) {
+ 		pr_warn("Checked W+X mappings: failed, %lu W+X pages found\n",
+ 			st.wx_pages);
+-	else
++
++		return false;
++	} else {
+ 		pr_info("Checked W+X mappings: passed, no W+X pages found\n");
++
++		return true;
++	}
+ }
+ 
+ static int ptdump_show(struct seq_file *m, void *v)
+--- a/arch/s390/mm/dump_pagetables.c~mm-ptdump-have-ptdump_check_wx-return-bool
++++ a/arch/s390/mm/dump_pagetables.c
+@@ -192,7 +192,7 @@ static void note_page(struct ptdump_stat
  	}
  }
  
--#ifdef CONFIG_DEBUG_WX
- void ptdump_check_wx(void)
+-void ptdump_check_wx(void)
++bool ptdump_check_wx(void)
  {
  	struct pg_state st = {
-@@ -226,7 +224,6 @@ void ptdump_check_wx(void)
+ 		.ptdump = {
+@@ -215,14 +215,19 @@ void ptdump_check_wx(void)
+ 	};
+ 
+ 	if (!MACHINE_HAS_NX)
+-		return;
++		return true;
+ 	ptdump_walk_pgd(&st.ptdump, &init_mm, NULL);
+-	if (st.wx_pages)
++	if (st.wx_pages) {
+ 		pr_warn("Checked W+X mappings: FAILED, %lu W+X pages found\n", st.wx_pages);
+-	else
++
++		return false;
++	} else {
+ 		pr_info("Checked W+X mappings: passed, no %sW+X pages found\n",
  			(nospec_uses_trampoline() || !static_key_enabled(&cpu_has_bear)) ?
  			"unexpected " : "");
++
++		return true;
++	}
  }
--#endif /* CONFIG_DEBUG_WX */
  
  #ifdef CONFIG_PTDUMP_DEBUGFS
- static int ptdump_show(struct seq_file *m, void *v)
+--- a/arch/x86/include/asm/pgtable.h~mm-ptdump-have-ptdump_check_wx-return-bool
++++ a/arch/x86/include/asm/pgtable.h
+@@ -31,7 +31,7 @@ struct seq_file;
+ void ptdump_walk_pgd_level(struct seq_file *m, struct mm_struct *mm);
+ void ptdump_walk_pgd_level_debugfs(struct seq_file *m, struct mm_struct *mm,
+ 				   bool user);
+-void ptdump_walk_pgd_level_checkwx(void);
++bool ptdump_walk_pgd_level_checkwx(void);
+ #define ptdump_check_wx ptdump_walk_pgd_level_checkwx
+ void ptdump_walk_user_pgd_level_checkwx(void);
+ 
+--- a/arch/x86/mm/dump_pagetables.c~mm-ptdump-have-ptdump_check_wx-return-bool
++++ a/arch/x86/mm/dump_pagetables.c
+@@ -362,7 +362,7 @@ static void note_page(struct ptdump_stat
+ 	}
+ }
+ 
+-static void ptdump_walk_pgd_level_core(struct seq_file *m,
++bool void ptdump_walk_pgd_level_core(struct seq_file *m,
+ 				       struct mm_struct *mm, pgd_t *pgd,
+ 				       bool checkwx, bool dmesg)
+ {
+@@ -391,12 +391,17 @@ static void ptdump_walk_pgd_level_core(s
+ 	ptdump_walk_pgd(&st.ptdump, mm, pgd);
+ 
+ 	if (!checkwx)
+-		return;
+-	if (st.wx_pages)
++		return true;
++	if (st.wx_pages) {
+ 		pr_info("x86/mm: Checked W+X mappings: FAILED, %lu W+X pages found.\n",
+ 			st.wx_pages);
+-	else
++
++		return false;
++	} else {
+ 		pr_info("x86/mm: Checked W+X mappings: passed, no W+X pages found.\n");
++
++		return true;
++	}
+ }
+ 
+ void ptdump_walk_pgd_level(struct seq_file *m, struct mm_struct *mm)
+@@ -431,12 +436,12 @@ void ptdump_walk_user_pgd_level_checkwx(
+ #endif
+ }
+ 
+-void ptdump_walk_pgd_level_checkwx(void)
++bool ptdump_walk_pgd_level_checkwx(void)
+ {
+ 	if (!(__supported_pte_mask & _PAGE_NX))
+-		return;
++		return true;
+ 
+-	ptdump_walk_pgd_level_core(NULL, &init_mm, INIT_PGD, true, false);
++	return ptdump_walk_pgd_level_core(NULL, &init_mm, INIT_PGD, true, false);
+ }
+ 
+ static int __init pt_dump_init(void)
+--- a/include/linux/ptdump.h~mm-ptdump-have-ptdump_check_wx-return-bool
++++ a/include/linux/ptdump.h
+@@ -19,7 +19,7 @@ struct ptdump_state {
+ };
+ 
+ void ptdump_walk_pgd(struct ptdump_state *st, struct mm_struct *mm, pgd_t *pgd);
+-void ptdump_check_wx(void);
++bool ptdump_check_wx(void);
+ 
+ static inline void debug_checkwx(void)
+ {
 _
 
 Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
