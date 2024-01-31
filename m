@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4859A69940
-	for <mm-commits@vger.kernel.org>; Wed, 31 Jan 2024 09:27:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B47C6772F
+	for <mm-commits@vger.kernel.org>; Wed, 31 Jan 2024 09:27:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706693243; cv=none; b=PZaMXCbo650bQ/DAONQgJrxHaIbepwRNpsoQX9y1n4WEhwpT1ZrfGOQ57ez46jmr3IOrT2vjNT8wIf8f32prT7l3RlHj2S10Q3VV5vJBVRDs7o8PEeAqPoqG31TsCV/qqPOvTAFTGFKshzcJ1rzabFocM3IN9ckvsHsjubWOPe0=
+	t=1706693258; cv=none; b=GHwTx38h0Omf1znOAp+X/NFr56bgBFlhIC/cJyiJ+CD7JetsVnzPB0X++QMGJFAcSMyRY/9sjIjWMitcjpt5D3wDVrzUrKJ/CCLM5PE5eQJuG3FS3mejdCwCmm8lLqB9yFRW86IHV/5VvcFjSycYG4BehNFQDzzAQsQw7dgEkOE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706693243; c=relaxed/simple;
-	bh=KdTjDtrDhVlNvFlQ95mEnE7j6EWV2VmNYoXPGl5CdZg=;
-	h=Date:To:From:Subject:Message-Id; b=uJPls8ptpP0yjJSic3BLWMcI47NULw9WL/dZem1SiylfSpXt1l2d8aslV12+tdbVAwApit9U/hEemQYvw5CDC8ZtRLMqoFo1vcaCtizS/5UphUy1sf2BkSfU/KlhQt89VytHGfynPjNYY3dPRyXlNYq8SXyR7oTff3Rz8vP+CTU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VbKtbQa/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706693258; c=relaxed/simple;
+	bh=ahYok6mh2c9lpWdoq+F6NISye7iC03jlzwwimWh0LNQ=;
+	h=Date:To:From:Subject:Message-Id; b=iON3ySSgE2PwcLY0EMcxooFuprTMa6QdSeE+EZXGcNH7T2+nHNUuKrfagqxJyGLLs+zYW1yelVSMp7uCTy6gdcM1ztpJI45AR+5eJ5lxnCMX5N0kSabjSu+ACCJ/8rv+kck44QqRqzewULBcoFOx1TnzRuLmwUsC3ZqsaIr/Yow=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SJOyjPmp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VbKtbQa/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B35DC43394;
-	Wed, 31 Jan 2024 09:27:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SJOyjPmp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C8A4C433C7;
+	Wed, 31 Jan 2024 09:27:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706693243;
-	bh=KdTjDtrDhVlNvFlQ95mEnE7j6EWV2VmNYoXPGl5CdZg=;
+	s=korg; t=1706693257;
+	bh=ahYok6mh2c9lpWdoq+F6NISye7iC03jlzwwimWh0LNQ=;
 	h=Date:To:From:Subject:From;
-	b=VbKtbQa/6t2DlHwXjcwtOLOS/wUfgjd6uY7JJSx+ySnit92UvDC4nT8RVhwOy04aH
-	 eruyCf1SIfo040eCtTstAbQ65G49kf5BDAT6gPbRsmIf75VAA7cRq64c9MkfvSs++F
-	 qcFir81MhjFZLBCSqJRPzKlmA6N/oK9rVy29OKaQ=
-Date: Wed, 31 Jan 2024 01:27:08 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,mgorman@techsingularity.net,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=SJOyjPmpULaK9Ir/LfftVwbX1AwYr3cqu8uv6G3N5Jf4kLcU+4Wgk0ZoOZGKPRrjG
+	 2b4Ta3MUV/GSv8wkqL/MmNd18TP7Zm/2NzKA65o2br24GKym0ZwLGra0+gc0GCZ0XH
+	 fZwJ+zrJ0o470vD+PWxSyII/2dFTLXUD/4vQmVWQ=
+Date: Wed, 31 Jan 2024 01:27:24 -0800
+To: mm-commits@vger.kernel.org,zhangpeng362@huawei.com,willy@infradead.org,viro@zeniv.linux.org.uk,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,peterx@redhat.com,ngeoffray@google.com,mhocko@suse.com,lokeshgidra@google.com,Liam.Howlett@oracle.com,kaleshsingh@google.com,jannh@google.com,hughd@google.com,david@redhat.com,brauner@kernel.org,bgeffon@google.com,axelrasmussen@google.com,aarcange@redhat.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages.patch removed from -mm tree
-Message-Id: <20240131092721.7B35DC43394@smtp.kernel.org>
+Subject: [to-be-updated] userfaultfd-handle-zeropage-moves-by-uffdio_move.patch removed from -mm tree
+Message-Id: <20240131092736.0C8A4C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,79 +35,270 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: compaction: update the cc->nr_migratepages when allocating or freeing the freepages
+     Subject: userfaultfd: handle zeropage moves by UFFDIO_MOVE
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages.patch
+     userfaultfd-handle-zeropage-moves-by-uffdio_move.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: compaction: update the cc->nr_migratepages when allocating or freeing the freepages
-Date: Mon, 22 Jan 2024 21:01:54 +0800
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: userfaultfd: handle zeropage moves by UFFDIO_MOVE
+Date: Wed, 24 Jan 2024 16:13:28 -0800
 
-Currently we will use 'cc->nr_freepages >= cc->nr_migratepages' comparison
-to ensure that enough freepages are isolated in isolate_freepages(), however
-it just decreases the cc->nr_freepages without updating cc->nr_migratepages
-in compaction_alloc(), which will waste more CPU cycles and cause too many
-freepages to be isolated.
+Current implementation of UFFDIO_MOVE fails to move zeropages and returns
+EBUSY when it encounters one. We can handle them by mapping a zeropage
+at the destination and clearing the mapping at the source. This is done
+both for ordinary and for huge zeropages.
 
-So we should also update the cc->nr_migratepages when allocating or
-freeing the freepages to avoid isolating excess freepages.  And I can see
-fewer free pages are scanned and isolated when running thpcompact on my
-Arm64 server:
-
-                                       k6.7         k6.7_patched
-Ops Compaction pages isolated      120692036.00   118160797.00
-Ops Compaction migrate scanned     131210329.00   154093268.00
-Ops Compaction free scanned       1090587971.00  1080632536.00
-Ops Compact scan efficiency               12.03          14.26
-
-Moreover, I did not see an obvious latency improvements, this is likely
-because isolating freepages is not the bottleneck in the thpcompact test
-case.
-
-                              k6.7                  k6.7_patched
-Amean     fault-both-1      1089.76 (   0.00%)     1080.16 *   0.88%*
-Amean     fault-both-3      1616.48 (   0.00%)     1636.65 *  -1.25%*
-Amean     fault-both-5      2266.66 (   0.00%)     2219.20 *   2.09%*
-Amean     fault-both-7      2909.84 (   0.00%)     2801.90 *   3.71%*
-Amean     fault-both-12     4861.26 (   0.00%)     4733.25 *   2.63%*
-Amean     fault-both-18     7351.11 (   0.00%)     6950.51 *   5.45%*
-Amean     fault-both-24     9059.30 (   0.00%)     9159.99 *  -1.11%*
-Amean     fault-both-30    10685.68 (   0.00%)    11399.02 *  -6.68%*
-
-Link: https://lkml.kernel.org/r/0773058df022fa701b78f9a6dfe3c501a1a77351.1705928395.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20240125001328.335127-1-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Nicolas Geoffray <ngeoffray@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: ZhangPeng <zhangpeng362@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/huge_memory.c |  111 +++++++++++++++++++++++++--------------------
+ mm/userfaultfd.c |   42 ++++++++++++++---
+ 2 files changed, 99 insertions(+), 54 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages
-+++ a/mm/compaction.c
-@@ -1876,6 +1876,7 @@ again:
+--- a/mm/huge_memory.c~userfaultfd-handle-zeropage-moves-by-uffdio_move
++++ a/mm/huge_memory.c
+@@ -2200,13 +2200,18 @@ int move_pages_huge_pmd(struct mm_struct
+ 	}
  
- 	dst = list_first_entry(&cc->freepages[order].pages, struct folio, lru);
- 	cc->freepages[order].nr_pages--;
-+	cc->nr_migratepages--;
- 	list_del(&dst->lru);
- done:
- 	post_alloc_hook(&dst->page, order, __GFP_MOVABLE);
-@@ -1904,6 +1905,7 @@ static void compaction_free(struct folio
- 	list_add(&dst->lru, &cc->freepages[order].pages);
- 	cc->freepages[order].nr_pages++;
- 	cc->nr_freepages += 1 << order;
-+	cc->nr_migratepages++;
+ 	src_page = pmd_page(src_pmdval);
+-	if (unlikely(!PageAnonExclusive(src_page))) {
+-		spin_unlock(src_ptl);
+-		return -EBUSY;
+-	}
+ 
+-	src_folio = page_folio(src_page);
+-	folio_get(src_folio);
++	if (!is_huge_zero_pmd(src_pmdval)) {
++		if (unlikely(!PageAnonExclusive(src_page))) {
++			spin_unlock(src_ptl);
++			return -EBUSY;
++		}
++
++		src_folio = page_folio(src_page);
++		folio_get(src_folio);
++	} else
++		src_folio = NULL;
++
+ 	spin_unlock(src_ptl);
+ 
+ 	flush_cache_range(src_vma, src_addr, src_addr + HPAGE_PMD_SIZE);
+@@ -2214,19 +2219,22 @@ int move_pages_huge_pmd(struct mm_struct
+ 				src_addr + HPAGE_PMD_SIZE);
+ 	mmu_notifier_invalidate_range_start(&range);
+ 
+-	folio_lock(src_folio);
++	if (src_folio) {
++		folio_lock(src_folio);
+ 
+-	/*
+-	 * split_huge_page walks the anon_vma chain without the page
+-	 * lock. Serialize against it with the anon_vma lock, the page
+-	 * lock is not enough.
+-	 */
+-	src_anon_vma = folio_get_anon_vma(src_folio);
+-	if (!src_anon_vma) {
+-		err = -EAGAIN;
+-		goto unlock_folio;
+-	}
+-	anon_vma_lock_write(src_anon_vma);
++		/*
++		 * split_huge_page walks the anon_vma chain without the page
++		 * lock. Serialize against it with the anon_vma lock, the page
++		 * lock is not enough.
++		 */
++		src_anon_vma = folio_get_anon_vma(src_folio);
++		if (!src_anon_vma) {
++			err = -EAGAIN;
++			goto unlock_folio;
++		}
++		anon_vma_lock_write(src_anon_vma);
++	} else
++		src_anon_vma = NULL;
+ 
+ 	dst_ptl = pmd_lockptr(mm, dst_pmd);
+ 	double_pt_lock(src_ptl, dst_ptl);
+@@ -2235,45 +2243,54 @@ int move_pages_huge_pmd(struct mm_struct
+ 		err = -EAGAIN;
+ 		goto unlock_ptls;
+ 	}
+-	if (folio_maybe_dma_pinned(src_folio) ||
+-	    !PageAnonExclusive(&src_folio->page)) {
+-		err = -EBUSY;
+-		goto unlock_ptls;
+-	}
+-
+-	if (WARN_ON_ONCE(!folio_test_head(src_folio)) ||
+-	    WARN_ON_ONCE(!folio_test_anon(src_folio))) {
+-		err = -EBUSY;
+-		goto unlock_ptls;
+-	}
+-
+-	folio_move_anon_rmap(src_folio, dst_vma);
+-	WRITE_ONCE(src_folio->index, linear_page_index(dst_vma, dst_addr));
+-
+-	src_pmdval = pmdp_huge_clear_flush(src_vma, src_addr, src_pmd);
+-	/* Folio got pinned from under us. Put it back and fail the move. */
+-	if (folio_maybe_dma_pinned(src_folio)) {
+-		set_pmd_at(mm, src_addr, src_pmd, src_pmdval);
+-		err = -EBUSY;
+-		goto unlock_ptls;
++	if (src_folio) {
++		if (folio_maybe_dma_pinned(src_folio) ||
++		    !PageAnonExclusive(&src_folio->page)) {
++			err = -EBUSY;
++			goto unlock_ptls;
++		}
++
++		if (WARN_ON_ONCE(!folio_test_head(src_folio)) ||
++		    WARN_ON_ONCE(!folio_test_anon(src_folio))) {
++			err = -EBUSY;
++			goto unlock_ptls;
++		}
++
++		folio_move_anon_rmap(src_folio, dst_vma);
++		WRITE_ONCE(src_folio->index, linear_page_index(dst_vma, dst_addr));
++
++		src_pmdval = pmdp_huge_clear_flush(src_vma, src_addr, src_pmd);
++		/* Folio got pinned from under us. Put it back and fail the move. */
++		if (folio_maybe_dma_pinned(src_folio)) {
++			set_pmd_at(mm, src_addr, src_pmd, src_pmdval);
++			err = -EBUSY;
++			goto unlock_ptls;
++		}
++
++		_dst_pmd = mk_huge_pmd(&src_folio->page, dst_vma->vm_page_prot);
++		/* Follow mremap() behavior and treat the entry dirty after the move */
++		_dst_pmd = pmd_mkwrite(pmd_mkdirty(_dst_pmd), dst_vma);
++	} else {
++		src_pmdval = pmdp_huge_clear_flush(src_vma, src_addr, src_pmd);
++		_dst_pmd = mk_huge_pmd(src_page, dst_vma->vm_page_prot);
+ 	}
+-
+-	_dst_pmd = mk_huge_pmd(&src_folio->page, dst_vma->vm_page_prot);
+-	/* Follow mremap() behavior and treat the entry dirty after the move */
+-	_dst_pmd = pmd_mkwrite(pmd_mkdirty(_dst_pmd), dst_vma);
+ 	set_pmd_at(mm, dst_addr, dst_pmd, _dst_pmd);
+ 
+ 	src_pgtable = pgtable_trans_huge_withdraw(mm, src_pmd);
+ 	pgtable_trans_huge_deposit(mm, dst_pmd, src_pgtable);
+ unlock_ptls:
+ 	double_pt_unlock(src_ptl, dst_ptl);
+-	anon_vma_unlock_write(src_anon_vma);
+-	put_anon_vma(src_anon_vma);
++	if (src_anon_vma) {
++		anon_vma_unlock_write(src_anon_vma);
++		put_anon_vma(src_anon_vma);
++	}
+ unlock_folio:
+ 	/* unblock rmap walks */
+-	folio_unlock(src_folio);
++	if (src_folio)
++		folio_unlock(src_folio);
+ 	mmu_notifier_invalidate_range_end(&range);
+-	folio_put(src_folio);
++	if (src_folio)
++		folio_put(src_folio);
+ 	return err;
+ }
+ #endif /* CONFIG_USERFAULTFD */
+--- a/mm/userfaultfd.c~userfaultfd-handle-zeropage-moves-by-uffdio_move
++++ a/mm/userfaultfd.c
+@@ -959,6 +959,31 @@ static int move_swap_pte(struct mm_struc
+ 	return 0;
  }
  
- /* possible outcome of isolate_migratepages */
++static int move_zeropage_pte(struct mm_struct *mm,
++			     struct vm_area_struct *dst_vma,
++			     struct vm_area_struct *src_vma,
++			     unsigned long dst_addr, unsigned long src_addr,
++			     pte_t *dst_pte, pte_t *src_pte,
++			     pte_t orig_dst_pte, pte_t orig_src_pte,
++			     spinlock_t *dst_ptl, spinlock_t *src_ptl)
++{
++	pte_t zero_pte;
++
++	double_pt_lock(dst_ptl, src_ptl);
++	if (!pte_same(ptep_get(src_pte), orig_src_pte) ||
++	    !pte_same(ptep_get(dst_pte), orig_dst_pte))
++		return -EAGAIN;
++
++	zero_pte = pte_mkspecial(pfn_pte(my_zero_pfn(dst_addr),
++					 dst_vma->vm_page_prot));
++	ptep_clear_flush(src_vma, src_addr, src_pte);
++	set_pte_at(mm, dst_addr, dst_pte, zero_pte);
++	double_pt_unlock(dst_ptl, src_ptl);
++
++	return 0;
++}
++
++
+ /*
+  * The mmap_lock for reading is held by the caller. Just move the page
+  * from src_pmd to dst_pmd if possible, and return true if succeeded
+@@ -1041,6 +1066,14 @@ retry:
+ 	}
+ 
+ 	if (pte_present(orig_src_pte)) {
++		if (is_zero_pfn(pte_pfn(orig_src_pte))) {
++			err = move_zeropage_pte(mm, dst_vma, src_vma,
++					       dst_addr, src_addr, dst_pte, src_pte,
++					       orig_dst_pte, orig_src_pte,
++					       dst_ptl, src_ptl);
++			goto out;
++		}
++
+ 		/*
+ 		 * Pin and lock both source folio and anon_vma. Since we are in
+ 		 * RCU read section, we can't block, so on contention have to
+@@ -1404,19 +1437,14 @@ ssize_t move_pages(struct userfaultfd_ct
+ 				err = -ENOENT;
+ 				break;
+ 			}
+-			/* Avoid moving zeropages for now */
+-			if (is_huge_zero_pmd(*src_pmd)) {
+-				spin_unlock(ptl);
+-				err = -EBUSY;
+-				break;
+-			}
+ 
+ 			/* Check if we can move the pmd without splitting it. */
+ 			if (move_splits_huge_pmd(dst_addr, src_addr, src_start + len) ||
+ 			    !pmd_none(dst_pmdval)) {
+ 				struct folio *folio = pfn_folio(pmd_pfn(*src_pmd));
+ 
+-				if (!folio || !PageAnonExclusive(&folio->page)) {
++				if (!folio || (!is_huge_zero_page(&folio->page) &&
++					       !PageAnonExclusive(&folio->page))) {
+ 					spin_unlock(ptl);
+ 					err = -EBUSY;
+ 					break;
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-mm-compaction-limit-the-suitable-target-page-order-to-be-less-than-cc-order.patch
+arch-arm-mm-fix-major-fault-accounting-when-retrying-under-per-vma-lock.patch
 
