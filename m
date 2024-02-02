@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19B1813F000
-	for <mm-commits@vger.kernel.org>; Fri,  2 Feb 2024 12:13:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8FC61426A
+	for <mm-commits@vger.kernel.org>; Fri,  2 Feb 2024 12:13:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706875990; cv=none; b=DENKFWkkHsCnYVu/+PoaxiK6Sp+CUggz1ZSH+ObugYk73+5Mof5c4Y6OLBc3/qieULhLWOLIGTGFgwiILZw88sm1SnJA6qm6cblsP7nPoYY8JX4HGtKj2n/6Wg4HRI21mFIAJ/52P6AqZW8zOgklYpxSm0ywge4MZ72p6b1/SWI=
+	t=1706875992; cv=none; b=UgO95ps+DN32CPqeKY977VkaSy1QKe2CHv7mW4If/d7BrLG5l2fvucTR5EAGCCNo5+Nt0DQyKYGFHvdM0pgRQZVBXXRMa9r0KXcXoll9kk3l95RH/9ug5mYtg35E7zdsxpLio6DSkd3f0O0MFSd1dSpfJvAoBUW38nAx4YQk3wA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706875990; c=relaxed/simple;
-	bh=FZ7PmJ/nE4al9Gf275B2N1V+EHo8V6S//WAoIqfITtw=;
-	h=Date:To:From:Subject:Message-Id; b=jKmvdzP07e1xkQeNoQ0BC23lzsRMT2ZXNLtu2iN+uauOKGeekh0n+D3J3N3jo6DmCK+elzBZmTDmzaeDIJGIRquaEsKa4Sac7QE1hHM/BGFfkC0LZTdE2fYi22NGUmoG6gTfHLnlbd/tr3QVH0vLBh70/1NEDz2VTvk1YSrJcxc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VICC2ER6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706875992; c=relaxed/simple;
+	bh=NDou/PwDjcBEutSGXacWQvZLxQ0fbha1gwLYTKl1uPA=;
+	h=Date:To:From:Subject:Message-Id; b=lS13XdRoE74mAi1OxHa0ccn8FVycFAaz5XYzA89rKzVTUCYgf8CIqiE5iiyZg2+b/k5rP0FuM98we2AH2C32Xtobt3uCSDT2n9DGMMvzmwc+2q7dUcy1goFI5qXc+ruSwt5qMcQ9FLx7N8qqvRcBoprjBVNByRxNOd6fwvmTN1w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lwgcSFK8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VICC2ER6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32A85C433F1;
-	Fri,  2 Feb 2024 12:13:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lwgcSFK8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBD53C433C7;
+	Fri,  2 Feb 2024 12:13:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706875989;
-	bh=FZ7PmJ/nE4al9Gf275B2N1V+EHo8V6S//WAoIqfITtw=;
+	s=korg; t=1706875992;
+	bh=NDou/PwDjcBEutSGXacWQvZLxQ0fbha1gwLYTKl1uPA=;
 	h=Date:To:From:Subject:From;
-	b=VICC2ER6mDUM+ByuT53hiG/OPYfhQ3YGWiddN85MSN5hYwuk2pgOmXxZCKEBH9AkN
-	 dmL/zAGWzGGDY55JSEwrDJWyq0r2/7UfM/6HzZnQ7FXrLsoiSonr/yEFyWwcdkucbI
-	 yt6fH1wUl/+IJUh8Ok4jeTmYSrO2ONA39L4W2u3w=
-Date: Fri, 02 Feb 2024 04:13:07 -0800
+	b=lwgcSFK82AfRnJ1JhsVYty45s7a8w7PMdzPNAitOTNP8ciggzX/tnSjKsq/HUoNX1
+	 YYdqialf0Otot5tp9UwGuQuvyL2kTvhuLXtuKgyxqjcVns8fU1yaERD23DuLEeT1Vg
+	 +tKKbtl8S4LMIDj0c0NcmzC69xrKwUSQunFYA4T8=
+Date: Fri, 02 Feb 2024 04:13:09 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-map_hugetlb-conform-test-to-tap-format-output.patch added to mm-unstable branch
-Message-Id: <20240202121309.32A85C433F1@smtp.kernel.org>
+Subject: + selftests-mm-map_fixed_noreplace-conform-test-to-tap-format-output.patch added to mm-unstable branch
+Message-Id: <20240202121311.DBD53C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: map_hugetlb: conform test to TAP format output
+     Subject: selftests/mm: map_fixed_noreplace: conform test to TAP format output
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-map_hugetlb-conform-test-to-tap-format-output.patch
+     selftests-mm-map_fixed_noreplace-conform-test-to-tap-format-output.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-map_hugetlb-conform-test-to-tap-format-output.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-map_fixed_noreplace-conform-test-to-tap-format-output.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,115 +59,246 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: map_hugetlb: conform test to TAP format output
-Date: Wed, 31 Jan 2024 19:05:12 +0500
+Subject: selftests/mm: map_fixed_noreplace: conform test to TAP format output
+Date: Wed, 31 Jan 2024 19:05:11 +0500
 
 Conform the layout, informational and status messages to TAP. No
 functional change is intended other than the layout of output messages.
+While at it, convert commenting style from // to /**/.
 
-Link: https://lkml.kernel.org/r/20240131140528.320252-2-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20240131140528.320252-1-usama.anjum@collabora.com
 Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/map_hugetlb.c |   42 ++++++++++-----------
- 1 file changed, 20 insertions(+), 22 deletions(-)
+ tools/testing/selftests/mm/map_fixed_noreplace.c |   96 ++++---------
+ 1 file changed, 31 insertions(+), 65 deletions(-)
 
---- a/tools/testing/selftests/mm/map_hugetlb.c~selftests-mm-map_hugetlb-conform-test-to-tap-format-output
-+++ a/tools/testing/selftests/mm/map_hugetlb.c
-@@ -16,6 +16,7 @@
- #include <sys/mman.h>
- #include <fcntl.h>
- #include "vm_util.h"
+--- a/tools/testing/selftests/mm/map_fixed_noreplace.c~selftests-mm-map_fixed_noreplace-conform-test-to-tap-format-output
++++ a/tools/testing/selftests/mm/map_fixed_noreplace.c
+@@ -12,6 +12,7 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <unistd.h>
 +#include "../kselftest.h"
  
- #define LENGTH (256UL*1024*1024)
- #define PROTECTION (PROT_READ | PROT_WRITE)
-@@ -31,7 +32,7 @@
- 
- static void check_bytes(char *addr)
+ static void dump_maps(void)
  {
--	printf("First hex is %x\n", *((unsigned int *)addr));
-+	ksft_print_msg("First hex is %x\n", *((unsigned int *)addr));
- }
+@@ -28,15 +29,12 @@ static unsigned long find_base_addr(unsi
  
- static void write_bytes(char *addr, size_t length)
-@@ -42,23 +43,21 @@ static void write_bytes(char *addr, size
- 		*(addr + i) = (char)i;
- }
- 
--static int read_bytes(char *addr, size_t length)
-+static void read_bytes(char *addr, size_t length)
- {
- 	unsigned long i;
- 
- 	check_bytes(addr);
- 	for (i = 0; i < length; i++)
--		if (*(addr + i) != (char)i) {
--			printf("Mismatch at %lu\n", i);
--			return 1;
--		}
--	return 0;
-+		if (*(addr + i) != (char)i)
-+			ksft_exit_fail_msg("Mismatch at %lu\n", i);
-+
-+	ksft_test_result_pass("Read correct data\n");
- }
- 
- int main(int argc, char **argv)
- {
- 	void *addr;
--	int ret;
- 	size_t hugepage_size;
- 	size_t length = LENGTH;
- 	int flags = FLAGS;
-@@ -69,6 +68,9 @@ int main(int argc, char **argv)
- 	if (hugepage_size > length)
- 		length = hugepage_size;
- 
-+	ksft_print_header();
-+	ksft_set_plan(1);
-+
- 	if (argc > 1)
- 		length = atol(argv[1]) << 20;
- 	if (argc > 2) {
-@@ -78,27 +80,23 @@ int main(int argc, char **argv)
- 	}
- 
- 	if (shift)
--		printf("%u kB hugepages\n", 1 << (shift - 10));
-+		ksft_print_msg("%u kB hugepages\n", 1 << (shift - 10));
- 	else
--		printf("Default size hugepages\n");
--	printf("Mapping %lu Mbytes\n", (unsigned long)length >> 20);
-+		ksft_print_msg("Default size hugepages\n");
-+	ksft_print_msg("Mapping %lu Mbytes\n", (unsigned long)length >> 20);
- 
- 	addr = mmap(ADDR, length, PROTECTION, flags, -1, 0);
+ 	flags = MAP_PRIVATE | MAP_ANONYMOUS;
+ 	addr = mmap(NULL, size, PROT_NONE, flags, -1, 0);
 -	if (addr == MAP_FAILED) {
--		perror("mmap");
--		exit(1);
+-		printf("Error: couldn't map the space we need for the test\n");
+-		return 0;
 -	}
 +	if (addr == MAP_FAILED)
-+		ksft_exit_fail_msg("mmap: %s\n", strerror(errno));
++		ksft_exit_fail_msg("Error: couldn't map the space we need for the test\n");
++
++	if (munmap(addr, size) != 0)
++		ksft_exit_fail_msg("Error: munmap failed\n");
  
--	printf("Returned address is %p\n", addr);
-+	ksft_print_msg("Returned address is %p\n", addr);
- 	check_bytes(addr);
- 	write_bytes(addr, length);
--	ret = read_bytes(addr, length);
-+	read_bytes(addr, length);
- 
- 	/* munmap() length of MAP_HUGETLB memory must be hugepage aligned */
--	if (munmap(addr, length)) {
--		perror("munmap");
--		exit(1);
+-	if (munmap(addr, size) != 0) {
+-		printf("Error: couldn't map the space we need for the test\n");
+-		return 0;
 -	}
-+	if (munmap(addr, length))
-+		ksft_exit_fail_msg("munmap: %s\n", strerror(errno));
+ 	return (unsigned long)addr;
+ }
  
--	return ret;
+@@ -46,51 +44,39 @@ int main(void)
+ 	unsigned long flags, addr, size, page_size;
+ 	char *p;
+ 
++	ksft_print_header();
++	ksft_set_plan(9);
++
+ 	page_size = sysconf(_SC_PAGE_SIZE);
+ 
+-	//let's find a base addr that is free before we start the tests
++	/* let's find a base addr that is free before we start the tests */
+ 	size = 5 * page_size;
+ 	base_addr = find_base_addr(size);
+-	if (!base_addr) {
+-		printf("Error: couldn't map the space we need for the test\n");
+-		return 1;
+-	}
+ 
+ 	flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE;
+ 
+-	// Check we can map all the areas we need below
+-	errno = 0;
++	/* Check we can map all the areas we need below */
+ 	addr = base_addr;
+ 	size = 5 * page_size;
+ 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
+-
+-	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
+-
+ 	if (p == MAP_FAILED) {
+ 		dump_maps();
+-		printf("Error: couldn't map the space we need for the test\n");
+-		return 1;
++		ksft_exit_fail_msg("Error: couldn't map the space we need for the test\n");
+ 	}
+-
+-	errno = 0;
+ 	if (munmap((void *)addr, 5 * page_size) != 0) {
+ 		dump_maps();
+-		printf("Error: munmap failed!?\n");
+-		return 1;
++		ksft_exit_fail_msg("Error: munmap failed!?\n");
+ 	}
+-	printf("unmap() successful\n");
++	ksft_test_result_pass("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
+ 
+-	errno = 0;
+ 	addr = base_addr + page_size;
+ 	size = 3 * page_size;
+ 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
+-	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
+-
+ 	if (p == MAP_FAILED) {
+ 		dump_maps();
+-		printf("Error: first mmap() failed unexpectedly\n");
+-		return 1;
++		ksft_exit_fail_msg("Error: first mmap() failed unexpectedly\n");
+ 	}
++	ksft_test_result_pass("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
+ 
+ 	/*
+ 	 * Exact same mapping again:
+@@ -100,17 +86,14 @@ int main(void)
+ 	 *     +3 | mapped | new
+ 	 *     +4 |  free  | new
+ 	 */
+-	errno = 0;
+ 	addr = base_addr;
+ 	size = 5 * page_size;
+ 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
+-	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
+-
+ 	if (p != MAP_FAILED) {
+ 		dump_maps();
+-		printf("Error:1: mmap() succeeded when it shouldn't have\n");
+-		return 1;
++		ksft_exit_fail_msg("Error:1: mmap() succeeded when it shouldn't have\n");
+ 	}
++	ksft_test_result_pass("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
+ 
+ 	/*
+ 	 * Second mapping contained within first:
+@@ -121,17 +104,14 @@ int main(void)
+ 	 *     +3 | mapped |
+ 	 *     +4 |  free  |
+ 	 */
+-	errno = 0;
+ 	addr = base_addr + (2 * page_size);
+ 	size = page_size;
+ 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
+-	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
+-
+ 	if (p != MAP_FAILED) {
+ 		dump_maps();
+-		printf("Error:2: mmap() succeeded when it shouldn't have\n");
+-		return 1;
++		ksft_exit_fail_msg("Error:2: mmap() succeeded when it shouldn't have\n");
+ 	}
++	ksft_test_result_pass("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
+ 
+ 	/*
+ 	 * Overlap end of existing mapping:
+@@ -141,17 +121,14 @@ int main(void)
+ 	 *     +3 | mapped | new
+ 	 *     +4 |  free  | new
+ 	 */
+-	errno = 0;
+ 	addr = base_addr + (3 * page_size);
+ 	size = 2 * page_size;
+ 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
+-	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
+-
+ 	if (p != MAP_FAILED) {
+ 		dump_maps();
+-		printf("Error:3: mmap() succeeded when it shouldn't have\n");
+-		return 1;
++		ksft_exit_fail_msg("Error:3: mmap() succeeded when it shouldn't have\n");
+ 	}
++	ksft_test_result_pass("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
+ 
+ 	/*
+ 	 * Overlap start of existing mapping:
+@@ -161,17 +138,14 @@ int main(void)
+ 	 *     +3 | mapped |
+ 	 *     +4 |  free  |
+ 	 */
+-	errno = 0;
+ 	addr = base_addr;
+ 	size = 2 * page_size;
+ 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
+-	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
+-
+ 	if (p != MAP_FAILED) {
+ 		dump_maps();
+-		printf("Error:4: mmap() succeeded when it shouldn't have\n");
+-		return 1;
++		ksft_exit_fail_msg("Error:4: mmap() succeeded when it shouldn't have\n");
+ 	}
++	ksft_test_result_pass("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
+ 
+ 	/*
+ 	 * Adjacent to start of existing mapping:
+@@ -181,17 +155,14 @@ int main(void)
+ 	 *     +3 | mapped |
+ 	 *     +4 |  free  |
+ 	 */
+-	errno = 0;
+ 	addr = base_addr;
+ 	size = page_size;
+ 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
+-	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
+-
+ 	if (p == MAP_FAILED) {
+ 		dump_maps();
+-		printf("Error:5: mmap() failed when it shouldn't have\n");
+-		return 1;
++		ksft_exit_fail_msg("Error:5: mmap() failed when it shouldn't have\n");
+ 	}
++	ksft_test_result_pass("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
+ 
+ 	/*
+ 	 * Adjacent to end of existing mapping:
+@@ -201,27 +172,22 @@ int main(void)
+ 	 *     +3 | mapped |
+ 	 *     +4 |  free  |  new
+ 	 */
+-	errno = 0;
+ 	addr = base_addr + (4 * page_size);
+ 	size = page_size;
+ 	p = mmap((void *)addr, size, PROT_NONE, flags, -1, 0);
+-	printf("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
+-
+ 	if (p == MAP_FAILED) {
+ 		dump_maps();
+-		printf("Error:6: mmap() failed when it shouldn't have\n");
+-		return 1;
++		ksft_exit_fail_msg("Error:6: mmap() failed when it shouldn't have\n");
+ 	}
++	ksft_test_result_pass("mmap() @ 0x%lx-0x%lx p=%p result=%m\n", addr, addr + size, p);
+ 
+ 	addr = base_addr;
+ 	size = 5 * page_size;
+ 	if (munmap((void *)addr, size) != 0) {
+ 		dump_maps();
+-		printf("Error: munmap failed!?\n");
+-		return 1;
++		ksft_exit_fail_msg("Error: munmap failed!?\n");
+ 	}
+-	printf("unmap() successful\n");
++	ksft_test_result_pass("Base Address unmap() successful\n");
+ 
+-	printf("OK\n");
+-	return 0;
 +	ksft_finished();
  }
 _
