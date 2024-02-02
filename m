@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D830613F019
-	for <mm-commits@vger.kernel.org>; Fri,  2 Feb 2024 12:14:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 920E914076D
+	for <mm-commits@vger.kernel.org>; Fri,  2 Feb 2024 12:14:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706876044; cv=none; b=ZrHJlkK0bhDVDE+qJa3kWV20qw/OPzoTQfDuCTcEyWUeZUHiJk+kdt7qLBvadPnDCtGgPak7efOZREEoHrKERaFyawRBWoLXY/JievY1+XGcErEbZyOtY9WRutMgx+pLu0bRaGfH1fiq9UwDA1sXup+QA512vg49CFkY0OXidEQ=
+	t=1706876047; cv=none; b=lZaBI6dqqyKVij3BHkqL0UEX2QzthgKWAQuYNjL9yRIOjVZz3QHwX7QNkafiJ7brw6+QgEuVf150jliav8eQzCuXxJyMwLKjfHArZRfhqmbE8V1OD1CE5tkwRiAHtGBpe0xTp5yr2eB9MKSC3I6vP/D6NWQgAQUDs4JDc09rFDA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706876044; c=relaxed/simple;
-	bh=tuYx506OYLTGsw8huUCoBTiFN27umWZuFUrVqFUVEOE=;
-	h=Date:To:From:Subject:Message-Id; b=UFxVhT3qqbJoO0DPzWyVfFPL+wTXBATrkEhqRhyY5Ni964iZufKwRPhyNs7GAe+4ehxdvxTmsTgUEPFUVdILubWj6Ak98mpLKGYxcy9USfqWT0xQtUBPrqt3J334fglYgPQlBEKmSGOjv3napJwbQzWySrokR/fMY0hJ9GGv3PE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yJo0xTzQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706876047; c=relaxed/simple;
+	bh=cv3OhHX/dibBIdi6Nlh3RFZBcPT+6J/fI5LUJnEwAr0=;
+	h=Date:To:From:Subject:Message-Id; b=GcoZok4bElQ3Le1cMj3CV2Me7BBT3iVkYFnydaXNzW0lRTcTs0O6lOkZgimqfQr5xrj7zPscR3RZtf0KbHHFaU15qp6Wuk3lznrDv/HRoFqiGTKCia3dP+yZzZMfCJzVDwW9Am3ysdVgLecn6UzTgg1dJBFbgZMCXiq1c56R28Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mUEsWx/w; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yJo0xTzQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57D3EC433F1;
-	Fri,  2 Feb 2024 12:14:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mUEsWx/w"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 046A8C433F1;
+	Fri,  2 Feb 2024 12:14:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706876044;
-	bh=tuYx506OYLTGsw8huUCoBTiFN27umWZuFUrVqFUVEOE=;
+	s=korg; t=1706876047;
+	bh=cv3OhHX/dibBIdi6Nlh3RFZBcPT+6J/fI5LUJnEwAr0=;
 	h=Date:To:From:Subject:From;
-	b=yJo0xTzQGJMhDaGdWwxnJcz8nD1fM5KmFgCisrZ+y4YbZJA4xaS905DtNVQ79Qhnj
-	 4X+3X0JcxoigeovTGVNMTxLmewQUVJiJqDHQ6kdH3kxPB9CVqG86Hy8iwBA9gJhclB
-	 bAqHfKbW/6AGrrNz4SQHQWYhi10EurfRmM3azTOM=
-Date: Fri, 02 Feb 2024 04:14:02 -0800
+	b=mUEsWx/wDY8QU9ymS8V+iklVJ+6sWQditYja9a3SbKJAqa+LGXQiMnGc2korZvkP8
+	 eNXpNXKtEtlxjKtgDBmiGGFLOeKQmz3KD3FR32d0pWu8o9t8rHiQHFhmISljHDxa+C
+	 7D8X0eEENiwyM6AJzvgZcKez5SBDU/y0yDxolYYY=
+Date: Fri, 02 Feb 2024 04:14:05 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,svens@linux.ibm.com,ryan.roberts@arm.com,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,mpe@ellerman.id.au,linux@armlinux.org.uk,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,dinguyen@kernel.org,davem@davemloft.net,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,borntraeger@linux.ibm.com,aou@eecs.berkeley.edu,aneesh.kumar@kernel.org,alexghiti@rivosinc.com,agordeev@linux.ibm.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-pgtable-define-pfn_pte_shift.patch added to mm-unstable branch
-Message-Id: <20240202121404.57D3EC433F1@smtp.kernel.org>
+Subject: + arm-mm-use-pte_next_pfn-in-set_ptes.patch added to mm-unstable branch
+Message-Id: <20240202121407.046A8C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: s390/pgtable: define PFN_PTE_SHIFT
+     Subject: arm/mm: use pte_next_pfn() in set_ptes()
 has been added to the -mm mm-unstable branch.  Its filename is
-     s390-pgtable-define-pfn_pte_shift.patch
+     arm-mm-use-pte_next_pfn-in-set_ptes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-pgtable-define-pfn_pte_shift.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm-mm-use-pte_next_pfn-in-set_ptes.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,12 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: s390/pgtable: define PFN_PTE_SHIFT
-Date: Mon, 29 Jan 2024 13:46:40 +0100
+Subject: arm/mm: use pte_next_pfn() in set_ptes()
+Date: Mon, 29 Jan 2024 13:46:43 +0100
 
-We want to make use of pte_next_pfn() outside of set_ptes().  Let's simply
-define PFN_PTE_SHIFT, required by pte_next_pfn().
+Let's use our handy helper now that it's available on all archs.
 
-Link: https://lkml.kernel.org/r/20240129124649.189745-7-david@redhat.com
+Link: https://lkml.kernel.org/r/20240129124649.189745-10-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Tested-by: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
@@ -92,20 +91,19 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/pgtable.h |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/mm/mmu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/s390/include/asm/pgtable.h~s390-pgtable-define-pfn_pte_shift
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -1316,6 +1316,8 @@ pgprot_t pgprot_writecombine(pgprot_t pr
- #define pgprot_writethrough	pgprot_writethrough
- pgprot_t pgprot_writethrough(pgprot_t prot);
- 
-+#define PFN_PTE_SHIFT		PAGE_SHIFT
-+
- /*
-  * Set multiple PTEs to consecutive pages with a single call.  All PTEs
-  * are within the same folio, PMD and VMA.
+--- a/arch/arm/mm/mmu.c~arm-mm-use-pte_next_pfn-in-set_ptes
++++ a/arch/arm/mm/mmu.c
+@@ -1814,6 +1814,6 @@ void set_ptes(struct mm_struct *mm, unsi
+ 		if (--nr == 0)
+ 			break;
+ 		ptep++;
+-		pte_val(pteval) += PAGE_SIZE;
++		pteval = pte_next_pfn(pteval);
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from david@redhat.com are
