@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AE6B1426A
-	for <mm-commits@vger.kernel.org>; Fri,  2 Feb 2024 12:13:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF281C123
+	for <mm-commits@vger.kernel.org>; Fri,  2 Feb 2024 12:13:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706876006; cv=none; b=QaJnDOFKPTavqihn30BfLC7NU2gq5RExUmKQx48dM/12jlwB0bYFc+hh+bLJooRaXdDGNBsjlPR+1I2l/vKHO0/CUBScjTOxVSJ+d3ERhx4Pp+X2zqYiXzeKg0GUdsR9EiBnW/23MvULM1sneJQoShUoDiGZGTcnFy3H/qIqNtw=
+	t=1706876008; cv=none; b=V1SjjBLUOwP7r11SwPPZpvz2IPYUKW67wWYx8zAWr5Jo/kgW7C+I/tzqQLpHFRZhWzVzwTymsX3IRD17fBtAXOXJT25fYEecM6lxXlZqYxmeFN3DzijqrfaJVZEfbQTQ7liC8s9GFlOkysKEMzWpyEUqZWTYDnBHFQ81FH2Nt1w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706876006; c=relaxed/simple;
-	bh=HjHYLVitSrstNaS/bqMl+dl5znYaEYfV0/jvMvBxVK4=;
-	h=Date:To:From:Subject:Message-Id; b=n+PX2n7pNqUB7QZLx8mZqLc0VMRUapupZLy9A8A/RqBI2MvPscfK748OlTRwC2UPhrkQWQb9keEneccqFpA9zCKsV0MHTEa/ItDf+j7z40ruGhG+nlWN24Uc+bq3M6uHd9kr4kuhMGcxb3226MY6ZcFy14/cc6m8g/F1a5G7jIY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=onKvI9tt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706876008; c=relaxed/simple;
+	bh=ZtTH8qfHXI+pv1/+ZaAB9Evw0Py6/GmfJGJC9OmHl68=;
+	h=Date:To:From:Subject:Message-Id; b=g2V+PcKN8cvCbmcCbV8nUa+0WCHEBhPxYtwQlRq3P/9nPzgLscpuPQQGLUD0iXDz1fLUWfKGoDhHgChAHo0EvqpH08tGhOLziW795E+3UCgkllSprliRhKx1ccDtcyJrhqvkYU4IOyKVNnBmJJfAIcQOua6BiTYe5FuLbYjUuYw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KRHK3ue0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="onKvI9tt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86BDFC433F1;
-	Fri,  2 Feb 2024 12:13:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KRHK3ue0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 355E0C433C7;
+	Fri,  2 Feb 2024 12:13:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706876005;
-	bh=HjHYLVitSrstNaS/bqMl+dl5znYaEYfV0/jvMvBxVK4=;
+	s=korg; t=1706876008;
+	bh=ZtTH8qfHXI+pv1/+ZaAB9Evw0Py6/GmfJGJC9OmHl68=;
 	h=Date:To:From:Subject:From;
-	b=onKvI9ttXWAMeXPxlK/r1QdcbRq5bHKwC1wkdKygxick5jXcBqWQXriRtsn+/9XZ/
-	 cIL5f+YHL5zOlsb9dLy5azHbsQGWnFcxKPd+rjlybjKlL/YvyrWd/+bgRZnyl1phrI
-	 D42Msl36NvHiI1Jtt8406gb7CPW9SPsSK3bS1PJo=
-Date: Fri, 02 Feb 2024 04:13:23 -0800
+	b=KRHK3ue0VvvnKXW4+3gsVllwqWCTa1xKM/aNXmgI+NWScywmMTQk/SuUAAcSUD24a
+	 VyOb7XL02FM27bm7fmjPI+cWILD1t0Gwk/cVf4Gi47TZ5M+JQA1vDhcilMRwrwDgaS
+	 9L2UqR81e9rfq7eJtwnV3LmgXT1qFWg4/blM35k8=
+Date: Fri, 02 Feb 2024 04:13:26 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-split_huge_page_test-conform-test-to-tap-format-output.patch added to mm-unstable branch
-Message-Id: <20240202121325.86BDFC433F1@smtp.kernel.org>
+Subject: + selftests-mm-mremap_dontunmap-conform-test-to-tap-format-output.patch added to mm-unstable branch
+Message-Id: <20240202121328.355E0C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: split_huge_page_test: conform test to TAP format output
+     Subject: selftests/mm: mremap_dontunmap: conform test to TAP format output
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-split_huge_page_test-conform-test-to-tap-format-output.patch
+     selftests-mm-mremap_dontunmap-conform-test-to-tap-format-output.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-split_huge_page_test-conform-test-to-tap-format-output.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-mremap_dontunmap-conform-test-to-tap-format-output.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,331 +59,110 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: split_huge_page_test: conform test to TAP format output
-Date: Wed, 31 Jan 2024 19:05:18 +0500
+Subject: selftests/mm: mremap_dontunmap: conform test to TAP format output
+Date: Wed, 31 Jan 2024 19:05:17 +0500
 
 Conform the layout, informational and status messages to TAP. No
 functional change is intended other than the layout of output messages.
 
-Link: https://lkml.kernel.org/r/20240131140528.320252-8-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20240131140528.320252-7-usama.anjum@collabora.com
 Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/split_huge_page_test.c |  161 +++++-------
- 1 file changed, 69 insertions(+), 92 deletions(-)
+ tools/testing/selftests/mm/mremap_dontunmap.c |   32 ++++++++++------
+ 1 file changed, 20 insertions(+), 12 deletions(-)
 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-split_huge_page_test-conform-test-to-tap-format-output
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -17,6 +17,7 @@
- #include <malloc.h>
- #include <stdbool.h>
- #include "vm_util.h"
-+#include "../kselftest.h"
- 
- uint64_t pagesize;
- unsigned int pageshift;
-@@ -50,21 +51,19 @@ int is_backed_by_thp(char *vaddr, int pa
- 	return 0;
+--- a/tools/testing/selftests/mm/mremap_dontunmap.c~selftests-mm-mremap_dontunmap-conform-test-to-tap-format-output
++++ a/tools/testing/selftests/mm/mremap_dontunmap.c
+@@ -27,14 +27,14 @@ static void dump_maps(void)
+ 	system(cmd);
  }
  
--static int write_file(const char *path, const char *buf, size_t buflen)
-+static void write_file(const char *path, const char *buf, size_t buflen)
- {
- 	int fd;
- 	ssize_t numwritten;
+-#define BUG_ON(condition, description)					      \
+-	do {								      \
+-		if (condition) {					      \
+-			fprintf(stderr, "[FAIL]\t%s():%d\t%s:%s\n", __func__, \
+-				__LINE__, (description), strerror(errno));    \
+-			dump_maps();					  \
+-			exit(1);					      \
+-		} 							      \
++#define BUG_ON(condition, description)						\
++	do {									\
++		if (condition) {						\
++			dump_maps();						\
++			ksft_exit_fail_msg("[FAIL]\t%s:%d\t%s:%s\n",		\
++					   __func__, __LINE__, (description),	\
++					   strerror(errno));			\
++		}								\
+ 	} while (0)
  
- 	fd = open(path, O_WRONLY);
- 	if (fd == -1)
--		return 0;
-+		ksft_exit_fail_msg("%s open failed: %s\n", path, strerror(errno));
- 
- 	numwritten = write(fd, buf, buflen - 1);
- 	close(fd);
- 	if (numwritten < 1)
--		return 0;
--
--	return (unsigned int) numwritten;
-+		ksft_exit_fail_msg("Write failed\n");
+ // Try a simple operation for to "test" for kernel support this prevents
+@@ -122,6 +122,7 @@ static void mremap_dontunmap_simple()
+ 	       "unable to unmap destination mapping");
+ 	BUG_ON(munmap(source_mapping, num_pages * page_size) == -1,
+ 	       "unable to unmap source mapping");
++	ksft_test_result_pass("%s\n", __func__);
  }
  
- static void write_debugfs(const char *fmt, ...)
-@@ -77,15 +76,10 @@ static void write_debugfs(const char *fm
- 	ret = vsnprintf(input, INPUT_MAX, fmt, argp);
- 	va_end(argp);
- 
--	if (ret >= INPUT_MAX) {
--		printf("%s: Debugfs input is too long\n", __func__);
--		exit(EXIT_FAILURE);
--	}
-+	if (ret >= INPUT_MAX)
-+		ksft_exit_fail_msg("%s: Debugfs input is too long\n", __func__);
- 
--	if (!write_file(SPLIT_DEBUGFS, input, ret + 1)) {
--		perror(SPLIT_DEBUGFS);
--		exit(EXIT_FAILURE);
--	}
-+	write_file(SPLIT_DEBUGFS, input, ret + 1);
+ // This test validates that MREMAP_DONTUNMAP on a shared mapping works as expected.
+@@ -173,6 +174,7 @@ static void mremap_dontunmap_simple_shme
+ 	       "unable to unmap destination mapping");
+ 	BUG_ON(munmap(source_mapping, num_pages * page_size) == -1,
+ 	       "unable to unmap source mapping");
++	ksft_test_result_pass("%s\n", __func__);
  }
  
- void split_pmd_thp(void)
-@@ -95,39 +89,30 @@ void split_pmd_thp(void)
- 	size_t i;
- 
- 	one_page = memalign(pmd_pagesize, len);
--
--	if (!one_page) {
--		printf("Fail to allocate memory\n");
--		exit(EXIT_FAILURE);
--	}
-+	if (!one_page)
-+		ksft_exit_fail_msg("Fail to allocate memory: %s\n", strerror(errno));
- 
- 	madvise(one_page, len, MADV_HUGEPAGE);
- 
- 	for (i = 0; i < len; i++)
- 		one_page[i] = (char)i;
- 
--	if (!check_huge_anon(one_page, 4, pmd_pagesize)) {
--		printf("No THP is allocated\n");
--		exit(EXIT_FAILURE);
--	}
-+	if (!check_huge_anon(one_page, 4, pmd_pagesize))
-+		ksft_exit_fail_msg("No THP is allocated\n");
- 
- 	/* split all THPs */
- 	write_debugfs(PID_FMT, getpid(), (uint64_t)one_page,
- 		(uint64_t)one_page + len);
- 
- 	for (i = 0; i < len; i++)
--		if (one_page[i] != (char)i) {
--			printf("%ld byte corrupted\n", i);
--			exit(EXIT_FAILURE);
--		}
-+		if (one_page[i] != (char)i)
-+			ksft_exit_fail_msg("%ld byte corrupted\n", i);
- 
- 
--	if (!check_huge_anon(one_page, 0, pmd_pagesize)) {
--		printf("Still AnonHugePages not split\n");
--		exit(EXIT_FAILURE);
--	}
-+	if (!check_huge_anon(one_page, 0, pmd_pagesize))
-+		ksft_exit_fail_msg("Still AnonHugePages not split\n");
- 
--	printf("Split huge pages successful\n");
-+	ksft_test_result_pass("Split huge pages successful\n");
- 	free(one_page);
+ // This test validates MREMAP_DONTUNMAP will move page tables to a specific
+@@ -219,6 +221,7 @@ static void mremap_dontunmap_simple_fixe
+ 	       "unable to unmap destination mapping");
+ 	BUG_ON(munmap(source_mapping, num_pages * page_size) == -1,
+ 	       "unable to unmap source mapping");
++	ksft_test_result_pass("%s\n", __func__);
  }
  
-@@ -143,36 +128,29 @@ void split_pte_mapped_thp(void)
- 	int pagemap_fd;
- 	int kpageflags_fd;
- 
--	if (snprintf(pagemap_proc, 255, pagemap_template, getpid()) < 0) {
--		perror("get pagemap proc error");
--		exit(EXIT_FAILURE);
--	}
--	pagemap_fd = open(pagemap_proc, O_RDONLY);
-+	if (snprintf(pagemap_proc, 255, pagemap_template, getpid()) < 0)
-+		ksft_exit_fail_msg("get pagemap proc error: %s\n", strerror(errno));
- 
--	if (pagemap_fd == -1) {
--		perror("read pagemap:");
--		exit(EXIT_FAILURE);
--	}
-+	pagemap_fd = open(pagemap_proc, O_RDONLY);
-+	if (pagemap_fd == -1)
-+		ksft_exit_fail_msg("read pagemap: %s\n", strerror(errno));
- 
- 	kpageflags_fd = open(kpageflags_proc, O_RDONLY);
--
--	if (kpageflags_fd == -1) {
--		perror("read kpageflags:");
--		exit(EXIT_FAILURE);
--	}
-+	if (kpageflags_fd == -1)
-+		ksft_exit_fail_msg("read kpageflags: %s\n", strerror(errno));
- 
- 	one_page = mmap((void *)(1UL << 30), len, PROT_READ | PROT_WRITE,
- 			MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-+	if (one_page == MAP_FAILED)
-+		ksft_exit_fail_msg("Fail to allocate memory: %s\n", strerror(errno));
- 
- 	madvise(one_page, len, MADV_HUGEPAGE);
- 
- 	for (i = 0; i < len; i++)
- 		one_page[i] = (char)i;
- 
--	if (!check_huge_anon(one_page, 4, pmd_pagesize)) {
--		printf("No THP is allocated\n");
--		exit(EXIT_FAILURE);
--	}
-+	if (!check_huge_anon(one_page, 4, pmd_pagesize))
-+		ksft_exit_fail_msg("No THP is allocated\n");
- 
- 	/* remap the first pagesize of first THP */
- 	pte_mapped = mremap(one_page, pagesize, pagesize, MREMAP_MAYMOVE);
-@@ -183,10 +161,8 @@ void split_pte_mapped_thp(void)
- 				     pagesize, pagesize,
- 				     MREMAP_MAYMOVE|MREMAP_FIXED,
- 				     pte_mapped + pagesize * i);
--		if (pte_mapped2 == (char *)-1) {
--			perror("mremap failed");
--			exit(EXIT_FAILURE);
--		}
-+		if (pte_mapped2 == MAP_FAILED)
-+			ksft_exit_fail_msg("mremap failed: %s\n", strerror(errno));
- 	}
- 
- 	/* smap does not show THPs after mremap, use kpageflags instead */
-@@ -196,10 +172,8 @@ void split_pte_mapped_thp(void)
- 		    is_backed_by_thp(&pte_mapped[i], pagemap_fd, kpageflags_fd))
- 			thp_size++;
- 
--	if (thp_size != 4) {
--		printf("Some THPs are missing during mremap\n");
--		exit(EXIT_FAILURE);
--	}
-+	if (thp_size != 4)
-+		ksft_exit_fail_msg("Some THPs are missing during mremap\n");
- 
- 	/* split all remapped THPs */
- 	write_debugfs(PID_FMT, getpid(), (uint64_t)pte_mapped,
-@@ -208,21 +182,18 @@ void split_pte_mapped_thp(void)
- 	/* smap does not show THPs after mremap, use kpageflags instead */
- 	thp_size = 0;
- 	for (i = 0; i < pagesize * 4; i++) {
--		if (pte_mapped[i] != (char)i) {
--			printf("%ld byte corrupted\n", i);
--			exit(EXIT_FAILURE);
--		}
-+		if (pte_mapped[i] != (char)i)
-+			ksft_exit_fail_msg("%ld byte corrupted\n", i);
-+
- 		if (i % pagesize == 0 &&
- 		    is_backed_by_thp(&pte_mapped[i], pagemap_fd, kpageflags_fd))
- 			thp_size++;
- 	}
- 
--	if (thp_size) {
--		printf("Still %ld THPs not split\n", thp_size);
--		exit(EXIT_FAILURE);
--	}
-+	if (thp_size)
-+		ksft_exit_fail_msg("Still %ld THPs not split\n", thp_size);
- 
--	printf("Split PTE-mapped huge pages successful\n");
-+	ksft_test_result_pass("Split PTE-mapped huge pages successful\n");
- 	munmap(one_page, len);
- 	close(pagemap_fd);
- 	close(kpageflags_fd);
-@@ -238,24 +209,21 @@ void split_file_backed_thp(void)
- 	char testfile[INPUT_MAX];
- 	uint64_t pgoff_start = 0, pgoff_end = 1024;
- 
--	printf("Please enable pr_debug in split_huge_pages_in_file() if you need more info.\n");
-+	ksft_print_msg("Please enable pr_debug in split_huge_pages_in_file() for more info.\n");
- 
- 	status = mount("tmpfs", tmpfs_loc, "tmpfs", 0, "huge=always,size=4m");
- 
--	if (status) {
--		printf("Unable to create a tmpfs for testing\n");
--		exit(EXIT_FAILURE);
--	}
-+	if (status)
-+		ksft_exit_fail_msg("Unable to create a tmpfs for testing\n");
- 
- 	status = snprintf(testfile, INPUT_MAX, "%s/thp_file", tmpfs_loc);
- 	if (status >= INPUT_MAX) {
--		printf("Fail to create file-backed THP split testing file\n");
--		goto cleanup;
-+		ksft_exit_fail_msg("Fail to create file-backed THP split testing file\n");
- 	}
- 
- 	fd = open(testfile, O_CREAT|O_WRONLY);
- 	if (fd == -1) {
--		perror("Cannot open testing file\n");
-+		ksft_perror("Cannot open testing file");
- 		goto cleanup;
- 	}
- 
-@@ -264,7 +232,7 @@ void split_file_backed_thp(void)
- 	close(fd);
- 
- 	if (num_written < 1) {
--		printf("Fail to write data to testing file\n");
-+		ksft_perror("Fail to write data to testing file");
- 		goto cleanup;
- 	}
- 
-@@ -272,42 +240,51 @@ void split_file_backed_thp(void)
- 	write_debugfs(PATH_FMT, testfile, pgoff_start, pgoff_end);
- 
- 	status = unlink(testfile);
--	if (status)
--		perror("Cannot remove testing file\n");
-+	if (status) {
-+		ksft_perror("Cannot remove testing file");
-+		goto cleanup;
-+	}
- 
--cleanup:
- 	status = umount(tmpfs_loc);
- 	if (status) {
--		printf("Unable to umount %s\n", tmpfs_loc);
--		exit(EXIT_FAILURE);
-+		rmdir(tmpfs_loc);
-+		ksft_exit_fail_msg("Unable to umount %s\n", tmpfs_loc);
- 	}
-+
- 	status = rmdir(tmpfs_loc);
--	if (status) {
--		perror("cannot remove tmp dir");
--		exit(EXIT_FAILURE);
--	}
-+	if (status)
-+		ksft_exit_fail_msg("cannot remove tmp dir: %s\n", strerror(errno));
- 
--	printf("file-backed THP split test done, please check dmesg for more information\n");
-+	ksft_print_msg("Please check dmesg for more information\n");
-+	ksft_test_result_pass("File-backed THP split test done\n");
-+	return;
-+
-+cleanup:
-+	umount(tmpfs_loc);
-+	rmdir(tmpfs_loc);
-+	ksft_exit_fail_msg("Error occurred\n");
+ // This test validates that we can MREMAP_DONTUNMAP for a portion of an
+@@ -269,6 +272,7 @@ static void mremap_dontunmap_partial_map
+ 	       "unable to unmap destination mapping");
+ 	BUG_ON(munmap(source_mapping, num_pages * page_size) == -1,
+ 	       "unable to unmap source mapping");
++	ksft_test_result_pass("%s\n", __func__);
  }
  
- int main(int argc, char **argv)
+ // This test validates that we can remap over only a portion of a mapping.
+@@ -328,19 +332,24 @@ static void mremap_dontunmap_partial_map
+ 	       "unable to unmap destination mapping");
+ 	BUG_ON(munmap(source_mapping, 5 * page_size) == -1,
+ 	       "unable to unmap source mapping");
++	ksft_test_result_pass("%s\n", __func__);
+ }
+ 
+ int main(void)
  {
 +	ksft_print_header();
 +
- 	if (geteuid() != 0) {
--		printf("Please run the benchmark as root\n");
--		exit(EXIT_FAILURE);
-+		ksft_print_msg("Please run the benchmark as root\n");
+ 	page_size = sysconf(_SC_PAGE_SIZE);
+ 
+ 	// test for kernel support for MREMAP_DONTUNMAP skipping the test if
+ 	// not.
+ 	if (kernel_support_for_mremap_dontunmap() != 0) {
+-		printf("No kernel support for MREMAP_DONTUNMAP\n");
+-		return KSFT_SKIP;
++		ksft_print_msg("No kernel support for MREMAP_DONTUNMAP\n");
 +		ksft_finished();
  	}
  
-+	ksft_set_plan(3);
++	ksft_set_plan(5);
 +
- 	pagesize = getpagesize();
- 	pageshift = ffs(pagesize) - 1;
- 	pmd_pagesize = read_pmd_pagesize();
--	if (!pmd_pagesize) {
--		printf("Reading PMD pagesize failed\n");
--		exit(EXIT_FAILURE);
--	}
-+	if (!pmd_pagesize)
-+		ksft_exit_fail_msg("Reading PMD pagesize failed\n");
+ 	// Keep a page sized buffer around for when we need it.
+ 	page_buffer =
+ 	    mmap(NULL, page_size, PROT_READ | PROT_WRITE,
+@@ -356,6 +365,5 @@ int main(void)
+ 	BUG_ON(munmap(page_buffer, page_size) == -1,
+ 	       "unable to unmap page buffer");
  
- 	split_pmd_thp();
- 	split_pte_mapped_thp();
- 	split_file_backed_thp();
- 
+-	printf("OK\n");
 -	return 0;
 +	ksft_finished();
  }
