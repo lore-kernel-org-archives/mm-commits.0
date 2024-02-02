@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DFC214198B
-	for <mm-commits@vger.kernel.org>; Fri,  2 Feb 2024 12:13:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BDB6C123
+	for <mm-commits@vger.kernel.org>; Fri,  2 Feb 2024 12:13:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706876017; cv=none; b=egB9z3bHV1I32DDNZwyxZe0tApq5AXEFskevOPt/LOVv1YIePzlVQ0AXTMgJQoGIGdIwKUP+7D3wUlH1i4XNjuVa2kjL7wd/Nei9QJb0awPanRdyeqb4YTAU1OkH+QP3uyd6R+vyFa0X+0ztmXfxnO7h4NwLL45iR1IUq48xjd4=
+	t=1706876020; cv=none; b=K50xWJLWvqScrkxmFR8o9ou22L/pSAAvtLD32b/YT2ziJqm6EIFyZ8CqIW/8UYHcggTi0y8Z1XsLGETCsWeOBb+Z5E/Voy7ZyErfx1ilGrAZLBvPQXv8nHHq4u6ocgo2yTpDLnyrgwM4mXkvw5TPKosUGYHGbIGwI5PODvZEgt8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706876017; c=relaxed/simple;
-	bh=UwaC9uWWTgiR+5BNyITOEUvfA0FiAoQOMI3cYNyj1LI=;
-	h=Date:To:From:Subject:Message-Id; b=IRjZLuj9NXkup3TcnC07IVYWzz9F8oJNJd/+HWTGS2SX4mSNXWguR1+7z7qlb8AARzx5aCgwPkP4UoYc6oPF4pJXNxVOczx8MNh4Bu181i07OcKfJsqSrcAKvPVvJwqIuC8e2+PPGzRozRw4LqC/Yzcij4rjWGNi0fanuKJ324U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vUo641U0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706876020; c=relaxed/simple;
+	bh=HaTL5s6wlUgl/AlHi9JEb8PrgBGnl2SnFXGPW7SYzpQ=;
+	h=Date:To:From:Subject:Message-Id; b=gcuVyEZaN2Mr8obNzAVf82HOLCZmfgbHfgHiJ1FUsZxbQK+PvF5AT1kZWW4UnQ0XZp7vZYrogmuZU3kdM5mQxwnb9wi465qIEqkAna7smXStWytGy7rG98l9PxQc0F6srqGpXVqtV+CgqJ1H+Jc3gyYwzhkqN63zhac/rH4D1jc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xYr+MgbT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vUo641U0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86090C433F1;
-	Fri,  2 Feb 2024 12:13:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xYr+MgbT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73F25C433F1;
+	Fri,  2 Feb 2024 12:13:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706876016;
-	bh=UwaC9uWWTgiR+5BNyITOEUvfA0FiAoQOMI3cYNyj1LI=;
+	s=korg; t=1706876019;
+	bh=HaTL5s6wlUgl/AlHi9JEb8PrgBGnl2SnFXGPW7SYzpQ=;
 	h=Date:To:From:Subject:From;
-	b=vUo641U06rsRSjGsprgHprkACRiLRlC5OUxs6eDmsDC8hd3Zh0C+JvFKlO5uCsB1L
-	 LGAEXT1fwLz9vOpQFN6+Ag1I9sqmsApZQxMUDi6kd48d7zhevTe+Hg7gMRWULgvUy9
-	 S4Ho3O08geZB8tegTUR6vd8SZGysKlTweAmX8NDM=
-Date: Fri, 02 Feb 2024 04:13:34 -0800
+	b=xYr+MgbT+7NP6ak/eoQW1ZC2HuLNzh2Fq4MHUCrKvwesEEAKf3dRjQ51KnCQxLHri
+	 dDMf7+9ROQb0PMWayemgw+Hzf9p5n9qrExQU8y3LkB41YNgu1EGJ+eqrG4dxjMdkAg
+	 PsYbMWm3fAUIeSwuOPuAmG4KZKiYBF/pklDPj3tM=
+Date: Fri, 02 Feb 2024 04:13:37 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-virtual_address_range-conform-to-tap-format-output.patch added to mm-unstable branch
-Message-Id: <20240202121336.86090C433F1@smtp.kernel.org>
+Subject: + selftests-mm-transhuge-stress-conform-to-tap-format-output.patch added to mm-unstable branch
+Message-Id: <20240202121339.73F25C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: virtual_address_range: conform to TAP format output
+     Subject: selftests/mm: transhuge-stress: conform to TAP format output
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-virtual_address_range-conform-to-tap-format-output.patch
+     selftests-mm-transhuge-stress-conform-to-tap-format-output.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-virtual_address_range-conform-to-tap-format-output.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-transhuge-stress-conform-to-tap-format-output.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,115 +59,151 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: virtual_address_range: conform to TAP format output
-Date: Wed, 31 Jan 2024 19:05:22 +0500
+Subject: selftests/mm: transhuge-stress: conform to TAP format output
+Date: Wed, 31 Jan 2024 19:05:21 +0500
 
 Conform the layout, informational and status messages to TAP. No
 functional change is intended other than the layout of output messages.
 
-Link: https://lkml.kernel.org/r/20240131140528.320252-12-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20240131140528.320252-11-usama.anjum@collabora.com
 Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/virtual_address_range.c |   44 +++++------
- 1 file changed, 22 insertions(+), 22 deletions(-)
+ tools/testing/selftests/mm/transhuge-stress.c |   38 +++++++++-------
+ tools/testing/selftests/mm/vm_util.c          |    6 +-
+ 2 files changed, 26 insertions(+), 18 deletions(-)
 
---- a/tools/testing/selftests/mm/virtual_address_range.c~selftests-mm-virtual_address_range-conform-to-tap-format-output
-+++ a/tools/testing/selftests/mm/virtual_address_range.c
-@@ -12,6 +12,7 @@
- #include <errno.h>
+--- a/tools/testing/selftests/mm/transhuge-stress.c~selftests-mm-transhuge-stress-conform-to-tap-format-output
++++ a/tools/testing/selftests/mm/transhuge-stress.c
+@@ -16,6 +16,7 @@
+ #include <string.h>
  #include <sys/mman.h>
- #include <sys/time.h>
+ #include "vm_util.h"
 +#include "../kselftest.h"
  
- /*
-  * Maximum address range mapped with a single mmap()
-@@ -68,23 +69,15 @@ static char *hind_addr(void)
- 	return (char *) (1UL << bits);
- }
- 
--static int validate_addr(char *ptr, int high_addr)
-+static void validate_addr(char *ptr, int high_addr)
- {
- 	unsigned long addr = (unsigned long) ptr;
- 
--	if (high_addr) {
--		if (addr < HIGH_ADDR_MARK) {
--			printf("Bad address %lx\n", addr);
--			return 1;
--		}
--		return 0;
--	}
-+	if (high_addr && addr < HIGH_ADDR_MARK)
-+		ksft_exit_fail_msg("Bad address %lx\n", addr);
- 
--	if (addr > HIGH_ADDR_MARK) {
--		printf("Bad address %lx\n", addr);
--		return 1;
--	}
--	return 0;
-+	if (addr > HIGH_ADDR_MARK)
-+		ksft_exit_fail_msg("Bad address %lx\n", addr);
- }
- 
- static int validate_lower_address_hint(void)
-@@ -107,23 +100,29 @@ int main(int argc, char *argv[])
- 	char *hint;
- 	unsigned long i, lchunks, hchunks;
+ int backing_fd = -1;
+ int mmap_flags = MAP_ANONYMOUS | MAP_NORESERVE | MAP_PRIVATE;
+@@ -34,6 +35,8 @@ int main(int argc, char **argv)
+ 	int pagemap_fd;
+ 	int duration = 0;
  
 +	ksft_print_header();
++
+ 	ram = sysconf(_SC_PHYS_PAGES);
+ 	if (ram > SIZE_MAX / psize() / 4)
+ 		ram = SIZE_MAX / 4;
+@@ -43,7 +46,8 @@ int main(int argc, char **argv)
+ 
+ 	while (++i < argc) {
+ 		if (!strcmp(argv[i], "-h"))
+-			errx(1, "usage: %s [-f <filename>] [-d <duration>] [size in MiB]", argv[0]);
++			ksft_exit_fail_msg("usage: %s [-f <filename>] [-d <duration>] [size in MiB]\n",
++					   argv[0]);
+ 		else if (!strcmp(argv[i], "-f"))
+ 			name = argv[++i];
+ 		else if (!strcmp(argv[i], "-d"))
+@@ -52,10 +56,12 @@ int main(int argc, char **argv)
+ 			len = atoll(argv[i]) << 20;
+ 	}
+ 
 +	ksft_set_plan(1);
 +
- 	for (i = 0; i < NR_CHUNKS_LOW; i++) {
- 		ptr[i] = mmap(NULL, MAP_CHUNK_SIZE, PROT_READ | PROT_WRITE,
- 					MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+ 	if (name) {
+ 		backing_fd = open(name, O_RDWR);
+ 		if (backing_fd == -1)
+-			errx(2, "open %s", name);
++			ksft_exit_fail_msg("open %s\n", name);
+ 		mmap_flags = MAP_SHARED;
+ 	}
  
- 		if (ptr[i] == MAP_FAILED) {
--			if (validate_lower_address_hint())
--				return 1;
-+			if (validate_lower_address_hint()) {
-+				ksft_test_result_skip("Memory constraint not fulfilled\n");
-+				ksft_finished();
-+			}
- 			break;
+@@ -65,21 +71,21 @@ int main(int argc, char **argv)
+ 
+ 	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
+ 	if (pagemap_fd < 0)
+-		err(2, "open pagemap");
++		ksft_exit_fail_msg("open pagemap\n");
+ 
+ 	len -= len % HPAGE_SIZE;
+ 	ptr = mmap(NULL, len + HPAGE_SIZE, PROT_RW, mmap_flags, backing_fd, 0);
+ 	if (ptr == MAP_FAILED)
+-		err(2, "initial mmap");
++		ksft_exit_fail_msg("initial mmap");
+ 	ptr += HPAGE_SIZE - (uintptr_t)ptr % HPAGE_SIZE;
+ 
+ 	if (madvise(ptr, len, MADV_HUGEPAGE))
+-		err(2, "MADV_HUGEPAGE");
++		ksft_exit_fail_msg("MADV_HUGEPAGE");
+ 
+ 	map_len = ram >> (HPAGE_SHIFT - 1);
+ 	map = malloc(map_len);
+ 	if (!map)
+-		errx(2, "map malloc");
++		ksft_exit_fail_msg("map malloc\n");
+ 
+ 	clock_gettime(CLOCK_MONOTONIC, &start);
+ 
+@@ -103,7 +109,7 @@ int main(int argc, char **argv)
+ 				if (idx >= map_len) {
+ 					map = realloc(map, idx + 1);
+ 					if (!map)
+-						errx(2, "map realloc");
++						ksft_exit_fail_msg("map realloc\n");
+ 					memset(map + map_len, 0, idx + 1 - map_len);
+ 					map_len = idx + 1;
+ 				}
+@@ -114,17 +120,19 @@ int main(int argc, char **argv)
+ 
+ 			/* split transhuge page, keep last page */
+ 			if (madvise(p, HPAGE_SIZE - psize(), MADV_DONTNEED))
+-				err(2, "MADV_DONTNEED");
++				ksft_exit_fail_msg("MADV_DONTNEED");
  		}
+ 		clock_gettime(CLOCK_MONOTONIC, &b);
+ 		s = b.tv_sec - a.tv_sec + (b.tv_nsec - a.tv_nsec) / 1000000000.;
  
--		if (validate_addr(ptr[i], 0))
--			return 1;
-+		validate_addr(ptr[i], 0);
- 	}
- 	lchunks = i;
- 	hptr = (char **) calloc(NR_CHUNKS_HIGH, sizeof(char *));
--	if (hptr == NULL)
--		return 1;
-+	if (hptr == NULL) {
-+		ksft_test_result_skip("Memory constraint not fulfilled\n");
-+		ksft_finished();
-+	}
- 
- 	for (i = 0; i < NR_CHUNKS_HIGH; i++) {
- 		hint = hind_addr();
-@@ -133,8 +132,7 @@ int main(int argc, char *argv[])
- 		if (hptr[i] == MAP_FAILED)
- 			break;
- 
--		if (validate_addr(hptr[i], 1))
--			return 1;
-+		validate_addr(hptr[i], 1);
- 	}
- 	hchunks = i;
- 
-@@ -145,5 +143,7 @@ int main(int argc, char *argv[])
- 		munmap(hptr[i], MAP_CHUNK_SIZE);
- 
- 	free(hptr);
--	return 0;
+-		warnx("%.3f s/loop, %.3f ms/page, %10.3f MiB/s\t"
+-		      "%4d succeed, %4d failed, %4d different pages",
+-		      s, s * 1000 / (len >> HPAGE_SHIFT), len / s / (1 << 20),
+-		      nr_succeed, nr_failed, nr_pages);
+-
+-		if (duration > 0 && b.tv_sec - start.tv_sec >= duration)
+-			return 0;
++		ksft_print_msg("%.3f s/loop, %.3f ms/page, %10.3f MiB/s\t"
++			       "%4d succeed, %4d failed, %4d different pages\n",
++			       s, s * 1000 / (len >> HPAGE_SHIFT), len / s / (1 << 20),
++			       nr_succeed, nr_failed, nr_pages);
 +
-+	ksft_test_result_pass("Test\n");
-+	ksft_finished();
++		if (duration > 0 && b.tv_sec - start.tv_sec >= duration) {
++			ksft_test_result_pass("Completed\n");
++			ksft_finished();
++		}
+ 	}
  }
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-transhuge-stress-conform-to-tap-format-output
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -232,17 +232,17 @@ int64_t allocate_transhuge(void *ptr, in
+ 	if (mmap(ptr, HPAGE_SIZE, PROT_READ | PROT_WRITE,
+ 		 MAP_FIXED | MAP_ANONYMOUS |
+ 		 MAP_NORESERVE | MAP_PRIVATE, -1, 0) != ptr)
+-		errx(2, "mmap transhuge");
++		ksft_exit_fail_msg("mmap transhuge\n");
+ 
+ 	if (madvise(ptr, HPAGE_SIZE, MADV_HUGEPAGE))
+-		err(2, "MADV_HUGEPAGE");
++		ksft_exit_fail_msg("MADV_HUGEPAGE\n");
+ 
+ 	/* allocate transparent huge page */
+ 	*(volatile void **)ptr = ptr;
+ 
+ 	if (pread(pagemap_fd, ent, sizeof(ent),
+ 		  (uintptr_t)ptr >> (pshift() - 3)) != sizeof(ent))
+-		err(2, "read pagemap");
++		ksft_exit_fail_msg("read pagemap\n");
+ 
+ 	if (PAGEMAP_PRESENT(ent[0]) && PAGEMAP_PRESENT(ent[1]) &&
+ 	    PAGEMAP_PFN(ent[0]) + 1 == PAGEMAP_PFN(ent[1]) &&
 _
 
 Patches currently in -mm which might be from usama.anjum@collabora.com are
