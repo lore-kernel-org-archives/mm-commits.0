@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DEC113D50C
-	for <mm-commits@vger.kernel.org>; Fri,  2 Feb 2024 12:12:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 660397763F
+	for <mm-commits@vger.kernel.org>; Fri,  2 Feb 2024 12:12:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706875961; cv=none; b=Hw29gA2FRIhN6cMFRWdCffr/VCrH1nIdCB6XHudXObMOxykC6daV/m7fAHyujG7Hvih4+dtI32VIhJi5CE6MSAG8OjMonLaMPVPgf0oNh+M4KaBWihg2cSjoD/7aFyNG9jsUNzN3Kd4moKdjQkQ8ilJ0wEvjQi4UCg2Rgpu9vUA=
+	t=1706875964; cv=none; b=WFgwQphwNpq70VDN+I2KasPVsMVTeiIb2RdgQRb1i7mmgpN696B1Ets13HNXMljzds7BwIOwioguhedd0r9e0dif2gxMg1VanECPKmH7tYrvaUTUvRiJHr66LYzfNQ7x/TgUjF2lKojYp0iDCAipMcq5kWyipKxH/T3p+OyFpxc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706875961; c=relaxed/simple;
-	bh=hwN6ddwJe/6aaJ8/NlZQgghxGugW3x8QqP30xJOhUPo=;
-	h=Date:To:From:Subject:Message-Id; b=ktYZj2TnlZYQq/1xinFl/91heP39PNJhLjVMhENbPd0qhe35EBWBaDvfqOOzwgnIg6yfL6Va//ltCaP7MJ6bkLYSCqHNc7ZwBkkK3eds9QxaMyFkLqMCjOacdwA1eLyppKEGqKp6jCUtPLAASYjoVTZCUkXun8/ehZgguqqo4eY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Wa3k9hQ4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706875964; c=relaxed/simple;
+	bh=GAGcp5cONYvksISDM3zFLuXmdp7i4GK1ldwu/+q4Bh8=;
+	h=Date:To:From:Subject:Message-Id; b=PZ9OOXZ5PD34ffnkAzNZoGbEUwTGD9tk0021LNxuoYMdRXdEYU7y4Ht6p2c29L4cDK6in2krUZCkS0PVD/9uVcarhAflkV6QNhnQhqxC+OLdg3kGHgZ4uECueMaA57Ysn9kVG5h3NQMAEV9hyUiN/uJgawR9QCxuDGebotSVy2Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xOYKlHRv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Wa3k9hQ4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4D68C433C7;
-	Fri,  2 Feb 2024 12:12:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xOYKlHRv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80BDBC433F1;
+	Fri,  2 Feb 2024 12:12:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706875961;
-	bh=hwN6ddwJe/6aaJ8/NlZQgghxGugW3x8QqP30xJOhUPo=;
+	s=korg; t=1706875963;
+	bh=GAGcp5cONYvksISDM3zFLuXmdp7i4GK1ldwu/+q4Bh8=;
 	h=Date:To:From:Subject:From;
-	b=Wa3k9hQ4Gz0BmOJHEVphnysWTPmYflnFVg1C9x9SsET5btA0Hsd9eqafd/yv3Cvdv
-	 o9Mk+BttWpA+qzwPwxrCpQwkwp7eAr6yLjURK0r4cesnYG7dlTW6nU0yoDFhMNDChr
-	 BQFb8IoCg8gcbwXdfjzVm6lI6YldtXoAfV7oC4Ag=
-Date: Fri, 02 Feb 2024 04:12:38 -0800
-To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,akpm@linux-foundation.org
+	b=xOYKlHRv77P0/q67rD2sBpVeEbamGibAACXXMQIx2JzhfI+D8+7iFv3lMedEvlRSQ
+	 Tag9S9QQqcxwZ/0G1XpOVc6p46SQZdhNkEtVYrky3fntO6W4LydU58m1BwAy7v0BgH
+	 2m4eS0kxVpjMGx1ZbvidJJJfMaVwLWDcf8R/unno=
+Date: Fri, 02 Feb 2024 04:12:41 -0800
+To: mm-commits@vger.kernel.org,sfr@canb.auug.org.au,andreyknvl@gmail.com,elver@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-run_vmtests-remove-sudo-and-conform-to-tap-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20240202121240.B4D68C433C7@smtp.kernel.org>
+Subject: + stackdepot-use-variable-size-records-for-non-evictable-entries-fix.patch added to mm-unstable branch
+Message-Id: <20240202121243.80BDBC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: on-fault-limit: run test without root privileges otherwise skip
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-mm-run_vmtests-remove-sudo-and-conform-to-tap-fix.patch
+     Subject: stackdepot: fix -Wstringop-overflow warning
+has been added to the -mm mm-unstable branch.  Its filename is
+     stackdepot-use-variable-size-records-for-non-evictable-entries-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-run_vmtests-remove-sudo-and-conform-to-tap-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/stackdepot-use-variable-size-records-for-non-evictable-entries-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,79 +58,61 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: on-fault-limit: run test without root privileges otherwise skip
-Date: Thu, 1 Feb 2024 18:05:36 +0500
+From: Marco Elver <elver@google.com>
+Subject: stackdepot: fix -Wstringop-overflow warning
+Date: Thu, 1 Feb 2024 10:04:30 +0100
 
-The mmap() respects rlimit only for normal users.  This test should be run
-as normal user, without root privileges.  Also add back the sudo -u nobody
-as run_vmtests.sh is run as root most of the times.  Skip the test instead
-if sudo isn't present to lower the privileges.
+Since 113a61863ecb ("Makefile: Enable -Wstringop-overflow globally")
+string overflow checking is enabled by default. Within stackdepot, the
+compiler (GCC 13.2.0) assumes that a multiplication overflow may be
+possible and flex_array_size() can return SIZE_MAX (4294967295 on
+32-bit), resulting in this warning:
 
-Link: https://lkml.kernel.org/r/20240201130538.1404897-1-usama.anjum@collabora.com
-Fixes: b6221771d468 ("selftests/mm: run_vmtests: remove sudo and conform to tap")
-Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+ In function 'depot_alloc_stack',
+     inlined from 'stack_depot_save_flags' at lib/stackdepot.c:688:4:
+ arch/x86/include/asm/string_32.h:150:25: error: '__builtin_memcpy' specified bound 4294967295 exceeds maximum object size 2147483647 [-Werror=stringop-overflow=]
+   150 | #define memcpy(t, f, n) __builtin_memcpy(t, f, n)
+       |                         ^~~~~~~~~~~~~~~~~~~~~~~~~
+ lib/stackdepot.c:459:9: note: in expansion of macro 'memcpy'
+   459 |         memcpy(stack->entries, entries, flex_array_size(stack, entries, nr_entries));
+       |         ^~~~~~
+ cc1: all warnings being treated as errors
+
+This is due to depot_alloc_stack() accepting an 'int nr_entries' which
+could be negative without deeper analysis of callers.
+
+The call to depot_alloc_stack() from stack_depot_save_flags(), however,
+only passes in its nr_entries which is unsigned int. Fix the warning by
+switching depot_alloc_stack()'s nr_entries to also be unsigned.
+
+Link: https://lore.kernel.org/all/20240201135747.18eca98e@canb.auug.org.au/
+Link: https://lkml.kernel.org/r/20240201090434.1762340-1-elver@google.com
+Fixes: d869d3fb362c ("stackdepot: use variable size records for non-evictable entries")
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Marco Elver <elver@google.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/on-fault-limit.c |    6 +++---
- tools/testing/selftests/mm/run_vmtests.sh   |    7 ++++++-
- 2 files changed, 9 insertions(+), 4 deletions(-)
+ lib/stackdepot.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/on-fault-limit.c~selftests-mm-run_vmtests-remove-sudo-and-conform-to-tap-fix
-+++ a/tools/testing/selftests/mm/on-fault-limit.c
-@@ -21,7 +21,7 @@ static void test_limit(void)
- 	map = mmap(NULL, 2 * lims.rlim_max, PROT_READ | PROT_WRITE,
- 		   MAP_PRIVATE | MAP_ANONYMOUS | MAP_POPULATE, -1, 0);
+--- a/lib/stackdepot.c~stackdepot-use-variable-size-records-for-non-evictable-entries-fix
++++ a/lib/stackdepot.c
+@@ -420,7 +420,7 @@ static inline size_t depot_stack_record_
  
--	ksft_test_result(map == MAP_FAILED, "Failed mmap\n");
-+	ksft_test_result(map == MAP_FAILED, "The map failed respecting mlock limits\n");
- 
- 	if (map != MAP_FAILED)
- 		munmap(map, 2 * lims.rlim_max);
-@@ -33,8 +33,8 @@ int main(int argc, char **argv)
- 	ksft_print_header();
- 	ksft_set_plan(1);
- 
--	if (getuid())
--		ksft_test_result_skip("Require root privileges to run\n");
-+	if (!getuid())
-+		ksft_test_result_skip("The test must be run from a normal user\n");
- 	else
- 		test_limit();
- 
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-run_vmtests-remove-sudo-and-conform-to-tap-fix
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -300,7 +300,12 @@ echo "$nr_hugepgs" > /proc/sys/vm/nr_hug
- 
- CATEGORY="compaction" run_test ./compaction_test
- 
--CATEGORY="mlock" run_test ./on-fault-limit
-+if command -v sudo &> /dev/null;
-+then
-+	CATEGORY="mlock" run_test sudo -u nobody ./on-fault-limit
-+else
-+	echo "# SKIP ./on-fault-limit"
-+fi
- 
- CATEGORY="mmap" run_test ./map_populate
- 
+ /* Allocates a new stack in a stack depot pool. */
+ static struct stack_record *
+-depot_alloc_stack(unsigned long *entries, int nr_entries, u32 hash, depot_flags_t flags, void **prealloc)
++depot_alloc_stack(unsigned long *entries, unsigned int nr_entries, u32 hash, depot_flags_t flags, void **prealloc)
+ {
+ 	struct stack_record *stack = NULL;
+ 	size_t record_size;
 _
 
-Patches currently in -mm which might be from usama.anjum@collabora.com are
+Patches currently in -mm which might be from elver@google.com are
 
-selftests-core-include-linux-close_rangeh-for-close_range_-macros.patch
-selftests-mm-hugetlb_reparenting_test-do-not-unmount.patch
-selftests-mm-run_vmtests-remove-sudo-and-conform-to-tap.patch
-selftests-mm-run_vmtests-remove-sudo-and-conform-to-tap-fix.patch
-selftests-mm-save-and-restore-nr_hugepages-value.patch
-selftests-mm-protection_keys-save-restore-nr_hugepages-settings.patch
-selftests-mm-run_vmtestssh-add-missing-tests.patch
-selftests-mm-run_vmtestssh-add-missing-tests-fix.patch
-selftests-mm-hugepage-shm-conform-test-to-tap-format-output.patch
-selftests-mm-hugepage-vmemmap-conform-test-to-tap-format-output.patch
-selftests-mm-hugetlb-madvise-conform-test-to-tap-format-output.patch
-selftests-mm-khugepaged-conform-test-to-tap-format-output.patch
-selftests-mm-hugetlb-read-hwpoison-conform-test-to-tap-format-output.patch
-selftests-mm-config-add-missing-configs.patch
+stackdepot-use-variable-size-records-for-non-evictable-entries.patch
+stackdepot-use-variable-size-records-for-non-evictable-entries-fix.patch
+kasan-revert-eviction-of-stack-traces-in-generic-mode.patch
 
