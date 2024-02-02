@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 586CE140777
-	for <mm-commits@vger.kernel.org>; Fri,  2 Feb 2024 12:13:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DFC214198B
+	for <mm-commits@vger.kernel.org>; Fri,  2 Feb 2024 12:13:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706876014; cv=none; b=mteXAqqEvGIa7mlaJtDxahgBzFAPUv5QEbXGWJgYbCORiCjptpv19IcImxVJFVFKBLTqlRnHnnotRNTJTsy+BbgDZ25oVD46WAlHtV0Tm19ikxb60QryKECARFwC3iiUorxlaLXiqAVXrZCTrY76Zn4Jy/3ZNP3xXVf1N2lnsQE=
+	t=1706876017; cv=none; b=egB9z3bHV1I32DDNZwyxZe0tApq5AXEFskevOPt/LOVv1YIePzlVQ0AXTMgJQoGIGdIwKUP+7D3wUlH1i4XNjuVa2kjL7wd/Nei9QJb0awPanRdyeqb4YTAU1OkH+QP3uyd6R+vyFa0X+0ztmXfxnO7h4NwLL45iR1IUq48xjd4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706876014; c=relaxed/simple;
-	bh=rDWWnq7JWzfpayRfj6INKyI+AZkyMYaC1tUkLQi1zkc=;
-	h=Date:To:From:Subject:Message-Id; b=r/45bR9EPx08qWIoIUfB5aMG2iNRVw2v0D0JEb0KohJtj14n3XugMSGaNtPVlEPxmDjeK0F7TfNSdvqVpNM0gQQErtQ7lJjESb4JQjVcNxIc2QvQKHz08jDp+go95Vjznv9MGGFoYs3MbzVgf5FzH3+/CM46LJ03n2ZoRdFRS9w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OaTbHNYn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706876017; c=relaxed/simple;
+	bh=UwaC9uWWTgiR+5BNyITOEUvfA0FiAoQOMI3cYNyj1LI=;
+	h=Date:To:From:Subject:Message-Id; b=IRjZLuj9NXkup3TcnC07IVYWzz9F8oJNJd/+HWTGS2SX4mSNXWguR1+7z7qlb8AARzx5aCgwPkP4UoYc6oPF4pJXNxVOczx8MNh4Bu181i07OcKfJsqSrcAKvPVvJwqIuC8e2+PPGzRozRw4LqC/Yzcij4rjWGNi0fanuKJ324U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vUo641U0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OaTbHNYn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC1EFC433C7;
-	Fri,  2 Feb 2024 12:13:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vUo641U0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86090C433F1;
+	Fri,  2 Feb 2024 12:13:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706876014;
-	bh=rDWWnq7JWzfpayRfj6INKyI+AZkyMYaC1tUkLQi1zkc=;
+	s=korg; t=1706876016;
+	bh=UwaC9uWWTgiR+5BNyITOEUvfA0FiAoQOMI3cYNyj1LI=;
 	h=Date:To:From:Subject:From;
-	b=OaTbHNYn1nO4Z8nNxLteZTHBGYTU/LogMV7N4sOaP88UCHFVy4Z9/D4+rR+CcfwE/
-	 H6t/IJDME1cIu2At+dr8VNq6IYol1/eyWD752zSLOHVIRLqFDKaP9npt5tcyE/k/dR
-	 K6X/awlGHaeQrGsmQZvhWAiDbCX6erOZYG1QqTlg=
-Date: Fri, 02 Feb 2024 04:13:31 -0800
+	b=vUo641U06rsRSjGsprgHprkACRiLRlC5OUxs6eDmsDC8hd3Zh0C+JvFKlO5uCsB1L
+	 LGAEXT1fwLz9vOpQFN6+Ag1I9sqmsApZQxMUDi6kd48d7zhevTe+Hg7gMRWULgvUy9
+	 S4Ho3O08geZB8tegTUR6vd8SZGysKlTweAmX8NDM=
+Date: Fri, 02 Feb 2024 04:13:34 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-thp_settings-conform-to-tap-format-output.patch added to mm-unstable branch
-Message-Id: <20240202121333.CC1EFC433C7@smtp.kernel.org>
+Subject: + selftests-mm-virtual_address_range-conform-to-tap-format-output.patch added to mm-unstable branch
+Message-Id: <20240202121336.86090C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: thp_settings: conform to TAP format output
+     Subject: selftests/mm: virtual_address_range: conform to TAP format output
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-thp_settings-conform-to-tap-format-output.patch
+     selftests-mm-virtual_address_range-conform-to-tap-format-output.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-thp_settings-conform-to-tap-format-output.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-virtual_address_range-conform-to-tap-format-output.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,297 +59,115 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: thp_settings: conform to TAP format output
-Date: Wed, 31 Jan 2024 19:05:19 +0500
+Subject: selftests/mm: virtual_address_range: conform to TAP format output
+Date: Wed, 31 Jan 2024 19:05:22 +0500
 
 Conform the layout, informational and status messages to TAP. No
 functional change is intended other than the layout of output messages.
 
-Link: https://lkml.kernel.org/r/20240131140528.320252-9-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20240131140528.320252-12-usama.anjum@collabora.com
 Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/khugepaged.c   |    5 
- tools/testing/selftests/mm/thp_settings.c |  123 +++++++-------------
- tools/testing/selftests/mm/thp_settings.h |    4 
- 3 files changed, 47 insertions(+), 85 deletions(-)
+ tools/testing/selftests/mm/virtual_address_range.c |   44 +++++------
+ 1 file changed, 22 insertions(+), 22 deletions(-)
 
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-thp_settings-conform-to-tap-format-output
-+++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -159,10 +159,7 @@ static void get_finfo(const char *dir)
- 		printf("%s: Pathname is too long\n", __func__);
- 		exit(EXIT_FAILURE);
- 	}
--	if (read_file(path, buf, sizeof(buf)) < 0) {
--		perror("read_file(read_num)");
--		exit(EXIT_FAILURE);
--	}
-+	read_file(path, buf, sizeof(buf));
- 	if (strstr(buf, "DEVTYPE=disk")) {
- 		/* Found it */
- 		if (snprintf(finfo.dev_queue_read_ahead_path,
---- a/tools/testing/selftests/mm/thp_settings.c~selftests-mm-thp_settings-conform-to-tap-format-output
-+++ a/tools/testing/selftests/mm/thp_settings.c
-@@ -5,7 +5,9 @@
- #include <stdlib.h>
- #include <string.h>
- #include <unistd.h>
-+#include <errno.h>
- 
+--- a/tools/testing/selftests/mm/virtual_address_range.c~selftests-mm-virtual_address_range-conform-to-tap-format-output
++++ a/tools/testing/selftests/mm/virtual_address_range.c
+@@ -12,6 +12,7 @@
+ #include <errno.h>
+ #include <sys/mman.h>
+ #include <sys/time.h>
 +#include "../kselftest.h"
- #include "thp_settings.h"
  
- #define THP_SYSFS "/sys/kernel/mm/transparent_hugepage/"
-@@ -42,58 +44,45 @@ static const char * const shmem_enabled_
- 	NULL
- };
+ /*
+  * Maximum address range mapped with a single mmap()
+@@ -68,23 +69,15 @@ static char *hind_addr(void)
+ 	return (char *) (1UL << bits);
+ }
  
--int read_file(const char *path, char *buf, size_t buflen)
-+void read_file(const char *path, char *buf, size_t buflen)
+-static int validate_addr(char *ptr, int high_addr)
++static void validate_addr(char *ptr, int high_addr)
  {
- 	int fd;
- 	ssize_t numread;
+ 	unsigned long addr = (unsigned long) ptr;
  
- 	fd = open(path, O_RDONLY);
- 	if (fd == -1)
--		return 0;
-+		ksft_exit_fail_msg("%s open failed: %s\n", path, strerror(errno));
- 
- 	numread = read(fd, buf, buflen - 1);
- 	if (numread < 1) {
- 		close(fd);
--		return 0;
-+		ksft_exit_fail_msg("No data read\n");
- 	}
- 
- 	buf[numread] = '\0';
- 	close(fd);
--
--	return (unsigned int) numread;
- }
- 
--int write_file(const char *path, const char *buf, size_t buflen)
-+void write_file(const char *path, const char *buf, size_t buflen)
- {
- 	int fd;
- 	ssize_t numwritten;
- 
- 	fd = open(path, O_WRONLY);
--	if (fd == -1) {
--		printf("open(%s)\n", path);
--		exit(EXIT_FAILURE);
--		return 0;
--	}
-+	if (fd == -1)
-+		ksft_exit_fail_msg("%s open failed\n", path);
- 
- 	numwritten = write(fd, buf, buflen - 1);
- 	close(fd);
--	if (numwritten < 1) {
--		printf("write(%s)\n", buf);
--		exit(EXIT_FAILURE);
--		return 0;
--	}
--
--	return (unsigned int) numwritten;
-+	if (numwritten < 1)
-+		ksft_exit_fail_msg("write failed (%s)\n", buf);
- }
- 
- const unsigned long read_num(const char *path)
- {
- 	char buf[21];
- 
--	if (read_file(path, buf, sizeof(buf)) < 0) {
--		perror("read_file()");
--		exit(EXIT_FAILURE);
--	}
-+	read_file(path, buf, sizeof(buf));
- 
- 	return strtoul(buf, NULL, 10);
- }
-@@ -103,10 +92,7 @@ void write_num(const char *path, unsigne
- 	char buf[21];
- 
- 	sprintf(buf, "%ld", num);
--	if (!write_file(path, buf, strlen(buf) + 1)) {
--		perror(path);
--		exit(EXIT_FAILURE);
--	}
-+	write_file(path, buf, strlen(buf) + 1);
- }
- 
- int thp_read_string(const char *name, const char * const strings[])
-@@ -117,30 +103,22 @@ int thp_read_string(const char *name, co
- 	int ret;
- 
- 	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
--	if (ret >= PATH_MAX) {
--		printf("%s: Pathname is too long\n", __func__);
--		exit(EXIT_FAILURE);
--	}
-+	if (ret >= PATH_MAX)
-+		ksft_exit_fail_msg("%s: Pathname is too long\n", __func__);
- 
--	if (!read_file(path, buf, sizeof(buf))) {
--		perror(path);
--		exit(EXIT_FAILURE);
--	}
-+	read_file(path, buf, sizeof(buf));
- 
- 	c = strchr(buf, '[');
--	if (!c) {
--		printf("%s: Parse failure\n", __func__);
--		exit(EXIT_FAILURE);
--	}
-+	if (!c)
-+		ksft_exit_fail_msg("%s: Parse failure\n", __func__);
- 
- 	c++;
- 	memmove(buf, c, sizeof(buf) - (c - buf));
- 
- 	c = strchr(buf, ']');
--	if (!c) {
--		printf("%s: Parse failure\n", __func__);
--		exit(EXIT_FAILURE);
--	}
-+	if (!c)
-+		ksft_exit_fail_msg("%s: Parse failure\n", __func__);
-+
- 	*c = '\0';
- 
- 	ret = 0;
-@@ -150,8 +128,8 @@ int thp_read_string(const char *name, co
- 		ret++;
- 	}
- 
--	printf("Failed to parse %s\n", name);
--	exit(EXIT_FAILURE);
-+	ksft_exit_fail_msg("Failed to parse %s\n", name);
-+	return -1;
- }
- 
- void thp_write_string(const char *name, const char *val)
-@@ -160,15 +138,10 @@ void thp_write_string(const char *name,
- 	int ret;
- 
- 	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
--	if (ret >= PATH_MAX) {
--		printf("%s: Pathname is too long\n", __func__);
--		exit(EXIT_FAILURE);
--	}
-+	if (ret >= PATH_MAX)
-+		ksft_exit_fail_msg("%s: Pathname is too long\n", __func__);
- 
--	if (!write_file(path, val, strlen(val) + 1)) {
--		perror(path);
--		exit(EXIT_FAILURE);
--	}
-+	write_file(path, val, strlen(val) + 1);
- }
- 
- const unsigned long thp_read_num(const char *name)
-@@ -177,10 +150,9 @@ const unsigned long thp_read_num(const c
- 	int ret;
- 
- 	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
--	if (ret >= PATH_MAX) {
--		printf("%s: Pathname is too long\n", __func__);
--		exit(EXIT_FAILURE);
--	}
-+	if (ret >= PATH_MAX)
-+		ksft_exit_fail_msg("%s: Pathname is too long\n", __func__);
-+
- 	return read_num(path);
- }
- 
-@@ -190,10 +162,9 @@ void thp_write_num(const char *name, uns
- 	int ret;
- 
- 	ret = snprintf(path, PATH_MAX, THP_SYSFS "%s", name);
--	if (ret >= PATH_MAX) {
--		printf("%s: Pathname is too long\n", __func__);
--		exit(EXIT_FAILURE);
--	}
-+	if (ret >= PATH_MAX)
-+		ksft_exit_fail_msg("%s: Pathname is too long\n", __func__);
-+
- 	write_num(path, num);
- }
- 
-@@ -275,29 +246,26 @@ void thp_write_settings(struct thp_setti
- 
- struct thp_settings *thp_current_settings(void)
- {
--	if (!settings_index) {
--		printf("Fail: No settings set");
--		exit(EXIT_FAILURE);
--	}
-+	if (!settings_index)
-+		ksft_exit_fail_msg("Fail: No settings set\n");
-+
- 	return settings_stack + settings_index - 1;
- }
- 
- void thp_push_settings(struct thp_settings *settings)
- {
--	if (settings_index >= MAX_SETTINGS_DEPTH) {
--		printf("Fail: Settings stack exceeded");
--		exit(EXIT_FAILURE);
--	}
-+	if (settings_index >= MAX_SETTINGS_DEPTH)
-+		ksft_exit_fail_msg("Fail: Settings stack exceeded\n");
-+
- 	settings_stack[settings_index++] = *settings;
- 	thp_write_settings(thp_current_settings());
- }
- 
- void thp_pop_settings(void)
- {
--	if (settings_index <= 0) {
--		printf("Fail: Settings stack empty");
--		exit(EXIT_FAILURE);
--	}
-+	if (settings_index <= 0)
-+		ksft_exit_fail_msg("Fail: Settings stack empty\n");
-+
- 	--settings_index;
- 	thp_write_settings(thp_current_settings());
- }
-@@ -335,14 +303,11 @@ unsigned long thp_supported_orders(void)
- 	for (i = 0; i < NR_ORDERS; i++) {
- 		ret = snprintf(path, PATH_MAX, THP_SYSFS "hugepages-%ukB/enabled",
- 			(getpagesize() >> 10) << i);
--		if (ret >= PATH_MAX) {
--			printf("%s: Pathname is too long\n", __func__);
--			exit(EXIT_FAILURE);
+-	if (high_addr) {
+-		if (addr < HIGH_ADDR_MARK) {
+-			printf("Bad address %lx\n", addr);
+-			return 1;
 -		}
-+		if (ret >= PATH_MAX)
-+			ksft_exit_fail_msg("%s: Pathname is too long\n", __func__);
+-		return 0;
+-	}
++	if (high_addr && addr < HIGH_ADDR_MARK)
++		ksft_exit_fail_msg("Bad address %lx\n", addr);
  
--		ret = read_file(path, buf, sizeof(buf));
--		if (ret)
--			orders |= 1UL << i;
-+		read_file(path, buf, sizeof(buf));
-+		orders |= 1UL << i;
+-	if (addr > HIGH_ADDR_MARK) {
+-		printf("Bad address %lx\n", addr);
+-		return 1;
+-	}
+-	return 0;
++	if (addr > HIGH_ADDR_MARK)
++		ksft_exit_fail_msg("Bad address %lx\n", addr);
+ }
+ 
+ static int validate_lower_address_hint(void)
+@@ -107,23 +100,29 @@ int main(int argc, char *argv[])
+ 	char *hint;
+ 	unsigned long i, lchunks, hchunks;
+ 
++	ksft_print_header();
++	ksft_set_plan(1);
++
+ 	for (i = 0; i < NR_CHUNKS_LOW; i++) {
+ 		ptr[i] = mmap(NULL, MAP_CHUNK_SIZE, PROT_READ | PROT_WRITE,
+ 					MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+ 
+ 		if (ptr[i] == MAP_FAILED) {
+-			if (validate_lower_address_hint())
+-				return 1;
++			if (validate_lower_address_hint()) {
++				ksft_test_result_skip("Memory constraint not fulfilled\n");
++				ksft_finished();
++			}
+ 			break;
+ 		}
+ 
+-		if (validate_addr(ptr[i], 0))
+-			return 1;
++		validate_addr(ptr[i], 0);
  	}
+ 	lchunks = i;
+ 	hptr = (char **) calloc(NR_CHUNKS_HIGH, sizeof(char *));
+-	if (hptr == NULL)
+-		return 1;
++	if (hptr == NULL) {
++		ksft_test_result_skip("Memory constraint not fulfilled\n");
++		ksft_finished();
++	}
  
- 	return orders;
---- a/tools/testing/selftests/mm/thp_settings.h~selftests-mm-thp_settings-conform-to-tap-format-output
-+++ a/tools/testing/selftests/mm/thp_settings.h
-@@ -56,8 +56,8 @@ struct thp_settings {
- 	struct hugepages_settings hugepages[NR_ORDERS];
- };
+ 	for (i = 0; i < NR_CHUNKS_HIGH; i++) {
+ 		hint = hind_addr();
+@@ -133,8 +132,7 @@ int main(int argc, char *argv[])
+ 		if (hptr[i] == MAP_FAILED)
+ 			break;
  
--int read_file(const char *path, char *buf, size_t buflen);
--int write_file(const char *path, const char *buf, size_t buflen);
-+void read_file(const char *path, char *buf, size_t buflen);
-+void write_file(const char *path, const char *buf, size_t buflen);
- const unsigned long read_num(const char *path);
- void write_num(const char *path, unsigned long num);
+-		if (validate_addr(hptr[i], 1))
+-			return 1;
++		validate_addr(hptr[i], 1);
+ 	}
+ 	hchunks = i;
  
+@@ -145,5 +143,7 @@ int main(int argc, char *argv[])
+ 		munmap(hptr[i], MAP_CHUNK_SIZE);
+ 
+ 	free(hptr);
+-	return 0;
++
++	ksft_test_result_pass("Test\n");
++	ksft_finished();
+ }
 _
 
 Patches currently in -mm which might be from usama.anjum@collabora.com are
