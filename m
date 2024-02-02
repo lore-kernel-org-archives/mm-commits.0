@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BDB6C123
-	for <mm-commits@vger.kernel.org>; Fri,  2 Feb 2024 12:13:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 057B914199A
+	for <mm-commits@vger.kernel.org>; Fri,  2 Feb 2024 12:13:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706876020; cv=none; b=K50xWJLWvqScrkxmFR8o9ou22L/pSAAvtLD32b/YT2ziJqm6EIFyZ8CqIW/8UYHcggTi0y8Z1XsLGETCsWeOBb+Z5E/Voy7ZyErfx1ilGrAZLBvPQXv8nHHq4u6ocgo2yTpDLnyrgwM4mXkvw5TPKosUGYHGbIGwI5PODvZEgt8=
+	t=1706876023; cv=none; b=RkW2FAVbe1PhlNlkUrxxG/w3VLWZeFKh9S7xyqDOj8PSiHm3a95kKlW0vHGdN7UnR8qQxo1cKYa3dcRAqY6CMEqWzd4KZhCPP2u0kxYjlNhGt2IfC8gLJoGVAaxk8uEFzKRYiM1WXJ46iH7VDLI/RAginELXqQQZV2qo4zYr/Bs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706876020; c=relaxed/simple;
-	bh=HaTL5s6wlUgl/AlHi9JEb8PrgBGnl2SnFXGPW7SYzpQ=;
-	h=Date:To:From:Subject:Message-Id; b=gcuVyEZaN2Mr8obNzAVf82HOLCZmfgbHfgHiJ1FUsZxbQK+PvF5AT1kZWW4UnQ0XZp7vZYrogmuZU3kdM5mQxwnb9wi465qIEqkAna7smXStWytGy7rG98l9PxQc0F6srqGpXVqtV+CgqJ1H+Jc3gyYwzhkqN63zhac/rH4D1jc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xYr+MgbT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706876023; c=relaxed/simple;
+	bh=0uA5NXw78o8aHso+EfymvifC/RE536h1Y2qyUyDQNFQ=;
+	h=Date:To:From:Subject:Message-Id; b=AS/c+xHPGGUiNZ0bVcb8khbgXhj/IR/TyZgBTNKPy6z98qwgEkk/Lz1PN/+JKkMO9C/PHfT3T6FQPz36oi7N/ox601kfc4ipcfKeUq8H+aeQsxv6OfsEgRtwJgye60CHsBvpMvPhoesaBjc9K1IO1jihRrutPokVh25KThLVImE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LkWNRRNH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xYr+MgbT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73F25C433F1;
-	Fri,  2 Feb 2024 12:13:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LkWNRRNH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B266C433F1;
+	Fri,  2 Feb 2024 12:13:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706876019;
-	bh=HaTL5s6wlUgl/AlHi9JEb8PrgBGnl2SnFXGPW7SYzpQ=;
+	s=korg; t=1706876022;
+	bh=0uA5NXw78o8aHso+EfymvifC/RE536h1Y2qyUyDQNFQ=;
 	h=Date:To:From:Subject:From;
-	b=xYr+MgbT+7NP6ak/eoQW1ZC2HuLNzh2Fq4MHUCrKvwesEEAKf3dRjQ51KnCQxLHri
-	 dDMf7+9ROQb0PMWayemgw+Hzf9p5n9qrExQU8y3LkB41YNgu1EGJ+eqrG4dxjMdkAg
-	 PsYbMWm3fAUIeSwuOPuAmG4KZKiYBF/pklDPj3tM=
-Date: Fri, 02 Feb 2024 04:13:37 -0800
-To: mm-commits@vger.kernel.org,shuah@kernel.org,usama.anjum@collabora.com,akpm@linux-foundation.org
+	b=LkWNRRNHnk5F4McjtbeP4qHXeaiCF+Ted+Zq+XgpnSSqwpR4jUsmxBGpjHQCYFng4
+	 m7c5qvFpFJ3FqZ4hrZlGo5FkKtrVnddk9q5zvkSai8ILy/VoJ61ni2fM1NUvz44G3m
+	 48cIuM/BSgtxwGlfU0NpXWs6pA357CI5Kor2afJI=
+Date: Fri, 02 Feb 2024 04:13:40 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,mgorman@techsingularity.net,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-transhuge-stress-conform-to-tap-format-output.patch added to mm-unstable branch
-Message-Id: <20240202121339.73F25C433F1@smtp.kernel.org>
+Subject: + mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages.patch added to mm-unstable branch
+Message-Id: <20240202121342.3B266C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: transhuge-stress: conform to TAP format output
+     Subject: mm: compaction: update the cc->nr_migratepages when allocating or freeing the freepages
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-transhuge-stress-conform-to-tap-format-output.patch
+     mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-transhuge-stress-conform-to-tap-format-output.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,180 +58,68 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: transhuge-stress: conform to TAP format output
-Date: Wed, 31 Jan 2024 19:05:21 +0500
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: compaction: update the cc->nr_migratepages when allocating or freeing the freepages
+Date: Wed, 31 Jan 2024 21:16:26 +0800
 
-Conform the layout, informational and status messages to TAP. No
-functional change is intended other than the layout of output messages.
+Currently we will use 'cc->nr_freepages >= cc->nr_migratepages' comparison
+to ensure that enough freepages are isolated in isolate_freepages(),
+however it just decreases the cc->nr_freepages without updating
+cc->nr_migratepages in compaction_alloc(), which will waste more CPU
+cycles and cause too many freepages to be isolated.
 
-Link: https://lkml.kernel.org/r/20240131140528.320252-11-usama.anjum@collabora.com
-Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Shuah Khan <shuah@kernel.org>
+So we should also update the cc->nr_migratepages when allocating or
+freeing the freepages to avoid isolating excess freepages.  And I can see
+fewer free pages are scanned and isolated when running thpcompact on my
+Arm64 server: k6.7 k6.7_patched Ops Compaction pages isolated 120692036.00
+118160797.00 Ops Compaction migrate scanned 131210329.00 154093268.00 Ops
+Compaction free scanned 1090587971.00 1080632536.00 Ops Compact scan
+efficiency 12.03 14.26
+
+Moreover, I did not see an obvious latency improvements, this is likely because
+isolating freepages is not the bottleneck in the thpcompact test case.
+                              k6.7                  k6.7_patched
+Amean     fault-both-1      1089.76 (   0.00%)     1080.16 *   0.88%*
+Amean     fault-both-3      1616.48 (   0.00%)     1636.65 *  -1.25%*
+Amean     fault-both-5      2266.66 (   0.00%)     2219.20 *   2.09%*
+Amean     fault-both-7      2909.84 (   0.00%)     2801.90 *   3.71%*
+Amean     fault-both-12     4861.26 (   0.00%)     4733.25 *   2.63%*
+Amean     fault-both-18     7351.11 (   0.00%)     6950.51 *   5.45%*
+Amean     fault-both-24     9059.30 (   0.00%)     9159.99 *  -1.11%*
+Amean     fault-both-30    10685.68 (   0.00%)    11399.02 *  -6.68%*
+
+Link: https://lkml.kernel.org/r/994af744828efe3c060128445204a56ab41e3ebb.1706706820.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/transhuge-stress.c |   38 +++++++++-------
- tools/testing/selftests/mm/vm_util.c          |    6 +-
- 2 files changed, 26 insertions(+), 18 deletions(-)
+ mm/compaction.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/tools/testing/selftests/mm/transhuge-stress.c~selftests-mm-transhuge-stress-conform-to-tap-format-output
-+++ a/tools/testing/selftests/mm/transhuge-stress.c
-@@ -16,6 +16,7 @@
- #include <string.h>
- #include <sys/mman.h>
- #include "vm_util.h"
-+#include "../kselftest.h"
- 
- int backing_fd = -1;
- int mmap_flags = MAP_ANONYMOUS | MAP_NORESERVE | MAP_PRIVATE;
-@@ -34,6 +35,8 @@ int main(int argc, char **argv)
- 	int pagemap_fd;
- 	int duration = 0;
- 
-+	ksft_print_header();
-+
- 	ram = sysconf(_SC_PHYS_PAGES);
- 	if (ram > SIZE_MAX / psize() / 4)
- 		ram = SIZE_MAX / 4;
-@@ -43,7 +46,8 @@ int main(int argc, char **argv)
- 
- 	while (++i < argc) {
- 		if (!strcmp(argv[i], "-h"))
--			errx(1, "usage: %s [-f <filename>] [-d <duration>] [size in MiB]", argv[0]);
-+			ksft_exit_fail_msg("usage: %s [-f <filename>] [-d <duration>] [size in MiB]\n",
-+					   argv[0]);
- 		else if (!strcmp(argv[i], "-f"))
- 			name = argv[++i];
- 		else if (!strcmp(argv[i], "-d"))
-@@ -52,10 +56,12 @@ int main(int argc, char **argv)
- 			len = atoll(argv[i]) << 20;
- 	}
- 
-+	ksft_set_plan(1);
-+
- 	if (name) {
- 		backing_fd = open(name, O_RDWR);
- 		if (backing_fd == -1)
--			errx(2, "open %s", name);
-+			ksft_exit_fail_msg("open %s\n", name);
- 		mmap_flags = MAP_SHARED;
- 	}
- 
-@@ -65,21 +71,21 @@ int main(int argc, char **argv)
- 
- 	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
- 	if (pagemap_fd < 0)
--		err(2, "open pagemap");
-+		ksft_exit_fail_msg("open pagemap\n");
- 
- 	len -= len % HPAGE_SIZE;
- 	ptr = mmap(NULL, len + HPAGE_SIZE, PROT_RW, mmap_flags, backing_fd, 0);
- 	if (ptr == MAP_FAILED)
--		err(2, "initial mmap");
-+		ksft_exit_fail_msg("initial mmap");
- 	ptr += HPAGE_SIZE - (uintptr_t)ptr % HPAGE_SIZE;
- 
- 	if (madvise(ptr, len, MADV_HUGEPAGE))
--		err(2, "MADV_HUGEPAGE");
-+		ksft_exit_fail_msg("MADV_HUGEPAGE");
- 
- 	map_len = ram >> (HPAGE_SHIFT - 1);
- 	map = malloc(map_len);
- 	if (!map)
--		errx(2, "map malloc");
-+		ksft_exit_fail_msg("map malloc\n");
- 
- 	clock_gettime(CLOCK_MONOTONIC, &start);
- 
-@@ -103,7 +109,7 @@ int main(int argc, char **argv)
- 				if (idx >= map_len) {
- 					map = realloc(map, idx + 1);
- 					if (!map)
--						errx(2, "map realloc");
-+						ksft_exit_fail_msg("map realloc\n");
- 					memset(map + map_len, 0, idx + 1 - map_len);
- 					map_len = idx + 1;
- 				}
-@@ -114,17 +120,19 @@ int main(int argc, char **argv)
- 
- 			/* split transhuge page, keep last page */
- 			if (madvise(p, HPAGE_SIZE - psize(), MADV_DONTNEED))
--				err(2, "MADV_DONTNEED");
-+				ksft_exit_fail_msg("MADV_DONTNEED");
- 		}
- 		clock_gettime(CLOCK_MONOTONIC, &b);
- 		s = b.tv_sec - a.tv_sec + (b.tv_nsec - a.tv_nsec) / 1000000000.;
- 
--		warnx("%.3f s/loop, %.3f ms/page, %10.3f MiB/s\t"
--		      "%4d succeed, %4d failed, %4d different pages",
--		      s, s * 1000 / (len >> HPAGE_SHIFT), len / s / (1 << 20),
--		      nr_succeed, nr_failed, nr_pages);
--
--		if (duration > 0 && b.tv_sec - start.tv_sec >= duration)
--			return 0;
-+		ksft_print_msg("%.3f s/loop, %.3f ms/page, %10.3f MiB/s\t"
-+			       "%4d succeed, %4d failed, %4d different pages\n",
-+			       s, s * 1000 / (len >> HPAGE_SHIFT), len / s / (1 << 20),
-+			       nr_succeed, nr_failed, nr_pages);
-+
-+		if (duration > 0 && b.tv_sec - start.tv_sec >= duration) {
-+			ksft_test_result_pass("Completed\n");
-+			ksft_finished();
-+		}
- 	}
+--- a/mm/compaction.c~mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages
++++ a/mm/compaction.c
+@@ -1882,6 +1882,7 @@ done:
+ 	if (order)
+ 		prep_compound_page(&dst->page, order);
+ 	cc->nr_freepages -= 1 << order;
++	cc->nr_migratepages -= 1 << order;
+ 	return page_rmappable_folio(&dst->page);
  }
---- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-transhuge-stress-conform-to-tap-format-output
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -232,17 +232,17 @@ int64_t allocate_transhuge(void *ptr, in
- 	if (mmap(ptr, HPAGE_SIZE, PROT_READ | PROT_WRITE,
- 		 MAP_FIXED | MAP_ANONYMOUS |
- 		 MAP_NORESERVE | MAP_PRIVATE, -1, 0) != ptr)
--		errx(2, "mmap transhuge");
-+		ksft_exit_fail_msg("mmap transhuge\n");
  
- 	if (madvise(ptr, HPAGE_SIZE, MADV_HUGEPAGE))
--		err(2, "MADV_HUGEPAGE");
-+		ksft_exit_fail_msg("MADV_HUGEPAGE\n");
+@@ -1904,6 +1905,7 @@ static void compaction_free(struct folio
+ 	list_add(&dst->lru, &cc->freepages[order].pages);
+ 	cc->freepages[order].nr_pages++;
+ 	cc->nr_freepages += 1 << order;
++	cc->nr_migratepages += 1 << order;
+ }
  
- 	/* allocate transparent huge page */
- 	*(volatile void **)ptr = ptr;
- 
- 	if (pread(pagemap_fd, ent, sizeof(ent),
- 		  (uintptr_t)ptr >> (pshift() - 3)) != sizeof(ent))
--		err(2, "read pagemap");
-+		ksft_exit_fail_msg("read pagemap\n");
- 
- 	if (PAGEMAP_PRESENT(ent[0]) && PAGEMAP_PRESENT(ent[1]) &&
- 	    PAGEMAP_PFN(ent[0]) + 1 == PAGEMAP_PFN(ent[1]) &&
+ /* possible outcome of isolate_migratepages */
 _
 
-Patches currently in -mm which might be from usama.anjum@collabora.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-selftests-core-include-linux-close_rangeh-for-close_range_-macros.patch
-selftests-mm-map_fixed_noreplace-conform-test-to-tap-format-output.patch
-selftests-mm-map_hugetlb-conform-test-to-tap-format-output.patch
-selftests-mm-map_populate-conform-test-to-tap-format-output.patch
-selftests-mm-mlock-random-test-conform-test-to-tap-format-output.patch
-selftests-mm-mlock2-tests-conform-test-to-tap-format-output.patch
-selftests-mm-mrelease_test-conform-test-to-tap-format-output.patch
-selftests-mm-mremap_dontunmap-conform-test-to-tap-format-output.patch
-selftests-mm-split_huge_page_test-conform-test-to-tap-format-output.patch
-selftests-mm-thp_settings-conform-to-tap-format-output.patch
-selftests-mm-thuge-gen-conform-to-tap-format-output.patch
-selftests-mm-transhuge-stress-conform-to-tap-format-output.patch
-selftests-mm-virtual_address_range-conform-to-tap-format-output.patch
-selftests-mm-hugetlb_reparenting_test-do-not-unmount.patch
-selftests-mm-run_vmtests-remove-sudo-and-conform-to-tap.patch
-selftests-mm-run_vmtests-remove-sudo-and-conform-to-tap-fix.patch
-selftests-mm-save-and-restore-nr_hugepages-value.patch
-selftests-mm-protection_keys-save-restore-nr_hugepages-settings.patch
-selftests-mm-run_vmtestssh-add-missing-tests.patch
-selftests-mm-run_vmtestssh-add-missing-tests-fix.patch
-selftests-mm-hugepage-shm-conform-test-to-tap-format-output.patch
-selftests-mm-hugepage-vmemmap-conform-test-to-tap-format-output.patch
-selftests-mm-hugetlb-madvise-conform-test-to-tap-format-output.patch
-selftests-mm-khugepaged-conform-test-to-tap-format-output.patch
-selftests-mm-hugetlb-read-hwpoison-conform-test-to-tap-format-output.patch
-selftests-mm-config-add-missing-configs.patch
+mm-compaction-limit-the-suitable-target-page-order-to-be-less-than-cc-order.patch
+mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages.patch
 
