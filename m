@@ -1,176 +1,222 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f67.google.com (mail-pj1-f67.google.com [209.85.216.67])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03D21881E;
-	Sun,  4 Feb 2024 07:20:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A79901642A;
+	Sun,  4 Feb 2024 08:52:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.67
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707031260; cv=none; b=AC43AIsH6ThRxOyECO+Ak7YWzC4kawGSwMBHm76cLYWpG84ZXuT8ZzcG8ER+34M1RwXBhyDrTxnwxi4v6vL8ddLF/xHRTCpnfo2US366/mcYXwj8mQO9K1M5VJcSzTrViewIz59c8h7U8Bk+6+1xZUPVkR8WmQoCjy69iXWv3Lw=
+	t=1707036739; cv=none; b=BA092neXdcFbc6ZBCxQRRtad0PCL0WsdtRINQBA/pL2Cn1A4Rw/fpLd1/IXVXRa6qe+gqklb2toM6FbR+9HurkDj201QFQJ1ja/sD7SZpsrDEL3moT1cEaDCCqelGdHcpe78xhHcqKXuiV0s5SBLEsTDeYrTA2R9ZPPmrZsDs0Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707031260; c=relaxed/simple;
-	bh=pChxN2h25FFzfyTFthRWwD/Se7oTwVqXsqMwz7ZrgsU=;
-	h=Date:To:From:Subject:Message-Id; b=KyTSAz/fp+kdIUhT+bV4SuKqRomNoz3EiRWXfz338GYCOM/62ouVNnRKFZiVz1A2RSyKXMnDRXZcc2cFvYtJQTPbXWnQWBtUTH2JWQN+fDInqOHNIG+m6WbhBZ5GTpeR1P6OcA3sr+IazlYwCcL0xUE1vO8Ta/0wcN/bpnP0X00=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fcCKlMRo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707036739; c=relaxed/simple;
+	bh=LXtVdhUKnAh8eTFYbVyTry3ntQtaF2+aGyIy67uHW8A=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=OtdSJ2sGK8OEsYfzHvLFC3KCHAqJsvtG2NAB5tAJZ4YjI7LXiirSqIVCp9aqP44mLi+2egvpTifJT1WO8H31+gJkWQin/gkYc/V0cPMBUjlEOVXImbeWv6GdceUyxag+rm6TIvyDVxRxjbuMdaYQM+L+glFFacOgfRfB0E6qUpU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BVj0/VcT; arc=none smtp.client-ip=209.85.216.67
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fcCKlMRo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A056C433C7;
-	Sun,  4 Feb 2024 07:20:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707031259;
-	bh=pChxN2h25FFzfyTFthRWwD/Se7oTwVqXsqMwz7ZrgsU=;
-	h=Date:To:From:Subject:From;
-	b=fcCKlMRoWg5FZj84sgf0tnW+AYVhfkdgu1jZZ4PeLG52daq33lQmNJlCBe8NsBXSm
-	 846uxb6j5FII1vhZH3QLCFnpMFHf/igwZycEg6HoWqUJexu0B0yf+ntD3OZkw+kYri
-	 WiUw+TJagFS8le+sCtJfSzQdu3ChykEQsxL9+/m4=
-Date: Sat, 03 Feb 2024 23:20:58 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-fix-potential-bug-in-end_buffer_async_write.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240204072059.6A056C433C7@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BVj0/VcT"
+Received: by mail-pj1-f67.google.com with SMTP id 98e67ed59e1d1-2906773c7e9so2284759a91.1;
+        Sun, 04 Feb 2024 00:52:17 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1707036737; x=1707641537; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=r4z0nvVWnIAYTJA2M72IaGWpdL1cvbNZSmvJznW48f8=;
+        b=BVj0/VcT9NlCvZwHNf3JiB2hqL28wGDN4WcdhlGfahrMldVnLXhXbf6lK+DgCKMonO
+         b3UaesGCFaboCW0NRMbzif6wm1HdCUE84NTp5CByIJkbowKgVGpIEfWwB8ZDCZ0fPPB4
+         hp/GzJmHKyXKmx3EdbBa72TNvkUpSIyEHaaXZZIbPGUHSoUgssszquw5Ki5H68Wg7VkK
+         HWRbhTNLzmLqOtvhphhiuQILvJf/rRtVUIlf8gc7ljeZavamyLUI/g/IUbsd7OEyY4+E
+         sIxz6uLwRkwtS4Q6k+o+Br5O/JK5OzJTCVsixiPHDu4hlcQxaXbtk9l1+PDxhPpEPo3D
+         FuCA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1707036737; x=1707641537;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=r4z0nvVWnIAYTJA2M72IaGWpdL1cvbNZSmvJznW48f8=;
+        b=cV0roKLWNZIficz7mVpv9U/yhhptlUAeb1VralfFTCAB6qbXnIIpnReMJgIQVeKYwQ
+         yW71UOnJSHG9uAQHqX6T+DjgOENzM8KVZYAHVmMHwLJp6w7bDHbdUEKwSoSBQNh2e6/K
+         +newJqENDYjkFXt6LsGD17HHcXQm8eFnSImjz+2kWPk6JR+g3QnRKdGZnpcanC8koo3Q
+         agFIBgfcQKNAx47quSigTTNIOHaX1f/8xIbqpNEcevseg8NgUciQWzlgqRi3bWqS1SXt
+         mqj74U3A5/Deo5OSq7PZajlUAjH4qj9aYc5q4mgAN/0W9yp9Dtnc0Q/qW4u9o5Nj5CAf
+         mc0g==
+X-Gm-Message-State: AOJu0YyhnmAWxEivuzCzVnnSTMhqAhCRKc9Dhb9dukIyD/V7uWzApLlf
+	ZK1MjnNfkhXPuy7ruFFvJPZTmJSqJRYCungAg1dQsbmDCVXpO8Ik
+X-Google-Smtp-Source: AGHT+IEcYiw8dThyDCH2LzMECBuzlS6CvMGFjjK3PsTXXNtFA4KTa7waR4fjoN14ngsgKukNtaGsWg==
+X-Received: by 2002:a17:90b:3846:b0:296:2383:fb80 with SMTP id nl6-20020a17090b384600b002962383fb80mr7152730pjb.26.1707036736861;
+        Sun, 04 Feb 2024 00:52:16 -0800 (PST)
+X-Forwarded-Encrypted: i=0; AJvYcCUjBlxxA1lFb+5HgSJ3g90MGzz9eA948Va1u/N809Q9E5kqkDLPRvj0mQI4uNIpZ4nGuZJNNBCUxsz+HJvP4L8jPM096pfXyCamjBmmupfo4xygz3oogZ8yR+ESO+qnGhx37JRnZ2upccyBrV53ekfJBS60K5J8sa2L1EJWI6AxA6NH5Nqu6CjWdtlWR/FGYXUwnx+q4KWRtmc2b+G6t3i6n6n53FQIex+mtrBGnlMWkAJuIFBnvsRy+ufYqK5wkPnlnrbLwArD
+Received: from localhost ([112.7.96.15])
+        by smtp.gmail.com with ESMTPSA id jx15-20020a17090b46cf00b00296540086a5sm2898818pjb.23.2024.02.04.00.52.15
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 04 Feb 2024 00:52:16 -0800 (PST)
+From: John Sanpe <sanpeqf@gmail.com>
+To: linux-mm@kvack.org,
+	akpm@linux-foundation.org,
+	rdunlap@infradead.org,
+	torvalds@linux-foundation.org,
+	unixbhaskar@gmail.com
+Cc: mm-commits@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	John Sanpe <sanpeqf@gmail.com>
+Subject: [PATCH] lib/bch.c: increase bitrev single conversion length
+Date: Sun,  4 Feb 2024 16:51:55 +0800
+Message-ID: <20240204085155.6745-1-sanpeqf@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
+Optimized the performance of the three functions (load_ecc8 store_ecc8
+and bch_encode) using a larger calculation length.
 
-The patch titled
-     Subject: nilfs2: fix potential bug in end_buffer_async_write
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     nilfs2-fix-potential-bug-in-end_buffer_async_write.patch
-
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-fix-potential-bug-in-end_buffer_async_write.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: fix potential bug in end_buffer_async_write
-Date: Sun, 4 Feb 2024 01:16:45 +0900
-
-According to a syzbot report, end_buffer_async_write(), which handles the
-completion of block device writes, may detect abnormal condition of the
-buffer async_write flag and cause a BUG_ON failure when using nilfs2.
-
-Nilfs2 itself does not use end_buffer_async_write().  But, the async_write
-flag is now used as a marker by commit 7f42ec394156 ("nilfs2: fix issue
-with race condition of competition between segments for dirty blocks") as
-a means of resolving double list insertion of dirty blocks in
-nilfs_lookup_dirty_data_buffers() and nilfs_lookup_node_buffers() and the
-resulting crash.
-
-This modification is safe as long as it is used for file data and b-tree
-node blocks where the page caches are independent.  However, it was
-irrelevant and redundant to also introduce async_write for segment summary
-and super root blocks that share buffers with the backing device.  This
-led to the possibility that the BUG_ON check in end_buffer_async_write
-would fail as described above, if independent writebacks of the backing
-device occurred in parallel.
-
-The use of async_write for segment summary buffers has already been
-removed in a previous change.
-
-Fix this issue by removing the manipulation of the async_write flag for
-the remaining super root block buffer.
-
-Link: https://lkml.kernel.org/r/20240203161645.4992-1-konishi.ryusuke@gmail.com
-Fixes: 7f42ec394156 ("nilfs2: fix issue with race condition of competition between segments for dirty blocks")
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: syzbot+5c04210f7c7f897c1e7f@syzkaller.appspotmail.com
-Closes: https://lkml.kernel.org/r/00000000000019a97c05fd42f8c8@google.com
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: John Sanpe <sanpeqf@gmail.com>
 ---
+ lib/bch.c | 87 +++++++++++++++++++++++++++++++------------------------
+ 1 file changed, 49 insertions(+), 38 deletions(-)
 
- fs/nilfs2/segment.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
-
---- a/fs/nilfs2/segment.c~nilfs2-fix-potential-bug-in-end_buffer_async_write
-+++ a/fs/nilfs2/segment.c
-@@ -1703,7 +1703,6 @@ static void nilfs_segctor_prepare_write(
+diff --git a/lib/bch.c b/lib/bch.c
+index 5f71fd76eca8..e9a9517e7b1b 100644
+--- a/lib/bch.c
++++ b/lib/bch.c
+@@ -73,6 +73,7 @@
+ #include <linux/bitops.h>
+ #include <linux/bitrev.h>
+ #include <asm/byteorder.h>
++#include <asm/unaligned.h>
+ #include <linux/bch.h>
  
- 		list_for_each_entry(bh, &segbuf->sb_payload_buffers,
- 				    b_assoc_buffers) {
--			set_buffer_async_write(bh);
- 			if (bh == segbuf->sb_super_root) {
- 				if (bh->b_folio != bd_folio) {
- 					folio_lock(bd_folio);
-@@ -1714,6 +1713,7 @@ static void nilfs_segctor_prepare_write(
- 				}
- 				break;
- 			}
-+			set_buffer_async_write(bh);
- 			if (bh->b_folio != fs_folio) {
- 				nilfs_begin_folio_io(fs_folio);
- 				fs_folio = bh->b_folio;
-@@ -1800,7 +1800,6 @@ static void nilfs_abort_logs(struct list
+ #if defined(CONFIG_BCH_CONST_PARAMS)
+@@ -115,14 +116,6 @@ struct gf_poly_deg1 {
+ 	unsigned int   c[2];
+ };
  
- 		list_for_each_entry(bh, &segbuf->sb_payload_buffers,
- 				    b_assoc_buffers) {
--			clear_buffer_async_write(bh);
- 			if (bh == segbuf->sb_super_root) {
- 				clear_buffer_uptodate(bh);
- 				if (bh->b_folio != bd_folio) {
-@@ -1809,6 +1808,7 @@ static void nilfs_abort_logs(struct list
- 				}
- 				break;
- 			}
-+			clear_buffer_async_write(bh);
- 			if (bh->b_folio != fs_folio) {
- 				nilfs_end_folio_io(fs_folio, err);
- 				fs_folio = bh->b_folio;
-@@ -1896,8 +1896,9 @@ static void nilfs_segctor_complete_write
- 				 BIT(BH_Delay) | BIT(BH_NILFS_Volatile) |
- 				 BIT(BH_NILFS_Redirected));
+-static u8 swap_bits(struct bch_control *bch, u8 in)
+-{
+-	if (!bch->swap_bits)
+-		return in;
+-
+-	return bitrev8(in);
+-}
+-
+ /*
+  * same as bch_encode(), but process input data one byte at a time
+  */
+@@ -135,7 +128,10 @@ static void bch_encode_unaligned(struct bch_control *bch,
+ 	const int l = BCH_ECC_WORDS(bch)-1;
  
--			set_mask_bits(&bh->b_state, clear_bits, set_bits);
- 			if (bh == segbuf->sb_super_root) {
-+				set_buffer_uptodate(bh);
-+				clear_buffer_dirty(bh);
- 				if (bh->b_folio != bd_folio) {
- 					folio_end_writeback(bd_folio);
- 					bd_folio = bh->b_folio;
-@@ -1905,6 +1906,7 @@ static void nilfs_segctor_complete_write
- 				update_sr = true;
- 				break;
- 			}
-+			set_mask_bits(&bh->b_state, clear_bits, set_bits);
- 			if (bh->b_folio != fs_folio) {
- 				nilfs_end_folio_io(fs_folio, 0);
- 				fs_folio = bh->b_folio;
-_
-
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
-
-nilfs2-fix-data-corruption-in-dsync-block-recovery-for-small-block-sizes.patch
-nilfs2-fix-hang-in-nilfs_lookup_dirty_data_buffers.patch
-nilfs2-fix-potential-bug-in-end_buffer_async_write.patch
-nilfs2-convert-segment-buffer-to-use-kmap_local.patch
-nilfs2-convert-nilfs_copy_buffer-to-use-kmap_local.patch
-nilfs2-convert-metadata-file-common-code-to-use-kmap_local.patch
-nilfs2-convert-sufile-to-use-kmap_local.patch
-nilfs2-convert-persistent-object-allocator-to-use-kmap_local.patch
-nilfs2-convert-dat-to-use-kmap_local.patch
-nilfs2-move-nilfs_bmap_write-call-out-of-nilfs_write_inode_common.patch
-nilfs2-do-not-acquire-rwsem-in-nilfs_bmap_write.patch
-nilfs2-convert-ifile-to-use-kmap_local.patch
-nilfs2-localize-highmem-mapping-for-checkpoint-creation-within-cpfile.patch
-nilfs2-localize-highmem-mapping-for-checkpoint-finalization-within-cpfile.patch
-nilfs2-localize-highmem-mapping-for-checkpoint-reading-within-cpfile.patch
-nilfs2-remove-nilfs_cpfile_getput_checkpoint.patch
-nilfs2-convert-cpfile-to-use-kmap_local.patch
+ 	while (len--) {
+-		u8 tmp = swap_bits(bch, *data++);
++		u8 tmp = *data++;
++
++		if (bch->swap_bits)
++			tmp = bitrev8(tmp);
+ 
+ 		p = bch->mod8_tab + (l+1)*(((ecc[0] >> 24)^(tmp)) & 0xff);
+ 
+@@ -152,20 +148,27 @@ static void bch_encode_unaligned(struct bch_control *bch,
+ static void load_ecc8(struct bch_control *bch, uint32_t *dst,
+ 		      const uint8_t *src)
+ {
+-	uint8_t pad[4] = {0, 0, 0, 0};
+ 	unsigned int i, nwords = BCH_ECC_WORDS(bch)-1;
++	uint32_t value, bytes = 0;
++
++	for (i = 0; i < nwords; i++, src += 4) {
++		if (!bch->swap_bits)
++			value = get_unaligned_be32(src);
++		else {
++			value = get_unaligned_le32(src);
++			value = bitrev32(value);
++		}
++		dst[i] = value;
++	}
+ 
+-	for (i = 0; i < nwords; i++, src += 4)
+-		dst[i] = ((u32)swap_bits(bch, src[0]) << 24) |
+-			((u32)swap_bits(bch, src[1]) << 16) |
+-			((u32)swap_bits(bch, src[2]) << 8) |
+-			swap_bits(bch, src[3]);
+-
+-	memcpy(pad, src, BCH_ECC_BYTES(bch)-4*nwords);
+-	dst[nwords] = ((u32)swap_bits(bch, pad[0]) << 24) |
+-		((u32)swap_bits(bch, pad[1]) << 16) |
+-		((u32)swap_bits(bch, pad[2]) << 8) |
+-		swap_bits(bch, pad[3]);
++	memcpy(&bytes, src, BCH_ECC_BYTES(bch)-4*nwords);
++	if (!bch->swap_bits)
++		value = be32_to_cpup((__be32 *)&bytes);
++	else {
++		value = le32_to_cpup((__le32 *)&bytes);
++		value = bitrev32(value);
++	}
++	dst[nwords] = value;
+ }
+ 
+ /*
+@@ -174,20 +177,27 @@ static void load_ecc8(struct bch_control *bch, uint32_t *dst,
+ static void store_ecc8(struct bch_control *bch, uint8_t *dst,
+ 		       const uint32_t *src)
+ {
+-	uint8_t pad[4];
+ 	unsigned int i, nwords = BCH_ECC_WORDS(bch)-1;
++	uint32_t value, bytes;
++
++	for (i = 0; i < nwords; i++, dst += 4) {
++		value = src[i];
++		if (!bch->swap_bits)
++			put_unaligned_be32(value, dst);
++		else {
++			value = bitrev32(value);
++			put_unaligned_le32(value, dst);
++		}
++	}
+ 
+-	for (i = 0; i < nwords; i++) {
+-		*dst++ = swap_bits(bch, src[i] >> 24);
+-		*dst++ = swap_bits(bch, src[i] >> 16);
+-		*dst++ = swap_bits(bch, src[i] >> 8);
+-		*dst++ = swap_bits(bch, src[i]);
++	value = src[nwords];
++	if (!bch->swap_bits)
++		*(__be32 *)&bytes = cpu_to_be32(value);
++	else {
++		value = bitrev32(value);
++		*(__le32 *)&bytes = cpu_to_le32(value);
+ 	}
+-	pad[0] = swap_bits(bch, src[nwords] >> 24);
+-	pad[1] = swap_bits(bch, src[nwords] >> 16);
+-	pad[2] = swap_bits(bch, src[nwords] >> 8);
+-	pad[3] = swap_bits(bch, src[nwords]);
+-	memcpy(dst, pad, BCH_ECC_BYTES(bch)-4*nwords);
++	memcpy(dst, &bytes, BCH_ECC_BYTES(bch)-4*nwords);
+ }
+ 
+ /**
+@@ -257,12 +267,13 @@ void bch_encode(struct bch_control *bch, const uint8_t *data,
+ 	 */
+ 	while (mlen--) {
+ 		/* input data is read in big-endian format */
+-		w = cpu_to_be32(*pdata++);
+-		if (bch->swap_bits)
+-			w = (u32)swap_bits(bch, w) |
+-			    ((u32)swap_bits(bch, w >> 8) << 8) |
+-			    ((u32)swap_bits(bch, w >> 16) << 16) |
+-			    ((u32)swap_bits(bch, w >> 24) << 24);
++		if (!bch->swap_bits)
++			w = be32_to_cpup((__be32 *)pdata++);
++		else {
++			w = le32_to_cpup((__le32 *)pdata++);
++			w = bitrev32(w);
++		}
++
+ 		w ^= r[0];
+ 		p0 = tab0 + (l+1)*((w >>  0) & 0xff);
+ 		p1 = tab1 + (l+1)*((w >>  8) & 0xff);
+-- 
+2.43.0
 
