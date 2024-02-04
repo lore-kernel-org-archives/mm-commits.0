@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C067D8F5C
-	for <mm-commits@vger.kernel.org>; Sun,  4 Feb 2024 07:20:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85161BA57
+	for <mm-commits@vger.kernel.org>; Sun,  4 Feb 2024 07:20:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707031251; cv=none; b=TEUa+3uNYuBaN6Byh3Fn/ZILR4h7WyM0pJiYVBWXJUhuSNaaxTFQvgpALDRZ4kHSP0NwNQeMOVPVD8sw2xHwlS+Wku9y8nLvbaGPjaHgMsxvsQqAmA7z21TULmGNWrzcDFtPp1mcdgW3AGUPJZ1WVJqFsTNUAR09JXhXgwA4sdE=
+	t=1707031252; cv=none; b=m9jI/CBaJLBjcW71VTZErWWDULqLiYx0rIfcvHjoxunzXmW3XPtSdmocMiUiFDxlibw8xNJlYsehU9OW/3c73mUVNkrlNWzFIQFcePIgisBEquONsN+OgmRJ/wZdin3lY35Q3G2UzuSJJgrCZozUegoU7OIz3uRZ+wiLm3KADpU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707031251; c=relaxed/simple;
-	bh=AItFQHDabG1pJvKRjRXT3q9LhgNxbhYb6mvG+NWpYP4=;
-	h=Date:To:From:Subject:Message-Id; b=oZ6XSNJCpqFkpbtGOfMVtity0jcXp9Lv1A1jmLeaXOpuqXM7wpQZBqlltuo7udA8JzE214lIJ0mnq3rUkVYsqYYbvLWILcwlaZdnaa4LyGBB9XE0rl0duenM0BG5wkH5Cyck49HmjWz9Og/LqX8Am/FMq88B4+9TWdln6URe0XA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Uw7P+2b4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707031252; c=relaxed/simple;
+	bh=Q6mrqJlKH82vL4+NN38CfioCzUaGVM2CQFa51bc1vc0=;
+	h=Date:To:From:Subject:Message-Id; b=m8O3E8X+PzCFQqgI4JfRE+60q79gR+GHPtodghNorHraGJ4fKSG6Ui5uIjQ4wNj14t+O8kRx6tkMZbkTOoY6LO+E5HqEqH/okv2eMbTchwbnSw1ZyfAa/9tf2mCq8mplaH3W5ZbXN41HcrS31sit396h7Uh9RbjKMAkgT5bXtJU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vq6Ex5Ru; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Uw7P+2b4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89683C43394;
-	Sun,  4 Feb 2024 07:20:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vq6Ex5Ru"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50F20C433C7;
+	Sun,  4 Feb 2024 07:20:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707031251;
-	bh=AItFQHDabG1pJvKRjRXT3q9LhgNxbhYb6mvG+NWpYP4=;
+	s=korg; t=1707031252;
+	bh=Q6mrqJlKH82vL4+NN38CfioCzUaGVM2CQFa51bc1vc0=;
 	h=Date:To:From:Subject:From;
-	b=Uw7P+2b4ycnASL1rlXf49eE7+lIS4CxmHIJw/MmBKTfhBss2NiOlD3Xbg32sUsBrk
-	 9WzyqSBCxZ/Q5u1Pc0oiqra1sAIJNbiZSnAqBVuqndLHwNOlWN2cLjRpsM7UM4MzdZ
-	 pZENGXWp41NRgDI2NCxn441VrpvtT5RqH+OB5vv0=
-Date: Sat, 03 Feb 2024 23:20:50 -0800
+	b=vq6Ex5RuMKZeienbH4FlOpQGiEyms7aGozrh09rons//+IeQl3yyod0J4b8V0wJI1
+	 hSKhwa9RpyIUmykVEtGoDN//ECwF36eKqiNG4d61u9pqSIJUrsDD/4I2RlLffRWImv
+	 SXeizzkzBb21LMcy7zfH9TjFhzbvIgGAGzRbCD68=
+Date: Sat, 03 Feb 2024 23:20:51 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-map_populate-conform-test-to-tap-format-output.patch added to mm-unstable branch
-Message-Id: <20240204072051.89683C43394@smtp.kernel.org>
+Subject: + selftests-mm-mrelease_test-conform-test-to-tap-format-output.patch added to mm-unstable branch
+Message-Id: <20240204072052.50F20C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: map_populate: conform test to TAP format output
+     Subject: selftests/mm: mrelease_test: conform test to TAP format output
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-map_populate-conform-test-to-tap-format-output.patch
+     selftests-mm-mrelease_test-conform-test-to-tap-format-output.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-map_populate-conform-test-to-tap-format-output.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-mrelease_test-conform-test-to-tap-format-output.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,103 +59,189 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: map_populate: conform test to TAP format output
-Date: Fri, 2 Feb 2024 16:31:10 +0500
+Subject: selftests/mm: mrelease_test: conform test to TAP format output
+Date: Fri, 2 Feb 2024 16:31:13 +0500
 
 Conform the layout, informational and status messages to TAP.  No
-functional change is intended other than the layout of output messages. 
-Minor cleanups have also been included.
+functional change is intended other than the layout of output messages.
 
-Link: https://lkml.kernel.org/r/20240202113119.2047740-4-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20240202113119.2047740-7-usama.anjum@collabora.com
 Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/map_populate.c |   37 ++++++++++++--------
- 1 file changed, 23 insertions(+), 14 deletions(-)
+ tools/testing/selftests/mm/mrelease_test.c |   80 +++++++------------
+ 1 file changed, 33 insertions(+), 47 deletions(-)
 
---- a/tools/testing/selftests/mm/map_populate.c~selftests-mm-map_populate-conform-test-to-tap-format-output
-+++ a/tools/testing/selftests/mm/map_populate.c
-@@ -16,19 +16,21 @@
- #include <stdlib.h>
- #include <string.h>
- #include <unistd.h>
-+#include "../kselftest.h"
+--- a/tools/testing/selftests/mm/mrelease_test.c~selftests-mm-mrelease_test-conform-test-to-tap-format-output
++++ a/tools/testing/selftests/mm/mrelease_test.c
+@@ -26,19 +26,15 @@ static int alloc_noexit(unsigned long nr
  
- #define MMAP_SZ		4096
+ 	buf = (char *)mmap(NULL, nr_pages * psize(), PROT_READ | PROT_WRITE,
+ 			   MAP_PRIVATE | MAP_ANON, 0, 0);
+-	if (buf == MAP_FAILED) {
+-		perror("mmap failed, halting the test");
+-		return KSFT_FAIL;
+-	}
++	if (buf == MAP_FAILED)
++		ksft_exit_fail_msg("mmap failed, halting the test: %s\n", strerror(errno));
  
--#define BUG_ON(condition, description)					\
--	do {								\
--		if (condition) {					\
--			fprintf(stderr, "[FAIL]\t%s:%d\t%s:%s\n", __func__, \
--				__LINE__, (description), strerror(errno)); \
--			exit(1);					\
--		}							\
-+#define BUG_ON(condition, description)						\
-+	do {									\
-+		if (condition)							\
-+			ksft_exit_fail_msg("[FAIL]\t%s:%d\t%s:%s\n",		\
-+					   __func__, __LINE__, (description),	\
-+					   strerror(errno));			\
- 	} while (0)
+ 	for (i = 0; i < nr_pages; i++)
+ 		*((unsigned long *)(buf + (i * psize()))) = i;
  
--static int parent_f(int sock, unsigned long *smap, int child)
-+#define TESTS_IN_CHILD 2
-+
-+static void parent_f(int sock, unsigned long *smap, int child)
+ 	/* Signal the parent that the child is ready */
+-	if (write(pipefd, "", 1) < 0) {
+-		perror("write");
+-		return KSFT_FAIL;
+-	}
++	if (write(pipefd, "", 1) < 0)
++		ksft_exit_fail_msg("write: %s\n", strerror(errno));
+ 
+ 	/* Wait to be killed (when reparenting happens) */
+ 	while (getppid() == ppid && timeout > 0) {
+@@ -54,23 +50,17 @@ static int alloc_noexit(unsigned long nr
+ /* The process_mrelease calls in this test are expected to fail */
+ static void run_negative_tests(int pidfd)
  {
- 	int status, ret;
- 
-@@ -43,9 +45,10 @@ static int parent_f(int sock, unsigned l
- 	BUG_ON(ret <= 0, "write(sock)");
- 
- 	waitpid(child, &status, 0);
--	BUG_ON(!WIFEXITED(status), "child in unexpected state");
- 
--	return WEXITSTATUS(status);
-+	/* The ksft macros don't keep counters between processes */
-+	ksft_cnt.ksft_pass = WEXITSTATUS(status);
-+	ksft_cnt.ksft_fail = TESTS_IN_CHILD - WEXITSTATUS(status);
+-	int res;
+ 	/* Test invalid flags. Expect to fail with EINVAL error code. */
+ 	if (!syscall(__NR_process_mrelease, pidfd, (unsigned int)-1) ||
+ 			errno != EINVAL) {
+-		res = (errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
+-		perror("process_mrelease with wrong flags");
+-		exit(res);
++		ksft_exit_fail_msg("process_mrelease with wrong flags: %s\n", strerror(errno));
+ 	}
+ 	/*
+ 	 * Test reaping while process is alive with no pending SIGKILL.
+ 	 * Expect to fail with EINVAL error code.
+ 	 */
+-	if (!syscall(__NR_process_mrelease, pidfd, 0) || errno != EINVAL) {
+-		res = (errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
+-		perror("process_mrelease on a live process");
+-		exit(res);
+-	}
++	if (!syscall(__NR_process_mrelease, pidfd, 0) || errno != EINVAL)
++		ksft_exit_fail_msg("process_mrelease on a live process: %s\n", strerror(errno));
  }
  
- static int child_f(int sock, unsigned long *smap, int fd)
-@@ -64,10 +67,11 @@ static int child_f(int sock, unsigned lo
- 	ret = read(sock, &buf, sizeof(int));
- 	BUG_ON(ret <= 0, "read(sock)");
- 
--	BUG_ON(*smap == 0x22222BAD, "MAP_POPULATE didn't COW private page");
--	BUG_ON(*smap != 0xdeadbabe, "mapping was corrupted");
-+	ksft_test_result(*smap != 0x22222BAD, "MAP_POPULATE COW private page\n");
-+	ksft_test_result(*smap == 0xdeadbabe, "The mapping state\n");
- 
--	return 0;
-+	/* The ksft macros don't keep counters between processes */
-+	return ksft_cnt.ksft_pass;
- }
- 
- int main(int argc, char **argv)
-@@ -76,6 +80,9 @@ int main(int argc, char **argv)
- 	FILE *ftmp;
- 	unsigned long *smap;
+ static int child_main(int pipefd[], size_t size)
+@@ -93,11 +83,18 @@ int main(void)
+ 	char byte;
+ 	int res;
  
 +	ksft_print_header();
-+	ksft_set_plan(TESTS_IN_CHILD);
++	ksft_set_plan(1);
 +
- 	ftmp = tmpfile();
- 	BUG_ON(!ftmp, "tmpfile()");
- 
-@@ -101,7 +108,9 @@ int main(int argc, char **argv)
- 		ret = close(sock[0]);
- 		BUG_ON(ret, "close()");
- 
--		return parent_f(sock[1], smap, child);
-+		parent_f(sock[1], smap, child);
-+
-+		ksft_finished();
+ 	/* Test a wrong pidfd */
+ 	if (!syscall(__NR_process_mrelease, -1, 0) || errno != EBADF) {
+-		res = (errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
+-		perror("process_mrelease with wrong pidfd");
+-		exit(res);
++		if (errno == ENOSYS) {
++			ksft_test_result_skip("process_mrelease not implemented\n");
++			ksft_finished();
++		} else {
++			ksft_exit_fail_msg("process_mrelease with wrong pidfd: %s",
++					   strerror(errno));
++		}
  	}
  
- 	ret = close(sock[1]);
+ 	/* Start the test with 1MB child memory allocation */
+@@ -107,16 +104,14 @@ retry:
+ 	 * Pipe for the child to signal when it's done allocating
+ 	 * memory
+ 	 */
+-	if (pipe(pipefd)) {
+-		perror("pipe");
+-		exit(KSFT_FAIL);
+-	}
++	if (pipe(pipefd))
++		ksft_exit_fail_msg("pipe: %s\n", strerror(errno));
++
+ 	pid = fork();
+ 	if (pid < 0) {
+-		perror("fork");
+ 		close(pipefd[0]);
+ 		close(pipefd[1]);
+-		exit(KSFT_FAIL);
++		ksft_exit_fail_msg("fork: %s\n", strerror(errno));
+ 	}
+ 
+ 	if (pid == 0) {
+@@ -134,28 +129,23 @@ retry:
+ 	res = read(pipefd[0], &byte, 1);
+ 	close(pipefd[0]);
+ 	if (res < 0) {
+-		perror("read");
+ 		if (!kill(pid, SIGKILL))
+ 			waitpid(pid, NULL, 0);
+-		exit(KSFT_FAIL);
++		ksft_exit_fail_msg("read: %s\n", strerror(errno));
+ 	}
+ 
+ 	pidfd = syscall(__NR_pidfd_open, pid, 0);
+ 	if (pidfd < 0) {
+-		perror("pidfd_open");
+ 		if (!kill(pid, SIGKILL))
+ 			waitpid(pid, NULL, 0);
+-		exit(KSFT_FAIL);
++		ksft_exit_fail_msg("pidfd_open: %s\n", strerror(errno));
+ 	}
+ 
+ 	/* Run negative tests which require a live child */
+ 	run_negative_tests(pidfd);
+ 
+-	if (kill(pid, SIGKILL)) {
+-		res = (errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
+-		perror("kill");
+-		exit(res);
+-	}
++	if (kill(pid, SIGKILL))
++		ksft_exit_fail_msg("kill: %s\n", strerror(errno));
+ 
+ 	success = (syscall(__NR_process_mrelease, pidfd, 0) == 0);
+ 	if (!success) {
+@@ -169,18 +159,15 @@ retry:
+ 		if (errno == ESRCH) {
+ 			retry = (size <= MAX_SIZE_MB);
+ 		} else {
+-			res = (errno == ENOSYS ? KSFT_SKIP : KSFT_FAIL);
+-			perror("process_mrelease");
+ 			waitpid(pid, NULL, 0);
+-			exit(res);
++			ksft_exit_fail_msg("process_mrelease: %s\n", strerror(errno));
+ 		}
+ 	}
+ 
+ 	/* Cleanup to prevent zombies */
+-	if (waitpid(pid, NULL, 0) < 0) {
+-		perror("waitpid");
+-		exit(KSFT_FAIL);
+-	}
++	if (waitpid(pid, NULL, 0) < 0)
++		ksft_exit_fail_msg("waitpid: %s\n", strerror(errno));
++
+ 	close(pidfd);
+ 
+ 	if (!success) {
+@@ -188,11 +175,10 @@ retry:
+ 			size *= 2;
+ 			goto retry;
+ 		}
+-		printf("All process_mrelease attempts failed!\n");
+-		exit(KSFT_FAIL);
++		ksft_exit_fail_msg("All process_mrelease attempts failed!\n");
+ 	}
+ 
+-	printf("Success reaping a child with %zuMB of memory allocations\n",
+-	       size);
+-	return KSFT_PASS;
++	ksft_test_result_pass("Success reaping a child with %zuMB of memory allocations\n",
++			      size);
++	ksft_finished();
+ }
 _
 
 Patches currently in -mm which might be from usama.anjum@collabora.com are
