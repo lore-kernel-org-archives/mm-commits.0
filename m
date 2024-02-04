@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 692E69473
-	for <mm-commits@vger.kernel.org>; Sun,  4 Feb 2024 07:20:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 257DF79DC
+	for <mm-commits@vger.kernel.org>; Sun,  4 Feb 2024 07:20:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707031257; cv=none; b=fP/Mo/KbW0HtE8TEb7UkjwTq7sJ3uebGkw6g2fEN8YjPjSKtEY6s3mZt7TJouNDBjSU/ORuPeLJ/2Tg3WhauRduE41mPsk8A43eLhi7tDtDr9VuzKoIGtU+BDKfjSxKPydQ+zCkIXHRiYBENobtmBff2bZ4mlc58jpIfjA8fEbg=
+	t=1707031258; cv=none; b=V9nRGGAxykz+xTzgB//nNVskIvSkqecPF9eN1BIKtkhJhgnEfhOac3ZLTaJLan4Q49Xp/8u6JzhBbhx0E6fny12lMc4BMrNmouV7NT4UrJ2dQ4X3QuXpuOJOPAlzOKwglR4P7/Phv/ziplKWOBeg2RsqX0D5tGsfiuJxIbu5GLQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707031257; c=relaxed/simple;
-	bh=gOC4BocYNN8kkFYz+dxVAnYl8SKCAu/vL7umLhqcfeo=;
-	h=Date:To:From:Subject:Message-Id; b=PBhWSSV3Fg7IjV4+gjh/xREJZfLG41blqalfEzsh0FG+q++VeypgDEduPVCUZEzepeO1iaYAMQWSW+uSwlliUbzlcIYKcdWpFoJJvO3bx4aGP+/0obrVXrJNQxQZRb1d0CYRK3p25KboxJ6IyNwHm5lb8nDUIRl8Rd8J4NlxNU4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xO1mR2TS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707031258; c=relaxed/simple;
+	bh=rwDEjNbtfLTMnFTqu0TdMEG06s5/s/AHadHQ+XW55hs=;
+	h=Date:To:From:Subject:Message-Id; b=oP8RXfiKbvmCKeX5jG0+8Y1nAtnc9AXTNW4l/muhWs4aLKCuccP/yIQHs0fWjny5jcY3fxtCjXLB/aEiZ5dt4w0CRcFMTns16CSl5jM6XnDFvYFXMZ9iU4PGepfl42cQdpVAWqJjS4ulbbivowO4LB7GFUVmmOPuk3gzweoYD5Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0OZaF0rC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xO1mR2TS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E11BC433F1;
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0OZaF0rC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF3B2C433F1;
 	Sun,  4 Feb 2024 07:20:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707031257;
-	bh=gOC4BocYNN8kkFYz+dxVAnYl8SKCAu/vL7umLhqcfeo=;
+	s=korg; t=1707031258;
+	bh=rwDEjNbtfLTMnFTqu0TdMEG06s5/s/AHadHQ+XW55hs=;
 	h=Date:To:From:Subject:From;
-	b=xO1mR2TSvwf8NdNTdx2DDIo4HTpqWpAjVBtBc/SumweodK73K4wu+yocZMOIa+Tqm
-	 /nzPRKNL0OFjg/gFO0wofNvcdbnjt8NgFmg5YLxjxFpTFVdLy+zvNr0eqbuPywBr5V
-	 11Szuhi+ZGMMk8haXXeqiDMoPDTvoFfNAqPb4NiU=
-Date: Sat, 03 Feb 2024 23:20:56 -0800
-To: mm-commits@vger.kernel.org,shuah@kernel.org,usama.anjum@collabora.com,akpm@linux-foundation.org
+	b=0OZaF0rCGCp690O+jjLSBKF0W3XGcXfDzUneKURoQVDN7YfvFqHYY+D8hd0Gzjmls
+	 ksCxt9qV3oiHg4uFBCIMOURyXqJeCVNGpXYgWNQxrvQh8hakWSud7SMlItaANkqGJo
+	 xFBc5gCrk3nsKUUl07wUFN+LLPUb14NY64V4dSb8=
+Date: Sat, 03 Feb 2024 23:20:57 -0800
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,paul.heidekrueger@tum.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-virtual_address_range-conform-to-tap-format-output.patch added to mm-unstable branch
-Message-Id: <20240204072057.1E11BC433F1@smtp.kernel.org>
+Subject: + kasan-add-atomic-tests.patch added to mm-unstable branch
+Message-Id: <20240204072057.DF3B2C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: virtual_address_range: conform to TAP format output
+     Subject: kasan: add atomic tests
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-virtual_address_range-conform-to-tap-format-output.patch
+     kasan-add-atomic-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-virtual_address_range-conform-to-tap-format-output.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-add-atomic-tests.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,138 +58,129 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: virtual_address_range: conform to TAP format output
-Date: Fri, 2 Feb 2024 16:31:19 +0500
+From: Paul Heidekrüger <paul.heidekrueger@tum.de>
+Subject: kasan: add atomic tests
+Date: Fri, 2 Feb 2024 11:32:59 +0000
 
-Conform the layout, informational and status messages to TAP.  No
-functional change is intended other than the layout of output messages.
+Test that KASan can detect some unsafe atomic accesses.
 
-Link: https://lkml.kernel.org/r/20240202113119.2047740-13-usama.anjum@collabora.com
-Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Shuah Khan <shuah@kernel.org>
+As discussed in the linked thread below, these tests attempt to cover
+the most common uses of atomics and, therefore, aren't exhaustive.
+
+Link: https://lkml.kernel.org/r/20240202113259.3045705-1-paul.heidekrueger@tum.de
+Signed-off-by: Paul Heidekrüger <paul.heidekrueger@tum.de>
+Cc: Marco Elver <elver@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Link: https://lore.kernel.org/all/20240131210041.686657-1-paul.heidekrueger@tum.de/T/#u
+Closes: https://bugzilla.kernel.org/show_bug.cgi?id=214055
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/virtual_address_range.c |   44 +++++------
- 1 file changed, 22 insertions(+), 22 deletions(-)
+ mm/kasan/kasan_test.c |   79 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 79 insertions(+)
 
---- a/tools/testing/selftests/mm/virtual_address_range.c~selftests-mm-virtual_address_range-conform-to-tap-format-output
-+++ a/tools/testing/selftests/mm/virtual_address_range.c
-@@ -12,6 +12,7 @@
- #include <errno.h>
- #include <sys/mman.h>
- #include <sys/time.h>
-+#include "../kselftest.h"
- 
- /*
-  * Maximum address range mapped with a single mmap()
-@@ -68,23 +69,15 @@ static char *hind_addr(void)
- 	return (char *) (1UL << bits);
+--- a/mm/kasan/kasan_test.c~kasan-add-atomic-tests
++++ a/mm/kasan/kasan_test.c
+@@ -697,6 +697,84 @@ static void kmalloc_uaf3(struct kunit *t
+ 	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr1)[8]);
  }
  
--static int validate_addr(char *ptr, int high_addr)
-+static void validate_addr(char *ptr, int high_addr)
++static void kasan_atomics_helper(struct kunit *test, void *unsafe, void *safe)
++{
++	int *i_unsafe = (int *)unsafe;
++
++	KUNIT_EXPECT_KASAN_FAIL(test, READ_ONCE(*i_unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, WRITE_ONCE(*i_unsafe, 42));
++	KUNIT_EXPECT_KASAN_FAIL(test, smp_load_acquire(i_unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, smp_store_release(i_unsafe, 42));
++
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_read(unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_set(unsafe, 42));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_add(42, unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_sub(42, unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_inc(unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_dec(unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_and(42, unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_andnot(42, unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_or(42, unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_xor(42, unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_xchg(unsafe, 42));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_cmpxchg(unsafe, 21, 42));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_try_cmpxchg(unsafe, safe, 42));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_try_cmpxchg(safe, unsafe, 42));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_sub_and_test(42, unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_dec_and_test(unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_inc_and_test(unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_add_negative(42, unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_add_unless(unsafe, 21, 42));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_inc_not_zero(unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_inc_unless_negative(unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_dec_unless_positive(unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_dec_if_positive(unsafe));
++
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_read(unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_set(unsafe, 42));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_add(42, unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_sub(42, unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_inc(unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_dec(unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_and(42, unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_andnot(42, unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_or(42, unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_xor(42, unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_xchg(unsafe, 42));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_cmpxchg(unsafe, 21, 42));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_try_cmpxchg(unsafe, safe, 42));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_try_cmpxchg(safe, unsafe, 42));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_sub_and_test(42, unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_dec_and_test(unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_inc_and_test(unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_add_negative(42, unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_add_unless(unsafe, 21, 42));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_inc_not_zero(unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_inc_unless_negative(unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_dec_unless_positive(unsafe));
++	KUNIT_EXPECT_KASAN_FAIL(test, atomic_long_dec_if_positive(unsafe));
++}
++
++static void kasan_atomics(struct kunit *test)
++{
++	void *a1, *a2;
++
++	/*
++	 * Just as with kasan_bitops_tags(), we allocate 48 bytes of memory such
++	 * that the following 16 bytes will make up the redzone.
++	 */
++	a1 = kzalloc(48, GFP_KERNEL);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, a1);
++	a2 = kzalloc(sizeof(int), GFP_KERNEL);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, a1);
++
++	/* Use atomics to access the redzone. */
++	kasan_atomics_helper(test, a1 + 48, a2);
++
++	kfree(a1);
++	kfree(a2);
++}
++
+ static void kmalloc_double_kzfree(struct kunit *test)
  {
- 	unsigned long addr = (unsigned long) ptr;
- 
--	if (high_addr) {
--		if (addr < HIGH_ADDR_MARK) {
--			printf("Bad address %lx\n", addr);
--			return 1;
--		}
--		return 0;
--	}
-+	if (high_addr && addr < HIGH_ADDR_MARK)
-+		ksft_exit_fail_msg("Bad address %lx\n", addr);
- 
--	if (addr > HIGH_ADDR_MARK) {
--		printf("Bad address %lx\n", addr);
--		return 1;
--	}
--	return 0;
-+	if (addr > HIGH_ADDR_MARK)
-+		ksft_exit_fail_msg("Bad address %lx\n", addr);
- }
- 
- static int validate_lower_address_hint(void)
-@@ -107,23 +100,29 @@ int main(int argc, char *argv[])
- 	char *hint;
- 	unsigned long i, lchunks, hchunks;
- 
-+	ksft_print_header();
-+	ksft_set_plan(1);
-+
- 	for (i = 0; i < NR_CHUNKS_LOW; i++) {
- 		ptr[i] = mmap(NULL, MAP_CHUNK_SIZE, PROT_READ | PROT_WRITE,
- 					MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
- 
- 		if (ptr[i] == MAP_FAILED) {
--			if (validate_lower_address_hint())
--				return 1;
-+			if (validate_lower_address_hint()) {
-+				ksft_test_result_skip("Memory constraint not fulfilled\n");
-+				ksft_finished();
-+			}
- 			break;
- 		}
- 
--		if (validate_addr(ptr[i], 0))
--			return 1;
-+		validate_addr(ptr[i], 0);
- 	}
- 	lchunks = i;
- 	hptr = (char **) calloc(NR_CHUNKS_HIGH, sizeof(char *));
--	if (hptr == NULL)
--		return 1;
-+	if (hptr == NULL) {
-+		ksft_test_result_skip("Memory constraint not fulfilled\n");
-+		ksft_finished();
-+	}
- 
- 	for (i = 0; i < NR_CHUNKS_HIGH; i++) {
- 		hint = hind_addr();
-@@ -133,8 +132,7 @@ int main(int argc, char *argv[])
- 		if (hptr[i] == MAP_FAILED)
- 			break;
- 
--		if (validate_addr(hptr[i], 1))
--			return 1;
-+		validate_addr(hptr[i], 1);
- 	}
- 	hchunks = i;
- 
-@@ -145,5 +143,7 @@ int main(int argc, char *argv[])
- 		munmap(hptr[i], MAP_CHUNK_SIZE);
- 
- 	free(hptr);
--	return 0;
-+
-+	ksft_test_result_pass("Test\n");
-+	ksft_finished();
- }
+ 	char *ptr;
+@@ -1883,6 +1961,7 @@ static struct kunit_case kasan_kunit_tes
+ 	KUNIT_CASE(kasan_strings),
+ 	KUNIT_CASE(kasan_bitops_generic),
+ 	KUNIT_CASE(kasan_bitops_tags),
++	KUNIT_CASE(kasan_atomics),
+ 	KUNIT_CASE(vmalloc_helpers_tags),
+ 	KUNIT_CASE(vmalloc_oob),
+ 	KUNIT_CASE(vmap_tags),
 _
 
-Patches currently in -mm which might be from usama.anjum@collabora.com are
+Patches currently in -mm which might be from paul.heidekrueger@tum.de are
 
-selftests-core-include-linux-close_rangeh-for-close_range_-macros.patch
-selftests-mm-map_fixed_noreplace-conform-test-to-tap-format-output.patch
-selftests-mm-map_hugetlb-conform-test-to-tap-format-output.patch
-selftests-mm-map_populate-conform-test-to-tap-format-output.patch
-selftests-mm-mlock-random-test-conform-test-to-tap-format-output.patch
-selftests-mm-mlock2-tests-conform-test-to-tap-format-output.patch
-selftests-mm-mrelease_test-conform-test-to-tap-format-output.patch
-selftests-mm-mremap_dontunmap-conform-test-to-tap-format-output.patch
-selftests-mm-split_huge_page_test-conform-test-to-tap-format-output.patch
-selftests-mm-thp_settings-conform-to-tap-format-output.patch
-selftests-mm-thuge-gen-conform-to-tap-format-output.patch
-selftests-mm-transhuge-stress-conform-to-tap-format-output.patch
-selftests-mm-virtual_address_range-conform-to-tap-format-output.patch
-selftests-mm-hugetlb_reparenting_test-do-not-unmount.patch
-selftests-mm-run_vmtests-remove-sudo-and-conform-to-tap.patch
-selftests-mm-run_vmtests-remove-sudo-and-conform-to-tap-fix.patch
-selftests-mm-save-and-restore-nr_hugepages-value.patch
-selftests-mm-protection_keys-save-restore-nr_hugepages-settings.patch
-selftests-mm-run_vmtestssh-add-missing-tests.patch
-selftests-mm-run_vmtestssh-add-missing-tests-fix.patch
+kasan-add-atomic-tests.patch
 
