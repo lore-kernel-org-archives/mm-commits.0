@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8957879EE
-	for <mm-commits@vger.kernel.org>; Sun,  4 Feb 2024 07:20:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA8FA8827
+	for <mm-commits@vger.kernel.org>; Sun,  4 Feb 2024 07:20:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707031234; cv=none; b=eixE7ZOQ/nFouh5vSW8Dd5aRHX89U0CX7AShIWtfSTgFuS8GIZwrdui9J44ey/Tz4kLOnArznIhSAObui9Ah0Q42BdwZrs2NuVg0eB3pGJoNX3nJ8CUZaHsXKLz/iP0kIDmT1b7nQQIfcfIx+598xFdWryVR4e28tEMDvqA4DsE=
+	t=1707031235; cv=none; b=fjT381/4Deu2mfMz+LdCEJ64RLZOt/yJBReY3dqdO1tbQ5hBatuKmiLc0ZD5fxhBJr5iYEO/iuf7MXTnMBVCwOWnaMXaMnM9adU8NCV2aJdiFGtLlcEjAkonT947JljFx4G0kTnsUsGkmvQ7gf3QKEpdxVPlgcBPaSV5agzasT4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707031234; c=relaxed/simple;
-	bh=U+k/LqkgOq4ZcouLnYXRK8/ji0p/g1kipRpENU9tQUw=;
-	h=Date:To:From:Subject:Message-Id; b=koC/40soQ9kjyVDYhQFVk3sjBzzXmWiJrYFYNHfDsFtetDNESvPe7newSFF04oiD7ByOzicSTxXRjODsJhTORPAkNxcqk/RQr7FRUovniPqVX0ZQMZ7wLSbdr5jM8QPFq6qgMQduFpHrzIdnoCksjO8NYAr23Ip97gHYHW51erw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W9Vn7OSX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707031235; c=relaxed/simple;
+	bh=UEywF//4EW+FW+MnMVOj13AW6T4w3zY6JP1xUHczGZM=;
+	h=Date:To:From:Subject:Message-Id; b=jQM8uD1q05Moz/d3JO6y2dtvbli8FMPSamp8GDUFpPv2XjIeo5Gur6SBS8gEFJXAw3csdK66xo7h/YwjHKQABuOAhD4cbuOBIhyb38lfUwYF9BUhwd6HBk0CvVhWM0Mg9XU8zALlpM+/1Ko0SlGQIW/Akc0mRHrQGBnFPTgreoI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HT22tuB3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W9Vn7OSX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E43AC43390;
-	Sun,  4 Feb 2024 07:20:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HT22tuB3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 226CEC43399;
+	Sun,  4 Feb 2024 07:20:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707031234;
-	bh=U+k/LqkgOq4ZcouLnYXRK8/ji0p/g1kipRpENU9tQUw=;
+	s=korg; t=1707031235;
+	bh=UEywF//4EW+FW+MnMVOj13AW6T4w3zY6JP1xUHczGZM=;
 	h=Date:To:From:Subject:From;
-	b=W9Vn7OSXhN8oIvgyKIUJuzEGkaezStPIO8h60AO6z/dGwUoW+OPa76Cifk9wNGnyq
-	 CSZRk0XA8afubcLetbOiU9FxenX5tASz9cV3ZdpeDWerfWnq3vhzmtWxlI1oyHVqWj
-	 iAVvSQQ4khVyOMxC0OpdHIvG2hgWJmAkG9fc8wSI=
-Date: Sat, 03 Feb 2024 23:20:33 -0800
-To: mm-commits@vger.kernel.org,Liam.Howlett@oracle.com,yajun.deng@linux.dev,akpm@linux-foundation.org
+	b=HT22tuB3rLed7Ca9+Wmf3BmbnwWtGgJwmGRgbWx8doGbg4FPlU6e+SXPvKkJiPAfX
+	 y5QGkYeUpJ8uYteKM4Scr/nq/oPVek7sXJ39Ps2QEo9OA1L621MrIYVjHGDU+UBn2R
+	 yK3UjBu5zELDEi3aFNIalnbUxeacBlPcPGSicN24=
+Date: Sat, 03 Feb 2024 23:20:34 -0800
+To: mm-commits@vger.kernel.org,yang.lee@linux.alibaba.com,viro@zeniv.linux.org.uk,sfr@canb.auug.org.au,piliu@redhat.com,nathan@kernel.org,mhklinux@outlook.com,klarasmodin@gmail.com,hbathini@linux.ibm.com,ebiederm@xmission.com,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-pass-vma-to-vma_merge.patch added to mm-unstable branch
-Message-Id: <20240204072034.3E43AC43390@smtp.kernel.org>
+Subject: + x86-crash-wrap-crash-dumping-code-into-crash-related-ifdefs-fix.patch added to mm-unstable branch
+Message-Id: <20240204072035.226CEC43399@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mmap: pass vma to vma_merge()
+     Subject: x86, crash: don't nest CONFIG_CRASH_DUMP ifdef inside CONFIG_KEXEC_CODE ifdef scope
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-pass-vma-to-vma_merge.patch
+     x86-crash-wrap-crash-dumping-code-into-crash-related-ifdefs-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-pass-vma-to-vma_merge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-crash-wrap-crash-dumping-code-into-crash-related-ifdefs-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,93 +58,165 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yajun Deng <yajun.deng@linux.dev>
-Subject: mm/mmap: pass vma to vma_merge()
-Date: Sat, 3 Feb 2024 09:46:32 +0800
+From: Baoquan He <bhe@redhat.com>
+Subject: x86, crash: don't nest CONFIG_CRASH_DUMP ifdef inside CONFIG_KEXEC_CODE ifdef scope
+Date: Tue, 30 Jan 2024 10:59:59 +0800
 
-These vma_merge() callers will pass mm, anon_vma and file, they all from
-the same vma.  There is no need to pass three parameters at the same time.
+Michael pointed out that the CONFIG_CRASH_DUMP ifdef is nested inside
+CONFIG_KEXEC_CODE ifdef scope in some XEN, Hyper-V codes.
 
-Pass vma instead of mm, anon_vma and file to vma_merge(), so that it can
-save two parameters.
+Although the nesting works well too since CONFIG_CRASH_DUMP has
+dependency on CONFIG_KEXEC_CORE, it may cause confusion because there
+are places where it's not nested, and people may think it needs to be
+nested even though it doesn't have to.
 
-Link: https://lkml.kernel.org/r/20240203014632.2726545-1-yajun.deng@linux.dev
-Link: https://lore.kernel.org/lkml/20240125034922.1004671-2-yajun.deng@linux.dev/
-Signed-off-by: Yajun Deng <yajun.deng@linux.dev>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Yajun Deng <yajun.deng@linux.dev>
+Fix that by moving  CONFIG_CRASH_DUMP ifdeffery of codes out of
+CONFIG_KEXEC_CODE ifdeffery scope.
+
+And also put function machine_crash_shutdown() definition inside
+CONFIG_CRASH_DUMP ifdef scope instead of CONFIG_KEXEC_CORE ifdef.
+
+And also fix a building error Nathan reported as below by replacing
+CONFIG_KEXEC_CORE ifdef with CONFIG_VMCORE_INFO ifdef.
+
+====
+$ curl -LSso .config https://git.alpinelinux.org/aports/plain/community/linux-edge/config-edge.x86_64
+$ make -skj"$(nproc)" ARCH=x86_64 CROSS_COMPILE=x86_64-linux- olddefconfig all
+..
+x86_64-linux-ld: arch/x86/xen/mmu_pv.o: in function `paddr_vmcoreinfo_note':
+mmu_pv.c:(.text+0x3af3): undefined reference to `vmcoreinfo_note'
+====
+
+Link: https://lore.kernel.org/all/SN6PR02MB4157931105FA68D72E3D3DB8D47B2@SN6PR02MB4157.namprd02.prod.outlook.com/T/#u
+Link: https://lore.kernel.org/all/20240126045551.GA126645@dev-arch.thelio-3990X/T/#u
+Link: https://lkml.kernel.org/r/ZbhmL/jQtZ7TFZqV@MiWiFi-R3L-srv
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Reviewed-by: Michael Kelley <mhklinux@outlook.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Hari Bathini <hbathini@linux.ibm.com>
+Cc: Klara Modin <klarasmodin@gmail.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Pingfan Liu <piliu@redhat.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Yang Li <yang.lee@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   27 +++++++++++++--------------
- 1 file changed, 13 insertions(+), 14 deletions(-)
+ arch/x86/kernel/cpu/mshyperv.c |   10 ++++++----
+ arch/x86/kernel/reboot.c       |    2 +-
+ arch/x86/xen/enlighten_hvm.c   |    4 ++--
+ arch/x86/xen/mmu_pv.c          |    2 +-
+ 4 files changed, 10 insertions(+), 8 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-pass-vma-to-vma_merge
-+++ a/mm/mmap.c
-@@ -860,13 +860,15 @@ can_vma_merge_after(struct vm_area_struc
-  *      area is returned, or the function will return NULL
-  */
- static struct vm_area_struct
--*vma_merge(struct vma_iterator *vmi, struct mm_struct *mm,
--	   struct vm_area_struct *prev, unsigned long addr, unsigned long end,
--	   unsigned long vm_flags, struct anon_vma *anon_vma, struct file *file,
--	   pgoff_t pgoff, struct mempolicy *policy,
-+*vma_merge(struct vma_iterator *vmi, struct vm_area_struct *prev,
-+	   struct vm_area_struct *src, unsigned long addr, unsigned long end,
-+	   unsigned long vm_flags, pgoff_t pgoff, struct mempolicy *policy,
- 	   struct vm_userfaultfd_ctx vm_userfaultfd_ctx,
- 	   struct anon_vma_name *anon_name)
- {
-+	struct mm_struct *mm = src->vm_mm;
-+	struct anon_vma *anon_vma = src->anon_vma;
-+	struct file *file = src->vm_file;
- 	struct vm_area_struct *curr, *next, *res;
- 	struct vm_area_struct *vma, *adjust, *remove, *remove2;
- 	struct vm_area_struct *anon_dup = NULL;
-@@ -2426,9 +2428,8 @@ struct vm_area_struct *vma_modify(struct
- 	pgoff_t pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
- 	struct vm_area_struct *merged;
+--- a/arch/x86/kernel/cpu/mshyperv.c~x86-crash-wrap-crash-dumping-code-into-crash-related-ifdefs-fix
++++ a/arch/x86/kernel/cpu/mshyperv.c
+@@ -209,6 +209,7 @@ static void hv_machine_shutdown(void)
+ 	if (kexec_in_progress)
+ 		hyperv_cleanup();
+ }
++#endif /* CONFIG_KEXEC_CORE */
  
--	merged = vma_merge(vmi, vma->vm_mm, prev, start, end, vm_flags,
--			   vma->anon_vma, vma->vm_file, pgoff, policy,
--			   uffd_ctx, anon_name);
-+	merged = vma_merge(vmi, prev, vma, start, end, vm_flags,
-+			   pgoff, policy, uffd_ctx, anon_name);
- 	if (merged)
- 		return merged;
+ #ifdef CONFIG_CRASH_DUMP
+ static void hv_machine_crash_shutdown(struct pt_regs *regs)
+@@ -222,8 +223,7 @@ static void hv_machine_crash_shutdown(st
+ 	/* Disable the hypercall page when there is only 1 active CPU. */
+ 	hyperv_cleanup();
+ }
+-#endif
+-#endif /* CONFIG_KEXEC_CORE */
++#endif /* CONFIG_CRASH_DUMP */
+ #endif /* CONFIG_HYPERV */
  
-@@ -2458,9 +2459,8 @@ static struct vm_area_struct
- 		   struct vm_area_struct *vma, unsigned long start,
- 		   unsigned long end, pgoff_t pgoff)
- {
--	return vma_merge(vmi, vma->vm_mm, prev, start, end, vma->vm_flags,
--			 vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma),
--			 vma->vm_userfaultfd_ctx, anon_vma_name(vma));
-+	return vma_merge(vmi, prev, vma, start, end, vma->vm_flags, pgoff,
-+			 vma_policy(vma), vma->vm_userfaultfd_ctx, anon_vma_name(vma));
+ static uint32_t  __init ms_hyperv_platform(void)
+@@ -497,9 +497,11 @@ static void __init ms_hyperv_init_platfo
+ 	no_timer_check = 1;
+ #endif
+ 
+-#if IS_ENABLED(CONFIG_HYPERV) && defined(CONFIG_KEXEC_CORE)
++#if IS_ENABLED(CONFIG_HYPERV)
++#if defined(CONFIG_KEXEC_CORE)
+ 	machine_ops.shutdown = hv_machine_shutdown;
+-#ifdef CONFIG_CRASH_DUMP
++#endif
++#if defined(CONFIG_CRASH_DUMP)
+ 	machine_ops.crash_shutdown = hv_machine_crash_shutdown;
+ #endif
+ #endif
+--- a/arch/x86/kernel/reboot.c~x86-crash-wrap-crash-dumping-code-into-crash-related-ifdefs-fix
++++ a/arch/x86/kernel/reboot.c
+@@ -826,7 +826,7 @@ void machine_halt(void)
+ 	machine_ops.halt();
  }
  
- /*
-@@ -2474,10 +2474,9 @@ struct vm_area_struct *vma_merge_extend(
- 	pgoff_t pgoff = vma->vm_pgoff + vma_pages(vma);
+-#ifdef CONFIG_KEXEC_CORE
++#ifdef CONFIG_CRASH_DUMP
+ void machine_crash_shutdown(struct pt_regs *regs)
+ {
+ 	machine_ops.crash_shutdown(regs);
+--- a/arch/x86/xen/enlighten_hvm.c~x86-crash-wrap-crash-dumping-code-into-crash-related-ifdefs-fix
++++ a/arch/x86/xen/enlighten_hvm.c
+@@ -148,6 +148,7 @@ static void xen_hvm_shutdown(void)
+ 	if (kexec_in_progress)
+ 		xen_reboot(SHUTDOWN_soft_reset);
+ }
++#endif
  
- 	/* vma is specified as prev, so case 1 or 2 will apply. */
--	return vma_merge(vmi, vma->vm_mm, vma, vma->vm_end, vma->vm_end + delta,
--			 vma->vm_flags, vma->anon_vma, vma->vm_file, pgoff,
--			 vma_policy(vma), vma->vm_userfaultfd_ctx,
--			 anon_vma_name(vma));
-+	return vma_merge(vmi, vma, vma, vma->vm_end, vma->vm_end + delta,
-+			 vma->vm_flags, pgoff, vma_policy(vma),
-+			 vma->vm_userfaultfd_ctx, anon_vma_name(vma));
+ #ifdef CONFIG_CRASH_DUMP
+ static void xen_hvm_crash_shutdown(struct pt_regs *regs)
+@@ -156,7 +157,6 @@ static void xen_hvm_crash_shutdown(struc
+ 	xen_reboot(SHUTDOWN_soft_reset);
+ }
+ #endif
+-#endif
+ 
+ static int xen_cpu_up_prepare_hvm(unsigned int cpu)
+ {
+@@ -238,10 +238,10 @@ static void __init xen_hvm_guest_init(vo
+ 
+ #ifdef CONFIG_KEXEC_CORE
+ 	machine_ops.shutdown = xen_hvm_shutdown;
++#endif
+ #ifdef CONFIG_CRASH_DUMP
+ 	machine_ops.crash_shutdown = xen_hvm_crash_shutdown;
+ #endif
+-#endif
  }
  
- /*
+ static __init int xen_parse_nopv(char *arg)
+--- a/arch/x86/xen/mmu_pv.c~x86-crash-wrap-crash-dumping-code-into-crash-related-ifdefs-fix
++++ a/arch/x86/xen/mmu_pv.c
+@@ -2520,7 +2520,7 @@ out:
+ }
+ EXPORT_SYMBOL_GPL(xen_remap_pfn);
+ 
+-#ifdef CONFIG_KEXEC_CORE
++#ifdef CONFIG_VMCORE_INFO
+ phys_addr_t paddr_vmcoreinfo_note(void)
+ {
+ 	if (xen_pv_domain())
 _
 
-Patches currently in -mm which might be from yajun.deng@linux.dev are
+Patches currently in -mm which might be from bhe@redhat.com are
 
-mm-mmap-simplify-vma-link-and-unlink.patch
-mm-mmap-introduce-vma_set_range.patch
-mm-mmap-use-sz_8k-128k-helper-macro.patch
-mm-mmap-pass-vma-to-vma_merge.patch
+mm-vmalloc-remove-vmap_area_list.patch
+kexec-split-crashkernel-reservation-code-out-from-crash_corec.patch
+crash-split-vmcoreinfo-exporting-code-out-from-crash_corec.patch
+crash-remove-dependency-of-fa_dump-on-crash_dump.patch
+crash-split-crash-dumping-code-out-from-kexec_corec.patch
+crash-clean-up-kdump-related-config-items.patch
+x86-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
+x86-crash-wrap-crash-dumping-code-into-crash-related-ifdefs-fix.patch
+arm64-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
+arm64-crash-wrap-crash-dumping-code-into-crash-related-ifdefs-fix.patch
+ppc-crash-enforce-kexec-and-kexec_file-to-select-crash_dump.patch
+ppc-crash-enforce-kexec-and-kexec_file-to-select-crash_dump-fix.patch
+s390-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
+sh-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
+mips-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
+riscv-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
+arm-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
+loongarch-crash-wrap-crash-dumping-code-into-crash-related-ifdefs.patch
+arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc.patch
+panic-suppress-gnu_printf-warning.patch
 
