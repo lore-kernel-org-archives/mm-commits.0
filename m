@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE8FABE58
-	for <mm-commits@vger.kernel.org>; Sun,  4 Feb 2024 07:20:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD84F8C0A
+	for <mm-commits@vger.kernel.org>; Sun,  4 Feb 2024 07:20:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707031254; cv=none; b=UOVwOEOndz/8Hxtfi9xfFCbPGLUxVhg3bxn5nD5MGAmLHRdT7iXuMPBjk0Hh4Z9wmnRn7pLFevyyRWbsV9a8XhmOnIMDnhM3lKhnzySkXHUtCSAcyUCGLDA8BPQVh/PI5qnPPJu1XjIzO2Hczm0Wo3tC/e9GQGnY17vA6gvng3E=
+	t=1707031255; cv=none; b=Ie/H1C/l6FxcJCxSA+ZxGmTMUJXjyAEmxgr2C0GU3cRmnG4TftcS1559iKHNHjPTOL24pO/33RTJuFhgdWtUuShsskNjX4LsJaQ7MQIIc1vMwvATadYniLZxfOchfx0yOcl/FmUnj3JJEKUzE9zo8H83hfXPpFDs1mllqo3yoBA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707031254; c=relaxed/simple;
-	bh=vGG8JEhxKp2Y7vMBKXh14L/AMIzdsrmc535Bf7gHdHI=;
-	h=Date:To:From:Subject:Message-Id; b=TRxmg8N2HTtTJRTum9rRprZZKnW2XA+UoZqu3LnL7Mr36QaB1dIC1kdxMLauhFtD0h9czq8Aw3Tpp0CVFq4jzYbj/NfNZB2+mhhMrNCxvvEBMovo55gvEYYVNhXmHsPknPTjJi8v/5X6E99zFtDXj21IMPSz1NXdrO1jWerdp8E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nzO7ZR5T; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707031255; c=relaxed/simple;
+	bh=KLklaFr8NTRaGwC8ySWdTA+V2BsFoTqP3A24paxQTp8=;
+	h=Date:To:From:Subject:Message-Id; b=Nonp/hLu6qHly7dnlPCCOGUEWSYrqhBLwu2VPEbd80cYpvOxeyW6rm4FgYxeN/JUFC4WpGyILLaSTWFmmkJasmzGtFwcwnuFxO5egzM8hjEKnOUTOWN54/oM49eEWgoEJ5hbpoPUAeXXu3EdwQ1Kh1WSo5ZXGq94wH/nwX8wZg0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XJ4b/cgY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nzO7ZR5T"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8269C43399;
-	Sun,  4 Feb 2024 07:20:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XJ4b/cgY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76AE0C43390;
+	Sun,  4 Feb 2024 07:20:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707031254;
-	bh=vGG8JEhxKp2Y7vMBKXh14L/AMIzdsrmc535Bf7gHdHI=;
+	s=korg; t=1707031255;
+	bh=KLklaFr8NTRaGwC8ySWdTA+V2BsFoTqP3A24paxQTp8=;
 	h=Date:To:From:Subject:From;
-	b=nzO7ZR5TsF9Enu/H/6vI9ZFtms8PGJyt565klgX68EPujXB6xpgS6vjVdHtf/tm+d
-	 SdP+BFwdH0bG44mGZLr6Zio3xKgGzpf+8VfrvS4l2vYjDZiOWWb1KvLPCDQa1h8zcq
-	 ffHJRWRRZRPh2uBlWa0WC9mnyfWihxqh+QAS1I9A=
+	b=XJ4b/cgYFHfEgNq5aSyd0hthG0Vwpk/czm4abxLZq3GZPoaw2D8tz3qeFNpWGlzR2
+	 RI0OFCr/yqkf27LW3ViHKnbc4v23Oq6kX7OIOX4gqlXIdv/w7nEoMjGJHv2rWhdkmX
+	 SHaRQuGb+MHfHUR8+UD+zvpAQJUc4ueGIRAnWIdk=
 Date: Sat, 03 Feb 2024 23:20:54 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,usama.anjum@collabora.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-mremap_dontunmap-conform-test-to-tap-format-output.patch added to mm-unstable branch
-Message-Id: <20240204072054.A8269C43399@smtp.kernel.org>
+Subject: + selftests-mm-transhuge-stress-conform-to-tap-format-output.patch added to mm-unstable branch
+Message-Id: <20240204072055.76AE0C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: mremap_dontunmap: conform test to TAP format output
+     Subject: selftests/mm: transhuge-stress: conform to TAP format output
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-mremap_dontunmap-conform-test-to-tap-format-output.patch
+     selftests-mm-transhuge-stress-conform-to-tap-format-output.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-mremap_dontunmap-conform-test-to-tap-format-output.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-transhuge-stress-conform-to-tap-format-output.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,113 +59,151 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/mm: mremap_dontunmap: conform test to TAP format output
-Date: Fri, 2 Feb 2024 16:31:14 +0500
+Subject: selftests/mm: transhuge-stress: conform to TAP format output
+Date: Fri, 2 Feb 2024 16:31:18 +0500
 
 Conform the layout, informational and status messages to TAP.  No
 functional change is intended other than the layout of output messages.
 
-Link: https://lkml.kernel.org/r/20240202113119.2047740-8-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20240202113119.2047740-12-usama.anjum@collabora.com
 Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mremap_dontunmap.c |   32 ++++++++++------
- 1 file changed, 20 insertions(+), 12 deletions(-)
+ tools/testing/selftests/mm/transhuge-stress.c |   38 +++++++++-------
+ tools/testing/selftests/mm/vm_util.c          |    6 +-
+ 2 files changed, 26 insertions(+), 18 deletions(-)
 
---- a/tools/testing/selftests/mm/mremap_dontunmap.c~selftests-mm-mremap_dontunmap-conform-test-to-tap-format-output
-+++ a/tools/testing/selftests/mm/mremap_dontunmap.c
-@@ -27,14 +27,14 @@ static void dump_maps(void)
- 	system(cmd);
- }
+--- a/tools/testing/selftests/mm/transhuge-stress.c~selftests-mm-transhuge-stress-conform-to-tap-format-output
++++ a/tools/testing/selftests/mm/transhuge-stress.c
+@@ -16,6 +16,7 @@
+ #include <string.h>
+ #include <sys/mman.h>
+ #include "vm_util.h"
++#include "../kselftest.h"
  
--#define BUG_ON(condition, description)					      \
--	do {								      \
--		if (condition) {					      \
--			fprintf(stderr, "[FAIL]\t%s():%d\t%s:%s\n", __func__, \
--				__LINE__, (description), strerror(errno));    \
--			dump_maps();					  \
--			exit(1);					      \
--		} 							      \
-+#define BUG_ON(condition, description)						\
-+	do {									\
-+		if (condition) {						\
-+			dump_maps();						\
-+			ksft_exit_fail_msg("[FAIL]\t%s:%d\t%s:%s\n",		\
-+					   __func__, __LINE__, (description),	\
-+					   strerror(errno));			\
-+		}								\
- 	} while (0)
+ int backing_fd = -1;
+ int mmap_flags = MAP_ANONYMOUS | MAP_NORESERVE | MAP_PRIVATE;
+@@ -34,6 +35,8 @@ int main(int argc, char **argv)
+ 	int pagemap_fd;
+ 	int duration = 0;
  
- // Try a simple operation for to "test" for kernel support this prevents
-@@ -122,6 +122,7 @@ static void mremap_dontunmap_simple()
- 	       "unable to unmap destination mapping");
- 	BUG_ON(munmap(source_mapping, num_pages * page_size) == -1,
- 	       "unable to unmap source mapping");
-+	ksft_test_result_pass("%s\n", __func__);
- }
- 
- // This test validates that MREMAP_DONTUNMAP on a shared mapping works as expected.
-@@ -173,6 +174,7 @@ static void mremap_dontunmap_simple_shme
- 	       "unable to unmap destination mapping");
- 	BUG_ON(munmap(source_mapping, num_pages * page_size) == -1,
- 	       "unable to unmap source mapping");
-+	ksft_test_result_pass("%s\n", __func__);
- }
- 
- // This test validates MREMAP_DONTUNMAP will move page tables to a specific
-@@ -219,6 +221,7 @@ static void mremap_dontunmap_simple_fixe
- 	       "unable to unmap destination mapping");
- 	BUG_ON(munmap(source_mapping, num_pages * page_size) == -1,
- 	       "unable to unmap source mapping");
-+	ksft_test_result_pass("%s\n", __func__);
- }
- 
- // This test validates that we can MREMAP_DONTUNMAP for a portion of an
-@@ -269,6 +272,7 @@ static void mremap_dontunmap_partial_map
- 	       "unable to unmap destination mapping");
- 	BUG_ON(munmap(source_mapping, num_pages * page_size) == -1,
- 	       "unable to unmap source mapping");
-+	ksft_test_result_pass("%s\n", __func__);
- }
- 
- // This test validates that we can remap over only a portion of a mapping.
-@@ -328,19 +332,24 @@ static void mremap_dontunmap_partial_map
- 	       "unable to unmap destination mapping");
- 	BUG_ON(munmap(source_mapping, 5 * page_size) == -1,
- 	       "unable to unmap source mapping");
-+	ksft_test_result_pass("%s\n", __func__);
- }
- 
- int main(void)
- {
 +	ksft_print_header();
 +
- 	page_size = sysconf(_SC_PAGE_SIZE);
+ 	ram = sysconf(_SC_PHYS_PAGES);
+ 	if (ram > SIZE_MAX / psize() / 4)
+ 		ram = SIZE_MAX / 4;
+@@ -43,7 +46,8 @@ int main(int argc, char **argv)
  
- 	// test for kernel support for MREMAP_DONTUNMAP skipping the test if
- 	// not.
- 	if (kernel_support_for_mremap_dontunmap() != 0) {
--		printf("No kernel support for MREMAP_DONTUNMAP\n");
--		return KSFT_SKIP;
-+		ksft_print_msg("No kernel support for MREMAP_DONTUNMAP\n");
-+		ksft_finished();
+ 	while (++i < argc) {
+ 		if (!strcmp(argv[i], "-h"))
+-			errx(1, "usage: %s [-f <filename>] [-d <duration>] [size in MiB]", argv[0]);
++			ksft_exit_fail_msg("usage: %s [-f <filename>] [-d <duration>] [size in MiB]\n",
++					   argv[0]);
+ 		else if (!strcmp(argv[i], "-f"))
+ 			name = argv[++i];
+ 		else if (!strcmp(argv[i], "-d"))
+@@ -52,10 +56,12 @@ int main(int argc, char **argv)
+ 			len = atoll(argv[i]) << 20;
  	}
  
-+	ksft_set_plan(5);
++	ksft_set_plan(1);
 +
- 	// Keep a page sized buffer around for when we need it.
- 	page_buffer =
- 	    mmap(NULL, page_size, PROT_READ | PROT_WRITE,
-@@ -356,6 +365,5 @@ int main(void)
- 	BUG_ON(munmap(page_buffer, page_size) == -1,
- 	       "unable to unmap page buffer");
+ 	if (name) {
+ 		backing_fd = open(name, O_RDWR);
+ 		if (backing_fd == -1)
+-			errx(2, "open %s", name);
++			ksft_exit_fail_msg("open %s\n", name);
+ 		mmap_flags = MAP_SHARED;
+ 	}
  
--	printf("OK\n");
--	return 0;
-+	ksft_finished();
+@@ -65,21 +71,21 @@ int main(int argc, char **argv)
+ 
+ 	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
+ 	if (pagemap_fd < 0)
+-		err(2, "open pagemap");
++		ksft_exit_fail_msg("open pagemap\n");
+ 
+ 	len -= len % HPAGE_SIZE;
+ 	ptr = mmap(NULL, len + HPAGE_SIZE, PROT_RW, mmap_flags, backing_fd, 0);
+ 	if (ptr == MAP_FAILED)
+-		err(2, "initial mmap");
++		ksft_exit_fail_msg("initial mmap");
+ 	ptr += HPAGE_SIZE - (uintptr_t)ptr % HPAGE_SIZE;
+ 
+ 	if (madvise(ptr, len, MADV_HUGEPAGE))
+-		err(2, "MADV_HUGEPAGE");
++		ksft_exit_fail_msg("MADV_HUGEPAGE");
+ 
+ 	map_len = ram >> (HPAGE_SHIFT - 1);
+ 	map = malloc(map_len);
+ 	if (!map)
+-		errx(2, "map malloc");
++		ksft_exit_fail_msg("map malloc\n");
+ 
+ 	clock_gettime(CLOCK_MONOTONIC, &start);
+ 
+@@ -103,7 +109,7 @@ int main(int argc, char **argv)
+ 				if (idx >= map_len) {
+ 					map = realloc(map, idx + 1);
+ 					if (!map)
+-						errx(2, "map realloc");
++						ksft_exit_fail_msg("map realloc\n");
+ 					memset(map + map_len, 0, idx + 1 - map_len);
+ 					map_len = idx + 1;
+ 				}
+@@ -114,17 +120,19 @@ int main(int argc, char **argv)
+ 
+ 			/* split transhuge page, keep last page */
+ 			if (madvise(p, HPAGE_SIZE - psize(), MADV_DONTNEED))
+-				err(2, "MADV_DONTNEED");
++				ksft_exit_fail_msg("MADV_DONTNEED");
+ 		}
+ 		clock_gettime(CLOCK_MONOTONIC, &b);
+ 		s = b.tv_sec - a.tv_sec + (b.tv_nsec - a.tv_nsec) / 1000000000.;
+ 
+-		warnx("%.3f s/loop, %.3f ms/page, %10.3f MiB/s\t"
+-		      "%4d succeed, %4d failed, %4d different pages",
+-		      s, s * 1000 / (len >> HPAGE_SHIFT), len / s / (1 << 20),
+-		      nr_succeed, nr_failed, nr_pages);
+-
+-		if (duration > 0 && b.tv_sec - start.tv_sec >= duration)
+-			return 0;
++		ksft_print_msg("%.3f s/loop, %.3f ms/page, %10.3f MiB/s\t"
++			       "%4d succeed, %4d failed, %4d different pages\n",
++			       s, s * 1000 / (len >> HPAGE_SHIFT), len / s / (1 << 20),
++			       nr_succeed, nr_failed, nr_pages);
++
++		if (duration > 0 && b.tv_sec - start.tv_sec >= duration) {
++			ksft_test_result_pass("Completed\n");
++			ksft_finished();
++		}
+ 	}
  }
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-transhuge-stress-conform-to-tap-format-output
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -232,17 +232,17 @@ int64_t allocate_transhuge(void *ptr, in
+ 	if (mmap(ptr, HPAGE_SIZE, PROT_READ | PROT_WRITE,
+ 		 MAP_FIXED | MAP_ANONYMOUS |
+ 		 MAP_NORESERVE | MAP_PRIVATE, -1, 0) != ptr)
+-		errx(2, "mmap transhuge");
++		ksft_exit_fail_msg("mmap transhuge\n");
+ 
+ 	if (madvise(ptr, HPAGE_SIZE, MADV_HUGEPAGE))
+-		err(2, "MADV_HUGEPAGE");
++		ksft_exit_fail_msg("MADV_HUGEPAGE\n");
+ 
+ 	/* allocate transparent huge page */
+ 	*(volatile void **)ptr = ptr;
+ 
+ 	if (pread(pagemap_fd, ent, sizeof(ent),
+ 		  (uintptr_t)ptr >> (pshift() - 3)) != sizeof(ent))
+-		err(2, "read pagemap");
++		ksft_exit_fail_msg("read pagemap\n");
+ 
+ 	if (PAGEMAP_PRESENT(ent[0]) && PAGEMAP_PRESENT(ent[1]) &&
+ 	    PAGEMAP_PFN(ent[0]) + 1 == PAGEMAP_PFN(ent[1]) &&
 _
 
 Patches currently in -mm which might be from usama.anjum@collabora.com are
