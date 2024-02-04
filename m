@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA8FA8827
-	for <mm-commits@vger.kernel.org>; Sun,  4 Feb 2024 07:20:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FF4179DC
+	for <mm-commits@vger.kernel.org>; Sun,  4 Feb 2024 07:20:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707031235; cv=none; b=fjT381/4Deu2mfMz+LdCEJ64RLZOt/yJBReY3dqdO1tbQ5hBatuKmiLc0ZD5fxhBJr5iYEO/iuf7MXTnMBVCwOWnaMXaMnM9adU8NCV2aJdiFGtLlcEjAkonT947JljFx4G0kTnsUsGkmvQ7gf3QKEpdxVPlgcBPaSV5agzasT4=
+	t=1707031236; cv=none; b=YWkCi1xJL7xsH1GSxm2htMubk44nisGvRLgn4OXdffke+603//WCLVrpPIXYDbVtPVXN6VrAVZDIg8/u2pfZwEJes8pussqPW8Gixe4Me3m6ajpQW4pVWLWTtKqhTHupBUZn5/a9NqlWyuOhrjXggyDUs8BcfSxMpiI1QXn0DDs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707031235; c=relaxed/simple;
-	bh=UEywF//4EW+FW+MnMVOj13AW6T4w3zY6JP1xUHczGZM=;
-	h=Date:To:From:Subject:Message-Id; b=jQM8uD1q05Moz/d3JO6y2dtvbli8FMPSamp8GDUFpPv2XjIeo5Gur6SBS8gEFJXAw3csdK66xo7h/YwjHKQABuOAhD4cbuOBIhyb38lfUwYF9BUhwd6HBk0CvVhWM0Mg9XU8zALlpM+/1Ko0SlGQIW/Akc0mRHrQGBnFPTgreoI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HT22tuB3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707031236; c=relaxed/simple;
+	bh=X2asLiB82cizBXQJK7UAeQfl1Dszhrj5maeq2Vh32iU=;
+	h=Date:To:From:Subject:Message-Id; b=HDwvr4yZBZ3BK4+X58izOLnmAu64wJc7X7umGDDHaq1LPN8lbmD7+EWagNknG2Fz9W4M54RDfynVcnCnasNZXNBuQOA7rLzup95b/fKWfMbEYgn8TzzJG9E+4z5v8ZDkjOy1gHNDQ7vTnw9xSpndzYWe1WccDfGyFXZ5B7qD40o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i5BJgD9r; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HT22tuB3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 226CEC43399;
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i5BJgD9r"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E591FC433C7;
 	Sun,  4 Feb 2024 07:20:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707031235;
-	bh=UEywF//4EW+FW+MnMVOj13AW6T4w3zY6JP1xUHczGZM=;
+	s=korg; t=1707031236;
+	bh=X2asLiB82cizBXQJK7UAeQfl1Dszhrj5maeq2Vh32iU=;
 	h=Date:To:From:Subject:From;
-	b=HT22tuB3rLed7Ca9+Wmf3BmbnwWtGgJwmGRgbWx8doGbg4FPlU6e+SXPvKkJiPAfX
-	 y5QGkYeUpJ8uYteKM4Scr/nq/oPVek7sXJ39Ps2QEo9OA1L621MrIYVjHGDU+UBn2R
-	 yK3UjBu5zELDEi3aFNIalnbUxeacBlPcPGSicN24=
-Date: Sat, 03 Feb 2024 23:20:34 -0800
+	b=i5BJgD9rvfTHKgZHI8x1z0fRFoV/qMPK4f/Jq+7sqVtON6PdkX7pftrDC8RiY4jbn
+	 63maySIf+Re1CKH2FdRAp03HoVS9fdV9jIu7R9KicwWvY1/pErsjsUkDRzqoXEdRf9
+	 CObT+SAMr1U+BsKgdNF/TkM4VMoRTqCMSnRbPMg8=
+Date: Sat, 03 Feb 2024 23:20:35 -0800
 To: mm-commits@vger.kernel.org,yang.lee@linux.alibaba.com,viro@zeniv.linux.org.uk,sfr@canb.auug.org.au,piliu@redhat.com,nathan@kernel.org,mhklinux@outlook.com,klarasmodin@gmail.com,hbathini@linux.ibm.com,ebiederm@xmission.com,bhe@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-crash-wrap-crash-dumping-code-into-crash-related-ifdefs-fix.patch added to mm-unstable branch
-Message-Id: <20240204072035.226CEC43399@smtp.kernel.org>
+Subject: + arm64-crash-wrap-crash-dumping-code-into-crash-related-ifdefs-fix.patch added to mm-unstable branch
+Message-Id: <20240204072035.E591FC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86, crash: don't nest CONFIG_CRASH_DUMP ifdef inside CONFIG_KEXEC_CODE ifdef scope
+     Subject: crash: fix building error in generic codes
 has been added to the -mm mm-unstable branch.  Its filename is
-     x86-crash-wrap-crash-dumping-code-into-crash-related-ifdefs-fix.patch
+     arm64-crash-wrap-crash-dumping-code-into-crash-related-ifdefs-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-crash-wrap-crash-dumping-code-into-crash-related-ifdefs-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-crash-wrap-crash-dumping-code-into-crash-related-ifdefs-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,142 +59,86 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Baoquan He <bhe@redhat.com>
-Subject: x86, crash: don't nest CONFIG_CRASH_DUMP ifdef inside CONFIG_KEXEC_CODE ifdef scope
-Date: Tue, 30 Jan 2024 10:59:59 +0800
+Subject: crash: fix building error in generic codes
+Date: Mon, 29 Jan 2024 21:50:32 +0800
 
-Michael pointed out that the CONFIG_CRASH_DUMP ifdef is nested inside
-CONFIG_KEXEC_CODE ifdef scope in some XEN, Hyper-V codes.
+Nathan reported some building errors on arm64 as below:
 
-Although the nesting works well too since CONFIG_CRASH_DUMP has
-dependency on CONFIG_KEXEC_CORE, it may cause confusion because there
-are places where it's not nested, and people may think it needs to be
-nested even though it doesn't have to.
-
-Fix that by moving  CONFIG_CRASH_DUMP ifdeffery of codes out of
-CONFIG_KEXEC_CODE ifdeffery scope.
-
-And also put function machine_crash_shutdown() definition inside
-CONFIG_CRASH_DUMP ifdef scope instead of CONFIG_KEXEC_CORE ifdef.
-
-And also fix a building error Nathan reported as below by replacing
-CONFIG_KEXEC_CORE ifdef with CONFIG_VMCORE_INFO ifdef.
-
-====
-$ curl -LSso .config https://git.alpinelinux.org/aports/plain/community/linux-edge/config-edge.x86_64
-$ make -skj"$(nproc)" ARCH=x86_64 CROSS_COMPILE=x86_64-linux- olddefconfig all
+==========
+$ curl -LSso .config https://github.com/archlinuxarm/PKGBUILDs/raw/master/core/linux-aarch64/config
+$ make -skj"$(nproc)" ARCH=arm64 CROSS_COMPILE=aarch64-linux- olddefconfig all
 ..
-x86_64-linux-ld: arch/x86/xen/mmu_pv.o: in function `paddr_vmcoreinfo_note':
-mmu_pv.c:(.text+0x3af3): undefined reference to `vmcoreinfo_note'
-====
+aarch64-linux-ld: kernel/kexec_file.o: in function `kexec_walk_memblock.constprop.0':
+kexec_file.c:(.text+0x314): undefined reference to `crashk_res'
+..
+aarch64-linux-ld: drivers/of/kexec.o: in function `of_kexec_alloc_and_setup_fdt':
+kexec.c:(.text+0x580): undefined reference to `crashk_res'
+..
+aarch64-linux-ld: kexec.c:(.text+0x5c0): undefined reference to `crashk_low_res'
+==========
 
-Link: https://lore.kernel.org/all/SN6PR02MB4157931105FA68D72E3D3DB8D47B2@SN6PR02MB4157.namprd02.prod.outlook.com/T/#u
-Link: https://lore.kernel.org/all/20240126045551.GA126645@dev-arch.thelio-3990X/T/#u
-Link: https://lkml.kernel.org/r/ZbhmL/jQtZ7TFZqV@MiWiFi-R3L-srv
+On the provided config, it has:
+===
+CONFIG_VMCORE_INFO=y
+CONFIG_KEXEC_CORE=y
+CONFIG_KEXEC=y
+CONFIG_KEXEC_FILE=y
+===
+
+For these crash related code blocks, they need put inside CONFIG_CRASH_DUMP
+ifdeffery scope to avoid building erorr when CONFIG_CRASH_DUMP is not
+set.
+
+Link: https://lkml.kernel.org/r/20240129135033.157195-2-bhe@redhat.com
 Signed-off-by: Baoquan He <bhe@redhat.com>
-Reviewed-by: Michael Kelley <mhklinux@outlook.com>
+Reported-by: Nathan Chancellor <nathan@kernel.org>
+Closes: https://lore.kernel.org/all/20240126045551.GA126645@dev-arch.thelio-3990X/T/#u
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
 Cc: Hari Bathini <hbathini@linux.ibm.com>
 Cc: Klara Modin <klarasmodin@gmail.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Michael Kelley <mhklinux@outlook.com>
 Cc: Pingfan Liu <piliu@redhat.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Cc: Yang Li <yang.lee@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/mshyperv.c |   10 ++++++----
- arch/x86/kernel/reboot.c       |    2 +-
- arch/x86/xen/enlighten_hvm.c   |    4 ++--
- arch/x86/xen/mmu_pv.c          |    2 +-
- 4 files changed, 10 insertions(+), 8 deletions(-)
+ drivers/of/kexec.c  |    2 ++
+ kernel/kexec_file.c |    2 ++
+ 2 files changed, 4 insertions(+)
 
---- a/arch/x86/kernel/cpu/mshyperv.c~x86-crash-wrap-crash-dumping-code-into-crash-related-ifdefs-fix
-+++ a/arch/x86/kernel/cpu/mshyperv.c
-@@ -209,6 +209,7 @@ static void hv_machine_shutdown(void)
- 	if (kexec_in_progress)
- 		hyperv_cleanup();
- }
-+#endif /* CONFIG_KEXEC_CORE */
+--- a/drivers/of/kexec.c~arm64-crash-wrap-crash-dumping-code-into-crash-related-ifdefs-fix
++++ a/drivers/of/kexec.c
+@@ -395,6 +395,7 @@ void *of_kexec_alloc_and_setup_fdt(const
+ 		if (ret)
+ 			goto out;
  
- #ifdef CONFIG_CRASH_DUMP
- static void hv_machine_crash_shutdown(struct pt_regs *regs)
-@@ -222,8 +223,7 @@ static void hv_machine_crash_shutdown(st
- 	/* Disable the hypercall page when there is only 1 active CPU. */
- 	hyperv_cleanup();
- }
--#endif
--#endif /* CONFIG_KEXEC_CORE */
-+#endif /* CONFIG_CRASH_DUMP */
- #endif /* CONFIG_HYPERV */
- 
- static uint32_t  __init ms_hyperv_platform(void)
-@@ -497,9 +497,11 @@ static void __init ms_hyperv_init_platfo
- 	no_timer_check = 1;
- #endif
- 
--#if IS_ENABLED(CONFIG_HYPERV) && defined(CONFIG_KEXEC_CORE)
-+#if IS_ENABLED(CONFIG_HYPERV)
-+#if defined(CONFIG_KEXEC_CORE)
- 	machine_ops.shutdown = hv_machine_shutdown;
--#ifdef CONFIG_CRASH_DUMP
-+#endif
-+#if defined(CONFIG_CRASH_DUMP)
- 	machine_ops.crash_shutdown = hv_machine_crash_shutdown;
- #endif
- #endif
---- a/arch/x86/kernel/reboot.c~x86-crash-wrap-crash-dumping-code-into-crash-related-ifdefs-fix
-+++ a/arch/x86/kernel/reboot.c
-@@ -826,7 +826,7 @@ void machine_halt(void)
- 	machine_ops.halt();
- }
- 
--#ifdef CONFIG_KEXEC_CORE
 +#ifdef CONFIG_CRASH_DUMP
- void machine_crash_shutdown(struct pt_regs *regs)
- {
- 	machine_ops.crash_shutdown(regs);
---- a/arch/x86/xen/enlighten_hvm.c~x86-crash-wrap-crash-dumping-code-into-crash-related-ifdefs-fix
-+++ a/arch/x86/xen/enlighten_hvm.c
-@@ -148,6 +148,7 @@ static void xen_hvm_shutdown(void)
- 	if (kexec_in_progress)
- 		xen_reboot(SHUTDOWN_soft_reset);
- }
+ 		/* add linux,usable-memory-range */
+ 		ret = fdt_appendprop_addrrange(fdt, 0, chosen_node,
+ 				"linux,usable-memory-range", crashk_res.start,
+@@ -410,6 +411,7 @@ void *of_kexec_alloc_and_setup_fdt(const
+ 			if (ret)
+ 				goto out;
+ 		}
++#endif
+ 	}
+ 
+ 	/* add bootargs */
+--- a/kernel/kexec_file.c~arm64-crash-wrap-crash-dumping-code-into-crash-related-ifdefs-fix
++++ a/kernel/kexec_file.c
+@@ -540,8 +540,10 @@ static int kexec_walk_memblock(struct ke
+ 	phys_addr_t mstart, mend;
+ 	struct resource res = { };
+ 
++#ifdef CONFIG_CRASH_DUMP
+ 	if (kbuf->image->type == KEXEC_TYPE_CRASH)
+ 		return func(&crashk_res, kbuf);
 +#endif
  
- #ifdef CONFIG_CRASH_DUMP
- static void xen_hvm_crash_shutdown(struct pt_regs *regs)
-@@ -156,7 +157,6 @@ static void xen_hvm_crash_shutdown(struc
- 	xen_reboot(SHUTDOWN_soft_reset);
- }
- #endif
--#endif
- 
- static int xen_cpu_up_prepare_hvm(unsigned int cpu)
- {
-@@ -238,10 +238,10 @@ static void __init xen_hvm_guest_init(vo
- 
- #ifdef CONFIG_KEXEC_CORE
- 	machine_ops.shutdown = xen_hvm_shutdown;
-+#endif
- #ifdef CONFIG_CRASH_DUMP
- 	machine_ops.crash_shutdown = xen_hvm_crash_shutdown;
- #endif
--#endif
- }
- 
- static __init int xen_parse_nopv(char *arg)
---- a/arch/x86/xen/mmu_pv.c~x86-crash-wrap-crash-dumping-code-into-crash-related-ifdefs-fix
-+++ a/arch/x86/xen/mmu_pv.c
-@@ -2520,7 +2520,7 @@ out:
- }
- EXPORT_SYMBOL_GPL(xen_remap_pfn);
- 
--#ifdef CONFIG_KEXEC_CORE
-+#ifdef CONFIG_VMCORE_INFO
- phys_addr_t paddr_vmcoreinfo_note(void)
- {
- 	if (xen_pv_domain())
+ 	/*
+ 	 * Using MEMBLOCK_NONE will properly skip MEMBLOCK_DRIVER_MANAGED. See
 _
 
 Patches currently in -mm which might be from bhe@redhat.com are
