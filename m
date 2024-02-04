@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 013DB8BF3
-	for <mm-commits@vger.kernel.org>; Sun,  4 Feb 2024 07:20:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B388C8820
+	for <mm-commits@vger.kernel.org>; Sun,  4 Feb 2024 07:20:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707031238; cv=none; b=mQHELOSOWwbCj1oEW2tvayv7PFYpGHsYhIIlegoMdoJC/au32cABaVSc6UtH8vZmIY4SsCNjlkTtmoi9hf4PuWpWJ5xuTnC50djilEOyImDZqZ4oir9+CwbzQzSiepNnqRIcr2HyAZrQRwGMnSJDp4iWI3oS4svR2c1KRZxILeo=
+	t=1707031238; cv=none; b=CcLUjsjyT5juHIVluIvelpN3YX3l3F0B/St02UeQycEo69/6NVIizWYGFi4yERXKtYGNZWfjwJl7nEE0K+Zj/JlQda5E5Fa2oQX2MYhrwQir3jjfPFJiAuNtEO6ANLFOu78wvFyalyUh6l5dVE7P3F8EQoAv838DFsz2+z8Gxuo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1707031238; c=relaxed/simple;
-	bh=iE+Z+0JKhcnDhv9VEzVDkM5Whx77z2KOdTu5qGNUaug=;
-	h=Date:To:From:Subject:Message-Id; b=tWT8Wmedb39MdaL1I1Q9VLdE63zmyK8drrQGD8GDi8q1BJaNnFuJaRkXmsdjptA9eMi7HHoOFxcZ+QAV+qIPX/YiQcAe99SEPRqwHQcXLeks3ntCIPOeypAQ/GQPE9/Mgb/S8kx2+0gtvakGSM5Qk9yAcr8ZN/lWGYtXwBZSVtQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Tlod62pd; arc=none smtp.client-ip=10.30.226.201
+	bh=JFDPgNZ5ScDZUFAJHSfFW04v2N8AGfHftRW2H1gQELw=;
+	h=Date:To:From:Subject:Message-Id; b=htKy2sZuIBUuutYAPzBr+X7k8ddJFQhgzGXw2krVFJU+ynxIq1bGxpatMC04U8fB9wEQpMgckbe+h2JhHQDm9mchVH4/m3RRLutZwx9qN4RE/Y/BpLPUgsak77X2Kp/dPbzvw4H/9C1EPsz4wtZL97k42LbqnhoTl1HzMegl55Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M7Olwo8G; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Tlod62pd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B093DC433F1;
-	Sun,  4 Feb 2024 07:20:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M7Olwo8G"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CE3EC433C7;
+	Sun,  4 Feb 2024 07:20:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707031237;
-	bh=iE+Z+0JKhcnDhv9VEzVDkM5Whx77z2KOdTu5qGNUaug=;
+	s=korg; t=1707031238;
+	bh=JFDPgNZ5ScDZUFAJHSfFW04v2N8AGfHftRW2H1gQELw=;
 	h=Date:To:From:Subject:From;
-	b=Tlod62pdVD0Z0ICU/aF6W5arETtefb58xTpR1tmKYuRZ4u82TWKTW4kW5WVqfbbml
-	 pYSJb8O0rNtbsSMScPj+c/07u1ZTirgeL1JAqR2H40dMZcgwZaFB8wqr7bz56CbIAZ
-	 GAK/y4BTuTYDU+LfATHkZR+Tk+LCJjj1RX8crCDw=
+	b=M7Olwo8GjCNf4PfCVAN5afq0IqFba17bkJy1W0UY9/d1rl55S2a0jCawXgvxK+z6u
+	 sQu1ryEo6elanZdwUuKMikYQ5bstzS0H/t9d9+Tp55bY3YsbIstm5Qkuw4neeG/xm1
+	 7dD457WYyaJcl+aqgPEVuMpM396izQpyWaIzeZl4=
 Date: Sat, 03 Feb 2024 23:20:37 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yosryahmed@google.com,yangyifei03@kuaishou.com,songmuchun@bytedance.com,shakeelb@google.com,roman.gushchin@linux.dev,mkoutny@suse.com,mhocko@suse.com,hannes@cmpxchg.org,tjmercier@google.com,akpm@linux-foundation.org
+To: mm-commits@vger.kernel.org,christophe.jaillet@wanadoo.fr,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-use-larger-batches-for-proactive-reclaim.patch added to mm-unstable branch
-Message-Id: <20240204072037.B093DC433F1@smtp.kernel.org>
+Subject: + mm-reduce-dependencies-on-linux-kernelh.patch added to mm-unstable branch
+Message-Id: <20240204072038.7CE3EC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcg: use larger batches for proactive reclaim
+     Subject: mm: reduce dependencies on <linux/kernel.h>
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-use-larger-batches-for-proactive-reclaim.patch
+     mm-reduce-dependencies-on-linux-kernelh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-use-larger-batches-for-proactive-reclaim.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-reduce-dependencies-on-linux-kernelh.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,80 +58,64 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "T.J. Mercier" <tjmercier@google.com>
-Subject: mm: memcg: use larger batches for proactive reclaim
-Date: Fri, 2 Feb 2024 23:38:54 +0000
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: mm: reduce dependencies on <linux/kernel.h>
+Date: Fri, 2 Feb 2024 22:23:18 +0100
 
-Before 388536ac291 ("mm:vmscan: fix inaccurate reclaim during proactive
-reclaim") we passed the number of pages for the reclaim request directly
-to try_to_free_mem_cgroup_pages, which could lead to significant
-overreclaim.  After 0388536ac291 the number of pages was limited to a
-maximum 32 (SWAP_CLUSTER_MAX) to reduce the amount of overreclaim. 
-However such a small batch size caused a regression in reclaim performance
-due to many more reclaim start/stop cycles inside memory_reclaim.
+"page_counter.h" does not need <linux/kernel.h>. <linux/limits.h> is enough
+to get LONG_MAX.
 
-Reclaim tries to balance nr_to_reclaim fidelity with fairness across nodes
-and cgroups over which the pages are spread.  As such, the bigger the
-request, the bigger the absolute overreclaim error.  Historic in-kernel
-users of reclaim have used fixed, small sized requests to approach an
-appropriate reclaim rate over time.  When we reclaim a user request of
-arbitrary size, use decaying batch sizes to manage error while maintaining
-reasonable throughput.
+Files that include page_counter.h are limited. They have been compile
+tested or checked.
 
-root - full reclaim       pages/sec   time (sec)
-pre-0388536ac291      :    68047        10.46
-post-0388536ac291     :    13742        inf
-(reclaim-reclaimed)/4 :    67352        10.51
+$ git grep page_counter\.h
+include/linux/hugetlb_cgroup.h: struct page_counter hugepage[HUGE_MAX_HSTATE];
+	--> all files that include it have been compile tested
 
-/uid_0 - 1G reclaim       pages/sec   time (sec)  overreclaim (MiB)
-pre-0388536ac291      :    258822       1.12            107.8
-post-0388536ac291     :    105174       2.49            3.5
-(reclaim-reclaimed)/4 :    233396       1.12            -7.4
+include/linux/memcontrol.h:#include <linux/page_counter.h>
+	--> <linux/kernel.h> has been added, to be safe
 
-/uid_0 - full reclaim     pages/sec   time (sec)
-pre-0388536ac291      :    72334        7.09
-post-0388536ac291     :    38105        14.45
-(reclaim-reclaimed)/4 :    72914        6.96
+include/net/sock.h:#include <linux/page_counter.h>
+	--> already include <linux/kernel.h>
 
-Link: https://lkml.kernel.org/r/20240202233855.1236422-1-tjmercier@google.com
-Fixes: 0388536ac291 ("mm:vmscan: fix inaccurate reclaim during proactive re=
-claim")
-Signed-off-by: T.J. Mercier <tjmercier@google.com>
-Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Efly Young <yangyifei03@kuaishou.com>
-Cc: Michal Koutny <mkoutny@suse.com>
-Cc: Yu Zhao <yuzhao@google.com>
+mm/hugetlb_cgroup.c:#include <linux/page_counter.h>
+mm/memcontrol.c:#include <linux/page_counter.h>
+mm/page_counter.c:#include <linux/page_counter.h>
+	--> compile tested
+
+Link: https://lkml.kernel.org/r/adfdbe21c4d06400d7bd802868762deb85cae8b6.1706908921.git.christophe.jaillet@wanadoo.fr
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/memcontrol.h   |    1 +
+ include/linux/page_counter.h |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcg-use-larger-batches-for-proactive-reclaim
-+++ a/mm/memcontrol.c
-@@ -6994,9 +6994,11 @@ static ssize_t memory_reclaim(struct ker
- 		if (!nr_retries)
- 			lru_add_drain_all();
+--- a/include/linux/memcontrol.h~mm-reduce-dependencies-on-linux-kernelh
++++ a/include/linux/memcontrol.h
+@@ -14,6 +14,7 @@
+ #include <linux/vm_event_item.h>
+ #include <linux/hardirq.h>
+ #include <linux/jump_label.h>
++#include <linux/kernel.h>
+ #include <linux/page_counter.h>
+ #include <linux/vmpressure.h>
+ #include <linux/eventfd.h>
+--- a/include/linux/page_counter.h~mm-reduce-dependencies-on-linux-kernelh
++++ a/include/linux/page_counter.h
+@@ -4,7 +4,7 @@
  
-+		/* Will converge on zero, but reclaim enforces a minimum */
-+		unsigned long batch_size = (nr_to_reclaim - nr_reclaimed) / 4;
-+
- 		reclaimed = try_to_free_mem_cgroup_pages(memcg,
--					min(nr_to_reclaim - nr_reclaimed, SWAP_CLUSTER_MAX),
--					GFP_KERNEL, reclaim_options);
-+					batch_size, GFP_KERNEL, reclaim_options);
+ #include <linux/atomic.h>
+ #include <linux/cache.h>
+-#include <linux/kernel.h>
++#include <linux/limits.h>
+ #include <asm/page.h>
  
- 		if (!reclaimed && !nr_retries--)
- 			return -EAGAIN;
+ struct page_counter {
 _
 
-Patches currently in -mm which might be from tjmercier@google.com are
+Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
 
-mm-memcg-dont-periodically-flush-stats-when-memcg-is-disabled.patch
-mm-memcg-use-larger-batches-for-proactive-reclaim.patch
+mm-reduce-dependencies-on-linux-kernelh.patch
 
