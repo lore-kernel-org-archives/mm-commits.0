@@ -1,93 +1,135 @@
-Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6629514F64
-	for <mm-commits@vger.kernel.org>; Sun,  4 Feb 2024 09:09:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D19F248783;
+	Mon,  5 Feb 2024 20:56:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707037778; cv=none; b=T2hs9FGPkm5FqZCjNNwg8CH957qibJykAsLUTDgCasO/NFLO+FXnu2LJabra3b7oGm/K1XTQSO0PjGYnp63eUrZ1Sy38HRF4c1eOFJcbOrM3wkB8qPb5mvrjLt8n+yBlLujk+pP+qtvOcbv+sT9ZIeIIOD+v2eARIB9Dxd3i9YY=
+	t=1707166590; cv=none; b=W+FEbjQ0LCIC/Yqx3B4yd74Pap+rtHyrqiNXnpydRe0f5EGTpsPTjQk8wovqosf+CGPxJtzlMgXOidcMhP2br+QCXQIybbD2CTc1nBSUiMcrXuP0iwE55qkK3dgTGGRDO62XBrjc75BvJQTPUB95XnIiG3qsVc7txUhSkCcHZ7c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707037778; c=relaxed/simple;
-	bh=QBfO/fVBUGbd2B+gQQfdgwvVTKuSgWnOSx8bYhh8dmQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=N/mbnSLyM5p/i+X/mYpLCp0/b+IqytkwazOXjmKFW7Dr/39I9dmJ4Zf30mjhtHhB5XhUSkv2pAQTIvfGVwv6WRgRhVQO1H9h2YZgYx62zXrrnd7fcSyHeMg/ojWbSu5cjLfLil4CRe6pWieWVRm37c74HODodJi3K/Lc09MJseE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gncM030U; arc=none smtp.client-ip=209.85.218.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
+	s=arc-20240116; t=1707166590; c=relaxed/simple;
+	bh=gDZ6wrndIFbg/VL02kI6xzC1bj6/RUzS32l0qNprLPk=;
+	h=Date:To:From:Subject:Message-Id; b=ufEzRyJ7DoNGfOSPkKJhNwtdjR2eciT/QXE4kdVQ/ow/WF3In0py5A6C33Uu1BFRUFc2v11JUlpAWeEHcbQQ+ExsG0SD7dOO20zeK5JA2+MSiA0S5pc3nQObjOIdj0iw5DvoTVU05kyGlEliYkRTUr194HhjnFuk3qF1YF3jdv8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=taVV21zw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gncM030U"
-Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-a364b5c5c19so546377666b.1
-        for <mm-commits@vger.kernel.org>; Sun, 04 Feb 2024 01:09:36 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google; t=1707037774; x=1707642574; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=x+bOGtvhSdoCBkpFP05S+UJkiX09M/YWlTNg9SFndfw=;
-        b=gncM030UZAvl2LB2ccvmneHHmycj76VEuddzmT1PE7mWq/IrGHLGNa/KnJ9siLgn/p
-         0Sv7PI8XZmDqhI7Qokokz4uOV7SoNpeiHmzVA1HwoyrYqu/CAtqlJGyz+vy8uSx87kh5
-         /GQtFA/MzQIe8Ln0EqV4rStiC6A6ZF6MkOayk=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1707037774; x=1707642574;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=x+bOGtvhSdoCBkpFP05S+UJkiX09M/YWlTNg9SFndfw=;
-        b=QyJmE1EcjLtv20ptampjOdPUhtot5HeWNp4OdD+znqFPkqXr9XwjoScVkqTykN+1p2
-         oHz7htocqZ7Iqq/d8FWCNZCSmKlPmxLZFfA5UIqOjSCWag102Fnl2HiUlb99V5Lciulc
-         PMS8rrxl3IKCqG6rDsdnIWCniJ8vxy0fRrWnunZLzD2hdhchWENx4z0pJF4mW/HFKWXB
-         QDT5ZEROWgB/W8eyykxiMYiDHJYUaF5iCwNVMvfm2yi+nukvBPvyQGGrtKgfbn2u55Li
-         WERUoQ7o/5Llv4hNmUYltmC+C2Q5FGoDjSmHS5oMt05o30qIc26UD6+mTU1WovnKN1PV
-         WIIw==
-X-Gm-Message-State: AOJu0YzyLHGZHCUVrtIKDiDd9Eq5uQTjvovGMYdAasaRfWH+O9gyE6eY
-	EqP16Cvk6tzXwLAoizjb8WIoACQx0szSiJH9TWA8mebQB3u5EovcMQMmLGapVXFULD2oC5jQOwA
-	mFVU=
-X-Google-Smtp-Source: AGHT+IHgDv6nJfGwFvLdvNuVvCh9MTmWMa2+d/xAUYpNBC7vMe4DaUc04GoXETxHncZt7bk5IaaKmw==
-X-Received: by 2002:a17:907:7711:b0:a36:f27b:f0f with SMTP id kw17-20020a170907771100b00a36f27b0f0fmr4661571ejc.8.1707037774490;
-        Sun, 04 Feb 2024 01:09:34 -0800 (PST)
-X-Forwarded-Encrypted: i=0; AJvYcCWFLE5tJ8IJWDLEUtDy21F86of/97/ikTXZ5oqeaSd1NpQTL3cHTVEID2y5AeUagu7J9RNzucjaFL06WUiIZnBG/UerktBSxwlpyA==
-Received: from mail-ed1-f49.google.com (mail-ed1-f49.google.com. [209.85.208.49])
-        by smtp.gmail.com with ESMTPSA id h8-20020a1709063b4800b00a369b47996esm2931601ejf.80.2024.02.04.01.09.33
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 04 Feb 2024 01:09:33 -0800 (PST)
-Received: by mail-ed1-f49.google.com with SMTP id 4fb4d7f45d1cf-5600d950442so1281125a12.1
-        for <mm-commits@vger.kernel.org>; Sun, 04 Feb 2024 01:09:33 -0800 (PST)
-X-Received: by 2002:aa7:d4d1:0:b0:55e:eb81:2db0 with SMTP id
- t17-20020aa7d4d1000000b0055eeb812db0mr2894600edr.38.1707037772839; Sun, 04
- Feb 2024 01:09:32 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="taVV21zw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45B6EC433C7;
+	Mon,  5 Feb 2024 20:56:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1707166589;
+	bh=gDZ6wrndIFbg/VL02kI6xzC1bj6/RUzS32l0qNprLPk=;
+	h=Date:To:From:Subject:From;
+	b=taVV21zwDiifwrFKZhW/caHf8gn1pt9GMdBqbropKxNDyStne15NDOhs9SV5G/xWk
+	 tspRI3ue/ovXnEWWk+npfOmNLgrVdR1pxlWMosBTf+d3Ipt+QTRoPRZs5mEy1CcDYT
+	 arkNE0+9///7/TsUsfRvRgUWNJMyLw+3WdOC5CkE=
+Date: Mon, 05 Feb 2024 12:56:28 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-damon-core-check-apply-interval-in-damon_do_apply_schemes.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240205205629.45B6EC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20240204085155.6745-1-sanpeqf@gmail.com>
-In-Reply-To: <20240204085155.6745-1-sanpeqf@gmail.com>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Sun, 4 Feb 2024 09:09:16 +0000
-X-Gmail-Original-Message-ID: <CAHk-=wgxkAgRPb7ZZ+w7UHhp2OuV=pc_C7D+hEYcA65ieMFt0g@mail.gmail.com>
-Message-ID: <CAHk-=wgxkAgRPb7ZZ+w7UHhp2OuV=pc_C7D+hEYcA65ieMFt0g@mail.gmail.com>
-Subject: Re: [PATCH] lib/bch.c: increase bitrev single conversion length
-To: John Sanpe <sanpeqf@gmail.com>
-Cc: linux-mm@kvack.org, akpm@linux-foundation.org, rdunlap@infradead.org, 
-	unixbhaskar@gmail.com, mm-commits@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
 
-On Sun, 4 Feb 2024 at 08:52, John Sanpe <sanpeqf@gmail.com> wrote:
->
-> Optimized the performance of the three functions (load_ecc8 store_ecc8
-> and bch_encode) using a larger calculation length.
 
-Honestly, with any optimization, you should quote performance numbers.
+The patch titled
+     Subject: mm/damon/core: check apply interval in damon_do_apply_schemes()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-core-check-apply-interval-in-damon_do_apply_schemes.patch
 
-Also, it's questionable how meaningful this is, considering that most
-architectures dop the bit swap with a byte lookup, and the 32-bit bit
-swap is just four byte lookups. For all we know, this only makes
-things worse.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-check-apply-interval-in-damon_do_apply_schemes.patch
 
-Finally, if you actually want to do things in bigger chunks, that
-->swap_bits conditional should probably be moved out of the loops, not
-just have that questionable 8->32 bit expansion.
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-            Linus
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
+
+------------------------------------------------------
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: check apply interval in damon_do_apply_schemes()
+Date: Mon, 5 Feb 2024 12:13:06 -0800
+
+kdamond_apply_schemes() checks apply intervals of schemes and avoid
+further applying any schemes if no scheme passed its apply interval. 
+However, the following schemes applying function, damon_do_apply_schemes()
+iterates all schemes without the apply interval check.  As a result, the
+shortest apply interval is applied to all schemes.  Fix the problem by
+checking the apply interval in damon_do_apply_schemes().
+
+Link: https://lkml.kernel.org/r/20240205201306.88562-1-sj@kernel.org
+Fixes: 42f994b71404 ("mm/damon/core: implement scheme-specific apply interval")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>	[6.7.x]
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/damon/core.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
+
+--- a/mm/damon/core.c~mm-damon-core-check-apply-interval-in-damon_do_apply_schemes
++++ a/mm/damon/core.c
+@@ -1026,6 +1026,9 @@ static void damon_do_apply_schemes(struc
+ 	damon_for_each_scheme(s, c) {
+ 		struct damos_quota *quota = &s->quota;
+ 
++		if (c->passed_sample_intervals != s->next_apply_sis)
++			continue;
++
+ 		if (!s->wmarks.activated)
+ 			continue;
+ 
+@@ -1176,10 +1179,6 @@ static void kdamond_apply_schemes(struct
+ 		if (c->passed_sample_intervals != s->next_apply_sis)
+ 			continue;
+ 
+-		s->next_apply_sis +=
+-			(s->apply_interval_us ? s->apply_interval_us :
+-			 c->attrs.aggr_interval) / sample_interval;
+-
+ 		if (!s->wmarks.activated)
+ 			continue;
+ 
+@@ -1195,6 +1194,14 @@ static void kdamond_apply_schemes(struct
+ 		damon_for_each_region_safe(r, next_r, t)
+ 			damon_do_apply_schemes(c, t, r);
+ 	}
++
++	damon_for_each_scheme(s, c) {
++		if (c->passed_sample_intervals != s->next_apply_sis)
++			continue;
++		s->next_apply_sis +=
++			(s->apply_interval_us ? s->apply_interval_us :
++			 c->attrs.aggr_interval) / sample_interval;
++	}
+ }
+ 
+ /*
+_
+
+Patches currently in -mm which might be from sj@kernel.org are
+
+mm-damon-sysfs-schemes-fix-wrong-damos-tried-regions-update-timeout-setup.patch
+mm-damon-core-check-apply-interval-in-damon_do_apply_schemes.patch
+docs-admin-guide-mm-damon-usage-use-sysfs-interface-for-tracepoints-example.patch
+mm-damon-rename-config_damon_dbgfs-to-damon_dbgfs_deprecated.patch
+mm-damon-dbgfs-implement-deprecation-notice-file.patch
+mm-damon-dbgfs-make-debugfs-interface-deprecation-message-a-macro.patch
+docs-admin-guide-mm-damon-usage-document-deprecated-file-of-damon-debugfs-interface.patch
+selftets-damon-prepare-for-monitor_on-file-renaming.patch
+mm-damon-dbgfs-rename-monitor_on-file-to-monitor_on_deprecated.patch
+docs-admin-guide-mm-damon-usage-update-for-monitor_on-renaming.patch
+docs-translations-damon-usage-update-for-monitor_on-renaming.patch
+
