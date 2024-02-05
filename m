@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B54147A61
-	for <mm-commits@vger.kernel.org>; Mon,  5 Feb 2024 23:04:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6E221DA52
+	for <mm-commits@vger.kernel.org>; Mon,  5 Feb 2024 23:06:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707174287; cv=none; b=nrY2uVEJVDgRO08i1ofPV8y292uDlLYyDi+DGd95LTD0N6T+tcw7sfl2HNJFHUV16h//+7hEGONISg2HSny9kpDjchIDhc8VrRrmJ6KlooOfMByRxhtSortCDUef1bEId4Piy7rhhScW4H0lTsDZB6sJ09xugBSiaSksIHzyDj0=
+	t=1707174372; cv=none; b=bL89qix1tVYYPlaLXk8U/5jXoDWSqLe3fDq8akU6uyVoVDZ5hVHNdPbwOw/USbPhNEZfV5mxOmZzAtYGOeOBwQ+wTcykP+PKvRPlZTJ+ARUopeTTLAcHB71x61BQse8lu4khN7PkRwZlLGi3ry+g4qpzc5NkXv8fGlDu6OSX/zg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707174287; c=relaxed/simple;
-	bh=wvQH4oIVdWVdNhoQkEWceQ3Bos/HCN1QrWFX3UkM1iM=;
-	h=Date:To:From:Subject:Message-Id; b=oKmgkl83vcpYcNFD5zz1ijLI2wNBoTyQQSSeBpMlow9rj76vDDyTo+rrf7hv1CHLw2a1x78pMWm5bpiQ2KNyoQDqNj9ZOQRpBSiXs4pKB+A8Uuuuo2RBlSTBF3G96k7m5t950xNNdStgWlYwJ1BdydLnhoY+rofaXH4GtgPqV3Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W5HF6eoU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707174372; c=relaxed/simple;
+	bh=jYw8YjOudsoxyp2KXxxzP/UuzWftXefW4E1KIMhqtwE=;
+	h=Date:To:From:Subject:Message-Id; b=n0Iy7qqRtBwQNLUSJYMsjsXlYAChzu+knm5iQr+CS0l0MXbQDNtfVFqEabUyJwDxaxNLJ9N7Vbq7Eo6lWp0c5R4rI5gGroMPOXskcxmcN8fCMGeOA7It2HGJh6v7S0zPsfrA9Y6VmD3YC8+H94X+AoDqMaFoozY2s9IG/itW9+E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VwloB9ZZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W5HF6eoU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB48AC433C7;
-	Mon,  5 Feb 2024 23:04:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VwloB9ZZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DBA7C433F1;
+	Mon,  5 Feb 2024 23:06:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707174287;
-	bh=wvQH4oIVdWVdNhoQkEWceQ3Bos/HCN1QrWFX3UkM1iM=;
+	s=korg; t=1707174372;
+	bh=jYw8YjOudsoxyp2KXxxzP/UuzWftXefW4E1KIMhqtwE=;
 	h=Date:To:From:Subject:From;
-	b=W5HF6eoUThHRkXFzYU3wrNolaVQG6NyEH6cL3KZFaBeWBJZZ2ZQhPDW8CZyOFwTtY
-	 qBOHUyPS/Eowb3tYUkQapHNUlNrBDzhl5w5kiJ8tw0RzYOv/Cu7BxBviWbDTFD20MP
-	 Sg/960hDG0yCcHBXwleKetjxX3ml88HrqpdBRqsY=
-Date: Mon, 05 Feb 2024 15:04:46 -0800
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,tj@kernel.org,shuah@kernel.org,roman.gushchin@linux.dev,riel@surriel.com,lizefan.x@bytedance.com,hannes@cmpxchg.org,nphamcs@gmail.com,akpm@linux-foundation.org
+	b=VwloB9ZZeOmvVuSU2qEP95ZAW1536wOdFOwSHLjYfZk+PD1EK3X1+sZdMiD4mJCW8
+	 lkCHSSRplpvcMj741dCf6PwJN7t9/U5rdCkAi4VQzFPXTIrzFNNzoZMJYlteuzyEMy
+	 5hwRzsUbp7ER7wocW+OrlzqLy5mXBGi8ZfBvqHqk=
+Date: Mon, 05 Feb 2024 15:06:11 -0800
+To: mm-commits@vger.kernel.org,peterz@infradead.org,adobriyan@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-add-zswapin-and-no-zswap-tests.patch added to mm-unstable branch
-Message-Id: <20240205230446.EB48AC433C7@smtp.kernel.org>
+Subject: + smp-make-__smp_processor_id-0-argument-macro.patch added to mm-nonmm-unstable branch
+Message-Id: <20240205230612.6DBA7C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests: add zswapin and no zswap tests
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-add-zswapin-and-no-zswap-tests.patch
+     Subject: smp: make __smp_processor_id() 0-argument macro
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     smp-make-__smp_processor_id-0-argument-macro.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-add-zswapin-and-no-zswap-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/smp-make-__smp_processor_id-0-argument-macro.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,189 +58,41 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nhat Pham <nphamcs@gmail.com>
-Subject: selftests: add zswapin and no zswap tests
-Date: Mon, 5 Feb 2024 14:56:08 -0800
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: smp: make __smp_processor_id() 0-argument macro
+Date: Mon, 5 Feb 2024 12:39:30 +0300
 
-Add a selftest to cover the zswapin code path, allocating more memory than
-the cgroup limit to trigger swapout/zswapout, then reading the pages back
-in memory several times.  This is inspired by a recently encountered
-kernel crash on the zswapin path in our internal kernel, which went
-undetected because of a lack of test coverage for this path.
+smp_processor_id family of macros never accepted any arguments.
 
-Add a selftest to verify that when memory.zswap.max = 0, no pages can go
-to the zswap pool for the cgroup.
+	#define __smp_processor_id(x)
 
-Link: https://lkml.kernel.org/r/20240205225608.3083251-4-nphamcs@gmail.com
-Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Suggested-by: Rik van Riel <riel@surriel.com>
-Suggested-by: Yosry Ahmed <yosryahmed@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Zefan Li <lizefan.x@bytedance.com>
+works by accident (see C99 6.10.3 §4). __smp_processor_id() gets
+1 (empty) argument and passes it down to raw_smp_processor_id()
+which doesn't accept arguments.
+
+Link: https://lkml.kernel.org/r/0037d1f2-8153-4b33-b43e-f4b6ecd710ac@p183
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/test_zswap.c |  120 +++++++++++++++++-
- 1 file changed, 119 insertions(+), 1 deletion(-)
+ include/linux/smp.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/cgroup/test_zswap.c~selftests-add-zswapin-and-no-zswap-tests
-+++ a/tools/testing/selftests/cgroup/test_zswap.c
-@@ -60,6 +60,27 @@ static long get_zswpout(const char *cgro
- 	return cg_read_key_long(cgroup, "memory.stat", "zswpout ");
- }
+--- a/include/linux/smp.h~smp-make-__smp_processor_id-0-argument-macro
++++ a/include/linux/smp.h
+@@ -261,7 +261,7 @@ static inline int get_boot_cpu_id(void)
+  * regular asm read for the stable.
+  */
+ #ifndef __smp_processor_id
+-#define __smp_processor_id(x) raw_smp_processor_id(x)
++#define __smp_processor_id() raw_smp_processor_id()
+ #endif
  
-+static int allocate_and_read_bytes(const char *cgroup, void *arg)
-+{
-+	size_t size = (size_t)arg;
-+	char *mem = (char *)malloc(size);
-+	int ret = 0;
-+
-+	if (!mem)
-+		return -1;
-+	for (int i = 0; i < size; i += 4095)
-+		mem[i] = 'a';
-+
-+	/* go through the allocated memory to (z)swap in and out pages */
-+	for (int i = 0; i < size; i += 4095) {
-+		if (mem[i] != 'a')
-+			ret = -1;
-+	}
-+
-+	free(mem);
-+	return ret;
-+}
-+
- static int allocate_bytes(const char *cgroup, void *arg)
- {
- 	size_t size = (size_t)arg;
-@@ -100,7 +121,6 @@ static int test_zswap_usage(const char *
- 	int ret = KSFT_FAIL;
- 	char *test_group;
- 
--	/* Set up */
- 	test_group = cg_name(root, "no_shrink_test");
- 	if (!test_group)
- 		goto out;
-@@ -134,6 +154,102 @@ out:
- }
- 
- /*
-+ * Check that when memory.zswap.max = 0, no pages can go to the zswap pool for
-+ * the cgroup.
-+ */
-+static int test_swapin_nozswap(const char *root)
-+{
-+	int ret = KSFT_FAIL;
-+	char *test_group;
-+	long swap_peak, zswpout;
-+
-+	test_group = cg_name(root, "no_zswap_test");
-+	if (!test_group)
-+		goto out;
-+	if (cg_create(test_group))
-+		goto out;
-+	if (cg_write(test_group, "memory.max", "8M"))
-+		goto out;
-+	if (cg_write(test_group, "memory.zswap.max", "0"))
-+		goto out;
-+
-+	/* Allocate and read more than memory.max to trigger swapin */
-+	if (cg_run(test_group, allocate_and_read_bytes, (void *)MB(32)))
-+		goto out;
-+
-+	/* Verify that pages are swapped out, but no zswap happened */
-+	swap_peak = cg_read_long(test_group, "memory.swap.peak");
-+	if (swap_peak < 0) {
-+		ksft_print_msg("failed to get cgroup's swap_peak\n");
-+		goto out;
-+	}
-+
-+	if (swap_peak == 0) {
-+		ksft_print_msg("pages should be swapped out\n");
-+		goto out;
-+	}
-+
-+	zswpout = get_zswpout(test_group);
-+	if (zswpout < 0) {
-+		ksft_print_msg("failed to get zswpout\n");
-+		goto out;
-+	}
-+
-+	if (zswpout > 0) {
-+		ksft_print_msg("zswapout > 0 when memory.zswap.max = 0\n");
-+		goto out;
-+	}
-+
-+	ret = KSFT_PASS;
-+
-+out:
-+	cg_destroy(test_group);
-+	free(test_group);
-+	return ret;
-+}
-+
-+/* Simple test to verify the (z)swapin code paths */
-+static int test_zswapin(const char *root)
-+{
-+	int ret = KSFT_FAIL;
-+	char *test_group;
-+	long zswpin;
-+
-+	/* Set up */
-+	test_group = cg_name(root, "zswapin_test");
-+	if (!test_group)
-+		goto out;
-+	if (cg_create(test_group))
-+		goto out;
-+	if (cg_write(test_group, "memory.max", "8M"))
-+		goto out;
-+	if (cg_write(test_group, "memory.zswap.max", "max"))
-+		goto out;
-+
-+	/* Allocate and read more than memory.max to trigger (z)swap in */
-+	if (cg_run(test_group, allocate_and_read_bytes, (void *)MB(32)))
-+		goto out;
-+
-+	zswpin = cg_read_key_long(test_group, "memory.stat", "zswpin ");
-+	if (zswpin < 0) {
-+		ksft_print_msg("failed to get zswpin\n");
-+		goto out;
-+	}
-+
-+	if (zswpin == 0) {
-+		ksft_print_msg("zswpin should not be 0\n");
-+		goto out;
-+	}
-+
-+	ret = KSFT_PASS;
-+
-+out:
-+	cg_destroy(test_group);
-+	free(test_group);
-+	return ret;
-+}
-+
-+/*
-  * When trying to store a memcg page in zswap, if the memcg hits its memory
-  * limit in zswap, writeback should affect only the zswapped pages of that
-  * memcg.
-@@ -309,6 +425,8 @@ struct zswap_test {
- 	const char *name;
- } tests[] = {
- 	T(test_zswap_usage),
-+	T(test_swapin_nozswap),
-+	T(test_zswapin),
- 	T(test_no_kmem_bypass),
- 	T(test_no_invasive_cgroup_shrink),
- };
+ #ifdef CONFIG_DEBUG_PREEMPT
 _
 
-Patches currently in -mm which might be from nphamcs@gmail.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-selftests-zswap-add-zswap-selftest-file-to-zswap-maintainer-entry.patch
-selftests-fix-the-zswap-invasive-shrink-test.patch
-selftests-add-zswapin-and-no-zswap-tests.patch
+smp-make-__smp_processor_id-0-argument-macro.patch
 
