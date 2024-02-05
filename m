@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC0D14D5BB
-	for <mm-commits@vger.kernel.org>; Mon,  5 Feb 2024 23:21:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DACA4879C
+	for <mm-commits@vger.kernel.org>; Mon,  5 Feb 2024 23:23:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707175287; cv=none; b=J+xHuerUlly0aWqQ0ZM0/31dQ657LUuOvvciNENX2eXy36lkGBTLVL2TeSFQKTFy26uQT1Yu0qH8bnWuU+ub/JWwzOQ/2m4aP46qaRaY/BZuDopJrA5/bPXoemPkvnuU/lh/TqN6tTszZ0nPjRq0UkJGa7P48pKUgdOaREMmnno=
+	t=1707175416; cv=none; b=fTrE2pr1F1CjpWbaJ0Mb40ACbPfjAdztlXF8IDtnWeLbBYQa/IXbOxachV3lqaoSiwC6ZU7AtzKrE/R2rnWOxkpwQi/+MQiSdmNG03aXrkroHp6knUSh8ifI1zhJRa552NE+PqfqCKOdeaS6SKzHB39MVjoIXG+vMx7Gs1epaEg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707175287; c=relaxed/simple;
-	bh=evmcTWaXP65jR5/2gu7N97EhUrQjvHsd0HqfAlOegAM=;
-	h=Date:To:From:Subject:Message-Id; b=CuVQkBpD7gGPzL6NRZnezwoPUreDd8pgeHYvendcsv95qgm0zgH/4u4rLtlIAYcWuKGOG3vngHoHRqLysr+T1lErL9+Qk1j0zxupMBNHPcZnZ5+EJN6wh/TzkHB3zkelFcxwDm3Rfcrl1qyBIf9bw4q9rleRZnoB216fcQiyvM8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iPjDlwCm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707175416; c=relaxed/simple;
+	bh=7T2FYh5gQVegnDhR4mT8wKnnPLu8OlnE4y9nGZpE01U=;
+	h=Date:To:From:Subject:Message-Id; b=PfJ81Jq5zVzGyYT1SvdTygPjQAjsAiRJXTjQ2rJh4ROXB7zYAbPJTee0I/STBPP4QG3XQwvd8E6dSIa0xYu7vQuuToa3Dv9sw2VE0Kcbj/Kh3FH1E0P9XpPhMJAwAFIi8/gfTdISk8QeLnpFQZfdw29L5ptPJOWsxv688Dlhj7k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=go0RQcJp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iPjDlwCm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E116C433C7;
-	Mon,  5 Feb 2024 23:21:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="go0RQcJp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13370C433C7;
+	Mon,  5 Feb 2024 23:23:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707175287;
-	bh=evmcTWaXP65jR5/2gu7N97EhUrQjvHsd0HqfAlOegAM=;
+	s=korg; t=1707175416;
+	bh=7T2FYh5gQVegnDhR4mT8wKnnPLu8OlnE4y9nGZpE01U=;
 	h=Date:To:From:Subject:From;
-	b=iPjDlwCm8J6NoTHHZW5u14fQGivlc9rcItl9bQNIs11TqA3YuplCbDIRKPAtwwlPM
-	 Se6MwzLI+qph6ljL+JB/6NC3TVOKFNxj1r8se3hiTQKqgOLXiwfBOC6ODwWwdvJcoJ
-	 CFbHFFsp/MrNgy/D85np55GQ66tKUEfPj97SRhHU=
-Date: Mon, 05 Feb 2024 15:21:26 -0800
-To: mm-commits@vger.kernel.org,anshuman.khandual@arm.com,akpm@linux-foundation.org
+	b=go0RQcJpLTLY4Q48/+7cX6MybtuFzubP9VZ2bK8a9O+U+ozRKvE/jxHgAFnsD+mah
+	 wuw62X8D9ZS1LnZVzUOloCRCUl7RoS+4FVXA3RzS6gidG21vightCuWIOlZUPk25m2
+	 HkydG+bHZ21QM5yqSxh6ULk5kV1V9HQfPakKYtEY=
+Date: Mon, 05 Feb 2024 15:23:35 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,gehao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-cma-make-max_cma_areas-=-config_cma_areas.patch added to mm-unstable branch
-Message-Id: <20240205232127.4E116C433C7@smtp.kernel.org>
+Subject: + mm-vmscan-make-too_many_isolated-return-bool.patch added to mm-unstable branch
+Message-Id: <20240205232336.13370C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/cma: make MAX_CMA_AREAS = CONFIG_CMA_AREAS
+     Subject: mm/vmscan: make too_many_isolated return bool
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-cma-make-max_cma_areas-=-config_cma_areas.patch
+     mm-vmscan-make-too_many_isolated-return-bool.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-make-max_cma_areas-=-config_cma_areas.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-make-too_many_isolated-return-bool.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,65 +58,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/cma: make MAX_CMA_AREAS = CONFIG_CMA_AREAS
-Date: Mon, 5 Feb 2024 10:49:29 +0530
+From: Hao Ge <gehao@kylinos.cn>
+Subject: mm/vmscan: make too_many_isolated return bool
+Date: Mon, 5 Feb 2024 12:26:18 +0800
 
-There is no real difference between the global area, and other
-additionally configured CMA areas via CONFIG_CMA_AREAS that always
-defaults without user input.  This makes MAX_CMA_AREAS same as
-CONFIG_CMA_AREAS, also incrementing its default values, thus maintaining
-current default for MAX_CMA_AREAS both for UMA and NUMA systems.
+too_many_isolated() should return bool as does the similar
+too_many_isolated() in mm/compaction.c.
 
-Link: https://lkml.kernel.org/r/20240205051929.298559-1-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Link: https://lkml.kernel.org/r/20240205042618.108140-1-gehao@kylinos.cn
+Signed-off-by: Hao Ge <gehao@kylinos.cn>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cma.h |    6 +-----
- mm/Kconfig          |    6 +++---
- 2 files changed, 4 insertions(+), 8 deletions(-)
+ mm/vmscan.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/include/linux/cma.h~mm-cma-make-max_cma_areas-=-config_cma_areas
-+++ a/include/linux/cma.h
-@@ -6,12 +6,8 @@
- #include <linux/types.h>
- #include <linux/numa.h>
+--- a/mm/vmscan.c~mm-vmscan-make-too_many_isolated-return-bool
++++ a/mm/vmscan.c
+@@ -1744,17 +1744,17 @@ bool folio_isolate_lru(struct folio *fol
+  * the LRU list will go small and be scanned faster than necessary, leading to
+  * unnecessary swapping, thrashing and OOM.
+  */
+-static int too_many_isolated(struct pglist_data *pgdat, int file,
++static bool too_many_isolated(struct pglist_data *pgdat, int file,
+ 		struct scan_control *sc)
+ {
+ 	unsigned long inactive, isolated;
+ 	bool too_many;
  
--/*
-- * There is always at least global CMA area and a few optional
-- * areas configured in kernel .config.
-- */
- #ifdef CONFIG_CMA_AREAS
--#define MAX_CMA_AREAS	(1 + CONFIG_CMA_AREAS)
-+#define MAX_CMA_AREAS	CONFIG_CMA_AREAS
- #endif
+ 	if (current_is_kswapd())
+-		return 0;
++		return false;
  
- #define CMA_MAX_NAME 64
---- a/mm/Kconfig~mm-cma-make-max_cma_areas-=-config_cma_areas
-+++ a/mm/Kconfig
-@@ -926,14 +926,14 @@ config CMA_SYSFS
- config CMA_AREAS
- 	int "Maximum count of the CMA areas"
- 	depends on CMA
--	default 19 if NUMA
--	default 7
-+	default 20 if NUMA
-+	default 8
- 	help
- 	  CMA allows to create CMA areas for particular purpose, mainly,
- 	  used as device private area. This parameter sets the maximum
- 	  number of CMA area in the system.
+ 	if (!writeback_throttling_sane(sc))
+-		return 0;
++		return false;
  
--	  If unsure, leave the default value "7" in UMA and "19" in NUMA.
-+	  If unsure, leave the default value "8" in UMA and "20" in NUMA.
- 
- config MEM_SOFT_DIRTY
- 	bool "Track memory changes"
+ 	if (file) {
+ 		inactive = node_page_state(pgdat, NR_INACTIVE_FILE);
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from gehao@kylinos.cn are
 
-mm-cma-dont-treat-bad-input-arguments-for-cma_alloc-as-its-failure.patch
-mm-cma-make-max_cma_areas-=-config_cma_areas.patch
+mm-vmscan-change-the-type-of-file-from-int-to-bool.patch
+mm-vmscan-make-too_many_isolated-return-bool.patch
 
