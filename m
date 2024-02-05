@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59C5E1509B4;
-	Mon,  5 Feb 2024 21:08:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B3BB3172D;
+	Mon,  5 Feb 2024 22:15:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707167335; cv=none; b=GEz4WIjb9jZ1GEP/OOnwkVh+O9mOnZW20YcGzNNs1Tbe8N0e0IH9UdYK5nA0bNdI4aCXP2SodkNclJZXwaitfc/ibW502t+IYri2L106urSDiBtwv6KeeD+DaJqitV5W9o5tChzhYJxsJlTUuU4vNE9MTSVNYbiwWAAcM0Nn0vg=
+	t=1707171333; cv=none; b=fHtGvYJI5cfuIdj/TPHSRK6VE71HlgWYTndXYHwo6gr4kiNJ8IfhL3RTYLIjWML3k+421JA+1e8uFYK8KatFmqG7eF3vfxyKky6gvzJ1Lq7o9BN1fFgPpSNrBGS4bDb/X14R68r0368YIBK+YLo8Nd1z0CLRoVm7Ao0UtxqXPMw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707167335; c=relaxed/simple;
-	bh=biKneaSJseSe+6JBLd4UMROHAignWpqHbXjxEn3Vclo=;
-	h=Date:To:From:Subject:Message-Id; b=Djktz97jAD5Lrld+rAmkkxld5fG0Y5JerPVvLCrEkg61xVka2Krd3/PwRpjyWc2EJjVMcrYJcrKoXVIMybt2g2tELYxIry7Od5SG0tKxU+im3T+l/JFMRq1j1Y5WfbknJXfaLjSa/FAf5yyJ82u8VxSLG8FwYCqD3bpxE7nvmBI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jsv47+qS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707171333; c=relaxed/simple;
+	bh=pdoPaqUDLrCKkYkbIvgHrBVe7I2Gk8VPTo8favYYvfU=;
+	h=Date:To:From:Subject:Message-Id; b=IZzFC4gfFwedJVs/WzKC3/pl3n7DePlvKTO24vLTjujEBj7+jgfN3TMpYz1PiTrgm4O2le9YcyqzqEug33xNZsg3H+5mCAMOixt5Xml6oaXzYtII7lerhkLvTtI7qF4yN5b4cvQ4RVGJ0qN76dNCrhzTQq1HmKcf1kwosKJQ95Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZAYg+A8z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jsv47+qS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADFA3C32792;
-	Mon,  5 Feb 2024 21:08:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZAYg+A8z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E8C2C433F1;
+	Mon,  5 Feb 2024 22:15:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707167334;
-	bh=biKneaSJseSe+6JBLd4UMROHAignWpqHbXjxEn3Vclo=;
+	s=korg; t=1707171332;
+	bh=pdoPaqUDLrCKkYkbIvgHrBVe7I2Gk8VPTo8favYYvfU=;
 	h=Date:To:From:Subject:From;
-	b=jsv47+qSUNt1dyryv8+31Xb8z1XRgFs+Rh8jOKcFL6dAtNbGytIM/EeJ9u+gQd/yQ
-	 0d7cimUOEFN99Jf2RTR96UAj/HyyQWEDUQ3t0wTkoWnWNpxnx8n0/9zDkPC4qlwAtw
-	 z3OgJz32OpSVvP3RhcKY/SYwMmyZgt5FQbsoJJJc=
-Date: Mon, 05 Feb 2024 13:08:54 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shuah@kernel.org,peterx@redhat.com,peter.griffin@linaro.org,terry.tritton@linaro.org,akpm@linux-foundation.org
+	b=ZAYg+A8zkJxlN6U6YtMFZcWUyo89VLrAkS+2d4inwpJdfb57OIqGesRnLECrnIIt4
+	 bS/sseO+SY7u4+CBTlvei5LzOxTugMkJdSeYLSeSXjy3mcS/n1AVFWgitZx67OvHpR
+	 USMw9W5x8uhwVdLS74zpRPevoH3QC7U0GkzWiNjA=
+Date: Mon, 05 Feb 2024 14:15:31 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,hirofumi@mail.parknet.co.jp,amir73il@gmail.com,jack@suse.cz,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-uffd-unit-test-check-if-huge-page-size-is-0.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240205210854.ADFA3C32792@smtp.kernel.org>
+Subject: + fat-fix-uninitialized-field-in-nostale-filehandles.patch added to mm-nonmm-unstable branch
+Message-Id: <20240205221532.7E8C2C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: uffd-unit-test check if huge page size is 0
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     selftests-mm-uffd-unit-test-check-if-huge-page-size-is-0.patch
+     Subject: fat: Fix uninitialized field in nostale filehandles
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     fat-fix-uninitialized-field-in-nostale-filehandles.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-uffd-unit-test-check-if-huge-page-size-is-0.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fat-fix-uninitialized-field-in-nostale-filehandles.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,45 +58,48 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Terry Tritton <terry.tritton@linaro.org>
-Subject: selftests/mm: uffd-unit-test check if huge page size is 0
-Date: Mon, 5 Feb 2024 14:50:56 +0000
+From: Jan Kara <jack@suse.cz>
+Subject: fat: Fix uninitialized field in nostale filehandles
+Date: Mon, 5 Feb 2024 13:26:26 +0100
 
-If HUGETLBFS is not enabled then the default_huge_page_size function will
-return 0 and cause a divide by 0 error. Add a check to see if the huge page
-size is 0 and skip the hugetlb tests if it is.
+When fat_encode_fh_nostale() encodes file handle without a parent it
+stores only first 10 bytes of the file handle. However the length of the
+file handle must be a multiple of 4 so the file handle is actually 12
+bytes long and the last two bytes remain uninitialized. This is not
+great at we potentially leak uninitialized information with the handle
+to userspace. Properly initialize the full handle length.
 
-Link: https://lkml.kernel.org/r/20240205145055.3545806-2-terry.tritton@linaro.org
-Fixes: 16a45b57cbf2 ("selftests/mm: add framework for uffd-unit-test")
-Signed-off-by: Terry Tritton <terry.tritton@linaro.org>
-Cc: Peter Griffin <peter.griffin@linaro.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Peter Xu <peterx@redhat.com>
+Link: https://lkml.kernel.org/r/20240205122626.13701-1-jack@suse.cz
+Reported-by: syzbot+3ce5dea5b1539ff36769@syzkaller.appspotmail.com
+Fixes: ea3983ace6b7 ("fat: restructure export_operations")
+Signed-off-by: Jan Kara <jack@suse.cz>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Amir Goldstein <amir73il@gmail.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-unit-tests.c |    6 ++++++
+ fs/fat/nfs.c |    6 ++++++
  1 file changed, 6 insertions(+)
 
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-uffd-unit-test-check-if-huge-page-size-is-0
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -1517,6 +1517,12 @@ int main(int argc, char *argv[])
- 				continue;
+--- a/fs/fat/nfs.c~fat-fix-uninitialized-field-in-nostale-filehandles
++++ a/fs/fat/nfs.c
+@@ -130,6 +130,12 @@ fat_encode_fh_nostale(struct inode *inod
+ 		fid->parent_i_gen = parent->i_generation;
+ 		type = FILEID_FAT_WITH_PARENT;
+ 		*lenp = FAT_FID_SIZE_WITH_PARENT;
++	} else {
++		/*
++		 * We need to initialize this field because the fh is actually
++		 * 12 bytes long
++		 */
++		fid->parent_i_pos_hi = 0;
+ 	}
  
- 			uffd_test_start("%s on %s", test->name, mem_type->name);
-+			if ((mem_type->mem_flag == MEM_HUGETLB ||
-+			    mem_type->mem_flag == MEM_HUGETLB_PRIVATE) &&
-+			    (default_huge_page_size() == 0)) {
-+				uffd_test_skip("huge page size is 0, feature missing?");
-+				continue;
-+			}
- 			if (!uffd_feature_supported(test)) {
- 				uffd_test_skip("feature missing");
- 				continue;
+ 	return type;
 _
 
-Patches currently in -mm which might be from terry.tritton@linaro.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
-selftests-mm-uffd-unit-test-check-if-huge-page-size-is-0.patch
+fat-fix-uninitialized-field-in-nostale-filehandles.patch
 
