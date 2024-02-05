@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A31214B5DD
-	for <mm-commits@vger.kernel.org>; Mon,  5 Feb 2024 23:20:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC0D14D5BB
+	for <mm-commits@vger.kernel.org>; Mon,  5 Feb 2024 23:21:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707175225; cv=none; b=A9hb6yejZ5WmPWO0jyOBuTxlsDhBVHABny3lJU+hBIpDtX1T8Qv/Ylca4Z87uON8veA93cj29v6uKRtyqzUBxOkxwZz245LYTRaXWdMTUu5qD5cLN95rNf4xdPR6Gm21sSPmCEGa2gA9gI7wZJduEBnasX5K2cxnSAPAZpSxWTM=
+	t=1707175287; cv=none; b=J+xHuerUlly0aWqQ0ZM0/31dQ657LUuOvvciNENX2eXy36lkGBTLVL2TeSFQKTFy26uQT1Yu0qH8bnWuU+ub/JWwzOQ/2m4aP46qaRaY/BZuDopJrA5/bPXoemPkvnuU/lh/TqN6tTszZ0nPjRq0UkJGa7P48pKUgdOaREMmnno=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707175225; c=relaxed/simple;
-	bh=7HIshANhw6f5iksrjfd9J8MlZ+fakYY/pXWnTKLsay0=;
-	h=Date:To:From:Subject:Message-Id; b=mH+rTfbBxTmIQWthJSH74TM79pqdcgb+DTJ+58NaJ5gMArH3KJMTGPyhW60oKdY+GKz+WUKvUWfOi9XrY2aOe4W6eEj7hWZP31XthWifK5OgiZjpcUIUj5rHXaWtTbifnbUN/u8KF5CP2zshBoO2Jn2vifUBRvYkMTD2CJzh0XE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qwvzsETQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707175287; c=relaxed/simple;
+	bh=evmcTWaXP65jR5/2gu7N97EhUrQjvHsd0HqfAlOegAM=;
+	h=Date:To:From:Subject:Message-Id; b=CuVQkBpD7gGPzL6NRZnezwoPUreDd8pgeHYvendcsv95qgm0zgH/4u4rLtlIAYcWuKGOG3vngHoHRqLysr+T1lErL9+Qk1j0zxupMBNHPcZnZ5+EJN6wh/TzkHB3zkelFcxwDm3Rfcrl1qyBIf9bw4q9rleRZnoB216fcQiyvM8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iPjDlwCm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qwvzsETQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F046BC433F1;
-	Mon,  5 Feb 2024 23:20:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iPjDlwCm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E116C433C7;
+	Mon,  5 Feb 2024 23:21:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707175225;
-	bh=7HIshANhw6f5iksrjfd9J8MlZ+fakYY/pXWnTKLsay0=;
+	s=korg; t=1707175287;
+	bh=evmcTWaXP65jR5/2gu7N97EhUrQjvHsd0HqfAlOegAM=;
 	h=Date:To:From:Subject:From;
-	b=qwvzsETQc4Vmx+EuMypsb5KbbGFhDBylFnztrQnGiaH/G22/sE2WDdrKsFy5yXDMQ
-	 ReLLbafGo83m+JFGe/mYUrn896hUZEatrn/J5YnUuzr1T/aoRySg9+FtDESMEyBMRr
-	 EmuvE43Ybq8iZ7As7kqF6bOIruH0bcE/MLip1Q6I=
-Date: Mon, 05 Feb 2024 15:20:24 -0800
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,brauner@kernel.org,keescook@chromium.org,akpm@linux-foundation.org
+	b=iPjDlwCm8J6NoTHHZW5u14fQGivlc9rcItl9bQNIs11TqA3YuplCbDIRKPAtwwlPM
+	 Se6MwzLI+qph6ljL+JB/6NC3TVOKFNxj1r8se3hiTQKqgOLXiwfBOC6ODwWwdvJcoJ
+	 CFbHFFsp/MrNgy/D85np55GQ66tKUEfPj97SRhHU=
+Date: Mon, 05 Feb 2024 15:21:26 -0800
+To: mm-commits@vger.kernel.org,anshuman.khandual@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] iov_iter-avoid-wrap-around-instrumentation-in-copy_compat_iovec_from_user.patch removed from -mm tree
-Message-Id: <20240205232024.F046BC433F1@smtp.kernel.org>
+Subject: + mm-cma-make-max_cma_areas-=-config_cma_areas.patch added to mm-unstable branch
+Message-Id: <20240205232127.4E116C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,59 +34,89 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: iov_iter: avoid wrap-around instrumentation in copy_compat_iovec_from_user()
-has been removed from the -mm tree.  Its filename was
-     iov_iter-avoid-wrap-around-instrumentation-in-copy_compat_iovec_from_user.patch
+The patch titled
+     Subject: mm/cma: make MAX_CMA_AREAS = CONFIG_CMA_AREAS
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-cma-make-max_cma_areas-=-config_cma_areas.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-make-max_cma_areas-=-config_cma_areas.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: iov_iter: avoid wrap-around instrumentation in copy_compat_iovec_from_user()
-Date: Mon, 29 Jan 2024 10:37:29 -0800
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/cma: make MAX_CMA_AREAS = CONFIG_CMA_AREAS
+Date: Mon, 5 Feb 2024 10:49:29 +0530
 
-The loop counter "i" in copy_compat_iovec_from_user() is an int, but
-because the nr_segs argument is unsigned long, the signed overflow
-sanitizer got worried "i" could wrap around.  Instead of making "i" an
-unsigned long (which may enlarge the type size), switch both nr_segs and i
-to u32.  There is no truncation with nr_segs since it is never larger than
-UIO_MAXIOV anyway.  This keeps sanitizer instrumentation[1] out of a
-UACCESS path:
+There is no real difference between the global area, and other
+additionally configured CMA areas via CONFIG_CMA_AREAS that always
+defaults without user input.  This makes MAX_CMA_AREAS same as
+CONFIG_CMA_AREAS, also incrementing its default values, thus maintaining
+current default for MAX_CMA_AREAS both for UMA and NUMA systems.
 
-vmlinux.o: warning: objtool: copy_compat_iovec_from_user+0xa9: call to __ubsan_handle_add_overflow() with UACCESS enabled
-
-Link: https://github.com/KSPP/linux/issues/26 [1]
-Link: https://lkml.kernel.org/r/20240129183729.work.991-kees@kernel.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Link: https://lkml.kernel.org/r/20240205051929.298559-1-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/iov_iter.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/cma.h |    6 +-----
+ mm/Kconfig          |    6 +++---
+ 2 files changed, 4 insertions(+), 8 deletions(-)
 
---- a/lib/iov_iter.c~iov_iter-avoid-wrap-around-instrumentation-in-copy_compat_iovec_from_user
-+++ a/lib/iov_iter.c
-@@ -1166,11 +1166,12 @@ const void *dup_iter(struct iov_iter *ne
- EXPORT_SYMBOL(dup_iter);
+--- a/include/linux/cma.h~mm-cma-make-max_cma_areas-=-config_cma_areas
++++ a/include/linux/cma.h
+@@ -6,12 +6,8 @@
+ #include <linux/types.h>
+ #include <linux/numa.h>
  
- static __noclone int copy_compat_iovec_from_user(struct iovec *iov,
--		const struct iovec __user *uvec, unsigned long nr_segs)
-+		const struct iovec __user *uvec, u32 nr_segs)
- {
- 	const struct compat_iovec __user *uiov =
- 		(const struct compat_iovec __user *)uvec;
--	int ret = -EFAULT, i;
-+	int ret = -EFAULT;
-+	u32 i;
+-/*
+- * There is always at least global CMA area and a few optional
+- * areas configured in kernel .config.
+- */
+ #ifdef CONFIG_CMA_AREAS
+-#define MAX_CMA_AREAS	(1 + CONFIG_CMA_AREAS)
++#define MAX_CMA_AREAS	CONFIG_CMA_AREAS
+ #endif
  
- 	if (!user_access_begin(uiov, nr_segs * sizeof(*uiov)))
- 		return -EFAULT;
+ #define CMA_MAX_NAME 64
+--- a/mm/Kconfig~mm-cma-make-max_cma_areas-=-config_cma_areas
++++ a/mm/Kconfig
+@@ -926,14 +926,14 @@ config CMA_SYSFS
+ config CMA_AREAS
+ 	int "Maximum count of the CMA areas"
+ 	depends on CMA
+-	default 19 if NUMA
+-	default 7
++	default 20 if NUMA
++	default 8
+ 	help
+ 	  CMA allows to create CMA areas for particular purpose, mainly,
+ 	  used as device private area. This parameter sets the maximum
+ 	  number of CMA area in the system.
+ 
+-	  If unsure, leave the default value "7" in UMA and "19" in NUMA.
++	  If unsure, leave the default value "8" in UMA and "20" in NUMA.
+ 
+ config MEM_SOFT_DIRTY
+ 	bool "Track memory changes"
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-ubsan-reintroduce-signed-overflow-sanitizer.patch
+mm-cma-dont-treat-bad-input-arguments-for-cma_alloc-as-its-failure.patch
+mm-cma-make-max_cma_areas-=-config_cma_areas.patch
 
