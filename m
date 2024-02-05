@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E1D413B28B
-	for <mm-commits@vger.kernel.org>; Mon,  5 Feb 2024 21:01:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60D2813B7A9
+	for <mm-commits@vger.kernel.org>; Mon,  5 Feb 2024 21:05:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707166885; cv=none; b=ABLVSMshIXsjBleXFizjOWRqx9/xL7qPVpQ/5bCI3muA7eLuDXU0nrxC34Mw5F+KsTDJpEiUt/kdbe6DfddrpYrkOUkdTSLj1HaEFP/Xf2NJ1tKFlyMjzYRvfAHpJun4vtL+8I1oKYBXJizjEZ/VkVojzkaKYIt0+gBgwmLdrrU=
+	t=1707167102; cv=none; b=i6A8C+dp0ovrgH3Gx4ryw9qvfy0lNLTgcVuFoM4TSL9ih2/qK9I2dlzu8XYIXJvgLqW49ALx23/lVdb4qjaTOQkOdB67tiBKR28V1EWUJh76gTeEgQQdHWhM4+KSP4Ha2RekTBjdVcRJWNDSkUzTFa9iE/+fXAQrjv6+dp1YdR0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707166885; c=relaxed/simple;
-	bh=KPfztp/ge2utpLYevkYhHkAe7QFy8dsB733FTPjSdTc=;
-	h=Date:To:From:Subject:Message-Id; b=qYqxqDf3zNi45W8elNiZUTRXJiOUHxDD7+vNggV6xseyZ1AsS904Lx4bxGsCt3f82cmwvLDDmZML8noNr2LKI4P08E/kY12mkWvNT4ebDLKWi2E6y5NLCepbHwNK3hSH36zORQvrHw+gwFUaorUooU0sQcXpsWrist5xIm3uRiU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CKkK7Im9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707167102; c=relaxed/simple;
+	bh=bP9oke7VknXbrX6agz1nQXhHIWYI9uPHgbh0I+lmOhQ=;
+	h=Date:To:From:Subject:Message-Id; b=bt3LiukWJfDKw6S33bUX1O2YQYEaKUfs063EX7fpAsKqxtuXEMLjlx400fu0jkd43tqOEIQgh+kMUiwRWgoyv52IQjO84Kg4jNQRzK3KDKrW8S1n8zMJlnmD3vunyehPRGSB0+ER4k9nJy4RAujy8Pd6C2/g347A4ULP8neU3+U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CJBfdPiI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CKkK7Im9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE580C433C7;
-	Mon,  5 Feb 2024 21:01:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CJBfdPiI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7293C43394;
+	Mon,  5 Feb 2024 21:05:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707166885;
-	bh=KPfztp/ge2utpLYevkYhHkAe7QFy8dsB733FTPjSdTc=;
+	s=korg; t=1707167101;
+	bh=bP9oke7VknXbrX6agz1nQXhHIWYI9uPHgbh0I+lmOhQ=;
 	h=Date:To:From:Subject:From;
-	b=CKkK7Im9jLb06DjCpjY0hF876B2nI6sZMwVQRJx6TTKxCpwbjTm+LmR0WXiQ+BeJH
-	 AviZw33/fA1XPNj24u2RWz0vIT3UvGMdbs7BV2iVuIKGaNjpxtvy7z6LOrUkGFpNo3
-	 tdiSPFTDGye5dbDbUmXzdgzK1j1V65K0T8Udtls4=
-Date: Mon, 05 Feb 2024 13:01:24 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,shuah@kernel.org,roman.gushchin@linux.dev,riel@surriel.com,muchun.song@linux.dev,mhocko@kernel.org,lstoakes@gmail.com,hannes@cmpxchg.org,leitao@debian.org,akpm@linux-foundation.org
+	b=CJBfdPiIp4UNiioO5RvXLwCijuPmKd64HLvpFMwOgpZIrxYEwry0GCDlNGFp1w7pR
+	 RlSh78ZwW/GTidOjByIZk0e0ssdXGOdpfx7S7tm1OzjJTLGBR821Q0RzV2rINKj7jR
+	 03NZkSdVRNDAWGPRiwhOq7YzPXB/hNsI845bowbM=
+Date: Mon, 05 Feb 2024 13:05:01 -0800
+To: mm-commits@vger.kernel.org,lukas.bulwahn@gmail.com,linux@weissschuh.net,joe@perches.com,gregkh@linuxfoundation.org,dwaipayanray1@gmail.com,apw@canonical.com,ricardo@marliere.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-run_vmtestssh-add-hugetlb_madv_vs_map.patch added to mm-unstable branch
-Message-Id: <20240205210124.DE580C433C7@smtp.kernel.org>
+Subject: + const_structscheckpatch-add-bus_type.patch added to mm-nonmm-unstable branch
+Message-Id: <20240205210501.A7293C43394@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: run_vmtests.sh: add hugetlb_madv_vs_map
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-run_vmtestssh-add-hugetlb_madv_vs_map.patch
+     Subject: const_structs.checkpatch: add bus_type
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     const_structscheckpatch-add-bus_type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-run_vmtestssh-add-hugetlb_madv_vs_map.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/const_structscheckpatch-add-bus_type.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,48 +58,42 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: selftests/mm: run_vmtests.sh: add hugetlb_madv_vs_map
-Date: Mon, 5 Feb 2024 11:18:42 -0800
+From: "Ricardo B. Marliere" <ricardo@marliere.net>
+Subject: const_structs.checkpatch: add bus_type
+Date: Sun, 04 Feb 2024 19:39:57 -0300
 
-hugetlb_madv_vs_map selftest was not part of the mm test-suite since we
-didn't have a fix for the problem it found.
+Since commit d492cc2573a0 ("driver core: device.h: make struct bus_type a
+const *"), the driver core can properly handle constant struct bus_type. 
+Make sure that new usages of the struct already enter the tree as const.
 
-Now that the problem is already fixed (see previous commit), let's enable
-this selftest in the default test-suite.
-
-Link: https://lkml.kernel.org/r/20240205191843.4009640-3-leitao@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20240204-bus_cleanup-checkpatch-v1-1-8d51dcecda20@marliere.net
+Signed-off-by: Ricardo B. Marliere <ricardo@marliere.net>
+Suggested-by: Thomas Weißschuh <linux@weissschuh.net>
+Reviewed-by: Thomas Weißschuh <linux@weissschuh.net>
+Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/run_vmtests.sh |    1 +
+ scripts/const_structs.checkpatch |    1 +
  1 file changed, 1 insertion(+)
 
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-run_vmtestssh-add-hugetlb_madv_vs_map
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -264,6 +264,7 @@ nr_hugepages_tmp=$(cat /proc/sys/vm/nr_h
- # For this test, we need one and just one huge page
- echo 1 > /proc/sys/vm/nr_hugepages
- CATEGORY="hugetlb" run_test ./hugetlb_fault_after_madv
-+CATEGORY="hugetlb" run_test ./hugetlb_madv_vs_map
- # Restore the previous number of huge pages, since further tests rely on it
- echo "$nr_hugepages_tmp" > /proc/sys/vm/nr_hugepages
- 
+--- a/scripts/const_structs.checkpatch~const_structscheckpatch-add-bus_type
++++ a/scripts/const_structs.checkpatch
+@@ -2,6 +2,7 @@ acpi_dock_ops
+ address_space_operations
+ backlight_ops
+ block_device_operations
++bus_type
+ clk_ops
+ comedi_lrange
+ component_ops
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from ricardo@marliere.net are
 
-selftests-mm-new-test-that-steals-pages.patch
-selftests-mm-run_vmtestssh-add-hugetlb-test-category.patch
-mm-hugetlb-restore-the-reservation-if-needed.patch
-selftests-mm-run_vmtestssh-add-hugetlb_madv_vs_map.patch
+const_structscheckpatch-add-bus_type.patch
 
