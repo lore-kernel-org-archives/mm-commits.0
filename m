@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88B20487BF
-	for <mm-commits@vger.kernel.org>; Mon,  5 Feb 2024 23:27:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35B61495F0
+	for <mm-commits@vger.kernel.org>; Mon,  5 Feb 2024 23:30:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707175638; cv=none; b=WcITQwL56Tx3CWjYfNpAaULNKdyYmKUZ1c9xBB/cpr4LiZIwIlNkLic9qb6FQDu2e323Wf/SVKKQmFn+iSsAAeoRT7uRWzp8FxqZySqW2mJD5oplZtGN1BIpTssEILrgjMmlj0Wju6XsI/QkWECjY0fIKh55/TZrfVWHNIp+jGE=
+	t=1707175803; cv=none; b=mw9e3VzjuBVh6C0qk1C33jBtuPioIXeMaPNXxPYHdzgiv1ldK5VyFOKPLgoxUubGwAqUQXdpaUj2/xWq039MDzI2aTWMs0VV60lt8lII2aHZkWgCko7eOaPJCq32wh7i1fn9iiFtAT5UdDz7iIEphbDhIVTVsdPyGjm21xKskxw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707175638; c=relaxed/simple;
-	bh=sIy7USjZB/Owob1JIiCRSXJeM3YHL5PrROZsmuOOLG4=;
-	h=Date:To:From:Subject:Message-Id; b=Mue1/+pMTpgvD1tx2rILW0V/ItRQU6xzce2SYmRn8rnFuGZzGf5RwapN5S33l90kPDJbVQYlALJN6EHyG7I92YzP0WHdf72mwYaQMxkBR5CCF5lq97eP2292U6FUgtn4lQabzZYYXTT6Fs10BqLY1ItV6f/pB4bM7yOhhY3wdy0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f77lbZ1D; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707175803; c=relaxed/simple;
+	bh=g7/0suQBmu4dv/AE/WYYIvSgLDV+PAey8sL8GluQm8M=;
+	h=Date:To:From:Subject:Message-Id; b=PyplcEBxxNMl0n2pNUY9LxBBuX6FZpxHfj9pzoDwJf01iNQ/bBFUWT7+JiXlxYTGgVXireI9nbeZAMuVqChvcST4FxVrnZ/jMJt4Lb0aqj81F/eDB0NVoZNY8udQPhrjwkpn5eKoRo5CZx/0ZY04iDIhs1pzasAkF9CXYIL7MhM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lJ6MFu5r; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f77lbZ1D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB8B0C433C7;
-	Mon,  5 Feb 2024 23:27:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lJ6MFu5r"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97459C433C7;
+	Mon,  5 Feb 2024 23:30:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707175638;
-	bh=sIy7USjZB/Owob1JIiCRSXJeM3YHL5PrROZsmuOOLG4=;
+	s=korg; t=1707175802;
+	bh=g7/0suQBmu4dv/AE/WYYIvSgLDV+PAey8sL8GluQm8M=;
 	h=Date:To:From:Subject:From;
-	b=f77lbZ1Dy56nVRKbCjKfFD5+fAcnye0a1mwzBFfj9nBFpfHWHh+weec0lJcHpJJwC
-	 K7KILUYqLsmCZLQ38L3xbA3HDM9LeCN40+tddDIfQKKHHG3yeXIxct8NINEDemlmml
-	 FrEv2vfYZISi/cFGYd9b0H2sHBoIa782RrISuKr0=
-Date: Mon, 05 Feb 2024 15:27:17 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,muchun.song@linux.dev,david@redhat.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
+	b=lJ6MFu5rAZCPTY0FZtQsAodyBFucDiCGNDyBgIsnIOYkIa8kDXH4XhJzp7Vo5qFSB
+	 I6CTlzQxUVJG123/7hrnJwn3vgrAWyErnBKCZdXsBd84FvSFFJ/yOCK3Sb4EjL2bOy
+	 vITVUs0wVNA1gAfETPYlYPCmo+ZCWPHtKRGtK9OI=
+Date: Mon, 05 Feb 2024 15:30:02 -0800
+To: mm-commits@vger.kernel.org,gregkh@linuxfoundation.org,ricardo@marliere.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [nacked] mm-pgtable-remove-unnecessary-split-ptlock-for-kernel-pmd-page.patch removed from -mm tree
-Message-Id: <20240205232717.EB8B0C433C7@smtp.kernel.org>
+Subject: + memory-tier-make-memory_tier_subsys-const.patch added to mm-unstable branch
+Message-Id: <20240205233002.97459C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,107 +34,63 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: pgtable: remove unnecessary split ptlock for kernel PMD page
-has been removed from the -mm tree.  Its filename was
-     mm-pgtable-remove-unnecessary-split-ptlock-for-kernel-pmd-page.patch
+The patch titled
+     Subject: memory tier: make memory_tier_subsys const
+has been added to the -mm mm-unstable branch.  Its filename is
+     memory-tier-make-memory_tier_subsys-const.patch
 
-This patch was dropped because it was nacked
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memory-tier-make-memory_tier_subsys-const.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: pgtable: remove unnecessary split ptlock for kernel PMD page
-Date: Thu, 1 Feb 2024 16:05:41 +0800
+From: "Ricardo B. Marliere" <ricardo@marliere.net>
+Subject: memory tier: make memory_tier_subsys const
+Date: Sun, 04 Feb 2024 10:56:44 -0300
 
-For kernel PMD entry, we use init_mm.page_table_lock to protect it, so
-there is no need to allocate and initialize the split ptlock for kernel
-PMD page.
+Now that the driver core can properly handle constant struct bus_type,
+move the memory_tier_subsys variable to be a constant structure as well,
+placing it into read-only memory which can not be modified at runtime.
 
-Link: https://lkml.kernel.org/r/63f0b3d2f9124ae5076963fb5505bd36daba0393.1706774109.git.zhengqi.arch@bytedance.com
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20240204-bus_cleanup-mm-v1-1-00f49286f164@marliere.net
+Signed-off-by: Ricardo B. Marliere <ricardo@marliere.net>
+Suggested-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgalloc.h |   10 ++++++++--
- include/linux/mm.h            |   21 ++++++++++++++++-----
- 2 files changed, 24 insertions(+), 7 deletions(-)
+ mm/memory-tiers.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/asm-generic/pgalloc.h~mm-pgtable-remove-unnecessary-split-ptlock-for-kernel-pmd-page
-+++ a/include/asm-generic/pgalloc.h
-@@ -139,7 +139,10 @@ static inline pmd_t *pmd_alloc_one(struc
- 	ptdesc = pagetable_alloc(gfp, 0);
- 	if (!ptdesc)
- 		return NULL;
--	if (!pagetable_pmd_ctor(ptdesc)) {
-+
-+	if (mm == &init_mm) {
-+		__pagetable_pmd_ctor(ptdesc);
-+	} else if (!pagetable_pmd_ctor(ptdesc)) {
- 		pagetable_free(ptdesc);
- 		return NULL;
- 	}
-@@ -153,7 +156,10 @@ static inline void pmd_free(struct mm_st
- 	struct ptdesc *ptdesc = virt_to_ptdesc(pmd);
+--- a/mm/memory-tiers.c~memory-tier-make-memory_tier_subsys-const
++++ a/mm/memory-tiers.c
+@@ -39,7 +39,7 @@ static LIST_HEAD(memory_tiers);
+ static struct node_memory_type_map node_memory_types[MAX_NUMNODES];
+ struct memory_dev_type *default_dram_type;
  
- 	BUG_ON((unsigned long)pmd & (PAGE_SIZE-1));
--	pagetable_pmd_dtor(ptdesc);
-+	if (mm == &init_mm)
-+		__pagetable_pmd_dtor(ptdesc);
-+	else
-+		pagetable_pmd_dtor(ptdesc);
- 	pagetable_free(ptdesc);
- }
- #endif
---- a/include/linux/mm.h~mm-pgtable-remove-unnecessary-split-ptlock-for-kernel-pmd-page
-+++ a/include/linux/mm.h
-@@ -3048,26 +3048,37 @@ static inline spinlock_t *pmd_lock(struc
- 	return ptl;
- }
- 
--static inline bool pagetable_pmd_ctor(struct ptdesc *ptdesc)
-+static inline void __pagetable_pmd_ctor(struct ptdesc *ptdesc)
- {
- 	struct folio *folio = ptdesc_folio(ptdesc);
- 
--	if (!pmd_ptlock_init(ptdesc))
--		return false;
- 	__folio_set_pgtable(folio);
- 	lruvec_stat_add_folio(folio, NR_PAGETABLE);
-+}
-+
-+static inline bool pagetable_pmd_ctor(struct ptdesc *ptdesc)
-+{
-+	if (!pmd_ptlock_init(ptdesc))
-+		return false;
-+
-+	__pagetable_pmd_ctor(ptdesc);
- 	return true;
- }
- 
--static inline void pagetable_pmd_dtor(struct ptdesc *ptdesc)
-+static inline void __pagetable_pmd_dtor(struct ptdesc *ptdesc)
- {
- 	struct folio *folio = ptdesc_folio(ptdesc);
- 
--	pmd_ptlock_free(ptdesc);
- 	__folio_clear_pgtable(folio);
- 	lruvec_stat_sub_folio(folio, NR_PAGETABLE);
- }
- 
-+static inline void pagetable_pmd_dtor(struct ptdesc *ptdesc)
-+{
-+	pmd_ptlock_free(ptdesc);
-+	__pagetable_pmd_dtor(ptdesc);
-+}
-+
- /*
-  * No scalability reason to split PUD locks yet, but follow the same pattern
-  * as the PMD locks to make it easier if we decide to.  The VM should not be
+-static struct bus_type memory_tier_subsys = {
++static const struct bus_type memory_tier_subsys = {
+ 	.name = "memory_tiering",
+ 	.dev_name = "memory_tier",
+ };
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from ricardo@marliere.net are
 
+memory-tier-make-memory_tier_subsys-const.patch
+const_structscheckpatch-add-bus_type.patch
 
