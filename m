@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91B0A4EB20
-	for <mm-commits@vger.kernel.org>; Mon,  5 Feb 2024 23:32:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F3B7818
+	for <mm-commits@vger.kernel.org>; Tue,  6 Feb 2024 00:06:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707175951; cv=none; b=a2htuGjCsYhs6gtfUqYKSWY6lwf8aqMBKqJX4EAQtrQKk+dc+Yz4FQbky2zSeTV2YtlYOF2w86DpHl1kgH4nfB8AW62A6LdiQqvQzTcryx3Ho7agOF9urF+1So1H1zKqyACysve6bi+GPBgILaNgAN2Nz32H27u9COcgAQtWj9c=
+	t=1707177988; cv=none; b=OtJWcxe+8VDxoxd0iM8ivgNTVoQgAoi9QwlRcpKok9ZrMImcsGhPbUAsv7m9DSGvawg/mqic1m1Rj7j9xtqvbPNj6nJtpLIlgjLNpQJn++/McnVRcJYZ3npV0aMTqzxU7X06iDIyFStl/E72kQCFTPO7jkc/fu79jLvg6z/20u8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707175951; c=relaxed/simple;
-	bh=AaN+Es/ZQNMg06fPHkxWEjo5+cXTIX1eGUyOCcoFCVs=;
-	h=Date:To:From:Subject:Message-Id; b=BlekUOpvshOSYTDpzYivoi7TI3BtEYF1WuX6uxWLGs38Spcq3jmo9njkeqfoMIL1PHdwxPB81akh1ZYT2rXPK4OaYKiQvJ77j650612UPPm6dAvTxfxiQBFwLU6jAaXcL1ZPCtIAvsrlczyjxF16G5gy6ldVoWYz3c9xG7ixAFA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fBz4rxH0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707177988; c=relaxed/simple;
+	bh=nUMD2IWi9U5GfvoHOInQ8IdXquc6NKbkomkZDwKULfs=;
+	h=Date:To:From:Subject:Message-Id; b=WRpeWaiT0AxtzrGlOzz6mGfdZK/Cl5ZyxW+UT2KQszxqFkvw6lUwtyr86XE7HJsCftNcNeuKjKQW97xTsKi7a4UtATyVdXr7tDoG5jpGdLgcJCO0h2uOTbTROSPwjfQqDj1ladctDgtEDzrMbD8RSnmVKoAenmQfvHuFXjhYXRU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hh52RBaz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fBz4rxH0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F904C433C7;
-	Mon,  5 Feb 2024 23:32:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hh52RBaz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C12ECC43390;
+	Tue,  6 Feb 2024 00:06:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707175950;
-	bh=AaN+Es/ZQNMg06fPHkxWEjo5+cXTIX1eGUyOCcoFCVs=;
+	s=korg; t=1707177987;
+	bh=nUMD2IWi9U5GfvoHOInQ8IdXquc6NKbkomkZDwKULfs=;
 	h=Date:To:From:Subject:From;
-	b=fBz4rxH011Ic7dcFTqCgtvsWIi1fW0zzLsG9uTyn2pIC8L4t1wBbwz5DqqVVlDTwN
-	 T+dbHeWL73XCYt0FQgf1Z9DmFyZmpuSPCTIQJdHVKH8Y6nU/mU0/qbN85vUHd8RE53
-	 B+G/Io7FiV6of4XTvhXRXyDv3PQB7p4X9wISGRpQ=
-Date: Mon, 05 Feb 2024 15:32:29 -0800
-To: mm-commits@vger.kernel.org,hannes@cmpxchg.org,cerasuolodomenico@gmail.com,hezhongkun.hzk@bytedance.com,akpm@linux-foundation.org
+	b=Hh52RBazBnQrAEsegYn/edxrJRfapLgB5oZ7EQ6ROAyhPlefvt0+8wNyEHszy1rjg
+	 Gnn4bzA5h4L1Jb/51ZCtx68obxX8eXLw8Q73iZRXNy19dcuZLRpPQBodeB2aBV27ta
+	 N01Fl7eMZlSk28Rd2FWl8JOS5J2Cik175C9TM6bw=
+Date: Mon, 05 Feb 2024 16:06:27 -0800
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,nphamcs@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-z3fold-remove-unneeded-spinlock-in-z3fold_alloc.patch added to mm-unstable branch
-Message-Id: <20240205233230.4F904C433C7@smtp.kernel.org>
+Subject: + mm-swap_state-update-zswap-lrus-protection-range-with-the-folio-locked.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240206000627.C12ECC43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/z3fold: remove unneeded spinlock in z3fold_alloc
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-z3fold-remove-unneeded-spinlock-in-z3fold_alloc.patch
+     Subject: mm/swap_state: update zswap LRU's protection range with the folio locked
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-swap_state-update-zswap-lrus-protection-range-with-the-folio-locked.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-z3fold-remove-unneeded-spinlock-in-z3fold_alloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap_state-update-zswap-lrus-protection-range-with-the-folio-locked.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,39 +58,67 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zhongkun He <hezhongkun.hzk@bytedance.com>
-Subject: mm/z3fold: remove unneeded spinlock in z3fold_alloc
-Date: Sun, 4 Feb 2024 21:15:43 +0800
+From: Nhat Pham <nphamcs@gmail.com>
+Subject: mm/swap_state: update zswap LRU's protection range with the folio locked
+Date: Mon, 5 Feb 2024 15:24:42 -0800
 
-The spinlock in z3fold_alloc() is used to protect page->lru, but now it
-was removed in commit e774a7bc7f0ad ("mm: zswap: remove page reclaim logic
-from z3fold"), so remove the spinlock too.
+Move the zswap LRU protection range update above the swap_read_folio()
+call, and only when a new page is allocated.  This is the case where
+(z)swapin could happen, which is a signal that the zswap shrinker should
+be more conservative with its reclaiming action.
 
-Link: https://lkml.kernel.org/r/20240204131543.1469661-1-hezhongkun.hzk@bytedance.com
-Signed-off-by: Zhongkun He <hezhongkun.hzk@bytedance.com>
-Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
+It also prevents a race, in which folio migration can clear the memcg_data
+of the now unlocked folio, resulting in a warning in the inlined
+folio_lruvec() call.
+
+Link: https://lkml.kernel.org/r/20240205232442.3240571-1-nphamcs@gmail.com
+Fixes: b5ba474f3f51 ("zswap: shrink zswap pool based on memory pressure")
+Reported-by: syzbot+17a611d10af7d18a7092@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/000000000000ae47f90610803260@google.com/
+Signed-off-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/swap_state.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/mm/z3fold.c~mm-z3fold-remove-unneeded-spinlock-in-z3fold_alloc
-+++ a/mm/z3fold.c
-@@ -1070,9 +1070,7 @@ found:
- 	add_to_unbuddied(pool, zhdr);
+--- a/mm/swap_state.c~mm-swap_state-update-zswap-lrus-protection-range-with-the-folio-locked
++++ a/mm/swap_state.c
+@@ -680,9 +680,10 @@ skip:
+ 	/* The page was likely read above, so no need for plugging here */
+ 	folio = __read_swap_cache_async(entry, gfp_mask, mpol, ilx,
+ 					&page_allocated, false);
+-	if (unlikely(page_allocated))
++	if (unlikely(page_allocated)) {
++		zswap_folio_swapin(folio);
+ 		swap_read_folio(folio, false, NULL);
+-	zswap_folio_swapin(folio);
++	}
+ 	return folio;
+ }
  
- headless:
--	spin_lock(&pool->lock);
- 	*handle = encode_handle(zhdr, bud);
--	spin_unlock(&pool->lock);
- 	if (bud != HEADLESS)
- 		z3fold_page_unlock(zhdr);
+@@ -855,9 +856,10 @@ skip:
+ 	/* The folio was likely read above, so no need for plugging here */
+ 	folio = __read_swap_cache_async(targ_entry, gfp_mask, mpol, targ_ilx,
+ 					&page_allocated, false);
+-	if (unlikely(page_allocated))
++	if (unlikely(page_allocated)) {
++		zswap_folio_swapin(folio);
+ 		swap_read_folio(folio, false, NULL);
+-	zswap_folio_swapin(folio);
++	}
+ 	return folio;
+ }
  
 _
 
-Patches currently in -mm which might be from hezhongkun.hzk@bytedance.com are
+Patches currently in -mm which might be from nphamcs@gmail.com are
 
-mm-z3fold-remove-unneeded-spinlock-in-z3fold_alloc.patch
+mm-swap_state-update-zswap-lrus-protection-range-with-the-folio-locked.patch
+selftests-zswap-add-zswap-selftest-file-to-zswap-maintainer-entry.patch
+selftests-fix-the-zswap-invasive-shrink-test.patch
+selftests-add-zswapin-and-no-zswap-tests.patch
 
