@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE70E1772D
-	for <mm-commits@vger.kernel.org>; Tue,  6 Feb 2024 20:15:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6FAB17753
+	for <mm-commits@vger.kernel.org>; Tue,  6 Feb 2024 20:18:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707250555; cv=none; b=nM5qaY9wOrqjGpcOVERQIDtxIjf49cepeUeDAeGP9OX/ufwIrHymgqihCUd1ooWBX3Hz0hbvRy5TWB/MRhtf/A0CkM1ZLZq058zd/566i1/lMuJJrY6oOIrOXVD1C6eGVYslFi9UAu7ZGh05fogUSNvpch0+8iUzWyynt6VhHCw=
+	t=1707250697; cv=none; b=c3SWCFCHVDUlQ6t35lftI9ur5Gn1q6E4NOBYFL0dzBRGlq/hUVtMSCEcdKznJe5sJUbsl4BwLJsK61cBp/95nzYPdcmPl0LxIViA5jKJ6XQsTCCDB60iGbCmnnKrKZfWdy+HVKaRH9EdQEqyTjQsNbjuxfvVyhxH5OZ+meVX3uw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707250555; c=relaxed/simple;
-	bh=1HbTqRVFufFLHRDsRYZmWOMRpWsxPjWJdx5u84C9q3w=;
-	h=Date:To:From:Subject:Message-Id; b=AdMFbCQJv24fw9voIpZazrBrzTZIma2gTqJqNiA3GFsMwE9QpPXfsfwFH3c4XG+k78tqLBkoGmk8i83/IOeMVIyxFbvTR4h4rjEgMhyiy7j2f+ovfWosrZWm7XYnNw8iojl1mTy8SHmME5QgcXFOk2fTaXR0lzdx8ib0fxCMRyY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IhbVVnqR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707250697; c=relaxed/simple;
+	bh=0jAVMI0BdZqaK4taTXgJcLOoi+1aaw9NtZFz1p2MUzI=;
+	h=Date:To:From:Subject:Message-Id; b=OML15JAVjGZH7wLoKvUT5H6doX9D+wbnAUICQh0H4ekeWsewaSZNPY8OjDIJ0l/Em7bvzCiBXDYp0DxSuvZW66bgMUbG/kFHMNkKpRfUukZrfYTtXkf6dvvaMxdUpja19B/0wydo+3+tOghztrnCW1LtQaAEoAD0tqSdEMhXTUQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qQjAYhPg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IhbVVnqR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 243D0C433C7;
-	Tue,  6 Feb 2024 20:15:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qQjAYhPg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A6F9C433C7;
+	Tue,  6 Feb 2024 20:18:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707250555;
-	bh=1HbTqRVFufFLHRDsRYZmWOMRpWsxPjWJdx5u84C9q3w=;
+	s=korg; t=1707250697;
+	bh=0jAVMI0BdZqaK4taTXgJcLOoi+1aaw9NtZFz1p2MUzI=;
 	h=Date:To:From:Subject:From;
-	b=IhbVVnqRu6JSJ70CCxlvb8tBmpMbyzkNq8aB0tS94l/e4V7O6yDWSGDnuFDlwxs/l
-	 Qkyv13rnTikLz6pknR1Kycdb5MO+SYBhe5qSnVxNWXNnbi5d5+RzhltGuf3bPu82pX
-	 cQY+vtjtT9/AHgX3bStS8Z7ovgvUaMhyYwnVH2vs=
-Date: Tue, 06 Feb 2024 12:15:54 -0800
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,sthanneeru.opensrc@micron.com,ravis.opensrc@micron.com,rakie.kim@sk.com,mhocko@kernel.org,hyeongtak.ji@sk.com,honggyu.kim@sk.com,Hasan.Maruf@amd.com,hannes@cmpxchg.org,gregory.price@memverge.com,dan.j.williams@intel.com,corbet@lwn.net,gourry.memverge@gmail.com,akpm@linux-foundation.org
+	b=qQjAYhPg6Cbd4gCa3ONfNtR5czodGjRLbXZA/pmwE92lTDhWtt/Yg9NHP0HBdaRo9
+	 CZ6zAtU8DIaajYB3sFyzeJvyyUL66NEwDP88Ze9mAbToCa5VABexA2N7Da+4Mv9C3S
+	 e1hhjxq+uVW9EQaxed//Dl0oXomZn88TK/mfIYFY=
+Date: Tue, 06 Feb 2024 12:18:16 -0800
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,david@redhat.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-protect-task-interleave-functions-with-tsk-mems_allowed_seq-fix.patch added to mm-unstable branch
-Message-Id: <20240206201555.243D0C433C7@smtp.kernel.org>
+Subject: + mm-hugetlb-improve-the-handling-of-hugetlb-allocation-failure-for-freed-or-in-use-hugetlb.patch added to mm-unstable branch
+Message-Id: <20240206201817.3A6F9C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mempolicy: weighted interleave checks wrong parameter
+     Subject: mm: hugetlb: improve the handling of hugetlb allocation failure for freed or in-use hugetlb
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mempolicy-protect-task-interleave-functions-with-tsk-mems_allowed_seq-fix.patch
+     mm-hugetlb-improve-the-handling-of-hugetlb-allocation-failure-for-freed-or-in-use-hugetlb.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-protect-task-interleave-functions-with-tsk-mems_allowed_seq-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-improve-the-handling-of-hugetlb-allocation-failure-for-freed-or-in-use-hugetlb.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,49 +58,96 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Gregory Price <gourry.memverge@gmail.com>
-Subject: mm/mempolicy: weighted interleave checks wrong parameter
-Date: Tue, 6 Feb 2024 14:28:53 -0500
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: hugetlb: improve the handling of hugetlb allocation failure for freed or in-use hugetlb
+Date: Tue, 6 Feb 2024 11:08:11 +0800
 
-weighted interleave presently checks (!node) when it should check
-(!il_weight).  This causes a wrong distribution of memory.
+alloc_and_dissolve_hugetlb_folio() preallocates a new hugetlb page before
+it takes hugetlb_lock.  In 3 out of 4 cases the page is not really used
+and therefore the newly allocated page is just freed right away.  This is
+wasteful and it might cause pre-mature failures in those cases.
 
-Link: https://lkml.kernel.org/r/20240206192853.3589-1-gregory.price@memverge.com
-Signed-off-by: Gregory Price <gregory.price@memverge.com>
-Reported-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Hasan Al Maruf <Hasan.Maruf@amd.com>
-Cc: Honggyu Kim <honggyu.kim@sk.com>
-Cc: Hyeongtak Ji <hyeongtak.ji@sk.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Ravi Jonnalagadda <ravis.opensrc@micron.com>
-Cc: Srinivasulu Thanneeru <sthanneeru.opensrc@micron.com>
+Address that by moving the allocation down to the only case (hugetlb page
+is really in the free pages pool).  We need to drop hugetlb_lock to do so
+and therefore need to recheck the page state after regaining it.
+
+The patch is more of a cleanup than an actual fix to an existing problem. 
+There are no known reports about pre-mature failures.
+
+Link: https://lkml.kernel.org/r/62890fd60b1ecd5bf1cdc476c973f60fe37aa0cb.1707181934.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |   32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-protect-task-interleave-functions-with-tsk-mems_allowed_seq-fix
-+++ a/mm/mempolicy.c
-@@ -1881,7 +1881,7 @@ retry:
- 	/* to prevent miscount use tsk->mems_allowed_seq to detect rebind */
- 	cpuset_mems_cookie = read_mems_allowed_begin();
- 	node = current->il_prev;
--	if (!node || !node_isset(node, policy->nodes)) {
-+	if (!current->il_weight || !node_isset(node, policy->nodes)) {
- 		node = next_node_in(node, policy->nodes);
- 		if (read_mems_allowed_retry(cpuset_mems_cookie))
- 			goto retry;
+--- a/mm/hugetlb.c~mm-hugetlb-improve-the-handling-of-hugetlb-allocation-failure-for-freed-or-in-use-hugetlb
++++ a/mm/hugetlb.c
+@@ -3031,21 +3031,9 @@ static int alloc_and_dissolve_hugetlb_fo
+ {
+ 	gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
+ 	int nid = folio_nid(old_folio);
+-	struct folio *new_folio;
++	struct folio *new_folio = NULL;
+ 	int ret = 0;
+ 
+-	/*
+-	 * Before dissolving the folio, we need to allocate a new one for the
+-	 * pool to remain stable.  Here, we allocate the folio and 'prep' it
+-	 * by doing everything but actually updating counters and adding to
+-	 * the pool.  This simplifies and let us do most of the processing
+-	 * under the lock.
+-	 */
+-	new_folio = alloc_buddy_hugetlb_folio(h, gfp_mask, nid, NULL, NULL);
+-	if (!new_folio)
+-		return -ENOMEM;
+-	__prep_new_hugetlb_folio(h, new_folio);
+-
+ retry:
+ 	spin_lock_irq(&hugetlb_lock);
+ 	if (!folio_test_hugetlb(old_folio)) {
+@@ -3075,6 +3063,16 @@ retry:
+ 		cond_resched();
+ 		goto retry;
+ 	} else {
++		if (!new_folio) {
++			spin_unlock_irq(&hugetlb_lock);
++			new_folio = alloc_buddy_hugetlb_folio(h, gfp_mask, nid,
++							      NULL, NULL);
++			if (!new_folio)
++				return -ENOMEM;
++			__prep_new_hugetlb_folio(h, new_folio);
++			goto retry;
++		}
++
+ 		/*
+ 		 * Ok, old_folio is still a genuine free hugepage. Remove it from
+ 		 * the freelist and decrease the counters. These will be
+@@ -3102,9 +3100,11 @@ retry:
+ 
+ free_new:
+ 	spin_unlock_irq(&hugetlb_lock);
+-	/* Folio has a zero ref count, but needs a ref to be freed */
+-	folio_ref_unfreeze(new_folio, 1);
+-	update_and_free_hugetlb_folio(h, new_folio, false);
++	if (new_folio) {
++		/* Folio has a zero ref count, but needs a ref to be freed */
++		folio_ref_unfreeze(new_folio, 1);
++		update_and_free_hugetlb_folio(h, new_folio, false);
++	}
+ 
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from gourry.memverge@gmail.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-mempolicy-refactor-a-read-once-mechanism-into-a-function-for-re-use.patch
-mm-mempolicy-introduce-mpol_weighted_interleave-for-weighted-interleaving.patch
-mm-mempolicy-protect-task-interleave-functions-with-tsk-mems_allowed_seq.patch
-mm-mempolicy-protect-task-interleave-functions-with-tsk-mems_allowed_seq-fix.patch
+mm-compaction-limit-the-suitable-target-page-order-to-be-less-than-cc-order.patch
+mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages.patch
+mm-hugetlb-improve-the-handling-of-hugetlb-allocation-failure-for-freed-or-in-use-hugetlb.patch
 
