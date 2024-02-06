@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FCA617735
-	for <mm-commits@vger.kernel.org>; Tue,  6 Feb 2024 19:53:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE70E1772D
+	for <mm-commits@vger.kernel.org>; Tue,  6 Feb 2024 20:15:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707249180; cv=none; b=M7ONywBK+vweT9vG06MtuvdWBpZbga/qrzxunZnuBTlwJGRX3HJRbDwWLawvDh2VI0WP/ff1LryEIf+ENWvXF/trhCgz1aoZ/4UVMB0M7n0Ps2UwAP9PszeVn1dnm+d8PxspEaE7MStZOHDBi+8oEBzhgBURaWvEAWhRn4UfA/o=
+	t=1707250555; cv=none; b=nM5qaY9wOrqjGpcOVERQIDtxIjf49cepeUeDAeGP9OX/ufwIrHymgqihCUd1ooWBX3Hz0hbvRy5TWB/MRhtf/A0CkM1ZLZq058zd/566i1/lMuJJrY6oOIrOXVD1C6eGVYslFi9UAu7ZGh05fogUSNvpch0+8iUzWyynt6VhHCw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707249180; c=relaxed/simple;
-	bh=2NcVBuCZQRwRnDeRzRTBcNKadD3GcqKjJm/BOAe5b2k=;
-	h=Date:To:From:Subject:Message-Id; b=hSlxfZdoPlevTP5UVFFNel/nMKnO4Z+K3TqnRHogw/AQcRH9UGjPZGCR66rqYrpO1iC/OpYFbp57DuM3Ku8vRsgtYjGDXEG2qSx7kHYEs15ZDjmVWydaUOPUxPFuuDEzHj1W8Pk5WKrWG952aAwAk+qFH6S3k+blJ7ljNLVdiL4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lKOK5G6x; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707250555; c=relaxed/simple;
+	bh=1HbTqRVFufFLHRDsRYZmWOMRpWsxPjWJdx5u84C9q3w=;
+	h=Date:To:From:Subject:Message-Id; b=AdMFbCQJv24fw9voIpZazrBrzTZIma2gTqJqNiA3GFsMwE9QpPXfsfwFH3c4XG+k78tqLBkoGmk8i83/IOeMVIyxFbvTR4h4rjEgMhyiy7j2f+ovfWosrZWm7XYnNw8iojl1mTy8SHmME5QgcXFOk2fTaXR0lzdx8ib0fxCMRyY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IhbVVnqR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lKOK5G6x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6A6AC433F1;
-	Tue,  6 Feb 2024 19:52:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IhbVVnqR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 243D0C433C7;
+	Tue,  6 Feb 2024 20:15:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707249179;
-	bh=2NcVBuCZQRwRnDeRzRTBcNKadD3GcqKjJm/BOAe5b2k=;
+	s=korg; t=1707250555;
+	bh=1HbTqRVFufFLHRDsRYZmWOMRpWsxPjWJdx5u84C9q3w=;
 	h=Date:To:From:Subject:From;
-	b=lKOK5G6xpysx0oc8ZcSkZoY6AG2kQtZdMtnAYR2JS7sclN7mq6soPSoVbPZnrbIne
-	 m+ONnVWDmX7Zg/QgUCtE5cZYqa6ZiP6xQxm7+pkc9yBxNC9r5wpe6Ih7oRGr0IkLIF
-	 Ew0t/6+TF824igBwfL6u4zcNQbPLowhRzFrZD1FU=
-Date: Tue, 06 Feb 2024 11:52:59 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yosryahmed@google.com,yangyifei03@kuaishou.com,songmuchun@bytedance.com,shakeelb@google.com,roman.gushchin@linux.dev,mkoutny@suse.com,mhocko@suse.com,hannes@cmpxchg.org,tjmercier@google.com,akpm@linux-foundation.org
+	b=IhbVVnqRu6JSJ70CCxlvb8tBmpMbyzkNq8aB0tS94l/e4V7O6yDWSGDnuFDlwxs/l
+	 Qkyv13rnTikLz6pknR1Kycdb5MO+SYBhe5qSnVxNWXNnbi5d5+RzhltGuf3bPu82pX
+	 cQY+vtjtT9/AHgX3bStS8Z7ovgvUaMhyYwnVH2vs=
+Date: Tue, 06 Feb 2024 12:15:54 -0800
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,sthanneeru.opensrc@micron.com,ravis.opensrc@micron.com,rakie.kim@sk.com,mhocko@kernel.org,hyeongtak.ji@sk.com,honggyu.kim@sk.com,Hasan.Maruf@amd.com,hannes@cmpxchg.org,gregory.price@memverge.com,dan.j.williams@intel.com,corbet@lwn.net,gourry.memverge@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-use-larger-batches-for-proactive-reclaim-v4.patch added to mm-unstable branch
-Message-Id: <20240206195259.C6A6AC433F1@smtp.kernel.org>
+Subject: + mm-mempolicy-protect-task-interleave-functions-with-tsk-mems_allowed_seq-fix.patch added to mm-unstable branch
+Message-Id: <20240206201555.243D0C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-memcg-use-larger-batches-for-proactive-reclaim-v4
+     Subject: mm/mempolicy: weighted interleave checks wrong parameter
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memcg-use-larger-batches-for-proactive-reclaim-v4.patch
+     mm-mempolicy-protect-task-interleave-functions-with-tsk-mems_allowed_seq-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-use-larger-batches-for-proactive-reclaim-v4.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-protect-task-interleave-functions-with-tsk-mems_allowed_seq-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,58 +58,49 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: "T.J. Mercier" <tjmercier@google.com>
-Subject: mm-memcg-use-larger-batches-for-proactive-reclaim-v4
-Date: Tue, 6 Feb 2024 17:52:50 +0000
+From: Gregory Price <gourry.memverge@gmail.com>
+Subject: mm/mempolicy: weighted interleave checks wrong parameter
+Date: Tue, 6 Feb 2024 14:28:53 -0500
 
-Add additional info to commit message and move definition of batch_size
-per Michal Hocko.  No functional changes.
+weighted interleave presently checks (!node) when it should check
+(!il_weight).  This causes a wrong distribution of memory.
 
-Link: https://lkml.kernel.org/r/20240206175251.3364296-1-tjmercier@google.com
-Fixes: 0388536ac291 ("mm:vmscan: fix inaccurate reclaim during proactive re=
-claim")
-Signed-off-by: T.J. Mercier <tjmercier@google.com>
-Reviewed-by: Yosry Ahmed <yosryahmed@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Shakeel Butt <shakeelb@google.com>
-Reviewed-by: Michal Koutny <mkoutny@suse.com>
-Cc: Efly Young <yangyifei03@kuaishou.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/20240206192853.3589-1-gregory.price@memverge.com
+Signed-off-by: Gregory Price <gregory.price@memverge.com>
+Reported-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Hasan Al Maruf <Hasan.Maruf@amd.com>
+Cc: Honggyu Kim <honggyu.kim@sk.com>
+Cc: Hyeongtak Ji <hyeongtak.ji@sk.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Ravi Jonnalagadda <ravis.opensrc@micron.com>
+Cc: Srinivasulu Thanneeru <sthanneeru.opensrc@micron.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/mempolicy.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcg-use-larger-batches-for-proactive-reclaim-v4
-+++ a/mm/memcontrol.c
-@@ -6981,6 +6981,8 @@ static ssize_t memory_reclaim(struct ker
- 
- 	reclaim_options	= MEMCG_RECLAIM_MAY_SWAP | MEMCG_RECLAIM_PROACTIVE;
- 	while (nr_reclaimed < nr_to_reclaim) {
-+		/* Will converge on zero, but reclaim enforces a minimum */
-+		unsigned long batch_size = (nr_to_reclaim - nr_reclaimed) / 4;
- 		unsigned long reclaimed;
- 
- 		if (signal_pending(current))
-@@ -6994,9 +6996,6 @@ static ssize_t memory_reclaim(struct ker
- 		if (!nr_retries)
- 			lru_add_drain_all();
- 
--		/* Will converge on zero, but reclaim enforces a minimum */
--		unsigned long batch_size = (nr_to_reclaim - nr_reclaimed) / 4;
--
- 		reclaimed = try_to_free_mem_cgroup_pages(memcg,
- 					batch_size, GFP_KERNEL, reclaim_options);
- 
+--- a/mm/mempolicy.c~mm-mempolicy-protect-task-interleave-functions-with-tsk-mems_allowed_seq-fix
++++ a/mm/mempolicy.c
+@@ -1881,7 +1881,7 @@ retry:
+ 	/* to prevent miscount use tsk->mems_allowed_seq to detect rebind */
+ 	cpuset_mems_cookie = read_mems_allowed_begin();
+ 	node = current->il_prev;
+-	if (!node || !node_isset(node, policy->nodes)) {
++	if (!current->il_weight || !node_isset(node, policy->nodes)) {
+ 		node = next_node_in(node, policy->nodes);
+ 		if (read_mems_allowed_retry(cpuset_mems_cookie))
+ 			goto retry;
 _
 
-Patches currently in -mm which might be from tjmercier@google.com are
+Patches currently in -mm which might be from gourry.memverge@gmail.com are
 
-mm-memcg-dont-periodically-flush-stats-when-memcg-is-disabled.patch
-mm-memcg-use-larger-batches-for-proactive-reclaim.patch
-mm-memcg-use-larger-batches-for-proactive-reclaim-v4.patch
+mm-mempolicy-refactor-a-read-once-mechanism-into-a-function-for-re-use.patch
+mm-mempolicy-introduce-mpol_weighted_interleave-for-weighted-interleaving.patch
+mm-mempolicy-protect-task-interleave-functions-with-tsk-mems_allowed_seq.patch
+mm-mempolicy-protect-task-interleave-functions-with-tsk-mems_allowed_seq-fix.patch
 
