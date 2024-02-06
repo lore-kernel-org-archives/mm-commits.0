@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A067BDDD9
-	for <mm-commits@vger.kernel.org>; Tue,  6 Feb 2024 17:31:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 828B312B8B
+	for <mm-commits@vger.kernel.org>; Tue,  6 Feb 2024 17:39:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707240692; cv=none; b=mlF+mp2g/oip3muwK+EgJIiAm0cuKaZuwV+ThPcqlWMd+IhKpf8+JiS2vqMZTR92cxMoYGP2glV///a5nnzhaq1moKU/v+Tr6EUSipRVL2K1aVijw6t+ixuFnruI1nEIJRWQSScjGFUP8cLJ6jyPjxUgwj+k6fnWZYP1VGcgyZU=
+	t=1707241181; cv=none; b=uxQ0MrM75rGK3lRdlVOiqmw7X8CYBVHhmlFC8LBn/KldVT2V+D4voojVSVsVEwt0KKfysk9pQfUWud+0mwy+ZdnpMkLSoqvhaHG1QRc4L619V6tSupg50QHqz+5XEcmFdSyBsyje3S1AqdR1DlaqX4cRqPUWqet+AZU+xxlpiYM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707240692; c=relaxed/simple;
-	bh=9RUjpdsTk9vXNkAezqvcdwyi3T2WmbHHMaSK/8FB8yM=;
-	h=Date:To:From:Subject:Message-Id; b=gP2cTlOP6TDm2PGUSp8BOWURWPIMpfxp6ZTXDMSk7cJmpAzPxqFL5QJwp1nr6TFlZUFay8pIxI0o47VAIOkjHbUMwxHHE4VGfG3OdkOkxZyQC/RB8vzDMDvD0cuwp2L5FKhXriK7oO784Coi7C0+EYVeryO4kmnWx0cACJmg/eU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ly/6tvAx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707241181; c=relaxed/simple;
+	bh=R1bwBH35NRWTwQFEHGS/utfShp+rZcoI0dXaDfjt0p4=;
+	h=Date:To:From:Subject:Message-Id; b=HCjw8DisgjoXEVwahgAhoXb5KR7hU7gQxrTRk9SgK8g7TO/eoR0p22MRwf/GlDniz+Hm5TZIPIcSwo1BtSDA5BiWBRJdA884PogF7YKRD/frihbn3hWwR9WR9SVmRW4gypqbY+PkJkuJmgsWKynpDykI9mvmKLMeQ2o8kHxSwUY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SihHFYrm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ly/6tvAx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16712C433C7;
-	Tue,  6 Feb 2024 17:31:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SihHFYrm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B66D1C43601;
+	Tue,  6 Feb 2024 17:39:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707240692;
-	bh=9RUjpdsTk9vXNkAezqvcdwyi3T2WmbHHMaSK/8FB8yM=;
+	s=korg; t=1707241180;
+	bh=R1bwBH35NRWTwQFEHGS/utfShp+rZcoI0dXaDfjt0p4=;
 	h=Date:To:From:Subject:From;
-	b=Ly/6tvAxbKOKTGiBNTFqKtK/IvlEqvz/qcjwZx9t7Z+rdnJTMu928d4tLbNTchttD
-	 GSt9GGvDXNOZoOEDPmEUICOckd+hgfOMlpJSZTjgq8u1qpa1uJb6QLiHdXiOsxSJYI
-	 uUktCi7yD+QOfvW/4VeVsOkLsrJncy2S8ESa3y8E=
-Date: Tue, 06 Feb 2024 09:31:31 -0800
-To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,emmir@google.com,avagin@gmail.com,pgofman@codeweavers.com,akpm@linux-foundation.org
+	b=SihHFYrmKfSPFQM9cR3X+BCQ2jhw1cEMXDesIn3HyiMRS71BjCahCkFrVFdP0+nDz
+	 rwkf1LqdGp7u0k93zquTN5DuUsrwu5Z9OO9F5gQBFcJI83HYP1eoKLd+WfBFMzCYkr
+	 I+6pMR4W64GOXtmgA8HdGChyYsLDFaQ1qT5olMrU=
+Date: Tue, 06 Feb 2024 09:39:40 -0800
+To: mm-commits@vger.kernel.org,sumit.semwal@linaro.org,anshuman.khandual@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate-preserve-exact-soft-dirty-state.patch added to mm-unstable branch
-Message-Id: <20240206173132.16712C433C7@smtp.kernel.org>
+Subject: + mm-cma-drop-cma_get_name.patch added to mm-unstable branch
+Message-Id: <20240206173940.B66D1C43601@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/migrate: preserve exact soft-dirty state
+     Subject: mm/cma: drop cma_get_name()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-migrate-preserve-exact-soft-dirty-state.patch
+     mm-cma-drop-cma_get_name.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-preserve-exact-soft-dirty-state.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-drop-cma_get_name.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,57 +58,68 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Paul Gofman <pgofman@codeweavers.com>
-Subject: mm/migrate: preserve exact soft-dirty state
-Date: Tue, 6 Feb 2024 13:48:01 +0500
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/cma: drop cma_get_name()
+Date: Tue, 6 Feb 2024 09:45:18 +0530
 
-pte_mkdirty() sets both _PAGE_DIRTY and _PAGE_SOFT_DIRTY bits.  The
-_PAGE_SOFT_DIRTY can get set even if it wasn't set on original page before
-migration.  This makes non-soft-dirty pages soft-dirty just because of
-migration/compaction.  Clear the _PAGE_SOFT_DIRTY flag if it wasn't set on
-original page.
+cma_get_name() just returns cma->name without any additional
+transformation unlike other helpers such as cma_get_base() and
+cma_get_size().  This helper is not worth the additional indirection, and
+can be dropped after replacing directly with cma->name in the sole caller
+__add_cma_heap().
 
-By definition of soft-dirty feature, there can be spurious soft-dirty
-pages because of kernel's internal activity such as VMA merging or
-migration/compaction.  This patch is eliminating the spurious soft-dirty
-pages because of migration/compaction.
-
-Link: https://lkml.kernel.org/r/20240206084838.34560-1-usama.anjum@collabora.com
-Signed-off-by: Paul Gofman <pgofman@codeweavers.com>
-Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Michał Mirosław <emmir@google.com>
-Cc: Andrei Vagin <avagin@gmail.com>
+Link: https://lkml.kernel.org/r/20240206041518.438801-1-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/dma-buf/heaps/cma_heap.c |    2 +-
+ include/linux/cma.h              |    1 -
+ mm/cma.c                         |    5 -----
+ 3 files changed, 1 insertion(+), 7 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-preserve-exact-soft-dirty-state
-+++ a/mm/migrate.c
-@@ -211,14 +211,17 @@ static bool remove_migration_pte(struct
- 		folio_get(folio);
- 		pte = mk_pte(new, READ_ONCE(vma->vm_page_prot));
- 		old_pte = ptep_get(pvmw.pte);
--		if (pte_swp_soft_dirty(old_pte))
--			pte = pte_mksoft_dirty(pte);
+--- a/drivers/dma-buf/heaps/cma_heap.c~mm-cma-drop-cma_get_name
++++ a/drivers/dma-buf/heaps/cma_heap.c
+@@ -376,7 +376,7 @@ static int __add_cma_heap(struct cma *cm
+ 		return -ENOMEM;
+ 	cma_heap->cma = cma;
  
- 		entry = pte_to_swp_entry(old_pte);
- 		if (!is_migration_entry_young(entry))
- 			pte = pte_mkold(pte);
- 		if (folio_test_dirty(folio) && is_migration_entry_dirty(entry))
- 			pte = pte_mkdirty(pte);
-+		if (pte_swp_soft_dirty(old_pte))
-+			pte = pte_mksoft_dirty(pte);
-+		else
-+			pte = pte_clear_soft_dirty(pte);
-+
- 		if (is_writable_migration_entry(entry))
- 			pte = pte_mkwrite(pte, vma);
- 		else if (pte_swp_uffd_wp(old_pte))
+-	exp_info.name = cma_get_name(cma);
++	exp_info.name = cma->name;
+ 	exp_info.ops = &cma_heap_ops;
+ 	exp_info.priv = cma_heap;
+ 
+--- a/include/linux/cma.h~mm-cma-drop-cma_get_name
++++ a/include/linux/cma.h
+@@ -25,7 +25,6 @@ struct cma;
+ extern unsigned long totalcma_pages;
+ extern phys_addr_t cma_get_base(const struct cma *cma);
+ extern unsigned long cma_get_size(const struct cma *cma);
+-extern const char *cma_get_name(const struct cma *cma);
+ 
+ extern int __init cma_declare_contiguous_nid(phys_addr_t base,
+ 			phys_addr_t size, phys_addr_t limit,
+--- a/mm/cma.c~mm-cma-drop-cma_get_name
++++ a/mm/cma.c
+@@ -45,11 +45,6 @@ unsigned long cma_get_size(const struct
+ 	return cma->count << PAGE_SHIFT;
+ }
+ 
+-const char *cma_get_name(const struct cma *cma)
+-{
+-	return cma->name;
+-}
+-
+ static unsigned long cma_bitmap_aligned_mask(const struct cma *cma,
+ 					     unsigned int align_order)
+ {
 _
 
-Patches currently in -mm which might be from pgofman@codeweavers.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-mm-migrate-preserve-exact-soft-dirty-state.patch
+mm-cma-dont-treat-bad-input-arguments-for-cma_alloc-as-its-failure.patch
+mm-cma-drop-config_cma_debug.patch
+mm-cma-make-max_cma_areas-=-config_cma_areas.patch
+mm-cma-drop-cma_get_name.patch
 
