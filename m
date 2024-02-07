@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEFDC1D557
-	for <mm-commits@vger.kernel.org>; Wed,  7 Feb 2024 22:55:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0E2A1D557
+	for <mm-commits@vger.kernel.org>; Wed,  7 Feb 2024 22:55:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707346510; cv=none; b=sba9X+Vvi7ZCPVw4O0AZjMSxvT4rq8U8X50vYWZcZyuHzJX21cWzCQjaFVaKIcQtEuG9yKUwrnhJOxqg/2uxfOzgn5JDJWjrcXRmIzezQqJpDGRnVA2cA5MbZdipdhO6xW1ntvflQDY5efb79m8vPY0Q/5i0+60M3VpYBiU5kPo=
+	t=1707346511; cv=none; b=dDHnVMCLP9ZnKolsz4j/ELi6vJ5hQibVrOclF2ADtCTvSDpq2GyBeu8f/nFV0nS2ihk2Os1hi5tsa9Q1v9hVeJ597GOUEi/IOIcBt9j86MLAwmeqG77QDzFRYXOzfwUHVvr91TYDjS1iOLnLTSTOveXBPBAz8sucFeLWltIHn6o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707346510; c=relaxed/simple;
-	bh=7Lp1yu279IAG4t+9w5VsJ+PnGmgrru/KC62oLAGh2JM=;
-	h=Date:To:From:Subject:Message-Id; b=Vewb8R4j39Xz+LeFFsHV7S2v1gVqVUWAeDruf3H/7h4yaV2YvZ81YfkBDG5y7nieDYm0WBG85uDuKB/KCV9n06qQ07blEx/IBQ8jv/Lw4Gv3yEbYdJ1ExmLpA44H5afDNVlARrZFbWgbnqToAhIoxxfvDN8Tb0ggRMMMMTJYJBU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gdhlOwV6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707346511; c=relaxed/simple;
+	bh=WsT5txRlejTDgAOM2xskuAJhr+BiRolq0OM4ROk5fZA=;
+	h=Date:To:From:Subject:Message-Id; b=nwnYUzFaanp7pcsbxHVfG1BF5LP4o8pXUjF7gXgF+WvFGi+Y1NKuZeYM79bd9VGCFnM07TIzVWgJ3HXe8cuOd0NaPEEWIIv3Lw9nE2ntRaj9CrLl+yyVdOAr53i6c673UsI8PJ5l2uiQauO82FHuFfQArYl3SnFiPDVnjHL8FqU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YOLoaOxP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gdhlOwV6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32D92C433F1;
-	Wed,  7 Feb 2024 22:55:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YOLoaOxP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 688DEC433C7;
+	Wed,  7 Feb 2024 22:55:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707346509;
-	bh=7Lp1yu279IAG4t+9w5VsJ+PnGmgrru/KC62oLAGh2JM=;
+	s=korg; t=1707346510;
+	bh=WsT5txRlejTDgAOM2xskuAJhr+BiRolq0OM4ROk5fZA=;
 	h=Date:To:From:Subject:From;
-	b=gdhlOwV6lik7Ljpnb/Qoxr/EStMnRwiwOJ0OUAb21n+bVZz6DY1Srf2WY4IVoYvTc
-	 riH9nwov2x0nmy591GIj7AatavPRbJcTP2ZmD/GdsIjSqmhTNYyGBNUMXaclRbiQJl
-	 lN+iQ8cFDAztndlakT6fMe9LkPaAqvNpPEkGcDVs=
-Date: Wed, 07 Feb 2024 14:55:08 -0800
+	b=YOLoaOxPKmtIpSJWcTEYRtOXQ9Nef4yRZtwpYot8ODFD9z7FVCoeeDiebBclnpC1J
+	 LTY6vki3u4NHI8GcFYN2s0sJdbzJ1xikYm2ZxsiIyMRq4gWsqO7desFB9/XWp/rUq5
+	 qxK4TtRPCON9nfeZlXcSbIXD/pC/RfI00prfDwPA=
+Date: Wed, 07 Feb 2024 14:55:09 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-_damon_sysfs-support-damos-stats.patch added to mm-unstable branch
-Message-Id: <20240207225509.32D92C433F1@smtp.kernel.org>
+Subject: + selftests-damon-_damon_sysfs-support-damos-apply-interval.patch added to mm-unstable branch
+Message-Id: <20240207225510.688DEC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/_damon_sysfs: support DAMOS stats
+     Subject: selftests/damon/_damon_sysfs: support DAMOS apply interval
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-damon-_damon_sysfs-support-damos-stats.patch
+     selftests-damon-_damon_sysfs-support-damos-apply-interval.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-_damon_sysfs-support-damos-stats.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-_damon_sysfs-support-damos-apply-interval.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,76 +59,58 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/_damon_sysfs: support DAMOS stats
-Date: Wed, 7 Feb 2024 12:31:28 -0800
+Subject: selftests/damon/_damon_sysfs: support DAMOS apply interval
+Date: Wed, 7 Feb 2024 12:31:29 -0800
 
 Update the test-purpose DAMON sysfs control Python module to support DAMOS
-stats.
+apply interval.
 
-Link: https://lkml.kernel.org/r/20240207203134.69976-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240207203134.69976-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/_damon_sysfs.py |   32 ++++++++++++++++
- 1 file changed, 32 insertions(+)
+ tools/testing/selftests/damon/_damon_sysfs.py |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-_damon_sysfs-support-damos-stats
+--- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-_damon_sysfs-support-damos-apply-interval
 +++ a/tools/testing/selftests/damon/_damon_sysfs.py
-@@ -96,6 +96,20 @@ class DamosQuota:
-         if err != None:
-             return err
- 
-+class DamosStats:
-+    nr_tried = None
-+    sz_tried = None
-+    nr_applied = None
-+    sz_applied = None
-+    qt_exceeds = None
-+
-+    def __init__(self, nr_tried, sz_tried, nr_applied, sz_applied, qt_exceeds):
-+        self.nr_tried = nr_tried
-+        self.sz_tried = sz_tried
-+        self.nr_applied = nr_applied
-+        self.sz_applied = sz_applied
-+        self.qt_exceeds = qt_exceeds
-+
- class Damos:
+@@ -114,6 +114,7 @@ class Damos:
      action = None
      access_pattern = None
-@@ -104,6 +118,7 @@ class Damos:
+     quota = None
++    apply_interval_us = None
+     # todo: Support watermarks, stats, tried_regions
      idx = None
      context = None
-     tried_bytes = None
-+    stats = None
+@@ -121,12 +122,13 @@ class Damos:
+     stats = None
  
      def __init__(self, action='stat', access_pattern=DamosAccessPattern(),
-                  quota=DamosQuota()):
-@@ -322,6 +337,23 @@ class Kdamond:
-                     return err
-                 scheme.tried_bytes = int(content)
+-                 quota=DamosQuota()):
++                 quota=DamosQuota(), apply_interval_us=0):
+         self.action = action
+         self.access_pattern = access_pattern
+         self.access_pattern.scheme = self
+         self.quota = quota
+         self.quota.scheme = self
++        self.apply_interval_us = apply_interval_us
  
-+    def update_schemes_stats(self):
-+        err = write_file(os.path.join(self.sysfs_dir(), 'state'),
-+                'update_schemes_stats')
+     def sysfs_dir(self):
+         return os.path.join(
+@@ -139,6 +141,11 @@ class Damos:
+         err = self.access_pattern.stage()
+         if err != None:
+             return err
++        err = write_file(os.path.join(self.sysfs_dir(), 'apply_interval_us'),
++                         '%d' % self.apply_interval_us)
 +        if err != None:
 +            return err
-+        for context in self.contexts:
-+            for scheme in context.schemes:
-+                stat_values = []
-+                for stat in ['nr_tried', 'sz_tried', 'nr_applied',
-+                             'sz_applied', 'qt_exceeds']:
-+                    content, err = read_file(
-+                            os.path.join(scheme.sysfs_dir(), 'stats', stat))
-+                    if err != None:
-+                        return err
-+                    stat_values.append(int(content))
-+                scheme.stats = DamosStats(*stat_values)
 +
- class Kdamonds:
-     kdamonds = []
- 
+         err = self.quota.stage()
+         if err != None:
+             return err
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
