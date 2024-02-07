@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F11491CD26
-	for <mm-commits@vger.kernel.org>; Wed,  7 Feb 2024 22:55:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0145200B7
+	for <mm-commits@vger.kernel.org>; Wed,  7 Feb 2024 23:10:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707346520; cv=none; b=qCsfcTd+wxJKcxXmLrnxfewdjKKnTmaV+t6IEt5fYj8MwZrp+3zeOYn3ANHDFXa0CnGOgKZZiFZ3TN+V3i2JgBS5kJFc3q2tjkw499tZQFpAw10PHbpp3D58CfTayYD85W38vxC5lnVf89xMBCkjzdpvk9OxOElOb6F4AUsnKZM=
+	t=1707347414; cv=none; b=WOeFslrqamJtiZS1TCeQz9ULyFl/cXIk+KVcz9182ujS7nyLxpx5R0ubFE3NPsC3EEzEPF0NWMAuGoB2mRw9jckLNb+/C9aHDWvPdWA61S+pi6ufHxGDg27jnJCYOTiSlWErr0qThol7GX5JJj4l/jdNy6tKqrgEphZHi8AEdtM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707346520; c=relaxed/simple;
-	bh=POrWWmCfw+dKQgL6vOF+jrynPQKgOzZLd4zCTi/ame8=;
-	h=Date:To:From:Subject:Message-Id; b=Wfn+R4qsnXNjg4rX8pYKvPcugI++Qf1mEBPHLIxXRBjI1VkgFATJiR86HKq1ItDBQvXJc51XmjIdvrscapS99mC6SAKBcBnenVit4MdZcwYsKrM4LDY2E+IxWhlQKI4C6hXiaa+s27flMulM0VhnTcpD/O6teWPpOFESvACUXD0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LyMoUCvH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707347414; c=relaxed/simple;
+	bh=VNF85AckUZLGFQsqkGDa7sujAvbjuGATzuxn/N6jb8s=;
+	h=Date:To:From:Subject:Message-Id; b=oCSJD/lLbhapfUvK/DbSq9zbGqFBAAxOOEnfKTB10caLPYjk3w92l9e/avuDxrP7oIK3+uVt8ikUnoQw4zZ4w+fj/PMwaWVzBmhPdfCmIheR8yKXddBiIKvhB3rChHPMi1o7pKHOV8eLq6+CKwr2TVShjfMBqOV+xcvrQ5dQmKw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i2qNBVxf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LyMoUCvH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0316C43390;
-	Wed,  7 Feb 2024 22:55:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i2qNBVxf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A3F0C433C7;
+	Wed,  7 Feb 2024 23:10:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707346518;
-	bh=POrWWmCfw+dKQgL6vOF+jrynPQKgOzZLd4zCTi/ame8=;
+	s=korg; t=1707347414;
+	bh=VNF85AckUZLGFQsqkGDa7sujAvbjuGATzuxn/N6jb8s=;
 	h=Date:To:From:Subject:From;
-	b=LyMoUCvHL/hzVm63VhO9XrTOgEbUDEXpVOP0K8I/oPBw8Kz0oZrMZfwhOSDLNVPBk
-	 7n+rgBfBDXjDaHSIvggYOLKasKBN/u0QfwmXsPGOU9zN2gNp9xQ6rfAHb9GEO9eP7o
-	 1ApR+jZ1c+W2wrTL9j3xVJKTbBPTgt3nv/eMF8GI=
-Date: Wed, 07 Feb 2024 14:55:18 -0800
-To: mm-commits@vger.kernel.org,shuah@kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=i2qNBVxf6bgktbQ+DQAtdWz2alREjI0/Z7pSMCHNkEer6xcDYjMLpx9PAcQu8W4/u
+	 nNn8XZkRFaLgSInNAw6/LN9VN2YA2528rZC81UFlyxaS38xLsA/zvENcNZLbq4yNVd
+	 jwEtmQh+fgROMwgmwOyX5Cd0SJIlHo4XjFu/3B/w=
+Date: Wed, 07 Feb 2024 15:10:13 -0800
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,yang.yang29@zte.com.cn,willy@infradead.org,weixugc@google.com,wangkefeng.wang@huawei.com,vbabka@suse.cz,tomas.mudrunka@gmail.com,surenb@google.com,shakeelb@google.com,rppt@kernel.org,rdunlap@infradead.org,rafael@kernel.org,pasha.tatashin@soleen.com,muchun.song@linux.dev,Liam.Howlett@oracle.com,kirill.shutemov@linux.intel.com,ivan@cloudflare.com,hannes@cmpxchg.org,gregkh@linuxfoundation.org,david@redhat.com,corbet@lwn.net,chenlinxuan@uniontech.com,bhelgaas@google.com,adobriyan@gmail.com,souravpanda@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-_chk_dependency-get-debugfs-mount-point-from-proc-mounts.patch added to mm-unstable branch
-Message-Id: <20240207225518.B0316C43390@smtp.kernel.org>
+Subject: + mm-report-per-page-metadata-information.patch added to mm-unstable branch
+Message-Id: <20240207231014.3A3F0C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/_chk_dependency: get debugfs mount point from /proc/mounts
+     Subject: mm: report per-page metadata information
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-damon-_chk_dependency-get-debugfs-mount-point-from-proc-mounts.patch
+     mm-report-per-page-metadata-information.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-_chk_dependency-get-debugfs-mount-point-from-proc-mounts.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-report-per-page-metadata-information.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,64 +58,396 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/_chk_dependency: get debugfs mount point from /proc/mounts
-Date: Wed, 7 Feb 2024 12:31:34 -0800
+From: Sourav Panda <souravpanda@google.com>
+Subject: mm: report per-page metadata information
+Date: Mon, 29 Jan 2024 14:42:04 -0800
 
-DAMON debugfs selftests dependency checker assumes debugfs would be
-mounted at /sys/kernel/debug.  That would be ok for many cases, but some
-systems might mounted the file system on some different places.  Parse the
-real mount point using /proc/mounts file.
+Adds two new per-node fields, namely nr_page_metadata and
+nr_page_metadata_boot, to /sys/devices/system/node/nodeN/vmstat and a
+global PageMetadata field to /proc/meminfo.  This information can be used
+by users to see how much memory is being used by per-page metadata, which
+can vary depending on build configuration, machine architecture, and
+system use.
 
-Link: https://lkml.kernel.org/r/20240207203134.69976-9-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
+Per-page metadata is the amount of memory that Linux needs in order to
+manage memory at the page granularity.  The majority of such memory is
+used by "struct page" and "page_ext" data structures.  In contrast to most
+other memory consumption statistics, per-page metadata might not be
+included in MemTotal.  For example, MemTotal does not include memblock
+allocations but includes buddy allocations.  In this patch, exported field
+nr_page_metadata in /sys/devices/system/node/nodeN/vmstat would
+exclusively track buddy allocations while nr_page_metadata_boot would
+exclusively track memblock allocations.  Furthermore, PageMetadata in
+/proc/meminfo would exclusively track buddy allocations allowing it to be
+compared against MemTotal.
+
+This memory depends on build configurations, machine architectures, and
+the way system is used:
+
+Build configuration may include extra fields into "struct page", and
+enable / disable "page_ext".  Machine architecture defines base page
+sizes.  For example 4K x86, 8K SPARC, 64K ARM64 (optionally), etc.  The
+per-page metadata overhead is smaller on machines with larger page sizes. 
+System use can change per-page overhead by using vmemmap optimizations
+with hugetlb pages, and emulated pmem devdax pages.  Also, boot parameters
+can determine whether page_ext is needed to be allocated.  This memory can
+be part of MemTotal or be outside MemTotal depending on whether the memory
+was hot-plugged, booted with, or hugetlb memory was returned back to the
+system.
+
+Link: https://lkml.kernel.org/r/20240129224204.1812062-2-souravpanda@google.com
+Signed-off-by: Sourav Panda <souravpanda@google.com>
+Suggested-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Chen Linxuan <chenlinxuan@uniontech.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Ivan Babrou <ivan@cloudflare.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Tomas Mudrunka <tomas.mudrunka@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/_chk_dependency.sh |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ Documentation/filesystems/proc.rst |    3 ++
+ fs/proc/meminfo.c                  |    4 +++
+ include/linux/mmzone.h             |    4 +++
+ include/linux/vmstat.h             |    4 +++
+ mm/hugetlb_vmemmap.c               |   19 ++++++++++++----
+ mm/mm_init.c                       |    5 +++-
+ mm/page_alloc.c                    |    1 
+ mm/page_ext.c                      |   32 +++++++++++++++++++--------
+ mm/sparse-vmemmap.c                |    8 ++++++
+ mm/sparse.c                        |    7 +++++
+ mm/vmstat.c                        |   26 +++++++++++++++++++++
+ 11 files changed, 98 insertions(+), 15 deletions(-)
 
---- a/tools/testing/selftests/damon/_chk_dependency.sh~selftests-damon-_chk_dependency-get-debugfs-mount-point-from-proc-mounts
-+++ a/tools/testing/selftests/damon/_chk_dependency.sh
-@@ -4,7 +4,14 @@
- # Kselftest framework requirement - SKIP code is 4.
- ksft_skip=4
+--- a/Documentation/filesystems/proc.rst~mm-report-per-page-metadata-information
++++ a/Documentation/filesystems/proc.rst
+@@ -993,6 +993,7 @@ Example output. You may not have all of
+     AnonPages:       4654780 kB
+     Mapped:           266244 kB
+     Shmem:              9976 kB
++    PageMetadata:     513419 kB
+     KReclaimable:     517708 kB
+     Slab:             660044 kB
+     SReclaimable:     517708 kB
+@@ -1095,6 +1096,8 @@ Mapped
+               files which have been mmapped, such as libraries
+ Shmem
+               Total memory used by shared memory (shmem) and tmpfs
++PageMetadata
++              Memory used for per-page metadata
+ KReclaimable
+               Kernel allocations that the kernel will attempt to reclaim
+               under memory pressure. Includes SReclaimable (below), and other
+--- a/fs/proc/meminfo.c~mm-report-per-page-metadata-information
++++ a/fs/proc/meminfo.c
+@@ -39,6 +39,7 @@ static int meminfo_proc_show(struct seq_
+ 	long available;
+ 	unsigned long pages[NR_LRU_LISTS];
+ 	unsigned long sreclaimable, sunreclaim;
++	unsigned long nr_page_metadata;
+ 	int lru;
  
--DBGFS=/sys/kernel/debug/damon
-+DBGFS=$(grep debugfs /proc/mounts --max-count 1 | awk '{print $2}')
-+if [ "$DBGFS" = "" ]
-+then
-+	echo "debugfs not mounted"
-+	exit $ksft_skip
-+fi
+ 	si_meminfo(&i);
+@@ -57,6 +58,8 @@ static int meminfo_proc_show(struct seq_
+ 	sreclaimable = global_node_page_state_pages(NR_SLAB_RECLAIMABLE_B);
+ 	sunreclaim = global_node_page_state_pages(NR_SLAB_UNRECLAIMABLE_B);
+ 
++	nr_page_metadata = global_node_page_state_pages(NR_PAGE_METADATA);
 +
-+DBGFS+="/damon"
+ 	show_val_kb(m, "MemTotal:       ", i.totalram);
+ 	show_val_kb(m, "MemFree:        ", i.freeram);
+ 	show_val_kb(m, "MemAvailable:   ", available);
+@@ -104,6 +107,7 @@ static int meminfo_proc_show(struct seq_
+ 	show_val_kb(m, "Mapped:         ",
+ 		    global_node_page_state(NR_FILE_MAPPED));
+ 	show_val_kb(m, "Shmem:          ", i.sharedram);
++	show_val_kb(m, "PageMetadata:   ", nr_page_metadata);
+ 	show_val_kb(m, "KReclaimable:   ", sreclaimable +
+ 		    global_node_page_state(NR_KERNEL_MISC_RECLAIMABLE));
+ 	show_val_kb(m, "Slab:           ", sreclaimable + sunreclaim);
+--- a/include/linux/mmzone.h~mm-report-per-page-metadata-information
++++ a/include/linux/mmzone.h
+@@ -214,6 +214,10 @@ enum node_stat_item {
+ 	PGDEMOTE_KSWAPD,
+ 	PGDEMOTE_DIRECT,
+ 	PGDEMOTE_KHUGEPAGED,
++	NR_PAGE_METADATA,	/* Page metadata size (struct page and page_ext)
++				 * in pages
++				 */
++	NR_PAGE_METADATA_BOOT,	/* NR_PAGE_METADATA for bootmem */
+ 	NR_VM_NODE_STAT_ITEMS
+ };
  
- if [ $EUID -ne 0 ];
- then
+--- a/include/linux/vmstat.h~mm-report-per-page-metadata-information
++++ a/include/linux/vmstat.h
+@@ -632,4 +632,8 @@ static inline void lruvec_stat_sub_folio
+ {
+ 	lruvec_stat_mod_folio(folio, idx, -folio_nr_pages(folio));
+ }
++
++void __init mod_node_early_perpage_metadata(int nid, long delta);
++void __init store_early_perpage_metadata(void);
++
+ #endif /* _LINUX_VMSTAT_H */
+--- a/mm/hugetlb_vmemmap.c~mm-report-per-page-metadata-information
++++ a/mm/hugetlb_vmemmap.c
+@@ -184,10 +184,14 @@ static int vmemmap_remap_range(unsigned
+  */
+ static inline void free_vmemmap_page(struct page *page)
+ {
+-	if (PageReserved(page))
++	if (PageReserved(page)) {
+ 		free_bootmem_page(page);
+-	else
++		mod_node_page_state(page_pgdat(page), NR_PAGE_METADATA_BOOT,
++				    -1);
++	} else {
+ 		__free_page(page);
++		mod_node_page_state(page_pgdat(page), NR_PAGE_METADATA, -1);
++	}
+ }
+ 
+ /* Free a list of the vmemmap pages */
+@@ -338,6 +342,7 @@ static int vmemmap_remap_free(unsigned l
+ 		copy_page(page_to_virt(walk.reuse_page),
+ 			  (void *)walk.reuse_addr);
+ 		list_add(&walk.reuse_page->lru, vmemmap_pages);
++		mod_node_page_state(NODE_DATA(nid), NR_PAGE_METADATA, 1);
+ 	}
+ 
+ 	/*
+@@ -384,14 +389,20 @@ static int alloc_vmemmap_page_list(unsig
+ 	unsigned long nr_pages = (end - start) >> PAGE_SHIFT;
+ 	int nid = page_to_nid((struct page *)start);
+ 	struct page *page, *next;
++	int i;
+ 
+-	while (nr_pages--) {
++	for (i = 0; i < nr_pages; i++) {
+ 		page = alloc_pages_node(nid, gfp_mask, 0);
+-		if (!page)
++		if (!page) {
++			mod_node_page_state(NODE_DATA(nid), NR_PAGE_METADATA,
++					    i);
+ 			goto out;
++		}
+ 		list_add(&page->lru, list);
+ 	}
+ 
++	mod_node_page_state(NODE_DATA(nid), NR_PAGE_METADATA, nr_pages);
++
+ 	return 0;
+ out:
+ 	list_for_each_entry_safe(page, next, list, lru)
+--- a/mm/mm_init.c~mm-report-per-page-metadata-information
++++ a/mm/mm_init.c
+@@ -20,6 +20,7 @@
+ #include <linux/nmi.h>
+ #include <linux/buffer_head.h>
+ #include <linux/kmemleak.h>
++#include <linux/vmstat.h>
+ #include <linux/kfence.h>
+ #include <linux/page_ext.h>
+ #include <linux/pti.h>
+@@ -1644,7 +1645,7 @@ static void __init alloc_node_mem_map(st
+ 	start = pgdat->node_start_pfn & ~(MAX_ORDER_NR_PAGES - 1);
+ 	offset = pgdat->node_start_pfn - start;
+ 	/*
+-		 * The zone's endpoints aren't required to be MAX_PAGE_ORDER
++	 * The zone's endpoints aren't required to be MAX_PAGE_ORDER
+ 	 * aligned but the node_mem_map endpoints must be in order
+ 	 * for the buddy allocator to function correctly.
+ 	 */
+@@ -1656,6 +1657,8 @@ static void __init alloc_node_mem_map(st
+ 		panic("Failed to allocate %ld bytes for node %d memory map\n",
+ 		      size, pgdat->node_id);
+ 	pgdat->node_mem_map = map + offset;
++		mod_node_early_perpage_metadata(pgdat->node_id,
++						DIV_ROUND_UP(size, PAGE_SIZE));
+ 	pr_debug("%s: node %d, pgdat %08lx, node_mem_map %08lx\n",
+ 		 __func__, pgdat->node_id, (unsigned long)pgdat,
+ 		 (unsigned long)pgdat->node_mem_map);
+--- a/mm/page_alloc.c~mm-report-per-page-metadata-information
++++ a/mm/page_alloc.c
+@@ -5638,6 +5638,7 @@ void __init setup_per_cpu_pageset(void)
+ 	for_each_online_pgdat(pgdat)
+ 		pgdat->per_cpu_nodestats =
+ 			alloc_percpu(struct per_cpu_nodestat);
++	store_early_perpage_metadata();
+ }
+ 
+ __meminit void zone_pcp_init(struct zone *zone)
+--- a/mm/page_ext.c~mm-report-per-page-metadata-information
++++ a/mm/page_ext.c
+@@ -201,6 +201,8 @@ static int __init alloc_node_page_ext(in
+ 		return -ENOMEM;
+ 	NODE_DATA(nid)->node_page_ext = base;
+ 	total_usage += table_size;
++	mod_node_page_state(NODE_DATA(nid), NR_PAGE_METADATA_BOOT,
++			    DIV_ROUND_UP(table_size, PAGE_SIZE));
+ 	return 0;
+ }
+ 
+@@ -255,12 +257,15 @@ static void *__meminit alloc_page_ext(si
+ 	void *addr = NULL;
+ 
+ 	addr = alloc_pages_exact_nid(nid, size, flags);
+-	if (addr) {
++	if (addr)
+ 		kmemleak_alloc(addr, size, 1, flags);
+-		return addr;
+-	}
++	else
++		addr = vzalloc_node(size, nid);
+ 
+-	addr = vzalloc_node(size, nid);
++	if (addr) {
++		mod_node_page_state(NODE_DATA(nid), NR_PAGE_METADATA,
++				    DIV_ROUND_UP(size, PAGE_SIZE));
++	}
+ 
+ 	return addr;
+ }
+@@ -303,18 +308,27 @@ static int __meminit init_section_page_e
+ 
+ static void free_page_ext(void *addr)
+ {
++	size_t table_size;
++	struct page *page;
++	struct pglist_data *pgdat;
++
++	table_size = page_ext_size * PAGES_PER_SECTION;
++
+ 	if (is_vmalloc_addr(addr)) {
++		page = vmalloc_to_page(addr);
++		pgdat = page_pgdat(page);
+ 		vfree(addr);
+ 	} else {
+-		struct page *page = virt_to_page(addr);
+-		size_t table_size;
+-
+-		table_size = page_ext_size * PAGES_PER_SECTION;
+-
++		page = virt_to_page(addr);
++		pgdat = page_pgdat(page);
+ 		BUG_ON(PageReserved(page));
+ 		kmemleak_free(addr);
+ 		free_pages_exact(addr, table_size);
+ 	}
++
++	mod_node_page_state(pgdat, NR_PAGE_METADATA,
++			    -1L * (DIV_ROUND_UP(table_size, PAGE_SIZE)));
++
+ }
+ 
+ static void __free_page_ext(unsigned long pfn)
+--- a/mm/sparse.c~mm-report-per-page-metadata-information
++++ a/mm/sparse.c
+@@ -14,7 +14,7 @@
+ #include <linux/swap.h>
+ #include <linux/swapops.h>
+ #include <linux/bootmem_info.h>
+-
++#include <linux/vmstat.h>
+ #include "internal.h"
+ #include <asm/dma.h>
+ 
+@@ -465,6 +465,9 @@ static void __init sparse_buffer_init(un
+ 	 */
+ 	sparsemap_buf = memmap_alloc(size, section_map_size(), addr, nid, true);
+ 	sparsemap_buf_end = sparsemap_buf + size;
++#ifndef CONFIG_SPARSEMEM_VMEMMAP
++	mod_node_early_perpage_metadata(nid, DIV_ROUND_UP(size, PAGE_SIZE));
++#endif
+ }
+ 
+ static void __init sparse_buffer_fini(void)
+@@ -641,6 +644,8 @@ static void depopulate_section_memmap(un
+ 	unsigned long start = (unsigned long) pfn_to_page(pfn);
+ 	unsigned long end = start + nr_pages * sizeof(struct page);
+ 
++	mod_node_page_state(page_pgdat(pfn_to_page(pfn)), NR_PAGE_METADATA,
++			    -1L * (DIV_ROUND_UP(end - start, PAGE_SIZE)));
+ 	vmemmap_free(start, end, altmap);
+ }
+ static void free_map_bootmem(struct page *memmap)
+--- a/mm/sparse-vmemmap.c~mm-report-per-page-metadata-information
++++ a/mm/sparse-vmemmap.c
+@@ -469,5 +469,13 @@ struct page * __meminit __populate_secti
+ 	if (r < 0)
+ 		return NULL;
+ 
++	if (system_state == SYSTEM_BOOTING) {
++		mod_node_page_state(NODE_DATA(nid), NR_PAGE_METADATA_BOOT,
++				    DIV_ROUND_UP(end - start, PAGE_SIZE));
++	} else {
++		mod_node_page_state(NODE_DATA(nid), NR_PAGE_METADATA,
++				    DIV_ROUND_UP(end - start, PAGE_SIZE));
++	}
++
+ 	return pfn_to_page(pfn);
+ }
+--- a/mm/vmstat.c~mm-report-per-page-metadata-information
++++ a/mm/vmstat.c
+@@ -1253,6 +1253,9 @@ const char * const vmstat_text[] = {
+ 	"pgdemote_direct",
+ 	"pgdemote_khugepaged",
+ 
++	"nr_page_metadata",
++	"nr_page_metadata_boot",
++
+ 	/* enum writeback_stat_item counters */
+ 	"nr_dirty_threshold",
+ 	"nr_dirty_background_threshold",
+@@ -2279,4 +2282,27 @@ static int __init extfrag_debug_init(voi
+ }
+ 
+ module_init(extfrag_debug_init);
++
+ #endif
++
++/*
++ * Page metadata size (struct page and page_ext) in pages
++ */
++static unsigned long early_perpage_metadata[MAX_NUMNODES] __initdata;
++
++void __init mod_node_early_perpage_metadata(int nid, long delta)
++{
++	early_perpage_metadata[nid] += delta;
++}
++
++void __init store_early_perpage_metadata(void)
++{
++	int nid;
++	struct pglist_data *pgdat;
++
++	for_each_online_pgdat(pgdat) {
++		nid = pgdat->node_id;
++		mod_node_page_state(NODE_DATA(nid), NR_PAGE_METADATA_BOOT,
++				    early_perpage_metadata[nid]);
++	}
++}
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from souravpanda@google.com are
 
-mm-damon-sysfs-schemes-fix-wrong-damos-tried-regions-update-timeout-setup.patch
-mm-damon-core-check-apply-interval-in-damon_do_apply_schemes.patch
-docs-admin-guide-mm-damon-usage-use-sysfs-interface-for-tracepoints-example.patch
-mm-damon-rename-config_damon_dbgfs-to-damon_dbgfs_deprecated.patch
-mm-damon-dbgfs-implement-deprecation-notice-file.patch
-mm-damon-dbgfs-make-debugfs-interface-deprecation-message-a-macro.patch
-docs-admin-guide-mm-damon-usage-document-deprecated-file-of-damon-debugfs-interface.patch
-selftets-damon-prepare-for-monitor_on-file-renaming.patch
-mm-damon-dbgfs-rename-monitor_on-file-to-monitor_on_deprecated.patch
-docs-admin-guide-mm-damon-usage-update-for-monitor_on-renaming.patch
-docs-translations-damon-usage-update-for-monitor_on-renaming.patch
-mm-damon-sysfs-handle-state-file-inputs-for-every-sampling-interval-if-possible.patch
-selftests-damon-_damon_sysfs-support-damos-quota.patch
-selftests-damon-_damon_sysfs-support-damos-stats.patch
-selftests-damon-_damon_sysfs-support-damos-apply-interval.patch
-selftests-damon-add-a-test-for-damos-quota.patch
-selftests-damon-add-a-test-for-damos-apply-intervals.patch
-selftests-damon-add-a-test-for-a-race-between-target_ids_read-and-dbgfs_before_terminate.patch
-selftests-damon-add-a-test-for-the-pid-leak-of-dbgfs_target_ids_write.patch
-selftests-damon-_chk_dependency-get-debugfs-mount-point-from-proc-mounts.patch
+mm-report-per-page-metadata-information.patch
 
