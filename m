@@ -1,105 +1,120 @@
-Received: from mail-ot1-f52.google.com (mail-ot1-f52.google.com [209.85.210.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C4947B3C2
-	for <mm-commits@vger.kernel.org>; Thu,  8 Feb 2024 18:08:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF63C37711;
+	Thu,  8 Feb 2024 20:19:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707415734; cv=none; b=gV4WKosTcURPk6mRt/XxQ3GFYiL3vDHO3g/p6/zWtwbxvtfH5YN4dbAIctGS6BDpLSRT/kljY6sNu7FCIYGUTynFyqJvLa7rKEdjq63AT2SIMDd00FO5bFAKjrrLGarmUxc8EeFFoU8NCAaTQF9di+Ci8A5WlXyeEj7duhp+JrA=
+	t=1707423571; cv=none; b=kmoFPCLffG8yLvR6jkV2avvPjq97q7KGGMj9Lz1xM2vVHsOwTe7XeYZCC9M+QKjse3TslU/gI2KQ2cgJrXYxxyylf07Fko6YgrPR4PdWHyf6yOSAC8V/VqcJH9zPrSAr+G1+ko7QuL4Y/txGUc9VG50rU3kZfSDccPo/PjuLG98=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707415734; c=relaxed/simple;
-	bh=nTJHlCv7cDadeS9h/6dUsRlEaUtEOIN6H9uKR/Drf8w=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=J/5W7xwbwNDhX5sp5t/TlBL5eY67gXPF0D7QuangienzD9N943SWaF1PsPoROtBWNS+p/XjrFk+mc8aiKde/VieIh+lwgdXBQAbwQSQf0IWbSSFhg+BURPO9kVC3qagxQCk2a0j+iFao8AnrJl693C4RPCueagbaHL5i82zYD0M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=soleen.com; spf=none smtp.mailfrom=soleen.com; dkim=fail (0-bit key) header.d=soleen.com header.i=@soleen.com header.b=I60pLSXi reason="key not found in DNS"; arc=none smtp.client-ip=209.85.210.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=soleen.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=soleen.com
+	s=arc-20240116; t=1707423571; c=relaxed/simple;
+	bh=JEHF3L83Ez5X9HIZXdBgzhVChwblAjDq3m5eCli5fME=;
+	h=Date:To:From:Subject:Message-Id; b=ndTK4AoMX5LDFTHS4FYdIRxkR5kWc6Q6n6HvJCFPLIlIHwzE6t5PJI/dFH3tKgitjyiyBMyclfClvRkNsNUfHx9TQn4uHUGERvow4TsoE2zo0uPE8IEOKIpz6QpFyOOaMWyh5m2NnD4tQzT6iGn3zQ+q330WNrKhl8SSgLjrA08=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fINuTcV8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=soleen.com header.i=@soleen.com header.b="I60pLSXi"
-Received: by mail-ot1-f52.google.com with SMTP id 46e09a7af769-6e1214ae9d4so20824a34.3
-        for <mm-commits@vger.kernel.org>; Thu, 08 Feb 2024 10:08:52 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=soleen.com; s=google; t=1707415732; x=1708020532; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=nTJHlCv7cDadeS9h/6dUsRlEaUtEOIN6H9uKR/Drf8w=;
-        b=I60pLSXiW3/fqoQMu6gzSHGvScjVsTiPMj9LvOZqAOmI8KvJ1OegmW3WCaurvc6HkC
-         5GyulfhJGo2GVv1JdU+o/qooG8afeW75upEWK3Upteq1VXfCszl2tD3NKdsSmjjsMhRk
-         61BmU6NTohMijKvZzCuovNbOj3zj2f0hhoOIvEvDQ02IbyDlDXOrY2U5VwxDAN9Sjwf5
-         fyMUBdBwrVQFZBrugMT9wD0JWrIj4AI167R1Q2F3z/PjMGVsSDAF+ghBl5p8CQBfFqJ8
-         Ts08otWa5dZyUSB2cvnIzs4mMZPKtrtav7iAA4svRcHg/G7d7SBp7PtP5sbUjStBlHLk
-         Zyvw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1707415732; x=1708020532;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=nTJHlCv7cDadeS9h/6dUsRlEaUtEOIN6H9uKR/Drf8w=;
-        b=f/vgLC1NQWR92aK73fshJVPWjbv2hcEXRsvTpdimjZ1LeL42KvoE1eUABlIMVdbmrX
-         m8QHGBsbPRBLWpjpCeBFvTuIvqHLg907W/G9eVt0ApgU+6Ua3FvtwggeXsCz+qnb1Obw
-         4dFliTzazZtHacPoaFTls2Qz303Ozadtad3nzP4+fAI5LxACincKsDcd6X5XWPV46nt+
-         LTNcHqqHlQnjB5upvROE4YtfG7cNItLyaq1tnfe6dnNh8DJU+YuD9y6/7A4CYfqSxQXA
-         xrRujrGgagDNbF4NDvGmVCJEldEP1nQAqCDfwAECXtlR/XS9XKwrRetWXibB+uUhL6NX
-         cHNw==
-X-Forwarded-Encrypted: i=1; AJvYcCVahGhBamndVocokN2I1Yr0UsYYDj/+WaLG0CFW+uTR6BbsIKSdjvl/OeDUQubg5zzbKFXa0G8S+Wq/b1l7+Eh8spkaYOv+VJQCbA==
-X-Gm-Message-State: AOJu0YyRmmcVvnQss8qKfWaxuwGCBBo2Lsch17+ygD5CQZGuN1BV4p8a
-	FgDWQ1PlefsmHuzmoVN/l4sElMxqL8ZwyKzxSZhlKDWwZrKDMkzg9SM6Lz1XTHZkfaDzWldUxTW
-	MCd9TBJW8xmi8nEQ/YGt4Sz3rr5NtDvRDQAMYcQ==
-X-Google-Smtp-Source: AGHT+IFo8sr0A/wm9vHFl5R7DYVtg6xPXwWhZb+yUXdK8j55aG5jJOUf4uGytmBYA24Mgxhj7WY/9aTo6o8z8W/fs+c=
-X-Received: by 2002:a9d:73ca:0:b0:6e2:b28f:6179 with SMTP id
- m10-20020a9d73ca000000b006e2b28f6179mr287814otk.1.1707415732212; Thu, 08 Feb
- 2024 10:08:52 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fINuTcV8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D292C433F1;
+	Thu,  8 Feb 2024 20:19:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1707423570;
+	bh=JEHF3L83Ez5X9HIZXdBgzhVChwblAjDq3m5eCli5fME=;
+	h=Date:To:From:Subject:From;
+	b=fINuTcV8E2IX3DHD5G5DIZpRm2fzUg0yLJeA9SuTnjlbVUS8f8jLz3/kWL1qn2B3c
+	 vI9nMFxSJ4fp983NF9z0omI7F7+6WnGpPg8NuFurwmuf/h9xyECQLySCnIF9cRCidA
+	 oXsws0KnlJg9WVbWpqNCRwXF37hWlDSsHNXWA7eg=
+Date: Thu, 08 Feb 2024 12:19:29 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,tzimmermann@suse.de,tvrtko.ursulin@linux.intel.com,stable@vger.kernel.org,rodrigo.vivi@intel.com,ray.huang@amd.com,mripard@kernel.org,maarten.lankhorst@linux.intel.com,joonas.lahtinen@linux.intel.com,jarkko@kernel.org,jani.nikula@linux.intel.com,hughd@google.com,djwong@kernel.org,dhowells@redhat.com,dave.hansen@linux.intel.com,daniel@ffwll.ch,christian.koenig@amd.com,chandan.babu@oracle.com,airlied@gmail.com,hch@lst.de,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [obsolete] mm-add-a-mapping_clear_large_folios-helper.patch removed from -mm tree
+Message-Id: <20240208201930.3D292C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20240207231014.3A3F0C433C7@smtp.kernel.org> <20240208031413.GA185687@cmpxchg.org>
- <CAJD7tkbdzwjhhgK_-6iAHLn05Q-7wCOzEn9xug1Udr+Df-hLkA@mail.gmail.com> <20240208064411.GE185687@cmpxchg.org>
-In-Reply-To: <20240208064411.GE185687@cmpxchg.org>
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Date: Thu, 8 Feb 2024 13:08:16 -0500
-Message-ID: <CA+CK2bCxPVyB8ZVk3dA5TKROScNHMzdu_PkBTK9b3zStvgemDA@mail.gmail.com>
-Subject: Re: + mm-report-per-page-metadata-information.patch added to
- mm-unstable branch
-To: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Yosry Ahmed <yosryahmed@google.com>, Andrew Morton <akpm@linux-foundation.org>, 
-	mm-commits@vger.kernel.org, yang.yang29@zte.com.cn, willy@infradead.org, 
-	weixugc@google.com, wangkefeng.wang@huawei.com, vbabka@suse.cz, 
-	tomas.mudrunka@gmail.com, surenb@google.com, shakeelb@google.com, 
-	rppt@kernel.org, rdunlap@infradead.org, rafael@kernel.org, 
-	muchun.song@linux.dev, Liam.Howlett@oracle.com, 
-	kirill.shutemov@linux.intel.com, ivan@cloudflare.com, 
-	gregkh@linuxfoundation.org, david@redhat.com, corbet@lwn.net, 
-	chenlinxuan@uniontech.com, bhelgaas@google.com, adobriyan@gmail.com, 
-	souravpanda@google.com
-Content-Type: text/plain; charset="UTF-8"
 
-> > I am not closely following this series, but I just wanted to point out
-> > that this is not always true. We are actively extending
-> > NR_SECONDARY_PAGETABLE to add IOMMU page tables in addition to KVM
-> > page tables [1]. In that case as well, the name was left open-ended
-> > exactly for this purpose [2].
->
-> I think you're glossing over quite some nuance here.
->
-> Sure there might be highly specific scenarios where you can get away
-> with it. Like with a very recently introduced counter for somewhat
-> niche audiences, and bucketing/grouping that was IIRC planned from the
-> start. It's probably not reasonable to advocate nondescript interface
-> names as a strategy for getting out of ABI commitments.
->
-> My point was that "memmap" is the established term for what the author
-> describes. And that this concept is sufficiently first-class that
-> mixing it with other things later is unlikely to be acceptable. I
-> didn't know WHY a new name for this was chosen, so I provided
-> arguments for two motivations that I could think of, that's all.
 
-Sure, we can rename it to NR_MEMMAP_BOOT / NR_MEMMAP. We picked
-NR_PAGE_METADATA_BOOT/NR_PAGE_METADATA as we thought it was a clearer
-choice. It directly conveys the concept of page metadata overhead,
-eliminating ambiguity about future potential structures. Today, it is
-"struct page", and "pag_ext", tomorrow memdesc and more.
+The quilt patch titled
+     Subject: mm: add a mapping_clear_large_folios helper
+has been removed from the -mm tree.  Its filename was
+     mm-add-a-mapping_clear_large_folios-helper.patch
 
-Pasha
+This patch was dropped because it is obsolete
+
+------------------------------------------------------
+From: Christoph Hellwig <hch@lst.de>
+Subject: mm: add a mapping_clear_large_folios helper
+Date: Wed, 10 Jan 2024 10:21:08 +0100
+
+Patch series "disable large folios for shmem file used by xfs xfile".
+
+Darrick reported that the fairly new XFS xfile code blows up when force
+enabling large folio for shmem.  This series fixes this quickly by
+disabling large folios for this particular shmem file for now until it can
+be fixed properly, which will be a lot more invasive.
+
+
+This patch (of 2):
+
+Users of shmem_kernel_file_setup might not be able to deal with large
+folios (yet).  Give them a way to disable large folio support on their
+mapping.
+
+Link: https://lkml.kernel.org/r/20240110092109.1950011-1-hch@lst.de
+Link: https://lkml.kernel.org/r/20240110092109.1950011-2-hch@lst.de
+Fixes: 3934e8ebb7cc ("xfs: create a big array data structure")
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Chandan Babu R <chandan.babu@oracle.com>
+Cc: Christian König <christian.koenig@amd.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Dave Airlie <airlied@gmail.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Huang Rui <ray.huang@amd.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Jarkko Sakkinen <jarkko@kernel.org>
+Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/pagemap.h |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+--- a/include/linux/pagemap.h~mm-add-a-mapping_clear_large_folios-helper
++++ a/include/linux/pagemap.h
+@@ -360,6 +360,20 @@ static inline void mapping_set_large_fol
+ 	__set_bit(AS_LARGE_FOLIO_SUPPORT, &mapping->flags);
+ }
+ 
++/**
++ * mapping_clear_large_folios() - Disable large folio support for a mapping
++ * @mapping: The mapping.
++ *
++ * This can be called to undo the effect of mapping_set_large_folios().
++ *
++ * Context: This should not be called while the inode is active as it
++ * is non-atomic.
++ */
++static inline void mapping_clear_large_folios(struct address_space *mapping)
++{
++	__clear_bit(AS_LARGE_FOLIO_SUPPORT, &mapping->flags);
++}
++
+ /*
+  * Large folio support currently depends on THP.  These dependencies are
+  * being worked on but are not yet fixed.
+_
+
+Patches currently in -mm which might be from hch@lst.de are
+
+xfs-disable-large-folio-support-in-xfile_create.patch
+
