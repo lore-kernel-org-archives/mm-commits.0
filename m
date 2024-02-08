@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53D734F1EB
-	for <mm-commits@vger.kernel.org>; Thu,  8 Feb 2024 21:27:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9139B4F218
+	for <mm-commits@vger.kernel.org>; Thu,  8 Feb 2024 21:27:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707427662; cv=none; b=ZUO/spFv7gSLqHYpBLkIKOykgSSD2sRJJcdZWM4Xt8c4LSGKj+FFQeH8MxJUesg+ewDtiXKuatiqXzHHKJKCN4L9FZsK1jSK6i+Q4xxKAEoArcOkYwoZuiruioI83rnRXQUTs4KKEDafg8pxIiZ7pyDE93oBhQiheZfAntHkBzg=
+	t=1707427663; cv=none; b=o3AEIz7EJdvvUZ4s56iQInkhGHCamXxGfizVhOMFwFxIlVuF3sxqrBxGKX04/XObGREfqPMw+Joi1Kp69nm2g/diW0DJY7RmFJHJ/mnbUeB9hh6mvftpL31Fy6tAJJ3nxXaJJgxTSphpW0yliFyK6K+vCOtTzepuAQkGGeDxKf4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707427662; c=relaxed/simple;
-	bh=gjGUbeGeXR6IHkphOg8t8S+VD3cKpJLOaLvw7qecfAw=;
-	h=Date:To:From:Subject:Message-Id; b=EmJHQ3lO+DeMNxKNpZ2Ux8A+7cxA0zf3uOhQa1DIHFbofLu7gddZ7XILPvadjQljBQQhznztWTsg+4pzuVEW/j+OlhWWO1psNkQrFT9woLjIST9HtHNYCSv01NWIh6J4RTQg+17yVYecfRLAItzsYpZsqLEuMT02AEpBs2ivE5g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dh60pIvY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707427663; c=relaxed/simple;
+	bh=d8/A1mDf0mNyfWp2seP5x8ZnFTK1beGGSQzVYd5R3Kk=;
+	h=Date:To:From:Subject:Message-Id; b=lFnISbYk/3OQ0J/iDXJoM0FWO8I5tsUL2wOhrsZSW9Dp9ZjLw9eNuOL+s2zv3Pj8fcMoiP7upoDKR7Mct09Biw8LVvzfi1OeoXtvpshn8/vhJyR5TemM7FHAPqF09JcGZGjHSdnxD6R2IL7M6EJ/LZ5ynfQuFXeo5vooE5lNJQA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I03EyFyJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dh60pIvY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC5C1C43394;
-	Thu,  8 Feb 2024 21:27:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I03EyFyJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E3A0C43390;
+	Thu,  8 Feb 2024 21:27:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707427661;
-	bh=gjGUbeGeXR6IHkphOg8t8S+VD3cKpJLOaLvw7qecfAw=;
+	s=korg; t=1707427663;
+	bh=d8/A1mDf0mNyfWp2seP5x8ZnFTK1beGGSQzVYd5R3Kk=;
 	h=Date:To:From:Subject:From;
-	b=dh60pIvYeAXOdIaYbijjMlqbk3MLaVv8tJCRfW1Gwwz2y5h8MaaDJTHkYSvptGABB
-	 nIkVUCOf2mTmTCwVvPzN4RA49O9tIbIfn+79iLG8nF973kxzyAIrnqX24aHTSfyput
-	 RCE4m1xiMMrj56RQumPmjmcSWqBcGpSgzdCj+phI=
-Date: Thu, 08 Feb 2024 13:27:41 -0800
+	b=I03EyFyJpocGPCyJcjlNT8yskg5gvUD69MTMaGp2DCxgcqOZJVNhSKML7aB0M8iyj
+	 nYyt1CsiPw16vF0nHi4c4LqWE1hb2Kw3+7OQDwDW1y+oc9mj+7AOWLTytGxs8jMZg/
+	 epM0BHv2uVpwfiolKNi4z84tGFLxGW3cEHkL79Rk=
+Date: Thu, 08 Feb 2024 13:27:42 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.l.verma@intel.com,torvalds@linux-foundation.org,snitzer@kernel.org,mpatocka@redhat.com,linux@armlinux.org.uk,david@fromorbit.com,dave.jiang@intel.com,dan.j.williams@intel.com,arnd@arndb.de,agk@redhat.com,mathieu.desnoyers@efficios.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nvdimm-pmem-cleanup-alloc_dax-error-handling.patch added to mm-unstable branch
-Message-Id: <20240208212741.CC5C1C43394@smtp.kernel.org>
+Subject: + dm-cleanup-alloc_dax-error-handling.patch added to mm-unstable branch
+Message-Id: <20240208212743.0E3A0C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nvdimm/pmem: cleanup alloc_dax() error handling
+     Subject: dm: cleanup alloc_dax() error handling
 has been added to the -mm mm-unstable branch.  Its filename is
-     nvdimm-pmem-cleanup-alloc_dax-error-handling.patch
+     dm-cleanup-alloc_dax-error-handling.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nvdimm-pmem-cleanup-alloc_dax-error-handling.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dm-cleanup-alloc_dax-error-handling.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Subject: nvdimm/pmem: cleanup alloc_dax() error handling
-Date: Thu, 8 Feb 2024 13:49:10 -0500
+Subject: dm: cleanup alloc_dax() error handling
+Date: Thu, 8 Feb 2024 13:49:11 -0500
 
 Now that alloc_dax() returns ERR_PTR(-EOPNOTSUPP) rather than NULL, the
 callers do not have to handle NULL return values anymore.
 
-Link: https://lkml.kernel.org/r/20240208184913.484340-10-mathieu.desnoyers@efficios.com
+Link: https://lkml.kernel.org/r/20240208184913.484340-11-mathieu.desnoyers@efficios.com
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
@@ -81,22 +81,22 @@ Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/nvdimm/pmem.c |    4 ++--
+ drivers/md/dm.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/drivers/nvdimm/pmem.c~nvdimm-pmem-cleanup-alloc_dax-error-handling
-+++ a/drivers/nvdimm/pmem.c
-@@ -558,8 +558,8 @@ static int pmem_attach_disk(struct devic
- 	disk->bb = &pmem->bb;
+--- a/drivers/md/dm.c~dm-cleanup-alloc_dax-error-handling
++++ a/drivers/md/dm.c
+@@ -2124,8 +2124,8 @@ static struct mapped_device *alloc_dev(i
+ 	sprintf(md->disk->disk_name, "dm-%d", minor);
  
- 	dax_dev = alloc_dax(pmem, &pmem_dax_ops);
+ 	dax_dev = alloc_dax(md, &dm_dax_ops);
 -	if (IS_ERR_OR_NULL(dax_dev)) {
--		rc = IS_ERR(dax_dev) ? PTR_ERR(dax_dev) : -EOPNOTSUPP;
+-		if (IS_ERR(dax_dev) && PTR_ERR(dax_dev) != -EOPNOTSUPP)
 +	if (IS_ERR(dax_dev)) {
-+		rc = PTR_ERR(dax_dev);
- 		if (rc != -EOPNOTSUPP)
- 			goto out;
++		if (PTR_ERR(dax_dev) != -EOPNOTSUPP)
+ 			goto bad;
  	} else {
+ 		set_dax_nocache(dax_dev);
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@efficios.com are
