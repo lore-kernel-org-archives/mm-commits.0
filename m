@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6C3A2B9D8;
-	Thu,  8 Feb 2024 20:41:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 946E0381D2
+	for <mm-commits@vger.kernel.org>; Thu,  8 Feb 2024 21:01:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707424906; cv=none; b=NQcHAOt7nxwBoSGRSvulgLaGQoXIL2yHYWyYMJdUEmER/EUr71uO6xdzLRX1W0NbMTMEQkeGSBeqdWNdV/a0TS4lY93mJlAJIuZjxBXsATr1g0sw5OWljpfwd5uLVaEZQ+Oi8tlFysXe6t3OaouNoBtbjzwYepgx7p5bJKMwTys=
+	t=1707426085; cv=none; b=HBMRN4bzbFOw9GM9161e5C7ckVLy7uihkPNmf81Oa8OzwyqgjBjH2N6bhJizlaOHKEJ9U4PeWa4ENtjm4mVMmnQxS6KY2PuaRiqggnAvrlVsewx740ZVdIq9YobajE9ZSICBNHCkt/SkBDKHTyzTyd77GfX7BovjNhYCMkhs+Bc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707424906; c=relaxed/simple;
-	bh=iymS9N6MpSa6UZMdjc9Nay8JksKAosETXud5N90lqPY=;
-	h=Date:To:From:Subject:Message-Id; b=IkRr4GuqWJxH4WLvAvEeAQ+Ej6+jgbFDMz+Y5Wx/O0rc48yrP17Agsj4lLyYCPJT6KiQ0i++hLUvW5OoeAr85K3kWJu38n4mV2laDJrjxOOcPlQFMa8nsq2t+OHMNe1fbECYiOB/lfvRrbokfJCWc2uMnhV9Sut0S+cOtKr+b+A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Dc4Bu3rv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707426085; c=relaxed/simple;
+	bh=KM8w4EWmCNtGN9wqZO283iFT7oIc9y1hn542zNM1nMA=;
+	h=Date:To:From:Subject:Message-Id; b=U6Rt5NWKqgp3MBQALwcHr1hZ/lLSm9MVYugdxg0s+0+QqglPdPA/smJDZuvLCA7McbthL+UTphSI5NZ05zXRUrFixMf4wBqKXEhySLshmM0tDclDZXRxk9QawmZpN6Cmzfj8x3Xo3c6YgmAlhmRSck2k+fY8Fhql0zA6GUe12/s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2NQraq0X; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Dc4Bu3rv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45980C433F1;
-	Thu,  8 Feb 2024 20:41:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2NQraq0X"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBF61C433C7;
+	Thu,  8 Feb 2024 21:01:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707424905;
-	bh=iymS9N6MpSa6UZMdjc9Nay8JksKAosETXud5N90lqPY=;
+	s=korg; t=1707426085;
+	bh=KM8w4EWmCNtGN9wqZO283iFT7oIc9y1hn542zNM1nMA=;
 	h=Date:To:From:Subject:From;
-	b=Dc4Bu3rvCO/VMvuhv7AmAxsA0HfM0ffX/0UjhplUJDKocHzg5CeF4zH1cpkMydtuv
-	 SZ5VfkAgtjre88gigvglDIcnKqZ/Ciwjf0glGXwsAZL13f+KjV/QV7eXbVXf1ci4yK
-	 x8EU1VqqrGloZeNjxrFGThWFNR2Ir9OU5bpfkL/I=
-Date: Thu, 08 Feb 2024 12:41:44 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,david@redhat.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
+	b=2NQraq0X5zty4TkR2pbMMwXaBJ7YGiT2usk24pAvTAQNWVGXMYl6Y8K9YdPo1GffH
+	 lfQF0ArRXtXmXwQFab28GSkofuBVY4+wFi9RmBAz78ldaWS0h6pISoPyEuZlO8KzeG
+	 LW2WTSCTHq/QhzhBI4YNuseLUbJ+hDG+h+56uOCU=
+Date: Thu, 08 Feb 2024 13:01:24 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,byungchul@sk.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-proc-task_mmu-add-display-flag-for-vm_mayoverlay.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240208204145.45980C433F1@smtp.kernel.org>
+Subject: + mm-vmscan-dont-turn-on-cache_trim_mode-at-the-highest-scan-priority.patch added to mm-unstable branch
+Message-Id: <20240208210124.DBF61C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/proc/task_mmu: add display flag for VM_MAYOVERLAY
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     fs-proc-task_mmu-add-display-flag-for-vm_mayoverlay.patch
+     Subject: mm, vmscan: don't turn on cache_trim_mode at the highest scan priority
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-vmscan-dont-turn-on-cache_trim_mode-at-the-highest-scan-priority.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-add-display-flag-for-vm_mayoverlay.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-dont-turn-on-cache_trim_mode-at-the-highest-scan-priority.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,47 +58,42 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: fs/proc/task_mmu: add display flag for VM_MAYOVERLAY
-Date: Thu, 8 Feb 2024 14:18:05 +0530
+From: Byungchul Park <byungchul@sk.com>
+Subject: mm, vmscan: don't turn on cache_trim_mode at the highest scan priority
+Date: Thu, 8 Feb 2024 15:18:25 +0900
 
-VM_UFFD_MISSING flag is mutually exclussive with VM_MAYOVERLAY flag as
-they both use the same bit position i.e 0x00000200 in the vm_flags.  Let's
-update show_smap_vma_flags() to display the correct flags depending on
-CONFIG_MMU.
+With cache_trim_mode on, reclaim logic doesn't bother reclaiming anon
+pages.  However, it should be more careful to turn on the mode because
+it's going to prevent anon pages from being reclaimed even if there are a
+huge number of anon pages that are very cold and which should be
+reclaimed.  Even worse, that can lead kswapd_failures to reach
+MAX_RECLAIM_RETRIES and stopping kswapd until direct reclaim eventually
+works to resume kswapd.
 
-Link: https://lkml.kernel.org/r/20240208084805.1252337-1-anshuman.khandual@arm.com
-Fixes: b6b7a8faf05c ("mm/nommu: don't use VM_MAYSHARE for MAP_PRIVATE mappings")
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20240208061825.36640-1-byungchul@sk.com
+Signed-off-by: Byungchul Park <byungchul@sk.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/vmscan.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/fs/proc/task_mmu.c~fs-proc-task_mmu-add-display-flag-for-vm_mayoverlay
-+++ a/fs/proc/task_mmu.c
-@@ -681,7 +681,11 @@ static void show_smap_vma_flags(struct s
- 		[ilog2(VM_HUGEPAGE)]	= "hg",
- 		[ilog2(VM_NOHUGEPAGE)]	= "nh",
- 		[ilog2(VM_MERGEABLE)]	= "mg",
-+#ifdef CONFIG_MMU
- 		[ilog2(VM_UFFD_MISSING)]= "um",
-+#else
-+		[ilog2(VM_MAYOVERLAY)]	= "ov",
-+#endif /* CONFIG_MMU */
- 		[ilog2(VM_UFFD_WP)]	= "uw",
- #ifdef CONFIG_ARM64_MTE
- 		[ilog2(VM_MTE)]		= "mt",
+--- a/mm/vmscan.c~mm-vmscan-dont-turn-on-cache_trim_mode-at-the-highest-scan-priority
++++ a/mm/vmscan.c
+@@ -2269,7 +2269,8 @@ static void prepare_scan_control(pg_data
+ 	 * anonymous pages.
+ 	 */
+ 	file = lruvec_page_state(target_lruvec, NR_INACTIVE_FILE);
+-	if (file >> sc->priority && !(sc->may_deactivate & DEACTIVATE_FILE))
++	if (sc->priority != 1 && file >> sc->priority &&
++	    !(sc->may_deactivate & DEACTIVATE_FILE))
+ 		sc->cache_trim_mode = 1;
+ 	else
+ 		sc->cache_trim_mode = 0;
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from byungchul@sk.com are
 
-fs-proc-task_mmu-add-display-flag-for-vm_mayoverlay.patch
-mm-cma-dont-treat-bad-input-arguments-for-cma_alloc-as-its-failure.patch
-mm-cma-drop-config_cma_debug.patch
-mm-cma-make-max_cma_areas-=-config_cma_areas.patch
-mm-cma-add-sysfs-file-release_pages_success.patch
+mm-vmscan-dont-turn-on-cache_trim_mode-at-the-highest-scan-priority.patch
 
