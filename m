@@ -1,657 +1,115 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f45.google.com (mail-wm1-f45.google.com [209.85.128.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB4264F202
-	for <mm-commits@vger.kernel.org>; Thu,  8 Feb 2024 21:42:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 653253233
+	for <mm-commits@vger.kernel.org>; Thu,  8 Feb 2024 23:50:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707428544; cv=none; b=CV5EhRRlzVspyNaHo8WFJs2b6EnJ8eCpMuiK56ssI1qM7iGy+BW61JN0ptlmyxJNEC4+nX8nLdT304ILOWtTY+1W12dy1FERhovMekdV6tn2YZY2xXJy+UXmWJXLzU2GHXTs8PikeWBhTii4h0wUbhKwq7vzjxkER2Vc6IdmsLc=
+	t=1707436228; cv=none; b=MJarwATnfhTxlanr8Fzt2rkj42H+Yf647yToTSxgY5p3a+3HB31fJGbfMAWuJPA1n6fV/xaxJ5+2pPtRyArAuCbzdgwBKr9zGSZL599ubAhrPcoioZoFqak7qvww7DvCWBmF0/0yWEL3t8sXfNwHZmD9ZgUNwl9nEfnU6FE/NlM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707428544; c=relaxed/simple;
-	bh=6Jv7ew0O026DfrzVjcUlyG3J6ErFchckoDxDDPPIejw=;
-	h=Date:To:From:Subject:Message-Id; b=OLUPFhD+JYBEITlZFjxBE+FWvCLkfTHEg8P0+BoHAfhs7S2C+ME01BftT9wgyWmnpitXPfCNz5YByNF+x2OH4K96KX23ljW08iv5yKtG/V5aaEnRt8WHkR7st1+B8+dJne83p8tl4/wGBjgFfKu2YE/LFXunvW5ywckUCMLUpRQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SLLwI/cQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707436228; c=relaxed/simple;
+	bh=7O/3C5bktRbd15TfedckZvr6Gn9BQrLl3CsAyWU+7g0=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=oRJmU8hO1Z3fVDKspxDtY6dBOxSvF+oH28aur62GRzs62FPeS6zwBdK4DvpMySnxl4SFaJFUAhqnNn8Qe8U/m+Yllqp/TFs5MouE0FuTE56DnVzDMcSs8/KkTeAkrVnk650pt87MPST8bJYOqd/DgRxXD9iHyfEF/c42DGUxOKI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=aoBqf1SC; arc=none smtp.client-ip=209.85.128.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SLLwI/cQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 394F3C433F1;
-	Thu,  8 Feb 2024 21:42:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707428544;
-	bh=6Jv7ew0O026DfrzVjcUlyG3J6ErFchckoDxDDPPIejw=;
-	h=Date:To:From:Subject:From;
-	b=SLLwI/cQ4dRAglGk95/gutCKlnduLeg9zOqhJ/GjsrHr4w12pyLqG2R9uKNqEnlf7
-	 pS3MvWkFPh3grafGk+3yv3pvKypN7c1IYO2NP9dk8tsoRyp9VBT0rkEyaXXpcyPA5d
-	 9sjuJHB2sSKEi2HHTgAENTWmndnzvaZiep4oKBGY=
-Date: Thu, 08 Feb 2024 13:42:23 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,timmurray@google.com,surenb@google.com,rppt@kernel.org,peterx@redhat.com,ngeoffray@google.com,Liam.Howlett@oracle.com,kaleshsingh@google.com,jannh@google.com,david@redhat.com,bgeffon@google.com,axelrasmussen@google.com,aarcange@redhat.com,lokeshgidra@google.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + userfaultfd-use-per-vma-locks-in-userfaultfd-operations.patch added to mm-unstable branch
-Message-Id: <20240208214224.394F3C433F1@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="aoBqf1SC"
+Received: by mail-wm1-f45.google.com with SMTP id 5b1f17b1804b1-41059577f26so3703335e9.0
+        for <mm-commits@vger.kernel.org>; Thu, 08 Feb 2024 15:50:26 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1707436224; x=1708041024; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=7O/3C5bktRbd15TfedckZvr6Gn9BQrLl3CsAyWU+7g0=;
+        b=aoBqf1SCPjSMKvUayBmlG5zFsFElpiXQAHS1KrpUayH/DAKwKiMYJlP3tImAzGmMB/
+         fjjNs74k3wJEIF0cPaoJX39G7KX+BZDTejP0vVrbJwgpHlkpy4uxdsaqt1Yl1DCsCX/v
+         CbT/EBBrK+PVo+5Gd87NLWBfnvmKiakH9rQ796hc6+K6IelTCkLTNdx5F3Ug78WyOGxC
+         wZEfKj5tMhrq6WEQRmV0D+w6Em4sIe8je7HNVKh9cUhmi31HqYxNtox0j2YwEgfMuGNz
+         gFOIJcw1tNVP45RTMwKeDSQhk0qGktngCeTnO118Is6qEIlwO2ZDjLhIsk/P0yUReFbX
+         Nlgw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1707436224; x=1708041024;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=7O/3C5bktRbd15TfedckZvr6Gn9BQrLl3CsAyWU+7g0=;
+        b=cmMnQv6YSqAzUBlR6IMTiNxL1zXKncs69wbUEaHMZQjfwE720qYmnUwhJFCwcT3IqB
+         GJYcXcIef7lYClbfKgeAexCZ5EFoD9gLY+G2zywK/h4FezXh7Ez/okQm6GSq8+5UUeGG
+         dX4wojNyba0caEszFflN7t16eQccdvCcawMiG+zMDnwBVXUPnLbDYnjxN7XhMJXDec+0
+         klFXqXDz3pShE2gxWJlzSsGSg9GNgZHJColBQQqqTJNIRhlSA6UB5yO55HjvIaqNMGhl
+         P6f4H3LZI7kXeds1RF0pfcm/wPB5U1Y+b3fHDvOQ/QdboU5HSuShDQT+cz6cJKBl7Mk1
+         b/ug==
+X-Forwarded-Encrypted: i=1; AJvYcCVcFSfwm8IIk1MSGUnfFBraYg/4UTNjb7/ExFft8vKyNXh6DAWLkqu2H3KuIiaOA6Lwj5U2jze4xQz+V/QMgD5Qsp5yMLYzI1mF4w==
+X-Gm-Message-State: AOJu0Yy0ujhIMhfSRoqjf2dhH0Skyr98TVQNVW3drIg9AvEuCOxkQD+Q
+	u+3sXgDNf4nifDgHp9oA62zR1YGXn+sD481S7TOJ6vEFDmp5jeC9xgaFt3AU2NA3ncuClS6+faV
+	caOJ+1gjGrpZruZBwL1ajA+qU3Bm8+GHn8iGX
+X-Google-Smtp-Source: AGHT+IEZIkbU/xdlWfVypHz1ZQjn73o+gZ2C3w9+i9bRwoc/cJuIKAzwpNrpwiVeIXaDlXk80EcQB3Y0BSD4yRVs0uo=
+X-Received: by 2002:a5d:6188:0:b0:33b:3774:ed0 with SMTP id
+ j8-20020a5d6188000000b0033b37740ed0mr673178wru.2.1707436224391; Thu, 08 Feb
+ 2024 15:50:24 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <20240207231014.3A3F0C433C7@smtp.kernel.org> <20240208031413.GA185687@cmpxchg.org>
+ <CAJD7tkbdzwjhhgK_-6iAHLn05Q-7wCOzEn9xug1Udr+Df-hLkA@mail.gmail.com>
+ <20240208064411.GE185687@cmpxchg.org> <CA+CK2bCxPVyB8ZVk3dA5TKROScNHMzdu_PkBTK9b3zStvgemDA@mail.gmail.com>
+In-Reply-To: <CA+CK2bCxPVyB8ZVk3dA5TKROScNHMzdu_PkBTK9b3zStvgemDA@mail.gmail.com>
+From: Wei Xu <weixugc@google.com>
+Date: Thu, 8 Feb 2024 15:50:12 -0800
+Message-ID: <CAAPL-u-vmt9qx=E=tLq5NGQbam5i3WFqvuAepxzYMJ7EkRYgMA@mail.gmail.com>
+Subject: Re: + mm-report-per-page-metadata-information.patch added to
+ mm-unstable branch
+To: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>, Yosry Ahmed <yosryahmed@google.com>, 
+	Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org, 
+	yang.yang29@zte.com.cn, willy@infradead.org, wangkefeng.wang@huawei.com, 
+	vbabka@suse.cz, tomas.mudrunka@gmail.com, surenb@google.com, 
+	shakeelb@google.com, rppt@kernel.org, rdunlap@infradead.org, 
+	rafael@kernel.org, muchun.song@linux.dev, Liam.Howlett@oracle.com, 
+	kirill.shutemov@linux.intel.com, ivan@cloudflare.com, 
+	gregkh@linuxfoundation.org, david@redhat.com, corbet@lwn.net, 
+	chenlinxuan@uniontech.com, bhelgaas@google.com, adobriyan@gmail.com, 
+	souravpanda@google.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+On Thu, Feb 8, 2024 at 10:08=E2=80=AFAM Pasha Tatashin
+<pasha.tatashin@soleen.com> wrote:
+>
+> > > I am not closely following this series, but I just wanted to point ou=
+t
+> > > that this is not always true. We are actively extending
+> > > NR_SECONDARY_PAGETABLE to add IOMMU page tables in addition to KVM
+> > > page tables [1]. In that case as well, the name was left open-ended
+> > > exactly for this purpose [2].
+> >
+> > I think you're glossing over quite some nuance here.
+> >
+> > Sure there might be highly specific scenarios where you can get away
+> > with it. Like with a very recently introduced counter for somewhat
+> > niche audiences, and bucketing/grouping that was IIRC planned from the
+> > start. It's probably not reasonable to advocate nondescript interface
+> > names as a strategy for getting out of ABI commitments.
+> >
+> > My point was that "memmap" is the established term for what the author
+> > describes. And that this concept is sufficiently first-class that
+> > mixing it with other things later is unlikely to be acceptable. I
+> > didn't know WHY a new name for this was chosen, so I provided
+> > arguments for two motivations that I could think of, that's all.
+>
+> Sure, we can rename it to NR_MEMMAP_BOOT / NR_MEMMAP. We picked
+> NR_PAGE_METADATA_BOOT/NR_PAGE_METADATA as we thought it was a clearer
+> choice. It directly conveys the concept of page metadata overhead,
+> eliminating ambiguity about future potential structures. Today, it is
+> "struct page", and "pag_ext", tomorrow memdesc and more.
 
-The patch titled
-     Subject: userfaultfd: use per-vma locks in userfaultfd operations
-has been added to the -mm mm-unstable branch.  Its filename is
-     userfaultfd-use-per-vma-locks-in-userfaultfd-operations.patch
+Technically, page_ext is not part of memmap if we go by the kernel code, ri=
+ght?
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-use-per-vma-locks-in-userfaultfd-operations.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Lokesh Gidra <lokeshgidra@google.com>
-Subject: userfaultfd: use per-vma locks in userfaultfd operations
-Date: Thu, 8 Feb 2024 13:22:04 -0800
-
-All userfaultfd operations, except write-protect, opportunistically use
-per-vma locks to lock vmas.  On failure, attempt again inside mmap_lock
-critical section.
-
-Write-protect operation requires mmap_lock as it iterates over multiple
-vmas.
-
-Link: https://lkml.kernel.org/r/20240208212204.2043140-4-lokeshgidra@google.com
-Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Rapoport (IBM) <rppt@kernel.org>
-Cc: Nicolas Geoffray <ngeoffray@google.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Tim Murray <timmurray@google.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- fs/userfaultfd.c              |   13 -
- include/linux/userfaultfd_k.h |    5 
- mm/userfaultfd.c              |  356 ++++++++++++++++++++++++--------
- 3 files changed, 275 insertions(+), 99 deletions(-)
-
---- a/fs/userfaultfd.c~userfaultfd-use-per-vma-locks-in-userfaultfd-operations
-+++ a/fs/userfaultfd.c
-@@ -2005,17 +2005,8 @@ static int userfaultfd_move(struct userf
- 		return -EINVAL;
- 
- 	if (mmget_not_zero(mm)) {
--		mmap_read_lock(mm);
--
--		/* Re-check after taking map_changing_lock */
--		down_read(&ctx->map_changing_lock);
--		if (likely(!atomic_read(&ctx->mmap_changing)))
--			ret = move_pages(ctx, mm, uffdio_move.dst, uffdio_move.src,
--					 uffdio_move.len, uffdio_move.mode);
--		else
--			ret = -EAGAIN;
--		up_read(&ctx->map_changing_lock);
--		mmap_read_unlock(mm);
-+		ret = move_pages(ctx, uffdio_move.dst, uffdio_move.src,
-+				 uffdio_move.len, uffdio_move.mode);
- 		mmput(mm);
- 	} else {
- 		return -ESRCH;
---- a/include/linux/userfaultfd_k.h~userfaultfd-use-per-vma-locks-in-userfaultfd-operations
-+++ a/include/linux/userfaultfd_k.h
-@@ -138,9 +138,8 @@ extern long uffd_wp_range(struct vm_area
- /* move_pages */
- void double_pt_lock(spinlock_t *ptl1, spinlock_t *ptl2);
- void double_pt_unlock(spinlock_t *ptl1, spinlock_t *ptl2);
--ssize_t move_pages(struct userfaultfd_ctx *ctx, struct mm_struct *mm,
--		   unsigned long dst_start, unsigned long src_start,
--		   unsigned long len, __u64 flags);
-+ssize_t move_pages(struct userfaultfd_ctx *ctx, unsigned long dst_start,
-+		   unsigned long src_start, unsigned long len, __u64 flags);
- int move_pages_huge_pmd(struct mm_struct *mm, pmd_t *dst_pmd, pmd_t *src_pmd, pmd_t dst_pmdval,
- 			struct vm_area_struct *dst_vma,
- 			struct vm_area_struct *src_vma,
---- a/mm/userfaultfd.c~userfaultfd-use-per-vma-locks-in-userfaultfd-operations
-+++ a/mm/userfaultfd.c
-@@ -19,20 +19,12 @@
- #include <asm/tlb.h>
- #include "internal.h"
- 
--static __always_inline
--struct vm_area_struct *find_dst_vma(struct mm_struct *dst_mm,
--				    unsigned long dst_start,
--				    unsigned long len)
-+static bool validate_dst_vma(struct vm_area_struct *dst_vma,
-+			     unsigned long dst_end)
- {
--	/*
--	 * Make sure that the dst range is both valid and fully within a
--	 * single existing vma.
--	 */
--	struct vm_area_struct *dst_vma;
--
--	dst_vma = find_vma(dst_mm, dst_start);
--	if (!range_in_vma(dst_vma, dst_start, dst_start + len))
--		return NULL;
-+	/* Make sure that the dst range is fully within dst_vma. */
-+	if (dst_end > dst_vma->vm_end)
-+		return false;
- 
- 	/*
- 	 * Check the vma is registered in uffd, this is required to
-@@ -40,10 +32,124 @@ struct vm_area_struct *find_dst_vma(stru
- 	 * time.
- 	 */
- 	if (!dst_vma->vm_userfaultfd_ctx.ctx)
--		return NULL;
-+		return false;
-+
-+	return true;
-+}
-+
-+#ifdef CONFIG_PER_VMA_LOCK
-+/*
-+ * lock_vma() - Lookup and lock vma corresponding to @address.
-+ * @mm: mm to search vma in.
-+ * @address: address that the vma should contain.
-+ * @prepare_anon: If true, then prepare the vma (if private) with anon_vma.
-+ *
-+ * Should be called without holding mmap_lock. vma should be unlocked after use
-+ * with unlock_vma().
-+ *
-+ * Return: A locked vma containing @address, NULL if no vma is found, or
-+ * -ENOMEM if anon_vma couldn't be allocated.
-+ */
-+static struct vm_area_struct *lock_vma(struct mm_struct *mm,
-+				       unsigned long address,
-+				       bool prepare_anon)
-+{
-+	struct vm_area_struct *vma;
-+
-+	vma = lock_vma_under_rcu(mm, address);
-+	if (vma) {
-+		/*
-+		 * lock_vma_under_rcu() only checks anon_vma for private
-+		 * anonymous mappings. But we need to ensure it is assigned in
-+		 * private file-backed vmas as well.
-+		 */
-+		if (prepare_anon && !(vma->vm_flags & VM_SHARED) &&
-+		    !vma->anon_vma)
-+			vma_end_read(vma);
-+		else
-+			return vma;
-+	}
-+
-+	mmap_read_lock(mm);
-+	vma = vma_lookup(mm, address);
-+	if (vma) {
-+		if (prepare_anon && !(vma->vm_flags & VM_SHARED) &&
-+		    anon_vma_prepare(vma)) {
-+			vma = ERR_PTR(-ENOMEM);
-+		} else {
-+			/*
-+			 * We cannot use vma_start_read() as it may fail due to
-+			 * false locked (see comment in vma_start_read()). We
-+			 * can avoid that by directly locking vm_lock under
-+			 * mmap_lock, which guarantees that nobody can lock the
-+			 * vma for write (vma_start_write()) under us.
-+			 */
-+			down_read(&vma->vm_lock->lock);
-+		}
-+	}
-+
-+	mmap_read_unlock(mm);
-+	return vma;
-+}
-+
-+static void unlock_vma(struct vm_area_struct *vma)
-+{
-+	vma_end_read(vma);
-+}
-+
-+static struct vm_area_struct *find_and_lock_dst_vma(struct mm_struct *dst_mm,
-+						    unsigned long dst_start,
-+						    unsigned long len)
-+{
-+	struct vm_area_struct *dst_vma;
-+
-+	/* Ensure anon_vma is assigned for private vmas */
-+	dst_vma = lock_vma(dst_mm, dst_start, true);
-+
-+	if (!dst_vma)
-+		return ERR_PTR(-ENOENT);
-+
-+	if (PTR_ERR(dst_vma) == -ENOMEM)
-+		return dst_vma;
-+
-+	if (!validate_dst_vma(dst_vma, dst_start + len))
-+		goto out_unlock;
- 
- 	return dst_vma;
-+out_unlock:
-+	unlock_vma(dst_vma);
-+	return ERR_PTR(-ENOENT);
-+}
-+
-+#else
-+
-+static struct vm_area_struct *lock_mm_and_find_dst_vma(struct mm_struct *dst_mm,
-+						       unsigned long dst_start,
-+						       unsigned long len)
-+{
-+	struct vm_area_struct *dst_vma;
-+	int err = -ENOENT;
-+
-+	mmap_read_lock(dst_mm);
-+	dst_vma = vma_lookup(dst_mm, dst_start);
-+	if (!dst_vma)
-+		goto out_unlock;
-+
-+	/* Ensure anon_vma is assigned for private vmas */
-+	if (!(dst_vma->vm_flags & VM_SHARED) && anon_vma_prepare(dst_vma)) {
-+		err = -ENOMEM;
-+		goto out_unlock;
-+	}
-+
-+	if (!validate_dst_vma(dst_vma, dst_start + len))
-+		goto out_unlock;
-+
-+	return dst_vma;
-+out_unlock:
-+	mmap_read_unlock(dst_mm);
-+	return ERR_PTR(err);
- }
-+#endif
- 
- /* Check if dst_addr is outside of file's size. Must be called with ptl held. */
- static bool mfill_file_over_size(struct vm_area_struct *dst_vma,
-@@ -350,7 +456,8 @@ static pmd_t *mm_alloc_pmd(struct mm_str
- #ifdef CONFIG_HUGETLB_PAGE
- /*
-  * mfill_atomic processing for HUGETLB vmas.  Note that this routine is
-- * called with mmap_lock held, it will release mmap_lock before returning.
-+ * called with either vma-lock or mmap_lock held, it will release the lock
-+ * before returning.
-  */
- static __always_inline ssize_t mfill_atomic_hugetlb(
- 					      struct userfaultfd_ctx *ctx,
-@@ -361,7 +468,6 @@ static __always_inline ssize_t mfill_ato
- 					      uffd_flags_t flags)
- {
- 	struct mm_struct *dst_mm = dst_vma->vm_mm;
--	int vm_shared = dst_vma->vm_flags & VM_SHARED;
- 	ssize_t err;
- 	pte_t *dst_pte;
- 	unsigned long src_addr, dst_addr;
-@@ -380,7 +486,11 @@ static __always_inline ssize_t mfill_ato
- 	 */
- 	if (uffd_flags_mode_is(flags, MFILL_ATOMIC_ZEROPAGE)) {
- 		up_read(&ctx->map_changing_lock);
-+#ifdef CONFIG_PER_VMA_LOCK
-+		unlock_vma(dst_vma);
-+#else
- 		mmap_read_unlock(dst_mm);
-+#endif
- 		return -EINVAL;
- 	}
- 
-@@ -403,24 +513,32 @@ retry:
- 	 * retry, dst_vma will be set to NULL and we must lookup again.
- 	 */
- 	if (!dst_vma) {
-+#ifdef CONFIG_PER_VMA_LOCK
-+		dst_vma = find_and_lock_dst_vma(dst_mm, dst_start, len);
-+#else
-+		dst_vma = lock_mm_and_find_dst_vma(dst_mm, dst_start, len);
-+#endif
-+		if (IS_ERR(dst_vma)) {
-+			err = PTR_ERR(dst_vma);
-+			goto out;
-+		}
-+
- 		err = -ENOENT;
--		dst_vma = find_dst_vma(dst_mm, dst_start, len);
--		if (!dst_vma || !is_vm_hugetlb_page(dst_vma))
--			goto out_unlock;
-+		if (!is_vm_hugetlb_page(dst_vma))
-+			goto out_unlock_vma;
- 
- 		err = -EINVAL;
- 		if (vma_hpagesize != vma_kernel_pagesize(dst_vma))
--			goto out_unlock;
-+			goto out_unlock_vma;
- 
--		vm_shared = dst_vma->vm_flags & VM_SHARED;
--	}
--
--	/*
--	 * If not shared, ensure the dst_vma has a anon_vma.
--	 */
--	err = -ENOMEM;
--	if (!vm_shared) {
--		if (unlikely(anon_vma_prepare(dst_vma)))
-+		/*
-+		 * If memory mappings are changing because of non-cooperative
-+		 * operation (e.g. mremap) running in parallel, bail out and
-+		 * request the user to retry later
-+		 */
-+		down_read(&ctx->map_changing_lock);
-+		err = -EAGAIN;
-+		if (atomic_read(&ctx->mmap_changing))
- 			goto out_unlock;
- 	}
- 
-@@ -465,7 +583,11 @@ retry:
- 
- 		if (unlikely(err == -ENOENT)) {
- 			up_read(&ctx->map_changing_lock);
-+#ifdef CONFIG_PER_VMA_LOCK
-+			unlock_vma(dst_vma);
-+#else
- 			mmap_read_unlock(dst_mm);
-+#endif
- 			BUG_ON(!folio);
- 
- 			err = copy_folio_from_user(folio,
-@@ -474,17 +596,6 @@ retry:
- 				err = -EFAULT;
- 				goto out;
- 			}
--			mmap_read_lock(dst_mm);
--			down_read(&ctx->map_changing_lock);
--			/*
--			 * If memory mappings are changing because of non-cooperative
--			 * operation (e.g. mremap) running in parallel, bail out and
--			 * request the user to retry later
--			 */
--			if (atomic_read(&ctx->mmap_changing)) {
--				err = -EAGAIN;
--				break;
--			}
- 
- 			dst_vma = NULL;
- 			goto retry;
-@@ -505,7 +616,12 @@ retry:
- 
- out_unlock:
- 	up_read(&ctx->map_changing_lock);
-+out_unlock_vma:
-+#ifdef CONFIG_PER_VMA_LOCK
-+	unlock_vma(dst_vma);
-+#else
- 	mmap_read_unlock(dst_mm);
-+#endif
- out:
- 	if (folio)
- 		folio_put(folio);
-@@ -597,7 +713,19 @@ static __always_inline ssize_t mfill_ato
- 	copied = 0;
- 	folio = NULL;
- retry:
--	mmap_read_lock(dst_mm);
-+	/*
-+	 * Make sure the vma is not shared, that the dst range is
-+	 * both valid and fully within a single existing vma.
-+	 */
-+#ifdef CONFIG_PER_VMA_LOCK
-+	dst_vma = find_and_lock_dst_vma(dst_mm, dst_start, len);
-+#else
-+	dst_vma = lock_mm_and_find_dst_vma(dst_mm, dst_start, len);
-+#endif
-+	if (IS_ERR(dst_vma)) {
-+		err = PTR_ERR(dst_vma);
-+		goto out;
-+	}
- 
- 	/*
- 	 * If memory mappings are changing because of non-cooperative
-@@ -609,15 +737,6 @@ retry:
- 	if (atomic_read(&ctx->mmap_changing))
- 		goto out_unlock;
- 
--	/*
--	 * Make sure the vma is not shared, that the dst range is
--	 * both valid and fully within a single existing vma.
--	 */
--	err = -ENOENT;
--	dst_vma = find_dst_vma(dst_mm, dst_start, len);
--	if (!dst_vma)
--		goto out_unlock;
--
- 	err = -EINVAL;
- 	/*
- 	 * shmem_zero_setup is invoked in mmap for MAP_ANONYMOUS|MAP_SHARED but
-@@ -647,16 +766,6 @@ retry:
- 	    uffd_flags_mode_is(flags, MFILL_ATOMIC_CONTINUE))
- 		goto out_unlock;
- 
--	/*
--	 * Ensure the dst_vma has a anon_vma or this page
--	 * would get a NULL anon_vma when moved in the
--	 * dst_vma.
--	 */
--	err = -ENOMEM;
--	if (!(dst_vma->vm_flags & VM_SHARED) &&
--	    unlikely(anon_vma_prepare(dst_vma)))
--		goto out_unlock;
--
- 	while (src_addr < src_start + len) {
- 		pmd_t dst_pmdval;
- 
-@@ -699,7 +808,11 @@ retry:
- 			void *kaddr;
- 
- 			up_read(&ctx->map_changing_lock);
-+#ifdef CONFIG_PER_VMA_LOCK
-+			unlock_vma(dst_vma);
-+#else
- 			mmap_read_unlock(dst_mm);
-+#endif
- 			BUG_ON(!folio);
- 
- 			kaddr = kmap_local_folio(folio, 0);
-@@ -730,7 +843,11 @@ retry:
- 
- out_unlock:
- 	up_read(&ctx->map_changing_lock);
-+#ifdef CONFIG_PER_VMA_LOCK
-+	unlock_vma(dst_vma);
-+#else
- 	mmap_read_unlock(dst_mm);
-+#endif
- out:
- 	if (folio)
- 		folio_put(folio);
-@@ -1267,16 +1384,67 @@ static int validate_move_areas(struct us
- 	if (!vma_is_anonymous(src_vma) || !vma_is_anonymous(dst_vma))
- 		return -EINVAL;
- 
--	/*
--	 * Ensure the dst_vma has a anon_vma or this page
--	 * would get a NULL anon_vma when moved in the
--	 * dst_vma.
--	 */
--	if (unlikely(anon_vma_prepare(dst_vma)))
--		return -ENOMEM;
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PER_VMA_LOCK
-+static int find_and_lock_vmas(struct mm_struct *mm,
-+			      unsigned long dst_start,
-+			      unsigned long src_start,
-+			      struct vm_area_struct **dst_vmap,
-+			      struct vm_area_struct **src_vmap)
-+{
-+	int err;
-+
-+	/* There is no need to prepare anon_vma for src_vma */
-+	*src_vmap = lock_vma(mm, src_start, false);
-+	if (!*src_vmap)
-+		return -ENOENT;
-+
-+	/* Ensure anon_vma is assigned for anonymous vma */
-+	*dst_vmap = lock_vma(mm, dst_start, true);
-+	err = -ENOENT;
-+	if (!*dst_vmap)
-+		goto out_unlock;
-+
-+	err = -ENOMEM;
-+	if (PTR_ERR(*dst_vmap) == -ENOMEM)
-+		goto out_unlock;
- 
- 	return 0;
-+out_unlock:
-+	unlock_vma(*src_vmap);
-+	return err;
- }
-+#else
-+static int lock_mm_and_find_vmas(struct mm_struct *mm,
-+				 unsigned long dst_start,
-+				 unsigned long src_start,
-+				 struct vm_area_struct **dst_vmap,
-+				 struct vm_area_struct **src_vmap)
-+{
-+	int err = -ENOENT;
-+	mmap_read_lock(mm);
-+
-+	*src_vmap = vma_lookup(mm, src_start);
-+	if (!*src_vmap)
-+		goto out_unlock;
-+
-+	*dst_vmap = vma_lookup(mm, dst_start);
-+	if (!*dst_vmap)
-+		goto out_unlock;
-+
-+	/* Ensure anon_vma is assigned */
-+	err = -ENOMEM;
-+	if (vma_is_anonymous(*dst_vmap) && anon_vma_prepare(*dst_vmap))
-+		goto out_unlock;
-+
-+	return 0;
-+out_unlock:
-+	mmap_read_unlock(mm);
-+	return err;
-+}
-+#endif
- 
- /**
-  * move_pages - move arbitrary anonymous pages of an existing vma
-@@ -1287,8 +1455,6 @@ static int validate_move_areas(struct us
-  * @len: length of the virtual memory range
-  * @mode: flags from uffdio_move.mode
-  *
-- * Must be called with mmap_lock held for read.
-- *
-  * move_pages() remaps arbitrary anonymous pages atomically in zero
-  * copy. It only works on non shared anonymous pages because those can
-  * be relocated without generating non linear anon_vmas in the rmap
-@@ -1355,10 +1521,10 @@ static int validate_move_areas(struct us
-  * could be obtained. This is the only additional complexity added to
-  * the rmap code to provide this anonymous page remapping functionality.
-  */
--ssize_t move_pages(struct userfaultfd_ctx *ctx, struct mm_struct *mm,
--		   unsigned long dst_start, unsigned long src_start,
--		   unsigned long len, __u64 mode)
-+ssize_t move_pages(struct userfaultfd_ctx *ctx, unsigned long dst_start,
-+		   unsigned long src_start, unsigned long len, __u64 mode)
- {
-+	struct mm_struct *mm = ctx->mm;
- 	struct vm_area_struct *src_vma, *dst_vma;
- 	unsigned long src_addr, dst_addr;
- 	pmd_t *src_pmd, *dst_pmd;
-@@ -1376,28 +1542,40 @@ ssize_t move_pages(struct userfaultfd_ct
- 	    WARN_ON_ONCE(dst_start + len <= dst_start))
- 		goto out;
- 
-+#ifdef CONFIG_PER_VMA_LOCK
-+	err = find_and_lock_vmas(mm, dst_start, src_start,
-+				 &dst_vma, &src_vma);
-+#else
-+	err = lock_mm_and_find_vmas(mm, dst_start, src_start,
-+				    &dst_vma, &src_vma);
-+#endif
-+	if (err)
-+		goto out;
-+
-+	/* Re-check after taking map_changing_lock */
-+	down_read(&ctx->map_changing_lock);
-+	if (likely(atomic_read(&ctx->mmap_changing))) {
-+		err = -EAGAIN;
-+		goto out_unlock;
-+	}
- 	/*
- 	 * Make sure the vma is not shared, that the src and dst remap
- 	 * ranges are both valid and fully within a single existing
- 	 * vma.
- 	 */
--	src_vma = find_vma(mm, src_start);
--	if (!src_vma || (src_vma->vm_flags & VM_SHARED))
--		goto out;
--	if (src_start < src_vma->vm_start ||
--	    src_start + len > src_vma->vm_end)
--		goto out;
-+	if (src_vma->vm_flags & VM_SHARED)
-+		goto out_unlock;
-+	if (src_start + len > src_vma->vm_end)
-+		goto out_unlock;
- 
--	dst_vma = find_vma(mm, dst_start);
--	if (!dst_vma || (dst_vma->vm_flags & VM_SHARED))
--		goto out;
--	if (dst_start < dst_vma->vm_start ||
--	    dst_start + len > dst_vma->vm_end)
--		goto out;
-+	if (dst_vma->vm_flags & VM_SHARED)
-+		goto out_unlock;
-+	if (dst_start + len > dst_vma->vm_end)
-+		goto out_unlock;
- 
- 	err = validate_move_areas(ctx, src_vma, dst_vma);
- 	if (err)
--		goto out;
-+		goto out_unlock;
- 
- 	for (src_addr = src_start, dst_addr = dst_start;
- 	     src_addr < src_start + len;) {
-@@ -1514,6 +1692,14 @@ ssize_t move_pages(struct userfaultfd_ct
- 		moved += step_size;
- 	}
- 
-+out_unlock:
-+	up_read(&ctx->map_changing_lock);
-+#ifdef CONFIG_PER_VMA_LOCK
-+	unlock_vma(dst_vma);
-+	unlock_vma(src_vma);
-+#else
-+	mmap_read_unlock(mm);
-+#endif
- out:
- 	VM_WARN_ON(moved < 0);
- 	VM_WARN_ON(err > 0);
-_
-
-Patches currently in -mm which might be from lokeshgidra@google.com are
-
-userfaultfd-fix-return-error-if-mmap_changing-is-non-zero-in-move-ioctl.patch
-userfaultfd-move-userfaultfd_ctx-struct-to-header-file.patch
-userfaultfd-protect-mmap_changing-with-rw_sem-in-userfaulfd_ctx.patch
-userfaultfd-use-per-vma-locks-in-userfaultfd-operations.patch
-
+> Pasha
