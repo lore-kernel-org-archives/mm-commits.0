@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47735200BA
-	for <mm-commits@vger.kernel.org>; Wed,  7 Feb 2024 23:59:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C24271E534
+	for <mm-commits@vger.kernel.org>; Thu,  8 Feb 2024 00:03:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707350382; cv=none; b=Gp0rYu5I0J9v+8YjNGDzGk7JSt/sMpK+wVtIjdAGshH34JUMNeJgVE/w/gfMHHrCDT0Ck3JjYgbrBsHeYRGT73CLiCtoFEPAe3IMws8ftVq4z8KlOpaPoMhNXEzAayD4EP4QCvwgIQ+RxuXhExeUBVNwhJGMmAgohjWAEkwR2Ck=
+	t=1707350586; cv=none; b=ZXjPe5bzTgxVwL+UBAMFApJnYa7Hh8Hi1q3ypPzYWq54U1Gxlp3UxBCpetg5/C0JxHoG3mm1EevnMW0I6jiFjbREdWU1CQQN/SAN+zSzdRMKtd/w5Rion3u0/F2MQyhTjuJidQHu8VGJ11Src+P5AzwFlbPorte0IkoRcoVl1hc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707350382; c=relaxed/simple;
-	bh=v+E2D2b3iIZpP+q5GRcIH7Y1EYKsgYskyXvyVNXAqSU=;
-	h=Date:To:From:Subject:Message-Id; b=gVEcNf08uEw9HT/+1RnRpmgYjC9i3YqyAX/DcUw20fUbi52H4afMtRUP/6jMRKh03d4PjMa3qAWVsubHso1rn1EARJYJBU5G59JkZQ1xGtzgSF6M6W6tmnQJ6hGgqDP/MOjN+8Us70J2k+tpOneP+UNOXjQp8vpNjYrpsX3KsMo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BC+CturY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707350586; c=relaxed/simple;
+	bh=mTdEkBtopicEXpQJQfYEQVwrV8TI9OniJ1WkAyPQNoU=;
+	h=Date:To:From:Subject:Message-Id; b=WsfEPIuYqrPTjofxgm2fuWQ8qff8PKgqpvCb0duar+VfPisUH3Ohz4J6ful4U5HjRFZehf2mMncxoMOXC6uY3rhorb70J0dO4CEPleHECZpn6ig/N9uppXr3ROyV/oE2IERnFc41gkeawyBdU8WNbxcvdLja7/RGkDtDBygXvp0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ces22+YV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BC+CturY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC81FC43390;
-	Wed,  7 Feb 2024 23:59:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ces22+YV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FDD8C43390;
+	Thu,  8 Feb 2024 00:03:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707350381;
-	bh=v+E2D2b3iIZpP+q5GRcIH7Y1EYKsgYskyXvyVNXAqSU=;
+	s=korg; t=1707350586;
+	bh=mTdEkBtopicEXpQJQfYEQVwrV8TI9OniJ1WkAyPQNoU=;
 	h=Date:To:From:Subject:From;
-	b=BC+CturYz+3AQIp/VUg3vrT7LKbJx6kOeCv1cde5latr7tIjUOnZRSrFKTkAp7BEA
-	 9zPnx3LZzKo4EpyGSDADzbbaSYi06ZTv8M/ie1inJeIcjIw8HoyLiKhdZXUgMw7n9W
-	 6B8CidZlx01YQsc70vKWUuYbc4/TSxePPLMpDJgo=
-Date: Wed, 07 Feb 2024 15:59:41 -0800
-To: mm-commits@vger.kernel.org,urezki@gmail.com,qun-wei.lin@mediatek.com,matthias.bgg@gmail.com,kbingham@kernel.org,jan.kiszka@siemens.com,chinwen.chang@mediatek.com,casper.li@mediatek.com,angelogioacchino.delregno@collabora.com,Kuan-Ying.Lee@mediatek.com,akpm@linux-foundation.org
+	b=ces22+YVHhBxByKblyX4J/CPjnYx2DhRuEvOGRJo+kAm3C68hHOsmtUmwFWOtLCnI
+	 NjAXK1/PiAEWNjJuluQIJQ22D4Nh9hdasoyx4nbu6k04qPlg3DA3AByB66zuIuhluc
+	 RUuRfw0VUEbZRaRTdK7E9v1obfOu2fSyBo4uUZvo=
+Date: Wed, 07 Feb 2024 16:03:05 -0800
+To: mm-commits@vger.kernel.org,hannes@cmpxchg.org,cerasuolodomenico@gmail.com,hezhongkun.hzk@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-gdb-vmalloc-fix-vmallocinfo-error.patch added to mm-unstable branch
-Message-Id: <20240207235941.CC81FC43390@smtp.kernel.org>
+Subject: + mm-z3fold-remove-unneeded-spinlock.patch added to mm-unstable branch
+Message-Id: <20240208000306.1FDD8C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scripts/gdb/vmalloc: fix vmallocinfo error
+     Subject: mm/z3fold: remove unneeded spinlock
 has been added to the -mm mm-unstable branch.  Its filename is
-     scripts-gdb-vmalloc-fix-vmallocinfo-error.patch
+     mm-z3fold-remove-unneeded-spinlock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-vmalloc-fix-vmallocinfo-error.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-z3fold-remove-unneeded-spinlock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,102 +58,37 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Subject: scripts/gdb/vmalloc: fix vmallocinfo error
-Date: Wed, 7 Feb 2024 16:58:51 +0800
+From: Zhongkun He <hezhongkun.hzk@bytedance.com>
+Subject: mm/z3fold: remove unneeded spinlock
+Date: Sun, 4 Feb 2024 20:54:04 +0800
 
-The patch series "Mitigate a vmap lock contention" removes vmap_area_list,
-which will break the gdb vmallocinfo command:
+There is no need to use spinlock in this section, so remove it.
 
-(gdb) lx-vmallocinfo
-Python Exception <class 'gdb.error'>: No symbol "vmap_area_list" in current context.
-Error occurred in Python: No symbol "vmap_area_list" in current context.
-
-So we can instead use vmap_nodes to iterate all vmallocinfo.
-
-Link: https://lkml.kernel.org/r/20240207085856.11190-1-Kuan-Ying.Lee@mediatek.com
-Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Cc: Casper Li <casper.li@mediatek.com>
-Cc: AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>
-Cc: Chinwen Chang <chinwen.chang@mediatek.com>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Kieran Bingham <kbingham@kernel.org>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Qun-Wei Lin <qun-wei.lin@mediatek.com>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Link: https://lkml.kernel.org/r/20240204125404.2112384-1-hezhongkun.hzk@bytedance.com
+Signed-off-by: Zhongkun He <hezhongkun.hzk@bytedance.com>
+Cc: Domenico Cerasuolo <cerasuolodomenico@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/vmalloc.py |   56 +++++++++++++++++----------------
- 1 file changed, 29 insertions(+), 27 deletions(-)
+ mm/z3fold.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/scripts/gdb/linux/vmalloc.py~scripts-gdb-vmalloc-fix-vmallocinfo-error
-+++ a/scripts/gdb/linux/vmalloc.py
-@@ -29,32 +29,34 @@ class LxVmallocInfo(gdb.Command):
-         if not constants.LX_CONFIG_MMU:
-             raise gdb.GdbError("Requires MMU support")
+--- a/mm/z3fold.c~mm-z3fold-remove-unneeded-spinlock
++++ a/mm/z3fold.c
+@@ -442,8 +442,6 @@ static void __release_z3fold_page(struct
+ 	WARN_ON(!list_empty(&zhdr->buddy));
+ 	set_bit(PAGE_STALE, &page->private);
+ 	clear_bit(NEEDS_COMPACTING, &page->private);
+-	spin_lock(&pool->lock);
+-	spin_unlock(&pool->lock);
  
--        vmap_area_list = gdb.parse_and_eval('vmap_area_list')
--        for vmap_area in lists.list_for_each_entry(vmap_area_list, vmap_area_ptr_type, "list"):
--            if not vmap_area['vm']:
--                gdb.write("0x%x-0x%x %10d vm_map_ram\n" % (vmap_area['va_start'], vmap_area['va_end'],
--                    vmap_area['va_end'] - vmap_area['va_start']))
--                continue
--            v = vmap_area['vm']
--            gdb.write("0x%x-0x%x %10d" % (v['addr'], v['addr'] + v['size'], v['size']))
--            if v['caller']:
--                gdb.write(" %s" % str(v['caller']).split(' ')[-1])
--            if v['nr_pages']:
--                gdb.write(" pages=%d" % v['nr_pages'])
--            if v['phys_addr']:
--                gdb.write(" phys=0x%x" % v['phys_addr'])
--            if v['flags'] & constants.LX_VM_IOREMAP:
--                gdb.write(" ioremap")
--            if v['flags'] & constants.LX_VM_ALLOC:
--                gdb.write(" vmalloc")
--            if v['flags'] & constants.LX_VM_MAP:
--                gdb.write(" vmap")
--            if v['flags'] & constants.LX_VM_USERMAP:
--                gdb.write(" user")
--            if v['flags'] & constants.LX_VM_DMA_COHERENT:
--                gdb.write(" dma-coherent")
--            if is_vmalloc_addr(v['pages']):
--                gdb.write(" vpages")
--            gdb.write("\n")
-+        nr_vmap_nodes = gdb.parse_and_eval('nr_vmap_nodes')
-+        for i in range(0, nr_vmap_nodes):
-+            vn = gdb.parse_and_eval('&vmap_nodes[%d]' % i)
-+            for vmap_area in lists.list_for_each_entry(vn['busy']['head'], vmap_area_ptr_type, "list"):
-+                if not vmap_area['vm']:
-+                    gdb.write("0x%x-0x%x %10d vm_map_ram\n" % (vmap_area['va_start'], vmap_area['va_end'],
-+                        vmap_area['va_end'] - vmap_area['va_start']))
-+                    continue
-+                v = vmap_area['vm']
-+                gdb.write("0x%x-0x%x %10d" % (v['addr'], v['addr'] + v['size'], v['size']))
-+                if v['caller']:
-+                    gdb.write(" %s" % str(v['caller']).split(' ')[-1])
-+                if v['nr_pages']:
-+                    gdb.write(" pages=%d" % v['nr_pages'])
-+                if v['phys_addr']:
-+                    gdb.write(" phys=0x%x" % v['phys_addr'])
-+                if v['flags'] & constants.LX_VM_IOREMAP:
-+                    gdb.write(" ioremap")
-+                if v['flags'] & constants.LX_VM_ALLOC:
-+                    gdb.write(" vmalloc")
-+                if v['flags'] & constants.LX_VM_MAP:
-+                    gdb.write(" vmap")
-+                if v['flags'] & constants.LX_VM_USERMAP:
-+                    gdb.write(" user")
-+                if v['flags'] & constants.LX_VM_DMA_COHERENT:
-+                    gdb.write(" dma-coherent")
-+                if is_vmalloc_addr(v['pages']):
-+                    gdb.write(" vpages")
-+                gdb.write("\n")
- 
- LxVmallocInfo()
+ 	if (locked)
+ 		z3fold_page_unlock(zhdr);
 _
 
-Patches currently in -mm which might be from Kuan-Ying.Lee@mediatek.com are
+Patches currently in -mm which might be from hezhongkun.hzk@bytedance.com are
 
-scripts-gdb-vmalloc-fix-vmallocinfo-error.patch
+mm-z3fold-remove-unneeded-spinlock-in-z3fold_alloc.patch
+mm-z3fold-remove-unneeded-spinlock.patch
 
