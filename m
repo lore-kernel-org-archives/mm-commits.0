@@ -1,206 +1,136 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f50.google.com (mail-ed1-f50.google.com [209.85.208.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2DB520311
-	for <mm-commits@vger.kernel.org>; Thu,  8 Feb 2024 01:53:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB7681D524
+	for <mm-commits@vger.kernel.org>; Thu,  8 Feb 2024 03:14:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707357191; cv=none; b=PjITgoguGaQeM9CKEGxJLD8t0tMj0zyF7UwS+sngOcwqKC4iVVUzmCPnNNxvnKQPCKH4xWpqHuQSnPe1S5g4o7hPiLod0GGhCA8kOF0tda8L73OrurVExuGeN6DZ0BTXI+6f5/rFrQp0TpV5DbQTYSAK2mbuLgKisTG2/4wd+mM=
+	t=1707362063; cv=none; b=aqh3hbzP4YDBLepvm+AVogzdK2UpT/B6EmYUXDpevNDBz8lG35XesDtmF5YeZarOu66Oyz6fz9lwXLpm1CWC5p0yaeXuEgAvdDxtQt52tt6SuAXAkPiekgjHNv0NfdILs+mHFZPtDkvQDcUe/vRDcaeqxprFoVMrSUbaCCDjZSc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707357191; c=relaxed/simple;
-	bh=O1WO44wJm1wnJ98FXBzYgKQfjm6RItd+VTRjyiZdjZM=;
-	h=Date:To:From:Subject:Message-Id; b=gYSaNaF5qkiUi3dA4Hevdrb2UQfEz2ZhDGyR6BTM6VgwJyvKr2+ELXl6Vo09pC+fN+xGS6hatQYpySPsk3eXXjhhKTELoUQLc5OAF3WRaN3imtWWxlGN3zD5CEJvlI5J/UW6QHOuYE3W4WgSkWa8IhYX8CoCV7sTCs9xI8eggEk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sWp10GPT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707362063; c=relaxed/simple;
+	bh=2EKXeN0xMFL5tbNodU3s+q8FYkBKKv7qxx0Obe8JGLk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=P05rX8SzFuwwYReX0qWmVzpnUaG7npTaWtKQzpmkuAjwd/lSdNYLdXIvxYJsPVE5CjMxuld2S+VJBj3ADyJ2kAYecocakmARSxzAjtBzr/J9p9fvGpWhdrgBYwXuUX+f/Biy3/INtNsma1r93K8VZlUTjdWYkdE+dl7LVu2dIX4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cmpxchg.org; spf=pass smtp.mailfrom=cmpxchg.org; dkim=pass (2048-bit key) header.d=cmpxchg-org.20230601.gappssmtp.com header.i=@cmpxchg-org.20230601.gappssmtp.com header.b=hy2NCyLX; arc=none smtp.client-ip=209.85.208.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cmpxchg.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cmpxchg.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sWp10GPT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60F41C433C7;
-	Thu,  8 Feb 2024 01:53:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707357190;
-	bh=O1WO44wJm1wnJ98FXBzYgKQfjm6RItd+VTRjyiZdjZM=;
-	h=Date:To:From:Subject:From;
-	b=sWp10GPT6SsefpsnnnH8iZK2bRQEfE+TZ+az/ytDmwTHVl05Sc6h8fQJsv6NFCcp2
-	 AMWNzo5NwYtYR10P81UXcZn7USzjLVbGtDeW6PcKAEhF/jzjWWrUTAMQONX5rkrAdd
-	 +l0DIWCK3Eu3mYab7FPRqvExQJQMwMx2g8ViUkts=
-Date: Wed, 07 Feb 2024 17:53:09 -0800
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-refactor-compact_node.patch added to mm-unstable branch
-Message-Id: <20240208015310.60F41C433C7@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=cmpxchg-org.20230601.gappssmtp.com header.i=@cmpxchg-org.20230601.gappssmtp.com header.b="hy2NCyLX"
+Received: by mail-ed1-f50.google.com with SMTP id 4fb4d7f45d1cf-560c696ccffso880129a12.1
+        for <mm-commits@vger.kernel.org>; Wed, 07 Feb 2024 19:14:20 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=cmpxchg-org.20230601.gappssmtp.com; s=20230601; t=1707362059; x=1707966859; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=WPUCoHEofFgg49g9U9KUN0vc9U/j5UvDYWJxEOF3QaE=;
+        b=hy2NCyLXHw/1omYHTwAi4YNBLaQMQIMRF/YoJYTFa2wzQE/VY9hyeg66EiIvQTaOji
+         YR0hoaIA+0FnqirAjDxtWtsvTrTxV6eWCJqE7s4kr+zNDdmY2+8mBWwIjbj++SPMzP/x
+         DgTeBChiMe6Q/lpIyweEr0NkD34T9cQJhWWQI/FCYWv0UopPhJKU4RKG1WQJEwS/ebpG
+         SHPjfFmb9hrW1Da+27kKh+cFRjq3a+VEw9BP3F9Y+E+uoCnDNgMn1hyK1NbPQWRYdPth
+         1Va9XlVZAP4P5Fms4KnRBtweAFEqL72SnlJAC38j/Q4J4MoZmHkmHlp0G8wLVSbHhjc6
+         t6PA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1707362059; x=1707966859;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=WPUCoHEofFgg49g9U9KUN0vc9U/j5UvDYWJxEOF3QaE=;
+        b=kEQjA+IdfIQB2nNzp1I4DyP5TyvOz68LrdsGE5sJkohPciPxNkMtqXnGBy7fm0+C9W
+         rd8gX7bso1PD7H+JJFmARHCpOH9UaMJEkWiqM8XHl9LwSfBb6eEDym6KwHI2Tf1fWL64
+         gBcttkVKbTbqY8+erh7GN2EFWBBR4+1tyAdADR9EhzKt0B6xE+5RqeFoX8JOyneTQedD
+         Y46vF2nokgv3RnNzC9FatODvj9w4ihySMM1jc9uu2kZ3WNrs2W5ySHTkVVufSRXHHoPQ
+         s8pMXVwZ9qE6dYWDNbfa+TlpQSoIKgiydFPS+x1Y0kI9sjGv+lKIuTITEgVlYqNRJEFd
+         tZuA==
+X-Gm-Message-State: AOJu0Yy5h/D7RMB2YDfvP21bU89OJcFrsuUFWZqGY4aQbxyYMFTCj8Z6
+	Pxihy56BognAeVj28S0ZltrgIPET6SYaQIflkUIt0jpJxGOQSL3l1iolBFphwdM=
+X-Google-Smtp-Source: AGHT+IGQZcgdwZFXDDKQMcyiC0YMWd4qcYVgq0mM4yNhuGk+ExoemeEG+/s0Nr5h4zbY0mQgd+Qcmg==
+X-Received: by 2002:a17:906:b853:b0:a38:5a98:3a8a with SMTP id ga19-20020a170906b85300b00a385a983a8amr1190077ejb.30.1707362058731;
+        Wed, 07 Feb 2024 19:14:18 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCX33J4iiuZKrH+Sqz+O5nDDL827PiAEdPSccSYlRUPUHeYa3N9NsV3ExgQ61HdYNP5jWBMgEGBlnQkTLCGHkzjk4exeslqzNF1qpJ8yI9WJacFqRlSyQ29dnODwoPc7Mh2lmExHaFcQL6fDvLLzwytpAsaMw9oN5dMJChfNLbNP4w0IgFvFlytnMlmvmx5pJJQ8qdvYkuzlVD71meejXMifnr7N09aiHs1eqe6nKjuD9dTLjPG+SUTDlOjrcBcfBfxwNoxo0thDPeDtRs1HQLtKyIM6od3MSI2XQq/1OxPnT4f90XNEml4eUZ8fqgpPuol/eXJb6KeqY/cuIwoX9YxCb0JPm13tC7f8yU9BWiudNxLONBBO19AerG7+C4auZzy7Jw1iX1R3kczHoDfks/Y+VEH2Mn2FOq7UqxoEUL+T5iP8hM+vFtbVXaoJ6tITLmIunY3v9YDBoV2nkrONYClAOGfRrc90OskiHMU2HF5xwUNK23hZE27ICrcBMJFZWzAEh5Dp6NfnotlKh6vuQKuvgUQk/YMU4W5q2fnBrITrgHdEBPG9hsAWxpwqT6WLvXRbUZfAs5MLOrdask3DFI/MpsOOE7iOHwYBpKJv5KDIV0yS1n4OAbzwWC+8EYqq0+/vg+c/YVs2Gv7qD/YkUio8zCyfBJyKTgTSFhgJt3AJa449OvENlIZP/yBqy4sQktVBXe9BylaXizN2wCkFehyriMtiA0Ceg97w9vYXG7DBpTSSSlahyamTnT4kvC4mFrIEqZp0sfJJmkYp/Q==
+Received: from localhost ([2a02:8071:6401:180:f8f5:527f:9670:eba8])
+        by smtp.gmail.com with ESMTPSA id ss11-20020a170907c00b00b00a3868b8e78dsm1431229ejc.52.2024.02.07.19.14.17
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 07 Feb 2024 19:14:17 -0800 (PST)
+Date: Thu, 8 Feb 2024 04:14:13 +0100
+From: Johannes Weiner <hannes@cmpxchg.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, yosryahmed@google.com,
+	yang.yang29@zte.com.cn, willy@infradead.org, weixugc@google.com,
+	wangkefeng.wang@huawei.com, vbabka@suse.cz,
+	tomas.mudrunka@gmail.com, surenb@google.com, shakeelb@google.com,
+	rppt@kernel.org, rdunlap@infradead.org, rafael@kernel.org,
+	pasha.tatashin@soleen.com, muchun.song@linux.dev,
+	Liam.Howlett@oracle.com, kirill.shutemov@linux.intel.com,
+	ivan@cloudflare.com, gregkh@linuxfoundation.org, david@redhat.com,
+	corbet@lwn.net, chenlinxuan@uniontech.com, bhelgaas@google.com,
+	adobriyan@gmail.com, souravpanda@google.com
+Subject: Re: + mm-report-per-page-metadata-information.patch added to
+ mm-unstable branch
+Message-ID: <20240208031413.GA185687@cmpxchg.org>
+References: <20240207231014.3A3F0C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240207231014.3A3F0C433C7@smtp.kernel.org>
 
+On Wed, Feb 07, 2024 at 03:10:13PM -0800, Andrew Morton wrote:
+> 
+> The patch titled
+>      Subject: mm: report per-page metadata information
+> has been added to the -mm mm-unstable branch.  Its filename is
+>      mm-report-per-page-metadata-information.patch
+> 
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-report-per-page-metadata-information.patch
+> 
+> This patch will later appear in the mm-unstable branch at
+>     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> 
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+> 
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> 
+> The -mm tree is included into linux-next via the mm-everything
+> branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there every 2-3 working days
+> 
+> ------------------------------------------------------
+> From: Sourav Panda <souravpanda@google.com>
+> Subject: mm: report per-page metadata information
+> Date: Mon, 29 Jan 2024 14:42:04 -0800
+> 
+> Adds two new per-node fields, namely nr_page_metadata and
+> nr_page_metadata_boot, to /sys/devices/system/node/nodeN/vmstat and a
+> global PageMetadata field to /proc/meminfo.  This information can be used
+> by users to see how much memory is being used by per-page metadata, which
+> can vary depending on build configuration, machine architecture, and
+> system use.
 
-The patch titled
-     Subject: mm: compaction: refactor compact_node()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-compaction-refactor-compact_node.patch
+/me wonders what page metadata is.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-refactor-compact_node.patch
+> Per-page metadata is the amount of memory that Linux needs in order to
+> manage memory at the page granularity.  The majority of such memory is
+> used by "struct page" and "page_ext" data structures.
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The term for this in Linux MM is "memmap".
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+That's what's used throughout the code, in Kconfig options, and it
+shows up in the documentation as well. It's in the names of most files
+and functions that adjust your new counters. The new name is
+unnecessary, and frankly it's quite vague and nondescript.
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+Also no reason to keep the stat name intentionally "open ended". As
+became clear from the side discussions on MemTotal, all proposals to
+change the semantics of counters later on will be nacked on the basis
+of established user expectations. So just call it what it is now.
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: compaction: refactor compact_node()
-Date: Thu, 8 Feb 2024 09:36:07 +0800
-
-Refactor compact_node() to handle both proactive and synchronous compact
-memory, which cleanups code a bit.
-
-Link: https://lkml.kernel.org/r/20240208013607.1731817-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/compaction.c |   65 ++++++++++++++--------------------------------
- 1 file changed, 21 insertions(+), 44 deletions(-)
-
---- a/mm/compaction.c~mm-compaction-refactor-compact_node
-+++ a/mm/compaction.c
-@@ -2885,25 +2885,27 @@ enum compact_result try_to_compact_pages
- }
- 
- /*
-- * Compact all zones within a node till each zone's fragmentation score
-- * reaches within proactive compaction thresholds (as determined by the
-- * proactiveness tunable).
-+ * compact_node() - compact all zones within a node
-+ * @pgdat: The node page data
-+ * @proactive: Whether the compaction is proactive
-  *
-- * It is possible that the function returns before reaching score targets
-- * due to various back-off conditions, such as, contention on per-node or
-- * per-zone locks.
-+ * For proactive compaction, compact till each zone's fragmentation score
-+ * reaches within proactive compaction thresholds (as determined by the
-+ * proactiveness tunable), it is possible that the function returns before
-+ * reaching score targets due to various back-off conditions, such as,
-+ * contention on per-node or per-zone locks.
-  */
--static void proactive_compact_node(pg_data_t *pgdat)
-+static void compact_node(pg_data_t *pgdat, bool proactive)
- {
- 	int zoneid;
- 	struct zone *zone;
- 	struct compact_control cc = {
- 		.order = -1,
--		.mode = MIGRATE_SYNC_LIGHT,
-+		.mode = proactive ? MIGRATE_SYNC_LIGHT : MIGRATE_SYNC,
- 		.ignore_skip_hint = true,
- 		.whole_zone = true,
- 		.gfp_mask = GFP_KERNEL,
--		.proactive_compaction = true,
-+		.proactive_compaction = proactive,
- 	};
- 
- 	for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
-@@ -2915,41 +2917,16 @@ static void proactive_compact_node(pg_da
- 
- 		compact_zone(&cc, NULL);
- 
--		count_compact_events(KCOMPACTD_MIGRATE_SCANNED,
--				     cc.total_migrate_scanned);
--		count_compact_events(KCOMPACTD_FREE_SCANNED,
--				     cc.total_free_scanned);
--	}
--}
--
--/* Compact all zones within a node */
--static void compact_node(int nid)
--{
--	pg_data_t *pgdat = NODE_DATA(nid);
--	int zoneid;
--	struct zone *zone;
--	struct compact_control cc = {
--		.order = -1,
--		.mode = MIGRATE_SYNC,
--		.ignore_skip_hint = true,
--		.whole_zone = true,
--		.gfp_mask = GFP_KERNEL,
--	};
--
--
--	for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
--
--		zone = &pgdat->node_zones[zoneid];
--		if (!populated_zone(zone))
--			continue;
--
--		cc.zone = zone;
--
--		compact_zone(&cc, NULL);
-+		if (proactive) {
-+			count_compact_events(KCOMPACTD_MIGRATE_SCANNED,
-+					     cc.total_migrate_scanned);
-+			count_compact_events(KCOMPACTD_FREE_SCANNED,
-+					     cc.total_free_scanned);
-+		}
- 	}
- }
- 
--/* Compact all nodes in the system */
-+/* Compact all zones of all nodes in the system */
- static void compact_nodes(void)
- {
- 	int nid;
-@@ -2958,7 +2935,7 @@ static void compact_nodes(void)
- 	lru_add_drain_all();
- 
- 	for_each_online_node(nid)
--		compact_node(nid);
-+		compact_node(NODE_DATA(nid), false);
- }
- 
- static int compaction_proactiveness_sysctl_handler(struct ctl_table *table, int write,
-@@ -3020,7 +2997,7 @@ static ssize_t compact_store(struct devi
- 		/* Flush pending updates to the LRU lists */
- 		lru_add_drain_all();
- 
--		compact_node(nid);
-+		compact_node(NODE_DATA(nid), false);
- 	}
- 
- 	return count;
-@@ -3229,7 +3206,7 @@ static int kcompactd(void *p)
- 			unsigned int prev_score, score;
- 
- 			prev_score = fragmentation_score_node(pgdat);
--			proactive_compact_node(pgdat);
-+			compact_node(pgdat, true);
- 			score = fragmentation_score_node(pgdat);
- 			/*
- 			 * Defer proactive compaction if the fragmentation
-_
-
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
-
-mm-memory-use-nth_page-in-clear-copy_subpage.patch
-s390-use-pfn_swap_entry_folio-in-ptep_zap_swap_entry.patch
-mm-use-pfn_swap_entry_folio-in-__split_huge_pmd_locked.patch
-mm-use-pfn_swap_entry_to_folio-in-zap_huge_pmd.patch
-mm-use-pfn_swap_entry_folio-in-copy_nonpresent_pte.patch
-mm-convert-to-should_zap_page-to-should_zap_folio.patch
-mm-convert-to-should_zap_page-to-should_zap_folio-fix.patch
-mm-convert-mm_counter-to-take-a-folio.patch
-mm-convert-mm_counter_file-to-take-a-folio.patch
-mm-memory-move-mem_cgroup_charge-into-alloc_anon_folio.patch
-mm-compaction-refactor-compact_node.patch
-
+This should be NR_MEMMAP, nr_memmap, MemMap etc.
