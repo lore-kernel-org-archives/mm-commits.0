@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEDA167A13
-	for <mm-commits@vger.kernel.org>; Thu,  8 Feb 2024 05:21:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3ED3767A13
+	for <mm-commits@vger.kernel.org>; Thu,  8 Feb 2024 05:21:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707369676; cv=none; b=SSbKkHQH66uco58Euh3e3ILhhcbDb0evqAUfGR/SurUKsF2bYRDzZouVWGw1rWqbK1qrBfvUYppGMQN3SbAlQ/zJXXNbJw6smTXddsf2pV9Zu0WHkq4SA0TaJHEXqZpcsqR0L+bOPYWeMB2djr+1cPdj+F44C9v0CxK9VHoD5/A=
+	t=1707369679; cv=none; b=PxmeNEPs6vo2qYWgOfEP8lYQo9UhGPRMdmsqfV5VWT+2ehYQwPAEsbkNJXJc+ZA9APABdlhoYbDmLLZYNHVUQzt1Ig5yxEVNJ8zfKoSwa62R2v3AK953q9gqA7pkuUlgeEsePb99AJRZr1aWHAHKo1uVguzd6QO2tvxklPh1nHU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707369676; c=relaxed/simple;
-	bh=/A7onJJCww+ZS34LqyPi41AM+bsww2Ttp9qeB/s9jfQ=;
-	h=Date:To:From:Subject:Message-Id; b=BYIvFtyqTd62gGoNOh/W1z2saUBpSFlgS4QppsOjLthl0JTj1GP70W/MOemFMtg0wsT0sxWZMjDPNz5L0yjtIcwz66Xm664715c+U/YQ1REoUFiB00OAySWfPns4dIRmwL8/gjRCbNypTcwbe1xLu6fXeyEOOdS0kcenE7q/VSU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q4mLvmoQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707369679; c=relaxed/simple;
+	bh=aUgdKKTFrIR2mW8VEbWjY+Z7/sRzYdJ6e/H6AuvnPXM=;
+	h=Date:To:From:Subject:Message-Id; b=osFxzsxIw0mc1b8FjUP7LVCUDS75dTaYTq+MQ//mgFzgG7G8Y1mQBKlQRkDeYZZlkp9if26nF5vPFF+1SCMWHxsfReNGjQgWLSTKNY+lVXFN3tBl7tdWANaBslzwhW49HEamdge2CxM1+XI+lu49V3xrFbXINlIFKeLbPTxH+N8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cOYLJTkk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q4mLvmoQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76DF8C433F1;
-	Thu,  8 Feb 2024 05:21:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cOYLJTkk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7001C433C7;
+	Thu,  8 Feb 2024 05:21:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707369676;
-	bh=/A7onJJCww+ZS34LqyPi41AM+bsww2Ttp9qeB/s9jfQ=;
+	s=korg; t=1707369678;
+	bh=aUgdKKTFrIR2mW8VEbWjY+Z7/sRzYdJ6e/H6AuvnPXM=;
 	h=Date:To:From:Subject:From;
-	b=Q4mLvmoQXmDUCZKOXoHBeQI5sWe65UTjzzWCouhPjL/xE0tgH1ElIDMd49gH8a0pz
-	 UKh0KzX49ia/KgWBViGYNWDTDMJzopNY5drZmC37Gc2UV0rp6pI+QI+8PHMfigHVTS
-	 K9CLPFgx66u7sGd2+RiDN5roFWkPG7UZ4SiFy5/I=
-Date: Wed, 07 Feb 2024 21:21:15 -0800
-To: mm-commits@vger.kernel.org,shakeelb@google.com,roman.gushchin@linux.dev,oliver.sang@intel.com,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,gthelen@google.com,yosryahmed@google.com,akpm@linux-foundation.org
+	b=cOYLJTkk4/j5+XlDnHOOvgWLV25OSglv4HyOl3lkjFQwlGO6FsdfDN+NXUGFZTUVk
+	 n4WW9F4B7x3Z6bOzHJg8SVTIej8b6cCvAHL+tMk0HxKwnIsnJLy8OmFkBCibwfztPP
+	 qxh0KbiouPyg1v09Najq0oZ3KwEIwlBSGS46N7U8=
+Date: Wed, 07 Feb 2024 21:21:18 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,naoya.horiguchi@nec.com,linmiaohe@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-memcg-optimize-parent-iteration-in-memcg_rstat_updated.patch removed from -mm tree
-Message-Id: <20240208052116.76DF8C433F1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-memory-failure-fix-crash-in-split_huge_page_to_list-from-soft_offline_page.patch removed from -mm tree
+Message-Id: <20240208052118.B7001C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,219 +35,90 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcg: optimize parent iteration in memcg_rstat_updated()
+     Subject: mm/memory-failure: fix crash in split_huge_page_to_list from soft_offline_page
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-optimize-parent-iteration-in-memcg_rstat_updated.patch
+     mm-memory-failure-fix-crash-in-split_huge_page_to_list-from-soft_offline_page.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: memcg: optimize parent iteration in memcg_rstat_updated()
-Date: Wed, 24 Jan 2024 10:00:22 +0000
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/memory-failure: fix crash in split_huge_page_to_list from soft_offline_page
+Date: Wed, 24 Jan 2024 16:40:14 +0800
 
-In memcg_rstat_updated(), we iterate the memcg being updated and its
-parents to update memcg->vmstats_percpu->stats_updates in the fast path
-(i.e. no atomic updates). According to my math, this is 3 memory loads
-(and potentially 3 cache misses) per memcg:
-- Load the address of memcg->vmstats_percpu.
-- Load vmstats_percpu->stats_updates (based on some percpu calculation).
-- Load the address of the parent memcg.
+When I did soft offline stress test, a machine was observed to crash with
+the following message:
 
-Avoid most of the cache misses by caching a pointer from each struct
-memcg_vmstats_percpu to its parent on the corresponding CPU. In this
-case, for the first memcg we have 2 memory loads (same as above):
-- Load the address of memcg->vmstats_percpu.
-- Load vmstats_percpu->stats_updates (based on some percpu calculation).
+  kernel BUG at include/linux/memcontrol.h:554!
+  invalid opcode: 0000 [#1] PREEMPT SMP NOPTI
+  CPU: 5 PID: 3837 Comm: hwpoison.sh Not tainted 6.7.0-next-20240112-00001-g8ecf3e7fb7c8-dirty #97
+  Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.14.0-0-g155821a1990b-prebuilt.qemu.org 04/01/2014
+  RIP: 0010:folio_memcg+0xaf/0xd0
+  Code: 10 5b 5d c3 cc cc cc cc 48 c7 c6 08 b1 f2 b2 48 89 ef e8 b4 c5 f8 ff 90 0f 0b 48 c7 c6 d0 b0 f2 b2 48 89 ef e8 a2 c5 f8 ff 90 <0f> 0b 48 c7 c6 08 b1 f2 b2 48 89 ef e8 90 c5 f8 ff 90 0f 0b 66 66
+  RSP: 0018:ffffb6c043657c98 EFLAGS: 00000296
+  RAX: 000000000000004b RBX: ffff932bc1d1e401 RCX: ffff933abfb5c908
+  RDX: 0000000000000000 RSI: 0000000000000027 RDI: ffff933abfb5c900
+  RBP: ffffea6f04019080 R08: ffffffffb3338ce8 R09: 0000000000009ffb
+  R10: 00000000000004dd R11: ffffffffb3308d00 R12: ffffea6f04019080
+  R13: ffffea6f04019080 R14: 0000000000000001 R15: ffffb6c043657da0
+  FS:  00007f6c60f6b740(0000) GS:ffff933abfb40000(0000) knlGS:0000000000000000
+  CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+  CR2: 0000559c3bc8b980 CR3: 0000000107f1c000 CR4: 00000000000006f0
+  Call Trace:
+   <TASK>
+   split_huge_page_to_list+0x4d/0x1380
+   try_to_split_thp_page+0x3a/0xf0
+   soft_offline_page+0x1ea/0x8a0
+   soft_offline_page_store+0x52/0x90
+   kernfs_fop_write_iter+0x118/0x1b0
+   vfs_write+0x30b/0x430
+   ksys_write+0x5e/0xe0
+   do_syscall_64+0xb0/0x1b0
+   entry_SYSCALL_64_after_hwframe+0x6d/0x75
+  RIP: 0033:0x7f6c60d14697
+  Code: 10 00 f7 d8 64 89 02 48 c7 c0 ff ff ff ff eb b7 0f 1f 00 f3 0f 1e fa 64 8b 04 25 18 00 00 00 85 c0 75 10 b8 01 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 51 c3 48 83 ec 28 48 89 54 24 18 48 89 74 24
+  RSP: 002b:00007ffe9b72b8d8 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+  RAX: ffffffffffffffda RBX: 000000000000000c RCX: 00007f6c60d14697
+  RDX: 000000000000000c RSI: 0000559c3bc8b980 RDI: 0000000000000001
+  RBP: 0000559c3bc8b980 R08: 00007f6c60dd1460 R09: 000000007fffffff
+  R10: 0000000000000000 R11: 0000000000000246 R12: 000000000000000c
+  R13: 00007f6c60e1a780 R14: 00007f6c60e16600 R15: 00007f6c60e15a00
 
-Then for each additional memcg, we need a single load to get the
-parent's stats_updates directly. This reduces the number of loads from
-O(3N) to O(2+N) -- where N is the number of memcgs we need to iterate.
+The problem is that page->mapping is overloaded with slab->slab_list or
+slabs fields now, so slab pages could be taken as non-LRU movable pages if
+field slabs contains PAGE_MAPPING_MOVABLE or slab_list->prev is set to
+LIST_POISON2.  These slab pages will be treated as thp later leading to
+crash in split_huge_page_to_list().
 
-Additionally, stash a pointer to memcg->vmstats in each struct
-memcg_vmstats_percpu such that we can access the atomic counter that all
-CPUs fold into, memcg->vmstats->stats_updates.
-memcg_should_flush_stats() is changed to memcg_vmstats_needs_flush() to
-accept a struct memcg_vmstats pointer accordingly.
-
-In struct memcg_vmstats_percpu, make sure both pointers together with
-stats_updates live on the same cacheline. Finally, update
-mem_cgroup_alloc() to take in a parent pointer and initialize the new
-cache pointers on each CPU. The percpu loop in mem_cgroup_alloc() may
-look concerning, but there are multiple similar loops in the cgroup
-creation path (e.g. cgroup_rstat_init()), most of which are hidden
-within alloc_percpu().
-
-According to Oliver's testing [1], this fixes multiple 30-38%
-regressions in vm-scalability, will-it-scale-tlb_flush2, and
-will-it-scale-fallocate1. This comes at a cost of 2 more pointers per
-CPU (<2KB on a machine with 128 CPUs).
-
-[1] https://lore.kernel.org/lkml/ZbDJsfsZt2ITyo61@xsang-OptiPlex-9020/
-
-[yosryahmed@google.com: fix struct memcg_vmstats_percpu size and alignment]
-  Link: https://lkml.kernel.org/r/20240203044612.1234216-1-yosryahmed@google.com
-Link: https://lkml.kernel.org/r/20240124100023.660032-1-yosryahmed@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Fixes: 8d59d2214c23 ("mm: memcg: make stats flushing threshold per-memcg")
-Tested-by: kernel test robot <oliver.sang@intel.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202401221624.cb53a8ca-oliver.sang@intel.com
-Acked-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Greg Thelen <gthelen@google.com>
+Link: https://lkml.kernel.org/r/20240126065837.2100184-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20240124084014.1772906-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Fixes: 130d4df57390 ("mm/sl[au]b: rearrange struct slab fields to allow larger rcu_head")
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   56 ++++++++++++++++++++++++++++------------------
- 1 file changed, 35 insertions(+), 21 deletions(-)
+ mm/memory-failure.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/memcontrol.c~mm-memcg-optimize-parent-iteration-in-memcg_rstat_updated
-+++ a/mm/memcontrol.c
-@@ -621,6 +621,15 @@ static inline int memcg_events_index(enu
- }
- 
- struct memcg_vmstats_percpu {
-+	/* Stats updates since the last flush */
-+	unsigned int			stats_updates;
-+
-+	/* Cached pointers for fast iteration in memcg_rstat_updated() */
-+	struct memcg_vmstats_percpu	*parent;
-+	struct memcg_vmstats		*vmstats;
-+
-+	/* The above should fit a single cacheline for memcg_rstat_updated() */
-+
- 	/* Local (CPU and cgroup) page state & events */
- 	long			state[MEMCG_NR_STAT];
- 	unsigned long		events[NR_MEMCG_EVENTS];
-@@ -632,10 +641,7 @@ struct memcg_vmstats_percpu {
- 	/* Cgroup1: threshold notifications & softlimit tree updates */
- 	unsigned long		nr_page_events;
- 	unsigned long		targets[MEM_CGROUP_NTARGETS];
--
--	/* Stats updates since the last flush */
--	unsigned int		stats_updates;
--};
-+} ____cacheline_aligned;
- 
- struct memcg_vmstats {
- 	/* Aggregated (CPU and subtree) page state & events */
-@@ -698,36 +704,35 @@ static void memcg_stats_unlock(void)
- }
- 
- 
--static bool memcg_should_flush_stats(struct mem_cgroup *memcg)
-+static bool memcg_vmstats_needs_flush(struct memcg_vmstats *vmstats)
+--- a/mm/memory-failure.c~mm-memory-failure-fix-crash-in-split_huge_page_to_list-from-soft_offline_page
++++ a/mm/memory-failure.c
+@@ -1377,6 +1377,9 @@ void ClearPageHWPoisonTakenOff(struct pa
+  */
+ static inline bool HWPoisonHandlable(struct page *page, unsigned long flags)
  {
--	return atomic64_read(&memcg->vmstats->stats_updates) >
-+	return atomic64_read(&vmstats->stats_updates) >
- 		MEMCG_CHARGE_BATCH * num_online_cpus();
- }
- 
- static inline void memcg_rstat_updated(struct mem_cgroup *memcg, int val)
- {
-+	struct memcg_vmstats_percpu *statc;
- 	int cpu = smp_processor_id();
--	unsigned int x;
- 
- 	if (!val)
- 		return;
- 
- 	cgroup_rstat_updated(memcg->css.cgroup, cpu);
--
--	for (; memcg; memcg = parent_mem_cgroup(memcg)) {
--		x = __this_cpu_add_return(memcg->vmstats_percpu->stats_updates,
--					  abs(val));
--
--		if (x < MEMCG_CHARGE_BATCH)
-+	statc = this_cpu_ptr(memcg->vmstats_percpu);
-+	for (; statc; statc = statc->parent) {
-+		statc->stats_updates += abs(val);
-+		if (statc->stats_updates < MEMCG_CHARGE_BATCH)
- 			continue;
- 
- 		/*
- 		 * If @memcg is already flush-able, increasing stats_updates is
- 		 * redundant. Avoid the overhead of the atomic update.
- 		 */
--		if (!memcg_should_flush_stats(memcg))
--			atomic64_add(x, &memcg->vmstats->stats_updates);
--		__this_cpu_write(memcg->vmstats_percpu->stats_updates, 0);
-+		if (!memcg_vmstats_needs_flush(statc->vmstats))
-+			atomic64_add(statc->stats_updates,
-+				     &statc->vmstats->stats_updates);
-+		statc->stats_updates = 0;
- 	}
- }
- 
-@@ -756,7 +761,7 @@ void mem_cgroup_flush_stats(struct mem_c
- 	if (!memcg)
- 		memcg = root_mem_cgroup;
- 
--	if (memcg_should_flush_stats(memcg))
-+	if (memcg_vmstats_needs_flush(memcg->vmstats))
- 		do_flush_stats(memcg);
- }
- 
-@@ -770,7 +775,7 @@ void mem_cgroup_flush_stats_ratelimited(
- static void flush_memcg_stats_dwork(struct work_struct *w)
- {
- 	/*
--	 * Deliberately ignore memcg_should_flush_stats() here so that flushing
-+	 * Deliberately ignore memcg_vmstats_needs_flush() here so that flushing
- 	 * in latency-sensitive paths is as cheap as possible.
- 	 */
- 	do_flush_stats(root_mem_cgroup);
-@@ -5477,10 +5482,11 @@ static void mem_cgroup_free(struct mem_c
- 	__mem_cgroup_free(memcg);
- }
- 
--static struct mem_cgroup *mem_cgroup_alloc(void)
-+static struct mem_cgroup *mem_cgroup_alloc(struct mem_cgroup *parent)
- {
-+	struct memcg_vmstats_percpu *statc, *pstatc;
- 	struct mem_cgroup *memcg;
--	int node;
-+	int node, cpu;
- 	int __maybe_unused i;
- 	long error = -ENOMEM;
- 
-@@ -5504,6 +5510,14 @@ static struct mem_cgroup *mem_cgroup_all
- 	if (!memcg->vmstats_percpu)
- 		goto fail;
- 
-+	for_each_possible_cpu(cpu) {
-+		if (parent)
-+			pstatc = per_cpu_ptr(parent->vmstats_percpu, cpu);
-+		statc = per_cpu_ptr(memcg->vmstats_percpu, cpu);
-+		statc->parent = parent ? pstatc : NULL;
-+		statc->vmstats = memcg->vmstats;
-+	}
++	if (PageSlab(page))
++		return false;
 +
- 	for_each_node(node)
- 		if (alloc_mem_cgroup_per_node_info(memcg, node))
- 			goto fail;
-@@ -5549,7 +5563,7 @@ mem_cgroup_css_alloc(struct cgroup_subsy
- 	struct mem_cgroup *memcg, *old_memcg;
- 
- 	old_memcg = set_active_memcg(parent);
--	memcg = mem_cgroup_alloc();
-+	memcg = mem_cgroup_alloc(parent);
- 	set_active_memcg(old_memcg);
- 	if (IS_ERR(memcg))
- 		return ERR_CAST(memcg);
+ 	/* Soft offline could migrate non-LRU movable pages */
+ 	if ((flags & MF_SOFT_OFFLINE) && __PageMovable(page))
+ 		return true;
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-zswap-fix-missing-folio-cleanup-in-writeback-race-path.patch
-mm-swap-enforce-updating-inuse_pages-at-the-end-of-swap_range_free.patch
-mm-zswap-remove-unnecessary-trees-cleanups-in-zswap_swapoff.patch
-mm-zswap-remove-unused-tree-argument-in-zswap_entry_put.patch
-x86-mm-delete-unused-cpu-argument-to-leave_mm.patch
-x86-mm-clarify-prev-usage-in-switch_mm_irqs_off.patch
 
