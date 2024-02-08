@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A00A1DFE8
-	for <mm-commits@vger.kernel.org>; Thu,  8 Feb 2024 00:07:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2DB520311
+	for <mm-commits@vger.kernel.org>; Thu,  8 Feb 2024 01:53:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707350868; cv=none; b=UokplpeaxwkvbD+pkA7AcwkSTkSi0KKJvruDGhgxiIfSkaavIqJnTGpIN8T4wWKU3rGgNwqtUJ+qAQFJGV2fuESHZnrBKMd07OVuVFj5AsHhheDpwf2xKYywh4paL81MQhN0cY1zL/QPg9eLd8BGOJuWic+92172pyw2hkervcc=
+	t=1707357191; cv=none; b=PjITgoguGaQeM9CKEGxJLD8t0tMj0zyF7UwS+sngOcwqKC4iVVUzmCPnNNxvnKQPCKH4xWpqHuQSnPe1S5g4o7hPiLod0GGhCA8kOF0tda8L73OrurVExuGeN6DZ0BTXI+6f5/rFrQp0TpV5DbQTYSAK2mbuLgKisTG2/4wd+mM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707350868; c=relaxed/simple;
-	bh=KC1tsF0nujLznbmyYW4Gc7BFxalFzHR9Wi0H/u2NflU=;
-	h=Date:To:From:Subject:Message-Id; b=fGOpZ6j5TrC8rA0Ku/uarm2o+ObDKlqNmBf71xG3zy7h5OcwfMGH1AZZdyy2gd6m8E+Mh/mGG+DK+dpP9mPGHgb22cnaA6jqFr6W6c0NLNhPNBzsN3QXiud8uOFqAOiRed56pUF0SyLLsQMxGZXZhmsIbouDJ7looCmetkB6b28=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yc+jYrtN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707357191; c=relaxed/simple;
+	bh=O1WO44wJm1wnJ98FXBzYgKQfjm6RItd+VTRjyiZdjZM=;
+	h=Date:To:From:Subject:Message-Id; b=gYSaNaF5qkiUi3dA4Hevdrb2UQfEz2ZhDGyR6BTM6VgwJyvKr2+ELXl6Vo09pC+fN+xGS6hatQYpySPsk3eXXjhhKTELoUQLc5OAF3WRaN3imtWWxlGN3zD5CEJvlI5J/UW6QHOuYE3W4WgSkWa8IhYX8CoCV7sTCs9xI8eggEk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sWp10GPT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yc+jYrtN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66833C433F1;
-	Thu,  8 Feb 2024 00:07:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sWp10GPT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60F41C433C7;
+	Thu,  8 Feb 2024 01:53:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707350867;
-	bh=KC1tsF0nujLznbmyYW4Gc7BFxalFzHR9Wi0H/u2NflU=;
+	s=korg; t=1707357190;
+	bh=O1WO44wJm1wnJ98FXBzYgKQfjm6RItd+VTRjyiZdjZM=;
 	h=Date:To:From:Subject:From;
-	b=yc+jYrtN0iaDAjA1gut+Dmp3zPeVSNBFq2lXC/1AtQbgdfWwfygPmFNM5sj8mTxk4
-	 k3jO8sb85a66wxfEpkMywzaOSU37OgZ4es5EnlDbilx7PbB3XjuzW1eVYe8OGPObaN
-	 zyHIzdZlsxqT0lBc1aULo2a3VGQYgMPjiTWzuGWc=
-Date: Wed, 07 Feb 2024 16:07:46 -0800
-To: mm-commits@vger.kernel.org,anshuman.khandual@arm.com,akpm@linux-foundation.org
+	b=sWp10GPT6SsefpsnnnH8iZK2bRQEfE+TZ+az/ytDmwTHVl05Sc6h8fQJsv6NFCcp2
+	 AMWNzo5NwYtYR10P81UXcZn7USzjLVbGtDeW6PcKAEhF/jzjWWrUTAMQONX5rkrAdd
+	 +l0DIWCK3Eu3mYab7FPRqvExQJQMwMx2g8ViUkts=
+Date: Wed, 07 Feb 2024 17:53:09 -0800
+To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-cma-add-sysfs-file-release_pages_success.patch added to mm-unstable branch
-Message-Id: <20240208000747.66833C433F1@smtp.kernel.org>
+Subject: + mm-compaction-refactor-compact_node.patch added to mm-unstable branch
+Message-Id: <20240208015310.60F41C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/cma: add sysfs file 'release_pages_success'
+     Subject: mm: compaction: refactor compact_node()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-cma-add-sysfs-file-release_pages_success.patch
+     mm-compaction-refactor-compact_node.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-add-sysfs-file-release_pages_success.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-refactor-compact_node.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,130 +58,149 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/cma: add sysfs file 'release_pages_success'
-Date: Tue, 6 Feb 2024 10:27:31 +0530
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: compaction: refactor compact_node()
+Date: Thu, 8 Feb 2024 09:36:07 +0800
 
-This adds the following new sysfs file tracking the number of successfully
-released pages from a given CMA heap area.  This file will be available
-via CONFIG_CMA_SYSFS and help in determining active CMA pages available on
-the CMA heap area.  This adds a new 'nr_pages_released' (CONFIG_CMA_SYSFS)
-into 'struct cma' which gets updated during cma_release().
+Refactor compact_node() to handle both proactive and synchronous compact
+memory, which cleanups code a bit.
 
-/sys/kernel/mm/cma/<cma-heap-area>/release_pages_success
-
-After this change, an user will be able to find active CMA pages available
-in a given CMA heap area via the following method.
-
-Active pages = alloc_pages_success - release_pages_success
-
-That's valuable information for both software designers, and system admins
-as it allows them to tune the number of CMA pages available in the system.
-This increases user visibility for allocated CMA area and its
-utilization.
-
-Link: https://lkml.kernel.org/r/20240206045731.472759-1-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Link: https://lkml.kernel.org/r/20240208013607.1731817-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-cma |    6 ++++++
- mm/cma.c                                      |    1 +
- mm/cma.h                                      |    5 +++++
- mm/cma_sysfs.c                                |   15 +++++++++++++++
- 4 files changed, 27 insertions(+)
+ mm/compaction.c |   65 ++++++++++++++--------------------------------
+ 1 file changed, 21 insertions(+), 44 deletions(-)
 
---- a/Documentation/ABI/testing/sysfs-kernel-mm-cma~mm-cma-add-sysfs-file-release_pages_success
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-cma
-@@ -23,3 +23,9 @@ Date:		Feb 2021
- Contact:	Minchan Kim <minchan@kernel.org>
- Description:
- 		the number of pages CMA API failed to allocate
-+
-+What:		/sys/kernel/mm/cma/<cma-heap-name>/release_pages_success
-+Date:		Feb 2024
-+Contact:	Anshuman Khandual <anshuman.khandual@arm.com>
-+Description:
-+		the number of pages CMA API succeeded to release
---- a/mm/cma.c~mm-cma-add-sysfs-file-release_pages_success
-+++ a/mm/cma.c
-@@ -562,6 +562,7 @@ bool cma_release(struct cma *cma, const
- 
- 	free_contig_range(pfn, count);
- 	cma_clear_bitmap(cma, pfn, count);
-+	cma_sysfs_account_release_pages(cma, count);
- 	trace_cma_release(cma->name, pfn, pages, count);
- 
- 	return true;
---- a/mm/cma.h~mm-cma-add-sysfs-file-release_pages_success
-+++ a/mm/cma.h
-@@ -27,6 +27,8 @@ struct cma {
- 	atomic64_t nr_pages_succeeded;
- 	/* the number of CMA page allocation failures */
- 	atomic64_t nr_pages_failed;
-+	/* the number of CMA page released */
-+	atomic64_t nr_pages_released;
- 	/* kobject requires dynamic object */
- 	struct cma_kobject *cma_kobj;
- #endif
-@@ -44,10 +46,13 @@ static inline unsigned long cma_bitmap_m
- #ifdef CONFIG_CMA_SYSFS
- void cma_sysfs_account_success_pages(struct cma *cma, unsigned long nr_pages);
- void cma_sysfs_account_fail_pages(struct cma *cma, unsigned long nr_pages);
-+void cma_sysfs_account_release_pages(struct cma *cma, unsigned long nr_pages);
- #else
- static inline void cma_sysfs_account_success_pages(struct cma *cma,
- 						   unsigned long nr_pages) {};
- static inline void cma_sysfs_account_fail_pages(struct cma *cma,
- 						unsigned long nr_pages) {};
-+static inline void cma_sysfs_account_release_pages(struct cma *cma,
-+						   unsigned long nr_pages) {};
- #endif
- #endif
---- a/mm/cma_sysfs.c~mm-cma-add-sysfs-file-release_pages_success
-+++ a/mm/cma_sysfs.c
-@@ -24,6 +24,11 @@ void cma_sysfs_account_fail_pages(struct
- 	atomic64_add(nr_pages, &cma->nr_pages_failed);
+--- a/mm/compaction.c~mm-compaction-refactor-compact_node
++++ a/mm/compaction.c
+@@ -2885,25 +2885,27 @@ enum compact_result try_to_compact_pages
  }
  
-+void cma_sysfs_account_release_pages(struct cma *cma, unsigned long nr_pages)
-+{
-+	atomic64_add(nr_pages, &cma->nr_pages_released);
-+}
-+
- static inline struct cma *cma_from_kobj(struct kobject *kobj)
+ /*
+- * Compact all zones within a node till each zone's fragmentation score
+- * reaches within proactive compaction thresholds (as determined by the
+- * proactiveness tunable).
++ * compact_node() - compact all zones within a node
++ * @pgdat: The node page data
++ * @proactive: Whether the compaction is proactive
+  *
+- * It is possible that the function returns before reaching score targets
+- * due to various back-off conditions, such as, contention on per-node or
+- * per-zone locks.
++ * For proactive compaction, compact till each zone's fragmentation score
++ * reaches within proactive compaction thresholds (as determined by the
++ * proactiveness tunable), it is possible that the function returns before
++ * reaching score targets due to various back-off conditions, such as,
++ * contention on per-node or per-zone locks.
+  */
+-static void proactive_compact_node(pg_data_t *pgdat)
++static void compact_node(pg_data_t *pgdat, bool proactive)
  {
- 	return container_of(kobj, struct cma_kobject, kobj)->cma;
-@@ -48,6 +53,15 @@ static ssize_t alloc_pages_fail_show(str
- }
- CMA_ATTR_RO(alloc_pages_fail);
+ 	int zoneid;
+ 	struct zone *zone;
+ 	struct compact_control cc = {
+ 		.order = -1,
+-		.mode = MIGRATE_SYNC_LIGHT,
++		.mode = proactive ? MIGRATE_SYNC_LIGHT : MIGRATE_SYNC,
+ 		.ignore_skip_hint = true,
+ 		.whole_zone = true,
+ 		.gfp_mask = GFP_KERNEL,
+-		.proactive_compaction = true,
++		.proactive_compaction = proactive,
+ 	};
  
-+static ssize_t release_pages_success_show(struct kobject *kobj,
-+					  struct kobj_attribute *attr, char *buf)
-+{
-+	struct cma *cma = cma_from_kobj(kobj);
-+
-+	return sysfs_emit(buf, "%llu\n", atomic64_read(&cma->nr_pages_released));
-+}
-+CMA_ATTR_RO(release_pages_success);
-+
- static void cma_kobj_release(struct kobject *kobj)
+ 	for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
+@@ -2915,41 +2917,16 @@ static void proactive_compact_node(pg_da
+ 
+ 		compact_zone(&cc, NULL);
+ 
+-		count_compact_events(KCOMPACTD_MIGRATE_SCANNED,
+-				     cc.total_migrate_scanned);
+-		count_compact_events(KCOMPACTD_FREE_SCANNED,
+-				     cc.total_free_scanned);
+-	}
+-}
+-
+-/* Compact all zones within a node */
+-static void compact_node(int nid)
+-{
+-	pg_data_t *pgdat = NODE_DATA(nid);
+-	int zoneid;
+-	struct zone *zone;
+-	struct compact_control cc = {
+-		.order = -1,
+-		.mode = MIGRATE_SYNC,
+-		.ignore_skip_hint = true,
+-		.whole_zone = true,
+-		.gfp_mask = GFP_KERNEL,
+-	};
+-
+-
+-	for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
+-
+-		zone = &pgdat->node_zones[zoneid];
+-		if (!populated_zone(zone))
+-			continue;
+-
+-		cc.zone = zone;
+-
+-		compact_zone(&cc, NULL);
++		if (proactive) {
++			count_compact_events(KCOMPACTD_MIGRATE_SCANNED,
++					     cc.total_migrate_scanned);
++			count_compact_events(KCOMPACTD_FREE_SCANNED,
++					     cc.total_free_scanned);
++		}
+ 	}
+ }
+ 
+-/* Compact all nodes in the system */
++/* Compact all zones of all nodes in the system */
+ static void compact_nodes(void)
  {
- 	struct cma *cma = cma_from_kobj(kobj);
-@@ -60,6 +74,7 @@ static void cma_kobj_release(struct kobj
- static struct attribute *cma_attrs[] = {
- 	&alloc_pages_success_attr.attr,
- 	&alloc_pages_fail_attr.attr,
-+	&release_pages_success_attr.attr,
- 	NULL,
- };
- ATTRIBUTE_GROUPS(cma);
+ 	int nid;
+@@ -2958,7 +2935,7 @@ static void compact_nodes(void)
+ 	lru_add_drain_all();
+ 
+ 	for_each_online_node(nid)
+-		compact_node(nid);
++		compact_node(NODE_DATA(nid), false);
+ }
+ 
+ static int compaction_proactiveness_sysctl_handler(struct ctl_table *table, int write,
+@@ -3020,7 +2997,7 @@ static ssize_t compact_store(struct devi
+ 		/* Flush pending updates to the LRU lists */
+ 		lru_add_drain_all();
+ 
+-		compact_node(nid);
++		compact_node(NODE_DATA(nid), false);
+ 	}
+ 
+ 	return count;
+@@ -3229,7 +3206,7 @@ static int kcompactd(void *p)
+ 			unsigned int prev_score, score;
+ 
+ 			prev_score = fragmentation_score_node(pgdat);
+-			proactive_compact_node(pgdat);
++			compact_node(pgdat, true);
+ 			score = fragmentation_score_node(pgdat);
+ 			/*
+ 			 * Defer proactive compaction if the fragmentation
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-cma-dont-treat-bad-input-arguments-for-cma_alloc-as-its-failure.patch
-mm-cma-drop-config_cma_debug.patch
-mm-cma-make-max_cma_areas-=-config_cma_areas.patch
-mm-cma-add-sysfs-file-release_pages_success.patch
+mm-memory-use-nth_page-in-clear-copy_subpage.patch
+s390-use-pfn_swap_entry_folio-in-ptep_zap_swap_entry.patch
+mm-use-pfn_swap_entry_folio-in-__split_huge_pmd_locked.patch
+mm-use-pfn_swap_entry_to_folio-in-zap_huge_pmd.patch
+mm-use-pfn_swap_entry_folio-in-copy_nonpresent_pte.patch
+mm-convert-to-should_zap_page-to-should_zap_folio.patch
+mm-convert-to-should_zap_page-to-should_zap_folio-fix.patch
+mm-convert-mm_counter-to-take-a-folio.patch
+mm-convert-mm_counter_file-to-take-a-folio.patch
+mm-memory-move-mem_cgroup_charge-into-alloc_anon_folio.patch
+mm-compaction-refactor-compact_node.patch
 
