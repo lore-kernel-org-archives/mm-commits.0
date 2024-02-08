@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B609679F8
-	for <mm-commits@vger.kernel.org>; Thu,  8 Feb 2024 05:17:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81F9667A07;
+	Thu,  8 Feb 2024 05:21:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707369475; cv=none; b=SAJvpzSZ3Vz2bfHl0o4R9WyOZ7bw/REwz7OHzQprhFaPR/gfDtv9MZNOJEv+y7LxpLwACtaM0QUv28pm80CWQN8TuVlZupe00r+n80xIrfcGccCesk1kfAcSswg4+15e2adi4K7V/gJvc4mfz0/CI/wia/uwGkUH2q+DZm3hJiU=
+	t=1707369668; cv=none; b=ZH6JUbQ+ArLbzynzQKSgGkpUK5eNWwZrO3fWDmCAe4O5f7aoBOEFSUvX9ZVKaIciuuvhL0oVfHcPpZi4ZFlBgbcBSuVe6ssvULRmepwlW9xLenhFDXuQGl1llebgOXczdDtHEVmtg4v5crBcweIAmW/wMh557mTL5hR9zhMSB1I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707369475; c=relaxed/simple;
-	bh=SD9/xT8kfvNAU1OGxHChOpWc5rToPuGHOBOj4O098Lc=;
-	h=Date:To:From:Subject:Message-Id; b=hfJzt8P0DSyCzJSgvA0p8Qqim1ByzC2PSupYlkzSPDupBi5iEM3jMvVp/gwdqf/cAULdN3xSjAG9+yhGeDxUCJ5JH2YSe6lUdPUX+fn8ryNk8CmplxTb/oQHm1sIKTAvhEVuOup0MtIqeonMlTyaY7IrFZZfBZJ4y20vk2OFYBk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pWm2CG9W; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707369668; c=relaxed/simple;
+	bh=er1i4IvsDd/Z1asgf9uiM2hnY2Je4OMv3Br3vJKPu9U=;
+	h=Date:To:From:Subject:Message-Id; b=b9gygM/QfW60nVgrK2/4WCLK+RhNL+Q8FqCD93TwdwAYa+7cEVxeEa+o5FF75OTr2oXwsf5sDGilaiGtckRj1OQMDDwCxZdab72j76A8CfZHSgpTrYsPE9XtQG2pkhASDT1IHTik+lIHIwZ00M9zhIWtoJeGpIMPXKeoDuziCGA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pRi2hO08; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pWm2CG9W"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75402C433F1;
-	Thu,  8 Feb 2024 05:17:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pRi2hO08"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E888CC433F1;
+	Thu,  8 Feb 2024 05:21:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707369474;
-	bh=SD9/xT8kfvNAU1OGxHChOpWc5rToPuGHOBOj4O098Lc=;
+	s=korg; t=1707369668;
+	bh=er1i4IvsDd/Z1asgf9uiM2hnY2Je4OMv3Br3vJKPu9U=;
 	h=Date:To:From:Subject:From;
-	b=pWm2CG9WFdrMRVAN4Ez9qmW8V2E4ewnoB08GO+/8zHlx8ia6Ni5yt3iARXDhnHh+N
-	 5I739MfqYY6Pur2FxZlyQmu3jGJA8dkX2fnB+Wvx4evQeGFrdXGjiiM7jteYhRtjRy
-	 4ioAhkFCPoyOylGYLezPSRYxyU58tUZund4Z8DUU=
-Date: Wed, 07 Feb 2024 21:17:53 -0800
-To: mm-commits@vger.kernel.org,shakeelb@google.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,gthelen@google.com,yosryahmed@google.com,akpm@linux-foundation.org
+	b=pRi2hO08C0bKTJ/LAbm9EFof/oH34aqGy+uBvKLUJCEue6meRmnNxANcf3LPc4PHn
+	 CJZ4ApJyG7DOnHmTinaMLPVR4ig7krqRcy3hAqv/Rl5LLZP8Xd+rHkgRyxoN4L10FO
+	 TIdwEbBOnupknhrO899Le4WYfMeqkkbZVq1deZ/k=
+Date: Wed, 07 Feb 2024 21:21:07 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,ebiederm@xmission.com,dylanbhatch@google.com,oleg@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-memcg-optimize-parent-iteration-in-memcg_rstat_updated-fix.patch removed from -mm tree
-Message-Id: <20240208051754.75402C433F1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] getrusage-move-thread_group_cputime_adjusted-outside-of-lock_task_sighand.patch removed from -mm tree
+Message-Id: <20240208052107.E888CC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,93 +35,119 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcg: fix struct memcg_vmstats_percpu size and alignment
+     Subject: getrusage: move thread_group_cputime_adjusted() outside of lock_task_sighand()
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-optimize-parent-iteration-in-memcg_rstat_updated-fix.patch
+     getrusage-move-thread_group_cputime_adjusted-outside-of-lock_task_sighand.patch
 
-This patch was dropped because it was folded into mm-memcg-optimize-parent-iteration-in-memcg_rstat_updated.patch
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm: memcg: fix struct memcg_vmstats_percpu size and alignment
-Date: Sat, 3 Feb 2024 04:46:12 +0000
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: getrusage: move thread_group_cputime_adjusted() outside of lock_task_sighand()
+Date: Mon, 22 Jan 2024 16:50:50 +0100
 
-Commit da10d7e140196 ("mm: memcg: optimize parent iteration in
-memcg_rstat_updated()") added two additional pointers to the end of struct
-memcg_vmstats_percpu with CACHELINE_PADDING to put them in a separate
-cacheline.  This caused the struct size to increase from 1200 to 1280 on
-my config (80 extra bytes instead of 16).
+Patch series "getrusage: use sig->stats_lock", v2.
 
-Upon revisiting, the relevant struct members do not need to be on a
-separate cacheline, they just need to fit in a single one.  This is a
-percpu struct, so there shouldn't be any contention on that cacheline
-anyway.  Move the members to the beginning of the struct and make sure the
-struct itself is cacheline aligned.  Add a comment about the members that
-need to fit together in a cacheline.
 
-The struct size is now 1216 on my config with this change.
+This patch (of 2):
 
-Link: https://lkml.kernel.org/r/20240203044612.1234216-1-yosryahmed@google.com
-Fixes: da10d7e14019 ("mm: memcg: optimize parent iteration in memcg_rstat_updated()")
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Reported-by: Greg Thelen <gthelen@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeelb@google.com>
+thread_group_cputime() does its own locking, we can safely shift
+thread_group_cputime_adjusted() which does another for_each_thread loop
+outside of ->siglock protected section.
+
+This is also preparation for the next patch which changes getrusage() to
+use stats_lock instead of siglock, thread_group_cputime() takes the same
+lock.  With the current implementation recursive read_seqbegin_or_lock()
+is fine, thread_group_cputime() can't enter the slow mode if the caller
+holds stats_lock, yet this looks more safe and better performance-wise.
+
+Link: https://lkml.kernel.org/r/20240122155023.GA26169@redhat.com
+Link: https://lkml.kernel.org/r/20240122155050.GA26205@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Reported-by: Dylan Hatch <dylanbhatch@google.com>
+Tested-by: Dylan Hatch <dylanbhatch@google.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+ kernel/sys.c |   36 ++++++++++++++++++++----------------
+ 1 file changed, 20 insertions(+), 16 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-optimize-parent-iteration-in-memcg_rstat_updated-fix
-+++ a/mm/memcontrol.c
-@@ -621,6 +621,15 @@ static inline int memcg_events_index(enu
+--- a/kernel/sys.c~getrusage-move-thread_group_cputime_adjusted-outside-of-lock_task_sighand
++++ a/kernel/sys.c
+@@ -1785,17 +1785,19 @@ void getrusage(struct task_struct *p, in
+ 	struct task_struct *t;
+ 	unsigned long flags;
+ 	u64 tgutime, tgstime, utime, stime;
+-	unsigned long maxrss = 0;
++	unsigned long maxrss;
++	struct mm_struct *mm;
+ 	struct signal_struct *sig = p->signal;
+ 
+-	memset((char *)r, 0, sizeof (*r));
++	memset(r, 0, sizeof(*r));
+ 	utime = stime = 0;
++	maxrss = 0;
+ 
+ 	if (who == RUSAGE_THREAD) {
+ 		task_cputime_adjusted(current, &utime, &stime);
+ 		accumulate_thread_rusage(p, r);
+ 		maxrss = sig->maxrss;
+-		goto out;
++		goto out_thread;
+ 	}
+ 
+ 	if (!lock_task_sighand(p, &flags))
+@@ -1819,9 +1821,6 @@ void getrusage(struct task_struct *p, in
+ 		fallthrough;
+ 
+ 	case RUSAGE_SELF:
+-		thread_group_cputime_adjusted(p, &tgutime, &tgstime);
+-		utime += tgutime;
+-		stime += tgstime;
+ 		r->ru_nvcsw += sig->nvcsw;
+ 		r->ru_nivcsw += sig->nivcsw;
+ 		r->ru_minflt += sig->min_flt;
+@@ -1839,19 +1838,24 @@ void getrusage(struct task_struct *p, in
+ 	}
+ 	unlock_task_sighand(p, &flags);
+ 
+-out:
+-	r->ru_utime = ns_to_kernel_old_timeval(utime);
+-	r->ru_stime = ns_to_kernel_old_timeval(stime);
+-
+-	if (who != RUSAGE_CHILDREN) {
+-		struct mm_struct *mm = get_task_mm(p);
++	if (who == RUSAGE_CHILDREN)
++		goto out_children;
+ 
+-		if (mm) {
+-			setmax_mm_hiwater_rss(&maxrss, mm);
+-			mmput(mm);
+-		}
++	thread_group_cputime_adjusted(p, &tgutime, &tgstime);
++	utime += tgutime;
++	stime += tgstime;
++
++out_thread:
++	mm = get_task_mm(p);
++	if (mm) {
++		setmax_mm_hiwater_rss(&maxrss, mm);
++		mmput(mm);
+ 	}
++
++out_children:
+ 	r->ru_maxrss = maxrss * (PAGE_SIZE / 1024); /* convert pages to KBs */
++	r->ru_utime = ns_to_kernel_old_timeval(utime);
++	r->ru_stime = ns_to_kernel_old_timeval(stime);
  }
  
- struct memcg_vmstats_percpu {
-+	/* Stats updates since the last flush */
-+	unsigned int			stats_updates;
-+
-+	/* Cached pointers for fast iteration in memcg_rstat_updated() */
-+	struct memcg_vmstats_percpu	*parent;
-+	struct memcg_vmstats		*vmstats;
-+
-+	/* The above should fit a single cacheline for memcg_rstat_updated() */
-+
- 	/* Local (CPU and cgroup) page state & events */
- 	long			state[MEMCG_NR_STAT];
- 	unsigned long		events[NR_MEMCG_EVENTS];
-@@ -632,17 +641,7 @@ struct memcg_vmstats_percpu {
- 	/* Cgroup1: threshold notifications & softlimit tree updates */
- 	unsigned long		nr_page_events;
- 	unsigned long		targets[MEM_CGROUP_NTARGETS];
--
--	/* Fit members below in a single cacheline for memcg_rstat_updated() */
--	CACHELINE_PADDING(_pad1_);
--
--	/* Stats updates since the last flush */
--	unsigned int		stats_updates;
--
--	/* Cached pointers for fast iteration in memcg_rstat_updated() */
--	struct memcg_vmstats_percpu	*parent;
--	struct memcg_vmstats		*vmstats;
--};
-+} ____cacheline_aligned;
- 
- struct memcg_vmstats {
- 	/* Aggregated (CPU and subtree) page state & events */
+ SYSCALL_DEFINE2(getrusage, int, who, struct rusage __user *, ru)
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-mm-memcg-optimize-parent-iteration-in-memcg_rstat_updated.patch
-mm-zswap-fix-missing-folio-cleanup-in-writeback-race-path.patch
-mm-swap-enforce-updating-inuse_pages-at-the-end-of-swap_range_free.patch
-mm-zswap-remove-unnecessary-trees-cleanups-in-zswap_swapoff.patch
-mm-zswap-remove-unused-tree-argument-in-zswap_entry_put.patch
-x86-mm-delete-unused-cpu-argument-to-leave_mm.patch
-x86-mm-clarify-prev-usage-in-switch_mm_irqs_off.patch
+ptrace_attach-shift-sendsigstop-into-ptrace_set_stopped.patch
 
