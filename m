@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 804BA4F88C;
-	Thu,  8 Feb 2024 21:41:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F4A54F1FC
+	for <mm-commits@vger.kernel.org>; Thu,  8 Feb 2024 21:42:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707428517; cv=none; b=hPRPvRgEOSNpfPVWeLEz+mmSzJohyiSONv8oHzVidkPK4dwI/kY421vwYlSQudBO/PlHoHwQU41TBf8RcX+05x273aOCPPfUbpM4l1uBUghzFEA1XPWAt5wCIOUn8giiA6Fd66TAnOX4QNVTUwmd2/PPRASy+KHDuZr3UKgVX+4=
+	t=1707428542; cv=none; b=AnA1AB+KYjtXcnxQxRWS4UkZFI93S2e+lBRUOL09TdErVQQ9Oz/AzP5gb87tmAvETBcS7a237KLxwVUMbznDS0o6H+Rt7gPHWYc2vEyNM7t7Z+pWT1sfI/azPbqzOnU0hInO7ZA1QBMq8XvVeHeF02BuirKz/9fu7yCAi9B3iL4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707428517; c=relaxed/simple;
-	bh=vmIMnXnxK2Cf+Z/k1r7jjiEAHJh6+kdkm7WV9KxjhzU=;
-	h=Date:To:From:Subject:Message-Id; b=Auu+0dRV2LPND7g1CvVR6kA4mU1vbLJd48iT9v3LolZI89ni1MXuKBSxzJ2m+yQUAOLNdo688veyyOExYLarHpMy/cCUBp1qtLRJZ8wxI5eaivd0CeCngUUrCUWnpBst/buD5z8lpOILdPh+gKu7mBOFkqBzIHYs9gKEfLw6Fq0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W8PpeEv1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707428542; c=relaxed/simple;
+	bh=3aOQCZe8IEulrTO1UUhwJSu74qY6RS5qXB1vYano9dQ=;
+	h=Date:To:From:Subject:Message-Id; b=Uht7RU4Ojnd646myAFsZ99i2ovbhNDlrOXMTaqBzgZTvC1YvZVkb1ahTRfuhF3cLDksphUU6VQ9NQyPpjvX0kbBjnwq+jMUJh5P2UzGTPxq69uy3j4bWEepsXs6TAksZi811Ves9RLJjVCnbNBF6DGnl4PVMZQqfgyJLO1Xe1z4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A+roV1Ki; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W8PpeEv1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB8F4C433C7;
-	Thu,  8 Feb 2024 21:41:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A+roV1Ki"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CFC2C433C7;
+	Thu,  8 Feb 2024 21:42:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707428517;
-	bh=vmIMnXnxK2Cf+Z/k1r7jjiEAHJh6+kdkm7WV9KxjhzU=;
+	s=korg; t=1707428541;
+	bh=3aOQCZe8IEulrTO1UUhwJSu74qY6RS5qXB1vYano9dQ=;
 	h=Date:To:From:Subject:From;
-	b=W8PpeEv1Sg36qt9PK/uEd8cM8XGzUHm/lJNuGWrup3GYXGoexh/J2hEa916y14dkl
-	 Uyi+kjJO34ViV4kBHQoeNANlz7lbdv4vOc7vepyENdv+b3eqr7wQvIgLXree1ssMNF
-	 W51TiVkCRq6Zo3qdc7oJ6eK7mu6+RVzIWlEIM93g=
-Date: Thu, 08 Feb 2024 13:41:56 -0800
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,stable@vger.kernel.org,nphamcs@gmail.com,hannes@cmpxchg.org,zhouchengming@bytedance.com,akpm@linux-foundation.org
+	b=A+roV1KigD8RxhbwwRxnNolfMKRh38p7WQLuthpKiYFs/H20QnE2qc6c9GMLM02K9
+	 9euz7dtEapxzGbD5l5ovetTvyoO129nXTZSHEmnmpAsM48mQ3vvpgft+MZqHf0+ax/
+	 NNhfyViezd92fV9LxyUmRaTTwhcli8PjRN3WSsbM=
+Date: Thu, 08 Feb 2024 13:42:20 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,timmurray@google.com,surenb@google.com,rppt@kernel.org,peterx@redhat.com,ngeoffray@google.com,Liam.Howlett@oracle.com,kaleshsingh@google.com,jannh@google.com,david@redhat.com,bgeffon@google.com,axelrasmussen@google.com,aarcange@redhat.com,lokeshgidra@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-invalidate-duplicate-entry-when-zswap_enabled.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240208214156.DB8F4C433C7@smtp.kernel.org>
+Subject: + userfaultfd-move-userfaultfd_ctx-struct-to-header-file.patch added to mm-unstable branch
+Message-Id: <20240208214221.6CFC2C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zswap: invalidate duplicate entry when !zswap_enabled
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-zswap-invalidate-duplicate-entry-when-zswap_enabled.patch
+     Subject: userfaultfd: move userfaultfd_ctx struct to header file
+has been added to the -mm mm-unstable branch.  Its filename is
+     userfaultfd-move-userfaultfd_ctx-struct-to-header-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-invalidate-duplicate-entry-when-zswap_enabled.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-move-userfaultfd_ctx-struct-to-header-file.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,64 +58,162 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Chengming Zhou <zhouchengming@bytedance.com>
-Subject: mm/zswap: invalidate duplicate entry when !zswap_enabled
-Date: Thu, 8 Feb 2024 02:32:54 +0000
+From: Lokesh Gidra <lokeshgidra@google.com>
+Subject: userfaultfd: move userfaultfd_ctx struct to header file
+Date: Thu, 8 Feb 2024 13:22:02 -0800
 
-We have to invalidate any duplicate entry even when !zswap_enabled since
-zswap can be disabled anytime.  If the folio store success before, then
-got dirtied again but zswap disabled, we won't invalidate the old
-duplicate entry in the zswap_store().  So later lru writeback may
-overwrite the new data in swapfile.
+Patch series "per-vma locks in userfaultfd", v4.
 
-Link: https://lkml.kernel.org/r/20240208023254.3873823-1-chengming.zhou@linux.dev
-Fixes: 42c06a0e8ebe ("mm: kill frontswap")
-Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
-Cc: <stable@vger.kernel.org>
+Performing userfaultfd operations (like copy/move etc.) in critical
+section of mmap_lock (read-mode) causes significant contention on the lock
+when operations requiring the lock in write-mode are taking place
+concurrently.  We can use per-vma locks instead to significantly reduce
+the contention issue.
+
+Android runtime's Garbage Collector uses userfaultfd for concurrent
+compaction.  mmap-lock contention during compaction potentially causes
+jittery experience for the user.  During one such reproducible scenario,
+we observed the following improvements with this patch-set:
+
+- Wall clock time of compaction phase came down from ~3s to <500ms
+- Uninterruptible sleep time (across all threads in the process) was
+  ~10ms (none in mmap_lock) during compaction, instead of >20s
+
+
+This patch (of 3):
+
+Move the struct to userfaultfd_k.h to be accessible from mm/userfaultfd.c.
+There are no other changes in the struct.
+
+This is required to prepare for using per-vma locks in userfaultfd
+operations.
+
+Link: https://lkml.kernel.org/r/20240208212204.2043140-1-lokeshgidra@google.com
+Link: https://lkml.kernel.org/r/20240208212204.2043140-2-lokeshgidra@google.com
+Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: kernel-team@android.com
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Nicolas Geoffray <ngeoffray@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Tim Murray <timmurray@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/userfaultfd.c              |   39 --------------------------------
+ include/linux/userfaultfd_k.h |   39 ++++++++++++++++++++++++++++++++
+ 2 files changed, 39 insertions(+), 39 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-invalidate-duplicate-entry-when-zswap_enabled
-+++ a/mm/zswap.c
-@@ -1516,7 +1516,7 @@ bool zswap_store(struct folio *folio)
- 	if (folio_test_large(folio))
- 		return false;
+--- a/fs/userfaultfd.c~userfaultfd-move-userfaultfd_ctx-struct-to-header-file
++++ a/fs/userfaultfd.c
+@@ -50,45 +50,6 @@ static struct ctl_table vm_userfaultfd_t
  
--	if (!zswap_enabled || !tree)
-+	if (!tree)
- 		return false;
+ static struct kmem_cache *userfaultfd_ctx_cachep __ro_after_init;
  
- 	/*
-@@ -1531,6 +1531,10 @@ bool zswap_store(struct folio *folio)
- 		zswap_invalidate_entry(tree, dupentry);
- 	}
- 	spin_unlock(&tree->lock);
+-/*
+- * Start with fault_pending_wqh and fault_wqh so they're more likely
+- * to be in the same cacheline.
+- *
+- * Locking order:
+- *	fd_wqh.lock
+- *		fault_pending_wqh.lock
+- *			fault_wqh.lock
+- *		event_wqh.lock
+- *
+- * To avoid deadlocks, IRQs must be disabled when taking any of the above locks,
+- * since fd_wqh.lock is taken by aio_poll() while it's holding a lock that's
+- * also taken in IRQ context.
+- */
+-struct userfaultfd_ctx {
+-	/* waitqueue head for the pending (i.e. not read) userfaults */
+-	wait_queue_head_t fault_pending_wqh;
+-	/* waitqueue head for the userfaults */
+-	wait_queue_head_t fault_wqh;
+-	/* waitqueue head for the pseudo fd to wakeup poll/read */
+-	wait_queue_head_t fd_wqh;
+-	/* waitqueue head for events */
+-	wait_queue_head_t event_wqh;
+-	/* a refile sequence protected by fault_pending_wqh lock */
+-	seqcount_spinlock_t refile_seq;
+-	/* pseudo fd refcounting */
+-	refcount_t refcount;
+-	/* userfaultfd syscall flags */
+-	unsigned int flags;
+-	/* features requested from the userspace */
+-	unsigned int features;
+-	/* released */
+-	bool released;
+-	/* memory mappings are changing because of non-cooperative event */
+-	atomic_t mmap_changing;
+-	/* mm with one ore more vmas attached to this userfaultfd_ctx */
+-	struct mm_struct *mm;
+-};
+-
+ struct userfaultfd_fork_ctx {
+ 	struct userfaultfd_ctx *orig;
+ 	struct userfaultfd_ctx *new;
+--- a/include/linux/userfaultfd_k.h~userfaultfd-move-userfaultfd_ctx-struct-to-header-file
++++ a/include/linux/userfaultfd_k.h
+@@ -36,6 +36,45 @@
+ #define UFFD_SHARED_FCNTL_FLAGS (O_CLOEXEC | O_NONBLOCK)
+ #define UFFD_FLAGS_SET (EFD_SHARED_FCNTL_FLAGS)
+ 
++/*
++ * Start with fault_pending_wqh and fault_wqh so they're more likely
++ * to be in the same cacheline.
++ *
++ * Locking order:
++ *	fd_wqh.lock
++ *		fault_pending_wqh.lock
++ *			fault_wqh.lock
++ *		event_wqh.lock
++ *
++ * To avoid deadlocks, IRQs must be disabled when taking any of the above locks,
++ * since fd_wqh.lock is taken by aio_poll() while it's holding a lock that's
++ * also taken in IRQ context.
++ */
++struct userfaultfd_ctx {
++	/* waitqueue head for the pending (i.e. not read) userfaults */
++	wait_queue_head_t fault_pending_wqh;
++	/* waitqueue head for the userfaults */
++	wait_queue_head_t fault_wqh;
++	/* waitqueue head for the pseudo fd to wakeup poll/read */
++	wait_queue_head_t fd_wqh;
++	/* waitqueue head for events */
++	wait_queue_head_t event_wqh;
++	/* a refile sequence protected by fault_pending_wqh lock */
++	seqcount_spinlock_t refile_seq;
++	/* pseudo fd refcounting */
++	refcount_t refcount;
++	/* userfaultfd syscall flags */
++	unsigned int flags;
++	/* features requested from the userspace */
++	unsigned int features;
++	/* released */
++	bool released;
++	/* memory mappings are changing because of non-cooperative event */
++	atomic_t mmap_changing;
++	/* mm with one ore more vmas attached to this userfaultfd_ctx */
++	struct mm_struct *mm;
++};
 +
-+	if (!zswap_enabled)
-+		return false;
-+
- 	objcg = get_obj_cgroup_from_folio(folio);
- 	if (objcg && !obj_cgroup_may_zswap(objcg)) {
- 		memcg = get_mem_cgroup_from_objcg(objcg);
+ extern vm_fault_t handle_userfault(struct vm_fault *vmf, unsigned long reason);
+ 
+ /* A combined operation mode + behavior flags. */
 _
 
-Patches currently in -mm which might be from zhouchengming@bytedance.com are
+Patches currently in -mm which might be from lokeshgidra@google.com are
 
-mm-zswap-invalidate-duplicate-entry-when-zswap_enabled.patch
-mm-zswap-make-sure-each-swapfile-always-have-zswap-rb-tree.patch
-mm-zswap-split-zswap-rb-tree.patch
-mm-zswap-fix-race-between-lru-writeback-and-swapoff.patch
-mm-list_lru-remove-list_lru_putback.patch
-mm-zswap-add-more-comments-in-shrink_memcg_cb.patch
-mm-zswap-invalidate-zswap-entry-when-swap-entry-free.patch
-mm-zswap-stop-lru-list-shrinking-when-encounter-warm-region.patch
-mm-zswap-remove-duplicate_entry-debug-value.patch
-mm-zswap-only-support-zswap_exclusive_loads_enabled.patch
-mm-zswap-zswap-entry-doesnt-need-refcount-anymore.patch
+userfaultfd-fix-return-error-if-mmap_changing-is-non-zero-in-move-ioctl.patch
+userfaultfd-move-userfaultfd_ctx-struct-to-header-file.patch
+userfaultfd-protect-mmap_changing-with-rw_sem-in-userfaulfd_ctx.patch
+userfaultfd-use-per-vma-locks-in-userfaultfd-operations.patch
 
