@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4506867A0F
-	for <mm-commits@vger.kernel.org>; Thu,  8 Feb 2024 05:21:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C87667C44;
+	Thu,  8 Feb 2024 05:21:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707369689; cv=none; b=Fcb0mG/OTYRkubHdvCO+nnU9DqBctYgkqKfoXfGdppk6/6IBmDu20JcA6dOKSMzwRaPs2slP+5v+grnl0C7b8Joy5GJ0NZl8iRvB6Fd6DHlMnPX0qnNIgfaZk/EkGz9IzAkeLe3St4bJtRc+fynhqauG4W+GHth9D4Ggo03qz6E=
+	t=1707369690; cv=none; b=i2x89QNU5QQ55Z6QhjzMQ5M53hFknay0Au8I+ZfSFc44nxMFbK766hbsE5jfQ5+WuQkUAScRfcj448Vw2rpJm29ZltTwjlvDURms7qRb0mqREU78aGmDWQjy1mj4ttBco9iU0yD/NpE7Q8suwqPg5Pxc6Oadfg/4Of0SBocaUTE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707369689; c=relaxed/simple;
-	bh=MuoMBJGrTotjHyzK+TD8y+rGfZH7bMmF6OlTIH8YUV8=;
-	h=Date:To:From:Subject:Message-Id; b=LxgywCAZcYYV5gzR2Fkffr9OByEKqhg5639HOYOBWRnYQDeyhRFImw9DCbakF8boPAcq3uAeDLZ2KE06VKQil6QEQRgBr1Oh20qYqaKoYelDRp2/qhzDyLvQTqC5A5xXBIJEM4VCGQJbr3ubMyV5heuI39/Zdl4lgpiUi5edEH4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d6fDeIKA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707369690; c=relaxed/simple;
+	bh=VLTvi2Cl7EYdXm/LKue3t/mQxJtYbVZwxtZqXIUEugo=;
+	h=Date:To:From:Subject:Message-Id; b=lLKVcxfiMsBoD3Ee4gDc4CZIuLXfxD9wX3HuWLA7KYDOZOcCxt5qZoTQSSPjNKpSABiNybTbIZPsPd/N5H7b4vsAY/ewVITE2tZLBXFsNiusUGI47TTR655Xj663hyA57K1WZj2uqE26rk1urmdCs/u4iwGqhJ74mNqtCN/j204=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XHDazOV0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d6fDeIKA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2C47C43390;
-	Thu,  8 Feb 2024 05:21:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XHDazOV0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE45FC433F1;
+	Thu,  8 Feb 2024 05:21:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707369688;
-	bh=MuoMBJGrTotjHyzK+TD8y+rGfZH7bMmF6OlTIH8YUV8=;
+	s=korg; t=1707369690;
+	bh=VLTvi2Cl7EYdXm/LKue3t/mQxJtYbVZwxtZqXIUEugo=;
 	h=Date:To:From:Subject:From;
-	b=d6fDeIKAO+K9RR3A7ByPhiezI+D6iWmnBBuqUAfWW3RVlbadZfqxDh17fa+uB21Dt
-	 xtmmw+MUd0VnB+WftCULLfVePRLmoEukZ8EIUHIJWKX7CsSkbQH6sthlUyWf0H47a4
-	 8HGjhwLXgvUdfPatvo/whEGwEuCOdVUvjblV2mU8=
-Date: Wed, 07 Feb 2024 21:21:28 -0800
-To: mm-commits@vger.kernel.org,namhyung@kernel.org,mike.leach@linaro.org,james.clark@arm.com,irogers@google.com,acme@kernel.org,leo.yan@linux.dev,akpm@linux-foundation.org
+	b=XHDazOV06abBSaE+k4QpLKYeaMSGLEWvF2KCefmJS/0AjxNUsXEbyAIQbaHfBr7ER
+	 HSdWjNfkaXqeVFHrJ90dEG0nZPTbXeD4ikgzOOEcDr9kr14axBqnkLf7nkCa146eEW
+	 3ZavY9mNAwVuNmzkq+UWAXk99Wyafe61qkbiyYvU=
+Date: Wed, 07 Feb 2024 21:21:29 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-update-my-email-address.patch removed from -mm tree
-Message-Id: <20240208052128.B2C47C43390@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] nilfs2-fix-hang-in-nilfs_lookup_dirty_data_buffers.patch removed from -mm tree
+Message-Id: <20240208052129.DE45FC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,58 +35,87 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: Leo Yan has moved
+     Subject: nilfs2: fix hang in nilfs_lookup_dirty_data_buffers()
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-my-email-address.patch
+     nilfs2-fix-hang-in-nilfs_lookup_dirty_data_buffers.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Leo Yan <leo.yan@linux.dev>
-Subject: MAINTAINERS: Leo Yan has moved
-Date: Thu, 1 Feb 2024 10:10:08 +0800
+From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Subject: nilfs2: fix hang in nilfs_lookup_dirty_data_buffers()
+Date: Wed, 31 Jan 2024 23:56:57 +0900
 
-I will lose access to my @linaro.org email address next week, update the
-MAINTAINERS file and map it in .mailmap with the new email address.
+Syzbot reported a hang issue in migrate_pages_batch() called by mbind()
+and nilfs_lookup_dirty_data_buffers() called in the log writer of nilfs2.
 
-Link: https://lkml.kernel.org/r/20240201021022.886-1-leo.yan@linux.dev
-Signed-off-by: Leo Yan <leo.yan@linux.dev>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Ian Rogers <irogers@google.com>
-Cc: James Clark <james.clark@arm.com>
-Cc: Mike Leach <mike.leach@linaro.org>
-Cc: Namhyung Kim <namhyung@kernel.org>
+While migrate_pages_batch() locks a folio and waits for the writeback to
+complete, the log writer thread that should bring the writeback to
+completion picks up the folio being written back in
+nilfs_lookup_dirty_data_buffers() that it calls for subsequent log
+creation and was trying to lock the folio.  Thus causing a deadlock.
+
+In the first place, it is unexpected that folios/pages in the middle of
+writeback will be updated and become dirty.  Nilfs2 adds a checksum to
+verify the validity of the log being written and uses it for recovery at
+mount, so data changes during writeback are suppressed.  Since this is
+broken, an unclean shutdown could potentially cause recovery to fail.
+
+Investigation revealed that the root cause is that the wait for writeback
+completion in nilfs_page_mkwrite() is conditional, and if the backing
+device does not require stable writes, data may be modified without
+waiting.
+
+Fix these issues by making nilfs_page_mkwrite() wait for writeback to
+finish regardless of the stable write requirement of the backing device.
+
+Link: https://lkml.kernel.org/r/20240131145657.4209-1-konishi.ryusuke@gmail.com
+Fixes: 1d1d1a767206 ("mm: only enforce stable page writes if the backing device requires it")
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Reported-by: syzbot+ee2ae68da3b22d04cd8d@syzkaller.appspotmail.com
+Closes: https://lkml.kernel.org/r/00000000000047d819061004ad6c@google.com
+Tested-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap    |    1 +
- MAINTAINERS |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ fs/nilfs2/file.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/.mailmap~maintainers-update-my-email-address
-+++ a/.mailmap
-@@ -345,6 +345,7 @@ Leonid I Ananiev <leonid.i.ananiev@intel
- Leon Romanovsky <leon@kernel.org> <leon@leon.nu>
- Leon Romanovsky <leon@kernel.org> <leonro@mellanox.com>
- Leon Romanovsky <leon@kernel.org> <leonro@nvidia.com>
-+Leo Yan <leo.yan@linux.dev> <leo.yan@linaro.org>
- Liam Mark <quic_lmark@quicinc.com> <lmark@codeaurora.org>
- Linas Vepstas <linas@austin.ibm.com>
- Linus Lüssing <linus.luessing@c0d3.blue> <linus.luessing@ascom.ch>
---- a/MAINTAINERS~maintainers-update-my-email-address
-+++ a/MAINTAINERS
-@@ -17183,7 +17183,7 @@ R:	John Garry <john.g.garry@oracle.com>
- R:	Will Deacon <will@kernel.org>
- R:	James Clark <james.clark@arm.com>
- R:	Mike Leach <mike.leach@linaro.org>
--R:	Leo Yan <leo.yan@linaro.org>
-+R:	Leo Yan <leo.yan@linux.dev>
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- S:	Supported
- F:	tools/build/feature/test-libopencsd.c
+--- a/fs/nilfs2/file.c~nilfs2-fix-hang-in-nilfs_lookup_dirty_data_buffers
++++ a/fs/nilfs2/file.c
+@@ -107,7 +107,13 @@ static vm_fault_t nilfs_page_mkwrite(str
+ 	nilfs_transaction_commit(inode->i_sb);
+ 
+  mapped:
+-	folio_wait_stable(folio);
++	/*
++	 * Since checksumming including data blocks is performed to determine
++	 * the validity of the log to be written and used for recovery, it is
++	 * necessary to wait for writeback to finish here, regardless of the
++	 * stable write requirement of the backing device.
++	 */
++	folio_wait_writeback(folio);
+  out:
+ 	sb_end_pagefault(inode->i_sb);
+ 	return vmf_fs_error(ret);
 _
 
-Patches currently in -mm which might be from leo.yan@linux.dev are
+Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
 
+nilfs2-convert-segment-buffer-to-use-kmap_local.patch
+nilfs2-convert-nilfs_copy_buffer-to-use-kmap_local.patch
+nilfs2-convert-metadata-file-common-code-to-use-kmap_local.patch
+nilfs2-convert-sufile-to-use-kmap_local.patch
+nilfs2-convert-persistent-object-allocator-to-use-kmap_local.patch
+nilfs2-convert-dat-to-use-kmap_local.patch
+nilfs2-move-nilfs_bmap_write-call-out-of-nilfs_write_inode_common.patch
+nilfs2-do-not-acquire-rwsem-in-nilfs_bmap_write.patch
+nilfs2-convert-ifile-to-use-kmap_local.patch
+nilfs2-localize-highmem-mapping-for-checkpoint-creation-within-cpfile.patch
+nilfs2-localize-highmem-mapping-for-checkpoint-finalization-within-cpfile.patch
+nilfs2-localize-highmem-mapping-for-checkpoint-reading-within-cpfile.patch
+nilfs2-remove-nilfs_cpfile_getput_checkpoint.patch
+nilfs2-convert-cpfile-to-use-kmap_local.patch
 
