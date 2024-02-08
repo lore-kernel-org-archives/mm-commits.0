@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81F9667A07;
-	Thu,  8 Feb 2024 05:21:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6C7867A07;
+	Thu,  8 Feb 2024 05:21:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707369668; cv=none; b=ZH6JUbQ+ArLbzynzQKSgGkpUK5eNWwZrO3fWDmCAe4O5f7aoBOEFSUvX9ZVKaIciuuvhL0oVfHcPpZi4ZFlBgbcBSuVe6ssvULRmepwlW9xLenhFDXuQGl1llebgOXczdDtHEVmtg4v5crBcweIAmW/wMh557mTL5hR9zhMSB1I=
+	t=1707369669; cv=none; b=SHKv2tn248+9DA+GD6YMEerRZ6Xg8NclzUWGrbxQZpAdL1NAY3sj8r3Yw4WAGHnN4WEbKxMb/aKSAuMvKoBT1gMAoKJIzj7YKTTEjgmoyjAH6O/U2ytnaImPiLw2Tm9hWwKA4rORRyCMjzxwU9/hT4ONCfX+YZtBd4lCCMQJwQI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707369668; c=relaxed/simple;
-	bh=er1i4IvsDd/Z1asgf9uiM2hnY2Je4OMv3Br3vJKPu9U=;
-	h=Date:To:From:Subject:Message-Id; b=b9gygM/QfW60nVgrK2/4WCLK+RhNL+Q8FqCD93TwdwAYa+7cEVxeEa+o5FF75OTr2oXwsf5sDGilaiGtckRj1OQMDDwCxZdab72j76A8CfZHSgpTrYsPE9XtQG2pkhASDT1IHTik+lIHIwZ00M9zhIWtoJeGpIMPXKeoDuziCGA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pRi2hO08; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707369669; c=relaxed/simple;
+	bh=p//1hciOSJH4iE2gXRKVDl82oRu+Uz8rr1Swmzfzars=;
+	h=Date:To:From:Subject:Message-Id; b=Rv1EWvMPdw2qRJZpgloMujNRZ9n7InJipeIiaKg4v5WihfLVf+IEGdWXxv3hdzMFDpwDCpOFRufHYy13GM6oL5YwqfWPYzu0ch7XSdjTE4VF9gRqk6TN5dn75e/TapcwC/Bo+GsLwQ1b5zWg+m8PiQl0btA2KfJHQkrPPZiJp4M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E7VR7qYH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pRi2hO08"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E888CC433F1;
-	Thu,  8 Feb 2024 05:21:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E7VR7qYH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DDA8C433C7;
+	Thu,  8 Feb 2024 05:21:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707369668;
-	bh=er1i4IvsDd/Z1asgf9uiM2hnY2Je4OMv3Br3vJKPu9U=;
+	s=korg; t=1707369669;
+	bh=p//1hciOSJH4iE2gXRKVDl82oRu+Uz8rr1Swmzfzars=;
 	h=Date:To:From:Subject:From;
-	b=pRi2hO08C0bKTJ/LAbm9EFof/oH34aqGy+uBvKLUJCEue6meRmnNxANcf3LPc4PHn
-	 CJZ4ApJyG7DOnHmTinaMLPVR4ig7krqRcy3hAqv/Rl5LLZP8Xd+rHkgRyxoN4L10FO
-	 TIdwEbBOnupknhrO899Le4WYfMeqkkbZVq1deZ/k=
-Date: Wed, 07 Feb 2024 21:21:07 -0800
+	b=E7VR7qYHeo87Pj+jAzw2OSkoz0OdA5DeYuXvoCC+6W+aRC4fJZICNpDyuFdLdppaB
+	 rDX0ViTl4Xb6mfn/etMRw8m2Nnsgl9JOQy8ed+Jfi/WPDmHMGM8mGi06Pncosc9sXT
+	 3gRPmnVoywPie6bsKQ1tKa6K2VmYsZWpP0IoKM7M=
+Date: Wed, 07 Feb 2024 21:21:08 -0800
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,ebiederm@xmission.com,dylanbhatch@google.com,oleg@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] getrusage-move-thread_group_cputime_adjusted-outside-of-lock_task_sighand.patch removed from -mm tree
-Message-Id: <20240208052107.E888CC433F1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] getrusage-use-sig-stats_lock-rather-than-lock_task_sighand.patch removed from -mm tree
+Message-Id: <20240208052109.4DDA8C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,35 +35,38 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: getrusage: move thread_group_cputime_adjusted() outside of lock_task_sighand()
+     Subject: getrusage: use sig->stats_lock rather than lock_task_sighand()
 has been removed from the -mm tree.  Its filename was
-     getrusage-move-thread_group_cputime_adjusted-outside-of-lock_task_sighand.patch
+     getrusage-use-sig-stats_lock-rather-than-lock_task_sighand.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: getrusage: move thread_group_cputime_adjusted() outside of lock_task_sighand()
-Date: Mon, 22 Jan 2024 16:50:50 +0100
+Subject: getrusage: use sig->stats_lock rather than lock_task_sighand()
+Date: Mon, 22 Jan 2024 16:50:53 +0100
 
-Patch series "getrusage: use sig->stats_lock", v2.
+lock_task_sighand() can trigger a hard lockup. If NR_CPUS threads call
+getrusage() at the same time and the process has NR_THREADS, spin_lock_irq
+will spin with irqs disabled O(NR_CPUS * NR_THREADS) time.
 
+Change getrusage() to use sig->stats_lock, it was specifically designed
+for this type of use. This way it runs lockless in the likely case.
 
-This patch (of 2):
+TODO:
+	- Change do_task_stat() to use sig->stats_lock too, then we can
+	  remove spin_lock_irq(siglock) in wait_task_zombie().
 
-thread_group_cputime() does its own locking, we can safely shift
-thread_group_cputime_adjusted() which does another for_each_thread loop
-outside of ->siglock protected section.
+	- Turn sig->stats_lock into seqcount_rwlock_t, this way the
+	  readers in the slow mode won't exclude each other. See
+	  https://lore.kernel.org/all/20230913154907.GA26210@redhat.com/
 
-This is also preparation for the next patch which changes getrusage() to
-use stats_lock instead of siglock, thread_group_cputime() takes the same
-lock.  With the current implementation recursive read_seqbegin_or_lock()
-is fine, thread_group_cputime() can't enter the slow mode if the caller
-holds stats_lock, yet this looks more safe and better performance-wise.
+	- stats_lock has to disable irqs because ->siglock can be taken
+	  in irq context, it would be very nice to change __exit_signal()
+	  to avoid the siglock->stats_lock dependency.
 
-Link: https://lkml.kernel.org/r/20240122155023.GA26169@redhat.com
-Link: https://lkml.kernel.org/r/20240122155050.GA26205@redhat.com
+Link: https://lkml.kernel.org/r/20240122155053.GA26214@redhat.com
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Reported-by: Dylan Hatch <dylanbhatch@google.com>
 Tested-by: Dylan Hatch <dylanbhatch@google.com>
@@ -72,79 +75,56 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |   36 ++++++++++++++++++++----------------
- 1 file changed, 20 insertions(+), 16 deletions(-)
+ kernel/sys.c |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
---- a/kernel/sys.c~getrusage-move-thread_group_cputime_adjusted-outside-of-lock_task_sighand
+--- a/kernel/sys.c~getrusage-use-sig-stats_lock-rather-than-lock_task_sighand
 +++ a/kernel/sys.c
-@@ -1785,17 +1785,19 @@ void getrusage(struct task_struct *p, in
- 	struct task_struct *t;
- 	unsigned long flags;
- 	u64 tgutime, tgstime, utime, stime;
--	unsigned long maxrss = 0;
-+	unsigned long maxrss;
-+	struct mm_struct *mm;
+@@ -1788,7 +1788,9 @@ void getrusage(struct task_struct *p, in
+ 	unsigned long maxrss;
+ 	struct mm_struct *mm;
  	struct signal_struct *sig = p->signal;
++	unsigned int seq = 0;
  
--	memset((char *)r, 0, sizeof (*r));
-+	memset(r, 0, sizeof(*r));
++retry:
+ 	memset(r, 0, sizeof(*r));
  	utime = stime = 0;
-+	maxrss = 0;
- 
- 	if (who == RUSAGE_THREAD) {
- 		task_cputime_adjusted(current, &utime, &stime);
- 		accumulate_thread_rusage(p, r);
- 		maxrss = sig->maxrss;
--		goto out;
-+		goto out_thread;
+ 	maxrss = 0;
+@@ -1800,8 +1802,7 @@ void getrusage(struct task_struct *p, in
+ 		goto out_thread;
  	}
  
- 	if (!lock_task_sighand(p, &flags))
-@@ -1819,9 +1821,6 @@ void getrusage(struct task_struct *p, in
- 		fallthrough;
+-	if (!lock_task_sighand(p, &flags))
+-		return;
++	flags = read_seqbegin_or_lock_irqsave(&sig->stats_lock, &seq);
  
- 	case RUSAGE_SELF:
--		thread_group_cputime_adjusted(p, &tgutime, &tgstime);
--		utime += tgutime;
--		stime += tgstime;
- 		r->ru_nvcsw += sig->nvcsw;
- 		r->ru_nivcsw += sig->nivcsw;
- 		r->ru_minflt += sig->min_flt;
-@@ -1839,19 +1838,24 @@ void getrusage(struct task_struct *p, in
- 	}
- 	unlock_task_sighand(p, &flags);
- 
--out:
--	r->ru_utime = ns_to_kernel_old_timeval(utime);
--	r->ru_stime = ns_to_kernel_old_timeval(stime);
--
--	if (who != RUSAGE_CHILDREN) {
--		struct mm_struct *mm = get_task_mm(p);
-+	if (who == RUSAGE_CHILDREN)
-+		goto out_children;
- 
--		if (mm) {
--			setmax_mm_hiwater_rss(&maxrss, mm);
--			mmput(mm);
--		}
-+	thread_group_cputime_adjusted(p, &tgutime, &tgstime);
-+	utime += tgutime;
-+	stime += tgstime;
+ 	switch (who) {
+ 	case RUSAGE_BOTH:
+@@ -1829,14 +1830,23 @@ void getrusage(struct task_struct *p, in
+ 		r->ru_oublock += sig->oublock;
+ 		if (maxrss < sig->maxrss)
+ 			maxrss = sig->maxrss;
 +
-+out_thread:
-+	mm = get_task_mm(p);
-+	if (mm) {
-+		setmax_mm_hiwater_rss(&maxrss, mm);
-+		mmput(mm);
- 	}
++		rcu_read_lock();
+ 		__for_each_thread(sig, t)
+ 			accumulate_thread_rusage(t, r);
++		rcu_read_unlock();
 +
-+out_children:
- 	r->ru_maxrss = maxrss * (PAGE_SIZE / 1024); /* convert pages to KBs */
-+	r->ru_utime = ns_to_kernel_old_timeval(utime);
-+	r->ru_stime = ns_to_kernel_old_timeval(stime);
- }
+ 		break;
  
- SYSCALL_DEFINE2(getrusage, int, who, struct rusage __user *, ru)
+ 	default:
+ 		BUG();
+ 	}
+-	unlock_task_sighand(p, &flags);
++
++	if (need_seqretry(&sig->stats_lock, seq)) {
++		seq = 1;
++		goto retry;
++	}
++	done_seqretry_irqrestore(&sig->stats_lock, seq, flags);
+ 
+ 	if (who == RUSAGE_CHILDREN)
+ 		goto out_children;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
