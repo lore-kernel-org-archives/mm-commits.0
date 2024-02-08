@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 717DE383BB
-	for <mm-commits@vger.kernel.org>; Thu,  8 Feb 2024 20:35:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6C3A2B9D8;
+	Thu,  8 Feb 2024 20:41:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707424523; cv=none; b=p4W+QZ0GYGSB+rDa3+QmMG6kwWwfeQD5piFb7Vj4pfpPIjQqGIci9fqlPmqYxcK8ECyMVtJUn2VqKUqta9B3I9u0r2nQy5R9Ls89Mt/FM1D5JAt/wgopsC4e3cC8jWu3f7KaBuBwEgFo0bC7/8J+08jjb7Wqe8NH/BWzp32i7Zk=
+	t=1707424906; cv=none; b=NQcHAOt7nxwBoSGRSvulgLaGQoXIL2yHYWyYMJdUEmER/EUr71uO6xdzLRX1W0NbMTMEQkeGSBeqdWNdV/a0TS4lY93mJlAJIuZjxBXsATr1g0sw5OWljpfwd5uLVaEZQ+Oi8tlFysXe6t3OaouNoBtbjzwYepgx7p5bJKMwTys=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707424523; c=relaxed/simple;
-	bh=cYiWio3SwLho5r9EhzRLz8a40tAogt8qH31SpKNmh/o=;
-	h=Date:To:From:Subject:Message-Id; b=hGdcP/N57amWRhcICv1ZST12Rs/FL16F0YUTk0O7TR9KT0yrf4fGOHWy/jdvSpds50/u5JB+AcOL9FUjcGmEJdcgkvfblRBYN5VfVOZuBjn+tvE2pRZh1WU2XzsOwuHt3EFOCRk/JpEi92gI4Cft9XUlwwaJw1RSDfJxbzQG3JM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bDwrVFs8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707424906; c=relaxed/simple;
+	bh=iymS9N6MpSa6UZMdjc9Nay8JksKAosETXud5N90lqPY=;
+	h=Date:To:From:Subject:Message-Id; b=IkRr4GuqWJxH4WLvAvEeAQ+Ej6+jgbFDMz+Y5Wx/O0rc48yrP17Agsj4lLyYCPJT6KiQ0i++hLUvW5OoeAr85K3kWJu38n4mV2laDJrjxOOcPlQFMa8nsq2t+OHMNe1fbECYiOB/lfvRrbokfJCWc2uMnhV9Sut0S+cOtKr+b+A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Dc4Bu3rv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bDwrVFs8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4400C433C7;
-	Thu,  8 Feb 2024 20:35:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Dc4Bu3rv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45980C433F1;
+	Thu,  8 Feb 2024 20:41:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707424523;
-	bh=cYiWio3SwLho5r9EhzRLz8a40tAogt8qH31SpKNmh/o=;
+	s=korg; t=1707424905;
+	bh=iymS9N6MpSa6UZMdjc9Nay8JksKAosETXud5N90lqPY=;
 	h=Date:To:From:Subject:From;
-	b=bDwrVFs8BCg9Bc1WCEAivP6OVM6He8/I62aY34N/ZAVpZ5SHi9tb+hbGMzMhV5wCL
-	 fUaQAm2ZkUznPF5Kg2lynzJJAxycSF7fpocI72xLgZS6Ob0Jivs9AXtD0jD4MCypjT
-	 Hd/G+TWSPVPeMVmf9g1lzA0uu1eEHrkBZmhaFwHk=
-Date: Thu, 08 Feb 2024 12:35:22 -0800
-To: mm-commits@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
+	b=Dc4Bu3rvCO/VMvuhv7AmAxsA0HfM0ffX/0UjhplUJDKocHzg5CeF4zH1cpkMydtuv
+	 SZ5VfkAgtjre88gigvglDIcnKqZ/Ciwjf0glGXwsAZL13f+KjV/QV7eXbVXf1ci4yK
+	 x8EU1VqqrGloZeNjxrFGThWFNR2Ir9OU5bpfkL/I=
+Date: Thu, 08 Feb 2024 12:41:44 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,david@redhat.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + nilfs2-maintainers-drop-unreachable-project-mirror-site.patch added to mm-nonmm-unstable branch
-Message-Id: <20240208203522.E4400C433C7@smtp.kernel.org>
+Subject: + fs-proc-task_mmu-add-display-flag-for-vm_mayoverlay.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240208204145.45980C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: nilfs2: MAINTAINERS: drop unreachable project mirror site
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     nilfs2-maintainers-drop-unreachable-project-mirror-site.patch
+     Subject: fs/proc/task_mmu: add display flag for VM_MAYOVERLAY
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     fs-proc-task_mmu-add-display-flag-for-vm_mayoverlay.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/nilfs2-maintainers-drop-unreachable-project-mirror-site.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-add-display-flag-for-vm_mayoverlay.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,49 +58,47 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: MAINTAINERS: drop unreachable project mirror site
-Date: Thu, 8 Feb 2024 18:30:18 +0900
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: fs/proc/task_mmu: add display flag for VM_MAYOVERLAY
+Date: Thu, 8 Feb 2024 14:18:05 +0530
 
-The hosting site where the nilfs project had a mirror site continues to be
-in trouble, so we have decided not to use that site.  This will reflect it
-in the MAINTAINERS file.
+VM_UFFD_MISSING flag is mutually exclussive with VM_MAYOVERLAY flag as
+they both use the same bit position i.e 0x00000200 in the vm_flags.  Let's
+update show_smap_vma_flags() to display the correct flags depending on
+CONFIG_MMU.
 
-Link: https://lkml.kernel.org/r/20240208093018.6334-1-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Link: https://lkml.kernel.org/r/20240208084805.1252337-1-anshuman.khandual@arm.com
+Fixes: b6b7a8faf05c ("mm/nommu: don't use VM_MAYSHARE for MAP_PRIVATE mappings")
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ fs/proc/task_mmu.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/MAINTAINERS~nilfs2-maintainers-drop-unreachable-project-mirror-site
-+++ a/MAINTAINERS
-@@ -15431,7 +15431,6 @@ M:	Ryusuke Konishi <konishi.ryusuke@gmai
- L:	linux-nilfs@vger.kernel.org
- S:	Supported
- W:	https://nilfs.sourceforge.io/
--W:	https://nilfs.osdn.jp/
- T:	git https://github.com/konis/nilfs2.git
- F:	Documentation/filesystems/nilfs2.rst
- F:	fs/nilfs2/
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-add-display-flag-for-vm_mayoverlay
++++ a/fs/proc/task_mmu.c
+@@ -681,7 +681,11 @@ static void show_smap_vma_flags(struct s
+ 		[ilog2(VM_HUGEPAGE)]	= "hg",
+ 		[ilog2(VM_NOHUGEPAGE)]	= "nh",
+ 		[ilog2(VM_MERGEABLE)]	= "mg",
++#ifdef CONFIG_MMU
+ 		[ilog2(VM_UFFD_MISSING)]= "um",
++#else
++		[ilog2(VM_MAYOVERLAY)]	= "ov",
++#endif /* CONFIG_MMU */
+ 		[ilog2(VM_UFFD_WP)]	= "uw",
+ #ifdef CONFIG_ARM64_MTE
+ 		[ilog2(VM_MTE)]		= "mt",
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-nilfs2-convert-segment-buffer-to-use-kmap_local.patch
-nilfs2-convert-nilfs_copy_buffer-to-use-kmap_local.patch
-nilfs2-convert-metadata-file-common-code-to-use-kmap_local.patch
-nilfs2-convert-sufile-to-use-kmap_local.patch
-nilfs2-convert-persistent-object-allocator-to-use-kmap_local.patch
-nilfs2-convert-dat-to-use-kmap_local.patch
-nilfs2-move-nilfs_bmap_write-call-out-of-nilfs_write_inode_common.patch
-nilfs2-do-not-acquire-rwsem-in-nilfs_bmap_write.patch
-nilfs2-convert-ifile-to-use-kmap_local.patch
-nilfs2-localize-highmem-mapping-for-checkpoint-creation-within-cpfile.patch
-nilfs2-localize-highmem-mapping-for-checkpoint-finalization-within-cpfile.patch
-nilfs2-localize-highmem-mapping-for-checkpoint-reading-within-cpfile.patch
-nilfs2-remove-nilfs_cpfile_getput_checkpoint.patch
-nilfs2-convert-cpfile-to-use-kmap_local.patch
-nilfs2-maintainers-drop-unreachable-project-mirror-site.patch
+fs-proc-task_mmu-add-display-flag-for-vm_mayoverlay.patch
+mm-cma-dont-treat-bad-input-arguments-for-cma_alloc-as-its-failure.patch
+mm-cma-drop-config_cma_debug.patch
+mm-cma-make-max_cma_areas-=-config_cma_areas.patch
+mm-cma-add-sysfs-file-release_pages_success.patch
 
