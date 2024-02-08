@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75AB2679F8;
-	Thu,  8 Feb 2024 05:21:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E184D4F60F;
+	Thu,  8 Feb 2024 05:25:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707369692; cv=none; b=jqHfYnD0PUrsP83uUHKOwnpMp9aRFanvTTTn7uRSa8otp55jhPSeRMYOmMq9y7CsQHiIWBO6vfTiXojmaEdjQKm5QNrDFGvqs4zeScFzJTEvShTSfEmOkhvD+DhjnVHNxTsN/+meemmfz9hNWqL4yhdljD2H+Tti2e+ocK1msTk=
+	t=1707369901; cv=none; b=GBns82nRxSn3ZDozFBvrpV1+0+qmfz9x+lXoqVjwhDgPZ7QkFnYIILhsEclL/LIkyqyAg55NMYphL2asUqLDLTfgMOiStYrbBryKBFK50pUMntfFsnenO9KsaQ3Mj4R7zUSVTOCYPRUTMr0QUMp8MH7Kw7SJp7DPJ6aOOCxdXeM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707369692; c=relaxed/simple;
-	bh=77P7cbLLsnqfGsV8SeR/2Gyh23p3Yl6T1HmLy7WUSSA=;
-	h=Date:To:From:Subject:Message-Id; b=UPvKQXBG3SIRcYH1HqYHUUcAcONjJ9nr2kGgb2czos9Y/VgAzVq8Y5nLe1wNaP2bAAm8f3S/XQBjkMPlvM1Buts+2A6wGaREk9oxjS+fyaGHkqWFWBcvH8xlaa6qrnHp5JSO2z8N6dha1qS/cckp0EqSeLS7kf6VFwFh+lfZA3k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ictLoP+o; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707369901; c=relaxed/simple;
+	bh=wDuJlaY5VYqH5yDtDPxtpW1CeUnq2Iq5X0NWW1qxl+Y=;
+	h=Date:To:From:Subject:Message-Id; b=LpADJlwLQ04yPFkUbuAsjzh151+6hLMv+KjSgm1SJjItrnOAzhwMo68jN7QBkHtLUXCLtmCZpzJwzbmeD0D5ffCRX9RrZ7aHFZAuFL/rlaTvN1APesNEASI4Z4OoHCxCNGHLY80HOSQQIx8KpeEj1ouCbbz7k8kazpY9denZ2AA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X88/4kv8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ictLoP+o"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00A05C433C7;
-	Thu,  8 Feb 2024 05:21:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X88/4kv8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45BDEC433C7;
+	Thu,  8 Feb 2024 05:25:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707369692;
-	bh=77P7cbLLsnqfGsV8SeR/2Gyh23p3Yl6T1HmLy7WUSSA=;
+	s=korg; t=1707369900;
+	bh=wDuJlaY5VYqH5yDtDPxtpW1CeUnq2Iq5X0NWW1qxl+Y=;
 	h=Date:To:From:Subject:From;
-	b=ictLoP+odKUCJJ2MqeACNqgAwJplPCtUAfpcWLvsOnjazTPfsXsugnKbQZ9ewN09b
-	 0RO7l/anOynA+grUrLU2YUtHkwpfp0pbvdqHeZNTymlozdKg9vycLTe/pyW59CbaWq
-	 GZVZkxM6FCq0daFBYtdq8uacKPCTjJfayheeX/+8=
-Date: Wed, 07 Feb 2024 21:21:31 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,konishi.ryusuke@gmail.com,akpm@linux-foundation.org
+	b=X88/4kv8hGU9alTMkD434AawC2yPFGKlrq6DnjMoJHOCO+6kwRBqClyC/tfTB4IAN
+	 SaBBJDx5aOl3AQWKB9exQhWjPIjBK/Dg7+hx/rkXylEautYLFVrqPR1agk7YsYaTjn
+	 2s8esAm4EwdH8YN5DHshMnHaO24p1PJhhIiNd+AE=
+Date: Wed, 07 Feb 2024 21:24:59 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,muchun.song@linux.dev,prakash.sangappa@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] nilfs2-fix-potential-bug-in-end_buffer_async_write.patch removed from -mm tree
-Message-Id: <20240208052132.00A05C433C7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] hugetlb-pages-should-not-be-reserved-by-shmat-if-shm_noreserve.patch removed from -mm tree
+Message-Id: <20240208052500.45BDEC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,124 +35,114 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: nilfs2: fix potential bug in end_buffer_async_write
+     Subject: mm: hugetlb pages should not be reserved by shmat() if SHM_NORESERVE
 has been removed from the -mm tree.  Its filename was
-     nilfs2-fix-potential-bug-in-end_buffer_async_write.patch
+     hugetlb-pages-should-not-be-reserved-by-shmat-if-shm_noreserve.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: fix potential bug in end_buffer_async_write
-Date: Sun, 4 Feb 2024 01:16:45 +0900
+From: Prakash Sangappa <prakash.sangappa@oracle.com>
+Subject: mm: hugetlb pages should not be reserved by shmat() if SHM_NORESERVE
+Date: Tue, 23 Jan 2024 12:04:42 -0800
 
-According to a syzbot report, end_buffer_async_write(), which handles the
-completion of block device writes, may detect abnormal condition of the
-buffer async_write flag and cause a BUG_ON failure when using nilfs2.
+For shared memory of type SHM_HUGETLB, hugetlb pages are reserved in
+shmget() call.  If SHM_NORESERVE flags is specified then the hugetlb pages
+are not reserved.  However when the shared memory is attached with the
+shmat() call the hugetlb pages are getting reserved incorrectly for
+SHM_HUGETLB shared memory created with SHM_NORESERVE which is a bug.
 
-Nilfs2 itself does not use end_buffer_async_write().  But, the async_write
-flag is now used as a marker by commit 7f42ec394156 ("nilfs2: fix issue
-with race condition of competition between segments for dirty blocks") as
-a means of resolving double list insertion of dirty blocks in
-nilfs_lookup_dirty_data_buffers() and nilfs_lookup_node_buffers() and the
-resulting crash.
+-------------------------------
+Following test shows the issue.
 
-This modification is safe as long as it is used for file data and b-tree
-node blocks where the page caches are independent.  However, it was
-irrelevant and redundant to also introduce async_write for segment summary
-and super root blocks that share buffers with the backing device.  This
-led to the possibility that the BUG_ON check in end_buffer_async_write
-would fail as described above, if independent writebacks of the backing
-device occurred in parallel.
+$cat shmhtb.c
 
-The use of async_write for segment summary buffers has already been
-removed in a previous change.
+int main()
+{
+	int shmflags = 0660 | IPC_CREAT | SHM_HUGETLB | SHM_NORESERVE;
+	int shmid;
 
-Fix this issue by removing the manipulation of the async_write flag for
-the remaining super root block buffer.
+	shmid = shmget(SKEY, SHMSZ, shmflags);
+	if (shmid < 0)
+	{
+		printf("shmat: shmget() failed, %d\n", errno);
+		return 1;
+	}
+	printf("After shmget()\n");
+	system("cat /proc/meminfo | grep -i hugepages_");
 
-Link: https://lkml.kernel.org/r/20240203161645.4992-1-konishi.ryusuke@gmail.com
-Fixes: 7f42ec394156 ("nilfs2: fix issue with race condition of competition between segments for dirty blocks")
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Reported-by: syzbot+5c04210f7c7f897c1e7f@syzkaller.appspotmail.com
-Closes: https://lkml.kernel.org/r/00000000000019a97c05fd42f8c8@google.com
+	shmat(shmid, NULL, 0);
+	printf("\nAfter shmat()\n");
+	system("cat /proc/meminfo | grep -i hugepages_");
+
+	shmctl(shmid, IPC_RMID, NULL);
+	return 0;
+}
+
+ #sysctl -w vm.nr_hugepages=20
+ #./shmhtb
+
+After shmget()
+HugePages_Total:      20
+HugePages_Free:       20
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+
+After shmat()
+HugePages_Total:      20
+HugePages_Free:       20
+HugePages_Rsvd:        5 <--
+HugePages_Surp:        0
+--------------------------------
+
+Fix is to ensure that hugetlb pages are not reserved for SHM_HUGETLB shared
+memory in the shmat() call.
+
+Link: https://lkml.kernel.org/r/1706040282-12388-1-git-send-email-prakash.sangappa@oracle.com
+Signed-off-by: Prakash Sangappa <prakash.sangappa@oracle.com>
+Acked-by: Muchun Song <muchun.song@linux.dev>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segment.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ fs/hugetlbfs/inode.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
---- a/fs/nilfs2/segment.c~nilfs2-fix-potential-bug-in-end_buffer_async_write
-+++ a/fs/nilfs2/segment.c
-@@ -1703,7 +1703,6 @@ static void nilfs_segctor_prepare_write(
+--- a/fs/hugetlbfs/inode.c~hugetlb-pages-should-not-be-reserved-by-shmat-if-shm_noreserve
++++ a/fs/hugetlbfs/inode.c
+@@ -100,6 +100,7 @@ static int hugetlbfs_file_mmap(struct fi
+ 	loff_t len, vma_len;
+ 	int ret;
+ 	struct hstate *h = hstate_file(file);
++	vm_flags_t vm_flags;
  
- 		list_for_each_entry(bh, &segbuf->sb_payload_buffers,
- 				    b_assoc_buffers) {
--			set_buffer_async_write(bh);
- 			if (bh == segbuf->sb_super_root) {
- 				if (bh->b_folio != bd_folio) {
- 					folio_lock(bd_folio);
-@@ -1714,6 +1713,7 @@ static void nilfs_segctor_prepare_write(
- 				}
- 				break;
- 			}
-+			set_buffer_async_write(bh);
- 			if (bh->b_folio != fs_folio) {
- 				nilfs_begin_folio_io(fs_folio);
- 				fs_folio = bh->b_folio;
-@@ -1800,7 +1800,6 @@ static void nilfs_abort_logs(struct list
+ 	/*
+ 	 * vma address alignment (but not the pgoff alignment) has
+@@ -141,10 +142,20 @@ static int hugetlbfs_file_mmap(struct fi
+ 	file_accessed(file);
  
- 		list_for_each_entry(bh, &segbuf->sb_payload_buffers,
- 				    b_assoc_buffers) {
--			clear_buffer_async_write(bh);
- 			if (bh == segbuf->sb_super_root) {
- 				clear_buffer_uptodate(bh);
- 				if (bh->b_folio != bd_folio) {
-@@ -1809,6 +1808,7 @@ static void nilfs_abort_logs(struct list
- 				}
- 				break;
- 			}
-+			clear_buffer_async_write(bh);
- 			if (bh->b_folio != fs_folio) {
- 				nilfs_end_folio_io(fs_folio, err);
- 				fs_folio = bh->b_folio;
-@@ -1896,8 +1896,9 @@ static void nilfs_segctor_complete_write
- 				 BIT(BH_Delay) | BIT(BH_NILFS_Volatile) |
- 				 BIT(BH_NILFS_Redirected));
+ 	ret = -ENOMEM;
++
++	vm_flags = vma->vm_flags;
++	/*
++	 * for SHM_HUGETLB, the pages are reserved in the shmget() call so skip
++	 * reserving here. Note: only for SHM hugetlbfs file, the inode
++	 * flag S_PRIVATE is set.
++	 */
++	if (inode->i_flags & S_PRIVATE)
++		vm_flags |= VM_NORESERVE;
++
+ 	if (!hugetlb_reserve_pages(inode,
+ 				vma->vm_pgoff >> huge_page_order(h),
+ 				len >> huge_page_shift(h), vma,
+-				vma->vm_flags))
++				vm_flags))
+ 		goto out;
  
--			set_mask_bits(&bh->b_state, clear_bits, set_bits);
- 			if (bh == segbuf->sb_super_root) {
-+				set_buffer_uptodate(bh);
-+				clear_buffer_dirty(bh);
- 				if (bh->b_folio != bd_folio) {
- 					folio_end_writeback(bd_folio);
- 					bd_folio = bh->b_folio;
-@@ -1905,6 +1906,7 @@ static void nilfs_segctor_complete_write
- 				update_sr = true;
- 				break;
- 			}
-+			set_mask_bits(&bh->b_state, clear_bits, set_bits);
- 			if (bh->b_folio != fs_folio) {
- 				nilfs_end_folio_io(fs_folio, 0);
- 				fs_folio = bh->b_folio;
+ 	ret = 0;
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from prakash.sangappa@oracle.com are
 
-nilfs2-convert-segment-buffer-to-use-kmap_local.patch
-nilfs2-convert-nilfs_copy_buffer-to-use-kmap_local.patch
-nilfs2-convert-metadata-file-common-code-to-use-kmap_local.patch
-nilfs2-convert-sufile-to-use-kmap_local.patch
-nilfs2-convert-persistent-object-allocator-to-use-kmap_local.patch
-nilfs2-convert-dat-to-use-kmap_local.patch
-nilfs2-move-nilfs_bmap_write-call-out-of-nilfs_write_inode_common.patch
-nilfs2-do-not-acquire-rwsem-in-nilfs_bmap_write.patch
-nilfs2-convert-ifile-to-use-kmap_local.patch
-nilfs2-localize-highmem-mapping-for-checkpoint-creation-within-cpfile.patch
-nilfs2-localize-highmem-mapping-for-checkpoint-finalization-within-cpfile.patch
-nilfs2-localize-highmem-mapping-for-checkpoint-reading-within-cpfile.patch
-nilfs2-remove-nilfs_cpfile_getput_checkpoint.patch
-nilfs2-convert-cpfile-to-use-kmap_local.patch
 
