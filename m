@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 012101805F
-	for <mm-commits@vger.kernel.org>; Fri,  9 Feb 2024 22:08:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6484439AC7
+	for <mm-commits@vger.kernel.org>; Fri,  9 Feb 2024 22:17:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707516482; cv=none; b=J3mrGlywM5wZ4V5UIv0HHEfPnp4nWaWmtskJ3jmVtuDVkTqXppXtVAEqxmU5T3TQDfdiIaIM0OGFedMjCGJ2jBTkX/h5bio0J4Yk2sqQtjt90LWsdw4DtQ8Z+BpWXaOXu5iXuvStPhfmLHMu98ur1cHAuJCmuPeqCzdZ8Re7osc=
+	t=1707517069; cv=none; b=uN4ZSJf651PaKcVyT6m02qaEh+gom8Oiam2Kq0ASmddST44+665DdUd9bImc3tvmgwbkwbwQ3kkLoDFe/iTrBgJ9z74kmZC1F9DdiBaaIP4NRRUZIXSkPqrADonC/UU6lMz61p9H3K0egpbVxbk9Bc/EieF0Tx8nokUkzILLeiQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707516482; c=relaxed/simple;
-	bh=q1qcW519OYw/jsjtbrTmdN5q9ugN1NEQejRaqIZ5kYE=;
-	h=Date:To:From:Subject:Message-Id; b=TXCGQNnLghYa0d9pwjfk8XjAz1qgUJRMXlooq2x3NwFg3BiclS/mwnFTnLRUu8nUWMDixv+R+hJw24WLbpt6j/bXlO8k+jnqs49GRyGbgPBipP+1wAJb4rWfxT0VwZQusRegGM2NSgKYGU1oppZ5UQemHSDUSiN/24BPNP2/PXg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SDnHbD5E; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707517069; c=relaxed/simple;
+	bh=1cDXtA0qzXb8OQKkFTia/9d6B0WtyNNBCR6xuIpxF28=;
+	h=Date:To:From:Subject:Message-Id; b=nH+hc2mrUFJQSdbUIyr5qR0c2ePoBi1mgnmt31OyY4O4cfwsLD+0ER8kp90Ikz4jQv8P58U4YD9DhZieJ7KgYlx48szwE81G/kmImkdAC11EkAYOD7eVs+fmLdZOhGzCCvx41GsaAoRTV0EixdCvNxMnPyit8WCfz7Kl2ko9rUU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BxDktf1L; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SDnHbD5E"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55D0DC43390;
-	Fri,  9 Feb 2024 22:08:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BxDktf1L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC66FC433F1;
+	Fri,  9 Feb 2024 22:17:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707516481;
-	bh=q1qcW519OYw/jsjtbrTmdN5q9ugN1NEQejRaqIZ5kYE=;
+	s=korg; t=1707517068;
+	bh=1cDXtA0qzXb8OQKkFTia/9d6B0WtyNNBCR6xuIpxF28=;
 	h=Date:To:From:Subject:From;
-	b=SDnHbD5EHU0bxIILG+lAC8GHqBkI/MnnLgO1wMdfbC8CDNBr8kREY1cDUXf8Sqojo
-	 bRc7xOf24cuhfZlNvc0V5w6Bcf7Fcj7lAq3VizSW4CBhTkmnP4erLWiJdDN9su60wP
-	 hX3YdOpqPZYPj7gV4tgvXmasTMYyVZOgjmCpcgRY=
-Date: Fri, 09 Feb 2024 14:08:00 -0800
-To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,shuah@kernel.org,ryan.roberts@arm.com,broonie@kernel.org,akpm@linux-foundation.org
+	b=BxDktf1L+/7TNqg91KVnaRwDm9iUlczkBpn2bwPvlk+ZYkGXkWIfKETcpM2fXGJes
+	 j3rxNnAPfA+icQCWjupfeiF8dA0VRcDByjaz6CApqR1JahqJZT/1Lbowsd6VSRcT0I
+	 0QLYQ3eD/6XYWV2+crsALCLpaosHsNNdlHH8hcPI=
+Date: Fri, 09 Feb 2024 14:17:48 -0800
+To: mm-commits@vger.kernel.org,yosryahmed@google.com,nphamcs@gmail.com,hannes@cmpxchg.org,chrisl@kernel.org,zhouchengming@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-log-a-consistent-test-name-for-check_compaction.patch added to mm-unstable branch
-Message-Id: <20240209220801.55D0DC43390@smtp.kernel.org>
+Subject: + mm-zswap-optimize-and-cleanup-the-invalidation-of-duplicate-entry.patch added to mm-unstable branch
+Message-Id: <20240209221748.AC66FC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: log a consistent test name for check_compaction
+     Subject: mm/zswap: optimize and cleanup the invalidation of duplicate entry
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-log-a-consistent-test-name-for-check_compaction.patch
+     mm-zswap-optimize-and-cleanup-the-invalidation-of-duplicate-entry.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-log-a-consistent-test-name-for-check_compaction.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-optimize-and-cleanup-the-invalidation-of-duplicate-entry.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,122 +58,118 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Mark Brown <broonie@kernel.org>
-Subject: selftests/mm: log a consistent test name for check_compaction
-Date: Fri, 09 Feb 2024 14:30:04 +0000
+From: Chengming Zhou <zhouchengming@bytedance.com>
+Subject: mm/zswap: optimize and cleanup the invalidation of duplicate entry
+Date: Fri, 9 Feb 2024 04:41:12 +0000
 
-Every test result report in the compaction test prints a distinct log
-messae, and some of the reports print a name that varies at runtime.  This
-causes problems for automation since a lot of automation software uses the
-printed string as the name of the test, if the name varies from run to run
-and from pass to fail then the automation software can't identify that a
-test changed result or that the same tests are being run.
+We may encounter duplicate entry in the zswap_store():
 
-Refactor the logging to use a consistent name when printing the result of
-the test, printing the existing messages as diagnostic information instead
-so they are still available for people trying to interpret the results.
+1. swap slot that freed to per-cpu swap cache, doesn't invalidate
+   the zswap entry, then got reused. This has been fixed.
 
-Link: https://lkml.kernel.org/r/20240209-kselftest-mm-cleanup-v1-2-a3c0386496b5@kernel.org
-Signed-off-by: Mark Brown <broonie@kernel.org>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
+2. !exclusive load mode, swapin folio will leave its zswap entry
+   on the tree, then swapout again. This has been removed.
+
+3. one folio can be dirtied again after zswap_store(), so need to
+   zswap_store() again. This should be handled correctly.
+
+So we must invalidate the old duplicate entry before inserting the
+new one, which actually doesn't have to be done at the beginning
+of zswap_store().
+
+The good point is that we don't need to lock the tree twice in the normal
+store success path.  And cleanup the loop as we are here.
+
+Note we still need to invalidate the old duplicate entry when store failed
+or zswap is disabled , otherwise the new data in swapfile could be
+overwrite by the old data in zswap pool when lru writeback.
+
+Link: https://lkml.kernel.org/r/20240209044112.3883835-1-chengming.zhou@linux.dev
+Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Yosry Ahmed <yosryahmed@google.com>
+Acked-by: Chris Li <chrisl@kernel.org>
+Acked-by: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/compaction_test.c |   35 +++++++++--------
- 1 file changed, 19 insertions(+), 16 deletions(-)
+ mm/zswap.c |   34 ++++++++++++++++------------------
+ 1 file changed, 16 insertions(+), 18 deletions(-)
 
---- a/tools/testing/selftests/mm/compaction_test.c~selftests-mm-log-a-consistent-test-name-for-check_compaction
-+++ a/tools/testing/selftests/mm/compaction_test.c
-@@ -95,21 +95,22 @@ int check_compaction(unsigned long mem_f
+--- a/mm/zswap.c~mm-zswap-optimize-and-cleanup-the-invalidation-of-duplicate-entry
++++ a/mm/zswap.c
+@@ -1517,19 +1517,8 @@ bool zswap_store(struct folio *folio)
+ 	if (folio_test_large(folio))
+ 		return false;
  
- 	fd = open("/proc/sys/vm/nr_hugepages", O_RDWR | O_NONBLOCK);
- 	if (fd < 0) {
--		ksft_test_result_fail("Failed to open /proc/sys/vm/nr_hugepages: %s\n",
--				      strerror(errno));
--		return -1;
-+		ksft_print_msg("Failed to open /proc/sys/vm/nr_hugepages: %s\n",
-+			       strerror(errno));
-+		ret = -1;
-+		goto out;
+-	/*
+-	 * If this is a duplicate, it must be removed before attempting to store
+-	 * it, otherwise, if the store fails the old page won't be removed from
+-	 * the tree, and it might be written back overriding the new data.
+-	 */
+-	spin_lock(&tree->lock);
+-	entry = zswap_rb_search(&tree->rbroot, offset);
+-	if (entry)
+-		zswap_invalidate_entry(tree, entry);
+-	spin_unlock(&tree->lock);
+-
+ 	if (!zswap_enabled)
+-		return false;
++		goto check_old;
+ 
+ 	objcg = get_obj_cgroup_from_folio(folio);
+ 	if (objcg && !obj_cgroup_may_zswap(objcg)) {
+@@ -1609,14 +1598,12 @@ insert_entry:
+ 	/* map */
+ 	spin_lock(&tree->lock);
+ 	/*
+-	 * A duplicate entry should have been removed at the beginning of this
+-	 * function. Since the swap entry should be pinned, if a duplicate is
+-	 * found again here it means that something went wrong in the swap
+-	 * cache.
++	 * The folio may have been dirtied again, invalidate the
++	 * possibly stale entry before inserting the new entry.
+ 	 */
+-	while (zswap_rb_insert(&tree->rbroot, entry, &dupentry) == -EEXIST) {
+-		WARN_ON(1);
++	if (zswap_rb_insert(&tree->rbroot, entry, &dupentry) == -EEXIST) {
+ 		zswap_invalidate_entry(tree, dupentry);
++		WARN_ON(zswap_rb_insert(&tree->rbroot, entry, &dupentry));
  	}
+ 	if (entry->length) {
+ 		INIT_LIST_HEAD(&entry->lru);
+@@ -1639,6 +1626,17 @@ freepage:
+ reject:
+ 	if (objcg)
+ 		obj_cgroup_put(objcg);
++check_old:
++	/*
++	 * If the zswap store fails or zswap is disabled, we must invalidate the
++	 * possibly stale entry which was previously stored at this offset.
++	 * Otherwise, writeback could overwrite the new data in the swapfile.
++	 */
++	spin_lock(&tree->lock);
++	entry = zswap_rb_search(&tree->rbroot, offset);
++	if (entry)
++		zswap_invalidate_entry(tree, entry);
++	spin_unlock(&tree->lock);
+ 	return false;
  
- 	if (read(fd, initial_nr_hugepages, sizeof(initial_nr_hugepages)) <= 0) {
--		ksft_test_result_fail("Failed to read from /proc/sys/vm/nr_hugepages: %s\n",
--				      strerror(errno));
-+		ksft_print_msg("Failed to read from /proc/sys/vm/nr_hugepages: %s\n",
-+			       strerror(errno));
- 		goto close_fd;
- 	}
- 
- 	/* Start with the initial condition of 0 huge pages*/
- 	if (write(fd, "0", sizeof(char)) != sizeof(char)) {
--		ksft_test_result_fail("Failed to write 0 to /proc/sys/vm/nr_hugepages: %s\n",
--				      strerror(errno));
-+		ksft_print_msg("Failed to write 0 to /proc/sys/vm/nr_hugepages: %s\n",
-+			       strerror(errno));
- 		goto close_fd;
- 	}
- 
-@@ -118,16 +119,16 @@ int check_compaction(unsigned long mem_f
- 	/* Request a large number of huge pages. The Kernel will allocate
- 	   as much as it can */
- 	if (write(fd, "100000", (6*sizeof(char))) != (6*sizeof(char))) {
--		ksft_test_result_fail("Failed to write 100000 to /proc/sys/vm/nr_hugepages: %s\n",
--				      strerror(errno));
-+		ksft_print_msg("Failed to write 100000 to /proc/sys/vm/nr_hugepages: %s\n",
-+			       strerror(errno));
- 		goto close_fd;
- 	}
- 
- 	lseek(fd, 0, SEEK_SET);
- 
- 	if (read(fd, nr_hugepages, sizeof(nr_hugepages)) <= 0) {
--		ksft_test_result_fail("Failed to re-read from /proc/sys/vm/nr_hugepages: %s\n",
--				      strerror(errno));
-+		ksft_print_msg("Failed to re-read from /proc/sys/vm/nr_hugepages: %s\n",
-+			       strerror(errno));
- 		goto close_fd;
- 	}
- 
-@@ -139,24 +140,26 @@ int check_compaction(unsigned long mem_f
- 
- 	if (write(fd, initial_nr_hugepages, strlen(initial_nr_hugepages))
- 	    != strlen(initial_nr_hugepages)) {
--		ksft_test_result_fail("Failed to write value to /proc/sys/vm/nr_hugepages: %s\n",
--				      strerror(errno));
-+		ksft_print_msg("Failed to write value to /proc/sys/vm/nr_hugepages: %s\n",
-+			       strerror(errno));
- 		goto close_fd;
- 	}
- 
-+	ksft_print_msg("Number of huge pages allocated = %d\n",
-+		       atoi(nr_hugepages));
-+
- 	if (compaction_index > 3) {
- 		ksft_print_msg("ERROR: Less that 1/%d of memory is available\n"
- 			       "as huge pages\n", compaction_index);
--		ksft_test_result_fail("No of huge pages allocated = %d\n", (atoi(nr_hugepages)));
- 		goto close_fd;
- 	}
- 
--	ksft_test_result_pass("Memory compaction succeeded. No of huge pages allocated = %d\n",
--			      (atoi(nr_hugepages)));
- 	ret = 0;
- 
-  close_fd:
- 	close(fd);
-+ out:
-+	ksft_test_result(ret == 0, "check_compaction\n");
- 	return ret;
- }
- 
+ shrink:
 _
 
-Patches currently in -mm which might be from broonie@kernel.org are
+Patches currently in -mm which might be from zhouchengming@bytedance.com are
 
-selftests-mm-log-skipped-compaction-test-as-a-skip.patch
-selftests-mm-log-a-consistent-test-name-for-check_compaction.patch
-selftests-mm-dont-needlessly-use-sudo-to-obtain-root-in-run_vmtestssh.patch
+mm-zswap-invalidate-duplicate-entry-when-zswap_enabled.patch
+mm-zswap-make-sure-each-swapfile-always-have-zswap-rb-tree.patch
+mm-zswap-split-zswap-rb-tree.patch
+mm-zswap-fix-race-between-lru-writeback-and-swapoff.patch
+mm-list_lru-remove-list_lru_putback.patch
+mm-zswap-add-more-comments-in-shrink_memcg_cb.patch
+mm-zswap-invalidate-zswap-entry-when-swap-entry-free.patch
+mm-zswap-stop-lru-list-shrinking-when-encounter-warm-region.patch
+mm-zswap-remove-duplicate_entry-debug-value.patch
+mm-zswap-only-support-zswap_exclusive_loads_enabled.patch
+mm-zswap-zswap-entry-doesnt-need-refcount-anymore.patch
+mm-zswap-optimize-and-cleanup-the-invalidation-of-duplicate-entry.patch
 
