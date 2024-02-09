@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5017021344
-	for <mm-commits@vger.kernel.org>; Fri,  9 Feb 2024 22:05:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEE4F21344
+	for <mm-commits@vger.kernel.org>; Fri,  9 Feb 2024 22:05:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707516340; cv=none; b=aAu/qL89L1JlVBRv/SkrU+2HVNncVWupRbg4SMLvcY0mG5gKWMgkLdxOqTaD0i8Xu7ywXwpgW2agrlVX6k2bOgSwe21YsxvmdgcJzOIJq1ldgx6iyr2IjhW/wpcReFFJ2YI4iBnCon4FtcXGaR5v91Pp1ga+KQgbqp+hYZxFN9k=
+	t=1707516341; cv=none; b=ZbgS/qcte0BfoGEXeDtktmLAEgNyVjKmCceZunJ2RUV5S2MsGO/tBsZZ3cd2EK1JsIImNLhlwqznJ04p/awYV+dA9wubRIVmhs20xE8rbs5OzxTLJ4ZK9/wz4Kl/86bhwf8WDy4QB9Cqsy48vTjM7cXqsfOfLH3AyXmFHGDBr/o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707516340; c=relaxed/simple;
-	bh=QxjDcYXWGfheWDpSrq4DRJQF9+yacpwBXiGggk54L8E=;
-	h=Date:To:From:Subject:Message-Id; b=is39wYDg8O/2UD/9B/zWD5piuhH0F+7dOBdWYIqu4I3OLdTqm7Mn1LqCj075DJZ3ATDZOR3yeOVIP+/m4tGGGE2r9YkwqUGZ2/XY7DO6XICCWsu4I9xyIPdwLkIoKPdyLyCDv+YBHDsedcBl2t5gWYyKtssAd/kN4kksuOZbKkQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IB7C4Ddd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707516341; c=relaxed/simple;
+	bh=R3V7UT4yHwWw9BVDsq99imKa/ecjD5J8W9QOrgdz8OM=;
+	h=Date:To:From:Subject:Message-Id; b=MAfnhkqGzYVZL5jAzM7t5/OzCLK7grXLYz80//q7SadmlzL6hz7mzzYpT+nv8tGl8cfNOTYIRH0SR87i7F3qkie/3hShsMv84D5ZbewlGWLIYDFAMqGISp5RwhmWfMH6lHx3dfH0Gc1JGOrZPo1cG+iZ3N2GvWqVt89izwoJmmI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PHXt+yp/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IB7C4Ddd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C262EC433C7;
-	Fri,  9 Feb 2024 22:05:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PHXt+yp/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37F88C433F1;
+	Fri,  9 Feb 2024 22:05:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707516339;
-	bh=QxjDcYXWGfheWDpSrq4DRJQF9+yacpwBXiGggk54L8E=;
+	s=korg; t=1707516341;
+	bh=R3V7UT4yHwWw9BVDsq99imKa/ecjD5J8W9QOrgdz8OM=;
 	h=Date:To:From:Subject:From;
-	b=IB7C4DddPXbI64n9Iu2yBYnQ3NrES6bRHUgfvugFPNM2Byhqtoi7HHZDtgPNKe6Z7
-	 s4uVQFjP/r1/1qmiwSsPIa3tQ8BMo2/Qf6b2Sk9t8CJeBVbYVvFvxscBA2EHrOoEgb
-	 6sngZbtATRUlgbM6Q/+KuXkJ5LjUdg+kmRYZYCfM=
-Date: Fri, 09 Feb 2024 14:05:39 -0800
+	b=PHXt+yp/h+hI7WbiEChj1GeSdm5X4IkWsRjutWjLevHa89IU+gF6ytrUaeONNyfom
+	 NrLbdfdtXLC0YE7tsRTfI4tPFXktvC6IZTWhQ4UU0f2OoTvzpL1CiapwtqW6B61nYq
+	 uvGrty2lTbS4gigSywAsEg6CZVdnHnnx7tsMEGtA=
+Date: Fri, 09 Feb 2024 14:05:40 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,ying.huang@intel.com,willy@infradead.org,vishal.moola@gmail.com,vbabka@suse.cz,shikemeng@huaweicloud.com,ryan.roberts@arm.com,mgorman@techsingularity.net,mcgrof@kernel.org,kirill.shutemov@linux.intel.com,hannes@cmpxchg.org,fengwei.yin@intel.com,david@redhat.com,baolin.wang@linux.alibaba.com,a.manzanares@samsung.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-compaction-add-support-for-0-order-folio-memory-compaction.patch removed from -mm tree
-Message-Id: <20240209220539.C262EC433C7@smtp.kernel.org>
+Subject: [to-be-updated] mm-compaction-optimize-0-order-folio-compaction-with-free-page-split.patch removed from -mm tree
+Message-Id: <20240209220541.37F88C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,44 +35,30 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/compaction: add support for >0 order folio memory compaction.
+     Subject: mm/compaction: optimize >0 order folio compaction with free page split.
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-add-support-for-0-order-folio-memory-compaction.patch
+     mm-compaction-optimize-0-order-folio-compaction-with-free-page-split.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm/compaction: add support for >0 order folio memory compaction.
-Date: Fri, 2 Feb 2024 11:15:53 -0500
+Subject: mm/compaction: optimize >0 order folio compaction with free page split.
+Date: Fri, 2 Feb 2024 11:15:54 -0500
 
-Before last commit, memory compaction only migrates order-0 folios and
-skips >0 order folios.  Last commit splits all >0 order folios during
-compaction.  This commit migrates >0 order folios during compaction by
-keeping isolated free pages at their original size without splitting them
-into order-0 pages and using them directly during migration process.
+During migration in a memory compaction, free pages are placed in an array
+of page lists based on their order.  But the desired free page order
+(i.e., the order of a source page) might not be always present, thus
+leading to migration failures and premature compaction termination.  Split
+a high order free pages when source migration page has a lower order to
+increase migration successful rate.
 
-What is different from the prior implementation:
-1. All isolated free pages are kept in a NR_PAGE_ORDERS array of page
-   lists, where each page list stores free pages in the same order.
-2. All free pages are not post_alloc_hook() processed nor buddy pages,
-   although their orders are stored in first page's private like buddy
-   pages.
-3. During migration, in new page allocation time (i.e., in
-   compaction_alloc()), free pages are then processed by post_alloc_hook().
-   When migration fails and a new page is returned (i.e., in
-   compaction_free()), free pages are restored by reversing the
-   post_alloc_hook() operations using newly added
-   free_pages_prepare_fpi_none().
+Note: merging free pages when a migration fails and a lower order free
+page is returned via compaction_free() is possible, but there is too much
+work.  Since the free pages are not buddy pages, it is hard to identify
+these free pages using existing PFN-based page merging algorithm.
 
-Step 3 is done for a latter optimization that splitting and/or merging
-free pages during compaction becomes easier.
-
-Note: without splitting free pages, compaction can end prematurely due to
-migration will return -ENOMEM even if there is free pages.  This happens
-when no order-0 free page exist and compaction_alloc() return NULL.
-
-Link: https://lkml.kernel.org/r/20240202161554.565023-3-zi.yan@sent.com
+Link: https://lkml.kernel.org/r/20240202161554.565023-4-zi.yan@sent.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
@@ -93,361 +79,66 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |  149 +++++++++++++++++++++++++++-------------------
- mm/internal.h   |    9 ++
- mm/page_alloc.c |    6 +
- 3 files changed, 104 insertions(+), 60 deletions(-)
+ mm/compaction.c |   37 ++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 36 insertions(+), 1 deletion(-)
 
---- a/mm/compaction.c~mm-compaction-add-support-for-0-order-folio-memory-compaction
+--- a/mm/compaction.c~mm-compaction-optimize-0-order-folio-compaction-with-free-page-split
 +++ a/mm/compaction.c
-@@ -66,45 +66,67 @@ static inline void count_compact_events(
- #define COMPACTION_HPAGE_ORDER	(PMD_SHIFT - PAGE_SHIFT)
- #endif
- 
--static unsigned long release_freepages(struct list_head *freelist)
-+static void init_page_list(struct page_list *p)
- {
--	struct page *page, *next;
--	unsigned long high_pfn = 0;
--
--	list_for_each_entry_safe(page, next, freelist, lru) {
--		unsigned long pfn = page_to_pfn(page);
--		list_del(&page->lru);
--		__free_page(page);
--		if (pfn > high_pfn)
--			high_pfn = pfn;
--	}
--
--	return high_pfn;
-+	INIT_LIST_HEAD(&p->pages);
-+	p->nr_pages = 0;
- }
- 
--static void split_map_pages(struct list_head *list)
-+static void split_map_pages(struct page_list *freepages)
- {
--	unsigned int i, order, nr_pages;
-+	unsigned int i, order, total_nr_pages;
- 	struct page *page, *next;
- 	LIST_HEAD(tmp_list);
- 
--	list_for_each_entry_safe(page, next, list, lru) {
--		list_del(&page->lru);
-+	for (order = 0; order < NR_PAGE_ORDERS; order++) {
-+		total_nr_pages = freepages[order].nr_pages * (1 << order);
-+		freepages[order].nr_pages = 0;
-+
-+		list_for_each_entry_safe(page, next, &freepages[order].pages, lru) {
-+			unsigned int nr_pages;
-+
-+			list_del(&page->lru);
- 
--		order = page_private(page);
--		nr_pages = 1 << order;
-+			nr_pages = 1 << order;
- 
--		post_alloc_hook(page, order, __GFP_MOVABLE);
--		if (order)
--			split_page(page, order);
-+			post_alloc_hook(page, order, __GFP_MOVABLE);
-+			if (order)
-+				split_page(page, order);
- 
--		for (i = 0; i < nr_pages; i++) {
--			list_add(&page->lru, &tmp_list);
--			page++;
-+			for (i = 0; i < nr_pages; i++) {
-+				list_add(&page->lru, &tmp_list);
-+				page++;
-+			}
- 		}
-+		freepages[0].nr_pages += total_nr_pages;
-+		list_splice_init(&tmp_list, &freepages[0].pages);
- 	}
-+}
- 
--	list_splice(&tmp_list, list);
-+static unsigned long release_free_list(struct page_list *freepages)
-+{
-+	int order;
-+	unsigned long high_pfn = 0;
-+
-+	for (order = 0; order < NR_PAGE_ORDERS; order++) {
-+		struct page *page, *next;
-+
-+		list_for_each_entry_safe(page, next, &freepages[order].pages, lru) {
-+			unsigned long pfn = page_to_pfn(page);
-+
-+			list_del(&page->lru);
-+			/*
-+			 * Convert free pages into post allocation pages, so
-+			 * that we can free them via __free_page.
-+			 */
-+			post_alloc_hook(page, order, __GFP_MOVABLE);
-+			__free_pages(page, order);
-+			if (pfn > high_pfn)
-+				high_pfn = pfn;
-+		}
-+		freepages[order].nr_pages = 0;
-+	}
-+	return high_pfn;
- }
- 
- #ifdef CONFIG_COMPACTION
-@@ -583,7 +605,7 @@ static bool compact_unlock_should_abort(
- static unsigned long isolate_freepages_block(struct compact_control *cc,
- 				unsigned long *start_pfn,
- 				unsigned long end_pfn,
--				struct list_head *freelist,
-+				struct page_list *freelist,
- 				unsigned int stride,
- 				bool strict)
- {
-@@ -657,7 +679,8 @@ static unsigned long isolate_freepages_b
- 		nr_scanned += isolated - 1;
- 		total_isolated += isolated;
- 		cc->nr_freepages += isolated;
--		list_add_tail(&page->lru, freelist);
-+		list_add_tail(&page->lru, &freelist[order].pages);
-+		freelist[order].nr_pages++;
- 
- 		if (!strict && cc->nr_migratepages <= cc->nr_freepages) {
- 			blockpfn += isolated;
-@@ -722,7 +745,11 @@ isolate_freepages_range(struct compact_c
- 			unsigned long start_pfn, unsigned long end_pfn)
- {
- 	unsigned long isolated, pfn, block_start_pfn, block_end_pfn;
--	LIST_HEAD(freelist);
-+	int order;
-+	struct page_list tmp_freepages[NR_PAGE_ORDERS];
-+
-+	for (order = 0; order < NR_PAGE_ORDERS; order++)
-+		init_page_list(&tmp_freepages[order]);
- 
- 	pfn = start_pfn;
- 	block_start_pfn = pageblock_start_pfn(pfn);
-@@ -753,7 +780,7 @@ isolate_freepages_range(struct compact_c
- 			break;
- 
- 		isolated = isolate_freepages_block(cc, &isolate_start_pfn,
--					block_end_pfn, &freelist, 0, true);
-+					block_end_pfn, tmp_freepages, 0, true);
- 
- 		/*
- 		 * In strict mode, isolate_freepages_block() returns 0 if
-@@ -770,15 +797,15 @@ isolate_freepages_range(struct compact_c
- 		 */
- 	}
- 
--	/* __isolate_free_page() does not map the pages */
--	split_map_pages(&freelist);
--
- 	if (pfn < end_pfn) {
- 		/* Loop terminated early, cleanup. */
--		release_freepages(&freelist);
-+		release_free_list(tmp_freepages);
- 		return 0;
- 	}
- 
-+	/* __isolate_free_page() does not map the pages */
-+	split_map_pages(tmp_freepages);
-+
- 	/* We don't use freelists for anything. */
- 	return pfn;
- }
-@@ -1481,7 +1508,7 @@ fast_isolate_around(struct compact_contr
- 	if (!page)
- 		return;
- 
--	isolate_freepages_block(cc, &start_pfn, end_pfn, &cc->freepages, 1, false);
-+	isolate_freepages_block(cc, &start_pfn, end_pfn, cc->freepages, 1, false);
- 
- 	/* Skip this pageblock in the future as it's full or nearly full */
- 	if (start_pfn == end_pfn && !cc->no_set_skip_hint)
-@@ -1610,7 +1637,8 @@ static void fast_isolate_freepages(struc
- 				nr_scanned += nr_isolated - 1;
- 				total_isolated += nr_isolated;
- 				cc->nr_freepages += nr_isolated;
--				list_add_tail(&page->lru, &cc->freepages);
-+				list_add_tail(&page->lru, &cc->freepages[order].pages);
-+				cc->freepages[order].nr_pages++;
- 				count_compact_events(COMPACTISOLATED, nr_isolated);
- 			} else {
- 				/* If isolation fails, abort the search */
-@@ -1687,13 +1715,12 @@ static void isolate_freepages(struct com
- 	unsigned long isolate_start_pfn; /* exact pfn we start at */
- 	unsigned long block_end_pfn;	/* end of current pageblock */
- 	unsigned long low_pfn;	     /* lowest pfn scanner is able to scan */
--	struct list_head *freelist = &cc->freepages;
- 	unsigned int stride;
- 
- 	/* Try a small search of the free lists for a candidate */
- 	fast_isolate_freepages(cc);
- 	if (cc->nr_freepages)
--		goto splitmap;
-+		return;
- 
- 	/*
- 	 * Initialise the free scanner. The starting point is where we last
-@@ -1753,7 +1780,7 @@ static void isolate_freepages(struct com
- 
- 		/* Found a block suitable for isolating free pages from. */
- 		nr_isolated = isolate_freepages_block(cc, &isolate_start_pfn,
--					block_end_pfn, freelist, stride, false);
-+					block_end_pfn, cc->freepages, stride, false);
- 
- 		/* Update the skip hint if the full pageblock was scanned */
- 		if (isolate_start_pfn == block_end_pfn)
-@@ -1794,10 +1821,6 @@ static void isolate_freepages(struct com
- 	 * and the loop terminated due to isolate_start_pfn < low_pfn
- 	 */
- 	cc->free_pfn = isolate_start_pfn;
--
--splitmap:
--	/* __isolate_free_page() does not map the pages */
--	split_map_pages(freelist);
- }
- 
- /*
-@@ -1808,23 +1831,22 @@ static struct folio *compaction_alloc(st
- {
+@@ -1832,9 +1832,43 @@ static struct folio *compaction_alloc(st
  	struct compact_control *cc = (struct compact_control *)data;
  	struct folio *dst;
-+	int order = folio_order(src);
+ 	int order = folio_order(src);
++	bool has_isolated_pages = false;
  
--	/* this makes migrate_pages() split the source page and retry */
--	if (folio_test_large(src) > 0)
--		return NULL;
--
--	if (list_empty(&cc->freepages)) {
-+	if (!cc->freepages[order].nr_pages) {
- 		isolate_freepages(cc);
--
--		if (list_empty(&cc->freepages))
-+		if (!cc->freepages[order].nr_pages)
++again:
+ 	if (!cc->freepages[order].nr_pages) {
+-		isolate_freepages(cc);
++		int i;
++
++		for (i = order + 1; i < NR_PAGE_ORDERS; i++) {
++			if (cc->freepages[i].nr_pages) {
++				struct page *freepage =
++					list_first_entry(&cc->freepages[i].pages,
++							 struct page, lru);
++
++				int start_order = i;
++				unsigned long size = 1 << start_order;
++
++				list_del(&freepage->lru);
++				cc->freepages[i].nr_pages--;
++
++				while (start_order > order) {
++					start_order--;
++					size >>= 1;
++
++					list_add(&freepage[size].lru,
++						&cc->freepages[start_order].pages);
++					cc->freepages[start_order].nr_pages++;
++					set_page_private(&freepage[size], start_order);
++				}
++				dst = (struct folio *)freepage;
++				goto done;
++			}
++		}
++		if (!has_isolated_pages) {
++			isolate_freepages(cc);
++			has_isolated_pages = true;
++			goto again;
++		}
++
+ 		if (!cc->freepages[order].nr_pages)
  			return NULL;
  	}
- 
--	dst = list_entry(cc->freepages.next, struct folio, lru);
-+	dst = list_first_entry(&cc->freepages[order].pages, struct folio, lru);
-+	cc->freepages[order].nr_pages--;
+@@ -1842,6 +1876,7 @@ static struct folio *compaction_alloc(st
+ 	dst = list_first_entry(&cc->freepages[order].pages, struct folio, lru);
+ 	cc->freepages[order].nr_pages--;
  	list_del(&dst->lru);
--	cc->nr_freepages--;
--
--	return dst;
-+	post_alloc_hook(&dst->page, order, __GFP_MOVABLE);
-+	if (order)
-+		prep_compound_page(&dst->page, order);
-+	cc->nr_freepages -= 1 << order;
-+	return page_rmappable_folio(&dst->page);
- }
- 
- /*
-@@ -1835,9 +1857,17 @@ static struct folio *compaction_alloc(st
- static void compaction_free(struct folio *dst, unsigned long data)
- {
- 	struct compact_control *cc = (struct compact_control *)data;
-+	int order = folio_order(dst);
-+	struct page *page = &dst->page;
-+
-+	folio_set_count(dst, 0);
-+	free_pages_prepare_fpi_none(page, order);
- 
--	list_add(&dst->lru, &cc->freepages);
--	cc->nr_freepages++;
-+	INIT_LIST_HEAD(&dst->lru);
-+
-+	list_add(&dst->lru, &cc->freepages[order].pages);
-+	cc->freepages[order].nr_pages++;
-+	cc->nr_freepages += 1 << order;
- }
- 
- /* possible outcome of isolate_migratepages */
-@@ -2461,6 +2491,7 @@ compact_zone(struct compact_control *cc,
- 	const bool sync = cc->mode != MIGRATE_ASYNC;
- 	bool update_cached;
- 	unsigned int nr_succeeded = 0;
-+	int order;
- 
- 	/*
- 	 * These counters track activities during zone compaction.  Initialize
-@@ -2470,7 +2501,8 @@ compact_zone(struct compact_control *cc,
- 	cc->total_free_scanned = 0;
- 	cc->nr_migratepages = 0;
- 	cc->nr_freepages = 0;
--	INIT_LIST_HEAD(&cc->freepages);
-+	for (order = 0; order < NR_PAGE_ORDERS; order++)
-+		init_page_list(&cc->freepages[order]);
- 	INIT_LIST_HEAD(&cc->migratepages);
- 
- 	cc->migratetype = gfp_migratetype(cc->gfp_mask);
-@@ -2656,7 +2688,7 @@ out:
- 	 * so we don't leave any returned pages behind in the next attempt.
- 	 */
- 	if (cc->nr_freepages > 0) {
--		unsigned long free_pfn = release_freepages(&cc->freepages);
-+		unsigned long free_pfn = release_free_list(cc->freepages);
- 
- 		cc->nr_freepages = 0;
- 		VM_BUG_ON(free_pfn == 0);
-@@ -2675,7 +2707,6 @@ out:
- 
- 	trace_mm_compaction_end(cc, start_pfn, end_pfn, sync, ret);
- 
--	VM_BUG_ON(!list_empty(&cc->freepages));
- 	VM_BUG_ON(!list_empty(&cc->migratepages));
- 
- 	return ret;
---- a/mm/internal.h~mm-compaction-add-support-for-0-order-folio-memory-compaction
-+++ a/mm/internal.h
-@@ -447,6 +447,8 @@ extern void prep_compound_page(struct pa
- 
- extern void post_alloc_hook(struct page *page, unsigned int order,
- 					gfp_t gfp_flags);
-+extern bool free_pages_prepare_fpi_none(struct page *page, unsigned int order);
-+
- extern int user_min_free_kbytes;
- 
- extern void free_unref_page(struct page *page, unsigned int order);
-@@ -473,6 +475,11 @@ int split_free_page(struct page *free_pa
- /*
-  * in mm/compaction.c
-  */
-+
-+struct page_list {
-+	struct list_head	pages;
-+	unsigned long		nr_pages;
-+};
- /*
-  * compact_control is used to track pages being migrated and the free pages
-  * they are being migrated to during memory compaction. The free_pfn starts
-@@ -481,7 +488,7 @@ int split_free_page(struct page *free_pa
-  * completes when free_pfn <= migrate_pfn
-  */
- struct compact_control {
--	struct list_head freepages;	/* List of free pages to migrate to */
-+	struct page_list freepages[NR_PAGE_ORDERS];	/* List of free pages to migrate to */
- 	struct list_head migratepages;	/* List of pages being migrated */
- 	unsigned int nr_freepages;	/* Number of isolated free pages */
- 	unsigned int nr_migratepages;	/* Number of pages to migrate */
---- a/mm/page_alloc.c~mm-compaction-add-support-for-0-order-folio-memory-compaction
-+++ a/mm/page_alloc.c
-@@ -1179,6 +1179,12 @@ static __always_inline bool free_pages_p
- 	return true;
- }
- 
-+__always_inline bool free_pages_prepare_fpi_none(struct page *page,
-+			unsigned int order)
-+{
-+	return free_pages_prepare(page, order, FPI_NONE);
-+}
-+
- /*
-  * Frees a number of pages from the PCP lists
-  * Assumes all pages on list are in same zone.
++done:
+ 	post_alloc_hook(&dst->page, order, __GFP_MOVABLE);
+ 	if (order)
+ 		prep_compound_page(&dst->page, order);
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-compaction-optimize-0-order-folio-compaction-with-free-page-split.patch
 
