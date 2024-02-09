@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C2AC38399;
-	Fri,  9 Feb 2024 22:19:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 103BB36AF6
+	for <mm-commits@vger.kernel.org>; Fri,  9 Feb 2024 23:55:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707517181; cv=none; b=cVhYnCdFGhCDrFL4GWtJM2cZLqUgd0no9qLYJDlGzyTVfJxXHLB3WSUWOGsU+4AAbvjYPUUKdiYrMzism6ylZOldBy3H16yBDLgM8UQ5gi8g3RpAhSW5ee/emFVCwys7wrtk4fxnFzyLd27nnXAu8PM+orlqVaouVipNSiksNrE=
+	t=1707522919; cv=none; b=FvMe1XEig5dQL4Q4P9chxxcVeWyI5EXEh9i3l43tXSo8Q+Sw/YityBZC0V0+FIl0krjsa+9o+kBsqYbCpdEf5GBXsCRHwbvZThrQ4rPQ3yoJ4q98i6DH8DcRa/IyCZZOIhwuU18zyxBfKPGOF8eGBpimoKK8ytb8brHqzYGBAYQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707517181; c=relaxed/simple;
-	bh=a1NkKkTQKYqsJtZR77HF+fqLudSDQRWiNX3VppJ0R7o=;
-	h=Date:To:From:Subject:Message-Id; b=hEweyRx/NMwK1RVtA5rp7lrUMCh/CX5NoBop4KTEPRRZEPweHHRCYDckei5sJ5Pu3qOhjYnBr6c2iDh/NLAqx6d47r5SntrqpPX1zny0PidYejle6fgNZtJLcUBXw6RPc7wc0X9PrOrz2Szu6YsdI4jr4EaTdu4AEA2J1rHBjl0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CuvlNSiO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707522919; c=relaxed/simple;
+	bh=Wtmsrrnjw+DMQnMIii8PVLD9a33n4kY4+ThkSCVdMks=;
+	h=Date:To:From:Subject:Message-Id; b=NloWo204yoHBmwXuIusu7FEbvWKRv5ThHdxJkL+L/qvoHzzfOyP2aMSehDdVq3ewgv0dcffQyWXclTK2mQhYmOj6vzl13hDJ4PatRAjkTeRxOjJY8ivyTTaaLs71IaUCR/P+jfqQZeNdqtqVNRBGsX4iwSlQPgYMRoGqxs+jUwo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T/DodqmA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CuvlNSiO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1785C433F1;
-	Fri,  9 Feb 2024 22:19:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T/DodqmA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EC95C433F1;
+	Fri,  9 Feb 2024 23:55:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707517180;
-	bh=a1NkKkTQKYqsJtZR77HF+fqLudSDQRWiNX3VppJ0R7o=;
+	s=korg; t=1707522918;
+	bh=Wtmsrrnjw+DMQnMIii8PVLD9a33n4kY4+ThkSCVdMks=;
 	h=Date:To:From:Subject:From;
-	b=CuvlNSiOVwqFYuGTOg7kpGEXjyRa+K7/FtmL9QlUrILsnIg/OTZoW4edaGhN161um
-	 Ta8Tz3BbEvOLhJU90/dfLzIUO/4DW7NY/Yq9M9R/lgx/7dkdSyAj8mPbf899E1mDRH
-	 bts24/zUkB0ZMCuqgi/6Jx5B4dOwwEEIwy1Cwpq8=
-Date: Fri, 09 Feb 2024 14:19:40 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rppt@kernel.org,anshuman.khandual@arm.com,akpm@linux-foundation.org
+	b=T/DodqmAn7EIheQv4phQQzVpC1QDQam2ZilfLSQZAoXdNdDyGekW7EsDAZ+PdEZI/
+	 sS9wOJ3kLdWTJjsHv5cDU9wPS3nI90PjF7kaTSxWxc0T2bloq1g60qqnr1zdGsh6Re
+	 mgwAUwvwhfsGBp40tzMIqIGZL/Odg/5gyjkPn1a8=
+Date: Fri, 09 Feb 2024 15:55:17 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,mgorman@techsingularity.net,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memblock-add-memblock_rsrv_noinit-into-flagname-array.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240209221940.D1785C433F1@smtp.kernel.org>
+Subject: + mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages-fix.patch added to mm-unstable branch
+Message-Id: <20240209235518.7EC95C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memblock: add MEMBLOCK_RSRV_NOINIT into flagname[] array
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-memblock-add-memblock_rsrv_noinit-into-flagname-array.patch
+     Subject: mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memblock-add-memblock_rsrv_noinit-into-flagname-array.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,44 +58,51 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/memblock: add MEMBLOCK_RSRV_NOINIT into flagname[] array
-Date: Fri, 9 Feb 2024 08:39:12 +0530
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages-fix
+Date: Fri Feb  9 03:51:53 PM PST 2024
 
-The commit 77e6c43e137c ("memblock: introduce MEMBLOCK_RSRV_NOINIT flag")
-skipped adding this newly introduced memblock flag into flagname[] array,
-thus preventing a correct memblock flags output for applicable memblock
-regions.
+fix it for the dropping of "mm/compaction: optimize >0 order folio
+compaction with free page split"
 
-Link: https://lkml.kernel.org/r/20240209030912.1382251-1-anshuman.khandual@arm.com
-Fixes: 77e6c43e137c ("memblock: introduce MEMBLOCK_RSRV_NOINIT flag")
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: <stable@vger.kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/compaction.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memblock.c~mm-memblock-add-memblock_rsrv_noinit-into-flagname-array
-+++ a/mm/memblock.c
-@@ -2249,6 +2249,7 @@ static const char * const flagname[] = {
- 	[ilog2(MEMBLOCK_MIRROR)] = "MIRROR",
- 	[ilog2(MEMBLOCK_NOMAP)] = "NOMAP",
- 	[ilog2(MEMBLOCK_DRIVER_MANAGED)] = "DRV_MNG",
-+	[ilog2(MEMBLOCK_RSRV_NOINIT)] = "RSV_NIT",
- };
+--- a/mm/compaction.c~mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages-fix
++++ a/mm/compaction.c
+@@ -1798,7 +1798,7 @@ static struct folio *compaction_alloc(st
+ 	dst = list_entry(cc->freepages.next, struct folio, lru);
+ 	list_del(&dst->lru);
+ 	cc->nr_freepages--;
+-	cc->nr_migratepages -= 1 << order;
++	cc->nr_migratepages -= 1 << folio_order(src);
  
- static int memblock_debug_show(struct seq_file *m, void *private)
+ 	return dst;
+ }
+@@ -1814,7 +1814,7 @@ static void compaction_free(struct folio
+ 
+ 	list_add(&dst->lru, &cc->freepages);
+ 	cc->nr_freepages++;
+-	cc->nr_migratepages += 1 << order;
++	cc->nr_migratepages += 1 << folio_order(dst);
+ }
+ 
+ /* possible outcome of isolate_migratepages */
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-proc-task_mmu-add-display-flag-for-vm_mayoverlay.patch
-mm-memblock-add-memblock_rsrv_noinit-into-flagname-array.patch
-mm-cma-dont-treat-bad-input-arguments-for-cma_alloc-as-its-failure.patch
-mm-cma-drop-config_cma_debug.patch
-mm-cma-make-max_cma_areas-=-config_cma_areas.patch
-mm-cma-add-sysfs-file-release_pages_success.patch
+kexec-split-crashkernel-reservation-code-out-from-crash_corec-fix.patch
+mm-memory_hotplug-export-mhp_supports_memmap_on_memory-fix.patch
+mm-damon-dbgfs-make-debugfs-interface-deprecation-message-a-macro-fix.patch
+mm-ptdump-have-ptdump_check_wx-return-bool-fix.patch
+mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages-fix.patch
+kprobes-use-synchronize_rcu_tasks_rude-in-kprobe_optimizer-fix.patch
+panic-add-option-to-dump-blocked-tasks-in-panic_print-fix.patch
 
