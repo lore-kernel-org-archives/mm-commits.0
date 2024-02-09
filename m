@@ -1,128 +1,139 @@
-Received: from mail-ej1-f52.google.com (mail-ej1-f52.google.com [209.85.218.52])
+Received: from mail-wr1-f43.google.com (mail-wr1-f43.google.com [209.85.221.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD38D364
-	for <mm-commits@vger.kernel.org>; Fri,  9 Feb 2024 00:25:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94F7615AF
+	for <mm-commits@vger.kernel.org>; Fri,  9 Feb 2024 01:21:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707438348; cv=none; b=FtoWBrC+Fqo6PN4ki/g0DHv2s6BXM/LME+v4p1MsS6W1fJSso2IZc2bTAzGYVleM8Rv9KKo5CH1Ab0da4oEW6z+kqPsh67N4V32YMR4qWVI57Qp1//BFGgs27FKMneGBOhWatY6P/Vw2qW8r3hGoC+T1reGoAYEKu4vb7iWhPNE=
+	t=1707441679; cv=none; b=fStJWwiWsgd8eqhcGOs5Xt17fyEyN5d+vffGb+VH+v2hcf52TINlUog10PrNemnV2Q9xbREMJDJ3vYeh13Wf9qqTbSCRy7Ow12WjSZKaclq30O78ikyIdlpAxPbYOLAEdkjmGZiGVOMz5mb/LXS1+Lhu9gNd91rBFoceQ6FuDw0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707438348; c=relaxed/simple;
-	bh=8NUBWAGSAANirPtmpV4sQhtKPKMk9NLbNWvJRPkJ5+c=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=OUH0A7OmNOyvcAShpztFq/bTlfbnwRS2YKo4+JWlgSNNvWx3+k2ToRQLZL2YCV2t3C5hAzAEhFROlLzAt+GpPD/vrO4qwCsaHUu4+LhNUucsd08v/X6zM+ZSbXrHREoVAA07Liv6xK5Pqhju2Fm2q3moYoZ+2uov/5DtD5NKLG0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cmpxchg.org; spf=pass smtp.mailfrom=cmpxchg.org; dkim=pass (2048-bit key) header.d=cmpxchg-org.20230601.gappssmtp.com header.i=@cmpxchg-org.20230601.gappssmtp.com header.b=vK54dfZM; arc=none smtp.client-ip=209.85.218.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cmpxchg.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cmpxchg.org
+	s=arc-20240116; t=1707441679; c=relaxed/simple;
+	bh=pn6ReTvnUVbJ25qqg1omgIvgCRjuYqlgg61/1KtGe6c=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=I6kr/sMmDxeM5xYY6mFzyOZav6LNugpYb3af1ftTib63bb0x/9RCBHRnbxaYjsHElBgHcYzodR5uANcWwHPAHL+K/WwTcjeh4sIFmDhzD+N9TjB9b4PUwM/1SXlxApD7cWmAAG8bG8Ou5ky0d7RK8dL2EQSVYaDHnE5NfCnLfe8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=tV8ACGZw; arc=none smtp.client-ip=209.85.221.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=cmpxchg-org.20230601.gappssmtp.com header.i=@cmpxchg-org.20230601.gappssmtp.com header.b="vK54dfZM"
-Received: by mail-ej1-f52.google.com with SMTP id a640c23a62f3a-a293f2280c7so52778766b.1
-        for <mm-commits@vger.kernel.org>; Thu, 08 Feb 2024 16:25:45 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="tV8ACGZw"
+Received: by mail-wr1-f43.google.com with SMTP id ffacd0b85a97d-33b0ecb1965so168578f8f.1
+        for <mm-commits@vger.kernel.org>; Thu, 08 Feb 2024 17:21:17 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cmpxchg-org.20230601.gappssmtp.com; s=20230601; t=1707438344; x=1708043144; darn=vger.kernel.org;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=0fYenfxvGpsgVBwiEZtBEWh+ELviNau/ByfTk/UkUxI=;
-        b=vK54dfZMiUFbYJh3twA+UK08JXP3SMfvZKFDxmV0JZB0oun9yvzBMm7YYU9HmHsAZi
-         e5rgW51J4G1O5vOn6nRTQD58MerPL1K6ln+9Qmg+efWnAP+ZfgJoqkNhir4RcwoEHccI
-         8oMgJIKA8m6e/kMP8IlU/LOez76ELoCp/moVb8IMuu10XhlZO/tYXbLFOZFh317jWMhk
-         pnlRrq3XVRAsbYozLyoMXuv8MZVFprdVqR8R3TOyG/uZvJJjymepfXbpuU/AmOYY4OX0
-         vz6AR5eiy8uNfK+jRrcmy2GSaIGvRnoHu291ZW6MGwQ1mlL2Y05+R8L88I3agJyp24t/
-         OuKw==
+        d=google.com; s=20230601; t=1707441676; x=1708046476; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=pn6ReTvnUVbJ25qqg1omgIvgCRjuYqlgg61/1KtGe6c=;
+        b=tV8ACGZwGigUCxDHWFRbutMxlDU/upnOuK8iDdY5+QRUVkpB4i2XAs0Kv7IbI1aOzY
+         7l0onpsG0V+RvBdogV5c4XoJfkj2KDitbH1sY4dQKiowrekZ4JFIvm4MTcxbokAO3Q77
+         UqF8PhAqLhfb6w961G2GvjX80Hrry4lh7GbTY2XuqMPn9xcLiam3bxCtP5g7Mf0tu/F1
+         jBRYWUoWypb3hzv6LxgBUAiahg2SzwgU+oyhTjkXRkNqYOKU09JEpB2KBxCJyEWj9S/N
+         Aju9mMwxuSi3twg1DxQnnKHKjjDGpc+qhQ4813Nhhmg0N55jnuHHxlzv+PUurD0BCZK3
+         Wvpw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1707438344; x=1708043144;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=0fYenfxvGpsgVBwiEZtBEWh+ELviNau/ByfTk/UkUxI=;
-        b=fFxe2GSiYfp0j08GMKIopeLDScv5dETAYl58Va9B9776c/gaB36CHrcuK0UaSRi1qn
-         TQ558fKeaq/QqucHthqwYiFlEplzm5KkOTBtK8t1w30riItIuluE02Os48NnWCKcRvbX
-         4nlJjcHXKhnsVsRuT4s2vjn18qT1CHoXhfRk7VJ3Z/L3gfJm2NnCEKKAWJOsfFlc85Al
-         I0lPYF300IaQW65Mk6WEBxuvCc8Aur+tYy1O42dWgPzNjWBYV0SUE0onCEZyJGXBO2l+
-         OhVWCL73t+C7Wkx8GWAhFIZ3f6xIdQ0NQvDrmeQiurqbZd98tnR6uavnYvE8RvMYo2V/
-         +YXA==
-X-Gm-Message-State: AOJu0Yw5JQ3T+5C/dXM/fIAJqyyI36DwY+/2LMooJ4L4HrE7JrJMP3Jj
-	iCPGkyh7O/5e7NLL5gY03cynxIBviTDx/MJqeNPJ2BqX7pUiTZTYiHL1G8D+XGo=
-X-Google-Smtp-Source: AGHT+IGiyOKHBH4dk/sJlbzMjqu2aDBm+TKrrUrY4u20Bnmtg321YN8AU4zxf8wj/hdG2HthYKF/ng==
-X-Received: by 2002:a17:906:260d:b0:a36:fd11:3f98 with SMTP id h13-20020a170906260d00b00a36fd113f98mr706138ejc.17.1707438343808;
-        Thu, 08 Feb 2024 16:25:43 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCVh3zpS92rjGhUp8j494HUTaSnuxhk1a8FqLlBRUfrex9CerQ+8zl4CeMhFQM39B7Rs6hwlyU4kTu7y8t1lgZ8aJbNfqVNViILY11U/v2rAXTLuU701CyUfMxpHdkepGDpWWEZLjPjg3N/gow7QkjfxgBIYjgpZyRPxtDXpFJQuBfRepkE+5iPyBWj0u7PKU9YcQWJY2Bbjh5JbqYADn0qY9xvi0mDGZh0qxZMaVDYaboc4rtmVgjSDUI2/xz9F5qGWcWO9tOR4bJjp+f3krFCx651flMZ2Nw4ALnPVRZV2SluZyyauzARu3r6KhAXKEaN9/SBNQFlHuEIU82eK7soW1OLzr0QQhUggFWUxdl9P+JvcGHLJ51oVAYwp3uD0p6hJ/GLXTJKQyNtn9efy+/aS6PrLkAJq01wSdijReZS/NgBvCFhTOrUWY5lMRZ905hXyKBYrkeEWI1o6X8ZXmElAZ840/uFvoBDATKIMLEv5uDSZFNxHB7vEbYFgg2N0xckqpLY/P70tc7EdmQGk99EGgFah/x9V/6eLMzQiGTucF/bn0OIDlGCZY8wrKHgYsY3jmjxsASil3O8vpZTGIkbLVCwQh1FTPomilmFgP8zzf1dkjCxOxT1QosC8p2cmPKS2s/7vAUchDJCFdjLK8b3K1VlFcYXy4/Jb3RCUYixXtpynHxe7NWHcoeoPbkj8ufDD5Q0J9lj6CMnpTwp03ZfRtBGXj04Pzg7MSsEHtILyewPn6nNaHRsdNSNPok3oOP6wctG7B11FYmtEZKnn2ahQ0CVq
-Received: from localhost ([2a02:8071:6401:180:f8f5:527f:9670:eba8])
-        by smtp.gmail.com with ESMTPSA id tl14-20020a170907c30e00b00a3bcfe76170sm210963ejc.2.2024.02.08.16.25.43
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 08 Feb 2024 16:25:43 -0800 (PST)
-Date: Fri, 9 Feb 2024 01:25:38 +0100
-From: Johannes Weiner <hannes@cmpxchg.org>
-To: Wei Xu <weixugc@google.com>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>,
-	Yosry Ahmed <yosryahmed@google.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	mm-commits@vger.kernel.org, yang.yang29@zte.com.cn,
-	willy@infradead.org, wangkefeng.wang@huawei.com, vbabka@suse.cz,
-	tomas.mudrunka@gmail.com, surenb@google.com, shakeelb@google.com,
-	rppt@kernel.org, rdunlap@infradead.org, rafael@kernel.org,
-	muchun.song@linux.dev, Liam.Howlett@oracle.com,
-	kirill.shutemov@linux.intel.com, ivan@cloudflare.com,
-	gregkh@linuxfoundation.org, david@redhat.com, corbet@lwn.net,
-	chenlinxuan@uniontech.com, bhelgaas@google.com, adobriyan@gmail.com,
-	souravpanda@google.com
-Subject: Re: + mm-report-per-page-metadata-information.patch added to
- mm-unstable branch
-Message-ID: <20240209002538.GA896819@cmpxchg.org>
-References: <20240207231014.3A3F0C433C7@smtp.kernel.org>
- <20240208031413.GA185687@cmpxchg.org>
- <CAJD7tkbdzwjhhgK_-6iAHLn05Q-7wCOzEn9xug1Udr+Df-hLkA@mail.gmail.com>
- <20240208064411.GE185687@cmpxchg.org>
- <CA+CK2bCxPVyB8ZVk3dA5TKROScNHMzdu_PkBTK9b3zStvgemDA@mail.gmail.com>
- <CAAPL-u-vmt9qx=E=tLq5NGQbam5i3WFqvuAepxzYMJ7EkRYgMA@mail.gmail.com>
+        d=1e100.net; s=20230601; t=1707441676; x=1708046476;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=pn6ReTvnUVbJ25qqg1omgIvgCRjuYqlgg61/1KtGe6c=;
+        b=HR/vMfrDP3jjCgzT510KaFTRXg+OnhJr3KSFL+FxYP/YQUHb80dd6AFnb+6+3qgdez
+         PTUbohwWWggIuuutIjn5jbds6bj9upMruTZ/0WHoWNNpocTsC0vvXZ7P0vg1I43a6SKF
+         3Qf6c1yxelI/uymDraPNGUk0Q3F9UCbZp50qD0TXtNmOgBiEm1Riv6VP96GIaqqja/QU
+         +kVlezeqOgbdo513ktyyGZ2jLls9jipk1b/h5RqpuZPn+6kyHxtwQH/ycbQc7+nn2jtQ
+         intO2nHDXlGZH6gEkSo5Z7Ww+C6qK+H1Y/ZmIpGv5U388KM4LAS7OyKLTvQT7riDgCpL
+         3+cg==
+X-Gm-Message-State: AOJu0Ywf9y/R5kgjoceZvI2AcjM/S6iALZHiwoUssefjDYjv2J6Q+BYU
+	XPU44wnSc9APl4Wff6FQUWnJ/MZDD4ON9/JuOXFAOsNfXmDhQdXBBjLmXbmVuKaTMQC8l2lviXV
+	sFLQb6Wnr9nxqveJPWPVuL0vjb9tbTlScikTs
+X-Google-Smtp-Source: AGHT+IFyo8ZmF94C0LDhOTSGBMFF+QGzq53nltI+q8IYSmCzPaQzDjlDqxiLjhc2+6nJr9Odr6CIZdAQr9JQ9cDnkb4=
+X-Received: by 2002:adf:f88f:0:b0:33b:60cb:c3ad with SMTP id
+ u15-20020adff88f000000b0033b60cbc3admr761527wrp.41.1707441675636; Thu, 08 Feb
+ 2024 17:21:15 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAAPL-u-vmt9qx=E=tLq5NGQbam5i3WFqvuAepxzYMJ7EkRYgMA@mail.gmail.com>
+References: <20240207231014.3A3F0C433C7@smtp.kernel.org> <20240208031413.GA185687@cmpxchg.org>
+ <CAJD7tkbdzwjhhgK_-6iAHLn05Q-7wCOzEn9xug1Udr+Df-hLkA@mail.gmail.com>
+ <20240208064411.GE185687@cmpxchg.org> <CA+CK2bCxPVyB8ZVk3dA5TKROScNHMzdu_PkBTK9b3zStvgemDA@mail.gmail.com>
+ <CAAPL-u-vmt9qx=E=tLq5NGQbam5i3WFqvuAepxzYMJ7EkRYgMA@mail.gmail.com> <20240209002538.GA896819@cmpxchg.org>
+In-Reply-To: <20240209002538.GA896819@cmpxchg.org>
+From: Wei Xu <weixugc@google.com>
+Date: Thu, 8 Feb 2024 17:21:03 -0800
+Message-ID: <CAAPL-u_2yfwg6h-_sDu0sCA7SphSpjwDAwd0dF9e3iDwEPW0gQ@mail.gmail.com>
+Subject: Re: + mm-report-per-page-metadata-information.patch added to
+ mm-unstable branch
+To: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>, Yosry Ahmed <yosryahmed@google.com>, 
+	Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org, 
+	yang.yang29@zte.com.cn, willy@infradead.org, wangkefeng.wang@huawei.com, 
+	vbabka@suse.cz, tomas.mudrunka@gmail.com, surenb@google.com, 
+	shakeelb@google.com, rppt@kernel.org, rdunlap@infradead.org, 
+	rafael@kernel.org, muchun.song@linux.dev, Liam.Howlett@oracle.com, 
+	kirill.shutemov@linux.intel.com, ivan@cloudflare.com, 
+	gregkh@linuxfoundation.org, david@redhat.com, corbet@lwn.net, 
+	chenlinxuan@uniontech.com, bhelgaas@google.com, adobriyan@gmail.com, 
+	souravpanda@google.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Feb 08, 2024 at 03:50:12PM -0800, Wei Xu wrote:
-> On Thu, Feb 8, 2024 at 10:08 AM Pasha Tatashin
-> <pasha.tatashin@soleen.com> wrote:
+On Thu, Feb 8, 2024 at 4:25=E2=80=AFPM Johannes Weiner <hannes@cmpxchg.org>=
+ wrote:
+>
+> On Thu, Feb 08, 2024 at 03:50:12PM -0800, Wei Xu wrote:
+> > On Thu, Feb 8, 2024 at 10:08=E2=80=AFAM Pasha Tatashin
+> > <pasha.tatashin@soleen.com> wrote:
+> > >
+> > > > > I am not closely following this series, but I just wanted to poin=
+t out
+> > > > > that this is not always true. We are actively extending
+> > > > > NR_SECONDARY_PAGETABLE to add IOMMU page tables in addition to KV=
+M
+> > > > > page tables [1]. In that case as well, the name was left open-end=
+ed
+> > > > > exactly for this purpose [2].
+> > > >
+> > > > I think you're glossing over quite some nuance here.
+> > > >
+> > > > Sure there might be highly specific scenarios where you can get awa=
+y
+> > > > with it. Like with a very recently introduced counter for somewhat
+> > > > niche audiences, and bucketing/grouping that was IIRC planned from =
+the
+> > > > start. It's probably not reasonable to advocate nondescript interfa=
+ce
+> > > > names as a strategy for getting out of ABI commitments.
+> > > >
+> > > > My point was that "memmap" is the established term for what the aut=
+hor
+> > > > describes. And that this concept is sufficiently first-class that
+> > > > mixing it with other things later is unlikely to be acceptable. I
+> > > > didn't know WHY a new name for this was chosen, so I provided
+> > > > arguments for two motivations that I could think of, that's all.
+> > >
+> > > Sure, we can rename it to NR_MEMMAP_BOOT / NR_MEMMAP. We picked
+> > > NR_PAGE_METADATA_BOOT/NR_PAGE_METADATA as we thought it was a clearer
+> > > choice. It directly conveys the concept of page metadata overhead,
+> > > eliminating ambiguity about future potential structures. Today, it is
+> > > "struct page", and "pag_ext", tomorrow memdesc and more.
 > >
-> > > > I am not closely following this series, but I just wanted to point out
-> > > > that this is not always true. We are actively extending
-> > > > NR_SECONDARY_PAGETABLE to add IOMMU page tables in addition to KVM
-> > > > page tables [1]. In that case as well, the name was left open-ended
-> > > > exactly for this purpose [2].
-> > >
-> > > I think you're glossing over quite some nuance here.
-> > >
-> > > Sure there might be highly specific scenarios where you can get away
-> > > with it. Like with a very recently introduced counter for somewhat
-> > > niche audiences, and bucketing/grouping that was IIRC planned from the
-> > > start. It's probably not reasonable to advocate nondescript interface
-> > > names as a strategy for getting out of ABI commitments.
-> > >
-> > > My point was that "memmap" is the established term for what the author
-> > > describes. And that this concept is sufficiently first-class that
-> > > mixing it with other things later is unlikely to be acceptable. I
-> > > didn't know WHY a new name for this was chosen, so I provided
-> > > arguments for two motivations that I could think of, that's all.
-> >
-> > Sure, we can rename it to NR_MEMMAP_BOOT / NR_MEMMAP. We picked
-> > NR_PAGE_METADATA_BOOT/NR_PAGE_METADATA as we thought it was a clearer
-> > choice. It directly conveys the concept of page metadata overhead,
-> > eliminating ambiguity about future potential structures. Today, it is
-> > "struct page", and "pag_ext", tomorrow memdesc and more.
-> 
-> Technically, page_ext is not part of memmap if we go by the kernel code, right?
+> > Technically, page_ext is not part of memmap if we go by the kernel code=
+, right?
+>
+> From a user POV it's the same: the fixed linear overhead of mapping
+> out physical memory for kernel use. struct page is the build-time
+> component, struct page_ext is the boot-time component, but I'd say
+> that distinction is mostly just an implementation detail.
+>
+> If between memdesc, folio, slab etc. struct page disappears entirely
+> some day, "memmap" remains a valid concept and a cost of interest.
 
-From a user POV it's the same: the fixed linear overhead of mapping
-out physical memory for kernel use. struct page is the build-time
-component, struct page_ext is the boot-time component, but I'd say
-that distinction is mostly just an implementation detail.
+"memmap" is not a meaningful concept to the userspace. If we choose it
+because it is well-known within the kernel code, someday some kernel
+engineers may be surprised to see non-memmap overheads get reported as
+"memmap".
 
-If between memdesc, folio, slab etc. struct page disappears entirely
-some day, "memmap" remains a valid concept and a cost of interest.
+Anyway, I don't have a strong opinion on this field name. Just want to
+point out this potential issue.
