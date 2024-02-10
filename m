@@ -1,108 +1,132 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 103BB36AF6
-	for <mm-commits@vger.kernel.org>; Fri,  9 Feb 2024 23:55:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77FFD47F4B;
+	Sat, 10 Feb 2024 19:20:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707522919; cv=none; b=FvMe1XEig5dQL4Q4P9chxxcVeWyI5EXEh9i3l43tXSo8Q+Sw/YityBZC0V0+FIl0krjsa+9o+kBsqYbCpdEf5GBXsCRHwbvZThrQ4rPQ3yoJ4q98i6DH8DcRa/IyCZZOIhwuU18zyxBfKPGOF8eGBpimoKK8ytb8brHqzYGBAYQ=
+	t=1707592807; cv=none; b=sPdj5EW6ln1dRQGIx42wLaIiku6Odhx3chw49/CIg8l770AtYEyvGdXE7wc6J1Cxiz+SVEd+wdAswHYuLID2oJXI58Fz3Vdr5rbUB/ejWO6HmoMCjaX0Cf270pbf4QXpiBpcVMUO1mYVntZ8O2vJuBMT+G2EAKLjCaUy8KD9CPg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707522919; c=relaxed/simple;
-	bh=Wtmsrrnjw+DMQnMIii8PVLD9a33n4kY4+ThkSCVdMks=;
-	h=Date:To:From:Subject:Message-Id; b=NloWo204yoHBmwXuIusu7FEbvWKRv5ThHdxJkL+L/qvoHzzfOyP2aMSehDdVq3ewgv0dcffQyWXclTK2mQhYmOj6vzl13hDJ4PatRAjkTeRxOjJY8ivyTTaaLs71IaUCR/P+jfqQZeNdqtqVNRBGsX4iwSlQPgYMRoGqxs+jUwo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T/DodqmA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707592807; c=relaxed/simple;
+	bh=Al1Z3XjT/ynok7TtIZl2sBGeHH7P1DKbNwiY2Cdkj38=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=NXqKz4cdBgyltxF4XxJStnuoqevYysDjMplErfC1rEzPx4/6N2W76sdC9iXHLX+m6t3bsREo+GbKiD6vCCX0fnQpQbmv+4mLdz54nrSUDeTKgZjRvuROi8KyXaXa8CO8mnQwDVc2vAaMTC1T6fa9pCwHXS6tHYksRlbQ3nz2iSA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mTYKgMGh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T/DodqmA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EC95C433F1;
-	Fri,  9 Feb 2024 23:55:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mTYKgMGh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5543C43390;
+	Sat, 10 Feb 2024 19:20:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707522918;
-	bh=Wtmsrrnjw+DMQnMIii8PVLD9a33n4kY4+ThkSCVdMks=;
-	h=Date:To:From:Subject:From;
-	b=T/DodqmAn7EIheQv4phQQzVpC1QDQam2ZilfLSQZAoXdNdDyGekW7EsDAZ+PdEZI/
-	 sS9wOJ3kLdWTJjsHv5cDU9wPS3nI90PjF7kaTSxWxc0T2bloq1g60qqnr1zdGsh6Re
-	 mgwAUwvwhfsGBp40tzMIqIGZL/Odg/5gyjkPn1a8=
-Date: Fri, 09 Feb 2024 15:55:17 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,mgorman@techsingularity.net,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	s=korg; t=1707592806;
+	bh=Al1Z3XjT/ynok7TtIZl2sBGeHH7P1DKbNwiY2Cdkj38=;
+	h=Date:From:To:Cc:Subject:From;
+	b=mTYKgMGhzYC0UXw5LvoSIHQ/ghZNeO1puJSMEjT+gM/BP7FQE9a9BpqraY7lY+3og
+	 8ywWabody6pVlBOi/zipJEQG/X/Bj0WC5LHhaig1eFK/oyqdll8t8zdigZ2BxQRcf8
+	 Uzhxb6wv34ZchR1fRAuJ2ywQLd8mQc+/jLlsFcBc=
+Date: Sat, 10 Feb 2024 11:20:06 -0800
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages-fix.patch added to mm-unstable branch
-Message-Id: <20240209235518.7EC95C433F1@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 6.8-rc4
+Message-Id: <20240210112006.05781090736edc6e02de7e19@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The patch titled
-     Subject: mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages-fix.patch
+Linus, please merge this batch of MM and non-MM fixes, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages-fix.patch
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following changes since commit c8bdef1560d976340e421d5e188f94789e4cfa28:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+  Merge branch 'master' into mm-hotfixes-stable (2024-02-04 14:09:33 -0800)
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+are available in the Git repository at:
 
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2024-02-10-11-16
 
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages-fix
-Date: Fri Feb  9 03:51:53 PM PST 2024
+for you to fetch changes up to 5bc09b397cbf1221f8a8aacb1152650c9195b02b:
 
-fix it for the dropping of "mm/compaction: optimize >0 order folio
-compaction with free page split"
+  nilfs2: fix potential bug in end_buffer_async_write (2024-02-07 21:20:37 -0800)
 
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+----------------------------------------------------------------
+21 hotfixes.  12 are cc:stable and the remainder pertain to post-6.7
+issues or aren't considered to be needed in earlier kernel versions.
 
- mm/compaction.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+----------------------------------------------------------------
+Chengming Zhou (1):
+      mm/zswap: don't return LRU_SKIP if we have dropped lru lock
 
---- a/mm/compaction.c~mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages-fix
-+++ a/mm/compaction.c
-@@ -1798,7 +1798,7 @@ static struct folio *compaction_alloc(st
- 	dst = list_entry(cc->freepages.next, struct folio, lru);
- 	list_del(&dst->lru);
- 	cc->nr_freepages--;
--	cc->nr_migratepages -= 1 << order;
-+	cc->nr_migratepages -= 1 << folio_order(src);
- 
- 	return dst;
- }
-@@ -1814,7 +1814,7 @@ static void compaction_free(struct folio
- 
- 	list_add(&dst->lru, &cc->freepages);
- 	cc->nr_freepages++;
--	cc->nr_migratepages += 1 << order;
-+	cc->nr_migratepages += 1 << folio_order(dst);
- }
- 
- /* possible outcome of isolate_migratepages */
-_
+Johannes Weiner (1):
+      mm: zswap: fix objcg use-after-free in entry destruction
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+John Moon (1):
+      mailmap: switch email address for John Moon
 
-kexec-split-crashkernel-reservation-code-out-from-crash_corec-fix.patch
-mm-memory_hotplug-export-mhp_supports_memmap_on_memory-fix.patch
-mm-damon-dbgfs-make-debugfs-interface-deprecation-message-a-macro-fix.patch
-mm-ptdump-have-ptdump_check_wx-return-bool-fix.patch
-mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages-fix.patch
-kprobes-use-synchronize_rcu_tasks_rude-in-kprobe_optimizer-fix.patch
-panic-add-option-to-dump-blocked-tasks-in-panic_print-fix.patch
+Leo Yan (1):
+      MAINTAINERS: Leo Yan has moved
+
+Miaohe Lin (1):
+      mm/memory-failure: fix crash in split_huge_page_to_list from soft_offline_page
+
+Muhammad Usama Anjum (1):
+      selftests: core: include linux/close_range.h for CLOSE_RANGE_* macros
+
+Oleg Nesterov (5):
+      getrusage: move thread_group_cputime_adjusted() outside of lock_task_sighand()
+      getrusage: use sig->stats_lock rather than lock_task_sighand()
+      fs/proc: do_task_stat: move thread_group_cputime_adjusted() outside of lock_task_sighand()
+      fs/proc: do_task_stat: use sig->stats_lock to gather the threads/children stats
+      exit: wait_task_zombie: kill the no longer necessary spin_lock_irq(siglock)
+
+Oscar Salvador (1):
+      fs,hugetlb: fix NULL pointer dereference in hugetlbs_fill_super
+
+Prakash Sangappa (1):
+      mm: hugetlb pages should not be reserved by shmat() if SHM_NORESERVE
+
+Ryan Roberts (1):
+      mm/userfaultfd: UFFDIO_MOVE implementation should use ptep_get()
+
+Ryusuke Konishi (3):
+      nilfs2: fix data corruption in dsync block recovery for small block sizes
+      nilfs2: fix hang in nilfs_lookup_dirty_data_buffers()
+      nilfs2: fix potential bug in end_buffer_async_write
+
+SeongJae Park (1):
+      mm/damon/sysfs-schemes: fix wrong DAMOS tried regions update timeout setup
+
+Sergey Senozhatsky (1):
+      mm/madvise: don't forget to leave lazy MMU mode in madvise_cold_or_pageout_pte_range()
+
+Suren Baghdasaryan (1):
+      arch/arm/mm: fix major fault accounting when retrying under per-VMA lock
+
+Yosry Ahmed (1):
+      mm: memcg: optimize parent iteration in memcg_rstat_updated()
+
+ .mailmap                                        |  2 +
+ MAINTAINERS                                     |  2 +-
+ arch/arm/mm/fault.c                             |  2 +
+ fs/hugetlbfs/inode.c                            | 19 +++++--
+ fs/nilfs2/file.c                                |  8 ++-
+ fs/nilfs2/recovery.c                            |  7 +--
+ fs/nilfs2/segment.c                             |  8 +--
+ fs/proc/array.c                                 | 66 ++++++++++++++-----------
+ kernel/exit.c                                   | 10 ++--
+ kernel/sys.c                                    | 50 ++++++++++++-------
+ mm/damon/sysfs-schemes.c                        |  2 +-
+ mm/madvise.c                                    |  1 +
+ mm/memcontrol.c                                 | 56 +++++++++++++--------
+ mm/memory-failure.c                             |  3 ++
+ mm/userfaultfd.c                                | 14 +++---
+ mm/zswap.c                                      | 12 ++---
+ tools/testing/selftests/core/close_range_test.c |  1 +
+ 17 files changed, 162 insertions(+), 101 deletions(-)
 
