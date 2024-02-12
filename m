@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5A7D4F885
-	for <mm-commits@vger.kernel.org>; Mon, 12 Feb 2024 23:28:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 347FE4F888
+	for <mm-commits@vger.kernel.org>; Mon, 12 Feb 2024 23:28:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707780519; cv=none; b=fDi/wNMh4gokuEnIHRUbf2g57G7w9fQew2fO+f5nllUEWtZhA1Bw3N2baLBuwWh4zOuPW1TRSEY5OT9r/HnIrQWoPMNddsxUXqhnqMAKU+2YqF/sGhEzQDY9GDEKoA+hTA2fpklqhBYvGn04Y+E/+iCJktTpqTlx1C+e+EvV+Zk=
+	t=1707780522; cv=none; b=nlUQr0Fg9DWT1gAdL/i0b43oyPVnW4O8BqIxkwxXDgD0JHPokfL3T2U0RBDBuiHhiPJw53ShfwH7yQEQMUk0AcQF2dDKgLikuCA/vh2OnqSQ6IdCWc2TKmul5vD1zWYS+Q07lDubAXFGL0JPauhrMj1CCLSMJvSbd2/Fjr4DuzE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707780519; c=relaxed/simple;
-	bh=9xto64s1JB80dwzBjaVoqsEOhlFsqybGGNQroddyCFo=;
-	h=Date:To:From:Subject:Message-Id; b=FCJDWWoIugHHUbeJjYboj+7MlFEDVruXsZ0h/90ddMPPEY1hXak0cLdTwu1ArIS/AVmUuQFc5l4L6TmZ7638v5IatohtoWisHMOg0R1MsAwyhExpfznfMY/llltg2RWh2Xum83LTRBmaWjPHyBJ79+bnMribjqicIOvfrUim35k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DsnmC8BU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707780522; c=relaxed/simple;
+	bh=1P9ykQ1FxVHufaRwCzbdEqEO+7F0DXHiY/3I8jD5/xs=;
+	h=Date:To:From:Subject:Message-Id; b=kBzn8WORlGudJlkVsvH9eKkz0yLzMHU4QUWI1DITh+CIZ8i24mrkDcqQ/0CMrUeQAuJPndaJIqmbnwA5QZKM3Mk3cmxJBSWPz0TtI0zYgsGTixaZ9A/VjdFk/mQrvufIKLptiZ89GgURuJiteXk6V+82a5CXzW4IhUDsOv75lEI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t57I0BUC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DsnmC8BU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21E1FC433F1;
-	Mon, 12 Feb 2024 23:28:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t57I0BUC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1202C433F1;
+	Mon, 12 Feb 2024 23:28:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707780519;
-	bh=9xto64s1JB80dwzBjaVoqsEOhlFsqybGGNQroddyCFo=;
+	s=korg; t=1707780521;
+	bh=1P9ykQ1FxVHufaRwCzbdEqEO+7F0DXHiY/3I8jD5/xs=;
 	h=Date:To:From:Subject:From;
-	b=DsnmC8BU3waSzuarzqiT0mdtsh4E9R3VzbjaXX1dB2oxYdsaIAVe2yr59+shDDlVH
-	 Rjx2lwNA0z6nch9kJXmwHsp9OOQBspJxerZYpEIYzZrihUOUAGdXUxeh0VZmBmRNn6
-	 gQwQonbw6TzB0apQufK2AHohuID9hTi0/zMkkxx4=
-Date: Mon, 12 Feb 2024 15:28:38 -0800
+	b=t57I0BUCa7CUcHn+8tdQ7wxLjez8YRgCdxL/niWEtEJtea0LOdkV7ZBYkAeRz6Hll
+	 MJA66wVKGHE2bpg9PZFJfhnvl/RFcq3wy0183hwJKhgMxF6Pa3xOMxmjpqHnEaK1YX
+	 K/9jK9DlqQfRPXcbbdEvZPQ+I7QKcQYOSm7W2JsM=
+Date: Mon, 12 Feb 2024 15:28:41 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,mhocko@suse.com,glider@google.com,elver@google.com,andreyknvl@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmpage_owner-implement-the-tracking-of-the-stacks-count.patch added to mm-unstable branch
-Message-Id: <20240212232839.21E1FC433F1@smtp.kernel.org>
+Subject: + mmpage_owner-display-all-stacks-and-their-count.patch added to mm-unstable branch
+Message-Id: <20240212232841.A1202C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm,page_owner: implement the tracking of the stacks count
+     Subject: mm,page_owner: display all stacks and their count
 has been added to the -mm mm-unstable branch.  Its filename is
-     mmpage_owner-implement-the-tracking-of-the-stacks-count.patch
+     mmpage_owner-display-all-stacks-and-their-count.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmpage_owner-implement-the-tracking-of-the-stacks-count.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmpage_owner-display-all-stacks-and-their-count.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,34 +59,38 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,page_owner: implement the tracking of the stacks count
-Date: Mon, 12 Feb 2024 23:30:26 +0100
+Subject: mm,page_owner: display all stacks and their count
+Date: Mon, 12 Feb 2024 23:30:27 +0100
 
-page_owner needs to increment a stack_record refcount when a new
-allocation occurs, and decrement it on a free operation.  In order to do
-that, we need to have a way to get a stack_record from a handle.
+This patch adds a new directory called 'page_owner_stacks' under
+/sys/kernel/debug/, with a file called 'show_stacks' in it.  Reading from
+that file will show all stacks that were added by page_owner followed by
+their counting, giving us a clear overview of stack <-> count
+relationship.
 
-Implement __stack_depot_get_stack_record() which just does that, and make
-it public so page_owner can use it.
+E.g:
 
-Also implement {inc,dec}_stack_record_count() which increments or
-decrements on respective allocation and free operations, via
-__reset_page_owner() (free operation) and __set_page_owner() (alloc
-operation).
+  prep_new_page+0xa9/0x120
+  get_page_from_freelist+0x801/0x2210
+  __alloc_pages+0x18b/0x350
+  alloc_pages_mpol+0x91/0x1f0
+  folio_alloc+0x14/0x50
+  filemap_alloc_folio+0xb2/0x100
+  __filemap_get_folio+0x14a/0x490
+  ext4_write_begin+0xbd/0x4b0 [ext4]
+  generic_perform_write+0xc1/0x1e0
+  ext4_buffered_write_iter+0x68/0xe0 [ext4]
+  ext4_file_write_iter+0x70/0x740 [ext4]
+  vfs_write+0x33d/0x420
+  ksys_write+0xa5/0xe0
+  do_syscall_64+0x80/0x160
+  entry_SYSCALL_64_after_hwframe+0x6e/0x76
+ stack_count: 4578
 
-Traversing all stackdepot buckets comes with its own complexity, plus we
-would have to implement a way to mark only those stack_records that were
-originated from page_owner, as those are the ones we are interested in.
+The seq stack_{start,next} functions will iterate through the list
+stack_list in order to print all stacks.
 
-For that reason, page_owner maintains its own list of stack_records,
-because traversing that list is faster than traversing all buckets while
-keeping at the same time a low complexity.  inc_stack_record_count() is
-responsible of adding new stack_records into the list stack_list.
-
-Modifications on the list are protected via a spinlock with irqs disabled,
-since this code can also be reached from IRQ context.
-
-Link: https://lkml.kernel.org/r/20240212223029.30769-3-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20240212223029.30769-4-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
@@ -96,163 +100,133 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/stackdepot.h |    9 ++++
- lib/stackdepot.c           |    8 +++
- mm/page_owner.c            |   73 +++++++++++++++++++++++++++++++++++
- 3 files changed, 90 insertions(+)
+ mm/page_owner.c |   99 +++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 98 insertions(+), 1 deletion(-)
 
---- a/include/linux/stackdepot.h~mmpage_owner-implement-the-tracking-of-the-stacks-count
-+++ a/include/linux/stackdepot.h
-@@ -176,6 +176,15 @@ depot_stack_handle_t stack_depot_save(un
- 				      unsigned int nr_entries, gfp_t gfp_flags);
- 
- /**
-+ * __stack_depot_get_stack_record - Get a pointer to a stack_record struct
-+ * This function is only for internal purposes.
-+ * @handle: Stack depot handle
-+ *
-+ * Return: Returns a pointer to a stack_record struct
-+ */
-+struct stack_record *__stack_depot_get_stack_record(depot_stack_handle_t handle);
-+
-+/**
-  * stack_depot_fetch - Fetch a stack trace from stack depot
-  *
-  * @handle:	Stack depot handle returned from stack_depot_save()
---- a/lib/stackdepot.c~mmpage_owner-implement-the-tracking-of-the-stacks-count
-+++ a/lib/stackdepot.c
-@@ -685,6 +685,14 @@ depot_stack_handle_t stack_depot_save(un
- }
- EXPORT_SYMBOL_GPL(stack_depot_save);
- 
-+struct stack_record *__stack_depot_get_stack_record(depot_stack_handle_t handle)
-+{
-+	if (!handle)
-+		return NULL;
-+
-+	return depot_fetch_stack(handle);
-+}
-+
- unsigned int stack_depot_fetch(depot_stack_handle_t handle,
- 			       unsigned long **entries)
- {
---- a/mm/page_owner.c~mmpage_owner-implement-the-tracking-of-the-stacks-count
+--- a/mm/page_owner.c~mmpage_owner-display-all-stacks-and-their-count
 +++ a/mm/page_owner.c
-@@ -36,6 +36,14 @@ struct page_owner {
- 	pid_t free_tgid;
+@@ -84,7 +84,12 @@ static void add_stack_record_to_list(str
+ 			stack_list = stack;
+ 		} else {
+ 			stack->next = stack_list;
+-			stack_list = stack;
++			/* This pairs with smp_load_acquire() from function
++			 * stack_start(). This guarantees that stack_start()
++			 * will see an updated stack_list before starting to
++			 * traverse the list.
++			 */
++			smp_store_release(&stack_list, stack);
+ 		}
+ 		spin_unlock_irqrestore(&stack_list_lock, flags);
+ 	}
+@@ -792,8 +797,97 @@ static const struct file_operations proc
+ 	.llseek		= lseek_page_owner,
  };
  
-+struct stack {
-+	struct stack_record *stack_record;
-+	struct stack *next;
-+};
-+
-+static struct stack *stack_list;
-+static DEFINE_SPINLOCK(stack_list_lock);
-+
- static bool page_owner_enabled __initdata;
- DEFINE_STATIC_KEY_FALSE(page_owner_inited);
- 
-@@ -61,6 +69,57 @@ static __init bool need_page_owner(void)
- 	return page_owner_enabled;
- }
- 
-+static void add_stack_record_to_list(struct stack_record *stack_record)
++static void *stack_start(struct seq_file *m, loff_t *ppos)
 +{
-+	unsigned long flags;
 +	struct stack *stack;
 +
-+	stack = kmalloc(sizeof(*stack), GFP_KERNEL);
-+	if (stack) {
-+		stack->stack_record = stack_record;
-+		stack->next = NULL;
++	if (*ppos == -1UL)
++		return NULL;
 +
-+		spin_lock_irqsave(&stack_list_lock, flags);
-+		if (!stack_list) {
-+			stack_list = stack;
-+		} else {
-+			stack->next = stack_list;
-+			stack_list = stack;
-+		}
-+		spin_unlock_irqrestore(&stack_list_lock, flags);
-+	}
-+}
-+
-+static void inc_stack_record_count(depot_stack_handle_t handle)
-+{
-+	struct stack_record *stack_record = __stack_depot_get_stack_record(handle);
-+
-+	if (stack_record) {
++	if (!*ppos) {
 +		/*
-+		 * New stack_record's that do not use STACK_DEPOT_FLAG_GET start
-+		 * with REFCOUNT_SATURATED to catch spurious increments of their
-+		 * refcount.
-+		 * Since we do not use STACK_DEPOT_FLAG_{GET,PUT} API, let us
-+		 * set a refcount of 1 ourselves.
++		 * This pairs with smp_store_release() from function
++		 * add_stack_record_to_list(), so we get a consistent
++		 * value of stack_list.
 +		 */
-+		if (refcount_read(&stack_record->count) == REFCOUNT_SATURATED) {
-+			refcount_set(&stack_record->count, 1);
-+
-+			/* Add the new stack_record to our list */
-+			add_stack_record_to_list(stack_record);
-+		}
-+		refcount_inc(&stack_record->count);
++		stack = smp_load_acquire(&stack_list);
++	} else {
++		stack = m->private;
++		stack = stack->next;
 +	}
++
++	m->private = stack;
++
++	return stack;
 +}
 +
-+static void dec_stack_record_count(depot_stack_handle_t handle)
++static void *stack_next(struct seq_file *m, void *v, loff_t *ppos)
 +{
-+	struct stack_record *stack_record = __stack_depot_get_stack_record(handle);
++	struct stack *stack = v;
 +
-+	if (stack_record)
-+		refcount_dec(&stack_record->count);
++	stack = stack->next;
++	*ppos = stack ? *ppos + 1 : -1UL;
++	m->private = stack;
++
++	return stack;
 +}
 +
- static __always_inline depot_stack_handle_t create_dummy_stack(void)
++static int stack_print(struct seq_file *m, void *v)
++{
++	char *buf;
++	int ret = 0;
++	struct stack *stack = v;
++	struct stack_record *stack_record = stack->stack_record;
++
++	if (!stack_record->size || stack_record->size < 0 ||
++	    refcount_read(&stack_record->count) < 2)
++		return 0;
++
++	buf = kzalloc(PAGE_SIZE, GFP_KERNEL);
++
++	ret += stack_trace_snprint(buf, PAGE_SIZE, stack_record->entries,
++				   stack_record->size, 0);
++	if (!ret)
++		goto out;
++
++	scnprintf(buf + ret, PAGE_SIZE - ret, "stack_count: %d\n\n",
++		  refcount_read(&stack_record->count));
++
++	seq_printf(m, buf);
++	seq_puts(m, "\n\n");
++out:
++	kfree(buf);
++
++	return 0;
++}
++
++static void stack_stop(struct seq_file *m, void *v)
++{
++}
++
++static const struct seq_operations page_owner_stack_op = {
++	.start	= stack_start,
++	.next	= stack_next,
++	.stop	= stack_stop,
++	.show	= stack_print
++};
++
++static int page_owner_stack_open(struct inode *inode, struct file *file)
++{
++	return seq_open_private(file, &page_owner_stack_op, 0);
++}
++
++static const struct file_operations page_owner_stack_operations = {
++	.open		= page_owner_stack_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= seq_release,
++};
++
+ static int __init pageowner_init(void)
  {
- 	unsigned long entries[4];
-@@ -140,6 +199,7 @@ void __reset_page_owner(struct page *pag
- 	int i;
- 	struct page_ext *page_ext;
- 	depot_stack_handle_t handle;
-+	depot_stack_handle_t alloc_handle;
- 	struct page_owner *page_owner;
- 	u64 free_ts_nsec = local_clock();
- 
-@@ -147,6 +207,9 @@ void __reset_page_owner(struct page *pag
- 	if (unlikely(!page_ext))
- 		return;
- 
-+	page_owner = get_page_owner(page_ext);
-+	alloc_handle = page_owner->handle;
++	struct dentry *dir;
 +
- 	handle = save_stack(GFP_NOWAIT | __GFP_NOWARN);
- 	for (i = 0; i < (1 << order); i++) {
- 		__clear_bit(PAGE_EXT_OWNER_ALLOCATED, &page_ext->flags);
-@@ -158,6 +221,15 @@ void __reset_page_owner(struct page *pag
- 		page_ext = page_ext_next(page_ext);
- 	}
- 	page_ext_put(page_ext);
-+	if (alloc_handle != early_handle)
-+		/*
-+		 * early_handle is being set as a handle for all those
-+		 * early allocated pages. See init_pages_in_zone().
-+		 * Since their refcount is not being incremented because
-+		 * the machinery is not ready yet, we cannot decrement
-+		 * their refcount either.
-+		 */
-+		dec_stack_record_count(alloc_handle);
- }
+ 	if (!static_branch_unlikely(&page_owner_inited)) {
+ 		pr_info("page_owner is disabled\n");
+ 		return 0;
+@@ -801,6 +895,9 @@ static int __init pageowner_init(void)
  
- static inline void __set_page_owner_handle(struct page_ext *page_ext,
-@@ -199,6 +271,7 @@ noinline void __set_page_owner(struct pa
- 		return;
- 	__set_page_owner_handle(page_ext, handle, order, gfp_mask);
- 	page_ext_put(page_ext);
-+	inc_stack_record_count(handle);
- }
+ 	debugfs_create_file("page_owner", 0400, NULL, NULL,
+ 			    &proc_page_owner_operations);
++	dir = debugfs_create_dir("page_owner_stacks", NULL);
++	debugfs_create_file("show_stacks", 0400, dir, NULL,
++			    &page_owner_stack_operations);
  
- void __set_page_owner_migrate_reason(struct page *page, int reason)
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
