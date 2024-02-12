@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27ECA749F;
-	Mon, 12 Feb 2024 22:30:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C3564DA1D;
+	Mon, 12 Feb 2024 22:30:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707777042; cv=none; b=indT726pv+yqYWgnno6MM7XCEl06fNdvRHqsOoRuNQGFObJGF3bdW4ScmlFZpxxwDoqd+bXodGaGAtv+YO/8kz9A4zTAI/jmd0MXHGv/McHSxquoYOpfLypt4Wgi9JkwZj5FgS4RkuyjPt6soFF17uXFQpQc6y1i3/edCyvXy24=
+	t=1707777044; cv=none; b=CL6zYYk9rIetqOcOeenZXD2D0d+2J2xYp7UjRqoTAbxtHH7H/5hBGJs1HzLGbGg+SPOTC7LoJk1sqy29bmtYz3H8422cxONaCt/1qJIlHCANb+2/c+ob0ifSdhhO/kXd3PMTM0O73ePAKC/woSBEPeKTtQyhkJlZl5OmeRXEs1E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707777042; c=relaxed/simple;
-	bh=TgKVJVgGbBk0wSlbIELAP4gxCAWWf+c29KZGZUWYiqQ=;
-	h=Date:To:From:Subject:Message-Id; b=uH9lkpa3vYvOW4+VUkwWfahxkr11LMXIOZOWzB0e/Ajz0Yge8sobAY9Nq1Hwc0326mSYSNEeG3H49btx0qsNb306Il66DOPZremy0FU20nRnsGz6E8EW9KIYvdJH6UQy5mxlZeJB5H2OVZ0psEqrO2Wd0SNWBb2lR60dVJKP12w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qrocDMc0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707777044; c=relaxed/simple;
+	bh=sLbCJk52pGpILsDr/UpEv9LyhFBg1vna/g1ELU+vVS8=;
+	h=Date:To:From:Subject:Message-Id; b=uo9EFQ7cxQ8nHBnb9IFWrFB9duaAuClzJI5i6SFw2BwvCAbXZrZHnEpwJcgk/QeaZxE8YATQWQw+3V2tt/AdtQpekrFBk7hrlHQbJPgL90Bex6qjz0Trw26gObgxrD08p7RQevk/vXf/4A7Yi7KWR7szJvejoxOtbWfP5r6T3iw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JbThoX97; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qrocDMc0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC72AC433F1;
-	Mon, 12 Feb 2024 22:30:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JbThoX97"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C1085C433F1;
+	Mon, 12 Feb 2024 22:30:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707777042;
-	bh=TgKVJVgGbBk0wSlbIELAP4gxCAWWf+c29KZGZUWYiqQ=;
+	s=korg; t=1707777043;
+	bh=sLbCJk52pGpILsDr/UpEv9LyhFBg1vna/g1ELU+vVS8=;
 	h=Date:To:From:Subject:From;
-	b=qrocDMc0jglamyjI+Dzo9BLUvHhAPAYHYxE0RAaRuNUIN6osPGCM9f9wZfb2jxdKr
-	 ckdAXB1nEKiYM5F62qtryhAEUJ1dZkDd9A6SoM9Ge4rasg1BLSjg5Vbe89a5grYZey
-	 JwuivLrYxAUHCCkpUgyAcp86SAEL6vWtdtWmgmwI=
-Date: Mon, 12 Feb 2024 14:30:41 -0800
+	b=JbThoX97swUonqP293sC6oNAEwNOq9TIjYKUIHDwWQV8rf1cL9vMD/dFpz7Hugl+y
+	 MmyIfBK32f8qyo5h8WF5arM/2mU1kGzy7G7PxL2jdt11f6xT/bi761QcspULvmyXA9
+	 +NUtC3gCbjN+UaDgnP1gR7fhzAVDjvvJF/7mtDTE=
+Date: Mon, 12 Feb 2024 14:30:43 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.l.verma@intel.com,torvalds@linux-foundation.org,snitzer@kernel.org,mpatocka@redhat.com,linux@armlinux.org.uk,dm-devel@lists.linux.dev,david@fromorbit.com,dave.jiang@intel.com,dan.j.williams@intel.com,arnd@arndb.de,agk@redhat.com,mathieu.desnoyers@efficios.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + dcssblk-handle-alloc_dax-eopnotsupp-failure.patch added to mm-unstable branch
-Message-Id: <20240212223041.DC72AC433F1@smtp.kernel.org>
+Subject: + virtio-treat-alloc_dax-eopnotsupp-failure-as-non-fatal.patch added to mm-unstable branch
+Message-Id: <20240212223043.C1085C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: dcssblk: handle alloc_dax() -EOPNOTSUPP failure
+     Subject: virtio: treat alloc_dax() -EOPNOTSUPP failure as non-fatal
 has been added to the -mm mm-unstable branch.  Its filename is
-     dcssblk-handle-alloc_dax-eopnotsupp-failure.patch
+     virtio-treat-alloc_dax-eopnotsupp-failure-as-non-fatal.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dcssblk-handle-alloc_dax-eopnotsupp-failure.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/virtio-treat-alloc_dax-eopnotsupp-failure-as-non-fatal.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,21 +59,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Subject: dcssblk: handle alloc_dax() -EOPNOTSUPP failure
-Date: Mon, 12 Feb 2024 11:30:57 -0500
+Subject: virtio: treat alloc_dax() -EOPNOTSUPP failure as non-fatal
+Date: Mon, 12 Feb 2024 11:30:58 -0500
 
 In preparation for checking whether the architecture has data cache
-aliasing within alloc_dax(), modify the error handling of dcssblk
-dcssblk_add_store() to handle alloc_dax() -EOPNOTSUPP failures.
+aliasing within alloc_dax(), modify the error handling of virtio
+virtio_fs_setup_dax() to treat alloc_dax() -EOPNOTSUPP failure as
+non-fatal.
 
-Considering that s390 is not a data cache aliasing architecture, and
-considering that DCSSBLK selects DAX, a return value of -EOPNOTSUPP from
-alloc_dax() should make dcssblk_add_store() fail.
-
-Link: https://lkml.kernel.org/r/20240212163101.19614-5-mathieu.desnoyers@efficios.com
+Link: https://lkml.kernel.org/r/20240212163101.19614-6-mathieu.desnoyers@efficios.com
+Co-developed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Fixes: d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Cc: Alasdair Kergon <agk@redhat.com>
 Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Mikulas Patocka <mpatocka@redhat.com>
@@ -89,38 +87,56 @@ Cc: Michael Sclafani <dm-devel@lists.linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/block/dcssblk.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ fs/fuse/virtio_fs.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
---- a/drivers/s390/block/dcssblk.c~dcssblk-handle-alloc_dax-eopnotsupp-failure
-+++ a/drivers/s390/block/dcssblk.c
-@@ -549,6 +549,7 @@ dcssblk_add_store(struct device *dev, st
- 	int rc, i, j, num_of_segments;
- 	struct dcssblk_dev_info *dev_info;
- 	struct segment_info *seg_info, *temp;
-+	struct dax_device *dax_dev;
- 	char *local_buf;
- 	unsigned long seg_byte_size;
+--- a/fs/fuse/virtio_fs.c~virtio-treat-alloc_dax-eopnotsupp-failure-as-non-fatal
++++ a/fs/fuse/virtio_fs.c
+@@ -16,6 +16,7 @@
+ #include <linux/fs_context.h>
+ #include <linux/fs_parser.h>
+ #include <linux/highmem.h>
++#include <linux/cleanup.h>
+ #include <linux/uio.h>
+ #include "fuse_i.h"
  
-@@ -677,13 +678,13 @@ dcssblk_add_store(struct device *dev, st
- 	if (rc)
- 		goto put_dev;
+@@ -795,8 +796,11 @@ static void virtio_fs_cleanup_dax(void *
+ 	put_dax(dax_dev);
+ }
  
--	dev_info->dax_dev = alloc_dax(dev_info, &dcssblk_dax_ops);
--	if (IS_ERR(dev_info->dax_dev)) {
--		rc = PTR_ERR(dev_info->dax_dev);
--		dev_info->dax_dev = NULL;
-+	dax_dev = alloc_dax(dev_info, &dcssblk_dax_ops);
++DEFINE_FREE(cleanup_dax, struct dax_dev *, if (!IS_ERR(_T)) virtio_fs_cleanup_dax(_T))
++
+ static int virtio_fs_setup_dax(struct virtio_device *vdev, struct virtio_fs *fs)
+ {
++	struct dax_device *dax_dev __free(cleanup_dax) = ERR_PTR(-EOPNOTSUPP);
+ 	struct virtio_shm_region cache_reg;
+ 	struct dev_pagemap *pgmap;
+ 	bool have_cache;
+@@ -804,6 +808,12 @@ static int virtio_fs_setup_dax(struct vi
+ 	if (!IS_ENABLED(CONFIG_FUSE_DAX))
+ 		return 0;
+ 
++	dax_dev = alloc_dax(fs, &virtio_fs_dax_ops);
 +	if (IS_ERR(dax_dev)) {
-+		rc = PTR_ERR(dax_dev);
- 		goto put_dev;
- 	}
--	set_dax_synchronous(dev_info->dax_dev);
-+	set_dax_synchronous(dax_dev);
-+	dev_info->dax_dev = dax_dev;
- 	rc = dax_add_host(dev_info->dax_dev, dev_info->gd);
- 	if (rc)
- 		goto out_dax;
++		int rc = PTR_ERR(dax_dev);
++		return rc == -EOPNOTSUPP ? 0 : rc;
++	}
++
+ 	/* Get cache region */
+ 	have_cache = virtio_get_shm_region(vdev, &cache_reg,
+ 					   (u8)VIRTIO_FS_SHMCAP_ID_CACHE);
+@@ -849,10 +859,7 @@ static int virtio_fs_setup_dax(struct vi
+ 	dev_dbg(&vdev->dev, "%s: window kaddr 0x%px phys_addr 0x%llx len 0x%llx\n",
+ 		__func__, fs->window_kaddr, cache_reg.addr, cache_reg.len);
+ 
+-	fs->dax_dev = alloc_dax(fs, &virtio_fs_dax_ops);
+-	if (IS_ERR(fs->dax_dev))
+-		return PTR_ERR(fs->dax_dev);
+-
++	fs->dax_dev = no_free_ptr(dax_dev);
+ 	return devm_add_action_or_reset(&vdev->dev, virtio_fs_cleanup_dax,
+ 					fs->dax_dev);
+ }
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@efficios.com are
