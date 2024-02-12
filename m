@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F26E4F610;
-	Mon, 12 Feb 2024 23:21:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6695A4F888
+	for <mm-commits@vger.kernel.org>; Mon, 12 Feb 2024 23:28:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707780110; cv=none; b=ZviS7ELztHyx9rGWO15eFUE2SS3BeaZBQE1cIInJKBrrmE2NYQc6wT9SRaCE8xYh2bRKDqo9GlwJCDsTlPRso1TjFUpiDYmnmeFIVOJJ/2I0zC6NEyu3DzrQKuxI+9+Vo0P5IVNmTWH5YTFCcTyzJM1dhvspM/5Wwf6RawPGFSg=
+	t=1707780517; cv=none; b=rClqQ8+nOWkcej3knOt6lxtox5LEDkFnBg5j4ByR32A7GHtFnEnPiTDkLpj7S1ozgWDt4pskVt6SxMJst5xWrEpKWwlQIrS/2Id5nRTdA4mLj28Gw/UiXFtUMUKbPtd3Kl9g6+rGVoe1dp21jpzBoZWbJv6AYLXOdUxMOkt6w3s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707780110; c=relaxed/simple;
-	bh=M+NK3H9EAiRTnxuj1er58hwV2l+kEdV/fbZVFA3drmM=;
-	h=Date:To:From:Subject:Message-Id; b=UxJaOn5n8ZAh10wftGemtoPGdZLBko1CjvnQNz4BseujtFRc8dsCtxGiG8+Ee+q5hq6fgbqj/bnPmprQnMvhUnNzryzSaq9xpLa4fZ1N5nE5oc1b9V9JbwjcE/vg5h2NmDW1IvX2UtjvHoCcRaLY8tV0+byZf5/hFrOZkPY2xC0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ia8ck2Sb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707780517; c=relaxed/simple;
+	bh=UJgI42gAPCguitciNB3ek5+1OWRnWyWPj+brQhFBNLM=;
+	h=Date:To:From:Subject:Message-Id; b=DxYbWrKHgZc7Aywik1QPDRdpt2iHOzzmC0BBKZc3qNqKchqZHzQH0DRRMxQ/Uy+lJlCyccescUQFMnkUY1JCpdzeEwsJG9gYha45eP5arYTRLeTC5o08s3oOn1tOFGZf7MwX2cOJwd/6DKleV4wF+xqx0iTBPKwbVs6gmDivDJ0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LA5lD8OZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ia8ck2Sb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE37FC433C7;
-	Mon, 12 Feb 2024 23:21:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LA5lD8OZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA5ABC433F1;
+	Mon, 12 Feb 2024 23:28:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707780109;
-	bh=M+NK3H9EAiRTnxuj1er58hwV2l+kEdV/fbZVFA3drmM=;
+	s=korg; t=1707780516;
+	bh=UJgI42gAPCguitciNB3ek5+1OWRnWyWPj+brQhFBNLM=;
 	h=Date:To:From:Subject:From;
-	b=ia8ck2SbzDuPE4SMrtpmXtFJXAFJPgCQfaqvLfo5GwBXPZ/kVQH+/pdi3OZiw+Qi/
-	 SqIcksbC7wlrJSGsrQcY816aJHvHqYaVzfQouaTZ4bWI8iIQwIZ9WZoatrR+E1AFA2
-	 ezEyWz4S+qgEg/MVK5JcUQ/mGyRhY5XHB2LgoFfU=
-Date: Mon, 12 Feb 2024 15:21:49 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,david@redhat.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
+	b=LA5lD8OZCbv1g2DbgLQrUj0xjVONCPMF63kiI+xBhf2xrJNhU5UGGfrssq/3f/5Gt
+	 ERqgbf5uMw/3pUYoRyC2oIvo8O4nGwPuWK8BdSinPmaO/Ab6xScZmwog/cjEJ986lQ
+	 FDtiZyplrSQgdQs1sKLFfOOvqG6Ljn6dJ0j8anMA=
+Date: Mon, 12 Feb 2024 15:28:36 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,mhocko@suse.com,glider@google.com,elver@google.com,andreyknvl@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [withdrawn] fs-proc-task_mmu-add-display-flag-for-vm_mayoverlay.patch removed from -mm tree
-Message-Id: <20240212232149.BE37FC433C7@smtp.kernel.org>
+Subject: + lib-stackdepot-move-stack_record-struct-definition-into-the-header.patch added to mm-unstable branch
+Message-Id: <20240212232836.DA5ABC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,55 +34,288 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: fs/proc/task_mmu: add display flag for VM_MAYOVERLAY
-has been removed from the -mm tree.  Its filename was
-     fs-proc-task_mmu-add-display-flag-for-vm_mayoverlay.patch
+The patch titled
+     Subject: lib/stackdepot: move stack_record struct definition into the header
+has been added to the -mm mm-unstable branch.  Its filename is
+     lib-stackdepot-move-stack_record-struct-definition-into-the-header.patch
 
-This patch was dropped because it was withdrawn
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-move-stack_record-struct-definition-into-the-header.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: fs/proc/task_mmu: add display flag for VM_MAYOVERLAY
-Date: Thu, 8 Feb 2024 14:18:05 +0530
+From: Oscar Salvador <osalvador@suse.de>
+Subject: lib/stackdepot: move stack_record struct definition into the header
+Date: Mon, 12 Feb 2024 23:30:25 +0100
 
-VM_UFFD_MISSING flag is mutually exclussive with VM_MAYOVERLAY flag as
-they both use the same bit position i.e 0x00000200 in the vm_flags.  Let's
-update show_smap_vma_flags() to display the correct flags depending on
-CONFIG_MMU.
+Patch eries "page_owner: print stacks and their outstanding allocations",
+v8.
 
-Link: https://lkml.kernel.org/r/20240208084805.1252337-1-anshuman.khandual@arm.com
-Fixes: b6b7a8faf05c ("mm/nommu: don't use VM_MAYSHARE for MAP_PRIVATE mappings")
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: <stable@vger.kernel.org>
+page_owner is a great debug functionality tool that lets us know about all
+pages that have been allocated/freed and their specific stacktrace.  This
+comes in very handy when debugging memory leaks, since with some scripting
+we can see the outstanding allocations, which might point to a memory
+leak.
+
+In my experience, that is one of the most useful cases, but it can get
+really tedious to screen through all pages and try to reconstruct the
+stack <-> allocated/freed relationship, becoming most of the time a
+daunting and slow process when we have tons of allocation/free operations.
+ 
+
+This patchset aims to ease that by adding a new functionality into
+page_owner.  This functionality creates a new directory called
+'page_owner_stacks' under 'sys/kernel//debug' with a read-only file called
+'show_stacks', which prints out all the stacks followed by their
+outstanding number of allocations (being that the times the stacktrace has
+allocated but not freed yet).  This gives us a clear and a quick overview
+of stacks <-> allocated/free.
+
+We take advantage of the new refcount_f field that stack_record struct
+gained, and increment/decrement the stack refcount on every
+__set_page_owner() (alloc operation) and __reset_page_owner (free
+operation) call.
+
+Unfortunately, we cannot use the new stackdepot api
+STACK_DEPOT_FLAG_{GET,PUT} because it does not fulfill page_owner needs,
+meaning we would have to special case things, at which point makes more
+sense for page_owner to do its own {dec,inc}rementing of the stacks.  E.g:
+Using STACK_DEPOT_FLAG_PUT, once the refcount reaches 0, such stack gets
+evicted, so page_owner would lose information.
+
+This patch also creates a new file called 'set_threshold' within
+'page_owner_stacks' directory, and by writing a value to it, the stacks
+which refcount is below such value will be filtered out.
+
+A PoC can be found below:
+
+ # cat /sys/kernel/debug/page_owner_stacks/show_stacks > page_owner_full_stacks.txt
+ # head -40 page_owner_full_stacks.txt 
+  prep_new_page+0xa9/0x120
+  get_page_from_freelist+0x801/0x2210
+  __alloc_pages+0x18b/0x350
+  alloc_pages_mpol+0x91/0x1f0
+  folio_alloc+0x14/0x50
+  filemap_alloc_folio+0xb2/0x100
+  page_cache_ra_unbounded+0x96/0x180
+  filemap_get_pages+0xfd/0x590
+  filemap_read+0xcc/0x330
+  blkdev_read_iter+0xb8/0x150
+  vfs_read+0x285/0x320
+  ksys_read+0xa5/0xe0
+  do_syscall_64+0x80/0x160
+  entry_SYSCALL_64_after_hwframe+0x6e/0x76
+ stack_count: 521
+
+
+
+  prep_new_page+0xa9/0x120
+  get_page_from_freelist+0x801/0x2210
+  __alloc_pages+0x18b/0x350
+  alloc_pages_mpol+0x91/0x1f0
+  folio_alloc+0x14/0x50
+  filemap_alloc_folio+0xb2/0x100
+  __filemap_get_folio+0x14a/0x490
+  ext4_write_begin+0xbd/0x4b0 [ext4]
+  generic_perform_write+0xc1/0x1e0
+  ext4_buffered_write_iter+0x68/0xe0 [ext4]
+  ext4_file_write_iter+0x70/0x740 [ext4]
+  vfs_write+0x33d/0x420
+  ksys_write+0xa5/0xe0
+  do_syscall_64+0x80/0x160
+  entry_SYSCALL_64_after_hwframe+0x6e/0x76
+ stack_count: 4609
+...
+...
+
+ # echo 5000 > /sys/kernel/debug/page_owner_stacks/set_threshold 
+ # cat /sys/kernel/debug/page_owner_stacks/show_stacks > page_owner_full_stacks_5000.txt
+ # head -40 page_owner_full_stacks_5000.txt 
+  prep_new_page+0xa9/0x120
+  get_page_from_freelist+0x801/0x2210
+  __alloc_pages+0x18b/0x350
+  alloc_pages_mpol+0x91/0x1f0
+  folio_alloc+0x14/0x50
+  filemap_alloc_folio+0xb2/0x100
+  __filemap_get_folio+0x14a/0x490
+  ext4_write_begin+0xbd/0x4b0 [ext4]
+  generic_perform_write+0xc1/0x1e0
+  ext4_buffered_write_iter+0x68/0xe0 [ext4]
+  ext4_file_write_iter+0x70/0x740 [ext4]
+  vfs_write+0x33d/0x420
+  ksys_pwrite64+0x75/0x90
+  do_syscall_64+0x80/0x160
+  entry_SYSCALL_64_after_hwframe+0x6e/0x76
+ stack_count: 6781
+
+
+
+  prep_new_page+0xa9/0x120
+  get_page_from_freelist+0x801/0x2210
+  __alloc_pages+0x18b/0x350
+  pcpu_populate_chunk+0xec/0x350
+  pcpu_balance_workfn+0x2d1/0x4a0
+  process_scheduled_works+0x84/0x380
+  worker_thread+0x12a/0x2a0
+  kthread+0xe3/0x110
+  ret_from_fork+0x30/0x50
+  ret_from_fork_asm+0x1b/0x30
+ stack_count: 8641
+
+
+This patch (of 5):
+
+In order to move the heavy lifting into page_owner code, this one needs to
+have access to the stack_record structure, which right now sits in
+lib/stackdepot.c.  Move it to the stackdepot.h header so page_owner can
+access stack_record's struct fields.
+
+Link: https://lkml.kernel.org/r/20240212223029.30769-1-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20240212223029.30769-2-osalvador@suse.de
+Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/stackdepot.h |   44 +++++++++++++++++++++++++++++++++++
+ lib/stackdepot.c           |   43 ----------------------------------
+ 2 files changed, 44 insertions(+), 43 deletions(-)
 
---- a/fs/proc/task_mmu.c~fs-proc-task_mmu-add-display-flag-for-vm_mayoverlay
-+++ a/fs/proc/task_mmu.c
-@@ -681,7 +681,11 @@ static void show_smap_vma_flags(struct s
- 		[ilog2(VM_HUGEPAGE)]	= "hg",
- 		[ilog2(VM_NOHUGEPAGE)]	= "nh",
- 		[ilog2(VM_MERGEABLE)]	= "mg",
-+#ifdef CONFIG_MMU
- 		[ilog2(VM_UFFD_MISSING)]= "um",
-+#else
-+		[ilog2(VM_MAYOVERLAY)]	= "ov",
-+#endif /* CONFIG_MMU */
- 		[ilog2(VM_UFFD_WP)]	= "uw",
- #ifdef CONFIG_ARM64_MTE
- 		[ilog2(VM_MTE)]		= "mt",
+--- a/include/linux/stackdepot.h~lib-stackdepot-move-stack_record-struct-definition-into-the-header
++++ a/include/linux/stackdepot.h
+@@ -30,6 +30,50 @@ typedef u32 depot_stack_handle_t;
+  */
+ #define STACK_DEPOT_EXTRA_BITS 5
+ 
++#define DEPOT_HANDLE_BITS (sizeof(depot_stack_handle_t) * 8)
++
++#define DEPOT_POOL_ORDER 2 /* Pool size order, 4 pages */
++#define DEPOT_POOL_SIZE (1LL << (PAGE_SHIFT + DEPOT_POOL_ORDER))
++#define DEPOT_STACK_ALIGN 4
++#define DEPOT_OFFSET_BITS (DEPOT_POOL_ORDER + PAGE_SHIFT - DEPOT_STACK_ALIGN)
++#define DEPOT_POOL_INDEX_BITS (DEPOT_HANDLE_BITS - DEPOT_OFFSET_BITS - \
++			       STACK_DEPOT_EXTRA_BITS)
++
++/* Compact structure that stores a reference to a stack. */
++union handle_parts {
++	depot_stack_handle_t handle;
++	struct {
++		u32 pool_index	: DEPOT_POOL_INDEX_BITS;
++		u32 offset	: DEPOT_OFFSET_BITS;
++		u32 extra	: STACK_DEPOT_EXTRA_BITS;
++	};
++};
++
++struct stack_record {
++	struct list_head hash_list;	/* Links in the hash table */
++	u32 hash;			/* Hash in hash table */
++	u32 size;			/* Number of stored frames */
++	union handle_parts handle;	/* Constant after initialization */
++	refcount_t count;
++	union {
++		unsigned long entries[CONFIG_STACKDEPOT_MAX_FRAMES];	/* Frames */
++		struct {
++			/*
++			 * An important invariant of the implementation is to
++			 * only place a stack record onto the freelist iff its
++			 * refcount is zero. Because stack records with a zero
++			 * refcount are never considered as valid, it is safe to
++			 * union @entries and freelist management state below.
++			 * Conversely, as soon as an entry is off the freelist
++			 * and its refcount becomes non-zero, the below must not
++			 * be accessed until being placed back on the freelist.
++			 */
++			struct list_head free_list;	/* Links in the freelist */
++			unsigned long rcu_state;	/* RCU cookie */
++		};
++	};
++};
++
+ typedef u32 depot_flags_t;
+ 
+ /*
+--- a/lib/stackdepot.c~lib-stackdepot-move-stack_record-struct-definition-into-the-header
++++ a/lib/stackdepot.c
+@@ -36,54 +36,11 @@
+ #include <linux/memblock.h>
+ #include <linux/kasan-enabled.h>
+ 
+-#define DEPOT_HANDLE_BITS (sizeof(depot_stack_handle_t) * 8)
+-
+-#define DEPOT_POOL_ORDER 2 /* Pool size order, 4 pages */
+-#define DEPOT_POOL_SIZE (1LL << (PAGE_SHIFT + DEPOT_POOL_ORDER))
+-#define DEPOT_STACK_ALIGN 4
+-#define DEPOT_OFFSET_BITS (DEPOT_POOL_ORDER + PAGE_SHIFT - DEPOT_STACK_ALIGN)
+-#define DEPOT_POOL_INDEX_BITS (DEPOT_HANDLE_BITS - DEPOT_OFFSET_BITS - \
+-			       STACK_DEPOT_EXTRA_BITS)
+ #define DEPOT_POOLS_CAP 8192
+ #define DEPOT_MAX_POOLS \
+ 	(((1LL << (DEPOT_POOL_INDEX_BITS)) < DEPOT_POOLS_CAP) ? \
+ 	 (1LL << (DEPOT_POOL_INDEX_BITS)) : DEPOT_POOLS_CAP)
+ 
+-/* Compact structure that stores a reference to a stack. */
+-union handle_parts {
+-	depot_stack_handle_t handle;
+-	struct {
+-		u32 pool_index	: DEPOT_POOL_INDEX_BITS;
+-		u32 offset	: DEPOT_OFFSET_BITS;
+-		u32 extra	: STACK_DEPOT_EXTRA_BITS;
+-	};
+-};
+-
+-struct stack_record {
+-	struct list_head hash_list;	/* Links in the hash table */
+-	u32 hash;			/* Hash in hash table */
+-	u32 size;			/* Number of stored frames */
+-	union handle_parts handle;	/* Constant after initialization */
+-	refcount_t count;
+-	union {
+-		unsigned long entries[CONFIG_STACKDEPOT_MAX_FRAMES];	/* Frames */
+-		struct {
+-			/*
+-			 * An important invariant of the implementation is to
+-			 * only place a stack record onto the freelist iff its
+-			 * refcount is zero. Because stack records with a zero
+-			 * refcount are never considered as valid, it is safe to
+-			 * union @entries and freelist management state below.
+-			 * Conversely, as soon as an entry is off the freelist
+-			 * and its refcount becomes non-zero, the below must not
+-			 * be accessed until being placed back on the freelist.
+-			 */
+-			struct list_head free_list;	/* Links in the freelist */
+-			unsigned long rcu_state;	/* RCU cookie */
+-		};
+-	};
+-};
+-
+ static bool stack_depot_disabled;
+ static bool __stack_depot_early_init_requested __initdata = IS_ENABLED(CONFIG_STACKDEPOT_ALWAYS_INIT);
+ static bool __stack_depot_early_init_passed __initdata;
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from osalvador@suse.de are
 
-mm-memblock-add-memblock_rsrv_noinit-into-flagname-array.patch
-mm-cma-dont-treat-bad-input-arguments-for-cma_alloc-as-its-failure.patch
-mm-cma-drop-config_cma_debug.patch
-mm-cma-make-max_cma_areas-=-config_cma_areas.patch
-mm-cma-add-sysfs-file-release_pages_success.patch
+lib-stackdepot-move-stack_record-struct-definition-into-the-header.patch
+mmpage_owner-implement-the-tracking-of-the-stacks-count.patch
+mmpage_owner-display-all-stacks-and-their-count.patch
+mmpage_owner-filter-out-stacks-by-a-threshold.patch
+mmpage_owner-update-documentation-regarding-page_owner_stacks.patch
 
