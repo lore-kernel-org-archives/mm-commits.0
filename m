@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AA944F887;
-	Mon, 12 Feb 2024 22:30:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27ECA749F;
+	Mon, 12 Feb 2024 22:30:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707777040; cv=none; b=kReKHVCxLLcwNmcL1WnxX3O0FcQAUGFcmOYlViXVA3kVN5kWJfXa2xz27uPGIw+W0CkTn6u9DwtGHz/4pLBS2pcTGiZADlYnmcqdD7BCQaKQ19EG5Zxet+FlKIAcSJCCkwll1VYtssWqXfZ2bxHKAzqUEBgvgyM4To6+xQ4yOtM=
+	t=1707777042; cv=none; b=indT726pv+yqYWgnno6MM7XCEl06fNdvRHqsOoRuNQGFObJGF3bdW4ScmlFZpxxwDoqd+bXodGaGAtv+YO/8kz9A4zTAI/jmd0MXHGv/McHSxquoYOpfLypt4Wgi9JkwZj5FgS4RkuyjPt6soFF17uXFQpQc6y1i3/edCyvXy24=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707777040; c=relaxed/simple;
-	bh=AECmxSXP68zPeSJy+Jfihpc9I9wFmdkAg5a59OaOc4o=;
-	h=Date:To:From:Subject:Message-Id; b=HYy/5O4RTi0bMNkNz6k8uobSckzp6ExLvZLtZ9jIv9fogCAhJz67AgmtF5uY2y3MSoDe9JtB8MpOXla8nS6IRJDsCopyWaxpAyaZayn9GPDUXUCMmhQYK6Fd3qTv0w3zsy/hykZ3FjjhURFR0WccSds80oArKgmLMsElZG+ymJI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HoEsfyej; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707777042; c=relaxed/simple;
+	bh=TgKVJVgGbBk0wSlbIELAP4gxCAWWf+c29KZGZUWYiqQ=;
+	h=Date:To:From:Subject:Message-Id; b=uH9lkpa3vYvOW4+VUkwWfahxkr11LMXIOZOWzB0e/Ajz0Yge8sobAY9Nq1Hwc0326mSYSNEeG3H49btx0qsNb306Il66DOPZremy0FU20nRnsGz6E8EW9KIYvdJH6UQy5mxlZeJB5H2OVZ0psEqrO2Wd0SNWBb2lR60dVJKP12w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qrocDMc0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HoEsfyej"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6245C433F1;
-	Mon, 12 Feb 2024 22:30:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qrocDMc0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC72AC433F1;
+	Mon, 12 Feb 2024 22:30:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707777039;
-	bh=AECmxSXP68zPeSJy+Jfihpc9I9wFmdkAg5a59OaOc4o=;
+	s=korg; t=1707777042;
+	bh=TgKVJVgGbBk0wSlbIELAP4gxCAWWf+c29KZGZUWYiqQ=;
 	h=Date:To:From:Subject:From;
-	b=HoEsfyejCqb+P49oPyT05mRjuPhUnE85X+OlRfabLx8/Rb8FkQ6xwYUFdaVu+duOL
-	 MR16ce+hjGZl4Rh32m/f9BGNubWT/ufPOgy17TwKK1yEmwHMJFKg2WWZ4bKkU21hbe
-	 MWzXqBmwg4/RsbHyS+asvVKkDbwYbHdHPZ6vnyzM=
-Date: Mon, 12 Feb 2024 14:30:39 -0800
+	b=qrocDMc0jglamyjI+Dzo9BLUvHhAPAYHYxE0RAaRuNUIN6osPGCM9f9wZfb2jxdKr
+	 ckdAXB1nEKiYM5F62qtryhAEUJ1dZkDd9A6SoM9Ge4rasg1BLSjg5Vbe89a5grYZey
+	 JwuivLrYxAUHCCkpUgyAcp86SAEL6vWtdtWmgmwI=
+Date: Mon, 12 Feb 2024 14:30:41 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.l.verma@intel.com,torvalds@linux-foundation.org,snitzer@kernel.org,mpatocka@redhat.com,linux@armlinux.org.uk,dm-devel@lists.linux.dev,david@fromorbit.com,dave.jiang@intel.com,dan.j.williams@intel.com,arnd@arndb.de,agk@redhat.com,mathieu.desnoyers@efficios.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + dm-treat-alloc_dax-eopnotsupp-failure-as-non-fatal.patch added to mm-unstable branch
-Message-Id: <20240212223039.D6245C433F1@smtp.kernel.org>
+Subject: + dcssblk-handle-alloc_dax-eopnotsupp-failure.patch added to mm-unstable branch
+Message-Id: <20240212223041.DC72AC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: dm: treat alloc_dax() -EOPNOTSUPP failure as non-fatal
+     Subject: dcssblk: handle alloc_dax() -EOPNOTSUPP failure
 has been added to the -mm mm-unstable branch.  Its filename is
-     dm-treat-alloc_dax-eopnotsupp-failure-as-non-fatal.patch
+     dcssblk-handle-alloc_dax-eopnotsupp-failure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dm-treat-alloc_dax-eopnotsupp-failure-as-non-fatal.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dcssblk-handle-alloc_dax-eopnotsupp-failure.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,19 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Subject: dm: treat alloc_dax() -EOPNOTSUPP failure as non-fatal
-Date: Mon, 12 Feb 2024 11:30:56 -0500
+Subject: dcssblk: handle alloc_dax() -EOPNOTSUPP failure
+Date: Mon, 12 Feb 2024 11:30:57 -0500
 
 In preparation for checking whether the architecture has data cache
-aliasing within alloc_dax(), modify the error handling of dm alloc_dev()
-to treat alloc_dax() -EOPNOTSUPP failure as non-fatal.
+aliasing within alloc_dax(), modify the error handling of dcssblk
+dcssblk_add_store() to handle alloc_dax() -EOPNOTSUPP failures.
 
-Link: https://lkml.kernel.org/r/20240212163101.19614-4-mathieu.desnoyers@efficios.com
+Considering that s390 is not a data cache aliasing architecture, and
+considering that DCSSBLK selects DAX, a return value of -EOPNOTSUPP from
+alloc_dax() should make dcssblk_add_store() fail.
+
+Link: https://lkml.kernel.org/r/20240212163101.19614-5-mathieu.desnoyers@efficios.com
 Fixes: d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
-Suggested-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Cc: Alasdair Kergon <agk@redhat.com>
@@ -86,43 +89,38 @@ Cc: Michael Sclafani <dm-devel@lists.linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ drivers/s390/block/dcssblk.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
---- a/drivers/md/dm.c~dm-treat-alloc_dax-eopnotsupp-failure-as-non-fatal
-+++ a/drivers/md/dm.c
-@@ -2054,6 +2054,7 @@ static void cleanup_mapped_device(struct
- static struct mapped_device *alloc_dev(int minor)
- {
- 	int r, numa_node_id = dm_get_numa_node();
+--- a/drivers/s390/block/dcssblk.c~dcssblk-handle-alloc_dax-eopnotsupp-failure
++++ a/drivers/s390/block/dcssblk.c
+@@ -549,6 +549,7 @@ dcssblk_add_store(struct device *dev, st
+ 	int rc, i, j, num_of_segments;
+ 	struct dcssblk_dev_info *dev_info;
+ 	struct segment_info *seg_info, *temp;
 +	struct dax_device *dax_dev;
- 	struct mapped_device *md;
- 	void *old_md;
+ 	char *local_buf;
+ 	unsigned long seg_byte_size;
  
-@@ -2122,15 +2123,15 @@ static struct mapped_device *alloc_dev(i
- 	md->disk->private_data = md;
- 	sprintf(md->disk->disk_name, "dm-%d", minor);
+@@ -677,13 +678,13 @@ dcssblk_add_store(struct device *dev, st
+ 	if (rc)
+ 		goto put_dev;
  
--	if (IS_ENABLED(CONFIG_FS_DAX)) {
--		md->dax_dev = alloc_dax(md, &dm_dax_ops);
--		if (IS_ERR(md->dax_dev)) {
--			md->dax_dev = NULL;
-+	dax_dev = alloc_dax(md, &dm_dax_ops);
+-	dev_info->dax_dev = alloc_dax(dev_info, &dcssblk_dax_ops);
+-	if (IS_ERR(dev_info->dax_dev)) {
+-		rc = PTR_ERR(dev_info->dax_dev);
+-		dev_info->dax_dev = NULL;
++	dax_dev = alloc_dax(dev_info, &dcssblk_dax_ops);
 +	if (IS_ERR(dax_dev)) {
-+		if (PTR_ERR(dax_dev) != -EOPNOTSUPP)
- 			goto bad;
--		}
--		set_dax_nocache(md->dax_dev);
--		set_dax_nomc(md->dax_dev);
--		if (dax_add_host(md->dax_dev, md->disk))
-+	} else {
-+		set_dax_nocache(dax_dev);
-+		set_dax_nomc(dax_dev);
-+		md->dax_dev = dax_dev;
-+		if (dax_add_host(dax_dev, md->disk))
- 			goto bad;
++		rc = PTR_ERR(dax_dev);
+ 		goto put_dev;
  	}
- 
+-	set_dax_synchronous(dev_info->dax_dev);
++	set_dax_synchronous(dax_dev);
++	dev_info->dax_dev = dax_dev;
+ 	rc = dax_add_host(dev_info->dax_dev, dev_info->gd);
+ 	if (rc)
+ 		goto out_dax;
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@efficios.com are
