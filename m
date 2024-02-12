@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27ECD4F898
-	for <mm-commits@vger.kernel.org>; Mon, 12 Feb 2024 23:28:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3A034F896
+	for <mm-commits@vger.kernel.org>; Mon, 12 Feb 2024 23:28:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707780524; cv=none; b=ruyTDGFgdy9QjXm/40aD8V9NvW15QGFwOxmUTNo2CD90C240Mdcq4LJExSzH8XGoYy3FUBA++2q/KWKV/bHA9lshOA0PaVcBmxA7E6s7HqwIgXjAcz+XkIhpONNZaKTU86CXMJsX+YCWdaCI75g3bopR8T/lapfhs00Z/YuuSGM=
+	t=1707780525; cv=none; b=HmIJ1/wKGCwdL1zujQ1r+Ay9c8W8W5n9tT4wjsnmrkPSFA3Sg0KCHUba8QkAk8zi1+f3Opf3pmh82EVgXz7M9ohC2Y7Cf1RTAWIxixHN15YrV0ikQixRbeIhpMD8gfe5qXoRwffWqdNzIjuW+/HT6dNFdT+exe493FfXjJBYysA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707780524; c=relaxed/simple;
-	bh=jJP27Dsrp8ljQqvh4saDtKe78d59cM3rdlbiO1jBjSM=;
-	h=Date:To:From:Subject:Message-Id; b=htW6R9AD8xnyF/0GhSs6baSep7WTQXGwLKlL8lXEDkmDT6JrGjeRgG9556fmLao+qEUuadLVLs+FKm8JZkW8vEe/cov8M/v/FNLTrtkfmru81oidariI8jVPmAweW4ojNFs1HDpzy48qwC70w6XCvzmvsRIUGqrTWerLKhBf9/o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0N0CqAs3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707780525; c=relaxed/simple;
+	bh=cgylFqXVbJKUeDMdx5sOR5LAyTo8TbFcvteRrvkaDTQ=;
+	h=Date:To:From:Subject:Message-Id; b=u1K+ishzmra2odLuUpBZUzJe4utr1YBwBgCsC4f23/+tTz3cT6wmw5NyLH5PZJAjAsQKES0W9TTwVvgVt0Tvd+kAgFYe4WOIrtu1Yb/XiTcrwvL9rwV5Z2WbmXYfr4Iz3UYJ1G8B76NSRWGbg7RIq67PtHgEdlOnq8yqevarFyY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xdg3WIBC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0N0CqAs3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97062C433C7;
-	Mon, 12 Feb 2024 23:28:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xdg3WIBC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CC61C433F1;
+	Mon, 12 Feb 2024 23:28:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707780523;
-	bh=jJP27Dsrp8ljQqvh4saDtKe78d59cM3rdlbiO1jBjSM=;
+	s=korg; t=1707780525;
+	bh=cgylFqXVbJKUeDMdx5sOR5LAyTo8TbFcvteRrvkaDTQ=;
 	h=Date:To:From:Subject:From;
-	b=0N0CqAs3uVWh5aUYFAo9FAuOg3oqLIaK/Pfsdb3W2yjlyOtLYww2hL/LK5Z1Zyzt0
-	 JLVSlQYJnemwqYIKuZ+XycMGAYkg6Sv/5UKoDomBJTaPHWnKab1qzcSts7JZGn2sZg
-	 qKmQiZTAqORFxKO1rM1Jo65zXHEHQpapUv8q/kvg=
-Date: Mon, 12 Feb 2024 15:28:43 -0800
+	b=xdg3WIBCFE1E2d3Rj6WQ0oRuiBZ9ZEhkBbuvrZodDwjHKIAJjVpfSFXdlfOZ9LyYp
+	 n0l6vgZ5QN64NDppgzoyxCJ/IUzg2WRRFIJSf1OP5njCHfWgUnwzxzWw00l2fM+pG3
+	 L9/9ltJcdvVKgjj4niK/o5nmxs9yJkx8lN3x1Rhw=
+Date: Mon, 12 Feb 2024 15:28:44 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,mhocko@suse.com,glider@google.com,elver@google.com,andreyknvl@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmpage_owner-filter-out-stacks-by-a-threshold.patch added to mm-unstable branch
-Message-Id: <20240212232843.97062C433C7@smtp.kernel.org>
+Subject: + mmpage_owner-update-documentation-regarding-page_owner_stacks.patch added to mm-unstable branch
+Message-Id: <20240212232845.6CC61C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm,page_owner: filter out stacks by a threshold
+     Subject: mm,page_owner: update Documentation regarding page_owner_stacks
 has been added to the -mm mm-unstable branch.  Its filename is
-     mmpage_owner-filter-out-stacks-by-a-threshold.patch
+     mmpage_owner-update-documentation-regarding-page_owner_stacks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmpage_owner-filter-out-stacks-by-a-threshold.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmpage_owner-update-documentation-regarding-page_owner_stacks.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,page_owner: filter out stacks by a threshold
-Date: Mon, 12 Feb 2024 23:30:28 +0100
+Subject: mm,page_owner: update Documentation regarding page_owner_stacks
+Date: Mon, 12 Feb 2024 23:30:29 +0100
 
-We want to be able to filter out the stacks based on a threshold we can
-can tune.  By writing to 'set_threshold' file, we can adjust the threshold
-value.
+Update page_owner documentation including the new page_owner_stacks
+feature to show how it can be used.
 
-Link: https://lkml.kernel.org/r/20240212223029.30769-5-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20240212223029.30769-6-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
@@ -76,71 +75,69 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   24 ++++++++++++++++++++++--
- 1 file changed, 22 insertions(+), 2 deletions(-)
+ Documentation/mm/page_owner.rst |   44 ++++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
 
---- a/mm/page_owner.c~mmpage_owner-filter-out-stacks-by-a-threshold
-+++ a/mm/page_owner.c
-@@ -832,15 +832,18 @@ static void *stack_next(struct seq_file
- 	return stack;
- }
+--- a/Documentation/mm/page_owner.rst~mmpage_owner-update-documentation-regarding-page_owner_stacks
++++ a/Documentation/mm/page_owner.rst
+@@ -24,6 +24,11 @@ fragmentation statistics can be obtained
+ each page. It is already implemented and activated if page owner is
+ enabled. Other usages are more than welcome.
  
-+static unsigned long page_owner_stack_threshold;
++It can also be used to show all the stacks and their outstanding
++allocations, which gives us a quick overview of where the memory is going
++without the need to screen through all the pages and match the allocation
++and free operation.
 +
- static int stack_print(struct seq_file *m, void *v)
- {
- 	char *buf;
- 	int ret = 0;
- 	struct stack *stack = v;
- 	struct stack_record *stack_record = stack->stack_record;
-+	int stack_count = refcount_read(&stack_record->count);
+ page owner is disabled by default. So, if you'd like to use it, you need
+ to add "page_owner=on" to your boot cmdline. If the kernel is built
+ with page owner and page owner is disabled in runtime due to not enabling
+@@ -68,6 +73,45 @@ Usage
  
- 	if (!stack_record->size || stack_record->size < 0 ||
--	    refcount_read(&stack_record->count) < 2)
-+	    stack_count < 2 || stack_count < page_owner_stack_threshold)
- 		return 0;
+ 4) Analyze information from page owner::
  
- 	buf = kzalloc(PAGE_SIZE, GFP_KERNEL);
-@@ -851,7 +854,7 @@ static int stack_print(struct seq_file *
- 		goto out;
- 
- 	scnprintf(buf + ret, PAGE_SIZE - ret, "stack_count: %d\n\n",
--		  refcount_read(&stack_record->count));
-+		  stack_count);
- 
- 	seq_printf(m, buf);
- 	seq_puts(m, "\n\n");
-@@ -884,6 +887,21 @@ static const struct file_operations page
- 	.release	= seq_release,
- };
- 
-+static int page_owner_threshold_get(void *data, u64 *val)
-+{
-+	*val = page_owner_stack_threshold;
-+	return 0;
-+}
++	cat /sys/kernel/debug/page_owner_stacks/show_stacks > stacks.txt
++	cat stacks.txt
++	 prep_new_page+0xa9/0x120
++	 get_page_from_freelist+0x7e6/0x2140
++	 __alloc_pages+0x18a/0x370
++	 new_slab+0xc8/0x580
++	 ___slab_alloc+0x1f2/0xaf0
++	 __slab_alloc.isra.86+0x22/0x40
++	 kmem_cache_alloc+0x31b/0x350
++	 __khugepaged_enter+0x39/0x100
++	 dup_mmap+0x1c7/0x5ce
++	 copy_process+0x1afe/0x1c90
++	 kernel_clone+0x9a/0x3c0
++	 __do_sys_clone+0x66/0x90
++	 do_syscall_64+0x7f/0x160
++	 entry_SYSCALL_64_after_hwframe+0x6c/0x74
++	stack_count: 234
++	...
++	...
++	echo 7000 > /sys/kernel/debug/page_owner_stacks/set_threshold > stacks_7000.txt
++	cat stacks_7000.txt
++	 prep_new_page+0xa9/0x120
++	 get_page_from_freelist+0x7e6/0x2140
++	 __alloc_pages+0x18a/0x370
++	 alloc_pages_mpol+0xdf/0x1e0
++	 folio_alloc+0x14/0x50
++	 filemap_alloc_folio+0xb0/0x100
++	 page_cache_ra_unbounded+0x97/0x180
++	 filemap_fault+0x4b4/0x1200
++	 __do_fault+0x2d/0x110
++	 do_pte_missing+0x4b0/0xa30
++	 __handle_mm_fault+0x7fa/0xb70
++	 handle_mm_fault+0x125/0x300
++	 do_user_addr_fault+0x3c9/0x840
++	 exc_page_fault+0x68/0x150
++	 asm_exc_page_fault+0x22/0x30
++	stack_count: 8248
++	...
 +
-+static int page_owner_threshold_set(void *data, u64 val)
-+{
-+	page_owner_stack_threshold = val;
-+	return 0;
-+}
-+
-+DEFINE_SIMPLE_ATTRIBUTE(proc_page_owner_threshold, &page_owner_threshold_get,
-+			&page_owner_threshold_set, "%llu");
-+
- static int __init pageowner_init(void)
- {
- 	struct dentry *dir;
-@@ -898,6 +916,8 @@ static int __init pageowner_init(void)
- 	dir = debugfs_create_dir("page_owner_stacks", NULL);
- 	debugfs_create_file("show_stacks", 0400, dir, NULL,
- 			    &page_owner_stack_operations);
-+	debugfs_create_file("set_threshold", 0600, dir, NULL,
-+			    &proc_page_owner_threshold);
+ 	cat /sys/kernel/debug/page_owner > page_owner_full.txt
+ 	./page_owner_sort page_owner_full.txt sorted_page_owner.txt
  
- 	return 0;
- }
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
