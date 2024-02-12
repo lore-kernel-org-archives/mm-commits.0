@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5972B4E1D2
-	for <mm-commits@vger.kernel.org>; Mon, 12 Feb 2024 22:15:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 418D13E47A;
+	Mon, 12 Feb 2024 22:30:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707776153; cv=none; b=D5eV0C9lgibnt7GrArZgXliyj0X43Q4GE5gyljX+VJmXlPj5Iv4p0eKcjqhTLQiZnp3zc/S8pJOzsV1otaUs1u1fsGKxaEfEFnEPxxJ3htDuOBpeIJFV3C+QiardXPfqDRT5bPSRdKJ51XAM5ffuBRwUClCqRlX0E7Ik5SwKJ70=
+	t=1707777036; cv=none; b=V6Bt+MdfNnyTJSUWFNR/FKv0yQJQecABOa568o/5LwYzLcRvB0YgIFKtE/8UAudWlurqLts0QhI6CgZiFtUwxDWvZR6yeUPrvQeuw4jYxyxNxtiy7Fm6lrHIq9ju2raNYIOxs/hXETxqKTdH1xQaOPU/czzN2F6v9Ig82vwybXM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707776153; c=relaxed/simple;
-	bh=zRstX4u9UL+ttoxiJhJsdreWFv2nam0X+S6wbYWQRyE=;
-	h=Date:To:From:Subject:Message-Id; b=qHncmpFdlK3YjpQhoTrmcfbqFSmCKio6OkcQ/Jh/SvswlQESZihORTcPNeZe9+FOUahSUo1/z5/IKLGue79w9UdNDCzOlTbi+jtSi9MzZuQbIoWHunVQ+qDFp6+ztW1TvNXPISTP9LzbqPsZuO4Vh3Kt4g1xVqPH2SzIlKEGugw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wGrl/bNB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707777036; c=relaxed/simple;
+	bh=kUnMr+SNCT9jlr8T8ZVUvbY0SD55vOhjIGfsTQjt3r4=;
+	h=Date:To:From:Subject:Message-Id; b=aSRf2bMaPP8UX5Tco/K+17KTsp6A23PHherPgh7WhU2xCi52/k5973X7Eshi/BlRgUrlvKlihFeV08DzuiR83hDq9M+5yMdBaOYKYQRXgbuyZGminUVGbsPKCtVHassc3ksJTznzXX4ISclkZbFWpk1Ejc3TR8Bpxk5HnctBHOU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ktaxdCEb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wGrl/bNB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA71DC433F1;
-	Mon, 12 Feb 2024 22:15:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ktaxdCEb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94A83C433F1;
+	Mon, 12 Feb 2024 22:30:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707776152;
-	bh=zRstX4u9UL+ttoxiJhJsdreWFv2nam0X+S6wbYWQRyE=;
+	s=korg; t=1707777035;
+	bh=kUnMr+SNCT9jlr8T8ZVUvbY0SD55vOhjIGfsTQjt3r4=;
 	h=Date:To:From:Subject:From;
-	b=wGrl/bNB8o/XehD0+xaexraxqhHpWi38jrF/qwnuh1tagjglgOq5kVsC/r+umDGLW
-	 RXqn3QwVCpoklA6uy4poTGiqlcMO3kfsIfJkxJk4v6dXgOjpiloT+38p/paCK/vAVj
-	 VRoo606oJS2KUUMtH9YifVT8OwiqPe/dv3ROZElw=
-Date: Mon, 12 Feb 2024 14:15:52 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,rppt@linux.ibm.com,pasha.tatashin@soleen.com,mhocko@kernel.org,mgorman@techsingularity.net,kent.overstreet@gmail.com,vbabka@suse.cz,akpm@linux-foundation.org
+	b=ktaxdCEb9it2CmaPYzBiUQ+84pXJMr2y4AcBCX2DHvY+4sf5EJf2IeMtk77SXYhZs
+	 Ba05gtlghbJ1GrVcTkInufemBYJgawt8B+PIqeHaFkd0BmsUAZcS7f27Fx7D6d0QhK
+	 3RQHj5H+ovkIrwJfVC+Uosiev26PyDcrHkHd5TUM=
+Date: Mon, 12 Feb 2024 14:30:35 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.l.verma@intel.com,torvalds@linux-foundation.org,snitzer@kernel.org,mpatocka@redhat.com,linux@armlinux.org.uk,dm-devel@lists.linux.dev,david@fromorbit.com,dave.jiang@intel.com,dan.j.williams@intel.com,arnd@arndb.de,agk@redhat.com,mathieu.desnoyers@efficios.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-document-memalloc_noreclaim_save-and-memalloc_pin_save.patch added to mm-unstable branch
-Message-Id: <20240212221552.CA71DC433F1@smtp.kernel.org>
+Subject: + dax-alloc_dax-return-err_ptr-eopnotsupp-for-config_dax=n.patch added to mm-unstable branch
+Message-Id: <20240212223035.94A83C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: document memalloc_noreclaim_save() and memalloc_pin_save()
+     Subject: dax: alloc_dax() return ERR_PTR(-EOPNOTSUPP) for CONFIG_DAX=n
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-document-memalloc_noreclaim_save-and-memalloc_pin_save.patch
+     dax-alloc_dax-return-err_ptr-eopnotsupp-for-config_dax=n.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-document-memalloc_noreclaim_save-and-memalloc_pin_save.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dax-alloc_dax-return-err_ptr-eopnotsupp-for-config_dax=n.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,144 +58,120 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm: document memalloc_noreclaim_save() and memalloc_pin_save()
-Date: Mon, 12 Feb 2024 19:29:51 +0100
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Subject: dax: alloc_dax() return ERR_PTR(-EOPNOTSUPP) for CONFIG_DAX=n
+Date: Mon, 12 Feb 2024 11:30:54 -0500
 
-memalloc_noreclaim_save() currently has no documentation comment, so the
-implications of its usage are not obvious.  Namely that it not only
-prevents entering reclaim (as the name suggests), but also allows using
-all memory reserves and thus should be only used in contexts that are
-allocating memory to free memory.  This may lead to new improper usages
-being added.
+Patch series "Introduce cpu_dcache_is_aliasing() to fix DAX regression",
+v5.
 
-Thus add a documenting comment, based on the description of
-__GFP_MEMALLOC. While at it, also document memalloc_pin_save() so that
-all the memalloc_ scopes are documented. In the comments describing the
-relevant PF_MEMALLOC flags, refer to their scope setting functions.
+This commit introduced in v4.0 prevents building FS_DAX on 32-bit ARM,
+even on ARMv7 which does not have virtually aliased data caches:
 
-Link: https://lkml.kernel.org/r/20240212182950.32730-2-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Kent Overstreet <kent.overstreet@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+commit d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
+
+It used to work fine before: I have customers using DAX over pmem on
+ARMv7, but this regression will likely prevent them from upgrading their
+kernel.
+
+The root of the issue here is the fact that DAX was never designed to
+handle virtually aliasing data caches (VIVT and VIPT with aliasing data
+cache).  It touches the pages through their linear mapping, which is not
+consistent with the userspace mappings with virtually aliasing data
+caches.
+
+This patch series introduces cpu_dcache_is_aliasing() with the new Kconfig
+option ARCH_HAS_CPU_CACHE_ALIASING and implements it for all
+architectures.  The implementation of cpu_dcache_is_aliasing() is either
+evaluated to a constant at compile-time or a runtime check, which is what
+is needed on ARM.
+
+With this we can basically narrow down the list of architectures which are
+unsupported by DAX to those which are really affected.
+
+Testing done so far:
+
+- Compile allyesconfig on x86-64,
+- Compile allyesconfig on x86-64, with FS_DAX=n.
+- Compile allyesconfig on x86-64, with DAX=n.
+- Boot test after modifying alloc_dax() to force returning -EOPNOTSUPP
+  even on x86-64, thus simulating the behavior expected on an
+  architecture with data cache aliasing.
+
+
+This patch (of 5):
+
+Change the return value from NULL to PTR_ERR(-EOPNOTSUPP) for CONFIG_DAX=n
+to be consistent with the fact that CONFIG_DAX=y never returns NULL.
+
+This is done in preparation for using cpu_dcache_is_aliasing() in a
+following change which will properly support architectures which detect
+data cache aliasing at runtime.
+
+Link: https://lkml.kernel.org/r/20240212163101.19614-1-mathieu.desnoyers@efficios.com
+Link: https://lkml.kernel.org/r/20240212163101.19614-2-mathieu.desnoyers@efficios.com
+Fixes: d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Michael Sclafani <dm-devel@lists.linux.dev>
+Cc: Alasdair Kergon <agk@redhat.com>
+Cc: Mike Snitzer <snitzer@kernel.org>
+Cc: Mikulas Patocka <mpatocka@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h    |    9 ++++---
- include/linux/sched/mm.h |   45 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 50 insertions(+), 4 deletions(-)
+ drivers/dax/super.c |    5 +++++
+ include/linux/dax.h |    6 +-----
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
---- a/include/linux/sched.h~mm-document-memalloc_noreclaim_save-and-memalloc_pin_save
-+++ a/include/linux/sched.h
-@@ -1624,15 +1624,15 @@ extern struct pid *cad_pid;
- #define PF_SUPERPRIV		0x00000100	/* Used super-user privileges */
- #define PF_DUMPCORE		0x00000200	/* Dumped core */
- #define PF_SIGNALED		0x00000400	/* Killed by a signal */
--#define PF_MEMALLOC		0x00000800	/* Allocating memory */
-+#define PF_MEMALLOC		0x00000800	/* Allocating memory to free memory. See memalloc_noreclaim_save() */
- #define PF_NPROC_EXCEEDED	0x00001000	/* set_user() noticed that RLIMIT_NPROC was exceeded */
- #define PF_USED_MATH		0x00002000	/* If unset the fpu must be initialized before use */
- #define PF_USER_WORKER		0x00004000	/* Kernel thread cloned from userspace thread */
- #define PF_NOFREEZE		0x00008000	/* This thread should not be frozen */
- #define PF__HOLE__00010000	0x00010000
- #define PF_KSWAPD		0x00020000	/* I am kswapd */
--#define PF_MEMALLOC_NOFS	0x00040000	/* All allocation requests will inherit GFP_NOFS */
--#define PF_MEMALLOC_NOIO	0x00080000	/* All allocation requests will inherit GFP_NOIO */
-+#define PF_MEMALLOC_NOFS	0x00040000	/* All allocations inherit GFP_NOFS. See memalloc_nfs_save() */
-+#define PF_MEMALLOC_NOIO	0x00080000	/* All allocations inherit GFP_NOIO. See memalloc_noio_save() */
- #define PF_LOCAL_THROTTLE	0x00100000	/* Throttle writes only against the bdi I write to,
- 						 * I am cleaning dirty pages from some other bdi. */
- #define PF_KTHREAD		0x00200000	/* I am a kernel thread */
-@@ -1642,7 +1642,8 @@ extern struct pid *cad_pid;
- #define PF__HOLE__02000000	0x02000000
- #define PF_NO_SETAFFINITY	0x04000000	/* Userland is not allowed to meddle with cpus_mask */
- #define PF_MCE_EARLY		0x08000000      /* Early kill for mce process policy */
--#define PF_MEMALLOC_PIN		0x10000000	/* Allocation context constrained to zones which allow long term pinning. */
-+#define PF_MEMALLOC_PIN		0x10000000	/* Allocations constrained to zones which allow long term pinning.
-+						 * See memalloc_pin_save() */
- #define PF__HOLE__20000000	0x20000000
- #define PF__HOLE__40000000	0x40000000
- #define PF_SUSPEND_TASK		0x80000000      /* This thread called freeze_processes() and should not be frozen */
---- a/include/linux/sched/mm.h~mm-document-memalloc_noreclaim_save-and-memalloc_pin_save
-+++ a/include/linux/sched/mm.h
-@@ -368,6 +368,27 @@ static inline void memalloc_nofs_restore
- 	current->flags = (current->flags & ~PF_MEMALLOC_NOFS) | flags;
- }
- 
-+/**
-+ * memalloc_noreclaim_save - Marks implicit __GFP_MEMALLOC scope.
+--- a/drivers/dax/super.c~dax-alloc_dax-return-err_ptr-eopnotsupp-for-config_dax=n
++++ a/drivers/dax/super.c
+@@ -319,6 +319,11 @@ EXPORT_SYMBOL_GPL(dax_alive);
+  * that any fault handlers or operations that might have seen
+  * dax_alive(), have completed.  Any operations that start after
+  * synchronize_srcu() has run will abort upon seeing !dax_alive().
 + *
-+ * This functions marks the beginning of the __GFP_MEMALLOC allocation scope.
-+ * All further allocations will implicitly add the __GFP_MEMALLOC flag, which
-+ * prevents entering reclaim and allows access to all memory reserves. This
-+ * should only be used when the caller guarantees the allocation will allow more
-+ * memory to be freed very shortly, i.e. it needs to allocate some memory in
-+ * the process of freeing memory, and cannot reclaim due to potential recursion.
-+ *
-+ * Users of this scope have to be extremely careful to not deplete the reserves
-+ * completely and implement a throttling mechanism which controls the
-+ * consumption of the reserve based on the amount of freed memory. Usage of a
-+ * pre-allocated pool (e.g. mempool) should be always considered before using
-+ * this scope.
-+ *
-+ * Individual allocations under the scope can opt out using __GFP_NOMEMALLOC
-+ *
-+ * This function should not be used in an interrupt context as that one does not
-+ * give PF_MEMALLOC access to reserves, see __gfp_pfmemalloc_flags().
-+ */
- static inline unsigned int memalloc_noreclaim_save(void)
++ * Note, because alloc_dax() returns an ERR_PTR() on error, callers
++ * typically store its result into a local variable in order to check
++ * the result. Therefore, care must be taken to populate the struct
++ * device dax_dev field make sure the dax_dev is not leaked.
+  */
+ void kill_dax(struct dax_device *dax_dev)
  {
- 	unsigned int flags = current->flags & PF_MEMALLOC;
-@@ -375,11 +396,27 @@ static inline unsigned int memalloc_nore
- 	return flags;
- }
- 
-+/**
-+ * memalloc_noreclaim_restore - Ends the implicit __GFP_MEMALLOC scope.
-+ * @flags: Flags to restore.
-+ *
-+ * Ends the implicit __GFP_MEMALLOC scope started by memalloc_noreclaim_save
-+ * function. Always make sure that the given flags is the return value from the
-+ * pairing memalloc_noreclaim_save call.
-+ */
- static inline void memalloc_noreclaim_restore(unsigned int flags)
+--- a/include/linux/dax.h~dax-alloc_dax-return-err_ptr-eopnotsupp-for-config_dax=n
++++ a/include/linux/dax.h
+@@ -86,11 +86,7 @@ static inline void *dax_holder(struct da
+ static inline struct dax_device *alloc_dax(void *private,
+ 		const struct dax_operations *ops)
  {
- 	current->flags = (current->flags & ~PF_MEMALLOC) | flags;
+-	/*
+-	 * Callers should check IS_ENABLED(CONFIG_DAX) to know if this
+-	 * NULL is an error or expected.
+-	 */
+-	return NULL;
++	return ERR_PTR(-EOPNOTSUPP);
  }
- 
-+/**
-+ * memalloc_pin_save - Marks implicit ~__GFP_MOVABLE scope.
-+ *
-+ * This functions marks the beginning of the ~__GFP_MOVABLE allocation scope.
-+ * All further allocations will implicitly remove the __GFP_MOVABLE flag, which
-+ * will constraint the allocations to zones that allow long term pinning, i.e.
-+ * not ZONE_MOVABLE zones.
-+ */
- static inline unsigned int memalloc_pin_save(void)
+ static inline void put_dax(struct dax_device *dax_dev)
  {
- 	unsigned int flags = current->flags & PF_MEMALLOC_PIN;
-@@ -388,6 +425,14 @@ static inline unsigned int memalloc_pin_
- 	return flags;
- }
- 
-+/**
-+ * memalloc_pin_restore - Ends the implicit ~__GFP_MOVABLE scope.
-+ * @flags: Flags to restore.
-+ *
-+ * Ends the implicit ~__GFP_MOVABLE scope started by memalloc_pin_save function.
-+ * Always make sure that the given flags is the return value from the pairing
-+ * memalloc_pin_save call.
-+ */
- static inline void memalloc_pin_restore(unsigned int flags)
- {
- 	current->flags = (current->flags & ~PF_MEMALLOC_PIN) | flags;
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from mathieu.desnoyers@efficios.com are
 
-mm-document-memalloc_noreclaim_save-and-memalloc_pin_save.patch
+nvdimm-pmem-fix-leak-on-dax_add_host-failure.patch
+dax-alloc_dax-return-err_ptr-eopnotsupp-for-config_dax=n.patch
+nvdimm-pmem-treat-alloc_dax-eopnotsupp-failure-as-non-fatal.patch
+dm-treat-alloc_dax-eopnotsupp-failure-as-non-fatal.patch
+dcssblk-handle-alloc_dax-eopnotsupp-failure.patch
+virtio-treat-alloc_dax-eopnotsupp-failure-as-non-fatal.patch
+dax-check-for-data-cache-aliasing-at-runtime.patch
+introduce-cpu_dcache_is_aliasing-across-all-architectures.patch
+dax-fix-incorrect-list-of-data-cache-aliasing-architectures.patch
 
