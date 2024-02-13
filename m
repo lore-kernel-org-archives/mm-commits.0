@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3A034F896
-	for <mm-commits@vger.kernel.org>; Mon, 12 Feb 2024 23:28:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC34E8BEB
+	for <mm-commits@vger.kernel.org>; Tue, 13 Feb 2024 00:33:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707780525; cv=none; b=HmIJ1/wKGCwdL1zujQ1r+Ay9c8W8W5n9tT4wjsnmrkPSFA3Sg0KCHUba8QkAk8zi1+f3Opf3pmh82EVgXz7M9ohC2Y7Cf1RTAWIxixHN15YrV0ikQixRbeIhpMD8gfe5qXoRwffWqdNzIjuW+/HT6dNFdT+exe493FfXjJBYysA=
+	t=1707784404; cv=none; b=VQDLXJZJURL8u0IWOpQFkpuy4RR50eZoGdaMBRlafchYuyA5xn8ZLVSy4DzsgrN8AwZ4t1oeoAYOKuqWsjjRqTuTAa/5erYdOjVLCznmZwqwD7UXfdV9x0CEfPyc5kGTVVvLamK7ukqBtmwvUdg3BGV1izCXPEfaF2PtHQ0ih/Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707780525; c=relaxed/simple;
-	bh=cgylFqXVbJKUeDMdx5sOR5LAyTo8TbFcvteRrvkaDTQ=;
-	h=Date:To:From:Subject:Message-Id; b=u1K+ishzmra2odLuUpBZUzJe4utr1YBwBgCsC4f23/+tTz3cT6wmw5NyLH5PZJAjAsQKES0W9TTwVvgVt0Tvd+kAgFYe4WOIrtu1Yb/XiTcrwvL9rwV5Z2WbmXYfr4Iz3UYJ1G8B76NSRWGbg7RIq67PtHgEdlOnq8yqevarFyY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xdg3WIBC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707784404; c=relaxed/simple;
+	bh=DkOde1QJidgjsDBFQD7FQBrzBrAKS/CBW9qiJ5g15ZM=;
+	h=Date:To:From:Subject:Message-Id; b=ACwJ5m5kyJjsGafdx/0/Kg11OSy08kpSD0q/GXeN7LbDk7RWl+ufDVmUwmhzL00BXWq08Do3o1Wx6VX9wwjcCif+8ITINo4w29+QIgmWARJlmfLmX/6YI6KoRCsWdoCoj0lfBGWtLONjaFQRhh5t1rwczZzw3hXrOYZRyBCMsoo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OpJvSFPG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xdg3WIBC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CC61C433F1;
-	Mon, 12 Feb 2024 23:28:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OpJvSFPG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 508EBC433C7;
+	Tue, 13 Feb 2024 00:33:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707780525;
-	bh=cgylFqXVbJKUeDMdx5sOR5LAyTo8TbFcvteRrvkaDTQ=;
+	s=korg; t=1707784403;
+	bh=DkOde1QJidgjsDBFQD7FQBrzBrAKS/CBW9qiJ5g15ZM=;
 	h=Date:To:From:Subject:From;
-	b=xdg3WIBCFE1E2d3Rj6WQ0oRuiBZ9ZEhkBbuvrZodDwjHKIAJjVpfSFXdlfOZ9LyYp
-	 n0l6vgZ5QN64NDppgzoyxCJ/IUzg2WRRFIJSf1OP5njCHfWgUnwzxzWw00l2fM+pG3
-	 L9/9ltJcdvVKgjj4niK/o5nmxs9yJkx8lN3x1Rhw=
-Date: Mon, 12 Feb 2024 15:28:44 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,mhocko@suse.com,glider@google.com,elver@google.com,andreyknvl@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
+	b=OpJvSFPGGcAP0EFZY2wXn6XFE3DiTFS0IbmPFleWeK2Gs0l4oKdFWrbFDwMgdIYYo
+	 0I7Svxi5V6H31+9XJsNXYoa/XfCMyiUT/Cx7VYR7TDi6uJy9th/wdYclGeS7YwIbLt
+	 ixr2W+eV3gPLu8OWpnmP0AYPLBslZhiXeOUWatOE=
+Date: Mon, 12 Feb 2024 16:33:22 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,timmurray@google.com,surenb@google.com,rppt@kernel.org,peterx@redhat.com,ngeoffray@google.com,Liam.Howlett@oracle.com,kaleshsingh@google.com,jannh@google.com,david@redhat.com,bgeffon@google.com,axelrasmussen@google.com,aarcange@redhat.com,lokeshgidra@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmpage_owner-update-documentation-regarding-page_owner_stacks.patch added to mm-unstable branch
-Message-Id: <20240212232845.6CC61C433F1@smtp.kernel.org>
+Subject: + userfaultfd-move-userfaultfd_ctx-struct-to-header-file.patch added to mm-unstable branch
+Message-Id: <20240213003323.508EBC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm,page_owner: update Documentation regarding page_owner_stacks
+     Subject: userfaultfd: move userfaultfd_ctx struct to header file
 has been added to the -mm mm-unstable branch.  Its filename is
-     mmpage_owner-update-documentation-regarding-page_owner_stacks.patch
+     userfaultfd-move-userfaultfd_ctx-struct-to-header-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmpage_owner-update-documentation-regarding-page_owner_stacks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-move-userfaultfd_ctx-struct-to-header-file.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,93 +58,161 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,page_owner: update Documentation regarding page_owner_stacks
-Date: Mon, 12 Feb 2024 23:30:29 +0100
+From: Lokesh Gidra <lokeshgidra@google.com>
+Subject: userfaultfd: move userfaultfd_ctx struct to header file
+Date: Mon, 12 Feb 2024 16:19:18 -0800
 
-Update page_owner documentation including the new page_owner_stacks
-feature to show how it can be used.
+Patch series "per-vma locks in userfaultfd", v5.
 
-Link: https://lkml.kernel.org/r/20240212223029.30769-6-osalvador@suse.de
-Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Performing userfaultfd operations (like copy/move etc.) in critical
+section of mmap_lock (read-mode) causes significant contention on the lock
+when operations requiring the lock in write-mode are taking place
+concurrently.  We can use per-vma locks instead to significantly reduce
+the contention issue.
+
+Android runtime's Garbage Collector uses userfaultfd for concurrent
+compaction.  mmap-lock contention during compaction potentially causes
+jittery experience for the user.  During one such reproducible scenario,
+we observed the following improvements with this patch-set:
+
+- Wall clock time of compaction phase came down from ~3s to <500ms
+- Uninterruptible sleep time (across all threads in the process) was
+  ~10ms (none in mmap_lock) during compaction, instead of >20s
+
+
+This patch (of 5):
+
+Moving the struct to userfaultfd_k.h to be accessible from
+mm/userfaultfd.c.  There are no other changes in the struct.
+
+This is required to prepare for using per-vma locks in userfaultfd
+operations.
+
+Link: https://lkml.kernel.org/r/20240213001920.3551772-1-lokeshgidra@google.com
+Link: https://lkml.kernel.org/r/20240213001920.3551772-2-lokeshgidra@google.com
+Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Nicolas Geoffray <ngeoffray@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Tim Murray <timmurray@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/page_owner.rst |   44 ++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+ fs/userfaultfd.c              |   39 --------------------------------
+ include/linux/userfaultfd_k.h |   39 ++++++++++++++++++++++++++++++++
+ 2 files changed, 39 insertions(+), 39 deletions(-)
 
---- a/Documentation/mm/page_owner.rst~mmpage_owner-update-documentation-regarding-page_owner_stacks
-+++ a/Documentation/mm/page_owner.rst
-@@ -24,6 +24,11 @@ fragmentation statistics can be obtained
- each page. It is already implemented and activated if page owner is
- enabled. Other usages are more than welcome.
+--- a/fs/userfaultfd.c~userfaultfd-move-userfaultfd_ctx-struct-to-header-file
++++ a/fs/userfaultfd.c
+@@ -50,45 +50,6 @@ static struct ctl_table vm_userfaultfd_t
  
-+It can also be used to show all the stacks and their outstanding
-+allocations, which gives us a quick overview of where the memory is going
-+without the need to screen through all the pages and match the allocation
-+and free operation.
+ static struct kmem_cache *userfaultfd_ctx_cachep __ro_after_init;
+ 
+-/*
+- * Start with fault_pending_wqh and fault_wqh so they're more likely
+- * to be in the same cacheline.
+- *
+- * Locking order:
+- *	fd_wqh.lock
+- *		fault_pending_wqh.lock
+- *			fault_wqh.lock
+- *		event_wqh.lock
+- *
+- * To avoid deadlocks, IRQs must be disabled when taking any of the above locks,
+- * since fd_wqh.lock is taken by aio_poll() while it's holding a lock that's
+- * also taken in IRQ context.
+- */
+-struct userfaultfd_ctx {
+-	/* waitqueue head for the pending (i.e. not read) userfaults */
+-	wait_queue_head_t fault_pending_wqh;
+-	/* waitqueue head for the userfaults */
+-	wait_queue_head_t fault_wqh;
+-	/* waitqueue head for the pseudo fd to wakeup poll/read */
+-	wait_queue_head_t fd_wqh;
+-	/* waitqueue head for events */
+-	wait_queue_head_t event_wqh;
+-	/* a refile sequence protected by fault_pending_wqh lock */
+-	seqcount_spinlock_t refile_seq;
+-	/* pseudo fd refcounting */
+-	refcount_t refcount;
+-	/* userfaultfd syscall flags */
+-	unsigned int flags;
+-	/* features requested from the userspace */
+-	unsigned int features;
+-	/* released */
+-	bool released;
+-	/* memory mappings are changing because of non-cooperative event */
+-	atomic_t mmap_changing;
+-	/* mm with one ore more vmas attached to this userfaultfd_ctx */
+-	struct mm_struct *mm;
+-};
+-
+ struct userfaultfd_fork_ctx {
+ 	struct userfaultfd_ctx *orig;
+ 	struct userfaultfd_ctx *new;
+--- a/include/linux/userfaultfd_k.h~userfaultfd-move-userfaultfd_ctx-struct-to-header-file
++++ a/include/linux/userfaultfd_k.h
+@@ -36,6 +36,45 @@
+ #define UFFD_SHARED_FCNTL_FLAGS (O_CLOEXEC | O_NONBLOCK)
+ #define UFFD_FLAGS_SET (EFD_SHARED_FCNTL_FLAGS)
+ 
++/*
++ * Start with fault_pending_wqh and fault_wqh so they're more likely
++ * to be in the same cacheline.
++ *
++ * Locking order:
++ *	fd_wqh.lock
++ *		fault_pending_wqh.lock
++ *			fault_wqh.lock
++ *		event_wqh.lock
++ *
++ * To avoid deadlocks, IRQs must be disabled when taking any of the above locks,
++ * since fd_wqh.lock is taken by aio_poll() while it's holding a lock that's
++ * also taken in IRQ context.
++ */
++struct userfaultfd_ctx {
++	/* waitqueue head for the pending (i.e. not read) userfaults */
++	wait_queue_head_t fault_pending_wqh;
++	/* waitqueue head for the userfaults */
++	wait_queue_head_t fault_wqh;
++	/* waitqueue head for the pseudo fd to wakeup poll/read */
++	wait_queue_head_t fd_wqh;
++	/* waitqueue head for events */
++	wait_queue_head_t event_wqh;
++	/* a refile sequence protected by fault_pending_wqh lock */
++	seqcount_spinlock_t refile_seq;
++	/* pseudo fd refcounting */
++	refcount_t refcount;
++	/* userfaultfd syscall flags */
++	unsigned int flags;
++	/* features requested from the userspace */
++	unsigned int features;
++	/* released */
++	bool released;
++	/* memory mappings are changing because of non-cooperative event */
++	atomic_t mmap_changing;
++	/* mm with one ore more vmas attached to this userfaultfd_ctx */
++	struct mm_struct *mm;
++};
 +
- page owner is disabled by default. So, if you'd like to use it, you need
- to add "page_owner=on" to your boot cmdline. If the kernel is built
- with page owner and page owner is disabled in runtime due to not enabling
-@@ -68,6 +73,45 @@ Usage
+ extern vm_fault_t handle_userfault(struct vm_fault *vmf, unsigned long reason);
  
- 4) Analyze information from page owner::
- 
-+	cat /sys/kernel/debug/page_owner_stacks/show_stacks > stacks.txt
-+	cat stacks.txt
-+	 prep_new_page+0xa9/0x120
-+	 get_page_from_freelist+0x7e6/0x2140
-+	 __alloc_pages+0x18a/0x370
-+	 new_slab+0xc8/0x580
-+	 ___slab_alloc+0x1f2/0xaf0
-+	 __slab_alloc.isra.86+0x22/0x40
-+	 kmem_cache_alloc+0x31b/0x350
-+	 __khugepaged_enter+0x39/0x100
-+	 dup_mmap+0x1c7/0x5ce
-+	 copy_process+0x1afe/0x1c90
-+	 kernel_clone+0x9a/0x3c0
-+	 __do_sys_clone+0x66/0x90
-+	 do_syscall_64+0x7f/0x160
-+	 entry_SYSCALL_64_after_hwframe+0x6c/0x74
-+	stack_count: 234
-+	...
-+	...
-+	echo 7000 > /sys/kernel/debug/page_owner_stacks/set_threshold > stacks_7000.txt
-+	cat stacks_7000.txt
-+	 prep_new_page+0xa9/0x120
-+	 get_page_from_freelist+0x7e6/0x2140
-+	 __alloc_pages+0x18a/0x370
-+	 alloc_pages_mpol+0xdf/0x1e0
-+	 folio_alloc+0x14/0x50
-+	 filemap_alloc_folio+0xb0/0x100
-+	 page_cache_ra_unbounded+0x97/0x180
-+	 filemap_fault+0x4b4/0x1200
-+	 __do_fault+0x2d/0x110
-+	 do_pte_missing+0x4b0/0xa30
-+	 __handle_mm_fault+0x7fa/0xb70
-+	 handle_mm_fault+0x125/0x300
-+	 do_user_addr_fault+0x3c9/0x840
-+	 exc_page_fault+0x68/0x150
-+	 asm_exc_page_fault+0x22/0x30
-+	stack_count: 8248
-+	...
-+
- 	cat /sys/kernel/debug/page_owner > page_owner_full.txt
- 	./page_owner_sort page_owner_full.txt sorted_page_owner.txt
- 
+ /* A combined operation mode + behavior flags. */
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from lokeshgidra@google.com are
 
-lib-stackdepot-move-stack_record-struct-definition-into-the-header.patch
-mmpage_owner-implement-the-tracking-of-the-stacks-count.patch
-mmpage_owner-display-all-stacks-and-their-count.patch
-mmpage_owner-filter-out-stacks-by-a-threshold.patch
-mmpage_owner-update-documentation-regarding-page_owner_stacks.patch
+userfaultfd-fix-return-error-if-mmap_changing-is-non-zero-in-move-ioctl.patch
+userfaultfd-move-userfaultfd_ctx-struct-to-header-file.patch
+userfaultfd-protect-mmap_changing-with-rw_sem-in-userfaulfd_ctx.patch
+userfaultfd-use-per-vma-locks-in-userfaultfd-operations.patch
 
