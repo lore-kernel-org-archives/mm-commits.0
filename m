@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D80022EE3
-	for <mm-commits@vger.kernel.org>; Wed, 14 Feb 2024 15:44:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 176115EE7E
+	for <mm-commits@vger.kernel.org>; Wed, 14 Feb 2024 16:08:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707925446; cv=none; b=YeDPHyQxUjcL6NQ3Km+ww6plpoJnbTWkEgLbqQPjNYls3jQwxJqXblPZMOeUypvbMhXcZ3U92C5mBccrhPe5NUK2tyZt82IrLLFvD/3mkmF9exX8PUkeU6BkeDd69hgJ2EWxg6HHDc8nYNKiDoQRBXUI/GuRqcnNPT+VV5t8Pzw=
+	t=1707926925; cv=none; b=hQAWOsx2mIvj7pMLl4yA4F+7OGRc30eZMqL99DNsyYpG/f9nkOHkfDmd0UIW73uf2x5a1kofbEx+UaFSMIIfe5E00cA1OJ/jvRtmhCyupqWm16zmy5a1GVmfq0J5Xr96/erLxmI5UYqr6URT6gvm9KWtt9w2Cz/6WSH7JCo6NOY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707925446; c=relaxed/simple;
-	bh=cb79tMJJPC0IZ2Muhm/JNaogdlOMG1IAdVit6ZtNLLw=;
-	h=Date:To:From:Subject:Message-Id; b=MQWhY1FuG88WvIkCjuy5oXCBBZL0rPkp/RugvxEHYr0oIvzKrQu4ODvHNlG4otrptxhOVsMkSsWi/9VJat1XvmdJfKAkV44eOuz2LW2ve7+fhYFitJIaW8wFvEX4eMssH46swkxJBC2yXyhtAwyCbwf8rdhc9YcvZZr8jRAJ7Ws=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xBuJixWw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707926925; c=relaxed/simple;
+	bh=J3Ass3kKwjJ2C7dHgh4OvDkqnC8XTxGB5D7uObpw80c=;
+	h=Date:To:From:Subject:Message-Id; b=KF/8x1Q98EkiyVHkrk+K3CsK4qllaRS86TWZbTLHHQSc6cH8R9bRUGxOy+4JUX7ME7xl/XWHH4VS6wVHcih9OhAig9VVLMemk8W7Ejq1YMPbq2H77pLoyVcpsJnqKYNl6KsfOcQdZo3eMIFVggFyJcFlNywIp/PjihS0rfGXH38=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wXiyka0Q; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xBuJixWw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA7D6C433F1;
-	Wed, 14 Feb 2024 15:44:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wXiyka0Q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8967BC433C7;
+	Wed, 14 Feb 2024 16:08:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707925445;
-	bh=cb79tMJJPC0IZ2Muhm/JNaogdlOMG1IAdVit6ZtNLLw=;
+	s=korg; t=1707926924;
+	bh=J3Ass3kKwjJ2C7dHgh4OvDkqnC8XTxGB5D7uObpw80c=;
 	h=Date:To:From:Subject:From;
-	b=xBuJixWwAX2JyFhT6V/n7k6TXoGuwyRBTVBPpf/OVhz6bZnZ9EV1gB81eTu+na0e2
-	 aMq8E5E2Z9d+/aJjP5/n8sGi8xV91LVQZxh/Lx7FiJQ9hZS8o0HpmZDJ+D8HxbIG0g
-	 m0aICfu8ibRWJlTbXGP/v+avAy8ECqic0EnqIFBU=
-Date: Wed, 14 Feb 2024 07:44:05 -0800
-To: mm-commits@vger.kernel.org,pmladek@suse.com,liusong@linux.alibaba.com,kernelfans@gmail.com,dianders@chromium.org,yaoma@linux.alibaba.com,akpm@linux-foundation.org
+	b=wXiyka0Q5TZqyINRI92Tg3KoysDHO+V0oTQ0W0Nn7X8w4GSx0GvNdfZbWPGjzhl8H
+	 PyI87Sqbm7B2RXY02M/pqn9bZygsTI1R0uQad15l2QkGCehLZMiQv9mCVKnBGYc16E
+	 Mn8DwDvsqzpFHLwCEnBhJvTAD+J87y1DTO4svttU=
+Date: Wed, 14 Feb 2024 08:08:43 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,timmurray@google.com,surenb@google.com,rppt@kernel.org,peterx@redhat.com,ngeoffray@google.com,Liam.Howlett@oracle.com,kaleshsingh@google.com,jannh@google.com,david@redhat.com,bgeffon@google.com,axelrasmussen@google.com,aarcange@redhat.com,lokeshgidra@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + watchdog-softlockup-report-the-most-frequent-interrupts.patch added to mm-nonmm-unstable branch
-Message-Id: <20240214154405.CA7D6C433F1@smtp.kernel.org>
+Subject: + userfaultfd-move-userfaultfd_ctx-struct-to-header-file.patch added to mm-unstable branch
+Message-Id: <20240214160844.8967BC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: watchdog/softlockup: report the most frequent interrupts
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     watchdog-softlockup-report-the-most-frequent-interrupts.patch
+     Subject: userfaultfd: move userfaultfd_ctx struct to header file
+has been added to the -mm mm-unstable branch.  Its filename is
+     userfaultfd-move-userfaultfd_ctx-struct-to-header-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-softlockup-report-the-most-frequent-interrupts.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-move-userfaultfd_ctx-struct-to-header-file.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,256 +58,162 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Bitao Hu <yaoma@linux.alibaba.com>
-Subject: watchdog/softlockup: report the most frequent interrupts
-Date: Wed, 14 Feb 2024 10:14:30 +0800
+From: Lokesh Gidra <lokeshgidra@google.com>
+Subject: userfaultfd: move userfaultfd_ctx struct to header file
+Date: Tue, 13 Feb 2024 13:57:39 -0800
 
-When the watchdog determines that the current soft lockup is due to an
-interrupt storm based on CPU utilization, reporting the most frequent
-interrupts could be good enough for further troubleshooting.
+Patch series "per-vma locks in userfaultfd", v6.
 
-Below is an example of interrupt storm. The call tree does not
-provide useful information, but we can analyze which interrupt
-caused the soft lockup by comparing the counts of interrupts.
+Performing userfaultfd operations (like copy/move etc.) in critical
+section of mmap_lock (read-mode) causes significant contention on the lock
+when operations requiring the lock in write-mode are taking place
+concurrently.  We can use per-vma locks instead to significantly reduce
+the contention issue.
 
-[ 2987.488075] watchdog: BUG: soft lockup - CPU#9 stuck for 23s! [kworker/9:1:214]
-[ 2987.488607] CPU#9 Utilization every 4s during lockup:
-[ 2987.488941]  #1:   0% system,          0% softirq,   100% hardirq,     0% idle
-[ 2987.489357]  #2:   0% system,          0% softirq,   100% hardirq,     0% idle
-[ 2987.489771]  #3:   0% system,          0% softirq,   100% hardirq,     0% idle
-[ 2987.490186]  #4:   0% system,          0% softirq,   100% hardirq,     0% idle
-[ 2987.490601]  #5:   0% system,          0% softirq,   100% hardirq,     0% idle
-[ 2987.491034] CPU#9 Detect HardIRQ Time exceeds 50%. Most frequent HardIRQs:
-[ 2987.491493]  #1: 330985      irq#7(IPI)
-[ 2987.491743]  #2: 5000        irq#10(arch_timer)
-[ 2987.492039]  #3: 9           irq#91(nvme0q2)
-[ 2987.492318]  #4: 3           irq#118(virtio1-output.12)
-...
-[ 2987.492728] Call trace:
-[ 2987.492729]  __do_softirq+0xa8/0x364
+Android runtime's Garbage Collector uses userfaultfd for concurrent
+compaction.  mmap-lock contention during compaction potentially causes
+jittery experience for the user.  During one such reproducible scenario,
+we observed the following improvements with this patch-set:
 
-Link: https://lkml.kernel.org/r/20240214021430.87471-3-yaoma@linux.alibaba.com
-Signed-off-by: Bitao Hu <yaoma@linux.alibaba.com>
-Reviewed-by: Douglas Anderson <dianders@chromium.org>
-Reviewed-by: Liu Song <liusong@linux.alibaba.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Pingfan Liu <kernelfans@gmail.com>
+- Wall clock time of compaction phase came down from ~3s to <500ms
+- Uninterruptible sleep time (across all threads in the process) was
+  ~10ms (none in mmap_lock) during compaction, instead of >20s
+
+
+This patch (of 6):
+
+Moving the struct to userfaultfd_k.h to be accessible from
+mm/userfaultfd.c.  There are no other changes in the struct.
+
+This is required to prepare for using per-vma locks in userfaultfd
+operations.
+
+Link: https://lkml.kernel.org/r/20240213215741.3816570-1-lokeshgidra@google.com
+Link: https://lkml.kernel.org/r/20240213215741.3816570-2-lokeshgidra@google.com
+Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Nicolas Geoffray <ngeoffray@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Tim Murray <timmurray@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |  157 ++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 153 insertions(+), 4 deletions(-)
+ fs/userfaultfd.c              |   39 --------------------------------
+ include/linux/userfaultfd_k.h |   39 ++++++++++++++++++++++++++++++++
+ 2 files changed, 39 insertions(+), 39 deletions(-)
 
---- a/kernel/watchdog.c~watchdog-softlockup-report-the-most-frequent-interrupts
-+++ a/kernel/watchdog.c
-@@ -12,22 +12,25 @@
+--- a/fs/userfaultfd.c~userfaultfd-move-userfaultfd_ctx-struct-to-header-file
++++ a/fs/userfaultfd.c
+@@ -50,45 +50,6 @@ static struct ctl_table vm_userfaultfd_t
  
- #define pr_fmt(fmt) "watchdog: " fmt
+ static struct kmem_cache *userfaultfd_ctx_cachep __ro_after_init;
  
--#include <linux/mm.h>
- #include <linux/cpu.h>
--#include <linux/nmi.h>
- #include <linux/init.h>
-+#include <linux/irq.h>
-+#include <linux/irqdesc.h>
- #include <linux/kernel_stat.h>
-+#include <linux/kvm_para.h>
- #include <linux/math64.h>
-+#include <linux/mm.h>
- #include <linux/module.h>
-+#include <linux/nmi.h>
-+#include <linux/stop_machine.h>
- #include <linux/sysctl.h>
- #include <linux/tick.h>
-+
- #include <linux/sched/clock.h>
- #include <linux/sched/debug.h>
- #include <linux/sched/isolation.h>
--#include <linux/stop_machine.h>
+-/*
+- * Start with fault_pending_wqh and fault_wqh so they're more likely
+- * to be in the same cacheline.
+- *
+- * Locking order:
+- *	fd_wqh.lock
+- *		fault_pending_wqh.lock
+- *			fault_wqh.lock
+- *		event_wqh.lock
+- *
+- * To avoid deadlocks, IRQs must be disabled when taking any of the above locks,
+- * since fd_wqh.lock is taken by aio_poll() while it's holding a lock that's
+- * also taken in IRQ context.
+- */
+-struct userfaultfd_ctx {
+-	/* waitqueue head for the pending (i.e. not read) userfaults */
+-	wait_queue_head_t fault_pending_wqh;
+-	/* waitqueue head for the userfaults */
+-	wait_queue_head_t fault_wqh;
+-	/* waitqueue head for the pseudo fd to wakeup poll/read */
+-	wait_queue_head_t fd_wqh;
+-	/* waitqueue head for events */
+-	wait_queue_head_t event_wqh;
+-	/* a refile sequence protected by fault_pending_wqh lock */
+-	seqcount_spinlock_t refile_seq;
+-	/* pseudo fd refcounting */
+-	refcount_t refcount;
+-	/* userfaultfd syscall flags */
+-	unsigned int flags;
+-	/* features requested from the userspace */
+-	unsigned int features;
+-	/* released */
+-	bool released;
+-	/* memory mappings are changing because of non-cooperative event */
+-	atomic_t mmap_changing;
+-	/* mm with one ore more vmas attached to this userfaultfd_ctx */
+-	struct mm_struct *mm;
+-};
+-
+ struct userfaultfd_fork_ctx {
+ 	struct userfaultfd_ctx *orig;
+ 	struct userfaultfd_ctx *new;
+--- a/include/linux/userfaultfd_k.h~userfaultfd-move-userfaultfd_ctx-struct-to-header-file
++++ a/include/linux/userfaultfd_k.h
+@@ -36,6 +36,45 @@
+ #define UFFD_SHARED_FCNTL_FLAGS (O_CLOEXEC | O_NONBLOCK)
+ #define UFFD_FLAGS_SET (EFD_SHARED_FCNTL_FLAGS)
  
- #include <asm/irq_regs.h>
--#include <linux/kvm_para.h>
- 
- static DEFINE_MUTEX(watchdog_mutex);
- 
-@@ -417,13 +420,146 @@ static void print_cpustat(void)
- 	}
- }
- 
-+#define HARDIRQ_PERCENT_THRESH		50
-+#define NUM_HARDIRQ_REPORT		5
-+static DEFINE_PER_CPU(u32 *, hardirq_counts);
-+static DEFINE_PER_CPU(int, actual_nr_irqs);
-+struct irq_counts {
-+	int irq;
-+	u32 counts;
++/*
++ * Start with fault_pending_wqh and fault_wqh so they're more likely
++ * to be in the same cacheline.
++ *
++ * Locking order:
++ *	fd_wqh.lock
++ *		fault_pending_wqh.lock
++ *			fault_wqh.lock
++ *		event_wqh.lock
++ *
++ * To avoid deadlocks, IRQs must be disabled when taking any of the above locks,
++ * since fd_wqh.lock is taken by aio_poll() while it's holding a lock that's
++ * also taken in IRQ context.
++ */
++struct userfaultfd_ctx {
++	/* waitqueue head for the pending (i.e. not read) userfaults */
++	wait_queue_head_t fault_pending_wqh;
++	/* waitqueue head for the userfaults */
++	wait_queue_head_t fault_wqh;
++	/* waitqueue head for the pseudo fd to wakeup poll/read */
++	wait_queue_head_t fd_wqh;
++	/* waitqueue head for events */
++	wait_queue_head_t event_wqh;
++	/* a refile sequence protected by fault_pending_wqh lock */
++	seqcount_spinlock_t refile_seq;
++	/* pseudo fd refcounting */
++	refcount_t refcount;
++	/* userfaultfd syscall flags */
++	unsigned int flags;
++	/* features requested from the userspace */
++	unsigned int features;
++	/* released */
++	bool released;
++	/* memory mappings are changing because of non-cooperative event */
++	atomic_t mmap_changing;
++	/* mm with one ore more vmas attached to this userfaultfd_ctx */
++	struct mm_struct *mm;
 +};
 +
-+/* Tabulate the most frequent interrupts. */
-+static void tabulate_irq_count(struct irq_counts *irq_counts, int irq, u32 counts, int rank)
-+{
-+	int i;
-+	struct irq_counts new_count = {irq, counts};
-+
-+	for (i = 0; i < rank; i++) {
-+		if (counts > irq_counts[i].counts)
-+			swap(new_count, irq_counts[i]);
-+	}
-+}
-+
-+/*
-+ * If the hardirq time exceeds HARDIRQ_PERCENT_THRESH% of the sample_period,
-+ * then the cause of softlockup might be interrupt storm. In this case, it
-+ * would be useful to start interrupt counting.
-+ */
-+static bool need_counting_irqs(void)
-+{
-+	u8 util;
-+	int tail = __this_cpu_read(cpustat_tail);
-+
-+	tail = (tail + NUM_HARDIRQ_REPORT - 1) % NUM_HARDIRQ_REPORT;
-+	util = __this_cpu_read(cpustat_util[tail][STATS_HARDIRQ]);
-+	return util > HARDIRQ_PERCENT_THRESH;
-+}
-+
-+static void start_counting_irqs(void)
-+{
-+	int i;
-+	int local_nr_irqs;
-+	struct irq_desc *desc;
-+	u32 *counts = __this_cpu_read(hardirq_counts);
-+
-+	if (!counts) {
-+		/*
-+		 * nr_irqs has the potential to grow at runtime. We should read
-+		 * it and store locally to avoid array out-of-bounds access.
-+		 */
-+		local_nr_irqs = nr_irqs;
-+		counts = kcalloc(local_nr_irqs, sizeof(u32), GFP_ATOMIC);
-+		if (!counts)
-+			return;
-+
-+		for (i = 0; i < local_nr_irqs; i++) {
-+			desc = irq_to_desc(i);
-+			if (!desc)
-+				continue;
-+			counts[i] = desc->kstat_irqs ?
-+				*this_cpu_ptr(desc->kstat_irqs) : 0;
-+		}
-+
-+		__this_cpu_write(actual_nr_irqs, local_nr_irqs);
-+		__this_cpu_write(hardirq_counts, counts);
-+	}
-+}
-+
-+static void stop_counting_irqs(void)
-+{
-+	kfree(__this_cpu_read(hardirq_counts));
-+	__this_cpu_write(hardirq_counts, NULL);
-+}
-+
-+static void print_irq_counts(void)
-+{
-+	int i;
-+	struct irq_desc *desc;
-+	u32 counts_diff;
-+	int local_nr_irqs = __this_cpu_read(actual_nr_irqs);
-+	u32 *counts = __this_cpu_read(hardirq_counts);
-+	struct irq_counts irq_counts_sorted[NUM_HARDIRQ_REPORT] = {
-+		{-1, 0}, {-1, 0}, {-1, 0}, {-1, 0},
-+	};
-+
-+	if (counts) {
-+		for_each_irq_desc(i, desc) {
-+			/*
-+			 * We need to bounds-check in case someone on a different CPU
-+			 * expanded nr_irqs.
-+			 */
-+			if (desc->kstat_irqs) {
-+				counts_diff = *this_cpu_ptr(desc->kstat_irqs);
-+				if (i < local_nr_irqs)
-+					counts_diff -= counts[i];
-+				tabulate_irq_count(irq_counts_sorted, i, counts_diff,
-+						   NUM_HARDIRQ_REPORT);
-+			}
-+		}
-+
-+		/*
-+		 * We do not want the "watchdog: " prefix on every line,
-+		 * hence we use "printk" instead of "pr_crit".
-+		 */
-+		printk(KERN_CRIT "CPU#%d Detect HardIRQ Time exceeds %d%%. Most frequent HardIRQs:\n",
-+		       smp_processor_id(), HARDIRQ_PERCENT_THRESH);
-+
-+		for (i = 0; i < NUM_HARDIRQ_REPORT; i++) {
-+			if (irq_counts_sorted[i].irq == -1)
-+				break;
-+
-+			desc = irq_to_desc(irq_counts_sorted[i].irq);
-+			if (desc && desc->action)
-+				printk(KERN_CRIT "\t#%u: %-10u\tirq#%d(%s)\n",
-+				       i + 1, irq_counts_sorted[i].counts,
-+				       irq_counts_sorted[i].irq, desc->action->name);
-+			else
-+				printk(KERN_CRIT "\t#%u: %-10u\tirq#%d\n",
-+				       i + 1, irq_counts_sorted[i].counts,
-+				       irq_counts_sorted[i].irq);
-+		}
-+
-+		/*
-+		 * If the hardirq time is less than HARDIRQ_PERCENT_THRESH% in the last
-+		 * sample_period, then we suspect the interrupt storm might be subsiding.
-+		 */
-+		if (!need_counting_irqs())
-+			stop_counting_irqs();
-+	}
-+}
-+
- static void report_cpu_status(void)
- {
- 	print_cpustat();
-+	print_irq_counts();
- }
- #else
- static inline void update_cpustat(void) { }
- static inline void report_cpu_status(void) { }
-+static inline bool need_counting_irqs(void) { return false; }
-+static inline void start_counting_irqs(void) { }
-+static inline void stop_counting_irqs(void) { }
- #endif
+ extern vm_fault_t handle_userfault(struct vm_fault *vmf, unsigned long reason);
  
- /*
-@@ -527,6 +663,18 @@ static int is_softlockup(unsigned long t
- 			 unsigned long now)
- {
- 	if ((watchdog_enabled & WATCHDOG_SOFTOCKUP_ENABLED) && watchdog_thresh) {
-+		/*
-+		 * If period_ts has not been updated during a sample_period, then
-+		 * in the subsequent few sample_periods, period_ts might also not
-+		 * be updated, which could indicate a potential softlockup. In
-+		 * this case, if we suspect the cause of the potential softlockup
-+		 * might be interrupt storm, then we need to count the interrupts
-+		 * to find which interrupt is storming.
-+		 */
-+		if (time_after_eq(now, period_ts + get_softlockup_thresh() / 5) &&
-+		    need_counting_irqs())
-+			start_counting_irqs();
-+
- 		/* Warn about unreasonable delays. */
- 		if (time_after(now, period_ts + get_softlockup_thresh()))
- 			return now - touch_ts;
-@@ -549,6 +697,7 @@ static DEFINE_PER_CPU(struct cpu_stop_wo
- static int softlockup_fn(void *data)
- {
- 	update_touch_ts();
-+	stop_counting_irqs();
- 	complete(this_cpu_ptr(&softlockup_completion));
- 
- 	return 0;
+ /* A combined operation mode + behavior flags. */
 _
 
-Patches currently in -mm which might be from yaoma@linux.alibaba.com are
+Patches currently in -mm which might be from lokeshgidra@google.com are
 
-watchdog-softlockup-low-overhead-detection-of-interrupt.patch
-watchdog-softlockup-report-the-most-frequent-interrupts.patch
+userfaultfd-fix-return-error-if-mmap_changing-is-non-zero-in-move-ioctl.patch
+userfaultfd-move-userfaultfd_ctx-struct-to-header-file.patch
+userfaultfd-protect-mmap_changing-with-rw_sem-in-userfaulfd_ctx.patch
+userfaultfd-use-per-vma-locks-in-userfaultfd-operations.patch
 
