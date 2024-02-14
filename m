@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC1D75D467
-	for <mm-commits@vger.kernel.org>; Wed, 14 Feb 2024 15:22:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2012922EE3
+	for <mm-commits@vger.kernel.org>; Wed, 14 Feb 2024 15:44:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707924148; cv=none; b=fJlNUCh0VzobuKdIYZ9MAA9qgS5Pykig4WSbHAG6Tju1fjmyMMALCB7Kyu2irfhRHBXSy66MjqUbjnXVxYjXYKQ6YxXA2vcxeFskqxCPDCXsJYTdlkwCabqg9umVCjp8HjNlf0FFRUHMVGXofztIL6QN/AkNJafx8WaZJkrm6TU=
+	t=1707925444; cv=none; b=UKqzADrs/RJEpAY6heho35iT27i9/rwbgYjnNFbpzxcXMI7e+Uf/BHwlix9byKQwxublwBe1nx7YSKUBN9CfQPU9Ib0q77ZnhDBVMZp88snNK37JZ1okJQJqp9N7l5No8/Egdqk+lViTGzUXqZFO+MUOMeFRc+60DQ6UWP8shcE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707924148; c=relaxed/simple;
-	bh=itLslMBA4v84qDYQh6tWO0yZUi9iY9CDQQdV0mFfrkM=;
-	h=Date:To:From:Subject:Message-Id; b=bh1yuT2vRm9ucEoCnqQQfdunlLjpFIf1ZGT+Ffza7G4CsGI5kqt4go9vQ20Wo8x6FJUZf+Cw+thhtpLd99SDljIJ+qm7oAt7VprdmVX6ZOlRWZexNd4DOxUpmq7HFaYdRE+o+TwqKdnPBoTGWTIVnDqIU2j0gPpM9qrVu2Ij/SQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BNXW/rWT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707925444; c=relaxed/simple;
+	bh=BDcn/QNcQJDPuj//vcO2TscyiXZdORk9koLxNzmHiIg=;
+	h=Date:To:From:Subject:Message-Id; b=n/gebXX90COy4BcdgysQa7+TCFasQu/OZfQfN6tIU92qrcdrqIss+iKrABqFbz+ISxdEM4uZac7ee0/axBApcomR/BMYFtsC2vv7JgzPAyMZ8jGHTAH1HjM+qqP/JmHQPbbDv+hkP4JyP502rCLwnGl0pshXOLrsdEHOjokiHQE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kegSmIo/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BNXW/rWT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57F18C433F1;
-	Wed, 14 Feb 2024 15:22:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kegSmIo/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AB3CC433C7;
+	Wed, 14 Feb 2024 15:44:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707924148;
-	bh=itLslMBA4v84qDYQh6tWO0yZUi9iY9CDQQdV0mFfrkM=;
+	s=korg; t=1707925443;
+	bh=BDcn/QNcQJDPuj//vcO2TscyiXZdORk9koLxNzmHiIg=;
 	h=Date:To:From:Subject:From;
-	b=BNXW/rWTc8sFJlFeibELqFhexHGtiaATwftd1EbqcAb9cUCxQAZvYPEYkPCrsrhEz
-	 5S2LYf26Z/6jZo3PUiWRpmMNh+2hJ/iHjAfwl+SzNcsVbcvMtfqowki7f0mPNW5Mhn
-	 i6ZC0Me+fSYHXh8ghXXfciwIwXgmLOrkPNvPSIRw=
-Date: Wed, 14 Feb 2024 07:22:27 -0800
-To: mm-commits@vger.kernel.org,will@kernel.org,npiggin@gmail.com,mpe@ellerman.id.au,jane.chu@oracle.com,david@redhat.com,catalin.marinas@arm.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
+	b=kegSmIo/eSGIrzBkyjxVg2VuLOaYJGQRHYowXHgc2jIJtKz6RT3ARAvyKHtq9wC5v
+	 p1FDV5g6bYVBCE4/4KVCOjl8JGOlgQ45KnI+q1i8QS7smaAii50bEErA+PbVijDIdB
+	 BjwDjJ9n/33aLg2OjAUx+bTqpvDMlfwmJQq7+u1o=
+Date: Wed, 14 Feb 2024 07:44:02 -0800
+To: mm-commits@vger.kernel.org,pmladek@suse.com,liusong@linux.alibaba.com,kernelfans@gmail.com,dianders@chromium.org,yaoma@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-move-page-order-check-inside-hugetlb_cma_reserve.patch added to mm-unstable branch
-Message-Id: <20240214152228.57F18C433F1@smtp.kernel.org>
+Subject: + watchdog-softlockup-low-overhead-detection-of-interrupt.patch added to mm-nonmm-unstable branch
+Message-Id: <20240214154403.7AB3CC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: move page order check inside hugetlb_cma_reserve()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-move-page-order-check-inside-hugetlb_cma_reserve.patch
+     Subject: watchdog/softlockup: low-overhead detection of interrupt
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     watchdog-softlockup-low-overhead-detection-of-interrupt.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-move-page-order-check-inside-hugetlb_cma_reserve.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-softlockup-low-overhead-detection-of-interrupt.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,82 +58,240 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/hugetlb: move page order check inside hugetlb_cma_reserve()
-Date: Fri, 9 Feb 2024 11:12:21 +0530
+From: Bitao Hu <yaoma@linux.alibaba.com>
+Subject: watchdog/softlockup: low-overhead detection of interrupt
+Date: Wed, 14 Feb 2024 10:14:29 +0800
 
-All platforms could benefit from page order check against MAX_PAGE_ORDER
-before allocating a CMA area for gigantic hugetlb pages.  Let's move this
-check from individual platforms to generic hugetlb.
+Patch series "*** Detect interrupt storm in softlockup ***", v7.
 
-Link: https://lkml.kernel.org/r/20240209054221.1403364-1-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: Jane Chu <jane.chu@oracle.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
+A low-overhead method for detecting interrupt storm in softlockup.
+
+
+This patch (of 2):
+
+The following softlockup is caused by interrupt storm, but it cannot be
+identified from the call tree.  Because the call tree is just a snapshot
+and doesn't fully capture the behavior of the CPU during the soft lockup.
+  watchdog: BUG: soft lockup - CPU#28 stuck for 23s! [fio:83921]
+  ...
+  Call trace:
+    __do_softirq+0xa0/0x37c
+    __irq_exit_rcu+0x108/0x140
+    irq_exit+0x14/0x20
+    __handle_domain_irq+0x84/0xe0
+    gic_handle_irq+0x80/0x108
+    el0_irq_naked+0x50/0x58
+
+Therefore，I think it is necessary to report CPU utilization during the
+softlockup_thresh period (report once every sample_period, for a total of
+5 reportings), like this:
+  watchdog: BUG: soft lockup - CPU#28 stuck for 23s! [fio:83921]
+  CPU#28 Utilization every 4s during lockup:
+    #1: 0% system, 0% softirq, 100% hardirq, 0% idle
+    #2: 0% system, 0% softirq, 100% hardirq, 0% idle
+    #3: 0% system, 0% softirq, 100% hardirq, 0% idle
+    #4: 0% system, 0% softirq, 100% hardirq, 0% idle
+    #5: 0% system, 0% softirq, 100% hardirq, 0% idle
+  ...
+
+This would be helpful in determining whether an interrupt storm has
+occurred or in identifying the cause of the softlockup.  The criteria for
+determination are as follows:
+
+  a. If the hardirq utilization is high, then interrupt storm should be
+  considered and the root cause cannot be determined from the call tree.
+  b. If the softirq utilization is high, then we could analyze the call
+  tree but it may cannot reflect the root cause.
+  c. If the system utilization is high, then we could analyze the root
+  cause from the call tree.
+
+The mechanism requires a considerable amount of global storage space when
+configured for the maximum number of CPUs.  Therefore, adding a
+SOFTLOCKUP_DETECTOR_INTR_STORM Kconfig knob that defaults to "yes" if the
+max number of CPUs is <= 128.
+
+Link: https://lkml.kernel.org/r/20240214021430.87471-1-yaoma@linux.alibaba.com
+Link: https://lkml.kernel.org/r/20240214021430.87471-2-yaoma@linux.alibaba.com
+Signed-off-by: Bitao Hu <yaoma@linux.alibaba.com>
+Reviewed-by: Douglas Anderson <dianders@chromium.org>
+Reviewed-by: Liu Song <liusong@linux.alibaba.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Pingfan Liu <kernelfans@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/hugetlbpage.c   |    7 -------
- arch/powerpc/mm/hugetlbpage.c |    4 +---
- mm/hugetlb.c                  |    7 +++++++
- 3 files changed, 8 insertions(+), 10 deletions(-)
+ kernel/watchdog.c |   98 +++++++++++++++++++++++++++++++++++++++++++-
+ lib/Kconfig.debug |   13 +++++
+ 2 files changed, 110 insertions(+), 1 deletion(-)
 
---- a/arch/arm64/mm/hugetlbpage.c~mm-hugetlb-move-page-order-check-inside-hugetlb_cma_reserve
-+++ a/arch/arm64/mm/hugetlbpage.c
-@@ -45,13 +45,6 @@ void __init arm64_hugetlb_cma_reserve(vo
- 	else
- 		order = CONT_PMD_SHIFT - PAGE_SHIFT;
+--- a/kernel/watchdog.c~watchdog-softlockup-low-overhead-detection-of-interrupt
++++ a/kernel/watchdog.c
+@@ -16,6 +16,8 @@
+ #include <linux/cpu.h>
+ #include <linux/nmi.h>
+ #include <linux/init.h>
++#include <linux/kernel_stat.h>
++#include <linux/math64.h>
+ #include <linux/module.h>
+ #include <linux/sysctl.h>
+ #include <linux/tick.h>
+@@ -35,6 +37,8 @@ static DEFINE_MUTEX(watchdog_mutex);
+ # define WATCHDOG_HARDLOCKUP_DEFAULT	0
+ #endif
  
--	/*
--	 * HugeTLB CMA reservation is required for gigantic
--	 * huge pages which could not be allocated via the
--	 * page allocator. Just warn if there is any change
--	 * breaking this assumption.
--	 */
--	WARN_ON(order <= MAX_PAGE_ORDER);
- 	hugetlb_cma_reserve(order);
- }
- #endif /* CONFIG_CMA */
---- a/arch/powerpc/mm/hugetlbpage.c~mm-hugetlb-move-page-order-check-inside-hugetlb_cma_reserve
-+++ a/arch/powerpc/mm/hugetlbpage.c
-@@ -614,8 +614,6 @@ void __init gigantic_hugetlb_cma_reserve
- 		 */
- 		order = mmu_psize_to_shift(MMU_PAGE_16G) - PAGE_SHIFT;
++#define NUM_SAMPLE_PERIODS	5
++
+ unsigned long __read_mostly watchdog_enabled;
+ int __read_mostly watchdog_user_enabled = 1;
+ static int __read_mostly watchdog_hardlockup_user_enabled = WATCHDOG_HARDLOCKUP_DEFAULT;
+@@ -333,6 +337,95 @@ __setup("watchdog_thresh=", watchdog_thr
  
--	if (order) {
--		VM_WARN_ON(order <= MAX_PAGE_ORDER);
-+	if (order)
- 		hugetlb_cma_reserve(order);
--	}
- }
---- a/mm/hugetlb.c~mm-hugetlb-move-page-order-check-inside-hugetlb_cma_reserve
-+++ a/mm/hugetlb.c
-@@ -7800,6 +7800,13 @@ void __init hugetlb_cma_reserve(int orde
- 	bool node_specific_cma_alloc = false;
- 	int nid;
+ static void __lockup_detector_cleanup(void);
  
++#ifdef CONFIG_SOFTLOCKUP_DETECTOR_INTR_STORM
++enum stats_per_group {
++	STATS_SYSTEM,
++	STATS_SOFTIRQ,
++	STATS_HARDIRQ,
++	STATS_IDLE,
++	NUM_STATS_PER_GROUP,
++};
++
++static const enum cpu_usage_stat tracked_stats[NUM_STATS_PER_GROUP] = {
++	CPUTIME_SYSTEM,
++	CPUTIME_SOFTIRQ,
++	CPUTIME_IRQ,
++	CPUTIME_IDLE,
++};
++
++static DEFINE_PER_CPU(u16, cpustat_old[NUM_STATS_PER_GROUP]);
++static DEFINE_PER_CPU(u8, cpustat_util[NUM_SAMPLE_PERIODS][NUM_STATS_PER_GROUP]);
++static DEFINE_PER_CPU(u8, cpustat_tail);
++
++/*
++ * We don't need nanosecond resolution. A granularity of 16ms is
++ * sufficient for our precision, allowing us to use u16 to store
++ * cpustats, which will roll over roughly every ~1000 seconds.
++ * 2^24 ~= 16 * 10^6
++ */
++static u16 get_16bit_precision(u64 data_ns)
++{
++	return data_ns >> 24LL; /* 2^24ns ~= 16.8ms */
++}
++
++static void update_cpustat(void)
++{
++	int i;
++	u8 util;
++	u16 old_stat, new_stat;
++	struct kernel_cpustat kcpustat;
++	u64 *cpustat = kcpustat.cpustat;
++	u8 tail = __this_cpu_read(cpustat_tail);
++	u16 sample_period_16 = get_16bit_precision(sample_period);
++
++	kcpustat_cpu_fetch(&kcpustat, smp_processor_id());
++
++	for (i = 0; i < NUM_STATS_PER_GROUP; i++) {
++		old_stat = __this_cpu_read(cpustat_old[i]);
++		new_stat = get_16bit_precision(cpustat[tracked_stats[i]]);
++		util = DIV_ROUND_UP(100 * (new_stat - old_stat), sample_period_16);
++		__this_cpu_write(cpustat_util[tail][i], util);
++		__this_cpu_write(cpustat_old[i], new_stat);
++	}
++
++	__this_cpu_write(cpustat_tail, (tail + 1) % NUM_SAMPLE_PERIODS);
++}
++
++static void print_cpustat(void)
++{
++	int i, group;
++	u8 tail = __this_cpu_read(cpustat_tail);
++	u64 sample_period_second = sample_period;
++
++	do_div(sample_period_second, NSEC_PER_SEC);
++
 +	/*
-+	 * HugeTLB CMA reservation is required for gigantic
-+	 * huge pages which could not be allocated via the
-+	 * page allocator. Just warn if there is any change
-+	 * breaking this assumption.
++	 * We do not want the "watchdog: " prefix on every line,
++	 * hence we use "printk" instead of "pr_crit".
 +	 */
-+	VM_WARN_ON(order <= MAX_PAGE_ORDER);
- 	cma_reserve_called = true;
++	printk(KERN_CRIT "CPU#%d Utilization every %llus during lockup:\n",
++	       smp_processor_id(), sample_period_second);
++
++	for (i = 0; i < NUM_SAMPLE_PERIODS; i++) {
++		group = (tail + i) % NUM_SAMPLE_PERIODS;
++		printk(KERN_CRIT "\t#%d: %3u%% system,\t%3u%% softirq,\t"
++			"%3u%% hardirq,\t%3u%% idle\n", i + 1,
++			__this_cpu_read(cpustat_util[group][STATS_SYSTEM]),
++			__this_cpu_read(cpustat_util[group][STATS_SOFTIRQ]),
++			__this_cpu_read(cpustat_util[group][STATS_HARDIRQ]),
++			__this_cpu_read(cpustat_util[group][STATS_IDLE]));
++	}
++}
++
++static void report_cpu_status(void)
++{
++	print_cpustat();
++}
++#else
++static inline void update_cpustat(void) { }
++static inline void report_cpu_status(void) { }
++#endif
++
+ /*
+  * Hard-lockup warnings should be triggered after just a few seconds. Soft-
+  * lockups can have false positives under extreme conditions. So we generally
+@@ -364,7 +457,7 @@ static void set_sample_period(void)
+ 	 * and hard thresholds) to increment before the
+ 	 * hardlockup detector generates a warning
+ 	 */
+-	sample_period = get_softlockup_thresh() * ((u64)NSEC_PER_SEC / 5);
++	sample_period = get_softlockup_thresh() * ((u64)NSEC_PER_SEC / NUM_SAMPLE_PERIODS);
+ 	watchdog_update_hrtimer_threshold(sample_period);
+ }
  
- 	if (!hugetlb_cma_size)
+@@ -504,6 +597,8 @@ static enum hrtimer_restart watchdog_tim
+ 	 */
+ 	period_ts = READ_ONCE(*this_cpu_ptr(&watchdog_report_ts));
+ 
++	update_cpustat();
++
+ 	/* Reset the interval when touched by known problematic code. */
+ 	if (period_ts == SOFTLOCKUP_DELAY_REPORT) {
+ 		if (unlikely(__this_cpu_read(softlockup_touch_sync))) {
+@@ -539,6 +634,7 @@ static enum hrtimer_restart watchdog_tim
+ 		pr_emerg("BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",
+ 			smp_processor_id(), duration,
+ 			current->comm, task_pid_nr(current));
++		report_cpu_status();
+ 		print_modules();
+ 		print_irqtrace_events(current);
+ 		if (regs)
+--- a/lib/Kconfig.debug~watchdog-softlockup-low-overhead-detection-of-interrupt
++++ a/lib/Kconfig.debug
+@@ -1029,6 +1029,19 @@ config SOFTLOCKUP_DETECTOR
+ 	  chance to run.  The current stack trace is displayed upon
+ 	  detection and the system will stay locked up.
+ 
++config SOFTLOCKUP_DETECTOR_INTR_STORM
++	bool "Detect Interrupt Storm in Soft Lockups"
++	depends on SOFTLOCKUP_DETECTOR && IRQ_TIME_ACCOUNTING
++	default y if NR_CPUS <= 128
++	help
++	  Say Y here to enable the kernel to detect interrupt storm
++	  during "soft lockups".
++
++	  "soft lockups" can be caused by a variety of reasons. If one is
++	  caused by an interrupt storm, then the storming interrupts will not
++	  be on the callstack. To detect this case, it is necessary to report
++	  the CPU stats and the interrupt counts during the "soft lockups".
++
+ config BOOTPARAM_SOFTLOCKUP_PANIC
+ 	bool "Panic (Reboot) On Soft Lockups"
+ 	depends on SOFTLOCKUP_DETECTOR
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from yaoma@linux.alibaba.com are
 
-mm-memblock-add-memblock_rsrv_noinit-into-flagname-array.patch
-mm-cma-dont-treat-bad-input-arguments-for-cma_alloc-as-its-failure.patch
-mm-cma-drop-config_cma_debug.patch
-mm-cma-make-max_cma_areas-=-config_cma_areas.patch
-mm-cma-add-sysfs-file-release_pages_success.patch
-mm-hugetlb-move-page-order-check-inside-hugetlb_cma_reserve.patch
+watchdog-softlockup-low-overhead-detection-of-interrupt.patch
+watchdog-softlockup-report-the-most-frequent-interrupts.patch
 
