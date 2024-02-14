@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38F275D900
-	for <mm-commits@vger.kernel.org>; Wed, 14 Feb 2024 15:13:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F420E5380F
+	for <mm-commits@vger.kernel.org>; Wed, 14 Feb 2024 15:20:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707923581; cv=none; b=NJtNe9m/5aO4zXca8aM3f3C2AtzFkvgg+iLCiCuh4fLbaZDg+AoGos2vch/CDBX6xCJ0c9yjrQOreWmM53p/ljVEL9ccIW79z4sCnj8RVG0jdR8jwMixiYtHsGWPL5igh4dZiCGBnLKu2jmc0tFmseu5/HWQDH5iAkRh/NvL3Jo=
+	t=1707924037; cv=none; b=NOdIKxVYjkMdx47+dM9GocXIqaYyzO5nTfseING7mJWJKvjP787clV5MjWbWbFYKOd5NDZwIVoxYrJXzCyAHm1ItDqj3lG3APmStMLWVQ7rP6iXjzUB7cE8ezMtCaV9IxPrwyUaZOeWqxlkS6HkFvLCCRqe4/25mCJvlLCCAPNA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707923581; c=relaxed/simple;
-	bh=HkxDRges29pn9HO/EnNSEG2/Exdcrw9OU4/qZVwbHbM=;
-	h=Date:To:From:Subject:Message-Id; b=iPcJmLOZU/1ZlK4BGJOmuQDfpkHzNaCRcYCuiRe7Snvz7BmwljFl0M71OHRNEGnqM5uaNrVj6Dfrem95GR83aNxgKsjH1WFWfdPlUSA4idZ5ua0UmsRoMrgPzqNr3D5N6HeKqeg6utBGEBTI3/fTU9FPBTD1PI9xKFfBtAwivSc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pmbO2TKF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707924037; c=relaxed/simple;
+	bh=KYKJmhLfXHhBNDwv2t5QyM0zBH8u1+ZcCPf2BAdOb0Q=;
+	h=Date:To:From:Subject:Message-Id; b=HYXjsX8eDXDC64XUHo6L2i8/zbka/cpNxwrot1xDr8ihrezs6BoxjNpdh8KRDpPTgcHmPVcFy2sXKf3WGgbnnDrFN5YD1Wxjg/h/I35Q61zg3XmOqR1ooaMJz2Vupxx3OvZsPlJFDHctvf0zL9yr6I90Uv64ExfUTiNSZIIrYcc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nA9TFg5v; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pmbO2TKF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A09A0C433C7;
-	Wed, 14 Feb 2024 15:13:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nA9TFg5v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E00EC433C7;
+	Wed, 14 Feb 2024 15:20:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707923580;
-	bh=HkxDRges29pn9HO/EnNSEG2/Exdcrw9OU4/qZVwbHbM=;
+	s=korg; t=1707924036;
+	bh=KYKJmhLfXHhBNDwv2t5QyM0zBH8u1+ZcCPf2BAdOb0Q=;
 	h=Date:To:From:Subject:From;
-	b=pmbO2TKFORZkSrJt7/3NGC/l5CdHtBsiEpSIwGGxn0DZX3t4WziCTKtSmo3VTHwKz
-	 Y2lmCKwBjLkm3GVjXRTOD0ynhoZ0Q99YaTU2bBhjOogCPqXLX6kQdGxH0UV0nvxqxc
-	 t1+qTRDpk8DqNy+eCcB/HlKSfog2H95EZ1+g3yQo=
-Date: Wed, 14 Feb 2024 07:13:00 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,donettom@linux.vnet.ibm.com,aneesh.kumar@linux.ibm.com,kinseyho@google.com,akpm@linux-foundation.org
+	b=nA9TFg5vXByExt4mVdvqp9jFXlmGHnUk1yvmYcoDS+aw4wxHfhWc/xpoI0NrAGTFC
+	 VY956ww1MfDlhtCf4lk2ZhnLErEjYx8uWttxyowEWLbblAC2riCy4Kf5BD9L/NlmQm
+	 8C6DBPLKX6ipYZe6UYNYAMVLpI9kSHzFxQtSE8Nw=
+Date: Wed, 14 Feb 2024 07:20:35 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,osalvador@suse.de,mhocko@suse.com,glider@google.com,elver@google.com,andreyknvl@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-improve-swappiness-handling.patch added to mm-unstable branch
-Message-Id: <20240214151300.A09A0C433C7@smtp.kernel.org>
+Subject: + lib-stackdepot-move-stack_record-struct-definition-into-the-header-fix.patch added to mm-unstable branch
+Message-Id: <20240214152036.4E00EC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mglru: improve swappiness handling
+     Subject: lib-stackdepot-move-stack_record-struct-definition-into-the-header-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mglru-improve-swappiness-handling.patch
+     lib-stackdepot-move-stack_record-struct-definition-into-the-header-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-improve-swappiness-handling.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-move-stack_record-struct-definition-into-the-header-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,99 +58,52 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Kinsey Ho <kinseyho@google.com>
-Subject: mm/mglru: improve swappiness handling
-Date: Wed, 14 Feb 2024 06:05:38 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib-stackdepot-move-stack_record-struct-definition-into-the-header-fix
+Date: Wed Feb 14 07:17:48 AM PST 2024
 
-The reclaimable number of anon pages used to set initial reclaim priority
-is only based on get_swappiness().  Use can_reclaim_anon_pages() to
-include NUMA node demotion.
+fix CONFIG_STACKDEPOT=n build
 
-Also move the swappiness handling of when !__GFP_IO in
-try_to_shrink_lruvec() into isolate_folios().
-
-Link: https://lkml.kernel.org/r/20240214060538.3524462-6-kinseyho@google.com
-Signed-off-by: Kinsey Ho <kinseyho@google.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Donet Tom <donettom@linux.vnet.ibm.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ include/linux/stackdepot.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/vmscan.c~mm-mglru-improve-swappiness-handling
-+++ a/mm/vmscan.c
-@@ -4290,7 +4290,7 @@ static bool isolate_folio(struct lruvec
- {
- 	bool success;
+--- a/include/linux/stackdepot.h~lib-stackdepot-move-stack_record-struct-definition-into-the-header-fix
++++ a/include/linux/stackdepot.h
+@@ -39,6 +39,7 @@ typedef u32 depot_stack_handle_t;
+ #define DEPOT_POOL_INDEX_BITS (DEPOT_HANDLE_BITS - DEPOT_OFFSET_BITS - \
+ 			       STACK_DEPOT_EXTRA_BITS)
  
--	/* swapping inhibited */
-+	/* swap constrained */
- 	if (!(sc->gfp_mask & __GFP_IO) &&
- 	    (folio_test_dirty(folio) ||
- 	     (folio_test_anon(folio) && !folio_test_swapcache(folio))))
-@@ -4459,9 +4459,12 @@ static int isolate_folios(struct lruvec
- 	DEFINE_MIN_SEQ(lruvec);
++#ifdef CONFIG_STACKDEPOT
+ /* Compact structure that stores a reference to a stack. */
+ union handle_parts {
+ 	depot_stack_handle_t handle;
+@@ -73,6 +74,7 @@ struct stack_record {
+ 		};
+ 	};
+ };
++#endif
  
- 	/*
--	 * Try to make the obvious choice first. When anon and file are both
--	 * available from the same generation, interpret swappiness 1 as file
--	 * first and 200 as anon first.
-+	 * Try to make the obvious choice first, and if anon and file are both
-+	 * available from the same generation,
-+	 * 1. Interpret swappiness 1 as file first and MAX_SWAPPINESS as anon
-+	 *    first.
-+	 * 2. If !__GFP_IO, file first since clean pagecache is more likely to
-+	 *    exist than clean swapcache.
- 	 */
- 	if (!swappiness)
- 		type = LRU_GEN_FILE;
-@@ -4471,6 +4474,8 @@ static int isolate_folios(struct lruvec
- 		type = LRU_GEN_FILE;
- 	else if (swappiness == 200)
- 		type = LRU_GEN_ANON;
-+	else if (!(sc->gfp_mask & __GFP_IO))
-+		type = LRU_GEN_FILE;
- 	else
- 		type = get_type_to_scan(lruvec, swappiness, &tier);
+ typedef u32 depot_flags_t;
  
-@@ -4714,10 +4719,6 @@ static bool try_to_shrink_lruvec(struct
- 	unsigned long scanned = 0;
- 	int swappiness = get_swappiness(lruvec, sc);
- 
--	/* clean file folios are more likely to exist */
--	if (swappiness && !(sc->gfp_mask & __GFP_IO))
--		swappiness = 1;
--
- 	while (true) {
- 		int delta;
- 
-@@ -4880,7 +4881,6 @@ static void set_initial_priority(struct
- {
- 	int priority;
- 	unsigned long reclaimable;
--	struct lruvec *lruvec = mem_cgroup_lruvec(NULL, pgdat);
- 
- 	if (sc->priority != DEF_PRIORITY || sc->nr_to_reclaim < MIN_LRU_BATCH)
- 		return;
-@@ -4890,7 +4890,7 @@ static void set_initial_priority(struct
- 	 * where reclaimed_to_scanned_ratio = inactive / total.
- 	 */
- 	reclaimable = node_page_state(pgdat, NR_INACTIVE_FILE);
--	if (get_swappiness(lruvec, sc))
-+	if (can_reclaim_anon_pages(NULL, pgdat->node_id, sc))
- 		reclaimable += node_page_state(pgdat, NR_INACTIVE_ANON);
- 
- 	/* round down reclaimable and round up sc->nr_to_reclaim */
 _
 
-Patches currently in -mm which might be from kinseyho@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-mglru-drop-unused-parameter.patch
-mm-mglru-improve-should_run_aging.patch
-mm-mglru-improve-reset_mm_stats.patch
-mm-mglru-improve-struct-lru_gen_mm_walk.patch
-mm-mglru-improve-swappiness-handling.patch
+kexec-split-crashkernel-reservation-code-out-from-crash_corec-fix.patch
+mm-memory_hotplug-export-mhp_supports_memmap_on_memory-fix.patch
+mm-damon-dbgfs-make-debugfs-interface-deprecation-message-a-macro-fix.patch
+mm-ptdump-have-ptdump_check_wx-return-bool-fix.patch
+mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages-fix.patch
+lib-stackdepot-move-stack_record-struct-definition-into-the-header-fix.patch
+kprobes-use-synchronize_rcu_tasks_rude-in-kprobe_optimizer-fix.patch
+panic-add-option-to-dump-blocked-tasks-in-panic_print-fix.patch
 
