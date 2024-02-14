@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EE04132C3E
-	for <mm-commits@vger.kernel.org>; Wed, 14 Feb 2024 18:32:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AFC813B2B1
+	for <mm-commits@vger.kernel.org>; Wed, 14 Feb 2024 18:32:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707935551; cv=none; b=Tl/ft6YfVsmxsR1cHVI0ghiRMEN8RN7VmGwqcXgVi9gMZoUUOBRGg4fiwukWkAnGhxMdTDuhwu2iqmNCOOBmEJ4HjVW1SvF5jiLOMLdlEGHx0af13Zq4XNa0pdIWkvAEGHa6sqt8IrC8l1ZJzOq3AbDDJAuAF5IdayM8vva0aZY=
+	t=1707935552; cv=none; b=oXZDAmgTrhRQj5vw0/7ocvA/ZKix7XNFpObVfSQUUMxN4Kf+kvwRqNF+bknswu+zEiXrGwQ76oVR0jDdK3uQPSqETapI7htE3LTJ/2Sfhudg72qCsVQCCyXktzOBJKwBuO2QXz0LHkkZTxbwO5NSXtBcC0AYBIBUumsVtHSNLsE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707935551; c=relaxed/simple;
-	bh=3CpR0JapP8MgHZG+TKqi2kD3NjNRVB1WfDXmhrIAV0g=;
-	h=Date:To:From:Subject:Message-Id; b=Inxh7gqUxA8Z9zb2JkSkMZnwGWEED6MxLqcMRASEzIK1H0g8QrkXh0hWQGeTXWwhE4csm+714L0kAohxrZikPl3VclVLhXleGDQa1Je+1t68GrZcdAdUeqegKhaH0ARaJl3wwmv6bfWjMDCEYDt6iJXxAeFU4FOZBAE5LkQsZng=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Akf2O7rx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707935552; c=relaxed/simple;
+	bh=HLJ1Qp1fgVZ8eYLlV0r9S4yMrRIFihYiPmdDgxQH4bs=;
+	h=Date:To:From:Subject:Message-Id; b=qvnbE9Ky3/7OpsHW71wAkmUoqFkHFZVnh+n8qR+zFRLWLUB+NeHTgsOEG1juZAKbrI0zY0upNv/zeiDPTAT/NdL6dakiuIbHs7Wl7q7uB+qXLEh11BdfaCTZfa1WZYTiYIU9OvzJ5rFyEjd2I6+aWx+Gisjog4Alap2N/yLw8o4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FUclYxLK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Akf2O7rx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E78CFC433F1;
-	Wed, 14 Feb 2024 18:32:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FUclYxLK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02DEFC433C7;
+	Wed, 14 Feb 2024 18:32:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707935550;
-	bh=3CpR0JapP8MgHZG+TKqi2kD3NjNRVB1WfDXmhrIAV0g=;
+	s=korg; t=1707935552;
+	bh=HLJ1Qp1fgVZ8eYLlV0r9S4yMrRIFihYiPmdDgxQH4bs=;
 	h=Date:To:From:Subject:From;
-	b=Akf2O7rxAeqP/K/bCtgTX1tzZTYFax/48DU4IbWyPM9JdfcNxP619N678CV2P2fPI
-	 eNNg4qz8gYM48VS4ocCQPeH7yIuI77MoGcRstwRGXU67h36QpGvYPaNIW70fBVpo9n
-	 dh15TaRVpRwFcc5ErsGY9UzD5i9Eo8m8NRlyo2bQ=
-Date: Wed, 14 Feb 2024 10:32:29 -0800
+	b=FUclYxLKs3QpHZ+wTneJLt+z6tNlF1+3V9gvDQRySnlN5nBEt+Ec9AcxAcNkBXOW0
+	 4W/uk8+4Fr0SXQNx/TV8ldJlLR3LcBrVXIXNi9n8bhvY8lCHOelJD+Riq8DXwjMmYw
+	 zDOJM5ZNGnjukVm69usQ03otmk8k665t+NzqjnZA=
+Date: Wed, 14 Feb 2024 10:32:31 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,mhocko@suse.com,glider@google.com,elver@google.com,andreyknvl@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-stackdepot-fix-first-entry-having-a-0-handle.patch added to mm-unstable branch
-Message-Id: <20240214183229.E78CFC433F1@smtp.kernel.org>
+Subject: + lib-stackdepot-move-stack_record-struct-definition-into-the-header.patch added to mm-unstable branch
+Message-Id: <20240214183232.02DEFC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/stackdepot: fix first entry having a 0-handle
+     Subject: lib/stackdepot: move stack_record struct definition into the header
 has been added to the -mm mm-unstable branch.  Its filename is
-     lib-stackdepot-fix-first-entry-having-a-0-handle.patch
+     lib-stackdepot-move-stack_record-struct-definition-into-the-header.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-fix-first-entry-having-a-0-handle.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-move-stack_record-struct-definition-into-the-header.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,202 +59,143 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: lib/stackdepot: fix first entry having a 0-handle
-Date: Wed, 14 Feb 2024 18:01:51 +0100
+Subject: lib/stackdepot: move stack_record struct definition into the header
+Date: Wed, 14 Feb 2024 18:01:52 +0100
 
-Patch series "page_owner: print stacks and their outstanding allocations", v9.
+In order to move the heavy lifting into page_owner code, this one needs to
+have access to the stack_record structure, which right now sits in
+lib/stackdepot.c.  Move it to the stackdepot.h header so page_owner can
+access stack_record's struct fields.
 
-page_owner is a great debug functionality tool that lets us know about all
-pages that have been allocated/freed and their specific stacktrace.  This
-comes very handy when debugging memory leaks, since with some scripting we
-can see the outstanding allocations, which might point to a memory leak.
-
-In my experience, that is one of the most useful cases, but it can get
-really tedious to screen through all pages and try to reconstruct the
-stack <-> allocated/freed relationship, becoming most of the time a
-daunting and slow process when we have tons of allocation/free operations.
-
-This patchset aims to ease that by adding a new functionality into
-page_owner.  This functionality creates a new directory called
-'page_owner_stacks' under 'sys/kernel//debug' with a read-only file called
-'show_stacks', which prints out all the stacks followed by their
-outstanding number of allocations (being that the times the stacktrace has
-allocated but not freed yet).  This gives us a clear and a quick overview
-of stacks <-> allocated/free.
-
-We take advantage of the new refcount_f field that stack_record struct
-gained, and increment/decrement the stack refcount on every
-__set_page_owner() (alloc operation) and __reset_page_owner (free
-operation) call.
-
-Unfortunately, we cannot use the new stackdepot api STACK_DEPOT_FLAG_GET
-because it does not fulfill page_owner needs, meaning we would have to
-special case things, at which point makes more sense for page_owner to do
-its own {dec,inc}rementing of the stacks.  E.g: Using
-STACK_DEPOT_FLAG_PUT, once the refcount reaches 0, such stack gets
-evicted, so page_owner would lose information.
-
-This patchset also creates a new file called 'set_threshold' within
-'page_owner_stacks' directory, and by writing a value to it, the stacks
-which refcount is below such value will be filtered out.
-
-A PoC can be found below:
-
- # cat /sys/kernel/debug/page_owner_stacks/show_stacks > page_owner_full_stacks.txt
- # head -40 page_owner_full_stacks.txt 
-  prep_new_page+0xa9/0x120
-  get_page_from_freelist+0x801/0x2210
-  __alloc_pages+0x18b/0x350
-  alloc_pages_mpol+0x91/0x1f0
-  folio_alloc+0x14/0x50
-  filemap_alloc_folio+0xb2/0x100
-  page_cache_ra_unbounded+0x96/0x180
-  filemap_get_pages+0xfd/0x590
-  filemap_read+0xcc/0x330
-  blkdev_read_iter+0xb8/0x150
-  vfs_read+0x285/0x320
-  ksys_read+0xa5/0xe0
-  do_syscall_64+0x80/0x160
-  entry_SYSCALL_64_after_hwframe+0x6e/0x76
- stack_count: 521
-
-
-
-  prep_new_page+0xa9/0x120
-  get_page_from_freelist+0x801/0x2210
-  __alloc_pages+0x18b/0x350
-  alloc_pages_mpol+0x91/0x1f0
-  folio_alloc+0x14/0x50
-  filemap_alloc_folio+0xb2/0x100
-  __filemap_get_folio+0x14a/0x490
-  ext4_write_begin+0xbd/0x4b0 [ext4]
-  generic_perform_write+0xc1/0x1e0
-  ext4_buffered_write_iter+0x68/0xe0 [ext4]
-  ext4_file_write_iter+0x70/0x740 [ext4]
-  vfs_write+0x33d/0x420
-  ksys_write+0xa5/0xe0
-  do_syscall_64+0x80/0x160
-  entry_SYSCALL_64_after_hwframe+0x6e/0x76
- stack_count: 4609
-...
-...
-
- # echo 5000 > /sys/kernel/debug/page_owner_stacks/set_threshold 
- # cat /sys/kernel/debug/page_owner_stacks/show_stacks > page_owner_full_stacks_5000.txt
- # head -40 page_owner_full_stacks_5000.txt 
-  prep_new_page+0xa9/0x120
-  get_page_from_freelist+0x801/0x2210
-  __alloc_pages+0x18b/0x350
-  alloc_pages_mpol+0x91/0x1f0
-  folio_alloc+0x14/0x50
-  filemap_alloc_folio+0xb2/0x100
-  __filemap_get_folio+0x14a/0x490
-  ext4_write_begin+0xbd/0x4b0 [ext4]
-  generic_perform_write+0xc1/0x1e0
-  ext4_buffered_write_iter+0x68/0xe0 [ext4]
-  ext4_file_write_iter+0x70/0x740 [ext4]
-  vfs_write+0x33d/0x420
-  ksys_pwrite64+0x75/0x90
-  do_syscall_64+0x80/0x160
-  entry_SYSCALL_64_after_hwframe+0x6e/0x76
- stack_count: 6781
-
-
-
-  prep_new_page+0xa9/0x120
-  get_page_from_freelist+0x801/0x2210
-  __alloc_pages+0x18b/0x350
-  pcpu_populate_chunk+0xec/0x350
-  pcpu_balance_workfn+0x2d1/0x4a0
-  process_scheduled_works+0x84/0x380
-  worker_thread+0x12a/0x2a0
-  kthread+0xe3/0x110
-  ret_from_fork+0x30/0x50
-  ret_from_fork_asm+0x1b/0x30
- stack_count: 8641
-
-
-This patch (of 7):
-
-The very first entry of stack_record gets a handle of 0, but this is wrong
-because stackdepot treats a 0-handle as a non-valid one.  E.g: See the
-check in stack_depot_fetch()
-
-Fix this by adding and offset of 1.
-
-This bug has been lurking since the very beginning of stackdepot, but no
-one really cared as it seems.  Because of that I am not adding a Fixes
-tag.
-
-Link: https://lkml.kernel.org/r/20240214170157.17530-1-osalvador@suse.de
-Link: https://lkml.kernel.org/r/20240214170157.17530-2-osalvador@suse.de
-Co-developed-by: Marco Elver <elver@google.com>
-Signed-off-by: Marco Elver <elver@google.com>
+Link: https://lkml.kernel.org/r/20240214170157.17530-3-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Marco Elver <elver@google.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/stackdepot.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ include/linux/stackdepot.h |   47 +++++++++++++++++++++++++++++++++++
+ lib/stackdepot.c           |   45 ---------------------------------
+ 2 files changed, 48 insertions(+), 44 deletions(-)
 
---- a/lib/stackdepot.c~lib-stackdepot-fix-first-entry-having-a-0-handle
+--- a/include/linux/stackdepot.h~lib-stackdepot-move-stack_record-struct-definition-into-the-header
++++ a/include/linux/stackdepot.h
+@@ -30,6 +30,53 @@ typedef u32 depot_stack_handle_t;
+  */
+ #define STACK_DEPOT_EXTRA_BITS 5
+ 
++#define DEPOT_HANDLE_BITS (sizeof(depot_stack_handle_t) * 8)
++
++#define DEPOT_POOL_ORDER 2 /* Pool size order, 4 pages */
++#define DEPOT_POOL_SIZE (1LL << (PAGE_SHIFT + DEPOT_POOL_ORDER))
++#define DEPOT_STACK_ALIGN 4
++#define DEPOT_OFFSET_BITS (DEPOT_POOL_ORDER + PAGE_SHIFT - DEPOT_STACK_ALIGN)
++#define DEPOT_POOL_INDEX_BITS (DEPOT_HANDLE_BITS - DEPOT_OFFSET_BITS - \
++			       STACK_DEPOT_EXTRA_BITS)
++
++#ifdef CONFIG_STACKDEPOT
++/* Compact structure that stores a reference to a stack. */
++union handle_parts {
++	depot_stack_handle_t handle;
++	struct {
++		/* pool_index is offset by 1 */
++		u32 pool_index	: DEPOT_POOL_INDEX_BITS;
++		u32 offset	: DEPOT_OFFSET_BITS;
++		u32 extra	: STACK_DEPOT_EXTRA_BITS;
++	};
++};
++
++struct stack_record {
++	struct list_head hash_list;	/* Links in the hash table */
++	u32 hash;			/* Hash in hash table */
++	u32 size;			/* Number of stored frames */
++	union handle_parts handle;	/* Constant after initialization */
++	refcount_t count;
++	union {
++		unsigned long entries[CONFIG_STACKDEPOT_MAX_FRAMES];	/* Frames */
++		struct {
++			/*
++			 * An important invariant of the implementation is to
++			 * only place a stack record onto the freelist iff its
++			 * refcount is zero. Because stack records with a zero
++			 * refcount are never considered as valid, it is safe to
++			 * union @entries and freelist management state below.
++			 * Conversely, as soon as an entry is off the freelist
++			 * and its refcount becomes non-zero, the below must not
++			 * be accessed until being placed back on the freelist.
++			 */
++			struct list_head free_list;	/* Links in the freelist */
++			unsigned long rcu_state;	/* RCU cookie */
++		};
++	};
++};
++#endif
++
+ typedef u32 depot_flags_t;
+ 
+ /*
+--- a/lib/stackdepot.c~lib-stackdepot-move-stack_record-struct-definition-into-the-header
 +++ a/lib/stackdepot.c
-@@ -45,15 +45,16 @@
- #define DEPOT_POOL_INDEX_BITS (DEPOT_HANDLE_BITS - DEPOT_OFFSET_BITS - \
- 			       STACK_DEPOT_EXTRA_BITS)
+@@ -36,55 +36,12 @@
+ #include <linux/memblock.h>
+ #include <linux/kasan-enabled.h>
+ 
+-#define DEPOT_HANDLE_BITS (sizeof(depot_stack_handle_t) * 8)
+-
+-#define DEPOT_POOL_ORDER 2 /* Pool size order, 4 pages */
+-#define DEPOT_POOL_SIZE (1LL << (PAGE_SHIFT + DEPOT_POOL_ORDER))
+-#define DEPOT_STACK_ALIGN 4
+-#define DEPOT_OFFSET_BITS (DEPOT_POOL_ORDER + PAGE_SHIFT - DEPOT_STACK_ALIGN)
+-#define DEPOT_POOL_INDEX_BITS (DEPOT_HANDLE_BITS - DEPOT_OFFSET_BITS - \
+-			       STACK_DEPOT_EXTRA_BITS)
  #define DEPOT_POOLS_CAP 8192
-+/* The pool_index is offset by 1 so the first record does not have a 0 handle. */
+-/* The pool_index is offset by 1 so the first record does not have a 0 handle. */
++/* The pool_index is offset by 1 so the first record does not have a 0 handle */
  #define DEPOT_MAX_POOLS \
--	(((1LL << (DEPOT_POOL_INDEX_BITS)) < DEPOT_POOLS_CAP) ? \
--	 (1LL << (DEPOT_POOL_INDEX_BITS)) : DEPOT_POOLS_CAP)
-+	(((1LL << (DEPOT_POOL_INDEX_BITS)) - 1 < DEPOT_POOLS_CAP) ? \
-+	 (1LL << (DEPOT_POOL_INDEX_BITS)) - 1 : DEPOT_POOLS_CAP)
+ 	(((1LL << (DEPOT_POOL_INDEX_BITS)) - 1 < DEPOT_POOLS_CAP) ? \
+ 	 (1LL << (DEPOT_POOL_INDEX_BITS)) - 1 : DEPOT_POOLS_CAP)
  
- /* Compact structure that stores a reference to a stack. */
- union handle_parts {
- 	depot_stack_handle_t handle;
- 	struct {
--		u32 pool_index	: DEPOT_POOL_INDEX_BITS;
-+		u32 pool_index	: DEPOT_POOL_INDEX_BITS; /* pool_index is offset by 1 */
- 		u32 offset	: DEPOT_OFFSET_BITS;
- 		u32 extra	: STACK_DEPOT_EXTRA_BITS;
- 	};
-@@ -372,7 +373,7 @@ static struct stack_record *depot_pop_fr
- 	stack = current_pool + pool_offset;
- 
- 	/* Pre-initialize handle once. */
--	stack->handle.pool_index = pool_index;
-+	stack->handle.pool_index = pool_index + 1;
- 	stack->handle.offset = pool_offset >> DEPOT_STACK_ALIGN;
- 	stack->handle.extra = 0;
- 	INIT_LIST_HEAD(&stack->hash_list);
-@@ -483,18 +484,19 @@ static struct stack_record *depot_fetch_
- 	const int pools_num_cached = READ_ONCE(pools_num);
- 	union handle_parts parts = { .handle = handle };
- 	void *pool;
-+	u32 pool_index = parts.pool_index - 1;
- 	size_t offset = parts.offset << DEPOT_STACK_ALIGN;
- 	struct stack_record *stack;
- 
- 	lockdep_assert_not_held(&pool_lock);
- 
--	if (parts.pool_index > pools_num_cached) {
-+	if (pool_index > pools_num_cached) {
- 		WARN(1, "pool index %d out of bounds (%d) for stack id %08x\n",
--		     parts.pool_index, pools_num_cached, handle);
-+		     pool_index, pools_num_cached, handle);
- 		return NULL;
- 	}
- 
--	pool = stack_pools[parts.pool_index];
-+	pool = stack_pools[pool_index];
- 	if (WARN_ON(!pool))
- 		return NULL;
- 
+-/* Compact structure that stores a reference to a stack. */
+-union handle_parts {
+-	depot_stack_handle_t handle;
+-	struct {
+-		u32 pool_index	: DEPOT_POOL_INDEX_BITS; /* pool_index is offset by 1 */
+-		u32 offset	: DEPOT_OFFSET_BITS;
+-		u32 extra	: STACK_DEPOT_EXTRA_BITS;
+-	};
+-};
+-
+-struct stack_record {
+-	struct list_head hash_list;	/* Links in the hash table */
+-	u32 hash;			/* Hash in hash table */
+-	u32 size;			/* Number of stored frames */
+-	union handle_parts handle;	/* Constant after initialization */
+-	refcount_t count;
+-	union {
+-		unsigned long entries[CONFIG_STACKDEPOT_MAX_FRAMES];	/* Frames */
+-		struct {
+-			/*
+-			 * An important invariant of the implementation is to
+-			 * only place a stack record onto the freelist iff its
+-			 * refcount is zero. Because stack records with a zero
+-			 * refcount are never considered as valid, it is safe to
+-			 * union @entries and freelist management state below.
+-			 * Conversely, as soon as an entry is off the freelist
+-			 * and its refcount becomes non-zero, the below must not
+-			 * be accessed until being placed back on the freelist.
+-			 */
+-			struct list_head free_list;	/* Links in the freelist */
+-			unsigned long rcu_state;	/* RCU cookie */
+-		};
+-	};
+-};
+-
+ static bool stack_depot_disabled;
+ static bool __stack_depot_early_init_requested __initdata = IS_ENABLED(CONFIG_STACKDEPOT_ALWAYS_INIT);
+ static bool __stack_depot_early_init_passed __initdata;
 _
 
 Patches currently in -mm which might be from osalvador@suse.de are
