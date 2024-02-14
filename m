@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F420E5380F
-	for <mm-commits@vger.kernel.org>; Wed, 14 Feb 2024 15:20:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC1D75D467
+	for <mm-commits@vger.kernel.org>; Wed, 14 Feb 2024 15:22:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707924037; cv=none; b=NOdIKxVYjkMdx47+dM9GocXIqaYyzO5nTfseING7mJWJKvjP787clV5MjWbWbFYKOd5NDZwIVoxYrJXzCyAHm1ItDqj3lG3APmStMLWVQ7rP6iXjzUB7cE8ezMtCaV9IxPrwyUaZOeWqxlkS6HkFvLCCRqe4/25mCJvlLCCAPNA=
+	t=1707924148; cv=none; b=fJlNUCh0VzobuKdIYZ9MAA9qgS5Pykig4WSbHAG6Tju1fjmyMMALCB7Kyu2irfhRHBXSy66MjqUbjnXVxYjXYKQ6YxXA2vcxeFskqxCPDCXsJYTdlkwCabqg9umVCjp8HjNlf0FFRUHMVGXofztIL6QN/AkNJafx8WaZJkrm6TU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707924037; c=relaxed/simple;
-	bh=KYKJmhLfXHhBNDwv2t5QyM0zBH8u1+ZcCPf2BAdOb0Q=;
-	h=Date:To:From:Subject:Message-Id; b=HYXjsX8eDXDC64XUHo6L2i8/zbka/cpNxwrot1xDr8ihrezs6BoxjNpdh8KRDpPTgcHmPVcFy2sXKf3WGgbnnDrFN5YD1Wxjg/h/I35Q61zg3XmOqR1ooaMJz2Vupxx3OvZsPlJFDHctvf0zL9yr6I90Uv64ExfUTiNSZIIrYcc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nA9TFg5v; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707924148; c=relaxed/simple;
+	bh=itLslMBA4v84qDYQh6tWO0yZUi9iY9CDQQdV0mFfrkM=;
+	h=Date:To:From:Subject:Message-Id; b=bh1yuT2vRm9ucEoCnqQQfdunlLjpFIf1ZGT+Ffza7G4CsGI5kqt4go9vQ20Wo8x6FJUZf+Cw+thhtpLd99SDljIJ+qm7oAt7VprdmVX6ZOlRWZexNd4DOxUpmq7HFaYdRE+o+TwqKdnPBoTGWTIVnDqIU2j0gPpM9qrVu2Ij/SQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BNXW/rWT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nA9TFg5v"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E00EC433C7;
-	Wed, 14 Feb 2024 15:20:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BNXW/rWT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57F18C433F1;
+	Wed, 14 Feb 2024 15:22:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1707924036;
-	bh=KYKJmhLfXHhBNDwv2t5QyM0zBH8u1+ZcCPf2BAdOb0Q=;
+	s=korg; t=1707924148;
+	bh=itLslMBA4v84qDYQh6tWO0yZUi9iY9CDQQdV0mFfrkM=;
 	h=Date:To:From:Subject:From;
-	b=nA9TFg5vXByExt4mVdvqp9jFXlmGHnUk1yvmYcoDS+aw4wxHfhWc/xpoI0NrAGTFC
-	 VY956ww1MfDlhtCf4lk2ZhnLErEjYx8uWttxyowEWLbblAC2riCy4Kf5BD9L/NlmQm
-	 8C6DBPLKX6ipYZe6UYNYAMVLpI9kSHzFxQtSE8Nw=
-Date: Wed, 14 Feb 2024 07:20:35 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,osalvador@suse.de,mhocko@suse.com,glider@google.com,elver@google.com,andreyknvl@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=BNXW/rWTc8sFJlFeibELqFhexHGtiaATwftd1EbqcAb9cUCxQAZvYPEYkPCrsrhEz
+	 5S2LYf26Z/6jZo3PUiWRpmMNh+2hJ/iHjAfwl+SzNcsVbcvMtfqowki7f0mPNW5Mhn
+	 i6ZC0Me+fSYHXh8ghXXfciwIwXgmLOrkPNvPSIRw=
+Date: Wed, 14 Feb 2024 07:22:27 -0800
+To: mm-commits@vger.kernel.org,will@kernel.org,npiggin@gmail.com,mpe@ellerman.id.au,jane.chu@oracle.com,david@redhat.com,catalin.marinas@arm.com,anshuman.khandual@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-stackdepot-move-stack_record-struct-definition-into-the-header-fix.patch added to mm-unstable branch
-Message-Id: <20240214152036.4E00EC433C7@smtp.kernel.org>
+Subject: + mm-hugetlb-move-page-order-check-inside-hugetlb_cma_reserve.patch added to mm-unstable branch
+Message-Id: <20240214152228.57F18C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib-stackdepot-move-stack_record-struct-definition-into-the-header-fix
+     Subject: mm/hugetlb: move page order check inside hugetlb_cma_reserve()
 has been added to the -mm mm-unstable branch.  Its filename is
-     lib-stackdepot-move-stack_record-struct-definition-into-the-header-fix.patch
+     mm-hugetlb-move-page-order-check-inside-hugetlb_cma_reserve.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-move-stack_record-struct-definition-into-the-header-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-move-page-order-check-inside-hugetlb_cma_reserve.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,52 +58,82 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-stackdepot-move-stack_record-struct-definition-into-the-header-fix
-Date: Wed Feb 14 07:17:48 AM PST 2024
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/hugetlb: move page order check inside hugetlb_cma_reserve()
+Date: Fri, 9 Feb 2024 11:12:21 +0530
 
-fix CONFIG_STACKDEPOT=n build
+All platforms could benefit from page order check against MAX_PAGE_ORDER
+before allocating a CMA area for gigantic hugetlb pages.  Let's move this
+check from individual platforms to generic hugetlb.
 
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20240209054221.1403364-1-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: Jane Chu <jane.chu@oracle.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/stackdepot.h |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm64/mm/hugetlbpage.c   |    7 -------
+ arch/powerpc/mm/hugetlbpage.c |    4 +---
+ mm/hugetlb.c                  |    7 +++++++
+ 3 files changed, 8 insertions(+), 10 deletions(-)
 
---- a/include/linux/stackdepot.h~lib-stackdepot-move-stack_record-struct-definition-into-the-header-fix
-+++ a/include/linux/stackdepot.h
-@@ -39,6 +39,7 @@ typedef u32 depot_stack_handle_t;
- #define DEPOT_POOL_INDEX_BITS (DEPOT_HANDLE_BITS - DEPOT_OFFSET_BITS - \
- 			       STACK_DEPOT_EXTRA_BITS)
+--- a/arch/arm64/mm/hugetlbpage.c~mm-hugetlb-move-page-order-check-inside-hugetlb_cma_reserve
++++ a/arch/arm64/mm/hugetlbpage.c
+@@ -45,13 +45,6 @@ void __init arm64_hugetlb_cma_reserve(vo
+ 	else
+ 		order = CONT_PMD_SHIFT - PAGE_SHIFT;
  
-+#ifdef CONFIG_STACKDEPOT
- /* Compact structure that stores a reference to a stack. */
- union handle_parts {
- 	depot_stack_handle_t handle;
-@@ -73,6 +74,7 @@ struct stack_record {
- 		};
- 	};
- };
-+#endif
+-	/*
+-	 * HugeTLB CMA reservation is required for gigantic
+-	 * huge pages which could not be allocated via the
+-	 * page allocator. Just warn if there is any change
+-	 * breaking this assumption.
+-	 */
+-	WARN_ON(order <= MAX_PAGE_ORDER);
+ 	hugetlb_cma_reserve(order);
+ }
+ #endif /* CONFIG_CMA */
+--- a/arch/powerpc/mm/hugetlbpage.c~mm-hugetlb-move-page-order-check-inside-hugetlb_cma_reserve
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -614,8 +614,6 @@ void __init gigantic_hugetlb_cma_reserve
+ 		 */
+ 		order = mmu_psize_to_shift(MMU_PAGE_16G) - PAGE_SHIFT;
  
- typedef u32 depot_flags_t;
+-	if (order) {
+-		VM_WARN_ON(order <= MAX_PAGE_ORDER);
++	if (order)
+ 		hugetlb_cma_reserve(order);
+-	}
+ }
+--- a/mm/hugetlb.c~mm-hugetlb-move-page-order-check-inside-hugetlb_cma_reserve
++++ a/mm/hugetlb.c
+@@ -7800,6 +7800,13 @@ void __init hugetlb_cma_reserve(int orde
+ 	bool node_specific_cma_alloc = false;
+ 	int nid;
  
++	/*
++	 * HugeTLB CMA reservation is required for gigantic
++	 * huge pages which could not be allocated via the
++	 * page allocator. Just warn if there is any change
++	 * breaking this assumption.
++	 */
++	VM_WARN_ON(order <= MAX_PAGE_ORDER);
+ 	cma_reserve_called = true;
+ 
+ 	if (!hugetlb_cma_size)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-kexec-split-crashkernel-reservation-code-out-from-crash_corec-fix.patch
-mm-memory_hotplug-export-mhp_supports_memmap_on_memory-fix.patch
-mm-damon-dbgfs-make-debugfs-interface-deprecation-message-a-macro-fix.patch
-mm-ptdump-have-ptdump_check_wx-return-bool-fix.patch
-mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages-fix.patch
-lib-stackdepot-move-stack_record-struct-definition-into-the-header-fix.patch
-kprobes-use-synchronize_rcu_tasks_rude-in-kprobe_optimizer-fix.patch
-panic-add-option-to-dump-blocked-tasks-in-panic_print-fix.patch
+mm-memblock-add-memblock_rsrv_noinit-into-flagname-array.patch
+mm-cma-dont-treat-bad-input-arguments-for-cma_alloc-as-its-failure.patch
+mm-cma-drop-config_cma_debug.patch
+mm-cma-make-max_cma_areas-=-config_cma_areas.patch
+mm-cma-add-sysfs-file-release_pages_success.patch
+mm-hugetlb-move-page-order-check-inside-hugetlb_cma_reserve.patch
 
