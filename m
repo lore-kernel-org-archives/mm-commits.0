@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A09A1386B3
-	for <mm-commits@vger.kernel.org>; Thu, 15 Feb 2024 19:09:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF90A3D6D
+	for <mm-commits@vger.kernel.org>; Thu, 15 Feb 2024 19:11:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708024168; cv=none; b=eODYqj2y1HZBJ1XWWCCu/IwpAA5A1pe1r7hy7Z32kBcfC6el0tMgHqIPxKZj3+5RzD4dUs8HVsc7HtC456LkrCiNf8elJJhW+FnvXiSLLIeV17iATEzH81jo3d0K6MtO8nuLhMkeEHG3Id7M72M2+Q3hSR/eejUXxv7gX31BhJE=
+	t=1708024306; cv=none; b=Hv7Ay2dLqmGiSKgEtO7hLF+rul2Qfnbpig+oBB3tVGGDtV2DCz1OEGZHojnqRyZesl7b874zmf0l7Ob3WjOFYIl40AucmVj2qXvaOSz+Ij/Ekm6IpuHNL47OpK2UpHyL/EBeBg8qTN0gxO9wgWcrhjbhIsfzeUX5FlzcxEuKXiU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708024168; c=relaxed/simple;
-	bh=Nl/+xuD7HthZCgFTvkqIS1j9NdhzhOfEUg8wTtFPUt8=;
-	h=Date:To:From:Subject:Message-Id; b=qSRuTO6I7L5ebd76rd1bDfL/gKEhwTp4xtlL6EKVb9iJUE6VDXaSqxG018rUVaxvl0BcVeFwQAbsB/qw3vDiUXV8SK+wQeWFzDaXzlz+CB1XT3NgVQTcQmVQF8Z8LphoWwS/FOQjrxxGlgZnxWeW7nr4o48Ade35RqNTGYSlQo8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KrcvIaPm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708024306; c=relaxed/simple;
+	bh=I+KK4trdOfNtw8vJFUpxZ2YeTn0wZQipu2qbMSA6Gh8=;
+	h=Date:To:From:Subject:Message-Id; b=eEYSJAQDGTsXhhFrmJGxG4aQT1qm0WIFwK8MPCI8UeaICxdmBlT4VikY4ZildNDbJag1eONY7+8cx9oFZvdSNkO0cxj2Pht4W+0XBOdzx0byn1VcMgs4yxIy0xElQVHPvXhiX02yMgYauWz4C/5LqJqhk2DLatnYIzsB23li0xU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rP/aopT3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KrcvIaPm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E313CC433C7;
-	Thu, 15 Feb 2024 19:09:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rP/aopT3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B128C433C7;
+	Thu, 15 Feb 2024 19:11:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708024168;
-	bh=Nl/+xuD7HthZCgFTvkqIS1j9NdhzhOfEUg8wTtFPUt8=;
+	s=korg; t=1708024306;
+	bh=I+KK4trdOfNtw8vJFUpxZ2YeTn0wZQipu2qbMSA6Gh8=;
 	h=Date:To:From:Subject:From;
-	b=KrcvIaPmi0d2658O8mG/MfW+wuTJ7DvS4yYE6EIp1LHTlzZa1QN+emFNi9IbdYfu1
-	 eyX0D3bmF9++XxL0XQvLH7aAaQiB95naU5oRKdbmtOkhAHPVbHjiqeCVsfOThMoZyo
-	 Rj6wxMeOKON1Gc5xe19hgA7jig2hAKQVkTT4DxhY=
-Date: Thu, 15 Feb 2024 11:09:27 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,mhocko@suse.com,glider@google.com,elver@google.com,andreyknvl@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
+	b=rP/aopT3J7eWJqsIXNEJcoHcvyMNorhF59kR0tJdj5wi1ZR+OmbWvbMErSXbbZ20M
+	 muMolAH1T/YWiQQnL6iO9C+Rx0doX+FCSbSDBIgOi3yzJJu+wpcPlx48yTK0ghVzEc
+	 /+DNkXualTvCJkqqcWkCpjnVeOiFQkb2JcWC/nSU=
+Date: Thu, 15 Feb 2024 11:11:45 -0800
+To: mm-commits@vger.kernel.org,hannes@cmpxchg.org,colin.i.king@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-stackdepot-move-stack_record-struct-definition-into-the-header-fix.patch added to mm-unstable branch
-Message-Id: <20240215190927.E313CC433C7@smtp.kernel.org>
+Subject: + mm-memcontrol-clarify-swapaccount=0-deprecation-warning-fix.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240215191146.0B128C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib-stackdepot-move-stack_record-struct-definition-into-the-header-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     lib-stackdepot-move-stack_record-struct-definition-into-the-header-fix.patch
+     Subject: mm: Fix spelling mistake "commdandline" -> "commandline"
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-memcontrol-clarify-swapaccount=0-deprecation-warning-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-stackdepot-move-stack_record-struct-definition-into-the-header-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-clarify-swapaccount=0-deprecation-warning-fix.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,45 +58,35 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Oscar Salvador <osalvador@suse.de>
-Subject: lib-stackdepot-move-stack_record-struct-definition-into-the-header-fix
-Date: Thu, 15 Feb 2024 09:22:39 +0100
+From: Colin Ian King <colin.i.king@gmail.com>
+Subject: mm: Fix spelling mistake "commdandline" -> "commandline"
+Date: Thu, 15 Feb 2024 09:05:44 +0000
 
-undo errant commant change
+There is a spelling mistake in a pr_warn_once message. Fix it.
 
-Link: https://lkml.kernel.org/r/Zc3Jz_eJaZ8MdnWV@localhost.localdomain
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20240215090544.1649201-1-colin.i.king@gmail.com
+Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/stackdepot.c |    2 +-
+ mm/memcontrol.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/stackdepot.c~lib-stackdepot-move-stack_record-struct-definition-into-the-header-fix
-+++ a/lib/stackdepot.c
-@@ -37,7 +37,7 @@
- #include <linux/kasan-enabled.h>
+--- a/mm/memcontrol.c~mm-memcontrol-clarify-swapaccount=0-deprecation-warning-fix
++++ a/mm/memcontrol.c
+@@ -7974,7 +7974,7 @@ static int __init setup_swap_account(cha
+ 	bool res;
  
- #define DEPOT_POOLS_CAP 8192
--/* The pool_index is offset by 1 so the first record does not have a 0 handle */
-+/* The pool_index is offset by 1 so the first record does not have a 0 handle. */
- #define DEPOT_MAX_POOLS \
- 	(((1LL << (DEPOT_POOL_INDEX_BITS)) - 1 < DEPOT_POOLS_CAP) ? \
- 	 (1LL << (DEPOT_POOL_INDEX_BITS)) - 1 : DEPOT_POOLS_CAP)
+ 	if (!kstrtobool(s, &res) && !res)
+-		pr_warn_once("The swapaccount=0 commdandline option is deprecated "
++		pr_warn_once("The swapaccount=0 commandline option is deprecated "
+ 			     "in favor of configuring swap control via cgroupfs. "
+ 			     "Please report your usecase to linux-mm@kvack.org if you "
+ 			     "depend on this functionality.\n");
 _
 
-Patches currently in -mm which might be from osalvador@suse.de are
+Patches currently in -mm which might be from colin.i.king@gmail.com are
 
-lib-stackdepot-fix-first-entry-having-a-0-handle.patch
-lib-stackdepot-move-stack_record-struct-definition-into-the-header.patch
-lib-stackdepot-move-stack_record-struct-definition-into-the-header-fix.patch
-mmpage_owner-maintain-own-list-of-stack_records-structs.patch
-mmpage_owner-implement-the-tracking-of-the-stacks-count.patch
-mmpage_owner-display-all-stacks-and-their-count.patch
-mmpage_owner-filter-out-stacks-by-a-threshold.patch
-mmpage_owner-update-documentation-regarding-page_owner_stacks.patch
+mm-memcontrol-clarify-swapaccount=0-deprecation-warning-fix.patch
 
