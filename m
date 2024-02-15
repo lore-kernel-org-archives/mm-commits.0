@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 371742CCA0
-	for <mm-commits@vger.kernel.org>; Thu, 15 Feb 2024 19:54:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 815F52CCA0
+	for <mm-commits@vger.kernel.org>; Thu, 15 Feb 2024 19:54:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708026850; cv=none; b=NrePLojW+BhN/rKPdD/TFMZ9vSzC9MP2f+z2WhChUNhz/izdiCqitp84QwJ6rBBo2FpJBjhODFyk0OqMr6UZQR85uSTnJZRByRSvpZE1HFdXwf3BT9sSCbl+p9omlT73Wfp/QhkJL81TvG/gJ6/nSsjQW5BVSCFqjxnpjdr6JAg=
+	t=1708026851; cv=none; b=E17Wk2aqVDMWVe4aEfTyYh/vJeWeDAhZTfr1JwhiG9MsUz87pOMufUDR4VmKHB76WbIXfjLpou/a8N2V0qFiu7SodEC7dB/R/6MLhzwhfxLzfCfVJTxfB4CqEk8CHUYx9RA9Mx2QXtA+FPbi3gSbbVUud8HREIQYJRusV2OIwh8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708026850; c=relaxed/simple;
-	bh=9xhRbHUryCjOdOFXpl1xnaYgI8y+bzX2iuRO+b+9Vqc=;
-	h=Date:To:From:Subject:Message-Id; b=ArLPo1CiIWdU/PQIoXWhXnUsE6kcK0DRRZmh0PLeW6YGwxg/kpU1yC/etgwroPeP8HpEKoLgxutiWTtNbzeK90oZOYqRn6VSk4P2rg0sF2LDh58zsX88B2RIWgNATeed3aeSbGCYV4GrQeUvd9JsuTsiDOP423tYGI3dFt+32Fo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rJqwstSi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708026851; c=relaxed/simple;
+	bh=HdfRvYsCVofxib88vnyd2wRjG6StcOYj2nv8xYtLvmo=;
+	h=Date:To:From:Subject:Message-Id; b=ODxWGiLI8wx3tmB2GrzpMmJq+7L5Ov9sm6G3yYsY3sLYPCognvBikc27OcEZ8/G3d41sdB2TdX8hoLg8kpTs/i2Xe6wJYcCg8JY3nvRrGnCGUZSHcm9su5+ZPUArVcQCW2dgCwkvmr3Q0HQ0eCss7WkTJoasiKOUEaQ7lAkk4rs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hhZRk+rH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rJqwstSi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB229C433F1;
-	Thu, 15 Feb 2024 19:54:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hhZRk+rH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2475FC433F1;
+	Thu, 15 Feb 2024 19:54:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708026849;
-	bh=9xhRbHUryCjOdOFXpl1xnaYgI8y+bzX2iuRO+b+9Vqc=;
+	s=korg; t=1708026851;
+	bh=HdfRvYsCVofxib88vnyd2wRjG6StcOYj2nv8xYtLvmo=;
 	h=Date:To:From:Subject:From;
-	b=rJqwstSiCu5mdNb+V46wFXseEht8HYjNP2Fwn/UIvkmyqTwllFGL0nDFpgjePc21e
-	 2G7mDHA6L5+o9CYnwh+4Dk4u7VNelWhfQ4Jt8sh/Sf15EIidn2F6fSORoDixtZvac8
-	 yLy8sX+PdCiBxmIjpq7aK6udz1w0/erifZgztMTc=
-Date: Thu, 15 Feb 2024 11:54:09 -0800
+	b=hhZRk+rHdsUMR6ibJzO9fAeoRyi3efOHGX6kg7InUx19QGfxWUhc+UybTuXIR6nJo
+	 R6qRo/IqtPk/5SoUx61lJB30eAvYmR+KJtJ1Xle8Txg2eomteeSvcgkyKomf6bFsYi
+	 U+kQaTCNzY/niwo+ytuqYUUM01Smb0k6Lcx5OL8A=
+Date: Thu, 15 Feb 2024 11:54:10 -0800
 To: mm-commits@vger.kernel.org,pmladek@suse.com,liusong@linux.alibaba.com,kernelfans@gmail.com,dianders@chromium.org,yaoma@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] watchdog-softlockup-low-overhead-detection-of-interrupt.patch removed from -mm tree
-Message-Id: <20240215195409.DB229C433F1@smtp.kernel.org>
+Subject: [to-be-updated] watchdog-softlockup-report-the-most-frequent-interrupts.patch removed from -mm tree
+Message-Id: <20240215195411.2475FC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,67 +35,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: watchdog/softlockup: low-overhead detection of interrupt
+     Subject: watchdog/softlockup: report the most frequent interrupts
 has been removed from the -mm tree.  Its filename was
-     watchdog-softlockup-low-overhead-detection-of-interrupt.patch
+     watchdog-softlockup-report-the-most-frequent-interrupts.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Bitao Hu <yaoma@linux.alibaba.com>
-Subject: watchdog/softlockup: low-overhead detection of interrupt
-Date: Wed, 14 Feb 2024 10:14:29 +0800
+Subject: watchdog/softlockup: report the most frequent interrupts
+Date: Wed, 14 Feb 2024 10:14:30 +0800
 
-Patch series "*** Detect interrupt storm in softlockup ***", v7.
+When the watchdog determines that the current soft lockup is due to an
+interrupt storm based on CPU utilization, reporting the most frequent
+interrupts could be good enough for further troubleshooting.
 
-A low-overhead method for detecting interrupt storm in softlockup.
+Below is an example of interrupt storm. The call tree does not
+provide useful information, but we can analyze which interrupt
+caused the soft lockup by comparing the counts of interrupts.
 
+[ 2987.488075] watchdog: BUG: soft lockup - CPU#9 stuck for 23s! [kworker/9:1:214]
+[ 2987.488607] CPU#9 Utilization every 4s during lockup:
+[ 2987.488941]  #1:   0% system,          0% softirq,   100% hardirq,     0% idle
+[ 2987.489357]  #2:   0% system,          0% softirq,   100% hardirq,     0% idle
+[ 2987.489771]  #3:   0% system,          0% softirq,   100% hardirq,     0% idle
+[ 2987.490186]  #4:   0% system,          0% softirq,   100% hardirq,     0% idle
+[ 2987.490601]  #5:   0% system,          0% softirq,   100% hardirq,     0% idle
+[ 2987.491034] CPU#9 Detect HardIRQ Time exceeds 50%. Most frequent HardIRQs:
+[ 2987.491493]  #1: 330985      irq#7(IPI)
+[ 2987.491743]  #2: 5000        irq#10(arch_timer)
+[ 2987.492039]  #3: 9           irq#91(nvme0q2)
+[ 2987.492318]  #4: 3           irq#118(virtio1-output.12)
+...
+[ 2987.492728] Call trace:
+[ 2987.492729]  __do_softirq+0xa8/0x364
 
-This patch (of 2):
-
-The following softlockup is caused by interrupt storm, but it cannot be
-identified from the call tree.  Because the call tree is just a snapshot
-and doesn't fully capture the behavior of the CPU during the soft lockup.
-  watchdog: BUG: soft lockup - CPU#28 stuck for 23s! [fio:83921]
-  ...
-  Call trace:
-    __do_softirq+0xa0/0x37c
-    __irq_exit_rcu+0x108/0x140
-    irq_exit+0x14/0x20
-    __handle_domain_irq+0x84/0xe0
-    gic_handle_irq+0x80/0x108
-    el0_irq_naked+0x50/0x58
-
-Therefore，I think it is necessary to report CPU utilization during the
-softlockup_thresh period (report once every sample_period, for a total of
-5 reportings), like this:
-  watchdog: BUG: soft lockup - CPU#28 stuck for 23s! [fio:83921]
-  CPU#28 Utilization every 4s during lockup:
-    #1: 0% system, 0% softirq, 100% hardirq, 0% idle
-    #2: 0% system, 0% softirq, 100% hardirq, 0% idle
-    #3: 0% system, 0% softirq, 100% hardirq, 0% idle
-    #4: 0% system, 0% softirq, 100% hardirq, 0% idle
-    #5: 0% system, 0% softirq, 100% hardirq, 0% idle
-  ...
-
-This would be helpful in determining whether an interrupt storm has
-occurred or in identifying the cause of the softlockup.  The criteria for
-determination are as follows:
-
-  a. If the hardirq utilization is high, then interrupt storm should be
-  considered and the root cause cannot be determined from the call tree.
-  b. If the softirq utilization is high, then we could analyze the call
-  tree but it may cannot reflect the root cause.
-  c. If the system utilization is high, then we could analyze the root
-  cause from the call tree.
-
-The mechanism requires a considerable amount of global storage space when
-configured for the maximum number of CPUs.  Therefore, adding a
-SOFTLOCKUP_DETECTOR_INTR_STORM Kconfig knob that defaults to "yes" if the
-max number of CPUs is <= 128.
-
-Link: https://lkml.kernel.org/r/20240214021430.87471-1-yaoma@linux.alibaba.com
-Link: https://lkml.kernel.org/r/20240214021430.87471-2-yaoma@linux.alibaba.com
+Link: https://lkml.kernel.org/r/20240214021430.87471-3-yaoma@linux.alibaba.com
 Signed-off-by: Bitao Hu <yaoma@linux.alibaba.com>
 Reviewed-by: Douglas Anderson <dianders@chromium.org>
 Reviewed-by: Liu Song <liusong@linux.alibaba.com>
@@ -104,177 +79,217 @@ Cc: Pingfan Liu <kernelfans@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   98 +++++++++++++++++++++++++++++++++++++++++++-
- lib/Kconfig.debug |   13 +++++
- 2 files changed, 110 insertions(+), 1 deletion(-)
+ kernel/watchdog.c |  157 ++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 153 insertions(+), 4 deletions(-)
 
---- a/kernel/watchdog.c~watchdog-softlockup-low-overhead-detection-of-interrupt
+--- a/kernel/watchdog.c~watchdog-softlockup-report-the-most-frequent-interrupts
 +++ a/kernel/watchdog.c
-@@ -16,6 +16,8 @@
+@@ -12,22 +12,25 @@
+ 
+ #define pr_fmt(fmt) "watchdog: " fmt
+ 
+-#include <linux/mm.h>
  #include <linux/cpu.h>
- #include <linux/nmi.h>
+-#include <linux/nmi.h>
  #include <linux/init.h>
-+#include <linux/kernel_stat.h>
-+#include <linux/math64.h>
++#include <linux/irq.h>
++#include <linux/irqdesc.h>
+ #include <linux/kernel_stat.h>
++#include <linux/kvm_para.h>
+ #include <linux/math64.h>
++#include <linux/mm.h>
  #include <linux/module.h>
++#include <linux/nmi.h>
++#include <linux/stop_machine.h>
  #include <linux/sysctl.h>
  #include <linux/tick.h>
-@@ -35,6 +37,8 @@ static DEFINE_MUTEX(watchdog_mutex);
- # define WATCHDOG_HARDLOCKUP_DEFAULT	0
- #endif
++
+ #include <linux/sched/clock.h>
+ #include <linux/sched/debug.h>
+ #include <linux/sched/isolation.h>
+-#include <linux/stop_machine.h>
  
-+#define NUM_SAMPLE_PERIODS	5
-+
- unsigned long __read_mostly watchdog_enabled;
- int __read_mostly watchdog_user_enabled = 1;
- static int __read_mostly watchdog_hardlockup_user_enabled = WATCHDOG_HARDLOCKUP_DEFAULT;
-@@ -333,6 +337,95 @@ __setup("watchdog_thresh=", watchdog_thr
+ #include <asm/irq_regs.h>
+-#include <linux/kvm_para.h>
  
- static void __lockup_detector_cleanup(void);
+ static DEFINE_MUTEX(watchdog_mutex);
  
-+#ifdef CONFIG_SOFTLOCKUP_DETECTOR_INTR_STORM
-+enum stats_per_group {
-+	STATS_SYSTEM,
-+	STATS_SOFTIRQ,
-+	STATS_HARDIRQ,
-+	STATS_IDLE,
-+	NUM_STATS_PER_GROUP,
-+};
-+
-+static const enum cpu_usage_stat tracked_stats[NUM_STATS_PER_GROUP] = {
-+	CPUTIME_SYSTEM,
-+	CPUTIME_SOFTIRQ,
-+	CPUTIME_IRQ,
-+	CPUTIME_IDLE,
-+};
-+
-+static DEFINE_PER_CPU(u16, cpustat_old[NUM_STATS_PER_GROUP]);
-+static DEFINE_PER_CPU(u8, cpustat_util[NUM_SAMPLE_PERIODS][NUM_STATS_PER_GROUP]);
-+static DEFINE_PER_CPU(u8, cpustat_tail);
-+
-+/*
-+ * We don't need nanosecond resolution. A granularity of 16ms is
-+ * sufficient for our precision, allowing us to use u16 to store
-+ * cpustats, which will roll over roughly every ~1000 seconds.
-+ * 2^24 ~= 16 * 10^6
-+ */
-+static u16 get_16bit_precision(u64 data_ns)
-+{
-+	return data_ns >> 24LL; /* 2^24ns ~= 16.8ms */
-+}
-+
-+static void update_cpustat(void)
-+{
-+	int i;
-+	u8 util;
-+	u16 old_stat, new_stat;
-+	struct kernel_cpustat kcpustat;
-+	u64 *cpustat = kcpustat.cpustat;
-+	u8 tail = __this_cpu_read(cpustat_tail);
-+	u16 sample_period_16 = get_16bit_precision(sample_period);
-+
-+	kcpustat_cpu_fetch(&kcpustat, smp_processor_id());
-+
-+	for (i = 0; i < NUM_STATS_PER_GROUP; i++) {
-+		old_stat = __this_cpu_read(cpustat_old[i]);
-+		new_stat = get_16bit_precision(cpustat[tracked_stats[i]]);
-+		util = DIV_ROUND_UP(100 * (new_stat - old_stat), sample_period_16);
-+		__this_cpu_write(cpustat_util[tail][i], util);
-+		__this_cpu_write(cpustat_old[i], new_stat);
-+	}
-+
-+	__this_cpu_write(cpustat_tail, (tail + 1) % NUM_SAMPLE_PERIODS);
-+}
-+
-+static void print_cpustat(void)
-+{
-+	int i, group;
-+	u8 tail = __this_cpu_read(cpustat_tail);
-+	u64 sample_period_second = sample_period;
-+
-+	do_div(sample_period_second, NSEC_PER_SEC);
-+
-+	/*
-+	 * We do not want the "watchdog: " prefix on every line,
-+	 * hence we use "printk" instead of "pr_crit".
-+	 */
-+	printk(KERN_CRIT "CPU#%d Utilization every %llus during lockup:\n",
-+	       smp_processor_id(), sample_period_second);
-+
-+	for (i = 0; i < NUM_SAMPLE_PERIODS; i++) {
-+		group = (tail + i) % NUM_SAMPLE_PERIODS;
-+		printk(KERN_CRIT "\t#%d: %3u%% system,\t%3u%% softirq,\t"
-+			"%3u%% hardirq,\t%3u%% idle\n", i + 1,
-+			__this_cpu_read(cpustat_util[group][STATS_SYSTEM]),
-+			__this_cpu_read(cpustat_util[group][STATS_SOFTIRQ]),
-+			__this_cpu_read(cpustat_util[group][STATS_HARDIRQ]),
-+			__this_cpu_read(cpustat_util[group][STATS_IDLE]));
-+	}
-+}
-+
-+static void report_cpu_status(void)
-+{
-+	print_cpustat();
-+}
-+#else
-+static inline void update_cpustat(void) { }
-+static inline void report_cpu_status(void) { }
-+#endif
-+
- /*
-  * Hard-lockup warnings should be triggered after just a few seconds. Soft-
-  * lockups can have false positives under extreme conditions. So we generally
-@@ -364,7 +457,7 @@ static void set_sample_period(void)
- 	 * and hard thresholds) to increment before the
- 	 * hardlockup detector generates a warning
- 	 */
--	sample_period = get_softlockup_thresh() * ((u64)NSEC_PER_SEC / 5);
-+	sample_period = get_softlockup_thresh() * ((u64)NSEC_PER_SEC / NUM_SAMPLE_PERIODS);
- 	watchdog_update_hrtimer_threshold(sample_period);
+@@ -417,13 +420,146 @@ static void print_cpustat(void)
+ 	}
  }
  
-@@ -504,6 +597,8 @@ static enum hrtimer_restart watchdog_tim
- 	 */
- 	period_ts = READ_ONCE(*this_cpu_ptr(&watchdog_report_ts));
++#define HARDIRQ_PERCENT_THRESH		50
++#define NUM_HARDIRQ_REPORT		5
++static DEFINE_PER_CPU(u32 *, hardirq_counts);
++static DEFINE_PER_CPU(int, actual_nr_irqs);
++struct irq_counts {
++	int irq;
++	u32 counts;
++};
++
++/* Tabulate the most frequent interrupts. */
++static void tabulate_irq_count(struct irq_counts *irq_counts, int irq, u32 counts, int rank)
++{
++	int i;
++	struct irq_counts new_count = {irq, counts};
++
++	for (i = 0; i < rank; i++) {
++		if (counts > irq_counts[i].counts)
++			swap(new_count, irq_counts[i]);
++	}
++}
++
++/*
++ * If the hardirq time exceeds HARDIRQ_PERCENT_THRESH% of the sample_period,
++ * then the cause of softlockup might be interrupt storm. In this case, it
++ * would be useful to start interrupt counting.
++ */
++static bool need_counting_irqs(void)
++{
++	u8 util;
++	int tail = __this_cpu_read(cpustat_tail);
++
++	tail = (tail + NUM_HARDIRQ_REPORT - 1) % NUM_HARDIRQ_REPORT;
++	util = __this_cpu_read(cpustat_util[tail][STATS_HARDIRQ]);
++	return util > HARDIRQ_PERCENT_THRESH;
++}
++
++static void start_counting_irqs(void)
++{
++	int i;
++	int local_nr_irqs;
++	struct irq_desc *desc;
++	u32 *counts = __this_cpu_read(hardirq_counts);
++
++	if (!counts) {
++		/*
++		 * nr_irqs has the potential to grow at runtime. We should read
++		 * it and store locally to avoid array out-of-bounds access.
++		 */
++		local_nr_irqs = nr_irqs;
++		counts = kcalloc(local_nr_irqs, sizeof(u32), GFP_ATOMIC);
++		if (!counts)
++			return;
++
++		for (i = 0; i < local_nr_irqs; i++) {
++			desc = irq_to_desc(i);
++			if (!desc)
++				continue;
++			counts[i] = desc->kstat_irqs ?
++				*this_cpu_ptr(desc->kstat_irqs) : 0;
++		}
++
++		__this_cpu_write(actual_nr_irqs, local_nr_irqs);
++		__this_cpu_write(hardirq_counts, counts);
++	}
++}
++
++static void stop_counting_irqs(void)
++{
++	kfree(__this_cpu_read(hardirq_counts));
++	__this_cpu_write(hardirq_counts, NULL);
++}
++
++static void print_irq_counts(void)
++{
++	int i;
++	struct irq_desc *desc;
++	u32 counts_diff;
++	int local_nr_irqs = __this_cpu_read(actual_nr_irqs);
++	u32 *counts = __this_cpu_read(hardirq_counts);
++	struct irq_counts irq_counts_sorted[NUM_HARDIRQ_REPORT] = {
++		{-1, 0}, {-1, 0}, {-1, 0}, {-1, 0},
++	};
++
++	if (counts) {
++		for_each_irq_desc(i, desc) {
++			/*
++			 * We need to bounds-check in case someone on a different CPU
++			 * expanded nr_irqs.
++			 */
++			if (desc->kstat_irqs) {
++				counts_diff = *this_cpu_ptr(desc->kstat_irqs);
++				if (i < local_nr_irqs)
++					counts_diff -= counts[i];
++				tabulate_irq_count(irq_counts_sorted, i, counts_diff,
++						   NUM_HARDIRQ_REPORT);
++			}
++		}
++
++		/*
++		 * We do not want the "watchdog: " prefix on every line,
++		 * hence we use "printk" instead of "pr_crit".
++		 */
++		printk(KERN_CRIT "CPU#%d Detect HardIRQ Time exceeds %d%%. Most frequent HardIRQs:\n",
++		       smp_processor_id(), HARDIRQ_PERCENT_THRESH);
++
++		for (i = 0; i < NUM_HARDIRQ_REPORT; i++) {
++			if (irq_counts_sorted[i].irq == -1)
++				break;
++
++			desc = irq_to_desc(irq_counts_sorted[i].irq);
++			if (desc && desc->action)
++				printk(KERN_CRIT "\t#%u: %-10u\tirq#%d(%s)\n",
++				       i + 1, irq_counts_sorted[i].counts,
++				       irq_counts_sorted[i].irq, desc->action->name);
++			else
++				printk(KERN_CRIT "\t#%u: %-10u\tirq#%d\n",
++				       i + 1, irq_counts_sorted[i].counts,
++				       irq_counts_sorted[i].irq);
++		}
++
++		/*
++		 * If the hardirq time is less than HARDIRQ_PERCENT_THRESH% in the last
++		 * sample_period, then we suspect the interrupt storm might be subsiding.
++		 */
++		if (!need_counting_irqs())
++			stop_counting_irqs();
++	}
++}
++
+ static void report_cpu_status(void)
+ {
+ 	print_cpustat();
++	print_irq_counts();
+ }
+ #else
+ static inline void update_cpustat(void) { }
+ static inline void report_cpu_status(void) { }
++static inline bool need_counting_irqs(void) { return false; }
++static inline void start_counting_irqs(void) { }
++static inline void stop_counting_irqs(void) { }
+ #endif
  
-+	update_cpustat();
+ /*
+@@ -527,6 +663,18 @@ static int is_softlockup(unsigned long t
+ 			 unsigned long now)
+ {
+ 	if ((watchdog_enabled & WATCHDOG_SOFTOCKUP_ENABLED) && watchdog_thresh) {
++		/*
++		 * If period_ts has not been updated during a sample_period, then
++		 * in the subsequent few sample_periods, period_ts might also not
++		 * be updated, which could indicate a potential softlockup. In
++		 * this case, if we suspect the cause of the potential softlockup
++		 * might be interrupt storm, then we need to count the interrupts
++		 * to find which interrupt is storming.
++		 */
++		if (time_after_eq(now, period_ts + get_softlockup_thresh() / 5) &&
++		    need_counting_irqs())
++			start_counting_irqs();
 +
- 	/* Reset the interval when touched by known problematic code. */
- 	if (period_ts == SOFTLOCKUP_DELAY_REPORT) {
- 		if (unlikely(__this_cpu_read(softlockup_touch_sync))) {
-@@ -539,6 +634,7 @@ static enum hrtimer_restart watchdog_tim
- 		pr_emerg("BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",
- 			smp_processor_id(), duration,
- 			current->comm, task_pid_nr(current));
-+		report_cpu_status();
- 		print_modules();
- 		print_irqtrace_events(current);
- 		if (regs)
---- a/lib/Kconfig.debug~watchdog-softlockup-low-overhead-detection-of-interrupt
-+++ a/lib/Kconfig.debug
-@@ -1029,6 +1029,19 @@ config SOFTLOCKUP_DETECTOR
- 	  chance to run.  The current stack trace is displayed upon
- 	  detection and the system will stay locked up.
+ 		/* Warn about unreasonable delays. */
+ 		if (time_after(now, period_ts + get_softlockup_thresh()))
+ 			return now - touch_ts;
+@@ -549,6 +697,7 @@ static DEFINE_PER_CPU(struct cpu_stop_wo
+ static int softlockup_fn(void *data)
+ {
+ 	update_touch_ts();
++	stop_counting_irqs();
+ 	complete(this_cpu_ptr(&softlockup_completion));
  
-+config SOFTLOCKUP_DETECTOR_INTR_STORM
-+	bool "Detect Interrupt Storm in Soft Lockups"
-+	depends on SOFTLOCKUP_DETECTOR && IRQ_TIME_ACCOUNTING
-+	default y if NR_CPUS <= 128
-+	help
-+	  Say Y here to enable the kernel to detect interrupt storm
-+	  during "soft lockups".
-+
-+	  "soft lockups" can be caused by a variety of reasons. If one is
-+	  caused by an interrupt storm, then the storming interrupts will not
-+	  be on the callstack. To detect this case, it is necessary to report
-+	  the CPU stats and the interrupt counts during the "soft lockups".
-+
- config BOOTPARAM_SOFTLOCKUP_PANIC
- 	bool "Panic (Reboot) On Soft Lockups"
- 	depends on SOFTLOCKUP_DETECTOR
+ 	return 0;
 _
 
 Patches currently in -mm which might be from yaoma@linux.alibaba.com are
 
-watchdog-softlockup-report-the-most-frequent-interrupts.patch
 
