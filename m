@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91C251420A8
-	for <mm-commits@vger.kernel.org>; Thu, 15 Feb 2024 22:28:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFF085B1EC
+	for <mm-commits@vger.kernel.org>; Thu, 15 Feb 2024 22:38:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708036083; cv=none; b=bHA4aMmB19lDfNEm7Qwwm4VkZbvJAkWpwyDvKiVi9arX93KV9if0OI0VjKrph8wVsfEK+pYP7EFam/sljwuJpW8b7j/RegtXb3QZyKoR87nQpwtBiiX/t7uHvoL54RWbRpa9qqMGzRay02xk3COezjPbB4FsmWtUkkx3QIcChuE=
+	t=1708036693; cv=none; b=SxiWcZZl1tJbFNY7nwWd4WLw8PPcSGy6kJfeSasaG5ISy5xgDnlULRiJZnYy/XQZBwRLpUisxWsBWtiFL4wt85mxYKT2XyHvpYDhye13P3xkoiYbLByi1hi1RzzG4N7DYPzNa00maRCBn8LXoXulq9wgfyCgpNFGMMuXu32g9qY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708036083; c=relaxed/simple;
-	bh=sHkau0ak4JhBFwUqy5Gwhm7kYYHWKVRGooGAwdhh0zs=;
-	h=Date:To:From:Subject:Message-Id; b=TvxMmIyXOU5oXDnFh48Hg/5zcvbofbRVOfCFJEeYGtpp2YVPluDuqxLOD4SfsC9XyECiUx/4E36Q1VUL5gKPvgRTRzLDlpQjF49H+U4id2aPdLNKlSVYSCLm1kvkJjM4L0GAoNx1gp4IUPDxN4OFJAyQsNZs9hWgoyRZ1vSri4E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lE66+Rh7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708036693; c=relaxed/simple;
+	bh=WlnYhMe9w1XUXfxZNjdbCIiivoZSpDFj6vRbTIe2EoM=;
+	h=Date:To:From:Subject:Message-Id; b=fJVS3pw0qjwrZqLtsVn16G+dsvK3FkVfdTThm4mXbpj1LqknYl9EH7gIAyttKowpIdsoqTvxh8wX3xF2ovfw/E2CLXjPndYETHFwU8rN/9AW5hvEXbwX3qjEUkyC7ru7h9kwCmgdvSEwPa+N/CrILbkI7HYXh1+6I8lVGx/h1fg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nKtTawx9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lE66+Rh7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DFE4C433F1;
-	Thu, 15 Feb 2024 22:28:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nKtTawx9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41A2BC433F1;
+	Thu, 15 Feb 2024 22:38:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708036083;
-	bh=sHkau0ak4JhBFwUqy5Gwhm7kYYHWKVRGooGAwdhh0zs=;
+	s=korg; t=1708036692;
+	bh=WlnYhMe9w1XUXfxZNjdbCIiivoZSpDFj6vRbTIe2EoM=;
 	h=Date:To:From:Subject:From;
-	b=lE66+Rh7zqjnhawvUFy32DFQD4zbX1tIrM54nLIjtwii/LhMmuyn+mID8OS0QBOzQ
-	 /pI6KW6ytPSG0SSm+APS3sF5uhs1C1RzsyxaC3ov1w15DVnJBw25LBlbd6HfwTGSL9
-	 EetqpQk5PH4q/un40E7q+69t7mUc9+7b4GIEKGcA=
-Date: Thu, 15 Feb 2024 14:28:02 -0800
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,juntong.deng@outlook.com,akpm@linux-foundation.org
+	b=nKtTawx9VV8GWqAKzWR0KKh+awU8ukQABMoU/f6PFlVfsm8FnPE2rz+QWOYqHpjpO
+	 zcQvglUKACZrs8awUxfmqrQgv8vRkkfN/HeFHmsbdyZVymk2nw8Z+zd5UMOWbg5NlQ
+	 pCK7XcIHQU3bhDdjlgj7w/aywOjLSsb/uuVkISdQ=
+Date: Thu, 15 Feb 2024 14:38:11 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,timmurray@google.com,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,peterx@redhat.com,ngeoffray@google.com,Liam.Howlett@oracle.com,kaleshsingh@google.com,jannh@google.com,david@redhat.com,bgeffon@google.com,axelrasmussen@google.com,aarcange@redhat.com,lokeshgidra@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-increase-the-number-of-bits-to-shift-when-recording-extra-timestamps.patch added to mm-unstable branch
-Message-Id: <20240215222803.2DFE4C433F1@smtp.kernel.org>
+Subject: + userfaultfd-move-userfaultfd_ctx-struct-to-header-file.patch added to mm-unstable branch
+Message-Id: <20240215223812.41A2BC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan: increase the number of bits to shift when recording extra timestamps
+     Subject: userfaultfd: move userfaultfd_ctx struct to header file
 has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-increase-the-number-of-bits-to-shift-when-recording-extra-timestamps.patch
+     userfaultfd-move-userfaultfd_ctx-struct-to-header-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-increase-the-number-of-bits-to-shift-when-recording-extra-timestamps.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-move-userfaultfd_ctx-struct-to-header-file.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,66 +58,163 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Juntong Deng <juntong.deng@outlook.com>
-Subject: kasan: increase the number of bits to shift when recording extra timestamps
-Date: Thu, 15 Feb 2024 18:39:55 +0000
+From: Lokesh Gidra <lokeshgidra@google.com>
+Subject: userfaultfd: move userfaultfd_ctx struct to header file
+Date: Thu, 15 Feb 2024 10:27:53 -0800
 
-In 5d4c6ac94694 ("kasan: record and report more information") I thought
-that printk only displays a maximum of 99999 seconds, but actually printk
-can display a larger number of seconds.
+Patch series "per-vma locks in userfaultfd", v7.
 
-So increase the number of bits to shift when recording the extra timestamp
-(44 bits), without affecting the precision, shift it right by 9 bits,
-discarding all bits that do not affect the microsecond part (nanoseconds
-will not be shown).
+Performing userfaultfd operations (like copy/move etc.) in critical
+section of mmap_lock (read-mode) causes significant contention on the lock
+when operations requiring the lock in write-mode are taking place
+concurrently.  We can use per-vma locks instead to significantly reduce
+the contention issue.
 
-Currently the maximum time that can be displayed is 9007199.254740s,
-because
+Android runtime's Garbage Collector uses userfaultfd for concurrent
+compaction.  mmap-lock contention during compaction potentially causes
+jittery experience for the user.  During one such reproducible scenario,
+we observed the following improvements with this patch-set:
 
-11111111111111111111111111111111111111111111 (44 bits) << 9
-= 11111111111111111111111111111111111111111111000000000
-= 9007199.254740
+- Wall clock time of compaction phase came down from ~3s to <500ms
+- Uninterruptible sleep time (across all threads in the process) was
+  ~10ms (none in mmap_lock) during compaction, instead of >20s
 
-Link: https://lkml.kernel.org/r/AM6PR03MB58481629F2F28CE007412139994D2@AM6PR03MB5848.eurprd03.prod.outlook.com
-Fixes: 5d4c6ac94694 ("kasan: record and report more information")
-Signed-off-by: Juntong Deng <juntong.deng@outlook.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+
+This patch (of 4):
+
+Move the struct to userfaultfd_k.h to be accessible from mm/userfaultfd.c.
+There are no other changes in the struct.
+
+This is required to prepare for using per-vma locks in userfaultfd
+operations.
+
+Link: https://lkml.kernel.org/r/20240215182756.3448972-1-lokeshgidra@google.com
+Link: https://lkml.kernel.org/r/20240215182756.3448972-2-lokeshgidra@google.com
+Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
+Reviewed-by: Mike Rapoport (IBM) <rppt@kernel.org>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Nicolas Geoffray <ngeoffray@google.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Tim Murray <timmurray@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/common.c |    2 +-
- mm/kasan/report.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/userfaultfd.c              |   39 --------------------------------
+ include/linux/userfaultfd_k.h |   39 ++++++++++++++++++++++++++++++++
+ 2 files changed, 39 insertions(+), 39 deletions(-)
 
---- a/mm/kasan/common.c~kasan-increase-the-number-of-bits-to-shift-when-recording-extra-timestamps
-+++ a/mm/kasan/common.c
-@@ -55,7 +55,7 @@ void kasan_set_track(struct kasan_track
- 	u64 ts_nsec = local_clock();
+--- a/fs/userfaultfd.c~userfaultfd-move-userfaultfd_ctx-struct-to-header-file
++++ a/fs/userfaultfd.c
+@@ -50,45 +50,6 @@ static struct ctl_table vm_userfaultfd_t
  
- 	track->cpu = cpu;
--	track->timestamp = ts_nsec >> 3;
-+	track->timestamp = ts_nsec >> 9;
- #endif /* CONFIG_KASAN_EXTRA_INFO */
- 	track->pid = current->pid;
- 	track->stack = stack;
---- a/mm/kasan/report.c~kasan-increase-the-number-of-bits-to-shift-when-recording-extra-timestamps
-+++ a/mm/kasan/report.c
-@@ -267,7 +267,7 @@ static void print_track(struct kasan_tra
- 	u64 ts_nsec = track->timestamp;
- 	unsigned long rem_usec;
+ static struct kmem_cache *userfaultfd_ctx_cachep __ro_after_init;
  
--	ts_nsec <<= 3;
-+	ts_nsec <<= 9;
- 	rem_usec = do_div(ts_nsec, NSEC_PER_SEC) / 1000;
+-/*
+- * Start with fault_pending_wqh and fault_wqh so they're more likely
+- * to be in the same cacheline.
+- *
+- * Locking order:
+- *	fd_wqh.lock
+- *		fault_pending_wqh.lock
+- *			fault_wqh.lock
+- *		event_wqh.lock
+- *
+- * To avoid deadlocks, IRQs must be disabled when taking any of the above locks,
+- * since fd_wqh.lock is taken by aio_poll() while it's holding a lock that's
+- * also taken in IRQ context.
+- */
+-struct userfaultfd_ctx {
+-	/* waitqueue head for the pending (i.e. not read) userfaults */
+-	wait_queue_head_t fault_pending_wqh;
+-	/* waitqueue head for the userfaults */
+-	wait_queue_head_t fault_wqh;
+-	/* waitqueue head for the pseudo fd to wakeup poll/read */
+-	wait_queue_head_t fd_wqh;
+-	/* waitqueue head for events */
+-	wait_queue_head_t event_wqh;
+-	/* a refile sequence protected by fault_pending_wqh lock */
+-	seqcount_spinlock_t refile_seq;
+-	/* pseudo fd refcounting */
+-	refcount_t refcount;
+-	/* userfaultfd syscall flags */
+-	unsigned int flags;
+-	/* features requested from the userspace */
+-	unsigned int features;
+-	/* released */
+-	bool released;
+-	/* memory mappings are changing because of non-cooperative event */
+-	atomic_t mmap_changing;
+-	/* mm with one ore more vmas attached to this userfaultfd_ctx */
+-	struct mm_struct *mm;
+-};
+-
+ struct userfaultfd_fork_ctx {
+ 	struct userfaultfd_ctx *orig;
+ 	struct userfaultfd_ctx *new;
+--- a/include/linux/userfaultfd_k.h~userfaultfd-move-userfaultfd_ctx-struct-to-header-file
++++ a/include/linux/userfaultfd_k.h
+@@ -36,6 +36,45 @@
+ #define UFFD_SHARED_FCNTL_FLAGS (O_CLOEXEC | O_NONBLOCK)
+ #define UFFD_FLAGS_SET (EFD_SHARED_FCNTL_FLAGS)
  
- 	pr_err("%s by task %u on cpu %d at %lu.%06lus:\n",
++/*
++ * Start with fault_pending_wqh and fault_wqh so they're more likely
++ * to be in the same cacheline.
++ *
++ * Locking order:
++ *	fd_wqh.lock
++ *		fault_pending_wqh.lock
++ *			fault_wqh.lock
++ *		event_wqh.lock
++ *
++ * To avoid deadlocks, IRQs must be disabled when taking any of the above locks,
++ * since fd_wqh.lock is taken by aio_poll() while it's holding a lock that's
++ * also taken in IRQ context.
++ */
++struct userfaultfd_ctx {
++	/* waitqueue head for the pending (i.e. not read) userfaults */
++	wait_queue_head_t fault_pending_wqh;
++	/* waitqueue head for the userfaults */
++	wait_queue_head_t fault_wqh;
++	/* waitqueue head for the pseudo fd to wakeup poll/read */
++	wait_queue_head_t fd_wqh;
++	/* waitqueue head for events */
++	wait_queue_head_t event_wqh;
++	/* a refile sequence protected by fault_pending_wqh lock */
++	seqcount_spinlock_t refile_seq;
++	/* pseudo fd refcounting */
++	refcount_t refcount;
++	/* userfaultfd syscall flags */
++	unsigned int flags;
++	/* features requested from the userspace */
++	unsigned int features;
++	/* released */
++	bool released;
++	/* memory mappings are changing because of non-cooperative event */
++	atomic_t mmap_changing;
++	/* mm with one ore more vmas attached to this userfaultfd_ctx */
++	struct mm_struct *mm;
++};
++
+ extern vm_fault_t handle_userfault(struct vm_fault *vmf, unsigned long reason);
+ 
+ /* A combined operation mode + behavior flags. */
 _
 
-Patches currently in -mm which might be from juntong.deng@outlook.com are
+Patches currently in -mm which might be from lokeshgidra@google.com are
 
-kasan-increase-the-number-of-bits-to-shift-when-recording-extra-timestamps.patch
+userfaultfd-fix-return-error-if-mmap_changing-is-non-zero-in-move-ioctl.patch
+userfaultfd-move-userfaultfd_ctx-struct-to-header-file.patch
+userfaultfd-protect-mmap_changing-with-rw_sem-in-userfaulfd_ctx.patch
+mm-add-vma_assert_locked-for-config_per_vma_lock.patch
+userfaultfd-use-per-vma-locks-in-userfaultfd-operations.patch
 
