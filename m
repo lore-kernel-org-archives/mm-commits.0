@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 512BE13A252
-	for <mm-commits@vger.kernel.org>; Thu, 15 Feb 2024 19:42:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 632EB13A254
+	for <mm-commits@vger.kernel.org>; Thu, 15 Feb 2024 19:42:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708026149; cv=none; b=HIiPmB8IqXcIL2rSsNlde+Jf8BSWBJwO8TPldIYGhZD/htURas3uJmWdnqOMJ4+GjVxY6dauiZTFw0ZqKAQ5FIF2GH2bVhG2FQMokY/i8RHAxIj0hEnXC6rdUZ9dvsBMzBpMocwALlLM1YRpkk/z5eh2VitIRPu4ksZGs1JIJp0=
+	t=1708026152; cv=none; b=Kz14wrcsD8QVoXG7jLQfG71JuMLlZQbLVSNJCQCRqTSgtHZ2AV6Jty2lGXTPEZaFiq/czDkKEK0TX4D7SzaXUA7UJQc26P+Z+xPJNhf6H0qYOb2sPYr+tdeXsen0hxn8VaFFxaGXiFUhgb0NAYXUj/yXytQNXhjOvX+iSFN2VGQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708026149; c=relaxed/simple;
-	bh=4vFk8jVKgHSDZBm4w0OmHfBCT67YWLSIJmbz3wNRsqU=;
-	h=Date:To:From:Subject:Message-Id; b=Ky29aaNa7uWDuSOuLaPaZi4LvvzX2VJhMAf5ba5cqHX4xVn5eL2YeyJ3WKt0gU/y/lXbljYMezW6GYbk2o+MS4qScIqOIPoWAwN84Et1hINlbtMfOIMu2K0/qT0NwCPbbnT26OF0VV0S7DeWz66y+m3sRYWgZBOMJ3nMZmzSszI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LfXhj2S+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708026152; c=relaxed/simple;
+	bh=ho09oX1do4mzXrqWBSJr5ilm6qkmqz/SYdBf6sn/PDI=;
+	h=Date:To:From:Subject:Message-Id; b=dbNxDXqN9g1e04pAak1+6+rDeqXRpgMmmkBYrVPASOYqmrOrGUYnc0xErAw+EDxGcwloOBaIjdm5aNF+2faov3Ap5SZUTX87uuVf4lJrGZFwDSeQia44kLvHtWguzLDyeJJdLqH+9Ya4U22Of32kF3VLivnelq4tuEJisGPCZkE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wsRWW+qG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LfXhj2S+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A4D8C433C7;
-	Thu, 15 Feb 2024 19:42:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wsRWW+qG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2610FC433C7;
+	Thu, 15 Feb 2024 19:42:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708026149;
-	bh=4vFk8jVKgHSDZBm4w0OmHfBCT67YWLSIJmbz3wNRsqU=;
+	s=korg; t=1708026152;
+	bh=ho09oX1do4mzXrqWBSJr5ilm6qkmqz/SYdBf6sn/PDI=;
 	h=Date:To:From:Subject:From;
-	b=LfXhj2S+t5NjKbwY5ZIApqC7qu2MIh+Ezp3JATgbKenJSKd4F8e99LpKpNku2Rcs3
-	 fnN1lUWIdvMPppxjZzMy4g94czb0ZxwoDeccZbVfGX7y6t/nX00bZcknnAdtetRa29
-	 cPVPyO3dCI/ZpsdOuCTO9ND93Nqlybmqsen/ghUA=
-Date: Thu, 15 Feb 2024 11:42:28 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,svens@linux.ibm.com,ryan.roberts@arm.com,peterz@infradead.org,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,mpe@ellerman.id.au,mhocko@suse.com,hca@linux.ibm.com,gor@linux.ibm.com,fengwei.yin@intel.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,borntraeger@linux.ibm.com,arnd@arndb.de,aneesh.kumar@linux.ibm.com,agordeev@linux.ibm.com,david@redhat.com,akpm@linux-foundation.org
+	b=wsRWW+qGnLiB0XE1xgtc/8o7ua/Cc+CXpqT3ui15/j6r7bIA0ydffOpHYO6h/0FMb
+	 NAk4G6UYVqqZTs06mDGnicsmL5fXOhW4t1zd1FCPeQLlgOmjjStNLxhueBuPqLrsYM
+	 yt6FQhuQ9otjwanLmVT6cTxVla9w1ExMtyO6r+4A=
+Date: Thu, 15 Feb 2024 11:42:31 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,tglx@linutronix.de,shy828301@gmail.com,ryabinin.a.a@gmail.com,mingo@redhat.com,maz@kernel.org,mark.rutland@arm.com,jhubbard@nvidia.com,james.morse@arm.com,hpa@zytor.com,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,ardb@kernel.org,apopple@nvidia.com,21cnbao@gmail.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-optimize-unmap-zap-with-pte-mapped-thp.patch added to mm-unstable branch
-Message-Id: <20240215194229.1A4D8C433C7@smtp.kernel.org>
+Subject: + mm-clarify-the-spec-for-set_ptes.patch added to mm-unstable branch
+Message-Id: <20240215194232.2610FC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory: optimize unmap/zap with PTE-mapped THP
+     Subject: mm: clarify the spec for set_ptes()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-optimize-unmap-zap-with-pte-mapped-thp.patch
+     mm-clarify-the-spec-for-set_ptes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-optimize-unmap-zap-with-pte-mapped-thp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-clarify-the-spec-for-set_ptes.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,345 +58,259 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory: optimize unmap/zap with PTE-mapped THP
-Date: Wed, 14 Feb 2024 21:44:35 +0100
+From: Ryan Roberts <ryan.roberts@arm.com>
+Subject: mm: clarify the spec for set_ptes()
+Date: Thu, 15 Feb 2024 10:31:48 +0000
 
-Similar to how we optimized fork(), let's implement PTE batching when
-consecutive (present) PTEs map consecutive pages of the same large folio.
+Patch series "Transparent Contiguous PTEs for User Mappings", v6.
 
-Most infrastructure we need for batching (mmu gather, rmap) is already
-there.  We only have to add get_and_clear_full_ptes() and
-clear_full_ptes().  Similarly, extend zap_install_uffd_wp_if_needed() to
-process a PTE range.
+This is a series to opportunistically and transparently use contpte
+mappings (set the contiguous bit in ptes) for user memory when those
+mappings meet the requirements.  The change benefits arm64, but there is
+some (very) minor refactoring for x86 to enable its integration with
+core-mm.
 
-We won't bother sanity-checking the mapcount of all subpages, but only
-check the mapcount of the first subpage we process.  If there is a real
-problem hiding somewhere, we can trigger it simply by using small folios,
-or when we zap single pages of a large folio.  Ideally, we had that check
-in rmap code (including for delayed rmap), but then we cannot print the
-PTE.  Let's keep it simple for now.  If we ever have a cheap
-folio_mapcount(), we might just want to check for underflows there.
+It is part of a wider effort to improve performance by allocating and
+mapping variable-sized blocks of memory (folios).  One aim is for the 4K
+kernel to approach the performance of the 16K kernel, but without breaking
+compatibility and without the associated increase in memory.  Another aim
+is to benefit the 16K and 64K kernels by enabling 2M THP, since this is
+the contpte size for those kernels.  We have good performance data that
+demonstrates both aims are being met (see below).
 
-To keep small folios as fast as possible force inlining of a specialized
-variant using __always_inline with nr=1.
+Of course this is only one half of the change.  We require the mapped
+physical memory to be the correct size and alignment for this to actually
+be useful (i.e.  64K for 4K pages, or 2M for 16K/64K pages).  Fortunately
+folios are solving this problem for us.  Filesystems that support it (XFS,
+AFS, EROFS, tmpfs, ...) will allocate large folios up to the PMD size
+today, and more filesystems are coming.  And for anonymous memory,
+"multi-size THP" is now upstream.
 
-Link: https://lkml.kernel.org/r/20240214204435.167852-11-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+
+Patch Layout
+============
+
+In this version, I've split the patches to better show each optimization:
+
+  - 1-2:    mm prep: misc code and docs cleanups
+  - 3-6:    mm,arm64,x86 prep: Add pte_advance_pfn() and make pte_next_pfn() a
+            generic wrapper around it
+  - 7-11:   arm64 prep: Refactor ptep helpers into new layer
+  - 12:     functional contpte implementation
+  - 23-18:  various optimizations on top of the contpte implementation
+
+
+Testing
+=======
+
+I've tested this series on both Ampere Altra (bare metal) and Apple M2 (VM):
+  - mm selftests (inc new tests written for multi-size THP); no regressions
+  - Speedometer Java script benchmark in Chromium web browser; no issues
+  - Kernel compilation; no issues
+  - Various tests under high memory pressure with swap enabled; no issues
+
+
+Performance
+===========
+
+High Level Use Cases
+~~~~~~~~~~~~~~~~~~~~
+
+First some high level use cases (kernel compilation and speedometer JavaScript
+benchmarks). These are running on Ampere Altra (I've seen similar improvements
+on Android/Pixel 6).
+
+baseline:                  mm-unstable (mTHP switched off)
+mTHP:                      + enable 16K, 32K, 64K mTHP sizes "always"
+mTHP + contpte:            + this series
+mTHP + contpte + exefolio: + patch at [6], which series supports
+
+Kernel Compilation with -j8 (negative is faster):
+
+| kernel                    | real-time | kern-time | user-time |
+|---------------------------|-----------|-----------|-----------|
+| baseline                  |      0.0% |      0.0% |      0.0% |
+| mTHP                      |     -5.0% |    -39.1% |     -0.7% |
+| mTHP + contpte            |     -6.0% |    -41.4% |     -1.5% |
+| mTHP + contpte + exefolio |     -7.8% |    -43.1% |     -3.4% |
+
+Kernel Compilation with -j80 (negative is faster):
+
+| kernel                    | real-time | kern-time | user-time |
+|---------------------------|-----------|-----------|-----------|
+| baseline                  |      0.0% |      0.0% |      0.0% |
+| mTHP                      |     -5.0% |    -36.6% |     -0.6% |
+| mTHP + contpte            |     -6.1% |    -38.2% |     -1.6% |
+| mTHP + contpte + exefolio |     -7.4% |    -39.2% |     -3.2% |
+
+Speedometer (positive is faster):
+
+| kernel                    | runs_per_min |
+|:--------------------------|--------------|
+| baseline                  |         0.0% |
+| mTHP                      |         1.5% |
+| mTHP + contpte            |         3.2% |
+| mTHP + contpte + exefolio |         4.5% |
+
+
+Micro Benchmarks
+~~~~~~~~~~~~~~~~
+
+The following microbenchmarks are intended to demonstrate the performance of
+fork() and munmap() do not regress. I'm showing results for order-0 (4K)
+mappings, and for order-9 (2M) PTE-mapped THP. Thanks to David for sharing his
+benchmarks.
+
+baseline:                  mm-unstable + batch zap [7] series
+contpte-basic:             + patches 0-19; functional contpte implementation
+contpte-batch:             + patches 20-23; implement new batched APIs
+contpte-inline:            + patch 24; __always_inline to help compiler
+contpte-fold:              + patch 25; fold contpte mapping when sensible
+
+Primary platform is Ampere Altra bare metal. I'm also showing results for M2 VM
+(on top of MacOS) for reference, although experience suggests this might not be
+the most reliable for performance numbers of this sort:
+
+| FORK           |         order-0        |         order-9        |
+| Ampere Altra   |------------------------|------------------------|
+| (pte-map)      |       mean |     stdev |       mean |     stdev |
+|----------------|------------|-----------|------------|-----------|
+| baseline       |       0.0% |      2.7% |       0.0% |      0.2% |
+| contpte-basic  |       6.3% |      1.4% |    1948.7% |      0.2% |
+| contpte-batch  |       7.6% |      2.0% |      -1.9% |      0.4% |
+| contpte-inline |       3.6% |      1.5% |      -1.0% |      0.2% |
+| contpte-fold   |       4.6% |      2.1% |      -1.8% |      0.2% |
+
+| MUNMAP         |         order-0        |         order-9        |
+| Ampere Altra   |------------------------|------------------------|
+| (pte-map)      |       mean |     stdev |       mean |     stdev |
+|----------------|------------|-----------|------------|-----------|
+| baseline       |       0.0% |      0.5% |       0.0% |      0.3% |
+| contpte-basic  |       1.8% |      0.3% |    1104.8% |      0.1% |
+| contpte-batch  |      -0.3% |      0.4% |       2.7% |      0.1% |
+| contpte-inline |      -0.1% |      0.6% |       0.9% |      0.1% |
+| contpte-fold   |       0.1% |      0.6% |       0.8% |      0.1% |
+
+| FORK           |         order-0        |         order-9        |
+| Apple M2 VM    |------------------------|------------------------|
+| (pte-map)      |       mean |     stdev |       mean |     stdev |
+|----------------|------------|-----------|------------|-----------|
+| baseline       |       0.0% |      1.4% |       0.0% |      0.8% |
+| contpte-basic  |       6.8% |      1.2% |     469.4% |      1.4% |
+| contpte-batch  |      -7.7% |      2.0% |      -8.9% |      0.7% |
+| contpte-inline |      -6.0% |      2.1% |      -6.0% |      2.0% |
+| contpte-fold   |       5.9% |      1.4% |      -6.4% |      1.4% |
+
+| MUNMAP         |         order-0        |         order-9        |
+| Apple M2 VM    |------------------------|------------------------|
+| (pte-map)      |       mean |     stdev |       mean |     stdev |
+|----------------|------------|-----------|------------|-----------|
+| baseline       |       0.0% |      0.6% |       0.0% |      0.4% |
+| contpte-basic  |       1.6% |      0.6% |     233.6% |      0.7% |
+| contpte-batch  |       1.9% |      0.3% |      -3.9% |      0.4% |
+| contpte-inline |       2.2% |      0.8% |      -1.6% |      0.9% |
+| contpte-fold   |       1.5% |      0.7% |      -1.7% |      0.7% |
+
+Misc
+~~~~
+
+John Hubbard at Nvidia has indicated dramatic 10x performance improvements
+for some workloads at [8], when using 64K base page kernel.
+
+[1] https://lore.kernel.org/linux-arm-kernel/20230622144210.2623299-1-ryan.roberts@arm.com/
+[2] https://lore.kernel.org/linux-arm-kernel/20231115163018.1303287-1-ryan.roberts@arm.com/
+[3] https://lore.kernel.org/linux-arm-kernel/20231204105440.61448-1-ryan.roberts@arm.com/
+[4] https://lore.kernel.org/lkml/20231218105100.172635-1-ryan.roberts@arm.com/
+[5] https://lore.kernel.org/linux-mm/633af0a7-0823-424f-b6ef-374d99483f05@arm.com/
+[6] https://lore.kernel.org/lkml/08c16f7d-f3b3-4f22-9acc-da943f647dc3@arm.com/
+[7] https://lore.kernel.org/linux-mm/20240214204435.167852-1-david@redhat.com/
+[8] https://lore.kernel.org/linux-mm/c507308d-bdd4-5f9e-d4ff-e96e4520be85@nvidia.com/
+[9] https://gitlab.arm.com/linux-arm/linux-rr/-/tree/features/granule_perf/contpte-lkml_v6
+
+
+
+
+This patch (of 18):
+
+set_ptes() spec implies that it can only be used to set a present pte
+because it interprets the PFN field to increment it.  However,
+set_pte_at() has been implemented on top of set_ptes() since set_ptes()
+was introduced, and set_pte_at() allows setting a pte to a not-present
+state.  So clarify the spec to state that when nr==1, new state of pte may
+be present or not present.  When nr>1, new state of all ptes must be
+present.
+
+While we are at it, tighten the spec to set requirements around the
+initial state of ptes; when nr==1 it may be either present or not-present.
+But when nr>1 all ptes must initially be not-present.  All set_ptes()
+callsites already conform to this requirement.  Stating it explicitly is
+useful because it allows for a simplification to the upcoming arm64
+contpte implementation.
+
+Link: https://lkml.kernel.org/r/20240215103205.2607016-1-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20240215103205.2607016-2-ryan.roberts@arm.com
+Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: Borislav Petkov (AMD) <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: James Morse <james.morse@arm.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Marc Zyngier <maz@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Will Deacon <will@kernel.org>
-Cc: Yin Fengwei <fengwei.yin@intel.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |   70 ++++++++++++++++++++++++++++
- mm/memory.c             |   92 +++++++++++++++++++++++++++-----------
- 2 files changed, 136 insertions(+), 26 deletions(-)
+ include/linux/pgtable.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/include/linux/pgtable.h~mm-memory-optimize-unmap-zap-with-pte-mapped-thp
+--- a/include/linux/pgtable.h~mm-clarify-the-spec-for-set_ptes
 +++ a/include/linux/pgtable.h
-@@ -580,6 +580,76 @@ static inline pte_t ptep_get_and_clear_f
- }
- #endif
- 
-+#ifndef get_and_clear_full_ptes
-+/**
-+ * get_and_clear_full_ptes - Clear present PTEs that map consecutive pages of
-+ *			     the same folio, collecting dirty/accessed bits.
-+ * @mm: Address space the pages are mapped into.
-+ * @addr: Address the first page is mapped at.
-+ * @ptep: Page table pointer for the first entry.
-+ * @nr: Number of entries to clear.
-+ * @full: Whether we are clearing a full mm.
+@@ -229,6 +229,10 @@ static inline pte_t pte_next_pfn(pte_t p
+  * @pte: Page table entry for the first page.
+  * @nr: Number of pages to map.
+  *
++ * When nr==1, initial state of pte may be present or not present, and new state
++ * may be present or not present. When nr>1, initial state of all ptes must be
++ * not present, and new state must be present.
 + *
-+ * May be overridden by the architecture; otherwise, implemented as a simple
-+ * loop over ptep_get_and_clear_full(), merging dirty/accessed bits into the
-+ * returned PTE.
-+ *
-+ * Note that PTE bits in the PTE range besides the PFN can differ. For example,
-+ * some PTEs might be write-protected.
-+ *
-+ * Context: The caller holds the page table lock.  The PTEs map consecutive
-+ * pages that belong to the same folio.  The PTEs are all in the same PMD.
-+ */
-+static inline pte_t get_and_clear_full_ptes(struct mm_struct *mm,
-+		unsigned long addr, pte_t *ptep, unsigned int nr, int full)
-+{
-+	pte_t pte, tmp_pte;
-+
-+	pte = ptep_get_and_clear_full(mm, addr, ptep, full);
-+	while (--nr) {
-+		ptep++;
-+		addr += PAGE_SIZE;
-+		tmp_pte = ptep_get_and_clear_full(mm, addr, ptep, full);
-+		if (pte_dirty(tmp_pte))
-+			pte = pte_mkdirty(pte);
-+		if (pte_young(tmp_pte))
-+			pte = pte_mkyoung(pte);
-+	}
-+	return pte;
-+}
-+#endif
-+
-+#ifndef clear_full_ptes
-+/**
-+ * clear_full_ptes - Clear present PTEs that map consecutive pages of the same
-+ *		     folio.
-+ * @mm: Address space the pages are mapped into.
-+ * @addr: Address the first page is mapped at.
-+ * @ptep: Page table pointer for the first entry.
-+ * @nr: Number of entries to clear.
-+ * @full: Whether we are clearing a full mm.
-+ *
-+ * May be overridden by the architecture; otherwise, implemented as a simple
-+ * loop over ptep_get_and_clear_full().
-+ *
-+ * Note that PTE bits in the PTE range besides the PFN can differ. For example,
-+ * some PTEs might be write-protected.
-+ *
-+ * Context: The caller holds the page table lock.  The PTEs map consecutive
-+ * pages that belong to the same folio.  The PTEs are all in the same PMD.
-+ */
-+static inline void clear_full_ptes(struct mm_struct *mm, unsigned long addr,
-+		pte_t *ptep, unsigned int nr, int full)
-+{
-+	for (;;) {
-+		ptep_get_and_clear_full(mm, addr, ptep, full);
-+		if (--nr == 0)
-+			break;
-+		ptep++;
-+		addr += PAGE_SIZE;
-+	}
-+}
-+#endif
- 
- /*
-  * If two threads concurrently fault at the same page, the thread that
---- a/mm/memory.c~mm-memory-optimize-unmap-zap-with-pte-mapped-thp
-+++ a/mm/memory.c
-@@ -1515,7 +1515,7 @@ static inline bool zap_drop_file_uffd_wp
-  */
- static inline void
- zap_install_uffd_wp_if_needed(struct vm_area_struct *vma,
--			      unsigned long addr, pte_t *pte,
-+			      unsigned long addr, pte_t *pte, int nr,
- 			      struct zap_details *details, pte_t pteval)
- {
- 	/* Zap on anonymous always means dropping everything */
-@@ -1525,20 +1525,27 @@ zap_install_uffd_wp_if_needed(struct vm_
- 	if (zap_drop_file_uffd_wp(details))
- 		return;
- 
--	pte_install_uffd_wp_if_needed(vma, addr, pte, pteval);
-+	for (;;) {
-+		/* the PFN in the PTE is irrelevant. */
-+		pte_install_uffd_wp_if_needed(vma, addr, pte, pteval);
-+		if (--nr == 0)
-+			break;
-+		pte++;
-+		addr += PAGE_SIZE;
-+	}
- }
- 
--static inline void zap_present_folio_pte(struct mmu_gather *tlb,
-+static __always_inline void zap_present_folio_ptes(struct mmu_gather *tlb,
- 		struct vm_area_struct *vma, struct folio *folio,
--		struct page *page, pte_t *pte, pte_t ptent, unsigned long addr,
--		struct zap_details *details, int *rss, bool *force_flush,
--		bool *force_break)
-+		struct page *page, pte_t *pte, pte_t ptent, unsigned int nr,
-+		unsigned long addr, struct zap_details *details, int *rss,
-+		bool *force_flush, bool *force_break)
- {
- 	struct mm_struct *mm = tlb->mm;
- 	bool delay_rmap = false;
- 
- 	if (!folio_test_anon(folio)) {
--		ptent = ptep_get_and_clear_full(mm, addr, pte, tlb->fullmm);
-+		ptent = get_and_clear_full_ptes(mm, addr, pte, nr, tlb->fullmm);
- 		if (pte_dirty(ptent)) {
- 			folio_mark_dirty(folio);
- 			if (tlb_delay_rmap(tlb)) {
-@@ -1548,36 +1555,49 @@ static inline void zap_present_folio_pte
- 		}
- 		if (pte_young(ptent) && likely(vma_has_recency(vma)))
- 			folio_mark_accessed(folio);
--		rss[mm_counter(folio)]--;
-+		rss[mm_counter(folio)] -= nr;
- 	} else {
- 		/* We don't need up-to-date accessed/dirty bits. */
--		ptep_get_and_clear_full(mm, addr, pte, tlb->fullmm);
--		rss[MM_ANONPAGES]--;
-+		clear_full_ptes(mm, addr, pte, nr, tlb->fullmm);
-+		rss[MM_ANONPAGES] -= nr;
- 	}
-+	/* Checking a single PTE in a batch is sufficient. */
- 	arch_check_zapped_pte(vma, ptent);
--	tlb_remove_tlb_entry(tlb, pte, addr);
-+	tlb_remove_tlb_entries(tlb, pte, nr, addr);
- 	if (unlikely(userfaultfd_pte_wp(vma, ptent)))
--		zap_install_uffd_wp_if_needed(vma, addr, pte, details, ptent);
-+		zap_install_uffd_wp_if_needed(vma, addr, pte, nr, details,
-+					      ptent);
- 
- 	if (!delay_rmap) {
--		folio_remove_rmap_pte(folio, page, vma);
-+		folio_remove_rmap_ptes(folio, page, nr, vma);
-+
-+		/* Only sanity-check the first page in a batch. */
- 		if (unlikely(page_mapcount(page) < 0))
- 			print_bad_pte(vma, addr, ptent, page);
- 	}
--	if (unlikely(__tlb_remove_page(tlb, page, delay_rmap))) {
-+	if (unlikely(__tlb_remove_folio_pages(tlb, page, nr, delay_rmap))) {
- 		*force_flush = true;
- 		*force_break = true;
- 	}
- }
- 
--static inline void zap_present_pte(struct mmu_gather *tlb,
-+/*
-+ * Zap or skip at least one present PTE, trying to batch-process subsequent
-+ * PTEs that map consecutive pages of the same folio.
-+ *
-+ * Returns the number of processed (skipped or zapped) PTEs (at least 1).
-+ */
-+static inline int zap_present_ptes(struct mmu_gather *tlb,
- 		struct vm_area_struct *vma, pte_t *pte, pte_t ptent,
--		unsigned long addr, struct zap_details *details,
--		int *rss, bool *force_flush, bool *force_break)
-+		unsigned int max_nr, unsigned long addr,
-+		struct zap_details *details, int *rss, bool *force_flush,
-+		bool *force_break)
- {
-+	const fpb_t fpb_flags = FPB_IGNORE_DIRTY | FPB_IGNORE_SOFT_DIRTY;
- 	struct mm_struct *mm = tlb->mm;
- 	struct folio *folio;
- 	struct page *page;
-+	int nr;
- 
- 	page = vm_normal_page(vma, addr, ptent);
- 	if (!page) {
-@@ -1587,14 +1607,29 @@ static inline void zap_present_pte(struc
- 		tlb_remove_tlb_entry(tlb, pte, addr);
- 		VM_WARN_ON_ONCE(userfaultfd_wp(vma));
- 		ksm_might_unmap_zero_page(mm, ptent);
--		return;
-+		return 1;
- 	}
- 
- 	folio = page_folio(page);
- 	if (unlikely(!should_zap_folio(details, folio)))
--		return;
--	zap_present_folio_pte(tlb, vma, folio, page, pte, ptent, addr, details,
--			      rss, force_flush, force_break);
-+		return 1;
-+
-+	/*
-+	 * Make sure that the common "small folio" case is as fast as possible
-+	 * by keeping the batching logic separate.
-+	 */
-+	if (unlikely(folio_test_large(folio) && max_nr != 1)) {
-+		nr = folio_pte_batch(folio, addr, pte, ptent, max_nr, fpb_flags,
-+				     NULL);
-+
-+		zap_present_folio_ptes(tlb, vma, folio, page, pte, ptent, nr,
-+				       addr, details, rss, force_flush,
-+				       force_break);
-+		return nr;
-+	}
-+	zap_present_folio_ptes(tlb, vma, folio, page, pte, ptent, 1, addr,
-+			       details, rss, force_flush, force_break);
-+	return 1;
- }
- 
- static unsigned long zap_pte_range(struct mmu_gather *tlb,
-@@ -1609,6 +1644,7 @@ static unsigned long zap_pte_range(struc
- 	pte_t *start_pte;
- 	pte_t *pte;
- 	swp_entry_t entry;
-+	int nr;
- 
- 	tlb_change_page_size(tlb, PAGE_SIZE);
- 	init_rss_vec(rss);
-@@ -1622,7 +1658,9 @@ static unsigned long zap_pte_range(struc
- 		pte_t ptent = ptep_get(pte);
- 		struct folio *folio;
- 		struct page *page;
-+		int max_nr;
- 
-+		nr = 1;
- 		if (pte_none(ptent))
- 			continue;
- 
-@@ -1630,10 +1668,12 @@ static unsigned long zap_pte_range(struc
- 			break;
- 
- 		if (pte_present(ptent)) {
--			zap_present_pte(tlb, vma, pte, ptent, addr, details,
--					rss, &force_flush, &force_break);
-+			max_nr = (end - addr) / PAGE_SIZE;
-+			nr = zap_present_ptes(tlb, vma, pte, ptent, max_nr,
-+					      addr, details, rss, &force_flush,
-+					      &force_break);
- 			if (unlikely(force_break)) {
--				addr += PAGE_SIZE;
-+				addr += nr * PAGE_SIZE;
- 				break;
- 			}
- 			continue;
-@@ -1687,8 +1727,8 @@ static unsigned long zap_pte_range(struc
- 			WARN_ON_ONCE(1);
- 		}
- 		pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
--		zap_install_uffd_wp_if_needed(vma, addr, pte, details, ptent);
--	} while (pte++, addr += PAGE_SIZE, addr != end);
-+		zap_install_uffd_wp_if_needed(vma, addr, pte, 1, details, ptent);
-+	} while (pte += nr, addr += PAGE_SIZE * nr, addr != end);
- 
- 	add_mm_rss_vec(mm, rss);
- 	arch_leave_lazy_mmu_mode();
+  * May be overridden by the architecture, or the architecture can define
+  * set_pte() and PFN_PTE_SHIFT.
+  *
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from ryan.roberts@arm.com are
 
-arm-pgtable-define-pfn_pte_shift.patch
-nios2-pgtable-define-pfn_pte_shift.patch
-powerpc-pgtable-define-pfn_pte_shift.patch
-riscv-pgtable-define-pfn_pte_shift.patch
-s390-pgtable-define-pfn_pte_shift.patch
-sparc-pgtable-define-pfn_pte_shift.patch
-mm-pgtable-make-pte_next_pfn-independent-of-set_ptes.patch
-arm-mm-use-pte_next_pfn-in-set_ptes.patch
-powerpc-mm-use-pte_next_pfn-in-set_ptes.patch
-mm-memory-factor-out-copying-the-actual-pte-in-copy_present_pte.patch
-mm-memory-pass-pte-to-copy_present_pte.patch
-mm-memory-optimize-fork-with-pte-mapped-thp.patch
-mm-memory-ignore-dirty-accessed-soft-dirty-bits-in-folio_pte_batch.patch
-mm-memory-ignore-writable-bit-in-folio_pte_batch.patch
-mm-memory-factor-out-zapping-of-present-pte-into-zap_present_pte.patch
-mm-memory-handle-page-case-in-zap_present_pte-separately.patch
-mm-memory-further-separate-anon-and-pagecache-folio-handling-in-zap_present_pte.patch
-mm-memory-factor-out-zapping-folio-pte-into-zap_present_folio_pte.patch
-mm-mmu_gather-pass-delay_rmap-instead-of-encoded-page-to-__tlb_remove_page_size.patch
-mm-mmu_gather-define-encoded_page_flag_delay_rmap.patch
-mm-mmu_gather-add-tlb_remove_tlb_entries.patch
-mm-mmu_gather-add-__tlb_remove_folio_pages.patch
-mm-mmu_gather-improve-cond_resched-handling-with-large-folios-and-expensive-page-freeing.patch
-mm-memory-optimize-unmap-zap-with-pte-mapped-thp.patch
+tools-mm-add-thpmaps-script-to-dump-thp-usage-info.patch
+arm64-mm-make-set_ptes-robust-when-oas-cross-48-bit-boundary.patch
+mm-clarify-the-spec-for-set_ptes.patch
+mm-thp-batch-collapse-pmd-with-set_ptes.patch
+mm-introduce-pte_advance_pfn-and-use-for-pte_next_pfn.patch
+arm64-mm-convert-pte_next_pfn-to-pte_advance_pfn.patch
+x86-mm-convert-pte_next_pfn-to-pte_advance_pfn.patch
+mm-tidy-up-pte_next_pfn-definition.patch
+arm64-mm-convert-read_onceptep-to-ptep_getptep.patch
+arm64-mm-convert-set_pte_at-to-set_ptes-1.patch
+arm64-mm-convert-ptep_clear-to-ptep_get_and_clear.patch
+arm64-mm-new-ptep-layer-to-manage-contig-bit.patch
+arm64-mm-split-__flush_tlb_range-to-elide-trailing-dsb.patch
+arm64-mm-wire-up-pte_cont-for-user-mappings.patch
+arm64-mm-implement-new-wrprotect_ptes-batch-api.patch
+arm64-mm-implement-new-clear_full_ptes-batch-apis.patch
+mm-add-pte_batch_hint-to-reduce-scanning-in-folio_pte_batch.patch
+arm64-mm-implement-pte_batch_hint.patch
+arm64-mm-__always_inline-to-improve-fork-perf.patch
+arm64-mm-automatically-fold-contpte-mappings.patch
 
