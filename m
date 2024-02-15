@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16E5B1384B8
-	for <mm-commits@vger.kernel.org>; Thu, 15 Feb 2024 19:42:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20BB613956C
+	for <mm-commits@vger.kernel.org>; Thu, 15 Feb 2024 19:42:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708026132; cv=none; b=uty16S73FrEcodY3LKKuTwXB4Saw+nY4vUTn+SKt8af2EMHnLWQA6EUODJjKNtfOylorZYNWmK/ndOXUBEMJOt1DGOeE0eVuacBIuQWgy70221TrhCWqDOTMgmkucewU/ghHOZuJq/1yJb7Sccg3nyTc7mdK1FZziIrRHuxKHCU=
+	t=1708026134; cv=none; b=HQtMaS20U4hluumvCnYINBd7EDPtSlOr3oc3S8RPZiShjpiQNCRnJk5al+IWE6Tq3fT/o9F6neWdL23eHSmpCYpOxuetG3juBvbIAlXbz1eQOlbOa9oJreugWp+TGvn9jvu4z4dEiLsSk+LlKJoMwAHoHpjxfRq9tin+e8cip4o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708026132; c=relaxed/simple;
-	bh=+ureLHt2f6bWcrkt97rqRC8ZIkEZ+pb7qoQt2u/T+Ss=;
-	h=Date:To:From:Subject:Message-Id; b=eO1XTpsRtn2LfoxhI+Mz31Hk7mFm+rnbByezRwVQe01/1T+fQ2g1/1EE0SgFmAkMC3wvs5vwGncnzei4nLDLhmIQlD99LYvvhXaOySVHagYWq2+hW3MDeRFxPj9QWuvFBSgImNqINlNnRNVue970suwJBWXOwls7MfzeVGU4b90=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qveIlPuV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708026134; c=relaxed/simple;
+	bh=DRk8cKnCpz/1iN1+c4IFaOfTF2PQ3PCv0M5Gj/1hP6M=;
+	h=Date:To:From:Subject:Message-Id; b=OkeYQUUWRXczKA8+9eo9Ih62C/KWIuBqAMkwjicawxiOt+2XwuG93hUpQM0V/egWdFzwj0nabvFvw4wB5Bhjvg7qQVMLko0Skjcb8srBRQRKUwXZBamXwunk9Sq6qqNzDftB+5uRtVQD5zFR2ITDBzoiBVn9N7eZ/v4RNc+5N74=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2OEC1/UC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qveIlPuV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82342C433F1;
-	Thu, 15 Feb 2024 19:42:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2OEC1/UC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90A84C433F1;
+	Thu, 15 Feb 2024 19:42:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708026131;
-	bh=+ureLHt2f6bWcrkt97rqRC8ZIkEZ+pb7qoQt2u/T+Ss=;
+	s=korg; t=1708026133;
+	bh=DRk8cKnCpz/1iN1+c4IFaOfTF2PQ3PCv0M5Gj/1hP6M=;
 	h=Date:To:From:Subject:From;
-	b=qveIlPuVx1xMHZbpuKmGFPJA7h8l0r02SQNsONcZeYqT3FjAD/GFIJsi1oo/XAbxj
-	 zGOem/BmwnIWgDau3Gec3ntP8La17xarocA8aHnca8zPzriRGpIbVioZ/dtUgHFkta
-	 HR9q52SyUiGYnwgBJUJI6yWCOZMSrclxmS1p/Llg=
-Date: Thu, 15 Feb 2024 11:42:11 -0800
+	b=2OEC1/UCBtbAH/mAvD6IpiKcLi28a+CZkA+DGYpU2RWBOYigrrGOWDlBCjLwX4QxB
+	 tA/4igGQD80kG4WL8wQYUDaVF/8dbykng6hOwiMFYBcYDCtYtC4wbZJipM7MsQFNfR
+	 BrPDt0J+9uVj6K/Qd5qO49E3NwG6J3OZHK290kvs=
+Date: Thu, 15 Feb 2024 11:42:13 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,svens@linux.ibm.com,ryan.roberts@arm.com,peterz@infradead.org,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,mpe@ellerman.id.au,mhocko@suse.com,hca@linux.ibm.com,gor@linux.ibm.com,fengwei.yin@intel.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,borntraeger@linux.ibm.com,arnd@arndb.de,aneesh.kumar@linux.ibm.com,agordeev@linux.ibm.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-further-separate-anon-and-pagecache-folio-handling-in-zap_present_pte.patch added to mm-unstable branch
-Message-Id: <20240215194211.82342C433F1@smtp.kernel.org>
+Subject: + mm-memory-factor-out-zapping-folio-pte-into-zap_present_folio_pte.patch added to mm-unstable branch
+Message-Id: <20240215194213.90A84C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory: further separate anon and pagecache folio handling in zap_present_pte()
+     Subject: mm/memory: factor out zapping folio pte into zap_present_folio_pte()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-further-separate-anon-and-pagecache-folio-handling-in-zap_present_pte.patch
+     mm-memory-factor-out-zapping-folio-pte-into-zap_present_folio_pte.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-further-separate-anon-and-pagecache-folio-handling-in-zap_present_pte.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-factor-out-zapping-folio-pte-into-zap_present_folio_pte.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,21 +59,13 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory: further separate anon and pagecache folio handling in zap_present_pte()
-Date: Wed, 14 Feb 2024 21:44:28 +0100
+Subject: mm/memory: factor out zapping folio pte into zap_present_folio_pte()
+Date: Wed, 14 Feb 2024 21:44:29 +0100
 
-We don't need up-to-date accessed-dirty information for anon folios and
-can simply work with the ptent we already have.  Also, we know the RSS
-counter we want to update.
+Let's prepare for further changes by factoring it out into a separate
+function.
 
-We can safely move arch_check_zapped_pte() + tlb_remove_tlb_entry() +
-zap_install_uffd_wp_if_needed() after updating the folio and RSS.
-
-While at it, only call zap_install_uffd_wp_if_needed() if there is even
-any chance that pte_install_uffd_wp_if_needed() would do *something*. 
-That is, just don't bother if uffd-wp does not apply.
-
-Link: https://lkml.kernel.org/r/20240214204435.167852-4-david@redhat.com
+Link: https://lkml.kernel.org/r/20240214204435.167852-5-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -96,44 +88,81 @@ Cc: Yin Fengwei <fengwei.yin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ mm/memory.c |   53 ++++++++++++++++++++++++++++++--------------------
+ 1 file changed, 32 insertions(+), 21 deletions(-)
 
---- a/mm/memory.c~mm-memory-further-separate-anon-and-pagecache-folio-handling-in-zap_present_pte
+--- a/mm/memory.c~mm-memory-factor-out-zapping-folio-pte-into-zap_present_folio_pte
 +++ a/mm/memory.c
-@@ -1552,12 +1552,9 @@ static inline void zap_present_pte(struc
- 	folio = page_folio(page);
- 	if (unlikely(!should_zap_folio(details, folio)))
- 		return;
--	ptent = ptep_get_and_clear_full(mm, addr, pte, tlb->fullmm);
--	arch_check_zapped_pte(vma, ptent);
--	tlb_remove_tlb_entry(tlb, pte, addr);
--	zap_install_uffd_wp_if_needed(vma, addr, pte, details, ptent);
+@@ -1528,30 +1528,14 @@ zap_install_uffd_wp_if_needed(struct vm_
+ 	pte_install_uffd_wp_if_needed(vma, addr, pte, pteval);
+ }
+ 
+-static inline void zap_present_pte(struct mmu_gather *tlb,
+-		struct vm_area_struct *vma, pte_t *pte, pte_t ptent,
+-		unsigned long addr, struct zap_details *details,
+-		int *rss, bool *force_flush, bool *force_break)
++static inline void zap_present_folio_pte(struct mmu_gather *tlb,
++		struct vm_area_struct *vma, struct folio *folio,
++		struct page *page, pte_t *pte, pte_t ptent, unsigned long addr,
++		struct zap_details *details, int *rss, bool *force_flush,
++		bool *force_break)
+ {
+ 	struct mm_struct *mm = tlb->mm;
+ 	bool delay_rmap = false;
+-	struct folio *folio;
+-	struct page *page;
+-
+-	page = vm_normal_page(vma, addr, ptent);
+-	if (!page) {
+-		/* We don't need up-to-date accessed/dirty bits. */
+-		ptep_get_and_clear_full(mm, addr, pte, tlb->fullmm);
+-		arch_check_zapped_pte(vma, ptent);
+-		tlb_remove_tlb_entry(tlb, pte, addr);
+-		VM_WARN_ON_ONCE(userfaultfd_wp(vma));
+-		ksm_might_unmap_zero_page(mm, ptent);
+-		return;
+-	}
+-
+-	folio = page_folio(page);
+-	if (unlikely(!should_zap_folio(details, folio)))
+-		return;
  
  	if (!folio_test_anon(folio)) {
-+		ptent = ptep_get_and_clear_full(mm, addr, pte, tlb->fullmm);
- 		if (pte_dirty(ptent)) {
- 			folio_mark_dirty(folio);
- 			if (tlb_delay_rmap(tlb)) {
-@@ -1567,8 +1564,17 @@ static inline void zap_present_pte(struc
- 		}
- 		if (pte_young(ptent) && likely(vma_has_recency(vma)))
- 			folio_mark_accessed(folio);
-+		rss[mm_counter(folio)]--;
-+	} else {
+ 		ptent = ptep_get_and_clear_full(mm, addr, pte, tlb->fullmm);
+@@ -1586,6 +1570,33 @@ static inline void zap_present_pte(struc
+ 	}
+ }
+ 
++static inline void zap_present_pte(struct mmu_gather *tlb,
++		struct vm_area_struct *vma, pte_t *pte, pte_t ptent,
++		unsigned long addr, struct zap_details *details,
++		int *rss, bool *force_flush, bool *force_break)
++{
++	struct mm_struct *mm = tlb->mm;
++	struct folio *folio;
++	struct page *page;
++
++	page = vm_normal_page(vma, addr, ptent);
++	if (!page) {
 +		/* We don't need up-to-date accessed/dirty bits. */
 +		ptep_get_and_clear_full(mm, addr, pte, tlb->fullmm);
-+		rss[MM_ANONPAGES]--;
- 	}
--	rss[mm_counter(folio)]--;
-+	arch_check_zapped_pte(vma, ptent);
-+	tlb_remove_tlb_entry(tlb, pte, addr);
-+	if (unlikely(userfaultfd_pte_wp(vma, ptent)))
-+		zap_install_uffd_wp_if_needed(vma, addr, pte, details, ptent);
++		arch_check_zapped_pte(vma, ptent);
++		tlb_remove_tlb_entry(tlb, pte, addr);
++		VM_WARN_ON_ONCE(userfaultfd_wp(vma));
++		ksm_might_unmap_zero_page(mm, ptent);
++		return;
++	}
 +
- 	if (!delay_rmap) {
- 		folio_remove_rmap_pte(folio, page, vma);
- 		if (unlikely(page_mapcount(page) < 0))
++	folio = page_folio(page);
++	if (unlikely(!should_zap_folio(details, folio)))
++		return;
++	zap_present_folio_pte(tlb, vma, folio, page, pte, ptent, addr, details,
++			      rss, force_flush, force_break);
++}
++
+ static unsigned long zap_pte_range(struct mmu_gather *tlb,
+ 				struct vm_area_struct *vma, pmd_t *pmd,
+ 				unsigned long addr, unsigned long end,
 _
 
 Patches currently in -mm which might be from david@redhat.com are
