@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 894E741A81
-	for <mm-commits@vger.kernel.org>; Thu, 15 Feb 2024 19:42:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C33164369A
+	for <mm-commits@vger.kernel.org>; Thu, 15 Feb 2024 19:42:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708026138; cv=none; b=f6sR/KBPIa8XQlha/Zj7QX+ndEsAGYyZrX0A2tOP31xLD05tahemVW55hgfnRtEKymOhqhTWRff3l2wqpQXo1KStjpZZtbL/N3xbPSEM/WemihT2giijT5MxlKTXG1dORc8XiFqgUY02m56y2I8C9xCrAUPGm86Gf6y0fRxvAcI=
+	t=1708026140; cv=none; b=LO7U2eMCz7yfPakuJsVjRHa8HczVkmU4gdEuycfo0pKOeSW6xb+NasAmJ8Ta5KQ6dgYWfypO1UGjzMApDiYJ68QypnDJ+TjyDez/tZkOAEz6Oz0FrFnxTS9QRFxLF482a2Nc9Y8cyQwSR+1Wi55yTUONWwvuYKaBGPW4dK8EJi4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708026138; c=relaxed/simple;
-	bh=KDH3+W/irxzSg+KjHPbggVeTXZKkVZcUDaDK12HQnVU=;
-	h=Date:To:From:Subject:Message-Id; b=NdgMVnCUzEa/fliq+S+gvif9t8uu/IFwpINpfJFx86ir/vw0KIYmEeKxOVdWLsOCDelakcQKPx1ddmc0DfkIspTk9PHedNODYGnDannOf24Dq76OHhDAohiMHkTaCwR/ysBs0w/xDI2x/0r306jl/E0I/85LIwZXXs8DvMfwg5g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YPQxkR6F; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708026140; c=relaxed/simple;
+	bh=ExU7ii/ykhj+q+r7TYf2rz/dUVF5KEC5DJkCWrW8QcI=;
+	h=Date:To:From:Subject:Message-Id; b=FUAGouoEVvEH6BTFnl1kJE2aIjaXDxl4eK5QJ0Tfg2d0B19AAbcuMyVQk1jWLrEGygOED13eQl4EB9Z7NLlxV5Nd7IuUDqxKSukq2hLcY01a8sWJjmkxdZ238hDttwFCJ5ho6trsiPpAEuAjDmG+Bp8w6o6Nq6jtWIYaGM+eGbs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NiEzuBhQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YPQxkR6F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CF5CC433F1;
-	Thu, 15 Feb 2024 19:42:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NiEzuBhQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BF3BC433F1;
+	Thu, 15 Feb 2024 19:42:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708026138;
-	bh=KDH3+W/irxzSg+KjHPbggVeTXZKkVZcUDaDK12HQnVU=;
+	s=korg; t=1708026140;
+	bh=ExU7ii/ykhj+q+r7TYf2rz/dUVF5KEC5DJkCWrW8QcI=;
 	h=Date:To:From:Subject:From;
-	b=YPQxkR6F9uC11D4LY584x/3NJhm5T/Kse/+OLiZkl/OcxoiuTfj3ENWPsMLb7WtgY
-	 MOc/qedBXx8MSWNspgg52SM29phhzNJledsirkFU10bu/fBcCVBVt7Q/tw1uy+QXoX
-	 RCDr/+SrdVg7kj6RMi49QHhLHSlDihKXsjNh8F+o=
-Date: Thu, 15 Feb 2024 11:42:17 -0800
+	b=NiEzuBhQJ6rJuRqo+jv8EGYLZHPpYjSQf+IikdwqXw5wFmuTIImAUXTyu3JAlCuoT
+	 nVRwz8KEISfVdOEGMh1oEHuLHEzu2j1BX/lobJq0FNLKcAkOad8YnVRd0GAGfFc5By
+	 lIyJkDWPAAPqtyIXYwq9eKykil8ZaGIoFg0bOShc=
+Date: Thu, 15 Feb 2024 11:42:20 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,svens@linux.ibm.com,ryan.roberts@arm.com,peterz@infradead.org,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,mpe@ellerman.id.au,mhocko@suse.com,hca@linux.ibm.com,gor@linux.ibm.com,fengwei.yin@intel.com,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,borntraeger@linux.ibm.com,arnd@arndb.de,aneesh.kumar@linux.ibm.com,agordeev@linux.ibm.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmu_gather-define-encoded_page_flag_delay_rmap.patch added to mm-unstable branch
-Message-Id: <20240215194218.4CF5CC433F1@smtp.kernel.org>
+Subject: + mm-mmu_gather-add-tlb_remove_tlb_entries.patch added to mm-unstable branch
+Message-Id: <20240215194220.8BF3BC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mmu_gather: define ENCODED_PAGE_FLAG_DELAY_RMAP
+     Subject: mm/mmu_gather: add tlb_remove_tlb_entries()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmu_gather-define-encoded_page_flag_delay_rmap.patch
+     mm-mmu_gather-add-tlb_remove_tlb_entries.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmu_gather-define-encoded_page_flag_delay_rmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmu_gather-add-tlb_remove_tlb_entries.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,22 +59,17 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/mmu_gather: define ENCODED_PAGE_FLAG_DELAY_RMAP
-Date: Wed, 14 Feb 2024 21:44:31 +0100
+Subject: mm/mmu_gather: add tlb_remove_tlb_entries()
+Date: Wed, 14 Feb 2024 21:44:32 +0100
 
-Nowadays, encoded pages are only used in mmu_gather handling.  Let's
-update the documentation, and define ENCODED_PAGE_BIT_DELAY_RMAP.  While
-at it, rename ENCODE_PAGE_BITS to ENCODED_PAGE_BITS.
+Let's add a helper that lets us batch-process multiple consecutive PTEs.
 
-If encoded page pointers would ever be used in other context again, we'd
-likely want to change the defines to reflect their context (e.g.,
-ENCODED_PAGE_FLAG_MMU_GATHER_DELAY_RMAP).  For now, let's keep it simple.
+Note that the loop will get optimized out on all architectures except on
+powerpc.  We have to add an early define of __tlb_remove_tlb_entry() on
+ppc to make the compiler happy (and avoid making tlb_remove_tlb_entries()
+a macro).
 
-This is a preparation for using the remaining spare bit to indicate that
-the next item in an array of encoded pages is a "nr_pages" argument and
-not an encoded page.
-
-Link: https://lkml.kernel.org/r/20240214204435.167852-7-david@redhat.com
+Link: https://lkml.kernel.org/r/20240214204435.167852-8-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -97,82 +92,50 @@ Cc: Yin Fengwei <fengwei.yin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |   17 +++++++++++------
- mm/mmu_gather.c          |    5 +++--
- 2 files changed, 14 insertions(+), 8 deletions(-)
+ arch/powerpc/include/asm/tlb.h |    2 ++
+ include/asm-generic/tlb.h      |   20 ++++++++++++++++++++
+ 2 files changed, 22 insertions(+)
 
---- a/include/linux/mm_types.h~mm-mmu_gather-define-encoded_page_flag_delay_rmap
-+++ a/include/linux/mm_types.h
-@@ -210,8 +210,8 @@ struct page {
-  *
-  * An 'encoded_page' pointer is a pointer to a regular 'struct page', but
-  * with the low bits of the pointer indicating extra context-dependent
-- * information. Not super-common, but happens in mmu_gather and mlock
-- * handling, and this acts as a type system check on that use.
-+ * information. Only used in mmu_gather handling, and this acts as a type
-+ * system check on that use.
-  *
-  * We only really have two guaranteed bits in general, although you could
-  * play with 'struct page' alignment (see CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
-@@ -220,21 +220,26 @@ struct page {
-  * Use the supplied helper functions to endcode/decode the pointer and bits.
-  */
- struct encoded_page;
--#define ENCODE_PAGE_BITS 3ul
+--- a/arch/powerpc/include/asm/tlb.h~mm-mmu_gather-add-tlb_remove_tlb_entries
++++ a/arch/powerpc/include/asm/tlb.h
+@@ -19,6 +19,8 @@
+ 
+ #include <linux/pagemap.h>
+ 
++static inline void __tlb_remove_tlb_entry(struct mmu_gather *tlb, pte_t *ptep,
++					  unsigned long address);
+ #define __tlb_remove_tlb_entry	__tlb_remove_tlb_entry
+ 
+ #define tlb_flush tlb_flush
+--- a/include/asm-generic/tlb.h~mm-mmu_gather-add-tlb_remove_tlb_entries
++++ a/include/asm-generic/tlb.h
+@@ -608,6 +608,26 @@ static inline void tlb_flush_p4d_range(s
+ 		__tlb_remove_tlb_entry(tlb, ptep, address);	\
+ 	} while (0)
+ 
++/**
++ * tlb_remove_tlb_entries - remember unmapping of multiple consecutive ptes for
++ *			    later tlb invalidation.
++ *
++ * Similar to tlb_remove_tlb_entry(), but remember unmapping of multiple
++ * consecutive ptes instead of only a single one.
++ */
++static inline void tlb_remove_tlb_entries(struct mmu_gather *tlb,
++		pte_t *ptep, unsigned int nr, unsigned long address)
++{
++	tlb_flush_pte_range(tlb, address, PAGE_SIZE * nr);
++	for (;;) {
++		__tlb_remove_tlb_entry(tlb, ptep, address);
++		if (--nr == 0)
++			break;
++		ptep++;
++		address += PAGE_SIZE;
++	}
++}
 +
-+#define ENCODED_PAGE_BITS			3ul
-+
-+/* Perform rmap removal after we have flushed the TLB. */
-+#define ENCODED_PAGE_BIT_DELAY_RMAP		1ul
-+
- static __always_inline struct encoded_page *encode_page(struct page *page, unsigned long flags)
- {
--	BUILD_BUG_ON(flags > ENCODE_PAGE_BITS);
-+	BUILD_BUG_ON(flags > ENCODED_PAGE_BITS);
- 	return (struct encoded_page *)(flags | (unsigned long)page);
- }
- 
- static inline unsigned long encoded_page_flags(struct encoded_page *page)
- {
--	return ENCODE_PAGE_BITS & (unsigned long)page;
-+	return ENCODED_PAGE_BITS & (unsigned long)page;
- }
- 
- static inline struct page *encoded_page_ptr(struct encoded_page *page)
- {
--	return (struct page *)(~ENCODE_PAGE_BITS & (unsigned long)page);
-+	return (struct page *)(~ENCODED_PAGE_BITS & (unsigned long)page);
- }
- 
- /*
---- a/mm/mmu_gather.c~mm-mmu_gather-define-encoded_page_flag_delay_rmap
-+++ a/mm/mmu_gather.c
-@@ -53,7 +53,7 @@ static void tlb_flush_rmap_batch(struct
- 	for (int i = 0; i < batch->nr; i++) {
- 		struct encoded_page *enc = batch->encoded_pages[i];
- 
--		if (encoded_page_flags(enc)) {
-+		if (encoded_page_flags(enc) & ENCODED_PAGE_BIT_DELAY_RMAP) {
- 			struct page *page = encoded_page_ptr(enc);
- 			folio_remove_rmap_pte(page_folio(page), page, vma);
- 		}
-@@ -119,6 +119,7 @@ static void tlb_batch_list_free(struct m
- bool __tlb_remove_page_size(struct mmu_gather *tlb, struct page *page,
- 		bool delay_rmap, int page_size)
- {
-+	int flags = delay_rmap ? ENCODED_PAGE_BIT_DELAY_RMAP : 0;
- 	struct mmu_gather_batch *batch;
- 
- 	VM_BUG_ON(!tlb->end);
-@@ -132,7 +133,7 @@ bool __tlb_remove_page_size(struct mmu_g
- 	 * Add the page and check if we are full. If so
- 	 * force a flush.
- 	 */
--	batch->encoded_pages[batch->nr++] = encode_page(page, delay_rmap);
-+	batch->encoded_pages[batch->nr++] = encode_page(page, flags);
- 	if (batch->nr == batch->max) {
- 		if (!tlb_next_batch(tlb))
- 			return true;
+ #define tlb_remove_huge_tlb_entry(h, tlb, ptep, address)	\
+ 	do {							\
+ 		unsigned long _sz = huge_page_size(h);		\
 _
 
 Patches currently in -mm which might be from david@redhat.com are
