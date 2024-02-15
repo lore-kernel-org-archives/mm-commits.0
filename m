@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38CF71384B8;
-	Thu, 15 Feb 2024 20:06:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 346641384B8;
+	Thu, 15 Feb 2024 20:06:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708027562; cv=none; b=czMyxcJJhxqmYtToW1lg4460QAuFrAa+7rvTH1fErbDC9RkS65uym6Ynl2o/pT4riQIWms7DTo5YT0xjh+j2R63T7giR7pCMZUkrkx2877QXFdj8R+P+DADSYJv4JGBS0MQammaEcxOnqjuKwos/3z9ZkOE0LatZHqAZp+b7ULk=
+	t=1708027564; cv=none; b=Ol7UYkPH3ixeGZ4YHLqlXzmHVklzrPekp0vKDlQPmw6tX5eB6e/JGiYOQZTaFoP+ZWhBdvFKVo+zdagO+oc3Eei3pkyDEZ3hYIe4MzZvXKjigC/1jfIidm4OSN3rqqjp/PeAnCZc4FKDX39jBiV9X1+MF1dk4Bs0b4no8j7rBZE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708027562; c=relaxed/simple;
-	bh=Hj7W//DiILMNThAcE2ipC6DYT1WYN3lYId8Wyo663GE=;
-	h=Date:To:From:Subject:Message-Id; b=QnFNNdAe/HOEInlFa4w5UfBZR/mLkP/5PUwYcYZF6+tccTd2FLdE08oBQ+cZIo9YS/Bhpyrhn3WTEz/QmzFWg6XGLdiG2mgVlJfweJgN/6a+lWaZsSuIKDhpEHGMyjbWCRpdLEVw6pAp64u5IUPJD1nWPpxFSpMDZALJUgohC7Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LEGB8U7u; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708027564; c=relaxed/simple;
+	bh=g+M2Fk8puhjh4FzYZNFB/LFOjpd7p3TYKEBWy0IBToQ=;
+	h=Date:To:From:Subject:Message-Id; b=QUDaoXTbLKeW9sLnQES7u6Qa9XJM9c8DR+sY56mwvQ4XNgg+F2cIvzZBiogCz1wlWJXLaGNI73Ws1wlDWC+SJyDGZw0Twe2CwEi8mDFqRS+NJTW/szF2KIBEVEsz95TqSjg3A2d5vyy1Sbn4EnSf6eBPkk0k8jH1f1SuLKQmaiw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PeUYxYol; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LEGB8U7u"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9524C433F1;
-	Thu, 15 Feb 2024 20:06:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PeUYxYol"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4C0DC433F1;
+	Thu, 15 Feb 2024 20:06:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708027561;
-	bh=Hj7W//DiILMNThAcE2ipC6DYT1WYN3lYId8Wyo663GE=;
+	s=korg; t=1708027563;
+	bh=g+M2Fk8puhjh4FzYZNFB/LFOjpd7p3TYKEBWy0IBToQ=;
 	h=Date:To:From:Subject:From;
-	b=LEGB8U7ulihUxDokbf7u6WbjU4ru++Q2qGbdNfnk3ls+cdFw7DfowsLJh3jtv3a5L
-	 SWexOVowmCNVfKYCphaGpJeG/fnx0fAWiK/YQsoak59rKVuEQFjRXmlOLxEeaCCZMr
-	 K34jotgdkrS4CVuK5doOentpJJ83isdETrIaUn38=
-Date: Thu, 15 Feb 2024 12:06:01 -0800
+	b=PeUYxYol4Ox8bmjRBpRjc/BfC2VZjmNAN9itAZ4tK1X6K2bHqDHzFLeceWUj4Eh2r
+	 r0fT59H75Tma6kb7cM/utFvGac5yb8qPuFsnOm6owJ0Ni/sBxptuyDojsegMlegE1W
+	 0L2IlddEUYsjRPHeifcsGDC0rHm5bEewday9krYk=
+Date: Thu, 15 Feb 2024 12:06:03 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.l.verma@intel.com,snitzer@kernel.org,mpatocka@redhat.com,lkp@intel.com,linux@armlinux.org.uk,hch@lst.de,hca@linux.ibm.com,dm-devel@lists.linux.dev,david@fromorbit.com,dave.jiang@intel.com,dan.j.williams@intel.com,arnd@arndb.de,agk@redhat.com,mathieu.desnoyers@efficios.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + dax-add-empty-static-inline-for-config_dax=n.patch added to mm-unstable branch
-Message-Id: <20240215200601.A9524C433F1@smtp.kernel.org>
+Subject: + dax-alloc_dax-return-err_ptr-eopnotsupp-for-config_dax=n.patch added to mm-unstable branch
+Message-Id: <20240215200603.A4C0DC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: dax: add empty static inline for CONFIG_DAX=n
+     Subject: dax: alloc_dax() return ERR_PTR(-EOPNOTSUPP) for CONFIG_DAX=n
 has been added to the -mm mm-unstable branch.  Its filename is
-     dax-add-empty-static-inline-for-config_dax=n.patch
+     dax-alloc_dax-return-err_ptr-eopnotsupp-for-config_dax=n.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dax-add-empty-static-inline-for-config_dax=n.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dax-alloc_dax-return-err_ptr-eopnotsupp-for-config_dax=n.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,112 +59,71 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Subject: dax: add empty static inline for CONFIG_DAX=n
-Date: Thu, 15 Feb 2024 09:46:25 -0500
+Subject: dax: alloc_dax() return ERR_PTR(-EOPNOTSUPP) for CONFIG_DAX=n
+Date: Thu, 15 Feb 2024 09:46:26 -0500
 
-Patch series "Introduce cpu_dcache_is_aliasing() to fix DAX regression",
-v6.
+Change the return value from NULL to PTR_ERR(-EOPNOTSUPP) for
+CONFIG_DAX=n to be consistent with the fact that CONFIG_DAX=y
+never returns NULL.
 
-This commit introduced in v4.0 prevents building FS_DAX on 32-bit ARM,
-even on ARMv7 which does not have virtually aliased data caches:
+This is done in preparation for using cpu_dcache_is_aliasing() in a
+following change which will properly support architectures which detect
+data cache aliasing at runtime.
 
-commit d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
-
-Even though it used to work fine before.
-
-The root of the issue here is the fact that DAX was never designed to
-handle virtually aliasing data caches (VIVT and VIPT with aliasing data
-cache). It touches the pages through their linear mapping, which is not
-consistent with the userspace mappings with virtually aliasing data
-caches.
-
-This patch series introduces cpu_dcache_is_aliasing() with the new
-Kconfig option ARCH_HAS_CPU_CACHE_ALIASING and implements it for all
-architectures. The implementation of cpu_dcache_is_aliasing() is either
-evaluated to a constant at compile-time or a runtime check, which is
-what is needed on ARM.
-
-With this we can basically narrow down the list of architectures which
-are unsupported by DAX to those which are really affected.
-
-
-This patch (of 9):
-
-When building a kernel with CONFIG_DAX=n, all uses of set_dax_nocache()
-and set_dax_nomc() need to be either within regions of code or compile
-units which are explicitly not compiled, or they need to rely on compiler
-optimizations to eliminate calls to those undefined symbols.
-
-It appears that at least the openrisc and loongarch architectures don't
-end up eliminating those undefined symbols even if they are provably
-within code which is eliminated due to conditional branches depending on
-constants.
-
-Implement empty static inline functions for set_dax_nocache() and
-set_dax_nomc() in CONFIG_DAX=n to ensure those undefined references are
-removed.
-
-Link: https://lkml.kernel.org/r/20240215144633.96437-1-mathieu.desnoyers@efficios.com
-Link: https://lkml.kernel.org/r/20240215144633.96437-2-mathieu.desnoyers@efficios.com
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202402140037.wGfA1kqX-lkp@intel.com/
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202402131351.a0FZOgEG-lkp@intel.com/
-Fixes: 7ac5360cd4d0 ("dax: remove the copy_from_iter and copy_to_iter methods")
+Link: https://lkml.kernel.org/r/20240215144633.96437-3-mathieu.desnoyers@efficios.com
+Fixes: 4e4ced93794a ("dax: Move mandatory ->zero_page_range() check in alloc_dax()")
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Vishal Verma <vishal.l.verma@intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Russell King <linux@armlinux.org.uk>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Michael Sclafani <dm-devel@lists.linux.dev>
 Cc: Alasdair Kergon <agk@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Chinner <david@fromorbit.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: kernel test robot <lkp@intel.com>
+Cc: Michael Sclafani <dm-devel@lists.linux.dev>
 Cc: Mike Snitzer <snitzer@kernel.org>
 Cc: Mikulas Patocka <mpatocka@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dax.h |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ drivers/dax/super.c |    5 +++++
+ include/linux/dax.h |    6 +-----
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
---- a/include/linux/dax.h~dax-add-empty-static-inline-for-config_dax=n
+--- a/drivers/dax/super.c~dax-alloc_dax-return-err_ptr-eopnotsupp-for-config_dax=n
++++ a/drivers/dax/super.c
+@@ -319,6 +319,11 @@ EXPORT_SYMBOL_GPL(dax_alive);
+  * that any fault handlers or operations that might have seen
+  * dax_alive(), have completed.  Any operations that start after
+  * synchronize_srcu() has run will abort upon seeing !dax_alive().
++ *
++ * Note, because alloc_dax() returns an ERR_PTR() on error, callers
++ * typically store its result into a local variable in order to check
++ * the result. Therefore, care must be taken to populate the struct
++ * device dax_dev field make sure the dax_dev is not leaked.
+  */
+ void kill_dax(struct dax_device *dax_dev)
+ {
+--- a/include/linux/dax.h~dax-alloc_dax-return-err_ptr-eopnotsupp-for-config_dax=n
 +++ a/include/linux/dax.h
-@@ -63,6 +63,8 @@ void kill_dax(struct dax_device *dax_dev
- void dax_write_cache(struct dax_device *dax_dev, bool wc);
- bool dax_write_cache_enabled(struct dax_device *dax_dev);
- bool dax_synchronous(struct dax_device *dax_dev);
-+void set_dax_nocache(struct dax_device *dax_dev);
-+void set_dax_nomc(struct dax_device *dax_dev);
- void set_dax_synchronous(struct dax_device *dax_dev);
- size_t dax_recovery_write(struct dax_device *dax_dev, pgoff_t pgoff,
- 		void *addr, size_t bytes, struct iov_iter *i);
-@@ -109,6 +111,12 @@ static inline bool dax_synchronous(struc
+@@ -88,11 +88,7 @@ static inline void *dax_holder(struct da
+ static inline struct dax_device *alloc_dax(void *private,
+ 		const struct dax_operations *ops)
  {
- 	return true;
+-	/*
+-	 * Callers should check IS_ENABLED(CONFIG_DAX) to know if this
+-	 * NULL is an error or expected.
+-	 */
+-	return NULL;
++	return ERR_PTR(-EOPNOTSUPP);
  }
-+static inline void set_dax_nocache(struct dax_device *dax_dev)
-+{
-+}
-+static inline void set_dax_nomc(struct dax_device *dax_dev)
-+{
-+}
- static inline void set_dax_synchronous(struct dax_device *dax_dev)
+ static inline void put_dax(struct dax_device *dax_dev)
  {
- }
-@@ -124,9 +132,6 @@ static inline size_t dax_recovery_write(
- }
- #endif
- 
--void set_dax_nocache(struct dax_device *dax_dev);
--void set_dax_nomc(struct dax_device *dax_dev);
--
- struct writeback_control;
- #if defined(CONFIG_BLOCK) && defined(CONFIG_FS_DAX)
- int dax_add_host(struct dax_device *dax_dev, struct gendisk *disk);
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@efficios.com are
