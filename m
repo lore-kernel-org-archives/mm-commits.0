@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92FA713A252
-	for <mm-commits@vger.kernel.org>; Thu, 15 Feb 2024 19:42:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7FEA13A274
+	for <mm-commits@vger.kernel.org>; Thu, 15 Feb 2024 19:42:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708026158; cv=none; b=j/VVT2K4YaI5x4+qnj0jrTASIvPx+kIcS4MEJSM+hzw2yRjnwKykE2QS1OLuLg2RqVEPtkY/KycfySYcx51ryF4fwnTW7FP3RBlZmad1UZwbpTh79QXtCQCSOyPOMCOck+Pt+e7zcKkS+lAt2KexFjy0k1QX2ISre+x6x0tAw+I=
+	t=1708026160; cv=none; b=geclhTpcgHzWyKO5xVxC6YDuxfgG6LUOiHk6R0HSsFKvFSPfixUO7iE2/u2XZAc1KrS0wY8jcVc4pBPsSM340CXKgu6LtH6q8PyniIBebv8CjVifts+BGC9xWQyTL3lIHWzbwhwStTtHsq6P5wMn5JK0ylCJMMIi/I/k0E4cbvs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708026158; c=relaxed/simple;
-	bh=XSkXNobpKZm7GhDnb80/LBZLiCHzUdtWUXVWcLZ2k4Q=;
-	h=Date:To:From:Subject:Message-Id; b=cL2bhEHNEle3JGJuSs3RYme2YyStJeBlPPchXDPfgZAJkpqa/u/4HA8fQXD1c3tqhmtXLb/HlDqcYTGeST3LSiBHLtU8OMX/zTFqlU2Kt5pCRt1O4eIqVBUwfPsAnpgWQg/eiMvU7+NWPBlJUMivT6vPM5a63itXd34xCdr2xMs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gUpgnFPU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708026160; c=relaxed/simple;
+	bh=2HSlYTsMigwgDfjMvoAtDohnWY4F4DxEBDesE9mo/+w=;
+	h=Date:To:From:Subject:Message-Id; b=WdFeqxZfQyusiLcUF3/ZoFF3tbCBATt4EslgiMDeybjhxC54fgxQb0H7/2RyzZAbbpOuSp4LiarfQXW3v0vE6gy9oiGpwcmYY6mj20ehrpHOBP9hCZucZ7ErKi+lUArSl7u5bFV+xkQtCrw5xkFVsTLDaZ5USd+bTTERpvMbX0E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gb8snl45; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gUpgnFPU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59855C433F1;
-	Thu, 15 Feb 2024 19:42:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gb8snl45"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BB25C43394;
+	Thu, 15 Feb 2024 19:42:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708026158;
-	bh=XSkXNobpKZm7GhDnb80/LBZLiCHzUdtWUXVWcLZ2k4Q=;
+	s=korg; t=1708026160;
+	bh=2HSlYTsMigwgDfjMvoAtDohnWY4F4DxEBDesE9mo/+w=;
 	h=Date:To:From:Subject:From;
-	b=gUpgnFPUnje4aYZpZDGTSUjcZ22ZMKccurloKdI/139QsrHlkAuDfj2BYV/Md94PA
-	 6XUodYPp8NQ4qGtpWGNw5JQiuLlywcFkn2W0hEscsf6h2gxhYDu0cT2rkKBHvyX/1D
-	 GX+jtFhEOFS2uoZqdOaEYsPYVdv5+ykaXKehfWds=
-Date: Thu, 15 Feb 2024 11:42:37 -0800
+	b=gb8snl45uIcZXMV8ULFMrniqGexKFkl4ZBB8pPhbcCH0tioah1naCp9+uBhT65/m6
+	 TU+1lwj2BTA8//2ufUIeOxdmaTkVTTLQbH5ydnvxYtLbvhFgUiqGlQVLiyrBgy/1p5
+	 u6t3U2ynJjGGMcWSF0Lt7fj2F0FrCTPV7dNskdLY=
+Date: Thu, 15 Feb 2024 11:42:39 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,tglx@linutronix.de,shy828301@gmail.com,ryabinin.a.a@gmail.com,mingo@redhat.com,maz@kernel.org,mark.rutland@arm.com,jhubbard@nvidia.com,james.morse@arm.com,hpa@zytor.com,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,ardb@kernel.org,apopple@nvidia.com,21cnbao@gmail.com,ryan.roberts@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-mm-convert-pte_next_pfn-to-pte_advance_pfn.patch added to mm-unstable branch
-Message-Id: <20240215194238.59855C433F1@smtp.kernel.org>
+Subject: + x86-mm-convert-pte_next_pfn-to-pte_advance_pfn.patch added to mm-unstable branch
+Message-Id: <20240215194240.5BB25C43394@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64/mm: convert pte_next_pfn() to pte_advance_pfn()
+     Subject: x86/mm: convert pte_next_pfn() to pte_advance_pfn()
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-mm-convert-pte_next_pfn-to-pte_advance_pfn.patch
+     x86-mm-convert-pte_next_pfn-to-pte_advance_pfn.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-convert-pte_next_pfn-to-pte_advance_pfn.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-mm-convert-pte_next_pfn-to-pte_advance_pfn.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,22 +59,21 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: arm64/mm: convert pte_next_pfn() to pte_advance_pfn()
-Date: Thu, 15 Feb 2024 10:31:51 +0000
+Subject: x86/mm: convert pte_next_pfn() to pte_advance_pfn()
+Date: Thu, 15 Feb 2024 10:31:52 +0000
 
 Core-mm needs to be able to advance the pfn by an arbitrary amount, so
 override the new pte_advance_pfn() API to do so.
 
-Link: https://lkml.kernel.org/r/20240215103205.2607016-5-ryan.roberts@arm.com
+Link: https://lkml.kernel.org/r/20240215103205.2607016-6-ryan.roberts@arm.com
 Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Mark Rutland <mark.rutland@arm.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Ard Biesheuvel <ardb@kernel.org>
 Cc: Barry Song <21cnbao@gmail.com>
 Cc: Borislav Petkov (AMD) <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
@@ -82,6 +81,7 @@ Cc: James Morse <james.morse@arm.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Marc Zyngier <maz@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Will Deacon <will@kernel.org>
@@ -90,34 +90,29 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |    8 ++++----
+ arch/x86/include/asm/pgtable.h |    8 ++++----
  1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~arm64-mm-convert-pte_next_pfn-to-pte_advance_pfn
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -351,10 +351,10 @@ static inline pgprot_t pte_pgprot(pte_t
- 	return __pgprot(pte_val(pfn_pte(pfn, __pgprot(0))) ^ pte_val(pte));
+--- a/arch/x86/include/asm/pgtable.h~x86-mm-convert-pte_next_pfn-to-pte_advance_pfn
++++ a/arch/x86/include/asm/pgtable.h
+@@ -955,13 +955,13 @@ static inline int pte_same(pte_t a, pte_
+ 	return a.pte == b.pte;
  }
  
--#define pte_next_pfn pte_next_pfn
 -static inline pte_t pte_next_pfn(pte_t pte)
-+#define pte_advance_pfn pte_advance_pfn
 +static inline pte_t pte_advance_pfn(pte_t pte, unsigned long nr)
  {
--	return pfn_pte(pte_pfn(pte) + 1, pte_pgprot(pte));
-+	return pfn_pte(pte_pfn(pte) + nr, pte_pgprot(pte));
+ 	if (__pte_needs_invert(pte_val(pte)))
+-		return __pte(pte_val(pte) - (1UL << PFN_PTE_SHIFT));
+-	return __pte(pte_val(pte) + (1UL << PFN_PTE_SHIFT));
++		return __pte(pte_val(pte) - (nr << PFN_PTE_SHIFT));
++	return __pte(pte_val(pte) + (nr << PFN_PTE_SHIFT));
  }
+-#define pte_next_pfn	pte_next_pfn
++#define pte_advance_pfn	pte_advance_pfn
  
- static inline void set_ptes(struct mm_struct *mm,
-@@ -370,7 +370,7 @@ static inline void set_ptes(struct mm_st
- 		if (--nr == 0)
- 			break;
- 		ptep++;
--		pte = pte_next_pfn(pte);
-+		pte = pte_advance_pfn(pte, 1);
- 	}
- }
- #define set_ptes set_ptes
+ static inline int pte_present(pte_t a)
+ {
 _
 
 Patches currently in -mm which might be from ryan.roberts@arm.com are
