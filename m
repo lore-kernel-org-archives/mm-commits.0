@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9CBA14534A
-	for <mm-commits@vger.kernel.org>; Thu, 15 Feb 2024 23:34:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 086BF13B289
+	for <mm-commits@vger.kernel.org>; Thu, 15 Feb 2024 23:34:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708040053; cv=none; b=AnBvjX5RH2URY5vze59Wm3Yi6jUZni4f5ZdoL2j274usF9wDMmV1AXamxY9dQQiyh/kFmGGEPCKbr/YcHsnaIDLunGqyIF0gb0zSw5r8KyAMIHWuWculgZvb0XS6fiadnyXq0mUG6EaPnt33XrTZIr+XdCWSJODnLqiAnEIXeZo=
+	t=1708040055; cv=none; b=tdiF6FWN1+bv0p1ERFQl23tknL7wrFFEmjbtdIXQuxsn0Q005zZFXSo4JN59FiXiiq/uNt/BtsUAdgPd1F5RrOZVxO14ulYzSADAlwh6F1y+RFX4kIDv/ZfvTp3njK8SF28FZNeElcopldvvj6T8nCcg7HTJL1eL/If9RlFdX/U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708040053; c=relaxed/simple;
-	bh=pMgLISdaKF2UvRtcwdlGJTTSMLj8Gui1tdENmg8XEFo=;
-	h=Date:To:From:Subject:Message-Id; b=Uy2cE6Vg7+VKt56T0uaN3MyNN5TbvB5chHmpFx0/4fW1R99d9XWnoP4foEPyCXtkHPq7fXVRM0WgEQpcbneLoVTFJVqFWn3P1tWX6Kd7iEYcdBNGil5lMwP5W5LNrQ/ETcBO2xdTwh9TsAJCchBqYHMIw7wBEJjRoAzzWZwu4qU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lM69e7d0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708040055; c=relaxed/simple;
+	bh=fjKmATCMM6vETqzQL0CUk+6Cm5Qc3HmbZZt80XvdOEE=;
+	h=Date:To:From:Subject:Message-Id; b=ZBibiAuB8sVuJUZWKQAYzOD4R/I1G9ucgvL0Fxk9S72+Srd05SJIjUjxdgMxPhbyHXpZY8aT8cqG4AdWlH9wpCsEzACMtnHy/LzIMgM8JdXeb1UMP2NXT2i/mrG5uqqH8ntwqrJr/426vAakfLtlp1k3KB744WUjos0tlEM/yMA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D6mTlpOy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lM69e7d0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 793A0C433C7;
-	Thu, 15 Feb 2024 23:34:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D6mTlpOy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBFABC433F1;
+	Thu, 15 Feb 2024 23:34:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708040053;
-	bh=pMgLISdaKF2UvRtcwdlGJTTSMLj8Gui1tdENmg8XEFo=;
+	s=korg; t=1708040054;
+	bh=fjKmATCMM6vETqzQL0CUk+6Cm5Qc3HmbZZt80XvdOEE=;
 	h=Date:To:From:Subject:From;
-	b=lM69e7d0MQuSTf45dqgZmfhErkzPNCse0dsa6lnT9sOaVvKyPMshxzwQyxe4I89x6
-	 g8qVXQF87L+wHZzVRA6NzNoA9CbyGvGKHq0KAjHErWpC6VVVecFFaGbi1itlJY9T4j
-	 9FL3J6YrwNQKUyTl5MTK5kruI3xslUiS/cqsCV5k=
-Date: Thu, 15 Feb 2024 15:34:12 -0800
+	b=D6mTlpOyDCK5qff3zTfH5VGZ3+vTrDWgWHVF45imzNsNa7GL9btYwALsNb4/L6Oce
+	 +lr98zddkxtCIa9ZCtC64nWosv7SKbd5RY40uuxzsbyd/AKHQ0zTQsJ0aLdZZYUeN8
+	 qOgrw0HjqRc0qmvi0Hs6UP5zADUJceqw/gkcvBbE=
+Date: Thu, 15 Feb 2024 15:34:14 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,mhocko@suse.com,glider@google.com,elver@google.com,andreyknvl@gmail.com,osalvador@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mmpage_owner-display-all-stacks-and-their-count.patch added to mm-unstable branch
-Message-Id: <20240215233413.793A0C433C7@smtp.kernel.org>
+Subject: + mmpage_owner-filter-out-stacks-by-a-threshold.patch added to mm-unstable branch
+Message-Id: <20240215233414.BBFABC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm,page_owner: display all stacks and their count
+     Subject: mm,page_owner: filter out stacks by a threshold
 has been added to the -mm mm-unstable branch.  Its filename is
-     mmpage_owner-display-all-stacks-and-their-count.patch
+     mmpage_owner-filter-out-stacks-by-a-threshold.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmpage_owner-display-all-stacks-and-their-count.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mmpage_owner-filter-out-stacks-by-a-threshold.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,165 +59,76 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Oscar Salvador <osalvador@suse.de>
-Subject: mm,page_owner: display all stacks and their count
-Date: Thu, 15 Feb 2024 22:59:05 +0100
+Subject: mm,page_owner: filter out stacks by a threshold
+Date: Thu, 15 Feb 2024 22:59:06 +0100
 
-This patch adds a new directory called 'page_owner_stacks' under
-/sys/kernel/debug/, with a file called 'show_stacks' in it.  Reading from
-that file will show all stacks that were added by page_owner followed by
-their counting, giving us a clear overview of stack <-> count
-relationship.
+We want to be able to filter out the stacks based on a threshold we can
+can tune.  By writing to 'count_threshold' file, we can adjust the
+threshold value.
 
-E.g:
-
-  prep_new_page+0xa9/0x120
-  get_page_from_freelist+0x801/0x2210
-  __alloc_pages+0x18b/0x350
-  alloc_pages_mpol+0x91/0x1f0
-  folio_alloc+0x14/0x50
-  filemap_alloc_folio+0xb2/0x100
-  __filemap_get_folio+0x14a/0x490
-  ext4_write_begin+0xbd/0x4b0 [ext4]
-  generic_perform_write+0xc1/0x1e0
-  ext4_buffered_write_iter+0x68/0xe0 [ext4]
-  ext4_file_write_iter+0x70/0x740 [ext4]
-  vfs_write+0x33d/0x420
-  ksys_write+0xa5/0xe0
-  do_syscall_64+0x80/0x160
-  entry_SYSCALL_64_after_hwframe+0x6e/0x76
- stack_count: 4578
-
-The seq stack_{start,next} functions will iterate through the list
-stack_list in order to print all stacks.
-
-Link: https://lkml.kernel.org/r/20240215215907.20121-6-osalvador@suse.de
+Link: https://lkml.kernel.org/r/20240215215907.20121-7-osalvador@suse.de
 Signed-off-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Marco Elver <elver@google.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Marco Elver <elver@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   93 +++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 92 insertions(+), 1 deletion(-)
+ mm/page_owner.c |   23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
---- a/mm/page_owner.c~mmpage_owner-display-all-stacks-and-their-count
+--- a/mm/page_owner.c~mmpage_owner-filter-out-stacks-by-a-threshold
 +++ a/mm/page_owner.c
-@@ -171,7 +171,13 @@ static void add_stack_record_to_list(str
- 
- 	spin_lock_irqsave(&stack_list_lock, flags);
- 	stack->next = stack_list;
--	stack_list = stack;
-+	/*
-+	 * This pairs with smp_load_acquire() from function
-+	 * stack_start(). This guarantees that stack_start()
-+	 * will see an updated stack_list before starting to
-+	 * traverse the list.
-+	 */
-+	smp_store_release(&stack_list, stack);
- 	spin_unlock_irqrestore(&stack_list_lock, flags);
+@@ -846,6 +846,8 @@ static void *stack_next(struct seq_file
+ 	return stack;
  }
  
-@@ -805,8 +811,90 @@ static const struct file_operations proc
- 	.llseek		= lseek_page_owner,
++static unsigned long page_owner_stack_threshold;
++
+ static int stack_print(struct seq_file *m, void *v)
+ {
+ 	int i, stack_count;
+@@ -858,7 +860,8 @@ static int stack_print(struct seq_file *
+ 	entries = stack_record->entries;
+ 	stack_count = refcount_read(&stack_record->count) - 1;
+ 
+-	if (!nr_entries || nr_entries < 0 || stack_count < 1)
++	if (!nr_entries || nr_entries < 0 || stack_count < 1 ||
++	    stack_count < page_owner_stack_threshold)
+ 		return 0;
+ 
+ 	for (i = 0; i < nr_entries; i++)
+@@ -891,6 +894,22 @@ static const struct file_operations page
+ 	.release	= seq_release,
  };
  
-+static void *stack_start(struct seq_file *m, loff_t *ppos)
++static int page_owner_threshold_get(void *data, u64 *val)
 +{
-+	struct stack *stack;
-+
-+	if (*ppos == -1UL)
-+		return NULL;
-+
-+	if (!*ppos) {
-+		/*
-+		 * This pairs with smp_store_release() from function
-+		 * add_stack_record_to_list(), so we get a consistent
-+		 * value of stack_list.
-+		 */
-+		stack = smp_load_acquire(&stack_list);
-+	} else {
-+		stack = m->private;
-+		stack = stack->next;
-+	}
-+
-+	m->private = stack;
-+
-+	return stack;
-+}
-+
-+static void *stack_next(struct seq_file *m, void *v, loff_t *ppos)
-+{
-+	struct stack *stack = v;
-+
-+	stack = stack->next;
-+	*ppos = stack ? *ppos + 1 : -1UL;
-+	m->private = stack;
-+
-+	return stack;
-+}
-+
-+static int stack_print(struct seq_file *m, void *v)
-+{
-+	int i, stack_count;
-+	struct stack *stack = v;
-+	unsigned long *entries;
-+	unsigned long nr_entries;
-+	struct stack_record *stack_record = stack->stack_record;
-+
-+	nr_entries = stack_record->size;
-+	entries = stack_record->entries;
-+	stack_count = refcount_read(&stack_record->count) - 1;
-+
-+	if (!nr_entries || nr_entries < 0 || stack_count < 1)
-+		return 0;
-+
-+	for (i = 0; i < nr_entries; i++)
-+		seq_printf(m, " %pS\n", (void *)entries[i]);
-+	seq_printf(m, "stack_count: %d\n\n", stack_count);
-+
++	*val = READ_ONCE(page_owner_stack_threshold);
 +	return 0;
 +}
 +
-+static void stack_stop(struct seq_file *m, void *v)
++static int page_owner_threshold_set(void *data, u64 val)
 +{
++	WRITE_ONCE(page_owner_stack_threshold, val);
++	return 0;
 +}
 +
-+static const struct seq_operations page_owner_stack_op = {
-+	.start	= stack_start,
-+	.next	= stack_next,
-+	.stop	= stack_stop,
-+	.show	= stack_print
-+};
++DEFINE_SIMPLE_ATTRIBUTE(proc_page_owner_threshold, &page_owner_threshold_get,
++			&page_owner_threshold_set, "%llu");
 +
-+static int page_owner_stack_open(struct inode *inode, struct file *file)
-+{
-+	return seq_open_private(file, &page_owner_stack_op, 0);
-+}
-+
-+static const struct file_operations page_owner_stack_operations = {
-+	.open		= page_owner_stack_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= seq_release,
-+};
 +
  static int __init pageowner_init(void)
  {
-+	struct dentry *dir;
-+
- 	if (!static_branch_unlikely(&page_owner_inited)) {
- 		pr_info("page_owner is disabled\n");
- 		return 0;
-@@ -814,6 +902,9 @@ static int __init pageowner_init(void)
- 
- 	debugfs_create_file("page_owner", 0400, NULL, NULL,
- 			    &proc_page_owner_operations);
-+	dir = debugfs_create_dir("page_owner_stacks", NULL);
-+	debugfs_create_file("show_stacks", 0400, dir, NULL,
-+			    &page_owner_stack_operations);
+ 	struct dentry *dir;
+@@ -905,6 +924,8 @@ static int __init pageowner_init(void)
+ 	dir = debugfs_create_dir("page_owner_stacks", NULL);
+ 	debugfs_create_file("show_stacks", 0400, dir, NULL,
+ 			    &page_owner_stack_operations);
++	debugfs_create_file("count_threshold", 0600, dir, NULL,
++			    &proc_page_owner_threshold);
  
  	return 0;
  }
