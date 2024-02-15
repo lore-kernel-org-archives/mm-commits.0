@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61F8F133993
-	for <mm-commits@vger.kernel.org>; Thu, 15 Feb 2024 19:43:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 371742CCA0
+	for <mm-commits@vger.kernel.org>; Thu, 15 Feb 2024 19:54:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708026198; cv=none; b=T83ukGnnS5u6Ph96VmcMdaIriXAWXipLQLdNkS7pejcQpW6s7frmtsD1+wsquaXYOU6ByJ3F8L070xSvs+5C8ZRQh80j8UZtBIbvIc2n01dMfQpkwacGBYMr40oT1bCHSBA1bAQhKZLDyKt6fHJy0400M7S75gywzgQpnRgWlZ8=
+	t=1708026850; cv=none; b=NrePLojW+BhN/rKPdD/TFMZ9vSzC9MP2f+z2WhChUNhz/izdiCqitp84QwJ6rBBo2FpJBjhODFyk0OqMr6UZQR85uSTnJZRByRSvpZE1HFdXwf3BT9sSCbl+p9omlT73Wfp/QhkJL81TvG/gJ6/nSsjQW5BVSCFqjxnpjdr6JAg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708026198; c=relaxed/simple;
-	bh=F6MQVuTzhbdhb+63QqBZ3YDCd22G4naK9jnSYAIoHNI=;
-	h=Date:To:From:Subject:Message-Id; b=GFBhe5L1gjqLZWIMGbPRDdkwSOB1ucvTzmnobMp0DrcIgmwsBkDczYkPlU0GSamSw/BKbzPoZPy6/isF8V36Wk8q+IPK8/rJL28hQ3RFHmZZ2uN+eT4ro6AhQN+ONWHM9pXBiUOX0dAgLT29YbBAM6TPzDAyVLBdSmNlgz1cU1Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ndFIHg5T; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708026850; c=relaxed/simple;
+	bh=9xhRbHUryCjOdOFXpl1xnaYgI8y+bzX2iuRO+b+9Vqc=;
+	h=Date:To:From:Subject:Message-Id; b=ArLPo1CiIWdU/PQIoXWhXnUsE6kcK0DRRZmh0PLeW6YGwxg/kpU1yC/etgwroPeP8HpEKoLgxutiWTtNbzeK90oZOYqRn6VSk4P2rg0sF2LDh58zsX88B2RIWgNATeed3aeSbGCYV4GrQeUvd9JsuTsiDOP423tYGI3dFt+32Fo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rJqwstSi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ndFIHg5T"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A516C433F1;
-	Thu, 15 Feb 2024 19:43:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rJqwstSi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB229C433F1;
+	Thu, 15 Feb 2024 19:54:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708026198;
-	bh=F6MQVuTzhbdhb+63QqBZ3YDCd22G4naK9jnSYAIoHNI=;
+	s=korg; t=1708026849;
+	bh=9xhRbHUryCjOdOFXpl1xnaYgI8y+bzX2iuRO+b+9Vqc=;
 	h=Date:To:From:Subject:From;
-	b=ndFIHg5TS9dX6WkDzJ0DLh/QamzQrrbR/99bNg1Hk5hDS4Lh44z+J+Xeurmt+lfFW
-	 RrYFgkZrDOBO/Uypqe14WGueW9LuvfmZLuEuKGGsvPaYJn3Cwt7AkxFkAMdOSIfIuI
-	 9KPyKB8HMxQaWH83u6kEM1nz4V1JSA3kNEOgaJW0=
-Date: Thu, 15 Feb 2024 11:43:17 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,tglx@linutronix.de,shy828301@gmail.com,ryabinin.a.a@gmail.com,mingo@redhat.com,maz@kernel.org,mark.rutland@arm.com,jhubbard@nvidia.com,james.morse@arm.com,hpa@zytor.com,david@redhat.com,dave.hansen@linux.intel.com,catalin.marinas@arm.com,bp@alien8.de,ardb@kernel.org,apopple@nvidia.com,21cnbao@gmail.com,ryan.roberts@arm.com,akpm@linux-foundation.org
+	b=rJqwstSiCu5mdNb+V46wFXseEht8HYjNP2Fwn/UIvkmyqTwllFGL0nDFpgjePc21e
+	 2G7mDHA6L5+o9CYnwh+4Dk4u7VNelWhfQ4Jt8sh/Sf15EIidn2F6fSORoDixtZvac8
+	 yLy8sX+PdCiBxmIjpq7aK6udz1w0/erifZgztMTc=
+Date: Thu, 15 Feb 2024 11:54:09 -0800
+To: mm-commits@vger.kernel.org,pmladek@suse.com,liusong@linux.alibaba.com,kernelfans@gmail.com,dianders@chromium.org,yaoma@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-mm-automatically-fold-contpte-mappings.patch added to mm-unstable branch
-Message-Id: <20240215194318.2A516C433F1@smtp.kernel.org>
+Subject: [to-be-updated] watchdog-softlockup-low-overhead-detection-of-interrupt.patch removed from -mm tree
+Message-Id: <20240215195409.DB229C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,219 +34,247 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: arm64/mm: automatically fold contpte mappings
-has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-mm-automatically-fold-contpte-mappings.patch
+The quilt patch titled
+     Subject: watchdog/softlockup: low-overhead detection of interrupt
+has been removed from the -mm tree.  Its filename was
+     watchdog-softlockup-low-overhead-detection-of-interrupt.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-automatically-fold-contpte-mappings.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Ryan Roberts <ryan.roberts@arm.com>
-Subject: arm64/mm: automatically fold contpte mappings
-Date: Thu, 15 Feb 2024 10:32:05 +0000
+From: Bitao Hu <yaoma@linux.alibaba.com>
+Subject: watchdog/softlockup: low-overhead detection of interrupt
+Date: Wed, 14 Feb 2024 10:14:29 +0800
 
-There are situations where a change to a single PTE could cause the
-contpte block in which it resides to become foldable (i.e.  could be
-repainted with the contiguous bit).  Such situations arise, for example,
-when user space temporarily changes protections, via mprotect, for
-individual pages, such can be the case for certain garbage collectors.
+Patch series "*** Detect interrupt storm in softlockup ***", v7.
 
-We would like to detect when such a PTE change occurs.  However this can
-be expensive due to the amount of checking required.  Therefore only
-perform the checks when an indiviual PTE is modified via mprotect
-(ptep_modify_prot_commit() -> set_pte_at() -> set_ptes(nr=1)) and only
-when we are setting the final PTE in a contpte-aligned block.
+A low-overhead method for detecting interrupt storm in softlockup.
 
-Link: https://lkml.kernel.org/r/20240215103205.2607016-19-ryan.roberts@arm.com
-Signed-off-by: Ryan Roberts <ryan.roberts@arm.com>
-Acked-by: Mark Rutland <mark.rutland@arm.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: Borislav Petkov (AMD) <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: James Morse <james.morse@arm.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Marc Zyngier <maz@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+
+This patch (of 2):
+
+The following softlockup is caused by interrupt storm, but it cannot be
+identified from the call tree.  Because the call tree is just a snapshot
+and doesn't fully capture the behavior of the CPU during the soft lockup.
+  watchdog: BUG: soft lockup - CPU#28 stuck for 23s! [fio:83921]
+  ...
+  Call trace:
+    __do_softirq+0xa0/0x37c
+    __irq_exit_rcu+0x108/0x140
+    irq_exit+0x14/0x20
+    __handle_domain_irq+0x84/0xe0
+    gic_handle_irq+0x80/0x108
+    el0_irq_naked+0x50/0x58
+
+Therefore，I think it is necessary to report CPU utilization during the
+softlockup_thresh period (report once every sample_period, for a total of
+5 reportings), like this:
+  watchdog: BUG: soft lockup - CPU#28 stuck for 23s! [fio:83921]
+  CPU#28 Utilization every 4s during lockup:
+    #1: 0% system, 0% softirq, 100% hardirq, 0% idle
+    #2: 0% system, 0% softirq, 100% hardirq, 0% idle
+    #3: 0% system, 0% softirq, 100% hardirq, 0% idle
+    #4: 0% system, 0% softirq, 100% hardirq, 0% idle
+    #5: 0% system, 0% softirq, 100% hardirq, 0% idle
+  ...
+
+This would be helpful in determining whether an interrupt storm has
+occurred or in identifying the cause of the softlockup.  The criteria for
+determination are as follows:
+
+  a. If the hardirq utilization is high, then interrupt storm should be
+  considered and the root cause cannot be determined from the call tree.
+  b. If the softirq utilization is high, then we could analyze the call
+  tree but it may cannot reflect the root cause.
+  c. If the system utilization is high, then we could analyze the root
+  cause from the call tree.
+
+The mechanism requires a considerable amount of global storage space when
+configured for the maximum number of CPUs.  Therefore, adding a
+SOFTLOCKUP_DETECTOR_INTR_STORM Kconfig knob that defaults to "yes" if the
+max number of CPUs is <= 128.
+
+Link: https://lkml.kernel.org/r/20240214021430.87471-1-yaoma@linux.alibaba.com
+Link: https://lkml.kernel.org/r/20240214021430.87471-2-yaoma@linux.alibaba.com
+Signed-off-by: Bitao Hu <yaoma@linux.alibaba.com>
+Reviewed-by: Douglas Anderson <dianders@chromium.org>
+Reviewed-by: Liu Song <liusong@linux.alibaba.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Pingfan Liu <kernelfans@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |   26 +++++++++++
- arch/arm64/mm/contpte.c          |   64 +++++++++++++++++++++++++++++
- 2 files changed, 90 insertions(+)
+ kernel/watchdog.c |   98 +++++++++++++++++++++++++++++++++++++++++++-
+ lib/Kconfig.debug |   13 +++++
+ 2 files changed, 110 insertions(+), 1 deletion(-)
 
---- a/arch/arm64/include/asm/pgtable.h~arm64-mm-automatically-fold-contpte-mappings
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -1185,6 +1185,8 @@ extern void ptep_modify_prot_commit(stru
-  * where it is possible and makes sense to do so. The PTE_CONT bit is considered
-  * a private implementation detail of the public ptep API (see below).
-  */
-+extern void __contpte_try_fold(struct mm_struct *mm, unsigned long addr,
-+				pte_t *ptep, pte_t pte);
- extern void __contpte_try_unfold(struct mm_struct *mm, unsigned long addr,
- 				pte_t *ptep, pte_t pte);
- extern pte_t contpte_ptep_get(pte_t *ptep, pte_t orig_pte);
-@@ -1206,6 +1208,29 @@ extern int contpte_ptep_set_access_flags
- 				unsigned long addr, pte_t *ptep,
- 				pte_t entry, int dirty);
+--- a/kernel/watchdog.c~watchdog-softlockup-low-overhead-detection-of-interrupt
++++ a/kernel/watchdog.c
+@@ -16,6 +16,8 @@
+ #include <linux/cpu.h>
+ #include <linux/nmi.h>
+ #include <linux/init.h>
++#include <linux/kernel_stat.h>
++#include <linux/math64.h>
+ #include <linux/module.h>
+ #include <linux/sysctl.h>
+ #include <linux/tick.h>
+@@ -35,6 +37,8 @@ static DEFINE_MUTEX(watchdog_mutex);
+ # define WATCHDOG_HARDLOCKUP_DEFAULT	0
+ #endif
  
-+static __always_inline void contpte_try_fold(struct mm_struct *mm,
-+				unsigned long addr, pte_t *ptep, pte_t pte)
++#define NUM_SAMPLE_PERIODS	5
++
+ unsigned long __read_mostly watchdog_enabled;
+ int __read_mostly watchdog_user_enabled = 1;
+ static int __read_mostly watchdog_hardlockup_user_enabled = WATCHDOG_HARDLOCKUP_DEFAULT;
+@@ -333,6 +337,95 @@ __setup("watchdog_thresh=", watchdog_thr
+ 
+ static void __lockup_detector_cleanup(void);
+ 
++#ifdef CONFIG_SOFTLOCKUP_DETECTOR_INTR_STORM
++enum stats_per_group {
++	STATS_SYSTEM,
++	STATS_SOFTIRQ,
++	STATS_HARDIRQ,
++	STATS_IDLE,
++	NUM_STATS_PER_GROUP,
++};
++
++static const enum cpu_usage_stat tracked_stats[NUM_STATS_PER_GROUP] = {
++	CPUTIME_SYSTEM,
++	CPUTIME_SOFTIRQ,
++	CPUTIME_IRQ,
++	CPUTIME_IDLE,
++};
++
++static DEFINE_PER_CPU(u16, cpustat_old[NUM_STATS_PER_GROUP]);
++static DEFINE_PER_CPU(u8, cpustat_util[NUM_SAMPLE_PERIODS][NUM_STATS_PER_GROUP]);
++static DEFINE_PER_CPU(u8, cpustat_tail);
++
++/*
++ * We don't need nanosecond resolution. A granularity of 16ms is
++ * sufficient for our precision, allowing us to use u16 to store
++ * cpustats, which will roll over roughly every ~1000 seconds.
++ * 2^24 ~= 16 * 10^6
++ */
++static u16 get_16bit_precision(u64 data_ns)
 +{
++	return data_ns >> 24LL; /* 2^24ns ~= 16.8ms */
++}
++
++static void update_cpustat(void)
++{
++	int i;
++	u8 util;
++	u16 old_stat, new_stat;
++	struct kernel_cpustat kcpustat;
++	u64 *cpustat = kcpustat.cpustat;
++	u8 tail = __this_cpu_read(cpustat_tail);
++	u16 sample_period_16 = get_16bit_precision(sample_period);
++
++	kcpustat_cpu_fetch(&kcpustat, smp_processor_id());
++
++	for (i = 0; i < NUM_STATS_PER_GROUP; i++) {
++		old_stat = __this_cpu_read(cpustat_old[i]);
++		new_stat = get_16bit_precision(cpustat[tracked_stats[i]]);
++		util = DIV_ROUND_UP(100 * (new_stat - old_stat), sample_period_16);
++		__this_cpu_write(cpustat_util[tail][i], util);
++		__this_cpu_write(cpustat_old[i], new_stat);
++	}
++
++	__this_cpu_write(cpustat_tail, (tail + 1) % NUM_SAMPLE_PERIODS);
++}
++
++static void print_cpustat(void)
++{
++	int i, group;
++	u8 tail = __this_cpu_read(cpustat_tail);
++	u64 sample_period_second = sample_period;
++
++	do_div(sample_period_second, NSEC_PER_SEC);
++
 +	/*
-+	 * Only bother trying if both the virtual and physical addresses are
-+	 * aligned and correspond to the last entry in a contig range. The core
-+	 * code mostly modifies ranges from low to high, so this is the likely
-+	 * the last modification in the contig range, so a good time to fold.
-+	 * We can't fold special mappings, because there is no associated folio.
++	 * We do not want the "watchdog: " prefix on every line,
++	 * hence we use "printk" instead of "pr_crit".
 +	 */
++	printk(KERN_CRIT "CPU#%d Utilization every %llus during lockup:\n",
++	       smp_processor_id(), sample_period_second);
 +
-+	const unsigned long contmask = CONT_PTES - 1;
-+	bool valign = ((addr >> PAGE_SHIFT) & contmask) == contmask;
-+
-+	if (unlikely(valign)) {
-+		bool palign = (pte_pfn(pte) & contmask) == contmask;
-+
-+		if (unlikely(palign &&
-+		    pte_valid(pte) && !pte_cont(pte) && !pte_special(pte)))
-+			__contpte_try_fold(mm, addr, ptep, pte);
++	for (i = 0; i < NUM_SAMPLE_PERIODS; i++) {
++		group = (tail + i) % NUM_SAMPLE_PERIODS;
++		printk(KERN_CRIT "\t#%d: %3u%% system,\t%3u%% softirq,\t"
++			"%3u%% hardirq,\t%3u%% idle\n", i + 1,
++			__this_cpu_read(cpustat_util[group][STATS_SYSTEM]),
++			__this_cpu_read(cpustat_util[group][STATS_SOFTIRQ]),
++			__this_cpu_read(cpustat_util[group][STATS_HARDIRQ]),
++			__this_cpu_read(cpustat_util[group][STATS_IDLE]));
 +	}
 +}
 +
- static __always_inline void contpte_try_unfold(struct mm_struct *mm,
- 				unsigned long addr, pte_t *ptep, pte_t pte)
- {
-@@ -1286,6 +1311,7 @@ static __always_inline void set_ptes(str
- 	if (likely(nr == 1)) {
- 		contpte_try_unfold(mm, addr, ptep, __ptep_get(ptep));
- 		__set_ptes(mm, addr, ptep, pte, 1);
-+		contpte_try_fold(mm, addr, ptep, pte);
- 	} else {
- 		contpte_set_ptes(mm, addr, ptep, pte, nr);
- 	}
---- a/arch/arm64/mm/contpte.c~arm64-mm-automatically-fold-contpte-mappings
-+++ a/arch/arm64/mm/contpte.c
-@@ -73,6 +73,70 @@ static void contpte_convert(struct mm_st
- 	__set_ptes(mm, start_addr, start_ptep, pte, CONT_PTES);
++static void report_cpu_status(void)
++{
++	print_cpustat();
++}
++#else
++static inline void update_cpustat(void) { }
++static inline void report_cpu_status(void) { }
++#endif
++
+ /*
+  * Hard-lockup warnings should be triggered after just a few seconds. Soft-
+  * lockups can have false positives under extreme conditions. So we generally
+@@ -364,7 +457,7 @@ static void set_sample_period(void)
+ 	 * and hard thresholds) to increment before the
+ 	 * hardlockup detector generates a warning
+ 	 */
+-	sample_period = get_softlockup_thresh() * ((u64)NSEC_PER_SEC / 5);
++	sample_period = get_softlockup_thresh() * ((u64)NSEC_PER_SEC / NUM_SAMPLE_PERIODS);
+ 	watchdog_update_hrtimer_threshold(sample_period);
  }
  
-+void __contpte_try_fold(struct mm_struct *mm, unsigned long addr,
-+			pte_t *ptep, pte_t pte)
-+{
-+	/*
-+	 * We have already checked that the virtual and pysical addresses are
-+	 * correctly aligned for a contpte mapping in contpte_try_fold() so the
-+	 * remaining checks are to ensure that the contpte range is fully
-+	 * covered by a single folio, and ensure that all the ptes are valid
-+	 * with contiguous PFNs and matching prots. We ignore the state of the
-+	 * access and dirty bits for the purpose of deciding if its a contiguous
-+	 * range; the folding process will generate a single contpte entry which
-+	 * has a single access and dirty bit. Those 2 bits are the logical OR of
-+	 * their respective bits in the constituent pte entries. In order to
-+	 * ensure the contpte range is covered by a single folio, we must
-+	 * recover the folio from the pfn, but special mappings don't have a
-+	 * folio backing them. Fortunately contpte_try_fold() already checked
-+	 * that the pte is not special - we never try to fold special mappings.
-+	 * Note we can't use vm_normal_page() for this since we don't have the
-+	 * vma.
-+	 */
+@@ -504,6 +597,8 @@ static enum hrtimer_restart watchdog_tim
+ 	 */
+ 	period_ts = READ_ONCE(*this_cpu_ptr(&watchdog_report_ts));
+ 
++	update_cpustat();
 +
-+	unsigned long folio_start, folio_end;
-+	unsigned long cont_start, cont_end;
-+	pte_t expected_pte, subpte;
-+	struct folio *folio;
-+	struct page *page;
-+	unsigned long pfn;
-+	pte_t *orig_ptep;
-+	pgprot_t prot;
+ 	/* Reset the interval when touched by known problematic code. */
+ 	if (period_ts == SOFTLOCKUP_DELAY_REPORT) {
+ 		if (unlikely(__this_cpu_read(softlockup_touch_sync))) {
+@@ -539,6 +634,7 @@ static enum hrtimer_restart watchdog_tim
+ 		pr_emerg("BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",
+ 			smp_processor_id(), duration,
+ 			current->comm, task_pid_nr(current));
++		report_cpu_status();
+ 		print_modules();
+ 		print_irqtrace_events(current);
+ 		if (regs)
+--- a/lib/Kconfig.debug~watchdog-softlockup-low-overhead-detection-of-interrupt
++++ a/lib/Kconfig.debug
+@@ -1029,6 +1029,19 @@ config SOFTLOCKUP_DETECTOR
+ 	  chance to run.  The current stack trace is displayed upon
+ 	  detection and the system will stay locked up.
+ 
++config SOFTLOCKUP_DETECTOR_INTR_STORM
++	bool "Detect Interrupt Storm in Soft Lockups"
++	depends on SOFTLOCKUP_DETECTOR && IRQ_TIME_ACCOUNTING
++	default y if NR_CPUS <= 128
++	help
++	  Say Y here to enable the kernel to detect interrupt storm
++	  during "soft lockups".
 +
-+	int i;
++	  "soft lockups" can be caused by a variety of reasons. If one is
++	  caused by an interrupt storm, then the storming interrupts will not
++	  be on the callstack. To detect this case, it is necessary to report
++	  the CPU stats and the interrupt counts during the "soft lockups".
 +
-+	if (!mm_is_user(mm))
-+		return;
-+
-+	page = pte_page(pte);
-+	folio = page_folio(page);
-+	folio_start = addr - (page - &folio->page) * PAGE_SIZE;
-+	folio_end = folio_start + folio_nr_pages(folio) * PAGE_SIZE;
-+	cont_start = ALIGN_DOWN(addr, CONT_PTE_SIZE);
-+	cont_end = cont_start + CONT_PTE_SIZE;
-+
-+	if (folio_start > cont_start || folio_end < cont_end)
-+		return;
-+
-+	pfn = ALIGN_DOWN(pte_pfn(pte), CONT_PTES);
-+	prot = pte_pgprot(pte_mkold(pte_mkclean(pte)));
-+	expected_pte = pfn_pte(pfn, prot);
-+	orig_ptep = ptep;
-+	ptep = contpte_align_down(ptep);
-+
-+	for (i = 0; i < CONT_PTES; i++) {
-+		subpte = pte_mkold(pte_mkclean(__ptep_get(ptep)));
-+		if (!pte_same(subpte, expected_pte))
-+			return;
-+		expected_pte = pte_advance_pfn(expected_pte, 1);
-+		ptep++;
-+	}
-+
-+	pte = pte_mkcont(pte);
-+	contpte_convert(mm, addr, orig_ptep, pte);
-+}
-+EXPORT_SYMBOL(__contpte_try_fold);
-+
- void __contpte_try_unfold(struct mm_struct *mm, unsigned long addr,
- 			pte_t *ptep, pte_t pte)
- {
+ config BOOTPARAM_SOFTLOCKUP_PANIC
+ 	bool "Panic (Reboot) On Soft Lockups"
+ 	depends on SOFTLOCKUP_DETECTOR
 _
 
-Patches currently in -mm which might be from ryan.roberts@arm.com are
+Patches currently in -mm which might be from yaoma@linux.alibaba.com are
 
-tools-mm-add-thpmaps-script-to-dump-thp-usage-info.patch
-arm64-mm-make-set_ptes-robust-when-oas-cross-48-bit-boundary.patch
-mm-clarify-the-spec-for-set_ptes.patch
-mm-thp-batch-collapse-pmd-with-set_ptes.patch
-mm-introduce-pte_advance_pfn-and-use-for-pte_next_pfn.patch
-arm64-mm-convert-pte_next_pfn-to-pte_advance_pfn.patch
-x86-mm-convert-pte_next_pfn-to-pte_advance_pfn.patch
-mm-tidy-up-pte_next_pfn-definition.patch
-arm64-mm-convert-read_onceptep-to-ptep_getptep.patch
-arm64-mm-convert-set_pte_at-to-set_ptes-1.patch
-arm64-mm-convert-ptep_clear-to-ptep_get_and_clear.patch
-arm64-mm-new-ptep-layer-to-manage-contig-bit.patch
-arm64-mm-split-__flush_tlb_range-to-elide-trailing-dsb.patch
-arm64-mm-wire-up-pte_cont-for-user-mappings.patch
-arm64-mm-implement-new-wrprotect_ptes-batch-api.patch
-arm64-mm-implement-new-clear_full_ptes-batch-apis.patch
-mm-add-pte_batch_hint-to-reduce-scanning-in-folio_pte_batch.patch
-arm64-mm-implement-pte_batch_hint.patch
-arm64-mm-__always_inline-to-improve-fork-perf.patch
-arm64-mm-automatically-fold-contpte-mappings.patch
+watchdog-softlockup-report-the-most-frequent-interrupts.patch
 
