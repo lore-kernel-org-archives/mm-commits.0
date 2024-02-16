@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 779EB13AA3F
-	for <mm-commits@vger.kernel.org>; Thu, 15 Feb 2024 23:57:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F7EF170
+	for <mm-commits@vger.kernel.org>; Fri, 16 Feb 2024 00:17:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708041436; cv=none; b=rHYbVZiLs6Qy+EdpqYMl8rQ50J2bBBJvMARjsnu980ibouPmhS6F/BucP4iuY5gqrCM8cE6gFN2WOvOGp6+0J8Aw5zBou9QJFD5uD9YnRdjeVByICi25eQ+u8iIfOL+y0P/1bcA8cv8UI4XXRDAsN0gc+dBrtf5PBqr8C4wdIuI=
+	t=1708042642; cv=none; b=OqJRbTabOknVaYZlPecNtlMsDefJa/rKBa6iDwquNnS/v+2A1aEbOx3fD2FKTIROfc4ntRlEBRshB3ARPAgirIyo5pvcMHBEEuhwdWAr/SiMpDRhKogbAQfuwknWnBwEHkzZ45lgqwF8oWbcy5CYlKyoQltpz93oBP9yN1VNI18=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708041436; c=relaxed/simple;
-	bh=gRi+e+9fDu4gdvXcjzx3rl7V/E4ot8Orm1MUPzpMO2g=;
-	h=Date:To:From:Subject:Message-Id; b=sL1zf58Gg9j7i98QMtduXP2+xR82JlHBxKkEZPYEMS+8iPxIMgZHM/VqixePnHucdym/7F2f8b/rEMZLzhvhLOFJ17ntTkJBD1bObZaebknaCRhU9bIh+p4u+WeovLxvUM8rOUjFBDVbjHJyf9LqTHCBxkr+ZWm7n1TxFioGs1g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hG7Fcjz2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708042642; c=relaxed/simple;
+	bh=z5Mb/FTTbdXtrByrl0bhgCY674XOy2Wz+MyROfgNcEI=;
+	h=Date:To:From:Subject:Message-Id; b=YSdiTQ4CsSxKm6mfE35TVhHULeX8qEhP3dYb1tP7Jv7yuXGnt0Ic38d9IMngdwqIirXgTW+fOyJQw16CEfrT6RFOI0XQTbOyCJk5soc7mHUrhHWM6LZ06Nxjx01jjH41yVt673UIaU5vb4XQlfdHVQnBD6GXNK3EEFtZjzSxqFY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Lgdl9DKw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hG7Fcjz2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFAD3C433C7;
-	Thu, 15 Feb 2024 23:57:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Lgdl9DKw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83553C433F1;
+	Fri, 16 Feb 2024 00:17:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708041435;
-	bh=gRi+e+9fDu4gdvXcjzx3rl7V/E4ot8Orm1MUPzpMO2g=;
+	s=korg; t=1708042641;
+	bh=z5Mb/FTTbdXtrByrl0bhgCY674XOy2Wz+MyROfgNcEI=;
 	h=Date:To:From:Subject:From;
-	b=hG7Fcjz2vtP0F6e6d39sBH/kWcpfGP8cnWVvRbnfMLg5QysaNn711IgAvCKbinTr8
-	 efeVQY8Kc/UJKvkV8E+xqb6q8vCqaX+HoYbAIb19cznsXuEOMafrrRsQ4IvpHUIyFH
-	 iuV+5QeTmPKXjahL2emsVTIhGsC6YHiPY1zCoOvA=
-Date: Thu, 15 Feb 2024 15:57:15 -0800
-To: mm-commits@vger.kernel.org,muchun.song@linux.dev,anshuman.khandual@arm.com,akpm@linux-foundation.org
+	b=Lgdl9DKw/yanTm3bqRevdeKrVzVq2IGzPqVJk/+1Bzr1GJJTv35Zxht7nwkvjzuYi
+	 +JF9rCyMatUc81nbUc4afQge+6+JJe5x3K2+ijg/fzO8cWTyHFIyYJCsMI+X2mXB6t
+	 m/Qnt5+houc0Lh1fK8gGW9nm5MVO+mErLB/vdZEY=
+Date: Thu, 15 Feb 2024 16:17:20 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,svens@linux.ibm.com,ryan.roberts@arm.com,rppt@kernel.org,paul.walmsley@sifive.com,palmer@dabbelt.com,npiggin@gmail.com,naveen.n.rao@linux.ibm.com,mpe@ellerman.id.au,linux@armlinux.org.uk,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,dinguyen@kernel.org,davem@davemloft.net,christophe.leroy@csgroup.eu,catalin.marinas@arm.com,borntraeger@linux.ibm.com,aou@eecs.berkeley.edu,aneesh.kumar@kernel.org,alexghiti@rivosinc.com,agordeev@linux.ibm.com,david@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-ensure-adequate-cma-areas-available-for-hugetlb_cma.patch added to mm-unstable branch
-Message-Id: <20240215235715.CFAD3C433C7@smtp.kernel.org>
+Subject: + mm-memory-pass-pte-to-copy_present_pte-fix.patch added to mm-unstable branch
+Message-Id: <20240216001721.83553C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: ensure adequate CMA areas available for hugetlb_cma[]
+     Subject: fixup: mm/memory: pass PTE to copy_present_pte()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb-ensure-adequate-cma-areas-available-for-hugetlb_cma.patch
+     mm-memory-pass-pte-to-copy_present_pte-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-ensure-adequate-cma-areas-available-for-hugetlb_cma.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-pass-pte-to-copy_present_pte-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,48 +58,93 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/hugetlb: ensure adequate CMA areas available for hugetlb_cma[]
-Date: Thu, 15 Feb 2024 10:04:05 +0530
+From: David Hildenbrand <david@redhat.com>
+Subject: fixup: mm/memory: pass PTE to copy_present_pte()
+Date: Wed, 14 Feb 2024 23:40:22 +0100
 
-HugeTLB CMA area array is being created for possible MAX_NUMNODES without
-ensuring corresponding MAX_CMA_AREAS support in CMA.  This fails the build
-for such scenarios indicating need for CONFIG_CMA_AREAS adjustment.
+For device-exclusive nonswp entries (is_device_exclusive_entry()),
+copy_nonpresent_pte() can turn the PTEs into actual present PTEs while
+holding the page table lock.
 
-Link: https://lkml.kernel.org/r/20240215043405.2379295-1-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+We hae to re-read the PTE after that operation, such that we won't be
+working on the stale non-present PTE, assuming it would be present.
+
+This fixes the hmm "exclusive_cow" selftest.
+
+  ./run_vmtests.sh -t hmm
+  # #  RUN           hmm.hmm_device_private.exclusive_cow ...
+  # #            OK  hmm.hmm_device_private.exclusive_cow
+  # ok 23 hmm.hmm_device_private.exclusive_cow
+
+Link: https://lkml.kernel.org/r/13f296b8-e882-47fd-b939-c2141dc28717@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Dinh Nguyen <dinguyen@kernel.org>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Rapoport (IBM) <rppt@kernel.org>
+Cc: Naveen N. Rao <naveen.n.rao@linux.ibm.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Russell King (Oracle) <linux@armlinux.org.uk>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/memory.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/hugetlb.c~mm-hugetlb-ensure-adequate-cma-areas-available-for-hugetlb_cma
-+++ a/mm/hugetlb.c
-@@ -7855,6 +7855,13 @@ void __init hugetlb_cma_reserve(int orde
- 	}
+--- a/mm/memory.c~mm-memory-pass-pte-to-copy_present_pte-fix
++++ a/mm/memory.c
+@@ -1093,6 +1093,8 @@ again:
+ 				progress += 8;
+ 				continue;
+ 			}
++			ptent = ptep_get(src_pte);
++			VM_WARN_ON_ONCE(!pte_present(ptent));
  
- 	reserved = 0;
-+
-+	/*
-+	 * There needs to be enough MAX_CMA_AREAS to accommodate
-+	 * MAX_NUMNODES heap areas being created here. Otherwise
-+	 * adjust CONFIG_CMA_AREAS as required.
-+	 */
-+	BUILD_BUG_ON(MAX_CMA_AREAS < MAX_NUMNODES);
- 	for_each_online_node(nid) {
- 		int res;
- 		char name[CMA_MAX_NAME];
+ 			/*
+ 			 * Device exclusive entry restored, continue by copying
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-memblock-add-memblock_rsrv_noinit-into-flagname-array.patch
-mm-cma-dont-treat-bad-input-arguments-for-cma_alloc-as-its-failure.patch
-mm-cma-drop-config_cma_debug.patch
-mm-cma-make-max_cma_areas-=-config_cma_areas.patch
-mm-cma-add-sysfs-file-release_pages_success.patch
-mm-hugetlb-move-page-order-check-inside-hugetlb_cma_reserve.patch
-mm-hugetlb-ensure-adequate-cma-areas-available-for-hugetlb_cma.patch
+arm-pgtable-define-pfn_pte_shift.patch
+nios2-pgtable-define-pfn_pte_shift.patch
+powerpc-pgtable-define-pfn_pte_shift.patch
+riscv-pgtable-define-pfn_pte_shift.patch
+s390-pgtable-define-pfn_pte_shift.patch
+sparc-pgtable-define-pfn_pte_shift.patch
+mm-pgtable-make-pte_next_pfn-independent-of-set_ptes.patch
+arm-mm-use-pte_next_pfn-in-set_ptes.patch
+powerpc-mm-use-pte_next_pfn-in-set_ptes.patch
+mm-memory-factor-out-copying-the-actual-pte-in-copy_present_pte.patch
+mm-memory-pass-pte-to-copy_present_pte.patch
+mm-memory-pass-pte-to-copy_present_pte-fix.patch
+mm-memory-optimize-fork-with-pte-mapped-thp.patch
+mm-memory-ignore-dirty-accessed-soft-dirty-bits-in-folio_pte_batch.patch
+mm-memory-ignore-writable-bit-in-folio_pte_batch.patch
+mm-memory-factor-out-zapping-of-present-pte-into-zap_present_pte.patch
+mm-memory-handle-page-case-in-zap_present_pte-separately.patch
+mm-memory-further-separate-anon-and-pagecache-folio-handling-in-zap_present_pte.patch
+mm-memory-factor-out-zapping-folio-pte-into-zap_present_folio_pte.patch
+mm-mmu_gather-pass-delay_rmap-instead-of-encoded-page-to-__tlb_remove_page_size.patch
+mm-mmu_gather-define-encoded_page_flag_delay_rmap.patch
+mm-mmu_gather-add-tlb_remove_tlb_entries.patch
+mm-mmu_gather-add-__tlb_remove_folio_pages.patch
+mm-mmu_gather-improve-cond_resched-handling-with-large-folios-and-expensive-page-freeing.patch
+mm-memory-optimize-unmap-zap-with-pte-mapped-thp.patch
 
