@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CD1F8F49
-	for <mm-commits@vger.kernel.org>; Fri, 16 Feb 2024 01:31:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70F67DDA3
+	for <mm-commits@vger.kernel.org>; Fri, 16 Feb 2024 01:35:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708047110; cv=none; b=kcLJks/+D4YST7mdbsnWzQTYY04299yqlHqeVSATW314nt3XQN6JU7pQqaO9QvHr+OXbbNXGXoi+IC70zBnw22+g/XLcp7twAJDr+1NR+lSrg2aqiU6SizsEfagbRZUX2v5h9w+glwhqoZyiDADoI3VC8+bRe4HLTcGb9h5Q7vQ=
+	t=1708047334; cv=none; b=nkNVM2qgBHIYPJH+gwAJI1Uz5aXrFjBzq2CNPoCCPvkIWEYCRPCgLoyGinuLuQTWNVeCPeRR/0v5BEvaM4b3JQ62OJ5ue9a+kczWEtQXj4wc94jVApu2D6c47hKk4OybAjqB2WkGYEfBOu1rhsUrP90f/yE7rb7lznPq6gAX47c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708047110; c=relaxed/simple;
-	bh=96VoHJ8h/Q9Jm/y8iqDfTn5tiETcrIweS1k3EJf4JaM=;
-	h=Date:To:From:Subject:Message-Id; b=preLDyqF8sDkCNosSVPoIFbpi+I86SwRja1MM7+xHE1rbz0kTaqQtMJeioVyaAB8X/zHAruPEhcxpyXWBnwEm+BEAgANEk4rRTqMmiNQ/MDqoEhGFRSLdoyhFqKjC0lbOWpG0hk7hwpP+cZGScvtwUn6WBoRPjRJi4xFQjYnaUU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s6wNSmGu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708047334; c=relaxed/simple;
+	bh=OjJhaCYo/Cu7tRT3A9la21TKTRo2/7K0jVC9bVYZAMs=;
+	h=Date:To:From:Subject:Message-Id; b=MrWVbknl12lbbWkTL0JmIC1fvWjQlbB1PSnEQxfYPfxipF6DeNvaB52suWLQvPk90OztWc/Rv58Nwt6TriIS2ANhjQLQ+ScmNA7DXtJawxJ/pkrqn6GjvbtcUCdrVnAMQY6AeD9OmjnfdT4hzZ72XsY089Ui/ZOWNfPBAQd2RkQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iY2H5gPD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s6wNSmGu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0778FC433C7;
-	Fri, 16 Feb 2024 01:31:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iY2H5gPD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4354C433F1;
+	Fri, 16 Feb 2024 01:35:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708047110;
-	bh=96VoHJ8h/Q9Jm/y8iqDfTn5tiETcrIweS1k3EJf4JaM=;
+	s=korg; t=1708047333;
+	bh=OjJhaCYo/Cu7tRT3A9la21TKTRo2/7K0jVC9bVYZAMs=;
 	h=Date:To:From:Subject:From;
-	b=s6wNSmGuYbRhG4PSPH3UYjf0FulRRKXL5EwCSo5RhmsdG8H++hSe0FuoZXS5EcwXM
-	 i/bFmaRHV1VA9D/Nesmoe0Dzsg4MLal0+gzBmzBNtSkJsghqin22lrQG3KPPKe/3IP
-	 8yaqKZ7egQ4pEi0N4hrX/d7/3y3LAxqRzxK5y6RQ=
-Date: Thu, 15 Feb 2024 17:31:49 -0800
-To: mm-commits@vger.kernel.org,muchun.song@linux.dev,anshuman.khandual@arm.com,akpm@linux-foundation.org
+	b=iY2H5gPDUFiJtXrrBLJmXZqOqdnBVRlrzhWrf1OtOerQfZnT4B/1S9npCJp4AvJup
+	 SIMjNtu6FVelzT0tXqV3s+UL2R5uO7b9e/HVGDo+CyWWD2zgMNcEczGUP1FvEvtzvk
+	 FNQo939INPT4yc+wAAXK3e6YWpCrnIif8AYirVuE=
+Date: Thu, 15 Feb 2024 17:35:33 -0800
+To: mm-commits@vger.kernel.org,yang.lee@linux.alibaba.com,viro@zeniv.linux.org.uk,sfr@canb.auug.org.au,piliu@redhat.com,nathan@kernel.org,mhklinux@outlook.com,klarasmodin@gmail.com,hbathini@linux.ibm.com,ebiederm@xmission.com,bhe@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] mm-hugetlb-ensure-adequate-cma-areas-available-for-hugetlb_cma.patch removed from -mm tree
-Message-Id: <20240216013150.0778FC433C7@smtp.kernel.org>
+Subject: + arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc-fix.patch added to mm-unstable branch
+Message-Id: <20240216013533.D4354C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,55 +34,88 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/hugetlb: ensure adequate CMA areas available for hugetlb_cma[]
-has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-ensure-adequate-cma-areas-available-for-hugetlb_cma.patch
+The patch titled
+     Subject: arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc-fix.patch
 
-This patch was dropped because it had testing failures
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc-fix.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/hugetlb: ensure adequate CMA areas available for hugetlb_cma[]
-Date: Thu, 15 Feb 2024 10:04:05 +0530
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc-fix
+Date: Thu Feb 15 05:33:42 PM PST 2024
 
-HugeTLB CMA area array is being created for possible MAX_NUMNODES without
-ensuring corresponding MAX_CMA_AREAS support in CMA.  This fails the build
-for such scenarios indicating need for CONFIG_CMA_AREAS adjustment.
+remove stray newlines at eof
 
-Link: https://lkml.kernel.org/r/20240215043405.2379295-1-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Hari Bathini <hbathini@linux.ibm.com>
+Cc: Klara Modin <klarasmodin@gmail.com>
+Cc: Michael Kelley <mhklinux@outlook.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Pingfan Liu <piliu@redhat.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Yang Li <yang.lee@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/powerpc/kexec/vmcore_info.c |    2 --
+ arch/s390/kernel/vmcore_info.c   |    2 --
+ arch/sh/kernel/vmcore_info.c     |    2 --
+ 3 files changed, 6 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-ensure-adequate-cma-areas-available-for-hugetlb_cma
-+++ a/mm/hugetlb.c
-@@ -7855,6 +7855,13 @@ void __init hugetlb_cma_reserve(int orde
- 	}
- 
- 	reserved = 0;
-+
-+	/*
-+	 * There needs to be enough MAX_CMA_AREAS to accommodate
-+	 * MAX_NUMNODES heap areas being created here. Otherwise
-+	 * adjust CONFIG_CMA_AREAS as required.
-+	 */
-+	BUILD_BUG_ON(MAX_CMA_AREAS < MAX_NUMNODES);
- 	for_each_online_node(nid) {
- 		int res;
- 		char name[CMA_MAX_NAME];
+--- a/arch/powerpc/kexec/vmcore_info.c~arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc-fix
++++ a/arch/powerpc/kexec/vmcore_info.c
+@@ -30,5 +30,3 @@ void arch_crash_save_vmcoreinfo(void)
+ 	vmcoreinfo_append_str("NUMBER(RADIX_MMU)=%d\n", early_radix_enabled());
+ 	vmcoreinfo_append_str("KERNELOFFSET=%lx\n", kaslr_offset());
+ }
+-
+-
+--- a/arch/s390/kernel/vmcore_info.c~arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc-fix
++++ a/arch/s390/kernel/vmcore_info.c
+@@ -19,5 +19,3 @@ void arch_crash_save_vmcoreinfo(void)
+ 	abs_lc->vmcore_info = paddr_vmcoreinfo_note();
+ 	put_abs_lowcore(abs_lc);
+ }
+-
+-
+--- a/arch/sh/kernel/vmcore_info.c~arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc-fix
++++ a/arch/sh/kernel/vmcore_info.c
+@@ -13,5 +13,3 @@ void arch_crash_save_vmcoreinfo(void)
+ 	VMCOREINFO_CONFIG(X2TLB);
+ #endif
+ }
+-
+-
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-memblock-add-memblock_rsrv_noinit-into-flagname-array.patch
-mm-cma-dont-treat-bad-input-arguments-for-cma_alloc-as-its-failure.patch
-mm-cma-drop-config_cma_debug.patch
-mm-cma-make-max_cma_areas-=-config_cma_areas.patch
-mm-cma-add-sysfs-file-release_pages_success.patch
-mm-hugetlb-move-page-order-check-inside-hugetlb_cma_reserve.patch
+kexec-split-crashkernel-reservation-code-out-from-crash_corec-fix.patch
+arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc-fix.patch
+mm-memory_hotplug-export-mhp_supports_memmap_on_memory-fix.patch
+mm-damon-dbgfs-make-debugfs-interface-deprecation-message-a-macro-fix.patch
+mm-ptdump-have-ptdump_check_wx-return-bool-fix.patch
+mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages-fix.patch
+kprobes-use-synchronize_rcu_tasks_rude-in-kprobe_optimizer-fix.patch
+panic-add-option-to-dump-blocked-tasks-in-panic_print-fix.patch
 
