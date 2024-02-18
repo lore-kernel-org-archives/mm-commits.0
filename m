@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02AFF8C1A
-	for <mm-commits@vger.kernel.org>; Sun, 18 Feb 2024 21:30:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A78EDEAD7
+	for <mm-commits@vger.kernel.org>; Sun, 18 Feb 2024 21:41:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708291806; cv=none; b=ozUkOoAOV44Dw+gZSSIhOAWGsZwZsxHahHCx4O3txJWlK2E0svozTxY86ihsbg9FjTLQKV+x2jtAgVgw79Lwa1JOKDkzYe4IXb9lvYuJwYg9b1MYvICZMLbi0UMzMUP3Uagc6HKJ93aTujEUl5w9ZUJUup6r3MhuqHLlyLnS3FE=
+	t=1708292468; cv=none; b=ImCePAmjtV42Ru2FqW9ucr35PFG78DGIH+Oro5fPaj0SIQ9IkGPcSTQq7CQjv9mBBS2HpSYUYDVI1yPILELcHqDxfSj3+/gqmA7g8KCejpJjOfWbbZe5uwrPE+c8E5Gw9eVY4QcuyFW5VBnK/s+qAukUPGL7/yTV+R6FcnyvQn8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708291806; c=relaxed/simple;
-	bh=tyDTN2+QiC0ODj7oc7A3v5hQGGuEXTBFw0I9RSQp/Nk=;
-	h=Date:To:From:Subject:Message-Id; b=dn5ui16AawO+BdMVez9S1xbcVjBPE6i660CUxSEVCOu4K2kf9JhXNrOd9WXKJJ5r6HC2rVC60G5tpsEN1khcHYrkuTwiga6o+txDnm+Mn/qGY3xG9pv6Fx2IZh8yAKxFBSjZ92A5xZUuPIkWngtsEvozPrEryDN7BvDWn06m0Sc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tMOvCA9I; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708292468; c=relaxed/simple;
+	bh=f/YYfxrXC5D650+yRLTctm8SRkqzsGZyEg9IpRjP/4A=;
+	h=Date:To:From:Subject:Message-Id; b=NSxzDl39yG/xm82lbFRAPwety1RZx1Cnpw5DTI44lqKU7rgF9oneag8PowxKYwSa5zJwXhT4wLeNCoaCyO7Ng3oenQFpDlZLMWNG9OCutq9sNSxjEUxvS82HCpb+kfa2Kn+C6bAi8BWA4sOEMQrw4/ZkR/I5WCk8PbELF9bYqp8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UkG4hyb5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tMOvCA9I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CD82C433F1;
-	Sun, 18 Feb 2024 21:30:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UkG4hyb5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1477FC433F1;
+	Sun, 18 Feb 2024 21:41:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708291805;
-	bh=tyDTN2+QiC0ODj7oc7A3v5hQGGuEXTBFw0I9RSQp/Nk=;
+	s=korg; t=1708292468;
+	bh=f/YYfxrXC5D650+yRLTctm8SRkqzsGZyEg9IpRjP/4A=;
 	h=Date:To:From:Subject:From;
-	b=tMOvCA9INSmgkJduOZ5IYjNEZCge52sg6cmE/AaLtjRhiIi2E5lY4uwsHpMb9Yplz
-	 gxpC3QQlVD3VHgq6LEq8gNpp/T+ONhIXgq0kt/NhmrgUuNSUEC3r0PYlmRdvtRLUJx
-	 4gG3d+WH8u05nT19prjqRI0rNchgYLYXAmr6czss=
-Date: Sun, 18 Feb 2024 13:30:04 -0800
-To: mm-commits@vger.kernel.org,yajun.deng@linux.dev,akpm@linux-foundation.org
+	b=UkG4hyb5OwgUnQrr8OCVDso3VuNqdKJ0zhHlfVWuaWPZDGdb1eNTLCEatvjmgJdsw
+	 oyLxEzLrwJ8O2DeaTPqvTiF5mw2AoV3DPNlw8artkCGNKDjJDDWrZQ7mH9K0hDtE3Q
+	 x8d8pEYxD8z1JtS/WmJBckh7kyfMAT9n64d/bJF8=
+Date: Sun, 18 Feb 2024 13:41:07 -0800
+To: mm-commits@vger.kernel.org,ying.huang@intel.com,willy@infradead.org,wangkefeng.wang@huawei.com,vbabka@suse.cz,surenb@google.com,riel@surriel.com,peterz@infradead.org,mingo@redhat.com,mike.kravetz@oracle.com,mhocko@kernel.org,mgorman@suse.de,hughd@google.com,hannes@cmpxchg.org,feng.tang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,ben.widawsky@intel.com,aneesh.kumar@kernel.org,aarcange@redhat.com,donettom@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmap-add-case-9-in-vma_merge.patch added to mm-unstable branch
-Message-Id: <20240218213005.6CD82C433F1@smtp.kernel.org>
+Subject: + mm-mempolicy-use-the-already-fetched-local-variable.patch added to mm-unstable branch
+Message-Id: <20240218214108.1477FC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mmap: Add case 9 in vma_merge()
+     Subject: mm/mempolicy: use the already fetched local variable
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mmap-add-case-9-in-vma_merge.patch
+     mm-mempolicy-use-the-already-fetched-local-variable.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmap-add-case-9-in-vma_merge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-use-the-already-fetched-local-variable.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,49 +58,56 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Yajun Deng <yajun.deng@linux.dev>
-Subject: mm/mmap: Add case 9 in vma_merge()
-Date: Sun, 18 Feb 2024 16:50:28 +0800
+From: Donet Tom <donettom@linux.ibm.com>
+Subject: mm/mempolicy: use the already fetched local variable
+Date: Sat, 17 Feb 2024 01:31:33 -0600
 
-If the prev vma exists and the end is less than the end of prev, we
-can return NULL immediately. This reduces unnecessary operations.
+Avoid doing a per cpu read and use the local variable thisnid. IMHO
+this also makes the code more readable.
 
-Link: https://lkml.kernel.org/r/20240218085028.3294332-1-yajun.deng@linux.dev
-Signed-off-by: Yajun Deng <yajun.deng@linux.dev>
+Link: https://lkml.kernel.org/r/9c3f7b743477560d1c5b12b8c111a584a2cc92ee.1708097962.git.donettom@linux.ibm.com
+Signed-off-by: Aneesh Kumar K.V (IBM) <aneesh.kumar@kernel.org>
+Signed-off-by: Donet Tom <donettom@linux.ibm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Ben Widawsky <ben.widawsky@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Feng Tang <feng.tang@intel.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/mempolicy.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mmap.c~mm-mmap-add-case-9-in-vma_merge
-+++ a/mm/mmap.c
-@@ -827,7 +827,7 @@ can_vma_merge_after(struct vm_area_struc
-  *
-  *     ****             ****                   ****
-  *    PPPPPPNNNNNN    PPPPPPNNNNNN       PPPPPPCCCCCC
-- *    cannot merge    might become       might become
-+ *    cannot merge 9  might become       might become
-  *                    PPNNNNNNNNNN       PPPPPPPPPPCC
-  *    mmap, brk or    case 4 below       case 5 below
-  *    mremap move:
-@@ -890,6 +890,9 @@ static struct vm_area_struct
- 	if (vm_flags & VM_SPECIAL)
- 		return NULL;
- 
-+	if (prev && end < prev->vm_end) /* case 9 */
-+		return NULL;
-+
- 	/* Does the input range span an existing VMA? (cases 5 - 8) */
- 	curr = find_vma_intersection(mm, prev ? prev->vm_end : 0, end);
- 
+--- a/mm/mempolicy.c~mm-mempolicy-use-the-already-fetched-local-variable
++++ a/mm/mempolicy.c
+@@ -2780,7 +2780,7 @@ int mpol_misplaced(struct folio *folio,
+ 		if (node_isset(curnid, pol->nodes))
+ 			goto out;
+ 		z = first_zones_zonelist(
+-				node_zonelist(numa_node_id(), GFP_HIGHUSER),
++				node_zonelist(thisnid, GFP_HIGHUSER),
+ 				gfp_zone(GFP_HIGHUSER),
+ 				&pol->nodes);
+ 		polnid = zone_to_nid(z->zone);
 _
 
-Patches currently in -mm which might be from yajun.deng@linux.dev are
+Patches currently in -mm which might be from donettom@linux.ibm.com are
 
-mm-mmap-simplify-vma-link-and-unlink.patch
-mm-mmap-introduce-vma_set_range.patch
-mm-mmap-use-sz_8k-128k-helper-macro.patch
-mm-mmap-pass-vma-to-vma_merge.patch
-mm-mmap-add-case-9-in-vma_merge.patch
+mm-mempolicy-use-the-already-fetched-local-variable.patch
+mm-mempolicy-avoid-the-fallthrough-with-mpold_bind-in-mpol_misplaced.patch
+mm-numa_balancing-allow-migrate-on-protnone-reference-with-mpol_preferred_many-policy.patch
 
