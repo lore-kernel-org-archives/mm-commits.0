@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7489D1D689
-	for <mm-commits@vger.kernel.org>; Sun, 18 Feb 2024 21:13:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 706951D689
+	for <mm-commits@vger.kernel.org>; Sun, 18 Feb 2024 21:13:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708290782; cv=none; b=JdGxo+hDU+PeaEFgUQgWr8lO396PZEjeGDaHYZmUq2uORSHlFTFURWz0S0tFq6eQZ4M0St90Zn8FZ2L3uQwt0nrl/Ce9KMRfWtIAChoeZyhyuhqWATuqaT81hOxpx1+W9oCb4woB+WTFlXxlfuGDOnnKcxw8gthS+SPLtciWHF0=
+	t=1708290784; cv=none; b=EGbWrfSz2WqMOdRaSeXIIbHDFzN8NlYWaxH3N8TT06lTRjgUrJPB8e+w7KrOkuz3aQt2fuBQ8dz4VvLmmq4mGKkgQU6ZARLDYElIpBar6yWG5SefGR4Idhi+y80SWSrPxxWuc7cnQ70b3IPhOXJq3dFQl301+fkAdVyN5bpZSkw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708290782; c=relaxed/simple;
-	bh=qFoY9siIEQMLiHA+Yuu9vyV2gMCl4auaALr+QUFYXSw=;
-	h=Date:To:From:Subject:Message-Id; b=LvpG3s0w9kaDhz0bjdJOkAmzdhev2UsfBUAuBWAiLQrWf2cXQB6kvSULSy26yU3lzY09Ja0s8dPx2zdgbex4BTllLMCYBS8HZ+qPEq93njPlAxwMW8o4fBMZ5hFZ7sbqyodx8pY7oAv8r5giR19sJYvmBqcmX9mi8yrM/k3igsE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y6YjcnDD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708290784; c=relaxed/simple;
+	bh=EeR3qOowAVhhxEbzwBwkkKrxU8YZqtGj+5BDbwWPqJM=;
+	h=Date:To:From:Subject:Message-Id; b=ucyv8bAzNiBXTlhzrNlbZgij3852iSIzaGab9aL1aJvYrhxnpPWGWBdaomSVIHECQBz86Kma2PiemMKVCIMtZVTfVs8I6LVbWKLxtKQVw7h5FWFk2GUhRevNouDslUL40j4R0T6Idh0tWdJxI7ef9RQ1DzjNetiLvTkdjq2NxQM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0xUXtARK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y6YjcnDD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC8FBC433F1;
-	Sun, 18 Feb 2024 21:13:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0xUXtARK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BA91C433C7;
+	Sun, 18 Feb 2024 21:13:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708290782;
-	bh=qFoY9siIEQMLiHA+Yuu9vyV2gMCl4auaALr+QUFYXSw=;
+	s=korg; t=1708290784;
+	bh=EeR3qOowAVhhxEbzwBwkkKrxU8YZqtGj+5BDbwWPqJM=;
 	h=Date:To:From:Subject:From;
-	b=Y6YjcnDD53NxB3O7nY2IhNyIRdAullegMxG4FQ2tpWzbP12K3VeVVR9FPpA0oUc3T
-	 CZsz5+t3Q7SnACzisM3Kq544DSl4MCUuZ0l6o/pD1xqoNiwCV1Tehg8zTwQjJai5a0
-	 Ue8Xwi6ZCDPNPU0FzQ7cNiCwuAfLb6EoiQPlFn6I=
-Date: Sun, 18 Feb 2024 13:13:01 -0800
+	b=0xUXtARKNZ6E0SwmhfKL3PIoUhD30JEgkRd7KQK5AO9XOvcEF3qXFBjFisJ5qhLjY
+	 0LfNTkydIBnRjsu8WuhP26lesbCJrp3U97x9NVkOqgwf4dCuoI3jZ2aHxDv831hQRQ
+	 AMeD5H+kk8qhJojMhCPp/0E0ycFxk77RlyIhMgxw=
+Date: Sun, 18 Feb 2024 13:13:03 -0800
 To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-move-damon-operation-sets-list-from-the-usage-to-the-design-document.patch added to mm-unstable branch
-Message-Id: <20240218211301.EC8FBC433F1@smtp.kernel.org>
+Subject: + docs-mm-damon-move-monitoring-target-regions-setup-detail-from-the-usage-to-the-design-document.patch added to mm-unstable branch
+Message-Id: <20240218211304.0BA91C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon: move DAMON operation sets list from the usage to the design document
+     Subject: Docs/mm/damon: move monitoring target regions setup detail from the usage to the design document
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-mm-damon-move-damon-operation-sets-list-from-the-usage-to-the-design-document.patch
+     docs-mm-damon-move-monitoring-target-regions-setup-detail-from-the-usage-to-the-design-document.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-move-damon-operation-sets-list-from-the-usage-to-the-design-document.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-move-monitoring-target-regions-setup-detail-from-the-usage-to-the-design-document.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,88 +59,74 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon: move DAMON operation sets list from the usage to the design document
-Date: Fri, 16 Feb 2024 16:58:40 -0800
+Subject: Docs/mm/damon: move monitoring target regions setup detail from the usage to the design document
+Date: Fri, 16 Feb 2024 16:58:41 -0800
 
-The list of DAMON operation sets and their explanation, which may better
-to be on design document, is written on the usage document.  Move the
-detail to design document and make the usage document only reference the
-design document.
+Design doc is aimed to have all concept level details, while the usage doc
+is focused on only how the features can be used.  Some details about
+monitoring target regions construction is on the usage doc.  Move the
+details about the monitoring target regions construction differences for
+DAMON operations set from the usage to the design doc.
 
-Link: https://lkml.kernel.org/r/20240217005842.87348-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240217005842.87348-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |   19 ++++++-----------
- Documentation/mm/damon/design.rst            |   12 ++++++++--
- 2 files changed, 17 insertions(+), 14 deletions(-)
+ Documentation/admin-guide/mm/damon/usage.rst |   16 +++++-----------
+ Documentation/mm/damon/design.rst            |   12 +++++++++---
+ 2 files changed, 14 insertions(+), 14 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-mm-damon-move-damon-operation-sets-list-from-the-usage-to-the-design-document
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-mm-damon-move-monitoring-target-regions-setup-detail-from-the-usage-to-the-design-document
 +++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -180,19 +180,14 @@ In each context directory, two files (``
- and three directories (``monitoring_attrs``, ``targets``, and ``schemes``)
- exist.
+@@ -242,17 +242,11 @@ process to the ``pid_target`` file.
+ targets/<N>/regions
+ -------------------
  
--DAMON supports multiple types of monitoring operations, including those for
--virtual address space and the physical address space.  You can get the list of
--available monitoring operations set on the currently running kernel by reading
-+DAMON supports multiple types of :ref:`monitoring operations
-+<damon_design_confiurable_operations_set>`, including those for virtual address
-+space and the physical address space.  You can get the list of available
-+monitoring operations set on the currently running kernel by reading
- ``avail_operations`` file.  Based on the kernel configuration, the file will
--list some or all of below keywords.
+-When ``vaddr`` monitoring operations set is being used (``vaddr`` is written to
+-the ``contexts/<N>/operations`` file), DAMON automatically sets and updates the
+-monitoring target regions so that entire memory mappings of target processes
+-can be covered.  However, users could want to set the initial monitoring region
+-to specific address ranges.
 -
-- - vaddr: Monitor virtual address spaces of specific processes
-- - fvaddr: Monitor fixed virtual address ranges
-- - paddr: Monitor the physical address space of the system
--
--Please refer to :ref:`regions sysfs directory <sysfs_regions>` for detailed
--differences between the operations sets in terms of the monitoring target
--regions.
-+list different available operation sets.  Please refer to the :ref:`design
-+<damon_operations_set>` for the list of all available operation sets and their
-+brief explanations.
+-In contrast, DAMON do not automatically sets and updates the monitoring target
+-regions when ``fvaddr`` or ``paddr`` monitoring operations sets are being used
+-(``fvaddr`` or ``paddr`` have written to the ``contexts/<N>/operations``).
+-Therefore, users should set the monitoring target regions by themselves in the
+-cases.
++In case of ``fvaddr`` or ``paddr`` monitoring operations sets, users are
++required to set the monitoring target address ranges.  In case of ``vaddr``
++operations set, it is not mandatory, but users can optionally set the initial
++monitoring region to specific address ranges.  Please refer to the :ref:`design
++<damon_design_vaddr_target_regions_construction>` for more details.
  
- You can set and get what type of monitoring operations DAMON will use for the
- context by writing one of the keywords listed in ``avail_operations`` file and
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-move-damon-operation-sets-list-from-the-usage-to-the-design-document
+ For such cases, users can explicitly set the initial monitoring target regions
+ as they want, by writing proper values to the files under this directory.
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-move-monitoring-target-regions-setup-detail-from-the-usage-to-the-design-document
 +++ a/Documentation/mm/damon/design.rst
-@@ -31,6 +31,8 @@ DAMON subsystem is configured with three
-   interfaces for the user space, on top of the core layer.
+@@ -83,12 +83,18 @@ describe how those work.
+  - paddr: Monitor the physical address space of the system
  
  
-+.. _damon_design_configurable_operations_set:
++ .. _damon_design_vaddr_target_regions_construction:
 +
- Configurable Operations Set
- ---------------------------
- 
-@@ -63,6 +65,8 @@ modules that built on top of the core la
- used by the user space end users.
- 
- 
-+.. _damon_operations_set:
-+
- Operations Set Layer
- ====================
- 
-@@ -71,8 +75,12 @@ The monitoring operations are defined in
- 1. Identification of the monitoring target address range for the address space.
- 2. Access check of specific address range in the target space.
- 
--DAMON currently provides the implementations of the operations for the physical
--and virtual address spaces. Below two subsections describe how those work.
-+DAMON currently provides below three operation sets.  Below two subsections
-+describe how those work.
-+
-+ - vaddr: Monitor virtual address spaces of specific processes
-+ - fvaddr: Monitor fixed virtual address ranges
-+ - paddr: Monitor the physical address space of the system
- 
- 
  VMA-based Target Address Range Construction
+ -------------------------------------------
+ 
+-This is only for the virtual address space monitoring operations
+-implementation.  That for the physical address space simply asks users to
+-manually set the monitoring target address ranges.
++A mechanism of ``vaddr`` DAMON operations set that automatically initializes
++and updates the monitoring target address regions so that entire memory
++mappings of the target processes can be covered.
++
++This mechanism is only for the ``vaddr`` operations set.  In cases of
++``fvaddr`` and ``paddr`` operation sets, users are asked to manually set the
++monitoring target address ranges.
+ 
+ Only small parts in the super-huge virtual address space of the processes are
+ mapped to the physical memory and accessed.  Thus, tracking the unmapped
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
