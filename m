@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B7562E3F2
-	for <mm-commits@vger.kernel.org>; Sun, 18 Feb 2024 21:22:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF46A8C1A
+	for <mm-commits@vger.kernel.org>; Sun, 18 Feb 2024 21:27:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708291338; cv=none; b=JleLqbSwNL+P6ueAd2e2LqmNUV/RM/2f5A1UE4P8UN9IOCllBnT0U32mq3gl1iDfcL36eYbN3DncoMW7A971PdxtR7sbsg3FHfL0l7k/Fl5el70EMYo4Osz/uA43gayz9vmS9knqSofEPDWBZYH8BEpmb7BVDeAG/2TSUCLdmCQ=
+	t=1708291664; cv=none; b=obXlNW7718Qeg1tSNWfw7idIqQD3B2oCVxYKPllSEUKjWK1GZfvgCa5R0va4axcikMZkI/80O0WvVVuvaBiRxjbFWK79Q1xVxvyFa8n5i4+IQ3iT4ga47UhdgDr87lMfZkW0xxuDz9wBIbiPUP0SS8e7qzYJlUnlRK8o9SUGMT0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708291338; c=relaxed/simple;
-	bh=PxkDHn+NauHmUm34KZrf/JMYIECpQJO07LTgBNCT270=;
-	h=Date:To:From:Subject:Message-Id; b=ITQQkPiD/MQ+xPSphAPw2uxctGtxdVknlMz4EN/B4lKecgi76qblZWMHlxMa8bI9g2MODi+TAdal17GlQcMnN0X73Xpk0cn/LdQYrm+vsxlDsK09HKsFl1/ZJ4ansIXuK9O/opzkaROfrb7Afmx3WjGdAqdNfFIcFGjRL8W4cds=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P0bWSuyT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708291664; c=relaxed/simple;
+	bh=Gq5NMZq/kf7OGmLPzR+DvjoNOzOZlW3aetl19shuL4Y=;
+	h=Date:To:From:Subject:Message-Id; b=VRtl6+KfsBxCNn8tBUWKIzv0mBhASanfdde1iH6+WMl1FhQ+o9CcvFA0ALSq/KXSSH6bvw1Jn9e+l/X98Pgro4O49xKuVoCUHTxDSqA8/hIANoiQfNVnNFXTG9r6iHjRyOlwFZB/K495j6KD8T+iY5B+ThnW9XTP+O1z1i2x5ug=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xphdffWI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P0bWSuyT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA1F1C433C7;
-	Sun, 18 Feb 2024 21:22:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xphdffWI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A027C433C7;
+	Sun, 18 Feb 2024 21:27:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708291338;
-	bh=PxkDHn+NauHmUm34KZrf/JMYIECpQJO07LTgBNCT270=;
+	s=korg; t=1708291664;
+	bh=Gq5NMZq/kf7OGmLPzR+DvjoNOzOZlW3aetl19shuL4Y=;
 	h=Date:To:From:Subject:From;
-	b=P0bWSuyT8Sba05cH0RKv9oC8GJSSSX8gggG55QHfpic6+4OtHFWPFH+rG/Gd4DQwC
-	 MLfiyRmbgFx0aR2dVFakvHFcpE4fNkXwzV7U6QXPFykN3KrZHk03Zt+/SSbqcBhIRT
-	 BfLve1dB22xmQ292oAXA7wCGLGNHYm+i7BGGJpLs=
-Date: Sun, 18 Feb 2024 13:22:17 -0800
-To: mm-commits@vger.kernel.org,suxiaoyi@huawei.com,mcgrof@kernel.org,echanude@redhat.com,changbin.du@huawei.com,akpm@linux-foundation.org
+	b=xphdffWI5GBwbk2ZwwjVDUQzBkUTiig/hhbR5l4oyfAR0OYBQVN/4pWOspKrKwj+m
+	 0nMdGss8uHzKsE6v1d9Vxs9JQnbMOyVCM6/A6qTwTVoMqs6R2lRz+c6C7D5+kbZa0r
+	 FnQDMKY/2bVXXfjNz9SS1KrAlkZLirHmm7WI0d5w=
+Date: Sun, 18 Feb 2024 13:27:43 -0800
+To: mm-commits@vger.kernel.org,joe@perches.com,gregkh@linuxfoundation.org,ricardo@marliere.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + modules-wait-do_free_init-correctly-v3.patch added to mm-unstable branch
-Message-Id: <20240218212217.EA1F1C433C7@smtp.kernel.org>
+Subject: + const_structscheckpatch-add-device_type.patch added to mm-nonmm-unstable branch
+Message-Id: <20240218212744.3A027C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: modules: wait do_free_init correctly
-has been added to the -mm mm-unstable branch.  Its filename is
-     modules-wait-do_free_init-correctly-v3.patch
+     Subject: const_structs.checkpatch: add device_type
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     const_structscheckpatch-add-device_type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/modules-wait-do_free_init-correctly-v3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/const_structscheckpatch-add-device_type.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,41 +58,39 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Changbin Du <changbin.du@huawei.com>
-Subject: modules: wait do_free_init correctly
-Date: Sat, 17 Feb 2024 16:18:10 +0800
+From: "Ricardo B. Marliere" <ricardo@marliere.net>
+Subject: const_structs.checkpatch: add device_type
+Date: Sun, 18 Feb 2024 16:25:51 -0300
 
-amend comment in do_init_module() and update commit msg
+Since commit aed65af1cc2f ("drivers: make device_type const"), the driver
+core can properly handle constant struct device_type.  Make sure that new
+usages of the struct already enter the tree as const.
 
-Link: https://lkml.kernel.org/r/20240217081810.4155871-1-changbin.du@huawei.com
-Fixes: 1a7b7d922081 ("modules: Use vmalloc special flag")
-Signed-off-by: Changbin Du <changbin.du@huawei.com>
-Tested-by: Eric Chanudet <echanude@redhat.com>
-Cc: Xiaoyi Su <suxiaoyi@huawei.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
+Link: https://lkml.kernel.org/r/20240218-device_cleanup-checkpatch-v1-1-8b0b89c4f6b1@marliere.net
+Signed-off-by: Ricardo B. Marliere <ricardo@marliere.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module/main.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/const_structs.checkpatch |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/kernel/module/main.c~modules-wait-do_free_init-correctly-v3
-+++ a/kernel/module/main.c
-@@ -2598,8 +2598,8 @@ static noinline int do_init_module(struc
- 	 * Note that module_alloc() on most architectures creates W+X page
- 	 * mappings which won't be cleaned up until do_free_init() runs.  Any
- 	 * code such as mark_rodata_ro() which depends on those mappings to
--	 * be cleaned up needs to sync with the queued work - ie
--	 * rcu_barrier()
-+	 * be cleaned up needs to sync with the queued work by invoking
-+	 * flush_module_init_free_work().
- 	 */
- 	if (llist_add(&freeinit->node, &init_free_list))
- 		schedule_work(&init_free_wq);
+--- a/scripts/const_structs.checkpatch~const_structscheckpatch-add-device_type
++++ a/scripts/const_structs.checkpatch
+@@ -8,6 +8,7 @@ comedi_lrange
+ component_ops
+ dentry_operations
+ dev_pm_ops
++device_type
+ dma_map_ops
+ driver_info
+ drm_connector_funcs
 _
 
-Patches currently in -mm which might be from changbin.du@huawei.com are
+Patches currently in -mm which might be from ricardo@marliere.net are
 
-modules-wait-do_free_init-correctly.patch
-modules-wait-do_free_init-correctly-v3.patch
+memory-tier-make-memory_tier_subsys-const.patch
+const_structscheckpatch-add-bus_type.patch
+const_structscheckpatch-add-device_type.patch
 
