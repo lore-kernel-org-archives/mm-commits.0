@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70F67DDA3
-	for <mm-commits@vger.kernel.org>; Fri, 16 Feb 2024 01:35:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B13251D689
+	for <mm-commits@vger.kernel.org>; Sun, 18 Feb 2024 21:12:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708047334; cv=none; b=nkNVM2qgBHIYPJH+gwAJI1Uz5aXrFjBzq2CNPoCCPvkIWEYCRPCgLoyGinuLuQTWNVeCPeRR/0v5BEvaM4b3JQ62OJ5ue9a+kczWEtQXj4wc94jVApu2D6c47hKk4OybAjqB2WkGYEfBOu1rhsUrP90f/yE7rb7lznPq6gAX47c=
+	t=1708290778; cv=none; b=la3GR1lEsBXm2QEdi6pDfLDbWcxTSemEW1y4doXfKBFAhdOya0yNLRYyJjK94ptMqlmqEXzYwMT7YWEHDawOWttEK1XEtirygwvjAk0KmrYDthjZC+gM3WJkSJnUo2SLdJrWtghVY1sm8X1ubv2FdT660AgDI+uUe0l0S8uc/mQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708047334; c=relaxed/simple;
-	bh=OjJhaCYo/Cu7tRT3A9la21TKTRo2/7K0jVC9bVYZAMs=;
-	h=Date:To:From:Subject:Message-Id; b=MrWVbknl12lbbWkTL0JmIC1fvWjQlbB1PSnEQxfYPfxipF6DeNvaB52suWLQvPk90OztWc/Rv58Nwt6TriIS2ANhjQLQ+ScmNA7DXtJawxJ/pkrqn6GjvbtcUCdrVnAMQY6AeD9OmjnfdT4hzZ72XsY089Ui/ZOWNfPBAQd2RkQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iY2H5gPD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708290778; c=relaxed/simple;
+	bh=yWeP0ptw1O3BqVRiXbQqBsdxfGdckiXpP8rFw39eMTM=;
+	h=Date:To:From:Subject:Message-Id; b=IhOfEUhEWGNCSsGHtvTu8gAlsV292T8p7PKvmkU8ktIq6DMrchRj87JHm5mFrAKJRTRzK/3URGYEMWc4Z6tmnSqXrXE1Ue1TdLM9e4k+ybr9EurCtpw+j4CIDQDzR89Z0AavAiIgjR2GZ50RXSbmfFoADEOxqv0GBkQDCULh/vU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uYypJ9hs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iY2H5gPD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4354C433F1;
-	Fri, 16 Feb 2024 01:35:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uYypJ9hs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17DE4C433F1;
+	Sun, 18 Feb 2024 21:12:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708047333;
-	bh=OjJhaCYo/Cu7tRT3A9la21TKTRo2/7K0jVC9bVYZAMs=;
+	s=korg; t=1708290778;
+	bh=yWeP0ptw1O3BqVRiXbQqBsdxfGdckiXpP8rFw39eMTM=;
 	h=Date:To:From:Subject:From;
-	b=iY2H5gPDUFiJtXrrBLJmXZqOqdnBVRlrzhWrf1OtOerQfZnT4B/1S9npCJp4AvJup
-	 SIMjNtu6FVelzT0tXqV3s+UL2R5uO7b9e/HVGDo+CyWWD2zgMNcEczGUP1FvEvtzvk
-	 FNQo939INPT4yc+wAAXK3e6YWpCrnIif8AYirVuE=
-Date: Thu, 15 Feb 2024 17:35:33 -0800
-To: mm-commits@vger.kernel.org,yang.lee@linux.alibaba.com,viro@zeniv.linux.org.uk,sfr@canb.auug.org.au,piliu@redhat.com,nathan@kernel.org,mhklinux@outlook.com,klarasmodin@gmail.com,hbathini@linux.ibm.com,ebiederm@xmission.com,bhe@redhat.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=uYypJ9hsvee2kYrwZWmEsQ5M9FzPEvmAnhyrZQUBfbwyproukJHWWcdDv5XvyR7er
+	 061OY/zAsst2ioz/DwAhORWwnxiWHW1iCDG0l+u2i7qTRg2+eEAEhkLgE05H9/6OqX
+	 5eOYo9lIFyeVZ90zRXC4tz1Mq/UsTXwlq5/J91D0=
+Date: Sun, 18 Feb 2024 13:12:56 -0800
+To: mm-commits@vger.kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc-fix.patch added to mm-unstable branch
-Message-Id: <20240216013533.D4354C433F1@smtp.kernel.org>
+Subject: + docs-mm-damon-maintainer-profile-fix-reference-links-for-mm-stable-tree.patch added to mm-unstable branch
+Message-Id: <20240218211258.17DE4C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc-fix
+     Subject: Docs/mm/damon/maintainer-profile: fix reference links for mm-[un]stable tree
 has been added to the -mm mm-unstable branch.  Its filename is
-     arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc-fix.patch
+     docs-mm-damon-maintainer-profile-fix-reference-links-for-mm-stable-tree.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-maintainer-profile-fix-reference-links-for-mm-stable-tree.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,64 +58,82 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc-fix
-Date: Thu Feb 15 05:33:42 PM PST 2024
+From: SeongJae Park <sj@kernel.org>
+Subject: Docs/mm/damon/maintainer-profile: fix reference links for mm-[un]stable tree
+Date: Fri, 16 Feb 2024 16:58:38 -0800
 
-remove stray newlines at eof
+Patch series "Docs/mm/damon: misc readability improvements".
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Hari Bathini <hbathini@linux.ibm.com>
-Cc: Klara Modin <klarasmodin@gmail.com>
-Cc: Michael Kelley <mhklinux@outlook.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Pingfan Liu <piliu@redhat.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Yang Li <yang.lee@linux.alibaba.com>
+Fix trivial mistakes and improve layout of information on different
+documents for DAMON.
+
+
+This patch (of 5):
+
+A couple of sentences on maintainer-profile.rst are having reference links
+for mm-unstable and mm-stable trees with wrong rst markup.  Fix those.
+
+Link: https://lkml.kernel.org/r/20240217005842.87348-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240217005842.87348-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kexec/vmcore_info.c |    2 --
- arch/s390/kernel/vmcore_info.c   |    2 --
- arch/sh/kernel/vmcore_info.c     |    2 --
- 3 files changed, 6 deletions(-)
+ Documentation/mm/damon/maintainer-profile.rst |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/arch/powerpc/kexec/vmcore_info.c~arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc-fix
-+++ a/arch/powerpc/kexec/vmcore_info.c
-@@ -30,5 +30,3 @@ void arch_crash_save_vmcoreinfo(void)
- 	vmcoreinfo_append_str("NUMBER(RADIX_MMU)=%d\n", early_radix_enabled());
- 	vmcoreinfo_append_str("KERNELOFFSET=%lx\n", kaslr_offset());
- }
--
--
---- a/arch/s390/kernel/vmcore_info.c~arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc-fix
-+++ a/arch/s390/kernel/vmcore_info.c
-@@ -19,5 +19,3 @@ void arch_crash_save_vmcoreinfo(void)
- 	abs_lc->vmcore_info = paddr_vmcoreinfo_note();
- 	put_abs_lowcore(abs_lc);
- }
--
--
---- a/arch/sh/kernel/vmcore_info.c~arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc-fix
-+++ a/arch/sh/kernel/vmcore_info.c
-@@ -13,5 +13,3 @@ void arch_crash_save_vmcoreinfo(void)
- 	VMCOREINFO_CONFIG(X2TLB);
- #endif
- }
--
--
+--- a/Documentation/mm/damon/maintainer-profile.rst~docs-mm-damon-maintainer-profile-fix-reference-links-for-mm-stable-tree
++++ a/Documentation/mm/damon/maintainer-profile.rst
+@@ -21,8 +21,8 @@ be queued in mm-stable [3]_ , and finall
+ memory management subsystem maintainer.
+ 
+ Note again the patches for review should be made against the mm-unstable
+-tree[1] whenever possible.  damon/next is only for preview of others' works in
+-progress.
++tree [1]_ whenever possible.  damon/next is only for preview of others' works
++in progress.
+ 
+ Submit checklist addendum
+ -------------------------
+@@ -41,8 +41,8 @@ Further doing below and putting the resu
+ Key cycle dates
+ ---------------
+ 
+-Patches can be sent anytime.  Key cycle dates of the mm-unstable[1] and
+-mm-stable[3] trees depend on the memory management subsystem maintainer.
++Patches can be sent anytime.  Key cycle dates of the mm-unstable [1]_ and
++mm-stable [3]_ trees depend on the memory management subsystem maintainer.
+ 
+ Review cadence
+ --------------
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-kexec-split-crashkernel-reservation-code-out-from-crash_corec-fix.patch
-arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc-fix.patch
-mm-memory_hotplug-export-mhp_supports_memmap_on_memory-fix.patch
-mm-damon-dbgfs-make-debugfs-interface-deprecation-message-a-macro-fix.patch
-mm-ptdump-have-ptdump_check_wx-return-bool-fix.patch
-mm-compaction-update-the-cc-nr_migratepages-when-allocating-or-freeing-the-freepages-fix.patch
-kprobes-use-synchronize_rcu_tasks_rude-in-kprobe_optimizer-fix.patch
-panic-add-option-to-dump-blocked-tasks-in-panic_print-fix.patch
+mm-damon-core-check-apply-interval-in-damon_do_apply_schemes.patch
+mm-damon-sysfs-schemes-handle-schemes-sysfs-dir-removal-before-commit_schemes_quota_goals.patch
+docs-admin-guide-mm-damon-usage-use-sysfs-interface-for-tracepoints-example.patch
+mm-damon-rename-config_damon_dbgfs-to-damon_dbgfs_deprecated.patch
+mm-damon-dbgfs-implement-deprecation-notice-file.patch
+mm-damon-dbgfs-make-debugfs-interface-deprecation-message-a-macro.patch
+docs-admin-guide-mm-damon-usage-document-deprecated-file-of-damon-debugfs-interface.patch
+selftets-damon-prepare-for-monitor_on-file-renaming.patch
+mm-damon-dbgfs-rename-monitor_on-file-to-monitor_on_deprecated.patch
+docs-admin-guide-mm-damon-usage-update-for-monitor_on-renaming.patch
+docs-translations-damon-usage-update-for-monitor_on-renaming.patch
+mm-damon-sysfs-handle-state-file-inputs-for-every-sampling-interval-if-possible.patch
+selftests-damon-_damon_sysfs-support-damos-quota.patch
+selftests-damon-_damon_sysfs-support-damos-stats.patch
+selftests-damon-_damon_sysfs-support-damos-apply-interval.patch
+selftests-damon-add-a-test-for-damos-quota.patch
+selftests-damon-add-a-test-for-damos-apply-intervals.patch
+selftests-damon-add-a-test-for-a-race-between-target_ids_read-and-dbgfs_before_terminate.patch
+selftests-damon-add-a-test-for-the-pid-leak-of-dbgfs_target_ids_write.patch
+selftests-damon-_chk_dependency-get-debugfs-mount-point-from-proc-mounts.patch
+docs-mm-damon-maintainer-profile-fix-reference-links-for-mm-stable-tree.patch
+docs-mm-damon-move-the-list-of-damos-actions-to-design-doc.patch
+docs-mm-damon-move-damon-operation-sets-list-from-the-usage-to-the-design-document.patch
+docs-mm-damon-move-monitoring-target-regions-setup-detail-from-the-usage-to-the-design-document.patch
+docs-admin-guide-mm-damon-usage-fix-wrong-quotas-diabling-condition.patch
 
