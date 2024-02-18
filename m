@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47C4FEAD3
-	for <mm-commits@vger.kernel.org>; Sun, 18 Feb 2024 23:04:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D01EEAD3
+	for <mm-commits@vger.kernel.org>; Sun, 18 Feb 2024 23:04:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708297484; cv=none; b=B0dpuSksog4GZytr6pNacce7LvdHmsU0uPFL1QYYou3z+/Xt/ZMuUwrAwxsKYFXEYywm1jCeugCxyxxzR5SITjVa0yoq1Vmw5ShmoiLrlasqlBf9ZafiVR39a4Yu06l2c4JtFFfmRinDFmGDvTw2E0gs4UFRnr7moo6GZ8yMJGQ=
+	t=1708297486; cv=none; b=Bl7dCsFcKMbdrIRW1MBJW7nqeIBHfPoFqklhyjvdAobcqVccclJOuKTePrYRtSlHiaxMA18mz5Ck2fB6rxocx8Q1hdNKi8xtP2N+vZgTcy7RhmyBG/7v2zrUkDEzicXTDeb0pB7EKNbuEklL9JjBO0baVS+bOpAmDSnXMq1/JHo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708297484; c=relaxed/simple;
-	bh=/2f3An1+mRCHKzpwIs95J1V0leGVjjPgHXahjmSWO4Q=;
-	h=Date:To:From:Subject:Message-Id; b=IYJFwiPVwnWUgPvj4U3kUwJFheCFNkfTL7KcC4XDyhYFiuhH4L9iozGpkHlf2RwEVLAmkxIIZWE3w6JcEOcX+RDKo49sT6JT+qjaOZs9c/XcJB55xHegzGoeh7K5ftzUgVziIwLukb+WTX3Vd6MkzUfbTV0C13ic3U3XBp+QWcg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vkWKvvpf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708297486; c=relaxed/simple;
+	bh=ZcQ1cO+Dd1htncmF6gYOmZYce0qnHrl0/Twmvh5LMTU=;
+	h=Date:To:From:Subject:Message-Id; b=EApLunsXTc3Gi7O0kfTcV3ygF5lGIKzKFszesgtW5h29d+ZIyaOq7lljGen+1fbq9A+y9QZCyaoJdSSeFATOQmMFFNtt6gvMJ7o+cBZ2pUcugl5DGel2fwiBoNNat5hs+I9uqPN/081M1s6MA0hN6azdpDYxtCWIStfBymVqBeI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nlE7SrKW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vkWKvvpf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD257C433C7;
-	Sun, 18 Feb 2024 23:04:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nlE7SrKW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1233C433F1;
+	Sun, 18 Feb 2024 23:04:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708297483;
-	bh=/2f3An1+mRCHKzpwIs95J1V0leGVjjPgHXahjmSWO4Q=;
+	s=korg; t=1708297485;
+	bh=ZcQ1cO+Dd1htncmF6gYOmZYce0qnHrl0/Twmvh5LMTU=;
 	h=Date:To:From:Subject:From;
-	b=vkWKvvpfk+zOzu1RVZcPKwksPjsn8Bz6m2Xz8j7bVG4uCyWMEAgIYWOyNQkh8ewhW
-	 ImpfpxvbNXN/BzUqy/oZ7cpzMLN2dxlcYJ4dlDaOPzm17zWneDVjdZAs9a2qkpwAap
-	 QJH8TeisMX3NuttAIRPvgLQWT1NzX7KEkig4iAJ4=
-Date: Sun, 18 Feb 2024 15:04:43 -0800
+	b=nlE7SrKWvum0EZHzv1jjZbn+TXfm2A2aNdWpddSUsL3X+s+WZXgB2K05bDl+7WVE8
+	 SzPuRaHWxtIIi8ZVyNfB5VbOHT89MwXf41Djbp+mvYbYYb5srCes5zwnn7mqVvWUIG
+	 CutQvHRAxBMbgdUqnBu9o91v+urK/MrN2BcKVGIg=
+Date: Sun, 18 Feb 2024 15:04:45 -0800
 To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,yosryahmed@google.com,vitaly.wool@konsulko.com,sjenning@redhat.com,nphamcs@gmail.com,herbert@gondor.apana.org.au,hannes@cmpxchg.org,ddstreet@ieee.org,davem@davemloft.net,chrisl@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-remove-the-memcpy-if-acomp-is-not-sleepable.patch added to mm-unstable branch
-Message-Id: <20240218230443.BD257C433C7@smtp.kernel.org>
+Subject: + crypto-scompress-remove-memcpy-if-sg_nents-is-1.patch added to mm-unstable branch
+Message-Id: <20240218230445.B1233C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zswap: remove the memcpy if acomp is not sleepable
+     Subject: crypto: scompress: remove memcpy if sg_nents is 1
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-remove-the-memcpy-if-acomp-is-not-sleepable.patch
+     crypto-scompress-remove-memcpy-if-sg_nents-is-1.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-remove-the-memcpy-if-acomp-is-not-sleepable.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crypto-scompress-remove-memcpy-if-sg_nents-is-1.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,67 +59,93 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Barry Song <v-songbaohua@oppo.com>
-Subject: mm/zswap: remove the memcpy if acomp is not sleepable
-Date: Sat, 17 Feb 2024 17:51:01 +1300
+Subject: crypto: scompress: remove memcpy if sg_nents is 1
+Date: Sat, 17 Feb 2024 17:51:02 +1300
 
-Most compressors are actually CPU-based and won't sleep during compression
-and decompression.  We should remove the redundant memcpy for them.
+while sg_nents is 1 which is always true for the current kernel as the
+only user - zswap is the case, we should remove two big memcpy.
 
-Link: https://lkml.kernel.org/r/20240217045102.55339-3-21cnbao@gmail.com
+Link: https://lkml.kernel.org/r/20240217045102.55339-4-21cnbao@gmail.com
 Signed-off-by: Barry Song <v-songbaohua@oppo.com>
 Tested-by: Chengming Zhou <zhouchengming@bytedance.com>
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
-Acked-by: Yosry Ahmed <yosryahmed@google.com>
-Reviewed-by: Chengming Zhou <zhouchengming@bytedance.com>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: Dan Streetman <ddstreet@ieee.org>
 Cc: David S. Miller <davem@davemloft.net>
 Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Seth Jennings <sjenning@redhat.com>
 Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ crypto/scompress.c |   36 +++++++++++++++++++++++++++++-------
+ 1 file changed, 29 insertions(+), 7 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-remove-the-memcpy-if-acomp-is-not-sleepable
-+++ a/mm/zswap.c
-@@ -162,6 +162,7 @@ struct crypto_acomp_ctx {
- 	struct crypto_wait wait;
- 	u8 *buffer;
- 	struct mutex mutex;
-+	bool is_sleepable;
- };
+--- a/crypto/scompress.c~crypto-scompress-remove-memcpy-if-sg_nents-is-1
++++ a/crypto/scompress.c
+@@ -117,6 +117,7 @@ static int scomp_acomp_comp_decomp(struc
+ 	struct crypto_scomp *scomp = *tfm_ctx;
+ 	void **ctx = acomp_request_ctx(req);
+ 	struct scomp_scratch *scratch;
++	void *src, *dst;
+ 	unsigned int dlen;
+ 	int ret;
  
- /*
-@@ -973,6 +974,7 @@ static int zswap_cpu_comp_prepare(unsign
- 		goto acomp_fail;
+@@ -134,13 +135,25 @@ static int scomp_acomp_comp_decomp(struc
+ 	scratch = raw_cpu_ptr(&scomp_scratch);
+ 	spin_lock(&scratch->lock);
+ 
+-	scatterwalk_map_and_copy(scratch->src, req->src, 0, req->slen, 0);
++	if (sg_nents(req->src) == 1) {
++		src = kmap_local_page(sg_page(req->src)) + req->src->offset;
++	} else {
++		scatterwalk_map_and_copy(scratch->src, req->src, 0,
++					 req->slen, 0);
++		src = scratch->src;
++	}
++
++	if (req->dst && sg_nents(req->dst) == 1)
++		dst = kmap_local_page(sg_page(req->dst)) + req->dst->offset;
++	else
++		dst = scratch->dst;
++
+ 	if (dir)
+-		ret = crypto_scomp_compress(scomp, scratch->src, req->slen,
+-					    scratch->dst, &req->dlen, *ctx);
++		ret = crypto_scomp_compress(scomp, src, req->slen,
++					    dst, &req->dlen, *ctx);
+ 	else
+-		ret = crypto_scomp_decompress(scomp, scratch->src, req->slen,
+-					      scratch->dst, &req->dlen, *ctx);
++		ret = crypto_scomp_decompress(scomp, src, req->slen,
++					      dst, &req->dlen, *ctx);
+ 	if (!ret) {
+ 		if (!req->dst) {
+ 			req->dst = sgl_alloc(req->dlen, GFP_ATOMIC, NULL);
+@@ -152,10 +165,19 @@ static int scomp_acomp_comp_decomp(struc
+ 			ret = -ENOSPC;
+ 			goto out;
+ 		}
+-		scatterwalk_map_and_copy(scratch->dst, req->dst, 0, req->dlen,
+-					 1);
++		if (dst == scratch->dst) {
++			scatterwalk_map_and_copy(scratch->dst, req->dst, 0,
++						 req->dlen, 1);
++		} else {
++			flush_dcache_page(sg_page(req->dst));
++		}
  	}
- 	acomp_ctx->acomp = acomp;
-+	acomp_ctx->is_sleepable = acomp_is_sleepable(acomp);
- 
- 	req = acomp_request_alloc(acomp_ctx->acomp);
- 	if (!req) {
-@@ -1101,7 +1103,7 @@ static void zswap_decompress(struct zswa
- 	mutex_lock(&acomp_ctx->mutex);
- 
- 	src = zpool_map_handle(zpool, entry->handle, ZPOOL_MM_RO);
--	if (!zpool_can_sleep_mapped(zpool)) {
-+	if (acomp_ctx->is_sleepable && !zpool_can_sleep_mapped(zpool)) {
- 		memcpy(acomp_ctx->buffer, src, entry->length);
- 		src = acomp_ctx->buffer;
- 		zpool_unmap_handle(zpool, entry->handle);
-@@ -1115,7 +1117,7 @@ static void zswap_decompress(struct zswa
- 	BUG_ON(acomp_ctx->req->dlen != PAGE_SIZE);
- 	mutex_unlock(&acomp_ctx->mutex);
- 
--	if (zpool_can_sleep_mapped(zpool))
-+	if (!acomp_ctx->is_sleepable || zpool_can_sleep_mapped(zpool))
- 		zpool_unmap_handle(zpool, entry->handle);
+ out:
++	if (src != scratch->src)
++		kunmap_local(src);
++	if (dst != scratch->dst)
++		kunmap_local(dst);
++
+ 	spin_unlock(&scratch->lock);
+ 	return ret;
  }
- 
 _
 
 Patches currently in -mm which might be from v-songbaohua@oppo.com are
