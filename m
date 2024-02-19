@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA62A5467B
-	for <mm-commits@vger.kernel.org>; Mon, 19 Feb 2024 22:02:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6896D50A98
+	for <mm-commits@vger.kernel.org>; Mon, 19 Feb 2024 23:51:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708380152; cv=none; b=p1wOJqruDEQPP+TC43CmzLv5t8q+4XSv5GGSXa3E7fQS2toO7Uj2CuU9lBKXAbIHHiVJi+o3NZRoNPYVSB0/JwrtGP9C0m1CMSX+R44puEnZICwyHnZ9bH1IWMAVwxKNEfX5fUSUTyZsyjnLXvBvrp7RgJhzR4aPcYZMmXKe/Eo=
+	t=1708386716; cv=none; b=c3EaGHtsqPEcdM9KWrLD/5zrL8Gs3RVH1HeP+UKdu+x5v6mz1+3/v/m/N+j1TmfNxz2gBok8ZLvc8LaJrmjuZHZt8XL7JWEPsXihMXI6hKsEF5hzCE1SzyRidqERH3HEsH5DVEWsLV+21AxkOUmcx+vz2hdg0PuDByP0wrhzmw8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708380152; c=relaxed/simple;
-	bh=2y9rw8ZqR8sJLo8gQIOoINu7Z8BUO3CDJjusbwp8DXQ=;
-	h=Date:To:From:Subject:Message-Id; b=PruGo2QADCxLaOrDNE3KJmYFSrZ+A473kh3UF4GkfCzwi/vy1sbm8WT/tl2m78QcuoG3QVdhT/67YjveWbMOTR/pNurdSlVxCpBpcq3e1WJxiNBgr5aSk6iwD3nUtS2DWR/ORaKX4oKLJ4qzq2s8cYlh3xQpStYZsBcWfw+meLM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v3irUnxT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708386716; c=relaxed/simple;
+	bh=wl+wmvfZ1ZYmtyTz3BOC2CGX45X6X6QBEacFJ0l5rdk=;
+	h=Date:To:From:Subject:Message-Id; b=NVpMB4iY3JjDpVGpjju9aiNm8SeeuJ6NR619+OpT0fQ0Gpi5GX2lYbBkNLaFwmyy/cGG8s0Hh9hqKp5rlZIoIU+vrfHHSNpzLk9cTwZ2c4x0Bn56/kvoIsqmqfZT56r8OeIPc42j4PugM9fKMA8BY4Ep7kMLcRgnyBE86yjCd8Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n5B1pTH0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v3irUnxT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D7E1C433C7;
-	Mon, 19 Feb 2024 22:02:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n5B1pTH0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8756C433F1;
+	Mon, 19 Feb 2024 23:51:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708380152;
-	bh=2y9rw8ZqR8sJLo8gQIOoINu7Z8BUO3CDJjusbwp8DXQ=;
+	s=korg; t=1708386715;
+	bh=wl+wmvfZ1ZYmtyTz3BOC2CGX45X6X6QBEacFJ0l5rdk=;
 	h=Date:To:From:Subject:From;
-	b=v3irUnxTIGH5hpNc6u6vWHGQp8q+kSbjmoIcIXQCXIFyj+wDx3ISi783GRycFIV0w
-	 JPjc7H9cDP+BEWbigbhkvSE3i3jbYIIaztRwxTDhShL64k5waqzyTgOGfIVMvVMauX
-	 FTVyOsZAP8LmhZNmszB0MJ36IqHgINrH8BgFnw8M=
-Date: Mon, 19 Feb 2024 14:02:31 -0800
-To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,yosryahmed@google.com,vitaly.wool@konsulko.com,sjenning@redhat.com,nphamcs@gmail.com,herbert@gondor.apana.org.au,hannes@cmpxchg.org,ddstreet@ieee.org,davem@davemloft.net,chrisl@kernel.org,v-songbaohua@oppo.com,akpm@linux-foundation.org
+	b=n5B1pTH0dJIYWgCQKR51ux8Zc5e87hxCbB3w6UY4yRQozBCxPhObP3xiEkbqzA36y
+	 a7MUtU+3M/IIPKF9mQUJ+rIKinkEOFOALFg+fnImO+N5Q9Fzyi7Ekmc8s4CiuCuzYg
+	 R42KqktDruenWPK4ZOagUkX+RaCLEzrJ22uuYFa4=
+Date: Mon, 19 Feb 2024 15:51:55 -0800
+To: mm-commits@vger.kernel.org,zhouchengming@bytedance.com,yosryahmed@google.com,senozhatsky@chromium.org,nphamcs@gmail.com,v-songbaohua@oppo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] crypto-scompress-remove-memcpy-if-sg_nents-is-1.patch removed from -mm tree
-Message-Id: <20240219220232.3D7E1C433C7@smtp.kernel.org>
+Subject: + mm-zswap-increase-reject_compress_poor-but-not-reject_compress_fail-if-compression-returns-enospc.patch added to mm-unstable branch
+Message-Id: <20240219235155.D8756C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,105 +34,125 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: crypto: scompress: remove memcpy if sg_nents is 1
-has been removed from the -mm tree.  Its filename was
-     crypto-scompress-remove-memcpy-if-sg_nents-is-1.patch
+The patch titled
+     Subject: mm: zswap: increase reject_compress_poor but not reject_compress_fail if compression returns ENOSPC
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-zswap-increase-reject_compress_poor-but-not-reject_compress_fail-if-compression-returns-enospc.patch
 
-This patch was dropped because an updated version will be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-increase-reject_compress_poor-but-not-reject_compress_fail-if-compression-returns-enospc.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via the mm-everything
+branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Barry Song <v-songbaohua@oppo.com>
-Subject: crypto: scompress: remove memcpy if sg_nents is 1
-Date: Sat, 17 Feb 2024 17:51:02 +1300
+Subject: mm: zswap: increase reject_compress_poor but not reject_compress_fail if compression returns ENOSPC
+Date: Tue, 20 Feb 2024 10:19:35 +1300
 
-while sg_nents is 1 which is always true for the current kernel as the
-only user - zswap is the case, we should remove two big memcpy.
+We used to rely on the returned -ENOSPC of zpool_malloc() to increase
+reject_compress_poor.  But the code wouldn't get to there after commit
+744e1885922a ("crypto: scomp - fix req->dst buffer overflow") as the new
+code will goto out immediately after the special compression case happens.
+So there might be no longer a chance to execute zpool_malloc now.  We are
+incorrectly increasing zswap_reject_compress_fail instead.  Thus, we need
+to fix the counters handling right after compressions return ENOSPC.  This
+patch also centralizes the counters handling for all of compress_poor,
+compress_fail and alloc_fail.
 
-Link: https://lkml.kernel.org/r/20240217045102.55339-4-21cnbao@gmail.com
+Link: https://lkml.kernel.org/r/20240219211935.72394-1-21cnbao@gmail.com
+Fixes: 744e1885922a ("crypto: scomp - fix req->dst buffer overflow")
 Signed-off-by: Barry Song <v-songbaohua@oppo.com>
-Tested-by: Chengming Zhou <zhouchengming@bytedance.com>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
-Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Acked-by: Yosry Ahmed <yosryahmed@google.com>
+Reviewed-by: Chengming Zhou <zhouchengming@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- crypto/scompress.c |   36 +++++++++++++++++++++++++++++-------
- 1 file changed, 29 insertions(+), 7 deletions(-)
+ mm/zswap.c |   27 +++++++++++++--------------
+ 1 file changed, 13 insertions(+), 14 deletions(-)
 
---- a/crypto/scompress.c~crypto-scompress-remove-memcpy-if-sg_nents-is-1
-+++ a/crypto/scompress.c
-@@ -117,6 +117,7 @@ static int scomp_acomp_comp_decomp(struc
- 	struct crypto_scomp *scomp = *tfm_ctx;
- 	void **ctx = acomp_request_ctx(req);
- 	struct scomp_scratch *scratch;
-+	void *src, *dst;
- 	unsigned int dlen;
- 	int ret;
+--- a/mm/zswap.c~mm-zswap-increase-reject_compress_poor-but-not-reject_compress_fail-if-compression-returns-enospc
++++ a/mm/zswap.c
+@@ -1021,12 +1021,12 @@ static bool zswap_compress(struct folio
+ {
+ 	struct crypto_acomp_ctx *acomp_ctx;
+ 	struct scatterlist input, output;
++	int comp_ret = 0, alloc_ret = 0;
+ 	unsigned int dlen = PAGE_SIZE;
+ 	unsigned long handle;
+ 	struct zpool *zpool;
+ 	char *buf;
+ 	gfp_t gfp;
+-	int ret;
+ 	u8 *dst;
  
-@@ -134,13 +135,25 @@ static int scomp_acomp_comp_decomp(struc
- 	scratch = raw_cpu_ptr(&scomp_scratch);
- 	spin_lock(&scratch->lock);
+ 	acomp_ctx = raw_cpu_ptr(entry->pool->acomp_ctx);
+@@ -1057,26 +1057,18 @@ static bool zswap_compress(struct folio
+ 	 * but in different threads running on different cpu, we have different
+ 	 * acomp instance, so multiple threads can do (de)compression in parallel.
+ 	 */
+-	ret = crypto_wait_req(crypto_acomp_compress(acomp_ctx->req), &acomp_ctx->wait);
++	comp_ret = crypto_wait_req(crypto_acomp_compress(acomp_ctx->req), &acomp_ctx->wait);
+ 	dlen = acomp_ctx->req->dlen;
+-	if (ret) {
+-		zswap_reject_compress_fail++;
++	if (comp_ret)
+ 		goto unlock;
+-	}
  
--	scatterwalk_map_and_copy(scratch->src, req->src, 0, req->slen, 0);
-+	if (sg_nents(req->src) == 1) {
-+		src = kmap_local_page(sg_page(req->src)) + req->src->offset;
-+	} else {
-+		scatterwalk_map_and_copy(scratch->src, req->src, 0,
-+					 req->slen, 0);
-+		src = scratch->src;
-+	}
+ 	zpool = zswap_find_zpool(entry);
+ 	gfp = __GFP_NORETRY | __GFP_NOWARN | __GFP_KSWAPD_RECLAIM;
+ 	if (zpool_malloc_support_movable(zpool))
+ 		gfp |= __GFP_HIGHMEM | __GFP_MOVABLE;
+-	ret = zpool_malloc(zpool, dlen, gfp, &handle);
+-	if (ret == -ENOSPC) {
+-		zswap_reject_compress_poor++;
+-		goto unlock;
+-	}
+-	if (ret) {
+-		zswap_reject_alloc_fail++;
++	alloc_ret = zpool_malloc(zpool, dlen, gfp, &handle);
++	if (alloc_ret)
+ 		goto unlock;
+-	}
+ 
+ 	buf = zpool_map_handle(zpool, handle, ZPOOL_MM_WO);
+ 	memcpy(buf, dst, dlen);
+@@ -1086,8 +1078,15 @@ static bool zswap_compress(struct folio
+ 	entry->length = dlen;
+ 
+ unlock:
++	if (comp_ret == -ENOSPC || alloc_ret == -ENOSPC)
++		zswap_reject_compress_poor++;
++	else if (comp_ret)
++		zswap_reject_compress_fail++;
++	else if (alloc_ret)
++		zswap_reject_alloc_fail++;
 +
-+	if (req->dst && sg_nents(req->dst) == 1)
-+		dst = kmap_local_page(sg_page(req->dst)) + req->dst->offset;
-+	else
-+		dst = scratch->dst;
-+
- 	if (dir)
--		ret = crypto_scomp_compress(scomp, scratch->src, req->slen,
--					    scratch->dst, &req->dlen, *ctx);
-+		ret = crypto_scomp_compress(scomp, src, req->slen,
-+					    dst, &req->dlen, *ctx);
- 	else
--		ret = crypto_scomp_decompress(scomp, scratch->src, req->slen,
--					      scratch->dst, &req->dlen, *ctx);
-+		ret = crypto_scomp_decompress(scomp, src, req->slen,
-+					      dst, &req->dlen, *ctx);
- 	if (!ret) {
- 		if (!req->dst) {
- 			req->dst = sgl_alloc(req->dlen, GFP_ATOMIC, NULL);
-@@ -152,10 +165,19 @@ static int scomp_acomp_comp_decomp(struc
- 			ret = -ENOSPC;
- 			goto out;
- 		}
--		scatterwalk_map_and_copy(scratch->dst, req->dst, 0, req->dlen,
--					 1);
-+		if (dst == scratch->dst) {
-+			scatterwalk_map_and_copy(scratch->dst, req->dst, 0,
-+						 req->dlen, 1);
-+		} else {
-+			flush_dcache_page(sg_page(req->dst));
-+		}
- 	}
- out:
-+	if (src != scratch->src)
-+		kunmap_local(src);
-+	if (dst != scratch->dst)
-+		kunmap_local(dst);
-+
- 	spin_unlock(&scratch->lock);
- 	return ret;
+ 	mutex_unlock(&acomp_ctx->mutex);
+-	return ret == 0;
++	return comp_ret == 0 && alloc_ret == 0;
  }
+ 
+ static void zswap_decompress(struct zswap_entry *entry, struct page *page)
 _
 
 Patches currently in -mm which might be from v-songbaohua@oppo.com are
 
 zram-do-not-allocate-physically-contiguous-strm-buffers.patch
+mm-zswap-increase-reject_compress_poor-but-not-reject_compress_fail-if-compression-returns-enospc.patch
 
