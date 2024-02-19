@@ -1,120 +1,267 @@
-Received: from mail-ed1-f50.google.com (mail-ed1-f50.google.com [209.85.208.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97FB0EADB
-	for <mm-commits@vger.kernel.org>; Mon, 19 Feb 2024 08:31:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 184F45472A
+	for <mm-commits@vger.kernel.org>; Mon, 19 Feb 2024 21:59:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708331518; cv=none; b=jx6PuiE75kW916uJ5bjBZ7MOdQjFQcwHlCOc45crf4+Jajtt8keAMvlqc8eDChumMFiw1D4jS8G6jWDfXbn7gmLZLwyAFpA/CINqDm1s4hN51vZcdnN5w3eoVYp4lia9pGFdo7KywnfHSaIREMDB9Ec/Uf2IB8qC5TRDsYWnRoE=
+	t=1708379945; cv=none; b=H/3gLpGClNqXbTCxoX3gG/OjRuwpGPq2vmqtYD05WS8nJps1RTDBmBMx0nrRSkqMTlD8yb/caaHsUzbAl5mKhrxCGK30gB4Wv1GrjfBNgT7Uyd+dug7RTsZskzl29SRfcqWwI4272bKklMllrLWiC9cK4a92Y+m368Vb54yMNDo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708331518; c=relaxed/simple;
-	bh=azzMnpxuyOxwwD9JIbQoonHVz1ujs57sMBFdHa3Fxss=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=eMWcPtkjQqm8jf/OaHR6+GH6AvMKb4JqqdL5J90GJYifAAV5indngBJpD3SjHHvbZs9xYMAqfNzZuiap0DQjcx4cq/BVThJPI/Lx66M9M36E2Dd36jSnOrQBvPWPYmEqxZPZuGwc34OOv4fNYZuR7XaajR2ir2nu7pwSigzId/E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=tCkCMXq4; arc=none smtp.client-ip=209.85.208.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=google.com
+	s=arc-20240116; t=1708379945; c=relaxed/simple;
+	bh=7RNlyXCLwqbzhSp7u2g8w2ut/kQwRBZmpX5BxVZzyzk=;
+	h=Date:To:From:Subject:Message-Id; b=qCp58lTg61z374fen67PBU0YpbeEp8IJavwOpfaDcBg7fR4wRzO4kxsbFrHzNs1FkdthNa0GKwpldxrW403ruo2OnUM3hv8qXYGFEnASLJzjWLquV1Ow698byhvBl7MwRx7vOZwQWZzxVX6gvold9d7V6xTaTjyRcsqb4lVAo14=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Iiw4GJT2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="tCkCMXq4"
-Received: by mail-ed1-f50.google.com with SMTP id 4fb4d7f45d1cf-5611e54a92dso5311712a12.2
-        for <mm-commits@vger.kernel.org>; Mon, 19 Feb 2024 00:31:56 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1708331515; x=1708936315; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=4ReF7ZS4BdM2heVD/O98xwE04+bHW0JzO/v3Zlj/ehw=;
-        b=tCkCMXq4tP3pdpo7kqAZZNnOSm/U8aiHnfZ/YWaaqtfV1ilZokIErPLuGbdXxp0MPs
-         rPLYIv+4pUVtM/DvtHEv14luLitGVwX5X5xzt2dM74dGjkF8uweG7EZsymrq+1/I3HpC
-         IlNmyFYbwVmuFIVCFxeP3i5GxGhQAi4/3XXnPzvaSEl/NWkZmxHyP9P78JlXCnxUnuSj
-         MtmpCkq5AF7+Fv3LhvZT7cyY+yIP+/goDMYeCBUdoqzQKrAQjlO6MYfz/9ouiObmE9vX
-         EZFu86gLSlz4oZrUGzpl9oc4H0vedx+WYv3TcpgVKkBeAR+acC8teCfdUiwrkmYjx2Ml
-         qszQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1708331515; x=1708936315;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=4ReF7ZS4BdM2heVD/O98xwE04+bHW0JzO/v3Zlj/ehw=;
-        b=rbbpVw6mN3RJa80hZhjiCZ8Epevxtbq+rITpmSefLnKJ9Fg5zjqVjI9xc81XFDSBwY
-         bjizhG7UlkahQWPHPSUJDFmEQUdQVabcrvYbKoDgJEN0+M7OvmP22ah7vQp8+fqmruxC
-         a5+W7PdzLi91JXieMcV03xu2betHZyLvvq0KblqViI5Rs2bI8ayCMGQLZZ+Pg+qFV8v7
-         X574z+zlmnby2RUjiICK6RwsNa167M62NLvgxdlR2xqO4kNA2KYet+3WV9AtRv9FBLbK
-         +FRxZIMjWCo5TTdTw2h9g7Lt2iKd5qdUm7bwdqOWtzL7htNMMg7U/MapLsgLJCRz22Eh
-         iqBA==
-X-Forwarded-Encrypted: i=1; AJvYcCXaFAjtFirbGaGMRUH/AMCtHx+U2tj0NcUWzdvU+wjn8jZyxKcxaI9GEqmdqZ2UQAWkH5dvtq7cT+s0AT5lTeTnmo+q+nQOvoh/tA==
-X-Gm-Message-State: AOJu0Yx2DZE2CzYF1BbvCWuW89e3JuGSlVfRfpY6L0htGkDX0EzBozHo
-	niGLro716FIiYXNH9efiEo91hKXgZ4DBqufkfo6bpO7d21X5tcw3B22xqLIM3lfuGu2qbXNLIhX
-	Uvjn2PC+jIMhwpxCVqRScPPo0ehAmpKDDKIwo
-X-Google-Smtp-Source: AGHT+IFM9mBSvKcbxWaPh562fVG0cVrUMKvvvVVaRvv3MzecRuDd78jjni0ScfRZxzbjs+0500gfyc2nWw3pIEMzpgo=
-X-Received: by 2002:a17:906:84f:b0:a3e:6aae:d342 with SMTP id
- f15-20020a170906084f00b00a3e6aaed342mr2096122ejd.47.1708331514654; Mon, 19
- Feb 2024 00:31:54 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Iiw4GJT2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72AD5C433F1;
+	Mon, 19 Feb 2024 21:59:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1708379944;
+	bh=7RNlyXCLwqbzhSp7u2g8w2ut/kQwRBZmpX5BxVZzyzk=;
+	h=Date:To:From:Subject:From;
+	b=Iiw4GJT2usKZV1vIhmSpmHKom4i8Zqq6gcK+frAAMSMoANhayK7qwAc8dacrEQP4g
+	 yoWG6TENIK2vZuhPEUDIuUV4sLchqUs2bFz3dPDGVCFMuigEQ6Ul0rfV2PS/CcNOt8
+	 n4D2rs8Q9rgnZUPEiPCIIP6pP4K126d2TzIXLrhs=
+Date: Mon, 19 Feb 2024 13:59:03 -0800
+To: mm-commits@vger.kernel.org,rostedt@goodmis.org,rdunlap@infradead.org,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [merged] seq_buf-fix-kernel-documentation.patch removed from -mm tree
+Message-Id: <20240219215904.72AD5C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <ZdK4x9J/hhReO6wg@gondor.apana.org.au> <20240219040317.5184-1-v-songbaohua@oppo.com>
- <ZdLW0/cLS0YT6P9E@gondor.apana.org.au>
-In-Reply-To: <ZdLW0/cLS0YT6P9E@gondor.apana.org.au>
-From: Yosry Ahmed <yosryahmed@google.com>
-Date: Mon, 19 Feb 2024 00:31:15 -0800
-Message-ID: <CAJD7tkZ2TF-hFTFBthcdEaxJoojo7rvWRe3vLkfLT4ALgVyygw@mail.gmail.com>
-Subject: Re: + crypto-introduce-acomp_is_sleepable-to-expose-if-comp-drivers-might-sleep.patch
- added to mm-unstable branch
-To: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Barry Song <21cnbao@gmail.com>, akpm@linux-foundation.org, chrisl@kernel.org, 
-	davem@davemloft.net, ddstreet@ieee.org, hannes@cmpxchg.org, 
-	mm-commits@vger.kernel.org, nphamcs@gmail.com, sjenning@redhat.com, 
-	v-songbaohua@oppo.com, vitaly.wool@konsulko.com, zhouchengming@bytedance.com, 
-	wangzhou1@hisilicon.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Sun, Feb 18, 2024 at 8:19=E2=80=AFPM Herbert Xu <herbert@gondor.apana.or=
-g.au> wrote:
->
-> On Mon, Feb 19, 2024 at 05:03:17PM +1300, Barry Song wrote:
-> >
-> > Not Andrew, i wrote a note in cover-letter and said zswap was
-> > the direct user for this patch, so it is good to go through
-> > mm. but it's also fine to go through crypto.
->
-> Even if we decided to export whether an algorithm is sync or not,
-> the approach taken in the patch is not the right way to do it.
->
-> You're exporting an internal data structure and making it available
-> to everyone.
->
-> > But the problem of directly using scomp is that we are losing
-> > the chance to use hardware like intel/qat/qat_common/ and
-> > hisilicon/zip/zip_crypto.c to offload the overhead of
-> > compression/decompression as those drivers have no scomp.
-> > On the other hand, acomp with acomp backend can sometimes
-> > decrease cpu usage especially when PAGE_SIZE is big such
-> > as 64KiB while providing higher performance.
->
-> No I'm talking about using scomp only in the specific case of
-> an unsleepable context.  If you think acomp offload still
-> provides a sufficient benefit in that corner case, please
-> provide the data to back it up.
 
-Zsmalloc is the most commonly used allocator for zswap (and perhaps
-the only one). For zsmalloc, we cannot sleep while we map the
-compressed memory, so we copy it to a temporary buffer. What this
-patchset is trying to do is avoid the need for a buffer if we know the
-compression algorithm won't sleep anyway. This shows noticeable
-improvement in load/store latency.
+The quilt patch titled
+     Subject: seq_buf: fix kernel documentation
+has been removed from the -mm tree.  Its filename was
+     seq_buf-fix-kernel-documentation.patch
 
-So it's not a specific case, we always have an unsleepable context.
-It's just that now we use a buffer all the time to handle the
-possibility of compression being sleepable. It would be nice to only
-use the buffer when necessary. OTOH, we can't just always not use the
-buffer as we would need to drop support for offload devices.
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-Please help guide Barry into the best way to expose this information
-from the acomp API as you see fit, your help is greatly appreciated.
+------------------------------------------------------
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: seq_buf: fix kernel documentation
+Date: Thu, 15 Feb 2024 17:25:06 +0200
 
-Thanks!
+There are plenty of issues with the kernel documentation here:
+  - misspelled word "sequence"
+  - different style of returned value descriptions
+  - missed Return sections
+  - unaligned style of ASCII / NUL-terminated / etc
+  - wrong function references
+
+Fix all these.
+
+Link: https://lkml.kernel.org/r/20240215152506.598340-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/seq_buf.h |   12 ++++++------
+ lib/seq_buf.c           |   35 ++++++++++++++++++-----------------
+ 2 files changed, 24 insertions(+), 23 deletions(-)
+
+--- a/include/linux/seq_buf.h~seq_buf-fix-kernel-documentation
++++ a/include/linux/seq_buf.h
+@@ -10,7 +10,7 @@
+  */
+ 
+ /**
+- * seq_buf - seq buffer structure
++ * struct seq_buf - seq buffer structure
+  * @buffer:	pointer to the buffer
+  * @size:	size of the buffer
+  * @len:	the amount of data inside the buffer
+@@ -77,10 +77,10 @@ static inline unsigned int seq_buf_used(
+ }
+ 
+ /**
+- * seq_buf_str - get %NUL-terminated C string from seq_buf
++ * seq_buf_str - get NUL-terminated C string from seq_buf
+  * @s: the seq_buf handle
+  *
+- * This makes sure that the buffer in @s is nul terminated and
++ * This makes sure that the buffer in @s is NUL-terminated and
+  * safe to read as a string.
+  *
+  * Note, if this is called when the buffer has overflowed, then
+@@ -90,7 +90,7 @@ static inline unsigned int seq_buf_used(
+  * After this function is called, s->buffer is safe to use
+  * in string operations.
+  *
+- * Returns @s->buf after making sure it is terminated.
++ * Returns: @s->buf after making sure it is terminated.
+  */
+ static inline const char *seq_buf_str(struct seq_buf *s)
+ {
+@@ -110,7 +110,7 @@ static inline const char *seq_buf_str(st
+  * @s: the seq_buf handle
+  * @bufp: the beginning of the buffer is stored here
+  *
+- * Return the number of bytes available in the buffer, or zero if
++ * Returns: the number of bytes available in the buffer, or zero if
+  * there's no space.
+  */
+ static inline size_t seq_buf_get_buf(struct seq_buf *s, char **bufp)
+@@ -132,7 +132,7 @@ static inline size_t seq_buf_get_buf(str
+  * @num: the number of bytes to commit
+  *
+  * Commit @num bytes of data written to a buffer previously acquired
+- * by seq_buf_get.  To signal an error condition, or that the data
++ * by seq_buf_get_buf(). To signal an error condition, or that the data
+  * didn't fit in the available space, pass a negative @num value.
+  */
+ static inline void seq_buf_commit(struct seq_buf *s, int num)
+--- a/lib/seq_buf.c~seq_buf-fix-kernel-documentation
++++ a/lib/seq_buf.c
+@@ -22,7 +22,7 @@
+  * @s: the seq_buf descriptor
+  * @len: The length to see if it can fit in the current buffer
+  *
+- * Returns true if there's enough unused space in the seq_buf buffer
++ * Returns: true if there's enough unused space in the seq_buf buffer
+  * to fit the amount of new data according to @len.
+  */
+ static bool seq_buf_can_fit(struct seq_buf *s, size_t len)
+@@ -35,7 +35,7 @@ static bool seq_buf_can_fit(struct seq_b
+  * @m: the seq_file descriptor that is the destination
+  * @s: the seq_buf descriptor that is the source.
+  *
+- * Returns zero on success, non zero otherwise
++ * Returns: zero on success, non-zero otherwise.
+  */
+ int seq_buf_print_seq(struct seq_file *m, struct seq_buf *s)
+ {
+@@ -50,9 +50,9 @@ int seq_buf_print_seq(struct seq_file *m
+  * @fmt: printf format string
+  * @args: va_list of arguments from a printf() type function
+  *
+- * Writes a vnprintf() format into the sequencce buffer.
++ * Writes a vnprintf() format into the sequence buffer.
+  *
+- * Returns zero on success, -1 on overflow.
++ * Returns: zero on success, -1 on overflow.
+  */
+ int seq_buf_vprintf(struct seq_buf *s, const char *fmt, va_list args)
+ {
+@@ -78,7 +78,7 @@ int seq_buf_vprintf(struct seq_buf *s, c
+  *
+  * Writes a printf() format into the sequence buffer.
+  *
+- * Returns zero on success, -1 on overflow.
++ * Returns: zero on success, -1 on overflow.
+  */
+ int seq_buf_printf(struct seq_buf *s, const char *fmt, ...)
+ {
+@@ -94,12 +94,12 @@ int seq_buf_printf(struct seq_buf *s, co
+ EXPORT_SYMBOL_GPL(seq_buf_printf);
+ 
+ /**
+- * seq_buf_do_printk - printk seq_buf line by line
++ * seq_buf_do_printk - printk() seq_buf line by line
+  * @s: seq_buf descriptor
+  * @lvl: printk level
+  *
+  * printk()-s a multi-line sequential buffer line by line. The function
+- * makes sure that the buffer in @s is nul terminated and safe to read
++ * makes sure that the buffer in @s is NUL-terminated and safe to read
+  * as a string.
+  */
+ void seq_buf_do_printk(struct seq_buf *s, const char *lvl)
+@@ -139,7 +139,7 @@ EXPORT_SYMBOL_GPL(seq_buf_do_printk);
+  * This function will take the format and the binary array and finish
+  * the conversion into the ASCII string within the buffer.
+  *
+- * Returns zero on success, -1 on overflow.
++ * Returns: zero on success, -1 on overflow.
+  */
+ int seq_buf_bprintf(struct seq_buf *s, const char *fmt, const u32 *binary)
+ {
+@@ -167,7 +167,7 @@ int seq_buf_bprintf(struct seq_buf *s, c
+  *
+  * Copy a simple string into the sequence buffer.
+  *
+- * Returns zero on success, -1 on overflow
++ * Returns: zero on success, -1 on overflow.
+  */
+ int seq_buf_puts(struct seq_buf *s, const char *str)
+ {
+@@ -196,7 +196,7 @@ EXPORT_SYMBOL_GPL(seq_buf_puts);
+  *
+  * Copy a single character into the sequence buffer.
+  *
+- * Returns zero on success, -1 on overflow
++ * Returns: zero on success, -1 on overflow.
+  */
+ int seq_buf_putc(struct seq_buf *s, unsigned char c)
+ {
+@@ -212,7 +212,7 @@ int seq_buf_putc(struct seq_buf *s, unsi
+ EXPORT_SYMBOL_GPL(seq_buf_putc);
+ 
+ /**
+- * seq_buf_putmem - write raw data into the sequenc buffer
++ * seq_buf_putmem - write raw data into the sequence buffer
+  * @s: seq_buf descriptor
+  * @mem: The raw memory to copy into the buffer
+  * @len: The length of the raw memory to copy (in bytes)
+@@ -221,7 +221,7 @@ EXPORT_SYMBOL_GPL(seq_buf_putc);
+  * buffer and a strcpy() would not work. Using this function allows
+  * for such cases.
+  *
+- * Returns zero on success, -1 on overflow
++ * Returns: zero on success, -1 on overflow.
+  */
+ int seq_buf_putmem(struct seq_buf *s, const void *mem, unsigned int len)
+ {
+@@ -249,7 +249,7 @@ int seq_buf_putmem(struct seq_buf *s, co
+  * raw memory into the buffer it writes its ASCII representation of it
+  * in hex characters.
+  *
+- * Returns zero on success, -1 on overflow
++ * Returns: zero on success, -1 on overflow.
+  */
+ int seq_buf_putmem_hex(struct seq_buf *s, const void *mem,
+ 		       unsigned int len)
+@@ -297,7 +297,7 @@ int seq_buf_putmem_hex(struct seq_buf *s
+  *
+  * Write a path name into the sequence buffer.
+  *
+- * Returns the number of written bytes on success, -1 on overflow
++ * Returns: the number of written bytes on success, -1 on overflow.
+  */
+ int seq_buf_path(struct seq_buf *s, const struct path *path, const char *esc)
+ {
+@@ -332,6 +332,7 @@ int seq_buf_path(struct seq_buf *s, cons
+  * or until it reaches the end of the content in the buffer (@s->len),
+  * whichever comes first.
+  *
++ * Returns:
+  * On success, it returns a positive number of the number of bytes
+  * it copied.
+  *
+@@ -382,11 +383,11 @@ int seq_buf_to_user(struct seq_buf *s, c
+  * linebuf size is maximal length for one line.
+  * 32 * 3 - maximum bytes per line, each printed into 2 chars + 1 for
+  *	separating space
+- * 2 - spaces separating hex dump and ascii representation
+- * 32 - ascii representation
++ * 2 - spaces separating hex dump and ASCII representation
++ * 32 - ASCII representation
+  * 1 - terminating '\0'
+  *
+- * Returns zero on success, -1 on overflow
++ * Returns: zero on success, -1 on overflow.
+  */
+ int seq_buf_hex_dump(struct seq_buf *s, const char *prefix_str, int prefix_type,
+ 		     int rowsize, int groupsize,
+_
+
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+
+dyndbg-replace-kstrdup-strchr-with-kstrdup_and_replace.patch
+
