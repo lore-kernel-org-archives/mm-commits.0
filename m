@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01F40152DF6;
-	Tue, 20 Feb 2024 22:22:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38D5E152DE9;
+	Tue, 20 Feb 2024 22:22:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708467756; cv=none; b=SJlYuLpFDCNaczDFnHjVUM3EZLATKi1CZyq/XhP2c8iqJnGNtAHuh6QHIAZzo9lidYLCqTbiCfPzn8vqgzmXweqsUgbn7r8avfYg0F2CdIF5/ZRCTExflE1OcY283fixPkBP29x6hgK+Xd3tWcl40xhwDaI13z3FIjscTVXzLfQ=
+	t=1708467757; cv=none; b=rrin5udGL/UcQWjfpenuCnvRDASjE5uyoM8+wf10R77dpkuqph/8+XcfwLIXLkv9DU9GiSqxrFV5EdvpC+i5S8EBSDyBRMcEtIuMgxdP7CYYIkMXAc1BKxIaiR8qUccwuhybNEfUF62xJYUYC99XI6SSRpIXFXhZ6EvUGQFWFzo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708467756; c=relaxed/simple;
-	bh=6Q7KKcZBlIEn96wL6vr9T5WboIpbAx5YV9LJ65Lkiaw=;
-	h=Date:To:From:Subject:Message-Id; b=fUn8+l/vJNmmSwKnQEM3d3UXlbsQyDRXWIdDela6y7aLjvJtp9FnL9qXevt9PqQWRqdgnB75Qk/vSAJqh+8QkZiuwm2YCPosLVi7KaZhaZ8tmkTd01cP+Bmwceqy2SUpc8gL5o5F1DzMeiYHD8Iivo8+Q6sCTcDQzRRCgOMhDx4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QcHGmJcs; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708467757; c=relaxed/simple;
+	bh=mosDoT5jLgm3aM6PR+3/toCQ8fPiIYaNWrK1wZM9QCw=;
+	h=Date:To:From:Subject:Message-Id; b=WMlcaLy0WIVR5Pgdm4yFGbXfoSPk5rRYgr573JOJVMbW4KGV1D2W7caH2GSLHNxAkmzf0xZj7NpvsjB1OR/Llro4PCdvKBhHY+Qo1nvZj4KZi8rXXQA4DHEiHGTs8caIxN8qbHp4zBS9gi8bpzF8BufH76TMtO2/cgl5A9uOCrs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uzESttOK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QcHGmJcs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C02FAC43399;
-	Tue, 20 Feb 2024 22:22:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uzESttOK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B69C7C433B1;
+	Tue, 20 Feb 2024 22:22:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708467755;
-	bh=6Q7KKcZBlIEn96wL6vr9T5WboIpbAx5YV9LJ65Lkiaw=;
+	s=korg; t=1708467756;
+	bh=mosDoT5jLgm3aM6PR+3/toCQ8fPiIYaNWrK1wZM9QCw=;
 	h=Date:To:From:Subject:From;
-	b=QcHGmJcsinY744kpNadgT1AgLQkoMT2VIsYASbANvDF9m9OCB6bKTSVMJ/pgzGHMr
-	 icfpIvGLzeUuQl6hdDS0KNprhYRZSfC/BEJYLWrCejzXBj1l+Q64yYilFxDaQ0M+bR
-	 WHBN+Uq8SaUSVkqPuW7xEQ4Z9GDDoZX/Hun3Skwo=
-Date: Tue, 20 Feb 2024 14:22:35 -0800
+	b=uzESttOKw3v+Cm2ClSKxR3kpPKetfCMK63Je/fOg7fPxYUqqHg+BE7TFr7tlurxnV
+	 uRpiBeSR+vHSrAH/oFZTjMXJ0gQZ/YuUTo2Nt0lysZESt7P9pax5TIN2yK+iq0ms8a
+	 xz3NSkaKgpogZ3avSkUSB/w2tmFFyvBjj1bZVMp4=
+Date: Tue, 20 Feb 2024 14:22:36 -0800
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-damon-reclaim-fix-quota-stauts-loss-due-to-online-tunings.patch removed from -mm tree
-Message-Id: <20240220222235.C02FAC43399@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-lru_sort-fix-quota-status-loss-due-to-online-tunings.patch removed from -mm tree
+Message-Id: <20240220222236.B69C7C433B1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,31 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/reclaim: fix quota stauts loss due to online tunings
+     Subject: mm/damon/lru_sort: fix quota status loss due to online tunings
 has been removed from the -mm tree.  Its filename was
-     mm-damon-reclaim-fix-quota-stauts-loss-due-to-online-tunings.patch
+     mm-damon-lru_sort-fix-quota-status-loss-due-to-online-tunings.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/reclaim: fix quota stauts loss due to online tunings
-Date: Fri, 16 Feb 2024 11:40:24 -0800
+Subject: mm/damon/lru_sort: fix quota status loss due to online tunings
+Date: Fri, 16 Feb 2024 11:40:25 -0800
 
-Patch series "mm/damon: fix quota status loss due to online tunings".
-
-DAMON_RECLAIM and DAMON_LRU_SORT is not preserving internal quota status
-when applying new user parameters, and hence could cause temporal quota
-accuracy degradation.  Fix it by preserving the status.
-
-
-This patch (of 2):
-
-For online parameters change, DAMON_RECLAIM creates new scheme based on
-latest values of the parameters and replaces the old scheme with the new
-one.  When creating it, the internal status of the quota of the old
-scheme is not preserved.  As a result, charging of the quota starts from
+For online parameters change, DAMON_LRU_SORT creates new schemes based on
+latest values of the parameters and replaces the old schemes with the new
+one.  When creating it, the internal status of the quotas of the old
+schemes is not preserved.  As a result, charging of the quota starts from
 zero after the online tuning.  The data that collected to estimate the
 throughput of the scheme's action is also reset, and therefore the
 estimation should start from the scratch again.  Because the throughput
@@ -71,24 +62,23 @@ temporarily degraded after online parameters update.
 Fix the problem by checking the case and copying the internal fields for
 the status.
 
-Link: https://lkml.kernel.org/r/20240216194025.9207-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20240216194025.9207-2-sj@kernel.org
-Fixes: e035c280f6df ("mm/damon/reclaim: support online inputs update")
+Link: https://lkml.kernel.org/r/20240216194025.9207-3-sj@kernel.org
+Fixes: 40e983cca927 ("mm/damon: introduce DAMON-based LRU-lists Sorting")
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org>	[5.19+]
+Cc: <stable@vger.kernel.org>	[6.0+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/reclaim.c |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ mm/damon/lru_sort.c |   43 +++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 36 insertions(+), 7 deletions(-)
 
---- a/mm/damon/reclaim.c~mm-damon-reclaim-fix-quota-stauts-loss-due-to-online-tunings
-+++ a/mm/damon/reclaim.c
-@@ -150,9 +150,20 @@ static struct damos *damon_reclaim_new_s
- 			&damon_reclaim_wmarks);
+--- a/mm/damon/lru_sort.c~mm-damon-lru_sort-fix-quota-status-loss-due-to-online-tunings
++++ a/mm/damon/lru_sort.c
+@@ -185,9 +185,21 @@ static struct damos *damon_lru_sort_new_
+ 	return damon_lru_sort_new_scheme(&pattern, DAMOS_LRU_DEPRIO);
  }
  
-+static void damon_reclaim_copy_quota_status(struct damos_quota *dst,
++static void damon_lru_sort_copy_quota_status(struct damos_quota *dst,
 +		struct damos_quota *src)
 +{
 +	dst->total_charged_sz = src->total_charged_sz;
@@ -99,25 +89,56 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	dst->charge_addr_from = src->charge_addr_from;
 +}
 +
- static int damon_reclaim_apply_parameters(void)
+ static int damon_lru_sort_apply_parameters(void)
  {
 -	struct damos *scheme;
-+	struct damos *scheme, *old_scheme;
- 	struct damos_filter *filter;
++	struct damos *scheme, *hot_scheme, *cold_scheme;
++	struct damos *old_hot_scheme = NULL, *old_cold_scheme = NULL;
+ 	unsigned int hot_thres, cold_thres;
  	int err = 0;
  
-@@ -164,6 +175,11 @@ static int damon_reclaim_apply_parameter
- 	scheme = damon_reclaim_new_scheme();
- 	if (!scheme)
- 		return -ENOMEM;
-+	if (!list_empty(&ctx->schemes)) {
-+		damon_for_each_scheme(old_scheme, ctx)
-+			damon_reclaim_copy_quota_status(&scheme->quota,
-+					&old_scheme->quota);
+@@ -195,18 +207,35 @@ static int damon_lru_sort_apply_paramete
+ 	if (err)
+ 		return err;
+ 
++	damon_for_each_scheme(scheme, ctx) {
++		if (!old_hot_scheme) {
++			old_hot_scheme = scheme;
++			continue;
++		}
++		old_cold_scheme = scheme;
 +	}
- 	if (skip_anon) {
- 		filter = damos_new_filter(DAMOS_FILTER_TYPE_ANON, true);
- 		if (!filter) {
++
+ 	hot_thres = damon_max_nr_accesses(&damon_lru_sort_mon_attrs) *
+ 		hot_thres_access_freq / 1000;
+-	scheme = damon_lru_sort_new_hot_scheme(hot_thres);
+-	if (!scheme)
++	hot_scheme = damon_lru_sort_new_hot_scheme(hot_thres);
++	if (!hot_scheme)
+ 		return -ENOMEM;
+-	damon_set_schemes(ctx, &scheme, 1);
++	if (old_hot_scheme)
++		damon_lru_sort_copy_quota_status(&hot_scheme->quota,
++				&old_hot_scheme->quota);
+ 
+ 	cold_thres = cold_min_age / damon_lru_sort_mon_attrs.aggr_interval;
+-	scheme = damon_lru_sort_new_cold_scheme(cold_thres);
+-	if (!scheme)
++	cold_scheme = damon_lru_sort_new_cold_scheme(cold_thres);
++	if (!cold_scheme) {
++		damon_destroy_scheme(hot_scheme);
+ 		return -ENOMEM;
+-	damon_add_scheme(ctx, scheme);
++	}
++	if (old_cold_scheme)
++		damon_lru_sort_copy_quota_status(&cold_scheme->quota,
++				&old_cold_scheme->quota);
++
++	damon_set_schemes(ctx, &hot_scheme, 1);
++	damon_add_scheme(ctx, cold_scheme);
+ 
+ 	return damon_set_region_biggest_system_ram_default(target,
+ 					&monitor_region_start,
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
