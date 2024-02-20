@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3127077655;
-	Tue, 20 Feb 2024 18:56:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3DCD77655
+	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 19:00:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708455371; cv=none; b=sG9a5w8tqpN9YqIKr9KV8cBPgvjX2yyUmyzDv+9MWdRggOisiVwHocxAoLOarxCMHfPn/dn4tRbv85bpr0WB7BUtKz6aNtVcJ8iE5gdWVOt98YlnLiNeQ6T96atz5Un6A04DdGjOJD8lLaml4RRI2A/AAwzM6+DgA8vcX71B4M0=
+	t=1708455633; cv=none; b=QqSMm0ebrgEXKLqCR2FewvKFssLieA30hBtQCl7O/LNA6Jcpfd2ltZ07lNOZQyD3J3pMJbcFjWIfyLLKjXAOHj3sL7H9697eLDRMz1YDuM7AbCdnnaP1Zf9dmRRlJR1eK6aHnV+CQHNk9YHPnwYq3mK5FgmnDb5Cgt91RxvW+YY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708455371; c=relaxed/simple;
-	bh=GlIocFEa55qaVCAm7ma/ReE9uSymdv4pYeKMiyz6tSE=;
-	h=Date:To:From:Subject:Message-Id; b=InQZKwc1yL4neOBEnbJfKMWRQWnj/olXgzHtQ3ihui8Z2rmp4Nlkh3jgeAq2ubb2JE947Gr86NqTU+ziLPT3hOY1Y02oCZ4HG0IoxbMYBHKA8F6uPGlNyQCYGe3rsf8hjsVLoYKlJcVfBPx+ZCqa1/ex312RonSGm0/brvv0mRY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wppylAFo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708455633; c=relaxed/simple;
+	bh=brMezQNacijoDKPR1jbcDblF6DCBFIHEkdVWxR3R9Hc=;
+	h=Date:To:From:Subject:Message-Id; b=Df3hP2sdeVE9ECu2E6FeyfMZB0rp11t4tLQRqzAbvcnyCB2mICORyXq9kReKTWdDn2ToRvbRMFNfjy8S+BvTrNus68qgPvLVaIGFYfvYCsAxMMRwyZb0NPFydRLSuZemLF8lvpCV0399iRnFv/I+sSSktBAIQFbcFmmmi80veNw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vJmhtMJU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wppylAFo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77351C43330;
-	Tue, 20 Feb 2024 18:56:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vJmhtMJU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36A7AC433F1;
+	Tue, 20 Feb 2024 19:00:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708455369;
-	bh=GlIocFEa55qaVCAm7ma/ReE9uSymdv4pYeKMiyz6tSE=;
+	s=korg; t=1708455633;
+	bh=brMezQNacijoDKPR1jbcDblF6DCBFIHEkdVWxR3R9Hc=;
 	h=Date:To:From:Subject:From;
-	b=wppylAFoS7bWXLi/Y/AZIv8AzAhTtIsY/Xl7b56yEZYbpALk4Xkud3yTFJxmIZ/D1
-	 UIzipSGSEGxCxJ1kLibpR4OizYx1yr+fNYk5WxHoslCIWTjL6hCsuNaYGppVCtCC74
-	 A4KNF2np3uSUFNJ88u78bMKNGNTgjP/4fpQXW3Vo=
-Date: Tue, 20 Feb 2024 10:56:09 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,jannh@google.com,hannes@cmpxchg.org,nphamcs@gmail.com,akpm@linux-foundation.org
+	b=vJmhtMJUZtBthl4ZAlzbN3AMffmoWruXEG7hJVwgKkm7BFoEOxQAF7VWEb9U216Tb
+	 un48h0fq16ko7KM4FnIuGp50FoK/bspXT98GQMWpa8dBRDEbefY96KHyL2yMTDK08r
+	 nlZPs/8nHV0L72GANOchrvTCjAbJYEc0a47BYoW0=
+Date: Tue, 20 Feb 2024 11:00:32 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,p.raghav@samsung.com,mcgrof@kernel.org,da.gomez@samsung.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-cachestat-fix-folio-read-after-free-in-cache-walk.patch added to mm-hotfixes-unstable branch
-Message-Id: <20240220185609.77351C43330@smtp.kernel.org>
+Subject: + test_xarray-add-tests-for-advanced-multi-index-use-fix-fix-fix.patch added to mm-unstable branch
+Message-Id: <20240220190033.36A7AC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: cachestat: fix folio read-after-free in cache walk
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-cachestat-fix-folio-read-after-free-in-cache-walk.patch
+     Subject: test_xarray-add-tests-for-advanced-multi-index-use-fix-fix-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     test_xarray-add-tests-for-advanced-multi-index-use-fix-fix-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cachestat-fix-folio-read-after-free-in-cache-walk.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/test_xarray-add-tests-for-advanced-multi-index-use-fix-fix-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,128 +58,45 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Nhat Pham <nphamcs@gmail.com>
-Subject: mm: cachestat: fix folio read-after-free in cache walk
-Date: Mon, 19 Feb 2024 19:01:21 -0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: test_xarray-add-tests-for-advanced-multi-index-use-fix-fix-fix
+Date: Tue Feb 20 10:59:48 AM PST 2024
 
-In cachestat, we access the folio from the page cache's xarray to compute
-its page offset, and check for its dirty and writeback flags.  However, we
-do not hold a reference to the folio before performing these actions,
-which means the folio can concurrently be released and reused as another
-folio/page/slab.
+restore static storage for loop counter
 
-Get around this altogether by just using xarray's existing machinery for
-the folio page offsets and dirty/writeback states.
-
-This changes behavior for tmpfs files to now always report zeroes in their
-dirty and writeback counters.  This is okay as tmpfs doesn't follow
-conventional writeback cache behavior: its pages get "cleaned" during
-swapout, after which they're no longer resident etc.
-
-Link: https://lkml.kernel.org/r/20240220153409.GA216065@cmpxchg.org
-Fixes: cf264e1329fb ("cachestat: implement cachestat syscall")
-Reported-by: Jann Horn <jannh@google.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>	[6.4+]
+Cc: Daniel Gomez <da.gomez@samsung.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Pankaj Raghav <p.raghav@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   51 ++++++++++++++++++++++++-------------------------
- 1 file changed, 26 insertions(+), 25 deletions(-)
+ lib/test_xarray.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/filemap.c~mm-cachestat-fix-folio-read-after-free-in-cache-walk
-+++ a/mm/filemap.c
-@@ -4111,28 +4111,40 @@ static void filemap_cachestat(struct add
+--- a/lib/test_xarray.c~test_xarray-add-tests-for-advanced-multi-index-use-fix-fix-fix
++++ a/lib/test_xarray.c
+@@ -728,7 +728,7 @@ static noinline void *test_get_entry(str
+ {
+ 	XA_STATE(xas, xa, index);
+ 	void *p;
+-	unsigned int loops = 0;
++	static unsigned int loops = 0;
  
  	rcu_read_lock();
- 	xas_for_each(&xas, folio, last_index) {
-+		int order;
- 		unsigned long nr_pages;
- 		pgoff_t folio_first_index, folio_last_index;
- 
-+		/*
-+		 * Don't deref the folio. It is not pinned, and might
-+		 * get freed (and reused) underneath us.
-+		 *
-+		 * We *could* pin it, but that would be expensive for
-+		 * what should be a fast and lightweight syscall.
-+		 *
-+		 * Instead, derive all information of interest from
-+		 * the rcu-protected xarray.
-+		 */
-+
- 		if (xas_retry(&xas, folio))
- 			continue;
- 
-+		order = xa_get_order(xas.xa, xas.xa_index);
-+		nr_pages = 1 << order;
-+		folio_first_index = round_down(xas.xa_index, 1 << order);
-+		folio_last_index = folio_first_index + nr_pages - 1;
-+
-+		/* Folios might straddle the range boundaries, only count covered pages */
-+		if (folio_first_index < first_index)
-+			nr_pages -= first_index - folio_first_index;
-+
-+		if (folio_last_index > last_index)
-+			nr_pages -= folio_last_index - last_index;
-+
- 		if (xa_is_value(folio)) {
- 			/* page is evicted */
- 			void *shadow = (void *)folio;
- 			bool workingset; /* not used */
--			int order = xa_get_order(xas.xa, xas.xa_index);
--
--			nr_pages = 1 << order;
--			folio_first_index = round_down(xas.xa_index, 1 << order);
--			folio_last_index = folio_first_index + nr_pages - 1;
--
--			/* Folios might straddle the range boundaries, only count covered pages */
--			if (folio_first_index < first_index)
--				nr_pages -= first_index - folio_first_index;
--
--			if (folio_last_index > last_index)
--				nr_pages -= folio_last_index - last_index;
- 
- 			cs->nr_evicted += nr_pages;
- 
-@@ -4150,24 +4162,13 @@ static void filemap_cachestat(struct add
- 			goto resched;
- 		}
- 
--		nr_pages = folio_nr_pages(folio);
--		folio_first_index = folio_pgoff(folio);
--		folio_last_index = folio_first_index + nr_pages - 1;
--
--		/* Folios might straddle the range boundaries, only count covered pages */
--		if (folio_first_index < first_index)
--			nr_pages -= first_index - folio_first_index;
--
--		if (folio_last_index > last_index)
--			nr_pages -= folio_last_index - last_index;
--
- 		/* page is in cache */
- 		cs->nr_cache += nr_pages;
- 
--		if (folio_test_dirty(folio))
-+		if (xas_get_mark(&xas, PAGECACHE_TAG_DIRTY))
- 			cs->nr_dirty += nr_pages;
- 
--		if (folio_test_writeback(folio))
-+		if (xas_get_mark(&xas, PAGECACHE_TAG_WRITEBACK))
- 			cs->nr_writeback += nr_pages;
- 
- resched:
+ repeat:
 _
 
-Patches currently in -mm which might be from nphamcs@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-swap_state-update-zswap-lrus-protection-range-with-the-folio-locked.patch
-mm-swap_state-update-zswap-lrus-protection-range-with-the-folio-locked-v2.patch
-mm-swap_state-update-zswap-lrus-protection-range-with-the-folio-locked-fix.patch
-mm-cachestat-fix-folio-read-after-free-in-cache-walk.patch
-selftests-zswap-add-zswap-selftest-file-to-zswap-maintainer-entry.patch
-selftests-fix-the-zswap-invasive-shrink-test.patch
-selftests-add-zswapin-and-no-zswap-tests.patch
+kexec-split-crashkernel-reservation-code-out-from-crash_corec-fix.patch
+arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc-fix.patch
+mm-memory_hotplug-export-mhp_supports_memmap_on_memory-fix.patch
+mm-damon-dbgfs-make-debugfs-interface-deprecation-message-a-macro-fix.patch
+mm-ptdump-have-ptdump_check_wx-return-bool-fix.patch
+test_xarray-add-tests-for-advanced-multi-index-use-fix-fix.patch
+test_xarray-add-tests-for-advanced-multi-index-use-fix-fix-fix.patch
+mm-compaction-add-support-for-0-order-folio-memory-compaction-fix.patch
+kprobes-use-synchronize_rcu_tasks_rude-in-kprobe_optimizer-fix.patch
+panic-add-option-to-dump-blocked-tasks-in-panic_print-fix.patch
 
