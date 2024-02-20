@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A83CA13958E
-	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 19:44:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C33914A4F2
+	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 19:44:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708458273; cv=none; b=ERqZTM0pK2IIot0UyifUPgXl+WtDCLiW+hwst3/uAvO9CQOxBonQY9PgMIVuTzW4NiGWbl/X/64cn8Alv/AadnLB7ak9uWxW/z7rdSh6WH2qc0mUs+hE4y8OZOs9S0KPrLpBVEJhARdTYhHJY03xTrxovohDgTamN5BGxIYkdvQ=
+	t=1708458275; cv=none; b=VG4ivwXLjaFSmrZ0gJmcebSlAy+AyZsqqqs5McK1sCW/8YHq21BO9Gu/NmGQ15DBweuGUL5KBk15XrdusTcNbacNG3PB9LAEYhZ8G8Qnpd8SMDeJXbDt7YPK6//+XxmTuSkbvxMgM1ulvIU+SHQde0NAg3nAaaClyosu/6tlfcc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708458273; c=relaxed/simple;
-	bh=CdKExfqPL+NXyN3ujHgftAO5OtDGSTBe+UBtuflLTX8=;
-	h=Date:To:From:Subject:Message-Id; b=VAyo/orjHbilSP7ONU3ZnT0lXIIoutKkDsjcl/ny5AU5XthgAhg+/eixY7JRmRxbXOillcmyFDO7ibGI8nPZwO0+00gMy+EWLJPAbivLPM5Y7kmvGMPZXsFRaNOrcWQkbUmDrW/qAMcp8Ny5ncAtxjGCyf2zcVs31y5lFllnVR0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RvK6ON7w; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708458275; c=relaxed/simple;
+	bh=moPbx4Gi8bFKwROO37cM5JrkZgRe9hgZsWiFg4pY8q4=;
+	h=Date:To:From:Subject:Message-Id; b=PhhkijcUch/Orw1F6fcdBDR1SCwYJ/dmwWEIJDSHG6dZHLY8DYPLMtoIjXhfUgKweYsRwhvHkc1vanQVc2tFYzrCHUccxzTnetYJstM7oGkFqLkRLAy2MM2qow6BpibfOWX9gqZNyiZ1aGGs45ucELj249G5StdmD16hRruI0ho=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oK8gCoD7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RvK6ON7w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05A7DC43390;
-	Tue, 20 Feb 2024 19:44:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oK8gCoD7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15F31C43390;
+	Tue, 20 Feb 2024 19:44:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708458273;
-	bh=CdKExfqPL+NXyN3ujHgftAO5OtDGSTBe+UBtuflLTX8=;
+	s=korg; t=1708458275;
+	bh=moPbx4Gi8bFKwROO37cM5JrkZgRe9hgZsWiFg4pY8q4=;
 	h=Date:To:From:Subject:From;
-	b=RvK6ON7wdSeUDnsOh2j+lbFVQYWbxQUaakY6WItkDj2J6ielpCmd9WiS4R4jSPuLp
-	 s/EZ5aPxKSzcowBbr0jnFdkdvzqS7DSe+dnKVNBrCQrBXjFjT0pYfLfX3Hgn/q4K6u
-	 xPQZ5sIq2gEQqkH52gVMWm7xMzDcx2wh+9NwoxYA=
-Date: Tue, 20 Feb 2024 11:44:32 -0800
+	b=oK8gCoD7NqK6HaS7sJYHkb+Vvqz065z4OXGkmY5P239rGDWBkravIcz59eNVApXIh
+	 GOobK9q/TKH+rYZkwk0yOOpjssmmChVaIUp2CDRJMYbV07Y/1yBTbfSdqwiBR2Jakl
+	 1qMKV+TUvYxEHvO0F32oO2LZWIdO8naOJHGbvs0o=
+Date: Tue, 20 Feb 2024 11:44:34 -0800
 To: mm-commits@vger.kernel.org,yuzhao@google.com,ying.huang@intel.com,willy@infradead.org,vishal.moola@gmail.com,vbabka@suse.cz,shikemeng@huaweicloud.com,ryan.roberts@arm.com,mgorman@techsingularity.net,mcgrof@kernel.org,kirill.shutemov@linux.intel.com,hannes@cmpxchg.org,fengwei.yin@intel.com,david@redhat.com,baolin.wang@linux.alibaba.com,a.manzanares@samsung.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-remove-unused-fpi_flags-in-free_pages_prepare.patch added to mm-unstable branch
-Message-Id: <20240220194433.05A7DC43390@smtp.kernel.org>
+Subject: + mm-compaction-enable-compacting-0-order-folios.patch added to mm-unstable branch
+Message-Id: <20240220194435.15F31C43390@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: remove unused fpi_flags in free_pages_prepare()
+     Subject: mm/compaction: enable compacting >0 order folios.
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-remove-unused-fpi_flags-in-free_pages_prepare.patch
+     mm-compaction-enable-compacting-0-order-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-remove-unused-fpi_flags-in-free_pages_prepare.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-enable-compacting-0-order-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,64 +59,24 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm/page_alloc: remove unused fpi_flags in free_pages_prepare()
-Date: Tue, 20 Feb 2024 13:32:17 -0500
+Subject: mm/compaction: enable compacting >0 order folios.
+Date: Tue, 20 Feb 2024 13:32:18 -0500
 
-Patch series "Enable >0 order folio memory compaction", v7.
+migrate_pages() supports >0 order folio migration and during compaction,
+even if compaction_alloc() cannot provide >0 order free pages,
+migrate_pages() can split the source page and try to migrate the base
+pages from the split.  It can be a baseline and start point for adding
+support for compacting >0 order folios.
 
-This patchset enables >0 order folio memory compaction, which is one of
-the prerequisitions for large folio support[1].
-
-I am aware of that split free pages is necessary for folio migration in
-compaction, since if >0 order free pages are never split and no order-0
-free page is scanned, compaction will end prematurely due to migration
-returns -ENOMEM.  Free page split becomes a must instead of an
-optimization.
-
-lkp ncompare results (on a 8-CPU (Intel Xeon E5-2650 v4 @2.20GHz) 16G VM)
-for default LRU (-no-mglru) and CONFIG_LRU_GEN are shown at the bottom,
-copied from V3[4].  In sum, most of vm-scalability applications do not see
-performance change, and the others see ~4% to ~26% performance boost under
-default LRU and ~2% to ~6% performance boost under CONFIG_LRU_GEN.
-
-Overview
-===
-
-To support >0 order folio compaction, the patchset changes how free pages
-used for migration are kept during compaction.  Free pages used to be
-split into order-0 pages that are post allocation processed (i.e.,
-PageBuddy flag cleared, page order stored in page->private is zeroed, and
-page reference is set to 1).  Now all free pages are kept in a
-NR_PAGE_ORDER array of page lists based on their order without post
-allocation process.  When migrate_pages() asks for a new page, one of the
-free pages, based on the requested page order, is then processed and given
-out.  And THP <2MB would need this feature.
-
-
-[1] https://lore.kernel.org/linux-mm/f8d47176-03a8-99bf-a813-b5942830fd73@arm.com/
-[2] https://lore.kernel.org/linux-mm/20231113170157.280181-1-zi.yan@sent.com/
-[3] https://lore.kernel.org/linux-mm/20240123034636.1095672-1-zi.yan@sent.com/
-[4] https://lore.kernel.org/linux-mm/20240202161554.565023-1-zi.yan@sent.com/
-[5] https://lore.kernel.org/linux-mm/20240212163510.859822-1-zi.yan@sent.com/
-[6] https://lore.kernel.org/linux-mm/20240214220420.1229173-1-zi.yan@sent.com/
-[7] https://lore.kernel.org/linux-mm/20240216170432.1268753-1-zi.yan@sent.com/
-
-
-This patch (of 4):
-
-Commit 0a54864f8dfb ("kasan: remove PG_skip_kasan_poison flag") removes
-the use of fpi_flags in should_skip_kasan_poison() and fpi_flags is only
-passed to should_skip_kasan_poison() in free_pages_prepare().  Remove the
-unused parameter.
-
-Link: https://lkml.kernel.org/r/20240220183220.1451315-1-zi.yan@sent.com
-Link: https://lkml.kernel.org/r/20240220183220.1451315-2-zi.yan@sent.com
+Link: https://lkml.kernel.org/r/20240220183220.1451315-3-zi.yan@sent.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
+Suggested-by: Huang Ying <ying.huang@intel.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Tested-by: Yu Zhao <yuzhao@google.com>
 Cc: Adam Manzanares <a.manzanares@samsung.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
@@ -125,56 +85,175 @@ Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Yin Fengwei <fengwei.yin@intel.com>
-Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/compaction.c |  101 ++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 76 insertions(+), 25 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-remove-unused-fpi_flags-in-free_pages_prepare
-+++ a/mm/page_alloc.c
-@@ -1061,7 +1061,7 @@ out:
-  * on-demand allocation and then freed again before the deferred pages
-  * initialization is done, but this is not likely to happen.
-  */
--static inline bool should_skip_kasan_poison(struct page *page, fpi_t fpi_flags)
-+static inline bool should_skip_kasan_poison(struct page *page)
+--- a/mm/compaction.c~mm-compaction-enable-compacting-0-order-folios
++++ a/mm/compaction.c
+@@ -40,9 +40,22 @@ static inline void count_compact_events(
  {
- 	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
- 		return deferred_pages_enabled();
-@@ -1081,10 +1081,10 @@ static void kernel_init_pages(struct pag
+ 	count_vm_events(item, delta);
+ }
++
++/*
++ * order == -1 is expected when compacting proactively via
++ * 1. /proc/sys/vm/compact_memory
++ * 2. /sys/devices/system/node/nodex/compact
++ * 3. /proc/sys/vm/compaction_proactiveness
++ */
++static inline bool is_via_compact_memory(int order)
++{
++	return order == -1;
++}
++
+ #else
+ #define count_compact_event(item) do { } while (0)
+ #define count_compact_events(item, delta) do { } while (0)
++static inline bool is_via_compact_memory(int order) { return false; }
+ #endif
+ 
+ #if defined CONFIG_COMPACTION || defined CONFIG_CMA
+@@ -817,6 +830,32 @@ static bool too_many_isolated(struct com
  }
  
- static __always_inline bool free_pages_prepare(struct page *page,
--			unsigned int order, fpi_t fpi_flags)
-+			unsigned int order)
- {
- 	int bad = 0;
--	bool skip_kasan_poison = should_skip_kasan_poison(page, fpi_flags);
-+	bool skip_kasan_poison = should_skip_kasan_poison(page);
- 	bool init = want_init_on_free();
- 	bool compound = PageCompound(page);
+ /**
++ * skip_isolation_on_order() - determine when to skip folio isolation based on
++ *			       folio order and compaction target order
++ * @order:		to-be-isolated folio order
++ * @target_order:	compaction target order
++ *
++ * This avoids unnecessary folio isolations during compaction.
++ */
++static bool skip_isolation_on_order(int order, int target_order)
++{
++	/*
++	 * Unless we are performing global compaction (i.e.,
++	 * is_via_compact_memory), skip any folios that are larger than the
++	 * target order: we wouldn't be here if we'd have a free folio with
++	 * the desired target_order, so migrating this folio would likely fail
++	 * later.
++	 */
++	if (!is_via_compact_memory(target_order) && order >= target_order)
++		return true;
++	/*
++	 * We limit memory compaction to pageblocks and won't try
++	 * creating free blocks of memory that are larger than that.
++	 */
++	return order >= pageblock_order;
++}
++
++/**
+  * isolate_migratepages_block() - isolate all migrate-able pages within
+  *				  a single pageblock
+  * @cc:		Compaction control structure.
+@@ -947,7 +986,22 @@ isolate_migratepages_block(struct compac
+ 			valid_page = page;
+ 		}
  
-@@ -1266,7 +1266,7 @@ static void __free_pages_ok(struct page
- 	unsigned long pfn = page_to_pfn(page);
- 	struct zone *zone = page_zone(page);
+-		if (PageHuge(page) && cc->alloc_contig) {
++		if (PageHuge(page)) {
++			/*
++			 * skip hugetlbfs if we are not compacting for pages
++			 * bigger than its order. THPs and other compound pages
++			 * are handled below.
++			 */
++			if (!cc->alloc_contig) {
++				const unsigned int order = compound_order(page);
++
++				if (order <= MAX_PAGE_ORDER) {
++					low_pfn += (1UL << order) - 1;
++					nr_scanned += (1UL << order) - 1;
++				}
++				goto isolate_fail;
++			}
++			/* for alloc_contig case */
+ 			if (locked) {
+ 				unlock_page_lruvec_irqrestore(locked, flags);
+ 				locked = NULL;
+@@ -1008,21 +1062,24 @@ isolate_migratepages_block(struct compac
+ 		}
  
--	if (!free_pages_prepare(page, order, fpi_flags))
-+	if (!free_pages_prepare(page, order))
- 		return;
+ 		/*
+-		 * Regardless of being on LRU, compound pages such as THP and
+-		 * hugetlbfs are not to be compacted unless we are attempting
+-		 * an allocation much larger than the huge page size (eg CMA).
+-		 * We can potentially save a lot of iterations if we skip them
+-		 * at once. The check is racy, but we can consider only valid
+-		 * values and the only danger is skipping too much.
++		 * Regardless of being on LRU, compound pages such as THP
++		 * (hugetlbfs is handled above) are not to be compacted unless
++		 * we are attempting an allocation larger than the compound
++		 * page size. We can potentially save a lot of iterations if we
++		 * skip them at once. The check is racy, but we can consider
++		 * only valid values and the only danger is skipping too much.
+ 		 */
+ 		if (PageCompound(page) && !cc->alloc_contig) {
+ 			const unsigned int order = compound_order(page);
  
- 	/*
-@@ -2343,7 +2343,7 @@ static bool free_unref_page_prepare(stru
- {
- 	int migratetype;
+-			if (likely(order <= MAX_PAGE_ORDER)) {
+-				low_pfn += (1UL << order) - 1;
+-				nr_scanned += (1UL << order) - 1;
++			/* Skip based on page order and compaction target order. */
++			if (skip_isolation_on_order(order, cc->order)) {
++				if (order <= MAX_PAGE_ORDER) {
++					low_pfn += (1UL << order) - 1;
++					nr_scanned += (1UL << order) - 1;
++				}
++				goto isolate_fail;
+ 			}
+-			goto isolate_fail;
+ 		}
  
--	if (!free_pages_prepare(page, order, FPI_NONE))
-+	if (!free_pages_prepare(page, order))
- 		return false;
+ 		/*
+@@ -1165,10 +1222,11 @@ isolate_migratepages_block(struct compac
+ 			}
  
- 	migratetype = get_pfnblock_migratetype(page, pfn);
+ 			/*
+-			 * folio become large since the non-locked check,
+-			 * and it's on LRU.
++			 * Check LRU folio order under the lock
+ 			 */
+-			if (unlikely(folio_test_large(folio) && !cc->alloc_contig)) {
++			if (unlikely(skip_isolation_on_order(folio_order(folio),
++							     cc->order) &&
++				     !cc->alloc_contig)) {
+ 				low_pfn += folio_nr_pages(folio) - 1;
+ 				nr_scanned += folio_nr_pages(folio) - 1;
+ 				folio_set_lru(folio);
+@@ -1788,6 +1846,10 @@ static struct folio *compaction_alloc(st
+ 	struct compact_control *cc = (struct compact_control *)data;
+ 	struct folio *dst;
+ 
++	/* this makes migrate_pages() split the source page and retry */
++	if (folio_test_large(src))
++		return NULL;
++
+ 	if (list_empty(&cc->freepages)) {
+ 		isolate_freepages(cc);
+ 
+@@ -2091,17 +2153,6 @@ static isolate_migrate_t isolate_migrate
+ }
+ 
+ /*
+- * order == -1 is expected when compacting proactively via
+- * 1. /proc/sys/vm/compact_memory
+- * 2. /sys/devices/system/node/nodex/compact
+- * 3. /proc/sys/vm/compaction_proactiveness
+- */
+-static inline bool is_via_compact_memory(int order)
+-{
+-	return order == -1;
+-}
+-
+-/*
+  * Determine whether kswapd is (or recently was!) running on this node.
+  *
+  * pgdat_kswapd_lock() pins pgdat->kswapd, so a concurrent kswapd_stop() can't
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
