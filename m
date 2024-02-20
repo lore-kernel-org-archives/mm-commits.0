@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF3C941AAC
-	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 22:15:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D50B441AAC
+	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 22:16:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708467326; cv=none; b=FhVrQPzSsX9gCB/al/eLeOPRwCiuw4Yns1ody8r0CzizbrBv1P8ISzx3wzUL60an/5j3848vomnS6C7rBnBhrjL3BvkgZuUiHPLj3elQoRaS6N9B+UBqbAHKVXuxmdDLwd90Bsy5SDJPKbcq7dEh7CH1r/clT2xQ5Z5QQm6U2zs=
+	t=1708467389; cv=none; b=tDNjoFK9Ii23r0xY/WXgotJK+CrBbZbKyVLMEuB0gK365uSL+cCaH5BIBb9cMHSyqLJMM5bW92HpCxlD7f6CDLfWlS4/ckI7EaJiEYiqHOAh82xqla/YMT8M7fk1MoKtTlPQQ+dGXyckrKtstLVk5t6PBC7F78z/3yObbBl3u6I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708467326; c=relaxed/simple;
-	bh=kTWnyas+lEB54H8nFOP3TRyrL3jnr5hegvPw6zvQBAM=;
-	h=Date:To:From:Subject:Message-Id; b=URuSDgw82pEoexKCV6sw0sBcUlqoRcn4vqqTJp8+xeu/M7GWWHXCQlRwRaETp3VnFAVRibRmfugMZU6KpzZ5tG0YA0ot3eKggFxxjbOEfjhKbDBewLXOI7lP+8IxsbQKjsG8oEOCM4WD5u1IsXGjHFjV8qK/skp6NXckB1vG+jc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hWirCdIN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708467389; c=relaxed/simple;
+	bh=KkQztvjYebsP/5U8rJskVkPrHiyavyxofOQHW0RRRZg=;
+	h=Date:To:From:Subject:Message-Id; b=Rd0OJCvTslmtJZcuEtfhFDXa7vOUc+FDSfzl4+oN+sCdGtN8n5AGJ/VURziGHn0JezooO69reIc8HzWUVmTaRl3ncvBLbsUFZWfY59DLnfjXnRTYRbU1ZQecLRSkRAmcrgZWBXzk+5enLOFezfLUsMJtRWGoC1NKtvm3Gw0Cq5Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WT3RQI6s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hWirCdIN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B508C433C7;
-	Tue, 20 Feb 2024 22:15:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WT3RQI6s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E7BEC433C7;
+	Tue, 20 Feb 2024 22:16:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708467326;
-	bh=kTWnyas+lEB54H8nFOP3TRyrL3jnr5hegvPw6zvQBAM=;
+	s=korg; t=1708467389;
+	bh=KkQztvjYebsP/5U8rJskVkPrHiyavyxofOQHW0RRRZg=;
 	h=Date:To:From:Subject:From;
-	b=hWirCdINM9SOF15Mue6SLOhgTNBC0NILO92SHhAzefD6YlLsIF/rGMXUJU8brKLPF
-	 Jqzi/Hn9ZplLH25QLhV74pSQBS0EihkJJBMIE0OP2vV/OfGXtbyCsnP1XlIQY9ISH/
-	 C+32VvoBDN43kOf90u1IjHmy1loIOSLeRUYaksb0=
-Date: Tue, 20 Feb 2024 14:15:25 -0800
-To: mm-commits@vger.kernel.org,yosryahmed@google.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,nphamcs@gmail.com,akpm@linux-foundation.org
+	b=WT3RQI6sfMvncA8hROQwfCy9MWTCd7he7P/gBSt484kSDJmdzdr7X9pXHtZRr56it
+	 7luTUoLDX54s1nH4jspZZAEtEkdlxue5jBBCrlv3Mih176PzM/AmTvC9GShBqD18fH
+	 oLUb/RJOIRHGvcUz01R/73B4F1VsU999Eqc7JhOo=
+Date: Tue, 20 Feb 2024 14:16:29 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,yosryahmed@google.com,ying.huang@intel.com,willy@infradead.org,sj@kernel.org,minchan@kernel.org,mhocko@suse.com,hughd@google.com,hannes@cmpxchg.org,david@redhat.com,chrisl@kernel.org,21cnbao@gmail.com,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-swap_state-update-zswap-lrus-protection-range-with-the-folio-locked-fix.patch removed from -mm tree
-Message-Id: <20240220221526.2B508C433C7@smtp.kernel.org>
+Subject: [folded-merged] mm-swap-fix-race-when-skipping-swapcache-v4.patch removed from -mm tree
+Message-Id: <20240220221629.9E7BEC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,54 +35,109 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/swap_state: update zswap LRU's protection range with the folio locked (fix)
+     Subject: mm-swap-fix-race-when-skipping-swapcache-v4
 has been removed from the -mm tree.  Its filename was
-     mm-swap_state-update-zswap-lrus-protection-range-with-the-folio-locked-fix.patch
+     mm-swap-fix-race-when-skipping-swapcache-v4.patch
 
-This patch was dropped because it was folded into mm-swap_state-update-zswap-lrus-protection-range-with-the-folio-locked.patch
+This patch was dropped because it was folded into mm-swap-fix-race-when-skipping-swapcache.patch
 
 ------------------------------------------------------
-From: Nhat Pham <nphamcs@gmail.com>
-Subject: mm/swap_state: update zswap LRU's protection range with the folio locked (fix)
-Date: Tue, 6 Feb 2024 11:13:55 -0800
+From: Kairui Song <kasong@tencent.com>
+Subject: mm-swap-fix-race-when-skipping-swapcache-v4
+Date: Mon, 19 Feb 2024 16:20:40 +0800
 
-The if (folio) checks inside zswap_folio_swapin() is no longer needed.
+Add a schedule() if raced to prevent repeated page faults wasting CPU and
+add noise to perf statistics.
 
-Link: https://lkml.kernel.org/r/20240206191355.83755-1-nphamcs@gmail.com
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Signed-off-by: Nhat Pham <nphamcs@gmail.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Use a bool to state the special case instead of reusing existing variables
+fixing error handling [Minchan Kim].
+
+Use schedule_timeout_uninterruptible(1) for now instead of schedule() to
+prevent the busy faulting task holds CPU and livelocks [Huang, Ying].
+
+Link: https://lkml.kernel.org/r/20240219082040.7495-1-ryncsn@gmail.com
+Fixes: 0bcac06f27d7 ("mm, swap: skip swapcache for swapin of synchronous device")
+Link: https://github.com/ryncsn/emm-test-project/tree/master/swap-stress-race [1]
+Reported-by: "Huang, Ying" <ying.huang@intel.com>
+Closes: https://lore.kernel.org/lkml/87bk92gqpx.fsf_-_@yhuang6-desk2.ccr.corp.intel.com/
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Chris Li <chrisl@kernel.org>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Yosry Ahmed <yosryahmed@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ mm/memory.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
---- a/mm/zswap.c~mm-swap_state-update-zswap-lrus-protection-range-with-the-folio-locked-fix
-+++ a/mm/zswap.c
-@@ -377,11 +377,9 @@ void zswap_folio_swapin(struct folio *fo
- {
- 	struct lruvec *lruvec;
+--- a/mm/memory.c~mm-swap-fix-race-when-skipping-swapcache-v4
++++ a/mm/memory.c
+@@ -3799,6 +3799,7 @@ vm_fault_t do_swap_page(struct vm_fault
+ 	struct page *page;
+ 	struct swap_info_struct *si = NULL;
+ 	rmap_t rmap_flags = RMAP_NONE;
++	bool need_clear_cache = false;
+ 	bool exclusive = false;
+ 	swp_entry_t entry;
+ 	pte_t pte;
+@@ -3874,8 +3875,12 @@ vm_fault_t do_swap_page(struct vm_fault
+ 			 * reusing the same entry. It's undetectable as
+ 			 * pte_same() returns true due to entry reuse.
+ 			 */
+-			if (swapcache_prepare(entry))
++			if (swapcache_prepare(entry)) {
++				/* Relax a bit to prevent rapid repeated page faults */
++				schedule_timeout_uninterruptible(1);
+ 				goto out;
++			}
++			need_clear_cache = true;
  
--	if (folio) {
--		VM_WARN_ON_ONCE(!folio_test_locked(folio));
--		lruvec = folio_lruvec(folio);
--		atomic_long_inc(&lruvec->zswap_lruvec_state.nr_zswap_protected);
--	}
-+	VM_WARN_ON_ONCE(!folio_test_locked(folio));
-+	lruvec = folio_lruvec(folio);
-+	atomic_long_inc(&lruvec->zswap_lruvec_state.nr_zswap_protected);
- }
- 
- /*********************************
+ 			/* skip swapcache */
+ 			folio = vma_alloc_folio(GFP_HIGHUSER_MOVABLE, 0,
+@@ -4126,10 +4131,10 @@ vm_fault_t do_swap_page(struct vm_fault
+ unlock:
+ 	if (vmf->pte)
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
++out:
+ 	/* Clear the swap cache pin for direct swapin after PTL unlock */
+-	if (folio && !swapcache)
++	if (need_clear_cache)
+ 		swapcache_clear(si, entry);
+-out:
+ 	if (si)
+ 		put_swap_device(si);
+ 	return ret;
+@@ -4137,8 +4142,6 @@ out_nomap:
+ 	if (vmf->pte)
+ 		pte_unmap_unlock(vmf->pte, vmf->ptl);
+ out_page:
+-	if (!swapcache)
+-		swapcache_clear(si, entry);
+ 	folio_unlock(folio);
+ out_release:
+ 	folio_put(folio);
+@@ -4146,6 +4149,8 @@ out_release:
+ 		folio_unlock(swapcache);
+ 		folio_put(swapcache);
+ 	}
++	if (need_clear_cache)
++		swapcache_clear(si, entry);
+ 	if (si)
+ 		put_swap_device(si);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from nphamcs@gmail.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-mm-swap_state-update-zswap-lrus-protection-range-with-the-folio-locked.patch
-mm-cachestat-fix-folio-read-after-free-in-cache-walk.patch
-selftests-zswap-add-zswap-selftest-file-to-zswap-maintainer-entry.patch
-selftests-fix-the-zswap-invasive-shrink-test.patch
-selftests-add-zswapin-and-no-zswap-tests.patch
+mm-swap-fix-race-when-skipping-swapcache.patch
 
