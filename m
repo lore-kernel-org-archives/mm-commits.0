@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34F1015B1
-	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 00:08:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AE4A15B1
+	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 00:08:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708387734; cv=none; b=blrlHoFB6TWhOCbo3D5VbGv8Q9i9vuxsH6wqbtd5AHiw51J9w/xpNeMmfeMUrLqZWqj9h1Mr6d1HuBEKawtUK62TTG+J/GUwrP7arV84udDbEj4C+AfGURXnECNw3fwaIV5AMah+gSceAKNrbRRTMqnBqzyp0nAGhM9puGf3zq0=
+	t=1708387735; cv=none; b=kBYPaY3MhvoDqaNppENTNaRuhfdGj5f8FUedEY7u0+WXDLt6KlqCIfQUYGwZX3/fWdehS5eZyf0qToNgiPcGgoV6DCZw5pFTaL1M9KBl5gaX0BR8Uv6eBQDnicP56SqJFRPVqO1/lUFdiF819A/Fo+duO724wuconrSZ8R3D+JY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708387734; c=relaxed/simple;
-	bh=dryt3qYfI+Us9l01qnpv2v6nnzlZiZtsZe+76WUEVAY=;
-	h=Date:To:From:Subject:Message-Id; b=LaqkZv9RiLwvYAJNziT6aNY928dycM7kBsbAQSIKM4w+jvyzRNrxmo50lXJaIXTE5bv8mdvJaXBST7mGY+4MHj8YUprXURcUgzpZWfBUHGOt39hofFktjuQZAC1ufad8ZBiBdPV7AHdZLfYJPVueFcHCq5bkR3upXlf1omnxd2Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G2FvClVM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708387735; c=relaxed/simple;
+	bh=owfQed3Fl83mrGe8Gx2bKnr0dMzD3pphpjUZmbfCgcE=;
+	h=Date:To:From:Subject:Message-Id; b=g7KAg6xO828dYvTyCyXTz1DwJz7siqUMjJ2h2fjkRbJ//ZVc4h4DZKuiRRFYJbczr6jITE11QJ5MbknTed7Ebkrn6S5cTTDNuW5u0mP+Vsp3nmofpq+PRGGfck94sTCLrKEKZ3x19IDnCVLE/Mz1PVsnWJdCELeMqIKWRHNoa2c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GhSiVtY5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G2FvClVM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4B7AC433F1;
-	Tue, 20 Feb 2024 00:08:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GhSiVtY5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E9F2C433F1;
+	Tue, 20 Feb 2024 00:08:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708387733;
-	bh=dryt3qYfI+Us9l01qnpv2v6nnzlZiZtsZe+76WUEVAY=;
+	s=korg; t=1708387735;
+	bh=owfQed3Fl83mrGe8Gx2bKnr0dMzD3pphpjUZmbfCgcE=;
 	h=Date:To:From:Subject:From;
-	b=G2FvClVMqV0ZnZFzq5SvxOL0hP6u7RjhVRggAH2jTC/7nWW3lHNM7YbIBqSPYC084
-	 usC6wU5iC4qIdGPdiSGD6ubTrDYdB/k9ph9mZrnHG1gtmms5ytd4tJHhqeNqHv9rc7
-	 avJl1DVil7MUhRcPfpCz9vcPDlMUFWWKdNVP5usE=
-Date: Mon, 19 Feb 2024 16:08:53 -0800
+	b=GhSiVtY5xp1FQDB6bMj0yEODh5LDrwd8cqQCI0xF5k8/Irw8QbiMLAOQQix8d4i+f
+	 f5O+mmd0UePrWMvj6hYGRGMKgZnKgg8oaXK57b7biJgI7HXM2VpKuyX7Yhr2F2T5Vb
+	 WSMuCsKFFXizGJ+mKfapmW3UHzGsJoc7L0Nyv+sE=
+Date: Mon, 19 Feb 2024 16:08:54 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-usage-document-quota-goal-metric-file.patch added to mm-unstable branch
-Message-Id: <20240220000853.B4B7AC433F1@smtp.kernel.org>
+Subject: + mm-damon-reclaim-implement-user-feedback-driven-quota-auto-tuning.patch added to mm-unstable branch
+Message-Id: <20240220000855.4E9F2C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: document quota goal metric file
+     Subject: mm/damon/reclaim: implement user-feedback driven quota auto-tuning
 has been added to the -mm mm-unstable branch.  Its filename is
-     docs-admin-guide-mm-damon-usage-document-quota-goal-metric-file.patch
+     mm-damon-reclaim-implement-user-feedback-driven-quota-auto-tuning.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-document-quota-goal-metric-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-reclaim-implement-user-feedback-driven-quota-auto-tuning.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,47 +59,79 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: document quota goal metric file
-Date: Mon, 19 Feb 2024 11:44:28 -0800
+Subject: mm/damon/reclaim: implement user-feedback driven quota auto-tuning
+Date: Mon, 19 Feb 2024 11:44:29 -0800
 
-Update DAMON usage document for the quota goal target_metric file.
+DAMOS supports user-feedback driven quota auto-tuning, but only DAMON
+sysfs interface is using it.  Add support of the feature on DAMON_RECLAIM
+by adding one more input parameter, namely 'quota_autotune_feedback', for
+providing the user feedback to DAMON_RECLAIM.  It assumes the target value
+of the feedback is 10,000.
 
-Link: https://lkml.kernel.org/r/20240219194431.159606-18-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240219194431.159606-19-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/damon/reclaim.c |   28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-quota-goal-metric-file
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -86,7 +86,7 @@ comma (",").
-     │ │ │ │ │ │ │ :ref:`quotas <sysfs_quotas>`/ms,bytes,reset_interval_ms,effective_bytes
-     │ │ │ │ │ │ │ │ weights/sz_permil,nr_accesses_permil,age_permil
-     │ │ │ │ │ │ │ │ :ref:`goals <sysfs_schemes_quota_goals>`/nr_goals
--    │ │ │ │ │ │ │ │ │ 0/target_value,current_value
-+    │ │ │ │ │ │ │ │ │ 0/target_metric,target_value,current_value
-     │ │ │ │ │ │ │ :ref:`watermarks <sysfs_watermarks>`/metric,interval_us,high,mid,low
-     │ │ │ │ │ │ │ :ref:`filters <sysfs_filters>`/nr_filters
-     │ │ │ │ │ │ │ │ 0/type,matching,memcg_id
-@@ -366,11 +366,11 @@ number (``N``) to the file creates the n
- to ``N-1``.  Each directory represents each goal and current achievement.
- Among the multiple feedback, the best one is used.
+--- a/mm/damon/reclaim.c~mm-damon-reclaim-implement-user-feedback-driven-quota-auto-tuning
++++ a/mm/damon/reclaim.c
+@@ -62,6 +62,21 @@ static struct damos_quota damon_reclaim_
+ };
+ DEFINE_DAMON_MODULES_DAMOS_QUOTAS(damon_reclaim_quota);
  
--Each goal directory contains two files, namely ``target_value`` and
--``current_value``.  Users can set and get any number to those files to set the
--feedback.  User space main workload's latency or throughput, system metrics
--like free memory ratio or memory pressure stall time (PSI) could be example
--metrics for the values.  Note that users should write
-+Each goal directory contains three files, namely ``target_metric``,
-+``target_value`` and ``current_value``.  Users can set and get the three
-+parameters for the quota auto-tuning goals that specified on the :ref:`design
-+doc <damon_design_damos_quota_auto_tuning>` by writing to and reading from each
-+of the files.  Note that users should further write
- ``commit_schemes_quota_goals`` to the ``state`` file of the :ref:`kdamond
- directory <sysfs_kdamond>` to pass the feedback to DAMON.
++/*
++ * User-specifiable feedback for auto-tuning of the effective quota.
++ *
++ * While keeping the caps that set by other quotas, DAMON_RECLAIM automatically
++ * increases and decreases the effective level of the quota aiming receiving this
++ * feedback of value ``10,000`` from the user.  DAMON_RECLAIM assumes the feedback
++ * value and the quota are positively proportional.  Value zero means disabling
++ * this auto-tuning feature.
++ *
++ * Disabled by default.
++ *
++ */
++static unsigned long quota_autotune_feedback __read_mostly;
++module_param(quota_autotune_feedback, ulong, 0600);
++
+ static struct damos_watermarks damon_reclaim_wmarks = {
+ 	.metric = DAMOS_WMARK_FREE_MEM_RATE,
+ 	.interval = 5000000,	/* 5 seconds */
+@@ -159,11 +174,13 @@ static void damon_reclaim_copy_quota_sta
+ 	dst->charged_from = src->charged_from;
+ 	dst->charge_target_from = src->charge_target_from;
+ 	dst->charge_addr_from = src->charge_addr_from;
++	dst->esz_bp = src->esz_bp;
+ }
  
+ static int damon_reclaim_apply_parameters(void)
+ {
+ 	struct damos *scheme, *old_scheme;
++	struct damos_quota_goal *goal;
+ 	struct damos_filter *filter;
+ 	int err = 0;
+ 
+@@ -180,6 +197,17 @@ static int damon_reclaim_apply_parameter
+ 			damon_reclaim_copy_quota_status(&scheme->quota,
+ 					&old_scheme->quota);
+ 	}
++
++	if (quota_autotune_feedback) {
++		goal = damos_new_quota_goal(DAMOS_QUOTA_USER_INPUT, 10000);
++		if (!goal) {
++			damon_destroy_scheme(scheme);
++			return -ENOMEM;
++		}
++		goal->current_value = quota_autotune_feedback;
++		damos_add_quota_goal(&scheme->quota, goal);
++	}
++
+ 	if (skip_anon) {
+ 		filter = damos_new_filter(DAMOS_FILTER_TYPE_ANON, true);
+ 		if (!filter) {
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
