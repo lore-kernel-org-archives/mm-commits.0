@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92F317FE
-	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 00:08:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60BB37FE
+	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 00:08:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708387737; cv=none; b=MezPnipXs76pwCMrMD7HDaN4VOnfWeBvUShWbuts6ag4rP6x/3i1cSu15/cUslE0U7ctE0w73uVYFDl4egh205SG1kbavvpQ9CcfKb0upmuz7w6tuHgOZ8JK2CMLMeVc2nD7YBTtUPipThUP40PKSaNNTfbU2eBJX21WACRlehQ=
+	t=1708387739; cv=none; b=pbeCM1JxzpLh0bX+PWHpL1fOrDhmXfcE4zzvUas7qoDNmCBX3kI5izfzOsjoLAf7ASlOLDBuHiANr7ZVW5QFvw/Lt9N/wV1mKzzdlF6FeELRc/tZSdvuHm0zoe37BvLKUd8qMgeqQuTRsU6fBqafEBN/IUwVdutyPUQKp8YT3pw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708387737; c=relaxed/simple;
-	bh=Iv3SmJURW4uO5YpmU+3Qf31uYYUt5mi/H9KB5YUUtI8=;
-	h=Date:To:From:Subject:Message-Id; b=j8di7krNggtCRtywC+q+9/iT0A4aeBu75grHOFO9vatNHPRWAj6gmpF/x6PiwdGfbHqARHp6D8KTrl0YSqXIzCqco32M7OlgpnGWzRmqhS4fqYtCkg0BYpWAYbKiAU8HEtHaiVH2qnIBW9vDNXJC08UDaX93Qpr/cZkBDVN/DbI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SMwmRbGY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708387739; c=relaxed/simple;
+	bh=PoSOgf2YwTWTuFuOaPRw+JwHuuhW5gh/ek+L7TkGYWQ=;
+	h=Date:To:From:Subject:Message-Id; b=MPg/bjP40NyNepcsWY1edYGA47rD3V+NuWUHVvTbwUsrPA6NukwaeRYYOAy5+AYOsKJmBVQqkLbkdoB03DcLbAp+u1PPiewOUrgSUVBm33MCA+/hn3Xnw3DtYszOfzmGqfsqz5jqu4T1rk8+BC58+ECylNJZYhSGxkMF0VKbvfo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xx9icz89; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SMwmRbGY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 266ACC433C7;
-	Tue, 20 Feb 2024 00:08:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xx9icz89"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D770BC433F1;
+	Tue, 20 Feb 2024 00:08:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708387737;
-	bh=Iv3SmJURW4uO5YpmU+3Qf31uYYUt5mi/H9KB5YUUtI8=;
+	s=korg; t=1708387738;
+	bh=PoSOgf2YwTWTuFuOaPRw+JwHuuhW5gh/ek+L7TkGYWQ=;
 	h=Date:To:From:Subject:From;
-	b=SMwmRbGYwcAlI8hhBhJtyNCXguvaRoCJRtJPdD/YI8ET13IqNf7D/wTSVUCR4qgQ2
-	 PxaamWAAWVlo9N3ieM/1fRcAcy1FQfwUoBtCaiwVkGOhm6Zyor7QxND25cm/8A2vBm
-	 niN2uEbRNOJwbpdsNu7IaKoMqY83i095li8qwrzY=
-Date: Mon, 19 Feb 2024 16:08:56 -0800
+	b=Xx9icz89GikxV/UJPhBU9GoeGPpS9cNYC+9klZrtrDwlsoUgQuaIAl2K5BF6Cv9c5
+	 vTtn5s4xfaspULNYg/wLKCiFj3UE8o0jVpocxFr9xftLC+C5sCrygRuW6pUZMdx3KR
+	 ex2BSsThmJ7QQPtR82OFs12845WLrk9JWgDZG6Qg=
+Date: Mon, 19 Feb 2024 16:08:58 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-reclaim-implement-memory-psi-driven-quota-self-tuning.patch added to mm-unstable branch
-Message-Id: <20240220000857.266ACC433C7@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-reclaim-document-auto-tuning-parameters.patch added to mm-unstable branch
+Message-Id: <20240220000858.D770BC433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/reclaim: implement memory PSI-driven quota self-tuning
+     Subject: Docs/admin-guide/mm/damon/reclaim: document auto-tuning parameters
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-reclaim-implement-memory-psi-driven-quota-self-tuning.patch
+     docs-admin-guide-mm-damon-reclaim-document-auto-tuning-parameters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-reclaim-implement-memory-psi-driven-quota-self-tuning.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-reclaim-document-auto-tuning-parameters.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,65 +59,56 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/reclaim: implement memory PSI-driven quota self-tuning
-Date: Mon, 19 Feb 2024 11:44:30 -0800
+Subject: Docs/admin-guide/mm/damon/reclaim: document auto-tuning parameters
+Date: Mon, 19 Feb 2024 11:44:31 -0800
 
-Support the PSI-driven quota self-tuning from DAMON_RECLAIM by introducing
-yet another parameter, 'quota_mem_pressure_us'.  Users can set the desired
-amount of memory pressure stall time per each quota reset interval using
-the parameter.  Then DAMON_RECLAIM monitor the memory pressure stall time,
-specifically system-wide memory 'some' PSI value that increased during the
-given time interval, and self-tune the quota using the DAMOS core logic.
+Update DAMON_RECLAIM usage document for the user/self feedback based
+auto-tuning of the quota.
 
-Link: https://lkml.kernel.org/r/20240219194431.159606-20-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240219194431.159606-21-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/reclaim.c |   25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ Documentation/admin-guide/mm/damon/reclaim.rst |   27 +++++++++++++++
+ 1 file changed, 27 insertions(+)
 
---- a/mm/damon/reclaim.c~mm-damon-reclaim-implement-memory-psi-driven-quota-self-tuning
-+++ a/mm/damon/reclaim.c
-@@ -63,6 +63,21 @@ static struct damos_quota damon_reclaim_
- DEFINE_DAMON_MODULES_DAMOS_QUOTAS(damon_reclaim_quota);
+--- a/Documentation/admin-guide/mm/damon/reclaim.rst~docs-admin-guide-mm-damon-reclaim-document-auto-tuning-parameters
++++ a/Documentation/admin-guide/mm/damon/reclaim.rst
+@@ -117,6 +117,33 @@ milliseconds.
  
- /*
-+ * Desired level of memory pressure-stall time in microseconds.
-+ *
-+ * While keeping the caps that set by other quotas, DAMON_RECLAIM automatically
-+ * increases and decreases the effective level of the quota aiming this level of
-+ * memory pressure is incurred.  System-wide ``some`` memory PSI in microseconds
-+ * per quota reset interval (``quota_reset_interval_ms``) is collected and
-+ * compared to this value to see if the aim is satisfied.  Value zero means
-+ * disabling this auto-tuning feature.
-+ *
-+ * Disabled by default.
-+ */
-+static unsigned long quota_mem_pressure_us __read_mostly;
-+module_param(quota_mem_pressure_us, ulong, 0600);
-+
-+/*
-  * User-specifiable feedback for auto-tuning of the effective quota.
-  *
-  * While keeping the caps that set by other quotas, DAMON_RECLAIM automatically
-@@ -198,6 +213,16 @@ static int damon_reclaim_apply_parameter
- 					&old_scheme->quota);
- 	}
+ 1 second by default.
  
-+	if (quota_mem_pressure_us) {
-+		goal = damos_new_quota_goal(DAMOS_QUOTA_SOME_MEM_PSI_US,
-+				quota_mem_pressure_us);
-+		if (!goal) {
-+			damon_destroy_scheme(scheme);
-+			return -ENOMEM;
-+		}
-+		damos_add_quota_goal(&scheme->quota, goal);
-+	}
++quota_mem_pressure_us
++---------------------
 +
- 	if (quota_autotune_feedback) {
- 		goal = damos_new_quota_goal(DAMOS_QUOTA_USER_INPUT, 10000);
- 		if (!goal) {
++Desired level of memory pressure-stall time in microseconds.
++
++While keeping the caps that set by other quotas, DAMON_RECLAIM automatically
++increases and decreases the effective level of the quota aiming this level of
++memory pressure is incurred.  System-wide ``some`` memory PSI in microseconds
++per quota reset interval (``quota_reset_interval_ms``) is collected and
++compared to this value to see if the aim is satisfied.  Value zero means
++disabling this auto-tuning feature.
++
++Disabled by default.
++
++quota_autotune_feedback
++-----------------------
++
++User-specifiable feedback for auto-tuning of the effective quota.
++
++While keeping the caps that set by other quotas, DAMON_RECLAIM automatically
++increases and decreases the effective level of the quota aiming receiving this
++feedback of value ``10,000`` from the user.  DAMON_RECLAIM assumes the feedback
++value and the quota are positively proportional.  Value zero means disabling
++this auto-tuning feature.
++
++Disabled by default.
++
+ wmarks_interval
+ ---------------
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
