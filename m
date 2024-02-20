@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E39D17FE
-	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 00:08:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB81EED0
+	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 00:08:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708387729; cv=none; b=gTmOTS+s6yNSBL/bnY0JrDq94PTwOpCL/BX4w4efmAqZWSzkP7PsWD1WIWQG0EvjbrwJGpLSMa7CpAzmUvngtHUgMn9RRJ1PFil0PLYH4MHR+RguV6soYWaBZ5MN8UfH5RwfIL68YKvQcDtmByvNVUOGcBSwbTYVl4kmHnzSVcI=
+	t=1708387731; cv=none; b=iqVJfN3ttUyGdG297/fHW9jX52eZJPA3pflKqprX5S3lnmeNpL0xs7EYl9V4njXZ5MUmT9tis19/cUxJODY9TsUTsZTW1esNd/I9BMCveeRuWO8IGN//ZjDr9BZTzPv8z7Ir+LX9izappIOgawtm+KoC8X8yiOUiNwsSPaT5j7Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708387729; c=relaxed/simple;
-	bh=b5gun78jXpHY+IN03rBsk09MPRzP1hoiDQXV1mpMhqQ=;
-	h=Date:To:From:Subject:Message-Id; b=LLG8/tZsHj4dUtPdwRPxvkEgxXH+x5SL5YXqD81ICAupCZkN3V37CEsANU1itxlXx5v2gHWomKSvY1QuXWymINcj4YGGy6WF6sAZNUeEdG4RywfwIEW+/WEq1s/Aaj/Sxw0wr4EdBmMHNEg7e3m1dZWUZmDcBQ56MKtCM6jwi8g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NxDncZni; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708387731; c=relaxed/simple;
+	bh=oFjgNCWUAdiQpSV7tTH1cc0+KERU6KPluzY5hB9HZD8=;
+	h=Date:To:From:Subject:Message-Id; b=gpCaIRKPfY2CQv/j5XViTvzmKouD9bzYntC2U6y7zwYvvVQNcqTEc/bqyXcO0D6ZDqlBxGkNZ6wzztPoAsmn0cToy/qngN4LoEs8//5SKzf0vLBz6Kw6R1z+eenzjBGTbhycpt3zuVeMdF3KyOelSPrc//jQIF/O/tyhoZT8ab8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=saTuhABr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NxDncZni"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B58C4C433F1;
-	Tue, 20 Feb 2024 00:08:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="saTuhABr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D093C433C7;
+	Tue, 20 Feb 2024 00:08:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708387728;
-	bh=b5gun78jXpHY+IN03rBsk09MPRzP1hoiDQXV1mpMhqQ=;
+	s=korg; t=1708387730;
+	bh=oFjgNCWUAdiQpSV7tTH1cc0+KERU6KPluzY5hB9HZD8=;
 	h=Date:To:From:Subject:From;
-	b=NxDncZniWHdJCLnIn0kWcNgvQN+KHFsd7weTeJGzxS4S37/nfVLCQYh1crQ2cNZHW
-	 AuQkHIFXZY/Faj9byReTZMbWXAW3sGUUwV5GbJZ1uIvsdlxVHEeFX0wU4H8CL9YYtU
-	 yGsVyAu+AbQEPRw95iIXhaR7JvQ9VhFeSCSLAnGc=
-Date: Mon, 19 Feb 2024 16:08:48 -0800
+	b=saTuhABrV8dFPxN59DJuUkBQWxSt8nTINL97DTy0s5aUyRDK0rqgGXrnjPPaBjNSj
+	 yu63qIQL0pdgq7RpvJcBgT4vysc8SPMCbJ1EYQbtMdKXM64tZ1hO1DKdz1z1hEthHw
+	 6WPzCE/dg0g699N2OFokLNXuX8BkFL9JylKSQWZo=
+Date: Mon, 19 Feb 2024 16:08:50 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-support-psi-based-quota-auto-tune.patch added to mm-unstable branch
-Message-Id: <20240220000848.B58C4C433F1@smtp.kernel.org>
+Subject: + docs-mm-damon-design-document-quota-goal-self-tuning.patch added to mm-unstable branch
+Message-Id: <20240220000850.6D093C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: support PSI-based quota auto-tune
+     Subject: Docs/mm/damon/design: document quota goal self-tuning
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-schemes-support-psi-based-quota-auto-tune.patch
+     docs-mm-damon-design-document-quota-goal-self-tuning.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-support-psi-based-quota-auto-tune.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-document-quota-goal-self-tuning.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,106 +59,54 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: support PSI-based quota auto-tune
-Date: Mon, 19 Feb 2024 11:44:25 -0800
+Subject: Docs/mm/damon/design: document quota goal self-tuning
+Date: Mon, 19 Feb 2024 11:44:26 -0800
 
-Extend DAMON sysfs interface to support the PSI-based quota auto-tuning by
-adding a new file, 'target_metric' under the quota goal directory.  Old
-users don't get any behavioral changes since the default value of the
-metric is 'user input'.
+Update DAMON design doc to explain the quota goal self-tuning, which can
+be used by setting the goal's metric to metrics that kernel can
+self-retrieve.
 
-Link: https://lkml.kernel.org/r/20240219194431.159606-15-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240219194431.159606-16-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |   42 +++++++++++++++++++++++++++++++++++--
- 1 file changed, 40 insertions(+), 2 deletions(-)
+ Documentation/mm/damon/design.rst |   20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-support-psi-based-quota-auto-tune
-+++ a/mm/damon/sysfs-schemes.c
-@@ -826,15 +826,48 @@ static const struct kobj_type damon_sysf
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-quota-goal-self-tuning
++++ a/Documentation/mm/damon/design.rst
+@@ -398,12 +398,28 @@ Aim-oriented Feedback-driven Auto-tuning
+ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
  
- struct damos_sysfs_quota_goal {
- 	struct kobject kobj;
-+	enum damos_quota_goal_metric metric;
- 	unsigned long target_value;
- 	unsigned long current_value;
- };
+ Automatic feedback-driven quota tuning.  Instead of setting the absolute quota
+-value, users can repeatedly provide numbers representing how much of their goal
+-for the scheme is achieved as feedback.  DAMOS then automatically tunes the
++value, users can specify the metric of their interest, and what target value
++they want the metric value to be.  DAMOS then automatically tunes the
+ aggressiveness (the quota) of the corresponding scheme.  For example, if DAMOS
+ is under achieving the goal, DAMOS automatically increases the quota.  If DAMOS
+ is over achieving the goal, it decreases the quota.
  
-+/* This should match with enum damos_action */
-+static const char * const damos_sysfs_quota_goal_metric_strs[] = {
-+	"user_input",
-+	"some_mem_psi_us",
-+};
++The goal can be specified with three parameters, namely ``target_metric``,
++``target_value``, and ``current_value``.  The auto-tuning mechanism tries to
++make ``current_value`` of ``target_metric`` be same to ``target_value``.
++Currently, two ``target_metric`` are provided.
 +
- static struct damos_sysfs_quota_goal *damos_sysfs_quota_goal_alloc(void)
- {
- 	return kzalloc(sizeof(struct damos_sysfs_quota_goal), GFP_KERNEL);
- }
- 
-+static ssize_t target_metric_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	struct damos_sysfs_quota_goal *goal = container_of(kobj,
-+			struct damos_sysfs_quota_goal, kobj);
++- ``user_input``: User-provided value.  Users could use any metric that they
++  has interest in for the value.  Use space main workload's latency or
++  throughput, system metrics like free memory ratio or memory pressure stall
++  time (PSI) could be examples.  Note that users should explicitly set
++  ``current_value`` on their own in this case.  In other words, users should
++  repeatedly provide the feedback.
++- ``some_mem_psi_us``: System-wide ``some`` memory pressure stall information
++  in microseconds that measured from last quota reset to next quota reset.
++  DAMOS does the measurement on its own, so only ``target_value`` need to be
++  set by users at the initial time.  In other words, DAMOS does self-feedback.
 +
-+	return sysfs_emit(buf, "%s\n",
-+			damos_sysfs_quota_goal_metric_strs[goal->metric]);
-+}
-+
-+static ssize_t target_metric_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
-+{
-+	struct damos_sysfs_quota_goal *goal = container_of(kobj,
-+			struct damos_sysfs_quota_goal, kobj);
-+	enum damos_quota_goal_metric m;
-+
-+	for (m = 0; m < NR_DAMOS_QUOTA_GOAL_METRICS; m++) {
-+		if (sysfs_streq(buf, damos_sysfs_quota_goal_metric_strs[m])) {
-+			goal->metric = m;
-+			return count;
-+		}
-+	}
-+	return -EINVAL;
-+}
-+
- static ssize_t target_value_show(struct kobject *kobj,
- 		struct kobj_attribute *attr, char *buf)
- {
-@@ -880,6 +913,9 @@ static void damos_sysfs_quota_goal_relea
- 	kfree(container_of(kobj, struct damos_sysfs_quota_goal, kobj));
- }
  
-+static struct kobj_attribute damos_sysfs_quota_goal_target_metric_attr =
-+		__ATTR_RW_MODE(target_metric, 0600);
-+
- static struct kobj_attribute damos_sysfs_quota_goal_target_value_attr =
- 		__ATTR_RW_MODE(target_value, 0600);
+ .. _damon_design_damos_watermarks:
  
-@@ -887,6 +923,7 @@ static struct kobj_attribute damos_sysfs
- 		__ATTR_RW_MODE(current_value, 0600);
- 
- static struct attribute *damos_sysfs_quota_goal_attrs[] = {
-+	&damos_sysfs_quota_goal_target_metric_attr.attr,
- 	&damos_sysfs_quota_goal_target_value_attr.attr,
- 	&damos_sysfs_quota_goal_current_value_attr.attr,
- 	NULL,
-@@ -1899,11 +1936,12 @@ static int damos_sysfs_set_quota_score(
- 		if (!sysfs_goal->target_value)
- 			continue;
- 
--		goal = damos_new_quota_goal(DAMOS_QUOTA_USER_INPUT,
-+		goal = damos_new_quota_goal(sysfs_goal->metric,
- 				sysfs_goal->target_value);
- 		if (!goal)
- 			return -ENOMEM;
--		goal->current_value = sysfs_goal->current_value;
-+		if (sysfs_goal->metric == DAMOS_QUOTA_USER_INPUT)
-+			goal->current_value = sysfs_goal->current_value;
- 		damos_add_quota_goal(quota, goal);
- 	}
- 	return 0;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
