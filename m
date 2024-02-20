@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E714812
-	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 00:08:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A18715BB
+	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 00:08:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708387717; cv=none; b=Ieo3c1NmUeO6WsFbEJjrDMgWLv0QOm03sbKBU4O/SK4DQt6g5pGKIwfYOqhKjRiN8YCEmjzSbefUk+oWio2docqNd/P5iLDsLipWQboXUTSbRb1bnZKsnil8xTmpCbTvW2KE8qdhKsThVjJAqbgdeK6YcXYxdQiIhbrgCJKSyJU=
+	t=1708387720; cv=none; b=lGgY5cwJqX/SqHzs66Rru0k8eNe4NZ5uiEhz/NpcCskfwAOaC9ftpVfw59HQte4+zZHdFTx35mtz6STCVxjt5PnP8vh9NWmYpcckmEkcnZDZ+Gs1IG0fUHD8A1oItVcka5oqcwUnIXb7kyyks4HS6SEQKb7a9bo/KADvez87Wk8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708387717; c=relaxed/simple;
-	bh=yhQhdImhzhev1mrNEdqFgi5kmr3lnGvsKDGjHhfXdss=;
-	h=Date:To:From:Subject:Message-Id; b=kkKn16xpepwtxAIVkLK+4CroJi2p5EHl9CA2Wf/SIip7MNt7gqecFli8YQg0qU5nRAKvS3HuYdMpXlpMVeDFTKsCE6a8wK+Ifk8Uws8orzRphPgIuSYXT5/zr0X3f2FE6etELyrdgESm6Xs7wpWbgt633PcXiUAQpDMWyC90YzE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MO0irQcf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708387720; c=relaxed/simple;
+	bh=xAFxiA3AYhW3NIWrTuT4dfV2qH31aRU9Sh8xTTD7l1w=;
+	h=Date:To:From:Subject:Message-Id; b=KOVefhAHD/mPaOHvNyz49rPPnPvy+IhnYN/CEVcb8dAgXDL7qYdZXwsENrA3myJB+j6aqAAQJvEIMRzy+Qdr65Ds9Fvw+U5Ue3/7XFgb0e3Ko830gcAXUfMGuTbbKBvMoVdTwvaeTrg50D2ht+oWWoMQnMxD+LI+bY9atZalMRo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ihscUD4+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MO0irQcf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0AB8EC433C7;
-	Tue, 20 Feb 2024 00:08:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ihscUD4+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 871E9C433C7;
+	Tue, 20 Feb 2024 00:08:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708387717;
-	bh=yhQhdImhzhev1mrNEdqFgi5kmr3lnGvsKDGjHhfXdss=;
+	s=korg; t=1708387719;
+	bh=xAFxiA3AYhW3NIWrTuT4dfV2qH31aRU9Sh8xTTD7l1w=;
 	h=Date:To:From:Subject:From;
-	b=MO0irQcfZXoIK67uFb06MBaW5P40hSSOUtLZW8de+kK0zcwQSz69GFzx2oTVH+Puv
-	 NcnHxOPcc0TXrupO2o3zAAxY6w7zgzExB+CRFO5NYHq66utWxMpLf9KqZ0PZsW0rPd
-	 brU/VDaSsxM8AgtKL29AiXEBk9J004hDX9GFG044=
-Date: Mon, 19 Feb 2024 16:08:36 -0800
+	b=ihscUD4+oTWErkFKdf4QEyAthufAeWjL3/PQF0AFPGjTLQvNLhfDjO2b7RCbjL6jj
+	 TiFoS4coR0YLnQSZiqHp/wnl9EM4YFuN0o4uo7AnBGXdigF9lIclKJXKdVVrjnW3jD
+	 xmzd7DSWuJkf0qlDjp1nre8vneQmfXvnOTJX25kM=
+Date: Mon, 19 Feb 2024 16:08:39 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-use-only-quota-goals.patch added to mm-unstable branch
-Message-Id: <20240220000837.0AB8EC433C7@smtp.kernel.org>
+Subject: + mm-damon-core-remove-goal-field-of-damos_quota.patch added to mm-unstable branch
+Message-Id: <20240220000839.871E9C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: use only quota->goals
+     Subject: mm/damon/core: remove ->goal field of damos_quota
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-use-only-quota-goals.patch
+     mm-damon-core-remove-goal-field-of-damos_quota.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-use-only-quota-goals.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-remove-goal-field-of-damos_quota.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,153 +59,116 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: use only quota->goals
-Date: Mon, 19 Feb 2024 11:44:20 -0800
+Subject: mm/damon/core: remove ->goal field of damos_quota
+Date: Mon, 19 Feb 2024 11:44:21 -0800
 
-DAMON sysfs interface implements multiple quota auto-tuning goals on its
-level since the DAMOS core logic was supporting only single goal.  Now the
-core logic supports multiple goals on its level.  Update DAMON sysfs
-interface to reuse the core logic and drop unnecessary duplicated multiple
-goals implementation.
+DAMOS quota auto-tuning feature supports static signle goal and dynamic
+multiple goals via DAMON kernel API, specifically via ->goal and ->goals
+fields of damos_quota struct, respectively.  All in-tree DAMOS kernel API
+users are using only the dynamic multiple goals now.  Remove the unsued
+static single goal interface.
 
-Link: https://lkml.kernel.org/r/20240219194431.159606-10-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240219194431.159606-11-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-common.h  |    2 -
- mm/damon/sysfs-schemes.c |   49 ++++++++++++++++++++++++-------------
- mm/damon/sysfs.c         |    3 --
- 3 files changed, 35 insertions(+), 19 deletions(-)
+ include/linux/damon.h |   12 ++++--------
+ mm/damon/core.c       |   17 +++++------------
+ 2 files changed, 9 insertions(+), 20 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-use-only-quota-goals
-+++ a/mm/damon/sysfs.c
-@@ -1377,8 +1377,7 @@ static int damon_sysfs_commit_schemes_qu
+--- a/include/linux/damon.h~mm-damon-core-remove-goal-field-of-damos_quota
++++ a/include/linux/damon.h
+@@ -149,7 +149,6 @@ struct damos_quota_goal {
+  * @reset_interval:	Charge reset interval in milliseconds.
+  * @ms:			Maximum milliseconds that the scheme can use.
+  * @sz:			Maximum bytes of memory that the action can be applied.
+- * @goal:		Quota auto-tuning goal.
+  * @goals:		Head of quota tuning goals (&damos_quota_goal) list.
+  * @esz:		Effective size quota in bytes.
+  *
+@@ -169,12 +168,10 @@ struct damos_quota_goal {
+  * throughput of the scheme's action.  DAMON then compares it against &sz and
+  * uses smaller one as the effective quota.
+  *
+- * If ->get_score field of @goal is set, DAMON calculates yet another size
+- * quota based on the goal using its internal feedback loop algorithm, for
+- * every @reset_interval.  Then, if the new size quota is smaller than the
+- * effective quota, it uses the new size quota as the effective quota.
+- *
+- * If @goals is not empty, same action is taken for each goal of the list.
++ * If @goals is not empt, DAMON calculates yet another size quota based on the
++ * goals using its internal feedback loop algorithm, for every @reset_interval.
++ * Then, if the new size quota is smaller than the effective quota, it uses the
++ * new size quota as the effective quota.
+  *
+  * The resulting effective size quota in bytes is set to @esz.
+  *
+@@ -188,7 +185,6 @@ struct damos_quota {
+ 	unsigned long reset_interval;
+ 	unsigned long ms;
+ 	unsigned long sz;
+-	struct damos_quota_goal goal;
+ 	struct list_head goals;
+ 	unsigned long esz;
  
- 	ctx = sysfs_kdamond->damon_ctx;
- 	sysfs_ctx = sysfs_kdamond->contexts->contexts_arr[0];
--	damos_sysfs_set_quota_scores(sysfs_ctx->schemes, ctx);
--	return 0;
-+	return damos_sysfs_set_quota_scores(sysfs_ctx->schemes, ctx);
+--- a/mm/damon/core.c~mm-damon-core-remove-goal-field-of-damos_quota
++++ a/mm/damon/core.c
+@@ -1130,10 +1130,6 @@ static unsigned long damos_quota_score(s
+ 	struct damos_quota_goal *goal;
+ 	unsigned long highest_score = 0;
+ 
+-	if (quota->goal.get_score)
+-		highest_score = quota->goal.get_score(
+-				quota->goal.get_score_arg);
+-
+ 	damos_for_each_quota_goal(goal, quota)
+ 		highest_score = max(highest_score,
+ 				goal->get_score(goal->get_score_arg));
+@@ -1142,21 +1138,19 @@ static unsigned long damos_quota_score(s
  }
  
  /*
---- a/mm/damon/sysfs-common.h~mm-damon-sysfs-use-only-quota-goals
-+++ a/mm/damon/sysfs-common.h
-@@ -59,7 +59,7 @@ int damon_sysfs_schemes_clear_regions(
- 		struct damon_sysfs_schemes *sysfs_schemes,
- 		struct damon_ctx *ctx);
- 
--void damos_sysfs_set_quota_scores(struct damon_sysfs_schemes *sysfs_schemes,
-+int damos_sysfs_set_quota_scores(struct damon_sysfs_schemes *sysfs_schemes,
- 		struct damon_ctx *ctx);
- 
- void damos_sysfs_update_effective_quotas(
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-use-only-quota-goals
-+++ a/mm/damon/sysfs-schemes.c
-@@ -1887,30 +1887,34 @@ static unsigned long damos_sysfs_get_quo
- 	return (unsigned long)arg;
- }
- 
--static void damos_sysfs_set_quota_score(
-+static int damos_sysfs_set_quota_score(
- 		struct damos_sysfs_quota_goals *sysfs_goals,
- 		struct damos_quota *quota)
+- * Called only if quota->ms, quota->sz, or quota->goal.get_score are set, or
+- * quota->goals is not empty
++ * Called only if quota->ms, or quota->sz are set, or quota->goals is not empty
+  */
+ static void damos_set_effective_quota(struct damos_quota *quota)
  {
--	struct damos_sysfs_quota_goal *sysfs_goal;
-+	struct damos_quota_goal *goal, *next;
- 	int i;
+ 	unsigned long throughput;
+ 	unsigned long esz;
  
--	quota->goal.get_score = NULL;
--	quota->goal.get_score_arg = (void *)0;
-+	damos_for_each_quota_goal_safe(goal, next, quota)
-+		damos_destroy_quota_goal(goal);
-+
- 	for (i = 0; i < sysfs_goals->nr; i++) {
--		sysfs_goal = sysfs_goals->goals_arr[i];
-+		struct damos_sysfs_quota_goal *sysfs_goal =
-+			sysfs_goals->goals_arr[i];
-+
- 		if (!sysfs_goal->target_value)
- 			continue;
- 
--		/* Higher score makes scheme less aggressive */
--		quota->goal.get_score_arg = (void *)max(
--				(unsigned long)quota->goal.get_score_arg,
--				sysfs_goal->current_value * 10000 /
--				sysfs_goal->target_value);
--		quota->goal.get_score = damos_sysfs_get_quota_score;
-+		goal = damos_new_quota_goal(damos_sysfs_get_quota_score,
-+				(void *)(sysfs_goal->current_value * 10000 /
-+				sysfs_goal->target_value));
-+		if (!goal)
-+			return -ENOMEM;
-+		damos_add_quota_goal(quota, goal);
+-	if (!quota->ms && !quota->goal.get_score &&
+-			list_empty(&quota->goals)) {
++	if (!quota->ms && list_empty(&quota->goals)) {
+ 		quota->esz = quota->sz;
+ 		return;
  	}
-+	return 0;
- }
  
--void damos_sysfs_set_quota_scores(struct damon_sysfs_schemes *sysfs_schemes,
-+int damos_sysfs_set_quota_scores(struct damon_sysfs_schemes *sysfs_schemes,
- 		struct damon_ctx *ctx)
- {
- 	struct damos *scheme;
-@@ -1918,16 +1922,21 @@ void damos_sysfs_set_quota_scores(struct
+-	if (quota->goal.get_score || !list_empty(&quota->goals)) {
++	if (!list_empty(&quota->goals)) {
+ 		unsigned long score = damos_quota_score(quota);
  
- 	damon_for_each_scheme(scheme, ctx) {
- 		struct damon_sysfs_scheme *sysfs_scheme;
-+		int err;
+ 		quota->esz_bp = damon_feed_loop_next_input(
+@@ -1171,7 +1165,7 @@ static void damos_set_effective_quota(st
+ 				quota->total_charged_ns;
+ 		else
+ 			throughput = PAGE_SIZE * 1024;
+-		if (quota->goal.get_score || !list_empty(&quota->goals))
++		if (!list_empty(&quota->goals))
+ 			esz = min(throughput * quota->ms, esz);
+ 		else
+ 			esz = throughput * quota->ms;
+@@ -1191,8 +1185,7 @@ static void damos_adjust_quota(struct da
+ 	unsigned long cumulated_sz;
+ 	unsigned int score, max_score = 0;
  
- 		/* user could have removed the scheme sysfs dir */
- 		if (i >= sysfs_schemes->nr)
- 			break;
+-	if (!quota->ms && !quota->sz && !quota->goal.get_score &&
+-			list_empty(&quota->goals))
++	if (!quota->ms && !quota->sz && list_empty(&quota->goals))
+ 		return;
  
- 		sysfs_scheme = sysfs_schemes->schemes_arr[i];
--		damos_sysfs_set_quota_score(sysfs_scheme->quotas->goals,
-+		err = damos_sysfs_set_quota_score(sysfs_scheme->quotas->goals,
- 				&scheme->quota);
-+		if (err)
-+			/* kdamond will clean up schemes and terminated */
-+			return err;
- 		i++;
- 	}
-+	return 0;
- }
- 
- void damos_sysfs_update_effective_quotas(
-@@ -1987,13 +1996,17 @@ static struct damos *damon_sysfs_mk_sche
- 		.low = sysfs_wmarks->low,
- 	};
- 
--	damos_sysfs_set_quota_score(sysfs_quotas->goals, &quota);
--
- 	scheme = damon_new_scheme(&pattern, sysfs_scheme->action,
- 			sysfs_scheme->apply_interval_us, &quota, &wmarks);
- 	if (!scheme)
- 		return NULL;
- 
-+	err = damos_sysfs_set_quota_score(sysfs_quotas->goals, &scheme->quota);
-+	if (err) {
-+		damon_destroy_scheme(scheme);
-+		return NULL;
-+	}
-+
- 	err = damon_sysfs_set_scheme_filters(scheme, sysfs_filters);
- 	if (err) {
- 		damon_destroy_scheme(scheme);
-@@ -2029,7 +2042,11 @@ static void damon_sysfs_update_scheme(st
- 	scheme->quota.weight_nr_accesses = sysfs_weights->nr_accesses;
- 	scheme->quota.weight_age = sysfs_weights->age;
- 
--	damos_sysfs_set_quota_score(sysfs_quotas->goals, &scheme->quota);
-+	err = damos_sysfs_set_quota_score(sysfs_quotas->goals, &scheme->quota);
-+	if (err) {
-+		damon_destroy_scheme(scheme);
-+		return;
-+	}
- 
- 	scheme->wmarks.metric = sysfs_wmarks->metric;
- 	scheme->wmarks.interval = sysfs_wmarks->interval_us;
+ 	/* New charge window starts */
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
