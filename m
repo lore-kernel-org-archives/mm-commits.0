@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D12237E5
-	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 00:08:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F3F315B1
+	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 00:08:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708387704; cv=none; b=GAaNZQYMAPmLusU1X8jYW4LHQmf+2As9noVssD7BmWiKtGtPBLTsw3PMCJnfzypMWZpbXDP8KA6YXJWnYAiiDLkWzDBlwwhO9zwI/vjz+Fdh5miY9Aj2B5p+95LY9m482yocTRflwe9mtfVaCU1mrx/0yRQb/xDChpn+VLTfuIg=
+	t=1708387707; cv=none; b=hBkcADyqa6gzlmqgUYRJCY1D6ptGClDncOjkQJF0Iui17xBIgdSlSrVl302C2Oz1ibOK30cSn1yitWquipStTBu5kbIHtsOLTPPWudI26E/ljP7XRw1Vebi6r/IN3BIVyVjDMeIMUA+BqHP5M2SPmXqoedqqH6kn//HtChCPA88=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708387704; c=relaxed/simple;
-	bh=mv4hkg7us0BZHG59zJUhgoYWPBsPmv7rajJUTIImOYk=;
-	h=Date:To:From:Subject:Message-Id; b=BXJvcADHWqaFfjIG2CSM7EZUg2s/aBMb7bgEPY+OW3RWH4G9PtZIdPyKCSh3N8BjMHHF1c/gU/AGu7k4F1CFDCbWAYmxZkFnRSs/ge4knsm2HXF1wbz2vc4YgHCHqYpr67eSR/OMbnuqTYUxOtDePnqanTSdZofR0EVGxf6cY20=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=c8+k2ksf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708387707; c=relaxed/simple;
+	bh=ib/o/k1SqbfyrhTljlXUrSRMIchn43WXcwPwHitsYgc=;
+	h=Date:To:From:Subject:Message-Id; b=qUBi2NnnbD+w/7YfNctUMvGyDbo3KNrfv57lR3jxhM1c6n++x62xZju2UfszEQYsCDoF9wu6cnOdLn9Wa8LIqgdjjjPdyInzvDj1Mi6y9lgXZicbt8JKgIMo7L0zb4kPiCiUOgdfBK7nJO0eysslhShSeALCu/eiFVxDaseOaPw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tkzqX+OJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="c8+k2ksf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B92CC433C7;
-	Tue, 20 Feb 2024 00:08:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tkzqX+OJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27AE2C433F1;
+	Tue, 20 Feb 2024 00:08:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708387704;
-	bh=mv4hkg7us0BZHG59zJUhgoYWPBsPmv7rajJUTIImOYk=;
+	s=korg; t=1708387707;
+	bh=ib/o/k1SqbfyrhTljlXUrSRMIchn43WXcwPwHitsYgc=;
 	h=Date:To:From:Subject:From;
-	b=c8+k2ksfxPAuseotfwhIbWbOuqJ2k6jkHbderkqrnxDsTNGvRrczOUCZbJvcTvOx/
-	 N5to6Ka/T824hDlgLaVFKbkIi+sZfey44vYLXpkVErDddhPurFSEETeASbMHu+JL1U
-	 GF2Ky1GXwkru1gfXm6mpAydLvd/bzsuEnKpDzzvU=
-Date: Mon, 19 Feb 2024 16:08:23 -0800
+	b=tkzqX+OJYX+J8WfXxutRsu5LcquGKCk/nsuzgp0tcy7IkNRZQ8eZ08VZQRJ/o1K2j
+	 h9SOhcU2+Xf0rDZwhJWvARe6lDaIqUTfUWCby7V09AJzs+A7hYmGjTEXs92g5h5W2h
+	 Yq0g/nMle16Y0niCvm0mT0B6whxKlyXE8GKBvfqw=
+Date: Mon, 19 Feb 2024 16:08:26 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-implement-a-kdamond-command-for-updating-schemes-effective-quotas.patch added to mm-unstable branch
-Message-Id: <20240220000824.6B92CC433C7@smtp.kernel.org>
+Subject: + docs-abi-damon-document-effective_bytes-sysfs-file.patch added to mm-unstable branch
+Message-Id: <20240220000827.27AE2C433F1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: implement a kdamond command for updating schemes' effective quotas
+     Subject: Docs/ABI/damon: document effective_bytes sysfs file
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-sysfs-implement-a-kdamond-command-for-updating-schemes-effective-quotas.patch
+     docs-abi-damon-document-effective_bytes-sysfs-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-implement-a-kdamond-command-for-updating-schemes-effective-quotas.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-document-effective_bytes-sysfs-file.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,125 +59,46 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: implement a kdamond command for updating schemes' effective quotas
-Date: Mon, 19 Feb 2024 11:44:14 -0800
+Subject: Docs/ABI/damon: document effective_bytes sysfs file
+Date: Mon, 19 Feb 2024 11:44:15 -0800
 
-Implement yet another kdamond 'state' file input command, namely
-'update_schemes_effective_quotas'.  If it is written, the
-'effective_bytes' files of the kdamond will be updated to provide the
-current effective size quota of each scheme in bytes.
+Update the DAMON ABI doc for the effective_bytes sysfs file and the
+kdamond state file input command for updating the content of the file.
 
-Link: https://lkml.kernel.org/r/20240219194431.159606-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20240219194431.159606-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-common.h  |    4 ++++
- mm/damon/sysfs-schemes.c |   20 ++++++++++++++++++++
- mm/damon/sysfs.c         |   32 ++++++++++++++++++++++++++++++++
- 3 files changed, 56 insertions(+)
+ Documentation/ABI/testing/sysfs-kernel-mm-damon |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-implement-a-kdamond-command-for-updating-schemes-effective-quotas
-+++ a/mm/damon/sysfs.c
-@@ -1020,6 +1020,11 @@ enum damon_sysfs_cmd {
- 	 */
- 	DAMON_SYSFS_CMD_CLEAR_SCHEMES_TRIED_REGIONS,
- 	/*
-+	 * @DAMON_SYSFS_CMD_UPDATE_SCHEMES_EFFECTIVE_QUOTAS: Update the
-+	 * effective size quota of the scheme in bytes.
-+	 */
-+	DAMON_SYSFS_CMD_UPDATE_SCHEMES_EFFECTIVE_QUOTAS,
-+	/*
- 	 * @NR_DAMON_SYSFS_CMDS: Total number of DAMON sysfs commands.
- 	 */
- 	NR_DAMON_SYSFS_CMDS,
-@@ -1035,6 +1040,7 @@ static const char * const damon_sysfs_cm
- 	"update_schemes_tried_bytes",
- 	"update_schemes_tried_regions",
- 	"clear_schemes_tried_regions",
-+	"update_schemes_effective_quotas",
- };
+--- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-document-effective_bytes-sysfs-file
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
+@@ -34,7 +34,9 @@ Description:	Writing 'on' or 'off' to th
+ 		kdamond.  Writing 'update_schemes_tried_bytes' to the file
+ 		updates only '.../tried_regions/total_bytes' files of this
+ 		kdamond.  Writing 'clear_schemes_tried_regions' to the file
+-		removes contents of the 'tried_regions' directory.
++		removes contents of the 'tried_regions' directory.  Writing
++		'update_schemes_effective_quotas' to the file updates
++		'.../quotas/effective_bytes' files of this kdamond.
  
- /*
-@@ -1376,6 +1382,29 @@ static int damon_sysfs_commit_schemes_qu
- }
+ What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/pid
+ Date:		Mar 2022
+@@ -208,6 +210,12 @@ Contact:	SeongJae Park <sj@kernel.org>
+ Description:	Writing to and reading from this file sets and gets the size
+ 		quota of the scheme in bytes.
  
- /*
-+ * damon_sysfs_upd_schemes_effective_quotas() - Update schemes effective quotas
-+ * sysfs files.
-+ * @kdamond:	The kobject wrapper that associated to the kdamond thread.
-+ *
-+ * This function reads the schemes' effective quotas of specific kdamond and
-+ * update the related values for sysfs files.  This function should be called
-+ * from DAMON callbacks while holding ``damon_syfs_lock``, to safely access the
-+ * DAMON contexts-internal data and DAMON sysfs variables.
-+ */
-+static int damon_sysfs_upd_schemes_effective_quotas(
-+		struct damon_sysfs_kdamond *kdamond)
-+{
-+	struct damon_ctx *ctx = kdamond->damon_ctx;
++What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/effective_bytes
++Date:		Feb 2024
++Contact:	SeongJae Park <sj@kernel.org>
++Description:	Reading from this file gets the effective size quota of the
++		scheme in bytes, which adjusted for the time quota and goals.
 +
-+	if (!ctx)
-+		return -EINVAL;
-+	damos_sysfs_update_effective_quotas(
-+			kdamond->contexts->contexts_arr[0]->schemes, ctx);
-+	return 0;
-+}
-+
-+
-+/*
-  * damon_sysfs_cmd_request_callback() - DAMON callback for handling requests.
-  * @c:		The DAMON context of the callback.
-  * @active:	Whether @c is not deactivated due to watermarks.
-@@ -1437,6 +1466,9 @@ static int damon_sysfs_cmd_request_callb
- 	case DAMON_SYSFS_CMD_CLEAR_SCHEMES_TRIED_REGIONS:
- 		err = damon_sysfs_clear_schemes_regions(kdamond);
- 		break;
-+	case DAMON_SYSFS_CMD_UPDATE_SCHEMES_EFFECTIVE_QUOTAS:
-+		err = damon_sysfs_upd_schemes_effective_quotas(kdamond);
-+		break;
- 	default:
- 		break;
- 	}
---- a/mm/damon/sysfs-common.h~mm-damon-sysfs-implement-a-kdamond-command-for-updating-schemes-effective-quotas
-+++ a/mm/damon/sysfs-common.h
-@@ -61,3 +61,7 @@ int damon_sysfs_schemes_clear_regions(
- 
- void damos_sysfs_set_quota_scores(struct damon_sysfs_schemes *sysfs_schemes,
- 		struct damon_ctx *ctx);
-+
-+void damos_sysfs_update_effective_quotas(
-+		struct damon_sysfs_schemes *sysfs_schemes,
-+		struct damon_ctx *ctx);
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-implement-a-kdamond-command-for-updating-schemes-effective-quotas
-+++ a/mm/damon/sysfs-schemes.c
-@@ -1930,6 +1930,26 @@ void damos_sysfs_set_quota_scores(struct
- 	}
- }
- 
-+void damos_sysfs_update_effective_quotas(
-+		struct damon_sysfs_schemes *sysfs_schemes,
-+		struct damon_ctx *ctx)
-+{
-+	struct damos *scheme;
-+	int schemes_idx = 0;
-+
-+	damon_for_each_scheme(scheme, ctx) {
-+		struct damon_sysfs_quotas *sysfs_quotas;
-+
-+		/* user could have removed the scheme sysfs dir */
-+		if (schemes_idx >= sysfs_schemes->nr)
-+			break;
-+
-+		sysfs_quotas =
-+			sysfs_schemes->schemes_arr[schemes_idx++]->quotas;
-+		sysfs_quotas->effective_sz = scheme->quota.esz;
-+	}
-+}
-+
- static struct damos *damon_sysfs_mk_scheme(
- 		struct damon_sysfs_scheme *sysfs_scheme)
- {
+ What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/reset_interval_ms
+ Date:		Mar 2022
+ Contact:	SeongJae Park <sj@kernel.org>
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
