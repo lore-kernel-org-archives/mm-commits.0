@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6F9676C73
-	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 17:45:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1E3177A01
+	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 17:54:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708451104; cv=none; b=O8JYLKJ/02hAAZB+m1GYrdFpZ+IfFVJHCsR+I6lU9mPA9OpJow6+zv1hZewwVPaaF5HhFHNROQlCdiBrVHaReURZI6xafXXU+V5hNPhO6ZVM0LwzokrBCbxFEJb+MEEIN1vTq5HWFK/z0RCtNlwiitpGe7MpgeUosKDvpxnaBQU=
+	t=1708451687; cv=none; b=ij49pttBxm3+H64O2A0lh31m1kJ15mL7yWK/09ByJVKRhMVbuns877O1vXfKaMb7+BD9iVVgg1b5bG4UWakk643T/zeyptltAVhyugTQqR1QNeFYzakwa8HqQmtcPMHjbrqNcW1T1kDOK0o2TJUXObgJvkcbW6JRE/aqzrDEMLY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708451104; c=relaxed/simple;
-	bh=fSI1IMpBj7rps0sIPiu1w4KqOLFA9nccp06OpLW7KTU=;
-	h=Date:To:From:Subject:Message-Id; b=Fanoy9B+gwuIHBOM5gm343avx1vRshjwbWG86PGY+XBNoJkEBArabyzFuxd3WpqRb8xMYYUYcPwBSG9V7ka8ySOzG3CzCL8yN9y8HawmkDkvGdsvFut7UO5kSAyK8ZDJASOE59y8p8BlfoMNa3/e1OJtzzRsmR8oKzaNHE0QG9w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YZOcmCHH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708451687; c=relaxed/simple;
+	bh=K/S7vhXON189UDW8TIAIIKhCHBiDoA9Yk3t0rXIEdDI=;
+	h=Date:To:From:Subject:Message-Id; b=LetMc8XfWiynfPyuq/O0rVR7mMq3ZLrXpEwT4T/hpbnkGX5ABUceAauHlsBNXq9DLHhd90+fxBgwgg+ChmUQwAhOe7G4oivGwpD0ELR0xkUBlLB0A9buo9t0hqPtWXsPKi9JC25QHAQlnUcHIacwXu1kIKJ7HlgcojoAmtDuvk8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QOGni6Hj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YZOcmCHH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 349E2C433C7;
-	Tue, 20 Feb 2024 17:45:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QOGni6Hj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9783CC433C7;
+	Tue, 20 Feb 2024 17:54:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708451104;
-	bh=fSI1IMpBj7rps0sIPiu1w4KqOLFA9nccp06OpLW7KTU=;
+	s=korg; t=1708451686;
+	bh=K/S7vhXON189UDW8TIAIIKhCHBiDoA9Yk3t0rXIEdDI=;
 	h=Date:To:From:Subject:From;
-	b=YZOcmCHHdPQVMSW3TohL5PFs2Oud5QyZxxsgRIxUYQ/71ZAzL44tW6N5HKG74vzyx
-	 8Um0qVyrSDRkMlpD1sz7BvrE57T3HySTMoKbcVH8IhdGCGfc3i0Skqh/YhSbyQ6Ndn
-	 Rzfu/o2+D+IvgZt4NiWjehtJI16ZcuE2uVD3PYYY=
-Date: Tue, 20 Feb 2024 09:45:03 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=QOGni6HjjDlOhUYyFKs11pEnM3VuboQGoMtO3SXEPumcL+HlBSeucKkfYOhioI6dD
+	 l2XEXPfPbU5sYBmcm500uWp9rWsg09a8LfeckahLAk1CJN31xfj/RKuVWlP6HBsHis
+	 TFHAsMYX9soTGH1xEkYd/PJl4sYAGKSzv+Nz6RKA=
+Date: Tue, 20 Feb 2024 09:54:46 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,Liam.Howlett@oracle.com,lstoakes@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-compaction-add-support-for-0-order-folio-memory-compaction-fix.patch added to mm-unstable branch
-Message-Id: <20240220174504.349E2C433C7@smtp.kernel.org>
+Subject: + maintainers-add-memory-mapping-entry-with-reviewers.patch added to mm-hotfixes-unstable branch
+Message-Id: <20240220175446.9783CC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-compaction-add-support-for-0-order-folio-memory-compaction-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-compaction-add-support-for-0-order-folio-memory-compaction-fix.patch
+     Subject: MAINTAINERS: add memory mapping entry with reviewers
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maintainers-add-memory-mapping-entry-with-reviewers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-compaction-add-support-for-0-order-folio-memory-compaction-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-memory-mapping-entry-with-reviewers.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,42 +58,50 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-compaction-add-support-for-0-order-folio-memory-compaction-fix
-Date: Tue Feb 20 09:43:50 AM PST 2024
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: MAINTAINERS: add memory mapping entry with reviewers
+Date: Tue, 20 Feb 2024 06:44:10 +0000
 
-fix mismerge in compaction_alloc()
+Recently there have been a number of patches which have affected various
+aspects of the memory mapping logic as implemented in mm/mmap.c where it
+would have been useful for regular contributors to have been notified.
 
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Add an entry for this part of mm in particular with regular contributors
+tagged as reviewers.
+
+Link: https://lkml.kernel.org/r/20240220064410.4639-1-lstoakes@gmail.com
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
---- a/mm/compaction.c~mm-compaction-add-support-for-0-order-folio-memory-compaction-fix
-+++ a/mm/compaction.c
-@@ -1845,7 +1845,7 @@ static struct folio *compaction_alloc(st
- 	if (order)
- 		prep_compound_page(&dst->page, order);
- 	cc->nr_freepages -= 1 << order;
--	cc->nr_migratepages--;
-+	c->nr_migratepages -= 1 << order;
- 	return page_rmappable_folio(&dst->page);
- }
+--- a/MAINTAINERS~maintainers-add-memory-mapping-entry-with-reviewers
++++ a/MAINTAINERS
+@@ -14111,6 +14111,17 @@ F:	mm/
+ F:	tools/mm/
+ F:	tools/testing/selftests/mm/
  
++MEMORY MAPPING
++M:	Andrew Morton <akpm@linux-foundation.org>
++R:	Liam R. Howlett <Liam.Howlett@oracle.com>
++R:	Vlastimil Babka <vbabka@suse.cz>
++R:	Lorenzo Stoakes <lstoakes@gmail.com>
++L:	linux-mm@kvack.org
++S:	Maintained
++W:	http://www.linux-mm.org
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++F:	mm/mmap.c
++
+ MEMORY TECHNOLOGY DEVICES (MTD)
+ M:	Miquel Raynal <miquel.raynal@bootlin.com>
+ M:	Richard Weinberger <richard@nod.at>
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lstoakes@gmail.com are
 
-kexec-split-crashkernel-reservation-code-out-from-crash_corec-fix.patch
-arch-crash-move-arch_crash_save_vmcoreinfo-out-to-file-vmcore_infoc-fix.patch
-mm-memory_hotplug-export-mhp_supports_memmap_on_memory-fix.patch
-mm-damon-dbgfs-make-debugfs-interface-deprecation-message-a-macro-fix.patch
-mm-ptdump-have-ptdump_check_wx-return-bool-fix.patch
-test_xarray-add-tests-for-advanced-multi-index-use-fix-fix.patch
-mm-compaction-add-support-for-0-order-folio-memory-compaction-fix.patch
-kprobes-use-synchronize_rcu_tasks_rude-in-kprobe_optimizer-fix.patch
-panic-add-option-to-dump-blocked-tasks-in-panic_print-fix.patch
+maintainers-add-memory-mapping-entry-with-reviewers.patch
 
