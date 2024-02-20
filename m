@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07541FBF3
-	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 01:56:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7591611CA1
+	for <mm-commits@vger.kernel.org>; Tue, 20 Feb 2024 02:08:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708394219; cv=none; b=ap+8FwXOWakKFyWAr0w9uvocSsmsW8rruarii6kM8m/FW7soyiefF/h+uR4linRNPKGS6Cc/woWUzhfVTuHCZl4lT9YZlmXff4IXOPhXo6ktB0njLdzxqbRs9Xtv2xfi6REpOTRn8L3upXNYzh0CcfNzrEw98L8tHYMjAxou7c4=
+	t=1708394917; cv=none; b=OZ3TTlx2EjGG7hTPNJGAM6WWnqm1BZXxIr7RicNfIyyTZnXOIXjSf1P7eU7u9tlzSxlJdwM8au4/M35ggo6yOPDK1TQaecFsrd1CUxURgGgPflQqNb0jsse+dc1jfouVWLjMSkZ3mb/72HIaT0HGdgFdtwtBxbVBU2pibYwLddI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708394219; c=relaxed/simple;
-	bh=yQgqQMs3yqZ1L0S61qEHnGPTO8xJ4T4oURfZJkh47hw=;
-	h=Date:To:From:Subject:Message-Id; b=lp5YXdSUdCLXF+XNMLBMuHfnZ8ubgq3sSgp7OL78YpI607X+pWaghm9ElGvdP+SPsL/BkAmFSoOLTSiixR9LO0O2XGCgnwPtqffaD0SXMSqK2SdnE0XZUPNdGEByi1tkjyXzHnTxhS733UUTRm3MLIHIxcYQKHRf40gMLDV4UCg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gRgt2jtX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708394917; c=relaxed/simple;
+	bh=nZG4Nw8zASYDgqtt1dLpd7tdnnzFThQFc2HOMYFbHIs=;
+	h=Date:To:From:Subject:Message-Id; b=PkSUwZIRfS76o/IgsW8XMi7wMt9IcQHM+6nP0/qSwFWn8w5CFBVITH1JaTZgpmsrkykzU+BKEzAH2a1lm31b6+e1RW6nUh+SmdPuqVXRvzu0/GIWBTPBIweOFsI/flKw8DozEhzlMWzgYAGSbpBAzA5g2xL5xRGYNOdH/qSycOM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vK35/lU2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gRgt2jtX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A72CC433C7;
-	Tue, 20 Feb 2024 01:56:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vK35/lU2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCDFEC433C7;
+	Tue, 20 Feb 2024 02:08:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1708394218;
-	bh=yQgqQMs3yqZ1L0S61qEHnGPTO8xJ4T4oURfZJkh47hw=;
+	s=korg; t=1708394916;
+	bh=nZG4Nw8zASYDgqtt1dLpd7tdnnzFThQFc2HOMYFbHIs=;
 	h=Date:To:From:Subject:From;
-	b=gRgt2jtXKv990OmAeDcfYYQn/hndDQc+Nj32/Lydj91uFAaLgb59nKA4KeOEYgJ8U
-	 wpkFV9bIV0WQ+IOtz7RKkT5LjpljzNbTbpzCZJqOB5dn2L3u+r4d0wH3w9bNB9OFTM
-	 xmmq4zzq+50cDAMFkFdrGxsso/Xi0dqbZvJ/0DNQ=
-Date: Mon, 19 Feb 2024 17:56:57 -0800
-To: mm-commits@vger.kernel.org,vitaly.wool@konsulko.com,linmiaohe@huawei.com,hannes@cmpxchg.org,hezhongkun.hzk@bytedance.com,akpm@linux-foundation.org
+	b=vK35/lU2ZdedQugAbzmzvJSdcXkdPund6n48A7CAdCH42jW4MEGFVMweEtNGQPI5f
+	 69hU32uMNGNhxPhQVLJCBRniyic9dUeoAWdTxJKNw1+pTMUJ6ywJ3bSGRqSusAtUjP
+	 JU83pOG336bg+vGLdGSj1tLJ172G9QXHUBe2IoIQ=
+Date: Mon, 19 Feb 2024 18:08:36 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,ying.huang@intel.com,willy@infradead.org,vishal.moola@gmail.com,vbabka@suse.cz,shikemeng@huaweicloud.com,ryan.roberts@arm.com,mgorman@techsingularity.net,mcgrof@kernel.org,kirill.shutemov@linux.intel.com,hannes@cmpxchg.org,fengwei.yin@intel.com,david@redhat.com,baolin.wang@linux.alibaba.com,a.manzanares@samsung.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-z3fold-fix-the-comment-for-__encode_handle.patch added to mm-unstable branch
-Message-Id: <20240220015658.8A72CC433C7@smtp.kernel.org>
+Subject: + mm-page_alloc-remove-unused-fpi_flags-in-free_pages_prepare.patch added to mm-unstable branch
+Message-Id: <20240220020836.DCDFEC433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/z3fold: fix the comment for __encode_handle()
+     Subject: mm/page_alloc: remove unused fpi_flags in free_pages_prepare()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-z3fold-fix-the-comment-for-__encode_handle.patch
+     mm-page_alloc-remove-unused-fpi_flags-in-free_pages_prepare.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-z3fold-fix-the-comment-for-__encode_handle.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-remove-unused-fpi_flags-in-free_pages_prepare.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,52 +58,122 @@ branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there every 2-3 working days
 
 ------------------------------------------------------
-From: Zhongkun He <hezhongkun.hzk@bytedance.com>
-Subject: mm/z3fold: fix the comment for __encode_handle()
-Date: Mon, 19 Feb 2024 10:44:53 +0800
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/page_alloc: remove unused fpi_flags in free_pages_prepare()
+Date: Fri, 16 Feb 2024 12:04:29 -0500
 
-The comment is confusing that Pool lock should be held as this function
-accesses first_num above the __encode_handle() because first_num is the
-element of z3fold_header which is protected by z3fold_header->page_lock.
+Patch series "Enable >0 order folio memory compaction", v6.
 
-I found the same comment for encode_handle() in zbud.c by accident ,Pool
-lock should be held as this function accesses first|last_chunks, which is
-the element of zbud_header and it does not have any lock, so pool lock
-should be held.
+This patchset enables >0 order folio memory compaction, which is one of
+the prerequisitions for large folio support[1].
 
-Z3fold is based on zbud, maybe the comment come from zbud, but it was
-wrong, so fix it.
+I am aware of that split free pages is necessary for folio migration in
+compaction, since if >0 order free pages are never split and no order-0
+free page is scanned, compaction will end prematurely due to migration
+returns -ENOMEM.  Free page split becomes a must instead of an
+optimization.
 
-Link: https://lkml.kernel.org/r/20240219024453.2240147-1-hezhongkun.hzk@bytedance.com
-Signed-off-by: Zhongkun He <hezhongkun.hzk@bytedance.com>
+lkp ncompare results (on a 8-CPU (Intel Xeon E5-2650 v4 @2.20GHz) 16G VM)
+for default LRU (-no-mglru) and CONFIG_LRU_GEN are shown at the bottom,
+copied from V3[4].
+
+In sum, most of vm-scalability applications do not see performance change,
+and the others see ~4% to ~26% performance boost under default LRU and ~2%
+to ~6% performance boost under CONFIG_LRU_GEN.
+
+To support >0 order folio compaction, the patchset changes how free pages used
+for migration are kept during compaction. Free pages used to be split into
+order-0 pages that are post allocation processed (i.e., PageBuddy flag cleared,
+page order stored in page->private is zeroed, and page reference is set to 1).
+Now all free pages are kept in a NR_PAGE_ORDER array of page lists based
+on their order without post allocation process. When migrate_pages() asks for
+a new page, one of the free pages, based on the requested page order, is
+then processed and given out. And THP <2MB would need this feature.
+
+[1] https://lore.kernel.org/linux-mm/f8d47176-03a8-99bf-a813-b5942830fd73@arm.com/
+[2] https://lore.kernel.org/linux-mm/20231113170157.280181-1-zi.yan@sent.com/
+[3] https://lore.kernel.org/linux-mm/20240123034636.1095672-1-zi.yan@sent.com/
+[4] https://lore.kernel.org/linux-mm/20240202161554.565023-1-zi.yan@sent.com/
+[5] https://lore.kernel.org/linux-mm/20240212163510.859822-1-zi.yan@sent.com/
+[6] https://lore.kernel.org/linux-mm/20240214220420.1229173-1-zi.yan@sent.com/
+
+
+This patch (of 4):
+
+fpi_flags is only passed to should_skip_kasan_poison() but ignored by the
+function.  Remove the unused parameter.
+
+Link: https://lkml.kernel.org/r/20240216170432.1268753-2-zi.yan@sent.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Adam Manzanares <a.manzanares@samsung.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Yin Fengwei <fengwei.yin@intel.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/z3fold.c~mm-z3fold-fix-the-comment-for-__encode_handle
-+++ a/mm/z3fold.c
-@@ -364,8 +364,9 @@ static inline int __idx(struct z3fold_he
+--- a/mm/page_alloc.c~mm-page_alloc-remove-unused-fpi_flags-in-free_pages_prepare
++++ a/mm/page_alloc.c
+@@ -1061,7 +1061,7 @@ out:
+  * on-demand allocation and then freed again before the deferred pages
+  * initialization is done, but this is not likely to happen.
+  */
+-static inline bool should_skip_kasan_poison(struct page *page, fpi_t fpi_flags)
++static inline bool should_skip_kasan_poison(struct page *page)
+ {
+ 	if (IS_ENABLED(CONFIG_KASAN_GENERIC))
+ 		return deferred_pages_enabled();
+@@ -1081,10 +1081,10 @@ static void kernel_init_pages(struct pag
  }
  
- /*
-- * Encodes the handle of a particular buddy within a z3fold page
-- * Pool lock should be held as this function accesses first_num
-+ * Encodes the handle of a particular buddy within a z3fold page.
-+ * Zhdr->page_lock should be held as this function accesses first_num
-+ * if bud != HEADLESS.
-  */
- static unsigned long __encode_handle(struct z3fold_header *zhdr,
- 				struct z3fold_buddy_slots *slots,
+ static __always_inline bool free_pages_prepare(struct page *page,
+-			unsigned int order, fpi_t fpi_flags)
++			unsigned int order)
+ {
+ 	int bad = 0;
+-	bool skip_kasan_poison = should_skip_kasan_poison(page, fpi_flags);
++	bool skip_kasan_poison = should_skip_kasan_poison(page);
+ 	bool init = want_init_on_free();
+ 	bool compound = PageCompound(page);
+ 
+@@ -1266,7 +1266,7 @@ static void __free_pages_ok(struct page
+ 	unsigned long pfn = page_to_pfn(page);
+ 	struct zone *zone = page_zone(page);
+ 
+-	if (!free_pages_prepare(page, order, fpi_flags))
++	if (!free_pages_prepare(page, order))
+ 		return;
+ 
+ 	/*
+@@ -2343,7 +2343,7 @@ static bool free_unref_page_prepare(stru
+ {
+ 	int migratetype;
+ 
+-	if (!free_pages_prepare(page, order, FPI_NONE))
++	if (!free_pages_prepare(page, order))
+ 		return false;
+ 
+ 	migratetype = get_pfnblock_migratetype(page, pfn);
 _
 
-Patches currently in -mm which might be from hezhongkun.hzk@bytedance.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-z3fold-remove-unneeded-spinlock-in-z3fold_alloc.patch
-mm-z3fold-remove-unneeded-spinlock.patch
-mm-z3fold-fix-the-comment-for-__encode_handle.patch
+mm-page_alloc-remove-unused-fpi_flags-in-free_pages_prepare.patch
+mm-compaction-enable-compacting-0-order-folios.patch
+mm-compaction-add-support-for-0-order-folio-memory-compaction.patch
+mm-compaction-optimize-0-order-folio-compaction-with-free-page-split.patch
 
